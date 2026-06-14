@@ -156,8 +156,18 @@ const protos = [
 	},
 	{
 		name: 'github',
-		protoFile: 'jedi/github.proto',
+		protoFile: 'git/github.proto',
 		package: 'github',
+	},
+	{
+		name: 'git_common',
+		protoFile: 'git/git_common.proto',
+		package: 'git',
+	},
+	{
+		name: 'forgejo',
+		protoFile: 'git/forgejo.proto',
+		package: 'forgejo',
 	},
 	{
 		name: 'snapshot',

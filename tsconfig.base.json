@@ -18,11 +18,13 @@
 			"@kbve/astro": ["packages/npm/astro/src/index.ts"],
 			"@kbve/astro/ui": ["packages/npm/astro/src/ui.ts"],
 			"@kbve/astro/components/*": ["packages/npm/astro/src/components/*"],
+			"@kbve/core": ["packages/npm/core/src/index.ts"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
 			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
-			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"]
+			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"],
+			"@kbve/rn": ["packages/npm/rn/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

@@ -585,11 +585,38 @@ function RepoRow({
 export default function ReactForgejoRepoTable() {
 	const active = useTabActive('overview');
 	const repos = useStore(forgejoService.$repos);
+	const loading = useStore(forgejoService.$loading);
 	const expandedRepo = useStore(forgejoService.$expandedRepo);
 	const repoDetails = useStore(forgejoService.$repoDetails);
 
 	if (!active) return null;
-	if (repos.length === 0) return null;
+	if (repos.length === 0) {
+		return (
+			<div
+				className="not-content"
+				style={{
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					gap: 8,
+					padding: '2rem',
+					color: 'var(--sl-color-gray-3, #8b949e)',
+					fontSize: '0.85rem',
+				}}>
+				{loading ? (
+					<>
+						<Loader2
+							size={16}
+							style={{ animation: 'spin 1s linear infinite' }}
+						/>
+						Loading repositories…
+					</>
+				) : (
+					'No repositories found'
+				)}
+			</div>
+		);
+	}
 
 	return (
 		<div className="not-content">

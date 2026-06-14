@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package git;
+
+// =============================================================================
+// Shared git-forge primitives.
+//
+// Types common to every git forge KBVE integrates (GitHub, Forgejo). Forge-
+// specific schemas (git/github.proto, git/forgejo.proto) import this for the
+// shared enums and actor/commit shapes so a single source of truth backs the
+// jedi Rust clients and the astro-kbve dashboard.
+// =============================================================================
+
+// Which forge a record originated from.
+enum GitForge {
+  GIT_FORGE_UNSPECIFIED = 0;
+  GIT_FORGE_GITHUB = 1;
+  GIT_FORGE_FORGEJO = 2;
+}
+
+// Repository / org visibility, normalised across forges.
+enum GitVisibility {
+  GIT_VISIBILITY_UNSPECIFIED = 0;
+  GIT_VISIBILITY_PUBLIC = 1;
+  GIT_VISIBILITY_PRIVATE = 2;
+  GIT_VISIBILITY_LIMITED = 3;
+}
+
+// A minimal user/owner reference as it appears nested in other records.
+message GitActor {
+  uint64 id = 1;
+  string login = 2;
+  string avatar_url = 3;
+}
+
+// Authorship metadata on a commit.
+message GitCommitAuthor {
+  string name = 1;
+  string email = 2;
+  string date = 3;
+}

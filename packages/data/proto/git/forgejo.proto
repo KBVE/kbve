@@ -1,0 +1,335 @@
+syntax = "proto3";
+
+package forgejo;
+
+import "git/git_common.proto";
+
+// =============================================================================
+// Forgejo (Gitea-compatible) REST API v1 types.
+//
+// Source of truth for the jedi `forgejo` client structs
+// (packages/rust/jedi/src/entity/forgejo/types.rs) and the astro-kbve dashboard
+// interfaces (apps/kbve/astro-kbve/src/components/dashboard/forgejoService.ts),
+// which are presently hand-maintained in both languages. Field names match the
+// Forgejo JSON wire format; the few that differ (`type`, `ref`, `LFS`) are
+// re-mapped with serde field attributes in the jedi build.rs.
+// =============================================================================
+
+// ── Owners & users ──────────────────────────────────────────────────
+
+message ForgejoOwner {
+  uint64 id = 1;
+  string login = 2;
+  string avatar_url = 3;
+}
+
+message ForgejoUser {
+  uint64 id = 1;
+  string login = 2;
+  string full_name = 3;
+  string email = 4;
+  string avatar_url = 5;
+  bool is_admin = 6;
+  string last_login = 7;
+  string created = 8;
+  bool active = 9;
+  bool prohibit_login = 10;
+}
+
+message ForgejoOrg {
+  uint64 id = 1;
+  string username = 2;
+  string full_name = 3;
+  string avatar_url = 4;
+  string description = 5;
+  string visibility = 6;
+}
+
+message ForgejoPermissions {
+  bool admin = 1;
+  bool push = 2;
+  bool pull = 3;
+}
+
+message ForgejoCollaborator {
+  ForgejoUser user = 1;
+  ForgejoPermissions permissions = 2;
+}
+
+// ── Repositories ────────────────────────────────────────────────────
+
+message ForgejoRepo {
+  uint64 id = 1;
+  string name = 2;
+  string full_name = 3;
+  string description = 4;
+  bool private = 5;
+  bool fork = 6;
+  bool mirror = 7;
+  bool archived = 8;
+  uint64 size = 9;
+  uint64 git_size = 10;
+  uint64 lfs_size = 11;
+  string default_branch = 12;
+  string updated_at = 13;
+  string language = 14;
+  ForgejoOwner owner = 15;
+}
+
+// ── Branches & commits ──────────────────────────────────────────────
+
+message ForgejoBranchCommit {
+  string id = 1;
+  string message = 2;
+  string timestamp = 3;
+}
+
+message ForgejoBranch {
+  string name = 1;
+  ForgejoBranchCommit commit = 2;
+  bool protected = 3;
+}
+
+message ForgejoCommitDetail {
+  string message = 1;
+  git.GitCommitAuthor author = 2;
+}
+
+message ForgejoCommit {
+  string sha = 1;
+  ForgejoCommitDetail commit = 2;
+  string html_url = 3;
+}
+
+// ── Releases & tags ─────────────────────────────────────────────────
+
+message ForgejoReleaseAsset {
+  uint64 id = 1;
+  string name = 2;
+  uint64 size = 3;
+  uint64 download_count = 4;
+  string created_at = 5;
+  string browser_download_url = 6;
+}
+
+message ForgejoRelease {
+  uint64 id = 1;
+  string tag_name = 2;
+  string name = 3;
+  string body = 4;
+  bool draft = 5;
+  bool prerelease = 6;
+  string created_at = 7;
+  string published_at = 8;
+  repeated ForgejoReleaseAsset assets = 9;
+}
+
+message ForgejoTagCommit {
+  string sha = 1;
+  string url = 2;
+}
+
+message ForgejoTag {
+  string name = 1;
+  string message = 2;
+  string id = 3;
+  ForgejoTagCommit commit = 4;
+  string zipball_url = 5;
+  string tarball_url = 6;
+}
+
+// ── Teams ───────────────────────────────────────────────────────────
+
+message ForgejoTeam {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  string permission = 4;
+  repeated string units = 5;
+  bool includes_all_repositories = 6;
+  bool can_create_org_repo = 7;
+  ForgejoOrg organization = 8;
+}
+
+// ── Webhooks & protections ──────────────────────────────────────────
+
+message ForgejoHook {
+  uint64 id = 1;
+  string type = 2;
+  bool active = 3;
+  repeated string events = 4;
+  map<string, string> config = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message ForgejoBranchProtection {
+  string branch_name = 1;
+  string rule_name = 2;
+  bool enable_push = 3;
+  uint32 required_approvals = 4;
+  bool enable_status_check = 5;
+  bool require_signed_commits = 6;
+  bool block_on_outdated_branch = 7;
+  string created_at = 8;
+}
+
+// ── Actions secrets & variables ─────────────────────────────────────
+
+message ForgejoSecret {
+  string name = 1;
+  string created_at = 2;
+}
+
+message ForgejoVariable {
+  string name = 1;
+  string data = 2;
+}
+
+message ForgejoRegistrationToken {
+  string token = 1;
+}
+
+// ── Issues, pulls, comments ─────────────────────────────────────────
+
+message ForgejoPullMeta {
+  bool merged = 1;
+}
+
+message ForgejoIssue {
+  uint64 id = 1;
+  uint64 number = 2;
+  string title = 3;
+  string state = 4;
+  bool is_locked = 5;
+  uint64 comments = 6;
+  string created_at = 7;
+  string html_url = 8;
+  ForgejoOwner user = 9;
+  ForgejoPullMeta pull_request = 10;
+}
+
+message ForgejoPullBranch {
+  string label = 1;
+  string ref = 2;
+  string sha = 3;
+}
+
+message ForgejoPull {
+  uint64 id = 1;
+  uint64 number = 2;
+  string title = 3;
+  string body = 4;
+  string state = 5;
+  bool merged = 6;
+  bool mergeable = 7;
+  bool is_locked = 8;
+  uint64 comments = 9;
+  ForgejoPullBranch base = 10;
+  ForgejoPullBranch head = 11;
+  string created_at = 12;
+  string updated_at = 13;
+  string html_url = 14;
+  ForgejoOwner user = 15;
+}
+
+message ForgejoComment {
+  uint64 id = 1;
+  string body = 2;
+  string html_url = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  ForgejoOwner user = 6;
+}
+
+message ForgejoLabel {
+  uint64 id = 1;
+  string name = 2;
+  string color = 3;
+  string description = 4;
+  bool exclusive = 5;
+}
+
+message ForgejoMilestone {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  string state = 4;
+  uint64 open_issues = 5;
+  uint64 closed_issues = 6;
+  string due_on = 7;
+  string created_at = 8;
+}
+
+// ── Keys ────────────────────────────────────────────────────────────
+
+message ForgejoPublicKey {
+  uint64 id = 1;
+  string title = 2;
+  string fingerprint = 3;
+  string key = 4;
+  bool read_only = 5;
+  string created_at = 6;
+}
+
+message ForgejoGpgKey {
+  uint64 id = 1;
+  string key_id = 2;
+  string public_key = 3;
+  bool can_sign = 4;
+  bool can_certify = 5;
+  string created_at = 6;
+}
+
+// ── Packages ────────────────────────────────────────────────────────
+
+message ForgejoPackage {
+  uint64 id = 1;
+  string type = 2;
+  string name = 3;
+  string version = 4;
+  ForgejoOwner owner = 5;
+  string created_at = 6;
+  string html_url = 7;
+}
+
+// ── System / admin ──────────────────────────────────────────────────
+
+message ForgejoCronTask {
+  string name = 1;
+  string schedule = 2;
+  string next = 3;
+  string prev = 4;
+  uint64 exec_times = 5;
+}
+
+message ForgejoVersion {
+  string version = 1;
+}
+
+// ── Server-side aggregates (jedi-computed, not raw Forgejo) ──────────
+
+message ForgejoStats {
+  uint64 repo_count = 1;
+  uint64 total_size_kb = 2;
+  uint64 git_size_kb = 3;
+  uint64 lfs_size_kb = 4;
+  uint64 public = 5;
+  uint64 private = 6;
+  uint64 mirror = 7;
+  uint64 archived = 8;
+  uint64 fork = 9;
+  bool truncated = 10;
+}
+
+message ForgejoStorage {
+  bool quota_enabled = 1;
+  uint64 owners_counted = 2;
+  bool truncated = 3;
+  uint64 repos_bytes = 4;
+  uint64 lfs_bytes = 5;
+  uint64 attachments_bytes = 6;
+  uint64 artifacts_bytes = 7;
+  uint64 packages_bytes = 8;
+  uint64 total_bytes = 9;
+}

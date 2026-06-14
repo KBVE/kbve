@@ -1,0 +1,8 @@
+.expo/
+dist/
+web-build/
+*.orig.*
+ios/
+android/
+.kotlin/
+expo-env.d.ts

@@ -395,6 +395,28 @@ fn main() {
             "github.GitHubRateLimit",
             "#[derive(serde::Serialize, serde::Deserialize)]",
         )
+        // Shared git-forge primitives (explicit so the `.git` prefix can't also
+        // catch the `github` package) + a whole-package matcher for Forgejo.
+        .type_attribute(
+            "git.GitForge",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "git.GitVisibility",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "git.GitActor",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            "git.GitCommitAuthor",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
+        .type_attribute(
+            ".forgejo",
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        )
         // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
@@ -404,7 +426,9 @@ fn main() {
                 "../../data/proto/jedi/jedi.proto",
                 "../../data/proto/jedi/twitch.proto",
                 "../../data/proto/jedi/clickhouse.proto",
-                "../../data/proto/jedi/github.proto",
+                "../../data/proto/git/github.proto",
+                "../../data/proto/git/git_common.proto",
+                "../../data/proto/git/forgejo.proto",
             ],
             &["../../data/proto/jedi", "../../data/proto"],
         )
