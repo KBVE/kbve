@@ -9,6 +9,7 @@ export * from './primitives/Divider';
 export * from './primitives/Badge';
 export * from './primitives/Button';
 export * from './primitives/PressableSurface';
+export * from './primitives/Checkbox';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';

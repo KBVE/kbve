@@ -48,6 +48,7 @@ export type AuthEvent =
 	  }
 	| { type: 'sign_up'; email: string; password: string; captchaToken: string }
 	| { type: 'sign_in_oauth'; provider: OAuthProvider }
+	| { type: 'set_username'; username: string }
 	| { type: 'sign_out' }
 	| { type: 'session_changed'; session: AuthSession | null }
 	| { type: 'auth_error'; message: string };
@@ -67,12 +68,14 @@ export type AuthEffect =
 			captchaToken: string;
 	  }
 	| { type: 'supabase.sign_in_oauth'; provider: OAuthProvider }
+	| { type: 'api.set_username'; username: string }
 	| { type: 'supabase.sign_out' };
 
 export interface AuthViewModel {
 	status: AuthStatus;
 	loading: boolean;
 	signedIn: boolean;
+	needsUsername: boolean;
 	user: AuthUser | null;
 	username: string | null;
 	error: string | null;
@@ -138,6 +141,13 @@ function reduce(
 					},
 				],
 			};
+		case 'set_username':
+			return {
+				state: { ...state, error: null },
+				effects: [
+					{ type: 'api.set_username', username: event.username },
+				],
+			};
 		case 'sign_out':
 			return {
 				state: {
@@ -171,13 +181,16 @@ function reduce(
 }
 
 function project(state: AuthState): AuthViewModel {
+	const signedInNow = state.status === 'signed_in' && state.session !== null;
+	const username = state.user?.username ?? null;
 	return {
 		status: state.status,
 		loading:
 			state.status === 'loading' || state.status === 'authenticating',
-		signedIn: state.status === 'signed_in' && state.session !== null,
+		signedIn: signedInNow,
+		needsUsername: signedInNow && username === null,
 		user: state.user,
-		username: state.user?.username ?? null,
+		username,
 		error: state.error,
 	};
 }

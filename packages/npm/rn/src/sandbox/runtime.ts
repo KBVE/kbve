@@ -44,6 +44,8 @@ const RUNTIME = `
 			if (typeof window.__kbvePluginMain === 'function') {
 				try { window.__kbvePluginMain(kbve); }
 				catch (e) { send({ kind: 'plugin/error', message: String(e && e.message || e) }); }
+			} else {
+				kbve.ready();
 			}
 			return;
 		}
@@ -105,9 +107,14 @@ function loaderFor(entry: PluginEntry): string {
 	}
 })();
 </script>`;
+		case 'url-page':
 		case 'native':
 			return '';
 	}
+}
+
+export function sandboxRuntimeScript(): string {
+	return RUNTIME;
 }
 
 export function buildSandboxHtml(entry: PluginEntry): string {

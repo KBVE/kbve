@@ -19,6 +19,14 @@
 				"cwd": "apps/kbve/isometric"
 			}
 		},
+		"serve:dist": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["node scripts/serve-coi.mjs"],
+				"cwd": "apps/kbve/isometric"
+			}
+		},
 		"wasm": {
 			"executor": "nx:run-commands",
 			"cache": false,

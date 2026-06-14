@@ -17,9 +17,11 @@ export const Sandbox = forwardRef<SandboxHandle, SandboxProps>(function Sandbox(
 	ref,
 ) {
 	const frameRef = useRef<HTMLIFrameElement>(null);
+	const entry = manifest.entry;
+	const hostedPage = entry.kind === 'url-page';
 	const html = useMemo(
-		() => buildSandboxHtml(manifest.entry),
-		[manifest.entry],
+		() => (hostedPage ? '' : buildSandboxHtml(entry)),
+		[hostedPage, entry],
 	);
 
 	const controller = useMemo(() => {
@@ -51,13 +53,17 @@ export const Sandbox = forwardRef<SandboxHandle, SandboxProps>(function Sandbox(
 		return () => window.removeEventListener('message', onMessage);
 	}, [controller]);
 
+	const frameSource = hostedPage ? { src: entry.url } : { srcDoc: html };
+
 	return (
 		<iframe
 			ref={frameRef}
 			title={manifest.id}
-			srcDoc={html}
-			sandbox="allow-scripts"
-			onLoad={() => controller.init()}
+			{...frameSource}
+			sandbox="allow-scripts allow-same-origin"
+			onLoad={() => {
+				if (!hostedPage) controller.init();
+			}}
 			style={{ flex: 1, border: 'none', background: 'transparent' }}
 		/>
 	);

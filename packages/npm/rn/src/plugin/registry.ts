@@ -139,6 +139,7 @@ const EMPTY_SURFACES: Record<PluginSurfaceSlot, InstalledPlugin[]> = {
 	panel: [],
 	modal: [],
 	command: [],
+	canvas: [],
 	background: [],
 };
 
@@ -152,6 +153,7 @@ function project(state: PluginRegistryState): PluginRegistryView {
 		panel: [],
 		modal: [],
 		command: [],
+		canvas: [],
 		background: [],
 	};
 	for (const plugin of enabled) {

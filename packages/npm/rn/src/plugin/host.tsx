@@ -23,9 +23,11 @@ export function usePluginRegistry(registry: PluginRegistry) {
 const PluginFrame = memo(function PluginFrame({
 	plugin,
 	api,
+	fullBleed,
 }: {
 	plugin: InstalledPlugin;
 	api: HostApiTable;
+	fullBleed?: boolean;
 }) {
 	const [entities, setEntities] = useState<UIEntity[]>([]);
 	const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,18 @@ const PluginFrame = memo(function PluginFrame({
 					native entry — no host component registered
 				</Text>
 			</Surface>
+		);
+	}
+
+	if (fullBleed) {
+		return (
+			<Sandbox
+				manifest={plugin.manifest}
+				granted={plugin.granted}
+				api={api}
+				style={styles.fullBleed}
+				callbacks={{ onError: setError }}
+			/>
 		);
 	}
 
@@ -76,14 +90,16 @@ export const PluginHost = memo(function PluginHost({
 }) {
 	const view = usePluginRegistry(registry);
 	const plugins = view.bySurface[slot];
+	const fullBleed = slot === 'canvas';
 	if (!plugins.length) return null;
 	return (
-		<View style={styles.host}>
+		<View style={fullBleed ? styles.canvasHost : styles.host}>
 			{plugins.map((plugin) => (
 				<PluginFrame
 					key={plugin.manifest.id}
 					plugin={plugin}
 					api={api}
+					fullBleed={fullBleed}
 				/>
 			))}
 		</View>
@@ -92,6 +108,8 @@ export const PluginHost = memo(function PluginHost({
 
 const styles = StyleSheet.create({
 	host: { gap: tokens.space.md },
+	canvasHost: { flex: 1 },
 	frame: { gap: tokens.space.sm },
 	sandbox: { minHeight: 1, width: '100%' },
+	fullBleed: { flex: 1, width: '100%' },
 });

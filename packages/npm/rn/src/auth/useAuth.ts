@@ -19,6 +19,7 @@ export interface AuthActions {
 	) => void;
 	signUp: (email: string, password: string, captchaToken: string) => void;
 	signInWithOAuth: (provider: OAuthProvider) => void;
+	setUsername: (username: string) => void;
 	signOut: () => void;
 }
 
@@ -41,6 +42,8 @@ export function useAuthActions(): AuthActions {
 			}),
 		signInWithOAuth: (provider) =>
 			authStore.dispatch({ type: 'sign_in_oauth', provider }),
+		setUsername: (username) =>
+			authStore.dispatch({ type: 'set_username', username }),
 		signOut: () => authStore.dispatch({ type: 'sign_out' }),
 	};
 }

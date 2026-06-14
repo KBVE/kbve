@@ -4,7 +4,7 @@ import { WebView } from 'react-native-webview';
 import type { WebViewMessageEvent } from 'react-native-webview';
 import { HostBridge } from './bridge';
 import { SandboxController } from './controller';
-import { buildSandboxHtml } from './runtime';
+import { buildSandboxHtml, sandboxRuntimeScript } from './runtime';
 import type { SandboxHandle, SandboxProps } from './Sandbox.types';
 
 export type { SandboxHandle, SandboxProps } from './Sandbox.types';
@@ -14,9 +14,11 @@ export const Sandbox = forwardRef<SandboxHandle, SandboxProps>(function Sandbox(
 	ref,
 ) {
 	const webRef = useRef<WebView>(null);
+	const entry = manifest.entry;
+	const hostedPage = entry.kind === 'url-page';
 	const html = useMemo(
-		() => buildSandboxHtml(manifest.entry),
-		[manifest.entry],
+		() => (hostedPage ? '' : buildSandboxHtml(entry)),
+		[hostedPage, entry],
 	);
 
 	const controller = useMemo(() => {
@@ -40,14 +42,23 @@ export const Sandbox = forwardRef<SandboxHandle, SandboxProps>(function Sandbox(
 		[controller],
 	);
 
+	const injectBridge = hostedPage && entry.injectBridge !== false;
+	const source = hostedPage ? { uri: entry.url } : { html };
+
 	return (
 		<WebView
 			ref={webRef}
 			style={[styles.web, style]}
 			originWhitelist={['*']}
-			source={{ html }}
+			source={source}
 			javaScriptEnabled
-			onLoadEnd={() => controller.init()}
+			domStorageEnabled
+			injectedJavaScriptBeforeContentLoaded={
+				injectBridge ? sandboxRuntimeScript() : undefined
+			}
+			onLoadEnd={() => {
+				if (!hostedPage || injectBridge) controller.init();
+			}}
 			onMessage={(event: WebViewMessageEvent) =>
 				controller.handleRaw(event.nativeEvent.data)
 			}

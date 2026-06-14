@@ -5,11 +5,13 @@ export type PluginSurfaceSlot =
 	| 'panel'
 	| 'modal'
 	| 'command'
+	| 'canvas'
 	| 'background';
 
 export type PluginEntry =
 	| { kind: 'inline-js'; source: string }
 	| { kind: 'url-js'; url: string }
+	| { kind: 'url-page'; url: string; injectBridge?: boolean }
 	| { kind: 'wasm'; url: string; exportName?: string }
 	| { kind: 'native'; componentId: string };
 
@@ -53,6 +55,9 @@ export function validateManifest(manifest: PluginManifest): string[] {
 	if (manifest.entry.kind === 'url-js' && !manifest.entry.url) {
 		errors.push('url-js entry missing url');
 	}
+	if (manifest.entry.kind === 'url-page' && !manifest.entry.url) {
+		errors.push('url-page entry missing url');
+	}
 	if (manifest.entry.kind === 'inline-js' && !manifest.entry.source.trim()) {
 		errors.push('inline-js entry missing source');
 	}
@@ -61,4 +66,8 @@ export function validateManifest(manifest: PluginManifest): string[] {
 
 export function isSandboxed(entry: PluginEntry): boolean {
 	return entry.kind !== 'native';
+}
+
+export function isHostedPage(entry: PluginEntry): boolean {
+	return entry.kind === 'url-page';
 }
