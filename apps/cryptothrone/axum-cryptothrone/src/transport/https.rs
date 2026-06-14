@@ -256,9 +256,108 @@ async fn shutdown_signal() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::astro::{StaticConfig, build_static_router};
     use axum::{body::Body, http::StatusCode};
     use http_body_util::BodyExt;
+    use std::path::PathBuf;
     use tower::ServiceExt;
+
+    /// Build a throwaway Astro `dist/` with a nested Discord Activity bundle,
+    /// then serve it through the real static router — exactly as the binary
+    /// does (no `trim_trailing_slash`: that layer 307-loops `ServeDir`'s
+    /// directory redirect on `trailingSlash: always` routes and was reverted
+    /// in #12442). Guards the `/discord/discord.js` path that 404s in prod
+    /// only because the live image predates the bundle.
+    fn discord_static_app(dir: &PathBuf) -> Router {
+        std::fs::create_dir_all(dir.join("discord")).unwrap();
+        std::fs::write(
+            dir.join("discord/index.html"),
+            "<!doctype html><script src=\"discord.js\" defer></script>",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("discord/discord.js"),
+            "console.log('cryptothrone discord activity');",
+        )
+        .unwrap();
+        std::fs::write(dir.join("404.html"), "<h1>404</h1>").unwrap();
+
+        let cfg = StaticConfig {
+            base_dir: dir.clone(),
+            precompressed: false,
+        };
+        build_static_router(&cfg)
+    }
+
+    #[tokio::test]
+    async fn test_discord_js_served_not_404() {
+        let dir = std::env::temp_dir().join(format!("axum-ct-discord-{}", std::process::id()));
+        let app = discord_static_app(&dir);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/discord.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK, "discord.js must not 404");
+        let ct = response
+            .headers()
+            .get(header::CONTENT_TYPE)
+            .map(|v| v.to_str().unwrap().to_owned())
+            .unwrap_or_default();
+        assert!(
+            ct.contains("javascript"),
+            "discord.js should serve as JS, got: {ct}"
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert!(
+            std::str::from_utf8(&body)
+                .unwrap()
+                .contains("discord activity")
+        );
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[tokio::test]
+    async fn test_discord_index_serves_at_trailing_slash() {
+        let dir = std::env::temp_dir().join(format!("axum-ct-discord-idx-{}", std::process::id()));
+
+        // `/discord/` is the real Discord Activity load path — serves index.html.
+        let slash = discord_static_app(&dir)
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(slash.status(), StatusCode::OK, "/discord/ must serve index");
+
+        // `/discord` (no slash) gets a single 307 to add the slash — NOT a loop.
+        let bare = discord_static_app(&dir)
+            .oneshot(
+                Request::builder()
+                    .uri("/discord")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            bare.status(),
+            StatusCode::TEMPORARY_REDIRECT,
+            "/discord redirects once to /discord/"
+        );
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
 
     fn test_router() -> Router {
         let middleware = tower::ServiceBuilder::new()
