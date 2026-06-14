@@ -26,8 +26,19 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
 COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 
+# Public Discord Activity client id, baked into the discord.js bundle at build
+# time. This is a public value (visible client-side); the OAuth secret stays
+# server-side as a sealed secret. Override via --build-arg if it ever changes.
+ARG PUBLIC_DISCORD_CLIENT_ID="1515611992172531712"
+ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
+
 WORKDIR /app/apps/cryptothrone/astro-cryptothrone
+# Build the standalone embed.js + Discord Activity discord.js into public/
+# first, so `astro build` copies them into dist (served by the rust binary at
+# /embed/embed.js and /discord/{index.html,discord.js}).
 RUN rm -rf .astro && npx astro sync && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.embed.config.mts && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.discord.config.mts && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
 
 # ============================================================================

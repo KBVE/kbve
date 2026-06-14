@@ -17,13 +17,19 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 
 // Backend bridge (P3b): exchanges the Discord OAuth code for a Discord
 // access_token AND a game-server session {jwt, username}, linking the Discord
-// user to a KBVE profile. Routed through Discord's proxy.
-const SESSION_ENDPOINT = '/.proxy/api/discord/session';
+// user to a KBVE profile. Same origin as the Activity (axum-cryptothrone serves
+// both /discord/* and /api/*), so it rides the portal ROOT mapping — a relative
+// path, not /.proxy/ (that prefix is for the external WS hosts below).
+const SESSION_ENDPOINT = '/api/discord/session';
 
-// Host mappings so the game's plain `new WebSocket('wss://game.cryptothrone…')`
-// calls are transparently rewritten through Discord's proxy — net-config and
-// the rest of the game stay unchanged. These prefixes must match the URL
-// Mappings configured in the Discord developer portal.
+// External hosts the game's plain `new WebSocket('wss://game.cryptothrone…')`
+// calls reach. patchUrlMappings rewrites those real URLs through Discord's
+// proxy transparently — net-config and the rest of the game stay unchanged.
+// Each prefix must match a URL Mapping in the Discord developer portal:
+//   /cryptothrone-game -> game.cryptothrone.com
+//   /cryptothrone-chat -> chat.kbve.com
+// (plus the ROOT mapping `/` -> the axum-cryptothrone host that serves the
+// Activity + the session endpoint.)
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/cryptothrone-game', target: 'game.cryptothrone.com' },
 	{ prefix: '/cryptothrone-chat', target: 'chat.kbve.com' },
