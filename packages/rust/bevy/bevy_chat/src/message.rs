@@ -163,6 +163,15 @@ impl ChatMessage {
             payload,
         })
     }
+
+    /// Parse an IRC PRIVMSG, falling back to a plain `Chat` message (platform
+    /// `irc`) for lines without the `[KIND] sender@platform:` wrapper — so
+    /// chatter from real IRC clients still reaches game clients. `sender` is
+    /// the IRC nick from the line prefix, used only for the plain fallback.
+    pub fn from_irc_or_plain(channel: &str, sender: &str, text: &str) -> Self {
+        Self::from_irc_privmsg(channel, text)
+            .unwrap_or_else(|| Self::chat(sender, "irc", channel, text))
+    }
 }
 
 #[cfg(test)]
@@ -183,6 +192,23 @@ mod tests {
         assert_eq!(parsed.platform, "discord");
         assert_eq!(parsed.content, "hello world");
         assert!(parsed.payload.is_none());
+    }
+
+    #[test]
+    fn from_irc_or_plain_wraps_bare_irc_lines() {
+        // Wrapped game message → parsed as-is.
+        let wrapped = ChatMessage::from_irc_or_plain("#general", "ergo", "[CHAT] bob@discord: hi");
+        assert_eq!(wrapped.kind, MessageKind::Chat);
+        assert_eq!(wrapped.sender, "bob");
+        assert_eq!(wrapped.platform, "discord");
+        assert_eq!(wrapped.content, "hi");
+
+        // Plain IRC line (no [KIND] wrapper) → falls back to a Chat from irc.
+        let plain = ChatMessage::from_irc_or_plain("#general", "carol", "just chatting");
+        assert_eq!(plain.kind, MessageKind::Chat);
+        assert_eq!(plain.sender, "carol");
+        assert_eq!(plain.platform, "irc");
+        assert_eq!(plain.content, "just chatting");
     }
 
     #[test]
