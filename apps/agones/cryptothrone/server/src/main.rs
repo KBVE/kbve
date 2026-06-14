@@ -1,4 +1,5 @@
 mod agones;
+mod db;
 mod game;
 
 use std::net::SocketAddr;
@@ -18,6 +19,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or_else(|_| "info,cryptothrone_server=debug,simgrid=debug".into()),
         )
         .init();
+
+    // Shared data layer — pooled Postgres + Valkey cache, both non-fatal so the
+    // game server still boots when unconfigured.
+    if db::init_pg_cluster().await {
+        tracing::info!("PgCluster initialized — pooled Postgres available");
+    } else {
+        tracing::info!("PgCluster not configured — persistence degrades");
+    }
+    if db::init_kv_cache().await {
+        tracing::info!("KvCache initialized — L1 LRU + L2 Valkey enabled");
+    }
 
     let addr: SocketAddr = std::env::var("CT_SERVER_ADDR")
         .unwrap_or_else(|_| "0.0.0.0:7979".into())

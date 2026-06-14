@@ -26,6 +26,9 @@ spec:
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: kbve
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: cryptothrone
           ports:
               - port: 6379
                 protocol: TCP

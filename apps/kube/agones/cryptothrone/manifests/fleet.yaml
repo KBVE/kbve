@@ -63,6 +63,30 @@ spec:
                                     secretKeyRef:
                                         name: supabase-shared
                                         key: SUPABASE_JWT_SECRET
+                              # jedi PgCluster (pooled Postgres) + KvCache
+                              # (Valkey). All optional so a GameServer still
+                              # starts before the ExternalSecrets render; jedi
+                              # init is non-fatal on the Rust side too.
+                              - name: KBVE_PG_APPLICATION_NAME
+                                value: 'cryptothrone-server'
+                              - name: KBVE_PG_RW_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RW_URL
+                                        optional: true
+                              - name: KBVE_PG_RO_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: KBVE_PG_RO_URL
+                                        optional: true
+                              - name: KBVE_KV_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: cryptothrone-valkey
+                                        key: KBVE_KV_URL
+                                        optional: true
                           ports:
                               - name: ws
                                 containerPort: 7979

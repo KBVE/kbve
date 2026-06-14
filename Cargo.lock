@@ -4858,6 +4858,7 @@ dependencies = [
  "agones",
  "axum 0.7.9",
  "bevy",
+ "jedi",
  "simgrid",
  "tokio",
  "tracing",
