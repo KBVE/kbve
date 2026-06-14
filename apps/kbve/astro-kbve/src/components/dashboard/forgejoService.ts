@@ -382,9 +382,25 @@ const CACHE_KEY = 'cache:forgejo:data';
 const EXPANDED_KEY = 'forgejo:expandedRepo';
 const TAB_KEY = 'forgejo:activeTab';
 const CACHE_TTL_MS = 60 * 1000;
-const PROXY_BASE = '/dashboard/forgejo/proxy';
 const API_BASE = '/dashboard/forgejo/api';
 const REFRESH_INTERVAL_MS = 30 * 1000;
+
+// Maps a Forgejo `/api/v1/...` path (the shape every call site still uses) onto
+// the typed axum surface at /dashboard/forgejo/api/*: strip the v1 prefix and
+// rename the routes that the typed layer shortened. Lets the whole service ride
+// the typed routes (normalised errors, server-side aggregation, policy) without
+// touching call sites.
+function toTypedPath(path: string): string {
+	let p = path.startsWith('/api/v1') ? path.slice('/api/v1'.length) : path;
+	p = p
+		.replace('/admin/users', '/users')
+		.replace('/admin/cron', '/cron')
+		.replace('/admin/unadopted', '/unadopted')
+		.replace('/actions/secrets', '/secrets')
+		.replace('/actions/variables', '/variables')
+		.replace('/branch_protections', '/protections');
+	return p;
+}
 const PAGE_SIZE = 50;
 const RESOURCE_TTL_MS = 60 * 1000;
 
@@ -419,7 +435,7 @@ async function apiFetch<T>(
 	path: string,
 	fallback?: T,
 ): Promise<T> {
-	const resp = await fetch(`${PROXY_BASE}${path}`, {
+	const resp = await fetch(`${API_BASE}${toTypedPath(path)}`, {
 		headers: { Authorization: `Bearer ${token}` },
 		signal: AbortSignal.timeout(10000),
 	});
@@ -477,7 +493,7 @@ async function apiMutate<T>(
 		opts.body = JSON.stringify(body);
 	}
 
-	const resp = await fetch(`${PROXY_BASE}${path}`, opts);
+	const resp = await fetch(`${API_BASE}${toTypedPath(path)}`, opts);
 	if (!resp.ok) {
 		const text = await resp.text().catch(() => '');
 		let detail = text.slice(0, 300);
