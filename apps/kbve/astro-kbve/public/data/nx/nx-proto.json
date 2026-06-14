@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-13T09:11:54.393Z",
+  "generated_at": "2026-06-14T09:13:32.811Z",
   "summary": {
     "total_protos": 38,
     "registered": 29,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 711,
-    "total_enums": 143
+    "total_messages": 719,
+    "total_enums": 145
   },
   "protos": [
     {
@@ -1043,6 +1043,14 @@
         "EnvironmentConfig",
         "HexZoneRecord",
         "HexWorldMap",
+        "GridTileLayer",
+        "NamedRegion",
+        "GridTilemap",
+        "HexTile",
+        "HexTilemap",
+        "TilePaletteEntry",
+        "TilePalette",
+        "TileAsset",
         "Banner",
         "ResourceLedger",
         "Culture",
@@ -1099,10 +1107,12 @@
         "GenerationMode",
         "PersistenceMode",
         "StreamingHint",
-        "ReplicationHint"
+        "ReplicationHint",
+        "HexOrientation",
+        "TileRole"
       ],
-      "message_count": 65,
-      "enum_count": 34,
+      "message_count": 73,
+      "enum_count": 36,
       "codegen": {
         "registered": true,
         "name": "mapdb",
@@ -1507,7 +1517,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-13T09:11:54Z",
+  "checked_at": "2026-06-14T09:13:32Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",

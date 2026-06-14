@@ -397,6 +397,38 @@
                 "^production"
               ]
             },
+            "build-embed": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/public/embed"
+              ],
+              "options": {
+                "cwd": "apps/cryptothrone/astro-cryptothrone",
+                "commands": [
+                  "NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.embed.config.mts"
+                ],
+                "parallel": false
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-discord": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/public/discord"
+              ],
+              "options": {
+                "cwd": "apps/cryptothrone/astro-cryptothrone",
+                "commands": [
+                  "NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.discord.config.mts"
+                ],
+                "parallel": false
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
             "preview": {
               "dependsOn": [
                 {
@@ -1181,6 +1213,120 @@
             }
           },
           "implicitDependencies": []
+        }
+      },
+      "axum-discordsh-e2e": {
+        "name": "axum-discordsh-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/discordsh/axum-discordsh-e2e",
+          "metadata": {},
+          "targets": {
+            "test": {
+              "executor": "nx:noop",
+              "cache": false,
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "options": {
+                "cwd": "apps/discordsh/axum-discordsh-e2e",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects axum-discordsh-e2e --includeDependentProjects -- pnpm exec nx build-deps axum-discordsh-e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "axum-discordsh"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f axum-discordsh-e2e 2>/dev/null || true",
+                  "docker run -d --name axum-discordsh-e2e -p 4321:4321 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/axum-discordsh:latest",
+                  "sleep 3",
+                  "npx vitest run; EC=$?; docker rm -f axum-discordsh-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/discordsh/axum-discordsh-e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            }
+          },
+          "projectType": "application",
+          "name": "axum-discordsh-e2e",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/discordsh/axum-discordsh-e2e",
+          "tags": [],
+          "implicitDependencies": [
+            "axum-discordsh"
+          ]
         }
       },
       "bevy_inventory": {
@@ -9523,6 +9669,96 @@
               "configurations": {},
               "parallelism": true
             },
+            "gen:dungeon": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen_dungeon.py"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/tilemaps/crypt_depths.tilemap.json"
+              ],
+              "options": {
+                "command": "python3 packages/data/codegen/gen_dungeon.py",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:tilemaps": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-tilemaps.mjs",
+                "{workspaceRoot}/packages/data/codegen/maps/*.json"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json",
+                "{workspaceRoot}/apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-tilemaps.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:tiles": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-tile-slices.mjs",
+                "{workspaceRoot}/packages/data/codegen/tiles/tiles.manifest.json",
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png"
+              ],
+              "outputs": [
+                "{projectRoot}/public/assets/tiledb",
+                "{projectRoot}/src/content/docs/tiledb"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-tile-slices.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:tiledb": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-tiledb-data.mjs",
+                "{projectRoot}/src/content/docs/tiledb/*.mdx"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-tiledb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:palettes": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-palette-atlas.mjs",
+                "{workspaceRoot}/packages/data/codegen/palettes/*.json",
+                "{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json",
+                "{projectRoot}/public/assets/tiledb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes",
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-palette-atlas.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
             "sync:mapdb": {
               "executor": "nx:run-commands",
               "inputs": [
@@ -9539,6 +9775,33 @@
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-mapdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:mapdb-zod": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "devops:build"
+              ],
+              "inputs": [
+                "{workspaceRoot}/packages/data/proto/map/mapdb.proto",
+                "{workspaceRoot}/packages/data/proto/kbve/common.proto",
+                "{workspaceRoot}/packages/data/codegen/mapdb-zod-config.json",
+                "{workspaceRoot}/packages/data/codegen/gen-mapdb-zod.mjs"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/descriptors/mapdb.binpb",
+                "{workspaceRoot}/packages/data/codegen/generated/mapdb-schema.ts"
+              ],
+              "options": {
+                "commands": [
+                  "protoc --include_imports --descriptor_set_out=packages/data/codegen/descriptors/mapdb.binpb --proto_path=packages/data/proto map/mapdb.proto",
+                  "npx tsx packages/data/codegen/gen-mapdb-zod.mjs"
+                ],
+                "parallel": false,
                 "cwd": ""
               },
               "cache": true,
@@ -11274,7 +11537,8 @@
                 "./components/tooltip/social/sttService": "./components/tooltip/social/sttService.js",
                 "./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",
                 "./components/hero/observer/ObserverCollections.astro": "./components/hero/observer/ObserverCollections.astro",
-                "./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro"
+                "./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro",
+                "./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro"
               },
               "packageMain": "./astro.es.js",
               "isInPackageManagerWorkspaces": false
@@ -15020,6 +15284,13 @@
       "axum-cryptothrone": [],
       "bevy_pathfinder": [],
       "chisel-ubuntu-axum": [],
+      "axum-discordsh-e2e": [
+        {
+          "source": "axum-discordsh-e2e",
+          "target": "axum-discordsh",
+          "type": "implicit"
+        }
+      ],
       "bevy_inventory": [],
       "kasm-cloakbrowser": [],
       "astro-rareicon-e2e": [
