@@ -43,7 +43,9 @@ export const Button = memo(function Button({
 					}
 				/>
 			) : (
-				<Text variant="label" style={textStyle[variant]}>
+				<Text
+					variant="label"
+					style={[styles.label, textStyle[variant]]}>
 					{title}
 				</Text>
 			)}
@@ -56,21 +58,32 @@ const styles = StyleSheet.create({
 		paddingVertical: tokens.space.md,
 		paddingHorizontal: tokens.space.lg,
 		borderRadius: tokens.radius.md,
+		borderWidth: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
+	},
+	label: {
+		textShadowColor: 'rgba(0,0,0,0.35)',
+		textShadowOffset: { width: 0, height: 1 },
+		textShadowRadius: 2,
 	},
 	inactive: { opacity: 0.4 },
 });
 
 const fillStyle = StyleSheet.create({
-	primary: { backgroundColor: tokens.color.primary },
-	secondary: { backgroundColor: tokens.color.surface },
-	ghost: {
-		backgroundColor: 'transparent',
-		borderWidth: 1,
+	primary: {
+		backgroundColor: tokens.color.primary,
+		borderColor: 'rgba(255,255,255,0.22)',
+	},
+	secondary: {
+		backgroundColor: tokens.color.surface,
 		borderColor: tokens.color.border,
 	},
-	danger: { backgroundColor: tokens.color.danger },
+	ghost: { backgroundColor: 'transparent', borderColor: tokens.color.border },
+	danger: {
+		backgroundColor: tokens.color.danger,
+		borderColor: 'rgba(255,255,255,0.22)',
+	},
 });
 
 const textStyle = StyleSheet.create({
