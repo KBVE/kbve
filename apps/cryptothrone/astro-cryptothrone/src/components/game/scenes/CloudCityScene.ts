@@ -520,21 +520,26 @@ export class CloudCityScene extends Scene {
 					hp: e.hp,
 					maxHp: e.max_hp,
 				};
-				if (this.kindCat(e.kind) === KIND_CAT_PLAYER) {
-					const name = this.slotUsername.get(e.owner);
-					if (name) {
-						const top = sprite.getTopCenter();
-						tracked.nameplate = this.add
-							.text(top.x, top.y - 4, name, {
-								fontFamily: 'monospace',
-								fontSize: '11px',
-								color: '#fcd34d',
-								stroke: '#000000',
-								strokeThickness: 3,
-							})
-							.setOrigin(0.5, 1)
-							.setDepth(this.entityDepth + 2);
-					}
+				const cat = this.kindCat(e.kind);
+				let label: string | undefined;
+				if (cat === KIND_CAT_PLAYER) {
+					label = this.slotUsername.get(e.owner);
+				} else if (cat === KIND_CAT_NPC) {
+					const ref = this.kindRef(e.kind);
+					label = ref ? (getNPCByRef(ref)?.name ?? ref) : undefined;
+				}
+				if (label) {
+					const top = sprite.getTopCenter();
+					tracked.nameplate = this.add
+						.text(top.x, top.y + 2, label, {
+							fontFamily: 'monospace',
+							fontSize: '11px',
+							color: '#fcd34d',
+							stroke: '#000000',
+							strokeThickness: 3,
+						})
+						.setOrigin(0.5, 1)
+						.setDepth(this.entityDepth + 2);
 				}
 				this.tracked.set(e.eid, tracked);
 				if (
@@ -641,10 +646,13 @@ export class CloudCityScene extends Scene {
 	}
 
 	private updateHpBars() {
-		for (const [, t] of this.tracked) {
+		for (const [eid, t] of this.tracked) {
 			const cat = this.kindCat(t.kind);
+			// Entity-uniform: any wounded entity (player or NPC) gets a world
+			// hp bar, except items and the local player (HUD shows that one).
 			const wounded =
-				cat === KIND_CAT_NPC &&
+				cat !== KIND_CAT_ITEM &&
+				eid !== this.myEid &&
 				t.maxHp > 0 &&
 				t.hp < t.maxHp &&
 				t.hp > 0;
@@ -658,7 +666,8 @@ export class CloudCityScene extends Scene {
 			if (!t.hpBar) {
 				t.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
 			}
-			drawHealthBar(t.hpBar, t.sprite.x, t.sprite.y - 30, t.hp, t.maxHp);
+			const center = t.sprite.getTopCenter();
+			drawHealthBar(t.hpBar, center.x, t.sprite.y - 22, t.hp, t.maxHp);
 		}
 	}
 
@@ -878,7 +887,7 @@ export class CloudCityScene extends Scene {
 		for (const [, t] of this.tracked) {
 			if (t.nameplate) {
 				const top = t.sprite.getTopCenter();
-				t.nameplate.setPosition(top.x, top.y - 4);
+				t.nameplate.setPosition(top.x, top.y + 2);
 			}
 		}
 		// FPS — emit roughly once per second.
