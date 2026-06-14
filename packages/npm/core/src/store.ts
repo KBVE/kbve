@@ -1,28 +1,39 @@
-import type { AgentCore } from './reducer';
-import type { AgentViewModel, CoreEffect, CoreEvent, CoreState } from './state';
-
-export interface EffectExecutor {
-	execute(effect: CoreEffect, dispatch: (event: CoreEvent) => void): void;
+export interface UpdateResult<S, Eff> {
+	state: S;
+	effects: Eff[];
 }
 
-export const noopExecutor: EffectExecutor = {
-	execute: () => undefined,
-};
+export interface Core<S, E, VM, Eff> {
+	initial(): S;
+	update(state: S, event: E): UpdateResult<S, Eff>;
+	view(state: S): VM;
+}
 
-export class AgentStore {
-	private state: CoreState;
-	private snapshot: AgentViewModel;
+export interface EffectExecutor<Eff, E> {
+	execute(effect: Eff, dispatch: (event: E) => void): void;
+}
+
+export function noopExecutor<Eff, E>(): EffectExecutor<Eff, E> {
+	return { execute: () => undefined };
+}
+
+export class Store<S, E, VM, Eff> {
+	private state: S;
+	private snapshot: VM;
 	private readonly listeners = new Set<() => void>();
 
 	constructor(
-		private readonly core: AgentCore,
-		private readonly executor: EffectExecutor = noopExecutor,
+		private readonly core: Core<S, E, VM, Eff>,
+		private readonly executor: EffectExecutor<Eff, E> = noopExecutor<
+			Eff,
+			E
+		>(),
 	) {
 		this.state = core.initial();
 		this.snapshot = core.view(this.state);
 	}
 
-	getSnapshot = (): AgentViewModel => this.snapshot;
+	getSnapshot = (): VM => this.snapshot;
 
 	subscribe = (listener: () => void): (() => void) => {
 		this.listeners.add(listener);
@@ -31,7 +42,7 @@ export class AgentStore {
 		};
 	};
 
-	dispatch = (event: CoreEvent): void => {
+	dispatch = (event: E): void => {
 		const { state, effects } = this.core.update(this.state, event);
 		this.state = state;
 		this.snapshot = this.core.view(state);

@@ -1,0 +1,16 @@
+declare const process: { env: Record<string, string | undefined> };
+
+const DEFAULT_SUPABASE_URL = 'https://supabase.kbve.com';
+const DEFAULT_SUPABASE_ANON_KEY =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg';
+
+export const KBVE_SUPABASE_URL =
+	process.env['EXPO_PUBLIC_SUPABASE_URL'] ?? DEFAULT_SUPABASE_URL;
+
+export const KBVE_SUPABASE_ANON_KEY =
+	process.env['EXPO_PUBLIC_SUPABASE_ANON_KEY'] ?? DEFAULT_SUPABASE_ANON_KEY;
+
+const DEFAULT_HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
+
+export const KBVE_HCAPTCHA_SITE_KEY =
+	process.env['EXPO_PUBLIC_HCAPTCHA_SITE_KEY'] ?? DEFAULT_HCAPTCHA_SITE_KEY;

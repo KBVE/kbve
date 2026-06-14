@@ -35,6 +35,12 @@ export default defineConfig({
 	publicDir: false,
 	define: {
 		'process.env.NODE_ENV': JSON.stringify('production'),
+		// Raw `vite build` (not Astro) does not surface PUBLIC_* from process.env
+		// into import.meta.env, so bake the Discord client id in explicitly from
+		// the Docker build ENV. Public value — safe to inline client-side.
+		'import.meta.env.PUBLIC_DISCORD_CLIENT_ID': JSON.stringify(
+			process.env.PUBLIC_DISCORD_CLIENT_ID ?? '',
+		),
 	},
 	build: {
 		outDir: 'public/discord',

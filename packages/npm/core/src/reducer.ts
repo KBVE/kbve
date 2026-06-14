@@ -7,17 +7,17 @@ import type {
 	TranscriptEntry,
 } from './state';
 import type { AgentServerEvent } from './types';
+import { Store } from './store';
+import type { Core, UpdateResult } from './store';
 
-export interface UpdateResult {
-	state: CoreState;
-	effects: CoreEffect[];
-}
+export type AgentCore = Core<CoreState, CoreEvent, AgentViewModel, CoreEffect>;
 
-export interface AgentCore {
-	initial(): CoreState;
-	update(state: CoreState, event: CoreEvent): UpdateResult;
-	view(state: CoreState): AgentViewModel;
-}
+export class AgentStore extends Store<
+	CoreState,
+	CoreEvent,
+	AgentViewModel,
+	CoreEffect
+> {}
 
 function sessionId(state: CoreState): string | null {
 	return state.session ? state.session.id : null;
@@ -106,7 +106,10 @@ function applyInbound(state: CoreState, event: AgentServerEvent): CoreState {
 	}
 }
 
-function reduce(state: CoreState, event: CoreEvent): UpdateResult {
+function reduce(
+	state: CoreState,
+	event: CoreEvent,
+): UpdateResult<CoreState, CoreEffect> {
 	const sid = sessionId(state);
 	switch (event.type) {
 		case 'connect':
