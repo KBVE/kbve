@@ -1,0 +1,232 @@
+---
+title: Game Programming Patterns
+description: |
+    Architecture patterns for game code — decoupling, sequencing, behavioral, and optimization patterns that keep a growing codebase maintainable.
+    Original summaries with intent, when-to-use, and trade-offs, cross-referenced to the KBVE game projects that apply them.
+sidebar:
+    label: Architecture Patterns
+    order: 2
+tags:
+    - gdd
+    - architecture
+    - patterns
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+A Game Design Document describes *what* the game is. This page describes *how* the code is shaped to support it. The patterns below are the common architectural building blocks of game engines and gameplay code: ways to decouple systems, sequence frame work, model behavior, and squeeze out performance.
+
+These are own-words summaries focused on **intent**, **when to reach for it**, and **the trade-off you accept**. They are not a substitute for the source material.
+
+<Aside type="tip" title="Primary source">
+The canonical reference is Robert Nystrom's *Game Programming Patterns*, free to read online at [gameprogrammingpatterns.com](https://gameprogrammingpatterns.com/). Read it there for full worked examples and code. This page summarizes and maps the patterns onto KBVE's projects.
+</Aside>
+
+<Adsense />
+
+---
+
+## Design Patterns Revisited
+
+Classic Gang-of-Four patterns, reconsidered through a game-shaped lens — where they help and where they hurt.
+
+### Command
+
+Wrap an action in an object so it can be stored, queued, undone, or replayed. The caller fires a command without knowing what it does; the command knows how to do and undo it.
+
+- **Use when:** input remapping, undo/redo, AI issuing the same actions as a player, recording/replaying input, networked input streams.
+- **Trade-off:** one object per action adds indirection and allocation; pool or flyweight commands if they are hot.
+
+### Flyweight
+
+Share the data that is identical across many instances; keep only the per-instance data local. A thousand trees reference one shared mesh/texture and carry only their own transform.
+
+- **Use when:** huge counts of near-identical entities (foliage, tiles, particles, mobs).
+- **Trade-off:** the shared state must be immutable; mutation leaks across every user of the flyweight.
+
+### Observer
+
+Let objects announce events without knowing who listens. Subjects publish; observers subscribe. Decouples the thing that changes from the things that react.
+
+- **Use when:** achievements, UI reacting to gameplay, analytics, loosely coupled cross-system notifications.
+- **Trade-off:** implicit control flow is hard to trace; dangling observers leak. Prefer an explicit event queue for high-volume or ordered events.
+
+### Prototype
+
+Create new objects by cloning an existing instance rather than instantiating a class. Spawners hold a template and stamp out copies.
+
+- **Use when:** data-driven spawning, editor-defined entity templates, varied enemy definitions without a class explosion.
+- **Trade-off:** deep vs shallow clone bugs; in practice a data/Type Object approach is often clearer than literal cloning.
+
+### Singleton
+
+A single globally-accessible instance. The most over-used pattern in game code.
+
+- **Use when:** rarely — and even then prefer dependency injection or a Service Locator.
+- **Trade-off:** hidden coupling, ordering hazards at startup/shutdown, and a wall for testability and multithreading. Treat as a smell, not a default.
+
+---
+
+## Sequencing Patterns
+
+Patterns that govern time — how the game advances frame to frame.
+
+### Double Buffer
+
+Render or compute into a back buffer, then swap it with the front buffer atomically. Readers always see a complete, consistent frame; writers never tear.
+
+- **Use when:** rendering, any state where a half-updated read is visible/wrong (e.g. cellular automata, simultaneous-turn resolution).
+- **Trade-off:** double the memory for the buffered state; the swap must be cheap and atomic.
+
+### Game Loop
+
+The heartbeat: process input, update the world, render — forever, decoupled from the wall clock so the game runs the same on fast and slow hardware.
+
+- **Use when:** always; it is the spine of real-time games. Choose fixed-timestep update with interpolated rendering for deterministic simulation.
+- **Trade-off:** a variable timestep is simpler but makes physics/sim non-deterministic and order-sensitive.
+
+### Update Method
+
+Each live entity gets an `update()` called once per frame to advance its own behavior by one tick. The loop walks a collection and ticks each.
+
+- **Use when:** many objects with independent per-frame behavior.
+- **Trade-off:** scattered cache access and per-object virtual calls hurt at scale — see **Data Locality** and ECS designs as the answer.
+
+<Aside>
+KBVE's ECS-heavy projects (rareicon on Unity DOTS) effectively replace per-object Update Method with batched system passes — the same sequencing intent, restructured for **Data Locality**.
+</Aside>
+
+---
+
+## Behavioral Patterns
+
+Patterns for defining what entities *do*.
+
+### Bytecode
+
+Encode behavior as data — instructions for a tiny virtual machine — instead of hardcoding it in the engine language. Designers/modders author behavior without recompiling.
+
+- **Use when:** spell/skill scripting, modding surfaces, sandboxed user content, data-driven content at volume.
+- **Trade-off:** you are building (and debugging) a VM and toolchain; heavy upfront cost. AngelScript/Lua often fill this role off-the-shelf.
+
+### Subclass Sandbox
+
+A base class exposes a set of safe primitive operations; subclasses define behavior by combining those primitives, never touching the engine directly.
+
+- **Use when:** many variations of one concept (power-ups, abilities) authored by gameplay programmers.
+- **Trade-off:** the base class becomes a god-object of primitives; favor composition (**Component**) when variation explodes.
+
+### Type Object
+
+Move what would be subclasses into data instances of a single "type" class. A `Monster` holds a reference to a `MonsterType` ("Dragon", "Goblin") that carries shared stats/behavior.
+
+- **Use when:** content defined by designers in data; new "kinds" should not require new code.
+- **Trade-off:** less compile-time type safety; behavior differences beyond data still need code.
+
+### State
+
+Model an entity as a finite state machine — explicit states with explicit transitions — instead of a tangle of boolean flags.
+
+- **Use when:** characters with modes (idle/walk/jump/attack), UI flows, AI. Use hierarchical/pushdown FSMs when states share sub-behavior.
+- **Trade-off:** state explosion for complex behavior; consider behavior trees or **StateTree** for richer AI.
+
+<Aside>
+See KBVE's `behavior_statetree` work for a typed-command FSM boundary in production.
+</Aside>
+
+---
+
+## Decoupling Patterns
+
+Patterns that let one part of the program change without breaking others.
+
+### Component
+
+Build an entity by composing independent components (position, render, physics, health) instead of one deep inheritance tree. The entity is a bag of parts.
+
+- **Use when:** entities that mix and match capabilities; the foundation of ECS.
+- **Trade-off:** cross-component communication needs a discipline (messages, shared data, or systems) or it becomes spaghetti.
+
+### Event Queue
+
+Decouple *when* an event is sent from *when* it is processed. Producers enqueue; a consumer drains the queue on its own schedule.
+
+- **Use when:** audio, async systems, smoothing bursty input, ordering and rate-limiting cross-system messages.
+- **Trade-off:** added latency; queued state can go stale; debugging is harder than a direct call. Watch for feedback loops.
+
+### Service Locator
+
+Provide global access to a service through an indirection layer, so callers find it without hardcoding the concrete implementation.
+
+- **Use when:** swappable subsystems (audio, logging, platform layer), null/mock implementations for tests.
+- **Trade-off:** still a global; hides dependencies. Prefer explicit injection where practical.
+
+---
+
+## Optimization Patterns
+
+Patterns that trade complexity for speed — apply only after profiling.
+
+### Data Locality
+
+Lay out data so the CPU cache stays hot: contiguous arrays of the data a loop actually touches, processed in order. The single biggest real-world game perf lever.
+
+- **Use when:** hot loops over many entities; the core motivation behind ECS / struct-of-arrays.
+- **Trade-off:** less flexible, less object-oriented layout; harder to mutate structure at runtime.
+
+### Dirty Flag
+
+Defer expensive recomputation until the result is actually needed, and skip it entirely when nothing changed. Mark dirty on write; recompute lazily on read.
+
+- **Use when:** derived data that is costly to compute and changes less often than it is read (world transforms, baked lighting, derived stats).
+- **Trade-off:** correctness hinges on every mutation setting the flag; a missed set is a silent stale-data bug.
+
+### Object Pool
+
+Reuse a fixed set of pre-allocated objects instead of allocating/freeing constantly. Take from the pool, return when done.
+
+- **Use when:** high-churn short-lived objects (bullets, particles, effects, network packets).
+- **Trade-off:** must reset object state on reuse; pool sizing and leaks; objects outlive their logical lifetime.
+
+### Spatial Partition
+
+Organize objects by their position (grid, quadtree, BVH, BSP) so spatial queries touch only nearby candidates instead of every object.
+
+- **Use when:** collision, range queries, neighbor finding, culling at scale.
+- **Trade-off:** the structure must be maintained as objects move; choose grid vs tree by density and movement patterns.
+
+---
+
+## How KBVE applies these
+
+<CardGrid>
+  <Card title="ECS = Data Locality + Component" icon="seti:rust">
+    rareicon (Unity DOTS) batches systems over packed component arrays — Component + Data Locality + Update Method, fused.
+  </Card>
+  <Card title="State / StateTree" icon="random">
+    `behavior_statetree` models AI/units as typed-command state machines with a bounded queue boundary.
+  </Card>
+  <Card title="Object Pool" icon="seti:default">
+    Combat events, bullets, and network packets reuse pooled buffers rather than per-frame allocation.
+  </Card>
+  <Card title="Event Queue" icon="comment">
+    Cross-system messaging (chat relay, combat pipeline) drains queues on a fixed cadence rather than direct calls.
+  </Card>
+</CardGrid>
+
+<Aside type="caution" title="Optimize last">
+The Optimization patterns buy speed by spending flexibility and adding bug surface. Reach for them only with a profiler result in hand. Design with the Decoupling and Behavioral patterns first; optimize the hot 5% second.
+</Aside>
+
+---
+
+## Further reading
+
+- *Game Programming Patterns* — Robert Nystrom, free online: [gameprogrammingpatterns.com](https://gameprogrammingpatterns.com/)
+- *Design Patterns: Elements of Reusable Object-Oriented Software* — the Gang of Four (origin of Command, Flyweight, Observer, Prototype, Singleton, State).
+- Unity DOTS / ECS docs — Data Locality and Component patterns in a production engine.
+
+<Giscus />

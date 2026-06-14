@@ -1,0 +1,103 @@
+---
+title: Entity Component System
+description: |
+    The ECS architecture — entities, components, and systems — and why data-oriented design wins for high-entity-count games.
+    Own-words reference cross-linked to KBVE's Unity DOTS and Bevy projects.
+sidebar:
+    label: ECS & Data-Oriented Design
+    order: 4
+tags:
+    - gdd
+    - ecs
+    - architecture
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+Entity Component System (ECS) is an architecture that separates **identity** (entity), **data** (components), and **behavior** (systems). It is the data-oriented answer to the object-oriented entity hierarchies that buckle under thousands of objects. KBVE leans on it hard — Unity DOTS for rareicon, Bevy for the isometric/server crates.
+
+<Aside type="tip" title="Source material">
+For the foundations see the [Unity DOTS / Entities docs](https://docs.unity3d.com/Packages/com.unity.entities@latest), the [Bevy ECS guide](https://bevy.org/learn/), and Mike Acton's "Data-Oriented Design and C++" talk. This page summarizes the concepts and maps them to KBVE work.
+</Aside>
+
+<Adsense />
+
+---
+
+## The three parts
+
+- **Entity** — an identity, usually just an integer ID. It owns no data and no behavior; it is a key that groups components.
+- **Component** — plain data, no logic. `Position`, `Velocity`, `Health`. An entity *is* the set of components attached to it.
+- **System** — behavior, no persistent data. A system queries for all entities that have a given set of components and processes them in a batch each frame.
+
+<Aside>
+The shift from OOP: instead of "a `Monster` object with `update()`", you have a `Monster` *entity* tagged with `Position`, `Health`, `AITag` components, processed by a `MovementSystem`, `CombatSystem`, and `AISystem` that each sweep every matching entity.
+</Aside>
+
+---
+
+## Why ECS — data-oriented design
+
+The real payoff is memory layout. OOP scatters each object across the heap; chasing pointers thrashes the CPU cache. ECS stores components of the same type **contiguously** (struct-of-arrays). A system iterating `Position` + `Velocity` walks two tight arrays in order — the cache stays hot, the prefetcher wins.
+
+- **Cache locality** — process like data together; this is the [Data Locality pattern](/gdd/patterns/) made structural.
+- **Parallelism** — systems with non-overlapping component access run on different threads with no locks.
+- **Composition over inheritance** — add a capability by adding a component, not by editing a class tree.
+
+---
+
+## Storage models
+
+- **Archetype-based** (Unity DOTS, Bevy default) — entities with the same set of component types are grouped into "archetypes" / tables; iteration is a linear scan of matching tables. Fast iteration; adding/removing a component moves the entity between tables (structural change).
+- **Sparse-set** (Bevy opt-in, EnTT) — each component type owns a packed array plus an index map; cheap add/remove, slightly slower iteration.
+
+Choose archetype for read-heavy hot loops, sparse-set for components that churn (frequently added/removed).
+
+---
+
+## Queries and change detection
+
+- **Query** — "give me every entity with `A` and `B`, without `C`." The system's window into the world.
+- **Change detection / change gate** — skip entities whose data did not change since last run; avoid redundant work.
+- **Structural changes** — adding/removing components or creating/destroying entities. These often can't happen mid-iteration; defer them via command buffers / entity command queues to a sync point.
+
+<Aside type="caution" title="Burst / job gotchas">
+In Unity DOTS Burst code, KBVE has hit several sharp edges: build the query with `EntityQueryBuilder` (not the array overload) inside `[BurstCompile] ISystem`; `SystemAPI.Query` can't live in static methods; don't `[BurstCompile]` static helpers taking vector types; and main-thread reads of singleton `NativeContainer`s need `CompleteDependency()` / `.Complete()`, not just `CombineDependencies`. See the rareicon project notes.
+</Aside>
+
+---
+
+## Trade-offs
+
+<CardGrid>
+  <Card title="Wins" icon="approve-check">
+    Massive entity counts, cache-friendly, trivially parallel, data-driven composition, clean system boundaries.
+  </Card>
+  <Card title="Costs" icon="warning">
+    Steeper mental model, harder debugging (no single "object"), structural-change rules, more ceremony for simple games.
+  </Card>
+</CardGrid>
+
+ECS is overkill for a small game with few entities. It earns its complexity when you have thousands-to-millions of similar things to simulate every frame.
+
+---
+
+## How KBVE applies these
+
+- **rareicon (Unity DOTS)** — the deepest ECS adoption: Burst `ISystem` jobs, packed components, parallel event pipelines with `NativeList.ParallelWriter`, `PipelineHandle`/`DrainHandle` coordination, a multi-role job system where every unit carries every `JobPriorities` byte, and a micro-optimization checklist baked into every new system.
+- **NetCode world split** — under Unity NetCode the world is split; gameplay is client-only, so services scan `World.All` for `KingTag` rather than the default injection world.
+- **Bevy crates** — the isometric game and server-side crates (`bevy_npc`, `bevy_skills`, `bevy_statemachine`) use Bevy's ECS for simulation and behavior.
+
+---
+
+## Further reading
+
+- [Unity Entities (DOTS) docs](https://docs.unity3d.com/Packages/com.unity.entities@latest)
+- [Bevy ECS guide](https://bevy.org/learn/)
+- Mike Acton — "Data-Oriented Design and C++" (CppCon).
+- [Architecture Patterns](/gdd/patterns/) — Component, Data Locality, and Update Method underpin ECS.
+
+<Giscus />
