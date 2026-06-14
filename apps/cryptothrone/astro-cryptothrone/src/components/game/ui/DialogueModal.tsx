@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FloatingWindow } from '@kbve/astro';
+import { FloatingWindow } from '@kbve/astro/ui';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { getDialogueById } from '../data/npcs';
 import { TypewriterText } from './TypewriterText';
