@@ -163,6 +163,7 @@ function ensureFloatLayer(): HTMLElement {
 	if (layer) return layer;
 	layer = document.createElement('div');
 	layer.id = FLOAT_LAYER_ID;
+	layer.setAttribute('inert', '');
 	layer.setAttribute('transition:persist', 'kbve-yuki-float');
 	layer.dataset.astroTransitionPersist = 'kbve-yuki-float';
 	const LAYER_W = 420;

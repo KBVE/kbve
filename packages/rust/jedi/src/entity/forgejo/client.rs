@@ -428,7 +428,24 @@ impl ForgejoClient {
         .await
     }
 
+    /// Team writes carry only an opaque `team_id`, so the allowlist can't be
+    /// applied directly. When restricted, resolve the team's org and check that
+    /// instead; when open, skip the extra round-trip.
+    async fn check_team_owner(&self, team_id: u64) -> Result<(), JediError> {
+        if !self.policy.is_restricted() {
+            return Ok(());
+        }
+        let org = self
+            .get_team(team_id)
+            .await?
+            .organization
+            .map(|o| o.username)
+            .ok_or(JediError::Forbidden)?;
+        self.policy.check_owner(&org)
+    }
+
     pub async fn delete_team(&self, team_id: u64) -> Result<(), JediError> {
+        self.check_team_owner(team_id).await?;
         self.write_empty(Method::DELETE, &format!("/api/v1/teams/{team_id}"), None)
             .await
     }
@@ -446,6 +463,7 @@ impl ForgejoClient {
     }
 
     pub async fn add_team_member(&self, team_id: u64, user: &str) -> Result<(), JediError> {
+        self.check_team_owner(team_id).await?;
         self.write_empty(
             Method::PUT,
             &format!("/api/v1/teams/{team_id}/members/{user}"),
@@ -455,6 +473,7 @@ impl ForgejoClient {
     }
 
     pub async fn remove_team_member(&self, team_id: u64, user: &str) -> Result<(), JediError> {
+        self.check_team_owner(team_id).await?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/teams/{team_id}/members/{user}"),
@@ -1239,6 +1258,7 @@ impl ForgejoClient {
     }
 
     pub async fn edit_team(&self, team_id: u64, body: &Value) -> Result<ForgejoTeam, JediError> {
+        self.check_team_owner(team_id).await?;
         self.write(
             Method::PATCH,
             &format!("/api/v1/teams/{team_id}"),
@@ -1265,6 +1285,7 @@ impl ForgejoClient {
         org: &str,
         repo: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(org)?;
         self.write_empty(
             Method::PUT,
             &format!("/api/v1/teams/{team_id}/repos/{org}/{repo}"),
@@ -1279,6 +1300,7 @@ impl ForgejoClient {
         org: &str,
         repo: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(org)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/teams/{team_id}/repos/{org}/{repo}"),
