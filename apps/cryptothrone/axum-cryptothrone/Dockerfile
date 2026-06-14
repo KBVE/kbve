@@ -39,7 +39,11 @@ WORKDIR /app/apps/cryptothrone/astro-cryptothrone
 RUN rm -rf .astro && npx astro sync && \
     NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.embed.config.mts && \
     NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.discord.config.mts && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    # Fail loud if the embed/discord bundles didn't make it into dist (a stale
+    # cached astro-builder layer once shipped without them -> silent 404s).
+    test -f ../../../dist/apps/astro-cryptothrone/embed/embed.js && \
+    test -f ../../../dist/apps/astro-cryptothrone/discord/discord.js
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
