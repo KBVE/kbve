@@ -186,6 +186,8 @@ pub struct ForgejoTeam {
     pub includes_all_repositories: bool,
     #[serde(default)]
     pub can_create_org_repo: bool,
+    #[serde(default)]
+    pub organization: Option<ForgejoOrg>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
