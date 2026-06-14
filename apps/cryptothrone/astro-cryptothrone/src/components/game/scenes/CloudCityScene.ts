@@ -23,6 +23,8 @@ import type {
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
+import { getItemById } from '../data/itemdb';
+import { atlasFrame } from '../data/itemAtlas.generated';
 import { getZone, DEFAULT_ZONE, type ZoneDef } from '../data/zones';
 import {
 	getZoneInteractables,
@@ -478,8 +480,16 @@ export class CloudCityScene extends Scene {
 			return { sprite, mapping };
 		}
 		if (cat === KIND_CAT_ITEM) {
-			const sprite = this.add.sprite(0, 0, 'ground-item');
-			sprite.scale = 1.5;
+			const ref = this.kindRef(kind);
+			const item = ref ? getItemById(ref) : undefined;
+			const frame = item ? atlasFrame(item.key) : 0;
+			const useAtlas = frame > 0 && this.textures.exists('items-atlas');
+			const sprite = useAtlas
+				? this.add.sprite(0, 0, 'items-atlas', frame)
+				: this.add.sprite(0, 0, 'ground-item');
+			// Atlas tiles are 64px; scale to a ~24px ground footprint (matches
+			// the old 16px circle at 1.5x). The fallback keeps its native 1.5x.
+			sprite.scale = useAtlas ? 0.375 : 1.5;
 			sprite.setDepth(this.entityDepth - 0.5);
 			return { sprite, mapping: undefined };
 		}

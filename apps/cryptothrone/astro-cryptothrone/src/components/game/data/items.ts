@@ -6,6 +6,7 @@ const LOCAL_EXTRAS: ItemData[] = [
 		id: 'health-potion',
 		name: 'Health Potion',
 		type: 'consumable',
+		key: 0,
 		img: '/assets/icons/health-potion.png',
 		description: 'Restores 25 HP.',
 		bonuses: { hp: 25 },
