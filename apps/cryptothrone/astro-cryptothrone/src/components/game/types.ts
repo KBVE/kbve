@@ -62,6 +62,64 @@ export interface NPCData {
 
 export type NPCAction = 'talk' | 'trade' | 'steal' | 'inspect';
 
+// --- npcdb (typed view of @kbve/npcdb-data) ---------------------------------
+// Game-facing, normalized projection of an npcdb entry. The raw JSON ships
+// snake-free camelCase fields with prefixed enums (NPC_RARITY_*, MOVEMENT_TYPE_*);
+// `npcdb.ts` strips the prefixes into these tidy unions for gameplay use.
+
+export type NpcRarity = ItemRarity;
+
+export type NpcFamily =
+	| 'humanoid'
+	| 'undead'
+	| 'beast'
+	| 'construct'
+	| 'elemental'
+	| 'demon'
+	| 'plant'
+	| 'aberration'
+	| 'spirit'
+	| 'unknown';
+
+export type NpcMovement =
+	| 'stationary'
+	| 'random_wander'
+	| 'patrol'
+	| 'scripted'
+	| 'aggressive';
+
+export interface NpcStats {
+	hp: number;
+	maxHp: number;
+	attack: number;
+	defense: number;
+	speed: number;
+	armor: number;
+}
+
+export interface NpcAbility {
+	id: string;
+	name: string;
+	damage: number;
+}
+
+export interface NpcEntry {
+	ref: string;
+	id: string;
+	name: string;
+	description: string;
+	family: NpcFamily;
+	rarity: NpcRarity;
+	rank: string;
+	level: number;
+	movement: NpcMovement;
+	firstStrike: boolean;
+	stats: NpcStats;
+	abilities: NpcAbility[];
+	factionId: string;
+	hostile: boolean;
+}
+
 export interface DialogueNode {
 	id: string;
 	title: string;

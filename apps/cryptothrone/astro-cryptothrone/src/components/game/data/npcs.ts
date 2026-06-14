@@ -1,16 +1,8 @@
-import npcdbRaw from '@kbve/npcdb-data';
-import type { NPCData, DialogueNode } from '../types';
+import type { NPCData, DialogueNode, NpcEntry } from '../types';
+import { getNpcEntry, isHostileRef } from './npcdb';
 
-interface NpcDbEntry {
-	ref: string;
-	name: string;
-	description?: string;
-	faction?: { factionId?: string };
-	stats?: { hp?: number; maxHp?: number; attack?: number };
-}
-
-const NPCDB: NpcDbEntry[] = (npcdbRaw as { npcs: NpcDbEntry[] }).npcs ?? [];
-const npcDbByRef = new Map(NPCDB.map((n) => [n.ref, n]));
+// Re-exported so existing scene code keeps importing it from `./npcs`.
+export { isHostileRef };
 
 const REF_AVATARS: Record<string, string> = {
 	cleric: '/assets/entity/monks.png',
@@ -42,16 +34,12 @@ export function npcIdForRef(ref: string): string {
 	return `npc_${ref}`;
 }
 
-export function getNpcDbEntry(ref: string): NpcDbEntry | undefined {
-	return npcDbByRef.get(ref);
-}
-
-export function isHostileRef(ref: string): boolean {
-	return npcDbByRef.get(ref)?.faction?.factionId === 'hostile';
+export function getNpcDbEntry(ref: string): NpcEntry | undefined {
+	return getNpcEntry(ref);
 }
 
 function buildNpcFromDb(ref: string): NPCData | undefined {
-	const entry = npcDbByRef.get(ref);
+	const entry = getNpcEntry(ref);
 	if (!entry) return undefined;
 	const npc: NPCData = {
 		id: npcIdForRef(ref),
@@ -133,7 +121,7 @@ const DIALOGUES: Record<string, DialogueNode> = {
 };
 
 function buildDialogueFromDb(ref: string): DialogueNode | undefined {
-	const entry = npcDbByRef.get(ref);
+	const entry = getNpcEntry(ref);
 	if (!entry) return undefined;
 	const id = `dlg_${ref}_greeting`;
 	const dialogue: DialogueNode = {
