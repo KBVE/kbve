@@ -344,9 +344,6 @@ fn ledger_error_response(err: JediError) -> Response {
         JediError::NotFound => (StatusCode::NOT_FOUND, "not_found"),
         JediError::BadRequest(_) => (StatusCode::BAD_REQUEST, "invalid_argument"),
         JediError::Database(_) => {
-            // wallet_account_missing (WLT01) surfaces through Database
-            // when the auth.uid() subquery returns 0 rows we just yield
-            // an empty page; only true db / pool errors land here.
             tracing::error!(error = %err, "ledger query failed");
             (StatusCode::INTERNAL_SERVER_ERROR, "internal")
         }
