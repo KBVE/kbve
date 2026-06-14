@@ -15,6 +15,7 @@
 			],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
+			"@kbve/laser/ecs": ["../../../packages/npm/laser/src/ecs.ts"],
 			"@kbve/itemdb-data": [
 				"../../../packages/data/codegen/generated/itemdb-data.json"
 			],
