@@ -109,7 +109,31 @@ fn router() -> Router {
         .route("/api/join", post(join))
         .route("/api/discord/session", post(crate::discord::session));
 
-    static_router.merge(dynamic_router).layer(middleware)
+    static_router
+        .merge(dynamic_router)
+        .layer(middleware)
+        // Outermost: lets the Discord Activity (/discord/*) be framed by Discord.
+        // Runs after the global X-Frame-Options: DENY so it can override it.
+        .layer(axum::middleware::from_fn(discord_frame_headers))
+}
+
+/// The global `X-Frame-Options: DENY` blocks Discord from framing the Activity.
+/// For `/discord/*` swap it for a `frame-ancestors` CSP scoped to Discord's
+/// hosts so only Discord can embed it.
+async fn discord_frame_headers(request: Request, next: Next) -> Response {
+    let is_discord = request.uri().path().starts_with("/discord");
+    let mut response = next.run(request).await;
+    if is_discord {
+        let headers = response.headers_mut();
+        headers.remove(header::X_FRAME_OPTIONS);
+        headers.insert(
+            header::CONTENT_SECURITY_POLICY,
+            HeaderValue::from_static(
+                "frame-ancestors https://discord.com https://*.discord.com https://*.discordsays.com",
+            ),
+        );
+    }
+    response
 }
 
 async fn health() -> impl IntoResponse {
