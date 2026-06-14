@@ -267,6 +267,7 @@ fn router(state: AppState) -> Router {
         .route("/es/", get(lang_strip_root))
         .route("/es/{*rest}", get(lang_strip_handler))
         .route("/health", get(health))
+        .route("/health/pg", get(health_pg))
         .route("/health.html", get(health_html))
         .route("/api/status", get(api_status))
         .route("/api/openapi.json", get(crate::openapi::openapi_json))
@@ -752,6 +753,60 @@ pub(crate) async fn health() -> impl IntoResponse {
         status: "ok",
         version: crate::version::current(),
     })
+}
+
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub(crate) struct PgRoleHealthDto {
+    pub role: String,
+    pub ok: bool,
+    pub latency_ms: u64,
+    pub last_error: Option<String>,
+}
+
+#[derive(serde::Serialize, utoipa::ToSchema)]
+pub(crate) struct PgClusterHealthDto {
+    pub all_ok: bool,
+    pub rw: PgRoleHealthDto,
+    pub ro: PgRoleHealthDto,
+    pub any: PgRoleHealthDto,
+}
+
+#[utoipa::path(
+    get,
+    path = "/health/pg",
+    tag = "system",
+    responses(
+        (status = 200, description = "Per-role PgCluster liveness", body = PgClusterHealthDto),
+        (status = 503, description = "PgCluster not configured"),
+    ),
+)]
+pub(crate) async fn health_pg() -> Response {
+    let Some(cluster) = crate::db::get_pg_cluster() else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({"error": "PgCluster not configured"})),
+        )
+            .into_response();
+    };
+    let h = cluster.health().await;
+    let to_dto = |r: jedi::state::pg::PgRoleHealth| PgRoleHealthDto {
+        role: match r.role {
+            jedi::state::pg::PgRole::Rw => "rw",
+            jedi::state::pg::PgRole::Ro => "ro",
+            jedi::state::pg::PgRole::Any => "any",
+        }
+        .into(),
+        ok: r.ok,
+        latency_ms: r.latency.as_millis() as u64,
+        last_error: r.last_error,
+    };
+    Json(PgClusterHealthDto {
+        all_ok: h.all_ok(),
+        rw: to_dto(h.rw),
+        ro: to_dto(h.ro),
+        any: to_dto(h.any),
+    })
+    .into_response()
 }
 
 async fn health_html(State(state): State<AppState>) -> impl IntoResponse {
