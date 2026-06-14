@@ -101,6 +101,8 @@ pub struct ListQuery {
     #[serde(rename = "type")]
     kind: Option<String>,
     purge: Option<bool>,
+    #[serde(rename = "ref")]
+    git_ref: Option<String>,
 }
 
 impl ListQuery {
@@ -880,6 +882,186 @@ async fn delete_user_key(headers: HeaderMap, Path((login, id)): Path<(String, u6
     reply!(c.delete_user_key(&login, id).await)
 }
 
+async fn user_gpg_keys(
+    headers: HeaderMap,
+    Path(login): Path<String>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_user_gpg_keys(&login, q.limit()).await)
+}
+
+// ── Branches / tags / assets ─────────────────────────────────────────
+
+async fn get_branch(
+    headers: HeaderMap,
+    Path((owner, repo, branch)): Path<(String, String, String)>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.get_branch(&owner, &repo, &branch).await)
+}
+
+async fn create_branch(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_branch(&owner, &repo, &body).await)
+}
+
+async fn delete_branch(
+    headers: HeaderMap,
+    Path((owner, repo, branch)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_branch(&owner, &repo, &branch).await)
+}
+
+async fn edit_protection(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_branch_protection(&owner, &repo, &name, &body).await)
+}
+
+async fn tags(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_tags(&owner, &repo, q.limit()).await)
+}
+
+async fn create_tag(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_tag(&owner, &repo, &body).await)
+}
+
+async fn delete_tag(
+    headers: HeaderMap,
+    Path((owner, repo, tag)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_tag(&owner, &repo, &tag).await)
+}
+
+async fn release_assets(
+    headers: HeaderMap,
+    Path((owner, repo, release_id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_release_assets(&owner, &repo, release_id).await)
+}
+
+async fn delete_release_asset(
+    headers: HeaderMap,
+    Path((owner, repo, release_id, asset_id)): Path<(String, String, u64, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(
+        c.delete_release_asset(&owner, &repo, release_id, asset_id)
+            .await
+    )
+}
+
+// ── Teams (extended) ─────────────────────────────────────────────────
+
+async fn get_team(headers: HeaderMap, Path(team_id): Path<u64>) -> Response {
+    let c = vc!(headers);
+    reply!(c.get_team(team_id).await)
+}
+
+async fn edit_team(
+    headers: HeaderMap,
+    Path(team_id): Path<u64>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_team(team_id, &body).await)
+}
+
+async fn team_repos(
+    headers: HeaderMap,
+    Path(team_id): Path<u64>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_team_repos(team_id, q.limit()).await)
+}
+
+async fn add_team_repo(
+    headers: HeaderMap,
+    Path((team_id, org, repo)): Path<(u64, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.add_team_repo(team_id, &org, &repo).await)
+}
+
+async fn remove_team_repo(
+    headers: HeaderMap,
+    Path((team_id, org, repo)): Path<(u64, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.remove_team_repo(team_id, &org, &repo).await)
+}
+
+// ── Repository contents / packages ───────────────────────────────────
+
+async fn contents(
+    headers: HeaderMap,
+    Path((owner, repo, path)): Path<(String, String, String)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(
+        c.list_contents(&owner, &repo, &path, q.git_ref.as_deref())
+            .await
+    )
+}
+
+async fn put_file(
+    headers: HeaderMap,
+    Path((owner, repo, path)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_or_update_file(&owner, &repo, &path, &body).await)
+}
+
+async fn delete_file(
+    headers: HeaderMap,
+    Path((owner, repo, path)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_file(&owner, &repo, &path, &body).await)
+}
+
+async fn packages(
+    headers: HeaderMap,
+    Path(owner): Path<String>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_packages(&owner, q.page(), q.limit()).await)
+}
+
+async fn delete_package(
+    headers: HeaderMap,
+    Path((owner, kind, name, version)): Path<(String, String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_package(&owner, &kind, &name, &version).await)
+}
+
 async fn run_cron(headers: HeaderMap, Path(task): Path<String>) -> Response {
     let c = mc!(headers);
     reply!(c.run_cron(&task).await)
@@ -929,6 +1111,7 @@ pub fn routes() -> Router {
             get(user_keys).post(create_user_key),
         )
         .route(&p("/users/{login}/keys/{id}"), delete(delete_user_key))
+        .route(&p("/users/{login}/gpg_keys"), get(user_gpg_keys))
         // orgs & teams
         .route(&p("/orgs"), get(orgs).post(create_org))
         .route(&p("/orgs/{org}"), patch(edit_org).delete(delete_org))
@@ -941,11 +1124,19 @@ pub fn routes() -> Router {
             &p("/orgs/{org}/runners/registration-token"),
             post(org_runner_token),
         )
-        .route(&p("/teams/{team_id}"), delete(delete_team))
+        .route(
+            &p("/teams/{team_id}"),
+            get(get_team).patch(edit_team).delete(delete_team),
+        )
         .route(&p("/teams/{team_id}/members"), get(team_members))
         .route(
             &p("/teams/{team_id}/members/{user}"),
             put(add_team_member).delete(remove_team_member),
+        )
+        .route(&p("/teams/{team_id}/repos"), get(team_repos))
+        .route(
+            &p("/teams/{team_id}/repos/{org}/{repo}"),
+            put(add_team_repo).delete(remove_team_repo),
         )
         // repos
         .route(&p("/repos/search"), get(repos_search))
@@ -955,7 +1146,14 @@ pub fn routes() -> Router {
             get(repo).patch(edit_repo).delete(delete_repo),
         )
         .route(&p("/repos/{owner}/{repo}/transfer"), post(transfer_repo))
-        .route(&p("/repos/{owner}/{repo}/branches"), get(branches))
+        .route(
+            &p("/repos/{owner}/{repo}/branches"),
+            get(branches).post(create_branch),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/branches/{branch}"),
+            get(get_branch).delete(delete_branch),
+        )
         .route(&p("/repos/{owner}/{repo}/commits"), get(commits))
         .route(&p("/repos/{owner}/{repo}/languages"), get(languages))
         .route(
@@ -975,6 +1173,16 @@ pub fn routes() -> Router {
             patch(edit_release).delete(delete_release),
         )
         .route(
+            &p("/repos/{owner}/{repo}/releases/{id}/assets"),
+            get(release_assets),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/releases/{id}/assets/{asset_id}"),
+            delete(delete_release_asset),
+        )
+        .route(&p("/repos/{owner}/{repo}/tags"), get(tags).post(create_tag))
+        .route(&p("/repos/{owner}/{repo}/tags/{tag}"), delete(delete_tag))
+        .route(
             &p("/repos/{owner}/{repo}/hooks"),
             get(hooks).post(create_hook),
         )
@@ -992,7 +1200,7 @@ pub fn routes() -> Router {
         )
         .route(
             &p("/repos/{owner}/{repo}/protections/{name}"),
-            delete(delete_protection),
+            patch(edit_protection).delete(delete_protection),
         )
         .route(&p("/repos/{owner}/{repo}/secrets"), get(secrets))
         .route(
@@ -1052,6 +1260,18 @@ pub fn routes() -> Router {
         .route(
             &p("/repos/{owner}/{repo}/pulls/{index}/merge"),
             post(merge_pull),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/contents/{*path}"),
+            get(contents)
+                .post(put_file)
+                .put(put_file)
+                .delete(delete_file),
+        )
+        .route(&p("/packages/{owner}"), get(packages))
+        .route(
+            &p("/packages/{owner}/{kind}/{name}/{version}"),
+            delete(delete_package),
         )
         .route(&p("/repos/{owner}/{repo}/runners"), get(repo_runners))
         .route(
