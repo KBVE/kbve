@@ -7,7 +7,7 @@ export interface CtNetConfig {
 let config: CtNetConfig | null = null;
 
 export const REALM_CHAT_GAME = 'cryptothrone';
-export const REALM_CHAT_CHANNEL = '#cryptothrone';
+export const REALM_CHAT_CHANNEL = '#general';
 
 export function resolveWsUrl(): string {
 	const env = import.meta.env.PUBLIC_CT_GAME_WS as string | undefined;

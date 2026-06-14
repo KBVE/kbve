@@ -37,7 +37,7 @@ export const ZONES = {
 		tilesetKey: 'cloud-city-tiles',
 		tilesetUrl: '/assets/map/cloud_tileset.png',
 		tilesetName: 'cloud_tileset',
-		channel: '#cryptothrone',
+		channel: '#general',
 		game: 'cryptothrone',
 	},
 } satisfies Record<string, ZoneDef>;
