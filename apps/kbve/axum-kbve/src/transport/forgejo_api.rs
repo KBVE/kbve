@@ -19,7 +19,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use jedi::entity::error::JediError;
-use jedi::entity::forgejo::{ForgejoClient, ForgejoStats, ForgejoStorage};
+use jedi::entity::forgejo::{ForgejoClient, ForgejoPolicy, ForgejoStats, ForgejoStorage};
 
 use super::proxy::{require_dashboard_manage_with_query, require_dashboard_view};
 
@@ -74,9 +74,12 @@ pub fn init_forgejo_api() -> bool {
         Ok(t) => t,
         Err(_) => return false,
     };
-    FORGEJO_API
-        .set(ForgejoClient::new(&upstream, &token))
-        .is_ok()
+    let mut client = ForgejoClient::new(&upstream, &token);
+    if let Ok(owners) = std::env::var("FORGEJO_ALLOWED_OWNERS") {
+        let policy = ForgejoPolicy::from_owners(owners.split(','));
+        client = client.with_policy(policy);
+    }
+    FORGEJO_API.set(client).is_ok()
 }
 
 fn client() -> Result<&'static ForgejoClient, Response> {

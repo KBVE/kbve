@@ -599,6 +599,15 @@ export default function ReactForgejoRepoPanel() {
 										fontFamily: 'monospace',
 									}}>
 									{formatSize(repo.size)}
+									{repo.lfs_size > 0 && (
+										<div
+											style={{
+												color: '#8b5cf6',
+												fontSize: '0.62rem',
+											}}>
+											LFS {formatSize(repo.lfs_size)}
+										</div>
+									)}
 								</td>
 								<td
 									style={{
