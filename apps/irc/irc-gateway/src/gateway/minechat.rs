@@ -263,6 +263,21 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                 continue;
             }
 
+            // Anti-spam — keyed by the authenticated nick. Over-limit messages
+            // are dropped before they reach ergo (so the relay never floods and
+            // gets banned); a sustained flood disconnects the session.
+            match crate::gateway::ratelimit::check(&nick_c2i) {
+                crate::gateway::ratelimit::Verdict::Allow => {}
+                crate::gateway::ratelimit::Verdict::Throttle => {
+                    debug!(user = %nick_c2i, "rate-limited; dropping message");
+                    continue;
+                }
+                crate::gateway::ratelimit::Verdict::Kick => {
+                    warn!(user = %nick_c2i, "flood detected; disconnecting session");
+                    break;
+                }
+            }
+
             // Keep the Custom kind tag tight so it can't smuggle control
             // characters through the IRC wire format.
             if let MessageKind::Custom(ref s) = parsed.kind {

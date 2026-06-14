@@ -33,6 +33,15 @@ async fn main() -> anyhow::Result<()> {
 
     gateway::history::spawn_listeners();
 
+    // Drop idle anti-spam buckets every minute so memory stays bounded.
+    tokio::spawn(async {
+        let mut tick = tokio::time::interval(std::time::Duration::from_secs(60));
+        loop {
+            tick.tick().await;
+            gateway::ratelimit::prune(std::time::Duration::from_secs(300));
+        }
+    });
+
     let http = tokio::spawn(transport::https::serve());
     let irc = tokio::spawn(gateway::irc::serve());
 
