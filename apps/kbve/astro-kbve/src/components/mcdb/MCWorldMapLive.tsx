@@ -7,9 +7,23 @@ type McServerStatus = {
 	reachable: boolean;
 };
 
+type McPosition = {
+	x: number;
+	y: number;
+	z: number;
+	dimension: string;
+};
+
+type McPlayer = {
+	name: string;
+	server: string;
+	position?: McPosition;
+};
+
 type McPlayerList = {
 	online: number;
 	max: number;
+	players: McPlayer[];
 	servers: McServerStatus[];
 };
 
@@ -48,6 +62,7 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 	// Cache the static-side SVG + injection-point lookup once on mount so
 	// dbLots updates don't re-walk the DOM every refresh.
 	const liveLayerRef = useRef<SVGGElement | null>(null);
+	const playerLayerRef = useRef<SVGGElement | null>(null);
 	const svgRef = useRef<SVGSVGElement | null>(null);
 
 	const cancel = useCallback(() => {
@@ -104,6 +119,9 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 		liveLayerRef.current =
 			wrap?.querySelector<SVGGElement>('[data-mcworld-live-lots]') ??
 			null;
+		playerLayerRef.current =
+			wrap?.querySelector<SVGGElement>('[data-mcworld-live-players]') ??
+			null;
 
 		document
 			.querySelectorAll('[data-mcworld-live-skeleton]')
@@ -138,7 +156,11 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 			if (liveLayerRef.current) {
 				liveLayerRef.current.replaceChildren();
 			}
+			if (playerLayerRef.current) {
+				playerLayerRef.current.replaceChildren();
+			}
 			liveLayerRef.current = null;
+			playerLayerRef.current = null;
 			svgRef.current = null;
 		};
 	}, [refresh, cancel, world]);
@@ -182,8 +204,72 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 		}
 	}, [dbLots, minChunk, maxChunk]);
 
+	// Project live player positions into the dedicated SVG layer. Block
+	// coords / 16 = chunk coords; players outside the visible window are
+	// dropped so the dot stays inside the panel.
+	useEffect(() => {
+		const layer = playerLayerRef.current;
+		const svg = svgRef.current;
+		if (!layer || !svg) return;
+		const SIZE = svg.viewBox.baseVal.width;
+		const span = maxChunk - minChunk + 1;
+		const cell = SIZE / span;
+		layer.replaceChildren();
+
+		const players = (status?.players ?? []).filter(
+			(p) => p.position && p.position.dimension === world,
+		);
+
+		for (const p of players) {
+			const pos = p.position!;
+			const cx = (pos.x / 16 - minChunk) * cell;
+			const cz = (pos.z / 16 - minChunk) * cell;
+			if (cx < 0 || cx > SIZE || cz < 0 || cz > SIZE) continue;
+
+			const g = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'g',
+			);
+			const halo = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'circle',
+			);
+			halo.setAttribute('cx', String(cx));
+			halo.setAttribute('cy', String(cz));
+			halo.setAttribute('r', '8');
+			halo.setAttribute('fill', 'rgba(74, 222, 128, 0.18)');
+			halo.setAttribute('stroke', 'rgba(74, 222, 128, 0.55)');
+			halo.setAttribute('stroke-width', '0.8');
+
+			const dot = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'circle',
+			);
+			dot.setAttribute('cx', String(cx));
+			dot.setAttribute('cy', String(cz));
+			dot.setAttribute('r', '3.5');
+			dot.setAttribute('fill', '#4ade80');
+			dot.setAttribute('stroke', '#0a0d12');
+			dot.setAttribute('stroke-width', '1');
+
+			const title = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'title',
+			);
+			title.textContent = `${p.name} · ${Math.round(pos.x)}, ${Math.round(pos.y)}, ${Math.round(pos.z)} · ${pos.dimension}`;
+			dot.appendChild(title);
+
+			g.appendChild(halo);
+			g.appendChild(dot);
+			layer.appendChild(g);
+		}
+	}, [status, world, minChunk, maxChunk]);
+
 	const total = status?.online ?? 0;
 	const max = status?.max ?? 0;
+	const visiblePlayers = (status?.players ?? []).filter(
+		(p) => p.position && p.position.dimension === world,
+	).length;
 
 	return (
 		<aside className="mcworldlive">
@@ -220,6 +306,13 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 					{dbLots.length === 1 ? '' : 's'} from
 					<code> /api/v1/mc/lots/viewport</code>. Refreshes every 30
 					s; lots you own render in deep blue.
+				</p>
+			)}
+			{status && (
+				<p className="mcworldlive__hint">
+					Live positions: {visiblePlayers} player
+					{visiblePlayers === 1 ? '' : 's'} in <code>{world}</code>{' '}
+					from RCON. Off-map players are dropped from the overlay.
 				</p>
 			)}
 			{error && <p className="mcworldlive__error">{error}</p>}
