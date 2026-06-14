@@ -49,8 +49,6 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/application/bevy", "/application/rust/#bevy"),
     ("/application/bevy/", "/application/rust/#bevy"),
     ("/health/", "/health"),
-    // axum doesn't normalize trailing slashes; route table only
-    // registers the no-slash form for /api/v1/* GET endpoints.
     ("/api/v1/forum/tags/", "/api/v1/forum/tags"),
     ("/api/v1/forum/spaces/", "/api/v1/forum/spaces"),
     ("/api/v1/me/", "/api/v1/me"),
@@ -77,9 +75,6 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/t/", "/forum/tags"),
     ("/arcade/towerdefence", "/arcade/towerdefense/"),
     ("/arcade/towerdefence/", "/arcade/towerdefense/"),
-    // Askama SSG source pages ship HTML in dist/ but are not public
-    // URLs — live versions are served by axum routes that interpolate
-    // placeholders. Funnel to canonical so crawlers don't index them.
     ("/askama/forum/feed", "/forum/"),
     ("/askama/forum/feed/", "/forum/"),
     ("/askama/forum/thread", "/forum/"),
@@ -436,11 +431,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/me/redeem-coupon",
             post(super::wallet::me_redeem_coupon),
         )
-        // Anonymous referral redirect surface. Client IP arrives via the
-        // ingress's X-Forwarded-For / CF-Connecting-IP headers; the
-        // handler hashes them with REFERRAL_HASH_SECRET before any DB
-        // write. Phase 2 backend for /referral/@<handle>/[<slug>]/ on
-        // the astro side.
         .route(
             "/api/v1/referral/{handle}",
             get(super::referral::redirect_default),
@@ -449,15 +439,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/{handle}/{slug}",
             get(super::referral::redirect_slug),
         )
-        // Pretty public URL. Same handlers as the API route. Axum matches
-        // routes before falling through to the static resolver, so these
-        // win over any /referral/<...>/index.html that may still ship in
-        // the astro dist.
-        //
-        // Each form gets two routes so a trailing slash on the public URL
-        // (e.g. /referral/@fudster/ vs /referral/@fudster) doesn't 404.
-        // axum's path matching is exact — there's no built-in
-        // trailing-slash normalization.
         .route("/referral/{handle}", get(super::referral::redirect_default))
         .route(
             "/referral/{handle}/",
@@ -471,8 +452,6 @@ fn router(state: AppState) -> Router {
             "/referral/{handle}/{slug}/",
             get(super::referral::redirect_slug),
         )
-        // API surface also tolerates trailing slashes for parity with the
-        // public URLs above.
         .route(
             "/api/v1/referral/{handle}/",
             get(super::referral::redirect_default),
@@ -481,9 +460,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/{handle}/{slug}/",
             get(super::referral::redirect_slug),
         )
-        // Phase 3a self-service management. All `/me/*` routes require
-        // a Supabase user JWT; user_id is pulled from the JWT `sub`
-        // claim, never trusted from the path or body.
         .route(
             "/api/v1/referral/me/targets",
             get(super::referral::me_list_targets),
@@ -501,10 +477,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/me/targets/{slug}/set-default",
             post(super::referral::me_set_default),
         )
-        // service_role JWT required; anon / authenticated JWTs are rejected with 403.
-        // Yuki dock — SSE chat stream. Phase C is a deterministic
-        // canned reply; Phase D swaps the handler body for a real
-        // LLM round-trip without touching the route or the front-end.
         .route("/api/v1/yuki/chat", get(super::yuki::chat_handler))
         .route(
             "/api/v1/wallet/service/balance/{user_id}",
@@ -538,7 +510,6 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/service/verify-balance/{account_id}",
             get(super::wallet::service_verify_balance),
         )
-        // marketplace — anon browse + authenticated trade/management.
         .route(
             "/api/v1/market/listings",
             get(super::market::list_active).post(super::market::create_listing),
@@ -573,7 +544,6 @@ fn router(state: AppState) -> Router {
 
     let main_app = static_router.merge(public_router).layer(middleware);
 
-    // Proxy + WebSocket routes bypass global middleware (no 10s timeout, no 1MB body limit).
     let mut bypass_router = Router::new();
     if let Some(mcp_svc) = crate::mcp::build_service() {
         bypass_router = bypass_router
@@ -671,11 +641,6 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_fc_handler),
         )
         .route("/fc/{name}", any(super::proxy::firecracker_fc_handler))
-        // No JWT gate here; firecracker-ctl-net rejects with 403 when
-        // the endpoint was not deployed with `visibility: "public"`.
-        // Single catch-all (vs. {name} + {name}/{*path}) so the trailing-
-        // slash form `/fc/public/my-api/` still matches and does not fall
-        // through to the staff-gated `/fc/{name}/{*path}` route.
         .route(
             "/fc/public/{*rest}",
             any(super::proxy::firecracker_fc_public_handler),
@@ -851,7 +816,6 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
         }
     };
 
-    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
@@ -865,8 +829,6 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
 
     match profile {
         Some(profile) => {
-            // Forum block bypasses the profile cache so post counts and
-            // recent activity stay current.
             let forum_block = fetch_forum_profile_block(&profile.user_id).await;
             let response =
                 render_profile_template(&validated_username, &profile, forum_block.as_ref());
@@ -1244,8 +1206,6 @@ fn render_profile_template(
         rentearth_characters,
         rentearth_total_playtime_hours,
         rentearth_last_activity,
-        // Empty defaults when forum lookup found no row (user has never
-        // posted) so the template hides the section via forum_present.
         forum_present: forum.is_some(),
         forum_karma: forum.map(|f| f.karma).unwrap_or(0),
         forum_post_count: forum.map(|f| f.post_count).unwrap_or(0),
@@ -1783,7 +1743,6 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
         }
     };
 
-    // Concurrent misses collapse to one enrichment via get_or_load.
     let profile = if let Some(cache) = get_profile_cache() {
         cache
             .get_or_load(&validated_username, |u| async move {
@@ -2136,7 +2095,6 @@ async fn cache_headers(request: Request, next: Next) -> Response {
     let mut response = next.run(request).await;
 
     let cache_value = if path.starts_with("/_astro/") {
-        // Content-hashed Vite bundles — cache forever.
         "public, max-age=31536000, immutable"
     } else if path.starts_with("/pagefind/") || path.starts_with("/images/") {
         "public, max-age=86400"
@@ -2272,8 +2230,6 @@ async fn fetch_forum_profile_block(user_id: &str) -> Option<ForumProfileBlock> {
     let mut recent_comments_html = String::with_capacity(comments.len() * 256);
     let ctx = forum_render_ctx();
     for c in &comments {
-        // Strip rendered markdown to plain text — the anchor wrapping
-        // the row would otherwise nest HTML.
         let rendered = kbve::markdown::render(&c.body, &ctx);
         let excerpt = plain_excerpt(&rendered.html, FORUM_PROFILE_COMMENT_EXCERPT);
         let partial = ProfileForumCommentRowPartial {
@@ -2618,7 +2574,26 @@ pub(crate) async fn api_list_tags() -> Response {
                 .into_response();
         }
     };
-    match svc.list_tags(200).await {
+
+    let result = if let Some(cache) = crate::db::get_kv_cache() {
+        cache
+            .get_or_fetch_json_tagged(
+                "forum:tags:limit=200",
+                None,
+                || async {
+                    svc.list_tags(200)
+                        .await
+                        .map_err(|e| jedi::entity::error::JediError::Database(e.into()))
+                },
+                |_: &Vec<crate::db::TagRow>| vec!["forum:tags".to_string()],
+            )
+            .await
+            .map_err(|e| e.to_string())
+    } else {
+        svc.list_tags(200).await
+    };
+
+    match result {
         Ok(rows) => (
             StatusCode::OK,
             [(header::CACHE_CONTROL, "public, max-age=300")],
@@ -2659,7 +2634,26 @@ pub(crate) async fn api_list_spaces() -> Response {
                 .into_response();
         }
     };
-    match svc.list_spaces().await {
+
+    let result = if let Some(cache) = crate::db::get_kv_cache() {
+        cache
+            .get_or_fetch_json_tagged(
+                "forum:spaces",
+                None,
+                || async {
+                    svc.list_spaces()
+                        .await
+                        .map_err(|e| jedi::entity::error::JediError::Database(e.into()))
+                },
+                |_: &Vec<crate::db::SpaceRow>| vec!["forum:spaces".to_string()],
+            )
+            .await
+            .map_err(|e| e.to_string())
+    } else {
+        svc.list_spaces().await
+    };
+
+    match result {
         Ok(rows) => (
             StatusCode::OK,
             [(header::CACHE_CONTROL, "public, max-age=300")],
@@ -2930,7 +2924,6 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
     let ctx = forum_render_ctx();
     let body_rendered = kbve::markdown::render(&thread.body, &ctx);
 
-    // Batch-resolve thread author + every commenter to a username.
     let usernames_by_id = match get_profile_service() {
         Some(profile_svc) => {
             let mut ids: Vec<String> = Vec::with_capacity(comments.len() + 1);
@@ -3051,7 +3044,6 @@ pub(crate) struct CreateThreadBody {
     // double-encode &amp; etc.
     #[holy(sanitize = "trim, control_strip, truncate(180)")]
     pub title: String,
-    // body is markdown — control_strip would eat \n / \t.
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
     #[serde(default = "default_thread_type")]
@@ -3154,8 +3146,6 @@ pub(crate) async fn api_create_thread(
         }
         Err(e) => {
             tracing::warn!("forum.service_create_thread error: {}", e);
-            // Surface RPC message so the client can render "username
-            // required" / "title length" / etc directly.
             (StatusCode::BAD_REQUEST, Json(json!({"error": e}))).into_response()
         }
     }
@@ -3165,7 +3155,6 @@ pub(crate) async fn api_create_thread(
 pub(crate) struct CreateCommentBody {
     #[holy(sanitize = "nul_strip, truncate(50000)")]
     pub body: String,
-    // UUID — RPC rejects malformed values, no sanitize needed.
     #[serde(default)]
     pub parent_comment_id: Option<String>,
 }
