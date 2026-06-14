@@ -1,6 +1,10 @@
 import type { ServerCard, SortOption } from './types';
 import { CATEGORIES } from './types';
-import { listServers } from './discordshEdge';
+import { listServers as listServersAxum } from './discordshEdge';
+import {
+	getCachedServers,
+	setCachedServers,
+} from './serverCache';
 
 // ── Category mapping ────────────────────────────────────────────────
 // The DB uses 1-based integer category IDs matching CATEGORIES array order.
@@ -9,9 +13,11 @@ const CATEGORY_TO_INT = new Map(
 	CATEGORIES.map((c, i) => [c.id, i + 1] as const),
 );
 
-// ── Data fetching ───────────────────────────────────────────────────
-// Fetches from the edge function (server-side pagination).
-// Falls back to static JSON if the edge call fails.
+// ── Data fetching waterfall ─────────────────────────────────────────
+// 1. IndexedDB cache (5min TTL)
+// 2. Axum backend /api/servers/list
+// 3. Supabase edge function (future fallback)
+// 4. Static JSON (offline/dev)
 
 export async function fetchServers(opts?: {
 	category?: string;
@@ -19,33 +25,55 @@ export async function fetchServers(opts?: {
 	page?: number;
 	limit?: number;
 }): Promise<{ servers: ServerCard[]; total: number }> {
+	const category = opts?.category;
+	const sort = opts?.sort ?? 'votes';
+	const page = opts?.page ?? 1;
+	const limit = opts?.limit ?? 24;
+
+	// Layer 1: IndexedDB cache
 	try {
-		const result = await listServers({
-			limit: opts?.limit ?? 24,
-			page: opts?.page ?? 1,
-			sort: opts?.sort ?? 'votes',
-			category: opts?.category
-				? (CATEGORY_TO_INT.get(opts.category) ?? null)
-				: null,
+		const cached = await getCachedServers({ category, sort, page, limit });
+		if (cached) {
+			console.info('[fetchServers] Cache hit (IDB)');
+			return cached;
+		}
+	} catch (err) {
+		console.warn('[fetchServers] IDB cache read failed:', err);
+	}
+
+	// Layer 2: Axum backend
+	try {
+		const result = await listServersAxum({
+			limit,
+			page,
+			sort,
+			category: category ? (CATEGORY_TO_INT.get(category) ?? null) : null,
 		});
 
 		if (result.success) {
-			return {
+			const data = {
 				servers: (result.servers as ServerCard[]) ?? [],
 				total: (result.total as number) ?? 0,
 			};
+
+			// Cache successful response
+			setCachedServers({ category, sort, page, limit }, data.servers, data.total).catch(
+				(err) => console.warn('[fetchServers] Cache write failed:', err),
+			);
+
+			console.info('[fetchServers] Fetched from Axum backend');
+			return data;
 		}
-		console.warn(
-			'[fetchServers] Edge error, falling back to static JSON:',
-			result.error,
-		);
+		console.warn('[fetchServers] Axum error, falling back:', result.error);
 	} catch (err) {
-		console.warn(
-			'[fetchServers] Edge unreachable, falling back to static JSON:',
-			err,
-		);
+		console.warn('[fetchServers] Axum unreachable, falling back:', err);
 	}
 
+	// Layer 3: Supabase edge (future — currently skipped)
+	// TODO: Add edge function fallback when needed
+
+	// Layer 4: Static JSON fallback
+	console.info('[fetchServers] Falling back to static JSON');
 	return fetchServersStatic(opts);
 }
 

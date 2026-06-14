@@ -27,7 +27,7 @@ pub const HISTORY_LEN: usize = 10;
 
 /// Channels the gateway keeps history for (union of the game + minechat
 /// channel whitelists).
-const HISTORY_CHANNELS: &[&str] = &["#cryptothrone", "#world-events", "#mc-global"];
+const HISTORY_CHANNELS: &[&str] = &["#general", "#world-events", "#mc-global"];
 
 type Store = Arc<Mutex<HashMap<String, VecDeque<ChatMessage>>>>;
 

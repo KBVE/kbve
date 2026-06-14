@@ -35,7 +35,23 @@ async fn main() -> anyhow::Result<()> {
     let health_monitor = Arc::new(health::HealthMonitor::new());
     health_monitor.spawn_background_task();
 
-    let app_state = Arc::new(state::AppState::new(health_monitor));
+    // Initialize PgCluster if env configured
+    let pg_cluster = match kbve::jedi::state::pg::PgCluster::from_env().await {
+        Ok(cluster) => {
+            info!("PgCluster initialized successfully");
+            Some(cluster)
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "PgCluster init failed — falling back to edge functions");
+            None
+        }
+    };
+
+    let mut app_state = state::AppState::new(health_monitor);
+    if let Some(cluster) = pg_cluster {
+        app_state = app_state.with_pg_cluster(cluster);
+    }
+    let app_state = Arc::new(app_state);
 
     // HTTP server runs for the lifetime of the process
     tokio::select! {

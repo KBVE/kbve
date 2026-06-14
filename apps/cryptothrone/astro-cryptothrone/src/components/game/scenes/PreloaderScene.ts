@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { getZone } from '../data/zones';
 
 export class PreloaderScene extends Scene {
 	constructor() {
@@ -30,11 +31,9 @@ export class PreloaderScene extends Scene {
 			loadingText.destroy();
 		});
 
-		this.load.image('cloud-city-tiles', '/assets/map/cloud_tileset.png');
-		this.load.json(
-			'cloud-city-tilemap',
-			'/assets/map/cloud_city.tilemap.json',
-		);
+		const zone = getZone();
+		this.load.image(zone.tilesetKey, zone.tilesetUrl);
+		this.load.json(zone.tilemapKey, zone.tilemapUrl);
 
 		this.load.spritesheet('player', '/assets/entity/charactersheet.png', {
 			frameWidth: 52,

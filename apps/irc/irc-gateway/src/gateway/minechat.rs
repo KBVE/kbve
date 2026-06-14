@@ -113,7 +113,7 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
 /// negotiate their way into arbitrary channels.
 const GAME_PROFILES: &[(&str, &str, &str)] = &[
     // (game key, channel, platform)
-    ("cryptothrone", "#cryptothrone", "cryptothrone"),
+    ("cryptothrone", "#general", "cryptothrone"),
 ];
 
 fn game_profile(game: &str) -> Option<(&'static str, &'static str)> {
