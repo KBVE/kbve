@@ -33,7 +33,16 @@ pub async fn serve() -> Result<()> {
     info!("HTTP listening on http://{addr}");
 
     let allocator = Arc::new(AgonesAllocator::try_new().await);
-    let app = router().layer(Extension(allocator));
+    // Optional DB — only the Discord session bridge needs it; the service still
+    // serves static + allocation when KBVE_PG_* is unset.
+    let pg = match jedi::state::pg::PgCluster::from_env().await {
+        Ok(c) => Some(c),
+        Err(e) => {
+            tracing::warn!(error = %e, "PgCluster offline; /api/discord/session disabled");
+            None
+        }
+    };
+    let app = router().layer(Extension(allocator)).layer(Extension(pg));
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -97,7 +106,8 @@ fn router() -> Router {
     let dynamic_router = Router::new()
         .route("/health", get(health))
         .route("/api/v1/speed", get(speed))
-        .route("/api/join", post(join));
+        .route("/api/join", post(join))
+        .route("/api/discord/session", post(crate::discord::session));
 
     static_router.merge(dynamic_router).layer(middleware)
 }
