@@ -1,10 +1,13 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import type { ElementRef } from 'react';
+import { LogBox } from 'react-native';
 import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
 import { KBVE_HCAPTCHA_SITE_KEY } from './config';
 import type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';
 
 export type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';
+
+LogBox.ignoreLogs(['SafeAreaView has been deprecated']);
 
 const CONTROL_MESSAGES = ['open', 'close', 'rendered', 'showHCaptcha'];
 
@@ -14,10 +17,14 @@ export const HCaptcha = forwardRef<HCaptchaHandle, HCaptchaProps>(
 		ref,
 	) {
 		const inner = useRef<ElementRef<typeof ConfirmHcaptcha>>(null);
+		const [nonce, setNonce] = useState(0);
 
 		useImperativeHandle(
 			ref,
-			() => ({ show: () => inner.current?.show() }),
+			() => ({
+				show: () => inner.current?.show(),
+				reset: () => setNonce((n) => n + 1),
+			}),
 			[],
 		);
 
@@ -34,6 +41,7 @@ export const HCaptcha = forwardRef<HCaptchaHandle, HCaptchaProps>(
 
 		return (
 			<ConfirmHcaptcha
+				key={nonce}
 				ref={inner}
 				siteKey={siteKey}
 				baseUrl="https://hcaptcha.com"

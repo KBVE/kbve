@@ -1,5 +1,6 @@
 export interface HCaptchaHandle {
 	show: () => void;
+	reset: () => void;
 }
 
 export interface HCaptchaProps {

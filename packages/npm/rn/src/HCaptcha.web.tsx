@@ -14,7 +14,10 @@ export const HCaptcha = forwardRef<HCaptchaHandle, HCaptchaProps>(
 
 		useImperativeHandle(
 			ref,
-			() => ({ show: () => void inner.current?.execute() }),
+			() => ({
+				show: () => void inner.current?.execute(),
+				reset: () => inner.current?.resetCaptcha(),
+			}),
 			[],
 		);
 
