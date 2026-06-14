@@ -1,4 +1,4 @@
-import { FloatingWindow } from '@kbve/astro';
+import { FloatingWindow } from '@kbve/astro/ui';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { StatsSection } from './StatsSection';
 import { ToggleButton } from './ToggleButton';
