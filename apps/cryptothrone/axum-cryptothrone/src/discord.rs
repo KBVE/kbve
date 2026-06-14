@@ -81,16 +81,21 @@ pub async fn session(
 
     let http = reqwest::Client::new();
 
-    // 1. OAuth code -> Discord access token.
+    // 1. OAuth code -> Discord access token. Activities authorize in-client
+    // without a redirect_uri, so only send one when explicitly configured —
+    // an empty redirect_uri makes Discord reject the exchange.
+    let mut form: Vec<(&str, &str)> = vec![
+        ("client_id", client_id.as_str()),
+        ("client_secret", client_secret.as_str()),
+        ("grant_type", "authorization_code"),
+        ("code", req.code.as_str()),
+    ];
+    if !redirect_uri.is_empty() {
+        form.push(("redirect_uri", redirect_uri.as_str()));
+    }
     let token: DiscordToken = match http
         .post(DISCORD_TOKEN_URL)
-        .form(&[
-            ("client_id", client_id.as_str()),
-            ("client_secret", client_secret.as_str()),
-            ("grant_type", "authorization_code"),
-            ("code", req.code.as_str()),
-            ("redirect_uri", redirect_uri.as_str()),
-        ])
+        .form(&form)
         .send()
         .await
         .and_then(|r| r.error_for_status())
