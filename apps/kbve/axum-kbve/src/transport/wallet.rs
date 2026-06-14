@@ -185,13 +185,19 @@ pub(crate) async fn me_balance(headers: HeaderMap) -> Response {
             Some(cache) => {
                 let key = format!("caller:{user_id}:balance");
                 cluster
-                    .cached_caller_read(
+                    .cached_caller_read_tagged(
                         cache,
                         &key,
                         None,
                         user_id,
                         None,
                         |tx| -> PgCallerReadFut<'_, BalanceDto> { Box::pin(balance_query(tx)) },
+                        move |b: &BalanceDto| {
+                            vec![
+                                format!("wallet:caller:{user_id}"),
+                                format!("wallet:account:{}", b.account_id),
+                            ]
+                        },
                     )
                     .await
             }
@@ -307,13 +313,14 @@ pub(crate) async fn me_coupons(headers: HeaderMap) -> Response {
             Some(cache) => {
                 let key = format!("caller:{user_id}:coupons");
                 cluster
-                    .cached_caller_read(
+                    .cached_caller_read_tagged(
                         cache,
                         &key,
                         None,
                         user_id,
                         None,
                         |tx| -> PgCallerReadFut<'_, Vec<CouponDto>> { Box::pin(coupons_query(tx)) },
+                        move |_: &Vec<CouponDto>| vec![format!("wallet:caller:{user_id}")],
                     )
                     .await
             }
@@ -408,16 +415,26 @@ pub(crate) async fn me_redeem_coupon(
     }
 }
 
-/// Invalidate all cached entries scoped to a caller subject. Hooks
-/// into wallet write paths after a successful commit so the next
-/// /me/balance / /me/coupons / /me/ledger read can't serve stale
-/// data within the L1/L2 TTL window. Best-effort; cache errors
-/// are logged but not returned.
+/// Invalidate every cached entry tagged with this caller's user_id.
+/// Hooks into wallet write paths after a successful commit so the
+/// next /me/balance / /me/coupons / /me/ledger read can't serve
+/// stale data within the L1/L2 TTL window. Best-effort.
 pub(crate) async fn invalidate_caller_cache(user_id: Uuid) {
     let Some(cache) = get_kv_cache() else { return };
-    let prefix = format!("caller:{user_id}");
-    if let Err(e) = cache.invalidate_prefix(&prefix).await {
-        tracing::warn!(error = %e, user_id = %user_id, "[wallet] cache invalidate_prefix failed");
+    let tag = format!("wallet:caller:{user_id}");
+    if let Err(e) = cache.invalidate_tag(&tag).await {
+        tracing::warn!(error = %e, user_id = %user_id, "[wallet] invalidate_tag(caller) failed");
+    }
+}
+
+/// Invalidate every cached entry tagged with this account_id. Hooks
+/// into account-keyed service writes (credit / debit / transfer)
+/// where the caller's user_id isn't readily available. Best-effort.
+pub(crate) async fn invalidate_account_cache(account_id: Uuid) {
+    let Some(cache) = get_kv_cache() else { return };
+    let tag = format!("wallet:account:{account_id}");
+    if let Err(e) = cache.invalidate_tag(&tag).await {
+        tracing::warn!(error = %e, account_id = %account_id, "[wallet] invalidate_tag(account) failed");
     }
 }
 
@@ -629,8 +646,12 @@ pub(crate) async fn service_credit(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let account_id = req.account_id;
     match client.credit(req).await {
-        Ok(ledger_id) => Json(ServiceLedgerDto { ledger_id }).into_response(),
+        Ok(ledger_id) => {
+            invalidate_account_cache(account_id).await;
+            Json(ServiceLedgerDto { ledger_id }).into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -682,8 +703,12 @@ pub(crate) async fn service_debit(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let account_id = req.account_id;
     match client.debit(req).await {
-        Ok(ledger_id) => Json(ServiceLedgerDto { ledger_id }).into_response(),
+        Ok(ledger_id) => {
+            invalidate_account_cache(account_id).await;
+            Json(ServiceLedgerDto { ledger_id }).into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -736,8 +761,14 @@ pub(crate) async fn service_transfer(
         ref_id: body.ref_id,
         idempotency_key: body.idempotency_key,
     };
+    let from_account = req.from_account;
+    let to_account = req.to_account;
     match client.transfer(req).await {
-        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Ok(()) => {
+            invalidate_account_cache(from_account).await;
+            invalidate_account_cache(to_account).await;
+            StatusCode::NO_CONTENT.into_response()
+        }
         Err(e) => wallet_error_response(e),
     }
 }
@@ -926,6 +957,7 @@ pub(crate) async fn service_credit_user(
     match client.credit(req).await {
         Ok(ledger_id) => {
             invalidate_caller_cache(body.user_id).await;
+            invalidate_account_cache(account_id).await;
             Json(ServiceCreditUserDto {
                 account_id,
                 ledger_id,

@@ -69,6 +69,7 @@ impl KvCacheConfig {
 
 struct L1Entry {
     body: Arc<[u8]>,
+    tags: Arc<[Arc<str>]>,
     expires_at: Instant,
 }
 
@@ -77,6 +78,9 @@ pub struct KvCache {
     l1: Mutex<LruCache<String, L1Entry>>,
     l2: Option<ValkeyPool>,
     inflight: DashMap<String, broadcast::Sender<Result<Arc<[u8]>, String>>>,
+    /// `tag → set<qualified_key>` reverse index for L1 invalidation.
+    /// L2 mirrors this in `<namespace>:tag:<tag>` Redis SETs.
+    tag_index: DashMap<Arc<str>, dashmap::DashSet<Arc<str>>>,
 }
 
 impl KvCache {
@@ -88,6 +92,7 @@ impl KvCache {
             l1,
             l2,
             inflight: DashMap::new(),
+            tag_index: DashMap::new(),
         })
     }
 
@@ -126,6 +131,30 @@ impl KvCache {
         F: FnOnce() -> Fut + Send,
         Fut: std::future::Future<Output = Result<T, JediError>> + Send,
     {
+        self.get_or_fetch_json_tagged(key, ttl, fetch, |_| Vec::new())
+            .await
+    }
+
+    /// Same as [`get_or_fetch_json`] but the caller supplies a closure
+    /// that derives a tag list from the fetched value. Tags are
+    /// registered alongside the cached body so a later
+    /// [`KvCache::invalidate_tag`] can purge every key carrying the
+    /// tag — useful when writes are keyed differently from reads
+    /// (e.g. `service/credit` knows the `account_id` while
+    /// `/me/balance` is keyed by `user_id`).
+    pub async fn get_or_fetch_json_tagged<T, F, Fut, TagFn>(
+        &self,
+        key: &str,
+        ttl: Option<Duration>,
+        fetch: F,
+        tag_fn: TagFn,
+    ) -> Result<T, JediError>
+    where
+        T: Serialize + DeserializeOwned + Send,
+        F: FnOnce() -> Fut + Send,
+        Fut: std::future::Future<Output = Result<T, JediError>> + Send,
+        TagFn: FnOnce(&T) -> Vec<String> + Send,
+    {
         let qualified = self.qualified(key);
         let l1_ttl = ttl.unwrap_or(self.cfg.l1_default_ttl);
         let l2_ttl = ttl.unwrap_or(self.cfg.l2_default_ttl);
@@ -139,22 +168,23 @@ impl KvCache {
         if let Some(bytes) = self.l2_get(&qualified).await {
             metrics_inc("kbve_kv_l2_hit");
             let arc: Arc<[u8]> = Arc::from(bytes.into_boxed_slice());
-            self.l1_put(qualified.clone(), Arc::clone(&arc), l1_ttl)
+            self.l1_put(qualified.clone(), Arc::clone(&arc), Vec::new(), l1_ttl)
                 .await;
             return serde_json::from_slice(&arc).map_err(json_err);
         }
         metrics_inc("kbve_kv_l2_miss");
 
         let bytes = self
-            .single_flight(&qualified, fetch, l1_ttl, l2_ttl)
+            .single_flight(&qualified, fetch, tag_fn, l1_ttl, l2_ttl)
             .await?;
         serde_json::from_slice(&bytes).map_err(json_err)
     }
 
-    async fn single_flight<T, F, Fut>(
+    async fn single_flight<T, F, Fut, TagFn>(
         &self,
         qualified: &str,
         fetch: F,
+        tag_fn: TagFn,
         l1_ttl: Duration,
         l2_ttl: Duration,
     ) -> Result<Arc<[u8]>, JediError>
@@ -162,6 +192,7 @@ impl KvCache {
         T: Serialize + Send,
         F: FnOnce() -> Fut + Send,
         Fut: std::future::Future<Output = Result<T, JediError>> + Send,
+        TagFn: FnOnce(&T) -> Vec<String> + Send,
     {
         let receiver = match self.inflight.entry(qualified.to_string()) {
             Entry::Occupied(o) => {
@@ -188,13 +219,14 @@ impl KvCache {
         }
 
         let outcome = fetch().await;
-        let (bytes, err_str): (Option<Arc<[u8]>>, Option<String>) = match &outcome {
-            Ok(v) => match serde_json::to_vec(v) {
-                Ok(b) => (Some(Arc::from(b.into_boxed_slice())), None),
-                Err(e) => (None, Some(format!("kv encode: {e}"))),
-            },
-            Err(e) => (None, Some(e.to_string())),
-        };
+        let (bytes, tags, err_str): (Option<Arc<[u8]>>, Vec<String>, Option<String>) =
+            match &outcome {
+                Ok(v) => match serde_json::to_vec(v) {
+                    Ok(b) => (Some(Arc::from(b.into_boxed_slice())), tag_fn(v), None),
+                    Err(e) => (None, Vec::new(), Some(format!("kv encode: {e}"))),
+                },
+                Err(e) => (None, Vec::new(), Some(e.to_string())),
+            };
 
         if let Some((_, tx)) = self.inflight.remove(qualified) {
             let payload = match (&bytes, &err_str) {
@@ -210,16 +242,22 @@ impl KvCache {
             JediError::Internal(err_str.unwrap_or_else(|| "kv: missing body".into()).into())
         })?;
 
-        self.l1_put(qualified.to_string(), Arc::clone(&bytes), l1_ttl)
-            .await;
-        self.l2_put(qualified, bytes.as_ref(), l2_ttl).await;
+        self.l1_put(
+            qualified.to_string(),
+            Arc::clone(&bytes),
+            tags.clone(),
+            l1_ttl,
+        )
+        .await;
+        self.l2_put(qualified, bytes.as_ref(), &tags, l2_ttl).await;
 
         Ok(bytes)
     }
 
     pub async fn invalidate(&self, key: &str) -> Result<(), JediError> {
         let q = self.qualified(key);
-        self.l1.lock().await.pop(&q);
+        let tags = self.l1_pop(&q).await;
+        self.tag_index_remove_key(&q, &tags);
         if let Some(pool) = &self.l2 {
             let _: Result<i64, _> = pool.del(&*q).await;
         }
@@ -228,21 +266,99 @@ impl KvCache {
 
     pub async fn invalidate_prefix(&self, prefix: &str) -> Result<(), JediError> {
         let q = self.qualified(prefix);
-        let mut l1 = self.l1.lock().await;
-        let victims: Vec<String> = l1
-            .iter()
-            .filter_map(|(k, _)| {
-                if k.starts_with(&q) {
-                    Some(k.clone())
-                } else {
-                    None
-                }
-            })
-            .collect();
-        for k in victims {
-            l1.pop(&k);
+        let victims: Vec<(String, Arc<[Arc<str>]>)> = {
+            let mut l1 = self.l1.lock().await;
+            let keys: Vec<String> = l1
+                .iter()
+                .filter_map(|(k, _)| {
+                    if k.starts_with(&q) {
+                        Some(k.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            keys.into_iter()
+                .filter_map(|k| {
+                    let entry = l1.pop(&k)?;
+                    Some((k, entry.tags))
+                })
+                .collect()
+        };
+        for (k, tags) in victims {
+            self.tag_index_remove_key(&k, &tags);
         }
         Ok(())
+    }
+
+    /// Drop every cached entry registered under `tag` from L1 + L2.
+    /// Returns the number of L1 keys purged (L2 deletes happen
+    /// best-effort and may exceed the L1 count when other pods have
+    /// also cached entries under the same tag).
+    ///
+    /// `tag` is namespaced internally — callers pass the bare tag
+    /// (e.g. `"wallet:account:<uuid>"`).
+    pub async fn invalidate_tag(&self, tag: &str) -> Result<usize, JediError> {
+        let qualified_tag: Arc<str> = self.qualified(tag).into();
+
+        let l1_keys: Vec<Arc<str>> = self
+            .tag_index
+            .remove(&qualified_tag)
+            .map(|(_, set)| set.into_iter().collect())
+            .unwrap_or_default();
+        let l1_count = l1_keys.len();
+        {
+            let mut l1 = self.l1.lock().await;
+            for k in &l1_keys {
+                if let Some(entry) = l1.pop(&**k) {
+                    let other_tags: Vec<Arc<str>> = entry
+                        .tags
+                        .iter()
+                        .filter(|t| **t != qualified_tag)
+                        .cloned()
+                        .collect();
+                    drop(other_tags);
+                }
+            }
+        }
+
+        if let Some(pool) = &self.l2 {
+            let tag_set_key = self.tag_set_key(&qualified_tag);
+            let members: Vec<String> = match pool.smembers::<Vec<String>, _>(&*tag_set_key).await {
+                Ok(m) => m,
+                Err(e) => {
+                    tracing::warn!(error = %e, tag = %tag, "[KvCache] L2 SMEMBERS failed");
+                    Vec::new()
+                }
+            };
+            for m in &members {
+                let _: Result<i64, _> = pool.del(m.as_str()).await;
+            }
+            let _: Result<i64, _> = pool.del(&*tag_set_key).await;
+        }
+
+        Ok(l1_count)
+    }
+
+    fn tag_set_key(&self, qualified_tag: &str) -> String {
+        format!("{}:__tag:{qualified_tag}", self.cfg.namespace)
+    }
+
+    fn tag_index_register(&self, qualified_key: &Arc<str>, tags: &[Arc<str>]) {
+        for tag in tags {
+            self.tag_index
+                .entry(Arc::clone(tag))
+                .or_default()
+                .insert(Arc::clone(qualified_key));
+        }
+    }
+
+    fn tag_index_remove_key(&self, qualified_key: &str, tags: &[Arc<str>]) {
+        for tag in tags {
+            if let Some(set) = self.tag_index.get(tag) {
+                set.remove(qualified_key);
+            }
+        }
     }
 
     fn qualified(&self, key: &str) -> String {
@@ -262,9 +378,24 @@ impl KvCache {
         body
     }
 
-    async fn l1_put(&self, key: String, body: Arc<[u8]>, ttl: Duration) {
+    async fn l1_pop(&self, key: &str) -> Arc<[Arc<str>]> {
+        match self.l1.lock().await.pop(key) {
+            Some(e) => e.tags,
+            None => Arc::from(Vec::<Arc<str>>::new().into_boxed_slice()),
+        }
+    }
+
+    async fn l1_put(&self, key: String, body: Arc<[u8]>, tags: Vec<String>, ttl: Duration) {
+        let qualified_key: Arc<str> = key.clone().into();
+        let tag_arcs: Vec<Arc<str>> = tags
+            .into_iter()
+            .map(|t| Arc::<str>::from(self.qualified(&t).into_boxed_str()))
+            .collect();
+        let tag_slice: Arc<[Arc<str>]> = Arc::from(tag_arcs.clone().into_boxed_slice());
+        self.tag_index_register(&qualified_key, &tag_arcs);
         let entry = L1Entry {
             body,
+            tags: tag_slice,
             expires_at: Instant::now() + ttl,
         };
         self.l1.lock().await.put(key, entry);
@@ -278,7 +409,7 @@ impl KvCache {
         }
     }
 
-    async fn l2_put(&self, key: &str, body: &[u8], ttl: Duration) {
+    async fn l2_put(&self, key: &str, body: &[u8], tags: &[String], ttl: Duration) {
         let Some(pool) = &self.l2 else { return };
         let ttl_ms = ttl.as_millis() as i64;
         let res: Result<(), _> = pool
@@ -286,7 +417,31 @@ impl KvCache {
             .await;
         if let Err(e) = res {
             tracing::warn!(error = %e, key = %key, "[KvCache] L2 put failed");
+            return;
         }
+        let set_ttl_secs = (ttl.as_secs().saturating_mul(2)).max(1);
+        for tag in tags {
+            let qualified_tag = self.qualified(tag);
+            let tag_set_key = self.tag_set_key(&qualified_tag);
+            let _: Result<i64, _> = pool.sadd(&*tag_set_key, key).await;
+            let _: Result<i64, _> = pool.expire(&*tag_set_key, set_ttl_secs as i64, None).await;
+        }
+    }
+
+    /// Atomic per-window counter for rate limiting, shared via valkey across
+    /// every service pointed at the same `KBVE_KV_URL`. Increments the counter
+    /// for `key` in the current window and returns the post-increment count, or
+    /// `None` when L2 (valkey) is unavailable so callers can fall back to an
+    /// in-process limiter. The key expires after `window_secs`, so the window
+    /// is fixed (resets once the counter ages out).
+    pub async fn check_rate(&self, key: &str, window_secs: u64) -> Option<u64> {
+        let pool = self.l2.as_ref()?;
+        let rkey = self.qualified(&format!("rl:{key}"));
+        let count: i64 = pool.incr::<i64, _>(&rkey).await.ok()?;
+        if count == 1 {
+            let _ = pool.expire::<(), _>(&rkey, window_secs as i64, None).await;
+        }
+        Some(count.max(0) as u64)
     }
 }
 
@@ -352,6 +507,103 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn invalidate_tag_purges_all_keys_carrying_tag() {
+        let cache = KvCache::new(cfg(), None);
+        let acc_a = uuid::Uuid::new_v4();
+        let acc_b = uuid::Uuid::new_v4();
+
+        let _: u32 = cache
+            .get_or_fetch_json_tagged(
+                "user-1:balance",
+                None,
+                || async { Ok::<u32, JediError>(100) },
+                |_| vec![format!("wallet:account:{acc_a}")],
+            )
+            .await
+            .unwrap();
+        let _: u32 = cache
+            .get_or_fetch_json_tagged(
+                "user-1:coupons",
+                None,
+                || async { Ok::<u32, JediError>(7) },
+                |_| vec![format!("wallet:account:{acc_a}")],
+            )
+            .await
+            .unwrap();
+        let _: u32 = cache
+            .get_or_fetch_json_tagged(
+                "user-2:balance",
+                None,
+                || async { Ok::<u32, JediError>(200) },
+                |_| vec![format!("wallet:account:{acc_b}")],
+            )
+            .await
+            .unwrap();
+
+        let purged = cache
+            .invalidate_tag(&format!("wallet:account:{acc_a}"))
+            .await
+            .unwrap();
+        assert_eq!(purged, 2, "expected both acc_a keys purged");
+
+        let v: u32 = cache
+            .get_or_fetch_json_tagged(
+                "user-1:balance",
+                None,
+                || async { Ok::<u32, JediError>(999) },
+                |_| vec![format!("wallet:account:{acc_a}")],
+            )
+            .await
+            .unwrap();
+        assert_eq!(v, 999);
+
+        let v: u32 = cache
+            .get_or_fetch_json_tagged(
+                "user-2:balance",
+                None,
+                || async { panic!("should be cached") },
+                |_| vec![format!("wallet:account:{acc_b}")],
+            )
+            .await
+            .unwrap();
+        assert_eq!(v, 200);
+    }
+
+    #[tokio::test]
+    async fn invalidate_tag_with_no_members_is_noop() {
+        let cache = KvCache::new(cfg(), None);
+        let purged = cache.invalidate_tag("never-registered").await.unwrap();
+        assert_eq!(purged, 0);
+    }
+
+    #[tokio::test]
+    async fn key_with_multiple_tags_purged_on_any_tag() {
+        let cache = KvCache::new(cfg(), None);
+        let _: u32 = cache
+            .get_or_fetch_json_tagged(
+                "shared",
+                None,
+                || async { Ok::<u32, JediError>(42) },
+                |_| vec!["tag-a".into(), "tag-b".into()],
+            )
+            .await
+            .unwrap();
+
+        cache.invalidate_tag("tag-b").await.unwrap();
+
+        let v: u32 = cache
+            .get_or_fetch_json_tagged(
+                "shared",
+                None,
+                || async { Ok::<u32, JediError>(99) },
+                |_| vec!["tag-a".into(), "tag-b".into()],
+            )
+            .await
+            .unwrap();
+        assert_eq!(v, 99);
+    }
+
+    #[tokio::test]
     async fn populates_l1_on_first_fetch() {
         let cache = KvCache::new(cfg(), None);
         let val: u32 = cache
@@ -359,7 +611,6 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(val, 42);
-        // Second call: fetch must NOT run (would panic).
         let val2: u32 = cache
             .get_or_fetch_json("k", None, || async { panic!("should not be called") })
             .await
@@ -392,7 +643,6 @@ mod tests {
                 .unwrap();
         }
         cache.invalidate_prefix("wallet").await.unwrap();
-        // wallet:* should miss; market:c should hit.
         let v: u32 = cache
             .get_or_fetch_json("wallet:a", None, || async { Ok::<u32, JediError>(99) })
             .await
@@ -414,7 +664,6 @@ mod tests {
             })
             .await;
         assert!(r.is_err());
-        // Second call must invoke fetch again (no negative caching).
         let v: u32 = cache
             .get_or_fetch_json("k", None, || async { Ok::<u32, JediError>(7) })
             .await

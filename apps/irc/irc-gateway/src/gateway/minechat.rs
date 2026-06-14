@@ -266,7 +266,7 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
             // Anti-spam — keyed by the authenticated nick. Over-limit messages
             // are dropped before they reach ergo (so the relay never floods and
             // gets banned); a sustained flood disconnects the session.
-            match crate::gateway::ratelimit::check(&nick_c2i) {
+            match crate::gateway::ratelimit::verdict(&nick_c2i).await {
                 crate::gateway::ratelimit::Verdict::Allow => {}
                 crate::gateway::ratelimit::Verdict::Throttle => {
                     debug!(user = %nick_c2i, "rate-limited; dropping message");

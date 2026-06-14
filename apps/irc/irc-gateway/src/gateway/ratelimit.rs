@@ -40,6 +40,18 @@ struct Buckets {
     map: HashMap<String, Bucket>,
 }
 
+/// Map a per-window message count to a verdict. Shared by the in-process and
+/// valkey-backed paths so both enforce the same thresholds.
+fn classify(count: u32) -> Verdict {
+    if count > KICK_CEILING {
+        Verdict::Kick
+    } else if count > MAX_PER_WINDOW {
+        Verdict::Throttle
+    } else {
+        Verdict::Allow
+    }
+}
+
 impl Buckets {
     fn check(&mut self, user: &str, now: Instant) -> Verdict {
         let b = self.map.entry(user.to_string()).or_insert(Bucket {
@@ -54,13 +66,7 @@ impl Buckets {
             return Verdict::Allow;
         }
         b.count += 1;
-        if b.count > KICK_CEILING {
-            Verdict::Kick
-        } else if b.count > MAX_PER_WINDOW {
-            Verdict::Throttle
-        } else {
-            Verdict::Allow
-        }
+        classify(b.count)
     }
 
     fn prune(&mut self, now: Instant, idle: Duration) {
@@ -74,12 +80,24 @@ fn global() -> &'static Mutex<Buckets> {
     B.get_or_init(|| Mutex::new(Buckets::default()))
 }
 
-/// Record one message for `user` and decide what to do with it.
+/// Record one message for `user` and decide what to do with it (in-process).
 pub fn check(user: &str) -> Verdict {
     global()
         .lock()
         .expect("ratelimit mutex poisoned")
         .check(user, Instant::now())
+}
+
+/// Decide a verdict for `user`, preferring the shared valkey counter (so the
+/// limit holds across gateway replicas + discordsh) and falling back to the
+/// in-process window when valkey is unavailable.
+pub async fn verdict(user: &str) -> Verdict {
+    if let Some(kv) = crate::gateway::kv::get() {
+        if let Some(count) = kv.check_rate(user, WINDOW.as_secs()).await {
+            return classify(count.min(u32::MAX as u64) as u32);
+        }
+    }
+    check(user)
 }
 
 /// Drop buckets idle longer than `idle`, to bound memory. Call periodically.
