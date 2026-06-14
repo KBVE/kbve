@@ -3,19 +3,22 @@ import {
 	ActivityIndicator,
 	Pressable,
 	StyleSheet,
-	Text,
 	TextInput,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import type { OAuthProvider } from '@kbve/core';
+import { Button, Text, tokens, toastStore } from '../ui';
 import { useAuth, useAuthActions } from './useAuth';
 import { HCaptcha } from '../captcha/HCaptcha';
 import type { HCaptchaHandle } from '../captcha/HCaptcha';
 
-const PROVIDERS: OAuthProvider[] = ['discord', 'github', 'twitch'];
-
 type Mode = 'sign_in' | 'sign_up';
+
+const PROVIDERS: { id: OAuthProvider; label: string; color: string }[] = [
+	{ id: 'discord', label: 'Discord', color: '#5865F2' },
+	{ id: 'github', label: 'GitHub', color: '#e6edf3' },
+	{ id: 'twitch', label: 'Twitch', color: '#9146FF' },
+];
 
 export function LoginScreen() {
 	const auth = useAuth();
@@ -43,14 +46,22 @@ export function LoginScreen() {
 		captcha.current?.reset();
 	};
 
+	const captchaHelp = () =>
+		toastStore.push(
+			'hCaptcha blocks bots — solve the quick puzzle to continue.',
+			'neutral',
+		);
+
 	return (
-		<SafeAreaView style={styles.container}>
-			<Text style={styles.title}>KBVE</Text>
-			<Text style={styles.subtitle}>
-				{mode === 'sign_up'
-					? 'Create your account'
-					: 'Sign in to continue'}
-			</Text>
+		<View style={styles.container}>
+			<View style={styles.hero}>
+				<Text variant="display">KBVE</Text>
+				<Text variant="body" tone="muted">
+					{mode === 'sign_up'
+						? 'Create your account'
+						: 'Welcome back'}
+				</Text>
+			</View>
 
 			<View style={styles.segment}>
 				<Pressable
@@ -60,10 +71,8 @@ export function LoginScreen() {
 					]}
 					onPress={() => setMode('sign_in')}>
 					<Text
-						style={[
-							styles.segmentText,
-							mode === 'sign_in' && styles.segmentTextActive,
-						]}>
+						variant="label"
+						tone={mode === 'sign_in' ? 'default' : 'muted'}>
 						Sign in
 					</Text>
 				</Pressable>
@@ -74,151 +83,204 @@ export function LoginScreen() {
 					]}
 					onPress={() => setMode('sign_up')}>
 					<Text
-						style={[
-							styles.segmentText,
-							mode === 'sign_up' && styles.segmentTextActive,
-						]}>
+						variant="label"
+						tone={mode === 'sign_up' ? 'default' : 'muted'}>
 						Create account
 					</Text>
 				</Pressable>
 			</View>
 
-			<TextInput
-				style={styles.input}
-				placeholder="email"
-				placeholderTextColor="#6b7280"
-				autoCapitalize="none"
-				keyboardType="email-address"
-				value={email}
-				onChangeText={setEmail}
-			/>
-			<TextInput
-				style={styles.input}
-				placeholder="password"
-				placeholderTextColor="#6b7280"
-				secureTextEntry
-				value={password}
-				onChangeText={setPassword}
-			/>
+			<View style={styles.form}>
+				<TextInput
+					style={styles.input}
+					placeholder="Email"
+					placeholderTextColor={tokens.color.textFaint}
+					autoCapitalize="none"
+					keyboardType="email-address"
+					value={email}
+					onChangeText={setEmail}
+				/>
+				<TextInput
+					style={styles.input}
+					placeholder="Password"
+					placeholderTextColor={tokens.color.textFaint}
+					secureTextEntry
+					value={password}
+					onChangeText={setPassword}
+				/>
 
-			<Pressable
-				style={[styles.captcha, verified && styles.captchaVerified]}
-				disabled={verified || busy}
-				onPress={() => captcha.current?.show()}>
-				<Text
-					style={[
-						styles.captchaText,
-						verified && styles.captchaTextVerified,
-					]}>
-					{verified ? '✓  Verified' : 'Verify you’re human'}
+				<View style={styles.captchaRow}>
+					<Pressable
+						style={[
+							styles.captcha,
+							verified && styles.captchaVerified,
+						]}
+						disabled={verified || busy}
+						onPress={() => captcha.current?.show()}>
+						<Text
+							variant="label"
+							tone={verified ? 'success' : 'muted'}>
+							{verified
+								? '✓  Verified'
+								: '( Verify you’re human )'}
+						</Text>
+					</Pressable>
+					<Pressable
+						style={styles.info}
+						onPress={captchaHelp}
+						hitSlop={8}>
+						<Text variant="label" tone="faint">
+							?
+						</Text>
+					</Pressable>
+				</View>
+				<Text variant="caption" tone="faint" style={styles.hint}>
+					{verified
+						? 'Thanks — you can continue.'
+						: 'A quick anti-bot check protects your account.'}
 				</Text>
-			</Pressable>
 
-			<Pressable
-				style={[styles.button, !canSubmit && styles.buttonDisabled]}
-				disabled={!canSubmit}
-				onPress={submit}>
-				<Text style={styles.buttonText}>{submitLabel}</Text>
-			</Pressable>
+				<Button
+					title={submitLabel}
+					disabled={!canSubmit}
+					onPress={submit}
+					style={styles.submit}
+				/>
+			</View>
 
-			<Text style={styles.divider}>or continue with</Text>
-			<View style={styles.providers}>
+			<View style={styles.dividerRow}>
+				<View style={styles.line} />
+				<Text variant="caption" tone="faint">
+					or continue with
+				</Text>
+				<View style={styles.line} />
+			</View>
+
+			<View style={styles.oauth}>
 				{PROVIDERS.map((provider) => (
 					<Pressable
-						key={provider}
-						style={[styles.provider, busy && styles.buttonDisabled]}
+						key={provider.id}
+						style={[styles.provider, busy && styles.disabled]}
 						disabled={busy}
-						onPress={() => actions.signInWithOAuth(provider)}>
-						<Text style={styles.providerText}>{provider}</Text>
+						onPress={() => actions.signInWithOAuth(provider.id)}>
+						<View
+							style={[
+								styles.dot,
+								{ backgroundColor: provider.color },
+							]}
+						/>
+						<Text variant="label">
+							Continue with {provider.label}
+						</Text>
 					</Pressable>
 				))}
 			</View>
 
 			{busy ? (
-				<ActivityIndicator color="#2d6cdf" style={styles.spinner} />
+				<ActivityIndicator
+					color={tokens.color.primary}
+					style={styles.spinner}
+				/>
 			) : null}
-			{auth.error ? <Text style={styles.error}>{auth.error}</Text> : null}
+			{auth.error ? (
+				<Text variant="caption" tone="danger" style={styles.error}>
+					{auth.error}
+				</Text>
+			) : null}
 
 			<HCaptcha ref={captcha} onToken={setCaptchaToken} />
-		</SafeAreaView>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#0b0b0f',
-		alignItems: 'center',
+		backgroundColor: tokens.color.bg,
 		justifyContent: 'center',
-		paddingHorizontal: 32,
-		gap: 12,
+		paddingHorizontal: tokens.space.xl,
+		gap: tokens.space.xl,
 	},
-	title: { color: '#fff', fontSize: 32, fontWeight: '700' },
-	subtitle: { color: '#9aa0a6', fontSize: 14, marginBottom: 4 },
+	hero: { alignItems: 'center', gap: tokens.space.xs },
 	segment: {
 		flexDirection: 'row',
-		backgroundColor: '#16161d',
-		borderRadius: 10,
-		padding: 4,
-		width: '100%',
+		backgroundColor: tokens.color.surface,
+		borderRadius: tokens.radius.lg,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		padding: tokens.space.xs,
 	},
 	segmentItem: {
 		flex: 1,
-		paddingVertical: 8,
-		borderRadius: 7,
+		paddingVertical: tokens.space.sm,
+		borderRadius: tokens.radius.md,
 		alignItems: 'center',
 	},
-	segmentActive: { backgroundColor: '#2d6cdf' },
-	segmentText: { color: '#9aa0a6', fontSize: 14, fontWeight: '600' },
-	segmentTextActive: { color: '#fff' },
+	segmentActive: { backgroundColor: tokens.color.surfaceAlt },
+	form: { gap: tokens.space.md },
 	input: {
 		width: '100%',
-		backgroundColor: '#16161d',
-		color: '#fff',
-		borderRadius: 8,
-		paddingHorizontal: 14,
-		paddingVertical: 12,
-		fontSize: 15,
+		backgroundColor: tokens.color.surface,
+		color: tokens.color.text,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		paddingHorizontal: tokens.space.lg,
+		paddingVertical: tokens.space.md,
+		fontSize: tokens.font.body,
+	},
+	captchaRow: {
+		flexDirection: 'row',
+		gap: tokens.space.sm,
+		alignItems: 'stretch',
 	},
 	captcha: {
-		width: '100%',
-		paddingVertical: 12,
-		borderRadius: 8,
+		flex: 1,
+		paddingVertical: tokens.space.md,
+		borderRadius: tokens.radius.md,
 		borderWidth: 1,
-		borderColor: '#2a2a35',
+		borderColor: tokens.color.border,
 		alignItems: 'center',
+		justifyContent: 'center',
 	},
-	captchaVerified: { borderColor: '#22c55e', backgroundColor: '#0e2a1a' },
-	captchaText: { color: '#9aa0a6', fontSize: 14, fontWeight: '600' },
-	captchaTextVerified: { color: '#22c55e' },
-	button: {
-		width: '100%',
-		paddingVertical: 12,
-		borderRadius: 8,
-		backgroundColor: '#2d6cdf',
+	captchaVerified: {
+		borderColor: tokens.color.success,
+		backgroundColor: '#0e2a1a',
+	},
+	info: {
+		width: 44,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
 		alignItems: 'center',
+		justifyContent: 'center',
 	},
-	buttonDisabled: { opacity: 0.4 },
-	buttonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
-	divider: { color: '#6b7280', fontSize: 12, marginVertical: 4 },
-	providers: { flexDirection: 'row', gap: 10 },
+	hint: { textAlign: 'center' },
+	submit: { marginTop: tokens.space.xs },
+	dividerRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.md,
+	},
+	line: {
+		flex: 1,
+		height: StyleSheet.hairlineWidth,
+		backgroundColor: tokens.color.border,
+	},
+	oauth: { gap: tokens.space.sm },
 	provider: {
-		paddingVertical: 10,
-		paddingHorizontal: 16,
-		borderRadius: 8,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.md,
+		paddingVertical: tokens.space.md,
+		paddingHorizontal: tokens.space.lg,
+		borderRadius: tokens.radius.md,
 		borderWidth: 1,
-		borderColor: '#2a2a35',
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
 	},
-	providerText: {
-		color: '#cbd2d9',
-		fontSize: 13,
-		textTransform: 'capitalize',
-	},
-	spinner: { marginTop: 8 },
-	error: {
-		color: '#ef4444',
-		fontSize: 13,
-		textAlign: 'center',
-		marginTop: 4,
-	},
+	dot: { width: 10, height: 10, borderRadius: tokens.radius.pill },
+	disabled: { opacity: 0.4 },
+	spinner: { marginTop: tokens.space.xs },
+	error: { textAlign: 'center' },
 });
