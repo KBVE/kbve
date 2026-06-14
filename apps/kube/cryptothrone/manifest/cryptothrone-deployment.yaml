@@ -86,6 +86,12 @@ spec:
                       - secretRef:
                             name: cryptothrone-valkey
                             optional: true
+                      # DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET for the
+                      # /api/discord/session OAuth bridge (SealedSecret).
+                      # Optional so the pod boots before it is applied.
+                      - secretRef:
+                            name: cryptothrone-discord
+                            optional: true
                   resources:
                       requests:
                           memory: '256Mi'
