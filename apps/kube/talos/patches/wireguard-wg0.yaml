@@ -1,0 +1,43 @@
+## Talos machine config patch — wg0 WireGuard tunnel to external runner hosts.
+## PROOF OF CONCEPT — template only. No real keys. Fill placeholders at apply.
+##
+## NOT deployed by Argo. Tracked here as the source-of-record; applied
+## manually with talosctl (same flow as kvm-node-label.yaml).
+##
+## Adds a wg0 interface so machines OUTSIDE the cluster (e.g. a MacBook CI
+## host running act_runner + GitHub ARC) can reach cluster services over an
+## encrypted tunnel. Separate from Cilium's internal cilium_wg0 — do NOT
+## conflate the two. User-managed tunnel on UDP 51820.
+##
+## Tunnel subnet: 10.10.0.0/24
+##   10.10.0.1  → Talos node (this interface)
+##   10.10.0.2  → external CI host
+##
+## SECRETS — nothing committed. Both the node private key and every peer
+## public key are injected at apply time from the ESO backend:
+##   ${TALOS_WG_PRIVATE_KEY}  → secret: talos-wireguard, key: privateKey
+##   ${PEER_MAC_PUBLIC_KEY}   → secret: talos-wireguard, key: peerMacPublicKey
+##
+## Apply:
+##   export TALOS_WG_PRIVATE_KEY=...   # from ESO / kubectl get secret
+##   export PEER_MAC_PUBLIC_KEY=...
+##   envsubst < wireguard-wg0.yaml > /tmp/wg0-apply.yaml
+##   talosctl -n <node> patch machineconfig --patch @/tmp/wg0-apply.yaml
+##   rm /tmp/wg0-apply.yaml
+##
+## Peers: one list entry + one allowedIPs /32 per external host.
+
+machine:
+    network:
+        interfaces:
+            - interface: wg0
+              addresses:
+                  - 10.10.0.1/24
+              wireguard:
+                  privateKey: ${TALOS_WG_PRIVATE_KEY}
+                  listenPort: 51820
+                  peers:
+                      ## External CI host (act_runner + GitHub ARC)
+                      - publicKey: ${PEER_MAC_PUBLIC_KEY}
+                        allowedIPs:
+                            - 10.10.0.2/32
