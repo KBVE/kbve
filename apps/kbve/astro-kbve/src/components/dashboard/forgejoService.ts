@@ -1,7 +1,7 @@
 import { atom, computed } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa } from '@/lib/supa';
-import { cacheGet, cacheSet } from '@/lib/idb-cache';
+import { cacheGet, cacheSet, cacheDel } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -509,6 +509,8 @@ async function apiMutate<T>(
 		);
 	}
 
+	await invalidateDataCache();
+
 	const text = await resp.text();
 	if (!text || text.trim().length === 0) return {} as T;
 	try {
@@ -656,6 +658,19 @@ async function fetchRepoLanguages(
 // ---------------------------------------------------------------------------
 // Cache helpers
 // ---------------------------------------------------------------------------
+
+// Every IndexedDB key this service writes (the aggregate plus each per-resource
+// list). Tracked so a mutation can wipe the exact set of stale entries instead
+// of waiting out their TTL or guessing at a key prefix (UI prefs share the
+// `forgejo:` namespace and must survive).
+const dataCacheKeys = new Set<string>([CACHE_KEY]);
+
+// Drop every cached read so the next load refetches from upstream. Awaited at
+// the mutation chokepoint, so the reload that follows a write sees an empty
+// cache and shows fresh data with no stale flash.
+async function invalidateDataCache(): Promise<void> {
+	await Promise.all([...dataCacheKeys].map((k) => cacheDel(k)));
+}
 
 function loadCache(): Promise<CachedData | null> {
 	return cacheGet<CachedData>(CACHE_KEY, CACHE_TTL_MS);
@@ -1071,7 +1086,7 @@ class ForgejoService {
 		const token = this.$accessToken.get();
 		if (token) {
 			this.$loading.set(true);
-			this.fetchData();
+			void invalidateDataCache().then(() => this.fetchData());
 		}
 	}
 
@@ -1252,6 +1267,7 @@ class ForgejoService {
 	): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
+		dataCacheKeys.add(cacheKey);
 		const cached = await cacheGet<T>(cacheKey, ttl);
 		if (cached !== null) apply(cached);
 		try {

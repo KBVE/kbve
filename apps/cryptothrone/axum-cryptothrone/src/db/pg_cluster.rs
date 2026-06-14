@@ -29,3 +29,17 @@ pub async fn init_pg_cluster() -> bool {
 pub fn get_pg_cluster() -> Option<&'static Arc<PgCluster>> {
     PG_CLUSTER.get().and_then(|c| c.as_ref())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn init_is_idempotent_and_getter_tracks_state() {
+        // No KBVE_PG_* in the test env -> pools fail to build -> disabled. The
+        // getter must agree with init, and a second init is a no-op (OnceCell).
+        let enabled = init_pg_cluster().await;
+        assert_eq!(get_pg_cluster().is_some(), enabled);
+        assert_eq!(init_pg_cluster().await, enabled, "init is idempotent");
+    }
+}

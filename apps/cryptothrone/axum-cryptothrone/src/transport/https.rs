@@ -256,9 +256,109 @@ async fn shutdown_signal() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::astro::{StaticConfig, build_static_router};
     use axum::{body::Body, http::StatusCode};
     use http_body_util::BodyExt;
+    use serial_test::serial;
+    use std::path::PathBuf;
     use tower::ServiceExt;
+
+    /// Build a throwaway Astro `dist/` with a nested Discord Activity bundle,
+    /// then serve it through the real static router — exactly as the binary
+    /// does (no `trim_trailing_slash`: that layer 307-loops `ServeDir`'s
+    /// directory redirect on `trailingSlash: always` routes and was reverted
+    /// in #12442). Guards the `/discord/discord.js` path that 404s in prod
+    /// only because the live image predates the bundle.
+    fn discord_static_app(dir: &PathBuf) -> Router {
+        std::fs::create_dir_all(dir.join("discord")).unwrap();
+        std::fs::write(
+            dir.join("discord/index.html"),
+            "<!doctype html><script src=\"discord.js\" defer></script>",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("discord/discord.js"),
+            "console.log('cryptothrone discord activity');",
+        )
+        .unwrap();
+        std::fs::write(dir.join("404.html"), "<h1>404</h1>").unwrap();
+
+        let cfg = StaticConfig {
+            base_dir: dir.clone(),
+            precompressed: false,
+        };
+        build_static_router(&cfg)
+    }
+
+    #[tokio::test]
+    async fn test_discord_js_served_not_404() {
+        let dir = std::env::temp_dir().join(format!("axum-ct-discord-{}", std::process::id()));
+        let app = discord_static_app(&dir);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/discord.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK, "discord.js must not 404");
+        let ct = response
+            .headers()
+            .get(header::CONTENT_TYPE)
+            .map(|v| v.to_str().unwrap().to_owned())
+            .unwrap_or_default();
+        assert!(
+            ct.contains("javascript"),
+            "discord.js should serve as JS, got: {ct}"
+        );
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert!(
+            std::str::from_utf8(&body)
+                .unwrap()
+                .contains("discord activity")
+        );
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[tokio::test]
+    async fn test_discord_index_serves_at_trailing_slash() {
+        let dir = std::env::temp_dir().join(format!("axum-ct-discord-idx-{}", std::process::id()));
+
+        // `/discord/` is the real Discord Activity load path — serves index.html.
+        let slash = discord_static_app(&dir)
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(slash.status(), StatusCode::OK, "/discord/ must serve index");
+
+        // `/discord` (no slash) gets a single 307 to add the slash — NOT a loop.
+        let bare = discord_static_app(&dir)
+            .oneshot(
+                Request::builder()
+                    .uri("/discord")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            bare.status(),
+            StatusCode::TEMPORARY_REDIRECT,
+            "/discord redirects once to /discord/"
+        );
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
 
     fn test_router() -> Router {
         let middleware = tower::ServiceBuilder::new()
@@ -409,5 +509,119 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let speed: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert!(speed["time_ms"].as_u64().unwrap() > 0);
+    }
+
+    #[tokio::test]
+    async fn test_fix_ts_mime_passes_non_ts_through() {
+        let app = Router::new()
+            .route(
+                "/script.js",
+                get(|| async { ([(header::CONTENT_TYPE, "text/plain")], "code") }),
+            )
+            .layer(axum::middleware::from_fn(fix_ts_mime));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/script.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        // Non-.ts content type is left untouched.
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/plain"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_discord_frame_headers_relax_csp_for_activity() {
+        let app = Router::new()
+            .route("/discord/x", get(|| async { "x" }))
+            .route("/other", get(|| async { "o" }))
+            .layer(SetResponseHeaderLayer::overriding(
+                header::X_FRAME_OPTIONS,
+                HeaderValue::from_static("DENY"),
+            ))
+            .layer(axum::middleware::from_fn(discord_frame_headers));
+
+        let discord = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/x")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert!(
+            discord.headers().get(header::X_FRAME_OPTIONS).is_none(),
+            "X-Frame-Options must be dropped for /discord/*"
+        );
+        let csp = discord
+            .headers()
+            .get(header::CONTENT_SECURITY_POLICY)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(csp.contains("frame-ancestors"));
+        assert!(csp.contains("discord.com"));
+
+        let other = app
+            .oneshot(
+                Request::builder()
+                    .uri("/other")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            other.headers().get(header::X_FRAME_OPTIONS).unwrap(),
+            "DENY",
+            "non-discord routes keep the global DENY"
+        );
+        assert!(
+            other
+                .headers()
+                .get(header::CONTENT_SECURITY_POLICY)
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_tuned_listener_binds_ephemeral_port() {
+        let addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
+        let listener = tuned_listener(addr).expect("bind ephemeral port");
+        let local = listener.local_addr().unwrap();
+        assert!(local.port() > 0, "OS assigned a real port");
+        assert!(local.ip().is_loopback());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_join_unauthorized_without_bearer() {
+        std::env::set_var("SUPABASE_JWT_SECRET", "secret");
+        let allocator = Arc::new(None::<AgonesAllocator>);
+        let resp = join(Extension(allocator), axum::http::HeaderMap::new())
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        std::env::remove_var("SUPABASE_JWT_SECRET");
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_join_allocator_offline_returns_503() {
+        // No JWT secret -> auth gate is skipped -> reaches the allocator check.
+        std::env::remove_var("SUPABASE_JWT_SECRET");
+        let allocator = Arc::new(None::<AgonesAllocator>);
+        let resp = join(Extension(allocator), axum::http::HeaderMap::new())
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 }
