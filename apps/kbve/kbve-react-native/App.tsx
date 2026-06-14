@@ -8,6 +8,8 @@ import {
 	KbveProvider,
 	KBVE_SUPABASE_ANON_KEY,
 	KBVE_SUPABASE_URL,
+	OverlayHost,
+	ToastViewport,
 	tsCore,
 	useAgent,
 	useAuth,
@@ -50,6 +52,8 @@ export default function App() {
 			<AuthGate>
 				<Home />
 			</AuthGate>
+			<OverlayHost />
+			<ToastViewport />
 			<StatusBar style="auto" />
 		</KbveProvider>
 	);
