@@ -397,10 +397,47 @@ impl PgCluster {
             ) -> BoxFuture<'tx, Result<T, JediError>>
             + Send,
     {
-        let mut conn = self.strict_read().await?;
+        self.with_caller_inner(PgRole::Ro, sub, role, f).await
+    }
+
+    /// `rw`-pool counterpart to `with_caller_read`. Use for writes
+    /// against `SECURITY DEFINER` write proxies or raw SQL that must
+    /// run under the caller's `auth.uid()`. Commits on `Ok`, rolls
+    /// back on `Err`.
+    pub async fn with_caller_write<T, F>(
+        &self,
+        sub: Uuid,
+        role: Option<&str>,
+        f: F,
+    ) -> Result<T, JediError>
+    where
+        T: Send,
+        F: for<'tx> FnOnce(
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
+            + Send,
+    {
+        self.with_caller_inner(PgRole::Rw, sub, role, f).await
+    }
+
+    async fn with_caller_inner<T, F>(
+        &self,
+        pg_role: PgRole,
+        sub: Uuid,
+        auth_role: Option<&str>,
+        f: F,
+    ) -> Result<T, JediError>
+    where
+        T: Send,
+        F: for<'tx> FnOnce(
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
+            + Send,
+    {
+        let mut conn = self.acquire(pg_role, false).await?;
         let tx = conn.transaction().await.map_err(JediError::from)?;
         let claims = serde_json::json!({
-            "role": role.unwrap_or("authenticated"),
+            "role": auth_role.unwrap_or("authenticated"),
             "sub": sub.to_string(),
         })
         .to_string();
@@ -410,6 +447,30 @@ impl PgCluster {
         )
         .await
         .map_err(JediError::from)?;
+        let out = f(&tx).await?;
+        tx.commit().await.map_err(JediError::from)?;
+        Ok(out)
+    }
+
+    /// Open a tx on the `ro` pool with `SET LOCAL statement_timeout`
+    /// set to `timeout_ms`. Lets hot paths tighten beyond the pool
+    /// default without recycling the connection (the GUC scope dies
+    /// with the tx). Commits on `Ok`, rolls back on `Err`. Statements
+    /// exceeding the budget surface as `JediError::Database` from
+    /// `tokio_postgres::Error` (SQLSTATE `57014` query_canceled).
+    pub async fn with_timeout_read<T, F>(&self, timeout_ms: u64, f: F) -> Result<T, JediError>
+    where
+        T: Send,
+        F: for<'tx> FnOnce(
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
+            + Send,
+    {
+        let mut conn = self.acquire(PgRole::Ro, false).await?;
+        let tx = conn.transaction().await.map_err(JediError::from)?;
+        tx.simple_query(&format!("SET LOCAL statement_timeout = {timeout_ms}"))
+            .await
+            .map_err(JediError::from)?;
         let out = f(&tx).await?;
         tx.commit().await.map_err(JediError::from)?;
         Ok(out)
