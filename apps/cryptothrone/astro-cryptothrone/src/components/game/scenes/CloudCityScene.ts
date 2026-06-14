@@ -15,7 +15,6 @@ import {
 	KIND_CAT_PLAYER,
 } from '@kbve/laser';
 import type {
-	Range,
 	CharacterEventData,
 	Dir,
 	Snapshot,
@@ -25,6 +24,11 @@ import type {
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
 import { getZone, DEFAULT_ZONE, type ZoneDef } from '../data/zones';
+import {
+	getZoneInteractables,
+	interactableAt,
+	type Interactable,
+} from '../data/interactables';
 
 const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 60;
@@ -114,8 +118,8 @@ export class CloudCityScene extends Scene {
 	private lastStepAt = 0;
 	private tilePixels = 16;
 	private zone: ZoneDef = getZone(DEFAULT_ZONE);
-	private ranges: Range[] = [];
-	private rangeTile = { x: -1, y: -1 };
+	private interactables: Interactable[] = [];
+	private interactKey!: Phaser.Input.Keyboard.Key;
 	private myHp = -1;
 	private myMaxHp = -1;
 	private nearbyHostiles = 0;
@@ -222,7 +226,8 @@ export class CloudCityScene extends Scene {
 			right: this.input.keyboard!.addKey(Codes.D, false),
 		};
 		this.attackKey = this.input.keyboard!.addKey(Codes.SPACE, false);
-		this.loadRanges();
+		this.interactKey = this.input.keyboard!.addKey(Codes.E, false);
+		this.interactables = getZoneInteractables(this.zone.key);
 
 		const cfg = getCtNetConfig();
 		if (!cfg) {
@@ -541,10 +546,6 @@ export class CloudCityScene extends Scene {
 					this.cameras.main.startFollow(sprite, true);
 					this.predicted = { x: e.tile.x, y: e.tile.y };
 					this.predictSeeded = true;
-					// Seed range tracker to spawn so a range dialog only
-					// fires when the player walks into a zone, not when
-					// they spawn already standing in one.
-					this.rangeTile = { x: e.tile.x, y: e.tile.y };
 				}
 			} else if (e.eid === this.myEid) {
 				// Reconcile prediction: trust the local position unless it
@@ -595,7 +596,6 @@ export class CloudCityScene extends Scene {
 			if (this.pendingAction?.eid === eid) this.pendingAction = null;
 		}
 
-		this.checkRanges();
 		this.checkHostileProximity();
 		this.syncRoster(snap);
 		this.runPendingAction();
@@ -856,69 +856,22 @@ export class CloudCityScene extends Scene {
 		}
 	}
 
-	private checkRanges() {
+	/**
+	 * Fire the interactable the player is standing in, if any. Called only on
+	 * an explicit interact press — never on movement — so sprite-less points
+	 * of interest (signs, statues) don't pop dialogs as you walk past.
+	 */
+	private tryInteract() {
 		if (this.myEid < 0) return;
 		const me = this.tracked.get(this.myEid);
 		if (!me) return;
-		if (me.tile.x === this.rangeTile.x && me.tile.y === this.rangeTile.y) {
-			return;
-		}
-		this.rangeTile = { x: me.tile.x, y: me.tile.y };
-		for (const range of this.ranges) {
-			const b = range.bounds;
-			if (
-				me.tile.x >= b.xMin &&
-				me.tile.x <= b.xMax &&
-				me.tile.y >= b.yMin &&
-				me.tile.y <= b.yMax
-			) {
-				range.action();
-				break;
-			}
-		}
-	}
-
-	private loadRanges() {
-		this.ranges = [
-			{
-				name: 'well',
-				bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
-				action: () => {
-					const eventData: CharacterEventData = {
-						message:
-							'Seems like there are no fish in the sand pits. This area could be fixed up a bit.',
-					};
-					laserEvents.emit('char:event', eventData);
-				},
-			},
-			{
-				name: 'sign',
-				bounds: { xMin: 2, xMax: 5, yMin: 2, yMax: 5 },
-				action: () => {
-					const eventData: CharacterEventData = {
-						message: 'Welcome to Cloud City!',
-						character_name: 'Wooden Sign',
-						background_image: '/assets/background/woodensign.webp',
-					};
-					laserEvents.emit('char:event', eventData);
-				},
-			},
-			{
-				name: 'tombstone',
-				bounds: { xMin: 7, xMax: 10, yMin: 9, yMax: 10 },
-				action: () => {
-					const eventData: CharacterEventData = {
-						message:
-							'Samson the Great was an amazing sailor, died drinking dat drank.',
-						character_name: 'Samson Statue',
-						character_image: '/assets/npc/samson.png',
-						background_image:
-							'/assets/background/animetombstone.webp',
-					};
-					laserEvents.emit('char:event', eventData);
-				},
-			},
-		];
+		const it = interactableAt(this.interactables, me.tile.x, me.tile.y);
+		if (!it) return;
+		const eventData: CharacterEventData = { message: it.message };
+		if (it.name) eventData.character_name = it.name;
+		if (it.characterImage) eventData.character_image = it.characterImage;
+		if (it.backgroundImage) eventData.background_image = it.backgroundImage;
+		laserEvents.emit('char:event', eventData);
 	}
 
 	private updateOverlays(time: number) {
@@ -1001,6 +954,10 @@ export class CloudCityScene extends Scene {
 
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();
+		}
+
+		if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {
+			this.tryInteract();
 		}
 
 		if (this.myEid < 0 || !this.predictSeeded) return;
