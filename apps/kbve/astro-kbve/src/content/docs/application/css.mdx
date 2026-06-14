@@ -1144,6 +1144,191 @@ This button features a holographic gradient effect with a radial blur that enhan
 
 ---
 
+#### Simple Buttons
+
+The everyday workhorses — solid fills and outlines for forms and toolbars.
+
+export const buttonSolidsCode = `<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-50">
+  <button class="px-4 py-2 text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">Subtle</button>
+  <button class="px-4 py-2 text-sm font-medium text-white border border-blue-600 rounded-md bg-blue-600 hover:bg-blue-700">Primary</button>
+  <button class="px-4 py-2 text-sm font-medium text-gray-700 rounded-md bg-gray-200 hover:bg-gray-300">Neutral</button>
+  <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Outline</button>
+  <button class="px-4 py-2 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-700">Charcoal</button>
+  <button class="px-4 py-2 text-sm font-medium text-white border-0 rounded-md bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:to-indigo-400">Gradient</button>
+  <button disabled class="px-4 py-2 text-sm font-medium text-white rounded-md cursor-not-allowed bg-blue-600 opacity-50">Disabled</button>
+</div>`;
+
+<DevCode htmlCode={buttonSolidsCode} />
+
+#### Call-to-Action Buttons
+
+export const buttonCtaCode = `<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-50">
+  <button class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-green-600 hover:bg-green-700">
+    Get Started
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+  </button>
+  <button class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+    Upgrade
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonCtaCode} />
+
+#### Pills & Circles
+
+export const buttonPillsCode = `<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-900">
+  <button class="px-5 py-2 text-sm font-medium text-white rounded-full bg-blue-600 hover:bg-blue-700">Blue Pill</button>
+  <button class="px-5 py-2 text-sm font-medium text-white transition-colors bg-transparent border border-white rounded-full hover:bg-white hover:text-gray-900">Outline Pill</button>
+  <button class="flex items-center justify-center w-10 h-10 text-white transition-colors border border-gray-500 rounded-full hover:bg-white hover:text-gray-900" aria-label="Add">+</button>
+  <button class="flex items-center justify-center w-10 h-10 text-white rounded-full bg-cyan-600 hover:bg-cyan-500" aria-label="Search">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonPillsCode} />
+
+#### Full-Width Buttons
+
+Responsive blocks for mobile and form footers.
+
+export const buttonFullWidthCode = `<div class="max-w-sm p-8 mx-auto space-y-3 bg-gray-50">
+  <button class="w-full py-2.5 text-sm font-semibold text-white rounded-lg bg-indigo-600 hover:bg-indigo-700">Continue</button>
+  <button class="w-full py-2.5 text-sm font-semibold text-white rounded-lg bg-green-600 hover:bg-green-700">Sign Up Free</button>
+  <button class="w-full py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+</div>`;
+
+<DevCode htmlCode={buttonFullWidthCode} />
+
+#### Button Group
+
+export const buttonGroupCode = `<div class="flex p-8 bg-gray-50">
+  <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">Left</button>
+  <button class="px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Center</button>
+  <button class="px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">Right</button>
+</div>`;
+
+<DevCode htmlCode={buttonGroupCode} />
+
+<Aside>
+The button gallery covers the full [DevDojo Tailwind button set](https://devdojo.com/tailwindcss/buttons) — animated hover effects above, plus these simple solids, pills, full-width blocks and groups for everyday UI.
+</Aside>
+
+#### Sizes
+
+One scale, five steps — adjust padding and text size together.
+
+export const buttonSizesCode = `<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-50">
+  <button class="px-2 py-1 text-xs font-medium text-white rounded bg-cyan-600 hover:bg-cyan-700">XS</button>
+  <button class="px-3 py-1.5 text-sm font-medium text-white rounded-md bg-cyan-600 hover:bg-cyan-700">SM</button>
+  <button class="px-4 py-2 text-sm font-medium text-white rounded-md bg-cyan-600 hover:bg-cyan-700">MD</button>
+  <button class="px-5 py-2.5 text-base font-medium text-white rounded-lg bg-cyan-600 hover:bg-cyan-700">LG</button>
+  <button class="px-6 py-3 text-lg font-medium text-white rounded-lg bg-cyan-600 hover:bg-cyan-700">XL</button>
+</div>`;
+
+<DevCode htmlCode={buttonSizesCode} />
+
+#### Soft & Ghost
+
+Low-emphasis variants for secondary actions.
+
+export const buttonGhostCode = `<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-50">
+  <button class="px-4 py-2 text-sm font-medium rounded-md text-cyan-700 bg-cyan-50 hover:bg-cyan-100">Soft</button>
+  <button class="px-4 py-2 text-sm font-medium rounded-md text-cyan-700 hover:bg-cyan-50">Ghost</button>
+  <button class="px-4 py-2 text-sm font-medium underline rounded-md text-cyan-700 underline-offset-2 hover:text-cyan-900">Link</button>
+  <button class="px-4 py-2 text-sm font-medium text-red-700 rounded-md bg-red-50 hover:bg-red-100">Danger Soft</button>
+</div>`;
+
+<DevCode htmlCode={buttonGhostCode} />
+
+#### Loading
+
+A spinner swaps in while an action is in flight; the button stays disabled.
+
+export const buttonLoadingCode = `<style>
+@keyframes kbve-btnspin { to { transform: rotate(360deg); } }
+.kbve-btnspin { animation: kbve-btnspin 0.6s linear infinite; }
+</style>
+<div class="flex flex-wrap items-center gap-3 p-8 bg-gray-50">
+  <button disabled class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md cursor-wait bg-cyan-600 opacity-80">
+    <span class="kbve-btnspin w-4 h-4 border-2 border-white rounded-full border-t-transparent"></span>
+    Saving…
+  </button>
+  <button disabled class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md cursor-wait">
+    <span class="kbve-btnspin w-4 h-4 border-2 rounded-full border-gray-400 border-t-transparent"></span>
+    Loading
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonLoadingCode} />
+
+#### 3D Pressable
+
+A hard bottom shadow that collapses on click — the button physically depresses.
+
+export const button3dCode = `<div class="flex flex-wrap items-center gap-4 p-8 bg-gray-50">
+  <button class="px-5 py-2.5 font-semibold text-white rounded-lg bg-cyan-500 shadow-[0_5px_0_#0e7490] active:translate-y-1 active:shadow-[0_1px_0_#0e7490] transition-all">Press</button>
+  <button class="px-5 py-2.5 font-semibold text-gray-900 rounded-lg bg-amber-400 shadow-[0_5px_0_#b45309] active:translate-y-1 active:shadow-[0_1px_0_#b45309] transition-all">Tap</button>
+</div>`;
+
+<DevCode htmlCode={button3dCode} />
+
+#### Gradient Border
+
+A gradient ring around a solid core — padding-box vs border-box trick, done here with a wrapper.
+
+export const buttonGradBorderCode = `<div class="flex flex-wrap items-center gap-4 p-8 bg-gray-900">
+  <button class="p-0.5 rounded-lg bg-gradient-to-r from-cyan-400 to-fuchsia-500 group">
+    <span class="block px-5 py-2 text-sm font-semibold text-white rounded-md bg-gray-900 group-hover:bg-transparent">Gradient Ring</span>
+  </button>
+  <button class="p-0.5 rounded-full bg-gradient-to-r from-amber-400 via-red-500 to-fuchsia-500">
+    <span class="block px-5 py-2 text-sm font-semibold text-white rounded-full bg-gray-900">Pill Ring</span>
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonGradBorderCode} />
+
+#### Social Login
+
+export const buttonSocialCode = `<div class="max-w-xs p-8 mx-auto space-y-3 bg-gray-50">
+  <button class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+    Continue with Google
+  </button>
+  <button class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white rounded-lg bg-gray-900 hover:bg-gray-800">
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .5C5.37.5 0 5.78 0 12.29c0 5.2 3.44 9.6 8.21 11.16.6.1.82-.25.82-.56v-2c-3.34.71-4.04-1.58-4.04-1.58-.55-1.36-1.33-1.72-1.33-1.72-1.09-.73.08-.72.08-.72 1.2.08 1.84 1.21 1.84 1.21 1.07 1.8 2.81 1.28 3.5.98.1-.76.42-1.28.76-1.57-2.67-.3-5.47-1.31-5.47-5.84 0-1.29.47-2.35 1.24-3.18-.13-.29-.54-1.5.11-3.12 0 0 1.01-.32 3.3 1.21a11.5 11.5 0 0 1 6 0c2.29-1.53 3.3-1.21 3.3-1.21.65 1.62.24 2.83.12 3.12.77.83 1.23 1.89 1.23 3.18 0 4.54-2.81 5.53-5.49 5.83.43.37.81 1.1.81 2.22v3.29c0 .31.22.67.83.56A12.02 12.02 0 0 0 24 12.29C24 5.78 18.63.5 12 .5z"/></svg>
+    Continue with GitHub
+  </button>
+  <button class="flex items-center justify-center w-full gap-2 py-2.5 text-sm font-medium text-white rounded-lg bg-indigo-500 hover:bg-indigo-600">
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.32 4.37A19.8 19.8 0 0 0 15.45 3a13.9 13.9 0 0 0-.62 1.27 18.3 18.3 0 0 0-5.66 0A13.9 13.9 0 0 0 8.55 3a19.8 19.8 0 0 0-4.87 1.37C.55 9.05-.32 13.6.12 18.1a19.9 19.9 0 0 0 6 3.03c.48-.66.91-1.36 1.28-2.1-.7-.26-1.37-.59-2-.97.17-.13.34-.26.5-.4a14.2 14.2 0 0 0 12.2 0c.16.14.33.27.5.4-.63.38-1.3.7-2 .97.37.74.8 1.44 1.28 2.1a19.9 19.9 0 0 0 6-3.03c.52-5.2-.86-9.72-3.56-13.73zM8.02 15.33c-1.18 0-2.15-1.09-2.15-2.42s.95-2.42 2.15-2.42 2.17 1.09 2.15 2.42c0 1.33-.95 2.42-2.15 2.42zm7.96 0c-1.18 0-2.15-1.09-2.15-2.42s.95-2.42 2.15-2.42 2.17 1.09 2.15 2.42c0 1.33-.94 2.42-2.15 2.42z"/></svg>
+    Continue with Discord
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonSocialCode} />
+
+#### Split & Floating Action
+
+export const buttonSplitFabCode = `<div class="flex flex-wrap items-center gap-6 p-8 bg-gray-50">
+  <div class="inline-flex rounded-md shadow-sm">
+    <button class="px-4 py-2 text-sm font-medium text-white rounded-l-md bg-cyan-600 hover:bg-cyan-700">Save</button>
+    <button class="px-2 py-2 -ml-px text-white border-l rounded-r-md bg-cyan-600 border-cyan-500 hover:bg-cyan-700" aria-label="More options">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+  </div>
+  <button class="flex items-center justify-center text-white rounded-full shadow-lg w-14 h-14 bg-fuchsia-600 hover:bg-fuchsia-500 hover:shadow-xl active:scale-95 transition-all" aria-label="New">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+  </button>
+  <button class="relative px-4 py-2 text-sm font-medium text-white rounded-md bg-gray-800 hover:bg-gray-700">
+    Inbox
+    <span class="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white rounded-full bg-red-500">9</span>
+  </button>
+</div>`;
+
+<DevCode htmlCode={buttonSplitFabCode} />
+
+---
+
 ### TailwindCSS Form
 
 TailBlocks Contact Form with an embedded map:
