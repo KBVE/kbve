@@ -195,7 +195,12 @@ async fn cache_headers(request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
     let mut response = next.run(request).await;
 
-    let cache_value = if path.starts_with("/_astro/") {
+    // Never let a CDN cache a non-2xx: a 404 for an asset that didn't exist yet
+    // would otherwise stick for max-age (Cloudflare served stale /discord/*.js
+    // 404s for a day while the bundle rolled out).
+    let cache_value = if !response.status().is_success() {
+        "no-store"
+    } else if path.starts_with("/_astro/") {
         "public, max-age=31536000, immutable"
     } else {
         "public, max-age=86400"
@@ -469,6 +474,35 @@ mod tests {
             .to_str()
             .unwrap();
         assert!(cc.contains("86400"));
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_404_not_cached() {
+        let app = Router::new()
+            .route(
+                "/missing.js",
+                get(|| async { (StatusCode::NOT_FOUND, "nope") }),
+            )
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/missing.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        let cc = response
+            .headers()
+            .get(header::CACHE_CONTROL)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert_eq!(cc, "no-store");
     }
 
     #[tokio::test]
