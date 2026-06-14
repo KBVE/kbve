@@ -41,6 +41,18 @@
 			},
 			"cache": true
 		},
+		"build-discord": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/discord"],
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"commands": [
+					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.discord.config.mts"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
 		"preview": {
 			"dependsOn": [
 				{

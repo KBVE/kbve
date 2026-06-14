@@ -4,3 +4,5 @@ coverage/
 # source of truth is src/embed/.
 public/embed/embed.js
 public/embed/assets/
+public/discord/discord.js
+public/discord/assets/

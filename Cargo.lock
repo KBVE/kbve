@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.23"
+version = "0.1.21"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -1633,7 +1633,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.198"
+version = "1.0.197"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -8481,7 +8481,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.23"
+version = "0.1.24"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
