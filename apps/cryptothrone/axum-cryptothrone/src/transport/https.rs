@@ -259,6 +259,7 @@ mod tests {
     use crate::astro::{StaticConfig, build_static_router};
     use axum::{body::Body, http::StatusCode};
     use http_body_util::BodyExt;
+    use serial_test::serial;
     use std::path::PathBuf;
     use tower::ServiceExt;
 
@@ -508,5 +509,119 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let speed: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert!(speed["time_ms"].as_u64().unwrap() > 0);
+    }
+
+    #[tokio::test]
+    async fn test_fix_ts_mime_passes_non_ts_through() {
+        let app = Router::new()
+            .route(
+                "/script.js",
+                get(|| async { ([(header::CONTENT_TYPE, "text/plain")], "code") }),
+            )
+            .layer(axum::middleware::from_fn(fix_ts_mime));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/script.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        // Non-.ts content type is left untouched.
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/plain"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_discord_frame_headers_relax_csp_for_activity() {
+        let app = Router::new()
+            .route("/discord/x", get(|| async { "x" }))
+            .route("/other", get(|| async { "o" }))
+            .layer(SetResponseHeaderLayer::overriding(
+                header::X_FRAME_OPTIONS,
+                HeaderValue::from_static("DENY"),
+            ))
+            .layer(axum::middleware::from_fn(discord_frame_headers));
+
+        let discord = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/x")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert!(
+            discord.headers().get(header::X_FRAME_OPTIONS).is_none(),
+            "X-Frame-Options must be dropped for /discord/*"
+        );
+        let csp = discord
+            .headers()
+            .get(header::CONTENT_SECURITY_POLICY)
+            .unwrap()
+            .to_str()
+            .unwrap();
+        assert!(csp.contains("frame-ancestors"));
+        assert!(csp.contains("discord.com"));
+
+        let other = app
+            .oneshot(
+                Request::builder()
+                    .uri("/other")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            other.headers().get(header::X_FRAME_OPTIONS).unwrap(),
+            "DENY",
+            "non-discord routes keep the global DENY"
+        );
+        assert!(
+            other
+                .headers()
+                .get(header::CONTENT_SECURITY_POLICY)
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_tuned_listener_binds_ephemeral_port() {
+        let addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
+        let listener = tuned_listener(addr).expect("bind ephemeral port");
+        let local = listener.local_addr().unwrap();
+        assert!(local.port() > 0, "OS assigned a real port");
+        assert!(local.ip().is_loopback());
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_join_unauthorized_without_bearer() {
+        std::env::set_var("SUPABASE_JWT_SECRET", "secret");
+        let allocator = Arc::new(None::<AgonesAllocator>);
+        let resp = join(Extension(allocator), axum::http::HeaderMap::new())
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        std::env::remove_var("SUPABASE_JWT_SECRET");
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn test_join_allocator_offline_returns_503() {
+        // No JWT secret -> auth gate is skipped -> reaches the allocator check.
+        std::env::remove_var("SUPABASE_JWT_SECRET");
+        let allocator = Arc::new(None::<AgonesAllocator>);
+        let resp = join(Extension(allocator), axum::http::HeaderMap::new())
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 }

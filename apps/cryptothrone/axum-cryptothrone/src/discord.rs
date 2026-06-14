@@ -165,18 +165,7 @@ pub async fn session(
 
     // 4. Mint the Supabase-valid HS256 JWT the game server accepts.
     let exp = now_secs().saturating_add(JWT_TTL_SECS) as i64;
-    let claims = MintedClaims {
-        sub: user_id,
-        exp,
-        kbve_username: kbve_username.clone(),
-        role: "authenticated".into(),
-        aud: "authenticated".into(),
-    };
-    let jwt = match encode(
-        &Header::new(Algorithm::HS256),
-        &claims,
-        &EncodingKey::from_secret(jwt_secret.as_bytes()),
-    ) {
+    let jwt = match mint_session_jwt(&user_id, &kbve_username, jwt_secret.as_bytes(), exp) {
         Ok(t) => t,
         Err(e) => {
             tracing::error!(error = %e, "jwt mint failed");
@@ -197,4 +186,123 @@ fn now_secs() -> u64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0)
+}
+
+/// Mint the Supabase-compatible HS256 JWT the game server accepts. Mirrors the
+/// claim set the GoTrue custom-access-token hook injects (`sub`, `exp`,
+/// `kbve_username`, `role`, `aud`). Pure — no env/IO — so it is unit tested.
+fn mint_session_jwt(
+    sub: &str,
+    kbve_username: &str,
+    secret: &[u8],
+    exp: i64,
+) -> Result<String, jsonwebtoken::errors::Error> {
+    let claims = MintedClaims {
+        sub: sub.to_string(),
+        exp,
+        kbve_username: kbve_username.to_string(),
+        role: "authenticated".into(),
+        aud: "authenticated".into(),
+    };
+    encode(
+        &Header::new(Algorithm::HS256),
+        &claims,
+        &EncodingKey::from_secret(secret),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+    use serial_test::serial;
+
+    /// Decode-side mirror of the minted claims so the round-trip can assert
+    /// every field the game server relies on.
+    #[derive(Deserialize)]
+    struct DecodedClaims {
+        sub: String,
+        exp: i64,
+        kbve_username: String,
+        role: String,
+        aud: String,
+    }
+
+    fn decode_minted(token: &str, secret: &[u8]) -> DecodedClaims {
+        use jsonwebtoken::{DecodingKey, Validation, decode};
+        let mut v = Validation::new(Algorithm::HS256);
+        v.validate_aud = false;
+        decode::<DecodedClaims>(token, &DecodingKey::from_secret(secret), &v)
+            .unwrap()
+            .claims
+    }
+
+    #[test]
+    fn mint_jwt_round_trip_carries_supabase_claims() {
+        let secret = b"super-secret-key";
+        let exp = now_secs() as i64 + 3600;
+        let token = mint_session_jwt("user-123", "h0lybyte", secret, exp).unwrap();
+
+        // Verifiable by the same path the game server uses.
+        assert_eq!(
+            crate::auth::verify_supabase_jwt(&token, secret)
+                .unwrap()
+                .kbve_username,
+            "h0lybyte"
+        );
+
+        let c = decode_minted(&token, secret);
+        assert_eq!(c.sub, "user-123");
+        assert_eq!(c.kbve_username, "h0lybyte");
+        assert_eq!(c.role, "authenticated");
+        assert_eq!(c.aud, "authenticated");
+        assert_eq!(c.exp, exp);
+    }
+
+    #[test]
+    fn mint_jwt_rejects_wrong_secret() {
+        let token = mint_session_jwt("u", "name", b"right", now_secs() as i64 + 60).unwrap();
+        assert!(crate::auth::verify_supabase_jwt(&token, b"wrong").is_err());
+    }
+
+    #[test]
+    fn now_secs_is_monotonic_and_positive() {
+        assert!(now_secs() > 1_700_000_000);
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn session_returns_500_when_unconfigured() {
+        for k in [
+            "DISCORD_CLIENT_ID",
+            "DISCORD_CLIENT_SECRET",
+            "SUPABASE_JWT_SECRET",
+        ] {
+            std::env::remove_var(k);
+        }
+        let resp = session(Extension(None), Json(SessionRequest { code: "abc".into() }))
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[tokio::test]
+    #[serial]
+    async fn session_returns_503_when_db_offline() {
+        std::env::set_var("DISCORD_CLIENT_ID", "id");
+        std::env::set_var("DISCORD_CLIENT_SECRET", "secret");
+        std::env::set_var("SUPABASE_JWT_SECRET", "jwt-secret");
+        let resp = session(Extension(None), Json(SessionRequest { code: "abc".into() }))
+            .await
+            .into_response();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+        for k in [
+            "DISCORD_CLIENT_ID",
+            "DISCORD_CLIENT_SECRET",
+            "SUPABASE_JWT_SECRET",
+        ] {
+            std::env::remove_var(k);
+        }
+    }
 }

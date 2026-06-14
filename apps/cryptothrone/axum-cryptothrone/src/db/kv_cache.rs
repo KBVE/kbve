@@ -15,3 +15,17 @@ pub async fn init_kv_cache() -> bool {
 pub fn get_kv_cache() -> Option<&'static Arc<KvCache>> {
     KV_CACHE.get()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn init_populates_l1_and_get_reflects_it() {
+        // KvCache always builds (L1 LRU works without Valkey), so init succeeds
+        // and the getter then resolves the shared handle.
+        let ok = init_kv_cache().await;
+        assert!(ok, "KvCache L1 should always initialize");
+        assert!(get_kv_cache().is_some());
+    }
+}
