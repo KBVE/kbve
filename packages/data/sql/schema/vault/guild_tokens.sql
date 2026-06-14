@@ -251,9 +251,8 @@ BEGIN
         ) INTO v_secret_id;
     EXCEPTION
         WHEN unique_violation THEN
-            UPDATE vault.secrets
-            SET secret = p_token_value, updated_at = NOW()
-            WHERE name = v_vault_key;
+            SELECT id INTO v_secret_id FROM vault.secrets WHERE name = v_vault_key;
+            PERFORM vault.update_secret(v_secret_id, p_token_value);
     END;
 
     -- Upsert the token reference
