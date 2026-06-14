@@ -73,4 +73,61 @@ mod tests {
         assert!(verify_supabase_jwt("garbage", secret).is_err());
         assert!(verify_supabase_jwt(&token, b"").is_err());
     }
+
+    #[test]
+    fn expired_token_rejected() {
+        let secret = b"test-secret";
+        let claims = TestClaims {
+            sub: "u1".into(),
+            exp: 1, // 1970 — long expired
+            kbve_username: "h0lybyte".into(),
+        };
+        let token = encode(
+            &Header::new(jsonwebtoken::Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(secret),
+        )
+        .unwrap();
+        assert!(verify_supabase_jwt(&token, secret).is_err());
+    }
+
+    #[test]
+    fn missing_username_defaults_to_empty() {
+        #[derive(Serialize)]
+        struct NoName {
+            sub: String,
+            exp: i64,
+        }
+        let secret = b"test-secret";
+        let token = encode(
+            &Header::new(jsonwebtoken::Algorithm::HS256),
+            &NoName {
+                sub: "u1".into(),
+                exp: 9_999_999_999,
+            },
+            &EncodingKey::from_secret(secret),
+        )
+        .unwrap();
+        assert_eq!(
+            verify_supabase_jwt(&token, secret).unwrap().kbve_username,
+            ""
+        );
+    }
+
+    #[test]
+    fn bearer_rejects_malformed() {
+        let mk = |v: &str| {
+            let mut h = axum::http::HeaderMap::new();
+            h.insert(axum::http::header::AUTHORIZATION, v.parse().unwrap());
+            h
+        };
+        // Missing "Bearer " scheme prefix.
+        assert_eq!(bearer_token(&mk("token-without-scheme")), None);
+        // Lowercase scheme is not accepted (strip_prefix is case-sensitive).
+        assert_eq!(bearer_token(&mk("bearer abc")), None);
+        // Empty token after the scheme.
+        assert_eq!(bearer_token(&mk("Bearer    ")), None);
+        // Surrounding whitespace is trimmed.
+        assert_eq!(bearer_token(&mk("Bearer  tok ")), Some("tok"));
+    }
 }
