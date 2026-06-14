@@ -477,6 +477,42 @@ impl PgCluster {
     }
 }
 
+#[cfg(feature = "valkey")]
+impl PgCluster {
+    /// Caller-scoped read composed with the two-tier KvCache. L1 LRU
+    /// → L2 Valkey → `with_caller_read` (which itself can fall back
+    /// to the `any` pool internally). `cache_key` must already
+    /// uniquely identify the response — typically `caller_sub +
+    /// route + serialized query params`.
+    pub async fn cached_caller_read<T, F>(
+        self: &Arc<Self>,
+        cache: &Arc<crate::state::kv::KvCache>,
+        cache_key: &str,
+        ttl: Option<Duration>,
+        sub: Uuid,
+        auth_role: Option<&str>,
+        f: F,
+    ) -> Result<T, JediError>
+    where
+        T: serde::Serialize + serde::de::DeserializeOwned + Send + 'static,
+        F: for<'tx> FnOnce(
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
+            + Send
+            + 'static,
+    {
+        let cluster = Arc::clone(self);
+        let owned_role = auth_role.map(|s| s.to_string());
+        cache
+            .get_or_fetch_json(cache_key, ttl, move || async move {
+                cluster
+                    .with_caller_read(sub, owned_role.as_deref(), f)
+                    .await
+            })
+            .await
+    }
+}
+
 async fn probe_role(role: PgRole, pool: &PgPool) -> PgRoleHealth {
     let started = std::time::Instant::now();
     let res = tokio::time::timeout(Duration::from_secs(1), async {
