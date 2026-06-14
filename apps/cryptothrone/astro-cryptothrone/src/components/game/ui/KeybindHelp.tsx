@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FloatingWindow } from '@kbve/astro';
+import { FloatingWindow } from '@kbve/astro/ui';
 
 const BINDS: [string, string][] = [
 	['Arrows / WASD', 'Move'],

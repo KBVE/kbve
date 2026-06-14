@@ -1,4 +1,4 @@
-import { FloatingWindow } from '@kbve/astro';
+import { FloatingWindow } from '@kbve/astro/ui';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 
 export function CharacterDialog() {

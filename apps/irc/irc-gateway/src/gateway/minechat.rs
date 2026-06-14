@@ -279,7 +279,16 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
             parsed.sender = nick_c2i.clone();
             parsed.platform = platform.clone();
 
-            let line = parsed.to_irc_privmsg();
+            // Plain chat goes out as a bare PRIVMSG — the same wire format the
+            // chat.kbve.com web client (/ws) uses — so game + IRC clients share
+            // a channel cleanly (sender is carried by the IRC prefix). Only
+            // structured game events keep the [KIND] sender@platform wrapper.
+            let line = if matches!(parsed.kind, MessageKind::Chat) {
+                let content = parsed.content.replace(['\r', '\n'], " ");
+                format!("PRIVMSG {} :{content}", parsed.channel)
+            } else {
+                parsed.to_irc_privmsg()
+            };
             if let Err(e) = write_irc_line(&ergo_w_c2i, &line).await {
                 warn!(user = %nick_c2i, "ergo write failed: {e}");
                 break;
@@ -314,14 +323,14 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                         }
                         continue;
                     }
-                    if let Some((channel, payload)) = parse_privmsg(&raw) {
-                        if let Some(mut msg) = ChatMessage::from_irc_privmsg(&channel, &payload) {
-                            if msg.platform.is_empty() {
-                                msg.platform = "irc".into();
-                            }
-                            if send_json(&mut client_tx, &msg).await.is_err() {
-                                break;
-                            }
+                    if let Some((sender, channel, payload)) = parse_privmsg(&raw) {
+                        let mut msg =
+                            ChatMessage::from_irc_or_plain(&channel, &sender, &payload);
+                        if msg.platform.is_empty() {
+                            msg.platform = "irc".into();
+                        }
+                        if send_json(&mut client_tx, &msg).await.is_err() {
+                            break;
                         }
                     }
                 }
@@ -364,24 +373,25 @@ async fn send_json(
     tx.send(Message::Text(text.into())).await.map_err(|_| ())
 }
 
-/// Parse `:nick!user@host PRIVMSG #channel :payload` → `(channel, payload)`.
-/// Returns `None` for any other IRC line (JOIN, PING, numerics, etc.).
-fn parse_privmsg(line: &str) -> Option<(String, String)> {
-    // Strip leading `:prefix ` if present.
-    let rest = if let Some(rest) = line.strip_prefix(':') {
-        rest.split_once(' ').map(|(_p, r)| r)?
+/// Parse `:nick!user@host PRIVMSG #channel :payload` → `(sender, channel,
+/// payload)`. `sender` is the IRC nick from the prefix (empty when absent),
+/// used for the plain-IRC fallback. Returns `None` for any other IRC line.
+fn parse_privmsg(line: &str) -> Option<(String, String, String)> {
+    let (sender, rest) = if let Some(r) = line.strip_prefix(':') {
+        let (prefix, rest) = r.split_once(' ')?;
+        let nick = prefix.split(['!', '@']).next().unwrap_or(prefix);
+        (nick.to_string(), rest)
     } else {
-        line
+        (String::new(), line)
     };
     let mut parts = rest.splitn(3, ' ');
-    let cmd = parts.next()?;
-    if cmd != "PRIVMSG" {
+    if parts.next()? != "PRIVMSG" {
         return None;
     }
     let channel = parts.next()?.to_string();
     let trailing = parts.next()?;
     let payload = trailing.strip_prefix(':').unwrap_or(trailing).to_string();
-    Some((channel, payload))
+    Some((sender, channel, payload))
 }
 
 /// Keep only ASCII alphanumerics from a JWT sub and truncate.
@@ -400,7 +410,8 @@ mod tests {
     #[test]
     fn parses_simple_privmsg() {
         let line = ":alice!a@host PRIVMSG #world-events :[CHAT] alice@minecraft: hello";
-        let (ch, payload) = parse_privmsg(line).unwrap();
+        let (sender, ch, payload) = parse_privmsg(line).unwrap();
+        assert_eq!(sender, "alice");
         assert_eq!(ch, "#world-events");
         assert_eq!(payload, "[CHAT] alice@minecraft: hello");
     }

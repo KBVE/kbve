@@ -9,6 +9,7 @@
 		"paths": {
 			"@/*": ["src/*"],
 			"@kbve/astro": ["../../../packages/npm/astro/src/index.ts"],
+			"@kbve/astro/ui": ["../../../packages/npm/astro/src/ui.ts"],
 			"@kbve/astro/components/*": [
 				"../../../packages/npm/astro/src/components/*"
 			],

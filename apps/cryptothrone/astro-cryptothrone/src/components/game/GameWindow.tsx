@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
 import { PhaserGame, laserEvents } from '@kbve/laser';
 import type { PhaserGameRef } from '@kbve/laser';
-import { NotContent } from '@kbve/astro';
+import { NotContent } from '@kbve/astro/ui';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
 import { ProceduralZoneScene } from './scenes/ProceduralZoneScene';
