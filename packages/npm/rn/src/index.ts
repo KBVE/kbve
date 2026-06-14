@@ -15,4 +15,8 @@ export * from './auth/LoginScreen';
 
 export * from './captcha/HCaptcha';
 
+export * from './plugin';
+export * from './sandbox';
+export * from './examples/helloPlugin';
+
 export * from './ui';
