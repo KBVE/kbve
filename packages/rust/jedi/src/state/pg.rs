@@ -47,8 +47,7 @@ use crate::entity::error::JediError;
 pub use tokio_postgres;
 
 pub type PgPool = Pool<PostgresConnectionManager<MakeRustlsConnect>>;
-pub type PgConn<'a> =
-    bb8::PooledConnection<'a, PostgresConnectionManager<MakeRustlsConnect>>;
+pub type PgConn<'a> = bb8::PooledConnection<'a, PostgresConnectionManager<MakeRustlsConnect>>;
 
 /// Boxed future shape expected from the `with_caller_read` closure body.
 /// Lets consumers write `|tx| Box::pin(async move { … })` without
@@ -111,19 +110,14 @@ pub struct PgClusterConfig {
 
 impl PgClusterConfig {
     pub fn from_env() -> Result<Self, JediError> {
-        let app = env::var("KBVE_PG_APPLICATION_NAME")
-            .unwrap_or_else(|_| "kbve".to_string());
+        let app = env::var("KBVE_PG_APPLICATION_NAME").unwrap_or_else(|_| "kbve".to_string());
 
-        let rw_url = read_url_env(&[
-            "KBVE_PG_RW_URL",
-            "DATABASE_URL_PROD",
-            "WALLET_DATABASE_URL",
-        ])
-        .ok_or_else(|| {
-            JediError::Internal(
-                "KBVE_PG_RW_URL (or DATABASE_URL_PROD / WALLET_DATABASE_URL) not set".into(),
-            )
-        })?;
+        let rw_url = read_url_env(&["KBVE_PG_RW_URL", "DATABASE_URL_PROD", "WALLET_DATABASE_URL"])
+            .ok_or_else(|| {
+                JediError::Internal(
+                    "KBVE_PG_RW_URL (or DATABASE_URL_PROD / WALLET_DATABASE_URL) not set".into(),
+                )
+            })?;
 
         let ro_url = read_url_env(&[
             "KBVE_PG_RO_URL",
@@ -210,9 +204,6 @@ fn rewrite_pooler_host(url: &str, use_pooler: bool, role: PgRole) -> String {
     if !use_pooler {
         return url.to_string();
     }
-    // CNPG pooler service naming. The `Any` role has no pooler equivalent
-    // (poolers front rw + ro only); skip the rewrite to keep direct
-    // any-instance fallback semantics.
     let (from, to) = match role {
         PgRole::Rw => ("supabase-cluster-rw", "supabase-cluster-pooler-rw"),
         PgRole::Ro => ("supabase-cluster-ro", "supabase-cluster-pooler-ro"),
@@ -226,18 +217,12 @@ struct OnAcquire {
     statement_timeout_ms: Option<u64>,
 }
 
-impl bb8::CustomizeConnection<tokio_postgres::Client, tokio_postgres::Error>
-    for OnAcquire
-{
+impl bb8::CustomizeConnection<tokio_postgres::Client, tokio_postgres::Error> for OnAcquire {
     fn on_acquire<'a>(
         &'a self,
         conn: &'a mut tokio_postgres::Client,
     ) -> std::pin::Pin<
-        Box<
-            dyn std::future::Future<Output = Result<(), tokio_postgres::Error>>
-                + Send
-                + 'a,
-        >,
+        Box<dyn std::future::Future<Output = Result<(), tokio_postgres::Error>> + Send + 'a>,
     > {
         Box::pin(async move {
             if let Some(ms) = self.statement_timeout_ms {
@@ -246,6 +231,27 @@ impl bb8::CustomizeConnection<tokio_postgres::Client, tokio_postgres::Error>
             }
             Ok(())
         })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PgRoleHealth {
+    pub role: PgRole,
+    pub ok: bool,
+    pub latency: Duration,
+    pub last_error: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PgClusterHealth {
+    pub rw: PgRoleHealth,
+    pub ro: PgRoleHealth,
+    pub any: PgRoleHealth,
+}
+
+impl PgClusterHealth {
+    pub fn all_ok(&self) -> bool {
+        self.rw.ok && self.ro.ok && self.any.ok
     }
 }
 
@@ -264,18 +270,8 @@ impl PgCluster {
 
     pub async fn build(cfg: PgClusterConfig) -> Result<Arc<Self>, JediError> {
         let connector = make_rustls_connector()?;
-        let rw = build_pool(
-            &cfg.resolved_url(PgRole::Rw),
-            &cfg.rw,
-            connector.clone(),
-        )
-        .await?;
-        let ro = build_pool(
-            &cfg.resolved_url(PgRole::Ro),
-            &cfg.ro,
-            connector.clone(),
-        )
-        .await?;
+        let rw = build_pool(&cfg.resolved_url(PgRole::Rw), &cfg.rw, connector.clone()).await?;
+        let ro = build_pool(&cfg.resolved_url(PgRole::Ro), &cfg.ro, connector.clone()).await?;
         let any = build_pool(&cfg.resolved_url(PgRole::Any), &cfg.any, connector).await?;
         tracing::info!(
             rw_max = cfg.rw.max_size,
@@ -284,7 +280,21 @@ impl PgCluster {
             use_pooler = cfg.use_pooler,
             "[PgCluster] pools built"
         );
-        Ok(Arc::new(Self { rw, ro, any, cfg }))
+        let arc = Arc::new(Self { rw, ro, any, cfg });
+        #[cfg(feature = "prometheus")]
+        let _ = spawn_state_sampler(Arc::downgrade(&arc));
+        Ok(arc)
+    }
+
+    /// Per-role liveness probe. `SELECT 1` against each pool in
+    /// parallel under a 1s deadline.
+    pub async fn health(&self) -> PgClusterHealth {
+        let (rw, ro, any) = tokio::join!(
+            probe_role(PgRole::Rw, &self.rw),
+            probe_role(PgRole::Ro, &self.ro),
+            probe_role(PgRole::Any, &self.any),
+        );
+        PgClusterHealth { rw, ro, any }
     }
 
     pub fn rw_pool(&self) -> &PgPool {
@@ -301,34 +311,32 @@ impl PgCluster {
     }
 
     pub async fn write(&self) -> Result<PgConn<'_>, JediError> {
-        self.rw.get().await.map_err(pool_err)
+        timed_acquire(PgRole::Rw, &self.rw, false).await
     }
 
     pub async fn strict_read(&self) -> Result<PgConn<'_>, JediError> {
-        self.ro.get().await.map_err(pool_err)
+        timed_acquire(PgRole::Ro, &self.ro, false).await
     }
 
     pub async fn any_read(&self) -> Result<PgConn<'_>, JediError> {
-        self.any.get().await.map_err(pool_err)
+        timed_acquire(PgRole::Any, &self.any, false).await
     }
 
-    /// Read connection with replica → any-instance fallback. Use for
-    /// non-critical reads that should survive a replica blip.
+    /// Read connection with `ro` → `any` fallback for non-critical
+    /// reads that should survive a replica blip.
     pub async fn read(&self) -> Result<PgConn<'_>, JediError> {
-        match self.ro.get().await {
+        match timed_acquire(PgRole::Ro, &self.ro, false).await {
             Ok(c) => Ok(c),
             Err(e) => {
                 tracing::warn!(error = %e, "[PgCluster] ro pool acquire failed; falling back to any pool");
-                self.any.get().await.map_err(pool_err)
+                timed_acquire(PgRole::Any, &self.any, true).await
             }
         }
     }
 
-    /// Run a read-only closure inside a transaction with
-    /// `request.jwt.claims` impersonating the given subject so
-    /// SECURITY DEFINER proxies that resolve `auth.uid()` see the
-    /// caller. Acquires from the strict replica pool. Commits on
-    /// success; rolls back on error.
+    /// Read-only tx on the `ro` pool with `request.jwt.claims`
+    /// impersonating the given subject. Commits on `Ok`, rolls back
+    /// on `Err`.
     pub async fn with_caller_read<T, F>(
         &self,
         sub: Uuid,
@@ -338,8 +346,8 @@ impl PgCluster {
     where
         T: Send,
         F: for<'tx> FnOnce(
-            &'tx tokio_postgres::Transaction<'_>,
-        ) -> BoxFuture<'tx, Result<T, JediError>>
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
             + Send,
     {
         let mut conn = self.strict_read().await?;
@@ -361,16 +369,142 @@ impl PgCluster {
     }
 }
 
+async fn probe_role(role: PgRole, pool: &PgPool) -> PgRoleHealth {
+    let started = std::time::Instant::now();
+    let res = tokio::time::timeout(Duration::from_secs(1), async {
+        let conn = pool.get().await.map_err(pool_err)?;
+        conn.simple_query("SELECT 1")
+            .await
+            .map_err(JediError::from)?;
+        Ok::<_, JediError>(())
+    })
+    .await;
+    let latency = started.elapsed();
+    match res {
+        Ok(Ok(())) => PgRoleHealth {
+            role,
+            ok: true,
+            latency,
+            last_error: None,
+        },
+        Ok(Err(e)) => PgRoleHealth {
+            role,
+            ok: false,
+            latency,
+            last_error: Some(e.to_string()),
+        },
+        Err(_) => PgRoleHealth {
+            role,
+            ok: false,
+            latency,
+            last_error: Some("probe timed out after 1s".into()),
+        },
+    }
+}
+
+/// Single acquire path used by `write` / `strict_read` / `any_read` /
+/// `read`. Emits a `pg.acquire` tracing span and per-role acquire
+/// metrics (under the `prometheus` feature).
+async fn timed_acquire<'a>(
+    role: PgRole,
+    pool: &'a PgPool,
+    fallback: bool,
+) -> Result<PgConn<'a>, JediError> {
+    let state = pool.state();
+    let started = std::time::Instant::now();
+    let span = tracing::trace_span!(
+        "pg.acquire",
+        role = pg_metrics::role_label(role),
+        fallback = fallback,
+        pool.size = state.connections,
+        pool.idle = state.idle_connections,
+        wait_ms = tracing::field::Empty,
+        outcome = tracing::field::Empty,
+    );
+    let _enter = span.enter();
+    let result = pool.get().await;
+    let elapsed = started.elapsed();
+    let (outcome, mapped) = match result {
+        Ok(c) => ("ok", Ok(c)),
+        Err(bb8::RunError::TimedOut) => ("timeout", Err(pool_err(bb8::RunError::TimedOut))),
+        Err(e) => ("error", Err(pool_err(e))),
+    };
+    span.record("wait_ms", elapsed.as_millis() as i64);
+    span.record("outcome", outcome);
+    pg_metrics::record_acquire(role, outcome, elapsed);
+    mapped
+}
+
+/// 15s interval sampler that emits pool-state gauges so they reflect
+/// the current shape even when no traffic is flowing.
+#[cfg(feature = "prometheus")]
+fn spawn_state_sampler(cluster: std::sync::Weak<PgCluster>) -> tokio::task::JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(15));
+        loop {
+            interval.tick().await;
+            let Some(c) = cluster.upgrade() else { return };
+            for (role, pool) in [
+                (PgRole::Rw, &c.rw),
+                (PgRole::Ro, &c.ro),
+                (PgRole::Any, &c.any),
+            ] {
+                let s = pool.state();
+                pg_metrics::record_state(role, s.connections, s.idle_connections);
+            }
+        }
+    })
+}
+
+mod pg_metrics {
+    use super::PgRole;
+    use std::time::Duration;
+
+    pub(super) fn role_label(role: PgRole) -> &'static str {
+        match role {
+            PgRole::Rw => "rw",
+            PgRole::Ro => "ro",
+            PgRole::Any => "any",
+        }
+    }
+
+    #[cfg(feature = "prometheus")]
+    pub(super) fn record_acquire(role: PgRole, outcome: &'static str, elapsed: Duration) {
+        let role_str = role_label(role);
+        metrics::counter!(
+            "kbve_pg_pool_acquire_total",
+            "role" => role_str,
+            "outcome" => outcome,
+        )
+        .increment(1);
+        metrics::histogram!(
+            "kbve_pg_pool_acquire_duration_seconds",
+            "role" => role_str,
+        )
+        .record(elapsed.as_secs_f64());
+    }
+
+    #[cfg(not(feature = "prometheus"))]
+    pub(super) fn record_acquire(_role: PgRole, _outcome: &'static str, _elapsed: Duration) {}
+
+    #[cfg(feature = "prometheus")]
+    pub(super) fn record_state(role: PgRole, size: u32, idle: u32) {
+        let role_str = role_label(role);
+        metrics::gauge!("kbve_pg_pool_size", "role" => role_str).set(size as f64);
+        metrics::gauge!("kbve_pg_pool_idle", "role" => role_str).set(idle as f64);
+        metrics::gauge!("kbve_pg_pool_in_use", "role" => role_str)
+            .set(size.saturating_sub(idle) as f64);
+    }
+}
+
 async fn build_pool(
     url: &str,
     cfg: &PgPoolConfig,
     connector: MakeRustlsConnect,
 ) -> Result<PgPool, JediError> {
-    let mut pg_cfg: PgConfig = url
-        .parse()
-        .map_err(|e: tokio_postgres::Error| {
-            JediError::Internal(format!("invalid Postgres URL: {e}").into())
-        })?;
+    let mut pg_cfg: PgConfig = url.parse().map_err(|e: tokio_postgres::Error| {
+        JediError::Internal(format!("invalid Postgres URL: {e}").into())
+    })?;
     pg_cfg.application_name(&cfg.application_name);
     pg_cfg.connect_timeout(cfg.connect_timeout);
 
@@ -389,8 +523,6 @@ async fn build_pool(
 }
 
 fn make_rustls_connector() -> Result<MakeRustlsConnect, JediError> {
-    // Ensure a CryptoProvider is installed exactly once. Idempotent —
-    // calling install repeatedly only succeeds on the first call.
     let _ = rustls::crypto::ring::default_provider().install_default();
 
     let mut roots = RootCertStore::empty();
@@ -411,6 +543,7 @@ pub struct SharedPgCluster(pub Arc<PgCluster>);
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     fn with_env<F: FnOnce()>(vars: &[(&str, Option<&str>)], f: F) {
         let prior: Vec<_> = vars
@@ -440,6 +573,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn from_env_requires_rw_url() {
         with_env(
             &[
@@ -455,6 +589,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn from_env_falls_back_through_compat_keys() {
         with_env(
             &[
@@ -478,6 +613,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn pool_env_overrides_apply() {
         with_env(
             &[
@@ -500,16 +636,25 @@ mod tests {
     #[test]
     fn use_pooler_rewrites_rw_and_ro_only() {
         let cfg = PgClusterConfig {
-            rw_url: "postgresql://u:p@supabase-cluster-rw.kilobase.svc.cluster.local:5432/db".into(),
-            ro_url: "postgresql://u:p@supabase-cluster-ro.kilobase.svc.cluster.local:5432/db".into(),
-            any_url: "postgresql://u:p@supabase-cluster-r.kilobase.svc.cluster.local:5432/db".into(),
+            rw_url: "postgresql://u:p@supabase-cluster-rw.kilobase.svc.cluster.local:5432/db"
+                .into(),
+            ro_url: "postgresql://u:p@supabase-cluster-ro.kilobase.svc.cluster.local:5432/db"
+                .into(),
+            any_url: "postgresql://u:p@supabase-cluster-r.kilobase.svc.cluster.local:5432/db"
+                .into(),
             rw: PgPoolConfig::defaults_for(PgRole::Rw, "test".into()),
             ro: PgPoolConfig::defaults_for(PgRole::Ro, "test".into()),
             any: PgPoolConfig::defaults_for(PgRole::Any, "test".into()),
             use_pooler: true,
         };
-        assert!(cfg.resolved_url(PgRole::Rw).contains("supabase-cluster-pooler-rw"));
-        assert!(cfg.resolved_url(PgRole::Ro).contains("supabase-cluster-pooler-ro"));
+        assert!(
+            cfg.resolved_url(PgRole::Rw)
+                .contains("supabase-cluster-pooler-rw")
+        );
+        assert!(
+            cfg.resolved_url(PgRole::Ro)
+                .contains("supabase-cluster-pooler-ro")
+        );
         assert!(cfg.resolved_url(PgRole::Any).contains("supabase-cluster-r"));
         assert!(!cfg.resolved_url(PgRole::Any).contains("pooler"));
     }
@@ -530,6 +675,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn use_pooler_truthy_values() {
         for v in ["1", "true", "yes", "on", "TRUE", "Yes"] {
             with_env(
