@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	forgejoService,
@@ -84,11 +85,15 @@ function StatCard({
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
 
-	if (repos.length === 0) return null;
+	const { totalSize, top } = useMemo(() => {
+		const sorted = [...repos].sort((a, b) => b.size - a.size);
+		return {
+			totalSize: sorted.reduce((s, r) => s + r.size, 0),
+			top: sorted.slice(0, 8),
+		};
+	}, [repos]);
 
-	const sorted = [...repos].sort((a, b) => b.size - a.size);
-	const totalSize = sorted.reduce((s, r) => s + r.size, 0);
-	const top = sorted.slice(0, 8);
+	if (repos.length === 0) return null;
 
 	return (
 		<div style={{ marginBottom: '1.5rem' }}>
