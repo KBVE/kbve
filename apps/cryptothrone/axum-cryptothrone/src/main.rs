@@ -1,6 +1,7 @@
 mod agones;
 mod astro;
 mod auth;
+mod db;
 mod discord;
 mod transport;
 
@@ -32,6 +33,15 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     info!("CryptoThrone v{}", env!("CARGO_PKG_VERSION"));
+
+    if db::init_pg_cluster().await {
+        info!("PgCluster initialized — pooled Postgres available");
+    } else {
+        info!("PgCluster not configured — DB-backed routes degrade");
+    }
+    if db::init_kv_cache().await {
+        info!("KvCache initialized — L1 LRU + L2 Valkey read-through enabled");
+    }
 
     let http = tokio::spawn(transport::https::serve());
 

@@ -35,7 +35,7 @@ k8s-openapi = { version = "0.27", features = ["v1_32"] }
 rustls = { version = "0.23", features = ["ring"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["postgres"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]

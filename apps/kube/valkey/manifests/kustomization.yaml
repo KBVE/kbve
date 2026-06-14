@@ -7,3 +7,4 @@ resources:
     - valkey-sccache-rbac.yaml
     - valkey-auth-sync-rbac.yaml
     - valkey-auth-sync-policy.yaml
+    - cryptothrone-valkey-rbac.yaml

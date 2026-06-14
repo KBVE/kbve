@@ -69,6 +69,10 @@ spec:
                         value: 'cryptothrone'
                       - name: CT_AGONES_FLEET
                         value: 'cryptothrone-server'
+                      # jedi PgCluster pool identity (KBVE_PG_RW_URL / RO_URL
+                      # arrive via the supabase-shared envFrom below).
+                      - name: KBVE_PG_APPLICATION_NAME
+                        value: 'axum-cryptothrone'
                   envFrom:
                       # Optional so the pod still boots before the
                       # ExternalSecret has rendered or the kilobase
@@ -76,6 +80,11 @@ spec:
                       # exists Reloader rolls the Deployment automatically.
                       - secretRef:
                             name: supabase-shared
+                            optional: true
+                      # KBVE_KV_URL (jedi KvCache → Valkey). Optional for the
+                      # same boot-before-render reason.
+                      - secretRef:
+                            name: cryptothrone-valkey
                             optional: true
                   resources:
                       requests:

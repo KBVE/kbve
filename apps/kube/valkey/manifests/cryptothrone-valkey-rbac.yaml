@@ -1,0 +1,18 @@
+# Lets the cryptothrone ExternalSecrets ServiceAccount read the shared
+# valkey-auth secret out of the valkey namespace, so the valkey-remote-secret-store
+# SecretStore (apps/kube/cryptothrone/manifest/cryptothrone-externalsecret.yaml)
+# can compose KBVE_KV_URL for axum-cryptothrone + the cryptothrone-server
+# gameserver. Reuses the existing valkey-auth-reader Role.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: cryptothrone-read-valkey-auth
+    namespace: valkey
+subjects:
+    - kind: ServiceAccount
+      name: cryptothrone-external-secrets
+      namespace: cryptothrone
+roleRef:
+    kind: Role
+    name: valkey-auth-reader
+    apiGroup: rbac.authorization.k8s.io
