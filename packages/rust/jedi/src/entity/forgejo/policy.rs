@@ -37,6 +37,12 @@ impl ForgejoPolicy {
         }
     }
 
+    /// True when an allowlist is set, so callers can skip a team→org lookup
+    /// they only need in order to policy-check.
+    pub fn is_restricted(&self) -> bool {
+        self.allowed_owners.is_some()
+    }
+
     /// Reject before any HTTP call if `owner` is outside the allowlist.
     pub fn check_owner(&self, owner: &str) -> Result<(), JediError> {
         match &self.allowed_owners {
