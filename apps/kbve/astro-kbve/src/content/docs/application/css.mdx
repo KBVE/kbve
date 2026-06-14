@@ -188,17 +188,48 @@ Animate elements as the user scrolls — no scroll-event JavaScript, runs on the
 
 ### View transitions
 
-The View Transitions API animates between DOM states (and across page navigations) with a few lines of CSS.
+The View Transitions API animates between two DOM states — the browser snapshots before and after, then cross-fades or morphs between them. It works for in-page state changes (same-document) and across page navigations (cross-document / MPA).
 
-```css
-@view-transition {
-    navigation: auto;
-}
+**Same-document.** Wrap the DOM mutation in `startViewTransition`. The browser captures, applies your callback, then animates old → new. A default cross-fade comes free.
 
-.hero-image {
-    view-transition-name: hero;
+```js
+function toggle() {
+    if (!document.startViewTransition) return update(); // graceful fallback
+    document.startViewTransition(() => update());       // animated path
 }
 ```
+
+**Shared-element morph.** Give the same `view-transition-name` to an element in both states and the browser tweens it between positions — a thumbnail growing into a hero, a card expanding into a detail page.
+
+```css
+.thumbnail { view-transition-name: hero; }
+/* On the next view, the large image carries the SAME name → it morphs */
+.detail-image { view-transition-name: hero; }
+```
+
+<Aside type="caution">
+A `view-transition-name` must be **unique per snapshot** — two visible elements sharing one name aborts the transition. For lists, generate per-item names (`view-transition-name: card-{id}`).
+</Aside>
+
+**Customizing.** The transition exposes pseudo-elements you can target with normal `@keyframes` — `::view-transition-old(name)` (outgoing) and `::view-transition-new(name)` (incoming).
+
+```css
+@keyframes slide-from-right { from { transform: translateX(40px); opacity: 0; } }
+@keyframes fade-out         { to   { opacity: 0; } }
+
+::view-transition-old(root) { animation: fade-out 0.2s both; }
+::view-transition-new(root) { animation: slide-from-right 0.3s both; }
+```
+
+**Cross-document (MPA).** One CSS rule opts an entire multi-page site into transitions — no JavaScript, no SPA router.
+
+```css
+@view-transition { navigation: auto; }
+```
+
+<Aside type="tip">
+This very site is Astro. For MPA view transitions across Astro pages, drop `<ClientRouter />` (from `astro:transitions`) in your layout `<head>` and tag shared elements with the `transition:name` directive — Astro wires up the API and ships a fallback for browsers without it.
+</Aside>
 
 ### Respecting motion preferences
 
@@ -470,6 +501,124 @@ A full timeline. This is the `shimmer` keyframe the gradient-text example earlie
 
 <Aside type="tip">
 In Tailwind v4, register a keyframe-backed animation as a theme token: `@theme { --animate-float: float 3s ease-in-out infinite; }` generates the `animate-float` utility. Always pair looping animation with `motion-safe:` so it respects reduced-motion.
+</Aside>
+
+### Animation Gallery
+
+Live, self-contained keyframe demos. Each snippet carries its own `<style>` block with a uniquely-named `@keyframes`, so you can copy one and drop it anywhere — no shared config required.
+
+#### Floating
+
+export const fxFloatCode = `<style>
+@keyframes kbve-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.kbve-float { animation: kbve-float 3s ease-in-out infinite; }
+</style>
+<div class="flex items-center justify-center p-12 bg-gray-900">
+  <div class="kbve-float w-20 h-20 shadow-xl rounded-2xl bg-gradient-to-br from-cyan-400 to-fuchsia-500"></div>
+</div>`;
+
+<DevCode htmlCode={fxFloatCode} />
+
+#### Pulse Ring
+
+A notification dot with an expanding, fading ring — the classic "live" indicator.
+
+export const fxPulseCode = `<style>
+@keyframes kbve-ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+.kbve-ping { animation: kbve-ping 1.4s cubic-bezier(0,0,0.2,1) infinite; }
+</style>
+<div class="flex items-center justify-center p-12 bg-gray-900">
+  <span class="relative flex w-5 h-5">
+    <span class="kbve-ping absolute inline-flex w-full h-full rounded-full bg-cyan-400"></span>
+    <span class="relative inline-flex w-5 h-5 rounded-full bg-cyan-500"></span>
+  </span>
+</div>`;
+
+<DevCode htmlCode={fxPulseCode} />
+
+#### Shimmer Text
+
+The gradient shimmer referenced earlier — now running live via an embedded keyframe.
+
+export const fxShimmerCode = `<style>
+@keyframes kbve-shimmer { to { background-position: 200% center; } }
+.kbve-shimmer {
+  background: linear-gradient(90deg, #06b6d4, #d946ef, #06b6d4);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  animation: kbve-shimmer 3s linear infinite;
+}
+</style>
+<div class="flex items-center justify-center p-12 bg-gray-900">
+  <h1 class="kbve-shimmer text-6xl font-black">Shimmer</h1>
+</div>`;
+
+<DevCode htmlCode={fxShimmerCode} />
+
+#### Typewriter
+
+`steps()` makes the reveal tick character-by-character; a second keyframe blinks the caret.
+
+export const fxTypeCode = `<style>
+@keyframes kbve-type { from { width: 0; } to { width: 16ch; } }
+@keyframes kbve-caret { 50% { border-color: transparent; } }
+.kbve-type {
+  width: 16ch;
+  font-family: ui-monospace, monospace;
+  white-space: nowrap; overflow: hidden;
+  border-right: 3px solid #06b6d4;
+  animation: kbve-type 3s steps(16) infinite alternate, kbve-caret 0.7s step-end infinite;
+}
+</style>
+<div class="flex items-center justify-center p-12 bg-gray-900">
+  <span class="kbve-type text-2xl font-medium text-cyan-300">console.log(42)</span>
+</div>`;
+
+<DevCode htmlCode={fxTypeCode} />
+
+#### Marquee
+
+Seamless infinite scroll — duplicate the content and translate by -50%.
+
+export const fxMarqueeCode = `<style>
+@keyframes kbve-marquee { to { transform: translateX(-50%); } }
+.kbve-marquee { display: inline-flex; gap: 2rem; animation: kbve-marquee 12s linear infinite; }
+.kbve-marquee:hover { animation-play-state: paused; }
+</style>
+<div class="p-8 overflow-hidden bg-gray-900 whitespace-nowrap">
+  <div class="kbve-marquee text-lg font-semibold text-cyan-300">
+    <span>★ Astro</span><span>★ TailwindCSS</span><span>★ Rust</span><span>★ Unity</span><span>★ Supabase</span>
+    <span>★ Astro</span><span>★ TailwindCSS</span><span>★ Rust</span><span>★ Unity</span><span>★ Supabase</span>
+  </div>
+</div>`;
+
+<DevCode htmlCode={fxMarqueeCode} />
+
+#### Flip Card
+
+A 3D flip on hover with `transform-style: preserve-3d` and `backface-visibility`.
+
+export const fxFlipCode = `<style>
+.kbve-flip { perspective: 1000px; }
+.kbve-flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+.kbve-flip:hover .kbve-flip-inner { transform: rotateY(180deg); }
+.kbve-flip-face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 1rem; font-weight: 700; color: #fff; }
+.kbve-flip-back { transform: rotateY(180deg); }
+</style>
+<div class="flex items-center justify-center p-12 bg-gray-900">
+  <div class="kbve-flip w-48 h-32">
+    <div class="kbve-flip-inner">
+      <div class="kbve-flip-face bg-cyan-600">Hover me</div>
+      <div class="kbve-flip-face kbve-flip-back bg-fuchsia-600">Flipped!</div>
+    </div>
+  </div>
+</div>`;
+
+<DevCode htmlCode={fxFlipCode} />
+
+<Aside type="caution">
+Every demo here loops or runs on hover purely for illustration. In production wrap looping motion in `@media (prefers-reduced-motion: no-preference)` so it respects the user's setting.
 </Aside>
 
 ---
