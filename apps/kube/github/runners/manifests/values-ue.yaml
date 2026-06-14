@@ -21,7 +21,7 @@ maxRunners: 3
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260613-ue-runner-gitlfs'
+            kbve.com/restart-trigger: '20260614-ue-shared-tmp'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -72,6 +72,11 @@ template:
                   # OWS cooked server output
                   - name: ows-server-build
                     mountPath: /mnt/longhorn/ows-server
+                  # Shared scratch so docker-in-docker -v mounts resolve: the
+                  # runner materializes the project + reads build output here,
+                  # and dind's containers bind-mount the same /tmp paths.
+                  - name: shared-tmp
+                    mountPath: /tmp
             # Docker-in-Docker sidecar with persistent image cache
             - name: dind
               image: docker:29.3.0-dind
@@ -99,6 +104,8 @@ template:
                     mountPath: /home/runner/externals
                   - name: dind-storage
                     mountPath: /var/lib/docker
+                  - name: shared-tmp
+                    mountPath: /tmp
         volumes:
             - name: work
               emptyDir: {}
@@ -107,6 +114,8 @@ template:
             - name: dind-externals
               emptyDir: {}
             - name: dind-storage
+              emptyDir: {}
+            - name: shared-tmp
               emptyDir: {}
             - name: engine-cache
               persistentVolumeClaim:
