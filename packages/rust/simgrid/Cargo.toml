@@ -28,3 +28,11 @@ tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "sync", "ti
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
 jsonwebtoken = { version = "9.3", default-features = false, optional = true }
 tracing = "0.1"
+
+[dev-dependencies]
+# Integration tests spin the real axum WS router + sim loop and drive a client.
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "time", "net"] }
+axum = { version = "0.7", features = ["ws", "tokio"] }
+tokio-tungstenite = "0.24"
+futures-util = "0.3"
+serde_json = "1.0"

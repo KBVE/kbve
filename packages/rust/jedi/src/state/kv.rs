@@ -77,6 +77,7 @@ pub struct KvCache {
     cfg: KvCacheConfig,
     l1: Mutex<LruCache<String, L1Entry>>,
     l2: Option<ValkeyPool>,
+    #[allow(clippy::type_complexity)]
     inflight: DashMap<String, broadcast::Sender<Result<Arc<[u8]>, String>>>,
     /// `tag → set<qualified_key>` reverse index for L1 invalidation.
     /// L2 mirrors this in `<namespace>:tag:<tag>` Redis SETs.
