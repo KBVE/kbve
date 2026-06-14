@@ -99,7 +99,7 @@
 		"prettier": "^3.8.1",
 		"prettier-plugin-astro": "^0.14.1",
 		"react": "19.2.4",
-		"react-dom": "19.2.3",
+		"react-dom": "19.2.4",
 		"rehype-external-links": "^3.0.0",
 		"starlight-site-graph": "^0.5.0",
 		"tailwindcss": "^4.1.3",
