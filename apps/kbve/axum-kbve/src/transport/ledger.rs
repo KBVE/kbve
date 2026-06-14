@@ -26,7 +26,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::wallet::resolve_user;
-use crate::db::get_pg_cluster;
+use crate::db::{get_kv_cache, get_pg_cluster};
 
 const DEFAULT_LIMIT: i64 = 50;
 const MAX_LIMIT: i64 = 100;
@@ -50,7 +50,7 @@ pub(crate) struct LedgerQuery {
     pub currency: Option<String>,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub(crate) struct LedgerRowDto {
     pub ledger_id: i64,
     pub currency: String,
@@ -63,13 +63,13 @@ pub(crate) struct LedgerRowDto {
     pub created_at: String,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub(crate) struct LedgerPageDto {
     pub rows: Vec<LedgerRowDto>,
     pub next_cursor: Option<NextCursorDto>,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub(crate) struct NextCursorDto {
     pub before_created_at: String,
     pub before_id: i64,
@@ -111,10 +111,50 @@ pub(crate) async fn me_ledger(headers: HeaderMap, Query(q): Query<LedgerQuery>) 
         Err(resp) => return resp,
     };
 
-    match fetch_ledger(cluster, user_id, params).await {
+    let result = match get_kv_cache() {
+        Some(cache) => {
+            let key = cache_key(user_id, &params);
+            cluster
+                .cached_caller_read(
+                    cache,
+                    &key,
+                    None,
+                    user_id,
+                    None,
+                    move |tx| -> PgCallerReadFut<'_, LedgerPageDto> {
+                        Box::pin(ledger_query(tx, params))
+                    },
+                )
+                .await
+        }
+        None => fetch_ledger(cluster, user_id, params).await,
+    };
+
+    match result {
         Ok(page) => Json(page).into_response(),
         Err(e) => ledger_error_response(e),
     }
+}
+
+fn cache_key(user_id: Uuid, p: &LedgerParams) -> String {
+    let kinds = p
+        .source_kinds
+        .as_ref()
+        .map(|v| v.join(","))
+        .unwrap_or_else(|| "*".to_string());
+    let currency = p.currency.as_deref().unwrap_or("*");
+    let bca = p
+        .before_created_at
+        .map(|t| t.to_rfc3339())
+        .unwrap_or_else(|| "head".into());
+    let bid = p
+        .before_id
+        .map(|n| n.to_string())
+        .unwrap_or_else(|| "0".into());
+    format!(
+        "caller:{user_id}:ledger:limit={}:bca={bca}:bid={bid}:kinds={kinds}:cur={currency}",
+        p.limit
+    )
 }
 
 struct LedgerParams {
@@ -156,12 +196,7 @@ impl LedgerParams {
             }
             Some(s) if s.eq_ignore_ascii_case("all") => None,
             Some(s) => Some(split_csv(s)),
-            None => Some(
-                DEFAULT_MARKET_KINDS
-                    .iter()
-                    .map(|s| s.to_string())
-                    .collect(),
-            ),
+            None => Some(DEFAULT_MARKET_KINDS.iter().map(|s| s.to_string()).collect()),
         };
 
         let currency = match q.currency.as_deref().map(|s| s.trim()) {
@@ -201,80 +236,87 @@ async fn fetch_ledger(
     params: LedgerParams,
 ) -> Result<LedgerPageDto, JediError> {
     cluster
-        .with_caller_read(user_id, None, move |tx| -> PgCallerReadFut<'_, LedgerPageDto> {
-            Box::pin(async move {
-                let sql = "
-                    SELECT
-                        id,
-                        currency::text,
-                        delta,
-                        balance_after,
-                        source_kind::text,
-                        reason,
-                        ref_type,
-                        ref_id,
-                        created_at
-                      FROM wallet.ledger
-                     WHERE account_id = (
-                               SELECT id FROM wallet.account
-                                WHERE user_id = auth.uid()
-                                  AND kind = 'user'
-                           )
-                       AND ($1::text[] IS NULL OR source_kind::text = ANY ($1::text[]))
-                       AND ($2::text IS NULL OR currency::text = $2::text)
-                       AND (
-                            $3::timestamptz IS NULL
-                            OR created_at < $3::timestamptz
-                            OR (created_at = $3::timestamptz AND id < $4::bigint)
-                           )
-                     ORDER BY created_at DESC, id DESC
-                     LIMIT $5::bigint
-                ";
-                let rows = tx
-                    .query(
-                        sql,
-                        &[
-                            &params.source_kinds,
-                            &params.currency,
-                            &params.before_created_at,
-                            &params.before_id,
-                            &params.limit,
-                        ],
-                    )
-                    .await
-                    .map_err(JediError::from)?;
-
-                let rows: Vec<LedgerRowDto> = rows
-                    .iter()
-                    .map(|r| {
-                        let created_at: DateTime<Utc> = r.get(8);
-                        LedgerRowDto {
-                            ledger_id: r.get(0),
-                            currency: r.get(1),
-                            delta: r.get(2),
-                            balance_after: r.get(3),
-                            source_kind: r.get(4),
-                            reason: r.get(5),
-                            ref_type: r.get(6),
-                            ref_id: r.get(7),
-                            created_at: created_at.to_rfc3339(),
-                        }
-                    })
-                    .collect();
-
-                let next_cursor = if rows.len() as i64 == params.limit {
-                    rows.last().map(|last| NextCursorDto {
-                        before_created_at: last.created_at.clone(),
-                        before_id: last.ledger_id,
-                    })
-                } else {
-                    None
-                };
-
-                Ok(LedgerPageDto { rows, next_cursor })
-            })
-        })
+        .with_caller_read(
+            user_id,
+            None,
+            move |tx| -> PgCallerReadFut<'_, LedgerPageDto> { Box::pin(ledger_query(tx, params)) },
+        )
         .await
+}
+
+async fn ledger_query(
+    tx: &jedi::state::pg::tokio_postgres::Transaction<'_>,
+    params: LedgerParams,
+) -> Result<LedgerPageDto, JediError> {
+    let sql = "
+        SELECT
+            id,
+            currency::text,
+            delta,
+            balance_after,
+            source_kind::text,
+            reason,
+            ref_type,
+            ref_id,
+            created_at
+          FROM wallet.ledger
+         WHERE account_id = (
+                   SELECT id FROM wallet.account
+                    WHERE user_id = auth.uid()
+                      AND kind = 'user'
+               )
+           AND ($1::text[] IS NULL OR source_kind::text = ANY ($1::text[]))
+           AND ($2::text IS NULL OR currency::text = $2::text)
+           AND (
+                $3::timestamptz IS NULL
+                OR created_at < $3::timestamptz
+                OR (created_at = $3::timestamptz AND id < $4::bigint)
+               )
+         ORDER BY created_at DESC, id DESC
+         LIMIT $5::bigint
+    ";
+    let rows = tx
+        .query(
+            sql,
+            &[
+                &params.source_kinds,
+                &params.currency,
+                &params.before_created_at,
+                &params.before_id,
+                &params.limit,
+            ],
+        )
+        .await
+        .map_err(JediError::from)?;
+
+    let rows: Vec<LedgerRowDto> = rows
+        .iter()
+        .map(|r| {
+            let created_at: DateTime<Utc> = r.get(8);
+            LedgerRowDto {
+                ledger_id: r.get(0),
+                currency: r.get(1),
+                delta: r.get(2),
+                balance_after: r.get(3),
+                source_kind: r.get(4),
+                reason: r.get(5),
+                ref_type: r.get(6),
+                ref_id: r.get(7),
+                created_at: created_at.to_rfc3339(),
+            }
+        })
+        .collect();
+
+    let next_cursor = if rows.len() as i64 == params.limit {
+        rows.last().map(|last| NextCursorDto {
+            before_created_at: last.created_at.clone(),
+            before_id: last.ledger_id,
+        })
+    } else {
+        None
+    };
+
+    Ok(LedgerPageDto { rows, next_cursor })
 }
 
 fn service_unavailable() -> Response {

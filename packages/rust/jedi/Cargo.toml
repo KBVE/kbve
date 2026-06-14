@@ -90,6 +90,7 @@ clickhouse = { version = "0.14", optional = true }
 # Prometheus metrics (optional)
 axum-prometheus = { version = "0.10", optional = true }
 metrics = { version = "0.24", optional = true }
+lru = { version = "0.18", optional = true }
 
 [features]
 default = []
@@ -107,6 +108,7 @@ postgres = [
     "dep:url",
     "dep:uuid",
 ]
+valkey = ["dep:lru"]
 
 [dev-dependencies]
 serial_test = "3"
