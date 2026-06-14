@@ -29,6 +29,18 @@
 			},
 			"cache": true
 		},
+		"build-embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/embed"],
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"commands": [
+					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.embed.config.mts"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
 		"preview": {
 			"dependsOn": [
 				{
