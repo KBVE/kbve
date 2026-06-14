@@ -30,6 +30,12 @@ import {
 	type Interactable,
 } from '../data/interactables';
 import { EntityStore, type EntityCat } from '../ecs/store';
+import {
+	applyEntitySync,
+	type SyncBridge,
+	type SyncResolvers,
+	type SyncState,
+} from '../systems/netSync';
 
 interface EntityRefs {
 	sprite: Phaser.GameObjects.Sprite;
@@ -102,6 +108,8 @@ export class CloudCityScene extends Scene {
 	private slotUsername = new Map<number, string>();
 	private myEid = -1;
 	private store = new EntityStore<EntityRefs>();
+	private syncBridge!: SyncBridge<EntityRefs>;
+	private syncResolvers!: SyncResolvers;
 	private kindRegistry = new Map<number, KindEntry>();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: {
@@ -225,6 +233,7 @@ export class CloudCityScene extends Scene {
 		this.attackKey = this.input.keyboard!.addKey(Codes.SPACE, false);
 		this.interactKey = this.input.keyboard!.addKey(Codes.E, false);
 		this.interactables = getZoneInteractables(this.zone.key);
+		this.initSyncSystems();
 
 		const cfg = getCtNetConfig();
 		if (!cfg) {
@@ -485,25 +494,9 @@ export class CloudCityScene extends Scene {
 		);
 	}
 
-	private applySnapshot(snap: Snapshot) {
-		const seen = new Set<number>();
-		for (const pv of snap.players) {
-			this.slotUsername.set(pv.slot, pv.kbve_username);
-		}
-
-		for (const e of snap.entities) {
-			if (
-				e.eid === this.myEid &&
-				(e.hp !== this.myHp || e.max_hp !== this.myMaxHp)
-			) {
-				this.myHp = e.hp;
-				this.myMaxHp = e.max_hp;
-				laserEvents.emit('player:stats', {
-					stats: { hp: e.hp, maxHp: e.max_hp },
-				});
-			}
-			seen.add(e.eid);
-			if (!this.store.has(e.eid)) {
+	private initSyncSystems() {
+		this.syncBridge = {
+			create: (e, label) => {
 				const { sprite, mapping } = this.makeSprite(e.kind, e.owner);
 				const charId = `e${e.eid}`;
 				const conf: Record<string, unknown> = {
@@ -518,14 +511,6 @@ export class CloudCityScene extends Scene {
 				}
 				this.gridEngine.addCharacter(conf);
 				const refs: EntityRefs = { sprite, charId };
-				const ref = this.kindRef(e.kind);
-				const cat = this.catName(e.kind);
-				let label: string | undefined;
-				if (cat === 'player') {
-					label = this.slotUsername.get(e.owner);
-				} else if (cat === 'npc') {
-					label = ref ? (getNPCByRef(ref)?.name ?? ref) : undefined;
-				}
 				if (label) {
 					const top = sprite.getTopCenter();
 					refs.nameplate = this.add
@@ -539,81 +524,71 @@ export class CloudCityScene extends Scene {
 						.setOrigin(0.5, 1)
 						.setDepth(this.entityDepth + 2);
 				}
-				this.store.spawn(
-					e.eid,
-					{
-						tile: { x: e.tile.x, y: e.tile.y },
-						kind: e.kind,
-						cat,
-						owner: e.owner,
-						hostile: !!(ref && isHostileRef(ref)),
-						hp: e.hp,
-						maxHp: e.max_hp,
-					},
-					refs,
-				);
-				if (
-					cat === 'player' &&
-					e.owner === this.mySlot &&
-					this.myEid < 0
-				) {
-					this.myEid = e.eid;
-					this.cameras.main.startFollow(sprite, true);
-					this.predicted = { x: e.tile.x, y: e.tile.y };
-					this.predictSeeded = true;
+				return refs;
+			},
+			move: (refs, tile) => this.gridEngine.moveTo(refs.charId, tile),
+			setPos: (refs, tile) =>
+				this.gridEngine.setPosition(refs.charId, tile),
+			follow: (refs) => this.cameras.main.startFollow(refs.sprite, true),
+			remove: (refs) => {
+				if (this.gridEngine.hasCharacter(refs.charId)) {
+					this.gridEngine.removeCharacter(refs.charId);
 				}
-			} else if (e.eid === this.myEid) {
-				// Reconcile prediction: trust the local position unless it
-				// drifts too far from authority (rejected move / lag spike),
-				// then snap back to the server.
-				const drift = Math.max(
-					Math.abs(e.tile.x - this.predicted.x),
-					Math.abs(e.tile.y - this.predicted.y),
-				);
-				if (drift > 2) {
-					this.predicted = { x: e.tile.x, y: e.tile.y };
-					const refs = this.store.refs(e.eid);
-					if (refs) {
-						this.gridEngine.setPosition(refs.charId, {
-							x: e.tile.x,
-							y: e.tile.y,
-						});
-					}
+				refs.hpBar?.destroy();
+				refs.nameplate?.destroy();
+				refs.sprite.destroy();
+			},
+		};
+		this.syncResolvers = {
+			cat: (kind) => this.catName(kind),
+			hostile: (kind) => {
+				const ref = this.kindRef(kind);
+				return !!(ref && isHostileRef(ref));
+			},
+			label: (e, cat) => {
+				if (cat === 'player') return this.slotUsername.get(e.owner);
+				if (cat === 'npc') {
+					const ref = this.kindRef(e.kind);
+					return ref ? (getNPCByRef(ref)?.name ?? ref) : undefined;
 				}
-				this.store.update(e.eid, {
-					tile: { ...this.predicted },
-					hp: e.hp,
-					maxHp: e.max_hp,
-				});
-			} else {
-				const cur = this.store.tile(e.eid);
-				const refs = this.store.refs(e.eid);
-				if (cur && refs && (cur.x !== e.tile.x || cur.y !== e.tile.y)) {
-					this.gridEngine.moveTo(refs.charId, {
-						x: e.tile.x,
-						y: e.tile.y,
-					});
-				}
-				this.store.update(e.eid, {
-					tile: { x: e.tile.x, y: e.tile.y },
-					hp: e.hp,
-					maxHp: e.max_hp,
-				});
-			}
+				return undefined;
+			},
+		};
+	}
+
+	private applySnapshot(snap: Snapshot) {
+		for (const pv of snap.players) {
+			this.slotUsername.set(pv.slot, pv.kbve_username);
 		}
 
-		for (const [serverEid, , refs] of [...this.store.entries()]) {
-			if (seen.has(serverEid)) continue;
-			if (this.gridEngine.hasCharacter(refs.charId)) {
-				this.gridEngine.removeCharacter(refs.charId);
+		const state: SyncState = {
+			myEid: this.myEid,
+			mySlot: this.mySlot,
+			predicted: this.predicted,
+			predictSeeded: this.predictSeeded,
+		};
+		const despawned = applyEntitySync(
+			snap.entities,
+			this.store,
+			this.syncBridge,
+			this.syncResolvers,
+			state,
+		);
+		this.myEid = state.myEid;
+		this.predicted = state.predicted;
+		this.predictSeeded = state.predictSeeded;
+		for (const eid of despawned) {
+			if (this.pendingAction?.eid === eid) this.pendingAction = null;
+		}
+
+		if (this.myEid >= 0) {
+			const hp = this.store.hp(this.myEid);
+			const maxHp = this.store.maxHp(this.myEid);
+			if (hp !== this.myHp || maxHp !== this.myMaxHp) {
+				this.myHp = hp;
+				this.myMaxHp = maxHp;
+				laserEvents.emit('player:stats', { stats: { hp, maxHp } });
 			}
-			refs.hpBar?.destroy();
-			refs.nameplate?.destroy();
-			refs.sprite.destroy();
-			this.store.despawn(serverEid);
-			if (serverEid === this.myEid) this.myEid = -1;
-			if (this.pendingAction?.eid === serverEid)
-				this.pendingAction = null;
 		}
 
 		this.checkHostileProximity();

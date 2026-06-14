@@ -1,3 +1,5 @@
+#![allow(clippy::doc_overindented_list_items)]
+
 #[cfg(test)]
 mod tests {
     #[test]

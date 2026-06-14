@@ -372,6 +372,62 @@ pub struct ForgejoPublicKey {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoGpgKey {
+    pub id: u64,
+    #[serde(default)]
+    pub key_id: String,
+    #[serde(default)]
+    pub public_key: String,
+    #[serde(default)]
+    pub can_sign: bool,
+    #[serde(default)]
+    pub can_certify: bool,
+    #[serde(default)]
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoTagCommit {
+    #[serde(default)]
+    pub sha: String,
+    #[serde(default)]
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoTag {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub message: String,
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub commit: Option<ForgejoTagCommit>,
+    #[serde(default)]
+    pub zipball_url: String,
+    #[serde(default)]
+    pub tarball_url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoPackage {
+    pub id: u64,
+    #[serde(rename = "type", default)]
+    pub package_type: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub owner: Option<ForgejoOwner>,
+    #[serde(default)]
+    pub created_at: String,
+    #[serde(default)]
+    pub html_url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForgejoCronTask {
     pub name: String,
     #[serde(default)]

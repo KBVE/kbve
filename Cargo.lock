@@ -1417,6 +1417,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_path_to_error",
+ "serde_urlencoded",
  "sha1",
  "sync_wrapper 1.0.2",
  "tokio",
@@ -1424,6 +1425,7 @@ dependencies = [
  "tower 0.5.3",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]
@@ -1496,6 +1498,7 @@ dependencies = [
  "sync_wrapper 1.0.2",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]
@@ -8483,7 +8486,7 @@ checksum = "d98f6fed1fde3f8c21bc40a1abb88dd75e67924f9cffc3ef95607bad8017f8e2"
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.25"
+version = "0.1.26"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -15136,6 +15139,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tokio-tungstenite 0.24.0",
  "tracing",
 ]
 

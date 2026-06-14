@@ -26,6 +26,7 @@ pub async fn init_pg_cluster() -> bool {
         .is_some()
 }
 
+#[allow(dead_code)]
 pub fn get_pg_cluster() -> Option<&'static Arc<PgCluster>> {
     PG_CLUSTER.get().and_then(|c| c.as_ref())
 }
