@@ -59,7 +59,24 @@ export async function listServers(params: {
 	sort?: string;
 	category?: number | null;
 }): Promise<EdgeResponse> {
-	return callEdgePublic('list.servers', params);
+	// Route through Axum backend instead of edge function directly
+	const query = new URLSearchParams();
+	if (params.limit) query.set('limit', params.limit.toString());
+	if (params.page) query.set('page', params.page.toString());
+	if (params.sort) query.set('sort', params.sort);
+	if (params.category !== null && params.category !== undefined)
+		query.set('category', params.category.toString());
+
+	const res = await fetch(`/api/servers/list?${query.toString()}`);
+	const data = await res.json();
+
+	// Transform Axum response to EdgeResponse shape
+	return {
+		success: res.ok,
+		servers: data.servers,
+		total: data.total,
+		error: res.ok ? undefined : 'Failed to fetch servers',
+	};
 }
 
 const RUST_API_URL = '/api/servers/submit';

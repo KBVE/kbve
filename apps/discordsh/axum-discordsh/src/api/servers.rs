@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
+use axum::{Json, Router, extract::{Path, Query, State}, http::StatusCode, response::IntoResponse, routing::{get, post}};
 use serde::{Deserialize, Serialize};
 
 use super::validate::{
@@ -63,7 +63,10 @@ fn err(status: StatusCode, msg: impl Into<String>) -> (StatusCode, Json<ErrorRes
 }
 
 pub fn router() -> Router<HttpState> {
-    Router::new().route("/api/servers/submit", post(submit_server))
+    Router::new()
+        .route("/api/servers/submit", post(submit_server))
+        .route("/api/servers/list", get(list_servers))
+        .route("/api/servers/:server_id", get(get_server))
 }
 
 /// POST /api/servers/submit
@@ -205,6 +208,87 @@ async fn submit_server(
             err(StatusCode::BAD_GATEWAY, "Upstream service unavailable").into_response()
         }
     }
+}
+
+// ── List / Get Endpoints ────────────────────────────────────────────
+
+/// Query params for GET /api/servers/list
+#[derive(Debug, Deserialize)]
+pub struct ListServersQuery {
+    #[serde(default)]
+    pub category: Option<u32>,
+    #[serde(default = "default_sort")]
+    pub sort: String,
+    #[serde(default = "default_page")]
+    pub page: u32,
+    #[serde(default = "default_limit")]
+    pub limit: u32,
+}
+
+fn default_sort() -> String {
+    "votes".into()
+}
+fn default_page() -> u32 {
+    1
+}
+fn default_limit() -> u32 {
+    24
+}
+
+/// Server record returned by list/get endpoints
+#[derive(Debug, Serialize)]
+pub struct ServerRecord {
+    pub server_id: String,
+    pub name: String,
+    pub summary: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner_url: Option<String>,
+    pub invite_code: String,
+    pub categories: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    pub tags: Vec<String>,
+    pub member_count: i32,
+    pub vote_count: i32,
+    pub is_online: bool,
+}
+
+/// GET /api/servers/list
+///
+/// TODO: Replace stub with PgCluster query when pool available.
+/// Expected RPC: `rpc.list_servers(category, sort, page, limit)`
+async fn list_servers(
+    State(_state): State<HttpState>,
+    Query(params): Query<ListServersQuery>,
+) -> impl IntoResponse {
+    // Stub: return empty paginated response
+    let response = serde_json::json!({
+        "servers": [],
+        "total": 0,
+        "page": params.page,
+        "limit": params.limit,
+    });
+
+    (StatusCode::OK, Json(response))
+}
+
+/// GET /api/servers/:server_id
+///
+/// TODO: Replace stub with PgCluster query when pool available.
+/// Expected RPC: `rpc.get_server(server_id)`
+async fn get_server(
+    State(_state): State<HttpState>,
+    Path(server_id): Path<String>,
+) -> impl IntoResponse {
+    if !is_valid_snowflake(&server_id) {
+        return err(StatusCode::BAD_REQUEST, "Invalid server ID").into_response();
+    }
+
+    // Stub: return 404
+    err(StatusCode::NOT_FOUND, "Server not found").into_response()
 }
 
 #[cfg(test)]
