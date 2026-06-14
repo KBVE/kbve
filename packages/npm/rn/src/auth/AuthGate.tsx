@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from './useAuth';
 import { LoginScreen } from './LoginScreen';
 
@@ -7,9 +8,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
 	const auth = useAuth();
 	if (auth.status === 'loading') {
 		return (
-			<View style={styles.center}>
+			<SafeAreaView style={styles.center}>
 				<ActivityIndicator color="#2d6cdf" />
-			</View>
+			</SafeAreaView>
 		);
 	}
 	if (!auth.signedIn) {

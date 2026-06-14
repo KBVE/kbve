@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import HCaptchaWeb from '@hcaptcha/react-hcaptcha';
-import { KBVE_HCAPTCHA_SITE_KEY } from './config';
+import { KBVE_HCAPTCHA_SITE_KEY } from '../config';
 import type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';
 
 export type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';

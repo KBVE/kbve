@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthStore, authCore } from '@kbve/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseClient, mapSession } from './supabase';
-import { createSupabaseAuthExecutor } from './auth-executor';
+import { createSupabaseAuthExecutor } from './executor';
 
 export interface KbveContextValue {
 	client: SupabaseClient;
@@ -45,7 +46,11 @@ export function KbveProvider({
 	}, [value]);
 
 	return (
-		<KbveContext.Provider value={value}>{children}</KbveContext.Provider>
+		<SafeAreaProvider>
+			<KbveContext.Provider value={value}>
+				{children}
+			</KbveContext.Provider>
+		</SafeAreaProvider>
 	);
 }
 

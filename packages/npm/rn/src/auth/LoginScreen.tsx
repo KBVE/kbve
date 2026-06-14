@@ -7,10 +7,11 @@ import {
 	TextInput,
 	View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { OAuthProvider } from '@kbve/core';
 import { useAuth, useAuthActions } from './useAuth';
-import { HCaptcha } from './HCaptcha';
-import type { HCaptchaHandle } from './HCaptcha';
+import { HCaptcha } from '../captcha/HCaptcha';
+import type { HCaptchaHandle } from '../captcha/HCaptcha';
 
 const PROVIDERS: OAuthProvider[] = ['discord', 'github', 'twitch'];
 
@@ -43,7 +44,7 @@ export function LoginScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
+		<SafeAreaView style={styles.container}>
 			<Text style={styles.title}>KBVE</Text>
 			<Text style={styles.subtitle}>
 				{mode === 'sign_up'
@@ -139,7 +140,7 @@ export function LoginScreen() {
 			{auth.error ? <Text style={styles.error}>{auth.error}</Text> : null}
 
 			<HCaptcha ref={captcha} onToken={setCaptchaToken} />
-		</View>
+		</SafeAreaView>
 	);
 }
 

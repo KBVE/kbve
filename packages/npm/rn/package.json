@@ -42,6 +42,7 @@
 		"expo-auth-session": "~56.0.14",
 		"expo-linking": "~56.0.14",
 		"expo-web-browser": "~56.0.5",
+		"react-native-safe-area-context": "~5.7.0",
 		"react-native-url-polyfill": "^3.0.0",
 		"react-native-webview": "13.16.1"
 	},

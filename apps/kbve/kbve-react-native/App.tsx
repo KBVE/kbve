@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
 	AgentStore,
 	AuthGate,
@@ -21,7 +22,7 @@ function Home() {
 	const { signOut } = useAuthActions();
 	const vm = useAgent(store);
 	return (
-		<View style={styles.container}>
+		<SafeAreaView style={styles.container}>
 			<Text style={styles.title}>KBVE</Text>
 			<Text style={styles.line}>@kbve/rn v{RN_PACKAGE_VERSION}</Text>
 			<Text style={styles.line}>
@@ -37,7 +38,7 @@ function Home() {
 			<Pressable style={styles.linkButton} onPress={signOut}>
 				<Text style={styles.linkText}>sign out</Text>
 			</Pressable>
-		</View>
+		</SafeAreaView>
 	);
 }
 

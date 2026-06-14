@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import type { ElementRef } from 'react';
 import { LogBox } from 'react-native';
 import ConfirmHcaptcha from '@hcaptcha/react-native-hcaptcha';
-import { KBVE_HCAPTCHA_SITE_KEY } from './config';
+import { KBVE_HCAPTCHA_SITE_KEY } from '../config';
 import type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';
 
 export type { HCaptchaHandle, HCaptchaProps } from './HCaptcha.types';
