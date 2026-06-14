@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/forgejo.binpb
  * Config: ../forgejo-zod-config.json
- * Generated: 2026-06-14T19:49:30.905Z
+ * Generated: 2026-06-14T23:42:25.120Z
  */
 
 import { z } from 'zod';
@@ -316,6 +316,7 @@ export const ForgejoReleaseSchema = z.object({
 	created_at: z.string(),
 	published_at: z.string(),
 	assets: z.array(ForgejoReleaseAssetSchema).optional(),
+	author: ForgejoOwnerSchema.optional(),
 });
 
 export type ForgejoRelease = z.infer<typeof ForgejoReleaseSchema>;
@@ -342,6 +343,7 @@ export const ForgejoBranchCommitSchema = z.object({
 	id: z.string(),
 	message: z.string(),
 	timestamp: z.string(),
+	author: GitCommitAuthorSchema.optional(),
 });
 
 export type ForgejoBranchCommit = z.infer<typeof ForgejoBranchCommitSchema>;
@@ -354,6 +356,17 @@ export const ForgejoBranchSchema = z.object({
 });
 
 export type ForgejoBranch = z.infer<typeof ForgejoBranchSchema>;
+
+// ForgejoInternalTracker
+export const ForgejoInternalTrackerSchema = z.object({
+	enable_time_tracker: z.boolean(),
+	allow_only_contributors_to_track_time: z.boolean(),
+	enable_issue_dependencies: z.boolean(),
+});
+
+export type ForgejoInternalTracker = z.infer<
+	typeof ForgejoInternalTrackerSchema
+>;
 
 // ForgejoRepo
 export const ForgejoRepoSchema = z.object({
@@ -372,6 +385,18 @@ export const ForgejoRepoSchema = z.object({
 	updated_at: z.string(),
 	language: z.string(),
 	owner: ForgejoOwnerSchema.optional(),
+	html_url: z.string(),
+	clone_url: z.string(),
+	empty: z.boolean(),
+	stars_count: z.number(),
+	forks_count: z.number(),
+	open_issues_count: z.number(),
+	open_pr_counter: z.number(),
+	release_counter: z.number(),
+	created_at: z.string(),
+	has_pull_requests: z.boolean(),
+	languages_url: z.string(),
+	internal_tracker: ForgejoInternalTrackerSchema.optional(),
 });
 
 export type ForgejoRepo = z.infer<typeof ForgejoRepoSchema>;
