@@ -493,6 +493,22 @@ impl ForgejoClient {
         .await
     }
 
+    pub async fn edit_hook(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+        body: &Value,
+    ) -> Result<ForgejoHook, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/hooks/{id}"),
+            Some(body),
+        )
+        .await
+    }
+
     pub async fn delete_hook(&self, owner: &str, repo: &str, id: u64) -> Result<(), JediError> {
         self.policy.check_owner(owner)?;
         self.write_empty(
@@ -538,6 +554,22 @@ impl ForgejoClient {
         self.write(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/releases"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn edit_release(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+        body: &Value,
+    ) -> Result<ForgejoRelease, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/releases/{id}"),
             Some(body),
         )
         .await
@@ -745,6 +777,312 @@ impl ForgejoClient {
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/lock"),
+            None,
+        )
+        .await
+    }
+
+    // ── Pull requests ────────────────────────────────────────────────
+
+    pub async fn list_pulls(
+        &self,
+        owner: &str,
+        repo: &str,
+        state: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoPull>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/pulls"),
+            &[("state", state.to_string()), ("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn get_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+    ) -> Result<ForgejoPull, JediError> {
+        self.get(&format!("/api/v1/repos/{owner}/{repo}/pulls/{index}"), &[])
+            .await
+    }
+
+    pub async fn create_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        body: &Value,
+    ) -> Result<ForgejoPull, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/pulls"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn edit_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+        body: &Value,
+    ) -> Result<ForgejoPull, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/pulls/{index}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn merge_pull(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+        body: &Value,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/pulls/{index}/merge"),
+            Some(body),
+        )
+        .await
+    }
+
+    // ── Issue comments ───────────────────────────────────────────────
+
+    pub async fn list_issue_comments(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+        limit: u32,
+    ) -> Result<Vec<ForgejoComment>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/comments"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn create_issue_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+        body: &Value,
+    ) -> Result<ForgejoComment, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/comments"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn edit_issue_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+        body: &Value,
+    ) -> Result<ForgejoComment, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/issues/comments/{id}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_issue_comment(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/issues/comments/{id}"),
+            None,
+        )
+        .await
+    }
+
+    // ── Labels ───────────────────────────────────────────────────────
+
+    pub async fn list_labels(
+        &self,
+        owner: &str,
+        repo: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoLabel>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/labels"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn create_label(
+        &self,
+        owner: &str,
+        repo: &str,
+        body: &Value,
+    ) -> Result<ForgejoLabel, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/labels"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn edit_label(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+        body: &Value,
+    ) -> Result<ForgejoLabel, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/labels/{id}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_label(&self, owner: &str, repo: &str, id: u64) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/labels/{id}"),
+            None,
+        )
+        .await
+    }
+
+    pub async fn set_issue_labels(
+        &self,
+        owner: &str,
+        repo: &str,
+        index: u64,
+        body: &Value,
+    ) -> Result<Vec<ForgejoLabel>, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PUT,
+            &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/labels"),
+            Some(body),
+        )
+        .await
+    }
+
+    // ── Milestones ───────────────────────────────────────────────────
+
+    pub async fn list_milestones(
+        &self,
+        owner: &str,
+        repo: &str,
+        state: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoMilestone>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/milestones"),
+            &[("state", state.to_string()), ("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn create_milestone(
+        &self,
+        owner: &str,
+        repo: &str,
+        body: &Value,
+    ) -> Result<ForgejoMilestone, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/milestones"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn edit_milestone(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+        body: &Value,
+    ) -> Result<ForgejoMilestone, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/milestones/{id}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_milestone(
+        &self,
+        owner: &str,
+        repo: &str,
+        id: u64,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/milestones/{id}"),
+            None,
+        )
+        .await
+    }
+
+    // ── User SSH keys (onboarding) ───────────────────────────────────
+
+    pub async fn list_user_keys(
+        &self,
+        login: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoPublicKey>, JediError> {
+        self.get(
+            &format!("/api/v1/users/{login}/keys"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn create_user_key(
+        &self,
+        login: &str,
+        body: &Value,
+    ) -> Result<ForgejoPublicKey, JediError> {
+        self.write(
+            Method::POST,
+            &format!("/api/v1/admin/users/{login}/keys"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_user_key(&self, login: &str, id: u64) -> Result<(), JediError> {
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/admin/users/{login}/keys/{id}"),
             None,
         )
         .await
