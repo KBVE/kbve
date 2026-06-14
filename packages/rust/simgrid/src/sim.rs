@@ -13,7 +13,7 @@ use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
 use crate::data::KindRegistry;
-use crate::grid::{GridPos, MoveSpeed, MoveTarget, Occupancy, WalkableMap};
+use crate::grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 
@@ -29,7 +29,7 @@ pub const MAX_PATH_LEN: usize = 64;
 pub enum SimSet {
     Tick,
     Spawn,
-    Occupancy,
+    Index,
     Input,
     Ai,
     Movement,
@@ -372,7 +372,6 @@ pub fn build_app(
         .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
         .insert_resource(KillCounts::default())
-        .insert_resource(Occupancy::default())
         .insert_resource(map)
         .insert_resource(config)
         .insert_resource(registry)
@@ -381,7 +380,7 @@ pub fn build_app(
             (
                 SimSet::Tick,
                 SimSet::Spawn,
-                SimSet::Occupancy,
+                SimSet::Index,
                 SimSet::Input,
                 SimSet::Ai,
                 SimSet::Movement,
@@ -394,7 +393,7 @@ pub fn build_app(
             Update,
             (sync_roster, respawn_npcs).chain().in_set(SimSet::Spawn),
         )
-        .add_systems(Update, rebuild_occupancy.in_set(SimSet::Occupancy))
+        .add_systems(Update, rebuild_index.in_set(SimSet::Index))
         .add_systems(
             Update,
             (drain_inputs, apply_actions).chain().in_set(SimSet::Input),
@@ -543,22 +542,14 @@ fn sync_roster(
     }
 }
 
-fn rebuild_occupancy(
-    mut occ: ResMut<Occupancy>,
-    mut index: ResMut<EidIndex>,
-    q: Query<(Entity, &GridPos, Option<&MoveTarget>, Option<&GroundItem>)>,
-) {
-    occ.clear();
+/// Rebuild the eid -> entity lookup each tick. Entities are non-solid — there
+/// is deliberately no occupancy grid; players and NPCs pass through each other
+/// (terrain in `WalkableMap` is the only movement blocker), matching the
+/// client's gridEngine `collides: false`.
+fn rebuild_index(mut index: ResMut<EidIndex>, q: Query<Entity, With<GridPos>>) {
     index.by_eid.clear();
-    for (entity, pos, mv, item) in q.iter() {
+    for entity in q.iter() {
         index.by_eid.insert(entity.index_u32(), entity);
-        if item.is_some() {
-            continue;
-        }
-        occ.set(pos.tile, entity);
-        if let Some(t) = mv.and_then(|m| m.target) {
-            occ.set(t, entity);
-        }
     }
 }
 
@@ -570,7 +561,6 @@ fn drain_inputs(
     equipment: Res<EquipmentEffects>,
     config: Res<SimConfig>,
     bcast: Res<SnapshotBroadcast>,
-    mut occ: ResMut<Occupancy>,
     mut actions: ResMut<PendingActions>,
     mut q: Query<(
         Entity,
@@ -606,7 +596,7 @@ fn drain_inputs(
     }
 
     for (
-        entity,
+        _entity,
         slot,
         mut pos,
         mut mv,
@@ -630,7 +620,7 @@ fn drain_inputs(
                     pos.facing = dir.facing();
                     if mv.target.is_some() {
                         buffer.dir = Some(*dir);
-                    } else if try_move(entity, *dir, &map, &mut occ, &pos, &mut mv, None) {
+                    } else if try_move(*dir, &map, &pos, &mut mv, None) {
                         buffer.dir = None;
                     }
                 }
@@ -978,12 +968,8 @@ fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inve
     });
 }
 
-fn follow_path(
-    map: Res<WalkableMap>,
-    mut occ: ResMut<Occupancy>,
-    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Path)>,
-) {
-    for (entity, mut pos, mut mv, mut path) in q.iter_mut() {
+fn follow_path(map: Res<WalkableMap>, mut q: Query<(&mut GridPos, &mut MoveTarget, &mut Path)>) {
+    for (mut pos, mut mv, mut path) in q.iter_mut() {
         if mv.target.is_some() {
             continue;
         }
@@ -1005,7 +991,6 @@ fn follow_path(
         path.steps.pop_front();
         mv.target = Some(next);
         mv.progress = 0;
-        occ.set(next, entity);
     }
 }
 
@@ -1025,7 +1010,6 @@ fn hostile_ai(
     config: Res<SimConfig>,
     map: Res<WalkableMap>,
     bcast: Res<SnapshotBroadcast>,
-    mut occ: ResMut<Occupancy>,
     mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
     mut q_players: Query<(Entity, &GridPos, &mut Health, &Defense), With<PlayerSlotTag>>,
 ) {
@@ -1093,8 +1077,8 @@ fn hostile_ai(
             (vertical, if dx != 0 { horizontal } else { vertical })
         };
         pos.facing = primary.facing();
-        if !try_move(mob, primary, &map, &mut occ, &pos, &mut mv, None) && secondary != primary {
-            try_move(mob, secondary, &map, &mut occ, &pos, &mut mv, None);
+        if !try_move(primary, &map, &pos, &mut mv, None) && secondary != primary {
+            try_move(secondary, &map, &pos, &mut mv, None);
         }
     }
 }
@@ -1170,10 +1154,8 @@ fn respawn_npcs(clock: Res<SimClock>, mut queue: ResMut<RespawnQueue>, mut comma
 }
 
 fn try_move(
-    entity: Entity,
     dir: Dir,
     map: &WalkableMap,
-    occ: &mut Occupancy,
     pos: &GridPos,
     mv: &mut MoveTarget,
     bound: Option<(Tile, i32)>,
@@ -1192,7 +1174,6 @@ fn try_move(
     }
     mv.target = Some(candidate);
     mv.progress = 0;
-    occ.set(candidate, entity);
     true
 }
 
@@ -1221,7 +1202,6 @@ fn wander_system(
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     map: Res<WalkableMap>,
-    mut occ: ResMut<Occupancy>,
     mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Wander)>,
 ) {
     for (entity, mut pos, mut mv, mut w) in q.iter_mut() {
@@ -1231,15 +1211,7 @@ fn wander_system(
         w.next_tick = clock.tick.saturating_add(w.period_ticks);
         let dir = dir_from_u64(hash3(seed.0, entity.index_u32() as u64, clock.tick as u64));
         pos.facing = dir.facing();
-        try_move(
-            entity,
-            dir,
-            &map,
-            &mut occ,
-            &pos,
-            &mut mv,
-            Some((w.origin, w.radius)),
-        );
+        try_move(dir, &map, &pos, &mut mv, Some((w.origin, w.radius)));
     }
 }
 
@@ -1260,10 +1232,9 @@ fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
 #[allow(clippy::type_complexity)]
 fn chain_steps(
     map: Res<WalkableMap>,
-    mut occ: ResMut<Occupancy>,
-    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut StepBuffer), With<PlayerSlotTag>>,
+    mut q: Query<(&mut GridPos, &mut MoveTarget, &mut StepBuffer), With<PlayerSlotTag>>,
 ) {
-    for (entity, mut pos, mut mv, mut buffer) in q.iter_mut() {
+    for (mut pos, mut mv, mut buffer) in q.iter_mut() {
         let Some(dir) = buffer.dir else {
             continue;
         };
@@ -1272,7 +1243,7 @@ fn chain_steps(
         }
         buffer.dir = None;
         pos.facing = dir.facing();
-        try_move(entity, dir, &map, &mut occ, &pos, &mut mv, None);
+        try_move(dir, &map, &pos, &mut mv, None);
     }
 }
 
