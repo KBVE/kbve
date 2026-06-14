@@ -104,17 +104,16 @@ async fn listen_once(channel: &str) -> std::io::Result<()> {
             write_line(&mut w, &format!("PONG {rest}")).await?;
             continue;
         }
-        if let Some((ch, payload)) = parse_privmsg(&raw) {
+        if let Some((sender, ch, payload)) = parse_privmsg(&raw) {
             if ch != channel {
                 continue;
             }
-            if let Some(mut msg) = ChatMessage::from_irc_privmsg(&ch, &payload) {
-                if msg.platform.is_empty() {
-                    msg.platform = "irc".into();
-                }
-                debug!(channel = %channel, "history buffered a message");
-                push(channel, msg);
+            let mut msg = ChatMessage::from_irc_or_plain(&ch, &sender, &payload);
+            if msg.platform.is_empty() {
+                msg.platform = "irc".into();
             }
+            debug!(channel = %channel, "history buffered a message");
+            push(channel, msg);
         }
     }
 }
@@ -134,12 +133,15 @@ fn sanitize_channel(channel: &str) -> String {
         .to_ascii_lowercase()
 }
 
-/// Parse `:nick!user@host PRIVMSG #channel :payload` -> `(channel, payload)`.
-fn parse_privmsg(line: &str) -> Option<(String, String)> {
-    let rest = if let Some(rest) = line.strip_prefix(':') {
-        rest.split_once(' ').map(|(_p, r)| r)?
+/// Parse `:nick!user@host PRIVMSG #channel :payload` -> `(sender, channel,
+/// payload)`. `sender` is the IRC nick from the prefix, for the plain fallback.
+fn parse_privmsg(line: &str) -> Option<(String, String, String)> {
+    let (sender, rest) = if let Some(r) = line.strip_prefix(':') {
+        let (prefix, rest) = r.split_once(' ')?;
+        let nick = prefix.split(['!', '@']).next().unwrap_or(prefix);
+        (nick.to_string(), rest)
     } else {
-        line
+        (String::new(), line)
     };
     let mut parts = rest.splitn(3, ' ');
     if parts.next()? != "PRIVMSG" {
@@ -148,7 +150,7 @@ fn parse_privmsg(line: &str) -> Option<(String, String)> {
     let channel = parts.next()?.to_string();
     let trailing = parts.next()?;
     let payload = trailing.strip_prefix(':').unwrap_or(trailing).to_string();
-    Some((channel, payload))
+    Some((sender, channel, payload))
 }
 
 #[cfg(test)]
