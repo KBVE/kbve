@@ -6,6 +6,7 @@ use std::{
 
 use std::sync::Arc;
 
+use axum::ServiceExt;
 use axum::{
     Extension, Router,
     extract::Request,
@@ -15,6 +16,8 @@ use axum::{
     routing::{get, post},
 };
 use tokio::net::TcpListener;
+use tower::Layer;
+use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
@@ -43,8 +46,10 @@ pub async fn serve() -> Result<()> {
         }
     };
     let app = router().layer(Extension(allocator)).layer(Extension(pg));
+    // Trim trailing slashes before routing so `/health/` matches `/health`.
+    let app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
-    axum::serve(listener, app)
+    axum::serve(listener, ServiceExt::<Request>::into_make_service(app))
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
@@ -279,6 +284,25 @@ mod tests {
             .route("/health", get(health))
             .route("/api/v1/speed", get(speed))
             .layer(middleware)
+    }
+
+    #[tokio::test]
+    async fn test_health_trailing_slash_normalized() {
+        let app = NormalizePathLayer::trim_trailing_slash().layer(test_router());
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
     }
 
     #[tokio::test]

@@ -16,7 +16,8 @@ tower-http = { version = "0.6.8", features = [
     "trace",
     "fs",
     "cors",
-    "set-header"
+    "set-header",
+    "normalize-path"
 ] }
 tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
 tracing = "0.1"
