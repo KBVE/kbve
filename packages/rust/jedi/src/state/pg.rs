@@ -501,14 +501,47 @@ impl PgCluster {
             + Send
             + 'static,
     {
+        self.cached_caller_read_tagged(cache, cache_key, ttl, sub, auth_role, f, |_: &T| Vec::new())
+            .await
+    }
+
+    /// [`cached_caller_read`] variant that also registers per-value
+    /// tags so a later [`crate::state::kv::KvCache::invalidate_tag`]
+    /// can purge every key carrying the tag. Tags are derived from
+    /// the fetched value via `tag_fn`, so callers don't need to know
+    /// the response shape at call time.
+    pub async fn cached_caller_read_tagged<T, F, TagFn>(
+        self: &Arc<Self>,
+        cache: &Arc<crate::state::kv::KvCache>,
+        cache_key: &str,
+        ttl: Option<Duration>,
+        sub: Uuid,
+        auth_role: Option<&str>,
+        f: F,
+        tag_fn: TagFn,
+    ) -> Result<T, JediError>
+    where
+        T: serde::Serialize + serde::de::DeserializeOwned + Send + 'static,
+        F: for<'tx> FnOnce(
+                &'tx tokio_postgres::Transaction<'_>,
+            ) -> BoxFuture<'tx, Result<T, JediError>>
+            + Send
+            + 'static,
+        TagFn: FnOnce(&T) -> Vec<String> + Send + 'static,
+    {
         let cluster = Arc::clone(self);
         let owned_role = auth_role.map(|s| s.to_string());
         cache
-            .get_or_fetch_json(cache_key, ttl, move || async move {
-                cluster
-                    .with_caller_read(sub, owned_role.as_deref(), f)
-                    .await
-            })
+            .get_or_fetch_json_tagged(
+                cache_key,
+                ttl,
+                move || async move {
+                    cluster
+                        .with_caller_read(sub, owned_role.as_deref(), f)
+                        .await
+                },
+                tag_fn,
+            )
             .await
     }
 }
