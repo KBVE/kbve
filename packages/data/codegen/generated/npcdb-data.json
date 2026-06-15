@@ -179,6 +179,27 @@
       "level": 1,
       "img": "/assets/npc/barkeep.webp",
       "role": "Tavern Keeper",
+      "spriteAtlas": {
+        "atlasRef": "monks",
+        "columns": 8,
+        "rows": 1,
+        "cellWidth": 52,
+        "cellHeight": 72,
+        "rowFront": 0,
+        "rowSide": 0,
+        "rowBack": 0,
+        "worldWidth": 24,
+        "worldHeight": 33,
+        "clips": [
+          {
+            "anim": "SPRITE_ANIM_IDLE",
+            "row": 0,
+            "startFrame": 1,
+            "frameCount": 1,
+            "fps": 1
+          }
+        ]
+      },
       "tags": [
         "cryptothrone",
         "merchant",
@@ -903,6 +924,29 @@
       "rank": "NPC_RANK_ELITE",
       "family": "beast",
       "level": 1,
+      "animationSet": "bird",
+      "spriteAtlas": {
+        "atlasRef": "monster_bird",
+        "columns": 4,
+        "rows": 1,
+        "cellWidth": 61,
+        "cellHeight": 57,
+        "rowFront": 0,
+        "rowSide": 0,
+        "rowBack": 0,
+        "worldWidth": 28,
+        "worldHeight": 26,
+        "clips": [
+          {
+            "anim": "SPRITE_ANIM_IDLE",
+            "row": 0,
+            "startFrame": 0,
+            "frameCount": 4,
+            "fps": 8,
+            "loop": true
+          }
+        ]
+      },
       "stats": {
         "hp": 15,
         "maxHp": 15,
@@ -2782,6 +2826,27 @@
       "level": 1,
       "img": "/assets/entity/monks.png",
       "role": "Shrine Keeper",
+      "spriteAtlas": {
+        "atlasRef": "monks",
+        "columns": 8,
+        "rows": 1,
+        "cellWidth": 52,
+        "cellHeight": 72,
+        "rowFront": 0,
+        "rowSide": 0,
+        "rowBack": 0,
+        "worldWidth": 24,
+        "worldHeight": 33,
+        "clips": [
+          {
+            "anim": "SPRITE_ANIM_IDLE",
+            "row": 0,
+            "startFrame": 0,
+            "frameCount": 1,
+            "fps": 1
+          }
+        ]
+      },
       "tags": [
         "cryptothrone",
         "cloud-city"
