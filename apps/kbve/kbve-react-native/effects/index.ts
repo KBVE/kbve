@@ -1,8 +1,10 @@
+import { auroraEffect } from './aurora';
 import { gradientEffect } from './gradient';
 import type { EffectInit } from './types';
 
 const REGISTRY: Record<string, EffectInit> = {
 	gradient: gradientEffect,
+	aurora: auroraEffect,
 };
 
 export function registerEffect(id: string, init: EffectInit): void {
