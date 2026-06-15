@@ -28,6 +28,12 @@ path = "src/lib.rs"
 name = "isometric-game"
 path = "src/main.rs"
 
+[features]
+default = []
+# Native mobile (iOS/Android) build: drops the Tauri desktop shell and exposes
+# `mobile::init_game` for hosting on an externally-provided wgpu surface.
+mobile = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -86,24 +92,28 @@ crossbeam-channel = "0.5"
 dashmap = "6"
 log = "0.4"
 
-# --- Desktop-only dependencies ---
+# --- Native (desktop + mobile) render deps ---
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+wgpu = "27"
+pollster = "0.4"
+raw-window-handle = "0.6"
+ureq = { version = "3", features = ["json"] }
+# Dedicated runtime that hosts the chat IRC-WS connection (all native targets).
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+
+# --- Tauri desktop shell — excluded from the `mobile` feature build ---
+[target.'cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))'.dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-window-state = "2"
 urlencoding = "2"
-wgpu = "27"
-pollster = "0.4"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3", features = ["NSView", "NSWindow"] }
 objc2-quartz-core = { version = "0.3", features = ["CALayer", "CAMetalLayer"] }
 objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
-ureq = { version = "3", features = ["json"] }
-# Required for the dedicated runtime that hosts the chat IRC-WS connection.
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
 # --- Linux-only Bevy features (x11/wayland) ---
 [target.'cfg(target_os = "linux")'.dependencies.bevy]

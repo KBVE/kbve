@@ -1,20 +1,14 @@
-use bevy_app::App;
+use isometric_game::mobile::{self, GameHandle};
 
 use super::{InputEvent, SurfaceRenderer};
 use crate::handle::MobileWindow;
 
-/// Engine seam for hosting a Bevy game on the native surface.
-///
-/// This drives a Bevy `App` once per display-link / Choreographer tick. The
-/// surface handoff (mounting a `RawHandleWrapper` built from [`MobileWindow`]
-/// onto the primary window + `RenderCreation::Manual`, mirroring
-/// `apps/kbve/isometric/src-tauri/src/renderer.rs` and `tauri_plugin.rs`) and
-/// the isometric `GamePluginGroup` are wired when the game crate exposes a
-/// no-tauri mobile entry. Until then this hosts a headless app so the FFI +
-/// frame-loop contract is exercised end-to-end.
+const DEFAULT_ASSET_ROOT: &str = "assets";
+
+/// Hosts the Bevy isometric game on the native surface. Builds the game `App`
+/// from the provided [`MobileWindow`] and drives one frame per `render()` call.
 pub struct BevyRenderer {
-    app: App,
-    window: MobileWindow,
+    game: GameHandle,
     width: u32,
     height: u32,
     paused: bool,
@@ -22,18 +16,22 @@ pub struct BevyRenderer {
 
 impl BevyRenderer {
     pub fn new(window: MobileWindow, width: u32, height: u32) -> Result<Self, String> {
-        let app = App::new();
+        Self::with_assets(window, width, height, DEFAULT_ASSET_ROOT)
+    }
+
+    pub fn with_assets(
+        window: MobileWindow,
+        width: u32,
+        height: u32,
+        asset_root: &str,
+    ) -> Result<Self, String> {
+        let game = mobile::init_game(window, width.max(1), height.max(1), 1.0, asset_root);
         Ok(Self {
-            app,
-            window,
+            game,
             width: width.max(1),
             height: height.max(1),
             paused: false,
         })
-    }
-
-    pub fn window(&self) -> MobileWindow {
-        self.window
     }
 }
 
@@ -47,8 +45,12 @@ impl SurfaceRenderer for BevyRenderer {
         if self.paused {
             return Ok(());
         }
-        self.app.update();
+        mobile::tick(&mut self.game);
         Ok(())
+    }
+
+    fn set_jwt(&mut self, jwt: &str) {
+        mobile::sign_in(jwt);
     }
 
     fn input(&mut self, _event: InputEvent) {}

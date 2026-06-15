@@ -1,5 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(feature = "mobile")]
+fn main() {}
+
+#[cfg(not(feature = "mobile"))]
 fn main() {
     use avian3d::prelude::*;
     use bevy::prelude::*;
