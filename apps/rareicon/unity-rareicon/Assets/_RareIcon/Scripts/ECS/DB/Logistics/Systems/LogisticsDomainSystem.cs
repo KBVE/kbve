@@ -16,9 +16,9 @@ namespace RareIcon
             var db = new LogisticsDBSingleton
             {
                 CurrentAmounts = new NativeParallelHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(1024, Allocator.Persistent),
-                PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(1024, Allocator.Persistent),
-                PackDeliveries = new NativeParallelMultiHashMap<Entity, PackDelivery>(256, Allocator.Persistent),
+                Reservations   = new NativeParallelMultiHashMap<LedgerKey, ReservationRecord>(4096, Allocator.Persistent),
+                PendingDeltas  = new NativeParallelMultiHashMap<LedgerKey, int>(4096, Allocator.Persistent),
+                PackDeliveries = new NativeParallelMultiHashMap<Entity, PackDelivery>(4096, Allocator.Persistent),
                 WriteBuffer    = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
                 ReadBuffer     = new NativeList<InventoryChangedMessage>(256, Allocator.Persistent),
                 Deliveries     = default,
