@@ -15,12 +15,6 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
 	| undefined;
 
-// Discord's OAuth2 authorize rejects (code 5000) without a redirect_uri. It
-// must be registered under the app's OAuth2 → Redirects AND match the value the
-// backend sends on the code→token exchange (DISCORD_REDIRECT_URI). The Activity
-// uses the code grant, so this URI is never navigated — it only has to match.
-const REDIRECT_URI = 'https://cryptothrone.com';
-
 // Backend bridge (P3b): exchanges the Discord OAuth code for a Discord
 // access_token AND a game-server session {jwt, username}, linking the Discord
 // user to a KBVE profile. The Activity iframe runs on *.discordsays.com, so
@@ -107,7 +101,6 @@ async function boot(): Promise<void> {
 			state: '',
 			prompt: 'none',
 			scope: ['identify'],
-			redirect_uri: REDIRECT_URI,
 		}),
 	);
 
