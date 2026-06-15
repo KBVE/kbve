@@ -1,1 +1,19 @@
 @import 'tailwindcss';
+
+/* react-native-web renders flex:1 roots (Screen/SafeAreaView); without an
+   explicit viewport height the tree collapses to 0px and the page looks blank. */
+html,
+body,
+#root {
+	height: 100%;
+	margin: 0;
+}
+
+#root {
+	display: flex;
+	flex-direction: column;
+}
+
+body {
+	background: #121312;
+}
