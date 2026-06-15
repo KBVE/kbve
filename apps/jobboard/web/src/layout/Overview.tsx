@@ -1,5 +1,6 @@
 import { View } from 'react-native';
-import { Stack, Surface, Text, Badge, Gradient, tokens } from '@kbve/rn/ui';
+import { Stack, Text, Badge, tokens } from '@kbve/rn/ui';
+import { Panel } from '../ui/Panel';
 
 function StatCard({
 	label,
@@ -11,9 +12,7 @@ function StatCard({
 	delta: string;
 }) {
 	return (
-		<Surface
-			padded
-			style={{ flex: 1, minWidth: 160, gap: tokens.space.xs }}>
+		<Panel style={{ flex: 1, minWidth: 160, gap: tokens.space.xs }}>
 			<Stack direction="row" justify="space-between" align="center">
 				<Text variant="caption" tone="muted">
 					{label}
@@ -23,7 +22,7 @@ function StatCard({
 			<Text variant="title" weight="bold">
 				{value}
 			</Text>
-		</Surface>
+		</Panel>
 	);
 }
 
@@ -31,41 +30,40 @@ export function Overview({ username }: { username: string }) {
 	return (
 		<Stack gap="lg">
 			{/* Hero */}
-			<Gradient
-				name="hero"
-				style={{
-					borderRadius: tokens.radius.xl,
-					padding: tokens.space.xl,
-				}}>
-				<Text
-					variant="title"
-					weight="bold"
-					style={{ color: tokens.color.onPrimary }}>
-					Hello {username}!
-				</Text>
-				<Text
-					variant="caption"
-					style={{ color: tokens.color.onPrimary, opacity: 0.85 }}>
-					You have new matches. Your profile is trending up this week.
-				</Text>
-			</Gradient>
+			<Panel gradient="hero" glow radius={24} pad={28}>
+				<Stack gap="xs">
+					<Text variant="title" weight="bold">
+						Hello {username}!
+					</Text>
+					<Text variant="body" tone="muted">
+						You have new matches. Your profile is trending up this
+						week.
+					</Text>
+				</Stack>
+			</Panel>
 
 			{/* Chart placeholder */}
-			<Surface padded style={{ gap: tokens.space.sm }}>
+			<Panel>
 				<Stack direction="row" justify="space-between" align="center">
 					<Text variant="label">Activity</Text>
 					<Text variant="caption" tone="faint">
 						last 30 days
 					</Text>
 				</Stack>
-				<Gradient
-					colors={[tokens.color.surfaceAlt, tokens.color.primaryDeep]}
-					style={{ height: 180, borderRadius: tokens.radius.lg }}
+				<div
+					style={{
+						height: 180,
+						borderRadius: 14,
+						marginTop: tokens.space.sm,
+						background:
+							'linear-gradient(180deg, rgba(201,165,106,0.20), rgba(201,165,106,0.02))',
+						maskImage:
+							'radial-gradient(140% 90% at 50% 120%, #000 40%, transparent 75%)',
+						WebkitMaskImage:
+							'radial-gradient(140% 90% at 50% 120%, #000 40%, transparent 75%)',
+					}}
 				/>
-				<Text variant="caption" tone="faint">
-					Chart coming soon.
-				</Text>
-			</Surface>
+			</Panel>
 
 			{/* Stats */}
 			<View

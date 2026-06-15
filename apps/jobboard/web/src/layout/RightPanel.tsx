@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, Surface, Text, Badge, Gradient, tokens } from '@kbve/rn/ui';
+import { Stack, Text, Badge, tokens } from '@kbve/rn/ui';
+import { Panel } from '../ui/Panel';
 import { fetchTaxonomy, type TaxonomyItem, type Vertical } from '../api/client';
 
 export type Selection = { kind: 'vertical'; vertical: Vertical } | null;
@@ -20,22 +21,14 @@ function Clock() {
 		minute: '2-digit',
 	});
 	return (
-		<Gradient
-			name="hero"
-			style={{
-				borderRadius: tokens.radius.xl,
-				padding: tokens.space.lg,
-			}}>
-			<Text variant="caption" style={{ color: tokens.color.onPrimary }}>
+		<Panel gradient="accent" glow>
+			<Text variant="caption" tone="muted">
 				{day}
 			</Text>
-			<Text
-				variant="display"
-				weight="bold"
-				style={{ color: tokens.color.onPrimary }}>
+			<Text variant="display" weight="bold">
 				{time}
 			</Text>
-		</Gradient>
+		</Panel>
 	);
 }
 
@@ -97,7 +90,7 @@ export function RightPanel({ selection }: { selection: Selection }) {
 	return (
 		<Stack gap="lg" style={{ flex: 1 }}>
 			<Clock />
-			<Surface padded style={{ flex: 1 }}>
+			<Panel style={{ flex: 1 }}>
 				{selection ? (
 					<VerticalDetail vertical={selection.vertical} />
 				) : (
@@ -110,7 +103,7 @@ export function RightPanel({ selection }: { selection: Selection }) {
 						</Text>
 					</Stack>
 				)}
-			</Surface>
+			</Panel>
 		</Stack>
 	);
 }
