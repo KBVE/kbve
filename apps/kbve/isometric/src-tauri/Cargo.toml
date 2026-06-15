@@ -115,6 +115,12 @@ objc2-app-kit = { version = "0.3", features = ["NSView", "NSWindow"] }
 objc2-quartz-core = { version = "0.3", features = ["CALayer", "CAMetalLayer"] }
 objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
 
+# --- Android: select an android-activity backend so bevy_winit compiles.
+# We never add WinitPlugin on mobile (kbve_wgpu provides the surface); this
+# only satisfies the dead winit code path's backend requirement. ---
+[target.'cfg(target_os = "android")'.dependencies]
+android-activity = { version = "0.6", features = ["native-activity"] }
+
 # --- Linux-only Bevy features (x11/wayland) ---
 [target.'cfg(target_os = "linux")'.dependencies.bevy]
 version = "0.18"

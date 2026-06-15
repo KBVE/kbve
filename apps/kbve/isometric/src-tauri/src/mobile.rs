@@ -40,6 +40,14 @@ pub fn init_game<W>(window: W, width: u32, height: u32, scale: f32, asset_root: 
 where
     W: HasWindowHandle + HasDisplayHandle + Send + Sync + 'static,
 {
+    // On Android `dirs::data_local_dir()` is read-only; point bevy_db's
+    // persistence at the app's writable filesDir (the parent of the extracted
+    // asset root). iOS keeps the default sandboxed data dir.
+    #[cfg(target_os = "android")]
+    if let Some(parent) = std::path::Path::new(asset_root).parent() {
+        std::env::set_var("KBVE_BEVY_DB_DIR", parent);
+    }
+
     // GPU init borrows the window before it is moved into the wrapper. The
     // RawHandleWrapper copies the raw handle values, so the wrapper need not
     // outlive this call — the native view owns the underlying layer/window.
@@ -57,6 +65,23 @@ where
         scale: if scale > 0.0 { scale } else { 1.0 },
     });
 
+    // On Android, Bevy's default asset source is the APK AssetManager reader,
+    // which requires the `ANDROID_APP` global only the `#[bevy_main]`
+    // NativeActivity entry sets. We host via a plain JNI surface, so register a
+    // filesystem reader over the extracted asset_root instead.
+    #[cfg(target_os = "android")]
+    {
+        use bevy::asset::AssetApp;
+        let root = asset_root.to_string();
+        app.register_asset_source(
+            bevy::asset::io::AssetSourceId::Default,
+            bevy::asset::io::AssetSourceBuilder::new(move || {
+                Box::new(bevy::asset::io::file::FileAssetReader::new(root.clone()))
+                    as Box<dyn bevy::asset::io::ErasedAssetReader>
+            }),
+        );
+    }
+
     app.add_plugins((
         bevy::app::PanicHandlerPlugin,
         bevy::log::LogPlugin::default(),
@@ -69,8 +94,15 @@ where
         bevy::window::WindowPlugin {
             primary_window: Some(bevy::window::Window {
                 title: "KBVE Isometric".to_string(),
-                transparent: true,
-                composite_alpha_mode: bevy::window::CompositeAlphaMode::PostMultiplied,
+                // iOS Metal layers support PostMultiplied (transparent
+                // composite over RN); Android Adreno surfaces only advertise
+                // Inherit, so let wgpu auto-pick a supported mode there.
+                transparent: !cfg!(target_os = "android"),
+                composite_alpha_mode: if cfg!(target_os = "android") {
+                    bevy::window::CompositeAlphaMode::Auto
+                } else {
+                    bevy::window::CompositeAlphaMode::PostMultiplied
+                },
                 ..default()
             }),
             ..default()

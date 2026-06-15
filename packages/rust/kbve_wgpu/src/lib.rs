@@ -6,6 +6,16 @@ pub use ffi::{FfiInputEvent, WgpuSurface};
 pub use handle::{SurfaceKind, SurfaceSource};
 pub use renderer::{InputEvent, SurfaceRenderer};
 
+// The `android-activity` `native-activity` backend (pulled by bevy_winit on
+// Android, even though we never add WinitPlugin) leaves `android_main`
+// undefined — the app entry a NativeActivity would call. Android links the
+// `.so` with full RELRO, so an undefined symbol fails `dlopen`. We load the
+// lib as a plain JNI library, never as a NativeActivity, so a no-op stub just
+// satisfies the linker; it is never called.
+#[cfg(all(target_os = "android", feature = "bevy"))]
+#[no_mangle]
+pub extern "C" fn android_main() {}
+
 #[cfg(target_os = "android")]
 mod android_jni {
     use crate::ffi::{kbve_wgpu_create, kbve_wgpu_destroy, kbve_wgpu_render, kbve_wgpu_resize};
@@ -13,6 +23,13 @@ mod android_jni {
     use jni::JNIEnv;
     use jni::objects::JObject;
     use jni::sys::{jint, jlong};
+
+    fn native_window(env: &JNIEnv, surface: &JObject) -> *mut std::ffi::c_void {
+        unsafe {
+            ndk_sys::ANativeWindow_fromSurface(env.get_raw() as *mut _, surface.as_raw() as *mut _)
+                as *mut _
+        }
+    }
 
     #[no_mangle]
     pub extern "system" fn Java_expo_modules_kbvewgpu_KbveWgpuView_nativeCreate(
@@ -25,18 +42,51 @@ mod android_jni {
         android_logger::init_once(
             android_logger::Config::default().with_max_level(log::LevelFilter::Info),
         );
-        let window = unsafe {
-            ndk_sys::ANativeWindow_fromSurface(env.get_raw() as *mut _, surface.as_raw() as *mut _)
-        };
+        let window = native_window(&env, &surface);
         if window.is_null() {
             return 0;
         }
         let ptr = unsafe {
             kbve_wgpu_create(
-                window as *mut _,
+                window,
                 SurfaceKind::AndroidNativeWindow as u32,
                 width as u32,
                 height as u32,
+            )
+        };
+        ptr as jlong
+    }
+
+    #[cfg(feature = "bevy")]
+    #[no_mangle]
+    pub extern "system" fn Java_expo_modules_kbvewgpu_KbveWgpuView_nativeCreateGame(
+        mut env: JNIEnv,
+        _class: JObject,
+        surface: JObject,
+        width: jint,
+        height: jint,
+        asset_root: jni::objects::JString,
+    ) -> jlong {
+        android_logger::init_once(
+            android_logger::Config::default().with_max_level(log::LevelFilter::Info),
+        );
+        let window = native_window(&env, &surface);
+        if window.is_null() {
+            return 0;
+        }
+        let root: String = env
+            .get_string(&asset_root)
+            .map(|s| s.into())
+            .unwrap_or_default();
+        let bytes = root.as_bytes();
+        let ptr = unsafe {
+            crate::ffi::kbve_wgpu_create_game(
+                window,
+                SurfaceKind::AndroidNativeWindow as u32,
+                width as u32,
+                height as u32,
+                bytes.as_ptr(),
+                bytes.len(),
             )
         };
         ptr as jlong
