@@ -41,6 +41,8 @@ export interface ItemData {
 	name: string;
 	type: 'weapon' | 'armor' | 'consumable' | 'material' | 'quest';
 	img: string;
+	/** Sprite-atlas slot (== itemdb `key`); frame index into itemdb-atlas.png. */
+	key: number;
 	description: string;
 	bonuses: Record<string, number>;
 	durability: number;

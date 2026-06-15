@@ -30,6 +30,7 @@ const BONUS_ALIAS: Record<string, string> = {
 interface RawItem {
 	ref: string;
 	name: string;
+	key?: number;
 	description?: string;
 	lore?: string;
 	typeFlags?: number;
@@ -88,6 +89,7 @@ function adapt(raw: RawItem): ItemData {
 		id: raw.ref,
 		name: raw.name,
 		type,
+		key: raw.key ?? 0,
 		img: raw.img ?? `/assets/icons/${raw.ref}.png`,
 		description: (raw.description ?? '').trim(),
 		bonuses: normalizeBonuses(raw.bonuses),

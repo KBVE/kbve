@@ -389,7 +389,9 @@
 			],
 			"outputs": [
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png",
-				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs"
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts"
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-itemdb-atlas.mjs",
