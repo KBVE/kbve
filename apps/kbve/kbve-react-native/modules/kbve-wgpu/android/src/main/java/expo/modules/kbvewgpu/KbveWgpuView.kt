@@ -20,10 +20,39 @@ class KbveWgpuView(context: Context, appContext: AppContext) :
   }
 
   private external fun nativeCreate(surface: android.view.Surface, width: Int, height: Int): Long
+  private external fun nativeCreateGame(
+    surface: android.view.Surface,
+    width: Int,
+    height: Int,
+    assetRoot: String,
+  ): Long
   private external fun nativeRender(ptr: Long): Int
   private external fun nativeResize(ptr: Long, width: Int, height: Int)
   private external fun nativeInput(ptr: Long, kind: Int, x: Float, y: Float, id: Int)
   private external fun nativeDestroy(ptr: Long)
+
+  private val isGameMode: Boolean get() = componentId != "triangle"
+
+  private fun extractAssets(): String {
+    val out = java.io.File(context.filesDir, "kbve_assets")
+    if (!out.exists()) {
+      copyAsset("kbve_assets", out)
+    }
+    return out.absolutePath
+  }
+
+  private fun copyAsset(path: String, dest: java.io.File) {
+    val children = context.assets.list(path) ?: arrayOf()
+    if (children.isEmpty()) {
+      dest.parentFile?.mkdirs()
+      context.assets.open(path).use { input ->
+        java.io.FileOutputStream(dest).use { input.copyTo(it) }
+      }
+    } else {
+      dest.mkdirs()
+      for (child in children) copyAsset("$path/$child", java.io.File(dest, child))
+    }
+  }
 
   private val onReady by EventDispatcher()
   private val onHostCall by EventDispatcher()
@@ -45,7 +74,11 @@ class KbveWgpuView(context: Context, appContext: AppContext) :
 
   override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
     if (surfacePtr == 0L) {
-      surfacePtr = nativeCreate(holder.surface, width, height)
+      surfacePtr = if (isGameMode) {
+        nativeCreateGame(holder.surface, width, height, extractAssets())
+      } else {
+        nativeCreate(holder.surface, width, height)
+      }
       val ok = surfacePtr != 0L
       if (ok) {
         Choreographer.getInstance().postFrameCallback(this)
