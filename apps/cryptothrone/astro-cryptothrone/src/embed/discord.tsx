@@ -17,10 +17,12 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 
 // Backend bridge (P3b): exchanges the Discord OAuth code for a Discord
 // access_token AND a game-server session {jwt, username}, linking the Discord
-// user to a KBVE profile. Same origin as the Activity (axum-cryptothrone serves
-// both /discord/* and /api/*), so it rides the portal ROOT mapping — a relative
-// path, not /.proxy/ (that prefix is for the external WS hosts below).
-const SESSION_ENDPOINT = '/api/discord/session';
+// user to a KBVE profile. The Activity iframe runs on *.discordsays.com, so
+// every request — including same-origin backend calls — must carry the
+// `/.proxy/` prefix: Discord strips it and applies the portal ROOT mapping
+// (`/` -> the axum-cryptothrone host serving /api/*). Without it the fetch
+// hits discordsays.com directly and never reaches the backend.
+const SESSION_ENDPOINT = '/.proxy/api/discord/session';
 
 // External hosts the game's plain `new WebSocket('wss://game.cryptothrone…')`
 // calls reach. patchUrlMappings rewrites those real URLs through Discord's
@@ -41,11 +43,28 @@ interface DiscordSession {
 	username: string;
 }
 
+function errMsg(err: unknown): string {
+	if (err instanceof Error) {
+		return err.message;
+	}
+	return String(err);
+}
+
 function fail(msg: string, ...extra: unknown[]): void {
 	console.error(`[Cryptothrone/Discord] ${msg}`, ...extra);
 	const root = document.getElementById('app');
 	if (root) {
 		root.textContent = `Could not start the Activity: ${msg}`;
+	}
+}
+
+/** Run a boot step, re-throwing with a labelled message so the on-screen text
+ * names which stage failed instead of a generic "boot failed". */
+async function step<T>(label: string, run: () => Promise<T>): Promise<T> {
+	try {
+		return await run();
+	} catch (err) {
+		throw new Error(`${label}: ${errMsg(err)}`, { cause: err });
 	}
 }
 
@@ -58,28 +77,36 @@ async function boot(): Promise<void> {
 	patchUrlMappings(URL_MAPPINGS);
 
 	const sdk = new DiscordSDK(CLIENT_ID);
-	await sdk.ready();
+	await step('Discord SDK ready', () => sdk.ready());
 
-	const { code } = await sdk.commands.authorize({
-		client_id: CLIENT_ID,
-		response_type: 'code',
-		state: '',
-		prompt: 'none',
-		scope: ['identify', 'guilds'],
-	});
+	const { code } = await step('Discord authorize', () =>
+		sdk.commands.authorize({
+			client_id: CLIENT_ID,
+			response_type: 'code',
+			state: '',
+			prompt: 'none',
+			scope: ['identify', 'guilds'],
+		}),
+	);
 
-	const res = await fetch(SESSION_ENDPOINT, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ code }),
-	});
+	const res = await step('session request', () =>
+		fetch(SESSION_ENDPOINT, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ code }),
+		}),
+	);
 	if (!res.ok) {
 		fail(`session exchange failed (${res.status})`);
 		return;
 	}
-	const session = (await res.json()) as DiscordSession;
+	const session = (await step('session parse', () =>
+		res.json(),
+	)) as DiscordSession;
 
-	await sdk.commands.authenticate({ access_token: session.access_token });
+	await step('Discord authenticate', () =>
+		sdk.commands.authenticate({ access_token: session.access_token }),
+	);
 
 	const el = document.getElementById('app') ?? document.body;
 	mount({
@@ -90,4 +117,4 @@ async function boot(): Promise<void> {
 	});
 }
 
-void boot().catch((err) => fail('boot failed', err));
+void boot().catch((err) => fail(`boot failed — ${errMsg(err)}`, err));
