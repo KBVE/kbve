@@ -35,7 +35,8 @@ test.describe('bundled assets', () => {
 		expect(res.headers()['content-type']).toMatch(/html/);
 		const html = await res.text();
 		// Relative src so the Discord `/` -> `/discord/` mapping resolves it.
-		expect(html).toMatch(/src=["']discord\.js["']/);
+		// The build stamps a ?v=<hash> cache-bust query, so allow it.
+		expect(html).toMatch(/src=["']discord\.js(\?v=[0-9a-f]+)?["']/);
 	});
 
 	test('standalone embed bundle serves as executable JS', async ({
