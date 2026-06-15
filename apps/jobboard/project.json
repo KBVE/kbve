@@ -69,7 +69,9 @@
 			"executor": "nx:run-commands",
 			"cache": false,
 			"options": {
-				"commands": ["docker compose up --build"],
+				"commands": [
+					"bash -c 'set -o pipefail; : > jobboards.txt; docker compose up --build 2>&1 | tee /dev/stderr | { grep -iE \"error|fail|fatal|panic|unhealthy|exited with code [1-9]|didn.t complete\" >> jobboards.txt || true; }; exit ${PIPESTATUS[0]}'"
+				],
 				"cwd": "apps/jobboard"
 			}
 		},
