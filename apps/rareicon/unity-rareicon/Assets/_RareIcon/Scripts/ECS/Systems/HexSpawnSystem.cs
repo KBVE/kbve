@@ -26,6 +26,13 @@ namespace RareIcon
         const int BaseLoadRadius = 5;
         const int MaxSpawnsPerFrame = 3;
 
+        const float QuadWidth   = 0.5f;
+        const float QuadHeight  = 0.65625f;
+        const float QuadYOffset = -0.281f;
+        const float DepthPerY   = 0.02f;
+        const int   MeshHex     = 0;
+        const int   MeshQuad    = 1;
+
         readonly Dictionary<int2, NativeList<Entity>> _loadedChunks = new();
         readonly HashSet<int2> _pendingChunks = new();
 
@@ -59,6 +66,7 @@ namespace RareIcon
         bool _initialLoad;
 
         Mesh _hexMesh;
+        Mesh _quadMesh;
         Material[] _biomeMaterials;
         RenderMeshDescription _renderMeshDesc;
         RenderMeshArray _renderMeshArray;
@@ -97,7 +105,10 @@ namespace RareIcon
         void InitRendering()
         {
             _hexMesh = HexMeshUtil.CreateHexMesh(HexSize);
+            _quadMesh = HexMeshUtil.CreateQuadMesh(QuadWidth, QuadHeight, QuadYOffset);
             _biomeMaterials = new Material[BiomeGenerator.BIOME_COUNT];
+
+            var atlasTex = LoadHexAtlas();
 
             var hexShader = Shader.Find("RareIcon/HexTile");
             if (hexShader == null) hexShader = Shader.Find("Universal Render Pipeline/Unlit");
@@ -109,6 +120,14 @@ namespace RareIcon
                 bool isRiver = i == BiomeGenerator.BIOME_RIVER && riverTileShader != null;
                 _biomeMaterials[i] = new Material(isRiver ? riverTileShader : hexShader);
                 _biomeMaterials[i].enableInstancing = true;
+
+                if (atlasTex != null)
+                {
+                    _biomeMaterials[i].SetTexture("_Atlas", atlasTex);
+                    _biomeMaterials[i].SetFloat("_AtlasCols", HexTileAtlas.Columns);
+                    _biomeMaterials[i].SetFloat("_AtlasTileU", HexTileAtlas.TileU);
+                    _biomeMaterials[i].SetFloat("_AtlasTileV", HexTileAtlas.TileV);
+                }
 
                 var c = HexMeshUtil.BiomeColor((byte)i);
                 var primary = new Color(c.x, c.y, c.z, c.w);
@@ -158,7 +177,33 @@ namespace RareIcon
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false
             );
-            _renderMeshArray = new RenderMeshArray(_biomeMaterials, new[] { _hexMesh });
+            _renderMeshArray = new RenderMeshArray(_biomeMaterials, new[] { _hexMesh, _quadMesh });
+        }
+
+        static Texture2D LoadHexAtlas()
+        {
+            string path = System.IO.Path.Combine(Application.streamingAssetsPath, "hextile-atlas.png");
+            if (!System.IO.File.Exists(path))
+            {
+                Debug.LogError($"[HexChunkSystem] hextile-atlas.png missing at {path}. Run `npx nx run astro-kbve:sync:hextile-atlas`.");
+                return null;
+            }
+            var raw = System.IO.File.ReadAllBytes(path);
+            var tex = new Texture2D(HexTileAtlas.AtlasWidth, HexTileAtlas.AtlasHeight, TextureFormat.RGBA32, mipChain: false, linear: false)
+            {
+                name       = "HexTile Atlas",
+                wrapMode   = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Point,
+                anisoLevel = 0,
+            };
+            if (!tex.LoadImage(raw, markNonReadable: false))
+            {
+                Debug.LogError("[HexChunkSystem] hextile-atlas LoadImage rejected the PNG bytes.");
+                Object.Destroy(tex);
+                return null;
+            }
+            tex.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+            return tex;
         }
 
         protected override void OnUpdate()
@@ -301,6 +346,8 @@ namespace RareIcon
                     int gx = startX + lx;
                     int gy = startY + ly;
                     float3 worldPos = HexMeshUtil.HexToWorld(gx, gy, HexSize);
+                    bool isAtlas = HexBiomeAtlas.TileIdForBiome(biome) >= 0;
+                    if (isAtlas) worldPos.z = worldPos.y * DepthPerY;
 
                     var entity = batchEntities[idx++];
                     em.SetComponentData(entity, LocalTransform.FromPosition(worldPos));
@@ -340,9 +387,10 @@ namespace RareIcon
                         Value = HexResourceTable.ComputeCactusAmount(in res)
                     });
 
+                    int meshIndex = isAtlas ? MeshQuad : MeshHex;
                     RenderMeshUtility.AddComponents(
                         entity, em, _renderMeshDesc, _renderMeshArray,
-                        MaterialMeshInfo.FromRenderMeshArrayIndices(biome, 0)
+                        MaterialMeshInfo.FromRenderMeshArrayIndices(biome, meshIndex)
                     );
 
                     HexHoverSystem.AddHex(new int2(gx, gy), entity);

@@ -60,6 +60,12 @@ Shader "RareIcon/HexTile"
         _FogExploredColor  ("Fog Color (Explored)",     Color) = (0.20, 0.22, 0.28, 1)
         _FogNoiseDensity   ("Fog Noise Density",        Float) = 6.0
         _FogNoiseSpeed     ("Fog Noise Speed",          Float) = 0.05
+
+        _Atlas      ("Tile Atlas (base biomes)", 2D) = "white" {}
+        _AtlasCols  ("Atlas Columns", Float)    = 5
+        _AtlasTileU ("Atlas Tile U size", Float) = 0.2
+        _AtlasTileV ("Atlas Tile V size", Float) = 0.25
+        _AtlasHexSize ("Atlas overlay hex SDF size", Float) = 0.2165
     }
 
     SubShader
@@ -93,6 +99,7 @@ Shader "RareIcon/HexTile"
                 float2 localPos  : TEXCOORD0;
                 float2 worldPos  : TEXCOORD1;
                 float2 hexCenter : TEXCOORD2;
+                float2 uv        : TEXCOORD3;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -143,7 +150,14 @@ Shader "RareIcon/HexTile"
                 float  _AuraHighlight;
                 float4 _AuraHighlightColor;
                 float  _TileId;
+                float  _AtlasCols;
+                float  _AtlasTileU;
+                float  _AtlasTileV;
+                float  _AtlasHexSize;
             CBUFFER_END
+
+            TEXTURE2D(_Atlas);
+            SAMPLER(sampler_Atlas);
 
             #ifdef DOTS_INSTANCING_ON
             UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
@@ -205,12 +219,36 @@ Shader "RareIcon/HexTile"
                 float3 wp = TransformObjectToWorld(input.positionOS.xyz);
                 output.worldPos = wp.xy;
                 output.hexCenter = TransformObjectToWorld(float3(0,0,0)).xy;
+                output.uv = input.uv;
                 return output;
             }
 
             float4 frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
+
+                if (_TileId >= 0.0)
+                {
+                    int tid = (int)(_TileId + 0.5);
+                    float ac = fmod((float)tid, _AtlasCols);
+                    float ar = floor((float)tid / _AtlasCols);
+                    float2 auv = float2((ac + input.uv.x) * _AtlasTileU,
+                                        1.0 - (ar + 1.0 - input.uv.y) * _AtlasTileV);
+                    float4 tex = SAMPLE_TEXTURE2D(_Atlas, sampler_Atlas, auv);
+                    clip(tex.a - 0.5);
+
+                    float dCap = hexSDF(input.localPos, _AtlasHexSize);
+                    float3 c = tex.rgb;
+                    c = ApplyTerritory(c, dCap, _Territory);
+                    c = ApplyFog(c, input.worldPos, dCap, _Fog);
+                    if (_AuraHighlight > 0.5)
+                    {
+                        c = lerp(c, _AuraHighlightColor.rgb, 0.18);
+                        float rim = smoothstep(0.090, 0.020, -dCap);
+                        c = lerp(c, _AuraHighlightColor.rgb, rim * _AuraHighlightColor.a * 0.85);
+                    }
+                    return float4(ApplyWorldAmbient(c), 1.0);
+                }
 
                 float d = hexSDF(input.localPos, 0.45);
 
