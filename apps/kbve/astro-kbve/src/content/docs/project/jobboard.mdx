@@ -23,7 +23,7 @@ tags:
 
 ## Job Board
 
-> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, first-party auth implemented (register/login/logout/me with Postgres-backed sessions), `jobboard.proto` wired into the build. **No SQL ships yet** — the `jobboard` schema + seed is deferred to a later dbmate migration (reference shape in the Deployment section). Verified locally against an ad-hoc Postgres. Phases 1–10 below remain spec.
+> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, `jobboard.proto` wired into the build. **Auth = Supabase** (JWT `sub` = `auth.users.id`); the Phase-0 first-party auth/sessions in the Rust code is a dead end to be removed. **Schema migration shipped** (`20260615120000_jobboard_tables.sql`): the full `jobboard` table set, all user refs → `auth.users(id)`, tables-only (no seed yet). Phases 1–10 below remain spec.
 
 A **curated, both-sides-vetted job board for freelance work** — think Upwork/Fiverr, but gated and quality-first. Sanctioned members post gigs, other sanctioned members take them up, and the platform handles discovery, matching, and messaging. Money moves off-platform in v1 (lead-gen model); monetization is built behind abstraction hooks to switch on later.
 
@@ -113,9 +113,7 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 
 | Table | Source proto |
 |---|---|
-| `users` | **reuse** `User` + `Auth` (kbveproto) |
-| `sessions` | new (tower-sessions Postgres store) |
-| `oauth_accounts` | new |
+| `auth.users` (identity) | **Supabase** — referenced by `user_id` FKs, not recreated |
 | `profiles` (base) | **reuse** `Profile` (kbveproto) |
 | `verticals` | new `jobboard.Vertical` |
 | `talent_profiles` | new `jobboard.TalentProfile` |
@@ -140,7 +138,7 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
-| Auth | **First-party** — `tower-sessions` (custom Postgres `SessionStore`), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) later | No auth SaaS; transport-flexible (cookie + bearer) |
+| Auth | **Supabase** — verify the Supabase JWT (`sub` = `auth.users.id`, `kbve_username` claim), no first-party user/session store | Reuses existing KBVE identity; same model as `apps/rows` |
 | DB access | **jedi `PgCluster`** (tokio-postgres + bb8, rw/ro/any split, RLS caller-scoped reads, valkey cache) | House pattern (matches `axum-kbve`); free read/write split + RLS + caching |
 | Migrations | **dbmate** (`packages/data/sql/dbmate/migrations`) — schema deferred, not committed yet | Repo-standard migration tool; one system across the monorepo |
 | DB | Postgres — KBVE CNPG/Supabase cluster via `KBVE_PG_RW_URL` | Shared cluster; `jobboard` schema isolates the tables |
@@ -192,106 +190,16 @@ When this graduates from scaffold to deployed, add under `apps/kube/jobboard/`:
 - ArgoCD apps track `main`; PRs land on `dev`, so the manifest reaches the cluster only after the periodic dev→main release.
 - CI: register `jobboard` in the CI dispatch manifest (`ci_registry.proto` → `astro-kbve:sync:ci-manifest`) so `ci-docker.yml` builds/publishes the image.
 
-### Database schema (deferred — not committed yet)
-No SQL ships in this scaffold by design; the schema lands later as a **dbmate** migration in `packages/data/sql/dbmate/migrations/`. The service queries the `jobboard` schema (`jobboard.users`, `jobboard.sessions`, `jobboard.verticals`, `jobboard.taxonomy`), so those tables + the game-dev seed must exist before it serves.
+### Database schema
+Schema ships as a **dbmate** migration: `packages/data/sql/dbmate/migrations/20260615120000_jobboard_tables.sql`. **Tables only** — no functions, RLS, triggers, or seed (those land in follow-up migrations).
 
-This is the full migration that was removed from the scaffold, parked here for review. When approved, drop it back into `packages/data/sql/dbmate/migrations/<timestamp>_jobboard_init.sql`:
+- **Identity is Supabase.** No `jobboard.users` / `jobboard.sessions` — every owner column is `user_id uuid references auth.users(id)`. The service trusts the Supabase JWT (`sub`); reputation/capabilities live on jobboard rows or are derived, not on a recreated user table.
+- Tables: `verticals`, `taxonomy`, `talent_profiles`, `client_profiles`, `member_applications`, `portfolio_items`, `gigs`, `applications`, `engagements`, `reviews`, `conversations`, `conversation_participants`, `messages`, `notifications`, `reports`, `audit_log` (16).
+- `conversation_participants` is a junction table (the proto's `repeated bytes participant_ids` normalizes to rows for FK + indexing).
+- Taxonomy id lists (`discipline_ids`/`tool_ids`/`skill_ids`/`vertical_ids`) are `bigint[]`, mirroring the proto's repeated id fields; `media`/`attachments` are `jsonb` (`MediaAttachment[]`).
+- Verified up + down on Postgres 17 against a stub `auth.users`.
 
-```sql
--- migrate:up
-create schema if not exists jobboard;
-
-create table if not exists jobboard.users (
-    id              uuid primary key default gen_random_uuid(),
-    email           text not null unique,
-    username        text not null unique,
-    password_hash   text not null,
-    role            integer not null default 0,
-    reputation      integer not null default 0,
-    status          integer not null default 0,
-    created_at      timestamptz not null default now(),
-    last_login      timestamptz
-);
-
-create table if not exists jobboard.sessions (
-    id      text primary key,
-    data    jsonb not null,
-    expiry  bigint not null
-);
-
-create index if not exists jobboard_sessions_expiry_idx on jobboard.sessions (expiry);
-
-create table if not exists jobboard.verticals (
-    id          bigserial primary key,
-    slug        text not null unique check (slug ~ '^[a-z0-9-]+$'),
-    label       text not null,
-    description text not null default '',
-    status      integer not null default 1,
-    sort_order  integer not null default 0
-);
-
-create table if not exists jobboard.taxonomy (
-    id          bigserial primary key,
-    vertical_id bigint not null references jobboard.verticals(id) on delete cascade,
-    kind        integer not null,
-    name        text not null check (name ~ '^[a-z0-9-]+$'),
-    label       text not null,
-    status      integer not null default 1,
-    unique (vertical_id, kind, name)
-);
-
-create index if not exists jobboard_taxonomy_vertical_kind_idx
-    on jobboard.taxonomy (vertical_id, kind);
-
-insert into jobboard.verticals (slug, label, description, status, sort_order)
-values ('game-dev', 'Game Development', 'Art, code, audio, design, and QA for games.', 1, 0)
-on conflict (slug) do nothing;
-
-insert into jobboard.taxonomy (vertical_id, kind, name, label)
-select v.id, t.kind, t.name, t.label
-from jobboard.verticals v
-cross join (values
-    (1, '2d-art', '2D Art'),
-    (1, '3d-art', '3D Art'),
-    (1, 'animation-rigging', 'Animation/Rigging'),
-    (1, 'programming', 'Programming'),
-    (1, 'technical-art', 'Technical Art/Shaders'),
-    (1, 'audio', 'Audio (Music/SFX/VO)'),
-    (1, 'game-design', 'Game Design'),
-    (1, 'level-design', 'Level Design'),
-    (1, 'narrative', 'Narrative/Writing'),
-    (1, 'ui-ux', 'UI/UX'),
-    (1, 'qa-testing', 'QA/Testing'),
-    (1, 'porting', 'Porting'),
-    (1, 'localization', 'Localization'),
-    (1, 'production', 'Production/PM'),
-    (1, 'community', 'Community'),
-    (2, 'unity', 'Unity'),
-    (2, 'unreal', 'Unreal'),
-    (2, 'godot', 'Godot'),
-    (2, 'gamemaker', 'GameMaker'),
-    (2, 'bevy', 'Bevy'),
-    (2, 'blender', 'Blender'),
-    (2, 'maya', 'Maya'),
-    (2, 'zbrush', 'ZBrush'),
-    (2, 'substance', 'Substance'),
-    (2, 'photoshop', 'Photoshop'),
-    (2, 'spine', 'Spine'),
-    (2, 'fmod', 'FMOD'),
-    (2, 'wwise', 'Wwise'),
-    (3, 'netcode', 'netcode'),
-    (3, 'humanoid-rigging', 'humanoid-rigging'),
-    (3, 'pixel-art', 'pixel-art'),
-    (3, 'procgen', 'procgen'),
-    (3, 'shader-graph', 'shader-graph'),
-    (3, 'vertical-slice', 'vertical-slice')
-) as t(kind, name, label)
-where v.slug = 'game-dev'
-on conflict (vertical_id, kind, name) do nothing;
-
--- migrate:down
-drop schema if exists jobboard cascade;
-```
+Seed (game-dev vertical + 15 disciplines / 13 tools / 6 skills) is a **separate** follow-up migration.
 
 * * *
 
@@ -721,7 +629,7 @@ service JobBoardRpc {
 
 ## Decisions
 
-**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (`tower-sessions` + `argon2`, custom pg `SessionStore`, no auth SaaS) · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
+**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · **Supabase auth** (verify JWT, `sub` = `auth.users.id`; all jobboard rows FK `auth.users`) — first-party auth was a wrong turn, removing it · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
 
 **Still open:**
 - **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — deferred to Phase 7.
