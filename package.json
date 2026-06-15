@@ -34,7 +34,7 @@
 		"@nx/vitest": "22.7.2",
 		"@nx/web": "22.7.2",
 		"@nx/webpack": "22.7.2",
-		"@nx/workspace": "22.7.2",
+		"@nx/workspace": "22.7.5",
 		"@nxlv/python": "22.0.5",
 		"@playform/compress": "^0.2.3",
 		"@playwright/test": "^1.59.1",
