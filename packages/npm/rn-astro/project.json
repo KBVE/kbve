@@ -1,0 +1,18 @@
+{
+	"name": "rn-astro",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/rn-astro/src",
+	"projectType": "library",
+	"tags": ["scope:web", "type:lib"],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/npm/rn-astro/tsconfig.lib.json"
+			}
+		}
+	}
+}
