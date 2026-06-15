@@ -1,0 +1,644 @@
+---
+title: Asset Marketplace
+description: |
+    Asset Marketplace — an open storefront where creators sell game assets (3D, 2D, audio, VFX,
+    tools, complete projects). Strictly game assets. Lead-gen catalog in v1; on-platform checkout
+    with per-sale commission and royalty-free Standard/Extended licensing in a later phase.
+    Decoupled Rust/Axum API with first-party auth, served to a separate frontend. Reuses the
+    existing KBVE protos and adds a new `assetstore` package. References: Fab, itch.io, CraftPix,
+    GameDevMarket.
+sidebar:
+    label: Asset Marketplace
+    order: 51
+    badge:
+        text: New
+        variant: tip
+unsplash: 1590840960672-db24958eef9a
+img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - gaming
+    - rust
+    - proto
+    - assets
+---
+
+## Asset Marketplace
+
+> Status: **Spec / architecture** — no app code yet. This is the document to review/edit before building.
+> Sibling product to the [Job Board](/docs/project/jobboard) — the Job Board sells *services*, the Asset Marketplace sells *digital goods*. They share identity, media, transport, and technical vocabulary.
+
+An **open marketplace for game assets** — think Fab / itch.io / CraftPix / GameDevMarket, scoped strictly to **game assets**: 3D models, 2D art, audio, VFX, shaders, tools/plugins, and complete projects. Creators list assets; buyers discover them. v1 is a **lead-gen catalog** (browse, storefronts, license terms, wishlists, external buy links); on-platform **checkout with per-sale commission** and downloadable delivery ships in a later phase.
+
+**Strictly game assets.** Unlike a generalist digital-goods store, the category tree, tagging (engines/tools/formats), and previews are built for games — engine compatibility, poly counts, rig types, tilemap formats, loopable audio, license suitability for shipped games. That focus is the wedge.
+
+**Architecture is decoupled:** a standalone **Rust/Axum REST API** (own DB access, own first-party auth — no third-party auth SaaS) serving a **separate frontend client** (framework TBD) over HTTP.
+
+### Positioning / moat
+- **Game-native catalog.** Categories and facets speak game dev (engine version, render pipeline, tris/verts, humanoid rig, atlas size, sample rate) — not generic "graphics/audio."
+- **Open supply, curated trust.** Anyone can list (volume), but verification badges, ratings, and moderation surface quality. Trust is earned and displayed, not gatekept at the door.
+- **Shared ecosystem.** One KBVE account, one identity, one engine/tool vocabulary across the Job Board and the Asset Marketplace — a freelancer can both take gigs *and* sell assets.
+
+* * *
+
+## Personas & roles
+
+| Persona | What they do | Gating |
+|---|---|---|
+| **Seller** | Creates a storefront, lists assets, sets prices + license tiers, uploads files. | Open (sign up → list); optional verification tier |
+| **Buyer** | Browses, wishlists, reviews; purchases + downloads (checkout phase). | Open |
+| **Admin** | Manages categories, moderates listings, handles DMCA/abuse reports, reviews verification + AI-disclosure. | Internal |
+
+- One account can be both **seller** and **buyer**, and is the *same* KBVE account used on the Job Board (capabilities tracked as a bitmask on the existing `User.role`).
+- **Open marketplace:** no pre-approval to list. Quality is managed post-hoc via moderation, reports, ratings, and an optional **verified seller** badge.
+
+* * *
+
+## Asset taxonomy
+
+Two facets, both controlled (no free text) so filtering works:
+
+1. **Category tree** (asset-store specific, hierarchical) — *what the asset is*.
+2. **Engine/tool/format tags** (shared with the Job Board) — *what it works with*.
+
+### Category tree (hierarchical, admin-managed)
+- **3D** — Characters, Creatures, Environments, Props, Vehicles, Weapons, Modular Kits
+- **2D** — Sprites, Tilesets, Characters, Backgrounds, UI/GUI, Icons
+- **Textures & Materials** — PBR materials, Substance, decals, skyboxes
+- **Audio** — Music (loops/tracks), SFX, Ambience, Voice/VO
+- **VFX & Shaders** — particle FX, shader packs, post-processing
+- **Tools & Code** — plugins, editor tools, scripts, systems
+- **Complete Projects / Templates** — game templates, starter kits, demos
+- **Fonts** — game-ready/display fonts
+
+### Engine/tool/format tags (reuse Job Board vocabulary)
+Unity, Unreal, Godot, GameMaker, Bevy; Blender, Maya, ZBrush, Substance, Photoshop, Spine, FMOD, Wwise; formats: `fbx`, `gltf`, `obj`, `png`, `wav`, `ogg`, `unitypackage`, `uasset`. These already exist as `Taxonomy` rows — reuse them, don't duplicate.
+
+> Categories live in a new hierarchical `AssetCategory`; engine/tool/format tags reuse the shared `Taxonomy` (see protobuf section).
+
+* * *
+
+## Core flows
+
+### A. Seller onboarding (open)
+1. Sign up (first-party auth — shared KBVE account).
+2. Create a **storefront** (slug, name, tagline, logo/banner).
+3. (Optional) apply for **verified seller** badge later.
+
+### B. List an asset
+1. Create asset — title, category, engine/tool/format tags, description.
+2. Upload file bundle as an **AssetVersion** (changelog + source files → **private** R2). The pipeline then **auto-generates watermarked, degraded previews** (turntable/low-poly viewer, downscaled images, low-bitrate audio clips) — the seller picks which to feature. *(Checkout phase; in lead-gen v1 a seller may instead point paid assets to an `external_url`.)*
+3. Set **license offerings** — Standard and/or Extended price, or mark the asset **free** (see Licensing).
+4. Declare **AI-content disclosure**.
+5. Publish → `PUBLISHED` (or `PENDING_REVIEW` if moderation gate is on).
+
+### C. Buyer discovers
+1. Browse / search / filter by category, engine, format, price, rating, license.
+2. View asset detail — previews, files/specs, license terms, version history, reviews.
+3. **Wishlist** / add to a **collection**; follow sellers/storefronts.
+
+### D. Purchase & delivery *(checkout phase)*
+1. Buyer selects a license tier → checkout (Stripe).
+2. Payment captured → **Order** recorded (reuses `Invoice`) → platform takes **commission**.
+3. **LicenseGrant** issued → time-limited signed **download URL** to the AssetVersion files (R2).
+4. Buyer can re-download owned versions + receive update notifications.
+5. Verified-purchase **review** unlocked.
+
+### E. Payouts & moderation *(cross-cutting)*
+- Seller payouts via Stripe Connect (checkout phase).
+- Admin: category management, listing moderation, **DMCA/abuse** workflow, malware-scan review, AI-disclosure enforcement, audit log.
+
+* * *
+
+## Licensing
+
+> **Default model: royalty-free Standard + Extended tiers** (industry norm — Fab, GameDevMarket, Unity Asset Store). Marked as the one open decision; collapsing to a single tier later is trivial, the reverse is a migration.
+
+- **Standard** — royalty-free; buyer may use the asset in an unlimited number of *their own* shipped games/products. Restrictions: no redistribution/resale of the raw files, no asset-flip products, optional per-title revenue or team-seat cap.
+- **Extended** — higher price; lifts caps. Permits use where the asset is a *core resold component* (templates, stock libraries, merch/print-on-demand), higher revenue thresholds, more seats, optional sublicensing.
+
+Licenses are modeled as platform-provided **`LicenseTemplate`** rows (tier + human-readable terms + machine-readable caps), and each asset attaches one or more **`LicenseOffering`** (template + price). In **lead-gen v1**, licensing is *terms display + metadata*; enforcement (receipts, `LicenseGrant`, download tokens) activates with checkout. Alternatives considered: single royalty-free license (simpler, less upsell) and seller-defined licenses (flexible, fragmenting) — see Decisions.
+
+* * *
+
+## Revenue
+
+**Commission per sale.** The platform takes a percentage of each transaction; the seller keeps the remainder. Because v1 is lead-gen (no on-platform checkout), **commission activates in the checkout phase** — v1 builds the catalog, storefronts, and demand. The percentage and any verified-seller rate breaks live in reused `Setting`/`Global` so they're tunable without a migration. (Subscription-library access, à la CraftPix, can be layered later via the same hooks.)
+
+* * *
+
+## Preview protection & download gating
+
+**The buyer never sees or receives the real asset before they're entitled to it.** What a listing shows is a **derived, watermarked, intentionally-degraded preview generated server-side from the source** — never the deliverable file. Downloads of the source are gated on a `LicenseGrant` (paid) or the asset being free.
+
+### Two distinct artifact classes
+- **Source files (`AssetFile`)** — the real, full-quality deliverable. Stored in **private** R2; **no public URL, ever**. Served only as a short-lived signed URL *after* the download route verifies a `LicenseGrant`.
+- **Previews (`status.MediaAttachment`)** — public/CDN, watermarked + degraded, **auto-generated by the upload pipeline** from the source. Safe to index, hotlink, and show to anyone — they are not usable as the real asset.
+
+### Per-type preview generation
+| Asset type | Source (gated, private) | Generated preview (public, watermarked) |
+|---|---|---|
+| 3D model | fbx/gltf, textures, rig | Watermarked turntable video + a **decimated/low-poly** WebGL viewer (no downloadable mesh) — never the source geometry |
+| 2D art / textures | full-res PNG/PSD, PBR maps | Down-scaled, watermark-overlaid JPG/WebP; flattened (no layers) |
+| Audio / music | full-length WAV / stems | Short, **lower-bitrate** clip with an embedded audio watermark (tone/voice tag) |
+| VFX / shader | project files | Watermarked demo video / animated GIF |
+| Code / tools | source archive | README + screenshots + **redacted** snippets only |
+| Complete project | full project | Gameplay video + screenshots; **no** project files |
+
+### Download gating
+- **Paid asset** → download requires a `LicenseGrant`, which only exists after a successful Stripe payment (checkout phase). `/downloads/:grantId` validates the grant, then mints a signed R2 URL valid for minutes.
+- **Free asset** (`Asset.is_free`) → a `LicenseGrant` is **auto-issued** on request (still recorded, so download counts, version updates, and notifications work), then the same signed-URL path applies.
+- **Lead-gen v1 caveat:** until checkout ships, *paid* assets expose previews + an `external_url` (the transaction happens off-platform), while *free* assets can already deliver on-platform. **No source file is ever reachable without a grant.**
+
+> Invariant: a `LicenseGrant` (or `is_free`) is the **only** key to a source file, and the only thing the public ever sees is a watermarked derivative.
+
+* * *
+
+## Data model (Postgres)
+
+Accessed via **`sqlx`** (async, compile-time-checked; migrations via `sqlx migrate`). Each table maps to a protobuf message; reused entities map to existing protos, new ones to the `assetstore` package.
+
+| Table | Source proto |
+|---|---|
+| `users` | **reuse** `User` + `Auth` (kbveproto) |
+| `sessions`, `oauth_accounts` | shared with Job Board (new) |
+| `profiles` (base) | **reuse** `Profile` (kbveproto) |
+| `storefronts` | new `assetstore.Storefront` |
+| `asset_categories` (hierarchical) | new `assetstore.AssetCategory` |
+| `engine/tool/format tags` | **reuse** `jobboard.Taxonomy` (shared vocabulary) |
+| `assets` | new `assetstore.Asset` (+ reuse `MediaAttachment` for previews) |
+| `asset_versions` | new `assetstore.AssetVersion` |
+| `asset_files` | new `assetstore.AssetFile` (R2 blob keys, private) |
+| `license_templates` | new `assetstore.LicenseTemplate` |
+| `license_offerings` | new `assetstore.LicenseOffering` |
+| `asset_reviews` | new `assetstore.AssetReview` |
+| `wishlists`, `collections` | new `assetstore.Wishlist` / `Collection` |
+| `orders` (purchase records) | **reuse** `Invoice` (kbveproto) |
+| `license_grants` (entitlements) | new `assetstore.LicenseGrant` |
+| `payouts` | new `assetstore.Payout` (Stripe Connect) |
+| `reports`, `dmca_claims`, `audit_log` | new (admin / trust & safety) |
+| `settings`, `globals` (commission %, flags) | **reuse** `Setting`, `Global` (kbveproto) |
+
+* * *
+
+## Tech architecture (decoupled)
+
+### Backend — Rust API service
+| Concern | Choice | Why |
+|---|---|---|
+| Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
+| Auth | **First-party** — `axum-login` + `tower-sessions` (Postgres store), `argon2`, optional `oauth2` (Discord/GitHub/Steam) | Shared KBVE identity; no auth SaaS |
+| DB access | `sqlx` (async, compile-time-checked) | Type-safe SQL; `sqlx migrate` |
+| DB | Postgres (Supabase / Neon) | Relational fits catalog/orders/licenses |
+| Wire format | `prost`/`tonic` protobuf over `jedi.JediEnvelope` | Reuses KBVE proto/envelope transport |
+| Object storage | S3-compatible (Cloudflare R2) | **Private** source files (no public URL); **time-limited signed download URLs** gated on a grant. Separate **public** bucket/CDN for watermarked previews |
+| File pipeline | malware scan + **watermarked/degraded preview generation** per asset type (turntable renders, low-poly viewers, downscaled images, low-bitrate audio) | Source never gets a public URL; only derived previews are exposed |
+| Search | Postgres FTS (v1) → Meilisearch later | Faceted catalog search; Rust-native upgrade |
+| Payments | **Stripe + Stripe Connect** (checkout phase) | Collect, commission, pay out sellers |
+| Notifications | In-app (DB) v1; email later | Order receipts, asset updates |
+
+### Frontend — TBD (decided in a later phase)
+- Pure HTTP client of the API. Candidates: Astro + React (KBVE-native), Next.js (frontend-only), or React SPA.
+- Asset detail / storefront pages are SEO-critical → favors SSR/SSG (Astro or Next).
+
+### Deployment
+- **API:** containerized Axum on Kubernetes (KBVE-native) / Fly.io / Railway (stateful — not serverless).
+- **DB:** Supabase/Neon Postgres. **Object storage + CDN:** Cloudflare R2 (signed URLs for paid files; public CDN for previews).
+
+**Authorization model:** Axum middleware authenticates session/token; route guards check the `Capability` bitmask on `User.role`; ownership checks for storefront/asset edits; **download routes verify a `LicenseGrant`** before issuing a signed URL.
+
+* * *
+
+## REST API surface (Axum)
+
+All mutations go through the API; the frontend is a pure client. Auth via session cookie or `Authorization: Bearer`. Versioned under `/api/v1`.
+
+```
+# Auth (shared with Job Board)
+POST   /auth/register | /auth/login | /auth/logout
+GET    /auth/me
+GET    /auth/oauth/:provider | /auth/oauth/:provider/cb
+
+# Categories & tags
+GET    /categories                       asset category tree
+GET    /tags                             engine/tool/format tags (shared taxonomy)
+POST   /admin/categories                 [admin] create/edit category
+POST   /admin/tags                       [admin] add tag
+
+# Storefronts
+POST   /storefronts                      create my storefront
+GET    /storefronts/:slug                public storefront + assets
+PATCH  /storefronts/:slug                [owner]
+
+# Assets (catalog)
+GET    /assets                           browse/filter (category, engine, format, price, rating)
+POST   /assets                           [seller] create listing
+GET    /assets/:slug                     detail (previews, specs, license terms, versions, reviews)
+PATCH  /assets/:slug                     [seller, owner]
+POST   /assets/:slug/publish             [seller, owner]
+
+# Versions & files
+POST   /assets/:slug/versions            [seller] new version (changelog)
+POST   /assets/:slug/versions/:v/files   [seller] upload file -> R2 (+ scan)
+PATCH  /assets/:slug/offerings           [seller] set Standard/Extended pricing
+
+# Engagement
+POST   /me/wishlist/:assetId             add/remove wishlist
+GET/POST/PATCH /me/collections[/:id]     curated lists
+POST   /assets/:slug/reviews             [buyer] review (verified-purchase in checkout phase)
+
+# Acquire & deliver
+POST   /assets/:slug/claim               FREE asset -> auto-issue LicenseGrant (no payment)
+POST   /checkout                         PAID -> create order (Stripe) for selected offerings   (checkout phase)
+POST   /webhooks/stripe                  payment confirmation -> Order(Invoice) + LicenseGrant   (checkout phase)
+GET    /me/library                       owned assets (LicenseGrants)
+GET    /downloads/:grantId               -> time-limited signed R2 URL (verifies grant; free or paid)
+GET    /me/payouts                       [seller] payout history (Stripe Connect)   (checkout phase)
+
+# Trust & safety
+POST   /reports                          report a listing
+POST   /dmca                             submit a DMCA/copyright claim
+GET    /admin/reports | /admin/dmca | /admin/moderation   [admin]
+```
+
+* * *
+
+## Protocol Buffers
+
+Reuses the existing KBVE proto collection (`packages/rust/jedi/proto/*`, `packages/kbve/src/kbveproto.proto`) **and the Job Board's shared vocabulary**. **Rule: reuse first, extend second, add last.** We add one new file — `assetstore.proto` (package `assetstore`).
+
+### What we reuse (do not recreate)
+
+| Need | Reused proto | Where | Notes |
+|---|---|---|---|
+| **Auth / credentials** | `Auth` | `kbveproto.proto` | First-party auth model — use as-is (shared with Job Board). |
+| **User identity** | `User` | `kbveproto.proto` | `role` bitmask carries seller/buyer/admin capability; `reputation` aggregates seller rating. |
+| **Base profile** | `Profile` | `kbveproto.proto` | Seller bio/socials; storefront extends via `Storefront`. |
+| **Bearer tokens** | `Apikey` | `kbveproto.proto` | Non-browser clients. |
+| **Orders / receipts** | `Invoice` | `kbveproto.proto` | Purchase records reuse `Invoice` (`items`, `total`, `paid`, `status`, `external`). |
+| **Commission %, flags** | `Setting`, `Global` | `kbveproto.proto` | Tunable commission + feature flags without migration. |
+| **Preview media** | `MediaAttachment` | `status.proto` | `url, media_type (bitmask), caption` — asset previews. |
+| **Engine/tool/format tags** | `Taxonomy` | `jobboard.proto` | **Shared vocabulary** — an asset tagged "Unity" uses the same id as a gig tagged "Unity". (Candidate to promote into a `common.proto` later; see risks.) |
+| **Listing pattern** | `DiscordServer`, `DiscordTag` | `disoxide.proto` | Template (not copied): bitmask `status`, inline SQL CHECK comments, URL regex, `updated_at`. `Asset`/`Storefront` follow it. |
+| **Transport envelope** | `JediEnvelope`, `MessageKind` | `jedi.proto` | Payloads ride inside `JediEnvelope`; existing routing bits suffice — **no new kinds**. |
+| **KV / cache / realtime** | `StoreService`, `RedisService` | `store.proto`, `redis.proto` | Catalog cache, download-token cache, update fan-out. |
+
+### What we add — `assetstore.proto`
+
+> Suggested location: `packages/rust/jedi/proto/assetstore.proto`, package `assetstore`, built via `prost`/`tonic`. Reuses `status.proto` (MediaAttachment) and `jobboard.proto` (Taxonomy) — both must be on the protoc include path.
+
+```proto
+syntax = "proto3";
+package assetstore;
+
+// Reuse — on the protoc include path:
+import "status.proto";      // MediaAttachment
+import "jobboard.proto";    // Taxonomy (shared engine/tool/format tags)
+// Identity & money reused from kbveproto.proto: Auth, User, Profile, Apikey, Invoice, Setting, Global
+// Transport: payloads ride inside jedi.JediEnvelope (jedi.proto)
+
+// ─────────────────────────── Enums (bitflags where noted) ───────────────────────────
+
+// Stored in the EXISTING User.role bitmask — no new capability table.
+enum Capability {
+  CAP_NONE   = 0;
+  CAP_BUYER  = 1;
+  CAP_SELLER = 2;
+  CAP_ADMIN  = 4;
+}
+
+// Asset lifecycle — bitmask (mirrors disoxide status convention).
+enum AssetStatus {
+  ASSET_DRAFT          = 0;
+  ASSET_PENDING_REVIEW = 1;
+  ASSET_PUBLISHED      = 2;
+  ASSET_SUSPENDED      = 4;   // moderation/DMCA
+  ASSET_ARCHIVED       = 8;
+}
+
+enum LicenseTier {
+  LICENSE_UNSPECIFIED = 0;
+  LICENSE_STANDARD    = 1;
+  LICENSE_EXTENDED    = 2;
+  LICENSE_CUSTOM      = 3;    // reserved for seller-defined templates
+}
+
+// AI-content disclosure (Fab-style requirement).
+enum AiDisclosure {
+  AI_NONE        = 0;   // no generative AI used
+  AI_ASSISTED    = 1;   // AI-assisted (e.g. upscaling, denoise)
+  AI_GENERATED   = 2;   // substantially AI-generated
+}
+
+// File moderation state.
+enum ScanStatus {
+  SCAN_PENDING = 0;
+  SCAN_CLEAN   = 1;
+  SCAN_FLAGGED = 2;
+}
+
+// ─────────────────────────── Storefront ───────────────────────────
+
+message Storefront {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
+  bytes  owner_id = 2;
+  // ? slug TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$')
+  string slug = 3;
+  string name = 4;
+  string tagline = 5;
+  string bio = 6;
+  string logo_url = 7;
+  string banner_url = 8;
+  // Bitwise status (active / verified / suspended).
+  int32  status = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// ─────────────────────────── Category tree (hierarchical) ───────────────────────────
+
+message AssetCategory {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? parent_id BIGINT REFERENCES asset_categories(id)  (NULL = top level)
+  uint64 parent_id = 2;
+  // ? slug TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$')  e.g. "3d-characters"
+  string slug = 3;
+  string label = 4;
+  string icon = 5;
+  // Bitwise status (active/featured).
+  int32  status = 6;
+  int32  sort_order = 7;
+}
+
+// ─────────────────────────── Licensing ───────────────────────────
+
+message LicenseTemplate {
+  uint64 id = 1;
+  LicenseTier tier = 2;
+  string name = 3;
+  // Human-readable terms (markdown).
+  string terms_md = 4;
+  // Machine-readable caps:
+  bool   allow_commercial      = 5;
+  bool   allow_redistribution  = 6;   // resell/redistribute raw files
+  bool   allow_resale_in_product = 7; // asset as a core resold component
+  bool   allow_sublicense      = 8;
+  int32  seat_cap     = 9;            // 0 = unlimited
+  int64  revenue_cap  = 10;           // 0 = unlimited (per-title revenue cap)
+  string updated_at = 11;
+}
+
+// Per-asset price for a license template (e.g. Standard $X, Extended $Y).
+message LicenseOffering {
+  uint64 id = 1;
+  uint64 asset_id = 2;
+  uint64 license_template_id = 3;
+  int64  price = 4;        // minor units
+  string currency = 5;
+  bool   active = 6;
+}
+
+// ─────────────────────────── Asset (pattern from disoxide.DiscordServer) ───────────────────────────
+
+message Asset {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? seller_id UUID NOT NULL REFERENCES auth.users(id)
+  bytes  seller_id = 2;
+  uint64 storefront_id = 3;
+  // ? slug TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$')
+  string slug = 4;
+  // ? title VARCHAR(140) NOT NULL
+  string title = 5;
+  // ? summary VARCHAR(200)
+  string summary = 6;
+  // ? description TEXT (markdown)
+  string description = 7;
+  // ? category_id BIGINT NOT NULL REFERENCES asset_categories(id)
+  uint64 category_id = 8;
+  // Shared taxonomy ids: engines / tools / formats (jobboard.Taxonomy).
+  repeated uint64 tag_ids = 9;
+  // PUBLIC, watermarked + degraded previews auto-generated from the source
+  // (turntable/low-poly viewer, downscaled images, low-bitrate audio) —
+  // NEVER the deliverable source files (those are private AssetFiles).
+  repeated status.MediaAttachment previews = 10;   // ← reused
+  AiDisclosure ai_disclosure = 11;
+  // AssetStatus bitmask.
+  int32  status = 12;
+  uint64 current_version_id = 13;
+  // Lowest active license price, denormalized for listing/sort.
+  int64  price_from = 14;
+  string currency = 15;
+  // Free assets auto-issue a LicenseGrant on download (no payment required).
+  bool   is_free = 24;
+  // Lead-gen v1: external buy link until on-platform checkout ships.
+  string external_url = 16;
+  // Denormalized stats.
+  uint32 downloads = 17;
+  uint32 sales = 18;
+  uint32 rating_count = 19;
+  float  rating_avg = 20;
+  string published_at = 21;
+  string created_at = 22;
+  string updated_at = 23;
+}
+
+// ─────────────────────────── Versions & files ───────────────────────────
+
+message AssetVersion {
+  uint64 id = 1;
+  uint64 asset_id = 2;
+  // ? version TEXT NOT NULL  e.g. "1.2.0"
+  string version = 3;
+  string changelog = 4;
+  string created_at = 5;
+}
+
+message AssetFile {
+  uint64 id = 1;
+  uint64 version_id = 2;
+  string filename = 3;
+  // fbx / gltf / png / wav / unitypackage / uasset / zip …
+  string format = 4;
+  int64  size_bytes = 5;
+  // R2 object key (private; never returned raw — served via signed URL).
+  string blob_key = 6;
+  string checksum = 7;
+  ScanStatus scan = 8;
+  string created_at = 9;
+}
+
+// ─────────────────────────── Reviews & collections ───────────────────────────
+
+message AssetReview {
+  uint64 id = 1;
+  uint64 asset_id = 2;
+  bytes  buyer_id = 3;
+  // 1..5
+  int32  rating = 4;
+  string body = 5;
+  // True once verified-purchase gating is live (checkout phase).
+  bool   verified_purchase = 6;
+  string created_at = 7;
+}
+
+message Wishlist {
+  bytes  user_id = 1;
+  repeated uint64 asset_ids = 2;
+  string updated_at = 3;
+}
+
+message Collection {
+  uint64 id = 1;
+  bytes  user_id = 2;
+  string name = 3;
+  bool   is_public = 4;
+  repeated uint64 asset_ids = 5;
+  string created_at = 6;
+}
+
+// ─────────────────────────── Checkout, entitlements & payouts (checkout phase) ───────────────────────────
+// Order/receipt reuses kbveproto.Invoice. Entitlement + payout are new.
+
+message LicenseGrant {
+  uint64 id = 1;
+  // References the reused Invoice (order) that paid for it.
+  uint64 invoice_id = 2;
+  uint64 asset_id = 3;
+  uint64 asset_version_id = 4;
+  uint64 license_template_id = 5;
+  bytes  buyer_id = 6;
+  // Opaque token resolved to a time-limited signed R2 URL at download time.
+  string download_token = 7;
+  string granted_at = 8;
+}
+
+message Payout {
+  uint64 id = 1;
+  bytes  seller_id = 2;
+  int64  amount = 3;       // minor units, net of commission
+  string currency = 4;
+  // 0 pending, 1 paid, 2 failed
+  int32  status = 5;
+  // Stripe Connect transfer/payout reference.
+  string external_ref = 6;
+  string period_start = 7;
+  string period_end = 8;
+  string created_at = 9;
+}
+
+// ─────────────────────────── Trust & safety ───────────────────────────
+
+message DmcaClaim {
+  uint64 id = 1;
+  bytes  claimant_id = 2;
+  uint64 asset_id = 3;
+  string description = 4;
+  string evidence_url = 5;
+  // 0 received, 1 upheld (asset suspended), 2 rejected, 3 counter-noticed
+  int32  status = 6;
+  string created_at = 7;
+}
+
+// ─────────────────────────── Service (pattern from kbveproto.MessageRpc / store.StoreService) ───────────────────────────
+
+message ById   { uint64 id = 1; }
+message BySlug { string slug = 1; }
+message ByUser { bytes  user_id = 1; }
+message Ack    { bool success = 1; string message = 2; }
+
+service AssetStoreRpc {
+  // Catalog admin
+  rpc UpsertCategory (AssetCategory) returns (Ack);     // admin
+  rpc UpsertLicenseTemplate (LicenseTemplate) returns (Ack);  // admin
+
+  // Storefront & listings
+  rpc CreateStorefront (Storefront) returns (Ack);
+  rpc CreateAsset (Asset) returns (Ack);
+  rpc GetAsset (BySlug) returns (Asset);
+  rpc PublishAsset (ById) returns (Ack);
+  rpc AddAssetVersion (AssetVersion) returns (Ack);
+  rpc AddAssetFile (AssetFile) returns (Ack);
+  rpc SetLicenseOffering (LicenseOffering) returns (Ack);
+
+  // Engagement
+  rpc ToggleWishlist (ById) returns (Ack);
+  rpc SubmitReview (AssetReview) returns (Ack);
+
+  // Checkout & delivery (checkout phase)
+  rpc IssueLicenseGrant (LicenseGrant) returns (Ack);   // after Stripe webhook
+  rpc ResolveDownload (ById) returns (Ack);             // grant id -> signed URL in message
+
+  // Trust & safety
+  rpc SubmitDmca (DmcaClaim) returns (Ack);
+}
+```
+
+### Reuse summary
+
+- **New file:** `assetstore.proto` (1 file, 1 package).
+- **Reused as-is:** `Auth`, `User`, `Profile`, `Apikey`, **`Invoice` (orders)**, `Setting`, `Global`, `MediaAttachment`, **`jobboard.Taxonomy` (engine/tool/format tags)**, `JediEnvelope`/`MessageKind`, `StoreService`, `RedisService`.
+- **Reused as pattern (not copied):** `DiscordServer` → `Asset`/`Storefront`, `DiscordTag` → `AssetCategory`, `MessageRpc`/`StoreService` → `AssetStoreRpc`.
+- **New domain only:** storefronts, hierarchical categories, licensing (templates/offerings/grants), versions/files, reviews/collections, payouts, DMCA.
+- **No new `MessageKind` values** — existing routing bits suffice.
+
+* * *
+
+## Trust & safety
+
+Open supply makes moderation load-bearing:
+- **DMCA / copyright** — formal claim → review → suspend workflow (`DmcaClaim`). Stolen assets are the #1 risk for open asset marketplaces.
+- **Malware scanning** — every uploaded `AssetFile` is scanned (`ScanStatus`) before it can be sold/downloaded.
+- **AI-content disclosure** — required `AiDisclosure` per asset; surfaced on listings; misdeclaration is a takedown reason.
+- **Quality / asset-flip moderation** — reports + ratings + optional verified-seller badge.
+- **Refunds & chargebacks** (checkout phase) — policy for digital goods; fraud monitoring.
+- **Private source, watermarked previews** — source files live in private R2 with no public URL, served only via short-lived signed URLs gated on a `LicenseGrant` (or `is_free`). The public ever only sees **derived, watermarked, degraded** previews — never the deliverable. See [Preview protection & download gating](#preview-protection--download-gating).
+- Audit log for all admin actions.
+
+* * *
+
+## Key risks / open questions
+
+1. **Stolen / pirated assets** — open listing invites IP theft. Needs the DMCA workflow + possibly perceptual-hash/duplicate detection on upload. How aggressive at launch?
+2. **AI-content policy** — disclosure is modeled, but the *policy* (allowed? labeled-only? banned in some categories?) is a product decision.
+3. **Lead-gen for digital goods is unusual** — in v1 buyers leave via `external_url`, so **no commission is collected until checkout ships**. Confirm v1 is acceptable as a pure discovery catalog, or accelerate checkout.
+4. **File hosting & egress costs** — large bundles + free previews can get expensive; R2 has no egress fees (good fit), but storage tiers/limits per seller need a policy.
+5. **Refund policy** for instant-delivery digital goods (checkout phase).
+6. **Shared `Taxonomy` coupling** — reusing `jobboard.Taxonomy` couples this package to `jobboard`. Cleaner long-term: promote `Taxonomy` (+ `MediaAttachment`) into a shared `common.proto`. Decide now vs later.
+7. **Relationship to Job Board** — confirm single shared identity/account across both products (assumed), and whether storefront + talent profile are unified surfaces.
+
+* * *
+
+## Phased build plan
+
+| Phase | Scope | Outcome |
+|---|---|---|
+| **0 — Foundations** | Axum + `sqlx` + Postgres; migrations; seed category tree + reuse shared tags; first-party auth (shared KBVE identity); wire `assetstore.proto` | API boots, auth works, DB ready |
+| **1 — Storefronts** | Create/manage storefront; seller profile | Sellers have a home |
+| **2 — Listings (catalog)** | Create asset, categories/tags, preview media, license offerings, AI disclosure; lead-gen `external_url` | Assets are listed |
+| **3 — Discovery** | Browse/search/faceted filter; asset detail; license-terms display | Catalog is usable |
+| **4 — Engagement** | Wishlists, collections, follows, reviews | Demand-side retention |
+| **5 — Checkout & delivery** | Stripe checkout; Order(`Invoice`); commission; `LicenseGrant`; R2 signed downloads; library | **Real store + revenue** |
+| **6 — Payouts** | Stripe Connect onboarding; seller `Payout` | Sellers get paid |
+| **7 — File pipeline & T&S** | Malware scan, preview/thumbnail generation, DMCA workflow, verified-purchase reviews | Trust hardened |
+| **8 — Frontend client** | Choose framework (SEO-critical → SSR); build UI | Usable product |
+| **9 — Discovery polish & monetization** | Meilisearch, recommendations, featured listings, optional subscription library | Scale + revenue surface |
+
+* * *
+
+## Decisions
+
+**Locked:** strictly game assets · **open marketplace** (anyone lists; post-hoc moderation) · **lead-gen catalog v1**, on-platform checkout later · **commission per sale** (activates at checkout) · decoupled architecture · Rust/Axum API · first-party auth (shared KBVE identity, no auth SaaS) · `sqlx` + Postgres · R2 with signed downloads · **previews are server-generated, watermarked, degraded derivatives (never the source); source files are private + grant-gated; free assets auto-issue a grant** · protobuf reuses KBVE protos + `jobboard.Taxonomy` + one new `assetstore` package.
+
+**Still open:**
+- **Licensing model** — defaulted to **Standard + Extended**; confirm vs single royalty-free vs seller-defined.
+- **AI-content policy** — allowed / labeled-only / restricted by category.
+- **Anti-piracy aggressiveness** at launch (DMCA only vs duplicate detection).
+- **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — Phase 8; SEO favors SSR.
+- **Commission rate** + verified-seller rate breaks.
+- **Shared `Taxonomy`/`MediaAttachment`** — keep coupling to `jobboard` vs promote to `common.proto`.
+- **Preview-generation stack** — which renderer/encoder per type (e.g. headless Blender/Three.js for 3D turntables + decimation, ffmpeg for audio/video, image pipeline for watermarking), and the fidelity-vs-leak-resistance tradeoff (how degraded/watermarked).
+- Seller storage limits/tiers; refund policy; subscription-library tier (later).
