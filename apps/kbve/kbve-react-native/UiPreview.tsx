@@ -12,6 +12,7 @@ import {
 	ToastViewport,
 } from '@kbve/rn';
 import './WgpuHost';
+import { TypeGpuCanvas } from './TypeGpuCanvas';
 
 export default function UiPreview() {
 	return (
@@ -41,6 +42,13 @@ export default function UiPreview() {
 							icon: 'chatbubble',
 							screen: <ChatScreen />,
 							title: 'Chat',
+						},
+						{
+							id: 'fx',
+							label: 'FX',
+							icon: 'sparkles',
+							screen: <TypeGpuCanvas />,
+							title: 'GPU FX',
 						},
 					]}
 				/>
