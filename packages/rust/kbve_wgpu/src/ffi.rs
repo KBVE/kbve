@@ -65,6 +65,8 @@ pub unsafe extern "C" fn kbve_wgpu_create_game(
     kind: u32,
     width: u32,
     height: u32,
+    asset_root: *const u8,
+    asset_root_len: usize,
 ) -> *mut WgpuSurface {
     let Some(kind) = SurfaceKind::from_u32(kind) else {
         return ptr::null_mut();
@@ -72,8 +74,14 @@ pub unsafe extern "C" fn kbve_wgpu_create_game(
     if raw.is_null() {
         return ptr::null_mut();
     }
+    let asset_root = if asset_root.is_null() || asset_root_len == 0 {
+        "assets".to_string()
+    } else {
+        let bytes = std::slice::from_raw_parts(asset_root, asset_root_len);
+        std::str::from_utf8(bytes).unwrap_or("assets").to_string()
+    };
     let window = crate::handle::MobileWindow::new(raw, kind);
-    match crate::renderer::bevy::BevyRenderer::new(window, width, height) {
+    match crate::renderer::bevy::BevyRenderer::with_assets(window, width, height, &asset_root) {
         Ok(renderer) => Box::into_raw(Box::new(WgpuSurface {
             renderer: Box::new(renderer),
         })),

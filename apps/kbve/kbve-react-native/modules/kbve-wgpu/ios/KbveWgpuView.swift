@@ -22,8 +22,18 @@ public final class KbveWgpuView: ExpoView {
         metalLayer.pixelFormat = .bgra8Unorm
         metalLayer.framebufferOnly = true
         metalLayer.contentsScale = UIScreen.main.scale
-        layer.addSublayer(metalLayer)
         KbveWgpuView.current = self
+    }
+
+    private var isGameMode: Bool { componentId != "triangle" }
+
+    private static func assetRoot() -> String {
+        let bundle = Bundle(for: KbveWgpuView.self)
+        if let url = bundle.url(forResource: "KbveWgpuAssets", withExtension: "bundle"),
+            let assets = Bundle(url: url) {
+            return assets.resourcePath ?? assets.bundlePath
+        }
+        return bundle.resourcePath ?? "assets"
     }
 
     public override func layoutSubviews() {
@@ -42,8 +52,19 @@ public final class KbveWgpuView: ExpoView {
     }
 
     private func createSurface(width: UInt32, height: UInt32) {
-        let raw = Unmanaged.passUnretained(metalLayer).toOpaque()
-        surface = kbve_wgpu_create(raw, 0, width, height)
+        if isGameMode {
+            let raw = Unmanaged.passUnretained(self).toOpaque()
+            let root = Array(Self.assetRoot().utf8)
+            surface = root.withUnsafeBufferPointer { ptr in
+                kbve_wgpu_create_game(raw, 2, width, height, ptr.baseAddress, root.count)
+            }
+        } else {
+            if metalLayer.superlayer == nil {
+                layer.addSublayer(metalLayer)
+            }
+            let raw = Unmanaged.passUnretained(metalLayer).toOpaque()
+            surface = kbve_wgpu_create(raw, 0, width, height)
+        }
         let ok = surface != nil
         if ok {
             if let jwt = pendingJwt {
