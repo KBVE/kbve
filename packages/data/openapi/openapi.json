@@ -11,7 +11,7 @@
 		"license": {
 			"name": "MIT"
 		},
-		"version": "1.0.136"
+		"version": "1.0.201"
 	},
 	"servers": [
 		{
@@ -326,7 +326,7 @@
 		"/api/v1/forum/tags": {
 			"get": {
 				"tags": ["forum"],
-				"summary": "GET /forum/tags — popularity-sorted tag listing.\nGET /api/v1/forum/tags — JSON list of popularity-sorted tags.\nDrives the astro-kbve build-time top-tags fetch.",
+				"summary": "GET /api/v1/forum/tags — JSON list of popularity-sorted tags.\nDrives the astro-kbve build-time top-tags fetch.",
 				"operationId": "api_list_tags",
 				"responses": {
 					"200": {
@@ -393,11 +393,1413 @@
 				]
 			}
 		},
+		"/api/v1/market/listings": {
+			"get": {
+				"tags": ["market"],
+				"summary": "`GET /api/v1/market/listings` — paged active listings, public/anon.",
+				"operationId": "list_active",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "Page size (1-100, default 25)",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "before_created_at",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last created_at (RFC3339)",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "before_id",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last listing_id",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Active listings page",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/MarketListingDto"
+									}
+								}
+							}
+						}
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				}
+			},
+			"post": {
+				"tags": ["market"],
+				"summary": "`POST /api/v1/market/listings` — create a listing. Returns the new\nlisting_id. Idempotent on `idempotency_key` — replays return the same id.",
+				"operationId": "create_listing",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateListingBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Listing created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketIdDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid payload (price/expiry/ref)"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/market/listings/{listing_id}": {
+			"get": {
+				"tags": ["market"],
+				"summary": "`GET /api/v1/market/listings/:id` — listing detail + up to 50 recent bids.",
+				"operationId": "listing_detail",
+				"parameters": [
+					{
+						"name": "listing_id",
+						"in": "path",
+						"description": "Listing id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Listing detail",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketListingDetailDto"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Listing not found"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				}
+			}
+		},
+		"/api/v1/market/listings/{listing_id}/bid": {
+			"post": {
+				"tags": ["market"],
+				"summary": "`POST /api/v1/market/listings/:id/bid` — place a bid. Returns the new\nbid_id. Bid funds are debited and held in escrow.",
+				"operationId": "place_bid",
+				"parameters": [
+					{
+						"name": "listing_id",
+						"in": "path",
+						"description": "Listing id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PlaceBidBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Bid placed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketIdDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid bid (amount below min_bid / current_bid)"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"402": {
+						"description": "Insufficient funds for escrow"
+					},
+					"403": {
+						"description": "Cannot bid on own listing / listing not active"
+					},
+					"404": {
+						"description": "Listing not found"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/market/listings/{listing_id}/buy-now": {
+			"post": {
+				"tags": ["market"],
+				"summary": "`POST /api/v1/market/listings/:id/buy-now` — buy a listing at its\n`buy_now_price`. Returns the buyer ledger_id.",
+				"operationId": "buy_now",
+				"parameters": [
+					{
+						"name": "listing_id",
+						"in": "path",
+						"description": "Listing id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BuyNowBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Listing purchased",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketIdDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Listing has no buy_now_price"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"402": {
+						"description": "Insufficient funds"
+					},
+					"403": {
+						"description": "Cannot buy own listing / listing not active"
+					},
+					"404": {
+						"description": "Listing not found"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/market/listings/{listing_id}/cancel": {
+			"post": {
+				"tags": ["market"],
+				"summary": "`POST /api/v1/market/listings/:id/cancel` — cancel an active listing.\nSeller-only. Refunds the current high bidder's escrow.",
+				"operationId": "cancel_listing",
+				"parameters": [
+					{
+						"name": "listing_id",
+						"in": "path",
+						"description": "Listing id",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CancelListingBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Listing cancelled"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Not the seller / listing not active"
+					},
+					"404": {
+						"description": "Listing not found"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/market/me/bids": {
+			"get": {
+				"tags": ["market"],
+				"summary": "`GET /api/v1/market/me/bids` — caller's bids across listings.",
+				"operationId": "me_bids",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "Page size (1-100, default 25)",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "before_placed_at",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last placed_at (RFC3339)",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "before_id",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last bid_id",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Caller's bids",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/MarketMyBidDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/market/me/listings": {
+			"get": {
+				"tags": ["market"],
+				"summary": "`GET /api/v1/market/me/listings` — caller's listings (seller scope).",
+				"operationId": "me_listings",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "Page size (1-100, default 25)",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "before_created_at",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last created_at (RFC3339)",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "before_id",
+						"in": "query",
+						"description": "Keyset cursor: previous page's last listing_id",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Caller's listings",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/MarketMyListingDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/me/active": {
+			"get": {
+				"tags": ["mc-lot"],
+				"summary": "`GET /api/v1/mc/lots/me/active` — caller-owned lots in `state IN (1, 2)`.",
+				"operationId": "list_my_active",
+				"parameters": [
+					{
+						"name": "world",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_x",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_z",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_lot_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Owned lots (active)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/OwnedLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/me/purchase": {
+			"post": {
+				"tags": ["mc-lot"],
+				"summary": "`POST /api/v1/mc/lots/me/purchase` — buy a vacant lot.",
+				"operationId": "me_purchase",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PurchaseLotBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Purchase recorded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PurchaseLotDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"402": {
+						"description": "Insufficient funds"
+					},
+					"404": {
+						"description": "Lot not found"
+					},
+					"409": {
+						"description": "Lot not vacant / replay mismatch"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/me/queue-build": {
+			"post": {
+				"tags": ["mc-lot"],
+				"summary": "`POST /api/v1/mc/lots/me/queue-build` — queue a schematic build on the caller's lot.",
+				"operationId": "me_queue_build",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/QueueBuildBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Build job queued",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BuildIdDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Lot not owned"
+					},
+					"404": {
+						"description": "Lot / schematic not found"
+					},
+					"409": {
+						"description": "Active job conflict / replay mismatch"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/me/queue-demolish": {
+			"post": {
+				"tags": ["mc-lot"],
+				"summary": "`POST /api/v1/mc/lots/me/queue-demolish` — queue a demolish of a built lot.",
+				"operationId": "me_queue_demolish",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/QueueDemolishBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Demolish job queued",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BuildIdDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Lot not owned"
+					},
+					"404": {
+						"description": "Lot not found"
+					},
+					"409": {
+						"description": "Active job conflict / replay mismatch"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/me/transitional": {
+			"get": {
+				"tags": ["mc-lot"],
+				"summary": "`GET /api/v1/mc/lots/me/transitional` — caller-owned lots in `state IN (3, 4)`.",
+				"operationId": "list_my_transitional",
+				"parameters": [
+					{
+						"name": "world",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_x",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_z",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_lot_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Owned lots (transitional)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/OwnedLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/schematics": {
+			"get": {
+				"tags": ["mc-lot"],
+				"summary": "`GET /api/v1/mc/lots/schematics` — public catalog.",
+				"operationId": "list_schematics",
+				"parameters": [
+					{
+						"name": "category",
+						"in": "query",
+						"description": "Optional category filter",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Enabled schematics",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/SchematicDto"
+									}
+								}
+							}
+						}
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				}
+			}
+		},
+		"/api/v1/mc/lots/service/claim": {
+			"post": {
+				"tags": ["mc-lot-service"],
+				"summary": "`POST /api/v1/mc/lots/service/claim` — worker claim batch.",
+				"operationId": "service_claim",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceClaimBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Claimed jobs",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ClaimedBuildDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/service/mark-applied": {
+			"post": {
+				"tags": ["mc-lot-service"],
+				"summary": "`POST /api/v1/mc/lots/service/mark-applied` — worker success ACK.",
+				"operationId": "service_mark_applied",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceMarkAppliedBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "ACK applied",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OkDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/service/mark-failed": {
+			"post": {
+				"tags": ["mc-lot-service"],
+				"summary": "`POST /api/v1/mc/lots/service/mark-failed` — worker failure ACK.",
+				"operationId": "service_mark_failed",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceMarkFailedBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "ACK applied",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OkDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/service/requeue-stale": {
+			"post": {
+				"tags": ["mc-lot-service"],
+				"summary": "`POST /api/v1/mc/lots/service/requeue-stale` — janitor recovery of orphaned claims.",
+				"operationId": "service_requeue_stale",
+				"parameters": [
+					{
+						"name": "older_than_seconds",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Requeue/exhaust counts",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RequeueSummaryDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/staff/failed": {
+			"get": {
+				"tags": ["mc-lot-staff"],
+				"summary": "`GET /api/v1/mc/lots/staff/failed` — keyset list of failed build jobs.",
+				"operationId": "staff_list_failed",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_failed_at",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "after_build_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Failed builds",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/FailedBuildDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/staff/release-user": {
+			"post": {
+				"tags": ["mc-lot-staff"],
+				"summary": "`POST /api/v1/mc/lots/staff/release-user` — release all lots owned by a user.",
+				"operationId": "staff_release_user",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/StaffReleaseUserBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Released lots",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ReleasedLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"409": {
+						"description": "User has active build jobs; pass force = true"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/staff/repair-orphan": {
+			"post": {
+				"tags": ["mc-lot-staff"],
+				"summary": "`POST /api/v1/mc/lots/staff/repair-orphan` — snap orphaned transitional lots back.",
+				"operationId": "staff_repair_orphan",
+				"parameters": [
+					{
+						"name": "dry_run",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Repair candidates / actions",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/RepairedLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/staff/retry": {
+			"post": {
+				"tags": ["mc-lot-staff"],
+				"summary": "`POST /api/v1/mc/lots/staff/retry` — re-queue a failed job.",
+				"operationId": "staff_retry",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/StaffRetryBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Retry attempted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OkDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"404": {
+						"description": "Build not found"
+					},
+					"409": {
+						"description": "Active job conflict / drift"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/staff/{lot_id}": {
+			"get": {
+				"tags": ["mc-lot-staff"],
+				"summary": "`GET /api/v1/mc/lots/staff/{lot_id}` — raw admin view (owner UUID + timestamps).",
+				"operationId": "staff_get_lot",
+				"parameters": [
+					{
+						"name": "lot_id",
+						"in": "path",
+						"description": "Lot ID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Raw lot row",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceLotDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Caller is not staff"
+					},
+					"404": {
+						"description": "Lot not found"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/vacant": {
+			"get": {
+				"tags": ["mc-lot"],
+				"summary": "`GET /api/v1/mc/lots/vacant` — paginated vacant lots in a world.",
+				"operationId": "list_vacant",
+				"parameters": [
+					{
+						"name": "world",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_x",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_chunk_z",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "after_lot_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Vacant lots",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/VacantLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/mc/lots/viewport": {
+			"get": {
+				"tags": ["mc-lot"],
+				"summary": "`GET /api/v1/mc/lots/viewport` — bounding-box map RPC.",
+				"operationId": "list_viewport",
+				"parameters": [
+					{
+						"name": "world",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "min_chunk_x",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "max_chunk_x",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "min_chunk_z",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "max_chunk_z",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "state",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["integer", "null"],
+							"format": "int32"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Lots intersecting the viewport",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ViewportLotDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Lot service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
 		"/api/v1/mc/players": {
 			"get": {
 				"tags": ["mc"],
-				"summary": "MC players API endpoint - returns online player list with UUIDs and skin URLs.\nGET /api/v1/mc/players",
-				"description": "Data is cached and refreshed every 15s via RCON background task.",
+				"summary": "MC players API endpoint — returns online player list with UUIDs and skin URLs.\nData is cached and refreshed every 15s via RCON background task.",
 				"operationId": "mc_players_handler",
 				"responses": {
 					"200": {
@@ -414,11 +1816,47 @@
 				}
 			}
 		},
+		"/api/v1/mc/players/by-uuid/{uuid}": {
+			"get": {
+				"tags": ["mc"],
+				"summary": "MC player skin lookup by UUID — returns skin_url + texture hash for the\nsupplied Mojang UUID. Falls back to a live Mojang sessionserver query\nwhen the player isn't currently online in the RCON cache.",
+				"operationId": "mc_player_by_uuid_handler",
+				"parameters": [
+					{
+						"name": "uuid",
+						"in": "path",
+						"description": "Mojang UUID (dashed or undashed, 32-36 chars)",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Skin URL + texture hash for the player",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid UUID format"
+					},
+					"404": {
+						"description": "Mojang has no skin for this UUID"
+					},
+					"503": {
+						"description": "MC service not configured"
+					}
+				}
+			}
+		},
 		"/api/v1/mc/textures/{hash}": {
 			"get": {
 				"tags": ["mc"],
-				"summary": "MC texture proxy - fetches skin PNGs from textures.minecraft.net.\nGET /api/v1/mc/textures/{hash}",
-				"description": "Hash must be 60-64 hex characters. Responses are immutably cached (24h).",
+				"summary": "MC texture proxy — fetches skin PNGs from textures.minecraft.net.\nHash must be 60-64 hex characters. Responses are immutably cached (24h).",
 				"operationId": "mc_texture_handler",
 				"parameters": [
 					{
@@ -505,8 +1943,7 @@
 		"/api/v1/osrs/{item_id}": {
 			"get": {
 				"tags": ["osrs"],
-				"summary": "OSRS API endpoint - returns item price data as JSON.\nGET /api/v1/osrs/{item_id}",
-				"description": "Supports both numeric IDs (21012) and item names (dragon_hunter_crossbow).\nReturns current GE prices from the cache (refreshed every 60s).",
+				"summary": "OSRS API endpoint — returns item price data as JSON.\nSupports both numeric IDs and item names. Cache refreshes every 60s.",
 				"operationId": "osrs_api_handler",
 				"parameters": [
 					{
@@ -540,8 +1977,7 @@
 		"/api/v1/profile/me": {
 			"get": {
 				"tags": ["profile"],
-				"summary": "Authenticated profile endpoint - returns the current user's profile.\nGET /api/v1/profile/me",
-				"description": "Requires Bearer token in Authorization header.",
+				"summary": "Authenticated profile endpoint — returns the caller's profile.\nRequires Bearer token in Authorization header.",
 				"operationId": "profile_me_handler",
 				"responses": {
 					"200": {
@@ -569,8 +2005,7 @@
 		"/api/v1/profile/username": {
 			"post": {
 				"tags": ["profile"],
-				"summary": "Set username endpoint - creates username for authenticated user.\nPOST /api/v1/profile/username",
-				"description": "Requires Bearer token in Authorization header.\nBody: { \"username\": \"desired_username\" }\n\nValidates username at multiple levels:\n1. Client-side validation (Handy app)\n2. Axum-level validation (this endpoint)\n3. Database-level validation (proxy_add_username RPC)",
+				"summary": "Set username endpoint — creates username for authenticated user.\nValidates at axum level, then defers to the proxy_add_username RPC.",
 				"operationId": "set_username_handler",
 				"requestBody": {
 					"content": {
@@ -614,8 +2049,7 @@
 		"/api/v1/profile/{username}": {
 			"get": {
 				"tags": ["profile"],
-				"summary": "Profile API endpoint - returns user profile data as JSON.\nGET /api/v1/profile/{username}",
-				"description": "Returns the user's profile data including connected accounts (Discord, GitHub, Twitch)\nand enriched data from external APIs when available.",
+				"summary": "Profile API endpoint — returns user profile data as JSON, enriched\nfrom Discord / GitHub / Twitch / RentEarth when available.",
 				"operationId": "profile_api_handler",
 				"parameters": [
 					{
@@ -648,6 +2082,73 @@
 				}
 			}
 		},
+		"/api/v1/rcon/{game}/{server}/exec": {
+			"post": {
+				"tags": ["rcon"],
+				"summary": "`POST /api/v1/rcon/{game}/{server}/exec` — auth + allowlist + jedi::rcon.",
+				"operationId": "exec_handler",
+				"parameters": [
+					{
+						"name": "game",
+						"in": "path",
+						"description": "Game id — `mc` or `factorio`",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "server",
+						"in": "path",
+						"description": "Logical server name, e.g. `lobby`, `survival`, `main`",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RconExecRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "RCON exec result",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RconExecResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Unknown game / unknown command / arg validation failure"
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					},
+					"403": {
+						"description": "Command requires staff and caller is not staff"
+					},
+					"404": {
+						"description": "Endpoint not configured for this game/server"
+					},
+					"502": {
+						"description": "RCON connect / auth / exec failure"
+					},
+					"503": {
+						"description": "Auth or RCON registry not initialized"
+					}
+				}
+			}
+		},
 		"/api/v1/telemetry/report": {
 			"post": {
 				"tags": ["telemetry"],
@@ -676,6 +2177,515 @@
 						"description": "Rate limited (>120 events/min globally)"
 					}
 				}
+			}
+		},
+		"/api/v1/wallet/me/balance": {
+			"get": {
+				"tags": ["wallet"],
+				"summary": "`GET /api/v1/wallet/me/balance` — returns the caller's wallet balance.\nLazily provisions the wallet account + welcome coupon on first call.",
+				"operationId": "me_balance",
+				"responses": {
+					"200": {
+						"description": "Caller's balance",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BalanceDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/me/coupons": {
+			"get": {
+				"tags": ["wallet"],
+				"summary": "`GET /api/v1/wallet/me/coupons` — returns the caller's coupons\n(unredeemed + history).",
+				"operationId": "me_coupons",
+				"responses": {
+					"200": {
+						"description": "Caller's coupons",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CouponDto"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/me/redeem-coupon": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/me/redeem-coupon` — redeem one of the caller's coupons.\nOwnership-checked + idempotent at the coupon layer.",
+				"operationId": "me_redeem_coupon",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RedeemCouponBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Redemption result",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RedeemCouponDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid argument"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "Coupon not redeemable / expired / revoked"
+					},
+					"404": {
+						"description": "Coupon not found / not owned by caller"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"501": {
+						"description": "Reward kind not yet implemented"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/balance/{user_id}": {
+			"get": {
+				"tags": ["wallet"],
+				"summary": "`GET /api/v1/wallet/service/balance/{user_id}` — read another user's\nwallet balance from a trusted backend (mc server). Same response shape\nas `/api/v1/wallet/me/balance`, but identity comes from the path\ninstead of the bearer's `sub`. Service-role only.",
+				"operationId": "service_balance",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"description": "Supabase user UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "User's balance",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BalanceDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/credit": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/credit` — credit a positive delta to any\naccount. Returns the resulting ledger id. Idempotent: replays with the\nsame `idempotency_key` return the original id; mismatched payloads on\nthe same key raise `409 replay_mismatch`.",
+				"operationId": "service_credit",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceCreditBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Ledger row created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceLedgerDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid currency / source_kind / payload"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"422": {
+						"description": "Overflow / null argument"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/credit-user": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/credit-user` — credit keyed on Supabase\nuser_id rather than wallet account_id. Resolves (or creates) the\naccount first via `wallet.proxy_ensure_user_account`, then runs the\nregular service_credit path. Idempotent with the same key.",
+				"description": "Designed for the MC mod daily-login flow + edge-function callers that\nonly know a user_id.",
+				"operationId": "service_credit_user",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceCreditUserBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Account resolved + ledger row created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceCreditUserDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid currency / source_kind / payload"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"422": {
+						"description": "Overflow / null argument"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/debit": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/debit` — deduct from an account. Raises\n`402 insufficient_funds` if the balance would go negative.",
+				"operationId": "service_debit",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceCreditBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Ledger row created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceLedgerDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid currency / source_kind / payload"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"402": {
+						"description": "Insufficient funds"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/redeem-coupon": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/redeem-coupon` — redeem a coupon on behalf\nof any account. Service-side variant of the user proxy; useful for\nadmin grants or backend-initiated redemptions.",
+				"operationId": "service_redeem_coupon",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceRedeemCouponBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Redemption result",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RedeemCouponDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required / coupon not redeemable"
+					},
+					"404": {
+						"description": "Coupon not found"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"501": {
+						"description": "Reward kind not yet implemented"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/revoke-coupon": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/revoke-coupon` — admin clawback. Cannot\nrevoke a redeemed coupon (funds already out). Idempotent: revoking an\nalready-revoked coupon returns `{revoked: false}` without raising.",
+				"operationId": "service_revoke_coupon",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceRevokeCouponBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Revoke result",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceRevokeDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required / coupon already redeemed"
+					},
+					"404": {
+						"description": "Coupon not found"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/transfer": {
+			"post": {
+				"tags": ["wallet"],
+				"summary": "`POST /api/v1/wallet/service/transfer` — atomic debit + credit. Locks\nboth accounts in canonical UUID order to eliminate the A↔B deadlock vector.",
+				"operationId": "service_transfer",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ServiceTransferBody"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Transfer committed"
+					},
+					"400": {
+						"description": "Invalid currency / source_kind / payload"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"402": {
+						"description": "Insufficient funds on source"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"409": {
+						"description": "Idempotency replay mismatch"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/v1/wallet/service/verify-balance/{account_id}": {
+			"get": {
+				"tags": ["wallet"],
+				"summary": "`GET /api/v1/wallet/service/verify-balance/:account_id` — compare stored\nbalance vs ledger sum per currency. Run periodically or after suspected\ncorruption. `ok=true` means consistent.",
+				"operationId": "service_verify_balance",
+				"parameters": [
+					{
+						"name": "account_id",
+						"in": "path",
+						"description": "Wallet account UUID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Balance vs ledger comparison",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ServiceVerifyBalanceDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"403": {
+						"description": "service_role required"
+					},
+					"404": {
+						"description": "Account not found"
+					},
+					"503": {
+						"description": "Wallet service unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
 			}
 		},
 		"/dashboard/clickhouse/proxy": {
@@ -747,11 +2757,161 @@
 	},
 	"components": {
 		"schemas": {
+			"BalanceDto": {
+				"type": "object",
+				"required": ["account_id", "credits", "khash", "updated_at"],
+				"properties": {
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"khash": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				}
+			},
+			"BuildIdDto": {
+				"type": "object",
+				"required": ["build_id"],
+				"properties": {
+					"build_id": {
+						"type": "string"
+					}
+				}
+			},
+			"BuyNowBody": {
+				"type": "object",
+				"required": ["idempotency_key"],
+				"properties": {
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"CancelListingBody": {
+				"type": "object",
+				"properties": {
+					"reason": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"ClaimedBuildDto": {
+				"type": "object",
+				"required": [
+					"build_id",
+					"lot_id",
+					"actor_user_id",
+					"action_kind",
+					"queued_at",
+					"world",
+					"chunk_x_min",
+					"chunk_x_max",
+					"chunk_z_min",
+					"chunk_z_max",
+					"block_x_min",
+					"block_x_max",
+					"block_z_min",
+					"block_z_max",
+					"anchor_y"
+				],
+				"properties": {
+					"action_kind": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"actor_user_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"anchor_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"build_id": {
+						"type": "string"
+					},
+					"chunk_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"dims_x": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"dims_y": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"dims_z": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"queued_at": {
+						"type": "string"
+					},
+					"resource_path": {
+						"type": ["string", "null"]
+					},
+					"schematic_id": {
+						"type": ["string", "null"]
+					},
+					"world": {
+						"type": "string"
+					}
+				}
+			},
 			"ClickHouseLogsRequest": {
 				"type": "object",
 				"description": "Body schema for `POST /dashboard/clickhouse/proxy`. Mirrors the legacy\nsupabase edge function at `/functions/v1/logs` so the dashboard JS in\n`clickhouseService.ts` doesn't have to change. Bounds are enforced inside\njedi (`pipe_clickhouse::logs`):\n- `minutes` clamped to `1..=10080`\n- `limit` clamped to `1..=500`\n- `search` truncated to 100 chars",
 				"required": ["command"],
 				"properties": {
+					"bucket_seconds": {
+						"type": ["integer", "null"],
+						"format": "int32",
+						"description": "Time-bucket width in seconds for `rows_request_rate`. Defaults to 30,\nclamped 5..=3600. Ignored by other commands.",
+						"minimum": 0
+					},
 					"command": {
 						"type": "string",
 						"description": "Either `\"query\"` (filtered SELECT) or `\"stats\"` (GROUP BY)."
@@ -876,6 +3036,46 @@
 					}
 				}
 			},
+			"CouponDto": {
+				"type": "object",
+				"required": [
+					"coupon_id",
+					"template_code",
+					"template_label",
+					"reward_kind",
+					"reward_payload",
+					"status",
+					"granted_at"
+				],
+				"properties": {
+					"coupon_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"expires_at": {
+						"type": ["string", "null"]
+					},
+					"granted_at": {
+						"type": "string"
+					},
+					"redeemed_at": {
+						"type": ["string", "null"]
+					},
+					"reward_kind": {
+						"type": "string"
+					},
+					"reward_payload": {},
+					"status": {
+						"type": "string"
+					},
+					"template_code": {
+						"type": "string"
+					},
+					"template_label": {
+						"type": "string"
+					}
+				}
+			},
 			"CreateCommentBody": {
 				"type": "object",
 				"required": ["body"],
@@ -885,6 +3085,39 @@
 					},
 					"parent_comment_id": {
 						"type": ["string", "null"]
+					}
+				}
+			},
+			"CreateListingBody": {
+				"type": "object",
+				"required": ["src_item_id", "expires_at", "idempotency_key"],
+				"properties": {
+					"buy_now_price": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"expires_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Caller-supplied. Replays return the original listing_id."
+					},
+					"min_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"qty": {
+						"type": ["integer", "null"],
+						"format": "int64",
+						"description": "None / src.qty = whole row; smaller = split."
+					},
+					"src_item_id": {
+						"type": "string",
+						"format": "uuid",
+						"description": "inventory.item id the seller owns in `held` state."
 					}
 				}
 			},
@@ -962,6 +3195,46 @@
 					"reason": {
 						"type": ["string", "null"],
 						"description": "Optional moderator reason — only honored on the staff-edit /\nstaff-remove paths. Inline text, sanitized as a title-like field."
+					}
+				}
+			},
+			"FailedBuildDto": {
+				"type": "object",
+				"required": [
+					"build_id",
+					"lot_id",
+					"actor_user_id",
+					"action_kind",
+					"failed_at",
+					"attempt_count"
+				],
+				"properties": {
+					"action_kind": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"actor_user_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"apply_error": {
+						"type": ["string", "null"]
+					},
+					"attempt_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"build_id": {
+						"type": "string"
+					},
+					"failed_at": {
+						"type": "string"
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"schematic_id": {
+						"type": ["string", "null"]
 					}
 				}
 			},
@@ -1068,6 +3341,489 @@
 					},
 					"version": {
 						"type": "string"
+					}
+				}
+			},
+			"ListLotsQuery": {
+				"type": "object",
+				"properties": {
+					"after_chunk_x": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"after_chunk_z": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"after_lot_id": {
+						"type": ["string", "null"]
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"world": {
+						"type": "string"
+					}
+				}
+			},
+			"ListSchematicsQuery": {
+				"type": "object",
+				"properties": {
+					"category": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"MarketIdDto": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64",
+						"description": "listing_id (create) / bid_id (bid) / ledger_id (buy-now)."
+					}
+				}
+			},
+			"MarketListingDetailDto": {
+				"type": "object",
+				"required": [
+					"listing_id",
+					"seller_account",
+					"item_ref",
+					"currency",
+					"listing_status",
+					"expires_at",
+					"created_at",
+					"updated_at",
+					"bids"
+				],
+				"properties": {
+					"bids": {
+						"description": "JSONB array of up to 50 most recent bids. Bidder UUIDs, ledger ids,\nand settled_at are redacted by the SQL proxy."
+					},
+					"buy_now_price": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"current_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"current_bid_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"item_ref": {},
+					"listing_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"listing_status": {
+						"type": "string"
+					},
+					"min_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"seller_account": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"settled_at": {
+						"type": ["string", "null"]
+					},
+					"updated_at": {
+						"type": "string"
+					}
+				}
+			},
+			"MarketListingDto": {
+				"type": "object",
+				"required": [
+					"listing_id",
+					"seller_account",
+					"item_ref",
+					"currency",
+					"expires_at",
+					"created_at"
+				],
+				"properties": {
+					"buy_now_price": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"current_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"item_ref": {},
+					"listing_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"min_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"seller_account": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"MarketMyBidDto": {
+				"type": "object",
+				"required": [
+					"bid_id",
+					"listing_id",
+					"amount",
+					"bid_status",
+					"placed_at",
+					"escrow_ledger_id"
+				],
+				"properties": {
+					"amount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"bid_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"bid_status": {
+						"type": "string"
+					},
+					"escrow_ledger_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"listing_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"placed_at": {
+						"type": "string"
+					},
+					"refund_ledger_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"settled_at": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"MarketMyListingDto": {
+				"type": "object",
+				"required": [
+					"listing_id",
+					"item_ref",
+					"currency",
+					"listing_status",
+					"expires_at",
+					"created_at"
+				],
+				"properties": {
+					"buy_now_price": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"buyer_account": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"current_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"current_bid_account": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"expires_at": {
+						"type": "string"
+					},
+					"item_ref": {},
+					"listing_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"listing_status": {
+						"type": "string"
+					},
+					"min_bid": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"settled_at": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"OkDto": {
+				"type": "object",
+				"required": ["ok"],
+				"properties": {
+					"ok": {
+						"type": "boolean"
+					}
+				}
+			},
+			"OwnedLotDto": {
+				"type": "object",
+				"required": [
+					"lot_id",
+					"chunk_x_min",
+					"chunk_x_max",
+					"chunk_z_min",
+					"chunk_z_max",
+					"block_x_min",
+					"block_x_max",
+					"block_z_min",
+					"block_z_max",
+					"chunk_area",
+					"anchor_y",
+					"state",
+					"price_credits",
+					"price_khash"
+				],
+				"properties": {
+					"anchor_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_area": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"current_schematic_id": {
+						"type": ["string", "null"]
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"price_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"price_khash": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"state": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"PlaceBidBody": {
+				"type": "object",
+				"required": ["amount", "idempotency_key"],
+				"properties": {
+					"amount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"PurchaseLotBody": {
+				"type": "object",
+				"required": ["lot_id", "idempotency_key"],
+				"properties": {
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"lot_id": {
+						"type": "string"
+					}
+				}
+			},
+			"PurchaseLotDto": {
+				"type": "object",
+				"required": ["purchase_id"],
+				"properties": {
+					"purchase_id": {
+						"type": "string"
+					}
+				}
+			},
+			"QueueBuildBody": {
+				"type": "object",
+				"required": ["lot_id", "schematic_id", "idempotency_key"],
+				"properties": {
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"schematic_id": {
+						"type": "string"
+					}
+				}
+			},
+			"QueueDemolishBody": {
+				"type": "object",
+				"required": ["lot_id", "idempotency_key"],
+				"properties": {
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"lot_id": {
+						"type": "string"
+					}
+				}
+			},
+			"RconExecRequest": {
+				"type": "object",
+				"description": "Wire shape mirrors `kbve.rcon.RconRequest`. The path captures cover\n`game` and `server`, so the body only carries the command + args.",
+				"required": ["command"],
+				"properties": {
+					"args": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"command": {
+						"type": "string",
+						"description": "Canonical command name (must match an allowlist entry)."
+					}
+				}
+			},
+			"RconExecResponse": {
+				"type": "object",
+				"description": "Wire shape mirrors `kbve.rcon.RconResponse`.",
+				"required": ["ok", "output", "latency_ms"],
+				"properties": {
+					"error": {
+						"type": ["string", "null"]
+					},
+					"latency_ms": {
+						"type": "integer",
+						"format": "int32",
+						"minimum": 0
+					},
+					"ok": {
+						"type": "boolean"
+					},
+					"output": {
+						"type": "string"
+					}
+				}
+			},
+			"RedeemCouponBody": {
+				"type": "object",
+				"required": ["coupon_id", "idempotency_key"],
+				"properties": {
+					"coupon_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Caller-supplied UUID. Retries with the same key replay the same\nredemption and return the original ledger_id."
+					}
+				}
+			},
+			"RedeemCouponDto": {
+				"type": "object",
+				"required": [
+					"success",
+					"reward_kind",
+					"reward_payload",
+					"ledger_id"
+				],
+				"properties": {
+					"ledger_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"reward_kind": {
+						"type": "string"
+					},
+					"reward_payload": {},
+					"success": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ReleasedLotDto": {
+				"type": "object",
+				"required": ["lot_id", "prior_state"],
+				"properties": {
+					"lot_id": {
+						"type": "string"
+					},
+					"prior_state": {
+						"type": "integer",
+						"format": "int32"
 					}
 				}
 			},
@@ -1450,6 +4206,473 @@
 					}
 				}
 			},
+			"RepairedLotDto": {
+				"type": "object",
+				"required": ["lot_id", "prior_state", "new_state"],
+				"properties": {
+					"latest_apply_error": {
+						"type": ["string", "null"]
+					},
+					"latest_apply_state": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"latest_build_id": {
+						"type": ["string", "null"]
+					},
+					"latest_failed_at": {
+						"type": ["string", "null"]
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"new_state": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"prior_state": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"RequeueSummaryDto": {
+				"type": "object",
+				"required": ["requeued_count", "exhausted_count"],
+				"properties": {
+					"exhausted_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"requeued_count": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"SchematicDto": {
+				"type": "object",
+				"required": [
+					"schematic_id",
+					"name",
+					"category",
+					"tier",
+					"dims_x",
+					"dims_y",
+					"dims_z",
+					"price_credits",
+					"price_khash"
+				],
+				"properties": {
+					"category": {
+						"type": "string"
+					},
+					"dims_x": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"dims_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"dims_z": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					},
+					"price_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"price_khash": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"schematic_id": {
+						"type": "string"
+					},
+					"tier": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"ServiceClaimBody": {
+				"type": "object",
+				"required": ["worker_id"],
+				"properties": {
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"worker_id": {
+						"type": "string"
+					}
+				}
+			},
+			"ServiceCreditBody": {
+				"type": "object",
+				"required": [
+					"account_id",
+					"currency",
+					"amount",
+					"source_kind",
+					"idempotency_key"
+				],
+				"properties": {
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"amount": {
+						"type": "integer",
+						"format": "int64",
+						"description": "Positive amount in smallest unit (1 credit / 1 khash)."
+					},
+					"currency": {
+						"type": "string",
+						"description": "`credits` or `khash`. Non-convertible currencies."
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid",
+						"description": "Caller-supplied. Replay-safe with payload-mismatch detection."
+					},
+					"reason": {
+						"type": ["string", "null"]
+					},
+					"ref_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"ref_type": {
+						"type": ["string", "null"]
+					},
+					"source_kind": {
+						"type": "string",
+						"description": "One of: reward, purchase, refund, admin, coupon, market_buy,\nmarket_sell, market_fee, transfer."
+					}
+				}
+			},
+			"ServiceCreditUserBody": {
+				"type": "object",
+				"description": "Variant of [`ServiceCreditBody`] keyed on Supabase `user_id` instead of\nthe wallet `account_id`. Used by service callers (MC mod daily reward,\nedge functions) that know the user but not their wallet account UUID.\nThe handler resolves the account on first call (creating it + welcome\ncoupon if missing) before delegating to the regular credit path.",
+				"required": [
+					"user_id",
+					"currency",
+					"amount",
+					"source_kind",
+					"idempotency_key"
+				],
+				"properties": {
+					"amount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"reason": {
+						"type": ["string", "null"]
+					},
+					"ref_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"ref_type": {
+						"type": ["string", "null"]
+					},
+					"source_kind": {
+						"type": "string"
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"ServiceCreditUserDto": {
+				"type": "object",
+				"required": ["account_id", "ledger_id"],
+				"properties": {
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"ledger_id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"ServiceLedgerDto": {
+				"type": "object",
+				"required": ["ledger_id"],
+				"properties": {
+					"ledger_id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"ServiceLotDto": {
+				"type": "object",
+				"required": [
+					"lot_id",
+					"world",
+					"chunk_x_min",
+					"chunk_x_max",
+					"chunk_z_min",
+					"chunk_z_max",
+					"block_x_min",
+					"block_x_max",
+					"block_z_min",
+					"block_z_max",
+					"chunk_area",
+					"anchor_y",
+					"state",
+					"price_credits",
+					"price_khash",
+					"created_at",
+					"updated_at"
+				],
+				"properties": {
+					"anchor_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_area": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"current_schematic_id": {
+						"type": ["string", "null"]
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"owner_user_id": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"price_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"price_khash": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"state": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"updated_at": {
+						"type": "string"
+					},
+					"world": {
+						"type": "string"
+					}
+				}
+			},
+			"ServiceMarkAppliedBody": {
+				"type": "object",
+				"required": ["build_id", "worker_id"],
+				"properties": {
+					"build_id": {
+						"type": "string"
+					},
+					"worker_id": {
+						"type": "string"
+					}
+				}
+			},
+			"ServiceMarkFailedBody": {
+				"type": "object",
+				"required": ["build_id", "worker_id", "error"],
+				"properties": {
+					"build_id": {
+						"type": "string"
+					},
+					"error": {
+						"type": "string"
+					},
+					"worker_id": {
+						"type": "string"
+					}
+				}
+			},
+			"ServiceRedeemCouponBody": {
+				"type": "object",
+				"required": ["coupon_id", "idempotency_key"],
+				"properties": {
+					"coupon_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"ServiceRequeueStaleQuery": {
+				"type": "object",
+				"properties": {
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"older_than_seconds": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"ServiceRevokeCouponBody": {
+				"type": "object",
+				"required": ["coupon_id"],
+				"properties": {
+					"coupon_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"reason": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"ServiceRevokeDto": {
+				"type": "object",
+				"required": ["revoked"],
+				"properties": {
+					"revoked": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ServiceTransferBody": {
+				"type": "object",
+				"required": [
+					"from_account",
+					"to_account",
+					"currency",
+					"amount",
+					"source_kind",
+					"idempotency_key"
+				],
+				"properties": {
+					"amount": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"from_account": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"idempotency_key": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"reason": {
+						"type": ["string", "null"]
+					},
+					"ref_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"ref_type": {
+						"type": ["string", "null"]
+					},
+					"source_kind": {
+						"type": "string"
+					},
+					"to_account": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"ServiceVerifyBalanceDto": {
+				"type": "object",
+				"required": [
+					"account_id",
+					"stored_credits",
+					"ledger_credits",
+					"stored_khash",
+					"ledger_khash",
+					"ok"
+				],
+				"properties": {
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"ledger_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"ledger_khash": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"ok": {
+						"type": "boolean"
+					},
+					"stored_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"stored_khash": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
 			"SetUsernameRequest": {
 				"type": "object",
 				"description": "Request body for setting username",
@@ -1478,6 +4701,54 @@
 					},
 					"status": {
 						"type": "string"
+					}
+				}
+			},
+			"StaffListFailedQuery": {
+				"type": "object",
+				"properties": {
+					"after_build_id": {
+						"type": ["string", "null"]
+					},
+					"after_failed_at": {
+						"type": ["string", "null"]
+					},
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"StaffReleaseUserBody": {
+				"type": "object",
+				"required": ["user_id"],
+				"properties": {
+					"force": {
+						"type": "boolean"
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"StaffRepairQuery": {
+				"type": "object",
+				"properties": {
+					"dry_run": {
+						"type": "boolean"
+					}
+				}
+			},
+			"StaffRetryBody": {
+				"type": "object",
+				"required": ["build_id"],
+				"properties": {
+					"build_id": {
+						"type": "string"
+					},
+					"reset_attempts": {
+						"type": "boolean"
 					}
 				}
 			},
@@ -1742,6 +5013,187 @@
 						"type": ["string", "null"]
 					}
 				}
+			},
+			"VacantLotDto": {
+				"type": "object",
+				"required": [
+					"lot_id",
+					"chunk_x_min",
+					"chunk_x_max",
+					"chunk_z_min",
+					"chunk_z_max",
+					"block_x_min",
+					"block_x_max",
+					"block_z_min",
+					"block_z_max",
+					"chunk_area",
+					"anchor_y",
+					"price_credits",
+					"price_khash"
+				],
+				"properties": {
+					"anchor_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_area": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"price_credits": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"price_khash": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"ViewportLotDto": {
+				"type": "object",
+				"required": [
+					"lot_id",
+					"chunk_x_min",
+					"chunk_x_max",
+					"chunk_z_min",
+					"chunk_z_max",
+					"block_x_min",
+					"block_x_max",
+					"block_z_min",
+					"block_z_max",
+					"anchor_y",
+					"is_owned",
+					"is_owned_by_me",
+					"state"
+				],
+				"properties": {
+					"anchor_y": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"block_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_x_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_max": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"chunk_z_min": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"current_schematic_id": {
+						"type": ["string", "null"]
+					},
+					"is_owned": {
+						"type": "boolean"
+					},
+					"is_owned_by_me": {
+						"type": "boolean"
+					},
+					"lot_id": {
+						"type": "string"
+					},
+					"state": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"ViewportQuery": {
+				"type": "object",
+				"required": [
+					"min_chunk_x",
+					"max_chunk_x",
+					"min_chunk_z",
+					"max_chunk_z"
+				],
+				"properties": {
+					"limit": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"max_chunk_x": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"max_chunk_z": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"min_chunk_x": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"min_chunk_z": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"state": {
+						"type": ["integer", "null"],
+						"format": "int32"
+					},
+					"world": {
+						"type": "string"
+					}
+				}
 			}
 		},
 		"securitySchemes": {
@@ -1777,12 +5229,36 @@
 			"description": "Minecraft RCON-backed live data: player list, head textures."
 		},
 		{
+			"name": "mc-lot",
+			"description": "Minecraft digital real-estate: schematic catalog, lot listings, viewport map, caller-scoped purchase and build/demolish queue."
+		},
+		{
+			"name": "mc-lot-staff",
+			"description": "Staff-only ops surface for the MC lot system: failed-job triage, retry, forced user-lot release, orphan-transitional repair."
+		},
+		{
+			"name": "mc-lot-service",
+			"description": "service_role-only worker surface for the MC mod: claim job batches, mark applied/failed, requeue stale claims."
+		},
+		{
+			"name": "rcon",
+			"description": "Generic RCON exec — staff-gated, allowlist-driven, MC + Factorio backends."
+		},
+		{
 			"name": "telemetry",
 			"description": "Client-side error reporting from WASM/JS."
 		},
 		{
 			"name": "dashboard",
 			"description": "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."
+		},
+		{
+			"name": "wallet",
+			"description": "Authenticated wallet surface: balance, coupons, claim flows."
+		},
+		{
+			"name": "market",
+			"description": "Player marketplace: list, browse, bid, buy-now. Khash-only with a 1% KBVE Treasury fee."
 		}
 	]
 }

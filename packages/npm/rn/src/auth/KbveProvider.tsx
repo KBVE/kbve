@@ -2,17 +2,25 @@ import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthStore, authCore, ChatStore, chatCore } from '@kbve/core';
+import {
+	AuthStore,
+	authCore,
+	ChatStore,
+	chatCore,
+	createKbveApi,
+} from '@kbve/core';
+import type { KbveApi } from '@kbve/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseClient, mapSession } from './supabase';
 import { createSupabaseAuthExecutor } from './executor';
 import { createChatExecutor } from '../chat/executor';
-import { KBVE_CHAT_URL } from '../config';
+import { KBVE_API_URL, KBVE_CHAT_URL } from '../config';
 
 export interface KbveContextValue {
 	client: SupabaseClient;
 	authStore: AuthStore;
 	chatStore: ChatStore;
+	api: KbveApi;
 }
 
 const KbveContext = createContext<KbveContextValue | null>(null);
@@ -38,7 +46,14 @@ export function KbveProvider({
 			chatCore,
 			createChatExecutor(client, KBVE_CHAT_URL),
 		);
-		return { client, authStore, chatStore };
+		const api = createKbveApi({
+			baseUrl: KBVE_API_URL,
+			getToken: async () => {
+				const { data } = await client.auth.getSession();
+				return data.session?.access_token ?? null;
+			},
+		});
+		return { client, authStore, chatStore, api };
 	}, [supabaseUrl, anonKey]);
 
 	useEffect(() => {
