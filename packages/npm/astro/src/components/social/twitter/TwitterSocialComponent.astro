@@ -1,0 +1,53 @@
+---
+interface Props {
+	handle?: string;
+	label?: string;
+	theme?: 'dark' | 'light';
+	embedHeight?: number;
+	showEmbed?: boolean;
+	class?: string;
+}
+
+const {
+	handle = 'kbve',
+	label,
+	theme = 'dark',
+	embedHeight = 600,
+	showEmbed = true,
+	class: className = '',
+} = Astro.props;
+
+const profileUrl = `https://x.com/${handle}`;
+const timelineUrl = `https://twitter.com/${handle}?ref_src=twsrc%5Etfw`;
+const ctaLabel = label ?? `Follow @${handle} on X`;
+---
+
+<div class:list={['mx-auto my-6 grid w-full max-w-3xl gap-4', className]}>
+	<a
+		class="inline-flex w-fit items-center gap-2 rounded-xl border border-gray-700 bg-black px-5 py-3 font-semibold text-white transition-transform duration-150 hover:-translate-y-px hover:border-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+		href={profileUrl}
+		target="_blank"
+		rel="noopener noreferrer">
+		<span class="text-lg leading-none" aria-hidden="true">𝕏</span>
+		<span>{ctaLabel}</span>
+	</a>
+
+	{
+		showEmbed && (
+			<div class="overflow-hidden rounded-xl border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900">
+				<a
+					class="twitter-timeline"
+					data-height={embedHeight}
+					data-theme={theme}
+					href={timelineUrl}>
+					Tweets by @{handle}
+				</a>
+				<script
+					async
+					src="https://platform.twitter.com/widgets.js"
+					charset="utf-8"
+				/>
+			</div>
+		)
+	}
+</div>

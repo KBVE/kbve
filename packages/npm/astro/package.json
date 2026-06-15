@@ -54,7 +54,10 @@
 		"./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",
 		"./components/hero/observer/ObserverCollections.astro": "./components/hero/observer/ObserverCollections.astro",
 		"./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro",
-		"./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro"
+		"./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro",
+		"./components/social/twitter/TwitterSocialComponent.astro": "./components/social/twitter/TwitterSocialComponent.astro",
+		"./components/social/youtube/YoutubeSocialComponent.astro": "./components/social/youtube/YoutubeSocialComponent.astro",
+		"./components/social/tiktok/TiktokSocialComponent.astro": "./components/social/tiktok/TiktokSocialComponent.astro"
 	},
 	"files": [
 		"astro.es.js",
