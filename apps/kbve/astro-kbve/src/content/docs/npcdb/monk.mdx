@@ -1,0 +1,40 @@
+---
+title: 'Elder Monk'
+description: |
+    A serene keeper of the old ways. Meditates near the plaza shrine and offers travelers patience, wisdom, and the occasional cryptic hint about the road to the throne.
+ref: 'monk'
+id: '01KSAVZ000000000000000MONK'
+name: 'Elder Monk'
+type_flags: 1
+rarity: 'common'
+personality: 'stoic'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/entity/monks.png'
+role: 'Shrine Keeper'
+tags:
+    - cryptothrone
+    - cloud-city
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 2
+    speed: 1
+    armor: 1
+behavior:
+    movement_type: 'stationary'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Peace, traveler. The path to the throne is long.'
+        - 'Patience and wisdom will serve you well.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />

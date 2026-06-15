@@ -36,6 +36,10 @@ export default defineConfig({
 				find: '@kbve/npcdb-data',
 				replacement: pkg('data/codegen/generated/npcdb-data.json'),
 			},
+			{
+				find: '@kbve/npcdb',
+				replacement: pkg('data/codegen/npcdb.ts'),
+			},
 		],
 	},
 	publicDir: false,

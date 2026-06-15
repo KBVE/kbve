@@ -21,6 +21,10 @@
 			],
 			"@kbve/npcdb-data": [
 				"../../../packages/data/codegen/generated/npcdb-data.json"
+			],
+			"@kbve/npcdb": ["../../../packages/data/codegen/npcdb.ts"],
+			"@kbve/npcdb-schema": [
+				"../../../packages/data/codegen/generated/npcdb-schema.ts"
 			]
 		}
 	}
