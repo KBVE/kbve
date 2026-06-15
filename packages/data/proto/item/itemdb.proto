@@ -5,6 +5,7 @@ package item;
 option csharp_namespace = "KBVE.Proto.Item";
 
 import "kbve/common.proto";
+import "google/protobuf/struct.proto";
 
 // =============================================================================
 // Enums
@@ -628,6 +629,11 @@ message Item {
   // Primary lookup key for engines + the rareicon ItemId enum.
   int32 key = 65;
   optional bool has_img = 66;           // Sprite asset present (derived from `img`)
+
+  // Freeform stat bonuses authored flat in MDX. Heterogeneous by nature (numbers
+  // like cookingSpeed/fireResist plus boolean flags like quantumFlux), so it is
+  // an arbitrary JSON object rather than the fixed-field ItemBonuses message.
+  optional google.protobuf.Struct bonuses = 67;
 }
 
 // =============================================================================

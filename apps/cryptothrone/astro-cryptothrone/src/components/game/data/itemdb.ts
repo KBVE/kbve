@@ -2,13 +2,6 @@ import rawItemdb from '@kbve/itemdb-data';
 import type { Item } from '@kbve/itemdb-schema';
 import type { ItemData, ItemAction } from '../types';
 
-// `bonuses` is a freeform top-level MDX field not modeled in the proto `Item`
-// (proto only carries bonuses nested under equipment/enchantment), so layer it
-// onto the canonical type rather than re-describing the whole shape.
-type ItemRecord = Item & {
-	bonuses?: Record<string, number | boolean | string>;
-};
-
 // Inline SVG placeholder for item icons whose sprite is missing (the default
 // /assets/icons/<ref>.png path has no backing file for many items). A data URI
 // can't 404, so it sidesteps Cloudflare caching a missing-asset 404.
@@ -50,10 +43,10 @@ function resolveActions(type: ItemData['type']): ItemAction[] {
 	return ['drop', 'inspect'];
 }
 
-// Bonuses are freeform in the MDX (ItemBonusesSchema is .passthrough()), so the
-// values can be numbers, booleans, or nested — keep only the numeric ones the
+// Item.bonuses is an arbitrary JSON object (proto google.protobuf.Struct), so
+// values can be numbers, booleans, or strings — keep only the numeric ones the
 // UI shows.
-function normalizeBonuses(raw: ItemRecord['bonuses']): Record<string, number> {
+function normalizeBonuses(raw: Item['bonuses']): Record<string, number> {
 	const out: Record<string, number> = {};
 	for (const [k, v] of Object.entries(raw ?? {})) {
 		if (typeof v === 'number') out[BONUS_ALIAS[k] ?? k] = v;
@@ -61,7 +54,7 @@ function normalizeBonuses(raw: ItemRecord['bonuses']): Record<string, number> {
 	return out;
 }
 
-function adapt(raw: ItemRecord): ItemData {
+function adapt(raw: Item): ItemData {
 	const flags = raw.type_flags ?? 0;
 	const type = resolveType(flags);
 	return {
@@ -80,7 +73,7 @@ function adapt(raw: ItemRecord): ItemData {
 	};
 }
 
-const pool = (rawItemdb as { items?: ItemRecord[] }).items ?? [];
+const pool = (rawItemdb as { items?: Item[] }).items ?? [];
 const items: ItemData[] = pool.filter((r) => r && r.ref && r.name).map(adapt);
 
 const itemMap = new Map(items.map((i) => [i.id, i]));
