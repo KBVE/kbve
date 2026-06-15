@@ -33,9 +33,9 @@ namespace RareIcon
             }
 
             var selectedHandle   = new MarkSelectedVisualJob   { Target = 1f }.ScheduleParallel(state.Dependency);
-            var unselectedHandle = new MarkUnselectedVisualJob { Target = 0f }.ScheduleParallel(state.Dependency);
+            var unselectedHandle = new MarkUnselectedVisualJob { Target = 0f }.ScheduleParallel(selectedHandle);
 
-            state.Dependency = Unity.Jobs.JobHandle.CombineDependencies(selectedHandle, unselectedHandle);
+            state.Dependency = unselectedHandle;
         }
     }
 

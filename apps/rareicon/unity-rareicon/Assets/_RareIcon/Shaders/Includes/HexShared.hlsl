@@ -10,8 +10,8 @@
 float hexSDF(float2 p, float size)
 {
     p = abs(p);
-    float d = dot(p, normalize(float2(1.0, 1.732)));
-    return max(d, p.x) - size;
+    float d = dot(p, normalize(float2(1.732, 1.0)));
+    return max(d, p.y) - size;
 }
 
 // Cheap deterministic 2D hash → [0, 1].

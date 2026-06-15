@@ -3,11 +3,22 @@ import * as Linking from 'expo-linking';
 import { makeRedirectUri } from 'expo-auth-session';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { request } from '@kbve/core';
-import type { AuthEffect, AuthEvent, EffectExecutor } from '@kbve/core';
+import type {
+	AuthEffect,
+	AuthEvent,
+	EffectExecutor,
+	OAuthProvider,
+} from '@kbve/core';
 import { KBVE_API_URL } from '../config';
 import { mapSession } from './supabase';
 
 WebBrowser.maybeCompleteAuthSession();
+
+const PROVIDER_SCOPES: Record<OAuthProvider, string> = {
+	discord: 'identify email',
+	github: 'read:user user:email',
+	twitch: 'user:read:email',
+};
 
 export function createSupabaseAuthExecutor(
 	client: SupabaseClient,
@@ -66,7 +77,11 @@ export function createSupabaseAuthExecutor(
 					void client.auth
 						.signInWithOAuth({
 							provider: effect.provider,
-							options: { redirectTo, skipBrowserRedirect: true },
+							options: {
+								redirectTo,
+								skipBrowserRedirect: true,
+								scopes: PROVIDER_SCOPES[effect.provider],
+							},
 						})
 						.then(async ({ data, error }) => {
 							if (error || !data?.url) {
