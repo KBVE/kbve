@@ -74,6 +74,24 @@ message ForgejoRepo {
   string updated_at = 13;
   string language = 14;
   ForgejoOwner owner = 15;
+  string html_url = 16;
+  string clone_url = 17;
+  bool empty = 18;
+  uint64 stars_count = 19;
+  uint64 forks_count = 20;
+  uint64 open_issues_count = 21;
+  uint64 open_pr_counter = 22;
+  uint64 release_counter = 23;
+  string created_at = 24;
+  bool has_pull_requests = 25;
+  string languages_url = 26;
+  ForgejoInternalTracker internal_tracker = 27;
+}
+
+message ForgejoInternalTracker {
+  bool enable_time_tracker = 1;
+  bool allow_only_contributors_to_track_time = 2;
+  bool enable_issue_dependencies = 3;
 }
 
 // ── Branches & commits ──────────────────────────────────────────────
@@ -82,6 +100,7 @@ message ForgejoBranchCommit {
   string id = 1;
   string message = 2;
   string timestamp = 3;
+  git.GitCommitAuthor author = 4;
 }
 
 message ForgejoBranch {
@@ -122,6 +141,7 @@ message ForgejoRelease {
   string created_at = 7;
   string published_at = 8;
   repeated ForgejoReleaseAsset assets = 9;
+  ForgejoOwner author = 10;
 }
 
 message ForgejoTagCommit {

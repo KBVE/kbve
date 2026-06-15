@@ -1,6 +1,6 @@
 ---
-import { getCollection } from 'astro:content';
 import { MCLotFrontmatterSchema } from '@/data/schema';
+import { getLotEntries } from './mc-collections';
 
 const { data } = Astro.props;
 const lot = MCLotFrontmatterSchema.parse(data);
@@ -24,20 +24,7 @@ const stateAccent: Record<string, string> = {
 };
 const accent = stateAccent[lot.state] ?? '#cbd5e1';
 
-// Pull every lot in the same world so the panel can render an overview
-// SVG marking THIS lot inside the broader plaza.
-const allLots = await getCollection('docs', (entry) => {
-	const m = (entry.data as { mc_lot?: unknown }).mc_lot;
-	if (!m) return false;
-	try {
-		const parsed = MCLotFrontmatterSchema.parse(m);
-		return parsed.world === lot.world;
-	} catch {
-		return false;
-	}
-});
-
-const peers = allLots.map((e) => MCLotFrontmatterSchema.parse(e.data.mc_lot));
+const peers = await getLotEntries(lot.world);
 const minX = Math.min(...peers.map((p) => p.chunk_x_min), lot.chunk_x_min) - 1;
 const maxX = Math.max(...peers.map((p) => p.chunk_x_max), lot.chunk_x_max) + 1;
 const minZ = Math.min(...peers.map((p) => p.chunk_z_min), lot.chunk_z_min) - 1;

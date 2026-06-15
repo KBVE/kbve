@@ -47,7 +47,7 @@ const toneStyle = StyleSheet.create({
 
 const textTone = StyleSheet.create({
 	neutral: { color: tokens.color.textMuted },
-	primary: { color: '#fff' },
+	primary: { color: tokens.color.onPrimary },
 	success: { color: tokens.color.success },
 	danger: { color: tokens.color.danger },
 	warning: { color: tokens.color.warning },

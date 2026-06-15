@@ -30,11 +30,15 @@ export default defineConfig({
 			{ find: '@kbve/laser', replacement: pkg('npm/laser/src/index.ts') },
 			{
 				find: '@kbve/itemdb-data',
-				replacement: pkg('data/codegen/generated/itemdb-data.json'),
+				replacement: pkg('data/codegen/generated/itemdb.json'),
 			},
 			{
 				find: '@kbve/npcdb-data',
 				replacement: pkg('data/codegen/generated/npcdb-data.json'),
+			},
+			{
+				find: '@kbve/npcdb',
+				replacement: pkg('data/codegen/npcdb.ts'),
 			},
 		],
 	},

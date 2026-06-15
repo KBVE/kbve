@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { tokens } from '../ui/theme';
@@ -7,9 +7,11 @@ import { Surface } from '../ui/primitives/Surface';
 import { EntityRenderer } from '../ui/EntityRenderer';
 import type { UIEntity } from '../ui/models';
 import { Sandbox } from '../sandbox/Sandbox';
+import { HostBridge } from '../sandbox/bridge';
 import type { HostApiTable } from '../sandbox/bridge';
 import { isSandboxed } from './manifest';
 import type { PluginSurfaceSlot } from './manifest';
+import { getNativeComponent } from './nativeRegistry';
 import type { InstalledPlugin, PluginRegistry } from './registry';
 
 export function usePluginRegistry(registry: PluginRegistry) {
@@ -31,13 +33,47 @@ const PluginFrame = memo(function PluginFrame({
 }) {
 	const [entities, setEntities] = useState<UIEntity[]>([]);
 	const [error, setError] = useState<string | null>(null);
+	const bridge = useMemo(
+		() =>
+			new HostBridge({
+				manifest: plugin.manifest,
+				granted: plugin.granted,
+				api,
+			}),
+		[plugin.manifest, plugin.granted, api],
+	);
+
+	if (plugin.manifest.entry.kind === 'native') {
+		const NativeComponent = getNativeComponent(
+			plugin.manifest.entry.componentId,
+		);
+		if (!NativeComponent) {
+			return (
+				<Surface>
+					<Text variant="label">{plugin.manifest.name}</Text>
+					<Text variant="caption" tone="muted">
+						native component "{plugin.manifest.entry.componentId}"
+						not registered
+					</Text>
+				</Surface>
+			);
+		}
+		return (
+			<NativeComponent
+				componentId={plugin.manifest.entry.componentId}
+				bridge={bridge}
+				fullBleed={fullBleed}
+				style={fullBleed ? styles.fullBleed : undefined}
+			/>
+		);
+	}
 
 	if (!isSandboxed(plugin.manifest.entry)) {
 		return (
 			<Surface>
 				<Text variant="label">{plugin.manifest.name}</Text>
 				<Text variant="caption" tone="muted">
-					native entry — no host component registered
+					unsupported entry
 				</Text>
 			</Surface>
 		);

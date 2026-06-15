@@ -187,10 +187,62 @@ pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
 
 #[derive(Clone, Copy)]
+pub struct StatusEffect {
+    pub kind: proto::StatusKind,
+    pub magnitude: i32,
+    pub period_ticks: u32,
+    pub next_tick: u32,
+    pub expires_tick: u32,
+}
+
+#[derive(Component, Default)]
+pub struct StatusEffects(pub Vec<StatusEffect>);
+
+impl StatusEffects {
+    /// Add or refresh an effect. Same-kind effects never stack: the stronger
+    /// magnitude and later expiry win, so re-applying just tops it up.
+    pub fn apply(&mut self, e: StatusEffect) {
+        if let Some(existing) = self.0.iter_mut().find(|x| x.kind == e.kind) {
+            existing.magnitude = existing.magnitude.max(e.magnitude);
+            existing.expires_tick = existing.expires_tick.max(e.expires_tick);
+            existing.period_ticks = e.period_ticks.max(1);
+            existing.next_tick = existing.next_tick.min(e.next_tick);
+        } else {
+            self.0.push(e);
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct BuffSpec {
+    pub kind: proto::StatusKind,
+    pub magnitude: i32,
+    pub period_ticks: u32,
+    pub duration_ticks: u32,
+}
+
+impl BuffSpec {
+    pub fn at(&self, now: u32) -> StatusEffect {
+        let period = self.period_ticks.max(1);
+        StatusEffect {
+            kind: self.kind,
+            magnitude: self.magnitude,
+            period_ticks: period,
+            next_tick: now.saturating_add(period),
+            expires_tick: now.saturating_add(self.duration_ticks),
+        }
+    }
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct BuffEffects(pub HashMap<String, BuffSpec>);
+
+#[derive(Clone, Copy)]
 pub struct AggroSpec {
     pub range: i32,
     pub damage: i32,
     pub period_ticks: u32,
+    pub poison: Option<BuffSpec>,
 }
 
 #[derive(Clone)]
@@ -213,6 +265,7 @@ pub struct Aggro {
     pub damage: i32,
     pub period_ticks: u32,
     pub next_tick: u32,
+    pub poison: Option<BuffSpec>,
 }
 
 #[derive(Component, Clone)]
@@ -340,6 +393,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
             damage: a.damage,
             period_ticks: a.period_ticks,
             next_tick: 0,
+            poison: a.poison,
         });
     }
     if spec.respawn_ticks > 0 {
@@ -369,6 +423,7 @@ pub fn build_app(
         .insert_resource(PendingActions::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
+        .insert_resource(BuffEffects::default())
         .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
         .insert_resource(KillCounts::default())
@@ -409,6 +464,7 @@ pub fn build_app(
             (
                 advance_movement,
                 chain_steps,
+                tick_status_effects,
                 respawn_players,
                 regen_players,
             )
@@ -507,6 +563,7 @@ fn sync_roster(
                 Equipped { weapon, armor },
                 Path::default(),
                 StepBuffer::default(),
+                StatusEffects::default(),
             ))
             .id();
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
@@ -558,8 +615,10 @@ fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
     effects: Res<ConsumableEffects>,
+    buffs: Res<BuffEffects>,
     equipment: Res<EquipmentEffects>,
     config: Res<SimConfig>,
+    clock: Res<SimClock>,
     bcast: Res<SnapshotBroadcast>,
     mut actions: ResMut<PendingActions>,
     mut q: Query<(
@@ -575,6 +634,7 @@ fn drain_inputs(
         &mut CombatStats,
         &mut Defense,
         &XpState,
+        &mut StatusEffects,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -608,6 +668,7 @@ fn drain_inputs(
         mut stats,
         mut defense,
         xp,
+        mut status,
     ) in q.iter_mut()
     {
         let Some(inputs) = pending.get(&slot.0.0) else {
@@ -636,7 +697,17 @@ fn drain_inputs(
                     pos.facing = *facing;
                 }
                 Input::UseItem { item_ref } => {
-                    use_item(&effects, &bcast, slot.0, item_ref, &mut hp, &mut inv);
+                    use_item(
+                        &effects,
+                        &buffs,
+                        &bcast,
+                        slot.0,
+                        item_ref,
+                        clock.tick,
+                        &mut hp,
+                        &mut inv,
+                        &mut status,
+                    );
                 }
                 Input::EquipItem { item_ref } => {
                     let Some(&bonus) = equipment.0.get(item_ref.as_str()) else {
@@ -689,17 +760,23 @@ fn drain_inputs(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn use_item(
     effects: &ConsumableEffects,
+    buffs: &BuffEffects,
     bcast: &SnapshotBroadcast,
     slot: proto::PlayerSlot,
     item_ref: &str,
+    now: u32,
     hp: &mut Health,
     inv: &mut Inventory,
+    status: &mut StatusEffects,
 ) {
-    let Some(&heal) = effects.0.get(item_ref) else {
+    let heal = effects.0.get(item_ref).copied();
+    let buff = buffs.0.get(item_ref).copied();
+    if heal.is_none() && buff.is_none() {
         return;
-    };
+    }
     let Some(idx) = inv.slots.iter().position(|(r, c)| r == item_ref && *c > 0) else {
         return;
     };
@@ -707,8 +784,15 @@ fn use_item(
     if inv.slots[idx].1 == 0 {
         inv.slots.remove(idx);
     }
-    hp.hp = (hp.hp + heal).min(hp.max_hp);
-    let payload = json!({ "item_ref": item_ref, "heal": heal })
+    let heal_amt = heal.unwrap_or(0);
+    if heal_amt != 0 {
+        hp.hp = (hp.hp + heal_amt).min(hp.max_hp);
+    }
+    if let Some(b) = buff {
+        status.apply(b.at(now));
+        send_status(bcast, slot, b.kind, b.magnitude, b.duration_ticks);
+    }
+    let payload = json!({ "item_ref": item_ref, "heal": heal_amt })
         .to_string()
         .into_bytes();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
@@ -1011,11 +1095,21 @@ fn hostile_ai(
     map: Res<WalkableMap>,
     bcast: Res<SnapshotBroadcast>,
     mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
-    mut q_players: Query<(Entity, &GridPos, &mut Health, &Defense), With<PlayerSlotTag>>,
+    mut q_players: Query<
+        (
+            Entity,
+            &GridPos,
+            &mut Health,
+            &Defense,
+            &PlayerSlotTag,
+            &mut StatusEffects,
+        ),
+        With<PlayerSlotTag>,
+    >,
 ) {
     for (mob, mut pos, mut mv, mut aggro) in q_mobs.iter_mut() {
         let mut nearest: Option<(Entity, Tile, i32)> = None;
-        for (pe, ppos, hp, _) in q_players.iter() {
+        for (pe, ppos, hp, _, _, _) in q_players.iter() {
             if hp.hp <= 0 {
                 continue;
             }
@@ -1041,12 +1135,17 @@ fn hostile_ai(
                 continue;
             }
             aggro.next_tick = clock.tick.saturating_add(aggro.period_ticks);
-            let Ok((_, _, mut hp, defense)) = q_players.get_mut(player_entity) else {
+            let Ok((_, _, mut hp, defense, slot, mut status)) = q_players.get_mut(player_entity)
+            else {
                 continue;
             };
             let dmg = (aggro.damage - defense.0).max(1);
             hp.hp -= dmg;
             let died = hp.hp <= 0;
+            if !died && let Some(p) = aggro.poison {
+                status.apply(p.at(clock.tick));
+                send_status(&bcast, slot.0, p.kind, p.magnitude, p.duration_ticks);
+            }
             let payload = json!({
                 "attacker": mob.index_u32(),
                 "target": player_entity.index_u32(),
@@ -1083,6 +1182,66 @@ fn hostile_ai(
     }
 }
 
+fn send_status(
+    bcast: &SnapshotBroadcast,
+    slot: proto::PlayerSlot,
+    kind: proto::StatusKind,
+    magnitude: i32,
+    remaining: u32,
+) {
+    let payload = json!({
+        "kind": kind as u8,
+        "magnitude": magnitude,
+        "remaining": remaining,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_STATUS,
+        to: slot,
+        payload,
+    });
+}
+
+/// Drive timed status effects: periodic Poison damage / Regen healing, expiry,
+/// and the Haste movement-speed modifier. Runs before respawn so a poison kill
+/// resolves to a respawn on the same tick. Players only — town regen and combat
+/// stay independent of this.
+fn tick_status_effects(
+    clock: Res<SimClock>,
+    config: Res<SimConfig>,
+    mut q: Query<(&mut StatusEffects, &mut Health, &mut MoveSpeed), With<PlayerSlotTag>>,
+) {
+    let now = clock.tick;
+    for (mut status, mut hp, mut speed) in q.iter_mut() {
+        if status.0.is_empty() {
+            continue;
+        }
+        for e in status.0.iter_mut() {
+            if e.period_ticks == 0 {
+                continue;
+            }
+            while now >= e.next_tick && e.next_tick <= e.expires_tick {
+                match e.kind {
+                    proto::StatusKind::Poison => hp.hp -= e.magnitude,
+                    proto::StatusKind::Regen => hp.hp = (hp.hp + e.magnitude).min(hp.max_hp),
+                    proto::StatusKind::Haste => {}
+                }
+                e.next_tick = e.next_tick.saturating_add(e.period_ticks);
+            }
+        }
+        status.0.retain(|e| now < e.expires_tick);
+        let haste = status
+            .0
+            .iter()
+            .filter(|e| e.kind == proto::StatusKind::Haste)
+            .map(|e| e.magnitude)
+            .max()
+            .unwrap_or(0);
+        speed.ticks_per_tile = (config.ticks_per_tile as i32 - haste).max(1) as u8;
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn regen_players(
     clock: Res<SimClock>,
@@ -1108,6 +1267,7 @@ fn regen_players(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn respawn_players(
     config: Res<SimConfig>,
     mut q: Query<
@@ -1117,11 +1277,13 @@ fn respawn_players(
             &mut Path,
             &mut StepBuffer,
             &mut Health,
+            &mut StatusEffects,
+            &mut MoveSpeed,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
-    for (mut pos, mut mv, mut path, mut buffer, mut hp) in q.iter_mut() {
+    for (mut pos, mut mv, mut path, mut buffer, mut hp, mut status, mut speed) in q.iter_mut() {
         if hp.hp > 0 {
             continue;
         }
@@ -1131,6 +1293,8 @@ fn respawn_players(
         path.steps.clear();
         buffer.dir = None;
         hp.hp = hp.max_hp;
+        status.0.clear();
+        speed.ticks_per_tile = config.ticks_per_tile;
     }
 }
 
@@ -1259,15 +1423,17 @@ fn emit_snapshot(
         &MoveTarget,
         Option<&MoveSpeed>,
         Option<&Health>,
+        Option<&StatusEffects>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
         return;
     }
 
+    let now = clock.tick;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
-        .map(|(entity, kind, slot, pos, mv, speed, hp)| {
+        .map(|(entity, kind, slot, pos, mv, speed, hp, status)| {
             let sub = mv
                 .target
                 .map(|_| {
@@ -1275,6 +1441,17 @@ fn emit_snapshot(
                     ((mv.progress as u32 * 255) / span).min(255) as u8
                 })
                 .unwrap_or(0);
+            let effects = status
+                .map(|s| {
+                    s.0.iter()
+                        .map(|e| proto::StatusView {
+                            kind: e.kind,
+                            remaining: e.expires_tick.saturating_sub(now).min(u16::MAX as u32)
+                                as u16,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
             proto::EntityDelta {
                 eid: proto::EntityId(entity.index_u32()),
                 kind: kind.0,
@@ -1285,6 +1462,7 @@ fn emit_snapshot(
                 hp: hp.map(|h| h.hp).unwrap_or(0),
                 max_hp: hp.map(|h| h.max_hp).unwrap_or(0),
                 destroyed: false,
+                effects,
             }
         })
         .collect();
@@ -1556,6 +1734,7 @@ mod tests {
                 range: 8,
                 damage: 60,
                 period_ticks: 1,
+                poison: None,
             }),
             loot: None,
             respawn_ticks: 4,
@@ -1919,6 +2098,7 @@ mod tests {
             range: 8,
             damage: 5,
             period_ticks: 1,
+            poison: None,
         });
         {
             let mut commands_queue = bevy::ecs::world::CommandQueue::default();
@@ -2150,5 +2330,190 @@ mod tests {
         let payload = inventory_payload.expect("no inventory sync");
         assert!(payload.contains("potion"), "payload: {payload}");
         assert!(payload.contains("2"), "payload: {payload}");
+    }
+
+    #[test]
+    fn poison_damages_over_time_then_expires() {
+        let (mut app, _rx, _tx, roster) = harness(61);
+        let _slot = join(&roster, "envenomed");
+        app.update();
+        let player = player_entity(&mut app);
+        let now = app.world().resource::<SimClock>().tick;
+        {
+            let mut se = app.world_mut().get_mut::<StatusEffects>(player).unwrap();
+            se.apply(StatusEffect {
+                kind: proto::StatusKind::Poison,
+                magnitude: 5,
+                period_ticks: 2,
+                next_tick: now + 2,
+                expires_tick: now + 8,
+            });
+        }
+        for _ in 0..10 {
+            app.update();
+        }
+        let hp_after = app.world().get::<Health>(player).unwrap().hp;
+        assert!(hp_after < 100, "poison dealt no damage (hp={hp_after})");
+        assert!(
+            app.world()
+                .get::<StatusEffects>(player)
+                .unwrap()
+                .0
+                .is_empty(),
+            "poison never expired"
+        );
+        for _ in 0..6 {
+            app.update();
+        }
+        let hp_settled = app.world().get::<Health>(player).unwrap().hp;
+        assert_eq!(hp_settled, hp_after, "poison kept ticking after expiry");
+    }
+
+    #[test]
+    fn regen_buff_heals_and_shows_in_snapshot() {
+        let (mut app, mut rx, input_tx, roster) = harness(62);
+        let slot = join(&roster, "mender");
+        app.update();
+        app.world_mut().insert_resource(BuffEffects(HashMap::from([(
+            "elixir".to_string(),
+            BuffSpec {
+                kind: proto::StatusKind::Regen,
+                magnitude: 4,
+                period_ticks: 2,
+                duration_ticks: 8,
+            },
+        )])));
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("elixir", 1);
+        }
+        {
+            let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
+            hp.hp = 50;
+        }
+        input_tx
+            .send((
+                slot,
+                Input::UseItem {
+                    item_ref: "elixir".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..10 {
+            app.update();
+        }
+        let hp = app.world().get::<Health>(player).unwrap().hp;
+        assert!(hp > 50, "regen buff did not heal (hp={hp})");
+
+        let mut saw_effect = false;
+        let mut saw_status_ephemeral = false;
+        while let Ok(evt) = rx.try_recv() {
+            match evt {
+                ServerEvent::Snapshot(snap) => {
+                    for e in snap.entities {
+                        if e.effects.iter().any(|s| s.kind == proto::StatusKind::Regen) {
+                            saw_effect = true;
+                        }
+                    }
+                }
+                ServerEvent::Ephemeral { kind, .. } if kind == proto::EPHEMERAL_STATUS => {
+                    saw_status_ephemeral = true;
+                }
+                _ => {}
+            }
+        }
+        assert!(saw_effect, "regen effect missing from snapshot");
+        assert!(saw_status_ephemeral, "no status ephemeral emitted");
+    }
+
+    #[test]
+    fn haste_buff_speeds_movement_then_restores() {
+        let (mut app, _rx, input_tx, roster) = harness(63);
+        let slot = join(&roster, "sprinter");
+        app.update();
+        app.world_mut().insert_resource(BuffEffects(HashMap::from([(
+            "swift-tonic".to_string(),
+            BuffSpec {
+                kind: proto::StatusKind::Haste,
+                magnitude: 1,
+                period_ticks: 0,
+                duration_ticks: 5,
+            },
+        )])));
+        let player = player_entity(&mut app);
+        let base = app.world().get::<MoveSpeed>(player).unwrap().ticks_per_tile;
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("swift-tonic", 1);
+        }
+        input_tx
+            .send((
+                slot,
+                Input::UseItem {
+                    item_ref: "swift-tonic".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..2 {
+            app.update();
+        }
+        let hasted = app.world().get::<MoveSpeed>(player).unwrap().ticks_per_tile;
+        assert_eq!(hasted, base - 1, "haste did not speed movement");
+        for _ in 0..8 {
+            app.update();
+        }
+        let restored = app.world().get::<MoveSpeed>(player).unwrap().ticks_per_tile;
+        assert_eq!(restored, base, "speed not restored after haste expired");
+    }
+
+    #[test]
+    fn venomous_mob_poisons_player_on_hit() {
+        let (mut app, mut rx, _tx, roster) = harness(64);
+        let _slot = join(&roster, "bitten");
+        app.update();
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = Some(AggroSpec {
+            range: 8,
+            damage: 3,
+            period_ticks: 2,
+            poison: Some(BuffSpec {
+                kind: proto::StatusKind::Poison,
+                magnitude: 2,
+                period_ticks: 1,
+                duration_ticks: 6,
+            }),
+        });
+        {
+            let mut q = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut q, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            q.apply(app.world_mut());
+        }
+        let player = player_entity(&mut app);
+        for _ in 0..30 {
+            app.update();
+        }
+        let poisoned = app
+            .world()
+            .get::<StatusEffects>(player)
+            .unwrap()
+            .0
+            .iter()
+            .any(|e| e.kind == proto::StatusKind::Poison);
+        let mut saw_status = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, .. } = evt
+                && kind == proto::EPHEMERAL_STATUS
+            {
+                saw_status = true;
+            }
+        }
+        assert!(
+            poisoned || saw_status,
+            "venomous mob never poisoned the player"
+        );
     }
 }

@@ -1,0 +1,7 @@
+{
+	"name": "kbve-wgpu",
+	"version": "0.1.0",
+	"description": "KBVE native wgpu render surface (local Expo module)",
+	"main": "index.ts",
+	"private": true
+}

@@ -1,64 +1,47 @@
-import npcdbRaw from '@kbve/npcdb-data';
-import type { NPCData, DialogueNode } from '../types';
+import type { NPCData, DialogueNode, NPCAction } from '../types';
+import type { Npc } from './npcdb';
+import { getNpcEntry, isHostileRef, getGreetingLine } from './npcdb';
 
-interface NpcDbEntry {
-	ref: string;
-	name: string;
-	description?: string;
-	faction?: { factionId?: string };
-	stats?: { hp?: number; maxHp?: number; attack?: number };
-}
+// Re-exported so existing scene code keeps importing it from `./npcs`.
+export { isHostileRef };
 
-const NPCDB: NpcDbEntry[] = (npcdbRaw as { npcs: NpcDbEntry[] }).npcs ?? [];
-const npcDbByRef = new Map(NPCDB.map((n) => [n.ref, n]));
-
+// Per-ref avatar fallback for npcdb entries that ship without an `img`. Real
+// art lives on the npcdb entry; this only backfills.
 const REF_AVATARS: Record<string, string> = {
-	cleric: '/assets/entity/monks.png',
 	'crystal-bat': '/assets/entity/bird_original.png',
 };
 
 const DEFAULT_AVATAR = '/assets/entity/monks.png';
 
-const NPCS: NPCData[] = [
-	{
-		id: 'npc_barkeep',
-		name: 'Evee The BarKeep',
-		avatar: '/assets/npc/barkeep.webp',
-		slug: 'npc/barkeep',
-		actions: ['talk', 'trade', 'steal'],
-	},
-	{
-		id: 'npc_monk',
-		name: 'Elder Monk',
-		avatar: '/assets/entity/monks.png',
-		slug: 'npc/monk',
-		actions: ['talk', 'inspect'],
-	},
-];
-
-const npcMap = new Map(NPCS.map((n) => [n.id, n]));
+// Built lazily from the npcdb pool — no hardcoded NPC list; every NPC the game
+// surfaces resolves through the shared npcdb barrel.
+const npcMap = new Map<string, NPCData>();
 
 export function npcIdForRef(ref: string): string {
 	return `npc_${ref}`;
 }
 
-export function getNpcDbEntry(ref: string): NpcDbEntry | undefined {
-	return npcDbByRef.get(ref);
+export function getNpcDbEntry(ref: string): Npc | undefined {
+	return getNpcEntry(ref);
 }
 
-export function isHostileRef(ref: string): boolean {
-	return npcDbByRef.get(ref)?.faction?.factionId === 'hostile';
+/** Derive the interaction verbs from npcdb faction + tags. */
+function deriveActions(entry: Npc): NPCAction[] {
+	if (entry.faction?.faction_id === 'hostile') return ['inspect'];
+	const actions: NPCAction[] = ['talk', 'inspect'];
+	if (entry.tags?.includes('merchant')) actions.push('trade', 'steal');
+	return actions;
 }
 
 function buildNpcFromDb(ref: string): NPCData | undefined {
-	const entry = npcDbByRef.get(ref);
+	const entry = getNpcEntry(ref);
 	if (!entry) return undefined;
 	const npc: NPCData = {
 		id: npcIdForRef(ref),
 		name: entry.name,
-		avatar: REF_AVATARS[ref] ?? DEFAULT_AVATAR,
+		avatar: entry.img ?? REF_AVATARS[ref] ?? DEFAULT_AVATAR,
 		slug: `npc/${ref}`,
-		actions: isHostileRef(ref) ? ['inspect'] : ['talk', 'inspect'],
+		actions: deriveActions(entry),
 	};
 	npcMap.set(npc.id, npc);
 	return npc;
@@ -133,13 +116,14 @@ const DIALOGUES: Record<string, DialogueNode> = {
 };
 
 function buildDialogueFromDb(ref: string): DialogueNode | undefined {
-	const entry = npcDbByRef.get(ref);
+	const entry = getNpcEntry(ref);
 	if (!entry) return undefined;
 	const id = `dlg_${ref}_greeting`;
 	const dialogue: DialogueNode = {
 		id,
 		title: entry.name,
 		message:
+			getGreetingLine(ref) ||
 			entry.description?.trim() ||
 			`${entry.name} has nothing to say right now.`,
 	};

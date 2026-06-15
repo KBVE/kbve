@@ -5,8 +5,24 @@
 	"main": "index.ts",
 	"scripts": {
 		"start": "expo start",
-		"android": "expo start --android",
-		"ios": "expo start --ios",
+		"android": "expo run:android",
+		"ios": "expo run:ios",
 		"web": "expo start --web"
+	},
+	"dependencies": {
+		"@hcaptcha/react-native-hcaptcha": "4.0.0",
+		"@react-native-async-storage/async-storage": "2.2.0",
+		"expo": "~56.0.11",
+		"expo-auth-session": "56.0.14",
+		"expo-constants": "56.0.18",
+		"expo-linking": "56.0.14",
+		"expo-status-bar": "56.0.4",
+		"expo-web-browser": "56.0.5",
+		"react": "19.2.3",
+		"react-native": "0.85.3",
+		"react-native-reanimated": "4.3.1",
+		"react-native-safe-area-context": "5.7.0",
+		"react-native-webview": "13.16.1",
+		"react-native-worklets": "0.8.3"
 	}
 }

@@ -10,6 +10,7 @@ export * from './primitives/Badge';
 export * from './primitives/Button';
 export * from './primitives/PressableSurface';
 export * from './primitives/Checkbox';
+export * from './primitives/Gradient';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';

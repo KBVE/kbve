@@ -1,5 +1,13 @@
 import rawItemdb from '@kbve/itemdb-data';
-import type { ItemData, ItemAction, ItemRarity } from '../types';
+import type { Item } from '@kbve/itemdb-schema';
+import type { ItemData, ItemAction } from '../types';
+
+// `bonuses` is a freeform top-level MDX field not modeled in the proto `Item`
+// (proto only carries bonuses nested under equipment/enchantment), so layer it
+// onto the canonical type rather than re-describing the whole shape.
+type ItemRecord = Item & {
+	bonuses?: Record<string, number | boolean | string>;
+};
 
 // Inline SVG placeholder for item icons whose sprite is missing (the default
 // /assets/icons/<ref>.png path has no backing file for many items). A data URI
@@ -27,21 +35,6 @@ const BONUS_ALIAS: Record<string, string> = {
 	energy: 'ep',
 };
 
-interface RawItem {
-	ref: string;
-	name: string;
-	description?: string;
-	lore?: string;
-	typeFlags?: number;
-	rarity?: string;
-	img?: string;
-	hasImg?: boolean;
-	weight?: number;
-	durability?: number;
-	consumable?: boolean;
-	bonuses?: Record<string, number>;
-}
-
 function resolveType(flags: number): ItemData['type'] {
 	if (flags & FLAG_WEAPON) return 'weapon';
 	if (flags & FLAG_ARMOR) return 'armor';
@@ -57,49 +50,37 @@ function resolveActions(type: ItemData['type']): ItemAction[] {
 	return ['drop', 'inspect'];
 }
 
-function resolveRarity(raw?: string): ItemRarity {
-	const r = (raw ?? '').replace(/^ITEM_RARITY_/, '').toLowerCase();
-	switch (r) {
-		case 'uncommon':
-		case 'rare':
-		case 'epic':
-		case 'legendary':
-		case 'mythic':
-			return r;
-		default:
-			return 'common';
-	}
-}
-
-function normalizeBonuses(
-	raw?: Record<string, number>,
-): Record<string, number> {
+// Bonuses are freeform in the MDX (ItemBonusesSchema is .passthrough()), so the
+// values can be numbers, booleans, or nested — keep only the numeric ones the
+// UI shows.
+function normalizeBonuses(raw: ItemRecord['bonuses']): Record<string, number> {
 	const out: Record<string, number> = {};
 	for (const [k, v] of Object.entries(raw ?? {})) {
-		out[BONUS_ALIAS[k] ?? k] = v;
+		if (typeof v === 'number') out[BONUS_ALIAS[k] ?? k] = v;
 	}
 	return out;
 }
 
-function adapt(raw: RawItem): ItemData {
-	const flags = raw.typeFlags ?? 0;
+function adapt(raw: ItemRecord): ItemData {
+	const flags = raw.type_flags ?? 0;
 	const type = resolveType(flags);
 	return {
 		id: raw.ref,
 		name: raw.name,
 		type,
+		key: raw.key ?? 0,
 		img: raw.img ?? `/assets/icons/${raw.ref}.png`,
 		description: (raw.description ?? '').trim(),
 		bonuses: normalizeBonuses(raw.bonuses),
 		durability: raw.durability ?? (type === 'consumable' ? 1 : 100),
 		weight: raw.weight ?? 1,
 		actions: resolveActions(type),
-		rarity: resolveRarity(raw.rarity),
+		rarity: raw.rarity,
 		lore: raw.lore?.trim() || undefined,
 	};
 }
 
-const pool = (rawItemdb as { items?: RawItem[] }).items ?? [];
+const pool = (rawItemdb as { items?: ItemRecord[] }).items ?? [];
 const items: ItemData[] = pool.filter((r) => r && r.ref && r.name).map(adapt);
 
 const itemMap = new Map(items.map((i) => [i.id, i]));

@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { getZone } from '../data/zones';
+import { ATLAS_URL, TILE_SIZE } from '../data/itemAtlas.generated';
 
 export class PreloaderScene extends Scene {
 	constructor() {
@@ -56,6 +57,12 @@ export class PreloaderScene extends Scene {
 			'/assets/monster/bird_grey.png',
 			{ frameWidth: 61, frameHeight: 57 },
 		);
+
+		// itemdb sprite atlas (slot index == item key); frame N == atlas cell N.
+		this.load.spritesheet('items-atlas', ATLAS_URL, {
+			frameWidth: TILE_SIZE,
+			frameHeight: TILE_SIZE,
+		});
 	}
 
 	create() {

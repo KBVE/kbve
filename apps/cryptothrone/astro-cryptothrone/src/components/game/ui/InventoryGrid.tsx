@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { laserEvents } from '@kbve/laser';
 import { getItemById } from '../data/items';
-import { ITEM_ICON_FALLBACK } from '../data/itemdb';
+import { ItemIcon } from './ItemIcon';
 
 const RARITY_BORDER: Record<string, string> = {
 	common: 'border-stone-400/50',
@@ -80,15 +80,9 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 										});
 									}
 								}}>
-								<img
-									src={item.img}
-									alt={item.name}
-									onError={(e) => {
-										const el = e.currentTarget;
-										if (el.src !== ITEM_ICON_FALLBACK)
-											el.src = ITEM_ICON_FALLBACK;
-									}}
-									className={`w-8 h-8 border ${
+								<ItemIcon
+									item={item}
+									className={`border ${
 										RARITY_BORDER[item.rarity] ??
 										'border-yellow-400/50'
 									}`}

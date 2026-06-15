@@ -13,123 +13,56 @@ export type AuthState =
 	| 'unauthenticated'
 	| 'forbidden';
 
-export interface ForgejoRepo {
-	id: number;
-	name: string;
-	full_name: string;
-	description: string;
-	html_url: string;
-	clone_url: string;
-	private: boolean;
-	fork: boolean;
-	mirror: boolean;
-	archived: boolean;
-	empty: boolean;
-	size: number;
-	git_size: number;
-	lfs_size: number;
-	stars_count: number;
-	forks_count: number;
-	open_issues_count: number;
-	open_pr_counter: number;
-	release_counter: number;
-	default_branch: string;
-	created_at: string;
-	updated_at: string;
-	has_pull_requests: boolean;
-	language: string;
-	languages_url: string;
-	owner: {
-		id: number;
-		login: string;
-		avatar_url: string;
-	};
-	internal_tracker?: {
-		enable_time_tracker: boolean;
-		allow_only_contributors_to_track_time: boolean;
-		enable_issue_dependencies: boolean;
-	};
-}
+// Wire types now come from the proto-generated barrel (single source of truth:
+// packages/data/proto/git/forgejo.proto). UI-only shapes (RepoDetail,
+// ForgejoCollaborator, inputs, tabs, toast) stay defined here.
+import type {
+	ForgejoOwner,
+	ForgejoRepo,
+	ForgejoUser,
+	ForgejoOrg,
+	ForgejoBranch,
+	ForgejoBranchCommit,
+	ForgejoCommit,
+	ForgejoCommitDetail,
+	ForgejoRelease,
+	ForgejoReleaseAsset,
+	ForgejoInternalTracker,
+	ForgejoTeam,
+	ForgejoHook,
+	ForgejoBranchProtection,
+	ForgejoSecret,
+	ForgejoVariable,
+	ForgejoCronTask,
+	ForgejoVersion,
+	ForgejoStats,
+	ForgejoStorage,
+	ForgejoIssue,
+} from '@/data/schema/forgejo';
 
-export interface ForgejoUser {
-	id: number;
-	login: string;
-	full_name: string;
-	email: string;
-	avatar_url: string;
-	is_admin: boolean;
-	created: string;
-	last_login: string;
-	active: boolean;
-	prohibit_login: boolean;
-}
-
-export interface ForgejoBranch {
-	name: string;
-	commit: {
-		id: string;
-		message: string;
-		timestamp: string;
-		author: {
-			name: string;
-			email: string;
-		};
-	};
-	protected: boolean;
-}
-
-export interface ForgejoCommit {
-	sha: string;
-	commit: {
-		message: string;
-		author: {
-			name: string;
-			email: string;
-			date: string;
-		};
-	};
-	html_url: string;
-}
-
-export interface ForgejoRelease {
-	id: number;
-	tag_name: string;
-	name: string;
-	body: string;
-	draft: boolean;
-	prerelease: boolean;
-	created_at: string;
-	published_at: string;
-	author: {
-		login: string;
-		avatar_url: string;
-	};
-	assets: ForgejoReleaseAsset[];
-}
-
-export interface ForgejoReleaseAsset {
-	id: number;
-	name: string;
-	size: number;
-	download_count: number;
-	created_at: string;
-	browser_download_url: string;
-}
-
-export interface ForgejoLFSObject {
-	oid: string;
-	size: number;
-	created_at: string;
-}
-
-export interface ForgejoOrg {
-	id: number;
-	username: string;
-	full_name: string;
-	avatar_url: string;
-	description: string;
-	visibility: string;
-}
+export type {
+	ForgejoOwner,
+	ForgejoRepo,
+	ForgejoUser,
+	ForgejoOrg,
+	ForgejoBranch,
+	ForgejoBranchCommit,
+	ForgejoCommit,
+	ForgejoCommitDetail,
+	ForgejoRelease,
+	ForgejoReleaseAsset,
+	ForgejoInternalTracker,
+	ForgejoTeam,
+	ForgejoHook,
+	ForgejoBranchProtection,
+	ForgejoSecret,
+	ForgejoVariable,
+	ForgejoCronTask,
+	ForgejoVersion,
+	ForgejoStats,
+	ForgejoStorage,
+	ForgejoIssue,
+};
 
 export interface RepoDetail {
 	branches: ForgejoBranch[];
@@ -137,37 +70,6 @@ export interface RepoDetail {
 	releases: ForgejoRelease[];
 	languages: Record<string, number>;
 	loading: boolean;
-}
-
-export interface ForgejoTeam {
-	id: number;
-	name: string;
-	description: string;
-	permission: string;
-	units: string[];
-	includes_all_repositories: boolean;
-	can_create_org_repo: boolean;
-}
-
-export interface ForgejoHook {
-	id: number;
-	type: string;
-	active: boolean;
-	events: string[];
-	config: Record<string, string>;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface ForgejoBranchProtection {
-	branch_name: string;
-	rule_name: string;
-	enable_push: boolean;
-	required_approvals: number;
-	enable_status_check: boolean;
-	require_signed_commits: boolean;
-	block_on_outdated_branch: boolean;
-	created_at: string;
 }
 
 export interface CreateBranchProtectionInput {
@@ -179,60 +81,13 @@ export interface CreateBranchProtectionInput {
 	block_on_outdated_branch: boolean;
 }
 
-export interface ForgejoSecret {
-	name: string;
-	created_at: string;
-}
-
-export interface ForgejoVariable {
-	name: string;
-	data: string;
-}
-
-export interface ForgejoCronTask {
-	name: string;
-	schedule: string;
-	next: string;
-	prev: string;
-	exec_times: number;
-}
-
-export interface ForgejoVersion {
-	version: string;
-}
-
-export interface ForgejoStats {
-	repo_count: number;
-	total_size_kb: number;
-	git_size_kb: number;
-	lfs_size_kb: number;
-	public: number;
-	private: number;
-	mirror: number;
-	archived: number;
-	fork: number;
-	truncated: boolean;
-}
-
-export interface ForgejoStorage {
-	quota_enabled: boolean;
-	owners_counted: number;
-	truncated: boolean;
-	repos_bytes: number;
-	lfs_bytes: number;
-	attachments_bytes: number;
-	artifacts_bytes: number;
-	packages_bytes: number;
-	total_bytes: number;
-}
-
-export interface ForgejoCollaborator extends ForgejoUser {
+export type ForgejoCollaborator = ForgejoUser & {
 	permissions?: {
 		admin: boolean;
 		push: boolean;
 		pull: boolean;
 	};
-}
+};
 
 export type ForgejoTab =
 	| 'overview'
@@ -250,19 +105,6 @@ export interface ForgejoRunner {
 	status?: string;
 	labels?: string[];
 	[key: string]: unknown;
-}
-
-export interface ForgejoIssue {
-	id: number;
-	number: number;
-	title: string;
-	state: 'open' | 'closed';
-	is_locked: boolean;
-	comments: number;
-	created_at: string;
-	html_url: string;
-	user: { login: string; avatar_url: string };
-	pull_request?: { merged: boolean } | null;
 }
 
 export interface CreateRepoInput {
