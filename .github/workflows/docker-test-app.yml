@@ -44,6 +44,11 @@ jobs:
         timeout-minutes: 180
         env:
             NX_NO_CLOUD: true
+            # The Nx daemon intermittently crashes during graph processing on
+            # one-shot CI runners ("Failed to process project graph"). It adds
+            # no value for a single invocation; force it off for every nx call
+            # in this job (direct `pnpm nx e2e` + nested kbve.sh -nx builds).
+            NX_DAEMON: false
         permissions:
             contents: read
             packages: write
