@@ -96,6 +96,41 @@ pub struct ForgejoRepo {
     pub language: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "15")]
     pub owner: ::core::option::Option<ForgejoOwner>,
+    #[prost(string, tag = "16")]
+    pub html_url: ::prost::alloc::string::String,
+    #[prost(string, tag = "17")]
+    pub clone_url: ::prost::alloc::string::String,
+    #[prost(bool, tag = "18")]
+    pub empty: bool,
+    #[prost(uint64, tag = "19")]
+    pub stars_count: u64,
+    #[prost(uint64, tag = "20")]
+    pub forks_count: u64,
+    #[prost(uint64, tag = "21")]
+    pub open_issues_count: u64,
+    #[prost(uint64, tag = "22")]
+    pub open_pr_counter: u64,
+    #[prost(uint64, tag = "23")]
+    pub release_counter: u64,
+    #[prost(string, tag = "24")]
+    pub created_at: ::prost::alloc::string::String,
+    #[prost(bool, tag = "25")]
+    pub has_pull_requests: bool,
+    #[prost(string, tag = "26")]
+    pub languages_url: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "27")]
+    pub internal_tracker: ::core::option::Option<ForgejoInternalTracker>,
+}
+#[derive(
+    serde::Serialize, serde::Deserialize, Clone, Copy, PartialEq, Eq, Hash, ::prost::Message,
+)]
+pub struct ForgejoInternalTracker {
+    #[prost(bool, tag = "1")]
+    pub enable_time_tracker: bool,
+    #[prost(bool, tag = "2")]
+    pub allow_only_contributors_to_track_time: bool,
+    #[prost(bool, tag = "3")]
+    pub enable_issue_dependencies: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ForgejoBranchCommit {
@@ -105,6 +140,8 @@ pub struct ForgejoBranchCommit {
     pub message: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub timestamp: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "4")]
+    pub author: ::core::option::Option<super::git::GitCommitAuthor>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ForgejoBranch {
@@ -166,6 +203,8 @@ pub struct ForgejoRelease {
     pub published_at: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "9")]
     pub assets: ::prost::alloc::vec::Vec<ForgejoReleaseAsset>,
+    #[prost(message, optional, tag = "10")]
+    pub author: ::core::option::Option<ForgejoOwner>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ForgejoTagCommit {
