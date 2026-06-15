@@ -21,7 +21,7 @@ namespace RareIcon
 
             for (int i = 0; i < 6; i++)
             {
-                float angle = 60f * i - 30f;
+                float angle = 60f * i;
                 float rad = angle * Mathf.Deg2Rad;
                 vertices[i + 1] = new Vector3(
                     outerRadius * Mathf.Cos(rad),
@@ -57,14 +57,48 @@ namespace RareIcon
             return mesh;
         }
 
+        /// <summary>Upright quad for 2.5D atlas tiles: width × height with the cap centered on the hex and the skirt hanging below by yOffset. UV 0..1 maps the full atlas tile (cap+skirt). Double-sided to match the hex mesh Cull Off.</summary>
+        public static Mesh CreateQuadMesh(float width, float height, float yOffset)
+        {
+            float hw = width * 0.5f;
+            float bottom = yOffset;
+            float top = yOffset + height;
+
+            var vertices = new Vector3[4]
+            {
+                new Vector3(-hw, bottom, 0f),
+                new Vector3( hw, bottom, 0f),
+                new Vector3( hw, top,    0f),
+                new Vector3(-hw, top,    0f),
+            };
+            var uv = new Vector2[4]
+            {
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(1f, 1f),
+                new Vector2(0f, 1f),
+            };
+            var triangles = new int[] { 0, 1, 2, 0, 2, 3 };
+
+            var mesh = new Mesh
+            {
+                vertices = vertices,
+                uv = uv,
+                triangles = triangles,
+            };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
         /// <summary>
         /// Convert axial hex coords (q, r) to world position (x, y).
-        /// Pointy-top layout.
+        /// Flat-top layout.
         /// </summary>
         public static float3 HexToWorld(int q, int r, float size)
         {
-            float x = size * (math.sqrt(3f) * q + math.sqrt(3f) / 2f * r);
-            float y = size * (3f / 2f * r);
+            float x = size * (3f / 2f * q);
+            float y = size * (math.sqrt(3f) * (r + q / 2f));
             return new float3(x, y, 0f);
         }
 
@@ -73,8 +107,8 @@ namespace RareIcon
         /// </summary>
         public static int2 WorldToHex(float worldX, float worldY, float size)
         {
-            float q = (math.sqrt(3f) / 3f * worldX - 1f / 3f * worldY) / size;
-            float r = (2f / 3f * worldY) / size;
+            float q = (2f / 3f * worldX) / size;
+            float r = (-1f / 3f * worldX + math.sqrt(3f) / 3f * worldY) / size;
 
             float3 cube = new float3(q, -q - r, r);
             float3 rounded = math.round(cube);
