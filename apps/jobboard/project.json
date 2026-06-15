@@ -55,6 +55,22 @@
 				"parallel": false
 			}
 		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["docker compose up --build"],
+				"cwd": "apps/jobboard"
+			}
+		},
+		"down": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["docker compose down -v"],
+				"cwd": "apps/jobboard"
+			}
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",
