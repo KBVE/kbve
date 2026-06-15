@@ -23,7 +23,7 @@ tags:
 
 ## Job Board
 
-> Status: **Spec / architecture** — no app code yet. This is the document to review/edit before building.
+> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, first-party auth works (register/login/logout/me with Postgres-backed sessions), DB seeded (game-dev vertical + taxonomy), `jobboard.proto` wired into the build. Phases 1–10 below remain spec.
 
 A **curated, both-sides-vetted job board for freelance work** — think Upwork/Fiverr, but gated and quality-first. Sanctioned members post gigs, other sanctioned members take them up, and the platform handles discovery, matching, and messaging. Money moves off-platform in v1 (lead-gen model); monetization is built behind abstraction hooks to switch on later.
 
@@ -140,9 +140,10 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
-| Auth | **First-party** — `axum-login` + `tower-sessions` (Postgres store), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) | No auth SaaS; transport-flexible (cookie + bearer) |
-| DB access | `sqlx` (async, compile-time-checked) | Type-safe SQL; migrations via `sqlx migrate` |
-| DB | Postgres (Supabase / Neon) | Relational fits gigs/applications/reviews |
+| Auth | **First-party** — `tower-sessions` (custom Postgres `SessionStore`), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) later | No auth SaaS; transport-flexible (cookie + bearer) |
+| DB access | **jedi `PgCluster`** (tokio-postgres + bb8, rw/ro/any split, RLS caller-scoped reads, valkey cache) | House pattern (matches `axum-kbve`); free read/write split + RLS + caching |
+| Migrations | **dbmate** (`packages/data/sql/dbmate/migrations`) | Repo-standard migration tool; one system across the monorepo |
+| DB | Postgres — KBVE CNPG/Supabase cluster via `KBVE_PG_RW_URL` | Shared cluster; `jobboard` schema isolates the tables |
 | Wire format | `prost`/`tonic` protobuf over `jedi.JediEnvelope` | Reuses the KBVE proto/envelope transport |
 | Media | S3-compatible (Cloudflare R2) | Rust-friendly; private deliverables |
 | Search | Postgres FTS (v1) → Meilisearch later | Meilisearch is Rust-native, easy upgrade |
@@ -221,7 +222,9 @@ GET    /admin/reports            [admin]
 
 ## Protocol Buffers
 
-The platform's wire/storage contract is protobuf, reusing the existing KBVE proto collection (`packages/rust/jedi/proto/*` and `packages/kbve/src/kbveproto.proto`). **The rule: reuse first, extend second, add last.** We add exactly one new file — `jobboard.proto` (package `jobboard`) — for genuinely new domain entities.
+The platform's wire/storage contract is protobuf. The proto root is `packages/data/proto/` (the shared protoc include root — cross-package imports already work there). We add one new file — `packages/data/proto/jobboard/jobboard.proto` (package `jobboard`).
+
+> **Phase 0 reality check.** The reuse table below was aspirational; the actual repo differs, and Phase 0 ships `jobboard.proto` as **standalone** (it defines its own `MediaAttachment` rather than importing one) to sidestep cross-package include friction. Corrections to the table: identity protos live in `packages/data/proto/kbve/kbveproto.proto` **with no `package` declaration** (so they are awkward to `import` into a packaged file — reuse happens at the DB/service layer, not via proto import); there is **no** `status.proto` (`MediaAttachment` was invented locally; the closest existing is `kbve.forum.Attachment`); the Discord listing template is `kbve/discordsh.proto` (`DiscordServer` + `ServerTag`), **not** `disoxide.proto`; there is **no** `store.proto`/`StoreService` (only `jedi/redis.proto`'s `RedisService`). `JediEnvelope`/`MessageKind`/`PayloadFormat` (`jedi/jedi.proto`) and `RedisService` are real and reusable. As later phases need true cross-file reuse, give `kbveproto.proto` a package and import from the shared root.
 
 ### What we reuse (do not recreate)
 
@@ -584,7 +587,7 @@ service JobBoardRpc {
 
 ## Decisions
 
-**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (axum-login + tower-sessions + argon2, no auth SaaS) · `sqlx` + Postgres · protobuf reuses KBVE protos + one new `jobboard` package.
+**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (`tower-sessions` + `argon2`, custom pg `SessionStore`, no auth SaaS) · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
 
 **Still open:**
 - **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — deferred to Phase 7.
@@ -593,5 +596,5 @@ service JobBoardRpc {
 - Which vertical follows game dev, and on what trigger.
 - When/whether to gate contact info to reduce leakage.
 - Eventual monetization model (subscription / featured / credits).
-- `sqlx` vs SeaORM/Diesel; cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
+- cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
 - Proto include-path strategy (shared root vs vendor).
