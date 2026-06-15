@@ -13,21 +13,21 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-06-14T09:16:12Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-15T10:19:20Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
-  <Card title="46 Apps" icon="rocket">
-    @kbve/source, agones-factorio, agones-factorio-relay, angelscript, astro-chuckrpg, astro-cryptothrone + 40 more
+  <Card title="48 Apps" icon="rocket">
+    @kbve/source, agones-factorio, agones-factorio-relay, angelscript, astro-chuckrpg, astro-cryptothrone + 42 more
   </Card>
   <Card title="22 E2es" icon="approve-check-circle">
     arc-runner-e2e, aria2-proxy-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e, astro-rareicon-e2e + 16 more
   </Card>
-  <Card title="42 Libs" icon="puzzle">
-    arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 36 more
+  <Card title="45 Libs" icon="puzzle">
+    arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 39 more
   </Card>
-  <Card title="48 Dependencies" icon="random">
-    Across 110 projects in the monorepo.
+  <Card title="50 Dependencies" icon="random">
+    Across 115 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -56,9 +56,9 @@ Last generated: **2026-06-14T09:16:12Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Projects by Type
-    "Apps" : 46
+    "Apps" : 48
     "E2es" : 22
-    "Libs" : 42
+    "Libs" : 45
 ```
 
 ### Hub Connectivity
@@ -123,14 +123,16 @@ graph LR
     herbmail_e2e["herbmail-e2e"] --> axum_herbmail["axum-herbmail"]
     irc_e2e["irc-e2e"] --> astro_irc["astro-irc"]
     irc_e2e["irc-e2e"] --> irc_gateway["irc-gateway"]
+    kbve_react_native["kbve-react-native"] --> rn["rn"]
     khashvault["khashvault"] --> droid["droid"]
     khashvault_e2e["khashvault-e2e"] --> khashvault["khashvault"]
     kubectl_e2e["kubectl-e2e"] --> kbve_kubectl["kbve-kubectl"]
     laser_e2e["laser-e2e"] --> laser["laser"]
     memes_e2e["memes-e2e"] --> astro_memes["astro-memes"]
     memes_e2e["memes-e2e"] --> axum_memes["axum-memes"]
-    class _kbve_source,agones_factorio,agones_factorio_relay,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,cryptothrone_server,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,kbve_kubectl,kbve_spider,kilobase,mc,mc_lobby,mc_velocity,memes,nd_server,nexus_defense,notification_bot,pydesk,rows,unity_rareicon,unreal_chuck,unreal_rentearth app
-    class arc_runner,aria2_proxy,astro,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_supa,bevy_tasker,chisel_ubuntu_axum,data_proto,data_sql,devops,droid,erust,firecracker_node_web,firecracker_python_net,firecracker_python_web,holy,jedi,kasm_cloakbrowser,kasm_void,kbve,khashvault,laser,python_fudster,python_kbve,q,simgrid,steamcmd_ubuntu,uniti lib
+    rn["rn"] --> core["core"]
+    class _kbve_source,agones_factorio,agones_factorio_relay,angelscript,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,cryptothrone,cryptothrone_server,desktop_kbve,discordsh,discordsh_bot,edge,firecracker_ctl,herbmail,iot_edge_worker,irc,irc_gateway,isometric,jobboard,kbve_kubectl,kbve_react_native,kbve_spider,kilobase,mc,mc_lobby,mc_velocity,memes,nd_server,nexus_defense,notification_bot,pydesk,rows,unity_rareicon,unreal_chuck,unreal_rentearth app
+    class arc_runner,aria2_proxy,astro,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_statemachine,bevy_supa,bevy_tasker,chisel_ubuntu_axum,core,data_proto,data_sql,devops,droid,erust,firecracker_node_web,firecracker_python_net,firecracker_python_web,holy,jedi,kasm_cloakbrowser,kasm_void,kbve,kbve_wgpu,khashvault,laser,python_fudster,python_kbve,q,rn,simgrid,steamcmd_ubuntu,uniti lib
     class arc_runner_e2e,aria2_proxy_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_discordsh_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e e2e
 ```
 
@@ -193,6 +195,7 @@ graph LR
 | **bevy_supa** | lib | `packages/rust/bevy/bevy_supa` | 0 | 0 |
 | **bevy_tasker** | lib | `packages/rust/bevy/bevy_tasker` | 0 | 0 |
 | **chisel-ubuntu-axum** | lib | `packages/docker/chisel-ubuntu-axum` | 0 | 0 |
+| **core** | lib | `packages/npm/core` | 0 | 1 |
 | **cryptothrone** | app | `apps/cryptothrone` | 0 | 0 |
 | **cryptothrone-server** | app | `apps/agones/cryptothrone/server` | 0 | 0 |
 | **data-proto** | lib | `packages/data/proto` | 0 | 0 |
@@ -223,11 +226,14 @@ graph LR
 | **irc-gateway** | app | `apps/irc/irc-gateway` | 0 | 1 |
 | **isometric** | app | `apps/kbve/isometric` | 0 | 0 |
 | **jedi** | lib | `packages/rust/jedi` | 0 | 0 |
+| **jobboard** | app | `apps/jobboard` | 0 | 0 |
 | **kasm-cloakbrowser** | lib | `packages/docker/kasm-cloakbrowser` | 0 | 0 |
 | **kasm-void** | lib | `packages/docker/kasm-void` | 0 | 0 |
 | **kbve** | lib | `packages/rust/kbve` | 0 | 0 |
 | **kbve-kubectl** | app | `apps/vm/kubectl` | 0 | 1 |
+| **kbve-react-native** | app | `apps/kbve/kbve-react-native` | 2 | 0 |
 | **kbve-spider** | app | `apps/factorio/mods/kbve-spider` | 0 | 0 |
+| **kbve_wgpu** | lib | `packages/rust/kbve_wgpu` | 0 | 0 |
 | **khashvault** | lib | `packages/npm/khashvault` | 1 | 2 |
 | **khashvault-e2e** | e2e | `packages/npm/khashvault-e2e` | 2 | 0 |
 | **kilobase** | app | `apps/kbve/kilobase` | 0 | 0 |
@@ -246,6 +252,7 @@ graph LR
 | **python-fudster** | lib | `packages/python/fudster` | 0 | 0 |
 | **python-kbve** | lib | `packages/python/kbve` | 0 | 0 |
 | **q** | lib | `packages/rust/q` | 0 | 0 |
+| **rn** | lib | `packages/npm/rn` | 1 | 2 |
 | **rows** | app | `apps/rows` | 0 | 0 |
 | **simgrid** | lib | `packages/rust/simgrid` | 0 | 0 |
 | **steamcmd-ubuntu** | lib | `packages/docker/steamcmd-ubuntu` | 0 | 0 |
@@ -348,6 +355,16 @@ graph LR
 |--------|------|
 | astro | static |
 | droid | static |
+
+</details>
+
+<details>
+<summary><strong>kbve-react-native</strong> (2 deps)</summary>
+
+| Target | Type |
+|--------|------|
+| rn | implicit |
+| rn | static |
 
 </details>
 
@@ -580,6 +597,15 @@ graph LR
 | Target | Type |
 |--------|------|
 | droid | static |
+
+</details>
+
+<details>
+<summary><strong>rn</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| core | static |
 
 </details>
 
