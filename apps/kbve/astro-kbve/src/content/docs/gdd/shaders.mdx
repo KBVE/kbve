@@ -50,6 +50,40 @@ The vertex shader runs once per vertex; the fragment shader runs once per covere
 
 ---
 
+## Shader languages
+
+Shaders are written in a GPU language, then compiled to the driver's native format. Which language you use is mostly dictated by your graphics API and engine.
+
+| Language | API / ecosystem | Notes |
+| --- | --- | --- |
+| **GLSL** | OpenGL, Vulkan, WebGL | The long-time cross-platform standard; C-like. Vulkan compiles GLSL to SPIR-V. |
+| **HLSL** | Direct3D, also Vulkan | Microsoft's language; the de-facto AAA standard, usable on Vulkan via SPIR-V. |
+| **WGSL** | WebGPU (wgpu) | The WebGPU Shading Language — the modern web/portable target; what you write against [wgpu](https://wgpu.rs/) (the Rust WebGPU implementation). |
+| **MSL** | Metal (Apple) | Metal Shading Language; C++-based, Apple platforms only. |
+| **SPIR-V** | Vulkan, WebGPU | Not hand-written — a binary *intermediate representation* that GLSL/HLSL/WGSL compile **to**; the driver consumes it. |
+
+<Aside>
+**SPIR-V is the hub.** Modern toolchains author in GLSL/HLSL/WGSL, compile to SPIR-V, then translate to the platform's native format (DXIL, MSL, SPIR-V). Tools like [naga](https://github.com/gfx-rs/wgpu/tree/trunk/naga) (used by wgpu) and SPIRV-Cross translate between these languages.
+</Aside>
+
+### wgpu / WGSL
+
+[wgpu](https://wgpu.rs/) is the Rust implementation of the WebGPU standard — one API that targets Vulkan, Metal, D3D12, and WebGPU-in-the-browser. You write shaders in **WGSL**; wgpu (via naga) compiles them to each backend. For Rust game/graphics work that must run native *and* on the web, this is the portable path.
+
+### Engine-specific shader languages
+
+Most engines wrap a standard language in their own material/shader layer with engine-provided inputs and node graphs:
+
+- **Godot** — [GDShader](/application/godot/#shaders) (`.gdshader`), a GLSL-derived language with Godot's render pipeline built in. Covered in the [Godot application doc](/application/godot/#shaders).
+- **Unity** — ShaderLab wrapping HLSL, plus the node-based Shader Graph.
+- **Unreal** — the node-based Material Editor compiling to HLSL under the hood.
+
+<Aside type="tip">
+This page stays language-agnostic on engine specifics. Application-specific shader languages (GDShader, ShaderLab, Unreal materials) are documented on their engine pages and linked from here, not inlined.
+</Aside>
+
+---
+
 ## Spaces and transforms
 
 Vertices move through a chain of coordinate spaces:
