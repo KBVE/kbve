@@ -57,6 +57,7 @@ export const initialChatState: ChatState = {
 };
 
 const MAX_ENTRIES = 200;
+export const MAX_CHAT_LENGTH = 500;
 
 export type ChatEvent =
 	| { type: 'connect'; config: ChatConfig }
@@ -94,6 +95,7 @@ function reduce(
 					channel: event.config.channel,
 					platform: event.config.platform,
 					nick: event.config.nick,
+					entries: [],
 					error: null,
 				},
 				effects: [{ type: 'chat.connect', config: event.config }],
@@ -112,7 +114,11 @@ function reduce(
 				effects: [],
 			};
 		case 'send': {
-			if (state.connection !== 'online' || event.content.length === 0) {
+			if (
+				state.connection !== 'online' ||
+				event.content.length === 0 ||
+				event.content.length > MAX_CHAT_LENGTH
+			) {
 				return { state, effects: [] };
 			}
 			const sent: ChatMessage = {

@@ -9,10 +9,14 @@ import {
 } from 'react-native';
 import type { ListRenderItemInfo } from 'react-native';
 import type { ChatEntry } from '@kbve/core';
+import { MAX_CHAT_LENGTH } from '@kbve/core';
 import { Screen } from '../ui/primitives/Screen';
 import { Text } from '../ui/primitives/Text';
 import { Button } from '../ui/primitives/Button';
+import { toastStore } from '../ui';
 import { tokens } from '../ui/theme';
+
+const SEND_COOLDOWN_MS = 800;
 import { useKbve } from '../auth/KbveProvider';
 import { useAuth } from '../auth/useAuth';
 import { useChat } from '../chat/useChat';
@@ -49,6 +53,7 @@ export function ChatScreen() {
 	const nick = auth.username ?? '';
 	const [text, setText] = useState('');
 	const listRef = useRef<FlatList<ChatEntry>>(null);
+	const lastSentAt = useRef(0);
 
 	useEffect(() => {
 		chatStore.dispatch({
@@ -66,6 +71,12 @@ export function ChatScreen() {
 	const submit = () => {
 		const content = text.trim();
 		if (!content) return;
+		const now = Date.now();
+		if (now - lastSentAt.current < SEND_COOLDOWN_MS) {
+			toastStore.push('Slow down a moment', 'warning');
+			return;
+		}
+		lastSentAt.current = now;
 		chatStore.dispatch({ type: 'send', content });
 		setText('');
 	};
@@ -106,6 +117,7 @@ export function ChatScreen() {
 						value={text}
 						onChangeText={setText}
 						editable={chat.canSend}
+						maxLength={MAX_CHAT_LENGTH}
 						onSubmitEditing={submit}
 						returnKeyType="send"
 					/>
