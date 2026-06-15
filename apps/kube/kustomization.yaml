@@ -53,6 +53,7 @@ resources:
     - cityvote/application.yaml
     - herbmail/application.yaml
     - memes/application.yaml
+    - jobboard/application.yaml
     - n8n/application.yaml
     - rabbitmq/application.yaml
     - rows/tenants/overlays/chuckrpg-dev/application.yaml
