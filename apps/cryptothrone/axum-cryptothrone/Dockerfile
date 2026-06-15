@@ -23,6 +23,7 @@ COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+COPY packages/data/codegen/*.ts packages/data/codegen/
 
 COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 
