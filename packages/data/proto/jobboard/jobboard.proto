@@ -44,6 +44,21 @@ enum BudgetType {
   BUDGET_HOURLY      = 3;
 }
 
+enum ReportTarget {
+  REPORT_TARGET_UNSPECIFIED = 0;
+  REPORT_TARGET_USER        = 1;
+  REPORT_TARGET_GIG         = 2;
+  REPORT_TARGET_MESSAGE     = 3;
+  REPORT_TARGET_REVIEW      = 4;
+}
+
+enum ReportStatus {
+  REPORT_OPEN      = 0;
+  REPORT_REVIEWING = 1;
+  REPORT_RESOLVED  = 2;
+  REPORT_DISMISSED = 3;
+}
+
 message Vertical {
   uint64 id = 1;
   string slug = 2;
@@ -63,7 +78,7 @@ message Taxonomy {
 }
 
 message MembershipApplication {
-  uint64 id = 1;
+  bytes  id = 1;
   bytes  user_id = 2;
   int32  requested_capabilities = 3;
   repeated uint64 vertical_ids = 4;
@@ -102,7 +117,7 @@ message ClientProfile {
 }
 
 message PortfolioItem {
-  uint64 id = 1;
+  bytes  id = 1;
   bytes  user_id = 2;
   uint64 vertical_id = 3;
   string title = 4;
@@ -115,7 +130,7 @@ message PortfolioItem {
 }
 
 message Gig {
-  uint64 id = 1;
+  bytes  id = 1;
   bytes  poster_id = 2;
   uint64 vertical_id = 3;
   string title = 4;
@@ -137,20 +152,20 @@ message Gig {
 }
 
 message Application {
-  uint64 id = 1;
-  uint64 gig_id = 2;
+  bytes  id = 1;
+  bytes  gig_id = 2;
   bytes  applicant_id = 3;
   string cover_message = 4;
   int64  proposed_rate = 5;
   BudgetType proposed_rate_type = 6;
-  repeated uint64 portfolio_item_ids = 7;
+  repeated bytes portfolio_item_ids = 7;
   int32  status = 8;
   string created_at = 9;
 }
 
 message Engagement {
-  uint64 id = 1;
-  uint64 gig_id = 2;
+  bytes  id = 1;
+  bytes  gig_id = 2;
   bytes  poster_id = 3;
   bytes  taker_id = 4;
   int32  status = 5;
@@ -159,8 +174,8 @@ message Engagement {
 }
 
 message Review {
-  uint64 id = 1;
-  uint64 engagement_id = 2;
+  bytes  id = 1;
+  bytes  engagement_id = 2;
   bytes  reviewer_id = 3;
   bytes  reviewee_id = 4;
   int32  rating = 5;
@@ -169,24 +184,31 @@ message Review {
 }
 
 message Conversation {
-  uint64 id = 1;
-  uint64 gig_id = 2;
-  repeated bytes participant_ids = 3;
-  string created_at = 4;
+  bytes  id = 1;
+  bytes  gig_id = 2;
+  string created_at = 3;
+}
+
+message ConversationParticipant {
+  bytes  id = 1;
+  bytes  conversation_id = 2;
+  bytes  user_id = 3;
+  string joined_at = 4;
+  string left_at = 5;
+  bytes  last_read_message_id = 6;
 }
 
 message Message {
-  uint64 id = 1;
-  uint64 conversation_id = 2;
-  bytes  sender_id = 3;
+  bytes  id = 1;
+  bytes  conversation_id = 2;
+  bytes  sender_participant_id = 3;
   string body = 4;
   repeated MediaAttachment attachments = 5;
-  string read_at = 6;
-  string created_at = 7;
+  string created_at = 6;
 }
 
 message Notification {
-  uint64 id = 1;
+  bytes  id = 1;
   bytes  user_id = 2;
   int32  kind = 3;
   bytes  payload = 4;
@@ -194,9 +216,30 @@ message Notification {
   string created_at = 6;
 }
 
-message ById   { uint64 id = 1; }
-message ByUser { bytes  user_id = 1; }
-message Ack    { bool success = 1; string message = 2; }
+message Report {
+  bytes  id = 1;
+  bytes  reporter_id = 2;
+  ReportTarget target_kind = 3;
+  string target_id = 4;
+  string reason = 5;
+  ReportStatus status = 6;
+  string created_at = 7;
+}
+
+message AuditLog {
+  bytes  id = 1;
+  bytes  actor_id = 2;
+  string action = 3;
+  int32  target_kind = 4;
+  string target_id = 5;
+  bytes  detail = 6;
+  string created_at = 7;
+}
+
+message ById     { bytes  id = 1; }
+message ByLookup { uint64 id = 1; }
+message ByUser   { bytes  user_id = 1; }
+message Ack      { bool success = 1; string message = 2; }
 
 service JobBoardRpc {
   rpc CreateVertical (Vertical) returns (Ack);
