@@ -108,6 +108,15 @@ export default defineConfig(({ mode }) => ({
 				changeOrigin: true,
 				secure: false,
 			},
+			// supabase.kbve.com CORS only allows *.kbve.com origins, not
+			// localhost; proxy auth/rest through the dev server so the browser
+			// sees same-origin. Prod (jobs.kbve.com) hits supabase directly.
+			'/supabase': {
+				target: 'https://supabase.kbve.com',
+				changeOrigin: true,
+				secure: true,
+				rewrite: (p) => p.replace(/^\/supabase/, ''),
+			},
 		},
 	},
 }));
