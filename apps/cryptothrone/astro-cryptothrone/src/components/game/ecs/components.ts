@@ -26,6 +26,20 @@ export const Active = {
 	value: new Uint8Array(MAX_ENTITIES),
 };
 
+// NPC combat stats, seeded from the npcdb entry at spawn.
+export const Combat = {
+	attack: new Float32Array(MAX_ENTITIES),
+	defense: new Float32Array(MAX_ENTITIES),
+};
+
+// Back-reference to the npcdb entry: index into the npcdb ref table, or
+// NPC_REF_NONE when the entity is not npcdb-backed.
+export const NpcRef = {
+	index: new Int32Array(MAX_ENTITIES),
+};
+
+export const NPC_REF_NONE = -1;
+
 // Category tags — an entity carries exactly one of these; hostile NPCs also
 // carry MonsterTag so the proximity/cull queries can target them.
 export const PlayerTag: Record<string, never> = {};

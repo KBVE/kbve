@@ -73,11 +73,6 @@ spec:
                       # arrive via the supabase-shared envFrom below).
                       - name: KBVE_PG_APPLICATION_NAME
                         value: 'axum-cryptothrone'
-                      # Discord OAuth2 code→token exchange. Must match the
-                      # redirect_uri the Activity client sends on authorize and
-                      # a URI registered under the app's OAuth2 → Redirects.
-                      - name: DISCORD_REDIRECT_URI
-                        value: 'https://cryptothrone.com'
                   envFrom:
                       # Optional so the pod still boots before the
                       # ExternalSecret has rendered or the kilobase

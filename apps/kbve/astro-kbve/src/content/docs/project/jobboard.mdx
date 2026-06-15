@@ -23,7 +23,7 @@ tags:
 
 ## Job Board
 
-> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, first-party auth implemented (register/login/logout/me with Postgres-backed sessions), `jobboard.proto` wired into the build. **No SQL ships yet** — the `jobboard` schema + seed is deferred to a later dbmate migration (reference shape in the Deployment section). Verified locally against an ad-hoc Postgres. Phases 1–10 below remain spec.
+> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, `jobboard.proto` wired into the build. **Auth = Supabase** (JWT `sub` = `auth.users.id`); the Phase-0 first-party auth/sessions in the Rust code is a dead end to be removed. **Schema migration shipped** (`20260615120000_jobboard_tables.sql`): 23 tables, ULID-as-uuid PKs, junction tables (no array refs), state/money/lifecycle CHECK constraints, RLS lockdown, `updated_at` triggers; all user refs → `auth.users(id)`. No seed yet. Phases 1–10 below remain spec.
 
 A **curated, both-sides-vetted job board for freelance work** — think Upwork/Fiverr, but gated and quality-first. Sanctioned members post gigs, other sanctioned members take them up, and the platform handles discovery, matching, and messaging. Money moves off-platform in v1 (lead-gen model); monetization is built behind abstraction hooks to switch on later.
 
@@ -113,9 +113,7 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 
 | Table | Source proto |
 |---|---|
-| `users` | **reuse** `User` + `Auth` (kbveproto) |
-| `sessions` | new (tower-sessions Postgres store) |
-| `oauth_accounts` | new |
+| `auth.users` (identity) | **Supabase** — referenced by `user_id` FKs, not recreated |
 | `profiles` (base) | **reuse** `Profile` (kbveproto) |
 | `verticals` | new `jobboard.Vertical` |
 | `talent_profiles` | new `jobboard.TalentProfile` |
@@ -140,7 +138,7 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
-| Auth | **First-party** — `tower-sessions` (custom Postgres `SessionStore`), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) later | No auth SaaS; transport-flexible (cookie + bearer) |
+| Auth | **Supabase** — verify the Supabase JWT (`sub` = `auth.users.id`, `kbve_username` claim), no first-party user/session store | Reuses existing KBVE identity; same model as `apps/rows` |
 | DB access | **jedi `PgCluster`** (tokio-postgres + bb8, rw/ro/any split, RLS caller-scoped reads, valkey cache) | House pattern (matches `axum-kbve`); free read/write split + RLS + caching |
 | Migrations | **dbmate** (`packages/data/sql/dbmate/migrations`) — schema deferred, not committed yet | Repo-standard migration tool; one system across the monorepo |
 | DB | Postgres — KBVE CNPG/Supabase cluster via `KBVE_PG_RW_URL` | Shared cluster; `jobboard` schema isolates the tables |
@@ -192,106 +190,23 @@ When this graduates from scaffold to deployed, add under `apps/kube/jobboard/`:
 - ArgoCD apps track `main`; PRs land on `dev`, so the manifest reaches the cluster only after the periodic dev→main release.
 - CI: register `jobboard` in the CI dispatch manifest (`ci_registry.proto` → `astro-kbve:sync:ci-manifest`) so `ci-docker.yml` builds/publishes the image.
 
-### Database schema (deferred — not committed yet)
-No SQL ships in this scaffold by design; the schema lands later as a **dbmate** migration in `packages/data/sql/dbmate/migrations/`. The service queries the `jobboard` schema (`jobboard.users`, `jobboard.sessions`, `jobboard.verticals`, `jobboard.taxonomy`), so those tables + the game-dev seed must exist before it serves.
+### Database schema
+**Source of truth**: `packages/data/sql/schema/jobboard/jobboard.sql` — the canonical desired-state DDL (same convention as `schema/meme`, `schema/ows`, etc.). The **dbmate** migration `packages/data/sql/dbmate/migrations/20260615120000_jobboard_tables.sql` is the applied delta that brings prod to that state, generated from / kept identical to the schema file. The proto (`packages/data/proto/jobboard/jobboard.proto`) is the third leg and tracks the same shape. 23 tables, hardened with constraints, junction tables, RLS lockdown, and `updated_at` triggers. No seed (separate follow-up migration).
 
-This is the full migration that was removed from the scaffold, parked here for review. When approved, drop it back into `packages/data/sql/dbmate/migrations/<timestamp>_jobboard_init.sql`:
+- **Identity is Supabase.** No `jobboard.users` / `jobboard.sessions` — every owner column is `user_id uuid references auth.users(id)`. The service trusts the Supabase JWT (`sub`); reputation/capabilities live on jobboard rows or are derived.
+- **Primary keys**: lookup tables (`verticals`, `taxonomy`) use `bigint generated always as identity`; entity tables use **ULID-as-uuid** — `uuid default public.gen_ulid()::uuid` (the house generator's 32-hex output casts to a 16-byte binary uuid whose time prefix makes it chronologically sortable → non-enumerable + cheap keyset feeds). `user_id` is `uuid` → `auth.users`.
+- **Junction tables** replace all `*_ids` arrays (real FKs + uniqueness): `talent_verticals`, `talent_taxonomy`, `client_verticals`, `member_application_verticals`, `portfolio_tags`, `gig_taxonomy`, `application_portfolio_items`. Single-vertical entities (`gig_taxonomy`, `portfolio_tags`) carry `vertical_id` and use **composite FKs** to `gigs(id, vertical_id)` / `portfolio_items(id, vertical_id)` + `taxonomy(id, vertical_id)`, so a tag must belong to the entity's own vertical (cross-vertical tagging is rejected). `talent_taxonomy` is **also vertical-aligned** — composite FKs to `talent_verticals(user_id, vertical_id)` + `taxonomy(id, vertical_id)`, so a talent can only tag taxonomy within a vertical they've joined.
+- **State integrity**: CHECK constraints on every enum/bitmask column (ranges from the proto enums — `budget_type` 0–3; gig/notification `status`/`kind in (0,1,2,4,8,16)` treated as **single-value** enums; `reports.target_kind in (1..4)` = `ReportTarget`, `reports.status in (0..3)` = `ReportStatus`), money invariants (`min ≤ max`, `≥ 0`, `currency ~ '^[A-Z]{3}$'`, minor units), **identifier/text** rules (slug/name `^[a-z0-9]+(-[a-z0-9]+)*$` — no leading/trailing/double hyphens; non-empty bounded `label`/`title`/`reason`/`action`), lifecycle invariants (member-app review state, one-pending-per-user partial unique, gig publication state — OPEN/closed states **require** `published_at`, engagement `status↔completed_at` lifecycle [COMPLETED⇒`completed_at ≥ started_at`, else null] + one-per-gig, **null-safe** distinct-parties / distinct-reviewer-reviewee so double account deletion can't trip the check, participant `left_at ≥ joined_at`), unique review-per-(engagement, reviewer), message content non-empty + size caps (body ≤ 20k, ≤ 10 attachments), `jsonb_typeof` checks.
+- **Messaging**: `conversation_participants` has a surrogate `id` PK; messages reference the **participant** via composite FK `(conversation_id, sender_participant_id) → conversation_participants(conversation_id, id)` with **`ON DELETE NO ACTION`** — a participant row can't be hard-deleted while it has messages (participants leave by setting `left_at`, never by row deletion), yet a full conversation delete still cascades cleanly (NO ACTION defers to statement end; RESTRICT would break that). On account deletion the participant's `user_id` is `SET NULL` (anonymized) and **messages are preserved** (they key off the immutable participant id, not the auth uuid). Per-participant read cursor (`last_read_message_id`, conversation-scoped composite FK with column-list `SET NULL`), not a single `messages.read_at`.
+- **Indexes** are feed/keyset-oriented: partial gig feeds `where status = 2` (`vertical_id, published_at desc, id desc` + global), applicant/poster application queues, message cursor, partial unread-notifications, reports queue, reviewee history, portfolio ordering (`user_id, sort_order, created_at desc, id desc`), member-application history + moderation queue, active-participant partial (`user_id, conversation_id where left_at is null`), and reverse indexes on every junction's non-leading column.
+- **Bounds + self-documentation**: length caps on all free text (`headline`/`org_name`≤200, `about`≤2000, descriptions≤5–20k, `cover_message`/`body`≤10k, `portfolio_links` ≤20) and `comment on column` on every enum/bitmask column (`GigStatus`, `EngagementStatus`, `ReportTarget`, …) so the integer↔meaning mapping lives in the catalog and can't silently drift from the proto/Rust enums.
+- **Delete policy** (middle ground): personal data `CASCADE` (profiles, portfolio, notifications, member applications, conversation participants); commercial/moderation history `SET NULL` + nullable (gigs.poster_id, applications.applicant_id, engagements, reviews, reports, audit_log, **and** conversation_participants.user_id) so the marketplace + chat record survives account deletion. Snapshot/display-name capture deferred.
+- **RLS / privileges** locked to a **service-role-only** model (the Rust service reaches the schema via its privileged jedi pool, NOT via PostgREST/`authenticated`): `create schema jobboard authorization postgres`; RLS enabled on all 23 tables; `force` on the strictly server-mediated tables (`engagements`, `reviews`, `member_applications`, `reports`, `audit_log`); `revoke all on all tables/sequences from anon, authenticated`; **role-specific** `alter default privileges for role postgres … revoke` (the generic form only covers the running role); schema `revoke from public` with **no `authenticated` usage grant** — so `authenticated` gets `permission denied for schema jobboard` (verified). The `set_updated_at()` fn is `revoke … from public` + `owner to postgres`. **No plpgsql/PostgREST RPC layer** — the jobboard **Axum service is the single writer** and reaches the schema via its jedi pool connecting as a **BYPASSRLS role** (`service_role` or `postgres`), which is required because `force row level security` binds even the table owner (superusers/BYPASSRLS bypass it). RLS + `force` therefore act purely as defense-in-depth against any future direct/PostgREST path; the real authorization + multi-step invariants live in the service. (If direct client reads are ever wanted, add PostgREST grants + SELECT policies, or `public.*` proxy wrappers, per feature phase.)
+- Verified up + down on Postgres 17 (stub `auth.users`/`gen_ulid`): 23 tables, 60 indexes, schema owner `postgres`; negative battery confirms cross-vertical tag, non-joined talent taxonomy, bad slug, empty label, over-length text, >20 portfolio links, unpublished-OPEN gig, COMPLETED-without-`completed_at`, dup review, empty message, cross-conversation cursor, bad `target_kind`/`target_id`, and `authenticated` schema access all reject — while a full conversation delete cascades and a direct participant delete (with messages) is blocked, preserving history.
 
-```sql
--- migrate:up
-create schema if not exists jobboard;
+**Enforced in the jobboard Axum service, not DDL** (nullable historical FKs + temporal/identity rules can't be plain CHECKs). The service is the single writer; each multi-step invariant is a Rust transaction (`conn.transaction()` + `SELECT … FOR UPDATE` on the gig/application rows), with the DB constraints as the safety net underneath — no plpgsql RPCs: portfolio-item ownership on application attach (`portfolio.user_id = application.applicant_id`); engagement creation (lock gig + accepted application, verify caller, reject competing applications, flip gig status, audit — one tx); reviews must have `reviewer`/`reviewee ∈ engagement parties`, `reviewer ≠ reviewee`, engagement `COMPLETED`; **non-null identities on insert** (the nullable id columns exist only for `ON DELETE SET NULL`, never for fresh rows); message send must reject `left_at is not null` participants (and optionally cursor-before-join); member-application review transitions; reports moderation; capability/role grants.
 
-create table if not exists jobboard.users (
-    id              uuid primary key default gen_random_uuid(),
-    email           text not null unique,
-    username        text not null unique,
-    password_hash   text not null,
-    role            integer not null default 0,
-    reputation      integer not null default 0,
-    status          integer not null default 0,
-    created_at      timestamptz not null default now(),
-    last_login      timestamptz
-);
-
-create table if not exists jobboard.sessions (
-    id      text primary key,
-    data    jsonb not null,
-    expiry  bigint not null
-);
-
-create index if not exists jobboard_sessions_expiry_idx on jobboard.sessions (expiry);
-
-create table if not exists jobboard.verticals (
-    id          bigserial primary key,
-    slug        text not null unique check (slug ~ '^[a-z0-9-]+$'),
-    label       text not null,
-    description text not null default '',
-    status      integer not null default 1,
-    sort_order  integer not null default 0
-);
-
-create table if not exists jobboard.taxonomy (
-    id          bigserial primary key,
-    vertical_id bigint not null references jobboard.verticals(id) on delete cascade,
-    kind        integer not null,
-    name        text not null check (name ~ '^[a-z0-9-]+$'),
-    label       text not null,
-    status      integer not null default 1,
-    unique (vertical_id, kind, name)
-);
-
-create index if not exists jobboard_taxonomy_vertical_kind_idx
-    on jobboard.taxonomy (vertical_id, kind);
-
-insert into jobboard.verticals (slug, label, description, status, sort_order)
-values ('game-dev', 'Game Development', 'Art, code, audio, design, and QA for games.', 1, 0)
-on conflict (slug) do nothing;
-
-insert into jobboard.taxonomy (vertical_id, kind, name, label)
-select v.id, t.kind, t.name, t.label
-from jobboard.verticals v
-cross join (values
-    (1, '2d-art', '2D Art'),
-    (1, '3d-art', '3D Art'),
-    (1, 'animation-rigging', 'Animation/Rigging'),
-    (1, 'programming', 'Programming'),
-    (1, 'technical-art', 'Technical Art/Shaders'),
-    (1, 'audio', 'Audio (Music/SFX/VO)'),
-    (1, 'game-design', 'Game Design'),
-    (1, 'level-design', 'Level Design'),
-    (1, 'narrative', 'Narrative/Writing'),
-    (1, 'ui-ux', 'UI/UX'),
-    (1, 'qa-testing', 'QA/Testing'),
-    (1, 'porting', 'Porting'),
-    (1, 'localization', 'Localization'),
-    (1, 'production', 'Production/PM'),
-    (1, 'community', 'Community'),
-    (2, 'unity', 'Unity'),
-    (2, 'unreal', 'Unreal'),
-    (2, 'godot', 'Godot'),
-    (2, 'gamemaker', 'GameMaker'),
-    (2, 'bevy', 'Bevy'),
-    (2, 'blender', 'Blender'),
-    (2, 'maya', 'Maya'),
-    (2, 'zbrush', 'ZBrush'),
-    (2, 'substance', 'Substance'),
-    (2, 'photoshop', 'Photoshop'),
-    (2, 'spine', 'Spine'),
-    (2, 'fmod', 'FMOD'),
-    (2, 'wwise', 'Wwise'),
-    (3, 'netcode', 'netcode'),
-    (3, 'humanoid-rigging', 'humanoid-rigging'),
-    (3, 'pixel-art', 'pixel-art'),
-    (3, 'procgen', 'procgen'),
-    (3, 'shader-graph', 'shader-graph'),
-    (3, 'vertical-slice', 'vertical-slice')
-) as t(kind, name, label)
-where v.slug = 'game-dev'
-on conflict (vertical_id, kind, name) do nothing;
-
--- migrate:down
-drop schema if exists jobboard cascade;
-```
+**Other deferred follow-ups**: seed migration; per-phase RLS SELECT policies; conversation inbox denormalization (`conversations.last_message_at/id`, maintained in the send RPC); attachment element-type validation (array-of-objects, RPC/helper); proto entity `id` fields `uint64 → bytes` (uuid) + `Message.sender` → participant id. The `down` (`drop schema … cascade`) is **bootstrap-only** — mark irreversible once prod data exists.
 
 * * *
 
@@ -376,306 +291,17 @@ The platform's wire/storage contract is protobuf. The proto root is `packages/da
 
 ### What we add — `jobboard.proto`
 
-> Suggested location: `packages/rust/jedi/proto/jobboard.proto`, package `jobboard`, built with the rest via `prost`/`tonic`. Cross-file reuse (`MediaAttachment` from `status.proto`, identity from `kbveproto.proto`) requires those files on the protoc include path; if the build doesn't yet share an include root, the pragmatic fallback is to move the shared messages onto a common `proto/` root rather than copy them.
+Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jobboard`, standalone, built via `prost`). It is not inlined here — that drifts; the proto is kept in sync with the SQL schema package (`packages/data/sql/schema/jobboard/`).
 
-```proto
-syntax = "proto3";
-package jobboard;
-
-// Reuse — on the protoc include path:
-import "status.proto";      // MediaAttachment
-// Identity reused from kbveproto.proto: Auth, User, Profile, Apikey, Invoice
-// Transport: payloads ride inside jedi.JediEnvelope (jedi.proto)
-
-// ─────────────────────────── Enums (bitflags where noted) ───────────────────────────
-
-// Stored in the EXISTING User.role field (bitmask) — no new capability table.
-enum Capability {
-  CAP_NONE   = 0;
-  CAP_TAKER  = 1;
-  CAP_POSTER = 2;
-  CAP_ADMIN  = 4;
-}
-
-// NOTE: Disciplines are intentionally NOT an enum. They (and tools/skills) are
-// data-driven rows in `Taxonomy`, each scoped by `vertical_id`, so new verticals
-// add no proto/code changes. Gigs/profiles reference taxonomy ids.
-
-// Gig lifecycle — bitmask (mirrors disoxide status convention).
-enum GigStatus {
-  GIG_DRAFT          = 0;
-  GIG_PENDING_REVIEW = 1;
-  GIG_OPEN           = 2;
-  GIG_FILLED         = 4;
-  GIG_CLOSED         = 8;
-  GIG_EXPIRED        = 16;
-}
-
-enum ApplicationStatus {
-  APP_SUBMITTED   = 0;
-  APP_SHORTLISTED = 1;
-  APP_ACCEPTED    = 2;
-  APP_DECLINED    = 3;
-  APP_WITHDRAWN   = 4;
-}
-
-enum EngagementStatus {
-  ENG_ACTIVE    = 0;
-  ENG_COMPLETED = 1;
-  ENG_CANCELLED = 2;
-}
-
-enum BudgetType {
-  BUDGET_UNSPECIFIED = 0;
-  BUDGET_FIXED       = 1;
-  BUDGET_RANGE       = 2;
-  BUDGET_HOURLY      = 3;
-}
-
-// ─────────────────────────── Verticals & taxonomy (data-driven) ───────────────────────────
-
-// Top-level service area. Game Dev is vertical #1; others are seeded as data.
-message Vertical {
-  // ? id BIGSERIAL PRIMARY KEY
-  uint64 id = 1;
-  // ? slug TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$')  e.g. "game-dev"
-  string slug = 2;
-  string label = 3;
-  string description = 4;
-  // Bitwise status (active/featured/coming-soon).
-  int32  status = 5;
-  int32  sort_order = 6;
-}
-
-// Disciplines, tools/engines, and skills — all live here, scoped per vertical.
-message Taxonomy {
-  // ? id BIGSERIAL PRIMARY KEY
-  uint64 id = 1;
-  // ? vertical_id BIGINT NOT NULL REFERENCES verticals(id)
-  uint64 vertical_id = 2;
-  // 1 discipline, 2 tool/engine, 3 skill
-  int32  kind = 3;
-  // ? name TEXT NOT NULL CHECK (name ~ '^[a-z0-9-]+$')
-  string name = 4;
-  string label = 5;
-  // Bitwise status (active/featured/deprecated).
-  int32  status = 6;
-}
-
-// ─────────────────────────── Vetting ───────────────────────────
-
-message MembershipApplication {
-  // ? id BIGSERIAL PRIMARY KEY
-  uint64 id = 1;
-  // ? user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
-  bytes  user_id = 2;
-  // Requested capabilities — Capability bitmask (CAP_TAKER | CAP_POSTER).
-  int32  requested_capabilities = 3;
-  // Vertical(s) the applicant wants to operate in.
-  repeated uint64 vertical_ids = 4;
-  string statement = 5;
-  repeated string portfolio_links = 6;
-  // 0 pending, 1 approved, 2 rejected
-  int32  status = 7;
-  bytes  reviewed_by = 8;
-  string reviewed_at = 9;
-  string review_notes = 10;
-  string created_at = 11;
-}
-
-// ─────────────────────────── Profiles (extend reused Profile/User) ───────────────────────────
-
-// Vertical-aware extension of the reused `Profile`; keyed by the same user_id.
-message TalentProfile {
-  bytes  user_id = 1;
-  string headline = 2;
-  int32  years_experience = 3;
-  // 0 open, 1 limited, 2 closed
-  int32  availability = 4;
-  int64  rate_min = 5;
-  int64  rate_max = 6;
-  string currency = 7;
-  // Verticals this talent works in.
-  repeated uint64 vertical_ids = 8;
-  // Taxonomy ids (kind = discipline / tool / skill).
-  repeated uint64 discipline_ids = 9;
-  repeated uint64 tool_ids       = 10;
-  repeated uint64 skill_ids      = 11;
-  string updated_at = 12;
-}
-
-message ClientProfile {
-  bytes  user_id = 1;
-  // Org/studio/agency/business name.
-  string org_name = 2;
-  int32  company_size = 3;
-  string website = 4;
-  string about = 5;
-  repeated uint64 vertical_ids = 6;
-  string updated_at = 7;
-}
-
-// ─────────────────────────── Portfolio (reuse status.MediaAttachment) ───────────────────────────
-
-message PortfolioItem {
-  uint64 id = 1;
-  bytes  user_id = 2;
-  uint64 vertical_id = 3;
-  string title = 4;
-  string description = 5;
-  // image / video / sketchfab / itch / youtube / webgl_build / repo / reel
-  string source = 6;
-  repeated status.MediaAttachment media = 7;   // ← reused
-  repeated uint64 tag_ids = 8;                  // taxonomy: tools/skills
-  int32  sort_order = 9;
-  string created_at = 10;
-}
-
-// ─────────────────────────── Gig listing (pattern from disoxide.DiscordServer) ───────────────────────────
-
-message Gig {
-  // ? id BIGSERIAL PRIMARY KEY
-  uint64 id = 1;
-  // ? poster_id UUID NOT NULL REFERENCES auth.users(id)
-  bytes  poster_id = 2;
-  // ? vertical_id BIGINT NOT NULL REFERENCES verticals(id)
-  uint64 vertical_id = 3;
-  // ? title VARCHAR(120) NOT NULL
-  string title = 4;
-  // ? summary VARCHAR(200)
-  string summary = 5;
-  // ? description TEXT (markdown)
-  string description = 6;
-  // Taxonomy ids (kind = discipline / tool / skill) scoped to vertical_id.
-  repeated uint64 discipline_ids = 7;
-  repeated uint64 tool_ids       = 8;
-  repeated uint64 skill_ids      = 9;
-  BudgetType budget_type = 10;
-  int64  budget_min = 11;
-  int64  budget_max = 12;
-  string currency = 13;
-  // ? deadline TIMESTAMP
-  string deadline = 14;
-  // 0 remote, 1 onsite, 2 hybrid
-  int32  location_pref = 15;
-  // GigStatus bitmask.
-  int32  status = 16;
-  string published_at = 17;
-  // ? updated_at TIMESTAMP NOT NULL DEFAULT now()
-  string updated_at = 18;
-  string created_at = 19;
-}
-
-// ─────────────────────────── Applications / engagement / reviews ───────────────────────────
-
-message Application {
-  uint64 id = 1;
-  uint64 gig_id = 2;
-  bytes  applicant_id = 3;
-  string cover_message = 4;
-  int64  proposed_rate = 5;
-  BudgetType proposed_rate_type = 6;
-  repeated uint64 portfolio_item_ids = 7;   // attach relevant work
-  // ApplicationStatus.
-  int32  status = 8;
-  string created_at = 9;
-}
-
-message Engagement {
-  uint64 id = 1;
-  uint64 gig_id = 2;
-  bytes  poster_id = 3;
-  bytes  taker_id = 4;
-  // EngagementStatus.
-  int32  status = 5;
-  string started_at = 6;
-  string completed_at = 7;
-}
-
-message Review {
-  uint64 id = 1;
-  uint64 engagement_id = 2;
-  bytes  reviewer_id = 3;
-  bytes  reviewee_id = 4;
-  // 1..5
-  int32  rating = 5;
-  string body = 6;
-  string created_at = 7;
-}
-
-// ─────────────────────────── Messaging & notifications ───────────────────────────
-
-message Conversation {
-  uint64 id = 1;
-  // Optional context: the gig this conversation is about.
-  uint64 gig_id = 2;
-  repeated bytes participant_ids = 3;
-  string created_at = 4;
-}
-
-message Message {
-  uint64 id = 1;
-  uint64 conversation_id = 2;
-  bytes  sender_id = 3;
-  string body = 4;
-  repeated status.MediaAttachment attachments = 5;   // ← reused
-  string read_at = 6;
-  string created_at = 7;
-}
-
-message Notification {
-  uint64 id = 1;
-  bytes  user_id = 2;
-  // Bitmask: application received / accepted / message / review / admin.
-  int32  kind = 3;
-  // JSON or protobuf-encoded context.
-  bytes  payload = 4;
-  string read_at = 5;
-  string created_at = 6;
-}
-
-// ─────────────────────────── Service (pattern from kbveproto.MessageRpc / store.StoreService) ───────────────────────────
-
-message ById   { uint64 id = 1; }
-message ByUser { bytes  user_id = 1; }
-message Ack    { bool success = 1; string message = 2; }
-
-service JobBoardRpc {
-  // Verticals & taxonomy (admin-managed vocabulary)
-  rpc CreateVertical (Vertical) returns (Ack);   // admin
-  rpc UpsertTaxonomy (Taxonomy) returns (Ack);   // admin
-
-  // Vetting
-  rpc SubmitMembership (MembershipApplication) returns (Ack);
-  rpc DecideMembership (MembershipApplication) returns (Ack);   // admin
-
-  // Profiles & portfolio
-  rpc GetTalentProfile (ByUser) returns (TalentProfile);
-  rpc UpsertTalentProfile (TalentProfile) returns (Ack);
-  rpc UpsertPortfolioItem (PortfolioItem) returns (Ack);
-
-  // Gigs
-  rpc CreateGig (Gig) returns (Ack);
-  rpc GetGig (ById) returns (Gig);
-  rpc CloseGig (ById) returns (Ack);
-
-  // Applications & engagement
-  rpc ApplyToGig (Application) returns (Ack);
-  rpc ReviewGigApplication (Application) returns (Ack);   // shortlist/decline
-  rpc AcceptApplication (ById) returns (Engagement);
-  rpc CompleteEngagement (ById) returns (Ack);
-  rpc SubmitReview (Review) returns (Ack);
-
-  // Messaging
-  rpc SendMessage (Message) returns (Ack);
-}
-```
+- **Id conventions**: entity ids are `bytes` = the 16-byte ULID-as-uuid (`public.gen_ulid()::uuid`); user refs are `bytes` = `auth.users(id)`; lookup ids (`Vertical`, `Taxonomy`) and the taxonomy/vertical id lists are `uint64` = `bigint` identity; timestamps are ISO `string`.
+- **Messages mirror the tables**: added `ConversationParticipant`, `Report`, `AuditLog`; `Message` carries `sender_participant_id` (not a raw user id) and dropped `read_at` (read state is the participant cursor); `Conversation` dropped `participant_ids`; `ById` keys on `bytes`, `ByLookup` on `uint64`.
+- Taxonomy/vertical id lists (`discipline_ids`/`tool_ids`/`skill_ids`/`tag_ids`/`vertical_ids`) stay `repeated uint64` — the API view of the junction tables; relational integrity (same-vertical, ownership) lives in SQL.
 
 ### Reuse summary
 
 - **New file:** `jobboard.proto` (1 file, 1 package).
-- **Reused as-is:** `Auth`, `User`, `Profile`, `Apikey`, `Invoice`, `Setting`, `Global`, `MediaAttachment`, `JediEnvelope`/`MessageKind`/`PayloadFormat`, `StoreService`, `RedisService`.
-- **Reused as pattern (not copied):** `DiscordServer` → `Gig`, `DiscordTag` → `Vertical`/`Taxonomy`, `MessageRpc`/`StoreService` → `JobBoardRpc`.
+- **Reused as-is:** `JediEnvelope`/`MessageKind`/`PayloadFormat` (`jedi/jedi.proto`), `RedisService` (`jedi/redis.proto`). (Identity reuse — `Auth`/`User`/`Profile` etc. — happens at the DB/service layer, not via proto import, since `kbveproto.proto` has no package; see the reality-check note above.)
+- **Reused as pattern (not copied):** `kbve.discordsh.DiscordServer` → `Gig`, `ServerTag` → `Vertical`/`Taxonomy`.
 - **No new `MessageKind` values** — existing routing bits suffice for v1.
 - **No hardcoded discipline enum** — disciplines/tools/skills are data-driven taxonomy scoped by vertical, so new verticals require no proto change.
 
@@ -721,7 +347,7 @@ service JobBoardRpc {
 
 ## Decisions
 
-**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (`tower-sessions` + `argon2`, custom pg `SessionStore`, no auth SaaS) · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
+**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · **Supabase auth** (verify JWT, `sub` = `auth.users.id`; all jobboard rows FK `auth.users`) — first-party auth was a wrong turn, removing it · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
 
 **Still open:**
 - **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — deferred to Phase 7.

@@ -3,7 +3,6 @@ use std::net::SocketAddr;
 
 pub struct JobBoardConfig {
     pub http_addr: SocketAddr,
-    pub secure_cookies: bool,
 }
 
 impl JobBoardConfig {
@@ -23,13 +22,6 @@ impl JobBoardConfig {
             .parse()
             .with_context(|| format!("invalid HTTP bind address {host}:{port}"))?;
 
-        let secure_cookies = std::env::var("SECURE_COOKIES")
-            .map(|v| v == "true" || v == "1")
-            .unwrap_or(false);
-
-        Ok(Self {
-            http_addr,
-            secure_cookies,
-        })
+        Ok(Self { http_addr })
     }
 }

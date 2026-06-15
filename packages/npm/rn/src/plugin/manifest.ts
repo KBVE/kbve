@@ -13,7 +13,8 @@ export type PluginEntry =
 	| { kind: 'url-js'; url: string }
 	| { kind: 'url-page'; url: string; injectBridge?: boolean }
 	| { kind: 'wasm'; url: string; exportName?: string }
-	| { kind: 'native'; componentId: string };
+	| { kind: 'native'; componentId: string }
+	| { kind: 'typegpu'; componentId: string; effectId: string };
 
 export interface PluginSurface {
 	slot: PluginSurfaceSlot;
@@ -61,11 +62,19 @@ export function validateManifest(manifest: PluginManifest): string[] {
 	if (manifest.entry.kind === 'inline-js' && !manifest.entry.source.trim()) {
 		errors.push('inline-js entry missing source');
 	}
+	if (manifest.entry.kind === 'typegpu') {
+		if (!manifest.entry.componentId) {
+			errors.push('typegpu entry missing componentId');
+		}
+		if (!manifest.entry.effectId) {
+			errors.push('typegpu entry missing effectId');
+		}
+	}
 	return errors;
 }
 
 export function isSandboxed(entry: PluginEntry): boolean {
-	return entry.kind !== 'native';
+	return entry.kind !== 'native' && entry.kind !== 'typegpu';
 }
 
 export function isHostedPage(entry: PluginEntry): boolean {

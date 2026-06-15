@@ -7,6 +7,7 @@ export interface NativeComponentProps {
 	bridge: HostBridge;
 	fullBleed?: boolean;
 	style?: StyleProp<ViewStyle>;
+	effectId?: string;
 }
 
 export type NativeComponent = ComponentType<NativeComponentProps>;

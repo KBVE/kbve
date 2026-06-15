@@ -1,0 +1,81 @@
+# Local jobboard stack: production-replica Postgres (kilobase) + dbmate
+# migrations + the Axum binary that serves the embedded SPA.
+#
+#   docker compose -f apps/jobboard/docker-compose.yml up --build
+#   open http://localhost:5400
+#   docker compose -f apps/jobboard/docker-compose.yml down -v   # wipe
+#
+# Flow: postgres (healthy) -> migrate (dbmate up, runs ALL migrations) ->
+# seed (verticals) -> jobboard. Each gate is depends_on completed_successfully.
+#
+# NOTE: the jobboard schema uses Supabase auth.users (no first-party
+# jobboard.users/sessions). The app's auth.rs/session_store still do
+# first-party auth -> /api/auth/* + sessions 500 until that layer is
+# ported to Supabase JWT. /api/verticals works today.
+
+services:
+    postgres:
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: supabase
+        ports:
+            - '54322:5432'
+        volumes:
+            - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres -d supabase']
+            interval: 5s
+            timeout: 3s
+            retries: 20
+
+    migrate:
+        image: ghcr.io/amacneil/dbmate:2
+        command:
+            ['--no-dump-schema', '--migrations-dir', '/db/migrations', 'up']
+        environment:
+            DATABASE_URL: postgres://postgres:postgres@postgres:5432/supabase?sslmode=disable&search_path=dbmate,public
+        volumes:
+            - ../../packages/data/sql/dbmate:/db:ro
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    seed:
+        image: postgres:17-alpine
+        entrypoint:
+            [
+                'psql',
+                'postgres://postgres:postgres@postgres:5432/supabase',
+                '-v',
+                'ON_ERROR_STOP=1',
+                '-f',
+                '/seed.sql',
+            ]
+        volumes:
+            - ./docker/seed.sql:/seed.sql:ro
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    jobboard:
+        build:
+            context: ../..
+            dockerfile: apps/jobboard/Dockerfile
+        environment:
+            HTTP_HOST: 0.0.0.0
+            HTTP_PORT: '5400'
+            RUST_LOG: jobboard=info,tower_http=info
+            KBVE_PG_RW_URL: postgres://postgres:postgres@postgres:5432/supabase?sslmode=disable
+            SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+        ports:
+            - '5400:5400'
+        depends_on:
+            seed:
+                condition: service_completed_successfully
+
+volumes:
+    pgdata:

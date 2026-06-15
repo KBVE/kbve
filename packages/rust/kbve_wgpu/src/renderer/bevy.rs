@@ -53,7 +53,9 @@ impl SurfaceRenderer for BevyRenderer {
         mobile::sign_in(jwt);
     }
 
-    fn input(&mut self, _event: InputEvent) {}
+    fn input(&mut self, event: InputEvent) {
+        mobile::on_pointer(event.kind, event.x, event.y);
+    }
 
     fn set_paused(&mut self, paused: bool) {
         self.paused = paused;

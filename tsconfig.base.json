@@ -18,6 +18,7 @@
 			"@kbve/astro": ["packages/npm/astro/src/index.ts"],
 			"@kbve/astro/ui": ["packages/npm/astro/src/ui.ts"],
 			"@kbve/astro/components/*": ["packages/npm/astro/src/components/*"],
+			"@kbve/astro/data/*": ["packages/npm/astro/src/data/*"],
 			"@kbve/core": ["packages/npm/core/src/index.ts"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
@@ -25,7 +26,11 @@
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"],
 			"@kbve/npcdb": ["packages/data/codegen/npcdb.ts"],
-			"@kbve/rn": ["packages/npm/rn/src/index.ts"]
+			"@kbve/rn": ["packages/npm/rn/src/index.ts"],
+			"@kbve/rn-astro": ["packages/npm/rn-astro/src/index.ts"],
+			"@kbve/rn-astro/integration": [
+				"packages/npm/rn-astro/src/integration.ts"
+			]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

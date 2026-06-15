@@ -23,6 +23,7 @@ import type {
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
+import { resolveNpcSprite } from '../data/npcVisuals';
 import { getItemById } from '../data/itemdb';
 import { atlasFrame } from '../data/itemAtlas.generated';
 import { getZone, DEFAULT_ZONE, type ZoneDef } from '../data/zones';
@@ -86,25 +87,6 @@ function isTypingInDom(): boolean {
 		(el as HTMLElement).isContentEditable === true
 	);
 }
-
-interface RefSprite {
-	key: string;
-	mapping?: number;
-	anim?: string;
-}
-
-const REF_SPRITES: Record<string, RefSprite> = {
-	cleric: { key: 'monks', mapping: 0 },
-	merchant: { key: 'monks', mapping: 1 },
-	soldier: { key: 'monks', mapping: 2 },
-	king: { key: 'monks', mapping: 3 },
-	goblin: { key: 'monks', mapping: 4 },
-	'goblin-general': { key: 'monks', mapping: 5 },
-	wolf: { key: 'monks', mapping: 6 },
-	'crystal-bat': { key: 'monster_bird', anim: 'bird' },
-};
-
-const DEFAULT_NPC_SPRITE: RefSprite = { key: 'monks', mapping: 0 };
 
 interface PendingAction {
 	kind: 'pickup' | 'interact';
@@ -494,9 +476,9 @@ export class CloudCityScene extends Scene {
 			return { sprite, mapping: undefined };
 		}
 		const ref = this.kindRef(kind);
-		const conf = (ref && REF_SPRITES[ref]) || DEFAULT_NPC_SPRITE;
+		const conf = resolveNpcSprite(ref);
 		const sprite = this.add.sprite(0, 0, conf.key);
-		sprite.scale = 1.5;
+		sprite.scale = conf.scale ?? 1.5;
 		sprite.setDepth(this.entityDepth);
 		if (conf.anim) sprite.play(conf.anim);
 		return { sprite, mapping: conf.mapping };

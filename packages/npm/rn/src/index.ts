@@ -28,6 +28,7 @@ export * from './sandbox';
 export * from './examples/helloPlugin';
 export * from './examples/isometricPlugin';
 export * from './examples/wgpuPlugin';
+export * from './examples/typegpuPlugin';
 
 export * from './screens/HomeScreen';
 export * from './screens/HomeView';

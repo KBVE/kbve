@@ -2,6 +2,7 @@ import ExpoModulesCore
 import KbveWgpuFFI
 import QuartzCore
 import UIKit
+import UIKit.UIGestureRecognizerSubclass
 
 public final class KbveWgpuView: ExpoView {
     static weak var current: KbveWgpuView?
@@ -23,6 +24,19 @@ public final class KbveWgpuView: ExpoView {
         metalLayer.framebufferOnly = true
         metalLayer.contentsScale = UIScreen.main.scale
         KbveWgpuView.current = self
+
+        // Native UI-thread touch handling. RN's Fabric root gesture handler
+        // swallows touchesBegan on subviews, so we attach our own recognizer
+        // (simultaneous with RN's) and feed the game directly — no JS hop.
+        let touch = KbveTouchRecognizer()
+        touch.delegate = self
+        touch.cancelsTouchesInView = false
+        touch.delaysTouchesBegan = false
+        touch.delaysTouchesEnded = false
+        touch.handler = { [weak self] kind, location in
+            self?.feedPointer(kind, location)
+        }
+        addGestureRecognizer(touch)
     }
 
     private var isGameMode: Bool { componentId != "triangle" }
@@ -115,35 +129,26 @@ public final class KbveWgpuView: ExpoView {
         setJwt(jwt)
     }
 
-    func hostResponse(id: Int, ok: Bool, payload: String) {}
-
-    private func forwardTouch(_ touches: Set<UITouch>, kind: UInt32) {
-        guard let surface = surface, let touch = touches.first else { return }
-        let scale = window?.screen.scale ?? UIScreen.main.scale
-        let point = touch.location(in: self)
-        let event = FfiInputEvent(
-            kind: kind,
-            x: Float(point.x * scale),
-            y: Float(point.y * scale),
-            id: 0
-        )
+    /// Forward a pointer from JS (RN intercepts native touches on Fabric).
+    /// `x`/`y` are physical pixels. `kind`: 0 down, 1 move, 2 up.
+    func pointer(_ kind: Int, _ x: Double, _ y: Double) {
+        guard let surface = surface else { return }
+        let event = FfiInputEvent(kind: UInt32(kind), x: Float(x), y: Float(y), id: 0)
         kbve_wgpu_input(surface, event)
     }
 
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        forwardTouch(touches, kind: 0)
-    }
+    func hostResponse(id: Int, ok: Bool, payload: String) {}
 
-    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        forwardTouch(touches, kind: 1)
-    }
-
-    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        forwardTouch(touches, kind: 2)
-    }
-
-    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        forwardTouch(touches, kind: 2)
+    fileprivate func feedPointer(_ kind: UInt32, _ location: CGPoint) {
+        guard let surface = surface else { return }
+        let scale = window?.screen.scale ?? UIScreen.main.scale
+        let event = FfiInputEvent(
+            kind: kind,
+            x: Float(location.x * scale),
+            y: Float(location.y * scale),
+            id: 0
+        )
+        kbve_wgpu_input(surface, event)
     }
 
     public override func willMove(toWindow newWindow: UIWindow?) {
@@ -160,5 +165,40 @@ public final class KbveWgpuView: ExpoView {
         if let surface = surface {
             kbve_wgpu_destroy(surface)
         }
+    }
+}
+
+extension KbveWgpuView: UIGestureRecognizerDelegate {
+    public func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
+    ) -> Bool {
+        true
+    }
+}
+
+/// UI-thread touch recognizer. Reports down/move/up as kind 0/1/2 with the
+/// touch location in the view's coordinate space.
+final class KbveTouchRecognizer: UIGestureRecognizer {
+    var handler: ((UInt32, CGPoint) -> Void)?
+
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let t = touches.first { handler?(0, t.location(in: view)) }
+        state = .began
+    }
+
+    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let t = touches.first { handler?(1, t.location(in: view)) }
+        state = .changed
+    }
+
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let t = touches.first { handler?(2, t.location(in: view)) }
+        state = .ended
+    }
+
+    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let t = touches.first { handler?(2, t.location(in: view)) }
+        state = .cancelled
     }
 }

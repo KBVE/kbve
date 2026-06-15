@@ -8,13 +8,8 @@ use std::sync::Arc;
 
 pub fn routes() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/", get(root))
         .route("/health", get(health))
         .route("/ready", get(readiness))
-}
-
-async fn root() -> Json<serde_json::Value> {
-    Json(serde_json::json!({ "service": "jobboard", "status": "ok" }))
 }
 
 async fn health() -> Json<serde_json::Value> {
