@@ -17,16 +17,22 @@ fn vs(@builtin(vertex_index) i: u32) -> VsOut {
   return out;
 }
 
-struct Globals { time: f32, res: vec2f };
+struct Globals { time: f32, res: vec2f, pointer: vec2f, down: f32 };
 @group(0) @binding(0) var<uniform> u: Globals;
 `;
 
-const Globals = d.struct({ time: d.f32, res: d.vec2f });
+const Globals = d.struct({
+	time: d.f32,
+	res: d.vec2f,
+	pointer: d.vec2f,
+	down: d.f32,
+});
 
 export interface EffectSpec {
 	/// Body of `fn fs(in: VsOut) -> @location(0) vec4f { ... }`. May read
-	/// `u.time`, `u.res`, `in.uv`. Return a premultiplied color (rgb already
-	/// multiplied by alpha) so it composites correctly on transparent canvases.
+	/// `u.time`, `u.res`, `u.pointer` (normalized [0,1]), `u.down` (0/1), and
+	/// `in.uv`. Return a premultiplied color (rgb already multiplied by alpha)
+	/// so it composites correctly on transparent canvases.
 	fragment: string;
 	/// Optional top-level WGSL (helper fns / consts) injected before `fs`.
 	helpers?: string;
@@ -56,16 +62,18 @@ export function createEffect(spec: EffectSpec): EffectInit {
 		});
 
 		return {
-			frame(view, timeMs, width, height) {
+			frame(state) {
 				globals.write({
-					time: timeMs / 1000,
-					res: d.vec2f(width, height),
+					time: state.timeMs / 1000,
+					res: d.vec2f(state.width, state.height),
+					pointer: d.vec2f(state.pointerX, state.pointerY),
+					down: state.pointerDown,
 				});
 				const encoder = device.createCommandEncoder();
 				const pass = encoder.beginRenderPass({
 					colorAttachments: [
 						{
-							view,
+							view: state.view,
 							clearValue: { r: 0, g: 0, b: 0, a: 0 },
 							loadOp: 'clear',
 							storeOp: 'store',

@@ -5,13 +5,21 @@ export interface EffectContext {
 	format: GPUTextureFormat;
 }
 
+/// Per-frame inputs handed to an effect. Pointer is normalized [0,1] in the
+/// canvas (matching `in.uv`); `pointerDown` is 0 or 1. Extend this struct (and
+/// the Globals uniform in createEffect) to expose more inputs to shaders.
+export interface FrameState {
+	view: GPUTextureView;
+	timeMs: number;
+	width: number;
+	height: number;
+	pointerX: number;
+	pointerY: number;
+	pointerDown: number;
+}
+
 export interface EffectRunner {
-	frame(
-		view: GPUTextureView,
-		timeMs: number,
-		width: number,
-		height: number,
-	): void;
+	frame(state: FrameState): void;
 	dispose(): void;
 }
 

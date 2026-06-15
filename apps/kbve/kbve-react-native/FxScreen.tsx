@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { PluginHost, Text } from '@kbve/rn';
 import { FX_EFFECTS, makeEffectRegistry } from './fxRegistry';
 
@@ -16,22 +16,30 @@ export function FxScreen() {
 	return (
 		<View style={styles.root}>
 			<PluginHost registry={registry} slot="canvas" api={{}} />
-			<View style={styles.picker} pointerEvents="box-none">
-				{FX_EFFECTS.map((effect) => {
-					const active = effect.id === effectId;
-					return (
-						<Pressable
-							key={effect.id}
-							onPress={() => setEffectId(effect.id)}
-							style={[styles.chip, active && styles.chipActive]}>
-							<Text
-								variant="label"
-								tone={active ? 'primary' : 'muted'}>
-								{effect.label}
-							</Text>
-						</Pressable>
-					);
-				})}
+			<View style={styles.pickerWrap} pointerEvents="box-none">
+				<ScrollView
+					horizontal
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={styles.picker}>
+					{FX_EFFECTS.map((effect) => {
+						const active = effect.id === effectId;
+						return (
+							<Pressable
+								key={effect.id}
+								onPress={() => setEffectId(effect.id)}
+								style={[
+									styles.chip,
+									active && styles.chipActive,
+								]}>
+								<Text
+									variant="label"
+									tone={active ? 'primary' : 'muted'}>
+									{effect.label}
+								</Text>
+							</Pressable>
+						);
+					})}
+				</ScrollView>
 			</View>
 		</View>
 	);
@@ -39,16 +47,18 @@ export function FxScreen() {
 
 const styles = StyleSheet.create({
 	root: { flex: 1 },
+	pickerWrap: { position: 'absolute', top: 16, left: 0, right: 0 },
 	picker: {
-		position: 'absolute',
-		top: 16,
-		alignSelf: 'center',
-		flexDirection: 'row',
+		flexGrow: 1,
+		justifyContent: 'center',
 		gap: 8,
-		padding: 6,
+		paddingHorizontal: 12,
+	},
+	chip: {
+		paddingVertical: 8,
+		paddingHorizontal: 16,
 		borderRadius: 999,
 		backgroundColor: 'rgba(8, 12, 24, 0.55)',
 	},
-	chip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999 },
-	chipActive: { backgroundColor: 'rgba(255, 255, 255, 0.14)' },
+	chipActive: { backgroundColor: 'rgba(255, 255, 255, 0.22)' },
 });

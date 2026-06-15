@@ -3,6 +3,7 @@ import { gradient } from './gradient';
 import { plasma } from './plasma';
 import { ripple } from './ripple';
 import { starfield } from './starfield';
+import { touchRipple } from './touchRipple';
 import type { EffectDefinition, EffectInit } from './types';
 
 const EFFECTS: EffectDefinition[] = [
@@ -11,6 +12,7 @@ const EFFECTS: EffectDefinition[] = [
 	plasma,
 	ripple,
 	starfield,
+	touchRipple,
 ];
 
 const BY_ID = new Map(EFFECTS.map((e) => [e.id, e]));
