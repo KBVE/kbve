@@ -6,6 +6,16 @@ pub use ffi::{FfiInputEvent, WgpuSurface};
 pub use handle::{SurfaceKind, SurfaceSource};
 pub use renderer::{InputEvent, SurfaceRenderer};
 
+// The `android-activity` `native-activity` backend (pulled by bevy_winit on
+// Android, even though we never add WinitPlugin) leaves `android_main`
+// undefined — the app entry a NativeActivity would call. Android links the
+// `.so` with full RELRO, so an undefined symbol fails `dlopen`. We load the
+// lib as a plain JNI library, never as a NativeActivity, so a no-op stub just
+// satisfies the linker; it is never called.
+#[cfg(all(target_os = "android", feature = "bevy"))]
+#[no_mangle]
+pub extern "C" fn android_main() {}
+
 #[cfg(target_os = "android")]
 mod android_jni {
     use crate::ffi::{kbve_wgpu_create, kbve_wgpu_destroy, kbve_wgpu_render, kbve_wgpu_resize};

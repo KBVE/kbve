@@ -83,7 +83,13 @@ mod plugin {
         fn build(&self, app: &mut App) {
             #[cfg(not(target_arch = "wasm32"))]
             {
-                let path = dirs::data_local_dir()
+                // `KBVE_BEVY_DB_DIR` overrides the data dir for hosts where
+                // `dirs::data_local_dir()` is not writable (e.g. Android, where
+                // it resolves to a read-only path — the native shell points
+                // this at the app's filesDir).
+                let path = std::env::var_os("KBVE_BEVY_DB_DIR")
+                    .map(std::path::PathBuf::from)
+                    .or_else(dirs::data_local_dir)
                     .unwrap_or_else(|| std::path::PathBuf::from("."))
                     .join(&self.db_name)
                     .with_extension("redb");
