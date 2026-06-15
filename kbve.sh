@@ -871,12 +871,6 @@ _load_env_local() {
         . .env.local
         set +a
     fi
-    # Force the Nx daemon off for every -nx invocation. Worktrees get this via
-    # .env.local, but the main checkout (CI/Docker container-prep) has none, so
-    # the daemon ran there and intermittently crashed mid `nx exec`
-    # ("Failed to process project graph"). It's pure overhead for one-shot
-    # builds; disabling it makes graph processing deterministic everywhere.
-    export NX_DAEMON=false
 }
 
 # Function to run pnpm nx with additional arguments under the cloud.
