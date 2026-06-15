@@ -7,3 +7,4 @@ export * from './store';
 export * from './events';
 export * from './net';
 export * from './auth';
+export * from './chat';

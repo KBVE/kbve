@@ -17,6 +17,9 @@ export * from './auth/useStaff';
 
 export * from './captcha/HCaptcha';
 
+export * from './chat/executor';
+export * from './chat/useChat';
+
 export * from './hooks';
 export * from './offload';
 
@@ -29,5 +32,6 @@ export * from './examples/wgpuPlugin';
 export * from './screens/HomeScreen';
 export * from './screens/HomeView';
 export * from './screens/DashboardScreen';
+export * from './screens/ChatScreen';
 
 export * from './ui';
