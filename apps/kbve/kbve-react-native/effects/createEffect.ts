@@ -3,8 +3,9 @@ import * as d from 'typegpu/data';
 import type { EffectInit } from './types';
 
 /// Shared WGSL prelude: a fullscreen-triangle vertex stage that hands the
-/// fragment an `in.uv` in [0,1], plus the standard `u` globals (time seconds,
-/// res in pixels). Effect authors only write the fragment body + any helpers.
+/// fragment an `in.uv` in [0,1], plus the standard `u` globals. Effect authors
+/// only write the body of `effect(in)` + any helpers; createEffect wraps it and
+/// applies `u.intensity` so every effect honors the intensity control.
 const PRELUDE = /* wgsl */ `
 struct VsOut { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
 
@@ -17,24 +18,33 @@ fn vs(@builtin(vertex_index) i: u32) -> VsOut {
   return out;
 }
 
-struct Globals { time: f32, res: vec2f, pointer: vec2f, down: f32 };
+struct Globals {
+  time: f32,
+  intensity: f32,
+  res: vec2f,
+  pointer: vec2f,
+  down: f32,
+  accent: vec3f,
+};
 @group(0) @binding(0) var<uniform> u: Globals;
 `;
 
 const Globals = d.struct({
 	time: d.f32,
+	intensity: d.f32,
 	res: d.vec2f,
 	pointer: d.vec2f,
 	down: d.f32,
+	accent: d.vec3f,
 });
 
 export interface EffectSpec {
-	/// Body of `fn fs(in: VsOut) -> @location(0) vec4f { ... }`. May read
-	/// `u.time`, `u.res`, `u.pointer` (normalized [0,1]), `u.down` (0/1), and
-	/// `in.uv`. Return a premultiplied color (rgb already multiplied by alpha)
-	/// so it composites correctly on transparent canvases.
+	/// Body of `fn effect(in: VsOut) -> vec4f { ... }`. May read `u.time`,
+	/// `u.res`, `u.pointer` (normalized [0,1]), `u.down` (0/1), `u.accent`
+	/// (host rgb), and `in.uv`. Return a premultiplied color (rgb already
+	/// multiplied by alpha); the intensity control is applied for you.
 	fragment: string;
-	/// Optional top-level WGSL (helper fns / consts) injected before `fs`.
+	/// Optional top-level WGSL (helper fns / consts) injected before `effect`.
 	helpers?: string;
 }
 
@@ -42,7 +52,7 @@ export interface EffectSpec {
 /// fullscreen pipeline, the globals uniform, the per-frame uniform write/draw,
 /// and teardown — so a new effect is just WGSL.
 export function createEffect(spec: EffectSpec): EffectInit {
-	const code = `${PRELUDE}\n${spec.helpers ?? ''}\n@fragment\nfn fs(in: VsOut) -> @location(0) vec4f {\n${spec.fragment}\n}`;
+	const code = `${PRELUDE}\n${spec.helpers ?? ''}\nfn effect(in: VsOut) -> vec4f {\n${spec.fragment}\n}\n\n@fragment\nfn fs(in: VsOut) -> @location(0) vec4f {\n  return effect(in) * u.intensity;\n}`;
 
 	return ({ device, format }) => {
 		const root = tgpu.initFromDevice({ device });
@@ -65,9 +75,15 @@ export function createEffect(spec: EffectSpec): EffectInit {
 			frame(state) {
 				globals.write({
 					time: state.timeMs / 1000,
+					intensity: state.intensity,
 					res: d.vec2f(state.width, state.height),
 					pointer: d.vec2f(state.pointerX, state.pointerY),
 					down: state.pointerDown,
+					accent: d.vec3f(
+						state.accent[0],
+						state.accent[1],
+						state.accent[2],
+					),
 				});
 				const encoder = device.createCommandEncoder();
 				const pass = encoder.beginRenderPass({

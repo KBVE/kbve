@@ -6,8 +6,10 @@ export interface EffectContext {
 }
 
 /// Per-frame inputs handed to an effect. Pointer is normalized [0,1] in the
-/// canvas (matching `in.uv`); `pointerDown` is 0 or 1. Extend this struct (and
-/// the Globals uniform in createEffect) to expose more inputs to shaders.
+/// canvas (matching `in.uv`); `pointerDown` is 0 or 1. `intensity` scales the
+/// final color (applied automatically). `accent` is a host-provided rgb tint
+/// (see the capability bridge in TypeGpuHost). Extend this struct (and the
+/// Globals uniform in createEffect) to expose more inputs to shaders.
 export interface FrameState {
 	view: GPUTextureView;
 	timeMs: number;
@@ -16,6 +18,8 @@ export interface FrameState {
 	pointerX: number;
 	pointerY: number;
 	pointerDown: number;
+	intensity: number;
+	accent: readonly [number, number, number];
 }
 
 export interface EffectRunner {

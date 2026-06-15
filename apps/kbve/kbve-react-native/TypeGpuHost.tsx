@@ -6,15 +6,25 @@ import { Canvas, useCanvasRef, useDevice } from 'react-native-webgpu';
 import { registerNativeComponent, TYPEGPU_COMPONENT_ID } from '@kbve/rn';
 import type { NativeComponentProps } from '@kbve/rn';
 import { getEffect } from './effects';
+import { fxSettings } from './fxSettings';
 
-/// Plugin-routed TypeGPU effect host. `effectId` (from the `typegpu` manifest
-/// entry) selects a JS-authored effect from the registry. Pointer touches are
-/// captured here and fed to the shader as normalized [0,1] coords.
-function TypeGpuHost({ effectId, fullBleed, style }: NativeComponentProps) {
+const WHITE: [number, number, number] = [1, 1, 1];
+
+/// Plugin-routed TypeGPU effect host. `effectId` selects an effect; touches feed
+/// the shader as normalized pointer coords; live speed/intensity come from
+/// fxSettings; the accent tint is pulled from the host through the capability
+/// bridge (ui:render / accent) so effects can react to host-provided data.
+function TypeGpuHost({
+	effectId,
+	fullBleed,
+	style,
+	bridge,
+}: NativeComponentProps) {
 	const ref = useCanvasRef();
 	const { device } = useDevice();
 	const pointer = useRef({ x: 0.5, y: 0.5, down: 0 });
 	const layout = useRef({ w: 1, h: 1 });
+	const accent = useRef<[number, number, number]>(WHITE);
 
 	const onLayout = (e: LayoutChangeEvent) => {
 		const { width, height } = e.nativeEvent.layout;
@@ -29,6 +39,23 @@ function TypeGpuHost({ effectId, fullBleed, style }: NativeComponentProps) {
 			down,
 		};
 	};
+
+	useEffect(() => {
+		let cancelled = false;
+		bridge
+			.invoke('ui:render', 'accent', undefined)
+			.then((value) => {
+				if (!cancelled && Array.isArray(value) && value.length === 3) {
+					accent.current = value as [number, number, number];
+				}
+			})
+			.catch(() => {
+				// Host doesn't provide an accent; keep the neutral default.
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [bridge]);
 
 	useEffect(() => {
 		if (!device || !ref.current || !effectId) return;
@@ -46,18 +73,24 @@ function TypeGpuHost({ effectId, fullBleed, style }: NativeComponentProps) {
 
 		const runner = init({ device, format });
 		let raf = 0;
-		const start = Date.now();
+		let elapsed = 0;
+		let last = Date.now();
 		const loop = () => {
 			try {
+				const now = Date.now();
+				elapsed += (now - last) * fxSettings.current.speed;
+				last = now;
 				const texture = context.getCurrentTexture();
 				runner.frame({
 					view: texture.createView(),
-					timeMs: Date.now() - start,
+					timeMs: elapsed,
 					width: texture.width,
 					height: texture.height,
 					pointerX: pointer.current.x,
 					pointerY: pointer.current.y,
 					pointerDown: pointer.current.down,
+					intensity: fxSettings.current.intensity,
+					accent: accent.current,
 				});
 				context.present();
 				raf = requestAnimationFrame(loop);
