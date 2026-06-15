@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 5;
+pub const PROTOCOL_VERSION: u32 = 6;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -12,6 +12,7 @@ pub const EPHEMERAL_PICKUP: u16 = 3;
 pub const EPHEMERAL_ITEM_USED: u16 = 5;
 pub const EPHEMERAL_EQUIPPED: u16 = 6;
 pub const EPHEMERAL_STATS: u16 = 7;
+pub const EPHEMERAL_STATUS: u16 = 8;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -122,6 +123,20 @@ pub struct PlayerView {
     pub connected: bool,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum StatusKind {
+    Poison = 0,
+    Regen = 1,
+    Haste = 2,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StatusView {
+    pub kind: StatusKind,
+    pub remaining: u16,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityDelta {
     pub eid: EntityId,
@@ -133,6 +148,8 @@ pub struct EntityDelta {
     pub hp: i32,
     pub max_hp: i32,
     pub destroyed: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub effects: Vec<StatusView>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
