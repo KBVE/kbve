@@ -12,7 +12,7 @@ import {
 	ToastViewport,
 } from '@kbve/rn';
 import './WgpuHost';
-import { TypeGpuCanvas } from './TypeGpuCanvas';
+import { FxScreen } from './FxScreen';
 
 export default function UiPreview() {
 	return (
@@ -47,7 +47,7 @@ export default function UiPreview() {
 							id: 'fx',
 							label: 'FX',
 							icon: 'sparkles',
-							screen: <TypeGpuCanvas />,
+							screen: <FxScreen />,
 							title: 'GPU FX',
 						},
 					]}

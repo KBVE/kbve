@@ -109,6 +109,7 @@ function loaderFor(entry: PluginEntry): string {
 </script>`;
 		case 'url-page':
 		case 'native':
+		case 'typegpu':
 			return '';
 	}
 }

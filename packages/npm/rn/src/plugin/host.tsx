@@ -43,24 +43,23 @@ const PluginFrame = memo(function PluginFrame({
 		[plugin.manifest, plugin.granted, api],
 	);
 
-	if (plugin.manifest.entry.kind === 'native') {
-		const NativeComponent = getNativeComponent(
-			plugin.manifest.entry.componentId,
-		);
+	const entry = plugin.manifest.entry;
+	if (entry.kind === 'native' || entry.kind === 'typegpu') {
+		const NativeComponent = getNativeComponent(entry.componentId);
 		if (!NativeComponent) {
 			return (
 				<Surface>
 					<Text variant="label">{plugin.manifest.name}</Text>
 					<Text variant="caption" tone="muted">
-						native component "{plugin.manifest.entry.componentId}"
-						not registered
+						native component "{entry.componentId}" not registered
 					</Text>
 				</Surface>
 			);
 		}
 		return (
 			<NativeComponent
-				componentId={plugin.manifest.entry.componentId}
+				componentId={entry.componentId}
+				effectId={entry.kind === 'typegpu' ? entry.effectId : undefined}
 				bridge={bridge}
 				fullBleed={fullBleed}
 				style={fullBleed ? styles.fullBleed : undefined}
