@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, Text, Badge, tokens } from '@kbve/rn/ui';
+import { Stack, Text, Badge, Avatar, Skeleton, tokens } from '@kbve/rn/ui';
 import { Panel } from '../ui/Panel';
 import { fetchTaxonomy, type TaxonomyItem, type Vertical } from '../api/client';
 
@@ -29,6 +29,44 @@ function Clock() {
 				{time}
 			</Text>
 		</Panel>
+	);
+}
+
+const ACTIVITY = [
+	{ name: 'Garold Feeber', note: 'Follow up', tone: 'primary' as const },
+	{ name: 'Mario Senjinelli', note: 'Interview', tone: 'success' as const },
+	{ name: 'Jason Musk', note: 'Presentation', tone: 'warning' as const },
+	{ name: 'Mabel Pines', note: 'Offer sent', tone: 'success' as const },
+	{ name: 'Todd Hovard', note: 'New match', tone: 'neutral' as const },
+];
+
+function ActivityList() {
+	return (
+		<Stack gap="md">
+			<Text variant="label" tone="muted">
+				Recent activity
+			</Text>
+			<Stack gap="sm">
+				{ACTIVITY.map((a) => (
+					<View
+						key={a.name}
+						style={{
+							flexDirection: 'row',
+							alignItems: 'center',
+							gap: tokens.space.sm,
+						}}>
+						<Avatar name={a.name} size={36} />
+						<Stack gap="xs" style={{ flex: 1 }}>
+							<Text variant="label">{a.name}</Text>
+							<Text variant="caption" tone="faint">
+								{a.note}
+							</Text>
+						</Stack>
+						<Badge label={a.note} tone={a.tone} />
+					</View>
+				))}
+			</Stack>
+		</Stack>
 	);
 }
 
@@ -63,9 +101,11 @@ function VerticalDetail({ vertical }: { vertical: Vertical }) {
 					{error}
 				</Text>
 			) : !items ? (
-				<Text tone="muted" variant="caption">
-					Loading…
-				</Text>
+				<Stack gap="xs">
+					<Skeleton width="80%" />
+					<Skeleton width="60%" />
+					<Skeleton width="70%" />
+				</Stack>
 			) : items.length === 0 ? (
 				<Text tone="faint" variant="caption">
 					No taxonomy yet.
@@ -78,7 +118,7 @@ function VerticalDetail({ vertical }: { vertical: Vertical }) {
 						gap: tokens.space.xs,
 					}}>
 					{items.map((t) => (
-						<Badge key={t.id} label={`${t.label}`} />
+						<Badge key={t.id} label={t.label} />
 					))}
 				</View>
 			)}
@@ -94,14 +134,7 @@ export function RightPanel({ selection }: { selection: Selection }) {
 				{selection ? (
 					<VerticalDetail vertical={selection.vertical} />
 				) : (
-					<Stack gap="xs">
-						<Text variant="label" tone="muted">
-							Details
-						</Text>
-						<Text tone="faint" variant="caption">
-							Select an item to see more.
-						</Text>
-					</Stack>
+					<ActivityList />
 				)}
 			</Panel>
 		</Stack>

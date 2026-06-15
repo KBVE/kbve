@@ -14,6 +14,7 @@ import {
 	Briefcase,
 	MessageSquare,
 	User,
+	Hexagon,
 	type LucideIcon,
 } from 'lucide-react';
 import { useAuth, useAuthActions } from '@kbve/rn/auth';
@@ -74,59 +75,82 @@ export function DashboardShell() {
 		}
 	};
 
-	const rail = (
-		<Surface
+	const brand = (
+		<div
 			style={{
-				borderRadius: 0,
-				...(isPhone
-					? {
-							flexDirection: 'row',
-							borderBottomWidth: 1,
-							borderBottomColor: tokens.color.border,
-						}
-					: {
-							width: 76,
-							borderRightWidth: 1,
-							borderRightColor: tokens.color.border,
-						}),
+				width: 44,
+				height: 44,
+				borderRadius: 14,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				background:
+					'linear-gradient(135deg, rgba(201,165,106,0.9), rgba(166,125,67,0.7))',
+				boxShadow: '0 6px 18px rgba(201,165,106,0.25)',
 			}}>
-			<Stack
-				direction={isPhone ? 'row' : 'column'}
-				gap="xs"
-				align="center"
+			<Hexagon size={22} color={tokens.color.onPrimary} />
+		</div>
+	);
+
+	const rail = (
+		<View
+			style={{
+				padding: isPhone ? tokens.space.sm : tokens.space.md,
+			}}>
+			<Surface
 				style={{
-					padding: tokens.space.sm,
-					flex: isPhone ? 1 : undefined,
+					borderRadius: tokens.radius.xl,
+					borderWidth: 1,
+					borderColor: tokens.color.border,
+					...(isPhone ? { flexDirection: 'row' } : {}),
 				}}>
-				{SECTIONS.map((s) => {
-					const on = s.id === active;
-					return (
-						<PressableSurface
-							key={s.id}
-							onPress={() => setActive(s.id)}
-							style={{
-								width: 48,
-								height: 48,
-								alignItems: 'center',
-								justifyContent: 'center',
-								borderRadius: tokens.radius.md,
-								backgroundColor: on
-									? tokens.color.surfaceAlt
-									: 'transparent',
-							}}>
-							<s.Icon
-								size={20}
-								color={
-									on
-										? tokens.color.primary
-										: tokens.color.textMuted
-								}
-							/>
-						</PressableSurface>
-					);
-				})}
-			</Stack>
-		</Surface>
+				<Stack
+					direction={isPhone ? 'row' : 'column'}
+					gap="xs"
+					align="center"
+					style={{
+						padding: tokens.space.sm,
+						flex: isPhone ? 1 : undefined,
+					}}>
+					{!isPhone ? (
+						<View style={{ marginBottom: tokens.space.sm }}>
+							{brand}
+						</View>
+					) : null}
+					{SECTIONS.map((s) => {
+						const on = s.id === active;
+						return (
+							<PressableSurface
+								key={s.id}
+								onPress={() => setActive(s.id)}
+								style={{
+									width: 48,
+									height: 48,
+									alignItems: 'center',
+									justifyContent: 'center',
+									borderRadius: tokens.radius.lg,
+									borderWidth: 1,
+									borderColor: on
+										? 'rgba(201,165,106,0.35)'
+										: 'transparent',
+									backgroundColor: on
+										? 'rgba(201,165,106,0.14)'
+										: 'transparent',
+								}}>
+								<s.Icon
+									size={20}
+									color={
+										on
+											? tokens.color.primary
+											: tokens.color.textMuted
+									}
+								/>
+							</PressableSurface>
+						);
+					})}
+				</Stack>
+			</Surface>
+		</View>
 	);
 
 	const topbar = (

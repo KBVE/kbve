@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, PressableSurface, Text, Badge, tokens } from '@kbve/rn/ui';
+import {
+	Stack,
+	PressableSurface,
+	Text,
+	Badge,
+	Skeleton,
+	tokens,
+} from '@kbve/rn/ui';
 import { fetchVerticals, type Vertical } from '../api/client';
 
 export function BrowseView({
@@ -33,7 +40,22 @@ export function BrowseView({
 			{error ? (
 				<Text tone="danger">Failed to load: {error}</Text>
 			) : !verticals ? (
-				<Text tone="muted">Loading…</Text>
+				<View
+					style={{
+						flexDirection: 'row',
+						flexWrap: 'wrap',
+						gap: tokens.space.md,
+					}}>
+					{[0, 1, 2].map((i) => (
+						<View
+							key={i}
+							style={{ width: 260, gap: tokens.space.sm }}>
+							<Skeleton width="60%" height={20} />
+							<Skeleton width="100%" />
+							<Skeleton width="80%" />
+						</View>
+					))}
+				</View>
 			) : (
 				<View
 					style={{
