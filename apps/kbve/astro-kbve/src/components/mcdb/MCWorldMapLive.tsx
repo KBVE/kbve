@@ -56,11 +56,12 @@ interface Props {
 export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 	const [status, setStatus] = useState<McPlayerList | null>(null);
 	const [dbLots, setDbLots] = useState<Lot[] | null>(null);
-	const [error, setError] = useState<string | null>(null);
+	// Track player + lot fetch failures independently so a flaky RCON
+	// bridge doesn't blank the DB lot overlay (and vice versa).
+	const [statusError, setStatusError] = useState<string | null>(null);
+	const [lotsError, setLotsError] = useState<string | null>(null);
 	const mountedRef = useRef(false);
 	const abortRef = useRef<AbortController | null>(null);
-	// Cache the static-side SVG + injection-point lookup once on mount so
-	// dbLots updates don't re-walk the DOM every refresh.
 	const liveLayerRef = useRef<SVGGElement | null>(null);
 	const playerLayerRef = useRef<SVGGElement | null>(null);
 	const svgRef = useRef<SVGSVGElement | null>(null);
@@ -76,32 +77,61 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 		cancel();
 		const ctrl = new AbortController();
 		abortRef.current = ctrl;
+
+		const errMessage = (e: unknown, fallback: string): string =>
+			e instanceof Error ? e.message : fallback;
+
+		const isAbort = (e: unknown): boolean =>
+			(e as Error | undefined)?.name === 'AbortError';
+
+		const statusPromise = fetch('/api/v1/mc/players', {
+			signal: ctrl.signal,
+		})
+			.then((r) =>
+				r.ok
+					? (r.json() as Promise<McPlayerList>)
+					: Promise.reject(new Error(`HTTP ${r.status}`)),
+			)
+			.then((res) => {
+				if (ctrl.signal.aborted || !mountedRef.current) return;
+				setStatus(res);
+				setStatusError(null);
+			})
+			.catch((e) => {
+				if (isAbort(e) || !mountedRef.current) return;
+				setStatusError(errMessage(e, 'failed to load player status'));
+			});
+
+		const lotsPromise = fetch(
+			`/api/v1/mc/lots/viewport?${new URLSearchParams({
+				world,
+				min_chunk_x: String(minChunk),
+				max_chunk_x: String(maxChunk),
+				min_chunk_z: String(minChunk),
+				max_chunk_z: String(maxChunk),
+				limit: '1024',
+			})}`,
+			{ signal: ctrl.signal },
+		)
+			.then((r) =>
+				r.ok
+					? (r.json() as Promise<Lot[]>)
+					: Promise.reject(new Error(`HTTP ${r.status}`)),
+			)
+			.then((res) => {
+				if (ctrl.signal.aborted || !mountedRef.current) return;
+				if (Array.isArray(res)) {
+					setDbLots(res);
+					setLotsError(null);
+				}
+			})
+			.catch((e) => {
+				if (isAbort(e) || !mountedRef.current) return;
+				setLotsError(errMessage(e, 'failed to load lot overlay'));
+			});
+
 		try {
-			const [statusRes, lotsRes] = await Promise.all([
-				fetch('/api/v1/mc/players', { signal: ctrl.signal }).then(
-					(r) => (r.ok ? r.json() : null),
-				),
-				fetch(
-					`/api/v1/mc/lots/viewport?${new URLSearchParams({
-						world,
-						min_chunk_x: String(minChunk),
-						max_chunk_x: String(maxChunk),
-						min_chunk_z: String(minChunk),
-						max_chunk_z: String(maxChunk),
-						limit: '1024',
-					})}`,
-					{ signal: ctrl.signal },
-				).then((r) => (r.ok ? r.json() : null)),
-			]);
-			if (ctrl.signal.aborted || !mountedRef.current) return;
-			if (statusRes) setStatus(statusRes);
-			if (Array.isArray(lotsRes)) setDbLots(lotsRes);
-		} catch (e) {
-			if ((e as Error)?.name === 'AbortError') return;
-			if (!mountedRef.current) return;
-			setError(
-				e instanceof Error ? e.message : 'failed to load live data',
-			);
+			await Promise.all([statusPromise, lotsPromise]);
 		} finally {
 			if (abortRef.current === ctrl) abortRef.current = null;
 		}
@@ -315,7 +345,16 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 					from RCON. Off-map players are dropped from the overlay.
 				</p>
 			)}
-			{error && <p className="mcworldlive__error">{error}</p>}
+			{statusError && (
+				<p className="mcworldlive__error">
+					Player status unavailable: {statusError}
+				</p>
+			)}
+			{lotsError && (
+				<p className="mcworldlive__error">
+					Lot overlay unavailable: {lotsError}
+				</p>
+			)}
 		</aside>
 	);
 }

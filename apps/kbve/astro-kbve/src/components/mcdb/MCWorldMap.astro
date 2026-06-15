@@ -1,6 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
-import { MCLotFrontmatterSchema, MCPoiFrontmatterSchema } from '@/data/schema';
+import { getLotEntries, getPoiEntries } from './mc-collections';
 
 interface Props {
 	world?: string;
@@ -14,43 +13,8 @@ const span = MAX - MIN + 1;
 const SIZE = 640;
 const cell = SIZE / span;
 
-const lotEntries = await getCollection('docs', (entry) => {
-	const m = (entry.data as { mc_lot?: unknown }).mc_lot;
-	if (!m) return false;
-	try {
-		const parsed = MCLotFrontmatterSchema.parse(m);
-		return parsed.world === world;
-	} catch {
-		return false;
-	}
-});
-
-type LotRow = ReturnType<typeof MCLotFrontmatterSchema.parse> & {
-	slug: string;
-};
-const lots: LotRow[] = lotEntries.map((e) => ({
-	...MCLotFrontmatterSchema.parse((e.data as { mc_lot: unknown }).mc_lot),
-	slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
-}));
-
-const poiEntries = await getCollection('docs', (entry) => {
-	const m = (entry.data as { mc_poi?: unknown }).mc_poi;
-	if (!m) return false;
-	try {
-		const parsed = MCPoiFrontmatterSchema.parse(m);
-		return parsed.world === world;
-	} catch {
-		return false;
-	}
-});
-
-type PoiRow = ReturnType<typeof MCPoiFrontmatterSchema.parse> & {
-	slug: string;
-};
-const pois: PoiRow[] = poiEntries.map((e) => ({
-	...MCPoiFrontmatterSchema.parse((e.data as { mc_poi: unknown }).mc_poi),
-	slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
-}));
+const lots = await getLotEntries(world);
+const pois = await getPoiEntries(world);
 
 const kindAccent: Record<string, string> = {
 	spawn: '#fde68a',
@@ -347,12 +311,25 @@ const blockMax = (MAX + 1) * 16 - 1;
 		display: block;
 	}
 
-	.mcworld__svg a:hover rect {
+	.mcworld__svg a:hover rect,
+	.mcworld__svg a:focus-visible rect {
 		fill-opacity: 0.85;
 	}
 
-	.mcworld__svg a:hover circle {
+	.mcworld__svg a:hover circle,
+	.mcworld__svg a:focus-visible circle {
 		stroke: var(--sl-color-white);
+	}
+
+	.mcworld__svg a:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 1px;
+		border-radius: 0.2rem;
+	}
+
+	.mcworld__svg a:focus-visible rect {
+		stroke: var(--sl-color-white);
+		stroke-width: 2;
 	}
 
 	.mcworld__hint {
