@@ -45,6 +45,7 @@ members = [
 	'apps/agones/factorio/relay',
 	'packages/rust/simgrid',
 	'apps/agones/cryptothrone/server',
+	'packages/rust/kbve_wgpu',
 ]
 
 exclude = [

@@ -1,0 +1,33 @@
+[package]
+name = "kbve_wgpu"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Reusable native wgpu render-surface bridge for KBVE mobile (Metal/Vulkan via raw-window-handle). Mounts as a React Native Fabric view; hosts the Bevy isometric game behind a feature flag."
+homepage = "https://kbve.com/application/rust/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/kbve_wgpu"
+readme = "README.md"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+default = []
+bevy = ["dep:bevy_app"]
+
+[dependencies]
+wgpu = "27.0.1"
+raw-window-handle = "0.6.2"
+pollster = "0.4"
+log = "0.4"
+bevy_app = { version = "0.18", optional = true }
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk = "0.9"
+ndk-sys = "0.6"
+jni = "0.21"
+android_logger = "0.14"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2 = "0.6"

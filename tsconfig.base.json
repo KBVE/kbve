@@ -24,6 +24,7 @@
 			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"],
+			"@kbve/npcdb": ["packages/data/codegen/npcdb.ts"],
 			"@kbve/rn": ["packages/npm/rn/src/index.ts"]
 		}
 	},

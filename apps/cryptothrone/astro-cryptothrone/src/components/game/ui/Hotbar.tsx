@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { laserEvents } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
 import { getItemById } from '../data/items';
-import { ITEM_ICON_FALLBACK } from '../data/itemdb';
+import { ItemIcon } from './ItemIcon';
 
 const SLOTS = 4;
 
@@ -44,19 +44,8 @@ export function Hotbar() {
 							laserEvents.emit('item:use', { ref: id })
 						}
 						title={`${item?.name ?? id} (${i + 1})`}
-						className="relative h-11 w-11 rounded-lg border border-amber-300/30 bg-black/55 backdrop-blur-md transition hover:border-amber-300">
-						{item?.img && (
-							<img
-								src={item.img}
-								alt={item.name}
-								onError={(e) => {
-									const el = e.currentTarget;
-									if (el.src !== ITEM_ICON_FALLBACK)
-										el.src = ITEM_ICON_FALLBACK;
-								}}
-								className="h-full w-full object-contain p-1"
-							/>
-						)}
+						className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-amber-300/30 bg-black/55 backdrop-blur-md transition hover:border-amber-300">
+						{item && <ItemIcon item={item} size={36} />}
 						<span className="absolute bottom-0 right-0.5 font-mono text-[0.6rem] text-stone-400">
 							{i + 1}
 						</span>

@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 5;
+export const PROTOCOL_VERSION = 6;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -9,6 +9,7 @@ export const EPHEMERAL_PICKUP = 3;
 export const EPHEMERAL_ITEM_USED = 5;
 export const EPHEMERAL_EQUIPPED = 6;
 export const EPHEMERAL_STATS = 7;
+export const EPHEMERAL_STATUS = 8;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -51,6 +52,13 @@ export interface PlayerView {
 	connected: boolean;
 }
 
+export type StatusKind = 'Poison' | 'Regen' | 'Haste';
+
+export interface StatusView {
+	kind: StatusKind;
+	remaining: number;
+}
+
 export interface EntityDelta {
 	eid: number;
 	kind: number;
@@ -61,6 +69,7 @@ export interface EntityDelta {
 	hp: number;
 	max_hp: number;
 	destroyed: boolean;
+	effects?: StatusView[];
 }
 
 export interface Snapshot {
@@ -133,6 +142,12 @@ export interface StatsEvent {
 	max_hp: number;
 	attack: number;
 	kills?: number;
+}
+
+export interface StatusEvent {
+	kind: number;
+	magnitude: number;
+	remaining: number;
 }
 
 export type ServerEvent =

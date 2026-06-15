@@ -24,6 +24,7 @@ export default defineConfig({
 				'src/components/game/store/GameStoreContext.tsx',
 				'src/components/game/data/items.ts',
 				'src/components/game/data/itemdb.ts',
+				'src/components/game/data/npcdb.ts',
 				'src/components/game/data/npcs.ts',
 				'src/components/game/ui/ToggleButton.tsx',
 				'src/components/game/ui/StatsSection.tsx',

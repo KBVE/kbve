@@ -37,9 +37,11 @@ export const Button = memo(function Button({
 			{loading ? (
 				<ActivityIndicator
 					color={
-						variant === 'secondary' || variant === 'ghost'
-							? tokens.color.text
-							: '#fff'
+						variant === 'primary'
+							? tokens.color.onPrimary
+							: variant === 'danger'
+								? '#fff'
+								: tokens.color.text
 					}
 				/>
 			) : (
@@ -87,7 +89,7 @@ const fillStyle = StyleSheet.create({
 });
 
 const textStyle = StyleSheet.create({
-	primary: { color: '#fff' },
+	primary: { color: tokens.color.onPrimary },
 	secondary: { color: tokens.color.text },
 	ghost: { color: tokens.color.textMuted },
 	danger: { color: '#fff' },

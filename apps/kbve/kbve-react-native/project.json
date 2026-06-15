@@ -49,6 +49,44 @@
 				"command": "expo prebuild"
 			}
 		},
+		"run:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo run:ios"
+			}
+		},
+		"run:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kbve-react-native",
+				"command": "expo run:android"
+			}
+		},
+		"build:native:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"cwd": "apps/kbve/kbve-react-native",
+				"commands": [
+					"npx nx run kbve_wgpu:build:ios",
+					"expo prebuild --clean -p ios",
+					"expo run:ios"
+				]
+			}
+		},
+		"build:native:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"cwd": "apps/kbve/kbve-react-native",
+				"commands": [
+					"npx nx run kbve_wgpu:build:android",
+					"expo prebuild --clean -p android",
+					"expo run:android"
+				]
+			}
+		},
 		"typecheck": {
 			"executor": "nx:run-commands",
 			"options": {

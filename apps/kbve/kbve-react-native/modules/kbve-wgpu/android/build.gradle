@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.kbvewgpu'
+version = '0.1.0'
+
+android {
+  namespace 'expo.modules.kbvewgpu'
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
+  sourceSets {
+    main {
+      jniLibs.srcDirs += ['src/main/jniLibs']
+    }
+  }
+}

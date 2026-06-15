@@ -1,38 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
-import { MCSchematicFrontmatterSchema } from '@/data/schema';
+import { getSchematicEntries } from './mc-collections';
 
-const entries = await getCollection('docs', (entry) => {
-	const m = (entry.data as { mc_schematic?: unknown }).mc_schematic;
-	if (!m) return false;
-	try {
-		MCSchematicFrontmatterSchema.parse(m);
-		return true;
-	} catch {
-		return false;
-	}
-});
-
-type Row = ReturnType<typeof MCSchematicFrontmatterSchema.parse> & {
-	slug: string;
-	title: string;
-};
-
-const rows: Row[] = entries
-	.map((e) => {
-		const m = MCSchematicFrontmatterSchema.parse(
-			(e.data as { mc_schematic: unknown }).mc_schematic,
-		);
-		return {
-			...m,
-			slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
-			title: (e.data as { title?: string }).title ?? m.display_name,
-		};
-	})
-	.sort(
-		(a, b) =>
-			a.tier - b.tier || a.display_name.localeCompare(b.display_name),
-	);
+const rows = (await getSchematicEntries()).sort(
+	(a, b) => a.tier - b.tier || a.display_name.localeCompare(b.display_name),
+);
 
 const categoryAccent: Record<string, string> = {
 	house: '#86efac',

@@ -8,6 +8,7 @@ import {
 	NpcTag,
 	MonsterTag,
 } from './components';
+import { getNpcStats } from '../data/npcdb';
 
 export type GameWorld = World;
 
@@ -39,8 +40,16 @@ export function spawnPlayer(world: GameWorld, x: number, y: number): number {
 	return spawn(world, PlayerTag, x, y, 100);
 }
 
-export function spawnNpc(world: GameWorld, x: number, y: number): number {
-	return spawn(world, NpcTag, x, y, 30);
+export function spawnNpc(
+	world: GameWorld,
+	x: number,
+	y: number,
+	ref?: string,
+): number {
+	// When an npcdb ref is supplied, seed Health from its canonical stats;
+	// otherwise fall back to the generic NPC baseline.
+	const hp = (ref && getNpcStats(ref)?.max_hp) || 30;
+	return spawn(world, NpcTag, x, y, hp);
 }
 
 export function spawnMonster(world: GameWorld, x: number, y: number): number {

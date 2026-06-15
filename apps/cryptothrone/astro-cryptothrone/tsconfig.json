@@ -17,10 +17,17 @@
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["../../../packages/npm/laser/src/ecs.ts"],
 			"@kbve/itemdb-data": [
-				"../../../packages/data/codegen/generated/itemdb-data.json"
+				"../../../packages/data/codegen/generated/itemdb.json"
+			],
+			"@kbve/itemdb-schema": [
+				"../../../packages/data/codegen/generated/itemdb-schema.ts"
 			],
 			"@kbve/npcdb-data": [
 				"../../../packages/data/codegen/generated/npcdb-data.json"
+			],
+			"@kbve/npcdb": ["../../../packages/data/codegen/npcdb.ts"],
+			"@kbve/npcdb-schema": [
+				"../../../packages/data/codegen/generated/npcdb-schema.ts"
 			]
 		}
 	}

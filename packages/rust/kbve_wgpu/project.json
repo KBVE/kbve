@@ -1,0 +1,103 @@
+{
+	"name": "kbve_wgpu",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/kbve_wgpu/src",
+	"tags": ["ffi", "cdylib", "scope:mobile"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo build -p kbve_wgpu --release"],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"verify": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"cargo fmt -p kbve_wgpu -- --check",
+					"cargo clippy -p kbve_wgpu --all-targets -- -D warnings",
+					"cargo test -p kbve_wgpu --no-fail-fast"
+				],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"build:ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+					"cargo build -p kbve_wgpu --release --target aarch64-apple-ios",
+					"cargo build -p kbve_wgpu --release --target aarch64-apple-ios-sim",
+					"rm -rf ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework",
+					"mkdir -p ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios",
+					"xcodebuild -create-xcframework -library ../../../dist/target/aarch64-apple-ios/release/libkbve_wgpu.a -library ../../../dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a -output ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework"
+				],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"build:android": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+					"cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+					"cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs build -p kbve_wgpu --release"
+				],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"build:ios:bevy": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+					"cargo build -p kbve_wgpu --release --features bevy --target aarch64-apple-ios",
+					"cargo build -p kbve_wgpu --release --features bevy --target aarch64-apple-ios-sim",
+					"rm -rf ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework",
+					"mkdir -p ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios",
+					"xcodebuild -create-xcframework -library ../../../dist/target/aarch64-apple-ios/release/libkbve_wgpu.a -library ../../../dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a -output ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework"
+				],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"build:android:bevy": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+					"cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+					"cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs build -p kbve_wgpu --release --features bevy"
+				],
+				"cwd": "packages/rust/kbve_wgpu"
+			}
+		},
+		"build:mobile": {
+			"executor": "nx:run-commands",
+			"options": {
+				"parallel": false,
+				"commands": [
+					"npx nx run kbve_wgpu:build:ios",
+					"npx nx run kbve_wgpu:build:android"
+				]
+			}
+		},
+		"build:all": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["verify"],
+			"options": {
+				"parallel": false,
+				"commands": [
+					"npx nx run kbve_wgpu:build:ios",
+					"npx nx run kbve_wgpu:build:android"
+				]
+			}
+		}
+	}
+}

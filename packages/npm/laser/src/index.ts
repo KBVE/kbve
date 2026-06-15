@@ -96,6 +96,7 @@ export {
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_STATS,
+	EPHEMERAL_STATUS,
 	KIND_CAT_PLAYER,
 	KIND_CAT_NPC,
 	KIND_CAT_ITEM,
@@ -112,6 +113,8 @@ export type {
 	ServerEvent,
 	Snapshot,
 	EntityDelta,
+	StatusKind,
+	StatusView,
 	PlayerView,
 	Welcome,
 	JoinMatch,
@@ -125,4 +128,5 @@ export type {
 	ItemUsedEvent,
 	EquippedEvent,
 	StatsEvent,
+	StatusEvent,
 } from './lib/net/protocol';

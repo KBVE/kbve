@@ -167,6 +167,56 @@
       }
     },
     {
+      "description": "Cloud City tavern keeper. Pours drinks, trades goods, and knows every rumor that drifts through the floating district. The first friendly face most travelers meet.\n",
+      "ref": "barkeep",
+      "id": "01KSAVZ000000000000000BARK",
+      "name": "Evee The BarKeep",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/barkeep.webp",
+      "role": "Tavern Keeper",
+      "tags": [
+        "cryptothrone",
+        "merchant",
+        "cloud-city"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 1,
+        "speed": 2,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Welcome to the tavern, traveler! What can I get you today?",
+            "Pull up a stool — the cloud winds are cold tonight."
+          ]
+        },
+        {
+          "trigger": "trade",
+          "lines": [
+            "I've got potions, fresh fish, and the occasional rare item.",
+            "Check back often — my stock changes with the tides."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
       "description": "A skeletal figure that draws a creaking bow with trembling, bony fingers.\n",
       "ref": "bone-archer",
       "id": "01KKR5QWTA6KARZ9EQB9Y476S4",
@@ -2712,6 +2762,48 @@
           "lines": [
             "Manifest closed. Numbers match.",
             "Trunk empty. Next run on the board."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
+      "description": "A serene keeper of the old ways. Meditates near the plaza shrine and offers travelers patience, wisdom, and the occasional cryptic hint about the road to the throne.\n",
+      "ref": "monk",
+      "id": "01KSAVZ000000000000000MONK",
+      "name": "Elder Monk",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/entity/monks.png",
+      "role": "Shrine Keeper",
+      "tags": [
+        "cryptothrone",
+        "cloud-city"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 2,
+        "speed": 1,
+        "armor": 1
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Peace, traveler. The path to the throne is long.",
+            "Patience and wisdom will serve you well."
           ]
         }
       ],

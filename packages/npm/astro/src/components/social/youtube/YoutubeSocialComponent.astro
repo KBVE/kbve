@@ -1,0 +1,49 @@
+---
+interface Props {
+	handle?: string;
+	channelId?: string;
+	label?: string;
+	showEmbed?: boolean;
+	class?: string;
+}
+
+const {
+	handle = 'kbve',
+	channelId,
+	label,
+	showEmbed = true,
+	class: className = '',
+} = Astro.props;
+
+const profileUrl = `https://www.youtube.com/@${handle}`;
+const embedUrl = channelId
+	? `https://www.youtube.com/embed/videoseries?list=UU${channelId.replace(/^UC/, '')}`
+	: `https://www.youtube.com/embed?listType=user_uploads&list=${handle}`;
+const ctaLabel = label ?? `Visit @${handle} on YouTube`;
+---
+
+<div class:list={['mx-auto my-6 grid w-full max-w-5xl gap-4', className]}>
+	<a
+		class="inline-flex w-fit items-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white shadow-lg shadow-red-500/30 transition-transform duration-150 hover:-translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+		href={profileUrl}
+		target="_blank"
+		rel="noopener noreferrer">
+		<span class="text-lg leading-none" aria-hidden="true">▶</span>
+		<span>{ctaLabel}</span>
+	</a>
+
+	{
+		showEmbed && (
+			<div class="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-black aspect-video dark:border-gray-700">
+				<iframe
+					src={embedUrl}
+					title={`${handle} YouTube uploads`}
+					class="absolute inset-0 h-full w-full border-0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					referrerpolicy="strict-origin-when-cross-origin"
+					allowfullscreen
+				/>
+			</div>
+		)
+	}
+</div>
