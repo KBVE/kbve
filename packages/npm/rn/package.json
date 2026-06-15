@@ -34,6 +34,7 @@
 		"LICENSE"
 	],
 	"dependencies": {
+		"@expo/vector-icons": "^15.1.1",
 		"@hcaptcha/react-hcaptcha": "^2.0.2",
 		"@hcaptcha/react-native-hcaptcha": "^4.0.0",
 		"@kbve/core": "0.0.1",
