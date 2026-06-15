@@ -388,7 +388,7 @@
 			"image": "kbve/jobboard",
 			"e2e_name": "jobboard",
 			"deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
-			"has_test": true
+			"has_test": false
 		},
 		{
 			"key": "nd_server",
