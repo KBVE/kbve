@@ -23,7 +23,7 @@ tags:
 
 ## Job Board
 
-> Status: **Spec / architecture** — no app code yet. This is the document to review/edit before building.
+> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, first-party auth implemented (register/login/logout/me with Postgres-backed sessions), `jobboard.proto` wired into the build. **No SQL ships yet** — the `jobboard` schema + seed is deferred to a later dbmate migration (reference shape in the Deployment section). Verified locally against an ad-hoc Postgres. Phases 1–10 below remain spec.
 
 A **curated, both-sides-vetted job board for freelance work** — think Upwork/Fiverr, but gated and quality-first. Sanctioned members post gigs, other sanctioned members take them up, and the platform handles discovery, matching, and messaging. Money moves off-platform in v1 (lead-gen model); monetization is built behind abstraction hooks to switch on later.
 
@@ -140,9 +140,10 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
-| Auth | **First-party** — `axum-login` + `tower-sessions` (Postgres store), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) | No auth SaaS; transport-flexible (cookie + bearer) |
-| DB access | `sqlx` (async, compile-time-checked) | Type-safe SQL; migrations via `sqlx migrate` |
-| DB | Postgres (Supabase / Neon) | Relational fits gigs/applications/reviews |
+| Auth | **First-party** — `tower-sessions` (custom Postgres `SessionStore`), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) later | No auth SaaS; transport-flexible (cookie + bearer) |
+| DB access | **jedi `PgCluster`** (tokio-postgres + bb8, rw/ro/any split, RLS caller-scoped reads, valkey cache) | House pattern (matches `axum-kbve`); free read/write split + RLS + caching |
+| Migrations | **dbmate** (`packages/data/sql/dbmate/migrations`) — schema deferred, not committed yet | Repo-standard migration tool; one system across the monorepo |
+| DB | Postgres — KBVE CNPG/Supabase cluster via `KBVE_PG_RW_URL` | Shared cluster; `jobboard` schema isolates the tables |
 | Wire format | `prost`/`tonic` protobuf over `jedi.JediEnvelope` | Reuses the KBVE proto/envelope transport |
 | Media | S3-compatible (Cloudflare R2) | Rust-friendly; private deliverables |
 | Search | Postgres FTS (v1) → Meilisearch later | Meilisearch is Rust-native, easy upgrade |
@@ -152,11 +153,145 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 - Pure HTTP client of the API. Candidates: Astro + React (KBVE-native), Next.js (frontend-only), or React SPA.
 - Auth carried as httpOnly session cookie (browser) — already supported by the API design.
 
-### Deployment
-- **API:** containerized Axum on Kubernetes (KBVE-native) / Fly.io / Railway (stateful service — not serverless).
-- **DB:** Supabase/Neon Postgres (sqlx over TLS). **Object storage:** Cloudflare R2.
-
 **Authorization model:** Axum middleware/extractors authenticate the session/token; route guards check the `Capability` bitmask on `User.role` (`POSTER`/`TAKER`/`ADMIN`); ownership checks (e.g. gig owner) enforced per-handler.
+
+* * *
+
+## Deployment
+
+The deployable surface lives in `apps/jobboard`: `Dockerfile` (chiseled Ubuntu axum base), `version.toml`, and nx `project.json` (`build` / `test` / `lint` / `run` / `container` / `containerx`). The container build context is the repo root.
+
+### Container image
+- Built via `./kbve.sh -nx jobboard:container` → `kbve/jobboard:latest` (+ version tag); production config also tags `ghcr.io/kbve/jobboard`.
+- Multi-stage cargo-chef build (planner → cook → builder → runtime) on `ghcr.io/kbve/chisel-ubuntu-axum`. Runtime image runs `/app/jobboard` as uid 10001, exposes `5400`.
+- Protos are **vendored** (`apps/jobboard/src/proto/jobboard.rs`); the image build does not run `protoc`. Regenerate only when the `.proto` changes: `BUILD_PROTO=1 cargo build -p jobboard` (and revert the incidental jedi proto regen before committing).
+
+### Runtime environment (env var contract)
+| Var | Required | Default | Notes |
+|---|---|---|---|
+| `KBVE_PG_RW_URL` | yes | — | jedi `PgCluster` primary (rw). `DATABASE_URL` is mapped to it if unset (dev convenience). |
+| `KBVE_PG_RO_URL` | no | = rw | Read replica; falls back to rw. |
+| `KBVE_PG_ANY_URL` | no | = rw | Any-instance read fallback. |
+| `HTTP_HOST` | no | `0.0.0.0` | Bind host. |
+| `HTTP_PORT` | no | `5400` | Bind port. |
+| `SECURE_COOKIES` | no | `false` | Set `true` behind TLS (sets `Secure` on the session cookie). |
+| `RUST_LOG` | no | `jobboard=info,tower_http=info` | Tracing filter. |
+
+jedi `PgCluster` also honors its standard `KBVE_PG_*` tuning knobs (pool sizes, timeouts, search_path, pooler rewrite, CA bundle) — see `packages/rust/jedi/src/state/pg.rs`. TLS bypasses transparently when the URL carries `sslmode=disable` (in-cluster), engages for `sslmode=require` (external).
+
+### Probes
+- Liveness: `GET /health` (always 200 when the process is up).
+- Readiness: `GET /ready` (200 when the DB cluster health probe passes, 503 otherwise) — gate traffic on this.
+
+### Kubernetes / ArgoCD (later phase — not yet in repo)
+When this graduates from scaffold to deployed, add under `apps/kube/jobboard/`:
+- `Deployment` (image `ghcr.io/kbve/jobboard`, port 5400, liveness `/health`, readiness `/ready`, Reloader annotation), `Service`.
+- `HTTPRoute` on the Cilium gateway for the public host (e.g. `jobboard.kbve.com` / `api`), keeping apex + www on one listener — see [[project_cilium_gateway_san_listener_dup]].
+- Sealed secret for `KBVE_PG_RW_URL` (+ ro/any) via kubeseal.
+- ArgoCD `Application` **and** an entry in `apps/kube/kustomization.yaml` (kube-root app-of-apps — an `application.yaml` alone never deploys).
+- ArgoCD apps track `main`; PRs land on `dev`, so the manifest reaches the cluster only after the periodic dev→main release.
+- CI: register `jobboard` in the CI dispatch manifest (`ci_registry.proto` → `astro-kbve:sync:ci-manifest`) so `ci-docker.yml` builds/publishes the image.
+
+### Database schema (deferred — not committed yet)
+No SQL ships in this scaffold by design; the schema lands later as a **dbmate** migration in `packages/data/sql/dbmate/migrations/`. The service queries the `jobboard` schema (`jobboard.users`, `jobboard.sessions`, `jobboard.verticals`, `jobboard.taxonomy`), so those tables + the game-dev seed must exist before it serves.
+
+This is the full migration that was removed from the scaffold, parked here for review. When approved, drop it back into `packages/data/sql/dbmate/migrations/<timestamp>_jobboard_init.sql`:
+
+```sql
+-- migrate:up
+create schema if not exists jobboard;
+
+create table if not exists jobboard.users (
+    id              uuid primary key default gen_random_uuid(),
+    email           text not null unique,
+    username        text not null unique,
+    password_hash   text not null,
+    role            integer not null default 0,
+    reputation      integer not null default 0,
+    status          integer not null default 0,
+    created_at      timestamptz not null default now(),
+    last_login      timestamptz
+);
+
+create table if not exists jobboard.sessions (
+    id      text primary key,
+    data    jsonb not null,
+    expiry  bigint not null
+);
+
+create index if not exists jobboard_sessions_expiry_idx on jobboard.sessions (expiry);
+
+create table if not exists jobboard.verticals (
+    id          bigserial primary key,
+    slug        text not null unique check (slug ~ '^[a-z0-9-]+$'),
+    label       text not null,
+    description text not null default '',
+    status      integer not null default 1,
+    sort_order  integer not null default 0
+);
+
+create table if not exists jobboard.taxonomy (
+    id          bigserial primary key,
+    vertical_id bigint not null references jobboard.verticals(id) on delete cascade,
+    kind        integer not null,
+    name        text not null check (name ~ '^[a-z0-9-]+$'),
+    label       text not null,
+    status      integer not null default 1,
+    unique (vertical_id, kind, name)
+);
+
+create index if not exists jobboard_taxonomy_vertical_kind_idx
+    on jobboard.taxonomy (vertical_id, kind);
+
+insert into jobboard.verticals (slug, label, description, status, sort_order)
+values ('game-dev', 'Game Development', 'Art, code, audio, design, and QA for games.', 1, 0)
+on conflict (slug) do nothing;
+
+insert into jobboard.taxonomy (vertical_id, kind, name, label)
+select v.id, t.kind, t.name, t.label
+from jobboard.verticals v
+cross join (values
+    (1, '2d-art', '2D Art'),
+    (1, '3d-art', '3D Art'),
+    (1, 'animation-rigging', 'Animation/Rigging'),
+    (1, 'programming', 'Programming'),
+    (1, 'technical-art', 'Technical Art/Shaders'),
+    (1, 'audio', 'Audio (Music/SFX/VO)'),
+    (1, 'game-design', 'Game Design'),
+    (1, 'level-design', 'Level Design'),
+    (1, 'narrative', 'Narrative/Writing'),
+    (1, 'ui-ux', 'UI/UX'),
+    (1, 'qa-testing', 'QA/Testing'),
+    (1, 'porting', 'Porting'),
+    (1, 'localization', 'Localization'),
+    (1, 'production', 'Production/PM'),
+    (1, 'community', 'Community'),
+    (2, 'unity', 'Unity'),
+    (2, 'unreal', 'Unreal'),
+    (2, 'godot', 'Godot'),
+    (2, 'gamemaker', 'GameMaker'),
+    (2, 'bevy', 'Bevy'),
+    (2, 'blender', 'Blender'),
+    (2, 'maya', 'Maya'),
+    (2, 'zbrush', 'ZBrush'),
+    (2, 'substance', 'Substance'),
+    (2, 'photoshop', 'Photoshop'),
+    (2, 'spine', 'Spine'),
+    (2, 'fmod', 'FMOD'),
+    (2, 'wwise', 'Wwise'),
+    (3, 'netcode', 'netcode'),
+    (3, 'humanoid-rigging', 'humanoid-rigging'),
+    (3, 'pixel-art', 'pixel-art'),
+    (3, 'procgen', 'procgen'),
+    (3, 'shader-graph', 'shader-graph'),
+    (3, 'vertical-slice', 'vertical-slice')
+) as t(kind, name, label)
+where v.slug = 'game-dev'
+on conflict (vertical_id, kind, name) do nothing;
+
+-- migrate:down
+drop schema if exists jobboard cascade;
+```
 
 * * *
 
@@ -221,7 +356,9 @@ GET    /admin/reports            [admin]
 
 ## Protocol Buffers
 
-The platform's wire/storage contract is protobuf, reusing the existing KBVE proto collection (`packages/rust/jedi/proto/*` and `packages/kbve/src/kbveproto.proto`). **The rule: reuse first, extend second, add last.** We add exactly one new file — `jobboard.proto` (package `jobboard`) — for genuinely new domain entities.
+The platform's wire/storage contract is protobuf. The proto root is `packages/data/proto/` (the shared protoc include root — cross-package imports already work there). We add one new file — `packages/data/proto/jobboard/jobboard.proto` (package `jobboard`).
+
+> **Phase 0 reality check.** The reuse table below was aspirational; the actual repo differs, and Phase 0 ships `jobboard.proto` as **standalone** (it defines its own `MediaAttachment` rather than importing one) to sidestep cross-package include friction. Corrections to the table: identity protos live in `packages/data/proto/kbve/kbveproto.proto` **with no `package` declaration** (so they are awkward to `import` into a packaged file — reuse happens at the DB/service layer, not via proto import); there is **no** `status.proto` (`MediaAttachment` was invented locally; the closest existing is `kbve.forum.Attachment`); the Discord listing template is `kbve/discordsh.proto` (`DiscordServer` + `ServerTag`), **not** `disoxide.proto`; there is **no** `store.proto`/`StoreService` (only `jedi/redis.proto`'s `RedisService`). `JediEnvelope`/`MessageKind`/`PayloadFormat` (`jedi/jedi.proto`) and `RedisService` are real and reusable. As later phases need true cross-file reuse, give `kbveproto.proto` a package and import from the shared root.
 
 ### What we reuse (do not recreate)
 
@@ -584,7 +721,7 @@ service JobBoardRpc {
 
 ## Decisions
 
-**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (axum-login + tower-sessions + argon2, no auth SaaS) · `sqlx` + Postgres · protobuf reuses KBVE protos + one new `jobboard` package.
+**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (`tower-sessions` + `argon2`, custom pg `SessionStore`, no auth SaaS) · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
 
 **Still open:**
 - **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — deferred to Phase 7.
@@ -593,5 +730,5 @@ service JobBoardRpc {
 - Which vertical follows game dev, and on what trigger.
 - When/whether to gate contact info to reduce leakage.
 - Eventual monetization model (subscription / featured / credits).
-- `sqlx` vs SeaORM/Diesel; cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
+- cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
 - Proto include-path strategy (shared root vs vendor).
