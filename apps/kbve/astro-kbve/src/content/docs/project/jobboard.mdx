@@ -19,6 +19,23 @@ tags:
     - gaming
     - rust
     - proto
+    - docker
+    - web
+key: jobboard
+pipeline: docker
+app_name: jobboard
+version: "0.1.0"
+source_path: apps/jobboard
+version_toml: apps/jobboard/version.toml
+version_target: apps/jobboard/Cargo.toml
+runner: ubuntu-latest
+image: kbve/jobboard
+e2e_name: jobboard
+deployment_yaml: apps/kube/jobboard/manifest/jobboard-deployment.yaml
+has_test: true
+author: h0lybyte
+license: KBVE
+status: active
 ---
 
 ## Job Board
@@ -181,14 +198,16 @@ jedi `PgCluster` also honors its standard `KBVE_PG_*` tuning knobs (pool sizes, 
 - Liveness: `GET /health` (always 200 when the process is up).
 - Readiness: `GET /ready` (200 when the DB cluster health probe passes, 503 otherwise) — gate traffic on this.
 
-### Kubernetes / ArgoCD (later phase — not yet in repo)
-When this graduates from scaffold to deployed, add under `apps/kube/jobboard/`:
-- `Deployment` (image `ghcr.io/kbve/jobboard`, port 5400, liveness `/health`, readiness `/ready`, Reloader annotation), `Service`.
-- `HTTPRoute` on the Cilium gateway for the public host (e.g. `jobboard.kbve.com` / `api`), keeping apex + www on one listener — see [[project_cilium_gateway_san_listener_dup]].
-- Sealed secret for `KBVE_PG_RW_URL` (+ ro/any) via kubeseal.
-- ArgoCD `Application` **and** an entry in `apps/kube/kustomization.yaml` (kube-root app-of-apps — an `application.yaml` alone never deploys).
+### Kubernetes / ArgoCD (shipped)
+Deployed under `apps/kube/jobboard/` into the **`kbve` namespace** (own ArgoCD app):
+- `jobboard-deployment.yaml` — Deployment (`ghcr.io/kbve/jobboard:<ver>`, port 5400, liveness `/health`, readiness `/ready`, Reloader) + `jobboard-service` (ClusterIP 5400). Reuses the kbve-ns `supabase-shared` secret for `KBVE_PG_RW_URL`/`_RO`/`_ANY` (no new ExternalSecret).
+- `httproute.yaml` — `jobs.kbve.com` → `jobboard-service:5400`, parented to `kbve-gateway`. **No cert/ReferenceGrant/gateway-listener needed**: `jobs.kbve.com` is covered by the existing `https-kbve` wildcard listener (`*.kbve.com`, cert `kbve-wt-tls`).
+- `jobboard-serviceaccount.yaml` — `jobboard-sa`, `automountServiceAccountToken: false`. **No RBAC Role/RoleBinding** — the pod never calls the k8s API.
+- `application.yaml` registered in `apps/kube/kustomization.yaml` (kube-root app-of-apps).
 - ArgoCD apps track `main`; PRs land on `dev`, so the manifest reaches the cluster only after the periodic dev→main release.
-- CI: register `jobboard` in the CI dispatch manifest (`ci_registry.proto` → `astro-kbve:sync:ci-manifest`) so `ci-docker.yml` builds/publishes the image.
+
+### MDX-driven image-tag automation
+The frontmatter above (`version`, `image`, `version_toml`, `version_target`, `deployment_yaml`) registers jobboard in `.github/ci-dispatch-manifest.json` (regenerate via `astro-kbve:build` → `astro-kbve:sync:ci-manifest`; registry entry in `@kbve/devops` `registry.ts`). On a `version:` bump here, `ci-docker.yml`'s version gate (MDX `version` > `version.toml`) builds + pushes `ghcr.io/kbve/jobboard:<ver>`, then `utils-post-publish.yml` opens an atom PR that `sed`-updates `version.toml`, `Cargo.toml`, and the **deployment image tag** in `jobboard-deployment.yaml`. First publish uses the `version.toml = 0.0.1` sentinel so the gate fires.
 
 ### Database schema
 **Source of truth**: `packages/data/sql/schema/jobboard/jobboard.sql` — the canonical desired-state DDL (same convention as `schema/meme`, `schema/ows`, etc.). The **dbmate** migration `packages/data/sql/dbmate/migrations/20260615120000_jobboard_tables.sql` is the applied delta that brings prod to that state, generated from / kept identical to the schema file. The proto (`packages/data/proto/jobboard/jobboard.proto`) is the third leg and tracks the same shape. 23 tables, hardened with constraints, junction tables, RLS lockdown, and `updated_at` triggers. No seed (separate follow-up migration).

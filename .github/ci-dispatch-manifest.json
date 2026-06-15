@@ -377,6 +377,20 @@
 			"has_test": true
 		},
 		{
+			"key": "jobboard",
+			"app_name": "jobboard",
+			"version": "0.1.0",
+			"version_toml": "apps/jobboard/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
+			"version_target": "apps/jobboard/Cargo.toml",
+			"source_path": "apps/jobboard",
+			"runner": "ubuntu-latest",
+			"image": "kbve/jobboard",
+			"e2e_name": "jobboard",
+			"deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
+			"has_test": true
+		},
+		{
 			"key": "nd_server",
 			"app_name": "nd-server",
 			"version": "0.0.2",
@@ -1160,7 +1174,7 @@
 	],
 	"bevy_game": [],
 	"summary": {
-		"docker": 30,
+		"docker": 31,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -1170,6 +1184,6 @@
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 93
+		"total": 94
 	}
 }
