@@ -3,6 +3,7 @@ kind: ClusterPolicy
 metadata:
     name: sync-valkey-auth
 spec:
+    generateExisting: true
     rules:
         - name: clone-valkey-auth-forgejo
           match:
