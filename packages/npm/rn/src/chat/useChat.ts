@@ -13,7 +13,7 @@ export function useChat(): ChatViewModel {
 }
 
 export interface ChatActions {
-	connect: (game?: string, channel?: string) => void;
+	connect: (nick: string, game?: string, channel?: string) => void;
 	send: (content: string) => void;
 	close: () => void;
 }
@@ -21,10 +21,10 @@ export interface ChatActions {
 export function useChatActions(): ChatActions {
 	const { chatStore } = useKbve();
 	return {
-		connect: (game = KBVE_CHAT_GAME, channel = '#general') =>
+		connect: (nick, game = KBVE_CHAT_GAME, channel = '#general') =>
 			chatStore.dispatch({
 				type: 'connect',
-				config: { game, channel, platform: 'mobile' },
+				config: { game, channel, platform: 'mobile', nick },
 			}),
 		send: (content) => chatStore.dispatch({ type: 'send', content }),
 		close: () => chatStore.dispatch({ type: 'close' }),
