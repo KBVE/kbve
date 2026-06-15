@@ -1,5 +1,5 @@
 -- migrate:up
-create schema jobboard;
+create schema jobboard authorization postgres;
 
 create function jobboard.set_updated_at()
 returns trigger
@@ -37,7 +37,7 @@ create table jobboard.taxonomy (
 
 create table jobboard.talent_profiles (
     user_id          uuid primary key references auth.users(id) on delete cascade,
-    headline         text not null default '',
+    headline         text not null default '' check (length(headline) <= 200),
     years_experience integer not null default 0 check (years_experience between 0 and 100),
     availability     integer not null default 0 check (availability between 0 and 2),
     rate_min         bigint not null default 0,
@@ -52,10 +52,10 @@ comment on column jobboard.talent_profiles.rate_max is 'Amount in the currency m
 
 create table jobboard.client_profiles (
     user_id      uuid primary key references auth.users(id) on delete cascade,
-    org_name     text not null default '',
+    org_name     text not null default '' check (length(org_name) <= 200),
     company_size integer not null default 0 check (company_size >= 0),
-    website      text not null default '',
-    about        text not null default '',
+    website      text not null default '' check (length(website) <= 500),
+    about        text not null default '' check (length(about) <= 2000),
     updated_at   timestamptz not null default now()
 );
 
@@ -93,8 +93,8 @@ create table jobboard.member_applications (
     user_id                uuid not null references auth.users(id) on delete cascade,
     requested_capabilities integer not null default 0
         check (requested_capabilities >= 0 and (requested_capabilities & ~3) = 0),
-    statement              text not null default '',
-    portfolio_links        text[] not null default '{}',
+    statement              text not null default '' check (length(statement) <= 5000),
+    portfolio_links        text[] not null default '{}' check (cardinality(portfolio_links) <= 20),
     status                 integer not null default 0 check (status between 0 and 2),
     reviewed_by            uuid references auth.users(id) on delete set null,
     reviewed_at            timestamptz,
@@ -108,6 +108,10 @@ create table jobboard.member_applications (
 
 create unique index jobboard_member_applications_one_pending_uq
     on jobboard.member_applications (user_id) where status = 0;
+create index jobboard_member_applications_user_created_idx
+    on jobboard.member_applications (user_id, created_at desc, id desc);
+create index jobboard_member_applications_queue_idx
+    on jobboard.member_applications (status, created_at, id);
 
 create table jobboard.member_application_verticals (
     application_id uuid not null references jobboard.member_applications(id) on delete cascade,
@@ -123,15 +127,16 @@ create table jobboard.portfolio_items (
     user_id     uuid not null references auth.users(id) on delete cascade,
     vertical_id bigint not null references jobboard.verticals(id) on delete restrict,
     title       text not null check (length(btrim(title)) between 1 and 200),
-    description text not null default '',
-    source      text not null default '',
+    description text not null default '' check (length(description) <= 5000),
+    source      text not null default '' check (length(source) <= 500),
     media       jsonb not null default '[]' check (jsonb_typeof(media) = 'array'),
     sort_order  integer not null default 0,
     created_at  timestamptz not null default now(),
     unique (id, vertical_id)
 );
 
-create index jobboard_portfolio_items_user_idx on jobboard.portfolio_items (user_id);
+create index jobboard_portfolio_items_user_order_idx
+    on jobboard.portfolio_items (user_id, sort_order, created_at desc, id desc);
 
 create table jobboard.portfolio_tags (
     portfolio_item_id uuid not null,
@@ -152,7 +157,7 @@ create table jobboard.gigs (
     vertical_id   bigint not null references jobboard.verticals(id) on delete restrict,
     title         varchar(120) not null check (length(btrim(title)) between 1 and 120),
     summary       varchar(200) not null default '',
-    description   text not null default '',
+    description   text not null default '' check (length(description) <= 20000),
     budget_type   integer not null default 0 check (budget_type between 0 and 3),
     budget_min    bigint not null default 0,
     budget_max    bigint not null default 0,
@@ -198,7 +203,7 @@ create table jobboard.applications (
     id                 uuid primary key default public.gen_ulid()::uuid,
     gig_id             uuid not null references jobboard.gigs(id) on delete cascade,
     applicant_id       uuid references auth.users(id) on delete set null,
-    cover_message      text not null default '',
+    cover_message      text not null default '' check (length(cover_message) <= 10000),
     proposed_rate      bigint not null default 0 check (proposed_rate >= 0),
     proposed_rate_type integer not null default 0 check (proposed_rate_type between 0 and 3),
     status             integer not null default 0 check (status between 0 and 4),
@@ -249,7 +254,7 @@ create table jobboard.reviews (
     reviewer_id   uuid references auth.users(id) on delete set null,
     reviewee_id   uuid references auth.users(id) on delete set null,
     rating        integer not null check (rating between 1 and 5),
-    body          text not null default '',
+    body          text not null default '' check (length(body) <= 10000),
     created_at    timestamptz not null default now(),
     constraint reviews_distinct_users_ck check (
         reviewer_id is null or reviewee_id is null or reviewer_id <> reviewee_id
@@ -281,6 +286,9 @@ create table jobboard.conversation_participants (
 
 create index jobboard_conversation_participants_user_idx
     on jobboard.conversation_participants (user_id);
+create index jobboard_conversation_participants_active_user_idx
+    on jobboard.conversation_participants (user_id, conversation_id)
+    where user_id is not null and left_at is null;
 
 create table jobboard.messages (
     id                    uuid primary key default public.gen_ulid()::uuid,
@@ -327,7 +335,7 @@ create table jobboard.reports (
     id          uuid primary key default public.gen_ulid()::uuid,
     reporter_id uuid references auth.users(id) on delete set null,
     target_kind integer not null check (target_kind in (1, 2, 3, 4)),
-    target_id   text not null check (length(btrim(target_id)) > 0),
+    target_id   text not null check (length(btrim(target_id)) between 1 and 200),
     reason      text not null check (length(btrim(reason)) between 1 and 2000),
     status      integer not null default 0 check (status in (0, 1, 2, 3)),
     created_at  timestamptz not null default now()
@@ -340,12 +348,28 @@ create table jobboard.audit_log (
     actor_id    uuid references auth.users(id) on delete set null,
     action      text not null check (length(btrim(action)) between 1 and 100),
     target_kind integer not null default 0 check (target_kind >= 0),
-    target_id   text not null default '',
+    target_id   text not null default '' check (length(target_id) <= 200),
     detail      jsonb not null default '{}' check (jsonb_typeof(detail) = 'object'),
     created_at  timestamptz not null default now()
 );
 
 create index jobboard_audit_log_created_idx on jobboard.audit_log (created_at desc, id desc);
+
+comment on column jobboard.verticals.status is '0=inactive, 1=active, 2=featured';
+comment on column jobboard.taxonomy.kind is '1=discipline, 2=tool, 3=skill';
+comment on column jobboard.taxonomy.status is '0=inactive, 1=active, 2=deprecated';
+comment on column jobboard.talent_profiles.availability is '0=open, 1=limited, 2=closed';
+comment on column jobboard.member_applications.status is '0=pending, 1=approved, 2=rejected';
+comment on column jobboard.member_applications.requested_capabilities is 'Capability bitmask: 1=taker, 2=poster';
+comment on column jobboard.gigs.budget_type is 'BudgetType: 0=unspecified, 1=fixed, 2=range, 3=hourly';
+comment on column jobboard.gigs.location_pref is '0=remote, 1=onsite, 2=hybrid';
+comment on column jobboard.gigs.status is 'GigStatus: 0=draft, 1=pending_review, 2=open, 4=filled, 8=closed, 16=expired';
+comment on column jobboard.applications.proposed_rate_type is 'BudgetType: 0=unspecified, 1=fixed, 2=range, 3=hourly';
+comment on column jobboard.applications.status is 'ApplicationStatus: 0=submitted, 1=shortlisted, 2=accepted, 3=declined, 4=withdrawn';
+comment on column jobboard.engagements.status is 'EngagementStatus: 0=active, 1=completed, 2=cancelled';
+comment on column jobboard.notifications.kind is 'single value: 0=system, 1=application, 2=accepted, 4=message, 8=review, 16=admin';
+comment on column jobboard.reports.target_kind is 'ReportTarget: 1=user, 2=gig, 3=message, 4=review';
+comment on column jobboard.reports.status is 'ReportStatus: 0=open, 1=reviewing, 2=resolved, 3=dismissed';
 
 create trigger talent_profiles_set_updated_at
     before update on jobboard.talent_profiles
@@ -388,12 +412,11 @@ alter table jobboard.reports             force row level security;
 alter table jobboard.audit_log           force row level security;
 
 revoke all on schema jobboard from public;
-grant usage on schema jobboard to authenticated;
 revoke all on all tables in schema jobboard from anon, authenticated;
 revoke all on all sequences in schema jobboard from anon, authenticated;
-alter default privileges in schema jobboard revoke all on tables from anon, authenticated;
-alter default privileges in schema jobboard revoke all on sequences from anon, authenticated;
-alter default privileges in schema jobboard revoke execute on functions from public;
+alter default privileges for role postgres in schema jobboard revoke all on tables from anon, authenticated;
+alter default privileges for role postgres in schema jobboard revoke all on sequences from anon, authenticated;
+alter default privileges for role postgres in schema jobboard revoke execute on functions from public;
 
 -- migrate:down
 drop schema if exists jobboard cascade;
