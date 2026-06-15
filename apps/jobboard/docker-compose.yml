@@ -64,7 +64,8 @@ services:
                 condition: service_healthy
 
     seed:
-        image: postgres:17-alpine
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
         entrypoint:
             [
                 'psql',
