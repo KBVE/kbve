@@ -106,6 +106,13 @@
 		"./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
 		"./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
 		"./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
+		"./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
+		"./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",
+		"./components/social/comic/DeferredKBVEComicSocials.astro": "./components/social/comic/DeferredKBVEComicSocials.astro",
+		"./data/socials": {
+			"import": "./data/socials.js",
+			"types": "./data/socials.d.ts"
+		},
 		"./utils/clientRouter": {
 			"import": "./utils/clientRouter.js",
 			"types": "./utils/clientRouter.d.ts"
@@ -121,6 +128,7 @@
 		"**/*.d.ts",
 		"components/**/*.astro",
 		"components/**/*.js",
+		"data/**/*.js",
 		"*.md"
 	],
 	"peerDependencies": {
