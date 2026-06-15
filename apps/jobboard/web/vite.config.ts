@@ -6,7 +6,7 @@ import path from 'node:path';
 const API_TARGET = process.env.JOBBOARD_API_TARGET || 'http://127.0.0.1:5400';
 const repoRoot = path.resolve(__dirname, '../../..');
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	plugins: [
 		react({
 			babel: {
@@ -70,6 +70,10 @@ export default defineConfig({
 	},
 	define: {
 		global: 'globalThis',
+		// react-native / react-native-web / reanimated reference these RN globals
+		// that Metro injects but vite does not -> ReferenceError, blank page.
+		__DEV__: JSON.stringify(mode !== 'production'),
+		'process.env.NODE_ENV': JSON.stringify(mode),
 	},
 	build: {
 		outDir: 'dist',
@@ -86,4 +90,4 @@ export default defineConfig({
 			},
 		},
 	},
-});
+}));
