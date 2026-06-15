@@ -1,0 +1,9 @@
+{
+	"platforms": ["apple", "android"],
+	"apple": {
+		"modules": ["KbveWgpuModule"]
+	},
+	"android": {
+		"modules": ["expo.modules.kbvewgpu.KbveWgpuModule"]
+	}
+}

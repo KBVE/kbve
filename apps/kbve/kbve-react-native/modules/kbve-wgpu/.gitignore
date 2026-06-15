@@ -1,0 +1,14 @@
+# Build artifacts produced by `nx run kbve_wgpu:build:ios|android` — never commit.
+# Source (Swift/Kotlin/podspec/gradle/ts) IS tracked; only outputs are ignored.
+
+# Rust static-lib bundles (iOS) — any name/location under this module.
+*.xcframework/
+*.a
+
+# Rust shared libs (Android cargo-ndk output).
+**/jniLibs/
+*.so
+
+# Native build output / caches.
+build/
+.cxx/

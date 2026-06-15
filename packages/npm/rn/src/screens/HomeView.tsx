@@ -1,13 +1,20 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { Gradient } from '../ui/primitives/Gradient';
 import { Text } from '../ui/primitives/Text';
 import { Badge } from '../ui/primitives/Badge';
+import { Button } from '../ui/primitives/Button';
 import { PressableSurface } from '../ui/primitives/PressableSurface';
 import { tokens } from '../ui/theme';
 import { useAuth } from '../auth/useAuth';
 import { useStaff } from '../auth/useStaff';
+import { createPluginRegistry } from '../plugin/registry';
+import { PluginHost } from '../plugin/host';
+import { defaultHostApi } from '../sandbox/hostApis';
+import { createWgpuPlugin } from '../examples/wgpuPlugin';
+import { createIsometricPlugin } from '../examples/isometricPlugin';
 
 const open = (url: string) => void WebBrowser.openBrowserAsync(url);
 
@@ -63,6 +70,41 @@ export function HomeView() {
 	const username = auth.username ?? 'you';
 	const initials = username.slice(0, 2).toUpperCase();
 
+	const native = Platform.OS !== 'web';
+	const registry = useMemo(() => createPluginRegistry(), []);
+	const api = useMemo(() => defaultHostApi(), []);
+	const [launched, setLaunched] = useState(false);
+
+	useEffect(() => {
+		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
+		registry.dispatch({
+			type: 'install',
+			manifest,
+			grant: ['agent:read', 'notify'],
+		});
+		registry.dispatch({ type: 'enable', id: manifest.id });
+	}, [registry, native]);
+
+	if (launched) {
+		return (
+			<View style={styles.root}>
+				<View
+					style={[
+						styles.canvasBar,
+						{ paddingTop: insets.top + tokens.space.sm },
+					]}>
+					<Text variant="label">Isometric · Native GPU</Text>
+					<Button
+						title="Close"
+						variant="ghost"
+						onPress={() => setLaunched(false)}
+					/>
+				</View>
+				<PluginHost registry={registry} slot="canvas" api={api} />
+			</View>
+		);
+	}
+
 	return (
 		<View style={styles.root}>
 			<ScrollView
@@ -95,6 +137,12 @@ export function HomeView() {
 				</Gradient>
 
 				<View style={styles.body}>
+					<Button
+						title="▶  Launch Isometric (Native GPU)"
+						variant="primary"
+						onPress={() => setLaunched(true)}
+					/>
+
 					<Text variant="subtitle">Quick actions</Text>
 					<View style={styles.actions}>
 						{ACTIONS.map((action) => (
@@ -142,6 +190,15 @@ export function HomeView() {
 const styles = StyleSheet.create({
 	root: { flex: 1, backgroundColor: tokens.color.bg },
 	scroll: { paddingBottom: tokens.space.xxl },
+	canvasBar: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: tokens.space.lg,
+		paddingBottom: tokens.space.sm,
+		borderBottomWidth: 1,
+		borderBottomColor: tokens.color.border,
+	},
 	hero: {
 		paddingHorizontal: tokens.space.xl,
 		paddingBottom: tokens.space.xl,

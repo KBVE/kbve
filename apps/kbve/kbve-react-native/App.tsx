@@ -4,6 +4,7 @@ import {
 	AuthGate,
 	createWebSocketExecutor,
 	HomeScreen,
+	HomeView,
 	KbveProvider,
 	KBVE_SUPABASE_ANON_KEY,
 	KBVE_SUPABASE_URL,
@@ -11,6 +12,7 @@ import {
 	ToastViewport,
 	tsCore,
 } from '@kbve/rn';
+import './WgpuHost';
 
 const store = new AgentStore(tsCore, createWebSocketExecutor());
 
@@ -20,7 +22,7 @@ export default function App() {
 			supabaseUrl={KBVE_SUPABASE_URL}
 			anonKey={KBVE_SUPABASE_ANON_KEY}>
 			<AuthGate>
-				<HomeScreen store={store} />
+				<HomeView />
 			</AuthGate>
 			<OverlayHost />
 			<ToastViewport />
