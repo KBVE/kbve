@@ -1,5 +1,6 @@
 import { createPluginRegistry, createTypeGpuPlugin } from '@kbve/rn';
 import type { PluginRegistry, PluginSurfaceSlot } from '@kbve/rn';
+import { listEffects } from './effects';
 import './TypeGpuHost';
 
 export interface FxEffectMeta {
@@ -7,12 +8,10 @@ export interface FxEffectMeta {
 	label: string;
 }
 
-/// Single source of truth for the TypeGPU effects available app-wide. The
-/// native host ('kbve.typegpu') is registered once via the side-effect import.
-export const FX_EFFECTS: FxEffectMeta[] = [
-	{ id: 'aurora', label: 'Aurora' },
-	{ id: 'gradient', label: 'Gradient' },
-];
+/// Single source of truth for the TypeGPU effects available app-wide, derived
+/// from the effect registry. The native host ('kbve.typegpu') is registered
+/// once via the side-effect import.
+export const FX_EFFECTS: FxEffectMeta[] = listEffects();
 
 /// Build a one-effect registry, installed/enabled with `ui:render` granted,
 /// mounted at the given surface slot. Switcher uses 'canvas'; the app-wide

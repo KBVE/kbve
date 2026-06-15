@@ -31,9 +31,12 @@ function TypeGpuHost({ effectId, fullBleed, style }: NativeComponentProps) {
 		let raf = 0;
 		const start = Date.now();
 		const loop = () => {
+			const texture = context.getCurrentTexture();
 			runner.frame(
-				context.getCurrentTexture().createView(),
+				texture.createView(),
 				Date.now() - start,
+				texture.width,
+				texture.height,
 			);
 			context.present();
 			raf = requestAnimationFrame(loop);

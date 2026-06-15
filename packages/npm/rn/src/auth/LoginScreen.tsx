@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
 import type { OAuthProvider } from '@kbve/core';
+import { openExternal } from '../platform/openExternal';
 import { Button, Checkbox, Text, tokens, toastStore, useShake } from '../ui';
 import { KBVE_LEGAL_LINKS } from '../config';
 import { useAuth, useAuthActions } from './useAuth';
@@ -194,11 +194,7 @@ export function LoginScreen() {
 									<Text
 										variant="caption"
 										tone="primary"
-										onPress={() =>
-											void WebBrowser.openBrowserAsync(
-												link.url,
-											)
-										}>
+										onPress={() => openExternal(link.url)}>
 										{link.label}
 									</Text>
 									{index < KBVE_LEGAL_LINKS.length - 1

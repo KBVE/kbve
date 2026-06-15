@@ -1,16 +1,29 @@
+import 'react-native-url-polyfill/auto';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider } from '@tanstack/react-router';
-import { router } from './router';
+import {
+	KbveProvider,
+	KBVE_SUPABASE_URL,
+	KBVE_SUPABASE_ANON_KEY,
+} from '@kbve/rn/auth';
+import { OverlayHost, ToastViewport } from '@kbve/rn/ui';
+import { Landing } from './Landing';
 import './styles.css';
 
-const queryClient = new QueryClient();
+// In dev, route supabase through the vite proxy (same-origin) to dodge CORS;
+// in prod the SPA calls supabase.kbve.com directly (allowed *.kbve.com origin).
+const supabaseUrl = import.meta.env.DEV
+	? `${window.location.origin}/supabase`
+	: KBVE_SUPABASE_URL;
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<RouterProvider router={router} />
-		</QueryClientProvider>
+		<KbveProvider
+			supabaseUrl={supabaseUrl}
+			anonKey={KBVE_SUPABASE_ANON_KEY}>
+			<Landing />
+			<OverlayHost />
+			<ToastViewport />
+		</KbveProvider>
 	</StrictMode>,
 );

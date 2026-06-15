@@ -4,14 +4,20 @@
 # ============================================================================
 
 # ---- web stage: build the React/Vite SPA into web/dist (baked by rust-embed) --
-# Self-contained: deps layer (package*.json -> npm ci) caches independently of
-# source, so editing src doesn't reinstall node_modules.
+# The SPA consumes @kbve/rn + @kbve/core buildless source via vite aliases
+# (react-native -> react-native-web), so the repo layout is mirrored under /app
+# and the scoped deps are installed at the build root so @kbve/rn's own imports
+# resolve there. Bounded (only the SPA's declared deps), not a whole-monorepo
+# install. The deps layer caches independently of source.
 FROM node:22-slim AS web
-WORKDIR /web
+WORKDIR /app
 COPY apps/jobboard/web/package.json apps/jobboard/web/package-lock.json ./
 RUN npm ci
-COPY apps/jobboard/web/ ./
-RUN npm run build
+COPY tsconfig.base.json tsconfig.base.json
+COPY packages/npm/rn packages/npm/rn
+COPY packages/npm/core packages/npm/core
+COPY apps/jobboard/web apps/jobboard/web
+RUN cd apps/jobboard/web && npx vite build
 
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 ENV CARGO_INCREMENTAL=0
@@ -54,7 +60,7 @@ COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/holy/ packages/rust/holy/
 COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/jobboard/src/ apps/jobboard/src/
-COPY --from=web /web/dist apps/jobboard/web/dist
+COPY --from=web /app/apps/jobboard/web/dist apps/jobboard/web/dist
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
     touch apps/jobboard/src/main.rs && \
