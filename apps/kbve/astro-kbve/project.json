@@ -285,6 +285,7 @@
 			"outputs": [
 				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json",
 				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb.json",
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json",
 				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb"
 			],
