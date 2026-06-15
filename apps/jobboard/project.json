@@ -37,6 +37,24 @@
 				"target-dir": "dist/target/jobboard"
 			}
 		},
+		"web-dev": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["npm install --no-save", "npm run dev"],
+				"cwd": "apps/jobboard/web",
+				"parallel": false
+			}
+		},
+		"web-build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist"],
+			"options": {
+				"commands": ["npm install --no-save", "npm run build"],
+				"cwd": "apps/jobboard/web",
+				"parallel": false
+			}
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",

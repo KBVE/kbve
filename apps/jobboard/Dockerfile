@@ -3,6 +3,14 @@
 # jobboard — Multi-stage Docker build (shared chisel base images)
 # ============================================================================
 
+# ---- web stage: build the React/Vite SPA into web/dist (baked by rust-embed) --
+FROM node:22-slim AS web
+WORKDIR /web
+COPY apps/jobboard/web/package.json ./
+RUN npm install
+COPY apps/jobboard/web/ ./
+RUN npm run build
+
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 ENV CARGO_INCREMENTAL=0
 
@@ -44,6 +52,7 @@ COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/holy/ packages/rust/holy/
 COPY packages/rust/kbve/ packages/rust/kbve/
 COPY apps/jobboard/src/ apps/jobboard/src/
+COPY --from=web /web/dist apps/jobboard/web/dist
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
     touch apps/jobboard/src/main.rs && \

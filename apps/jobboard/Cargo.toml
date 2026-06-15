@@ -38,6 +38,8 @@ chrono = { version = "0.4", features = ["serde"] }
 time = "0.3"
 async-trait = "0.1"
 rustls = { version = "0.23", features = ["ring"] }
+rust-embed = "8"
+mime_guess = "2"
 
 jedi = { path = "../../packages/rust/jedi", features = ["postgres"] }
 
