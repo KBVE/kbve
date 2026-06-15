@@ -4,10 +4,12 @@
 # ============================================================================
 
 # ---- web stage: build the React/Vite SPA into web/dist (baked by rust-embed) --
+# Self-contained: deps layer (package*.json -> npm ci) caches independently of
+# source, so editing src doesn't reinstall node_modules.
 FROM node:22-slim AS web
 WORKDIR /web
-COPY apps/jobboard/web/package.json ./
-RUN npm install
+COPY apps/jobboard/web/package.json apps/jobboard/web/package-lock.json ./
+RUN npm ci
 COPY apps/jobboard/web/ ./
 RUN npm run build
 

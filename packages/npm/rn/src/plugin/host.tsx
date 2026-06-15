@@ -125,7 +125,7 @@ export const PluginHost = memo(function PluginHost({
 }) {
 	const view = usePluginRegistry(registry);
 	const plugins = view.bySurface[slot];
-	const fullBleed = slot === 'canvas';
+	const fullBleed = slot === 'canvas' || slot === 'background';
 	if (!plugins.length) return null;
 	return (
 		<View style={fullBleed ? styles.canvasHost : styles.host}>

@@ -97,7 +97,8 @@
 				"apps/kbve/isometric/**",
 				"apps/kbve/desktop-kbve/**",
 				"apps/rows/**",
-				"apps/rows-e2e/**"
+				"apps/rows-e2e/**",
+				"apps/jobboard/web/**"
 			],
 			"options": {
 				"buildTargetName": "build",
@@ -112,7 +113,8 @@
 				"apps/kbve/isometric/**",
 				"apps/kbve/desktop-kbve/**",
 				"apps/rows/**",
-				"apps/rows-e2e/**"
+				"apps/rows-e2e/**",
+				"apps/jobboard/web/**"
 			],
 			"options": {
 				"testTargetName": "test"

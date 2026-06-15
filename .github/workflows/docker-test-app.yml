@@ -44,6 +44,13 @@ jobs:
         timeout-minutes: 180
         env:
             NX_NO_CLOUD: true
+            # cryptothrone-only: its docker test intermittently hits the Nx
+            # daemon crashing during graph processing ("Failed to process
+            # project graph"). Scope the daemon-off to that project so other
+            # (working) pipelines keep their default. The job env is inherited
+            # by both the direct `pnpm nx e2e` and the nested kbve.sh -nx
+            # container-prep build.
+            NX_DAEMON: ${{ inputs.project == 'cryptothrone' && 'false' || '' }}
         permissions:
             contents: read
             packages: write

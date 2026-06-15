@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
 	FlatList,
+	Keyboard,
 	KeyboardAvoidingView,
 	Platform,
 	StyleSheet,
@@ -8,11 +9,16 @@ import {
 	View,
 } from 'react-native';
 import type { ListRenderItemInfo } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ChatEntry } from '@kbve/core';
+import { MAX_CHAT_LENGTH } from '@kbve/core';
 import { Screen } from '../ui/primitives/Screen';
 import { Text } from '../ui/primitives/Text';
 import { Button } from '../ui/primitives/Button';
+import { toastStore } from '../ui';
 import { tokens } from '../ui/theme';
+
+const SEND_COOLDOWN_MS = 800;
 import { useKbve } from '../auth/KbveProvider';
 import { useAuth } from '../auth/useAuth';
 import { useChat } from '../chat/useChat';
@@ -47,8 +53,17 @@ export function ChatScreen() {
 	const chat = useChat();
 	const auth = useAuth();
 	const nick = auth.username ?? '';
+	const insets = useSafeAreaInsets();
 	const [text, setText] = useState('');
 	const listRef = useRef<FlatList<ChatEntry>>(null);
+	const lastSentAt = useRef(0);
+
+	useEffect(() => {
+		const sub = Keyboard.addListener('keyboardDidShow', () => {
+			listRef.current?.scrollToEnd({ animated: true });
+		});
+		return () => sub.remove();
+	}, []);
 
 	useEffect(() => {
 		chatStore.dispatch({
@@ -66,38 +81,47 @@ export function ChatScreen() {
 	const submit = () => {
 		const content = text.trim();
 		if (!content) return;
+		const now = Date.now();
+		if (now - lastSentAt.current < SEND_COOLDOWN_MS) {
+			toastStore.push('Slow down a moment', 'warning');
+			return;
+		}
+		lastSentAt.current = now;
 		chatStore.dispatch({ type: 'send', content });
 		setText('');
 	};
 
 	return (
 		<Screen padded={false}>
-			<View style={styles.header}>
-				<Text variant="subtitle">{chat.channel}</Text>
-				<View
-					style={[
-						styles.dot,
-						chat.online ? styles.online : styles.offline,
-					]}
-				/>
-				<Text variant="caption" tone="muted">
-					{chat.connection}
-				</Text>
-			</View>
-
-			<FlatList
-				ref={listRef}
-				data={chat.entries}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				contentContainerStyle={styles.list}
-				onContentSizeChange={() =>
-					listRef.current?.scrollToEnd({ animated: true })
-				}
-			/>
-
 			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+				style={styles.fill}
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				keyboardVerticalOffset={insets.top}>
+				<View style={styles.header}>
+					<Text variant="subtitle">{chat.channel}</Text>
+					<View
+						style={[
+							styles.dot,
+							chat.online ? styles.online : styles.offline,
+						]}
+					/>
+					<Text variant="caption" tone="muted">
+						{chat.connection}
+					</Text>
+				</View>
+
+				<FlatList
+					ref={listRef}
+					data={chat.entries}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					contentContainerStyle={styles.list}
+					keyboardShouldPersistTaps="handled"
+					onContentSizeChange={() =>
+						listRef.current?.scrollToEnd({ animated: true })
+					}
+				/>
+
 				<View style={styles.inputBar}>
 					<TextInput
 						style={styles.input}
@@ -106,6 +130,7 @@ export function ChatScreen() {
 						value={text}
 						onChangeText={setText}
 						editable={chat.canSend}
+						maxLength={MAX_CHAT_LENGTH}
 						onSubmitEditing={submit}
 						returnKeyType="send"
 					/>
@@ -121,6 +146,7 @@ export function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+	fill: { flex: 1 },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',

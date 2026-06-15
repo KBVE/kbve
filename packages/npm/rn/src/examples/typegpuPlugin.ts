@@ -1,9 +1,10 @@
-import type { PluginManifest } from '../plugin/manifest';
+import type { PluginManifest, PluginSurfaceSlot } from '../plugin/manifest';
 
 export const TYPEGPU_COMPONENT_ID = 'kbve.typegpu';
 
 export function createTypeGpuPlugin(
 	effectId: string,
+	slot: PluginSurfaceSlot = 'canvas',
 	componentId: string = TYPEGPU_COMPONENT_ID,
 ): PluginManifest {
 	return {
@@ -15,9 +16,14 @@ export function createTypeGpuPlugin(
 		author: 'KBVE',
 		entry: { kind: 'typegpu', componentId, effectId },
 		permissions: ['ui:render'],
-		surfaces: [{ slot: 'canvas', title: 'FX' }],
+		surfaces: [{ slot, title: 'FX' }],
 	};
 }
 
 export const typeGpuGradientManifest: PluginManifest =
 	createTypeGpuPlugin('gradient');
+
+export const typeGpuAuroraManifest: PluginManifest = createTypeGpuPlugin(
+	'aurora',
+	'background',
+);
