@@ -33,12 +33,14 @@ export interface ChatConfig {
 	game: string;
 	channel: string;
 	platform: string;
+	nick: string;
 }
 
 export interface ChatState {
 	connection: ChatConnection;
 	channel: string;
 	platform: string;
+	nick: string;
 	entries: ChatEntry[];
 	error: string | null;
 	seq: number;
@@ -48,6 +50,7 @@ export const initialChatState: ChatState = {
 	connection: 'offline',
 	channel: '#general',
 	platform: 'mobile',
+	nick: '',
 	entries: [],
 	error: null,
 	seq: 0,
@@ -90,6 +93,7 @@ function reduce(
 					connection: 'connecting',
 					channel: event.config.channel,
 					platform: event.config.platform,
+					nick: event.config.nick,
 					error: null,
 				},
 				effects: [{ type: 'chat.connect', config: event.config }],
@@ -107,25 +111,29 @@ function reduce(
 				},
 				effects: [],
 			};
-		case 'send':
+		case 'send': {
 			if (state.connection !== 'online' || event.content.length === 0) {
 				return { state, effects: [] };
 			}
-			return {
-				state,
-				effects: [
-					{
-						type: 'chat.send',
-						message: {
-							kind: 'chat',
-							sender: '',
-							platform: state.platform,
-							channel: state.channel,
-							content: event.content,
-						},
-					},
-				],
+			const sent: ChatMessage = {
+				kind: 'chat',
+				sender: '',
+				platform: state.platform,
+				channel: state.channel,
+				content: event.content,
 			};
+			const echo: ChatEntry = {
+				id: `m${state.seq}`,
+				message: { ...sent, sender: state.nick || 'me' },
+			};
+			return {
+				state: {
+					...state,
+					entries: [...state.entries, echo].slice(-MAX_ENTRIES),
+				},
+				effects: [{ type: 'chat.send', message: sent }],
+			};
+		}
 		case 'inbound': {
 			const entry: ChatEntry = {
 				id: `m${state.seq}`,

@@ -14,6 +14,7 @@ import { Text } from '../ui/primitives/Text';
 import { Button } from '../ui/primitives/Button';
 import { tokens } from '../ui/theme';
 import { useKbve } from '../auth/KbveProvider';
+import { useAuth } from '../auth/useAuth';
 import { useChat } from '../chat/useChat';
 import { KBVE_CHAT_GAME } from '../config';
 
@@ -44,6 +45,8 @@ const keyExtractor = (item: ChatEntry) => item.id;
 export function ChatScreen() {
 	const { chatStore } = useKbve();
 	const chat = useChat();
+	const auth = useAuth();
+	const nick = auth.username ?? '';
 	const [text, setText] = useState('');
 	const listRef = useRef<FlatList<ChatEntry>>(null);
 
@@ -54,10 +57,11 @@ export function ChatScreen() {
 				game: KBVE_CHAT_GAME,
 				channel: '#general',
 				platform: 'mobile',
+				nick,
 			},
 		});
 		return () => chatStore.dispatch({ type: 'close' });
-	}, [chatStore]);
+	}, [chatStore, nick]);
 
 	const submit = () => {
 		const content = text.trim();
