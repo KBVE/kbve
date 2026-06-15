@@ -55,6 +55,16 @@
 				"parallel": false
 			}
 		},
+		"serve-static": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"JOBBOARD_WEB_DIR=apps/jobboard/web/dist cargo run -p jobboard"
+				],
+				"parallel": false
+			}
+		},
 		"dev": {
 			"executor": "nx:run-commands",
 			"cache": false,
