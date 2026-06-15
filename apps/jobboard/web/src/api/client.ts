@@ -34,3 +34,18 @@ export interface Vertical {
 export function fetchVerticals(): Promise<{ verticals: Vertical[] }> {
 	return api('/verticals');
 }
+
+export interface TaxonomyItem {
+	id: number;
+	kind: number;
+	kind_label: string;
+	name: string;
+	label: string;
+	status: number;
+}
+
+export function fetchTaxonomy(
+	verticalId: number,
+): Promise<{ vertical_id: number; taxonomy: TaxonomyItem[] }> {
+	return api(`/verticals/${verticalId}/taxonomy`);
+}

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { ScrollView, TextInput, View } from 'react-native';
 import {
 	Stack,
 	Surface,
@@ -10,159 +9,178 @@ import {
 	tokens,
 } from '@kbve/rn/ui';
 import { useAuth, useAuthActions } from '@kbve/rn/auth';
+import { useBreakpoint } from './useBreakpoint';
+import { Overview } from './Overview';
 import { BrowseView } from './BrowseView';
+import { RightPanel, type Selection } from './RightPanel';
+import type { Vertical } from '../api/client';
 
-interface Section {
-	id: string;
-	label: string;
-	icon: string;
-	render: () => ReactNode;
-}
+const SECTIONS = [
+	{ id: 'overview', label: 'Overview', icon: '🏠' },
+	{ id: 'browse', label: 'Browse', icon: '🧭' },
+	{ id: 'jobs', label: 'My Jobs', icon: '📋' },
+	{ id: 'messages', label: 'Messages', icon: '💬' },
+	{ id: 'profile', label: 'Profile', icon: '👤' },
+] as const;
 
-const SECTIONS: Section[] = [
-	{ id: 'browse', label: 'Browse', icon: '🧭', render: () => <BrowseView /> },
-	{
-		id: 'jobs',
-		label: 'My Jobs',
-		icon: '📋',
-		render: () => <Placeholder title="My Jobs" />,
-	},
-	{
-		id: 'messages',
-		label: 'Messages',
-		icon: '💬',
-		render: () => <Placeholder title="Messages" />,
-	},
-	{
-		id: 'profile',
-		label: 'Profile',
-		icon: '👤',
-		render: () => <Placeholder title="Profile" />,
-	},
-];
-
-function Placeholder({ title }: { title: string }) {
-	return (
-		<Stack gap="sm">
-			<Text variant="title">{title}</Text>
-			<Text tone="muted">Coming soon.</Text>
-		</Stack>
-	);
-}
+type SectionId = (typeof SECTIONS)[number]['id'];
 
 export function DashboardShell() {
 	const auth = useAuth();
 	const { signOut } = useAuthActions();
-	const [active, setActive] = useState('browse');
-	const section = SECTIONS.find((s) => s.id === active) ?? SECTIONS[0];
+	const { isDesktop, isPhone } = useBreakpoint();
+	const [active, setActive] = useState<SectionId>('overview');
+	const [selection, setSelection] = useState<Selection>(null);
+
+	const username = auth.user?.username ?? auth.user?.email ?? 'there';
+
+	const selectVertical = (v: Vertical) =>
+		setSelection({ kind: 'vertical', vertical: v });
+
+	const main = () => {
+		switch (active) {
+			case 'overview':
+				return <Overview username={username} />;
+			case 'browse':
+				return (
+					<BrowseView
+						selectedId={
+							selection?.kind === 'vertical'
+								? selection.vertical.id
+								: undefined
+						}
+						onSelect={selectVertical}
+					/>
+				);
+			default:
+				return (
+					<Stack gap="sm">
+						<Text variant="title">
+							{SECTIONS.find((s) => s.id === active)?.label}
+						</Text>
+						<Text tone="muted">Coming soon.</Text>
+					</Stack>
+				);
+		}
+	};
+
+	const rail = (
+		<Surface
+			style={{
+				borderRadius: 0,
+				...(isPhone
+					? {
+							flexDirection: 'row',
+							borderBottomWidth: 1,
+							borderBottomColor: tokens.color.border,
+						}
+					: {
+							width: 76,
+							borderRightWidth: 1,
+							borderRightColor: tokens.color.border,
+						}),
+			}}>
+			<Stack
+				direction={isPhone ? 'row' : 'column'}
+				gap="xs"
+				align="center"
+				style={{
+					padding: tokens.space.sm,
+					flex: isPhone ? 1 : undefined,
+				}}>
+				{SECTIONS.map((s) => {
+					const on = s.id === active;
+					return (
+						<PressableSurface
+							key={s.id}
+							onPress={() => setActive(s.id)}
+							style={{
+								width: 48,
+								height: 48,
+								alignItems: 'center',
+								justifyContent: 'center',
+								borderRadius: tokens.radius.md,
+								backgroundColor: on
+									? tokens.color.surfaceAlt
+									: 'transparent',
+							}}>
+							<Text>{s.icon}</Text>
+						</PressableSurface>
+					);
+				})}
+			</Stack>
+		</Surface>
+	);
+
+	const topbar = (
+		<Surface
+			style={{
+				flexDirection: 'row',
+				alignItems: 'center',
+				gap: tokens.space.md,
+				padding: tokens.space.md,
+				borderBottomWidth: 1,
+				borderBottomColor: tokens.color.border,
+				borderRadius: 0,
+			}}>
+			<TextInput
+				placeholder="Search jobs…"
+				placeholderTextColor={tokens.color.textFaint}
+				style={{
+					flex: 1,
+					maxWidth: 360,
+					color: tokens.color.text,
+					backgroundColor: tokens.color.surfaceAlt,
+					borderRadius: tokens.radius.pill,
+					paddingHorizontal: tokens.space.md,
+					paddingVertical: tokens.space.sm,
+				}}
+			/>
+			<View style={{ flex: 1 }} />
+			<Text variant="label">@{username}</Text>
+			<Button
+				title="Sign out"
+				variant="secondary"
+				onPress={() => signOut()}
+			/>
+		</Surface>
+	);
+
+	const rightPanel = <RightPanel selection={selection} />;
 
 	return (
 		<View
 			style={{
 				flex: 1,
-				flexDirection: 'row',
+				flexDirection: isPhone ? 'column' : 'row',
 				backgroundColor: tokens.color.bg,
 			}}>
-			{/* Rail */}
-			<Surface
-				style={{
-					width: 232,
-					borderRightWidth: 1,
-					borderRightColor: tokens.color.border,
-					borderRadius: 0,
-				}}>
-				<Stack gap="lg" style={{ padding: tokens.space.lg, flex: 1 }}>
-					<Text variant="subtitle" weight="bold">
-						KBVE Jobs
-					</Text>
-					<Stack gap="xs">
-						{SECTIONS.map((s) => {
-							const on = s.id === active;
-							return (
-								<PressableSurface
-									key={s.id}
-									onPress={() => setActive(s.id)}
-									style={{
-										padding: tokens.space.sm,
-										borderRadius: tokens.radius.md,
-										backgroundColor: on
-											? tokens.color.surfaceAlt
-											: 'transparent',
-									}}>
-									<Stack
-										direction="row"
-										gap="sm"
-										align="center">
-										<Text>{s.icon}</Text>
-										<Text
-											variant="label"
-											tone={on ? 'primary' : 'muted'}>
-											{s.label}
-										</Text>
-									</Stack>
-								</PressableSurface>
-							);
-						})}
-					</Stack>
-				</Stack>
-			</Surface>
-
-			{/* Main column */}
+			{rail}
 			<View style={{ flex: 1, flexDirection: 'column' }}>
-				{/* Top nav */}
-				<Surface
-					style={{
-						flexDirection: 'row',
-						alignItems: 'center',
-						padding: tokens.space.md,
-						borderBottomWidth: 1,
-						borderBottomColor: tokens.color.border,
-						borderRadius: 0,
+				{topbar}
+				<ScrollView
+					style={{ flex: 1 }}
+					contentContainerStyle={{
+						padding: tokens.space.xl,
+						gap: tokens.space.xl,
 					}}>
-					<Text variant="label" tone="muted">
-						{section.label}
-					</Text>
-					<View style={{ flex: 1 }} />
-					<Stack direction="row" gap="md" align="center">
-						<Text variant="label">
-							@
-							{auth.user?.username ?? auth.user?.email ?? 'guest'}
-						</Text>
-						<Button
-							title="Sign out"
-							variant="secondary"
-							onPress={() => signOut()}
-						/>
-					</Stack>
-				</Surface>
-
-				{/* Content */}
-				<View style={{ flex: 1, padding: tokens.space.xl }}>
-					{section.render()}
-				</View>
-
-				{/* Footer */}
+					{main()}
+					{!isDesktop ? (
+						<View style={{ minHeight: 280 }}>{rightPanel}</View>
+					) : null}
+				</ScrollView>
+			</View>
+			{isDesktop ? (
 				<View
 					style={{
-						flexDirection: 'row',
-						alignItems: 'center',
-						gap: tokens.space.md,
-						paddingHorizontal: tokens.space.xl,
-						paddingVertical: tokens.space.md,
-						borderTopWidth: 1,
-						borderTopColor: tokens.color.border,
+						width: 340,
+						borderLeftWidth: 1,
+						borderLeftColor: tokens.color.border,
+						padding: tokens.space.lg,
 					}}>
-					<Text variant="caption" tone="faint">
-						© KBVE
-					</Text>
-					<Text variant="caption" tone="faint">
-						·
-					</Text>
-					<Text variant="caption" tone="faint">
-						jobs.kbve.com
-					</Text>
+					{rightPanel}
 				</View>
-			</View>
+			) : null}
 		</View>
 	);
 }

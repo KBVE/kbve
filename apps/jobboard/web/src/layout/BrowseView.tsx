@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, Surface, Text, Badge, tokens } from '@kbve/rn/ui';
+import { Stack, PressableSurface, Text, Badge, tokens } from '@kbve/rn/ui';
 import { fetchVerticals, type Vertical } from '../api/client';
 
-export function BrowseView() {
+export function BrowseView({
+	selectedId,
+	onSelect,
+}: {
+	selectedId?: number;
+	onSelect: (v: Vertical) => void;
+}) {
 	const [verticals, setVerticals] = useState<Vertical[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -35,25 +41,36 @@ export function BrowseView() {
 						flexWrap: 'wrap',
 						gap: tokens.space.md,
 					}}>
-					{verticals.map((v) => (
-						<Surface
-							key={v.id}
-							padded
-							style={{ width: 280, gap: tokens.space.sm }}>
-							<Stack
-								direction="row"
-								align="center"
-								justify="space-between">
-								<Text variant="subtitle" weight="bold">
-									{v.label}
+					{verticals.map((v) => {
+						const on = v.id === selectedId;
+						return (
+							<PressableSurface
+								key={v.id}
+								padded
+								onPress={() => onSelect(v)}
+								style={{
+									width: 260,
+									gap: tokens.space.sm,
+									borderWidth: 1,
+									borderColor: on
+										? tokens.color.primary
+										: 'transparent',
+								}}>
+								<Stack
+									direction="row"
+									align="center"
+									justify="space-between">
+									<Text variant="subtitle" weight="bold">
+										{v.label}
+									</Text>
+									<Badge label={v.slug} />
+								</Stack>
+								<Text tone="muted" variant="caption">
+									{v.description || 'No description yet.'}
 								</Text>
-								<Badge label={v.slug} />
-							</Stack>
-							<Text tone="muted" variant="caption">
-								{v.description || 'No description yet.'}
-							</Text>
-						</Surface>
-					))}
+							</PressableSurface>
+						);
+					})}
 				</View>
 			)}
 		</Stack>
