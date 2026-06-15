@@ -1,8 +1,15 @@
 import { memo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
+import Animated, {
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
+} from 'react-native-reanimated';
 import { tokens } from '../theme';
 import { Text } from './Text';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -24,15 +31,26 @@ export const Button = memo(function Button({
 	style,
 }: ButtonProps) {
 	const inactive = disabled || loading;
+	const scale = useSharedValue(1);
+	const animatedStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: scale.value }],
+	}));
 	return (
-		<Pressable
+		<AnimatedPressable
 			style={[
 				styles.base,
 				fillStyle[variant],
 				inactive ? styles.inactive : null,
+				animatedStyle,
 				style,
 			]}
 			disabled={inactive}
+			onPressIn={() => {
+				scale.value = withSpring(0.95, { damping: 18, stiffness: 320 });
+			}}
+			onPressOut={() => {
+				scale.value = withSpring(1, { damping: 14, stiffness: 260 });
+			}}
 			onPress={onPress}>
 			{loading ? (
 				<ActivityIndicator
@@ -51,7 +69,7 @@ export const Button = memo(function Button({
 					{title}
 				</Text>
 			)}
-		</Pressable>
+		</AnimatedPressable>
 	);
 });
 

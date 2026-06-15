@@ -10,7 +10,7 @@ import Animated, { LinearTransition } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import type { OAuthProvider } from '@kbve/core';
-import { Button, Checkbox, Text, tokens, toastStore } from '../ui';
+import { Button, Checkbox, Text, tokens, toastStore, useShake } from '../ui';
 import { KBVE_LEGAL_LINKS } from '../config';
 import { useAuth, useAuthActions } from './useAuth';
 import { HCaptcha } from '../captcha/HCaptcha';
@@ -30,6 +30,7 @@ export function LoginScreen() {
 	const auth = useAuth();
 	const actions = useAuthActions();
 	const captcha = useRef<HCaptchaHandle>(null);
+	const captchaShake = useShake();
 	const [mode, setMode] = useState<Mode>('sign_in');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -54,7 +55,24 @@ export function LoginScreen() {
 	const submitLabel = isSignUp ? 'Create account' : 'Sign in';
 
 	const submit = () => {
-		if (!captchaToken || !canSubmit) return;
+		if (busy) return;
+		if (email.length === 0 || password.length === 0) {
+			toastStore.push('Enter your email and password', 'warning');
+			return;
+		}
+		if (isSignUp && !passwordsOk) {
+			toastStore.push('Passwords don’t match', 'danger');
+			return;
+		}
+		if (!verified || !captchaToken) {
+			captchaShake.shake();
+			toastStore.push('Verify you’re human to continue', 'warning');
+			return;
+		}
+		if (isSignUp && !agreed) {
+			toastStore.push('Agree to the terms to continue', 'warning');
+			return;
+		}
 		if (isSignUp) {
 			actions.signUp(email, password, captchaToken);
 		} else {
@@ -138,7 +156,7 @@ export function LoginScreen() {
 					</Text>
 				) : null}
 
-				<View style={styles.captchaRow}>
+				<Animated.View style={[styles.captchaRow, captchaShake.style]}>
 					<Pressable
 						style={[
 							styles.captcha,
@@ -162,7 +180,7 @@ export function LoginScreen() {
 							?
 						</Text>
 					</Pressable>
-				</View>
+				</Animated.View>
 
 				{isSignUp ? (
 					<Checkbox
@@ -200,9 +218,9 @@ export function LoginScreen() {
 
 				<Button
 					title={submitLabel}
-					disabled={!canSubmit}
+					disabled={busy}
 					onPress={submit}
-					style={styles.submit}
+					style={[styles.submit, !canSubmit && styles.submitIdle]}
 				/>
 			</Animated.View>
 
@@ -350,6 +368,7 @@ const styles = StyleSheet.create({
 	},
 	hint: { textAlign: 'center' },
 	submit: { marginTop: tokens.space.xs },
+	submitIdle: { opacity: 0.55 },
 	dividerRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
