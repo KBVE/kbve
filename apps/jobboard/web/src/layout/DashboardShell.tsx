@@ -21,6 +21,8 @@ import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
 import { BrowseView } from './BrowseView';
 import { RightPanel, type Selection } from './RightPanel';
+import { WebGpuCanvas } from '../gpu/WebGpuCanvas';
+import { auroraGold } from '../gpu/auroraGold';
 import type { Vertical } from '../api/client';
 
 const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
@@ -164,38 +166,42 @@ export function DashboardShell() {
 	const rightPanel = <RightPanel selection={selection} />;
 
 	return (
-		<View
-			style={{
-				flex: 1,
-				flexDirection: isPhone ? 'column' : 'row',
-				backgroundColor: tokens.color.bg,
-			}}>
-			{rail}
-			<View style={{ flex: 1, flexDirection: 'column' }}>
-				{topbar}
-				<ScrollView
-					style={{ flex: 1 }}
-					contentContainerStyle={{
-						padding: tokens.space.xl,
-						gap: tokens.space.xl,
-					}}>
-					{main()}
-					{!isDesktop ? (
-						<View style={{ minHeight: 280 }}>{rightPanel}</View>
-					) : null}
-				</ScrollView>
-			</View>
-			{isDesktop ? (
-				<View
-					style={{
-						width: 340,
-						borderLeftWidth: 1,
-						borderLeftColor: tokens.color.border,
-						padding: tokens.space.lg,
-					}}>
-					{rightPanel}
+		<View style={{ flex: 1 }}>
+			<WebGpuCanvas effect={auroraGold} />
+			<View
+				style={{
+					flex: 1,
+					flexDirection: isPhone ? 'column' : 'row',
+					backgroundColor: 'transparent',
+					zIndex: 1,
+				}}>
+				{rail}
+				<View style={{ flex: 1, flexDirection: 'column' }}>
+					{topbar}
+					<ScrollView
+						style={{ flex: 1 }}
+						contentContainerStyle={{
+							padding: tokens.space.xl,
+							gap: tokens.space.xl,
+						}}>
+						{main()}
+						{!isDesktop ? (
+							<View style={{ minHeight: 280 }}>{rightPanel}</View>
+						) : null}
+					</ScrollView>
 				</View>
-			) : null}
+				{isDesktop ? (
+					<View
+						style={{
+							width: 340,
+							borderLeftWidth: 1,
+							borderLeftColor: tokens.color.border,
+							padding: tokens.space.lg,
+						}}>
+						{rightPanel}
+					</View>
+				) : null}
+			</View>
 		</View>
 	);
 }
