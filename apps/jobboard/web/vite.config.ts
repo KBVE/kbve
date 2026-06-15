@@ -67,6 +67,22 @@ export default defineConfig(({ mode }) => ({
 	},
 	optimizeDeps: {
 		include: ['react-native-web'],
+		// the prebundle scanner ignores resolve.extensions; without this it
+		// grabs reanimated's native *.js (Flow syntax) instead of the *.web.js
+		// variants and esbuild fails ("Expected from but found {").
+		esbuildOptions: {
+			resolveExtensions: [
+				'.web.tsx',
+				'.web.ts',
+				'.web.jsx',
+				'.web.js',
+				'.tsx',
+				'.ts',
+				'.jsx',
+				'.js',
+				'.json',
+			],
+		},
 	},
 	define: {
 		global: 'globalThis',
