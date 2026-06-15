@@ -40,8 +40,8 @@ pub struct Taxonomy {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct MembershipApplication {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub user_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(int32, tag = "3")]
@@ -109,8 +109,8 @@ pub struct ClientProfile {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PortfolioItem {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub user_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(uint64, tag = "3")]
@@ -132,8 +132,8 @@ pub struct PortfolioItem {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Gig {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub poster_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(uint64, tag = "3")]
@@ -173,10 +173,10 @@ pub struct Gig {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Application {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(uint64, tag = "2")]
-    pub gig_id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub gig_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "3")]
     pub applicant_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(string, tag = "4")]
@@ -185,8 +185,8 @@ pub struct Application {
     pub proposed_rate: i64,
     #[prost(enumeration = "BudgetType", tag = "6")]
     pub proposed_rate_type: i32,
-    #[prost(uint64, repeated, tag = "7")]
-    pub portfolio_item_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(bytes = "vec", repeated, tag = "7")]
+    pub portfolio_item_ids: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(int32, tag = "8")]
     pub status: i32,
     #[prost(string, tag = "9")]
@@ -194,10 +194,10 @@ pub struct Application {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Engagement {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(uint64, tag = "2")]
-    pub gig_id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub gig_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "3")]
     pub poster_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "4")]
@@ -211,10 +211,10 @@ pub struct Engagement {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Review {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(uint64, tag = "2")]
-    pub engagement_id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub engagement_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "3")]
     pub reviewer_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "4")]
@@ -228,36 +228,47 @@ pub struct Review {
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Conversation {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(uint64, tag = "2")]
-    pub gig_id: u64,
-    #[prost(bytes = "vec", repeated, tag = "3")]
-    pub participant_ids: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
-    #[prost(string, tag = "4")]
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub gig_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
     pub created_at: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ConversationParticipant {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub conversation_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub user_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "4")]
+    pub joined_at: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub left_at: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "6")]
+    pub last_read_message_id: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Message {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
-    #[prost(uint64, tag = "2")]
-    pub conversation_id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub conversation_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "3")]
-    pub sender_id: ::prost::alloc::vec::Vec<u8>,
+    pub sender_participant_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(string, tag = "4")]
     pub body: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "5")]
     pub attachments: ::prost::alloc::vec::Vec<MediaAttachment>,
     #[prost(string, tag = "6")]
-    pub read_at: ::prost::alloc::string::String,
-    #[prost(string, tag = "7")]
     pub created_at: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Notification {
-    #[prost(uint64, tag = "1")]
-    pub id: u64,
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub user_id: ::prost::alloc::vec::Vec<u8>,
     #[prost(int32, tag = "3")]
@@ -269,8 +280,47 @@ pub struct Notification {
     #[prost(string, tag = "6")]
     pub created_at: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Report {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub reporter_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(int32, tag = "3")]
+    pub target_kind: i32,
+    #[prost(string, tag = "4")]
+    pub target_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub reason: ::prost::alloc::string::String,
+    #[prost(int32, tag = "6")]
+    pub status: i32,
+    #[prost(string, tag = "7")]
+    pub created_at: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct AuditLog {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub actor_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub action: ::prost::alloc::string::String,
+    #[prost(int32, tag = "4")]
+    pub target_kind: i32,
+    #[prost(string, tag = "5")]
+    pub target_id: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", tag = "6")]
+    pub detail: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "7")]
+    pub created_at: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ById {
+    #[prost(bytes = "vec", tag = "1")]
+    pub id: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ByLookup {
     #[prost(uint64, tag = "1")]
     pub id: u64,
 }
