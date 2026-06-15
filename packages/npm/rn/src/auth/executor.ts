@@ -2,6 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { makeRedirectUri } from 'expo-auth-session';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { request } from '@kbve/core';
 import type { AuthEffect, AuthEvent, EffectExecutor } from '@kbve/core';
 import { KBVE_API_URL } from '../config';
 import { mapSession } from './supabase';
@@ -123,48 +124,28 @@ export function createSupabaseAuthExecutor(
 							});
 							return;
 						}
-						try {
-							const response = await fetch(
-								`${KBVE_API_URL}/api/v1/profile/username`,
-								{
-									method: 'POST',
-									headers: {
-										Authorization: `Bearer ${token}`,
-										'Content-Type': 'application/json',
-									},
-									body: JSON.stringify({
-										username: effect.username,
-									}),
-								},
-							);
-							if (!response.ok) {
-								const body = (await response
-									.json()
-									.catch(() => null)) as {
-									message?: string;
-									error?: string;
-								} | null;
-								dispatch({
-									type: 'auth_error',
-									message:
-										body?.message ??
-										body?.error ??
-										'Username unavailable',
-								});
-								return;
-							}
-							const { data: refreshed } =
-								await client.auth.refreshSession();
-							dispatch({
-								type: 'session_changed',
-								session: mapSession(refreshed.session),
-							});
-						} catch {
+						const result = await request<{ username: string }>(
+							`${KBVE_API_URL}/api/v1/profile/username`,
+							{
+								method: 'POST',
+								headers: { Authorization: `Bearer ${token}` },
+								body: { username: effect.username },
+								timeoutMs: 10000,
+							},
+						);
+						if (!result.ok) {
 							dispatch({
 								type: 'auth_error',
-								message: 'Network error',
+								message: result.error ?? 'Username unavailable',
 							});
+							return;
 						}
+						const { data: refreshed } =
+							await client.auth.refreshSession();
+						dispatch({
+							type: 'session_changed',
+							session: mapSession(refreshed.session),
+						});
 					})();
 					break;
 			}
