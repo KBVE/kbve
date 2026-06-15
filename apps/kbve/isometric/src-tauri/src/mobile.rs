@@ -238,3 +238,26 @@ pub fn sign_in(jwt: &str) {
 pub fn go_online(server_url: &str, jwt: &str) {
     crate::game::net::request_go_online(server_url, jwt);
 }
+
+/// Feed a touch/pointer event into the game. `kind`: 0 = down, 1 = move,
+/// 2 = up. `x`/`y` are physical pixels (the native_input drain converts them
+/// to logical using the window scale factor).
+pub fn on_pointer(kind: u32, x: f32, y: f32) {
+    use crate::game::native_input::{NativeInputEvent, push_event};
+    let (x, y) = (x as f64, y as f64);
+    match kind {
+        0 => {
+            push_event(NativeInputEvent::PointerMove { x, y });
+            push_event(NativeInputEvent::PointerButton {
+                button: 0,
+                pressed: true,
+            });
+        }
+        1 => push_event(NativeInputEvent::PointerMove { x, y }),
+        2 => push_event(NativeInputEvent::PointerButton {
+            button: 0,
+            pressed: false,
+        }),
+        _ => {}
+    }
+}

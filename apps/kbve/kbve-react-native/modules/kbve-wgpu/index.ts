@@ -25,6 +25,7 @@ interface KbveWgpuNativeModule {
 	setJwt(jwt: string): void;
 	goOnline(serverUrl: string, jwt: string): void;
 	hostResponse(id: number, ok: boolean, payload: string): void;
+	pointer(kind: number, x: number, y: number): void;
 }
 
 export const KbveWgpuModule: KbveWgpuNativeModule =
@@ -36,4 +37,10 @@ export function setJwt(jwt: string): void {
 
 export function goOnline(serverUrl: string, jwt: string): void {
 	KbveWgpuModule.goOnline(serverUrl, jwt);
+}
+
+export function pointer(kind: number, x: number, y: number): void {
+	// Optional-chained: the native `pointer` fn only exists after an app
+	// rebuild, so JS hot-reloads on an older binary no-op instead of crashing.
+	KbveWgpuModule.pointer?.(kind, x, y);
 }

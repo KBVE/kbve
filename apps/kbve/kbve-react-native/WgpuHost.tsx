@@ -51,6 +51,8 @@ function WgpuHost({ componentId, bridge, style }: NativeComponentProps) {
 		[bridge],
 	);
 
+	// Touches are handled natively on the UI thread by KbveWgpuView's own
+	// gesture recognizer (no JS hop), so no PanResponder here.
 	return (
 		<View style={[styles.fill, style]}>
 			<KbveWgpuView

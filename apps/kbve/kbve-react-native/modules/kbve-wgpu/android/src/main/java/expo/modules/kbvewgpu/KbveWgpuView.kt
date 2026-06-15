@@ -127,5 +127,9 @@ class KbveWgpuView(context: Context, appContext: AppContext) :
     setJwt(jwt)
   }
 
+  fun pointer(kind: Int, x: Double, y: Double) {
+    if (surfacePtr != 0L) nativeInput(surfacePtr, kind, x.toFloat(), y.toFloat(), 0)
+  }
+
   fun hostResponse(id: Int, ok: Boolean, payload: String) {}
 }

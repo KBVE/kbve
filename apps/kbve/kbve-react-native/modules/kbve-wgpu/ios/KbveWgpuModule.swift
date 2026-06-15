@@ -16,6 +16,10 @@ public class KbveWgpuModule: Module {
             KbveWgpuView.current?.hostResponse(id: id, ok: ok, payload: payload)
         }
 
+        Function("pointer") { (kind: Int, x: Double, y: Double) in
+            KbveWgpuView.current?.pointer(kind, x, y)
+        }
+
         View(KbveWgpuView.self) {
             Events("onReady", "onHostCall")
             Prop("componentId") { (view: KbveWgpuView, value: String) in
