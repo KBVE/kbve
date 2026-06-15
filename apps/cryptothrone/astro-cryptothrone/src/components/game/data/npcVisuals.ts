@@ -1,12 +1,14 @@
-import { getNpcEntry } from './npcdb';
+import { getNpcEntry, type Npc } from './npcdb';
 
 // In-world sprite resolution for npcdb NPCs.
 //
-// Frame indices into cryptothrone's shared atlases are game-specific, so they
-// live here rather than in the shared npcdb. Everything else can be driven by
-// the npcdb entry: `model_ref` → texture key, `animation_set` → animation,
-// `scale` → sprite scale. Every ref resolves to SOMETHING renderable — unknown
-// NPCs fall back to the placeholder so a new npcdb entry never renders blank.
+// The npcdb `sprite_atlas` field is the game-agnostic visual contract — the
+// same descriptor the KBVENPCSprite UE module and other clients read. When an
+// entry carries one, cryptothrone derives its sprite entirely from it (texture
+// from `atlas_ref`, resting frame from the front row + idle clip, animation
+// from `animation_set`, scale from the entry). Entries without a sprite_atlas
+// fall back to a cryptothrone placeholder frame map, then a default, so a new
+// npcdb NPC never renders blank.
 
 export interface NpcSprite {
 	key: string;
@@ -15,7 +17,21 @@ export interface NpcSprite {
 	scale?: number;
 }
 
-// Per-ref atlas frame mapping (cryptothrone 'monks' atlas + the bird monster).
+type SpriteAtlas = NonNullable<Npc['sprite_atlas']>;
+
+// Maps an agnostic `atlas_ref` (texture path / LFS ref) to the Phaser texture
+// key cryptothrone preloads. Identity today; remap real asset paths here as
+// bespoke sprite sheets land.
+const ATLAS_TEXTURE_KEYS: Record<string, string> = {
+	monks: 'monks',
+	monster_bird: 'monster_bird',
+};
+
+function atlasTextureKey(ref: string): string {
+	return ATLAS_TEXTURE_KEYS[ref] ?? ref;
+}
+
+// Placeholder atlas frames for npcdb entries that have no sprite_atlas yet.
 const NPC_SPRITE_FRAMES: Record<string, NpcSprite> = {
 	cleric: { key: 'monks', mapping: 0 },
 	merchant: { key: 'monks', mapping: 1 },
@@ -24,23 +40,38 @@ const NPC_SPRITE_FRAMES: Record<string, NpcSprite> = {
 	goblin: { key: 'monks', mapping: 4 },
 	'goblin-general': { key: 'monks', mapping: 5 },
 	wolf: { key: 'monks', mapping: 6 },
-	'crystal-bat': { key: 'monster_bird', anim: 'bird' },
-	// Cloud City residents now sourced from npcdb — placeholder atlas frames
-	// until bespoke portraits ship.
-	barkeep: { key: 'monks', mapping: 1 },
-	monk: { key: 'monks', mapping: 0 },
 };
 
 export const DEFAULT_NPC_SPRITE: NpcSprite = { key: 'monks', mapping: 0 };
 
+/** Derive the in-world sprite straight from the agnostic sprite_atlas. */
+function fromSpriteAtlas(atlas: SpriteAtlas, npc: Npc): NpcSprite {
+	const columns = atlas.columns || 1;
+	const front = atlas.row_front ?? 0;
+	const idle =
+		atlas.clips?.find((c) => c.anim === 'idle') ?? atlas.clips?.[0];
+	// Resting frame = first cell of the front row, offset by the idle clip's
+	// start column (a static NPC pins one frame via a 1-frame idle clip).
+	const frame = front * columns + (idle?.start_frame ?? 0);
+	return {
+		key: atlasTextureKey(atlas.atlas_ref),
+		mapping: frame,
+		anim: npc.animation_set || undefined,
+		scale: npc.scale ?? undefined,
+	};
+}
+
 /**
- * Resolve the in-world sprite for an npcdb ref. npcdb visual hints
- * (`model_ref` / `animation_set` / `scale`) win when present; otherwise the
- * cryptothrone frame map; otherwise the placeholder.
+ * Resolve the in-world sprite for an npcdb ref. A `sprite_atlas` (the agnostic
+ * cross-mode descriptor) wins; otherwise the cryptothrone placeholder frame
+ * map; otherwise the default placeholder.
  */
 export function resolveNpcSprite(ref: string | null | undefined): NpcSprite {
-	const frame = (ref && NPC_SPRITE_FRAMES[ref]) || DEFAULT_NPC_SPRITE;
 	const npc = ref ? getNpcEntry(ref) : undefined;
+	if (npc?.sprite_atlas?.atlas_ref) {
+		return fromSpriteAtlas(npc.sprite_atlas, npc);
+	}
+	const frame = (ref && NPC_SPRITE_FRAMES[ref]) || DEFAULT_NPC_SPRITE;
 	return {
 		key: npc?.model_ref || frame.key,
 		mapping: frame.mapping,
