@@ -107,7 +107,13 @@ fn router() -> Router {
         .route("/health", get(health))
         .route("/api/v1/speed", get(speed))
         .route("/api/join", post(join))
-        .route("/api/discord/session", post(crate::discord::session));
+        .route("/api/discord/session", post(crate::discord::session))
+        // The Discord Activity proxies under the `/` -> .../discord/ root mapping,
+        // which prepends /discord to every request, so its session call lands here.
+        .route(
+            "/discord/api/discord/session",
+            post(crate::discord::session),
+        );
 
     static_router
         .merge(dynamic_router)
