@@ -44,6 +44,21 @@ enum BudgetType {
   BUDGET_HOURLY      = 3;
 }
 
+enum ReportTarget {
+  REPORT_TARGET_UNSPECIFIED = 0;
+  REPORT_TARGET_USER        = 1;
+  REPORT_TARGET_GIG         = 2;
+  REPORT_TARGET_MESSAGE     = 3;
+  REPORT_TARGET_REVIEW      = 4;
+}
+
+enum ReportStatus {
+  REPORT_OPEN      = 0;
+  REPORT_REVIEWING = 1;
+  REPORT_RESOLVED  = 2;
+  REPORT_DISMISSED = 3;
+}
+
 message Vertical {
   uint64 id = 1;
   string slug = 2;
@@ -204,10 +219,10 @@ message Notification {
 message Report {
   bytes  id = 1;
   bytes  reporter_id = 2;
-  int32  target_kind = 3;
+  ReportTarget target_kind = 3;
   string target_id = 4;
   string reason = 5;
-  int32  status = 6;
+  ReportStatus status = 6;
   string created_at = 7;
 }
 

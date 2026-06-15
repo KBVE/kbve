@@ -286,13 +286,13 @@ pub struct Report {
     pub id: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub reporter_id: ::prost::alloc::vec::Vec<u8>,
-    #[prost(int32, tag = "3")]
+    #[prost(enumeration = "ReportTarget", tag = "3")]
     pub target_kind: i32,
     #[prost(string, tag = "4")]
     pub target_id: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
     pub reason: ::prost::alloc::string::String,
-    #[prost(int32, tag = "6")]
+    #[prost(enumeration = "ReportStatus", tag = "6")]
     pub status: i32,
     #[prost(string, tag = "7")]
     pub created_at: ::prost::alloc::string::String,
@@ -498,6 +498,73 @@ impl BudgetType {
             "BUDGET_FIXED" => Some(Self::BudgetFixed),
             "BUDGET_RANGE" => Some(Self::BudgetRange),
             "BUDGET_HOURLY" => Some(Self::BudgetHourly),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ReportTarget {
+    Unspecified = 0,
+    User = 1,
+    Gig = 2,
+    Message = 3,
+    Review = 4,
+}
+impl ReportTarget {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "REPORT_TARGET_UNSPECIFIED",
+            Self::User => "REPORT_TARGET_USER",
+            Self::Gig => "REPORT_TARGET_GIG",
+            Self::Message => "REPORT_TARGET_MESSAGE",
+            Self::Review => "REPORT_TARGET_REVIEW",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "REPORT_TARGET_UNSPECIFIED" => Some(Self::Unspecified),
+            "REPORT_TARGET_USER" => Some(Self::User),
+            "REPORT_TARGET_GIG" => Some(Self::Gig),
+            "REPORT_TARGET_MESSAGE" => Some(Self::Message),
+            "REPORT_TARGET_REVIEW" => Some(Self::Review),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ReportStatus {
+    ReportOpen = 0,
+    ReportReviewing = 1,
+    ReportResolved = 2,
+    ReportDismissed = 3,
+}
+impl ReportStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::ReportOpen => "REPORT_OPEN",
+            Self::ReportReviewing => "REPORT_REVIEWING",
+            Self::ReportResolved => "REPORT_RESOLVED",
+            Self::ReportDismissed => "REPORT_DISMISSED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "REPORT_OPEN" => Some(Self::ReportOpen),
+            "REPORT_REVIEWING" => Some(Self::ReportReviewing),
+            "REPORT_RESOLVED" => Some(Self::ReportResolved),
+            "REPORT_DISMISSED" => Some(Self::ReportDismissed),
             _ => None,
         }
     }
