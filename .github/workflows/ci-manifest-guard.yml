@@ -51,7 +51,22 @@ jobs:
 
             - run: pnpm install --frozen-lockfile
 
-            - run: npx nx run astro-kbve:build
+            # nx 22 occasionally hits a flaky "Failed to process project graph" race
+            # on the first cold attempt (apps/jobboard/web mixes pnpm + standalone
+            # npm lockfile, which confuses the project-graph merge). Retry once before
+            # surfacing as a real failure.
+            - name: Build astro-kbve (retry on flaky graph)
+              run: |
+                  for attempt in 1 2 3; do
+                      if npx nx run astro-kbve:build; then
+                          echo "Build succeeded on attempt $attempt"
+                          exit 0
+                      fi
+                      echo "::warning::astro-kbve:build attempt $attempt failed, retrying..."
+                      npx nx reset || true
+                  done
+                  echo "::error::astro-kbve:build failed after 3 attempts"
+                  exit 1
 
             - run: npx nx run astro-kbve:sync:ci-manifest
 
