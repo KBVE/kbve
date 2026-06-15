@@ -13,6 +13,7 @@ export * from './auth/useAuth';
 export * from './auth/AuthGate';
 export * from './auth/LoginScreen';
 export * from './auth/SetUsernameScreen';
+export * from './auth/useStaff';
 
 export * from './captcha/HCaptcha';
 
@@ -25,5 +26,6 @@ export * from './examples/helloPlugin';
 export * from './examples/isometricPlugin';
 
 export * from './screens/HomeScreen';
+export * from './screens/DashboardScreen';
 
 export * from './ui';
