@@ -28,7 +28,8 @@ create table jobboard.taxonomy (
     name        text not null check (name ~ '^[a-z0-9-]+$'),
     label       text not null,
     status      integer not null default 1 check (status between 0 and 2),
-    unique (vertical_id, kind, name)
+    unique (vertical_id, kind, name),
+    unique (id, vertical_id)
 );
 
 create table jobboard.talent_profiles (
@@ -61,6 +62,8 @@ create table jobboard.talent_verticals (
     primary key (user_id, vertical_id)
 );
 
+create index jobboard_talent_verticals_vertical_idx on jobboard.talent_verticals (vertical_id, user_id);
+
 create table jobboard.talent_taxonomy (
     user_id     uuid not null references jobboard.talent_profiles(user_id) on delete cascade,
     taxonomy_id bigint not null references jobboard.taxonomy(id) on delete cascade,
@@ -74,6 +77,8 @@ create table jobboard.client_verticals (
     vertical_id bigint not null references jobboard.verticals(id) on delete cascade,
     primary key (user_id, vertical_id)
 );
+
+create index jobboard_client_verticals_vertical_idx on jobboard.client_verticals (vertical_id, user_id);
 
 create table jobboard.member_applications (
     id                     uuid primary key default public.gen_ulid()::uuid,
@@ -102,6 +107,9 @@ create table jobboard.member_application_verticals (
     primary key (application_id, vertical_id)
 );
 
+create index jobboard_member_application_verticals_vertical_idx
+    on jobboard.member_application_verticals (vertical_id, application_id);
+
 create table jobboard.portfolio_items (
     id          uuid primary key default public.gen_ulid()::uuid,
     user_id     uuid not null references auth.users(id) on delete cascade,
@@ -111,15 +119,21 @@ create table jobboard.portfolio_items (
     source      text not null default '',
     media       jsonb not null default '[]' check (jsonb_typeof(media) = 'array'),
     sort_order  integer not null default 0,
-    created_at  timestamptz not null default now()
+    created_at  timestamptz not null default now(),
+    unique (id, vertical_id)
 );
 
 create index jobboard_portfolio_items_user_idx on jobboard.portfolio_items (user_id);
 
 create table jobboard.portfolio_tags (
-    portfolio_item_id uuid not null references jobboard.portfolio_items(id) on delete cascade,
-    taxonomy_id       bigint not null references jobboard.taxonomy(id) on delete cascade,
-    primary key (portfolio_item_id, taxonomy_id)
+    portfolio_item_id uuid not null,
+    vertical_id       bigint not null,
+    taxonomy_id       bigint not null,
+    primary key (portfolio_item_id, taxonomy_id),
+    foreign key (portfolio_item_id, vertical_id)
+        references jobboard.portfolio_items(id, vertical_id) on delete cascade,
+    foreign key (taxonomy_id, vertical_id)
+        references jobboard.taxonomy(id, vertical_id) on delete cascade
 );
 
 create index jobboard_portfolio_tags_taxonomy_idx on jobboard.portfolio_tags (taxonomy_id, portfolio_item_id);
@@ -141,8 +155,13 @@ create table jobboard.gigs (
     published_at  timestamptz,
     updated_at    timestamptz not null default now(),
     created_at    timestamptz not null default now(),
+    unique (id, vertical_id),
     constraint gigs_budget_ck check (budget_min >= 0 and budget_max >= 0 and budget_min <= budget_max),
-    constraint gigs_publication_state_ck check ((status = 0 and published_at is null) or status <> 0)
+    constraint gigs_publication_state_ck check (
+        (status = 0 and published_at is null)
+        or (status in (2, 4, 8, 16) and published_at is not null)
+        or status = 1
+    )
 );
 
 comment on column jobboard.gigs.budget_min is 'Amount in the currency minor unit, e.g. cents for USD.';
@@ -155,9 +174,14 @@ create index jobboard_gigs_public_recent_idx
     on jobboard.gigs (published_at desc, id desc) where status = 2;
 
 create table jobboard.gig_taxonomy (
-    gig_id      uuid not null references jobboard.gigs(id) on delete cascade,
-    taxonomy_id bigint not null references jobboard.taxonomy(id) on delete cascade,
-    primary key (gig_id, taxonomy_id)
+    gig_id      uuid not null,
+    vertical_id bigint not null,
+    taxonomy_id bigint not null,
+    primary key (gig_id, taxonomy_id),
+    foreign key (gig_id, vertical_id)
+        references jobboard.gigs(id, vertical_id) on delete cascade,
+    foreign key (taxonomy_id, vertical_id)
+        references jobboard.taxonomy(id, vertical_id) on delete cascade
 );
 
 create index jobboard_gig_taxonomy_taxonomy_idx on jobboard.gig_taxonomy (taxonomy_id, gig_id);
@@ -187,6 +211,9 @@ create table jobboard.application_portfolio_items (
     primary key (application_id, portfolio_item_id)
 );
 
+create index jobboard_application_portfolio_items_item_idx
+    on jobboard.application_portfolio_items (portfolio_item_id, application_id);
+
 create table jobboard.engagements (
     id           uuid primary key default public.gen_ulid()::uuid,
     gig_id       uuid not null references jobboard.gigs(id) on delete cascade,
@@ -195,7 +222,9 @@ create table jobboard.engagements (
     status       integer not null default 0 check (status between 0 and 2),
     started_at   timestamptz not null default now(),
     completed_at timestamptz,
-    constraint engagements_distinct_parties_ck check (poster_id is distinct from taker_id),
+    constraint engagements_distinct_parties_ck check (
+        poster_id is null or taker_id is null or poster_id <> taker_id
+    ),
     constraint engagements_completion_ck check (completed_at is null or completed_at >= started_at)
 );
 
@@ -211,9 +240,13 @@ create table jobboard.reviews (
     rating        integer not null check (rating between 1 and 5),
     body          text not null default '',
     created_at    timestamptz not null default now(),
-    constraint reviews_distinct_users_ck check (reviewer_id is distinct from reviewee_id)
+    constraint reviews_distinct_users_ck check (
+        reviewer_id is null or reviewee_id is null or reviewer_id <> reviewee_id
+    )
 );
 
+create unique index jobboard_reviews_engagement_reviewer_uq
+    on jobboard.reviews (engagement_id, reviewer_id) where reviewer_id is not null;
 create index jobboard_reviews_reviewee_created_idx
     on jobboard.reviews (reviewee_id, created_at desc, id desc);
 
@@ -224,27 +257,35 @@ create table jobboard.conversations (
 );
 
 create table jobboard.conversation_participants (
+    id                   uuid primary key default public.gen_ulid()::uuid,
     conversation_id      uuid not null references jobboard.conversations(id) on delete cascade,
-    user_id              uuid not null references auth.users(id) on delete cascade,
+    user_id              uuid references auth.users(id) on delete set null,
     joined_at            timestamptz not null default now(),
+    left_at              timestamptz,
     last_read_message_id uuid,
-    primary key (conversation_id, user_id)
+    unique (conversation_id, id),
+    unique (conversation_id, user_id)
 );
 
 create index jobboard_conversation_participants_user_idx
     on jobboard.conversation_participants (user_id);
 
 create table jobboard.messages (
-    id              uuid primary key default public.gen_ulid()::uuid,
-    conversation_id uuid not null references jobboard.conversations(id) on delete cascade,
-    sender_id       uuid not null,
-    body            text not null default '',
-    attachments     jsonb not null default '[]' check (jsonb_typeof(attachments) = 'array'),
-    created_at      timestamptz not null default now(),
+    id                    uuid primary key default public.gen_ulid()::uuid,
+    conversation_id       uuid not null references jobboard.conversations(id) on delete cascade,
+    sender_participant_id uuid not null,
+    body                  text not null default '',
+    attachments           jsonb not null default '[]' check (jsonb_typeof(attachments) = 'array'),
+    created_at            timestamptz not null default now(),
+    constraint messages_content_ck check (
+        length(btrim(body)) > 0 or jsonb_array_length(attachments) > 0
+    ),
+    constraint messages_body_len_ck check (length(body) <= 20000),
+    constraint messages_attachments_len_ck check (jsonb_array_length(attachments) <= 10),
+    constraint messages_conversation_id_id_uq unique (conversation_id, id),
     constraint messages_sender_participant_fk
-        foreign key (conversation_id, sender_id)
-        references jobboard.conversation_participants (conversation_id, user_id)
-        on delete cascade
+        foreign key (conversation_id, sender_participant_id)
+        references jobboard.conversation_participants (conversation_id, id) on delete cascade
 );
 
 create index jobboard_messages_conversation_cursor_idx
@@ -252,12 +293,14 @@ create index jobboard_messages_conversation_cursor_idx
 
 alter table jobboard.conversation_participants
     add constraint conversation_participants_last_read_fk
-    foreign key (last_read_message_id) references jobboard.messages(id) on delete set null;
+    foreign key (conversation_id, last_read_message_id)
+    references jobboard.messages (conversation_id, id)
+    on delete set null (last_read_message_id);
 
 create table jobboard.notifications (
     id         uuid primary key default public.gen_ulid()::uuid,
     user_id    uuid not null references auth.users(id) on delete cascade,
-    kind       integer not null default 0 check (kind >= 0 and (kind & ~31) = 0),
+    kind       integer not null default 0 check (kind in (0, 1, 2, 4, 8, 16)),
     payload    jsonb not null default '{}' check (jsonb_typeof(payload) = 'object'),
     read_at    timestamptz,
     created_at timestamptz not null default now()
@@ -302,9 +345,6 @@ create trigger gigs_set_updated_at
     before update on jobboard.gigs
     for each row execute function jobboard.set_updated_at();
 
-revoke all on schema jobboard from public;
-grant usage on schema jobboard to authenticated;
-
 alter table jobboard.verticals                    enable row level security;
 alter table jobboard.taxonomy                     enable row level security;
 alter table jobboard.talent_profiles              enable row level security;
@@ -335,11 +375,13 @@ alter table jobboard.member_applications force row level security;
 alter table jobboard.reports             force row level security;
 alter table jobboard.audit_log           force row level security;
 
-revoke all on table jobboard.engagements         from anon, authenticated;
-revoke all on table jobboard.reviews             from anon, authenticated;
-revoke all on table jobboard.member_applications from anon, authenticated;
-revoke all on table jobboard.reports             from anon, authenticated;
-revoke all on table jobboard.audit_log           from anon, authenticated;
+revoke all on schema jobboard from public;
+grant usage on schema jobboard to authenticated;
+revoke all on all tables in schema jobboard from anon, authenticated;
+revoke all on all sequences in schema jobboard from anon, authenticated;
+alter default privileges in schema jobboard revoke all on tables from anon, authenticated;
+alter default privileges in schema jobboard revoke all on sequences from anon, authenticated;
+alter default privileges in schema jobboard revoke execute on functions from public;
 
 -- migrate:down
 drop schema if exists jobboard cascade;
