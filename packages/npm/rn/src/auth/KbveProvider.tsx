@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthStore, authCore, ChatStore, chatCore } from '@kbve/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -50,6 +51,23 @@ export function KbveProvider({
 			});
 		});
 		return () => data.subscription.unsubscribe();
+	}, [value]);
+
+	useEffect(() => {
+		const { client } = value;
+		const refresh = (state: string) => {
+			if (state === 'active') {
+				client.auth.startAutoRefresh();
+			} else {
+				client.auth.stopAutoRefresh();
+			}
+		};
+		refresh(AppState.currentState);
+		const subscription = AppState.addEventListener('change', refresh);
+		return () => {
+			subscription.remove();
+			client.auth.stopAutoRefresh();
+		};
 	}, [value]);
 
 	return (
