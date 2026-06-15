@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-06-14T09:12:53.124Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-06-15T10:15:15.225Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **33** items
+    **36** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **257** items
+    **282** items
   </Card>
 </CardGrid>
 
@@ -55,14 +55,14 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 33
+    "Theory" : 36
     "AI" : 1
     "Todo" : 9
     "Backlog" : 6
     "Error" : 7
     "Staging" : 3
     "Review" : 1
-    "Done" : 257
+    "Done" : 282
 ```
 
 ```mermaid
@@ -70,8 +70,8 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 13
     "Blocked (Error+Support)" : 7
-    "Done" : 257
-    "Planning (Theory+AI+Backlog)" : 40
+    "Done" : 282
+    "Planning (Theory+AI+Backlog)" : 43
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>33</strong>"]
+    Theory["Theory<br/><strong>36</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>257</strong>"]
+    Done["Done<br/><strong>282</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 245
-    "Issue" : 72
+    "Pull Request" : 270
+    "Issue" : 75
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 245 |
-| dev→main | 129 |
-| atomic | 98 |
-| enhancement | 45 |
+| auto-pr | 270 |
+| dev→main | 142 |
+| atomic | 109 |
+| enhancement | 48 |
 | 0 | 19 |
 | 1 | 13 |
 | unity | 10 |
@@ -138,7 +138,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (33)
+### Theory (36)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -175,6 +175,9 @@ pie showData
 | [#12360](https://github.com/KBVE/kbve/issues/12360) | cryptothrone: remaining scene/netcode abstraction layers (C8 + B4/B6) — successo | — | — | enhancement |
 | [#12362](https://github.com/KBVE/kbve/issues/12362) | cryptothrone: playable as Discord Activity + standalone embed.js + itch (one mou | — | — | enhancement |
 | [#12376](https://github.com/KBVE/kbve/issues/12376) | cryptothrone: ship to itch.io via embed.js (HTML5 build) — deferred after Discor | — | — | enhancement |
+| [#12422](https://github.com/KBVE/kbve/issues/12422) | cryptothrone: decompose CloudCityScene into ECS systems over EntityStore (phased | — | — | enhancement |
+| [#12484](https://github.com/KBVE/kbve/issues/12484) | [RN] [CRUX] Off Thread Networking | — | — | enhancement |
+| [#12495](https://github.com/KBVE/kbve/issues/12495) | [RN] [WEB] Reuse React Native components on web via react-native-web + Astro | — | — | enhancement |
 
 ### AI (1)
 
@@ -231,9 +234,9 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#12411](https://github.com/KBVE/kbve/pull/12411) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12511](https://github.com/KBVE/kbve/pull/12511) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
 
-### Done (257)
+### Done (282)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -247,12 +250,6 @@ pie showData
 | [#9809](https://github.com/KBVE/kbve/issues/9809) | [UE5] Windows plugin build pipeline — runner agent, file-server proxy, Win64 Bui | — | h0lybyte | 6, ci, ue |
 | [#8190](https://github.com/KBVE/kbve/issues/8190) | [BEVY] bevy_cam performance audit — 8 findings | — | h0lybyte | 1, rust |
 | [#10560](https://github.com/KBVE/kbve/issues/10560) | chore(redis): evaluate Bitnami chart bump 21.2.13 -&gt; 25.x | — | — | update |
-| [#11468](https://github.com/KBVE/kbve/pull/11468) | Release: 5 features, 2 fixes, 1 refactor, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#11480](https://github.com/KBVE/kbve/pull/11480) | Atomic: agones-factorio v0.0.8 post-publish sync | — | — | auto-pr, atomic |
-| [#11481](https://github.com/KBVE/kbve/pull/11481) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11485](https://github.com/KBVE/kbve/pull/11485) | Atomic: axum-kbve v1.0.176 post-publish sync | — | — | auto-pr, atomic |
-| [#11486](https://github.com/KBVE/kbve/pull/11486) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11489](https://github.com/KBVE/kbve/pull/11489) | chore(dashboard): daily sync — 2026-05-31 | — | — | auto-pr |
 | [#11490](https://github.com/KBVE/kbve/pull/11490) | Release: 5 features, 5 fixes, 2 docs, 4 chores → Main | — | — | auto-pr, dev→main |
 | [#11504](https://github.com/KBVE/kbve/pull/11504) | Atomic: agones-factorio-relay v0.0.4 post-publish sync | — | — | auto-pr, atomic |
 | [#11511](https://github.com/KBVE/kbve/pull/11511) | Atomic: agones-factorio v0.0.9 post-publish sync | — | — | auto-pr, atomic |
@@ -494,6 +491,37 @@ pie showData
 | [#12406](https://github.com/KBVE/kbve/pull/12406) | Release: 1 feature, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#12408](https://github.com/KBVE/kbve/pull/12408) | Atomic: cryptothrone v0.1.27 post-publish sync | — | — | auto-pr, atomic |
 | [#12410](https://github.com/KBVE/kbve/pull/12410) | Atomic: axum-kbve v1.0.199 post-publish sync | — | — | auto-pr, atomic |
+| [#12411](https://github.com/KBVE/kbve/pull/12411) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12412](https://github.com/KBVE/kbve/pull/12412) | chore(dashboard): daily sync — 2026-06-14 | — | — | auto-pr |
+| [#12417](https://github.com/KBVE/kbve/pull/12417) | Release: 2 features, 3 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12420](https://github.com/KBVE/kbve/pull/12420) | Atomic: cryptothrone v0.1.28 post-publish sync | — | — | auto-pr, atomic |
+| [#12424](https://github.com/KBVE/kbve/pull/12424) | Atomic: cryptothrone-server v0.0.16 post-publish sync | — | — | auto-pr, atomic |
+| [#12425](https://github.com/KBVE/kbve/pull/12425) | Release: 4 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12426](https://github.com/KBVE/kbve/pull/12426) | Atomic: irc-gateway v0.1.25 post-publish sync | — | — | auto-pr, atomic |
+| [#12433](https://github.com/KBVE/kbve/pull/12433) | Release: 3 features, 4 fixes, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12438](https://github.com/KBVE/kbve/pull/12438) | Atomic: irc-gateway v0.1.26 post-publish sync | — | — | auto-pr, atomic |
+| [#12446](https://github.com/KBVE/kbve/pull/12446) | Release: 1 feature, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12447](https://github.com/KBVE/kbve/pull/12447) | Atomic: cryptothrone v0.1.29 post-publish sync | — | — | auto-pr, atomic |
+| [#12450](https://github.com/KBVE/kbve/pull/12450) | Release: 1 feature, 2 fixes, 1 doc, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12454](https://github.com/KBVE/kbve/pull/12454) | Release: 3 features, 2 fixes, 1 doc, 1 test, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#12455](https://github.com/KBVE/kbve/pull/12455) | Atomic: cryptothrone-server v0.0.17 post-publish sync | — | — | auto-pr, atomic |
+| [#12457](https://github.com/KBVE/kbve/pull/12457) | Atomic: axum-kbve v1.0.200 post-publish sync | — | — | auto-pr, atomic |
+| [#12465](https://github.com/KBVE/kbve/pull/12465) | Atomic: cryptothrone v0.1.30 post-publish sync | — | — | auto-pr, atomic |
+| [#12466](https://github.com/KBVE/kbve/pull/12466) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12468](https://github.com/KBVE/kbve/pull/12468) | Release: 3 features, 1 fix, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12472](https://github.com/KBVE/kbve/pull/12472) | Release: 2 features → Main | — | — | auto-pr, dev→main |
+| [#12474](https://github.com/KBVE/kbve/pull/12474) | Release: 2 features, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12477](https://github.com/KBVE/kbve/pull/12477) | Atomic: cryptothrone v0.1.31 post-publish sync | — | — | auto-pr, atomic |
+| [#12480](https://github.com/KBVE/kbve/pull/12480) | Release: 10 features, 1 fix, 2 refactors, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12487](https://github.com/KBVE/kbve/pull/12487) | Atomic: axum-kbve v1.0.201 post-publish sync | — | — | auto-pr, atomic |
+| [#12490](https://github.com/KBVE/kbve/pull/12490) | Release: 5 features, 2 fixes, 2 docs, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12491](https://github.com/KBVE/kbve/pull/12491) | Atomic: cryptothrone-server v0.0.18 post-publish sync | — | — | auto-pr, atomic |
+| [#12498](https://github.com/KBVE/kbve/pull/12498) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#12499](https://github.com/KBVE/kbve/pull/12499) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12500](https://github.com/KBVE/kbve/pull/12500) | Atomic: cryptothrone v0.1.32 post-publish sync | — | — | auto-pr, atomic |
+| [#12502](https://github.com/KBVE/kbve/pull/12502) | Release: 2 features, 2 fixes, 1 doc, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12506](https://github.com/KBVE/kbve/pull/12506) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12508](https://github.com/KBVE/kbve/pull/12508) | Atomic: cryptothrone v0.1.33 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

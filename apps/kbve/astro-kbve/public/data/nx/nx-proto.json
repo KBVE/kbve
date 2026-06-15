@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-14T09:13:32.811Z",
+  "generated_at": "2026-06-15T10:15:57.822Z",
   "summary": {
-    "total_protos": 38,
-    "registered": 29,
-    "orphaned": 8,
+    "total_protos": 41,
+    "registered": 31,
+    "orphaned": 9,
     "utility_only": 1,
-    "total_messages": 719,
-    "total_enums": 145
+    "total_messages": 773,
+    "total_enums": 152
   },
   "protos": [
     {
@@ -28,6 +28,117 @@
         "zod_config": null,
         "zod_output": null,
         "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/git/forgejo.proto",
+      "package": "forgejo",
+      "messages": [
+        "ForgejoOwner",
+        "ForgejoUser",
+        "ForgejoOrg",
+        "ForgejoPermissions",
+        "ForgejoCollaborator",
+        "ForgejoRepo",
+        "ForgejoInternalTracker",
+        "ForgejoBranchCommit",
+        "ForgejoBranch",
+        "ForgejoCommitDetail",
+        "ForgejoCommit",
+        "ForgejoReleaseAsset",
+        "ForgejoRelease",
+        "ForgejoTagCommit",
+        "ForgejoTag",
+        "ForgejoTeam",
+        "ForgejoHook",
+        "ForgejoBranchProtection",
+        "ForgejoSecret",
+        "ForgejoVariable",
+        "ForgejoRegistrationToken",
+        "ForgejoPullMeta",
+        "ForgejoIssue",
+        "ForgejoPullBranch",
+        "ForgejoPull",
+        "ForgejoComment",
+        "ForgejoLabel",
+        "ForgejoMilestone",
+        "ForgejoPublicKey",
+        "ForgejoGpgKey",
+        "ForgejoPackage",
+        "ForgejoCronTask",
+        "ForgejoVersion",
+        "ForgejoStats",
+        "ForgejoStorage"
+      ],
+      "enums": [],
+      "message_count": 35,
+      "enum_count": 0,
+      "codegen": {
+        "registered": true,
+        "name": "forgejo",
+        "zod_config": "packages/data/codegen/forgejo-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/forgejo-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/forgejo.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/git/git_common.proto",
+      "package": "git",
+      "messages": [
+        "GitActor",
+        "GitCommitAuthor"
+      ],
+      "enums": [
+        "GitForge",
+        "GitVisibility"
+      ],
+      "message_count": 2,
+      "enum_count": 2,
+      "codegen": {
+        "registered": true,
+        "name": "git_common",
+        "zod_config": "packages/data/codegen/git_common-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/git_common-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/git_common.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/git/github.proto",
+      "package": "github",
+      "messages": [
+        "GitHubUser",
+        "GitHubLabel",
+        "GitHubIssueType",
+        "GitHubIssue",
+        "CreateIssueRequest",
+        "UpdateIssueRequest",
+        "GitHubRef",
+        "GitHubPull",
+        "MergePullRequest",
+        "GitHubMergeResult",
+        "GitHubCommitAuthor",
+        "GitHubCommitDetail",
+        "GitHubCommit",
+        "GitHubRepo",
+        "GitHubStatusChecks",
+        "GitHubEnforceAdmins",
+        "GitHubBranchProtection",
+        "GitHubComment",
+        "GitHubSearchResult",
+        "GitHubWorkflow",
+        "GitHubWorkflowsResponse",
+        "DispatchWorkflowRequest",
+        "GitHubRateLimit"
+      ],
+      "enums": [],
+      "message_count": 23,
+      "enum_count": 0,
+      "codegen": {
+        "registered": true,
+        "name": "github",
+        "zod_config": "packages/data/codegen/github-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/github-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/github.binpb"
       }
     },
     {
@@ -150,45 +261,6 @@
       }
     },
     {
-      "proto": "packages/data/proto/jedi/github.proto",
-      "package": "github",
-      "messages": [
-        "GitHubUser",
-        "GitHubLabel",
-        "GitHubIssueType",
-        "GitHubIssue",
-        "CreateIssueRequest",
-        "UpdateIssueRequest",
-        "GitHubRef",
-        "GitHubPull",
-        "MergePullRequest",
-        "GitHubMergeResult",
-        "GitHubCommitAuthor",
-        "GitHubCommitDetail",
-        "GitHubCommit",
-        "GitHubRepo",
-        "GitHubStatusChecks",
-        "GitHubEnforceAdmins",
-        "GitHubBranchProtection",
-        "GitHubComment",
-        "GitHubSearchResult",
-        "GitHubWorkflow",
-        "GitHubWorkflowsResponse",
-        "DispatchWorkflowRequest",
-        "GitHubRateLimit"
-      ],
-      "enums": [],
-      "message_count": 23,
-      "enum_count": 0,
-      "codegen": {
-        "registered": true,
-        "name": "github",
-        "zod_config": "packages/data/codegen/github-zod-config.json",
-        "zod_output": "packages/data/codegen/generated/github-schema.ts",
-        "binpb": "packages/data/codegen/descriptors/github.binpb"
-      }
-    },
-    {
       "proto": "packages/data/proto/jedi/groq.proto",
       "package": "groq",
       "messages": [
@@ -299,6 +371,45 @@
         "zod_config": "packages/data/codegen/twitch-zod-config.json",
         "zod_output": "packages/data/codegen/generated/twitch-schema.ts",
         "binpb": "packages/data/codegen/descriptors/twitch.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/jobboard/jobboard.proto",
+      "package": "jobboard",
+      "messages": [
+        "MediaAttachment",
+        "Vertical",
+        "Taxonomy",
+        "MembershipApplication",
+        "TalentProfile",
+        "ClientProfile",
+        "PortfolioItem",
+        "Gig",
+        "Application",
+        "Engagement",
+        "Review",
+        "Conversation",
+        "Message",
+        "Notification",
+        "ById",
+        "ByUser",
+        "Ack"
+      ],
+      "enums": [
+        "Capability",
+        "GigStatus",
+        "ApplicationStatus",
+        "EngagementStatus",
+        "BudgetType"
+      ],
+      "message_count": 17,
+      "enum_count": 5,
+      "codegen": {
+        "registered": false,
+        "name": null,
+        "zod_config": null,
+        "zod_output": null,
+        "binpb": null
       }
     },
     {
@@ -1509,6 +1620,7 @@
   ],
   "orphaned_protos": [
     "packages/data/proto/empire/empire.proto",
+    "packages/data/proto/jobboard/jobboard.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/kbve/mc/mc_blocks.proto",
@@ -1517,7 +1629,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-14T09:13:32Z",
+  "checked_at": "2026-06-15T10:15:57Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
@@ -1527,7 +1639,9 @@
     "packages/data/codegen/generated/discordsh-schema.ts",
     "packages/data/codegen/generated/discordsh_agents-schema.ts",
     "packages/data/codegen/generated/firecracker-schema.ts",
+    "packages/data/codegen/generated/forgejo-schema.ts",
     "packages/data/codegen/generated/forum-schema.ts",
+    "packages/data/codegen/generated/git_common-schema.ts",
     "packages/data/codegen/generated/github-schema.ts",
     "packages/data/codegen/generated/groq-schema.ts",
     "packages/data/codegen/generated/icons-schema.ts",
