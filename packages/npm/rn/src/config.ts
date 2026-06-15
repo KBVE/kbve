@@ -14,3 +14,15 @@ const DEFAULT_HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
 
 export const KBVE_HCAPTCHA_SITE_KEY =
 	process.env['EXPO_PUBLIC_HCAPTCHA_SITE_KEY'] ?? DEFAULT_HCAPTCHA_SITE_KEY;
+
+const DEFAULT_API_URL = 'https://kbve.com';
+
+export const KBVE_API_URL =
+	process.env['EXPO_PUBLIC_API_URL'] ?? DEFAULT_API_URL;
+
+export const KBVE_LEGAL_LINKS = [
+	{ label: 'Terms of Service', url: 'https://kbve.com/legal/tos' },
+	{ label: 'EULA', url: 'https://kbve.com/legal/eula' },
+	{ label: 'Legal', url: 'https://kbve.com/legal/' },
+	{ label: 'Privacy', url: 'https://kbve.com/legal/privacy' },
+] as const;

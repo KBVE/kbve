@@ -12,7 +12,13 @@ export * from './auth/KbveProvider';
 export * from './auth/useAuth';
 export * from './auth/AuthGate';
 export * from './auth/LoginScreen';
+export * from './auth/SetUsernameScreen';
 
 export * from './captcha/HCaptcha';
+
+export * from './plugin';
+export * from './sandbox';
+export * from './examples/helloPlugin';
+export * from './examples/isometricPlugin';
 
 export * from './ui';

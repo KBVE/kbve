@@ -3,6 +3,7 @@ import * as Linking from 'expo-linking';
 import { makeRedirectUri } from 'expo-auth-session';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthEffect, AuthEvent, EffectExecutor } from '@kbve/core';
+import { KBVE_API_URL } from '../config';
 import { mapSession } from './supabase';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -110,6 +111,61 @@ export function createSupabaseAuthExecutor(
 								message: error.message,
 							});
 					});
+					break;
+				case 'api.set_username':
+					void (async () => {
+						const { data } = await client.auth.getSession();
+						const token = data.session?.access_token;
+						if (!token) {
+							dispatch({
+								type: 'auth_error',
+								message: 'Not signed in',
+							});
+							return;
+						}
+						try {
+							const response = await fetch(
+								`${KBVE_API_URL}/api/v1/profile/username`,
+								{
+									method: 'POST',
+									headers: {
+										Authorization: `Bearer ${token}`,
+										'Content-Type': 'application/json',
+									},
+									body: JSON.stringify({
+										username: effect.username,
+									}),
+								},
+							);
+							if (!response.ok) {
+								const body = (await response
+									.json()
+									.catch(() => null)) as {
+									message?: string;
+									error?: string;
+								} | null;
+								dispatch({
+									type: 'auth_error',
+									message:
+										body?.message ??
+										body?.error ??
+										'Username unavailable',
+								});
+								return;
+							}
+							const { data: refreshed } =
+								await client.auth.refreshSession();
+							dispatch({
+								type: 'session_changed',
+								session: mapSession(refreshed.session),
+							});
+						} catch {
+							dispatch({
+								type: 'auth_error',
+								message: 'Network error',
+							});
+						}
+					})();
 					break;
 			}
 		},

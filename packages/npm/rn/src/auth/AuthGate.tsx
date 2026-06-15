@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from './useAuth';
 import { LoginScreen } from './LoginScreen';
+import { SetUsernameScreen } from './SetUsernameScreen';
 
 export function AuthGate({ children }: { children: ReactNode }) {
 	const auth = useAuth();
@@ -15,6 +16,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
 	}
 	if (!auth.signedIn) {
 		return <LoginScreen />;
+	}
+	if (auth.needsUsername) {
+		return <SetUsernameScreen />;
 	}
 	return <>{children}</>;
 }

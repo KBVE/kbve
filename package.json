@@ -189,6 +189,7 @@
 		"react-hook-form": "^7.53.1",
 		"react-is": "19.2.4",
 		"react-native": "0.85.3",
+		"react-native-reanimated": "4.3.1",
 		"react-native-safe-area-context": "~5.7.0",
 		"react-native-url-polyfill": "^3.0.0",
 		"react-native-webview": "13.16.1",
