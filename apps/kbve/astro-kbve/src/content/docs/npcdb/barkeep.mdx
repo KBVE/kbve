@@ -1,0 +1,45 @@
+---
+title: 'Evee The BarKeep'
+description: |
+    Cloud City tavern keeper. Pours drinks, trades goods, and knows every rumor that drifts through the floating district. The first friendly face most travelers meet.
+ref: 'barkeep'
+id: '01KSAVZ000000000000000BARK'
+name: 'Evee The BarKeep'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'cheerful'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/barkeep.webp'
+role: 'Tavern Keeper'
+tags:
+    - cryptothrone
+    - merchant
+    - cloud-city
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 1
+    speed: 2
+    armor: 0
+behavior:
+    movement_type: 'stationary'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Welcome to the tavern, traveler! What can I get you today?'
+        - 'Pull up a stool — the cloud winds are cold tonight.'
+    - trigger: 'trade'
+      lines:
+        - "I've got potions, fresh fish, and the occasional rare item."
+        - 'Check back often — my stock changes with the tides.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />

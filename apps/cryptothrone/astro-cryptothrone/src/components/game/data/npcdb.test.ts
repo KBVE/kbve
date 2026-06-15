@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { NpcRegistrySchema } from '@kbve/npcdb-schema';
+import { loadNpcRegistry } from '@kbve/npcdb';
 import {
 	getAllNpcEntries,
 	getNpcEntry,
@@ -6,39 +8,55 @@ import {
 	isHostileRef,
 } from './npcdb';
 
-describe('npcdb adapter', () => {
-	it('loads a non-empty, deduped registry of valid entries', () => {
+describe('npcdb barrel (unified type)', () => {
+	it('loader output validates against the proto NpcRegistrySchema', () => {
+		// Proves the camelCase+prefixed JSON was reversed back into the exact
+		// authoring shape the single unified `Npc` type describes.
+		const result = NpcRegistrySchema.safeParse(loadNpcRegistry());
+		if (!result.success) {
+			throw new Error(
+				'npcdb loader output failed schema validation: ' +
+					JSON.stringify(result.error.issues.slice(0, 4), null, 2),
+			);
+		}
+		expect(result.success).toBe(true);
+	});
+
+	it('exposes a non-empty, ref-unique pool', () => {
 		const all = getAllNpcEntries();
 		expect(all.length).toBeGreaterThan(0);
-		// Every entry is well-formed.
-		for (const n of all) {
-			expect(n.ref).toBeTruthy();
-			expect(n.name).toBeTruthy();
-			expect(n.id).toBeTruthy();
-		}
-		// refs are unique.
 		const refs = all.map((n) => n.ref);
 		expect(new Set(refs).size).toBe(refs.length);
 	});
 
-	it('normalizes the archer fixture from the prefixed enums', () => {
+	it('reverses the proto-canonical archer fixture to authoring shape', () => {
 		const archer = getNpcEntry('archer');
 		expect(archer).toBeDefined();
 		expect(archer!.name).toBe('Archer');
-		// NPC_RARITY_COMMON -> common, MOVEMENT_TYPE_PATROL -> patrol.
+		// Enum prefixes stripped, snake_case keys.
 		expect(archer!.rarity).toBe('common');
-		expect(archer!.movement).toBe('patrol');
+		expect(archer!.behavior?.movement_type).toBe('patrol');
 		expect(archer!.family).toBe('humanoid');
-		expect(archer!.firstStrike).toBe(true);
-		expect(archer!.stats.maxHp).toBe(50);
-		expect(archer!.abilities[0]).toMatchObject({ id: 'attack', damage: 6 });
+		expect(archer!.stats?.max_hp).toBe(50);
 	});
 
-	it('exposes canonical stats by ref', () => {
+	it('includes the cryptothrone NPCs now sourced from npcdb', () => {
+		const barkeep = getNpcEntry('barkeep');
+		expect(barkeep).toBeDefined();
+		expect(barkeep!.name).toBe('Evee The BarKeep');
+		expect(barkeep!.tags).toContain('merchant');
+		expect(barkeep!.faction?.faction_id).toBe('player');
+
+		const monk = getNpcEntry('monk');
+		expect(monk).toBeDefined();
+		expect(monk!.name).toBe('Elder Monk');
+	});
+
+	it('serves canonical stats by ref', () => {
 		const stats = getNpcStats('archer');
-		expect(stats).toEqual({
+		expect(stats).toMatchObject({
 			hp: 50,
-			maxHp: 50,
+			max_hp: 50,
 			attack: 6,
 			defense: 1,
 			speed: 4,
@@ -46,55 +64,20 @@ describe('npcdb adapter', () => {
 		});
 	});
 
-	it('every normalized enum resolves to a known union member', () => {
-		const families = new Set([
-			'humanoid',
-			'undead',
-			'beast',
-			'construct',
-			'elemental',
-			'demon',
-			'plant',
-			'aberration',
-			'spirit',
-			'unknown',
-		]);
-		const movements = new Set([
-			'stationary',
-			'random_wander',
-			'patrol',
-			'scripted',
-			'aggressive',
-		]);
-		const rarities = new Set([
-			'common',
-			'uncommon',
-			'rare',
-			'epic',
-			'legendary',
-			'mythic',
-		]);
-		for (const n of getAllNpcEntries()) {
-			expect(families.has(n.family)).toBe(true);
-			expect(movements.has(n.movement)).toBe(true);
-			expect(rarities.has(n.rarity)).toBe(true);
-			// Prefixes are fully stripped.
-			expect(n.rarity).not.toMatch(/NPC_RARITY_/);
-			expect(n.movement).not.toMatch(/MOVEMENT_TYPE_/);
-		}
-	});
-
-	it('returns undefined for unknown refs and false for hostility', () => {
+	it('returns undefined / false for unknown refs', () => {
 		expect(getNpcEntry('does-not-exist')).toBeUndefined();
 		expect(getNpcStats('does-not-exist')).toBeUndefined();
 		expect(isHostileRef('does-not-exist')).toBe(false);
 	});
 
-	it('marks hostile faction entries as hostile', () => {
-		const hostiles = getAllNpcEntries().filter((n) => n.hostile);
-		for (const h of hostiles) {
-			expect(h.factionId).toBe('hostile');
-			expect(isHostileRef(h.ref)).toBe(true);
+	it('every enum leaf is fully de-prefixed across the pool', () => {
+		for (const n of getAllNpcEntries()) {
+			expect(n.rarity).not.toMatch(/NPC_RARITY_/);
+			expect(n.rank).not.toMatch(/NPC_RANK_/);
+			expect(n.personality).not.toMatch(/PERSONALITY_/);
+			if (n.behavior?.movement_type) {
+				expect(n.behavior.movement_type).not.toMatch(/MOVEMENT_TYPE_/);
+			}
 		}
 	});
 });

@@ -48,7 +48,7 @@ export function spawnNpc(
 ): number {
 	// When an npcdb ref is supplied, seed Health from its canonical stats;
 	// otherwise fall back to the generic NPC baseline.
-	const hp = (ref && getNpcStats(ref)?.maxHp) || 30;
+	const hp = (ref && getNpcStats(ref)?.max_hp) || 30;
 	return spawn(world, NpcTag, x, y, hp);
 }
 
