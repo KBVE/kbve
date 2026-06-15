@@ -47,6 +47,21 @@ function errMsg(err: unknown): string {
 	if (err instanceof Error) {
 		return err.message;
 	}
+	// Discord RPC rejects with a plain {code, message} object — surface it
+	// instead of the useless "[object Object]" String() default.
+	if (err && typeof err === 'object') {
+		const o = err as Record<string, unknown>;
+		if (typeof o.message === 'string') {
+			return typeof o.code === 'number' || typeof o.code === 'string'
+				? `${o.message} (code ${o.code})`
+				: o.message;
+		}
+		try {
+			return JSON.stringify(err);
+		} catch {
+			return String(err);
+		}
+	}
 	return String(err);
 }
 
@@ -85,7 +100,7 @@ async function boot(): Promise<void> {
 			response_type: 'code',
 			state: '',
 			prompt: 'none',
-			scope: ['identify', 'guilds'],
+			scope: ['identify'],
 		}),
 	);
 
