@@ -1,38 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
-import { MCLotFrontmatterSchema } from '@/data/schema';
+import { getLotEntries } from './mc-collections';
 
 interface Props {
 	world?: string;
 }
 const world = Astro.props.world ?? 'minecraft:overworld';
 
-const entries = await getCollection('docs', (entry) => {
-	const m = (entry.data as { mc_lot?: unknown }).mc_lot;
-	if (!m) return false;
-	try {
-		const parsed = MCLotFrontmatterSchema.parse(m);
-		return parsed.world === world;
-	} catch {
-		return false;
-	}
-});
-
-type LotRow = ReturnType<typeof MCLotFrontmatterSchema.parse> & {
-	slug: string;
-	title: string;
-};
-
-const lots: LotRow[] = entries.map((e) => {
-	const m = MCLotFrontmatterSchema.parse(
-		(e.data as { mc_lot: unknown }).mc_lot,
-	);
-	return {
-		...m,
-		slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
-		title: (e.data as { title?: string }).title ?? m.lot_id,
-	};
-});
+const lots = await getLotEntries(world);
 
 const minX = Math.min(...lots.map((l) => l.chunk_x_min)) - 1;
 const maxX = Math.max(...lots.map((l) => l.chunk_x_max)) + 1;
@@ -209,8 +183,20 @@ const stateAccent: Record<string, string> = {
 		border-radius: 0.4rem;
 	}
 
-	.mcplaza__svg a:hover rect {
+	.mcplaza__svg a:hover rect,
+	.mcplaza__svg a:focus-visible rect {
 		fill-opacity: 0.9;
+	}
+
+	.mcplaza__svg a:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 1px;
+		border-radius: 0.2rem;
+	}
+
+	.mcplaza__svg a:focus-visible rect {
+		stroke: var(--sl-color-white);
+		stroke-width: 2;
 	}
 
 	.mcplaza__hint {
