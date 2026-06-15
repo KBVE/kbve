@@ -1,5 +1,6 @@
 export * from './theme';
 export * from './models';
+export * from './useShake';
 
 export * from './nav';
 
