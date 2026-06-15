@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import type { AgentSessionStatus, AgentStore } from '@kbve/core';
 import { Screen } from '../ui/primitives/Screen';
 import { Surface } from '../ui/primitives/Surface';
@@ -15,6 +15,7 @@ import { createPluginRegistry } from '../plugin/registry';
 import { PluginHost } from '../plugin/host';
 import { defaultHostApi } from '../sandbox/hostApis';
 import { createIsometricPlugin } from '../examples/isometricPlugin';
+import { createWgpuPlugin } from '../examples/wgpuPlugin';
 
 const STATUS_TONE: Record<AgentSessionStatus, BadgeTone> = {
 	idle: 'neutral',
@@ -38,15 +39,19 @@ export function HomeScreen({ store, isometricUrl }: HomeScreenProps) {
 
 	const registry = useMemo(() => createPluginRegistry(), []);
 	const api = useMemo(() => defaultHostApi({ agent: store }), [store]);
+	const native = Platform.OS !== 'web';
 
 	useEffect(() => {
+		const manifest = native
+			? createWgpuPlugin()
+			: createIsometricPlugin(isometricUrl);
 		registry.dispatch({
 			type: 'install',
-			manifest: createIsometricPlugin(isometricUrl),
+			manifest,
 			grant: ['agent:read', 'notify'],
 		});
-		registry.dispatch({ type: 'enable', id: 'kbve.isometric' });
-	}, [registry, isometricUrl]);
+		registry.dispatch({ type: 'enable', id: manifest.id });
+	}, [registry, isometricUrl, native]);
 
 	if (launched) {
 		return (

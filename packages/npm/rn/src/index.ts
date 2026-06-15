@@ -24,8 +24,10 @@ export * from './plugin';
 export * from './sandbox';
 export * from './examples/helloPlugin';
 export * from './examples/isometricPlugin';
+export * from './examples/wgpuPlugin';
 
 export * from './screens/HomeScreen';
+export * from './screens/HomeView';
 export * from './screens/DashboardScreen';
 
 export * from './ui';
