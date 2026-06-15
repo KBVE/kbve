@@ -79,6 +79,10 @@ DO $$ BEGIN
         CREATE ROLE forgejo LOGIN PASSWORD 'forgejo-local-dev';
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'jobboard') THEN
+        CREATE ROLE jobboard LOGIN PASSWORD 'jobboard-local-dev';
+    END IF;
+
     -- Grant service_role the ability to act as anon/authenticated
     GRANT anon TO authenticator;
     GRANT authenticated TO authenticator;
