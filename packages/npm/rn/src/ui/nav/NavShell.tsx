@@ -18,9 +18,14 @@ export interface NavRoute {
 
 export interface NavShellProps {
 	routes: NavRoute[];
+	/** Optional full-bleed layer rendered behind all chrome (e.g. a GPU effect). */
+	background?: ReactNode;
 }
 
-export const NavShell = memo(function NavShell({ routes }: NavShellProps) {
+export const NavShell = memo(function NavShell({
+	routes,
+	background,
+}: NavShellProps) {
 	const active = useTab();
 	const route = routes.find((r) => r.id === active) ?? routes[0];
 	const tabs: TabItem[] = routes.map((r) => ({
@@ -29,7 +34,12 @@ export const NavShell = memo(function NavShell({ routes }: NavShellProps) {
 		icon: r.icon,
 	}));
 	return (
-		<View style={styles.root}>
+		<View style={[styles.root, background ? styles.rootBare : null]}>
+			{background ? (
+				<View style={StyleSheet.absoluteFill} pointerEvents="none">
+					{background}
+				</View>
+			) : null}
 			{route.appBar !== false ? (
 				<AppBar title={route.title ?? route.label} />
 			) : null}
@@ -45,5 +55,6 @@ export const NavShell = memo(function NavShell({ routes }: NavShellProps) {
 
 const styles = StyleSheet.create({
 	root: { flex: 1, backgroundColor: tokens.color.bg },
+	rootBare: { backgroundColor: 'transparent' },
 	content: { flex: 1 },
 });

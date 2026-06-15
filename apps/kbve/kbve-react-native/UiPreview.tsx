@@ -12,6 +12,7 @@ import {
 	ToastViewport,
 } from '@kbve/rn';
 import './WgpuHost';
+import { AppBackground } from './AppBackground';
 import { FxScreen } from './FxScreen';
 
 export default function UiPreview() {
@@ -21,6 +22,7 @@ export default function UiPreview() {
 			anonKey={KBVE_SUPABASE_ANON_KEY}>
 			<AuthGate>
 				<NavShell
+					background={<AppBackground />}
 					routes={[
 						{
 							id: 'home',
