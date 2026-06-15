@@ -1,0 +1,164 @@
+---
+title: Spatial Partitioning and Pathfinding
+description: |
+    Spatial acceleration structures (grids, quadtrees, BVH, R-trees, k-d trees, BSP) and pathfinding (A*, flow fields, nav meshes) — how games answer "what is near me?" and "how do I get there?" without touching every object.
+    Own-words reference cross-linked to KBVE projects.
+sidebar:
+    label: Spatial & Pathfinding
+    order: 7
+tags:
+    - gdd
+    - spatial
+    - pathfinding
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Introduction
+
+Two questions dominate game simulation at scale: *what is near me?* (spatial queries) and *how do I get there?* (pathfinding). Both become impossibly slow if answered naively — checking every object against every other is O(n²). This page covers the acceleration structures that make spatial queries cheap and the pathfinding algorithms that move agents through a world.
+
+This expands on the [Spatial Partition pattern](/gdd/patterns/) with concrete structures and trade-offs.
+
+<Aside type="tip" title="Source material">
+For depth see [Real-Time Collision Detection](https://realtimecollisiondetection.net/) (Ericson) on acceleration structures, [Amit Patel's Red Blob Games](https://www.redblobgames.com/pathfinding/a-star/introduction.html) on pathfinding, and the [Game Programming Patterns Spatial Partition chapter](https://gameprogrammingpatterns.com/spatial-partition.html). This page summarizes and maps the concepts to KBVE.
+</Aside>
+
+<Adsense />
+
+---
+
+## Why spatial structures
+
+A spatial query — "what's within radius r?", "what does this ray hit?", "which objects overlap?" — naively scans every object: O(n) per query, O(n²) for all-pairs. Acceleration structures organize objects by position so a query only visits nearby candidates, turning O(n) into roughly O(log n) or O(1) per query.
+
+The universal trade-off: **build/update cost vs query speed**. Static geometry can afford an expensive structure built once; objects that move every frame need cheap updates or a structure rebuilt each frame.
+
+---
+
+## Acceleration structures
+
+<CardGrid>
+  <Card title="Uniform grid" icon="seti:grid">
+    Divide space into fixed-size cells; each cell lists the objects in it.
+  </Card>
+  <Card title="Quadtree / Octree" icon="seti:plan">
+    Recursively split space into 4 (2D) or 8 (3D) until each node holds few objects.
+  </Card>
+  <Card title="BVH" icon="seti:default">
+    Tree of nested bounding volumes wrapping the objects themselves.
+  </Card>
+  <Card title="R-tree" icon="seti:db">
+    Balanced tree of bounding rectangles; database-style, disk-friendly.
+  </Card>
+  <Card title="k-d tree" icon="seti:crystal">
+    Binary tree splitting on one axis at a time; great for nearest-neighbor.
+  </Card>
+  <Card title="BSP tree" icon="seti:json">
+    Recursive splits by arbitrary planes; exact front-to-back ordering.
+  </Card>
+</CardGrid>
+
+### Uniform grid
+
+Space is divided into equal cells; each object is bucketed into the cell(s) it overlaps. A range query visits only the cells the query touches.
+
+- **Best for:** objects of similar size, evenly distributed, moving constantly (cheap to update — just move between buckets). The default for 2D particle/agent swarms.
+- **Weak when:** density varies wildly (empty cells waste memory, hot cells degrade to linear scan) or object sizes vary a lot. Spatial hashing (hash cell coords instead of a dense array) fixes the "huge sparse world" memory problem.
+
+### Quadtree / Octree
+
+Start with one node covering the whole space; when a node holds too many objects, subdivide it into 4 (quadtree, 2D) or 8 (octree, 3D) children and redistribute. Recursion adapts depth to local density.
+
+- **Best for:** non-uniform distributions, mixed object sizes, mostly-static or slow-moving worlds.
+- **Weak when:** objects move fast (constant re-insertion) or straddle node boundaries (loose quadtrees relax boundaries to reduce churn).
+
+### BVH (Bounding Volume Hierarchy)
+
+A tree where each node is a bounding volume (usually an AABB) enclosing its children, and leaves wrap actual objects. Unlike quadtrees (which partition *space*), a BVH partitions *objects* — volumes may overlap, but each object lives in exactly one leaf.
+
+- **Best for:** ray casting, collision broad-phase, and rendering — the standard for raytracing acceleration and physics engines. Refittable: when objects move a little, expand parent bounds instead of rebuilding.
+- **Weak when:** objects move so far the tree quality degrades; periodic rebuild or rebalance needed.
+
+### R-tree
+
+A height-balanced tree of minimum bounding rectangles, related to the B-tree. Designed for databases and on-disk spatial indexes (GIS, PostGIS), it keeps the tree balanced under insertion/deletion.
+
+- **Best for:** large, persistent spatial datasets, disk-backed indexes, query-heavy with moderate update rates.
+- **Weak when:** high-churn real-time simulation — the balancing overhead outweighs an in-memory grid/BVH. Rare in the hot frame loop, common in tooling and servers.
+
+### k-d tree
+
+A binary tree that splits on one axis per level (x, then y, then z, cycling). Excellent for nearest-neighbor and k-nearest queries.
+
+- **Best for:** static point clouds, nearest-neighbor search, photon mapping.
+- **Weak when:** dynamic data — k-d trees are painful to rebalance, so they shine on static sets.
+
+### BSP tree
+
+Binary Space Partitioning recursively splits space by arbitrary planes (not axis-aligned). It yields an exact ordering of geometry from any viewpoint — the classic Doom/Quake visibility and sorting structure.
+
+- **Best for:** static level geometry, exact visibility ordering, CSG.
+- **Weak when:** dynamic scenes — BSP trees are expensive to build and assume static geometry.
+
+<Aside>
+Rule of thumb: **grid** for uniform moving swarms, **BVH** for rays/collision, **quadtree/octree** for non-uniform density, **k-d tree** for nearest-neighbor on static points, **R-tree** for persistent/disk indexes, **BSP** for static visibility ordering.
+</Aside>
+
+---
+
+## Pathfinding
+
+Once you can ask "what's near me?", agents still need "how do I get there?"
+
+### A* and graph search
+
+A* searches a graph (grid cells, waypoints, nav-mesh polygons) from start to goal, guided by a heuristic that estimates remaining distance. It's optimal and complete with an admissible heuristic, and the workhorse of single-agent pathfinding.
+
+- **Variants:** Dijkstra (A* with a zero heuristic — uniform-cost), Greedy best-first (heuristic only — fast but non-optimal), JPS (Jump Point Search — A* optimized for uniform grids), Theta* (any-angle paths).
+- **Cost:** per-agent search; expensive when thousands of agents path every frame to the same goal — that's where flow fields win.
+
+### Flow fields (and flow gates)
+
+Instead of pathing each agent individually, compute **one** field over the whole map that, at every cell, stores the direction toward the goal. Every agent just samples its cell and follows the arrow. The cost is amortized: one Dijkstra-style pass from the goal builds a cost (integration) field, then a flow field of directions — then N agents path for free.
+
+- **Build:** a breadth-first / Dijkstra sweep outward from the goal produces an **integration field** (cost-to-goal per cell); the gradient of that field is the **flow field** (direction per cell).
+- **Flow gates:** chokepoints — doors, bridges, narrow passes — that the integration field naturally routes flow through, and where you throttle or meter agent throughput to avoid clumping/deadlock. Gating flow at these cells keeps dense crowds moving instead of jamming the pinch point.
+- **Best for:** RTS/swarm games — hundreds or thousands of units converging on shared goals. One field, any number of followers.
+- **Weak when:** few agents with distinct goals (per-agent A* is cheaper than building a whole field per goal), or highly dynamic costs that force frequent field rebuilds.
+
+<Aside type="caution" title="Crowds, not just paths">
+A path is not movement. Dense crowds need local avoidance (RVO/ORCA, boids steering) layered on top of the field/path so agents don't overlap or oscillate at flow gates. Pathfinding picks the route; steering resolves the traffic.
+</Aside>
+
+### Navigation meshes
+
+A nav mesh represents walkable space as convex polygons instead of a grid. Pathfinding runs over the polygon graph (fewer nodes than a fine grid), then a string-pulling/funnel pass smooths the polygon path into a direct route.
+
+- **Best for:** 3D and continuous worlds, varied geometry, smoother paths than grid A*.
+- **Weak when:** frequently changing geometry (mesh must be regenerated/patched).
+
+### Hierarchical pathfinding
+
+Partition the map into clusters, precompute paths between cluster portals, and search the coarse graph first, refining only within clusters along the route. Trades optimality for huge speedups on large maps (HPA*).
+
+---
+
+## How KBVE applies these
+
+- **rareicon** — uniform-grid / spatial-hash style partitioning suits its DOTS swarms; the [task-offer dispatcher](/gdd/) and job system reason over nearby candidates rather than the full entity set, and HexDB drains feed spatial reads.
+- **Flow-field candidates** — large-unit-count convergence (colony/swarm behavior) is the textbook flow-field + flow-gate case; per-agent A* is reserved for distinct-goal units.
+- **Static vs dynamic split** — level/tilemap geometry favors a built-once structure (quadtree/BSP), while moving units favor a grid rebuilt or updated each frame — the build-vs-query trade-off in practice.
+
+---
+
+## Further reading
+
+- [Red Blob Games — A* and pathfinding](https://www.redblobgames.com/pathfinding/a-star/introduction.html), interactive and definitive.
+- [Red Blob Games — flow fields / vector fields](https://www.redblobgames.com/pathfinding/tower-defense/).
+- *Real-Time Collision Detection* — Christer Ericson (grids, BVH, k-d, BSP).
+- [Game Programming Patterns — Spatial Partition](https://gameprogrammingpatterns.com/spatial-partition.html).
+- [ECS & Data-Oriented Design](/gdd/ecs/) — spatial structures pair with data-oriented layout for cache-friendly queries.
+
+<Giscus />

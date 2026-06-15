@@ -90,11 +90,49 @@ Remember to connect the signals for the animations, to create custom effects onc
 
 ## Shaders
 
+Godot ships its own shading language, **GDShader** (`.gdshader` files), a GLSL-derived language wired into Godot's render pipeline. For the engine-agnostic fundamentals (the GPU pipeline, shader stages, lighting models, performance budget), see the [Shaders & Rendering GDD page](/gdd/shaders/); this section covers the Godot-specific layer.
+
+### GDShader language
+
+GDShader looks like GLSL ES 3.0 but adds Godot-provided built-ins and a `shader_type` declaration that tells the engine which render path the shader plugs into.
+
+- **`shader_type`** — the first line; picks the context:
+  - `spatial` — 3D materials (mesh surfaces).
+  - `canvas_item` — 2D materials (sprites, UI, tilemaps).
+  - `particles` — compute-style particle processing.
+  - `sky` and `fog` — environment shading.
+- **Processor functions** — you fill in stage entry points: `vertex()` (per-vertex), `fragment()` (per-pixel surface output), and `light()` (per-light custom lighting).
+- **Built-in I/O** — Godot exposes inputs like `UV`, `NORMAL`, `TIME`, `SCREEN_TEXTURE`, and you write outputs such as `ALBEDO`, `ALPHA`, `EMISSION`, `ROUGHNESS`, `METALLIC` — no manual matrix wiring for the common case.
+- **`uniform`** — parameters exposed to the editor/inspector and settable from GDScript/C# at runtime (`material.set_shader_parameter(...)`).
+
+```glsl
+shader_type canvas_item;
+
+uniform vec4 tint : source_color = vec4(1.0);
+uniform float wave_speed = 2.0;
+
+void fragment() {
+    vec2 uv = UV;
+    uv.x += sin(TIME * wave_speed + UV.y * 10.0) * 0.02;
+    COLOR = texture(TEXTURE, uv) * tint;
+}
+```
+
+<Aside>
+GDShader has two front-ends: write the language directly in a `.gdshader` file, or build it with the **VisualShader** node graph (Godot compiles the graph to the same GDShader under the hood). Use the visual editor to prototype, drop to text for control.
+</Aside>
+
 ### Cel Shaders
 
 This is a quick reference to a couple popular cel shaders for Godot!
 
 [eldskald's complete global cel shader](https://github.com/eldskald/godot4-cel-shader/tree/main?tab=readme-ov-file) provides a comprehensive cel shader designed for Godot 4.
+
+### Further reading
+
+-   Godot [Shading language reference](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html)
+-   Godot [Your first 2D / 3D shader](https://docs.godotengine.org/en/stable/tutorials/shaders/your_first_shader/index.html) tutorials
+-   [Shaders & Rendering](/gdd/shaders/) — engine-agnostic shader and rendering fundamentals
 
 
 ---
