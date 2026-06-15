@@ -8,6 +8,14 @@ import {
 	Button,
 	tokens,
 } from '@kbve/rn/ui';
+import {
+	LayoutDashboard,
+	Compass,
+	Briefcase,
+	MessageSquare,
+	User,
+	type LucideIcon,
+} from 'lucide-react';
 import { useAuth, useAuthActions } from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
@@ -15,12 +23,12 @@ import { BrowseView } from './BrowseView';
 import { RightPanel, type Selection } from './RightPanel';
 import type { Vertical } from '../api/client';
 
-const SECTIONS = [
-	{ id: 'overview', label: 'Overview', icon: '🏠' },
-	{ id: 'browse', label: 'Browse', icon: '🧭' },
-	{ id: 'jobs', label: 'My Jobs', icon: '📋' },
-	{ id: 'messages', label: 'Messages', icon: '💬' },
-	{ id: 'profile', label: 'Profile', icon: '👤' },
+const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
+	{ id: 'overview', label: 'Overview', Icon: LayoutDashboard },
+	{ id: 'browse', label: 'Browse', Icon: Compass },
+	{ id: 'jobs', label: 'My Jobs', Icon: Briefcase },
+	{ id: 'messages', label: 'Messages', Icon: MessageSquare },
+	{ id: 'profile', label: 'Profile', Icon: User },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]['id'];
@@ -104,7 +112,14 @@ export function DashboardShell() {
 									? tokens.color.surfaceAlt
 									: 'transparent',
 							}}>
-							<Text>{s.icon}</Text>
+							<s.Icon
+								size={20}
+								color={
+									on
+										? tokens.color.primary
+										: tokens.color.textMuted
+								}
+							/>
 						</PressableSurface>
 					);
 				})}
