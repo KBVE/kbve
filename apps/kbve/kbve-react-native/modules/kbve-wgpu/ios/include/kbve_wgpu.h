@@ -19,6 +19,8 @@ typedef struct {
 } FfiInputEvent;
 
 WgpuSurface *kbve_wgpu_create(void *raw, uint32_t kind, uint32_t width, uint32_t height);
+WgpuSurface *kbve_wgpu_create_game(void *raw, uint32_t kind, uint32_t width, uint32_t height,
+                                   const uint8_t *asset_root, size_t asset_root_len);
 void kbve_wgpu_resize(WgpuSurface *surface, uint32_t width, uint32_t height);
 int32_t kbve_wgpu_render(WgpuSurface *surface);
 void kbve_wgpu_pause(WgpuSurface *surface, bool paused);

@@ -4,6 +4,9 @@ use std::ffi::c_void;
 pub enum SurfaceKind {
     MetalLayer = 0,
     AndroidNativeWindow = 1,
+    /// iOS `UIView*` — required by engines (Bevy) that mount a window handle
+    /// and let wgpu attach its own CAMetalLayer.
+    UiView = 2,
 }
 
 impl SurfaceKind {
@@ -11,6 +14,7 @@ impl SurfaceKind {
         match value {
             0 => Some(Self::MetalLayer),
             1 => Some(Self::AndroidNativeWindow),
+            2 => Some(Self::UiView),
             _ => None,
         }
     }
@@ -36,7 +40,27 @@ impl SurfaceSource {
         match self.kind {
             SurfaceKind::MetalLayer => self.metal_target(),
             SurfaceKind::AndroidNativeWindow => self.android_target(),
+            SurfaceKind::UiView => self.uiview_target(),
         }
+    }
+
+    #[cfg(target_os = "ios")]
+    fn uiview_target(self) -> wgpu::SurfaceTargetUnsafe {
+        use raw_window_handle::{
+            RawDisplayHandle, RawWindowHandle, UiKitDisplayHandle, UiKitWindowHandle,
+        };
+        use std::ptr::NonNull;
+
+        let view = NonNull::new(self.raw).expect("null UIView");
+        wgpu::SurfaceTargetUnsafe::RawHandle {
+            raw_display_handle: RawDisplayHandle::UiKit(UiKitDisplayHandle::new()),
+            raw_window_handle: RawWindowHandle::UiKit(UiKitWindowHandle::new(view)),
+        }
+    }
+
+    #[cfg(not(target_os = "ios"))]
+    fn uiview_target(self) -> wgpu::SurfaceTargetUnsafe {
+        unreachable!("UiView surface kind is only valid on iOS")
     }
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]
@@ -123,6 +147,9 @@ impl raw_window_handle::HasWindowHandle for MobileWindow {
             SurfaceKind::AndroidNativeWindow => {
                 RawWindowHandle::AndroidNdk(raw_window_handle::AndroidNdkWindowHandle::new(raw))
             }
+            SurfaceKind::UiView => {
+                RawWindowHandle::UiKit(raw_window_handle::UiKitWindowHandle::new(raw))
+            }
         };
         Ok(unsafe { WindowHandle::borrow_raw(handle) })
     }
@@ -140,6 +167,9 @@ impl raw_window_handle::HasDisplayHandle for MobileWindow {
             }
             SurfaceKind::AndroidNativeWindow => {
                 RawDisplayHandle::Android(raw_window_handle::AndroidDisplayHandle::new())
+            }
+            SurfaceKind::UiView => {
+                RawDisplayHandle::UiKit(raw_window_handle::UiKitDisplayHandle::new())
             }
         };
         Ok(unsafe { DisplayHandle::borrow_raw(raw) })

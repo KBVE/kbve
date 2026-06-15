@@ -40,16 +40,20 @@ mod wasm_math_shims {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))]
 pub mod auth;
 pub mod auth_common;
+#[cfg(not(feature = "mobile"))]
 pub mod commands;
 pub mod game;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))]
 pub mod renderer;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))]
 pub mod tauri_plugin;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "mobile"))]
+pub mod mobile;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

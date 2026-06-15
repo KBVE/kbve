@@ -1,6 +1,8 @@
 export * from './theme';
 export * from './models';
 
+export * from './nav';
+
 export * from './primitives/Text';
 export * from './primitives/Screen';
 export * from './primitives/Surface';

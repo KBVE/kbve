@@ -1,0 +1,734 @@
+---
+title: Job Board
+description: |
+    Job Board — a curated, both-sides-vetted freelance platform. Launching in the game-dev
+    vertical, but architected so additional service verticals can be added without schema
+    changes. Sanctioned members post gigs, other sanctioned members take them up. Decoupled
+    Rust/Axum API with first-party auth, served to a separate frontend. Includes the protobuf
+    collection that reuses the existing KBVE protos and adds a new `jobboard` package.
+sidebar:
+    label: Job Board
+    order: 50
+    badge:
+        text: New
+        variant: tip
+unsplash: 1604657843102-388d8541ef04
+img: https://images.unsplash.com/photo-1604657843102-388d8541ef04?fit=crop&w=1400&h=700&q=75
+tags:
+    - gamedev
+    - gaming
+    - rust
+    - proto
+---
+
+## Job Board
+
+> Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, first-party auth implemented (register/login/logout/me with Postgres-backed sessions), `jobboard.proto` wired into the build. **No SQL ships yet** — the `jobboard` schema + seed is deferred to a later dbmate migration (reference shape in the Deployment section). Verified locally against an ad-hoc Postgres. Phases 1–10 below remain spec.
+
+A **curated, both-sides-vetted job board for freelance work** — think Upwork/Fiverr, but gated and quality-first. Sanctioned members post gigs, other sanctioned members take them up, and the platform handles discovery, matching, and messaging. Money moves off-platform in v1 (lead-gen model); monetization is built behind abstraction hooks to switch on later.
+
+**Game development is the launch vertical, not the ceiling.** We pioneer in game dev (art, code, audio, design, QA *for games*) because it's an underserved, portfolio-driven niche where curation wins — but the data model, taxonomy, and matching are **vertical-agnostic by design**. Adding a new vertical (e.g. video production, music, dev/IT, design, writing) is a data operation (seed a `Vertical` + its taxonomy), **not** a schema change or code change.
+
+**Architecture is decoupled:** a standalone **Rust/Axum REST API** (own DB access, own first-party auth — no third-party auth SaaS) serving a **separate frontend client** (framework TBD) over HTTP. This keeps the API reusable across web, future mobile, and integrations.
+
+### Positioning / moat
+- **Curation is the wedge.** Both posters and takers are vetted, so quality is the product. Every gig is legit; every applicant is screened.
+- **Vertical-first go-to-market, horizontal data model.** We win one vertical at a time (game dev first) by speaking its language, while the underlying platform stays general so we can expand without re-platforming.
+- **Portfolio-first.** Talent in creative/technical verticals is hired by *seeing* work (characters, gameplay clips, playable builds, reels, repos), not reading résumés. The portfolio system is a first-class feature across every vertical.
+
+* * *
+
+## Personas & roles
+
+| Persona | What they do | Vetting |
+|---|---|---|
+| **Poster** | Has work (indie dev, studio, publisher, agency, business). Posts gigs, reviews applicants, selects talent. | Vetted (org/identity + intent) |
+| **Taker** | Does work (artist, programmer, audio, designer, QA, and every other vertical's specialists). Builds a portfolio, applies to gigs. | Vetted (portfolio review) |
+| **Admin** | Platform staff. Reviews membership applications, moderates gigs, manages verticals + taxonomy, handles reports. | Internal |
+
+- A single account can hold **both** capabilities (`poster` and `taker`), granted independently during vetting.
+- Capabilities are the authorization primitive — encoded as a bitmask on the existing `User.role` field (see protobuf section).
+- A member can operate in **one or more verticals**; their granted disciplines/skills are scoped per vertical.
+
+* * *
+
+## Verticals & taxonomy
+
+The platform is organized around **verticals** (top-level service areas) and a **controlled, admin-managed vocabulary** scoped to each vertical — so filtering and matching work without free text, and so a new vertical can be launched without touching code.
+
+- **Vertical** — the top-level service area. Game Dev is vertical #1. Others (Video, Audio/Music, Software/IT, Design, Writing, Marketing…) are added later as data.
+- **Discipline** — a category of work *within a vertical* (data-driven taxonomy, not a hardcoded enum).
+- **Tool/Platform** — engines, software, frameworks relevant to the vertical.
+- **Skill tag** — finer-grained, controlled-but-extensible.
+
+> **Why no hardcoded discipline enum?** An earlier draft baked game-dev disciplines into a protobuf bitmask. That ties the schema to one vertical. Instead, disciplines/tools/skills all live in the `Taxonomy` table, each row scoped by `vertical_id`. Gigs and profiles reference taxonomy **ids**, so a new vertical is purely a seed-data operation. (If a vertical later needs ultra-fast bitmask filtering, a per-vertical cached bitmask can be derived from taxonomy ids without changing the contract.)
+
+### Game-dev vertical — seed vocabulary (example)
+This is the *first vertical's* seed data, illustrating the pattern — not a fixed part of the schema:
+
+- **Disciplines:** 2D Art, 3D Art, Animation/Rigging, Programming, Technical Art/Shaders, Audio (Music/SFX/VO), Game Design, Level Design, Narrative/Writing, UI/UX, QA/Testing, Porting, Localization, Production/PM, Community.
+- **Tools/Engines:** Unity, Unreal, Godot, GameMaker, Bevy, Custom; tools — Blender, Maya, ZBrush, Substance, Photoshop, Spine, FMOD, Wwise.
+- **Skill tags:** `netcode`, `humanoid-rigging`, `pixel-art`, `procgen`, `shader-graph`, `vertical-slice`.
+
+> Admin-managed vocabulary so new verticals, disciplines, tools, and skills can be added without code changes.
+
+* * *
+
+## Core flows
+
+### A. Membership / vetting (both sides)
+1. Sign up (first-party auth — email/password or OAuth).
+2. Choose intended capabilities: **post work**, **take work**, or **both**; and the vertical(s) of interest.
+3. Complete application — statement + portfolio links; talent pick vertical(s) + disciplines/tools, posters add org info.
+4. Submit → application status `pending`.
+5. Admin reviews in the vetting queue → approve/reject **per capability**.
+6. On approval → capability bit set on `User.role`; user unlocks profile + the granted actions.
+
+### B. Poster posts a gig
+1. Approved poster creates a gig (title, vertical, discipline(s), scope, budget, tools, skills, deadline).
+2. Publish → `OPEN` (optionally `PENDING_REVIEW` if gig moderation is enabled).
+3. Gig enters discovery.
+
+### C. Taker discovers & applies
+1. Browse / search / filter gigs (vertical, discipline, tool, budget…).
+2. View gig detail.
+3. Apply — cover message, proposed rate, attach relevant portfolio items (gated on `taker`).
+4. Poster notified.
+
+### D. Selection & engagement
+1. Poster reviews applicants, shortlists, messages candidates.
+2. Poster accepts one → `Engagement` created, gig → `FILLED`, others auto-declined/notified.
+3. Work + payment happen **off-platform** (v1).
+4. Either party marks the engagement complete.
+5. Both leave reviews → reputation accrues (aggregated into `User.reputation`).
+
+### E. Admin / moderation (cross-cutting)
+- Vetting queue, gig takedowns, report handling, vertical + taxonomy management, audit log.
+
+* * *
+
+## Data model (Postgres)
+
+Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sqlx migrate`). Each table is mirrored by a protobuf message (see below). Reused entities map to existing protos; new entities to the `jobboard` package.
+
+| Table | Source proto |
+|---|---|
+| `users` | **reuse** `User` + `Auth` (kbveproto) |
+| `sessions` | new (tower-sessions Postgres store) |
+| `oauth_accounts` | new |
+| `profiles` (base) | **reuse** `Profile` (kbveproto) |
+| `verticals` | new `jobboard.Vertical` |
+| `talent_profiles` | new `jobboard.TalentProfile` |
+| `client_profiles` | new `jobboard.ClientProfile` |
+| `member_applications` | new `jobboard.MembershipApplication` |
+| `portfolio_items` | new `jobboard.PortfolioItem` (+ reuse `MediaAttachment`) |
+| `taxonomy` (disciplines/tools/skills, scoped per vertical) | new `jobboard.Taxonomy` |
+| `gigs` | new `jobboard.Gig` |
+| `applications` | new `jobboard.Application` |
+| `engagements` | new `jobboard.Engagement` |
+| `reviews` | new `jobboard.Review` |
+| `conversations`, `messages` | new `jobboard.Conversation` / `Message` (+ reuse `MediaAttachment`) |
+| `notifications` | new `jobboard.Notification` |
+| `reports`, `audit_log` | new (admin) |
+| `invoices`, `settings`, `globals` (monetization hooks) | **reuse** `Invoice`, `Setting`, `Global` (kbveproto) |
+
+* * *
+
+## Tech architecture (decoupled)
+
+### Backend — Rust API service
+| Concern | Choice | Why |
+|---|---|---|
+| Framework | **Axum** (Tokio) | Fast, ergonomic, tower middleware ecosystem |
+| Auth | **First-party** — `tower-sessions` (custom Postgres `SessionStore`), `argon2` hashing, optional `oauth2` (Discord/GitHub/Steam) later | No auth SaaS; transport-flexible (cookie + bearer) |
+| DB access | **jedi `PgCluster`** (tokio-postgres + bb8, rw/ro/any split, RLS caller-scoped reads, valkey cache) | House pattern (matches `axum-kbve`); free read/write split + RLS + caching |
+| Migrations | **dbmate** (`packages/data/sql/dbmate/migrations`) — schema deferred, not committed yet | Repo-standard migration tool; one system across the monorepo |
+| DB | Postgres — KBVE CNPG/Supabase cluster via `KBVE_PG_RW_URL` | Shared cluster; `jobboard` schema isolates the tables |
+| Wire format | `prost`/`tonic` protobuf over `jedi.JediEnvelope` | Reuses the KBVE proto/envelope transport |
+| Media | S3-compatible (Cloudflare R2) | Rust-friendly; private deliverables |
+| Search | Postgres FTS (v1) → Meilisearch later | Meilisearch is Rust-native, easy upgrade |
+| Notifications | In-app (DB) v1; email later | Keep v1 lean |
+
+### Frontend — TBD (decided in a later phase)
+- Pure HTTP client of the API. Candidates: Astro + React (KBVE-native), Next.js (frontend-only), or React SPA.
+- Auth carried as httpOnly session cookie (browser) — already supported by the API design.
+
+**Authorization model:** Axum middleware/extractors authenticate the session/token; route guards check the `Capability` bitmask on `User.role` (`POSTER`/`TAKER`/`ADMIN`); ownership checks (e.g. gig owner) enforced per-handler.
+
+* * *
+
+## Deployment
+
+The deployable surface lives in `apps/jobboard`: `Dockerfile` (chiseled Ubuntu axum base), `version.toml`, and nx `project.json` (`build` / `test` / `lint` / `run` / `container` / `containerx`). The container build context is the repo root.
+
+### Container image
+- Built via `./kbve.sh -nx jobboard:container` → `kbve/jobboard:latest` (+ version tag); production config also tags `ghcr.io/kbve/jobboard`.
+- Multi-stage cargo-chef build (planner → cook → builder → runtime) on `ghcr.io/kbve/chisel-ubuntu-axum`. Runtime image runs `/app/jobboard` as uid 10001, exposes `5400`.
+- Protos are **vendored** (`apps/jobboard/src/proto/jobboard.rs`); the image build does not run `protoc`. Regenerate only when the `.proto` changes: `BUILD_PROTO=1 cargo build -p jobboard` (and revert the incidental jedi proto regen before committing).
+
+### Runtime environment (env var contract)
+| Var | Required | Default | Notes |
+|---|---|---|---|
+| `KBVE_PG_RW_URL` | yes | — | jedi `PgCluster` primary (rw). `DATABASE_URL` is mapped to it if unset (dev convenience). |
+| `KBVE_PG_RO_URL` | no | = rw | Read replica; falls back to rw. |
+| `KBVE_PG_ANY_URL` | no | = rw | Any-instance read fallback. |
+| `HTTP_HOST` | no | `0.0.0.0` | Bind host. |
+| `HTTP_PORT` | no | `5400` | Bind port. |
+| `SECURE_COOKIES` | no | `false` | Set `true` behind TLS (sets `Secure` on the session cookie). |
+| `RUST_LOG` | no | `jobboard=info,tower_http=info` | Tracing filter. |
+
+jedi `PgCluster` also honors its standard `KBVE_PG_*` tuning knobs (pool sizes, timeouts, search_path, pooler rewrite, CA bundle) — see `packages/rust/jedi/src/state/pg.rs`. TLS bypasses transparently when the URL carries `sslmode=disable` (in-cluster), engages for `sslmode=require` (external).
+
+### Probes
+- Liveness: `GET /health` (always 200 when the process is up).
+- Readiness: `GET /ready` (200 when the DB cluster health probe passes, 503 otherwise) — gate traffic on this.
+
+### Kubernetes / ArgoCD (later phase — not yet in repo)
+When this graduates from scaffold to deployed, add under `apps/kube/jobboard/`:
+- `Deployment` (image `ghcr.io/kbve/jobboard`, port 5400, liveness `/health`, readiness `/ready`, Reloader annotation), `Service`.
+- `HTTPRoute` on the Cilium gateway for the public host (e.g. `jobboard.kbve.com` / `api`), keeping apex + www on one listener — see [[project_cilium_gateway_san_listener_dup]].
+- Sealed secret for `KBVE_PG_RW_URL` (+ ro/any) via kubeseal.
+- ArgoCD `Application` **and** an entry in `apps/kube/kustomization.yaml` (kube-root app-of-apps — an `application.yaml` alone never deploys).
+- ArgoCD apps track `main`; PRs land on `dev`, so the manifest reaches the cluster only after the periodic dev→main release.
+- CI: register `jobboard` in the CI dispatch manifest (`ci_registry.proto` → `astro-kbve:sync:ci-manifest`) so `ci-docker.yml` builds/publishes the image.
+
+### Database schema (deferred — not committed yet)
+No SQL ships in this scaffold by design; the schema lands later as a **dbmate** migration in `packages/data/sql/dbmate/migrations/`. The service queries the `jobboard` schema (`jobboard.users`, `jobboard.sessions`, `jobboard.verticals`, `jobboard.taxonomy`), so those tables + the game-dev seed must exist before it serves.
+
+This is the full migration that was removed from the scaffold, parked here for review. When approved, drop it back into `packages/data/sql/dbmate/migrations/<timestamp>_jobboard_init.sql`:
+
+```sql
+-- migrate:up
+create schema if not exists jobboard;
+
+create table if not exists jobboard.users (
+    id              uuid primary key default gen_random_uuid(),
+    email           text not null unique,
+    username        text not null unique,
+    password_hash   text not null,
+    role            integer not null default 0,
+    reputation      integer not null default 0,
+    status          integer not null default 0,
+    created_at      timestamptz not null default now(),
+    last_login      timestamptz
+);
+
+create table if not exists jobboard.sessions (
+    id      text primary key,
+    data    jsonb not null,
+    expiry  bigint not null
+);
+
+create index if not exists jobboard_sessions_expiry_idx on jobboard.sessions (expiry);
+
+create table if not exists jobboard.verticals (
+    id          bigserial primary key,
+    slug        text not null unique check (slug ~ '^[a-z0-9-]+$'),
+    label       text not null,
+    description text not null default '',
+    status      integer not null default 1,
+    sort_order  integer not null default 0
+);
+
+create table if not exists jobboard.taxonomy (
+    id          bigserial primary key,
+    vertical_id bigint not null references jobboard.verticals(id) on delete cascade,
+    kind        integer not null,
+    name        text not null check (name ~ '^[a-z0-9-]+$'),
+    label       text not null,
+    status      integer not null default 1,
+    unique (vertical_id, kind, name)
+);
+
+create index if not exists jobboard_taxonomy_vertical_kind_idx
+    on jobboard.taxonomy (vertical_id, kind);
+
+insert into jobboard.verticals (slug, label, description, status, sort_order)
+values ('game-dev', 'Game Development', 'Art, code, audio, design, and QA for games.', 1, 0)
+on conflict (slug) do nothing;
+
+insert into jobboard.taxonomy (vertical_id, kind, name, label)
+select v.id, t.kind, t.name, t.label
+from jobboard.verticals v
+cross join (values
+    (1, '2d-art', '2D Art'),
+    (1, '3d-art', '3D Art'),
+    (1, 'animation-rigging', 'Animation/Rigging'),
+    (1, 'programming', 'Programming'),
+    (1, 'technical-art', 'Technical Art/Shaders'),
+    (1, 'audio', 'Audio (Music/SFX/VO)'),
+    (1, 'game-design', 'Game Design'),
+    (1, 'level-design', 'Level Design'),
+    (1, 'narrative', 'Narrative/Writing'),
+    (1, 'ui-ux', 'UI/UX'),
+    (1, 'qa-testing', 'QA/Testing'),
+    (1, 'porting', 'Porting'),
+    (1, 'localization', 'Localization'),
+    (1, 'production', 'Production/PM'),
+    (1, 'community', 'Community'),
+    (2, 'unity', 'Unity'),
+    (2, 'unreal', 'Unreal'),
+    (2, 'godot', 'Godot'),
+    (2, 'gamemaker', 'GameMaker'),
+    (2, 'bevy', 'Bevy'),
+    (2, 'blender', 'Blender'),
+    (2, 'maya', 'Maya'),
+    (2, 'zbrush', 'ZBrush'),
+    (2, 'substance', 'Substance'),
+    (2, 'photoshop', 'Photoshop'),
+    (2, 'spine', 'Spine'),
+    (2, 'fmod', 'FMOD'),
+    (2, 'wwise', 'Wwise'),
+    (3, 'netcode', 'netcode'),
+    (3, 'humanoid-rigging', 'humanoid-rigging'),
+    (3, 'pixel-art', 'pixel-art'),
+    (3, 'procgen', 'procgen'),
+    (3, 'shader-graph', 'shader-graph'),
+    (3, 'vertical-slice', 'vertical-slice')
+) as t(kind, name, label)
+where v.slug = 'game-dev'
+on conflict (vertical_id, kind, name) do nothing;
+
+-- migrate:down
+drop schema if exists jobboard cascade;
+```
+
+* * *
+
+## REST API surface (Axum)
+
+All mutations go through the API; the frontend is a pure client. Auth via session cookie or `Authorization: Bearer`. Versioned under `/api/v1`.
+
+```
+# Auth
+POST   /auth/register            email/password signup
+POST   /auth/login               -> session cookie / token
+POST   /auth/logout
+GET    /auth/me                  current user + capabilities
+GET    /auth/oauth/:provider     start Discord/GitHub/Steam flow
+GET    /auth/oauth/:provider/cb  callback
+
+# Verticals & taxonomy
+GET    /verticals                list active verticals
+GET    /verticals/:id/taxonomy   disciplines/tools/skills for a vertical
+POST   /admin/verticals          [admin] create vertical
+POST   /admin/taxonomy           [admin] add discipline/tool/skill
+
+# Membership / vetting
+POST   /applications             submit membership application
+GET    /admin/applications       [admin] vetting queue
+POST   /admin/applications/:id/decision   [admin] approve/reject per capability
+
+# Profiles & portfolio
+GET    /talent                   browse/filter talent (vertical, discipline, tool…)
+GET    /talent/:username
+PATCH  /me/profile
+GET/POST/PATCH/DELETE /me/portfolio[/:id]
+
+# Gigs
+GET    /gigs                     browse/filter (vertical, discipline, tool, budget…)
+POST   /gigs                     [poster] create
+GET    /gigs/:id
+PATCH  /gigs/:id                 [poster, owner]
+POST   /gigs/:id/close           [poster, owner]
+
+# Applications to gigs
+POST   /gigs/:id/applications    [taker] apply
+GET    /gigs/:id/applications    [poster, owner] list applicants
+PATCH  /applications/:id         shortlist/decline/withdraw
+POST   /applications/:id/accept  [poster] -> creates engagement, fills gig
+
+# Messaging
+GET    /conversations
+GET    /conversations/:id/messages
+POST   /conversations/:id/messages
+
+# Engagements & reviews
+POST   /engagements/:id/complete
+POST   /engagements/:id/reviews
+
+# Moderation
+POST   /reports
+GET    /admin/reports            [admin]
+```
+
+* * *
+
+## Protocol Buffers
+
+The platform's wire/storage contract is protobuf. The proto root is `packages/data/proto/` (the shared protoc include root — cross-package imports already work there). We add one new file — `packages/data/proto/jobboard/jobboard.proto` (package `jobboard`).
+
+> **Phase 0 reality check.** The reuse table below was aspirational; the actual repo differs, and Phase 0 ships `jobboard.proto` as **standalone** (it defines its own `MediaAttachment` rather than importing one) to sidestep cross-package include friction. Corrections to the table: identity protos live in `packages/data/proto/kbve/kbveproto.proto` **with no `package` declaration** (so they are awkward to `import` into a packaged file — reuse happens at the DB/service layer, not via proto import); there is **no** `status.proto` (`MediaAttachment` was invented locally; the closest existing is `kbve.forum.Attachment`); the Discord listing template is `kbve/discordsh.proto` (`DiscordServer` + `ServerTag`), **not** `disoxide.proto`; there is **no** `store.proto`/`StoreService` (only `jedi/redis.proto`'s `RedisService`). `JediEnvelope`/`MessageKind`/`PayloadFormat` (`jedi/jedi.proto`) and `RedisService` are real and reusable. As later phases need true cross-file reuse, give `kbveproto.proto` a package and import from the shared root.
+
+### What we reuse (do not recreate)
+
+| Need | Reused proto | Where it lives | Notes |
+|---|---|---|---|
+| **Auth / credentials** | `Auth` | `kbveproto.proto` | Already has email, hash, salt, reset token+expiry, verification token+expiry, status, last_login, failed_login_attempts, lockout_until, 2FA secret, recovery codes. This *is* our first-party auth model — use as-is. |
+| **User identity** | `User` | `kbveproto.proto` | `userid, username, role, reputation, exp, created_at`. We encode capabilities into `role` (bitmask) and aggregate review scores into `reputation`. |
+| **Base social profile** | `Profile` | `kbveproto.proto` | `name, bio, github, instagram, discord, unsplash, userid`. Vertical-specific fields go in a new `TalentProfile` that references the same `userid` — we extend, not duplicate. |
+| **Bearer API tokens** | `Apikey` | `kbveproto.proto` | For non-browser clients (`Authorization: Bearer`). |
+| **Monetization hooks** | `Invoice`, `Setting`, `Global` | `kbveproto.proto` | Wired only when monetization switches on. |
+| **Media (portfolio/attachments)** | `MediaAttachment` | `status.proto` | `url, media_type (bitmask), caption`. Embedded by `PortfolioItem` and `Message`. |
+| **Listing pattern** | `DiscordServer`, `DiscordTag` | `disoxide.proto` | Template (not copied): bitmask `status`/`categories`, inline SQL CHECK comments, URL regex, `updated_at`. `Gig`, `Vertical`, and `Taxonomy` follow this convention. |
+| **Transport envelope** | `JediEnvelope`, `MessageKind`, `PayloadFormat` | `jedi.proto` | Job board messages travel as `payload` bytes inside `JediEnvelope`. Existing `MessageKind` bits (`AUTH`, `HTTP_API`, `WEBSOCKET`, `REDIS`, `SUPABASE`) already cover routing — **no new kinds needed for v1**. |
+| **KV / cache / realtime** | `StoreService`, `RedisService` | `store.proto`, `redis.proto` | Caching, presence, live message/notification fan-out. Reuse as-is. |
+
+### What we add — `jobboard.proto`
+
+> Suggested location: `packages/rust/jedi/proto/jobboard.proto`, package `jobboard`, built with the rest via `prost`/`tonic`. Cross-file reuse (`MediaAttachment` from `status.proto`, identity from `kbveproto.proto`) requires those files on the protoc include path; if the build doesn't yet share an include root, the pragmatic fallback is to move the shared messages onto a common `proto/` root rather than copy them.
+
+```proto
+syntax = "proto3";
+package jobboard;
+
+// Reuse — on the protoc include path:
+import "status.proto";      // MediaAttachment
+// Identity reused from kbveproto.proto: Auth, User, Profile, Apikey, Invoice
+// Transport: payloads ride inside jedi.JediEnvelope (jedi.proto)
+
+// ─────────────────────────── Enums (bitflags where noted) ───────────────────────────
+
+// Stored in the EXISTING User.role field (bitmask) — no new capability table.
+enum Capability {
+  CAP_NONE   = 0;
+  CAP_TAKER  = 1;
+  CAP_POSTER = 2;
+  CAP_ADMIN  = 4;
+}
+
+// NOTE: Disciplines are intentionally NOT an enum. They (and tools/skills) are
+// data-driven rows in `Taxonomy`, each scoped by `vertical_id`, so new verticals
+// add no proto/code changes. Gigs/profiles reference taxonomy ids.
+
+// Gig lifecycle — bitmask (mirrors disoxide status convention).
+enum GigStatus {
+  GIG_DRAFT          = 0;
+  GIG_PENDING_REVIEW = 1;
+  GIG_OPEN           = 2;
+  GIG_FILLED         = 4;
+  GIG_CLOSED         = 8;
+  GIG_EXPIRED        = 16;
+}
+
+enum ApplicationStatus {
+  APP_SUBMITTED   = 0;
+  APP_SHORTLISTED = 1;
+  APP_ACCEPTED    = 2;
+  APP_DECLINED    = 3;
+  APP_WITHDRAWN   = 4;
+}
+
+enum EngagementStatus {
+  ENG_ACTIVE    = 0;
+  ENG_COMPLETED = 1;
+  ENG_CANCELLED = 2;
+}
+
+enum BudgetType {
+  BUDGET_UNSPECIFIED = 0;
+  BUDGET_FIXED       = 1;
+  BUDGET_RANGE       = 2;
+  BUDGET_HOURLY      = 3;
+}
+
+// ─────────────────────────── Verticals & taxonomy (data-driven) ───────────────────────────
+
+// Top-level service area. Game Dev is vertical #1; others are seeded as data.
+message Vertical {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? slug TEXT NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9-]+$')  e.g. "game-dev"
+  string slug = 2;
+  string label = 3;
+  string description = 4;
+  // Bitwise status (active/featured/coming-soon).
+  int32  status = 5;
+  int32  sort_order = 6;
+}
+
+// Disciplines, tools/engines, and skills — all live here, scoped per vertical.
+message Taxonomy {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? vertical_id BIGINT NOT NULL REFERENCES verticals(id)
+  uint64 vertical_id = 2;
+  // 1 discipline, 2 tool/engine, 3 skill
+  int32  kind = 3;
+  // ? name TEXT NOT NULL CHECK (name ~ '^[a-z0-9-]+$')
+  string name = 4;
+  string label = 5;
+  // Bitwise status (active/featured/deprecated).
+  int32  status = 6;
+}
+
+// ─────────────────────────── Vetting ───────────────────────────
+
+message MembershipApplication {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
+  bytes  user_id = 2;
+  // Requested capabilities — Capability bitmask (CAP_TAKER | CAP_POSTER).
+  int32  requested_capabilities = 3;
+  // Vertical(s) the applicant wants to operate in.
+  repeated uint64 vertical_ids = 4;
+  string statement = 5;
+  repeated string portfolio_links = 6;
+  // 0 pending, 1 approved, 2 rejected
+  int32  status = 7;
+  bytes  reviewed_by = 8;
+  string reviewed_at = 9;
+  string review_notes = 10;
+  string created_at = 11;
+}
+
+// ─────────────────────────── Profiles (extend reused Profile/User) ───────────────────────────
+
+// Vertical-aware extension of the reused `Profile`; keyed by the same user_id.
+message TalentProfile {
+  bytes  user_id = 1;
+  string headline = 2;
+  int32  years_experience = 3;
+  // 0 open, 1 limited, 2 closed
+  int32  availability = 4;
+  int64  rate_min = 5;
+  int64  rate_max = 6;
+  string currency = 7;
+  // Verticals this talent works in.
+  repeated uint64 vertical_ids = 8;
+  // Taxonomy ids (kind = discipline / tool / skill).
+  repeated uint64 discipline_ids = 9;
+  repeated uint64 tool_ids       = 10;
+  repeated uint64 skill_ids      = 11;
+  string updated_at = 12;
+}
+
+message ClientProfile {
+  bytes  user_id = 1;
+  // Org/studio/agency/business name.
+  string org_name = 2;
+  int32  company_size = 3;
+  string website = 4;
+  string about = 5;
+  repeated uint64 vertical_ids = 6;
+  string updated_at = 7;
+}
+
+// ─────────────────────────── Portfolio (reuse status.MediaAttachment) ───────────────────────────
+
+message PortfolioItem {
+  uint64 id = 1;
+  bytes  user_id = 2;
+  uint64 vertical_id = 3;
+  string title = 4;
+  string description = 5;
+  // image / video / sketchfab / itch / youtube / webgl_build / repo / reel
+  string source = 6;
+  repeated status.MediaAttachment media = 7;   // ← reused
+  repeated uint64 tag_ids = 8;                  // taxonomy: tools/skills
+  int32  sort_order = 9;
+  string created_at = 10;
+}
+
+// ─────────────────────────── Gig listing (pattern from disoxide.DiscordServer) ───────────────────────────
+
+message Gig {
+  // ? id BIGSERIAL PRIMARY KEY
+  uint64 id = 1;
+  // ? poster_id UUID NOT NULL REFERENCES auth.users(id)
+  bytes  poster_id = 2;
+  // ? vertical_id BIGINT NOT NULL REFERENCES verticals(id)
+  uint64 vertical_id = 3;
+  // ? title VARCHAR(120) NOT NULL
+  string title = 4;
+  // ? summary VARCHAR(200)
+  string summary = 5;
+  // ? description TEXT (markdown)
+  string description = 6;
+  // Taxonomy ids (kind = discipline / tool / skill) scoped to vertical_id.
+  repeated uint64 discipline_ids = 7;
+  repeated uint64 tool_ids       = 8;
+  repeated uint64 skill_ids      = 9;
+  BudgetType budget_type = 10;
+  int64  budget_min = 11;
+  int64  budget_max = 12;
+  string currency = 13;
+  // ? deadline TIMESTAMP
+  string deadline = 14;
+  // 0 remote, 1 onsite, 2 hybrid
+  int32  location_pref = 15;
+  // GigStatus bitmask.
+  int32  status = 16;
+  string published_at = 17;
+  // ? updated_at TIMESTAMP NOT NULL DEFAULT now()
+  string updated_at = 18;
+  string created_at = 19;
+}
+
+// ─────────────────────────── Applications / engagement / reviews ───────────────────────────
+
+message Application {
+  uint64 id = 1;
+  uint64 gig_id = 2;
+  bytes  applicant_id = 3;
+  string cover_message = 4;
+  int64  proposed_rate = 5;
+  BudgetType proposed_rate_type = 6;
+  repeated uint64 portfolio_item_ids = 7;   // attach relevant work
+  // ApplicationStatus.
+  int32  status = 8;
+  string created_at = 9;
+}
+
+message Engagement {
+  uint64 id = 1;
+  uint64 gig_id = 2;
+  bytes  poster_id = 3;
+  bytes  taker_id = 4;
+  // EngagementStatus.
+  int32  status = 5;
+  string started_at = 6;
+  string completed_at = 7;
+}
+
+message Review {
+  uint64 id = 1;
+  uint64 engagement_id = 2;
+  bytes  reviewer_id = 3;
+  bytes  reviewee_id = 4;
+  // 1..5
+  int32  rating = 5;
+  string body = 6;
+  string created_at = 7;
+}
+
+// ─────────────────────────── Messaging & notifications ───────────────────────────
+
+message Conversation {
+  uint64 id = 1;
+  // Optional context: the gig this conversation is about.
+  uint64 gig_id = 2;
+  repeated bytes participant_ids = 3;
+  string created_at = 4;
+}
+
+message Message {
+  uint64 id = 1;
+  uint64 conversation_id = 2;
+  bytes  sender_id = 3;
+  string body = 4;
+  repeated status.MediaAttachment attachments = 5;   // ← reused
+  string read_at = 6;
+  string created_at = 7;
+}
+
+message Notification {
+  uint64 id = 1;
+  bytes  user_id = 2;
+  // Bitmask: application received / accepted / message / review / admin.
+  int32  kind = 3;
+  // JSON or protobuf-encoded context.
+  bytes  payload = 4;
+  string read_at = 5;
+  string created_at = 6;
+}
+
+// ─────────────────────────── Service (pattern from kbveproto.MessageRpc / store.StoreService) ───────────────────────────
+
+message ById   { uint64 id = 1; }
+message ByUser { bytes  user_id = 1; }
+message Ack    { bool success = 1; string message = 2; }
+
+service JobBoardRpc {
+  // Verticals & taxonomy (admin-managed vocabulary)
+  rpc CreateVertical (Vertical) returns (Ack);   // admin
+  rpc UpsertTaxonomy (Taxonomy) returns (Ack);   // admin
+
+  // Vetting
+  rpc SubmitMembership (MembershipApplication) returns (Ack);
+  rpc DecideMembership (MembershipApplication) returns (Ack);   // admin
+
+  // Profiles & portfolio
+  rpc GetTalentProfile (ByUser) returns (TalentProfile);
+  rpc UpsertTalentProfile (TalentProfile) returns (Ack);
+  rpc UpsertPortfolioItem (PortfolioItem) returns (Ack);
+
+  // Gigs
+  rpc CreateGig (Gig) returns (Ack);
+  rpc GetGig (ById) returns (Gig);
+  rpc CloseGig (ById) returns (Ack);
+
+  // Applications & engagement
+  rpc ApplyToGig (Application) returns (Ack);
+  rpc ReviewGigApplication (Application) returns (Ack);   // shortlist/decline
+  rpc AcceptApplication (ById) returns (Engagement);
+  rpc CompleteEngagement (ById) returns (Ack);
+  rpc SubmitReview (Review) returns (Ack);
+
+  // Messaging
+  rpc SendMessage (Message) returns (Ack);
+}
+```
+
+### Reuse summary
+
+- **New file:** `jobboard.proto` (1 file, 1 package).
+- **Reused as-is:** `Auth`, `User`, `Profile`, `Apikey`, `Invoice`, `Setting`, `Global`, `MediaAttachment`, `JediEnvelope`/`MessageKind`/`PayloadFormat`, `StoreService`, `RedisService`.
+- **Reused as pattern (not copied):** `DiscordServer` → `Gig`, `DiscordTag` → `Vertical`/`Taxonomy`, `MessageRpc`/`StoreService` → `JobBoardRpc`.
+- **No new `MessageKind` values** — existing routing bits suffice for v1.
+- **No hardcoded discipline enum** — disciplines/tools/skills are data-driven taxonomy scoped by vertical, so new verticals require no proto change.
+
+* * *
+
+## Trust & safety
+
+- Vetting on both sides is the primary trust mechanism.
+- Reporting + admin takedown for gigs, profiles, messages.
+- Off-platform payment disclaimer + safety guidance (no escrow yet — set expectations clearly).
+- Audit log for admin actions.
+
+* * *
+
+## Key risks / open questions
+
+1. **Disintermediation / leakage** — with payments off-platform, members can match once and transact off-platform forever. *Mitigations:* keep reviews/reputation valuable enough to bring people back; consider gating contact details until a stage; plan the monetization switch before leakage becomes habit.
+2. **Vetting throughput** — manual approval is the quality bar *and* a growth bottleneck. Needs a written rubric (per vertical) + a fast admin UI.
+3. **Cold-start liquidity** — curated + both-vetted = slowest to fill. Likely need to hand-seed one side first, in one vertical first. Game dev launches first; which side to seed?
+4. **"Sanctioned" criteria undefined** — what objectively qualifies a poster vs a taker, per vertical?
+5. **Vertical expansion sequencing** — the model supports many verticals, but each needs taxonomy seeding, a vetting rubric, and liquidity. Which vertical follows game dev, and on what trigger?
+6. **Proto include paths** — sharing `MediaAttachment`/identity across packages needs a common protoc include root; decide whether to relocate shared protos or vendor.
+
+* * *
+
+## Phased build plan
+
+| Phase | Scope | Outcome |
+|---|---|---|
+| **0 — Foundations** | Axum + `sqlx` + Postgres; migrations; verticals + taxonomy seed (game dev first); first-party auth (register/login/session/logout) + CORS; wire `jobboard.proto` into the build | API boots, auth works, DB ready |
+| **1 — Identity & vetting** | Membership application endpoints, admin vetting queue, capability grants (per vertical) | Members can be sanctioned |
+| **2 — Profiles & portfolio** | Talent/client profiles, portfolio CRUD + R2 media upload | Public profiles exist |
+| **3 — Gigs** | Post gig, gig moderation, browse + filter (vertical/discipline/tool), gig detail | Work is discoverable |
+| **4 — Applications & selection** | Apply, applicant management, accept → engagement | Matching works end-to-end |
+| **5 — Messaging** | Conversations + threads + attachments | Parties can talk |
+| **6 — Engagements & reviews** | Mark complete, two-sided reviews, reputation display | Trust accrues |
+| **7 — Frontend client** | Choose framework; build the UI against the API | Usable product |
+| **8 — Discovery & notifications** | Search polish, saved items, in-app notifications | Retention loops |
+| **9 — Monetization hooks** | Wire entitlements to a chosen model (sub/featured/credits) via reused `Invoice`/`Setting` | Revenue switch ready |
+| **10 — Second vertical** | Seed a new vertical (taxonomy + rubric); validate the model expands without schema change | Multi-vertical proven |
+
+* * *
+
+## Decisions
+
+**Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · first-party auth (`tower-sessions` + `argon2`, custom pg `SessionStore`, no auth SaaS) · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
+
+**Still open:**
+- **Frontend framework** (Astro+React / Next.js frontend-only / React SPA) — deferred to Phase 7.
+- Sanctioning rubric for posters and takers (per vertical).
+- Which side to seed first for liquidity (in the game-dev vertical).
+- Which vertical follows game dev, and on what trigger.
+- When/whether to gate contact info to reduce leakage.
+- Eventual monetization model (subscription / featured / credits).
+- cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
+- Proto include-path strategy (shared root vs vendor).

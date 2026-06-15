@@ -20,6 +20,13 @@ const DEFAULT_API_URL = 'https://kbve.com';
 export const KBVE_API_URL =
 	process.env['EXPO_PUBLIC_API_URL'] ?? DEFAULT_API_URL;
 
+const DEFAULT_CHAT_URL = 'wss://chat.kbve.com';
+
+export const KBVE_CHAT_URL =
+	process.env['EXPO_PUBLIC_CHAT_URL'] ?? DEFAULT_CHAT_URL;
+
+export const KBVE_CHAT_GAME = 'cryptothrone';
+
 export const KBVE_LEGAL_LINKS = [
 	{ label: 'Terms of Service', url: 'https://kbve.com/legal/tos' },
 	{ label: 'EULA', url: 'https://kbve.com/legal/eula' },

@@ -14,14 +14,14 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [features]
 default = []
-bevy = ["dep:bevy_app"]
+bevy = ["dep:isometric-game"]
 
 [dependencies]
 wgpu = "27.0.1"
 raw-window-handle = "0.6.2"
 pollster = "0.4"
 log = "0.4"
-bevy_app = { version = "0.18", optional = true }
+isometric-game = { path = "../../../apps/kbve/isometric/src-tauri", optional = true, default-features = false, features = ["mobile"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk = "0.9"

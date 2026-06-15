@@ -57,8 +57,8 @@
 				"parallel": false,
 				"commands": [
 					"rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
-					"cargo build -p kbve_wgpu --release --features bevy --target aarch64-apple-ios",
-					"cargo build -p kbve_wgpu --release --features bevy --target aarch64-apple-ios-sim",
+					"cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios --crate-type staticlib",
+					"cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios-sim --crate-type staticlib",
 					"rm -rf ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework",
 					"mkdir -p ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios",
 					"xcodebuild -create-xcframework -library ../../../dist/target/aarch64-apple-ios/release/libkbve_wgpu.a -library ../../../dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a -output ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework"

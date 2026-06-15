@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
   s.source_files       = '*.swift'
   s.vendored_frameworks = 'kbve_wgpu.xcframework'
   s.preserve_paths     = 'include/**/*', 'kbve_wgpu.xcframework'
+  s.resource_bundles   = { 'KbveWgpuAssets' => ['../assets/**/*'] }
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',

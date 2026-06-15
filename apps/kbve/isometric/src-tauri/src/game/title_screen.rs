@@ -415,7 +415,7 @@ fn handle_title_buttons(
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))]
 fn handle_oauth_buttons(
     handle: NonSend<tauri::AppHandle>,
     btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>,
@@ -437,11 +437,11 @@ fn handle_oauth_buttons(
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", feature = "mobile"))]
 fn handle_oauth_buttons(btn_q: Query<(&Interaction, &OAuthBtn), Changed<Interaction>>) {
     for (interaction, OAuthBtn(provider)) in &btn_q {
         if *interaction == Interaction::Pressed {
-            info!("[title] OAuth sign-in pressed (wasm): provider={provider}");
+            info!("[title] OAuth sign-in pressed (mobile/wasm): provider={provider}");
         }
     }
 }
