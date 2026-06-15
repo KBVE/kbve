@@ -16,7 +16,8 @@ createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<KbveProvider
 			supabaseUrl={supabaseUrl}
-			anonKey={KBVE_SUPABASE_ANON_KEY}>
+			anonKey={KBVE_SUPABASE_ANON_KEY}
+			apiBaseUrl={`${window.location.origin}/kbveapi`}>
 			<Landing />
 			<OverlayHost />
 			<ToastViewport />

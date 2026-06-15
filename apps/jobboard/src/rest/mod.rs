@@ -1,6 +1,6 @@
 mod auth;
+mod proxy;
 mod spa;
-mod supabase_proxy;
 mod system;
 mod verticals;
 
@@ -17,7 +17,8 @@ pub fn router(app: Arc<AppState>) -> Router {
     Router::new()
         .merge(system::routes())
         .nest("/api", api)
-        .route("/supabase/{*rest}", any(supabase_proxy::handler))
+        .route("/supabase/{*rest}", any(proxy::supabase))
+        .route("/kbveapi/{*rest}", any(proxy::kbve_api))
         .with_state(app)
         .fallback(spa::handler)
 }

@@ -28,12 +28,15 @@ const KbveContext = createContext<KbveContextValue | null>(null);
 export interface KbveProviderProps {
 	supabaseUrl: string;
 	anonKey: string;
+	/** Override the KBVE API base URL (e.g. a same-origin proxy on web). */
+	apiBaseUrl?: string;
 	children: ReactNode;
 }
 
 export function KbveProvider({
 	supabaseUrl,
 	anonKey,
+	apiBaseUrl,
 	children,
 }: KbveProviderProps) {
 	const value = useMemo<KbveContextValue>(() => {
@@ -47,14 +50,14 @@ export function KbveProvider({
 			createChatExecutor(client, KBVE_CHAT_URL),
 		);
 		const api = createKbveApi({
-			baseUrl: KBVE_API_URL,
+			baseUrl: apiBaseUrl ?? KBVE_API_URL,
 			getToken: async () => {
 				const { data } = await client.auth.getSession();
 				return data.session?.access_token ?? null;
 			},
 		});
 		return { client, authStore, chatStore, api };
-	}, [supabaseUrl, anonKey]);
+	}, [supabaseUrl, anonKey, apiBaseUrl]);
 
 	useEffect(() => {
 		const { client, authStore } = value;

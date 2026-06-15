@@ -21,6 +21,7 @@ import { useAuth, useAuthActions } from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
 import { BrowseView } from './BrowseView';
+import { Profile } from './Profile';
 import { RightPanel, type Selection } from './RightPanel';
 import { WebGpuCanvas } from '../gpu/WebGpuCanvas';
 import { auroraGold } from '../gpu/auroraGold';
@@ -63,6 +64,8 @@ export function DashboardShell() {
 						onSelect={selectVertical}
 					/>
 				);
+			case 'profile':
+				return <Profile />;
 			default:
 				return (
 					<Stack gap="sm">
