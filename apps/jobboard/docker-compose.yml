@@ -68,9 +68,9 @@ services:
         environment:
             HTTP_HOST: 0.0.0.0
             HTTP_PORT: '5400'
-            SECURE_COOKIES: 'false'
             RUST_LOG: jobboard=info,tower_http=info
             KBVE_PG_RW_URL: postgres://postgres:postgres@postgres:5432/supabase?sslmode=disable
+            SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
         ports:
             - '5400:5400'
         depends_on:

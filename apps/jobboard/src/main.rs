@@ -5,14 +5,12 @@ mod config;
 mod db;
 mod error;
 pub mod rest;
-mod session_store;
 mod state;
 
 use std::time::Duration;
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::timeout::TimeoutLayer;
-use tower_sessions::{Expiry, SessionManagerLayer};
 use tracing::info;
 
 pub mod proto {
@@ -43,16 +41,9 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::connect().await?;
     info!("PgCluster connected");
 
-    let app_state = state::AppState::new(pool.clone());
-
-    let session_store = session_store::PgSessionStore::new(pool);
-    let session_layer = SessionManagerLayer::new(session_store)
-        .with_name("jobboard.sid")
-        .with_secure(cfg.secure_cookies)
-        .with_expiry(Expiry::OnInactivity(time::Duration::days(7)));
+    let app_state = state::AppState::new(pool);
 
     let app = rest::router(app_state)
-        .layer(session_layer)
         .layer(TimeoutLayer::with_status_code(
             axum::http::StatusCode::GATEWAY_TIMEOUT,
             Duration::from_secs(30),

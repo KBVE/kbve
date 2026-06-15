@@ -1,33 +1,49 @@
 use crate::error::ApiError;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::extract::FromRequestParts;
+use axum::http::HeaderMap;
+use axum::http::header::AUTHORIZATION;
 use axum::http::request::Parts;
-use password_hash::SaltString;
-use rand_core::OsRng;
-use tower_sessions::Session;
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+use serde::Deserialize;
 use uuid::Uuid;
 
-pub const SESSION_USER_KEY: &str = "user_id";
-
-pub fn hash_password(password: &str) -> anyhow::Result<String> {
-    let salt = SaltString::generate(&mut OsRng);
-    let hash = Argon2::default()
-        .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| anyhow::anyhow!("password hash failed: {e}"))?;
-    Ok(hash.to_string())
+#[derive(Debug, Deserialize)]
+pub struct SupabaseClaims {
+    pub sub: String,
+    pub exp: i64,
+    #[serde(default)]
+    pub kbve_username: String,
+    #[serde(default)]
+    pub role: String,
 }
 
-pub fn verify_password(password: &str, hash: &str) -> bool {
-    match PasswordHash::new(hash) {
-        Ok(parsed) => Argon2::default()
-            .verify_password(password.as_bytes(), &parsed)
-            .is_ok(),
-        Err(_) => false,
+pub fn bearer_token(headers: &HeaderMap) -> Option<&str> {
+    headers
+        .get(AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| {
+            v.strip_prefix("Bearer ")
+                .or_else(|| v.strip_prefix("bearer "))
+        })
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+}
+
+pub fn verify_supabase_jwt(token: &str, secret: &[u8]) -> Result<SupabaseClaims, String> {
+    if secret.is_empty() {
+        return Err("SUPABASE_JWT_SECRET is not set".into());
     }
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_aud = false;
+    decode::<SupabaseClaims>(token, &DecodingKey::from_secret(secret), &validation)
+        .map(|d| d.claims)
+        .map_err(|e| e.to_string())
 }
 
 pub struct AuthUser {
     pub user_id: Uuid,
+    pub username: String,
+    pub role: String,
 }
 
 impl<S> FromRequestParts<S> for AuthUser
@@ -36,17 +52,19 @@ where
 {
     type Rejection = ApiError;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let session = Session::from_request_parts(parts, state)
-            .await
-            .map_err(|_| ApiError::Unauthorized("no session".into()))?;
-        let raw: Option<String> = session
-            .get(SESSION_USER_KEY)
-            .await
-            .map_err(|e| ApiError::Internal(e.to_string()))?;
-        let raw = raw.ok_or_else(|| ApiError::Unauthorized("not logged in".into()))?;
-        let user_id =
-            Uuid::parse_str(&raw).map_err(|_| ApiError::Unauthorized("invalid session".into()))?;
-        Ok(AuthUser { user_id })
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let secret = std::env::var("SUPABASE_JWT_SECRET")
+            .map_err(|_| ApiError::Internal("SUPABASE_JWT_SECRET not configured".into()))?;
+        let token = bearer_token(&parts.headers)
+            .ok_or_else(|| ApiError::Unauthorized("missing bearer token".into()))?;
+        let claims = verify_supabase_jwt(token, secret.as_bytes())
+            .map_err(|e| ApiError::Unauthorized(format!("invalid token: {e}")))?;
+        let user_id = Uuid::parse_str(&claims.sub)
+            .map_err(|_| ApiError::Unauthorized("invalid sub claim".into()))?;
+        Ok(AuthUser {
+            user_id,
+            username: claims.kbve_username,
+            role: claims.role,
+        })
     }
 }
