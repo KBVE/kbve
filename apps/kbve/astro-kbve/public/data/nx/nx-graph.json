@@ -781,6 +781,22 @@
               ],
               "cache": true
             },
+            "coverage": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo llvm-cov -p axum-cryptothrone --ignore-filename-regex 'main\\.rs' --fail-under-lines 80 --summary-only"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true,
+              "cache": false,
+              "inputs": [
+                "default",
+                "^production"
+              ]
+            },
             "lint": {
               "executor": "@monodon/rust:lint",
               "outputs": [
@@ -5796,6 +5812,147 @@
           ]
         }
       },
+      "kbve-react-native": {
+        "name": "kbve-react-native",
+        "type": "app",
+        "data": {
+          "root": "apps/kbve/kbve-react-native",
+          "name": "kbve-react-native",
+          "projectType": "application",
+          "tags": [
+            "npm:private",
+            "scope:mobile",
+            "type:app"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@kbve/kbve-react-native",
+              "packageVersion": "0.0.1",
+              "packageMain": "index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "start": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo start"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "ios": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo start --ios"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo start --android"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo start --web"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "export": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo export -p all --output-dir dist"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "prebuild": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo prebuild"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "run:ios": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo run:ios"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "run:android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kbve-react-native",
+                "command": "expo run:android"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:native:ios": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "cwd": "apps/kbve/kbve-react-native",
+                "commands": [
+                  "npx nx run kbve_wgpu:build:ios",
+                  "expo prebuild --clean -p ios",
+                  "expo run:ios"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:native:android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "cwd": "apps/kbve/kbve-react-native",
+                "commands": [
+                  "npx nx run kbve_wgpu:build:android",
+                  "expo prebuild --clean -p android",
+                  "expo run:android"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p apps/kbve/kbve-react-native/tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/kbve/kbve-react-native",
+          "implicitDependencies": [
+            "rn"
+          ]
+        }
+      },
       "khashvault-e2e": {
         "name": "khashvault-e2e",
         "type": "e2e",
@@ -7661,6 +7818,147 @@
                 "default",
                 "^production"
               ]
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "kbve_wgpu": {
+        "name": "kbve_wgpu",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/kbve_wgpu",
+          "name": "kbve_wgpu",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/kbve_wgpu/src",
+          "tags": [
+            "ffi",
+            "cdylib",
+            "scope:mobile"
+          ],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p kbve_wgpu --release"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "verify": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "cargo fmt -p kbve_wgpu -- --check",
+                  "cargo clippy -p kbve_wgpu --all-targets -- -D warnings",
+                  "cargo test -p kbve_wgpu --no-fail-fast"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:ios": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+                  "cargo build -p kbve_wgpu --release --target aarch64-apple-ios",
+                  "cargo build -p kbve_wgpu --release --target aarch64-apple-ios-sim",
+                  "rm -rf ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework",
+                  "mkdir -p ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios",
+                  "xcodebuild -create-xcframework -library ../../../dist/target/aarch64-apple-ios/release/libkbve_wgpu.a -library ../../../dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a -output ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:android": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+                  "cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+                  "cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs build -p kbve_wgpu --release"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:ios:bevy": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-apple-ios aarch64-apple-ios-sim",
+                  "cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios --crate-type staticlib",
+                  "cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios-sim --crate-type staticlib",
+                  "rm -rf ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework",
+                  "mkdir -p ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios",
+                  "xcodebuild -create-xcframework -library ../../../dist/target/aarch64-apple-ios/release/libkbve_wgpu.a -library ../../../dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a -output ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:android:bevy": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android",
+                  "cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked",
+                  "cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o ../../../apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs build -p kbve_wgpu --release --features bevy"
+                ],
+                "cwd": "packages/rust/kbve_wgpu"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:mobile": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "npx nx run kbve_wgpu:build:ios",
+                  "npx nx run kbve_wgpu:build:android"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:all": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "verify"
+              ],
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "npx nx run kbve_wgpu:build:ios",
+                  "npx nx run kbve_wgpu:build:android"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "implicitDependencies": []
@@ -9818,6 +10116,7 @@
               "outputs": [
                 "{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json",
                 "{workspaceRoot}/packages/data/codegen/generated/itemdb-data.binpb",
+                "{workspaceRoot}/packages/data/codegen/generated/itemdb.json",
                 "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json",
                 "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb"
               ],
@@ -9934,7 +10233,9 @@
               ],
               "outputs": [
                 "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png",
-                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs"
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs",
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png",
+                "{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts"
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-itemdb-atlas.mjs",
@@ -11256,6 +11557,18 @@
               "configurations": {},
               "parallelism": true
             },
+            "serve:dist": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "node scripts/serve-coi.mjs"
+                ],
+                "cwd": "apps/kbve/isometric"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "wasm": {
               "executor": "nx:run-commands",
               "cache": false,
@@ -11538,7 +11851,66 @@
                 "./components/hero/scroll/ScrollZoomHero.astro": "./components/hero/scroll/ScrollZoomHero.astro",
                 "./components/hero/observer/ObserverCollections.astro": "./components/hero/observer/ObserverCollections.astro",
                 "./components/hero/observer/ObserverSelection.astro": "./components/hero/observer/ObserverSelection.astro",
-                "./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro"
+                "./components/social/bluesky/BlueskySocialComponent.astro": "./components/social/bluesky/BlueskySocialComponent.astro",
+                "./components/social/twitter/TwitterSocialComponent.astro": "./components/social/twitter/TwitterSocialComponent.astro",
+                "./components/social/youtube/YoutubeSocialComponent.astro": "./components/social/youtube/YoutubeSocialComponent.astro",
+                "./components/social/tiktok/TiktokSocialComponent.astro": "./components/social/tiktok/TiktokSocialComponent.astro",
+                "./components/social/steam/SteamSocialComponent.astro": "./components/social/steam/SteamSocialComponent.astro",
+                "./components/social/itch/ItchHero.astro": "./components/social/itch/ItchHero.astro",
+                "./components/social/itch/ItchGames.astro": "./components/social/itch/ItchGames.astro",
+                "./components/social/itch/itchGames": {
+                  "import": "./components/social/itch/itchGames.js",
+                  "types": "./components/social/itch/itchGames.d.ts"
+                },
+                "./components/social/twitch/TwitchEmbed.astro": "./components/social/twitch/TwitchEmbed.astro",
+                "./components/social/twitch/TwitchChat.astro": "./components/social/twitch/TwitchChat.astro",
+                "./components/social/twitch/ReactTwitchEmbed": {
+                  "import": "./components/social/twitch/ReactTwitchEmbed.js",
+                  "types": "./components/social/twitch/ReactTwitchEmbed.d.ts"
+                },
+                "./components/social/twitch/ReactTwitchChat": {
+                  "import": "./components/social/twitch/ReactTwitchChat.js",
+                  "types": "./components/social/twitch/ReactTwitchChat.d.ts"
+                },
+                "./components/social/twitch/ReactTwitchProfile": {
+                  "import": "./components/social/twitch/ReactTwitchProfile.js",
+                  "types": "./components/social/twitch/ReactTwitchProfile.d.ts"
+                },
+                "./components/social/twitch/ServiceTwitch": {
+                  "import": "./components/social/twitch/ServiceTwitch.js",
+                  "types": "./components/social/twitch/ServiceTwitch.d.ts"
+                },
+                "./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
+                "./components/social/discord/DiscordCalendar.astro": "./components/social/discord/DiscordCalendar.astro",
+                "./components/social/discord/DiscordRule.astro": "./components/social/discord/DiscordRule.astro",
+                "./components/social/discord/ReactDiscordEmbed": {
+                  "import": "./components/social/discord/ReactDiscordEmbed.js",
+                  "types": "./components/social/discord/ReactDiscordEmbed.d.ts"
+                },
+                "./components/social/discord/ReactDiscordProfile": {
+                  "import": "./components/social/discord/ReactDiscordProfile.js",
+                  "types": "./components/social/discord/ReactDiscordProfile.d.ts"
+                },
+                "./components/social/discord/DiscordService": {
+                  "import": "./components/social/discord/DiscordService.js",
+                  "types": "./components/social/discord/DiscordService.d.ts"
+                },
+                "./components/social/github/GithubHero/DeferredAstroGithubHero.astro": "./components/social/github/GithubHero/DeferredAstroGithubHero.astro",
+                "./components/social/github/GithubHero/AstroGithubHero.astro": "./components/social/github/GithubHero/AstroGithubHero.astro",
+                "./components/social/github/Tabs/AstroGithubTabs.astro": "./components/social/github/Tabs/AstroGithubTabs.astro",
+                "./components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro": "./components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro",
+                "./components/social/github/Activity/AstroGithubActivity.astro": "./components/social/github/Activity/AstroGithubActivity.astro",
+                "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
+                "./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
+                "./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
+                "./utils/clientRouter": {
+                  "import": "./utils/clientRouter.js",
+                  "types": "./utils/clientRouter.d.ts"
+                },
+                "./utils/cn": {
+                  "import": "./utils/cn.js",
+                  "types": "./utils/cn.d.ts"
+                }
               },
               "packageMain": "./astro.es.js",
               "isInPackageManagerWorkspaces": false
@@ -13337,6 +13709,78 @@
           "implicitDependencies": []
         }
       },
+      "core": {
+        "name": "core",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/core",
+          "targets": {
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/core/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "core",
+          "projectType": "library",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:core",
+            "npm:reducer",
+            "npm:state-machine",
+            "npm:agent",
+            "scope:shared",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Portable, framework-agnostic application core for KBVE — agent-control protocol, event-in/view-model-out reducer, and store. React-free; Crux-swap-ready.",
+            "js": {
+              "packageName": "@kbve/core",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/core/src",
+          "implicitDependencies": []
+        }
+      },
       "cryptothrone": {
         "name": "cryptothrone",
         "type": "app",
@@ -14032,6 +14476,77 @@
           "implicitDependencies": []
         }
       },
+      "rn": {
+        "name": "rn",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/rn",
+          "targets": {
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/rn/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "rn",
+          "projectType": "library",
+          "tags": [
+            "npm:public",
+            "npm:react-native",
+            "npm:expo",
+            "npm:kbve",
+            "npm:agent",
+            "scope:mobile",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "React Native shared layer for KBVE mobile apps — agent-control protocol types, hooks, and UI primitives.",
+            "js": {
+              "packageName": "@kbve/rn",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/rn/src",
+          "implicitDependencies": []
+        }
+      },
       "discordsh": {
         "name": "discordsh",
         "type": "app",
@@ -14308,6 +14823,154 @@
                 "parallel": false
               },
               "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
+      "jobboard": {
+        "name": "jobboard",
+        "type": "app",
+        "data": {
+          "root": "apps/jobboard",
+          "name": "jobboard",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/jobboard/src",
+          "tags": [
+            "docker",
+            "rust",
+            "jobboard"
+          ],
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/jobboard"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/jobboard"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/jobboard"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "run": {
+              "executor": "@monodon/rust:run",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/jobboard"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx jobboard:containerx",
+                    "VERSION=$(grep '^version' apps/jobboard/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/jobboard:latest kbve/jobboard:$VERSION && echo \"Tagged kbve/jobboard:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx jobboard:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/jobboard/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/jobboard:latest ghcr.io/kbve/jobboard:latest && docker tag kbve/jobboard:latest ghcr.io/kbve/jobboard:$VERSION && echo \"Tagged ghcr.io/kbve/jobboard:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/jobboard/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/jobboard:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/jobboard",
+                      "kbve/jobboard"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/jobboard:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/jobboard:buildcache,mode=max"
+                  ]
+                }
+              },
               "parallelism": true
             }
           },
@@ -15420,6 +16083,18 @@
           "type": "implicit"
         }
       ],
+      "kbve-react-native": [
+        {
+          "source": "kbve-react-native",
+          "target": "rn",
+          "type": "implicit"
+        },
+        {
+          "source": "kbve-react-native",
+          "target": "rn",
+          "type": "static"
+        }
+      ],
       "khashvault-e2e": [
         {
           "source": "khashvault-e2e",
@@ -15491,6 +16166,7 @@
       ],
       "firecracker-ctl": [],
       "iot-edge-worker": [],
+      "kbve_wgpu": [],
       "khashvault": [
         {
           "source": "khashvault",
@@ -15647,6 +16323,7 @@
       "kbve": [],
       "kilobase": [],
       "laser": [],
+      "core": [],
       "cryptothrone": [],
       "data-sql": [],
       "angelscript": [],
@@ -15665,9 +16342,17 @@
       "mc-velocity": [],
       "kbve-kubectl": [],
       "q": [],
+      "rn": [
+        {
+          "source": "rn",
+          "target": "core",
+          "type": "static"
+        }
+      ],
       "discordsh": [],
       "edge": [],
       "herbmail": [],
+      "jobboard": [],
       "mc-lobby": [],
       "pydesk": [],
       "memes": [],
