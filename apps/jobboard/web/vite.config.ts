@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
 	],
 	base: '/',
 	resolve: {
+		// @kbve/rn source resolves react from the repo-root node_modules while the
+		// app uses web/node_modules -> two React copies -> "Invalid hook call".
+		// Force a single copy of each.
+		dedupe: ['react', 'react-dom', 'react-native-web'],
 		alias: [
 			// buildless workspace sources consumed directly (vite transpiles them);
 			// subpaths first so they win over the bare @kbve/rn match.
