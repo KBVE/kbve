@@ -64,22 +64,6 @@ export function RankPill({ tier, label }: { tier: RankTier; label: string }) {
 	);
 }
 
-export function Stars({ value, count }: { value: number; count?: number }) {
-	const full = Math.round(value);
-	return (
-		<span className="inline-flex items-center gap-1 text-sm">
-			<span className="text-loot-400" aria-hidden>
-				{'★'.repeat(full)}
-				<span className="text-zinc-700">{'★'.repeat(5 - full)}</span>
-			</span>
-			<span className="text-zinc-400">
-				{value.toFixed(1)}
-				{count !== undefined ? ` (${count})` : ''}
-			</span>
-		</span>
-	);
-}
-
 export function Avatar({
 	src,
 	alt,
@@ -121,8 +105,10 @@ export function Button({
 	const base =
 		'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50';
 	const tones = {
-		primary: 'bg-quest-500 text-white hover:bg-quest-400 shadow-lg shadow-quest-900/40',
-		outline: 'border border-zinc-700 text-zinc-100 hover:border-quest-500 hover:text-quest-200',
+		primary:
+			'bg-quest-500 text-white hover:bg-quest-400 shadow-lg shadow-quest-900/40',
+		outline:
+			'border border-zinc-700 text-zinc-100 hover:border-quest-500 hover:text-quest-200',
 		ghost: 'text-zinc-300 hover:text-white hover:bg-zinc-800/60',
 	};
 	return (
@@ -154,13 +140,7 @@ export function ErrorNote({ error }: { error: unknown }) {
 	);
 }
 
-export function EmptyState({
-	title,
-	hint,
-}: {
-	title: string;
-	hint?: string;
-}) {
+export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 	return (
 		<div className="panel px-6 py-12 text-center">
 			<p className="text-lg font-semibold text-zinc-200">{title}</p>

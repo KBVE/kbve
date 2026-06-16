@@ -1,6 +1,9 @@
-// Web-safe UI barrel: identical to index.ts minus ./nav, whose AppBar/Footer/
-// TabBar pull @expo/vector-icons (ships untranspiled JSX, breaks web bundlers).
+// Web-safe UI barrel: identical to index.ts minus the ./nav barrel, whose
+// AppBar/TabBar pull @expo/vector-icons (ships untranspiled JSX, breaks web
+// bundlers). Footer is web-safe (no icons) so it's re-exported individually.
+export * from './nav/Footer';
 export * from './theme';
+export * from './ThemeProvider';
 export * from './models';
 export * from './useShake';
 
@@ -18,6 +21,7 @@ export * from './primitives/FormField';
 export * from './primitives/Avatar';
 export * from './primitives/PeekMascot';
 export * from './primitives/BrandIcons';
+export * from './primitives/Stars';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';

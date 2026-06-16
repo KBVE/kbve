@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
 import { tokens } from '../theme';
 import { Text } from '../primitives/Text';
+import { openExternal } from '../../platform/openExternal';
 
 const LINKS = [
 	{ label: 'About', url: 'https://kbve.com/about/' },
@@ -19,9 +19,7 @@ export const Footer = memo(function Footer() {
 						key={link.url}
 						variant="caption"
 						tone="primary"
-						onPress={() =>
-							void WebBrowser.openBrowserAsync(link.url)
-						}>
+						onPress={() => openExternal(link.url)}>
 						{link.label}
 					</Text>
 				))}

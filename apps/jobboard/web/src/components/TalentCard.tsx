@@ -5,7 +5,8 @@ import {
 	AVAILABILITY_TONE,
 	formatRate,
 } from '../lib/format';
-import { Avatar, RankPill, Stars, TagRow } from './ui';
+import { Avatar, RankPill, TagRow } from './ui';
+import { Stars } from '@kbve/rn/ui';
 import { RANKS } from '../api/client';
 
 export function TalentCard({ talent }: { talent: TalentProfile }) {
@@ -16,15 +17,24 @@ export function TalentCard({ talent }: { talent: TalentProfile }) {
 			params={{ handle: talent.handle }}
 			className="panel group flex flex-col gap-3 p-5 transition hover:border-quest-500/70 hover:bg-zinc-900/70">
 			<div className="flex items-start gap-3">
-				<Avatar src={talent.avatar_url} alt={talent.display_name} size={48} />
+				<Avatar
+					src={talent.avatar_url}
+					alt={talent.display_name}
+					size={48}
+				/>
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
 						<h3 className="truncate font-display font-semibold text-zinc-100 group-hover:text-quest-200">
 							{talent.display_name}
 						</h3>
-						<RankPill tier={talent.rank} label={RANKS[talent.rank].label} />
+						<RankPill
+							tier={talent.rank}
+							label={RANKS[talent.rank].label}
+						/>
 					</div>
-					<p className="truncate text-sm text-zinc-400">{talent.headline}</p>
+					<p className="truncate text-sm text-zinc-400">
+						{talent.headline}
+					</p>
 				</div>
 			</div>
 
