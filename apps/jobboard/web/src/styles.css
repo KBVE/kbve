@@ -1,19 +1,96 @@
 @import 'tailwindcss';
 
-/* react-native-web renders flex:1 roots (Screen/SafeAreaView); without an
-   explicit viewport height the tree collapses to 0px and the page looks blank. */
-html,
-body,
-#root {
-	height: 100%;
-	margin: 0;
+/* ─────────────────────────────────────────────────────────────────────────
+   Blended theme: dev's "aurora gold" dark base + our "quest" violet/amber
+   accents. Gold is the ambient/base (background glow, gold token for trim);
+   violet (quest) drives primary actions/links; amber (loot) marks rewards
+   (budgets, XP). Tokens below become Tailwind utilities (bg-quest-500,
+   text-gold-400, text-loot-400, font-display, etc.).
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+	--font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+	/* Quest violet — primary accent (our identity) */
+	--color-quest-50: #f2effe;
+	--color-quest-100: #e6e0fd;
+	--color-quest-200: #ccc2fb;
+	--color-quest-300: #ab98f7;
+	--color-quest-400: #8e6ff1;
+	--color-quest-500: #7c4dff;
+	--color-quest-600: #6a35eb;
+	--color-quest-700: #5827c4;
+	--color-quest-800: #48239d;
+	--color-quest-900: #3c217e;
+
+	/* Aurora gold — dev's house accent, now the ambient/base trim color */
+	--color-gold-300: #dcc08a;
+	--color-gold-400: #c9a56a;
+	--color-gold-500: #a67d43;
+	--color-gold-600: #7a5a2e;
+
+	/* Loot amber — reward highlights (budgets, XP) */
+	--color-loot-400: #fbbf24;
+	--color-loot-500: #f59e0b;
 }
 
-#root {
-	display: flex;
-	flex-direction: column;
+/* react-native-web renders flex:1 roots (Screen/SafeAreaView / AuthGate); without
+   an explicit viewport height the tree collapses to 0px and the page looks blank. */
+@layer base {
+	html,
+	body,
+	#root {
+		height: 100%;
+		margin: 0;
+	}
+	#root {
+		display: flex;
+		flex-direction: column;
+	}
+	html {
+		color-scheme: dark;
+	}
+	/* Gold-dark base (dev #121312) with a warm gold aurora glow top-right and a
+	   subtle violet glow bottom-left — the blend, in one backdrop. */
+	body {
+		background-color: #121312;
+		background-image:
+			radial-gradient(
+				60rem 42rem at 88% -12%,
+				color-mix(in oklab, var(--color-gold-500) 26%, transparent),
+				transparent
+			),
+			radial-gradient(
+				52rem 40rem at -8% 112%,
+				color-mix(in oklab, var(--color-quest-800) 28%, transparent),
+				transparent
+			);
+		background-attachment: fixed;
+	}
 }
 
-body {
-	background: #181a20;
+@layer components {
+	/* Warm dark panel that reads on the brown-black base, with a faint gold hairline. */
+	.panel {
+		@apply rounded-xl border bg-zinc-900/40 backdrop-blur-sm;
+		border-color: color-mix(in oklab, var(--color-gold-400) 14%, transparent);
+	}
+}
+
+/* Gentle idle bob for the login mascot. */
+@keyframes mascot-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-5px);
+	}
+}
+.animate-float {
+	animation: mascot-float 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.animate-float {
+		animation: none;
+	}
 }
