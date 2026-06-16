@@ -19,8 +19,8 @@ import {
 	Music,
 	PenLine,
 	Repeat,
-	Sparkles,
 	Users,
+	Wand2,
 } from 'lucide-react';
 import { fetchTaxonomy } from '../api/client';
 
@@ -33,7 +33,7 @@ const ICONS: Record<string, LucideIcon> = {
 	'3d-art': Box,
 	animation: Film,
 	programming: Code2,
-	'technical-art': Sparkles,
+	'technical-art': Wand2,
 	audio: Music,
 	'game-design': Gamepad2,
 	'level-design': Map,
