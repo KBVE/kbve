@@ -141,6 +141,31 @@ const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 		})
 		.optional(),
 	external_publish: ExternalPublishInline,
+	// jobboard taxonomy source of truth (verticals + tags). Codegen
+	// (gen-jobboard-taxonomy.mjs) reads this -> JSON bundle + seed SQL.
+	// slug/name are stable locale-independent keys; label is the default (en)
+	// display string — i18n later layers a labels map without reshaping.
+	verticals: z
+		.array(
+			z.object({
+				slug: z
+					.string()
+					.regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+					.max(50),
+				label: z.string().min(1).max(100),
+				description: z.string().max(500).optional(),
+				status: z
+					.enum(['inactive', 'active', 'featured'])
+					.default('active'),
+				sort_order: z.number().int().nonnegative().default(0),
+				disciplines: z
+					.array(z.tuple([z.string(), z.string()]))
+					.optional(),
+				tools: z.array(z.tuple([z.string(), z.string()])).optional(),
+				skills: z.array(z.tuple([z.string(), z.string()])).optional(),
+			}),
+		)
+		.optional(),
 });
 
 const project = defineCollection({

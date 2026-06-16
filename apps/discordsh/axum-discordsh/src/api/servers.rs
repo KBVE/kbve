@@ -1,6 +1,12 @@
 use std::net::IpAddr;
 
-use axum::{Json, Router, extract::{Path, Query, State}, http::StatusCode, response::IntoResponse, routing::{get, post}};
+use axum::{
+    Json, Router,
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+};
 use serde::{Deserialize, Serialize};
 
 use super::validate::{
@@ -266,8 +272,11 @@ async fn list_servers(
 ) -> impl IntoResponse {
     let Some(ref cluster) = state.app.pg_cluster else {
         tracing::warn!("[list_servers] PgCluster not initialized");
-        return err(StatusCode::SERVICE_UNAVAILABLE, "Database temporarily unavailable")
-            .into_response();
+        return err(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Database temporarily unavailable",
+        )
+        .into_response();
     };
 
     match query_servers(cluster, &params).await {
@@ -288,11 +297,9 @@ async fn list_servers(
 }
 
 async fn query_servers(
-    cluster: &kbve::jedi::state::pg::PgCluster,
+    cluster: &jedi::state::pg::PgCluster,
     params: &ListServersQuery,
-) -> Result<(Vec<ServerRecord>, i64), kbve::jedi::entity::error::JediError> {
-    use kbve::jedi::state::pg::tokio_postgres;
-
+) -> Result<(Vec<ServerRecord>, i64), jedi::entity::error::JediError> {
     let conn = cluster.read().await?;
 
     // Map category ID to array contains check
@@ -410,8 +417,11 @@ async fn get_server(
 
     let Some(ref cluster) = state.app.pg_cluster else {
         tracing::warn!("[get_server] PgCluster not initialized");
-        return err(StatusCode::SERVICE_UNAVAILABLE, "Database temporarily unavailable")
-            .into_response();
+        return err(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Database temporarily unavailable",
+        )
+        .into_response();
     };
 
     match query_server_by_id(cluster, &server_id).await {
@@ -425,11 +435,9 @@ async fn get_server(
 }
 
 async fn query_server_by_id(
-    cluster: &kbve::jedi::state::pg::PgCluster,
+    cluster: &jedi::state::pg::PgCluster,
     server_id: &str,
-) -> Result<Option<ServerRecord>, kbve::jedi::entity::error::JediError> {
-    use kbve::jedi::state::pg::tokio_postgres;
-
+) -> Result<Option<ServerRecord>, jedi::entity::error::JediError> {
     let conn = cluster.read().await?;
 
     let sql = r#"

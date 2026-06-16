@@ -257,22 +257,37 @@ jobs:
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces build failures as GitHub issues (#8186).
-    # Runs on any failure so async failures are not silently dropped.
+    # One call per job so each issue title auto-closes on its own success.
     # ---------------------------------------------------------------------------
-    track_failure:
-        name: Track Failures
-        if: always() && (needs.build_wasm.result == 'failure' || needs.deploy_wasm.result == 'failure')
-        needs: [build_wasm, deploy_wasm]
+    track_build_wasm:
+        name: Track build_wasm
+        if: always() && needs.build_wasm.result != 'cancelled' && needs.build_wasm.result != 'skipped'
+        needs: [build_wasm]
         permissions:
             issues: write
             contents: read
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Bevy'
-            job_name: ${{ needs.build_wasm.result == 'failure' && 'build_wasm' || 'deploy_wasm' }}
+            job_name: 'build_wasm'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
+            status: ${{ needs.build_wasm.result }}
+
+    track_deploy_wasm:
+        name: Track deploy_wasm
+        if: always() && needs.deploy_wasm.result != 'cancelled' && needs.deploy_wasm.result != 'skipped'
+        needs: [deploy_wasm]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Bevy'
+            job_name: 'deploy_wasm'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.deploy_wasm.result }}
 
     # ---------------------------------------------------------------------------
     # Future build targets — disabled, scaffolded for when native builds land.

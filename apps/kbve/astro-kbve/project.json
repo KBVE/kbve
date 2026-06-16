@@ -275,6 +275,24 @@
 			},
 			"cache": true
 		},
+		"sync:jobboard-taxonomy": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/project/jobboard.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-jobboard-taxonomy.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy.json",
+				"{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy-seed.sql",
+				"{workspaceRoot}/apps/jobboard/web/src/api/taxonomy.generated.json",
+				"{workspaceRoot}/apps/jobboard/docker/seed.sql"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-jobboard-taxonomy.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:itemdb": {
 			"executor": "nx:run-commands",
 			"inputs": [

@@ -1,0 +1,152 @@
+# ============================================================================
+# axum-kbve local full-stack — backing services + the API, scoped to this app.
+#
+#   docker compose -f apps/kbve/axum-kbve/docker-compose.yml up --build   # build API from source
+#   docker compose -f apps/kbve/axum-kbve/docker-compose.yml up           # pull published API image
+#   docker compose -f apps/kbve/axum-kbve/docker-compose.yml down -v       # wipe
+#
+# Mirrors prod's request path for the KBVE API:
+#   axum-kbve (4321): /api/v1/*   — SUPABASE_URL=http://kong:8000, exactly like prod
+#   kong (8000): /auth/v1→gotrue   /rest/v1→postgrest
+#   axum-kbve → valkey (cache) + postgres (wallet/profile/etc, all dbmate migrations)
+#
+# Fast inner loop: `up` the backing services and run the API on the host
+# (`nx run axum-kbve:dev` / `cargo run -p axum-kbve`) with the same env below
+# pointed at localhost — skips the ~15-20min astro+rust image build per change.
+# Use `--build` only for a full in-container test.
+#
+# JWTs use the standard supabase self-host demo secret/keys (local-only).
+# ============================================================================
+
+x-jwt-secret: &jwt_secret super-secret-jwt-token-with-at-least-32-characters-long
+x-anon-key: &anon_key eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWRlbW8iLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MTc5OTUzNTYwMH0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE
+x-service-key: &service_key eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UtZGVtbyIsImlhdCI6MTY0MTc2OTIwMCwiZXhwIjoxNzk5NTM1NjAwfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q
+
+services:
+    postgres:
+        image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
+        platform: linux/amd64
+        environment:
+            POSTGRES_USER: supabase_admin
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: supabase
+        ports:
+            - '54322:5432'
+        volumes:
+            - ../../../packages/data/sql/dbmate/init/00-roles.sql:/docker-entrypoint-initdb.d/zz_00-roles.sql:ro
+            - ../../../packages/data/sql/dbmate/init/01-supabase-runtime-stubs.sql:/docker-entrypoint-initdb.d/zz_01-supabase-runtime-stubs.sql:ro
+            - ../../../packages/data/sql/dbmate/init/03-n8n-stub.sql:/docker-entrypoint-initdb.d/zz_03-n8n-stub.sql:ro
+            - ../../../packages/data/sql/dbmate/init/04-profile-stub.sql:/docker-entrypoint-initdb.d/zz_04-profile-stub.sql:ro
+            - pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'pg_isready -h 127.0.0.1 -U postgres -d supabase && PGPASSWORD=postgres psql -h 127.0.0.1 -U supabase_admin -d supabase -tAc "select 1 from pg_namespace where nspname=''auth''" | grep -q 1',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 40
+            start_period: 30s
+
+    migrate:
+        image: ghcr.io/amacneil/dbmate:2
+        command:
+            ['--no-dump-schema', '--migrations-dir', '/db/migrations', 'up']
+        environment:
+            DATABASE_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable&search_path=dbmate,public
+        volumes:
+            - ../../../packages/data/sql/dbmate:/db:ro
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    valkey:
+        image: valkey/valkey:8-alpine
+        command: ['valkey-server', '--requirepass', 'localdev']
+        ports:
+            - '6379:6379'
+        healthcheck:
+            test: ['CMD', 'valkey-cli', '-a', 'localdev', 'ping']
+            interval: 5s
+            timeout: 3s
+            retries: 20
+
+    gotrue:
+        image: supabase/gotrue:v2.151.0
+        environment:
+            GOTRUE_API_HOST: 0.0.0.0
+            GOTRUE_API_PORT: '9999'
+            API_EXTERNAL_URL: http://localhost:8000
+            GOTRUE_DB_DRIVER: postgres
+            GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:postgres@postgres:5432/supabase?sslmode=disable
+            GOTRUE_SITE_URL: http://localhost:4321
+            GOTRUE_URI_ALLOW_LIST: 'http://localhost:4321,http://localhost:5400,http://localhost:5401'
+            GOTRUE_JWT_SECRET: *jwt_secret
+            GOTRUE_JWT_EXP: '3600'
+            GOTRUE_JWT_AUD: authenticated
+            GOTRUE_DISABLE_SIGNUP: 'false'
+            GOTRUE_MAILER_AUTOCONFIRM: 'true'
+            GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    postgrest:
+        image: postgrest/postgrest:v12.2.3
+        environment:
+            PGRST_DB_URI: postgres://authenticator:postgres@postgres:5432/supabase
+            PGRST_DB_SCHEMAS: public,storage
+            PGRST_DB_ANON_ROLE: anon
+            PGRST_JWT_SECRET: *jwt_secret
+            PGRST_DB_USE_LEGACY_GUCS: 'false'
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+
+    kong:
+        image: kong:2.8.1
+        environment:
+            KONG_DATABASE: 'off'
+            KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+            KONG_DNS_ORDER: LAST,A,CNAME
+            KONG_PLUGINS: request-transformer,cors,key-auth
+        ports:
+            - '8000:8000'
+        volumes:
+            - ./kong.yml:/home/kong/kong.yml:ro
+        depends_on:
+            - gotrue
+            - postgrest
+
+    axum-kbve:
+        image: ghcr.io/kbve/kbve:latest
+        build:
+            context: ../../..
+            dockerfile: apps/kbve/axum-kbve/Dockerfile
+        environment:
+            PORT: '4321'
+            SUPABASE_URL: http://kong:8000
+            SUPABASE_ANON_KEY: *anon_key
+            SUPABASE_SERVICE_ROLE_KEY: *service_key
+            SUPABASE_JWT_SECRET: *jwt_secret
+            KBVE_PG_RW_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            KBVE_PG_RO_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            KBVE_PG_ANY_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            WALLET_DATABASE_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            WALLET_DATABASE_URL_RO: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
+            VALKEY_PASSWORD: localdev
+            KBVE_KV_URL: redis://default:localdev@valkey:6379/3
+            RUST_LOG: axum_kbve=info,jedi=info,tower_http=info
+        ports:
+            - '4321:4321'
+        depends_on:
+            postgres:
+                condition: service_healthy
+            valkey:
+                condition: service_healthy
+            kong:
+                condition: service_started
+
+volumes:
+    pgdata:

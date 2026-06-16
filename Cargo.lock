@@ -1533,7 +1533,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.38"
+version = "0.1.39"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -1572,6 +1572,7 @@ dependencies = [
  "axum-extra",
  "dotenvy",
  "http-body-util",
+ "jedi",
  "kbve",
  "num_cpus",
  "reqwest 0.13.2",
@@ -1648,7 +1649,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.201"
+version = "1.0.202"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -8854,7 +8855,7 @@ dependencies = [
 
 [[package]]
 name = "jobboard"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "axum 0.8.9",

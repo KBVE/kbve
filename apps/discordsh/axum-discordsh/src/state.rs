@@ -21,7 +21,7 @@ pub struct AppState {
 
     /// Direct Postgres pool (bypasses Postgrest/edge).
     /// TODO: Make this required (not Option) once PgCluster is stable.
-    pub pg_cluster: Option<Arc<kbve::jedi::state::pg::PgCluster>>,
+    pub pg_cluster: Option<Arc<jedi::state::pg::PgCluster>>,
 }
 
 impl AppState {
@@ -41,7 +41,7 @@ impl AppState {
         }
     }
 
-    pub fn with_pg_cluster(mut self, cluster: Arc<kbve::jedi::state::pg::PgCluster>) -> Self {
+    pub fn with_pg_cluster(mut self, cluster: Arc<jedi::state::pg::PgCluster>) -> Self {
         self.pg_cluster = Some(cluster);
         self
     }
