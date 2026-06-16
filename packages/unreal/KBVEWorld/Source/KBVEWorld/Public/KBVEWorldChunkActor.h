@@ -38,6 +38,9 @@ public:
 	void   MarkUsed(uint64 TickNow) { LastUsedTick = TickNow; }
 
 	virtual float SampleHeight(float Wx, float Wy, uint32 InSeed) const { return 0.f; }
+	virtual FColor SampleVertexColor(float Wx, float Wy) const { return FColor::White; }
+	virtual float SampleFoliageDensity(float Wx, float Wy) const { return 0.f; }
+	virtual float SampleRoadInfluence(float Wx, float Wy) const { return 0.f; }
 
 protected:
 	virtual void BeginPlay() override;
