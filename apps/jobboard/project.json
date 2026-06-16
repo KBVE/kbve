@@ -7,6 +7,7 @@
 		"build": {
 			"executor": "@monodon/rust:build",
 			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
 			"options": {
 				"target-dir": "dist/target/jobboard"
 			},
@@ -19,6 +20,7 @@
 		"test": {
 			"executor": "@monodon/rust:test",
 			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
 			"options": {
 				"target-dir": "dist/target/jobboard"
 			}
@@ -26,6 +28,7 @@
 		"lint": {
 			"executor": "@monodon/rust:lint",
 			"outputs": ["{options.target-dir}"],
+			"dependsOn": ["web-build"],
 			"options": {
 				"target-dir": "dist/target/jobboard"
 			}
