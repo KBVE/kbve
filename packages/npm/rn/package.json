@@ -52,6 +52,7 @@
 		"@kbve/core": "0.0.1",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"@supabase/supabase-js": "^2.95.3",
+		"comlink": "^4.4.2",
 		"dexie": "^4.4.2",
 		"expo-auth-session": "~56.0.14",
 		"expo-linking": "~56.0.14",
