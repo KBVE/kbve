@@ -1,13 +1,25 @@
 import { forwardRef } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
-const PANEL_SRC = '/ui/panel9.png';
+export const PANELS = {
+	wood: '/ui/panel-wood.png',
+	stone: '/ui/panel-stone.png',
+	iron: '/ui/panel-iron.png',
+	parchment: '/ui/panel-parchment.png',
+	arcane: '/ui/panel-arcane.png',
+	emerald: '/ui/panel-emerald.png',
+	ruby: '/ui/panel-ruby.png',
+} as const;
+
+export type PanelVariant = keyof typeof PANELS;
 
 interface PixelPanelProps {
 	children?: ReactNode;
 	className?: string;
 	style?: CSSProperties;
-	/** 9-slice source image (a bordered panel). */
+	/** named panel from the generated family (wood, stone, arcane, ...). */
+	variant?: PanelVariant;
+	/** explicit 9-slice source; overrides variant. */
 	src?: string;
 	/** border-image-slice inset, in source pixels (the frame thickness). */
 	slice?: number;
@@ -26,13 +38,15 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 			children,
 			className,
 			style,
-			src = PANEL_SRC,
+			variant = 'wood',
+			src,
 			slice = 8,
 			scale = 1,
 			repeat = 'stretch',
 		},
 		ref,
 	) {
+		const source = src ?? PANELS[variant];
 		return (
 			<div
 				ref={ref}
@@ -40,7 +54,7 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 				style={{
 					borderStyle: 'solid',
 					borderWidth: slice * scale,
-					borderImageSource: `url(${src})`,
+					borderImageSource: `url(${source})`,
 					borderImageSlice: `${slice} fill`,
 					borderImageRepeat: repeat,
 					imageRendering: 'pixelated',
