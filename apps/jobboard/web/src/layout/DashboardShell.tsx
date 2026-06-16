@@ -6,6 +6,7 @@ import {
 	PressableSurface,
 	Text,
 	Button,
+	Avatar,
 	tokens,
 } from '@kbve/rn/ui';
 import {
@@ -15,6 +16,8 @@ import {
 	MessageSquare,
 	User,
 	Hexagon,
+	Search,
+	Bell,
 	type LucideIcon,
 } from 'lucide-react';
 import { useAuth, useAuthActions } from '@kbve/rn/auth';
@@ -167,26 +170,49 @@ export function DashboardShell() {
 				borderBottomColor: tokens.color.border,
 				borderRadius: 0,
 			}}>
-			<TextInput
-				placeholder="Search jobs…"
-				placeholderTextColor={tokens.color.textFaint}
+			<View
 				style={{
 					flex: 1,
-					maxWidth: 360,
-					color: tokens.color.text,
+					maxWidth: 380,
+					flexDirection: 'row',
+					alignItems: 'center',
+					gap: tokens.space.sm,
 					backgroundColor: tokens.color.surfaceAlt,
 					borderRadius: tokens.radius.pill,
 					paddingHorizontal: tokens.space.md,
-					paddingVertical: tokens.space.sm,
-				}}
-			/>
+				}}>
+				<Search size={16} color={tokens.color.textFaint} />
+				<TextInput
+					placeholder="Search jobs, people…"
+					placeholderTextColor={tokens.color.textFaint}
+					style={{
+						flex: 1,
+						color: tokens.color.text,
+						paddingVertical: tokens.space.sm,
+						outlineStyle: 'none',
+					}}
+				/>
+			</View>
 			<View style={{ flex: 1 }} />
-			<Text variant="label">@{username}</Text>
-			<Button
-				title="Sign out"
-				variant="secondary"
-				onPress={() => signOut()}
-			/>
+			<PressableSurface
+				style={{
+					width: 40,
+					height: 40,
+					alignItems: 'center',
+					justifyContent: 'center',
+					borderRadius: tokens.radius.md,
+					backgroundColor: tokens.color.surfaceAlt,
+				}}>
+				<Bell size={18} color={tokens.color.textMuted} />
+			</PressableSurface>
+			<Stack direction="row" gap="sm" align="center">
+				<Avatar name={username} size={36} />
+				<Button
+					title="Sign out"
+					variant="secondary"
+					onPress={() => signOut()}
+				/>
+			</Stack>
 		</Surface>
 	);
 

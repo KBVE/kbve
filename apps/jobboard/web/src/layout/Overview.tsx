@@ -1,45 +1,28 @@
 import { View } from 'react-native';
 import { Stack, Text, Badge, tokens } from '@kbve/rn/ui';
-import { FileText, Users, Sparkles, TrendingUp } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { TrendingUp, Sparkles } from 'lucide-react';
 import { Panel } from '../ui/Panel';
+import { AreaChart } from '../ui/AreaChart';
 import { Sparkline } from '../ui/Sparkline';
+import { Bars } from '../ui/Bars';
 
-const TREND = [12, 18, 14, 22, 19, 28, 24, 33, 30, 38, 42, 39];
-
-function StatCard({
-	label,
-	value,
-	delta,
-	Icon,
-	series,
-}: {
-	label: string;
-	value: string;
-	delta: string;
-	Icon: LucideIcon;
-	series: number[];
-}) {
-	return (
-		<Panel style={{ flex: 1, minWidth: 180, gap: tokens.space.sm }}>
-			<Stack direction="row" justify="space-between" align="center">
-				<Stack direction="row" gap="sm" align="center">
-					<Icon size={16} color={tokens.color.primary} />
-					<Text variant="caption" tone="muted">
-						{label}
-					</Text>
-				</Stack>
-				<Badge label={delta} tone="success" />
-			</Stack>
-			<Text variant="title" weight="bold">
-				{value}
-			</Text>
-			<div style={{ marginTop: 2, opacity: 0.9 }}>
-				<Sparkline data={series} height={36} strokeWidth={1.5} />
-			</div>
-		</Panel>
-	);
-}
+const MONTHS = [
+	'Jan',
+	'Feb',
+	'Mar',
+	'Apr',
+	'May',
+	'Jun',
+	'Jul',
+	'Aug',
+	'Sep',
+	'Oct',
+	'Nov',
+	'Dec',
+];
+const SERIES = [2.1, 2.6, 2.3, 3.1, 2.8, 3.6, 3.2, 4.0, 3.7, 4.4, 4.1, 4.7];
+const ACTIVITY = [4, 7, 5, 9, 6, 8, 5];
+const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function Overview({ username }: { username: string }) {
 	return (
@@ -54,33 +37,28 @@ export function Overview({ username }: { username: string }) {
 						gap: tokens.space.lg,
 					}}>
 					<Stack gap="xs" style={{ flex: 1 }}>
-						<Stack direction="row" gap="sm" align="center">
-							<Sparkles size={18} color={tokens.color.primary} />
-							<Text variant="label" tone="primary">
-								Welcome back
-							</Text>
-						</Stack>
 						<Text variant="display" weight="bold">
 							Hello {username}!
 						</Text>
 						<Text variant="body" tone="muted">
-							You have new matches. Your profile is trending up
-							this week.
+							You have new matches this week. Your success rate is
+							up 7% — you're on the right track toward your goal.
 						</Text>
 					</Stack>
 					<div
 						style={{
-							width: 96,
-							height: 96,
-							borderRadius: 24,
+							width: 120,
+							height: 120,
+							borderRadius: 28,
+							flexShrink: 0,
 							display: 'flex',
 							alignItems: 'center',
 							justifyContent: 'center',
 							background:
-								'radial-gradient(circle at 30% 30%, rgba(201,165,106,0.45), rgba(201,165,106,0.05))',
+								'radial-gradient(circle at 30% 30%, rgba(201,165,106,0.5), rgba(201,165,106,0.05))',
 							border: '1px solid rgba(201,165,106,0.25)',
 						}}>
-						<TrendingUp size={40} color={tokens.color.primary} />
+						<TrendingUp size={52} color={tokens.color.primary} />
 					</div>
 				</View>
 			</Panel>
@@ -89,46 +67,82 @@ export function Overview({ username }: { username: string }) {
 			<Panel pad={24}>
 				<Stack direction="row" justify="space-between" align="center">
 					<Stack gap="xs">
-						<Text variant="label">Activity</Text>
+						<Text variant="label">Statistics</Text>
 						<Text variant="caption" tone="faint">
-							Applications over the last 12 weeks
+							Applications over the last 12 months
 						</Text>
 					</Stack>
 					<Badge label="+18%" tone="success" />
 				</Stack>
 				<div style={{ marginTop: tokens.space.md }}>
-					<Sparkline data={TREND} height={180} />
+					<AreaChart data={SERIES} labels={MONTHS} unit="k" />
 				</div>
 			</Panel>
 
-			{/* Stats */}
+			{/* Bottom row */}
 			<View
 				style={{
 					flexDirection: 'row',
 					flexWrap: 'wrap',
 					gap: tokens.space.md,
 				}}>
-				<StatCard
-					label="Applications"
-					value="23"
-					delta="+8%"
-					Icon={FileText}
-					series={[8, 10, 9, 12, 14, 13, 18, 23]}
-				/>
-				<StatCard
-					label="Matches"
-					value="46"
-					delta="+15%"
-					Icon={Users}
-					series={[20, 22, 28, 26, 34, 38, 41, 46]}
-				/>
-				<StatCard
-					label="Responses"
-					value="12"
-					delta="+4%"
-					Icon={Sparkles}
-					series={[4, 6, 5, 8, 7, 9, 10, 12]}
-				/>
+				<Panel style={{ flex: 1, minWidth: 200, gap: tokens.space.sm }}>
+					<Stack
+						direction="row"
+						justify="space-between"
+						align="center">
+						<Text variant="caption" tone="muted">
+							Monthly income
+						</Text>
+						<Badge label="+8%" tone="success" />
+					</Stack>
+					<Text variant="display" weight="bold">
+						$23,249
+					</Text>
+				</Panel>
+
+				<Panel style={{ flex: 1, minWidth: 200, gap: tokens.space.sm }}>
+					<Stack
+						direction="row"
+						justify="space-between"
+						align="center">
+						<Text variant="caption" tone="muted">
+							Leads
+						</Text>
+						<Badge label="+15%" tone="success" />
+					</Stack>
+					<Stack
+						direction="row"
+						justify="space-between"
+						align="center">
+						<Text variant="display" weight="bold">
+							46
+						</Text>
+						<div style={{ width: 90 }}>
+							<Sparkline
+								data={[20, 28, 24, 34, 30, 41, 46]}
+								height={36}
+								strokeWidth={1.5}
+							/>
+						</div>
+					</Stack>
+				</Panel>
+
+				<Panel style={{ flex: 1, minWidth: 220, gap: tokens.space.sm }}>
+					<Stack
+						direction="row"
+						justify="space-between"
+						align="center">
+						<Stack direction="row" gap="sm" align="center">
+							<Sparkles size={14} color={tokens.color.primary} />
+							<Text variant="caption" tone="muted">
+								Activity
+							</Text>
+						</Stack>
+						<Badge label="Week" />
+					</Stack>
+					<Bars data={ACTIVITY} labels={DAYS} height={96} />
+				</Panel>
 			</View>
 		</Stack>
 	);

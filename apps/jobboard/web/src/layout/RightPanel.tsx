@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, Text, Badge, Avatar, Skeleton, tokens } from '@kbve/rn/ui';
+import {
+	Stack,
+	Text,
+	Badge,
+	Avatar,
+	Skeleton,
+	PressableSurface,
+	tokens,
+} from '@kbve/rn/ui';
+import { Phone, Video, MessageSquare } from 'lucide-react';
 import { Panel } from '../ui/Panel';
 import { fetchTaxonomy, type TaxonomyItem, type Vertical } from '../api/client';
 
@@ -32,37 +41,90 @@ function Clock() {
 	);
 }
 
-const ACTIVITY = [
-	{ name: 'Garold Feeber', note: 'Follow up', tone: 'primary' as const },
-	{ name: 'Mario Senjinelli', note: 'Interview', tone: 'success' as const },
-	{ name: 'Jason Musk', note: 'Presentation', tone: 'warning' as const },
-	{ name: 'Mabel Pines', note: 'Offer sent', tone: 'success' as const },
-	{ name: 'Todd Hovard', note: 'New match', tone: 'neutral' as const },
+const CONTACTS = [
+	{ name: 'Garold Feeber', role: 'Recruiter · Acme', note: 'Follow up' },
+	{ name: 'Mario Senjinelli', role: 'Hiring lead · Volt', note: 'Interview' },
+	{ name: 'Jason Musk', role: 'Founder · Nova', note: 'Presentation' },
+	{ name: 'Mabel Pines', role: 'PM · Mystery', note: 'Offer sent' },
+	{ name: 'Todd Hovard', role: 'Designer · Loop', note: 'New match' },
 ];
 
-function ActivityList() {
+function ActionButton({ children }: { children: React.ReactNode }) {
+	return (
+		<PressableSurface
+			style={{
+				width: 38,
+				height: 38,
+				alignItems: 'center',
+				justifyContent: 'center',
+				borderRadius: tokens.radius.md,
+				backgroundColor: 'rgba(22,19,16,0.45)',
+			}}>
+			{children}
+		</PressableSurface>
+	);
+}
+
+function FeaturedContact() {
+	const c = CONTACTS[2];
+	return (
+		<Panel gradient="hero" glow style={{ gap: tokens.space.md }}>
+			<View
+				style={{
+					flexDirection: 'row',
+					alignItems: 'center',
+					gap: tokens.space.sm,
+				}}>
+				<Avatar name={c.name} size={44} />
+				<Stack gap="xs" style={{ flex: 1 }}>
+					<Text variant="label" weight="bold">
+						{c.name}
+					</Text>
+					<Text variant="caption" tone="muted">
+						{c.role}
+					</Text>
+				</Stack>
+			</View>
+			<Stack direction="row" gap="sm">
+				<ActionButton>
+					<Phone size={18} color={tokens.color.primary} />
+				</ActionButton>
+				<ActionButton>
+					<Video size={18} color={tokens.color.primary} />
+				</ActionButton>
+				<ActionButton>
+					<MessageSquare size={18} color={tokens.color.primary} />
+				</ActionButton>
+			</Stack>
+		</Panel>
+	);
+}
+
+function ContactList() {
 	return (
 		<Stack gap="md">
 			<Text variant="label" tone="muted">
-				Recent activity
+				Pipeline
 			</Text>
-			<Stack gap="sm">
-				{ACTIVITY.map((a) => (
+			<Stack gap="md">
+				{CONTACTS.map((c) => (
 					<View
-						key={a.name}
+						key={c.name}
 						style={{
 							flexDirection: 'row',
 							alignItems: 'center',
 							gap: tokens.space.sm,
 						}}>
-						<Avatar name={a.name} size={36} />
+						<Avatar name={c.name} size={36} />
 						<Stack gap="xs" style={{ flex: 1 }}>
-							<Text variant="label">{a.name}</Text>
+							<Text variant="label">{c.name}</Text>
 							<Text variant="caption" tone="faint">
-								{a.note}
+								{c.role}
 							</Text>
 						</Stack>
-						<Badge label={a.note} tone={a.tone} />
+						<Text variant="caption" tone="muted">
+							{c.note}
+						</Text>
 					</View>
 				))}
 			</Stack>
@@ -127,15 +189,22 @@ function VerticalDetail({ vertical }: { vertical: Vertical }) {
 }
 
 export function RightPanel({ selection }: { selection: Selection }) {
+	if (selection) {
+		return (
+			<Stack gap="lg" style={{ flex: 1 }}>
+				<Clock />
+				<Panel style={{ flex: 1 }}>
+					<VerticalDetail vertical={selection.vertical} />
+				</Panel>
+			</Stack>
+		);
+	}
 	return (
 		<Stack gap="lg" style={{ flex: 1 }}>
 			<Clock />
+			<FeaturedContact />
 			<Panel style={{ flex: 1 }}>
-				{selection ? (
-					<VerticalDetail vertical={selection.vertical} />
-				) : (
-					<ActivityList />
-				)}
+				<ContactList />
 			</Panel>
 		</Stack>
 	);
