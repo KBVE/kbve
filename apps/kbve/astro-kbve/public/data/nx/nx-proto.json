@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-15T10:15:57.822Z",
+  "generated_at": "2026-06-16T09:54:40.398Z",
   "summary": {
     "total_protos": 41,
     "registered": 31,
     "orphaned": 9,
     "utility_only": 1,
-    "total_messages": 773,
-    "total_enums": 152
+    "total_messages": 777,
+    "total_enums": 154
   },
   "protos": [
     {
@@ -389,9 +389,13 @@
         "Engagement",
         "Review",
         "Conversation",
+        "ConversationParticipant",
         "Message",
         "Notification",
+        "Report",
+        "AuditLog",
         "ById",
+        "ByLookup",
         "ByUser",
         "Ack"
       ],
@@ -400,10 +404,12 @@
         "GigStatus",
         "ApplicationStatus",
         "EngagementStatus",
-        "BudgetType"
+        "BudgetType",
+        "ReportTarget",
+        "ReportStatus"
       ],
-      "message_count": 17,
-      "enum_count": 5,
+      "message_count": 21,
+      "enum_count": 7,
       "codegen": {
         "registered": false,
         "name": null,
@@ -1629,7 +1635,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-15T10:15:57Z",
+  "checked_at": "2026-06-16T09:54:40Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
