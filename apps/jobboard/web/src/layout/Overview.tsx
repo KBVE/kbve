@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { Stack, Text, Badge, tokens } from '@kbve/rn/ui';
 import { TrendingUp, Sparkles } from 'lucide-react';
 import { Panel } from '../ui/Panel';
+import { ui } from '../ui/gradients';
 import { AreaChart } from '../ui/AreaChart';
 import { Sparkline } from '../ui/Sparkline';
 import { Bars } from '../ui/Bars';
@@ -37,10 +38,15 @@ export function Overview({ username }: { username: string }) {
 						gap: tokens.space.lg,
 					}}>
 					<Stack gap="xs" style={{ flex: 1 }}>
-						<Text variant="display" weight="bold">
+						<Text
+							variant="display"
+							weight="bold"
+							style={{ color: '#fff' }}>
 							Hello {username}!
 						</Text>
-						<Text variant="body" tone="muted">
+						<Text
+							variant="body"
+							style={{ color: 'rgba(255,255,255,0.85)' }}>
 							You have new matches this week. Your success rate is
 							up 7% — you're on the right track toward your goal.
 						</Text>
@@ -55,10 +61,10 @@ export function Overview({ username }: { username: string }) {
 							alignItems: 'center',
 							justifyContent: 'center',
 							background:
-								'radial-gradient(circle at 30% 30%, rgba(201,165,106,0.5), rgba(201,165,106,0.05))',
-							border: '1px solid rgba(201,165,106,0.25)',
+								'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.05))',
+							border: '1px solid rgba(255,255,255,0.25)',
 						}}>
-						<TrendingUp size={52} color={tokens.color.primary} />
+						<TrendingUp size={52} color="#fff" />
 					</div>
 				</View>
 			</Panel>
@@ -134,7 +140,7 @@ export function Overview({ username }: { username: string }) {
 						justify="space-between"
 						align="center">
 						<Stack direction="row" gap="sm" align="center">
-							<Sparkles size={14} color={tokens.color.primary} />
+							<Sparkles size={14} color={ui.purple} />
 							<Text variant="caption" tone="muted">
 								Activity
 							</Text>

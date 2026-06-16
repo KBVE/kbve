@@ -6,7 +6,7 @@ export function AreaChart({
 	data,
 	labels,
 	height = 240,
-	stroke = '#c9a56a',
+	stroke = '#a78bfa',
 	unit = '',
 }: {
 	data: number[];

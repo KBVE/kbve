@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ScrollView, TextInput, View } from 'react-native';
 import {
 	Stack,
-	Surface,
 	PressableSurface,
 	Text,
 	Button,
@@ -28,6 +27,7 @@ import { Profile } from './Profile';
 import { RightPanel, type Selection } from './RightPanel';
 import { WebGpuCanvas } from '../gpu/WebGpuCanvas';
 import { auroraGold } from '../gpu/auroraGold';
+import { ui } from '../ui/gradients';
 import type { Vertical } from '../api/client';
 
 const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
@@ -81,94 +81,106 @@ export function DashboardShell() {
 		}
 	};
 
+	const expanded = !isPhone;
+
 	const brand = (
-		<div
+		<View
 			style={{
-				width: 44,
-				height: 44,
-				borderRadius: 14,
-				display: 'flex',
+				flexDirection: 'row',
 				alignItems: 'center',
-				justifyContent: 'center',
-				background:
-					'linear-gradient(135deg, rgba(201,165,106,0.9), rgba(166,125,67,0.7))',
-				boxShadow: '0 6px 18px rgba(201,165,106,0.25)',
+				gap: tokens.space.sm,
+				marginBottom: tokens.space.md,
+				paddingHorizontal: tokens.space.xs,
 			}}>
-			<Hexagon size={22} color={tokens.color.onPrimary} />
-		</div>
+			<div
+				style={{
+					width: 40,
+					height: 40,
+					borderRadius: 12,
+					flexShrink: 0,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					background: 'linear-gradient(135deg, #a78bfa, #e879f9)',
+					boxShadow: '0 6px 18px rgba(167,139,250,0.35)',
+				}}>
+				<Hexagon size={20} color="#fff" />
+			</div>
+			{expanded ? (
+				<Text
+					variant="subtitle"
+					weight="bold"
+					style={{ color: ui.text }}>
+					KBVE Jobs
+				</Text>
+			) : null}
+		</View>
 	);
 
 	const rail = (
-		<View
-			style={{
-				padding: isPhone ? tokens.space.sm : tokens.space.md,
-			}}>
-			<Surface
+		<View style={{ padding: isPhone ? tokens.space.sm : tokens.space.md }}>
+			<View
 				style={{
 					borderRadius: tokens.radius.xl,
 					borderWidth: 1,
-					borderColor: tokens.color.border,
-					...(isPhone ? { flexDirection: 'row' } : {}),
+					borderColor: ui.border,
+					backgroundColor: ui.surface,
+					padding: tokens.space.sm,
+					...(isPhone ? { flexDirection: 'row' } : { width: 208 }),
 				}}>
 				<Stack
 					direction={isPhone ? 'row' : 'column'}
 					gap="xs"
-					align="center"
-					style={{
-						padding: tokens.space.sm,
-						flex: isPhone ? 1 : undefined,
-					}}>
-					{!isPhone ? (
-						<View style={{ marginBottom: tokens.space.sm }}>
-							{brand}
-						</View>
-					) : null}
+					style={{ flex: isPhone ? 1 : undefined }}>
+					{expanded ? brand : null}
 					{SECTIONS.map((s) => {
 						const on = s.id === active;
+						const color = on ? ui.purple : ui.textMuted;
 						return (
 							<PressableSurface
 								key={s.id}
 								onPress={() => setActive(s.id)}
 								style={{
-									width: 48,
-									height: 48,
+									flexDirection: 'row',
 									alignItems: 'center',
-									justifyContent: 'center',
+									gap: tokens.space.sm,
+									height: 44,
+									paddingHorizontal: expanded
+										? tokens.space.md
+										: 0,
+									justifyContent: expanded
+										? 'flex-start'
+										: 'center',
+									width: expanded ? undefined : 44,
+									flex: isPhone ? 1 : undefined,
 									borderRadius: tokens.radius.lg,
-									borderWidth: 1,
-									borderColor: on
-										? 'rgba(201,165,106,0.35)'
-										: 'transparent',
 									backgroundColor: on
-										? 'rgba(201,165,106,0.14)'
+										? 'rgba(167,139,250,0.14)'
 										: 'transparent',
 								}}>
-								<s.Icon
-									size={20}
-									color={
-										on
-											? tokens.color.primary
-											: tokens.color.textMuted
-									}
-								/>
+								<s.Icon size={20} color={color} />
+								{expanded ? (
+									<Text variant="label" style={{ color }}>
+										{s.label}
+									</Text>
+								) : null}
 							</PressableSurface>
 						);
 					})}
 				</Stack>
-			</Surface>
+			</View>
 		</View>
 	);
 
 	const topbar = (
-		<Surface
+		<View
 			style={{
 				flexDirection: 'row',
 				alignItems: 'center',
 				gap: tokens.space.md,
 				padding: tokens.space.md,
 				borderBottomWidth: 1,
-				borderBottomColor: tokens.color.border,
-				borderRadius: 0,
+				borderBottomColor: ui.border,
 			}}>
 			<View
 				style={{
@@ -177,17 +189,19 @@ export function DashboardShell() {
 					flexDirection: 'row',
 					alignItems: 'center',
 					gap: tokens.space.sm,
-					backgroundColor: tokens.color.surfaceAlt,
+					backgroundColor: ui.surface,
+					borderWidth: 1,
+					borderColor: ui.border,
 					borderRadius: tokens.radius.pill,
 					paddingHorizontal: tokens.space.md,
 				}}>
-				<Search size={16} color={tokens.color.textFaint} />
+				<Search size={16} color={ui.textFaint} />
 				<TextInput
 					placeholder="Search jobs, people…"
-					placeholderTextColor={tokens.color.textFaint}
+					placeholderTextColor={ui.textFaint}
 					style={{
 						flex: 1,
-						color: tokens.color.text,
+						color: ui.text,
 						paddingVertical: tokens.space.sm,
 						outlineStyle: 'none',
 					}}
@@ -201,9 +215,11 @@ export function DashboardShell() {
 					alignItems: 'center',
 					justifyContent: 'center',
 					borderRadius: tokens.radius.md,
-					backgroundColor: tokens.color.surfaceAlt,
+					backgroundColor: ui.surface,
+					borderWidth: 1,
+					borderColor: ui.border,
 				}}>
-				<Bell size={18} color={tokens.color.textMuted} />
+				<Bell size={18} color={ui.textMuted} />
 			</PressableSurface>
 			<Stack direction="row" gap="sm" align="center">
 				<Avatar name={username} size={36} />
@@ -213,7 +229,7 @@ export function DashboardShell() {
 					onPress={() => signOut()}
 				/>
 			</Stack>
-		</Surface>
+		</View>
 	);
 
 	const rightPanel = <RightPanel selection={selection} />;
@@ -248,7 +264,7 @@ export function DashboardShell() {
 						style={{
 							width: 340,
 							borderLeftWidth: 1,
-							borderLeftColor: tokens.color.border,
+							borderLeftColor: ui.border,
 							padding: tokens.space.lg,
 						}}>
 						{rightPanel}

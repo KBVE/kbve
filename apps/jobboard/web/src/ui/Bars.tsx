@@ -29,8 +29,8 @@ export function Bars({
 			style={{ display: 'block' }}>
 			<defs>
 				<linearGradient id={`bar${gid}`} x1="0" y1="0" x2="0" y2="1">
-					<stop offset="0%" stopColor="#d4b072" />
-					<stop offset="100%" stopColor="#a67d43" />
+					<stop offset="0%" stopColor="#e879f9" />
+					<stop offset="100%" stopColor="#a78bfa" />
 				</linearGradient>
 			</defs>
 			{data.map((v, i) => {
@@ -48,7 +48,7 @@ export function Bars({
 							fill={
 								i === peak
 									? `url(#bar${gid})`
-									: 'rgba(201,165,106,0.25)'
+									: 'rgba(167,139,250,0.25)'
 							}
 						/>
 						{labels?.[i] ? (

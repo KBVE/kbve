@@ -3,8 +3,8 @@ export function Sparkline({
 	data,
 	width = 600,
 	height = 160,
-	stroke = '#c9a56a',
-	fill = 'rgba(201,165,106,0.18)',
+	stroke = '#60a5fa',
+	fill = 'rgba(96,165,250,0.18)',
 	strokeWidth = 2,
 }: {
 	data: number[];

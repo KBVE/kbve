@@ -5,7 +5,7 @@ import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import { Canvas, useCanvasRef, useDevice } from 'react-native-webgpu';
 import { registerNativeComponent, TYPEGPU_COMPONENT_ID } from '@kbve/rn';
 import type { NativeComponentProps } from '@kbve/rn';
-import { getEffect } from './effects';
+import { getEffect } from '@kbve/fx';
 import { fxSettings } from './fxSettings';
 
 const WHITE: [number, number, number] = [1, 1, 1];

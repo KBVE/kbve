@@ -100,7 +100,7 @@ async function boot(): Promise<void> {
 			response_type: 'code',
 			state: '',
 			prompt: 'none',
-			scope: ['identify'],
+			scope: ['identify', 'email'],
 		}),
 	);
 

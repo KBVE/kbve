@@ -17,7 +17,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use jedi::state::pg::{PgCluster, tokio_postgres::Row};
+use jedi::state::pg::{PgCluster, PgConn};
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 
@@ -49,11 +49,25 @@ struct DiscordToken {
 #[derive(Deserialize)]
 struct DiscordUser {
     id: String,
+    #[serde(default)]
+    email: Option<String>,
+    #[serde(default)]
+    verified: Option<bool>,
+    #[serde(default)]
+    username: Option<String>,
+    #[serde(default)]
+    global_name: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct GoTrueUser {
+    id: String,
 }
 
 #[derive(Serialize)]
 struct MintedClaims {
     sub: String,
+    iat: i64,
     exp: i64,
     kbve_username: String,
     role: String,
@@ -128,15 +142,16 @@ pub async fn session(
         }
     };
 
-    // 3. Discord id -> linked KBVE profile (user_id + kbve_username).
-    let conn = match pg.read().await {
+    // 3. Discord id -> linked KBVE profile, or fast-register one. write() pool
+    // because the register path sets profile.username.
+    let conn = match pg.write().await {
         Ok(c) => c,
         Err(e) => {
             tracing::error!(error = %e, "pg acquire failed");
             return (StatusCode::SERVICE_UNAVAILABLE, "database unavailable").into_response();
         }
     };
-    let row: Row = match conn
+    let linked: Option<(String, Option<String>)> = match conn
         .query_opt(
             "SELECT user_id::text, kbve_username \
              FROM tracker.find_claim_identity_by_discord_id($1)",
@@ -144,23 +159,23 @@ pub async fn session(
         )
         .await
     {
-        Ok(Some(row)) => row,
-        Ok(None) => {
-            return (
-                StatusCode::FORBIDDEN,
-                "Discord account is not linked to a KBVE profile",
-            )
-                .into_response();
-        }
+        Ok(Some(row)) => Some((row.get(0), row.get(1))),
+        Ok(None) => None,
         Err(e) => {
             tracing::error!(error = %e, "discord profile lookup failed");
             return (StatusCode::INTERNAL_SERVER_ERROR, "profile lookup failed").into_response();
         }
     };
-    let user_id: String = row.get(0);
-    let kbve_username: Option<String> = row.get(1);
-    let Some(kbve_username) = kbve_username.filter(|u| !u.is_empty()) else {
-        return (StatusCode::FORBIDDEN, "linked KBVE profile has no username").into_response();
+
+    let (user_id, kbve_username) = match linked {
+        Some((uid, Some(name))) if !name.is_empty() => (uid, name),
+        other => {
+            let existing = other.map(|(uid, _)| uid);
+            match provision_user(&http, &conn, &user, existing).await {
+                Ok(pair) => pair,
+                Err((code, msg)) => return (code, msg).into_response(),
+            }
+        }
     };
 
     // 4. Mint the Supabase-valid HS256 JWT the game server accepts.
@@ -181,6 +196,126 @@ pub async fn session(
     .into_response()
 }
 
+/// Email key for a Discord user: their verified Discord email, else a stable
+/// synthetic address derived from the snowflake so the GoTrue create-or-get is
+/// still idempotent for users who didn't grant email or whose email is unverified.
+fn discord_email(user: &DiscordUser) -> String {
+    match (&user.email, user.verified) {
+        (Some(e), Some(true)) if !e.is_empty() => e.to_lowercase(),
+        _ => format!("discord_{}@users.cryptothrone.com", user.id),
+    }
+}
+
+/// Resolve the KBVE user for a Discord identity that isn't fully linked yet:
+/// reuse an existing user_id (linked but no username) or fast-register via
+/// GoTrue create-or-get on the email key, then ensure a profile.username.
+async fn provision_user(
+    http: &reqwest::Client,
+    conn: &PgConn<'_>,
+    user: &DiscordUser,
+    existing_uid: Option<String>,
+) -> Result<(String, String), (StatusCode, &'static str)> {
+    let user_id = match existing_uid {
+        Some(uid) => uid,
+        None => gotrue_create_or_get(http, conn, &discord_email(user), &user.id).await?,
+    };
+
+    let base = user
+        .global_name
+        .clone()
+        .or_else(|| user.username.clone())
+        .unwrap_or_default();
+    let username: String = match conn
+        .query_one(
+            "SELECT tracker.ensure_discord_username($1::uuid, $2, $3)",
+            &[&user_id, &base, &user.id],
+        )
+        .await
+    {
+        Ok(row) => row.get(0),
+        Err(e) => {
+            tracing::error!(error = %e, "ensure_discord_username failed");
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "username provisioning failed",
+            ));
+        }
+    };
+    Ok((user_id, username))
+}
+
+/// GoTrue admin create-or-get keyed on email. GoTrue owns auth.users, so we
+/// never hand-craft it; on "already registered" we resolve the existing user.
+async fn gotrue_create_or_get(
+    http: &reqwest::Client,
+    conn: &PgConn<'_>,
+    email: &str,
+    discord_id: &str,
+) -> Result<String, (StatusCode, &'static str)> {
+    let base = std::env::var("SUPABASE_URL").unwrap_or_default();
+    let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY").unwrap_or_default();
+    if base.is_empty() || key.is_empty() {
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "supabase admin not configured",
+        ));
+    }
+    let body = serde_json::json!({
+        "email": email,
+        "email_confirm": true,
+        "user_metadata": { "provider": "discord", "discord_id": discord_id },
+    });
+    match http
+        .post(format!("{base}/auth/v1/admin/users"))
+        .header("apikey", key.as_str())
+        .bearer_auth(&key)
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => match r.json::<GoTrueUser>().await {
+            Ok(u) => Ok(u.id),
+            Err(_) => Err((StatusCode::BAD_GATEWAY, "bad gotrue response")),
+        },
+        Ok(r)
+            if r.status() == StatusCode::UNPROCESSABLE_ENTITY
+                || r.status() == StatusCode::CONFLICT =>
+        {
+            find_user_id_by_email(conn, email).await
+        }
+        Ok(r) => {
+            tracing::error!(status = %r.status(), "gotrue admin create failed");
+            Err((StatusCode::BAD_GATEWAY, "gotrue admin create failed"))
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "gotrue admin request failed");
+            Err((StatusCode::BAD_GATEWAY, "gotrue admin request failed"))
+        }
+    }
+}
+
+async fn find_user_id_by_email(
+    conn: &PgConn<'_>,
+    email: &str,
+) -> Result<String, (StatusCode, &'static str)> {
+    match conn
+        .query_opt(
+            "SELECT tracker.find_user_id_by_email($1)::text",
+            &[&email.to_lowercase()],
+        )
+        .await
+    {
+        Ok(Some(row)) => row
+            .get::<_, Option<String>>(0)
+            .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "user not found by email")),
+        Ok(None) => Err((StatusCode::INTERNAL_SERVER_ERROR, "user not found by email")),
+        Err(e) => {
+            tracing::error!(error = %e, "find_user_id_by_email failed");
+            Err((StatusCode::INTERNAL_SERVER_ERROR, "user lookup failed"))
+        }
+    }
+}
+
 fn now_secs() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -199,6 +334,7 @@ fn mint_session_jwt(
 ) -> Result<String, jsonwebtoken::errors::Error> {
     let claims = MintedClaims {
         sub: sub.to_string(),
+        iat: now_secs() as i64,
         exp,
         kbve_username: kbve_username.to_string(),
         role: "authenticated".into(),

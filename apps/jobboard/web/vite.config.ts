@@ -54,6 +54,13 @@ export default defineConfig(({ mode }) => ({
 					'packages/npm/core/src/index.ts',
 				),
 			},
+			{
+				find: /^@kbve\/fx$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/npm/fx/src/index.ts',
+				),
+			},
 			// RN primitives render on web
 			{ find: /^react-native$/, replacement: 'react-native-web' },
 		],
