@@ -1,10 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import {
-	LoginScreen,
-	SetUsernameScreen,
-	useAuth as useKbveAuth,
-} from '@kbve/rn/auth';
+import { SetUsernameScreen, useAuth as useKbveAuth } from '@kbve/rn/auth';
+import { LoginForm } from '../components/LoginForm';
 
 // Split-screen auth: the shared @kbve/rn LoginScreen (email/pw + Discord/GitHub/
 // Twitch OAuth + hCaptcha) on the left, artwork on the right. Browsing is public —
@@ -24,14 +21,16 @@ export function LoginPage() {
 
 	return (
 		<div className="grid min-h-screen lg:grid-cols-2">
-			{/* Left — the form (RN-web LoginScreen fills this column) */}
-			<div className="relative flex min-h-screen flex-col">
+			{/* Left — the form */}
+			<div className="relative flex min-h-screen flex-col items-center justify-center p-6">
 				<Link
 					to="/"
 					className="absolute left-5 top-5 z-10 text-sm text-zinc-400 transition hover:text-gold-300">
 					← Back to browsing
 				</Link>
-				{needsUsername ? <SetUsernameScreen /> : <LoginScreen />}
+				<div className="w-full max-w-sm">
+					{needsUsername ? <SetUsernameScreen /> : <LoginForm />}
+				</div>
 			</div>
 
 			{/* Right — artwork (hidden on small screens so the form is full-width) */}
