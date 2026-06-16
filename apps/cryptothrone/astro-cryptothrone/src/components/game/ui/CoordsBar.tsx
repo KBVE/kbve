@@ -5,7 +5,7 @@ export function CoordsBar() {
 	const [pos, setPos] = useState({ x: 0, y: 0 });
 	const [fps, setFps] = useState(0);
 	const [zone, setZone] = useState('—');
-	const [clock, setClock] = useState('');
+	const [clock, setClock] = useState('--:--');
 
 	useEffect(() => {
 		const offs = [
@@ -18,21 +18,15 @@ export function CoordsBar() {
 			laserEvents.on('zone:enter', (d) =>
 				setZone((d as { name: string }).name),
 			),
+			laserEvents.on('world:time', (d) => {
+				const phase = (((d as { phase: number }).phase % 1) + 1) % 1;
+				const mins = Math.floor(phase * 24 * 60);
+				const hh = String(Math.floor(mins / 60)).padStart(2, '0');
+				const mm = String(mins % 60).padStart(2, '0');
+				setClock(`${hh}:${mm}`);
+			}),
 		];
-		const t = window.setInterval(
-			() =>
-				setClock(
-					new Date().toLocaleTimeString(undefined, {
-						hour: '2-digit',
-						minute: '2-digit',
-					}),
-				),
-			1000,
-		);
-		return () => {
-			offs.forEach((o) => o());
-			window.clearInterval(t);
-		};
+		return () => offs.forEach((o) => o());
 	}, []);
 
 	return (
