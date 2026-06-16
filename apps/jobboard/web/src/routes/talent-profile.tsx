@@ -11,12 +11,14 @@ import {
 	TagRow,
 } from '../components/ui';
 import { Stars } from '@kbve/rn/ui';
+import { person, breadcrumbList } from '@kbve/core';
 import {
 	AVAILABILITY_LABELS,
 	AVAILABILITY_TONE,
 	formatRate,
 	rankProgress,
 } from '../lib/format';
+import { Seo, abs, ogImage } from '../lib/seo';
 
 const routeApi = getRouteApi('/talent/$handle');
 
@@ -88,9 +90,32 @@ export function TalentProfilePage() {
 	if (!t) return null;
 
 	const progress = rankProgress(t.reputation, t.rank);
+	const path = `/talent/${t.handle}`;
 
 	return (
 		<div className="mx-auto max-w-5xl">
+			<Seo
+				seo={{
+					title: `${t.display_name} — ${t.headline} · KBVE Jobs`,
+					description: t.headline,
+					path,
+					image: ogImage('talent', t.handle),
+					type: 'profile',
+				}}
+				jsonLd={[
+					person({
+						id: abs(path) + '#person',
+						name: t.display_name,
+						url: abs(path),
+						image: t.avatar_url || undefined,
+						jobTitle: t.headline,
+					}),
+					breadcrumbList([
+						['Talent', abs('/talent')],
+						[t.display_name, abs(path)],
+					]),
+				]}
+			/>
 			<Link
 				to="/talent"
 				className="text-sm text-zinc-400 hover:text-quest-300">

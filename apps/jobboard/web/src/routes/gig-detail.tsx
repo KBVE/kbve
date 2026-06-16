@@ -1,17 +1,30 @@
 import { Fragment, type ReactNode, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
+import { jobPosting, breadcrumbList } from '@kbve/core';
 import { applyToGig, fetchGig } from '../api/client';
 import type { ApplyInput, Gig } from '../api/types';
 import { Avatar, Button, ErrorNote, Spinner, TagRow } from '../components/ui';
 import { formatBudget, LOCATION_LABELS, relativeTime } from '../lib/format';
 import { useAuth } from '../lib/auth';
+import { Seo, abs, ogImage } from '../lib/seo';
 
 const routeApi = getRouteApi('/gigs/$gigId');
 
+const plainText = (md: string, max = 160): string =>
+	md
+		.replace(/[#*_`>[\]()!]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.slice(0, max);
+
 export function GigDetailPage() {
 	const { gigId } = routeApi.useParams();
-	const { data: gig, isLoading, error } = useQuery({
+	const {
+		data: gig,
+		isLoading,
+		error,
+	} = useQuery({
 		queryKey: ['gig', gigId],
 		queryFn: () => fetchGig(gigId),
 	});
@@ -27,8 +40,38 @@ export function GigDetailPage() {
 			)
 		: 'Flexible';
 
+	const path = `/gigs/${gig.slug ?? gig.id}`;
+	const desc = plainText(gig.description);
+
 	return (
 		<div className="mx-auto max-w-5xl">
+			<Seo
+				seo={{
+					title: `${gig.title} · KBVE Jobs`,
+					description: desc,
+					path,
+					image: ogImage('gig', gig.slug ?? gig.id),
+					type: 'article',
+				}}
+				jsonLd={[
+					jobPosting({
+						title: gig.title,
+						description: desc,
+						url: abs(path),
+						datePosted: gig.created_at,
+						validThrough: gig.deadline ?? undefined,
+						salaryMin: gig.budget_min || undefined,
+						salaryMax: gig.budget_max || undefined,
+						currency: gig.currency,
+						remote: gig.location_pref === 0,
+						location: LOCATION_LABELS[gig.location_pref],
+					}),
+					breadcrumbList([
+						['Gigs', abs('/gigs')],
+						[gig.title, abs(path)],
+					]),
+				]}
+			/>
 			<Link
 				to="/gigs"
 				className="text-sm text-zinc-400 hover:text-quest-300">
@@ -80,9 +123,15 @@ export function GigDetailPage() {
 								{formatBudget(gig)}
 							</div>
 						</div>
-						<Meta label="Location" value={LOCATION_LABELS[gig.location_pref]} />
+						<Meta
+							label="Location"
+							value={LOCATION_LABELS[gig.location_pref]}
+						/>
 						<Meta label="Deadline" value={deadline} />
-						<Meta label="Applicants" value={String(gig.applicant_count)} />
+						<Meta
+							label="Applicants"
+							value={String(gig.applicant_count)}
+						/>
 
 						<ApplyBox gig={gig} />
 					</div>

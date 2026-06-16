@@ -29,8 +29,8 @@ createRoot(document.getElementById('root')!).render(
 				<PersistQueryClientProvider
 					client={queryClient}
 					persistOptions={{ persister }}>
-					{/* Public marketplace — browsing needs no auth. Login lives
-					    at the /login route; KbveProvider supplies the session. */}
+					{/* Public marketplace — browsing needs no auth. Login
+					    lives at /login; KbveProvider supplies the session. */}
 					<RouterProvider router={router} />
 				</PersistQueryClientProvider>
 				<OverlayHost />
