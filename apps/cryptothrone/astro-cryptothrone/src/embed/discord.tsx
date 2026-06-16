@@ -4,6 +4,7 @@ import {
 	type Types,
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
+import { startPresence } from './discord-presence';
 
 /**
  * Discord Activity entry — the isolated Discord path. Runs entirely on the main
@@ -41,7 +42,13 @@ const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/cryptothrone-chat', target: 'chat.kbve.com' },
 ];
 
-const AUTHORIZE_SCOPE: Types.OAuthScopes[] = ['identify', 'email'];
+// `rpc.activities.write` is required for setActivity (rich presence). Only
+// widen the scope because the Activity adopts presence — see discord-presence.
+const AUTHORIZE_SCOPE: Types.OAuthScopes[] = [
+	'identify',
+	'email',
+	'rpc.activities.write',
+];
 
 interface DiscordSession {
 	access_token: string;
@@ -213,6 +220,10 @@ async function boot(): Promise<void> {
 		username: session.username,
 		height: '100vh',
 	});
+
+	// Surface live game state on the player's Discord profile. Subscribes to
+	// the laser bus; lives for the lifetime of the Activity iframe.
+	startPresence(sdk);
 }
 
 void boot().catch((err) => fail(`Boot failed — ${errMsg(err)}`, err));
