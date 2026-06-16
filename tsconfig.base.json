@@ -22,6 +22,7 @@
 			"@kbve/core": ["packages/npm/core/src/index.ts"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
+			"@kbve/fx": ["packages/npm/fx/src/index.ts"],
 			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"],

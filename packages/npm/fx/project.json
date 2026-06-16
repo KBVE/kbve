@@ -1,0 +1,25 @@
+{
+	"name": "fx",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/fx/src",
+	"projectType": "library",
+	"tags": ["scope:shared", "type:lib"],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/npm/fx/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/fx",
+				"command": "vitest run"
+			}
+		}
+	}
+}

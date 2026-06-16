@@ -1,6 +1,6 @@
 import { createPluginRegistry, createTypeGpuPlugin } from '@kbve/rn';
 import type { PluginRegistry, PluginSurfaceSlot } from '@kbve/rn';
-import { listEffects } from './effects';
+import { listEffects } from '@kbve/fx';
 import './TypeGpuHost';
 
 export interface FxEffectMeta {

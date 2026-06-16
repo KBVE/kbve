@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { getEffect, listEffects, registerEffect } from './index';
 import type { EffectRunner } from './types';
 
-const noopRunner: EffectRunner = { frame() {}, dispose() {} };
+const noopRunner: EffectRunner = {
+	frame: () => undefined,
+	dispose: () => undefined,
+};
 
 describe('effect registry', () => {
 	it('lists the built-in effects with id + label', () => {

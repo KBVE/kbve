@@ -92,13 +92,6 @@
 			"options": {
 				"command": "tsc --noEmit -p apps/kbve/kbve-react-native/tsconfig.json"
 			}
-		},
-		"test": {
-			"executor": "nx:run-commands",
-			"options": {
-				"cwd": "apps/kbve/kbve-react-native",
-				"command": "vitest run"
-			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { createEffect } from './createEffect';
+import { createEffect } from '@kbve/fx';
 
 // Gold/amber aurora tuned to the @kbve dark theme — slow, low-contrast bands
 // meant to sit behind the dashboard at low opacity.
