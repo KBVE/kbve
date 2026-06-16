@@ -1,13 +1,33 @@
 // Small, dependency-free UI primitives shared across screens.
 
 import type { ReactNode } from 'react';
+import { Chip } from '@kbve/rn/ui';
 import type { Badge as BadgeT, RankTier, TaxonomyItem } from '../api/types';
 import { RANK_TONE } from '../lib/format';
 
-const KIND_TONE: Record<number, string> = {
-	1: 'border-quest-600/50 bg-quest-500/10 text-quest-200', // discipline
-	2: 'border-sky-700/50 bg-sky-500/10 text-sky-200', // tool
-	3: 'border-zinc-700 bg-zinc-800/60 text-zinc-300', // skill
+export { Avatar } from '@kbve/rn/ui';
+
+// Per-kind chip colors (discipline=quest, tool=sky, skill=zinc), passed
+// explicitly to the shared Chip so the taxonomy palette survives.
+const KIND_COLORS: Record<
+	number,
+	{ color: string; background: string; borderColor: string }
+> = {
+	1: {
+		color: '#ccc2fb',
+		background: 'rgba(124,77,255,0.1)',
+		borderColor: 'rgba(106,53,235,0.5)',
+	},
+	2: {
+		color: '#bae6fd',
+		background: 'rgba(14,165,233,0.1)',
+		borderColor: 'rgba(3,105,161,0.5)',
+	},
+	3: {
+		color: '#d4d4d8',
+		background: 'rgba(39,39,42,0.6)',
+		borderColor: '#3f3f46',
+	},
 };
 
 export function Tag({
@@ -19,16 +39,16 @@ export function Tag({
 	onClick?: () => void;
 	active?: boolean;
 }) {
-	const tone = KIND_TONE[item.kind] ?? KIND_TONE[3];
-	const cls = `inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${tone} ${
-		active ? 'ring-2 ring-quest-400/70' : ''
-	} ${onClick ? 'cursor-pointer hover:brightness-125' : ''}`;
-	return onClick ? (
-		<button type="button" onClick={onClick} className={cls}>
-			{item.label}
-		</button>
-	) : (
-		<span className={cls}>{item.label}</span>
+	const c = KIND_COLORS[item.kind] ?? KIND_COLORS[3];
+	return (
+		<Chip
+			label={item.label}
+			active={active}
+			onPress={onClick}
+			color={c.color}
+			background={c.background}
+			borderColor={c.borderColor}
+		/>
 	);
 }
 
@@ -61,27 +81,6 @@ export function RankPill({ tier, label }: { tier: RankTier; label: string }) {
 			<span aria-hidden>★</span>
 			{label}
 		</span>
-	);
-}
-
-export function Avatar({
-	src,
-	alt,
-	size = 40,
-}: {
-	src: string;
-	alt: string;
-	size?: number;
-}) {
-	return (
-		<img
-			src={src}
-			alt={alt}
-			width={size}
-			height={size}
-			className="rounded-full border border-zinc-700 object-cover"
-			style={{ width: size, height: size }}
-		/>
 	);
 }
 

@@ -20,6 +20,7 @@ export * from './primitives/Avatar';
 export * from './primitives/PeekMascot';
 export * from './primitives/BrandIcons';
 export * from './primitives/Stars';
+export * from './primitives/Chip';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';
