@@ -129,6 +129,7 @@ export class CloudCityScene extends Scene {
 	private predicted = { x: 0, y: 0 };
 	private predictedPath: { x: number; y: number }[] = [];
 	private predictSeeded = false;
+	private lastWorldTimeMs = -100000;
 
 	constructor() {
 		super({ key: 'CloudCity' });
@@ -568,9 +569,15 @@ export class CloudCityScene extends Scene {
 		this.syncRoster(snap);
 		this.runPendingAction();
 		const DAY_MS = 1800000;
-		laserEvents.emit('world:time', {
-			phase: (snap.server_time_ms % DAY_MS) / DAY_MS,
-		});
+		if (
+			snap.server_time_ms - this.lastWorldTimeMs >= 1000 ||
+			snap.server_time_ms < this.lastWorldTimeMs
+		) {
+			this.lastWorldTimeMs = snap.server_time_ms;
+			laserEvents.emit('world:time', {
+				phase: (snap.server_time_ms % DAY_MS) / DAY_MS,
+			});
+		}
 	}
 
 	private runPendingAction() {

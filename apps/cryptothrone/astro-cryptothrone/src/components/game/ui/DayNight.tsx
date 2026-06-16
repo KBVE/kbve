@@ -29,7 +29,8 @@ function tint(phase: number): string {
 	}
 	const span = hi[0] - lo[0];
 	const t = span > 0 ? (p - lo[0]) / span : 0;
-	const c = lo[1].map((v, i) => v + (hi[1][i] - v) * t);
+	const e = t * t * (3 - 2 * t);
+	const c = lo[1].map((v, i) => v + (hi[1][i] - v) * e);
 	return `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${c[3].toFixed(3)})`;
 }
 
@@ -42,7 +43,7 @@ export function DayNight() {
 	}, []);
 	return (
 		<div
-			className="pointer-events-none absolute inset-0 z-10 transition-colors duration-700"
+			className="pointer-events-none absolute inset-0 z-10 transition-colors duration-1000"
 			style={{ backgroundColor: color }}
 			aria-hidden="true"
 		/>

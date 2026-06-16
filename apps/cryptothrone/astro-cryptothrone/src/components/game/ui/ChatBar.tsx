@@ -66,19 +66,36 @@ export function ChatBar() {
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
+			const active = document.activeElement;
+			const inChat = active === inputRef.current;
+			const inAnyInput =
+				active instanceof HTMLInputElement ||
+				active instanceof HTMLTextAreaElement ||
+				(active as HTMLElement | null)?.isContentEditable === true;
 			if (e.key === 'Escape') {
-				inputRef.current?.blur();
+				if (inChat) inputRef.current?.blur();
 				return;
 			}
-			if (e.key !== 'Enter') return;
-			const active = document.activeElement;
-			if (
-				active instanceof HTMLInputElement ||
-				active instanceof HTMLTextAreaElement
-			)
+			if (e.key === '/') {
+				if (inChat) {
+					if ((inputRef.current?.value ?? '') === '') {
+						e.preventDefault();
+						inputRef.current?.blur();
+					}
+				} else if (!inAnyInput) {
+					e.preventDefault();
+					inputRef.current?.focus();
+				}
 				return;
-			e.preventDefault();
-			inputRef.current?.focus();
+			}
+			if (
+				e.key === 'Enter' &&
+				inChat &&
+				(inputRef.current?.value ?? '').trim() === ''
+			) {
+				e.preventDefault();
+				inputRef.current?.blur();
+			}
 		};
 		window.addEventListener('keydown', onKey);
 		return () => window.removeEventListener('keydown', onKey);
@@ -294,7 +311,7 @@ export function ChatBar() {
 							if (e.key === 'Escape') inputRef.current?.blur();
 						}}
 						placeholder={
-							connected ? 'Press Enter to chat…' : 'Chat offline'
+							connected ? 'Press / to chat…' : 'Chat offline'
 						}
 						aria-label="Chat message"
 						className="min-w-0 flex-1 bg-transparent px-1 py-1 text-xs text-white placeholder-stone-500 outline-none"

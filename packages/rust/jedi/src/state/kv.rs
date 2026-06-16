@@ -478,6 +478,12 @@ async fn build_valkey_pool() -> Result<ValkeyPool, String> {
     let config = Config::from_url(&url).map_err(|e| format!("invalid KV URL: {e}"))?;
     let pool = Builder::from_config(config)
         .set_policy(ReconnectPolicy::default())
+        // Global ceiling on every command so a silently-broken connection
+        // (e.g. after a CA rotation) can never hang a caller — fred fails the
+        // command and the cache degrades to a miss. Belt to the per-op timeouts.
+        .with_performance_config(|c| {
+            c.default_command_timeout = Duration::from_millis(750);
+        })
         .build_pool(pool_size)
         .map_err(|e| format!("KV pool build failed: {e}"))?;
     pool.init()
