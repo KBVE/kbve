@@ -57,6 +57,11 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM cook AS builder
 
+# cargo-chef normalizes the package version to 0.0.1 in the cook skeleton so a
+# version bump doesn't bust the dependency cache. Re-copy the REAL Cargo.toml
+# here so cargo build bakes the true CARGO_PKG_VERSION and the version.txt grep
+# below reads the real version (otherwise /health is forever 0.0.1).
+COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
 COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/holy/ packages/rust/holy/
 COPY packages/rust/kbve/ packages/rust/kbve/
