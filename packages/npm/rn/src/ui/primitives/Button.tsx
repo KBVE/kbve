@@ -28,6 +28,9 @@ export interface ButtonProps {
 	disabled?: boolean;
 	loading?: boolean;
 	style?: StyleProp<ViewStyle>;
+	/** Accessible name (maps to aria-label on web). Required for icon-only buttons. */
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
 }
 
 export const Button = memo(function Button({
@@ -38,6 +41,8 @@ export const Button = memo(function Button({
 	disabled = false,
 	loading = false,
 	style,
+	accessibilityLabel,
+	accessibilityHint,
 }: ButtonProps) {
 	const t = useTheme();
 	const inactive = disabled || loading;
@@ -84,6 +89,13 @@ export const Button = memo(function Button({
 				style,
 			]}
 			disabled={inactive}
+			accessibilityRole="button"
+			accessibilityLabel={
+				accessibilityLabel ??
+				(typeof title === 'string' ? title : undefined)
+			}
+			accessibilityHint={accessibilityHint}
+			accessibilityState={{ disabled: inactive }}
 			onPressIn={() => {
 				scale.value = withSpring(0.95, { damping: 18, stiffness: 320 });
 			}}
