@@ -1,7 +1,7 @@
 /// <reference types="@webgpu/types" />
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import type { EffectInit } from './types';
+import type { EffectInit } from '@kbve/fx';
 import { gradients } from '../ui/gradients';
 
 // Browser WebGPU host for the @kbve effect system. Reuses EffectInit as-is; the
