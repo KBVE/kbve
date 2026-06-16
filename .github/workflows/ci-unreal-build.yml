@@ -460,24 +460,6 @@ jobs:
                   mkdir -p /tmp/game-project
                   cp -r "${SRC}/." /tmp/game-project/
 
-            - name: Fetch monorepo plugins (source of truth)
-              uses: actions/checkout@v6
-              with:
-                  path: _kbve_mono
-                  sparse-checkout: packages/unreal
-                  sparse-checkout-cone-mode: true
-            - name: Overlay KBVE plugins onto project
-              run: |
-                  PLUGINS_DIR=/tmp/game-project/Plugins
-                  mkdir -p "${PLUGINS_DIR}"
-                  for p in "${GITHUB_WORKSPACE}/_kbve_mono/packages/unreal/"KBVE*; do
-                    [ -d "$p" ] || continue
-                    n=$(basename "$p")
-                    echo "::notice::overlay plugin ${n} from monorepo (source of truth)"
-                    rm -rf "${PLUGINS_DIR}/${n}"
-                    cp -r "$p" "${PLUGINS_DIR}/${n}"
-                  done
-
             - name: Build dedicated server
               env:
                   SERVER_TARGET: ${{ needs.server_config.outputs.server_target }}
@@ -790,24 +772,6 @@ jobs:
                   fi
                   mkdir -p /tmp/game-project
                   cp -r "${SRC}/." /tmp/game-project/
-
-            - name: Fetch monorepo plugins (source of truth)
-              uses: actions/checkout@v6
-              with:
-                  path: _kbve_mono
-                  sparse-checkout: packages/unreal
-                  sparse-checkout-cone-mode: true
-            - name: Overlay KBVE plugins onto project
-              run: |
-                  PLUGINS_DIR=/tmp/game-project/Plugins
-                  mkdir -p "${PLUGINS_DIR}"
-                  for p in "${GITHUB_WORKSPACE}/_kbve_mono/packages/unreal/"KBVE*; do
-                    [ -d "$p" ] || continue
-                    n=$(basename "$p")
-                    echo "::notice::overlay plugin ${n} from monorepo (source of truth)"
-                    rm -rf "${PLUGINS_DIR}/${n}"
-                    cp -r "$p" "${PLUGINS_DIR}/${n}"
-                  done
 
             - name: Build Linux client
               run: |
