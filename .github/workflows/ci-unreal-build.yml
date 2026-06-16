@@ -210,7 +210,7 @@ env:
 jobs:
     guard:
         name: Fork Guard
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 2
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
@@ -256,7 +256,7 @@ jobs:
         name: Server Config
         needs: guard
         if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -604,7 +604,7 @@ jobs:
         name: Game Version Gate
         needs: guard
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -1062,7 +1062,7 @@ jobs:
         name: Game Build (Mac client - STUB)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -1097,7 +1097,7 @@ jobs:
         name: Engine Version Gate
         needs: guard
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -1284,7 +1284,7 @@ jobs:
         name: Engine Build (Mac client - STUB)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -1400,7 +1400,7 @@ jobs:
             (needs.engine_build_mac.result == 'success' || needs.engine_build_mac.result == 'skipped') &&
             (needs.engine_build_linux.result == 'success' || needs.engine_build_linux.result == 'skipped') &&
             (needs.engine_build_mac.result == 'success' || needs.engine_build_linux.result == 'success')
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 15
         permissions:
             contents: read
@@ -1456,7 +1456,7 @@ jobs:
             always() &&
             needs.engine_gate.outputs.should_build == 'true' &&
             needs.engine_release.result == 'success'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 10
         permissions:
             contents: write
@@ -1503,7 +1503,7 @@ jobs:
         name: Plugin Version Gate
         needs: guard
         if: (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') && needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
@@ -1784,7 +1784,7 @@ jobs:
             always() &&
             needs.plugin_check.outputs.should_release == 'true' &&
             (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 10
         permissions:
             contents: write
@@ -1816,7 +1816,7 @@ jobs:
             (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success') &&
             inputs.deploy_to_itch == true &&
             inputs.itch_game_id != ''
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 15
         permissions:
             contents: read
@@ -2020,7 +2020,7 @@ jobs:
         name: Install on UE5-Mac (STUB)
         needs: guard
         if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
+        runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
             contents: read
