@@ -252,6 +252,11 @@ jobs:
                     if [ "$OLD_TAG" != "unknown" ]; then
                       sed -i "s|version: \"${OLD_TAG}\"|version: \"${VERSION}\"|g" "$FILE"
                     fi
+                    # Keep an APP_VERSION env (apps that surface a runtime version
+                    # via /health) in sync with the image tag. No-op if absent.
+                    if grep -q "name: APP_VERSION" "$FILE"; then
+                      sed -i "/name: APP_VERSION/{n;s|value:.*|value: '${VERSION}'|}" "$FILE"
+                    fi
                     sed -i "s|rollout-restart: \".*\"|rollout-restart: \"${TIMESTAMP}\"|g" "$FILE"
 
                     echo "Updated $FILE: $OLD_TAG → $VERSION"
