@@ -21,7 +21,13 @@ export default defineConfig(({ mode }) => ({
 		// @kbve/rn source resolves react from the repo-root node_modules while the
 		// app uses web/node_modules -> two React copies -> "Invalid hook call".
 		// Force a single copy of each.
-		dedupe: ['react', 'react-dom', 'react-native-web'],
+		dedupe: [
+			'react',
+			'react-dom',
+			'react-native-web',
+			'@tanstack/react-query',
+			'@tanstack/react-query-persist-client',
+		],
 		alias: [
 			// buildless workspace sources consumed directly (vite transpiles them);
 			// subpaths first so they win over the bare @kbve/rn match.
@@ -85,7 +91,11 @@ export default defineConfig(({ mode }) => ({
 		],
 	},
 	optimizeDeps: {
-		include: ['react-native-web'],
+		include: [
+			'react-native-web',
+			'@tanstack/react-query',
+			'@tanstack/react-query-persist-client',
+		],
 		// the prebundle scanner ignores resolve.extensions; without this it
 		// grabs reanimated's native *.js (Flow syntax) instead of the *.web.js
 		// variants and esbuild fails ("Expected from but found {").
