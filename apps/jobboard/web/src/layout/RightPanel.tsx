@@ -31,10 +31,10 @@ function Clock() {
 	});
 	return (
 		<Panel gradient="accent" glow>
-			<Text variant="caption" tone="muted">
+			<Text variant="caption" style={{ color: 'rgba(255,255,255,0.8)' }}>
 				{day}
 			</Text>
-			<Text variant="display" weight="bold">
+			<Text variant="display" weight="bold" style={{ color: '#fff' }}>
 				{time}
 			</Text>
 		</Panel>
@@ -58,7 +58,7 @@ function ActionButton({ children }: { children: React.ReactNode }) {
 				alignItems: 'center',
 				justifyContent: 'center',
 				borderRadius: tokens.radius.md,
-				backgroundColor: 'rgba(22,19,16,0.45)',
+				backgroundColor: 'rgba(255,255,255,0.18)',
 			}}>
 			{children}
 		</PressableSurface>
@@ -77,23 +77,28 @@ function FeaturedContact() {
 				}}>
 				<Avatar name={c.name} size={44} />
 				<Stack gap="xs" style={{ flex: 1 }}>
-					<Text variant="label" weight="bold">
+					<Text
+						variant="label"
+						weight="bold"
+						style={{ color: '#fff' }}>
 						{c.name}
 					</Text>
-					<Text variant="caption" tone="muted">
+					<Text
+						variant="caption"
+						style={{ color: 'rgba(255,255,255,0.75)' }}>
 						{c.role}
 					</Text>
 				</Stack>
 			</View>
 			<Stack direction="row" gap="sm">
 				<ActionButton>
-					<Phone size={18} color={tokens.color.primary} />
+					<Phone size={18} color="#fff" />
 				</ActionButton>
 				<ActionButton>
-					<Video size={18} color={tokens.color.primary} />
+					<Video size={18} color="#fff" />
 				</ActionButton>
 				<ActionButton>
-					<MessageSquare size={18} color={tokens.color.primary} />
+					<MessageSquare size={18} color="#fff" />
 				</ActionButton>
 			</Stack>
 		</Panel>
