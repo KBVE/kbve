@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-15T10:18:24Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-16T09:57:27Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**53** critical/high severity findings across the monorepo.
+**56** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,13 +26,13 @@ Last generated: **2026-06-15T10:18:24Z** — updated daily by `ci-dashboard`.
   <Card title="4 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="49 High" icon="error">
+  <Card title="52 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="65 Medium" icon="information">
+  <Card title="72 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="30 Low" icon="approve-check-circle">
+  <Card title="34 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-06-15T10:18:24Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **69** advisories
+    **83** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **48** advisories
@@ -63,9 +63,9 @@ Last generated: **2026-06-15T10:18:24Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 49
-    "Medium" : 65
-    "Low" : 30
+    "High" : 52
+    "Medium" : 72
+    "Low" : 34
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 69
+    "npm" : 83
     "Cargo" : 48
     "CodeQL" : 61
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 31 | 32 | 4 | 69 |
+| **npm** | 2 | 34 | 39 | 8 | 83 |
 | **Cargo** | 0 | 0 | 18 | 0 | 48 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 49 | 65 | 30 | 178 |
+| **Total** | 4 | 52 | 72 | 34 | 192 |
 
   </TabItem>
   <TabItem label="npm">
@@ -128,6 +128,9 @@ pie showData
 | High | `axios` | axios Vulnerable to Full Man-in-the-Middle via Prototype ... | [Details](https://github.com/advisories/GHSA-35jp-ww65-95wh) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
 | High | `esbuild` | esbuild: Missing binary integrity verification in Deno mo... | [Details](https://github.com/advisories/GHSA-gv7w-rqvm-qjhr) |
+| High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
+| High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
+| High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
@@ -159,11 +162,22 @@ pie showData
 | Medium | `brace-expansion` | brace-expansion: Large numeric range defeats documented `... | [Details](https://github.com/advisories/GHSA-jxxr-4gwj-5jf2) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `axios` | axios has DoS &amp; Header Injection via Prototype Pollution ... | [Details](https://github.com/advisories/GHSA-898c-q2cr-xwhg) |
-| Medium | `joi` | joi has an uncaught RangeError on deeply nested input thr... | [Details](https://github.com/advisories/GHSA-q7cg-457f-vx79) |
+| Medium | `tar` | node-tar applies PAX size override to intermediary GNU lo... | [Details](https://github.com/advisories/GHSA-vmf3-w455-68vh) |
+| Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
+| Medium | `launch-editor` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
+| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
+| Medium | `dompurify` | DOMPurify: Hook mutation of `data.allowedTags` / `data.al... | [Details](https://github.com/advisories/GHSA-76mc-f452-cxcm) |
+| Medium | `dompurify` | DOMPurify: Cross-realm IN_PLACE sanitization leaves execu... | [Details](https://github.com/advisories/GHSA-hpcv-96wg-7vj8) |
+| Medium | `dompurify` | DOMPurify: IN_PLACE mode preserves attributes of a clobbe... | [Details](https://github.com/advisories/GHSA-r47g-fvhr-h676) |
+| Medium | `dompurify` | DOMPurify IN_PLACE Sanitization Bypass via Attached Shado... | [Details](https://github.com/advisories/GHSA-rp9w-3fw7-7cwq) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
 | Low | `esbuild` | esbuild allows arbitrary file read when running the devel... | [Details](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr) |
+| Low | `@babel/core` | @babel/core: Arbitrary File Read via sourceMappingURL Com... | [Details](https://github.com/advisories/GHSA-4x5r-pxfx-6jf8) |
+| Low | `dompurify` | DOMPurify: `IN_PLACE` mode trusts attacker-controlled `no... | [Details](https://github.com/advisories/GHSA-x4vx-rjvf-j5p4) |
+| Low | `dompurify` | DOMPurify: Trusted Types policy survives `clearConfig()` ... | [Details](https://github.com/advisories/GHSA-vxr8-fq34-vvx9) |
+| Low | `dompurify` | DOMPurify: SAFE_FOR_TEMPLATES bypass - template expressio... | [Details](https://github.com/advisories/GHSA-gvmj-g25r-r7wr) |
 
   </TabItem>
   <TabItem label="Cargo">
