@@ -567,7 +567,7 @@ export class CloudCityScene extends Scene {
 		this.checkHostileProximity();
 		this.syncRoster(snap);
 		this.runPendingAction();
-		const DAY_MS = 600000;
+		const DAY_MS = 1800000;
 		laserEvents.emit('world:time', {
 			phase: (snap.server_time_ms % DAY_MS) / DAY_MS,
 		});
