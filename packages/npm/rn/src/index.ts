@@ -11,6 +11,7 @@ export * from './auth/executor';
 export * from './auth/KbveProvider';
 export * from './auth/useAuth';
 export * from './auth/useApi';
+export * from './auth/useAuthForm';
 export * from './auth/AuthGate';
 export * from './auth/LoginScreen';
 export * from './auth/SetUsernameScreen';
@@ -23,6 +24,9 @@ export * from './chat/useChat';
 
 export * from './hooks';
 export * from './offload';
+export * from './platform/openExternal';
+export * from './platform/viewTransition';
+export * from './store';
 
 export * from './plugin';
 export * from './sandbox';

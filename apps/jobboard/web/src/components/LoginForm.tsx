@@ -1,21 +1,18 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import {
 	KBVE_HCAPTCHA_SITE_KEY,
-	useAuth as useKbveAuth,
 	useAuthActions,
+	useAuthForm,
 } from '@kbve/rn/auth';
 import type { OAuthProvider } from '@kbve/core';
-import { PeekMascot } from './PeekMascot';
-import { DiscordIcon, GitHubIcon, TwitchIcon } from './BrandIcons';
-
-type Mode = 'sign_in' | 'sign_up';
+import { PeekMascot, DiscordIcon, GitHubIcon, TwitchIcon } from '@kbve/rn/ui';
 
 interface Provider {
 	id: OAuthProvider;
 	label: string;
 	color: string;
-	Icon: React.ComponentType<{ className?: string }>;
+	Icon: React.ComponentType<{ size?: number; color?: string }>;
 }
 
 const PROVIDERS: Provider[] = [
@@ -28,58 +25,44 @@ const inputCls =
 	'w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 transition focus:border-quest-500 focus:outline-none';
 
 export function LoginForm() {
-	const auth = useKbveAuth();
 	const actions = useAuthActions();
 	const captchaRef = useRef<HCaptcha>(null);
+	const form = useAuthForm();
+	const {
+		isSignUp,
+		busy,
+		error,
+		email,
+		password,
+		confirm,
+		agreed,
+		peeking,
+		emailValid,
+		mismatch,
+		setEmail,
+		setPassword,
+		setConfirm,
+		setAgreed,
+		setPeeking,
+		switchMode,
+	} = form;
 
-	const [mode, setMode] = useState<Mode>('sign_in');
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirm, setConfirm] = useState('');
-	const [agreed, setAgreed] = useState(false);
-	const [peeking, setPeeking] = useState(false);
-	const [localError, setLocalError] = useState<string | null>(null);
-
-	const isSignUp = mode === 'sign_up';
-	const busy = auth.status === 'authenticating';
-	const mismatch = isSignUp && confirm.length > 0 && password !== confirm;
-
-	// Invisible hCaptcha resolves → onVerify → we run the real auth action.
 	const onVerify = (token: string) => {
-		if (isSignUp) actions.signUp(email, password, token);
-		else actions.signInWithPassword(email, password, token);
+		form.authenticate(token);
 		captchaRef.current?.resetCaptcha();
 	};
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
-		setLocalError(null);
-		if (!email || !password) {
-			setLocalError('Enter your email and password.');
-			return;
+		if (form.submit().status === 'need_captcha') {
+			captchaRef.current?.execute();
 		}
-		if (isSignUp && password !== confirm) {
-			setLocalError('Passwords don’t match.');
-			return;
-		}
-		if (isSignUp && !agreed) {
-			setLocalError('Please agree to the terms to continue.');
-			return;
-		}
-		captchaRef.current?.execute();
-	};
-
-	const switchMode = () => {
-		setMode(isSignUp ? 'sign_in' : 'sign_up');
-		setLocalError(null);
-		setConfirm('');
 	};
 
 	const peekProps = {
 		onFocus: () => setPeeking(true),
 		onBlur: () => setPeeking(false),
 	};
-	const error = localError ?? auth.error;
 
 	return (
 		<div className="w-full">
@@ -98,7 +81,7 @@ export function LoginForm() {
 			<form onSubmit={submit} className="space-y-3">
 				<input
 					type="email"
-					className={inputCls}
+					className={`${inputCls} ${email.length > 0 && !emailValid ? 'border-red-500' : ''}`}
 					placeholder="Email"
 					autoComplete="email"
 					value={email}
@@ -108,7 +91,9 @@ export function LoginForm() {
 					type="password"
 					className={inputCls}
 					placeholder="Password"
-					autoComplete={isSignUp ? 'new-password' : 'current-password'}
+					autoComplete={
+						isSignUp ? 'new-password' : 'current-password'
+					}
 					value={password}
 					onChange={(e) => setPassword(e.target.value)}
 					{...peekProps}
@@ -145,7 +130,11 @@ export function LoginForm() {
 					type="submit"
 					disabled={busy}
 					className="w-full rounded-lg bg-quest-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-quest-900/40 transition hover:bg-quest-400 disabled:cursor-not-allowed disabled:opacity-60">
-					{busy ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
+					{busy
+						? 'Please wait…'
+						: isSignUp
+							? 'Create account'
+							: 'Sign in'}
 				</button>
 			</form>
 
@@ -163,8 +152,8 @@ export function LoginForm() {
 						disabled={busy}
 						onClick={() => actions.signInWithOAuth(p.id)}
 						className="flex items-center justify-center gap-2 rounded-lg border border-zinc-700 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-500 disabled:opacity-50">
-						<span style={{ color: p.color }} className="flex">
-							<p.Icon className="h-4 w-4" />
+						<span className="flex">
+							<p.Icon size={16} color={p.color} />
 						</span>
 						{p.label}
 					</button>
@@ -172,7 +161,9 @@ export function LoginForm() {
 			</div>
 
 			<p className="mt-6 text-center text-sm text-zinc-400">
-				{isSignUp ? 'Already have an account?' : 'Don’t have an account?'}{' '}
+				{isSignUp
+					? 'Already have an account?'
+					: 'Don’t have an account?'}{' '}
 				<button
 					type="button"
 					onClick={switchMode}

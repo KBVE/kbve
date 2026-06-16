@@ -11,6 +11,14 @@ import type {
 	LocationPref,
 	TalentQuery,
 } from './api/types';
+import {
+	fetchGig,
+	fetchGigs,
+	fetchTalent,
+	fetchTalentByHandle,
+	fetchTaxonomy,
+} from './api/client';
+import { queryClient } from './lib/queryClient';
 import { HomePage } from './routes/home';
 import { GigsPage } from './routes/gigs';
 import { GigDetailPage } from './routes/gig-detail';
@@ -19,6 +27,14 @@ import { TalentProfilePage } from './routes/talent-profile';
 import { PostGigPage } from './routes/post-gig';
 import { LoginPage } from './routes/login';
 import { NavBar } from './components/NavBar';
+
+const GAME_DEV_ID = 1;
+
+const prefetchTaxonomy = () =>
+	queryClient.ensureQueryData({
+		queryKey: ['taxonomy', GAME_DEV_ID],
+		queryFn: () => fetchTaxonomy(GAME_DEV_ID),
+	});
 
 const str = (v: unknown): string | undefined =>
 	typeof v === 'string' && v !== '' ? v : undefined;
@@ -51,6 +67,17 @@ const homeRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: '/',
 	component: HomePage,
+	loader: () =>
+		Promise.all([
+			queryClient.ensureQueryData({
+				queryKey: ['gigs', {}],
+				queryFn: () => fetchGigs({}),
+			}),
+			queryClient.ensureQueryData({
+				queryKey: ['talent-list', {}],
+				queryFn: () => fetchTalent({}),
+			}),
+		]),
 });
 
 const gigsRoute = createRoute({
@@ -66,12 +93,26 @@ const gigsRoute = createRoute({
 		budget_min: num(search.budget_min),
 		cursor: str(search.cursor),
 	}),
+	loaderDeps: ({ search }) => search,
+	loader: ({ deps }) =>
+		Promise.all([
+			prefetchTaxonomy(),
+			queryClient.ensureQueryData({
+				queryKey: ['gigs', deps],
+				queryFn: () => fetchGigs(deps),
+			}),
+		]),
 });
 
 const gigDetailRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: '/gigs/$gigId',
 	component: GigDetailPage,
+	loader: ({ params }) =>
+		queryClient.ensureQueryData({
+			queryKey: ['gig', params.gigId],
+			queryFn: () => fetchGig(params.gigId),
+		}),
 });
 
 const talentRoute = createRoute({
@@ -84,18 +125,33 @@ const talentRoute = createRoute({
 		tool: str(search.tool),
 		availability: num(search.availability) as Availability | undefined,
 	}),
+	loaderDeps: ({ search }) => search,
+	loader: ({ deps }) =>
+		Promise.all([
+			prefetchTaxonomy(),
+			queryClient.ensureQueryData({
+				queryKey: ['talent-list', deps],
+				queryFn: () => fetchTalent(deps),
+			}),
+		]),
 });
 
 const talentProfileRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: '/talent/$handle',
 	component: TalentProfilePage,
+	loader: ({ params }) =>
+		queryClient.ensureQueryData({
+			queryKey: ['talent', params.handle],
+			queryFn: () => fetchTalentByHandle(params.handle),
+		}),
 });
 
 const postRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: '/post',
 	component: PostGigPage,
+	loader: () => prefetchTaxonomy(),
 });
 
 const loginRoute = createRoute({
@@ -114,7 +170,12 @@ const routeTree = rootRoute.addChildren([
 	loginRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+	routeTree,
+	defaultViewTransition: true,
+	defaultPreload: 'intent',
+	defaultPreloadStaleTime: 0,
+});
 
 declare module '@tanstack/react-router' {
 	interface Register {
