@@ -38,6 +38,10 @@
 		"./store": {
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"
+		},
+		"./toasts": {
+			"types": "./src/toasts/index.ts",
+			"import": "./src/toasts/index.ts"
 		}
 	},
 	"files": [
