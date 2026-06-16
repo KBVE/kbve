@@ -72,17 +72,25 @@ export function NavBar() {
 
 					<div className="ml-auto flex items-center gap-3">
 						<div className="hidden items-center gap-3 md:flex">
-							{user && (
-								<span className="text-xs text-zinc-400">
-									@{user.handle}
-								</span>
+							{user ? (
+								<>
+									<span className="text-xs text-zinc-400">
+										@{user.handle}
+									</span>
+									<button
+										type="button"
+										onClick={signOut}
+										className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300 transition hover:border-quest-500 hover:text-quest-200">
+										Sign out
+									</button>
+								</>
+							) : (
+								<Link
+									to="/login"
+									className="rounded-full bg-quest-500 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-quest-400">
+									Log in
+								</Link>
 							)}
-							<button
-								type="button"
-								onClick={signOut}
-								className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300 transition hover:border-quest-500 hover:text-quest-200">
-								Sign out
-							</button>
 						</div>
 
 						{/* Mobile hamburger */}
@@ -152,19 +160,28 @@ export function NavBar() {
 					))}
 				</nav>
 
-				<div className="mt-auto flex items-center justify-between border-t border-zinc-800 pt-4">
-					{user && (
-						<span className="text-xs text-zinc-400">@{user.handle}</span>
+				<div className="mt-auto border-t border-zinc-800 pt-4">
+					{user ? (
+						<div className="flex items-center justify-between">
+							<span className="text-xs text-zinc-400">@{user.handle}</span>
+							<button
+								type="button"
+								onClick={() => {
+									setOpen(false);
+									signOut();
+								}}
+								className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300 transition hover:border-quest-500 hover:text-quest-200">
+								Sign out
+							</button>
+						</div>
+					) : (
+						<Link
+							to="/login"
+							onClick={() => setOpen(false)}
+							className="block rounded-lg bg-quest-500 px-3 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-quest-400">
+							Log in
+						</Link>
 					)}
-					<button
-						type="button"
-						onClick={() => {
-							setOpen(false);
-							signOut();
-						}}
-						className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300 transition hover:border-quest-500 hover:text-quest-200">
-						Sign out
-					</button>
 				</div>
 			</aside>
 		</>

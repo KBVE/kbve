@@ -107,16 +107,26 @@ function ApplyBox({ gig }: { gig: Gig }) {
 		},
 	});
 
-	if (!user?.can_take) {
+	if (!user) {
 		return (
 			<div className="space-y-2">
-				<Button className="w-full" disabled>
-					Apply to this gig
-				</Button>
+				<Link
+					to="/login"
+					className="block w-full rounded-lg bg-quest-500 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-quest-400">
+					Log in to apply
+				</Link>
 				<p className="text-center text-xs text-zinc-500">
-					Vetted takers only. In dev, switch role to “taker” or “both” to apply.
+					Browsing is open — sign in only when you want to apply.
 				</p>
 			</div>
+		);
+	}
+
+	if (!user.can_take) {
+		return (
+			<p className="rounded-lg border border-zinc-800 px-3 py-2 text-center text-xs text-zinc-400">
+				Your account isn’t approved as a taker yet.
+			</p>
 		);
 	}
 

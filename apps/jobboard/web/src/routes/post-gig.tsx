@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { createGig, fetchTaxonomy } from '../api/client';
 import type { BudgetType, CreateGigInput, LocationPref } from '../api/types';
 import { Button, EmptyState } from '../components/ui';
@@ -42,12 +42,30 @@ export function PostGigPage() {
 		},
 	});
 
-	if (!user?.can_post) {
+	if (!user) {
+		return (
+			<div className="mx-auto max-w-lg space-y-4">
+				<EmptyState
+					title="Log in to post a gig"
+					hint="Browsing is open to everyone — sign in when you're ready to hire."
+				/>
+				<div className="text-center">
+					<Link
+						to="/login"
+						className="inline-block rounded-lg bg-quest-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-quest-400">
+						Log in
+					</Link>
+				</div>
+			</div>
+		);
+	}
+
+	if (!user.can_post) {
 		return (
 			<div className="mx-auto max-w-lg">
 				<EmptyState
 					title="Poster access required"
-					hint="Only vetted posters can publish gigs. In dev, switch the role selector (top-right) to “poster” or “both”."
+					hint="Your account isn’t approved as a poster yet."
 				/>
 			</div>
 		);

@@ -16,6 +16,7 @@ import { GigDetailPage } from './routes/gig-detail';
 import { TalentPage } from './routes/talent';
 import { TalentProfilePage } from './routes/talent-profile';
 import { PostGigPage } from './routes/post-gig';
+import { LoginPage } from './routes/login';
 import { NavBar } from './components/NavBar';
 
 const str = (v: unknown): string | undefined =>
@@ -25,7 +26,11 @@ const num = (v: unknown): number | undefined => {
 	return v === undefined || v === '' || Number.isNaN(n) ? undefined : n;
 };
 
-function RootLayout() {
+const rootRoute = createRootRoute({ component: () => <Outlet /> });
+
+// Pathless layout: the marketplace pages share the NavBar chrome; /login sits
+// outside it (full-bleed split screen).
+function AppLayout() {
 	return (
 		<div className="min-h-screen text-zinc-100">
 			<NavBar />
@@ -36,16 +41,20 @@ function RootLayout() {
 	);
 }
 
-const rootRoute = createRootRoute({ component: RootLayout });
+const appLayoutRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	id: 'app',
+	component: AppLayout,
+});
 
 const homeRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/',
 	component: HomePage,
 });
 
 const gigsRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/gigs',
 	component: GigsPage,
 	validateSearch: (search: Record<string, unknown>): GigQuery => ({
@@ -60,13 +69,13 @@ const gigsRoute = createRoute({
 });
 
 const gigDetailRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/gigs/$gigId',
 	component: GigDetailPage,
 });
 
 const talentRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/talent',
 	component: TalentPage,
 	validateSearch: (search: Record<string, unknown>): TalentQuery => ({
@@ -78,24 +87,33 @@ const talentRoute = createRoute({
 });
 
 const talentProfileRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/talent/$handle',
 	component: TalentProfilePage,
 });
 
 const postRoute = createRoute({
-	getParentRoute: () => rootRoute,
+	getParentRoute: () => appLayoutRoute,
 	path: '/post',
 	component: PostGigPage,
 });
 
+const loginRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/login',
+	component: LoginPage,
+});
+
 const routeTree = rootRoute.addChildren([
-	homeRoute,
-	gigsRoute,
-	gigDetailRoute,
-	talentRoute,
-	talentProfileRoute,
-	postRoute,
+	appLayoutRoute.addChildren([
+		homeRoute,
+		gigsRoute,
+		gigDetailRoute,
+		talentRoute,
+		talentProfileRoute,
+		postRoute,
+	]),
+	loginRoute,
 ]);
 
 export const router = createRouter({ routeTree });
