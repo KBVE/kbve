@@ -32,7 +32,7 @@ import {
 	interactableAt,
 	type Interactable,
 } from '../data/interactables';
-import { EntityStore, type EntityCat } from '../ecs/store';
+import { EntityStore } from '../ecs/store';
 import {
 	applyEntitySync,
 	type SyncBridge,
@@ -55,6 +55,15 @@ import {
 	type ClickHit,
 	type NpcEntry,
 } from '../systems/interaction';
+import {
+	makeKindResolvers,
+	type KindResolvers,
+} from '../systems/kindResolvers';
+import {
+	spriteVariantForName,
+	isTypingInDom,
+	zoneLabelForTile,
+} from '../systems/sceneHelpers';
 
 interface EntityRefs {
 	sprite: Phaser.GameObjects.Sprite;
@@ -64,29 +73,7 @@ interface EntityRefs {
 }
 
 const MAP_SCALE = 3;
-const STEP_THROTTLE_MS = 60;
 const SLOT_NONE = 0xffff;
-const PLAYER_SPRITE_VARIANTS = 8;
-
-function spriteVariantForName(name: string): number {
-	let h = 2166136261;
-	for (let i = 0; i < name.length; i++) {
-		h ^= name.charCodeAt(i);
-		h = Math.imul(h, 16777619);
-	}
-	return (h >>> 0) % PLAYER_SPRITE_VARIANTS;
-}
-
-function isTypingInDom(): boolean {
-	const el = document.activeElement;
-	if (!el) return false;
-	const tag = el.tagName;
-	return (
-		tag === 'INPUT' ||
-		tag === 'TEXTAREA' ||
-		(el as HTMLElement).isContentEditable === true
-	);
-}
 
 interface PendingAction {
 	kind: 'pickup' | 'interact';
@@ -104,6 +91,7 @@ export class CloudCityScene extends Scene {
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private kindRegistry = new Map<number, KindEntry>();
+	private kinds: KindResolvers = makeKindResolvers(this.kindRegistry);
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: {
 		up: Phaser.Input.Keyboard.Key;
@@ -113,7 +101,6 @@ export class CloudCityScene extends Scene {
 	};
 	private attackKey!: Phaser.Input.Keyboard.Key;
 	private entityDepth = 0;
-	private lastStepAt = 0;
 	private tilePixels = 16;
 	private zone: ZoneDef = getZone(DEFAULT_ZONE);
 	private interactables: Interactable[] = [];
@@ -428,23 +415,6 @@ export class CloudCityScene extends Scene {
 		g.destroy();
 	}
 
-	private kindCat(kind: number): number {
-		return this.kindRegistry.get(kind)?.cat ?? KIND_CAT_NPC;
-	}
-
-	private kindRef(kind: number): string | null {
-		return this.kindRegistry.get(kind)?.ref ?? null;
-	}
-
-	private catName(kind: number): EntityCat {
-		const c = this.kindCat(kind);
-		return c === KIND_CAT_PLAYER
-			? 'player'
-			: c === KIND_CAT_ITEM
-				? 'item'
-				: 'npc';
-	}
-
 	private makeSprite(
 		kind: number,
 		owner: number,
@@ -452,7 +422,7 @@ export class CloudCityScene extends Scene {
 		sprite: Phaser.GameObjects.Sprite;
 		mapping?: number;
 	} {
-		const cat = this.kindCat(kind);
+		const cat = this.kinds.cat(kind);
 		if (cat === KIND_CAT_PLAYER || this.kindRegistry.size === 0) {
 			const sprite = this.add.sprite(0, 0, 'player');
 			sprite.scale = 1.5;
@@ -462,7 +432,7 @@ export class CloudCityScene extends Scene {
 			return { sprite, mapping };
 		}
 		if (cat === KIND_CAT_ITEM) {
-			const ref = this.kindRef(kind);
+			const ref = this.kinds.ref(kind);
 			const item = ref ? getItemById(ref) : undefined;
 			const frame = item ? atlasFrame(item.key) : 0;
 			const useAtlas = frame > 0 && this.textures.exists('items-atlas');
@@ -475,7 +445,7 @@ export class CloudCityScene extends Scene {
 			sprite.setDepth(this.entityDepth - 0.5);
 			return { sprite, mapping: undefined };
 		}
-		const ref = this.kindRef(kind);
+		const ref = this.kinds.ref(kind);
 		const conf = resolveNpcSprite(ref);
 		const sprite = this.add.sprite(0, 0, conf.key);
 		sprite.scale = conf.scale ?? 1.5;
@@ -543,15 +513,15 @@ export class CloudCityScene extends Scene {
 			},
 		};
 		this.syncResolvers = {
-			cat: (kind) => this.catName(kind),
+			cat: (kind) => this.kinds.catName(kind),
 			hostile: (kind) => {
-				const ref = this.kindRef(kind);
+				const ref = this.kinds.ref(kind);
 				return !!(ref && isHostileRef(ref));
 			},
 			label: (e, cat) => {
 				if (cat === 'player') return this.slotUsername.get(e.owner);
 				if (cat === 'npc') {
-					const ref = this.kindRef(e.kind);
+					const ref = this.kinds.ref(e.kind);
 					return ref ? (getNPCByRef(ref)?.name ?? ref) : undefined;
 				}
 				return undefined;
@@ -616,7 +586,7 @@ export class CloudCityScene extends Scene {
 			this.client.action(ACTION_PICKUP, pending.eid);
 			return;
 		}
-		const ref = this.kindRef(this.store.kind(pending.eid));
+		const ref = this.kinds.ref(this.store.kind(pending.eid));
 		if (!ref) return;
 		const npc = getNPCByRef(ref);
 		laserEvents.emit('npc:interact', {
@@ -638,7 +608,7 @@ export class CloudCityScene extends Scene {
 
 	private updateHpBars() {
 		for (const [serverEid, , refs] of this.store.entries()) {
-			const cat = this.kindCat(this.store.kind(serverEid));
+			const cat = this.kinds.cat(this.store.kind(serverEid));
 			const hp = this.store.hp(serverEid);
 			const maxHp = this.store.maxHp(serverEid);
 			// Entity-uniform: any wounded entity (player or NPC) gets a world
@@ -681,7 +651,7 @@ export class CloudCityScene extends Scene {
 		let count = 0;
 		for (const [serverEid] of this.store.entries()) {
 			if (serverEid === this.myEid) continue;
-			const ref = this.kindRef(this.store.kind(serverEid));
+			const ref = this.kinds.ref(this.store.kind(serverEid));
 			if (!ref || !isHostileRef(ref)) continue;
 			const t = this.store.tile(serverEid);
 			if (t && chebyshev(me, t) <= 3) count += 1;
@@ -717,11 +687,11 @@ export class CloudCityScene extends Scene {
 		let hit: ClickHit | null = null;
 		if (hitEid !== null) {
 			const kind = this.store.kind(hitEid);
-			const ref = this.kindRef(kind);
+			const ref = this.kinds.ref(kind);
 			const npc = ref ? getNPCByRef(ref) : undefined;
 			hit = {
 				eid: hitEid,
-				cat: this.catName(kind),
+				cat: this.kinds.catName(kind),
 				hasRef: ref !== null,
 			};
 			laserEvents.emit('target:set', {
@@ -729,7 +699,7 @@ export class CloudCityScene extends Scene {
 				name: npc?.name ?? ref ?? 'Unknown',
 				hp: this.store.hp(hitEid),
 				maxHp: this.store.maxHp(hitEid),
-				cat: this.kindCat(kind),
+				cat: this.kinds.cat(kind),
 			});
 		}
 
@@ -743,7 +713,7 @@ export class CloudCityScene extends Scene {
 				this.startMoveTo(tile);
 				return;
 			case 'interact': {
-				const ref = this.kindRef(this.store.kind(intent.eid));
+				const ref = this.kinds.ref(this.store.kind(intent.eid));
 				const npc = ref ? getNPCByRef(ref) : undefined;
 				const ev = pointer.event as MouseEvent | undefined;
 				if (ref) {
@@ -811,7 +781,7 @@ export class CloudCityScene extends Scene {
 		const npcs: NpcEntry[] = [];
 		for (const [serverEid] of this.store.entries()) {
 			if (serverEid === this.myEid) continue;
-			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_NPC)
+			if (this.kinds.cat(this.store.kind(serverEid)) !== KIND_CAT_NPC)
 				continue;
 			const t = this.store.tile(serverEid);
 			if (t) npcs.push({ eid: serverEid, tile: t });
@@ -864,7 +834,7 @@ export class CloudCityScene extends Scene {
 		for (const [serverEid] of this.store.entries()) {
 			if (
 				serverEid !== this.myEid &&
-				this.kindCat(this.store.kind(serverEid)) === KIND_CAT_PLAYER
+				this.kinds.cat(this.store.kind(serverEid)) === KIND_CAT_PLAYER
 			) {
 				const t = this.store.tile(serverEid);
 				if (t) others.push(t);
@@ -879,21 +849,12 @@ export class CloudCityScene extends Scene {
 				this.lastPosKey = key;
 				laserEvents.emit('player:position', { x: me.x, y: me.y });
 			}
-			const zone = this.zoneForTile(me);
+			const zone = zoneLabelForTile(me);
 			if (zone !== this.currentZone) {
 				this.currentZone = zone;
 				laserEvents.emit('zone:enter', { name: zone });
 			}
 		}
-	}
-
-	private zoneForTile(t: { x: number; y: number }): string {
-		const near = (cx: number, cy: number, r: number) =>
-			Math.max(Math.abs(t.x - cx), Math.abs(t.y - cy)) <= r;
-		if (near(5, 12, 8)) return 'Cloud City Plaza';
-		if (near(24, 24, 7)) return 'Goblin Camp';
-		if (near(34, 30, 8)) return 'Crystal Cavern';
-		return 'The Wilds';
 	}
 
 	private autoPickup(time: number) {
@@ -902,7 +863,7 @@ export class CloudCityScene extends Scene {
 		const me = this.myTile();
 		if (!me) return;
 		for (const [serverEid] of this.store.entries()) {
-			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_ITEM)
+			if (this.kinds.cat(this.store.kind(serverEid)) !== KIND_CAT_ITEM)
 				continue;
 			const t = this.store.tile(serverEid);
 			if (t && chebyshev(me, t) <= 1) {
@@ -957,7 +918,6 @@ export class CloudCityScene extends Scene {
 			if (cand) this.advancePredicted(pstate, myChar, cand);
 			this.predictedPath = pstate.path;
 			this.client.step(dir);
-			this.lastStepAt = time;
 			return;
 		}
 
