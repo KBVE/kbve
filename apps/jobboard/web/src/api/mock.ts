@@ -24,77 +24,15 @@ import type {
 
 const GAME_DEV_ID = 1;
 
-export const VERTICALS: Vertical[] = [
-	{
-		id: GAME_DEV_ID,
-		slug: 'game-dev',
-		label: 'Game Development',
-		description:
-			'Art, code, audio, design, and QA for games — the launch vertical.',
-		status: 2,
-		sort_order: 0,
-	},
-];
+// Taxonomy is generated from the MDX source of truth (jobboard.mdx `verticals`
+// block) via `nx run astro-kbve:sync:jobboard-taxonomy`. Same data the seed SQL
+// loads into Postgres — mock and DB never drift.
+import taxonomyData from './taxonomy.generated.json';
 
-// ── Taxonomy ────────────────────────────────────────────────────────────
-// Built from a compact table; ids are assigned sequentially per the seed order.
+export const VERTICALS: Vertical[] = taxonomyData.verticals as Vertical[];
 
-const DISCIPLINES: [string, string][] = [
-	['2d-art', '2D Art'],
-	['3d-art', '3D Art'],
-	['animation', 'Animation / Rigging'],
-	['programming', 'Programming'],
-	['technical-art', 'Technical Art / Shaders'],
-	['audio', 'Audio (Music / SFX / VO)'],
-	['game-design', 'Game Design'],
-	['level-design', 'Level Design'],
-	['narrative', 'Narrative / Writing'],
-	['ui-ux', 'UI / UX'],
-	['qa', 'QA / Testing'],
-	['porting', 'Porting'],
-	['localization', 'Localization'],
-	['production', 'Production / PM'],
-	['community', 'Community'],
-];
-
-const TOOLS: [string, string][] = [
-	['unity', 'Unity'],
-	['unreal', 'Unreal'],
-	['godot', 'Godot'],
-	['gamemaker', 'GameMaker'],
-	['bevy', 'Bevy'],
-	['blender', 'Blender'],
-	['maya', 'Maya'],
-	['zbrush', 'ZBrush'],
-	['substance', 'Substance'],
-	['photoshop', 'Photoshop'],
-	['spine', 'Spine'],
-	['fmod', 'FMOD'],
-	['wwise', 'Wwise'],
-];
-
-const SKILLS: [string, string][] = [
-	['netcode', 'Netcode'],
-	['humanoid-rigging', 'Humanoid Rigging'],
-	['pixel-art', 'Pixel Art'],
-	['procgen', 'Procedural Generation'],
-	['shader-graph', 'Shader Graph'],
-	['vertical-slice', 'Vertical Slice'],
-];
-
-export const TAXONOMY: TaxonomyItem[] = (() => {
-	let id = 1;
-	const build = (rows: [string, string][], kind: 1 | 2 | 3): TaxonomyItem[] =>
-		rows.map(([name, label]) => ({
-			id: id++,
-			vertical_id: GAME_DEV_ID,
-			kind,
-			name,
-			label,
-			status: 1,
-		}));
-	return [...build(DISCIPLINES, 1), ...build(TOOLS, 2), ...build(SKILLS, 3)];
-})();
+export const TAXONOMY: TaxonomyItem[] =
+	taxonomyData.taxonomy as unknown as TaxonomyItem[];
 
 const bySlug = new Map(TAXONOMY.map((t) => [t.name, t]));
 /** Look up taxonomy items by slug; unknown slugs are ignored. */
@@ -105,7 +43,11 @@ const tax = (...slugs: string[]): TaxonomyItem[] =>
 
 export const RANKS: Record<RankTier, Rank> = {
 	recruit: { tier: 'recruit', label: 'Recruit', min_reputation: 0 },
-	adventurer: { tier: 'adventurer', label: 'Adventurer', min_reputation: 250 },
+	adventurer: {
+		tier: 'adventurer',
+		label: 'Adventurer',
+		min_reputation: 250,
+	},
 	artisan: { tier: 'artisan', label: 'Artisan', min_reputation: 750 },
 	veteran: { tier: 'veteran', label: 'Veteran', min_reputation: 2000 },
 	master: { tier: 'master', label: 'Master', min_reputation: 5000 },
@@ -404,7 +346,8 @@ export const TALENT: TalentProfile[] = [
 			{
 				id: 'pf_arlo_1',
 				title: 'Rollback netcode demo (playable)',
-				description: 'Browser build — 2-player rollback fighting sandbox.',
+				description:
+					'Browser build — 2-player rollback fighting sandbox.',
 				source: 'itch',
 				media: [
 					{
@@ -505,7 +448,8 @@ const delay = <T>(value: T, ms = 220): Promise<T> =>
 const matches = (gig: Gig, query: GigQuery): boolean => {
 	const q = query.q?.trim().toLowerCase();
 	if (q) {
-		const hay = `${gig.title} ${gig.summary} ${gig.description}`.toLowerCase();
+		const hay =
+			`${gig.title} ${gig.summary} ${gig.description}`.toLowerCase();
 		if (!hay.includes(q)) return false;
 	}
 	const hasTag = (slug: string | undefined, items: TaxonomyItem[]) =>
@@ -513,7 +457,10 @@ const matches = (gig: Gig, query: GigQuery): boolean => {
 	if (!hasTag(query.discipline, gig.disciplines)) return false;
 	if (!hasTag(query.tool, gig.tools)) return false;
 	if (!hasTag(query.skill, gig.skills)) return false;
-	if (query.location_pref !== undefined && gig.location_pref !== query.location_pref)
+	if (
+		query.location_pref !== undefined &&
+		gig.location_pref !== query.location_pref
+	)
 		return false;
 	if (query.budget_min !== undefined && gig.budget_max < query.budget_min)
 		return false;
@@ -530,7 +477,9 @@ export const mockApi = {
 		}),
 
 	gigs: (query: GigQuery = {}): Promise<GigList> => {
-		const gigs = GIGS.filter((g) => g.status === 2 && matches(g, query)).sort(
+		const gigs = GIGS.filter(
+			(g) => g.status === 2 && matches(g, query),
+		).sort(
 			(a, b) =>
 				Date.parse(b.published_at ?? b.created_at) -
 				Date.parse(a.published_at ?? a.created_at),
@@ -547,12 +496,22 @@ export const mockApi = {
 	talent: (query: TalentQuery = {}): Promise<TalentList> => {
 		const q = query.q?.trim().toLowerCase();
 		const talent = TALENT.filter((t) => {
-			if (q && !`${t.display_name} ${t.headline}`.toLowerCase().includes(q))
+			if (
+				q &&
+				!`${t.display_name} ${t.headline}`.toLowerCase().includes(q)
+			)
 				return false;
-			if (query.discipline && !t.disciplines.some((d) => d.name === query.discipline))
+			if (
+				query.discipline &&
+				!t.disciplines.some((d) => d.name === query.discipline)
+			)
 				return false;
-			if (query.tool && !t.tools.some((d) => d.name === query.tool)) return false;
-			if (query.availability !== undefined && t.availability !== query.availability)
+			if (query.tool && !t.tools.some((d) => d.name === query.tool))
+				return false;
+			if (
+				query.availability !== undefined &&
+				t.availability !== query.availability
+			)
 				return false;
 			return true;
 		}).sort((a, b) => b.reputation - a.reputation);

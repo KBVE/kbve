@@ -1,0 +1,320 @@
+{
+	"verticals": [
+		{
+			"id": 1,
+			"slug": "game-dev",
+			"label": "Game Development",
+			"description": "Art, code, audio, design, and QA for games — the launch vertical.",
+			"status": 2,
+			"sort_order": 0
+		}
+	],
+	"taxonomy": [
+		{
+			"id": 1,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "2d-art",
+			"label": "2D Art",
+			"status": 1
+		},
+		{
+			"id": 2,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "3d-art",
+			"label": "3D Art",
+			"status": 1
+		},
+		{
+			"id": 3,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "animation",
+			"label": "Animation / Rigging",
+			"status": 1
+		},
+		{
+			"id": 4,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "programming",
+			"label": "Programming",
+			"status": 1
+		},
+		{
+			"id": 5,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "technical-art",
+			"label": "Technical Art / Shaders",
+			"status": 1
+		},
+		{
+			"id": 6,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "audio",
+			"label": "Audio (Music / SFX / VO)",
+			"status": 1
+		},
+		{
+			"id": 7,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "game-design",
+			"label": "Game Design",
+			"status": 1
+		},
+		{
+			"id": 8,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "level-design",
+			"label": "Level Design",
+			"status": 1
+		},
+		{
+			"id": 9,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "narrative",
+			"label": "Narrative / Writing",
+			"status": 1
+		},
+		{
+			"id": 10,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "ui-ux",
+			"label": "UI / UX",
+			"status": 1
+		},
+		{
+			"id": 11,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "qa",
+			"label": "QA / Testing",
+			"status": 1
+		},
+		{
+			"id": 12,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "porting",
+			"label": "Porting",
+			"status": 1
+		},
+		{
+			"id": 13,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "localization",
+			"label": "Localization",
+			"status": 1
+		},
+		{
+			"id": 14,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "production",
+			"label": "Production / PM",
+			"status": 1
+		},
+		{
+			"id": 15,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 1,
+			"name": "community",
+			"label": "Community",
+			"status": 1
+		},
+		{
+			"id": 16,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "unity",
+			"label": "Unity",
+			"status": 1
+		},
+		{
+			"id": 17,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "unreal",
+			"label": "Unreal",
+			"status": 1
+		},
+		{
+			"id": 18,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "godot",
+			"label": "Godot",
+			"status": 1
+		},
+		{
+			"id": 19,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "gamemaker",
+			"label": "GameMaker",
+			"status": 1
+		},
+		{
+			"id": 20,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "bevy",
+			"label": "Bevy",
+			"status": 1
+		},
+		{
+			"id": 21,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "blender",
+			"label": "Blender",
+			"status": 1
+		},
+		{
+			"id": 22,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "maya",
+			"label": "Maya",
+			"status": 1
+		},
+		{
+			"id": 23,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "zbrush",
+			"label": "ZBrush",
+			"status": 1
+		},
+		{
+			"id": 24,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "substance",
+			"label": "Substance",
+			"status": 1
+		},
+		{
+			"id": 25,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "photoshop",
+			"label": "Photoshop",
+			"status": 1
+		},
+		{
+			"id": 26,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "spine",
+			"label": "Spine",
+			"status": 1
+		},
+		{
+			"id": 27,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "fmod",
+			"label": "FMOD",
+			"status": 1
+		},
+		{
+			"id": 28,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 2,
+			"name": "wwise",
+			"label": "Wwise",
+			"status": 1
+		},
+		{
+			"id": 29,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "netcode",
+			"label": "Netcode",
+			"status": 1
+		},
+		{
+			"id": 30,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "humanoid-rigging",
+			"label": "Humanoid Rigging",
+			"status": 1
+		},
+		{
+			"id": 31,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "pixel-art",
+			"label": "Pixel Art",
+			"status": 1
+		},
+		{
+			"id": 32,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "procgen",
+			"label": "Procedural Generation",
+			"status": 1
+		},
+		{
+			"id": 33,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "shader-graph",
+			"label": "Shader Graph",
+			"status": 1
+		},
+		{
+			"id": 34,
+			"vertical_id": 1,
+			"vertical_slug": "game-dev",
+			"kind": 3,
+			"name": "vertical-slice",
+			"label": "Vertical Slice",
+			"status": 1
+		}
+	]
+}
