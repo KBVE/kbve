@@ -33,6 +33,7 @@ reqwest = { version = "0.13.2", default-features = false, features = ["json", "r
 
 # Workspace path dependencies
 kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["postgres"] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
