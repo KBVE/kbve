@@ -75,3 +75,22 @@
 		border-color: color-mix(in oklab, var(--color-gold-400) 14%, transparent);
 	}
 }
+
+/* Gentle idle bob for the login mascot. */
+@keyframes mascot-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-5px);
+	}
+}
+.animate-float {
+	animation: mascot-float 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.animate-float {
+		animation: none;
+	}
+}
