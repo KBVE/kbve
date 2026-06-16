@@ -5,6 +5,7 @@
 // API instead, set VITE_USE_MOCKS=false; every function below already has the
 // matching HTTP path, so it's a single flag flip.
 
+import { createWorkerPool } from '@kbve/rn';
 import { mockApi } from './mock';
 import type {
 	Ack,
@@ -26,6 +27,11 @@ export { RANKS, RANK_ORDER } from './mock';
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false';
 export const API_BASE = '/api';
 
+// Network goes through the @kbve/rn worker pool: on web fetch + JSON parse run
+// in the Worker (off the render thread), same-origin cookies still flow. The
+// mock path below never touches it.
+const pool = createWorkerPool();
+
 export class ApiError extends Error {
 	constructor(
 		public status: number,
@@ -36,16 +42,18 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-	const res = await fetch(`${API_BASE}${path}`, {
-		credentials: 'include',
-		headers: { 'content-type': 'application/json', ...init?.headers },
-		...init,
+	const res = await pool.request<T>(`${API_BASE}${path}`, {
+		method: init?.method,
+		headers: {
+			'content-type': 'application/json',
+			...(init?.headers as Record<string, string> | undefined),
+		},
+		body: init?.body as string | undefined,
 	});
 	if (!res.ok) {
-		const body = await res.text();
-		throw new ApiError(res.status, body || res.statusText);
+		throw new ApiError(res.status, res.error ?? res.status.toString());
 	}
-	return res.json() as Promise<T>;
+	return res.data as T;
 }
 
 const qs = <T extends object>(params: T): string => {
@@ -82,7 +90,9 @@ export function fetchTalent(query: TalentQuery = {}): Promise<TalentList> {
 }
 
 export function fetchTalentByHandle(handle: string): Promise<TalentProfile> {
-	return USE_MOCKS ? mockApi.talentByHandle(handle) : api(`/talent/${handle}`);
+	return USE_MOCKS
+		? mockApi.talentByHandle(handle)
+		: api(`/talent/${handle}`);
 }
 
 export function createGig(input: CreateGigInput): Promise<Gig> {
