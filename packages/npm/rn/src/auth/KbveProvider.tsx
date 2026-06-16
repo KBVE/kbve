@@ -39,6 +39,12 @@ export interface KbveProviderProps {
 	 * supabase.kbve.com's /authorize directly instead of the proxy.
 	 */
 	oauthUrl?: string;
+	/**
+	 * Route api.* through the worker pool (off-main-thread fetch on web). Off by
+	 * default — the api uses the direct transport; the pool stays available via
+	 * usePool() for explicit calls.
+	 */
+	pooledApi?: boolean;
 	children: ReactNode;
 }
 
@@ -47,6 +53,7 @@ export function KbveProvider({
 	anonKey,
 	apiBaseUrl,
 	oauthUrl,
+	pooledApi = false,
 	children,
 }: KbveProviderProps) {
 	const value = useMemo<KbveContextValue>(() => {
@@ -66,28 +73,33 @@ export function KbveProvider({
 				const { data } = await client.auth.getSession();
 				return data.session?.access_token ?? null;
 			},
-			fetch: (url, opts) => {
-				const isJson =
-					opts.body !== undefined && typeof opts.body !== 'string';
-				return pool.request(url, {
-					method: opts.method,
-					headers: {
-						...(isJson
-							? { 'content-type': 'application/json' }
-							: {}),
-						...(opts.headers as Record<string, string> | undefined),
-					},
-					body:
-						opts.body === undefined
-							? undefined
-							: isJson
-								? JSON.stringify(opts.body)
-								: (opts.body as string),
-				});
-			},
+			fetch: pooledApi
+				? (url, opts) => {
+						const isJson =
+							opts.body !== undefined &&
+							typeof opts.body !== 'string';
+						return pool.request(url, {
+							method: opts.method,
+							headers: {
+								...(isJson
+									? { 'content-type': 'application/json' }
+									: {}),
+								...(opts.headers as
+									| Record<string, string>
+									| undefined),
+							},
+							body:
+								opts.body === undefined
+									? undefined
+									: isJson
+										? JSON.stringify(opts.body)
+										: (opts.body as string),
+						});
+					}
+				: undefined,
 		});
 		return { client, authStore, chatStore, api, pool };
-	}, [supabaseUrl, anonKey, apiBaseUrl, oauthUrl]);
+	}, [supabaseUrl, anonKey, apiBaseUrl, oauthUrl, pooledApi]);
 
 	useEffect(() => {
 		const { client, authStore } = value;

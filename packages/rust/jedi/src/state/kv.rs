@@ -37,6 +37,11 @@ use tokio::sync::{Mutex, broadcast};
 
 use crate::entity::error::JediError;
 
+/// Hard ceiling on a single L2 (Valkey) op. Valkey normally answers in <10ms;
+/// this only trips when a connection is stale/blocked, in which case the cache
+/// degrades to a miss rather than hanging the request.
+const L2_OP_TIMEOUT: Duration = Duration::from_millis(250);
+
 #[derive(Debug, Clone)]
 pub struct KvCacheConfig {
     pub namespace: String,
@@ -404,21 +409,35 @@ impl KvCache {
 
     async fn l2_get(&self, key: &str) -> Option<Vec<u8>> {
         let pool = self.l2.as_ref()?;
-        match pool.get::<Vec<u8>, _>(key).await {
-            Ok(b) if !b.is_empty() => Some(b),
-            _ => None,
+        // A stale/blocked Valkey connection must not hang the request — bound
+        // the op so a non-responsive cache degrades to a miss (→ caller fetch).
+        match tokio::time::timeout(L2_OP_TIMEOUT, pool.get::<Vec<u8>, _>(key)).await {
+            Ok(Ok(b)) if !b.is_empty() => Some(b),
+            Ok(_) => None,
+            Err(_) => {
+                metrics_inc("kbve_kv_l2_timeout");
+                tracing::warn!(key = %key, "[KvCache] L2 get timed out; treating as miss");
+                None
+            }
         }
     }
 
     async fn l2_put(&self, key: &str, body: &[u8], tags: &[String], ttl: Duration) {
         let Some(pool) = &self.l2 else { return };
         let ttl_ms = ttl.as_millis() as i64;
-        let res: Result<(), _> = pool
-            .set::<(), _, _>(key, body, Some(Expiration::PX(ttl_ms.max(1))), None, false)
-            .await;
-        if let Err(e) = res {
-            tracing::warn!(error = %e, key = %key, "[KvCache] L2 put failed");
-            return;
+        let set_fut =
+            pool.set::<(), _, _>(key, body, Some(Expiration::PX(ttl_ms.max(1))), None, false);
+        match tokio::time::timeout(L2_OP_TIMEOUT, set_fut).await {
+            Ok(Ok(())) => {}
+            Ok(Err(e)) => {
+                tracing::warn!(error = %e, key = %key, "[KvCache] L2 put failed");
+                return;
+            }
+            Err(_) => {
+                metrics_inc("kbve_kv_l2_timeout");
+                tracing::warn!(key = %key, "[KvCache] L2 put timed out");
+                return;
+            }
         }
         let set_ttl_secs = (ttl.as_secs().saturating_mul(2)).max(1);
         for tag in tags {

@@ -59,8 +59,8 @@ FROM cook AS builder
 
 # cargo-chef normalizes the package version to 0.0.1 in the cook skeleton so a
 # version bump doesn't bust the dependency cache. Re-copy the REAL Cargo.toml
-# here so cargo build bakes the true CARGO_PKG_VERSION and the version.txt grep
-# below reads the real version (otherwise /health is forever 0.0.1).
+# here so cargo build bakes the true CARGO_PKG_VERSION (the /health fallback
+# when APP_VERSION isn't set).
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
 COPY packages/rust/jedi/ packages/rust/jedi/
 COPY packages/rust/holy/ packages/rust/holy/
@@ -73,15 +73,9 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release -p jobboard && \
     strip target/release/jobboard
 
-# Version read at runtime by /health (see src/rest/system.rs): grep from
-# Cargo.toml (NOT the sccache-cached compile) so the reported version always
-# matches the source, even on a version-only bump.
-RUN awk -F'"' '/^version/{print $2; exit}' apps/jobboard/Cargo.toml > /app/version.txt
-
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/jobboard /app/jobboard
-COPY --from=builder --chown=10001:10001 /app/version.txt /app/version.txt
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=5400

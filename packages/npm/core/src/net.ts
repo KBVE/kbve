@@ -79,7 +79,14 @@ export async function request<T>(
 			signal?.removeEventListener('abort', onAbort);
 
 			const text = await response.text();
-			const data = text ? (JSON.parse(text) as T) : null;
+			let data: T | null = null;
+			if (text) {
+				try {
+					data = JSON.parse(text) as T;
+				} catch {
+					data = null;
+				}
+			}
 
 			if (!response.ok) {
 				const message =
@@ -87,7 +94,9 @@ export async function request<T>(
 						?.message ??
 					(data as { message?: string; error?: string } | null)
 						?.error ??
-					`HTTP ${response.status}`;
+					(!data && text
+						? text.slice(0, 300)
+						: `HTTP ${response.status}`);
 				if (response.status >= 500 && attempt < retries) {
 					lastError = message;
 					await sleep(retryDelayMs * (attempt + 1));

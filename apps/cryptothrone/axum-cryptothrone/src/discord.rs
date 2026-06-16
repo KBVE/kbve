@@ -252,13 +252,24 @@ async fn gotrue_create_or_get(
     email: &str,
     discord_id: &str,
 ) -> Result<String, (StatusCode, &'static str)> {
-    let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY").unwrap_or_default();
-    if key.is_empty() {
+    // Mint a short-lived service_role JWT from the project secret to authorize
+    // the admin call. GoTrue's GOTRUE_JWT_SECRET is the same value, and
+    // service_role is in GOTRUE_JWT_ADMIN_ROLES — the stored
+    // SUPABASE_SERVICE_ROLE_KEY was rejected as not_admin.
+    let secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
+    if secret.is_empty() {
         return Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             "supabase admin not configured",
         ));
     }
+    let key = match mint_admin_jwt(secret.as_bytes()) {
+        Ok(t) => t,
+        Err(e) => {
+            tracing::error!(error = %e, "admin jwt mint failed");
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, "admin jwt mint failed"));
+        }
+    };
     // Prefer talking to GoTrue directly (in-cluster auth service) so the admin
     // call doesn't depend on Kong's gateway ACL for /auth/v1/admin. Falls back
     // to the Kong-fronted SUPABASE_URL when the internal URL isn't configured.
@@ -362,6 +373,34 @@ fn mint_session_jwt(
         kbve_username: kbve_username.to_string(),
         role: "authenticated".into(),
         aud: "authenticated".into(),
+    };
+    encode(
+        &Header::new(Algorithm::HS256),
+        &claims,
+        &EncodingKey::from_secret(secret),
+    )
+}
+
+#[derive(Serialize)]
+struct AdminClaims {
+    role: String,
+    aud: String,
+    iss: String,
+    iat: i64,
+    exp: i64,
+}
+
+/// Short-lived `service_role` JWT for the GoTrue admin API. Signed with the
+/// project JWT secret (== GoTrue's GOTRUE_JWT_SECRET); `service_role` is in
+/// GOTRUE_JWT_ADMIN_ROLES, so GoTrue authorizes the admin call.
+fn mint_admin_jwt(secret: &[u8]) -> Result<String, jsonwebtoken::errors::Error> {
+    let now = now_secs() as i64;
+    let claims = AdminClaims {
+        role: "service_role".into(),
+        aud: "authenticated".into(),
+        iss: "supabase".into(),
+        iat: now,
+        exp: now.saturating_add(60),
     };
     encode(
         &Header::new(Algorithm::HS256),

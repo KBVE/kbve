@@ -7,8 +7,14 @@ import { TalentCard } from '../components/TalentCard';
 import { DisciplineGrid } from '../components/DisciplineGrid';
 import { HowItWorks } from '../components/HowItWorks';
 import { Button } from '../components/ui';
+import { Seo, ogImage } from '../lib/seo';
 
-const TRUST = ['Both sides vetted', 'Game-dev only', 'Portfolio-first', 'No bidding wars'];
+const TRUST = [
+	'Both sides vetted',
+	'Game-dev only',
+	'Portfolio-first',
+	'No bidding wars',
+];
 
 export function HomePage() {
 	const navigate = useNavigate();
@@ -31,6 +37,15 @@ export function HomePage() {
 
 	return (
 		<div className="mx-auto max-w-6xl">
+			<Seo
+				seo={{
+					title: 'KBVE Jobs — the quest board for game developers',
+					description:
+						'A curated, both-sides-vetted job board for game development. Hire vetted talent, or get hired.',
+					path: '/',
+					image: ogImage('site', 'home'),
+				}}
+			/>
 			{/* Hero — search-first (Fiverr/Upwork), editorial spacing (Toptal) */}
 			<section className="py-14 text-center sm:py-20">
 				<span className="inline-flex items-center gap-2 rounded-full border border-quest-700/60 bg-quest-500/10 px-3 py-1 text-xs font-medium text-quest-200">
@@ -41,8 +56,8 @@ export function HomePage() {
 					<span className="text-quest-400">Or get hired.</span>
 				</h1>
 				<p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
-					A curated, both-sides-vetted job board for game development. Quality is
-					the product — not volume.
+					A curated, both-sides-vetted job board for game development.
+					Quality is the product — not volume.
 				</p>
 
 				<form
@@ -120,7 +135,8 @@ export function HomePage() {
 						Running a studio?
 					</h2>
 					<p className="mt-1 text-zinc-400">
-						Post a gig and reach vetted, portfolio-backed game-dev talent.
+						Post a gig and reach vetted, portfolio-backed game-dev
+						talent.
 					</p>
 				</div>
 				<Link to="/post">
