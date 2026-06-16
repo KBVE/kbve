@@ -73,6 +73,10 @@ spec:
                       # arrive via the supabase-shared envFrom below).
                       - name: KBVE_PG_APPLICATION_NAME
                         value: 'axum-cryptothrone'
+                      # GoTrue admin (fast-register) talks to the auth service
+                      # directly, bypassing Kong's /auth/v1/admin gateway ACL.
+                      - name: GOTRUE_INTERNAL_URL
+                        value: 'http://auth.kilobase.svc.cluster.local:9999'
                   envFrom:
                       # Optional so the pod still boots before the
                       # ExternalSecret has rendered or the kilobase

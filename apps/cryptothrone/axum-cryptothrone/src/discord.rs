@@ -234,7 +234,7 @@ async fn provision_user(
     {
         Ok(row) => row.get(0),
         Err(e) => {
-            tracing::error!(error = %e, "ensure_discord_username failed");
+            tracing::error!(error = ?e, "ensure_discord_username failed");
             return Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "username provisioning failed",
@@ -252,31 +252,52 @@ async fn gotrue_create_or_get(
     email: &str,
     discord_id: &str,
 ) -> Result<String, (StatusCode, &'static str)> {
-    let base = std::env::var("SUPABASE_URL").unwrap_or_default();
     let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY").unwrap_or_default();
-    if base.is_empty() || key.is_empty() {
+    if key.is_empty() {
         return Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             "supabase admin not configured",
         ));
     }
+    // Prefer talking to GoTrue directly (in-cluster auth service) so the admin
+    // call doesn't depend on Kong's gateway ACL for /auth/v1/admin. Falls back
+    // to the Kong-fronted SUPABASE_URL when the internal URL isn't configured.
+    let admin_url = match std::env::var("GOTRUE_INTERNAL_URL") {
+        Ok(u) if !u.is_empty() => format!("{}/admin/users", u.trim_end_matches('/')),
+        _ => {
+            let base = std::env::var("SUPABASE_URL").unwrap_or_default();
+            if base.is_empty() {
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "supabase admin not configured",
+                ));
+            }
+            format!("{base}/auth/v1/admin/users")
+        }
+    };
     let body = serde_json::json!({
         "email": email,
         "email_confirm": true,
         "user_metadata": { "provider": "discord", "discord_id": discord_id },
     });
     match http
-        .post(format!("{base}/auth/v1/admin/users"))
+        .post(&admin_url)
         .header("apikey", key.as_str())
         .bearer_auth(&key)
         .json(&body)
         .send()
         .await
     {
-        Ok(r) if r.status().is_success() => match r.json::<GoTrueUser>().await {
-            Ok(u) => Ok(u.id),
-            Err(_) => Err((StatusCode::BAD_GATEWAY, "bad gotrue response")),
-        },
+        Ok(r) if r.status().is_success() => {
+            let txt = r.text().await.unwrap_or_default();
+            match serde_json::from_str::<GoTrueUser>(&txt) {
+                Ok(u) => Ok(u.id),
+                Err(_) => {
+                    tracing::error!(body = %txt, "bad gotrue response");
+                    Err((StatusCode::BAD_GATEWAY, "bad gotrue response"))
+                }
+            }
+        }
         Ok(r)
             if r.status() == StatusCode::UNPROCESSABLE_ENTITY
                 || r.status() == StatusCode::CONFLICT =>
@@ -284,7 +305,9 @@ async fn gotrue_create_or_get(
             find_user_id_by_email(conn, email).await
         }
         Ok(r) => {
-            tracing::error!(status = %r.status(), "gotrue admin create failed");
+            let status = r.status();
+            let body = r.text().await.unwrap_or_default();
+            tracing::error!(%status, body = %body, "gotrue admin create failed");
             Err((StatusCode::BAD_GATEWAY, "gotrue admin create failed"))
         }
         Err(e) => {
