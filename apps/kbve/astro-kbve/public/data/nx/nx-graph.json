@@ -9483,6 +9483,81 @@
           "implicitDependencies": []
         }
       },
+      "rn-astro": {
+        "name": "rn-astro",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/rn-astro",
+          "targets": {
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/rn-astro/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "rn-astro",
+          "projectType": "library",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:astro",
+            "npm:react-native-web",
+            "npm:bridge",
+            "scope:web",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Bridge that runs @kbve/rn (React Native) components on the web via react-native-web, wired for Astro islands.",
+            "js": {
+              "packageName": "@kbve/rn-astro",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                },
+                "./integration": {
+                  "types": "./src/integration.ts",
+                  "import": "./src/integration.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/rn-astro/src",
+          "implicitDependencies": []
+        }
+      },
       "simgrid": {
         "name": "simgrid",
         "type": "lib",
@@ -11903,6 +11978,13 @@
                 "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
                 "./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
                 "./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
+                "./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
+                "./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",
+                "./components/social/comic/DeferredKBVEComicSocials.astro": "./components/social/comic/DeferredKBVEComicSocials.astro",
+                "./data/socials": {
+                  "import": "./data/socials.js",
+                  "types": "./data/socials.d.ts"
+                },
                 "./utils/clientRouter": {
                   "import": "./utils/clientRouter.js",
                   "types": "./utils/clientRouter.d.ts"
@@ -12164,6 +12246,8 @@
                   "cp packages/npm/astro/README.md dist/packages/npm/astro/README.md",
                   "mkdir -p dist/packages/npm/astro/components",
                   "cp -R packages/npm/astro/src/components/. dist/packages/npm/astro/components/",
+                  "mkdir -p dist/packages/npm/astro/data",
+                  "cp -R packages/npm/astro/src/data/. dist/packages/npm/astro/data/",
                   "cp -R packages/npm/astro/shims/. dist/packages/npm/astro/",
                   "nx nx-release-publish astro"
                 ],
@@ -13746,6 +13830,20 @@
               },
               "configurations": {},
               "parallelism": true
+            },
+            "sync:api": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "axum-kbve:emit-openapi"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/npm/core/src/api/schema.ts"
+              ],
+              "options": {
+                "command": "openapi-typescript packages/data/openapi/openapi.json -o packages/npm/core/src/api/schema.ts"
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "name": "core",
@@ -14222,6 +14320,113 @@
           "implicitDependencies": []
         }
       },
+      "fx": {
+        "name": "fx",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/fx",
+          "targets": {
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "packages/npm/fx",
+                "command": "vitest run"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/fx/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects fx --includeDependentProjects -- pnpm exec nx build-deps fx"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "metadata": {
+            "targetGroups": {},
+            "description": "Portable TypeGPU effect library for KBVE — platform-agnostic WGSL effects, a createEffect authoring helper, and a registry. Consumed by the React Native app (react-native-webgpu) and the web (browser WebGPU); only the canvas host differs.",
+            "js": {
+              "packageName": "@kbve/fx",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "projectType": "library",
+          "name": "fx",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:webgpu",
+            "npm:typegpu",
+            "npm:wgsl",
+            "npm:effects",
+            "scope:shared",
+            "type:lib"
+          ],
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/fx/src",
+          "implicitDependencies": []
+        }
+      },
       "kbve-kubectl": {
         "name": "kbve-kubectl",
         "type": "app",
@@ -14536,6 +14741,18 @@
                 ".": {
                   "types": "./src/index.ts",
                   "import": "./src/index.ts"
+                },
+                "./auth": {
+                  "types": "./src/auth/index.ts",
+                  "import": "./src/auth/index.ts"
+                },
+                "./ui": {
+                  "types": "./src/ui/index.ts",
+                  "import": "./src/ui/index.ts"
+                },
+                "./store": {
+                  "types": "./src/store/index.ts",
+                  "import": "./src/store/index.ts"
                 }
               },
               "packageMain": "./src/index.ts",
@@ -14849,6 +15066,9 @@
               "outputs": [
                 "{options.target-dir}"
               ],
+              "dependsOn": [
+                "web-build"
+              ],
               "options": {
                 "target-dir": "dist/target/jobboard"
               },
@@ -14858,9 +15078,6 @@
                 }
               },
               "parallelism": true,
-              "dependsOn": [
-                "^build"
-              ],
               "inputs": [
                 "production",
                 "^production"
@@ -14871,6 +15088,9 @@
               "executor": "@monodon/rust:test",
               "outputs": [
                 "{options.target-dir}"
+              ],
+              "dependsOn": [
+                "web-build"
               ],
               "options": {
                 "target-dir": "dist/target/jobboard"
@@ -14887,6 +15107,9 @@
               "executor": "@monodon/rust:lint",
               "outputs": [
                 "{options.target-dir}"
+              ],
+              "dependsOn": [
+                "web-build"
               ],
               "options": {
                 "target-dir": "dist/target/jobboard"
@@ -14908,6 +15131,72 @@
               ],
               "options": {
                 "target-dir": "dist/target/jobboard"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-dev": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "npm install --no-save",
+                  "npm run dev"
+                ],
+                "cwd": "apps/jobboard/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/web/dist"
+              ],
+              "options": {
+                "commands": [
+                  "npm install --no-save",
+                  "npm run build"
+                ],
+                "cwd": "apps/jobboard/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "JOBBOARD_WEB_DIR=apps/jobboard/web/dist cargo run -p jobboard"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "bash -c 'set -o pipefail; : > jobboards.txt; docker compose up --build 2>&1 | tee /dev/stderr | { grep -iE \"error|fail|fatal|panic|unhealthy|exited with code [1-9]|didn.t complete\" >> jobboards.txt || true; }; exit ${PIPESTATUS[0]}'"
+                ],
+                "cwd": "apps/jobboard"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "down": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker compose down -v"
+                ],
+                "cwd": "apps/jobboard"
               },
               "configurations": {},
               "parallelism": true
@@ -16093,6 +16382,11 @@
           "source": "kbve-react-native",
           "target": "rn",
           "type": "static"
+        },
+        {
+          "source": "kbve-react-native",
+          "target": "fx",
+          "type": "static"
         }
       ],
       "khashvault-e2e": [
@@ -16230,6 +16524,13 @@
         }
       ],
       "axum-memes": [],
+      "rn-astro": [
+        {
+          "source": "rn-astro",
+          "target": "rn",
+          "type": "static"
+        }
+      ],
       "simgrid": [],
       "agones-factorio": [],
       "astro-kbve": [
@@ -16340,6 +16641,7 @@
         }
       ],
       "mc-velocity": [],
+      "fx": [],
       "kbve-kubectl": [],
       "q": [],
       "rn": [

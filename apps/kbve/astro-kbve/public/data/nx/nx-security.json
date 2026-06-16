@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-06-15T10:18:24Z",
+  "generated_at": "2026-06-16T09:57:27Z",
   "summary": {
     "critical": 4,
-    "high": 49,
-    "medium": 65,
-    "low": 30,
+    "high": 52,
+    "medium": 72,
+    "low": 34,
     "info": 30
   },
   "ecosystems": {
     "npm": {
-      "total": 69,
+      "total": 83,
       "severities": {
         "critical": 2,
-        "high": 31,
-        "medium": 32,
-        "low": 4,
+        "high": 34,
+        "medium": 39,
+        "low": 8,
         "info": 0
       },
       "advisories": [
@@ -481,13 +481,6 @@
           "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
         },
         {
-          "id": "1120656",
-          "title": "joi has an uncaught RangeError on deeply nested input through recursive `link()` schemas",
-          "severity": "medium",
-          "package": "joi",
-          "url": "https://github.com/advisories/GHSA-q7cg-457f-vx79"
-        },
-        {
           "id": "1120679",
           "title": "esbuild: Missing binary integrity verification in Deno module enables remote code execution via NPM_CONFIG_REGISTRY",
           "severity": "high",
@@ -500,6 +493,111 @@
           "severity": "low",
           "package": "esbuild",
           "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
+        },
+        {
+          "id": "1120730",
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "severity": "high",
+          "package": "ws",
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
+        },
+        {
+          "id": "1120743",
+          "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+          "severity": "high",
+          "package": "form-data",
+          "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
+        },
+        {
+          "id": "1120782",
+          "title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
+          "severity": "medium",
+          "package": "tar",
+          "url": "https://github.com/advisories/GHSA-vmf3-w455-68vh"
+        },
+        {
+          "id": "1120785",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "severity": "medium",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+        },
+        {
+          "id": "1120787",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "severity": "medium",
+          "package": "launch-editor",
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+        },
+        {
+          "id": "1120790",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "severity": "high",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
+        },
+        {
+          "id": "1120792",
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "severity": "medium",
+          "package": "js-yaml",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+        },
+        {
+          "id": "1120793",
+          "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+          "severity": "low",
+          "package": "@babel/core",
+          "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+        },
+        {
+          "id": "1120800",
+          "title": "DOMPurify: `IN_PLACE` mode trusts attacker-controlled `nodeName` on live non-form nodes, allowing script retention and XSS via attacker-supplied DOM objects",
+          "severity": "low",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-x4vx-rjvf-j5p4"
+        },
+        {
+          "id": "1120801",
+          "title": "DOMPurify: Hook mutation of `data.allowedTags` / `data.allowedAttributes` permanently pollutes `DEFAULT_ALLOWED_TAGS` / `DEFAULT_ALLOWED_ATTR`",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-76mc-f452-cxcm"
+        },
+        {
+          "id": "1120802",
+          "title": "DOMPurify: Cross-realm IN_PLACE sanitization leaves executable markup intact via realm-bound `instanceof` checks",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-hpcv-96wg-7vj8"
+        },
+        {
+          "id": "1120803",
+          "title": "DOMPurify: IN_PLACE mode preserves attributes of a clobbered root element, allowing XSS via attacker-controlled root DOM",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-r47g-fvhr-h676"
+        },
+        {
+          "id": "1120805",
+          "title": "DOMPurify: Trusted Types policy survives `clearConfig()` and can poison later `RETURN_TRUSTED_TYPE` output",
+          "severity": "low",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-vxr8-fq34-vvx9"
+        },
+        {
+          "id": "1120812",
+          "title": "DOMPurify: SAFE_FOR_TEMPLATES bypass - template expressions survive sanitization inside <template> content when using DOM output modes",
+          "severity": "low",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-gvmj-g25r-r7wr"
+        },
+        {
+          "id": "1120813",
+          "title": "DOMPurify IN_PLACE Sanitization Bypass via Attached Shadow Root Inside <template>.content",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-rp9w-3fw7-7cwq"
         }
       ]
     },
