@@ -1,37 +1,15 @@
-import Dexie from 'dexie';
-import type { Table } from 'dexie';
+import { createWorkerPool } from '../worker/pool';
 import type { KVStore } from './types';
 
-interface Row {
-	key: string;
-	value: unknown;
-}
-
-class KbveDb extends Dexie {
-	kv!: Table<Row, string>;
-	constructor() {
-		super('kbve');
-		this.version(1).stores({ kv: 'key' });
-	}
-}
-
-const db = new KbveDb();
+// Web cache is owned by the Worker (single Dexie/IndexedDB writer for the tab).
+// kvStore delegates to the shared pool rather than opening its own Dexie on the
+// main thread — otherwise main + worker would both write the same db and race.
+const pool = createWorkerPool();
 
 export const kvStore: KVStore = {
-	async get(key) {
-		const row = await db.kv.get(key);
-		return row ? (row.value as never) : null;
-	},
-	async set(key, value) {
-		await db.kv.put({ key, value });
-	},
-	async remove(key) {
-		await db.kv.delete(key);
-	},
-	async keys() {
-		return (await db.kv.toCollection().primaryKeys()) as string[];
-	},
-	async clear() {
-		await db.kv.clear();
-	},
+	get: (key) => pool.cacheGet(key),
+	set: (key, value) => pool.cacheSet(key, value),
+	remove: (key) => pool.cacheRemove(key),
+	keys: () => pool.cacheKeys(),
+	clear: () => pool.cacheClear(),
 };

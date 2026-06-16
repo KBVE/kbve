@@ -68,9 +68,15 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release -p jobboard && \
     strip target/release/jobboard
 
+# Version read at runtime by /health (see src/rest/system.rs): grep from
+# Cargo.toml (NOT the sccache-cached compile) so the reported version always
+# matches the source, even on a version-only bump.
+RUN awk -F'"' '/^version/{print $2; exit}' apps/jobboard/Cargo.toml > /app/version.txt
+
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/jobboard /app/jobboard
+COPY --from=builder --chown=10001:10001 /app/version.txt /app/version.txt
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=5400

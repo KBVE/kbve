@@ -35,6 +35,22 @@ export const tokens = {
 
 export type Tokens = typeof tokens;
 
-export function useTheme(): Tokens {
-	return tokens;
+export interface ThemeOverride {
+	color?: Partial<Record<keyof Tokens['color'], string>>;
+	gradient?: Partial<Record<keyof Tokens['gradient'], readonly string[]>>;
+	radius?: Partial<Record<keyof Tokens['radius'], number>>;
+	space?: Partial<Record<keyof Tokens['space'], number>>;
+	font?: Partial<Record<keyof Tokens['font'], number>>;
+}
+
+export function mergeTheme(override?: ThemeOverride): Tokens {
+	if (!override) return tokens;
+	return {
+		color: { ...tokens.color, ...override.color },
+		gradient: { ...tokens.gradient, ...override.gradient },
+		radius: { ...tokens.radius, ...override.radius },
+		space: { ...tokens.space, ...override.space },
+		font: { ...tokens.font, ...override.font },
+		weight: tokens.weight,
+	} as Tokens;
 }

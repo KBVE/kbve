@@ -20,9 +20,11 @@ const PROVIDER_SCOPES: Record<OAuthProvider, string> = {
 // fires onAuthStateChange — so there is no manual WebBrowser/code-exchange step.
 export function createSupabaseAuthExecutor(
 	client: SupabaseClient,
+	oauthUrl?: string,
 ): EffectExecutor<AuthEffect, AuthEvent> {
 	const redirectTo =
 		typeof window !== 'undefined' ? window.location.origin : undefined;
+	const directOAuth = oauthUrl?.replace(/\/$/, '');
 	return {
 		execute(effect, dispatch) {
 			switch (effect.type) {
@@ -76,14 +78,24 @@ export function createSupabaseAuthExecutor(
 							options: {
 								redirectTo,
 								scopes: PROVIDER_SCOPES[effect.provider],
+								skipBrowserRedirect: Boolean(directOAuth),
 							},
 						})
-						.then(({ error }) => {
-							if (error)
+						.then(({ data, error }) => {
+							if (error) {
 								dispatch({
 									type: 'auth_error',
 									message: error.message,
 								});
+								return;
+							}
+							if (directOAuth && data?.url) {
+								const target = data.url.replace(
+									/^.*\/auth\/v1\/authorize/,
+									`${directOAuth}/auth/v1/authorize`,
+								);
+								window.location.assign(target);
+							}
 						});
 					break;
 				case 'supabase.sign_out':

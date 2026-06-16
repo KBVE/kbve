@@ -8,9 +8,9 @@ import {
 	Button,
 	ErrorNote,
 	RankPill,
-	Stars,
 	TagRow,
 } from '../components/ui';
+import { Stars } from '@kbve/rn/ui';
 import {
 	AVAILABILITY_LABELS,
 	AVAILABILITY_TONE,

@@ -27,6 +27,7 @@ import { TalentProfilePage } from './routes/talent-profile';
 import { PostGigPage } from './routes/post-gig';
 import { LoginPage } from './routes/login';
 import { NavBar } from './components/NavBar';
+import { Footer } from '@kbve/rn/ui';
 
 const GAME_DEV_ID = 1;
 
@@ -57,6 +58,7 @@ function RootLayout() {
 			<main className="px-6 py-8">
 				<Outlet />
 			</main>
+			<Footer />
 		</div>
 	);
 }

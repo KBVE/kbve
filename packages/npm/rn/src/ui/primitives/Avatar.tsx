@@ -1,12 +1,14 @@
 import { memo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import type { ImageStyle, StyleProp, ViewStyle } from 'react-native';
-import { tokens } from '../theme';
+import { useTheme } from '../ThemeProvider';
 import { Text } from './Text';
 
 export interface AvatarProps {
 	name?: string;
 	uri?: string | null;
+	src?: string | null;
+	alt?: string;
 	size?: number;
 	style?: ViewStyle;
 }
@@ -19,40 +21,43 @@ function initials(name: string): string {
 }
 
 export const Avatar = memo(function Avatar({
-	name = '',
+	name,
 	uri,
+	src,
+	alt,
 	size = 40,
 	style,
 }: AvatarProps) {
-	const dim = {
-		width: size,
-		height: size,
-		borderRadius: size / 2,
+	const t = useTheme();
+	const source = uri ?? src;
+	const label = name ?? alt ?? '';
+	const dim = { width: size, height: size, borderRadius: size / 2 };
+	const surface: ViewStyle = {
+		backgroundColor: t.color.surfaceAlt,
+		borderColor: t.color.border,
 	};
 
-	if (uri) {
+	if (source) {
 		return (
 			<Image
-				source={{ uri }}
-				style={[styles.base, dim, style] as StyleProp<ImageStyle>}
+				source={{ uri: source }}
+				style={
+					[styles.base, surface, dim, style] as StyleProp<ImageStyle>
+				}
 			/>
 		);
 	}
 
 	return (
-		<View style={[styles.base, styles.fallback, dim, style]}>
+		<View style={[styles.base, surface, styles.fallback, dim, style]}>
 			<Text variant="label" style={{ fontSize: size * 0.4 }}>
-				{initials(name)}
+				{initials(label)}
 			</Text>
 		</View>
 	);
 });
 
 const styles = StyleSheet.create({
-	base: {
-		backgroundColor: tokens.color.surfaceAlt,
-		borderWidth: 1,
-		borderColor: tokens.color.border,
-	},
+	base: { borderWidth: 1 },
 	fallback: { alignItems: 'center', justifyContent: 'center' },
 });

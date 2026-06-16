@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, {
@@ -7,14 +8,21 @@ import Animated, {
 	withSpring,
 } from 'react-native-reanimated';
 import { tokens } from '../theme';
+import { useTheme } from '../ThemeProvider';
 import { Text } from './Text';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant =
+	| 'primary'
+	| 'secondary'
+	| 'outline'
+	| 'ghost'
+	| 'danger';
 
 export interface ButtonProps {
-	title: string;
+	title?: string;
+	children?: ReactNode;
 	onPress?: () => void;
 	variant?: ButtonVariant;
 	disabled?: boolean;
@@ -24,22 +32,53 @@ export interface ButtonProps {
 
 export const Button = memo(function Button({
 	title,
+	children,
 	onPress,
 	variant = 'primary',
 	disabled = false,
 	loading = false,
 	style,
 }: ButtonProps) {
+	const t = useTheme();
 	const inactive = disabled || loading;
 	const scale = useSharedValue(1);
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
 	}));
+
+	const fill: ViewStyle = {
+		primary: {
+			backgroundColor: t.color.primary,
+			borderColor: 'rgba(255,255,255,0.22)',
+		},
+		secondary: {
+			backgroundColor: t.color.surface,
+			borderColor: t.color.border,
+		},
+		outline: {
+			backgroundColor: 'transparent',
+			borderColor: t.color.border,
+		},
+		ghost: { backgroundColor: 'transparent', borderColor: 'transparent' },
+		danger: {
+			backgroundColor: t.color.danger,
+			borderColor: 'rgba(255,255,255,0.22)',
+		},
+	}[variant];
+
+	const labelColor = {
+		primary: t.color.onPrimary,
+		secondary: t.color.text,
+		outline: t.color.text,
+		ghost: t.color.textMuted,
+		danger: '#fff',
+	}[variant];
+
 	return (
 		<AnimatedPressable
 			style={[
 				styles.base,
-				fillStyle[variant],
+				fill,
 				inactive ? styles.inactive : null,
 				animatedStyle,
 				style,
@@ -53,20 +92,12 @@ export const Button = memo(function Button({
 			}}
 			onPress={onPress}>
 			{loading ? (
-				<ActivityIndicator
-					color={
-						variant === 'primary'
-							? tokens.color.onPrimary
-							: variant === 'danger'
-								? '#fff'
-								: tokens.color.text
-					}
-				/>
+				<ActivityIndicator color={labelColor} />
 			) : (
 				<Text
 					variant="label"
-					style={[styles.label, textStyle[variant]]}>
-					{title}
+					style={[styles.label, { color: labelColor }]}>
+					{children ?? title}
 				</Text>
 			)}
 		</AnimatedPressable>
@@ -88,27 +119,4 @@ const styles = StyleSheet.create({
 		textShadowRadius: 2,
 	},
 	inactive: { opacity: 0.4 },
-});
-
-const fillStyle = StyleSheet.create({
-	primary: {
-		backgroundColor: tokens.color.primary,
-		borderColor: 'rgba(255,255,255,0.22)',
-	},
-	secondary: {
-		backgroundColor: tokens.color.surface,
-		borderColor: tokens.color.border,
-	},
-	ghost: { backgroundColor: 'transparent', borderColor: tokens.color.border },
-	danger: {
-		backgroundColor: tokens.color.danger,
-		borderColor: 'rgba(255,255,255,0.22)',
-	},
-});
-
-const textStyle = StyleSheet.create({
-	primary: { color: tokens.color.onPrimary },
-	secondary: { color: tokens.color.text },
-	ghost: { color: tokens.color.textMuted },
-	danger: { color: '#fff' },
 });

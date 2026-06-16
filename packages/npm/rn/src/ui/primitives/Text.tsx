@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { StyleSheet, Text as RNText } from 'react-native';
 import type { TextProps as RNTextProps } from 'react-native';
 import { tokens } from '../theme';
+import { useTheme } from '../ThemeProvider';
 
 export type TextVariant =
 	| 'display'
@@ -32,11 +33,20 @@ export const Text = memo(function Text({
 	style,
 	...rest
 }: TextProps) {
+	const t = useTheme();
+	const toneColor = {
+		default: t.color.text,
+		muted: t.color.textMuted,
+		faint: t.color.textFaint,
+		primary: t.color.primary,
+		success: t.color.success,
+		danger: t.color.danger,
+	}[tone];
 	return (
 		<RNText
 			style={[
 				variantStyle[variant],
-				toneStyle[tone],
+				{ color: toneColor },
 				weight ? weightStyle[weight] : null,
 				style,
 			]}
@@ -52,15 +62,6 @@ const variantStyle = StyleSheet.create({
 	body: { fontSize: tokens.font.body },
 	label: { fontSize: tokens.font.label, fontWeight: '600' },
 	caption: { fontSize: tokens.font.caption },
-});
-
-const toneStyle = StyleSheet.create({
-	default: { color: tokens.color.text },
-	muted: { color: tokens.color.textMuted },
-	faint: { color: tokens.color.textFaint },
-	primary: { color: tokens.color.primary },
-	success: { color: tokens.color.success },
-	danger: { color: tokens.color.danger },
 });
 
 const weightStyle = StyleSheet.create({
