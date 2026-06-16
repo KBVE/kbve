@@ -18,6 +18,10 @@ on:
             status:
                 required: true
                 type: string # "failure", "success", "cancelled", "skipped"
+            version:
+                required: false
+                type: string
+                default: ''
 
 jobs:
     track:
@@ -94,16 +98,25 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+                  VERSION_LINE=""
+                  VERSION_MARKER=""
+                  if [ -n "${VERSION:-}" ]; then
+                    VERSION_LINE="**Version:** ${VERSION}"
+                    VERSION_MARKER="<!-- ci-tracker:version=${VERSION} -->"
+                  fi
 
                   cat > /tmp/issue-body.md << ISSUEEOF
                   ## ${TITLE}
+                  ${VERSION_MARKER}
 
                   **Workflow:** ${WORKFLOW_NAME}
                   **Job:** ${JOB_NAME}
+                  ${VERSION_LINE}
                   **Failed step:** ${FAILED_STEP}
                   **Status:** Failing since ${TIMESTAMP}
                   **Consecutive failures:** 1
@@ -145,16 +158,22 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+                  VERSION_LINE=""
+                  if [ -n "${VERSION:-}" ]; then
+                    VERSION_LINE="- **Version:** ${VERSION}"
+                  fi
 
                   cat > /tmp/comment-body.md << COMMENTEOF
                   ## Failure — ${TIMESTAMP}
 
                   - **Run:** [#${RUN_ID}](${RUN_URL})
                   - **Failed step:** ${FAILED_STEP}
+                  ${VERSION_LINE}
                   - **Ref:** ${{ github.ref }}
                   - **Trigger:** ${{ github.event_name }}
 
@@ -176,12 +195,17 @@ jobs:
                   ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
+                  VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  RESOLVE_TITLE="## Resolved — ${TIMESTAMP}"
+                  if [ -n "${VERSION:-}" ]; then
+                    RESOLVE_TITLE="## Resolved — shipped v${VERSION} — ${TIMESTAMP}"
+                  fi
 
                   cat > /tmp/resolve-body.md << RESOLVEEOF
-                  ## Resolved — ${TIMESTAMP}
+                  ${RESOLVE_TITLE}
 
                   - **Run:** [#${RUN_ID}](${RUN_URL})
                   - **Ref:** ${{ github.ref }}

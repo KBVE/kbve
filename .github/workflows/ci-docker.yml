@@ -301,7 +301,7 @@ jobs:
 
     track_failure:
         name: Track Failures
-        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        if: ${{ always() && !contains(needs.*.result, 'cancelled') }}
         needs: [version_gate, test, publish, post_publish, external_publish]
         permissions:
             issues: write
@@ -312,4 +312,5 @@ jobs:
             job_name: ${{ inputs.app_name }}
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
+            version: ${{ needs.version_gate.outputs.local_version }}
