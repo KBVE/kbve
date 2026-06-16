@@ -36,6 +36,52 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+# Taxonomy source of truth → `nx run astro-kbve:sync:jobboard-taxonomy`
+# emits the JSON bundle (SPA) + idempotent seed SQL (jobboard.verticals/taxonomy).
+# slug/name = stable keys; label = display (i18n layers a labels map later).
+verticals:
+    - slug: game-dev
+      label: Game Development
+      description: Art, code, audio, design, and QA for games — the launch vertical.
+      status: featured
+      sort_order: 0
+      disciplines:
+          - [2d-art, 2D Art]
+          - [3d-art, 3D Art]
+          - [animation, Animation / Rigging]
+          - [programming, Programming]
+          - [technical-art, Technical Art / Shaders]
+          - [audio, Audio (Music / SFX / VO)]
+          - [game-design, Game Design]
+          - [level-design, Level Design]
+          - [narrative, Narrative / Writing]
+          - [ui-ux, UI / UX]
+          - [qa, QA / Testing]
+          - [porting, Porting]
+          - [localization, Localization]
+          - [production, Production / PM]
+          - [community, Community]
+      tools:
+          - [unity, Unity]
+          - [unreal, Unreal]
+          - [godot, Godot]
+          - [gamemaker, GameMaker]
+          - [bevy, Bevy]
+          - [blender, Blender]
+          - [maya, Maya]
+          - [zbrush, ZBrush]
+          - [substance, Substance]
+          - [photoshop, Photoshop]
+          - [spine, Spine]
+          - [fmod, FMOD]
+          - [wwise, Wwise]
+      skills:
+          - [netcode, Netcode]
+          - [humanoid-rigging, Humanoid Rigging]
+          - [pixel-art, Pixel Art]
+          - [procgen, Procedural Generation]
+          - [shader-graph, Shader Graph]
+          - [vertical-slice, Vertical Slice]
 ---
 
 ## Job Board
