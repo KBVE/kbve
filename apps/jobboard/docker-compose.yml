@@ -86,6 +86,11 @@ services:
             context: ../..
             dockerfile: apps/jobboard/Dockerfile
         environment:
+            # Single source of truth for the reported version (matches prod, where
+            # the k8s deployment's APP_VERSION is atom-PR-synced from the MDX bump).
+            # The jobboard:dev nx target exports this from version.toml; empty here
+            # falls back to the compiled CARGO_PKG_VERSION.
+            APP_VERSION: ${APP_VERSION:-}
             HTTP_HOST: 0.0.0.0
             HTTP_PORT: '5400'
             RUST_LOG: jobboard=info,tower_http=info

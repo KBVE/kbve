@@ -6,12 +6,12 @@ use axum::routing::get;
 use axum::{Json, Router};
 use std::sync::{Arc, OnceLock};
 
-/// Resolve the reported version at RUNTIME, not compile time. `env!` bakes the
-/// value into the binary, but the Docker build's sccache mount doesn't key on
-/// CARGO_PKG_VERSION — so a version-only bump gets a cache hit and the baked
-/// string goes stale (image tag advances, /health stays behind). Reading at
-/// runtime sidesteps that: APP_VERSION env, else the version.txt the Dockerfile
-/// writes from Cargo.toml, else the compile-time fallback (fine for local cargo).
+/// Reported version. APP_VERSION env is the single source of truth (set on the
+/// k8s deployment + local compose, kept in sync with the image tag from the MDX
+/// bump by utils-post-publish.yml). Falls back to the compile-time
+/// CARGO_PKG_VERSION for plain `cargo run`. The builder re-copies the real
+/// Cargo.toml (cargo-chef zeroes it in the cook skeleton) so the fallback is
+/// accurate too.
 fn version() -> &'static str {
     static VERSION: OnceLock<String> = OnceLock::new();
     VERSION.get_or_init(|| {
@@ -19,12 +19,6 @@ fn version() -> &'static str {
             .ok()
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
-            .or_else(|| {
-                std::fs::read_to_string("/app/version.txt")
-                    .ok()
-                    .map(|s| s.trim().to_string())
-                    .filter(|s| !s.is_empty())
-            })
             .unwrap_or_else(|| env!("CARGO_PKG_VERSION").to_string())
     })
 }
