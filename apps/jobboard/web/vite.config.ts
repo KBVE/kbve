@@ -41,6 +41,14 @@ export default defineConfig(({ mode }) => ({
 				),
 			},
 			{
+				// extensionless so kv.web.ts (Dexie/IndexedDB) wins over kv.ts
+				find: /^@kbve\/rn\/store$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/npm/rn/src/store/index',
+				),
+			},
+			{
 				find: /^@kbve\/rn$/,
 				replacement: path.join(
 					repoRoot,
