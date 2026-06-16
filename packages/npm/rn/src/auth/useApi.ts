@@ -6,6 +6,10 @@ export function useApi(): KbveApi {
 	return useKbve().api;
 }
 
+export function usePool() {
+	return useKbve().pool;
+}
+
 export interface ApiResource<T> {
 	data: T | null;
 	error: string | null;
