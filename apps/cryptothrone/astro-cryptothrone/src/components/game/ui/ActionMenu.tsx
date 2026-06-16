@@ -113,8 +113,8 @@ export function ActionMenu() {
 			ref={menuRef}
 			className="fixed z-[100] min-w-[10rem] p-2 text-white"
 			style={{ left: `${position.x}px`, top: `${position.y}px` }}
-			slice={24}
-			scale={1}>
+			slice={8}
+			scale={2}>
 			<div className="flex justify-between items-center mb-2">
 				<h3 className="font-bold text-sm text-white">{npc.npcName}</h3>
 				<button

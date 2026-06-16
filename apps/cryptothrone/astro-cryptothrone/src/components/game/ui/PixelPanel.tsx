@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
-const PANEL_SRC = '/ui-sheets/panel9.png';
+const PANEL_SRC = '/ui/panel9.png';
 
 interface PixelPanelProps {
 	children?: ReactNode;
@@ -27,7 +27,7 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 			className,
 			style,
 			src = PANEL_SRC,
-			slice = 24,
+			slice = 8,
 			scale = 1,
 			repeat = 'stretch',
 		},
