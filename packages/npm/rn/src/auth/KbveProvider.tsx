@@ -14,6 +14,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseClient, mapSession } from './supabase';
 import { createSupabaseAuthExecutor } from './executor';
 import { createChatExecutor } from '../chat/executor';
+import { createWorkerPool } from '../worker/pool';
+import type { WorkerPool } from '../worker/types';
 import { KBVE_API_URL, KBVE_CHAT_URL } from '../config';
 
 export interface KbveContextValue {
@@ -21,6 +23,7 @@ export interface KbveContextValue {
 	authStore: AuthStore;
 	chatStore: ChatStore;
 	api: KbveApi;
+	pool: WorkerPool;
 }
 
 const KbveContext = createContext<KbveContextValue | null>(null);
@@ -56,14 +59,34 @@ export function KbveProvider({
 			chatCore,
 			createChatExecutor(client, KBVE_CHAT_URL),
 		);
+		const pool = createWorkerPool();
 		const api = createKbveApi({
 			baseUrl: apiBaseUrl ?? KBVE_API_URL,
 			getToken: async () => {
 				const { data } = await client.auth.getSession();
 				return data.session?.access_token ?? null;
 			},
+			fetch: (url, opts) => {
+				const isJson =
+					opts.body !== undefined && typeof opts.body !== 'string';
+				return pool.request(url, {
+					method: opts.method,
+					headers: {
+						...(isJson
+							? { 'content-type': 'application/json' }
+							: {}),
+						...(opts.headers as Record<string, string> | undefined),
+					},
+					body:
+						opts.body === undefined
+							? undefined
+							: isJson
+								? JSON.stringify(opts.body)
+								: (opts.body as string),
+				});
+			},
 		});
-		return { client, authStore, chatStore, api };
+		return { client, authStore, chatStore, api, pool };
 	}, [supabaseUrl, anonKey, apiBaseUrl, oauthUrl]);
 
 	useEffect(() => {

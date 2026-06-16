@@ -59,6 +59,11 @@ export interface CallInit<O> {
 	options?: Omit<RequestOptions, 'method' | 'body'>;
 }
 
+export type RequestFn = (
+	url: string,
+	options: RequestOptions,
+) => Promise<RequestResult<unknown>>;
+
 export interface ApiClientConfig {
 	baseUrl: string;
 	getToken?: () =>
@@ -67,6 +72,11 @@ export interface ApiClientConfig {
 		| undefined
 		| Promise<string | null | undefined>;
 	defaultOptions?: Omit<RequestOptions, 'method' | 'body'>;
+	/**
+	 * Override the transport (default: the built-in `request`). Pass the worker
+	 * pool's request here to run fetch + parse off the main thread on web.
+	 */
+	fetch?: RequestFn;
 }
 
 const METHOD: MethodMap = {
@@ -116,6 +126,7 @@ export interface ApiClient {
 
 export function createApiClient(config: ApiClientConfig): ApiClient {
 	const base = config.baseUrl.replace(/\/$/, '');
+	const transport: RequestFn = config.fetch ?? request;
 
 	async function call(
 		method: HttpMethod,
@@ -139,7 +150,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 		};
 		if (token) headers['Authorization'] = `Bearer ${token}`;
 
-		return request(url, {
+		return transport(url, {
 			...config.defaultOptions,
 			...init?.options,
 			method: METHOD[method],
