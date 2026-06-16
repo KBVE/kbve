@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
     health_monitor.spawn_background_task();
 
     // Initialize PgCluster if env configured
-    let pg_cluster = match kbve::jedi::state::pg::PgCluster::from_env().await {
+    let pg_cluster = match jedi::state::pg::PgCluster::from_env().await {
         Ok(cluster) => {
             info!("PgCluster initialized successfully");
             Some(cluster)

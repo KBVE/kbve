@@ -1572,6 +1572,7 @@ dependencies = [
  "axum-extra",
  "dotenvy",
  "http-body-util",
+ "jedi",
  "kbve",
  "num_cpus",
  "reqwest 0.13.2",
