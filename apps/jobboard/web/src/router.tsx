@@ -26,6 +26,7 @@ import { TalentPage } from './routes/talent';
 import { TalentProfilePage } from './routes/talent-profile';
 import { PostGigPage } from './routes/post-gig';
 import { LoginPage } from './routes/login';
+import { AccountPage } from './routes/account';
 import { NavBar } from './components/NavBar';
 import { Footer } from '@kbve/rn/ui';
 
@@ -162,6 +163,12 @@ const loginRoute = createRoute({
 	component: LoginPage,
 });
 
+const accountRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/account',
+	component: AccountPage,
+});
+
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	gigsRoute,
@@ -170,6 +177,7 @@ const routeTree = rootRoute.addChildren([
 	talentProfileRoute,
 	postRoute,
 	loginRoute,
+	accountRoute,
 ]);
 
 export const router = createRouter({

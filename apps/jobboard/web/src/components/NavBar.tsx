@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useAuth } from '../lib/auth';
 
-const navLink = 'text-zinc-300 transition hover:text-white [&.active]:text-quest-300';
+const navLink =
+	'text-zinc-300 transition hover:text-white [&.active]:text-quest-300';
 
 /** True once the page is scrolled past a small threshold. */
 function useScrolled(threshold = 12): boolean {
@@ -29,13 +30,16 @@ export function NavBar() {
 	const items: NavItem[] = [
 		{ to: '/gigs', label: 'Gigs' },
 		{ to: '/talent', label: 'Talent' },
-		...(user?.can_post ? [{ to: '/post' as const, label: 'Post a gig' }] : []),
+		...(user?.can_post
+			? [{ to: '/post' as const, label: 'Post a gig' }]
+			: []),
 	];
 
 	// Close on Escape + lock body scroll while the drawer is open.
 	useEffect(() => {
 		if (!open) return;
-		const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+		const onKey = (e: KeyboardEvent) =>
+			e.key === 'Escape' && setOpen(false);
 		document.addEventListener('keydown', onKey);
 		const prev = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
@@ -74,9 +78,11 @@ export function NavBar() {
 						<div className="hidden items-center gap-3 md:flex">
 							{user ? (
 								<>
-									<span className="text-xs text-zinc-400">
+									<Link
+										to="/account"
+										className="text-xs text-zinc-400 transition hover:text-quest-200 [&.active]:text-quest-300">
 										@{user.handle}
-									</span>
+									</Link>
 									<button
 										type="button"
 										onClick={signOut}
@@ -100,7 +106,10 @@ export function NavBar() {
 							aria-expanded={open}
 							onClick={() => setOpen(true)}
 							className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-700 text-zinc-200 md:hidden">
-							<svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+							<svg
+								viewBox="0 0 24 24"
+								className="h-5 w-5"
+								aria-hidden>
 								<path
 									d="M4 7h16M4 12h16M4 17h16"
 									stroke="currentColor"
@@ -137,7 +146,10 @@ export function NavBar() {
 						aria-label="Close menu"
 						onClick={() => setOpen(false)}
 						className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-700 text-zinc-200">
-						<svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+						<svg
+							viewBox="0 0 24 24"
+							className="h-5 w-5"
+							aria-hidden>
 							<path
 								d="M6 6l12 12M18 6L6 18"
 								stroke="currentColor"
@@ -163,7 +175,12 @@ export function NavBar() {
 				<div className="mt-auto border-t border-zinc-800 pt-4">
 					{user ? (
 						<div className="flex items-center justify-between">
-							<span className="text-xs text-zinc-400">@{user.handle}</span>
+							<Link
+								to="/account"
+								onClick={() => setOpen(false)}
+								className="text-xs text-zinc-400 transition hover:text-quest-200">
+								@{user.handle}
+							</Link>
 							<button
 								type="button"
 								onClick={() => {
