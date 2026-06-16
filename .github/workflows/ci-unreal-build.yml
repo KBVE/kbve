@@ -817,6 +817,10 @@ jobs:
             - name: Package archive
               run: |
                   VERSION="${{ needs.game_gate.outputs.version }}"
+                  if ! command -v zip >/dev/null 2>&1; then
+                    sudo apt-get update
+                    sudo apt-get install -y zip
+                  fi
                   cd /tmp/ue5-game-output
                   zip -r "/tmp/${{ inputs.app_name }}-Linux-v${VERSION}.zip" .
 
@@ -1013,7 +1017,7 @@ jobs:
                   & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
                       -project="$($uproject.FullName)" `
                       -targetplatform=Win64 `
-                      -clientconfig=$clientConfig `
+                      "-clientconfig=$clientConfig" `
                       -cook $mapArg `
                       -build -stage -pak -archive `
                       -archivedirectory="$out" `
