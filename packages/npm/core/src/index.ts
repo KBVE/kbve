@@ -9,3 +9,4 @@ export * from './net';
 export * from './auth';
 export * from './chat';
 export * from './api';
+export * from './seo';
