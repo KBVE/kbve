@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { tokens } from '../theme';
+import { useTheme } from '../ThemeProvider';
 import { Text } from '../primitives/Text';
 
 export const LoadingState = memo(function LoadingState({
@@ -8,9 +9,10 @@ export const LoadingState = memo(function LoadingState({
 }: {
 	label?: string;
 }) {
+	const t = useTheme();
 	return (
 		<View style={styles.container}>
-			<ActivityIndicator color={tokens.color.primary} />
+			<ActivityIndicator color={t.color.primary} />
 			{label ? (
 				<Text variant="caption" tone="muted">
 					{label}

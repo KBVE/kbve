@@ -1,11 +1,11 @@
 // Small, dependency-free UI primitives shared across screens.
 
 import type { ReactNode } from 'react';
-import { Chip } from '@kbve/rn/ui';
+import { Chip, ErrorState, EmptyState as RnEmptyState } from '@kbve/rn/ui';
 import type { Badge as BadgeT, RankTier, TaxonomyItem } from '../api/types';
-import { RANK_TONE } from '../lib/format';
 
 export { Avatar } from '@kbve/rn/ui';
+export { LoadingState as Spinner } from '@kbve/rn/ui';
 
 // Per-kind chip colors (discipline=quest, tool=sky, skill=zinc), passed
 // explicitly to the shared Chip so the taxonomy palette survives.
@@ -64,23 +64,27 @@ export function TagRow({ items }: { items: TaxonomyItem[] }) {
 }
 
 export function BadgePill({ badge }: { badge: BadgeT }) {
-	return (
-		<span
-			title={badge.description}
-			className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-900/70 px-2 py-1 text-xs text-zinc-200">
-			<span aria-hidden>{badge.icon}</span>
-			{badge.label}
-		</span>
-	);
+	return <Chip>{`${badge.icon} ${badge.label}`}</Chip>;
 }
 
+const RANK_COLORS: Record<RankTier, { color: string; borderColor: string }> = {
+	recruit: { color: '#d4d4d8', borderColor: '#52525b' },
+	adventurer: { color: '#6ee7b7', borderColor: '#047857' },
+	artisan: { color: '#7dd3fc', borderColor: '#0369a1' },
+	veteran: { color: '#ab98f7', borderColor: '#6a35eb' },
+	master: { color: '#fbbf24', borderColor: 'rgba(245,158,11,0.6)' },
+	legend: { color: '#f0abfc', borderColor: '#c026d3' },
+};
+
 export function RankPill({ tier, label }: { tier: RankTier; label: string }) {
+	const c = RANK_COLORS[tier];
 	return (
-		<span
-			className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${RANK_TONE[tier]}`}>
-			<span aria-hidden>★</span>
-			{label}
-		</span>
+		<Chip
+			color={c.color}
+			borderColor={c.borderColor}
+			background="transparent">
+			{`★ ${label}`}
+		</Chip>
 	);
 }
 
@@ -121,29 +125,11 @@ export function Button({
 	);
 }
 
-export function Spinner({ label = 'Loading…' }: { label?: string }) {
-	return (
-		<div className="flex items-center gap-3 text-zinc-400">
-			<span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-quest-400" />
-			{label}
-		</div>
-	);
-}
-
 export function ErrorNote({ error }: { error: unknown }) {
 	const msg = error instanceof Error ? error.message : String(error);
-	return (
-		<p className="rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-red-300">
-			Something went wrong: {msg}
-		</p>
-	);
+	return <ErrorState message={msg} />;
 }
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
-	return (
-		<div className="panel px-6 py-12 text-center">
-			<p className="text-lg font-semibold text-zinc-200">{title}</p>
-			{hint ? <p className="mt-1 text-sm text-zinc-400">{hint}</p> : null}
-		</div>
-	);
+	return <RnEmptyState title={title} message={hint} />;
 }
