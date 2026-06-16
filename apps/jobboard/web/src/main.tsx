@@ -16,7 +16,10 @@ const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
-		<KbveProvider supabaseUrl={supabaseUrl} anonKey={KBVE_SUPABASE_ANON_KEY}>
+		<KbveProvider
+			supabaseUrl={supabaseUrl}
+			anonKey={KBVE_SUPABASE_ANON_KEY}
+			apiBaseUrl={`${window.location.origin}/kbveapi`}>
 			<QueryClientProvider client={queryClient}>
 				{/* Public marketplace — browsing needs no auth. Login lives at the
 				    /login route; KbveProvider supplies the session to the whole app. */}
