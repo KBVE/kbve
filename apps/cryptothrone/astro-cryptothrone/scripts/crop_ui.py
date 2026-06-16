@@ -3,10 +3,10 @@
 
 Reads every PNG in public/ui-sheets/, finds connected non-transparent regions
 (8-connected alpha islands, then gap-merged so a multi-part element collapses
-into one), and writes public/ui-sheets/manifest.json mapping each sheet to its
-frame rects {x, y, w, h}. The React PixelSprite renders a frame by index via
-CSS background-position on the sheet — no per-frame PNGs. Tune MERGE_GAP if the
-slicing over/under-merges a given sheet.
+into one), and writes src/components/game/ui/pixelUiManifest.json mapping each
+sheet to its frame rects {x, y, w, h}. The React PixelSprite imports that and
+renders a frame by index via CSS background-position on the sheet — no per-frame
+PNGs. Tune MERGE_GAP if the slicing over/under-merges a given sheet.
 
 Usage: python3 scripts/crop_ui.py   (needs Pillow)
 """
