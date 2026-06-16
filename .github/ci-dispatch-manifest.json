@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.200",
+			"version": "1.0.201",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.31",
+			"version": "0.1.37",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.17",
+			"version": "0.0.18",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -271,6 +271,20 @@
 			"has_test": true
 		},
 		{
+			"key": "jobboard",
+			"app_name": "jobboard",
+			"version": "0.1.2",
+			"version_toml": "apps/jobboard/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
+			"version_target": "apps/jobboard/Cargo.toml",
+			"source_path": "apps/jobboard",
+			"runner": "ubuntu-latest",
+			"image": "kbve/jobboard",
+			"e2e_name": "jobboard",
+			"deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
+			"has_test": false
+		},
+		{
 			"key": "kasm_void",
 			"app_name": "kasm-void",
 			"version": "0.0.5",
@@ -377,20 +391,6 @@
 			"has_test": true
 		},
 		{
-			"key": "jobboard",
-			"app_name": "jobboard",
-			"version": "0.1.0",
-			"version_toml": "apps/jobboard/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
-			"version_target": "apps/jobboard/Cargo.toml",
-			"source_path": "apps/jobboard",
-			"runner": "ubuntu-latest",
-			"image": "kbve/jobboard",
-			"e2e_name": "jobboard",
-			"deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
-			"has_test": false
-		},
-		{
 			"key": "nd_server",
 			"app_name": "nd-server",
 			"version": "0.0.2",
@@ -469,7 +469,7 @@
 		{
 			"key": "laser",
 			"package_name": "laser",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/npm/laser/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
 			"version_target": "packages/npm/laser/package.json"
