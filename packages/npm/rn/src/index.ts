@@ -11,6 +11,7 @@ export * from './auth/executor';
 export * from './auth/KbveProvider';
 export * from './auth/useAuth';
 export * from './auth/useApi';
+export * from './auth/useAuthForm';
 export * from './auth/AuthGate';
 export * from './auth/LoginScreen';
 export * from './auth/SetUsernameScreen';

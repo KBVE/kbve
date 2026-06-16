@@ -16,6 +16,8 @@ export * from './primitives/Checkbox';
 export * from './primitives/Gradient';
 export * from './primitives/FormField';
 export * from './primitives/Avatar';
+export * from './primitives/PeekMascot';
+export * from './primitives/BrandIcons';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';

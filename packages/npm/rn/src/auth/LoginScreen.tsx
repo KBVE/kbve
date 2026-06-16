@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
 	ActivityIndicator,
 	Pressable,
@@ -10,58 +10,71 @@ import Animated, { LinearTransition } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { OAuthProvider } from '@kbve/core';
 import { openExternal } from '../platform/openExternal';
-import { Button, Checkbox, Text, tokens, toastStore, useShake } from '../ui';
+import {
+	Button,
+	Checkbox,
+	DiscordIcon,
+	GitHubIcon,
+	PeekMascot,
+	Text,
+	tokens,
+	toastStore,
+	TwitchIcon,
+	useShake,
+} from '../ui';
+import type { ComponentType } from 'react';
 import { KBVE_LEGAL_LINKS } from '../config';
-import { useAuth, useAuthActions } from './useAuth';
+import { useAuthActions } from './useAuth';
+import { useAuthForm } from './useAuthForm';
 import { HCaptcha } from '../captcha/HCaptcha';
 import type { HCaptchaHandle } from '../captcha/HCaptcha';
 
-type Mode = 'sign_in' | 'sign_up';
-
-const PROVIDERS: { id: OAuthProvider; label: string; color: string }[] = [
-	{ id: 'discord', label: 'Discord', color: '#5865F2' },
-	{ id: 'github', label: 'GitHub', color: '#e6edf3' },
-	{ id: 'twitch', label: 'Twitch', color: '#9146FF' },
+const PROVIDERS: {
+	id: OAuthProvider;
+	label: string;
+	color: string;
+	Icon: ComponentType<{ size?: number; color?: string }>;
+}[] = [
+	{ id: 'discord', label: 'Discord', color: '#5865F2', Icon: DiscordIcon },
+	{ id: 'github', label: 'GitHub', color: '#e6edf3', Icon: GitHubIcon },
+	{ id: 'twitch', label: 'Twitch', color: '#9146FF', Icon: TwitchIcon },
 ];
 
 const transition = LinearTransition.duration(220);
 
 export function LoginScreen() {
-	const auth = useAuth();
 	const actions = useAuthActions();
 	const captcha = useRef<HCaptchaHandle>(null);
 	const captchaShake = useShake();
-	const [mode, setMode] = useState<Mode>('sign_in');
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirm, setConfirm] = useState('');
-	const [agreed, setAgreed] = useState(false);
-	const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-
-	const isSignUp = mode === 'sign_up';
-	const busy = auth.status === 'authenticating';
-	const verified = captchaToken !== null;
-	const mismatch = isSignUp && confirm.length > 0 && password !== confirm;
-	const passwordsOk =
-		!isSignUp || (confirm.length > 0 && password === confirm);
-	const legalOk = !isSignUp || agreed;
-	const canSubmit =
-		verified &&
-		email.length > 0 &&
-		password.length > 0 &&
-		passwordsOk &&
-		legalOk &&
-		!busy;
-	const submitLabel = isSignUp ? 'Create account' : 'Sign in';
+	const form = useAuthForm();
+	const {
+		isSignUp,
+		busy,
+		error,
+		email,
+		password,
+		confirm,
+		agreed,
+		peeking,
+		verified,
+		captchaToken,
+		mismatch,
+		canSubmit,
+		submitLabel,
+		setEmail,
+		setPassword,
+		setConfirm,
+		setAgreed,
+		setPeeking,
+		setCaptchaToken,
+		setMode,
+	} = form;
 
 	const submit = () => {
 		if (busy) return;
-		if (email.length === 0 || password.length === 0) {
-			toastStore.push('Enter your email and password', 'warning');
-			return;
-		}
-		if (isSignUp && !passwordsOk) {
-			toastStore.push('Passwords don’t match', 'danger');
+		const invalid = form.validate();
+		if (invalid) {
+			toastStore.push(invalid, 'warning');
 			return;
 		}
 		if (!verified || !captchaToken) {
@@ -69,16 +82,7 @@ export function LoginScreen() {
 			toastStore.push('Verify you’re human to continue', 'warning');
 			return;
 		}
-		if (isSignUp && !agreed) {
-			toastStore.push('Agree to the terms to continue', 'warning');
-			return;
-		}
-		if (isSignUp) {
-			actions.signUp(email, password, captchaToken);
-		} else {
-			actions.signInWithPassword(email, password, captchaToken);
-		}
-		setCaptchaToken(null);
+		form.authenticate(captchaToken);
 		captcha.current?.reset();
 	};
 
@@ -91,6 +95,7 @@ export function LoginScreen() {
 	return (
 		<SafeAreaView style={styles.container}>
 			<View style={styles.hero}>
+				<PeekMascot peeking={peeking} />
 				<Text variant="display">KBVE</Text>
 				<Text variant="body" tone="muted">
 					{isSignUp ? 'Create your account' : 'Welcome back'}
@@ -139,6 +144,8 @@ export function LoginScreen() {
 					secureTextEntry
 					value={password}
 					onChangeText={setPassword}
+					onFocus={() => setPeeking(true)}
+					onBlur={() => setPeeking(false)}
 				/>
 				{isSignUp ? (
 					<TextInput
@@ -148,6 +155,8 @@ export function LoginScreen() {
 						secureTextEntry
 						value={confirm}
 						onChangeText={setConfirm}
+						onFocus={() => setPeeking(true)}
+						onBlur={() => setPeeking(false)}
 					/>
 				) : null}
 				{mismatch ? (
@@ -242,11 +251,9 @@ export function LoginScreen() {
 								onPress={() =>
 									actions.signInWithOAuth(provider.id)
 								}>
-								<View
-									style={[
-										styles.dot,
-										{ backgroundColor: provider.color },
-									]}
+								<provider.Icon
+									size={16}
+									color={provider.color}
 								/>
 								<Text variant="caption" weight="medium">
 									{provider.label}
@@ -267,11 +274,9 @@ export function LoginScreen() {
 								onPress={() =>
 									actions.signInWithOAuth(provider.id)
 								}>
-								<View
-									style={[
-										styles.dot,
-										{ backgroundColor: provider.color },
-									]}
+								<provider.Icon
+									size={18}
+									color={provider.color}
 								/>
 								<Text variant="label">
 									Continue with {provider.label}
@@ -288,9 +293,9 @@ export function LoginScreen() {
 					style={styles.spinner}
 				/>
 			) : null}
-			{auth.error ? (
+			{error ? (
 				<Text variant="caption" tone="danger" style={styles.error}>
-					{auth.error}
+					{error}
 				</Text>
 			) : null}
 
