@@ -7,13 +7,21 @@ import {
 } from '@kbve/rn/auth';
 import type { OAuthProvider } from '@kbve/core';
 import { PeekMascot } from './PeekMascot';
+import { DiscordIcon, GitHubIcon, TwitchIcon } from './BrandIcons';
 
 type Mode = 'sign_in' | 'sign_up';
 
-const PROVIDERS: { id: OAuthProvider; label: string; color: string }[] = [
-	{ id: 'discord', label: 'Discord', color: '#5865F2' },
-	{ id: 'github', label: 'GitHub', color: '#e6edf3' },
-	{ id: 'twitch', label: 'Twitch', color: '#9146FF' },
+interface Provider {
+	id: OAuthProvider;
+	label: string;
+	color: string;
+	Icon: React.ComponentType<{ className?: string }>;
+}
+
+const PROVIDERS: Provider[] = [
+	{ id: 'discord', label: 'Discord', color: '#5865F2', Icon: DiscordIcon },
+	{ id: 'github', label: 'GitHub', color: '#e6edf3', Icon: GitHubIcon },
+	{ id: 'twitch', label: 'Twitch', color: '#9146FF', Icon: TwitchIcon },
 ];
 
 const inputCls =
@@ -155,10 +163,9 @@ export function LoginForm() {
 						disabled={busy}
 						onClick={() => actions.signInWithOAuth(p.id)}
 						className="flex items-center justify-center gap-2 rounded-lg border border-zinc-700 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-500 disabled:opacity-50">
-						<span
-							className="h-2.5 w-2.5 rounded-full"
-							style={{ backgroundColor: p.color }}
-						/>
+						<span style={{ color: p.color }} className="flex">
+							<p.Icon className="h-4 w-4" />
+						</span>
 						{p.label}
 					</button>
 				))}
