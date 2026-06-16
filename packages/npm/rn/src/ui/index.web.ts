@@ -14,6 +14,8 @@ export * from './primitives/Button';
 export * from './primitives/PressableSurface';
 export * from './primitives/Checkbox';
 export * from './primitives/Gradient';
+export * from './primitives/FormField';
+export * from './primitives/Avatar';
 
 export * from './cards/AppCard';
 export * from './cards/CardList';
@@ -30,6 +32,7 @@ export * from './overlays/ToastViewport';
 export * from './feedback/EmptyState';
 export * from './feedback/LoadingState';
 export * from './feedback/ErrorState';
+export * from './feedback/Skeleton';
 
 export * from './state/store';
 export * from './state/overlayStore';

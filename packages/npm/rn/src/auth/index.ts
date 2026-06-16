@@ -10,6 +10,7 @@ export * from './supabase';
 export * from './executor';
 export * from './KbveProvider';
 export * from './useAuth';
+export * from './useApi';
 export * from './useStaff';
 export * from './AuthGate';
 export * from './LoginScreen';

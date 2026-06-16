@@ -117,6 +117,13 @@ export default defineConfig(({ mode }) => ({
 				secure: true,
 				rewrite: (p) => p.replace(/^\/supabase/, ''),
 			},
+			// kbve.com API (profile/wallet) — same CORS dodge as /supabase.
+			'/kbveapi': {
+				target: 'https://kbve.com',
+				changeOrigin: true,
+				secure: true,
+				rewrite: (p) => p.replace(/^\/kbveapi/, ''),
+			},
 		},
 	},
 }));

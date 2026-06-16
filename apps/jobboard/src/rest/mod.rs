@@ -1,10 +1,12 @@
 mod auth;
+mod proxy;
 mod spa;
 mod system;
 mod verticals;
 
 use crate::state::AppState;
 use axum::Router;
+use axum::routing::any;
 use std::sync::Arc;
 
 pub fn router(app: Arc<AppState>) -> Router {
@@ -15,6 +17,8 @@ pub fn router(app: Arc<AppState>) -> Router {
     Router::new()
         .merge(system::routes())
         .nest("/api", api)
+        .route("/supabase/{*rest}", any(proxy::supabase))
+        .route("/kbveapi/{*rest}", any(proxy::kbve_api))
         .with_state(app)
         .fallback(spa::handler)
 }

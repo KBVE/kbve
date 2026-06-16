@@ -1,11 +1,10 @@
+// Web port of the @kbve mobile TypeGPU effect core (apps/kbve/kbve-react-native/
+// effects/createEffect.ts). Identical pipeline; the host loop differs (browser
+// auto-presents on submit, no context.present). Shaders are reusable as-is.
 import tgpu from 'typegpu';
 import * as d from 'typegpu/data';
 import type { EffectInit } from './types';
 
-/// Shared WGSL prelude: a fullscreen-triangle vertex stage that hands the
-/// fragment an `in.uv` in [0,1], plus the standard `u` globals. Effect authors
-/// only write the body of `effect(in)` + any helpers; createEffect wraps it and
-/// applies `u.intensity` so every effect honors the intensity control.
 const PRELUDE = /* wgsl */ `
 struct VsOut { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
 
@@ -39,18 +38,10 @@ const Globals = d.struct({
 });
 
 export interface EffectSpec {
-	/// Body of `fn effect(in: VsOut) -> vec4f { ... }`. May read `u.time`,
-	/// `u.res`, `u.pointer` (normalized [0,1]), `u.down` (0/1), `u.accent`
-	/// (host rgb), and `in.uv`. Return a premultiplied color (rgb already
-	/// multiplied by alpha); the intensity control is applied for you.
 	fragment: string;
-	/// Optional top-level WGSL (helper fns / consts) injected before `effect`.
 	helpers?: string;
 }
 
-/// Build an EffectInit from a fragment shader. Handles tgpu root init, the
-/// fullscreen pipeline, the globals uniform, the per-frame uniform write/draw,
-/// and teardown — so a new effect is just WGSL.
 export function createEffect(spec: EffectSpec): EffectInit {
 	const code = `${PRELUDE}\n${spec.helpers ?? ''}\nfn effect(in: VsOut) -> vec4f {\n${spec.fragment}\n}\n\n@fragment\nfn fs(in: VsOut) -> @location(0) vec4f {\n  return effect(in) * u.intensity;\n}`;
 
