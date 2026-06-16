@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { fetchGigs, fetchTalent, fetchTaxonomy } from '../api/client';
+import { fetchGigs, fetchTalent } from '../api/client';
 import { GigCard } from '../components/GigCard';
 import { TalentCard } from '../components/TalentCard';
+import { DisciplineGrid } from '../components/DisciplineGrid';
 import { HowItWorks } from '../components/HowItWorks';
 import { Button } from '../components/ui';
-
-const GAME_DEV_ID = 1;
 
 const TRUST = ['Both sides vetted', 'Game-dev only', 'Portfolio-first', 'No bidding wars'];
 
@@ -15,10 +14,6 @@ export function HomePage() {
 	const navigate = useNavigate();
 	const [q, setQ] = useState('');
 
-	const { data: taxData } = useQuery({
-		queryKey: ['taxonomy', GAME_DEV_ID],
-		queryFn: () => fetchTaxonomy(GAME_DEV_ID),
-	});
 	const { data: gigData } = useQuery({
 		queryKey: ['gigs', {}],
 		queryFn: () => fetchGigs({}),
@@ -28,9 +23,6 @@ export function HomePage() {
 		queryFn: () => fetchTalent({}),
 	});
 
-	const popular = (taxData?.taxonomy ?? [])
-		.filter((t) => t.kind === 1)
-		.slice(0, 7);
 	const featuredGigs = gigData?.gigs.slice(0, 4) ?? [];
 	const topTalent = talentData?.talent.slice(0, 3) ?? [];
 
@@ -79,21 +71,6 @@ export function HomePage() {
 					<Button type="submit">Search</Button>
 				</form>
 
-				{popular.length > 0 && (
-					<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm">
-						<span className="text-zinc-500">Popular:</span>
-						{popular.map((d) => (
-							<Link
-								key={d.id}
-								to="/gigs"
-								search={{ discipline: d.name }}
-								className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300 transition hover:border-quest-500 hover:text-quest-200">
-								{d.label}
-							</Link>
-						))}
-					</div>
-				)}
-
 				<div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-zinc-500">
 					{TRUST.map((t) => (
 						<span key={t} className="flex items-center gap-1.5">
@@ -103,6 +80,9 @@ export function HomePage() {
 					))}
 				</div>
 			</section>
+
+			{/* What we do — Upwork-style category grid mapped to disciplines */}
+			<DisciplineGrid />
 
 			{/* Featured gigs — show the product (Fiverr/Upwork content rows) */}
 			<Section
