@@ -67,6 +67,7 @@ struct GoTrueUser {
 #[derive(Serialize)]
 struct MintedClaims {
     sub: String,
+    iat: i64,
     exp: i64,
     kbve_username: String,
     role: String,
@@ -333,6 +334,7 @@ fn mint_session_jwt(
 ) -> Result<String, jsonwebtoken::errors::Error> {
     let claims = MintedClaims {
         sub: sub.to_string(),
+        iat: now_secs() as i64,
         exp,
         kbve_username: kbve_username.to_string(),
         role: "authenticated".into(),
