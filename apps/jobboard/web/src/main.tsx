@@ -23,7 +23,8 @@ createRoot(document.getElementById('root')!).render(
 		<KbveProvider
 			supabaseUrl={supabaseUrl}
 			anonKey={KBVE_SUPABASE_ANON_KEY}
-			apiBaseUrl={`${window.location.origin}/kbveapi`}>
+			apiBaseUrl={`${window.location.origin}/kbveapi`}
+			oauthUrl="https://supabase.kbve.com">
 			<ThemeProvider theme={jobboardTheme}>
 				<PersistQueryClientProvider
 					client={queryClient}

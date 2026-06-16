@@ -22,6 +22,7 @@ const PROVIDER_SCOPES: Record<OAuthProvider, string> = {
 
 export function createSupabaseAuthExecutor(
 	client: SupabaseClient,
+	_oauthUrl?: string,
 ): EffectExecutor<AuthEffect, AuthEvent> {
 	const redirectTo = makeRedirectUri({
 		scheme: 'kbve',

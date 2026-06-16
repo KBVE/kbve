@@ -30,6 +30,12 @@ export interface KbveProviderProps {
 	anonKey: string;
 	/** Override the KBVE API base URL (e.g. a same-origin proxy on web). */
 	apiBaseUrl?: string;
+	/**
+	 * Public Supabase URL for the OAuth redirect (web). When `supabaseUrl` is a
+	 * same-origin proxy, set this to the real host so the browser hits
+	 * supabase.kbve.com's /authorize directly instead of the proxy.
+	 */
+	oauthUrl?: string;
 	children: ReactNode;
 }
 
@@ -37,13 +43,14 @@ export function KbveProvider({
 	supabaseUrl,
 	anonKey,
 	apiBaseUrl,
+	oauthUrl,
 	children,
 }: KbveProviderProps) {
 	const value = useMemo<KbveContextValue>(() => {
 		const client = createSupabaseClient({ url: supabaseUrl, anonKey });
 		const authStore = new AuthStore(
 			authCore,
-			createSupabaseAuthExecutor(client),
+			createSupabaseAuthExecutor(client, oauthUrl),
 		);
 		const chatStore = new ChatStore(
 			chatCore,
@@ -57,7 +64,7 @@ export function KbveProvider({
 			},
 		});
 		return { client, authStore, chatStore, api };
-	}, [supabaseUrl, anonKey, apiBaseUrl]);
+	}, [supabaseUrl, anonKey, apiBaseUrl, oauthUrl]);
 
 	useEffect(() => {
 		const { client, authStore } = value;
