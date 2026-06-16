@@ -45,14 +45,15 @@ export function LoginPage() {
 					<span className="inline-flex w-fit items-center gap-2 rounded-full border border-gold-400/40 bg-black/40 px-3 py-1 text-xs font-medium text-gold-300">
 						✦ KBVE Jobs
 					</span>
-					<blockquote className="font-display text-4xl font-bold leading-tight text-zinc-50">
+					<blockquote className="font-display text-4xl font-bold leading-tight text-zinc-50 [text-shadow:0_2px_4px_rgba(0,0,0,0.9),0_0_16px_rgba(0,0,0,0.7)]">
 						Where games
 						<br />
 						get made.
 					</blockquote>
-					<p className="max-w-sm text-zinc-300">
-						Curated gigs. Vetted talent. Hired by your work, not your résumé —
-						join when you're ready, browse freely until then.
+					<p className="max-w-sm text-zinc-300 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+						Curated gigs. Vetted talent. Hired by your work, not
+						your résumé — join when you're ready, browse freely
+						until then.
 					</p>
 				</div>
 			</aside>

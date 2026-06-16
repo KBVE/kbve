@@ -24,6 +24,9 @@ export * from './chat/useChat';
 
 export * from './hooks';
 export * from './offload';
+export * from './platform/openExternal';
+export * from './platform/viewTransition';
+export * from './store';
 
 export * from './plugin';
 export * from './sandbox';

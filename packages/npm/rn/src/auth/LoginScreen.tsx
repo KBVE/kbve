@@ -58,6 +58,7 @@ export function LoginScreen() {
 		peeking,
 		verified,
 		captchaToken,
+		emailValid,
 		mismatch,
 		canSubmit,
 		submitLabel,
@@ -129,11 +130,15 @@ export function LoginScreen() {
 
 			<Animated.View style={styles.form} layout={transition}>
 				<TextInput
-					style={styles.input}
+					style={[
+						styles.input,
+						email.length > 0 && !emailValid && styles.inputError,
+					]}
 					placeholder="Email"
 					placeholderTextColor={tokens.color.textFaint}
 					autoCapitalize="none"
 					keyboardType="email-address"
+					autoComplete="email"
 					value={email}
 					onChangeText={setEmail}
 				/>

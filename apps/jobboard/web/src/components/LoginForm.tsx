@@ -37,6 +37,7 @@ export function LoginForm() {
 		confirm,
 		agreed,
 		peeking,
+		emailValid,
 		mismatch,
 		setEmail,
 		setPassword,
@@ -80,7 +81,7 @@ export function LoginForm() {
 			<form onSubmit={submit} className="space-y-3">
 				<input
 					type="email"
-					className={inputCls}
+					className={`${inputCls} ${email.length > 0 && !emailValid ? 'border-red-500' : ''}`}
 					placeholder="Email"
 					autoComplete="email"
 					value={email}

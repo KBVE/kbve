@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth, useAuthActions } from './useAuth';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export type AuthFormMode = 'sign_in' | 'sign_up';
 
 export type SubmitStatus = 'authenticating' | 'invalid' | 'need_captcha';
@@ -26,6 +28,7 @@ export interface AuthForm {
 	peeking: boolean;
 	captchaToken: string | null;
 	verified: boolean;
+	emailValid: boolean;
 	mismatch: boolean;
 	canSubmit: boolean;
 	submitLabel: string;
@@ -61,13 +64,14 @@ export function useAuthForm(options: UseAuthFormOptions = {}): AuthForm {
 	const isSignUp = mode === 'sign_up';
 	const busy = auth.status === 'authenticating';
 	const verified = captchaToken !== null;
+	const emailValid = EMAIL_RE.test(email.trim());
 	const mismatch = isSignUp && confirm.length > 0 && password !== confirm;
 	const passwordsOk =
 		!isSignUp || (confirm.length > 0 && password === confirm);
 	const legalOk = !isSignUp || agreed;
 	const canSubmit =
 		verified &&
-		email.length > 0 &&
+		emailValid &&
 		password.length > 0 &&
 		passwordsOk &&
 		legalOk &&
@@ -78,6 +82,9 @@ export function useAuthForm(options: UseAuthFormOptions = {}): AuthForm {
 	const validate = (): string | null => {
 		if (email.length === 0 || password.length === 0) {
 			return 'Enter your email and password.';
+		}
+		if (!emailValid) {
+			return 'Enter a valid email address.';
 		}
 		if (isSignUp && !passwordsOk) {
 			return 'Passwords don’t match.';
@@ -140,6 +147,7 @@ export function useAuthForm(options: UseAuthFormOptions = {}): AuthForm {
 		peeking,
 		captchaToken,
 		verified,
+		emailValid,
 		mismatch,
 		canSubmit,
 		submitLabel,
