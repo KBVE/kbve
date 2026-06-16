@@ -20,12 +20,88 @@
 				width: 100vw;
 				height: 100vh;
 			}
+			.ct-boot {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				height: 100%;
+				gap: 1rem;
+				padding: 1.5rem;
+				text-align: center;
+				box-sizing: border-box;
+			}
+			.ct-spinner {
+				width: 2rem;
+				height: 2rem;
+				border-radius: 9999px;
+				border: 2px solid rgba(251, 191, 36, 0.2);
+				border-top-color: #fbbf24;
+				animation: ct-spin 0.8s linear infinite;
+			}
+			@keyframes ct-spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+			.ct-boot-status {
+				margin: 0;
+				font-size: 0.875rem;
+				font-weight: 600;
+				color: #fde68a;
+			}
+			.ct-boot-sub {
+				margin: 0;
+				max-width: 22rem;
+				font-size: 0.75rem;
+				color: #a8a29e;
+			}
+			.ct-error-icon {
+				color: #f87171;
+			}
+			.ct-error-title {
+				margin: 0;
+				font-size: 0.875rem;
+				font-weight: 600;
+				color: #fca5a5;
+			}
+			.ct-error-msg {
+				margin: 0;
+				max-width: 22rem;
+				font-size: 0.75rem;
+				color: #a8a29e;
+				word-break: break-word;
+			}
+			.ct-retry {
+				margin-top: 0.5rem;
+				border: none;
+				border-radius: 0.5rem;
+				background: rgba(245, 158, 11, 0.9);
+				color: #000;
+				font-size: 0.875rem;
+				font-weight: 600;
+				padding: 0.5rem 1.25rem;
+				cursor: pointer;
+				transition: background 0.15s ease;
+			}
+			.ct-retry:hover {
+				background: #fbbf24;
+			}
 		</style>
 	</head>
 	<body>
 		<!-- Discord Activity root. discord.js runs the OAuth handshake, bridges
-		     to a game-server session, then mounts the game into #app. -->
-		<div id="app">Loading CryptoThrone…</div>
+		     to a game-server session, then mounts the game into #app. The boot
+		     card below is the pre-React loading state; discord.js updates its
+		     status text per stage and swaps it for an error card with a retry
+		     button on failure. -->
+		<div id="app">
+			<div class="ct-boot">
+				<span class="ct-spinner" aria-hidden="true"></span>
+				<p class="ct-boot-status">Linking to Cloud City…</p>
+				<p class="ct-boot-sub">Starting CryptoThrone.</p>
+			</div>
+		</div>
 		<!-- Relative src: under the Discord root mapping (/ -> .../discord/) an
 		     absolute /discord/discord.js would double to /discord/discord/…. -->
 		<script src="discord.js" defer></script>
