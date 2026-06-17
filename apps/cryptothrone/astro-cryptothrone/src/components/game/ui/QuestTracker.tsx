@@ -9,7 +9,7 @@ export function QuestTracker() {
 	return (
 		<PixelPanel
 			variant="wood"
-			className="pointer-events-none absolute left-3 top-16 z-30 w-44 px-3 py-2">
+			className="pointer-events-none absolute left-3 top-16 z-30 w-40 max-w-[45vw] px-3 py-2 md:left-16 md:w-44">
 			<p className="text-[0.6rem] font-semibold uppercase tracking-widest text-amber-300/80">
 				Bounty
 			</p>

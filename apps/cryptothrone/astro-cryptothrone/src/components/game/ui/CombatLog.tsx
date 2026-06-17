@@ -52,7 +52,7 @@ export function CombatLog() {
 
 	if (entries.length === 0) return null;
 	return (
-		<div className="pointer-events-none absolute bottom-3 left-1/2 z-20 w-72 -translate-x-1/2 space-y-0.5 text-center">
+		<div className="pointer-events-none absolute bottom-36 left-1/2 z-20 w-72 max-w-[90vw] -translate-x-1/2 space-y-0.5 text-center md:bottom-3">
 			{entries.map((e) => (
 				<div
 					key={e.id}

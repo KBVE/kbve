@@ -3,9 +3,14 @@ import { laserEvents } from '@kbve/laser';
 
 const MAP_W = 50;
 const MAP_H = 50;
-const SIZE = 120;
+const DEFAULT_SIZE = 120;
 
-export function Minimap() {
+interface MinimapProps {
+	size?: number;
+	className?: string;
+}
+
+export function Minimap({ size = DEFAULT_SIZE, className }: MinimapProps = {}) {
 	const ref = useRef<HTMLCanvasElement>(null);
 	const me = useRef({ x: 5, y: 12 });
 	const others = useRef<{ x: number; y: number }[]>([]);
@@ -16,11 +21,11 @@ export function Minimap() {
 			if (!cv) return;
 			const ctx = cv.getContext('2d');
 			if (!ctx) return;
-			ctx.clearRect(0, 0, SIZE, SIZE);
+			ctx.clearRect(0, 0, size, size);
 			ctx.fillStyle = 'rgba(20,20,30,0.7)';
-			ctx.fillRect(0, 0, SIZE, SIZE);
-			const sx = SIZE / MAP_W;
-			const sy = SIZE / MAP_H;
+			ctx.fillRect(0, 0, size, size);
+			const sx = size / MAP_W;
+			const sy = size / MAP_H;
 			ctx.fillStyle = '#34d399';
 			for (const o of others.current)
 				ctx.fillRect(o.x * sx - 1, o.y * sy - 1, 3, 3);
@@ -41,16 +46,17 @@ export function Minimap() {
 		];
 		draw();
 		return () => offs.forEach((o) => o());
-	}, []);
+	}, [size]);
 
 	return (
-		<div className="pointer-events-none absolute bottom-3 right-3 z-30">
-			<canvas
-				ref={ref}
-				width={SIZE}
-				height={SIZE}
-				className="rounded-lg border border-white/10 bg-black/50 backdrop-blur-md"
-			/>
-		</div>
+		<canvas
+			ref={ref}
+			width={size}
+			height={size}
+			className={
+				className ??
+				'rounded-lg border border-white/10 bg-black/50 backdrop-blur-md'
+			}
+		/>
 	);
 }
