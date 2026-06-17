@@ -12,13 +12,15 @@ tags:
 key: rows
 pipeline: docker
 app_name: rows
-version: "0.1.26"
+version: "0.1.27"
 source_path: apps/rows
 version_toml: apps/rows/version.toml
 version_target: apps/rows/Cargo.toml
 runner: ubuntu-latest
 image: kbve/rows
 deployment_yaml: apps/kube/rows/manifest/rows-deployment.yaml
+deployment_yamls:
+    - apps/kube/rows/tenants/base/deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
