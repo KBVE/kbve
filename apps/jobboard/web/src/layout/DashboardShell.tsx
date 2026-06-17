@@ -46,8 +46,6 @@ const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
 	{ id: 'profile', label: 'Profile', Icon: User },
 ] as const;
 
-type SectionId = (typeof SECTIONS)[number]['id'];
-
 export function DashboardShell() {
 	const auth = useAuth();
 	const { signOut } = useAuthActions();
@@ -152,7 +150,7 @@ export function DashboardShell() {
 					gap="xs"
 					style={{ flex: isPhone ? 1 : undefined }}>
 					{expanded ? brand : null}
-					{SECTIONS.map((s) => {
+					{sections.map((s) => {
 						const on = s.id === active;
 						const color = on ? ui.purple : ui.textMuted;
 						return (
