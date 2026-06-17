@@ -16,6 +16,7 @@ supabase = ["dep:lru", "dep:uuid"]
 image-gen = ["dep:resvg"]
 wallet = ["dep:uuid"]
 legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
+gate = ["axum/ws", "reqwest/stream", "dep:tokio-tungstenite"]
 
 [dependencies]
 anyhow = "1.0"
@@ -40,7 +41,7 @@ axum-extra = { version = "0.12.6", features = ["cookie"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 dashmap = { version = "6.1.0", features = ["serde"] }
-jsonwebtoken = "10.3.0"
+jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
 thiserror = "2"
@@ -61,6 +62,7 @@ num-bigint = "0.4"
 lru = { version = "0.16", optional = true }
 resvg = { version = "0.47.0", optional = true }
 uuid = { version = "1", features = ["v4", "serde"], optional = true }
+tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"], optional = true }
 jedi = { path = "../jedi" }
 holy = { version = "0.2.1", path = "../holy" }
 

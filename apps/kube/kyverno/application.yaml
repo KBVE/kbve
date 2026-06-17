@@ -16,18 +16,34 @@ spec:
                 fullnameOverride: kyverno
                 admissionController:
                     replicas: 2
-                    resources:
-                        limits: { cpu: 1000m, memory: 1Gi }
-                        requests: { cpu: 100m, memory: 256Mi }
+                    container:
+                        resources:
+                            limits: { cpu: 1000m, memory: 1Gi }
+                            requests: { cpu: 500m, memory: 256Mi }
+                    livenessProbe:
+                        timeoutSeconds: 10
+                        failureThreshold: 6
+                    readinessProbe:
+                        timeoutSeconds: 10
+                        failureThreshold: 10
                 backgroundController:
                     replicas: 1
-                    resources:
-                        limits: { cpu: 500m, memory: 512Mi }
-                        requests: { cpu: 50m, memory: 128Mi }
+                    container:
+                        resources:
+                            limits: { cpu: 500m, memory: 512Mi }
+                            requests: { cpu: 100m, memory: 128Mi }
                 cleanupController:
                     replicas: 1
+                    container:
+                        resources:
+                            limits: { cpu: 500m, memory: 256Mi }
+                            requests: { cpu: 100m, memory: 128Mi }
                 reportsController:
                     replicas: 1
+                    container:
+                        resources:
+                            limits: { cpu: 500m, memory: 512Mi }
+                            requests: { cpu: 100m, memory: 128Mi }
                 config:
                     excludeKyvernoNamespace: true
                     resourceFilters:

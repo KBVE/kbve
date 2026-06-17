@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-06-16T09:57:27Z",
+  "generated_at": "2026-06-17T09:49:10Z",
   "summary": {
     "critical": 4,
-    "high": 52,
-    "medium": 72,
+    "high": 54,
+    "medium": 73,
     "low": 34,
     "info": 30
   },
   "ecosystems": {
     "npm": {
-      "total": 83,
+      "total": 86,
       "severities": {
         "critical": 2,
-        "high": 34,
-        "medium": 39,
+        "high": 36,
+        "medium": 40,
         "low": 8,
         "info": 0
       },
@@ -598,6 +598,27 @@
           "severity": "medium",
           "package": "dompurify",
           "url": "https://github.com/advisories/GHSA-rp9w-3fw7-7cwq"
+        },
+        {
+          "id": "1120912",
+          "title": "Astro: Reflected XSS via unescaped slot name",
+          "severity": "high",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-8hv8-536x-4wqp"
+        },
+        {
+          "id": "1120914",
+          "title": "Astro: XSS via Unescaped Attribute Names in Spread Props",
+          "severity": "medium",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-jrpj-wcv7-9fh9"
+        },
+        {
+          "id": "1120917",
+          "title": "Astro: Host header SSRF in prerendered error page fetch",
+          "severity": "high",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-2pvr-wf23-7pc7"
         }
       ]
     },

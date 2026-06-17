@@ -42,7 +42,7 @@ export function drawGrass(scene: Phaser.Scene): GrassController | null {
 		BASE_WIDTH,
 		BASE_HEIGHT,
 	);
-	noise.setAlpha(0.55);
+	(noise as unknown as { setAlpha(alpha: number): void }).setAlpha(0.55);
 
 	return {
 		update(time: number) {
