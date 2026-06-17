@@ -10181,6 +10181,26 @@
               "configurations": {},
               "parallelism": true
             },
+            "sync:jobboard-taxonomy": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/project/jobboard.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-jobboard-taxonomy.mjs"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy.json",
+                "{workspaceRoot}/packages/data/codegen/generated/jobboard-taxonomy-seed.sql",
+                "{workspaceRoot}/apps/jobboard/web/src/api/taxonomy.generated.json",
+                "{workspaceRoot}/apps/jobboard/docker/seed.sql"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-jobboard-taxonomy.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
             "sync:itemdb": {
               "executor": "nx:run-commands",
               "inputs": [
@@ -11764,6 +11784,89 @@
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "sourceRoot": "apps/kbve/isometric",
           "implicitDependencies": []
+        }
+      },
+      "kbve-gate": {
+        "name": "kbve-gate",
+        "type": "app",
+        "data": {
+          "root": "apps/kbve/kbve-gate",
+          "name": "kbve-gate",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/kbve/kbve-gate/src",
+          "targets": {
+            "build": {
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-gate"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-gate"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-gate"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "run": {
+              "executor": "@monodon/rust:run",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/kbve-gate"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": [],
+          "tags": []
         }
       },
       "kubectl-e2e": {
@@ -14753,6 +14856,10 @@
                 "./store": {
                   "types": "./src/store/index.ts",
                   "import": "./src/store/index.ts"
+                },
+                "./toasts": {
+                  "types": "./src/toasts/index.ts",
+                  "import": "./src/toasts/index.ts"
                 }
               },
               "packageMain": "./src/index.ts",
@@ -16575,6 +16682,7 @@
       "devops": [],
       "erust": [],
       "isometric": [],
+      "kbve-gate": [],
       "kubectl-e2e": [
         {
           "source": "kubectl-e2e",
