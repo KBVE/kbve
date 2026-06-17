@@ -65,6 +65,7 @@ jobs:
             server_target: ${{ fromJSON(inputs.engine).server_target }}
             server_config: ${{ fromJSON(inputs.engine).server_config }}
             client_config: ${{ fromJSON(inputs.engine).client_config }}
+            custom_config: ${{ fromJSON(inputs.engine).custom_config }}
             game_mode: ${{ fromJSON(inputs.engine).game_mode }}
             maps: ${{ toJSON(fromJSON(inputs.engine).maps) }}
             version_source: ${{ fromJSON(inputs.version).source }}
