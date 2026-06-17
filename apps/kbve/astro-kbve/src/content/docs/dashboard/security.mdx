@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-16T09:57:27Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-17T09:49:10Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**56** critical/high severity findings across the monorepo.
+**58** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-06-16T09:57:27Z** — updated daily by `ci-dashboard`.
   <Card title="4 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="52 High" icon="error">
+  <Card title="54 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="72 Medium" icon="information">
+  <Card title="73 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="34 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-06-16T09:57:27Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **83** advisories
+    **86** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **48** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-06-16T09:57:27Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 52
-    "Medium" : 72
+    "High" : 54
+    "Medium" : 73
     "Low" : 34
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 83
+    "npm" : 86
     "Cargo" : 48
     "CodeQL" : 61
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 34 | 39 | 8 | 83 |
+| **npm** | 2 | 36 | 40 | 8 | 86 |
 | **Cargo** | 0 | 0 | 18 | 0 | 48 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 52 | 72 | 34 | 192 |
+| **Total** | 4 | 54 | 73 | 34 | 195 |
 
   </TabItem>
   <TabItem label="npm">
@@ -131,6 +131,8 @@ pie showData
 | High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
 | High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
+| High | `astro` | Astro: Reflected XSS via unescaped slot name | [Details](https://github.com/advisories/GHSA-8hv8-536x-4wqp) |
+| High | `astro` | Astro: Host header SSRF in prerendered error page fetch | [Details](https://github.com/advisories/GHSA-2pvr-wf23-7pc7) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
@@ -170,6 +172,7 @@ pie showData
 | Medium | `dompurify` | DOMPurify: Cross-realm IN_PLACE sanitization leaves execu... | [Details](https://github.com/advisories/GHSA-hpcv-96wg-7vj8) |
 | Medium | `dompurify` | DOMPurify: IN_PLACE mode preserves attributes of a clobbe... | [Details](https://github.com/advisories/GHSA-r47g-fvhr-h676) |
 | Medium | `dompurify` | DOMPurify IN_PLACE Sanitization Bypass via Attached Shado... | [Details](https://github.com/advisories/GHSA-rp9w-3fw7-7cwq) |
+| Medium | `astro` | Astro: XSS via Unescaped Attribute Names in Spread Props | [Details](https://github.com/advisories/GHSA-jrpj-wcv7-9fh9) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
