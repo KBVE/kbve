@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScrollView, TextInput, View } from 'react-native';
+import type { TextStyle } from 'react-native';
 import {
 	Stack,
 	PressableSurface,
@@ -199,12 +200,14 @@ export function DashboardShell() {
 				<TextInput
 					placeholder="Search jobs, people…"
 					placeholderTextColor={ui.textFaint}
-					style={{
-						flex: 1,
-						color: ui.text,
-						paddingVertical: tokens.space.sm,
-						outlineStyle: 'none',
-					}}
+					style={
+						{
+							flex: 1,
+							color: ui.text,
+							paddingVertical: tokens.space.sm,
+							outlineStyle: 'none',
+						} as unknown as TextStyle
+					}
 				/>
 			</View>
 			<View style={{ flex: 1 }} />

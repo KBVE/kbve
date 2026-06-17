@@ -43,6 +43,7 @@ export interface PosterRef {
 // Shape returned by GET /api/gigs/:id (list returns the same minus description).
 export interface Gig {
 	id: string; // ULID
+	slug?: string;
 	vertical_id: number;
 	vertical_slug: string;
 	title: string;

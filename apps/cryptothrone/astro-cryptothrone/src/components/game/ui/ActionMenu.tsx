@@ -6,6 +6,7 @@ import {
 	getGreetingDialogueId,
 } from '../data/npcs';
 import type { NPCAction } from '../types';
+import { PixelPanel } from './PixelPanel';
 
 export function ActionMenu() {
 	const npc = useGameSelector((s) => s.npcInteraction);
@@ -108,10 +109,12 @@ export function ActionMenu() {
 	if (!npc) return null;
 
 	return (
-		<div
+		<PixelPanel
 			ref={menuRef}
-			className="fixed bg-zinc-900 border border-yellow-300 rounded-md p-2 z-[100]"
-			style={{ left: `${position.x}px`, top: `${position.y}px` }}>
+			className="fixed z-[100] min-w-[10rem] p-2 text-white"
+			style={{ left: `${position.x}px`, top: `${position.y}px` }}
+			slice={8}
+			scale={2}>
 			<div className="flex justify-between items-center mb-2">
 				<h3 className="font-bold text-sm text-white">{npc.npcName}</h3>
 				<button
@@ -133,6 +136,6 @@ export function ActionMenu() {
 				className="block w-full text-xs py-1 px-2 mt-2 bg-red-500 hover:bg-red-600 rounded text-white">
 				Close
 			</button>
-		</div>
+		</PixelPanel>
 	);
 }

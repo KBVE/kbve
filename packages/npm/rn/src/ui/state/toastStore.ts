@@ -1,35 +1,11 @@
-import { createUiStore, useStore } from './store';
+import { toasts } from '../../toasts';
+import type { Toast, ToastTone } from '../../toasts';
 
-export type ToastTone = 'neutral' | 'success' | 'danger' | 'warning';
-
-export interface ToastModel {
-	id: string;
-	message: string;
-	tone?: ToastTone;
-}
-
-interface ToastState {
-	queue: readonly ToastModel[];
-}
-
-const store = createUiStore<ToastState>({ queue: [] });
-let seq = 0;
+export type { ToastTone };
+export type ToastModel = Toast;
 
 export const toastStore = {
-	subscribe: store.subscribe,
-	push: (message: string, tone?: ToastTone): string => {
-		const id = `toast-${seq++}`;
-		store.set((state) => ({
-			queue: [...state.queue, { id, message, tone }],
-		}));
-		return id;
-	},
-	dismiss: (id: string) =>
-		store.set((state) => ({
-			queue: state.queue.filter((t) => t.id !== id),
-		})),
+	push: (message: string, tone?: ToastTone): string =>
+		toasts.push({ message, tone }),
+	dismiss: (id: string) => toasts.dismiss(id),
 };
-
-export function useToasts(): readonly ToastModel[] {
-	return useStore(store, (state) => state.queue);
-}
