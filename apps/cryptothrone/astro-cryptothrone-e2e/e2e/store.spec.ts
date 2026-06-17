@@ -2,6 +2,7 @@ import { test, expect } from './fixtures';
 import { seedFakeSession } from './helpers/auth';
 import type { Page } from '@playwright/test';
 import { isMobileViewport } from './helpers/env';
+import { waitForHud, openHudTab } from './helpers/hud';
 
 /**
  * Drives the game store directly through the dev-only window.__ctDispatch seam
@@ -46,9 +47,7 @@ test.describe('store-driven HUD coverage', () => {
 			.then(() => true)
 			.catch(() => false);
 		test.skip(!ok, 'dispatch seam only present in dev build');
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible({ timeout: 20_000 });
+		await waitForHud(page);
 	});
 
 	test('inventory renders items, tooltips, and handles unknown ids', async ({
@@ -67,15 +66,29 @@ test.describe('store-driven HUD coverage', () => {
 			payload: { itemId: 'definitely-not-an-item' },
 		});
 
-		const shark = page.locator('img[alt="Blue Shark"]');
-		await expect(shark).toBeVisible();
+		await openHudTab(page, 'Bag');
+
+		// Scope to the Bag panel's InventoryGrid — items also appear in the
+		// always-on Hotbar, which has no hover tooltip.
+		const bag = page
+			.locator('div')
+			.filter({
+				has: page.getByRole('heading', {
+					name: 'Inventory',
+					exact: true,
+				}),
+			})
+			.last();
+
+		const shark = bag.getByRole('img', { name: 'Blue Shark' });
+		await expect(shark).toBeVisible({ timeout: 15_000 });
 
 		await shark.hover();
 		await expect(
 			page.getByText('Bonuses:', { exact: false }),
 		).toBeVisible();
 
-		await page.locator('img[alt="Iron Sword"]').hover();
+		await bag.getByRole('img', { name: 'Iron Sword' }).hover();
 		await expect(page.getByText('Type:', { exact: false })).toBeVisible();
 
 		await dispatch(page, {
@@ -90,6 +103,7 @@ test.describe('store-driven HUD coverage', () => {
 			type: 'SET_PLAYER_STATS',
 			payload: { hp: 200, maxHp: 100, username: 'Hero' },
 		});
+		await openHudTab(page, 'Character');
 		await expect(page.getByText('Hero')).toBeVisible();
 		await dispatch(page, {
 			type: 'PLAYER_DAMAGE',
@@ -103,9 +117,7 @@ test.describe('store-driven HUD coverage', () => {
 			type: 'EQUIP_ITEM',
 			payload: { slot: 'mainHand', itemId: 'iron-sword' },
 		});
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible();
+		await waitForHud(page);
 	});
 
 	test('notifications render every variant and dismiss', async ({ page }) => {
@@ -129,18 +141,27 @@ test.describe('store-driven HUD coverage', () => {
 		await expect(toasts.getByText('T-danger')).toHaveCount(0);
 	});
 
-	test('sidebar collapse toggles work', async ({ page }) => {
-		const toggles = page.locator('button', { hasText: /Stats|Settings/ });
-		const count = await toggles.count();
-		for (let i = 0; i < count; i++) {
-			await toggles.nth(i).click();
-		}
-		await dispatch(page, {
-			type: 'TOGGLE_SETTING',
-			payload: { key: 'isStatsCollapsed' },
+	test('HUD dock tabs open and close their panels', async ({ page }) => {
+		const character = page.getByRole('button', {
+			name: 'Character',
+			exact: true,
 		});
+		await openHudTab(page, 'Character');
 		await expect(
 			page.getByText('Debug Mode', { exact: false }),
+		).toBeVisible();
+
+		// Toggle the tab off rather than clicking the sheet's × — on desktop the
+		// sheet header sits under the fixed site header, which intercepts clicks.
+		await character.click();
+		await expect(character).toHaveAttribute('aria-pressed', 'false');
+		await expect(
+			page.getByText('Debug Mode', { exact: false }),
+		).toHaveCount(0);
+
+		await openHudTab(page, 'Bag');
+		await expect(
+			page.getByRole('heading', { name: 'Inventory' }),
 		).toBeVisible();
 	});
 
@@ -307,6 +328,7 @@ test.describe('store-driven HUD coverage', () => {
 				username: 'Bridged',
 			},
 		});
+		await openHudTab(page, 'Character');
 		await expect(page.getByText('Bridged')).toBeVisible();
 	});
 
@@ -314,8 +336,6 @@ test.describe('store-driven HUD coverage', () => {
 		page,
 	}) => {
 		await dispatch(page, { type: '__unknown__', payload: {} });
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible();
+		await waitForHud(page);
 	});
 });
