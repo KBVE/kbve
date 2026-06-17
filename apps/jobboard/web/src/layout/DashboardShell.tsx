@@ -51,11 +51,20 @@ type SectionId = (typeof SECTIONS)[number]['id'];
 export function DashboardShell() {
 	const auth = useAuth();
 	const { signOut } = useAuthActions();
+	const staff = useStaff();
 	const { isDesktop, isPhone } = useBreakpoint();
-	const [active, setActive] = useState<SectionId>('overview');
+	const [active, setActive] = useState<string>('overview');
 	const [selection, setSelection] = useState<Selection>(null);
 
 	const username = auth.user?.username ?? auth.user?.email ?? 'there';
+
+	// Staff with admin / dashboard-manage get the vetting queue section.
+	const canVet =
+		staff.has(StaffPermission.ADMIN) ||
+		staff.has(StaffPermission.DASHBOARD_MANAGE);
+	const sections = canVet
+		? [...SECTIONS, { id: 'vetting', label: 'Vetting', Icon: ShieldCheck }]
+		: SECTIONS;
 
 	const selectVertical = (v: Vertical) =>
 		setSelection({ kind: 'vertical', vertical: v });
