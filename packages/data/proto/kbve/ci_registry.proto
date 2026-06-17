@@ -103,6 +103,9 @@ message GameEngineConfig {
 
   // Server launch game mode (e.g. /Script/Chuck.ChuckGameMode) for the Agones fleet.
   optional string game_mode = 14;
+
+  // UE -CustomConfig client cook layer (e.g. Beta). Empty = no custom config.
+  optional string custom_config = 15;
 }
 
 // One Steam application entry for [`ExternalPublish`]. Demos, the main
