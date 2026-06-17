@@ -868,8 +868,14 @@ jobs:
                   TOKEN=$(cat "$SA/token")
                   NS=angelscript
                   VM=windows-builder
-                  status() { curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
-                    "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" | jq -r '.status.printableStatus // "Unknown"'; }
+                  status() {
+                    local body
+                    body=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                      "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>/dev/null) \
+                      || { echo "Unknown"; return 0; }
+                    printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
+                      || echo "Unknown"
+                  }
                   S=$(status); echo "::notice::$VM status: $S"
                   if [ "$S" != "Running" ]; then
                     echo "Requesting start..."
