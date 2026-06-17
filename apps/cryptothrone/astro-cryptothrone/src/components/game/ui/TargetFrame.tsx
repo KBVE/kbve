@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { laserEvents } from '@kbve/laser';
+import { PixelPanel } from './PixelPanel';
 
 interface Target {
 	name: string;
@@ -21,7 +22,7 @@ export function TargetFrame() {
 	const pct = Math.max(0, Math.min(100, (target.hp / target.maxHp) * 100));
 	return (
 		<div className="pointer-events-none absolute left-1/2 top-12 z-30 w-44 -translate-x-1/2">
-			<div className="rounded-lg border border-white/10 bg-black/60 px-3 py-1.5 backdrop-blur-md">
+			<PixelPanel variant="ruby" className="px-3 py-1.5">
 				<p className="truncate text-center text-xs font-semibold text-stone-200">
 					{target.name}
 				</p>
@@ -34,7 +35,7 @@ export function TargetFrame() {
 				<p className="mt-0.5 text-center font-mono text-[0.6rem] text-stone-400">
 					{target.hp}/{target.maxHp}
 				</p>
-			</div>
+			</PixelPanel>
 		</div>
 	);
 }

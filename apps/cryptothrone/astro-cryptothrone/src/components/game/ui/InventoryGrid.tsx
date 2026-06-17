@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { laserEvents } from '@kbve/laser';
 import { getItemById } from '../data/items';
 import { ItemIcon } from './ItemIcon';
+import { PixelPanel } from './PixelPanel';
 
 const RARITY_BORDER: Record<string, string> = {
 	common: 'border-stone-400/50',
@@ -97,12 +98,13 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 					const item = getItemById(tooltipItem.id);
 					if (!item) return null;
 					return (
-						<div
+						<PixelPanel
+							variant="iron"
 							style={{
 								top: tooltipItem.y,
 								left: tooltipItem.x,
 							}}
-							className="fixed bg-gray-700 text-white p-2 rounded shadow-lg z-50 pointer-events-none">
+							className="fixed text-white p-2 z-50 pointer-events-none">
 							<p className="text-sm font-semibold">{item.name}</p>
 							<p className="text-xs">Type: {item.type}</p>
 							<p className="text-xs">{item.description}</p>
@@ -114,7 +116,7 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 										.join(', ')}
 								</p>
 							)}
-						</div>
+						</PixelPanel>
 					);
 				})()}
 		</div>
