@@ -694,6 +694,91 @@ audit_worktree_prune() {
     rm -f "$remove_file" "$skip_file"
 }
 
+# Forcefully wipe EVERY worktree, keeping only the main repo (dev). Unlike
+# -worktree-prune this does NOT spare dirty worktrees — uncommitted work in any
+# worktree is destroyed. Branch refs survive (`git worktree prune` keeps them),
+# so any worktree is recreatable via -worktree. Removal runs in parallel and
+# self-heals: unlock locked worktrees, force-remove, rm -rf leftovers, prune
+# stale .git/worktrees metadata, then prune detached branch refs.
+# Flags: --yes / -y  skip the confirmation prompt
+nuke_worktrees() {
+    local main_repo; main_repo=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+        echo "ERROR: Could not resolve git repository root."; return 1
+    fi
+
+    local current_dir; current_dir=$(pwd -P)
+    if [ "$current_dir" != "$(cd "$main_repo" && pwd -P)" ]; then
+        echo "ERROR: Run -nuke from the main repo root ($main_repo)."
+        echo "  You are inside: $current_dir"
+        return 1
+    fi
+
+    local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
+    local jobs="${WT_NUKE_JOBS:-$cpus}"
+    local assume_yes=0 arg
+    for arg in "$@"; do
+        case "$arg" in --yes|-y) assume_yes=1 ;; esac
+    done
+
+    local nuke_file; nuke_file=$(mktemp)
+    while IFS= read -r wt; do
+        [ "$wt" = "$main_repo" ] && continue
+        echo "$wt" >> "$nuke_file"
+    done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+
+    local n; n=$(wc -l < "$nuke_file" | tr -d ' ')
+    if [ "$n" -eq 0 ]; then
+        echo "No worktrees to nuke. Only the main repo exists."
+        git worktree prune; rm -f "$nuke_file"; return 0
+    fi
+
+    echo "=== WORKTREE NUKE ==="
+    echo "Will FORCE-REMOVE $n worktree(s), keeping only: $main_repo"
+    echo ""
+    git worktree list | grep -v "^$main_repo " || true
+    echo ""
+    echo "WARNING: this destroys ALL uncommitted changes in those worktrees."
+    echo "         (branch refs are preserved; checkouts are not)"
+
+    if [ "$assume_yes" != "1" ]; then
+        printf "Type 'nuke' to proceed: "
+        local confirm; read -r confirm
+        if [ "$confirm" != "nuke" ]; then
+            echo "Aborted."; rm -f "$nuke_file"; return 1
+        fi
+    fi
+
+    local before; before=$(df -h . | tail -1 | awk '{print $4}')
+
+    # Unlock any locked worktrees + best-effort git removal first (serial, fast),
+    # then blast leftover directories in parallel.
+    while IFS= read -r wt; do
+        git worktree unlock "$wt" 2>/dev/null || true
+        git worktree remove --force "$wt" 2>/dev/null || true
+    done < "$nuke_file"
+
+    tr '\n' '\0' < "$nuke_file" | xargs -0 -P "$jobs" -n1 rm -rf 2>/dev/null || true
+
+    git worktree prune
+    git worktree prune --verbose 2>/dev/null || true
+
+    local remaining; remaining=$(git worktree list --porcelain | awk '/^worktree /{print $2}' | grep -vx "$main_repo" || true)
+    if [ -n "$remaining" ]; then
+        echo ""
+        echo "WARNING: some worktrees survived (likely held open by an editor):"
+        echo "$remaining"
+        echo "  Close any IDE on those paths, then re-run: $0 -nuke -y"
+        rm -f "$nuke_file"; return 1
+    fi
+
+    local after; after=$(df -h . | tail -1 | awk '{print $4}')
+    echo ""
+    echo "Nuked $n worktree(s). Free: ${before} -> ${after}"
+    echo "Only the main repo remains: $main_repo  (branch refs preserved)"
+    rm -f "$nuke_file"
+}
+
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
@@ -1143,6 +1228,10 @@ case "$1" in
         shift
         audit_worktree_prune "$@"
         ;;
+    -nuke)
+        shift
+        nuke_worktrees "$@"
+        ;;
     -db)
         if is_installed "diesel_ext"; then
            # Save the current directory
@@ -1249,6 +1338,8 @@ case "$1" in
         echo "  -worktree-dirty          Show uncommitted changes per worktree"
         echo "  -worktree-gc             Remove all clean worktrees (interactive)"
         echo "  -worktree-stale          Find worktrees already merged into dev"
+        echo "  -worktree-prune [--merged] [--dry-run]  Parallel-prune clean worktrees"
+        echo "  -nuke [-y]               FORCE-wipe ALL worktrees, keep only main repo (destroys uncommitted work)"
         echo ""
         echo "Version:"
         echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
