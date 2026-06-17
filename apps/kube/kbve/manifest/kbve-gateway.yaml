@@ -125,14 +125,16 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        - name: https-chuckrpg-api
+        # Per-tenant ROWS API hosts. Each environment terminates origin TLS with
+        # its own tenant cert (cert-manager / letsencrypt-http) in its namespace:
+        #   api-dev.chuckrpg.com   -> rows-chuckrpg-dev   (live)
+        #   api-beta.chuckrpg.com  -> rows-chuckrpg-beta  (live)
+        #   api-prod.chuckrpg.com  -> rows-chuckrpg-prod  (scaffolded, DISABLED — see below)
+        # The bare api.chuckrpg.com host was removed to avoid env ambiguity.
+        - name: https-rows-chuckrpg-dev
           protocol: HTTPS
           port: 443
-          hostname: api.chuckrpg.com
-          # Cutover: api.chuckrpg.com is now served by the chuckrpg-dev tenant
-          # (first multi-tenant build out). TLS terminates with the tenant's own
-          # cert in rows-chuckrpg-dev; the old single-tenant chuckrpg-api-tls in
-          # ns rows is retired with its HTTPRoute.
+          hostname: api-dev.chuckrpg.com
           tls:
               mode: Terminate
               certificateRefs:
@@ -157,6 +159,25 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        # DISABLED — prod tenant is scaffolded but not deployed yet. Uncomment this
+        # listener when enabling the chuckrpg-prod tenant (after sealing its secrets,
+        # applying its ArgoCD Application, and adding the api-prod.chuckrpg.com DNS
+        # record). Until then the rows-chuckrpg-prod cert/namespace do not exist, so a
+        # live listener here would sit unprogrammed.
+        # - name: https-rows-chuckrpg-prod
+        #   protocol: HTTPS
+        #   port: 443
+        #   hostname: api-prod.chuckrpg.com
+        #   tls:
+        #       mode: Terminate
+        #       certificateRefs:
+        #           - kind: Secret
+        #             group: ''
+        #             name: rows-chuckrpg-prod-api-tls
+        #             namespace: rows-chuckrpg-prod
+        #   allowedRoutes:
+        #       namespaces:
+        #           from: All
         - name: https-cityvote
           protocol: HTTPS
           port: 443

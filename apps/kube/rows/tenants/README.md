@@ -26,7 +26,12 @@ tenants/
 | ------------------- | ------------------------ | --------- | ------------------------ | ----------------------- |
 | `chuckrpg-dev`      | `rows-chuckrpg-dev`      | `dev`     | `rows-chuckrpg-dev`      | `api-dev.chuckrpg.com`  |
 | `chuckrpg-beta`     | `rows-chuckrpg-beta`     | `beta`    | `rows-chuckrpg-beta`     | `api-beta.chuckrpg.com` |
+| `chuckrpg-prod`     | `rows-chuckrpg-prod`     | `release` | `rows-chuckrpg-prod`     | `api-prod.chuckrpg.com` |
 | `rentearth-release` | `rows-rentearth-release` | `release` | `rows-rentearth-release` | `api.rentearth.com`     |
+
+> `chuckrpg-prod` is **scaffolded but DISABLED** — only `chuckrpg-dev` and `chuckrpg-beta`
+> are live today. Its overlay, ArgoCD Application, and gateway listener exist but are not
+> applied/uncommented. See **Enabling chuckrpg-prod** below.
 
 `customer_guid` is never committed — generated once per tenant, stored only in that
 namespace's sealed `rrows-customer-guid` secret, and read from there by both the ROWS pod
@@ -102,4 +107,16 @@ two and fails if they diverge — run it in CI / before merge. Update both toget
 kubectl apply -f apps/kube/rows/tenants/overlays/chuckrpg-dev/application.yaml
 kubectl apply -f apps/kube/rows/tenants/overlays/chuckrpg-beta/application.yaml
 kubectl apply -f apps/kube/rows/tenants/overlays/rentearth-release/application.yaml
+# chuckrpg-prod is DISABLED — do NOT apply yet (see "Enabling chuckrpg-prod").
 ```
+
+## Enabling chuckrpg-prod (when ready)
+
+The prod tenant is fully scaffolded but intentionally not live. To bring it up:
+
+1. **Seal** `rows-customer-guid` + `rows-encryption-key` for namespace `rows-chuckrpg-prod`
+   (replace the `PLACEHOLDER_RESEAL_BEFORE_DEPLOY` stubs — see "Seal the customer_guid").
+2. **Uncomment** the `https-rows-chuckrpg-prod` listener in `apps/kube/kbve/manifest/kbve-gateway.yaml`.
+3. **DNS** — add a proxied `api-prod.chuckrpg.com` record pointing at the gateway VIP.
+4. **Register** the ArgoCD Application:
+   `kubectl apply -f apps/kube/rows/tenants/overlays/chuckrpg-prod/application.yaml`
