@@ -868,8 +868,19 @@ jobs:
                   TOKEN=$(cat "$SA/token")
                   NS=angelscript
                   VM=windows-builder
-                  status() { curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
-                    "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" | jq -r '.status.printableStatus // "Unknown"'; }
+                  # Tolerate transient API blips: a k8s Status error object has a
+                  # string ".status" ("Failure"), so ".status.printableStatus"
+                  # would throw "Cannot index string" and (under bash -eo pipefail)
+                  # kill the step. The "?" suppresses the index error and curl is
+                  # split out of the pipe so a network blip just yields "Unknown".
+                  status() {
+                    local body
+                    body=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                      "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>/dev/null) \
+                      || { echo "Unknown"; return 0; }
+                    printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
+                      || echo "Unknown"
+                  }
                   S=$(status); echo "::notice::$VM status: $S"
                   if [ "$S" != "Running" ]; then
                     echo "Requesting start..."
