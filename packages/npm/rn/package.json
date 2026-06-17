@@ -61,6 +61,7 @@
 		"expo-auth-session": "~56.0.14",
 		"expo-linking": "~56.0.14",
 		"expo-web-browser": "~56.0.5",
+		"react-native-gesture-handler": "~2.31.1",
 		"react-native-reanimated": "4.3.1",
 		"react-native-safe-area-context": "~5.7.0",
 		"react-native-svg": "15.15.4",

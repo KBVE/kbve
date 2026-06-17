@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
 	AgentStore,
 	AuthGate,
@@ -18,15 +19,17 @@ const store = new AgentStore(tsCore, createWebSocketExecutor());
 
 export default function App() {
 	return (
-		<KbveProvider
-			supabaseUrl={KBVE_SUPABASE_URL}
-			anonKey={KBVE_SUPABASE_ANON_KEY}>
-			<AuthGate>
-				<HomeView />
-			</AuthGate>
-			<OverlayHost />
-			<ToastViewport />
-			<StatusBar style="auto" />
-		</KbveProvider>
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<KbveProvider
+				supabaseUrl={KBVE_SUPABASE_URL}
+				anonKey={KBVE_SUPABASE_ANON_KEY}>
+				<AuthGate>
+					<HomeView />
+				</AuthGate>
+				<OverlayHost />
+				<ToastViewport />
+				<StatusBar style="auto" />
+			</KbveProvider>
+		</GestureHandlerRootView>
 	);
 }

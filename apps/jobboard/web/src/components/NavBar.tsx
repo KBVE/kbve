@@ -79,7 +79,7 @@ export function NavBar() {
 							{user ? (
 								<>
 									<Link
-										to="/account"
+										to="/dashboard"
 										className="text-xs text-zinc-400 transition hover:text-quest-200 [&.active]:text-quest-300">
 										@{user.handle}
 									</Link>
@@ -176,7 +176,7 @@ export function NavBar() {
 					{user ? (
 						<div className="flex items-center justify-between">
 							<Link
-								to="/account"
+								to="/dashboard"
 								onClick={() => setOpen(false)}
 								className="text-xs text-zinc-400 transition hover:text-quest-200">
 								@{user.handle}

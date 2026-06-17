@@ -3,6 +3,7 @@ import {
 	createRoute,
 	createRouter,
 	Outlet,
+	redirect,
 	useRouterState,
 } from '@tanstack/react-router';
 import type {
@@ -26,7 +27,7 @@ import { TalentPage } from './routes/talent';
 import { TalentProfilePage } from './routes/talent-profile';
 import { PostGigPage } from './routes/post-gig';
 import { LoginPage } from './routes/login';
-import { AccountPage } from './routes/account';
+import { DashboardPage } from './routes/dashboard';
 import { NavBar } from './components/NavBar';
 import { Footer } from '@kbve/rn/ui';
 
@@ -52,7 +53,7 @@ function RootLayout() {
 	const pathname = useRouterState({
 		select: (s) => s.location.pathname,
 	});
-	if (pathname === '/login') return <Outlet />;
+	if (pathname === '/login' || pathname === '/dashboard') return <Outlet />;
 	return (
 		<div className="min-h-screen text-zinc-100">
 			<NavBar />
@@ -163,10 +164,18 @@ const loginRoute = createRoute({
 	component: LoginPage,
 });
 
+const dashboardRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: '/dashboard',
+	component: DashboardPage,
+});
+
 const accountRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: '/account',
-	component: AccountPage,
+	beforeLoad: () => {
+		throw redirect({ to: '/dashboard' });
+	},
 });
 
 const routeTree = rootRoute.addChildren([
@@ -177,6 +186,7 @@ const routeTree = rootRoute.addChildren([
 	talentProfileRoute,
 	postRoute,
 	loginRoute,
+	dashboardRoute,
 	accountRoute,
 ]);
 
