@@ -1,0 +1,65 @@
+---
+title: KBVE Gate
+description: |
+    Reusable auth reverse-proxy sidecar. Validates a Supabase JWT and an
+    authz policy (jwt-only or is_staff), then proxies HTTP and WebSocket
+    traffic to an internal upstream. First deployment fronts n8n.
+sidebar:
+    label: KBVE Gate
+    order: 52
+tags:
+    - docker
+    - networking
+    - auth
+key: kbve_gate
+pipeline: docker
+app_name: kbve-gate
+version: "0.1.0"
+source_path: apps/kbve/kbve-gate
+version_toml: apps/kbve/kbve-gate/version.toml
+version_target: apps/kbve/kbve-gate/Cargo.toml
+runner: ubuntu-latest
+image: kbve/kbve-gate
+deployment_yaml: apps/kube/n8n/manifest/n8n-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+## KBVE Gate
+
+`kbve-gate` is a thin authentication reverse-proxy built on the `kbve` crate's
+feature-gated `gate` module. It runs as a sidecar in front of an internal
+service so the upstream binds localhost and only the gate is exposed.
+
+### Auth
+
+The gate accepts a Supabase JWT from an `Authorization: Bearer` header, an
+`sb-access-token` / `kbve_gate` cookie, or an `?access_token=` query param.
+After the JWT validates it applies an authz policy:
+
+- `jwt-only` — any valid Supabase JWT passes.
+- `is_staff` — `forum.is_staff(sub)` must return true. The gate mints a
+  short-lived `service_role` JWT from `SUPABASE_JWT_SECRET` to call PostgREST,
+  so the stale stored service-key is never used.
+
+### Configuration
+
+| Env | Default | Purpose |
+| --- | --- | --- |
+| `GATE_LISTEN` | `0.0.0.0:5678` | bind address |
+| `GATE_UPSTREAM` | `http://127.0.0.1:5679` | upstream base URL |
+| `GATE_AUTHZ` | `is_staff` | `is_staff` or `jwt-only` |
+| `GATE_UPSTREAM_BASIC` | — | `Basic <b64>` injected downstream |
+| `GATE_LOGIN_REDIRECT` | — | 302 target for unauthed browser navigations |
+| `SUPABASE_JWT_SECRET` | — | required |
+| `SUPABASE_URL` | — | required for `is_staff` (direct PostgREST) |
+
+### n8n deployment
+
+The first consumer fronts n8n: n8n moves to `127.0.0.1:5681`, the gate owns the
+Service port `5678`, and `n8n.kbve.com` routes through it so the panel stays
+staff-only.
