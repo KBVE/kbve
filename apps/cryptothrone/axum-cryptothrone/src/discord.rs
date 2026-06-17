@@ -162,7 +162,11 @@ pub async fn session(
         Ok(Some(row)) => Some((row.get(0), row.get(1))),
         Ok(None) => None,
         Err(e) => {
-            tracing::error!(error = %e, "discord profile lookup failed");
+            tracing::error!(
+                error = %e,
+                discord_id = %user.id,
+                "discord profile lookup failed (tracker.find_claim_identity_by_discord_id)"
+            );
             return (StatusCode::INTERNAL_SERVER_ERROR, "profile lookup failed").into_response();
         }
     };
@@ -183,7 +187,12 @@ pub async fn session(
     let jwt = match mint_session_jwt(&user_id, &kbve_username, jwt_secret.as_bytes(), exp) {
         Ok(t) => t,
         Err(e) => {
-            tracing::error!(error = %e, "jwt mint failed");
+            tracing::error!(
+                error = %e,
+                discord_id = %user.id,
+                user_id = %user_id,
+                "session jwt mint failed"
+            );
             return (StatusCode::INTERNAL_SERVER_ERROR, "jwt mint failed").into_response();
         }
     };
@@ -227,14 +236,19 @@ async fn provision_user(
         .unwrap_or_default();
     let username: String = match conn
         .query_one(
-            "SELECT tracker.ensure_discord_username($1::uuid, $2, $3)",
+            "SELECT tracker.ensure_discord_username($1::text::uuid, $2, $3)",
             &[&user_id, &base, &user.id],
         )
         .await
     {
         Ok(row) => row.get(0),
         Err(e) => {
-            tracing::error!(error = ?e, "ensure_discord_username failed");
+            tracing::error!(
+                error = ?e,
+                discord_id = %user.id,
+                user_id = %user_id,
+                "ensure_discord_username failed (assigning profile.username)"
+            );
             return Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "username provisioning failed",
@@ -304,7 +318,11 @@ async fn gotrue_create_or_get(
             match serde_json::from_str::<GoTrueUser>(&txt) {
                 Ok(u) => Ok(u.id),
                 Err(_) => {
-                    tracing::error!(body = %txt, "bad gotrue response");
+                    tracing::error!(
+                        discord_id = %discord_id,
+                        len = txt.len(),
+                        "gotrue create returned an unparseable user object (body withheld; contains email)"
+                    );
                     Err((StatusCode::BAD_GATEWAY, "bad gotrue response"))
                 }
             }
@@ -318,11 +336,20 @@ async fn gotrue_create_or_get(
         Ok(r) => {
             let status = r.status();
             let body = r.text().await.unwrap_or_default();
-            tracing::error!(%status, body = %body, "gotrue admin create failed");
+            tracing::error!(
+                %status,
+                discord_id = %discord_id,
+                body = %body,
+                "gotrue admin create failed"
+            );
             Err((StatusCode::BAD_GATEWAY, "gotrue admin create failed"))
         }
         Err(e) => {
-            tracing::error!(error = %e, "gotrue admin request failed");
+            tracing::error!(
+                error = %e,
+                discord_id = %discord_id,
+                "gotrue admin request failed (network/transport)"
+            );
             Err((StatusCode::BAD_GATEWAY, "gotrue admin request failed"))
         }
     }
