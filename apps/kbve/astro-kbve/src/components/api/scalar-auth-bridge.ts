@@ -2,6 +2,7 @@ import { initSupa, getSupa } from '@/lib/supa';
 
 type ScalarInstance = {
 	updateConfiguration?: (cfg: Record<string, unknown>) => void;
+	destroy?: () => void;
 };
 
 declare global {
