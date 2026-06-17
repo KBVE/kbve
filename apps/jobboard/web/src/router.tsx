@@ -1,11 +1,14 @@
+import { useEffect, useRef } from 'react';
 import {
 	createRootRoute,
 	createRoute,
 	createRouter,
 	Outlet,
 	redirect,
+	useNavigate,
 	useRouterState,
 } from '@tanstack/react-router';
+import { useAuth as useKbveAuth } from '@kbve/rn/auth';
 import type {
 	Availability,
 	GigQuery,
@@ -47,6 +50,40 @@ const num = (v: unknown): number | undefined => {
 	return v === undefined || v === '' || Number.isNaN(n) ? undefined : n;
 };
 
+// On the sign-in transition, route to the right place — works for both
+// email/password (returns to /login) and social OAuth (returns to the app root
+// /). Fires only on the false→true transition so a signed-in user can still
+// browse home; a brand-new social signup needing a username is sent to /login
+// where SetUsernameScreen renders.
+function usePostAuthRedirect(pathname: string) {
+	const auth = useKbveAuth();
+	const navigate = useNavigate();
+	const wasSignedIn = useRef(auth.signedIn);
+	useEffect(() => {
+		// navigate() rejects with AbortError when a transition is superseded;
+		// that's expected here, so swallow it.
+		const go = (to: string) =>
+			void Promise.resolve(navigate({ to })).catch(() => {});
+
+		if (!auth.signedIn) {
+			wasSignedIn.current = false;
+			return;
+		}
+		const justSignedIn = !wasSignedIn.current;
+		wasSignedIn.current = true;
+
+		if (auth.needsUsername) {
+			if (pathname !== '/login') go('/login');
+		} else if (pathname === '/login') {
+			// never leave a signed-in member on the login page
+			go('/dashboard');
+		} else if (justSignedIn && pathname === '/') {
+			// social OAuth returns to the app root — forward to the dashboard
+			go('/dashboard');
+		}
+	}, [auth.signedIn, auth.needsUsername, pathname, navigate]);
+}
+
 // Flat route tree (children of root) so getRouteApi('/gigs') etc. resolve
 // reliably. The NavBar chrome is shown on every route except /login, which
 // renders full-bleed (split screen).
@@ -54,6 +91,7 @@ function RootLayout() {
 	const pathname = useRouterState({
 		select: (s) => s.location.pathname,
 	});
+	usePostAuthRedirect(pathname);
 	if (pathname === '/login' || pathname === '/dashboard') return <Outlet />;
 	return (
 		<div className="min-h-screen text-zinc-100">

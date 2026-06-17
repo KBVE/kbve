@@ -16,10 +16,12 @@ export function DashboardPage() {
 
 	useEffect(() => {
 		if (loading) return;
+		const go = (to: string) =>
+			void Promise.resolve(navigate({ to })).catch(() => {});
 		if (!signedIn) {
-			navigate({ to: '/login' });
+			go('/login');
 		} else if (!hasCapability) {
-			navigate({ to: '/apply' });
+			go('/apply');
 		}
 	}, [loading, signedIn, hasCapability, navigate]);
 
