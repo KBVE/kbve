@@ -2,19 +2,31 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { tokens } from '../theme';
 import { Text } from '../primitives/Text';
-import { useToasts, toastStore } from '../state/toastStore';
-import type { ToastModel } from '../state/toastStore';
+import { useToasts, toasts } from '../../toasts';
+import type { Toast } from '../../toasts';
 
 const MAX_VISIBLE = 3;
 
-const Toast = memo(function Toast({ model }: { model: ToastModel }) {
+const ToastRow = memo(function ToastRow({ model }: { model: Toast }) {
 	return (
 		<Pressable
 			style={[styles.toast, toneStyle[model.tone ?? 'neutral']]}
-			onPress={() => toastStore.dismiss(model.id)}>
+			onPress={() => toasts.dismiss(model.id)}>
 			<Text variant="label" style={styles.text}>
 				{model.message}
 			</Text>
+			{model.action ? (
+				<Pressable
+					hitSlop={8}
+					onPress={() => {
+						model.action?.onPress();
+						toasts.dismiss(model.id);
+					}}>
+					<Text variant="label" style={styles.action}>
+						{model.action.label}
+					</Text>
+				</Pressable>
+			) : null}
 		</Pressable>
 	);
 });
@@ -25,7 +37,7 @@ export function ToastViewport() {
 	return (
 		<View pointerEvents="box-none" style={styles.viewport}>
 			{visible.map((toast) => (
-				<Toast key={toast.id} model={toast} />
+				<ToastRow key={toast.id} model={toast} />
 			))}
 		</View>
 	);
@@ -40,12 +52,17 @@ const styles = StyleSheet.create({
 		gap: tokens.space.sm,
 	},
 	toast: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: tokens.space.md,
 		paddingVertical: tokens.space.md,
 		paddingHorizontal: tokens.space.lg,
 		borderRadius: tokens.radius.md,
 		borderWidth: 1,
 	},
-	text: { color: '#fff' },
+	text: { color: '#fff', flexShrink: 1 },
+	action: { color: '#fff', fontWeight: '700', textTransform: 'uppercase' },
 });
 
 const toneStyle = StyleSheet.create({
@@ -56,4 +73,5 @@ const toneStyle = StyleSheet.create({
 	success: { backgroundColor: '#0e2a1a', borderColor: tokens.color.success },
 	danger: { backgroundColor: '#2a0e12', borderColor: tokens.color.danger },
 	warning: { backgroundColor: '#2a210e', borderColor: tokens.color.warning },
+	info: { backgroundColor: '#0e1f2a', borderColor: '#3b82f6' },
 });

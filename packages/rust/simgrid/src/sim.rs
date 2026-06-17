@@ -891,7 +891,7 @@ fn apply_actions(
                 .into_bytes();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_COMBAT,
-                    to: proto::PLAYER_SLOT_NONE,
+                    to: proto::PlayerSlot(slot.0),
                     payload,
                 });
                 if died {
@@ -1157,7 +1157,7 @@ fn hostile_ai(
             .into_bytes();
             let _ = bcast.tx.send(ServerEvent::Ephemeral {
                 kind: proto::EPHEMERAL_COMBAT,
-                to: proto::PLAYER_SLOT_NONE,
+                to: slot.0,
                 payload,
             });
             continue;
