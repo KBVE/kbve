@@ -1,3 +1,29 @@
+//! # ROWS — Rust Open World Server
+//!
+//! Single-binary game backend (REST + gRPC + WebSocket multiplexed on one port) that replaces the
+//! legacy OWS .NET microservices for ChuckRPG. One process serves one tenant (`customer_guid`);
+//! multiple deployments run side by side, fronted by the kbve.com dashboard's same-origin proxy
+//! which injects the `X-CustomerGUID` header.
+//!
+//! ## Layout
+//! - [`rest`] — axum HTTP surface. Handlers are grouped by domain (auth, characters, abilities,
+//!   instances, zones, global data, admin users, system/dashboard) and annotated with
+//!   `#[utoipa::path]`; the aggregated spec lives in [`openapi::ApiDoc`] and is served as Swagger UI
+//!   on an internal-only port.
+//! - [`service`] — `OWSService`, the business-logic layer the REST/gRPC/WS surfaces call into.
+//! - `repo` — thin sqlx data-access wrappers (`CharsRepo`, `InstanceRepo`, `UsersRepo`).
+//! - `agones` — GameServer fleet allocation + a watcher that reconciles tracking state.
+//! - `grpc` / `ws` — the tonic and WebSocket transports sharing the same `OWSService`.
+//! - `drain` — graceful-rollout draining: flip `/ready` to NotReady, notify players, wait the grace
+//!   period, then release DB connections.
+//!
+//! ## Auth model
+//! - Tenant routes require `X-CustomerGUID` (`require_customer_guid`).
+//! - Server-to-server write routes additionally require an `x-service-key`
+//!   (`rest::require_service_key`); player JWTs and session GUIDs do not pass.
+//!
+//! Regenerate the rendered API reference with `cargo doc -p rows --no-deps`.
+
 #![allow(clippy::too_many_arguments)]
 #![allow(dead_code)]
 
@@ -73,7 +99,10 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::connect_lazy(&cfg.database_url)?;
     info!("Database pool initialized (lazy; connections open on first use)");
 
-    let pool_ro = match std::env::var("DATABASE_URL_RO").ok().filter(|s| !s.is_empty()) {
+    let pool_ro = match std::env::var("DATABASE_URL_RO")
+        .ok()
+        .filter(|s| !s.is_empty())
+    {
         Some(ro_url) => {
             info!("Read-only DB pool configured from DATABASE_URL_RO");
             db::connect_lazy(&ro_url)?
@@ -227,13 +256,18 @@ async fn shutdown_signal(state: std::sync::Arc<state::AppState>, grace_secs: u64
     info!("Draining: /ready now reports NotReady");
 
     // 2. Fire the (stub) player notification.
-    state.notifier.notify_players_shutdown(&drain::ShutdownNotice {
-        reason: drain::ShutdownReason::Rollout,
-        message: "ROWS is restarting for an update.".into(),
-        grace_secs,
-    });
+    state
+        .notifier
+        .notify_players_shutdown(&drain::ShutdownNotice {
+            reason: drain::ShutdownReason::Rollout,
+            message: "ROWS is restarting for an update.".into(),
+            grace_secs,
+        });
 
     // 3. Wait out the grace period so endpoint removal propagates and in-flight work settles.
-    info!(grace_secs, "Draining: waiting grace period before graceful shutdown");
+    info!(
+        grace_secs,
+        "Draining: waiting grace period before graceful shutdown"
+    );
     tokio::time::sleep(std::time::Duration::from_secs(grace_secs)).await;
 }

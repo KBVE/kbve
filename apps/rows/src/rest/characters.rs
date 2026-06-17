@@ -1,9 +1,14 @@
+//! Character persistence routes (`/api/Characters/*`, `/api/Status/*`). Read routes are tenant-gated
+//! (`require_customer_guid`); write routes (stats, positions, logout) additionally require a valid
+//! `x-service-key` and are only callable by the trusted UE dedicated server.
+
 use super::HandlerState;
 use crate::error::{ApiResult, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
 use crate::models::CustomDataRows;
 use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::post};
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
     let server = Router::new()
@@ -39,13 +44,18 @@ pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
         .with_state(hs)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CharNameDto {
+pub(crate) struct CharNameDto {
     character_name: String,
 }
 
-async fn get_char_by_name(
+/// Fetches a character by name within the tenant.
+#[utoipa::path(post, path = "/api/Characters/GetByName", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Character", body = crate::models::Character))
+)]
+pub(crate) async fn get_char_by_name(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -58,7 +68,12 @@ async fn get_char_by_name(
     Ok(Json(ch))
 }
 
-async fn get_custom_data(
+/// Returns all custom-data key/value rows for a character.
+#[utoipa::path(post, path = "/api/Characters/GetCustomData", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Custom-data rows", body = crate::models::CustomDataRows))
+)]
+pub(crate) async fn get_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -71,15 +86,25 @@ async fn get_custom_data(
     Ok(Json(CustomDataRows { rows: data }))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct UpdatePositionsDto {
+pub(crate) struct UpdatePositionsDto {
     serialized_player_location_data: String,
     #[allow(dead_code)]
     map_name: String,
 }
 
-async fn update_all_positions(
+/// Bulk position update from the dedicated server. Requires `x-service-key`. The
+/// `serializedPlayerLocationData` field uses the OWS wire format
+/// `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`.
+#[utoipa::path(post, path = "/api/Characters/UpdateAllPlayerPositions", tag = "characters",
+    request_body = inline(UpdatePositionsDto),
+    responses(
+        (status = 200, description = "Update result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn update_all_positions(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdatePositionsDto>,
@@ -134,21 +159,27 @@ async fn update_all_positions(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddCustomDataWrapper {
+pub(crate) struct AddCustomDataWrapper {
+    #[schema(inline)]
     add_or_update_custom_character_data: AddCustomDataPayload,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddCustomDataPayload {
+pub(crate) struct AddCustomDataPayload {
     character_name: String,
     custom_field_name: String,
     field_value: String,
 }
 
-async fn add_or_update_custom_data(
+/// Upserts a single custom-data field on a character.
+#[utoipa::path(post, path = "/api/Characters/AddOrUpdateCustomData", tag = "characters",
+    request_body = inline(AddCustomDataWrapper),
+    responses((status = 200, description = "Upsert result", body = SuccessResponse))
+)]
+pub(crate) async fn add_or_update_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddCustomDataWrapper>,
@@ -172,7 +203,7 @@ async fn add_or_update_custom_data(
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct UpdateStatsDto {
+pub(crate) struct UpdateStatsDto {
     #[serde(alias = "charName", alias = "CharName")]
     character_name: String,
     // C# OWS posts each stat as a top-level field; flatten captures them as a JSON map.
@@ -180,7 +211,17 @@ struct UpdateStatsDto {
     stats: serde_json::Value,
 }
 
-async fn update_character_stats(
+/// Persists arbitrary character stats from the dedicated server. Requires `x-service-key`. The body
+/// is `{ "characterName": "...", <statName>: <value>, ... }` — stat fields are flattened into a JSON
+/// map alongside `characterName`.
+#[utoipa::path(post, path = "/api/Characters/UpdateCharacterStats", tag = "characters",
+    request_body = serde_json::Value,
+    responses(
+        (status = 200, description = "Update result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn update_character_stats(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<UpdateStatsDto>,
@@ -203,7 +244,15 @@ async fn update_character_stats(
     }
 }
 
-async fn player_logout(
+/// Marks a character offline. Requires `x-service-key`.
+#[utoipa::path(post, path = "/api/Characters/PlayerLogout", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses(
+        (status = 200, description = "Logout result", body = SuccessResponse),
+        (status = 401, description = "Missing or invalid x-service-key"),
+    )
+)]
+pub(crate) async fn player_logout(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -222,7 +271,12 @@ async fn player_logout(
     }
 }
 
-async fn get_character_statuses(
+/// Returns online/offline status rows for a character.
+#[utoipa::path(post, path = "/api/Status/GetCharacterStatuses", tag = "characters",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Character status rows", body = [crate::models::CharacterStatus]))
+)]
+pub(crate) async fn get_character_statuses(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,

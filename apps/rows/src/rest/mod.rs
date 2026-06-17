@@ -1,11 +1,11 @@
-mod abilities;
-mod auth;
-mod characters;
-mod global_data;
-mod instances;
-mod management;
+pub(crate) mod abilities;
+pub(crate) mod auth;
+pub(crate) mod characters;
+pub(crate) mod global_data;
+pub(crate) mod instances;
+pub(crate) mod management;
 pub mod system;
-mod zones;
+pub(crate) mod zones;
 
 use crate::models::HealthResponse;
 use crate::service::OWSService;
@@ -111,7 +111,13 @@ fn drain_gate(draining: &std::sync::atomic::AtomicBool) -> Option<Response> {
 }
 
 /// Probes the DB pool; MQ/Agones are optional so they don't gate readiness. 503 when DB is down.
-async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
+#[utoipa::path(get, path = "/ready", tag = "health",
+    responses(
+        (status = 200, description = "Ready — DB reachable"),
+        (status = 503, description = "Draining or DB unreachable"),
+    )
+)]
+pub(crate) async fn readiness(State(hs): State<HandlerState>) -> axum::response::Response {
     if let Some(resp) = drain_gate(&hs.app.draining) {
         return resp;
     }
