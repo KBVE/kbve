@@ -1,10 +1,14 @@
 import { Fragment, type ReactNode, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { jobPosting, breadcrumbList } from '@kbve/core';
 import { applyToGig, fetchGig } from '../api/client';
 import type { ApplyInput, Gig } from '../api/types';
 import { Avatar, Button, ErrorNote, Spinner, TagRow } from '../components/ui';
+import { fieldCls, errBorder, FieldMessage } from '../components/form';
 import { formatBudget, LOCATION_LABELS, relativeTime } from '../lib/format';
 import { useAuth } from '../lib/auth';
 import { Seo, abs, ogImage } from '../lib/seo';
@@ -141,12 +145,33 @@ export function GigDetailPage() {
 	);
 }
 
+const applyGigSchema = z.object({
+	cover: z
+		.string()
+		.trim()
+		.min(1, { message: 'Add a short cover message' })
+		.max(2000, { message: 'Max 2000 characters' }),
+	rate: z.string().refine((v) => v === '' || Number(v) >= 0, {
+		message: 'Must be 0 or more',
+	}),
+});
+
+type ApplyGigValues = z.infer<typeof applyGigSchema>;
+
 function ApplyBox({ gig }: { gig: Gig }) {
 	const { user } = useAuth();
 	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
-	const [cover, setCover] = useState('');
-	const [rate, setRate] = useState('');
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<ApplyGigValues>({
+		resolver: zodResolver(applyGigSchema),
+		mode: 'onBlur',
+		defaultValues: { cover: '', rate: '' },
+	});
 
 	const mutation = useMutation({
 		mutationFn: (input: ApplyInput) => applyToGig(gig.id, input),
@@ -155,6 +180,13 @@ function ApplyBox({ gig }: { gig: Gig }) {
 			queryClient.invalidateQueries({ queryKey: ['gigs'] });
 		},
 	});
+
+	const onSubmit = (v: ApplyGigValues) =>
+		mutation.mutate({
+			cover_message: v.cover.trim(),
+			proposed_rate: Math.round(Number(v.rate || 0) * 100),
+			proposed_rate_type: gig.budget_type,
+		});
 
 	if (!user) {
 		return (
@@ -200,39 +232,33 @@ function ApplyBox({ gig }: { gig: Gig }) {
 		);
 	}
 
-	const inputCls =
-		'w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-quest-500 focus:outline-none';
-
 	return (
 		<form
 			className="space-y-3"
-			onSubmit={(e) => {
-				e.preventDefault();
-				if (cover.trim())
-					mutation.mutate({
-						cover_message: cover.trim(),
-						proposed_rate: Math.round(Number(rate || 0) * 100),
-						proposed_rate_type: gig.budget_type,
-					});
-			}}>
-			<textarea
-				className={`${inputCls} min-h-24`}
-				placeholder="Why you're a fit — link the relevant work."
-				value={cover}
-				onChange={(e) => setCover(e.target.value)}
-			/>
-			<input
-				type="number"
-				min={0}
-				className={inputCls}
-				placeholder="Proposed rate ($)"
-				value={rate}
-				onChange={(e) => setRate(e.target.value)}
-			/>
+			onSubmit={handleSubmit(onSubmit)}
+			noValidate>
+			<div>
+				<textarea
+					className={`${fieldCls} min-h-24 ${errBorder(errors.cover)}`}
+					placeholder="Why you're a fit — link the relevant work."
+					{...register('cover')}
+				/>
+				<FieldMessage error={errors.cover} />
+			</div>
+			<div>
+				<input
+					type="number"
+					min={0}
+					className={`${fieldCls} ${errBorder(errors.rate)}`}
+					placeholder="Proposed rate ($)"
+					{...register('rate')}
+				/>
+				<FieldMessage error={errors.rate} />
+			</div>
 			<Button
 				type="submit"
 				className="w-full"
-				disabled={!cover.trim() || mutation.isPending}>
+				disabled={mutation.isPending}>
 				{mutation.isPending ? 'Sending…' : 'Send application'}
 			</Button>
 		</form>

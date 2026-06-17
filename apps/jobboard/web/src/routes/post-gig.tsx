@@ -1,16 +1,62 @@
-import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { createGig, fetchTaxonomy } from '../api/client';
 import type { BudgetType, CreateGigInput, LocationPref } from '../api/types';
 import { Button, EmptyState } from '../components/ui';
+import {
+	fieldCls,
+	labelCls,
+	errBorder,
+	FieldMessage,
+} from '../components/form';
 import { useAuth } from '../lib/auth';
 
 const GAME_DEV_ID = 1;
 
-const field =
-	'w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-quest-500 focus:outline-none';
-const label = 'mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-400';
+// Money fields are <input type=number> -> string in form state; allow empty,
+// otherwise require a non-negative number.
+const money = z.string().refine((v) => v === '' || Number(v) >= 0, {
+	message: 'Must be 0 or more',
+});
+
+const postGigSchema = z
+	.object({
+		title: z
+			.string()
+			.trim()
+			.min(1, { message: 'Give the gig a title' })
+			.max(120, { message: 'Max 120 characters' }),
+		summary: z
+			.string()
+			.trim()
+			.min(1, { message: 'Add a one-line summary' })
+			.max(200, { message: 'Max 200 characters' }),
+		description: z.string().trim(),
+		budget_type: z.number().int(),
+		budget_min: money,
+		budget_max: money,
+		location_pref: z.number().int(),
+		deadline: z.string(),
+		tagIds: z.array(z.number()),
+	})
+	.superRefine((v, ctx) => {
+		if (
+			v.budget_min !== '' &&
+			v.budget_max !== '' &&
+			Number(v.budget_max) < Number(v.budget_min)
+		) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['budget_max'],
+				message: 'Max must be ≥ min',
+			});
+		}
+	});
+
+type PostGigValues = z.infer<typeof postGigSchema>;
 
 export function PostGigPage() {
 	const { user } = useAuth();
@@ -22,17 +68,29 @@ export function PostGigPage() {
 		queryFn: () => fetchTaxonomy(GAME_DEV_ID),
 	});
 
-	const [form, setForm] = useState({
-		title: '',
-		summary: '',
-		description: '',
-		budget_type: 2 as BudgetType,
-		budget_min: '',
-		budget_max: '',
-		location_pref: 0 as LocationPref,
-		deadline: '',
+	const {
+		register,
+		handleSubmit,
+		watch,
+		setValue,
+		formState: { errors },
+	} = useForm<PostGigValues>({
+		resolver: zodResolver(postGigSchema),
+		mode: 'onBlur',
+		defaultValues: {
+			title: '',
+			summary: '',
+			description: '',
+			budget_type: 2,
+			budget_min: '',
+			budget_max: '',
+			location_pref: 0,
+			deadline: '',
+			tagIds: [],
+		},
 	});
-	const [tagIds, setTagIds] = useState<number[]>([]);
+
+	const tagIds = watch('tagIds');
 
 	const mutation = useMutation({
 		mutationFn: (input: CreateGigInput) => createGig(input),
@@ -79,29 +137,28 @@ export function PostGigPage() {
 	];
 
 	const toggle = (id: number) =>
-		setTagIds((ids) =>
-			ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+		setValue(
+			'tagIds',
+			tagIds.includes(id)
+				? tagIds.filter((x) => x !== id)
+				: [...tagIds, id],
+			{ shouldDirty: true },
 		);
 
-	const valid =
-		form.title.trim().length > 0 &&
-		form.summary.trim().length > 0 &&
-		Number(form.budget_min) >= 0;
-
-	const submit = () => {
+	const onSubmit = (v: PostGigValues) => {
 		mutation.mutate({
-			title: form.title.trim(),
-			summary: form.summary.trim(),
-			description: form.description.trim(),
-			budget_type: form.budget_type,
-			budget_min: Math.round(Number(form.budget_min || 0) * 100),
+			title: v.title.trim(),
+			summary: v.summary.trim(),
+			description: v.description.trim(),
+			budget_type: v.budget_type as BudgetType,
+			budget_min: Math.round(Number(v.budget_min || 0) * 100),
 			budget_max: Math.round(
-				Number(form.budget_max || form.budget_min || 0) * 100,
+				Number(v.budget_max || v.budget_min || 0) * 100,
 			),
 			currency: 'USD',
-			location_pref: form.location_pref,
-			deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
-			tag_ids: tagIds,
+			location_pref: v.location_pref as LocationPref,
+			deadline: v.deadline ? new Date(v.deadline).toISOString() : null,
+			tag_ids: v.tagIds,
 		});
 	};
 
@@ -109,59 +166,53 @@ export function PostGigPage() {
 		<div className="mx-auto max-w-2xl">
 			<h1 className="font-display text-2xl font-bold">Post a gig</h1>
 			<p className="mt-1 text-sm text-zinc-400">
-				Describe the work. Vetted talent will apply with their portfolio.
+				Describe the work. Vetted talent will apply with their
+				portfolio.
 			</p>
 
 			<form
 				className="mt-6 space-y-5"
-				onSubmit={(e) => {
-					e.preventDefault();
-					if (valid) submit();
-				}}>
+				onSubmit={handleSubmit(onSubmit)}
+				noValidate>
 				<div>
-					<label className={label}>Title</label>
+					<label className={labelCls}>Title</label>
 					<input
-						className={field}
-						value={form.title}
-						onChange={(e) => setForm({ ...form, title: e.target.value })}
+						className={`${fieldCls} ${errBorder(errors.title)}`}
 						placeholder="e.g. Pixel-art character set for a roguelite"
 						maxLength={120}
+						{...register('title')}
 					/>
+					<FieldMessage error={errors.title} />
 				</div>
 
 				<div>
-					<label className={label}>Summary</label>
+					<label className={labelCls}>Summary</label>
 					<input
-						className={field}
-						value={form.summary}
-						onChange={(e) => setForm({ ...form, summary: e.target.value })}
+						className={`${fieldCls} ${errBorder(errors.summary)}`}
 						placeholder="One line that sells the gig"
 						maxLength={200}
+						{...register('summary')}
 					/>
+					<FieldMessage error={errors.summary} />
 				</div>
 
 				<div>
-					<label className={label}>Description (markdown)</label>
+					<label className={labelCls}>Description (markdown)</label>
 					<textarea
-						className={`${field} min-h-32`}
-						value={form.description}
-						onChange={(e) => setForm({ ...form, description: e.target.value })}
+						className={`${fieldCls} min-h-32`}
 						placeholder="Scope, references, deliverables…"
+						{...register('description')}
 					/>
 				</div>
 
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 					<div className="col-span-2 sm:col-span-2">
-						<label className={label}>Budget type</label>
+						<label className={labelCls}>Budget type</label>
 						<select
-							className={field}
-							value={form.budget_type}
-							onChange={(e) =>
-								setForm({
-									...form,
-									budget_type: Number(e.target.value) as BudgetType,
-								})
-							}>
+							className={fieldCls}
+							{...register('budget_type', {
+								valueAsNumber: true,
+							})}>
 							<option value={1}>Fixed</option>
 							<option value={2}>Range</option>
 							<option value={3}>Hourly</option>
@@ -169,51 +220,46 @@ export function PostGigPage() {
 						</select>
 					</div>
 					<div>
-						<label className={label}>Min ($)</label>
+						<label className={labelCls}>Min ($)</label>
 						<input
 							type="number"
 							min={0}
-							className={field}
-							value={form.budget_min}
-							onChange={(e) => setForm({ ...form, budget_min: e.target.value })}
+							className={`${fieldCls} ${errBorder(errors.budget_min)}`}
+							{...register('budget_min')}
 						/>
+						<FieldMessage error={errors.budget_min} />
 					</div>
 					<div>
-						<label className={label}>Max ($)</label>
+						<label className={labelCls}>Max ($)</label>
 						<input
 							type="number"
 							min={0}
-							className={field}
-							value={form.budget_max}
-							onChange={(e) => setForm({ ...form, budget_max: e.target.value })}
+							className={`${fieldCls} ${errBorder(errors.budget_max)}`}
+							{...register('budget_max')}
 						/>
+						<FieldMessage error={errors.budget_max} />
 					</div>
 				</div>
 
 				<div className="grid grid-cols-2 gap-4">
 					<div>
-						<label className={label}>Location</label>
+						<label className={labelCls}>Location</label>
 						<select
-							className={field}
-							value={form.location_pref}
-							onChange={(e) =>
-								setForm({
-									...form,
-									location_pref: Number(e.target.value) as LocationPref,
-								})
-							}>
+							className={fieldCls}
+							{...register('location_pref', {
+								valueAsNumber: true,
+							})}>
 							<option value={0}>Remote</option>
 							<option value={1}>On-site</option>
 							<option value={2}>Hybrid</option>
 						</select>
 					</div>
 					<div>
-						<label className={label}>Deadline (optional)</label>
+						<label className={labelCls}>Deadline (optional)</label>
 						<input
 							type="date"
-							className={field}
-							value={form.deadline}
-							onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+							className={fieldCls}
+							{...register('deadline')}
 						/>
 					</div>
 				</div>
@@ -223,7 +269,7 @@ export function PostGigPage() {
 					if (!items.length) return null;
 					return (
 						<div key={kind}>
-							<label className={label}>{title}</label>
+							<label className={labelCls}>{title}</label>
 							<div className="flex flex-wrap gap-1.5">
 								{items.map((t) => {
 									const active = tagIds.includes(t.id);
@@ -253,7 +299,7 @@ export function PostGigPage() {
 				)}
 
 				<div className="flex items-center gap-3 pt-2">
-					<Button type="submit" disabled={!valid || mutation.isPending}>
+					<Button type="submit" disabled={mutation.isPending}>
 						{mutation.isPending ? 'Posting…' : 'Publish gig'}
 					</Button>
 					<span className="text-xs text-zinc-500">

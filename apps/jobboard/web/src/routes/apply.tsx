@@ -1,6 +1,8 @@
-import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
 	fetchMyApplication,
 	fetchTaxonomy,
@@ -10,18 +12,23 @@ import {
 import type {
 	LinkKind,
 	MembershipApplication,
-	ProfileLink,
 	TaxonomyItem,
 	Vertical,
 } from '../api/types';
 import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui';
+import {
+	fieldCls,
+	labelCls,
+	errBorder,
+	FieldMessage,
+} from '../components/form';
 import { useAuth } from '../lib/auth';
 
 const GAME_DEV_ID = 1;
 const CAP_TAKER = 1;
 const CAP_POSTER = 2;
 
-const LINK_KINDS: LinkKind[] = [
+const LINK_KINDS = [
 	'github',
 	'linkedin',
 	'website',
@@ -29,14 +36,43 @@ const LINK_KINDS: LinkKind[] = [
 	'itch',
 	'artstation',
 	'other',
-];
-
-const field =
-	'w-full rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-quest-500 focus:outline-none';
-const label =
-	'mb-1 block text-xs font-semibold uppercase tracking-wide text-zinc-400';
+] as const;
 
 const STATUS_LABEL = ['Pending review', 'Approved', 'Rejected'] as const;
+
+// Empty string is allowed (optional link row); anything else must be a URL.
+const optionalUrl = z
+	.string()
+	.trim()
+	.refine((v) => v === '' || z.url().safeParse(v).success, {
+		message: 'Enter a valid URL',
+	});
+
+const applicationSchema = z.object({
+	caps: z.number().int().min(1, { message: 'Pick at least one' }),
+	verticalIds: z.array(z.number()),
+	disciplineIds: z.array(z.number()),
+	headline: z.string().trim().max(200, { message: 'Max 200 characters' }),
+	about: z
+		.string()
+		.trim()
+		.min(1, { message: 'Tell us a bit about yourself' })
+		.max(5000, { message: 'Max 5000 characters' }),
+	// Kept as a string (number input) so an empty field is valid; range-checked.
+	years: z
+		.string()
+		.refine((v) => v === '' || /^\d{1,3}$/.test(v), {
+			message: 'Whole number',
+		})
+		.refine((v) => v === '' || Number(v) <= 100, { message: 'Max 100' }),
+	location: z.string().trim().max(120, { message: 'Max 120 characters' }),
+	links: z
+		.array(z.object({ kind: z.enum(LINK_KINDS), url: optionalUrl }))
+		.max(10),
+	projects: z.array(z.object({ url: optionalUrl })).max(20),
+});
+
+type ApplicationValues = z.infer<typeof applicationSchema>;
 
 export function ApplyPage() {
 	const { user } = useAuth();
@@ -150,53 +186,83 @@ function ApplicationForm({
 	previouslyRejected: boolean;
 	onSubmitted: () => void;
 }) {
-	const [caps, setCaps] = useState(0);
-	const [verticalIds, setVerticalIds] = useState<number[]>([]);
-	const [disciplineIds, setDisciplineIds] = useState<number[]>([]);
-	const [headline, setHeadline] = useState('');
-	const [about, setAbout] = useState('');
-	const [years, setYears] = useState('');
-	const [location, setLocation] = useState('');
-	const [links, setLinks] = useState<ProfileLink[]>([
-		{ kind: 'github', url: '' },
-	]);
-	const [projects, setProjects] = useState<string[]>(['']);
-
 	const mutation = useMutation({
 		mutationFn: submitApplication,
 		onSuccess: onSubmitted,
 	});
 
-	const toggle = (
-		setter: React.Dispatch<React.SetStateAction<number[]>>,
+	const {
+		register,
+		handleSubmit,
+		control,
+		watch,
+		setValue,
+		formState: { errors },
+	} = useForm<ApplicationValues>({
+		resolver: zodResolver(applicationSchema),
+		mode: 'onBlur',
+		defaultValues: {
+			caps: 0,
+			verticalIds: [],
+			disciplineIds: [],
+			headline: '',
+			about: '',
+			years: '',
+			location: '',
+			links: [{ kind: 'github', url: '' }],
+			projects: [{ url: '' }],
+		},
+	});
+
+	const links = useFieldArray({ control, name: 'links' });
+	const projects = useFieldArray({ control, name: 'projects' });
+
+	const caps = watch('caps');
+	const verticalIds = watch('verticalIds');
+	const disciplineIds = watch('disciplineIds');
+	const isTaker = (caps & CAP_TAKER) !== 0;
+
+	const toggleCap = (bit: number) =>
+		setValue('caps', caps & bit ? caps & ~bit : caps | bit, {
+			shouldValidate: true,
+			shouldDirty: true,
+		});
+
+	const toggleId = (
+		name: 'verticalIds' | 'disciplineIds',
+		ids: number[],
 		id: number,
 	) =>
-		setter((arr) =>
-			arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id],
+		setValue(
+			name,
+			ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+			{ shouldDirty: true },
 		);
-	const toggleCap = (bit: number) =>
-		setCaps((c) => (c & bit ? c & ~bit : c | bit));
 
-	const isTaker = (caps & CAP_TAKER) !== 0;
-	const valid = caps !== 0 && about.trim().length > 0;
-
-	const submit = () =>
+	const onSubmit = (v: ApplicationValues) => {
+		const taker = (v.caps & CAP_TAKER) !== 0;
 		mutation.mutate({
-			requested_capabilities: caps,
-			vertical_ids: verticalIds,
-			statement: about.trim(),
-			portfolio_links: projects.map((p) => p.trim()).filter(Boolean),
+			requested_capabilities: v.caps,
+			vertical_ids: v.verticalIds,
+			statement: v.about.trim(),
+			portfolio_links: v.projects
+				.map((p) => p.url.trim())
+				.filter(Boolean),
 			profile_draft: {
-				headline: headline.trim(),
-				bio: about.trim(),
-				years_experience: Number(years) || 0,
-				location: location.trim(),
-				links: links
+				headline: v.headline.trim(),
+				bio: v.about.trim(),
+				years_experience: Number(v.years) || 0,
+				location: v.location.trim(),
+				links: v.links
 					.filter((l) => l.url.trim())
-					.map((l) => ({ kind: l.kind, url: l.url.trim() })),
-				discipline_ids: isTaker ? disciplineIds : [],
+					.map((l) => ({
+						kind: l.kind as LinkKind,
+						url: l.url.trim(),
+					})),
+				discipline_ids: taker ? v.disciplineIds : [],
 			},
 		});
+	};
 
 	return (
 		<div className="mx-auto max-w-2xl">
@@ -211,13 +277,11 @@ function ApplicationForm({
 
 			<form
 				className="mt-6 space-y-6"
-				onSubmit={(e) => {
-					e.preventDefault();
-					if (valid) submit();
-				}}>
+				onSubmit={handleSubmit(onSubmit)}
+				noValidate>
 				{/* Capabilities */}
 				<div>
-					<span className={label}>I want to…</span>
+					<span className={labelCls}>I want to…</span>
 					<div className="flex flex-wrap gap-2">
 						{[
 							[CAP_TAKER, 'Take work (Taker)'],
@@ -236,6 +300,7 @@ function ApplicationForm({
 							</button>
 						))}
 					</div>
+					<FieldMessage error={errors.caps} />
 				</div>
 
 				{verticals.length > 0 && (
@@ -246,7 +311,9 @@ function ApplicationForm({
 							label: v.label,
 						}))}
 						selected={verticalIds}
-						onToggle={(id) => toggle(setVerticalIds, id)}
+						onToggle={(id) =>
+							toggleId('verticalIds', verticalIds, id)
+						}
 					/>
 				)}
 
@@ -259,123 +326,93 @@ function ApplicationForm({
 							label: d.label,
 						}))}
 						selected={disciplineIds}
-						onToggle={(id) => toggle(setDisciplineIds, id)}
+						onToggle={(id) =>
+							toggleId('disciplineIds', disciplineIds, id)
+						}
 					/>
 				)}
 
 				<div className="grid gap-4 sm:grid-cols-2">
 					<div className="sm:col-span-2">
-						<label className={label}>Headline</label>
+						<label className={labelCls}>Headline</label>
 						<input
-							className={field}
+							className={`${fieldCls} ${errBorder(errors.headline)}`}
 							placeholder="e.g. Pixel artist & animator — juicy 2D action"
-							value={headline}
-							onChange={(e) => setHeadline(e.target.value)}
-							maxLength={200}
+							{...register('headline')}
 						/>
+						<FieldMessage error={errors.headline} />
 					</div>
 					<div>
-						<label className={label}>Years of experience</label>
+						<label className={labelCls}>Years of experience</label>
 						<input
 							type="number"
 							min={0}
 							max={100}
-							className={field}
-							value={years}
-							onChange={(e) => setYears(e.target.value)}
+							className={`${fieldCls} ${errBorder(errors.years)}`}
+							{...register('years')}
 						/>
+						<FieldMessage error={errors.years} />
 					</div>
 					<div>
-						<label className={label}>Location</label>
+						<label className={labelCls}>Location</label>
 						<input
-							className={field}
+							className={`${fieldCls} ${errBorder(errors.location)}`}
 							placeholder="City, Country"
-							value={location}
-							onChange={(e) => setLocation(e.target.value)}
-							maxLength={120}
+							{...register('location')}
 						/>
+						<FieldMessage error={errors.location} />
 					</div>
 				</div>
 
 				<div>
-					<label className={label}>About you</label>
+					<label className={labelCls}>About you</label>
 					<textarea
-						className={`${field} min-h-28`}
+						className={`${fieldCls} min-h-28 ${errBorder(errors.about)}`}
 						placeholder="What you make, who you've worked with, what you're great at…"
-						value={about}
-						onChange={(e) => setAbout(e.target.value)}
-						maxLength={5000}
+						{...register('about')}
 					/>
+					<FieldMessage error={errors.about} />
 				</div>
 
 				{/* Structured profile links */}
 				<div>
-					<span className={label}>Profiles & socials</span>
+					<span className={labelCls}>Profiles & socials</span>
 					<div className="space-y-2">
-						{links.map((l, i) => (
-							<div key={i} className="flex gap-2">
-								<select
-									className={`${field} w-36 shrink-0`}
-									value={l.kind}
-									onChange={(e) =>
-										setLinks((arr) =>
-											arr.map((x, j) =>
-												j === i
-													? {
-															...x,
-															kind: e.target
-																.value as LinkKind,
-														}
-													: x,
-											),
-										)
-									}>
-									{LINK_KINDS.map((k) => (
-										<option key={k} value={k}>
-											{k}
-										</option>
-									))}
-								</select>
-								<input
-									className={field}
-									type="url"
-									placeholder="https://…"
-									value={l.url}
-									onChange={(e) =>
-										setLinks((arr) =>
-											arr.map((x, j) =>
-												j === i
-													? {
-															...x,
-															url: e.target.value,
-														}
-													: x,
-											),
-										)
-									}
-								/>
-								{links.length > 1 && (
-									<button
-										type="button"
-										onClick={() =>
-											setLinks((arr) =>
-												arr.filter((_, j) => j !== i),
-											)
-										}
-										className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-zinc-200">
-										✕
-									</button>
-								)}
+						{links.fields.map((f, i) => (
+							<div key={f.id}>
+								<div className="flex gap-2">
+									<select
+										className={`${fieldCls} w-36 shrink-0`}
+										{...register(`links.${i}.kind`)}>
+										{LINK_KINDS.map((k) => (
+											<option key={k} value={k}>
+												{k}
+											</option>
+										))}
+									</select>
+									<input
+										className={`${fieldCls} ${errBorder(errors.links?.[i]?.url)}`}
+										type="url"
+										placeholder="https://…"
+										{...register(`links.${i}.url`)}
+									/>
+									{links.fields.length > 1 && (
+										<button
+											type="button"
+											onClick={() => links.remove(i)}
+											className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-zinc-200">
+											✕
+										</button>
+									)}
+								</div>
+								<FieldMessage error={errors.links?.[i]?.url} />
 							</div>
 						))}
-						{links.length < 10 && (
+						{links.fields.length < 10 && (
 							<button
 								type="button"
 								onClick={() =>
-									setLinks((arr) => [
-										...arr,
-										{ kind: 'other', url: '' },
-									])
+									links.append({ kind: 'other', url: '' })
 								}
 								className="text-xs text-quest-300 hover:text-quest-200">
 								+ add link
@@ -386,43 +423,35 @@ function ApplicationForm({
 
 				{/* Free-form project / work links */}
 				<div>
-					<span className={label}>Project / work links</span>
+					<span className={labelCls}>Project / work links</span>
 					<div className="space-y-2">
-						{projects.map((p, i) => (
-							<div key={i} className="flex gap-2">
-								<input
-									className={field}
-									type="url"
-									placeholder="Link to a shipped project, build, or reel…"
-									value={p}
-									onChange={(e) =>
-										setProjects((arr) =>
-											arr.map((x, j) =>
-												j === i ? e.target.value : x,
-											),
-										)
-									}
+						{projects.fields.map((f, i) => (
+							<div key={f.id}>
+								<div className="flex gap-2">
+									<input
+										className={`${fieldCls} ${errBorder(errors.projects?.[i]?.url)}`}
+										type="url"
+										placeholder="Link to a shipped project, build, or reel…"
+										{...register(`projects.${i}.url`)}
+									/>
+									{projects.fields.length > 1 && (
+										<button
+											type="button"
+											onClick={() => projects.remove(i)}
+											className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-zinc-200">
+											✕
+										</button>
+									)}
+								</div>
+								<FieldMessage
+									error={errors.projects?.[i]?.url}
 								/>
-								{projects.length > 1 && (
-									<button
-										type="button"
-										onClick={() =>
-											setProjects((arr) =>
-												arr.filter((_, j) => j !== i),
-											)
-										}
-										className="rounded-lg border border-zinc-700 px-3 text-zinc-400 hover:text-zinc-200">
-										✕
-									</button>
-								)}
 							</div>
 						))}
-						{projects.length < 20 && (
+						{projects.fields.length < 20 && (
 							<button
 								type="button"
-								onClick={() =>
-									setProjects((arr) => [...arr, ''])
-								}
+								onClick={() => projects.append({ url: '' })}
 								className="text-xs text-quest-300 hover:text-quest-200">
 								+ add project
 							</button>
@@ -436,7 +465,7 @@ function ApplicationForm({
 					</p>
 				)}
 
-				<Button type="submit" disabled={!valid || mutation.isPending}>
+				<Button type="submit" disabled={mutation.isPending}>
 					{mutation.isPending ? 'Submitting…' : 'Submit application'}
 				</Button>
 			</form>
@@ -457,7 +486,7 @@ function ChipGroup({
 }) {
 	return (
 		<div>
-			<span className={label}>{title}</span>
+			<span className={labelCls}>{title}</span>
 			<div className="flex flex-wrap gap-2">
 				{items.map((it) => (
 					<button
