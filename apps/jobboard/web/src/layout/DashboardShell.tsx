@@ -18,13 +18,20 @@ import {
 	Hexagon,
 	Search,
 	Bell,
+	ShieldCheck,
 	type LucideIcon,
 } from 'lucide-react';
-import { useAuth, useAuthActions } from '@kbve/rn/auth';
+import {
+	useAuth,
+	useAuthActions,
+	useStaff,
+	StaffPermission,
+} from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
 import { BrowseView } from './BrowseView';
 import { Profile } from './Profile';
+import { VettingView } from './VettingView';
 import { RightPanel, type Selection } from './RightPanel';
 import { WebGpuCanvas } from '../gpu/WebGpuCanvas';
 import { auroraGold } from '../gpu/auroraGold';
