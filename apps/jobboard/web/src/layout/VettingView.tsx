@@ -1,21 +1,27 @@
-// Admin vetting queue — pending membership applications with approve/reject.
-// Staff-gated by DashboardShell; the backend re-checks staff permission too.
+// Admin vetting queue — pending membership applications with the submitted
+// profile draft + approve/reject. Staff-gated by DashboardShell; the backend
+// re-checks staff permission too.
 
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { decideApplication, fetchAdminApplications } from '../api/client';
+import {
+	decideApplication,
+	fetchAdminApplications,
+	fetchTaxonomy,
+} from '../api/client';
 import type { AdminApplication } from '../api/types';
 import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui';
 
+const GAME_DEV_ID = 1;
 const CAP_TAKER = 1;
 const CAP_POSTER = 2;
 
 function capLabel(caps: number): string {
-	const parts = [
-		caps & CAP_TAKER ? 'Taker' : null,
-		caps & CAP_POSTER ? 'Poster' : null,
-	].filter(Boolean);
-	return parts.join(' + ') || '—';
+	return (
+		[caps & CAP_TAKER ? 'Taker' : null, caps & CAP_POSTER ? 'Poster' : null]
+			.filter(Boolean)
+			.join(' + ') || '—'
+	);
 }
 
 export function VettingView() {
@@ -24,13 +30,20 @@ export function VettingView() {
 		queryKey: ['admin-applications'],
 		queryFn: fetchAdminApplications,
 	});
+	const { data: taxData } = useQuery({
+		queryKey: ['taxonomy', GAME_DEV_ID],
+		queryFn: () => fetchTaxonomy(GAME_DEV_ID),
+	});
+
+	const labelOf = (id: number) =>
+		taxData?.taxonomy.find((t) => t.id === id)?.label ?? `#${id}`;
 
 	return (
 		<div className="text-zinc-100">
 			<h2 className="font-display text-2xl font-bold">Vetting queue</h2>
 			<p className="mb-5 text-sm text-zinc-400">
-				Approve or reject membership applications. Approving grants the
-				requested capabilities (creates the talent/client profile).
+				Review the submitted profile, then approve (grants the requested
+				capabilities + publishes the profile) or reject.
 			</p>
 
 			{isLoading ? (
@@ -43,6 +56,7 @@ export function VettingView() {
 						<ApplicationRow
 							key={app.id}
 							app={app}
+							labelOf={labelOf}
 							onDecided={() =>
 								queryClient.invalidateQueries({
 									queryKey: ['admin-applications'],
@@ -63,9 +77,11 @@ export function VettingView() {
 
 function ApplicationRow({
 	app,
+	labelOf,
 	onDecided,
 }: {
 	app: AdminApplication;
+	labelOf: (id: number) => string;
 	onDecided: () => void;
 }) {
 	const [notes, setNotes] = useState('');
@@ -79,6 +95,12 @@ function ApplicationRow({
 		onSuccess: onDecided,
 	});
 
+	const d = app.profile_draft ?? {};
+	const meta = [
+		d.years_experience ? `${d.years_experience} yrs exp` : null,
+		d.location || null,
+	].filter(Boolean);
+
 	return (
 		<div className="panel p-5">
 			<div className="flex items-start justify-between gap-4">
@@ -86,32 +108,63 @@ function ApplicationRow({
 					<div className="font-display font-semibold">
 						{app.email ?? app.user_id}
 					</div>
+					{d.headline ? (
+						<div className="text-sm text-zinc-300">
+							{d.headline}
+						</div>
+					) : null}
 					<div className="mt-0.5 text-xs text-zinc-500">
-						Requesting:{' '}
+						Requesting{' '}
 						<span className="text-quest-300">
 							{capLabel(app.requested_capabilities)}
-						</span>{' '}
-						· {app.vertical_ids.length} vertical
-						{app.vertical_ids.length === 1 ? '' : 's'}
+						</span>
+						{meta.length ? ` · ${meta.join(' · ')}` : ''}
 					</div>
 				</div>
 			</div>
 
-			{app.statement && (
+			{(d.bio || app.statement) && (
 				<p className="mt-3 whitespace-pre-line text-sm text-zinc-300">
-					{app.statement}
+					{d.bio || app.statement}
 				</p>
 			)}
 
+			{d.discipline_ids && d.discipline_ids.length > 0 && (
+				<div className="mt-3 flex flex-wrap gap-1.5">
+					{d.discipline_ids.map((id) => (
+						<span
+							key={id}
+							className="rounded-full border border-quest-600/50 bg-quest-500/10 px-2.5 py-0.5 text-xs text-quest-200">
+							{labelOf(id)}
+						</span>
+					))}
+				</div>
+			)}
+
+			{d.links && d.links.length > 0 && (
+				<div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+					{d.links.map((l, i) => (
+						<a
+							key={i}
+							href={l.url}
+							target="_blank"
+							rel="noreferrer"
+							className="text-sm text-quest-300 underline hover:text-quest-200">
+							{l.kind}
+						</a>
+					))}
+				</div>
+			)}
+
 			{app.portfolio_links.length > 0 && (
-				<ul className="mt-3 space-y-1">
+				<ul className="mt-2 space-y-1">
 					{app.portfolio_links.map((url) => (
 						<li key={url}>
 							<a
 								href={url}
 								target="_blank"
 								rel="noreferrer"
-								className="text-sm text-quest-300 underline hover:text-quest-200">
+								className="text-sm text-zinc-400 underline hover:text-zinc-200">
 								{url}
 							</a>
 						</li>

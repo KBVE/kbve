@@ -201,11 +201,37 @@ export type Capabilities = number;
 // member_applications.status: 0=pending, 1=approved, 2=rejected.
 export type ApplicationStatusCode = 0 | 1 | 2;
 
+export type LinkKind =
+	| 'github'
+	| 'linkedin'
+	| 'website'
+	| 'x'
+	| 'itch'
+	| 'artstation'
+	| 'other';
+
+export interface ProfileLink {
+	kind: LinkKind;
+	url: string;
+}
+
+// Public profile payload submitted with the application; copied to the
+// talent_profile on approval.
+export interface ProfileDraft {
+	headline?: string;
+	bio?: string;
+	years_experience?: number;
+	location?: string;
+	links?: ProfileLink[];
+	discipline_ids?: number[];
+}
+
 export interface SubmitApplicationInput {
 	requested_capabilities: Capabilities;
 	vertical_ids: number[];
 	statement: string;
 	portfolio_links: string[];
+	profile_draft: ProfileDraft;
 }
 
 export interface MembershipApplication {
@@ -218,6 +244,7 @@ export interface MembershipApplication {
 	created_at: string;
 	reviewed_at: string | null;
 	vertical_ids: number[];
+	profile_draft: ProfileDraft;
 }
 
 // Admin queue row (adds the applicant's identity).
