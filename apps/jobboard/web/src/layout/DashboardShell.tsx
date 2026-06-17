@@ -86,6 +86,8 @@ export function DashboardShell() {
 				);
 			case 'profile':
 				return <Profile />;
+			case 'vetting':
+				return <VettingView />;
 			default:
 				return (
 					<Stack gap="sm">
