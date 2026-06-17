@@ -18,6 +18,7 @@ import type {
 import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui';
 import {
 	fieldCls,
+	fieldClsRow,
 	labelCls,
 	errBorder,
 	FieldMessage,
@@ -197,7 +198,7 @@ function ApplicationForm({
 		control,
 		watch,
 		setValue,
-		formState: { errors },
+		formState: { errors, submitCount },
 	} = useForm<ApplicationValues>({
 		resolver: zodResolver(applicationSchema),
 		mode: 'onBlur',
@@ -382,7 +383,7 @@ function ApplicationForm({
 							<div key={f.id}>
 								<div className="flex gap-2">
 									<select
-										className={`${fieldCls} w-36 shrink-0`}
+										className={`${fieldClsRow} w-32 shrink-0`}
 										{...register(`links.${i}.kind`)}>
 										{LINK_KINDS.map((k) => (
 											<option key={k} value={k}>
@@ -391,7 +392,7 @@ function ApplicationForm({
 										))}
 									</select>
 									<input
-										className={`${fieldCls} ${errBorder(errors.links?.[i]?.url)}`}
+										className={`${fieldClsRow} min-w-0 flex-1 ${errBorder(errors.links?.[i]?.url)}`}
 										type="url"
 										placeholder="https://…"
 										{...register(`links.${i}.url`)}
@@ -429,7 +430,7 @@ function ApplicationForm({
 							<div key={f.id}>
 								<div className="flex gap-2">
 									<input
-										className={`${fieldCls} ${errBorder(errors.projects?.[i]?.url)}`}
+										className={`${fieldClsRow} min-w-0 flex-1 ${errBorder(errors.projects?.[i]?.url)}`}
 										type="url"
 										placeholder="Link to a shipped project, build, or reel…"
 										{...register(`projects.${i}.url`)}
@@ -458,6 +459,14 @@ function ApplicationForm({
 						)}
 					</div>
 				</div>
+
+				{submitCount > 0 && Object.keys(errors).length > 0 && (
+					<p className="text-sm text-amber-400">
+						Some fields need attention:{' '}
+						{Object.keys(errors).join(', ')}. Fix the highlighted
+						fields above, then submit again.
+					</p>
+				)}
 
 				{mutation.isError && (
 					<p className="text-sm text-red-400">
