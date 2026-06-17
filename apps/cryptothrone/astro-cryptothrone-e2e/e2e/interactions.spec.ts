@@ -2,6 +2,7 @@ import { test, expect } from './fixtures';
 import { seedFakeSession } from './helpers/auth';
 import type { Page } from '@playwright/test';
 import { isMobileViewport } from './helpers/env';
+import { waitForHud } from './helpers/hud';
 
 /**
  * Drives the in-game React HUD through the dev-only `window.__ctEvents` seam
@@ -40,9 +41,7 @@ test.describe('in-game HUD interactions', () => {
 			.then(() => true)
 			.catch(() => false);
 		test.skip(!hasSeam, 'event seam only present in dev build');
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible({ timeout: 20_000 });
+		await waitForHud(page);
 	});
 
 	test('character event opens and closes the dialog', async ({ page }) => {
