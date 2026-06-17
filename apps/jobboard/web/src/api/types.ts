@@ -193,3 +193,41 @@ export interface Ack {
 	success: boolean;
 	message: string;
 }
+
+// ── Membership / vetting ───────────────────────────────────────────────
+
+// Capability bitmask: taker=1, poster=2.
+export type Capabilities = number;
+// member_applications.status: 0=pending, 1=approved, 2=rejected.
+export type ApplicationStatusCode = 0 | 1 | 2;
+
+export interface SubmitApplicationInput {
+	requested_capabilities: Capabilities;
+	vertical_ids: number[];
+	statement: string;
+	portfolio_links: string[];
+}
+
+export interface MembershipApplication {
+	id: string;
+	requested_capabilities: Capabilities;
+	statement: string;
+	portfolio_links: string[];
+	status: ApplicationStatusCode;
+	review_notes: string;
+	created_at: string;
+	reviewed_at: string | null;
+	vertical_ids: number[];
+}
+
+// Admin queue row (adds the applicant's identity).
+export interface AdminApplication extends MembershipApplication {
+	user_id: string;
+	email: string | null;
+}
+
+export interface DecisionInput {
+	approve: boolean;
+	grant_capabilities: Capabilities;
+	notes: string;
+}
