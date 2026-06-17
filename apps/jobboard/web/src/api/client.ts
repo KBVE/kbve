@@ -140,6 +140,20 @@ export function applyToGig(gigId: string, input: ApplyInput): Promise<Ack> {
 		: mockApi.applyToGig(gigId, input);
 }
 
+// ── Identity (always live — real endpoint, auth required) ──
+
+export interface AuthMe {
+	user_id: string;
+	username: string | null;
+	role: string;
+	talent_profile: boolean;
+	client_profile: boolean;
+}
+
+export function fetchAuthMe(): Promise<AuthMe> {
+	return api('/auth/me');
+}
+
 // ── Membership / vetting (always live — real endpoints, auth required) ──
 
 export function submitApplication(

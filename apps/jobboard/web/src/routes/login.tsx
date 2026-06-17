@@ -10,10 +10,11 @@ export function LoginPage() {
 	const auth = useKbveAuth();
 	const navigate = useNavigate();
 
-	// Once fully signed in (and past the username step), return to the marketplace.
+	// Once fully signed in (and past the username step), go to the dashboard —
+	// its guard then routes vetted members in and sends un-vetted ones to /apply.
 	useEffect(() => {
 		if (auth.signedIn && !auth.needsUsername) {
-			navigate({ to: '/' });
+			navigate({ to: '/dashboard' });
 		}
 	}, [auth.signedIn, auth.needsUsername, navigate]);
 
