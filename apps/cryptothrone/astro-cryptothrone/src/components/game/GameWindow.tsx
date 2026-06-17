@@ -11,11 +11,10 @@ import { GameStoreProvider, useGameDispatch } from './store/GameStoreContext';
 import { useEventBridge } from './store/useEventBridge';
 import { CharacterDialog } from './ui/CharacterDialog';
 import { NotificationToast } from './ui/NotificationToast';
-import { StickySidebar } from './ui/StickySidebar';
+import { HudDock } from './ui/hud/HudDock';
 import { ActionMenu } from './ui/ActionMenu';
 import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
-import { ChatBar } from './ui/ChatBar';
 import { ConnectionOverlay } from './ui/ConnectionOverlay';
 import { ZoneBanner } from './ui/ZoneBanner';
 import { CoordsBar } from './ui/CoordsBar';
@@ -31,8 +30,6 @@ import { SoundManager } from './ui/SoundManager';
 import { Achievements } from './ui/Achievements';
 import { DeathScreen } from './ui/DeathScreen';
 import { Compass } from './ui/Compass';
-import { SocialBar } from './ui/SocialBar';
-import { EmoteBar } from './ui/EmoteBar';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -103,17 +100,17 @@ function GameUI({ username }: { username?: string }) {
 
 	return (
 		<NotContent>
-			<StickySidebar />
 			<ActionMenu />
 			<DialogueModal />
 			<DiceRollModal />
 			<CharacterDialog />
 			<NotificationToast />
-			<ChatBar />
 			<ZoneBanner />
 			<CoordsBar />
 			<GoldCounter />
-			<Minimap />
+			<div className="pointer-events-none absolute bottom-3 right-3 z-30 hidden md:block">
+				<Minimap />
+			</div>
 			<CombatLog />
 			<TargetFrame />
 			<Hotbar />
@@ -124,8 +121,7 @@ function GameUI({ username }: { username?: string }) {
 			<Achievements />
 			<DeathScreen />
 			<Compass />
-			<SocialBar />
-			<EmoteBar />
+			<HudDock />
 			<ConnectionOverlay />
 		</NotContent>
 	);

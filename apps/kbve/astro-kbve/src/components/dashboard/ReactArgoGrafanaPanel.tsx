@@ -186,6 +186,18 @@ export default function ReactArgoGrafanaPanel({
 	const ns = sel.namespace;
 	const name = sel.name;
 
+	const noData =
+		!!metrics &&
+		metrics.snapshot.cpuCores == null &&
+		metrics.snapshot.memoryBytes == null &&
+		metrics.snapshot.memoryLimitBytes == null &&
+		metrics.snapshot.netRxBytesPerSec == null &&
+		metrics.snapshot.netTxBytesPerSec == null &&
+		metrics.snapshot.fsBytes == null &&
+		metrics.snapshot.running == null &&
+		metrics.cpuMemSeries.length === 0 &&
+		metrics.netSeries.length === 0;
+
 	useEffect(() => {
 		if (!isPod || !userId || !ns || !name) return;
 
@@ -492,7 +504,40 @@ export default function ReactArgoGrafanaPanel({
 				</div>
 			)}
 
-			{metrics && (
+			{metrics && noData && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						gap: 8,
+						padding: '0.75rem 0.9rem',
+						borderRadius: 8,
+						border: '1px solid var(--sl-color-gray-5, #262626)',
+						background: 'var(--sl-color-bg-nav, #111)',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.82rem',
+						lineHeight: 1.5,
+					}}>
+					<Activity
+						size={15}
+						style={{ marginTop: 2, flexShrink: 0 }}
+					/>
+					<span>
+						No Prometheus series for{' '}
+						<strong
+							style={{ color: 'var(--sl-color-text, #e6edf3)' }}>
+							{ns}/{name}
+						</strong>
+						. The pod is likely not running — replaced by a newer
+						rollout, completed (Job/init), or stopped. cAdvisor only
+						keeps metrics for live pods. Confirm the pod is{' '}
+						<strong>Running</strong>, or hard-refresh the ArgoCD
+						tree if it still lists a stale pod.
+					</span>
+				</div>
+			)}
+
+			{metrics && !noData && (
 				<>
 					<div
 						style={{

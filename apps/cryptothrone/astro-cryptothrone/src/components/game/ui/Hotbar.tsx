@@ -33,7 +33,7 @@ export function Hotbar() {
 
 	if (slots.length === 0) return null;
 	return (
-		<div className="pointer-events-auto absolute bottom-3 left-1/2 z-30 flex -translate-x-1/2 gap-1.5">
+		<div className="pointer-events-auto absolute bottom-20 left-1/2 z-30 flex -translate-x-1/2 gap-1.5 md:bottom-3">
 			{slots.map((id, i) => {
 				const item = getItemById(id);
 				return (
