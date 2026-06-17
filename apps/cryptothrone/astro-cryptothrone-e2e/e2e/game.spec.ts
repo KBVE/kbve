@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures';
 import { supportsWebGL } from './helpers/env';
 import { seedFakeSession } from './helpers/auth';
+import { waitForHud, openHudTab } from './helpers/hud';
 
 test.describe('game page layout', () => {
 	test.beforeEach(async ({ page }) => {
@@ -45,6 +46,8 @@ test.describe('game UI hydration', () => {
 		page,
 	}) => {
 		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
+		await waitForHud(page);
+		await openHudTab(page, 'Character');
 		await expect(
 			page.getByText('Debug Mode', { exact: false }),
 		).toBeVisible({ timeout: 20_000 });
@@ -52,6 +55,8 @@ test.describe('game UI hydration', () => {
 
 	test('debug-mode toggle is interactive', async ({ page }) => {
 		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
+		await waitForHud(page);
+		await openHudTab(page, 'Character');
 		const label = page.locator('label', { hasText: 'Debug Mode' });
 		const toggle = label.locator('input[type="checkbox"]');
 		await expect(toggle).toBeAttached({ timeout: 20_000 });
