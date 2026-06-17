@@ -1,16 +1,25 @@
 use crate::agones::AgonesClient;
 use crate::config::{Environment, TenantConfig};
 use crate::db::DbPool;
+use crate::drain::{ShutdownNotifier, default_notifier};
 use crate::mq::MqProducer;
 use crate::service::CachedSession;
 use crate::supabase::SupabaseConfig;
 use dashmap::DashMap;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::time::Instant;
 use uuid::Uuid;
 
 pub struct AppState {
     pub db: DbPool,
+    /// Read-only pool seam. Defaults to a clone of `db` unless `DATABASE_URL_RO` is set.
+    /// Nothing routes to it yet — future read/write split (cnpg -ro).
+    pub db_ro: DbPool,
+    /// Flipped true on SIGTERM so `/ready` reports NotReady before shutdown.
+    pub draining: AtomicBool,
+    /// Transport-agnostic player-notify seam (logging no-op today).
+    pub notifier: Arc<dyn ShutdownNotifier>,
     pub sessions: DashMap<Uuid, CachedSession>,
     pub zone_servers: DashMap<i32, String>,
     /// Spin-up lock keyed by zone; stores timestamp so stale locks can be aged out.
@@ -40,6 +49,8 @@ impl AppState {
 #[derive(Default)]
 pub struct AppStateBuilder {
     db: Option<DbPool>,
+    db_ro: Option<DbPool>,
+    notifier: Option<Arc<dyn ShutdownNotifier>>,
     tenant: Option<TenantConfig>,
     agones_namespace: Option<String>,
     agones_fleet: Option<String>,
@@ -50,6 +61,16 @@ pub struct AppStateBuilder {
 impl AppStateBuilder {
     pub fn db(mut self, pool: DbPool) -> Self {
         self.db = Some(pool);
+        self
+    }
+
+    pub fn db_ro(mut self, pool: DbPool) -> Self {
+        self.db_ro = Some(pool);
+        self
+    }
+
+    pub fn notifier(mut self, notifier: Arc<dyn ShutdownNotifier>) -> Self {
+        self.notifier = Some(notifier);
         self
     }
 
@@ -78,8 +99,12 @@ impl AppStateBuilder {
         let tenant = self
             .tenant
             .ok_or_else(|| anyhow::anyhow!("tenant config required"))?;
+        let db = self.db.ok_or_else(|| anyhow::anyhow!("db pool required"))?;
         Ok(Arc::new(AppState {
-            db: self.db.ok_or_else(|| anyhow::anyhow!("db pool required"))?,
+            db_ro: self.db_ro.unwrap_or_else(|| db.clone()),
+            draining: AtomicBool::new(false),
+            notifier: self.notifier.unwrap_or_else(default_notifier),
+            db,
             sessions: DashMap::new(),
             zone_servers: DashMap::new(),
             zone_spinup_locks: DashMap::new(),

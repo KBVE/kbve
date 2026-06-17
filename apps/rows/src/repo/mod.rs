@@ -6,7 +6,7 @@ mod users;
 mod zones;
 
 pub use abilities::AbilitiesRepo;
-pub use characters::CharsRepo;
+pub use characters::{CharsRepo, PositionRow};
 pub use global_data::GlobalDataRepo;
 pub use instances::InstanceRepo;
 pub use users::UsersRepo;

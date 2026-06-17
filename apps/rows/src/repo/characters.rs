@@ -5,6 +5,17 @@ use uuid::Uuid;
 
 pub struct CharsRepo<'a>(pub &'a DbPool);
 
+/// One character's position+rotation for a batched [`CharsRepo::update_positions`] call.
+pub struct PositionRow<'a> {
+    pub char_name: &'a str,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub rx: f64,
+    pub ry: f64,
+    pub rz: f64,
+}
+
 impl<'a> CharsRepo<'a> {
     pub async fn get_by_name(
         &self,
@@ -49,6 +60,48 @@ impl<'a> CharsRepo<'a> {
         .await?;
 
         Ok(())
+    }
+
+    /// Bulk position update for an entire zone tick in one round-trip. Postgres `UNNEST` zips the
+    /// seven parallel arrays into rows that join back to `characters` by name. Returns the number of
+    /// rows actually updated (names not present in the tenant simply don't match). No-op on empty
+    /// input.
+    pub async fn update_positions(
+        &self,
+        customer_guid: Uuid,
+        rows: &[PositionRow<'_>],
+    ) -> Result<u64, RowsError> {
+        if rows.is_empty() {
+            return Ok(0);
+        }
+
+        let names: Vec<&str> = rows.iter().map(|r| r.char_name).collect();
+        let xs: Vec<f64> = rows.iter().map(|r| r.x).collect();
+        let ys: Vec<f64> = rows.iter().map(|r| r.y).collect();
+        let zs: Vec<f64> = rows.iter().map(|r| r.z).collect();
+        let rxs: Vec<f64> = rows.iter().map(|r| r.rx).collect();
+        let rys: Vec<f64> = rows.iter().map(|r| r.ry).collect();
+        let rzs: Vec<f64> = rows.iter().map(|r| r.rz).collect();
+
+        let result = sqlx::query(
+            "UPDATE characters AS c
+             SET x = v.x, y = v.y, z = v.z, rx = v.rx, ry = v.ry, rz = v.rz
+             FROM UNNEST($2::text[], $3::float8[], $4::float8[], $5::float8[], $6::float8[], $7::float8[], $8::float8[])
+                  AS v(charname, x, y, z, rx, ry, rz)
+             WHERE c.customerguid = $1 AND c.charname = v.charname",
+        )
+        .bind(customer_guid)
+        .bind(&names)
+        .bind(&xs)
+        .bind(&ys)
+        .bind(&zs)
+        .bind(&rxs)
+        .bind(&rys)
+        .bind(&rzs)
+        .execute(self.0)
+        .await?;
+
+        Ok(result.rows_affected())
     }
 
     pub async fn get_custom_data(

@@ -14,14 +14,24 @@ impl OWSService {
         char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
+        // Fetch the character row at most once: the owner check (players only) and last-zone
+        // resolution (`GETLASTZONENAME`/empty zone) both need it, so load it up front when either
+        // path will and reuse the result instead of re-querying.
+        let needs_last_zone = zone_name.is_empty() || zone_name == "GETLASTZONENAME";
+        let is_player = matches!(caller, AuthIdentity::Player(_));
+        let character = if is_player || needs_last_zone {
+            CharsRepo(&self.state.db)
+                .get_by_name(customer_guid, char_name)
+                .await?
+        } else {
+            None
+        };
+
         if let AuthIdentity::Player(caller_guid) = caller {
-            self.verify_character_owner(customer_guid, caller_guid, char_name)
-                .await?;
+            self.verify_character_owner(caller_guid, char_name, character.as_ref())?;
         }
 
-        let resolved_zone = self
-            .resolve_zone(customer_guid, char_name, zone_name)
-            .await?;
+        let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
         let pipeline = AllocationPipeline::new(customer_guid, &resolved_zone, &self.state.db);
         match pipeline.find_existing(char_name).await {
@@ -39,14 +49,13 @@ impl OWSService {
     /// Backwards compatibility: a character with no owner (legacy `NULL` `userguid`) is allowed
     /// through with a warning; a missing character is left for the downstream zone lookup to report.
     /// Only a character owned by a different user is rejected.
-    async fn verify_character_owner(
+    fn verify_character_owner(
         &self,
-        customer_guid: Uuid,
         caller_guid: Uuid,
         char_name: &str,
+        character: Option<&Character>,
     ) -> Result<(), RowsError> {
-        let chars_repo = CharsRepo(&self.state.db);
-        let Some(character) = chars_repo.get_by_name(customer_guid, char_name).await? else {
+        let Some(character) = character else {
             return Ok(());
         };
 
@@ -74,19 +83,16 @@ impl OWSService {
         }
     }
 
-    async fn resolve_zone(
+    fn resolve_zone(
         &self,
-        customer_guid: Uuid,
         char_name: &str,
         zone_name: &str,
+        character: Option<&Character>,
     ) -> Result<String, RowsError> {
         let resolved = if zone_name.is_empty() || zone_name == "GETLASTZONENAME" {
-            let chars_repo = CharsRepo(&self.state.db);
-            let character = chars_repo
-                .get_by_name(customer_guid, char_name)
-                .await?
+            let character = character
                 .ok_or_else(|| RowsError::NotFound(format!("Character not found: {char_name}")))?;
-            character.map_name.unwrap_or_default()
+            character.map_name.clone().unwrap_or_default()
         } else {
             zone_name.to_string()
         };
@@ -165,7 +171,7 @@ impl OWSService {
             if let Err(ref e) = result {
                 tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up this allocation");
 
-                let lock_key = format!("{customer_guid}:{zone}");
+                let lock_key = crate::agones::spinup_lock_key(customer_guid, zone);
                 self.state.zone_spinup_locks.remove(&lock_key);
 
                 if let Some(instance_id) = created_instance_id {
@@ -204,14 +210,14 @@ impl OWSService {
                 Err(e) => {
                     self.state
                         .zone_spinup_locks
-                        .remove(&format!("{0}:{zone}", customer_guid));
+                        .remove(&crate::agones::spinup_lock_key(customer_guid, zone));
                     Err(e)
                 }
             }
         } else {
             self.state
                 .zone_spinup_locks
-                .remove(&format!("{0}:{zone}", customer_guid));
+                .remove(&crate::agones::spinup_lock_key(customer_guid, zone));
             Err(RowsError::Internal(
                 "No Agones or MQ available for allocation".into(),
             ))

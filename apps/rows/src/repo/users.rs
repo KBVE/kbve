@@ -382,14 +382,14 @@ impl<'a> UsersRepo<'a> {
         customer_guid: Uuid,
         user_guid: Uuid,
     ) -> Result<Uuid, RowsError> {
-        sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
-            .bind(user_guid)
-            .execute(self.0)
-            .await?;
-
+        // Replace any prior session for this user in one round-trip: the CTE deletes the old rows,
+        // then the INSERT writes the fresh session.
         let session_guid = Uuid::new_v4();
         sqlx::query(
-            "INSERT INTO usersessions (customerguid, usersessionguid, userguid, logindate)
+            "WITH purged AS (
+                 DELETE FROM usersessions WHERE userguid = $3
+             )
+             INSERT INTO usersessions (customerguid, usersessionguid, userguid, logindate)
              VALUES ($1, $2, $3, NOW())",
         )
         .bind(customer_guid)
