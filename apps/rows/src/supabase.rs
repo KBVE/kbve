@@ -133,3 +133,71 @@ pub enum JwtError {
     #[error("Invalid service key")]
     InvalidServiceKey,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jsonwebtoken::{EncodingKey, Header, encode};
+
+    fn config(secret: &str) -> SupabaseConfig {
+        SupabaseConfig {
+            jwt_secret: Some(secret.to_string()),
+            url: None,
+            service_key_hash: None,
+        }
+    }
+
+    fn sign(secret: &str, claims: &SupabaseClaims) -> String {
+        encode(
+            &Header::new(Algorithm::HS256),
+            claims,
+            &EncodingKey::from_secret(secret.as_bytes()),
+        )
+        .expect("signing an HS256 token should succeed")
+    }
+
+    fn sample_claims() -> SupabaseClaims {
+        SupabaseClaims {
+            sub: "cc274223-6acc-4a2e-9bb4-09eebffb83cb".into(),
+            aud: "authenticated".into(),
+            role: "authenticated".into(),
+            iat: 0,
+            // Year 2286 — keeps the default `exp` validation happy without wall-clock flakiness.
+            exp: 9_999_999_999,
+            email: Some("player@example.com".into()),
+            app_metadata: Some(AppMetadata {
+                customer_guid: Some("cc274223-6acc-4a2e-9bb4-09eebffb83cb".into()),
+                is_admin: Some(true),
+            }),
+        }
+    }
+
+    /// Regression for #12660: verifying a real HS256 token must NOT panic.
+    /// Before the `rust_crypto` feature was enabled, no crypto provider was compiled
+    /// in and `jsonwebtoken`'s verifier_factory panicked the tokio worker → 503.
+    #[test]
+    fn hs256_token_verifies_against_matching_secret() {
+        let secret = "super-secret-gotrue-hs256-key";
+        let token = sign(secret, &sample_claims());
+
+        let user = validate_jwt(&token, &config(secret)).expect("valid token should verify");
+
+        assert_eq!(
+            user.user_id.to_string(),
+            "cc274223-6acc-4a2e-9bb4-09eebffb83cb"
+        );
+        assert_eq!(user.role, "authenticated");
+        assert_eq!(user.email.as_deref(), Some("player@example.com"));
+        assert!(user.is_admin);
+    }
+
+    /// A token signed with a different secret must return an auth error, not panic.
+    #[test]
+    fn wrong_secret_returns_error_not_panic() {
+        let token = sign("the-real-secret", &sample_claims());
+
+        let result = validate_jwt(&token, &config("a-different-secret"));
+
+        assert!(matches!(result, Err(JwtError::Invalid(_))));
+    }
+}
