@@ -5,6 +5,7 @@ mod agones;
 mod config;
 mod convert;
 mod db;
+mod drain;
 mod error;
 mod grpc;
 mod jobs;
@@ -69,8 +70,16 @@ async fn main() -> anyhow::Result<()> {
         "Tenant configuration loaded"
     );
 
-    let pool = db::connect(&cfg.database_url).await?;
-    info!("Database connected");
+    let pool = db::connect_lazy(&cfg.database_url)?;
+    info!("Database pool initialized (lazy; connections open on first use)");
+
+    let pool_ro = match std::env::var("DATABASE_URL_RO").ok().filter(|s| !s.is_empty()) {
+        Some(ro_url) => {
+            info!("Read-only DB pool configured from DATABASE_URL_RO");
+            db::connect_lazy(&ro_url)?
+        }
+        None => pool.clone(),
+    };
 
     let mq_producer = mq::try_connect(&cfg.rabbitmq_url).await;
     info!(
@@ -87,6 +96,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = state::AppState::builder()
         .db(pool)
+        .db_ro(pool_ro)
         .tenant(cfg.tenant.clone())
         .agones_config(&cfg.agones_namespace, &cfg.agones_fleet)
         .mq(mq_producer)
@@ -122,6 +132,12 @@ async fn main() -> anyhow::Result<()> {
 
     // world_server_id=0 is a placeholder; real value comes from register_launcher.
     mq::spawn_consumer(&cfg.rabbitmq_url, 0, svc.clone()).await;
+
+    let drain_grace_secs: u64 = std::env::var("ROWS_DRAIN_GRACE_SECS")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(8);
+    let shutdown_state = app_state.clone();
 
     let grpc_router = grpc::router(svc.clone());
     let rest_router = rest::router(app_state, svc.clone());
@@ -170,14 +186,18 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal(shutdown_state.clone(), drain_grace_secs))
         .await?;
 
+    // In-flight requests have drained; release DB connections promptly so the incoming pod
+    // gets its connection headroom without waiting for TCP/idle timeouts.
+    shutdown_state.db.close().await;
+    shutdown_state.db_ro.close().await;
     info!("ROWS shutdown complete");
     Ok(())
 }
 
-async fn shutdown_signal() {
+async fn shutdown_signal(state: std::sync::Arc<state::AppState>, grace_secs: u64) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
             .await
@@ -199,4 +219,21 @@ async fn shutdown_signal() {
         _ = ctrl_c => info!("Received Ctrl+C, shutting down..."),
         _ = terminate => info!("Received SIGTERM, shutting down..."),
     }
+
+    // 1. Flip readiness to NotReady so k8s deregisters this pod from the Service endpoints.
+    state
+        .draining
+        .store(true, std::sync::atomic::Ordering::SeqCst);
+    info!("Draining: /ready now reports NotReady");
+
+    // 2. Fire the (stub) player notification.
+    state.notifier.notify_players_shutdown(&drain::ShutdownNotice {
+        reason: drain::ShutdownReason::Rollout,
+        message: "ROWS is restarting for an update.".into(),
+        grace_secs,
+    });
+
+    // 3. Wait out the grace period so endpoint removal propagates and in-flight work settles.
+    info!(grace_secs, "Draining: waiting grace period before graceful shutdown");
+    tokio::time::sleep(std::time::Duration::from_secs(grace_secs)).await;
 }

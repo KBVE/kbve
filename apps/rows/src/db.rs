@@ -5,7 +5,9 @@ use tracing::{info, warn};
 
 pub type DbPool = PgPool;
 
-pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
+/// Build connection options from either a `postgres://` URL or an Npgsql/ADO.NET string.
+/// Parsing only — no network I/O. `Err` means the URL itself is malformed.
+fn build_opts(database_url: &str) -> anyhow::Result<PgConnectOptions> {
     let opts =
         if database_url.starts_with("postgres://") || database_url.starts_with("postgresql://") {
             info!("Parsing DATABASE_URL as postgres:// URL");
@@ -20,8 +22,14 @@ pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
             );
         };
 
-    let opts = opts.options([("search_path", "ows,extensions,public")]);
     info!("Database search_path set to: ows,extensions,public");
+    Ok(opts.options([("search_path", "ows,extensions,public")]))
+}
+
+/// Build a **lazy** pool: connections open on first use, never at construction, so a saturated
+/// or unreachable DB cannot crash startup. `min_connections(0)` means no eager/idle connections.
+pub fn connect_lazy(database_url: &str) -> anyhow::Result<DbPool> {
+    let opts = build_opts(database_url)?;
 
     let max_conns: u32 = std::env::var("DB_MAX_CONNECTIONS")
         .ok()
@@ -30,12 +38,34 @@ pub async fn connect(database_url: &str) -> anyhow::Result<DbPool> {
 
     let pool = PgPoolOptions::new()
         .max_connections(max_conns)
-        .min_connections(5)
+        .min_connections(0)
         .acquire_timeout(Duration::from_secs(5))
         .idle_timeout(Duration::from_secs(300))
-        .connect_with(opts)
-        .await?;
+        .connect_lazy_with(opts);
     Ok(pool)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn connect_lazy_does_not_dial_at_construction() {
+        // Unreachable host: a lazy pool must still build without error,
+        // because no connection is opened until first acquire.
+        let pool = connect_lazy("postgres://u:p@10.255.255.1:5432/none");
+        assert!(pool.is_ok(), "lazy pool construction must not fail on an unreachable host");
+    }
+
+    #[test]
+    fn build_opts_rejects_garbage() {
+        assert!(build_opts("not-a-valid-url").is_err());
+    }
+
+    #[test]
+    fn build_opts_accepts_postgres_url() {
+        assert!(build_opts("postgres://u:p@db:5432/app").is_ok());
+    }
 }
 
 /// Parse an Npgsql/ADO.NET connection string (`Host=...;Port=...;Database=...;...`).
