@@ -111,12 +111,17 @@ pub(crate) async fn update_all_positions(
 ) -> Json<SuccessResponse> {
     let customer_guid = extract_customer_guid(&headers);
 
-    // Wire format from OWS: `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`
-    let mut updated = 0u32;
-    let mut failed = 0u32;
-    for entry in body.serialized_player_location_data.split('|') {
+    // Wire format from OWS: `CharName:X:Y:Z:RX:RY:RZ|CharName2:...`. Parse every entry first, then
+    // flush the whole batch in one DB round-trip instead of one UPDATE per player.
+    let data = &body.serialized_player_location_data;
+    let mut rows: Vec<crate::repo::PositionRow<'_>> = Vec::new();
+    let mut malformed = 0u32;
+    for entry in data.split('|').filter(|e| !e.is_empty()) {
         let mut it = entry.splitn(8, ':');
-        let Some(char_name) = it.next() else { continue };
+        let Some(char_name) = it.next() else {
+            malformed += 1;
+            continue;
+        };
         let (Some(sx), Some(sy), Some(sz), Some(srx), Some(sry), Some(srz)) = (
             it.next(),
             it.next(),
@@ -125,6 +130,7 @@ pub(crate) async fn update_all_positions(
             it.next(),
             it.next(),
         ) else {
+            malformed += 1;
             continue;
         };
         let (Ok(x), Ok(y), Ok(z), Ok(rx), Ok(ry), Ok(rz)) = (
@@ -135,24 +141,31 @@ pub(crate) async fn update_all_positions(
             sry.parse::<f64>(),
             srz.parse::<f64>(),
         ) else {
+            malformed += 1;
             continue;
         };
-
-        if let Err(e) = hs
-            .svc
-            .update_position(customer_guid, char_name, x, y, z, rx, ry, rz)
-            .await
-        {
-            tracing::warn!(char_name, error = %e, "position update failed");
-            failed += 1;
-        } else {
-            updated += 1;
-        }
+        rows.push(crate::repo::PositionRow {
+            char_name,
+            x,
+            y,
+            z,
+            rx,
+            ry,
+            rz,
+        });
     }
 
-    if failed > 0 {
+    let updated = match hs.svc.update_positions(customer_guid, &rows).await {
+        Ok(n) => n,
+        Err(e) => {
+            tracing::warn!(error = %e, "bulk position update failed");
+            return Json(SuccessResponse::err(e.to_string()));
+        }
+    };
+
+    if malformed > 0 {
         Json(SuccessResponse::err(format!(
-            "{failed} position updates failed, {updated} succeeded"
+            "{malformed} malformed position entries skipped, {updated} rows updated"
         )))
     } else {
         Json(SuccessResponse::ok())

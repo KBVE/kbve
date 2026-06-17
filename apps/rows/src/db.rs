@@ -54,7 +54,10 @@ mod tests {
         // Unreachable host: a lazy pool must still build without error,
         // because no connection is opened until first acquire.
         let pool = connect_lazy("postgres://u:p@10.255.255.1:5432/none");
-        assert!(pool.is_ok(), "lazy pool construction must not fail on an unreachable host");
+        assert!(
+            pool.is_ok(),
+            "lazy pool construction must not fail on an unreachable host"
+        );
     }
 
     #[test]

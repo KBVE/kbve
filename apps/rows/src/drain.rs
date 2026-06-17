@@ -72,7 +72,9 @@ pub struct PlayerRegistry<C> {
 impl<C> PlayerRegistry<C> {
     #[allow(clippy::new_without_default)] // dead-coded scaffold; Default deferred with the impl
     pub fn new() -> Self {
-        Self { conns: dashmap::DashMap::new() }
+        Self {
+            conns: dashmap::DashMap::new(),
+        }
     }
     pub fn insert(&self, id: PlayerId, conn: C) {
         self.conns.insert(id, conn);
