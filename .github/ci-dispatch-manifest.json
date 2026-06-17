@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.44",
+			"version": "0.1.45",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.19",
+			"version": "0.0.20",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -432,7 +432,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.25",
+			"version": "0.1.27",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -440,6 +440,9 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/rows",
 			"deployment_yaml": "apps/kube/rows/manifest/rows-deployment.yaml",
+			"deployment_yamls": [
+				"apps/kube/rows/tenants/base/deployment.yaml"
+			],
 			"has_test": false
 		},
 		{
