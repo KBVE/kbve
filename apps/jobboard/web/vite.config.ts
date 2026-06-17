@@ -55,11 +55,10 @@ export default defineConfig(({ mode }) => ({
 				),
 			},
 			{
+				// extensionless so vite resolves index.web.ts (drops rails, whose
+				// RailItem/Rail pull @expo/vector-icons) before index.ts
 				find: /^@kbve\/rn$/,
-				replacement: path.join(
-					repoRoot,
-					'packages/npm/rn/src/index.ts',
-				),
+				replacement: path.join(repoRoot, 'packages/npm/rn/src/index'),
 			},
 			{
 				find: /^@kbve\/core$/,
