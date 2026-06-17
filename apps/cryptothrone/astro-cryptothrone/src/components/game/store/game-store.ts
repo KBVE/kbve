@@ -121,6 +121,7 @@ export const initialGameState: GameState = {
 };
 
 let notificationCounter = 0;
+const MAX_NOTIFICATIONS = 4;
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
 	switch (action.type) {
@@ -220,7 +221,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 			};
 			return {
 				...state,
-				notifications: [...state.notifications, notification],
+				notifications: [...state.notifications, notification].slice(
+					-MAX_NOTIFICATIONS,
+				),
 			};
 		}
 
