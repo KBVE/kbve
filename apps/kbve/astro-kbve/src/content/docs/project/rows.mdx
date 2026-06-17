@@ -54,7 +54,8 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
 
 <Aside type="tip" title="Production">
     ROWS is the production game backend. The legacy .NET OWS microservices have been fully
-    removed — all traffic on `api.chuckrpg.com` routes exclusively to ROWS.
+    removed — all ChuckRPG traffic routes exclusively to ROWS via the per-environment hosts
+    `api-dev.chuckrpg.com`, `api-beta.chuckrpg.com`, and `api-prod.chuckrpg.com`.
 </Aside>
 
 ### Deployment

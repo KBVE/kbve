@@ -775,7 +775,7 @@ jobs:
 
             - name: Build Linux client
               run: |
-                  mkdir -p /tmp/ue5-game-output
+                  mkdir -p "${GITHUB_WORKSPACE}/ue5-game-output"
                   UPROJECT_FILE=$(find /tmp/game-project -maxdepth 1 -name '*.uproject' | head -1)
                   if [ -z "${UPROJECT_FILE}" ]; then
                     echo "::error::No .uproject at /tmp/game-project root"
@@ -793,7 +793,7 @@ jobs:
 
                   docker run --rm \
                     -v /tmp/game-project:/project \
-                    -v /tmp/ue5-game-output:/output \
+                    -v "${GITHUB_WORKSPACE}/ue5-game-output:/output" \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
                       set -euo pipefail
@@ -821,7 +821,7 @@ jobs:
                     sudo apt-get update
                     sudo apt-get install -y zip
                   fi
-                  cd /tmp/ue5-game-output
+                  cd "${GITHUB_WORKSPACE}/ue5-game-output"
                   zip -r "/tmp/${{ inputs.app_name }}-Linux-v${VERSION}.zip" .
 
             - name: Upload artifact
@@ -836,7 +836,7 @@ jobs:
               uses: KikimoraGames/itch-publish@v0.0.3
               with:
                   butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: /tmp/ue5-game-output
+                  gameData: ./ue5-game-output
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
                   buildChannel: linux-v${{ needs.game_gate.outputs.version }}
@@ -847,7 +847,7 @@ jobs:
               run: |
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
-                  rm -rf /tmp/game-project /tmp/game-clone /tmp/ue5-game-output 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/game-clone "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
 
     win_vm_boot:
         name: Boot Windows VM

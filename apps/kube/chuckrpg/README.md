@@ -2,20 +2,26 @@
 
 ## Domain Architecture
 
-| Domain              | Purpose                        | Proxy             | TLS                            |
-| ------------------- | ------------------------------ | ----------------- | ------------------------------ |
-| `chuckrpg.com`      | Astro frontend (axum-chuckrpg) | Cloudflare        | Let's Encrypt via cert-manager |
-| `api.chuckrpg.com`  | ROWS API (OWS backend)         | Cloudflare        | Let's Encrypt via cert-manager |
-| `game.chuckrpg.com` | Agones game servers (UE5 UDP)  | Direct (no proxy) | N/A — UDP only                 |
+| Domain                  | Purpose                            | Proxy             | TLS                            |
+| ----------------------- | ---------------------------------- | ----------------- | ------------------------------ |
+| `chuckrpg.com`          | Astro frontend (axum-chuckrpg)     | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-dev.chuckrpg.com`  | ROWS API — dev tenant              | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-beta.chuckrpg.com` | ROWS API — beta tenant             | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-prod.chuckrpg.com` | ROWS API — prod tenant             | Cloudflare        | Let's Encrypt via cert-manager |
+| `game.chuckrpg.com`     | Agones game servers (UE5 UDP)      | Direct (no proxy) | N/A — UDP only                 |
+
+> The bare `api.chuckrpg.com` host was retired to avoid environment ambiguity. The ROWS API
+> hosts are served by the per-tenant overlays under `apps/kube/rows/tenants/` (namespaces
+> `rows-chuckrpg-dev` / `rows-chuckrpg-beta` / `rows-chuckrpg-prod`), **not** this namespace.
 
 ## Networking
 
 ### HTTP/HTTPS (Cilium Gateway API)
 
-`chuckrpg.com` and `api.chuckrpg.com` route through the shared Cilium gateway (`kbve-gateway` in the `kbve` namespace). Cloudflare terminates public TLS on the edge; the origin uses cert-manager certs for Full/Strict SSL mode.
+`chuckrpg.com` routes through the shared Cilium gateway (`kbve-gateway` in the `kbve` namespace). Cloudflare terminates public TLS on the edge; the origin uses cert-manager certs for Full/Strict SSL mode. The `api-*.chuckrpg.com` ROWS hosts have their own gateway listeners terminating with each tenant's cert in its `rows-chuckrpg-*` namespace.
 
-- HTTPRoutes: `chuckrpg-routes`, `chuckrpg-api-routes`
-- Certificates: `chuckrpg-tls`, `chuckrpg-api-tls` (issued by `letsencrypt-http` ClusterIssuer)
+- HTTPRoutes: `chuckrpg-routes` (this namespace); `ows-api-routes` per rows tenant overlay
+- Certificates: `chuckrpg-tls` (this namespace); `rows-chuckrpg-<env>-api-tls` per rows tenant (all issued by `letsencrypt-http` ClusterIssuer)
 - ACME challenges work because Cloudflare proxies HTTP traffic to the gateway
 
 ### Game Server (Agones UDP)
@@ -39,8 +45,8 @@ The isometric game client uses WebTransport (QUIC/UDP) on `wt.kbve.com:5001`. Th
 | `serviceaccount.yaml`  | `chuckrpg` ServiceAccount (no token automount — pod does not call the kube API)         |
 | `configmap.yaml`       | `chuckrpg-config` — runtime env (HTTP_HOST/PORT/RUST_LOG) plus future integration stubs |
 | `deployment.yaml`      | `chuckrpg-deployment` (axum-chuckrpg) and `chuckrpg-service` (ClusterIP)                |
-| `httproute.yaml`       | HTTPRoutes for `chuckrpg.com` and `api.chuckrpg.com`                                    |
-| `certificate.yaml`     | TLS certs for `chuckrpg.com` and `api.chuckrpg.com`                                     |
+| `httproute.yaml`       | HTTPRoute for `chuckrpg.com` (ROWS API routes live in the rows tenant overlays)         |
+| `certificate.yaml`     | TLS cert for `chuckrpg.com` (ROWS API certs live in the rows tenant overlays)           |
 | `reference-grant.yaml` | Allows `kbve-gateway` to reference certs in `chuckrpg` namespace                        |
 
 ## Hardening

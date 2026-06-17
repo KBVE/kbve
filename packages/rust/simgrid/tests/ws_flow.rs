@@ -105,11 +105,11 @@ async fn join_spawns_player_at_spawn_tile() {
 
     // A snapshot should soon carry our player entity at the spawn tile.
     for _ in 0..200 {
-        if let Some(ServerEvent::Snapshot(snap)) = next_event(&mut ws).await {
-            if let Some(e) = snap.entities.iter().find(|e| e.tile == SPAWN) {
-                assert_eq!(e.tile, SPAWN);
-                return;
-            }
+        if let Some(ServerEvent::Snapshot(snap)) = next_event(&mut ws).await
+            && let Some(e) = snap.entities.iter().find(|e| e.tile == SPAWN)
+        {
+            assert_eq!(e.tile, SPAWN);
+            return;
         }
     }
     panic!("never saw the player spawn at {SPAWN:?}");
@@ -123,11 +123,11 @@ async fn step_input_moves_player() {
     // Wait for the spawn snapshot.
     let mut start_y = None;
     for _ in 0..200 {
-        if let Some(ServerEvent::Snapshot(s)) = next_event(&mut ws).await {
-            if let Some(e) = s.entities.iter().find(|e| e.tile.x == SPAWN.x) {
-                start_y = Some(e.tile.y);
-                break;
-            }
+        if let Some(ServerEvent::Snapshot(s)) = next_event(&mut ws).await
+            && let Some(e) = s.entities.iter().find(|e| e.tile.x == SPAWN.x)
+        {
+            start_y = Some(e.tile.y);
+            break;
         }
     }
     let start_y = start_y.expect("player spawned");
@@ -145,12 +145,11 @@ async fn step_input_moves_player() {
     }
 
     for _ in 0..200 {
-        if let Some(ServerEvent::Snapshot(s)) = next_event(&mut ws).await {
-            if let Some(e) = s.entities.iter().find(|e| e.tile.x == SPAWN.x) {
-                if e.tile.y < start_y {
-                    return;
-                }
-            }
+        if let Some(ServerEvent::Snapshot(s)) = next_event(&mut ws).await
+            && let Some(e) = s.entities.iter().find(|e| e.tile.x == SPAWN.x)
+            && e.tile.y < start_y
+        {
+            return;
         }
     }
     panic!("player never moved up from y={start_y}");
