@@ -18,6 +18,10 @@ pub mod spellbook;
 pub mod utility;
 
 pub mod entity;
+
+#[cfg(feature = "gate")]
+pub mod gate;
+
 #[cfg(feature = "legacy-sync-db")]
 pub mod sys;
 pub mod utils;

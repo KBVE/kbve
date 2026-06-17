@@ -9071,6 +9071,7 @@ dependencies = [
  "thiserror 2.0.18",
  "time",
  "tokio",
+ "tokio-tungstenite 0.24.0",
  "tower 0.5.3",
  "tower-http",
  "tracing",
@@ -9093,6 +9094,17 @@ dependencies = [
  "tauri-plugin-store",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "kbve-gate"
+version = "0.1.0"
+dependencies = [
+ "dotenvy",
+ "kbve",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
