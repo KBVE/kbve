@@ -868,11 +868,6 @@ jobs:
                   TOKEN=$(cat "$SA/token")
                   NS=angelscript
                   VM=windows-builder
-                  # Tolerate transient API blips: a k8s Status error object has a
-                  # string ".status" ("Failure"), so ".status.printableStatus"
-                  # would throw "Cannot index string" and (under bash -eo pipefail)
-                  # kill the step. The "?" suppresses the index error and curl is
-                  # split out of the pipe so a network blip just yields "Unknown".
                   status() {
                     local body
                     body=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
