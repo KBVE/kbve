@@ -234,6 +234,18 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url-any
+                      # CNPG cluster CA (internal-ca) that signs the
+                      # supabase-cluster server + pooler certs. PgCluster's
+                      # rustls connector only trusts the webpki public roots
+                      # by default, so without this it can't verify the
+                      # internal-ca-signed cert and every acquire times out
+                      # (→ /api/v1/wallet/* 408). Synced into supabase-shared
+                      # from the kilobase supabase-cluster-ca secret by
+                      # kbve-externalsecret.yaml; ESO's 1h refresh + the
+                      # supabase-shared reloader watch roll the pod on CA
+                      # rotation.
+                      - name: KBVE_PG_CA_PEM_FILE
+                        value: '/etc/ssl/pgca/ca.crt'
                       # KvCache (jedi::state::kv) L2 backing. valkey-auth
                       # is cloned into the kbve namespace by Kyverno
                       # (apps/kube/valkey/manifests/valkey-auth-sync-policy.yaml).
@@ -261,6 +273,9 @@ spec:
                                 key: hash-secret
                                 optional: true
                   volumeMounts:
+                      - name: pg-ca
+                        mountPath: /etc/ssl/pgca
+                        readOnly: true
                       - name: argocd-ca
                         mountPath: /etc/ssl/argocd
                         readOnly: true
@@ -278,6 +293,12 @@ spec:
                           memory: '1024Mi'
                           cpu: '2000m'
             volumes:
+                - name: pg-ca
+                  secret:
+                      secretName: supabase-shared
+                      items:
+                          - key: db-ca-crt
+                            path: ca.crt
                 - name: argocd-ca
                   secret:
                       secretName: kbve-internal-ca-tls
