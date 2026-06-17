@@ -20,7 +20,7 @@ rules:
               'supabase-jwt',
               'supabase-postgres',
               'supabase-db',
-              'supabase-cluster-ca',
+              'supabase-server-tls',
               'twitch-oauth-config',
               'ows-db-password',
               'referral-hash',
