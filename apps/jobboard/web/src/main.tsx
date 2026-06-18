@@ -9,6 +9,7 @@ import { OverlayHost, ThemeProvider, ToastViewport } from '@kbve/rn/ui';
 import { createKvPersister } from '@kbve/rn/store';
 import { router } from './router';
 import { DevBanner } from './components/DevBanner';
+import { StaffProvider } from './lib/staff';
 import { setAuthTokenGetter } from './api/client';
 import { queryClient } from './lib/queryClient';
 import { jobboardTheme } from './lib/theme';
@@ -41,18 +42,20 @@ createRoot(document.getElementById('root')!).render(
 			apiBaseUrl={`${window.location.origin}/kbveapi`}
 			oauthUrl="https://supabase.kbve.com">
 			<AuthBridge />
-			<ThemeProvider theme={jobboardTheme}>
-				<PersistQueryClientProvider
-					client={queryClient}
-					persistOptions={{ persister }}>
-					<DevBanner />
-					{/* Public marketplace — browsing needs no auth. Login
-					    lives at /login; KbveProvider supplies the session. */}
-					<RouterProvider router={router} />
-				</PersistQueryClientProvider>
-				<OverlayHost />
-				<ToastViewport />
-			</ThemeProvider>
+			<StaffProvider>
+				<ThemeProvider theme={jobboardTheme}>
+					<PersistQueryClientProvider
+						client={queryClient}
+						persistOptions={{ persister }}>
+						<DevBanner />
+						{/* Public marketplace — browsing needs no auth. Login
+						    lives at /login; KbveProvider supplies the session. */}
+						<RouterProvider router={router} />
+					</PersistQueryClientProvider>
+					<OverlayHost />
+					<ToastViewport />
+				</ThemeProvider>
+			</StaffProvider>
 		</KbveProvider>
 	</StrictMode>,
 );
