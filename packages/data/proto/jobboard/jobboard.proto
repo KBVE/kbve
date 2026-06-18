@@ -241,6 +241,68 @@ message ByLookup { uint64 id = 1; }
 message ByUser   { bytes  user_id = 1; }
 message Ack      { bool success = 1; string message = 2; }
 
+// ─────────────────────── Membership API envelope ───────────────────────
+// One contract for both transports: string ids (ULID/UUID) keep the JSON
+// clean (no base64) while the same messages serialize over gRPC binary.
+// These mirror the jobboard REST JSON (apps/jobboard/src/rest/applications.rs)
+// and are the source of truth for the web client types.
+
+message ProfileLink {
+  string kind = 1; // github/linkedin/website/x/itch/artstation/other
+  string url  = 2;
+}
+
+message ProfileDraft {
+  optional string headline         = 1;
+  optional string bio              = 2;
+  optional int32  years_experience = 3;
+  optional string location         = 4;
+  repeated ProfileLink links       = 5;
+  repeated uint64 discipline_ids   = 6;
+}
+
+message MembershipApplicationView {
+  string id                      = 1; // ULID
+  int32  requested_capabilities  = 2; // Capability bitmask
+  string statement               = 3;
+  repeated string portfolio_links = 4;
+  int32  status                  = 5; // 0=pending, 1=approved, 2=rejected
+  string review_notes            = 6;
+  string created_at              = 7;
+  optional string reviewed_at    = 8;
+  repeated uint64 vertical_ids   = 9;
+  ProfileDraft profile_draft     = 10;
+}
+
+// Admin queue row: the application plus the applicant's identity (flat, mirrors
+// the REST admin list JSON).
+message AdminApplicationView {
+  string id                       = 1;
+  string user_id                  = 2;
+  optional string email           = 3;
+  int32  requested_capabilities   = 4;
+  string statement                = 5;
+  repeated string portfolio_links = 6;
+  int32  status                   = 7;
+  string created_at               = 8;
+  repeated uint64 vertical_ids    = 9;
+  ProfileDraft profile_draft      = 10;
+}
+
+message SubmitApplicationInput {
+  int32  requested_capabilities  = 1;
+  repeated uint64 vertical_ids   = 2;
+  string statement               = 3;
+  repeated string portfolio_links = 4;
+  ProfileDraft profile_draft     = 5;
+}
+
+message DecisionInput {
+  bool   approve            = 1;
+  int32  grant_capabilities = 2;
+  string notes              = 3;
+}
+
 service JobBoardRpc {
   rpc CreateVertical (Vertical) returns (Ack);
   rpc UpsertTaxonomy (Taxonomy) returns (Ack);

@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/jobboard.binpb
  * Config: ../jobboard-zod-config.json
- * Generated: 2026-06-18T00:31:25.634Z
+ * Generated: 2026-06-18T01:23:07.957Z
  */
 
 import { z } from 'zod';
@@ -129,3 +129,85 @@ export const ReportStatusSchema = z.union([
 	z.literal(2),
 	z.literal(3),
 ]);
+
+// DecisionInput
+export const DecisionInputSchema = z.object({
+	approve: z.boolean(),
+	grant_capabilities: z.number(),
+	notes: z.string(),
+});
+
+export type DecisionInput = z.infer<typeof DecisionInputSchema>;
+
+// ProfileLink
+export const ProfileLinkSchema = z.object({
+	kind: z.enum([
+		'github',
+		'linkedin',
+		'website',
+		'x',
+		'itch',
+		'artstation',
+		'other',
+	]),
+	url: z.string(),
+});
+
+export type ProfileLink = z.infer<typeof ProfileLinkSchema>;
+
+// ProfileDraft
+export const ProfileDraftSchema = z.object({
+	headline: z.string().optional(),
+	bio: z.string().optional(),
+	years_experience: z.number().optional(),
+	location: z.string().optional(),
+	links: z.array(ProfileLinkSchema).optional(),
+	discipline_ids: z.array(z.number()).optional(),
+});
+
+export type ProfileDraft = z.infer<typeof ProfileDraftSchema>;
+
+// SubmitApplicationInput
+export const SubmitApplicationInputSchema = z.object({
+	requested_capabilities: z.number(),
+	vertical_ids: z.array(z.number()).optional(),
+	statement: z.string(),
+	portfolio_links: z.array(z.string()).optional(),
+	profile_draft: ProfileDraftSchema.optional(),
+});
+
+export type SubmitApplicationInput = z.infer<
+	typeof SubmitApplicationInputSchema
+>;
+
+// AdminApplicationView
+export const AdminApplicationSchema = z.object({
+	id: z.string(),
+	user_id: z.string(),
+	email: z.string().nullable().optional(),
+	requested_capabilities: z.number(),
+	statement: z.string(),
+	portfolio_links: z.array(z.string()).optional(),
+	status: z.number(),
+	created_at: z.string(),
+	vertical_ids: z.array(z.number()).optional(),
+	profile_draft: ProfileDraftSchema.optional(),
+});
+
+export type AdminApplication = z.infer<typeof AdminApplicationSchema>;
+
+// MembershipApplicationView
+export const MembershipApplicationSchema = z.object({
+	id: z.string(),
+	requested_capabilities: z.number(),
+	statement: z.string(),
+	portfolio_links: z.array(z.string()).optional(),
+	status: z.number(),
+	review_notes: z.string(),
+	created_at: z.string(),
+	reviewed_at: z.string().nullable().optional(),
+	vertical_ids: z.array(z.number()).optional(),
+	profile_draft: ProfileDraftSchema.optional(),
+});
+
+export type MembershipApplication = z.infer<typeof MembershipApplicationSchema>;

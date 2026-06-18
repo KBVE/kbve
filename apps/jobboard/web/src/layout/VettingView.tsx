@@ -98,6 +98,7 @@ function ApplicationRow({
 	});
 
 	const d = app.profile_draft ?? {};
+	const portfolioLinks = app.portfolio_links ?? [];
 	const meta = [
 		d.years_experience ? `${d.years_experience} yrs exp` : null,
 		d.location || null,
@@ -158,9 +159,9 @@ function ApplicationRow({
 				</div>
 			)}
 
-			{app.portfolio_links.length > 0 && (
+			{portfolioLinks.length > 0 && (
 				<ul className="mt-2 space-y-1">
-					{app.portfolio_links.map((url) => (
+					{portfolioLinks.map((url) => (
 						<li key={url}>
 							<a
 								href={url}

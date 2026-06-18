@@ -220,51 +220,23 @@ export type LinkKind =
 	| 'artstation'
 	| 'other';
 
-export interface ProfileLink {
-	kind: LinkKind;
-	url: string;
-}
-
-// Public profile payload submitted with the application; copied to the
-// talent_profile on approval.
-export interface ProfileDraft {
-	headline?: string;
-	bio?: string;
-	years_experience?: number;
-	location?: string;
-	links?: ProfileLink[];
-	discipline_ids?: number[];
-}
-
-export interface SubmitApplicationInput {
-	requested_capabilities: Capabilities;
-	vertical_ids: number[];
-	statement: string;
-	portfolio_links: string[];
-	profile_draft: ProfileDraft;
-}
-
-export interface MembershipApplication {
-	id: string;
-	requested_capabilities: Capabilities;
-	statement: string;
-	portfolio_links: string[];
-	status: ApplicationStatusCode;
-	review_notes: string;
-	created_at: string;
-	reviewed_at: string | null;
-	vertical_ids: number[];
-	profile_draft: ProfileDraft;
-}
-
-// Admin queue row (adds the applicant's identity).
-export interface AdminApplication extends MembershipApplication {
-	user_id: string;
-	email: string | null;
-}
-
-export interface DecisionInput {
-	approve: boolean;
-	grant_capabilities: Capabilities;
-	notes: string;
-}
+// Membership envelope (request payloads + read views) is the proto-sourced
+// contract shared by the REST JSON and gRPC binary transports — string ids keep
+// the JSON clean. Schemas are exported for runtime parsing where consumers want
+// it; the api() client currently casts.
+export type {
+	ProfileLink,
+	ProfileDraft,
+	SubmitApplicationInput,
+	MembershipApplication,
+	AdminApplication,
+	DecisionInput,
+} from '@kbve/jobboard-schema';
+export {
+	ProfileLinkSchema,
+	ProfileDraftSchema,
+	SubmitApplicationInputSchema,
+	MembershipApplicationSchema,
+	AdminApplicationSchema,
+	DecisionInputSchema,
+} from '@kbve/jobboard-schema';
