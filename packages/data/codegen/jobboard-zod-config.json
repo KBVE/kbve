@@ -1,0 +1,48 @@
+{
+	"include": [],
+
+	"numericEnums": [
+		{
+			"name": "Capability",
+			"sourceEnum": "jobboard.Capability",
+			"typeName": "CapabilityValue",
+			"zodSchemaName": "CapabilitySchema"
+		},
+		{
+			"name": "GigStatus",
+			"sourceEnum": "jobboard.GigStatus",
+			"typeName": "GigStatusValue",
+			"zodSchemaName": "GigStatusSchema"
+		},
+		{
+			"name": "ApplicationStatus",
+			"sourceEnum": "jobboard.ApplicationStatus",
+			"typeName": "ApplicationStatusValue",
+			"zodSchemaName": "ApplicationStatusSchema"
+		},
+		{
+			"name": "EngagementStatus",
+			"sourceEnum": "jobboard.EngagementStatus",
+			"typeName": "EngagementStatusValue",
+			"zodSchemaName": "EngagementStatusSchema"
+		},
+		{
+			"name": "BudgetType",
+			"sourceEnum": "jobboard.BudgetType",
+			"typeName": "BudgetTypeValue",
+			"zodSchemaName": "BudgetTypeSchema"
+		},
+		{
+			"name": "ReportTarget",
+			"sourceEnum": "jobboard.ReportTarget",
+			"typeName": "ReportTargetValue",
+			"zodSchemaName": "ReportTargetSchema"
+		},
+		{
+			"name": "ReportStatus",
+			"sourceEnum": "jobboard.ReportStatus",
+			"typeName": "ReportStatusValue",
+			"zodSchemaName": "ReportStatusSchema"
+		}
+	]
+}

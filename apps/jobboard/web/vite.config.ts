@@ -74,6 +74,15 @@ export default defineConfig(({ mode }) => ({
 					'packages/npm/fx/src/index.ts',
 				),
 			},
+			{
+				// proto-sourced jobboard enums/bitmask (numeric values), single
+				// source of truth shared with the Rust/SQL layers.
+				find: /^@kbve\/jobboard-schema$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/data/codegen/generated/jobboard-schema.ts',
+				),
+			},
 			// RN primitives render on web
 			{ find: /^react-native$/, replacement: 'react-native-web' },
 		],

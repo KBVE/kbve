@@ -21,7 +21,10 @@
 			"@kbve/rn/store": ["../../../packages/npm/rn/src/store/index.ts"],
 			"@kbve/rn": ["../../../packages/npm/rn/src/index.ts"],
 			"@kbve/core": ["../../../packages/npm/core/src/index.ts"],
-			"@kbve/fx": ["../../../packages/npm/fx/src/index.ts"]
+			"@kbve/fx": ["../../../packages/npm/fx/src/index.ts"],
+			"@kbve/jobboard-schema": [
+				"../../../packages/data/codegen/generated/jobboard-schema.ts"
+			]
 		}
 	},
 	"include": ["src"]

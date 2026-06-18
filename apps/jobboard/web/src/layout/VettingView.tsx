@@ -10,15 +10,17 @@ import {
 	fetchTaxonomy,
 } from '../api/client';
 import type { AdminApplication } from '../api/types';
+import { Capability } from '../api/types';
 import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui';
 
 const GAME_DEV_ID = 1;
-const CAP_TAKER = 1;
-const CAP_POSTER = 2;
 
 function capLabel(caps: number): string {
 	return (
-		[caps & CAP_TAKER ? 'Taker' : null, caps & CAP_POSTER ? 'Poster' : null]
+		[
+			caps & Capability.CAP_TAKER ? 'Taker' : null,
+			caps & Capability.CAP_POSTER ? 'Poster' : null,
+		]
 			.filter(Boolean)
 			.join(' + ') || '—'
 	);

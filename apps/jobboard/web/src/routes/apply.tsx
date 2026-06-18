@@ -15,6 +15,7 @@ import type {
 	TaxonomyItem,
 	Vertical,
 } from '../api/types';
+import { Capability } from '../api/types';
 import { Button, EmptyState, ErrorNote, Spinner } from '../components/ui';
 import {
 	fieldCls,
@@ -26,8 +27,8 @@ import {
 import { useAuth } from '../lib/auth';
 
 const GAME_DEV_ID = 1;
-const CAP_TAKER = 1;
-const CAP_POSTER = 2;
+const CAP_TAKER = Capability.CAP_TAKER;
+const CAP_POSTER = Capability.CAP_POSTER;
 
 const LINK_KINDS = [
 	'github',

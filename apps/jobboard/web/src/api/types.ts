@@ -5,6 +5,16 @@
 // Enum-ish integers carry the same meaning as the Postgres CHECK constraints
 // (see packages/data/sql/schema/jobboard/jobboard.sql).
 
+// Numeric enums/bitmask are proto-sourced (packages/data/proto/jobboard/jobboard.proto
+// → generated/jobboard-schema.ts) so the wire/DB/UI layers share one source of truth.
+import type { BudgetTypeValue, GigStatusValue } from '@kbve/jobboard-schema';
+export {
+	Capability,
+	BudgetType as BudgetTypeEnum,
+	GigStatus as GigStatusEnum,
+} from '@kbve/jobboard-schema';
+export type { CapabilityValue } from '@kbve/jobboard-schema';
+
 export interface Vertical {
 	id: number;
 	slug: string;
@@ -26,12 +36,11 @@ export interface TaxonomyItem {
 	status: number;
 }
 
-// gigs.budget_type: 0=unspecified, 1=fixed, 2=range, 3=hourly
-export type BudgetType = 0 | 1 | 2 | 3;
-// gigs.location_pref: 0=remote, 1=onsite, 2=hybrid
+// budget_type / status mirror the proto enums (BudgetType / GigStatus consts).
+export type BudgetType = BudgetTypeValue;
+export type GigStatus = GigStatusValue;
+// gigs.location_pref: 0=remote, 1=onsite, 2=hybrid (no proto enum — loose int32)
 export type LocationPref = 0 | 1 | 2;
-// gigs.status: 0=draft, 1=pending_review, 2=open, 4=filled, 8=closed, 16=expired
-export type GigStatus = 0 | 1 | 2 | 4 | 8 | 16;
 
 export interface PosterRef {
 	handle: string;
@@ -196,9 +205,10 @@ export interface Ack {
 
 // ── Membership / vetting ───────────────────────────────────────────────
 
-// Capability bitmask: taker=1, poster=2.
+// Capability bitmask (combination of Capability.CAP_* bits — proto-sourced).
 export type Capabilities = number;
-// member_applications.status: 0=pending, 1=approved, 2=rejected.
+// member_applications.status: 0=pending, 1=approved, 2=rejected (membership
+// vetting state — distinct from the gig-application ApplicationStatus proto enum).
 export type ApplicationStatusCode = 0 | 1 | 2;
 
 export type LinkKind =
