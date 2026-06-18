@@ -32,6 +32,7 @@ import {
 	FieldMessage,
 } from '../components/form';
 import { useAuth } from '../lib/auth';
+import { useFormDraft } from '../lib/useFormDraft';
 
 const GAME_DEV_ID = 1;
 const CAP_TAKER = Capability.CAP_TAKER;
@@ -87,6 +88,19 @@ const applicationSchema = z.object({
 });
 
 type ApplicationValues = z.infer<typeof applicationSchema>;
+
+const APPLY_DRAFT_KEY = 'jobboard-apply-draft';
+const APPLY_DEFAULTS: ApplicationValues = {
+	caps: 0,
+	verticalIds: [],
+	disciplineIds: [],
+	headline: '',
+	about: '',
+	years: '',
+	location: '',
+	links: [{ kind: 'github', url: '' }],
+	projects: [{ url: '' }],
+};
 
 export function ApplyPage() {
 	const { user } = useAuth();
@@ -201,10 +215,6 @@ function ApplicationForm({
 	onSubmitted: () => void;
 }) {
 	const [draftError, setDraftError] = useState<string | null>(null);
-	const mutation = useMutation({
-		mutationFn: submitApplication,
-		onSuccess: onSubmitted,
-	});
 
 	const {
 		register,
@@ -212,20 +222,26 @@ function ApplicationForm({
 		control,
 		watch,
 		setValue,
+		reset,
 		formState: { errors, submitCount },
 	} = useForm<ApplicationValues>({
 		resolver: zodResolver(applicationSchema),
 		mode: 'onBlur',
-		defaultValues: {
-			caps: 0,
-			verticalIds: [],
-			disciplineIds: [],
-			headline: '',
-			about: '',
-			years: '',
-			location: '',
-			links: [{ kind: 'github', url: '' }],
-			projects: [{ url: '' }],
+		defaultValues: APPLY_DEFAULTS,
+	});
+
+	const { clearDraft } = useFormDraft<ApplicationValues>({
+		key: APPLY_DRAFT_KEY,
+		watch,
+		reset,
+		defaults: APPLY_DEFAULTS,
+	});
+
+	const mutation = useMutation({
+		mutationFn: submitApplication,
+		onSuccess: () => {
+			clearDraft();
+			onSubmitted();
 		},
 	});
 
