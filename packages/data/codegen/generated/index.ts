@@ -6,6 +6,7 @@
  */
 
 export * from './agents-schema.js';
+export * from './argocd-schema.js';
 export * from './ci_registry-schema.js';
 export * from './clickhouse-schema.js';
 export * from './common-schema.js';
