@@ -4,7 +4,7 @@ export interface GamechatFrame {
 	platform: string;
 	channel: string;
 	content: string;
-	payload?: unknown;
+	payload?: Record<string, unknown>;
 }
 
 export const GAMECHAT_KIND_CHAT = 'chat';

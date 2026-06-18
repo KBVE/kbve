@@ -178,3 +178,38 @@ describe('toIrcLine 512-byte cap', () => {
 		expect(line.includes('big')).toBe(false);
 	});
 });
+
+describe('parseEnvelope edge cases', () => {
+	it('splits on the last @ so an @-prefixed sender survives', () => {
+		const parsed = parseEnvelope('[CHAT] @admin@irc: hey', {
+			channel: '#general',
+		});
+		expect(parsed?.sender).toBe('@admin');
+		expect(parsed?.platform).toBe(Platform.PLATFORM_IRC);
+	});
+
+	it('keeps a nested-object payload intact', () => {
+		const parsed = parseEnvelope(
+			'[CHAT] bob@irc: stats {"a":{"b":1},"c":2}',
+			{ channel: '#general' },
+		);
+		expect(parsed?.content).toBe('stats');
+		expect(parsed?.payload).toEqual({ a: { b: 1 }, c: 2 });
+	});
+
+	it('maps an empty platform to UNSPECIFIED', () => {
+		const parsed = parseEnvelope('[CHAT] bob@: hi', {
+			channel: '#general',
+		});
+		expect(parsed?.sender).toBe('bob');
+		expect(parsed?.platform).toBe(Platform.PLATFORM_UNSPECIFIED);
+	});
+
+	it('treats a non-object JSON tail as literal content', () => {
+		const parsed = parseEnvelope('[CHAT] bob@irc: count {5}', {
+			channel: '#general',
+		});
+		expect(parsed?.content).toBe('count {5}');
+		expect(parsed?.payload).toBeUndefined();
+	});
+});

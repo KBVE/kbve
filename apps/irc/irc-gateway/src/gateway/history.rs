@@ -18,9 +18,10 @@ use std::time::Duration;
 
 use bevy_chat::ChatMessage;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
 use tokio::time::sleep;
 use tracing::{debug, info, warn};
+
+use crate::gateway::ergo;
 
 /// Messages retained per channel.
 pub const HISTORY_LEN: usize = 50;
@@ -75,14 +76,7 @@ async fn run_listener(channel: String) {
 }
 
 async fn listen_once(channel: &str) -> std::io::Result<()> {
-    let host = std::env::var("ERGO_IRC_HOST")
-        .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into());
-    let port: u16 = std::env::var("ERGO_IRC_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(6667);
-
-    let stream = TcpStream::connect(format!("{host}:{port}")).await?;
+    let stream = ergo::connect_irc().await?;
     let (r, mut w) = stream.into_split();
     let mut reader = BufReader::new(r);
 
@@ -104,7 +98,7 @@ async fn listen_once(channel: &str) -> std::io::Result<()> {
             write_line(&mut w, &format!("PONG {rest}")).await?;
             continue;
         }
-        if let Some((sender, ch, payload)) = parse_privmsg(&raw) {
+        if let Some((sender, ch, payload)) = ergo::parse_privmsg(&raw) {
             if ch != channel {
                 continue;
             }
@@ -131,26 +125,6 @@ fn sanitize_channel(channel: &str) -> String {
         .filter(|c| c.is_ascii_alphanumeric())
         .collect::<String>()
         .to_ascii_lowercase()
-}
-
-/// Parse `:nick!user@host PRIVMSG #channel :payload` -> `(sender, channel,
-/// payload)`. `sender` is the IRC nick from the prefix, for the plain fallback.
-fn parse_privmsg(line: &str) -> Option<(String, String, String)> {
-    let (sender, rest) = if let Some(r) = line.strip_prefix(':') {
-        let (prefix, rest) = r.split_once(' ')?;
-        let nick = prefix.split(['!', '@']).next().unwrap_or(prefix);
-        (nick.to_string(), rest)
-    } else {
-        (String::new(), line)
-    };
-    let mut parts = rest.splitn(3, ' ');
-    if parts.next()? != "PRIVMSG" {
-        return None;
-    }
-    let channel = parts.next()?.to_string();
-    let trailing = parts.next()?;
-    let payload = trailing.strip_prefix(':').unwrap_or(trailing).to_string();
-    Some((sender, channel, payload))
 }
 
 #[cfg(test)]

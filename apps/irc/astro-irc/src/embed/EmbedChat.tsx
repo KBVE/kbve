@@ -29,7 +29,7 @@ import {
 	sendChat,
 } from './transport';
 import { readSharedTokenCookie } from './auth';
-import { formatTime, nickColor, nickInitial } from './format';
+import { formatTime, nickColor, nickInitial } from '../lib/chat/format';
 
 export const DEFAULT_SIGNIN_URL = 'https://chat.kbve.com/auth/';
 
