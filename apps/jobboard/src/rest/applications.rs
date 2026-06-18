@@ -82,10 +82,10 @@ async fn submit(
         return Err(ApiError::BadRequest("too many portfolio links".into()));
     }
 
-    let draft_str = match &body.profile_draft {
-        Some(draft) => serde_json::to_string(draft)
+    let draft_val = match &body.profile_draft {
+        Some(draft) => serde_json::to_value(draft)
             .map_err(|e| ApiError::BadRequest(format!("invalid profile_draft: {e}")))?,
-        None => "{}".to_string(),
+        None => serde_json::json!({}),
     };
 
     let mut conn = app.db.write().await?;
@@ -95,23 +95,25 @@ async fn submit(
         .query_one(
             "INSERT INTO jobboard.member_applications
                  (user_id, requested_capabilities, statement, portfolio_links, profile_draft)
-             VALUES ($1, $2, $3, $4, $5::jsonb)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING id, status, created_at::text",
             &[
                 &user.user_id,
                 &caps,
                 &body.statement,
                 &body.portfolio_links,
-                &draft_str,
+                &draft_val,
             ],
         )
         .await
-        .map_err(|e| {
-            if e.code() == Some(&SqlState::UNIQUE_VIOLATION) {
+        .map_err(|e| match e.code() {
+            Some(c) if c == &SqlState::UNIQUE_VIOLATION => {
                 ApiError::Conflict("you already have a pending application".into())
-            } else {
-                pg_err(e)
             }
+            Some(c) if c == &SqlState::CHECK_VIOLATION => {
+                ApiError::BadRequest("profile draft failed validation".into())
+            }
+            _ => pg_err(e),
         })?;
     let id: Uuid = row.get(0);
 
