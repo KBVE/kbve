@@ -95,7 +95,12 @@ services:
             HTTP_PORT: '5400'
             RUST_LOG: jobboard=info,tower_http=info
             KBVE_PG_RW_URL: postgres://supabase_admin:postgres@postgres:5432/supabase?sslmode=disable
-            SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+            # dev: resolve auth against live Supabase GoTrue (/auth/v1/user),
+            # LRU-cached — no local JWT secret needed. anon key = Kong apikey.
+            # prod sets AUTH_MODE=local + SUPABASE_JWT_SECRET for offline HS256.
+            AUTH_MODE: remote
+            SUPABASE_URL: https://supabase.kbve.com
+            SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg
         ports:
             - '5400:5400'
         depends_on:

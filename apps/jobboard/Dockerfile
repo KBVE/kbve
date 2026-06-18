@@ -17,6 +17,7 @@ COPY tsconfig.base.json tsconfig.base.json
 COPY packages/npm/rn packages/npm/rn
 COPY packages/npm/core packages/npm/core
 COPY packages/npm/fx packages/npm/fx
+COPY packages/data/codegen/generated packages/data/codegen/generated
 COPY apps/jobboard/web apps/jobboard/web
 RUN cd apps/jobboard/web && npx vite build
 
