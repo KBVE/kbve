@@ -15,6 +15,10 @@ use super::auth::{Authz, StaffGate, extract_token, validate_token};
 pub struct GateConfig {
     /// Upstream base URL, e.g. `http://127.0.0.1:5679`.
     pub upstream: String,
+    /// Path prefix prepended to every upstream request, e.g.
+    /// `/dashboard/grafana/proxy`. Empty for a transparent proxy. Lets the gate
+    /// front an upstream that serves from a sub-path under a different host.
+    pub upstream_prefix: String,
     /// Supabase HS256 JWT secret.
     pub jwt_secret: String,
     /// Authorization policy applied after JWT validation.
@@ -183,15 +187,21 @@ const HOP_BY_HOP: &[&str] = &[
     "upgrade",
 ];
 
-fn upstream_uri(upstream: &str, uri: &Uri) -> String {
+fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
     let path = uri.path();
     let query = uri.query().map(|q| format!("?{q}")).unwrap_or_default();
-    format!("{}{}{}", upstream.trim_end_matches('/'), path, query)
+    format!(
+        "{}{}{}{}",
+        upstream.trim_end_matches('/'),
+        prefix,
+        path,
+        query
+    )
 }
 
 async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
     let method = req.method().clone();
-    let url = upstream_uri(&state.cfg.upstream, req.uri());
+    let url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     let mut headers = req.headers().clone();
 
     headers.remove(header::HOST);
@@ -291,7 +301,7 @@ fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
 /// Bridge a browser WebSocket to the upstream. reqwest is HTTP-only, so the
 /// upgrade leg uses tokio-tungstenite directly.
 async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
-    let mut ws_url = upstream_uri(&state.cfg.upstream, req.uri());
+    let mut ws_url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     if let Some(rest) = ws_url.strip_prefix("http://") {
         ws_url = format!("ws://{rest}");
     } else if let Some(rest) = ws_url.strip_prefix("https://") {
