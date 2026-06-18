@@ -9,7 +9,9 @@ use axum::{
 use reqwest::Client;
 use tracing::{debug, warn};
 
-use super::auth::{Authz, StaffGate, extract_token, validate_token};
+use super::auth::{
+    Authz, GATE_SESSION_COOKIE, StaffGate, access_token_in_query, extract_token, validate_token,
+};
 
 /// Runtime configuration for the gate, normally built from env in the binary.
 pub struct GateConfig {
@@ -24,8 +26,13 @@ pub struct GateConfig {
     /// browser never sees the credential.
     pub upstream_basic: Option<String>,
     /// Where to send unauthenticated browser navigations (302). When unset a
-    /// bare 401/403 is returned instead.
+    /// bare 401/403 is returned instead. The gate appends `?redirect_to=<this
+    /// URL>` so the login page can bounce the browser back with a token.
     pub login_redirect: Option<String>,
+    /// Domain scope for the minted `kbve_gate` session cookie, e.g. `.kbve.com`,
+    /// so every subdomain behind the gate shares it. When unset the cookie is
+    /// host-only.
+    pub cookie_domain: Option<String>,
     /// Staff RPC gate. Required when `authz` is `IsStaff`.
     pub staff: Option<StaffGate>,
 }
@@ -77,16 +84,82 @@ fn is_navigation(headers: &HeaderMap) -> bool {
             .unwrap_or(false)
 }
 
-fn deny(state: &GateState, headers: &HeaderMap, status: StatusCode, msg: &str) -> Response {
+/// 302 to `location`, optionally planting a `Set-Cookie`.
+fn redirect(location: &str, set_cookie: Option<&str>) -> Response {
+    let mut builder = Response::builder()
+        .status(StatusCode::FOUND)
+        .header(header::LOCATION, location);
+    if let Some(c) = set_cookie {
+        builder = builder.header(header::SET_COOKIE, c);
+    }
+    builder
+        .body(Body::empty())
+        .unwrap_or_else(|_| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::empty())
+                .unwrap()
+        })
+        .into_response()
+}
+
+/// Reconstruct the externally-visible URL (sans query) from proxy headers, used
+/// as the `redirect_to` target so the login page can return the browser here.
+fn external_url(headers: &HeaderMap, uri: &Uri) -> String {
+    let host = headers
+        .get(header::HOST)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    let scheme = headers
+        .get("x-forwarded-proto")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("https");
+    format!("{scheme}://{host}{}", uri.path())
+}
+
+/// Drop the `access_token` pair from a query string, preserving the rest.
+fn strip_access_token(query: &str) -> String {
+    query
+        .split('&')
+        .filter(|p| *p != "access_token" && !p.starts_with("access_token="))
+        .collect::<Vec<_>>()
+        .join("&")
+}
+
+/// Mint the `kbve_gate` session cookie from a URL-delivered token, then 302 to a
+/// clean URL so the JWT never lingers in history, referrers, or logs.
+fn cookie_land(state: &GateState, uri: &Uri, token: &str) -> Response {
+    let cleaned = uri.query().map(strip_access_token).unwrap_or_default();
+    let location = if cleaned.is_empty() {
+        uri.path().to_string()
+    } else {
+        format!("{}?{}", uri.path(), cleaned)
+    };
+    let mut cookie = format!(
+        "{GATE_SESSION_COOKIE}={token}; Path=/; Max-Age=3600; HttpOnly; Secure; SameSite=Lax"
+    );
+    if let Some(domain) = &state.cfg.cookie_domain {
+        cookie.push_str("; Domain=");
+        cookie.push_str(domain);
+    }
+    redirect(&location, Some(&cookie))
+}
+
+fn deny(
+    state: &GateState,
+    headers: &HeaderMap,
+    status: StatusCode,
+    msg: &str,
+    ext_url: &str,
+) -> Response {
     if status == StatusCode::UNAUTHORIZED {
         if let Some(target) = &state.cfg.login_redirect {
             if is_navigation(headers) {
-                return Response::builder()
-                    .status(StatusCode::FOUND)
-                    .header(header::LOCATION, target)
-                    .body(Body::empty())
-                    .unwrap()
-                    .into_response();
+                let enc: String =
+                    url::form_urlencoded::byte_serialize(ext_url.as_bytes()).collect();
+                let sep = if target.contains('?') { '&' } else { '?' };
+                let location = format!("{target}{sep}redirect_to={enc}");
+                return redirect(&location, None);
             }
         }
     }
@@ -98,6 +171,7 @@ async fn authorize(
     state: &GateState,
     headers: &HeaderMap,
     query: Option<&str>,
+    ext_url: &str,
 ) -> Result<String, Response> {
     let token = extract_token(
         headers
@@ -115,6 +189,7 @@ async fn authorize(
                 headers,
                 StatusCode::UNAUTHORIZED,
                 "missing token",
+                ext_url,
             ));
         }
     };
@@ -127,6 +202,7 @@ async fn authorize(
                 headers,
                 StatusCode::UNAUTHORIZED,
                 &e.to_string(),
+                ext_url,
             ));
         }
     };
@@ -147,7 +223,13 @@ async fn authorize(
             };
             match staff.is_staff(&sub).await {
                 Ok(true) => Ok(sub),
-                Ok(false) => Err(deny(state, headers, StatusCode::FORBIDDEN, "staff only")),
+                Ok(false) => Err(deny(
+                    state,
+                    headers,
+                    StatusCode::FORBIDDEN,
+                    "staff only",
+                    ext_url,
+                )),
                 Err(e) => Err((
                     StatusCode::BAD_GATEWAY,
                     axum::Json(serde_json::json!({ "error": e.to_string() })),
@@ -161,9 +243,19 @@ async fn authorize(
 async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
+    let ext_url = external_url(&headers, req.uri());
 
-    if let Err(resp) = authorize(&state, &headers, query.as_deref()).await {
+    if let Err(resp) = authorize(&state, &headers, query.as_deref(), &ext_url).await {
         return resp;
+    }
+
+    // Token arrived in the URL (post-login bounce): convert it to a session
+    // cookie and redirect to a clean URL. Skipped for WebSocket upgrades, which
+    // carry the token in the cookie the browser already holds.
+    if !is_websocket_upgrade(&headers) {
+        if let Some(token) = query.as_deref().and_then(access_token_in_query) {
+            return cookie_land(&state, req.uri(), &token);
+        }
     }
 
     if is_websocket_upgrade(&headers) {

@@ -1,14 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authBridge } from '@/components/auth';
+import { bounceToGate, readGateRedirect } from './gateBounce';
 import { cn } from '@/lib/utils';
 
 export default function ReactAuthLogin() {
 	const [isLoading, setIsLoading] = useState<string | null>(null);
 
+	// Arrived here from a gated subdomain (e.g. n8n.kbve.com)? If a session
+	// already exists, skip the OAuth dance and bounce straight back with a token.
+	useEffect(() => {
+		const redirectTo = readGateRedirect();
+		if (!redirectTo) return;
+		let cancelled = false;
+		(async () => {
+			try {
+				const session = await authBridge.getSession();
+				if (!cancelled && session?.access_token) {
+					bounceToGate(redirectTo, session.access_token);
+				}
+			} catch (error) {
+				console.error('Gate session check error:', error);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
 	const handleGitHubLogin = async () => {
 		try {
 			setIsLoading('github');
-			await authBridge.signInWithOAuth('github');
+			await authBridge.signInWithOAuth('github', readGateRedirect());
 		} catch (error) {
 			console.error('GitHub sign-in error:', error);
 			setIsLoading(null);
@@ -18,7 +40,7 @@ export default function ReactAuthLogin() {
 	const handleDiscordLogin = async () => {
 		try {
 			setIsLoading('discord');
-			await authBridge.signInWithOAuth('discord');
+			await authBridge.signInWithOAuth('discord', readGateRedirect());
 		} catch (error) {
 			console.error('Discord sign-in error:', error);
 			setIsLoading(null);
