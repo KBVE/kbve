@@ -24,6 +24,15 @@ const MAPS = [
 		name: 'Cloud City',
 		src: 'packages/data/codegen/maps/cloud_city_large.json',
 		spawn: { x: 5, y: 12 },
+		// Prop collision — tiles occupied by overlay sprites (casino table) that
+		// have no ge_collide tile beneath them. Kept in sync with the sprite
+		// footprint placed in CloudCityScene.
+		blockedTiles: [
+			{ x: 6, y: 8 },
+			{ x: 7, y: 8 },
+			{ x: 6, y: 9 },
+			{ x: 7, y: 9 },
+		],
 		regions: [
 			{ name: 'Cloud City Plaza', x: 0, y: 4, w: 17, h: 17 },
 			{ name: 'Goblin Camp', x: 17, y: 17, w: 15, h: 15 },
@@ -59,6 +68,10 @@ function convert(map) {
 			if (gid !== 0 && collide.has(gid)) blocked[i] = true;
 		}
 		layers.push({ name: layer.name, data });
+	}
+
+	for (const { x, y } of map.blockedTiles ?? []) {
+		if (x >= 0 && x < width && y >= 0 && y < height) blocked[y * width + x] = true;
 	}
 
 	return {

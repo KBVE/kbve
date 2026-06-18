@@ -1,5 +1,7 @@
 import { useState, type ComponentType, type SVGProps } from 'react';
 import { laserEvents } from '@kbve/laser';
+import { onExternalClick } from '../../../../lib/kbve-links';
+import { DiscordLobby } from './DiscordLobby';
 import { WaveIcon, SmileIcon, HeartIcon, FlameIcon, AngryIcon } from './icons';
 
 const EMOTES: {
@@ -47,6 +49,7 @@ export function SocialPanel() {
 
 	return (
 		<div className="flex flex-col gap-4 text-yellow-400">
+			<DiscordLobby />
 			<div>
 				<h2 className="mb-2 text-lg font-semibold">Connect</h2>
 				<div className="flex flex-wrap gap-2">
@@ -54,6 +57,7 @@ export function SocialPanel() {
 						href="https://kbve.com/discord/"
 						target="_blank"
 						rel="noopener"
+						onClick={onExternalClick('https://kbve.com/discord/')}
 						className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-black/40 px-3 text-sm text-[#5865f2] transition hover:border-[#5865f2]/50">
 						<svg
 							viewBox="0 0 16 16"

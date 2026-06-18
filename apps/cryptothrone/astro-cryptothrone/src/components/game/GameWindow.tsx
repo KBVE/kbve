@@ -17,9 +17,8 @@ import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
 import { ConnectionOverlay } from './ui/ConnectionOverlay';
 import { ZoneBanner } from './ui/ZoneBanner';
-import { CoordsBar } from './ui/CoordsBar';
 import { GoldCounter } from './ui/GoldCounter';
-import { Minimap } from './ui/Minimap';
+import { MinimapPanel } from './ui/MinimapPanel';
 import { CombatLog } from './ui/CombatLog';
 import { TargetFrame } from './ui/TargetFrame';
 import { Hotbar } from './ui/Hotbar';
@@ -106,10 +105,9 @@ function GameUI({ username }: { username?: string }) {
 			<CharacterDialog />
 			<NotificationToast />
 			<ZoneBanner />
-			<CoordsBar />
 			<GoldCounter />
 			<div className="pointer-events-none absolute bottom-3 right-3 z-30 hidden md:block">
-				<Minimap />
+				<MinimapPanel />
 			</div>
 			<CombatLog />
 			<TargetFrame />

@@ -121,7 +121,7 @@ export const initialGameState: GameState = {
 };
 
 let notificationCounter = 0;
-const MAX_NOTIFICATIONS = 4;
+const MAX_NOTIFICATIONS = 3;
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
 	switch (action.type) {

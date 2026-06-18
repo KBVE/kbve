@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { laserEvents } from '@kbve/laser';
+import { Minimap } from './Minimap';
+import { PixelPanel } from './PixelPanel';
 
-export function CoordsBar() {
+export function MinimapPanel() {
 	const [pos, setPos] = useState({ x: 0, y: 0 });
 	const [fps, setFps] = useState(0);
 	const [zone, setZone] = useState('—');
@@ -30,14 +32,23 @@ export function CoordsBar() {
 	}, []);
 
 	return (
-		<div className="pointer-events-none absolute right-3 top-16 z-30 rounded-lg border border-white/10 bg-black/55 px-3 py-1.5 text-right font-mono text-[0.65rem] leading-relaxed text-stone-300 backdrop-blur-md">
-			<div className="text-amber-300">{zone}</div>
-			<div>
-				{pos.x},{pos.y}
+		<PixelPanel
+			variant="stone"
+			scale={2}
+			className="pointer-events-none flex flex-col gap-1 p-1">
+			<Minimap
+				size={120}
+				className="mx-auto block rounded-sm bg-black/50"
+			/>
+			<div className="flex items-center justify-between gap-2 font-mono text-[0.6rem] leading-none">
+				<span className="truncate text-amber-300">{zone}</span>
+				<span className="text-stone-300">
+					{pos.x},{pos.y}
+				</span>
 			</div>
-			<div className="text-stone-500">
+			<div className="text-right font-mono text-[0.55rem] leading-none text-stone-500">
 				{fps} fps · {clock}
 			</div>
-		</div>
+		</PixelPanel>
 	);
 }
