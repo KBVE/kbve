@@ -99,12 +99,14 @@ export {
 	EPHEMERAL_STATUS,
 	EPHEMERAL_TRADE,
 	EPHEMERAL_SHOP,
+	EPHEMERAL_BLACKJACK,
 	KIND_CAT_PLAYER,
 	KIND_CAT_NPC,
 	KIND_CAT_ITEM,
 	joinFrame,
 	inputFrame,
 	decodeEphemeralPayload,
+	decodeCard,
 } from './lib/net/protocol';
 export type {
 	Dir,
@@ -132,4 +134,10 @@ export type {
 	EquippedEvent,
 	StatsEvent,
 	StatusEvent,
+	BjActionKind,
+	BlackjackSeatView,
+	BlackjackStateView,
+	CardSuit,
+	CardRank,
+	DecodedCard,
 } from './lib/net/protocol';

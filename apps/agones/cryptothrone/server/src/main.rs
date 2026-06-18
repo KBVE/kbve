@@ -74,6 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(game::equipment());
         app.insert_resource(game::item_prices());
         app.insert_resource(game::shop_stock());
+        app.insert_resource(game::tables());
         app.add_systems(
             bevy::prelude::Update,
             game::spawn_world.in_set(simgrid::SimSet::Spawn),

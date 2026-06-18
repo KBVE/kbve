@@ -4,8 +4,8 @@ use bevy::prelude::{Commands, Local, Res};
 use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
     AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, EquipBonus, EquipmentEffects, ItemDb,
-    ItemPrices, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ, ShopStock, SimConfig, WalkableMap,
-    ground_item_bundle, spawn_npc_from_spec,
+    ItemPrices, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ, ShopStock, SimConfig, TableDef, Tables,
+    WalkableMap, ground_item_bundle, spawn_npc_from_spec,
 };
 
 pub const MAP_WIDTH: i32 = 50;
@@ -45,6 +45,12 @@ pub const GOBLIN_LOOT_REF: &str = "coin";
 // Friendly town NPCs (player faction — never aggro, give the plaza life).
 pub const MERCHANT_REF: &str = "merchant";
 pub const MERCHANT_SPAWN: Tile = Tile::new(8, 9);
+
+// Casino blackjack table. `table_ref` is the shared key the client passes in
+// `JoinTable`; keep it byte-identical with the client's `joinTable(...)` call.
+pub const CASINO_TABLE_REF: &str = "cloud-city:casino:6,8";
+pub const CASINO_TABLE_TILE: Tile = Tile::new(6, 8);
+pub const CASINO_TABLE_SEATS: u8 = 5;
 pub const SOLDIER_REF: &str = "soldier";
 pub const SOLDIER_SPAWN: Tile = Tile::new(3, 14);
 pub const KING_REF: &str = "king";
@@ -129,6 +135,14 @@ pub fn shop_stock() -> ShopStock {
         }
     }
     stock
+}
+
+pub fn tables() -> Tables {
+    Tables(vec![TableDef {
+        table_ref: CASINO_TABLE_REF.to_string(),
+        tile: CASINO_TABLE_TILE,
+        seats: CASINO_TABLE_SEATS,
+    }])
 }
 
 pub fn registry() -> KindRegistry {

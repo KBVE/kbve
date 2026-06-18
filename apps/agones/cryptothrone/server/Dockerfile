@@ -62,6 +62,7 @@ COPY Cargo.lock ./
 COPY packages/rust/simgrid packages/rust/simgrid
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/data/codegen/generated/npcdb-data.json packages/data/codegen/generated/npcdb-data.json
+COPY packages/data/codegen/generated/itemdb-data.json packages/data/codegen/generated/itemdb-data.json
 COPY apps/agones/cryptothrone/server apps/agones/cryptothrone/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

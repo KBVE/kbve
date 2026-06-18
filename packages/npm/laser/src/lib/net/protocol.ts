@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 8;
+export const PROTOCOL_VERSION = 9;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -12,6 +12,7 @@ export const EPHEMERAL_STATS = 7;
 export const EPHEMERAL_STATUS = 8;
 export const EPHEMERAL_TRADE = 9;
 export const EPHEMERAL_SHOP = 10;
+export const EPHEMERAL_BLACKJACK = 11;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -38,7 +39,13 @@ export type Input =
 	| 'TradeAccept'
 	| 'TradeCancel'
 	| { BuyItem: { npc: number; item_ref: string; qty: number } }
-	| { SellItem: { npc: number; item_ref: string; qty: number } };
+	| { SellItem: { npc: number; item_ref: string; qty: number } }
+	| { JoinTable: { table_ref: string } }
+	| 'LeaveTable'
+	| { PlaceBet: { amount: number } }
+	| { BjAction: { kind: BjActionKind } };
+
+export type BjActionKind = 'Hit' | 'Stand' | 'Double';
 
 export interface JoinMatch {
 	protocol: number;
@@ -164,6 +171,80 @@ export interface StatusEvent {
 	kind: number;
 	magnitude: number;
 	remaining: number;
+}
+
+export interface BlackjackSeatView {
+	slot: number;
+	username: string;
+	hand: number[];
+	bet: number;
+	value: number;
+	soft: boolean;
+	outcome: string | null;
+}
+
+export interface BlackjackStateView {
+	table_ref: string;
+	phase: string;
+	seats: BlackjackSeatView[];
+	dealer_hand: number[];
+	dealer_hidden: boolean;
+	active_slot: number | null;
+	your_balance: number;
+	deadline_ms: number | null;
+}
+
+export type CardSuit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
+export type CardRank =
+	| 'A'
+	| '2'
+	| '3'
+	| '4'
+	| '5'
+	| '6'
+	| '7'
+	| '8'
+	| '9'
+	| '10'
+	| 'J'
+	| 'Q'
+	| 'K';
+
+export interface DecodedCard {
+	suit: CardSuit;
+	rank: CardRank;
+	points: number;
+	red: boolean;
+}
+
+const CARD_SUITS: CardSuit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
+const CARD_RANKS: CardRank[] = [
+	'A',
+	'2',
+	'3',
+	'4',
+	'5',
+	'6',
+	'7',
+	'8',
+	'9',
+	'10',
+	'J',
+	'Q',
+	'K',
+];
+const CARD_RANK_POINTS = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
+
+/** Decode a server card byte (6-bit: `suit << 4 | rank`) for rendering. */
+export function decodeCard(byte: number): DecodedCard {
+	const rankIndex = byte & 0b1111;
+	const suitIndex = (byte >> 4) & 0b11;
+	return {
+		suit: CARD_SUITS[suitIndex],
+		rank: CARD_RANKS[rankIndex],
+		points: CARD_RANK_POINTS[rankIndex],
+		red: suitIndex === 1 || suitIndex === 2,
+	};
 }
 
 export type ServerEvent =

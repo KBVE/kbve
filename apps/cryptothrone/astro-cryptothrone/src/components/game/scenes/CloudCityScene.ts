@@ -77,6 +77,8 @@ const SLOT_NONE = 0xffff;
 const UI_DEPTH = 100000;
 
 const CASINO_TABLE = { zone: 'cloud-city', tx: 6, ty: 8, w: 1.5, h: 2 };
+// Shared table key; must match the server's `CASINO_TABLE_REF` byte-for-byte.
+const CASINO_TABLE_REF = 'cloud-city:casino:6,8';
 
 interface PendingAction {
 	kind: 'pickup' | 'interact';
@@ -120,6 +122,7 @@ export class CloudCityScene extends Scene {
 	private fpsAt = 0;
 	private lastPosKey = '';
 	private currentZone = '';
+	private atCasino = false;
 	private heartbeatTimer = 0;
 	private lastAutoPickup = 0;
 	private prevLevel = -1;
@@ -256,6 +259,19 @@ export class CloudCityScene extends Scene {
 				const d = data as { npc: number; itemRef: string; qty: number };
 				if (d?.itemRef) this.client?.sellItem(d.npc, d.itemRef, d.qty);
 			}),
+			laserEvents.on('blackjack:bet', (data) => {
+				const d = data as { amount: number };
+				if (typeof d?.amount === 'number')
+					this.client?.placeBet(d.amount);
+			}),
+			laserEvents.on('blackjack:action', (data) => {
+				const d = data as { kind: 'Hit' | 'Stand' | 'Double' };
+				if (d?.kind) this.client?.bjAction(d.kind);
+			}),
+			laserEvents.on('blackjack:leave', () => {
+				this.atCasino = false;
+				this.client?.leaveTable();
+			}),
 			laserEvents.on('emote', (data) => {
 				const d = data as { emoji: string };
 				if (d?.emoji && this.myEid >= 0)
@@ -344,6 +360,9 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('shop', (r) => {
 			laserEvents.emit('shop:result', r);
+		});
+		client.on('blackjackState', (s) => {
+			laserEvents.emit('blackjack:state', s);
 		});
 		client.on('stats', (st) => {
 			laserEvents.emit('player:stats', {
@@ -843,6 +862,12 @@ export class CloudCityScene extends Scene {
 		if (!me) return;
 		const it = interactableAt(this.interactables, me.x, me.y);
 		if (!it) return;
+		if (it.action === 'casino') {
+			this.atCasino = true;
+			this.client?.joinTable(CASINO_TABLE_REF);
+			laserEvents.emit('blackjack:open', { table_ref: CASINO_TABLE_REF });
+			return;
+		}
 		const eventData: CharacterEventData = { message: it.message };
 		if (it.name) eventData.character_name = it.name;
 		if (it.characterImage) eventData.character_image = it.characterImage;
@@ -891,6 +916,15 @@ export class CloudCityScene extends Scene {
 			if (key !== this.lastPosKey) {
 				this.lastPosKey = key;
 				laserEvents.emit('player:position', { x: me.x, y: me.y });
+				if (
+					this.atCasino &&
+					interactableAt(this.interactables, me.x, me.y)?.action !==
+						'casino'
+				) {
+					this.atCasino = false;
+					this.client?.leaveTable();
+					laserEvents.emit('blackjack:close', undefined);
+				}
 			}
 			const zone = zoneLabelForTile(me);
 			if (zone !== this.currentZone) {
