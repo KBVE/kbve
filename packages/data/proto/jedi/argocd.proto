@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package argocd;
+
+// =============================================================================
+// ArgoCD Application State Proto — Foundation Schema
+// =============================================================================
+//
+// Schema contract for ArgoCD /api/v1/applications responses consumed by the
+// argo edge function, the axum-kbve proxy, and the dashboard. Replaces the
+// raw-JSON passthrough where consumers cast blindly and field renames break
+// silently after ArgoCD upgrades.
+//
+// Domain: continuous delivery (GitOps application state).
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Enums — values mirror ArgoCD's exact status strings via zod valueOverrides
+// ---------------------------------------------------------------------------
+
+enum HealthStatusCode {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY     = 1;
+  HEALTH_STATUS_DEGRADED    = 2;
+  HEALTH_STATUS_PROGRESSING = 3;
+  HEALTH_STATUS_SUSPENDED   = 4;
+  HEALTH_STATUS_MISSING     = 5;
+  HEALTH_STATUS_UNKNOWN     = 6;
+}
+
+enum SyncStatusCode {
+  SYNC_STATUS_UNSPECIFIED = 0;
+  SYNC_STATUS_SYNCED      = 1;
+  SYNC_STATUS_OUT_OF_SYNC = 2;
+  SYNC_STATUS_UNKNOWN     = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Status sub-messages
+// ---------------------------------------------------------------------------
+
+message HealthStatus {
+  HealthStatusCode status  = 1;  // Healthy, Degraded, Progressing, Suspended, Missing, Unknown
+  string           message = 2;
+}
+
+message SyncStatus {
+  SyncStatusCode status   = 1;  // Synced, OutOfSync, Unknown
+  string         revision = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Application — normalized projection of ArgoCD's nested application object
+// ---------------------------------------------------------------------------
+
+message Application {
+  string       name            = 1;
+  string       namespace       = 2;
+  string       project         = 3;
+  HealthStatus health          = 4;
+  SyncStatus   sync            = 5;
+  string       repo_url        = 6;
+  string       target_revision = 7;
+  string       path            = 8;
+  string       created_at      = 9;  // ISO-8601
+}
+
+message ApplicationList {
+  repeated Application items = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Query — request filters for application listing
+// ---------------------------------------------------------------------------
+
+message ApplicationQuery {
+  optional string name          = 1;
+  optional string project       = 2;
+  optional string health_filter = 3;
+  optional string sync_filter   = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Health check — argo edge function reachability diagnostics
+// ---------------------------------------------------------------------------
+
+message ArgoHealthCheck {
+  bool   reachable       = 1;
+  uint32 upstream_status = 2;
+  uint32 elapsed_ms      = 3;
+  string timestamp       = 4;  // ISO-8601
+}
