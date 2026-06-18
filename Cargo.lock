@@ -6201,6 +6201,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "factorio-ctl"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "axum 0.8.9",
+ "chrono",
+ "http 1.4.0",
+ "jedi",
+ "k8s-openapi",
+ "kube",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
