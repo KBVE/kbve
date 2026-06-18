@@ -45,24 +45,21 @@ spec:
                               - /bin/bash
                               - -c
                               - |
-                                  UPROJECT="${OWS_UPROJECT:-/server/latest/EditorServer/chuck/chuck.uproject}"
-                                  if [ ! -f "${UPROJECT}" ]; then
-                                    UPROJECT=$(find /server -maxdepth 5 -name '*.uproject' -path '*EditorServer*' | sort -V | head -1)
+                                  # Cooked dev server staged at /server/latest/LinuxServer/chuckServer.sh (subPath: chuckServerDev)
+                                  SERVER_BIN="${OWS_SERVER_BIN:-/server/latest/LinuxServer/chuckServer.sh}"
+                                  if [ ! -f "${SERVER_BIN}" ]; then
+                                    # Fallback: auto-detect a *Server.sh under any LinuxServer dir
+                                    SERVER_DIR=$(find /server -maxdepth 3 -name "LinuxServer" -type d | sort -V | tail -1)
+                                    SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
                                   fi
-                                  if [ -z "${UPROJECT}" ] || [ ! -f "${UPROJECT}" ]; then
-                                    echo "ERROR: no .uproject found on PVC (expected /server/latest/EditorServer/chuck/chuck.uproject)"
-                                    ls -la /server/ /server/latest/ 2>/dev/null
+                                  if [ -z "${SERVER_BIN}" ] || [ ! -f "${SERVER_BIN}" ]; then
+                                    echo "ERROR: cooked server binary not found (expected /server/latest/LinuxServer/chuckServer.sh)"
+                                    ls -la /server/ /server/latest/ /server/latest/LinuxServer/ 2>/dev/null
                                     exit 1
                                   fi
-                                  EDITOR_BIN=$(find /server -maxdepth 7 -type f -path '*/Engine/Binaries/Linux/UnrealEditor' | sort -V | head -1)
-                                  if [ -z "${EDITOR_BIN}" ]; then
-                                    echo "ERROR: UnrealEditor binary not found under /server (editor build must bundle the engine)"
-                                    ls -la /server/latest/ 2>/dev/null
-                                    exit 1
-                                  fi
-                                  chmod +x "${EDITOR_BIN}" 2>/dev/null || true
-                                  echo "Starting UnrealEditor server: ${EDITOR_BIN} ${UPROJECT}"
-                                  exec "${EDITOR_BIN}" "${UPROJECT}" \
+                                  chmod +x "${SERVER_BIN}" 2>/dev/null || true
+                                  echo "Starting cooked UE5 dedicated server: ${SERVER_BIN}"
+                                  exec "${SERVER_BIN}" \
                                     -server \
                                     -log \
                                     -nosteam \
