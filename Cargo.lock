@@ -15226,6 +15226,7 @@ version = "0.0.1"
 dependencies = [
  "axum 0.7.9",
  "bevy",
+ "dashmap 6.1.0",
  "futures-util",
  "jsonwebtoken 9.3.1",
  "postcard",
@@ -15234,6 +15235,7 @@ dependencies = [
  "tokio",
  "tokio-tungstenite 0.24.0",
  "tracing",
+ "ulid",
 ]
 
 [[package]]

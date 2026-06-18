@@ -6,9 +6,10 @@ use std::net::SocketAddr;
 
 use bevy::prelude::IntoScheduleConfigs;
 use simgrid::net::ServerState;
-use simgrid::{SNAPSHOT_BROADCAST_CAPACITY, build_app, run_sim_loop};
+use simgrid::proto::ServerEvent;
+use simgrid::{build_app, run_sim_loop};
 use tokio::net::TcpListener;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::mpsc;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -40,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(0xC0FFEE);
 
-    let (snap_tx, _) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+    let (out_tx, out_rx) = mpsc::unbounded_channel::<ServerEvent>();
     let (input_tx, input_rx) = mpsc::unbounded_channel::<simgrid::SlotInput>();
 
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
@@ -54,16 +55,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let registry = game::registry();
 
-    let state = ServerState::new(
-        snap_tx.clone(),
-        input_tx,
-        seed,
-        jwt_secret,
-        true,
-        game::MAX_PLAYERS,
-    )
-    .with_registry(registry.entries());
+    let state = ServerState::new(input_tx, seed, jwt_secret, true, game::MAX_PLAYERS)
+        .with_registry(registry.entries());
     let roster = state.roster.clone();
+    state.spawn_event_router(out_rx);
 
     let config = game::config();
     let map = game::walkable_map();
@@ -73,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .enable_time()
             .build()
             .expect("sim runtime");
-        let mut app = build_app(snap_tx, input_rx, roster, seed, config, map, registry);
+        let mut app = build_app(out_tx, input_rx, roster, seed, config, map, registry);
         app.insert_resource(game::consumables());
         app.insert_resource(game::buffs());
         app.insert_resource(game::equipment());
