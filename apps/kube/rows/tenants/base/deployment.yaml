@@ -26,9 +26,10 @@ spec:
                 app.kubernetes.io/part-of: ows
         spec:
             serviceAccountName: rows-instancelauncher
+            terminationGracePeriodSeconds: 30
             containers:
                 - name: rows
-                  image: ghcr.io/kbve/rows:0.1.26
+                  image: ghcr.io/kbve/rows:0.1.27
                   imagePullPolicy: Always
                   env:
                       - name: HTTP_HOST

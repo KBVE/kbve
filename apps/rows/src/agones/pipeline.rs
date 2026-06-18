@@ -87,9 +87,15 @@ impl<'a> AllocationPipeline<'a> {
     }
 }
 
+/// Canonical spin-up lock key. The pipeline and every cleanup site must agree on this format, or a
+/// failed allocation leaks its lock and blocks the zone until the staleness timeout.
+pub fn spinup_lock_key(customer_guid: Uuid, zone: &str) -> String {
+    format!("{customer_guid}:{zone}")
+}
+
 impl<'a> AllocationPipeline<'a> {
     pub fn new(customer_guid: Uuid, zone: &'a str, db: &'a DbPool) -> Self {
-        let lock_key = format!("{customer_guid}:{zone}");
+        let lock_key = spinup_lock_key(customer_guid, zone);
         Self {
             customer_guid,
             zone,

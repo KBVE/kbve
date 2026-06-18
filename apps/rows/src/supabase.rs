@@ -69,7 +69,8 @@ pub fn validate_jwt(token: &str, config: &SupabaseConfig) -> Result<ValidatedUse
     let secret = config.jwt_secret.as_ref().ok_or(JwtError::NotConfigured)?;
 
     let mut validation = Validation::new(Algorithm::HS256);
-    validation.set_audience(&["authenticated"]);
+    // Supabase tokens carry aud="authenticated", but ROWS authorizes on role/customer_guid, not
+    // audience — leave aud validation off rather than configure an expected value we won't enforce.
     validation.validate_aud = false;
 
     let key = DecodingKey::from_secret(secret.as_bytes());
@@ -128,8 +129,6 @@ pub enum JwtError {
     NotConfigured,
     #[error("Invalid JWT: {0}")]
     Invalid(String),
-    #[error("Token expired")]
-    Expired,
     #[error("Invalid service key")]
     InvalidServiceKey,
 }
