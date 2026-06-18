@@ -74,6 +74,13 @@ export default defineConfig(({ mode }) => ({
 					'packages/npm/fx/src/index.ts',
 				),
 			},
+			{
+				find: /^@kbve\/jobboard-schema$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/data/codegen/generated/jobboard-schema.ts',
+				),
+			},
 			// RN primitives render on web
 			{ find: /^react-native$/, replacement: 'react-native-web' },
 		],

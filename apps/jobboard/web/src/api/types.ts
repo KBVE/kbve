@@ -5,6 +5,14 @@
 // Enum-ish integers carry the same meaning as the Postgres CHECK constraints
 // (see packages/data/sql/schema/jobboard/jobboard.sql).
 
+import type { BudgetTypeValue, GigStatusValue } from '@kbve/jobboard-schema';
+export {
+	Capability,
+	BudgetType as BudgetTypeEnum,
+	GigStatus as GigStatusEnum,
+} from '@kbve/jobboard-schema';
+export type { CapabilityValue } from '@kbve/jobboard-schema';
+
 export interface Vertical {
 	id: number;
 	slug: string;
@@ -26,12 +34,9 @@ export interface TaxonomyItem {
 	status: number;
 }
 
-// gigs.budget_type: 0=unspecified, 1=fixed, 2=range, 3=hourly
-export type BudgetType = 0 | 1 | 2 | 3;
-// gigs.location_pref: 0=remote, 1=onsite, 2=hybrid
+export type BudgetType = BudgetTypeValue;
+export type GigStatus = GigStatusValue;
 export type LocationPref = 0 | 1 | 2;
-// gigs.status: 0=draft, 1=pending_review, 2=open, 4=filled, 8=closed, 16=expired
-export type GigStatus = 0 | 1 | 2 | 4 | 8 | 16;
 
 export interface PosterRef {
 	handle: string;
@@ -193,3 +198,34 @@ export interface Ack {
 	success: boolean;
 	message: string;
 }
+
+// ── Membership / vetting ───────────────────────────────────────────────
+
+export type Capabilities = number;
+export type ApplicationStatusCode = 0 | 1 | 2;
+
+export type LinkKind =
+	| 'github'
+	| 'linkedin'
+	| 'website'
+	| 'x'
+	| 'itch'
+	| 'artstation'
+	| 'other';
+
+export type {
+	ProfileLink,
+	ProfileDraft,
+	SubmitApplicationInput,
+	MembershipApplication,
+	AdminApplication,
+	DecisionInput,
+} from '@kbve/jobboard-schema';
+export {
+	ProfileLinkSchema,
+	ProfileDraftSchema,
+	SubmitApplicationInputSchema,
+	MembershipApplicationSchema,
+	AdminApplicationSchema,
+	DecisionInputSchema,
+} from '@kbve/jobboard-schema';

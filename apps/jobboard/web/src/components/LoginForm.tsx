@@ -39,24 +39,29 @@ export function LoginForm() {
 		peeking,
 		emailValid,
 		mismatch,
+		canSubmit,
+		submitLabel,
 		setEmail,
 		setPassword,
 		setConfirm,
 		setAgreed,
 		setPeeking,
+		setCaptchaToken,
 		switchMode,
 	} = form;
 
-	const onVerify = (token: string) => {
-		form.authenticate(token);
-		captchaRef.current?.resetCaptcha();
-	};
+	// Inline checkbox captcha: the user clicks the hCaptcha widget itself, which
+	// manages its own readiness and challenge popup — no programmatic execute(),
+	// so there's no "iframe not loaded yet, click twice" race. Solving stores
+	// the token; submit stays gated on canSubmit (which requires `verified`).
+	const clearToken = () => setCaptchaToken(null);
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (form.submit().status === 'need_captcha') {
-			captchaRef.current?.execute();
-		}
+		const result = form.submit();
+		// Token consumed/expired — reset the widget so the user re-checks.
+		if (result.status === 'authenticating')
+			captchaRef.current?.resetCaptcha();
 	};
 
 	const peekProps = {
@@ -124,17 +129,26 @@ export function LoginForm() {
 					</label>
 				)}
 
+				{/* Human check — solve before sign in. The inline widget manages
+				    its own challenge popup; canSubmit stays false until solved. */}
+				<div className="flex min-h-[78px] justify-center">
+					<HCaptcha
+						ref={captchaRef}
+						sitekey={KBVE_HCAPTCHA_SITE_KEY}
+						theme="dark"
+						onVerify={(token) => setCaptchaToken(token)}
+						onExpire={clearToken}
+						onError={clearToken}
+					/>
+				</div>
+
 				{error && <p className="text-sm text-red-400">{error}</p>}
 
 				<button
 					type="submit"
-					disabled={busy}
+					disabled={!canSubmit}
 					className="w-full rounded-lg bg-quest-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-quest-900/40 transition hover:bg-quest-400 disabled:cursor-not-allowed disabled:opacity-60">
-					{busy
-						? 'Please wait…'
-						: isSignUp
-							? 'Create account'
-							: 'Sign in'}
+					{busy ? 'Please wait…' : submitLabel}
 				</button>
 			</form>
 
@@ -171,14 +185,6 @@ export function LoginForm() {
 					{isSignUp ? 'Sign in' : 'Create one'}
 				</button>
 			</p>
-
-			<HCaptcha
-				ref={captchaRef}
-				sitekey={KBVE_HCAPTCHA_SITE_KEY}
-				size="invisible"
-				onVerify={onVerify}
-				onExpire={() => captchaRef.current?.resetCaptcha()}
-			/>
 		</div>
 	);
 }

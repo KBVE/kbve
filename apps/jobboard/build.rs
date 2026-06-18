@@ -8,7 +8,40 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = "src/proto";
     std::fs::create_dir_all(out_dir)?;
 
-    prost_build::Config::new().out_dir(out_dir).compile_protos(
+    let mut config = prost_build::Config::new();
+    config.out_dir(out_dir);
+    for msg in [
+        "ProfileLink",
+        "ProfileDraft",
+        "MembershipApplicationView",
+        "AdminApplicationView",
+        "SubmitApplicationInput",
+        "DecisionInput",
+    ] {
+        config.type_attribute(
+            format!(".jobboard.{msg}"),
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        );
+    }
+    for msg in ["SubmitApplicationInput", "DecisionInput"] {
+        config.type_attribute(format!(".jobboard.{msg}"), "#[serde(default)]");
+    }
+    for field in [
+        "ProfileDraft.headline",
+        "ProfileDraft.bio",
+        "ProfileDraft.years_experience",
+        "ProfileDraft.location",
+        "MembershipApplicationView.reviewed_at",
+        "MembershipApplicationView.profile_draft",
+        "AdminApplicationView.email",
+        "AdminApplicationView.profile_draft",
+    ] {
+        config.field_attribute(
+            format!(".jobboard.{field}"),
+            "#[serde(skip_serializing_if = \"Option::is_none\")]",
+        );
+    }
+    config.compile_protos(
         &[format!("{proto_root}/jobboard/jobboard.proto")],
         &[proto_root.to_string()],
     )?;

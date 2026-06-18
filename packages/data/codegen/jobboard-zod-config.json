@@ -1,0 +1,74 @@
+{
+	"include": [
+		"jobboard.ProfileLink",
+		"jobboard.ProfileDraft",
+		"jobboard.MembershipApplicationView",
+		"jobboard.AdminApplicationView",
+		"jobboard.SubmitApplicationInput",
+		"jobboard.DecisionInput"
+	],
+
+	"typeNames": {
+		"jobboard.MembershipApplicationView": "MembershipApplication",
+		"jobboard.AdminApplicationView": "AdminApplication"
+	},
+
+	"schemaNames": {
+		"jobboard.MembershipApplicationView": "MembershipApplicationSchema",
+		"jobboard.AdminApplicationView": "AdminApplicationSchema"
+	},
+
+	"nullable": [
+		"jobboard.MembershipApplicationView.reviewed_at",
+		"jobboard.AdminApplicationView.email"
+	],
+
+	"fieldOverrides": {
+		"jobboard.ProfileLink.kind": "z.enum(['github', 'linkedin', 'website', 'x', 'itch', 'artstation', 'other'])"
+	},
+
+	"numericEnums": [
+		{
+			"name": "Capability",
+			"sourceEnum": "jobboard.Capability",
+			"typeName": "CapabilityValue",
+			"zodSchemaName": "CapabilitySchema"
+		},
+		{
+			"name": "GigStatus",
+			"sourceEnum": "jobboard.GigStatus",
+			"typeName": "GigStatusValue",
+			"zodSchemaName": "GigStatusSchema"
+		},
+		{
+			"name": "ApplicationStatus",
+			"sourceEnum": "jobboard.ApplicationStatus",
+			"typeName": "ApplicationStatusValue",
+			"zodSchemaName": "ApplicationStatusSchema"
+		},
+		{
+			"name": "EngagementStatus",
+			"sourceEnum": "jobboard.EngagementStatus",
+			"typeName": "EngagementStatusValue",
+			"zodSchemaName": "EngagementStatusSchema"
+		},
+		{
+			"name": "BudgetType",
+			"sourceEnum": "jobboard.BudgetType",
+			"typeName": "BudgetTypeValue",
+			"zodSchemaName": "BudgetTypeSchema"
+		},
+		{
+			"name": "ReportTarget",
+			"sourceEnum": "jobboard.ReportTarget",
+			"typeName": "ReportTargetValue",
+			"zodSchemaName": "ReportTargetSchema"
+		},
+		{
+			"name": "ReportStatus",
+			"sourceEnum": "jobboard.ReportStatus",
+			"typeName": "ReportStatusValue",
+			"zodSchemaName": "ReportStatusSchema"
+		}
+	]
+}

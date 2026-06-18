@@ -1,3 +1,4 @@
+mod applications;
 mod auth;
 mod proxy;
 mod seo;
@@ -13,7 +14,8 @@ use std::sync::Arc;
 pub fn router(app: Arc<AppState>) -> Router {
     let api = Router::new()
         .merge(auth::routes())
-        .merge(verticals::routes());
+        .merge(verticals::routes())
+        .merge(applications::routes());
 
     Router::new()
         .merge(system::routes())

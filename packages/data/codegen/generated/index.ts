@@ -17,6 +17,7 @@ export * from './groq-schema.js';
 export * from './icons-schema.js';
 export * from './itemdb-schema.js';
 export * from './jedi-schema.js';
+export * from './jobboard-schema.js';
 export * from './kbveproto-schema.js';
 export * from './mapdb-schema.js';
 export * from './mc_lot-schema.js';
