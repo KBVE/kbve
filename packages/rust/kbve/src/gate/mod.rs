@@ -21,6 +21,7 @@ use std::net::SocketAddr;
 /// - `GATE_AUTHZ`           `is_staff` (default) | `jwt-only`
 /// - `GATE_UPSTREAM_BASIC`  optional `Basic <b64>` injected upstream
 /// - `GATE_LOGIN_REDIRECT`  optional 302 target for unauthed navigations
+/// - `GATE_COOKIE_DOMAIN`   optional domain scope for the session cookie
 /// - `GATE_STAFF_TTL_SECS`  is_staff cache TTL (default 30)
 /// - `GATE_STAFF_SCHEMA`    PostgREST schema for the RPC (default `forum`)
 /// - `SUPABASE_JWT_SECRET`        required
@@ -42,6 +43,9 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         .ok()
         .filter(|s| !s.is_empty());
     let login_redirect = std::env::var("GATE_LOGIN_REDIRECT")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let cookie_domain = std::env::var("GATE_COOKIE_DOMAIN")
         .ok()
         .filter(|s| !s.is_empty());
 
@@ -75,6 +79,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         authz,
         upstream_basic,
         login_redirect,
+        cookie_domain,
         staff,
     })
 }

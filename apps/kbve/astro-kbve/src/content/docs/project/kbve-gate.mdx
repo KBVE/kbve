@@ -14,7 +14,7 @@ tags:
 key: kbve_gate
 pipeline: docker
 app_name: kbve-gate
-version: "0.1.0"
+version: "0.1.1"
 source_path: apps/kbve/kbve-gate
 version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
@@ -55,8 +55,29 @@ After the JWT validates it applies an authz policy:
 | `GATE_AUTHZ` | `is_staff` | `is_staff` or `jwt-only` |
 | `GATE_UPSTREAM_BASIC` | — | `Basic <b64>` injected downstream |
 | `GATE_LOGIN_REDIRECT` | — | 302 target for unauthed browser navigations |
+| `GATE_COOKIE_DOMAIN` | — | domain scope for the minted session cookie (e.g. `.kbve.com`) |
 | `SUPABASE_JWT_SECRET` | — | required |
 | `SUPABASE_URL` | — | required for `is_staff` (direct PostgREST) |
+
+### Login bounce
+
+The KBVE session lives in the browser (IndexedDB), so a cross-subdomain
+navigation carries no token. The gate completes auth with a bounce:
+
+<Steps>
+
+1. Unauthed navigation to a gated host → `302` to
+   `GATE_LOGIN_REDIRECT?redirect_to=<original URL>`.
+2. The login page, once a session exists, returns the browser to
+   `redirect_to?access_token=<jwt>`.
+3. The gate validates the token, sets a `kbve_gate` cookie scoped to
+   `GATE_COOKIE_DOMAIN`, and `302`s to a clean URL. Subsequent requests carry
+   the cookie.
+
+</Steps>
+
+The login page only honours `redirect_to` targets on `*.kbve.com` over https,
+so the token can never be handed to a foreign origin.
 
 ### n8n deployment
 

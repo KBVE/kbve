@@ -203,6 +203,8 @@ spec:
                         value: 'forum'
                       - name: GATE_LOGIN_REDIRECT
                         value: 'https://kbve.com/login'
+                      - name: GATE_COOKIE_DOMAIN
+                        value: '.kbve.com'
                       - name: SUPABASE_URL
                         value: 'http://supabase-postgrest.kilobase.svc.cluster.local:3000'
                       - name: SUPABASE_JWT_SECRET

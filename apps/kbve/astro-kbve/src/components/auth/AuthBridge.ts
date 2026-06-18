@@ -65,13 +65,21 @@ class AuthBridge {
 	/**
 	 * Initiate OAuth sign-in with a provider
 	 */
-	async signInWithOAuth(provider: 'github' | 'twitch' | 'discord') {
+	async signInWithOAuth(
+		provider: 'github' | 'twitch' | 'discord',
+		gateRedirect?: string | null,
+	) {
 		const client = this.ensureClient();
+
+		let callback = `${window.location.origin}/auth/callback`;
+		if (gateRedirect) {
+			callback += `?redirect_to=${encodeURIComponent(gateRedirect)}`;
+		}
 
 		const { data, error } = await client.auth.signInWithOAuth({
 			provider,
 			options: {
-				redirectTo: `${window.location.origin}/auth/callback`,
+				redirectTo: callback,
 				skipBrowserRedirect: false,
 				scopes:
 					provider === 'discord' ? DISCORD_OAUTH_SCOPES : undefined,
