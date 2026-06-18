@@ -11,7 +11,8 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use simgrid::proto::{
-    self, ClientFrame, ClientMessage, Dir, Input, JoinMatch, PROTOCOL_VERSION, ServerEvent,
+    self, ClientFrame, ClientMessage, Dir, EntityId, Input, JoinMatch, PROTOCOL_VERSION,
+    PlayerSlot, ServerEvent,
 };
 use simgrid::{
     KindRegistry, ServerState, SimConfig, WalkableMap, build_app, proto::Tile, router, run_sim_loop,
@@ -87,15 +88,46 @@ async fn next_event(ws: &mut Ws) -> Option<ServerEvent> {
 }
 
 async fn join_and_welcome(url: &str, user: &str) -> Ws {
+    join_with_slot(url, user).await.0
+}
+
+/// Join and return the socket plus the slot the server assigned us.
+async fn join_with_slot(url: &str, user: &str) -> (Ws, PlayerSlot) {
     let (mut ws, _) = connect_async(url).await.expect("connect");
     ws.send(join(user)).await.expect("send join");
     match next_event(&mut ws).await {
-        Some(ServerEvent::Welcome { protocol, .. }) => {
+        Some(ServerEvent::Welcome {
+            protocol,
+            your_slot,
+            ..
+        }) => {
             assert_eq!(protocol, PROTOCOL_VERSION);
+            (ws, your_slot)
         }
         other => panic!("expected Welcome, got {other:?}"),
     }
-    ws
+}
+
+async fn send_frame(ws: &mut Ws, inputs: Vec<Input>) {
+    let frame = ClientMessage::Frame(ClientFrame {
+        client_tick: 1,
+        inputs,
+    });
+    ws.send(Message::Text(proto::encode_json(&frame).unwrap()))
+        .await
+        .unwrap();
+}
+
+/// Read snapshots until we see an entity owned by `slot`, returning its eid.
+async fn eid_owned_by(ws: &mut Ws, slot: PlayerSlot) -> EntityId {
+    for _ in 0..200 {
+        if let Some(ServerEvent::Snapshot(snap)) = next_event(ws).await
+            && let Some(e) = snap.entities.iter().find(|e| e.owner == slot)
+        {
+            return e.eid;
+        }
+    }
+    panic!("never saw an entity owned by {slot:?}");
 }
 
 #[tokio::test]
@@ -170,6 +202,45 @@ async fn second_login_evicts_first() {
         }
     }
     panic!("first session for duplicate username was never evicted");
+}
+
+#[tokio::test]
+async fn trade_offer_accept_completes_over_ws() {
+    let url = spawn_server(8).await;
+    let (mut alice, a_slot) = join_with_slot(&url, "alice").await;
+    let (mut bob, b_slot) = join_with_slot(&url, "bob").await;
+
+    // Alice learns Bob's entity id from a snapshot, then opens a trade.
+    let b_eid = eid_owned_by(&mut alice, b_slot).await;
+    let _ = a_slot;
+    send_frame(
+        &mut alice,
+        vec![Input::TradeOffer {
+            target: b_eid,
+            items: Vec::new(),
+        }],
+    )
+    .await;
+    tokio::time::sleep(Duration::from_millis(120)).await;
+    send_frame(&mut alice, vec![Input::TradeAccept]).await;
+    send_frame(&mut bob, vec![Input::TradeAccept]).await;
+
+    // Both clients should observe the trade reach "completed".
+    for ws in [&mut alice, &mut bob] {
+        let mut done = false;
+        for _ in 0..200 {
+            if let Some(ServerEvent::Ephemeral { kind, payload, .. }) = next_event(ws).await
+                && kind == proto::EPHEMERAL_TRADE
+            {
+                let body = String::from_utf8(payload).unwrap();
+                if body.contains("\"status\":\"completed\"") {
+                    done = true;
+                    break;
+                }
+            }
+        }
+        assert!(done, "client never saw the trade complete");
+    }
 }
 
 #[tokio::test]
