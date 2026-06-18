@@ -1,4 +1,5 @@
 import { atom, computed } from 'nanostores';
+import { parseIrcLine, decodeIrcTrailing } from '@kbve/chat';
 
 export interface ChatMessage {
 	id: string;
@@ -6,7 +7,10 @@ export interface ChatMessage {
 	content: string;
 	channel: string;
 	timestamp: number;
-	type: 'message' | 'join' | 'part' | 'system' | 'notice';
+	type: 'message' | 'join' | 'part' | 'system' | 'notice' | 'event';
+	platform?: string;
+	eventTag?: string;
+	payload?: Record<string, unknown>;
 }
 
 export interface ChannelState {
@@ -65,7 +69,10 @@ export function pushMessage(msg: ChatMessage): void {
 
 	for (const fn of listeners) fn(msg);
 
-	if (msg.channel !== $activeChannel.get() && msg.type === 'message') {
+	if (
+		msg.channel !== $activeChannel.get() &&
+		(msg.type === 'message' || msg.type === 'event')
+	) {
 		const channels = new Map($channels.get());
 		const ch = channels.get(msg.channel);
 		if (ch) {
@@ -110,40 +117,6 @@ export function resetState(): void {
 	$avatarUrl.set('');
 }
 
-// IRC line parser ------------------------------------------------------------
-
-interface ParsedIrcMessage {
-	nick: string;
-	command: string;
-	params: string[];
-	trailing?: string;
-}
-
-export function parseIrcLine(line: string): ParsedIrcMessage | null {
-	let nick = '';
-	let rest = line;
-
-	if (rest.startsWith(':')) {
-		const spaceIdx = rest.indexOf(' ');
-		if (spaceIdx === -1) return null;
-		const prefix = rest.slice(1, spaceIdx);
-		nick = prefix.split('!')[0];
-		rest = rest.slice(spaceIdx + 1);
-	}
-
-	let trailing: string | undefined;
-	const trailIdx = rest.indexOf(' :');
-	if (trailIdx !== -1) {
-		trailing = rest.slice(trailIdx + 2);
-		rest = rest.slice(0, trailIdx);
-	}
-
-	const parts = rest.split(' ').filter(Boolean);
-	if (parts.length === 0) return null;
-
-	return { nick, command: parts[0], params: parts.slice(1), trailing };
-}
-
 // Handler — invoked by the transport on each inbound IRC text frame.
 // `respondPong` lets the transport reply to PING without coupling state.ts
 // to a WebSocket reference.
@@ -163,25 +136,25 @@ export function handleIncoming(
 		if (!parsed) continue;
 
 		switch (parsed.command) {
-			case 'PRIVMSG': {
-				pushMessage({
-					id: makeId(),
-					nick: parsed.nick,
-					content: parsed.trailing ?? '',
-					channel: parsed.params[0],
-					timestamp: Date.now(),
-					type: 'message',
-				});
-				break;
-			}
+			case 'PRIVMSG':
 			case 'NOTICE': {
+				const channel = parsed.params[0] ?? '';
+				const decoded = decodeIrcTrailing(
+					parsed.command,
+					parsed.trailing ?? '',
+					parsed.nick,
+					channel,
+				);
 				pushMessage({
 					id: makeId(),
-					nick: parsed.nick,
-					content: parsed.trailing ?? '',
-					channel: parsed.params[0] ?? '',
+					nick: decoded.sender,
+					content: decoded.content,
+					channel,
 					timestamp: Date.now(),
-					type: 'notice',
+					type: decoded.type,
+					...(decoded.platform ? { platform: decoded.platform } : {}),
+					...(decoded.eventTag ? { eventTag: decoded.eventTag } : {}),
+					...(decoded.payload ? { payload: decoded.payload } : {}),
 				});
 				break;
 			}

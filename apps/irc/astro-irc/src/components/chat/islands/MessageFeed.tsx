@@ -18,12 +18,26 @@ function createMessageNode(msg: ChatMessage): HTMLDivElement {
 	time.textContent = formatTime(msg.timestamp);
 	row.appendChild(time);
 
-	if (msg.type === 'message') {
+	if (msg.type === 'message' || msg.type === 'event') {
+		if (msg.type === 'event' && msg.eventTag) {
+			const tag = document.createElement('span');
+			tag.className = 'kbve-chat__msg-event-tag';
+			tag.textContent = msg.eventTag;
+			row.appendChild(tag);
+		}
+
 		const nick = document.createElement('span');
 		nick.className = 'kbve-chat__msg-nick';
 		nick.style.color = nickColor(msg.nick);
 		nick.textContent = msg.nick;
 		row.appendChild(nick);
+
+		if (msg.platform && msg.platform !== 'irc') {
+			const platform = document.createElement('span');
+			platform.className = 'kbve-chat__msg-platform';
+			platform.textContent = msg.platform;
+			row.appendChild(platform);
+		}
 
 		const content = document.createElement('span');
 		content.className = 'kbve-chat__msg-content';

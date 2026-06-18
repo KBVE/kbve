@@ -1,31 +1,39 @@
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useStaff } from '@kbve/rn/auth';
 import { DashboardShell } from '../layout/DashboardShell';
 import { Spinner } from '../components/ui';
 import { useAuth } from '../lib/auth';
 
-// The dashboard is for vetted members.
-//  - signed out                          → /login
-//  - signed in, un-vetted (no capability) → /apply (form or pending status)
-//  - signed in + vetted                   → the dashboard
-// Redirecting reactively on sign-out means "Sign out" from the dashboard lands
-// the user back on /login.
+// The dashboard is for vetted members AND staff.
+//  - signed out                              → /login
+//  - signed in, no capability and not staff  → /apply (form or pending status)
+//  - signed in + (vetted OR staff)           → the dashboard
+// Staff with no marketplace profile (e.g. an admin who only vets) must still
+// reach the dashboard, so the gate also honors staff permissions. Redirecting
+// reactively on sign-out lands "Sign out" back on /login.
 export function DashboardPage() {
 	const { signedIn, hasCapability, loading } = useAuth();
+	const staff = useStaff();
 	const navigate = useNavigate();
 
+	// Wait for staff to resolve before judging capability, or a staff-only user
+	// would be redirected during the staff_permissions RPC round-trip.
+	const settling = loading || (signedIn && staff.loading);
+	const allowed = hasCapability || staff.isStaff;
+
 	useEffect(() => {
-		if (loading) return;
+		if (settling) return;
 		const go = (to: string) =>
 			void Promise.resolve(navigate({ to })).catch(() => {});
 		if (!signedIn) {
 			go('/login');
-		} else if (!hasCapability) {
+		} else if (!allowed) {
 			go('/apply');
 		}
-	}, [loading, signedIn, hasCapability, navigate]);
+	}, [settling, signedIn, allowed, navigate]);
 
-	if (loading || !signedIn || !hasCapability) {
+	if (settling || !signedIn || !allowed) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<Spinner label="Loading…" />

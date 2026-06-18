@@ -27,6 +27,10 @@
 		".": {
 			"types": "./src/index.ts",
 			"import": "./src/index.ts"
+		},
+		"./gamechat": {
+			"types": "./src/gamechat.ts",
+			"import": "./src/gamechat.ts"
 		}
 	},
 	"files": [

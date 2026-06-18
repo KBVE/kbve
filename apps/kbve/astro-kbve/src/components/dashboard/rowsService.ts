@@ -89,18 +89,33 @@ export interface DeploymentInfo {
 // Stores
 // ---------------------------------------------------------------------------
 
+export interface RowsTenant {
+	id: string;
+	label: string;
+	default?: boolean;
+}
+
 export const $rowsHealth = atom<RowsHealth | null>(null);
 export const $rowsHealthStatus = atom<ServiceStatus>('loading');
 export const $fleetStatus = atom<FleetStatus | null>(null);
 export const $activePlayers = atom<ActivePlayers | null>(null);
 export const $instanceLog = atom<InstanceLog | null>(null);
 export const $deploymentInfo = atom<DeploymentInfo | null>(null);
+export const $tenants = atom<RowsTenant[]>([]);
+export const $selectedTenant = atom<string | null>(null);
 
 // ---------------------------------------------------------------------------
 // Proxy base — goes through axum-kbve JWT-gated proxy
 // ---------------------------------------------------------------------------
 
-const PROXY_BASE = '/dashboard/chuckrpg/proxy';
+const PROXY_ROOT = '/dashboard/chuckrpg';
+
+function proxyBase(): string {
+	const tenant = $selectedTenant.get();
+	return tenant
+		? `${PROXY_ROOT}/proxy/${encodeURIComponent(tenant)}`
+		: `${PROXY_ROOT}/proxy`;
+}
 
 // ---------------------------------------------------------------------------
 // Fetch helpers
@@ -122,7 +137,7 @@ async function fetchRows<T>(path: string): Promise<T | null> {
 		const headers = await getAuthHeaders();
 		if (!headers.Authorization) return null;
 
-		const resp = await fetch(`${PROXY_BASE}${path}`, {
+		const resp = await fetch(`${proxyBase()}${path}`, {
 			headers,
 			signal: AbortSignal.timeout(8000),
 		});
@@ -190,6 +205,54 @@ export async function fetchInstanceLog(): Promise<void> {
 export async function fetchDeploymentInfo(): Promise<void> {
 	const data = await fetchRows<DeploymentInfo>('/api/System/DeploymentInfo');
 	if (data) $deploymentInfo.set(data);
+}
+
+/**
+ * Load the tenant list from the backend and pick a selection if none set.
+ * Returns true when at least one tenant is available.
+ */
+export async function fetchTenants(): Promise<boolean> {
+	try {
+		const headers = await getAuthHeaders();
+		if (!headers.Authorization) return false;
+		const resp = await fetch(`${PROXY_ROOT}/tenants`, {
+			headers,
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!resp.ok) return false;
+		const data = (await resp.json()) as {
+			tenants: RowsTenant[];
+			default?: string;
+		};
+		const tenants = data.tenants ?? [];
+		$tenants.set(tenants);
+		if (tenants.length === 0) return false;
+		const current = $selectedTenant.get();
+		if (!current || !tenants.some((t) => t.id === current)) {
+			const fallback =
+				data.default ??
+				tenants.find((t) => t.default)?.id ??
+				tenants[0].id;
+			$selectedTenant.set(fallback);
+		}
+		return true;
+	} catch (e) {
+		console.error('[rows] fetchTenants failed:', e);
+		return false;
+	}
+}
+
+/** Switch the active tenant and refetch all data for it. */
+export async function setTenant(id: string): Promise<void> {
+	if ($selectedTenant.get() === id) return;
+	$selectedTenant.set(id);
+	$rowsHealth.set(null);
+	$fleetStatus.set(null);
+	$activePlayers.set(null);
+	$instanceLog.set(null);
+	$deploymentInfo.set(null);
+	$rowsHealthStatus.set('loading');
+	await fetchAll();
 }
 
 /** Fetch all ROWS data in parallel. */

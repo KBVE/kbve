@@ -218,6 +218,7 @@ const protos = [
 		name: 'chat',
 		protoFile: 'kbve/chat.proto',
 		package: 'kbve.chat',
+		vendorTo: [{ path: '../../npm/chat/src/generated/chat-schema.ts' }],
 	},
 ];
 

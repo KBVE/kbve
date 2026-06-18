@@ -11,6 +11,14 @@ import { resolve } from 'node:path';
 //   <script src="https://chat.kbve.com/embed/chat.js" defer></script>
 export default defineConfig({
 	plugins: [react()],
+	resolve: {
+		alias: {
+			'@kbve/chat': resolve(
+				__dirname,
+				'../../../packages/npm/chat/src/index.ts',
+			),
+		},
+	},
 	publicDir: false,
 	define: {
 		'process.env.NODE_ENV': JSON.stringify('production'),

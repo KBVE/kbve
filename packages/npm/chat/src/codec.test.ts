@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ChatKind, Platform } from '@kbve/proto/chat-schema';
+import { ChatKind, Platform } from './generated/chat-schema';
 import {
 	parseEnvelope,
 	formatEnvelope,
