@@ -8,3 +8,13 @@ export function getOpenExternal(): OpenExternal | undefined {
 	return (window as unknown as { __ctOpenExternal?: OpenExternal })
 		.__ctOpenExternal;
 }
+
+export function onExternalClick(url: string) {
+	return (e: { preventDefault: () => void }) => {
+		const open = getOpenExternal();
+		if (open) {
+			e.preventDefault();
+			open(url);
+		}
+	};
+}
