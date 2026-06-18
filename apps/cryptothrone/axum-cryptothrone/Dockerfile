@@ -21,6 +21,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
 COPY packages/npm/laser/ packages/npm/laser/
+COPY packages/npm/chat/ packages/npm/chat/
 COPY packages/npm/core/ packages/npm/core/
 COPY packages/npm/rn/ packages/npm/rn/
 COPY packages/npm/rn-astro/ packages/npm/rn-astro/
