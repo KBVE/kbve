@@ -4,7 +4,12 @@ import { Link } from '@tanstack/react-router';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { LINK_KINDS, profileDraftSchema } from '../lib/profileDraft';
+import {
+	LINK_KINDS,
+	hostMessage,
+	hostOk,
+	profileDraftSchema,
+} from '../lib/profileDraft';
 import {
 	fetchMyApplication,
 	fetchTaxonomy,
@@ -63,7 +68,20 @@ const applicationSchema = z.object({
 		.refine((v) => v === '' || Number(v) <= 100, { message: 'Max 100' }),
 	location: z.string().trim().max(120, { message: 'Max 120 characters' }),
 	links: z
-		.array(z.object({ kind: z.enum(LINK_KINDS), url: optionalUrl }))
+		.array(
+			z
+				.object({ kind: z.enum(LINK_KINDS), url: optionalUrl })
+				.superRefine((l, ctx) => {
+					const url = l.url.trim();
+					if (url && !hostOk(l.kind, url)) {
+						ctx.addIssue({
+							code: 'custom',
+							path: ['url'],
+							message: hostMessage(l.kind),
+						});
+					}
+				}),
+		)
 		.max(10),
 	projects: z.array(z.object({ url: optionalUrl })).max(20),
 });
