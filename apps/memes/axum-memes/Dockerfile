@@ -23,6 +23,9 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
 # Copy workspace package sources (TypeScript path aliases resolve to these)
 COPY packages/npm/astro/ packages/npm/astro/
 COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 # Copy generated schemas (content collections may import these)
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
