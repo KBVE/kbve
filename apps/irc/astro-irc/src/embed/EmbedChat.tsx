@@ -208,16 +208,41 @@ const ChannelRail: React.FC = () => {
 	);
 };
 
+const EVENT_TAG_STYLE: React.CSSProperties = {
+	fontSize: 10,
+	fontWeight: 700,
+	letterSpacing: 0.3,
+	color: '#a78bfa',
+	marginRight: 6,
+	textTransform: 'uppercase',
+};
+
+const PLATFORM_CHIP_STYLE: React.CSSProperties = {
+	fontSize: 10,
+	color: 'rgba(148,163,184,0.85)',
+	marginLeft: 6,
+};
+
 const MessageRow: React.FC<{ msg: ChatMessage }> = ({ msg }) => {
-	if (msg.type === 'message') {
+	if (msg.type === 'message' || msg.type === 'event') {
 		return (
 			<div className={`msg ${msg.type}`}>
 				<span className="msg-time">{formatTime(msg.timestamp)}</span>
+				{msg.type === 'event' && msg.eventTag && (
+					<span className="msg-event-tag" style={EVENT_TAG_STYLE}>
+						{msg.eventTag}
+					</span>
+				)}
 				<span
 					className="msg-nick"
 					style={{ color: nickColor(msg.nick) }}>
 					{msg.nick}
 				</span>
+				{msg.platform && msg.platform !== 'irc' && (
+					<span className="msg-platform" style={PLATFORM_CHIP_STYLE}>
+						{msg.platform}
+					</span>
+				)}
 				<span className="msg-content">{msg.content}</span>
 			</div>
 		);

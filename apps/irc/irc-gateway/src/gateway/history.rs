@@ -23,7 +23,7 @@ use tokio::time::sleep;
 use tracing::{debug, info, warn};
 
 /// Messages retained per channel.
-pub const HISTORY_LEN: usize = 10;
+pub const HISTORY_LEN: usize = 50;
 
 /// Channels the gateway keeps history for (union of the game + minechat
 /// channel whitelists).
