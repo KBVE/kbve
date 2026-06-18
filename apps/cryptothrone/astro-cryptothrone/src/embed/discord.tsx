@@ -5,6 +5,8 @@ import {
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
 import { startPresence } from './discord-presence';
+import { startParticipants } from './discord-participants';
+import { startLayout } from './discord-layout';
 import { KBVE_DISCORD_URL, KBVE_FEEDBACK_URL } from '../lib/kbve-links';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
@@ -182,6 +184,8 @@ async function boot(): Promise<void> {
 		window as unknown as { __ctOpenExternal?: (url: string) => void }
 	).__ctOpenExternal = openExternal;
 
+	void sdk.commands.encourageHardwareAcceleration().catch(() => {});
+
 	setStatus('Linking to Cloud City…', 'Authorizing your Discord account.');
 	const code = await authorize(CLIENT_ID, sdk);
 
@@ -215,6 +219,8 @@ async function boot(): Promise<void> {
 	});
 
 	startPresence(sdk);
+	startParticipants(sdk);
+	startLayout(sdk);
 }
 
 void boot().catch((err) => fail(`Boot failed — ${errMsg(err)}`, err));

@@ -1,4 +1,5 @@
 import { useGameSelector } from '../store/GameStoreContext';
+import { onExternalClick } from '../../../lib/kbve-links';
 
 export function OnlinePlayers() {
 	const players = useGameSelector((s) => s.players);
@@ -28,6 +29,9 @@ export function OnlinePlayers() {
 								href={`https://kbve.com/@${p.username}`}
 								target="_blank"
 								rel="noopener"
+								onClick={onExternalClick(
+									`https://kbve.com/@${p.username}`,
+								)}
 								className="truncate text-stone-300 no-underline hover:text-amber-300">
 								{p.username}
 								{p.username === me && (

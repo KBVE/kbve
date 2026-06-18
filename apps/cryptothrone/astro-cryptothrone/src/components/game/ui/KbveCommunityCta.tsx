@@ -1,18 +1,8 @@
 import {
 	KBVE_DISCORD_URL,
 	KBVE_FEEDBACK_URL,
-	getOpenExternal,
+	onExternalClick,
 } from '../../../lib/kbve-links';
-
-function handleOpen(url: string) {
-	return (e: React.MouseEvent<HTMLAnchorElement>) => {
-		const open = getOpenExternal();
-		if (open) {
-			e.preventDefault();
-			open(url);
-		}
-	};
-}
 
 export function KbveCommunityCta() {
 	return (
@@ -25,7 +15,7 @@ export function KbveCommunityCta() {
 					href={KBVE_DISCORD_URL}
 					target="_blank"
 					rel="noopener noreferrer"
-					onClick={handleOpen(KBVE_DISCORD_URL)}
+					onClick={onExternalClick(KBVE_DISCORD_URL)}
 					className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500/90 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70">
 					<svg
 						className="h-4 w-4"
@@ -40,7 +30,7 @@ export function KbveCommunityCta() {
 					href={KBVE_FEEDBACK_URL}
 					target="_blank"
 					rel="noopener noreferrer"
-					onClick={handleOpen(KBVE_FEEDBACK_URL)}
+					onClick={onExternalClick(KBVE_FEEDBACK_URL)}
 					className="text-xs text-amber-300/80 underline-offset-2 transition hover:text-amber-200 hover:underline">
 					Share feedback
 				</a>

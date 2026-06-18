@@ -11,5 +11,13 @@ declare module '@kbve/laser' {
 		'player:damage': { damage: number };
 		'player:stats': { stats: PlayerStats };
 		'monster:nearby': { count: number };
+		'discord:participants': {
+			participants: {
+				id: string;
+				name: string;
+				avatarUrl: string | null;
+				bot: boolean;
+			}[];
+		};
 	}
 }

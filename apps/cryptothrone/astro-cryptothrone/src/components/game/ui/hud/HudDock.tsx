@@ -157,7 +157,7 @@ export function HudDock() {
 			<>
 				{sheet('inset-x-2 bottom-[4.5rem] max-h-[68vh]')}
 				<nav
-					className="pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex gap-1 border-t border-white/10 bg-black/70 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-md"
+					className="pointer-events-auto fixed inset-x-0 bottom-0 z-40 flex gap-1 border-t border-white/10 bg-black/70 pl-[max(0.5rem,var(--discord-safe-area-inset-left,0px))] pr-[max(0.5rem,var(--discord-safe-area-inset-right,0px))] pb-[max(env(safe-area-inset-bottom),var(--discord-safe-area-inset-bottom,0px))] pt-1 backdrop-blur-md"
 					aria-label="HUD">
 					{TABS.map((t) => tabButton(t, 'row'))}
 				</nav>
