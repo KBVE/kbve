@@ -98,9 +98,29 @@ const model = {
 The component runs as a hydrated React island, rendered through
 `react-native-web`. Use `client:only="react"` (RN-web components don't SSR).
 
-A live POC ships in `astro-kbve` at `/rn-web-poc/`
-(`src/components/rnweb/RnWebDemo.tsx`) — Gradient + Surface + Stack + Text +
-Button variants + a hydrated counter, all from `@kbve/rn` primitives.
+A live POC ships in `astro-kbve` as a Starlight doc at `/application/rn-web/`
+(`src/content/docs/application/rn-web.mdx` → `src/components/rnweb/`) — Gradient
+
+- Surface + Stack + Text + Button variants + a hydrated counter, all from
+  `@kbve/rn` primitives.
+
+> Embedding in MDX: import an **`.astro` wrapper** that renders the island
+> (`<RnWebDemo client:only="react" />`), not the `.tsx` directly. An MDX
+> `import` of the `.tsx` is SSR-evaluated, dragging the CJS RN graph into the
+> server render (`require is not defined`); the `.astro` wrapper keeps the
+> component client-only.
+
+## Theme linkage (Starlight tokens)
+
+On web the `@kbve/rn` token colors resolve to Starlight CSS variables so the
+components track the docs' light/dark theme. This is a value-level platform
+split: `ui/theme.web.ts` (wins via the `.web.ts` resolve extension) re-declares
+`tokens.color` as `var(--sl-color-*, <hex fallback>)` strings — e.g.
+`primary → var(--sl-color-accent)`, `bg → var(--sl-color-bg)`,
+`text → var(--sl-color-text)`. react-native-web passes those `var()` strings
+straight into the generated atomic CSS, so every consumer (even module-level
+`StyleSheet.create`) is themed with zero component changes; native keeps the
+hex `theme.ts`. The hex fallbacks render correctly off a Starlight page too.
 
 ## Universal vs native-only boundary
 
