@@ -17,6 +17,7 @@ use std::net::SocketAddr;
 /// Build a [`GateConfig`] from environment variables.
 ///
 /// - `GATE_UPSTREAM`        upstream base URL (default `http://127.0.0.1:5679`)
+/// - `GATE_UPSTREAM_PREFIX` path prefix prepended upstream (default empty)
 /// - `GATE_AUTHZ`           `is_staff` (default) | `jwt-only`
 /// - `GATE_UPSTREAM_BASIC`  optional `Basic <b64>` injected upstream
 /// - `GATE_LOGIN_REDIRECT`  optional 302 target for unauthed navigations
@@ -28,6 +29,11 @@ use std::net::SocketAddr;
 pub fn config_from_env() -> Result<GateConfig, String> {
     let upstream =
         std::env::var("GATE_UPSTREAM").unwrap_or_else(|_| "http://127.0.0.1:5679".to_string());
+    let upstream_prefix = std::env::var("GATE_UPSTREAM_PREFIX")
+        .ok()
+        .map(|p| format!("/{}", p.trim_matches('/')))
+        .filter(|p| p != "/")
+        .unwrap_or_default();
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
         .map_err(|_| "SUPABASE_JWT_SECRET is required".to_string())?;
     let authz = Authz::from_env(&std::env::var("GATE_AUTHZ").unwrap_or_else(|_| "is_staff".into()));
@@ -64,6 +70,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
 
     Ok(GateConfig {
         upstream,
+        upstream_prefix,
         jwt_secret,
         authz,
         upstream_basic,
