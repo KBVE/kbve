@@ -17,13 +17,13 @@ use crate::state::AppState;
 use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
-use serde::Deserialize;
 use std::sync::Arc;
 use tokio_postgres::error::SqlState;
 use uuid::Uuid;
 
 use crate::proto::jobboard::{
-    AdminApplicationView, Capability, MembershipApplicationView, ProfileDraft,
+    AdminApplicationView, Capability, DecisionInput, MembershipApplicationView, ProfileDraft,
+    SubmitApplicationInput,
 };
 const CAP_TAKER: i32 = Capability::CapTaker as i32;
 const CAP_POSTER: i32 = Capability::CapPoster as i32;
@@ -64,26 +64,10 @@ async fn require_admin(app: &AppState, user: &AuthUser) -> Result<(), ApiError> 
 
 // ─────────────────────────── submit (taker/poster applicant) ───────────────────────────
 
-#[derive(Deserialize)]
-struct SubmitBody {
-    requested_capabilities: i32,
-    #[serde(default)]
-    vertical_ids: Vec<i64>,
-    #[serde(default)]
-    statement: String,
-    #[serde(default)]
-    portfolio_links: Vec<String>,
-    /// Public profile payload reviewed during vetting and copied to the
-    /// talent_profile on approval: { headline, bio, years_experience,
-    /// location, links:[{kind,url}], discipline_ids:[..] }.
-    #[serde(default)]
-    profile_draft: serde_json::Value,
-}
-
 async fn submit(
     State(app): State<Arc<AppState>>,
     user: AuthUser,
-    Json(body): Json<SubmitBody>,
+    Json(body): Json<SubmitApplicationInput>,
 ) -> ApiResult<serde_json::Value> {
     let caps = body.requested_capabilities;
     if caps == 0 || (caps & !CAP_MASK) != 0 {
@@ -98,12 +82,10 @@ async fn submit(
         return Err(ApiError::BadRequest("too many portfolio links".into()));
     }
 
-    // Draft is stored as jsonb; serialize to text and cast so we don't depend on
-    // the postgres serde_json type feature. Coerce null → empty object.
-    let draft_str = if body.profile_draft.is_null() {
-        "{}".to_string()
-    } else {
-        body.profile_draft.to_string()
+    let draft_str = match &body.profile_draft {
+        Some(draft) => serde_json::to_string(draft)
+            .map_err(|e| ApiError::BadRequest(format!("invalid profile_draft: {e}")))?,
+        None => "{}".to_string(),
     };
 
     let mut conn = app.db.write().await?;
@@ -134,10 +116,11 @@ async fn submit(
     let id: Uuid = row.get(0);
 
     for vid in &body.vertical_ids {
+        let vid = *vid as i64;
         tx.execute(
             "INSERT INTO jobboard.member_application_verticals (application_id, vertical_id)
              VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            &[&id, vid],
+            &[&id, &vid],
         )
         .await
         .map_err(pg_err)?;
@@ -255,21 +238,11 @@ async fn admin_list(
 
 // ─────────────────────────── admin: decision (approve/reject) ───────────────────────────
 
-#[derive(Deserialize)]
-struct DecisionBody {
-    approve: bool,
-    /// Capabilities to grant on approval (subset of requested). Ignored on reject.
-    #[serde(default)]
-    grant_capabilities: i32,
-    #[serde(default)]
-    notes: String,
-}
-
 async fn admin_decide(
     State(app): State<Arc<AppState>>,
     user: AuthUser,
     Path(id): Path<Uuid>,
-    Json(body): Json<DecisionBody>,
+    Json(body): Json<DecisionInput>,
 ) -> ApiResult<serde_json::Value> {
     require_admin(&app, &user).await?;
 

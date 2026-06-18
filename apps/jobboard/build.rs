@@ -23,6 +23,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Serialize, serde::Deserialize)]",
         );
     }
+    for msg in ["SubmitApplicationInput", "DecisionInput"] {
+        config.type_attribute(format!(".jobboard.{msg}"), "#[serde(default)]");
+    }
     for field in [
         "ProfileDraft.headline",
         "ProfileDraft.bio",

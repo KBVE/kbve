@@ -336,6 +336,7 @@ pub struct Ack {
     #[prost(string, tag = "2")]
     pub message: ::prost::alloc::string::String,
 }
+/// Membership API envelope: string ids so one message serves REST JSON + gRPC.
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ProfileLink {
     /// github/linkedin/website/x/itch/artstation/other
@@ -391,8 +392,6 @@ pub struct MembershipApplicationView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_draft: ::core::option::Option<ProfileDraft>,
 }
-/// Admin queue row: the application plus the applicant's identity (flat, mirrors
-/// the REST admin list JSON).
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
 pub struct AdminApplicationView {
     #[prost(string, tag = "1")]
@@ -418,7 +417,9 @@ pub struct AdminApplicationView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_draft: ::core::option::Option<ProfileDraft>,
 }
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SubmitApplicationInput {
     #[prost(int32, tag = "1")]
     pub requested_capabilities: i32,
@@ -431,7 +432,9 @@ pub struct SubmitApplicationInput {
     #[prost(message, optional, tag = "5")]
     pub profile_draft: ::core::option::Option<ProfileDraft>,
 }
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DecisionInput {
     #[prost(bool, tag = "1")]
     pub approve: bool,
