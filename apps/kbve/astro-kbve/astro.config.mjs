@@ -420,7 +420,15 @@ export default defineConfig({
 		},
 		optimizeDeps: {
 			include: ['react-native-web'],
-			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
+			exclude: [
+				'fsevents',
+				'@novnc/novnc',
+				'guacamole-common-js',
+				'react-native',
+				'react-native-reanimated',
+				'react-native-svg',
+				'react-native-gesture-handler',
+			],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
 			},
