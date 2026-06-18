@@ -1,15 +1,17 @@
 import { z } from 'zod';
-import { ProfileDraftSchema, ProfileLinkSchema } from '../api/types';
+import { ProfileLinkSchema } from '../api/types';
 
-// The generated ProfileDraftSchema (proto -> zod) is the *shape* contract: field
-// names, the kind enum, types. The SQL CHECK (is_valid_profile_draft,
-// packages/data/sql/dbmate/migrations/20260617200000_jobboard_profile_details.sql
-// + the host lock in 20260618000000_jobboard_link_host_lock.sql) adds the
-// business rules proto can't express -- https-only urls, per-kind host locks, max
-// lengths, ranges, no unknown keys. This extends the generated schema with those
-// rules so the client pre-flight matches what the DB will accept; the SQL CHECK
-// stays the source of truth. (web and the codegen bundle are pinned to the same
-// zod so the generated schema can be extended directly -- v4 brands its version.)
+// Client mirror of jobboard.is_valid_profile_draft / is_valid_profile_links
+// (packages/data/sql/dbmate/migrations/20260617200000_jobboard_profile_details.sql
+// + the host lock in 20260618000000_jobboard_link_host_lock.sql). The SQL CHECK
+// is the source of truth; this is the pre-flight so a bad shape surfaces on the
+// client instead of as a server rejection.
+//
+// Authored with the workspace zod (NOT by extending the generated
+// ProfileDraftSchema): the codegen bundle resolves a separate zod module
+// instance, and zod v4 rejects schemas from a foreign instance at runtime
+// ("expected a Zod schema"). Only LINK_KINDS is read off the generated schema
+// (plain data, no cross-instance schema composition).
 
 export const LINK_KINDS = ProfileLinkSchema.shape.kind.options;
 
@@ -48,7 +50,8 @@ const httpsUrl = z
 	.regex(/^https:\/\//i, { message: 'Must be an https:// URL' })
 	.max(2048, { message: 'URL too long' });
 
-export const profileLinkCheck = ProfileLinkSchema.extend({ url: httpsUrl })
+export const profileLinkCheck = z
+	.object({ kind: z.enum(LINK_KINDS), url: httpsUrl })
 	.strict()
 	.superRefine((link, ctx) => {
 		if (!hostOk(link.kind, link.url)) {
@@ -60,13 +63,15 @@ export const profileLinkCheck = ProfileLinkSchema.extend({ url: httpsUrl })
 		}
 	});
 
-export const profileDraftSchema = ProfileDraftSchema.extend({
-	headline: z.string().max(200).optional(),
-	bio: z.string().max(5000).optional(),
-	years_experience: z.number().int().min(0).max(100).optional(),
-	location: z.string().max(120).optional(),
-	links: z.array(profileLinkCheck).max(20).optional(),
-	discipline_ids: z.array(z.number().int().positive()).max(20).optional(),
-}).strict();
+export const profileDraftSchema = z
+	.object({
+		headline: z.string().max(200).optional(),
+		bio: z.string().max(5000).optional(),
+		years_experience: z.number().int().min(0).max(100).optional(),
+		location: z.string().max(120).optional(),
+		links: z.array(profileLinkCheck).max(20).optional(),
+		discipline_ids: z.array(z.number().int().positive()).max(20).optional(),
+	})
+	.strict();
 
 export type ProfileDraftChecked = z.infer<typeof profileDraftSchema>;
