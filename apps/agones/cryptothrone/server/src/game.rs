@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use bevy::prelude::{Commands, Local, Res};
 use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
-    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, EquipBonus, EquipmentEffects,
-    KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ, SimConfig, WalkableMap, ground_item_bundle,
-    spawn_npc_from_spec,
+    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, EquipBonus, EquipmentEffects, ItemDb,
+    ItemPrices, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ, ShopStock, SimConfig, WalkableMap,
+    ground_item_bundle, spawn_npc_from_spec,
 };
 
 pub const MAP_WIDTH: i32 = 50;
@@ -15,6 +15,8 @@ pub const MAX_PLAYERS: usize = 32;
 const CLOUD_CITY_MAP: &[u8] = include_bytes!("../assets/cloud_city.tilemap.json");
 const NPCDB_JSON: &[u8] =
     include_bytes!("../../../../../packages/data/codegen/generated/npcdb-data.json");
+const ITEMDB_JSON: &[u8] =
+    include_bytes!("../../../../../packages/data/codegen/generated/itemdb-data.json");
 
 pub const PLAYER_HP: i32 = 100;
 pub const PLAYER_ATTACK: i32 = 5;
@@ -99,6 +101,34 @@ fn goblin_venom() -> BuffSpec {
 
 pub fn npc_db() -> NpcDb {
     NpcDb::from_json(NPCDB_JSON).expect("npcdb-data.json parses")
+}
+
+pub fn item_db() -> ItemDb {
+    ItemDb::from_json(ITEMDB_JSON).expect("itemdb-data.json parses")
+}
+
+/// item ref -> (buy_price, sell_price), straight from itemdb economy fields.
+pub fn item_prices() -> ItemPrices {
+    let mut prices = ItemPrices::default();
+    for item in &item_db().items {
+        if item.buy_price > 0 || item.sell_price > 0 {
+            prices
+                .0
+                .insert(item.ref_id.clone(), (item.buy_price, item.sell_price));
+        }
+    }
+    prices
+}
+
+/// merchant npc ref -> the item refs it stocks, from npcdb `shop_items`.
+pub fn shop_stock() -> ShopStock {
+    let mut stock = ShopStock::default();
+    for npc in &npc_db().npcs {
+        if !npc.shop_items.is_empty() {
+            stock.0.insert(npc.ref_id.clone(), npc.shop_items.clone());
+        }
+    }
+    stock
 }
 
 pub fn registry() -> KindRegistry {

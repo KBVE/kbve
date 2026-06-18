@@ -248,6 +248,14 @@ export class CloudCityScene extends Scene {
 				const d = data as { ref: string };
 				if (d?.ref) this.client?.equipItem(d.ref);
 			}),
+			laserEvents.on('shop:buy', (data) => {
+				const d = data as { npc: number; itemRef: string; qty: number };
+				if (d?.itemRef) this.client?.buyItem(d.npc, d.itemRef, d.qty);
+			}),
+			laserEvents.on('shop:sell', (data) => {
+				const d = data as { npc: number; itemRef: string; qty: number };
+				if (d?.itemRef) this.client?.sellItem(d.npc, d.itemRef, d.qty);
+			}),
 			laserEvents.on('emote', (data) => {
 				const d = data as { emoji: string };
 				if (d?.emoji && this.myEid >= 0)
@@ -333,6 +341,9 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('equipped', (e) => {
 			laserEvents.emit('item:equipped', e);
+		});
+		client.on('shop', (r) => {
+			laserEvents.emit('shop:result', r);
 		});
 		client.on('stats', (st) => {
 			laserEvents.emit('player:stats', {
@@ -622,6 +633,7 @@ export class CloudCityScene extends Scene {
 				x: window.innerWidth / 2,
 				y: window.innerHeight / 2,
 			},
+			eid: pending.eid,
 		});
 	}
 
@@ -750,6 +762,7 @@ export class CloudCityScene extends Scene {
 							x: ev?.clientX ?? pointer.x,
 							y: ev?.clientY ?? pointer.y,
 						},
+						eid: intent.eid,
 					});
 				}
 				return;

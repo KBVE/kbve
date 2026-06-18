@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-06-08T19:13:16.360Z
+ * Generated: 2026-06-18T17:32:01.256Z
  */
 
 import { z } from 'zod';
@@ -503,6 +503,7 @@ export const NpcSchema = z.object({
 	quest_refs: z.array(z.string()).optional(),
 	shop_inventory_ref: z.string().optional(),
 	kill_credit_ref: z.string().optional(),
+	shop_items: z.array(z.string()).optional(),
 	spawn_rules: z.array(SpawnRuleSchema).optional(),
 	phase_rules: z.array(PhaseRuleSchema).optional(),
 	difficulty_overrides: z.array(DifficultyOverrideSchema).optional(),

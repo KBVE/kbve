@@ -92,6 +92,20 @@ export interface NPCInteractionState {
 	npcName: string;
 	actions: NPCAction[];
 	coords: { x: number; y: number };
+	eid?: number;
+}
+
+export interface TradeShopItem {
+	ref: string;
+	name: string;
+	buyPrice: number;
+}
+
+export interface TradeModalState {
+	npcId: string;
+	npcName: string;
+	npcEid: number;
+	shopItems: TradeShopItem[];
 }
 
 export interface DialogueState {

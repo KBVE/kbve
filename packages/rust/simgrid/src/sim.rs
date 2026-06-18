@@ -162,6 +162,34 @@ impl ActiveTrades {
     }
 }
 
+pub const COIN_REF: &str = "coin";
+pub const GOLD_BAR_REF: &str = "gold-bar";
+pub const GOLD_BAR_VALUE: u32 = 100;
+
+/// Per-merchant stock: npc ref -> the item refs that merchant buys/sells.
+#[derive(Resource, Default, Clone)]
+pub struct ShopStock(pub HashMap<String, Vec<String>>);
+
+/// Item economy: item ref -> (buy_price, sell_price) in coin units.
+#[derive(Resource, Default, Clone)]
+pub struct ItemPrices(pub HashMap<String, (u32, u32)>);
+
+pub enum ShopInput {
+    Buy {
+        npc: proto::EntityId,
+        item_ref: String,
+        qty: u32,
+    },
+    Sell {
+        npc: proto::EntityId,
+        item_ref: String,
+        qty: u32,
+    },
+}
+
+#[derive(Resource, Default)]
+pub struct PendingShop(Vec<(proto::PlayerSlot, ShopInput)>);
+
 #[derive(Clone)]
 pub struct SavedPlayer {
     pub slots: Vec<(String, u32)>,
@@ -489,6 +517,9 @@ pub fn build_app(
         .insert_resource(PendingActions::default())
         .insert_resource(PendingTrades::default())
         .insert_resource(ActiveTrades::default())
+        .insert_resource(PendingShop::default())
+        .insert_resource(ShopStock::default())
+        .insert_resource(ItemPrices::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
         .insert_resource(BuffEffects::default())
@@ -519,7 +550,13 @@ pub fn build_app(
         .add_systems(Update, rebuild_index.in_set(SimSet::Index))
         .add_systems(
             Update,
-            (drain_inputs, apply_actions, expire_trades, apply_trades)
+            (
+                drain_inputs,
+                apply_actions,
+                expire_trades,
+                apply_trades,
+                apply_shop,
+            )
                 .chain()
                 .in_set(SimSet::Input),
         )
@@ -692,6 +729,7 @@ fn drain_inputs(
     bcast: Res<Outbound>,
     mut actions: ResMut<PendingActions>,
     mut trades: ResMut<PendingTrades>,
+    mut shop: ResMut<PendingShop>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -722,6 +760,12 @@ fn drain_inputs(
                 }
                 Input::TradeAccept => trades.0.push((slot, TradeInput::Accept)),
                 Input::TradeCancel => trades.0.push((slot, TradeInput::Cancel)),
+                Input::BuyItem { npc, item_ref, qty } => {
+                    shop.0.push((slot, ShopInput::Buy { npc, item_ref, qty }))
+                }
+                Input::SellItem { npc, item_ref, qty } => {
+                    shop.0.push((slot, ShopInput::Sell { npc, item_ref, qty }))
+                }
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -834,7 +878,9 @@ fn drain_inputs(
                 | Input::Leave
                 | Input::TradeOffer { .. }
                 | Input::TradeAccept
-                | Input::TradeCancel => {}
+                | Input::TradeCancel
+                | Input::BuyItem { .. }
+                | Input::SellItem { .. } => {}
             }
         }
     }
@@ -1292,6 +1338,186 @@ fn apply_trades(
                 }
             }
         }
+    }
+}
+
+fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
+    inv.slots
+        .iter()
+        .find(|(r, _)| r == item_ref)
+        .map(|(_, c)| *c)
+        .unwrap_or(0)
+}
+
+fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
+    let Some(idx) = inv.slots.iter().position(|(r, _)| r == item_ref) else {
+        return false;
+    };
+    if inv.slots[idx].1 < qty {
+        return false;
+    }
+    inv.slots[idx].1 -= qty;
+    if inv.slots[idx].1 == 0 {
+        inv.slots.remove(idx);
+    }
+    true
+}
+
+/// Combined spendable coin: loose coins plus gold-bars at GOLD_BAR_VALUE each.
+fn coin_balance(inv: &Inventory) -> u32 {
+    inv.slots.iter().fold(0u32, |acc, (r, c)| {
+        if r == COIN_REF {
+            acc.saturating_add(*c)
+        } else if r == GOLD_BAR_REF {
+            acc.saturating_add(c.saturating_mul(GOLD_BAR_VALUE))
+        } else {
+            acc
+        }
+    })
+}
+
+/// Spend `amount` coin-equivalent, breaking gold-bars into loose coins as needed.
+/// Returns false (and leaves the inventory untouched) if the balance is short.
+fn spend_coins(inv: &mut Inventory, amount: u32) -> bool {
+    if coin_balance(inv) < amount {
+        return false;
+    }
+    while count_ref(inv, COIN_REF) < amount {
+        if !remove_ref(inv, GOLD_BAR_REF, 1) {
+            return false;
+        }
+        inv.add(COIN_REF, GOLD_BAR_VALUE);
+    }
+    remove_ref(inv, COIN_REF, amount)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn send_shop_result(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    action: &str,
+    item_ref: &str,
+    qty: u32,
+    ok: bool,
+    reason: &str,
+    balance: u32,
+) {
+    let payload = json!({
+        "action": action,
+        "item_ref": item_ref,
+        "qty": qty,
+        "ok": ok,
+        "reason": reason,
+        "balance": balance,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_SHOP,
+        to: slot,
+        payload,
+    });
+}
+
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn apply_shop(
+    mut pending: ResMut<PendingShop>,
+    index: Res<EidIndex>,
+    registry: Res<KindRegistry>,
+    stock: Res<ShopStock>,
+    prices: Res<ItemPrices>,
+    bcast: Res<Outbound>,
+    mut q_players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
+    q_npcs: Query<(&GridPos, &EntityKind), Without<PlayerSlotTag>>,
+) {
+    if pending.0.is_empty() {
+        return;
+    }
+
+    let mut by_slot: HashMap<u16, Entity> = HashMap::new();
+    for (entity, slot, ..) in q_players.iter() {
+        by_slot.insert(slot.0.0, entity);
+    }
+
+    for (slot, input) in pending.0.drain(..) {
+        let (is_buy, npc, item_ref, qty) = match input {
+            ShopInput::Buy { npc, item_ref, qty } => (true, npc, item_ref, qty),
+            ShopInput::Sell { npc, item_ref, qty } => (false, npc, item_ref, qty),
+        };
+        let action = if is_buy { "buy" } else { "sell" };
+        let reject = |bcast: &Outbound, reason: &str, balance: u32| {
+            send_shop_result(bcast, slot, action, &item_ref, qty, false, reason, balance);
+        };
+
+        if qty == 0 {
+            reject(&bcast, "bad_qty", 0);
+            continue;
+        }
+        let Some(&player_entity) = by_slot.get(&slot.0) else {
+            continue;
+        };
+        let Some(npc_entity) = index.by_eid.get(&npc.0).copied() else {
+            reject(&bcast, "no_merchant", 0);
+            continue;
+        };
+        let Ok((npc_pos, npc_kind)) = q_npcs.get(npc_entity) else {
+            reject(&bcast, "no_merchant", 0);
+            continue;
+        };
+        let npc_tile = npc_pos.tile;
+        let Some(npc_ref) = registry.ref_of(npc_kind.0).map(str::to_string) else {
+            reject(&bcast, "no_merchant", 0);
+            continue;
+        };
+        let Some(stocked) = stock.0.get(&npc_ref) else {
+            reject(&bcast, "not_a_merchant", 0);
+            continue;
+        };
+        let Some(&(buy_price, sell_price)) = prices.0.get(&item_ref) else {
+            reject(&bcast, "no_price", 0);
+            continue;
+        };
+
+        let Ok((_, _, pos, mut inv)) = q_players.get_mut(player_entity) else {
+            continue;
+        };
+        if pos.tile.chebyshev(npc_tile) > TRADE_RANGE {
+            reject(&bcast, "too_far", coin_balance(&inv));
+            continue;
+        }
+
+        if is_buy {
+            if !stocked.iter().any(|r| r == &item_ref) {
+                reject(&bcast, "out_of_stock", coin_balance(&inv));
+                continue;
+            }
+            if buy_price == 0 {
+                reject(&bcast, "not_for_sale", coin_balance(&inv));
+                continue;
+            }
+            let total = buy_price.saturating_mul(qty);
+            if coin_balance(&inv) < total {
+                reject(&bcast, "insufficient", coin_balance(&inv));
+                continue;
+            }
+            spend_coins(&mut inv, total);
+            inv.add(&item_ref, qty);
+        } else {
+            if sell_price == 0 {
+                reject(&bcast, "not_sellable", coin_balance(&inv));
+                continue;
+            }
+            if count_ref(&inv, &item_ref) < qty {
+                reject(&bcast, "no_item", coin_balance(&inv));
+                continue;
+            }
+            remove_ref(&mut inv, &item_ref, qty);
+            inv.add(COIN_REF, sell_price.saturating_mul(qty));
+        }
+
+        let balance = coin_balance(&inv);
+        send_shop_result(&bcast, slot, action, &item_ref, qty, true, "", balance);
+        send_inventory(&bcast, slot, &inv);
     }
 }
 
@@ -3104,6 +3330,232 @@ mod tests {
         assert!(
             app.world().resource::<ActiveTrades>().sessions.is_empty(),
             "rejected trade left a session"
+        );
+    }
+
+    /// Spawn a merchant entity adjacent to spawn and stock it; returns its eid.
+    fn spawn_merchant(app: &mut App, tile: Tile, stock: &[&str]) -> proto::EntityId {
+        let kind = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .expect("training-dummy kind");
+        let entity = app
+            .world_mut()
+            .spawn((
+                EntityKind(kind),
+                GridPos::at(tile),
+                MoveTarget::default(),
+                MoveSpeed { ticks_per_tile: 2 },
+            ))
+            .id();
+        app.world_mut().resource_mut::<ShopStock>().0.insert(
+            "training-dummy".to_string(),
+            stock.iter().map(|s| s.to_string()).collect(),
+        );
+        app.update();
+        proto::EntityId(entity.index_u32())
+    }
+
+    fn set_prices(app: &mut App, prices: &[(&str, u32, u32)]) {
+        let mut p = app.world_mut().resource_mut::<ItemPrices>();
+        for (r, buy, sell) in prices {
+            p.0.insert(r.to_string(), (*buy, *sell));
+        }
+    }
+
+    #[test]
+    fn shop_buy_deducts_coin_and_grants_item() {
+        let (mut app, _rx, input_tx, roster) = harness(201);
+        let slot = join(&roster, "buyer");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("coin", 10)]);
+        set_prices(&mut app, &[("potion", 5, 2)]);
+        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::BuyItem {
+                    npc,
+                    item_ref: "potion".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(inv_count(&app, player, "coin"), 5, "coin not deducted");
+        assert_eq!(inv_count(&app, player, "potion"), 1, "item not granted");
+    }
+
+    #[test]
+    fn shop_buy_insufficient_coin_rejected() {
+        let (mut app, mut rx, input_tx, roster) = harness(202);
+        let slot = join(&roster, "broke");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("coin", 3)]);
+        set_prices(&mut app, &[("potion", 5, 2)]);
+        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::BuyItem {
+                    npc,
+                    item_ref: "potion".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(
+            inv_count(&app, player, "coin"),
+            3,
+            "coin spent on failed buy"
+        );
+        assert_eq!(
+            inv_count(&app, player, "potion"),
+            0,
+            "item granted for free"
+        );
+        let mut saw_fail = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_SHOP
+            {
+                let body = String::from_utf8(payload).unwrap();
+                if body.contains("\"ok\":false") && body.contains("insufficient") {
+                    saw_fail = true;
+                }
+            }
+        }
+        assert!(saw_fail, "no shop rejection ephemeral");
+    }
+
+    #[test]
+    fn shop_buy_breaks_gold_bar_for_change() {
+        let (mut app, _rx, input_tx, roster) = harness(203);
+        let slot = join(&roster, "rich");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("gold-bar", 1)]);
+        set_prices(&mut app, &[("potion", 5, 2)]);
+        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::BuyItem {
+                    npc,
+                    item_ref: "potion".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(
+            inv_count(&app, player, "gold-bar"),
+            0,
+            "gold-bar not broken"
+        );
+        assert_eq!(inv_count(&app, player, "coin"), 95, "change not returned");
+        assert_eq!(inv_count(&app, player, "potion"), 1, "item not granted");
+    }
+
+    #[test]
+    fn shop_sell_grants_coin_removes_item() {
+        let (mut app, _rx, input_tx, roster) = harness(204);
+        let slot = join(&roster, "seller");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("potion", 2)]);
+        set_prices(&mut app, &[("potion", 5, 2)]);
+        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::SellItem {
+                    npc,
+                    item_ref: "potion".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(inv_count(&app, player, "potion"), 1, "item not removed");
+        assert_eq!(inv_count(&app, player, "coin"), 2, "coin not granted");
+    }
+
+    #[test]
+    fn shop_buy_out_of_stock_rejected() {
+        let (mut app, _rx, input_tx, roster) = harness(205);
+        let slot = join(&roster, "picky");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("coin", 100)]);
+        set_prices(&mut app, &[("iron-sword", 50, 20)]);
+        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::BuyItem {
+                    npc,
+                    item_ref: "iron-sword".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(inv_count(&app, player, "coin"), 100, "coin spent off-menu");
+        assert_eq!(
+            inv_count(&app, player, "iron-sword"),
+            0,
+            "got unstocked item"
+        );
+    }
+
+    #[test]
+    fn shop_buy_too_far_rejected() {
+        let (mut app, _rx, input_tx, roster) = harness(206);
+        let slot = join(&roster, "distant");
+        app.update();
+        let player = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, player, &[("coin", 100)]);
+        set_prices(&mut app, &[("potion", 5, 2)]);
+        let npc = spawn_merchant(&mut app, Tile::new(20, 20), &["potion"]);
+
+        input_tx
+            .send((
+                slot,
+                Input::BuyItem {
+                    npc,
+                    item_ref: "potion".into(),
+                    qty: 1,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        assert_eq!(inv_count(&app, player, "coin"), 100, "coin spent from afar");
+        assert_eq!(
+            inv_count(&app, player, "potion"),
+            0,
+            "item bought from afar"
         );
     }
 }

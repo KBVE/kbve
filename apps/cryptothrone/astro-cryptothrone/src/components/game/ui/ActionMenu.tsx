@@ -2,10 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import {
 	getNPCById,
+	getNpcDbEntry,
 	getDialogueById,
 	getGreetingDialogueId,
 } from '../data/npcs';
-import type { NPCAction } from '../types';
+import { getItemById, getItemPrice } from '../data/items';
+import type { NPCAction, TradeShopItem } from '../types';
 import { PixelPanel } from './PixelPanel';
 
 export function ActionMenu() {
@@ -81,16 +83,37 @@ export function ActionMenu() {
 					},
 				});
 				break;
-			case 'trade':
+			case 'trade': {
+				const ref = npc.npcId.replace(/^npc_/, '');
+				const entry = getNpcDbEntry(ref);
+				const refs = entry?.shop_items ?? [];
+				if (npc.eid == null || refs.length === 0) {
+					dispatch({
+						type: 'ADD_NOTIFICATION',
+						payload: {
+							title: 'Trade',
+							message: `${npc.npcName} has nothing to trade right now.`,
+							type: 'info',
+						},
+					});
+					break;
+				}
+				const shopItems: TradeShopItem[] = refs.map((r) => ({
+					ref: r,
+					name: getItemById(r)?.name ?? r,
+					buyPrice: getItemPrice(r).buy,
+				}));
 				dispatch({
-					type: 'ADD_NOTIFICATION',
+					type: 'SET_TRADE',
 					payload: {
-						title: 'Trade',
-						message: `${npc.npcName} has nothing to trade right now.`,
-						type: 'info',
+						npcId: npc.npcId,
+						npcName: npc.npcName,
+						npcEid: npc.eid,
+						shopItems,
 					},
 				});
 				break;
+			}
 			case 'inspect':
 				dispatch({
 					type: 'ADD_NOTIFICATION',

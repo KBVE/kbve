@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 6;
+export const PROTOCOL_VERSION = 8;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -10,6 +10,8 @@ export const EPHEMERAL_ITEM_USED = 5;
 export const EPHEMERAL_EQUIPPED = 6;
 export const EPHEMERAL_STATS = 7;
 export const EPHEMERAL_STATUS = 8;
+export const EPHEMERAL_TRADE = 9;
+export const EPHEMERAL_SHOP = 10;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -31,7 +33,12 @@ export type Input =
 	| { UseItem: { item_ref: string } }
 	| { EquipItem: { item_ref: string } }
 	| { Heartbeat: { client_tick: number } }
-	| 'Leave';
+	| 'Leave'
+	| { TradeOffer: { target: number; items: [string, number][] } }
+	| 'TradeAccept'
+	| 'TradeCancel'
+	| { BuyItem: { npc: number; item_ref: string; qty: number } }
+	| { SellItem: { npc: number; item_ref: string; qty: number } };
 
 export interface JoinMatch {
 	protocol: number;
@@ -107,6 +114,15 @@ export interface InventoryItem {
 
 export interface InventorySync {
 	items: InventoryItem[];
+}
+
+export interface ShopResult {
+	action: 'buy' | 'sell';
+	item_ref: string;
+	qty: number;
+	ok: boolean;
+	reason: string;
+	balance: number;
 }
 
 export interface CombatEvent {

@@ -5,6 +5,7 @@ import type {
 	NPCInteractionState,
 	DialogueState,
 	DiceRollState,
+	TradeModalState,
 	ModalState,
 	EquipmentSlot,
 } from '../types';
@@ -46,6 +47,7 @@ export interface GameState {
 	npcInteraction: NPCInteractionState | null;
 	dialogue: DialogueState | null;
 	diceRoll: DiceRollState | null;
+	tradeModal: TradeModalState | null;
 	activeModal: ModalState | null;
 }
 
@@ -71,6 +73,7 @@ export type GameAction =
 	| { type: 'SET_NPC_INTERACTION'; payload: NPCInteractionState | null }
 	| { type: 'SET_DIALOGUE'; payload: DialogueState | null }
 	| { type: 'SET_DICE_ROLL'; payload: DiceRollState | null }
+	| { type: 'SET_TRADE'; payload: TradeModalState | null }
 	| {
 			type: 'UPDATE_DICE_VALUES';
 			payload: { diceValues: number[]; totalRoll: number };
@@ -117,6 +120,7 @@ export const initialGameState: GameState = {
 	npcInteraction: null,
 	dialogue: null,
 	diceRoll: null,
+	tradeModal: null,
 	activeModal: null,
 };
 
@@ -243,6 +247,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
 		case 'SET_DICE_ROLL':
 			return { ...state, diceRoll: action.payload };
+
+		case 'SET_TRADE':
+			return { ...state, tradeModal: action.payload };
 
 		case 'UPDATE_DICE_VALUES':
 			if (!state.diceRoll) return state;
