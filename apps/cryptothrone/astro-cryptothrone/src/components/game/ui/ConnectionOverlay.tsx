@@ -77,9 +77,6 @@ export function ConnectionOverlay() {
 				)
 			: null;
 
-	// Clean session end (player left, or reconnects exhausted without a server
-	// reject). Send them off with a friendly farewell + the KBVE community CTA
-	// instead of an alarming red error.
 	const isFarewell = connection.status === 'disconnected';
 
 	return (

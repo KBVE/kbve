@@ -7,44 +7,17 @@ import { mount } from './index';
 import { startPresence } from './discord-presence';
 import { KBVE_DISCORD_URL, KBVE_FEEDBACK_URL } from '../lib/kbve-links';
 
-/**
- * Discord Activity entry — the isolated Discord path. Runs entirely on the main
- * thread (the Activity iframe has no SharedWorkers): does the Discord OAuth
- * handshake, exchanges it for a game-server session via a backend endpoint, then
- * boots the same shadow-root game mount as the standalone embed.
- *
- * Build target: `build-discord` -> public/discord/discord.js, loaded by
- * public/discord/index.html (the Activity root URL configured in the Discord
- * developer portal).
- */
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
 	| undefined;
 
-// Backend bridge (P3b): exchanges the Discord OAuth code for a Discord
-// access_token AND a game-server session {jwt, username}, linking the Discord
-// user to a KBVE profile. The Activity iframe runs on *.discordsays.com, so
-// every request — including same-origin backend calls — must carry the
-// `/.proxy/` prefix: Discord strips it and applies the portal ROOT mapping
-// (`/` -> the axum-cryptothrone host serving /api/*). Without it the fetch
-// hits discordsays.com directly and never reaches the backend.
 const SESSION_ENDPOINT = '/.proxy/api/discord/session';
 
-// External hosts the game's plain `new WebSocket('wss://game.cryptothrone…')`
-// calls reach. patchUrlMappings rewrites those real URLs through Discord's
-// proxy transparently — net-config and the rest of the game stay unchanged.
-// Each prefix must match a URL Mapping in the Discord developer portal:
-//   /cryptothrone-game -> game.cryptothrone.com
-//   /cryptothrone-chat -> chat.kbve.com
-// (plus the ROOT mapping `/` -> the axum-cryptothrone host that serves the
-// Activity + the session endpoint.)
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/cryptothrone-game', target: 'game.cryptothrone.com' },
 	{ prefix: '/cryptothrone-chat', target: 'chat.kbve.com' },
 ];
 
-// `rpc.activities.write` is required for setActivity (rich presence). Only
-// widen the scope because the Activity adopts presence — see discord-presence.
 const AUTHORIZE_SCOPE: Types.OAuthScopes[] = [
 	'identify',
 	'email',
@@ -61,8 +34,6 @@ function errMsg(err: unknown): string {
 	if (err instanceof Error) {
 		return err.message;
 	}
-	// Discord RPC rejects with a plain {code, message} object — surface it
-	// instead of the useless "[object Object]" String() default.
 	if (err && typeof err === 'object') {
 		const o = err as Record<string, unknown>;
 		if (typeof o.message === 'string') {
@@ -83,10 +54,6 @@ function root(): HTMLElement | null {
 	return document.getElementById('app');
 }
 
-// Holds the live SDK once `ready()`. The Activity iframe sandbox blocks plain
-// anchor navigation, so community links route through `openExternalLink`;
-// before the SDK exists (e.g. a missing-client-id boot fail) fall back to
-// window.open.
 let activeSdk: DiscordSDK | null = null;
 
 function openExternal(url: string): void {
@@ -97,9 +64,6 @@ function openExternal(url: string): void {
 	window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-/** Build the KBVE community CTA (Discord + feedback) for the vanilla-DOM boot
- * cards. Mirrors the React `KbveCommunityCta` shown once the game has mounted —
- * a small nudge to join us even when the Activity never makes it in-world. */
 function communityCta(): HTMLElement {
 	const wrap = document.createElement('div');
 	wrap.className = 'ct-cta';
@@ -120,8 +84,6 @@ function communityCta(): HTMLElement {
 	return wrap;
 }
 
-/** Update the boot card's status line (and optional sub-line) in place so each
- * stage names itself instead of a frozen "Loading…". */
 function setStatus(status: string, sub?: string): void {
 	const el = root();
 	if (!el) return;
@@ -130,7 +92,6 @@ function setStatus(status: string, sub?: string): void {
 	if (statusEl) {
 		statusEl.textContent = status;
 	} else {
-		// Boot card was replaced (e.g. by an error) — rebuild it.
 		el.innerHTML = `
 			<div class="ct-boot">
 				<span class="ct-spinner" aria-hidden="true"></span>
@@ -142,9 +103,6 @@ function setStatus(status: string, sub?: string): void {
 	if (subEl && sub !== undefined) subEl.textContent = sub;
 }
 
-/** Swap the boot card for a legible error with a retry button. Retry reloads
- * the Activity iframe — the cleanest reset for the SDK/OAuth handshake, same
- * pattern the in-game ConnectionOverlay uses. */
 function fail(msg: string, ...extra: unknown[]): void {
 	console.error(`[Cryptothrone/Discord] ${msg}`, ...extra);
 	const el = root();
@@ -162,7 +120,6 @@ function fail(msg: string, ...extra: unknown[]): void {
 			<p class="ct-error-msg"></p>
 			<button type="button" class="ct-retry">Try again</button>
 		</div>`;
-	// Set message via textContent so error strings can't inject markup.
 	const msgEl = el.querySelector<HTMLElement>('.ct-error-msg');
 	if (msgEl) msgEl.textContent = msg;
 	const retry = el.querySelector<HTMLButtonElement>('.ct-retry');
@@ -170,8 +127,6 @@ function fail(msg: string, ...extra: unknown[]): void {
 	el.querySelector('.ct-boot')?.appendChild(communityCta());
 }
 
-/** Run a boot step, re-throwing with a labelled message so the error card
- * names which stage failed instead of a generic "boot failed". */
 async function step<T>(label: string, run: () => Promise<T>): Promise<T> {
 	try {
 		return await run();
@@ -180,11 +135,6 @@ async function step<T>(label: string, run: () => Promise<T>): Promise<T> {
 	}
 }
 
-/** Discord authorize with a silent-first strategy. `prompt:'none'` skips the
- * consent screen for users who already authorized the app, but Discord rejects
- * it for never-authorized users — fall back to authorize *without* `prompt`,
- * which opens the OAuth consent modal, so a first-time player isn't left at a
- * dead end. */
 async function authorize(clientId: string, sdk: DiscordSDK): Promise<string> {
 	try {
 		const { code } = await sdk.commands.authorize({
@@ -228,8 +178,6 @@ async function boot(): Promise<void> {
 	const sdk = new DiscordSDK(CLIENT_ID);
 	await step('Discord SDK ready', () => sdk.ready());
 	activeSdk = sdk;
-	// Expose the SDK's external-link opener so the in-game (shadow-root) CTA
-	// can escape the Activity sandbox — see lib/kbve-links getOpenExternal.
 	(
 		window as unknown as { __ctOpenExternal?: (url: string) => void }
 	).__ctOpenExternal = openExternal;
@@ -266,8 +214,6 @@ async function boot(): Promise<void> {
 		height: '100vh',
 	});
 
-	// Surface live game state on the player's Discord profile. Subscribes to
-	// the laser bus; lives for the lifetime of the Activity iframe.
 	startPresence(sdk);
 }
 

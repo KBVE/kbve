@@ -125,11 +125,6 @@
 		</style>
 	</head>
 	<body>
-		<!-- Discord Activity root. discord.js runs the OAuth handshake, bridges
-		     to a game-server session, then mounts the game into #app. The boot
-		     card below is the pre-React loading state; discord.js updates its
-		     status text per stage and swaps it for an error card with a retry
-		     button on failure. -->
 		<div id="app">
 			<div class="ct-boot">
 				<span class="ct-spinner" aria-hidden="true"></span>
@@ -137,8 +132,6 @@
 				<p class="ct-boot-sub">Starting CryptoThrone.</p>
 			</div>
 		</div>
-		<!-- Relative src: under the Discord root mapping (/ -> .../discord/) an
-		     absolute /discord/discord.js would double to /discord/discord/…. -->
 		<script src="discord.js" defer></script>
 	</body>
 </html>

@@ -4,16 +4,6 @@ import {
 	getOpenExternal,
 } from '../../../lib/kbve-links';
 
-/**
- * KBVE community call-to-action shown when a session ends — a small nudge to
- * join the Discord plus a feedback link. Rendered by ConnectionOverlay on
- * terminal connection states (clean disconnect or server reject) so a player
- * leaving the world always sees where to find us.
- *
- * In the Discord Activity the iframe sandbox blocks anchor navigation, so each
- * link routes through `window.__ctOpenExternal` (the SDK's openExternalLink)
- * when present; on the standalone web embed the anchors navigate normally.
- */
 function handleOpen(url: string) {
 	return (e: React.MouseEvent<HTMLAnchorElement>) => {
 		const open = getOpenExternal();
