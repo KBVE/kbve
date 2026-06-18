@@ -453,6 +453,17 @@ jobs:
                       esac
                       AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
                       echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
+                      # instead of burning the whole pull on a cryptic git-lfs auth error.
+                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
+                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        exit 1
+                      fi
+                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
                       git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
                       ;;
@@ -708,6 +719,16 @@ jobs:
                   LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
                   AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
                   echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
+                  # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                  LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                    -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                    -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                    --max-time 20 "${AUTH_URL}/objects/batch" || echo 000)
+                  if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                    echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at ${LFS_URL} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                    exit 1
+                  fi
+                  echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                   git -c lfs.url="${AUTH_URL}" lfs install --local
                   git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
                   rm -rf /tmp/game-project
@@ -766,6 +787,17 @@ jobs:
                       esac
                       AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
                       echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
+                      # instead of burning the whole pull on a cryptic git-lfs auth error.
+                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
+                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
+                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
+                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        exit 1
+                      fi
+                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
                       git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
                       ;;
@@ -956,6 +988,12 @@ jobs:
                   $lfsUrl = (git config -f $lfsConfig lfs.url)
                   $authUrl = $lfsUrl -replace '^https://', "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@"
                   Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
+                  # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                  $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
+                  '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
+                  $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authUrl/objects/batch")
+                  if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at $lfsUrl — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                  Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
                   git -c lfs.url="$authUrl" lfs install --local
                   git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
                   "proj_root=$(Join-Path $env:GITHUB_WORKSPACE $proj)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
@@ -1007,6 +1045,12 @@ jobs:
                       }
                       $authLfs = "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@git.kbve.com/$repoPath"
                       Write-Host "::notice::Pulling LFS ($include) from git.kbve.com/$repoPath (normalized from $rawLfs)"
+                      # Preflight: fail fast with a clear, classifiable error if the token is bad.
+                      $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
+                      '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
+                      $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authLfs/objects/batch")
+                      if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at git.kbve.com/$repoPath — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                      Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
                       git -c lfs.url="$authLfs" lfs install --local
                       git -c lfs.url="$authLfs" lfs pull --include="$include"
                   } else {
