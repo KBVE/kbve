@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-17T09:49:10Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-18T09:41:20Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**58** critical/high severity findings across the monorepo.
+**57** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-06-17T09:49:10Z** — updated daily by `ci-dashboard`.
   <Card title="4 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="54 High" icon="error">
+  <Card title="53 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="73 Medium" icon="information">
+  <Card title="74 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="34 Low" icon="approve-check-circle">
@@ -44,7 +44,7 @@ Last generated: **2026-06-17T09:49:10Z** — updated daily by `ci-dashboard`.
     **86** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **48** advisories
+    **49** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-06-17T09:49:10Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 54
-    "Medium" : 73
+    "High" : 53
+    "Medium" : 74
     "Low" : 34
 ```
 
@@ -74,7 +74,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 86
-    "Cargo" : 48
+    "Cargo" : 49
     "CodeQL" : 61
 ```
 
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 36 | 40 | 8 | 86 |
-| **Cargo** | 0 | 0 | 18 | 0 | 48 |
+| **npm** | 2 | 35 | 41 | 8 | 86 |
+| **Cargo** | 0 | 0 | 18 | 0 | 49 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 54 | 73 | 34 | 195 |
+| **Total** | 4 | 53 | 74 | 34 | 196 |
 
   </TabItem>
   <TabItem label="npm">
@@ -127,7 +127,6 @@ pie showData
 | High | `axios` | axios Vulnerable to Credential Theft and Response Hijacki... | [Details](https://github.com/advisories/GHSA-3g43-6gmg-66jw) |
 | High | `axios` | axios Vulnerable to Full Man-in-the-Middle via Prototype ... | [Details](https://github.com/advisories/GHSA-35jp-ww65-95wh) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
-| High | `esbuild` | esbuild: Missing binary integrity verification in Deno mo... | [Details](https://github.com/advisories/GHSA-gv7w-rqvm-qjhr) |
 | High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
 | High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
@@ -173,6 +172,7 @@ pie showData
 | Medium | `dompurify` | DOMPurify: IN_PLACE mode preserves attributes of a clobbe... | [Details](https://github.com/advisories/GHSA-r47g-fvhr-h676) |
 | Medium | `dompurify` | DOMPurify IN_PLACE Sanitization Bypass via Attached Shado... | [Details](https://github.com/advisories/GHSA-rp9w-3fw7-7cwq) |
 | Medium | `astro` | Astro: XSS via Unescaped Attribute Names in Spread Props | [Details](https://github.com/advisories/GHSA-jrpj-wcv7-9fh9) |
+| Medium | `webpack-dev-server` | webpack-dev-server vulnerable to HMR WebSocket intercepti... | [Details](https://github.com/advisories/GHSA-mx8g-39q3-5c79) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |
@@ -231,6 +231,7 @@ pie showData
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `diesel` | Possible use after free when deserializing a SQLite datab... | [Details](https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
+| Info | `lru` | `IterMut` violates Stacked Borrows by invalidating intern... | [Details](https://github.com/jeromefroe/lru-rs/pull/224) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
