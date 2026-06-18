@@ -1,6 +1,7 @@
 import { LaserEventBus } from '../core/events';
 import { ReconnectingSocket, type ConnectionState } from './connection';
 import {
+	EPHEMERAL_BLACKJACK,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_INVENTORY,
@@ -8,6 +9,8 @@ import {
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_SHOP,
 	EPHEMERAL_STATS,
+	type BjActionKind,
+	type BlackjackStateView,
 	type ClientMessage,
 	type CombatEvent,
 	type Dir,
@@ -41,6 +44,7 @@ export type GameClientEventMap = {
 	equipped: EquippedEvent;
 	stats: StatsEvent;
 	shop: ShopResult;
+	blackjackState: BlackjackStateView;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -147,6 +151,11 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_SHOP) {
 			const data = decodeEphemeralPayload<ShopResult>(evt.payload);
 			if (data) this.bus.emit('shop', data);
+		} else if (evt.kind === EPHEMERAL_BLACKJACK) {
+			const data = decodeEphemeralPayload<BlackjackStateView>(
+				evt.payload,
+			);
+			if (data) this.bus.emit('blackjackState', data);
 		}
 	}
 
@@ -190,6 +199,22 @@ export class GameClient {
 
 	sellItem(npc: number, itemRef: string, qty: number): void {
 		this.sendInputs([{ SellItem: { npc, item_ref: itemRef, qty } }]);
+	}
+
+	joinTable(tableRef: string): void {
+		this.sendInputs([{ JoinTable: { table_ref: tableRef } }]);
+	}
+
+	leaveTable(): void {
+		this.sendInputs(['LeaveTable']);
+	}
+
+	placeBet(amount: number): void {
+		this.sendInputs([{ PlaceBet: { amount } }]);
+	}
+
+	bjAction(kind: BjActionKind): void {
+		this.sendInputs([{ BjAction: { kind } }]);
 	}
 
 	face(facing: Facing): void {

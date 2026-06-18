@@ -1,7 +1,14 @@
+import type { BlackjackStateView } from '@kbve/laser';
 import type { PlayerStats } from './types';
 
 declare module '@kbve/laser' {
 	interface LaserEventMap {
+		'blackjack:state': BlackjackStateView;
+		'blackjack:open': { table_ref: string };
+		'blackjack:close': void;
+		'blackjack:bet': { amount: number };
+		'blackjack:action': { kind: 'Hit' | 'Stand' | 'Double' };
+		'blackjack:leave': void;
 		'npc:interact': {
 			npcId: string;
 			npcName: string;

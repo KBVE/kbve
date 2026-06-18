@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 8;
+pub const PROTOCOL_VERSION: u32 = 9;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -15,6 +15,7 @@ pub const EPHEMERAL_STATS: u16 = 7;
 pub const EPHEMERAL_STATUS: u16 = 8;
 pub const EPHEMERAL_TRADE: u16 = 9;
 pub const EPHEMERAL_SHOP: u16 = 10;
+pub const EPHEMERAL_BLACKJACK: u16 = 11;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -141,6 +142,23 @@ pub enum Input {
         item_ref: String,
         qty: u32,
     },
+    JoinTable {
+        table_ref: String,
+    },
+    LeaveTable,
+    PlaceBet {
+        amount: u32,
+    },
+    BjAction {
+        kind: BjActionKind,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum BjActionKind {
+    Hit,
+    Stand,
+    Double,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

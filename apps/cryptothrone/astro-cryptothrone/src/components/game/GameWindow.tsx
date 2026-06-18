@@ -15,6 +15,7 @@ import { HudDock } from './ui/hud/HudDock';
 import { ActionMenu } from './ui/ActionMenu';
 import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
+import { BlackjackTable } from './ui/BlackjackTable';
 import { TradeModal } from './ui/TradeModal';
 import { ConnectionOverlay } from './ui/ConnectionOverlay';
 import { ZoneBanner } from './ui/ZoneBanner';
@@ -103,6 +104,7 @@ function GameUI({ username }: { username?: string }) {
 			<ActionMenu />
 			<DialogueModal />
 			<DiceRollModal />
+			<BlackjackTable />
 			<TradeModal />
 			<CharacterDialog />
 			<NotificationToast />

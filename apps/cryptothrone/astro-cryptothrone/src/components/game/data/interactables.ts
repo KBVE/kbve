@@ -28,10 +28,18 @@ export interface Interactable {
 	characterImage?: string;
 	/** Full-bleed dialog background. */
 	backgroundImage?: string;
+	/** Special interaction handled by the scene instead of a dialog. */
+	action?: 'casino';
 }
 
 const ZONE_INTERACTABLES: Record<string, Interactable[]> = {
 	'cloud-city': [
+		{
+			ref: 'casino',
+			action: 'casino',
+			bounds: { xMin: 5, xMax: 7, yMin: 7, yMax: 9 },
+			message: 'A blackjack table. Press E to take a seat.',
+		},
 		{
 			ref: 'well',
 			bounds: { xMin: 2, xMax: 5, yMin: 10, yMax: 14 },
