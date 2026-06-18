@@ -23,6 +23,7 @@ pub struct Config {
     pub agones_health_interval_secs: u64,
     pub agones_rcon_probe_timeout_secs: u64,
     pub agones_initial_ready_delay_secs: u64,
+    pub auto_pause_enabled: bool,
 }
 
 impl Config {
@@ -56,6 +57,7 @@ impl Config {
             agones_health_interval_secs: parse_env_u64("AGONES_HEALTH_INTERVAL_SECS", 5)?,
             agones_rcon_probe_timeout_secs: parse_env_u64("AGONES_RCON_PROBE_TIMEOUT_SECS", 2)?,
             agones_initial_ready_delay_secs: parse_env_u64("AGONES_INITIAL_READY_DELAY_SECS", 0)?,
+            auto_pause_enabled: parse_env_bool("FACTORIO_AUTO_PAUSE", true),
         })
     }
 }

@@ -161,6 +161,28 @@ spec:
                         value: '60'
                       - name: RUST_LOG
                         value: 'info,agones_factorio_relay=debug'
+                      - name: FACTORIO_SCENARIO_DEFAULT
+                        value: 'kbve'
+                      - name: CLICKHOUSE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                                optional: true
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                                optional: true
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                                optional: true
+                      - name: CLICKHOUSE_DATABASE
+                        value: 'gameops'
                   volumeMounts:
                       - name: log-spool
                         mountPath: /shared/log
