@@ -1,0 +1,25 @@
+{
+  "CanContainContent": false,
+  "Category": "Agones",
+  "CreatedBy": "",
+  "CreatedByURL": "",
+  "Description": "Agones SDK for Unreal, wrapping the Agones REST API.",
+  "DocsURL": "https://agones.dev/site/docs/guides/client-sdks/unreal/",
+  "FileVersion": 3,
+  "FriendlyName": "Agones",
+  "Installed": false,
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "MarketplaceURL": "",
+  "Modules": [
+    {
+      "LoadingPhase": "Default",
+      "Name": "Agones",
+      "Type": "Runtime",
+      "TargetAllowList": [ "Server" ]
+    }
+  ],
+  "SupportURL": "https://github.com/agones-dev/agones",
+  "Version": 2,
+  "VersionName": "2.0.0"
+}

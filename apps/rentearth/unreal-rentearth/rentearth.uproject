@@ -155,6 +155,14 @@
 		{
 			"Name": "KBVECombat",
 			"Enabled": true
+		},
+		{
+			"Name": "Agones",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEAgones",
+			"Enabled": true
 		}
 	]
 }
