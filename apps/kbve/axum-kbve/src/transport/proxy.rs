@@ -1955,6 +1955,66 @@ pub async fn firecracker_openapi_handler(req: Request<Body>) -> Response {
     }
 }
 
+static FACTORIO: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_factorio_proxy() -> bool {
+    let upstream = std::env::var("FACTORIO_CTL_URL")
+        .unwrap_or_else(|_| "http://factorio-ctl.factorio.svc.cluster.local:9002".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
+        .build()
+        .expect("failed to build reqwest client for factorio proxy");
+
+    FACTORIO
+        .set(ServiceProxy {
+            name: "Factorio",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: false,
+        })
+        .is_ok()
+}
+
+pub async fn factorio_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "Factorio").await {
+        return resp;
+    }
+
+    match FACTORIO.get() {
+        Some(proxy) => proxy.handle(path, req).await,
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Factorio proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
+/// Public read-only proxy for the factorio-ctl OpenAPI document. Mirrors
+/// [`firecracker_openapi_handler`]; the operations stay staff-gated through
+/// [`factorio_proxy_handler`].
+pub async fn factorio_openapi_handler(req: Request<Body>) -> Response {
+    match FACTORIO.get() {
+        Some(proxy) => {
+            proxy
+                .handle_preauthorized(Some(Path("openapi.json".to_string())), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Factorio proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 static FIRECRACKER_NET: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_firecracker_net_proxy() -> bool {

@@ -213,6 +213,13 @@ async fn main() -> anyhow::Result<()> {
         info!("Firecracker proxy not configured (using default cluster URL)");
     }
 
+    // Initialize Factorio proxy (optional - for /dashboard/factorio, routes to factorio-ctl)
+    if transport::proxy::init_factorio_proxy() {
+        info!("Factorio proxy initialized - /dashboard/factorio/proxy enabled");
+    } else {
+        info!("Factorio proxy not configured (using default cluster URL)");
+    }
+
     // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated, routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
     if transport::proxy::init_firecracker_net_proxy() {
         info!(
