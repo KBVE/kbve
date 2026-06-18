@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getItemById as getItem, getAllItems } from './items';
+import {
+	getItemById as getItem,
+	getAllItems,
+	getStealLootPool,
+	pickStealLoot,
+} from './items';
 import { getAllItems as getCanonical } from './itemdb';
 import { getNPCById, getDialogueById } from './npcs';
 
@@ -60,6 +65,25 @@ describe('items facade', () => {
 		expect(getItem('health-potion')?.name).toBe('Health Potion');
 		expect(getItem('iron-sword')).toBeDefined();
 		expect(getItem('___nope___')).toBeUndefined();
+	});
+});
+
+describe('steal loot', () => {
+	it('pool excludes quest items and is non-empty', () => {
+		const pool = getStealLootPool();
+		expect(pool.length).toBeGreaterThan(0);
+		expect(pool.every((i) => i.type !== 'quest')).toBe(true);
+		expect(
+			pool.every((i) => i.rarity === 'common' || i.rarity === 'uncommon'),
+		).toBe(true);
+	});
+
+	it('pickStealLoot returns a real registry item across the roll range', () => {
+		for (const roll of [0, 0.25, 0.5, 0.75, 0.999]) {
+			const loot = pickStealLoot(roll);
+			expect(loot).toBeDefined();
+			expect(getItem(loot!.id)).toBeDefined();
+		}
 	});
 });
 
