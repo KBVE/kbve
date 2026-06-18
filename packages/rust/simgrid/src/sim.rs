@@ -1721,7 +1721,7 @@ fn credit_coins(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn apply_blackjack(
     mut pending: ResMut<PendingBlackjack>,
     mut reg: ResMut<TableRegistry>,
@@ -1816,10 +1816,8 @@ fn apply_blackjack(
     // ---- Disconnect sweep: drop seats whose player vanished (forfeit their bet). ----
     for session in reg.sessions.values_mut() {
         for seat in session.seats.iter_mut() {
-            if let Some(s) = seat {
-                if !entity_of.contains_key(&s.slot) {
-                    *seat = None;
-                }
+            if matches!(seat, Some(s) if !entity_of.contains_key(&s.slot)) {
+                *seat = None;
             }
         }
     }
@@ -1874,10 +1872,11 @@ fn leave_seat(
         return;
     };
     // Refund only when the round hasn't been dealt yet (betting window).
-    if session.phase == BjPhase::Betting && seat.bet > 0 {
-        if let Some(&entity) = entity_of.get(&slot) {
-            credit_coins(q, entity, bcast, slot, seat.bet);
-        }
+    if session.phase == BjPhase::Betting
+        && seat.bet > 0
+        && let Some(&entity) = entity_of.get(&slot)
+    {
+        credit_coins(q, entity, bcast, slot, seat.bet);
     }
 }
 
