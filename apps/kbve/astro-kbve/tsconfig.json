@@ -19,6 +19,10 @@
 			"@kbve/devops": ["../../../packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
+			"@kbve/chat": ["../../../packages/npm/chat/src/index.ts"],
+			"@kbve/chat/gamechat": [
+				"../../../packages/npm/chat/src/gamechat.ts"
+			],
 			"@kbve/proto": [
 				"../../../packages/data/codegen/generated/index.ts"
 			],
