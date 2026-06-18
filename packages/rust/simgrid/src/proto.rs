@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 6;
+pub const PROTOCOL_VERSION: u32 = 7;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -13,6 +13,7 @@ pub const EPHEMERAL_ITEM_USED: u16 = 5;
 pub const EPHEMERAL_EQUIPPED: u16 = 6;
 pub const EPHEMERAL_STATS: u16 = 7;
 pub const EPHEMERAL_STATUS: u16 = 8;
+pub const EPHEMERAL_TRADE: u16 = 9;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -100,14 +101,35 @@ pub enum ClientMessage {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Input {
-    Step { dir: Dir },
-    MoveTo { tile: Tile },
-    Face { facing: Facing },
-    Action { id: u16, target: Option<EntityId> },
-    UseItem { item_ref: String },
-    EquipItem { item_ref: String },
-    Heartbeat { client_tick: u32 },
+    Step {
+        dir: Dir,
+    },
+    MoveTo {
+        tile: Tile,
+    },
+    Face {
+        facing: Facing,
+    },
+    Action {
+        id: u16,
+        target: Option<EntityId>,
+    },
+    UseItem {
+        item_ref: String,
+    },
+    EquipItem {
+        item_ref: String,
+    },
+    Heartbeat {
+        client_tick: u32,
+    },
     Leave,
+    TradeOffer {
+        target: EntityId,
+        items: Vec<(String, u32)>,
+    },
+    TradeAccept,
+    TradeCancel,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

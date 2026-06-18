@@ -58,6 +58,11 @@ const protos = [
 		package: 'clickhouse',
 	},
 	{
+		name: 'argocd',
+		protoFile: 'jedi/argocd.proto',
+		package: 'argocd',
+	},
+	{
 		name: 'osrs',
 		protoFile: 'kbve/osrs.proto',
 		package: 'kbve.osrs',

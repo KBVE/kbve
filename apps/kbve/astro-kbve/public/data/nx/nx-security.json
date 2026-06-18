@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-06-17T09:49:10Z",
+  "generated_at": "2026-06-18T09:41:20Z",
   "summary": {
     "critical": 4,
-    "high": 54,
-    "medium": 73,
+    "high": 53,
+    "medium": 74,
     "low": 34,
-    "info": 30
+    "info": 31
   },
   "ecosystems": {
     "npm": {
       "total": 86,
       "severities": {
         "critical": 2,
-        "high": 36,
-        "medium": 40,
+        "high": 35,
+        "medium": 41,
         "low": 8,
         "info": 0
       },
@@ -481,13 +481,6 @@
           "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
         },
         {
-          "id": "1120679",
-          "title": "esbuild: Missing binary integrity verification in Deno module enables remote code execution via NPM_CONFIG_REGISTRY",
-          "severity": "high",
-          "package": "esbuild",
-          "url": "https://github.com/advisories/GHSA-gv7w-rqvm-qjhr"
-        },
-        {
           "id": "1120680",
           "title": "esbuild allows arbitrary file read when running the development server on Windows",
           "severity": "low",
@@ -619,17 +612,24 @@
           "severity": "high",
           "package": "astro",
           "url": "https://github.com/advisories/GHSA-2pvr-wf23-7pc7"
+        },
+        {
+          "id": "1121087",
+          "title": "webpack-dev-server vulnerable to HMR WebSocket interception via permissive user proxies",
+          "severity": "medium",
+          "package": "webpack-dev-server",
+          "url": "https://github.com/advisories/GHSA-mx8g-39q3-5c79"
         }
       ]
     },
     "cargo": {
-      "total": 48,
+      "total": 49,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 18,
         "low": 0,
-        "info": 30
+        "info": 31
       },
       "advisories": [
         {
@@ -939,6 +939,13 @@
           "severity": "info",
           "package": "glib",
           "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+        },
+        {
+          "id": "RUSTSEC-2026-0002",
+          "title": "`IterMut` violates Stacked Borrows by invalidating internal pointer",
+          "severity": "info",
+          "package": "lru",
+          "url": "https://github.com/jeromefroe/lru-rs/pull/224"
         },
         {
           "id": "RUSTSEC-2026-0097",

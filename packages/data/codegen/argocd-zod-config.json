@@ -1,0 +1,55 @@
+{
+	"enums": {
+		"argocd.HealthStatusCode": {
+			"mode": "const_array",
+			"caseTransform": "none",
+			"skipUnspecified": true,
+			"valueOverrides": {
+				"HEALTH_STATUS_HEALTHY": "Healthy",
+				"HEALTH_STATUS_DEGRADED": "Degraded",
+				"HEALTH_STATUS_PROGRESSING": "Progressing",
+				"HEALTH_STATUS_SUSPENDED": "Suspended",
+				"HEALTH_STATUS_MISSING": "Missing",
+				"HEALTH_STATUS_UNKNOWN": "Unknown"
+			}
+		},
+		"argocd.SyncStatusCode": {
+			"mode": "const_array",
+			"caseTransform": "none",
+			"skipUnspecified": true,
+			"valueOverrides": {
+				"SYNC_STATUS_SYNCED": "Synced",
+				"SYNC_STATUS_OUT_OF_SYNC": "OutOfSync",
+				"SYNC_STATUS_UNKNOWN": "Unknown"
+			}
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "HealthStatusCodes",
+			"sourceEnum": "argocd.HealthStatusCode",
+			"typeName": "HealthStatusCodeValue",
+			"zodSchemaName": "HealthStatusCodeSchema"
+		},
+		{
+			"name": "SyncStatusCodes",
+			"sourceEnum": "argocd.SyncStatusCode",
+			"typeName": "SyncStatusCodeValue",
+			"zodSchemaName": "SyncStatusCodeSchema"
+		}
+	],
+
+	"nullable": [
+		"argocd.ApplicationQuery.name",
+		"argocd.ApplicationQuery.project",
+		"argocd.ApplicationQuery.health_filter",
+		"argocd.ApplicationQuery.sync_filter"
+	],
+
+	"refinements": {
+		"argocd.Application.name": ".min(1)",
+		"argocd.ArgoHealthCheck.elapsed_ms": ".min(0)",
+		"argocd.ArgoHealthCheck.upstream_status": ".min(0)"
+	}
+}

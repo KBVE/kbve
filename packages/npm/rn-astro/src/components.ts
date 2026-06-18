@@ -16,15 +16,10 @@ export {
 	EmptyState,
 	LoadingState,
 	ErrorState,
-	AppBar,
-	TabBar,
-	NavShell,
 	Footer,
-	navStore,
-	useTab,
 	useTheme,
 	tokens,
-} from '@kbve/rn';
+} from '@kbve/rn/ui';
 
 export type {
 	CardModel,
@@ -37,6 +32,4 @@ export type {
 	TextVariant,
 	TextTone,
 	ButtonVariant,
-	NavRoute,
-	TabItem,
-} from '@kbve/rn';
+} from '@kbve/rn/ui';

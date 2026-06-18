@@ -86,6 +86,16 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 	return res.data as T;
 }
 
+export interface Meta {
+	version: string;
+	dev: boolean;
+}
+
+/** Server runtime metadata (public). `dev` drives the dev-mode banner. */
+export function fetchMeta(): Promise<Meta> {
+	return api<Meta>('/meta');
+}
+
 const qs = <T extends object>(params: T): string => {
 	const sp = new URLSearchParams();
 	for (const [k, v] of Object.entries(params)) {

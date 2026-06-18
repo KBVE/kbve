@@ -13,6 +13,7 @@ use std::sync::Arc;
 
 pub fn router(app: Arc<AppState>) -> Router {
     let api = Router::new()
+        .merge(system::api_routes())
         .merge(auth::routes())
         .merge(verticals::routes())
         .merge(applications::routes());
