@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { $activeUsers, $nick } from '../service';
 import { $avatarUrl } from '../auth';
-import { nickColor, nickInitial } from '../format';
+import { nickColor, nickInitial } from '../../../lib/chat/format';
 
 const PROFILE_BASE = 'https://kbve.com/@';
 

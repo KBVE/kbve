@@ -7,7 +7,7 @@ import {
 	onMessage,
 	type ChatMessage,
 } from '../service';
-import { formatTime, nickColor } from '../format';
+import { formatTime, nickColor } from '../../../lib/chat/format';
 
 function createMessageNode(msg: ChatMessage): HTMLDivElement {
 	const row = document.createElement('div');

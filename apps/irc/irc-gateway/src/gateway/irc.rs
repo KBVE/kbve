@@ -5,6 +5,7 @@ use tokio::net::{TcpListener, TcpStream};
 use tracing::{info, warn};
 
 use crate::auth::jwt;
+use crate::gateway::ergo;
 
 /// Serve IRC passthrough on a TCP port
 pub async fn serve() -> Result<()> {
@@ -76,14 +77,7 @@ async fn handle_irc_client(client: TcpStream, peer: SocketAddr) -> Result<()> {
     info!(peer = %peer, user = %username, "IRC client authenticated");
 
     // Connect to Ergo
-    let ergo_host = std::env::var("ERGO_IRC_HOST")
-        .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into());
-    let ergo_port: u16 = std::env::var("ERGO_IRC_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(6667);
-
-    let mut ergo = TcpStream::connect(format!("{ergo_host}:{ergo_port}")).await?;
+    let mut ergo = ergo::connect_irc().await?;
 
     // Send NICK and USER to Ergo on behalf of the authenticated client
     let nick_cmd = format!("NICK {username}\r\n");
