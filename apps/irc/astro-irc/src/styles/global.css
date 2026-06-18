@@ -393,6 +393,21 @@
 		overflow-wrap: break-word;
 	}
 
+	.kbve-chat__msg-event-tag {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.3px;
+		text-transform: uppercase;
+		color: #a78bfa;
+		white-space: nowrap;
+	}
+
+	.kbve-chat__msg-platform {
+		font-size: 10px;
+		color: var(--sl-color-gray-3);
+		white-space: nowrap;
+	}
+
 	.kbve-chat__msg--system .kbve-chat__msg-content,
 	.kbve-chat__msg--join .kbve-chat__msg-content,
 	.kbve-chat__msg--part .kbve-chat__msg-content {

@@ -5,7 +5,7 @@ import {
 	type ChatEnvelope,
 	type ChatKindValue,
 	type PlatformValue,
-} from '@kbve/proto/chat-schema';
+} from './generated/chat-schema';
 
 const KIND_PREFIX = 'CHAT_KIND_';
 const PLATFORM_PREFIX = 'PLATFORM_';
