@@ -4871,7 +4871,7 @@ dependencies = [
 
 [[package]]
 name = "cryptothrone-server"
-version = "0.0.22"
+version = "0.0.24"
 dependencies = [
  "agones",
  "axum 0.7.9",
