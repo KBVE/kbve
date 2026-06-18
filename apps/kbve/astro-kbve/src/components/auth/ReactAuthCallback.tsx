@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { authBridge } from '@/components/auth';
+import { bounceToGate, readGateRedirect } from './gateBounce';
 import { initSupa, getSupa } from '@/lib/supa';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +10,8 @@ export default function ReactAuthCallback() {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
+		// Capture before supabase's detectSessionInUrl rewrites the URL.
+		const gateRedirect = readGateRedirect();
 		const handleCallback = async () => {
 			try {
 				// Handle the OAuth callback — stores session in IndexedDB
@@ -44,6 +47,16 @@ export default function ReactAuthCallback() {
 						await supa.connectWebSocket();
 					} catch {
 						// WebSocket failure should never block auth
+					}
+
+					// Came from a gated subdomain? Hand the token back to its
+					// gate instead of landing on the homepage.
+					if (
+						gateRedirect &&
+						session.access_token &&
+						bounceToGate(gateRedirect, session.access_token)
+					) {
+						return;
 					}
 
 					window.location.href = '/';

@@ -105,6 +105,12 @@ pub fn extract_token(
     None
 }
 
+/// Read the `access_token` query param — the token delivered by the post-login
+/// bounce, which the gate converts into a session cookie.
+pub fn access_token_in_query(query: &str) -> Option<String> {
+    query_param(query, "access_token").filter(|v| !v.is_empty())
+}
+
 fn cookie_value<'a>(cookie_header: &'a str, name: &str) -> Option<&'a str> {
     for pair in cookie_header.split(';') {
         let pair = pair.trim();

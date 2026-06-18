@@ -271,6 +271,10 @@ fn router(state: AppState) -> Router {
             get(super::proxy::firecracker_openapi_handler),
         )
         .route(
+            "/api/factorio/openapi.json",
+            get(super::proxy::factorio_openapi_handler),
+        )
+        .route(
             "/api/rows/openapi.json",
             get(super::proxy::chuckrpg_openapi_handler),
         )
@@ -615,6 +619,14 @@ fn router(state: AppState) -> Router {
         .route(
             "/dashboard/firecracker/proxy",
             any(super::proxy::firecracker_proxy_handler),
+        )
+        .route(
+            "/dashboard/factorio/proxy/{*path}",
+            any(super::proxy::factorio_proxy_handler),
+        )
+        .route(
+            "/dashboard/factorio/proxy",
+            any(super::proxy::factorio_proxy_handler),
         )
         .route(
             "/dashboard/firecracker-net/proxy/{*path}",

@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.45",
+			"version": "0.1.49",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.20",
+			"version": "0.0.24",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -171,6 +171,19 @@
 			"e2e_name": "edge",
 			"deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml",
 			"has_test": true
+		},
+		{
+			"key": "factorio_ctl",
+			"app_name": "factorio-ctl",
+			"version": "0.0.1",
+			"version_toml": "apps/vm/factorio-ctl/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/factorio-ctl.mdx",
+			"version_target": "apps/vm/factorio-ctl/Cargo.toml",
+			"source_path": "apps/vm/factorio-ctl",
+			"runner": "ubuntu-latest",
+			"image": "kbve/factorio-ctl",
+			"deployment_yaml": "apps/kube/agones/factorio/manifests/factorio-ctl.yaml",
+			"has_test": false
 		},
 		{
 			"key": "firecracker_ctl",
@@ -273,7 +286,7 @@
 		{
 			"key": "jobboard",
 			"app_name": "jobboard",
-			"version": "0.1.6",
+			"version": "0.1.7",
 			"version_toml": "apps/jobboard/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
 			"version_target": "apps/jobboard/Cargo.toml",
@@ -432,7 +445,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.27",
+			"version": "0.1.30",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -485,7 +498,7 @@
 		{
 			"key": "laser",
 			"package_name": "laser",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "packages/npm/laser/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
 			"version_target": "packages/npm/laser/package.json"
@@ -707,9 +720,31 @@
 	],
 	"unreal": [
 		{
+			"key": "ue_agones",
+			"plugin_name": "Agones",
+			"plugin_path": "packages/unreal/Agones",
+			"supported_platforms": [
+				"Linux"
+			],
+			"version": "0.0.1",
+			"version_toml": "packages/unreal/Agones/version.toml"
+		},
+		{
+			"key": "ue_kbveagones",
+			"plugin_name": "KBVEAgones",
+			"plugin_path": "packages/unreal/KBVEAgones",
+			"dependency_plugins": "packages/unreal/Agones packages/unreal/KBVEROWS",
+			"supported_platforms": [
+				"Linux"
+			],
+			"version": "0.0.1",
+			"version_toml": "packages/unreal/KBVEAgones/version.toml"
+		},
+		{
 			"key": "ue_kbvecombat",
 			"plugin_name": "KBVECombat",
 			"plugin_path": "packages/unreal/KBVECombat",
+			"dependency_plugins": "packages/unreal/KBVEGameplay",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -795,6 +830,7 @@
 			"key": "ue_kbvemover",
 			"plugin_name": "KBVEMover",
 			"plugin_path": "packages/unreal/KBVEMover",
+			"dependency_plugins": "packages/unreal/KBVEGameplay",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -819,6 +855,7 @@
 			"key": "ue_kbvenpcdb",
 			"plugin_name": "KBVENPCDB",
 			"plugin_path": "packages/unreal/KBVENPCDB",
+			"dependency_plugins": "packages/unreal/KBVEYYJson",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -855,6 +892,7 @@
 			"key": "ue_kbvequestdb",
 			"plugin_name": "KBVEQuestDB",
 			"plugin_path": "packages/unreal/KBVEQuestDB",
+			"dependency_plugins": "packages/unreal/KBVEYYJson",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -891,6 +929,7 @@
 			"key": "ue_kbvesupabase",
 			"plugin_name": "KBVESupabase",
 			"plugin_path": "packages/unreal/KBVESupabase",
+			"dependency_plugins": "packages/unreal/KBVEROWS",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -915,7 +954,7 @@
 			"key": "ue_kbveui",
 			"plugin_name": "KBVEUI",
 			"plugin_path": "packages/unreal/KBVEUI",
-			"dependency_plugins": "packages/unreal/KBVESupabase",
+			"dependency_plugins": "packages/unreal/KBVESupabase packages/unreal/KBVEROWS",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -976,6 +1015,7 @@
 			"key": "ue_kbveworld",
 			"plugin_name": "KBVEWorld",
 			"plugin_path": "packages/unreal/KBVEWorld",
+			"dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEPerf",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
@@ -1125,7 +1165,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.22",
+			"version": "0.3.23",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1191,16 +1231,16 @@
 	],
 	"bevy_game": [],
 	"summary": {
-		"docker": 32,
+		"docker": 33,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 27,
+		"unreal": 29,
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 95
+		"total": 98
 	}
 }
