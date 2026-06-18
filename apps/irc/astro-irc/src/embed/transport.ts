@@ -111,10 +111,12 @@ async function openSocket(): Promise<void> {
 									? new Uint8Array(data)
 									: data,
 							);
-				handleIncoming(text, (token) => {
-					if (state.ws?.readyState === WebSocket.OPEN) {
-						state.ws.send(encoder.encode(`PONG ${token}\r\n`));
-					}
+				handleIncoming(text, {
+					onPing: (token) => {
+						if (state.ws?.readyState === WebSocket.OPEN) {
+							state.ws.send(encoder.encode(`PONG ${token}\r\n`));
+						}
+					},
 				});
 			};
 

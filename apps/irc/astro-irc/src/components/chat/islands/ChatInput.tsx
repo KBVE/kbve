@@ -10,7 +10,7 @@ import {
 	sendMessage,
 } from '../service';
 import { $avatarUrl } from '../auth';
-import { nickColor, nickInitial } from '../format';
+import { nickColor, nickInitial } from '../../../lib/chat/format';
 
 const encoder = new TextEncoder();
 

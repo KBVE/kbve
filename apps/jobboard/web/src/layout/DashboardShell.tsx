@@ -21,13 +21,9 @@ import {
 	ShieldCheck,
 	type LucideIcon,
 } from 'lucide-react';
-import {
-	useAuth,
-	useAuthActions,
-	useStaff,
-	StaffPermission,
-} from '@kbve/rn/auth';
+import { useAuth, useAuthActions, StaffPermission } from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
+import { useStaffContext } from '../lib/staff';
 import { Overview } from './Overview';
 import { StaffOverview } from './StaffOverview';
 import { BrowseView } from './BrowseView';
@@ -62,7 +58,7 @@ const staffSections = (canVet: boolean): Section[] => [
 export function DashboardShell() {
 	const auth = useAuth();
 	const { signOut } = useAuthActions();
-	const staff = useStaff();
+	const staff = useStaffContext();
 	const { isDesktop, isPhone } = useBreakpoint();
 	const [active, setActive] = useState<string>('overview');
 	const [selection, setSelection] = useState<Selection>(null);

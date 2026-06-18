@@ -11,6 +11,7 @@ use tokio_tungstenite::connect_async;
 use tracing::{error, info, warn};
 
 use crate::auth::jwt;
+use crate::gateway::ergo;
 
 const NO_USERNAME_MSG: &str = "No provider username configured. Set a username on your OAuth provider (Discord/GitHub/Twitch) before joining IRC.";
 
@@ -47,8 +48,7 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
 }
 
 async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
-    let ergo_url = std::env::var("ERGO_WS_URL")
-        .unwrap_or_else(|_| "ws://ergo-irc-service.irc.svc.cluster.local:8080".into());
+    let ergo_url = ergo::ws_url();
 
     let ergo_ws = match connect_async(&ergo_url).await {
         Ok((ws, _)) => ws,

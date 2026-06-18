@@ -3,7 +3,7 @@ import { useStore } from '@nanostores/react';
 import { $authState } from '../auth';
 import { $avatarUrl } from '../auth';
 import { $nick } from '../service';
-import { nickColor, nickInitial } from '../format';
+import { nickColor, nickInitial } from '../../../lib/chat/format';
 
 export const MeAvatar: React.FC = () => {
 	const authState = useStore($authState);

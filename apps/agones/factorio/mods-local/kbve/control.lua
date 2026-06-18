@@ -5,6 +5,7 @@ local ExchangeGui = require('modules.exchange_gui')
 local FleetGui = require('modules.fleet_gui')
 local FleetState = require('modules.fleet_state')
 local FleetMissions = require('modules.fleet_missions')
+local Stats = require('modules.stats')
 
 local function on_player_joined(event)
 	local player = game.get_player(event.player_index)
@@ -14,6 +15,7 @@ local function on_player_joined(event)
 	end
 	Coins.handle_player_joined(event)
 	Vault.get_or_create(event.player_index)
+	Stats.player_event('join', player and player.name)
 end
 
 local function on_chunk_generated(event)
@@ -29,6 +31,7 @@ local function on_player_left(event)
 	end
 	ExchangeGui.on_player_left(event)
 	FleetGui.on_player_left(event)
+	Stats.player_event('leave', player and player.name)
 end
 
 local function on_gui_click(event)
@@ -75,6 +78,7 @@ script.on_event(defines.events.on_gui_selected_tab_changed, on_gui_selected_tab_
 script.on_event('kbve-open-exchange', ExchangeGui.on_custom_input)
 script.on_event('kbve-open-fleet', FleetGui.on_custom_input)
 script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
+script.on_nth_tick(Stats.SNAPSHOT_INTERVAL_TICKS, Stats.snapshot)
 
 local function on_tick(event)
 	FleetMissions.on_tick(event)

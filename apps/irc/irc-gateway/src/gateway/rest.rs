@@ -2,6 +2,7 @@ use axum::{Extension, Json, Router, middleware, response::IntoResponse, routing:
 use serde_json::json;
 
 use crate::auth::jwt::{Claims, require_auth};
+use crate::gateway::ergo;
 
 const DEFAULT_USERNAME_SETUP_URL: &str = "https://kbve.com/askama/profile";
 
@@ -28,14 +29,8 @@ async fn me(Extension(claims): Extension<Claims>) -> impl IntoResponse {
 }
 
 async fn status() -> impl IntoResponse {
-    let ergo_ws = std::env::var("ERGO_WS_URL")
-        .unwrap_or_else(|_| "ws://ergo-irc-service.irc.svc.cluster.local:8080".into());
-    let ergo_irc = format!(
-        "{}:{}",
-        std::env::var("ERGO_IRC_HOST")
-            .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into()),
-        std::env::var("ERGO_IRC_PORT").unwrap_or_else(|_| "6667".into()),
-    );
+    let ergo_ws = ergo::ws_url();
+    let ergo_irc = format!("{}:{}", ergo::irc_host(), ergo::irc_port());
 
     Json(json!({
         "status": "ok",
