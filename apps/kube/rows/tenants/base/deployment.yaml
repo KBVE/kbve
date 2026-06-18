@@ -29,7 +29,7 @@ spec:
             terminationGracePeriodSeconds: 30
             containers:
                 - name: rows
-                  image: ghcr.io/kbve/rows:0.1.29
+                  image: ghcr.io/kbve/rows:0.1.30
                   imagePullPolicy: Always
                   env:
                       - name: HTTP_HOST
