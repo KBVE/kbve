@@ -67,9 +67,15 @@ spec:
         - name: generate-allocator-rolebinding
           match:
               any:
+                  # Scope to ROWS tenant namespaces (stamped app.kubernetes.io/part-of: ows by
+                  # the tenant overlay). Without this, a rows-instancelauncher SA created in ANY
+                  # namespace would be granted Agones allocation rights — a latent escalation path.
                   - resources:
                         kinds: ['ServiceAccount']
                         names: ['rows-instancelauncher']
+                        namespaceSelector:
+                            matchLabels:
+                                app.kubernetes.io/part-of: ows
           generate:
               apiVersion: rbac.authorization.k8s.io/v1
               kind: RoleBinding
