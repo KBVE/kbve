@@ -26,6 +26,8 @@ bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 axum = { version = "0.7", default-features = false, features = ["ws"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "sync", "time"] }
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
+dashmap = "6.1.0"
+ulid = "1.2.1"
 jsonwebtoken = { version = "9.3", default-features = false, optional = true }
 tracing = "0.1"
 

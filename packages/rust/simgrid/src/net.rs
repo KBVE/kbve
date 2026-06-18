@@ -6,15 +6,22 @@ use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use axum::routing::get;
-use tokio::sync::{broadcast, mpsc, watch};
+use dashmap::DashMap;
+use futures_util::stream::SplitSink;
+use futures_util::{SinkExt, StreamExt};
+use tokio::sync::{mpsc, watch};
+use ulid::Ulid;
 
 use crate::proto::{self, ClientMessage, Input, ServerEvent};
 
 pub type SlotInput = (proto::PlayerSlot, Input);
 
+const CONN_CHANNEL_CAPACITY: usize = 256;
+
 #[derive(Clone)]
 struct RosterEntry {
     kbve_username: String,
+    ulid: Ulid,
 }
 
 #[derive(Default)]
@@ -33,10 +40,13 @@ impl Roster {
         self.slots.len()
     }
 
-    pub(crate) fn claim(&mut self, kbve_username: String) -> Option<proto::PlayerSlot> {
+    pub(crate) fn claim(&mut self, kbve_username: String, ulid: Ulid) -> Option<proto::PlayerSlot> {
         for (i, s) in self.slots.iter_mut().enumerate() {
             if s.is_none() {
-                *s = Some(RosterEntry { kbve_username });
+                *s = Some(RosterEntry {
+                    kbve_username,
+                    ulid,
+                });
                 return Some(proto::PlayerSlot(i as u16));
             }
         }
@@ -54,6 +64,13 @@ impl Roster {
             .get(slot.0 as usize)
             .and_then(|s| s.as_ref())
             .map(|e| e.kbve_username.clone())
+    }
+
+    pub fn ulid(&self, slot: proto::PlayerSlot) -> Option<Ulid> {
+        self.slots
+            .get(slot.0 as usize)
+            .and_then(|s| s.as_ref())
+            .map(|e| e.ulid)
     }
 
     /// Slots already held by this username — used to evict prior sessions so a
@@ -93,23 +110,26 @@ impl Roster {
     }
 }
 
+struct ConnHandle {
+    tx: mpsc::Sender<ServerEvent>,
+    slot: proto::PlayerSlot,
+}
+
 #[derive(Clone)]
 pub struct ServerState {
-    pub broadcast: Option<broadcast::Sender<ServerEvent>>,
     pub input_tx: Option<mpsc::UnboundedSender<SlotInput>>,
     pub seed: u64,
     pub jwt_secret: Vec<u8>,
     pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
     pub registry: Vec<proto::KindEntry>,
-    /// Per-slot eviction signal: a reconnecting username kicks its prior
-    /// session(s) so the same player never lingers as two ghosts.
+    conns: Arc<DashMap<Ulid, ConnHandle>>,
+    slot2id: Arc<DashMap<proto::PlayerSlot, Ulid>>,
     kicks: Arc<Mutex<HashMap<u16, watch::Sender<bool>>>>,
 }
 
 impl ServerState {
     pub fn new(
-        broadcast: broadcast::Sender<ServerEvent>,
         input_tx: mpsc::UnboundedSender<SlotInput>,
         seed: u64,
         jwt_secret: Vec<u8>,
@@ -117,13 +137,14 @@ impl ServerState {
         capacity: usize,
     ) -> Self {
         Self {
-            broadcast: Some(broadcast),
             input_tx: Some(input_tx),
             seed,
             jwt_secret,
             require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
             registry: Vec::new(),
+            conns: Arc::new(DashMap::new()),
+            slot2id: Arc::new(DashMap::new()),
             kicks: Arc::new(Mutex::new(HashMap::new())),
         }
     }
@@ -132,6 +153,71 @@ impl ServerState {
         self.registry = registry;
         self
     }
+
+    /// Drain the sim's outbound event stream and dispatch each event to the
+    /// connection(s) it names. Delivery requires naming a recipient, so a
+    /// targeted event can no longer leak to every socket. Call inside the net
+    /// runtime that owns the connections.
+    pub fn spawn_event_router(&self, mut out_rx: mpsc::UnboundedReceiver<ServerEvent>) {
+        let conns = self.conns.clone();
+        let slot2id = self.slot2id.clone();
+        tokio::spawn(async move {
+            while let Some(evt) = out_rx.recv().await {
+                route_event(&conns, &slot2id, evt);
+            }
+        });
+    }
+}
+
+fn route_event(
+    conns: &DashMap<Ulid, ConnHandle>,
+    slot2id: &DashMap<proto::PlayerSlot, Ulid>,
+    evt: ServerEvent,
+) {
+    if let ServerEvent::Ephemeral { to, .. } = &evt
+        && *to != proto::PLAYER_SLOT_NONE
+    {
+        if let Some(id) = slot2id.get(to).map(|e| *e.value())
+            && let Some(h) = conns.get(&id)
+        {
+            deliver(h.value(), evt);
+        }
+        return;
+    }
+    for h in conns.iter() {
+        deliver(h.value(), evt.clone());
+    }
+}
+
+fn deliver(handle: &ConnHandle, evt: ServerEvent) {
+    match handle.tx.try_send(evt) {
+        Ok(()) => {}
+        Err(mpsc::error::TrySendError::Full(_)) => {
+            tracing::warn!(
+                slot = handle.slot.0,
+                "conn channel saturated; dropping event"
+            );
+        }
+        Err(mpsc::error::TrySendError::Closed(_)) => {}
+    }
+}
+
+fn ulid_from_identity(identity: &str) -> Ulid {
+    let hi = fnv1a64(identity.as_bytes());
+    let mut salted = Vec::with_capacity(identity.len() + 1);
+    salted.push(0x01);
+    salted.extend_from_slice(identity.as_bytes());
+    let lo = fnv1a64(&salted);
+    Ulid::from(((hi as u128) << 64) | lo as u128)
+}
+
+fn fnv1a64(bytes: &[u8]) -> u64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for &b in bytes {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x0100_0000_01b3);
+    }
+    h
 }
 
 #[derive(Clone, Copy)]
@@ -142,6 +228,7 @@ enum WireFormat {
 
 struct AdmittedPlayer {
     slot: proto::PlayerSlot,
+    ulid: Ulid,
     format: WireFormat,
     kick_rx: watch::Receiver<bool>,
 }
@@ -188,9 +275,9 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         None => return,
     };
     let slot = admitted.slot;
+    let ulid = admitted.ulid;
     let format = admitted.format;
     let mut kick_rx = admitted.kick_rx;
-    let roster_handle = state.roster.clone();
 
     let welcome = ServerEvent::Welcome {
         protocol: proto::PROTOCOL_VERSION,
@@ -201,11 +288,15 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     if let Some(msg) = encode_event(&welcome, format)
         && socket.send(msg).await.is_err()
     {
-        release_slot(&roster_handle, slot);
+        cleanup_join(&state, slot);
         return;
     }
 
-    let mut rx = state.broadcast.as_ref().map(|tx| tx.subscribe());
+    let (sink, mut stream) = socket.split();
+    let (conn_tx, conn_rx) = mpsc::channel(CONN_CHANNEL_CAPACITY);
+    state.conns.insert(ulid, ConnHandle { tx: conn_tx, slot });
+    state.slot2id.insert(slot, ulid);
+    let writer = tokio::spawn(run_writer(sink, conn_rx, format, state.roster.clone()));
 
     loop {
         tokio::select! {
@@ -214,26 +305,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 tracing::info!(slot = slot.0, "session evicted by a newer login");
                 break;
             }
-            evt = async {
-                match &mut rx {
-                    Some(r) => r.recv().await.ok(),
-                    None => futures_util::future::pending::<Option<ServerEvent>>().await,
-                }
-            } => {
-                let Some(evt) = evt else { break };
-                if let ServerEvent::Ephemeral { to, .. } = &evt
-                    && *to != proto::PLAYER_SLOT_NONE
-                    && *to != slot
-                {
-                    continue;
-                }
-                let evt = inject_roster(evt, &state.roster);
-                let Some(msg) = encode_event(&evt, format) else { continue };
-                if socket.send(msg).await.is_err() {
-                    break;
-                }
-            }
-            incoming = socket.recv() => {
+            incoming = stream.next() => {
                 let Some(Ok(msg)) = incoming else { break };
                 if matches!(msg, Message::Close(_)) {
                     break;
@@ -249,13 +321,37 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         }
     }
 
-    // Drop our kick channel before freeing the slot: while the slot is still
+    writer.abort();
+    state.conns.remove_if(&ulid, |_, h| h.slot == slot);
+    state.slot2id.remove_if(&slot, |_, id| *id == ulid);
+    cleanup_join(&state, slot);
+}
+
+async fn run_writer(
+    mut sink: SplitSink<WebSocket, Message>,
+    mut rx: mpsc::Receiver<ServerEvent>,
+    format: WireFormat,
+    roster: Arc<RwLock<Roster>>,
+) {
+    while let Some(evt) = rx.recv().await {
+        let evt = inject_roster(evt, &roster);
+        let Some(msg) = encode_event(&evt, format) else {
+            continue;
+        };
+        if sink.send(msg).await.is_err() {
+            break;
+        }
+    }
+}
+
+fn cleanup_join(state: &ServerState, slot: proto::PlayerSlot) {
+    // Drop the kick channel before freeing the slot: while the slot is still
     // claimed no other join can take it, so we can't clobber a reused slot's
     // fresh kick sender.
     if let Ok(mut kicks) = state.kicks.lock() {
         kicks.remove(&slot.0);
     }
-    release_slot(&roster_handle, slot);
+    release_slot(&state.roster, slot);
 }
 
 fn release_slot(roster: &Arc<RwLock<Roster>>, slot: proto::PlayerSlot) {
@@ -310,11 +406,11 @@ async fn admit(
     jm: proto::JoinMatch,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    let raw = if state.jwt_secret.is_empty() {
-        jm.kbve_username
+    let (raw, sub) = if state.jwt_secret.is_empty() {
+        (jm.kbve_username, String::new())
     } else {
         match crate::auth::verify_supabase_jwt(&jm.jwt, &state.jwt_secret) {
-            Ok(claims) => claims.kbve_username,
+            Ok(claims) => (claims.kbve_username, claims.sub),
             Err(e) => {
                 send_reject(socket, format, &format!("auth rejected: {e}")).await;
                 return None;
@@ -330,7 +426,12 @@ async fn admit(
         .await;
         return None;
     };
-    claim_slot(state, socket, username, format).await
+    let identity = if sub.is_empty() {
+        username.clone()
+    } else {
+        sub
+    };
+    claim_slot(state, socket, username, identity, format).await
 }
 
 #[cfg(not(feature = "supabase-auth"))]
@@ -349,7 +450,8 @@ async fn admit(
         .await;
         return None;
     };
-    claim_slot(state, socket, username, format).await
+    let identity = username.clone();
+    claim_slot(state, socket, username, identity, format).await
 }
 
 fn resolve_username(require_username: bool, name: String) -> Option<String> {
@@ -366,15 +468,17 @@ async fn claim_slot(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     kbve_username: String,
+    identity: String,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
+    let ulid = ulid_from_identity(&identity);
     let name = kbve_username.clone();
     // Find any prior session(s) for this username, then claim a fresh slot —
     // both under one write lock so two simultaneous joins can't race.
     let (slot, prior) = match state.roster.write() {
         Ok(mut r) => {
             let prior = r.slots_for_username(&name);
-            (r.claim(kbve_username), prior)
+            (r.claim(kbve_username, ulid), prior)
         }
         Err(_) => (None, Vec::new()),
     };
@@ -406,9 +510,10 @@ async fn claim_slot(
     if let Ok(mut kicks) = state.kicks.lock() {
         kicks.insert(slot.0, kick_tx);
     }
-    tracing::info!(slot = slot.0, username = %name, "player joined");
+    tracing::info!(slot = slot.0, username = %name, ulid = %ulid, "player joined");
     Some(AdmittedPlayer {
         slot,
+        ulid,
         format,
         kick_rx,
     })
@@ -446,25 +551,117 @@ fn inject_roster(evt: ServerEvent, roster: &Arc<RwLock<Roster>>) -> ServerEvent 
 
 #[cfg(test)]
 mod tests {
-    use super::{Roster, resolve_username};
+    use super::*;
 
     #[test]
     fn roster_dedups_username_for_eviction() {
         let mut r = Roster::new(4);
-        let s0 = r.claim("ann".into()).unwrap();
-        let _s1 = r.claim("bob".into()).unwrap();
+        let s0 = r.claim("ann".into(), ulid_from_identity("ann")).unwrap();
+        let _s1 = r.claim("bob".into(), ulid_from_identity("bob")).unwrap();
 
-        // ann reconnects: her prior slot is found, a fresh slot is claimed.
         let prior: Vec<u16> = r.slots_for_username("ann").iter().map(|s| s.0).collect();
         assert_eq!(prior, vec![s0.0]);
-        let s2 = r.claim("ann".into()).unwrap();
+        let s2 = r.claim("ann".into(), ulid_from_identity("ann")).unwrap();
         assert_ne!(s2.0, s0.0);
         assert_eq!(r.slots_for_username("ann").len(), 2);
 
-        // After the old session releases, only the new one remains.
         r.release(s0);
         let after: Vec<u16> = r.slots_for_username("ann").iter().map(|s| s.0).collect();
         assert_eq!(after, vec![s2.0]);
+    }
+
+    #[test]
+    fn ulid_is_stable_per_identity() {
+        assert_eq!(ulid_from_identity("ann"), ulid_from_identity("ann"));
+        assert_ne!(ulid_from_identity("ann"), ulid_from_identity("bob"));
+    }
+
+    #[test]
+    fn reconnect_reclaims_same_ulid() {
+        let mut r = Roster::new(4);
+        let s0 = r.claim("ann".into(), ulid_from_identity("ann")).unwrap();
+        let first = r.ulid(s0).unwrap();
+        r.release(s0);
+        let s1 = r.claim("ann".into(), ulid_from_identity("ann")).unwrap();
+        assert_eq!(first, r.ulid(s1).unwrap());
+    }
+
+    #[test]
+    fn targeted_event_reaches_only_owner() {
+        let conns: DashMap<Ulid, ConnHandle> = DashMap::new();
+        let slot2id: DashMap<proto::PlayerSlot, Ulid> = DashMap::new();
+        let (atx, mut arx) = mpsc::channel(8);
+        let (btx, mut brx) = mpsc::channel(8);
+        let aid = ulid_from_identity("a");
+        let bid = ulid_from_identity("b");
+        conns.insert(
+            aid,
+            ConnHandle {
+                tx: atx,
+                slot: proto::PlayerSlot(0),
+            },
+        );
+        conns.insert(
+            bid,
+            ConnHandle {
+                tx: btx,
+                slot: proto::PlayerSlot(1),
+            },
+        );
+        slot2id.insert(proto::PlayerSlot(0), aid);
+        slot2id.insert(proto::PlayerSlot(1), bid);
+
+        route_event(
+            &conns,
+            &slot2id,
+            ServerEvent::Ephemeral {
+                kind: 1,
+                to: proto::PlayerSlot(0),
+                payload: Vec::new(),
+            },
+        );
+
+        assert!(arx.try_recv().is_ok());
+        assert!(brx.try_recv().is_err());
+    }
+
+    #[test]
+    fn global_event_reaches_all() {
+        let conns: DashMap<Ulid, ConnHandle> = DashMap::new();
+        let slot2id: DashMap<proto::PlayerSlot, Ulid> = DashMap::new();
+        let (atx, mut arx) = mpsc::channel(8);
+        let (btx, mut brx) = mpsc::channel(8);
+        let aid = ulid_from_identity("a");
+        let bid = ulid_from_identity("b");
+        conns.insert(
+            aid,
+            ConnHandle {
+                tx: atx,
+                slot: proto::PlayerSlot(0),
+            },
+        );
+        conns.insert(
+            bid,
+            ConnHandle {
+                tx: btx,
+                slot: proto::PlayerSlot(1),
+            },
+        );
+        slot2id.insert(proto::PlayerSlot(0), aid);
+        slot2id.insert(proto::PlayerSlot(1), bid);
+
+        route_event(
+            &conns,
+            &slot2id,
+            ServerEvent::Ephemeral {
+                kind: 1,
+                to: proto::PLAYER_SLOT_NONE,
+                payload: Vec::new(),
+            },
+        );
+
+        assert!(arx.try_recv().is_ok());
+        assert!(brx.try_recv().is_ok());
     }
 
     #[test]

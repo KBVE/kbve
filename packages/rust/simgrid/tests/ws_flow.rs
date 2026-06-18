@@ -14,10 +14,9 @@ use simgrid::proto::{
     self, ClientFrame, ClientMessage, Dir, Input, JoinMatch, PROTOCOL_VERSION, ServerEvent,
 };
 use simgrid::{
-    KindRegistry, SNAPSHOT_BROADCAST_CAPACITY, ServerState, SimConfig, WalkableMap, build_app,
-    proto::Tile, router, run_sim_loop,
+    KindRegistry, ServerState, SimConfig, WalkableMap, build_app, proto::Tile, router, run_sim_loop,
 };
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::mpsc;
 
 type Ws = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
@@ -25,10 +24,11 @@ const SPAWN: Tile = Tile::new(5, 5);
 
 /// Boot a sim + router on an ephemeral port; returns the ws:// URL.
 async fn spawn_server(capacity: usize) -> String {
-    let (snap_tx, _keep) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+    let (out_tx, out_rx) = mpsc::unbounded_channel();
     let (input_tx, input_rx) = mpsc::unbounded_channel();
-    let state = ServerState::new(snap_tx.clone(), input_tx, 7, Vec::new(), true, capacity);
+    let state = ServerState::new(input_tx, 7, Vec::new(), true, capacity);
     let roster = state.roster.clone();
+    state.spawn_event_router(out_rx);
     let config = SimConfig {
         spawn: SPAWN,
         ticks_per_tile: 1,
@@ -43,7 +43,7 @@ async fn spawn_server(capacity: usize) -> String {
             .enable_all()
             .build()
             .expect("sim runtime");
-        let app = build_app(snap_tx, input_rx, roster, 7, config, map, registry);
+        let app = build_app(out_tx, input_rx, roster, 7, config, map, registry);
         rt.block_on(run_sim_loop(app));
     });
 

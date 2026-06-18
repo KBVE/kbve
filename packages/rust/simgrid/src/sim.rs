@@ -9,7 +9,7 @@ use bevy::prelude::{
     Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
 use serde_json::json;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::mpsc;
 use tokio::time;
 
 use crate::data::KindRegistry;
@@ -19,7 +19,6 @@ use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
-pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
 
 pub const PLAYER_KIND: u16 = 0;
@@ -71,8 +70,8 @@ pub struct SimClock {
 pub struct SimSeed(pub u64);
 
 #[derive(Resource, Clone)]
-pub struct SnapshotBroadcast {
-    pub tx: broadcast::Sender<ServerEvent>,
+pub struct Outbound {
+    pub tx: mpsc::UnboundedSender<ServerEvent>,
 }
 
 #[derive(Resource)]
@@ -402,7 +401,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
 }
 
 pub fn build_app(
-    tx: broadcast::Sender<ServerEvent>,
+    tx: mpsc::UnboundedSender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
     roster: Arc<RwLock<Roster>>,
     seed: u64,
@@ -413,7 +412,7 @@ pub fn build_app(
     let mut app = App::new();
     app.insert_resource(SimClock::default())
         .insert_resource(SimSeed(seed))
-        .insert_resource(SnapshotBroadcast { tx })
+        .insert_resource(Outbound { tx })
         .insert_resource(InputQueue {
             rx: Mutex::new(input_rx),
         })
@@ -484,7 +483,7 @@ fn tick_sim(mut clock: ResMut<SimClock>) {
 fn sync_roster(
     roster: Res<RosterHandle>,
     config: Res<SimConfig>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut spawned: ResMut<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
     mut kill_counts: ResMut<KillCounts>,
@@ -619,7 +618,7 @@ fn drain_inputs(
     equipment: Res<EquipmentEffects>,
     config: Res<SimConfig>,
     clock: Res<SimClock>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut actions: ResMut<PendingActions>,
     mut q: Query<(
         Entity,
@@ -764,7 +763,7 @@ fn drain_inputs(
 fn use_item(
     effects: &ConsumableEffects,
     buffs: &BuffEffects,
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     item_ref: &str,
     now: u32,
@@ -808,7 +807,7 @@ fn apply_actions(
     mut actions: ResMut<PendingActions>,
     index: Res<EidIndex>,
     registry: Res<KindRegistry>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     config: Res<SimConfig>,
@@ -958,7 +957,7 @@ fn apply_actions(
 
 #[allow(clippy::too_many_arguments)]
 fn award_xp(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     config: &SimConfig,
     equipment: &EquipmentEffects,
@@ -990,7 +989,7 @@ fn award_xp(
 }
 
 fn send_equipped(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     equip_slot: &str,
     item_ref: Option<&str>,
@@ -1013,7 +1012,7 @@ fn send_equipped(
 }
 
 fn send_stats(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     level: i32,
     xp: i32,
@@ -1038,7 +1037,7 @@ fn send_stats(
     });
 }
 
-fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inventory) {
+fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
     let items: Vec<_> = inv
         .slots
         .iter()
@@ -1093,7 +1092,7 @@ fn hostile_ai(
     clock: Res<SimClock>,
     config: Res<SimConfig>,
     map: Res<WalkableMap>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
     mut q_players: Query<
         (
@@ -1183,7 +1182,7 @@ fn hostile_ai(
 }
 
 fn send_status(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     kind: proto::StatusKind,
     magnitude: i32,
@@ -1414,7 +1413,7 @@ fn chain_steps(
 #[allow(clippy::type_complexity)]
 fn emit_snapshot(
     clock: Res<SimClock>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     q: Query<(
         Entity,
         &EntityKind,
@@ -1494,13 +1493,22 @@ mod tests {
 
     type Harness = (
         App,
-        broadcast::Receiver<ServerEvent>,
+        mpsc::UnboundedReceiver<ServerEvent>,
         mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
         Arc<RwLock<Roster>>,
     );
 
+    fn test_ulid(name: &str) -> ulid::Ulid {
+        let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+        for &b in name.as_bytes() {
+            h ^= b as u64;
+            h = h.wrapping_mul(0x0100_0000_01b3);
+        }
+        ulid::Ulid::from(h as u128)
+    }
+
     fn harness(seed: u64) -> Harness {
-        let (tx, rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+        let (tx, rx) = mpsc::unbounded_channel();
         let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
@@ -1526,7 +1534,7 @@ mod tests {
         roster
             .write()
             .unwrap()
-            .claim(name.to_string())
+            .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
     }
 
@@ -1750,7 +1758,7 @@ mod tests {
 
     #[test]
     fn safe_zone_blocks_hostile_aggro() {
-        let (tx, mut rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
