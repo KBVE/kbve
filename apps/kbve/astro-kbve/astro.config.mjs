@@ -427,6 +427,7 @@ export default defineConfig({
 			include: [
 				'react-native-web',
 				'react-native-reanimated',
+				'react-native-worklets',
 				'react-native-svg',
 				'react-native-gesture-handler',
 			],
