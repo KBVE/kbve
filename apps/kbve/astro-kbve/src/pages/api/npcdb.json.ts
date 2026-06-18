@@ -10,7 +10,7 @@ import {
 	MovementTypes,
 	DifficultyModes,
 	EquipSlots,
-} from '../../../../../../packages/data/codegen/generated/npcdb-schema';
+} from '@kbve/proto/npcdb-schema';
 
 /**
  * Field-name → enum array mapping for proto integer conversion.

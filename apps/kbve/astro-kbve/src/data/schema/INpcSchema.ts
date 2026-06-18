@@ -31,7 +31,7 @@ import {
 	SpatialPropertiesSchema,
 	InteractionFlagsSchema,
 	NpcExtensionSchema,
-} from '../../../../../../packages/data/codegen/generated/npcdb-schema';
+} from '@kbve/proto/npcdb-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -86,7 +86,7 @@ export type {
 	SpatialProperties,
 	InteractionFlags,
 	NpcExtension,
-} from '../../../../../../packages/data/codegen/generated/npcdb-schema';
+} from '@kbve/proto/npcdb-schema';
 
 // ---------------------------------------------------------------------------
 // Combined schema — proto source of truth, merged with Astro extras

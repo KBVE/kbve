@@ -19,7 +19,7 @@ import {
 	type LogQueryResponse,
 	type LogStatsResponse,
 	type SeverityLevelValue,
-} from '../../../../../../packages/data/codegen/generated/clickhouse-schema';
+} from '@kbve/proto/clickhouse-schema';
 
 // Re-export generated schemas
 export {
