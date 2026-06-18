@@ -1,22 +1,13 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { SetUsernameScreen, useAuth as useKbveAuth } from '@kbve/rn/auth';
 import { LoginForm } from '../components/LoginForm';
 
-// Split-screen auth: the shared @kbve/rn LoginScreen (email/pw + Discord/GitHub/
-// Twitch OAuth + hCaptcha) on the left, artwork on the right. Browsing is public —
-// this page is only reached via the "Log in" button or a gated action.
+// Split-screen auth: LoginForm (email/pw + Discord/GitHub/Twitch OAuth + hCaptcha)
+// on the left, artwork on the right. Browsing is public — this page is only
+// reached via the "Log in" button or a gated action. Post-sign-in redirects are
+// owned by RootLayout's usePostAuthRedirect (single authority, avoids races).
 export function LoginPage() {
 	const auth = useKbveAuth();
-	const navigate = useNavigate();
-
-	// Once fully signed in (and past the username step), return to the marketplace.
-	useEffect(() => {
-		if (auth.signedIn && !auth.needsUsername) {
-			navigate({ to: '/' });
-		}
-	}, [auth.signedIn, auth.needsUsername, navigate]);
-
 	const needsUsername = auth.signedIn && auth.needsUsername;
 
 	return (

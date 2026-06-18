@@ -3,9 +3,14 @@ import {
 	transformEnumValue,
 	getEnumValues,
 	emitConstArray,
+	emitNumericEnum,
 } from '../enum-mapper.js';
 import { makeDescEnum, resetFieldCounter } from './test-factories.js';
-import type { EnumConfig, ConstArrayConfig } from '../types.js';
+import type {
+	EnumConfig,
+	ConstArrayConfig,
+	NumericEnumConfig,
+} from '../types.js';
 
 describe('transformEnumValue', () => {
 	beforeEach(() => {
@@ -291,5 +296,79 @@ describe('emitConstArray', () => {
 
 		expect(output).toContain('export const EmptyValues = [');
 		expect(output).toContain('] as const;');
+	});
+});
+
+describe('emitNumericEnum', () => {
+	beforeEach(() => {
+		resetFieldCounter();
+	});
+
+	it('emits a numeric const object preserving integer values (incl. zero)', () => {
+		const enumDesc = makeDescEnum('jobboard.Capability', [
+			{ name: 'CAP_NONE', number: 0 },
+			{ name: 'CAP_TAKER', number: 1 },
+			{ name: 'CAP_POSTER', number: 2 },
+			{ name: 'CAP_ADMIN', number: 4 },
+		]);
+		const config: NumericEnumConfig = {
+			name: 'Capability',
+			sourceEnum: 'jobboard.Capability',
+		};
+		const output = emitNumericEnum(config, enumDesc).join('\n');
+
+		expect(output).toContain('export const Capability = {');
+		expect(output).toContain('CAP_NONE: 0,');
+		expect(output).toContain('CAP_TAKER: 1,');
+		expect(output).toContain('CAP_ADMIN: 4,');
+		expect(output).toContain('} as const;');
+	});
+
+	it('emits the value-union type when typeName is set', () => {
+		const enumDesc = makeDescEnum('jobboard.GigStatus', [
+			{ name: 'GIG_DRAFT', number: 0 },
+			{ name: 'GIG_OPEN', number: 2 },
+		]);
+		const config: NumericEnumConfig = {
+			name: 'GigStatus',
+			sourceEnum: 'jobboard.GigStatus',
+			typeName: 'GigStatusValue',
+		};
+		const output = emitNumericEnum(config, enumDesc).join('\n');
+
+		expect(output).toContain(
+			'export type GigStatusValue = (typeof GigStatus)[keyof typeof GigStatus];',
+		);
+	});
+
+	it('emits a z.union of literals when zodSchemaName is set', () => {
+		const enumDesc = makeDescEnum('jobboard.BudgetType', [
+			{ name: 'BUDGET_UNSPECIFIED', number: 0 },
+			{ name: 'BUDGET_FIXED', number: 1 },
+		]);
+		const config: NumericEnumConfig = {
+			name: 'BudgetType',
+			sourceEnum: 'jobboard.BudgetType',
+			zodSchemaName: 'BudgetTypeSchema',
+		};
+		const output = emitNumericEnum(config, enumDesc).join('\n');
+
+		expect(output).toContain(
+			'export const BudgetTypeSchema = z.union([z.literal(0), z.literal(1)]);',
+		);
+	});
+
+	it('emits minimal output (no typeName, no zodSchemaName)', () => {
+		const enumDesc = makeDescEnum('jobboard.Capability', [
+			{ name: 'CAP_TAKER', number: 1 },
+		]);
+		const config: NumericEnumConfig = {
+			name: 'Capability',
+			sourceEnum: 'jobboard.Capability',
+		};
+		const output = emitNumericEnum(config, enumDesc).join('\n');
+
+		expect(output).not.toContain('export type');
+		expect(output).not.toContain('z.union');
 	});
 });

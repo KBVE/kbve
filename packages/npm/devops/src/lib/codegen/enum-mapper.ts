@@ -3,7 +3,11 @@
  */
 
 import type { DescEnum, DescEnumValue } from '@bufbuild/protobuf';
-import type { EnumConfig, ConstArrayConfig } from './types.js';
+import type {
+	EnumConfig,
+	ConstArrayConfig,
+	NumericEnumConfig,
+} from './types.js';
 
 /** Transform a single enum value name to output string */
 export function transformEnumValue(
@@ -85,6 +89,43 @@ export function emitConstArray(
 	if (config.zodSchemaName) {
 		lines.push(
 			`export const ${config.zodSchemaName} = z.enum(${config.name});`,
+		);
+		lines.push('');
+	}
+
+	return lines;
+}
+
+/**
+ * Emit a numeric const object + value-union type + optional z.union schema from
+ * an enum, preserving the proto integer values (bitmask flags, status codes).
+ */
+export function emitNumericEnum(
+	config: NumericEnumConfig,
+	enumDesc: DescEnum,
+): string[] {
+	const lines: string[] = [];
+
+	lines.push(`export const ${config.name} = {`);
+	for (const val of enumDesc.values) {
+		lines.push(`\t${val.name}: ${val.number},`);
+	}
+	lines.push('} as const;');
+	lines.push('');
+
+	if (config.typeName) {
+		lines.push(
+			`export type ${config.typeName} = (typeof ${config.name})[keyof typeof ${config.name}];`,
+		);
+		lines.push('');
+	}
+
+	if (config.zodSchemaName) {
+		const literals = enumDesc.values
+			.map((v: DescEnumValue) => `z.literal(${v.number})`)
+			.join(', ');
+		lines.push(
+			`export const ${config.zodSchemaName} = z.union([${literals}]);`,
 		);
 		lines.push('');
 	}

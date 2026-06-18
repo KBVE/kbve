@@ -204,6 +204,11 @@ const protos = [
 		protoFile: 'kbve/mc/mc_lot.proto',
 		package: 'kbve.mc',
 	},
+	{
+		name: 'jobboard',
+		protoFile: 'jobboard/jobboard.proto',
+		package: 'jobboard',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

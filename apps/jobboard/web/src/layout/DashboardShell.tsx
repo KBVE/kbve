@@ -18,13 +18,20 @@ import {
 	Hexagon,
 	Search,
 	Bell,
+	ShieldCheck,
 	type LucideIcon,
 } from 'lucide-react';
-import { useAuth, useAuthActions } from '@kbve/rn/auth';
+import {
+	useAuth,
+	useAuthActions,
+	useStaff,
+	StaffPermission,
+} from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
 import { BrowseView } from './BrowseView';
 import { Profile } from './Profile';
+import { VettingView } from './VettingView';
 import { RightPanel, type Selection } from './RightPanel';
 import { WebGpuCanvas } from '../gpu/WebGpuCanvas';
 import { auroraGold } from '../gpu/auroraGold';
@@ -39,16 +46,23 @@ const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
 	{ id: 'profile', label: 'Profile', Icon: User },
 ] as const;
 
-type SectionId = (typeof SECTIONS)[number]['id'];
-
 export function DashboardShell() {
 	const auth = useAuth();
 	const { signOut } = useAuthActions();
+	const staff = useStaff();
 	const { isDesktop, isPhone } = useBreakpoint();
-	const [active, setActive] = useState<SectionId>('overview');
+	const [active, setActive] = useState<string>('overview');
 	const [selection, setSelection] = useState<Selection>(null);
 
 	const username = auth.user?.username ?? auth.user?.email ?? 'there';
+
+	// Staff with admin / dashboard-manage get the vetting queue section.
+	const canVet =
+		staff.has(StaffPermission.ADMIN) ||
+		staff.has(StaffPermission.DASHBOARD_MANAGE);
+	const sections = canVet
+		? [...SECTIONS, { id: 'vetting', label: 'Vetting', Icon: ShieldCheck }]
+		: SECTIONS;
 
 	const selectVertical = (v: Vertical) =>
 		setSelection({ kind: 'vertical', vertical: v });
@@ -70,6 +84,8 @@ export function DashboardShell() {
 				);
 			case 'profile':
 				return <Profile />;
+			case 'vetting':
+				return <VettingView />;
 			default:
 				return (
 					<Stack gap="sm">
@@ -134,7 +150,7 @@ export function DashboardShell() {
 					gap="xs"
 					style={{ flex: isPhone ? 1 : undefined }}>
 					{expanded ? brand : null}
-					{SECTIONS.map((s) => {
+					{sections.map((s) => {
 						const on = s.id === active;
 						const color = on ? ui.purple : ui.textMuted;
 						return (

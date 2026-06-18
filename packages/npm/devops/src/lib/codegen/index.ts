@@ -11,6 +11,7 @@ export type {
 	GenerateZodOptions,
 	EnumConfig,
 	ConstArrayConfig,
+	NumericEnumConfig,
 	ExtraField,
 	TypeGuardConfig,
 	HelperConfig,

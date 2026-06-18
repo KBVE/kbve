@@ -18,12 +18,12 @@ function useScrolled(threshold = 12): boolean {
 }
 
 interface NavItem {
-	to: '/gigs' | '/talent' | '/post';
+	to: '/gigs' | '/talent' | '/post' | '/dashboard' | '/apply';
 	label: string;
 }
 
 export function NavBar() {
-	const { user, signOut } = useAuth();
+	const { user, signedIn, hasCapability, signOut } = useAuth();
 	const scrolled = useScrolled();
 	const [open, setOpen] = useState(false);
 
@@ -32,6 +32,12 @@ export function NavBar() {
 		{ to: '/talent', label: 'Talent' },
 		...(user?.can_post
 			? [{ to: '/post' as const, label: 'Post a gig' }]
+			: []),
+		// Signed-in members: dashboard if vetted, else a nudge to get vetted.
+		...(signedIn
+			? hasCapability
+				? [{ to: '/dashboard' as const, label: 'Dashboard' }]
+				: [{ to: '/apply' as const, label: 'Get vetted' }]
 			: []),
 	];
 
