@@ -18,7 +18,6 @@ use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use std::sync::Arc;
-use tokio_postgres::error::SqlState;
 use uuid::Uuid;
 
 use crate::proto::jobboard::{
@@ -82,10 +81,10 @@ async fn submit(
         return Err(ApiError::BadRequest("too many portfolio links".into()));
     }
 
-    let draft_str = match &body.profile_draft {
-        Some(draft) => serde_json::to_string(draft)
+    let draft_val = match &body.profile_draft {
+        Some(draft) => serde_json::to_value(draft)
             .map_err(|e| ApiError::BadRequest(format!("invalid profile_draft: {e}")))?,
-        None => "{}".to_string(),
+        None => serde_json::json!({}),
     };
 
     let mut conn = app.db.write().await?;
@@ -95,24 +94,18 @@ async fn submit(
         .query_one(
             "INSERT INTO jobboard.member_applications
                  (user_id, requested_capabilities, statement, portfolio_links, profile_draft)
-             VALUES ($1, $2, $3, $4, $5::jsonb)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING id, status, created_at::text",
             &[
                 &user.user_id,
                 &caps,
                 &body.statement,
                 &body.portfolio_links,
-                &draft_str,
+                &draft_val,
             ],
         )
         .await
-        .map_err(|e| {
-            if e.code() == Some(&SqlState::UNIQUE_VIOLATION) {
-                ApiError::Conflict("you already have a pending application".into())
-            } else {
-                pg_err(e)
-            }
-        })?;
+        .map_err(pg_err)?;
     let id: Uuid = row.get(0);
 
     for vid in &body.vertical_ids {

@@ -9,7 +9,7 @@ use bevy::prelude::{
     Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
 use serde_json::json;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::mpsc;
 use tokio::time;
 
 use crate::data::KindRegistry;
@@ -19,7 +19,6 @@ use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
-pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
 
 pub const PLAYER_KIND: u16 = 0;
@@ -71,8 +70,8 @@ pub struct SimClock {
 pub struct SimSeed(pub u64);
 
 #[derive(Resource, Clone)]
-pub struct SnapshotBroadcast {
-    pub tx: broadcast::Sender<ServerEvent>,
+pub struct Outbound {
+    pub tx: mpsc::UnboundedSender<ServerEvent>,
 }
 
 #[derive(Resource)]
@@ -95,6 +94,73 @@ pub struct EidIndex {
 
 #[derive(Resource, Default)]
 pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
+
+pub const TRADE_RANGE: i32 = 1;
+pub const TRADE_TIMEOUT_TICKS: u32 = SIM_TICK_HZ * 30;
+pub const MAX_INVENTORY_SLOTS: usize = 28;
+
+#[derive(Default, Clone)]
+pub struct TradeSide {
+    pub items: Vec<(String, u32)>,
+    pub accepted: bool,
+}
+
+pub struct TradeSession {
+    pub a: u16,
+    pub b: u16,
+    pub a_side: TradeSide,
+    pub b_side: TradeSide,
+    pub expires_tick: u32,
+}
+
+impl TradeSession {
+    fn has(&self, slot: u16) -> bool {
+        slot == self.a || slot == self.b
+    }
+
+    fn other(&self, slot: u16) -> u16 {
+        if slot == self.a { self.b } else { self.a }
+    }
+
+    fn side(&self, slot: u16) -> &TradeSide {
+        if slot == self.a {
+            &self.a_side
+        } else {
+            &self.b_side
+        }
+    }
+
+    fn side_mut(&mut self, slot: u16) -> &mut TradeSide {
+        if slot == self.a {
+            &mut self.a_side
+        } else {
+            &mut self.b_side
+        }
+    }
+}
+
+pub enum TradeInput {
+    Offer {
+        target: proto::EntityId,
+        items: Vec<(String, u32)>,
+    },
+    Accept,
+    Cancel,
+}
+
+#[derive(Resource, Default)]
+pub struct PendingTrades(Vec<(proto::PlayerSlot, TradeInput)>);
+
+#[derive(Resource, Default)]
+pub struct ActiveTrades {
+    sessions: Vec<TradeSession>,
+}
+
+impl ActiveTrades {
+    fn index_of(&self, slot: u16) -> Option<usize> {
+        self.sessions.iter().position(|s| s.has(slot))
+    }
+}
 
 #[derive(Clone)]
 pub struct SavedPlayer {
@@ -402,7 +468,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
 }
 
 pub fn build_app(
-    tx: broadcast::Sender<ServerEvent>,
+    tx: mpsc::UnboundedSender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
     roster: Arc<RwLock<Roster>>,
     seed: u64,
@@ -413,7 +479,7 @@ pub fn build_app(
     let mut app = App::new();
     app.insert_resource(SimClock::default())
         .insert_resource(SimSeed(seed))
-        .insert_resource(SnapshotBroadcast { tx })
+        .insert_resource(Outbound { tx })
         .insert_resource(InputQueue {
             rx: Mutex::new(input_rx),
         })
@@ -421,6 +487,8 @@ pub fn build_app(
         .insert_resource(SpawnedSlots::default())
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
+        .insert_resource(PendingTrades::default())
+        .insert_resource(ActiveTrades::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
         .insert_resource(BuffEffects::default())
@@ -451,7 +519,9 @@ pub fn build_app(
         .add_systems(Update, rebuild_index.in_set(SimSet::Index))
         .add_systems(
             Update,
-            (drain_inputs, apply_actions).chain().in_set(SimSet::Input),
+            (drain_inputs, apply_actions, expire_trades, apply_trades)
+                .chain()
+                .in_set(SimSet::Input),
         )
         .add_systems(
             Update,
@@ -484,7 +554,7 @@ fn tick_sim(mut clock: ResMut<SimClock>) {
 fn sync_roster(
     roster: Res<RosterHandle>,
     config: Res<SimConfig>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut spawned: ResMut<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
     mut kill_counts: ResMut<KillCounts>,
@@ -619,8 +689,9 @@ fn drain_inputs(
     equipment: Res<EquipmentEffects>,
     config: Res<SimConfig>,
     clock: Res<SimClock>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut actions: ResMut<PendingActions>,
+    mut trades: ResMut<PendingTrades>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -644,10 +715,14 @@ fn drain_inputs(
             Err(p) => p.into_inner(),
         };
         while let Ok((slot, input)) = guard.try_recv() {
-            if let Input::Action { id, target } = input {
-                actions.0.push((slot, id, target));
-            } else {
-                pending.entry(slot.0).or_default().push(input);
+            match input {
+                Input::Action { id, target } => actions.0.push((slot, id, target)),
+                Input::TradeOffer { target, items } => {
+                    trades.0.push((slot, TradeInput::Offer { target, items }));
+                }
+                Input::TradeAccept => trades.0.push((slot, TradeInput::Accept)),
+                Input::TradeCancel => trades.0.push((slot, TradeInput::Cancel)),
+                other => pending.entry(slot.0).or_default().push(other),
             }
         }
     }
@@ -754,7 +829,12 @@ fn drain_inputs(
                         defense.0,
                     );
                 }
-                Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
+                Input::Action { .. }
+                | Input::Heartbeat { .. }
+                | Input::Leave
+                | Input::TradeOffer { .. }
+                | Input::TradeAccept
+                | Input::TradeCancel => {}
             }
         }
     }
@@ -764,7 +844,7 @@ fn drain_inputs(
 fn use_item(
     effects: &ConsumableEffects,
     buffs: &BuffEffects,
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     item_ref: &str,
     now: u32,
@@ -808,7 +888,7 @@ fn apply_actions(
     mut actions: ResMut<PendingActions>,
     index: Res<EidIndex>,
     registry: Res<KindRegistry>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     config: Res<SimConfig>,
@@ -956,9 +1036,268 @@ fn apply_actions(
     }
 }
 
+fn normalize_items(items: Vec<(String, u32)>) -> Vec<(String, u32)> {
+    let mut out: Vec<(String, u32)> = Vec::new();
+    for (r, n) in items {
+        if n == 0 || r.is_empty() {
+            continue;
+        }
+        if let Some(slot) = out.iter_mut().find(|(ir, _)| *ir == r) {
+            slot.1 = slot.1.saturating_add(n);
+        } else {
+            out.push((r, n));
+        }
+    }
+    out
+}
+
+fn inv_holds(inv: &Inventory, items: &[(String, u32)]) -> bool {
+    items
+        .iter()
+        .all(|(r, n)| inv.slots.iter().any(|(ir, ic)| ir == r && ic >= n))
+}
+
+fn settle(
+    inv: &Inventory,
+    give: &[(String, u32)],
+    recv: &[(String, u32)],
+    cap: usize,
+) -> Option<Vec<(String, u32)>> {
+    let mut slots = inv.slots.clone();
+    for (r, n) in give {
+        let idx = slots.iter().position(|(ir, _)| ir == r)?;
+        if slots[idx].1 < *n {
+            return None;
+        }
+        slots[idx].1 -= *n;
+        if slots[idx].1 == 0 {
+            slots.remove(idx);
+        }
+    }
+    for (r, n) in recv {
+        if let Some(slot) = slots.iter_mut().find(|(ir, _)| ir == r) {
+            slot.1 = slot.1.saturating_add(*n);
+        } else {
+            if slots.len() >= cap {
+                return None;
+            }
+            slots.push((r.clone(), *n));
+        }
+    }
+    Some(slots)
+}
+
+fn trade_payload(session: &TradeSession, slot: u16, status: &str) -> Vec<u8> {
+    let you = session.side(slot);
+    let them = session.side(session.other(slot));
+    let map_items = |items: &[(String, u32)]| -> Vec<serde_json::Value> {
+        items
+            .iter()
+            .map(|(r, c)| json!({ "ref": r, "count": c }))
+            .collect()
+    };
+    json!({
+        "status": status,
+        "with": session.other(slot),
+        "you": { "items": map_items(&you.items), "accepted": you.accepted },
+        "them": { "items": map_items(&them.items), "accepted": them.accepted },
+    })
+    .to_string()
+    .into_bytes()
+}
+
+fn send_trade(bcast: &Outbound, session: &TradeSession, status: &str) {
+    for slot in [session.a, session.b] {
+        let _ = bcast.tx.send(ServerEvent::Ephemeral {
+            kind: proto::EPHEMERAL_TRADE,
+            to: proto::PlayerSlot(slot),
+            payload: trade_payload(session, slot, status),
+        });
+    }
+}
+
+fn send_trade_closed(bcast: &Outbound, slot: u16, status: &str) {
+    let payload = json!({ "status": status }).to_string().into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_TRADE,
+        to: proto::PlayerSlot(slot),
+        payload,
+    });
+}
+
+fn expire_trades(
+    mut trades: ResMut<ActiveTrades>,
+    clock: Res<SimClock>,
+    spawned: Res<SpawnedSlots>,
+    bcast: Res<Outbound>,
+) {
+    if trades.sessions.is_empty() {
+        return;
+    }
+    let now = clock.tick;
+    let mut closed: Vec<(u16, u16)> = Vec::new();
+    trades.sessions.retain(|s| {
+        let present = spawned.by_slot.contains_key(&s.a) && spawned.by_slot.contains_key(&s.b);
+        if present && now < s.expires_tick {
+            true
+        } else {
+            closed.push((s.a, s.b));
+            false
+        }
+    });
+    for (a, b) in closed {
+        send_trade_closed(&bcast, a, "cancelled");
+        send_trade_closed(&bcast, b, "cancelled");
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn apply_trades(
+    mut pending: ResMut<PendingTrades>,
+    mut trades: ResMut<ActiveTrades>,
+    clock: Res<SimClock>,
+    bcast: Res<Outbound>,
+    mut q: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
+) {
+    if pending.0.is_empty() {
+        return;
+    }
+
+    let mut slot_of_entity: HashMap<u32, u16> = HashMap::new();
+    let mut entity_of_slot: HashMap<u16, Entity> = HashMap::new();
+    let mut tile_of_slot: HashMap<u16, Tile> = HashMap::new();
+    for (entity, slot, pos, _) in q.iter() {
+        slot_of_entity.insert(entity.index_u32(), slot.0.0);
+        entity_of_slot.insert(slot.0.0, entity);
+        tile_of_slot.insert(slot.0.0, pos.tile);
+    }
+
+    let adjacent = |a: u16, b: u16| -> bool {
+        match (tile_of_slot.get(&a), tile_of_slot.get(&b)) {
+            (Some(ta), Some(tb)) => ta.chebyshev(*tb) <= TRADE_RANGE,
+            _ => false,
+        }
+    };
+
+    let drained: Vec<_> = pending.0.drain(..).collect();
+    for (slot, input) in drained {
+        let me = slot.0;
+        if !entity_of_slot.contains_key(&me) {
+            continue;
+        }
+        match input {
+            TradeInput::Offer { target, items } => {
+                let Some(&partner) = slot_of_entity.get(&target.0).filter(|p| **p != me) else {
+                    send_trade_closed(&bcast, me, "cancelled");
+                    continue;
+                };
+                let items = normalize_items(items);
+                let me_holds = entity_of_slot
+                    .get(&me)
+                    .and_then(|e| q.get(*e).ok())
+                    .map(|(_, _, _, inv)| inv_holds(inv, &items))
+                    .unwrap_or(false);
+                if !adjacent(me, partner) || !me_holds {
+                    send_trade_closed(&bcast, me, "cancelled");
+                    continue;
+                }
+                if let Some(idx) = trades.index_of(me) {
+                    if trades.sessions[idx].other(me) != partner {
+                        send_trade_closed(&bcast, me, "cancelled");
+                        continue;
+                    }
+                } else if trades.index_of(partner).is_some() {
+                    send_trade_closed(&bcast, me, "cancelled");
+                    continue;
+                }
+                let idx = match trades.index_of(me) {
+                    Some(idx) => idx,
+                    None => {
+                        trades.sessions.push(TradeSession {
+                            a: me,
+                            b: partner,
+                            a_side: TradeSide::default(),
+                            b_side: TradeSide::default(),
+                            expires_tick: clock.tick.saturating_add(TRADE_TIMEOUT_TICKS),
+                        });
+                        trades.sessions.len() - 1
+                    }
+                };
+                let session = &mut trades.sessions[idx];
+                session.a_side.accepted = false;
+                session.b_side.accepted = false;
+                session.side_mut(me).items = items;
+                session.expires_tick = clock.tick.saturating_add(TRADE_TIMEOUT_TICKS);
+                send_trade(&bcast, session, "update");
+            }
+            TradeInput::Accept => {
+                let Some(idx) = trades.index_of(me) else {
+                    continue;
+                };
+                let (a, b, a_items, b_items) = {
+                    let s = &trades.sessions[idx];
+                    (s.a, s.b, s.a_side.items.clone(), s.b_side.items.clone())
+                };
+                let a_holds = q
+                    .get(entity_of_slot[&a])
+                    .map(|(_, _, _, inv)| inv_holds(inv, &a_items))
+                    .unwrap_or(false);
+                let b_holds = q
+                    .get(entity_of_slot[&b])
+                    .map(|(_, _, _, inv)| inv_holds(inv, &b_items))
+                    .unwrap_or(false);
+                if !adjacent(a, b) || !a_holds || !b_holds {
+                    let session = trades.sessions.remove(idx);
+                    send_trade(&bcast, &session, "cancelled");
+                    continue;
+                }
+                trades.sessions[idx].side_mut(me).accepted = true;
+                if !(trades.sessions[idx].a_side.accepted && trades.sessions[idx].b_side.accepted) {
+                    let session = &trades.sessions[idx];
+                    send_trade(&bcast, session, "update");
+                    continue;
+                }
+                let (ea, eb) = (entity_of_slot[&a], entity_of_slot[&b]);
+                let inv_a = q.get(ea).map(|(.., inv)| inv.clone()).ok();
+                let inv_b = q.get(eb).map(|(.., inv)| inv.clone()).ok();
+                let (Some(inv_a), Some(inv_b)) = (inv_a, inv_b) else {
+                    continue;
+                };
+                let new_a = settle(&inv_a, &a_items, &b_items, MAX_INVENTORY_SLOTS);
+                let new_b = settle(&inv_b, &b_items, &a_items, MAX_INVENTORY_SLOTS);
+                let (Some(new_a), Some(new_b)) = (new_a, new_b) else {
+                    let session = trades.sessions.remove(idx);
+                    send_trade(&bcast, &session, "cancelled");
+                    continue;
+                };
+                if let Ok((.., mut inv)) = q.get_mut(ea) {
+                    inv.slots = new_a;
+                }
+                if let Ok((.., mut inv)) = q.get_mut(eb) {
+                    inv.slots = new_b;
+                }
+                let session = trades.sessions.remove(idx);
+                send_trade(&bcast, &session, "completed");
+                if let Ok((.., inv)) = q.get(ea) {
+                    send_inventory(&bcast, proto::PlayerSlot(a), inv);
+                }
+                if let Ok((.., inv)) = q.get(eb) {
+                    send_inventory(&bcast, proto::PlayerSlot(b), inv);
+                }
+            }
+            TradeInput::Cancel => {
+                if let Some(idx) = trades.index_of(me) {
+                    let session = trades.sessions.remove(idx);
+                    send_trade(&bcast, &session, "cancelled");
+                }
+            }
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn award_xp(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     config: &SimConfig,
     equipment: &EquipmentEffects,
@@ -990,7 +1329,7 @@ fn award_xp(
 }
 
 fn send_equipped(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     equip_slot: &str,
     item_ref: Option<&str>,
@@ -1013,7 +1352,7 @@ fn send_equipped(
 }
 
 fn send_stats(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     level: i32,
     xp: i32,
@@ -1038,7 +1377,7 @@ fn send_stats(
     });
 }
 
-fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inventory) {
+fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
     let items: Vec<_> = inv
         .slots
         .iter()
@@ -1093,7 +1432,7 @@ fn hostile_ai(
     clock: Res<SimClock>,
     config: Res<SimConfig>,
     map: Res<WalkableMap>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
     mut q_players: Query<
         (
@@ -1183,7 +1522,7 @@ fn hostile_ai(
 }
 
 fn send_status(
-    bcast: &SnapshotBroadcast,
+    bcast: &Outbound,
     slot: proto::PlayerSlot,
     kind: proto::StatusKind,
     magnitude: i32,
@@ -1414,7 +1753,7 @@ fn chain_steps(
 #[allow(clippy::type_complexity)]
 fn emit_snapshot(
     clock: Res<SimClock>,
-    bcast: Res<SnapshotBroadcast>,
+    bcast: Res<Outbound>,
     q: Query<(
         Entity,
         &EntityKind,
@@ -1494,13 +1833,22 @@ mod tests {
 
     type Harness = (
         App,
-        broadcast::Receiver<ServerEvent>,
+        mpsc::UnboundedReceiver<ServerEvent>,
         mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
         Arc<RwLock<Roster>>,
     );
 
+    fn test_ulid(name: &str) -> ulid::Ulid {
+        let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+        for &b in name.as_bytes() {
+            h ^= b as u64;
+            h = h.wrapping_mul(0x0100_0000_01b3);
+        }
+        ulid::Ulid::from(h as u128)
+    }
+
     fn harness(seed: u64) -> Harness {
-        let (tx, rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+        let (tx, rx) = mpsc::unbounded_channel();
         let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
@@ -1526,7 +1874,7 @@ mod tests {
         roster
             .write()
             .unwrap()
-            .claim(name.to_string())
+            .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
     }
 
@@ -1750,7 +2098,7 @@ mod tests {
 
     #[test]
     fn safe_zone_blocks_hostile_aggro() {
-        let (tx, mut rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+        let (tx, mut rx) = mpsc::unbounded_channel();
         let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
@@ -2514,6 +2862,248 @@ mod tests {
         assert!(
             poisoned || saw_status,
             "venomous mob never poisoned the player"
+        );
+    }
+
+    fn player_for_slot(app: &mut App, slot: proto::PlayerSlot) -> Entity {
+        let mut q = app.world_mut().query::<(Entity, &PlayerSlotTag)>();
+        q.iter(app.world())
+            .find(|(_, s)| s.0 == slot)
+            .map(|(e, _)| e)
+            .expect("player for slot")
+    }
+
+    fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
+        let mut inv = app.world_mut().get_mut::<Inventory>(entity).unwrap();
+        inv.slots = items.iter().map(|(r, c)| (r.to_string(), *c)).collect();
+    }
+
+    fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
+        app.world()
+            .get::<Inventory>(entity)
+            .unwrap()
+            .slots
+            .iter()
+            .find(|(r, _)| r == item_ref)
+            .map(|(_, c)| *c)
+            .unwrap_or(0)
+    }
+
+    fn eid_of(app: &mut App, slot: proto::PlayerSlot) -> proto::EntityId {
+        proto::EntityId(player_for_slot(app, slot).index_u32())
+    }
+
+    /// Both players offer, both accept, and the offered items swap atomically.
+    #[test]
+    fn trade_offer_accept_swaps_items() {
+        let (mut app, _rx, input_tx, roster) = harness(101);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, ea, &[("coin", 5)]);
+        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
+        let a_eid = eid_of(&mut app, a);
+        let b_eid = eid_of(&mut app, b);
+
+        input_tx
+            .send((
+                a,
+                Input::TradeOffer {
+                    target: b_eid,
+                    items: vec![("coin".into(), 2)],
+                },
+            ))
+            .unwrap();
+        input_tx
+            .send((
+                b,
+                Input::TradeOffer {
+                    target: a_eid,
+                    items: vec![("gold-bar".into(), 1)],
+                },
+            ))
+            .unwrap();
+        input_tx.send((a, Input::TradeAccept)).unwrap();
+        input_tx.send((b, Input::TradeAccept)).unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        assert_eq!(inv_count(&app, ea, "coin"), 3, "alice coin not debited");
+        assert_eq!(
+            inv_count(&app, ea, "gold-bar"),
+            1,
+            "alice gold not credited"
+        );
+        assert_eq!(inv_count(&app, eb, "coin"), 2, "bob coin not credited");
+        assert_eq!(inv_count(&app, eb, "gold-bar"), 2, "bob gold not debited");
+        assert!(
+            app.world().resource::<ActiveTrades>().sessions.is_empty(),
+            "session lingered after completion"
+        );
+    }
+
+    /// A cancel from either party tears the session down with no transfer.
+    #[test]
+    fn trade_cancel_aborts_without_transfer() {
+        let (mut app, _rx, input_tx, roster) = harness(102);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, ea, &[("coin", 5)]);
+        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
+        let a_eid = eid_of(&mut app, a);
+        let b_eid = eid_of(&mut app, b);
+
+        input_tx
+            .send((
+                a,
+                Input::TradeOffer {
+                    target: b_eid,
+                    items: vec![("coin".into(), 2)],
+                },
+            ))
+            .unwrap();
+        input_tx
+            .send((
+                b,
+                Input::TradeOffer {
+                    target: a_eid,
+                    items: vec![("gold-bar".into(), 1)],
+                },
+            ))
+            .unwrap();
+        input_tx.send((a, Input::TradeAccept)).unwrap();
+        input_tx.send((b, Input::TradeCancel)).unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        assert_eq!(inv_count(&app, ea, "coin"), 5, "alice coin changed");
+        assert_eq!(inv_count(&app, eb, "gold-bar"), 3, "bob gold changed");
+        assert_eq!(inv_count(&app, ea, "gold-bar"), 0, "alice got gold");
+        assert!(
+            app.world().resource::<ActiveTrades>().sessions.is_empty(),
+            "session survived cancel"
+        );
+    }
+
+    /// A disconnect mid-trade cancels the session; no items are lost or duped.
+    #[test]
+    fn trade_disconnect_mid_trade_cancels() {
+        let (mut app, _rx, input_tx, roster) = harness(103);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, ea, &[("coin", 5)]);
+        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
+        let a_eid = eid_of(&mut app, a);
+        let b_eid = eid_of(&mut app, b);
+
+        input_tx
+            .send((
+                a,
+                Input::TradeOffer {
+                    target: b_eid,
+                    items: vec![("coin".into(), 2)],
+                },
+            ))
+            .unwrap();
+        input_tx
+            .send((
+                b,
+                Input::TradeOffer {
+                    target: a_eid,
+                    items: vec![("gold-bar".into(), 1)],
+                },
+            ))
+            .unwrap();
+        app.update();
+        assert_eq!(
+            app.world().resource::<ActiveTrades>().sessions.len(),
+            1,
+            "session not opened"
+        );
+
+        roster.write().unwrap().release(b);
+        for _ in 0..3 {
+            app.update();
+        }
+
+        assert!(
+            app.world().resource::<ActiveTrades>().sessions.is_empty(),
+            "session not cancelled on disconnect"
+        );
+        assert_eq!(
+            inv_count(&app, ea, "coin"),
+            5,
+            "alice lost coin on disconnect"
+        );
+        assert_eq!(inv_count(&app, ea, "gold-bar"), 0, "alice duped gold");
+    }
+
+    /// A trade that would overflow the recipient's inventory is rejected whole.
+    #[test]
+    fn trade_full_inventory_rejected() {
+        let (mut app, _rx, input_tx, roster) = harness(104);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, ea, &[("coin", 5)]);
+        let full: Vec<(String, u32)> = (0..MAX_INVENTORY_SLOTS)
+            .map(|i| (format!("item{i}"), 1))
+            .collect();
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(eb).unwrap();
+            inv.slots = full;
+        }
+        let b_eid = eid_of(&mut app, b);
+
+        input_tx
+            .send((
+                a,
+                Input::TradeOffer {
+                    target: b_eid,
+                    items: vec![("coin".into(), 2)],
+                },
+            ))
+            .unwrap();
+        input_tx.send((a, Input::TradeAccept)).unwrap();
+        input_tx.send((b, Input::TradeAccept)).unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        assert_eq!(
+            inv_count(&app, ea, "coin"),
+            5,
+            "alice debited on rejected trade"
+        );
+        assert_eq!(
+            inv_count(&app, eb, "coin"),
+            0,
+            "coin forced into full inventory"
+        );
+        assert_eq!(
+            app.world().get::<Inventory>(eb).unwrap().slots.len(),
+            MAX_INVENTORY_SLOTS,
+            "bob inventory mutated by rejected trade"
+        );
+        assert!(
+            app.world().resource::<ActiveTrades>().sessions.is_empty(),
+            "rejected trade left a session"
         );
     }
 }

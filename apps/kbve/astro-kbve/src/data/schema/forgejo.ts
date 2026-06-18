@@ -22,7 +22,7 @@ import type {
 	ForgejoReleaseAsset,
 	ForgejoIssue as GenForgejoIssue,
 	ForgejoTeam as GenForgejoTeam,
-} from '../../../../../../packages/data/codegen/generated/forgejo-schema';
+} from '@kbve/proto/forgejo-schema';
 
 export type {
 	ForgejoOwner,
@@ -53,7 +53,7 @@ export type {
 	ForgejoPullMeta,
 	ForgejoPermissions,
 	ForgejoRegistrationToken,
-} from '../../../../../../packages/data/codegen/generated/forgejo-schema';
+} from '@kbve/proto/forgejo-schema';
 
 // Forgejo always returns these nested objects for the records the dashboard
 // loads; narrow them to required to match the previous hand-written interfaces.

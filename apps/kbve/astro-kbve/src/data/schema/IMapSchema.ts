@@ -32,7 +32,7 @@ import {
 	RaidSpecSchema,
 	UpgradeSpecSchema,
 	UpgradeChainSpecSchema,
-} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
+} from '@kbve/proto/mapdb-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -87,7 +87,7 @@ export type {
 	RaidSpec,
 	UpgradeSpec,
 	UpgradeChainSpec,
-} from '../../../../../../packages/data/codegen/generated/mapdb-schema';
+} from '@kbve/proto/mapdb-schema';
 
 // ---------------------------------------------------------------------------
 // Astro-specific rendering enums

@@ -14,7 +14,7 @@ import {
 	type MCPurchaseLotResponse,
 	type MCBuildIdResponse,
 	type MCOkResponse,
-} from '../../../../../../../packages/data/codegen/generated/mc_lot-schema';
+} from '@kbve/proto/mc_lot-schema';
 import { z } from 'zod';
 
 export class MCLotApiError extends Error {

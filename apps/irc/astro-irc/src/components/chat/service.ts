@@ -6,7 +6,7 @@ export interface ChatMessage {
 	content: string;
 	channel: string;
 	timestamp: number;
-	type: 'message' | 'join' | 'part' | 'system';
+	type: 'message' | 'join' | 'part' | 'system' | 'notice';
 }
 
 export interface ChannelState {
@@ -306,6 +306,18 @@ function handleIncoming(raw: string): void {
 					channel,
 					timestamp: Date.now(),
 					type: 'message',
+				});
+				break;
+			}
+
+			case 'NOTICE': {
+				pushMessage({
+					id: makeId(),
+					nick: parsed.nick,
+					content: parsed.trailing ?? '',
+					channel: parsed.params[0] ?? '',
+					timestamp: Date.now(),
+					type: 'notice',
 				});
 				break;
 			}

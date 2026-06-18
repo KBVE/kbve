@@ -396,6 +396,25 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		define: {
+			'process.env.JEST_WORKER_ID': 'undefined',
+			__DEV__: 'false',
+			global: 'globalThis',
+		},
+		resolve: {
+			alias: [{ find: /^react-native$/, replacement: 'react-native-web' }],
+			extensions: [
+				'.web.tsx',
+				'.web.ts',
+				'.web.jsx',
+				'.web.js',
+				'.tsx',
+				'.ts',
+				'.jsx',
+				'.js',
+				'.json',
+			],
+		},
 		build: {
 			rollupOptions: {
 				// noVNC CJS has broken top-level await; guacamole-common-js is
@@ -405,9 +424,33 @@ export default defineConfig({
 			},
 		},
 		optimizeDeps: {
+			include: [
+				'react-native-web',
+				'react-native-reanimated',
+				'react-native-worklets',
+				'react-native-svg',
+				'react-native-gesture-handler',
+			],
 			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
+				define: {
+					'process.env.JEST_WORKER_ID': 'undefined',
+					__DEV__: 'false',
+					global: 'globalThis',
+				},
+				loader: { '.js': 'jsx' },
+				resolveExtensions: [
+					'.web.tsx',
+					'.web.ts',
+					'.web.jsx',
+					'.web.js',
+					'.tsx',
+					'.ts',
+					'.jsx',
+					'.js',
+					'.json',
+				],
 			},
 		},
 		ssr: {

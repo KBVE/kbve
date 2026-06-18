@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-17T09:46:12.326Z",
+  "generated_at": "2026-06-18T09:38:20.014Z",
   "summary": {
     "total_protos": 41,
-    "registered": 31,
-    "orphaned": 9,
+    "registered": 32,
+    "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 777,
+    "total_messages": 783,
     "total_enums": 154
   },
   "protos": [
@@ -397,7 +397,13 @@
         "ById",
         "ByLookup",
         "ByUser",
-        "Ack"
+        "Ack",
+        "ProfileLink",
+        "ProfileDraft",
+        "MembershipApplicationView",
+        "AdminApplicationView",
+        "SubmitApplicationInput",
+        "DecisionInput"
       ],
       "enums": [
         "Capability",
@@ -408,14 +414,14 @@
         "ReportTarget",
         "ReportStatus"
       ],
-      "message_count": 21,
+      "message_count": 27,
       "enum_count": 7,
       "codegen": {
-        "registered": false,
-        "name": null,
-        "zod_config": null,
-        "zod_output": null,
-        "binpb": null
+        "registered": true,
+        "name": "jobboard",
+        "zod_config": "packages/data/codegen/jobboard-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/jobboard-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/jobboard.binpb"
       }
     },
     {
@@ -1626,7 +1632,6 @@
   ],
   "orphaned_protos": [
     "packages/data/proto/empire/empire.proto",
-    "packages/data/proto/jobboard/jobboard.proto",
     "packages/data/proto/kbve/kbve.proto",
     "packages/data/proto/kbve/kbveproto.proto",
     "packages/data/proto/kbve/mc/mc_blocks.proto",
@@ -1635,7 +1640,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-17T09:46:12Z",
+  "checked_at": "2026-06-18T09:38:20Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
@@ -1653,6 +1658,7 @@
     "packages/data/codegen/generated/icons-schema.ts",
     "packages/data/codegen/generated/itemdb-schema.ts",
     "packages/data/codegen/generated/jedi-schema.ts",
+    "packages/data/codegen/generated/jobboard-schema.ts",
     "packages/data/codegen/generated/kbveproto-schema.ts",
     "packages/data/codegen/generated/mapdb-schema.ts",
     "packages/data/codegen/generated/mc_lot-schema.ts",

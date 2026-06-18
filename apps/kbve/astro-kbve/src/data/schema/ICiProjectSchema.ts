@@ -14,7 +14,7 @@ import {
 	GameEngineConfigSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
-} from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
+} from '@kbve/proto/ci_registry-schema';
 
 // Re-export generated types for downstream consumers
 export {
@@ -30,7 +30,7 @@ export type {
 	DispatchPipelineValue,
 	ExternalPublish,
 	TestFrameworkValue,
-} from '../../../../../../packages/data/codegen/generated/ci_registry-schema';
+} from '@kbve/proto/ci_registry-schema';
 
 // ---------------------------------------------------------------------------
 // Astro-specific fields — not part of the proto contract

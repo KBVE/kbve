@@ -1,8 +1,15 @@
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import {
+	LINK_KINDS,
+	hostMessage,
+	hostOk,
+	profileDraftSchema,
+} from '../lib/profileDraft';
 import {
 	fetchMyApplication,
 	fetchTaxonomy,
@@ -10,8 +17,8 @@ import {
 	submitApplication,
 } from '../api/client';
 import type {
-	LinkKind,
 	MembershipApplication,
+	ProfileDraft,
 	TaxonomyItem,
 	Vertical,
 } from '../api/types';
@@ -25,29 +32,22 @@ import {
 	FieldMessage,
 } from '../components/form';
 import { useAuth } from '../lib/auth';
+import { useFormDraft } from '../lib/useFormDraft';
 
 const GAME_DEV_ID = 1;
 const CAP_TAKER = Capability.CAP_TAKER;
 const CAP_POSTER = Capability.CAP_POSTER;
 
-const LINK_KINDS = [
-	'github',
-	'linkedin',
-	'website',
-	'x',
-	'itch',
-	'artstation',
-	'other',
-] as const;
-
 const STATUS_LABEL = ['Pending review', 'Approved', 'Rejected'] as const;
 
-// Empty string is allowed (optional link row); anything else must be a URL.
+// Empty string is allowed (optional row). Non-empty must be https:// — matches
+// the server CHECK (is_valid_profile_links) so the client never sends a URL the
+// DB will reject.
 const optionalUrl = z
 	.string()
 	.trim()
-	.refine((v) => v === '' || z.url().safeParse(v).success, {
-		message: 'Enter a valid URL',
+	.refine((v) => v === '' || (/^https:\/\//i.test(v) && v.length <= 2048), {
+		message: 'Enter a valid https:// URL',
 	});
 
 const applicationSchema = z.object({
@@ -69,12 +69,38 @@ const applicationSchema = z.object({
 		.refine((v) => v === '' || Number(v) <= 100, { message: 'Max 100' }),
 	location: z.string().trim().max(120, { message: 'Max 120 characters' }),
 	links: z
-		.array(z.object({ kind: z.enum(LINK_KINDS), url: optionalUrl }))
+		.array(
+			z
+				.object({ kind: z.enum(LINK_KINDS), url: optionalUrl })
+				.superRefine((l, ctx) => {
+					const url = l.url.trim();
+					if (url && !hostOk(l.kind, url)) {
+						ctx.addIssue({
+							code: 'custom',
+							path: ['url'],
+							message: hostMessage(l.kind),
+						});
+					}
+				}),
+		)
 		.max(10),
 	projects: z.array(z.object({ url: optionalUrl })).max(20),
 });
 
 type ApplicationValues = z.infer<typeof applicationSchema>;
+
+const APPLY_DRAFT_KEY = 'jobboard-apply-draft';
+const APPLY_DEFAULTS: ApplicationValues = {
+	caps: 0,
+	verticalIds: [],
+	disciplineIds: [],
+	headline: '',
+	about: '',
+	years: '',
+	location: '',
+	links: [{ kind: 'github', url: '' }],
+	projects: [{ url: '' }],
+};
 
 export function ApplyPage() {
 	const { user } = useAuth();
@@ -188,10 +214,7 @@ function ApplicationForm({
 	previouslyRejected: boolean;
 	onSubmitted: () => void;
 }) {
-	const mutation = useMutation({
-		mutationFn: submitApplication,
-		onSuccess: onSubmitted,
-	});
+	const [draftError, setDraftError] = useState<string | null>(null);
 
 	const {
 		register,
@@ -199,20 +222,26 @@ function ApplicationForm({
 		control,
 		watch,
 		setValue,
+		reset,
 		formState: { errors, submitCount },
 	} = useForm<ApplicationValues>({
 		resolver: zodResolver(applicationSchema),
 		mode: 'onBlur',
-		defaultValues: {
-			caps: 0,
-			verticalIds: [],
-			disciplineIds: [],
-			headline: '',
-			about: '',
-			years: '',
-			location: '',
-			links: [{ kind: 'github', url: '' }],
-			projects: [{ url: '' }],
+		defaultValues: APPLY_DEFAULTS,
+	});
+
+	const { clearDraft } = useFormDraft<ApplicationValues>({
+		key: APPLY_DRAFT_KEY,
+		watch,
+		reset,
+		defaults: APPLY_DEFAULTS,
+	});
+
+	const mutation = useMutation({
+		mutationFn: submitApplication,
+		onSuccess: () => {
+			clearDraft();
+			onSubmitted();
 		},
 	});
 
@@ -243,6 +272,26 @@ function ApplicationForm({
 
 	const onSubmit = (v: ApplicationValues) => {
 		const taker = (v.caps & CAP_TAKER) !== 0;
+		const draft = {
+			headline: v.headline.trim(),
+			bio: v.about.trim(),
+			years_experience: Number(v.years) || 0,
+			location: v.location.trim(),
+			links: v.links
+				.filter((l) => l.url.trim())
+				.map((l) => ({ kind: l.kind, url: l.url.trim() })),
+			discipline_ids: taker ? v.disciplineIds : [],
+		};
+
+		// Pre-flight against the SQL CHECK mirror so a bad shape surfaces here
+		// instead of as a server rejection.
+		const parsed = profileDraftSchema.safeParse(draft);
+		if (!parsed.success) {
+			setDraftError(parsed.error.issues[0]?.message ?? 'Invalid profile');
+			return;
+		}
+		setDraftError(null);
+
 		mutation.mutate({
 			requested_capabilities: v.caps,
 			vertical_ids: v.verticalIds,
@@ -250,19 +299,7 @@ function ApplicationForm({
 			portfolio_links: v.projects
 				.map((p) => p.url.trim())
 				.filter(Boolean),
-			profile_draft: {
-				headline: v.headline.trim(),
-				bio: v.about.trim(),
-				years_experience: Number(v.years) || 0,
-				location: v.location.trim(),
-				links: v.links
-					.filter((l) => l.url.trim())
-					.map((l) => ({
-						kind: l.kind as LinkKind,
-						url: l.url.trim(),
-					})),
-				discipline_ids: taker ? v.disciplineIds : [],
-			},
+			profile_draft: parsed.data as ProfileDraft,
 		});
 	};
 
@@ -467,6 +504,10 @@ function ApplicationForm({
 						{Object.keys(errors).join(', ')}. Fix the highlighted
 						fields above, then submit again.
 					</p>
+				)}
+
+				{draftError && (
+					<p className="text-sm text-amber-400">{draftError}</p>
 				)}
 
 				{mutation.isError && (
