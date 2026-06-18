@@ -1,3 +1,4 @@
+import type { BlackjackStateView } from '@kbve/laser';
 import type {
 	PlayerStats,
 	PlayerInventory,
@@ -9,6 +10,11 @@ import type {
 	ModalState,
 	EquipmentSlot,
 } from '../types';
+
+export interface BlackjackTableState {
+	open: boolean;
+	state: BlackjackStateView | null;
+}
 
 export type ConnectionStatus =
 	| 'connecting'
@@ -49,6 +55,7 @@ export interface GameState {
 	diceRoll: DiceRollState | null;
 	tradeModal: TradeModalState | null;
 	activeModal: ModalState | null;
+	blackjack: BlackjackTableState | null;
 }
 
 export type GameAction =
@@ -80,7 +87,10 @@ export type GameAction =
 	  }
 	| { type: 'SET_MODAL'; payload: ModalState | null }
 	| { type: 'SET_CONNECTION'; payload: ConnectionState }
-	| { type: 'SET_PLAYERS'; payload: OnlinePlayer[] };
+	| { type: 'SET_PLAYERS'; payload: OnlinePlayer[] }
+	| { type: 'BJ_OPEN'; payload: { table_ref: string } }
+	| { type: 'BJ_CLOSE' }
+	| { type: 'BJ_STATE'; payload: BlackjackStateView };
 
 const DEFAULT_EQUIPMENT: Record<EquipmentSlot, string | null> = {
 	head: null,
@@ -122,6 +132,7 @@ export const initialGameState: GameState = {
 	diceRoll: null,
 	tradeModal: null,
 	activeModal: null,
+	blackjack: null,
 };
 
 let notificationCounter = 0;
@@ -271,6 +282,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
 		case 'SET_MODAL':
 			return { ...state, activeModal: action.payload };
+
+		case 'BJ_OPEN':
+			return { ...state, blackjack: { open: true, state: null } };
+
+		case 'BJ_CLOSE':
+			return { ...state, blackjack: null };
+
+		case 'BJ_STATE':
+			return {
+				...state,
+				blackjack: {
+					open: state.blackjack?.open ?? true,
+					state: action.payload,
+				},
+			};
 
 		default:
 			return state;

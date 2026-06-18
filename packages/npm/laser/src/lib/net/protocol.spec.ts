@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { joinFrame, inputFrame, PROTOCOL_VERSION } from './protocol';
+import {
+	joinFrame,
+	inputFrame,
+	decodeCard,
+	PROTOCOL_VERSION,
+} from './protocol';
 
 describe('simgrid JSON wire (serde externally-tagged)', () => {
 	it('joinFrame matches the server JoinMatch shape', () => {
@@ -22,5 +27,46 @@ describe('simgrid JSON wire (serde externally-tagged)', () => {
 		expect(JSON.stringify(inputFrame(1, ['Leave']))).toBe(
 			'{"Frame":{"client_tick":1,"inputs":["Leave"]}}',
 		);
+	});
+
+	it('blackjack inputs match the server enum shapes', () => {
+		expect(inputFrame(1, [{ JoinTable: { table_ref: 't' } }])).toEqual({
+			Frame: {
+				client_tick: 1,
+				inputs: [{ JoinTable: { table_ref: 't' } }],
+			},
+		});
+		expect(JSON.stringify(inputFrame(1, ['LeaveTable']))).toContain(
+			'"LeaveTable"',
+		);
+		expect(inputFrame(1, [{ BjAction: { kind: 'Hit' } }])).toEqual({
+			Frame: { client_tick: 1, inputs: [{ BjAction: { kind: 'Hit' } }] },
+		});
+	});
+});
+
+describe('decodeCard (6-bit server card byte)', () => {
+	it('decodes rank, suit, points and colour', () => {
+		// suit 0 (spades), rank 0 (A) -> byte 0
+		expect(decodeCard(0)).toEqual({
+			suit: 'spades',
+			rank: 'A',
+			points: 11,
+			red: false,
+		});
+		// suit 1 (hearts) << 4 | rank 12 (K) = 0b011100 = 28
+		expect(decodeCard((1 << 4) | 12)).toEqual({
+			suit: 'hearts',
+			rank: 'K',
+			points: 10,
+			red: true,
+		});
+		// suit 3 (clubs) << 4 | rank 9 (10) = 0b110101 = 57
+		expect(decodeCard((3 << 4) | 9)).toEqual({
+			suit: 'clubs',
+			rank: '10',
+			points: 10,
+			red: false,
+		});
 	});
 });

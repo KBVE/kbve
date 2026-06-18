@@ -12,6 +12,7 @@ use serde_json::json;
 use tokio::sync::mpsc;
 use tokio::time;
 
+use crate::blackjack;
 use crate::data::KindRegistry;
 use crate::grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
 use crate::net::Roster;
@@ -189,6 +190,151 @@ pub enum ShopInput {
 
 #[derive(Resource, Default)]
 pub struct PendingShop(Vec<(proto::PlayerSlot, ShopInput)>);
+
+// ---- Multiplayer blackjack tables ----
+
+pub const BJ_SEAT_CAP: usize = 5;
+pub const BJ_MIN_BET: u32 = 1;
+pub const BJ_PROXIMITY: i32 = 1;
+pub const BJ_SPECTATE: i32 = 4;
+pub const BJ_BET_TICKS: u32 = SIM_TICK_HZ * 20;
+pub const BJ_TURN_TICKS: u32 = SIM_TICK_HZ * 20;
+pub const BJ_SETTLE_TICKS: u32 = SIM_TICK_HZ * 5;
+
+/// A casino table the game crate exposes for blackjack. Generic so simgrid stays
+/// game-agnostic; cryptothrone populates `Tables` at bootstrap.
+#[derive(Clone)]
+pub struct TableDef {
+    pub table_ref: String,
+    pub tile: Tile,
+    pub seats: u8,
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct Tables(pub Vec<TableDef>);
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum BjPhase {
+    Betting,
+    PlayerTurn,
+    DealerTurn,
+    Settle,
+}
+
+impl BjPhase {
+    fn as_str(self) -> &'static str {
+        match self {
+            BjPhase::Betting => "betting",
+            BjPhase::PlayerTurn => "player_turn",
+            BjPhase::DealerTurn => "dealer_turn",
+            BjPhase::Settle => "settle",
+        }
+    }
+}
+
+struct Seat {
+    slot: u16,
+    username: String,
+    bet: u32,
+    hand: Vec<u8>,
+    natural: bool,
+    done: bool,
+    outcome: Option<blackjack::Outcome>,
+}
+
+impl Seat {
+    fn new(slot: u16, username: String) -> Self {
+        Self {
+            slot,
+            username,
+            bet: 0,
+            hand: Vec::new(),
+            natural: false,
+            done: false,
+            outcome: None,
+        }
+    }
+
+    fn reset_for_round(&mut self) {
+        self.bet = 0;
+        self.hand.clear();
+        self.natural = false;
+        self.done = false;
+        self.outcome = None;
+    }
+}
+
+struct TableSession {
+    tile: Tile,
+    shoe: Vec<u8>,
+    dealer: Vec<u8>,
+    phase: BjPhase,
+    seats: Vec<Option<Seat>>,
+    active_seat: usize,
+    deadline_tick: u32,
+    rng: blackjack::Rng,
+}
+
+impl TableSession {
+    fn create(def: &TableDef, mut rng: blackjack::Rng, tick: u32) -> Self {
+        let cap = (def.seats as usize).clamp(1, BJ_SEAT_CAP);
+        let mut shoe = blackjack::build_shoe();
+        blackjack::shuffle(&mut shoe, &mut rng);
+        Self {
+            tile: def.tile,
+            shoe,
+            dealer: Vec::new(),
+            phase: BjPhase::Betting,
+            seats: (0..cap).map(|_| None).collect(),
+            active_seat: 0,
+            deadline_tick: tick + BJ_BET_TICKS,
+            rng,
+        }
+    }
+
+    fn occupied(&self) -> usize {
+        self.seats.iter().filter(|s| s.is_some()).count()
+    }
+
+    fn seat_of(&self, slot: u16) -> Option<usize> {
+        self.seats
+            .iter()
+            .position(|s| s.as_ref().map(|x| x.slot) == Some(slot))
+    }
+
+    fn first_free(&self) -> Option<usize> {
+        self.seats.iter().position(|s| s.is_none())
+    }
+
+    /// First seat that placed a bet and still owes a decision.
+    fn active_actor(&self) -> Option<usize> {
+        self.seats
+            .iter()
+            .position(|s| matches!(s, Some(seat) if seat.bet > 0 && !seat.done))
+    }
+
+    fn participants(&self) -> usize {
+        self.seats
+            .iter()
+            .filter(|s| matches!(s, Some(seat) if seat.bet > 0))
+            .count()
+    }
+}
+
+enum BjInput {
+    Join { table_ref: String },
+    Leave,
+    Bet { amount: u32 },
+    Act { kind: proto::BjActionKind },
+}
+
+#[derive(Resource, Default)]
+pub struct PendingBlackjack(Vec<(proto::PlayerSlot, BjInput)>);
+
+#[derive(Resource, Default)]
+pub struct TableRegistry {
+    sessions: HashMap<String, TableSession>,
+}
 
 #[derive(Clone)]
 pub struct SavedPlayer {
@@ -520,6 +666,9 @@ pub fn build_app(
         .insert_resource(PendingShop::default())
         .insert_resource(ShopStock::default())
         .insert_resource(ItemPrices::default())
+        .insert_resource(PendingBlackjack::default())
+        .insert_resource(TableRegistry::default())
+        .insert_resource(Tables::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
         .insert_resource(BuffEffects::default())
@@ -556,6 +705,7 @@ pub fn build_app(
                 expire_trades,
                 apply_trades,
                 apply_shop,
+                apply_blackjack,
             )
                 .chain()
                 .in_set(SimSet::Input),
@@ -730,6 +880,7 @@ fn drain_inputs(
     mut actions: ResMut<PendingActions>,
     mut trades: ResMut<PendingTrades>,
     mut shop: ResMut<PendingShop>,
+    mut blackjack_inputs: ResMut<PendingBlackjack>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -766,6 +917,14 @@ fn drain_inputs(
                 Input::SellItem { npc, item_ref, qty } => {
                     shop.0.push((slot, ShopInput::Sell { npc, item_ref, qty }))
                 }
+                Input::JoinTable { table_ref } => {
+                    blackjack_inputs.0.push((slot, BjInput::Join { table_ref }))
+                }
+                Input::LeaveTable => blackjack_inputs.0.push((slot, BjInput::Leave)),
+                Input::PlaceBet { amount } => {
+                    blackjack_inputs.0.push((slot, BjInput::Bet { amount }))
+                }
+                Input::BjAction { kind } => blackjack_inputs.0.push((slot, BjInput::Act { kind })),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -880,7 +1039,11 @@ fn drain_inputs(
                 | Input::TradeAccept
                 | Input::TradeCancel
                 | Input::BuyItem { .. }
-                | Input::SellItem { .. } => {}
+                | Input::SellItem { .. }
+                | Input::JoinTable { .. }
+                | Input::LeaveTable
+                | Input::PlaceBet { .. }
+                | Input::BjAction { .. } => {}
             }
         }
     }
@@ -1519,6 +1682,412 @@ fn apply_shop(
         send_shop_result(&bcast, slot, action, &item_ref, qty, true, "", balance);
         send_inventory(&bcast, slot, &inv);
     }
+}
+
+fn table_salt(table_ref: &str) -> u64 {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in table_ref.bytes() {
+        h ^= b as u64;
+        h = h.wrapping_mul(0x0100_0000_01b3);
+    }
+    h
+}
+
+type PlayerQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static PlayerSlotTag,
+        &'static GridPos,
+        &'static mut Inventory,
+    ),
+>;
+
+/// Credit coins back to a player's live inventory and resync it.
+fn credit_coins(
+    q: &mut PlayerQuery<'_, '_>,
+    entity: Entity,
+    bcast: &Outbound,
+    slot: u16,
+    amount: u32,
+) {
+    if amount == 0 {
+        return;
+    }
+    if let Ok((_, _, _, mut inv)) = q.get_mut(entity) {
+        inv.add(COIN_REF, amount);
+        send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn apply_blackjack(
+    mut pending: ResMut<PendingBlackjack>,
+    mut reg: ResMut<TableRegistry>,
+    tables: Res<Tables>,
+    roster: Res<RosterHandle>,
+    seed: Res<SimSeed>,
+    clock: Res<SimClock>,
+    bcast: Res<Outbound>,
+    mut q: PlayerQuery<'_, '_>,
+) {
+    let tick = clock.tick;
+
+    let mut entity_of: HashMap<u16, Entity> = HashMap::new();
+    let mut tile_of: HashMap<u16, Tile> = HashMap::new();
+    for (entity, slot, pos, _inv) in q.iter() {
+        entity_of.insert(slot.0.0, entity);
+        tile_of.insert(slot.0.0, pos.tile);
+    }
+
+    // ---- Intent pass ----
+    for (pslot, input) in pending.0.drain(..) {
+        let slot = pslot.0;
+        match input {
+            BjInput::Join { table_ref } => {
+                if reg.sessions.values().any(|s| s.seat_of(slot).is_some()) {
+                    continue;
+                }
+                let Some(def) = tables.0.iter().find(|d| d.table_ref == table_ref) else {
+                    continue;
+                };
+                let Some(&ptile) = tile_of.get(&slot) else {
+                    continue;
+                };
+                if ptile.chebyshev(def.tile) > BJ_PROXIMITY {
+                    continue;
+                }
+                let username = roster
+                    .0
+                    .read()
+                    .ok()
+                    .and_then(|r| r.username(pslot))
+                    .unwrap_or_default();
+                let salt = table_salt(&table_ref);
+                let session = reg.sessions.entry(table_ref.clone()).or_insert_with(|| {
+                    TableSession::create(def, blackjack::Rng::seed(seed.0, salt, tick as u64), tick)
+                });
+                if let Some(i) = session.first_free() {
+                    session.seats[i] = Some(Seat::new(slot, username));
+                }
+            }
+            BjInput::Leave => {
+                leave_seat(&mut reg, &mut q, &entity_of, &bcast, slot);
+            }
+            BjInput::Bet { amount } => {
+                let Some(session) = reg
+                    .sessions
+                    .values_mut()
+                    .find(|s| s.seat_of(slot).is_some())
+                else {
+                    continue;
+                };
+                if session.phase != BjPhase::Betting {
+                    continue;
+                }
+                let i = session.seat_of(slot).unwrap();
+                if session.seats[i].as_ref().unwrap().bet > 0 {
+                    continue;
+                }
+                let Some(&entity) = entity_of.get(&slot) else {
+                    continue;
+                };
+                let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
+                    continue;
+                };
+                let held = coin_balance(&inv);
+                if held < BJ_MIN_BET {
+                    continue;
+                }
+                let stake = amount.clamp(BJ_MIN_BET, held);
+                if !spend_coins(&mut inv, stake) {
+                    continue;
+                }
+                session.seats[i].as_mut().unwrap().bet = stake;
+                send_inventory(&bcast, pslot, &inv);
+            }
+            BjInput::Act { kind } => {
+                handle_bj_action(&mut reg, &mut q, &entity_of, &bcast, slot, kind);
+            }
+        }
+    }
+
+    // ---- Disconnect sweep: drop seats whose player vanished (forfeit their bet). ----
+    for session in reg.sessions.values_mut() {
+        for seat in session.seats.iter_mut() {
+            if let Some(s) = seat {
+                if !entity_of.contains_key(&s.slot) {
+                    *seat = None;
+                }
+            }
+        }
+    }
+
+    // ---- Per-tick phase driver ----
+    for session in reg.sessions.values_mut() {
+        advance_bj_phase(session, tick, &mut q, &entity_of, &bcast);
+    }
+
+    // ---- Teardown empty tables ----
+    reg.sessions.retain(|_, s| s.occupied() > 0);
+
+    // ---- Scoped broadcast ----
+    let mut balance_of: HashMap<u16, u32> = HashMap::new();
+    for (_, slot, _, inv) in q.iter() {
+        balance_of.insert(slot.0.0, coin_balance(inv));
+    }
+    for (table_ref, session) in reg.sessions.iter() {
+        let mut recipients: Vec<u16> = session
+            .seats
+            .iter()
+            .filter_map(|s| s.as_ref().map(|x| x.slot))
+            .collect();
+        for (&slot, &tile) in tile_of.iter() {
+            if tile.chebyshev(session.tile) <= BJ_SPECTATE && !recipients.contains(&slot) {
+                recipients.push(slot);
+            }
+        }
+        for slot in recipients {
+            let balance = balance_of.get(&slot).copied().unwrap_or(0);
+            send_blackjack(&bcast, table_ref, session, slot, balance, tick);
+        }
+    }
+}
+
+fn leave_seat(
+    reg: &mut TableRegistry,
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+    slot: u16,
+) {
+    let Some(session) = reg
+        .sessions
+        .values_mut()
+        .find(|s| s.seat_of(slot).is_some())
+    else {
+        return;
+    };
+    let i = session.seat_of(slot).unwrap();
+    let Some(seat) = session.seats[i].take() else {
+        return;
+    };
+    // Refund only when the round hasn't been dealt yet (betting window).
+    if session.phase == BjPhase::Betting && seat.bet > 0 {
+        if let Some(&entity) = entity_of.get(&slot) {
+            credit_coins(q, entity, bcast, slot, seat.bet);
+        }
+    }
+}
+
+fn handle_bj_action(
+    reg: &mut TableRegistry,
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+    slot: u16,
+    kind: proto::BjActionKind,
+) {
+    let Some(session) = reg
+        .sessions
+        .values_mut()
+        .find(|s| s.seat_of(slot).is_some())
+    else {
+        return;
+    };
+    if session.phase != BjPhase::PlayerTurn {
+        return;
+    }
+    let i = session.seat_of(slot).unwrap();
+    if session.active_actor() != Some(i) {
+        return;
+    }
+    match kind {
+        proto::BjActionKind::Hit => {
+            let card = blackjack::draw(&mut session.shoe, &mut session.rng);
+            let seat = session.seats[i].as_mut().unwrap();
+            seat.hand.push(card);
+            if blackjack::value_hand(&seat.hand).0 >= 21 {
+                seat.done = true;
+            }
+        }
+        proto::BjActionKind::Stand => {
+            session.seats[i].as_mut().unwrap().done = true;
+        }
+        proto::BjActionKind::Double => {
+            let bet = session.seats[i].as_ref().unwrap().bet;
+            let Some(&entity) = entity_of.get(&slot) else {
+                return;
+            };
+            let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
+                return;
+            };
+            if coin_balance(&inv) < bet || !spend_coins(&mut inv, bet) {
+                return;
+            }
+            send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+            let card = blackjack::draw(&mut session.shoe, &mut session.rng);
+            let seat = session.seats[i].as_mut().unwrap();
+            seat.bet = seat.bet.saturating_add(bet);
+            seat.hand.push(card);
+            seat.done = true;
+        }
+    }
+    // The phase driver resets the turn clock once the active actor changes.
+}
+
+fn advance_bj_phase(
+    session: &mut TableSession,
+    tick: u32,
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+) {
+    match session.phase {
+        BjPhase::Betting => {
+            if tick < session.deadline_tick {
+                return;
+            }
+            if session.participants() == 0 {
+                session.deadline_tick = tick + BJ_BET_TICKS;
+                return;
+            }
+            session.dealer.clear();
+            for i in 0..session.seats.len() {
+                let participates = matches!(&session.seats[i], Some(seat) if seat.bet > 0);
+                if let Some(seat) = session.seats[i].as_mut() {
+                    seat.hand.clear();
+                    seat.natural = false;
+                    seat.done = false;
+                    seat.outcome = None;
+                }
+                if participates {
+                    let c1 = blackjack::draw(&mut session.shoe, &mut session.rng);
+                    let c2 = blackjack::draw(&mut session.shoe, &mut session.rng);
+                    let seat = session.seats[i].as_mut().unwrap();
+                    seat.hand.push(c1);
+                    seat.hand.push(c2);
+                    seat.natural = blackjack::is_blackjack(&seat.hand);
+                    seat.done = seat.natural;
+                }
+            }
+            let d1 = blackjack::draw(&mut session.shoe, &mut session.rng);
+            let d2 = blackjack::draw(&mut session.shoe, &mut session.rng);
+            session.dealer.push(d1);
+            session.dealer.push(d2);
+            session.phase = BjPhase::PlayerTurn;
+            session.active_seat = session.active_actor().unwrap_or(0);
+            session.deadline_tick = tick + BJ_TURN_TICKS;
+        }
+        BjPhase::PlayerTurn => match session.active_actor() {
+            None => {
+                session.phase = BjPhase::DealerTurn;
+            }
+            Some(idx) => {
+                if idx != session.active_seat {
+                    session.active_seat = idx;
+                    session.deadline_tick = tick + BJ_TURN_TICKS;
+                } else if tick >= session.deadline_tick {
+                    session.seats[idx].as_mut().unwrap().done = true;
+                }
+            }
+        },
+        BjPhase::DealerTurn => {
+            blackjack::play_dealer(&mut session.dealer, &mut session.shoe, &mut session.rng);
+            for i in 0..session.seats.len() {
+                let Some((slot, bet, natural, hand)) = session.seats[i]
+                    .as_ref()
+                    .and_then(|s| (s.bet > 0).then(|| (s.slot, s.bet, s.natural, s.hand.clone())))
+                else {
+                    continue;
+                };
+                let outcome = blackjack::settle(&hand, &session.dealer, natural);
+                let credit = blackjack::payout_credit(bet, outcome);
+                if let Some(&entity) = entity_of.get(&slot) {
+                    credit_coins(q, entity, bcast, slot, credit);
+                }
+                let seat = session.seats[i].as_mut().unwrap();
+                seat.outcome = Some(outcome);
+                seat.done = true;
+            }
+            session.phase = BjPhase::Settle;
+            session.deadline_tick = tick + BJ_SETTLE_TICKS;
+        }
+        BjPhase::Settle => {
+            if tick >= session.deadline_tick {
+                session.dealer.clear();
+                for seat in session.seats.iter_mut().flatten() {
+                    seat.reset_for_round();
+                }
+                session.phase = BjPhase::Betting;
+                session.active_seat = 0;
+                session.deadline_tick = tick + BJ_BET_TICKS;
+            }
+        }
+    }
+}
+
+fn send_blackjack(
+    bcast: &Outbound,
+    table_ref: &str,
+    session: &TableSession,
+    slot: u16,
+    your_balance: u32,
+    tick: u32,
+) {
+    let dealer_hidden = matches!(session.phase, BjPhase::Betting | BjPhase::PlayerTurn);
+    let dealer_hand: Vec<u8> = if dealer_hidden {
+        session.dealer.iter().take(1).copied().collect()
+    } else {
+        session.dealer.clone()
+    };
+    let seats: Vec<_> = session
+        .seats
+        .iter()
+        .filter_map(|s| s.as_ref())
+        .map(|seat| {
+            let (value, soft) = blackjack::value_hand(&seat.hand);
+            json!({
+                "slot": seat.slot,
+                "username": seat.username,
+                "hand": seat.hand,
+                "bet": seat.bet,
+                "value": value,
+                "soft": soft,
+                "outcome": seat.outcome.map(|o| o.as_str()),
+            })
+        })
+        .collect();
+    let active_slot = if session.phase == BjPhase::PlayerTurn {
+        session
+            .active_actor()
+            .and_then(|i| session.seats[i].as_ref())
+            .map(|s| s.slot)
+    } else {
+        None
+    };
+    let deadline_ms = session
+        .deadline_tick
+        .saturating_sub(tick)
+        .saturating_mul(1000 / SIM_TICK_HZ);
+    let payload = json!({
+        "table_ref": table_ref,
+        "phase": session.phase.as_str(),
+        "seats": seats,
+        "dealer_hand": dealer_hand,
+        "dealer_hidden": dealer_hidden,
+        "active_slot": active_slot,
+        "your_balance": your_balance,
+        "deadline_ms": deadline_ms,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_BLACKJACK,
+        to: proto::PlayerSlot(slot),
+        payload,
+    });
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -3557,5 +4126,193 @@ mod tests {
             0,
             "item bought from afar"
         );
+    }
+
+    // ---- Blackjack tables ----
+
+    fn bj_harness(seed: u64, table: Tile) -> Harness {
+        let (mut app, rx, tx, roster) = harness(seed);
+        app.world_mut().insert_resource(Tables(vec![TableDef {
+            table_ref: "table".into(),
+            tile: table,
+            seats: 5,
+        }]));
+        (app, rx, tx, roster)
+    }
+
+    #[test]
+    fn join_requires_proximity() {
+        let (mut app, _rx, tx, roster) = bj_harness(201, Tile::new(0, 0));
+        let slot = join(&roster, "p1");
+        app.update();
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        assert!(
+            app.world().resource::<TableRegistry>().sessions.is_empty(),
+            "seated from out of range"
+        );
+    }
+
+    #[test]
+    fn bet_caps_and_debits_held_coin() {
+        let (mut app, _rx, tx, roster) = bj_harness(202, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        app.update();
+        let e = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, e, &[("coin", 10)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        assert_eq!(
+            app.world().resource::<TableRegistry>().sessions.len(),
+            1,
+            "did not seat adjacent player"
+        );
+        tx.send((slot, Input::PlaceBet { amount: 1000 })).unwrap();
+        app.update();
+        assert_eq!(
+            inv_count(&app, e, "coin"),
+            0,
+            "bet not capped to held coin + debited"
+        );
+    }
+
+    #[test]
+    fn leave_during_betting_refunds_and_tears_down() {
+        let (mut app, _rx, tx, roster) = bj_harness(203, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        app.update();
+        let e = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, e, &[("coin", 10)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        tx.send((slot, Input::PlaceBet { amount: 4 })).unwrap();
+        app.update();
+        assert_eq!(inv_count(&app, e, "coin"), 6, "bet not debited");
+        tx.send((slot, Input::LeaveTable)).unwrap();
+        app.update();
+        assert_eq!(inv_count(&app, e, "coin"), 10, "bet not refunded on leave");
+        assert!(
+            app.world().resource::<TableRegistry>().sessions.is_empty(),
+            "empty table not torn down"
+        );
+    }
+
+    #[test]
+    fn full_round_settles_to_valid_total() {
+        let (mut app, _rx, tx, roster) = bj_harness(204, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        app.update();
+        let e = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, e, &[("coin", 100)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        tx.send((slot, Input::PlaceBet { amount: 10 })).unwrap();
+        app.update();
+        // No action -> turn timer auto-stands the seat, dealer plays, round settles.
+        for _ in 0..(BJ_BET_TICKS + BJ_TURN_TICKS + BJ_SETTLE_TICKS + 30) {
+            app.update();
+        }
+        let coin = inv_count(&app, e, "coin");
+        assert!(
+            [90, 100, 110, 115].contains(&coin),
+            "unexpected settled coin total: {coin}"
+        );
+        assert_eq!(
+            app.world().resource::<TableRegistry>().sessions.len(),
+            1,
+            "session torn down while player still seated"
+        );
+    }
+
+    #[test]
+    fn disconnect_mid_round_drops_seat() {
+        let (mut app, _rx, tx, roster) = bj_harness(205, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        app.update();
+        let e = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, e, &[("coin", 50)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        tx.send((slot, Input::PlaceBet { amount: 10 })).unwrap();
+        app.update();
+        for _ in 0..(BJ_BET_TICKS + 2) {
+            app.update();
+        }
+        roster.write().unwrap().release(slot);
+        app.update();
+        app.update();
+        assert!(
+            app.world().resource::<TableRegistry>().sessions.is_empty(),
+            "session lingered after the only player disconnected"
+        );
+    }
+
+    #[test]
+    fn nearby_spectator_receives_scoped_state() {
+        let (mut app, mut rx, tx, roster) = bj_harness(206, Tile::new(8, 8));
+        let player = join(&roster, "player");
+        let watcher = join(&roster, "watcher");
+        app.update();
+        let ep = player_for_slot(&mut app, player);
+        set_inventory(&mut app, ep, &[("coin", 20)]);
+        tx.send((
+            player,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        tx.send((player, Input::PlaceBet { amount: 5 })).unwrap();
+        app.update();
+        for _ in 0..(BJ_BET_TICKS + 5) {
+            app.update();
+        }
+        let mut to_watcher = 0usize;
+        let mut saw_hidden = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_BLACKJACK
+                && to == watcher
+            {
+                to_watcher += 1;
+                let txt = String::from_utf8(payload).unwrap();
+                if txt.contains("\"dealer_hidden\":true") {
+                    saw_hidden = true;
+                }
+            }
+        }
+        assert!(to_watcher > 0, "spectator never received scoped state");
+        assert!(saw_hidden, "dealer hole card was not hidden pre-reveal");
     }
 }

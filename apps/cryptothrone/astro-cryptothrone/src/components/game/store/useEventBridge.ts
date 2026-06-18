@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { laserEvents } from '@kbve/laser';
-import type { CharacterEventData, NotificationEventData } from '@kbve/laser';
+import type {
+	BlackjackStateView,
+	CharacterEventData,
+	NotificationEventData,
+} from '@kbve/laser';
 import type { GameAction } from './game-store';
 import type { NPCAction } from '../types';
 import type { Dispatch } from 'react';
@@ -253,6 +257,22 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 							: `atk ${eq.attack}, def ${eq.defense ?? 0}`,
 						type: 'info',
 					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('blackjack:open', (data) => {
+				const d = data as { table_ref: string };
+				dispatch({ type: 'BJ_OPEN', payload: d });
+			}),
+			laserEvents.on('blackjack:close', () => {
+				dispatch({ type: 'BJ_CLOSE' });
+			}),
+			laserEvents.on('blackjack:state', (data) => {
+				dispatch({
+					type: 'BJ_STATE',
+					payload: data as BlackjackStateView,
 				});
 			}),
 		);
