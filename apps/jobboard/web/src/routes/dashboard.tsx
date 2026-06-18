@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useStaff } from '@kbve/rn/auth';
 import { DashboardShell } from '../layout/DashboardShell';
 import { Spinner } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { useStaffContext } from '../lib/staff';
 
 // The dashboard is for vetted members AND staff.
 //  - signed out                              → /login
@@ -14,7 +14,7 @@ import { useAuth } from '../lib/auth';
 // reactively on sign-out lands "Sign out" back on /login.
 export function DashboardPage() {
 	const { signedIn, hasCapability, loading } = useAuth();
-	const staff = useStaff();
+	const staff = useStaffContext();
 	const navigate = useNavigate();
 
 	// Wait for staff to resolve before judging capability, or a staff-only user
