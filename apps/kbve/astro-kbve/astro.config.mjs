@@ -396,6 +396,20 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		resolve: {
+			alias: [{ find: /^react-native$/, replacement: 'react-native-web' }],
+			extensions: [
+				'.web.tsx',
+				'.web.ts',
+				'.web.jsx',
+				'.web.js',
+				'.tsx',
+				'.ts',
+				'.jsx',
+				'.js',
+				'.json',
+			],
+		},
 		build: {
 			rollupOptions: {
 				// noVNC CJS has broken top-level await; guacamole-common-js is
@@ -405,6 +419,7 @@ export default defineConfig({
 			},
 		},
 		optimizeDeps: {
+			include: ['react-native-web'],
 			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			esbuildOptions: {
 				supported: { 'top-level-await': true },
