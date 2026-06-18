@@ -1,6 +1,8 @@
 import type { ItemData } from '../types';
 import { getAllItems as getCanonicalItems } from './itemdb';
 
+export { getItemPrice } from './itemdb';
+
 const LOCAL_EXTRAS: ItemData[] = [
 	{
 		id: 'health-potion',

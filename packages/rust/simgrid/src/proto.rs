@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 7;
+pub const PROTOCOL_VERSION: u32 = 8;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -14,6 +14,7 @@ pub const EPHEMERAL_EQUIPPED: u16 = 6;
 pub const EPHEMERAL_STATS: u16 = 7;
 pub const EPHEMERAL_STATUS: u16 = 8;
 pub const EPHEMERAL_TRADE: u16 = 9;
+pub const EPHEMERAL_SHOP: u16 = 10;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -130,6 +131,16 @@ pub enum Input {
     },
     TradeAccept,
     TradeCancel,
+    BuyItem {
+        npc: EntityId,
+        item_ref: String,
+        qty: u32,
+    },
+    SellItem {
+        npc: EntityId,
+        item_ref: String,
+        qty: u32,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

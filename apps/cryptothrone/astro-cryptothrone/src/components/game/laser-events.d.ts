@@ -7,6 +7,17 @@ declare module '@kbve/laser' {
 			npcName: string;
 			actions: string[];
 			coords: { x: number; y: number };
+			eid?: number;
+		};
+		'shop:buy': { npc: number; itemRef: string; qty: number };
+		'shop:sell': { npc: number; itemRef: string; qty: number };
+		'shop:result': {
+			action: 'buy' | 'sell';
+			item_ref: string;
+			qty: number;
+			ok: boolean;
+			reason: string;
+			balance: number;
 		};
 		'player:damage': { damage: number };
 		'player:stats': { stats: PlayerStats };
