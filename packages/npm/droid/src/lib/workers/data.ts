@@ -1,4 +1,8 @@
-import { PayloadFormat, JediEnvelopeFlex, MessageKind } from '../types/jedi';
+import {
+	PayloadFormat,
+	type JediEnvelopeFlex,
+	MessageKind,
+} from '../types/jedi';
 import { builder, toReference } from './flexbuilder';
 
 function buildFlexPayload<T extends Record<string, unknown>>(
