@@ -481,6 +481,7 @@ message Npc {
   repeated string quest_refs = 41;         // Quest IDs this NPC offers/advances
   optional string shop_inventory_ref = 42; // Vendor inventory table reference
   optional string kill_credit_ref = 43;    // Shared kill credit ID for quest tracking
+  repeated string shop_items = 52;         // Item refs this merchant buys/sells (prices from itemdb)
 
   // Spawning
   repeated SpawnRule spawn_rules = 25;

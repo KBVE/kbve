@@ -156,7 +156,7 @@ namespace KBVE.Proto.Npc {
             "ZWlnaHRCCgoIX3Bpdm90X3oilQEKDE5wY0V4dGVuc2lvbhILCgNrZXkYASAB",
             "KAkSFgoMc3RyaW5nX3ZhbHVlGAIgASgJSAASEwoJaW50X3ZhbHVlGAMgASgD",
             "SAASFQoLZmxvYXRfdmFsdWUYBCABKAFIABIUCgpib29sX3ZhbHVlGAUgASgI",
-            "SAASFQoLYnl0ZXNfdmFsdWUYBiABKAxIAEIHCgV2YWx1ZSLoDgoDTnBjEgoK",
+            "SAASFQoLYnl0ZXNfdmFsdWUYBiABKAxIAEIHCgV2YWx1ZSL8DgoDTnBjEgoK",
             "AmlkGAEgASgJEgsKA3JlZhgCIAEoCRIMCgRuYW1lGAMgASgJEhIKBXRpdGxl",
             "GAQgASgJSACIAQESGAoLZGVzY3JpcHRpb24YBSABKAlIAYgBARIRCgRsb3Jl",
             "GAYgASgJSAKIAQESEgoKdHlwZV9mbGFncxgHIAEoBRIeCgZyYXJpdHkYCCAB",
@@ -183,77 +183,78 @@ namespace KBVE.Proto.Npc {
             "Z3VlTGluZRItCg1kaWFsb2d1ZV90cmVlGDIgASgLMhEubnBjLkRpYWxvZ3Vl",
             "VHJlZUgSiAEBEhIKCnF1ZXN0X3JlZnMYKSADKAkSHwoSc2hvcF9pbnZlbnRv",
             "cnlfcmVmGCogASgJSBOIAQESHAoPa2lsbF9jcmVkaXRfcmVmGCsgASgJSBSI",
-            "AQESIwoLc3Bhd25fcnVsZXMYGSADKAsyDi5ucGMuU3Bhd25SdWxlEiMKC3Bo",
-            "YXNlX3J1bGVzGCwgAygLMg4ubnBjLlBoYXNlUnVsZRI1ChRkaWZmaWN1bHR5",
-            "X292ZXJyaWRlcxgtIAMoCzIXLm5wYy5EaWZmaWN1bHR5T3ZlcnJpZGUSLQoN",
-            "cGFydHlfc2NhbGluZxguIAEoCzIRLm5wYy5QYXJ0eVNjYWxpbmdIFYgBARIs",
-            "CgdzcGF0aWFsGC8gASgLMhYubnBjLlNwYXRpYWxQcm9wZXJ0aWVzSBaIAQES",
-            "LwoLaW50ZXJhY3Rpb24YMCABKAsyFS5ucGMuSW50ZXJhY3Rpb25GbGFnc0gX",
-            "iAEBEiUKCmV4dGVuc2lvbnMYMSADKAsyES5ucGMuTnBjRXh0ZW5zaW9uEhQK",
-            "B2NyZWRpdHMYGiABKAlIGIgBARIUCgdkcmFmdGVkGBsgASgISBmIAQFCCAoG",
-            "X3RpdGxlQg4KDF9kZXNjcmlwdGlvbkIHCgVfbG9yZUIKCghfZWxlbWVudEIG",
-            "CgRfaW1nQgcKBV9pY29uQhAKDl9waXhlbF9kZW5zaXR5QggKBl9zY2FsZUIM",
-            "CgpfbW9kZWxfcmVmQhAKDl9hbmltYXRpb25fc2V0QgwKCl9zb3VuZF9zZXRC",
-            "DwoNX3Nwcml0ZV9hdGxhc0IMCgpfbGV2ZWxfbWluQgwKCl9sZXZlbF9tYXhC",
-            "CwoJX2JlaGF2aW9yQgoKCF9mYWN0aW9uQgcKBV9sb290QgwKCl9lcXVpcG1l",
-            "bnRCEAoOX2RpYWxvZ3VlX3RyZWVCFQoTX3Nob3BfaW52ZW50b3J5X3JlZkIS",
-            "ChBfa2lsbF9jcmVkaXRfcmVmQhAKDl9wYXJ0eV9zY2FsaW5nQgoKCF9zcGF0",
-            "aWFsQg4KDF9pbnRlcmFjdGlvbkIKCghfY3JlZGl0c0IKCghfZHJhZnRlZCIl",
-            "CgtOcGNSZWdpc3RyeRIWCgRucGNzGAEgAygLMggubnBjLk5wYyqZAgoLTnBj",
-            "VHlwZUZsYWcSEQoNTlBDX1RZUEVfTk9ORRAAEhIKDk5QQ19UWVBFX0VORU1Z",
-            "EAESFQoRTlBDX1RZUEVfTUVSQ0hBTlQQAhIYChROUENfVFlQRV9RVUVTVF9H",
-            "SVZFUhAEEhYKEk5QQ19UWVBFX0NPTVBBTklPThAIEhQKEE5QQ19UWVBFX05F",
-            "VVRSQUwQEBIRCg1OUENfVFlQRV9CT1NTECASFQoRTlBDX1RZUEVfTUlOSUJP",
-            "U1MQQBIUCg9OUENfVFlQRV9TVU1NT04QgAESFQoQTlBDX1RZUEVfVFJBSU5F",
-            "UhCAAhIUCg9OUENfVFlQRV9SRVBBSVIQgAQSFwoSTlBDX1RZUEVfSU5OS0VF",
-            "UEVSEIAIKr8CCgtQZXJzb25hbGl0eRIbChdQRVJTT05BTElUWV9VTlNQRUNJ",
-            "RklFRBAAEhoKFlBFUlNPTkFMSVRZX0FHR1JFU1NJVkUQARIXChNQRVJTT05B",
-            "TElUWV9DVU5OSU5HEAISFwoTUEVSU09OQUxJVFlfRkVBUkZVTBADEhUKEVBF",
-            "UlNPTkFMSVRZX1NUT0lDEAQSFQoRUEVSU09OQUxJVFlfRkVSQUwQBRIXChNQ",
-            "RVJTT05BTElUWV9BTkNJRU5UEAYSGAoUUEVSU09OQUxJVFlfQ0hFRVJGVUwQ",
-            "BxIaChZQRVJTT05BTElUWV9NWVNURVJJT1VTEAgSGAoUUEVSU09OQUxJVFlf",
-            "Q09XQVJETFkQCRIVChFQRVJTT05BTElUWV9OT0JMRRAKEhcKE1BFUlNPTkFM",
-            "SVRZX1BBU1NJVkUQCyrvAQoHRWxlbWVudBIQCgxFTEVNRU5UX05PTkUQABIQ",
-            "CgxFTEVNRU5UX0ZJUkUQARIPCgtFTEVNRU5UX0lDRRACEhUKEUVMRU1FTlRf",
-            "TElHSFROSU5HEAMSEgoORUxFTUVOVF9QT0lTT04QBBISCg5FTEVNRU5UX1NI",
-            "QURPVxAFEhAKDEVMRU1FTlRfSE9MWRAGEhIKDkVMRU1FTlRfQVJDQU5FEAcS",
-            "EQoNRUxFTUVOVF9FQVJUSBAIEhAKDEVMRU1FTlRfV0lORBAJEhIKDkVMRU1F",
-            "TlRfTkFUVVJFEAoSEQoNRUxFTUVOVF9MSUdIVBALKpYBCglOcGNSYXJpdHkS",
-            "FQoRTlBDX1JBUklUWV9DT01NT04QABIXChNOUENfUkFSSVRZX1VOQ09NTU9O",
-            "EAESEwoPTlBDX1JBUklUWV9SQVJFEAISEwoPTlBDX1JBUklUWV9FUElDEAMS",
-            "GAoUTlBDX1JBUklUWV9MRUdFTkRBUlkQBBIVChFOUENfUkFSSVRZX01ZVEhJ",
-            "QxAFKnkKB05wY1JhbmsSEwoPTlBDX1JBTktfTk9STUFMEAASEwoPTlBDX1JB",
-            "TktfTUlOSU9OEAESEgoOTlBDX1JBTktfRUxJVEUQAhIXChNOUENfUkFOS19S",
-            "QVJFX0VMSVRFEAMSFwoTTlBDX1JBTktfV09STERfQk9TUxAEKvICCg5DcmVh",
-            "dHVyZUZhbWlseRIfChtDUkVBVFVSRV9GQU1JTFlfVU5TUEVDSUZJRUQQABIZ",
-            "ChVDUkVBVFVSRV9GQU1JTFlfQkVBU1QQARIaChZDUkVBVFVSRV9GQU1JTFlf",
-            "VU5ERUFEEAISGQoVQ1JFQVRVUkVfRkFNSUxZX0RFTU9OEAMSHQoZQ1JFQVRV",
-            "UkVfRkFNSUxZX0VMRU1FTlRBTBAEEhwKGENSRUFUVVJFX0ZBTUlMWV9IVU1B",
-            "Tk9JRBAFEh4KGkNSRUFUVVJFX0ZBTUlMWV9NRUNIQU5JQ0FMEAYSGgoWQ1JF",
-            "QVRVUkVfRkFNSUxZX0RSQUdPThAHEh4KGkNSRUFUVVJFX0ZBTUlMWV9BQkVS",
-            "UkFUSU9OEAgSGQoVQ1JFQVRVUkVfRkFNSUxZX1BMQU5UEAkSGgoWQ1JFQVRV",
-            "UkVfRkFNSUxZX1NQSVJJVBAKEh0KGUNSRUFUVVJFX0ZBTUlMWV9DT05TVFJV",
-            "Q1QQCyqIAQoMTW92ZW1lbnRUeXBlEhcKE01PVkVNRU5UX1NUQVRJT05BUlkQ",
-            "ABIaChZNT1ZFTUVOVF9SQU5ET01fV0FOREVSEAESEwoPTU9WRU1FTlRfUEFU",
-            "Uk9MEAISFQoRTU9WRU1FTlRfU0NSSVBURUQQAxIXChNNT1ZFTUVOVF9BR0dS",
-            "RVNTSVZFEAQqagoORGlmZmljdWx0eU1vZGUSFQoRRElGRklDVUxUWV9OT1JN",
-            "QUwQABITCg9ESUZGSUNVTFRZX0hBUkQQARIVChFESUZGSUNVTFRZX0hFUk9J",
-            "QxACEhUKEURJRkZJQ1VMVFlfTVlUSElDEAMqjAIKClNwcml0ZUFuaW0SGwoX",
-            "U1BSSVRFX0FOSU1fVU5TUEVDSUZJRUQQABIUChBTUFJJVEVfQU5JTV9JRExF",
-            "EAESFAoQU1BSSVRFX0FOSU1fV0FMSxACEhUKEVNQUklURV9BTklNX0NSQVdM",
-            "EAMSEwoPU1BSSVRFX0FOSU1fUlVOEAQSFgoSU1BSSVRFX0FOSU1fQVRUQUNL",
-            "EAUSFAoQU1BSSVRFX0FOSU1fQ0FTVBAGEhQKEFNQUklURV9BTklNX0hVUlQQ",
-            "BxIVChFTUFJJVEVfQU5JTV9ERUFUSBAIEhUKEVNQUklURV9BTklNX1NQQVdO",
-            "EAkSFwoTU1BSSVRFX0FOSU1fU1BFQ0lBTBAKKnYKDFNwcml0ZUZhY2luZxId",
-            "ChlTUFJJVEVfRkFDSU5HX1VOU1BFQ0lGSUVEEAASFwoTU1BSSVRFX0ZBQ0lO",
-            "R19GUk9OVBABEhYKElNQUklURV9GQUNJTkdfU0lERRACEhYKElNQUklURV9G",
-            "QUNJTkdfQkFDSxADKoQCCglFcXVpcFNsb3QSGgoWRVFVSVBfU0xPVF9VTlNQ",
-            "RUNJRklFRBAAEhMKD0VRVUlQX1NMT1RfSEVBRBABEhQKEEVRVUlQX1NMT1Rf",
-            "Q0hFU1QQAhITCg9FUVVJUF9TTE9UX0xFR1MQAxITCg9FUVVJUF9TTE9UX0ZF",
-            "RVQQBBIUChBFUVVJUF9TTE9UX0hBTkRTEAUSGAoURVFVSVBfU0xPVF9NQUlO",
-            "X0hBTkQQBhIXChNFUVVJUF9TTE9UX09GRl9IQU5EEAcSEwoPRVFVSVBfU0xP",
-            "VF9ORUNLEAgSEwoPRVFVSVBfU0xPVF9SSU5HEAkSEwoPRVFVSVBfU0xPVF9C",
-            "QUNLEApCEaoCDktCVkUuUHJvdG8uTnBjYgZwcm90bzM="));
+            "AQESEgoKc2hvcF9pdGVtcxg0IAMoCRIjCgtzcGF3bl9ydWxlcxgZIAMoCzIO",
+            "Lm5wYy5TcGF3blJ1bGUSIwoLcGhhc2VfcnVsZXMYLCADKAsyDi5ucGMuUGhh",
+            "c2VSdWxlEjUKFGRpZmZpY3VsdHlfb3ZlcnJpZGVzGC0gAygLMhcubnBjLkRp",
+            "ZmZpY3VsdHlPdmVycmlkZRItCg1wYXJ0eV9zY2FsaW5nGC4gASgLMhEubnBj",
+            "LlBhcnR5U2NhbGluZ0gViAEBEiwKB3NwYXRpYWwYLyABKAsyFi5ucGMuU3Bh",
+            "dGlhbFByb3BlcnRpZXNIFogBARIvCgtpbnRlcmFjdGlvbhgwIAEoCzIVLm5w",
+            "Yy5JbnRlcmFjdGlvbkZsYWdzSBeIAQESJQoKZXh0ZW5zaW9ucxgxIAMoCzIR",
+            "Lm5wYy5OcGNFeHRlbnNpb24SFAoHY3JlZGl0cxgaIAEoCUgYiAEBEhQKB2Ry",
+            "YWZ0ZWQYGyABKAhIGYgBAUIICgZfdGl0bGVCDgoMX2Rlc2NyaXB0aW9uQgcK",
+            "BV9sb3JlQgoKCF9lbGVtZW50QgYKBF9pbWdCBwoFX2ljb25CEAoOX3BpeGVs",
+            "X2RlbnNpdHlCCAoGX3NjYWxlQgwKCl9tb2RlbF9yZWZCEAoOX2FuaW1hdGlv",
+            "bl9zZXRCDAoKX3NvdW5kX3NldEIPCg1fc3ByaXRlX2F0bGFzQgwKCl9sZXZl",
+            "bF9taW5CDAoKX2xldmVsX21heEILCglfYmVoYXZpb3JCCgoIX2ZhY3Rpb25C",
+            "BwoFX2xvb3RCDAoKX2VxdWlwbWVudEIQCg5fZGlhbG9ndWVfdHJlZUIVChNf",
+            "c2hvcF9pbnZlbnRvcnlfcmVmQhIKEF9raWxsX2NyZWRpdF9yZWZCEAoOX3Bh",
+            "cnR5X3NjYWxpbmdCCgoIX3NwYXRpYWxCDgoMX2ludGVyYWN0aW9uQgoKCF9j",
+            "cmVkaXRzQgoKCF9kcmFmdGVkIiUKC05wY1JlZ2lzdHJ5EhYKBG5wY3MYASAD",
+            "KAsyCC5ucGMuTnBjKpkCCgtOcGNUeXBlRmxhZxIRCg1OUENfVFlQRV9OT05F",
+            "EAASEgoOTlBDX1RZUEVfRU5FTVkQARIVChFOUENfVFlQRV9NRVJDSEFOVBAC",
+            "EhgKFE5QQ19UWVBFX1FVRVNUX0dJVkVSEAQSFgoSTlBDX1RZUEVfQ09NUEFO",
+            "SU9OEAgSFAoQTlBDX1RZUEVfTkVVVFJBTBAQEhEKDU5QQ19UWVBFX0JPU1MQ",
+            "IBIVChFOUENfVFlQRV9NSU5JQk9TUxBAEhQKD05QQ19UWVBFX1NVTU1PThCA",
+            "ARIVChBOUENfVFlQRV9UUkFJTkVSEIACEhQKD05QQ19UWVBFX1JFUEFJUhCA",
+            "BBIXChJOUENfVFlQRV9JTk5LRUVQRVIQgAgqvwIKC1BlcnNvbmFsaXR5EhsK",
+            "F1BFUlNPTkFMSVRZX1VOU1BFQ0lGSUVEEAASGgoWUEVSU09OQUxJVFlfQUdH",
+            "UkVTU0lWRRABEhcKE1BFUlNPTkFMSVRZX0NVTk5JTkcQAhIXChNQRVJTT05B",
+            "TElUWV9GRUFSRlVMEAMSFQoRUEVSU09OQUxJVFlfU1RPSUMQBBIVChFQRVJT",
+            "T05BTElUWV9GRVJBTBAFEhcKE1BFUlNPTkFMSVRZX0FOQ0lFTlQQBhIYChRQ",
+            "RVJTT05BTElUWV9DSEVFUkZVTBAHEhoKFlBFUlNPTkFMSVRZX01ZU1RFUklP",
+            "VVMQCBIYChRQRVJTT05BTElUWV9DT1dBUkRMWRAJEhUKEVBFUlNPTkFMSVRZ",
+            "X05PQkxFEAoSFwoTUEVSU09OQUxJVFlfUEFTU0lWRRALKu8BCgdFbGVtZW50",
+            "EhAKDEVMRU1FTlRfTk9ORRAAEhAKDEVMRU1FTlRfRklSRRABEg8KC0VMRU1F",
+            "TlRfSUNFEAISFQoRRUxFTUVOVF9MSUdIVE5JTkcQAxISCg5FTEVNRU5UX1BP",
+            "SVNPThAEEhIKDkVMRU1FTlRfU0hBRE9XEAUSEAoMRUxFTUVOVF9IT0xZEAYS",
+            "EgoORUxFTUVOVF9BUkNBTkUQBxIRCg1FTEVNRU5UX0VBUlRIEAgSEAoMRUxF",
+            "TUVOVF9XSU5EEAkSEgoORUxFTUVOVF9OQVRVUkUQChIRCg1FTEVNRU5UX0xJ",
+            "R0hUEAsqlgEKCU5wY1Jhcml0eRIVChFOUENfUkFSSVRZX0NPTU1PThAAEhcK",
+            "E05QQ19SQVJJVFlfVU5DT01NT04QARITCg9OUENfUkFSSVRZX1JBUkUQAhIT",
+            "Cg9OUENfUkFSSVRZX0VQSUMQAxIYChROUENfUkFSSVRZX0xFR0VOREFSWRAE",
+            "EhUKEU5QQ19SQVJJVFlfTVlUSElDEAUqeQoHTnBjUmFuaxITCg9OUENfUkFO",
+            "S19OT1JNQUwQABITCg9OUENfUkFOS19NSU5JT04QARISCg5OUENfUkFOS19F",
+            "TElURRACEhcKE05QQ19SQU5LX1JBUkVfRUxJVEUQAxIXChNOUENfUkFOS19X",
+            "T1JMRF9CT1NTEAQq8gIKDkNyZWF0dXJlRmFtaWx5Eh8KG0NSRUFUVVJFX0ZB",
+            "TUlMWV9VTlNQRUNJRklFRBAAEhkKFUNSRUFUVVJFX0ZBTUlMWV9CRUFTVBAB",
+            "EhoKFkNSRUFUVVJFX0ZBTUlMWV9VTkRFQUQQAhIZChVDUkVBVFVSRV9GQU1J",
+            "TFlfREVNT04QAxIdChlDUkVBVFVSRV9GQU1JTFlfRUxFTUVOVEFMEAQSHAoY",
+            "Q1JFQVRVUkVfRkFNSUxZX0hVTUFOT0lEEAUSHgoaQ1JFQVRVUkVfRkFNSUxZ",
+            "X01FQ0hBTklDQUwQBhIaChZDUkVBVFVSRV9GQU1JTFlfRFJBR09OEAcSHgoa",
+            "Q1JFQVRVUkVfRkFNSUxZX0FCRVJSQVRJT04QCBIZChVDUkVBVFVSRV9GQU1J",
+            "TFlfUExBTlQQCRIaChZDUkVBVFVSRV9GQU1JTFlfU1BJUklUEAoSHQoZQ1JF",
+            "QVRVUkVfRkFNSUxZX0NPTlNUUlVDVBALKogBCgxNb3ZlbWVudFR5cGUSFwoT",
+            "TU9WRU1FTlRfU1RBVElPTkFSWRAAEhoKFk1PVkVNRU5UX1JBTkRPTV9XQU5E",
+            "RVIQARITCg9NT1ZFTUVOVF9QQVRST0wQAhIVChFNT1ZFTUVOVF9TQ1JJUFRF",
+            "RBADEhcKE01PVkVNRU5UX0FHR1JFU1NJVkUQBCpqCg5EaWZmaWN1bHR5TW9k",
+            "ZRIVChFESUZGSUNVTFRZX05PUk1BTBAAEhMKD0RJRkZJQ1VMVFlfSEFSRBAB",
+            "EhUKEURJRkZJQ1VMVFlfSEVST0lDEAISFQoRRElGRklDVUxUWV9NWVRISUMQ",
+            "AyqMAgoKU3ByaXRlQW5pbRIbChdTUFJJVEVfQU5JTV9VTlNQRUNJRklFRBAA",
+            "EhQKEFNQUklURV9BTklNX0lETEUQARIUChBTUFJJVEVfQU5JTV9XQUxLEAIS",
+            "FQoRU1BSSVRFX0FOSU1fQ1JBV0wQAxITCg9TUFJJVEVfQU5JTV9SVU4QBBIW",
+            "ChJTUFJJVEVfQU5JTV9BVFRBQ0sQBRIUChBTUFJJVEVfQU5JTV9DQVNUEAYS",
+            "FAoQU1BSSVRFX0FOSU1fSFVSVBAHEhUKEVNQUklURV9BTklNX0RFQVRIEAgS",
+            "FQoRU1BSSVRFX0FOSU1fU1BBV04QCRIXChNTUFJJVEVfQU5JTV9TUEVDSUFM",
+            "EAoqdgoMU3ByaXRlRmFjaW5nEh0KGVNQUklURV9GQUNJTkdfVU5TUEVDSUZJ",
+            "RUQQABIXChNTUFJJVEVfRkFDSU5HX0ZST05UEAESFgoSU1BSSVRFX0ZBQ0lO",
+            "R19TSURFEAISFgoSU1BSSVRFX0ZBQ0lOR19CQUNLEAMqhAIKCUVxdWlwU2xv",
+            "dBIaChZFUVVJUF9TTE9UX1VOU1BFQ0lGSUVEEAASEwoPRVFVSVBfU0xPVF9I",
+            "RUFEEAESFAoQRVFVSVBfU0xPVF9DSEVTVBACEhMKD0VRVUlQX1NMT1RfTEVH",
+            "UxADEhMKD0VRVUlQX1NMT1RfRkVFVBAEEhQKEEVRVUlQX1NMT1RfSEFORFMQ",
+            "BRIYChRFUVVJUF9TTE9UX01BSU5fSEFORBAGEhcKE0VRVUlQX1NMT1RfT0ZG",
+            "X0hBTkQQBxITCg9FUVVJUF9TTE9UX05FQ0sQCBITCg9FUVVJUF9TTE9UX1JJ",
+            "TkcQCRITCg9FUVVJUF9TTE9UX0JBQ0sQCkIRqgIOS0JWRS5Qcm90by5OcGNi",
+            "BnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::KBVE.Proto.Common.CommonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.SpriteAnim), typeof(global::KBVE.Proto.Npc.SpriteFacing), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -281,7 +282,7 @@ namespace KBVE.Proto.Npc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteClip), global::KBVE.Proto.Npc.SpriteClip.Parser, new[]{ "Anim", "Row", "StartFrame", "FrameCount", "Fps", "Loop" }, new[]{ "Loop" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteAtlas), global::KBVE.Proto.Npc.SpriteAtlas.Parser, new[]{ "AtlasRef", "Columns", "Rows", "CellWidth", "CellHeight", "RowFront", "RowSide", "RowBack", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ", "Clips" }, new[]{ "CellWidth", "CellHeight", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcExtension), global::KBVE.Proto.Npc.NpcExtension.Parser, new[]{ "Key", "StringValue", "IntValue", "FloatValue", "BoolValue", "BytesValue" }, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "Level", "LevelMin", "LevelMax", "Stats", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "LevelMin", "LevelMax", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "Level", "LevelMin", "LevelMax", "Stats", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "ShopItems", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "LevelMin", "LevelMax", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "Credits", "Drafted" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcRegistry), global::KBVE.Proto.Npc.NpcRegistry.Parser, new[]{ "Npcs" }, null, null, null, null)
           }));
     }
@@ -11722,6 +11723,7 @@ namespace KBVE.Proto.Npc {
       questRefs_ = other.questRefs_.Clone();
       shopInventoryRef_ = other.shopInventoryRef_;
       killCreditRef_ = other.killCreditRef_;
+      shopItems_ = other.shopItems_.Clone();
       spawnRules_ = other.spawnRules_.Clone();
       phaseRules_ = other.phaseRules_.Clone();
       difficultyOverrides_ = other.difficultyOverrides_.Clone();
@@ -12477,6 +12479,20 @@ namespace KBVE.Proto.Npc {
       killCreditRef_ = null;
     }
 
+    /// <summary>Field number for the "shop_items" field.</summary>
+    public const int ShopItemsFieldNumber = 52;
+    private static readonly pb::FieldCodec<string> _repeated_shopItems_codec
+        = pb::FieldCodec.ForString(418);
+    private readonly pbc::RepeatedField<string> shopItems_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Item refs this merchant buys/sells (prices from itemdb)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<string> ShopItems {
+      get { return shopItems_; }
+    }
+
     /// <summary>Field number for the "spawn_rules" field.</summary>
     public const int SpawnRulesFieldNumber = 25;
     private static readonly pb::FieldCodec<global::KBVE.Proto.Npc.SpawnRule> _repeated_spawnRules_codec
@@ -12685,6 +12701,7 @@ namespace KBVE.Proto.Npc {
       if(!questRefs_.Equals(other.questRefs_)) return false;
       if (ShopInventoryRef != other.ShopInventoryRef) return false;
       if (KillCreditRef != other.KillCreditRef) return false;
+      if(!shopItems_.Equals(other.shopItems_)) return false;
       if(!spawnRules_.Equals(other.spawnRules_)) return false;
       if(!phaseRules_.Equals(other.phaseRules_)) return false;
       if(!difficultyOverrides_.Equals(other.difficultyOverrides_)) return false;
@@ -12741,6 +12758,7 @@ namespace KBVE.Proto.Npc {
       hash ^= questRefs_.GetHashCode();
       if (HasShopInventoryRef) hash ^= ShopInventoryRef.GetHashCode();
       if (HasKillCreditRef) hash ^= KillCreditRef.GetHashCode();
+      hash ^= shopItems_.GetHashCode();
       hash ^= spawnRules_.GetHashCode();
       hash ^= phaseRules_.GetHashCode();
       hash ^= difficultyOverrides_.GetHashCode();
@@ -12925,6 +12943,7 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(154, 3);
         output.WriteMessage(SpriteAtlas);
       }
+      shopItems_.WriteTo(output, _repeated_shopItems_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -13092,6 +13111,7 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(154, 3);
         output.WriteMessage(SpriteAtlas);
       }
+      shopItems_.WriteTo(ref output, _repeated_shopItems_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -13204,6 +13224,7 @@ namespace KBVE.Proto.Npc {
       if (HasKillCreditRef) {
         size += 2 + pb::CodedOutputStream.ComputeStringSize(KillCreditRef);
       }
+      size += shopItems_.CalculateSize(_repeated_shopItems_codec);
       size += spawnRules_.CalculateSize(_repeated_spawnRules_codec);
       size += phaseRules_.CalculateSize(_repeated_phaseRules_codec);
       size += difficultyOverrides_.CalculateSize(_repeated_difficultyOverrides_codec);
@@ -13358,6 +13379,7 @@ namespace KBVE.Proto.Npc {
       if (other.HasKillCreditRef) {
         KillCreditRef = other.KillCreditRef;
       }
+      shopItems_.Add(other.shopItems_);
       spawnRules_.Add(other.spawnRules_);
       phaseRules_.Add(other.phaseRules_);
       difficultyOverrides_.Add(other.difficultyOverrides_);
@@ -13627,6 +13649,10 @@ namespace KBVE.Proto.Npc {
             input.ReadMessage(SpriteAtlas);
             break;
           }
+          case 418: {
+            shopItems_.AddEntriesFrom(input, _repeated_shopItems_codec);
+            break;
+          }
         }
       }
     #endif
@@ -13866,6 +13892,10 @@ namespace KBVE.Proto.Npc {
               SpriteAtlas = new global::KBVE.Proto.Npc.SpriteAtlas();
             }
             input.ReadMessage(SpriteAtlas);
+            break;
+          }
+          case 418: {
+            shopItems_.AddEntriesFrom(ref input, _repeated_shopItems_codec);
             break;
           }
         }

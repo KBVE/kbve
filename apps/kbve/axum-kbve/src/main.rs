@@ -230,15 +230,11 @@ async fn main() -> anyhow::Result<()> {
     }
 
     if transport::proxy::init_chuckrpg_proxy() {
-        info!("ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy enabled");
+        info!(
+            "ChuckRPG proxy initialized - /dashboard/chuckrpg/proxy/{{tenant}} + /api/rows/openapi.json enabled"
+        );
     } else {
-        info!("ChuckRPG proxy not configured (CHUCKRPG_UPSTREAM_URL not set)");
-    }
-
-    if transport::proxy::init_chuckrpg_docs_proxy() {
-        info!("ChuckRPG docs proxy initialized - /api/rows/openapi.json enabled");
-    } else {
-        info!("ChuckRPG docs proxy not configured (CHUCKRPG_DOCS_URL not set)");
+        info!("ChuckRPG proxy not configured (CHUCKRPG_TENANTS not set)");
     }
 
     // Initialize game server (headless Bevy + lightyear + avian3d)

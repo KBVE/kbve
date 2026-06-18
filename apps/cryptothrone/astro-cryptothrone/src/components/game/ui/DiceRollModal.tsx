@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { FloatingWindow } from '@kbve/astro/ui';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
+import { pickStealLoot } from '../data/items';
 
 function rollDie(): number {
 	return Math.floor(Math.random() * 6) + 1;
@@ -60,11 +61,17 @@ export function DiceRollModal() {
 		if (!diceRoll) return;
 
 		if (total >= 17) {
+			const loot = pickStealLoot();
+			if (loot) {
+				dispatch({ type: 'ADD_ITEM', payload: { itemId: loot.id } });
+			}
 			dispatch({
 				type: 'ADD_NOTIFICATION',
 				payload: {
 					title: 'Success!',
-					message: `You rolled ${total} and stole from ${diceRoll.npcName}!`,
+					message: loot
+						? `You rolled ${total} and stole ${loot.name} from ${diceRoll.npcName}!`
+						: `You rolled ${total} and stole from ${diceRoll.npcName}!`,
 					type: 'success',
 				},
 			});

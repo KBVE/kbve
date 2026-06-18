@@ -25,6 +25,8 @@ pub struct NpcDef {
     pub equipment: Option<NpcEquipment>,
     #[serde(default)]
     pub faction: Option<NpcFaction>,
+    #[serde(default)]
+    pub shop_items: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -96,6 +98,10 @@ pub struct ItemDef {
     pub stackable: bool,
     #[serde(default)]
     pub consumable: bool,
+    #[serde(default)]
+    pub buy_price: u32,
+    #[serde(default)]
+    pub sell_price: u32,
 }
 
 impl ItemDb {

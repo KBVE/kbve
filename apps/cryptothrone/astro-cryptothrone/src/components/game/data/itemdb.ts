@@ -78,6 +78,19 @@ const items: ItemData[] = pool.filter((r) => r && r.ref && r.name).map(adapt);
 
 const itemMap = new Map(items.map((i) => [i.id, i]));
 
+const priceMap = new Map(
+	pool
+		.filter((r) => r && r.ref)
+		.map((r) => [
+			r.ref,
+			{ buy: r.buy_price ?? 0, sell: r.sell_price ?? 0 },
+		]),
+);
+
+export function getItemPrice(ref: string): { buy: number; sell: number } {
+	return priceMap.get(ref) ?? { buy: 0, sell: 0 };
+}
+
 export function getItemById(ref: string): ItemData | undefined {
 	return itemMap.get(ref);
 }

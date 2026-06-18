@@ -1,6 +1,8 @@
 import type { ItemData } from '../types';
 import { getAllItems as getCanonicalItems } from './itemdb';
 
+export { getItemPrice } from './itemdb';
+
 const LOCAL_EXTRAS: ItemData[] = [
 	{
 		id: 'health-potion',
@@ -32,4 +34,25 @@ export function getItemById(id: string): ItemData | undefined {
 
 export function getAllItems(): ItemData[] {
 	return items;
+}
+
+const stealLootPool: ItemData[] = items.filter(
+	(i) =>
+		i.type !== 'quest' &&
+		(i.rarity === 'common' || i.rarity === 'uncommon'),
+);
+
+export function getStealLootPool(): ItemData[] {
+	return stealLootPool;
+}
+
+export function pickStealLoot(
+	roll: number = Math.random(),
+): ItemData | undefined {
+	if (stealLootPool.length === 0) return undefined;
+	const idx = Math.min(
+		stealLootPool.length - 1,
+		Math.max(0, Math.floor(roll * stealLootPool.length)),
+	);
+	return stealLootPool[idx];
 }

@@ -132,14 +132,17 @@ spec:
                         value: '/etc/ssl/webtransport-selfsigned/tls.crt'
                       - name: GAME_WT_SELFSIGNED_KEY
                         value: '/etc/ssl/webtransport-selfsigned/tls.key'
-                      - name: CHUCKRPG_UPSTREAM_URL
-                        value: 'http://rows.rows.svc.cluster.local:4322'
-                      - name: CHUCKRPG_DOCS_URL
-                        value: 'http://rows.rows.svc.cluster.local:4323'
-                      - name: CHUCKRPG_CUSTOMER_GUID
+                      - name: CHUCKRPG_TENANTS
+                        value: '[{"id":"chuckrpg-dev","label":"ChuckRPG Dev","upstream":"http://rows.rows-chuckrpg-dev.svc.cluster.local:4322","docs":"http://rows.rows-chuckrpg-dev.svc.cluster.local:4323","guid_env":"CHUCKRPG_GUID_DEV"},{"id":"chuckrpg-beta","label":"ChuckRPG Beta","upstream":"http://rows.rows-chuckrpg-beta.svc.cluster.local:4322","docs":"http://rows.rows-chuckrpg-beta.svc.cluster.local:4323","guid_env":"CHUCKRPG_GUID_BETA"}]'
+                      - name: CHUCKRPG_GUID_DEV
                         valueFrom:
                             secretKeyRef:
-                                name: chuckrpg-customer-guid
+                                name: chuckrpg-guid-dev
+                                key: customer-guid
+                      - name: CHUCKRPG_GUID_BETA
+                        valueFrom:
+                            secretKeyRef:
+                                name: chuckrpg-guid-beta
                                 key: customer-guid
                       # MC RCON (multi-server) — drives /api/v1/mc/players.
                       # axum-kbve polls both backends in parallel, tags each

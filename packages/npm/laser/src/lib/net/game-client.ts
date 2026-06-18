@@ -6,6 +6,7 @@ import {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
+	EPHEMERAL_SHOP,
 	EPHEMERAL_STATS,
 	type ClientMessage,
 	type CombatEvent,
@@ -18,6 +19,7 @@ import {
 	type ItemUsedEvent,
 	type PickupEvent,
 	type ServerEvent,
+	type ShopResult,
 	type Snapshot,
 	type StatsEvent,
 	type Tile,
@@ -38,6 +40,7 @@ export type GameClientEventMap = {
 	itemUsed: ItemUsedEvent;
 	equipped: EquippedEvent;
 	stats: StatsEvent;
+	shop: ShopResult;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -141,6 +144,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_STATS) {
 			const data = decodeEphemeralPayload<StatsEvent>(evt.payload);
 			if (data) this.bus.emit('stats', data);
+		} else if (evt.kind === EPHEMERAL_SHOP) {
+			const data = decodeEphemeralPayload<ShopResult>(evt.payload);
+			if (data) this.bus.emit('shop', data);
 		}
 	}
 
@@ -176,6 +182,14 @@ export class GameClient {
 
 	equipItem(itemRef: string): void {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
+	}
+
+	buyItem(npc: number, itemRef: string, qty: number): void {
+		this.sendInputs([{ BuyItem: { npc, item_ref: itemRef, qty } }]);
+	}
+
+	sellItem(npc: number, itemRef: string, qty: number): void {
+		this.sendInputs([{ SellItem: { npc, item_ref: itemRef, qty } }]);
 	}
 
 	face(facing: Facing): void {

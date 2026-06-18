@@ -1,23 +1,10 @@
+import { GAMECHAT_KIND_CHAT, type GamechatFrame } from '@kbve/chat/gamechat';
 import { LaserEventBus } from '../core/events';
 import {
 	ReconnectingSocket,
 	type ConnectionState,
 	type ConnectionStatus,
 } from './connection';
-
-/**
- * JSON wire frame for the irc-gateway `/gamechat` endpoint (bevy_chat
- * ChatMessage). The gateway pins `sender`/`platform` server-side from the
- * authenticated session, so outbound values are placeholders.
- */
-interface ChatFrame {
-	kind: string;
-	sender: string;
-	platform: string;
-	channel: string;
-	content: string;
-	payload?: unknown;
-}
 
 export interface RealmChatMessage {
 	from: string;
@@ -103,7 +90,7 @@ export class RealmChatClient {
 	}
 
 	private handleMessage(ev: MessageEvent): void {
-		let frame: ChatFrame;
+		let frame: GamechatFrame;
 		try {
 			frame = JSON.parse(
 				typeof ev.data === 'string' ? ev.data : String(ev.data),
@@ -111,7 +98,7 @@ export class RealmChatClient {
 		} catch {
 			return;
 		}
-		if (frame.kind !== 'chat') return;
+		if (frame.kind !== GAMECHAT_KIND_CHAT) return;
 		if (frame.channel && frame.channel !== this.opts.channel) return;
 		this.bus.emit('message', { from: frame.sender, text: frame.content });
 	}
@@ -119,8 +106,8 @@ export class RealmChatClient {
 	send(text: string): void {
 		const trimmed = text.trim().slice(0, 200);
 		if (!trimmed || !this.socket.isOpen()) return;
-		const frame: ChatFrame = {
-			kind: 'chat',
+		const frame: GamechatFrame = {
+			kind: GAMECHAT_KIND_CHAT,
 			sender: '',
 			platform: '',
 			channel: this.opts.channel,

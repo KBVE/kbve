@@ -29,6 +29,7 @@ import {
 } from '@kbve/rn/auth';
 import { useBreakpoint } from './useBreakpoint';
 import { Overview } from './Overview';
+import { StaffOverview } from './StaffOverview';
 import { BrowseView } from './BrowseView';
 import { Profile } from './Profile';
 import { VettingView } from './VettingView';
@@ -38,13 +39,25 @@ import { auroraGold } from '../gpu/auroraGold';
 import { ui } from '../ui/gradients';
 import type { Vertical } from '../api/client';
 
-const SECTIONS: { id: string; label: string; Icon: LucideIcon }[] = [
+type Section = { id: string; label: string; Icon: LucideIcon };
+
+// Marketplace members: browse work, manage their jobs/profile.
+const MEMBER_SECTIONS: Section[] = [
 	{ id: 'overview', label: 'Overview', Icon: LayoutDashboard },
 	{ id: 'browse', label: 'Browse', Icon: Compass },
 	{ id: 'jobs', label: 'My Jobs', Icon: Briefcase },
 	{ id: 'messages', label: 'Messages', Icon: MessageSquare },
 	{ id: 'profile', label: 'Profile', Icon: User },
-] as const;
+];
+
+// Staff: admin-oriented. Vetting only when they hold the permission for it.
+const staffSections = (canVet: boolean): Section[] => [
+	{ id: 'overview', label: 'Overview', Icon: LayoutDashboard },
+	...(canVet
+		? [{ id: 'vetting', label: 'Vetting', Icon: ShieldCheck } as Section]
+		: []),
+	{ id: 'profile', label: 'Profile', Icon: User },
+];
 
 export function DashboardShell() {
 	const auth = useAuth();
@@ -56,13 +69,13 @@ export function DashboardShell() {
 
 	const username = auth.user?.username ?? auth.user?.email ?? 'there';
 
-	// Staff with admin / dashboard-manage get the vetting queue section.
+	// Full role split: staff get an admin-oriented dashboard, members the
+	// marketplace one. Staff with admin / dashboard-manage also get vetting.
+	const isStaff = staff.isStaff;
 	const canVet =
 		staff.has(StaffPermission.ADMIN) ||
 		staff.has(StaffPermission.DASHBOARD_MANAGE);
-	const sections = canVet
-		? [...SECTIONS, { id: 'vetting', label: 'Vetting', Icon: ShieldCheck }]
-		: SECTIONS;
+	const sections = isStaff ? staffSections(canVet) : MEMBER_SECTIONS;
 
 	const selectVertical = (v: Vertical) =>
 		setSelection({ kind: 'vertical', vertical: v });
@@ -70,7 +83,15 @@ export function DashboardShell() {
 	const main = () => {
 		switch (active) {
 			case 'overview':
-				return <Overview username={username} />;
+				return isStaff ? (
+					<StaffOverview
+						username={username}
+						canVet={canVet}
+						onGoVetting={() => setActive('vetting')}
+					/>
+				) : (
+					<Overview username={username} />
+				);
 			case 'browse':
 				return (
 					<BrowseView
@@ -90,7 +111,7 @@ export function DashboardShell() {
 				return (
 					<Stack gap="sm">
 						<Text variant="title">
-							{SECTIONS.find((s) => s.id === active)?.label}
+							{sections.find((s) => s.id === active)?.label}
 						</Text>
 						<Text tone="muted">Coming soon.</Text>
 					</Stack>

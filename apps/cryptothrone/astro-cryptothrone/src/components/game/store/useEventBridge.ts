@@ -95,6 +95,7 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 						npcName: data.npcName,
 						actions: data.actions as NPCAction[],
 						coords: data.coords,
+						eid: data.eid,
 					},
 				});
 			}),
@@ -127,6 +128,49 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 					Array.from({ length: i.count }, () => i.ref),
 				);
 				dispatch({ type: 'SET_BACKPACK', payload: { itemIds } });
+			}),
+		);
+
+		const SHOP_REASONS: Record<string, string> = {
+			insufficient: 'Not enough coin.',
+			too_far: 'Step closer to the merchant.',
+			out_of_stock: "The merchant doesn't sell that.",
+			no_item: "You don't have that to sell.",
+			not_sellable: "The merchant won't buy that.",
+			not_for_sale: 'That item is not for sale.',
+		};
+
+		unsubs.push(
+			laserEvents.on('shop:result', (data) => {
+				const r = data as {
+					action: 'buy' | 'sell';
+					item_ref: string;
+					qty: number;
+					ok: boolean;
+					reason: string;
+				};
+				if (r.ok) {
+					dispatch({
+						type: 'ADD_NOTIFICATION',
+						payload: {
+							title: r.action === 'buy' ? 'Bought' : 'Sold',
+							message:
+								r.qty > 1
+									? `${r.item_ref} ×${r.qty}`
+									: r.item_ref,
+							type: 'success',
+						},
+					});
+				} else {
+					dispatch({
+						type: 'ADD_NOTIFICATION',
+						payload: {
+							title: 'Trade failed',
+							message: SHOP_REASONS[r.reason] ?? r.reason,
+							type: 'danger',
+						},
+					});
+				}
 			}),
 		);
 

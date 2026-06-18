@@ -2761,7 +2761,14 @@
       ],
       "faction": {
         "factionId": "player"
-      }
+      },
+      "shopItems": [
+        "potion",
+        "elixir",
+        "swift-tonic",
+        "iron-sword",
+        "iron-shield"
+      ]
     },
     {
       "description": "Sci-fi logistics officer. Runs the hauler ring — what loads where, when, and in what order. Has a soft spot for clean spreadsheets and full cargo holds.\n",

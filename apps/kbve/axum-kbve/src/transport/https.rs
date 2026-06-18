@@ -694,11 +694,11 @@ fn router(state: AppState) -> Router {
             any(super::proxy::edge_proxy_handler),
         )
         .route(
-            "/dashboard/chuckrpg/proxy/{*path}",
-            any(super::proxy::chuckrpg_proxy_handler),
+            "/dashboard/chuckrpg/tenants",
+            axum::routing::get(super::proxy::chuckrpg_tenants_handler),
         )
         .route(
-            "/dashboard/chuckrpg/proxy",
+            "/dashboard/chuckrpg/proxy/{tenant}/{*path}",
             any(super::proxy::chuckrpg_proxy_handler),
         );
 
