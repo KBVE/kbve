@@ -68,8 +68,6 @@ function collectMessages(
 			// Skip well-known types (they're inlined as Zod expressions)
 			if (isWellKnownType(msg.typeName)) continue;
 
-			// Apply include/exclude filters. Omitted include = all messages;
-			// an explicit empty array = no messages (enums-only configs).
 			if (config.include) {
 				if (!config.include.includes(msg.typeName)) continue;
 			}

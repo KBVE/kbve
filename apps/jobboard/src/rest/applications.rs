@@ -22,18 +22,13 @@ use std::sync::Arc;
 use tokio_postgres::error::SqlState;
 use uuid::Uuid;
 
-// Capability bitmask — sourced from the jobboard proto (Capability enum) so the
-// wire/DB values stay in lockstep with packages/data/proto/jobboard/jobboard.proto.
-// The DB mirror lives in jobboard.member_applications.requested_capabilities.
 use crate::proto::jobboard::{
     AdminApplicationView, Capability, MembershipApplicationView, ProfileDraft,
 };
 const CAP_TAKER: i32 = Capability::CapTaker as i32;
 const CAP_POSTER: i32 = Capability::CapPoster as i32;
-// Applicant-requestable subset: admin (CapAdmin) is staff-granted, never requested.
 const CAP_MASK: i32 = CAP_TAKER | CAP_POSTER;
 
-// staff.members.permissions bits (see StaffPermission).
 const STAFF_ADMIN: i32 = 0x4;
 const STAFF_SUPERADMIN: i32 = 0x4000_0000;
 

@@ -75,8 +75,6 @@ export default defineConfig(({ mode }) => ({
 				),
 			},
 			{
-				// proto-sourced jobboard enums/bitmask (numeric values), single
-				// source of truth shared with the Rust/SQL layers.
 				find: /^@kbve\/jobboard-schema$/,
 				replacement: path.join(
 					repoRoot,

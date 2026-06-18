@@ -1,13 +1,4 @@
 -- migrate:up
--- Richer profiles for the hybrid vetting flow (Plan C): the applicant submits a
--- profile_draft with their membership application; on approval the draft is
--- normalized into public profile rows (talent_profiles + talent_verticals +
--- talent_taxonomy) by the decision handler. The draft is the review envelope;
--- links + disciplines become relational on approval.
---
--- profile_draft shape (validated below):
---   { headline, bio, years_experience, location, links:[{kind,url}], discipline_ids:[..] }
-
 alter table jobboard.talent_profiles
     add column bio      text  not null default '',
     add column location text  not null default '',

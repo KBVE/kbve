@@ -194,7 +194,6 @@ export function emit(options: EmitOptions): string {
 		}
 	}
 
-	// Numeric const objects from enums (preserve integer values)
 	if (config.numericEnums) {
 		for (const ne of config.numericEnums) {
 			const enumDesc = enums.get(ne.sourceEnum);

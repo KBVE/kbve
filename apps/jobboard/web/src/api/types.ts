@@ -5,8 +5,6 @@
 // Enum-ish integers carry the same meaning as the Postgres CHECK constraints
 // (see packages/data/sql/schema/jobboard/jobboard.sql).
 
-// Numeric enums/bitmask are proto-sourced (packages/data/proto/jobboard/jobboard.proto
-// → generated/jobboard-schema.ts) so the wire/DB/UI layers share one source of truth.
 import type { BudgetTypeValue, GigStatusValue } from '@kbve/jobboard-schema';
 export {
 	Capability,
@@ -36,10 +34,8 @@ export interface TaxonomyItem {
 	status: number;
 }
 
-// budget_type / status mirror the proto enums (BudgetType / GigStatus consts).
 export type BudgetType = BudgetTypeValue;
 export type GigStatus = GigStatusValue;
-// gigs.location_pref: 0=remote, 1=onsite, 2=hybrid (no proto enum — loose int32)
 export type LocationPref = 0 | 1 | 2;
 
 export interface PosterRef {
@@ -205,10 +201,7 @@ export interface Ack {
 
 // ── Membership / vetting ───────────────────────────────────────────────
 
-// Capability bitmask (combination of Capability.CAP_* bits — proto-sourced).
 export type Capabilities = number;
-// member_applications.status: 0=pending, 1=approved, 2=rejected (membership
-// vetting state — distinct from the gig-application ApplicationStatus proto enum).
 export type ApplicationStatusCode = 0 | 1 | 2;
 
 export type LinkKind =
@@ -220,10 +213,6 @@ export type LinkKind =
 	| 'artstation'
 	| 'other';
 
-// Membership envelope (request payloads + read views) is the proto-sourced
-// contract shared by the REST JSON and gRPC binary transports — string ids keep
-// the JSON clean. Schemas are exported for runtime parsing where consumers want
-// it; the api() client currently casts.
 export type {
 	ProfileLink,
 	ProfileDraft,

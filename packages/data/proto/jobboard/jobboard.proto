@@ -241,12 +241,7 @@ message ByLookup { uint64 id = 1; }
 message ByUser   { bytes  user_id = 1; }
 message Ack      { bool success = 1; string message = 2; }
 
-// ─────────────────────── Membership API envelope ───────────────────────
-// One contract for both transports: string ids (ULID/UUID) keep the JSON
-// clean (no base64) while the same messages serialize over gRPC binary.
-// These mirror the jobboard REST JSON (apps/jobboard/src/rest/applications.rs)
-// and are the source of truth for the web client types.
-
+// Membership API envelope: string ids so one message serves REST JSON + gRPC.
 message ProfileLink {
   string kind = 1; // github/linkedin/website/x/itch/artstation/other
   string url  = 2;
@@ -274,8 +269,6 @@ message MembershipApplicationView {
   ProfileDraft profile_draft     = 10;
 }
 
-// Admin queue row: the application plus the applicant's identity (flat, mirrors
-// the REST admin list JSON).
 message AdminApplicationView {
   string id                       = 1;
   string user_id                  = 2;
