@@ -1,4 +1,5 @@
 import { useGameSelector } from '../store/GameStoreContext';
+import { KbveCommunityCta } from './KbveCommunityCta';
 
 interface RejectInfo {
 	title: string;
@@ -76,6 +77,8 @@ export function ConnectionOverlay() {
 				)
 			: null;
 
+	const isFarewell = connection.status === 'disconnected';
+
 	return (
 		<div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
 			<div className="pointer-events-auto w-full max-w-xs rounded-2xl border border-amber-200/10 bg-black/70 p-6 text-center shadow-2xl shadow-black/60 backdrop-blur-xl">
@@ -98,6 +101,35 @@ export function ConnectionOverlay() {
 									? 'This is taking longer than usual. The realm may be waking up — hang tight.'
 									: 'Establishing a secure connection to the game server.'}
 						</p>
+					</>
+				) : isFarewell ? (
+					<>
+						<svg
+							className="mx-auto mb-4 h-8 w-8 text-amber-300"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.75"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							aria-hidden="true">
+							<path d="M9 11l3 3L22 4" />
+							<path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+						</svg>
+						<p className="text-sm font-semibold text-amber-200">
+							Thanks for playing CryptoThrone!
+						</p>
+						<p className="mt-2 text-xs text-stone-400">
+							Your session has ended. We hope to see you back in
+							Cloud City soon.
+						</p>
+						<KbveCommunityCta />
+						<button
+							type="button"
+							onClick={() => window.location.reload()}
+							className="mt-4 w-full rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
+							Rejoin the world
+						</button>
 					</>
 				) : (
 					<>
@@ -135,6 +167,7 @@ export function ConnectionOverlay() {
 							className="mt-4 w-full rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70">
 							{reject ? reject.button : 'Retry connection'}
 						</button>
+						<KbveCommunityCta />
 					</>
 				)}
 			</div>

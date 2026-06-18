@@ -13,6 +13,17 @@ export const PANELS = {
 
 export type PanelVariant = keyof typeof PANELS;
 
+function proxyAsset(path: string): string {
+	if (!path.startsWith('/') || path.startsWith('/.proxy')) return path;
+	if (
+		typeof window !== 'undefined' &&
+		window.location.hostname.endsWith('.discordsays.com')
+	) {
+		return `/.proxy${path}`;
+	}
+	return path;
+}
+
 interface PixelPanelProps {
 	children?: ReactNode;
 	className?: string;
@@ -46,7 +57,7 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 		},
 		ref,
 	) {
-		const source = src ?? PANELS[variant];
+		const source = proxyAsset(src ?? PANELS[variant]);
 		return (
 			<div
 				ref={ref}

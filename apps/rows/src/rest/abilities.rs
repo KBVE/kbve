@@ -1,3 +1,6 @@
+//! Character ability + ability-bar routes (`/api/Abilities/*`). All tenant-gated by
+//! `require_customer_guid`.
+
 use super::HandlerState;
 use crate::error::{ApiResult, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
@@ -9,6 +12,7 @@ use axum::{
     routing::{get, post},
 };
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 pub(super) fn abilities_routes(hs: HandlerState) -> Router {
     Router::new()
@@ -38,13 +42,18 @@ pub(super) fn abilities_routes(hs: HandlerState) -> Router {
         .with_state(hs)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CharNameDto {
+pub(crate) struct CharNameDto {
     character_name: String,
 }
 
-async fn get_character_abilities(
+/// Lists every ability a character has learned.
+#[utoipa::path(post, path = "/api/Abilities/GetCharacterAbilities", tag = "abilities",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Character abilities", body = [crate::models::CharacterAbility]))
+)]
+pub(crate) async fn get_character_abilities(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -57,15 +66,20 @@ async fn get_character_abilities(
     Ok(Json(abilities))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct AddAbilityDto {
+pub(crate) struct AddAbilityDto {
     character_name: String,
     ability_name: String,
     ability_level: i32,
 }
 
-async fn add_ability(
+/// Grants an ability to a character at a given level.
+#[utoipa::path(post, path = "/api/Abilities/AddAbilityToCharacter", tag = "abilities",
+    request_body = inline(AddAbilityDto),
+    responses((status = 200, description = "Grant result", body = SuccessResponse))
+)]
+pub(crate) async fn add_ability(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddAbilityDto>,
@@ -86,14 +100,19 @@ async fn add_ability(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct RemoveAbilityDto {
+pub(crate) struct RemoveAbilityDto {
     character_name: String,
     ability_name: String,
 }
 
-async fn remove_ability(
+/// Removes an ability from a character.
+#[utoipa::path(post, path = "/api/Abilities/RemoveAbilityFromCharacter", tag = "abilities",
+    request_body = inline(RemoveAbilityDto),
+    responses((status = 200, description = "Removal result", body = SuccessResponse))
+)]
+pub(crate) async fn remove_ability(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RemoveAbilityDto>,
@@ -109,7 +128,12 @@ async fn remove_ability(
     }
 }
 
-async fn update_ability(
+/// Updates the level of an ability the character already has.
+#[utoipa::path(post, path = "/api/Abilities/UpdateAbilityOnCharacter", tag = "abilities",
+    request_body = inline(AddAbilityDto),
+    responses((status = 200, description = "Update result", body = SuccessResponse))
+)]
+pub(crate) async fn update_ability(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<AddAbilityDto>,
@@ -130,7 +154,12 @@ async fn update_ability(
     }
 }
 
-async fn get_ability_bars(
+/// Lists a character's ability bars.
+#[utoipa::path(post, path = "/api/Abilities/GetAbilityBars", tag = "abilities",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Ability bars", body = [crate::models::AbilityBar]))
+)]
+pub(crate) async fn get_ability_bars(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -143,7 +172,12 @@ async fn get_ability_bars(
     Ok(Json(bars))
 }
 
-async fn get_ability_bars_and_abilities(
+/// Lists ability bars joined with the abilities slotted into them.
+#[utoipa::path(post, path = "/api/Abilities/GetAbilityBarsAndAbilities", tag = "abilities",
+    request_body = inline(CharNameDto),
+    responses((status = 200, description = "Ability bars with slotted abilities", body = [crate::models::AbilityBarAbility]))
+)]
+pub(crate) async fn get_ability_bars_and_abilities(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CharNameDto>,
@@ -156,6 +190,10 @@ async fn get_ability_bars_and_abilities(
     Ok(Json(items))
 }
 
-async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {
+/// Returns the global ability catalog. Currently a stub returning an empty list.
+#[utoipa::path(get, path = "/api/Abilities/GetAbilities", tag = "abilities",
+    responses((status = 200, description = "Ability catalog (stub: empty)", body = [crate::models::CharacterAbility]))
+)]
+pub(crate) async fn get_abilities_list() -> Json<Vec<crate::models::CharacterAbility>> {
     Json(Vec::new())
 }

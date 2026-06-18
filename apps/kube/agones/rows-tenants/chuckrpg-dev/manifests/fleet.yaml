@@ -28,7 +28,7 @@ spec:
                   containerPort: 7777
                   protocol: UDP
             health:
-                initialDelaySeconds: 30
+                initialDelaySeconds: 180
                 periodSeconds: 15
                 failureThreshold: 5
             template:
@@ -45,22 +45,20 @@ spec:
                               - /bin/bash
                               - -c
                               - |
-                                  SERVER_DIR=$(find /server -maxdepth 2 -name "LinuxServer" -type d | sort -V | tail -1)
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    SERVER_DIR=$(find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1)
+                                  # Cooked dev server staged at /server/latest/LinuxServer/chuckServer.sh (subPath: chuckServerDev)
+                                  SERVER_BIN="${OWS_SERVER_BIN:-/server/latest/LinuxServer/chuckServer.sh}"
+                                  if [ ! -f "${SERVER_BIN}" ]; then
+                                    # Fallback: auto-detect a *Server.sh under any LinuxServer dir
+                                    SERVER_DIR=$(find /server -maxdepth 3 -name "LinuxServer" -type d | sort -V | tail -1)
+                                    SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
                                   fi
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    echo "ERROR: no server build found on PVC"
-                                    ls -la /server/ 2>/dev/null
+                                  if [ -z "${SERVER_BIN}" ] || [ ! -f "${SERVER_BIN}" ]; then
+                                    echo "ERROR: cooked server binary not found (expected /server/latest/LinuxServer/chuckServer.sh)"
+                                    ls -la /server/ /server/latest/ /server/latest/LinuxServer/ 2>/dev/null
                                     exit 1
                                   fi
-                                  SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
-                                  if [ -z "${SERVER_BIN}" ]; then
-                                    echo "ERROR: no *Server.sh found under ${SERVER_DIR}"
-                                    ls -la "${SERVER_DIR}/" 2>/dev/null
-                                    exit 1
-                                  fi
-                                  echo "Starting UE5 dedicated server from ${SERVER_BIN}"
+                                  chmod +x "${SERVER_BIN}" 2>/dev/null || true
+                                  echo "Starting cooked UE5 dedicated server: ${SERVER_BIN}"
                                   exec "${SERVER_BIN}" \
                                     -server \
                                     -log \
@@ -100,10 +98,10 @@ spec:
                                         optional: true
                           resources:
                               requests:
-                                  memory: 2Gi
+                                  memory: 3Gi
                                   cpu: '1'
                               limits:
-                                  memory: 4Gi
+                                  memory: 8Gi
                                   cpu: '2'
                           volumeMounts:
                               - name: server-binary

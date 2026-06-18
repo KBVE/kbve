@@ -1,3 +1,8 @@
+//! Player-facing auth + session routes (`/api/Users/*`, `/api/Characters/*`). All routes are
+//! tenant-gated by `require_customer_guid`; the `X-CustomerGUID` header is injected by the
+//! same-origin staff proxy. Legacy local email/password endpoints are deprecated in favor of
+//! Supabase external login.
+
 use super::HandlerState;
 use crate::error::{ApiResult, RowsError, SuccessResponse};
 use crate::middleware::{extract_customer_guid, require_customer_guid};
@@ -10,6 +15,7 @@ use axum::{
     routing::{get, post},
 };
 use serde::Deserialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 pub(super) fn public_api_routes(hs: HandlerState) -> Router {
@@ -58,9 +64,9 @@ pub(super) fn public_api_routes(hs: HandlerState) -> Router {
         .with_state(hs)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct LoginDto {
+pub(crate) struct LoginDto {
     email: String,
     password: String,
 }
@@ -68,7 +74,11 @@ struct LoginDto {
 /// DEPRECATED: `LoginAndCreateSession` is the legacy OWS local email/password login. Clients should
 /// authenticate against Supabase and call `ExternalLoginAndCreateSession`; this endpoint stays only
 /// for backwards compatibility and will be removed.
-async fn login(
+#[utoipa::path(post, path = "/api/Users/LoginAndCreateSession", tag = "auth",
+    request_body = inline(LoginDto),
+    responses((status = 200, description = "Session created (deprecated local login)", body = crate::models::LoginResult))
+)]
+pub(crate) async fn login(
     State(hs): State<HandlerState>,
     Json(body): Json<LoginDto>,
 ) -> ApiResult<crate::models::LoginResult> {
@@ -78,9 +88,9 @@ async fn login(
 
 /// Accepts both the new `{ "accessToken": "<jwt>" }` shape and the legacy
 /// `{ "provider": "...", "providerToken": "<jwt>" }` payload for backward compat.
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct ExternalLoginDto {
+pub(crate) struct ExternalLoginDto {
     #[serde(default)]
     access_token: Option<String>,
     #[serde(default)]
@@ -89,7 +99,13 @@ struct ExternalLoginDto {
     provider_token: Option<String>,
 }
 
-async fn external_login(
+/// Exchanges a Supabase JWT for a ROWS session. Accepts the new `accessToken` shape and the legacy
+/// `provider`/`providerToken` payload.
+#[utoipa::path(post, path = "/api/Users/ExternalLoginAndCreateSession", tag = "auth",
+    request_body = inline(ExternalLoginDto),
+    responses((status = 200, description = "Login result (authenticated flag + session GUID)", body = crate::models::LoginResult))
+)]
+pub(crate) async fn external_login(
     State(hs): State<HandlerState>,
     Json(body): Json<ExternalLoginDto>,
 ) -> Json<crate::models::LoginResult> {
@@ -124,7 +140,15 @@ async fn external_login(
     }
 }
 
-async fn get_user_session(
+/// Looks up a live session by `userSessionGUID` (query parameter).
+#[utoipa::path(get, path = "/api/Users/GetUserSession", tag = "auth",
+    params(("userSessionGUID" = String, Query, description = "Session GUID to resolve")),
+    responses(
+        (status = 200, description = "Session found", body = crate::models::UserSession),
+        (status = 400, description = "Missing or malformed userSessionGUID"),
+    )
+)]
+pub(crate) async fn get_user_session(
     State(hs): State<HandlerState>,
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> ApiResult<crate::models::UserSession> {
@@ -137,14 +161,19 @@ async fn get_user_session(
     Ok(Json(session))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct GetAllCharsDto {
+pub(crate) struct GetAllCharsDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
 }
 
-async fn get_all_characters(
+/// Lists every character owned by the session's user.
+#[utoipa::path(post, path = "/api/Users/GetAllCharacters", tag = "characters",
+    request_body = inline(GetAllCharsDto),
+    responses((status = 200, description = "Characters for the session", body = [crate::models::Character]))
+)]
+pub(crate) async fn get_all_characters(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetAllCharsDto>,
@@ -157,9 +186,9 @@ async fn get_all_characters(
     Ok(Json(chars))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct GetServerDto {
+pub(crate) struct GetServerDto {
     #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Option<Uuid>,
     character_name: String,
@@ -168,7 +197,12 @@ struct GetServerDto {
     _player_group_type: Option<i32>,
 }
 
-async fn get_server_to_connect_to(
+/// Resolves (and lazily spins up) the game server a character should connect to for a zone.
+#[utoipa::path(post, path = "/api/Users/GetServerToConnectTo", tag = "instances",
+    request_body = inline(GetServerDto),
+    responses((status = 200, description = "Connection target", body = crate::models::JoinMapResult))
+)]
+pub(crate) async fn get_server_to_connect_to(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
@@ -185,15 +219,20 @@ async fn get_server_to_connect_to(
     Ok(Json(result))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct GetByNameDto {
+pub(crate) struct GetByNameDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: String,
     character_name: String,
 }
 
-async fn get_char_by_name_public(
+/// Fetches a single character by name within the tenant.
+#[utoipa::path(post, path = "/api/Characters/ByName", tag = "characters",
+    request_body = inline(GetByNameDto),
+    responses((status = 200, description = "Character", body = crate::models::Character))
+)]
+pub(crate) async fn get_char_by_name_public(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetByNameDto>,
@@ -206,13 +245,17 @@ async fn get_char_by_name_public(
     Ok(Json(ch))
 }
 
-async fn system_status() -> Json<bool> {
+/// Liveness ping for legacy OWS clients; always returns `true`.
+#[utoipa::path(get, path = "/api/System/Status", tag = "health",
+    responses((status = 200, description = "Always true", body = bool))
+)]
+pub(crate) async fn system_status() -> Json<bool> {
     Json(true)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct RegisterUserDto {
+pub(crate) struct RegisterUserDto {
     email: String,
     password: String,
     first_name: String,
@@ -222,7 +265,11 @@ struct RegisterUserDto {
 /// DEPRECATED: `RegisterUser` creates a legacy OWS local account with a password hash. Accounts now
 /// originate in Supabase and are provisioned on first `ExternalLoginAndCreateSession`; kept for
 /// backwards compatibility only, slated for removal.
-async fn register_user(
+#[utoipa::path(post, path = "/api/Users/RegisterUser", tag = "auth",
+    request_body = inline(RegisterUserDto),
+    responses((status = 200, description = "Registration result (deprecated local account)", body = SuccessResponse))
+)]
+pub(crate) async fn register_user(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RegisterUserDto>,
@@ -252,14 +299,19 @@ async fn register_user(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct LogoutDto {
+pub(crate) struct LogoutDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
 }
 
-async fn logout(
+/// Invalidates a session GUID.
+#[utoipa::path(post, path = "/api/Users/Logout", tag = "auth",
+    request_body = inline(LogoutDto),
+    responses((status = 200, description = "Logout result", body = SuccessResponse))
+)]
+pub(crate) async fn logout(
     State(hs): State<HandlerState>,
     Json(body): Json<LogoutDto>,
 ) -> Json<SuccessResponse> {
@@ -269,16 +321,21 @@ async fn logout(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CreateCharDto {
+pub(crate) struct CreateCharDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     character_name: String,
     class_name: String,
 }
 
-async fn create_character(
+/// Creates a character under the session's user with an explicit class.
+#[utoipa::path(post, path = "/api/Users/CreateCharacter", tag = "characters",
+    request_body = inline(CreateCharDto),
+    responses((status = 200, description = "Creation result", body = SuccessResponse))
+)]
+pub(crate) async fn create_character(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CreateCharDto>,
@@ -299,15 +356,20 @@ async fn create_character(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct RemoveCharDto {
+pub(crate) struct RemoveCharDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
 }
 
-async fn remove_character(
+/// Deletes a character by name within the tenant.
+#[utoipa::path(post, path = "/api/Users/RemoveCharacter", tag = "characters",
+    request_body = inline(RemoveCharDto),
+    responses((status = 200, description = "Removal result", body = SuccessResponse))
+)]
+pub(crate) async fn remove_character(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<RemoveCharDto>,
@@ -323,16 +385,21 @@ async fn remove_character(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct CreateCharDefaultsDto {
+pub(crate) struct CreateCharDefaultsDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     character_name: String,
     default_set_name: String,
 }
 
-async fn create_char_defaults(
+/// Creates a character seeded from a named default value set.
+#[utoipa::path(post, path = "/api/Users/CreateCharacterUsingDefaultCharacterValues", tag = "characters",
+    request_body = inline(CreateCharDefaultsDto),
+    responses((status = 200, description = "Creation result", body = SuccessResponse))
+)]
+pub(crate) async fn create_char_defaults(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<CreateCharDefaultsDto>,
@@ -353,16 +420,21 @@ async fn create_char_defaults(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct SetSelectedCharDto {
+pub(crate) struct SetSelectedCharDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     user_session_guid: Uuid,
     #[serde(alias = "selectedCharacterName")]
     character_name: String,
 }
 
-async fn set_selected_char(
+/// Sets the active character on a session and returns the merged session+character view.
+#[utoipa::path(post, path = "/api/Users/SetSelectedCharacterAndGetUserSession", tag = "characters",
+    request_body = inline(SetSelectedCharDto),
+    responses((status = 200, description = "Session with selected character", body = crate::models::UserSessionWithCharacter))
+)]
+pub(crate) async fn set_selected_char(
     State(hs): State<HandlerState>,
     Json(body): Json<SetSelectedCharDto>,
 ) -> ApiResult<crate::models::UserSessionWithCharacter> {
@@ -373,7 +445,12 @@ async fn set_selected_char(
     Ok(Json(session))
 }
 
-async fn user_session_set_selected_char(
+/// Sets the active character on a session; returns a bare success flag.
+#[utoipa::path(post, path = "/api/Users/UserSessionSetSelectedCharacter", tag = "characters",
+    request_body = inline(SetSelectedCharDto),
+    responses((status = 200, description = "Selection result", body = SuccessResponse))
+)]
+pub(crate) async fn user_session_set_selected_char(
     State(hs): State<HandlerState>,
     Json(body): Json<SetSelectedCharDto>,
 ) -> Json<SuccessResponse> {
@@ -387,15 +464,15 @@ async fn user_session_set_selected_char(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct DefaultCustomDataDto {
+pub(crate) struct DefaultCustomDataDto {
     default_set_name: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct GetPlayerGroupsDto {
+pub(crate) struct GetPlayerGroupsDto {
     #[serde(rename = "userSessionGUID", alias = "userSessionGUId")]
     _user_session_guid: Uuid,
     character_name: String,
@@ -403,7 +480,13 @@ struct GetPlayerGroupsDto {
     player_group_type_id: i32,
 }
 
-async fn get_player_groups(
+/// Lists the player groups a character belongs to for a given group type. Returns the legacy OWS
+/// `{ success, rows }` envelope.
+#[utoipa::path(post, path = "/api/Users/GetPlayerGroupsCharacterIsIn", tag = "characters",
+    request_body = inline(GetPlayerGroupsDto),
+    responses((status = 200, description = "OWS `{ success, rows }` envelope of group memberships"))
+)]
+pub(crate) async fn get_player_groups(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<GetPlayerGroupsDto>,
@@ -429,7 +512,12 @@ async fn get_player_groups(
     }
 }
 
-async fn get_default_custom_data(
+/// Returns the default custom-data rows for a named default set.
+#[utoipa::path(post, path = "/api/Characters/GetDefaultCustomData", tag = "characters",
+    request_body = inline(DefaultCustomDataDto),
+    responses((status = 200, description = "Default custom-data rows", body = crate::models::CustomDataRows))
+)]
+pub(crate) async fn get_default_custom_data(
     State(hs): State<HandlerState>,
     headers: HeaderMap,
     Json(body): Json<DefaultCustomDataDto>,

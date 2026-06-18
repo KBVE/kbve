@@ -1,0 +1,21 @@
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: ows-chuckrpg-dev-autoscaler
+    namespace: arc-runners
+    labels:
+        app: ows-gameserver
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/instance: chuckrpg-dev
+spec:
+    fleetName: ows-chuckrpg-dev
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 0
+            maxReplicas: 10
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30

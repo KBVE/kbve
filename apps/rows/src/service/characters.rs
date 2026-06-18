@@ -83,6 +83,16 @@ impl OWSService {
             .await
     }
 
+    /// Batched position update for a whole zone tick; returns the count of rows actually updated.
+    pub async fn update_positions(
+        &self,
+        customer_guid: Uuid,
+        rows: &[crate::repo::PositionRow<'_>],
+    ) -> Result<u64, RowsError> {
+        let repo = CharsRepo(&self.state.db);
+        repo.update_positions(customer_guid, rows).await
+    }
+
     pub async fn update_stats(
         &self,
         customer_guid: Uuid,

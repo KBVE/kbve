@@ -74,6 +74,9 @@ interface EntityRefs {
 
 const MAP_SCALE = 3;
 const SLOT_NONE = 0xffff;
+const UI_DEPTH = 100000;
+
+const CASINO_TABLE = { zone: 'cloud-city', tx: 6, ty: 8, w: 1.5, h: 2 };
 
 interface PendingAction {
 	kind: 'pickup' | 'interact';
@@ -192,6 +195,7 @@ export class CloudCityScene extends Scene {
 			}
 		}
 		this.entityDepth = tilemap.layers.length + 1;
+		this.placeProps();
 		this.cameras.main.setBounds(
 			0,
 			0,
@@ -259,6 +263,20 @@ export class CloudCityScene extends Scene {
 			this.netTerminal = true;
 			this.client?.close();
 		});
+	}
+
+	private placeProps() {
+		if (this.zone.key !== CASINO_TABLE.zone) return;
+		const px = this.tilePixels * MAP_SCALE;
+		const cx = (CASINO_TABLE.tx + CASINO_TABLE.w / 2) * px;
+		const cy = (CASINO_TABLE.ty + CASINO_TABLE.h / 2) * px;
+		const img = this.add.image(cx, cy, 'casino_table').setOrigin(0.5);
+		const dispW = CASINO_TABLE.w * px;
+		const aspect = img.height / img.width;
+		const dispH = dispW * aspect;
+		img.setDisplaySize(dispW, dispH).setDepth(
+			this.entityDepth + cy + dispH / 2,
+		);
 	}
 
 	private connectClient() {
@@ -464,7 +482,7 @@ export class CloudCityScene extends Scene {
 			refs.sprite.y - 14,
 			text,
 			color,
-			this.entityDepth + 1,
+			UI_DEPTH,
 		);
 	}
 
@@ -496,7 +514,7 @@ export class CloudCityScene extends Scene {
 							strokeThickness: 3,
 						})
 						.setOrigin(0.5, 1)
-						.setDepth(this.entityDepth + 2);
+						.setDepth(UI_DEPTH + 1);
 				}
 				return refs;
 			},
@@ -634,7 +652,7 @@ export class CloudCityScene extends Scene {
 				continue;
 			}
 			if (!refs.hpBar) {
-				refs.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
+				refs.hpBar = this.add.graphics().setDepth(UI_DEPTH);
 			}
 			const center = refs.sprite.getTopCenter();
 			drawHealthBar(refs.hpBar, center.x, refs.sprite.y - 22, hp, maxHp);
@@ -821,6 +839,11 @@ export class CloudCityScene extends Scene {
 
 	private updateOverlays(time: number) {
 		for (const [, , refs] of this.store.entries()) {
+			refs.sprite.setDepth(
+				this.entityDepth +
+					refs.sprite.y +
+					refs.sprite.displayHeight / 2,
+			);
 			if (refs.nameplate) {
 				const top = refs.sprite.getTopCenter();
 				refs.nameplate.setPosition(top.x, top.y + 2);
