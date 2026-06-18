@@ -28,7 +28,7 @@ spec:
                   containerPort: 7777
                   protocol: UDP
             health:
-                initialDelaySeconds: 30
+                initialDelaySeconds: 180
                 periodSeconds: 15
                 failureThreshold: 5
             template:
@@ -45,23 +45,24 @@ spec:
                               - /bin/bash
                               - -c
                               - |
-                                  SERVER_DIR=$(find /server -maxdepth 2 -name "LinuxServer" -type d | sort -V | tail -1)
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    SERVER_DIR=$(find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1)
+                                  UPROJECT="${OWS_UPROJECT:-/server/latest/EditorServer/chuck/chuck.uproject}"
+                                  if [ ! -f "${UPROJECT}" ]; then
+                                    UPROJECT=$(find /server -maxdepth 5 -name '*.uproject' -path '*EditorServer*' | sort -V | head -1)
                                   fi
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    echo "ERROR: no server build found on PVC"
-                                    ls -la /server/ 2>/dev/null
+                                  if [ -z "${UPROJECT}" ] || [ ! -f "${UPROJECT}" ]; then
+                                    echo "ERROR: no .uproject found on PVC (expected /server/latest/EditorServer/chuck/chuck.uproject)"
+                                    ls -la /server/ /server/latest/ 2>/dev/null
                                     exit 1
                                   fi
-                                  SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name "*Server.sh" | head -1)
-                                  if [ -z "${SERVER_BIN}" ]; then
-                                    echo "ERROR: no *Server.sh found under ${SERVER_DIR}"
-                                    ls -la "${SERVER_DIR}/" 2>/dev/null
+                                  EDITOR_BIN=$(find /server -maxdepth 7 -type f -path '*/Engine/Binaries/Linux/UnrealEditor' | sort -V | head -1)
+                                  if [ -z "${EDITOR_BIN}" ]; then
+                                    echo "ERROR: UnrealEditor binary not found under /server (editor build must bundle the engine)"
+                                    ls -la /server/latest/ 2>/dev/null
                                     exit 1
                                   fi
-                                  echo "Starting UE5 dedicated server from ${SERVER_BIN}"
-                                  exec "${SERVER_BIN}" \
+                                  chmod +x "${EDITOR_BIN}" 2>/dev/null || true
+                                  echo "Starting UnrealEditor server: ${EDITOR_BIN} ${UPROJECT}"
+                                  exec "${EDITOR_BIN}" "${UPROJECT}" \
                                     -server \
                                     -log \
                                     -nosteam \
@@ -100,10 +101,10 @@ spec:
                                         optional: true
                           resources:
                               requests:
-                                  memory: 2Gi
+                                  memory: 3Gi
                                   cpu: '1'
                               limits:
-                                  memory: 4Gi
+                                  memory: 8Gi
                                   cpu: '2'
                           volumeMounts:
                               - name: server-binary
