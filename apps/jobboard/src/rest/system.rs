@@ -29,6 +29,18 @@ pub fn routes() -> Router<Arc<AppState>> {
         .route("/ready", get(readiness))
 }
 
+/// Routes merged under /api (SPA-facing). `dev` drives the dev-mode banner.
+pub fn api_routes() -> Router<Arc<AppState>> {
+    Router::new().route("/meta", get(meta))
+}
+
+async fn meta(State(app): State<Arc<AppState>>) -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "version": version(),
+        "dev": app.dev(),
+    }))
+}
+
 async fn health() -> Json<serde_json::Value> {
     Json(serde_json::json!({
         "status": "healthy",

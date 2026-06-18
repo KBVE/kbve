@@ -60,6 +60,13 @@ impl AppState {
             auth_cache: Mutex::new(LruCache::new(NonZeroUsize::new(2048).unwrap())),
         })
     }
+
+    /// Dev mode = remote auth: jobboard validates against live Supabase but
+    /// writes to a local DB whose auth.users is empty. Gates the dev-only
+    /// user auto-provision and the SPA dev banner. Prod uses local HS256.
+    pub fn dev(&self) -> bool {
+        matches!(self.auth_mode, AuthMode::Remote)
+    }
 }
 
 fn env_url(key: &str, default: &str) -> String {

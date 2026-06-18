@@ -83,6 +83,24 @@ async fn remote_verify(app: &AppState, token: &str) -> Result<(), ApiError> {
     }
 }
 
+/// Dev-only: insert the remotely-verified user into the local auth.users so FKs
+/// resolve (the local DB has no Supabase users). Best-effort — a failure just
+/// leaves the downstream insert to surface its own FK error.
+async fn provision_dev_user(app: &AppState, user_id: Uuid) {
+    let Ok(conn) = app.db.write().await else {
+        return;
+    };
+    if let Err(e) = conn
+        .execute(
+            "INSERT INTO auth.users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING",
+            &[&user_id],
+        )
+        .await
+    {
+        tracing::warn!(error = %e, "dev user provision failed");
+    }
+}
+
 pub struct AuthUser {
     pub user_id: Uuid,
     pub username: String,
@@ -123,7 +141,13 @@ impl FromRequestParts<Arc<AppState>> for AuthUser {
 
         match app.auth_mode {
             AuthMode::Local => verify_local(&token, &app.jwt_secret)?,
-            AuthMode::Remote => remote_verify(app, &token).await?,
+            AuthMode::Remote => {
+                remote_verify(app, &token).await?;
+                // Dev: prod-issued users have no row in the local auth.users, so
+                // every FK to it would fail. Mirror the verified user in once
+                // (cache-miss path only). Never runs in prod (Local mode).
+                provision_dev_user(app, user_id).await;
+            }
         }
 
         let cached = CachedAuth {
