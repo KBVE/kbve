@@ -1,6 +1,7 @@
 pub mod alerts;
 pub mod clickhouse_types;
 pub mod core;
+pub mod factorio;
 pub mod logs;
 
 pub use clickhouse_types::*;

@@ -72,6 +72,8 @@ fn parse_line(line: &str) -> Option<GameEvent> {
 
     let after_tag = trimmed[tag_idx + tag.len()..].trim_start();
 
+    let mut fields = std::collections::HashMap::new();
+
     let (player, text) = match kind {
         GameEventKind::Chat => match after_tag.split_once(": ") {
             Some((p, m)) => (Some(p.to_string()), m.to_string()),
@@ -81,6 +83,14 @@ fn parse_line(line: &str) -> Option<GameEvent> {
             let player = after_tag.split_whitespace().next().map(str::to_string);
             (player, after_tag.to_string())
         }
+        GameEventKind::Stats => {
+            for tok in after_tag.split_whitespace() {
+                if let Some((k, v)) = tok.split_once('=') {
+                    fields.insert(k.to_string(), v.to_string());
+                }
+            }
+            (fields.get("player").cloned(), after_tag.to_string())
+        }
         _ => (None, after_tag.to_string()),
     };
 
@@ -89,5 +99,38 @@ fn parse_line(line: &str) -> Option<GameEvent> {
         player,
         text,
         raw: trimmed.to_string(),
+        fields,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_snapshot_stats() {
+        let line = "  12.345 Script @__kbve__/control.lua:1: [STATS] kind=snapshot players=3 game_tick=18000 seed=42\n";
+        let ev = parse_line(line).expect("stats event");
+        assert!(matches!(ev.kind, GameEventKind::Stats));
+        assert_eq!(ev.field("kind"), Some("snapshot"));
+        assert_eq!(ev.field("players"), Some("3"));
+        assert_eq!(ev.field("game_tick"), Some("18000"));
+        assert_eq!(ev.field("seed"), Some("42"));
+    }
+
+    #[test]
+    fn parses_player_event_stats() {
+        let line = "[STATS] kind=player_event event=join player=Engineer game_tick=600";
+        let ev = parse_line(line).expect("stats event");
+        assert_eq!(ev.field("event"), Some("join"));
+        assert_eq!(ev.player.as_deref(), Some("Engineer"));
+    }
+
+    #[test]
+    fn parses_chat() {
+        let ev = parse_line("[CHAT] Engineer: hello world").expect("chat event");
+        assert!(matches!(ev.kind, GameEventKind::Chat));
+        assert_eq!(ev.player.as_deref(), Some("Engineer"));
+        assert_eq!(ev.text, "hello world");
+    }
 }

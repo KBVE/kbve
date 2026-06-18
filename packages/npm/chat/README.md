@@ -3,8 +3,9 @@
 Shared codec for the structured envelope that KBVE game-server bots and chat
 clients embed inside IRC `PRIVMSG`/`NOTICE` text. Proto is the single source of
 truth (`packages/data/proto/kbve/chat.proto` → `kbve.chat`); the generated Zod
-schema is consumed here via `@kbve/proto/chat-schema`, and the Rust producer
-(`bevy_chat`) speaks the same wire form from the same proto.
+schema is vendored into the package (`src/generated/chat-schema.ts`, refreshed by
+`gen-all` `vendorTo`), and the Rust producer (`bevy_chat`) speaks the same wire
+form from the same proto.
 
 ## Wire format
 
@@ -99,3 +100,50 @@ const back = parseEnvelope(body, { channel: '#world-events' }); // ChatEnvelope 
 
 `parseEnvelope` returns `null` for plain IRC chatter (no `[KIND]` wrapper) so the
 caller can fall back to a plain chat message.
+
+### Decoding raw IRC
+
+For consumers that read raw IRC frames (the chat UI, the gateway listeners),
+`parseIrcLine` splits a line into `{ nick, command, params, trailing }` and
+`decodeIrcTrailing` turns a `PRIVMSG`/`NOTICE` trailing into a render-ready
+descriptor — envelope-aware, with a plain fallback:
+
+```ts
+import { parseIrcLine, decodeIrcTrailing } from '@kbve/chat';
+
+const parsed = parseIrcLine(line);
+if (parsed?.command === 'PRIVMSG' || parsed?.command === 'NOTICE') {
+	const d = decodeIrcTrailing(
+		parsed.command,
+		parsed.trailing ?? '',
+		parsed.nick, // fallback sender when the line carries no envelope
+		parsed.params[0] ?? '',
+	);
+	// d: { sender, content, type: 'message'|'notice'|'event'|'system',
+	//      platform?, eventTag?, payload? }
+}
+```
+
+### Game chat frame
+
+The irc-gateway `/gamechat` + `/minechat` endpoints speak a JSON frame (the
+`bevy_chat` `ChatMessage` serialization), not the IRC wire envelope. Its shape
+and the chat-kind constant live in a dependency-free subpath so game clients can
+import them without pulling the zod codec:
+
+```ts
+import { type GamechatFrame, GAMECHAT_KIND_CHAT } from '@kbve/chat/gamechat';
+```
+
+### Platform wire names
+
+| Platform                 | Wire name       |
+| ------------------------ | --------------- |
+| `PLATFORM_IRC`           | `irc`           |
+| `PLATFORM_DISCORD`       | `discord`       |
+| `PLATFORM_MINECRAFT`     | `minecraft`     |
+| `PLATFORM_FACTORIO`      | `factorio`      |
+| `PLATFORM_NEXUS_DEFENSE` | `nexus_defense` |
+| `PLATFORM_ISOMETRIC`     | `isometric`     |
+| `PLATFORM_SYSTEM`        | `system`        |
+| `PLATFORM_UNSPECIFIED`   | `unspecified`   |

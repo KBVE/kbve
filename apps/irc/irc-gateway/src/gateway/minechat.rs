@@ -51,7 +51,6 @@ use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio::time::{interval, timeout};
 use tracing::{debug, error, info, warn};
@@ -60,6 +59,7 @@ const WS_PING_INTERVAL: Duration = Duration::from_secs(30);
 const WS_READ_DEADLINE: Duration = Duration::from_secs(90);
 
 use crate::auth::jwt;
+use crate::gateway::ergo;
 
 /// Handle to the ergo writer, shared between the two session tasks so
 /// either one can emit a line (PONG replies, publishes, etc.) without
@@ -175,14 +175,7 @@ pub async fn game_ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoRes
 /// drops the IRC connection. Two independent futures fan JSON↔IRC in each
 /// direction; either one returning ends the session via `tokio::select!`.
 async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, platform: String) {
-    let ergo_host = std::env::var("ERGO_IRC_HOST")
-        .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into());
-    let ergo_port: u16 = std::env::var("ERGO_IRC_PORT")
-        .ok()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(6667);
-
-    let ergo = match TcpStream::connect(format!("{ergo_host}:{ergo_port}")).await {
+    let ergo = match ergo::connect_irc().await {
         Ok(s) => s,
         Err(e) => {
             error!(user = %nick, "failed to connect to ergo: {e}");
@@ -338,7 +331,9 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                         }
                         continue;
                     }
-                    if let Some((sender, channel, payload)) = parse_privmsg(&raw) {
+                    if let Some((sender, channel, payload)) =
+                        ergo::parse_privmsg(&raw)
+                    {
                         let mut msg =
                             ChatMessage::from_irc_or_plain(&channel, &sender, &payload);
                         if msg.platform.is_empty() {
@@ -388,27 +383,6 @@ async fn send_json(
     tx.send(Message::Text(text.into())).await.map_err(|_| ())
 }
 
-/// Parse `:nick!user@host PRIVMSG #channel :payload` → `(sender, channel,
-/// payload)`. `sender` is the IRC nick from the prefix (empty when absent),
-/// used for the plain-IRC fallback. Returns `None` for any other IRC line.
-fn parse_privmsg(line: &str) -> Option<(String, String, String)> {
-    let (sender, rest) = if let Some(r) = line.strip_prefix(':') {
-        let (prefix, rest) = r.split_once(' ')?;
-        let nick = prefix.split(['!', '@']).next().unwrap_or(prefix);
-        (nick.to_string(), rest)
-    } else {
-        (String::new(), line)
-    };
-    let mut parts = rest.splitn(3, ' ');
-    if parts.next()? != "PRIVMSG" {
-        return None;
-    }
-    let channel = parts.next()?.to_string();
-    let trailing = parts.next()?;
-    let payload = trailing.strip_prefix(':').unwrap_or(trailing).to_string();
-    Some((sender, channel, payload))
-}
-
 /// Keep only ASCII alphanumerics from a JWT sub and truncate.
 fn sanitize_sub(sub: &str, max_len: usize) -> String {
     sub.chars()
@@ -421,21 +395,6 @@ fn sanitize_sub(sub: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn parses_simple_privmsg() {
-        let line = ":alice!a@host PRIVMSG #world-events :[CHAT] alice@minecraft: hello";
-        let (sender, ch, payload) = parse_privmsg(line).unwrap();
-        assert_eq!(sender, "alice");
-        assert_eq!(ch, "#world-events");
-        assert_eq!(payload, "[CHAT] alice@minecraft: hello");
-    }
-
-    #[test]
-    fn ignores_non_privmsg() {
-        assert!(parse_privmsg("PING :server").is_none());
-        assert!(parse_privmsg(":bob JOIN #foo").is_none());
-    }
 
     #[test]
     fn sanitizes_sub() {

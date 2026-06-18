@@ -1,14 +1,14 @@
 apiVersion: autoscaling.agones.dev/v1
 kind: FleetAutoscaler
 metadata:
-    name: ows-chuckrpg-beta-autoscaler
+    name: rows-chuckrpg-beta-autoscaler
     namespace: arc-runners
     labels:
         app: ows-gameserver
         app.kubernetes.io/part-of: ows
         app.kubernetes.io/instance: chuckrpg-beta
 spec:
-    fleetName: ows-chuckrpg-beta
+    fleetName: rows-chuckrpg-beta
     policy:
         type: Buffer
         buffer:

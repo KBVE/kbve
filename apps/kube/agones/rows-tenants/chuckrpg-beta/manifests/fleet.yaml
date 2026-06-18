@@ -1,7 +1,7 @@
 apiVersion: agones.dev/v1
 kind: Fleet
 metadata:
-    name: ows-chuckrpg-beta
+    name: rows-chuckrpg-beta
     namespace: arc-runners
     labels:
         app: ows-gameserver
