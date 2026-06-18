@@ -1,0 +1,76 @@
+---
+title: Factorio CTL
+description: |
+    REST API service for the Agones-managed Factorio server — GameServer status, telemetry, saves, and map rotation.
+sidebar:
+    label: Factorio CTL
+    order: 462
+tags:
+    - agones
+    - factorio
+    - rust
+    - docker
+key: factorio_ctl
+pipeline: docker
+app_name: factorio-ctl
+version: "0.0.1"
+source_path: apps/vm/factorio-ctl
+version_toml: apps/vm/factorio-ctl/version.toml
+version_target: apps/vm/factorio-ctl/Cargo.toml
+runner: ubuntu-latest
+image: kbve/factorio-ctl
+deployment_yaml: apps/kube/agones/factorio/manifests/factorio-ctl.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Overview
+
+Rust Axum + utoipa REST API for the Agones-managed Factorio dedicated server. Mirrors [`firecracker-ctl`](/docs/project/firecracker-ctl/): cluster-internal only, surfaced through the staff dashboard via a same-origin proxy (`/dashboard/factorio/proxy`, `DASHBOARD_VIEW`). Routes use the `/factorio/*` prefix — never `/fc/*`, which belongs to firecracker-ctl.
+
+This entry registers the crate so the image builds and publishes. The Kubernetes Deployment ships with `replicas: 0` until the image is available, then scales to 1.
+
+### API Endpoints (read-only, this slice)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/factorio/health` (+ `/health`) | Liveness, build identity, in-cluster kube-client presence |
+| `GET` | `/factorio/server` | Agones `GameServer` status (state / node / address / port) + latest telemetry snapshot |
+| `GET` | `/openapi.json` | utoipa spec for the dashboard Scalar viewer |
+
+### Design
+
+- **GameServer status** is read via `kube-rs` with a raw request to the Agones API (no CRD vendoring), so an Agones schema bump can't break the build.
+- **Player count comes from ClickHouse** (`gameops.factorio_snapshots`), not RCON — RCON binds loopback-only on the gameserver pod and is unreachable cross-pod. The relay sidecar is the telemetry producer; factorio-ctl reads the latest snapshot.
+
+### Runtime knobs
+
+| Env | Default | Notes |
+|---|---|---|
+| `FACTORIO_CTL_PORT` | `9002` | Listen port |
+| `FACTORIO_NAMESPACE` | `factorio` | GameServer namespace |
+| `FACTORIO_GAMESERVER` | `factorio` | GameServer name |
+| `FACTORIO_SERVER_ID` | `factorio-1` | Stamps telemetry lookups |
+| `CLICKHOUSE_ENDPOINT` | _(unset)_ | When unset, telemetry fields are omitted from `/factorio/server` |
+| `CLICKHOUSE_USER` / `CLICKHOUSE_PASSWORD` | _(unset)_ | From the `clickhouse-credentials` ExternalSecret |
+| `CLICKHOUSE_DATABASE` | `gameops` | |
+
+### Kubernetes Resources
+
+In `apps/kube/agones/factorio/manifests/factorio-ctl.yaml`:
+
+- **Deployment** — `replicas: 0` until the image publishes, then scale to 1
+- **Service** — ClusterIP on port 9002
+- **RBAC** — ServiceAccount + Role granting `get/list/watch` on `agones.dev/gameservers`
+
+### Follow-ups (tracking #12735)
+
+- Mutating endpoints: `/factorio/server/restart` · `/factorio/server/save` · `/factorio/saves/*` · `/factorio/rotation/*` · `/factorio/rcon/exec` · `/factorio/players`.
+- Dashboard "control" tab consuming factorio-ctl.
+
+## Refs
+
+- Tracking issue #12735 (supersedes #11138)
+- Sibling pattern — [`firecracker-ctl`](/docs/project/firecracker-ctl/)

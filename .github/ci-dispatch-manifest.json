@@ -173,6 +173,19 @@
 			"has_test": true
 		},
 		{
+			"key": "factorio_ctl",
+			"app_name": "factorio-ctl",
+			"version": "0.0.1",
+			"version_toml": "apps/vm/factorio-ctl/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/factorio-ctl.mdx",
+			"version_target": "apps/vm/factorio-ctl/Cargo.toml",
+			"source_path": "apps/vm/factorio-ctl",
+			"runner": "ubuntu-latest",
+			"image": "kbve/factorio-ctl",
+			"deployment_yaml": "apps/kube/agones/factorio/manifests/factorio-ctl.yaml",
+			"has_test": false
+		},
+		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
 			"version": "0.1.41",
@@ -1152,7 +1165,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.22",
+			"version": "0.3.23",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1218,7 +1231,7 @@
 	],
 	"bevy_game": [],
 	"summary": {
-		"docker": 32,
+		"docker": 33,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -1228,6 +1241,6 @@
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 97
+		"total": 98
 	}
 }
