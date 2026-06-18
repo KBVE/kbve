@@ -16,6 +16,8 @@ readme = "README.md"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
+prost = "0.14"
+prost-types = "0.14"
 
 # Optional Bevy plugin support (for isometric game)
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"], optional = true }
@@ -35,6 +37,9 @@ futures-util = { version = "0.3", default-features = false, features = ["sink", 
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["WebSocket", "MessageEvent", "BinaryType", "ErrorEvent", "CloseEvent"] }
 js-sys = "0.3"
+
+[build-dependencies]
+prost-build = "0.14"
 
 [features]
 default = []

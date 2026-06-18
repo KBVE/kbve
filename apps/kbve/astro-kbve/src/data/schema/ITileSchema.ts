@@ -8,10 +8,10 @@
  * stripped (project memory: schema-inline-engine).
  */
 import { z } from 'astro/zod';
-import { TileAssetSchema } from '../../../../../../packages/data/codegen/generated/mapdb-schema';
+import { TileAssetSchema } from '@kbve/proto/mapdb-schema';
 
 export { TileAssetSchema };
-export type { TileAsset } from '../../../../../../packages/data/codegen/generated/mapdb-schema';
+export type { TileAsset } from '@kbve/proto/mapdb-schema';
 
 // TileRole — lowercase, TILE_ROLE_-stripped (mirrors the proto enum).
 export const TileRoleEnum = z.enum([

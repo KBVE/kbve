@@ -214,6 +214,11 @@ const protos = [
 		protoFile: 'jobboard/jobboard.proto',
 		package: 'jobboard',
 	},
+	{
+		name: 'chat',
+		protoFile: 'kbve/chat.proto',
+		package: 'kbve.chat',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

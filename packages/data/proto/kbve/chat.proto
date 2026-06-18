@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package kbve.chat;
+
+import "google/protobuf/struct.proto";
+
+// =============================================================================
+// Chat Envelope — shared schema for the IRC PRIVMSG/NOTICE payload that every
+// game-server bot and chat client speaks.
+//
+// Wire form (inside the IRC trailing text, ':' prefix already stripped):
+//
+//   [KIND] sender@platform: content {optional-json-payload}
+//
+// The `[KIND]` token is derived from the ChatKind enum name by a single rule
+// shared across producers/consumers (Rust + TS):
+//   strip the `CHAT_KIND_` prefix, then turn a leading `EVENT_` into `EVENT:`.
+//   CHAT_KIND_CHAT              -> CHAT
+//   CHAT_KIND_NOTICE           -> NOTICE
+//   CHAT_KIND_EVENT_RARE_DROP  -> EVENT:RARE_DROP
+//   CHAT_KIND_CUSTOM           -> EVENT:<custom-name> (name carried in content)
+//
+// Producers MUST keep the full IRC line within RFC2812's 512-byte limit:
+// truncate `content` first, then drop `payload` if still over.
+// =============================================================================
+
+// A single structured chat / world-event message.
+message ChatEnvelope {
+  ChatKind kind = 1;
+  string sender = 2;
+  Platform platform = 3;
+  string channel = 4;
+  string content = 5;
+  google.protobuf.Struct payload = 6;
+  int64 timestamp_ms = 7;
+  // Custom event label, set only when kind == CHAT_KIND_CUSTOM. Carries the
+  // free-form name from the `EVENT:<name>` wire tag so the round-trip survives.
+  string custom_kind = 8;
+}
+
+// The kind of message. Values are stable on the wire; never renumber.
+enum ChatKind {
+  CHAT_KIND_UNSPECIFIED = 0;
+  CHAT_KIND_CHAT = 1;
+  CHAT_KIND_SYSTEM = 2;
+  CHAT_KIND_JOIN = 3;
+  CHAT_KIND_PART = 4;
+  CHAT_KIND_NOTICE = 5;
+  CHAT_KIND_EVENT_KILL = 10;
+  CHAT_KIND_EVENT_RARE_DROP = 11;
+  CHAT_KIND_EVENT_CAPTURE = 12;
+  CHAT_KIND_EVENT_QUEST_COMPLETE = 13;
+  CHAT_KIND_EVENT_AREA_UNLOCKED = 14;
+  CHAT_KIND_EVENT_DEATH = 15;
+  CHAT_KIND_EVENT_CRAFT = 16;
+  CHAT_KIND_CUSTOM = 99;
+}
+
+// The source platform a message originated from.
+enum Platform {
+  PLATFORM_UNSPECIFIED = 0;
+  PLATFORM_IRC = 1;
+  PLATFORM_DISCORD = 2;
+  PLATFORM_MINECRAFT = 3;
+  PLATFORM_FACTORIO = 4;
+  PLATFORM_NEXUS_DEFENSE = 5;
+  PLATFORM_ISOMETRIC = 6;
+  PLATFORM_SYSTEM = 10;
+}

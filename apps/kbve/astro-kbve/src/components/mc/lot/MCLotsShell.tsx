@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from '@kbve/astro';
-import { MCLotStates } from '../../../../../../../packages/data/codegen/generated/mc_lot-schema';
+import { MCLotStates } from '@kbve/proto/mc_lot-schema';
 import {
 	MCLotApiError,
 	listMyActive,
