@@ -6,6 +6,7 @@ resources:
     - seed-job.yaml
     - secrets.yaml
     - routing.yaml
+    - kbve-guid-rbac.yaml
 
 # tenants_init.sql is a copy of packages/data/sql/schema/ows/seed/tenants_init.sql.
 # kustomize cannot read files outside its root (no LoadRestrictionsNone configured),
