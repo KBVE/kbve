@@ -2,13 +2,13 @@
 
 ## Domain Architecture
 
-| Domain                  | Purpose                            | Proxy             | TLS                            |
-| ----------------------- | ---------------------------------- | ----------------- | ------------------------------ |
-| `chuckrpg.com`          | Astro frontend (axum-chuckrpg)     | Cloudflare        | Let's Encrypt via cert-manager |
-| `api-dev.chuckrpg.com`  | ROWS API — dev tenant              | Cloudflare        | Let's Encrypt via cert-manager |
-| `api-beta.chuckrpg.com` | ROWS API — beta tenant             | Cloudflare        | Let's Encrypt via cert-manager |
-| `api-prod.chuckrpg.com` | ROWS API — prod tenant             | Cloudflare        | Let's Encrypt via cert-manager |
-| `game.chuckrpg.com`     | Agones game servers (UE5 UDP)      | Direct (no proxy) | N/A — UDP only                 |
+| Domain                  | Purpose                        | Proxy             | TLS                            |
+| ----------------------- | ------------------------------ | ----------------- | ------------------------------ |
+| `chuckrpg.com`          | Astro frontend (axum-chuckrpg) | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-dev.chuckrpg.com`  | ROWS API — dev tenant          | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-beta.chuckrpg.com` | ROWS API — beta tenant         | Cloudflare        | Let's Encrypt via cert-manager |
+| `api-prod.chuckrpg.com` | ROWS API — prod tenant         | Cloudflare        | Let's Encrypt via cert-manager |
+| `game.chuckrpg.com`     | Agones game servers (UE5 UDP)  | Direct (no proxy) | N/A — UDP only                 |
 
 > The bare `api.chuckrpg.com` host was retired to avoid environment ambiguity. The ROWS API
 > hosts are served by the per-tenant overlays under `apps/kube/rows/tenants/` (namespaces

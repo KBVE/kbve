@@ -156,6 +156,11 @@ on:
                 required: false
                 type: number
                 default: 60
+            verify_only:
+                description: '[plugin] Compile-verify only — skip release/itch (used by PR plugin verify)'
+                required: false
+                type: boolean
+                default: false
 
             deploy_to_itch:
                 description: '[game/plugin] Deploy to itch.io after build'
@@ -1805,6 +1810,7 @@ jobs:
         if: |
             (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
             always() &&
+            inputs.verify_only != true &&
             needs.plugin_check.outputs.should_release == 'true' &&
             (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
         runs-on: arc-runner-set-kbve
