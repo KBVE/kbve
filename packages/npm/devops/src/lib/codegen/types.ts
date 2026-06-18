@@ -31,6 +31,22 @@ export interface ConstArrayConfig {
 	zodSchemaName?: string;
 }
 
+/**
+ * Numeric const-object export derived from a proto enum, preserving the integer
+ * values (bitmask flags, status codes) the wire/DB layers actually use — unlike
+ * ConstArrayConfig, which emits the value names as strings.
+ */
+export interface NumericEnumConfig {
+	/** Export name, e.g., "Capability" */
+	name: string;
+	/** Fully qualified source enum, e.g., "jobboard.Capability" */
+	sourceEnum: string;
+	/** Value-union type alias name, e.g., "CapabilityValue". */
+	typeName?: string;
+	/** Also emit a z.union([z.literal(...)]) schema? If so, its name. */
+	zodSchemaName?: string;
+}
+
 /** Extra field to inject into a message (MDX-only, not in proto) */
 export interface ExtraField {
 	name: string;
@@ -70,7 +86,11 @@ export interface PostambleConfig {
 
 /** Root configuration for proto → Zod generation */
 export interface ProtoZodConfig {
-	/** Fully qualified message names to include. Empty = include all non-excluded. */
+	/**
+	 * Fully qualified message names to include. Omitted = include all
+	 * non-excluded; an explicit empty array = include no messages (e.g.
+	 * enums-only configs that emit numericEnums/constArrays exclusively).
+	 */
 	include?: string[];
 	/** Fully qualified message names to exclude. */
 	exclude?: string[];
@@ -101,8 +121,11 @@ export interface ProtoZodConfig {
 	/** Per-enum configuration */
 	enums?: Record<string, EnumConfig>;
 
-	/** Const array exports from enums */
+	/** Const array exports from enums (value names as strings) */
 	constArrays?: ConstArrayConfig[];
+
+	/** Numeric const-object exports from enums (preserve integer values) */
+	numericEnums?: NumericEnumConfig[];
 
 	/** Extra MDX-only fields to inject per message */
 	extraFields?: Record<string, ExtraField[]>;

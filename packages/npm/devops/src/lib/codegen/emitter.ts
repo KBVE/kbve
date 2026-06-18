@@ -11,7 +11,7 @@ import type {
 	PostambleConfig,
 } from './types.js';
 import { mapField, mapOneof } from './field-mapper.js';
-import { emitConstArray } from './enum-mapper.js';
+import { emitConstArray, emitNumericEnum } from './enum-mapper.js';
 
 export interface EmitOptions {
 	sortedMessages: DescMessage[];
@@ -190,6 +190,16 @@ export function emit(options: EmitOptions): string {
 			if (enumDesc) {
 				const enumConfig = config.enums?.[ca.sourceEnum];
 				lines.push(...emitConstArray(ca, enumDesc, enumConfig));
+			}
+		}
+	}
+
+	// Numeric const objects from enums (preserve integer values)
+	if (config.numericEnums) {
+		for (const ne of config.numericEnums) {
+			const enumDesc = enums.get(ne.sourceEnum);
+			if (enumDesc) {
+				lines.push(...emitNumericEnum(ne, enumDesc));
 			}
 		}
 	}
