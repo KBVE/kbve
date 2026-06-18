@@ -58,6 +58,8 @@ export class PreloaderScene extends Scene {
 			{ frameWidth: 61, frameHeight: 57 },
 		);
 
+		this.load.image('casino_table', '/assets/map/casino_table@2x.png');
+
 		// itemdb sprite atlas (slot index == item key); frame N == atlas cell N.
 		this.load.spritesheet('items-atlas', ATLAS_URL, {
 			frameWidth: TILE_SIZE,
