@@ -1,7 +1,7 @@
 ---
 title: 'June: 16'
 category: Daily
-date: 2025-06-16 12:00:00
+date: 2026-06-16 12:00:00
 client: Self
 unsplash: 1633356122544-f134324a6cee
 img: https://images.unsplash.com/photo-1633356122544-f134324a6cee?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,6 +12,25 @@ tags:
 ---
 
 import { Adsense } from '@/components/astropad';
+
+## 2026
+
+### ValKey Timeouts
+
+-   01:29PM
+
+    Looks like our wallet balance route that we added into the Axum KBVE has been timing out because of a valkey rbac issue.
+    So I will have to implement two ways to solve for this, the first is getting it shortcut out of the valkey and use the read only connection from the postgres pool.
+    While I write that out, I need to check the valkey configuration, since we did drop redis from the cluster.
+
+### CryptoThrone NPC
+
+-   01:56PM
+
+    We need to hook up the NPCs for the different parts of cryptothrone.
+    I will have to find a way to render the way that they look, hmm that will be an adventure itself.
+    The NPCDB is definitely lack luster and needs work.
+
 
 ## 2025
 
