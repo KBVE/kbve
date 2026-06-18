@@ -5,6 +5,7 @@ import {
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
 import { startPresence } from './discord-presence';
+import { KBVE_DISCORD_URL, KBVE_FEEDBACK_URL } from '../lib/kbve-links';
 
 /**
  * Discord Activity entry — the isolated Discord path. Runs entirely on the main
@@ -82,6 +83,43 @@ function root(): HTMLElement | null {
 	return document.getElementById('app');
 }
 
+// Holds the live SDK once `ready()`. The Activity iframe sandbox blocks plain
+// anchor navigation, so community links route through `openExternalLink`;
+// before the SDK exists (e.g. a missing-client-id boot fail) fall back to
+// window.open.
+let activeSdk: DiscordSDK | null = null;
+
+function openExternal(url: string): void {
+	if (activeSdk) {
+		void activeSdk.commands.openExternalLink({ url }).catch(() => {});
+		return;
+	}
+	window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+/** Build the KBVE community CTA (Discord + feedback) for the vanilla-DOM boot
+ * cards. Mirrors the React `KbveCommunityCta` shown once the game has mounted —
+ * a small nudge to join us even when the Activity never makes it in-world. */
+function communityCta(): HTMLElement {
+	const wrap = document.createElement('div');
+	wrap.className = 'ct-cta';
+
+	const discord = document.createElement('button');
+	discord.type = 'button';
+	discord.className = 'ct-cta-discord';
+	discord.textContent = 'Join our Discord';
+	discord.addEventListener('click', () => openExternal(KBVE_DISCORD_URL));
+
+	const feedback = document.createElement('button');
+	feedback.type = 'button';
+	feedback.className = 'ct-cta-feedback';
+	feedback.textContent = 'Share feedback';
+	feedback.addEventListener('click', () => openExternal(KBVE_FEEDBACK_URL));
+
+	wrap.append(discord, feedback);
+	return wrap;
+}
+
 /** Update the boot card's status line (and optional sub-line) in place so each
  * stage names itself instead of a frozen "Loading…". */
 function setStatus(status: string, sub?: string): void {
@@ -129,6 +167,7 @@ function fail(msg: string, ...extra: unknown[]): void {
 	if (msgEl) msgEl.textContent = msg;
 	const retry = el.querySelector<HTMLButtonElement>('.ct-retry');
 	retry?.addEventListener('click', () => window.location.reload());
+	el.querySelector('.ct-boot')?.appendChild(communityCta());
 }
 
 /** Run a boot step, re-throwing with a labelled message so the error card
@@ -188,6 +227,12 @@ async function boot(): Promise<void> {
 	setStatus('Linking to Cloud City…', 'Connecting to Discord.');
 	const sdk = new DiscordSDK(CLIENT_ID);
 	await step('Discord SDK ready', () => sdk.ready());
+	activeSdk = sdk;
+	// Expose the SDK's external-link opener so the in-game (shadow-root) CTA
+	// can escape the Activity sandbox — see lib/kbve-links getOpenExternal.
+	(
+		window as unknown as { __ctOpenExternal?: (url: string) => void }
+	).__ctOpenExternal = openExternal;
 
 	setStatus('Linking to Cloud City…', 'Authorizing your Discord account.');
 	const code = await authorize(CLIENT_ID, sdk);
