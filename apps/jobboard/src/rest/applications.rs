@@ -18,7 +18,6 @@ use axum::extract::{Path, State};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use std::sync::Arc;
-use tokio_postgres::error::SqlState;
 use uuid::Uuid;
 
 use crate::proto::jobboard::{
@@ -106,15 +105,7 @@ async fn submit(
             ],
         )
         .await
-        .map_err(|e| match e.code() {
-            Some(c) if c == &SqlState::UNIQUE_VIOLATION => {
-                ApiError::Conflict("you already have a pending application".into())
-            }
-            Some(c) if c == &SqlState::CHECK_VIOLATION => {
-                ApiError::BadRequest("profile draft failed validation".into())
-            }
-            _ => pg_err(e),
-        })?;
+        .map_err(pg_err)?;
     let id: Uuid = row.get(0);
 
     for vid in &body.vertical_ids {
