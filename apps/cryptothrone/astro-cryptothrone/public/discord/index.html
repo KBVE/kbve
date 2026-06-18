@@ -87,14 +87,44 @@
 			.ct-retry:hover {
 				background: #fbbf24;
 			}
+			.ct-cta {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.5rem;
+				margin-top: 0.5rem;
+				border-top: 1px solid rgba(251, 191, 36, 0.1);
+				padding-top: 1rem;
+			}
+			.ct-cta-discord {
+				border: none;
+				border-radius: 0.5rem;
+				background: rgba(99, 102, 241, 0.9);
+				color: #fff;
+				font-size: 0.8125rem;
+				font-weight: 600;
+				padding: 0.5rem 1.25rem;
+				cursor: pointer;
+				transition: background 0.15s ease;
+			}
+			.ct-cta-discord:hover {
+				background: #818cf8;
+			}
+			.ct-cta-feedback {
+				border: none;
+				background: none;
+				color: rgba(252, 211, 77, 0.8);
+				font-size: 0.75rem;
+				cursor: pointer;
+				text-decoration: underline;
+				text-underline-offset: 2px;
+			}
+			.ct-cta-feedback:hover {
+				color: #fde68a;
+			}
 		</style>
 	</head>
 	<body>
-		<!-- Discord Activity root. discord.js runs the OAuth handshake, bridges
-		     to a game-server session, then mounts the game into #app. The boot
-		     card below is the pre-React loading state; discord.js updates its
-		     status text per stage and swaps it for an error card with a retry
-		     button on failure. -->
 		<div id="app">
 			<div class="ct-boot">
 				<span class="ct-spinner" aria-hidden="true"></span>
@@ -102,8 +132,6 @@
 				<p class="ct-boot-sub">Starting CryptoThrone.</p>
 			</div>
 		</div>
-		<!-- Relative src: under the Discord root mapping (/ -> .../discord/) an
-		     absolute /discord/discord.js would double to /discord/discord/…. -->
 		<script src="discord.js" defer></script>
 	</body>
 </html>
