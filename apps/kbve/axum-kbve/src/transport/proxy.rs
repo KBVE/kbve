@@ -606,6 +606,7 @@ pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) 
 }
 
 use jedi::entity::pipe_clickhouse::alerts as ch_alerts;
+use jedi::entity::pipe_clickhouse::factorio as ch_factorio;
 use jedi::entity::pipe_clickhouse::logs as ch_logs;
 use jedi::state::sidecar::ClickHouseConfig;
 
@@ -670,6 +671,10 @@ pub struct ClickHouseLogsRequest {
     /// clamped 5..=3600. Ignored by other commands.
     #[serde(default)]
     pub bucket_seconds: Option<u32>,
+    /// Filter by Factorio `server_id` for the `factorio_*` commands. Ignored
+    /// by log/alert commands.
+    #[serde(default)]
+    pub server_id: Option<String>,
 }
 
 /// Response shape for the ClickHouse logs route. `rows` is the raw
@@ -800,6 +805,21 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
             };
             ch_alerts::run_alerts_top(config, &params).await
         }
+        "factorio_current" | "factorio_snapshots" | "factorio_players" | "factorio_chat"
+        | "factorio_rotations" => {
+            let params = ch_factorio::FactorioParams {
+                server_id: req.server_id,
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            match req.command.as_str() {
+                "factorio_current" => ch_factorio::run_current(config, &params).await,
+                "factorio_snapshots" => ch_factorio::run_snapshots(config, &params).await,
+                "factorio_players" => ch_factorio::run_players(config, &params).await,
+                "factorio_chat" => ch_factorio::run_chat(config, &params).await,
+                _ => ch_factorio::run_rotations(config, &params).await,
+            }
+        }
         other => {
             return (
                 StatusCode::BAD_REQUEST,
@@ -808,7 +828,9 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
                         "unknown command '{other}', expected one of: \
                          query, stats, rows_request_rate, rows_status_histogram, \
                          rows_top_endpoints, rows_errors, \
-                         alerts_recent, alerts_firing, alerts_by_severity, alerts_top"
+                         alerts_recent, alerts_firing, alerts_by_severity, alerts_top, \
+                         factorio_current, factorio_snapshots, factorio_players, \
+                         factorio_chat, factorio_rotations"
                     )
                 })),
             )

@@ -1,3 +1,4 @@
+import { useEffect, type ReactNode } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	Factory,
@@ -7,12 +8,27 @@ import {
 	Container,
 	Server,
 	Clock,
+	Users,
+	Gauge,
+	Hash,
+	Activity,
 } from 'lucide-react';
 import { homeService } from './homeService';
+import {
+	$current,
+	$currentStatus,
+	$playerEvents,
+	$rotations,
+	fetchAll,
+	fetchCurrent,
+	num,
+	formatGameAge,
+	isLive,
+} from './factorioTelemetryService';
 
 const IMAGE_NAME = 'ghcr.io/kbve/agones-factorio';
 const FACTORIO_VERSION = '2.0.76';
-const ISSUE_URL = 'https://github.com/KBVE/kbve/issues/11138';
+const ISSUE_URL = 'https://github.com/KBVE/kbve/issues/12735';
 const PROJECT_MDX = '/docs/project/agones-factorio/';
 
 const styles = {
@@ -41,7 +57,7 @@ const styles = {
 		gap: '0.75rem',
 		marginBottom: '1rem',
 	},
-	statusRow: {
+	statusRow: (live: boolean, error: boolean) => ({
 		display: 'inline-flex',
 		alignItems: 'center',
 		gap: '0.5rem',
@@ -49,20 +65,32 @@ const styles = {
 		borderRadius: '999px',
 		fontSize: '0.85rem',
 		fontWeight: 500,
-		background: 'rgba(210, 153, 34, 0.15)',
-		color: 'var(--sl-color-orange, #d29922)',
-		border: '1px solid rgba(210, 153, 34, 0.4)',
-	},
-	statusDot: {
+		background: error
+			? 'rgba(248, 81, 73, 0.15)'
+			: live
+				? 'rgba(63, 185, 80, 0.15)'
+				: 'rgba(210, 153, 34, 0.15)',
+		color: error
+			? 'var(--sl-color-red, #f85149)'
+			: live
+				? 'var(--sl-color-green, #3fb950)'
+				: 'var(--sl-color-orange, #d29922)',
+		border: `1px solid ${error ? 'rgba(248, 81, 73, 0.4)' : live ? 'rgba(63, 185, 80, 0.4)' : 'rgba(210, 153, 34, 0.4)'}`,
+	}),
+	statusDot: (live: boolean, error: boolean) => ({
 		width: '0.5rem',
 		height: '0.5rem',
 		borderRadius: '50%',
-		background: 'var(--sl-color-orange, #d29922)',
-	},
+		background: error
+			? 'var(--sl-color-red, #f85149)'
+			: live
+				? 'var(--sl-color-green, #3fb950)'
+				: 'var(--sl-color-orange, #d29922)',
+	}),
 	grid: {
 		display: 'grid',
 		gap: '1rem',
-		gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+		gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
 		marginTop: '1.5rem',
 	},
 	card: {
@@ -88,21 +116,23 @@ const styles = {
 		color: 'var(--sl-color-text, #e6edf3)',
 		wordBreak: 'break-all' as const,
 	},
-	roadmap: {
+	panel: {
 		marginTop: '2rem',
 		padding: '1.25rem',
 		borderRadius: '0.75rem',
 		border: '1px solid var(--sl-color-gray-5, #30363d)',
 		background: 'var(--sl-color-bg-nav, rgba(13, 17, 23, 0.6))',
 	},
-	roadmapList: {
+	list: {
 		margin: '0.75rem 0 0',
-		paddingLeft: '1.25rem',
+		padding: 0,
+		listStyle: 'none',
 		display: 'flex',
 		flexDirection: 'column' as const,
 		gap: '0.4rem',
 		color: 'var(--sl-color-gray-2, #c9d1d9)',
-		fontSize: '0.9rem',
+		fontSize: '0.85rem',
+		fontFamily: 'var(--sl-font-mono, ui-monospace, monospace)',
 	},
 	links: {
 		display: 'flex',
@@ -124,8 +154,39 @@ const styles = {
 	},
 };
 
+function Card({
+	icon,
+	label,
+	value,
+}: {
+	icon: ReactNode;
+	label: string;
+	value: string;
+}) {
+	return (
+		<div style={styles.card}>
+			<div style={styles.cardLabel}>
+				{icon}
+				{label}
+			</div>
+			<p style={styles.cardValue}>{value}</p>
+		</div>
+	);
+}
+
 export default function ReactFactorioDashboard() {
 	const isStaff = useStore(homeService.$isStaff);
+	const current = useStore($current);
+	const currentStatus = useStore($currentStatus);
+	const playerEvents = useStore($playerEvents);
+	const rotations = useStore($rotations);
+
+	useEffect(() => {
+		if (!isStaff) return;
+		fetchAll();
+		const id = setInterval(() => fetchCurrent(), 10_000);
+		return () => clearInterval(id);
+	}, [isStaff]);
 
 	if (!isStaff) {
 		return (
@@ -139,72 +200,117 @@ export default function ReactFactorioDashboard() {
 		);
 	}
 
+	const row = current?.[0];
+	const live = isLive(row);
+	const error = currentStatus === 'error';
+	const statusText = error
+		? 'Telemetry error'
+		: live
+			? `Live · ${num(row?.players)} online`
+			: currentStatus === 'loading'
+				? 'Loading…'
+				: 'No live data (server idle or not deployed)';
+
 	return (
 		<div>
 			<div style={styles.header}>
 				<Factory size={28} color="var(--sl-color-accent, #2f81f7)" />
 				<h1 style={styles.heading}>Factorio</h1>
 			</div>
-			<span style={styles.statusRow}>
-				<span style={styles.statusDot} />
-				Phase 0 · Image published · No live data yet
+			<span style={styles.statusRow(live, error)}>
+				<span style={styles.statusDot(live, error)} />
+				{statusText}
 			</span>
 
 			<div style={styles.grid}>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Container size={16} />
-						Image
-					</div>
-					<p style={styles.cardValue}>{IMAGE_NAME}</p>
-				</div>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Server size={16} />
-						Factorio version
-					</div>
-					<p style={styles.cardValue}>{FACTORIO_VERSION}</p>
-				</div>
-				<div style={styles.card}>
-					<div style={styles.cardLabel}>
-						<Clock size={16} />
-						GameServer / Fleet
-					</div>
-					<p style={styles.cardValue}>not deployed (Phase 1)</p>
-				</div>
+				<Card
+					icon={<Users size={16} />}
+					label="Players online"
+					value={row ? String(num(row.players)) : '—'}
+				/>
+				<Card
+					icon={<Gauge size={16} />}
+					label="UPS"
+					value={row ? num(row.ups).toFixed(1) : '—'}
+				/>
+				<Card
+					icon={<Clock size={16} />}
+					label="Map age (game)"
+					value={row ? formatGameAge(num(row.map_age_game_s)) : '—'}
+				/>
+				<Card
+					icon={<Hash size={16} />}
+					label="Seed"
+					value={row ? String(num(row.seed)) : '—'}
+				/>
+				<Card
+					icon={<Activity size={16} />}
+					label="Scenario"
+					value={row?.scenario ?? '—'}
+				/>
+				<Card
+					icon={<Server size={16} />}
+					label="Server"
+					value={row?.server_id ?? 'not deployed'}
+				/>
+				<Card
+					icon={<Container size={16} />}
+					label="Image"
+					value={IMAGE_NAME}
+				/>
+				<Card
+					icon={<Server size={16} />}
+					label="Factorio version"
+					value={FACTORIO_VERSION}
+				/>
 			</div>
 
-			<div style={styles.roadmap}>
-				<strong>Phasing</strong>
-				<ul style={styles.roadmapList}>
-					<li>
-						Phase 0 — Custom image, KBVE scenario, lifecycle shim
-						(done).
-					</li>
-					<li>
-						Phase 1 — <code>apps/kube/agones/factorio/</code>{' '}
-						GameServer / Fleet + UDP service.
-					</li>
-					<li>
-						Phase 2 — ConfigMap-driven{' '}
-						<code>server-settings.json</code> +{' '}
-						<code>ExternalSecret</code> for matchmaking token and
-						RCON password.
-					</li>
-					<li>
-						Phase 3 — <code>apps/agones/factorio/relay/</code> chat
-						relay sidecar (Rust) → IRC → existing Discord bridge.
-					</li>
-					<li>
-						Phase 2.5+ — <code>factorio-ctl</code> Axum REST API;
-						wires player count, save rotation, RCON passthrough into
-						this dashboard.
-					</li>
-					<li>
-						Phase 4 — PVC + rotation CronJob, public save download
-						URL.
-					</li>
-					<li>Phase 5 — Log / RCON metrics + UPS / player alerts.</li>
+			<div style={styles.panel}>
+				<strong>Recent player events</strong>
+				<ul style={styles.list}>
+					{playerEvents && playerEvents.length > 0 ? (
+						playerEvents.slice(0, 12).map((e, i) => (
+							<li key={`${e.ts}-${i}`}>
+								{e.ts} ·{' '}
+								{e.event === 'join'
+									? '→'
+									: e.event === 'leave'
+										? '←'
+										: '×'}{' '}
+								{e.player}
+							</li>
+						))
+					) : (
+						<li
+							style={{
+								color: 'var(--sl-color-gray-3, #8b949e)',
+							}}>
+							No events in the last 24h.
+						</li>
+					)}
+				</ul>
+			</div>
+
+			<div style={styles.panel}>
+				<strong>Map rotations</strong>
+				<ul style={styles.list}>
+					{rotations && rotations.length > 0 ? (
+						rotations.slice(0, 10).map((r) => (
+							<li key={r.rotation_id}>
+								{r.started_at} · seed {num(r.seed)} ·{' '}
+								{r.scenario} · peak {num(r.peak_players)} ·{' '}
+								{r.end_reason}
+							</li>
+						))
+					) : (
+						<li
+							style={{
+								color: 'var(--sl-color-gray-3, #8b949e)',
+							}}>
+							No rotation history yet (relay writes lifecycle rows
+							in a later phase).
+						</li>
+					)}
 				</ul>
 			</div>
 
@@ -214,7 +320,7 @@ export default function ReactFactorioDashboard() {
 					target="_blank"
 					rel="noopener"
 					style={styles.linkButton}>
-					<Github size={16} /> Tracking issue #11138
+					<Github size={16} /> Tracking issue #12735
 					<ExternalLink size={14} />
 				</a>
 				<a href={PROJECT_MDX} style={styles.linkButton}>
