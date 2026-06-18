@@ -336,6 +336,110 @@ pub struct Ack {
     #[prost(string, tag = "2")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ProfileLink {
+    /// github/linkedin/website/x/itch/artstation/other
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub url: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct ProfileDraft {
+    #[prost(string, optional, tag = "1")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headline: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "2")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bio: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int32, optional, tag = "3")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub years_experience: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "4")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub location: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, repeated, tag = "5")]
+    pub links: ::prost::alloc::vec::Vec<ProfileLink>,
+    #[prost(uint64, repeated, tag = "6")]
+    pub discipline_ids: ::prost::alloc::vec::Vec<u64>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct MembershipApplicationView {
+    /// ULID
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    /// Capability bitmask
+    #[prost(int32, tag = "2")]
+    pub requested_capabilities: i32,
+    #[prost(string, tag = "3")]
+    pub statement: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "4")]
+    pub portfolio_links: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// 0=pending, 1=approved, 2=rejected
+    #[prost(int32, tag = "5")]
+    pub status: i32,
+    #[prost(string, tag = "6")]
+    pub review_notes: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub created_at: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "8")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reviewed_at: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(uint64, repeated, tag = "9")]
+    pub vertical_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(message, optional, tag = "10")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub profile_draft: ::core::option::Option<ProfileDraft>,
+}
+/// Admin queue row: the application plus the applicant's identity (flat, mirrors
+/// the REST admin list JSON).
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct AdminApplicationView {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub user_id: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(int32, tag = "4")]
+    pub requested_capabilities: i32,
+    #[prost(string, tag = "5")]
+    pub statement: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "6")]
+    pub portfolio_links: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(int32, tag = "7")]
+    pub status: i32,
+    #[prost(string, tag = "8")]
+    pub created_at: ::prost::alloc::string::String,
+    #[prost(uint64, repeated, tag = "9")]
+    pub vertical_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(message, optional, tag = "10")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub profile_draft: ::core::option::Option<ProfileDraft>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct SubmitApplicationInput {
+    #[prost(int32, tag = "1")]
+    pub requested_capabilities: i32,
+    #[prost(uint64, repeated, tag = "2")]
+    pub vertical_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(string, tag = "3")]
+    pub statement: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "4")]
+    pub portfolio_links: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(message, optional, tag = "5")]
+    pub profile_draft: ::core::option::Option<ProfileDraft>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DecisionInput {
+    #[prost(bool, tag = "1")]
+    pub approve: bool,
+    #[prost(int32, tag = "2")]
+    pub grant_capabilities: i32,
+    #[prost(string, tag = "3")]
+    pub notes: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum Capability {

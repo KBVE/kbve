@@ -25,7 +25,9 @@ use uuid::Uuid;
 // Capability bitmask — sourced from the jobboard proto (Capability enum) so the
 // wire/DB values stay in lockstep with packages/data/proto/jobboard/jobboard.proto.
 // The DB mirror lives in jobboard.member_applications.requested_capabilities.
-use crate::proto::jobboard::Capability;
+use crate::proto::jobboard::{
+    AdminApplicationView, Capability, MembershipApplicationView, ProfileDraft,
+};
 const CAP_TAKER: i32 = Capability::CapTaker as i32;
 const CAP_POSTER: i32 = Capability::CapPoster as i32;
 // Applicant-requestable subset: admin (CapAdmin) is staff-granted, never requested.
@@ -187,24 +189,22 @@ async fn my_application(
         )
         .await
         .map_err(pg_err)?;
-    let vertical_ids: Vec<i64> = vert.iter().map(|v| v.get::<_, i64>(0)).collect();
+    let vertical_ids: Vec<u64> = vert.iter().map(|v| v.get::<_, i64>(0) as u64).collect();
 
-    Ok(Json(serde_json::json!({
-        "application": {
-            "id": id,
-            "requested_capabilities": r.get::<_, i32>(1),
-            "statement": r.get::<_, String>(2),
-            "portfolio_links": r.get::<_, Vec<String>>(3),
-            "status": r.get::<_, i32>(4),
-            "review_notes": r.get::<_, String>(5),
-            "created_at": r.get::<_, String>(6),
-            "reviewed_at": r.get::<_, Option<String>>(7),
-            "vertical_ids": vertical_ids,
-            "profile_draft": serde_json::from_str::<serde_json::Value>(
-                &r.get::<_, String>(8),
-            ).unwrap_or_else(|_| serde_json::json!({})),
-        }
-    })))
+    let view = MembershipApplicationView {
+        id: id.to_string(),
+        requested_capabilities: r.get(1),
+        statement: r.get(2),
+        portfolio_links: r.get(3),
+        status: r.get(4),
+        review_notes: r.get(5),
+        created_at: r.get(6),
+        reviewed_at: r.get(7),
+        vertical_ids,
+        profile_draft: serde_json::from_str::<ProfileDraft>(&r.get::<_, String>(8)).ok(),
+    };
+
+    Ok(Json(serde_json::json!({ "application": view })))
 }
 
 // ─────────────────────────── admin: pending queue ───────────────────────────
@@ -220,7 +220,7 @@ async fn admin_list(
         .query(
             "SELECT a.id, a.user_id, u.email, a.requested_capabilities,
                     a.statement, a.portfolio_links, a.created_at::text,
-                    a.profile_draft::text
+                    a.profile_draft::text, a.status
              FROM jobboard.member_applications a
              LEFT JOIN auth.users u ON u.id = a.user_id
              WHERE a.status = 0
@@ -240,19 +240,19 @@ async fn admin_list(
             )
             .await
             .map_err(pg_err)?;
-        out.push(serde_json::json!({
-            "id": id,
-            "user_id": r.get::<_, Uuid>(1),
-            "email": r.get::<_, Option<String>>(2),
-            "requested_capabilities": r.get::<_, i32>(3),
-            "statement": r.get::<_, String>(4),
-            "portfolio_links": r.get::<_, Vec<String>>(5),
-            "created_at": r.get::<_, String>(6),
-            "vertical_ids": vert.iter().map(|v| v.get::<_, i64>(0)).collect::<Vec<i64>>(),
-            "profile_draft": serde_json::from_str::<serde_json::Value>(
-                &r.get::<_, String>(7),
-            ).unwrap_or_else(|_| serde_json::json!({})),
-        }));
+        let vertical_ids: Vec<u64> = vert.iter().map(|v| v.get::<_, i64>(0) as u64).collect();
+        out.push(AdminApplicationView {
+            id: id.to_string(),
+            user_id: r.get::<_, Uuid>(1).to_string(),
+            email: r.get(2),
+            requested_capabilities: r.get(3),
+            statement: r.get(4),
+            portfolio_links: r.get(5),
+            status: r.get(8),
+            created_at: r.get(6),
+            vertical_ids,
+            profile_draft: serde_json::from_str::<ProfileDraft>(&r.get::<_, String>(7)).ok(),
+        });
     }
 
     Ok(Json(serde_json::json!({ "applications": out })))
