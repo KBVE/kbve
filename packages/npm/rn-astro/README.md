@@ -17,9 +17,15 @@ DOM, so the same components render on web. This package supplies:
    `react-native` → `react-native-web` vite alias + `.web.*` resolve extensions
    (so the web variants win) + prebundles `react-native-web`.
 2. **Re-exported web-safe components** — the presentational `@kbve/rn` UI kit
-   (Text, Surface, Button, AppCard, CardList, MenuList, NavShell, Gradient, …).
+   (Text, Surface, Stack, Divider, Badge, Button, PressableSurface, Screen,
+   Gradient, AppCard, CardList, MenuItem, MenuList, EntityRenderer, Footer,
+   feedback states, `tokens`, `useTheme`).
 
 ## Usage
+
+Two wiring modes, depending on how the consuming app resolves `@kbve/*`.
+
+### A. Workspace apps (own `package.json`, npm/pnpm-linked)
 
 ```js
 // astro.config.mjs
@@ -29,6 +35,50 @@ export default defineConfig({
 	integrations: [react(), kbveRnAstro()],
 });
 ```
+
+### B. Nx tsconfig-path apps (e.g. `astro-kbve`, no `node_modules/@kbve`)
+
+`astro.config.mjs` is loaded by node before Vite, so bare `@kbve/*`
+specifiers don't resolve there — inline the same alias instead of importing
+the integration:
+
+```js
+// astro.config.mjs
+export default defineConfig({
+	vite: {
+		resolve: {
+			alias: [
+				{ find: /^react-native$/, replacement: 'react-native-web' },
+			],
+			extensions: [
+				'.web.tsx',
+				'.web.ts',
+				'.web.jsx',
+				'.web.js',
+				'.tsx',
+				'.ts',
+				'.jsx',
+				'.js',
+				'.json',
+			],
+		},
+		optimizeDeps: { include: ['react-native-web'] },
+	},
+});
+```
+
+Then point the `@kbve/rn` tsconfig paths at the **web barrels** so the
+native-only `./rails` + `./nav` graphs (which pull untranspiled
+`@expo/vector-icons`) never enter the web bundle:
+
+```jsonc
+// tsconfig.json
+"@kbve/rn": ["../../../packages/npm/rn/src/index.web.ts"],
+"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
+"@kbve/rn-astro": ["../../../packages/npm/rn-astro/src/index.ts"]
+```
+
+### Rendering
 
 ```astro
 ---
@@ -47,6 +97,25 @@ const model = {
 
 The component runs as a hydrated React island, rendered through
 `react-native-web`. Use `client:only="react"` (RN-web components don't SSR).
+
+A live POC ships in `astro-kbve` at `/rn-web-poc/`
+(`src/components/rnweb/RnWebDemo.tsx`) — Gradient + Surface + Stack + Text +
+Button variants + a hydrated counter, all from `@kbve/rn` primitives.
+
+## Universal vs native-only boundary
+
+| Layer                                                                    | Web status      | Mechanism                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@kbve/core` (Store, signals, events, net, auth, chat)                   | universal       | no RN imports — runs as-is                                                                                                                                                                                         |
+| RN primitives (View/Text/Pressable/StyleSheet/Image/FlatList/TextInput)  | universal       | `react-native` → `react-native-web` alias                                                                                                                                                                          |
+| `@kbve/rn` UI kit (primitives, cards, menus, feedback, Gradient, Footer) | universal       | re-exported from `@kbve/rn-astro`                                                                                                                                                                                  |
+| HCaptcha, Sandbox, openExternal, viewTransition, offload, kv store       | universal       | `.web.tsx`/`.web.ts` split — web variant wins via resolve extensions                                                                                                                                               |
+| Nav (`AppBar`, `TabBar`, `NavShell`) + `navStore`/`useTab`               | **native-only** | pull `@expo/vector-icons` (untranspiled JSX, breaks web bundlers); excluded from the web barrel (`ui/index.web.ts`) and from this package's re-exports. Web nav needs `.web.tsx` icon-free variants (future work). |
+
+The split is enforced by file resolution, not runtime branching: the integration
+prepends `.web.*` to vite's resolve extensions, so for any `Foo.tsx` a sibling
+`Foo.web.tsx` is picked on web. The web UI barrel (`@kbve/rn/ui` →
+`ui/index.web.ts`) omits the nav barrel entirely.
 
 ## Requirements
 
