@@ -117,7 +117,7 @@ function emitMdx(cat) {
 		headline: titleCase(cat),
 		lede: `Catalog terms tagged primary_category=${cat}.`,
 	};
-	const headline = meta.headline.replace(/"/g, '\\"');
+	const headline = meta.headline.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 	const ledeJs = JSON.stringify(meta.lede);
 	return `---
 title: ${headline}

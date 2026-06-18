@@ -124,7 +124,7 @@ serve(async (req) => {
     const isAuthError =
       rawMessage.includes("authorization") || rawMessage.includes("JWT");
     if (isAuthError) {
-      return jsonResponse({ error: rawMessage }, 401);
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
     return jsonResponse({ error: "Internal server error" }, 500);
   }
