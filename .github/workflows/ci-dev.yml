@@ -175,9 +175,7 @@ jobs:
                       const title = utils.generateTitle(categories, 'Main');
                       let body = utils.formatDevToMainBody(categories, rawCommits.length);
 
-                      // Append "Builds on merge" (mdx version bumps that ci-main.yml will dispatch).
-                      // Recomputed every push, so a downgrade drops its row and an empty list omits
-                      // the section. Linked to the source mdx at the dev head sha.
+                      // Append "Builds on merge" (mdx version bumps ci-main.yml will dispatch).
                       const builds = buildUtils.computeMdxBuilds(
                         path.resolve('.github/ci-dispatch-manifest.json'), process.cwd(), fs);
                       const buildsSection = buildUtils.formatBuildsTable(
@@ -185,7 +183,7 @@ jobs:
                       if (buildsSection) {
                         const i = body.lastIndexOf('\n---\n');
                         body = i >= 0
-                          ? body.slice(0, i) + '\n' + buildsSection + '\n' + body.slice(i + 1)
+                          ? body.slice(0, i) + '\n' + buildsSection + '\n\n' + body.slice(i + 1)
                           : body + '\n\n' + buildsSection;
                       }
 
