@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-06-18T09:41:20Z",
+  "generated_at": "2026-06-19T09:44:41Z",
   "summary": {
-    "critical": 4,
-    "high": 53,
-    "medium": 74,
-    "low": 34,
+    "critical": 2,
+    "high": 26,
+    "medium": 52,
+    "low": 7,
     "info": 31
   },
   "ecosystems": {
     "npm": {
-      "total": 86,
+      "total": 68,
       "severities": {
         "critical": 2,
-        "high": 35,
-        "medium": 41,
-        "low": 8,
+        "high": 26,
+        "medium": 33,
+        "low": 7,
         "info": 0
       },
       "advisories": [
@@ -215,111 +215,6 @@
           "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
         },
         {
-          "id": "1116230",
-          "title": "Vite Vulnerable to Path Traversal in Optimized Deps `.map` Handling",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
-        },
-        {
-          "id": "1116232",
-          "title": "Vite: `server.fs.deny` bypassed with queries",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
-        },
-        {
-          "id": "1116235",
-          "title": "Vite Vulnerable to Arbitrary File Read via Vite Dev Server WebSocket",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
-        },
-        {
-          "id": "1117068",
-          "title": "Immutable is vulnerable to Prototype Pollution",
-          "severity": "high",
-          "package": "immutable",
-          "url": "https://github.com/advisories/GHSA-wf6x-7x77-mvgw"
-        },
-        {
-          "id": "1117574",
-          "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
-        },
-        {
-          "id": "1117576",
-          "title": "Axios: Incomplete Fix for CVE-2025-62718 \u2014 NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
-        },
-        {
-          "id": "1117577",
-          "title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
-        },
-        {
-          "id": "1117580",
-          "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
-          "severity": "low",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
-        },
-        {
-          "id": "1117581",
-          "title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
-        },
-        {
-          "id": "1117583",
-          "title": "Axios: no_proxy bypass via IP alias allows SSRF",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
-        },
-        {
-          "id": "1117587",
-          "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
-        },
-        {
-          "id": "1117589",
-          "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
-        },
-        {
-          "id": "1117591",
-          "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
-        },
-        {
-          "id": "1117593",
-          "title": "Axios: Header Injection via Prototype Pollution",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
-        },
-        {
-          "id": "1117595",
-          "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
-        },
-        {
           "id": "1117870",
           "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
           "severity": "high",
@@ -332,20 +227,6 @@
           "severity": "high",
           "package": "fast-uri",
           "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
-        },
-        {
-          "id": "1118607",
-          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
-        },
-        {
-          "id": "1119074",
-          "title": "webpack-dev-server vulnerable to cross-origin source code exposure on non-HTTPS origins",
-          "severity": "medium",
-          "package": "webpack-dev-server",
-          "url": "https://github.com/advisories/GHSA-79cf-xcqc-c78w"
         },
         {
           "id": "1119108",
@@ -374,20 +255,6 @@
           "severity": "medium",
           "package": "qs",
           "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
-        },
-        {
-          "id": "1119667",
-          "title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
-        },
-        {
-          "id": "1120125",
-          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
         },
         {
           "id": "1120127",
@@ -425,55 +292,6 @@
           "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
         },
         {
-          "id": "1120547",
-          "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf"
-        },
-        {
-          "id": "1120643",
-          "title": "Allocation of Resources Without Limits or Throttling in Axios",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
-        },
-        {
-          "id": "1120645",
-          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
-        },
-        {
-          "id": "1120647",
-          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
-        },
-        {
-          "id": "1120649",
-          "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
-        },
-        {
-          "id": "1120650",
-          "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
-        },
-        {
-          "id": "1120652",
-          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
-        },
-        {
           "id": "1120654",
           "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
           "severity": "high",
@@ -486,6 +304,13 @@
           "severity": "low",
           "package": "esbuild",
           "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
+        },
+        {
+          "id": "1120729",
+          "title": "tmp: Type-confusion bypass of _assertPath allows path traversal via non-string prefix/postfix/template",
+          "severity": "high",
+          "package": "tmp",
+          "url": "https://github.com/advisories/GHSA-7c78-jf6q-g5cm"
         },
         {
           "id": "1120730",
@@ -516,6 +341,13 @@
           "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
         },
         {
+          "id": "1120786",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "severity": "medium",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+        },
+        {
           "id": "1120787",
           "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
           "severity": "medium",
@@ -524,6 +356,13 @@
         },
         {
           "id": "1120790",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "severity": "high",
+          "package": "vite",
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
+        },
+        {
+          "id": "1120791",
           "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
           "severity": "high",
           "package": "vite",
@@ -614,11 +453,46 @@
           "url": "https://github.com/advisories/GHSA-2pvr-wf23-7pc7"
         },
         {
-          "id": "1121087",
-          "title": "webpack-dev-server vulnerable to HMR WebSocket interception via permissive user proxies",
+          "id": "1121163",
+          "title": "http-proxy-middleware: multipart/form-data field injection via unescaped CRLF in `fixRequestBody`",
+          "severity": "high",
+          "package": "http-proxy-middleware",
+          "url": "https://github.com/advisories/GHSA-gcq2-9pq2-cxqm"
+        },
+        {
+          "id": "1121165",
+          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
           "severity": "medium",
-          "package": "webpack-dev-server",
-          "url": "https://github.com/advisories/GHSA-mx8g-39q3-5c79"
+          "package": "http-proxy-middleware",
+          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
+        },
+        {
+          "id": "1121187",
+          "title": "undici vulnerable to TLS certificate validation bypass via dropped requestTls in SOCKS5 ProxyAgent",
+          "severity": "high",
+          "package": "undici",
+          "url": "https://github.com/advisories/GHSA-vmh5-mc38-953g"
+        },
+        {
+          "id": "1121189",
+          "title": "undici vulnerable to cross-user information disclosure via shared cache whitespace bypass",
+          "severity": "medium",
+          "package": "undici",
+          "url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
+        },
+        {
+          "id": "1121191",
+          "title": "Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message",
+          "severity": "high",
+          "package": "nodemailer",
+          "url": "https://github.com/advisories/GHSA-p6gq-j5cr-w38f"
+        },
+        {
+          "id": "1121192",
+          "title": "DOMPurify: Permanent `ALLOWED_ATTR` pollution via `setConfig()` bypassing the hook clone-guard (incomplete fix of the 3.4.7 hook-pollution patch)",
+          "severity": "medium",
+          "package": "dompurify",
+          "url": "https://github.com/advisories/GHSA-cmwh-pvxp-8882"
         }
       ]
     },
@@ -989,441 +863,21 @@
       "advisories": []
     },
     "codeql": {
-      "total": 61,
+      "total": 1,
       "severities": {
-        "critical": 2,
-        "high": 18,
-        "medium": 15,
-        "low": 26,
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0,
         "info": 0
       },
       "alerts": [
         {
-          "rule_id": "js/trivial-conditional",
-          "description": "Useless conditional",
+          "rule_id": "js/stack-trace-exposure",
+          "description": "Information exposure through a stack trace",
           "severity": "medium",
-          "path": "apps/ows/ows-instance-launcher/wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/491"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "packages/data/codegen/generate-proto-registry.mjs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/488"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/memes/astro-memes/src/components/feed/ReactMemeContent.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/485"
-        },
-        {
-          "rule_id": "py/import-and-import-from",
-          "description": "Module is imported with 'import' and 'import from'",
-          "severity": "low",
-          "path": "packages/python/fudster/fudster/cli.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/483"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/kbve/edge/functions/meme/index.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/482"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/440"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "apps/kbve/isometric/src-tauri/src/game/scene_objects.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/439"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/twitch.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/438"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/twitch.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/437"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/discord.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/436"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/discord.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/435"
-        },
-        {
-          "rule_id": "rust/cleartext-transmission",
-          "description": "Cleartext transmission of sensitive information",
-          "severity": "high",
-          "path": "apps/kbve/axum-kbve/src/db/mc.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/434"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/erust/src/supabase/integration.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/278"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/erust/src/supabase/integration.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/277"
-        },
-        {
-          "rule_id": "rust/non-https-url",
-          "description": "Failure to use HTTPS URLs",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/sys/system_diagnostics.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/264"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/entity/response/header_response.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/263"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/authentication.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/262"
-        },
-        {
-          "rule_id": "rust/insecure-cookie",
-          "description": "'Secure' attribute is not set to true",
-          "severity": "high",
-          "path": "packages/rust/kbve/src/authentication.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/261"
-        },
-        {
-          "rule_id": "rust/cleartext-logging",
-          "description": "Cleartext logging of sensitive information",
-          "severity": "high",
-          "path": "apps/mc/plugins/kbve-mc-plugin/src/lib.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/256"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/axum-kbve/templates/askama/profile_not_found/index.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/251"
-        },
-        {
-          "rule_id": "js/syntax-error",
-          "description": "Syntax error",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/KBVE/index.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/250"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/user/ReactUserProfile.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/248"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/241"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/240"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/239"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/ReactSupaRealtime.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/238"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/jay/ReactJayYuki.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/237"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/kbve/astro-kbve/src/components/discord/ReactDiscordProfile.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/236"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/228"
-        },
-        {
-          "rule_id": "js/client-side-request-forgery",
-          "description": "Client-side request forgery",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/227"
-        },
-        {
-          "rule_id": "js/log-injection",
-          "description": "Log injection",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.shared.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/226"
-        },
-        {
-          "rule_id": "js/log-injection",
-          "description": "Log injection",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.websocket.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/225"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/223"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/test-worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/222"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.simple.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/221"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "apps/kbve/astro-kbve/src/components/realtime/Realtime.worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/220"
-        },
-        {
-          "rule_id": "js/tainted-format-string",
-          "description": "Use of externally-controlled format string",
-          "severity": "high",
-          "path": "apps/kbve/astro-kbve/src/workers/supabase.db.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/218"
-        },
-        {
-          "rule_id": "rust/unused-variable",
-          "description": "Unused variable",
-          "severity": "low",
-          "path": "packages/rust/q/src/manager/gui_manager.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/124"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/102"
-        },
-        {
-          "rule_id": "js/useless-assignment-to-local",
-          "description": "Useless assignment to local variable",
-          "severity": "medium",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/101"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/93"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/92"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/91"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/90"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": "apps/irc/astro-irc/src/components/chat/ReactChatRoom.tsx",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/88"
-        },
-        {
-          "rule_id": "js/unused-local-variable",
-          "description": "Unused variable, import, function or class",
-          "severity": "low",
-          "path": ".github/deprecated/github-a-localtunnel/index.js",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/74"
-        },
-        {
-          "rule_id": "js/missing-origin-check",
-          "description": "Missing origin verification in `postMessage` handler",
-          "severity": "medium",
-          "path": "packages/npm/droid/src/lib/workers/supabase-db-worker.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/60"
-        },
-        {
-          "rule_id": "py/exit-from-finally",
-          "description": "'break' or 'return' statement in finally",
-          "severity": "medium",
-          "path": "apps/pydesk/pydesk/main.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/59"
-        },
-        {
-          "rule_id": "py/empty-except",
-          "description": "Empty except",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/utils/health_monitor.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/58"
-        },
-        {
-          "rule_id": "py/unused-import",
-          "description": "Unused import",
-          "severity": "low",
-          "path": "packages/python/kbve/kbve/proto/kbve_pb2_grpc.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/49"
-        },
-        {
-          "rule_id": "py/mixed-returns",
-          "description": "Explicit returns mixed with implicit (fall through) returns",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/supabase/tracker.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/48"
-        },
-        {
-          "rule_id": "py/mixed-returns",
-          "description": "Explicit returns mixed with implicit (fall through) returns",
-          "severity": "low",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/discord_service.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/47"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/43"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/42"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/41"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/40"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/39"
-        },
-        {
-          "rule_id": "py/uninitialized-local-variable",
-          "description": "Potentially uninitialized local variable",
-          "severity": "high",
-          "path": "apps/discordsh/notification-bot/notification_bot/api/discord/embed/discord_status_embed.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/38"
-        },
-        {
-          "rule_id": "py/unused-global-variable",
-          "description": "Unused global variable",
-          "severity": "low",
-          "path": "packages/python/kbve/kbve/proto/kbve_pb2.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/37"
-        },
-        {
-          "rule_id": "js/xss-through-dom",
-          "description": "DOM text reinterpreted as HTML",
-          "severity": "high",
-          "path": "apps/pydesk/templates/home.html",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/11"
-        },
-        {
-          "rule_id": "py/stack-trace-exposure",
-          "description": "Information exposure through an exception",
-          "severity": "medium",
-          "path": "apps/pydesk/pydesk/main.py",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/7"
+          "path": "apps/kbve/edge/functions/_shared/supabase.ts",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/501"
         }
       ]
     },

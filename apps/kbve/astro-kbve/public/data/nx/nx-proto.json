@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-18T09:38:20.014Z",
+  "generated_at": "2026-06-19T09:42:08.367Z",
   "summary": {
-    "total_protos": 41,
-    "registered": 32,
+    "total_protos": 43,
+    "registered": 34,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 783,
-    "total_enums": 154
+    "total_messages": 792,
+    "total_enums": 158
   },
   "protos": [
     {
@@ -227,6 +227,31 @@
       }
     },
     {
+      "proto": "packages/data/proto/jedi/argocd.proto",
+      "package": "argocd",
+      "messages": [
+        "HealthStatus",
+        "SyncStatus",
+        "Application",
+        "ApplicationList",
+        "ApplicationQuery",
+        "ArgoHealthCheck"
+      ],
+      "enums": [
+        "HealthStatusCode",
+        "SyncStatusCode"
+      ],
+      "message_count": 6,
+      "enum_count": 2,
+      "codegen": {
+        "registered": true,
+        "name": "argocd",
+        "zod_config": "packages/data/codegen/argocd-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/argocd-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/argocd.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/jedi/clickhouse.proto",
       "package": "clickhouse",
       "messages": [
@@ -403,7 +428,9 @@
         "MembershipApplicationView",
         "AdminApplicationView",
         "SubmitApplicationInput",
-        "DecisionInput"
+        "DecisionInput",
+        "DecideMembershipRequest",
+        "GetMembershipRequest"
       ],
       "enums": [
         "Capability",
@@ -414,7 +441,7 @@
         "ReportTarget",
         "ReportStatus"
       ],
-      "message_count": 27,
+      "message_count": 29,
       "enum_count": 7,
       "codegen": {
         "registered": true,
@@ -452,6 +479,26 @@
         "zod_config": "packages/data/codegen/agents-zod-config.json",
         "zod_output": "packages/data/codegen/generated/agents-schema.ts",
         "binpb": "packages/data/codegen/descriptors/agents.binpb"
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/chat.proto",
+      "package": "kbve.chat",
+      "messages": [
+        "ChatEnvelope"
+      ],
+      "enums": [
+        "ChatKind",
+        "Platform"
+      ],
+      "message_count": 1,
+      "enum_count": 2,
+      "codegen": {
+        "registered": true,
+        "name": "chat",
+        "zod_config": "packages/data/codegen/chat-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/chat-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/chat.binpb"
       }
     },
     {
@@ -1640,10 +1687,12 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-18T09:38:20Z",
+  "checked_at": "2026-06-19T09:42:08Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
+    "packages/data/codegen/generated/argocd-schema.ts",
+    "packages/data/codegen/generated/chat-schema.ts",
     "packages/data/codegen/generated/ci_registry-schema.ts",
     "packages/data/codegen/generated/clickhouse-schema.ts",
     "packages/data/codegen/generated/common-schema.ts",
