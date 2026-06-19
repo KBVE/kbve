@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
 import {
+	AlertTriangle,
 	CheckCircle2,
 	Copy,
 	Eye,
 	EyeOff,
 	Loader2,
+	RefreshCw,
 	Shuffle,
+	X,
 } from 'lucide-react';
+import { useStore } from '@nanostores/react';
 import { useAgents } from '../context';
 import { useStepCardStatus } from '../../dashboard/useStepCardStatus';
 import {
@@ -43,12 +46,14 @@ export default function Step1Webhook() {
 
 	const [reveal, setReveal] = useState(false);
 	const [copied, setCopied] = useState(false);
+	const [resetting, setResetting] = useState(false);
 
 	const stored = !!existing;
 
 	useEffect(() => {
 		setReveal(false);
 		setCopied(false);
+		setResetting(false);
 	}, [guildId]);
 
 	useEffect(() => {
@@ -57,10 +62,23 @@ export default function Step1Webhook() {
 		return () => clearTimeout(t);
 	}, [copied]);
 
-	async function generate() {
+	function generate() {
 		agents.setWebhookDraft(guildId, genHex(32));
 		setReveal(true);
 		setCopied(false);
+		agents.clearWebhookError(guildId);
+	}
+
+	function startReset() {
+		setResetting(true);
+		generate();
+	}
+
+	function cancelReset() {
+		setResetting(false);
+		setReveal(false);
+		setCopied(false);
+		agents.setWebhookDraft(guildId, null);
 		agents.clearWebhookError(guildId);
 	}
 
@@ -71,7 +89,10 @@ export default function Step1Webhook() {
 			WEBHOOK_TOKEN_NAME,
 			`GitHub webhook HMAC for guild ${guildId}`,
 		);
-		if (r.ok) setReveal(false);
+		if (r.ok) {
+			setReveal(false);
+			setResetting(false);
+		}
 	}
 
 	async function copy() {
@@ -85,10 +106,100 @@ export default function Step1Webhook() {
 
 	if (!guild) return <span ref={anchor} hidden aria-hidden="true" />;
 
-	return (
+	const editor = (
 		<>
-			<span ref={anchor} hidden aria-hidden="true" />
-			{stored ? (
+			{!secret && (
+				<button type="button" onClick={generate} style={primaryBtn}>
+					<Shuffle size={14} />
+					Generate 32-byte hex secret
+				</button>
+			)}
+			{secret && (
+				<>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'stretch',
+							gap: '0.4rem',
+						}}>
+						<input
+							readOnly
+							type={reveal ? 'text' : 'password'}
+							value={secret}
+							style={{
+								...inputStyle,
+								fontFamily:
+									'var(--sl-font-mono, ui-monospace, monospace)',
+								flex: 1,
+							}}
+						/>
+						<button
+							type="button"
+							onClick={() => setReveal((r) => !r)}
+							style={iconBtn}
+							aria-label={reveal ? 'Hide' : 'Reveal'}>
+							{reveal ? <EyeOff size={14} /> : <Eye size={14} />}
+						</button>
+						<button
+							type="button"
+							onClick={copy}
+							style={iconBtn}
+							aria-label="Copy">
+							<Copy size={14} />
+							{copied ? ' Copied' : ''}
+						</button>
+					</div>
+					<div
+						style={{
+							display: 'flex',
+							gap: '0.4rem',
+							flexWrap: 'wrap',
+						}}>
+						<button
+							type="button"
+							onClick={generate}
+							style={secondaryBtn}>
+							<Shuffle size={14} />
+							Regenerate
+						</button>
+						<button
+							type="button"
+							onClick={save}
+							disabled={busy}
+							title={
+								busy
+									? 'HMAC save in flight — wait for it to finish.'
+									: 'Store the generated HMAC secret as github_webhook in the vault.'
+							}
+							style={primaryBtn}>
+							{busy ? (
+								<Loader2 size={14} style={spinStyle} />
+							) : (
+								<CheckCircle2 size={14} />
+							)}
+							{busy ? 'Saving…' : 'Save to Vault'}
+						</button>
+						{resetting && (
+							<button
+								type="button"
+								onClick={cancelReset}
+								disabled={busy}
+								style={secondaryBtn}>
+								<X size={14} />
+								Cancel
+							</button>
+						)}
+					</div>
+				</>
+			)}
+			{error && <p style={errText}>{error}</p>}
+		</>
+	);
+
+	if (stored && !resetting) {
+		return (
+			<>
+				<span ref={anchor} hidden aria-hidden="true" />
 				<p style={mutedText}>
 					<CheckCircle2
 						size={14}
@@ -99,101 +210,57 @@ export default function Step1Webhook() {
 					<code>
 						{WEBHOOK_SERVICE}:{guildId}
 					</code>{' '}
-					(token <code>{existing!.token_name}</code>). To rotate, use
-					the <strong>Rotate HMAC secret</strong> control in Step 2 —
-					it regenerates the secret and updates GitHub + the vault in
-					one step.
+					(token <code>{existing!.token_name}</code>).
 				</p>
-			) : (
-				<>
-					<p style={mutedText}>
-						Generate a random ≥32-char HMAC secret. The same value
-						goes into the GitHub webhook config in Step 2.
-					</p>
-					{!secret && (
-						<button
-							type="button"
-							onClick={generate}
-							style={primaryBtn}>
-							<Shuffle size={14} />
-							Generate 32-byte hex secret
-						</button>
-					)}
-					{secret && (
-						<>
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'stretch',
-									gap: '0.4rem',
-								}}>
-								<input
-									readOnly
-									type={reveal ? 'text' : 'password'}
-									value={secret}
-									style={{
-										...inputStyle,
-										fontFamily:
-											'var(--sl-font-mono, ui-monospace, monospace)',
-										flex: 1,
-									}}
-								/>
-								<button
-									type="button"
-									onClick={() => setReveal((r) => !r)}
-									style={iconBtn}
-									aria-label={reveal ? 'Hide' : 'Reveal'}>
-									{reveal ? (
-										<EyeOff size={14} />
-									) : (
-										<Eye size={14} />
-									)}
-								</button>
-								<button
-									type="button"
-									onClick={copy}
-									style={iconBtn}
-									aria-label="Copy">
-									<Copy size={14} />
-									{copied ? ' Copied' : ''}
-								</button>
-							</div>
-							<div
-								style={{
-									display: 'flex',
-									gap: '0.4rem',
-									flexWrap: 'wrap',
-								}}>
-								<button
-									type="button"
-									onClick={generate}
-									style={secondaryBtn}>
-									<Shuffle size={14} />
-									Regenerate
-								</button>
-								<button
-									type="button"
-									onClick={save}
-									disabled={busy}
-									title={
-										busy
-											? 'HMAC save in flight — wait for it to finish.'
-											: 'Store the generated HMAC secret as github_webhook in the vault.'
-									}
-									style={primaryBtn}>
-									{busy ? (
-										<Loader2 size={14} style={spinStyle} />
-									) : (
-										<CheckCircle2 size={14} />
-									)}
-									{busy ? 'Saving…' : 'Save to Vault'}
-								</button>
-							</div>
-						</>
-					)}
-					{error && <p style={errText}>{error}</p>}
-				</>
+				<button
+					type="button"
+					onClick={startReset}
+					title="Generate a fresh HMAC and overwrite the vault row in place. Does not touch GitHub — update the hook's Secret field or use Rotate in the Configure webhook step."
+					style={secondaryBtn}>
+					<RefreshCw size={14} />
+					Reset HMAC secret
+				</button>
+				{error && <p style={errText}>{error}</p>}
+			</>
+		);
+	}
+
+	return (
+		<>
+			<span ref={anchor} hidden aria-hidden="true" />
+			{resetting && (
+				<div
+					style={{
+						display: 'flex',
+						gap: '0.5rem',
+						padding: '0.6rem 0.75rem',
+						borderRadius: 8,
+						border: '1px solid rgba(245,158,11,0.4)',
+						background: 'rgba(245,158,11,0.08)',
+						fontSize: '0.82rem',
+						lineHeight: 1.5,
+						color: 'var(--sl-color-gray-1, #e6e8eb)',
+					}}>
+					<AlertTriangle
+						size={16}
+						color="#f59e0b"
+						style={{ flexShrink: 0, marginTop: '0.1rem' }}
+					/>
+					<span>
+						Vault-only reset. If a GitHub webhook is already
+						installed, its old secret will fail signature until you
+						also update the hook's <strong>Secret</strong> field —
+						or run <strong>Rotate HMAC secret</strong> in the
+						Configure webhook step, which updates GitHub + Vault
+						together.
+					</span>
+				</div>
 			)}
+			<p style={mutedText}>
+				Generate a random ≥32-char HMAC secret. The same value goes into
+				the GitHub webhook config in the Configure webhook step.
+			</p>
+			{editor}
 		</>
 	);
 }
