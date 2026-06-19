@@ -18,7 +18,7 @@ spec:
         continue: true
         matchers:
             - name: severity
-              matcher: '=~'
+              matchType: '=~'
               value: 'critical|warning|info'
     receivers:
         - name: vector-webhook
