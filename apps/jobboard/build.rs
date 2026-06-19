@@ -8,8 +8,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = "src/proto";
     std::fs::create_dir_all(out_dir)?;
 
-    let mut config = prost_build::Config::new();
-    config.out_dir(out_dir);
+    let mut builder = tonic_prost_build::configure()
+        .build_server(true)
+        .build_client(true)
+        .out_dir(out_dir);
+
     for msg in [
         "ProfileLink",
         "ProfileDraft",
@@ -18,13 +21,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "SubmitApplicationInput",
         "DecisionInput",
     ] {
-        config.type_attribute(
+        builder = builder.type_attribute(
             format!(".jobboard.{msg}"),
             "#[derive(serde::Serialize, serde::Deserialize)]",
         );
     }
     for msg in ["SubmitApplicationInput", "DecisionInput"] {
-        config.type_attribute(format!(".jobboard.{msg}"), "#[serde(default)]");
+        builder = builder.type_attribute(format!(".jobboard.{msg}"), "#[serde(default)]");
     }
     for field in [
         "ProfileDraft.headline",
@@ -36,12 +39,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "AdminApplicationView.email",
         "AdminApplicationView.profile_draft",
     ] {
-        config.field_attribute(
+        builder = builder.field_attribute(
             format!(".jobboard.{field}"),
             "#[serde(skip_serializing_if = \"Option::is_none\")]",
         );
     }
-    config.compile_protos(
+    builder.compile_protos(
         &[format!("{proto_root}/jobboard/jobboard.proto")],
         &[proto_root.to_string()],
     )?;

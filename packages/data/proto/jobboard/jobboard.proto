@@ -296,11 +296,25 @@ message DecisionInput {
   string notes              = 3;
 }
 
+message DecideMembershipRequest {
+  string application_id = 1; // ULID
+  DecisionInput input   = 2;
+}
+
+message GetMembershipRequest {} // identity comes from the request metadata
+
+// Served by the jobboard gRPC server (grpc.rs), sharing the membership/vetting
+// logic with the REST handlers. Identity is the `authorization: Bearer <jwt>`
+// request metadata — the same Supabase token REST uses.
+service MembershipService {
+  rpc SubmitMembership (SubmitApplicationInput) returns (MembershipApplicationView);
+  rpc DecideMembership (DecideMembershipRequest) returns (Ack);
+  rpc GetMyMembership  (GetMembershipRequest) returns (MembershipApplicationView);
+}
+
 service JobBoardRpc {
   rpc CreateVertical (Vertical) returns (Ack);
   rpc UpsertTaxonomy (Taxonomy) returns (Ack);
-  rpc SubmitMembership (MembershipApplication) returns (Ack);
-  rpc DecideMembership (MembershipApplication) returns (Ack);
   rpc GetTalentProfile (ByUser) returns (TalentProfile);
   rpc UpsertTalentProfile (TalentProfile) returns (Ack);
   rpc UpsertPortfolioItem (PortfolioItem) returns (Ack);

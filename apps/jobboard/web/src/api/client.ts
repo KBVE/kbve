@@ -8,17 +8,20 @@
 // As gig/talent/etc. handlers land, flip their LIVE entry to true.
 
 import { createWorkerPool } from '@kbve/rn';
+import { z } from 'zod';
+import {
+	AdminApplicationSchema,
+	MembershipApplicationSchema,
+} from '@kbve/jobboard-schema';
 import { mockApi } from './mock';
 import type {
 	Ack,
-	AdminApplication,
 	ApplyInput,
 	CreateGigInput,
 	DecisionInput,
 	Gig,
 	GigList,
 	GigQuery,
-	MembershipApplication,
 	SubmitApplicationInput,
 	TalentList,
 	TalentProfile,
@@ -84,6 +87,25 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 		throw new ApiError(res.status, res.error ?? res.status.toString());
 	}
 	return res.data as T;
+}
+
+/** Validate a fetched payload against a generated zod schema before it reaches a
+ * component. A backend contract drift (renamed/missing field, wrong shape) is
+ * surfaced here as a typed ApiError instead of an undefined deref deep in the
+ * tree. Reusable across verticals as their handlers land. */
+export function parseJson<T>(
+	schema: z.ZodType<T>,
+	data: unknown,
+	where: string,
+): T {
+	const result = schema.safeParse(data);
+	if (!result.success) {
+		throw new ApiError(
+			0,
+			`${where}: response failed schema validation — ${result.error.message}`,
+		);
+	}
+	return result.data;
 }
 
 export interface Meta {
@@ -165,34 +187,67 @@ export function fetchAuthMe(): Promise<AuthMe> {
 }
 
 // ── Membership / vetting (always live — real endpoints, auth required) ──
+//
+// Responses are runtime-validated against the proto-generated zod schemas so a
+// backend contract drift fails loudly at the boundary. The submit/decision
+// acknowledgements have no generated message, so their tiny shapes are declared
+// inline.
 
-export function submitApplication(
+const SubmitResultSchema = z.object({
+	id: z.string(),
+	status: z.number(),
+	created_at: z.string(),
+});
+
+const DecisionResultSchema = z.object({
+	success: z.boolean(),
+	id: z.string(),
+	status: z.number(),
+});
+
+const MyApplicationSchema = z.object({
+	application: MembershipApplicationSchema.nullable(),
+});
+
+const AdminApplicationsSchema = z.object({
+	applications: z.array(AdminApplicationSchema),
+});
+
+export async function submitApplication(
 	input: SubmitApplicationInput,
-): Promise<{ id: string; status: number; created_at: string }> {
-	return api('/applications', {
+): Promise<z.infer<typeof SubmitResultSchema>> {
+	const data = await api<unknown>('/applications', {
 		method: 'POST',
 		body: JSON.stringify(input),
 	});
+	return parseJson(SubmitResultSchema, data, 'POST /applications');
 }
 
-export function fetchMyApplication(): Promise<{
-	application: MembershipApplication | null;
-}> {
-	return api('/applications');
+export async function fetchMyApplication(): Promise<
+	z.infer<typeof MyApplicationSchema>
+> {
+	const data = await api<unknown>('/applications');
+	return parseJson(MyApplicationSchema, data, 'GET /applications');
 }
 
-export function fetchAdminApplications(): Promise<{
-	applications: AdminApplication[];
-}> {
-	return api('/admin/applications');
+export async function fetchAdminApplications(): Promise<
+	z.infer<typeof AdminApplicationsSchema>
+> {
+	const data = await api<unknown>('/admin/applications');
+	return parseJson(AdminApplicationsSchema, data, 'GET /admin/applications');
 }
 
-export function decideApplication(
+export async function decideApplication(
 	id: string,
 	input: DecisionInput,
-): Promise<{ success: boolean; id: string; status: number }> {
-	return api(`/admin/applications/${id}/decision`, {
+): Promise<z.infer<typeof DecisionResultSchema>> {
+	const data = await api<unknown>(`/admin/applications/${id}/decision`, {
 		method: 'POST',
 		body: JSON.stringify(input),
 	});
+	return parseJson(
+		DecisionResultSchema,
+		data,
+		'POST /admin/applications/:id/decision',
+	);
 }
