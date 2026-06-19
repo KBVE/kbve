@@ -24,9 +24,11 @@ use std::net::SocketAddr;
 /// - `GATE_COOKIE_DOMAIN`   optional domain scope for the session cookie
 /// - `GATE_STAFF_TTL_SECS`  is_staff cache TTL (default 30)
 /// - `GATE_STAFF_SCHEMA`    PostgREST schema for the RPC (default `forum`)
-/// - `SUPABASE_JWT_SECRET`        required
-/// - `SUPABASE_URL`               required when authz=is_staff
-/// - `SUPABASE_SERVICE_ROLE_KEY`  required when authz=is_staff
+/// - `SUPABASE_JWT_SECRET`  required
+/// - `SUPABASE_URL`         required when authz=is_staff
+/// - `SUPABASE_ANON_KEY`    optional PostgREST apikey when authz=is_staff
+///                          (falls back to the minted service_role bearer)
+/// - `SUPABASE_JWT_ISSUER`  optional; pins the accepted token issuer when set
 pub fn config_from_env() -> Result<GateConfig, String> {
     let upstream =
         std::env::var("GATE_UPSTREAM").unwrap_or_else(|_| "http://127.0.0.1:5679".to_string());

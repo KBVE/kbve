@@ -50,10 +50,12 @@ pub struct GateState {
 
 impl GateState {
     pub fn new(cfg: GateConfig) -> Self {
-        Self {
-            cfg,
-            client: Client::new(),
-        }
+        let client = Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
+            .build()
+            .unwrap_or_else(|_| Client::new());
+        Self { cfg, client }
     }
 
     pub fn into_router(self) -> axum::Router {
@@ -168,6 +170,7 @@ fn deny(
     ext_url: &str,
     bounced: bool,
 ) -> Response {
+    warn!(%status, reason = %msg, path = %ext_url, bounced, "gate deny");
     if status == StatusCode::UNAUTHORIZED {
         if bounced && is_navigation(headers) {
             return loop_break_page(msg);
@@ -418,16 +421,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
         }
     }
 
-    let body_bytes = match axum::body::to_bytes(req.into_body(), 25 * 1024 * 1024).await {
-        Ok(b) => b,
-        Err(_) => {
-            return (
-                StatusCode::PAYLOAD_TOO_LARGE,
-                axum::Json(serde_json::json!({ "error": "request body too large" })),
-            )
-                .into_response();
-        }
-    };
+    let body = reqwest::Body::wrap_stream(req.into_body().into_data_stream());
 
     debug!(%url, %method, "gate forward");
 
@@ -435,7 +429,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
         .client
         .request(method, &url)
         .headers(reqwest_headers(&headers))
-        .body(body_bytes)
+        .body(body)
         .send()
         .await
     {
@@ -444,9 +438,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
             warn!(%url, "gate upstream error: {e}");
             return (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(
-                    serde_json::json!({ "error": "upstream unreachable", "detail": e.to_string() }),
-                ),
+                axum::Json(serde_json::json!({ "error": "upstream unreachable" })),
             )
                 .into_response();
         }

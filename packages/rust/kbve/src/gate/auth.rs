@@ -190,8 +190,13 @@ impl StaffGate {
         ttl_secs: u64,
     ) -> Self {
         let base = supabase_url.trim_end_matches('/');
+        let client = Client::builder()
+            .connect_timeout(Duration::from_secs(5))
+            .timeout(Duration::from_secs(8))
+            .build()
+            .unwrap_or_else(|_| Client::new());
         Self {
-            client: Client::new(),
+            client,
             rpc_url: format!("{base}/rest/v1/rpc/is_staff"),
             jwt_secret,
             apikey,
