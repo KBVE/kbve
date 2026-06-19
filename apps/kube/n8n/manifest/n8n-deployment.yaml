@@ -186,7 +186,7 @@ spec:
                       timeoutSeconds: 3
                       failureThreshold: 3
                 - name: kbve-gate
-                  image: ghcr.io/kbve/kbve-gate:0.1.1
+                  image: ghcr.io/kbve/kbve-gate:0.1.2
                   imagePullPolicy: IfNotPresent
                   ports:
                       - name: gateway
