@@ -209,7 +209,7 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     // Replay recent channel history so a fresh client lands in a room with
     // context instead of an empty log.
     for ch in &channels {
-        for msg in crate::gateway::history::recent(ch) {
+        for msg in crate::gateway::history::recent(ch).await {
             if send_json(&mut client_tx, &msg).await.is_err() {
                 return;
             }
