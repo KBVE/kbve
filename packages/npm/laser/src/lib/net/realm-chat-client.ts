@@ -1,4 +1,4 @@
-import { GAMECHAT_KIND_CHAT, type GamechatFrame } from '@kbve/chat/gamechat';
+import { GAMECHAT_KIND_CHAT, type GamechatFrame } from './gamechat-wire';
 import { LaserEventBus } from '../core/events';
 import {
 	ReconnectingSocket,
