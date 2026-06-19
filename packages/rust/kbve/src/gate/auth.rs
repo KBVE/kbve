@@ -52,10 +52,12 @@ pub fn validate_token(token: &str, secret: &str) -> Result<TokenData<Claims>, Au
     let key = DecodingKey::from_secret(secret.as_bytes());
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = true;
+    validation.validate_aud = false;
 
-    match std::env::var("SUPABASE_JWT_ISSUER") {
-        Ok(issuer) if !issuer.trim().is_empty() => validation.set_issuer(&[issuer]),
-        _ => validation.set_issuer::<String>(&[]),
+    if let Ok(issuer) = std::env::var("SUPABASE_JWT_ISSUER") {
+        if !issuer.trim().is_empty() {
+            validation.set_issuer(&[issuer]);
+        }
     }
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {

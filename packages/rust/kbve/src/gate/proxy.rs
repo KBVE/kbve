@@ -155,8 +155,12 @@ fn deny(
     status: StatusCode,
     msg: &str,
     ext_url: &str,
+    bounced: bool,
 ) -> Response {
     if status == StatusCode::UNAUTHORIZED {
+        if bounced && is_navigation(headers) {
+            return loop_break_page(msg);
+        }
         if let Some(target) = &state.cfg.login_redirect {
             if is_navigation(headers) {
                 let enc: String =
@@ -170,12 +174,42 @@ fn deny(
     (status, axum::Json(serde_json::json!({ "error": msg }))).into_response()
 }
 
+/// Terminal HTML shown when a post-login bounce token is rejected — breaks the
+/// login↔gate redirect loop and surfaces the underlying reason.
+fn loop_break_page(reason: &str) -> Response {
+    let safe = reason
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;");
+    let body = format!(
+        "<!doctype html><meta charset=utf-8><title>Sign-in failed</title>\
+         <body style=\"font-family:system-ui;max-width:32rem;margin:4rem auto;padding:0 1rem\">\
+         <h1>Sign-in failed</h1>\
+         <p>Your session was rejected by the gateway, so we stopped before looping back to login.</p>\
+         <p style=\"color:#666\">Reason: {safe}</p>\
+         <p>Sign out and back in. If it persists the gateway JWT secret is out of sync with auth.</p>\
+         </body>"
+    );
+    Response::builder()
+        .status(StatusCode::UNAUTHORIZED)
+        .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(Body::from(body))
+        .unwrap_or_else(|_| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::empty())
+                .unwrap()
+        })
+        .into_response()
+}
+
 /// Validate the JWT and apply the authz policy. Returns the user id on pass.
 async fn authorize(
     state: &GateState,
     headers: &HeaderMap,
     query: Option<&str>,
     ext_url: &str,
+    bounced: bool,
 ) -> Result<String, Response> {
     let token = extract_token(
         headers
@@ -194,6 +228,7 @@ async fn authorize(
                 StatusCode::UNAUTHORIZED,
                 "missing token",
                 ext_url,
+                bounced,
             ));
         }
     };
@@ -207,6 +242,7 @@ async fn authorize(
                 StatusCode::UNAUTHORIZED,
                 &e.to_string(),
                 ext_url,
+                bounced,
             ));
         }
     };
@@ -233,6 +269,7 @@ async fn authorize(
                     StatusCode::FORBIDDEN,
                     "staff only",
                     ext_url,
+                    bounced,
                 )),
                 Err(e) => Err((
                     StatusCode::BAD_GATEWAY,
@@ -248,8 +285,9 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     let headers = req.headers().clone();
     let query = req.uri().query().map(|q| q.to_string());
     let ext_url = external_url(&headers, req.uri());
+    let bounced = query.as_deref().and_then(access_token_in_query).is_some();
 
-    if let Err(resp) = authorize(&state, &headers, query.as_deref(), &ext_url).await {
+    if let Err(resp) = authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
         return resp;
     }
 
