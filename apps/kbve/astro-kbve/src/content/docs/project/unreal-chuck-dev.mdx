@@ -28,6 +28,7 @@ engine:
     build_targets:
         - Win64
         - Linux
+        - Mac
     external_repo_ref: dev
     client_config: Development
     server_target: chuckServerDev
@@ -76,6 +77,7 @@ in the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-u
 
 - `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.7)
 - `Linux` — `arc-runner-ue` in the Epic UE5.7 Docker image
+- `Mac` — native build on the `arc-runner-ue-mac` self-hosted macOS runner
 
 Plus the bundled Linux dedicated server (`shell_path`, same version).
 

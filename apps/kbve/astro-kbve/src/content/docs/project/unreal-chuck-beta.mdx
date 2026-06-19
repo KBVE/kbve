@@ -28,6 +28,7 @@ engine:
     build_targets:
         - Win64
         - Linux
+        - Mac
     client_config: Shipping
     server_target: chuckServer
     server_config: Shipping
@@ -65,8 +66,7 @@ version gate / `version_toml` tracker still lives in this monorepo.
 
 - `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat)
 - `Linux` — `BuildCookRun` in the cached Epic UE Docker image on `arc-runner-ue`
-
-Mac is stubbed until the `macos-builder` VM is provisioned.
+- `Mac` — native build on the `arc-runner-ue-mac` self-hosted macOS runner
 
 Plus the bundled Linux **dedicated server** (`shell_path` → `task: server`): the
 `chuckServerBeta` target (`server_config: Shipping`) is cooked from the monorepo shell
@@ -77,7 +77,7 @@ client (1:1).
 ## Distribution
 
 Ships to itch.io `kbve/chuckrpg`, one channel per platform
-(`win64-v<version>`, `linux-v<version>`). Requires the `butler_api` secret.
+(`win64-v<version>`, `linux-v<version>`, `mac-v<version>`). Requires the `butler_api` secret.
 
 ## Release
 

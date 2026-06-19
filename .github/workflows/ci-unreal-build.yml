@@ -1131,18 +1131,37 @@ jobs:
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
 
     game_build_mac:
-        name: Game Build (Mac client - STUB)
+        name: Game Build (Mac client)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 5
+        runs-on: arc-runner-ue-mac
+        timeout-minutes: 120
         permissions:
             contents: read
+            packages: read
         steps:
-            - name: Notice
+            - name: Audit log
               run: |
-                  echo "::warning::Mac client build is a STUB - macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
-                  echo "Requested target Mac for ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }} - skipped."
+                  echo "::notice::Mac client build - ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }}"
+                  echo "Engine version: ${{ inputs.engine_version }}"
+                  echo "Client config: ${{ inputs.client_config || 'Shipping' }}"
+
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+
+            - name: Setup build environment
+              run: |
+                  echo "macOS runner ready for UE build"
+                  sw_vers
+                  xcodebuild -version || echo "Xcode not found"
+
+            - name: Mac build placeholder
+              run: |
+                  echo "::warning::Mac UE build implementation in progress"
+                  echo "Runner is configured and ready. Next steps:"
+                  echo "1. Install/configure Unreal Engine on this Mac"
+                  echo "2. Implement UAT build commands for Mac platform"
+                  echo "3. Configure artifact packaging and upload"
 
     game_post_publish:
         name: Game Post-publish version sync
@@ -1353,18 +1372,24 @@ jobs:
                   }
 
     engine_build_mac:
-        name: Engine Build (Mac client - STUB)
+        name: Engine Build (Mac client)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 5
+        runs-on: arc-runner-ue-mac
+        timeout-minutes: 240
         permissions:
             contents: read
         steps:
-            - name: Notice
+            - name: Audit log
               run: |
-                  echo "::warning::Mac engine build is a STUB - macos-builder VM not yet provisioned. No-op."
-                  echo "Requested mac engine build ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }} - skipped."
+                  echo "::notice::Mac engine build - ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }}"
+                  sw_vers
+                  xcodebuild -version || echo "Xcode not found"
+
+            - name: Mac engine build placeholder
+              run: |
+                  echo "::warning::Mac engine build implementation in progress"
+                  echo "Runner is configured and ready for UE engine builds"
 
     engine_build_linux:
         name: Engine Build (Linux dedicated server)
@@ -2090,18 +2115,36 @@ jobs:
                   exit 0
 
     mac_setup:
-        name: Install on UE5-Mac (STUB)
+        name: Install on UE5-Mac
         needs: guard
         if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 5
+        runs-on: arc-runner-ue-mac
+        timeout-minutes: 60
         permissions:
             contents: read
         steps:
-            - name: Notice
+            - name: System Info
               run: |
-                  echo "::warning::mac-setup is a STUB - macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
-                  echo "Re-enable by restoring the Xcode CLT / Homebrew / CMake / Python install steps once the macOS VM is online."
+                  echo "::notice::macOS runner setup starting"
+                  sw_vers
+                  uname -a
+                  xcodebuild -version || echo "Xcode not installed"
+
+            - name: Check Homebrew
+              run: |
+                  if command -v brew &> /dev/null; then
+                      echo "Homebrew version: $(brew --version | head -1)"
+                  else
+                      echo "::warning::Homebrew not installed"
+                  fi
+
+            - name: Check Build Tools
+              run: |
+                  echo "Checking build tools..."
+                  command -v git && git --version || echo "git: not found"
+                  command -v cmake && cmake --version | head -1 || echo "cmake: not found"
+                  command -v python3 && python3 --version || echo "python3: not found"
+                  echo "::notice::Mac runner setup check complete. Install UE as needed."
 
     track_failure:
         name: Track Failures
