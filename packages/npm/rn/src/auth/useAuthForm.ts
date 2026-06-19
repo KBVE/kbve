@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth, useAuthActions } from './useAuth';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 export type AuthFormMode = 'sign_in' | 'sign_up';
 

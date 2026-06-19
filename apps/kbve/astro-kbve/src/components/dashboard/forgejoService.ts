@@ -226,6 +226,7 @@ const TAB_KEY = 'forgejo:activeTab';
 const CACHE_TTL_MS = 60 * 1000;
 const API_BASE = '/dashboard/forgejo/api';
 const REFRESH_INTERVAL_MS = 30 * 1000;
+const MANUAL_REFRESH_COOLDOWN_MS = 10 * 1000;
 
 // Maps a Forgejo `/api/v1/...` path (the shape every call site still uses) onto
 // the typed axum surface at /dashboard/forgejo/api/*: strip the v1 prefix and
@@ -744,6 +745,7 @@ class ForgejoService {
 	});
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
+	private _lastManualRefresh = 0;
 
 	// --- Auth ---
 
@@ -821,7 +823,7 @@ class ForgejoService {
 		return { items, hasMore: last === PAGE_SIZE };
 	}
 
-	public async fetchData(): Promise<void> {
+	public async fetchData(force = false): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
@@ -841,8 +843,8 @@ class ForgejoService {
 			this.$orgsHasMore.set(orgs.hasMore);
 			this.$lastUpdated.set(new Date());
 			void saveCache(repos.items, users.items, orgs.items);
-			void this.fetchStats();
-			void this.fetchStorage();
+			void this.fetchStats(force);
+			void this.fetchStorage(force);
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -859,14 +861,17 @@ class ForgejoService {
 		}
 	}
 
-	public async fetchStats(): Promise<void> {
+	public async fetchStats(force = false): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 		try {
-			const resp = await fetch(`${API_BASE}/stats`, {
-				headers: { Authorization: `Bearer ${token}` },
-				signal: AbortSignal.timeout(20000),
-			});
+			const resp = await fetch(
+				`${API_BASE}/stats${force ? '?force=1' : ''}`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+					signal: AbortSignal.timeout(20000),
+				},
+			);
 			if (!resp.ok) return;
 			const data = (await resp.json()) as ForgejoStats;
 			if (data && typeof data.total_size_kb === 'number') {
@@ -877,14 +882,17 @@ class ForgejoService {
 		}
 	}
 
-	public async fetchStorage(): Promise<void> {
+	public async fetchStorage(force = false): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 		try {
-			const resp = await fetch(`${API_BASE}/storage`, {
-				headers: { Authorization: `Bearer ${token}` },
-				signal: AbortSignal.timeout(30000),
-			});
+			const resp = await fetch(
+				`${API_BASE}/storage${force ? '?force=1' : ''}`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+					signal: AbortSignal.timeout(30000),
+				},
+			);
 			if (!resp.ok) return;
 			const data = (await resp.json()) as ForgejoStorage;
 			if (data && typeof data.total_bytes === 'number') {
@@ -926,10 +934,25 @@ class ForgejoService {
 
 	public refresh(): void {
 		const token = this.$accessToken.get();
-		if (token) {
-			this.$loading.set(true);
-			void invalidateDataCache().then(() => this.fetchData());
+		if (!token) return;
+		const now = Date.now();
+		const since = now - this._lastManualRefresh;
+		if (since < MANUAL_REFRESH_COOLDOWN_MS) {
+			const wait = Math.ceil((MANUAL_REFRESH_COOLDOWN_MS - since) / 1000);
+			this.showToast('info', `Refresh cooling down, wait ${wait}s`);
+			return;
 		}
+		this._lastManualRefresh = now;
+		this.showToast('info', 'Refreshing repository cache…');
+		this.$loading.set(true);
+		void invalidateDataCache().then(() => this.fetchData(true));
+	}
+
+	public manualRefreshCooldownMs(): number {
+		return Math.max(
+			0,
+			MANUAL_REFRESH_COOLDOWN_MS - (Date.now() - this._lastManualRefresh),
+		);
 	}
 
 	public setRepoSearch(query: string): void {

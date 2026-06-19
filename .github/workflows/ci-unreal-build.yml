@@ -157,7 +157,7 @@ on:
                 type: number
                 default: 60
             verify_only:
-                description: '[plugin] Compile-verify only — skip release/itch (used by PR plugin verify)'
+                description: '[plugin] Compile-verify only - skip release/itch (used by PR plugin verify)'
                 required: false
                 type: boolean
                 default: false
@@ -460,7 +460,7 @@ jobs:
                         -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
                         --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
                       if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
                         exit 1
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
@@ -725,7 +725,7 @@ jobs:
                     -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
                     --max-time 20 "${AUTH_URL}/objects/batch" || echo 000)
                   if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                    echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at ${LFS_URL} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                    echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at ${LFS_URL} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
                     exit 1
                   fi
                   echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
@@ -794,7 +794,7 @@ jobs:
                         -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
                         --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
                       if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
                         exit 1
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
@@ -992,7 +992,7 @@ jobs:
                   $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
                   '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
                   $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authUrl/objects/batch")
-                  if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at $lfsUrl — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                  if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at $lfsUrl - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
                   Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
                   git -c lfs.url="$authUrl" lfs install --local
                   git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
@@ -1049,7 +1049,7 @@ jobs:
                       $batchBody = Join-Path $env:RUNNER_TEMP 'lfs-batch.json'
                       '{"operation":"download","transfers":["basic"],"objects":[]}' | Out-File -FilePath $batchBody -Encoding ascii -NoNewline
                       $lfsCode = (curl.exe -s -o NUL -w "%{http_code}" -X POST -H "Accept: application/vnd.git-lfs+json" -H "Content-Type: application/vnd.git-lfs+json" --data "@$batchBody" --max-time 20 "$authLfs/objects/batch")
-                      if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at git.kbve.com/$repoPath — FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
+                      if ($lfsCode -eq '401' -or $lfsCode -eq '403') { Write-Host "::error::Forgejo LFS auth failed (HTTP $lfsCode) at git.kbve.com/$repoPath - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."; exit 1 }
                       Write-Host "::notice::Forgejo LFS auth OK (HTTP $lfsCode)"
                       git -c lfs.url="$authLfs" lfs install --local
                       git -c lfs.url="$authLfs" lfs pull --include="$include"

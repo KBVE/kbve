@@ -31,14 +31,16 @@ const AGG_TTL: Duration = Duration::from_secs(300);
 static STATS_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStats)>>> = OnceLock::new();
 static STORAGE_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStorage)>>> = OnceLock::new();
 
-async fn cached_stats(c: &ForgejoClient) -> Result<ForgejoStats, JediError> {
+async fn cached_stats(c: &ForgejoClient, force: bool) -> Result<ForgejoStats, JediError> {
     let cell = STATS_CACHE.get_or_init(|| Mutex::new(None));
-    if let Some(v) = cell.lock().ok().and_then(|g| {
-        g.as_ref()
-            .filter(|(t, _)| t.elapsed() < AGG_TTL)
-            .map(|(_, v)| v.clone())
-    }) {
-        return Ok(v);
+    if !force {
+        if let Some(v) = cell.lock().ok().and_then(|g| {
+            g.as_ref()
+                .filter(|(t, _)| t.elapsed() < AGG_TTL)
+                .map(|(_, v)| v.clone())
+        }) {
+            return Ok(v);
+        }
     }
     let fresh = c.repo_stats().await?;
     if let Ok(mut g) = cell.lock() {
@@ -47,14 +49,16 @@ async fn cached_stats(c: &ForgejoClient) -> Result<ForgejoStats, JediError> {
     Ok(fresh)
 }
 
-async fn cached_storage(c: &ForgejoClient) -> Result<ForgejoStorage, JediError> {
+async fn cached_storage(c: &ForgejoClient, force: bool) -> Result<ForgejoStorage, JediError> {
     let cell = STORAGE_CACHE.get_or_init(|| Mutex::new(None));
-    if let Some(v) = cell.lock().ok().and_then(|g| {
-        g.as_ref()
-            .filter(|(t, _)| t.elapsed() < AGG_TTL)
-            .map(|(_, v)| v.clone())
-    }) {
-        return Ok(v);
+    if !force {
+        if let Some(v) = cell.lock().ok().and_then(|g| {
+            g.as_ref()
+                .filter(|(t, _)| t.elapsed() < AGG_TTL)
+                .map(|(_, v)| v.clone())
+        }) {
+            return Ok(v);
+        }
     }
     let fresh = c.instance_storage().await?;
     if let Ok(mut g) = cell.lock() {
@@ -103,6 +107,7 @@ pub struct ListQuery {
     purge: Option<bool>,
     #[serde(rename = "ref")]
     git_ref: Option<String>,
+    force: Option<bool>,
 }
 
 impl ListQuery {
@@ -111,6 +116,9 @@ impl ListQuery {
     }
     fn limit(&self) -> u32 {
         self.limit.unwrap_or(50)
+    }
+    fn force(&self) -> bool {
+        self.force.unwrap_or(false)
     }
 }
 
@@ -422,14 +430,14 @@ async fn team_members(
 
 // ── Aggregate / runners (reads) ──────────────────────────────────────
 
-async fn stats(headers: HeaderMap) -> Response {
+async fn stats(headers: HeaderMap, q: axum::extract::Query<ListQuery>) -> Response {
     let c = vc!(headers);
-    reply!(cached_stats(c).await)
+    reply!(cached_stats(c, q.force()).await)
 }
 
-async fn storage(headers: HeaderMap) -> Response {
+async fn storage(headers: HeaderMap, q: axum::extract::Query<ListQuery>) -> Response {
     let c = vc!(headers);
-    reply!(cached_storage(c).await)
+    reply!(cached_storage(c, q.force()).await)
 }
 
 async fn repo_runners(headers: HeaderMap, Path((owner, repo)): Path<(String, String)>) -> Response {
