@@ -1,6 +1,6 @@
 use std::num::NonZeroUsize;
 use std::sync::Mutex;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use jsonwebtoken::{
     Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
@@ -251,7 +251,25 @@ impl StaffGate {
             }
         }
 
-        let bearer = self.service_bearer()?;
+        let val = match self.query_is_staff(user_id).await {
+            Ok(v) => v,
+            Err((true, _)) => {
+                tokio::time::sleep(Duration::from_millis(150)).await;
+                self.query_is_staff(user_id).await.map_err(|(_, e)| e)?
+            }
+            Err((false, e)) => return Err(e),
+        };
+
+        if let Ok(mut cache) = self.cache.lock() {
+            cache.put(user_id.to_string(), (val, Self::now() + self.ttl_secs));
+        }
+        Ok(val)
+    }
+
+    /// One `is_staff` RPC attempt. The error flags whether it is transient
+    /// (network blip / 5xx) and worth a retry.
+    async fn query_is_staff(&self, user_id: &str) -> Result<bool, (bool, AuthError)> {
+        let bearer = self.service_bearer().map_err(|e| (false, e))?;
         let apikey = self.apikey.as_deref().unwrap_or(bearer.as_str());
 
         let resp = self
@@ -264,23 +282,22 @@ impl StaffGate {
             .json(&serde_json::json!({ "p_user_id": user_id }))
             .send()
             .await
-            .map_err(|e| AuthError::Upstream(format!("is_staff network: {e}")))?;
+            .map_err(|e| (true, AuthError::Upstream(format!("is_staff network: {e}"))))?;
 
         if !resp.status().is_success() {
             let status = resp.status();
+            let transient = status.is_server_error();
             let body = resp.text().await.unwrap_or_default();
-            return Err(AuthError::Upstream(format!("is_staff {status} → {body}")));
+            return Err((
+                transient,
+                AuthError::Upstream(format!("is_staff {status} → {body}")),
+            ));
         }
 
         let text = resp
             .text()
             .await
-            .map_err(|e| AuthError::Upstream(format!("is_staff read: {e}")))?;
-        let val = text.trim().eq_ignore_ascii_case("true");
-
-        if let Ok(mut cache) = self.cache.lock() {
-            cache.put(user_id.to_string(), (val, Self::now() + self.ttl_secs));
-        }
-        Ok(val)
+            .map_err(|e| (true, AuthError::Upstream(format!("is_staff read: {e}"))))?;
+        Ok(text.trim().eq_ignore_ascii_case("true"))
     }
 }

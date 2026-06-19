@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::{
     body::Body,
@@ -10,7 +11,8 @@ use reqwest::Client;
 use tracing::{debug, warn};
 
 use super::auth::{
-    Authz, GATE_SESSION_COOKIE, StaffGate, access_token_in_query, extract_token, validate_token,
+    Authz, GATE_SESSION_COOKIE, SB_ACCESS_TOKEN_COOKIE, StaffGate, access_token_in_query,
+    extract_token, validate_token,
 };
 
 /// Runtime configuration for the gate, normally built from env in the binary.
@@ -130,17 +132,26 @@ fn strip_access_token(query: &str) -> String {
         .join("&")
 }
 
+fn unix_now() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
 /// Mint the `kbve_gate` session cookie from a URL-delivered token, then 302 to a
-/// clean URL so the JWT never lingers in history, referrers, or logs.
-fn cookie_land(state: &GateState, uri: &Uri, token: &str) -> Response {
+/// clean URL so the JWT never lingers in history, referrers, or logs. The cookie
+/// lifetime tracks the token's own `exp` so it never outlives the JWT.
+fn cookie_land(state: &GateState, uri: &Uri, token: &str, exp: i64) -> Response {
     let cleaned = uri.query().map(strip_access_token).unwrap_or_default();
     let location = if cleaned.is_empty() {
         uri.path().to_string()
     } else {
         format!("{}?{}", uri.path(), cleaned)
     };
+    let max_age = (exp - unix_now()).clamp(0, 86400);
     let mut cookie = format!(
-        "{GATE_SESSION_COOKIE}={token}; Path=/; Max-Age=3600; HttpOnly; Secure; SameSite=Lax"
+        "{GATE_SESSION_COOKIE}={token}; Path=/; Max-Age={max_age}; HttpOnly; Secure; SameSite=Lax"
     );
     if let Some(domain) = &state.cfg.cookie_domain {
         cookie.push_str("; Domain=");
@@ -171,7 +182,32 @@ fn deny(
             }
         }
     }
+    if status == StatusCode::FORBIDDEN && is_navigation(headers) {
+        return forbidden_page();
+    }
     (status, axum::Json(serde_json::json!({ "error": msg }))).into_response()
+}
+
+/// HTML 403 for a signed-in user who lacks access — a bare JSON body reads as a
+/// broken page in the browser.
+fn forbidden_page() -> Response {
+    let body = "<!doctype html><meta charset=utf-8><title>Not authorized</title>\
+         <body style=\"font-family:system-ui;max-width:32rem;margin:4rem auto;padding:0 1rem\">\
+         <h1>Not authorized</h1>\
+         <p>You are signed in, but your account does not have access to this service.</p>\
+         <p>Ask an administrator to grant access, then reload.</p>\
+         </body>";
+    Response::builder()
+        .status(StatusCode::FORBIDDEN)
+        .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(Body::from(body))
+        .unwrap_or_else(|_| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::empty())
+                .unwrap()
+        })
+        .into_response()
 }
 
 /// Terminal HTML shown when a post-login bounce token is rejected — breaks the
@@ -203,14 +239,14 @@ fn loop_break_page(reason: &str) -> Response {
         .into_response()
 }
 
-/// Validate the JWT and apply the authz policy. Returns the user id on pass.
+/// Validate the JWT and apply the authz policy. Returns the token `exp` on pass.
 async fn authorize(
     state: &GateState,
     headers: &HeaderMap,
     query: Option<&str>,
     ext_url: &str,
     bounced: bool,
-) -> Result<String, Response> {
+) -> Result<i64, Response> {
     let token = extract_token(
         headers
             .get(header::AUTHORIZATION)
@@ -247,9 +283,10 @@ async fn authorize(
         }
     };
     let sub = data.claims.sub;
+    let exp = data.claims.exp;
 
     match &state.cfg.authz {
-        Authz::JwtOnly => Ok(sub),
+        Authz::JwtOnly => Ok(exp),
         Authz::IsStaff => {
             let staff = match &state.cfg.staff {
                 Some(s) => s,
@@ -262,7 +299,7 @@ async fn authorize(
                 }
             };
             match staff.is_staff(&sub).await {
-                Ok(true) => Ok(sub),
+                Ok(true) => Ok(exp),
                 Ok(false) => Err(deny(
                     state,
                     headers,
@@ -287,16 +324,17 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     let ext_url = external_url(&headers, req.uri());
     let bounced = query.as_deref().and_then(access_token_in_query).is_some();
 
-    if let Err(resp) = authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
-        return resp;
-    }
+    let exp = match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
+        Ok(exp) => exp,
+        Err(resp) => return resp,
+    };
 
     // Token arrived in the URL (post-login bounce): convert it to a session
     // cookie and redirect to a clean URL. Skipped for WebSocket upgrades, which
     // carry the token in the cookie the browser already holds.
     if !is_websocket_upgrade(&headers) {
         if let Some(token) = query.as_deref().and_then(access_token_in_query) {
-            return cookie_land(&state, req.uri(), &token);
+            return cookie_land(&state, req.uri(), &token, exp);
         }
     }
 
@@ -316,6 +354,38 @@ const HOP_BY_HOP: &[&str] = &[
     "transfer-encoding",
     "upgrade",
 ];
+
+/// Drop the gate's own cookies (`kbve_gate`, `sb-access-token`) from a Cookie
+/// header, leaving the upstream's own cookies (e.g. n8n's session) intact.
+fn strip_gate_cookies(cookie_header: &str) -> String {
+    cookie_header
+        .split(';')
+        .map(|p| p.trim())
+        .filter(|p| !p.is_empty())
+        .filter(|p| {
+            let name = p.split_once('=').map(|(k, _)| k).unwrap_or(p);
+            name != GATE_SESSION_COOKIE && name != SB_ACCESS_TOKEN_COOKIE
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+/// Rewrite the Cookie header so the upstream sees its own cookies but never the
+/// gate's auth tokens.
+fn sanitize_cookies(headers: &mut HeaderMap) {
+    let kept = headers
+        .get(header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .map(strip_gate_cookies);
+    headers.remove(header::COOKIE);
+    if let Some(kept) = kept {
+        if !kept.is_empty() {
+            if let Ok(v) = HeaderValue::from_str(&kept) {
+                headers.insert(header::COOKIE, v);
+            }
+        }
+    }
+}
 
 fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
     let path = uri.path();
@@ -337,7 +407,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
     headers.remove(header::HOST);
     headers.remove(header::AUTHORIZATION);
     headers.remove(header::ACCEPT_ENCODING);
-    headers.remove(header::COOKIE);
+    sanitize_cookies(&mut headers);
     for h in HOP_BY_HOP {
         headers.remove(*h);
     }
@@ -440,13 +510,19 @@ async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
     let basic = state.cfg.upstream_basic.clone();
 
     let (mut parts, _body) = req.into_parts();
+    let cookie = parts
+        .headers
+        .get(header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .map(strip_gate_cookies)
+        .filter(|c| !c.is_empty());
     let ws = match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
         Ok(ws) => ws,
         Err(rej) => return rej.into_response(),
     };
 
     ws.on_upgrade(move |browser_ws| async move {
-        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), basic).await {
+        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), basic, cookie).await {
             warn!(%ws_url, "gate ws bridge error: {e}");
         }
     })
@@ -456,6 +532,7 @@ async fn pump_ws(
     browser: axum::extract::ws::WebSocket,
     upstream_url: String,
     basic: Option<String>,
+    cookie: Option<String>,
 ) -> Result<(), String> {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::tungstenite::Message as TMsg;
@@ -469,6 +546,12 @@ async fn pump_ws(
         request.headers_mut().insert(
             "authorization",
             b.parse().map_err(|e| format!("ws basic header: {e}"))?,
+        );
+    }
+    if let Some(c) = &cookie {
+        request.headers_mut().insert(
+            "cookie",
+            c.parse().map_err(|e| format!("ws cookie header: {e}"))?,
         );
     }
 
