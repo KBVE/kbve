@@ -161,7 +161,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.43",
+			"version": "0.1.44",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -286,7 +286,7 @@
 		{
 			"key": "jobboard",
 			"app_name": "jobboard",
-			"version": "0.1.7",
+			"version": "0.1.8",
 			"version_toml": "apps/jobboard/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
 			"version_target": "apps/jobboard/Cargo.toml",
@@ -312,7 +312,7 @@
 		{
 			"key": "kbve_gate",
 			"app_name": "kbve-gate",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "apps/kbve/kbve-gate/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
 			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
@@ -1169,7 +1169,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.25",
+			"version": "0.3.26",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
