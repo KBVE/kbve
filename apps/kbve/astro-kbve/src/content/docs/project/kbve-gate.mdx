@@ -20,7 +20,9 @@ version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
 runner: ubuntu-latest
 image: kbve/kbve-gate
-deployment_yaml: apps/kube/n8n/manifest/n8n-deployment.yaml
+deployment_yamls:
+    - apps/kube/n8n/manifest/n8n-deployment.yaml
+    - apps/kube/monitoring/manifests/grafana-gate-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
