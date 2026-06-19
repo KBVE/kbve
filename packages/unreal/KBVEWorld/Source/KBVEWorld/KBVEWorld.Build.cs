@@ -18,8 +18,7 @@ public class KBVEWorld : ModuleRules
 			"StaticMeshDescription",
 			"PhysicsCore",
 			"MassEntity",
-			"MassCommon",
-			"StructUtils"
+			"MassCommon"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

@@ -1,5 +1,6 @@
 mod applications;
 mod auth;
+mod profiles;
 mod proxy;
 mod seo;
 mod spa;
@@ -16,7 +17,8 @@ pub fn router(app: Arc<AppState>) -> Router {
         .merge(system::api_routes())
         .merge(auth::routes())
         .merge(verticals::routes())
-        .merge(applications::routes());
+        .merge(applications::routes())
+        .merge(profiles::routes());
 
     Router::new()
         .merge(system::routes())

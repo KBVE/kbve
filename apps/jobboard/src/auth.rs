@@ -107,6 +107,60 @@ pub struct AuthUser {
     pub role: String,
 }
 
+/// Verify a bearer token and resolve it to an `AuthUser`. Transport-agnostic:
+/// the axum extractor and the gRPC service both go through here. Caches verified
+/// tokens until expiry so the common path skips the network/secret work.
+pub async fn authenticate(app: &AppState, token: &str) -> Result<AuthUser, ApiError> {
+    let now = now_unix();
+
+    if let Some(hit) = {
+        let mut cache = app.auth_cache.lock().unwrap();
+        cache.get(token).filter(|c| c.exp > now).cloned()
+    } {
+        return Ok(AuthUser {
+            user_id: hit.user_id,
+            username: hit.username,
+            role: hit.role,
+        });
+    }
+
+    let claims =
+        decode_claims(token).map_err(|e| ApiError::Unauthorized(format!("invalid token: {e}")))?;
+    if claims.exp <= now {
+        return Err(ApiError::Unauthorized("token expired".into()));
+    }
+    let user_id = Uuid::parse_str(&claims.sub)
+        .map_err(|_| ApiError::Unauthorized("invalid sub claim".into()))?;
+
+    match app.auth_mode {
+        AuthMode::Local => verify_local(token, &app.jwt_secret)?,
+        AuthMode::Remote => {
+            remote_verify(app, token).await?;
+            // Dev: prod-issued users have no row in the local auth.users, so
+            // every FK to it would fail. Mirror the verified user in once
+            // (cache-miss path only). Never runs in prod (Local mode).
+            provision_dev_user(app, user_id).await;
+        }
+    }
+
+    let cached = CachedAuth {
+        user_id,
+        username: claims.kbve_username,
+        role: claims.role,
+        exp: claims.exp,
+    };
+    app.auth_cache
+        .lock()
+        .unwrap()
+        .put(token.to_string(), cached.clone());
+
+    Ok(AuthUser {
+        user_id: cached.user_id,
+        username: cached.username,
+        role: cached.role,
+    })
+}
+
 impl FromRequestParts<Arc<AppState>> for AuthUser {
     type Rejection = ApiError;
 
@@ -115,53 +169,7 @@ impl FromRequestParts<Arc<AppState>> for AuthUser {
         app: &Arc<AppState>,
     ) -> Result<Self, Self::Rejection> {
         let token = bearer_token(&parts.headers)
-            .ok_or_else(|| ApiError::Unauthorized("missing bearer token".into()))?
-            .to_string();
-
-        let now = now_unix();
-
-        if let Some(hit) = {
-            let mut cache = app.auth_cache.lock().unwrap();
-            cache.get(&token).filter(|c| c.exp > now).cloned()
-        } {
-            return Ok(AuthUser {
-                user_id: hit.user_id,
-                username: hit.username,
-                role: hit.role,
-            });
-        }
-
-        let claims = decode_claims(&token)
-            .map_err(|e| ApiError::Unauthorized(format!("invalid token: {e}")))?;
-        if claims.exp <= now {
-            return Err(ApiError::Unauthorized("token expired".into()));
-        }
-        let user_id = Uuid::parse_str(&claims.sub)
-            .map_err(|_| ApiError::Unauthorized("invalid sub claim".into()))?;
-
-        match app.auth_mode {
-            AuthMode::Local => verify_local(&token, &app.jwt_secret)?,
-            AuthMode::Remote => {
-                remote_verify(app, &token).await?;
-                // Dev: prod-issued users have no row in the local auth.users, so
-                // every FK to it would fail. Mirror the verified user in once
-                // (cache-miss path only). Never runs in prod (Local mode).
-                provision_dev_user(app, user_id).await;
-            }
-        }
-
-        let cached = CachedAuth {
-            user_id,
-            username: claims.kbve_username,
-            role: claims.role,
-            exp: claims.exp,
-        };
-        app.auth_cache.lock().unwrap().put(token, cached.clone());
-
-        Ok(AuthUser {
-            user_id: cached.user_id,
-            username: cached.username,
-            role: cached.role,
-        })
+            .ok_or_else(|| ApiError::Unauthorized("missing bearer token".into()))?;
+        authenticate(app, token).await
     }
 }

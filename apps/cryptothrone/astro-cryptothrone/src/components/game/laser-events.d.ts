@@ -27,7 +27,7 @@ declare module '@kbve/laser' {
 			balance: number;
 		};
 		'player:damage': { damage: number };
-		'player:stats': { stats: PlayerStats };
+		'player:stats': { stats: Partial<PlayerStats> };
 		'monster:nearby': { count: number };
 		'discord:participants': {
 			participants: {

@@ -22,7 +22,6 @@ public class chuck : ModuleRules
 			"SlateCore",
 			"MassEntity",
 			"MassCommon",
-			"StructUtils",
 			"NetCore",
 			"ProceduralMeshComponent",
 			"NavigationSystem",

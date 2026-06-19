@@ -1,13 +1,6 @@
 name: CI - Unreal Plugins (verify)
 
 on:
-    pull_request:
-        paths:
-            - 'packages/unreal/**'
-            - '.github/workflows/ci-unreal-plugins.yml'
-            - '.github/workflows/ci-unreal-build.yml'
-            - '.github/scripts/ue-plugin-matrix.mjs'
-            - '.github/ci-dispatch-manifest.json'
     workflow_dispatch:
         inputs:
             scope:
@@ -23,7 +16,11 @@ on:
                 default: 'dev-5.7.4'
 
 permissions:
-    contents: read
+    contents: write
+    packages: write
+    issues: write
+    pull-requests: write
+    actions: write
 
 concurrency:
     group: ci-unreal-plugins-${{ github.ref }}

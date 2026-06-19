@@ -443,6 +443,16 @@ pub struct DecisionInput {
     #[prost(string, tag = "3")]
     pub notes: ::prost::alloc::string::String,
 }
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct DecideMembershipRequest {
+    /// ULID
+    #[prost(string, tag = "1")]
+    pub application_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub input: ::core::option::Option<DecisionInput>,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GetMembershipRequest {}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum Capability {
@@ -674,5 +684,1425 @@ impl ReportStatus {
             "REPORT_DISMISSED" => Some(Self::ReportDismissed),
             _ => None,
         }
+    }
+}
+/// Generated client implementations.
+pub mod membership_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    /// Served by the jobboard gRPC server (grpc.rs), sharing the membership/vetting
+    /// logic with the REST handlers. Identity is the `authorization: Bearer <jwt>`
+    /// request metadata — the same Supabase token REST uses.
+    #[derive(Debug, Clone)]
+    pub struct MembershipServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl MembershipServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> MembershipServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> MembershipServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                    http::Request<tonic::body::Body>,
+                    Response = http::Response<
+                        <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                    >,
+                >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::Body>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            MembershipServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn submit_membership(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SubmitApplicationInput>,
+        ) -> std::result::Result<tonic::Response<super::MembershipApplicationView>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/jobboard.MembershipService/SubmitMembership",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.MembershipService",
+                "SubmitMembership",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn decide_membership(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DecideMembershipRequest>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/jobboard.MembershipService/DecideMembership",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.MembershipService",
+                "DecideMembership",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_my_membership(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetMembershipRequest>,
+        ) -> std::result::Result<tonic::Response<super::MembershipApplicationView>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.MembershipService/GetMyMembership");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.MembershipService",
+                "GetMyMembership",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod membership_service_server {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with MembershipServiceServer.
+    #[async_trait]
+    pub trait MembershipService: std::marker::Send + std::marker::Sync + 'static {
+        async fn submit_membership(
+            &self,
+            request: tonic::Request<super::SubmitApplicationInput>,
+        ) -> std::result::Result<tonic::Response<super::MembershipApplicationView>, tonic::Status>;
+        async fn decide_membership(
+            &self,
+            request: tonic::Request<super::DecideMembershipRequest>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn get_my_membership(
+            &self,
+            request: tonic::Request<super::GetMembershipRequest>,
+        ) -> std::result::Result<tonic::Response<super::MembershipApplicationView>, tonic::Status>;
+    }
+    /// Served by the jobboard gRPC server (grpc.rs), sharing the membership/vetting
+    /// logic with the REST handlers. Identity is the `authorization: Bearer <jwt>`
+    /// request metadata — the same Supabase token REST uses.
+    #[derive(Debug)]
+    pub struct MembershipServiceServer<T> {
+        inner: Arc<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    impl<T> MembershipServiceServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for MembershipServiceServer<T>
+    where
+        T: MembershipService,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
+    {
+        type Response = http::Response<tonic::body::Body>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            match req.uri().path() {
+                "/jobboard.MembershipService/SubmitMembership" => {
+                    #[allow(non_camel_case_types)]
+                    struct SubmitMembershipSvc<T: MembershipService>(pub Arc<T>);
+                    impl<T: MembershipService>
+                        tonic::server::UnaryService<super::SubmitApplicationInput>
+                        for SubmitMembershipSvc<T>
+                    {
+                        type Response = super::MembershipApplicationView;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SubmitApplicationInput>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as MembershipService>::submit_membership(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SubmitMembershipSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.MembershipService/DecideMembership" => {
+                    #[allow(non_camel_case_types)]
+                    struct DecideMembershipSvc<T: MembershipService>(pub Arc<T>);
+                    impl<T: MembershipService>
+                        tonic::server::UnaryService<super::DecideMembershipRequest>
+                        for DecideMembershipSvc<T>
+                    {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DecideMembershipRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as MembershipService>::decide_membership(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DecideMembershipSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.MembershipService/GetMyMembership" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetMyMembershipSvc<T: MembershipService>(pub Arc<T>);
+                    impl<T: MembershipService>
+                        tonic::server::UnaryService<super::GetMembershipRequest>
+                        for GetMyMembershipSvc<T>
+                    {
+                        type Response = super::MembershipApplicationView;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetMembershipRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as MembershipService>::get_my_membership(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetMyMembershipSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(tonic::body::Body::default());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
+            }
+        }
+    }
+    impl<T> Clone for MembershipServiceServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "jobboard.MembershipService";
+    impl<T> tonic::server::NamedService for MembershipServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
+    }
+}
+/// Generated client implementations.
+pub mod job_board_rpc_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    #[derive(Debug, Clone)]
+    pub struct JobBoardRpcClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl JobBoardRpcClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> JobBoardRpcClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::Body>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> JobBoardRpcClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                    http::Request<tonic::body::Body>,
+                    Response = http::Response<
+                        <T as tonic::client::GrpcService<tonic::body::Body>>::ResponseBody,
+                    >,
+                >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::Body>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            JobBoardRpcClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn create_vertical(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Vertical>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/CreateVertical");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "CreateVertical"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn upsert_taxonomy(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Taxonomy>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/UpsertTaxonomy");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "UpsertTaxonomy"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_talent_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ByUser>,
+        ) -> std::result::Result<tonic::Response<super::TalentProfile>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/GetTalentProfile");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "GetTalentProfile"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn upsert_talent_profile(
+            &mut self,
+            request: impl tonic::IntoRequest<super::TalentProfile>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/UpsertTalentProfile");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.JobBoardRpc",
+                "UpsertTalentProfile",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn upsert_portfolio_item(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PortfolioItem>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/UpsertPortfolioItem");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.JobBoardRpc",
+                "UpsertPortfolioItem",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn create_gig(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Gig>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/CreateGig");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "CreateGig"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_gig(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Gig>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/GetGig");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "GetGig"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn close_gig(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/CloseGig");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "CloseGig"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn apply_to_gig(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Application>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/ApplyToGig");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "ApplyToGig"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn review_gig_application(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Application>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/ReviewGigApplication");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.JobBoardRpc",
+                "ReviewGigApplication",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn accept_application(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Engagement>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/AcceptApplication");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "AcceptApplication"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn complete_engagement(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/CompleteEngagement");
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "jobboard.JobBoardRpc",
+                "CompleteEngagement",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn submit_review(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Review>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/SubmitReview");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "SubmitReview"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn send_message(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Message>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic_prost::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/jobboard.JobBoardRpc/SendMessage");
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("jobboard.JobBoardRpc", "SendMessage"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod job_board_rpc_server {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value
+    )]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with JobBoardRpcServer.
+    #[async_trait]
+    pub trait JobBoardRpc: std::marker::Send + std::marker::Sync + 'static {
+        async fn create_vertical(
+            &self,
+            request: tonic::Request<super::Vertical>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn upsert_taxonomy(
+            &self,
+            request: tonic::Request<super::Taxonomy>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn get_talent_profile(
+            &self,
+            request: tonic::Request<super::ByUser>,
+        ) -> std::result::Result<tonic::Response<super::TalentProfile>, tonic::Status>;
+        async fn upsert_talent_profile(
+            &self,
+            request: tonic::Request<super::TalentProfile>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn upsert_portfolio_item(
+            &self,
+            request: tonic::Request<super::PortfolioItem>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn create_gig(
+            &self,
+            request: tonic::Request<super::Gig>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn get_gig(
+            &self,
+            request: tonic::Request<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Gig>, tonic::Status>;
+        async fn close_gig(
+            &self,
+            request: tonic::Request<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn apply_to_gig(
+            &self,
+            request: tonic::Request<super::Application>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn review_gig_application(
+            &self,
+            request: tonic::Request<super::Application>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn accept_application(
+            &self,
+            request: tonic::Request<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Engagement>, tonic::Status>;
+        async fn complete_engagement(
+            &self,
+            request: tonic::Request<super::ById>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn submit_review(
+            &self,
+            request: tonic::Request<super::Review>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+        async fn send_message(
+            &self,
+            request: tonic::Request<super::Message>,
+        ) -> std::result::Result<tonic::Response<super::Ack>, tonic::Status>;
+    }
+    #[derive(Debug)]
+    pub struct JobBoardRpcServer<T> {
+        inner: Arc<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    impl<T> JobBoardRpcServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for JobBoardRpcServer<T>
+    where
+        T: JobBoardRpc,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
+    {
+        type Response = http::Response<tonic::body::Body>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            match req.uri().path() {
+                "/jobboard.JobBoardRpc/CreateVertical" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateVerticalSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Vertical> for CreateVerticalSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Vertical>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::create_vertical(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CreateVerticalSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/UpsertTaxonomy" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpsertTaxonomySvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Taxonomy> for UpsertTaxonomySvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Taxonomy>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::upsert_taxonomy(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpsertTaxonomySvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/GetTalentProfile" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetTalentProfileSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::ByUser> for GetTalentProfileSvc<T> {
+                        type Response = super::TalentProfile;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::ByUser>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::get_talent_profile(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetTalentProfileSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/UpsertTalentProfile" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpsertTalentProfileSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::TalentProfile>
+                        for UpsertTalentProfileSvc<T>
+                    {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::TalentProfile>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::upsert_talent_profile(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpsertTalentProfileSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/UpsertPortfolioItem" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpsertPortfolioItemSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::PortfolioItem>
+                        for UpsertPortfolioItemSvc<T>
+                    {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PortfolioItem>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::upsert_portfolio_item(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpsertPortfolioItemSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/CreateGig" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateGigSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Gig> for CreateGigSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::Gig>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::create_gig(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CreateGigSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/GetGig" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGigSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::ById> for GetGigSvc<T> {
+                        type Response = super::Gig;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::ById>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut =
+                                async move { <T as JobBoardRpc>::get_gig(&inner, request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGigSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/CloseGig" => {
+                    #[allow(non_camel_case_types)]
+                    struct CloseGigSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::ById> for CloseGigSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::ById>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut =
+                                async move { <T as JobBoardRpc>::close_gig(&inner, request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CloseGigSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/ApplyToGig" => {
+                    #[allow(non_camel_case_types)]
+                    struct ApplyToGigSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Application> for ApplyToGigSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Application>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::apply_to_gig(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ApplyToGigSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/ReviewGigApplication" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReviewGigApplicationSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Application>
+                        for ReviewGigApplicationSvc<T>
+                    {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Application>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::review_gig_application(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ReviewGigApplicationSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/AcceptApplication" => {
+                    #[allow(non_camel_case_types)]
+                    struct AcceptApplicationSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::ById> for AcceptApplicationSvc<T> {
+                        type Response = super::Engagement;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::ById>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::accept_application(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = AcceptApplicationSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/CompleteEngagement" => {
+                    #[allow(non_camel_case_types)]
+                    struct CompleteEngagementSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::ById> for CompleteEngagementSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::ById>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::complete_engagement(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CompleteEngagementSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/SubmitReview" => {
+                    #[allow(non_camel_case_types)]
+                    struct SubmitReviewSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Review> for SubmitReviewSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(&mut self, request: tonic::Request<super::Review>) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::submit_review(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SubmitReviewSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/jobboard.JobBoardRpc/SendMessage" => {
+                    #[allow(non_camel_case_types)]
+                    struct SendMessageSvc<T: JobBoardRpc>(pub Arc<T>);
+                    impl<T: JobBoardRpc> tonic::server::UnaryService<super::Message> for SendMessageSvc<T> {
+                        type Response = super::Ack;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Message>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as JobBoardRpc>::send_message(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SendMessageSvc(inner);
+                        let codec = tonic_prost::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(tonic::body::Body::default());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
+            }
+        }
+    }
+    impl<T> Clone for JobBoardRpcServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "jobboard.JobBoardRpc";
+    impl<T> tonic::server::NamedService for JobBoardRpcServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
     }
 }

@@ -43,10 +43,10 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Mesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UStaticMeshComponent> Water;
 
 	UPROPERTY(EditDefaultsOnly, Category = "KBVEWorld|Terrain")

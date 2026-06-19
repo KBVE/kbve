@@ -86,6 +86,16 @@ function loadMessages() {
 	return messages;
 }
 
+// map<string, V> value → UE element type (value kind lives on field.mapKind)
+function mapValueUE(field, messages) {
+	if (field.mapKind === 'scalar') return scalarToUE(field.scalar);
+	if (field.mapKind === 'enum') return 'FString';
+	if (field.mapKind === 'message') {
+		return messages.has(field.message.typeName) ? structName(field.message.name) : 'FString';
+	}
+	return 'FString';
+}
+
 // default initializer for a UPROPERTY of the given field
 function fieldDefault(field, messages) {
 	if (field.fieldKind === 'scalar') {
@@ -112,7 +122,7 @@ function fieldUEType(field, messages) {
 				: 'TArray<FString>';
 		}
 	}
-	if (field.fieldKind === 'map') return 'TMap<FString, FString>';
+	if (field.fieldKind === 'map') return `TMap<FString, ${mapValueUE(field, messages)}>`;
 	return 'int32';
 }
 
@@ -128,7 +138,8 @@ function topoSort(messages) {
 		const msg = messages.get(typeName);
 		for (const f of msg.fields) {
 			const dep = f.fieldKind === 'message' ? f.message
-				: (f.fieldKind === 'list' && f.listKind === 'message' ? f.message : null);
+				: (f.fieldKind === 'list' && f.listKind === 'message' ? f.message
+				: (f.fieldKind === 'map' && f.mapKind === 'message' ? f.message : null));
 			if (dep && messages.has(dep.typeName) && dep.typeName !== typeName) {
 				visit(dep.typeName);
 			}
@@ -209,6 +220,29 @@ function emitParsers(ordered, messages) {
 				}
 				lines.push('\t\t\t}');
 				lines.push('\t\t}');
+			} else if (f.fieldKind === 'map') {
+				let reader = null;
+				if (f.mapKind === 'scalar') reader = scalarReader(f.scalar, 'MV');
+				else if (f.mapKind === 'enum') reader = '(yyjson_is_str(MV) ? FString(UTF8_TO_TCHAR(yyjson_get_str(MV))) : FString())';
+				if (reader) {
+					lines.push(`\t\tif ((V = yyjson_obj_get(Obj, "${key}")) && yyjson_is_obj(V))`);
+					lines.push('\t\t{');
+					lines.push('\t\t\tsize_t MIdx, MMax; yyjson_val *MK, *MV;');
+					lines.push('\t\t\tyyjson_obj_foreach(V, MIdx, MMax, MK, MV)');
+					lines.push('\t\t\t{');
+					lines.push(`\t\t\t\tOut.${prop}.Add(FString(UTF8_TO_TCHAR(yyjson_get_str(MK))), ${reader});`);
+					lines.push('\t\t\t}');
+					lines.push('\t\t}');
+				} else if (f.mapKind === 'message' && messages.has(f.message.typeName)) {
+					lines.push(`\t\tif ((V = yyjson_obj_get(Obj, "${key}")) && yyjson_is_obj(V))`);
+					lines.push('\t\t{');
+					lines.push('\t\t\tsize_t MIdx, MMax; yyjson_val *MK, *MV;');
+					lines.push('\t\t\tyyjson_obj_foreach(V, MIdx, MMax, MK, MV)');
+					lines.push('\t\t\t{');
+					lines.push(`\t\t\t\t${structName(f.message.name)} ElemOut; Populate(ElemOut, MV); Out.${prop}.Add(FString(UTF8_TO_TCHAR(yyjson_get_str(MK))), MoveTemp(ElemOut));`);
+					lines.push('\t\t\t}');
+					lines.push('\t\t}');
+				}
 			}
 		}
 		lines.push('\t}', '');

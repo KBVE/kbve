@@ -4,6 +4,8 @@ mod auth;
 mod config;
 mod db;
 mod error;
+mod grpc;
+mod membership;
 pub mod rest;
 mod state;
 
@@ -42,6 +44,22 @@ async fn main() -> anyhow::Result<()> {
     info!("PgCluster connected");
 
     let app_state = state::AppState::new(pool);
+
+    // gRPC membership service on its own port, sharing the REST state/logic.
+    let grpc_addr: std::net::SocketAddr = std::env::var("GRPC_ADDR")
+        .unwrap_or_else(|_| "0.0.0.0:50051".into())
+        .parse()?;
+    let grpc_state = app_state.clone();
+    tokio::spawn(async move {
+        info!("jobboard gRPC listening on {grpc_addr}");
+        if let Err(e) = tonic::transport::Server::builder()
+            .add_service(grpc::server(grpc_state))
+            .serve(grpc_addr)
+            .await
+        {
+            tracing::error!(error = %e, "grpc server error");
+        }
+    });
 
     let app = rest::router(app_state)
         .layer(TimeoutLayer::with_status_code(

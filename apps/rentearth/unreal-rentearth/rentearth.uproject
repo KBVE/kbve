@@ -13,8 +13,7 @@
 				"AIModule",
 				"UMG",
 				"MassEntity",
-				"MassCommon",
-				"StructUtils"
+				"MassCommon"
 			]
 		}
 	],
@@ -22,10 +21,6 @@
 		"../../../packages/unreal"
 	],
 	"Plugins": [
-		{
-			"Name": "StructUtils",
-			"Enabled": true
-		},
 		{
 			"Name": "ChaosSolverPlugin",
 			"Enabled": true
