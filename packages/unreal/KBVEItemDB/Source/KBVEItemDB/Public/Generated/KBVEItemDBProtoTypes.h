@@ -59,7 +59,7 @@ struct KBVEITEMDB_API FKBVEGenItemBonuses
 	int32 Perception = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	TMap<FString, FString> Extra;
+	TMap<FString, double> Extra;
 
 };
 
