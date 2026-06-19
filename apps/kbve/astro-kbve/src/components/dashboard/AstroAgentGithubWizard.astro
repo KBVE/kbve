@@ -11,18 +11,19 @@ import Step4SmokeBackfill from './agents/wizard/Step4SmokeBackfill';
 <section
 	id="agent-github-wizard-wrapper"
 	class="agent-github-wizard-wrapper kbve-dashboard-page"
-	aria-label="GitHub provider — webhook secret, PAT, repo allowlist (future), smoke-backfill">
+	aria-label="GitHub provider — HMAC webhook secret, PAT, repo allowlist, webhook install, smoke-backfill">
 	<div class="dashboard-content">
 		<header class="agent-header not-content">
 			<h1 class="agent-title">GitHub</h1>
 			<p class="agent-lede">
-				Per-guild GitHub integration. The four-step wizard provisions
-				the Vault rows that any KBVE agent consumes when it needs to
-				read or write against GitHub: an HMAC webhook secret (<code>
+				Per-guild GitHub integration. The wizard provisions the Vault
+				rows that any KBVE agent consumes when it needs to read or write
+				against GitHub: an HMAC webhook secret (<code>
 					github_webhook:&lt;guild&gt;
-				</code>) and a PAT (<code>github:&lt;guild&gt;</code>). Step 4
-				smoke-tests the full webhook + backfill path so you know
-				downstream agents can use the credentials.
+				</code>) and a PAT (<code>github:&lt;guild&gt;</code>). Steps
+				run top-to-bottom: secret, PAT, and allowlist first, then the
+				webhook install and a smoke-test of the full webhook + backfill
+				path so you know downstream agents can use the credentials.
 			</p>
 
 			<div
@@ -46,15 +47,15 @@ import Step4SmokeBackfill from './agents/wizard/Step4SmokeBackfill';
 		<div class="agent-stack" data-wizard-root>
 			<WizardGate client:only="react" />
 			<div class="agent-stack" data-wizard-steps hidden>
-				<ReactAgentRepoAllowlist client:only="react" />
 				<StepCard n={1} title="HMAC webhook secret">
 					<Step1Webhook client:only="react" />
 				</StepCard>
-				<StepCard n={2} title="Configure the GitHub webhook">
-					<Step2WebhookConfig client:only="react" />
-				</StepCard>
-				<StepCard n={3} title="GitHub PAT (for issue + comment reads)">
+				<StepCard n={2} title="GitHub PAT (for issue + comment reads)">
 					<Step3Pat client:only="react" />
+				</StepCard>
+				<ReactAgentRepoAllowlist client:only="react" />
+				<StepCard n={3} title="Configure the GitHub webhook">
+					<Step2WebhookConfig client:only="react" />
 				</StepCard>
 				<StepCard n={4} title="Smoke-test the backfill">
 					<Step4SmokeBackfill client:only="react" />
