@@ -37,6 +37,12 @@ pub const HISTORY_LEN: usize = 50;
 /// channel whitelists).
 const HISTORY_CHANNELS: &[&str] = &["#general", "#world-events", "#mc-global"];
 
+/// Whether a channel is one the gateway tracks history for (and thus one a
+/// client is allowed to read backscroll from / a staff announce can target).
+pub fn is_tracked(channel: &str) -> bool {
+    HISTORY_CHANNELS.contains(&channel)
+}
+
 type Store = Arc<Mutex<HashMap<String, VecDeque<ChatMessage>>>>;
 
 fn store() -> &'static Store {
@@ -194,5 +200,12 @@ mod tests {
     #[tokio::test]
     async fn recent_empty_for_unknown_channel() {
         assert!(recent("#never-seen").await.is_empty());
+    }
+
+    #[test]
+    fn is_tracked_matches_whitelist() {
+        assert!(is_tracked("#general"));
+        assert!(is_tracked("#world-events"));
+        assert!(!is_tracked("#random"));
     }
 }
