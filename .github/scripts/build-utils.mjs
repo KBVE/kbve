@@ -5,7 +5,8 @@
 // gate (is_newer / check_version). Covers both gated mechanisms:
 //   - mdx source — any type whose version_source ends in .mdx (docker, npm,
 //     crates, python, unity, godot, unreal_game).
-//   - unreal plugins — manifest .version vs plugin version.toml.
+//   - manifest version — type whose local version lives in the manifest,
+//     gated against its version.toml (unreal plugins, ue5_server).
 // File-change (is_altered) dispatches are intentionally excluded.
 //
 // Pure + fs-only; no npm deps (the PR job runs without `pnpm install`).
@@ -76,7 +77,7 @@ function readFileOrNull(fs, p) {
  * `fs`); version_toml is the published tracker maintained on the base branch
  * (main), so it is read via `readBaseToml` — that is the baseline ci-main.yml
  * gates against post-merge. Without `readBaseToml`, the toml is read from the
- * head tree (used by unit tests).
+ * head tree (the default for direct/local invocation).
  *
  * @param {string} manifestPath - path to .github/ci-dispatch-manifest.json
  * @param {string} repoRoot - repo root (e.g. process.cwd())
@@ -108,6 +109,9 @@ export function computeBuilds(manifestPath, repoRoot, fs, readBaseToml) {
 			} else if (type === 'unreal' && entry.plugin_path) {
 				localV = entry.version || '0.0.0';
 				source = entry.plugin_path;
+			} else if (type === 'ue5_server' && (entry.shell_path || entry.source_path)) {
+				localV = entry.version || '0.0.0';
+				source = entry.shell_path || entry.source_path;
 			} else {
 				continue;
 			}
