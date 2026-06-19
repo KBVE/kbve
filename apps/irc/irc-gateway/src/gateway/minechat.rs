@@ -89,10 +89,11 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
         Err(status) => return status.into_response(),
     };
 
-    // Derive the game nick from the JWT subject. We keep it short and
-    // prefixed so it's obvious in channel activity which identities are
-    // game clients vs. browser-IRC clients.
-    let nick = format!("mc-{}", sanitize_sub(&claims.sub, 8));
+    // Prefer the real KBVE username (same as /gamechat); fall back to a
+    // stable sub-derived handle so the player is never anonymous-but-spoofable.
+    let nick = claims
+        .irc_nick()
+        .unwrap_or_else(|| format!("mc-{}", sanitize_sub(&claims.sub, 8)));
 
     info!(user = %nick, "minechat upgrade accepted");
     ws.max_frame_size(16 * 1024)
@@ -209,7 +210,7 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     // Replay recent channel history so a fresh client lands in a room with
     // context instead of an empty log.
     for ch in &channels {
-        for msg in crate::gateway::history::recent(ch) {
+        for msg in crate::gateway::history::recent(ch).await {
             if send_json(&mut client_tx, &msg).await.is_err() {
                 return;
             }
