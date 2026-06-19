@@ -1747,9 +1747,20 @@ jobs:
                       if [ -d /deps ]; then
                         MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
                         mkdir -p "$MARKETPLACE_DIR"
+                        DEP_SRC=/tmp/dep_src
+                        mkdir -p "$DEP_SRC"
                         for dep in /deps/*/; do
                           dep_name=$(basename "$dep")
-                          cp -r "$dep" "$MARKETPLACE_DIR/$dep_name"
+                          cp -r "$dep" "$DEP_SRC/$dep_name"
+                          dep_uplugin=$(find "$DEP_SRC/$dep_name" -maxdepth 1 -name "*.uplugin" | head -1)
+                          if [ -z "$dep_uplugin" ]; then echo "::error::No .uplugin in dependency $dep_name"; exit 1; fi
+                          echo "::group::Build dependency plugin $dep_name"
+                          "$RUNUAT" BuildPlugin \
+                            -Plugin="$dep_uplugin" \
+                            -Package="$MARKETPLACE_DIR/$dep_name" \
+                            -TargetPlatforms=${{ inputs.target_platforms }} \
+                            -Rocket
+                          echo "::endgroup::"
                         done
                       fi
 
@@ -1836,6 +1847,7 @@ jobs:
             - name: Install dependency plugins
               if: inputs.dependency_plugin_paths != ''
               run: |
+                  $runuat = '${{ steps.engine.outputs.runuat }}'
                   $engineRoot = '${{ steps.engine.outputs.engine_root }}'
                   $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
                   New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
@@ -1844,9 +1856,13 @@ jobs:
                       if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
                       $depName = Split-Path $depPath -Leaf
                       $src = Join-Path $env:GITHUB_WORKSPACE $depPath
+                      $depUplugin = Get-ChildItem -Path $src -Filter *.uplugin -File | Select-Object -First 1
+                      if (-not $depUplugin) { Write-Host "::error::No .uplugin in dependency $depName"; exit 1 }
                       $dst = Join-Path $marketplaceDir $depName
-                      Write-Host "::notice::Installing dependency: $depName -> $dst"
-                      Copy-Item -Path $src -Destination $dst -Recurse -Force
+                      Write-Host "::group::Build dependency plugin $depName"
+                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$dst" -TargetPlatforms=${{ inputs.target_platforms }} -Rocket
+                      if ($LASTEXITCODE -ne 0) { Write-Host "::error::Dependency BuildPlugin failed for $depName ($LASTEXITCODE)"; exit $LASTEXITCODE }
+                      Write-Host "::endgroup::"
                   }
 
             - name: Build plugin with RunUAT
