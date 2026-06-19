@@ -13,7 +13,8 @@ import {
 } from "../_shared/supabase.ts";
 
 const GITHUB_API_BASE = "https://api.github.com";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const WEBHOOK_PUBLIC_BASE = Deno.env.get("WEBHOOK_PUBLIC_BASE") ??
+  Deno.env.get("SUPABASE_URL")!;
 const WEBHOOK_EVENTS = ["issues", "issue_comment", "pull_request"];
 
 function ownsGuild(claims: Record<string, unknown>, serverId: string): boolean {
@@ -173,7 +174,7 @@ async function handleList(
   if (status < 200 || status >= 300 || !Array.isArray(body)) {
     return jsonResponse({ error: "GitHub API error", status }, 502);
   }
-  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const expectedUrl = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
   const hooks = (body as GithubHook[]).map((h) => ({
     id: h.id,
     name: h.name,
@@ -336,7 +337,7 @@ async function handlePing(
       502,
     );
   }
-  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const expectedUrl = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
   const kbveHook = (list.body as GithubHook[]).find(
     (h) => h.config?.url === expectedUrl,
   );
@@ -394,7 +395,7 @@ async function handleInstall(
     );
   }
 
-  const url = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const url = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
 
   const list = await githubCallback(
     "GET",
@@ -542,7 +543,7 @@ async function handleDeliveries(
       502,
     );
   }
-  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const expectedUrl = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
   const kbveHook = (list.body as GithubHook[]).find(
     (h) => h.config?.url === expectedUrl,
   );
@@ -622,7 +623,7 @@ async function handleDelete(
       502,
     );
   }
-  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const expectedUrl = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
   const kbveHook = (list.body as GithubHook[]).find(
     (h) => h.config?.url === expectedUrl,
   );
@@ -671,7 +672,7 @@ async function handleRotate(
       502,
     );
   }
-  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const expectedUrl = `${WEBHOOK_PUBLIC_BASE}/functions/v1/gh-webhook/${serverId}`;
   const kbveHook = (list.body as GithubHook[]).find(
     (h) => h.config?.url === expectedUrl,
   );
