@@ -1,7 +1,7 @@
 [package]
 name = "axum-kbve"
 authors = ["kbve", "h0lybyte"]
-version = "1.0.203"
+version = "1.0.204"
 edition = "2021"
 publish = false
 
