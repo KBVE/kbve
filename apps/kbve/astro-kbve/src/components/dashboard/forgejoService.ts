@@ -746,6 +746,7 @@ class ForgejoService {
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
 	private _lastManualRefresh = 0;
+	private _authUnsub: (() => void) | undefined;
 
 	// --- Auth ---
 
@@ -753,18 +754,49 @@ class ForgejoService {
 		try {
 			await initSupa();
 			const supa = getSupa();
-			const sessionResult = await supa.getSession().catch(() => null);
-			const session = sessionResult?.session ?? null;
 
-			if (!session?.access_token) {
-				this.$authState.set('unauthenticated');
-				return;
+			if (!this._authUnsub) {
+				this._authUnsub = supa.on('auth', (payload: unknown) => {
+					const session = (
+						payload as {
+							session?: { access_token?: string };
+						} | null
+					)?.session;
+					this._applySession(session ?? null);
+				});
 			}
 
-			this.$accessToken.set(session.access_token as string);
-			this.$authState.set('authenticated');
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			this._applySession(session);
 		} catch {
 			this.$authState.set('unauthenticated');
+		}
+	}
+
+	private _applySession(session: { access_token?: string } | null): void {
+		const token = session?.access_token;
+		if (!token) {
+			this.$accessToken.set(null);
+			this.$authState.set('unauthenticated');
+			return;
+		}
+		this.$accessToken.set(token);
+		if (this.$authState.get() !== 'forbidden') {
+			this.$authState.set('authenticated');
+		}
+	}
+
+	private async _ensureFreshToken(): Promise<string | null> {
+		try {
+			const sessionResult = await getSupa()
+				.getSession()
+				.catch(() => null);
+			const token = sessionResult?.session?.access_token ?? null;
+			if (token) this.$accessToken.set(token as string);
+			return token ?? this.$accessToken.get();
+		} catch {
+			return this.$accessToken.get();
 		}
 	}
 
@@ -824,8 +856,11 @@ class ForgejoService {
 	}
 
 	public async fetchData(force = false): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
+		const token = await this._ensureFreshToken();
+		if (!token) {
+			this.$authState.set('unauthenticated');
+			return;
+		}
 
 		try {
 			this.$error.set(null);
@@ -853,6 +888,12 @@ class ForgejoService {
 			if (e instanceof UpstreamUnavailableError) {
 				this.$error.set(e.message);
 				this.$errorReason.set(e.reason);
+				return;
+			}
+			if (e instanceof Error && /API error: 401/.test(e.message)) {
+				this.$accessToken.set(null);
+				this.$authState.set('unauthenticated');
+				this.$error.set('Session expired — please sign in again.');
 				return;
 			}
 			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
@@ -929,6 +970,10 @@ class ForgejoService {
 		if (this._refreshInterval) {
 			clearInterval(this._refreshInterval);
 			this._refreshInterval = undefined;
+		}
+		if (this._authUnsub) {
+			this._authUnsub();
+			this._authUnsub = undefined;
 		}
 	}
 

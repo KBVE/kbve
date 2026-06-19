@@ -7,6 +7,9 @@
 # Unity WebGL template files use mustache-style {{{ }}} syntax
 apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/
 
+# Generated isometric WASM client bundle (exact build output; must not reflow)
+apps/kbve/astro-kbve/public/isometric/
+
 # Example file with embedded frontmatter in <pre> blocks
 apps/kbve/astro-kbve/src/components/realtime/example.astro
 

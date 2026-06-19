@@ -16,7 +16,7 @@ supabase = ["dep:lru", "dep:uuid"]
 image-gen = ["dep:resvg"]
 wallet = ["dep:uuid"]
 legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
-gate = ["axum/ws", "reqwest/stream", "dep:tokio-tungstenite", "dep:lru"]
+gate = ["axum/ws", "reqwest/stream", "dep:tokio-tungstenite", "dep:lru", "dep:metrics", "jedi/prometheus"]
 
 [dependencies]
 anyhow = "1.0"
@@ -63,6 +63,7 @@ lru = { version = "0.16", optional = true }
 resvg = { version = "0.47.0", optional = true }
 uuid = { version = "1", features = ["v4", "serde"], optional = true }
 tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"], optional = true }
+metrics = { version = "0.24", optional = true }
 jedi = { path = "../jedi" }
 holy = { version = "0.2.1", path = "../holy" }
 

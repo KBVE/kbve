@@ -60,9 +60,6 @@ subjects:
       name: rentearth-external-secrets
       namespace: rentearth
     - kind: ServiceAccount
-      name: n8n-external-secrets
-      namespace: n8n
-    - kind: ServiceAccount
       name: ows-external-secrets
       namespace: rows
     - kind: ServiceAccount

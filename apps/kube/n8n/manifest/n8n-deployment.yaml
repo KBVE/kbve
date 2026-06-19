@@ -192,9 +192,14 @@ spec:
                       - name: gateway
                         containerPort: 5678
                         protocol: TCP
+                      - name: gate-metrics
+                        containerPort: 9090
+                        protocol: TCP
                   env:
                       - name: GATE_LISTEN
                         value: '0.0.0.0:5678'
+                      - name: GATE_METRICS_PORT
+                        value: '9090'
                       - name: GATE_UPSTREAM
                         value: 'http://127.0.0.1:5681'
                       - name: GATE_AUTHZ

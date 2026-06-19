@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::{
     body::Body,
@@ -10,7 +11,8 @@ use reqwest::Client;
 use tracing::{debug, warn};
 
 use super::auth::{
-    Authz, GATE_SESSION_COOKIE, StaffGate, access_token_in_query, extract_token, validate_token,
+    Authz, GATE_SESSION_COOKIE, SB_ACCESS_TOKEN_COOKIE, StaffGate, access_token_in_query,
+    extract_token, validate_token,
 };
 
 /// Runtime configuration for the gate, normally built from env in the binary.
@@ -48,10 +50,12 @@ pub struct GateState {
 
 impl GateState {
     pub fn new(cfg: GateConfig) -> Self {
-        Self {
-            cfg,
-            client: Client::new(),
-        }
+        let client = Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
+            .build()
+            .unwrap_or_else(|_| Client::new());
+        Self { cfg, client }
     }
 
     pub fn into_router(self) -> axum::Router {
@@ -130,17 +134,71 @@ fn strip_access_token(query: &str) -> String {
         .join("&")
 }
 
+/// Strip the upstream path prefix from a redirect `Location` so the browser
+/// never sees the gate's internal sub-path mapping. Handles server-relative
+/// (`/prefix/x` → `/x`) and absolute (`scheme://host/prefix/x`) forms; returns
+/// `None` when nothing changed.
+fn rewrite_location(loc: &str, prefix: &str) -> Option<String> {
+    if prefix.is_empty() {
+        return None;
+    }
+    let strip = |path: &str| -> Option<String> {
+        let rest = path.strip_prefix(prefix)?;
+        if rest.is_empty() {
+            Some("/".to_string())
+        } else if rest.starts_with('/') {
+            Some(rest.to_string())
+        } else {
+            None
+        }
+    };
+    if loc.starts_with('/') {
+        return strip(loc);
+    }
+    for scheme in ["http://", "https://"] {
+        if let Some(after) = loc.strip_prefix(scheme) {
+            if let Some(slash) = after.find('/') {
+                let (host, path) = after.split_at(slash);
+                if let Some(rest) = strip(path) {
+                    return Some(format!("{scheme}{host}{rest}"));
+                }
+            }
+            break;
+        }
+    }
+    None
+}
+
+fn status_class(status: StatusCode) -> &'static str {
+    match status.as_u16() {
+        100..=199 => "1xx",
+        200..=299 => "2xx",
+        300..=399 => "3xx",
+        400..=499 => "4xx",
+        _ => "5xx",
+    }
+}
+
+fn unix_now() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
+
 /// Mint the `kbve_gate` session cookie from a URL-delivered token, then 302 to a
-/// clean URL so the JWT never lingers in history, referrers, or logs.
-fn cookie_land(state: &GateState, uri: &Uri, token: &str) -> Response {
+/// clean URL so the JWT never lingers in history, referrers, or logs. The cookie
+/// lifetime tracks the token's own `exp` so it never outlives the JWT.
+fn cookie_land(state: &GateState, uri: &Uri, token: &str, exp: i64) -> Response {
     let cleaned = uri.query().map(strip_access_token).unwrap_or_default();
     let location = if cleaned.is_empty() {
         uri.path().to_string()
     } else {
         format!("{}?{}", uri.path(), cleaned)
     };
+    let max_age = (exp - unix_now()).clamp(0, 86400);
     let mut cookie = format!(
-        "{GATE_SESSION_COOKIE}={token}; Path=/; Max-Age=3600; HttpOnly; Secure; SameSite=Lax"
+        "{GATE_SESSION_COOKIE}={token}; Path=/; Max-Age={max_age}; HttpOnly; Secure; SameSite=Lax"
     );
     if let Some(domain) = &state.cfg.cookie_domain {
         cookie.push_str("; Domain=");
@@ -157,6 +215,13 @@ fn deny(
     ext_url: &str,
     bounced: bool,
 ) -> Response {
+    warn!(%status, reason = %msg, path = %ext_url, bounced, "gate deny");
+    let result = match status {
+        StatusCode::UNAUTHORIZED => "deny_unauthorized",
+        StatusCode::FORBIDDEN => "deny_forbidden",
+        _ => "deny_other",
+    };
+    metrics::counter!("gate_auth_total", "result" => result).increment(1);
     if status == StatusCode::UNAUTHORIZED {
         if bounced && is_navigation(headers) {
             return loop_break_page(msg);
@@ -171,7 +236,32 @@ fn deny(
             }
         }
     }
+    if status == StatusCode::FORBIDDEN && is_navigation(headers) {
+        return forbidden_page();
+    }
     (status, axum::Json(serde_json::json!({ "error": msg }))).into_response()
+}
+
+/// HTML 403 for a signed-in user who lacks access — a bare JSON body reads as a
+/// broken page in the browser.
+fn forbidden_page() -> Response {
+    let body = "<!doctype html><meta charset=utf-8><title>Not authorized</title>\
+         <body style=\"font-family:system-ui;max-width:32rem;margin:4rem auto;padding:0 1rem\">\
+         <h1>Not authorized</h1>\
+         <p>You are signed in, but your account does not have access to this service.</p>\
+         <p>Ask an administrator to grant access, then reload.</p>\
+         </body>";
+    Response::builder()
+        .status(StatusCode::FORBIDDEN)
+        .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+        .body(Body::from(body))
+        .unwrap_or_else(|_| {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::empty())
+                .unwrap()
+        })
+        .into_response()
 }
 
 /// Terminal HTML shown when a post-login bounce token is rejected — breaks the
@@ -203,14 +293,14 @@ fn loop_break_page(reason: &str) -> Response {
         .into_response()
 }
 
-/// Validate the JWT and apply the authz policy. Returns the user id on pass.
+/// Validate the JWT and apply the authz policy. Returns the token `exp` on pass.
 async fn authorize(
     state: &GateState,
     headers: &HeaderMap,
     query: Option<&str>,
     ext_url: &str,
     bounced: bool,
-) -> Result<String, Response> {
+) -> Result<i64, Response> {
     let token = extract_token(
         headers
             .get(header::AUTHORIZATION)
@@ -247,13 +337,15 @@ async fn authorize(
         }
     };
     let sub = data.claims.sub;
+    let exp = data.claims.exp;
 
     match &state.cfg.authz {
-        Authz::JwtOnly => Ok(sub),
+        Authz::JwtOnly => Ok(exp),
         Authz::IsStaff => {
             let staff = match &state.cfg.staff {
                 Some(s) => s,
                 None => {
+                    metrics::counter!("gate_auth_total", "result" => "error_backend").increment(1);
                     return Err((
                         StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(serde_json::json!({ "error": "staff gate unconfigured" })),
@@ -262,7 +354,7 @@ async fn authorize(
                 }
             };
             match staff.is_staff(&sub).await {
-                Ok(true) => Ok(sub),
+                Ok(true) => Ok(exp),
                 Ok(false) => Err(deny(
                     state,
                     headers,
@@ -271,11 +363,14 @@ async fn authorize(
                     ext_url,
                     bounced,
                 )),
-                Err(e) => Err((
-                    StatusCode::BAD_GATEWAY,
-                    axum::Json(serde_json::json!({ "error": e.to_string() })),
-                )
-                    .into_response()),
+                Err(e) => {
+                    metrics::counter!("gate_auth_total", "result" => "error_backend").increment(1);
+                    Err((
+                        StatusCode::BAD_GATEWAY,
+                        axum::Json(serde_json::json!({ "error": e.to_string() })),
+                    )
+                        .into_response())
+                }
             }
         }
     }
@@ -287,16 +382,18 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     let ext_url = external_url(&headers, req.uri());
     let bounced = query.as_deref().and_then(access_token_in_query).is_some();
 
-    if let Err(resp) = authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
-        return resp;
-    }
+    let exp = match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
+        Ok(exp) => exp,
+        Err(resp) => return resp,
+    };
+    metrics::counter!("gate_auth_total", "result" => "allow").increment(1);
 
     // Token arrived in the URL (post-login bounce): convert it to a session
     // cookie and redirect to a clean URL. Skipped for WebSocket upgrades, which
     // carry the token in the cookie the browser already holds.
     if !is_websocket_upgrade(&headers) {
         if let Some(token) = query.as_deref().and_then(access_token_in_query) {
-            return cookie_land(&state, req.uri(), &token);
+            return cookie_land(&state, req.uri(), &token, exp);
         }
     }
 
@@ -316,6 +413,38 @@ const HOP_BY_HOP: &[&str] = &[
     "transfer-encoding",
     "upgrade",
 ];
+
+/// Drop the gate's own cookies (`kbve_gate`, `sb-access-token`) from a Cookie
+/// header, leaving the upstream's own cookies (e.g. n8n's session) intact.
+fn strip_gate_cookies(cookie_header: &str) -> String {
+    cookie_header
+        .split(';')
+        .map(|p| p.trim())
+        .filter(|p| !p.is_empty())
+        .filter(|p| {
+            let name = p.split_once('=').map(|(k, _)| k).unwrap_or(p);
+            name != GATE_SESSION_COOKIE && name != SB_ACCESS_TOKEN_COOKIE
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
+}
+
+/// Rewrite the Cookie header so the upstream sees its own cookies but never the
+/// gate's auth tokens.
+fn sanitize_cookies(headers: &mut HeaderMap) {
+    let kept = headers
+        .get(header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .map(strip_gate_cookies);
+    headers.remove(header::COOKIE);
+    if let Some(kept) = kept {
+        if !kept.is_empty() {
+            if let Ok(v) = HeaderValue::from_str(&kept) {
+                headers.insert(header::COOKIE, v);
+            }
+        }
+    }
+}
 
 fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
     let path = uri.path();
@@ -337,7 +466,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
     headers.remove(header::HOST);
     headers.remove(header::AUTHORIZATION);
     headers.remove(header::ACCEPT_ENCODING);
-    headers.remove(header::COOKIE);
+    sanitize_cookies(&mut headers);
     for h in HOP_BY_HOP {
         headers.remove(*h);
     }
@@ -348,35 +477,26 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
         }
     }
 
-    let body_bytes = match axum::body::to_bytes(req.into_body(), 25 * 1024 * 1024).await {
-        Ok(b) => b,
-        Err(_) => {
-            return (
-                StatusCode::PAYLOAD_TOO_LARGE,
-                axum::Json(serde_json::json!({ "error": "request body too large" })),
-            )
-                .into_response();
-        }
-    };
+    let body = reqwest::Body::wrap_stream(req.into_body().into_data_stream());
 
     debug!(%url, %method, "gate forward");
 
+    let started = std::time::Instant::now();
     let resp = match state
         .client
         .request(method, &url)
         .headers(reqwest_headers(&headers))
-        .body(body_bytes)
+        .body(body)
         .send()
         .await
     {
         Ok(r) => r,
         Err(e) => {
             warn!(%url, "gate upstream error: {e}");
+            metrics::counter!("gate_upstream_responses_total", "class" => "error").increment(1);
             return (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(
-                    serde_json::json!({ "error": "upstream unreachable", "detail": e.to_string() }),
-                ),
+                axum::Json(serde_json::json!({ "error": "upstream unreachable" })),
             )
                 .into_response();
         }
@@ -384,6 +504,9 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
 
     let status =
         StatusCode::from_u16(resp.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+    metrics::histogram!("gate_upstream_duration_seconds").record(started.elapsed().as_secs_f64());
+    metrics::counter!("gate_upstream_responses_total", "class" => status_class(status))
+        .increment(1);
 
     let mut out_headers = HeaderMap::new();
     for (k, v) in resp.headers() {
@@ -397,6 +520,16 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
     out_headers.remove("content-encoding");
     for h in HOP_BY_HOP {
         out_headers.remove(*h);
+    }
+
+    let rewritten = out_headers
+        .get(header::LOCATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|loc| rewrite_location(loc, &state.cfg.upstream_prefix));
+    if let Some(loc) = rewritten {
+        if let Ok(v) = HeaderValue::from_str(&loc) {
+            out_headers.insert(header::LOCATION, v);
+        }
     }
 
     let body = Body::from_stream(resp.bytes_stream());
@@ -440,13 +573,19 @@ async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
     let basic = state.cfg.upstream_basic.clone();
 
     let (mut parts, _body) = req.into_parts();
+    let cookie = parts
+        .headers
+        .get(header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .map(strip_gate_cookies)
+        .filter(|c| !c.is_empty());
     let ws = match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {
         Ok(ws) => ws,
         Err(rej) => return rej.into_response(),
     };
 
     ws.on_upgrade(move |browser_ws| async move {
-        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), basic).await {
+        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), basic, cookie).await {
             warn!(%ws_url, "gate ws bridge error: {e}");
         }
     })
@@ -456,6 +595,7 @@ async fn pump_ws(
     browser: axum::extract::ws::WebSocket,
     upstream_url: String,
     basic: Option<String>,
+    cookie: Option<String>,
 ) -> Result<(), String> {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::tungstenite::Message as TMsg;
@@ -469,6 +609,12 @@ async fn pump_ws(
         request.headers_mut().insert(
             "authorization",
             b.parse().map_err(|e| format!("ws basic header: {e}"))?,
+        );
+    }
+    if let Some(c) = &cookie {
+        request.headers_mut().insert(
+            "cookie",
+            c.parse().map_err(|e| format!("ws cookie header: {e}"))?,
         );
     }
 
