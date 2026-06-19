@@ -32,6 +32,8 @@ spec:
                                 key: jwt-secret
                       - name: SUPABASE_URL
                         value: 'http://kong:8000'
+                      - name: WEBHOOK_PUBLIC_BASE
+                        value: 'https://supabase.kbve.com'
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:

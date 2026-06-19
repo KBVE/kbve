@@ -24,6 +24,7 @@ jobs:
         timeout-minutes: 120
         env:
             NX_NO_CLOUD: true
+            NX_DAEMON: false
         permissions:
             contents: read
         steps:
@@ -166,9 +167,9 @@ jobs:
             # the daemon's cached graph sees the dep in package.json but
             # not yet the import in src/, so it falsely flags the package
             # as unused (see #10607). `nx reset` clears the cache and stops
-            # any stale daemon — the next nx invocation spawns a fresh daemon
-            # and rebuilds the graph from disk, so daemon caching still helps
-            # the rest of the run.
+            # any stale daemon; NX_DAEMON=false (job env) then keeps every nx
+            # invocation daemonless, rebuilding the graph from disk each time
+            # so CI never hits the "Failed to process project graph" daemon flake.
             - name: Reset nx graph
               run: pnpm nx reset
 
