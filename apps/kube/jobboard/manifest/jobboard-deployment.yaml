@@ -49,6 +49,13 @@ spec:
                         value: '5400'
                       - name: SECURE_COOKIES
                         value: 'true'
+                      - name: AUTH_MODE
+                        value: 'local'
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
                       - name: KBVE_PG_RW_URL
                         valueFrom:
                             secretKeyRef:
