@@ -416,7 +416,7 @@ export default defineConfig({
 			],
 		},
 		build: {
-			rolldownOptions: {
+			rollupOptions: {
 				// noVNC CJS has broken top-level await; guacamole-common-js is
 				// loaded via vendored ESM at runtime. Both use @vite-ignore
 				// dynamic imports — externalize so Rollup never parses them.

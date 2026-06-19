@@ -52,7 +52,7 @@ export default defineConfig(() => ({
 		outDir: '../../../dist/packages/npm/droid',
 		target: 'esnext',
 		assetsInlineLimit: 0,
-		rolldownOptions: {
+		rollupOptions: {
 			input: {
 				droid: path.resolve(__dirname, 'src/index.ts'),
 				'workers/main': path.resolve(
@@ -76,7 +76,7 @@ export default defineConfig(() => ({
 	worker: {
 		plugins: () => [nxViteTsPaths()],
 		format: 'es',
-		rolldownOptions: {
+		rollupOptions: {
 			input: {
 				'canvas-worker': path.resolve(
 					__dirname,

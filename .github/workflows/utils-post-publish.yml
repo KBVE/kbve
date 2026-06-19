@@ -40,13 +40,14 @@ on:
                 description: 'PAT for pushing atom branches'
                 required: true
 
-# Shared with utils-update-version-toml.yml. Both workflows commit to
-# version.toml / Cargo.toml / Cargo.lock from per-release atom branches
-# based on the same dev HEAD; without one shared group two crate
-# releases firing across both workflows can race on Cargo.lock when
-# their atom PRs auto-merge.
+# Crate releases (version_target_path → Cargo.toml) share one group with
+# utils-update-version-toml.yml's `version-sync-crates`: they all commit
+# Cargo.lock from per-release atom branches off the same dev HEAD and would
+# race when their atom PRs auto-merge. Non-crate apps (docker/npm/python)
+# touch only their own version.toml + manifest, so each gets a per-app group
+# to stop one app's sync from evicting another's pending run.
 concurrency:
-    group: version-sync
+    group: ${{ contains(inputs.version_target_path, 'Cargo.toml') && 'version-sync-crates' || format('version-sync-{0}', inputs.app_name) }}
     cancel-in-progress: false
 
 jobs:

@@ -30,7 +30,7 @@ export default defineConfig({
 			fileName: (format) => `laser.${format}.js`,
 			formats: ['es'],
 		},
-		rolldownOptions: {
+		rollupOptions: {
 			external: [
 				'react',
 				'react-dom',

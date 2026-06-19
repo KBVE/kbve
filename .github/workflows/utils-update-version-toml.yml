@@ -25,12 +25,14 @@ on:
                 type: string
                 default: ''
 
-# Shared with utils-post-publish.yml. Both workflows commit to
-# version.toml / Cargo.toml / Cargo.lock from per-release atom branches
-# based on the same dev HEAD; without this group two crate releases
-# firing in parallel race on Cargo.lock when their atom PRs auto-merge.
+# Crate releases share one group with utils-post-publish.yml's
+# `version-sync-crates`: they all commit Cargo.lock from per-release atom
+# branches off the same dev HEAD and would race when their atom PRs
+# auto-merge. Non-crate packages (npm/docker/python) touch only their own
+# version.toml + manifest, so each gets a per-package group to stop one
+# package's sync from evicting another's pending run.
 concurrency:
-    group: version-sync
+    group: ${{ inputs.package_type == 'crates' && 'version-sync-crates' || format('version-sync-{0}', inputs.package_name) }}
     cancel-in-progress: false
 
 jobs:

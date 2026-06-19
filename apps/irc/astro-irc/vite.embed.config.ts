@@ -37,7 +37,7 @@ export default defineConfig({
 			formats: ['iife'],
 			fileName: () => 'chat.js',
 		},
-		rolldownOptions: {
+		rollupOptions: {
 			output: {
 				inlineDynamicImports: true,
 				exports: 'named',

@@ -16,7 +16,7 @@ supabase = ["dep:lru", "dep:uuid"]
 image-gen = ["dep:resvg"]
 wallet = ["dep:uuid"]
 legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
-gate = ["axum/ws", "reqwest/stream", "dep:tokio-tungstenite"]
+gate = ["axum/ws", "reqwest/stream", "dep:tokio-tungstenite", "dep:lru"]
 
 [dependencies]
 anyhow = "1.0"
