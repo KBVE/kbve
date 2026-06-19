@@ -23,7 +23,11 @@ on:
                 default: 'dev-5.7.4'
 
 permissions:
-    contents: read
+    contents: write
+    packages: write
+    issues: write
+    pull-requests: write
+    actions: write
 
 concurrency:
     group: ci-unreal-plugins-${{ github.ref }}
