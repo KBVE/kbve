@@ -18,31 +18,11 @@ on:
                 required: false
                 type: string
                 default: ''
-            unreal_plugin_path:
-                description: 'Path to Unreal plugin dir — unreal only (e.g. packages/unreal/UEDevOps)'
+            unreal_config:
+                description: 'JSON of unreal-only fields {plugin_path, image_tags[], deploy_to_itch, itch_game_id, dependency_plugins, skip_version_update}. Consolidated to stay under the 10-input workflow_dispatch cap.'
                 required: false
                 type: string
-                default: ''
-            ue_image_tags:
-                description: 'JSON array of Epic UE image tags — unreal only (e.g. ["dev-5.7.4","dev-5.6.1"])'
-                required: false
-                type: string
-                default: '["dev-5.7.4"]'
-            deploy_to_itch:
-                description: 'Deploy to itch.io — unreal only'
-                required: false
-                type: boolean
-                default: false
-            itch_game_id:
-                description: 'Itch.io game ID — unreal only (e.g. uedevops)'
-                required: false
-                type: string
-                default: ''
-            unreal_dependency_plugins:
-                description: 'Space-separated paths to dependency plugins — unreal only (e.g. packages/unreal/KBVEYYJson packages/unreal/KBVEZstd)'
-                required: false
-                type: string
-                default: ''
+                default: '{"plugin_path":"","image_tags":["dev-5.7.4"],"deploy_to_itch":false,"itch_game_id":"","dependency_plugins":"","skip_version_update":false}'
             version_source:
                 description: 'Path to version source file (overrides default path convention). E.g. packages/rust/bevy/bevy_items/Cargo.toml'
                 required: false
@@ -67,11 +47,6 @@ on:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
                 type: string
-            skip_version_update:
-                description: 'unreal-win64 only — when true, the Win64 publish does NOT bump version.toml (the Linux publish owns it for multi-platform plugins).'
-                required: false
-                type: boolean
-                default: false
 
 # No workflow-level concurrency — each package fans out independently.
 # Queue guard handles stale deploy protection per-package.
@@ -176,9 +151,9 @@ jobs:
                       if [ -n "$MANIFEST_V" ] && [ "$MANIFEST_V" != "0.0.0" ]; then
                         LOCAL="$MANIFEST_V"
                       else
-                        LOCAL=$(jq -r '.VersionName' "${{ inputs.unreal_plugin_path }}/${NAME}.uplugin" 2>/dev/null || echo "0.0.0")
+                        LOCAL=$(jq -r '.VersionName' "${{ fromJSON(inputs.unreal_config).plugin_path }}/${NAME}.uplugin" 2>/dev/null || echo "0.0.0")
                       fi
-                      VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
+                      VTOML="${{ fromJSON(inputs.unreal_config).plugin_path }}/version.toml"
                       ;;
                     *)
                       echo "::error::Unknown package type: $TYPE"
@@ -325,7 +300,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                ue_tag: ${{ fromJson(inputs.ue_image_tags) }}
+                ue_tag: ${{ fromJson(inputs.unreal_config).image_tags }}
         permissions:
             contents: write
             packages: read
@@ -334,16 +309,16 @@ jobs:
         uses: ./.github/workflows/ci-unreal-build.yml
         with:
             mode: plugin
-            plugin_path: ${{ inputs.unreal_plugin_path }}
+            plugin_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}
             plugin_name: ${{ inputs.package_name }}
             manifest_version: ${{ inputs.manifest_version }}
             ue_image_tag: ${{ matrix.ue_tag }}
             target_platforms: Linux
-            deploy_to_itch: ${{ inputs.deploy_to_itch }}
+            deploy_to_itch: ${{ fromJSON(inputs.unreal_config).deploy_to_itch }}
             itch_username: kbve
-            itch_game_id: ${{ inputs.itch_game_id }}
+            itch_game_id: ${{ fromJSON(inputs.unreal_config).itch_game_id }}
             itch_channel: plugin
-            dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
+            dependency_plugin_paths: ${{ fromJSON(inputs.unreal_config).dependency_plugins }}
         secrets:
             epic_pat: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
@@ -363,16 +338,16 @@ jobs:
         uses: ./.github/workflows/ci-unreal-build.yml
         with:
             mode: plugin-win
-            plugin_path: ${{ inputs.unreal_plugin_path }}
+            plugin_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}
             plugin_name: ${{ inputs.package_name }}
             manifest_version: ${{ inputs.manifest_version }}
-            ue_image_tag: ${{ fromJson(inputs.ue_image_tags)[0] }}
+            ue_image_tag: ${{ fromJson(inputs.unreal_config).image_tags[0] }}
             target_platforms: Win64
-            deploy_to_itch: ${{ inputs.deploy_to_itch }}
+            deploy_to_itch: ${{ fromJSON(inputs.unreal_config).deploy_to_itch }}
             itch_username: kbve
-            itch_game_id: ${{ inputs.itch_game_id }}
+            itch_game_id: ${{ fromJSON(inputs.unreal_config).itch_game_id }}
             itch_channel: plugin-win64
-            dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
+            dependency_plugin_paths: ${{ fromJSON(inputs.unreal_config).dependency_plugins }}
         secrets:
             epic_pat: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
@@ -442,13 +417,13 @@ jobs:
             package_type: unreal
             package_name: ${{ inputs.package_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
-            version_toml_path: ${{ inputs.unreal_plugin_path }}/version.toml
-            version_target_path: ${{ inputs.unreal_plugin_path }}/${{ inputs.package_name }}.uplugin
+            version_toml_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/version.toml
+            version_target_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/${{ inputs.package_name }}.uplugin
 
     update_version_unreal_win64:
         name: Update version.toml (unreal-win64)
         needs: [publish_unreal_win64, version_gate]
-        if: always() && needs.publish_unreal_win64.result == 'success' && needs.version_gate.outputs.should_publish == 'true' && inputs.skip_version_update != true
+        if: always() && needs.publish_unreal_win64.result == 'success' && needs.version_gate.outputs.should_publish == 'true' && fromJSON(inputs.unreal_config).skip_version_update != true
         permissions:
             contents: write
             pull-requests: write
@@ -458,8 +433,8 @@ jobs:
             package_type: unreal
             package_name: ${{ inputs.package_name }}
             version: ${{ needs.version_gate.outputs.local_version }}
-            version_toml_path: ${{ inputs.unreal_plugin_path }}/version.toml
-            version_target_path: ${{ inputs.unreal_plugin_path }}/${{ inputs.package_name }}.uplugin
+            version_toml_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/version.toml
+            version_target_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/${{ inputs.package_name }}.uplugin
 
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).

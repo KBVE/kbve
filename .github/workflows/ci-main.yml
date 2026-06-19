@@ -462,13 +462,14 @@ jobs:
                         SKIPPED=$((SKIPPED + 1))
                       else
                         echo "  ✓ $name (Linux) — $reason, dispatching"
+                        uconfig=$(jq -nc \
+                          --arg pp "$path" --arg itch "$itch" --arg deps "$deps" \
+                          --argjson di "$deploy_itch" \
+                          '{plugin_path:$pp, image_tags:["dev-5.7.4"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, skip_version_update:false}')
                         dispatch_publish unreal \
                           --field package_name="$name" \
-                          --field unreal_plugin_path="$path" \
                           --field manifest_version="$mdx_version" \
-                          --field deploy_to_itch="$deploy_itch" \
-                          --field itch_game_id="$itch" \
-                          --field unreal_dependency_plugins="$deps"
+                          --field unreal_config="$uconfig"
                         DISPATCHED=$((DISPATCHED + 1))
                       fi
                     fi
@@ -484,13 +485,14 @@ jobs:
                         SKIPPED=$((SKIPPED + 1))
                       else
                         echo "  ✓ $name (Win64) — $reason, dispatching"
+                        uconfig=$(jq -nc \
+                          --arg pp "$path" --arg deps "$deps" \
+                          --argjson sv "$win64_skip_version" \
+                          '{plugin_path:$pp, image_tags:["dev-5.7.4"], deploy_to_itch:false, itch_game_id:"", dependency_plugins:$deps, skip_version_update:$sv}')
                         dispatch_publish unreal-win64 \
                           --field package_name="$name" \
-                          --field unreal_plugin_path="$path" \
                           --field manifest_version="$mdx_version" \
-                          --field deploy_to_itch="false" \
-                          --field skip_version_update="$win64_skip_version" \
-                          --field unreal_dependency_plugins="$deps"
+                          --field unreal_config="$uconfig"
                         DISPATCHED=$((DISPATCHED + 1))
                       fi
                     fi
