@@ -387,6 +387,9 @@ pub(crate) async fn require_dashboard_manage_with_query(
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
+            warn!(
+                "{service_name} proxy access denied — missing Authorization header / access_token"
+            );
             return Err((
                 StatusCode::UNAUTHORIZED,
                 axum::Json(json!({
@@ -448,6 +451,9 @@ async fn require_dashboard_view_with_query(
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
+            warn!(
+                "{service_name} proxy access denied — missing Authorization header / access_token"
+            );
             return Err((
                 StatusCode::UNAUTHORIZED,
                 axum::Json(json!({
