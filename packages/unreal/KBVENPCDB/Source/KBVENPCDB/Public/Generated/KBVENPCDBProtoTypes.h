@@ -779,6 +779,9 @@ struct KBVENPCDB_API FKBVEGenNpc
 	FString KillCreditRef;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	TArray<FString> ShopItems;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	TArray<FKBVEGenSpawnRule> SpawnRules;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
