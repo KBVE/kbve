@@ -1,10 +1,11 @@
+use std::num::NonZeroUsize;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use dashmap::DashMap;
 use jsonwebtoken::{
     Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
 };
+use lru::LruCache;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -174,9 +175,11 @@ pub struct StaffGate {
     apikey: Option<String>,
     schema: String,
     ttl_secs: u64,
-    cache: DashMap<String, (bool, u64)>,
+    cache: Mutex<LruCache<String, (bool, u64)>>,
     service_token: Mutex<Option<(String, u64)>>,
 }
+
+const STAFF_CACHE_CAP: usize = 4096;
 
 impl StaffGate {
     pub fn new(
@@ -194,7 +197,9 @@ impl StaffGate {
             apikey,
             schema,
             ttl_secs,
-            cache: DashMap::new(),
+            cache: Mutex::new(LruCache::new(
+                NonZeroUsize::new(STAFF_CACHE_CAP).expect("cache cap nonzero"),
+            )),
             service_token: Mutex::new(None),
         }
     }
@@ -238,10 +243,11 @@ impl StaffGate {
     }
 
     pub async fn is_staff(&self, user_id: &str) -> Result<bool, AuthError> {
-        if let Some(entry) = self.cache.get(user_id) {
-            let (val, exp) = *entry;
-            if Self::now() < exp {
-                return Ok(val);
+        if let Ok(mut cache) = self.cache.lock() {
+            if let Some(&(val, exp)) = cache.get(user_id) {
+                if Self::now() < exp {
+                    return Ok(val);
+                }
             }
         }
 
@@ -272,8 +278,9 @@ impl StaffGate {
             .map_err(|e| AuthError::Upstream(format!("is_staff read: {e}")))?;
         let val = text.trim().eq_ignore_ascii_case("true");
 
-        self.cache
-            .insert(user_id.to_string(), (val, Self::now() + self.ttl_secs));
+        if let Ok(mut cache) = self.cache.lock() {
+            cache.put(user_id.to_string(), (val, Self::now() + self.ttl_secs));
+        }
         Ok(val)
     }
 }
