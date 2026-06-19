@@ -134,6 +134,51 @@ fn strip_access_token(query: &str) -> String {
         .join("&")
 }
 
+/// Strip the upstream path prefix from a redirect `Location` so the browser
+/// never sees the gate's internal sub-path mapping. Handles server-relative
+/// (`/prefix/x` → `/x`) and absolute (`scheme://host/prefix/x`) forms; returns
+/// `None` when nothing changed.
+fn rewrite_location(loc: &str, prefix: &str) -> Option<String> {
+    if prefix.is_empty() {
+        return None;
+    }
+    let strip = |path: &str| -> Option<String> {
+        let rest = path.strip_prefix(prefix)?;
+        if rest.is_empty() {
+            Some("/".to_string())
+        } else if rest.starts_with('/') {
+            Some(rest.to_string())
+        } else {
+            None
+        }
+    };
+    if loc.starts_with('/') {
+        return strip(loc);
+    }
+    for scheme in ["http://", "https://"] {
+        if let Some(after) = loc.strip_prefix(scheme) {
+            if let Some(slash) = after.find('/') {
+                let (host, path) = after.split_at(slash);
+                if let Some(rest) = strip(path) {
+                    return Some(format!("{scheme}{host}{rest}"));
+                }
+            }
+            break;
+        }
+    }
+    None
+}
+
+fn status_class(status: StatusCode) -> &'static str {
+    match status.as_u16() {
+        100..=199 => "1xx",
+        200..=299 => "2xx",
+        300..=399 => "3xx",
+        400..=499 => "4xx",
+        _ => "5xx",
+    }
+}
+
 fn unix_now() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -171,6 +216,12 @@ fn deny(
     bounced: bool,
 ) -> Response {
     warn!(%status, reason = %msg, path = %ext_url, bounced, "gate deny");
+    let result = match status {
+        StatusCode::UNAUTHORIZED => "deny_unauthorized",
+        StatusCode::FORBIDDEN => "deny_forbidden",
+        _ => "deny_other",
+    };
+    metrics::counter!("gate_auth_total", "result" => result).increment(1);
     if status == StatusCode::UNAUTHORIZED {
         if bounced && is_navigation(headers) {
             return loop_break_page(msg);
@@ -294,6 +345,7 @@ async fn authorize(
             let staff = match &state.cfg.staff {
                 Some(s) => s,
                 None => {
+                    metrics::counter!("gate_auth_total", "result" => "error_backend").increment(1);
                     return Err((
                         StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(serde_json::json!({ "error": "staff gate unconfigured" })),
@@ -311,11 +363,14 @@ async fn authorize(
                     ext_url,
                     bounced,
                 )),
-                Err(e) => Err((
-                    StatusCode::BAD_GATEWAY,
-                    axum::Json(serde_json::json!({ "error": e.to_string() })),
-                )
-                    .into_response()),
+                Err(e) => {
+                    metrics::counter!("gate_auth_total", "result" => "error_backend").increment(1);
+                    Err((
+                        StatusCode::BAD_GATEWAY,
+                        axum::Json(serde_json::json!({ "error": e.to_string() })),
+                    )
+                        .into_response())
+                }
             }
         }
     }
@@ -331,6 +386,7 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
         Ok(exp) => exp,
         Err(resp) => return resp,
     };
+    metrics::counter!("gate_auth_total", "result" => "allow").increment(1);
 
     // Token arrived in the URL (post-login bounce): convert it to a session
     // cookie and redirect to a clean URL. Skipped for WebSocket upgrades, which
@@ -425,6 +481,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
 
     debug!(%url, %method, "gate forward");
 
+    let started = std::time::Instant::now();
     let resp = match state
         .client
         .request(method, &url)
@@ -436,6 +493,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
         Ok(r) => r,
         Err(e) => {
             warn!(%url, "gate upstream error: {e}");
+            metrics::counter!("gate_upstream_responses_total", "class" => "error").increment(1);
             return (
                 StatusCode::BAD_GATEWAY,
                 axum::Json(serde_json::json!({ "error": "upstream unreachable" })),
@@ -446,6 +504,9 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
 
     let status =
         StatusCode::from_u16(resp.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+    metrics::histogram!("gate_upstream_duration_seconds").record(started.elapsed().as_secs_f64());
+    metrics::counter!("gate_upstream_responses_total", "class" => status_class(status))
+        .increment(1);
 
     let mut out_headers = HeaderMap::new();
     for (k, v) in resp.headers() {
@@ -459,6 +520,16 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
     out_headers.remove("content-encoding");
     for h in HOP_BY_HOP {
         out_headers.remove(*h);
+    }
+
+    let rewritten = out_headers
+        .get(header::LOCATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|loc| rewrite_location(loc, &state.cfg.upstream_prefix));
+    if let Some(loc) = rewritten {
+        if let Ok(v) = HeaderValue::from_str(&loc) {
+            out_headers.insert(header::LOCATION, v);
+        }
     }
 
     let body = Body::from_stream(resp.bytes_stream());

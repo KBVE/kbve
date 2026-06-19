@@ -87,11 +87,27 @@ pub fn config_from_env() -> Result<GateConfig, String> {
 }
 
 /// Bind `GATE_LISTEN` (default `0.0.0.0:5678`) and serve the gate forever.
+///
+/// A Prometheus `/metrics` endpoint is served on `GATE_METRICS_PORT`
+/// (default `9090`) with the gate's low-cardinality counters.
 pub async fn serve(cfg: GateConfig) -> Result<(), String> {
     let listen: SocketAddr = std::env::var("GATE_LISTEN")
         .unwrap_or_else(|_| "0.0.0.0:5678".to_string())
         .parse()
         .map_err(|e| format!("invalid GATE_LISTEN: {e}"))?;
+
+    let metrics_port: u16 = std::env::var("GATE_METRICS_PORT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(9090);
+    let (_layer, handle) = jedi::entity::pipe_prometheus::build_metrics_layer("kbve-gate");
+    tokio::spawn(jedi::entity::pipe_prometheus::serve_metrics(
+        jedi::entity::pipe_prometheus::MetricsConfig {
+            service_name: "kbve-gate",
+            port: metrics_port,
+        },
+        handle,
+    ));
 
     let router = GateState::new(cfg).into_router();
     let listener = tokio::net::TcpListener::bind(listen)
