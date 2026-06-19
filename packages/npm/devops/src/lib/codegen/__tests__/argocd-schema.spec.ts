@@ -5,7 +5,7 @@ import {
 	ArgoHealthCheckSchema,
 	HealthStatusCodes,
 	SyncStatusCodes,
-} from '../../../../../../data/codegen/generated/argocd-schema';
+} from '../generated/argocd-schema';
 
 describe('argocd generated schema', () => {
 	const app = {
