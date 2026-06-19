@@ -303,9 +303,10 @@ jobs:
                 ue_tag: ${{ fromJson(inputs.unreal_config).image_tags }}
         permissions:
             contents: write
-            packages: read
+            packages: write
             issues: write
             pull-requests: write
+            actions: write
         uses: ./.github/workflows/ci-unreal-build.yml
         with:
             mode: plugin
@@ -333,8 +334,10 @@ jobs:
         if: inputs.package_type == 'unreal-win64' && needs.version_gate.outputs.should_publish == 'true'
         permissions:
             contents: write
+            packages: write
             issues: write
             pull-requests: write
+            actions: write
         uses: ./.github/workflows/ci-unreal-build.yml
         with:
             mode: plugin-win
