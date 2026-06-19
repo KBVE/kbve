@@ -36,6 +36,14 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "charisma"))) Out.Charisma = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "dexterity"))) Out.Dexterity = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "perception"))) Out.Perception = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "extra")) && yyjson_is_obj(V))
+		{
+			size_t MIdx, MMax; yyjson_val *MK, *MV;
+			yyjson_obj_foreach(V, MIdx, MMax, MK, MV)
+			{
+				Out.Extra.Add(FString(UTF8_TO_TCHAR(yyjson_get_str(MK))), (yyjson_is_num(MV) ? yyjson_get_real(MV) : 0.0));
+			}
+		}
 	}
 
 	inline void Populate(FKBVEGenEquipmentInfo& Out, yyjson_val* Obj)
@@ -171,6 +179,14 @@ namespace KBVEItemDBProto
 		yyjson_val* V = nullptr; (void)V;
 		if ((V = yyjson_obj_get(Obj, "guid"))) Out.Guid = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "name"))) Out.Name = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+		if ((V = yyjson_obj_get(Obj, "vars")) && yyjson_is_obj(V))
+		{
+			size_t MIdx, MMax; yyjson_val *MK, *MV;
+			yyjson_obj_foreach(V, MIdx, MMax, MK, MV)
+			{
+				Out.Vars.Add(FString(UTF8_TO_TCHAR(yyjson_get_str(MK))), (yyjson_is_str(MV) ? FString(UTF8_TO_TCHAR(yyjson_get_str(MV))) : FString()));
+			}
+		}
 	}
 
 	inline void Populate(FKBVEGenDeployableInfo& Out, yyjson_val* Obj)
