@@ -1153,7 +1153,8 @@
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
-					"Linux"
+					"Linux",
+					"Mac"
 				],
 				"external_repo_url": "https://github.com/kbve/chuck",
 				"server_target": "chuckServer",
@@ -1168,7 +1169,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.23",
+			"version": "0.3.25",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1185,7 +1186,8 @@
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
-					"Linux"
+					"Linux",
+					"Mac"
 				],
 				"external_repo_url": "https://github.com/kbve/chuck",
 				"external_repo_ref": "dev",
