@@ -753,12 +753,26 @@ nuke_worktrees() {
 
     # Unlock any locked worktrees + best-effort git removal first (serial, fast),
     # then blast leftover directories in parallel.
+    echo ""
+    echo "[1/2] Detaching $n worktree(s) from git..."
+    local i=0
     while IFS= read -r wt; do
+        i=$((i + 1))
+        printf "\r  git remove %d/%d  %-40.40s" "$i" "$n" "$(basename "$wt")"
         git worktree unlock "$wt" 2>/dev/null || true
         git worktree remove --force "$wt" 2>/dev/null || true
     done < "$nuke_file"
+    printf "\r  git remove %d/%d  done%-40s\n" "$n" "$n" ""
 
-    tr '\n' '\0' < "$nuke_file" | xargs -0 -P "$jobs" -n1 rm -rf 2>/dev/null || true
+    echo "[2/2] Blasting leftover directories with $jobs parallel workers..."
+    local progress_file; progress_file=$(mktemp)
+    tr '\n' '\0' < "$nuke_file" | xargs -0 -P "$jobs" -n1 -I{} sh -c '
+        rm -rf "$1" 2>/dev/null
+        echo x >> "'"$progress_file"'"
+        printf "\r  removed %s/'"$n"'  %-40.40s" "$(wc -l < "'"$progress_file"'" | tr -d " ")" "$(basename "$1")"
+    ' _ {} 2>/dev/null || true
+    printf "\r  removed %d/%d  done%-40s\n" "$n" "$n" ""
+    rm -f "$progress_file"
 
     git worktree prune
     git worktree prune --verbose 2>/dev/null || true

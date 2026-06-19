@@ -61,6 +61,9 @@ const protos = [
 		name: 'argocd',
 		protoFile: 'jedi/argocd.proto',
 		package: 'argocd',
+		vendorTo: [
+			{ path: '../../npm/devops/src/lib/codegen/generated/argocd-schema.ts' },
+		],
 	},
 	{
 		name: 'osrs',

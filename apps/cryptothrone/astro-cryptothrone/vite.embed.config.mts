@@ -26,9 +26,15 @@ export default defineConfig({
 			{ find: '@kbve/astro/ui', replacement: pkg('npm/astro/src/ui.ts') },
 			{ find: '@kbve/astro', replacement: pkg('npm/astro/src/index.ts') },
 			{ find: '@kbve/droid', replacement: pkg('npm/droid/src/index.ts') },
-			{ find: '@kbve/laser/ecs', replacement: pkg('npm/laser/src/ecs.ts') },
+			{
+				find: '@kbve/laser/ecs',
+				replacement: pkg('npm/laser/src/ecs.ts'),
+			},
 			{ find: '@kbve/laser', replacement: pkg('npm/laser/src/index.ts') },
-			{ find: '@kbve/chat/gamechat', replacement: pkg('npm/chat/src/gamechat.ts') },
+			{
+				find: '@kbve/chat/gamechat',
+				replacement: pkg('npm/chat/src/gamechat.ts'),
+			},
 			{
 				find: '@kbve/itemdb-data',
 				replacement: pkg('data/codegen/generated/itemdb.json'),
@@ -59,7 +65,7 @@ export default defineConfig({
 			formats: ['iife'],
 			fileName: () => 'embed.js',
 		},
-		rollupOptions: {
+		rolldownOptions: {
 			output: {
 				inlineDynamicImports: true,
 				exports: 'named',

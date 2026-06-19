@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-06-18T09:37:39.038Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-06-19T09:41:29.370Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **50** items
+    **48** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **2** items
+    **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **332** items
+    **361** items
   </Card>
 </CardGrid>
 
@@ -55,23 +55,23 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 50
+    "Theory" : 48
     "AI" : 1
     "Todo" : 7
     "Backlog" : 5
     "Error" : 7
     "Staging" : 3
-    "Review" : 2
-    "Done" : 332
+    "Review" : 1
+    "Done" : 361
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 12
+    "Active (Todo+Staging+Review)" : 11
     "Blocked (Error+Support)" : 7
-    "Done" : 332
-    "Planning (Theory+AI+Backlog)" : 56
+    "Done" : 361
+    "Planning (Theory+AI+Backlog)" : 54
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>50</strong>"]
+    Theory["Theory<br/><strong>48</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -97,9 +97,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>3</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>2</strong>"]
+    Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>332</strong>"]
+    Done["Done<br/><strong>361</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 317
-    "Issue" : 90
+    "Pull Request" : 342
+    "Issue" : 91
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 317 |
-| dev→main | 167 |
-| atomic | 134 |
-| enhancement | 62 |
+| auto-pr | 342 |
+| dev→main | 176 |
+| atomic | 149 |
+| enhancement | 63 |
 | 0 | 19 |
 | 1 | 14 |
 | unity | 10 |
@@ -138,7 +138,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (50)
+### Theory (48)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -160,7 +160,6 @@ pie showData
 | [#10194](https://github.com/KBVE/kbve/issues/10194) | [DISCORDSH] [BEVY] Key Integration Gaps | — | — | enhancement |
 | [#10979](https://github.com/KBVE/kbve/issues/10979) | feat(wallet): khash marketplace bootstrap (5-phase roadmap) | — | — | enhancement |
 | [#10980](https://github.com/KBVE/kbve/issues/10980) | isometric: upgrade Bevy 0.18 → 0.19 + wgpu 27 → 29 | — | — | enhancement |
-| [#11138](https://github.com/KBVE/kbve/issues/11138) | [Plan] Agones-managed Factorio dedicated server | — | — | enhancement |
 | [#11244](https://github.com/KBVE/kbve/issues/11244) | [BEVY][ISOMETRIC] Refactor remaining menus to ui component library | — | — | enhancement |
 | [#11246](https://github.com/KBVE/kbve/issues/11246) | [BEVY][ISOMETRIC] In-game chat overlay (incoming + outgoing) | — | — | enhancement |
 | [#11247](https://github.com/KBVE/kbve/issues/11247) | [BEVY][ISOMETRIC] Toast styling pass — color accents + animations | — | — | enhancement |
@@ -178,12 +177,10 @@ pie showData
 | [#12422](https://github.com/KBVE/kbve/issues/12422) | cryptothrone: decompose CloudCityScene into ECS systems over EntityStore (phased | — | — | enhancement |
 | [#12484](https://github.com/KBVE/kbve/issues/12484) | [RN] [CRUX] Off Thread Networking | — | — | enhancement |
 | [#12495](https://github.com/KBVE/kbve/issues/12495) | [RN] [WEB] Reuse React Native components on web via react-native-web + Astro | — | — | enhancement |
-| [#12521](https://github.com/KBVE/kbve/issues/12521) | simgrid: player-to-player trading | — | — | enhancement |
 | [#12519](https://github.com/KBVE/kbve/issues/12519) | cryptothrone: render status effects on the client | — | — | enhancement |
 | [#12520](https://github.com/KBVE/kbve/issues/12520) | cryptothrone: Discord Activity end-to-end verify + boot polish | — | — | enhancement |
 | [#12522](https://github.com/KBVE/kbve/issues/12522) | [RN] OAuth integration (Discord / GitHub / Twitch) | — | — | enhancement |
 | [#12532](https://github.com/KBVE/kbve/issues/12532) | cryptothrone: Discord Activity mobile layout (safe-area + layout-mode + orientat | — | — | enhancement |
-| [#12555](https://github.com/KBVE/kbve/issues/12555) | cryptothrone: fast-register Discord users (link-by-email, else create) | — | — | enhancement |
 | [#12692](https://github.com/KBVE/kbve/issues/12692) | jobboard: validate discipline_ids references at membership submit/approval | — | — | enhancement, security |
 | [#12694](https://github.com/KBVE/kbve/issues/12694) | jobboard-web: validate API responses at runtime with the generated zod schemas | — | — | enhancement, good first issue |
 | [#12693](https://github.com/KBVE/kbve/issues/12693) | jobboard: write audit_log entries on membership approve/reject | — | — | enhancement, good first issue |
@@ -192,6 +189,7 @@ pie showData
 | [#12702](https://github.com/KBVE/kbve/issues/12702) | [Cryptothrone] Internal coin economy (coin / gold-bar) — design &amp; isolation  | — | — | enhancement |
 | [#12703](https://github.com/KBVE/kbve/issues/12703) | cryptothrone: bring map/tile data into the ECS MapSystem (phased) | — | — | enhancement |
 | [#12705](https://github.com/KBVE/kbve/issues/12705) | cryptothrone: Discord Activity mobile + lobby — real-device verification &amp; p | — | — | enhancement |
+| [#12735](https://github.com/KBVE/kbve/issues/12735) | [Factorio] Remaining work — Agones server, factorio-ctl, telemetry, rotation (su | — | — | enhancement |
 
 ### AI (1)
 
@@ -241,14 +239,13 @@ pie showData
 | [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Review (2)
+### Review (1)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#12712](https://github.com/KBVE/kbve/pull/12712) | Atomic: rows fleet beta prod | — | — | auto-pr, atomic |
-| [#12714](https://github.com/KBVE/kbve/pull/12714) | Release: 1 feature, 2 fixes, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12832](https://github.com/KBVE/kbve/pull/12832) | Release: 1 fix, 6 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (332)
+### Done (361)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -266,12 +263,8 @@ pie showData
 | [#9805](https://github.com/KBVE/kbve/issues/9805) | [ROWS] v0.5 — Remove legacy C# OWS microservices | — | h0lybyte | 1, dependencies, ci |
 | [#9230](https://github.com/KBVE/kbve/issues/9230) | [CHUCKRPG] [UNREAL] Version Control from Monorepo | — | h0lybyte | 1, ue |
 | [#10560](https://github.com/KBVE/kbve/issues/10560) | chore(redis): evaluate Bitnami chart bump 21.2.13 -&gt; 25.x | — | — | update |
-| [#11726](https://github.com/KBVE/kbve/pull/11726) | Release: 3 features, 4 fixes, 1 doc, 5 perfs, 1 refactor, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#11756](https://github.com/KBVE/kbve/pull/11756) | Atomic: kasm-void v0.0.3 post-publish sync | — | — | auto-pr, atomic |
-| [#11757](https://github.com/KBVE/kbve/pull/11757) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#11138](https://github.com/KBVE/kbve/issues/11138) | [Plan] Agones-managed Factorio dedicated server | — | — | enhancement |
 | [#11759](https://github.com/KBVE/kbve/pull/11759) | Release: 21 features, 4 fixes, 1 perf, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#11760](https://github.com/KBVE/kbve/pull/11760) | chore(dashboard): daily sync — 2026-06-04 | — | — | auto-pr |
-| [#11763](https://github.com/KBVE/kbve/pull/11763) | Atomic: edge v0.1.35 post-publish sync | — | — | auto-pr, atomic |
 | [#11770](https://github.com/KBVE/kbve/pull/11770) | Atomic: kasm-void v0.0.4 post-publish sync | — | — | auto-pr, atomic |
 | [#11771](https://github.com/KBVE/kbve/pull/11771) | Release: 3 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#11777](https://github.com/KBVE/kbve/pull/11777) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
@@ -502,6 +495,7 @@ pie showData
 | [#12511](https://github.com/KBVE/kbve/pull/12511) | Release: 1 feature, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#12512](https://github.com/KBVE/kbve/pull/12512) | chore(dashboard): daily sync — 2026-06-15 | — | — | auto-pr |
 | [#12516](https://github.com/KBVE/kbve/pull/12516) | Release: 2 features, 1 test → Main | — | — | auto-pr, dev→main |
+| [#12521](https://github.com/KBVE/kbve/issues/12521) | simgrid: player-to-player trading | — | — | enhancement |
 | [#12523](https://github.com/KBVE/kbve/pull/12523) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#12524](https://github.com/KBVE/kbve/pull/12524) | Atomic: cryptothrone v0.1.35 post-publish sync | — | — | auto-pr, atomic |
 | [#12525](https://github.com/KBVE/kbve/pull/12525) | Release: 9 features, 3 fixes, 1 build, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
@@ -510,6 +504,7 @@ pie showData
 | [#12547](https://github.com/KBVE/kbve/pull/12547) | Release: 2 features, 5 fixes, 1 doc, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#12548](https://github.com/KBVE/kbve/pull/12548) | Atomic: cryptothrone v0.1.36 post-publish sync | — | — | auto-pr, atomic |
 | [#12550](https://github.com/KBVE/kbve/pull/12550) | Release: 11 features, 2 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#12555](https://github.com/KBVE/kbve/issues/12555) | cryptothrone: fast-register Discord users (link-by-email, else create) | — | — | enhancement |
 | [#12557](https://github.com/KBVE/kbve/pull/12557) | Release: 1 feature, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#12558](https://github.com/KBVE/kbve/pull/12558) | Atomic: jobboard v0.1.0 post-publish sync | — | — | auto-pr, atomic |
 | [#12561](https://github.com/KBVE/kbve/pull/12561) | Release: 3 features, 1 fix → Main | — | — | auto-pr, dev→main |
@@ -583,7 +578,38 @@ pie showData
 | [#12708](https://github.com/KBVE/kbve/pull/12708) | Atomic: cryptothrone-server v0.0.22 post-publish sync | — | — | auto-pr, atomic |
 | [#12709](https://github.com/KBVE/kbve/pull/12709) | Atomic: rows agones fleet name | — | — | auto-pr, atomic |
 | [#12710](https://github.com/KBVE/kbve/pull/12710) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12712](https://github.com/KBVE/kbve/pull/12712) | Atomic: rows fleet beta prod | — | — | auto-pr, atomic |
 | [#12713](https://github.com/KBVE/kbve/pull/12713) | Atomic: cryptothrone v0.1.47 post-publish sync | — | — | auto-pr, atomic |
+| [#12714](https://github.com/KBVE/kbve/pull/12714) | Release: 7 features, 3 fixes, 1 refactor, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#12733](https://github.com/KBVE/kbve/pull/12733) | chore(dashboard): daily sync — 2026-06-18 | — | — | auto-pr |
+| [#12738](https://github.com/KBVE/kbve/pull/12738) | Atomic: jobboard v0.1.7 post-publish sync | — | — | auto-pr, atomic |
+| [#12740](https://github.com/KBVE/kbve/pull/12740) | Release: 3 features, 4 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12742](https://github.com/KBVE/kbve/pull/12742) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#12743](https://github.com/KBVE/kbve/pull/12743) | fix(jobboard): staff reach the dashboard + role-split (staff vs member) | — | — | auto-pr, atomic |
+| [#12757](https://github.com/KBVE/kbve/pull/12757) | Release: 1 feature, 3 fixes, 1 build → Main | — | — | auto-pr, dev→main |
+| [#12762](https://github.com/KBVE/kbve/pull/12762) | Release: 2 features, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12763](https://github.com/KBVE/kbve/pull/12763) | Atomic: kbve-gate v0.1.0 post-publish sync | — | — | auto-pr, atomic |
+| [#12764](https://github.com/KBVE/kbve/pull/12764) | Atomic: cryptothrone-server v0.0.24 post-publish sync | — | — | auto-pr, atomic |
+| [#12772](https://github.com/KBVE/kbve/pull/12772) | Atomic: chuck beta 0323 | — | — | auto-pr, atomic |
+| [#12773](https://github.com/KBVE/kbve/pull/12773) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12774](https://github.com/KBVE/kbve/pull/12774) | Release: 3 features, 2 fixes, 3 CI, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#12787](https://github.com/KBVE/kbve/pull/12787) | Release: 1 feature, 5 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12788](https://github.com/KBVE/kbve/pull/12788) | Atomic: kbve-gate v0.1.1 post-publish sync | — | — | auto-pr, atomic |
+| [#12790](https://github.com/KBVE/kbve/pull/12790) | Atomic: forgejo emdash | — | — | auto-pr, atomic |
+| [#12796](https://github.com/KBVE/kbve/pull/12796) | Atomic: builds table oldnew | — | — | auto-pr, atomic |
+| [#12797](https://github.com/KBVE/kbve/pull/12797) | Release: 2 features, 2 fixes, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#12798](https://github.com/KBVE/kbve/pull/12798) | Atomic: chuck beta 0324 | — | — | auto-pr, atomic |
+| [#12802](https://github.com/KBVE/kbve/pull/12802) | Atomic: cryptothrone v0.1.49 post-publish sync | — | — | auto-pr, atomic |
+| [#12803](https://github.com/KBVE/kbve/pull/12803) | Atomic: chuck v0.3.23 post-publish sync | — | — | auto-pr, atomic |
+| [#12804](https://github.com/KBVE/kbve/pull/12804) | Atomic: builds scan types | — | — | auto-pr, atomic |
+| [#12808](https://github.com/KBVE/kbve/pull/12808) | Atomic: chuck v0.3.24 post-publish sync | — | — | auto-pr, atomic |
+| [#12809](https://github.com/KBVE/kbve/pull/12809) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#12810](https://github.com/KBVE/kbve/pull/12810) | Atomic: chuck beta 0325 | — | — | auto-pr, atomic |
+| [#12812](https://github.com/KBVE/kbve/pull/12812) | Atomic: axum-kbve v1.0.204 post-publish sync | — | — | auto-pr, atomic |
+| [#12813](https://github.com/KBVE/kbve/pull/12813) | Release: 3 fixes, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#12814](https://github.com/KBVE/kbve/pull/12814) | Atomic: chuck v0.3.25 post-publish sync | — | — | auto-pr, atomic |
+| [#12821](https://github.com/KBVE/kbve/pull/12821) | Release: 1 feature, 8 fixes, 1 CI, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12834](https://github.com/KBVE/kbve/pull/12834) | Atomic: kbve-gate v0.1.2 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

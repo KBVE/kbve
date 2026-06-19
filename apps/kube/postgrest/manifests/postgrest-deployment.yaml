@@ -42,7 +42,7 @@ spec:
                       # mc.proxy_* through public.proxy_* SECURITY DEFINER
                       # wrappers). See mc_lockdown_proxy_grants migration.
                       - name: PGRST_DB_SCHEMAS
-                        value: 'public,storage,graphql_public,tracker,profile,rentearth,meme,discordsh,forum,mc'
+                        value: 'public,storage,graphql_public,tracker,profile,rentearth,meme,discordsh,forum,mc,gh'
                       - name: PGRST_DB_ANON_ROLE
                         value: 'anon'
                       - name: PGRST_DB_USE_LEGACY_GUCS

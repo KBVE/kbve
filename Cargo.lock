@@ -9128,7 +9128,7 @@ dependencies = [
 
 [[package]]
 name = "kbve-gate"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "dotenvy",
  "kbve",

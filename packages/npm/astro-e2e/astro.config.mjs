@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 		worker: {
 			format: 'es',
-			rollupOptions: {
+			rolldownOptions: {
 				output: {
 					entryFileNames: 'assets/[name].js',
 				},

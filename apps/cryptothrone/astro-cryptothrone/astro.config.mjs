@@ -63,7 +63,7 @@ export default defineConfig({
 		},
 		build: {
 			chunkSizeWarningLimit: 1200,
-			rollupOptions: {
+			rolldownOptions: {
 				external: ['fsevents'],
 				output: {
 					manualChunks(id) {
