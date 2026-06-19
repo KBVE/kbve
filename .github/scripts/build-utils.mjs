@@ -1,26 +1,23 @@
 // Zero-dependency CI shim: compute the "Builds on merge" section for the
 // dev->main release PR.
 //
-// A package "will build on merge" when its version_source (the human-bumped
-// file, e.g. an .mdx frontmatter) is semver-newer than its version_toml (the
-// CI-maintained "published" marker). This mirrors the version gate in
-// .github/workflows/ci-main.yml (is_newer / check_version) so the section
-// predicts what ci-main.yml dispatches post-merge. Scope: mdx-sourced types
-// only (docker, npm, python, and crates whose version_source ends in .mdx).
+// Predicts what ci-main.yml dispatches post-merge by mirroring its version
+// gate (is_newer / check_version). Covers both gated mechanisms:
+//   - mdx source — any type whose version_source ends in .mdx (docker, npm,
+//     crates, python, unity, godot, unreal_game).
+//   - manifest version — type whose local version lives in the manifest,
+//     gated against its version.toml (unreal plugins, ue5_server).
+// File-change (is_altered) dispatches are intentionally excluded.
 //
 // Pure + fs-only; no npm deps (the PR job runs without `pnpm install`).
 
-const MDX_TYPES = ['docker', 'npm', 'python', 'crates'];
-
-/** Extract the frontmatter `version:` from an .mdx file. */
+/** Frontmatter `version: "..."` from an .mdx — double-quoted, column 0, mirroring ci-main.yml. */
 export function parseMdxVersion(text) {
 	if (!text) return '0.0.0';
-	// Restrict to the frontmatter block (between the first two `---` fences)
-	// so a stray "version:" in the body can't match.
 	const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 	const scope = fm ? fm[1] : text;
-	const m = scope.match(/^\s*version:\s*["']?([^"'\r\n]+?)["']?\s*$/m);
-	return m ? m[1].trim() : '0.0.0';
+	const m = scope.match(/^version: *"([^"]*)"/m);
+	return m && m[1] ? m[1].trim() : '0.0.0';
 }
 
 /** Extract `version = "..."` from a version.toml. */
@@ -30,10 +27,10 @@ export function parseTomlVersion(text) {
 	return m ? m[1].trim() : '0.0.0';
 }
 
-/** Extract the `publish` flag from a version.toml (defaults to true). */
+/** `publish` flag from a version.toml (defaults to true) — column 0, quotes stripped. */
 export function parseTomlPublish(text) {
 	if (!text) return true;
-	const m = text.match(/^\s*publish\s*=\s*(\w+)/m);
+	const m = text.match(/^publish[ \t]*=[ \t]*['"]?(\w+)/m);
 	return m ? m[1].toLowerCase() !== 'false' : true;
 }
 
@@ -46,8 +43,10 @@ export function isNewer(localV, pubV) {
 	if (!localV || localV === '0.0.0') return false;
 	if (!pubV || pubV === '0.0.0') return false;
 	if (localV === pubV) return false;
-	const a = localV.split('.').map((n) => parseInt(n, 10) || 0);
-	const b = pubV.split('.').map((n) => parseInt(n, 10) || 0);
+	// Strip a leading `v` before splitting, matching ci-main.yml's `sort -V`.
+	const norm = (s) => s.replace(/^v/i, '').split('.').map((n) => parseInt(n, 10) || 0);
+	const a = norm(localV);
+	const b = norm(pubV);
 	const len = Math.max(a.length, b.length);
 	for (let i = 0; i < len; i++) {
 		const x = a[i] || 0;
@@ -71,34 +70,58 @@ function readFileOrNull(fs, p) {
 }
 
 /**
- * Compute the list of mdx-sourced packages that will build on merge.
+ * Compute the packages that will build on merge — every type ci-main.yml
+ * version-gate-dispatches.
+ *
+ * The manifest and version_source (mdx) are read from the head tree (dev, via
+ * `fs`); version_toml is the published tracker maintained on the base branch
+ * (main), so it is read via `readBaseToml` — that is the baseline ci-main.yml
+ * gates against post-merge. Without `readBaseToml`, the toml is read from the
+ * head tree (the default for direct/local invocation).
  *
  * @param {string} manifestPath - path to .github/ci-dispatch-manifest.json
  * @param {string} repoRoot - repo root (e.g. process.cwd())
  * @param {{readFileSync: Function}} fs - node fs module
- * @returns {Array<{name: string, type: string, version: string, source: string}>}
+ * @param {(path: string) => (string|null)} [readBaseToml] - reads a version.toml from base (main)
+ * @returns {Array<{name: string, type: string, from: string, version: string, source: string}>}
  */
-export function computeMdxBuilds(manifestPath, repoRoot, fs) {
-	const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+export function computeBuilds(manifestPath, repoRoot, fs, readBaseToml) {
+	let manifest;
+	try {
+		manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+	} catch {
+		return [];
+	}
+	const readToml = readBaseToml || ((p) => readFileOrNull(fs, `${repoRoot}/${p}`));
 	const builds = [];
 
-	for (const type of MDX_TYPES) {
-		for (const entry of manifest[type] || []) {
-			const source = entry.version_source;
-			if (!source || !source.endsWith('.mdx')) continue;
+	for (const type of Object.keys(manifest)) {
+		const entries = manifest[type];
+		if (!Array.isArray(entries)) continue;
+		for (const entry of entries) {
+			// Resolve the local version and a path to link, per dispatch mechanism.
+			let localV, source;
+			if (entry.version_source && entry.version_source.endsWith('.mdx')) {
+				const text = readFileOrNull(fs, `${repoRoot}/${entry.version_source}`);
+				if (text == null) continue;
+				localV = parseMdxVersion(text);
+				source = entry.version_source;
+			} else if (type === 'unreal' && entry.plugin_path) {
+				localV = entry.version || '0.0.0';
+				source = entry.plugin_path;
+			} else if (type === 'ue5_server' && (entry.shell_path || entry.source_path)) {
+				localV = entry.version || '0.0.0';
+				source = entry.shell_path || entry.source_path;
+			} else {
+				continue;
+			}
 
-			const sourceText = readFileOrNull(fs, `${repoRoot}/${source}`);
-			if (sourceText == null) continue;
-			const sourceV = parseMdxVersion(sourceText);
-
-			const tomlText = entry.version_toml
-				? readFileOrNull(fs, `${repoRoot}/${entry.version_toml}`)
-				: null;
+			const tomlText = entry.version_toml ? readToml(entry.version_toml) : null;
 			if (!parseTomlPublish(tomlText)) continue;
 			const pubV = parseTomlVersion(tomlText);
 
-			if (isNewer(sourceV, pubV)) {
-				builds.push({ name: nameOf(entry), type, version: sourceV, source });
+			if (isNewer(localV, pubV)) {
+				builds.push({ name: nameOf(entry), type, from: pubV, version: localV, source });
 			}
 		}
 	}
@@ -111,7 +134,7 @@ export function computeMdxBuilds(manifestPath, repoRoot, fs) {
  * Render the "Builds on merge" markdown section. Returns '' when there are no
  * builds (so the caller omits the section entirely).
  *
- * @param {Array<{name,type,version,source}>} builds
+ * @param {Array<{name,type,from,version,source}>} builds
  * @param {string} owner
  * @param {string} repo
  * @param {string} ref - blob ref for the source link (e.g. the dev head sha)
@@ -122,9 +145,10 @@ export function formatBuildsTable(builds, owner, repo, ref) {
 	let out = `### Builds on merge\n\n`;
 	out += `| Package | Type | Version | Source |\n|---|---|---|---|\n`;
 	for (const b of builds) {
-		const file = b.source.split('/').pop();
-		const url = `https://github.com/${owner}/${repo}/blob/${ref}/${b.source}`;
-		out += `| ${b.name} | ${b.type} | v${b.version} | [${file}](${url}) |\n`;
+		const seg = b.source.split('/').pop();
+		const kind = b.source.endsWith('.mdx') ? 'blob' : 'tree';
+		const url = `https://github.com/${owner}/${repo}/${kind}/${ref}/${b.source}`;
+		out += `| ${b.name} | ${b.type} | v${b.from} → v${b.version} | [${seg}](${url}) |\n`;
 	}
 	return out.trimEnd();
 }

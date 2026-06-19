@@ -21,6 +21,9 @@ import { Adsense } from '@/components/astropad';
 
     The kbve gate will be a way to control access to certain endpoints by double checking their JWT.
     We can consider this as a cloudflare trust access style gateway but we control it via our supabase is staff bitmask.
+    The issue with the gate is that we are not able to keep track of the cookies that get assigned.
+    I might have to create a rbac policy to make this easier, maybe even a JWT-based valkey to help quickly verify certain actions?
+    There is room for us to expand the gate, going to look into it now.
 
 ## 2025
 

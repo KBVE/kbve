@@ -273,7 +273,7 @@ export default function Step2WebhookConfig() {
 					</strong>
 				</div>
 				<p style={{ ...mutedText, fontSize: '0.82rem' }}>
-					Uses your stored GitHub PAT (Step 3 must be done first) to
+					Uses your stored GitHub PAT (Step 2 must be done first) to
 					POST <code>/repos/&lt;owner&gt;/&lt;repo&gt;/hooks</code>{' '}
 					with the URL and HMAC secret you just stored. Only repos in
 					your allowlist are eligible.

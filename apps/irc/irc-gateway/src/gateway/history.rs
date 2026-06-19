@@ -11,6 +11,12 @@
 //! the buffer. Client sessions are pure readers ([`recent`]) — this avoids the
 //! N-fold duplication you'd get if every client connection appended what it
 //! received.
+//!
+//! When Valkey is configured the ring lives there (durable across gateway
+//! restarts, shared with future replicas); otherwise it falls back to an
+//! in-process buffer. The Valkey path assumes a single gateway replica writes —
+//! scaling the deployment past one needs a single-writer lease so the listeners
+//! don't double-append.
 
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -22,6 +28,7 @@ use tokio::time::sleep;
 use tracing::{debug, info, warn};
 
 use crate::gateway::ergo;
+use crate::gateway::kv;
 
 /// Messages retained per channel.
 pub const HISTORY_LEN: usize = 50;
@@ -30,6 +37,12 @@ pub const HISTORY_LEN: usize = 50;
 /// channel whitelists).
 const HISTORY_CHANNELS: &[&str] = &["#general", "#world-events", "#mc-global"];
 
+/// Whether a channel is one the gateway tracks history for (and thus one a
+/// client is allowed to read backscroll from / a staff announce can target).
+pub fn is_tracked(channel: &str) -> bool {
+    HISTORY_CHANNELS.contains(&channel)
+}
+
 type Store = Arc<Mutex<HashMap<String, VecDeque<ChatMessage>>>>;
 
 fn store() -> &'static Store {
@@ -37,9 +50,40 @@ fn store() -> &'static Store {
     STORE.get_or_init(|| Arc::new(Mutex::new(HashMap::new())))
 }
 
-/// Append a message to a channel's ring buffer, evicting the oldest past
-/// [`HISTORY_LEN`].
-fn push(channel: &str, msg: ChatMessage) {
+fn hist_key(channel: &str) -> String {
+    format!("chat:hist:{channel}")
+}
+
+/// Append a message to a channel's history. When Valkey is configured the ring
+/// lives there (durable across restarts, shared across gateway replicas);
+/// otherwise it falls back to the in-process buffer.
+async fn push(channel: &str, msg: ChatMessage) {
+    if let Some(cache) = kv::get() {
+        if let Ok(json) = serde_json::to_string(&msg) {
+            let _ = cache
+                .list_push_capped(&hist_key(channel), &json, HISTORY_LEN)
+                .await;
+        }
+        return;
+    }
+    push_memory(channel, msg);
+}
+
+/// Snapshot a channel's buffered messages, oldest first.
+pub async fn recent(channel: &str) -> Vec<ChatMessage> {
+    if let Some(cache) = kv::get() {
+        return cache
+            .list_range(&hist_key(channel))
+            .await
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|s| serde_json::from_str(s).ok())
+            .collect();
+    }
+    recent_memory(channel)
+}
+
+fn push_memory(channel: &str, msg: ChatMessage) {
     let mut guard = store().lock().expect("history mutex poisoned");
     let buf = guard.entry(channel.to_string()).or_default();
     if buf.len() == HISTORY_LEN {
@@ -48,8 +92,7 @@ fn push(channel: &str, msg: ChatMessage) {
     buf.push_back(msg);
 }
 
-/// Snapshot a channel's buffered messages, oldest first.
-pub fn recent(channel: &str) -> Vec<ChatMessage> {
+fn recent_memory(channel: &str) -> Vec<ChatMessage> {
     store()
         .lock()
         .expect("history mutex poisoned")
@@ -107,7 +150,7 @@ async fn listen_once(channel: &str) -> std::io::Result<()> {
                 msg.platform = "irc".into();
             }
             debug!(channel = %channel, "history buffered a message");
-            push(channel, msg);
+            push(channel, msg).await;
         }
     }
 }
@@ -135,13 +178,13 @@ mod tests {
         ChatMessage::from_irc_privmsg("#t", &format!("[CHAT] a@irc: {text}")).unwrap()
     }
 
-    #[test]
-    fn ring_buffer_evicts_oldest_and_keeps_order() {
+    #[tokio::test]
+    async fn ring_buffer_evicts_oldest_and_keeps_order() {
         let ch = "#ring-test";
         for i in 0..HISTORY_LEN + 3 {
-            push(ch, msg(&format!("m{i}")));
+            push(ch, msg(&format!("m{i}"))).await;
         }
-        let got = recent(ch);
+        let got = recent(ch).await;
         assert_eq!(got.len(), HISTORY_LEN);
         // oldest three (m0,m1,m2) evicted; newest retained in order
         assert_eq!(got.first().unwrap().content, "m3");
@@ -154,8 +197,15 @@ mod tests {
         assert_eq!(sanitize_channel("#world-events"), "worldevents");
     }
 
+    #[tokio::test]
+    async fn recent_empty_for_unknown_channel() {
+        assert!(recent("#never-seen").await.is_empty());
+    }
+
     #[test]
-    fn recent_empty_for_unknown_channel() {
-        assert!(recent("#never-seen").is_empty());
+    fn is_tracked_matches_whitelist() {
+        assert!(is_tracked("#general"));
+        assert!(is_tracked("#world-events"));
+        assert!(!is_tracked("#random"));
     }
 }

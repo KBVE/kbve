@@ -463,6 +463,25 @@ impl KvCache {
         }
         Some(count.max(0) as u64)
     }
+
+    /// Append `value` to a capped Valkey list and trim it to the newest
+    /// `max_len` entries. Returns `None` when L2 (Valkey) is unavailable so the
+    /// caller can fall back to in-process storage. Oldest-first ordering: read
+    /// the list back with [`list_range`](Self::list_range).
+    pub async fn list_push_capped(&self, key: &str, value: &str, max_len: usize) -> Option<()> {
+        let pool = self.l2.as_ref()?;
+        let lkey = self.qualified(key);
+        let _: i64 = pool.rpush::<i64, _, _>(&lkey, value).await.ok()?;
+        let _: () = pool.ltrim(&lkey, -(max_len as i64), -1).await.ok()?;
+        Some(())
+    }
+
+    /// Read a Valkey list oldest-first. Returns `None` when L2 is unavailable.
+    pub async fn list_range(&self, key: &str) -> Option<Vec<String>> {
+        let pool = self.l2.as_ref()?;
+        let lkey = self.qualified(key);
+        pool.lrange::<Vec<String>, _>(&lkey, 0, -1).await.ok()
+    }
 }
 
 async fn build_valkey_pool() -> Result<ValkeyPool, String> {

@@ -83,7 +83,7 @@ export default function Step4SmokeBackfill() {
 		setRunBlockMsg(null);
 		if (!ready) {
 			setRunBlockMsg(
-				'Finish Steps 1 + 3 first — HMAC secret and PAT must be stored before the smoke can run.',
+				'Finish Steps 1 + 2 first — HMAC secret and PAT must be stored before the smoke can run.',
 			);
 			return;
 		}

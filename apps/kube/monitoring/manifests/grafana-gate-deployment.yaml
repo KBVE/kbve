@@ -27,7 +27,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: kbve-gate
-                  image: ghcr.io/kbve/kbve-gate:latest
+                  image: ghcr.io/kbve/kbve-gate:0.1.1
                   imagePullPolicy: IfNotPresent
                   ports:
                       - name: gateway
@@ -46,6 +46,8 @@ spec:
                         value: 'forum'
                       - name: GATE_LOGIN_REDIRECT
                         value: 'https://kbve.com/login'
+                      - name: GATE_COOKIE_DOMAIN
+                        value: '.kbve.com'
                       - name: SUPABASE_URL
                         value: 'http://supabase-postgrest.kilobase.svc.cluster.local:3000'
                       - name: SUPABASE_JWT_SECRET

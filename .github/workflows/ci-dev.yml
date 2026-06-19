@@ -175,17 +175,26 @@ jobs:
                       const title = utils.generateTitle(categories, 'Main');
                       let body = utils.formatDevToMainBody(categories, rawCommits.length);
 
-                      // Append "Builds on merge" (mdx version bumps that ci-main.yml will dispatch).
-                      // Recomputed every push, so a downgrade drops its row and an empty list omits
-                      // the section. Linked to the source mdx at the dev head sha.
-                      const builds = buildUtils.computeMdxBuilds(
-                        path.resolve('.github/ci-dispatch-manifest.json'), process.cwd(), fs);
+                      // Append "Builds on merge" (version bumps ci-main.yml will dispatch).
+                      // version.toml is the published tracker on main (the base), not dev — read it
+                      // from there so the gate matches what ci-main.yml sees post-merge. Fall back
+                      // to the head tree for any toml not present on main (e.g. a new package).
+                      // execFileSync (no shell) — manifest paths are passed as argv, never
+                      // word-split or interpolated into a command string.
+                      const { execFileSync } = require('child_process');
+                      try { execFileSync('git', ['fetch', '--no-tags', '--depth=1', 'origin', 'main:refs/remotes/origin/main'], { stdio: 'ignore' }); } catch {}
+                      const readBaseToml = (p) => {
+                        try { return execFileSync('git', ['show', `origin/main:${p}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); }
+                        catch { try { return fs.readFileSync(p, 'utf8'); } catch { return null; } }
+                      };
+                      const builds = buildUtils.computeBuilds(
+                        path.resolve('.github/ci-dispatch-manifest.json'), process.cwd(), fs, readBaseToml);
                       const buildsSection = buildUtils.formatBuildsTable(
                         builds, context.repo.owner, context.repo.repo, context.sha);
                       if (buildsSection) {
                         const i = body.lastIndexOf('\n---\n');
                         body = i >= 0
-                          ? body.slice(0, i) + '\n' + buildsSection + '\n' + body.slice(i + 1)
+                          ? body.slice(0, i) + '\n' + buildsSection + '\n\n' + body.slice(i + 1)
                           : body + '\n\n' + buildsSection;
                       }
 
