@@ -1695,8 +1695,20 @@ jobs:
                   jq --arg v "$VERSION" '.VersionName = $v' "$UPLUGIN" > "$UPLUGIN.tmp" && mv "$UPLUGIN.tmp" "$UPLUGIN"
                   echo "Stamped $UPLUGIN VersionName=$VERSION"
 
+            - name: Resolve PAT (epic_pat -> UNITY_PAT fallback)
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
             - name: Login to GHCR
-              run: echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+              run: echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             - name: Pull Unreal Engine image
               run: docker pull "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
