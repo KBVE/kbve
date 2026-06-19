@@ -175,9 +175,20 @@ jobs:
                       const title = utils.generateTitle(categories, 'Main');
                       let body = utils.formatDevToMainBody(categories, rawCommits.length);
 
-                      // Append "Builds on merge" (mdx version bumps ci-main.yml will dispatch).
-                      const builds = buildUtils.computeMdxBuilds(
-                        path.resolve('.github/ci-dispatch-manifest.json'), process.cwd(), fs);
+                      // Append "Builds on merge" (version bumps ci-main.yml will dispatch).
+                      // version.toml is the published tracker on main (the base), not dev — read it
+                      // from there so the gate matches what ci-main.yml sees post-merge. Fall back
+                      // to the head tree for any toml not present on main (e.g. a new package).
+                      // execFileSync (no shell) — manifest paths are passed as argv, never
+                      // word-split or interpolated into a command string.
+                      const { execFileSync } = require('child_process');
+                      try { execFileSync('git', ['fetch', '--no-tags', '--depth=1', 'origin', 'main:refs/remotes/origin/main'], { stdio: 'ignore' }); } catch {}
+                      const readBaseToml = (p) => {
+                        try { return execFileSync('git', ['show', `origin/main:${p}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); }
+                        catch { try { return fs.readFileSync(p, 'utf8'); } catch { return null; } }
+                      };
+                      const builds = buildUtils.computeBuilds(
+                        path.resolve('.github/ci-dispatch-manifest.json'), process.cwd(), fs, readBaseToml);
                       const buildsSection = buildUtils.formatBuildsTable(
                         builds, context.repo.owner, context.repo.repo, context.sha);
                       if (buildsSection) {
