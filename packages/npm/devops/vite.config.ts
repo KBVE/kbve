@@ -28,7 +28,7 @@ export default defineConfig({
 			fileName: (format) => `devops.${format}.js`,
 			formats: ['es'],
 		},
-		rollupOptions: {
+		rolldownOptions: {
 			external: [
 				'zod',
 				'@bufbuild/protobuf',

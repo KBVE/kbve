@@ -30,7 +30,7 @@ export default defineConfig({
 			fileName: (format) => `astro.${format}.js`,
 			formats: ['es'],
 		},
-		rollupOptions: {
+		rolldownOptions: {
 			external: [
 				'react',
 				'react-dom',

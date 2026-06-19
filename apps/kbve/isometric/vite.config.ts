@@ -49,7 +49,7 @@ export default defineConfig(async () => ({
 	base: process.env.BUILD_TARGET === 'tauri' ? './' : '/isometric/',
 	clearScreen: false,
 	build: {
-		rollupOptions: {
+		rolldownOptions: {
 			output: {
 				entryFileNames: 'assets/index.js',
 				chunkFileNames: 'assets/[name].js',

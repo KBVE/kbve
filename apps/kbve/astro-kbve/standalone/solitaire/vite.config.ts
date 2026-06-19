@@ -25,7 +25,7 @@ export default defineConfig({
 		minify: 'terser',
 		cssCodeSplit: false,
 		chunkSizeWarningLimit: 8000,
-		rollupOptions: {
+		rolldownOptions: {
 			output: {
 				inlineDynamicImports: true,
 				entryFileNames: 'assets/solitaire.js',
