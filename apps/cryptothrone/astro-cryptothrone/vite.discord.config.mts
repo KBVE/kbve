@@ -62,7 +62,7 @@ export default defineConfig({
 			formats: ['iife'],
 			fileName: () => 'discord.js',
 		},
-		rolldownOptions: {
+		rollupOptions: {
 			output: {
 				inlineDynamicImports: true,
 				exports: 'named',

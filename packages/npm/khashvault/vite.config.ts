@@ -28,7 +28,7 @@ export default defineConfig({
 			fileName: (format) => `khashvault.${format}.js`,
 			formats: ['es'],
 		},
-		rolldownOptions: {
+		rollupOptions: {
 			external: ['openpgp', '@kbve/droid', 'comlink'],
 		},
 	},

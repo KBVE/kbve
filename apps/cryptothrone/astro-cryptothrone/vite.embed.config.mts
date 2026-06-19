@@ -65,7 +65,7 @@ export default defineConfig({
 			formats: ['iife'],
 			fileName: () => 'embed.js',
 		},
-		rolldownOptions: {
+		rollupOptions: {
 			output: {
 				inlineDynamicImports: true,
 				exports: 'named',
