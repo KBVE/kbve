@@ -160,6 +160,30 @@ function NamespaceCard({
 					ns={summary.namespace}
 				/>
 			</div>
+			{summary.errors > 0 && (
+				<button
+					onClick={(e) => {
+						e.stopPropagation();
+						clickhouseService.focusErrorDigest(summary.namespace);
+					}}
+					style={{
+						display: 'inline-flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						gap: 5,
+						padding: '4px 8px',
+						borderRadius: 6,
+						border: '1px solid rgba(239, 68, 68, 0.35)',
+						background: 'rgba(239, 68, 68, 0.08)',
+						color: '#ef4444',
+						fontSize: '0.72rem',
+						fontWeight: 600,
+						cursor: 'pointer',
+						transition: 'all 0.15s',
+					}}>
+					<Bug size={12} /> Debug errors
+				</button>
+			)}
 		</div>
 	);
 }

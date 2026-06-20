@@ -11,9 +11,19 @@ import type {
 	StatsData,
 	QueryData,
 	QueryParams,
+	ErrorGroupRow,
+	ErrorGroupsData,
 } from '@/data/schema';
 
-export type { LogRow, StatRow, StatsData, QueryData, QueryParams };
+export type {
+	LogRow,
+	StatRow,
+	StatsData,
+	QueryData,
+	QueryParams,
+	ErrorGroupRow,
+	ErrorGroupsData,
+};
 
 export type AuthState =
 	| 'loading'
@@ -136,6 +146,21 @@ export function formatTimestamp(ts: string): string {
 	}
 }
 
+export function formatRelativeTime(ts: string): string {
+	try {
+		const then = new Date(ts.replace(' ', 'T') + 'Z').getTime();
+		const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
+		if (diffSec < 60) return `${diffSec}s ago`;
+		const diffMin = Math.round(diffSec / 60);
+		if (diffMin < 60) return `${diffMin}m ago`;
+		const diffHr = Math.round(diffMin / 60);
+		if (diffHr < 24) return `${diffHr}h ago`;
+		return `${Math.round(diffHr / 24)}d ago`;
+	} catch {
+		return ts;
+	}
+}
+
 function buildNamespaceSummaries(stats: StatsData): NamespaceSummary[] {
 	const map = new Map<string, NamespaceSummary>();
 	for (const row of stats.rows) {
@@ -217,10 +242,15 @@ class ClickHouseService {
 	// Data
 	public readonly $stats = atom<StatsData | null>(null);
 	public readonly $logs = atom<QueryData | null>(null);
+	public readonly $errorGroups = atom<ErrorGroupsData | null>(null);
 
 	// Loading
 	public readonly $statsLoading = atom<boolean>(true);
 	public readonly $logsLoading = atom<boolean>(false);
+	public readonly $errorGroupsLoading = atom<boolean>(false);
+
+	public readonly $errorScope = atom<string>('');
+	public readonly $errorDigestFocus = atom<number>(0);
 
 	public readonly $upstreamError = atom<UpstreamErrorInfo | null>(null);
 
@@ -425,9 +455,76 @@ class ClickHouseService {
 		this.$logsLoading.set(false);
 	}
 
+	public async loadErrorGroups(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		this.$errorGroupsLoading.set(true);
+		try {
+			const body: Record<string, unknown> = {
+				command: 'error_groups',
+				minutes: this.$minutes.get(),
+				limit: 25,
+			};
+			const scope = this.$errorScope.get();
+			if (scope) body.pod_namespace = scope;
+
+			const resp = await fetch(PROXY_BASE, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(body),
+				signal: AbortSignal.timeout(15000),
+			});
+			if (resp.status === 403) {
+				this.$authState.set('forbidden');
+				this.$errorGroupsLoading.set(false);
+				return;
+			}
+			if (!resp.ok) {
+				this.$upstreamError.set({
+					source: 'stats',
+					status: resp.status,
+					body: await readErrorBody(resp),
+				});
+				this.$errorGroupsLoading.set(false);
+				return;
+			}
+			const data: ErrorGroupsData = await resp.json();
+			this.$errorGroups.set(data);
+		} catch (err) {
+			this.$upstreamError.set({
+				source: 'stats',
+				status: 0,
+				body: err instanceof Error ? err.message : 'network error',
+			});
+		}
+		this.$errorGroupsLoading.set(false);
+	}
+
+	public setErrorScope(ns: string): void {
+		this.$errorScope.set(ns);
+		this.loadErrorGroups();
+	}
+
+	public focusErrorDigest(ns: string): void {
+		this.$errorScope.set(ns);
+		this.loadErrorGroups();
+		this.$errorDigestFocus.set(this.$errorDigestFocus.get() + 1);
+	}
+
+	public drillIntoErrorGroup(ns: string): void {
+		this.$namespaceFilter.set(ns);
+		this.$levelFilter.set('error');
+		this.$serviceFilter.set('');
+		this.clearSearch();
+	}
+
 	public refreshAll(): void {
 		this.loadStats();
 		this.loadLogs();
+		this.loadErrorGroups();
 	}
 
 	// --- Filter actions ---

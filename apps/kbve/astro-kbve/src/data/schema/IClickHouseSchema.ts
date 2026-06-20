@@ -78,6 +78,27 @@ export interface StatsData {
 	count: number;
 }
 
+/**
+ * An `error_groups` row — `level = 'error'` messages collapsed into a
+ * normalized `signature` and aggregated by frequency. Wire format from the
+ * ClickHouse SQL: `cnt` is a string, `last_seen` is a ClickHouse datetime
+ * string, `sample` is a representative raw message for the group.
+ */
+export interface ErrorGroupRow {
+	pod_namespace: string;
+	service: string;
+	signature: string;
+	cnt: string;
+	last_seen: string;
+	sample: string;
+}
+
+/** Error-groups query response */
+export interface ErrorGroupsData {
+	rows: ErrorGroupRow[];
+	count: number;
+}
+
 /** Query parameters sent to the logs edge function */
 export type QueryParams = {
 	pod_namespace?: string | null;
