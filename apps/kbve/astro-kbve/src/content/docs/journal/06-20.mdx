@@ -45,13 +45,30 @@ The `Atlas` project needs to process the tickets but without the monorepo.
     While that is being built out, we could look into the iOS builds.
     We want both UE5 and RN, but it would be nice to get Unity and Godot out of the way too.
 
+-   06:15PM
+
+    Preparing the release of v0.3.28 and hopefully we get the mac release out with this build.
+
+-   06:20PM
+
+    Bumped unreal-chuck-beta to v0.3.28. Created iOS build tickets (#12875 UE5 iOS, #12876 RN iOS) with new `ios` label. Same Xcode/certs for both pipelines.
+
 ### IOS Builds
 
 -   05:14PM
 
     The next goal will be to get iOS hooked up, then we loop back around to android.
     This will be our last logistical pipeline, then we are fully ready to build and distribute the packages.
-    
+
+
+
+### Metric Improvements
+
+-   06:05PM
+
+    We want the ArgoCD, Clickhouse and Grafana all giving us accurate information.
+    Eventually we will bundle them all into a single metrics dashboard that we will scope to help us find degraded or burst issues.
+    The idea will be to first focus on the backend side, but later expand into the front end, giving us our own sentry style eco-system.
 
 ## 2025
 
