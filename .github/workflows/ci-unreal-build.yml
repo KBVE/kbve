@@ -885,7 +885,7 @@ jobs:
                   gameData: ./ue5-game-output
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: linux-v${{ needs.game_gate.outputs.version }}
+                  buildChannel: linux
                   buildNumber: ${{ needs.game_gate.outputs.version }}
 
             - name: Cleanup
@@ -1118,7 +1118,7 @@ jobs:
                   $butler = "$env:RUNNER_TEMP\butler\butler.exe"
                   $version = "${{ needs.game_gate.outputs.version }}"
                   $channel = '${{ inputs.itch_channel }}'
-                  if (-not $channel) { $channel = "windows-v$version" }
+                  if (-not $channel) { $channel = "windows" }
                   $target = "${{ inputs.itch_username }}/${{ inputs.itch_game_id }}:$channel"
                   Write-Host "::notice::butler push C:\ue5-game-output -> $target (v$version)"
                   & $butler push "C:\ue5-game-output" $target --userversion $version
@@ -1162,6 +1162,25 @@ jobs:
                   echo "1. Install/configure Unreal Engine on this Mac"
                   echo "2. Implement UAT build commands for Mac platform"
                   echo "3. Configure artifact packaging and upload"
+
+            - name: Upload artifact (stub)
+              if: false
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io (stub)
+              if: false && inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./ue5-game-output
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: macos
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
 
     game_post_publish:
         name: Game Post-publish version sync
