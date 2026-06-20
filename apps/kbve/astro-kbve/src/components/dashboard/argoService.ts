@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet, cacheDel } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -125,19 +126,15 @@ export interface ResourceSelector {
 	uid?: string;
 }
 
-interface CachedData {
-	ts: number;
-	applications: ArgoApplication[];
-}
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const CACHE_KEY = 'cache:argo:applications';
+const CACHE_KEY = 'argo:applications';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/argo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
+const REFRESH_DEBOUNCE_MS = 500;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -341,28 +338,62 @@ export async function fetchPodLogs(
 }
 
 // ---------------------------------------------------------------------------
-// Cache helpers
+// Mutations (gated by DASHBOARD_MANAGE in the axum proxy)
 // ---------------------------------------------------------------------------
 
-function loadCache(): CachedData | null {
-	try {
-		const raw = localStorage.getItem(CACHE_KEY);
-		if (!raw) return null;
-		const parsed: CachedData = JSON.parse(raw);
-		if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
-		return parsed;
-	} catch {
-		return null;
+export class ManageForbiddenError extends Error {
+	constructor() {
+		super('Requires DASHBOARD_MANAGE permission');
+		this.name = 'ManageForbiddenError';
 	}
 }
 
+export async function syncApplication(
+	token: string,
+	appName: string,
+): Promise<void> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/sync`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ prune: false }),
+			signal: AbortSignal.timeout(20000),
+		},
+	);
+	if (resp.status === 403) throw new ManageForbiddenError();
+	if (!resp.ok) throw new Error(`Sync failed: ${resp.status}`);
+}
+
+export async function hardRefreshApplication(
+	token: string,
+	appName: string,
+): Promise<void> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}?refresh=hard`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(20000),
+		},
+	);
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (!resp.ok) throw new Error(`Refresh failed: ${resp.status}`);
+}
+
+// ---------------------------------------------------------------------------
+// Cache helpers — IndexedDB-backed (SharedWorker → Dexie → localStorage →
+// memory) via the shared idb-cache layer. Render from here first, then pull.
+// ---------------------------------------------------------------------------
+
+function loadCache(): Promise<ArgoApplication[] | null> {
+	return cacheGet<ArgoApplication[]>(CACHE_KEY, CACHE_TTL_MS);
+}
+
 function saveCache(applications: ArgoApplication[]): void {
-	try {
-		const data: CachedData = { ts: Date.now(), applications };
-		localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-	} catch {
-		// ignore quota errors
-	}
+	void cacheSet(CACHE_KEY, applications);
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +474,34 @@ export function detectResourceStall(node: ResourceNode): StallReason | null {
 	return null;
 }
 
+/**
+ * Pick the most-actionable unhealthy node in a resource tree: Degraded first,
+ * then Missing, then Progressing; within a tier prefer a Pod (the leaf you can
+ * read logs / metrics on).
+ */
+export function pickFailingNode(nodes: ResourceNode[]): ResourceNode | null {
+	const rank = (n: ResourceNode): number => {
+		switch (n.health?.status) {
+			case 'Degraded':
+				return 0;
+			case 'Missing':
+				return 1;
+			case 'Progressing':
+				return 2;
+			default:
+				return 9;
+		}
+	};
+	const candidates = nodes
+		.filter((n) => rank(n) < 9)
+		.sort((a, b) => {
+			const r = rank(a) - rank(b);
+			if (r !== 0) return r;
+			return (a.kind === 'Pod' ? 0 : 1) - (b.kind === 'Pod' ? 0 : 1);
+		});
+	return candidates[0] ?? null;
+}
+
 export function formatAge(ageMs: number): string {
 	if (ageMs < 60 * 1000) return `${Math.floor(ageMs / 1000)}s`;
 	if (ageMs < 60 * 60 * 1000) return `${Math.floor(ageMs / 60000)}m`;
@@ -470,6 +529,12 @@ class ArgoService {
 	public readonly $appTab = atom<'resources' | 'events' | 'history'>(
 		'resources',
 	);
+
+	// Per-app action state: $actionBusy holds `${name}:sync` | `${name}:refresh`
+	// while the request is in flight; messages are transient banners.
+	public readonly $actionBusy = atom<string | null>(null);
+	public readonly $actionError = atom<string | null>(null);
+	public readonly $actionMsg = atom<string | null>(null);
 
 	// Computed
 	public readonly $totalApps = computed(
@@ -527,6 +592,7 @@ class ArgoService {
 	);
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
+	private _refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
 	// --- Auth ---
 
@@ -578,18 +644,18 @@ class ArgoService {
 		}
 	}
 
-	public loadCacheAndFetch(): void {
+	public async loadCacheAndFetch(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
-		const cached = loadCache();
-		if (cached) {
-			this.$applications.set(cached.applications);
-			this.$lastUpdated.set(new Date(cached.ts));
+		const cached = await loadCache();
+		if (cached && this.$applications.get().length === 0) {
+			this.$applications.set(cached);
+			this.$lastUpdated.set(new Date());
 			this.$loading.set(false);
 		}
 
-		this.fetchData();
+		this._scheduleRefresh(true);
 		this._startAutoRefresh();
 	}
 
@@ -597,11 +663,72 @@ class ArgoService {
 		const token = this.$accessToken.get();
 		if (token) {
 			this.$loading.set(true);
-			this.fetchData();
+			this._scheduleRefresh();
 		}
 	}
 
+	public async invalidateCache(): Promise<void> {
+		await cacheDel(CACHE_KEY);
+	}
+
+	public async syncApp(name: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$actionBusy.get()) return;
+		this.$actionBusy.set(`${name}:sync`);
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
+		try {
+			await syncApplication(token, name);
+			this.$actionMsg.set(`Sync triggered for ${name}`);
+			await this.invalidateCache();
+			this._scheduleRefresh(true);
+		} catch (e: unknown) {
+			this.$actionError.set(
+				e instanceof ManageForbiddenError
+					? 'Sync needs DASHBOARD_MANAGE permission'
+					: e instanceof Error
+						? e.message
+						: 'Sync failed',
+			);
+		} finally {
+			this.$actionBusy.set(null);
+		}
+	}
+
+	public async hardRefreshApp(name: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$actionBusy.get()) return;
+		this.$actionBusy.set(`${name}:refresh`);
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
+		try {
+			await hardRefreshApplication(token, name);
+			this.$actionMsg.set(`Hard refresh requested for ${name}`);
+			await this.invalidateCache();
+			this._scheduleRefresh(true);
+		} catch (e: unknown) {
+			this.$actionError.set(
+				e instanceof Error ? e.message : 'Refresh failed',
+			);
+		} finally {
+			this.$actionBusy.set(null);
+		}
+	}
+
+	private _scheduleRefresh(immediate = false): void {
+		if (this._refreshTimer) clearTimeout(this._refreshTimer);
+		this._refreshTimer = setTimeout(
+			() => {
+				this._refreshTimer = undefined;
+				void this.fetchData();
+			},
+			immediate ? 0 : REFRESH_DEBOUNCE_MS,
+		);
+	}
+
 	public toggleExpandedApp(name: string): void {
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
 		if (this.$expandedApp.get() === name) {
 			this.$expandedApp.set(null);
 			this.$selectedResource.set(null);
@@ -609,6 +736,35 @@ class ArgoService {
 			this.$expandedApp.set(name);
 			this.$appTab.set('resources');
 			this.$selectedResource.set(null);
+		}
+	}
+
+	public async focusFailingResource(appName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (this.$expandedApp.get() !== appName) {
+			this.$actionError.set(null);
+			this.$actionMsg.set(null);
+			this.$expandedApp.set(appName);
+		}
+		this.$appTab.set('resources');
+		this.$selectedResource.set(null);
+		if (!token) return;
+		try {
+			const tree = await fetchResourceTree(token, appName);
+			const bad = pickFailingNode(tree.nodes);
+			if (bad) {
+				this.$selectedResource.set({
+					appName,
+					kind: bad.kind,
+					namespace: bad.namespace,
+					name: bad.name,
+					group: bad.group,
+					version: bad.version,
+					uid: bad.uid,
+				});
+			}
+		} catch {
+			/* leave the app expanded; tree fetch is best-effort */
 		}
 	}
 
@@ -635,7 +791,7 @@ class ArgoService {
 	private _startAutoRefresh(): void {
 		if (this._refreshInterval) clearInterval(this._refreshInterval);
 		this._refreshInterval = setInterval(
-			() => this.fetchData(),
+			() => this._scheduleRefresh(),
 			REFRESH_INTERVAL_MS,
 		);
 	}
