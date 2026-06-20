@@ -599,9 +599,21 @@ jobs:
 
                   echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
                   cd "${PVC_DIR}"
-                  DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
+
+                  # Protect latest symlink target
+                  LATEST_TARGET=$(readlink latest 2>/dev/null || echo "")
+
+                  # Sort version dirs by semver (descending), skip first KEEP
+                  DIRS=$(ls -d [0-9]* 2>/dev/null | sort -V -r | tail -n +$((KEEP+1)))
+
                   if [ -n "${DIRS}" ]; then
                     for DIR in ${DIRS}; do
+                      # Skip if this is the latest symlink target
+                      if [ "${DIR}" = "${LATEST_TARGET}" ]; then
+                        echo "  Skipping ${DIR} (latest symlink target)"
+                        continue
+                      fi
+                      # Skip if in use by running server
                       if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
                         echo "  Skipping ${DIR} (in use by running server)"
                       else
