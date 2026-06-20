@@ -1,5 +1,6 @@
 import { atom } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -987,13 +988,7 @@ export interface PodMetrics {
 	fromCache: boolean;
 }
 
-interface CachedPodMetrics {
-	metrics: PodMetrics;
-	cached_at: number;
-	user_id: string;
-}
-
-const POD_CACHE_KEY_PREFIX = 'cache:grafana:pod';
+const POD_CACHE_KEY_PREFIX = 'grafana:pod';
 const POD_CACHE_TTL_MS = 5 * 60 * 1000;
 
 function podCacheKey(
@@ -1005,25 +1000,17 @@ function podCacheKey(
 	return `${POD_CACHE_KEY_PREFIX}:${uid}:${ns}:${pod}:${tr}`;
 }
 
-function getCachedPodMetrics(
+async function getCachedPodMetrics(
 	uid: string,
 	ns: string,
 	pod: string,
 	tr: TimeRangeKey,
-): PodMetrics | null {
-	try {
-		const raw = localStorage.getItem(podCacheKey(uid, ns, pod, tr));
-		if (!raw) return null;
-		const cached: CachedPodMetrics = JSON.parse(raw);
-		if (cached.user_id !== uid) {
-			localStorage.removeItem(podCacheKey(uid, ns, pod, tr));
-			return null;
-		}
-		if (Date.now() - cached.cached_at > POD_CACHE_TTL_MS) return null;
-		return { ...cached.metrics, fromCache: true };
-	} catch {
-		return null;
-	}
+): Promise<PodMetrics | null> {
+	const m = await cacheGet<PodMetrics>(
+		podCacheKey(uid, ns, pod, tr),
+		POD_CACHE_TTL_MS,
+	);
+	return m ? { ...m, fromCache: true } : null;
 }
 
 function setCachedPodMetrics(
@@ -1033,19 +1020,10 @@ function setCachedPodMetrics(
 	tr: TimeRangeKey,
 	metrics: PodMetrics,
 ): void {
-	try {
-		const payload: CachedPodMetrics = {
-			metrics: { ...metrics, fromCache: false },
-			cached_at: Date.now(),
-			user_id: uid,
-		};
-		localStorage.setItem(
-			podCacheKey(uid, ns, pod, tr),
-			JSON.stringify(payload),
-		);
-	} catch {
-		/* quota exceeded */
-	}
+	void cacheSet(podCacheKey(uid, ns, pod, tr), {
+		...metrics,
+		fromCache: false,
+	});
 }
 
 function escapeLabel(v: string): string {
@@ -1088,7 +1066,7 @@ export async function fetchPodMetrics(
 	skipCache = false,
 ): Promise<PodMetrics | null> {
 	if (!skipCache) {
-		const cached = getCachedPodMetrics(uid, ns, pod, tr);
+		const cached = await getCachedPodMetrics(uid, ns, pod, tr);
 		if (cached) return cached;
 	}
 

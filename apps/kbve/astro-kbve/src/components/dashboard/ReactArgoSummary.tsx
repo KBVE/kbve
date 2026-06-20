@@ -4,7 +4,6 @@ import {
 	argoService,
 	formatAge,
 	healthColor,
-	syncColor,
 	type ArgoApplication,
 	type StallReason,
 } from './argoService';

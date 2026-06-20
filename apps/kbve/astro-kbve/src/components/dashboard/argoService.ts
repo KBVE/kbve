@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet, cacheDel } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -125,19 +126,15 @@ export interface ResourceSelector {
 	uid?: string;
 }
 
-interface CachedData {
-	ts: number;
-	applications: ArgoApplication[];
-}
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const CACHE_KEY = 'cache:argo:applications';
+const CACHE_KEY = 'argo:applications';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/argo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
+const REFRESH_DEBOUNCE_MS = 500;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -341,28 +338,16 @@ export async function fetchPodLogs(
 }
 
 // ---------------------------------------------------------------------------
-// Cache helpers
+// Cache helpers — IndexedDB-backed (SharedWorker → Dexie → localStorage →
+// memory) via the shared idb-cache layer. Render from here first, then pull.
 // ---------------------------------------------------------------------------
 
-function loadCache(): CachedData | null {
-	try {
-		const raw = localStorage.getItem(CACHE_KEY);
-		if (!raw) return null;
-		const parsed: CachedData = JSON.parse(raw);
-		if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
-		return parsed;
-	} catch {
-		return null;
-	}
+function loadCache(): Promise<ArgoApplication[] | null> {
+	return cacheGet<ArgoApplication[]>(CACHE_KEY, CACHE_TTL_MS);
 }
 
 function saveCache(applications: ArgoApplication[]): void {
-	try {
-		const data: CachedData = { ts: Date.now(), applications };
-		localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-	} catch {
-		// ignore quota errors
-	}
+	void cacheSet(CACHE_KEY, applications);
 }
 
 // ---------------------------------------------------------------------------
@@ -527,6 +512,7 @@ class ArgoService {
 	);
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
+	private _refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
 	// --- Auth ---
 
@@ -578,18 +564,18 @@ class ArgoService {
 		}
 	}
 
-	public loadCacheAndFetch(): void {
+	public async loadCacheAndFetch(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
-		const cached = loadCache();
-		if (cached) {
-			this.$applications.set(cached.applications);
-			this.$lastUpdated.set(new Date(cached.ts));
+		const cached = await loadCache();
+		if (cached && this.$applications.get().length === 0) {
+			this.$applications.set(cached);
+			this.$lastUpdated.set(new Date());
 			this.$loading.set(false);
 		}
 
-		this.fetchData();
+		this._scheduleRefresh(true);
 		this._startAutoRefresh();
 	}
 
@@ -597,8 +583,23 @@ class ArgoService {
 		const token = this.$accessToken.get();
 		if (token) {
 			this.$loading.set(true);
-			this.fetchData();
+			this._scheduleRefresh();
 		}
+	}
+
+	public async invalidateCache(): Promise<void> {
+		await cacheDel(CACHE_KEY);
+	}
+
+	private _scheduleRefresh(immediate = false): void {
+		if (this._refreshTimer) clearTimeout(this._refreshTimer);
+		this._refreshTimer = setTimeout(
+			() => {
+				this._refreshTimer = undefined;
+				void this.fetchData();
+			},
+			immediate ? 0 : REFRESH_DEBOUNCE_MS,
+		);
 	}
 
 	public toggleExpandedApp(name: string): void {
@@ -635,7 +636,7 @@ class ArgoService {
 	private _startAutoRefresh(): void {
 		if (this._refreshInterval) clearInterval(this._refreshInterval);
 		this._refreshInterval = setInterval(
-			() => this.fetchData(),
+			() => this._scheduleRefresh(),
 			REFRESH_INTERVAL_MS,
 		);
 	}
