@@ -1161,16 +1161,26 @@ jobs:
                   echo "2. Implement UAT build commands for Mac platform"
                   echo "3. Configure artifact packaging and upload"
 
-            - name: Upload artifact (stub)
-              if: hashFiles(format('/tmp/{0}-macos.zip', inputs.app_name)) != ''
-              uses: actions/upload-artifact@v4
+            - name: Package artifact
+              if: hashFiles('ue5-game-output/**') != ''
+              run: |
+                  if ! command -v zip >/dev/null 2>&1; then
+                    echo "::error::zip not found on macOS runner"
+                    exit 1
+                  fi
+                  cd "${GITHUB_WORKSPACE}/ue5-game-output"
+                  zip -r "/tmp/${{ inputs.app_name }}-macos.zip" .
+
+            - name: Upload artifact
+              if: hashFiles('ue5-game-output/**') != ''
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
                   path: /tmp/${{ inputs.app_name }}-macos.zip
                   retention-days: 30
 
-            - name: Deploy to itch.io (stub)
-              if: inputs.deploy_to_itch == true && inputs.itch_game_id != '' && hashFiles(format('/tmp/{0}-macos.zip', inputs.app_name)) != ''
+            - name: Deploy to itch.io
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != '' && hashFiles('ue5-game-output/**') != ''
               uses: KikimoraGames/itch-publish@v0.0.3
               with:
                   butlerApiKey: ${{ secrets.butler_api }}
