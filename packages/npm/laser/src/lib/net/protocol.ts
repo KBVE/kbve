@@ -181,6 +181,8 @@ export interface BlackjackSeatView {
 	value: number;
 	soft: boolean;
 	outcome: string | null;
+	/** Player is offline; the seat is held open for a reconnect. */
+	disconnected?: boolean;
 }
 
 export interface BlackjackStateView {
