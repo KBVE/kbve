@@ -65,9 +65,7 @@ function StatCard({
 }
 
 function openApp(name: string): void {
-	if (argoService.$expandedApp.get() !== name) {
-		argoService.toggleExpandedApp(name);
-	}
+	void argoService.focusFailingResource(name);
 	requestAnimationFrame(() => {
 		document
 			.getElementById(`argo-app-${name}`)

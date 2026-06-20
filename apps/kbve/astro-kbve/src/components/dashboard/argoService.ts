@@ -474,6 +474,34 @@ export function detectResourceStall(node: ResourceNode): StallReason | null {
 	return null;
 }
 
+/**
+ * Pick the most-actionable unhealthy node in a resource tree: Degraded first,
+ * then Missing, then Progressing; within a tier prefer a Pod (the leaf you can
+ * read logs / metrics on).
+ */
+export function pickFailingNode(nodes: ResourceNode[]): ResourceNode | null {
+	const rank = (n: ResourceNode): number => {
+		switch (n.health?.status) {
+			case 'Degraded':
+				return 0;
+			case 'Missing':
+				return 1;
+			case 'Progressing':
+				return 2;
+			default:
+				return 9;
+		}
+	};
+	const candidates = nodes
+		.filter((n) => rank(n) < 9)
+		.sort((a, b) => {
+			const r = rank(a) - rank(b);
+			if (r !== 0) return r;
+			return (a.kind === 'Pod' ? 0 : 1) - (b.kind === 'Pod' ? 0 : 1);
+		});
+	return candidates[0] ?? null;
+}
+
 export function formatAge(ageMs: number): string {
 	if (ageMs < 60 * 1000) return `${Math.floor(ageMs / 1000)}s`;
 	if (ageMs < 60 * 60 * 1000) return `${Math.floor(ageMs / 60000)}m`;
@@ -708,6 +736,35 @@ class ArgoService {
 			this.$expandedApp.set(name);
 			this.$appTab.set('resources');
 			this.$selectedResource.set(null);
+		}
+	}
+
+	public async focusFailingResource(appName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (this.$expandedApp.get() !== appName) {
+			this.$actionError.set(null);
+			this.$actionMsg.set(null);
+			this.$expandedApp.set(appName);
+		}
+		this.$appTab.set('resources');
+		this.$selectedResource.set(null);
+		if (!token) return;
+		try {
+			const tree = await fetchResourceTree(token, appName);
+			const bad = pickFailingNode(tree.nodes);
+			if (bad) {
+				this.$selectedResource.set({
+					appName,
+					kind: bad.kind,
+					namespace: bad.namespace,
+					name: bad.name,
+					group: bad.group,
+					version: bad.version,
+					uid: bad.uid,
+				});
+			}
+		} catch {
+			/* leave the app expanded; tree fetch is best-effort */
 		}
 	}
 
