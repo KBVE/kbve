@@ -70,6 +70,9 @@ function SeatRow({
 				<span className="text-xs text-zinc-300">
 					{seat.username}
 					{mine && <span className="text-yellow-400"> (you)</span>}
+					{seat.disconnected && (
+						<span className="text-rose-400"> (reconnecting…)</span>
+					)}
 				</span>
 				<Hand cards={seat.hand} />
 			</div>

@@ -322,6 +322,10 @@ export class CloudCityScene extends Scene {
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
 			}
+			// Reconnected while seated: reclaim the seat the server held open.
+			if (this.atCasino) {
+				this.client?.joinTable(CASINO_TABLE_REF);
+			}
 		});
 		client.on('snapshot', (s) => this.applySnapshot(s));
 		client.on('inventory', (inv) => {

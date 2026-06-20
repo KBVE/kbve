@@ -200,6 +200,9 @@ pub const BJ_SPECTATE: i32 = 4;
 pub const BJ_BET_TICKS: u32 = SIM_TICK_HZ * 20;
 pub const BJ_TURN_TICKS: u32 = SIM_TICK_HZ * 20;
 pub const BJ_SETTLE_TICKS: u32 = SIM_TICK_HZ * 5;
+/// Grace window a vacated seat is reserved for the same player to reconnect into
+/// before it is released back to the table.
+pub const BJ_HOLD_TICKS: u32 = SIM_TICK_HZ * 30;
 
 /// A casino table the game crate exposes for blackjack. Generic so simgrid stays
 /// game-agnostic; cryptothrone populates `Tables` at bootstrap.
@@ -240,6 +243,9 @@ struct Seat {
     natural: bool,
     done: bool,
     outcome: Option<blackjack::Outcome>,
+    /// Tick the player's entity vanished; `Some` means the seat is held open for a
+    /// reconnect and the occupant is currently offline.
+    disconnected_since: Option<u32>,
 }
 
 impl Seat {
@@ -252,6 +258,7 @@ impl Seat {
             natural: false,
             done: false,
             outcome: None,
+            disconnected_since: None,
         }
     }
 
@@ -304,6 +311,13 @@ impl TableSession {
 
     fn first_free(&self) -> Option<usize> {
         self.seats.iter().position(|s| s.is_none())
+    }
+
+    /// A seat reserved for `username` whose occupant is offline, awaiting reconnect.
+    fn held_seat_for(&mut self, username: &str) -> Option<&mut Seat> {
+        self.seats.iter_mut().flatten().find(|s| {
+            s.disconnected_since.is_some() && !s.username.is_empty() && s.username == username
+        })
     }
 
     /// First seat that placed a bet and still owes a decision.
@@ -1752,18 +1766,30 @@ fn apply_blackjack(
                 let Some(def) = tables.0.iter().find(|d| d.table_ref == table_ref) else {
                     continue;
                 };
-                let Some(&ptile) = tile_of.get(&slot) else {
-                    continue;
-                };
-                if ptile.chebyshev(def.tile) > BJ_PROXIMITY {
-                    continue;
-                }
                 let username = roster
                     .0
                     .read()
                     .ok()
                     .and_then(|r| r.username(pslot))
                     .unwrap_or_default();
+                // Reclaiming a seat held open from a disconnect skips the proximity
+                // gate — a reconnecting player respawns away from the table but was
+                // already seated. Fresh seating still requires being adjacent.
+                if let Some(seat) = reg
+                    .sessions
+                    .get_mut(&table_ref)
+                    .and_then(|s| s.held_seat_for(&username))
+                {
+                    seat.slot = slot;
+                    seat.disconnected_since = None;
+                    continue;
+                }
+                let Some(&ptile) = tile_of.get(&slot) else {
+                    continue;
+                };
+                if ptile.chebyshev(def.tile) > BJ_PROXIMITY {
+                    continue;
+                }
                 let salt = table_salt(&table_ref);
                 let session = reg.sessions.entry(table_ref.clone()).or_insert_with(|| {
                     TableSession::create(def, blackjack::Rng::seed(seed.0, salt, tick as u64), tick)
@@ -1813,11 +1839,50 @@ fn apply_blackjack(
         }
     }
 
-    // ---- Disconnect sweep: drop seats whose player vanished (forfeit their bet). ----
+    // ---- Disconnect sweep: hold a vacated seat for the same player to reconnect
+    // into; release it (forfeiting any live bet) once the grace window lapses.
+    // Anonymous seats can't be name-matched on reconnect, so they drop at once. ----
+    let name_of: HashMap<u16, String> = {
+        let guard = roster.0.read().ok();
+        entity_of
+            .keys()
+            .filter_map(|&s| {
+                guard
+                    .as_ref()
+                    .and_then(|g| g.username(proto::PlayerSlot(s)))
+                    .map(|n| (s, n))
+            })
+            .collect()
+    };
     for session in reg.sessions.values_mut() {
-        for seat in session.seats.iter_mut() {
-            if matches!(seat, Some(s) if !entity_of.contains_key(&s.slot)) {
-                *seat = None;
+        for slot_opt in session.seats.iter_mut() {
+            let Some(seat) = slot_opt.as_mut() else {
+                continue;
+            };
+            // A live entity at the seat's slot only counts if it is the same player;
+            // a slot reassigned to someone else must not silently inherit the seat.
+            let present = entity_of.contains_key(&seat.slot)
+                && name_of.get(&seat.slot) == Some(&seat.username);
+            if present {
+                seat.disconnected_since = None;
+                continue;
+            }
+            let release = if seat.username.is_empty() {
+                true
+            } else {
+                match seat.disconnected_since {
+                    None => {
+                        // Park the seat: detach the stale slot so a reused slot can't
+                        // route this table's state or be mistaken for the occupant.
+                        seat.disconnected_since = Some(tick);
+                        seat.slot = proto::PLAYER_SLOT_NONE.0;
+                        false
+                    }
+                    Some(since) => tick.saturating_sub(since) >= BJ_HOLD_TICKS,
+                }
+            };
+            if release {
+                *slot_opt = None;
             }
         }
     }
@@ -2055,6 +2120,7 @@ fn send_blackjack(
                 "value": value,
                 "soft": soft,
                 "outcome": seat.outcome.map(|o| o.as_str()),
+                "disconnected": seat.disconnected_since.is_some(),
             })
         })
         .collect();
@@ -4247,8 +4313,17 @@ mod tests {
         );
     }
 
+    fn occupied_seats(app: &App) -> usize {
+        app.world()
+            .resource::<TableRegistry>()
+            .sessions
+            .values()
+            .map(|s| s.occupied())
+            .sum()
+    }
+
     #[test]
-    fn disconnect_mid_round_drops_seat() {
+    fn disconnect_holds_seat_then_releases_after_grace() {
         let (mut app, _rx, tx, roster) = bj_harness(205, Tile::new(8, 8));
         let slot = join(&roster, "p1");
         app.update();
@@ -4270,9 +4345,66 @@ mod tests {
         roster.write().unwrap().release(slot);
         app.update();
         app.update();
+        // Seat is held open through the grace window, not dropped immediately.
+        assert_eq!(occupied_seats(&app), 1, "seat dropped before grace elapsed");
+        for _ in 0..(BJ_HOLD_TICKS + 2) {
+            app.update();
+        }
         assert!(
             app.world().resource::<TableRegistry>().sessions.is_empty(),
-            "session lingered after the only player disconnected"
+            "held seat not released + table not torn down after grace"
+        );
+    }
+
+    #[test]
+    fn reconnect_reclaims_held_seat() {
+        let (mut app, _rx, tx, roster) = bj_harness(207, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        app.update();
+        let e = player_for_slot(&mut app, slot);
+        set_inventory(&mut app, e, &[("coin", 50)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        // Disconnect, then let the seat park for a few ticks (still within grace).
+        roster.write().unwrap().release(slot);
+        for _ in 0..5 {
+            app.update();
+        }
+        assert_eq!(occupied_seats(&app), 1, "seat not held after disconnect");
+        // Reconnect under the same name (new slot) and re-join from the table tile.
+        let slot2 = join(&roster, "p1");
+        app.update();
+        tx.send((
+            slot2,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        assert_eq!(
+            occupied_seats(&app),
+            1,
+            "reconnect took a second seat instead of reclaiming the held one"
+        );
+        let session = app
+            .world()
+            .resource::<TableRegistry>()
+            .sessions
+            .values()
+            .next()
+            .unwrap();
+        let seat = session.seats.iter().flatten().next().unwrap();
+        assert_eq!(seat.slot, slot2.0, "reclaimed seat not rebound to new slot");
+        assert!(
+            seat.disconnected_since.is_none(),
+            "reclaimed seat still flagged offline"
         );
     }
 
