@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: metrics-route
+    namespace: kbve
+spec:
+    parentRefs:
+        - name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - metrics.kbve.com
+    rules:
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          backendRefs:
+              - name: metrics-service
+                port: 5500

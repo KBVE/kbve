@@ -1773,7 +1773,7 @@ dependencies = [
  "http 1.4.0",
  "http-body 1.0.1",
  "matchit 0.8.4",
- "metrics",
+ "metrics 0.24.3",
  "metrics-exporter-prometheus",
  "pin-project-lite",
  "tokio",
@@ -8762,7 +8762,7 @@ dependencies = [
  "hyper 1.9.0",
  "hyper-util",
  "lru 0.18.0",
- "metrics",
+ "metrics 0.24.3",
  "once_cell",
  "papaya",
  "prost 0.14.3",
@@ -9101,7 +9101,7 @@ dependencies = [
  "jedi",
  "jsonwebtoken 10.3.0",
  "lru 0.16.3",
- "metrics",
+ "metrics 0.24.3",
  "num-bigint",
  "once_cell",
  "pulldown-cmark 0.13.3",
@@ -9850,7 +9850,7 @@ dependencies = [
  "bevy_time",
  "bevy_ui",
  "bevy_utils",
- "metrics",
+ "metrics 0.24.3",
  "metrics-util",
  "tracing",
 ]
@@ -10087,7 +10087,7 @@ dependencies = [
  "bevy_ui",
  "bevy_utils",
  "lightyear_metrics",
- "metrics",
+ "metrics 0.24.3",
  "metrics-util",
  "tracing",
 ]
@@ -10466,6 +10466,29 @@ dependencies = [
 
 [[package]]
 name = "metrics"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "axum 0.8.9",
+ "dotenvy",
+ "hex",
+ "jedi",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "metrics"
 version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d5312e9ba3771cfa961b585728215e3d972c950a3eed9252aa093d6301277e8"
@@ -10482,7 +10505,7 @@ checksum = "3589659543c04c7dc5526ec858591015b87cd8746583b51b48ef4353f99dbcda"
 dependencies = [
  "base64 0.22.1",
  "indexmap 2.13.1",
- "metrics",
+ "metrics 0.24.3",
  "metrics-util",
  "quanta",
  "thiserror 2.0.18",
@@ -10499,7 +10522,7 @@ dependencies = [
  "crossbeam-utils",
  "hashbrown 0.16.1",
  "indexmap 2.13.1",
- "metrics",
+ "metrics 0.24.3",
  "ordered-float 5.3.0",
  "quanta",
  "radix_trie",
