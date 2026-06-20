@@ -603,7 +603,9 @@ pub fn init_argo_proxy() -> bool {
 
 pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     match ARGO.get() {
-        Some(proxy) => proxy.handle(path, req).await,
+        // Method-aware: GET reads require DASHBOARD_VIEW; mutating verbs
+        // (sync, refresh-via-POST, delete) require DASHBOARD_MANAGE.
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "ArgoCD proxy not configured"})),

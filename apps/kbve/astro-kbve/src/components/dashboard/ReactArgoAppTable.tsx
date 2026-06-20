@@ -21,6 +21,7 @@ import {
 	XCircle,
 	AlertCircle,
 	RefreshCw,
+	RotateCw,
 	Loader2,
 	ChevronDown,
 	ChevronRight,
@@ -898,6 +899,7 @@ export function ApplicationRow({
 					{lastSync}
 				</span>
 			</button>
+			{expanded && <AppActionBar app={app} />}
 			{expanded && (
 				<AppExpandedPanel
 					app={app}
@@ -907,6 +909,85 @@ export function ApplicationRow({
 					selectedResource={selectedResource}
 					onSelectResource={onSelectResource}
 				/>
+			)}
+		</div>
+	);
+}
+
+function AppActionBar({ app }: { app: ArgoApplication }) {
+	const busy = useStore(argoService.$actionBusy);
+	const actionError = useStore(argoService.$actionError);
+	const actionMsg = useStore(argoService.$actionMsg);
+	const name = app.metadata.name;
+	const syncing = busy === `${name}:sync`;
+	const refreshing = busy === `${name}:refresh`;
+	const anyBusy = busy !== null;
+
+	const btn: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 6,
+		padding: '0.35rem 0.7rem',
+		borderRadius: 6,
+		border: '1px solid var(--sl-color-gray-5, #262626)',
+		background: 'var(--sl-color-bg, #0d0d0d)',
+		color: 'var(--sl-color-text, #e6edf3)',
+		fontSize: '0.78rem',
+		fontWeight: 500,
+		cursor: anyBusy ? 'wait' : 'pointer',
+	};
+
+	return (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: 8,
+				padding: '0.5rem 1rem',
+				borderTop: '1px solid var(--sl-color-gray-6, #1c1c1c)',
+				flexWrap: 'wrap',
+			}}>
+			<button
+				type="button"
+				disabled={anyBusy}
+				onClick={() => argoService.syncApp(name)}
+				style={btn}
+				title="Trigger an ArgoCD sync (requires manage permission)">
+				{syncing ? (
+					<Loader2
+						size={13}
+						style={{ animation: 'spin 1s linear infinite' }}
+					/>
+				) : (
+					<RefreshCw size={13} />
+				)}
+				Sync
+			</button>
+			<button
+				type="button"
+				disabled={anyBusy}
+				onClick={() => argoService.hardRefreshApp(name)}
+				style={btn}
+				title="Force ArgoCD to re-read the live cluster state">
+				{refreshing ? (
+					<Loader2
+						size={13}
+						style={{ animation: 'spin 1s linear infinite' }}
+					/>
+				) : (
+					<RotateCw size={13} />
+				)}
+				Hard Refresh
+			</button>
+			{actionMsg && (
+				<span style={{ color: '#22c55e', fontSize: '0.75rem' }}>
+					{actionMsg}
+				</span>
+			)}
+			{actionError && (
+				<span style={{ color: '#fca5a5', fontSize: '0.75rem' }}>
+					{actionError}
+				</span>
 			)}
 		</div>
 	);

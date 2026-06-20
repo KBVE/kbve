@@ -338,6 +338,52 @@ export async function fetchPodLogs(
 }
 
 // ---------------------------------------------------------------------------
+// Mutations (gated by DASHBOARD_MANAGE in the axum proxy)
+// ---------------------------------------------------------------------------
+
+export class ManageForbiddenError extends Error {
+	constructor() {
+		super('Requires DASHBOARD_MANAGE permission');
+		this.name = 'ManageForbiddenError';
+	}
+}
+
+export async function syncApplication(
+	token: string,
+	appName: string,
+): Promise<void> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/sync`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ prune: false }),
+			signal: AbortSignal.timeout(20000),
+		},
+	);
+	if (resp.status === 403) throw new ManageForbiddenError();
+	if (!resp.ok) throw new Error(`Sync failed: ${resp.status}`);
+}
+
+export async function hardRefreshApplication(
+	token: string,
+	appName: string,
+): Promise<void> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}?refresh=hard`,
+		{
+			headers: { Authorization: `Bearer ${token}` },
+			signal: AbortSignal.timeout(20000),
+		},
+	);
+	if (resp.status === 403) throw new AccessRestrictedError();
+	if (!resp.ok) throw new Error(`Refresh failed: ${resp.status}`);
+}
+
+// ---------------------------------------------------------------------------
 // Cache helpers — IndexedDB-backed (SharedWorker → Dexie → localStorage →
 // memory) via the shared idb-cache layer. Render from here first, then pull.
 // ---------------------------------------------------------------------------
@@ -455,6 +501,12 @@ class ArgoService {
 	public readonly $appTab = atom<'resources' | 'events' | 'history'>(
 		'resources',
 	);
+
+	// Per-app action state: $actionBusy holds `${name}:sync` | `${name}:refresh`
+	// while the request is in flight; messages are transient banners.
+	public readonly $actionBusy = atom<string | null>(null);
+	public readonly $actionError = atom<string | null>(null);
+	public readonly $actionMsg = atom<string | null>(null);
 
 	// Computed
 	public readonly $totalApps = computed(
@@ -591,6 +643,50 @@ class ArgoService {
 		await cacheDel(CACHE_KEY);
 	}
 
+	public async syncApp(name: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$actionBusy.get()) return;
+		this.$actionBusy.set(`${name}:sync`);
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
+		try {
+			await syncApplication(token, name);
+			this.$actionMsg.set(`Sync triggered for ${name}`);
+			await this.invalidateCache();
+			this._scheduleRefresh(true);
+		} catch (e: unknown) {
+			this.$actionError.set(
+				e instanceof ManageForbiddenError
+					? 'Sync needs DASHBOARD_MANAGE permission'
+					: e instanceof Error
+						? e.message
+						: 'Sync failed',
+			);
+		} finally {
+			this.$actionBusy.set(null);
+		}
+	}
+
+	public async hardRefreshApp(name: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$actionBusy.get()) return;
+		this.$actionBusy.set(`${name}:refresh`);
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
+		try {
+			await hardRefreshApplication(token, name);
+			this.$actionMsg.set(`Hard refresh requested for ${name}`);
+			await this.invalidateCache();
+			this._scheduleRefresh(true);
+		} catch (e: unknown) {
+			this.$actionError.set(
+				e instanceof Error ? e.message : 'Refresh failed',
+			);
+		} finally {
+			this.$actionBusy.set(null);
+		}
+	}
+
 	private _scheduleRefresh(immediate = false): void {
 		if (this._refreshTimer) clearTimeout(this._refreshTimer);
 		this._refreshTimer = setTimeout(
@@ -603,6 +699,8 @@ class ArgoService {
 	}
 
 	public toggleExpandedApp(name: string): void {
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
 		if (this.$expandedApp.get() === name) {
 			this.$expandedApp.set(null);
 			this.$selectedResource.set(null);
