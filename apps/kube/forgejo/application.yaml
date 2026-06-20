@@ -101,6 +101,8 @@ spec:
                           mirror:
                               ENABLED: true
                               DEFAULT_INTERVAL: 10m
+                          quota:
+                              ENABLED: true
                       additionalConfigFromEnvs:
                           - name: FORGEJO__SERVER__LFS_JWT_SECRET
                             valueFrom:

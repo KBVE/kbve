@@ -11,6 +11,7 @@ use serde_json::Value;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
+use tracing::{debug, warn};
 
 use super::policy::ForgejoPolicy;
 use super::types::*;
@@ -1521,16 +1522,29 @@ impl ForgejoClient {
             storage.truncated = true;
         }
 
+        let mut quota_ok = false;
         for owner in &owners {
-            if let Ok(q) = self.owner_quota(owner).await {
-                let s = &q.used.size;
-                storage.repos_bytes += s.repos.public + s.repos.private;
-                storage.lfs_bytes += s.git.lfs;
-                storage.attachments_bytes +=
-                    s.assets.attachments.issues + s.assets.attachments.releases;
-                storage.artifacts_bytes += s.assets.artifacts;
-                storage.packages_bytes += s.assets.packages.all;
-                storage.owners_counted += 1;
+            match self.owner_quota(owner).await {
+                Ok(q) => {
+                    let s = &q.used.size;
+                    storage.repos_bytes += s.repos.public + s.repos.private;
+                    storage.lfs_bytes += s.git.lfs;
+                    storage.attachments_bytes +=
+                        s.assets.attachments.issues + s.assets.attachments.releases;
+                    storage.artifacts_bytes += s.assets.artifacts;
+                    storage.packages_bytes += s.assets.packages.all;
+                    storage.owners_counted += 1;
+                    quota_ok = true;
+                }
+                Err(JediError::NotFound) => {
+                    warn!(
+                        "Forgejo quota API returned 404 — quota tracking is disabled on the instance; skipping storage aggregation. Enable [quota] ENABLED in app.ini."
+                    );
+                    break;
+                }
+                Err(e) => {
+                    debug!("Forgejo quota fetch failed for owner {owner}: {e}");
+                }
             }
         }
         storage.total_bytes = storage.repos_bytes
@@ -1538,7 +1552,7 @@ impl ForgejoClient {
             + storage.attachments_bytes
             + storage.artifacts_bytes
             + storage.packages_bytes;
-        storage.quota_enabled = storage.total_bytes > 0;
+        storage.quota_enabled = quota_ok;
         Ok(storage)
     }
 
