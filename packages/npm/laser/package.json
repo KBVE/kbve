@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/laser",
-	"version": "0.1.2",
+	"version": "0.1.4",
 	"description": "Phaser + React Three Fiber integration layer for React 19",
 	"keywords": [
 		"phaser",
