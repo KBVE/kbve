@@ -4,6 +4,8 @@
 //! `rank = byte & 0b1111` (A=0..K=12), `suit = (byte >> 4) & 0b11`
 //! (0 spades, 1 hearts, 2 diamonds, 3 clubs).
 
+use sha2::{Digest, Sha256};
+
 pub const RANK_MASK: u8 = 0b1111;
 pub const SUIT_SHIFT: u8 = 4;
 pub const DECKS: usize = 4;
@@ -93,6 +95,12 @@ impl Rng {
         Self(x ^ (x >> 31))
     }
 
+    /// Seed directly from a published round seed so a client holding the revealed
+    /// value can replay the exact shuffle. Must match the TS `bjShoeOrder`.
+    pub fn from_u64(seed: u64) -> Self {
+        Self(seed)
+    }
+
     pub fn next_u64(&mut self) -> u64 {
         self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
         let mut z = self.0;
@@ -105,6 +113,23 @@ impl Rng {
     pub fn below(&mut self, n: u32) -> u32 {
         (self.next_u64() % n as u64) as u32
     }
+}
+
+/// Provable-fairness commitment: the hex SHA-256 of the round seed's little-endian
+/// bytes. Published before the deal; the seed is revealed at settle so clients can
+/// recompute this and confirm the shoe was fixed up front.
+pub fn commit_seed(seed: u64) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(seed.to_le_bytes());
+    hex::encode(hasher.finalize())
+}
+
+/// A fresh, fully-shuffled shoe derived solely from `seed`. Mirrored by the TS
+/// `bjShoeOrder` so a client can replay it from the revealed seed.
+pub fn shoe_for_seed(seed: u64) -> Vec<u8> {
+    let mut shoe = build_shoe();
+    shuffle(&mut shoe, &mut Rng::from_u64(seed));
+    shoe
 }
 
 /// Fisher–Yates shuffle in place.
@@ -260,6 +285,37 @@ mod tests {
         assert_eq!(payout_credit(10, Outcome::Win), 20);
         assert_eq!(payout_credit(10, Outcome::Push), 10);
         assert_eq!(payout_credit(10, Outcome::Loss), 0);
+    }
+
+    #[test]
+    fn commitment_is_stable_and_binds_the_seed() {
+        let c = commit_seed(0xDEAD_BEEF);
+        assert_eq!(c.len(), 64, "sha-256 hex is 64 chars");
+        assert_eq!(c, commit_seed(0xDEAD_BEEF), "same seed → same commitment");
+        assert_ne!(
+            c,
+            commit_seed(0xDEAD_BEF0),
+            "different seed → different commitment"
+        );
+    }
+
+    #[test]
+    fn shoe_for_seed_is_a_deterministic_full_shoe() {
+        let a = shoe_for_seed(123);
+        assert_eq!(a.len(), 208);
+        assert_eq!(a, shoe_for_seed(123), "replayable from the seed");
+        assert_ne!(a, shoe_for_seed(124));
+        // Every card stays a valid 6-bit value after the shuffle.
+        assert!(
+            a.iter()
+                .all(|&c| (c & RANK_MASK) < 13 && (c >> SUIT_SHIFT) < 4)
+        );
+        // Cross-language parity vector — must match the TS `bjShoeOrder` spec.
+        assert_eq!(&a[..8], &[18, 1, 1, 33, 18, 26, 7, 35]);
+        assert_eq!(
+            commit_seed(123),
+            "4f319987a786107dc63b2b70115b3734cb9880b099b70c463c5e1b05521ab764"
+        );
     }
 
     #[test]

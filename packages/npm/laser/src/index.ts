@@ -107,6 +107,8 @@ export {
 	inputFrame,
 	decodeEphemeralPayload,
 	decodeCard,
+	bjShoeOrder,
+	verifyBlackjackCommitment,
 } from './lib/net/protocol';
 export type {
 	Dir,

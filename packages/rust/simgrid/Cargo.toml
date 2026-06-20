@@ -30,6 +30,8 @@ dashmap = "6.1.0"
 ulid = "1.2.1"
 jsonwebtoken = { version = "9.3", default-features = false, optional = true }
 tracing = "0.1"
+sha2 = "0.10"
+hex = "0.4"
 
 [dev-dependencies]
 # Integration tests spin the real axum WS router + sim loop and drive a client.
