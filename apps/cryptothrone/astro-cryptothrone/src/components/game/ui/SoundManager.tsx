@@ -82,6 +82,56 @@ export function SoundManager() {
 					),
 				);
 			}),
+			laserEvents.on('blackjack:sfx', (d) => {
+				const cx = ensure();
+				if (!cx) return;
+				const { kind } = d as { kind: string };
+				const arp = (freqs: number[], step = 90, gain = 0.05) =>
+					freqs.forEach((f, i) =>
+						setTimeout(
+							() => beep(cx, f, 0.15, 'triangle', gain),
+							i * step,
+						),
+					);
+				switch (kind) {
+					case 'card':
+						beep(cx, 1100, 0.03, 'square', 0.025);
+						break;
+					case 'flip':
+						beep(cx, 760, 0.05, 'square', 0.03);
+						break;
+					case 'deal':
+						beep(cx, 520, 0.06, 'sawtooth', 0.03);
+						setTimeout(
+							() => beep(cx, 700, 0.05, 'square', 0.02),
+							60,
+						);
+						break;
+					case 'chip':
+						beep(cx, 1500, 0.04, 'sine', 0.045);
+						setTimeout(
+							() => beep(cx, 1900, 0.03, 'sine', 0.03),
+							35,
+						);
+						break;
+					case 'win':
+						arp([523, 659, 784]);
+						break;
+					case 'blackjack':
+						arp([523, 659, 784, 1047], 80, 0.055);
+						break;
+					case 'push':
+						beep(cx, 440, 0.16, 'triangle', 0.04);
+						break;
+					case 'lose':
+						beep(cx, 300, 0.14, 'sawtooth', 0.05);
+						setTimeout(
+							() => beep(cx, 150, 0.2, 'sawtooth', 0.05),
+							100,
+						);
+						break;
+				}
+			}),
 		];
 		return () => offs.forEach((o) => o());
 	}, []);

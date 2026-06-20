@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-19T09:44:41Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-20T09:14:10Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,10 +29,10 @@ Last generated: **2026-06-19T09:44:41Z** — updated daily by `ci-dashboard`.
   <Card title="26 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="52 Medium" icon="information">
+  <Card title="53 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="7 Low" icon="approve-check-circle">
+  <Card title="11 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,7 +41,7 @@ Last generated: **2026-06-19T09:44:41Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **68** advisories
+    **73** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **49** advisories
@@ -64,8 +64,8 @@ pie showData
     title Findings by Severity
     "Critical" : 2
     "High" : 26
-    "Medium" : 52
-    "Low" : 7
+    "Medium" : 53
+    "Low" : 11
 ```
 
 ### Findings by Ecosystem
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 68
+    "npm" : 73
     "Cargo" : 49
     "CodeQL" : 1
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 26 | 33 | 7 | 68 |
+| **npm** | 2 | 26 | 34 | 11 | 73 |
 | **Cargo** | 0 | 0 | 18 | 0 | 49 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 1 | 0 | 1 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 26 | 52 | 7 | 118 |
+| **Total** | 2 | 26 | 53 | 11 | 123 |
 
   </TabItem>
   <TabItem label="npm">
@@ -111,18 +111,18 @@ pie showData
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
-| High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
 | High | `tmp` | tmp: Type-confusion bypass of _assertPath allows path tra... | [Details](https://github.com/advisories/GHSA-7c78-jf6q-g5cm) |
 | High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
 | High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
-| High | `astro` | Astro: Reflected XSS via unescaped slot name | [Details](https://github.com/advisories/GHSA-8hv8-536x-4wqp) |
-| High | `astro` | Astro: Host header SSRF in prerendered error page fetch | [Details](https://github.com/advisories/GHSA-2pvr-wf23-7pc7) |
 | High | `http-proxy-middleware` | http-proxy-middleware: multipart/form-data field injectio... | [Details](https://github.com/advisories/GHSA-gcq2-9pq2-cxqm) |
 | High | `undici` | undici vulnerable to TLS certificate validation bypass vi... | [Details](https://github.com/advisories/GHSA-vmh5-mc38-953g) |
 | High | `nodemailer` | Nodemailer: Message-level raw option bypasses disableFile... | [Details](https://github.com/advisories/GHSA-p6gq-j5cr-w38f) |
+| High | `undici` | undici WebSocket client vulnerable to denial of service v... | [Details](https://github.com/advisories/GHSA-vxpw-j846-p89q) |
+| High | `undici` | undici WebSocket client vulnerable to denial of service v... | [Details](https://github.com/advisories/GHSA-vxpw-j846-p89q) |
+| High | `undici` | undici vulnerable to cross-origin request routing via SOC... | [Details](https://github.com/advisories/GHSA-hm92-r4w5-c3mj) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
@@ -152,10 +152,11 @@ pie showData
 | Medium | `dompurify` | DOMPurify: Cross-realm IN_PLACE sanitization leaves execu... | [Details](https://github.com/advisories/GHSA-hpcv-96wg-7vj8) |
 | Medium | `dompurify` | DOMPurify: IN_PLACE mode preserves attributes of a clobbe... | [Details](https://github.com/advisories/GHSA-r47g-fvhr-h676) |
 | Medium | `dompurify` | DOMPurify IN_PLACE Sanitization Bypass via Attached Shado... | [Details](https://github.com/advisories/GHSA-rp9w-3fw7-7cwq) |
-| Medium | `astro` | Astro: XSS via Unescaped Attribute Names in Spread Props | [Details](https://github.com/advisories/GHSA-jrpj-wcv7-9fh9) |
 | Medium | `http-proxy-middleware` | http-proxy-middleware `router` host+path substring matchi... | [Details](https://github.com/advisories/GHSA-64mm-vxmg-q3vj) |
 | Medium | `undici` | undici vulnerable to cross-user information disclosure vi... | [Details](https://github.com/advisories/GHSA-pr7r-676h-xcf6) |
 | Medium | `dompurify` | DOMPurify: Permanent `ALLOWED_ATTR` pollution via `setCon... | [Details](https://github.com/advisories/GHSA-cmwh-pvxp-8882) |
+| Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
+| Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `esbuild` | esbuild allows arbitrary file read when running the devel... | [Details](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr) |
@@ -163,6 +164,10 @@ pie showData
 | Low | `dompurify` | DOMPurify: `IN_PLACE` mode trusts attacker-controlled `no... | [Details](https://github.com/advisories/GHSA-x4vx-rjvf-j5p4) |
 | Low | `dompurify` | DOMPurify: Trusted Types policy survives `clearConfig()` ... | [Details](https://github.com/advisories/GHSA-vxr8-fq34-vvx9) |
 | Low | `dompurify` | DOMPurify: SAFE_FOR_TEMPLATES bypass - template expressio... | [Details](https://github.com/advisories/GHSA-gvmj-g25r-r7wr) |
+| Low | `undici` | undici vulnerable to HTTP response queue poisoning via ke... | [Details](https://github.com/advisories/GHSA-35p6-xmwp-9g52) |
+| Low | `undici` | undici vulnerable to HTTP response queue poisoning via ke... | [Details](https://github.com/advisories/GHSA-35p6-xmwp-9g52) |
+| Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
+| Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
 
   </TabItem>
   <TabItem label="Cargo">

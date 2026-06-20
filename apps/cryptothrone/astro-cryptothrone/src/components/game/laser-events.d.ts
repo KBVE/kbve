@@ -9,6 +9,17 @@ declare module '@kbve/laser' {
 		'blackjack:bet': { amount: number };
 		'blackjack:action': { kind: BjActionKind };
 		'blackjack:insure': { amount: number };
+		'blackjack:sfx': {
+			kind:
+				| 'card'
+				| 'flip'
+				| 'deal'
+				| 'chip'
+				| 'win'
+				| 'blackjack'
+				| 'lose'
+				| 'push';
+		};
 		'blackjack:leave': void;
 		'npc:interact': {
 			npcId: string;

@@ -19,9 +19,13 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use jedi::entity::error::JediError;
-use jedi::entity::forgejo::{ForgejoClient, ForgejoPolicy, ForgejoStats, ForgejoStorage};
+use jedi::entity::forgejo::{
+    ForgejoClient, ForgejoPolicy, ForgejoRepo, ForgejoStats, ForgejoStorage, ForgejoStorageError,
+    repo_storage, verify_schema,
+};
 
 use super::proxy::{require_dashboard_manage_with_query, require_dashboard_view};
+use crate::db::get_pg_cluster;
 
 /// Aggregates (`/stats`, `/storage`) page through every repo / owner upstream,
 /// so they are cached server-side: the 30s dashboard refresh re-hits Forgejo at
@@ -30,6 +34,79 @@ const AGG_TTL: Duration = Duration::from_secs(300);
 
 static STATS_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStats)>>> = OnceLock::new();
 static STORAGE_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStorage)>>> = OnceLock::new();
+
+/// Last observed health of the Forgejo-DB storage enrichment. The dashboard's
+/// per-repo git/LFS split is read from Forgejo's internal schema (the REST API
+/// only exposes the combined `size`); this records whether that read is healthy
+/// so a Forgejo upgrade that renames a column surfaces loud instead of silently
+/// degrading the numbers back to git-only.
+static STORAGE_DB_HEALTH: Mutex<(StorageHealth, Option<String>)> =
+    Mutex::new((StorageHealth::Unknown, None));
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum StorageHealth {
+    Unknown,
+    Ok,
+    SchemaDrift,
+    AccessDenied,
+    Db,
+    Unconfigured,
+}
+
+impl StorageHealth {
+    fn as_str(self) -> &'static str {
+        match self {
+            StorageHealth::Unknown => "unknown",
+            StorageHealth::Ok => "ok",
+            StorageHealth::SchemaDrift => "schema_drift",
+            StorageHealth::AccessDenied => "access_denied",
+            StorageHealth::Db => "db_error",
+            StorageHealth::Unconfigured => "unconfigured",
+        }
+    }
+}
+
+fn record_storage_health(status: StorageHealth, detail: Option<String>) {
+    if let Ok(mut g) = STORAGE_DB_HEALTH.lock() {
+        *g = (status, detail);
+    }
+}
+
+/// Fills each repo's `git_size`/`lfs_size` from Forgejo's DB. Degrades to the
+/// REST-only `size` on any failure and records why, never failing the request.
+async fn enrich_repo_storage(repos: &mut [ForgejoRepo]) {
+    if repos.is_empty() {
+        return;
+    }
+    let Some(cluster) = get_pg_cluster() else {
+        record_storage_health(
+            StorageHealth::Unconfigured,
+            Some("PgCluster unavailable".into()),
+        );
+        return;
+    };
+    let ids: Vec<i64> = repos.iter().map(|r| r.id as i64).collect();
+    match repo_storage(&cluster, &ids).await {
+        Ok(map) => {
+            for r in repos.iter_mut() {
+                if let Some((git, lfs)) = map.get(&(r.id as i64)) {
+                    r.git_size = *git;
+                    r.lfs_size = *lfs;
+                }
+            }
+            record_storage_health(StorageHealth::Ok, None);
+        }
+        Err(e) => {
+            let status = match e {
+                ForgejoStorageError::SchemaDrift { .. } => StorageHealth::SchemaDrift,
+                ForgejoStorageError::AccessDenied => StorageHealth::AccessDenied,
+                ForgejoStorageError::Db(_) => StorageHealth::Db,
+            };
+            tracing::warn!("Forgejo-API per-repo storage enrichment degraded: {e}");
+            record_storage_health(status, Some(e.to_string()));
+        }
+    }
+}
 
 async fn cached_stats(c: &ForgejoClient, force: bool) -> Result<ForgejoStats, JediError> {
     let cell = STATS_CACHE.get_or_init(|| Mutex::new(None));
@@ -184,7 +261,62 @@ async fn repos_search(headers: HeaderMap, q: axum::extract::Query<ListQuery>) ->
         Ok(c) => c,
         Err(r) => return r,
     };
-    reply!(c.search_repos(q.page(), q.limit(), q.q.as_deref()).await)
+    match c.search_repos(q.page(), q.limit(), q.q.as_deref()).await {
+        Ok(mut repos) => {
+            enrich_repo_storage(&mut repos).await;
+            Json(repos).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
+}
+
+/// Reports whether the per-repo storage enrichment is healthy, running a live
+/// schema probe so a Forgejo upgrade that renames a column is caught here.
+async fn storage_health(headers: HeaderMap) -> Response {
+    if let Err(r) = gate(&headers).await {
+        return r;
+    }
+    let probe = match get_pg_cluster() {
+        Some(cluster) => match verify_schema(&cluster).await {
+            Ok(()) => {
+                record_storage_health(StorageHealth::Ok, None);
+                None
+            }
+            Err(e) => {
+                let status = match e {
+                    ForgejoStorageError::SchemaDrift { .. } => StorageHealth::SchemaDrift,
+                    ForgejoStorageError::AccessDenied => StorageHealth::AccessDenied,
+                    ForgejoStorageError::Db(_) => StorageHealth::Db,
+                };
+                record_storage_health(status, Some(e.to_string()));
+                Some(e.to_string())
+            }
+        },
+        None => {
+            record_storage_health(
+                StorageHealth::Unconfigured,
+                Some("PgCluster unavailable".into()),
+            );
+            Some("PgCluster unavailable".into())
+        }
+    };
+    let (status, detail) = STORAGE_DB_HEALTH
+        .lock()
+        .map(|g| (g.0, g.1.clone()))
+        .unwrap_or((StorageHealth::Unknown, None));
+    let code = if status == StorageHealth::Ok {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
+    (
+        code,
+        Json(json!({
+            "status": status.as_str(),
+            "detail": detail.or(probe),
+        })),
+    )
+        .into_response()
 }
 
 async fn version(headers: HeaderMap) -> Response {
@@ -1098,6 +1230,7 @@ pub fn routes() -> Router {
         // top-level
         .route(&p("/stats"), get(stats))
         .route(&p("/storage"), get(storage))
+        .route(&p("/storage/health"), get(storage_health))
         .route(&p("/version"), get(version))
         .route(&p("/cron"), get(cron))
         .route(&p("/cron/{task}"), post(run_cron))

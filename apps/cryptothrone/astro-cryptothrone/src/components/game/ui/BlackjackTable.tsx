@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FloatingWindow } from '@kbve/astro/ui';
-import { laserEvents, decodeCard } from '@kbve/laser';
+import {
+	laserEvents,
+	decodeCard,
+	verifyBlackjackCommitment,
+} from '@kbve/laser';
 import type {
 	BlackjackSeatView,
 	BlackjackHandView,
+	BlackjackStateView,
 	BjActionKind,
 } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
+import { BlackjackStage } from './BlackjackStage';
 import './BlackjackTable.css';
 
 // Per-phase countdown lengths, mirroring the server's BJ_*_TICKS windows (seconds).
@@ -105,6 +111,53 @@ function CountdownBar({
 	);
 }
 
+function FairnessBadge({
+	commitment,
+	seed,
+}: {
+	commitment?: string;
+	seed?: string | null;
+}) {
+	const [verified, setVerified] = useState<boolean | null>(null);
+
+	useEffect(() => {
+		let live = true;
+		setVerified(null);
+		if (seed && commitment) {
+			verifyBlackjackCommitment(seed, commitment)
+				.then((ok) => live && setVerified(ok))
+				.catch(() => live && setVerified(false));
+		}
+		return () => {
+			live = false;
+		};
+	}, [seed, commitment]);
+
+	if (!commitment) return null;
+	const short = `${commitment.slice(0, 10)}…`;
+
+	if (!seed) {
+		return (
+			<span
+				className="text-[10px] text-zinc-500"
+				title={`Shoe committed before the deal: ${commitment}`}>
+				🔒 provably fair · {short}
+			</span>
+		);
+	}
+	return (
+		<span
+			className={`text-[10px] ${verified === false ? 'text-rose-400' : 'text-emerald-400'}`}
+			title={`seed ${seed} · sha256 ${commitment}`}>
+			{verified == null
+				? '🔓 verifying…'
+				: verified
+					? `✓ provably fair · seed ${seed.slice(0, 8)}…`
+					: '✗ commitment mismatch'}
+		</span>
+	);
+}
+
 function HandRow({
 	hand,
 	active,
@@ -190,6 +243,67 @@ function SeatRow({
 	);
 }
 
+// Watches server state transitions and fires sound cues; SoundManager plays them.
+function BlackjackSfx({
+	state,
+	myName,
+}: {
+	state: BlackjackStateView | null;
+	myName: string;
+}) {
+	const prev = useRef<{ phase: string; cards: number; bet: number } | null>(
+		null,
+	);
+	useEffect(() => {
+		if (!state) {
+			prev.current = null;
+			return;
+		}
+		const mySeat = state.seats.find((s) => s.username === myName) ?? null;
+		const cards =
+			state.dealer_hand.length +
+			state.seats.reduce(
+				(a, s) => a + s.hands.reduce((b, h) => b + h.cards.length, 0),
+				0,
+			);
+		const myBet =
+			mySeat?.hands.reduce((a, h) => a + h.bet, 0) || (mySeat?.bet ?? 0);
+		const p = prev.current;
+		if (p) {
+			if (cards > p.cards)
+				laserEvents.emit('blackjack:sfx', { kind: 'card' });
+			if (myBet > p.bet)
+				laserEvents.emit('blackjack:sfx', { kind: 'chip' });
+			if (p.phase !== state.phase) {
+				if (state.phase === 'dealer_turn')
+					laserEvents.emit('blackjack:sfx', { kind: 'flip' });
+				else if (
+					state.phase === 'player_turn' ||
+					state.phase === 'insurance'
+				)
+					laserEvents.emit('blackjack:sfx', { kind: 'deal' });
+				else if (state.phase === 'settle' && mySeat) {
+					const outs = mySeat.hands
+						.map((h) => h.outcome)
+						.filter(Boolean) as string[];
+					if (outs.includes('blackjack'))
+						laserEvents.emit('blackjack:sfx', {
+							kind: 'blackjack',
+						});
+					else if (outs.some((o) => o === 'win'))
+						laserEvents.emit('blackjack:sfx', { kind: 'win' });
+					else if (outs.length && outs.every((o) => o === 'push'))
+						laserEvents.emit('blackjack:sfx', { kind: 'push' });
+					else if (outs.length)
+						laserEvents.emit('blackjack:sfx', { kind: 'lose' });
+				}
+			}
+		}
+		prev.current = { phase: state.phase, cards, bet: myBet };
+	}, [state, myName]);
+	return null;
+}
+
 export function BlackjackTable() {
 	const bj = useGameSelector((s) => s.blackjack);
 	const myName = useGameSelector((s) => s.player.stats.username);
@@ -204,6 +318,7 @@ export function BlackjackTable() {
 	};
 
 	const mySeat = state?.seats.find((s) => s.username === myName) ?? null;
+	const otherSeats = state?.seats.filter((s) => s.username !== myName) ?? [];
 	const myActiveHandIdx =
 		mySeat && state?.active_slot === mySeat.slot ? state.active_hand : null;
 	const isMyTurn = myActiveHandIdx != null;
@@ -262,6 +377,7 @@ export function BlackjackTable() {
 			title="Blackjack"
 			onClose={close}>
 			<div className="flex h-full flex-col gap-3 bg-zinc-950 p-4 text-white">
+				<BlackjackSfx state={state} myName={myName} />
 				{!state ? (
 					<p className="text-sm text-zinc-400">Joining the table…</p>
 				) : (
@@ -279,34 +395,30 @@ export function BlackjackTable() {
 								phase={state.phase}
 								deadlineMs={state.deadline_ms}
 							/>
-						</div>
-
-						<div className="rounded bg-emerald-950/60 p-2">
-							<span className="text-xs text-zinc-400">
-								Dealer
-							</span>
-							<Hand
-								cards={state.dealer_hand}
-								hideSecond={state.dealer_hidden}
+							<FairnessBadge
+								commitment={state.commitment}
+								seed={state.seed}
 							/>
 						</div>
 
-						<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-							{state.seats.length === 0 && (
-								<p className="text-sm text-zinc-500">
-									No players seated yet.
-								</p>
-							)}
-							{state.seats.map((seat) => (
-								<SeatRow
-									key={seat.slot}
-									seat={seat}
-									activeSlot={state.active_slot}
-									activeHand={state.active_hand}
-									mine={seat.username === myName}
-								/>
-							))}
-						</div>
+						<BlackjackStage state={state} myName={myName} />
+
+						{otherSeats.length > 0 && (
+							<div className="flex max-h-28 flex-col gap-1 overflow-y-auto">
+								<span className="text-[10px] uppercase tracking-wide text-zinc-500">
+									Others at the table
+								</span>
+								{otherSeats.map((seat) => (
+									<SeatRow
+										key={seat.slot}
+										seat={seat}
+										activeSlot={state.active_slot}
+										activeHand={state.active_hand}
+										mine={false}
+									/>
+								))}
+							</div>
+						)}
 
 						{!mySeat && (
 							<p className="text-xs text-zinc-400">

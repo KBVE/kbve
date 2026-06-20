@@ -64,3 +64,11 @@ apps/rentearth/unreal-rentearth/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=
 apps/rentearth/unreal-rentearth/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/rentearth/unreal-rentearth/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
 apps/rentearth/unreal-rentearth/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+
+# ARPG — apps/kbve/astro-kbve isometric ARPG game art (sprites + ground)
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/arpg.git
+# (see apps/kbve/astro-kbve/public/assets/arcade/arpg/.lfsconfig). Push/pull the
+# blobs to the arpg endpoint with `./kbve.sh -lfs arpg <push|pull|...>`; the
+# repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the
+# arpg endpoint. Raw 720px source sheets stay gitignored (characters/**/raw/).
+apps/kbve/astro-kbve/public/assets/arcade/arpg/**/*.png filter=lfs diff=lfs merge=lfs -text

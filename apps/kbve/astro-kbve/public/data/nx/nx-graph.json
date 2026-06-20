@@ -6706,6 +6706,128 @@
           ]
         }
       },
+      "arpg-server": {
+        "name": "arpg-server",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/arpg/server",
+          "targets": {
+            "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/target/debug/arpg-server"
+              ],
+              "options": {
+                "command": "cargo build -p arpg-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo test -p arpg-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo clippy -p arpg-server --all-targets -- -D warnings"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-release": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{workspaceRoot}/dist/target/release/arpg-server"
+              ],
+              "options": {
+                "command": "cargo build --release -p arpg-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "run": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo run -p arpg-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/agones/arpg/server/Dockerfile",
+                "load": true,
+                "tags": [
+                  "kbve/arpg-server:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/arpg-server:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/arpg-server:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/arpg-server:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/arpg-server:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "arpg-server",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/arpg/server/src",
+          "tags": [
+            "rust",
+            "game-server",
+            "agones",
+            "arpg"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "axum-kbve-e2e": {
         "name": "axum-kbve-e2e",
         "type": "e2e",
@@ -13047,7 +13169,7 @@
             "description": "Phaser + React Three Fiber integration layer for React 19",
             "js": {
               "packageName": "@kbve/laser",
-              "packageVersion": "0.1.0",
+              "packageVersion": "0.1.2",
               "packageExports": {
                 ".": {
                   "import": "./laser.es.js",
@@ -15623,6 +15745,7 @@
           "type": "implicit"
         }
       ],
+      "arpg-server": [],
       "axum-kbve-e2e": [
         {
           "source": "axum-kbve-e2e",
@@ -15824,13 +15947,7 @@
       "jedi": [],
       "kbve": [],
       "kilobase": [],
-      "laser": [
-        {
-          "source": "laser",
-          "target": "chat",
-          "type": "static"
-        }
-      ],
+      "laser": [],
       "chat": [],
       "core": [],
       "cryptothrone": [],

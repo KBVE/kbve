@@ -1,0 +1,3 @@
+# Raw source sheets (engvee 720px poses) — kept local only. Optimized sheets
+# that ship are tracked separately (Git LFS). Don't commit the raw dump.
+raw/

@@ -810,6 +810,7 @@ export function ApplicationRow({
 
 	return (
 		<div
+			id={`argo-app-${app.metadata.name}`}
 			style={{
 				background: expanded
 					? 'var(--sl-color-bg-nav, #111)'

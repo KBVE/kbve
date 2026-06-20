@@ -5,17 +5,64 @@ import {
 	KIND_CAT_PLAYER,
 	type KindResolvers,
 } from '../systems/kindResolvers';
+import {
+	CLASS_ANGLES,
+	classTextureKey,
+	nearestClassAngle,
+	resolvePlayerClass,
+	type ClassDef,
+	type ClassState,
+} from './classes';
+
+/** Per-player directional pose state, tracked on the entity refs. */
+export interface ClassView {
+	def: ClassDef;
+	angle: string;
+	state: ClassState;
+}
 
 export interface EntityRefs {
 	sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
 	nameplate?: Phaser.GameObjects.Text;
 	hpBar?: Phaser.GameObjects.Graphics;
+	cls?: ClassView;
 }
 
 function bodyColor(cat: number, hostile: boolean): number {
-	if (cat === KIND_CAT_PLAYER) return COLORS.player;
 	if (cat === KIND_CAT_ITEM) return COLORS.npc;
 	return hostile ? COLORS.enemy : COLORS.npc;
+}
+
+export function isPlayerKind(kinds: KindResolvers, kind: number): boolean {
+	return kinds.cat(kind) === KIND_CAT_PLAYER;
+}
+
+/** Spawn a player's class character sprite (idle, facing south). */
+export function makeClassSprite(
+	scene: Phaser.Scene,
+	classRef: string | null,
+): { sprite: Phaser.GameObjects.Sprite; cls: ClassView } {
+	const def = resolvePlayerClass(classRef);
+	const angle = CLASS_ANGLES[4];
+	const sprite = scene.add.sprite(0, 0, classTextureKey(def, 'Idle', angle));
+	sprite.setOrigin(0.5, def.originY);
+	sprite.setDisplaySize(def.displaySize, def.displaySize);
+	return { sprite, cls: { def, angle, state: 'Idle' } };
+}
+
+/** Swap a class sprite's pose, optionally re-facing from a movement delta. */
+export function setClassPose(
+	sprite: Phaser.GameObjects.Sprite,
+	view: ClassView,
+	state: ClassState,
+	facing?: { dx: number; dy: number },
+): void {
+	if (facing && (facing.dx !== 0 || facing.dy !== 0)) {
+		view.angle = nearestClassAngle(facing.dx, facing.dy);
+	}
+	view.state = state;
+	sprite.setTexture(classTextureKey(view.def, state, view.angle));
+	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
 }
 
 export function makeSprite(

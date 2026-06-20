@@ -1547,7 +1547,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.49"
+version = "0.1.50"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -4885,7 +4885,7 @@ dependencies = [
 
 [[package]]
 name = "cryptothrone-server"
-version = "0.0.24"
+version = "0.0.25"
 dependencies = [
  "agones",
  "axum 0.7.9",
@@ -15270,10 +15270,12 @@ dependencies = [
  "bevy",
  "dashmap 6.1.0",
  "futures-util",
+ "hex",
  "jsonwebtoken 9.3.1",
  "postcard",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "tokio",
  "tokio-tungstenite 0.24.0",
  "tracing",
