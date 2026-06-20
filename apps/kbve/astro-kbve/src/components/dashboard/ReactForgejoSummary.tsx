@@ -204,6 +204,15 @@ function StorageBreakdown() {
 							<span style={{ opacity: 0.6, fontSize: '0.65rem' }}>
 								{formatSize(repo.size)}
 							</span>
+							{repo.lfs_size > 0 && (
+								<span
+									style={{
+										color: '#8b5cf6',
+										fontSize: '0.6rem',
+									}}>
+									LFS {formatSize(repo.lfs_size)}
+								</span>
+							)}
 						</div>
 					);
 				})}
