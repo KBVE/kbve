@@ -1161,6 +1161,25 @@ jobs:
                   echo "2. Implement UAT build commands for Mac platform"
                   echo "3. Configure artifact packaging and upload"
 
+            - name: Upload artifact (stub)
+              if: false
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-macos.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io (stub)
+              if: false && inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./ue5-game-output
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: macos
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
+
     game_post_publish:
         name: Game Post-publish version sync
         needs: [game_gate, game_build_linux]
