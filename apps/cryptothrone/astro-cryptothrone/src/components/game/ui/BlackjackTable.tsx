@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FloatingWindow } from '@kbve/astro/ui';
 import {
 	laserEvents,
@@ -8,6 +8,7 @@ import {
 import type {
 	BlackjackSeatView,
 	BlackjackHandView,
+	BlackjackStateView,
 	BjActionKind,
 } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
@@ -241,6 +242,67 @@ function SeatRow({
 	);
 }
 
+// Watches server state transitions and fires sound cues; SoundManager plays them.
+function BlackjackSfx({
+	state,
+	myName,
+}: {
+	state: BlackjackStateView | null;
+	myName: string;
+}) {
+	const prev = useRef<{ phase: string; cards: number; bet: number } | null>(
+		null,
+	);
+	useEffect(() => {
+		if (!state) {
+			prev.current = null;
+			return;
+		}
+		const mySeat = state.seats.find((s) => s.username === myName) ?? null;
+		const cards =
+			state.dealer_hand.length +
+			state.seats.reduce(
+				(a, s) => a + s.hands.reduce((b, h) => b + h.cards.length, 0),
+				0,
+			);
+		const myBet =
+			mySeat?.hands.reduce((a, h) => a + h.bet, 0) || (mySeat?.bet ?? 0);
+		const p = prev.current;
+		if (p) {
+			if (cards > p.cards)
+				laserEvents.emit('blackjack:sfx', { kind: 'card' });
+			if (myBet > p.bet)
+				laserEvents.emit('blackjack:sfx', { kind: 'chip' });
+			if (p.phase !== state.phase) {
+				if (state.phase === 'dealer_turn')
+					laserEvents.emit('blackjack:sfx', { kind: 'flip' });
+				else if (
+					state.phase === 'player_turn' ||
+					state.phase === 'insurance'
+				)
+					laserEvents.emit('blackjack:sfx', { kind: 'deal' });
+				else if (state.phase === 'settle' && mySeat) {
+					const outs = mySeat.hands
+						.map((h) => h.outcome)
+						.filter(Boolean) as string[];
+					if (outs.includes('blackjack'))
+						laserEvents.emit('blackjack:sfx', {
+							kind: 'blackjack',
+						});
+					else if (outs.some((o) => o === 'win'))
+						laserEvents.emit('blackjack:sfx', { kind: 'win' });
+					else if (outs.length && outs.every((o) => o === 'push'))
+						laserEvents.emit('blackjack:sfx', { kind: 'push' });
+					else if (outs.length)
+						laserEvents.emit('blackjack:sfx', { kind: 'lose' });
+				}
+			}
+		}
+		prev.current = { phase: state.phase, cards, bet: myBet };
+	}, [state, myName]);
+	return null;
+}
+
 export function BlackjackTable() {
 	const bj = useGameSelector((s) => s.blackjack);
 	const myName = useGameSelector((s) => s.player.stats.username);
@@ -313,6 +375,7 @@ export function BlackjackTable() {
 			title="Blackjack"
 			onClose={close}>
 			<div className="flex h-full flex-col gap-3 bg-zinc-950 p-4 text-white">
+				<BlackjackSfx state={state} myName={myName} />
 				{!state ? (
 					<p className="text-sm text-zinc-400">Joining the table…</p>
 				) : (
