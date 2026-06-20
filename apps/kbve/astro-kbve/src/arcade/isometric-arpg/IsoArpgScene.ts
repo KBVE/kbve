@@ -17,11 +17,17 @@ import {
 import {
 	COLORS,
 	GRID_SIZE,
+	TILE_W,
+	TILE_H,
 	MOVE_TWEEN_MS,
 	HEARTBEAT_MS,
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
+	GROUND_TEXTURE_KEY,
+	GROUND_TEXTURE_PATH,
+	DEBUG_LOCAL_PLAYER,
+	DEBUG_SPAWN_TILE,
 } from './config';
 import { worldToScreen, screenToWorld, tileDepth, type TileXY } from './iso';
 import { EntityStore } from './ecs/store';
@@ -38,10 +44,20 @@ import {
 	commitPredicted,
 	type PredictState,
 } from './systems/prediction';
-import { makeSprite, makeNameplate, type EntityRefs } from './entities/sprites';
+import {
+	makeSprite,
+	makeClassSprite,
+	makeNameplate,
+	setClassPose,
+	isPlayerKind,
+	type EntityRefs,
+} from './entities/sprites';
+import { preloadClass, RANGER_CLASS } from './entities/classes';
 import { getNetConfig } from './net-config';
 
 const TICK_MS = 120;
+const LOCAL_PLAYER_EID = 1;
+const LOCAL_PLAYER_KIND = 1;
 
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
@@ -67,9 +83,16 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
+	private hoverTile!: Phaser.GameObjects.Graphics;
+	private localMode = false;
 
 	constructor() {
 		super({ key: 'IsoArpgScene' });
+	}
+
+	preload() {
+		this.load.image(GROUND_TEXTURE_KEY, GROUND_TEXTURE_PATH);
+		preloadClass(this, RANGER_CLASS);
 	}
 
 	create() {
@@ -83,6 +106,10 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		this.connectClient();
 
+		if (!this.client && DEBUG_LOCAL_PLAYER) {
+			this.spawnLocalPlayer();
+		}
+
 		this.time.addEvent({
 			delay: HEARTBEAT_MS,
 			loop: true,
@@ -93,35 +120,67 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private drawGrid() {
-		const g = this.add.graphics();
-		g.setDepth(DEPTH_TILE);
-		for (let ty = 0; ty < GRID_SIZE; ty++) {
-			for (let tx = 0; tx < GRID_SIZE; tx++) {
-				const p = worldToScreen(tx, ty);
-				this.drawDiamond(g, p.x, p.y);
-			}
-		}
+		// Seamless rock floor: one tiling base layer spanning the whole iso
+		// footprint, clipped to the world diamond. No per-tile cuts, so the
+		// texture reads continuous; tile feedback is a single cursor hover
+		// highlight instead of a persistent grid (Diablo-style).
+		this.drawGroundBase();
+		this.hoverTile = this.makeHoverTile();
 		const center = worldToScreen(GRID_SIZE / 2, GRID_SIZE / 2);
 		this.cameras.main.centerOn(center.x, center.y);
 	}
 
-	private drawDiamond(
-		g: Phaser.GameObjects.Graphics,
-		cx: number,
-		cy: number,
-	) {
-		const hw = 32;
-		const hh = 16;
-		g.fillStyle(COLORS.tileFill, 1);
-		g.lineStyle(1, COLORS.tileStroke, 1);
+	private drawGroundBase() {
+		// Lay the seamless rock on the ISO ground plane. Phaser applies a
+		// GameObject's own scale BEFORE its rotation, so `rotate45 + scaleY .5`
+		// on one TileSprite squashes the texture's local axis, not the screen —
+		// it never lands on the diamond. Use a Container instead: the inner
+		// TileSprite rotates 45° (grain runs along the tile axes); the parent
+		// Container then squashes the already-rotated result 2:1 in screen
+		// space. rotate-then-scale = the correct iso projection of a flat floor.
+		const side = GRID_SIZE * TILE_W + TILE_W * 2;
+		const center = worldToScreen(GRID_SIZE / 2, GRID_SIZE / 2);
+
+		const floor = this.add.tileSprite(0, 0, side, side, GROUND_TEXTURE_KEY);
+		floor.setOrigin(0.5, 0.5);
+		floor.setRotation(-Math.PI / 4);
+
+		const plane = this.add.container(center.x, center.y, [floor]);
+		plane.setScale(1, 0.5);
+		plane.setDepth(DEPTH_TILE);
+
+		// Clip to the world diamond so the playable area has clean iso edges.
+		const mask = this.make.graphics({});
+		mask.fillStyle(0xffffff);
+		mask.beginPath();
+		const top = worldToScreen(0, 0);
+		const right = worldToScreen(GRID_SIZE, 0);
+		const bottom = worldToScreen(GRID_SIZE, GRID_SIZE);
+		const left = worldToScreen(0, GRID_SIZE);
+		mask.moveTo(top.x, top.y);
+		mask.lineTo(right.x, right.y);
+		mask.lineTo(bottom.x, bottom.y);
+		mask.lineTo(left.x, left.y);
+		mask.closePath();
+		mask.fillPath();
+		plane.setMask(mask.createGeometryMask());
+	}
+
+	private makeHoverTile(): Phaser.GameObjects.Graphics {
+		const g = this.add.graphics();
+		g.setDepth(DEPTH_TILE + 1);
+		g.fillStyle(COLORS.tileHover, 0.25);
+		g.lineStyle(1.5, COLORS.tileHover, 0.8);
 		g.beginPath();
-		g.moveTo(cx, cy - hh);
-		g.lineTo(cx + hw, cy);
-		g.lineTo(cx, cy + hh);
-		g.lineTo(cx - hw, cy);
+		g.moveTo(0, -TILE_H / 2);
+		g.lineTo(TILE_W / 2, 0);
+		g.lineTo(0, TILE_H / 2);
+		g.lineTo(-TILE_W / 2, 0);
 		g.closePath();
 		g.fillPath();
 		g.strokePath();
+		g.setVisible(false);
+		return g;
 	}
 
 	private setupInput() {
@@ -140,19 +199,40 @@ export class IsoArpgScene extends Phaser.Scene {
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
 				this.client?.action(ACTION_ATTACK, hit.serverEid);
+				this.poseLocalPlayer('Attack', {
+					dx: tile.x - this.predicted.x,
+					dy: tile.y - this.predicted.y,
+				});
 				return;
 			}
 			this.startMoveTo(tile);
+		});
+
+		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+			const tile = screenToWorld(pointer.worldX, pointer.worldY);
+			if (this.isBlocked(tile.x, tile.y)) {
+				this.hoverTile.setVisible(false);
+				return;
+			}
+			const p = worldToScreen(tile.x, tile.y);
+			this.hoverTile.setPosition(p.x, p.y).setVisible(true);
 		});
 	}
 
 	private buildBridge() {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
-				const hostile = this.syncResolvers.hostile(e.kind);
-				const sprite = makeSprite(this, this.kinds, e.kind, hostile);
-				this.placeSprite(sprite, e.tile.x, e.tile.y);
-				const refs: EntityRefs = { sprite };
+				const refs: EntityRefs = isPlayerKind(this.kinds, e.kind)
+					? this.makePlayerRefs(e.kind)
+					: {
+							sprite: makeSprite(
+								this,
+								this.kinds,
+								e.kind,
+								this.syncResolvers.hostile(e.kind),
+							),
+						};
+				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				if (label) {
 					refs.nameplate = makeNameplate(this, label);
 					this.placeNameplate(refs);
@@ -249,7 +329,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	update(time: number) {
-		if (!this.client || !this.predictSeeded) return;
+		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
 		if (time - this.lastTick < TICK_MS) return;
 		this.lastTick = time;
 
@@ -276,7 +356,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (cand) this.advance(pstate, myRefs, cand);
 			this.predictedPath = pstate.path;
 			this.predicted = pstate.predicted;
-			this.client.step(dir);
+			this.client?.step(dir);
 			return;
 		}
 
@@ -292,9 +372,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private startMoveTo(tile: TileXY) {
-		if (!this.client) return;
+		if (!this.client && !this.localMode) return;
 		this.predictedPath = findTilePath(this.predicted, tile, this.isBlocked);
-		this.client.moveTo(tile);
+		this.client?.moveTo(tile);
 	}
 
 	private isBlocked = (x: number, y: number): boolean => {
@@ -318,9 +398,81 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.placeNameplate(refs);
 	}
 
+	private makePlayerRefs(kind: number): EntityRefs {
+		const { sprite, cls } = makeClassSprite(this, this.kinds.ref(kind));
+		return { sprite, cls };
+	}
+
+	/**
+	 * Offline debug: no server, so no snapshot ever spawns the player. Register
+	 * a local ranger player kind, drop the character at the debug tile, and seed
+	 * prediction so keyboard/click drive it client-side (sends are no-ops while
+	 * `this.client` is null). Lets the character render + move without a server.
+	 */
+	private spawnLocalPlayer() {
+		this.localMode = true;
+		const kind = LOCAL_PLAYER_KIND;
+		this.kindRegistry.set(kind, {
+			kind,
+			ref: RANGER_CLASS.id,
+			cat: 0, // KIND_CAT_PLAYER
+		});
+		const tile = { x: DEBUG_SPAWN_TILE.x, y: DEBUG_SPAWN_TILE.y };
+		const refs = this.makePlayerRefs(kind);
+		this.placeSprite(refs.sprite, tile.x, tile.y);
+		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
+		this.store.spawn(
+			LOCAL_PLAYER_EID,
+			{
+				tile,
+				kind,
+				cat: 'player',
+				owner: 0,
+				hostile: false,
+				hp: 100,
+				maxHp: 100,
+			},
+			refs,
+		);
+		this.myEid = LOCAL_PLAYER_EID;
+		this.predicted = { ...tile };
+		this.predictSeeded = true;
+		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
+	}
+
+	private poseLocalPlayer(
+		state: 'Attack' | 'Death',
+		facing?: { dx: number; dy: number },
+	) {
+		const refs = this.store.refs(this.myEid);
+		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
+			return;
+		setClassPose(refs.sprite, refs.cls, state, facing);
+		if (state === 'Attack') {
+			this.time.delayedCall(MOVE_TWEEN_MS * 2, () => {
+				if (
+					refs.cls &&
+					refs.sprite instanceof Phaser.GameObjects.Sprite &&
+					refs.cls.state === 'Attack'
+				) {
+					setClassPose(refs.sprite, refs.cls, 'Idle');
+				}
+			});
+		}
+	}
+
 	private tweenTo(refs: EntityRefs, tile: TileXY) {
+		const from = screenToWorld(refs.sprite.x, refs.sprite.y - 8);
 		const p = worldToScreen(tile.x, tile.y);
 		refs.sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tile.x, tile.y));
+
+		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+			setClassPose(refs.sprite, refs.cls, 'Run', {
+				dx: tile.x - from.x,
+				dy: tile.y - from.y,
+			});
+		}
+
 		this.tweens.add({
 			targets: refs.sprite,
 			x: p.x,
@@ -328,6 +480,14 @@ export class IsoArpgScene extends Phaser.Scene {
 			duration: MOVE_TWEEN_MS,
 			ease: 'Linear',
 			onUpdate: () => this.placeNameplate(refs),
+			onComplete: () => {
+				if (
+					refs.cls &&
+					refs.sprite instanceof Phaser.GameObjects.Sprite
+				) {
+					setClassPose(refs.sprite, refs.cls, 'Idle');
+				}
+			},
 		});
 	}
 
@@ -341,9 +501,19 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private refreshHud() {
 		for (const [serverEid, , refs] of this.store.entries()) {
-			if (!refs.hpBar) continue;
 			const hp = this.store.hp(serverEid);
 			const maxHp = this.store.maxHp(serverEid);
+
+			if (
+				refs.cls &&
+				refs.sprite instanceof Phaser.GameObjects.Sprite &&
+				hp <= 0 &&
+				refs.cls.state !== 'Death'
+			) {
+				setClassPose(refs.sprite, refs.cls, 'Death');
+			}
+
+			if (!refs.hpBar) continue;
 			if (maxHp <= 0 || hp >= maxHp) {
 				refs.hpBar.clear();
 				continue;

@@ -20,6 +20,14 @@ export const COLORS = {
 	npc: 0xfcd34d,
 } as const;
 
+export const GROUND_TEXTURE_KEY = 'arpg-ground';
+export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
+
+// Offline debug: when no server connects, spawn a locally-driven ranger so the
+// character renders and is controllable without a live arpg-server.
+export const DEBUG_LOCAL_PLAYER = true;
+export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
+
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 
 export function resolveWsUrl(): string {
