@@ -1146,33 +1146,141 @@ jobs:
 
             - name: Checkout monorepo
               uses: actions/checkout@v6
+              with:
+                  lfs: false
 
             - name: Setup build environment
               run: |
-                  echo "macOS runner ready for UE build"
+                  echo "::notice::macOS runner ready for UE build"
                   sw_vers
-                  xcodebuild -version || echo "Xcode not found"
+                  xcodebuild -version || echo "::warning::Xcode not found"
 
-            - name: Mac build placeholder
+            - name: Find Unreal Engine
+              id: find_ue
               run: |
-                  echo "::warning::Mac UE build implementation in progress"
-                  echo "Runner is configured and ready. Next steps:"
-                  echo "1. Install/configure Unreal Engine on this Mac"
-                  echo "2. Implement UAT build commands for Mac platform"
-                  echo "3. Configure artifact packaging and upload"
+                  chmod +x .github/scripts/find-ue-mac.sh
+                  RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ inputs.engine_version }}")
+                  echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
+                  UE_ROOT=$(dirname $(dirname $(dirname $(dirname "${RUNUAT}"))))
+                  echo "ue_root=${UE_ROOT}" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Using RunUAT: ${RUNUAT}"
 
-            - name: Package artifact
-              if: hashFiles('ue5-game-output/**') != ''
+            - name: Clone game project
+              id: clone_project
+              env:
+                  GITHUB_PAT: ${{ secrets.epic_pat || secrets.UNITY_PAT }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
-                  if ! command -v zip >/dev/null 2>&1; then
-                    echo "::error::zip not found on macOS runner"
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG%.git}"
+                  REF="${{ inputs.external_repo_ref }}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  SUBDIR="${SUBDIR#./}"
+                  SUBDIR="${SUBDIR%/}"
+
+                  CLONE_DIR="${RUNNER_TEMP}/game-clone"
+                  rm -rf "${CLONE_DIR}"
+
+                  REF_LABEL="${REF:-default branch}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF_LABEL}), subdir '${SUBDIR}'"
+
+                  export GIT_LFS_SKIP_SMUDGE=1
+                  if [ -n "${REF}" ]; then
+                    git clone --depth 1 --branch "${REF}" "https://x-access-token:${GITHUB_PAT}@github.com/${SLUG}.git" "${CLONE_DIR}"
+                  else
+                    git clone --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/${SLUG}.git" "${CLONE_DIR}"
+                  fi
+                  unset GIT_LFS_SKIP_SMUDGE
+
+                  cd "${CLONE_DIR}"
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="${CLONE_DIR}/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="${CLONE_DIR}"
+                  fi
+
+                  # Handle Forgejo LFS if configured
+                  RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || echo "")
+                  if echo "${RAW_LFS}" | grep -q "kbve.com"; then
+                    if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                      echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing for Forgejo LFS"
+                      exit 1
+                    fi
+                    echo "::add-mask::${FORGEJO_TOKEN}"
+                    REPO_PATH=$(echo "${RAW_LFS}" | sed 's|^ssh://||' | sed 's|^https\?://||' | sed 's|^[^/]*@||' | sed 's|^[^/]*/||' | sed 's|/$||')
+                    if ! echo "${REPO_PATH}" | grep -q '/info/lfs$'; then
+                      REPO_PATH="${REPO_PATH%.git}.git/info/lfs"
+                    fi
+                    AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                    echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH}"
+                    git -c lfs.url="${AUTH_LFS}" lfs install --local
+                    git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                  else
+                    echo "::notice::Pulling LFS (${INCLUDE}) from origin"
+                    git lfs install --local
+                    git lfs pull --include="${INCLUDE}"
+                  fi
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
                     exit 1
                   fi
-                  cd "${GITHUB_WORKSPACE}/ue5-game-output"
+
+                  PROJECT_ROOT="${RUNNER_TEMP}/game-project"
+                  mkdir -p "${PROJECT_ROOT}"
+                  cp -r "${SRC}/." "${PROJECT_ROOT}/"
+                  echo "project_root=${PROJECT_ROOT}" >> "$GITHUB_OUTPUT"
+
+            - name: Build Mac client
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
+                  mkdir -p "${OUTPUT_DIR}"
+
+                  UPROJECT=$(find "${PROJECT_ROOT}" -maxdepth 1 -name "*.uproject" | head -1)
+                  if [ -z "${UPROJECT}" ]; then
+                    echo "::error::No .uproject found in ${PROJECT_ROOT}"
+                    exit 1
+                  fi
+
+                  CLIENT_CONFIG="${{ inputs.client_config }}"
+                  CLIENT_CONFIG="${CLIENT_CONFIG:-Shipping}"
+
+                  MAPS_JSON='${{ inputs.maps }}'
+                  if [ -n "${MAPS_JSON}" ] && [ "${MAPS_JSON}" != "[]" ]; then
+                    MAP_ARG="-map=$(echo "${MAPS_JSON}" | python3 -c "import sys, json; print('+'.join(json.load(sys.stdin)))")"
+                  else
+                    MAP_ARG="-allmaps"
+                  fi
+
+                  CUSTOM_CONFIG="${{ inputs.custom_config }}"
+                  CUSTOM_CONFIG_ARG=""
+                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+
+                  echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
+
+                  "${{ steps.find_ue.outputs.runuat }}" BuildCookRun \
+                    -project="${UPROJECT}" \
+                    -targetplatform=Mac \
+                    -clientconfig="${CLIENT_CONFIG}" \
+                    -cook ${MAP_ARG} \
+                    -build -stage -pak -archive \
+                    ${CUSTOM_CONFIG_ARG} \
+                    -archivedirectory="${OUTPUT_DIR}" \
+                    -nodebuginfo \
+                    -unattended -utf8output -NoP4
+
+            - name: Package archive
+              run: |
+                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
+                  cd "${OUTPUT_DIR}"
                   zip -r "/tmp/${{ inputs.app_name }}-macos.zip" .
 
             - name: Upload artifact
-              if: hashFiles('ue5-game-output/**') != ''
               uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
@@ -1180,11 +1288,11 @@ jobs:
                   retention-days: 30
 
             - name: Deploy to itch.io
-              if: inputs.deploy_to_itch == true && inputs.itch_game_id != '' && hashFiles('ue5-game-output/**') != ''
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
               uses: KikimoraGames/itch-publish@v0.0.3
               with:
                   butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: ./ue5-game-output
+                  gameData: ${{ runner.temp }}/ue5-game-output
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
                   buildChannel: macos
