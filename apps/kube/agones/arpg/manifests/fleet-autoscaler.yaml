@@ -1,0 +1,20 @@
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: arpg-server-autoscaler
+    namespace: arpg
+    labels:
+        app: arpg-server
+        app.kubernetes.io/part-of: arpg
+spec:
+    fleetName: arpg-server
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 1
+            maxReplicas: 1
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30

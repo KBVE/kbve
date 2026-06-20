@@ -79,6 +79,19 @@
 			"has_test": true
 		},
 		{
+			"key": "arpg_server",
+			"app_name": "arpg-server",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/arpg/server/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
+			"version_target": "apps/agones/arpg/server/Cargo.toml",
+			"source_path": "apps/agones/arpg/server",
+			"runner": "arc-runner-set",
+			"image": "kbve/arpg-server",
+			"deployment_yaml": "apps/kube/agones/arpg/manifests/fleet.yaml",
+			"has_test": false
+		},
+		{
 			"key": "chisel_ubuntu_axum",
 			"app_name": "chisel-ubuntu-axum",
 			"version": "24.04.7",
@@ -1236,7 +1249,7 @@
 	],
 	"bevy_game": [],
 	"summary": {
-		"docker": 33,
+		"docker": 34,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -1246,6 +1259,6 @@
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 98
+		"total": 99
 	}
 }

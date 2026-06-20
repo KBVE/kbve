@@ -1,0 +1,46 @@
+---
+title: ARPG Server
+description: |
+    ARPG authoritative grid game server — axum + tokio + simgrid headless bevy sim, hosted from a chiseled Ubuntu runtime.
+sidebar:
+    label: ARPG Server
+    order: 59
+tags:
+    - docker
+    - rust
+    - game-server
+    - arpg
+key: arpg_server
+pipeline: docker
+app_name: arpg-server
+version: "0.0.1"
+source_path: apps/agones/arpg/server
+version_toml: apps/agones/arpg/server/version.toml
+version_target: apps/agones/arpg/server/Cargo.toml
+runner: arc-runner-set
+image: kbve/arpg-server
+deployment_yaml: apps/kube/agones/arpg/manifests/fleet.yaml
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+---
+
+## Overview
+
+`arpg-server` is the authoritative shared-world host for the **ARPG** (Diablo-style isometric action RPG client under `astro-kbve` arcade). It pairs an `axum` WebSocket router with the `simgrid` headless bevy grid simulation, so movement validation, occupancy, and snapshot framing stay server-owned. Like `cryptothrone-server` it is grid-authoritative — collision is tile occupancy and "physics" is integer grid math — but runs an isolated world (its own seed, registry, and spawn tables) on its own Agones Fleet.
+
+### Responsibilities
+
+- Terminate the `/ws` WebSocket upgrade and verify the inbound Supabase JWT (dev-accept fallback when the secret is unset).
+- Drive the `simgrid` sim tick on a tokio multi-thread runtime, fanning out authoritative snapshots.
+- Admit players into roster slots and spawn the procedural world — an open grid seeded with wandering hostiles — shared across the map.
+- Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`) so the Fleet can manage the pod; degrades gracefully outside Agones for local dev.
+
+### Relationship to the client
+
+The browser client lives at `apps/kbve/astro-kbve/src/arcade/isometric-arpg/` and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9).
+
+### Status
+
+Alpha — minimal walkable world (open grid + one hostile kind) to prove end-to-end multiplayer. World content (npcdb/itemdb, zones, loot tables) is a follow-up.

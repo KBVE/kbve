@@ -1,0 +1,25 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: arpg-game-route
+    namespace: arpg
+    labels:
+        app.kubernetes.io/part-of: arpg
+spec:
+    parentRefs:
+        - name: kbve-gateway
+          namespace: kbve
+    hostnames:
+        - arpg.kbve.com
+    rules:
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /
+          timeouts:
+              # Long-lived WebSocket — override Envoy's ~15s default backend
+              # timeout so wss connections survive (matches kbve /ws rule).
+              backendRequest: 3600s
+          backendRefs:
+              - name: arpg-game
+                port: 7979
