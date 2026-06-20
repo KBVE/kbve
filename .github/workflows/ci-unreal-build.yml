@@ -862,19 +862,18 @@ jobs:
 
             - name: Package archive
               run: |
-                  VERSION="${{ needs.game_gate.outputs.version }}"
                   if ! command -v zip >/dev/null 2>&1; then
                     sudo apt-get update
                     sudo apt-get install -y zip
                   fi
                   cd "${GITHUB_WORKSPACE}/ue5-game-output"
-                  zip -r "/tmp/${{ inputs.app_name }}-Linux-v${VERSION}.zip" .
+                  zip -r "/tmp/${{ inputs.app_name }}-linux.zip" .
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}
-                  path: /tmp/${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}.zip
+                  name: ${{ inputs.app_name }}-linux-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-linux.zip
                   retention-days: 30
 
             - name: Deploy to itch.io
@@ -1095,16 +1094,15 @@ jobs:
 
             - name: Package archive
               run: |
-                  $version = "${{ needs.game_gate.outputs.version }}"
-                  $zip = "C:\${{ inputs.app_name }}-Win64-v$version.zip"
+                  $zip = "C:\${{ inputs.app_name }}-windows.zip"
                   Compress-Archive -Path "C:\ue5-game-output\*" -DestinationPath $zip
                   Write-Host "::notice::Packaged $zip"
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}
-                  path: C:\${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}.zip
+                  name: ${{ inputs.app_name }}-windows-v${{ needs.game_gate.outputs.version }}
+                  path: C:\${{ inputs.app_name }}-windows.zip
                   retention-days: 30
 
             - name: Deploy to itch.io
@@ -1167,8 +1165,8 @@ jobs:
               if: false
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}
-                  path: /tmp/${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}.zip
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-macos.zip
                   retention-days: 30
 
             - name: Deploy to itch.io (stub)
