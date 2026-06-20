@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 9;
+export const PROTOCOL_VERSION = 10;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -43,9 +43,10 @@ export type Input =
 	| { JoinTable: { table_ref: string } }
 	| 'LeaveTable'
 	| { PlaceBet: { amount: number } }
-	| { BjAction: { kind: BjActionKind } };
+	| { BjAction: { kind: BjActionKind } }
+	| { Insure: { amount: number } };
 
-export type BjActionKind = 'Hit' | 'Stand' | 'Double';
+export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
 export interface JoinMatch {
 	protocol: number;
@@ -173,14 +174,24 @@ export interface StatusEvent {
 	remaining: number;
 }
 
-export interface BlackjackSeatView {
-	slot: number;
-	username: string;
-	hand: number[];
+export interface BlackjackHandView {
+	cards: number[];
 	bet: number;
 	value: number;
 	soft: boolean;
+	doubled: boolean;
+	surrendered: boolean;
+	done: boolean;
 	outcome: string | null;
+}
+
+export interface BlackjackSeatView {
+	slot: number;
+	username: string;
+	bet: number;
+	insurance: number;
+	/** One entry per playable hand; more than one after a split. */
+	hands: BlackjackHandView[];
 	/** Player is offline; the seat is held open for a reconnect. */
 	disconnected?: boolean;
 }
@@ -192,6 +203,8 @@ export interface BlackjackStateView {
 	dealer_hand: number[];
 	dealer_hidden: boolean;
 	active_slot: number | null;
+	/** Index of the active hand within the active seat (for split turns). */
+	active_hand: number | null;
 	your_balance: number;
 	deadline_ms: number | null;
 }

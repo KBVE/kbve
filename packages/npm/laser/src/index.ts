@@ -135,6 +135,7 @@ export type {
 	StatsEvent,
 	StatusEvent,
 	BjActionKind,
+	BlackjackHandView,
 	BlackjackSeatView,
 	BlackjackStateView,
 	CardSuit,
