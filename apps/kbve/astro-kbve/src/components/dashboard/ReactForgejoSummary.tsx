@@ -5,6 +5,7 @@ import {
 	formatSize,
 	langColor,
 	timeAgo,
+	type ForgejoRepo,
 } from './forgejoService';
 import { useTabActive } from './forgejoUi';
 import {
@@ -82,13 +83,19 @@ function StatCard({
 	);
 }
 
+function repoFootprint(repo: ForgejoRepo): number {
+	return repo.size + repo.lfs_size;
+}
+
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
 
 	const { totalSize, top } = useMemo(() => {
-		const sorted = [...repos].sort((a, b) => b.size - a.size);
+		const sorted = [...repos].sort(
+			(a, b) => repoFootprint(b) - repoFootprint(a),
+		);
 		return {
-			totalSize: sorted.reduce((s, r) => s + r.size, 0),
+			totalSize: sorted.reduce((s, r) => s + repoFootprint(r), 0),
 			top: sorted.slice(0, 8),
 		};
 	}, [repos]);
@@ -123,13 +130,14 @@ function StorageBreakdown() {
 					marginBottom: 8,
 				}}>
 				{top.map((repo, i) => {
+					const footprint = repoFootprint(repo);
 					const pct =
-						totalSize > 0 ? (repo.size / totalSize) * 100 : 0;
+						totalSize > 0 ? (footprint / totalSize) * 100 : 0;
 					const hue = [200, 160, 280, 30, 340, 120, 50, 240][i % 8];
 					return (
 						<div
 							key={repo.id}
-							title={`${repo.full_name}: ${formatSize(repo.size)}`}
+							title={`${repo.full_name}: ${formatSize(footprint)}`}
 							style={{
 								width: `${pct}%`,
 								background: `hsl(${hue}, 60%, 55%)`,
@@ -169,7 +177,7 @@ function StorageBreakdown() {
 							/>
 							{repo.name}
 							<span style={{ opacity: 0.6, fontSize: '0.65rem' }}>
-								{formatSize(repo.size)}
+								{formatSize(repoFootprint(repo))}
 							</span>
 						</div>
 					);
