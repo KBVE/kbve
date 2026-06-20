@@ -104,10 +104,13 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
 
-		this.connectClient();
-
-		if (!this.client && DEBUG_LOCAL_PLAYER) {
+		if (DEBUG_LOCAL_PLAYER) {
+			// Offline test mode: drive a local ranger, skip the server entirely
+			// (a guest/anon session still yields a jwt, so connectClient would
+			// otherwise create a client + skip this spawn).
 			this.spawnLocalPlayer();
+		} else {
+			this.connectClient();
 		}
 
 		this.time.addEvent({
@@ -438,6 +441,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.predicted = { ...tile };
 		this.predictSeeded = true;
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
+		this.cameras.main.setZoom(1.5);
 	}
 
 	private poseLocalPlayer(

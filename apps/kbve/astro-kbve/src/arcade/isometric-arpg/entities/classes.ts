@@ -35,7 +35,7 @@ export const RANGER_CLASS: ClassDef = {
 	assetPath: '/assets/arcade/arpg/characters/ranger',
 	weapon: 'Bow',
 	states: ['Idle', 'Run', 'Attack', 'Death'],
-	displaySize: 96,
+	displaySize: 128,
 	originY: 0.85,
 };
 
