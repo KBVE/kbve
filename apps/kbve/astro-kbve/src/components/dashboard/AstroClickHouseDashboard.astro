@@ -7,6 +7,7 @@ import ReactCHNamespaceGrid from './ReactCHNamespaceGrid';
 import ReactCHFilterBar from './ReactCHFilterBar';
 import ReactCHLogStream from './ReactCHLogStream';
 import ReactCHQueryTabs from './ReactCHQueryTabs';
+import ReactCHErrorDigest from './ReactCHErrorDigest';
 ---
 
 <section
@@ -33,6 +34,11 @@ import ReactCHQueryTabs from './ReactCHQueryTabs';
 				<!-- Island: Sort controls + namespace card grid -->
 				<div id="ch-namespace-grid" class="ch-namespace-section">
 					<ReactCHNamespaceGrid client:only="react" />
+				</div>
+
+				<!-- Island: Top errors digest (grouped error signatures) -->
+				<div id="ch-error-digest">
+					<ReactCHErrorDigest client:only="react" />
 				</div>
 
 				<!-- Static shell: Log explorer container -->
