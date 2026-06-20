@@ -1134,7 +1134,7 @@ jobs:
         name: Game Build (Mac client)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 120
         permissions:
             contents: read
@@ -1375,7 +1375,7 @@ jobs:
         name: Engine Build (Mac client)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 240
         permissions:
             contents: read
@@ -2146,7 +2146,7 @@ jobs:
         name: Install on UE5-Mac
         needs: guard
         if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 60
         permissions:
             contents: read
