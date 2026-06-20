@@ -62,6 +62,9 @@ export {
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
+// Determinism — RNG primitives mirrored byte-for-byte by simgrid rng.rs
+export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
+
 // Net — shared reconnecting socket + connection state machine
 export { ReconnectingSocket, defaultCloseReason } from './lib/net/connection';
 export type {

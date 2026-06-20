@@ -17,6 +17,7 @@ use crate::data::KindRegistry;
 use crate::grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
+use crate::rng::hash3;
 
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
@@ -2830,13 +2831,6 @@ fn dir_from_u64(v: u64) -> Dir {
         2 => Dir::Left,
         _ => Dir::Right,
     }
-}
-
-fn hash3(a: u64, b: u64, c: u64) -> u64 {
-    let mut x = a ^ b.rotate_left(17) ^ c.rotate_left(31);
-    x = (x ^ (x >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    x = (x ^ (x >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
-    x ^ (x >> 31)
 }
 
 fn wander_system(

@@ -44,29 +44,7 @@ fn blocked_from_roles(roles: &[u8]) -> Vec<bool> {
     roles.iter().map(|&r| role_blocks(r)).collect()
 }
 
-/// Mulberry32 — tiny 32-bit PRNG. Pure u32 wrapping ops so it reproduces
-/// exactly in JS (Math.imul + `>>> 0`).
-struct Mulberry32 {
-    state: u32,
-}
-
-impl Mulberry32 {
-    fn new(seed: u32) -> Self {
-        Self { state: seed }
-    }
-    fn next_u32(&mut self) -> u32 {
-        self.state = self.state.wrapping_add(0x6D2B_79F5);
-        let mut t = self.state;
-        t = (t ^ (t >> 15)).wrapping_mul(t | 1);
-        t ^= t.wrapping_add((t ^ (t >> 7)).wrapping_mul(t | 61));
-        t ^ (t >> 14)
-    }
-    /// Inclusive range [lo, hi].
-    fn range(&mut self, lo: i32, hi: i32) -> i32 {
-        let span = (hi - lo + 1).max(1) as u32;
-        lo + (self.next_u32() % span) as i32
-    }
-}
+use crate::rng::Mulberry32;
 
 #[derive(Clone, Copy)]
 pub struct Room {

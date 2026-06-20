@@ -4,6 +4,7 @@ pub mod dungeon;
 pub mod grid;
 pub mod net;
 pub mod proto;
+pub mod rng;
 pub mod sim;
 
 #[cfg(feature = "supabase-auth")]
