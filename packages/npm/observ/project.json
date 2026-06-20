@@ -1,0 +1,18 @@
+{
+	"name": "observ",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/observ/src",
+	"projectType": "library",
+	"tags": ["scope:shared", "type:lib"],
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/npm/observ/tsconfig.lib.json"
+			}
+		}
+	}
+}
