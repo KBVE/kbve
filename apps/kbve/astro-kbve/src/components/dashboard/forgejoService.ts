@@ -862,43 +862,91 @@ class ForgejoService {
 			return;
 		}
 
-		try {
-			this.$error.set(null);
-			this.$errorReason.set(null);
-			const [repos, users, orgs] = await Promise.all([
-				this._fetchReposRange(token),
-				this._fetchUsersRange(token),
-				this._fetchOrgsRange(token),
-			]);
-			this.$repos.set(repos.items);
-			this.$reposHasMore.set(repos.hasMore);
-			this.$users.set(users.items);
-			this.$usersHasMore.set(users.hasMore);
-			this.$orgs.set(orgs.items);
-			this.$orgsHasMore.set(orgs.hasMore);
-			this.$lastUpdated.set(new Date());
-			void saveCache(repos.items, users.items, orgs.items);
-			void this.fetchStats(force);
-			void this.fetchStorage(force);
-		} catch (e: unknown) {
-			if (e instanceof AccessRestrictedError) {
-				this.$authState.set('forbidden');
-				return;
-			}
-			if (e instanceof UpstreamUnavailableError) {
-				this.$error.set(e.message);
-				this.$errorReason.set(e.reason);
-				return;
-			}
-			if (e instanceof Error && /API error: 401/.test(e.message)) {
-				this.$accessToken.set(null);
-				this.$authState.set('unauthenticated');
-				this.$error.set('Session expired — please sign in again.');
-				return;
-			}
-			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
-		} finally {
+		this.$error.set(null);
+		this.$errorReason.set(null);
+
+		const [reposR, usersR, orgsR] = await Promise.allSettled([
+			this._fetchReposRange(token),
+			this._fetchUsersRange(token),
+			this._fetchOrgsRange(token),
+		]);
+
+		const reasons = [reposR, usersR, orgsR]
+			.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+			.map((r) => r.reason);
+
+		// Session-expiry and upstream-down are dashboard-wide; surface globally.
+		if (
+			reasons.some(
+				(e) => e instanceof Error && /API error: 401/.test(e.message),
+			)
+		) {
+			this.$accessToken.set(null);
+			this.$authState.set('unauthenticated');
+			this.$error.set('Session expired — please sign in again.');
 			this.$loading.set(false);
+			return;
+		}
+		const upstream = reasons.find(
+			(e) => e instanceof UpstreamUnavailableError,
+		) as UpstreamUnavailableError | undefined;
+		if (upstream) {
+			this.$error.set(upstream.message);
+			this.$errorReason.set(upstream.reason);
+			this.$loading.set(false);
+			return;
+		}
+		// Only a total lockout (every resource restricted) flips the whole
+		// dashboard to forbidden; a single restricted resource keeps the rest.
+		const restricted = reasons.filter(
+			(e) => e instanceof AccessRestrictedError,
+		).length;
+		if (restricted === 3) {
+			this.$authState.set('forbidden');
+			this.$loading.set(false);
+			return;
+		}
+
+		this._applyResource(reposR, 'repos', (v) => {
+			this.$repos.set(v.items);
+			this.$reposHasMore.set(v.hasMore);
+		});
+		this._applyResource(usersR, 'users', (v) => {
+			this.$users.set(v.items);
+			this.$usersHasMore.set(v.hasMore);
+		});
+		this._applyResource(orgsR, 'orgs', (v) => {
+			this.$orgs.set(v.items);
+			this.$orgsHasMore.set(v.hasMore);
+		});
+
+		if (
+			reposR.status === 'fulfilled' &&
+			usersR.status === 'fulfilled' &&
+			orgsR.status === 'fulfilled'
+		) {
+			void saveCache(
+				reposR.value.items,
+				usersR.value.items,
+				orgsR.value.items,
+			);
+		}
+		this.$lastUpdated.set(new Date());
+		void this.fetchStats(force);
+		void this.fetchStorage(force);
+		this.$loading.set(false);
+	}
+
+	private _applyResource<T>(
+		result: PromiseSettledResult<T>,
+		ctx: string,
+		apply: (value: T) => void,
+	): void {
+		if (result.status === 'fulfilled') {
+			this.clearNotice(ctx);
+			apply(result.value);
+		} else {
+			this.setNotice(ctx, this._noticeFor(result.reason));
 		}
 	}
 

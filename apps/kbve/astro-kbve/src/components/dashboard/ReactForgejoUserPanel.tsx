@@ -12,6 +12,7 @@ import {
 	useTabActive,
 	uiTokens,
 	LoadMoreButton,
+	ForgejoNotice,
 } from './forgejoUi';
 import { Plus, Pencil, Trash2, ShieldCheck, Search } from 'lucide-react';
 
@@ -206,6 +207,7 @@ export default function ReactForgejoUserPanel() {
 
 	return (
 		<div className="not-content">
+			<ForgejoNotice ctx="users" />
 			<div
 				style={{
 					display: 'flex',
