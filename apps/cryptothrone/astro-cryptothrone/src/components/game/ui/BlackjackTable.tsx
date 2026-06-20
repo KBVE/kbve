@@ -12,6 +12,7 @@ import type {
 	BjActionKind,
 } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
+import { BlackjackStage } from './BlackjackStage';
 import './BlackjackTable.css';
 
 // Per-phase countdown lengths, mirroring the server's BJ_*_TICKS windows (seconds).
@@ -317,6 +318,7 @@ export function BlackjackTable() {
 	};
 
 	const mySeat = state?.seats.find((s) => s.username === myName) ?? null;
+	const otherSeats = state?.seats.filter((s) => s.username !== myName) ?? [];
 	const myActiveHandIdx =
 		mySeat && state?.active_slot === mySeat.slot ? state.active_hand : null;
 	const isMyTurn = myActiveHandIdx != null;
@@ -399,32 +401,24 @@ export function BlackjackTable() {
 							/>
 						</div>
 
-						<div className="rounded bg-emerald-950/60 p-2">
-							<span className="text-xs text-zinc-400">
-								Dealer
-							</span>
-							<Hand
-								cards={state.dealer_hand}
-								hideSecond={state.dealer_hidden}
-							/>
-						</div>
+						<BlackjackStage state={state} myName={myName} />
 
-						<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-							{state.seats.length === 0 && (
-								<p className="text-sm text-zinc-500">
-									No players seated yet.
-								</p>
-							)}
-							{state.seats.map((seat) => (
-								<SeatRow
-									key={seat.slot}
-									seat={seat}
-									activeSlot={state.active_slot}
-									activeHand={state.active_hand}
-									mine={seat.username === myName}
-								/>
-							))}
-						</div>
+						{otherSeats.length > 0 && (
+							<div className="flex max-h-28 flex-col gap-1 overflow-y-auto">
+								<span className="text-[10px] uppercase tracking-wide text-zinc-500">
+									Others at the table
+								</span>
+								{otherSeats.map((seat) => (
+									<SeatRow
+										key={seat.slot}
+										seat={seat}
+										activeSlot={state.active_slot}
+										activeHand={state.active_hand}
+										mine={false}
+									/>
+								))}
+							</div>
+						)}
 
 						{!mySeat && (
 							<p className="text-xs text-zinc-400">
