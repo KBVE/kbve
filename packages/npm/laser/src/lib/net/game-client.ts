@@ -217,6 +217,10 @@ export class GameClient {
 		this.sendInputs([{ BjAction: { kind } }]);
 	}
 
+	insure(amount: number): void {
+		this.sendInputs([{ Insure: { amount } }]);
+	}
+
 	face(facing: Facing): void {
 		this.sendInputs([{ Face: { facing } }]);
 	}

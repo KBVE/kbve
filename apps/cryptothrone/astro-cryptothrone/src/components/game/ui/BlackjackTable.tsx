@@ -1,8 +1,20 @@
 import { useState } from 'react';
 import { FloatingWindow } from '@kbve/astro/ui';
 import { laserEvents, decodeCard } from '@kbve/laser';
-import type { BlackjackSeatView } from '@kbve/laser';
+import type {
+	BlackjackSeatView,
+	BlackjackHandView,
+	BjActionKind,
+} from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
+import './BlackjackTable.css';
+
+// Per-phase countdown lengths, mirroring the server's BJ_*_TICKS windows (seconds).
+const PHASE_SECONDS: Record<string, number> = {
+	betting: 20,
+	insurance: 10,
+	player_turn: 20,
+};
 
 const SUIT_GLYPH: Record<string, string> = {
 	spades: '♠',
@@ -15,7 +27,7 @@ function Card({ byte }: { byte: number }) {
 	const c = decodeCard(byte);
 	return (
 		<span
-			className={`inline-flex h-9 min-w-7 items-center justify-center rounded border border-gray-500 bg-white px-1 text-sm font-bold ${c.red ? 'text-red-600' : 'text-gray-900'}`}>
+			className={`bj-card inline-flex h-9 min-w-7 items-center justify-center rounded border border-gray-500 bg-white px-1 text-sm font-bold shadow-sm ${c.red ? 'text-red-600' : 'text-gray-900'}`}>
 			{c.rank}
 			{SUIT_GLYPH[c.suit]}
 		</span>
@@ -24,7 +36,7 @@ function Card({ byte }: { byte: number }) {
 
 function CardBack() {
 	return (
-		<span className="inline-flex h-9 min-w-7 items-center justify-center rounded border border-indigo-300 bg-indigo-700 px-1 text-sm text-indigo-200">
+		<span className="bj-card-back inline-flex h-9 min-w-7 items-center justify-center rounded border border-indigo-300 bg-indigo-700 px-1 text-sm text-indigo-200">
 			🂠
 		</span>
 	);
@@ -54,39 +66,126 @@ const OUTCOME_LABEL: Record<string, string> = {
 	blackjack: 'Blackjack!',
 };
 
+function sameRank(cards: number[]): boolean {
+	return (
+		cards.length === 2 &&
+		decodeCard(cards[0]).rank === decodeCard(cards[1]).rank
+	);
+}
+
+function CountdownBar({
+	phase,
+	deadlineMs,
+}: {
+	phase: string;
+	deadlineMs: number | null;
+}) {
+	const max = PHASE_SECONDS[phase];
+	if (deadlineMs == null || !max) return null;
+	const frac = Math.max(0, Math.min(1, deadlineMs / (max * 1000)));
+	const seconds = Math.max(0, Math.ceil(deadlineMs / 1000));
+	const color =
+		frac > 0.5
+			? 'bg-emerald-500'
+			: frac > 0.25
+				? 'bg-amber-400'
+				: 'bg-rose-500';
+	return (
+		<div className="flex items-center gap-2">
+			<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+				<div
+					className={`bj-meter h-full rounded-full ${color}`}
+					style={{ width: `${frac * 100}%` }}
+				/>
+			</div>
+			<span className="w-8 text-right text-xs tabular-nums text-zinc-300">
+				{seconds}s
+			</span>
+		</div>
+	);
+}
+
+function HandRow({
+	hand,
+	active,
+}: {
+	hand: BlackjackHandView;
+	active: boolean;
+}) {
+	const outcomeColor =
+		hand.outcome === 'win' || hand.outcome === 'blackjack'
+			? 'text-emerald-400'
+			: hand.outcome === 'push'
+				? 'text-zinc-300'
+				: 'text-rose-400';
+	return (
+		<div
+			className={`flex items-center justify-between rounded px-2 py-1 transition-colors ${active ? 'bj-active bg-yellow-500/20 ring-1 ring-yellow-400' : 'bg-zinc-900/50'}`}>
+			<Hand cards={hand.cards} />
+			<div className="flex flex-col items-end text-xs">
+				{hand.cards.length > 0 && (
+					<span className="text-zinc-200">
+						{hand.value}
+						{hand.soft ? ' (soft)' : ''}
+					</span>
+				)}
+				<span className="text-amber-300">
+					bet {hand.bet}
+					{hand.doubled && ' ·2x'}
+					{hand.surrendered && ' · surrender'}
+				</span>
+				{hand.outcome && (
+					<span
+						className={`bj-outcome font-semibold ${outcomeColor}`}>
+						{OUTCOME_LABEL[hand.outcome] ?? hand.outcome}
+					</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
 function SeatRow({
 	seat,
-	active,
+	activeSlot,
+	activeHand,
 	mine,
 }: {
 	seat: BlackjackSeatView;
-	active: boolean;
+	activeSlot: number | null;
+	activeHand: number | null;
 	mine: boolean;
 }) {
+	const seatActive = activeSlot === seat.slot;
 	return (
-		<div
-			className={`flex items-center justify-between rounded px-2 py-1 ${active ? 'bg-yellow-500/20 ring-1 ring-yellow-400' : 'bg-zinc-800/60'}`}>
-			<div className="flex flex-col">
+		<div className="flex flex-col gap-1 rounded bg-zinc-800/60 px-2 py-1">
+			<div className="flex items-center justify-between">
 				<span className="text-xs text-zinc-300">
 					{seat.username}
 					{mine && <span className="text-yellow-400"> (you)</span>}
+					{seat.disconnected && (
+						<span className="text-rose-400"> (reconnecting…)</span>
+					)}
 				</span>
-				<Hand cards={seat.hand} />
-			</div>
-			<div className="flex flex-col items-end text-xs">
-				{seat.hand.length > 0 && (
-					<span className="text-zinc-200">
-						{seat.value}
-						{seat.soft ? ' (soft)' : ''}
-					</span>
-				)}
-				<span className="text-amber-300">bet {seat.bet}</span>
-				{seat.outcome && (
-					<span className="font-semibold text-emerald-400">
-						{OUTCOME_LABEL[seat.outcome] ?? seat.outcome}
+				{seat.insurance > 0 && (
+					<span className="text-xs text-sky-300">
+						insurance {seat.insurance}
 					</span>
 				)}
 			</div>
+			{seat.hands.length === 0 ? (
+				<span className="text-xs text-zinc-500">
+					{seat.bet > 0 ? `bet ${seat.bet} — waiting` : 'no bet'}
+				</span>
+			) : (
+				seat.hands.map((hand, i) => (
+					<HandRow
+						key={i}
+						hand={hand}
+						active={seatActive && activeHand === i}
+					/>
+				))
+			)}
 		</div>
 	);
 }
@@ -105,17 +204,42 @@ export function BlackjackTable() {
 	};
 
 	const mySeat = state?.seats.find((s) => s.username === myName) ?? null;
-	const isMyTurn =
-		!!mySeat &&
-		state?.active_slot != null &&
-		state.active_slot === mySeat.slot;
-	const canBet = !!mySeat && state?.phase === 'betting' && mySeat.bet === 0;
-	const seconds =
-		state?.deadline_ms != null
-			? Math.max(0, Math.ceil(state.deadline_ms / 1000))
+	const myActiveHandIdx =
+		mySeat && state?.active_slot === mySeat.slot ? state.active_hand : null;
+	const isMyTurn = myActiveHandIdx != null;
+	const activeHand =
+		mySeat && myActiveHandIdx != null
+			? (mySeat.hands[myActiveHandIdx] ?? null)
 			: null;
 
-	const act = (kind: 'Hit' | 'Stand' | 'Double') =>
+	const balance = state?.your_balance ?? 0;
+	const canBet = !!mySeat && state?.phase === 'betting' && mySeat.bet === 0;
+	const canInsure =
+		!!mySeat && state?.phase === 'insurance' && mySeat.insurance === 0;
+	const insuranceCap = mySeat ? Math.floor(mySeat.bet / 2) : 0;
+
+	const canDouble =
+		isMyTurn &&
+		!!activeHand &&
+		activeHand.cards.length === 2 &&
+		!activeHand.doubled &&
+		balance >= activeHand.bet;
+	const canSplit =
+		isMyTurn &&
+		!!activeHand &&
+		!!mySeat &&
+		sameRank(activeHand.cards) &&
+		mySeat.hands.length < 4 &&
+		balance >= activeHand.bet;
+	const canSurrender =
+		isMyTurn &&
+		!!activeHand &&
+		!!mySeat &&
+		mySeat.hands.length === 1 &&
+		activeHand.cards.length === 2 &&
+		!activeHand.doubled;
+
+	const act = (kind: BjActionKind) =>
 		laserEvents.emit('blackjack:action', { kind });
 
 	return (
@@ -132,9 +256,9 @@ export function BlackjackTable() {
 						? Math.max(12, (window.innerHeight - 520) / 3)
 						: 80,
 			}}
-			size={{ width: 560, height: 520 }}
+			size={{ width: 560, height: 560 }}
 			minWidth={380}
-			minHeight={360}
+			minHeight={380}
 			title="Blackjack"
 			onClose={close}>
 			<div className="flex h-full flex-col gap-3 bg-zinc-950 p-4 text-white">
@@ -142,20 +266,19 @@ export function BlackjackTable() {
 					<p className="text-sm text-zinc-400">Joining the table…</p>
 				) : (
 					<>
-						<div className="flex items-center justify-between">
-							<span className="text-xs uppercase tracking-wide text-zinc-400">
-								{state.phase.replace('_', ' ')}
-							</span>
-							<span className="text-xs text-amber-300">
-								Coins: {state.your_balance}
-							</span>
-							{seconds != null &&
-								(state.phase === 'betting' ||
-									state.phase === 'player_turn') && (
-									<span className="text-xs text-zinc-300">
-										⏱ {seconds}s
-									</span>
-								)}
+						<div className="flex flex-col gap-1">
+							<div className="flex items-center justify-between">
+								<span className="text-xs uppercase tracking-wide text-zinc-400">
+									{state.phase.replace('_', ' ')}
+								</span>
+								<span className="text-xs text-amber-300">
+									Coins: {state.your_balance}
+								</span>
+							</div>
+							<CountdownBar
+								phase={state.phase}
+								deadlineMs={state.deadline_ms}
+							/>
 						</div>
 
 						<div className="rounded bg-emerald-950/60 p-2">
@@ -178,7 +301,8 @@ export function BlackjackTable() {
 								<SeatRow
 									key={seat.slot}
 									seat={seat}
-									active={state.active_slot === seat.slot}
+									activeSlot={state.active_slot}
+									activeHand={state.active_hand}
 									mine={seat.username === myName}
 								/>
 							))}
@@ -220,35 +344,116 @@ export function BlackjackTable() {
 									className="rounded bg-amber-500 px-4 py-1 text-sm font-semibold text-black transition-all hover:bg-amber-400">
 									Place Bet
 								</button>
+								<div className="flex gap-1">
+									{[5, 25, 100].map((chip) => (
+										<button
+											key={chip}
+											type="button"
+											disabled={chip > state.your_balance}
+											onClick={() =>
+												setBetAmount(
+													Math.min(
+														state.your_balance,
+														chip,
+													),
+												)
+											}
+											className="rounded-full bg-zinc-700 px-2 py-1 text-xs transition-all hover:bg-zinc-600 disabled:opacity-30">
+											{chip}
+										</button>
+									))}
+									<button
+										type="button"
+										disabled={state.your_balance < 1}
+										onClick={() =>
+											setBetAmount(state.your_balance)
+										}
+										className="rounded-full bg-zinc-700 px-2 py-1 text-xs transition-all hover:bg-zinc-600 disabled:opacity-30">
+										Max
+									</button>
+								</div>
 							</div>
 						)}
 
+						{canInsure && (
+							<div className="flex items-center justify-between gap-2 rounded bg-sky-950/50 px-2 py-1">
+								<span className="text-xs text-sky-200">
+									Dealer shows an ace — insure up to{' '}
+									{insuranceCap}?
+								</span>
+								<div className="flex gap-2">
+									<button
+										type="button"
+										disabled={insuranceCap < 1}
+										onClick={() =>
+											laserEvents.emit(
+												'blackjack:insure',
+												{ amount: insuranceCap },
+											)
+										}
+										className="rounded bg-sky-500 px-3 py-1 text-xs font-semibold text-black transition-all hover:bg-sky-400 disabled:opacity-40">
+										Insure {insuranceCap}
+									</button>
+									<button
+										type="button"
+										onClick={() =>
+											laserEvents.emit(
+												'blackjack:insure',
+												{ amount: 0 },
+											)
+										}
+										className="rounded bg-zinc-700 px-3 py-1 text-xs transition-all hover:bg-zinc-600">
+										No
+									</button>
+								</div>
+							</div>
+						)}
+
+						{mySeat && isMyTurn && (
+							<span className="bj-you-turn text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
+								Your turn
+								{mySeat.hands.length > 1 &&
+									myActiveHandIdx != null &&
+									` — hand ${myActiveHandIdx + 1}/${mySeat.hands.length}`}
+							</span>
+						)}
+
 						{mySeat && (
-							<div className="flex gap-2">
+							<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 								<button
 									type="button"
 									disabled={!isMyTurn}
 									onClick={() => act('Hit')}
-									className="flex-1 rounded bg-emerald-600 py-2 text-sm font-semibold transition-all hover:bg-emerald-500 disabled:opacity-40">
+									className="rounded bg-emerald-600 py-2 text-sm font-semibold transition-all hover:bg-emerald-500 disabled:opacity-40">
 									Hit
 								</button>
 								<button
 									type="button"
 									disabled={!isMyTurn}
 									onClick={() => act('Stand')}
-									className="flex-1 rounded bg-sky-600 py-2 text-sm font-semibold transition-all hover:bg-sky-500 disabled:opacity-40">
+									className="rounded bg-sky-600 py-2 text-sm font-semibold transition-all hover:bg-sky-500 disabled:opacity-40">
 									Stand
 								</button>
 								<button
 									type="button"
-									disabled={
-										!isMyTurn ||
-										state.your_balance < mySeat.bet ||
-										mySeat.hand.length !== 2
-									}
+									disabled={!canDouble}
 									onClick={() => act('Double')}
-									className="flex-1 rounded bg-fuchsia-600 py-2 text-sm font-semibold transition-all hover:bg-fuchsia-500 disabled:opacity-40">
+									className="rounded bg-fuchsia-600 py-2 text-sm font-semibold transition-all hover:bg-fuchsia-500 disabled:opacity-40">
 									Double
+								</button>
+								<button
+									type="button"
+									disabled={!canSplit}
+									onClick={() => act('Split')}
+									className="rounded bg-violet-600 py-2 text-sm font-semibold transition-all hover:bg-violet-500 disabled:opacity-40">
+									Split
+								</button>
+								<button
+									type="button"
+									disabled={!canSurrender}
+									onClick={() => act('Surrender')}
+									className="col-span-2 rounded bg-rose-700 py-2 text-sm font-semibold transition-all hover:bg-rose-600 disabled:opacity-40 sm:col-span-4">
+									Surrender
 								</button>
 							</div>
 						)}
