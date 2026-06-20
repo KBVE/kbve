@@ -1,0 +1,26 @@
+; Git LFS endpoint for the isometric ARPG game art (sprites + ground tiles).
+;
+; Pointer files (~150 byte text stubs) live in this GitHub monorepo; the
+; real PNG blobs live on the self-hosted Forgejo instance at
+; git.kbve.com/KBVE/arpg.git. Routing is via ingress-nginx (.74) not the
+; Cilium gateway (.71) for the same Cloudflare-origin reason documented in
+; the rareicon .lfsconfig at the repo root.
+;
+; LIMITATION: stock git-lfs only honors `lfs.url` from the .lfsconfig at the
+; *repository root* (this nested file is ignored by git-lfs itself). The
+; repo-root .lfsconfig still points at KBVE/rareicon. To push/pull arpg LFS
+; blobs to the correct endpoint, use the kbve.sh wrapper:
+;
+;   ./kbve.sh -lfs arpg push origin <branch>
+;   ./kbve.sh -lfs arpg pull
+;   ./kbve.sh -lfs arpg fetch --all
+;   ./kbve.sh -lfs arpg register
+;
+; The wrapper injects `-c lfs.url=<this url>` so devs never have to remember
+; it. This .lfsconfig stays as the documented source of truth for the
+; endpoint value the wrapper hard-codes.
+;
+; Raw 720px source sheets under characters/**/raw/ are gitignored and never
+; enter LFS — only the optimized sheets the game loads are tracked.
+[lfs]
+    url = https://git.kbve.com/KBVE/arpg.git/info/lfs
