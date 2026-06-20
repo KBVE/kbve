@@ -31,8 +31,32 @@ pub fn card_points(card: u8) -> u32 {
     RANK_POINTS[(card & RANK_MASK) as usize]
 }
 
-fn is_ace(card: u8) -> bool {
+pub fn is_ace(card: u8) -> bool {
     (card & RANK_MASK) == 0
+}
+
+pub fn card_rank(card: u8) -> u8 {
+    card & RANK_MASK
+}
+
+/// Two cards split only when they share a rank (e.g. 8♠/8♥, not 10/J).
+pub fn can_split(cards: &[u8]) -> bool {
+    cards.len() == 2 && card_rank(cards[0]) == card_rank(cards[1])
+}
+
+/// Coins returned for a settled insurance side bet. Pays 2:1 when the dealer has a
+/// natural (stake + 2×stake back), otherwise the stake is lost.
+pub fn insurance_credit(stake: u32, dealer_blackjack: bool) -> u32 {
+    if dealer_blackjack {
+        stake.saturating_mul(3)
+    } else {
+        0
+    }
+}
+
+/// Coins returned when a hand surrenders: half the bet back (rounded down).
+pub fn surrender_credit(bet: u32) -> u32 {
+    bet / 2
 }
 
 /// Best hand value with soft-ace handling. Returns `(total, soft)` where `soft`
@@ -236,6 +260,27 @@ mod tests {
         assert_eq!(payout_credit(10, Outcome::Win), 20);
         assert_eq!(payout_credit(10, Outcome::Push), 10);
         assert_eq!(payout_credit(10, Outcome::Loss), 0);
+    }
+
+    #[test]
+    fn split_only_on_matching_rank() {
+        assert!(can_split(&[card(0, 7), card(1, 7)])); // 8/8
+        assert!(can_split(&[card(0, 0), card(2, 0)])); // A/A
+        assert!(!can_split(&[card(0, 9), card(1, 10)])); // 10/J (both 10 points, diff rank)
+        assert!(!can_split(&[card(0, 5), card(1, 6)]));
+        assert!(!can_split(&[card(0, 5)]));
+    }
+
+    #[test]
+    fn insurance_pays_two_to_one_on_dealer_natural() {
+        assert_eq!(insurance_credit(5, true), 15); // stake 5 + 2x = 15 back, net +10
+        assert_eq!(insurance_credit(5, false), 0);
+    }
+
+    #[test]
+    fn surrender_returns_half() {
+        assert_eq!(surrender_credit(10), 5);
+        assert_eq!(surrender_credit(5), 2); // floor
     }
 
     #[test]

@@ -203,6 +203,10 @@ pub const BJ_SETTLE_TICKS: u32 = SIM_TICK_HZ * 5;
 /// Grace window a vacated seat is reserved for the same player to reconnect into
 /// before it is released back to the table.
 pub const BJ_HOLD_TICKS: u32 = SIM_TICK_HZ * 30;
+/// Window to buy insurance when the dealer shows an ace, before play begins.
+pub const BJ_INSURANCE_TICKS: u32 = SIM_TICK_HZ * 10;
+/// Most hands one seat can hold after splitting (original + up to three splits).
+pub const BJ_MAX_HANDS: usize = 4;
 
 /// A casino table the game crate exposes for blackjack. Generic so simgrid stays
 /// game-agnostic; cryptothrone populates `Tables` at bootstrap.
@@ -219,6 +223,7 @@ pub struct Tables(pub Vec<TableDef>);
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum BjPhase {
     Betting,
+    Insurance,
     PlayerTurn,
     DealerTurn,
     Settle,
@@ -228,6 +233,7 @@ impl BjPhase {
     fn as_str(self) -> &'static str {
         match self {
             BjPhase::Betting => "betting",
+            BjPhase::Insurance => "insurance",
             BjPhase::PlayerTurn => "player_turn",
             BjPhase::DealerTurn => "dealer_turn",
             BjPhase::Settle => "settle",
@@ -235,14 +241,39 @@ impl BjPhase {
     }
 }
 
+/// One playable hand within a seat. A seat normally holds a single hand; splitting
+/// adds siblings, each with its own bet, that are played and settled independently.
+struct Hand {
+    cards: Vec<u8>,
+    bet: u32,
+    natural: bool,
+    doubled: bool,
+    surrendered: bool,
+    done: bool,
+    outcome: Option<blackjack::Outcome>,
+}
+
+impl Hand {
+    fn new(bet: u32) -> Self {
+        Self {
+            cards: Vec::new(),
+            bet,
+            natural: false,
+            doubled: false,
+            surrendered: false,
+            done: false,
+            outcome: None,
+        }
+    }
+}
+
 struct Seat {
     slot: u16,
     username: String,
+    /// Main bet locked in during the betting window; each dealt/split hand stakes it.
     bet: u32,
-    hand: Vec<u8>,
-    natural: bool,
-    done: bool,
-    outcome: Option<blackjack::Outcome>,
+    insurance: u32,
+    hands: Vec<Hand>,
     /// Tick the player's entity vanished; `Some` means the seat is held open for a
     /// reconnect and the occupant is currently offline.
     disconnected_since: Option<u32>,
@@ -254,20 +285,16 @@ impl Seat {
             slot,
             username,
             bet: 0,
-            hand: Vec::new(),
-            natural: false,
-            done: false,
-            outcome: None,
+            insurance: 0,
+            hands: Vec::new(),
             disconnected_since: None,
         }
     }
 
     fn reset_for_round(&mut self) {
         self.bet = 0;
-        self.hand.clear();
-        self.natural = false;
-        self.done = false;
-        self.outcome = None;
+        self.insurance = 0;
+        self.hands.clear();
     }
 }
 
@@ -278,6 +305,7 @@ struct TableSession {
     phase: BjPhase,
     seats: Vec<Option<Seat>>,
     active_seat: usize,
+    active_hand: usize,
     deadline_tick: u32,
     rng: blackjack::Rng,
 }
@@ -294,6 +322,7 @@ impl TableSession {
             phase: BjPhase::Betting,
             seats: (0..cap).map(|_| None).collect(),
             active_seat: 0,
+            active_hand: 0,
             deadline_tick: tick + BJ_BET_TICKS,
             rng,
         }
@@ -320,11 +349,20 @@ impl TableSession {
         })
     }
 
-    /// First seat that placed a bet and still owes a decision.
-    fn active_actor(&self) -> Option<usize> {
-        self.seats
-            .iter()
-            .position(|s| matches!(s, Some(seat) if seat.bet > 0 && !seat.done))
+    /// The `(seat, hand)` currently owing a decision, in seat-then-hand order.
+    fn active(&self) -> Option<(usize, usize)> {
+        for (si, slot) in self.seats.iter().enumerate() {
+            let Some(seat) = slot else { continue };
+            if seat.bet == 0 {
+                continue;
+            }
+            for (hi, hand) in seat.hands.iter().enumerate() {
+                if !hand.done {
+                    return Some((si, hi));
+                }
+            }
+        }
+        None
     }
 
     fn participants(&self) -> usize {
@@ -333,6 +371,13 @@ impl TableSession {
             .filter(|s| matches!(s, Some(seat) if seat.bet > 0))
             .count()
     }
+
+    fn dealer_upcard_ace(&self) -> bool {
+        self.dealer
+            .first()
+            .map(|&c| blackjack::is_ace(c))
+            .unwrap_or(false)
+    }
 }
 
 enum BjInput {
@@ -340,6 +385,7 @@ enum BjInput {
     Leave,
     Bet { amount: u32 },
     Act { kind: proto::BjActionKind },
+    Insure { amount: u32 },
 }
 
 #[derive(Resource, Default)]
@@ -939,6 +985,9 @@ fn drain_inputs(
                     blackjack_inputs.0.push((slot, BjInput::Bet { amount }))
                 }
                 Input::BjAction { kind } => blackjack_inputs.0.push((slot, BjInput::Act { kind })),
+                Input::Insure { amount } => {
+                    blackjack_inputs.0.push((slot, BjInput::Insure { amount }))
+                }
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -1057,7 +1106,8 @@ fn drain_inputs(
                 | Input::JoinTable { .. }
                 | Input::LeaveTable
                 | Input::PlaceBet { .. }
-                | Input::BjAction { .. } => {}
+                | Input::BjAction { .. }
+                | Input::Insure { .. } => {}
             }
         }
     }
@@ -1836,6 +1886,9 @@ fn apply_blackjack(
             BjInput::Act { kind } => {
                 handle_bj_action(&mut reg, &mut q, &entity_of, &bcast, slot, kind);
             }
+            BjInput::Insure { amount } => {
+                handle_bj_insurance(&mut reg, &mut q, &entity_of, &bcast, slot, amount);
+            }
         }
     }
 
@@ -1945,6 +1998,48 @@ fn leave_seat(
     }
 }
 
+fn handle_bj_insurance(
+    reg: &mut TableRegistry,
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+    slot: u16,
+    amount: u32,
+) {
+    let Some(session) = reg
+        .sessions
+        .values_mut()
+        .find(|s| s.seat_of(slot).is_some())
+    else {
+        return;
+    };
+    if session.phase != BjPhase::Insurance {
+        return;
+    }
+    let i = session.seat_of(slot).unwrap();
+    let seat = session.seats[i].as_ref().unwrap();
+    // Insurance is a one-time side bet, capped at half the main bet.
+    if seat.bet == 0 || seat.insurance > 0 {
+        return;
+    }
+    let cap = seat.bet / 2;
+    if cap == 0 {
+        return;
+    }
+    let Some(&entity) = entity_of.get(&slot) else {
+        return;
+    };
+    let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
+        return;
+    };
+    let stake = amount.min(cap).min(coin_balance(&inv));
+    if stake == 0 || !spend_coins(&mut inv, stake) {
+        return;
+    }
+    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+    session.seats[i].as_mut().unwrap().insurance = stake;
+}
+
 fn handle_bj_action(
     reg: &mut TableRegistry,
     q: &mut PlayerQuery<'_, '_>,
@@ -1963,42 +2058,184 @@ fn handle_bj_action(
     if session.phase != BjPhase::PlayerTurn {
         return;
     }
-    let i = session.seat_of(slot).unwrap();
-    if session.active_actor() != Some(i) {
+    // Only the player owning the active seat may act, and only on its active hand.
+    let Some((si, hi)) = session.active() else {
+        return;
+    };
+    if session.seats[si].as_ref().unwrap().slot != slot {
         return;
     }
     match kind {
         proto::BjActionKind::Hit => {
             let card = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let seat = session.seats[i].as_mut().unwrap();
-            seat.hand.push(card);
-            if blackjack::value_hand(&seat.hand).0 >= 21 {
-                seat.done = true;
+            let hand = &mut session.seats[si].as_mut().unwrap().hands[hi];
+            hand.cards.push(card);
+            if blackjack::value_hand(&hand.cards).0 >= 21 {
+                hand.done = true;
             }
         }
         proto::BjActionKind::Stand => {
-            session.seats[i].as_mut().unwrap().done = true;
+            session.seats[si].as_mut().unwrap().hands[hi].done = true;
         }
         proto::BjActionKind::Double => {
-            let bet = session.seats[i].as_ref().unwrap().bet;
-            let Some(&entity) = entity_of.get(&slot) else {
-                return;
+            let bet = {
+                let hand = &session.seats[si].as_ref().unwrap().hands[hi];
+                if hand.cards.len() != 2 || hand.doubled {
+                    return;
+                }
+                hand.bet
             };
-            let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
-                return;
-            };
-            if coin_balance(&inv) < bet || !spend_coins(&mut inv, bet) {
+            if !try_debit(q, entity_of, bcast, slot, bet) {
                 return;
             }
-            send_inventory(bcast, proto::PlayerSlot(slot), &inv);
             let card = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let seat = session.seats[i].as_mut().unwrap();
-            seat.bet = seat.bet.saturating_add(bet);
-            seat.hand.push(card);
-            seat.done = true;
+            let hand = &mut session.seats[si].as_mut().unwrap().hands[hi];
+            hand.bet = hand.bet.saturating_add(bet);
+            hand.doubled = true;
+            hand.cards.push(card);
+            hand.done = true;
+        }
+        proto::BjActionKind::Split => {
+            let bet = {
+                let seat = session.seats[si].as_ref().unwrap();
+                if seat.hands.len() >= BJ_MAX_HANDS {
+                    return;
+                }
+                let hand = &seat.hands[hi];
+                if !blackjack::can_split(&hand.cards) {
+                    return;
+                }
+                hand.bet
+            };
+            if !try_debit(q, entity_of, bcast, slot, bet) {
+                return;
+            }
+            let moved = session.seats[si].as_mut().unwrap().hands[hi]
+                .cards
+                .pop()
+                .unwrap();
+            let aces = blackjack::is_ace(session.seats[si].as_ref().unwrap().hands[hi].cards[0]);
+            let card_a = blackjack::draw(&mut session.shoe, &mut session.rng);
+            let card_b = blackjack::draw(&mut session.shoe, &mut session.rng);
+            let seat = session.seats[si].as_mut().unwrap();
+            seat.hands[hi].cards.push(card_a);
+            let mut split_hand = Hand::new(bet);
+            split_hand.cards.push(moved);
+            split_hand.cards.push(card_b);
+            // Split aces draw a single card each and stand automatically.
+            if aces {
+                seat.hands[hi].done = true;
+                split_hand.done = true;
+            }
+            seat.hands.insert(hi + 1, split_hand);
+        }
+        proto::BjActionKind::Surrender => {
+            // Late surrender: only the untouched original hand, never after a split.
+            let bet = {
+                let seat = session.seats[si].as_ref().unwrap();
+                if seat.hands.len() != 1 {
+                    return;
+                }
+                let hand = &seat.hands[0];
+                if hand.cards.len() != 2 || hand.doubled || hand.natural {
+                    return;
+                }
+                hand.bet
+            };
+            let refund = blackjack::surrender_credit(bet);
+            if refund > 0
+                && let Some(&entity) = entity_of.get(&slot)
+            {
+                credit_coins(q, entity, bcast, slot, refund);
+            }
+            let hand = &mut session.seats[si].as_mut().unwrap().hands[0];
+            hand.surrendered = true;
+            hand.outcome = Some(blackjack::Outcome::Loss);
+            hand.done = true;
         }
     }
-    // The phase driver resets the turn clock once the active actor changes.
+    // The phase driver resets the turn clock once the active hand changes.
+}
+
+/// Debit `amount` coins from the player's inventory, pushing an inventory sync on
+/// success. Returns false (and changes nothing) if they can't cover it.
+fn try_debit(
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+    slot: u16,
+    amount: u32,
+) -> bool {
+    let Some(&entity) = entity_of.get(&slot) else {
+        return false;
+    };
+    let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
+        return false;
+    };
+    if coin_balance(&inv) < amount || !spend_coins(&mut inv, amount) {
+        return false;
+    }
+    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+    true
+}
+
+fn start_player_turn(session: &mut TableSession, tick: u32) {
+    session.phase = BjPhase::PlayerTurn;
+    let (si, hi) = session.active().unwrap_or((0, 0));
+    session.active_seat = si;
+    session.active_hand = hi;
+    session.deadline_tick = tick + BJ_TURN_TICKS;
+}
+
+/// Settle every live hand against the dealer's final hand and pay out per seat.
+/// Hands already carrying an outcome (surrenders) are left untouched.
+fn settle_bj_round(
+    session: &mut TableSession,
+    q: &mut PlayerQuery<'_, '_>,
+    entity_of: &HashMap<u16, Entity>,
+    bcast: &Outbound,
+) {
+    let dealer = session.dealer.clone();
+    let dealer_natural = blackjack::is_blackjack(&dealer);
+    for i in 0..session.seats.len() {
+        let Some(slot) = session.seats[i]
+            .as_ref()
+            .and_then(|s| (s.bet > 0).then_some(s.slot))
+        else {
+            continue;
+        };
+        let mut credit = 0u32;
+        let hands_len = session.seats[i].as_ref().unwrap().hands.len();
+        for hi in 0..hands_len {
+            let (bet, natural, cards, settled) = {
+                let hand = &session.seats[i].as_ref().unwrap().hands[hi];
+                (
+                    hand.bet,
+                    hand.natural,
+                    hand.cards.clone(),
+                    hand.outcome.is_some(),
+                )
+            };
+            if settled {
+                continue;
+            }
+            let outcome = blackjack::settle(&cards, &dealer, natural);
+            credit = credit.saturating_add(blackjack::payout_credit(bet, outcome));
+            let hand = &mut session.seats[i].as_mut().unwrap().hands[hi];
+            hand.outcome = Some(outcome);
+            hand.done = true;
+        }
+        // Insurance pays 2:1 when the dealer turned a natural.
+        let insurance = session.seats[i].as_ref().unwrap().insurance;
+        if insurance > 0 {
+            credit = credit.saturating_add(blackjack::insurance_credit(insurance, dealer_natural));
+        }
+        if credit > 0
+            && let Some(&entity) = entity_of.get(&slot)
+        {
+            credit_coins(q, entity, bcast, slot, credit);
+        }
+    }
 }
 
 fn advance_bj_phase(
@@ -2019,62 +2256,69 @@ fn advance_bj_phase(
             }
             session.dealer.clear();
             for i in 0..session.seats.len() {
-                let participates = matches!(&session.seats[i], Some(seat) if seat.bet > 0);
-                if let Some(seat) = session.seats[i].as_mut() {
-                    seat.hand.clear();
-                    seat.natural = false;
-                    seat.done = false;
-                    seat.outcome = None;
+                let bet = {
+                    let Some(seat) = session.seats[i].as_mut() else {
+                        continue;
+                    };
+                    seat.hands.clear();
+                    seat.insurance = 0;
+                    seat.bet
+                };
+                if bet == 0 {
+                    continue;
                 }
-                if participates {
-                    let c1 = blackjack::draw(&mut session.shoe, &mut session.rng);
-                    let c2 = blackjack::draw(&mut session.shoe, &mut session.rng);
-                    let seat = session.seats[i].as_mut().unwrap();
-                    seat.hand.push(c1);
-                    seat.hand.push(c2);
-                    seat.natural = blackjack::is_blackjack(&seat.hand);
-                    seat.done = seat.natural;
-                }
+                let c1 = blackjack::draw(&mut session.shoe, &mut session.rng);
+                let c2 = blackjack::draw(&mut session.shoe, &mut session.rng);
+                let mut hand = Hand::new(bet);
+                hand.cards.push(c1);
+                hand.cards.push(c2);
+                hand.natural = blackjack::is_blackjack(&hand.cards);
+                hand.done = hand.natural;
+                session.seats[i].as_mut().unwrap().hands.push(hand);
             }
             let d1 = blackjack::draw(&mut session.shoe, &mut session.rng);
             let d2 = blackjack::draw(&mut session.shoe, &mut session.rng);
             session.dealer.push(d1);
             session.dealer.push(d2);
-            session.phase = BjPhase::PlayerTurn;
-            session.active_seat = session.active_actor().unwrap_or(0);
-            session.deadline_tick = tick + BJ_TURN_TICKS;
+            // Offer insurance only when the dealer's upcard is an ace.
+            if session.dealer_upcard_ace() {
+                session.phase = BjPhase::Insurance;
+                session.deadline_tick = tick + BJ_INSURANCE_TICKS;
+            } else {
+                start_player_turn(session, tick);
+            }
         }
-        BjPhase::PlayerTurn => match session.active_actor() {
+        BjPhase::Insurance => {
+            if tick < session.deadline_tick {
+                return;
+            }
+            // Window closed — peek the hole card. A dealer natural ends the round now;
+            // insurance (and any player naturals) settle, everyone else loses.
+            if blackjack::is_blackjack(&session.dealer) {
+                settle_bj_round(session, q, entity_of, bcast);
+                session.phase = BjPhase::Settle;
+                session.deadline_tick = tick + BJ_SETTLE_TICKS;
+            } else {
+                start_player_turn(session, tick);
+            }
+        }
+        BjPhase::PlayerTurn => match session.active() {
             None => {
                 session.phase = BjPhase::DealerTurn;
             }
-            Some(idx) => {
-                if idx != session.active_seat {
-                    session.active_seat = idx;
+            Some((si, hi)) => {
+                if (si, hi) != (session.active_seat, session.active_hand) {
+                    session.active_seat = si;
+                    session.active_hand = hi;
                     session.deadline_tick = tick + BJ_TURN_TICKS;
                 } else if tick >= session.deadline_tick {
-                    session.seats[idx].as_mut().unwrap().done = true;
+                    session.seats[si].as_mut().unwrap().hands[hi].done = true;
                 }
             }
         },
         BjPhase::DealerTurn => {
             blackjack::play_dealer(&mut session.dealer, &mut session.shoe, &mut session.rng);
-            for i in 0..session.seats.len() {
-                let Some((slot, bet, natural, hand)) = session.seats[i]
-                    .as_ref()
-                    .and_then(|s| (s.bet > 0).then(|| (s.slot, s.bet, s.natural, s.hand.clone())))
-                else {
-                    continue;
-                };
-                let outcome = blackjack::settle(&hand, &session.dealer, natural);
-                let credit = blackjack::payout_credit(bet, outcome);
-                if let Some(&entity) = entity_of.get(&slot) {
-                    credit_coins(q, entity, bcast, slot, credit);
-                }
-                let seat = session.seats[i].as_mut().unwrap();
-                seat.outcome = Some(outcome);
-                seat.done = true;
-            }
+            settle_bj_round(session, q, entity_of, bcast);
             session.phase = BjPhase::Settle;
             session.deadline_tick = tick + BJ_SETTLE_TICKS;
         }
@@ -2086,6 +2330,7 @@ fn advance_bj_phase(
                 }
                 session.phase = BjPhase::Betting;
                 session.active_seat = 0;
+                session.active_hand = 0;
                 session.deadline_tick = tick + BJ_BET_TICKS;
             }
         }
@@ -2100,7 +2345,10 @@ fn send_blackjack(
     your_balance: u32,
     tick: u32,
 ) {
-    let dealer_hidden = matches!(session.phase, BjPhase::Betting | BjPhase::PlayerTurn);
+    let dealer_hidden = matches!(
+        session.phase,
+        BjPhase::Betting | BjPhase::Insurance | BjPhase::PlayerTurn
+    );
     let dealer_hand: Vec<u8> = if dealer_hidden {
         session.dealer.iter().take(1).copied().collect()
     } else {
@@ -2111,27 +2359,38 @@ fn send_blackjack(
         .iter()
         .filter_map(|s| s.as_ref())
         .map(|seat| {
-            let (value, soft) = blackjack::value_hand(&seat.hand);
+            let hands: Vec<_> = seat
+                .hands
+                .iter()
+                .map(|hand| {
+                    let (value, soft) = blackjack::value_hand(&hand.cards);
+                    json!({
+                        "cards": hand.cards,
+                        "bet": hand.bet,
+                        "value": value,
+                        "soft": soft,
+                        "doubled": hand.doubled,
+                        "surrendered": hand.surrendered,
+                        "done": hand.done,
+                        "outcome": hand.outcome.map(|o| o.as_str()),
+                    })
+                })
+                .collect();
             json!({
                 "slot": seat.slot,
                 "username": seat.username,
-                "hand": seat.hand,
                 "bet": seat.bet,
-                "value": value,
-                "soft": soft,
-                "outcome": seat.outcome.map(|o| o.as_str()),
+                "insurance": seat.insurance,
+                "hands": hands,
                 "disconnected": seat.disconnected_since.is_some(),
             })
         })
         .collect();
-    let active_slot = if session.phase == BjPhase::PlayerTurn {
-        session
-            .active_actor()
-            .and_then(|i| session.seats[i].as_ref())
-            .map(|s| s.slot)
-    } else {
-        None
-    };
+    let active = (session.phase == BjPhase::PlayerTurn)
+        .then(|| session.active())
+        .flatten();
+    let active_slot = active.map(|(si, _)| session.seats[si].as_ref().unwrap().slot);
+    let active_hand = active.map(|(_, hi)| hi);
     let deadline_ms = session
         .deadline_tick
         .saturating_sub(tick)
@@ -2143,6 +2402,7 @@ fn send_blackjack(
         "dealer_hand": dealer_hand,
         "dealer_hidden": dealer_hidden,
         "active_slot": active_slot,
+        "active_hand": active_hand,
         "your_balance": your_balance,
         "deadline_ms": deadline_ms,
     })
@@ -4406,6 +4666,160 @@ mod tests {
             seat.disconnected_since.is_none(),
             "reclaimed seat still flagged offline"
         );
+    }
+
+    fn bj_card(suit: u8, rank: u8) -> u8 {
+        (suit << 4) | rank
+    }
+
+    /// Mutate the (single) live table session for a deterministic rule scenario.
+    fn with_session(app: &mut App, f: impl FnOnce(&mut TableSession)) {
+        let mut reg = app.world_mut().resource_mut::<TableRegistry>();
+        let session = reg.sessions.values_mut().next().expect("a live session");
+        f(session);
+    }
+
+    /// Seat a funded player, lock in a bet, and run the table through the deal.
+    fn bj_seated_and_dealt(
+        app: &mut App,
+        tx: &mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
+        slot: proto::PlayerSlot,
+        coins: u32,
+        bet: u32,
+    ) -> Entity {
+        app.update();
+        let e = player_for_slot(app, slot);
+        set_inventory(app, e, &[("coin", coins)]);
+        tx.send((
+            slot,
+            Input::JoinTable {
+                table_ref: "table".into(),
+            },
+        ))
+        .unwrap();
+        app.update();
+        tx.send((slot, Input::PlaceBet { amount: bet })).unwrap();
+        app.update();
+        for _ in 0..(BJ_BET_TICKS + 2) {
+            app.update();
+        }
+        e
+    }
+
+    #[test]
+    fn surrender_refunds_half_the_bet() {
+        let (mut app, _rx, tx, roster) = bj_harness(210, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
+        // Force a 16 vs a non-ace dealer, mid player-turn.
+        with_session(&mut app, |s| {
+            s.phase = BjPhase::PlayerTurn;
+            s.deadline_tick = u32::MAX;
+            s.dealer = vec![bj_card(0, 9), bj_card(0, 8)];
+            let bet = s.seats.iter().flatten().next().unwrap().bet;
+            let seat = s.seats.iter_mut().flatten().next().unwrap();
+            let mut h = Hand::new(bet);
+            h.cards = vec![bj_card(0, 9), bj_card(0, 5)];
+            seat.hands = vec![h];
+            s.active_seat = usize::MAX;
+            s.active_hand = 0;
+        });
+        tx.send((
+            slot,
+            Input::BjAction {
+                kind: proto::BjActionKind::Surrender,
+            },
+        ))
+        .unwrap();
+        app.update();
+        assert_eq!(
+            inv_count(&app, e, "coin"),
+            95,
+            "surrender did not refund half the 10 bet"
+        );
+        let session = app
+            .world()
+            .resource::<TableRegistry>()
+            .sessions
+            .values()
+            .next()
+            .unwrap();
+        let seat = session.seats.iter().flatten().next().unwrap();
+        assert!(seat.hands[0].surrendered, "hand not flagged surrendered");
+    }
+
+    #[test]
+    fn split_creates_two_hands_and_debits_a_second_bet() {
+        let (mut app, _rx, tx, roster) = bj_harness(211, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
+        with_session(&mut app, |s| {
+            s.phase = BjPhase::PlayerTurn;
+            s.deadline_tick = u32::MAX;
+            s.dealer = vec![bj_card(0, 9), bj_card(0, 8)];
+            let bet = s.seats.iter().flatten().next().unwrap().bet;
+            let seat = s.seats.iter_mut().flatten().next().unwrap();
+            let mut h = Hand::new(bet);
+            h.cards = vec![bj_card(0, 7), bj_card(1, 7)]; // pair of eights
+            seat.hands = vec![h];
+            s.active_seat = usize::MAX;
+            s.active_hand = 0;
+        });
+        tx.send((
+            slot,
+            Input::BjAction {
+                kind: proto::BjActionKind::Split,
+            },
+        ))
+        .unwrap();
+        app.update();
+        assert_eq!(
+            inv_count(&app, e, "coin"),
+            80,
+            "split did not debit a second 10 bet"
+        );
+        let session = app
+            .world()
+            .resource::<TableRegistry>()
+            .sessions
+            .values()
+            .next()
+            .unwrap();
+        let seat = session.seats.iter().flatten().next().unwrap();
+        assert_eq!(seat.hands.len(), 2, "split did not produce two hands");
+        assert!(
+            seat.hands.iter().all(|h| h.cards.len() == 2),
+            "split hands not topped up to two cards"
+        );
+    }
+
+    #[test]
+    fn insurance_debits_and_caps_at_half_the_bet() {
+        let (mut app, _rx, tx, roster) = bj_harness(212, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
+        with_session(&mut app, |s| {
+            s.phase = BjPhase::Insurance;
+            s.deadline_tick = u32::MAX; // keep the window open
+            s.dealer = vec![bj_card(0, 0), bj_card(0, 8)]; // ace up
+        });
+        // Ask for far more than allowed; it caps at bet/2 = 5.
+        tx.send((slot, Input::Insure { amount: 999 })).unwrap();
+        app.update();
+        assert_eq!(
+            inv_count(&app, e, "coin"),
+            85,
+            "insurance stake not capped to half the bet"
+        );
+        let session = app
+            .world()
+            .resource::<TableRegistry>()
+            .sessions
+            .values()
+            .next()
+            .unwrap();
+        let seat = session.seats.iter().flatten().next().unwrap();
+        assert_eq!(seat.insurance, 5, "insurance not recorded at the cap");
     }
 
     #[test]

@@ -1,4 +1,4 @@
-import type { BlackjackStateView } from '@kbve/laser';
+import type { BlackjackStateView, BjActionKind } from '@kbve/laser';
 import type { PlayerStats } from './types';
 
 declare module '@kbve/laser' {
@@ -7,7 +7,8 @@ declare module '@kbve/laser' {
 		'blackjack:open': { table_ref: string };
 		'blackjack:close': void;
 		'blackjack:bet': { amount: number };
-		'blackjack:action': { kind: 'Hit' | 'Stand' | 'Double' };
+		'blackjack:action': { kind: BjActionKind };
+		'blackjack:insure': { amount: number };
 		'blackjack:leave': void;
 		'npc:interact': {
 			npcId: string;

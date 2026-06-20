@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 9;
+pub const PROTOCOL_VERSION: u32 = 10;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -152,6 +152,9 @@ pub enum Input {
     BjAction {
         kind: BjActionKind,
     },
+    Insure {
+        amount: u32,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -159,6 +162,8 @@ pub enum BjActionKind {
     Hit,
     Stand,
     Double,
+    Split,
+    Surrender,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

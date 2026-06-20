@@ -20,6 +20,7 @@ import type {
 	Snapshot,
 	KindEntry,
 	ConnectionState,
+	BjActionKind,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
@@ -265,8 +266,13 @@ export class CloudCityScene extends Scene {
 					this.client?.placeBet(d.amount);
 			}),
 			laserEvents.on('blackjack:action', (data) => {
-				const d = data as { kind: 'Hit' | 'Stand' | 'Double' };
+				const d = data as { kind: BjActionKind };
 				if (d?.kind) this.client?.bjAction(d.kind);
+			}),
+			laserEvents.on('blackjack:insure', (data) => {
+				const d = data as { amount: number };
+				if (typeof d?.amount === 'number')
+					this.client?.insure(d.amount);
 			}),
 			laserEvents.on('blackjack:leave', () => {
 				this.atCasino = false;
