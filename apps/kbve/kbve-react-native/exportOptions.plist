@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>app-store</string>
+    <!-- TODO: Replace with your Apple Developer Team ID -->
+    <key>teamID</key>
+    <string>TEAM_ID_PLACEHOLDER</string>
+    <key>uploadBitcode</key>
+    <false/>
+    <key>compileBitcode</key>
+    <false/>
+    <key>uploadSymbols</key>
+    <true/>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.kbve.app</key>
+        <!-- TODO: Replace with your provisioning profile name -->
+        <string>PROVISIONING_PROFILE_NAME_PLACEHOLDER</string>
+    </dict>
+</dict>
+</plist>
