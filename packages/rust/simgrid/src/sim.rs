@@ -308,6 +308,10 @@ struct TableSession {
     active_hand: usize,
     deadline_tick: u32,
     rng: blackjack::Rng,
+    /// Provable fairness: the seed the current round's shoe was shuffled from and
+    /// its published SHA-256 commitment. The seed is only revealed at settle.
+    round_seed: u64,
+    commitment: String,
 }
 
 impl TableSession {
@@ -325,6 +329,8 @@ impl TableSession {
             active_hand: 0,
             deadline_tick: tick + BJ_BET_TICKS,
             rng,
+            round_seed: 0,
+            commitment: String::new(),
         }
     }
 
@@ -2254,6 +2260,12 @@ fn advance_bj_phase(
                 session.deadline_tick = tick + BJ_BET_TICKS;
                 return;
             }
+            // Provable fairness: draw a fresh round seed, build the shoe solely from
+            // it, and publish its commitment before any card is dealt. The seed is
+            // revealed at settle so clients can replay this exact shoe.
+            session.round_seed = session.rng.next_u64();
+            session.commitment = blackjack::commit_seed(session.round_seed);
+            session.shoe = blackjack::shoe_for_seed(session.round_seed);
             session.dealer.clear();
             for i in 0..session.seats.len() {
                 let bet = {
@@ -2395,6 +2407,10 @@ fn send_blackjack(
         .deadline_tick
         .saturating_sub(tick)
         .saturating_mul(1000 / SIM_TICK_HZ);
+    // Reveal the seed only once the round is over; until then clients hold the
+    // commitment and verify it against the seed after settle.
+    let revealed_seed = (session.phase == BjPhase::Settle && !session.commitment.is_empty())
+        .then(|| session.round_seed.to_string());
     let payload = json!({
         "table_ref": table_ref,
         "phase": session.phase.as_str(),
@@ -2405,6 +2421,8 @@ fn send_blackjack(
         "active_hand": active_hand,
         "your_balance": your_balance,
         "deadline_ms": deadline_ms,
+        "commitment": session.commitment,
+        "seed": revealed_seed,
     })
     .to_string()
     .into_bytes();
@@ -4820,6 +4838,41 @@ mod tests {
             .unwrap();
         let seat = session.seats.iter().flatten().next().unwrap();
         assert_eq!(seat.insurance, 5, "insurance not recorded at the cap");
+    }
+
+    #[test]
+    fn settled_round_reveals_a_seed_matching_its_commitment() {
+        let (mut app, mut rx, tx, roster) = bj_harness(220, Tile::new(8, 8));
+        let slot = join(&roster, "p1");
+        let _e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
+        // No action: the turn timer auto-stands, the dealer plays, the round settles.
+        for _ in 0..(BJ_INSURANCE_TICKS + BJ_TURN_TICKS + BJ_SETTLE_TICKS + 20) {
+            app.update();
+        }
+        let mut commitment_seen = false;
+        let mut verified = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_BLACKJACK
+            {
+                let v: serde_json::Value = serde_json::from_slice(&payload).unwrap();
+                if v["commitment"].as_str().is_some_and(|s| !s.is_empty()) {
+                    commitment_seen = true;
+                }
+                if let Some(seed_str) = v["seed"].as_str() {
+                    let seed: u64 = seed_str.parse().unwrap();
+                    let commitment = v["commitment"].as_str().unwrap();
+                    assert_eq!(
+                        blackjack::commit_seed(seed),
+                        commitment,
+                        "revealed seed does not match the published commitment"
+                    );
+                    verified = true;
+                }
+            }
+        }
+        assert!(commitment_seen, "no commitment broadcast during the round");
+        assert!(verified, "round never revealed a verifiable seed at settle");
     }
 
     #[test]

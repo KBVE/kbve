@@ -207,6 +207,10 @@ export interface BlackjackStateView {
 	active_hand: number | null;
 	your_balance: number;
 	deadline_ms: number | null;
+	/** Provable fairness: SHA-256 of the round seed, published before the deal. */
+	commitment?: string;
+	/** The round seed (decimal string), revealed only once the round settles. */
+	seed?: string | null;
 }
 
 export type CardSuit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
@@ -260,6 +264,56 @@ export function decodeCard(byte: number): DecodedCard {
 		points: CARD_RANK_POINTS[rankIndex],
 		red: suitIndex === 1 || suitIndex === 2,
 	};
+}
+
+// ---- Provable fairness ----
+// Mirror of the server's splitmix64 RNG + Fisher–Yates shuffle (blackjack.rs), so a
+// client holding the revealed round seed can replay the exact shoe and confirm it
+// matches the dealt cards. u64 maths are done in BigInt.
+
+const U64_MASK = (1n << 64n) - 1n;
+
+function bjMix(z: bigint): bigint {
+	z = ((z ^ (z >> 30n)) * 0xbf58476d1ce4e5b9n) & U64_MASK;
+	z = ((z ^ (z >> 27n)) * 0x94d049bb133111ebn) & U64_MASK;
+	return z ^ (z >> 31n);
+}
+
+/** The full 4-deck shoe order a round seed produces (top of shoe is the last byte). */
+export function bjShoeOrder(seed: string): number[] {
+	const shoe: number[] = [];
+	for (let deck = 0; deck < 4; deck++) {
+		for (let suit = 0; suit < 4; suit++) {
+			for (let rank = 0; rank < 13; rank++) shoe.push((suit << 4) | rank);
+		}
+	}
+	let state = BigInt(seed) & U64_MASK;
+	for (let i = shoe.length - 1; i > 0; i--) {
+		state = (state + 0x9e3779b97f4a7c15n) & U64_MASK;
+		const j = Number(bjMix(state) % BigInt(i + 1));
+		const tmp = shoe[i];
+		shoe[i] = shoe[j];
+		shoe[j] = tmp;
+	}
+	return shoe;
+}
+
+/** Recompute SHA-256 of the revealed seed and check it equals the committed hash. */
+export async function verifyBlackjackCommitment(
+	seed: string,
+	commitment: string,
+): Promise<boolean> {
+	let v = BigInt(seed) & U64_MASK;
+	const bytes = new Uint8Array(8);
+	for (let i = 0; i < 8; i++) {
+		bytes[i] = Number(v & 0xffn);
+		v >>= 8n;
+	}
+	const digest = await crypto.subtle.digest('SHA-256', bytes);
+	const hex = Array.from(new Uint8Array(digest))
+		.map((b) => b.toString(16).padStart(2, '0'))
+		.join('');
+	return hex === commitment;
 }
 
 export type ServerEvent =

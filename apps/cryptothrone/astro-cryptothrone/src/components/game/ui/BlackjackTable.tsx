@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FloatingWindow } from '@kbve/astro/ui';
-import { laserEvents, decodeCard } from '@kbve/laser';
+import {
+	laserEvents,
+	decodeCard,
+	verifyBlackjackCommitment,
+} from '@kbve/laser';
 import type {
 	BlackjackSeatView,
 	BlackjackHandView,
@@ -102,6 +106,53 @@ function CountdownBar({
 				{seconds}s
 			</span>
 		</div>
+	);
+}
+
+function FairnessBadge({
+	commitment,
+	seed,
+}: {
+	commitment?: string;
+	seed?: string | null;
+}) {
+	const [verified, setVerified] = useState<boolean | null>(null);
+
+	useEffect(() => {
+		let live = true;
+		setVerified(null);
+		if (seed && commitment) {
+			verifyBlackjackCommitment(seed, commitment)
+				.then((ok) => live && setVerified(ok))
+				.catch(() => live && setVerified(false));
+		}
+		return () => {
+			live = false;
+		};
+	}, [seed, commitment]);
+
+	if (!commitment) return null;
+	const short = `${commitment.slice(0, 10)}…`;
+
+	if (!seed) {
+		return (
+			<span
+				className="text-[10px] text-zinc-500"
+				title={`Shoe committed before the deal: ${commitment}`}>
+				🔒 provably fair · {short}
+			</span>
+		);
+	}
+	return (
+		<span
+			className={`text-[10px] ${verified === false ? 'text-rose-400' : 'text-emerald-400'}`}
+			title={`seed ${seed} · sha256 ${commitment}`}>
+			{verified == null
+				? '🔓 verifying…'
+				: verified
+					? `✓ provably fair · seed ${seed.slice(0, 8)}…`
+					: '✗ commitment mismatch'}
+		</span>
 	);
 }
 
@@ -278,6 +329,10 @@ export function BlackjackTable() {
 							<CountdownBar
 								phase={state.phase}
 								deadlineMs={state.deadline_ms}
+							/>
+							<FairnessBadge
+								commitment={state.commitment}
+								seed={state.seed}
 							/>
 						</div>
 
