@@ -5,7 +5,6 @@ import {
 	formatSize,
 	langColor,
 	timeAgo,
-	type ForgejoRepo,
 } from './forgejoService';
 import { useTabActive } from './forgejoUi';
 import {
@@ -83,22 +82,28 @@ function StatCard({
 	);
 }
 
-function repoFootprint(repo: ForgejoRepo): number {
-	return repo.size + repo.lfs_size;
-}
-
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
+	const storage = useStore(forgejoService.$storage);
 
 	const { totalSize, top } = useMemo(() => {
-		const sorted = [...repos].sort(
-			(a, b) => repoFootprint(b) - repoFootprint(a),
-		);
+		const sorted = [...repos].sort((a, b) => b.size - a.size);
 		return {
-			totalSize: sorted.reduce((s, r) => s + repoFootprint(r), 0),
+			totalSize: sorted.reduce((s, r) => s + r.size, 0),
 			top: sorted.slice(0, 8),
 		};
 	}, [repos]);
+
+	const drift = useMemo(() => {
+		if (!storage?.quota_enabled) return null;
+		const quotaKb = (storage.repos_bytes + storage.lfs_bytes) / 1024;
+		const repoSumKb = repos.reduce((s, r) => s + r.size, 0);
+		const missingKb = quotaKb - repoSumKb;
+		if (quotaKb <= 0 || missingKb <= 0) return null;
+		const pct = (missingKb / quotaKb) * 100;
+		if (pct < 5 || missingKb < 100 * 1024) return null;
+		return { missingKb, pct };
+	}, [repos, storage]);
 
 	if (repos.length === 0) return null;
 
@@ -119,6 +124,27 @@ function StorageBreakdown() {
 				<HardDrive size={12} />
 				Storage by Repository
 			</div>
+			{drift && (
+				<div
+					title="Per-repo sizes are summed from Forgejo's repository.size, which only updates on push or gc. The owner quota totals include LFS that some repos haven't recomputed yet — run a Forgejo size recalculation (admin → garbage collect repositories)."
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.5rem 0.7rem',
+						borderRadius: 8,
+						marginBottom: 8,
+						background: 'rgba(234, 179, 8, 0.1)',
+						border: '1px solid rgba(234, 179, 8, 0.3)',
+						fontSize: '0.72rem',
+						color: '#eab308',
+					}}>
+					<AlertTriangle size={14} />
+					Stale repo sizes: ~{formatSize(drift.missingKb)} of LFS (
+					{drift.pct.toFixed(0)}%) not yet reflected per-repo.
+					Recompute Forgejo sizes.
+				</div>
+			)}
 			{/* Stacked bar */}
 			<div
 				style={{
@@ -130,14 +156,13 @@ function StorageBreakdown() {
 					marginBottom: 8,
 				}}>
 				{top.map((repo, i) => {
-					const footprint = repoFootprint(repo);
 					const pct =
-						totalSize > 0 ? (footprint / totalSize) * 100 : 0;
+						totalSize > 0 ? (repo.size / totalSize) * 100 : 0;
 					const hue = [200, 160, 280, 30, 340, 120, 50, 240][i % 8];
 					return (
 						<div
 							key={repo.id}
-							title={`${repo.full_name}: ${formatSize(footprint)}`}
+							title={`${repo.full_name}: ${formatSize(repo.size)}`}
 							style={{
 								width: `${pct}%`,
 								background: `hsl(${hue}, 60%, 55%)`,
@@ -177,7 +202,7 @@ function StorageBreakdown() {
 							/>
 							{repo.name}
 							<span style={{ opacity: 0.6, fontSize: '0.65rem' }}>
-								{formatSize(repoFootprint(repo))}
+								{formatSize(repo.size)}
 							</span>
 						</div>
 					);
