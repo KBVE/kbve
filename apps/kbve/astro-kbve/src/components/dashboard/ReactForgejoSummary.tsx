@@ -84,6 +84,7 @@ function StatCard({
 
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
+	const storage = useStore(forgejoService.$storage);
 
 	const { totalSize, top } = useMemo(() => {
 		const sorted = [...repos].sort((a, b) => b.size - a.size);
@@ -92,6 +93,17 @@ function StorageBreakdown() {
 			top: sorted.slice(0, 8),
 		};
 	}, [repos]);
+
+	const drift = useMemo(() => {
+		if (!storage?.quota_enabled) return null;
+		const quotaKb = (storage.repos_bytes + storage.lfs_bytes) / 1024;
+		const repoSumKb = repos.reduce((s, r) => s + r.size, 0);
+		const missingKb = quotaKb - repoSumKb;
+		if (quotaKb <= 0 || missingKb <= 0) return null;
+		const pct = (missingKb / quotaKb) * 100;
+		if (pct < 5 || missingKb < 100 * 1024) return null;
+		return { missingKb, pct };
+	}, [repos, storage]);
 
 	if (repos.length === 0) return null;
 
@@ -112,6 +124,27 @@ function StorageBreakdown() {
 				<HardDrive size={12} />
 				Storage by Repository
 			</div>
+			{drift && (
+				<div
+					title="Per-repo sizes are summed from Forgejo's repository.size, which only updates on push or gc. The owner quota totals include LFS that some repos haven't recomputed yet — run a Forgejo size recalculation (admin → garbage collect repositories)."
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.5rem 0.7rem',
+						borderRadius: 8,
+						marginBottom: 8,
+						background: 'rgba(234, 179, 8, 0.1)',
+						border: '1px solid rgba(234, 179, 8, 0.3)',
+						fontSize: '0.72rem',
+						color: '#eab308',
+					}}>
+					<AlertTriangle size={14} />
+					Stale repo sizes: ~{formatSize(drift.missingKb)} of LFS (
+					{drift.pct.toFixed(0)}%) not yet reflected per-repo.
+					Recompute Forgejo sizes.
+				</div>
+			)}
 			{/* Stacked bar */}
 			<div
 				style={{
@@ -171,6 +204,15 @@ function StorageBreakdown() {
 							<span style={{ opacity: 0.6, fontSize: '0.65rem' }}>
 								{formatSize(repo.size)}
 							</span>
+							{repo.lfs_size > 0 && (
+								<span
+									style={{
+										color: '#8b5cf6',
+										fontSize: '0.6rem',
+									}}>
+									LFS {formatSize(repo.lfs_size)}
+								</span>
+							)}
 						</div>
 					);
 				})}
