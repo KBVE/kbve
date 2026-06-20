@@ -862,19 +862,18 @@ jobs:
 
             - name: Package archive
               run: |
-                  VERSION="${{ needs.game_gate.outputs.version }}"
                   if ! command -v zip >/dev/null 2>&1; then
                     sudo apt-get update
                     sudo apt-get install -y zip
                   fi
                   cd "${GITHUB_WORKSPACE}/ue5-game-output"
-                  zip -r "/tmp/${{ inputs.app_name }}-Linux-v${VERSION}.zip" .
+                  zip -r "/tmp/${{ inputs.app_name }}-linux.zip" .
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}
-                  path: /tmp/${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}.zip
+                  name: ${{ inputs.app_name }}-linux-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-linux.zip
                   retention-days: 30
 
             - name: Deploy to itch.io
@@ -885,7 +884,7 @@ jobs:
                   gameData: ./ue5-game-output
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: linux-v${{ needs.game_gate.outputs.version }}
+                  buildChannel: linux
                   buildNumber: ${{ needs.game_gate.outputs.version }}
 
             - name: Cleanup
@@ -1095,16 +1094,15 @@ jobs:
 
             - name: Package archive
               run: |
-                  $version = "${{ needs.game_gate.outputs.version }}"
-                  $zip = "C:\${{ inputs.app_name }}-Win64-v$version.zip"
+                  $zip = "C:\${{ inputs.app_name }}-windows.zip"
                   Compress-Archive -Path "C:\ue5-game-output\*" -DestinationPath $zip
                   Write-Host "::notice::Packaged $zip"
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}
-                  path: C:\${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}.zip
+                  name: ${{ inputs.app_name }}-windows-v${{ needs.game_gate.outputs.version }}
+                  path: C:\${{ inputs.app_name }}-windows.zip
                   retention-days: 30
 
             - name: Deploy to itch.io
@@ -1118,7 +1116,7 @@ jobs:
                   $butler = "$env:RUNNER_TEMP\butler\butler.exe"
                   $version = "${{ needs.game_gate.outputs.version }}"
                   $channel = '${{ inputs.itch_channel }}'
-                  if (-not $channel) { $channel = "windows-v$version" }
+                  if (-not $channel) { $channel = "windows" }
                   $target = "${{ inputs.itch_username }}/${{ inputs.itch_game_id }}:$channel"
                   Write-Host "::notice::butler push C:\ue5-game-output -> $target (v$version)"
                   & $butler push "C:\ue5-game-output" $target --userversion $version
@@ -1134,7 +1132,7 @@ jobs:
         name: Game Build (Mac client)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 120
         permissions:
             contents: read
@@ -1162,6 +1160,25 @@ jobs:
                   echo "1. Install/configure Unreal Engine on this Mac"
                   echo "2. Implement UAT build commands for Mac platform"
                   echo "3. Configure artifact packaging and upload"
+
+            - name: Upload artifact (stub)
+              if: false
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-macos.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io (stub)
+              if: false && inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./ue5-game-output
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: macos
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
 
     game_post_publish:
         name: Game Post-publish version sync
@@ -1375,7 +1392,7 @@ jobs:
         name: Engine Build (Mac client)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 240
         permissions:
             contents: read
@@ -2146,7 +2163,7 @@ jobs:
         name: Install on UE5-Mac
         needs: guard
         if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 60
         permissions:
             contents: read

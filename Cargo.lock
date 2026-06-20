@@ -792,6 +792,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "arpg-server"
+version = "0.0.1"
+dependencies = [
+ "agones",
+ "axum 0.7.9",
+ "bevy",
+ "jedi",
+ "simgrid",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"

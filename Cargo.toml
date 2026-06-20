@@ -48,6 +48,7 @@ members = [
 	'apps/agones/factorio/relay',
 	'packages/rust/simgrid',
 	'apps/agones/cryptothrone/server',
+	'apps/agones/arpg/server',
 	'packages/rust/kbve_wgpu',
 ]
 

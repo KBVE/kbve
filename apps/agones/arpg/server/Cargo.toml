@@ -1,0 +1,21 @@
+[package]
+name = "arpg-server"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+description = "ARPG game server — axum + tokio host for the simgrid grid-authoritative bevy sim (Diablo-style isometric)."
+
+[[bin]]
+name = "arpg-server"
+path = "src/main.rs"
+
+[dependencies]
+simgrid = { path = "../../../../packages/rust/simgrid" }
+jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey"] }
+bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
+axum = { version = "0.7", default-features = false, features = ["ws", "json", "http1", "tokio"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+agones = "1.57"
