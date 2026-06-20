@@ -297,6 +297,10 @@ fn router(state: AppState) -> Router {
         )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
         .route(
+            "/api/v1/webhooks/github/{guild_id}",
+            post(super::webhooks::github_webhook),
+        )
+        .route(
             "/api/v1/mc/lots/schematics",
             get(super::mc_lot::list_schematics),
         )
