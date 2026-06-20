@@ -14,7 +14,7 @@ permissions:
 jobs:
     test_mac_runner:
         name: Test Mac Runner Connection
-        runs-on: arc-runner-ue-mac
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 10
         steps:
             - name: Test Info
