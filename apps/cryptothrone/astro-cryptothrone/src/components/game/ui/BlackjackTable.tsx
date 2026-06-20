@@ -7,6 +7,14 @@ import type {
 	BjActionKind,
 } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
+import './BlackjackTable.css';
+
+// Per-phase countdown lengths, mirroring the server's BJ_*_TICKS windows (seconds).
+const PHASE_SECONDS: Record<string, number> = {
+	betting: 20,
+	insurance: 10,
+	player_turn: 20,
+};
 
 const SUIT_GLYPH: Record<string, string> = {
 	spades: '♠',
@@ -19,7 +27,7 @@ function Card({ byte }: { byte: number }) {
 	const c = decodeCard(byte);
 	return (
 		<span
-			className={`inline-flex h-9 min-w-7 items-center justify-center rounded border border-gray-500 bg-white px-1 text-sm font-bold ${c.red ? 'text-red-600' : 'text-gray-900'}`}>
+			className={`bj-card inline-flex h-9 min-w-7 items-center justify-center rounded border border-gray-500 bg-white px-1 text-sm font-bold shadow-sm ${c.red ? 'text-red-600' : 'text-gray-900'}`}>
 			{c.rank}
 			{SUIT_GLYPH[c.suit]}
 		</span>
@@ -28,7 +36,7 @@ function Card({ byte }: { byte: number }) {
 
 function CardBack() {
 	return (
-		<span className="inline-flex h-9 min-w-7 items-center justify-center rounded border border-indigo-300 bg-indigo-700 px-1 text-sm text-indigo-200">
+		<span className="bj-card-back inline-flex h-9 min-w-7 items-center justify-center rounded border border-indigo-300 bg-indigo-700 px-1 text-sm text-indigo-200">
 			🂠
 		</span>
 	);
@@ -65,6 +73,38 @@ function sameRank(cards: number[]): boolean {
 	);
 }
 
+function CountdownBar({
+	phase,
+	deadlineMs,
+}: {
+	phase: string;
+	deadlineMs: number | null;
+}) {
+	const max = PHASE_SECONDS[phase];
+	if (deadlineMs == null || !max) return null;
+	const frac = Math.max(0, Math.min(1, deadlineMs / (max * 1000)));
+	const seconds = Math.max(0, Math.ceil(deadlineMs / 1000));
+	const color =
+		frac > 0.5
+			? 'bg-emerald-500'
+			: frac > 0.25
+				? 'bg-amber-400'
+				: 'bg-rose-500';
+	return (
+		<div className="flex items-center gap-2">
+			<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+				<div
+					className={`bj-meter h-full rounded-full ${color}`}
+					style={{ width: `${frac * 100}%` }}
+				/>
+			</div>
+			<span className="w-8 text-right text-xs tabular-nums text-zinc-300">
+				{seconds}s
+			</span>
+		</div>
+	);
+}
+
 function HandRow({
 	hand,
 	active,
@@ -72,9 +112,15 @@ function HandRow({
 	hand: BlackjackHandView;
 	active: boolean;
 }) {
+	const outcomeColor =
+		hand.outcome === 'win' || hand.outcome === 'blackjack'
+			? 'text-emerald-400'
+			: hand.outcome === 'push'
+				? 'text-zinc-300'
+				: 'text-rose-400';
 	return (
 		<div
-			className={`flex items-center justify-between rounded px-2 py-1 ${active ? 'bg-yellow-500/20 ring-1 ring-yellow-400' : 'bg-zinc-900/50'}`}>
+			className={`flex items-center justify-between rounded px-2 py-1 transition-colors ${active ? 'bj-active bg-yellow-500/20 ring-1 ring-yellow-400' : 'bg-zinc-900/50'}`}>
 			<Hand cards={hand.cards} />
 			<div className="flex flex-col items-end text-xs">
 				{hand.cards.length > 0 && (
@@ -89,7 +135,8 @@ function HandRow({
 					{hand.surrendered && ' · surrender'}
 				</span>
 				{hand.outcome && (
-					<span className="font-semibold text-emerald-400">
+					<span
+						className={`bj-outcome font-semibold ${outcomeColor}`}>
 						{OUTCOME_LABEL[hand.outcome] ?? hand.outcome}
 					</span>
 				)}
@@ -192,11 +239,6 @@ export function BlackjackTable() {
 		activeHand.cards.length === 2 &&
 		!activeHand.doubled;
 
-	const seconds =
-		state?.deadline_ms != null
-			? Math.max(0, Math.ceil(state.deadline_ms / 1000))
-			: null;
-
 	const act = (kind: BjActionKind) =>
 		laserEvents.emit('blackjack:action', { kind });
 
@@ -224,20 +266,19 @@ export function BlackjackTable() {
 					<p className="text-sm text-zinc-400">Joining the table…</p>
 				) : (
 					<>
-						<div className="flex items-center justify-between">
-							<span className="text-xs uppercase tracking-wide text-zinc-400">
-								{state.phase.replace('_', ' ')}
-							</span>
-							<span className="text-xs text-amber-300">
-								Coins: {state.your_balance}
-							</span>
-							{seconds != null &&
-								state.phase !== 'dealer_turn' &&
-								state.phase !== 'settle' && (
-									<span className="text-xs text-zinc-300">
-										⏱ {seconds}s
-									</span>
-								)}
+						<div className="flex flex-col gap-1">
+							<div className="flex items-center justify-between">
+								<span className="text-xs uppercase tracking-wide text-zinc-400">
+									{state.phase.replace('_', ' ')}
+								</span>
+								<span className="text-xs text-amber-300">
+									Coins: {state.your_balance}
+								</span>
+							</div>
+							<CountdownBar
+								phase={state.phase}
+								deadlineMs={state.deadline_ms}
+							/>
 						</div>
 
 						<div className="rounded bg-emerald-950/60 p-2">
@@ -303,6 +344,34 @@ export function BlackjackTable() {
 									className="rounded bg-amber-500 px-4 py-1 text-sm font-semibold text-black transition-all hover:bg-amber-400">
 									Place Bet
 								</button>
+								<div className="flex gap-1">
+									{[5, 25, 100].map((chip) => (
+										<button
+											key={chip}
+											type="button"
+											disabled={chip > state.your_balance}
+											onClick={() =>
+												setBetAmount(
+													Math.min(
+														state.your_balance,
+														chip,
+													),
+												)
+											}
+											className="rounded-full bg-zinc-700 px-2 py-1 text-xs transition-all hover:bg-zinc-600 disabled:opacity-30">
+											{chip}
+										</button>
+									))}
+									<button
+										type="button"
+										disabled={state.your_balance < 1}
+										onClick={() =>
+											setBetAmount(state.your_balance)
+										}
+										className="rounded-full bg-zinc-700 px-2 py-1 text-xs transition-all hover:bg-zinc-600 disabled:opacity-30">
+										Max
+									</button>
+								</div>
 							</div>
 						)}
 
@@ -338,6 +407,15 @@ export function BlackjackTable() {
 									</button>
 								</div>
 							</div>
+						)}
+
+						{mySeat && isMyTurn && (
+							<span className="bj-you-turn text-center text-xs font-semibold uppercase tracking-wide text-yellow-300">
+								Your turn
+								{mySeat.hands.length > 1 &&
+									myActiveHandIdx != null &&
+									` — hand ${myActiveHandIdx + 1}/${mySeat.hands.length}`}
+							</span>
 						)}
 
 						{mySeat && (

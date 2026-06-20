@@ -1,0 +1,92 @@
+.bj-card {
+	animation: bj-deal-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bj-deal-in {
+	from {
+		opacity: 0;
+		transform: translateY(-14px) rotate(-6deg) scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) rotate(0) scale(1);
+	}
+}
+
+.bj-card-back {
+	animation: bj-flip-in 320ms ease both;
+	transform-origin: center;
+}
+
+@keyframes bj-flip-in {
+	from {
+		transform: rotateY(90deg);
+		opacity: 0.4;
+	}
+	to {
+		transform: rotateY(0);
+		opacity: 1;
+	}
+}
+
+.bj-active {
+	animation: bj-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes bj-pulse {
+	0%,
+	100% {
+		box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.55);
+	}
+	50% {
+		box-shadow: 0 0 0 4px rgba(250, 204, 21, 0);
+	}
+}
+
+.bj-outcome {
+	animation: bj-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes bj-pop {
+	from {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.bj-meter {
+	transition:
+		width 180ms linear,
+		background-color 300ms ease;
+}
+
+.bj-you-turn {
+	animation: bj-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes bj-glow {
+	0%,
+	100% {
+		opacity: 0.65;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.bj-card,
+	.bj-card-back,
+	.bj-active,
+	.bj-outcome,
+	.bj-you-turn {
+		animation: none;
+	}
+	.bj-meter {
+		transition: none;
+	}
+}
