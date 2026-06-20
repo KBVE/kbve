@@ -191,6 +191,25 @@ function ResourceRow({
 		version: node.version,
 		uid: node.uid,
 	};
+	const stall = detectResourceStall(node);
+	const health = node.health?.status;
+	const severity =
+		health === 'Degraded' || health === 'Missing'
+			? 'crit'
+			: stall || health === 'Progressing'
+				? 'warn'
+				: null;
+	const accent =
+		severity === 'crit'
+			? '#ef4444'
+			: severity === 'warn'
+				? '#fbbf24'
+				: null;
+	const idleBg = accent
+		? severity === 'crit'
+			? 'rgba(239, 68, 68, 0.07)'
+			: 'rgba(251, 191, 36, 0.07)'
+		: 'transparent';
 	return (
 		<>
 			<button
@@ -206,11 +225,14 @@ function ResourceRow({
 					color: 'var(--sl-color-text, #e6edf3)',
 					cursor: 'pointer',
 					borderRadius: 4,
-					background: selected
-						? 'rgba(139, 92, 246, 0.12)'
-						: 'transparent',
+					background: selected ? 'rgba(139, 92, 246, 0.12)' : idleBg,
+					borderLeft: accent
+						? `3px solid ${accent}`
+						: '3px solid transparent',
 					transition: 'background 0.12s',
-					border: 'none',
+					borderTop: 'none',
+					borderRight: 'none',
+					borderBottom: 'none',
 					textAlign: 'left',
 					width: '100%',
 					font: 'inherit',
@@ -225,7 +247,7 @@ function ResourceRow({
 				}}
 				onMouseLeave={(e) => {
 					if (!selected) {
-						e.currentTarget.style.background = 'transparent';
+						e.currentTarget.style.background = idleBg;
 					}
 				}}>
 				{node.health && (
@@ -254,18 +276,15 @@ function ResourceRow({
 					{node.namespace}/
 				</span>
 				{node.name}
-				{(() => {
-					const stall = detectResourceStall(node);
-					return stall ? (
-						<span style={{ marginLeft: 'auto' }}>
-							<StallBadge
-								reason={stall.reason}
-								ageMs={stall.ageMs}
-								compact
-							/>
-						</span>
-					) : null;
-				})()}
+				{stall ? (
+					<span style={{ marginLeft: 'auto' }}>
+						<StallBadge
+							reason={stall.reason}
+							ageMs={stall.ageMs}
+							compact
+						/>
+					</span>
+				) : null}
 			</button>
 			{selected && (
 				<ReactArgoResourceDetail
