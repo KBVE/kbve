@@ -538,6 +538,21 @@ class GrafanaService {
 		}
 	}
 
+	public async ensureIdentity(): Promise<void> {
+		if (this.$userId.get()) return;
+		try {
+			await initSupa();
+			const supa = getSupa();
+			const sessionResult = await supa.getSession().catch(() => null);
+			const session = sessionResult?.session ?? null;
+			if (!session?.access_token) return;
+			this.$accessToken.set(session.access_token as string);
+			this.$userId.set(String(session.user?.id ?? '') || null);
+		} catch {
+			/* identity stays null; panel shows its own auth-needed state */
+		}
+	}
+
 	// --- Metric fetching ---
 
 	public async fetchMetrics(

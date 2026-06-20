@@ -504,6 +504,14 @@ class ArgoService {
 			apps.filter((a) => a.status.sync.status === 'OutOfSync').length,
 	);
 
+	public readonly $degradedApps = computed([this.$applications], (apps) =>
+		apps.filter(
+			(a) =>
+				a.status.health.status === 'Degraded' ||
+				a.status.health.status === 'Missing',
+		),
+	);
+
 	public readonly $stalledApps = computed([this.$applications], (apps) =>
 		apps
 			.map((a) => ({ app: a, stall: detectAppStall(a) }))

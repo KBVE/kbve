@@ -175,6 +175,10 @@ export default function ReactArgoGrafanaPanel({
 	const userId = useStore(grafanaService.$userId);
 	const tr = useStore(grafanaService.$timeRange);
 
+	useEffect(() => {
+		if (!userId) grafanaService.ensureIdentity();
+	}, [userId]);
+
 	const [metrics, setMetrics] = useState<PodMetrics | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
