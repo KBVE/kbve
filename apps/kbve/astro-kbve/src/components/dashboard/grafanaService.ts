@@ -988,52 +988,60 @@ export interface PodMetrics {
 	fromCache: boolean;
 }
 
-const POD_CACHE_KEY_PREFIX = 'grafana:pod';
 const POD_CACHE_TTL_MS = 5 * 60 * 1000;
 
-function podCacheKey(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-): string {
-	return `${POD_CACHE_KEY_PREFIX}:${uid}:${ns}:${pod}:${tr}`;
-}
-
-async function getCachedPodMetrics(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-): Promise<PodMetrics | null> {
-	const m = await cacheGet<PodMetrics>(
-		podCacheKey(uid, ns, pod, tr),
-		POD_CACHE_TTL_MS,
-	);
+async function getCachedMetrics(key: string): Promise<PodMetrics | null> {
+	const m = await cacheGet<PodMetrics>(key, POD_CACHE_TTL_MS);
 	return m ? { ...m, fromCache: true } : null;
 }
 
-function setCachedPodMetrics(
-	uid: string,
-	ns: string,
-	pod: string,
-	tr: TimeRangeKey,
-	metrics: PodMetrics,
-): void {
-	void cacheSet(podCacheKey(uid, ns, pod, tr), {
-		...metrics,
-		fromCache: false,
-	});
+function setCachedMetrics(key: string, metrics: PodMetrics): void {
+	void cacheSet(key, { ...metrics, fromCache: false });
 }
 
 function escapeLabel(v: string): string {
 	return v.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-function podQueries(
-	ns: string,
-	pod: string,
-): {
+function escapeRegex(v: string): string {
+	return v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Prometheus `pod=~` regex matching the pods a workload owns. `=~` is fully
+ * anchored, so each pattern matches the whole pod name and won't bleed into a
+ * sibling that merely shares a name prefix.
+ *  - Deployment → ReplicaSet → `<name>-<rs-hash>-<suffix>`
+ *  - ReplicaSet → `<name>-<suffix>`
+ *  - StatefulSet → `<name>-<ordinal>`
+ *  - DaemonSet / Job / Rollout / fallback → `<name>-<suffix>`
+ */
+function workloadPodRegex(kind: string, name: string): string {
+	const n = escapeRegex(name);
+	switch (kind) {
+		case 'Deployment':
+			return `${n}-[a-z0-9]+-[a-z0-9]+`;
+		case 'StatefulSet':
+			return `${n}-[0-9]+`;
+		default:
+			return `${n}-[a-z0-9.-]+`;
+	}
+}
+
+function podSelector(ns: string, pod: string): string {
+	return `namespace="${escapeLabel(ns)}",pod="${escapeLabel(pod)}"`;
+}
+
+function workloadSelector(ns: string, kind: string, name: string): string {
+	return `namespace="${escapeLabel(ns)}",pod=~"${workloadPodRegex(kind, name)}"`;
+}
+
+/**
+ * Build the metric query set for any pod-scoped label selector. Every series
+ * is summed, so the same shapes serve a single pod (`pod="x"`) and an
+ * aggregated workload (`pod=~"x-.+"`).
+ */
+function metricQueries(selector: string): {
 	cpu: string;
 	memory: string;
 	memoryLimit: string;
@@ -1043,40 +1051,29 @@ function podQueries(
 	restarts: string;
 	running: string;
 } {
-	const sel = `namespace="${escapeLabel(ns)}",pod="${escapeLabel(pod)}"`;
-	const containerSel = `${sel},container!="POD",container!=""`;
+	const containerSel = `${selector},container!="POD",container!=""`;
 	return {
 		cpu: `sum(rate(container_cpu_usage_seconds_total{${containerSel}}[5m]))`,
 		memory: `sum(container_memory_working_set_bytes{${containerSel}})`,
-		memoryLimit: `sum(kube_pod_container_resource_limits{${sel},resource="memory"})`,
-		netRx: `sum(rate(container_network_receive_bytes_total{${sel}}[5m]))`,
-		netTx: `sum(rate(container_network_transmit_bytes_total{${sel}}[5m]))`,
+		memoryLimit: `sum(kube_pod_container_resource_limits{${selector},resource="memory"})`,
+		netRx: `sum(rate(container_network_receive_bytes_total{${selector}}[5m]))`,
+		netTx: `sum(rate(container_network_transmit_bytes_total{${selector}}[5m]))`,
 		fs: `sum(container_fs_usage_bytes{${containerSel}})`,
-		restarts: `sum(kube_pod_container_status_restarts_total{${sel}})`,
-		running: `kube_pod_status_phase{${sel},phase="Running"}`,
+		restarts: `sum(kube_pod_container_status_restarts_total{${selector}})`,
+		running: `sum(kube_pod_status_phase{${selector},phase="Running"})`,
 	};
 }
 
-export async function fetchPodMetrics(
+async function fetchScopedMetrics(
 	token: string,
-	uid: string,
-	ns: string,
-	pod: string,
+	dsId: number,
+	selector: string,
 	tr: TimeRangeKey,
-	skipCache = false,
-): Promise<PodMetrics | null> {
-	if (!skipCache) {
-		const cached = await getCachedPodMetrics(uid, ns, pod, tr);
-		if (cached) return cached;
-	}
-
-	const dsId = await findPrometheusDatasourceId(token);
-	if (dsId == null) return null;
-
+): Promise<PodMetrics> {
 	const config = TIME_RANGES[tr];
 	const now = Math.floor(Date.now() / 1000);
 	const rangeStart = now - config.seconds;
-	const q = podQueries(ns, pod);
+	const q = metricQueries(selector);
 
 	const [
 		cpuCores,
@@ -1149,7 +1146,7 @@ export async function fetchPodMetrics(
 		(a, b) => a.timestamp - b.timestamp,
 	);
 
-	const metrics: PodMetrics = {
+	return {
 		snapshot: {
 			cpuCores,
 			memoryBytes,
@@ -1164,8 +1161,56 @@ export async function fetchPodMetrics(
 		netSeries,
 		fromCache: false,
 	};
+}
 
-	setCachedPodMetrics(uid, ns, pod, tr, metrics);
+export async function fetchPodMetrics(
+	token: string,
+	uid: string,
+	ns: string,
+	pod: string,
+	tr: TimeRangeKey,
+	skipCache = false,
+): Promise<PodMetrics | null> {
+	const key = `grafana:pod:${uid}:${ns}:${pod}:${tr}`;
+	if (!skipCache) {
+		const cached = await getCachedMetrics(key);
+		if (cached) return cached;
+	}
+	const dsId = await findPrometheusDatasourceId(token);
+	if (dsId == null) return null;
+	const metrics = await fetchScopedMetrics(
+		token,
+		dsId,
+		podSelector(ns, pod),
+		tr,
+	);
+	setCachedMetrics(key, metrics);
+	return metrics;
+}
+
+export async function fetchWorkloadMetrics(
+	token: string,
+	uid: string,
+	ns: string,
+	kind: string,
+	name: string,
+	tr: TimeRangeKey,
+	skipCache = false,
+): Promise<PodMetrics | null> {
+	const key = `grafana:workload:${uid}:${ns}:${kind}:${name}:${tr}`;
+	if (!skipCache) {
+		const cached = await getCachedMetrics(key);
+		if (cached) return cached;
+	}
+	const dsId = await findPrometheusDatasourceId(token);
+	if (dsId == null) return null;
+	const metrics = await fetchScopedMetrics(
+		token,
+		dsId,
+		workloadSelector(ns, kind, name),
+		tr,
+	);
+	setCachedMetrics(key, metrics);
 	return metrics;
 }
 

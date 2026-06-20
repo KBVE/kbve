@@ -22,6 +22,7 @@ import {
 import {
 	fetchAlerts,
 	fetchPodMetrics,
+	fetchWorkloadMetrics,
 	formatBytes,
 	grafanaService,
 	TIME_RANGE_KEYS,
@@ -35,6 +36,17 @@ import {
 	AlertRow,
 } from './grafanaAlertHelpers';
 import type { ResourceSelector } from './argoService';
+
+// Kinds whose pods can be aggregated by name regex in Prometheus. Pods use an
+// exact match; everything here sums the workload's owned pods.
+const WORKLOAD_KINDS = [
+	'Deployment',
+	'StatefulSet',
+	'DaemonSet',
+	'ReplicaSet',
+	'Rollout',
+	'Job',
+];
 
 const tickFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleTimeString([], {
@@ -187,6 +199,8 @@ export default function ReactArgoGrafanaPanel({
 	const [alertsError, setAlertsError] = useState<string | null>(null);
 
 	const isPod = sel.kind === 'Pod';
+	const isWorkload = WORKLOAD_KINDS.includes(sel.kind);
+	const metricsScoped = isPod || isWorkload;
 	const ns = sel.namespace;
 	const name = sel.name;
 
@@ -203,14 +217,24 @@ export default function ReactArgoGrafanaPanel({
 		metrics.netSeries.length === 0;
 
 	useEffect(() => {
-		if (!isPod || !userId || !ns || !name) return;
+		if (!metricsScoped || !userId || !ns || !name) return;
+		const uid = userId;
 
 		let cancelled = false;
 		(async () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const data = await fetchPodMetrics(token, userId, ns, name, tr);
+				const data = isPod
+					? await fetchPodMetrics(token, uid, ns, name, tr)
+					: await fetchWorkloadMetrics(
+							token,
+							uid,
+							ns,
+							sel.kind,
+							name,
+							tr,
+						);
 				if (cancelled) return;
 				if (!data) {
 					setError('Could not find Prometheus datasource in Grafana');
@@ -232,7 +256,7 @@ export default function ReactArgoGrafanaPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [token, userId, ns, name, tr, isPod]);
+	}, [token, userId, ns, name, tr, isPod, metricsScoped, sel.kind]);
 
 	// Scoped alerts — reuses the global alerts cache populated on the main
 	// /dashboard/grafana page. Filters to alerts whose labels mention this
@@ -267,18 +291,22 @@ export default function ReactArgoGrafanaPanel({
 	}, [token, userId, ns, name, isPod]);
 
 	const handleRefresh = async () => {
-		if (!userId || !isPod || loading) return;
+		if (!userId || !metricsScoped || loading) return;
+		const uid = userId;
 		setLoading(true);
 		setError(null);
 		try {
-			const data = await fetchPodMetrics(
-				token,
-				userId,
-				ns,
-				name,
-				tr,
-				true,
-			);
+			const data = isPod
+				? await fetchPodMetrics(token, uid, ns, name, tr, true)
+				: await fetchWorkloadMetrics(
+						token,
+						uid,
+						ns,
+						sel.kind,
+						name,
+						tr,
+						true,
+					);
 			if (!data) {
 				setError('Could not find Prometheus datasource in Grafana');
 				return;
@@ -357,7 +385,7 @@ export default function ReactArgoGrafanaPanel({
 		</>
 	);
 
-	if (!isPod) {
+	if (!metricsScoped) {
 		return (
 			<div
 				style={{
@@ -376,8 +404,9 @@ export default function ReactArgoGrafanaPanel({
 						gap: '0.5rem',
 					}}>
 					<span>
-						Per-resource Prometheus metrics are scoped to Pods. Open
-						one of the pods owned by this {sel.kind} to view CPU,
+						Prometheus metrics are scoped to Pods and workloads.
+						This {sel.kind} has no pod-level series — open a Pod,
+						Deployment, StatefulSet, or DaemonSet to view CPU,
 						memory, network, and restart history.
 					</span>
 					<a
@@ -423,6 +452,19 @@ export default function ReactArgoGrafanaPanel({
 					<span>
 						{ns}/{name}
 					</span>
+					{isWorkload && (
+						<span
+							style={{
+								padding: '1px 6px',
+								borderRadius: 3,
+								background: 'var(--sl-color-gray-6, #1c1c1c)',
+								fontSize: '0.65rem',
+								textTransform: 'uppercase',
+								letterSpacing: '0.05em',
+							}}>
+							{sel.kind} · all pods
+						</span>
+					)}
 					{metrics?.fromCache && (
 						<span
 							style={{
