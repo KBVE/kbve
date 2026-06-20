@@ -1162,7 +1162,7 @@ jobs:
                   echo "3. Configure artifact packaging and upload"
 
             - name: Upload artifact (stub)
-              if: false
+              if: hashFiles(format('/tmp/{0}-macos.zip', inputs.app_name)) != ''
               uses: actions/upload-artifact@v4
               with:
                   name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
@@ -1170,7 +1170,7 @@ jobs:
                   retention-days: 30
 
             - name: Deploy to itch.io (stub)
-              if: false && inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != '' && hashFiles(format('/tmp/{0}-macos.zip', inputs.app_name)) != ''
               uses: KikimoraGames/itch-publish@v0.0.3
               with:
                   butlerApiKey: ${{ secrets.butler_api }}
