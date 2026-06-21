@@ -1024,6 +1024,7 @@ Games:
   rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
   rentearth  → https://git.kbve.com/KBVE/rentearth.git/info/lfs
   arpg       → https://git.kbve.com/KBVE/arpg.git/info/lfs
+  cryptothrone → https://git.kbve.com/KBVE/cryptothrone.git/info/lfs
 
 Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
@@ -1064,8 +1065,12 @@ EOF
             url="https://git.kbve.com/KBVE/arpg.git/info/lfs"
             path_prefix="apps/kbve/astro-kbve/public/assets/arcade/arpg"
             ;;
+        cryptothrone)
+            url="https://git.kbve.com/KBVE/cryptothrone.git/info/lfs"
+            path_prefix="apps/cryptothrone/astro-cryptothrone/public/assets"
+            ;;
         *)
-            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg" >&2
+            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone" >&2
             return 1
             ;;
     esac
