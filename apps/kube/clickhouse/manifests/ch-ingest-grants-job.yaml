@@ -1,0 +1,109 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: ch-ingest-grants-script
+    namespace: clickhouse
+data:
+    grants.sh: |
+        #!/bin/sh
+        set -eu
+
+        echo "Verifying ClickHouse admin connectivity..."
+        curl -sf --max-time 10 \
+          "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+          -d "SELECT 1" >/dev/null || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CH_ADMIN_URL} with admin user"
+          exit 1
+        }
+        echo "Admin connection OK."
+
+        grant() {
+          echo "GRANT: $1"
+          curl -sf --max-time 30 \
+            "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+            -d "$1" || {
+            echo "ERROR: grant failed: $1"
+            exit 1
+          }
+        }
+
+        # CLUSTER privilege is required for every ON CLUSTER statement (CH 25.x);
+        # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).
+        grant "GRANT CLUSTER ON *.* TO logflare ON CLUSTER 'cluster'"
+
+        # Data access for each direct-write pipeline. Creating a table does not
+        # grant the creator data rights in CH RBAC.
+        grant "GRANT ALL ON logflare.* TO logflare ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON telemetry.* TO logflare ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON observability.* TO logflare ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON mc.* TO logflare ON CLUSTER 'cluster'"
+
+        echo ""
+        echo "Ingest-user grants applied."
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: ch-ingest-grants
+    namespace: clickhouse
+    labels:
+        app: ch-ingest-grants
+        component: clickhouse
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 5
+    template:
+        metadata:
+            labels:
+                app: ch-ingest-grants
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: grants
+                  image: curlimages/curl:8.12.1
+                  command: ['/bin/sh', '/scripts/grants.sh']
+                  env:
+                      - name: CH_ADMIN_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: url
+                      - name: CH_ADMIN_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: username
+                      - name: CH_ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-admin-credentials
+                                key: password
+                  volumeMounts:
+                      - name: grants-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '32Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '64Mi'
+                          cpu: '100m'
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: grants-script
+                  configMap:
+                      name: ch-ingest-grants-script
+                      defaultMode: 0555

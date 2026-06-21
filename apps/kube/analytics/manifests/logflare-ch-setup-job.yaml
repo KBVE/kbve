@@ -54,14 +54,9 @@ data:
         }
         echo "User '${CH_USERNAME}' ready."
 
-        # --- Grant permissions to logflare user ---
-        echo "Granting permissions..."
-        GRANT_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "GRANT ALL ON ${CH_DATABASE}.* TO ${CH_USERNAME} ON CLUSTER 'cluster'" 2>&1) || {
-          echo "ERROR: Failed to grant permissions: ${GRANT_RESULT}"
-          exit 1
-        }
-        echo "Permissions granted to '${CH_USERNAME}' on '${CH_DATABASE}'."
+        # Grants are owned by the ch-ingest-grants Job (apps/kube/clickhouse) —
+        # it issues CLUSTER + per-database privileges (logflare/telemetry/observability)
+        # as the shared `logflare` ingest user. Canonical list: packages/data/ch/schemas/grants.sql
 
         # --- Verify logflare user connectivity ---
         echo "Verifying logflare user connectivity..."
