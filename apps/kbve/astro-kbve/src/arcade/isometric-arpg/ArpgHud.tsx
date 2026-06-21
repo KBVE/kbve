@@ -8,7 +8,13 @@ import {
 	type ReactNode,
 	type RefObject,
 } from 'react';
-import { onHud, onHudClear, onInventory, type HudState } from './systems/hud';
+import {
+	onHud,
+	onHudClear,
+	onInventory,
+	onInventoryOpen,
+	type HudState,
+} from './systems/hud';
 import type { InventoryItem } from '@kbve/laser';
 import { PixelPanel } from './PixelPanel';
 
@@ -91,19 +97,23 @@ function Anchor({
 export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 	const [hud, setHud] = useState<HudState | null>(null);
 	const [inv, setInv] = useState<InventoryItem[]>([]);
+	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
 	const scale = useHudScale(rootRef);
 
 	useEffect(() => {
 		const off = onHud(setHud);
 		const offInv = onInventory(setInv);
+		const offOpen = onInventoryOpen(setOpen);
 		const offClear = onHudClear(() => {
 			setHud(null);
 			setInv([]);
+			setOpen(false);
 		});
 		return () => {
 			off();
 			offInv();
+			offOpen();
 			offClear();
 		};
 	}, []);
@@ -135,6 +145,7 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 						/>
 					</Anchor>
 					<InventoryBar items={inv} />
+					{open && <InventoryPanel items={inv} />}
 					{debug && (
 						<Anchor corner="bl" scale={scale}>
 							<DebugReadout fps={hud.fps} tile={hud.tile} />
@@ -206,6 +217,122 @@ function InventoryBar({
 					</div>
 				</PixelPanel>
 			))}
+		</div>
+	);
+}
+
+/**
+ * Full inventory window, toggled with the I key (Escape closes). Centered grid of
+ * every held item; the first nine show their 1-9 hotkey. The hotbar stays visible
+ * underneath. Server-authoritative via `arpg:inventory`.
+ */
+function InventoryPanel({ items }: { items: InventoryItem[] }): ReactElement {
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				inset: 0,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				background: 'rgba(2,3,6,0.45)',
+				pointerEvents: 'auto',
+			}}>
+			<PixelPanel
+				variant="gold"
+				scale={3}
+				style={{ width: 360, padding: '14px 16px 18px' }}>
+				<div
+					style={{
+						fontSize: 14,
+						fontWeight: 700,
+						color: ACCENT,
+						textShadow: TEXT_SHADOW,
+						letterSpacing: 0.5,
+						marginBottom: 12,
+						textAlign: 'center',
+					}}>
+					Inventory
+				</div>
+				{items.length === 0 ? (
+					<div
+						style={{
+							color: MUTED,
+							textShadow: TEXT_SHADOW,
+							textAlign: 'center',
+							fontSize: 11,
+							padding: '18px 0',
+						}}>
+						Empty — walk over loot to pick it up.
+					</div>
+				) : (
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(4, 1fr)',
+							gap: 8,
+						}}>
+						{items.map((it, i) => (
+							<div
+								key={it.ref}
+								style={{
+									position: 'relative',
+									minHeight: 54,
+									padding: '8px 4px',
+									borderRadius: 4,
+									background: 'rgba(0,0,0,0.35)',
+									border: '1px solid rgba(120,140,180,0.35)',
+									textAlign: 'center',
+								}}>
+								{i < 9 && (
+									<span
+										style={{
+											position: 'absolute',
+											top: 2,
+											left: 4,
+											fontSize: 9,
+											color: ACCENT,
+											textShadow: TEXT_SHADOW,
+											opacity: 0.85,
+										}}>
+										{i + 1}
+									</span>
+								)}
+								<div
+									style={{
+										fontSize: 10,
+										color: TEXT,
+										textShadow: TEXT_SHADOW,
+										marginTop: 6,
+										wordBreak: 'break-word',
+									}}>
+									{it.ref}
+								</div>
+								<div
+									style={{
+										fontSize: 11,
+										fontWeight: 700,
+										color: ACCENT,
+										textShadow: TEXT_SHADOW,
+									}}>
+									×{it.count}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+				<div
+					style={{
+						marginTop: 12,
+						fontSize: 9,
+						color: MUTED,
+						textShadow: TEXT_SHADOW,
+						textAlign: 'center',
+						opacity: 0.8,
+					}}>
+					I / Esc to close · 1-9 to use
+				</div>
+			</PixelPanel>
 		</div>
 	);
 }

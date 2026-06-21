@@ -82,7 +82,8 @@ export interface EntityRefs {
 }
 
 function bodyColor(cat: number, hostile: boolean): number {
-	if (cat === KIND_CAT_ITEM) return COLORS.npc;
+	// Ground loot reads as a bright amber gem so it stands out against the floor.
+	if (cat === KIND_CAT_ITEM) return 0xfacc15;
 	return hostile ? COLORS.enemy : COLORS.npc;
 }
 
