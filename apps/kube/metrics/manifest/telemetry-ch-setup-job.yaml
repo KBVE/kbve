@@ -81,6 +81,26 @@ data:
         }
         echo "Table 'telemetry.errors_distributed' ready."
 
+        # Defense-in-depth tripwires on the raw table (canonical list:
+        # packages/data/ch/schemas/telemetry.sql). Caps sit above the metrics
+        # ingest clamps; ADD CONSTRAINT only checks future inserts (no backfill).
+        echo "Applying sanitization constraints on errors_raw..."
+        for c in \
+          "chk_project_len CHECK length(project) > 0 AND length(project) <= 256" \
+          "chk_fingerprint_len CHECK length(fingerprint) <= 64" \
+          "chk_message_len CHECK length(message) <= 8192" \
+          "chk_stack_len CHECK length(stack) <= 32768" \
+          "chk_url_len CHECK length(url) <= 2048" \
+          "chk_handled_bit CHECK handled <= 1"; do
+          curl -sf --max-time 30 \
+            "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+            -d "ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' ADD CONSTRAINT IF NOT EXISTS ${c}" || {
+            echo "ERROR: Failed to add constraint: ${c}"
+            exit 1
+          }
+        done
+        echo "Constraints on 'telemetry.errors_raw' applied."
+
         echo "Creating error_groups view (fingerprint rollup)..."
         curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
