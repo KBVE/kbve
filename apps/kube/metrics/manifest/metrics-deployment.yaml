@@ -46,7 +46,7 @@ spec:
                       - name: HTTP_PORT
                         value: '5500'
                       - name: RUST_LOG
-                        value: 'metrics=info,tower_http=warn'
+                        value: 'met=info,tower_http=warn'
                       - name: CLICKHOUSE_DATABASE
                         value: 'telemetry'
                       - name: METRICS_ERRORS_TABLE

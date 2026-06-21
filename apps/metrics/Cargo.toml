@@ -1,5 +1,5 @@
 [package]
-name = "metrics"
+name = "met"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"

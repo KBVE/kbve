@@ -37,9 +37,7 @@ fn cors_layer(cfg: &Config) -> CorsLayer {
 async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
     tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| "metrics=info".into()),
-        )
+        .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| "met=info".into()))
         .json()
         .init();
 

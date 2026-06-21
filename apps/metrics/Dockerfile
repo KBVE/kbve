@@ -30,7 +30,7 @@ COPY packages/data/proto/ packages/data/proto/
 COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo chef cook --release --recipe-path recipe.json -p metrics
+    cargo chef cook --release --recipe-path recipe.json -p met
 
 FROM cook AS builder
 
@@ -42,16 +42,16 @@ COPY apps/metrics/src/ apps/metrics/src/
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
     touch apps/metrics/src/main.rs && \
-    cargo build --release -p metrics && \
-    strip target/release/metrics
+    cargo build --release -p met && \
+    strip target/release/met
 
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/metrics /app/metrics
+COPY --from=builder --chown=10001:10001 /app/target/release/met /app/metrics
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=5500
-ENV RUST_LOG=metrics=info,tower_http=info
+ENV RUST_LOG=met=info,tower_http=info
 
 EXPOSE 5500
 

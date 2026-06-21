@@ -1773,7 +1773,7 @@ dependencies = [
  "http 1.4.0",
  "http-body 1.0.1",
  "matchit 0.8.4",
- "metrics 0.24.3",
+ "metrics",
  "metrics-exporter-prometheus",
  "pin-project-lite",
  "tokio",
@@ -8762,7 +8762,7 @@ dependencies = [
  "hyper 1.9.0",
  "hyper-util",
  "lru 0.18.0",
- "metrics 0.24.3",
+ "metrics",
  "once_cell",
  "papaya",
  "prost 0.14.3",
@@ -9101,7 +9101,7 @@ dependencies = [
  "jedi",
  "jsonwebtoken 10.3.0",
  "lru 0.16.3",
- "metrics 0.24.3",
+ "metrics",
  "num-bigint",
  "once_cell",
  "pulldown-cmark 0.13.3",
@@ -9850,7 +9850,7 @@ dependencies = [
  "bevy_time",
  "bevy_ui",
  "bevy_utils",
- "metrics 0.24.3",
+ "metrics",
  "metrics-util",
  "tracing",
 ]
@@ -10087,7 +10087,7 @@ dependencies = [
  "bevy_ui",
  "bevy_utils",
  "lightyear_metrics",
- "metrics 0.24.3",
+ "metrics",
  "metrics-util",
  "tracing",
 ]
@@ -10450,22 +10450,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "metal"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00c15a6f673ff72ddcc22394663290f870fb224c1bfce55734a75c414150e605"
-dependencies = [
- "bitflags 2.11.0",
- "block",
- "core-graphics-types 0.2.0",
- "foreign-types",
- "log",
- "objc",
- "paste",
-]
-
-[[package]]
-name = "metrics"
+name = "met"
 version = "0.1.0"
 dependencies = [
  "ahash",
@@ -10488,6 +10473,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "metal"
+version = "0.32.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00c15a6f673ff72ddcc22394663290f870fb224c1bfce55734a75c414150e605"
+dependencies = [
+ "bitflags 2.11.0",
+ "block",
+ "core-graphics-types 0.2.0",
+ "foreign-types",
+ "log",
+ "objc",
+ "paste",
+]
+
+[[package]]
 name = "metrics"
 version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10505,7 +10505,7 @@ checksum = "3589659543c04c7dc5526ec858591015b87cd8746583b51b48ef4353f99dbcda"
 dependencies = [
  "base64 0.22.1",
  "indexmap 2.13.1",
- "metrics 0.24.3",
+ "metrics",
  "metrics-util",
  "quanta",
  "thiserror 2.0.18",
@@ -10522,7 +10522,7 @@ dependencies = [
  "crossbeam-utils",
  "hashbrown 0.16.1",
  "indexmap 2.13.1",
- "metrics 0.24.3",
+ "metrics",
  "ordered-float 5.3.0",
  "quanta",
  "radix_trie",
