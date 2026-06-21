@@ -705,6 +705,94 @@ Community and commercial asset libraries:
 
 Blender can be integrated into KBVE workflows for procedural asset generation, batch rendering, and pipeline automation.
 
+### CI/CD Workflow
+
+The KBVE monorepo includes a Blender CI workflow at [`.github/workflows/ci-blender.yml`](.github/workflows/ci-blender.yml) that runs on macOS runners (including self-hosted MacBook Air).
+
+**Available tasks:**
+
+- **`validate`** - Check blend file integrity and test headless launch
+- **`render`** - Render single frames or animation ranges with configurable engine/device
+- **`export`** - Export scene or selected objects to FBX, glTF, OBJ, USD, Alembic, STL
+- **`batch-export`** - Export each mesh object as a separate file
+- **`script`** - Run custom Python scripts in headless mode
+
+**Example workflow dispatch:**
+
+```bash
+# Render with Cycles GPU
+gh workflow run ci-blender.yml \
+  -f task=render \
+  -f app_name=my-project \
+  -f blend_file=assets/blender/scene.blend \
+  -f render_engine=CYCLES \
+  -f render_device=GPU \
+  -f frame_range=1-100 \
+  -f samples=128 \
+  -f runner_label=macos-latest
+
+# Export all objects as FBX for Unreal
+gh workflow run ci-blender.yml \
+  -f task=batch-export \
+  -f app_name=game-assets \
+  -f blend_file=assets/blender/props.blend \
+  -f export_format=FBX \
+  -f output_path=/tmp/exports \
+  -f runner_label=self-hosted
+```
+
+**Automatic Blender installation:**
+
+The workflow automatically installs Blender via Homebrew if not found:
+
+```bash
+brew install --cask blender
+```
+
+**Supported render engines:**
+
+| Engine | GPU Support | Best For |
+|--------|-------------|----------|
+| `CYCLES` | CUDA, OptiX, HIP, Metal | Photorealistic path tracing |
+| `BLENDER_EEVEE` | Yes (rasterization) | Real-time previews, stylized |
+| `BLENDER_WORKBENCH` | Yes (OpenGL) | Viewport solid shading |
+
+**Export formats:**
+
+| Format | Extension | Use Case |
+|--------|-----------|----------|
+| `FBX` | `.fbx` | Unreal Engine, Unity, Maya |
+| `GLTF` | `.gltf` / `.glb` | Web, Godot, Three.js |
+| `OBJ` | `.obj` | Universal interchange |
+| `USD` | `.usd` | Pixar USD pipeline |
+| `ALEMBIC` | `.abc` | VFX, baked animation |
+| `STL` | `.stl` | 3D printing |
+
+**Pipeline integration:**
+
+The workflow outputs artifacts via `actions/upload-artifact@v7`, which can be consumed by downstream jobs or downloaded manually.
+
+```yaml
+# Example: Render in Blender, then deploy to Unreal
+jobs:
+  render:
+    uses: KBVE/kbve/.github/workflows/ci-blender.yml@dev
+    with:
+      task: render
+      blend_file: assets/environment.blend
+      output_path: /tmp/renders
+
+  unreal_import:
+    needs: [render]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: blender-project-renders
+          path: ./renders
+      # ... import into Unreal via Python/C++ automation
+```
+
 ### Batch Export Script
 
 Automate FBX export for all selected objects:
@@ -738,7 +826,7 @@ Run via:
 blender -b scene.blend -P batch_export.py
 ```
 
-### CI Pipeline Example
+### Legacy CI Pipeline Example
 
 ```yaml
 # .github/workflows/blender-render.yml
