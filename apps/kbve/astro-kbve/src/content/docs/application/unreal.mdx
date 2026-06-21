@@ -302,6 +302,88 @@ Common CI tasks include compiling the project, cooking content, running automate
 Unreal builds require significant disk space and memory. Plan CI runner specs accordingly — expect 50+ GB disk and 16+ GB RAM for non-trivial projects.
 </Aside>
 
+### KBVE Unreal CI/CD Pipeline
+
+The KBVE monorepo runs two Unreal Engine workflows:
+
+- **`.github/workflows/ci-unreal.yml`** — Dispatch router (receives workflow_dispatch calls)
+- **`.github/workflows/ci-unreal-build.yml`** — Worker (game, server, win-setup, mac-setup modes)
+
+#### Server Build Flow
+
+Server builds produce dedicated server binaries for deployment to Agones fleets.
+
+<Steps>
+
+1. **Extract version** from `version.toml` and `manifest_version` input
+2. **Clone external repo** (if `external_repo_url` set) or use monorepo path
+3. **Build server target** via UBT (`-Server -TargetType=Server -Configuration=Shipping`)
+4. **Package to `/tmp/ue5-build-output/LinuxServer/`**
+5. **Deploy to PVC** at `/mnt/longhorn/ows-server/${TARGET}/${VERSION}/`
+6. **Symlink latest** (`ln -sfn ${VERSION} /mnt/longhorn/ows-server/${TARGET}/latest`)
+7. **Prune old versions** — keep 3 newest by semver, protect `latest` target
+
+</Steps>
+
+**Prune Strategy:**
+
+The prune step uses `sort -V -r` (semver descending) to keep the 3 newest versions for rollback.
+It protects the `latest` symlink target and skips versions with `.nfs*` files (active servers).
+
+```bash
+# Example: versions 0.3.24, 0.3.25, 0.3.26, 0.3.27, 0.3.28
+# Keep: 0.3.28, 0.3.27, 0.3.26
+# Prune: 0.3.25, 0.3.24 (unless in use)
+```
+
+**Fleet Integration:**
+
+Agones gameserver pods mount the PVC at `/server` with `subPath: ${TARGET}` (e.g., `chuckServer`).
+The pod looks for `/server/latest/LinuxServer/${TARGET}.sh` to start the server.
+
+#### Game Build Flow
+
+Game builds produce packaged client binaries for Windows, macOS, Linux, and mobile platforms.
+
+<Steps>
+
+1. **Extract version** from `version.toml`
+2. **Clone external repo** or use monorepo path
+3. **Build client target** for each platform in `build_targets` (Win64, Linux, Mac)
+4. **Cook content** for each target configuration
+5. **Package to artifacts** (zip per platform)
+6. **Upload to itch.io** (if `deploy_to_itch` enabled)
+7. **Create GitHub release** with platform zips
+
+</Steps>
+
+**Version Sync:**
+
+Client and server versions are kept in sync via `ci-dispatch-manifest.json`.
+Each Unreal game entry has a single `version` field used for both client and server builds.
+
+```json
+{
+  "key": "unreal_chuck_beta",
+  "version": "0.3.28",
+  "engine": {
+    "server_target": "chuckServer",
+    "server_config": "Shipping",
+    "client_config": "Shipping"
+  }
+}
+```
+
+**LFS Routing:**
+
+Projects using external repos (e.g., `chuck` at `github.com/kbve/chuck`) store LFS blobs on Forgejo (`git.kbve.com/KBVE/chuck.git`).
+The `kbve.sh -lfs` router injects `-c lfs.url=...` to override `.lfsconfig` per project.
+
+```bash
+./kbve.sh -lfs chuck pull
+./kbve.sh -lfs chuck push origin dev
+```
+
 ---
 
 ## Plugins
