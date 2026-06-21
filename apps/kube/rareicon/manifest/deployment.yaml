@@ -20,6 +20,15 @@ spec:
             labels:
                 app: rareicon
         spec:
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
             containers:
                 - name: rareicon
                   image: ghcr.io/kbve/rareicon:0.1.3
@@ -58,6 +67,19 @@ spec:
                       limits:
                           memory: '256Mi'
                           cpu: '500m'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service
