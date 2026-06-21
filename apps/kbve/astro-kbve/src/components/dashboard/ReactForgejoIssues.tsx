@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { forgejoService, timeAgo, type ForgejoIssue } from './forgejoService';
+import {
+	forgejoService,
+	timeAgo,
+	type ForgejoIssue,
+	type PullMergeMethod,
+} from './forgejoService';
 import {
 	ActionButton,
 	SelectField,
 	TextField,
+	Toggle,
 	useForm,
 	useTabActive,
 	uiTokens,
@@ -13,6 +19,7 @@ import {
 import {
 	CircleDot,
 	GitPullRequest,
+	GitMerge,
 	Lock,
 	Unlock,
 	CheckCircle2,
@@ -25,6 +32,7 @@ import {
 	Tag,
 	Milestone,
 	Plus,
+	Pencil,
 	Trash2,
 	Send,
 } from 'lucide-react';
@@ -463,10 +471,229 @@ function IssueComments({ index }: { index: number }) {
 	);
 }
 
+const MERGE_METHODS: { value: PullMergeMethod; label: string }[] = [
+	{ value: 'squash', label: 'Squash' },
+	{ value: 'merge', label: 'Merge commit' },
+	{ value: 'rebase', label: 'Rebase' },
+	{ value: 'rebase-merge', label: 'Rebase + merge' },
+];
+
+function branchRef(label: string): string {
+	const slash = label.indexOf(':');
+	return slash >= 0 ? label.slice(slash + 1) : label;
+}
+
+function PullActions({ index }: { index: number }) {
+	const detailsMap = useStore(forgejoService.$pullDetails);
+	const busy = useStore(forgejoService.$busy);
+	const pull = detailsMap[index];
+	const [method, setMethod] = useState<PullMergeMethod>('squash');
+	const [deleteBranch, setDeleteBranch] = useState(false);
+	const [editing, setEditing] = useState(false);
+	const { state, set } = useForm({ title: '', body: '' });
+
+	useEffect(() => {
+		void forgejoService.loadPull(index);
+	}, [index]);
+
+	if (!pull) {
+		return (
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+					padding: '0.6rem 0.85rem 0.6rem 2.6rem',
+					borderTop: border,
+					color: subText,
+					fontSize: '0.78rem',
+				}}>
+				<Loader2
+					size={14}
+					style={{ animation: 'spin 1s linear infinite' }}
+				/>
+				Loading pull request…
+			</div>
+		);
+	}
+
+	const merging = busy === `pull-merge-${index}`;
+	const startEdit = () => {
+		set('title', pull.title);
+		set('body', pull.body ?? '');
+		setEditing(true);
+	};
+
+	return (
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 10,
+				padding: '0.7rem 0.85rem 0.85rem 2.6rem',
+				borderTop: border,
+			}}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+					flexWrap: 'wrap',
+					fontSize: '0.76rem',
+					color: subText,
+				}}>
+				<span
+					style={{
+						fontFamily: 'monospace',
+						color: textColor,
+						background: 'var(--sl-color-bg, #0d1117)',
+						border,
+						borderRadius: 6,
+						padding: '1px 6px',
+					}}>
+					{pull.base ? branchRef(pull.base.label) : 'base'}
+				</span>
+				<span>←</span>
+				<span
+					style={{
+						fontFamily: 'monospace',
+						color: textColor,
+						background: 'var(--sl-color-bg, #0d1117)',
+						border,
+						borderRadius: 6,
+						padding: '1px 6px',
+					}}>
+					{pull.head ? branchRef(pull.head.label) : 'head'}
+				</span>
+				{pull.merged ? (
+					<span style={{ color: '#8b5cf6', fontWeight: 600 }}>
+						merged
+					</span>
+				) : pull.state === 'open' ? (
+					<span
+						style={{
+							color: pull.mergeable ? '#22c55e' : '#f59e0b',
+							fontWeight: 600,
+						}}>
+						{pull.mergeable ? 'mergeable' : 'conflicts'}
+					</span>
+				) : (
+					<span>closed</span>
+				)}
+			</div>
+
+			{!pull.merged && pull.state === 'open' && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-end',
+						gap: 10,
+						flexWrap: 'wrap',
+					}}>
+					<div style={{ width: 170 }}>
+						<SelectField
+							label="Method"
+							value={method}
+							onChange={(v) => setMethod(v as PullMergeMethod)}
+							options={MERGE_METHODS}
+						/>
+					</div>
+					<div style={{ marginBottom: '0.75rem' }}>
+						<Toggle
+							label="Delete branch after merge"
+							checked={deleteBranch}
+							onChange={setDeleteBranch}
+						/>
+					</div>
+					<div style={{ marginBottom: '0.75rem' }}>
+						<ActionButton
+							variant="primary"
+							disabled={!pull.mergeable}
+							loading={merging}
+							title={
+								pull.mergeable
+									? undefined
+									: 'Pull request has conflicts'
+							}
+							onClick={() =>
+								forgejoService.mergePull(
+									index,
+									method,
+									deleteBranch,
+								)
+							}>
+							<GitMerge size={13} /> Merge
+						</ActionButton>
+					</div>
+				</div>
+			)}
+
+			{editing ? (
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 6,
+						padding: '0.7rem',
+						borderRadius: 8,
+						border,
+					}}>
+					<TextField
+						label="Title"
+						value={state.title}
+						onChange={(v) => set('title', v)}
+					/>
+					<TextField
+						label="Body"
+						value={state.body}
+						onChange={(v) => set('body', v)}
+						textarea
+					/>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'flex-end',
+							gap: 8,
+						}}>
+						<ActionButton
+							variant="ghost"
+							onClick={() => setEditing(false)}>
+							Cancel
+						</ActionButton>
+						<ActionButton
+							variant="primary"
+							disabled={!state.title.trim()}
+							loading={busy === `pull-edit-${index}`}
+							onClick={async () => {
+								const ok = await forgejoService.editPull(
+									index,
+									{
+										title: state.title,
+										body: state.body,
+									},
+								);
+								if (ok) setEditing(false);
+							}}>
+							Save
+						</ActionButton>
+					</div>
+				</div>
+			) : (
+				<div>
+					<ActionButton size="sm" onClick={startEdit}>
+						<Pencil size={12} /> Edit title &amp; body
+					</ActionButton>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function IssueRow({ it }: { it: ForgejoIssue }) {
 	const busy = useStore(forgejoService.$busy);
 	const [expanded, setExpanded] = useState(false);
 	const isPull = !!it.pull_request;
+	const merged = !!it.pull_request?.merged;
 
 	return (
 		<div
@@ -530,6 +757,23 @@ function IssueRow({ it }: { it: ForgejoIssue }) {
 						}}>
 						<span style={{ color: subText }}>#{it.number}</span>{' '}
 						{it.title}
+						{merged && (
+							<span
+								style={{
+									marginLeft: 6,
+									padding: '1px 6px',
+									borderRadius: 4,
+									fontSize: '0.62rem',
+									fontWeight: 600,
+									background: 'rgba(139,92,246,0.18)',
+									color: '#a78bfa',
+									textTransform: 'uppercase',
+									letterSpacing: '0.04em',
+									verticalAlign: 'middle',
+								}}>
+								merged
+							</span>
+						)}
 						{it.is_locked && (
 							<Lock
 								size={11}
@@ -608,6 +852,7 @@ function IssueRow({ it }: { it: ForgejoIssue }) {
 					</ActionButton>
 				)}
 			</div>
+			{expanded && isPull && <PullActions index={it.number} />}
 			{expanded && <IssueComments index={it.number} />}
 		</div>
 	);

@@ -44,6 +44,7 @@ import type {
 	ForgejoPackage,
 	ForgejoPublicKey,
 	ForgejoGpgKey,
+	ForgejoPull,
 } from '@/data/schema/forgejo';
 
 export type {
@@ -74,6 +75,7 @@ export type {
 	ForgejoPackage,
 	ForgejoPublicKey,
 	ForgejoGpgKey,
+	ForgejoPull,
 };
 
 export interface RepoDetail {
@@ -128,6 +130,13 @@ export interface CreateMilestoneInput {
 	title: string;
 	description: string;
 	due_on?: string;
+}
+
+export type PullMergeMethod = 'merge' | 'rebase' | 'rebase-merge' | 'squash';
+
+export interface EditPullInput {
+	title?: string;
+	body?: string;
 }
 
 export interface ForgejoRunner {
@@ -706,6 +715,7 @@ class ForgejoService {
 	public readonly $issues = atom<ForgejoIssue[]>([]);
 	public readonly $issuesLoading = atom<boolean>(false);
 	public readonly $issueComments = atom<Record<number, ForgejoComment[]>>({});
+	public readonly $pullDetails = atom<Record<number, ForgejoPull>>({});
 	public readonly $repoLabels = atom<Record<string, ForgejoLabel[]>>({});
 	public readonly $repoMilestones = atom<Record<string, ForgejoMilestone[]>>(
 		{},
@@ -2200,6 +2210,68 @@ class ForgejoService {
 				await this.loadIssues();
 			},
 			lock ? `#${index} locked` : `#${index} unlocked`,
+		);
+	}
+
+	public async loadPull(index: number): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		try {
+			const pull = await apiFetch<ForgejoPull>(
+				token,
+				`/api/v1/repos/${repo}/pulls/${index}`,
+			);
+			if (pull && typeof pull.number === 'number') {
+				this.$pullDetails.set({
+					...this.$pullDetails.get(),
+					[index]: pull,
+				});
+			}
+		} catch {
+			return;
+		}
+	}
+
+	public mergePull(
+		index: number,
+		method: PullMergeMethod,
+		deleteBranch: boolean,
+	): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`pull-merge-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${repo}/pulls/${index}/merge`,
+					{ Do: method, delete_branch_after_merge: deleteBranch },
+				);
+				await this.loadPull(index);
+				await this.loadIssues();
+			},
+			`#${index} merged (${method})`,
+		);
+	}
+
+	public editPull(index: number, input: EditPullInput): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`pull-edit-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'PATCH',
+					`/api/v1/repos/${repo}/pulls/${index}`,
+					input,
+				);
+				await this.loadPull(index);
+				await this.loadIssues();
+			},
+			`#${index} updated`,
 		);
 	}
 
