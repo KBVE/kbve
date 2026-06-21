@@ -114,9 +114,9 @@ export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 // character renders and is controllable without a live arpg-server.
 export const DEBUG_LOCAL_PLAYER = true;
 export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
-// Debug aim overlay: a screen compass + a live firing-degree/sheet-angle readout
-// above the ranger. Use it to diagnose facing skew; flip off for release.
-export const DEBUG_AIM = true;
+// React HUD debug panel: shows fps + current tile alongside the compass/vitals.
+// Flip off for release; the compass + vitals panels render regardless.
+export const DEBUG_HUD = true;
 
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 
