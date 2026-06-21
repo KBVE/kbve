@@ -70,7 +70,7 @@ Here are the step-by-step instructions to set up and run the KBVE repository on 
 
 12. To run the code watcher, use the following command:
     ```bash
-    ./kbve.sh -nx kbve.com:dev
+    ./kbve.sh -nx astro-kbve:dev
     ```
 
 13. To create a new branch for a new pull request, use the following command:
