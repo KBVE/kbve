@@ -1164,6 +1164,116 @@ fn use_item(
     send_inventory(bcast, slot, inv);
 }
 
+type AttackPlayerQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static PlayerSlotTag,
+        &'static GridPos,
+        &'static mut CombatStats,
+        &'static mut Inventory,
+        &'static mut Health,
+        &'static mut XpState,
+        &'static Equipped,
+    ),
+>;
+
+type AttackMobQuery<'w, 's> = Query<
+    'w,
+    's,
+    (
+        &'static GridPos,
+        &'static mut Health,
+        Option<&'static Loot>,
+        Option<&'static RespawnOnDeath>,
+        Option<&'static Defense>,
+        Option<&'static NpcLevel>,
+        &'static EntityKind,
+    ),
+    (Without<PlayerSlotTag>, Without<GroundItem>),
+>;
+
+/// Apply a confirmed hit from `player_entity` to `target_entity`: roll damage
+/// (defense + deterministic crit), broadcast the combat event, and on death
+/// handle loot, respawn, despawn and XP. Shared by melee and ranged attacks —
+/// only target selection differs upstream.
+#[allow(clippy::too_many_arguments)]
+fn resolve_attack_hit(
+    player_entity: Entity,
+    target_entity: Entity,
+    slot: proto::PlayerSlot,
+    attack: i32,
+    bcast: &Outbound,
+    registry: &KindRegistry,
+    clock: &SimClock,
+    seed: &SimSeed,
+    config: &SimConfig,
+    equipment: &EquipmentEffects,
+    respawns: &mut RespawnQueue,
+    kill_counts: &mut KillCounts,
+    commands: &mut Commands,
+    q_players: &mut AttackPlayerQuery,
+    q_mobs: &mut AttackMobQuery,
+) {
+    let Ok((mob_pos, mut hp, loot, respawn, mob_defense, mob_level, kind)) =
+        q_mobs.get_mut(target_entity)
+    else {
+        return;
+    };
+    let base = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
+    let crit =
+        hash3(seed.0, player_entity.index_u32() as u64, clock.tick as u64) % 100 < CRIT_CHANCE_PCT;
+    let damage = if crit { base * 2 } else { base };
+    let kill_xp = mob_level.map(|l| l.0).unwrap_or(1).max(1) * XP_PER_NPC_LEVEL;
+    hp.hp -= damage;
+    let died = hp.hp <= 0;
+    let drop_tile = mob_pos.tile;
+    let payload = json!({
+        "attacker": player_entity.index_u32(),
+        "target": target_entity.index_u32(),
+        "target_ref": registry.ref_of(kind.0),
+        "dmg": damage,
+        "crit": crit,
+        "died": died,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_COMBAT,
+        to: slot,
+        payload,
+    });
+    if died {
+        let drop_ref = loot.and_then(|l| l.item_ref.clone());
+        if let Some(r) = respawn {
+            respawns.0.push((
+                clock.tick.saturating_add(r.spec.respawn_ticks),
+                r.spec.clone(),
+            ));
+        }
+        commands.entity(target_entity).despawn();
+        if let Some(item_ref) = drop_ref
+            && let Some(bundle) = ground_item_bundle(registry, &item_ref, 1, drop_tile)
+        {
+            commands.spawn(bundle);
+        }
+        let kills = {
+            let k = kill_counts.0.entry(slot.0).or_default();
+            *k += 1;
+            *k
+        };
+        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
+            q_players.get_mut(player_entity)
+        {
+            award_xp(
+                bcast, slot, config, equipment, kill_xp, &mut xp, &mut php, &mut stats, equipped,
+                kills,
+            );
+        }
+    }
+}
+
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn apply_actions(
     mut actions: ResMut<PendingActions>,
@@ -1174,31 +1284,12 @@ fn apply_actions(
     seed: Res<SimSeed>,
     config: Res<SimConfig>,
     equipment: Res<EquipmentEffects>,
+    map: Res<WalkableMap>,
     mut respawns: ResMut<RespawnQueue>,
     mut kill_counts: ResMut<KillCounts>,
     mut commands: Commands,
-    mut q_players: Query<(
-        Entity,
-        &PlayerSlotTag,
-        &GridPos,
-        &mut CombatStats,
-        &mut Inventory,
-        &mut Health,
-        &mut XpState,
-        &Equipped,
-    )>,
-    mut q_mobs: Query<
-        (
-            &GridPos,
-            &mut Health,
-            Option<&Loot>,
-            Option<&RespawnOnDeath>,
-            Option<&Defense>,
-            Option<&NpcLevel>,
-            &EntityKind,
-        ),
-        (Without<PlayerSlotTag>, Without<GroundItem>),
-    >,
+    mut q_players: AttackPlayerQuery,
+    mut q_mobs: AttackMobQuery,
     q_items: Query<(&GridPos, &GroundItem)>,
 ) {
     if actions.0.is_empty() {
@@ -1225,64 +1316,76 @@ fn apply_actions(
                     continue;
                 };
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
-                let Ok((mob_pos, mut hp, loot, respawn, mob_defense, mob_level, kind)) =
-                    q_mobs.get_mut(target_entity)
-                else {
+                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
                     continue;
                 };
                 if !combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
                     continue;
                 }
-                let base = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
-                let crit = hash3(seed.0, player_entity.index_u32() as u64, clock.tick as u64) % 100
-                    < CRIT_CHANCE_PCT;
-                let damage = if crit { base * 2 } else { base };
-                let kill_xp = mob_level.map(|l| l.0).unwrap_or(1).max(1) * XP_PER_NPC_LEVEL;
-                hp.hp -= damage;
-                let died = hp.hp <= 0;
+                resolve_attack_hit(
+                    player_entity,
+                    target_entity,
+                    proto::PlayerSlot(slot.0),
+                    attack,
+                    &bcast,
+                    &registry,
+                    &clock,
+                    &seed,
+                    &config,
+                    &equipment,
+                    &mut respawns,
+                    &mut kill_counts,
+                    &mut commands,
+                    &mut q_players,
+                    &mut q_mobs,
+                );
+            }
+            proto::ACTION_SHOOT => {
+                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
+                    continue;
+                };
+                let (attacker_tile, attack) = (pos.tile, stats.attack);
+                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
+                    continue;
+                };
+                let target_tile = mob_pos.tile;
+                let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
+                    !map.is_walkable(t)
+                });
+                let impact = path.last().copied().unwrap_or(attacker_tile);
+                let los_clear = impact == target_tile;
                 let payload = json!({
                     "attacker": player_entity.index_u32(),
-                    "target": target_entity.index_u32(),
-                    "target_ref": registry.ref_of(kind.0),
-                    "dmg": damage,
-                    "crit": crit,
-                    "died": died,
+                    "from": { "x": attacker_tile.x, "y": attacker_tile.y },
+                    "to": { "x": impact.x, "y": impact.y },
+                    "kind": "arrow",
+                    "hit": los_clear,
                 })
                 .to_string()
                 .into_bytes();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
-                    kind: proto::EPHEMERAL_COMBAT,
+                    kind: proto::EPHEMERAL_PROJECTILE,
                     to: proto::PlayerSlot(slot.0),
                     payload,
                 });
-                if died {
-                    let drop_tile = mob_pos.tile;
-                    let drop_ref = loot.and_then(|l| l.item_ref.clone());
-                    if let Some(r) = respawn {
-                        respawns.0.push((
-                            clock.tick.saturating_add(r.spec.respawn_ticks),
-                            r.spec.clone(),
-                        ));
-                    }
-                    commands.entity(target_entity).despawn();
-                    if let Some(item_ref) = drop_ref
-                        && let Some(bundle) = ground_item_bundle(&registry, &item_ref, 1, drop_tile)
-                    {
-                        commands.spawn(bundle);
-                    }
-                    let kills = {
-                        let k = kill_counts.0.entry(slot.0).or_default();
-                        *k += 1;
-                        *k
-                    };
-                    if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
-                        q_players.get_mut(player_entity)
-                    {
-                        award_xp(
-                            &bcast, slot, &config, &equipment, kill_xp, &mut xp, &mut php,
-                            &mut stats, equipped, kills,
-                        );
-                    }
+                if los_clear {
+                    resolve_attack_hit(
+                        player_entity,
+                        target_entity,
+                        proto::PlayerSlot(slot.0),
+                        attack,
+                        &bcast,
+                        &registry,
+                        &clock,
+                        &seed,
+                        &config,
+                        &equipment,
+                        &mut respawns,
+                        &mut kill_counts,
+                        &mut commands,
+                        &mut q_players,
+                        &mut q_mobs,
+                    );
                 }
             }
             proto::ACTION_PICKUP => {
@@ -3200,6 +3303,87 @@ mod tests {
         }
         assert!(saw_combat, "no combat ephemeral emitted");
         assert!(saw_potion_drop, "loot did not drop");
+    }
+
+    fn spawn_bow_target(app: &mut App, kind: u16, tile: Tile) -> Entity {
+        let m = app
+            .world_mut()
+            .spawn((
+                EntityKind(kind),
+                GridPos::at(tile),
+                MoveTarget::default(),
+                MoveSpeed::default(),
+                Health { hp: 50, max_hp: 50 },
+            ))
+            .id();
+        app.update();
+        m
+    }
+
+    fn run_shoot(
+        app: &mut App,
+        input_tx: &mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
+        slot: proto::PlayerSlot,
+        mob: Entity,
+    ) {
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_SHOOT,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+    }
+
+    fn drain_shot(rx: &mut mpsc::UnboundedReceiver<ServerEvent>) -> (bool, bool) {
+        let (mut proj, mut combat) = (false, false);
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, .. } = evt {
+                proj |= kind == proto::EPHEMERAL_PROJECTILE;
+                combat |= kind == proto::EPHEMERAL_COMBAT;
+            }
+        }
+        (proj, combat)
+    }
+
+    #[test]
+    fn bow_hits_target_with_clear_los() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        run_shoot(&mut app, &input_tx, slot, mob);
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(combat, "clear LoS shot did not hit");
+    }
+
+    #[test]
+    fn bow_blocked_by_wall_misses() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        app.world_mut()
+            .resource_mut::<WalkableMap>()
+            .set_blocked(Tile::new(8, 10), true);
+        run_shoot(&mut app, &input_tx, slot, mob);
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(!combat, "wall did not block the shot");
     }
 
     fn hostile_spec(kind: u16, origin: Tile) -> NpcSpec {

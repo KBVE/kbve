@@ -25,6 +25,9 @@ export type AttackShape = (typeof AttackShape)[keyof typeof AttackShape];
 /** Default melee reach — a swing hits one Chebyshev-adjacent tile. */
 export const MELEE_RANGE = 1;
 
+/** Default bow reach, in tiles, along the line of sight. */
+export const BOW_RANGE = 8;
+
 function chebyshev(a: TileXY, b: TileXY): number {
 	return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 }
