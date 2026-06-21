@@ -1,5 +1,11 @@
 import Phaser from 'phaser';
-import { COLORS, DEPTH_UI } from '../config';
+import {
+	BLEND_MS,
+	BLEND_SQUASH,
+	BLEND_TIMESCALE_FROM,
+	COLORS,
+	DEPTH_UI,
+} from '../config';
 import {
 	KIND_CAT_ITEM,
 	KIND_CAT_PLAYER,
@@ -7,7 +13,8 @@ import {
 } from '../systems/kindResolvers';
 import {
 	CLASS_ANGLES,
-	classTextureKey,
+	classAnimKey,
+	classSheetKey,
 	nearestClassAngle,
 	resolvePlayerClass,
 	type ClassDef,
@@ -37,32 +44,130 @@ export function isPlayerKind(kinds: KindResolvers, kind: number): boolean {
 	return kinds.cat(kind) === KIND_CAT_PLAYER;
 }
 
-/** Spawn a player's class character sprite (idle, facing south). */
+/** Spawn a player's class character sprite (idle anim, facing south). */
 export function makeClassSprite(
 	scene: Phaser.Scene,
 	classRef: string | null,
 ): { sprite: Phaser.GameObjects.Sprite; cls: ClassView } {
 	const def = resolvePlayerClass(classRef);
-	const angle = CLASS_ANGLES[4];
-	const sprite = scene.add.sprite(0, 0, classTextureKey(def, 'Idle', angle));
+	const angle = CLASS_ANGLES[8]; // south
+	const sprite = scene.add.sprite(0, 0, classSheetKey(def, 'Idle', angle), 0);
 	sprite.setOrigin(0.5, def.originY);
 	sprite.setDisplaySize(def.displaySize, def.displaySize);
-	return { sprite, cls: { def, angle, state: 'Idle' } };
+	const view: ClassView = { def, angle, state: 'Idle' };
+	sprite.play(classAnimKey(def, 'Idle', angle));
+	return { sprite, cls: view };
 }
 
-/** Swap a class sprite's pose, optionally re-facing from a movement delta. */
+/**
+ * Crossfade two looping states. Sprite sheets can't frame-interpolate, so the
+ * swap is sold three ways at once:
+ *  - phase-match: the incoming anim resumes at the SAME normalized progress the
+ *    outgoing anim held, so the dissolve bridges near-aligned poses, not a
+ *    full-cycle pop.
+ *  - timeScale ramp: the new flipbook spins up from slow instead of snapping.
+ *  - squash anticipation: a brief scaleY dip/recover reads as a weight shift
+ *    into the step and hides whatever pose mismatch remains.
+ * A ghost holds the outgoing frame and alpha-fades out under the live sprite.
+ */
+function crossfadeBlend(
+	scene: Phaser.Scene,
+	sprite: Phaser.GameObjects.Sprite,
+	fromKey: string,
+	fromFrame: number,
+	entryProgress: number,
+): void {
+	const ghost = scene.add.sprite(sprite.x, sprite.y, fromKey, fromFrame);
+	ghost.setOrigin(sprite.originX, sprite.originY);
+	ghost.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+	ghost.setDepth(sprite.depth - 1);
+	ghost.setFlipX(sprite.flipX);
+
+	scene.tweens.add({
+		targets: ghost,
+		alpha: 0,
+		duration: BLEND_MS,
+		ease: 'Cubic.easeOut',
+		onComplete: () => ghost.destroy(),
+	});
+
+	sprite.setAlpha(0.3);
+	scene.tweens.add({
+		targets: sprite,
+		alpha: 1,
+		duration: BLEND_MS,
+		ease: 'Cubic.easeIn',
+	});
+
+	if (sprite.anims) {
+		sprite.anims.setProgress(Phaser.Math.Clamp(entryProgress, 0, 1));
+		scene.tweens.killTweensOf(sprite.anims);
+		sprite.anims.timeScale = BLEND_TIMESCALE_FROM;
+		scene.tweens.add({
+			targets: sprite.anims,
+			timeScale: 1,
+			duration: BLEND_MS,
+			ease: 'Cubic.easeOut',
+			onComplete: () => {
+				sprite.anims.timeScale = 1;
+			},
+		});
+	}
+
+	const baseScaleY = sprite.scaleY;
+	scene.tweens.add({
+		targets: sprite,
+		scaleY: baseScaleY * BLEND_SQUASH,
+		duration: BLEND_MS * 0.4,
+		ease: 'Quad.easeOut',
+		yoyo: true,
+		onComplete: () => {
+			sprite.scaleY = baseScaleY;
+		},
+	});
+}
+
+/**
+ * Swap a class sprite's animation to the given state, optionally re-facing.
+ * Looping states (Idle/Run) only restart on an actual state/angle change so the
+ * flipbook doesn't stutter; one-shot states (Attack/Death) always replay. An
+ * Idle<->Run change crossfades via a ghost sprite (pass `scene` to enable it);
+ * angle-only turns and one-shots snap.
+ */
 export function setClassPose(
 	sprite: Phaser.GameObjects.Sprite,
 	view: ClassView,
 	state: ClassState,
 	facing?: { dx: number; dy: number },
+	scene?: Phaser.Scene,
 ): void {
+	const prevAngle = view.angle;
+	const prevState = view.state;
 	if (facing && (facing.dx !== 0 || facing.dy !== 0)) {
 		view.angle = nearestClassAngle(facing.dx, facing.dy);
 	}
+	const oneShot = state === 'Attack' || state === 'Death';
+	const changed = state !== view.state || view.angle !== prevAngle || oneShot;
 	view.state = state;
-	sprite.setTexture(classTextureKey(view.def, state, view.angle));
+	if (!changed) return;
+
+	const blend =
+		!!scene &&
+		!oneShot &&
+		state !== prevState &&
+		(prevState === 'Idle' || prevState === 'Run') &&
+		(state === 'Idle' || state === 'Run');
+	const fromKey = sprite.texture.key;
+	const fromFrame = sprite.anims?.currentFrame?.index ?? 0;
+	// Normalized phase of the outgoing loop, carried into the incoming loop so
+	// the two flipbooks meet at a near-matching pose instead of frame 0.
+	const entryProgress = blend ? (sprite.anims?.getProgress() ?? 0) : 0;
+
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
+	sprite.play(classAnimKey(view.def, state, view.angle), !oneShot);
+
+	if (blend && scene)
+		crossfadeBlend(scene, sprite, fromKey, fromFrame, entryProgress);
 }
 
 export function makeSprite(

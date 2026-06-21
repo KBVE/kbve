@@ -6,6 +6,15 @@ export const GRID_SIZE = 24;
 export const MOVE_TWEEN_MS = 140;
 export const HEARTBEAT_MS = 20000;
 
+// Idle<->Run state crossfade: a ghost sprite holds the outgoing anim and fades
+// out while the live sprite fades in; the live anim's timeScale ramps from
+// BLEND_TIMESCALE_FROM up to 1 so the flipbook spins up instead of snapping.
+export const BLEND_MS = 200;
+export const BLEND_TIMESCALE_FROM = 0.45;
+// Idle->Run anticipation: brief vertical squash that recovers over the blend,
+// selling a weight-shift into the step and masking flipbook pose mismatch.
+export const BLEND_SQUASH = 0.92;
+
 export const DEPTH_TILE = 0;
 export const DEPTH_ENTITY_BASE = 10000;
 export const DEPTH_UI = 100000;

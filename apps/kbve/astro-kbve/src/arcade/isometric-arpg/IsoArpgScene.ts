@@ -52,7 +52,11 @@ import {
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
-import { preloadClass, RANGER_CLASS } from './entities/classes';
+import {
+	preloadClass,
+	registerClassAnims,
+	RANGER_CLASS,
+} from './entities/classes';
 import { getNetConfig } from './net-config';
 
 const TICK_MS = 120;
@@ -98,6 +102,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
+		registerClassAnims(this, RANGER_CLASS);
 
 		this.drawGrid();
 		this.setupInput();
@@ -243,7 +248,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
 				return refs;
 			},
-			move: (refs, tile) => this.tweenTo(refs, tile),
+			move: (refs, tile) => this.tweenTo(refs, tile, true),
 			setPos: (refs, tile) => this.placeRefs(refs, tile),
 			follow: (refs) =>
 				this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12),
@@ -367,6 +372,21 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.predictedPath = pstate.path;
 		if (next) this.advance(pstate, myRefs, next);
 		this.predicted = pstate.predicted;
+		if (!next) this.settleIdle(myRefs);
+	}
+
+	/**
+	 * Drop the local player back to Idle once movement truly stops — no held
+	 * key, empty path, and the last step tween finished. Done here (not on each
+	 * tween's onComplete) so sustained movement holds Run instead of flickering
+	 * Run→Idle→Run between tiles. One-shot states (Attack/Death) are left alone.
+	 */
+	private settleIdle(refs: EntityRefs) {
+		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
+			return;
+		if (refs.cls.state !== 'Run') return;
+		if (this.tweens.isTweening(refs.sprite)) return;
+		setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
 	}
 
 	private advance(pstate: PredictState, refs: EntityRefs, tile: TileXY) {
@@ -413,6 +433,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * `this.client` is null). Lets the character render + move without a server.
 	 */
 	private spawnLocalPlayer() {
+		if (this.store.has(LOCAL_PLAYER_EID)) return;
 		this.localMode = true;
 		const kind = LOCAL_PLAYER_KIND;
 		this.kindRegistry.set(kind, {
@@ -465,16 +486,19 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
-	private tweenTo(refs: EntityRefs, tile: TileXY) {
+	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
 		const from = screenToWorld(refs.sprite.x, refs.sprite.y - 8);
 		const p = worldToScreen(tile.x, tile.y);
 		refs.sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tile.x, tile.y));
 
 		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			setClassPose(refs.sprite, refs.cls, 'Run', {
-				dx: tile.x - from.x,
-				dy: tile.y - from.y,
-			});
+			setClassPose(
+				refs.sprite,
+				refs.cls,
+				'Run',
+				{ dx: tile.x - from.x, dy: tile.y - from.y },
+				this,
+			);
 		}
 
 		this.tweens.add({
@@ -484,15 +508,21 @@ export class IsoArpgScene extends Phaser.Scene {
 			duration: MOVE_TWEEN_MS,
 			ease: 'Linear',
 			onUpdate: () => this.placeNameplate(refs),
-			onComplete: () => {
-				if (
-					refs.cls &&
-					refs.sprite instanceof Phaser.GameObjects.Sprite
-				) {
-					setClassPose(refs.sprite, refs.cls, 'Idle');
-				}
-			},
+			onComplete: settle ? () => this.settleRemoteIdle(refs) : undefined,
 		});
+	}
+
+	/**
+	 * Remote movers aren't input-driven, so settle them to Idle when their last
+	 * step tween ends and no follow-up tween chained on. The local player skips
+	 * this (its Idle is driven from update()'s settleIdle so held keys hold Run).
+	 */
+	private settleRemoteIdle(refs: EntityRefs) {
+		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
+			return;
+		if (refs.cls.state !== 'Run') return;
+		if (this.tweens.isTweening(refs.sprite)) return;
+		setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
 	}
 
 	private placeNameplate(refs: EntityRefs) {
