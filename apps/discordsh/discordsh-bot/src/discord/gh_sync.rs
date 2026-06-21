@@ -6,9 +6,9 @@ use kbve::entity::client::vault::VaultClient;
 use kbve::{CachedIssue, GithubStore, UndeliveredEvent};
 use poise::serenity_prelude as serenity;
 use serde::Deserialize;
-use serenity::builder::{CreateForumPost, CreateMessage};
+use serenity::builder::{CreateForumPost, CreateMessage, EditThread};
 use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 use crate::state::AppState;
 
@@ -371,8 +371,33 @@ async fn dispatch(
 
     match ev.event_type.as_str() {
         "opened" => ensure_thread(store, http, route, &issue).await,
-        "closed" | "reopened" | "commented" | "labeled" | "assigned" | "unassigned"
-        | "unlabeled" | "edited" | "renamed" => post_into_thread(http, &issue, ev).await,
+        "commented" => {
+            if comment_is_mirrored(store, ev).await {
+                debug!(
+                    number = ev.number,
+                    "gh sync: comment originated from reverse sync — skipping echo"
+                );
+                return Ok(());
+            }
+            post_into_thread(http, &issue, ev).await
+        }
+        "closed" => {
+            post_into_thread(http, &issue, ev).await?;
+            set_thread_archived(http, &issue, true).await;
+            Ok(())
+        }
+        "reopened" => {
+            set_thread_archived(http, &issue, false).await;
+            post_into_thread(http, &issue, ev).await
+        }
+        "deleted" | "transferred" => {
+            post_into_thread(http, &issue, ev).await?;
+            set_thread_archived(http, &issue, true).await;
+            Ok(())
+        }
+        "labeled" | "assigned" | "unassigned" | "unlabeled" | "edited" | "renamed" => {
+            post_into_thread(http, &issue, ev).await
+        }
         _ => {
             debug!(
                 event = %ev.event_type,
@@ -381,6 +406,65 @@ async fn dispatch(
             );
             Ok(())
         }
+    }
+}
+
+/// Echo guard: a "commented" event whose GitHub comment id is already mapped in
+/// gh.comment_mirror originated from the reverse-sync path; re-posting it would
+/// duplicate the user's own thread reply. Fails open (posts) on lookup error.
+async fn comment_is_mirrored(store: &Arc<GithubStore>, ev: &UndeliveredEvent) -> bool {
+    let Some(comment_id) = ev
+        .payload
+        .get("comment")
+        .and_then(|c| c.get("id"))
+        .and_then(|id| id.as_i64())
+    else {
+        return false;
+    };
+    match store.is_github_comment_mirrored(comment_id).await {
+        Ok(mirrored) => mirrored,
+        Err(e) => {
+            warn!(error = %e, comment_id, "gh sync: echo-guard lookup failed, posting anyway");
+            false
+        }
+    }
+}
+
+/// Mirror GitHub issue state onto the forum thread (close→archive,
+/// reopen→unarchive). Event-driven only (never a reconcile loop), so a human
+/// who manually re-opens a thread is not repeatedly re-archived. Best-effort:
+/// missing MANAGE_THREADS or any HTTP error logs + returns without failing the
+/// event delivery.
+async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, archived: bool) {
+    let Some(thread_id) = issue.discord_thread_id else {
+        return;
+    };
+    let lock_on_close = archived
+        && matches!(
+            std::env::var("GH_SYNC_LOCK_ON_CLOSE").ok().as_deref(),
+            Some("1") | Some("true") | Some("on")
+        );
+    let mut builder = EditThread::new().archived(archived);
+    if lock_on_close {
+        builder = builder.locked(true);
+    } else if !archived {
+        builder = builder.locked(false);
+    }
+    let thread = serenity::ChannelId::new(thread_id as u64);
+    match thread.edit_thread(&**http, builder).await {
+        Ok(_) => debug!(
+            number = issue.number,
+            thread = thread_id,
+            archived,
+            "gh sync: thread lifecycle updated"
+        ),
+        Err(e) => warn!(
+            error = %e,
+            number = issue.number,
+            thread = thread_id,
+            archived,
+            "gh sync: thread lifecycle update failed (missing MANAGE_THREADS?)"
+        ),
     }
 }
 

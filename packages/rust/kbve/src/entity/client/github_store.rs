@@ -96,6 +96,24 @@ pub struct UndeliveredEvent {
     pub claim_token: uuid::Uuid,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct CommentMirror {
+    pub discord_message_id: i64,
+    pub discord_channel_id: i64,
+    #[serde(default)]
+    pub github_comment_id: Option<i64>,
+    pub owner: String,
+    pub repo: String,
+    pub number: u32,
+    pub direction: String,
+    #[serde(default)]
+    pub author: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    #[serde(default)]
+    pub deleted_at: Option<String>,
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum GithubStoreError {
     #[error("supabase client not configured")]
@@ -295,6 +313,175 @@ impl GithubStore {
             repo, number, thread_id, "Discord thread linked to gh.issue"
         );
         Ok(())
+    }
+
+    /// Reverse lookup: resolve a Discord forum thread back to its GitHub issue.
+    /// Used by the reverse-sync handler to map a thread reply onto an issue.
+    pub async fn get_issue_by_thread_id(
+        &self,
+        thread_id: i64,
+    ) -> Result<Option<CachedIssue>, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({ "p_thread_id": thread_id });
+        let resp = client
+            .rpc_schema("get_issue_by_thread_id", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, thread_id, "gh.get_issue_by_thread_id HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_optional_row::<CachedIssue>(&text)
+    }
+
+    /// Idempotency claim for reverse sync. Returns `true` when the caller now
+    /// owns posting the GitHub comment for this Discord message (fresh row, or
+    /// a prior placeholder that was never finalized). Returns `false` once the
+    /// mapping already carries a `github_comment_id`, so replayed deliveries
+    /// post exactly one comment.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn claim_comment_mirror(
+        &self,
+        discord_message_id: i64,
+        discord_channel_id: i64,
+        owner: &str,
+        repo: &str,
+        number: u32,
+        direction: &str,
+        author: Option<&str>,
+    ) -> Result<bool, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({
+            "p_discord_message_id": discord_message_id,
+            "p_discord_channel_id": discord_channel_id,
+            "p_owner": owner,
+            "p_repo": repo,
+            "p_number": number,
+            "p_direction": direction,
+            "p_author": author,
+        });
+        let resp = client
+            .rpc_schema("claim_comment_mirror", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, discord_message_id, "gh.claim_comment_mirror HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_bool_body(&text)
+    }
+
+    /// Finalize a claimed mirror row with the posted GitHub comment id.
+    pub async fn set_comment_mirror_github_id(
+        &self,
+        discord_message_id: i64,
+        github_comment_id: i64,
+    ) -> Result<bool, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({
+            "p_discord_message_id": discord_message_id,
+            "p_github_comment_id": github_comment_id,
+        });
+        let resp = client
+            .rpc_schema("set_comment_mirror_github_id", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, discord_message_id, "gh.set_comment_mirror_github_id HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_bool_body(&text)
+    }
+
+    /// Read a mirror row (edit/delete propagation + echo guard).
+    pub async fn get_comment_mirror(
+        &self,
+        discord_message_id: i64,
+    ) -> Result<Option<CommentMirror>, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({ "p_discord_message_id": discord_message_id });
+        let resp = client
+            .rpc_schema("get_comment_mirror", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, discord_message_id, "gh.get_comment_mirror HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_optional_row::<CommentMirror>(&text)
+    }
+
+    /// Echo guard for the forward worker: did this GitHub comment originate
+    /// from the reverse-sync path? If so, skip re-posting it into the thread.
+    pub async fn is_github_comment_mirrored(
+        &self,
+        github_comment_id: i64,
+    ) -> Result<bool, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({ "p_github_comment_id": github_comment_id });
+        let resp = client
+            .rpc_schema("is_github_comment_mirrored", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, github_comment_id, "gh.is_github_comment_mirrored HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_bool_body(&text)
+    }
+
+    /// Tombstone a mirror row when its Discord message is deleted.
+    pub async fn mark_comment_mirror_deleted(
+        &self,
+        discord_message_id: i64,
+    ) -> Result<Option<CommentMirror>, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({ "p_discord_message_id": discord_message_id });
+        let resp = client
+            .rpc_schema("mark_comment_mirror_deleted", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, discord_message_id, "gh.mark_comment_mirror_deleted HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        parse_optional_row::<CommentMirror>(&text)
     }
 
     pub async fn claim_undelivered(
