@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS gh.comment_mirror (
     CONSTRAINT gh_comment_mirror_message_pos_chk CHECK (discord_message_id > 0),
     CONSTRAINT gh_comment_mirror_channel_pos_chk CHECK (discord_channel_id > 0),
     CONSTRAINT gh_comment_mirror_github_pos_chk  CHECK (github_comment_id IS NULL OR github_comment_id > 0),
+    CONSTRAINT gh_comment_mirror_author_len_chk  CHECK (author IS NULL OR length(author) <= 256),
     CONSTRAINT gh_comment_mirror_direction_chk
         CHECK (direction IN ('discord_to_github', 'github_to_discord'))
 )
@@ -103,16 +104,18 @@ AS $$
         VALUES (
             p_discord_message_id, p_discord_channel_id, NULL,
             p_owner, p_repo, p_number, p_direction, p_author,
-            now() + make_interval(secs => GREATEST(p_lease_secs, 1))
+            statement_timestamp()
+                + make_interval(secs => LEAST(GREATEST(COALESCE(p_lease_secs, 300), 1), 3600))
         )
         ON CONFLICT (discord_message_id) DO UPDATE
             SET claim_expires_at = EXCLUDED.claim_expires_at,
-                updated_at       = now()
+                updated_at       = statement_timestamp()
             WHERE gh.comment_mirror.github_comment_id IS NULL
-              AND gh.comment_mirror.claim_expires_at <= now()
-        RETURNING TRUE AS claimed
+              AND COALESCE(gh.comment_mirror.claim_expires_at, '-infinity'::timestamptz)
+                  <= statement_timestamp()
+        RETURNING TRUE
     )
-    SELECT COALESCE((SELECT claimed FROM ins), FALSE);
+    SELECT EXISTS (SELECT FROM ins);
 $$;
 
 ALTER FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT, INT) OWNER TO service_role;
@@ -121,8 +124,9 @@ REVOKE ALL ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, 
 GRANT EXECUTE ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT, INT)
     TO service_role;
 
--- Finalize a claimed mirror row with the posted GitHub comment id. No-op
--- (still TRUE) when already finalized with the same id, so retries don't rewrite.
+-- Finalize a claimed mirror row with the posted GitHub comment id + clear the
+-- lease. Updates only the unfinalized row (github_comment_id IS NULL), so a
+-- duplicate finalize is a no-op (returns FALSE) and never rewrites the tuple.
 CREATE OR REPLACE FUNCTION gh.set_comment_mirror_github_id(
     p_discord_message_id BIGINT,
     p_github_comment_id  BIGINT
@@ -135,18 +139,13 @@ AS $$
     WITH upd AS (
         UPDATE gh.comment_mirror
             SET github_comment_id = p_github_comment_id,
-                updated_at        = now()
+                claim_expires_at  = NULL,
+                updated_at        = statement_timestamp()
             WHERE discord_message_id = p_discord_message_id
               AND github_comment_id IS NULL
-        RETURNING TRUE
+        RETURNING 1
     )
-    SELECT EXISTS (SELECT FROM upd)
-        OR EXISTS (
-            SELECT 1
-            FROM gh.comment_mirror
-            WHERE discord_message_id = p_discord_message_id
-              AND github_comment_id = p_github_comment_id
-        );
+    SELECT EXISTS (SELECT FROM upd);
 $$;
 
 ALTER FUNCTION gh.set_comment_mirror_github_id(BIGINT, BIGINT) OWNER TO service_role;
@@ -197,8 +196,8 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
     UPDATE gh.comment_mirror
-        SET deleted_at = now(),
-            updated_at = now()
+        SET deleted_at = statement_timestamp(),
+            updated_at = statement_timestamp()
         WHERE discord_message_id = p_discord_message_id
           AND deleted_at IS NULL
         RETURNING *;
