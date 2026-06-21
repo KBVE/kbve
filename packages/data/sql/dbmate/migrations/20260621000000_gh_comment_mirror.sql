@@ -25,14 +25,14 @@ CREATE TABLE IF NOT EXISTS gh.comment_mirror (
     CONSTRAINT gh_comment_mirror_message_pos_chk CHECK (discord_message_id > 0),
     CONSTRAINT gh_comment_mirror_channel_pos_chk CHECK (discord_channel_id > 0),
     CONSTRAINT gh_comment_mirror_github_pos_chk  CHECK (github_comment_id IS NULL OR github_comment_id > 0),
-    CONSTRAINT gh_comment_mirror_author_len_chk  CHECK (author IS NULL OR length(author) <= 256),
+    CONSTRAINT gh_comment_mirror_author_len_chk  CHECK (author IS NULL OR octet_length(author) <= 1024),
     CONSTRAINT gh_comment_mirror_direction_chk
         CHECK (direction IN ('discord_to_github', 'github_to_discord'))
 )
--- Claim retries (claim_expires_at/updated_at) and delete tombstones
--- (deleted_at/updated_at) touch no indexed column → HOT-update eligible; reserve
--- page headroom so they stay HOT and avoid index bloat.
-WITH (fillfactor = 90);
+-- Most rows take one non-HOT finalize (github_comment_id is indexed); only the
+-- rare lease reclaim / tombstone updates are HOT-eligible, so a light 5% reserve
+-- keeps headroom for those without sacrificing page density.
+WITH (fillfactor = 95);
 
 -- Echo guard (is_github_comment_mirrored) + one-comment-one-mapping invariant.
 CREATE UNIQUE INDEX IF NOT EXISTS gh_comment_mirror_github_comment_unique
@@ -92,6 +92,7 @@ AS $$
             SET claim_expires_at = EXCLUDED.claim_expires_at,
                 updated_at       = statement_timestamp()
             WHERE gh.comment_mirror.github_comment_id IS NULL
+              AND gh.comment_mirror.deleted_at IS NULL
               AND COALESCE(gh.comment_mirror.claim_expires_at, '-infinity'::timestamptz)
                   <= statement_timestamp()
         RETURNING TRUE
@@ -177,8 +178,9 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
     UPDATE gh.comment_mirror
-        SET deleted_at = statement_timestamp(),
-            updated_at = statement_timestamp()
+        SET deleted_at       = statement_timestamp(),
+            claim_expires_at = NULL,
+            updated_at       = statement_timestamp()
         WHERE discord_message_id = p_discord_message_id
           AND deleted_at IS NULL
         RETURNING *;
