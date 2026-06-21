@@ -130,6 +130,25 @@ The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally; 
 
 Offline mode keeps the local resolution (gated on `localMode`) so single-player testing works with no server.
 
+## Discord Activity
+
+The game runs as a Discord Activity by reusing the existing web tier — no new app. The game already lives at `kbve.com/arcade/arpg`; the Activity adds a dedicated embed page + a session-exchange backend on `axum-kbve`, and the game WebSocket rides the existing `arpg.kbve.com`.
+
+**Pieces:**
+
+- **Embed page** — `kbve.com/discord/arpg/` (`public/discord/arpg/index.html` + `arpg.js`, built by `nx run astro-kbve:build-arpg-discord` from `src/embed/arpg/discord.tsx`). Boots the Discord SDK, runs OAuth, fetches a session, then mounts `ReactIsoArpgApp` with `embedSession` (skips the Supabase gate + name prompt).
+- **Session backend** — `axum-kbve` `POST /api/v1/discord/session` (and the `/discord/`-prepended variant). Exchanges the OAuth `code` → Discord token → user → linked KBVE profile (fast-registers via GoTrue admin + `tracker.*` RPCs on the shared Supabase DB) → mints the Supabase-valid HS256 JWT the game server accepts. Ported from `axum-cryptothrone`.
+- **Game WS** — the existing `wss://arpg.kbve.com/ws`, reached through a portal URL Mapping `/arpg-game → arpg.kbve.com` (`patchUrlMappings`), so the socket is allowed inside the Activity iframe.
+
+**Portal config (Discord Developer Portal → Activities → URL Mappings):**
+
+| Mapping | Target | Purpose |
+|---------|--------|---------|
+| `/` (root) | `kbve.com/discord/arpg/` | embed page + same-origin `/.proxy/api/v1/discord/session` backend (Discord prepends `/discord` to proxied paths, hence the dual route) |
+| `/arpg-game` | `arpg.kbve.com` | game WebSocket |
+
+**Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (embed):** `PUBLIC_DISCORD_CLIENT_ID` baked in by `vite.arpg-discord.config.mts` — must be set or terser dead-code-eliminates the boot body. Register a separate Discord Activity application pointing its root at `kbve.com/discord/arpg/`.
+
 ### Status
 
-Alpha — endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer. World content (npcdb/itemdb, zones, loot tables) is a follow-up.
+Alpha — endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer; Discord Activity embed + session backend in place (point a Discord app at it once the image is baked). World content (npcdb/itemdb, zones, loot tables) is a follow-up.

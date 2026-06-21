@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
-import { COLORS } from './config';
-import { buildNetConfig } from './net-config';
+import { COLORS, resolveWsUrl } from './config';
+import { buildNetConfig, setNetConfig } from './net-config';
 import {
 	resolvePlayerName,
 	hasSessionName,
@@ -12,7 +12,23 @@ import {
 
 const CONTAINER_ID = 'iso-arpg-inner';
 
-export default function ReactIsoArpgApp() {
+/**
+ * Pre-resolved session for the Discord Activity embed: the embed already ran the
+ * Discord OAuth handshake (minting a Supabase JWT + username via axum-kbve), so
+ * it hands the credentials straight in and skips the Supabase gate + name prompt.
+ */
+export interface ArpgEmbedSession {
+	jwt: string;
+	username: string;
+	/** Game server WebSocket. Defaults to the config WS URL (arpg.kbve.com). */
+	wsUrl?: string;
+}
+
+export default function ReactIsoArpgApp({
+	embedSession,
+}: {
+	embedSession?: ArpgEmbedSession;
+} = {}) {
 	const gameRef = useRef<Phaser.Game | null>(null);
 	// 'loading' while the session resolves, 'prompt' to ask for a name, 'ready'
 	// once the scene should boot.
@@ -32,8 +48,19 @@ export default function ReactIsoArpgApp() {
 	}, []);
 
 	// Resolve session/name: a signed-in username or a previously-saved name
-	// boots straight in; otherwise prompt for a display name first.
+	// boots straight in; otherwise prompt for a display name first. The Discord
+	// Activity embed supplies a ready session (jwt + username) directly, so it
+	// skips both the Supabase gate and the name prompt.
 	useEffect(() => {
+		if (embedSession) {
+			setNetConfig({
+				jwt: embedSession.jwt,
+				username: embedSession.username,
+				wsUrl: embedSession.wsUrl ?? resolveWsUrl(),
+			});
+			setPhase('ready');
+			return;
+		}
 		let cancelled = false;
 		buildNetConfig().finally(() => {
 			if (cancelled) return;
@@ -46,7 +73,7 @@ export default function ReactIsoArpgApp() {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [embedSession]);
 
 	// Boot Phaser once we're in the 'ready' phase.
 	useEffect(() => {

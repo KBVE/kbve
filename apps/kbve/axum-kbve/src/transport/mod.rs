@@ -1,3 +1,4 @@
+pub mod discord_session;
 pub mod forgejo_api;
 pub mod https;
 pub mod ledger;
