@@ -319,6 +319,7 @@
               "options": {
                 "cwd": "apps/cryptothrone/astro-cryptothrone",
                 "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs cryptothrone pull --include='apps/cryptothrone/astro-cryptothrone/public/assets/**') || echo 'cryptothrone LFS pull skipped (no creds / offline) — assets may be pointer stubs'",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
                 ],
                 "parallel": false
@@ -9084,6 +9085,7 @@
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
                 "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/kbve/astro-kbve/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
                 ],
                 "parallel": false
@@ -9158,6 +9160,21 @@
                   "node scripts/generate-osrs-items.mjs",
                   "nx exec -- astro sync",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-arpg-discord": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/public/discord/arpg"
+              ],
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "commands": [
+                  "NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.arpg-discord.config.mts"
                 ],
                 "parallel": false
               },
@@ -9426,6 +9443,9 @@
             },
             "sync:itemdb": {
               "executor": "nx:run-commands",
+              "dependsOn": [
+                "sync:itemdb-uecpp"
+              ],
               "inputs": [
                 "{projectRoot}/src/content/docs/itemdb/*.mdx",
                 "{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",
@@ -11351,6 +11371,78 @@
           ]
         }
       },
+      "observ": {
+        "name": "observ",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/observ",
+          "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/observ/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "observ",
+          "projectType": "library",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/observ/src",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:observability",
+            "npm:telemetry",
+            "npm:errors",
+            "npm:rum",
+            "scope:shared",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Framework-agnostic client telemetry SDK for KBVE — captures JS errors/rejections and ships batched events to the in-house metrics ingest (ClickHouse).",
+            "js": {
+              "packageName": "@kbve/observ",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "astro": {
         "name": "astro",
         "type": "lib",
@@ -13077,33 +13169,9 @@
               "parallelism": true
             },
             "test": {
-              "cache": true,
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "outputs": [
-                "{workspaceRoot}/coverage/packages/npm/laser"
-              ],
-              "metadata": {
-                "technologies": [
-                  "vitest"
-                ],
-                "description": "Run Vitest tests",
-                "help": {
-                  "command": "pnpm exec vitest --help",
-                  "example": {
-                    "options": {
-                      "bail": 1,
-                      "coverage": true
-                    }
-                  }
-                }
-              },
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "packages/npm/laser",
-                "command": "vitest"
+                "command": "vitest run --config packages/npm/laser/vite.config.ts"
               },
               "configurations": {},
               "parallelism": true
@@ -13169,7 +13237,7 @@
             "description": "Phaser + React Three Fiber integration layer for React 19",
             "js": {
               "packageName": "@kbve/laser",
-              "packageVersion": "0.1.2",
+              "packageVersion": "0.1.4",
               "packageExports": {
                 ".": {
                   "import": "./laser.es.js",
@@ -14805,6 +14873,154 @@
           "implicitDependencies": []
         }
       },
+      "met": {
+        "name": "met",
+        "type": "app",
+        "data": {
+          "root": "apps/metrics",
+          "targets": {
+            "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "@monodon/rust:build",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/metrics"
+              },
+              "configurations": {
+                "production": {
+                  "release": true
+                }
+              },
+              "parallelism": true
+            },
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "@monodon/rust:test",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/metrics"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true,
+              "executor": "@monodon/rust:lint",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/metrics"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "run": {
+              "executor": "@monodon/rust:run",
+              "outputs": [
+                "{options.target-dir}"
+              ],
+              "options": {
+                "target-dir": "dist/target/metrics"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "./kbve.sh -nx met:containerx",
+                    "VERSION=$(grep '^version' apps/metrics/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/metrics:latest kbve/metrics:$VERSION && echo \"Tagged kbve/metrics:$VERSION\""
+                  ]
+                },
+                "production": {
+                  "commands": [
+                    "./kbve.sh -nx met:containerx --configuration=production",
+                    "VERSION=$(grep '^version' apps/metrics/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/metrics:latest ghcr.io/kbve/metrics:latest && docker tag kbve/metrics:latest ghcr.io/kbve/metrics:$VERSION && echo \"Tagged ghcr.io/kbve/metrics:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            },
+            "containerx": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/metrics/Dockerfile",
+                "load": true
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/metrics:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "metadata": {
+                    "images": [
+                      "ghcr.io/kbve/metrics",
+                      "kbve/metrics"
+                    ],
+                    "tags": [
+                      "latest"
+                    ]
+                  },
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/metrics:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/metrics:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "met",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/metrics/src",
+          "tags": [
+            "docker",
+            "rust",
+            "metrics"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "pydesk": {
         "name": "pydesk",
         "type": "app",
@@ -15901,6 +16117,7 @@
           "type": "implicit"
         }
       ],
+      "observ": [],
       "astro": [
         {
           "source": "astro",
@@ -15981,6 +16198,7 @@
       "herbmail": [],
       "jobboard": [],
       "mc-lobby": [],
+      "met": [],
       "pydesk": [],
       "memes": [],
       "rows": [],
