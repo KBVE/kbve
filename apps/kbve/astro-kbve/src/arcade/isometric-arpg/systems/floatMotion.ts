@@ -3,6 +3,9 @@ import type { TileXY } from '../iso';
 import {
 	MOVE_ACCEL,
 	MOVE_FRICTION,
+	BODY_RADIUS,
+	COLLISION_SKIN,
+	CENTERLINE_PULL,
 	RECONCILE_LERP,
 	RECONCILE_SNAP_DIST,
 } from '../config';
@@ -88,27 +91,102 @@ export function stepFloat(
 		}
 	}
 
-	moveAxis(s, 'x', s.vel.x * dt, isBlocked);
-	moveAxis(s, 'y', s.vel.y * dt, isBlocked);
+	// Narrow-passage centerline pull (computed before moving so it reads the
+	// pre-move neighbourhood), then per-axis circle-vs-wall resolution.
+	applyCenterlinePull(s, isBlocked, dt);
+
+	// Wall-slide WITHOUT losing speed: if one axis is blocked, the velocity it
+	// would have spent into the wall is redirected along the open (tangent)
+	// axis, so grazing a wall while running keeps full pace instead of dragging.
+	const speedBefore = floatSpeed(s);
+	const blockedX = moveAxis(s, 'x', s.vel.x * dt, isBlocked);
+	const blockedY = moveAxis(s, 'y', s.vel.y * dt, isBlocked);
+
+	if (blockedX !== blockedY && speedBefore > 0.01) {
+		const openAxis: 'x' | 'y' = blockedX ? 'y' : 'x';
+		const openSpeed = Math.abs(s.vel[openAxis]);
+		if (openSpeed > 0.001) {
+			// Re-scale the surviving axis up to the pre-collision speed and
+			// re-advance the leftover distance along the wall this same frame.
+			const sign = Math.sign(s.vel[openAxis]);
+			const extra = (speedBefore - openSpeed) * dt;
+			s.vel[openAxis] = sign * speedBefore;
+			moveAxis(s, openAxis, sign * extra, isBlocked);
+		}
+	}
 }
 
-/** Move one axis, cancelling that axis's velocity if the target tile blocks. */
+/** Tile that a world coordinate falls in (tile centers on integers). */
+const tileAt = (v: number): number => Math.round(v);
+
+/**
+ * Move one axis treating the player as a circle of BODY_RADIUS, not a point.
+ * The leading edge of the circle is tested against every tile row the circle
+ * spans on the other axis; hitting a blocked tile clamps the position so the
+ * circle rests a hair off the wall (keeps a gap — no wall-hugging) and zeroes
+ * only that axis's velocity. Returns true if a wall stopped the move (so the
+ * caller can redirect the lost speed along the open axis).
+ */
 function moveAxis(
 	s: FloatState,
 	axis: 'x' | 'y',
 	delta: number,
 	isBlocked: IsBlocked,
-): void {
-	if (delta === 0) return;
-	const next = { x: s.pos.x, y: s.pos.y };
-	next[axis] += delta;
-	const tx = Math.round(next.x);
-	const ty = Math.round(next.y);
-	if (isBlocked(tx, ty)) {
-		s.vel[axis] = 0;
-		return;
+): boolean {
+	if (delta === 0) return false;
+	const other: 'x' | 'y' = axis === 'x' ? 'y' : 'x';
+	const target = s.pos[axis] + delta;
+	const dir = Math.sign(delta);
+
+	// Leading edge of the circle along the move axis.
+	const edge = target + dir * BODY_RADIUS;
+	const edgeTile = tileAt(edge);
+
+	// Tile rows the circle covers on the perpendicular axis.
+	const o0 = tileAt(s.pos[other] - BODY_RADIUS);
+	const o1 = tileAt(s.pos[other] + BODY_RADIUS);
+
+	for (let o = o0; o <= o1; o++) {
+		const tx = axis === 'x' ? edgeTile : o;
+		const ty = axis === 'x' ? o : edgeTile;
+		if (isBlocked(tx, ty)) {
+			// Rest the circle just short of the wall face (tile face at ±0.5).
+			const wallFace = edgeTile - dir * 0.5;
+			s.pos[axis] = wallFace - dir * (BODY_RADIUS + COLLISION_SKIN);
+			s.vel[axis] = 0;
+			return true;
+		}
 	}
-	s.pos[axis] = next[axis];
+	s.pos[axis] = target;
+	return false;
+}
+
+/**
+ * In a passage only as wide as the body, nudge velocity toward the passage
+ * centerline so the player funnels through doorways/corridors instead of
+ * scraping an edge. Checks the perpendicular neighbours of the current tile: if
+ * one side is wall and the other open, steer away from the wall; the pull is
+ * gentle so the player keeps full directional control.
+ */
+function applyCenterlinePull(
+	s: FloatState,
+	isBlocked: IsBlocked,
+	dt: number,
+): void {
+	if (floatSpeed(s) < 0.01) return;
+	const cx = tileAt(s.pos.x);
+	const cy = tileAt(s.pos.y);
+	const pull = CENTERLINE_PULL * dt;
+
+	// Horizontal confinement (wall on exactly one side) -> ease toward the tile
+	// center on X so the body rides the passage middle.
+	if (isBlocked(cx - 1, cy) !== isBlocked(cx + 1, cy)) {
+		s.pos.x += (cx - s.pos.x) * pull;
+	}
+	// Vertical confinement -> ease toward center on Y.
+	if (isBlocked(cx, cy - 1) !== isBlocked(cx, cy + 1)) {
+		s.pos.y += (cy - s.pos.y) * pull;
+	}
 }
 
 /**
