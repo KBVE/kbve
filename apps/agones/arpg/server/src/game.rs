@@ -1,9 +1,9 @@
-use bevy::prelude::{Commands, Local, Res};
+use bevy::prelude::{Commands, Local, Res, ResMut};
 use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::{
-    AggroSpec, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
-    ground_item_bundle, spawn_npc_from_spec,
+    AggroSpec, EnvOpts, HazardZone, HealAura, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig,
+    Stairs, WalkableMap, ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -39,6 +39,15 @@ pub const GOBLIN_DEFENSE: i32 = 0;
 pub const GOBLIN_TICKS_PER_TILE: u8 = 6;
 pub const HOSTILE_AGGRO_RANGE: i32 = 6;
 
+// Campfire: a placed env object near spawn. Blocks its tile, heals players in the
+// adjacent ring, and burns anything forced onto the tile. Tuning is hardcoded
+// here for the MVP; #12972 will read it from the `campfire` itemdb entry.
+pub const CAMPFIRE_REF: &str = "campfire";
+pub const CAMPFIRE_HEAL_RANGE: i32 = 2;
+pub const CAMPFIRE_HEAL_AMOUNT: i32 = 3;
+pub const CAMPFIRE_BURN_AMOUNT: i32 = 8;
+pub const CAMPFIRE_PERIOD_TICKS: u32 = SIM_TICK_HZ;
+
 /// Ground floor — players spawn here; stairs descend to deeper floors.
 pub const SPAWN_FLOOR: i32 = 0;
 
@@ -71,6 +80,7 @@ pub fn registry() -> KindRegistry {
     reg.register_npc(GOBLIN_REF);
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
+    reg.register_env(CAMPFIRE_REF);
     reg
 }
 
@@ -130,7 +140,12 @@ fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
     })
 }
 
-pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut commands: Commands) {
+pub fn spawn_world(
+    mut done: Local<bool>,
+    registry: Res<KindRegistry>,
+    mut walkable: ResMut<WalkableMap>,
+    mut commands: Commands,
+) {
     if *done {
         return;
     }
@@ -159,6 +174,35 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
     let key_tile = floor_near(Tile::new(spawn.x - 2, spawn.y + 2));
     if let Some(bundle) = ground_item_bundle(&registry, STAIR_KEY_REF, 1, key_tile) {
         commands.spawn(bundle);
+    }
+
+    // A campfire near spawn: blocks its tile, heals the adjacent ring, burns
+    // anything forced onto it. Snap to a floor tile distinct from the player
+    // spawn so no one starts trapped on it.
+    let fire = floor_near(Tile::new(spawn.x + 3, spawn.y - 1));
+    if fire != spawn
+        && spawn_env_object(
+            &mut commands,
+            &registry,
+            CAMPFIRE_REF,
+            fire,
+            EnvOpts {
+                blocker: true,
+                heal_aura: Some(HealAura {
+                    range: CAMPFIRE_HEAL_RANGE,
+                    magnitude: CAMPFIRE_HEAL_AMOUNT,
+                    period_ticks: CAMPFIRE_PERIOD_TICKS,
+                }),
+                hazard: Some(HazardZone {
+                    magnitude: CAMPFIRE_BURN_AMOUNT,
+                    period_ticks: CAMPFIRE_PERIOD_TICKS,
+                }),
+                floor: SPAWN_FLOOR,
+            },
+        )
+        .is_some()
+    {
+        walkable.block_tile_z(SPAWN_FLOOR, fire);
     }
 }
 

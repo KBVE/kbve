@@ -76,6 +76,10 @@ pub struct WalkableMap {
     pub width: i32,
     pub height: i32,
     collision: Collision,
+    /// Dynamically blocked tiles, keyed by `(floor_z, tile)`. Placed env objects
+    /// (campfires, walls) occupy a tile without touching the seed-derived layout,
+    /// so the endless dungeon stays stateless except for what players build.
+    blocked: HashSet<(i32, Tile)>,
 }
 
 impl WalkableMap {
@@ -86,6 +90,7 @@ impl WalkableMap {
             width: w,
             height: h,
             collision: Collision::Bitset(vec![false; (w * h) as usize]),
+            blocked: HashSet::new(),
         }
     }
 
@@ -100,6 +105,7 @@ impl WalkableMap {
             width: w,
             height: w,
             collision: Collision::Dungeon { seed },
+            blocked: HashSet::new(),
         }
     }
 
@@ -112,6 +118,7 @@ impl WalkableMap {
             width: w,
             height: h,
             collision: Collision::Bitset(cells),
+            blocked: HashSet::new(),
         }
     }
 
@@ -200,6 +207,26 @@ impl WalkableMap {
         }
     }
 
+    /// Mark a tile on floor `z` impassable (placed env object). Checked by every
+    /// collision query via `is_walkable_z`, so movement and pathfinding both
+    /// route around it without touching the seed-derived layout.
+    pub fn block_tile_z(&mut self, z: i32, tile: Tile) {
+        self.blocked.insert((z, tile));
+    }
+
+    pub fn unblock_tile_z(&mut self, z: i32, tile: Tile) {
+        self.blocked.remove(&(z, tile));
+    }
+
+    /// Ground-floor convenience for single-floor callers.
+    pub fn block_tile(&mut self, tile: Tile) {
+        self.block_tile_z(0, tile);
+    }
+
+    pub fn unblock_tile(&mut self, tile: Tile) {
+        self.unblock_tile_z(0, tile);
+    }
+
     /// Walkability on the ground floor (z = 0). Single-floor games call this.
     pub fn is_walkable(&self, tile: Tile) -> bool {
         self.is_walkable_z(0, tile)
@@ -208,6 +235,9 @@ impl WalkableMap {
     /// Walkability on dungeon floor `z`. A bitset map is one fixed floor and
     /// ignores `z`; the endless dungeon derives the per-floor layout from `z`.
     pub fn is_walkable_z(&self, z: i32, tile: Tile) -> bool {
+        if self.blocked.contains(&(z, tile)) {
+            return false;
+        }
         match &self.collision {
             Collision::Bitset(cells) => self.index(tile).map(|i| !cells[i]).unwrap_or(false),
             Collision::Dungeon { seed } => crate::arpg_dungeon::is_floor(*seed, z, tile.x, tile.y),
@@ -524,6 +554,19 @@ mod tests {
             m.set_blocked(Tile::new(1, y), true);
         }
         assert!(m.find_path(Tile::new(0, 0), Tile::new(2, 0), 64).is_none());
+    }
+
+    #[test]
+    fn dynamic_block_tile_overlay() {
+        let mut m = WalkableMap::open(5, 5);
+        let t = Tile::new(2, 2);
+        assert!(m.is_walkable_z(0, t));
+        m.block_tile_z(0, t);
+        assert!(!m.is_walkable_z(0, t), "blocked tile impassable");
+        assert!(m.is_walkable_z(1, t), "overlay is per-floor");
+        assert!(m.is_walkable_z(0, Tile::new(2, 1)), "neighbor unaffected");
+        m.unblock_tile_z(0, t);
+        assert!(m.is_walkable_z(0, t), "unblock restores");
     }
 
     #[test]
