@@ -181,15 +181,21 @@ export function registerClassAnims(scene: Phaser.Scene, def: ClassDef): void {
 // South — the rest pose / default facing.
 export const SOUTH_DEG = 180;
 
+// The iso ground is 2:1 (tile width : height). A world delta must be projected
+// to the SAME squashed screen space before taking its angle, or diagonals land
+// off the sheet ticks (the old 1:1 skew put screen-UR at 26.6° instead of ~45°,
+// which is why SW/NW read wrong while NE/SE happened to round correctly).
+const ISO_ASPECT = 0.5; // TILE_H / TILE_W
+
 /**
- * Screen-space facing degrees [0,360) for a tile-space movement delta. The iso
- * projection rotates world axes 45°, so the delta is mapped through the same
- * skew (sx/sy) before atan2. 0°=N (up-screen), increasing clockwise.
+ * Screen-space facing degrees [0,360) for a tile-space delta. Rotate the world
+ * delta 45° into screen axes, THEN apply the 2:1 vertical squash, then atan2.
+ * 0°=N (up-screen), increasing clockwise. Matches the sheet's iso appearance.
  */
 export function facingDegFromDelta(dx: number, dy: number): number {
 	if (dx === 0 && dy === 0) return SOUTH_DEG;
-	const sx = (dx - dy) * 0.5;
-	const sy = (dx + dy) * 0.5;
+	const sx = dx - dy; // screen-x (before half-tile scale, ratio is what matters)
+	const sy = (dx + dy) * ISO_ASPECT; // screen-y, squashed 2:1
 	let deg = (Math.atan2(sx, -sy) * 180) / Math.PI;
 	if (deg < 0) deg += 360;
 	return deg;

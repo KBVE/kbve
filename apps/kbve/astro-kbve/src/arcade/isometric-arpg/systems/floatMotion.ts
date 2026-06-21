@@ -5,6 +5,7 @@ import {
 	MOVE_FRICTION,
 	BODY_RADIUS,
 	COLLISION_SKIN,
+	PROBE_AHEAD,
 	CENTERLINE_PULL,
 	RECONCILE_LERP,
 	RECONCILE_SNAP_DIST,
@@ -67,20 +68,38 @@ export function stepFloat(
 	dtMs: number,
 ): void {
 	const dt = Math.min(dtMs, 50) / 1000; // clamp huge frame gaps
-	const mag = Math.hypot(intent.x, intent.y);
+	let ix = intent.x;
+	let iy = intent.y;
+	const mag = Math.hypot(ix, iy);
 
 	if (mag > 0) {
-		const nx = intent.x / mag;
-		const ny = intent.y / mag;
-		// A sub-unit intent magnitude scales the target speed, so a click-move
-		// eases into its destination (intent shrinks as the body nears it)
-		// instead of charging at full speed and orbiting the goal.
-		const scale = Math.min(mag, 1);
-		const targetVx = nx * speed * scale;
-		const targetVy = ny * speed * scale;
-		const k = Math.min(MOVE_ACCEL * dt, 1);
-		s.vel.x += (targetVx - s.vel.x) * k;
-		s.vel.y += (targetVy - s.vel.y) * k;
+		// Deflect intent along walls BEFORE accelerating: if the component of the
+		// move that pushes into a wall is blocked, drop it from the intent so all
+		// the accel budget goes into the open (tangent) axis. Velocity then
+		// reaches full speed *along* the wall instead of stalling against it —
+		// this is what kills the "edge lag" when grazing a wall.
+		if (ix !== 0 && axisWouldBlock(s, 'x', Math.sign(ix), isBlocked))
+			ix = 0;
+		if (iy !== 0 && axisWouldBlock(s, 'y', Math.sign(iy), isBlocked))
+			iy = 0;
+
+		const dmag = Math.hypot(ix, iy);
+		if (dmag > 0) {
+			const nx = ix / dmag;
+			const ny = iy / dmag;
+			// Sub-unit ORIGINAL intent magnitude still eases a click-move into
+			// its destination; deflection above only changes direction.
+			const scale = Math.min(mag, 1);
+			const targetVx = nx * speed * scale;
+			const targetVy = ny * speed * scale;
+			const k = Math.min(MOVE_ACCEL * dt, 1);
+			s.vel.x += (targetVx - s.vel.x) * k;
+			s.vel.y += (targetVy - s.vel.y) * k;
+		} else {
+			// Pushing straight into a wall with nowhere tangent to go: bleed off.
+			s.vel.x *= Math.max(0, 1 - MOVE_FRICTION * dt);
+			s.vel.y *= Math.max(0, 1 - MOVE_FRICTION * dt);
+		}
 	} else {
 		const decay = Math.max(0, 1 - MOVE_FRICTION * dt);
 		s.vel.x *= decay;
@@ -91,29 +110,35 @@ export function stepFloat(
 		}
 	}
 
-	// Narrow-passage centerline pull (computed before moving so it reads the
-	// pre-move neighbourhood), then per-axis circle-vs-wall resolution.
-	applyCenterlinePull(s, isBlocked, dt);
+	// Intent deflection + circle-slide already keep the body off walls naturally,
+	// so the centerline assist stays OFF by default (it read as magnetised). Flip
+	// CENTERLINE_PULL > 0 and re-enable here only if doorways need extra funnel.
+	if (CENTERLINE_PULL > 0) applyCenterlinePull(s, isBlocked, dt);
+	moveAxis(s, 'x', s.vel.x * dt, isBlocked);
+	moveAxis(s, 'y', s.vel.y * dt, isBlocked);
+}
 
-	// Wall-slide WITHOUT losing speed: if one axis is blocked, the velocity it
-	// would have spent into the wall is redirected along the open (tangent)
-	// axis, so grazing a wall while running keeps full pace instead of dragging.
-	const speedBefore = floatSpeed(s);
-	const blockedX = moveAxis(s, 'x', s.vel.x * dt, isBlocked);
-	const blockedY = moveAxis(s, 'y', s.vel.y * dt, isBlocked);
-
-	if (blockedX !== blockedY && speedBefore > 0.01) {
-		const openAxis: 'x' | 'y' = blockedX ? 'y' : 'x';
-		const openSpeed = Math.abs(s.vel[openAxis]);
-		if (openSpeed > 0.001) {
-			// Re-scale the surviving axis up to the pre-collision speed and
-			// re-advance the leftover distance along the wall this same frame.
-			const sign = Math.sign(s.vel[openAxis]);
-			const extra = (speedBefore - openSpeed) * dt;
-			s.vel[openAxis] = sign * speedBefore;
-			moveAxis(s, openAxis, sign * extra, isBlocked);
-		}
+/**
+ * Peek whether moving the body's circle one frame's reach along `axis` in `dir`
+ * would hit a wall, WITHOUT mutating state. Used to deflect intent before accel
+ * so the player never wastes speed pushing into a wall.
+ */
+function axisWouldBlock(
+	s: FloatState,
+	axis: 'x' | 'y',
+	dir: number,
+	isBlocked: IsBlocked,
+): boolean {
+	const other: 'x' | 'y' = axis === 'x' ? 'y' : 'x';
+	const edgeTile = tileAt(s.pos[axis] + dir * (BODY_RADIUS + PROBE_AHEAD));
+	const o0 = tileAt(s.pos[other] - BODY_RADIUS);
+	const o1 = tileAt(s.pos[other] + BODY_RADIUS);
+	for (let o = o0; o <= o1; o++) {
+		const tx = axis === 'x' ? edgeTile : o;
+		const ty = axis === 'x' ? o : edgeTile;
+		if (isBlocked(tx, ty)) return true;
 	}
+	return false;
 }
 
 /** Tile that a world coordinate falls in (tile centers on integers). */
@@ -143,19 +168,44 @@ function moveAxis(
 	const edgeTile = tileAt(edge);
 
 	// Tile rows the circle covers on the perpendicular axis.
-	const o0 = tileAt(s.pos[other] - BODY_RADIUS);
-	const o1 = tileAt(s.pos[other] + BODY_RADIUS);
+	const center = s.pos[other];
+	const o0 = tileAt(center - BODY_RADIUS);
+	const o1 = tileAt(center + BODY_RADIUS);
 
 	for (let o = o0; o <= o1; o++) {
 		const tx = axis === 'x' ? edgeTile : o;
 		const ty = axis === 'x' ? o : edgeTile;
-		if (isBlocked(tx, ty)) {
-			// Rest the circle just short of the wall face (tile face at ±0.5).
-			const wallFace = edgeTile - dir * 0.5;
-			s.pos[axis] = wallFace - dir * (BODY_RADIUS + COLLISION_SKIN);
-			s.vel[axis] = 0;
-			return true;
+		if (!isBlocked(tx, ty)) continue;
+
+		// Distinguish a flat wall face from a convex corner: the corner tile is
+		// blocked but the tile orthogonally between the body's center row and it
+		// is OPEN (the body is only clipping the tile's corner, not its face).
+		const faceRow = tileAt(center);
+		const cornerOnly =
+			o !== faceRow &&
+			!isBlocked(
+				axis === 'x' ? edgeTile : faceRow,
+				axis === 'x' ? faceRow : edgeTile,
+			);
+
+		if (cornerOnly) {
+			// Round the corner: instead of stopping the axis, push the body
+			// perpendicular away from the corner so the circle slides past it.
+			// `o` is the corner row; nudge `other` toward the open side.
+			const cornerEdge = o - Math.sign(o - faceRow) * 0.5; // near tile face
+			const overlap =
+				BODY_RADIUS - Math.abs(cornerEdge - center) + COLLISION_SKIN;
+			if (overlap > 0) {
+				s.pos[other] -= Math.sign(o - faceRow) * overlap;
+			}
+			continue; // let the axis move proceed — we slid around the corner
 		}
+
+		// Flat wall face: rest the circle just short of it and stop this axis.
+		const wallFace = edgeTile - dir * 0.5;
+		s.pos[axis] = wallFace - dir * (BODY_RADIUS + COLLISION_SKIN);
+		s.vel[axis] = 0;
+		return true;
 	}
 	s.pos[axis] = target;
 	return false;
@@ -173,19 +223,25 @@ function applyCenterlinePull(
 	isBlocked: IsBlocked,
 	dt: number,
 ): void {
-	if (floatSpeed(s) < 0.01) return;
+	const sp = floatSpeed(s);
+	if (sp < 0.01) return;
 	const cx = tileAt(s.pos.x);
 	const cy = tileAt(s.pos.y);
 	const pull = CENTERLINE_PULL * dt;
 
-	// Horizontal confinement (wall on exactly one side) -> ease toward the tile
-	// center on X so the body rides the passage middle.
-	if (isBlocked(cx - 1, cy) !== isBlocked(cx + 1, cy)) {
-		s.pos.x += (cx - s.pos.x) * pull;
-	}
-	// Vertical confinement -> ease toward center on Y.
-	if (isBlocked(cx, cy - 1) !== isBlocked(cx, cy + 1)) {
-		s.pos.y += (cy - s.pos.y) * pull;
+	// Only assist the axis PERPENDICULAR to travel, and only in a true corridor
+	// (walls on BOTH sides of that axis). This keeps the body off corridor walls
+	// when walking down it, without yanking at open room edges where one side
+	// just happens to border a wall.
+	const movingX = Math.abs(s.vel.x) > Math.abs(s.vel.y);
+	if (movingX) {
+		if (isBlocked(cx, cy - 1) && isBlocked(cx, cy + 1)) {
+			s.pos.y += (cy - s.pos.y) * pull;
+		}
+	} else {
+		if (isBlocked(cx - 1, cy) && isBlocked(cx + 1, cy)) {
+			s.pos.x += (cx - s.pos.x) * pull;
+		}
 	}
 }
 
