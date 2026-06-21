@@ -1,4 +1,5 @@
 pub mod blackjack;
+pub mod combat;
 pub mod data;
 pub mod dungeon;
 pub mod grid;

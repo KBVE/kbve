@@ -13,6 +13,7 @@ use tokio::sync::mpsc;
 use tokio::time;
 
 use crate::blackjack;
+use crate::combat;
 use crate::data::KindRegistry;
 use crate::grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
 use crate::net::Roster;
@@ -1229,7 +1230,7 @@ fn apply_actions(
                 else {
                     continue;
                 };
-                if attacker_tile.chebyshev(mob_pos.tile) > 1 {
+                if !combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
                     continue;
                 }
                 let base = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
