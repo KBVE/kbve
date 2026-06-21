@@ -1,3 +1,4 @@
+pub mod arpg_dungeon;
 pub mod blackjack;
 pub mod combat;
 pub mod data;

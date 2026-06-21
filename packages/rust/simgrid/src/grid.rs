@@ -55,11 +55,21 @@ struct GridTilemapJson {
     blocked: Vec<bool>,
 }
 
+/// How a [`WalkableMap`] answers collision. A finite `Bitset` (Tiled / mapdb /
+/// bounded dungeon) or an infinite `Dungeon` computed on demand from a seed —
+/// the ARPG endless world stores nothing, so only tiles entities actually visit
+/// are ever evaluated.
+#[derive(Clone)]
+enum Collision {
+    Bitset(Vec<bool>),
+    Dungeon { seed: u32 },
+}
+
 #[derive(Resource, Clone)]
 pub struct WalkableMap {
     pub width: i32,
     pub height: i32,
-    blocked: Vec<bool>,
+    collision: Collision,
 }
 
 impl WalkableMap {
@@ -69,7 +79,21 @@ impl WalkableMap {
         Self {
             width: w,
             height: h,
-            blocked: vec![false; (w * h) as usize],
+            collision: Collision::Bitset(vec![false; (w * h) as usize]),
+        }
+    }
+
+    /// An endless ARPG dungeon: collision is the pure `arpg_dungeon::is_floor`
+    /// function of the seed, so the map is unbounded and costs no memory. The
+    /// `width`/`height` only bound `find_path`'s BFS window (path search needs a
+    /// frontier cap); movement itself has no edges. The client reproduces the
+    /// identical layout from the same seed.
+    pub fn arpg_dungeon(seed: u32, path_window: i32) -> Self {
+        let w = path_window.max(1);
+        Self {
+            width: w,
+            height: w,
+            collision: Collision::Dungeon { seed },
         }
     }
 
@@ -81,8 +105,12 @@ impl WalkableMap {
         Self {
             width: w,
             height: h,
-            blocked: cells,
+            collision: Collision::Bitset(cells),
         }
+    }
+
+    fn is_dungeon(&self) -> bool {
+        matches!(self.collision, Collision::Dungeon { .. })
     }
 
     /// Load from a mapdb GridTilemap JSON (proto-canonical). The collision
@@ -138,33 +166,58 @@ impl WalkableMap {
     }
 
     pub fn in_bounds(&self, tile: Tile) -> bool {
+        // An endless dungeon has no edges — every tile is "in bounds"; only the
+        // floor/wall test (is_walkable) gates movement.
+        if self.is_dungeon() {
+            return true;
+        }
         tile.x >= 0 && tile.y >= 0 && tile.x < self.width && tile.y < self.height
     }
 
     fn index(&self, tile: Tile) -> Option<usize> {
-        if self.in_bounds(tile) {
-            Some((tile.y * self.width + tile.x) as usize)
-        } else {
-            None
+        match &self.collision {
+            Collision::Bitset(_) if self.in_bounds(tile) => {
+                Some((tile.y * self.width + tile.x) as usize)
+            }
+            _ => None,
         }
     }
 
     pub fn set_blocked(&mut self, tile: Tile, value: bool) {
-        if let Some(i) = self.index(tile) {
-            self.blocked[i] = value;
+        if let Collision::Bitset(cells) = &mut self.collision
+            && tile.x >= 0
+            && tile.y >= 0
+            && tile.x < self.width
+            && tile.y < self.height
+        {
+            cells[(tile.y * self.width + tile.x) as usize] = value;
         }
     }
 
     pub fn is_walkable(&self, tile: Tile) -> bool {
-        self.index(tile).map(|i| !self.blocked[i]).unwrap_or(false)
+        match &self.collision {
+            Collision::Bitset(cells) => self.index(tile).map(|i| !cells[i]).unwrap_or(false),
+            Collision::Dungeon { seed } => crate::arpg_dungeon::is_floor(*seed, tile.x, tile.y),
+        }
     }
 
     pub fn find_path(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
-        if from == to || !self.is_walkable(to) || !self.in_bounds(from) {
+        if from == to || !self.is_walkable(to) || !self.is_walkable(from) {
             return None;
         }
+        match &self.collision {
+            Collision::Bitset(_) => self.find_path_bitset(from, to, max_len),
+            Collision::Dungeon { .. } => self.find_path_open(from, to, max_len),
+        }
+    }
+
+    /// BFS over the finite bitset (indexable grid, prev[] keyed by cell index).
+    fn find_path_bitset(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
         let start = self.index(from)?;
         let goal = self.index(to)?;
+        let Collision::Bitset(cells) = &self.collision else {
+            return None;
+        };
 
         let mut prev: Vec<i32> = vec![-1; (self.width * self.height) as usize];
         prev[start] = start as i32;
@@ -176,7 +229,7 @@ impl WalkableMap {
             for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
                 let next = Tile::new(cx + dx, cy + dy);
                 let Some(ni) = self.index(next) else { continue };
-                if prev[ni] >= 0 || self.blocked[ni] {
+                if prev[ni] >= 0 || cells[ni] {
                     continue;
                 }
                 prev[ni] = cur as i32;
@@ -195,6 +248,61 @@ impl WalkableMap {
         while cur != start {
             path.push(Tile::new(cur as i32 % self.width, cur as i32 / self.width));
             cur = prev[cur] as usize;
+            if path.len() > max_len {
+                return None;
+            }
+        }
+        path.reverse();
+        Some(path)
+    }
+
+    /// BFS over the open/infinite dungeon: no global index, so the frontier is
+    /// bounded by `max_len` steps and a chebyshev window around the endpoints
+    /// (a sane cap on an unbounded grid). `prev` is a coord map, not a flat
+    /// array. Endpoints proven walkable by the caller.
+    fn find_path_open(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
+        use std::collections::HashMap;
+
+        // Search a box around the two endpoints with a margin so the route can
+        // bow out around a wall without escaping to infinity.
+        let margin = (self.width / 2).max(8);
+        let min_x = from.x.min(to.x) - margin;
+        let max_x = from.x.max(to.x) + margin;
+        let min_y = from.y.min(to.y) - margin;
+        let max_y = from.y.max(to.y) + margin;
+        let in_window = |t: Tile| t.x >= min_x && t.x <= max_x && t.y >= min_y && t.y <= max_y;
+
+        let mut prev: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
+        prev.insert((from.x, from.y), (from.x, from.y));
+        let mut queue = VecDeque::from([from]);
+        let mut found = false;
+
+        'search: while let Some(cur) = queue.pop_front() {
+            for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
+                let next = Tile::new(cur.x + dx, cur.y + dy);
+                if !in_window(next) || prev.contains_key(&(next.x, next.y)) {
+                    continue;
+                }
+                if !self.is_walkable(next) {
+                    continue;
+                }
+                prev.insert((next.x, next.y), (cur.x, cur.y));
+                if next == to {
+                    found = true;
+                    break 'search;
+                }
+                queue.push_back(next);
+            }
+        }
+
+        if !found {
+            return None;
+        }
+        let mut path = Vec::new();
+        let mut cur = (to.x, to.y);
+        while cur != (from.x, from.y) {
+            path.push(Tile::new(cur.0, cur.1));
+            cur = *prev.get(&cur)?;
             if path.len() > max_len {
                 return None;
             }

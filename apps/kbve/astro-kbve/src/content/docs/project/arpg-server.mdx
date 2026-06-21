@@ -41,6 +41,84 @@ status: beta
 
 The browser client lives at `apps/kbve/astro-kbve/src/arcade/isometric-arpg/` and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9).
 
+### Layout
+
+```
+apps/agones/arpg/server/
+├── Cargo.toml         # package manifest (path-dep to ../../../../packages/rust/simgrid)
+├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache); no webkit stage
+├── project.json       # nx build / run / container targets
+├── version.toml       # ci-publish version sentinel
+└── src/
+    ├── main.rs        # tokio entry + Agones lifecycle + graceful shutdown
+    ├── agones.rs      # Agones SDK heartbeat
+    ├── dungeon.rs     # seeded room-corridor generator (mirrors client systems/dungeon.ts)
+    └── game.rs        # ARPG spawn config (player tile, wandering hostiles)
+```
+
+## Build
+
+```bash
+nx run arpg-server:build-release
+```
+
+Or directly:
+
+```bash
+cargo build --release -p arpg-server
+```
+
+Release binary lands at `dist/target/release/arpg-server`.
+
+## Container
+
+```bash
+nx run arpg-server:container
+```
+
+Drops `kbve/arpg-server:latest` + version tag. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/arpg-server:buildcache`) on the shared `ghcr.io/kbve/chisel-ubuntu-axum` base. Default listen `0.0.0.0:7979` (override via `ARPG_SERVER_ADDR`).
+
+## Sim core
+
+Shares the `simgrid` crate (`packages/rust/simgrid`): postcard/JSON wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers ARPG spawn systems into `simgrid`'s ordered `SimSet` stages; transport and movement stay generic. The dungeon generator is **shared logic** — the server must produce the identical floor set the client's `systems/dungeon.ts` does for a given `DUNGEON_SEED`, so collision agrees on both sides (Mulberry32 PRNG, domain-separated per-chunk seeds, `CHUNK_SIZE=20`). Server is authoritative for occupancy; client predicts.
+
+## Wire protocol
+
+Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9). The client wire surface (`@kbve/laser` `GameClient`) is already complete; the server must answer it.
+
+### Client → server
+
+| Frame | Sent when | Server duty |
+|-------|-----------|-------------|
+| `Join { jwt, kbve_username }` | on socket open | verify JWT (dev-accept fallback), admit to a roster slot, reply `Welcome` |
+| `Step { dir }` | float body crosses a tile line | validate one cardinal tile move vs occupancy, advance the player |
+| `MoveTo { tile }` | left-click destination | server-side pathfind/route the player toward `tile` (or accept as intent) |
+| `Action { id, target }` | attack | resolve combat for action `id` (`ACTION_ATTACK`) against entity `target` |
+| `Face { facing }` | aim turn | record 16-dir facing so remote clients render the right pose |
+| `Heartbeat`, `Leave` | keepalive / disconnect | liveness + slot release |
+
+### Server → client
+
+| Event | Carries | Client handler |
+|-------|---------|----------------|
+| `Welcome` | `your_slot`, kind `registry` | seed registry + slot |
+| `Snapshot` | players (slot→username), entities (eid, kind, tile, owner, hp, max_hp) | `applyEntitySync` + `reconcileFloat` |
+| `Ephemeral(Combat)` | target eid, dmg, crit | floating damage + flash |
+| `Ephemeral(Projectile)` | shooter, origin, dir, kind | **spawn the arrow visual from the server**, not a local tween |
+| `Ephemeral(Stats / Pickup / ...)` | per-event | follow-up (loot, inventory) |
+
+## Client refactor contract
+
+The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally. Before the server lands, the client must hand authority back. Tracked gaps from the sync audit:
+
+1. **Single position truth.** `floatState` is the only client position. `applySnapshot` reconciles the server tile *into* the float via `reconcileFloat`; drop the parallel `predicted`/`setPos` self path in `netSync` so two reconcilers don't race (current `drift > 2` snap vs `RECONCILE_SNAP_DIST` lerp).
+2. **Combat over the wire.** `fireBowAt` must send `action(ACTION_ATTACK, target)` with the **real target eid**, not `myEid` (self). Remove the duplicate `action` on click-attack (currently fires twice: once at the hit, once self-targeted via `fireBowAt`).
+3. **Server-driven projectiles.** The arrow visual is spawned from the `Projectile` ephemeral, not a client tween. `applyLocalHit` and the client damage number are gated behind `if (this.localMode)` — server `Combat` events own HP in multiplayer.
+4. **Facing sync.** Call `client.face(facing)` when the 16-dir aim changes so remote players render the correct stance.
+5. **Subscribe `projectile` / `stats` / `pickup`** on `GameClient` alongside `combat`.
+
+Offline mode keeps the local resolution (gated on `localMode`) so single-player testing works with no server.
+
 ### Status
 
-Alpha — minimal walkable world (open grid + one hostile kind) to prove end-to-end multiplayer. World content (npcdb/itemdb, zones, loot tables) is a follow-up.
+Alpha — minimal walkable world (seeded dungeon + one hostile kind) to prove end-to-end multiplayer. Server-shared dungeon gen and the client authority handoff above land first; world content (npcdb/itemdb, zones, loot tables) is a follow-up.
