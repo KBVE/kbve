@@ -83,7 +83,9 @@ import {
 	clearHud,
 	emitInventory,
 	emitInventoryOpen,
+	onInventoryIntent,
 	type HudMap,
+	type InventoryIntent,
 } from './systems/hud';
 
 const HUD_MAP_SIZE = 33;
@@ -118,6 +120,12 @@ const LOCAL_PLAYER_KIND = 1;
 // real game is server-authoritative; this only runs when localMode is set.
 const LOCAL_ITEM_KIND = 2;
 const LOCAL_ITEM_EID_BASE = 1000;
+// Offline dropped items get eids well above the seeded-loot range to avoid
+// colliding with LOCAL_LOOT (LOCAL_ITEM_EID_BASE + index).
+const LOCAL_DROP_EID_OFFSET = 1000;
+// After a drop, suppress walk-over auto-pickup briefly so the item doesn't
+// bounce straight back into the inventory.
+const DROP_PICKUP_GRACE_MS = 1200;
 const LOCAL_LOOT: ReadonlyArray<{
 	ref: string;
 	count: number;
@@ -206,6 +214,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	private pickupSent = new Set<number>();
 	// Full inventory panel open state (toggled with I).
 	private inventoryOpen = false;
+	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
+	private offIntent?: () => void;
+	// Monotonic counter for offline dropped-item eids.
+	private localDropSeq = 0;
+	// Scene-time (ms) until which walk-over auto-pickup is suspended after a drop.
+	private pickupSuspendUntil = 0;
 	// Offline-only ground loot (server eid -> ref/count/tile). Empty online.
 	private localItems = new Map<
 		number,
@@ -253,6 +267,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			loop: true,
 			callback: () => this.client?.heartbeat(),
 		});
+
+		this.offIntent = onInventoryIntent((intent) =>
+			this.handleInventoryIntent(intent),
+		);
 
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
 	}
@@ -672,10 +690,66 @@ export class IsoArpgScene extends Phaser.Scene {
 		emitInventory(this.inventory);
 	}
 
+	// HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder
+	// two slots. The HUD is purely presentational; the scene owns the client +
+	// offline sim, so all mutations route through here.
+	private handleInventoryIntent(intent: InventoryIntent): void {
+		switch (intent.type) {
+			case 'use':
+				this.useInventorySlot(intent.index);
+				break;
+			case 'drop':
+				this.dropInventorySlot(intent.index);
+				break;
+			case 'reorder':
+				this.reorderInventory(intent.from, intent.to);
+				break;
+		}
+	}
+
+	// Move slot `from` to index `to`, shifting the rest. The server owns slot
+	// order (persisted), so online we send MoveItem and apply the same splice
+	// optimistically — the authoritative refresh confirms it. Offline the splice
+	// is the source of truth.
+	private reorderInventory(from: number, to: number): void {
+		const n = this.inventory.length;
+		if (from < 0 || from >= n || to < 0 || to >= n || from === to) return;
+		this.client?.moveItem(from, to);
+		const next = this.inventory.slice();
+		const [moved] = next.splice(from, 1);
+		next.splice(to, 0, moved);
+		this.inventory = next;
+		emitInventory(this.inventory);
+	}
+
+	// Drop the whole stack in slot `idx` to the floor at the player's tile. The
+	// brief pickup-suspend stops walk-over auto-pickup from instantly grabbing it
+	// back (both online and offline share the same auto-pickup loop).
+	private dropInventorySlot(idx: number): void {
+		const item = this.inventory[idx];
+		if (!item) return;
+		this.pickupSuspendUntil = this.time.now + DROP_PICKUP_GRACE_MS;
+		if (this.client) {
+			this.client.dropItem(item.ref, item.count);
+			this.inventory = this.inventory.filter((_, i) => i !== idx);
+			emitInventory(this.inventory);
+			return;
+		}
+		if (!this.localMode) return;
+		const me = floatTile(this.floatState);
+		const tile = this.dungeon.nearestFloor({ x: me.x, y: me.y });
+		const eid =
+			LOCAL_ITEM_EID_BASE + LOCAL_DROP_EID_OFFSET + this.localDropSeq++;
+		this.spawnLocalItem(eid, item.ref, item.count, tile);
+		this.inventory = this.inventory.filter((_, i) => i !== idx);
+		emitInventory(this.inventory);
+	}
+
 	// Walk-over pickup: any ground item within one tile is grabbed automatically.
 	// The server validates proximity, despawns the item, and broadcasts the
 	// updated inventory; pickupSent dedupes until the despawn round-trips back.
 	private tryAutoPickup(): void {
+		if (this.time.now < this.pickupSuspendUntil) return;
 		const me = floatTile(this.floatState);
 		if (this.client) {
 			for (const sid of this.store.serverIdsWith('item')) {
@@ -863,10 +937,17 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (moving) this.hudHeadingDeg = facingDegFromDelta(vel.x, vel.y);
 
 		const tile = floatTile(this.floatState);
+		const maxHp = this.store.maxHp(this.myEid);
 		emitHud({
 			name: this.localPlayerName(),
 			hp: this.store.hp(this.myEid),
-			maxHp: this.store.maxHp(this.myEid),
+			maxHp,
+			mp: maxHp,
+			maxMp: maxHp,
+			ep: maxHp,
+			maxEp: maxHp,
+			sp: maxHp,
+			maxSp: maxHp,
 			headingDeg: this.hudHeadingDeg,
 			moving,
 			fps: Math.round(this.game.loop.actualFps),
@@ -1392,6 +1473,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private teardown() {
+		this.offIntent?.();
+		this.offIntent = undefined;
 		this.client?.close();
 		this.client = null;
 		clearHud();

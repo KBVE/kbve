@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, DragEvent, ReactNode } from 'react';
 import { arpgAsset } from './config';
 
 export const PANELS = {
@@ -19,6 +19,14 @@ interface PixelPanelProps {
 	slice?: number;
 	scale?: number;
 	repeat?: 'stretch' | 'repeat' | 'round' | 'space';
+	onClick?: () => void;
+	onDoubleClick?: () => void;
+	title?: string;
+	draggable?: boolean;
+	onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
+	onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
+	onDrop?: (e: DragEvent<HTMLDivElement>) => void;
+	onDragEnd?: (e: DragEvent<HTMLDivElement>) => void;
 }
 
 /**
@@ -38,6 +46,14 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 			slice = 8,
 			scale = 2,
 			repeat = 'stretch',
+			onClick,
+			onDoubleClick,
+			title,
+			draggable,
+			onDragStart,
+			onDragOver,
+			onDrop,
+			onDragEnd,
 		},
 		ref,
 	) {
@@ -46,6 +62,14 @@ export const PixelPanel = forwardRef<HTMLDivElement, PixelPanelProps>(
 			<div
 				ref={ref}
 				className={className}
+				onClick={onClick}
+				onDoubleClick={onDoubleClick}
+				title={title}
+				draggable={draggable}
+				onDragStart={onDragStart}
+				onDragOver={onDragOver}
+				onDrop={onDrop}
+				onDragEnd={onDragEnd}
 				style={{
 					borderStyle: 'solid',
 					borderWidth: slice * scale,

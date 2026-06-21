@@ -18,6 +18,12 @@ export interface HudState {
 	name: string;
 	hp: number;
 	maxHp: number;
+	mp: number;
+	maxMp: number;
+	ep: number;
+	maxEp: number;
+	sp: number;
+	maxSp: number;
 	headingDeg: number;
 	moving: boolean;
 	fps: number;
@@ -43,6 +49,49 @@ export function onInventory(
 	handler: (items: InventoryItem[]) => void,
 ): () => void {
 	return laserEvents.on(INVENTORY_EVENT, handler as (data: unknown) => void);
+}
+
+/** Player-driven inventory actions emitted by the HUD, handled by the scene
+ * (which owns the authoritative client / offline sim). */
+export type InventoryIntent =
+	| { type: 'use'; index: number }
+	| { type: 'drop'; index: number }
+	| { type: 'reorder'; from: number; to: number };
+
+export const INVENTORY_INTENT_EVENT = 'arpg:inventory:intent';
+
+export function emitInventoryIntent(intent: InventoryIntent): void {
+	laserEvents.emit(INVENTORY_INTENT_EVENT, intent);
+}
+
+export function onInventoryIntent(
+	handler: (intent: InventoryIntent) => void,
+): () => void {
+	return laserEvents.on(
+		INVENTORY_INTENT_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+/** A global HUD tooltip request. `null` hides it; otherwise anchor it at the
+ * viewport point and render the lines. Driven by hover/touch on HUD widgets. */
+export interface TooltipState {
+	x: number;
+	y: number;
+	title: string;
+	lines: string[];
+}
+
+export const TOOLTIP_EVENT = 'arpg:tooltip';
+
+export function emitTooltip(state: TooltipState | null): void {
+	laserEvents.emit(TOOLTIP_EVENT, state);
+}
+
+export function onTooltip(
+	handler: (state: TooltipState | null) => void,
+): () => void {
+	return laserEvents.on(TOOLTIP_EVENT, handler as (data: unknown) => void);
 }
 
 export const INVENTORY_OPEN_EVENT = 'arpg:inventory:open';

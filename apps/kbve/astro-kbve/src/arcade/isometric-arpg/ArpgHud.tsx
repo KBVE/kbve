@@ -4,6 +4,7 @@ import {
 	useRef,
 	useState,
 	type CSSProperties,
+	type DragEvent,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
@@ -13,11 +14,16 @@ import {
 	onHudClear,
 	onInventory,
 	onInventoryOpen,
+	emitInventoryIntent,
+	emitTooltip,
+	onTooltip,
 	type HudState,
 	type HudMap,
+	type TooltipState,
 } from './systems/hud';
 import type { InventoryItem } from '@kbve/laser';
 import { PixelPanel } from './PixelPanel';
+import { loadItemMeta, rarityColor, type ItemMeta } from './entities/itemMeta';
 
 const ACCENT = '#fcd34d';
 const TEXT = '#e6ebf5';
@@ -95,12 +101,28 @@ function Anchor({
  * character's WALK direction, not the cursor. Panels use the transparent
  * 9-slice PixelPanel family so the scene shows through.
  */
+function useItemMeta(): Map<string, ItemMeta> {
+	const [meta, setMeta] = useState<Map<string, ItemMeta>>(() => new Map());
+	useEffect(() => {
+		let alive = true;
+		void loadItemMeta().then((m) => {
+			if (alive) setMeta(m);
+		});
+		return () => {
+			alive = false;
+		};
+	}, []);
+	return meta;
+}
+
 export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 	const [hud, setHud] = useState<HudState | null>(null);
 	const [inv, setInv] = useState<InventoryItem[]>([]);
 	const [open, setOpen] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
 	const scale = useHudScale(rootRef);
+	const meta = useItemMeta();
+	const dnd = useInventoryDnd(inv.length);
 
 	useEffect(() => {
 		const off = onHud(setHud);
@@ -134,7 +156,7 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 			{hud && (
 				<>
 					<Anchor corner="tl" scale={scale}>
-						<Vitals name={hud.name} hp={hud.hp} maxHp={hud.maxHp} />
+						<Vitals hud={hud} />
 					</Anchor>
 					<Anchor corner="tr" scale={scale}>
 						<MinimapSlot
@@ -149,8 +171,10 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 							moving={hud.moving}
 						/>
 					</Anchor>
-					<InventoryBar items={inv} />
-					{open && <InventoryPanel items={inv} />}
+					<InventoryBar items={inv} meta={meta} dnd={dnd} />
+					{open && (
+						<InventoryPanel items={inv} meta={meta} dnd={dnd} />
+					)}
 					{debug && (
 						<Anchor corner="bl" scale={scale}>
 							<DebugReadout fps={hud.fps} tile={hud.tile} />
@@ -158,24 +182,205 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 					)}
 				</>
 			)}
+			<Tooltip />
 		</div>
 	);
 }
 
 /**
- * Bottom-center inventory bar. Each slot shows the item ref + stack count and its
- * 1-9 hotkey; pressing the number (handled in the scene) uses that item. Purely
- * presentational — the server-authoritative inventory drives it via `arpg:inventory`.
+ * Global HUD tooltip. Any widget can summon it via `emitTooltip` (hover or touch);
+ * it floats near the pointer, clamped into the viewport, and clears on
+ * leave/touch-end. Single instance so widgets stay presentational.
+ */
+function Tooltip(): ReactElement | null {
+	const [tip, setTip] = useState<TooltipState | null>(null);
+	useEffect(() => onTooltip(setTip), []);
+	if (!tip) return null;
+	const left = Math.min(tip.x + 14, window.innerWidth - 150);
+	const top = Math.min(tip.y + 14, window.innerHeight - 90);
+	return (
+		<div
+			style={{
+				position: 'fixed',
+				left,
+				top,
+				zIndex: 40,
+				pointerEvents: 'none',
+			}}>
+			<PixelPanel
+				variant="slate"
+				scale={2}
+				style={{ padding: '6px 9px' }}>
+				<div
+					style={{
+						fontSize: 11,
+						fontWeight: 700,
+						color: ACCENT,
+						textShadow: TEXT_SHADOW,
+						marginBottom: 3,
+						whiteSpace: 'nowrap',
+					}}>
+					{tip.title}
+				</div>
+				{tip.lines.map((l, i) => (
+					<div
+						key={i}
+						style={{
+							fontSize: 10,
+							color: i === 0 ? TEXT : MUTED,
+							textShadow: TEXT_SHADOW,
+							whiteSpace: 'nowrap',
+						}}>
+						{l}
+					</div>
+				))}
+			</PixelPanel>
+		</div>
+	);
+}
+
+interface SlotDnd {
+	draggable: boolean;
+	onDragStart: (e: DragEvent<HTMLDivElement>) => void;
+	onDragOver: (e: DragEvent<HTMLDivElement>) => void;
+	onDrop: (e: DragEvent<HTMLDivElement>) => void;
+}
+
+interface InventoryDnd {
+	drag: number | null;
+	floorHot: boolean;
+	slotProps: (i: number, hasItem: boolean) => SlotDnd;
+	floorProps: {
+		onDragOver: (e: DragEvent<HTMLDivElement>) => void;
+		onDragLeave: () => void;
+		onDrop: (e: DragEvent<HTMLDivElement>) => void;
+	};
+	outsideDrop: (e: DragEvent<HTMLDivElement>) => void;
+	endDrag: () => void;
+}
+
+/**
+ * One drag session shared across the hotbar and the open panel so a stack can be
+ * dragged from either surface to either surface (reorder) or onto the floor strip
+ * / released outside (drop). All mutations go out as `arpg:inventory:intent`;
+ * the scene applies them (server-authoritative slot order online).
+ */
+function useInventoryDnd(itemCount: number): InventoryDnd {
+	const [drag, setDrag] = useState<number | null>(null);
+	const [floorHot, setFloorHot] = useState(false);
+	const endDrag = () => {
+		setDrag(null);
+		setFloorHot(false);
+	};
+	const dropToFloor = (index: number | null) => {
+		if (index != null) emitInventoryIntent({ type: 'drop', index });
+		endDrag();
+	};
+	return {
+		drag,
+		floorHot,
+		endDrag,
+		slotProps: (i, hasItem) => ({
+			draggable: hasItem,
+			onDragStart: (e) => {
+				setDrag(i);
+				e.dataTransfer.effectAllowed = 'move';
+				e.dataTransfer.setData('text/plain', String(i));
+			},
+			onDragOver: (e) => {
+				if (drag != null) e.preventDefault();
+			},
+			onDrop: (e) => {
+				e.preventDefault();
+				if (drag != null && drag !== i) {
+					const to = Math.min(i, itemCount - 1);
+					emitInventoryIntent({ type: 'reorder', from: drag, to });
+				}
+				endDrag();
+			},
+		}),
+		floorProps: {
+			onDragOver: (e) => {
+				if (drag != null) {
+					e.preventDefault();
+					setFloorHot(true);
+				}
+			},
+			onDragLeave: () => setFloorHot(false),
+			onDrop: (e) => {
+				e.preventDefault();
+				dropToFloor(drag);
+			},
+		},
+		outsideDrop: (e) => {
+			if (drag != null && e.dataTransfer.dropEffect === 'none') {
+				dropToFloor(drag);
+			} else {
+				endDrag();
+			}
+		},
+	};
+}
+
+/** Item glyph: the itemdb img sprite if present, else its emoji, else a stack
+ * of the ref's initials — so a slot is always recognizable. */
+function ItemIcon({
+	meta,
+	ref,
+	size,
+}: {
+	meta?: ItemMeta;
+	ref: string;
+	size: number;
+}): ReactElement {
+	if (meta?.img) {
+		return (
+			<img
+				src={meta.img}
+				alt={meta.name ?? ref}
+				width={size}
+				height={size}
+				style={{ imageRendering: 'pixelated', display: 'block' }}
+			/>
+		);
+	}
+	if (meta?.emoji) {
+		return (
+			<span style={{ fontSize: size, lineHeight: 1 }}>{meta.emoji}</span>
+		);
+	}
+	return (
+		<span
+			style={{
+				fontSize: size * 0.5,
+				fontWeight: 700,
+				color: MUTED,
+				textShadow: TEXT_SHADOW,
+			}}>
+			{ref.slice(0, 2).toUpperCase()}
+		</span>
+	);
+}
+
+/**
+ * Bottom-center inventory bar. Each slot shows the item icon, name + stack count
+ * and its 1-9 hotkey; pressing the number (handled in the scene) uses that item.
+ * Presentational — the server-authoritative inventory drives it via `arpg:inventory`.
  */
 function InventoryBar({
 	items,
+	meta,
+	dnd,
 }: {
 	items: InventoryItem[];
+	meta: Map<string, ItemMeta>;
+	dnd: InventoryDnd;
 }): ReactElement | null {
 	if (items.length === 0) return null;
 	const slots = items.slice(0, 9);
 	return (
 		<div
+			onDragEnd={dnd.endDrag}
 			style={{
 				position: 'absolute',
 				bottom: 14,
@@ -184,56 +389,105 @@ function InventoryBar({
 				display: 'flex',
 				gap: 6,
 			}}>
-			{slots.map((it, i) => (
-				<PixelPanel
-					key={it.ref}
-					variant="slate"
-					scale={2}
-					style={{
-						minWidth: 58,
-						padding: '5px 8px 7px',
-						textAlign: 'center',
-					}}>
-					<div
+			{slots.map((it, i) => {
+				const m = meta.get(it.ref);
+				const slot = dnd.slotProps(i, true);
+				return (
+					<PixelPanel
+						key={it.ref}
+						variant="slate"
+						scale={2}
+						onClick={() =>
+							emitInventoryIntent({ type: 'use', index: i })
+						}
+						title={`Use ${m?.name ?? it.ref} · drag to organize`}
+						draggable={slot.draggable}
+						onDragStart={slot.onDragStart}
+						onDragOver={slot.onDragOver}
+						onDrop={slot.onDrop}
 						style={{
-							fontSize: 9,
-							color: ACCENT,
-							textShadow: TEXT_SHADOW,
-							opacity: 0.85,
+							minWidth: 58,
+							padding: '5px 8px 7px',
+							textAlign: 'center',
+							pointerEvents: 'auto',
+							cursor: 'grab',
+							opacity: dnd.drag === i ? 0.4 : 1,
 						}}>
-						{i + 1}
-					</div>
-					<div
-						style={{
-							fontSize: 10,
-							color: TEXT,
-							textShadow: TEXT_SHADOW,
-						}}>
-						{it.ref}
-					</div>
-					<div
-						style={{
-							fontSize: 11,
-							fontWeight: 700,
-							color: ACCENT,
-							textShadow: TEXT_SHADOW,
-						}}>
-						×{it.count}
-					</div>
-				</PixelPanel>
-			))}
+						<div
+							style={{
+								fontSize: 9,
+								color: ACCENT,
+								textShadow: TEXT_SHADOW,
+								opacity: 0.85,
+							}}>
+							{i + 1}
+						</div>
+						<div
+							style={{
+								height: 22,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}>
+							<ItemIcon meta={m} ref={it.ref} size={20} />
+						</div>
+						<div
+							style={{
+								fontSize: 9,
+								color: rarityColor(m?.rarity),
+								textShadow: TEXT_SHADOW,
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								maxWidth: 58,
+							}}>
+							{m?.name ?? it.ref}
+						</div>
+						<div
+							style={{
+								fontSize: 11,
+								fontWeight: 700,
+								color: ACCENT,
+								textShadow: TEXT_SHADOW,
+							}}>
+							×{it.count}
+						</div>
+					</PixelPanel>
+				);
+			})}
 		</div>
 	);
 }
 
+const GRID_COLS = 6;
+const MIN_SLOTS = 24;
+
 /**
- * Full inventory window, toggled with the I key (Escape closes). Centered grid of
- * every held item; the first nine show their 1-9 hotkey. The hotbar stays visible
- * underneath. Server-authoritative via `arpg:inventory`.
+ * Full inventory window, toggled with the I key (Escape closes). A fixed grid of
+ * slots: items fill from the top-left in inventory order. Drag a slot onto
+ * another to reorder; drag a slot onto the floor strip (or release outside any
+ * slot) to drop the stack to the ground; double-click a slot to use it. The
+ * hotbar stays visible underneath. Driven by `arpg:inventory`; mutations are
+ * dispatched as `arpg:inventory:intent` for the scene to apply.
  */
-function InventoryPanel({ items }: { items: InventoryItem[] }): ReactElement {
+function InventoryPanel({
+	items,
+	meta,
+	dnd,
+}: {
+	items: InventoryItem[];
+	meta: Map<string, ItemMeta>;
+	dnd: InventoryDnd;
+}): ReactElement {
+	const { drag, floorHot } = dnd;
+	const slotCount = Math.max(
+		MIN_SLOTS,
+		Math.ceil(items.length / GRID_COLS) * GRID_COLS,
+	);
+
 	return (
 		<div
+			onDragEnd={dnd.outsideDrop}
 			style={{
 				position: 'absolute',
 				inset: 0,
@@ -246,7 +500,7 @@ function InventoryPanel({ items }: { items: InventoryItem[] }): ReactElement {
 			<PixelPanel
 				variant="gold"
 				scale={3}
-				style={{ width: 360, padding: '14px 16px 18px' }}>
+				style={{ width: 380, padding: '14px 16px 18px' }}>
 				<div
 					style={{
 						fontSize: 14,
@@ -259,37 +513,50 @@ function InventoryPanel({ items }: { items: InventoryItem[] }): ReactElement {
 					}}>
 					Inventory
 				</div>
-				{items.length === 0 ? (
-					<div
-						style={{
-							color: MUTED,
-							textShadow: TEXT_SHADOW,
-							textAlign: 'center',
-							fontSize: 11,
-							padding: '18px 0',
-						}}>
-						Empty — walk over loot to pick it up.
-					</div>
-				) : (
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(4, 1fr)',
-							gap: 8,
-						}}>
-						{items.map((it, i) => (
+				<div
+					style={{
+						display: 'grid',
+						gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+						gap: 6,
+					}}>
+					{Array.from({ length: slotCount }, (_, i) => {
+						const it = items[i];
+						const m = it ? meta.get(it.ref) : undefined;
+						const isDragging = drag === i;
+						const slot = dnd.slotProps(i, !!it);
+						return (
 							<div
-								key={it.ref}
+								key={i}
+								draggable={slot.draggable}
+								title={it ? (m?.name ?? it.ref) : undefined}
+								onDragStart={slot.onDragStart}
+								onDragOver={slot.onDragOver}
+								onDrop={slot.onDrop}
+								onDoubleClick={() => {
+									if (it)
+										emitInventoryIntent({
+											type: 'use',
+											index: i,
+										});
+								}}
 								style={{
 									position: 'relative',
-									minHeight: 54,
-									padding: '8px 4px',
+									minHeight: 64,
+									padding: '6px 4px',
 									borderRadius: 4,
-									background: 'rgba(0,0,0,0.35)',
-									border: '1px solid rgba(120,140,180,0.35)',
+									background: it
+										? 'rgba(0,0,0,0.35)'
+										: 'rgba(0,0,0,0.18)',
+									border: `1px solid ${
+										it
+											? `${rarityColor(m?.rarity)}55`
+											: 'rgba(120,140,180,0.18)'
+									}`,
 									textAlign: 'center',
+									cursor: it ? 'grab' : 'default',
+									opacity: isDragging ? 0.4 : 1,
 								}}>
-								{i < 9 && (
+								{it && i < 9 && (
 									<span
 										style={{
 											position: 'absolute',
@@ -303,111 +570,323 @@ function InventoryPanel({ items }: { items: InventoryItem[] }): ReactElement {
 										{i + 1}
 									</span>
 								)}
-								<div
-									style={{
-										fontSize: 10,
-										color: TEXT,
-										textShadow: TEXT_SHADOW,
-										marginTop: 6,
-										wordBreak: 'break-word',
-									}}>
-									{it.ref}
-								</div>
-								<div
-									style={{
-										fontSize: 11,
-										fontWeight: 700,
-										color: ACCENT,
-										textShadow: TEXT_SHADOW,
-									}}>
-									×{it.count}
-								</div>
+								{it && (
+									<>
+										<div
+											style={{
+												height: 24,
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+												marginTop: 4,
+											}}>
+											<ItemIcon
+												meta={m}
+												ref={it.ref}
+												size={22}
+											/>
+										</div>
+										<div
+											style={{
+												fontSize: 8,
+												color: rarityColor(m?.rarity),
+												textShadow: TEXT_SHADOW,
+												marginTop: 3,
+												wordBreak: 'break-word',
+											}}>
+											{m?.name ?? it.ref}
+										</div>
+										<div
+											style={{
+												fontSize: 10,
+												fontWeight: 700,
+												color: ACCENT,
+												textShadow: TEXT_SHADOW,
+											}}>
+											×{it.count}
+										</div>
+									</>
+								)}
 							</div>
-						))}
-					</div>
-				)}
+						);
+					})}
+				</div>
+
+				<div
+					onDragOver={dnd.floorProps.onDragOver}
+					onDragLeave={dnd.floorProps.onDragLeave}
+					onDrop={dnd.floorProps.onDrop}
+					style={{
+						marginTop: 10,
+						padding: '8px 0',
+						borderRadius: 4,
+						border: `1px dashed ${floorHot ? '#f87171' : 'rgba(160,120,120,0.5)'}`,
+						background: floorHot
+							? 'rgba(248,113,113,0.18)'
+							: 'rgba(0,0,0,0.2)',
+						color: floorHot ? '#fca5a5' : MUTED,
+						textShadow: TEXT_SHADOW,
+						textAlign: 'center',
+						fontSize: 10,
+					}}>
+					🗑 Drag here to drop to the floor
+				</div>
+
 				<div
 					style={{
-						marginTop: 12,
+						marginTop: 10,
 						fontSize: 9,
 						color: MUTED,
 						textShadow: TEXT_SHADOW,
 						textAlign: 'center',
 						opacity: 0.8,
 					}}>
-					I / Esc to close · 1-9 to use
+					{items.length === 0
+						? 'Empty — walk over loot to pick it up.'
+						: 'Drag to reorder · double-click to use · 1-9 hotkeys'}
 				</div>
 			</PixelPanel>
 		</div>
 	);
 }
 
-function Vitals({
-	name,
-	hp,
-	maxHp,
-}: {
+interface OrbStat {
+	label: string;
 	name: string;
-	hp: number;
-	maxHp: number;
-}) {
-	const pct = maxHp > 0 ? Math.max(0, Math.min(1, hp / maxHp)) : 0;
-	const barColor = pct > 0.5 ? '#4ade80' : pct > 0.25 ? '#facc15' : '#f87171';
+	cur: number;
+	max: number;
+	/** [bright, mid, deep] fluid gradient stops. */
+	fluid: [string, string, string];
+}
+
+/**
+ * Diablo-style vitals: a name plate over a 2×2 cluster of glass orbs — HP/MP/EP/SP
+ * — each a globe with a fluid level that rises and falls with the stat percentage.
+ * HP is server-authoritative; MP/EP/SP are placeholder-full until their resource
+ * pools are wired through the ECS + netSync (they read off `hud` already so it's a
+ * one-line swap once the server sends them).
+ */
+function Vitals({ hud }: { hud: HudState }) {
+	const phase = useWavePhase();
+	const orbs: OrbStat[] = [
+		{
+			label: 'HP',
+			name: 'Health',
+			cur: hud.hp,
+			max: hud.maxHp,
+			fluid: ['#fb7185', '#ef4444', '#7f1d1d'],
+		},
+		{
+			label: 'MP',
+			name: 'Mana',
+			cur: hud.mp,
+			max: hud.maxMp,
+			fluid: ['#60a5fa', '#3b82f6', '#1e3a8a'],
+		},
+		{
+			label: 'EP',
+			name: 'Energy',
+			cur: hud.ep,
+			max: hud.maxEp,
+			fluid: ['#fde047', '#eab308', '#854d0e'],
+		},
+		{
+			label: 'SP',
+			name: 'Stamina',
+			cur: hud.sp,
+			max: hud.maxSp,
+			fluid: ['#4ade80', '#22c55e', '#14532d'],
+		},
+	];
 	return (
-		<PixelPanel
-			variant="gold"
-			scale={2}
-			style={{
-				width: 212,
-				padding: '8px 11px 10px',
-			}}>
+		<PixelPanel variant="gold" scale={2} style={{ padding: '7px 8px' }}>
 			<div
 				style={{
 					display: 'flex',
-					alignItems: 'baseline',
-					justifyContent: 'space-between',
-					marginBottom: 7,
+					flexDirection: 'row',
+					gap: 6,
 				}}>
-				<span
-					style={{
-						fontSize: 13,
-						fontWeight: 700,
-						color: ACCENT,
-						textShadow: TEXT_SHADOW,
-						letterSpacing: 0.4,
-					}}>
-					{name}
-				</span>
-				<span
-					style={{
-						fontSize: 10,
-						color: MUTED,
-						textShadow: TEXT_SHADOW,
-					}}>
-					{Math.round(hp)}/{Math.round(maxHp)}
-				</span>
-			</div>
-			<div
-				style={{
-					position: 'relative',
-					height: 10,
-					borderRadius: 5,
-					background: 'rgba(0,0,0,0.55)',
-					overflow: 'hidden',
-					boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.7)',
-				}}>
-				<div
-					style={{
-						position: 'absolute',
-						inset: 0,
-						width: `${pct * 100}%`,
-						background: `linear-gradient(180deg, ${barColor}, ${barColor}cc)`,
-						boxShadow: `0 0 6px ${barColor}88`,
-						transition: 'width 140ms ease-out, background 200ms',
-					}}
-				/>
+				{orbs.map((o, i) => (
+					<StatOrb key={o.label} phase={phase + i * 1.7} {...o} />
+				))}
 			</div>
 		</PixelPanel>
+	);
+}
+
+const ORB_PX = 54;
+const WAVE_AMP = 2.2;
+
+/**
+ * Shared liquid-surface clock. One rAF loop advances a phase all orbs read from
+ * (offset per orb) so their waves ripple out of sync without four timers. Pauses
+ * when the tab is hidden via the browser throttling rAF.
+ */
+function useWavePhase(): number {
+	const [phase, setPhase] = useState(0);
+	useEffect(() => {
+		let raf = 0;
+		let start = 0;
+		const tick = (t: number) => {
+			if (!start) start = t;
+			setPhase(((t - start) / 1000) * 2.2);
+			raf = requestAnimationFrame(tick);
+		};
+		raf = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(raf);
+	}, []);
+	return phase;
+}
+
+/** SVG path of a wavy fluid surface filling the orb up to `level` (y of the
+ * resting waterline), with two summed sines for an organic ripple. */
+function fluidPath(level: number, phase: number): string {
+	const steps = 10;
+	let d = `M 0 ${ORB_PX}`;
+	for (let i = 0; i <= steps; i++) {
+		const x = (i / steps) * ORB_PX;
+		const y =
+			level +
+			Math.sin(phase + (i / steps) * Math.PI * 2) * WAVE_AMP +
+			Math.sin(phase * 1.6 + (i / steps) * Math.PI * 4) *
+				(WAVE_AMP * 0.4);
+		d += ` L ${x.toFixed(2)} ${y.toFixed(2)}`;
+	}
+	d += ` L ${ORB_PX} ${ORB_PX} Z`;
+	return d;
+}
+
+/**
+ * A single glass globe. The fluid is a clipped body whose wavy top surface ripples
+ * via a shared rAF phase and rises/falls with the stat percentage; over it sit a
+ * glossy specular highlight, an inner rim shadow for depth, and a glass rim stroke.
+ */
+function StatOrb({
+	label,
+	name,
+	cur,
+	max,
+	fluid,
+	phase,
+}: OrbStat & { phase: number }) {
+	const pct = max > 0 ? Math.max(0, Math.min(1, cur / max)) : 0;
+	const r = ORB_PX / 2;
+	const level = ORB_PX * (1 - pct);
+	const clipId = useMemo(() => `orb-${fluid[1].replace('#', '')}`, [fluid]);
+	const path = pct > 0 ? fluidPath(level, phase) : '';
+
+	const show = (e: { clientX: number; clientY: number }) => {
+		emitTooltip({
+			x: e.clientX,
+			y: e.clientY,
+			title: name,
+			lines: [
+				`${Math.round(cur)} / ${Math.round(max)}`,
+				`${Math.round(pct * 100)}%`,
+			],
+		});
+	};
+	const hide = () => emitTooltip(null);
+
+	return (
+		<svg
+			width={ORB_PX}
+			height={ORB_PX}
+			viewBox={`0 0 ${ORB_PX} ${ORB_PX}`}
+			onPointerEnter={show}
+			onPointerMove={show}
+			onPointerLeave={hide}
+			onTouchStart={(e) => {
+				const t = e.touches[0];
+				if (t) show({ clientX: t.clientX, clientY: t.clientY });
+			}}
+			onTouchEnd={hide}
+			style={{
+				display: 'block',
+				overflow: 'visible',
+				pointerEvents: 'auto',
+				cursor: 'pointer',
+			}}>
+			<defs>
+				<clipPath id={clipId}>
+					<circle cx={r} cy={r} r={r - 1.5} />
+				</clipPath>
+				<radialGradient id={`${clipId}-g`} cx="50%" cy="35%" r="75%">
+					<stop offset="0%" stopColor={fluid[0]} />
+					<stop offset="55%" stopColor={fluid[1]} />
+					<stop offset="100%" stopColor={fluid[2]} />
+				</radialGradient>
+			</defs>
+			<circle cx={r} cy={r} r={r - 1.5} fill="rgba(6,9,16,0.78)" />
+			<g clipPath={`url(#${clipId})`}>
+				{pct > 0 && (
+					<>
+						<path d={path} fill={`url(#${clipId}-g)`} />
+						<path
+							d={path}
+							fill="none"
+							stroke={fluid[0]}
+							strokeWidth={1.5}
+							opacity={0.85}
+						/>
+					</>
+				)}
+				<ellipse
+					cx={r * 0.68}
+					cy={r * 0.5}
+					rx={r * 0.5}
+					ry={r * 0.3}
+					fill="rgba(255,255,255,0.32)"
+				/>
+				<circle
+					cx={r}
+					cy={r}
+					r={r - 1.5}
+					fill="none"
+					stroke="rgba(0,0,0,0.55)"
+					strokeWidth={3}
+				/>
+			</g>
+			<circle
+				cx={r}
+				cy={r}
+				r={r - 1.5}
+				fill="none"
+				stroke="rgba(180,200,230,0.55)"
+				strokeWidth={1.5}
+			/>
+			<text
+				x={r}
+				y={r - 2}
+				fill={TEXT}
+				fontSize={10}
+				fontWeight={700}
+				fontFamily="monospace"
+				textAnchor="middle"
+				dominantBaseline="central"
+				style={{
+					paintOrder: 'stroke',
+					stroke: 'rgba(0,0,0,0.85)',
+					strokeWidth: 2.5,
+				}}>
+				{label}
+			</text>
+			<text
+				x={r}
+				y={r + 10}
+				fill={MUTED}
+				fontSize={8}
+				fontFamily="monospace"
+				textAnchor="middle"
+				dominantBaseline="central"
+				style={{
+					paintOrder: 'stroke',
+					stroke: 'rgba(0,0,0,0.85)',
+					strokeWidth: 2,
+				}}>
+				{Math.round(cur)}
+			</text>
+		</svg>
 	);
 }
 
