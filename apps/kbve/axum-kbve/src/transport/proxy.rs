@@ -2385,14 +2385,27 @@ pub fn init_guacamole_proxy() -> bool {
 }
 
 pub async fn guacamole_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
-    match GUACAMOLE.get() {
-        Some(proxy) => proxy.handle(path, req).await,
-        None => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            axum::Json(json!({"error": "Guacamole proxy not configured"})),
-        )
-            .into_response(),
+    let proxy = match GUACAMOLE.get() {
+        Some(p) => p,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "Guacamole proxy not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Guacamole").await
+    {
+        return resp;
     }
+
+    proxy.handle_preauthorized(path, req).await
 }
 
 /// Bridges the browser WebSocket to `/guacamole/websocket-tunnel`. The
@@ -2407,7 +2420,7 @@ pub async fn guacamole_ws_handler(
     let query = req.uri().query().map(|q| q.to_string());
 
     if let Err(resp) =
-        require_dashboard_view_with_query(&headers, query.as_deref(), "Guacamole-WS").await
+        require_dashboard_manage_with_query(&headers, query.as_deref(), "Guacamole-WS").await
     {
         return resp;
     }

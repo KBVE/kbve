@@ -99,8 +99,8 @@ spec:
                                 key: rcon-password
                   resources:
                       requests:
-                          memory: '256Mi'
+                          memory: '384Mi'
                           cpu: '100m'
                       limits:
-                          memory: '512Mi'
+                          memory: '1Gi'
                           cpu: '500m'
