@@ -27,6 +27,8 @@ import {
 	Users,
 	X,
 	UserPlus,
+	BookMarked,
+	BookPlus,
 } from 'lucide-react';
 
 const { textColor, subText, border, panelBg } = uiTokens;
@@ -240,15 +242,19 @@ function CreateTeamModal({
 function TeamRow({ org, team }: { org: string; team: ForgejoTeam }) {
 	const busy = useStore(forgejoService.$busy);
 	const membersMap = useStore(forgejoService.$teamMembers);
+	const reposMap = useStore(forgejoService.$teamRepos);
 	const [open, setOpen] = useState(false);
 	const [newMember, setNewMember] = useState('');
+	const [newRepo, setNewRepo] = useState('');
 	const members = membersMap[team.id];
+	const repos = reposMap[team.id];
 
 	const toggle = () => {
 		const next = !open;
 		setOpen(next);
 		if (next && members === undefined)
 			forgejoService.loadTeamMembers(team.id);
+		if (next && repos === undefined) forgejoService.loadTeamRepos(team.id);
 	};
 
 	return (
@@ -378,6 +384,121 @@ function TeamRow({ org, team }: { org: string; team: ForgejoTeam }) {
 							}}>
 							<UserPlus size={12} /> Add
 						</ActionButton>
+					</div>
+
+					<div
+						style={{
+							marginTop: 12,
+							paddingTop: 10,
+							borderTop: border,
+						}}>
+						<div
+							style={{
+								fontSize: '0.68rem',
+								fontWeight: 600,
+								color: subText,
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								marginBottom: 8,
+							}}>
+							Repositories
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 6,
+								marginBottom: 8,
+							}}>
+							{(repos ?? []).map((r) => (
+								<div
+									key={r.id}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: 8,
+										fontSize: '0.8rem',
+										color: textColor,
+									}}>
+									<BookMarked
+										size={12}
+										style={{ color: subText }}
+									/>
+									<span style={{ flex: 1 }}>
+										{r.name}
+										{r.private && (
+											<span
+												style={{
+													color: subText,
+													fontSize: '0.68rem',
+													marginLeft: 6,
+												}}>
+												private
+											</span>
+										)}
+									</span>
+									<ActionButton
+										size="sm"
+										variant="danger"
+										loading={
+											busy ===
+											`team-repo-remove-${team.id}-${r.name}`
+										}
+										onClick={() =>
+											forgejoService.removeTeamRepo(
+												team.id,
+												org,
+												r.name,
+											)
+										}>
+										<X size={11} />
+									</ActionButton>
+								</div>
+							))}
+							{repos && repos.length === 0 && (
+								<span
+									style={{
+										color: subText,
+										fontSize: '0.78rem',
+									}}>
+									No repositories assigned.
+								</span>
+							)}
+						</div>
+						<div style={{ display: 'flex', gap: 6 }}>
+							<input
+								value={newRepo}
+								onChange={(e) => setNewRepo(e.target.value)}
+								placeholder="repository name"
+								style={{
+									flex: 1,
+									padding: '0.3rem 0.5rem',
+									borderRadius: 6,
+									border,
+									background: 'var(--sl-color-bg, #0d1117)',
+									color: textColor,
+									fontSize: '0.78rem',
+								}}
+							/>
+							<ActionButton
+								size="sm"
+								variant="primary"
+								disabled={!newRepo}
+								loading={
+									busy ===
+									`team-repo-add-${team.id}-${newRepo}`
+								}
+								onClick={async () => {
+									await forgejoService.addTeamRepo(
+										team.id,
+										org,
+										newRepo,
+									);
+									setNewRepo('');
+								}}>
+								<BookPlus size={12} /> Add
+							</ActionButton>
+						</div>
 					</div>
 				</div>
 			)}
