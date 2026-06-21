@@ -1,0 +1,298 @@
+import { memo, useMemo } from 'react';
+import type { ReactElement } from 'react';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import {
+	ErrorState,
+	LoadingState,
+	Stack,
+	Text,
+	VirtualList,
+	tokens,
+} from '../ui';
+import { StatGrid } from './StatGrid';
+import { useStream, useStreamLifecycle } from './useStream';
+import type { StreamFilter, StreamLens, StreamStore } from './types';
+
+const TONE_COLOR: Record<string, string> = {
+	primary: tokens.color.primary,
+	success: tokens.color.success,
+	danger: tokens.color.danger,
+	warning: tokens.color.warning,
+	neutral: tokens.color.textMuted,
+};
+
+type Row =
+	| { kind: 'header'; key: string; label: string }
+	| { kind: 'item'; key: string; item: unknown; expanded: boolean };
+
+interface RowProps {
+	row: Row;
+	lens: StreamLens<unknown>;
+	layout: 'rows' | 'cards';
+	onToggle: (key: string) => void;
+}
+
+const StreamRow = memo(
+	function StreamRow({ row, lens, layout, onToggle }: RowProps) {
+		if (row.kind === 'header') {
+			return (
+				<Text variant="label" tone="muted" style={styles.groupHeader}>
+					{row.label}
+				</Text>
+			);
+		}
+		const render = layout === 'cards' && lens.card ? lens.card : lens.row;
+		return (
+			<View>
+				<Pressable onPress={() => onToggle(row.key)}>
+					{render(row.item, row.expanded)}
+				</Pressable>
+				{row.expanded && lens.detail ? (
+					<View style={styles.detail}>{lens.detail(row.item)}</View>
+				) : null}
+			</View>
+		);
+	},
+	(a, b) =>
+		a.lens === b.lens &&
+		a.layout === b.layout &&
+		a.onToggle === b.onToggle &&
+		rowEqual(a.row, b.row),
+);
+
+// Compare row CONTENT, not the wrapper identity — buildRows produces fresh
+// wrappers each poll, but a reconciled item keeps its ref, so this lets an
+// unchanged row skip re-render while only flipped/expanded rows update.
+function rowEqual(a: Row, b: Row): boolean {
+	if (a.kind !== b.kind || a.key !== b.key) return false;
+	if (a.kind === 'item' && b.kind === 'item') {
+		return a.item === b.item && a.expanded === b.expanded;
+	}
+	if (a.kind === 'header' && b.kind === 'header') {
+		return a.label === b.label;
+	}
+	return false;
+}
+
+function FilterChips({
+	filters,
+	active,
+	onPick,
+}: {
+	filters: readonly StreamFilter<unknown>[];
+	active: string | null;
+	onPick: (id: string | null) => void;
+}) {
+	return (
+		<Stack direction="row" gap="sm" wrap>
+			{filters.map((f) => {
+				const on = active === f.id;
+				const tone =
+					TONE_COLOR[f.tone ?? 'primary'] ?? tokens.color.primary;
+				return (
+					<Pressable
+						key={f.id}
+						onPress={() => onPick(on ? null : f.id)}
+						style={[
+							styles.chip,
+							{ borderColor: tone },
+							on ? { backgroundColor: tone } : null,
+						]}>
+						<Text
+							variant="caption"
+							weight="medium"
+							style={{
+								color: on ? tokens.color.onPrimary : tone,
+							}}>
+							{f.label}
+						</Text>
+					</Pressable>
+				);
+			})}
+		</Stack>
+	);
+}
+
+export interface StreamViewProps<TItem> {
+	store: StreamStore<TItem>;
+	lens: StreamLens<TItem>;
+	layout?: 'rows' | 'cards';
+	searchPlaceholder?: string;
+}
+
+export function StreamView<TItem>({
+	store,
+	lens,
+	layout = 'rows',
+	searchPlaceholder = 'Filter…',
+}: StreamViewProps<TItem>): ReactElement {
+	useStreamLifecycle(store);
+	const state = useStream(store);
+
+	const visible = useMemo(() => {
+		const q = state.search.trim().toLowerCase();
+		const filter = lens.filters?.find((f) => f.id === state.filterId);
+		let items = state.items;
+		if (filter) items = items.filter(filter.predicate);
+		if (q && lens.searchText) {
+			items = items.filter((it) =>
+				lens.searchText!(it).toLowerCase().includes(q),
+			);
+		}
+		return items;
+	}, [state.items, state.search, state.filterId, lens]);
+
+	const rows = useMemo(
+		() => buildRows(visible, state.expandedId, state.groupKey, store, lens),
+		[visible, state.expandedId, state.groupKey, store, lens],
+	);
+
+	if (state.loading && state.items.length === 0) {
+		return <LoadingState label="Loading…" />;
+	}
+	if (state.error && state.items.length === 0) {
+		return (
+			<ErrorState
+				message={state.error}
+				onRetry={() => void store.refresh()}
+			/>
+		);
+	}
+
+	const stats = lens.stats?.(state.items) ?? [];
+	const lensU = lens as unknown as StreamLens<unknown>;
+
+	return (
+		<Stack gap="md">
+			{stats.length ? <StatGrid stats={stats} /> : null}
+
+			<Stack direction="row" gap="sm" align="center" wrap>
+				{lens.filters?.length ? (
+					<FilterChips
+						filters={
+							lens.filters as readonly StreamFilter<unknown>[]
+						}
+						active={state.filterId}
+						onPick={store.setFilter}
+					/>
+				) : null}
+				{lens.searchText ? (
+					<TextInput
+						value={state.search}
+						onChangeText={store.setSearch}
+						placeholder={searchPlaceholder}
+						placeholderTextColor={tokens.color.textFaint}
+						style={styles.search}
+					/>
+				) : null}
+			</Stack>
+
+			<VirtualList
+				data={rows}
+				keyExtractor={(r) => r.key}
+				extraData={`${state.expandedId}:${state.groupKey}`}
+				renderItem={({ item }) => (
+					<StreamRow
+						row={item}
+						lens={lensU}
+						layout={layout}
+						onToggle={store.toggleExpanded}
+					/>
+				)}
+				ItemSeparatorComponent={Separator}
+				ListEmptyComponent={EmptyRow}
+			/>
+		</Stack>
+	);
+}
+
+function buildRows<TItem>(
+	items: TItem[],
+	expandedId: string | null,
+	groupKey: string | null,
+	store: StreamStore<TItem>,
+	lens: StreamLens<TItem>,
+): Row[] {
+	if (!groupKey || !lens.group) {
+		return items.map((it) => {
+			const key = store.id(it);
+			return {
+				kind: 'item',
+				key,
+				item: it,
+				expanded: expandedId === key,
+			};
+		});
+	}
+
+	const buckets = new Map<string, TItem[]>();
+	for (const it of items) {
+		const g = lens.group(it) || '—';
+		const arr = buckets.get(g) ?? [];
+		arr.push(it);
+		buckets.set(g, arr);
+	}
+	const out: Row[] = [];
+	for (const [label, bucket] of [...buckets.entries()].sort((a, b) =>
+		a[0].localeCompare(b[0]),
+	)) {
+		out.push({ kind: 'header', key: `h:${label}`, label });
+		for (const it of bucket) {
+			const key = store.id(it);
+			out.push({
+				kind: 'item',
+				key,
+				item: it,
+				expanded: expandedId === key,
+			});
+		}
+	}
+	return out;
+}
+
+function Separator() {
+	return <View style={styles.separator} />;
+}
+
+function EmptyRow() {
+	return (
+		<Text variant="caption" tone="muted" style={styles.empty}>
+			Nothing matches the current filter
+		</Text>
+	);
+}
+
+const styles = StyleSheet.create({
+	groupHeader: {
+		marginTop: tokens.space.sm,
+		textTransform: 'uppercase',
+		letterSpacing: 0.5,
+	},
+	detail: {
+		marginTop: tokens.space.xs,
+		padding: tokens.space.md,
+		backgroundColor: tokens.color.surfaceAlt,
+		borderRadius: tokens.radius.lg,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	chip: {
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 4,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+	},
+	search: {
+		flexGrow: 1,
+		minWidth: 160,
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 6,
+		color: tokens.color.text,
+		backgroundColor: tokens.color.surface,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	separator: { height: tokens.space.sm },
+	empty: { padding: tokens.space.lg, textAlign: 'center' },
+});
