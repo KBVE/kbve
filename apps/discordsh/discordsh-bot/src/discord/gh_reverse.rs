@@ -38,18 +38,36 @@ async fn github_client_for(app: &Arc<AppState>, guild_id: u64) -> Option<GitHubC
 
 /// A human reply in a synced issue thread → a GitHub issue comment.
 ///
-/// Guards: not bot-authored (echo), reverse-sync enabled, the channel is a
-/// tracked forum thread mapped to a `gh.issue`, the message's guild matches the
-/// mapped guild, a guild PAT resolves, and the message has not already been
-/// mirrored (idempotency claim). Any failure logs + returns; it never panics
-/// and never blocks the forward sync or IRC relay.
+/// Guards (cheapest first, DB lookup last): reverse-sync enabled + store
+/// configured; not bot-authored / not a webhook (echo); a regular/reply message
+/// (not a system/thread-created notice); in a guild; non-empty payload; the
+/// channel is a tracked forum thread mapped to a `gh.issue`; the message's guild
+/// matches the mapped guild; a guild PAT resolves; and the message has not
+/// already been mirrored (lease-based idempotency claim). Any failure logs +
+/// returns; it never panics and never blocks the forward sync or IRC relay.
 pub async fn handle_reverse_message(message: &serenity::Message, app: &Arc<AppState>) {
-    if !reverse_enabled() || !app.github_store.is_enabled() || message.author.bot {
+    if !reverse_enabled() || !app.github_store.is_enabled() {
+        return;
+    }
+    // Echo guard: our own forward posts, other bots, and webhook deliveries.
+    if message.author.bot || message.webhook_id.is_some() {
+        return;
+    }
+    // Only mirror real user content — skip system notices (thread created,
+    // pins, joins, etc.).
+    if !matches!(
+        message.kind,
+        serenity::MessageType::Regular | serenity::MessageType::InlineReply
+    ) {
         return;
     }
     let Some(guild_id) = message.guild_id else {
         return;
     };
+    // Skip empty payloads before paying for a thread→issue lookup.
+    if message.content.trim().is_empty() && message.attachments.is_empty() {
+        return;
+    }
 
     let thread_id = message.channel_id.get() as i64;
     let issue = match app.github_store.get_issue_by_thread_id(thread_id).await {

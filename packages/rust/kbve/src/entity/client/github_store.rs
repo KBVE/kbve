@@ -139,6 +139,11 @@ struct CachedEntry {
 pub struct GithubStore {
     client: Option<SupabaseClient>,
     cache: Mutex<LruCache<(String, String, u32), CachedEntry>>,
+    /// Negative-caching reverse lookup keyed by Discord thread id. Bounds the
+    /// per-message Supabase load: `handle_reverse_message` runs on every guild
+    /// message, but most channels are not synced threads — caching the `None`
+    /// result keeps a busy non-thread channel from hammering the RPC.
+    thread_cache: Mutex<LruCache<i64, CachedEntry>>,
     ttl: Duration,
     stale_after: Duration,
 }
@@ -149,6 +154,7 @@ impl GithubStore {
         Self {
             client,
             cache: Mutex::new(LruCache::new(cap)),
+            thread_cache: Mutex::new(LruCache::new(cap)),
             ttl,
             stale_after: Duration::from_secs(5 * 60),
         }
@@ -321,6 +327,15 @@ impl GithubStore {
         &self,
         thread_id: i64,
     ) -> Result<Option<CachedIssue>, GithubStoreError> {
+        {
+            let mut cache = self.thread_cache.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(entry) = cache.get(&thread_id) {
+                if Instant::now() < entry.expires_at {
+                    return Ok(entry.issue.clone());
+                }
+            }
+        }
+
         let Some(client) = self.client.as_ref() else {
             return Err(GithubStoreError::NotConfigured);
         };
@@ -337,7 +352,20 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        parse_optional_row::<CachedIssue>(&text)
+        let issue = parse_optional_row::<CachedIssue>(&text)?;
+
+        {
+            let mut cache = self.thread_cache.lock().unwrap_or_else(|e| e.into_inner());
+            cache.put(
+                thread_id,
+                CachedEntry {
+                    issue: issue.clone(),
+                    expires_at: Instant::now() + self.ttl,
+                },
+            );
+        }
+
+        Ok(issue)
     }
 
     /// Idempotency claim for reverse sync. Returns `true` when the caller now
