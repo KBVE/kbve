@@ -247,8 +247,15 @@ data:
 
         usage() { df -P "$DATA" | awk 'NR==2{gsub("%","",$5);print $5}'; }
         wl() { grep -qxF "$1:$2" "$WL" 2>/dev/null; }
+        # GC runs online. Blob loss is safe (proxy cache is reconstructable from
+        # ghcr). A blob being written by a concurrent pull could be collected
+        # mid-flight, failing THAT one pull; it self-heals on retry. Fires only
+        # at >= SOFT usage.
         gc() { registry garbage-collect --delete-untagged "$CONFIG" >/dev/null 2>&1 || true; }
 
+        # NOTE: _catalog and tags/list are single-page (registry default ~100).
+        # Fine for the few large images cached today; a multi-repo cache would
+        # need Link-header pagination here.
         # emit "mtime<TAB>repo<TAB>tag<TAB>digest", oldest first
         tags() {
           curl -fsS "$REG/v2/_catalog" | jq -r '.repositories[]?' | while read -r r; do
@@ -268,6 +275,11 @@ data:
                  "$REG/v2/$1/manifests/$2" >/dev/null 2>&1 || true; }
 
         while :; do
+          if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+            echo "janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention falls back to proxy.ttl(168h). Bake jq+curl into the image to restore."
+            apk add --no-cache jq curl >/dev/null 2>&1 || true
+            sleep "$INTERVAL"; continue
+          fi
           U=$(usage)
           if [ "$U" -ge "$HARD" ]; then
             echo "janitor: HARD ${U}% >= ${HARD}% — drop non-whitelisted, then oldest until under"
