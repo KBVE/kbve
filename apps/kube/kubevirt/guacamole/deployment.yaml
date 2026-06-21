@@ -78,7 +78,9 @@ spec:
                   args:
                       - |
                           PASSWORD=$(cat /secrets/password)
-                          sed "s|</connection>|<param name=\"password\">${PASSWORD}</param>\n</connection>|" \
+                          GUAC_HASH=$(printf '%s' "$PASSWORD" | sha256sum | cut -d' ' -f1)
+                          sed -e "s|__GUACADMIN_SHA256__|${GUAC_HASH}|" \
+                              -e "s|</connection>|<param name=\"password\">${PASSWORD}</param>\n</connection>|" \
                             /template/user-mapping.xml > /config/user-mapping.xml
                   volumeMounts:
                       - name: user-mapping-template
