@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 11;
+pub const PROTOCOL_VERSION: u32 = 12;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -18,6 +18,7 @@ pub const EPHEMERAL_TRADE: u16 = 9;
 pub const EPHEMERAL_SHOP: u16 = 10;
 pub const EPHEMERAL_BLACKJACK: u16 = 11;
 pub const EPHEMERAL_PROJECTILE: u16 = 12;
+pub const EPHEMERAL_FLOOR: u16 = 13;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -195,6 +196,10 @@ pub struct StatusView {
     pub remaining: u16,
 }
 
+fn is_zero_i32(v: &i32) -> bool {
+    *v == 0
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityDelta {
     pub eid: EntityId,
@@ -206,6 +211,10 @@ pub struct EntityDelta {
     pub hp: i32,
     pub max_hp: i32,
     pub destroyed: bool,
+    /// Dungeon floor (z-axis). 0 = ground floor; omitted on the wire when 0, so
+    /// single-floor games (cryptothrone) are byte-identical to before.
+    #[serde(default, skip_serializing_if = "is_zero_i32")]
+    pub z: i32,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub effects: Vec<StatusView>,
 }

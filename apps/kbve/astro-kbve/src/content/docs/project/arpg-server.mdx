@@ -84,7 +84,7 @@ Shares the `simgrid` crate (`packages/rust/simgrid`): postcard/JSON wire types, 
 
 ## Wire protocol
 
-Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9). The client wire surface (`@kbve/laser` `GameClient`) is already complete; the server must answer it.
+Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 12). The client wire surface (`@kbve/laser` `GameClient`) is complete and the server answers it.
 
 ### Client → server
 
@@ -102,23 +102,34 @@ Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9). The client wire 
 | Event | Carries | Client handler |
 |-------|---------|----------------|
 | `Welcome` | `your_slot`, kind `registry` | seed registry + slot |
-| `Snapshot` | players (slot→username), entities (eid, kind, tile, owner, hp, max_hp) | `applyEntitySync` + `reconcileFloat` |
+| `Snapshot` | players (slot→username), entities (eid, kind, tile, owner, hp, max_hp, **z**) | `applyEntitySync` + `reconcileFloat`, filtered to the local floor |
 | `Ephemeral(Combat)` | target eid, dmg, crit | floating damage + flash |
-| `Ephemeral(Projectile)` | shooter, origin, dir, kind | **spawn the arrow visual from the server**, not a local tween |
+| `Ephemeral(Projectile)` | shooter, origin, dir, kind | spawns the arrow visual from the server, not a local tween |
+| `Ephemeral(Floor)` | `{ z, tile }` | local player took a stair — snap to `tile`, switch floor, re-stream dungeon |
 | `Ephemeral(Stats / Pickup / ...)` | per-event | follow-up (loot, inventory) |
 
-## Client refactor contract
+## Z-floors & stairs
 
-The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally. Before the server lands, the client must hand authority back. Tracked gaps from the sync audit:
+The dungeon has a **z-axis**: each floor is its own endless seeded dungeon (`floor_seed = mix(world_seed, z)`, floor 0 = the ground layout / identity). This is a shared simgrid feature, not ARPG-only — single-floor games (cryptothrone) attach no `Floor` component and behave exactly as before (every entity on z = 0, `z` omitted on the wire).
 
-1. **Single position truth.** `floatState` is the only client position. `applySnapshot` reconciles the server tile *into* the float via `reconcileFloat`; drop the parallel `predicted`/`setPos` self path in `netSync` so two reconcilers don't race (current `drift > 2` snap vs `RECONCILE_SNAP_DIST` lerp).
-2. **Combat over the wire.** `fireBowAt` must send `action(ACTION_ATTACK, target)` with the **real target eid**, not `myEid` (self). Remove the duplicate `action` on click-attack (currently fires twice: once at the hit, once self-targeted via `fireBowAt`).
-3. **Server-driven projectiles.** The arrow visual is spawned from the `Projectile` ephemeral, not a client tween. `applyLocalHit` and the client damage number are gated behind `if (this.localMode)` — server `Combat` events own HP in multiplayer.
-4. **Facing sync.** Call `client.face(facing)` when the 16-dir aim changes so remote players render the correct stance.
-5. **Subscribe `projectile` / `stats` / `pickup`** on `GameClient` alongside `combat`.
+- **Collision** is z-aware: `WalkableMap::is_walkable_z(z, tile)` / `find_path_z`. A `Floor(i32)` component (default 0) on each entity selects its layer; sim systems read it via `Option<&Floor>`.
+- **Stairs** are a generic `Stairs` resource — `Explicit(Vec<StairLink>)` for hand-placed maps or `Dungeon { seed, descend_key }` for the endless ARPG, which derives two seed-driven stairs (down/up) per floor. Stepping a stair tile moves the player to the linked tile on the adjacent floor and emits the `Floor` ephemeral.
+- **Locks** gate a stair on a key item: descending is gated on `descend_key` (the player must hold it in inventory); ascending is free. The ground floor seeds a `dungeon-key` near spawn.
+
+Cross-language parity: the Rust `arpg_dungeon` and the client `systems/dungeon.ts` produce byte-identical floors (frozen FNV-1a fingerprint — `1764795750` for seed `0x5eed1`, floor 0, window `(0,0)..(80,80)`), asserted on both sides.
+
+## Client authority
+
+The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally; online, authority is the server's. The handoff is in place:
+
+1. **Single position truth** — `applySnapshot` reconciles the server tile into `floatState` via `reconcileFloat`.
+2. **Combat over the wire** — `fireBowAt(aim, target?)` sends `action(ACTION_ATTACK, target)` with the real target eid (null = server resolves the aim line); the click-attack no longer double-fires.
+3. **Server-driven projectiles** — the arrow visual spawns from the `Projectile` ephemeral; `applyLocalHit` is gated behind `localMode`.
+4. **Facing sync** — `client.face(facing)` fires on aim/movement change (cardinal, only on change).
+5. **Floor + event subscriptions** — `projectile` and `floor` join `combat`; snapshot entities are filtered to the local floor.
 
 Offline mode keeps the local resolution (gated on `localMode`) so single-player testing works with no server.
 
 ### Status
 
-Alpha — minimal walkable world (seeded dungeon + one hostile kind) to prove end-to-end multiplayer. Server-shared dungeon gen and the client authority handoff above land first; world content (npcdb/itemdb, zones, loot tables) is a follow-up.
+Alpha — endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer. World content (npcdb/itemdb, zones, loot tables) is a follow-up.

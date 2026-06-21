@@ -2,8 +2,8 @@ use bevy::prelude::{Commands, Local, Res};
 use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::{
-    AggroSpec, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, WalkableMap, ground_item_bundle,
-    spawn_npc_from_spec,
+    AggroSpec, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
+    ground_item_bundle, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -29,16 +29,24 @@ pub const NPC_RESPAWN_TICKS: u32 = SIM_TICK_HZ * 30;
 pub const GOBLIN_REF: &str = "goblin";
 pub const GOBLIN_COUNT: i32 = 6;
 pub const GOBLIN_LOOT_REF: &str = "coin";
+
+// Descending the stairs to a deeper floor needs a dungeon key the player must
+// find/loot. Ascending is always free.
+pub const STAIR_KEY_REF: &str = "dungeon-key";
 pub const GOBLIN_HP: i32 = 24;
 pub const GOBLIN_DAMAGE: i32 = 3;
 pub const GOBLIN_DEFENSE: i32 = 0;
 pub const GOBLIN_TICKS_PER_TILE: u8 = 6;
 pub const HOSTILE_AGGRO_RANGE: i32 = 6;
 
-/// Player spawn snapped onto a real floor tile of the seeded dungeon.
+/// Ground floor — players spawn here; stairs descend to deeper floors.
+pub const SPAWN_FLOOR: i32 = 0;
+
+/// Player spawn snapped onto a real floor tile of the ground floor.
 pub fn player_spawn() -> Tile {
     let (x, y) = arpg_dungeon::nearest_floor(
         DUNGEON_SEED,
+        SPAWN_FLOOR,
         PLAYER_SPAWN_HINT.x,
         PLAYER_SPAWN_HINT.y,
         arpg_dungeon::CHUNK_SIZE,
@@ -46,10 +54,15 @@ pub fn player_spawn() -> Tile {
     Tile::new(x, y)
 }
 
-/// Nearest floor tile to a hint — keeps NPC/item spawns out of the rock.
+/// Nearest floor tile to a hint on the ground floor — keeps spawns out of rock.
 fn floor_near(hint: Tile) -> Tile {
-    let (x, y) =
-        arpg_dungeon::nearest_floor(DUNGEON_SEED, hint.x, hint.y, arpg_dungeon::CHUNK_SIZE);
+    let (x, y) = arpg_dungeon::nearest_floor(
+        DUNGEON_SEED,
+        SPAWN_FLOOR,
+        hint.x,
+        hint.y,
+        arpg_dungeon::CHUNK_SIZE,
+    );
     Tile::new(x, y)
 }
 
@@ -57,7 +70,17 @@ pub fn registry() -> KindRegistry {
     let mut reg = KindRegistry::new();
     reg.register_npc(GOBLIN_REF);
     reg.register_item(GOBLIN_LOOT_REF);
+    reg.register_item(STAIR_KEY_REF);
     reg
+}
+
+/// Endless dungeon stairs: two seed-derived stairs per floor (down + up).
+/// Descending is gated on the dungeon key; ascending is free.
+pub fn stairs() -> Stairs {
+    Stairs::Dungeon {
+        seed: DUNGEON_SEED,
+        descend_key: Some(STAIR_KEY_REF.to_string()),
+    }
 }
 
 pub fn config() -> SimConfig {
@@ -117,6 +140,13 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
     // One starter loot pile near spawn.
     let coin = floor_near(Tile::new(spawn.x + 2, spawn.y + 1));
     if let Some(bundle) = ground_item_bundle(&registry, GOBLIN_LOOT_REF, 5, coin) {
+        commands.spawn(bundle);
+    }
+
+    // A dungeon key on the ground floor so a fresh player can reach the stairs
+    // down. Deeper floors gate their own keys via loot later.
+    let key_tile = floor_near(Tile::new(spawn.x - 2, spawn.y + 2));
+    if let Some(bundle) = ground_item_bundle(&registry, STAIR_KEY_REF, 1, key_tile) {
         commands.spawn(bundle);
     }
 }

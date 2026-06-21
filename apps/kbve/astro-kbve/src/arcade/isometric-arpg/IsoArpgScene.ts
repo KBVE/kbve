@@ -11,6 +11,9 @@ import {
 	type Snapshot,
 	type Welcome,
 	type CombatEvent,
+	type ProjectileEvent,
+	type FloorChangeEvent,
+	type Facing,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -25,6 +28,9 @@ import {
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
+	DEPTH_PROJECTILE,
+	ARROW_SPEED,
+	BOW_MUZZLE_HEIGHT,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
 	DUNGEON_SEED,
@@ -61,6 +67,7 @@ import {
 } from './systems/floatMotion';
 import {
 	DungeonField,
+	floorSeed,
 	chunkOf,
 	chunkGate,
 	chunkPassageWidth,
@@ -90,6 +97,19 @@ import { resolvePlayerName } from './playerName';
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
 
+/**
+ * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
+ * cardinal directions the wire protocol carries. The server only needs a coarse
+ * facing for remote-player pose; the client keeps the full 16-dir locally.
+ */
+function cardinalFromDeg(deg: number): Facing {
+	const d = ((deg % 360) + 360) % 360;
+	if (d >= 315 || d < 45) return 'Up';
+	if (d < 135) return 'Right';
+	if (d < 225) return 'Down';
+	return 'Left';
+}
+
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
 	private store = new EntityStore<EntityRefs>();
@@ -103,9 +123,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private gateGraph: GateGraph = {
 		chunkSize: CHUNK_SIZE,
 		chunkOf: (x, y) => chunkOf(x, y),
-		gate: (cx, cy) => chunkGate(DUNGEON_SEED, cx, cy),
+		// Follows the active floor's seed (this.dungeon is rebuilt on a floor
+		// change) so click-pathing routes on the floor the player is actually on.
+		gate: (cx, cy) => chunkGate(this.dungeon.worldSeed, cx, cy),
 		passageWidth: (acx, acy, bcx, bcy) =>
-			chunkPassageWidth(DUNGEON_SEED, acx, acy, bcx, bcy),
+			chunkPassageWidth(this.dungeon.worldSeed, acx, acy, bcx, bcy),
 	};
 	private chunkGrounds = new Map<string, Phaser.GameObjects.Container>();
 	private holeLayer!: Phaser.GameObjects.Graphics;
@@ -130,6 +152,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private bowShot: BowShot | null = null;
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	private aimDebug: AimDebug | null = null;
+	// Last cardinal facing sent to the server, so face() only fires on change.
+	private lastSentFacing: Facing | null = null;
+	// Dungeon floor the local player is on (z). Server-authoritative via the
+	// `floor` event; snapshot entities on other floors are not rendered.
+	private currentFloor = 0;
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -292,6 +319,19 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	/**
+	 * Hard reset of the rendered dungeon — used on a floor change, where the
+	 * whole layout is replaced (a fresh `this.dungeon` was assigned). Tear down
+	 * every chunk ground, clear holes, and force a re-stream around the new
+	 * position.
+	 */
+	private rebuildDungeon() {
+		for (const plane of this.chunkGrounds.values()) plane.destroy();
+		this.chunkGrounds.clear();
+		this.lastChunkKey = '';
+		this.refreshDungeon(this.predicted, true);
+	}
+
+	/**
 	 * One world-anchored ground tile for a chunk: a TileSprite covering the
 	 * chunk's tile square, projected onto the iso plane (inner sprite rotated
 	 * 45°, parent Container squashed 2:1 — Phaser scales before it rotates, so a
@@ -411,9 +451,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (this.isBlocked(tile.x, tile.y)) return;
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
-				this.client?.action(ACTION_ATTACK, hit.serverEid);
+				// Fire at the clicked enemy. fireBowAt sends the single
+				// authoritative attack (targeting THIS enemy) — no separate
+				// action() call, or the server would see a double-fire.
 				this.movePath = [];
-				this.fireBowAt(aim);
+				this.fireBowAt(aim, hit.serverEid);
 				return;
 			}
 			this.startMoveTo(tile);
@@ -498,6 +540,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
+		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
+		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 
 		client.connect();
 	}
@@ -513,8 +557,15 @@ export class IsoArpgScene extends Phaser.Scene {
 			predicted: this.predicted,
 			predictSeeded: this.predictSeeded,
 		};
+		// Only render entities on the floor the local player is on. The snapshot
+		// is a single global broadcast (z rides each delta, default 0); the
+		// client renders its own floor and ignores the rest. Entities that left
+		// our floor fall out of the filtered set and despawn via applyEntitySync.
+		const onFloor = s.entities.filter(
+			(e) => (e.z ?? 0) === this.currentFloor,
+		);
 		applyEntitySync(
-			s.entities,
+			onFloor,
 			this.store,
 			this.syncBridge,
 			this.syncResolvers,
@@ -551,6 +602,49 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
 			flashEntity(this, refs.sprite);
 		}
+	}
+
+	/**
+	 * Server-authoritative arrow: the server fired a projectile, so fly the
+	 * visual from its origin to its endpoint. Online this replaces the local
+	 * tween (which only runs in offline localMode); damage rides the separate
+	 * Combat event.
+	 */
+	private onProjectile(p: ProjectileEvent) {
+		const a = worldToScreen(p.from.x, p.from.y);
+		a.y -= BOW_MUZZLE_HEIGHT;
+		const b = worldToScreen(p.to.x, p.to.y);
+		b.y -= BOW_MUZZLE_HEIGHT;
+		const arrow = this.add.rectangle(a.x, a.y, 16, 3, 0xfde68a);
+		arrow.setStrokeStyle(1, 0x78350f, 0.9);
+		arrow.setDepth(DEPTH_PROJECTILE);
+		arrow.setRotation(Math.atan2(b.y - a.y, b.x - a.x));
+		const dist = Math.hypot(b.x - a.x, b.y - a.y);
+		this.tweens.add({
+			targets: arrow,
+			x: b.x,
+			y: b.y,
+			duration: (dist / (ARROW_SPEED * TILE_W)) * 1000,
+			ease: 'Linear',
+			onComplete: () => arrow.destroy(),
+		});
+	}
+
+	/**
+	 * The local player took a stair: the server moved us to a new dungeon floor.
+	 * Snap the float body to the destination tile, switch the active floor (so
+	 * collision + rendering use the new layout), and re-stream the dungeon. The
+	 * dungeon field is rebuilt for the new z.
+	 */
+	private onFloorChange(f: FloorChangeEvent) {
+		this.currentFloor = f.z;
+		this.predicted = { x: f.tile.x, y: f.tile.y };
+		this.floatState = makeFloatState(this.predicted);
+		this.dungeon = new DungeonField(
+			floorSeed(DUNGEON_SEED, f.z),
+			DUNGEON_RADIUS,
+		);
+		this.rebuildDungeon();
 	}
 
 	update(time: number, delta: number) {
@@ -648,7 +742,9 @@ export class IsoArpgScene extends Phaser.Scene {
 			const dx = aim.x - this.floatState.pos.x;
 			const dy = aim.y - this.floatState.pos.y;
 			if (Math.hypot(dx, dy) > 0.05) {
-				refs.cls.targetDeg = facingDegFromDelta(dx, dy);
+				const deg = facingDegFromDelta(dx, dy);
+				refs.cls.targetDeg = deg;
+				this.sendFacing(cardinalFromDeg(deg));
 			}
 		}
 
@@ -662,7 +758,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.predicted = tile;
 			this.refreshDungeon(tile); // stream chunks as the player advances
 			const dir = tileStepDir(prevTile, tile);
-			if (dir) this.client?.step(dir);
+			if (dir) {
+				this.client?.step(dir);
+				this.sendFacing(dir); // movement also sets cardinal facing
+			}
 		}
 
 		// Drop the click route once the FINAL tile is reached or overshot, so the
@@ -862,7 +961,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * click-move (you plant to shoot). Damage is resolved locally for now; the
 	 * server combat path replaces the onHit body when MP lands.
 	 */
-	private fireBowAt(aim: TileXY) {
+	/** Send the cardinal aim to the server, but only when it changes. */
+	private sendFacing(facing: Facing) {
+		if (facing === this.lastSentFacing) return;
+		this.lastSentFacing = facing;
+		this.client?.face(facing);
+	}
+
+	private fireBowAt(aim: TileXY, target?: number) {
 		if (this.bowShot?.busy) return;
 		const refs = this.store.refs(this.myEid);
 		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
@@ -871,7 +977,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		// Fractional origin + aim so the facing direction and arrow line are
 		// precise (rounding both to tiles flipped the angle at close range).
 		const from = { x: this.floatState.pos.x, y: this.floatState.pos.y };
-		this.client?.action(ACTION_ATTACK, this.myEid);
+		// Tell the server to shoot — at the explicitly-clicked enemy if any,
+		// else null (the server resolves what the aim line hits). The arrow
+		// visual + damage are server-authoritative online; the local arrow is
+		// only resolved client-side in offline localMode.
+		this.client?.action(ACTION_ATTACK, target ?? null);
 		this.bowShot = fireBow(
 			this,
 			refs.sprite,
@@ -879,7 +989,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			from,
 			aim,
 			(tx, ty) => this.arrowHitTest(tx, ty),
-			(serverEid, dmg) => this.applyLocalHit(serverEid, dmg),
+			(serverEid, dmg) => {
+				// Offline only: fake the hit locally. Online, the server's
+				// Combat/Projectile events drive damage + the arrow.
+				if (this.localMode) this.applyLocalHit(serverEid, dmg);
+			},
 		);
 	}
 

@@ -5,6 +5,12 @@ use serde::Deserialize;
 
 use crate::proto::{Facing, Tile};
 
+/// Dungeon floor (z-axis). Default 0 = ground floor. Single-floor games never
+/// add this component and behave as if every entity is on floor 0; multi-floor
+/// games (ARPG) attach it and move it via stairs.
+#[derive(Component, Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub struct Floor(pub i32);
+
 const TILED_GID_FLAGS_MASK: u32 = 0x1FFF_FFFF;
 const TILED_COLLIDE_PROP: &str = "ge_collide";
 
@@ -194,20 +200,32 @@ impl WalkableMap {
         }
     }
 
+    /// Walkability on the ground floor (z = 0). Single-floor games call this.
     pub fn is_walkable(&self, tile: Tile) -> bool {
+        self.is_walkable_z(0, tile)
+    }
+
+    /// Walkability on dungeon floor `z`. A bitset map is one fixed floor and
+    /// ignores `z`; the endless dungeon derives the per-floor layout from `z`.
+    pub fn is_walkable_z(&self, z: i32, tile: Tile) -> bool {
         match &self.collision {
             Collision::Bitset(cells) => self.index(tile).map(|i| !cells[i]).unwrap_or(false),
-            Collision::Dungeon { seed } => crate::arpg_dungeon::is_floor(*seed, tile.x, tile.y),
+            Collision::Dungeon { seed } => crate::arpg_dungeon::is_floor(*seed, z, tile.x, tile.y),
         }
     }
 
     pub fn find_path(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
-        if from == to || !self.is_walkable(to) || !self.is_walkable(from) {
+        self.find_path_z(0, from, to, max_len)
+    }
+
+    /// Path on dungeon floor `z` (stairs aside, a path never leaves its floor).
+    pub fn find_path_z(&self, z: i32, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
+        if from == to || !self.is_walkable_z(z, to) || !self.is_walkable_z(z, from) {
             return None;
         }
         match &self.collision {
             Collision::Bitset(_) => self.find_path_bitset(from, to, max_len),
-            Collision::Dungeon { .. } => self.find_path_open(from, to, max_len),
+            Collision::Dungeon { .. } => self.find_path_open(z, from, to, max_len),
         }
     }
 
@@ -260,7 +278,7 @@ impl WalkableMap {
     /// bounded by `max_len` steps and a chebyshev window around the endpoints
     /// (a sane cap on an unbounded grid). `prev` is a coord map, not a flat
     /// array. Endpoints proven walkable by the caller.
-    fn find_path_open(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
+    fn find_path_open(&self, z: i32, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
         use std::collections::HashMap;
 
         // Search a box around the two endpoints with a margin so the route can
@@ -283,7 +301,7 @@ impl WalkableMap {
                 if !in_window(next) || prev.contains_key(&(next.x, next.y)) {
                     continue;
                 }
-                if !self.is_walkable(next) {
+                if !self.is_walkable_z(z, next) {
                     continue;
                 }
                 prev.insert((next.x, next.y), (cur.x, cur.y));
@@ -309,6 +327,67 @@ impl WalkableMap {
         }
         path.reverse();
         Some(path)
+    }
+}
+
+/// One stair: stepping onto `(z, tile)` moves the entity to `(dest_z,
+/// dest_tile)`. An optional `lock` names a key item the player must hold to use
+/// it — absent = open.
+#[derive(Clone, Debug)]
+pub struct StairLink {
+    pub z: i32,
+    pub tile: Tile,
+    pub dest_z: i32,
+    pub dest_tile: Tile,
+    pub lock: Option<String>,
+}
+
+/// How a world resolves the stair (if any) under a tile. `Explicit` is a fixed
+/// list (cryptothrone hand-places); `Dungeon` derives the two seed-driven stairs
+/// per floor on demand for the endless ARPG. Inserted as a Bevy resource; absent
+/// = no stairs (single-floor default).
+#[derive(Resource, Clone)]
+pub enum Stairs {
+    Explicit(Vec<StairLink>),
+    Dungeon {
+        seed: u32,
+        /// Key item ref required to descend (None = open). Ascending is free.
+        descend_key: Option<String>,
+    },
+}
+
+impl Stairs {
+    /// The stair under `(z, tile)`, if any. Pure for the Dungeon variant.
+    pub fn at(&self, z: i32, tile: Tile) -> Option<StairLink> {
+        match self {
+            Stairs::Explicit(links) => links.iter().find(|l| l.z == z && l.tile == tile).cloned(),
+            Stairs::Dungeon { seed, descend_key } => {
+                use crate::arpg_dungeon::{StairKind, stair_dest, stair_tile};
+                let (dx, dy) = stair_tile(*seed, z, StairKind::Down);
+                if tile == Tile::new(dx, dy) {
+                    let (dest_z, (tx, ty)) = stair_dest(*seed, z, StairKind::Down);
+                    return Some(StairLink {
+                        z,
+                        tile,
+                        dest_z,
+                        dest_tile: Tile::new(tx, ty),
+                        lock: descend_key.clone(),
+                    });
+                }
+                let (ux, uy) = stair_tile(*seed, z, StairKind::Up);
+                if tile == Tile::new(ux, uy) {
+                    let (dest_z, (tx, ty)) = stair_dest(*seed, z, StairKind::Up);
+                    return Some(StairLink {
+                        z,
+                        tile,
+                        dest_z,
+                        dest_tile: Tile::new(tx, ty),
+                        lock: None, // ascending is always free
+                    });
+                }
+                None
+            }
+        }
     }
 }
 
@@ -347,6 +426,55 @@ impl Default for MoveSpeed {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dungeon_map_is_endless_and_negative_safe() {
+        let m = WalkableMap::arpg_dungeon(0x5eed1, 96);
+        // Every tile "in bounds" (no edges); a room center is walkable; negative
+        // coords resolve fine.
+        assert!(m.in_bounds(Tile::new(-500, 9999)));
+        let g = crate::arpg_dungeon::chunk_gate(0x5eed1, 0, 0, 0);
+        assert!(m.is_walkable(Tile::new(g.0, g.1)));
+        // Different floors give different walkability at the same tile (probabil-
+        // istically — assert the floor-0 ground center is floor on z0).
+        assert!(m.is_walkable_z(0, Tile::new(g.0, g.1)));
+    }
+
+    #[test]
+    fn explicit_stair_resolves_and_locks() {
+        let stairs = Stairs::Explicit(vec![StairLink {
+            z: 0,
+            tile: Tile::new(3, 3),
+            dest_z: 1,
+            dest_tile: Tile::new(7, 7),
+            lock: Some("dungeon-key".into()),
+        }]);
+        let hit = stairs.at(0, Tile::new(3, 3)).expect("stair present");
+        assert_eq!(hit.dest_z, 1);
+        assert_eq!(hit.dest_tile, Tile::new(7, 7));
+        assert_eq!(hit.lock.as_deref(), Some("dungeon-key"));
+        assert!(stairs.at(0, Tile::new(0, 0)).is_none());
+        assert!(stairs.at(1, Tile::new(3, 3)).is_none(), "wrong floor");
+    }
+
+    #[test]
+    fn dungeon_stairs_resolve_both_directions() {
+        use crate::arpg_dungeon::{StairKind, stair_tile};
+        let seed = 0x5eed1;
+        let stairs = Stairs::Dungeon {
+            seed,
+            descend_key: Some("dungeon-key".into()),
+        };
+        let down = stair_tile(seed, 0, StairKind::Down);
+        let d = stairs.at(0, Tile::new(down.0, down.1)).expect("down stair");
+        assert_eq!(d.dest_z, 1);
+        assert_eq!(d.lock.as_deref(), Some("dungeon-key"), "descend is locked");
+
+        let up = stair_tile(seed, 1, StairKind::Up);
+        let u = stairs.at(1, Tile::new(up.0, up.1)).expect("up stair");
+        assert_eq!(u.dest_z, 0);
+        assert!(u.lock.is_none(), "ascend is free");
+    }
 
     #[test]
     fn tiled_collision_parsed() {

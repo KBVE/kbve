@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
 	fingerprint,
+	floorSeed,
 	isFloorAt,
 	chunkGate,
 	generateChunk,
@@ -27,6 +28,22 @@ describe('arpg dungeon parity', () => {
 		expect(fingerprint(SEED, 0, 0, 80, 80)).not.toBe(
 			fingerprint(0x1234, 0, 0, 80, 80),
 		);
+	});
+
+	it('floor 0 is the ground layout (floorSeed identity)', () => {
+		// Mirrors the Rust floor_seed(seed, 0) == seed, keeping the frozen
+		// floor-0 fingerprint valid.
+		expect(floorSeed(SEED, 0)).toBe(SEED >>> 0);
+		expect(fingerprint(floorSeed(SEED, 0), 0, 0, 80, 80)).toBe(1764795750);
+	});
+
+	it('each floor is a distinct dungeon', () => {
+		const f0 = fingerprint(floorSeed(SEED, 0), 0, 0, 80, 80);
+		const f1 = fingerprint(floorSeed(SEED, 1), 0, 0, 80, 80);
+		const f2 = fingerprint(floorSeed(SEED, 2), 0, 0, 80, 80);
+		expect(f0).not.toBe(f1);
+		expect(f1).not.toBe(f2);
+		expect(f0).not.toBe(f2);
 	});
 
 	it('room centers are always floor', () => {

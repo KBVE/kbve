@@ -13,7 +13,7 @@ pub mod sim;
 pub mod auth;
 
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
-pub use grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
+pub use grid::{Floor, GridPos, MoveSpeed, MoveTarget, StairLink, Stairs, WalkableMap};
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use sim::{
     Aggro, AggroSpec, BuffEffects, BuffSpec, CombatStats, ConsumableEffects, Defense, EntityKind,

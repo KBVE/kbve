@@ -12,6 +12,19 @@ import type { TileXY } from '../iso';
 
 export const CHUNK_SIZE = 20;
 
+/**
+ * Per-floor seed: fold the dungeon level `z` into the world seed so each floor
+ * is its own independent endless dungeon (stairs link adjacent floors). Floor 0
+ * is identity — the ground floor IS the original single-floor layout, keeping
+ * the frozen parity fingerprint valid. Mirrors the Rust `arpg_dungeon::floor_seed`.
+ */
+export function floorSeed(worldSeed: number, z: number): number {
+	if (z === 0) return worldSeed >>> 0;
+	let h = worldSeed >>> 0;
+	h = Math.imul(h ^ Math.imul(z, 0x9e3779b1), 0x85ebca77) >>> 0;
+	return (h ^ (h >>> 13)) >>> 0;
+}
+
 export type TileKind = 0 | 1; // 0 = wall (blocked), 1 = floor (walkable)
 export const WALL: TileKind = 0;
 export const FLOOR: TileKind = 1;
