@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # seal-admin-credentials.sh — Seal ClickHouse admin credentials
 #
-# Creates a SealedSecret with the ClickHouse admin connection details
-# that the logflare-ch-setup Job uses to bootstrap SQL users.
+# Creates a SealedSecret (clickhouse namespace) with the ClickHouse admin
+# connection details that the ch-ingest-grants Job uses to grant the shared
+# `logflare` ingest user (CLUSTER + per-database privileges).
 #
 # Prerequisites:
 #   - kubectl configured with cluster access
@@ -17,8 +18,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_FILE="${SCRIPT_DIR}/../analytics/manifests/sealed-clickhouse-admin.yaml"
-TARGET_NS="kilobase"
+OUTPUT_FILE="${SCRIPT_DIR}/manifests/sealed-clickhouse-admin.yaml"
+TARGET_NS="clickhouse"
 
 # --- Preflight checks ---
 
@@ -78,5 +79,6 @@ echo "Plaintext credentials were never written to disk."
 echo ""
 echo "Next steps:"
 echo "  1. git add ${OUTPUT_FILE}"
-echo "  2. Commit and push — ArgoCD will sync the SealedSecret"
-echo "  3. The logflare-ch-setup Job will use admin creds to bootstrap SQL users"
+echo "  2. Uncomment '- sealed-clickhouse-admin.yaml' in manifests/kustomization.yaml"
+echo "  3. Commit and push — ArgoCD will sync the SealedSecret"
+echo "  4. The ch-ingest-grants Job will use admin creds to grant the logflare ingest user"

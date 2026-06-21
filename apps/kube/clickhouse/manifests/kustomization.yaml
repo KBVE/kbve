@@ -6,3 +6,5 @@ resources:
     - clickhouse-installation.yaml
     - external-secrets-rbac.yaml
     - postgres-externalsecret.yaml
+    - ch-ingest-grants-job.yaml
+    # - sealed-clickhouse-admin.yaml  # add after running seal-admin-credentials.sh (writes this file)
