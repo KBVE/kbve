@@ -70,6 +70,46 @@ message ApplicationList {
 }
 
 // ---------------------------------------------------------------------------
+// AppSummary — card projection the dashboard renders from
+// ---------------------------------------------------------------------------
+//
+// A flat, typed view derived client-side from the raw ArgoCD application
+// object (status.resources, operationState, reconciledAt). Cards render from
+// this; the raw payload is retained only for the deep resource/event panels.
+
+message ResourceTally {
+  uint32 total       = 1;
+  uint32 healthy     = 2;
+  uint32 degraded    = 3;
+  uint32 progressing = 4;
+  uint32 missing     = 5;
+  uint32 suspended   = 6;
+  uint32 synced      = 7;
+  uint32 out_of_sync = 8;
+}
+
+message AppSummary {
+  string        name              = 1;
+  string        namespace         = 2;
+  string        project           = 3;
+  HealthStatus  health            = 4;
+  SyncStatus    sync              = 5;
+  string        repo_url          = 6;
+  string        target_revision   = 7;
+  string        path              = 8;
+  string        revision          = 9;   // live synced revision
+  string        created_at        = 10;  // ISO-8601
+  string        reconciled_at     = 11;  // ISO-8601
+  string        last_sync_at      = 12;  // operationState.finishedAt, ISO-8601
+  string        operation_phase   = 13;  // Running|Succeeded|Failed|Error|""
+  string        operation_message = 14;
+  ResourceTally resources         = 15;
+  bool          stalled           = 16;
+  string        stall_reason      = 17;
+  uint32        stall_age_ms      = 18;
+}
+
+// ---------------------------------------------------------------------------
 // Query — request filters for application listing
 // ---------------------------------------------------------------------------
 
