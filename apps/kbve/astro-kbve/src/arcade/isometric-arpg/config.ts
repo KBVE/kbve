@@ -6,10 +6,27 @@ export const GRID_SIZE = 24;
 export const MOVE_TWEEN_MS = 140;
 export const HEARTBEAT_MS = 20000;
 
+// Continuous float motion (client-side). Position is fractional world-tile
+// units; the integer tile underneath drives collision + the cardinal wire step.
+// Two locomotion tiers, each tuned so the body speed matches its anim's stride
+// (no foot-sliding): WALK (slower, WalkForward sheet) and RUN (faster, Run).
+export const WALK_SPEED = 3.4; // tiles/sec, matches WalkForward stride
+export const RUN_SPEED = 6.6; // tiles/sec, matches Run stride
+export const MOVE_ACCEL = 16; // velocity steer rate toward intent
+export const MOVE_FRICTION = 14; // velocity decay rate when no input
+// Soft reconciliation of the float toward the server-authoritative tile.
+export const RECONCILE_LERP = 0.12; // per-snapshot pull toward server tile
+export const RECONCILE_SNAP_DIST = 2.5; // tiles of drift before a hard snap
+export const ARRIVE_DIST = 0.15; // tiles from a click target counted as arrived
+
 // Idle<->Run state crossfade: a ghost sprite holds the outgoing anim and fades
 // out while the live sprite fades in; the live anim's timeScale ramps from
 // BLEND_TIMESCALE_FROM up to 1 so the flipbook spins up instead of snapping.
-export const BLEND_MS = 200;
+// Facing turn curve: per-frame lerp factor pulling the visual facing angle
+// toward the movement target. Lower = lazier, smoother arcs; 1 = instant snap.
+export const TURN_LERP = 0.22;
+
+export const BLEND_MS = 110;
 export const BLEND_TIMESCALE_FROM = 0.45;
 // Idle->Run anticipation: brief vertical squash that recovers over the blend,
 // selling a weight-shift into the step and masking flipbook pose mismatch.
@@ -18,6 +35,10 @@ export const BLEND_SQUASH = 0.92;
 export const DEPTH_TILE = 0;
 export const DEPTH_ENTITY_BASE = 10000;
 export const DEPTH_UI = 100000;
+
+// Fake contact shadow: a flattened dark ellipse on the ground under each
+// character. Sits just above the floor but below entities so it never occludes
+// a body, and tracks the sprite's ground point as it moves.
 
 export const COLORS = {
 	background: '#10131c',

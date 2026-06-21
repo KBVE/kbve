@@ -6,8 +6,6 @@ import {
 	flashEntity,
 	floatingText,
 	drawHealthBar,
-	findTilePath,
-	type Dir,
 	type EntityDelta,
 	type KindEntry,
 	type Snapshot,
@@ -20,6 +18,9 @@ import {
 	TILE_W,
 	TILE_H,
 	MOVE_TWEEN_MS,
+	WALK_SPEED,
+	RUN_SPEED,
+	ARRIVE_DIST,
 	HEARTBEAT_MS,
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
@@ -39,16 +40,19 @@ import {
 	type SyncState,
 } from './systems/netSync';
 import {
-	stepDir,
-	followPath,
-	commitPredicted,
-	type PredictState,
-} from './systems/prediction';
+	makeFloatState,
+	stepFloat,
+	floatTile,
+	tileStepDir,
+	reconcileFloat,
+	type FloatState,
+} from './systems/floatMotion';
 import {
 	makeSprite,
 	makeClassSprite,
 	makeNameplate,
 	setClassPose,
+	tickClassFacing,
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
@@ -59,7 +63,6 @@ import {
 } from './entities/classes';
 import { getNetConfig } from './net-config';
 
-const TICK_MS = 120;
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
 
@@ -81,9 +84,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private mySlot = -1;
 	private myEid = -1;
 	private predicted: TileXY = { x: 0, y: 0 };
-	private predictedPath: TileXY[] = [];
 	private predictSeeded = false;
-	private lastTick = 0;
+	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
+	private moveTarget: TileXY | null = null;
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -207,9 +210,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
 				this.client?.action(ACTION_ATTACK, hit.serverEid);
+				this.moveTarget = null;
 				this.poseLocalPlayer('Attack', {
-					dx: tile.x - this.predicted.x,
-					dy: tile.y - this.predicted.y,
+					dx: tile.x - this.floatState.pos.x,
+					dy: tile.y - this.floatState.pos.y,
 				});
 				return;
 			}
@@ -241,6 +245,7 @@ export class IsoArpgScene extends Phaser.Scene {
 							),
 						};
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
+				this.syncShadow(refs);
 				if (label) {
 					refs.nameplate = makeNameplate(this, label);
 					this.placeNameplate(refs);
@@ -253,6 +258,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			follow: (refs) =>
 				this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12),
 			remove: (refs) => {
+				refs.shadow?.destroy();
 				refs.nameplate?.destroy();
 				refs.hpBar?.destroy();
 				refs.sprite.destroy();
@@ -301,6 +307,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const p of s.players) {
 			this.slotUsername.set(p.slot, p.kbve_username);
 		}
+		const hadEid = this.myEid >= 0;
 		const state: SyncState = {
 			myEid: this.myEid,
 			mySlot: this.mySlot,
@@ -317,6 +324,15 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.myEid = state.myEid;
 		this.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
+
+		// Seed the float body when our entity first appears; thereafter soft-
+		// correct it toward the server-authoritative tile so the client stays
+		// smooth without drifting away from the server.
+		if (!hadEid && this.myEid >= 0) {
+			this.floatState = makeFloatState(this.predicted);
+		} else if (this.myEid >= 0) {
+			reconcileFloat(this.floatState, this.predicted);
+		}
 		this.refreshHud();
 	}
 
@@ -336,67 +352,127 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
-	update(time: number) {
+	update(time: number, delta: number) {
+		// Smooth facing runs every frame (independent of the movement sim) so
+		// the 16-dir turn curve stays fluid even between tile crossings.
+		this.tickFacing();
+
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
-		if (time - this.lastTick < TICK_MS) return;
-		this.lastTick = time;
 
 		const myRefs = this.store.refs(this.myEid);
-		if (!myRefs) return;
-
-		const pstate: PredictState = {
-			predicted: this.predicted,
-			path: this.predictedPath,
-			seeded: this.predictSeeded,
-		};
-
-		let dir: Dir | null = null;
-		if (this.cursors.up.isDown || this.wasd.up.isDown) dir = 'Up';
-		else if (this.cursors.down.isDown || this.wasd.down.isDown)
-			dir = 'Down';
-		else if (this.cursors.left.isDown || this.wasd.left.isDown)
-			dir = 'Left';
-		else if (this.cursors.right.isDown || this.wasd.right.isDown)
-			dir = 'Right';
-
-		if (dir) {
-			const cand = stepDir(pstate, dir, this.isBlocked);
-			if (cand) this.advance(pstate, myRefs, cand);
-			this.predictedPath = pstate.path;
-			this.predicted = pstate.predicted;
-			this.client?.step(dir);
-			return;
-		}
-
-		const next = followPath(pstate, this.isBlocked);
-		this.predictedPath = pstate.path;
-		if (next) this.advance(pstate, myRefs, next);
-		this.predicted = pstate.predicted;
-		if (!next) this.settleIdle(myRefs);
+		if (myRefs) this.tickLocalMotion(myRefs, delta);
 	}
 
 	/**
-	 * Drop the local player back to Idle once movement truly stops — no held
-	 * key, empty path, and the last step tween finished. Done here (not on each
-	 * tween's onComplete) so sustained movement holds Run instead of flickering
-	 * Run→Idle→Run between tiles. One-shot states (Attack/Death) are left alone.
+	 * Float-driven local movement: keyboard (held = continuous intent) or a
+	 * click destination feeds a world-tile intent vector into the float sim,
+	 * which is then rendered, animated (Run/Idle by speed), and synced to the
+	 * server as cardinal steps whenever the underlying tile changes.
 	 */
-	private settleIdle(refs: EntityRefs) {
-		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
-			return;
-		if (refs.cls.state !== 'Run') return;
-		if (this.tweens.isTweening(refs.sprite)) return;
-		setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
+	private tickLocalMotion(refs: EntityRefs, deltaMs: number) {
+		const intent = this.readIntent();
+		const prevTile = floatTile(this.floatState);
+
+		// Walk tier while Shift is held; run otherwise. Each tier's body speed
+		// is tuned to its anim's stride, so feet don't slide at either pace.
+		const walking = this.cursors.shift?.isDown ?? false;
+		const speed = walking ? WALK_SPEED : RUN_SPEED;
+		stepFloat(this.floatState, intent, speed, this.isBlocked, deltaMs);
+
+		// Locomotion anim follows ACTIVE INTENT, not residual velocity: the
+		// moment input stops the body flips to Idle, even though friction is
+		// still bleeding the leftover velocity to a slide-stop. Keying off
+		// velocity instead left a few frames of run-in-place during decel.
+		const intending = Math.hypot(intent.x, intent.y) > 0;
+		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+			if (intending) {
+				setClassPose(
+					refs.sprite,
+					refs.cls,
+					walking ? 'WalkForward' : 'Run',
+					{ dx: this.floatState.vel.x, dy: this.floatState.vel.y },
+					this,
+				);
+			} else if (
+				refs.cls.state === 'Run' ||
+				refs.cls.state === 'WalkForward'
+			) {
+				setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
+			}
+		}
+
+		this.renderFloat(refs);
+
+		// Keep the server roughly in sync: emit a cardinal step toward whatever
+		// new tile the float body has entered. The server stays authoritative;
+		// reconcileFloat soft-corrects any drift on the next snapshot.
+		const tile = floatTile(this.floatState);
+		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
+			this.predicted = tile;
+			const dir = tileStepDir(prevTile, tile);
+			if (dir) this.client?.step(dir);
+		}
+
+		// A click destination drives intent until the body arrives. Clear it on
+		// reaching the target OR on overshoot (velocity now points away), so the
+		// float never orbits the goal stuck in Run.
+		if (this.moveTarget) {
+			const dx = this.moveTarget.x - this.floatState.pos.x;
+			const dy = this.moveTarget.y - this.floatState.pos.y;
+			const dist = Math.hypot(dx, dy);
+			const overshot =
+				dx * this.floatState.vel.x + dy * this.floatState.vel.y < 0;
+			if (dist < ARRIVE_DIST || (overshot && dist < 1)) {
+				this.moveTarget = null;
+			}
+		}
 	}
 
-	private advance(pstate: PredictState, refs: EntityRefs, tile: TileXY) {
-		commitPredicted(pstate, tile);
-		this.tweenTo(refs, tile);
+	/** World-tile intent vector from held keys, else the click destination. */
+	private readIntent(): TileXY {
+		const ix =
+			(this.cursors.right.isDown || this.wasd.right.isDown ? 1 : 0) -
+			(this.cursors.left.isDown || this.wasd.left.isDown ? 1 : 0);
+		const iy =
+			(this.cursors.down.isDown || this.wasd.down.isDown ? 1 : 0) -
+			(this.cursors.up.isDown || this.wasd.up.isDown ? 1 : 0);
+		if (ix !== 0 || iy !== 0) {
+			this.moveTarget = null; // keys override a click move
+			return { x: ix, y: iy };
+		}
+		if (this.moveTarget) {
+			return {
+				x: this.moveTarget.x - this.floatState.pos.x,
+				y: this.moveTarget.y - this.floatState.pos.y,
+			};
+		}
+		return { x: 0, y: 0 };
+	}
+
+	/** Draw the local sprite at its fractional float position. */
+	private renderFloat(refs: EntityRefs) {
+		const p = worldToScreen(this.floatState.pos.x, this.floatState.pos.y);
+		refs.sprite.setPosition(p.x, p.y + 8);
+		refs.sprite.setDepth(
+			DEPTH_ENTITY_BASE +
+				tileDepth(this.floatState.pos.x, this.floatState.pos.y),
+		);
+		this.syncShadow(refs);
+		this.placeNameplate(refs);
+	}
+
+	/** Lerp every class entity's facing toward its movement target this frame. */
+	private tickFacing() {
+		for (const [, , refs] of this.store.entries()) {
+			if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+				tickClassFacing(refs.sprite, refs.cls);
+			}
+		}
 	}
 
 	private startMoveTo(tile: TileXY) {
 		if (!this.client && !this.localMode) return;
-		this.predictedPath = findTilePath(this.predicted, tile, this.isBlocked);
+		this.moveTarget = { x: tile.x, y: tile.y };
 		this.client?.moveTo(tile);
 	}
 
@@ -418,12 +494,28 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private placeRefs(refs: EntityRefs, tile: TileXY) {
 		this.placeSprite(refs.sprite, tile.x, tile.y);
+		this.syncShadow(refs);
 		this.placeNameplate(refs);
 	}
 
+	/**
+	 * The shadow is the asset's baked Shadow layer, frame-locked to the Body, so
+	 * it just mirrors the body sprite's exact transform and renders one depth
+	 * below it. No ground projection or foot fudge — the artist already aligned
+	 * the shadow to the feet for every angle and frame.
+	 */
+	private syncShadow(refs: EntityRefs) {
+		if (!refs.shadow) return;
+		refs.shadow.setPosition(refs.sprite.x, refs.sprite.y);
+		refs.shadow.setDepth(refs.sprite.depth - 1);
+	}
+
 	private makePlayerRefs(kind: number): EntityRefs {
-		const { sprite, cls } = makeClassSprite(this, this.kinds.ref(kind));
-		return { sprite, cls };
+		const { sprite, shadow, cls } = makeClassSprite(
+			this,
+			this.kinds.ref(kind),
+		);
+		return { sprite, shadow, cls };
 	}
 
 	/**
@@ -444,6 +536,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const tile = { x: DEBUG_SPAWN_TILE.x, y: DEBUG_SPAWN_TILE.y };
 		const refs = this.makePlayerRefs(kind);
 		this.placeSprite(refs.sprite, tile.x, tile.y);
+		this.syncShadow(refs);
 		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
 		this.store.spawn(
 			LOCAL_PLAYER_EID,
@@ -461,6 +554,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.myEid = LOCAL_PLAYER_EID;
 		this.predicted = { ...tile };
 		this.predictSeeded = true;
+		this.floatState = makeFloatState(tile);
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
 		this.cameras.main.setZoom(1.5);
 	}
@@ -507,15 +601,18 @@ export class IsoArpgScene extends Phaser.Scene {
 			y: p.y + 8,
 			duration: MOVE_TWEEN_MS,
 			ease: 'Linear',
-			onUpdate: () => this.placeNameplate(refs),
+			onUpdate: () => {
+				this.placeNameplate(refs);
+				this.syncShadow(refs);
+			},
 			onComplete: settle ? () => this.settleRemoteIdle(refs) : undefined,
 		});
 	}
 
 	/**
 	 * Remote movers aren't input-driven, so settle them to Idle when their last
-	 * step tween ends and no follow-up tween chained on. The local player skips
-	 * this (its Idle is driven from update()'s settleIdle so held keys hold Run).
+	 * step tween ends and no follow-up tween chained on. The local player is
+	 * float-driven and settles itself in tickLocalMotion.
 	 */
 	private settleRemoteIdle(refs: EntityRefs) {
 		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
