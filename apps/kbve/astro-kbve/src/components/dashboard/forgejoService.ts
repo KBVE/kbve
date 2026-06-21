@@ -203,6 +203,19 @@ export interface ToastMsg {
 
 export type NoticeKind = 'info' | 'warn' | 'error';
 
+export type StorageHealthStatus =
+	| 'ok'
+	| 'schema_drift'
+	| 'access_denied'
+	| 'db_error'
+	| 'unconfigured'
+	| 'unknown';
+
+export interface ForgejoStorageHealth {
+	status: StorageHealthStatus;
+	detail: string | null;
+}
+
 export interface Notice {
 	kind: NoticeKind;
 	msg: string;
@@ -651,6 +664,7 @@ class ForgejoService {
 	public readonly $unadopted = atom<string[]>([]);
 	public readonly $stats = atom<ForgejoStats | null>(null);
 	public readonly $storage = atom<ForgejoStorage | null>(null);
+	public readonly $storageHealth = atom<ForgejoStorageHealth | null>(null);
 	public readonly $runners = atom<ForgejoRunner[]>([]);
 	public readonly $runnerToken = atom<string | null>(null);
 	public readonly $runnerScope = atom<string>('instance');
@@ -934,6 +948,7 @@ class ForgejoService {
 		this.$lastUpdated.set(new Date());
 		void this.fetchStats(force);
 		void this.fetchStorage(force);
+		void this.fetchStorageHealth();
 		this.$loading.set(false);
 	}
 
@@ -986,6 +1001,25 @@ class ForgejoService {
 			const data = (await resp.json()) as ForgejoStorage;
 			if (data && typeof data.total_bytes === 'number') {
 				this.$storage.set(data);
+			}
+		} catch {
+			return;
+		}
+	}
+
+	public async fetchStorageHealth(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		try {
+			const resp = await fetch(`${API_BASE}/storage/health`, {
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(15000),
+			});
+			const data = (await resp
+				.json()
+				.catch(() => null)) as ForgejoStorageHealth | null;
+			if (data && typeof data.status === 'string') {
+				this.$storageHealth.set(data);
 			}
 		} catch {
 			return;
