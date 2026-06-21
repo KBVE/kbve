@@ -7,6 +7,7 @@ import {
   validateMcUuid,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import { VALID_SKILL_CATEGORIES } from "../_shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // MC Skill Module — Per-skill progression (skill tree)
@@ -15,12 +16,13 @@ import { safeRpcError } from "../_shared/validators.ts";
 //   save    — MC server persists a full skill tree (bulk upsert)
 //   load    — MC server loads all skills for a player on a server
 //   add_xp  — MC server atomically adds XP to a specific skill
+//
+// `category` is a SkillCategory enum value
+// (General=0, Combat=1, Gathering=2, Crafting=3, Magic=4); only the values in
+// VALID_SKILL_CATEGORIES are accepted.
 // ---------------------------------------------------------------------------
 
 type Handler = (mcReq: McRequest) => Promise<Response>;
-
-// Valid skill categories (McSkillCategory enum)
-const VALID_CATEGORIES = [0, 1, 2, 3, 4];
 
 // Edge-level skill_id format validation
 function isValidSkillId(id: unknown): boolean {
@@ -78,7 +80,7 @@ const handlers: Record<string, Handler> = {
       }
       if (
         s.category !== undefined &&
-        !VALID_CATEGORIES.includes(Number(s.category))
+        !VALID_SKILL_CATEGORIES.includes(Number(s.category))
       ) {
         return jsonResponse(
           {
@@ -165,7 +167,7 @@ const handlers: Record<string, Handler> = {
 
     if (
       category !== undefined &&
-      !VALID_CATEGORIES.includes(Number(category))
+      !VALID_SKILL_CATEGORIES.includes(Number(category))
     ) {
       return jsonResponse({ error: "category must be 0-4" }, 400);
     }

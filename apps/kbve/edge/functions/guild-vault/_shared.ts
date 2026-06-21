@@ -9,6 +9,12 @@ export {
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";
+import {
+  SERVICE_RE,
+  SNOWFLAKE_RE,
+  TOKEN_NAME_RE,
+  UUID_RE,
+} from "../_shared/formats.ts";
 
 // ---------------------------------------------------------------------------
 // Guild-vault-specific request type
@@ -25,12 +31,6 @@ export interface GuildVaultRequest {
 // ---------------------------------------------------------------------------
 // Validators (guard pattern: return Response on failure, null on success)
 // ---------------------------------------------------------------------------
-
-const SNOWFLAKE_RE = /^\d{17,20}$/;
-const TOKEN_NAME_RE = /^[a-z0-9_-]{3,64}$/;
-const SERVICE_RE = /^[a-z0-9_]{2,32}$/;
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function validateSnowflake(
   id: unknown,

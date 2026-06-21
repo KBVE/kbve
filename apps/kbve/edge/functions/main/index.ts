@@ -1,11 +1,17 @@
 /// <reference path="../types.d.ts" />
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import * as jose from "https://deno.land/x/jose@v4.14.4/index.ts";
+import { validateJwtSecret } from "../_shared/env.ts";
+import { logError, logInfo } from "../_shared/logging.ts";
 
-console.log("main function started");
+logInfo("main", { event: "function_started" });
 
-const JWT_SECRET = Deno.env.get("JWT_SECRET");
 const VERIFY_JWT = Deno.env.get("VERIFY_JWT") === "true";
+// Validate JWT secret strength at boot when verification is enabled, so a
+// weak/missing secret fails fast instead of surfacing as a runtime 401.
+const JWT_SECRET = VERIFY_JWT
+  ? validateJwtSecret(Deno.env.get("JWT_SECRET"))
+  : Deno.env.get("JWT_SECRET");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const PUBLIC_ROUTES = new Set(["health", "gh-webhook"]);
@@ -50,7 +56,7 @@ async function verifyJWT(jwt: string): Promise<boolean> {
   try {
     await jose.jwtVerify(jwt, secretKey);
   } catch (err) {
-    console.error(err);
+    logError("main.verifyJWT", err);
     return false;
   }
   return true;
@@ -74,7 +80,7 @@ serve(async (req: Request) => {
         });
       }
     } catch (e) {
-      console.error(e);
+      logError("main.auth", e);
       return new Response(
         JSON.stringify({ msg: "Authentication failed" }),
         {
@@ -129,7 +135,7 @@ serve(async (req: Request) => {
         }
       }
     } catch (e) {
-      console.error("Staff gate error:", e);
+      logError("main.staffGate", e);
       return new Response(
         JSON.stringify({ msg: "Access denied" }),
         {
@@ -141,7 +147,7 @@ serve(async (req: Request) => {
   }
 
   const servicePath = `/home/deno/functions/${service_name}`;
-  console.error(`serving the request with ${servicePath}`);
+  logInfo("main.dispatch", { service: service_name });
 
   const memoryLimitMb = 150;
   const workerTimeoutMs = 1 * 60 * 1000;
@@ -192,7 +198,7 @@ serve(async (req: Request) => {
     });
     return await worker.fetch(req);
   } catch (e) {
-    console.error("Worker error:", e);
+    logError("main.worker", e, { service: service_name });
     return new Response(
       JSON.stringify({ msg: "Internal server error" }),
       {

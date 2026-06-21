@@ -2,6 +2,7 @@ import {
   createServiceClient,
   jsonResponse,
   type MemeRequest,
+  validateLimit,
   validateMemeId,
   validateTag,
 } from "./_shared.ts";
@@ -24,18 +25,8 @@ const handlers: Record<string, Handler> = {
 
     const { limit, cursor, tag } = body;
 
-    // Validate limit
-    let safeLimit = 20;
-    if (limit !== undefined) {
-      const num = Number(limit);
-      if (!Number.isInteger(num) || num < 1 || num > 50) {
-        return jsonResponse(
-          { error: "limit must be an integer between 1 and 50" },
-          400,
-        );
-      }
-      safeLimit = num;
-    }
+    const { value: safeLimit, error: limitErr } = validateLimit(limit);
+    if (limitErr) return limitErr;
 
     // Validate cursor (optional ULID)
     if (cursor !== undefined && cursor !== null) {

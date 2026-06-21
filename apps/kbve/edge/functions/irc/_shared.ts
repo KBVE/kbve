@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import {
   extractToken,
   jsonResponse,
@@ -42,7 +43,7 @@ export async function requireStaffOrAdmin(
     // staff_permissions returns an integer bitmask; non-zero = staff
     if (typeof data === "number" && data > 0) return null;
   } catch (err) {
-    console.error("staff check failed:", err);
+    logError("irc", err, { step: "staff check" });
   }
 
   return jsonResponse({ error: "Access denied: staff or service_role required" }, 403);

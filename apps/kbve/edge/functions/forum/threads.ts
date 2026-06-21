@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import {
   clampLimit,
   createServiceClient,
@@ -42,7 +43,7 @@ const handlers: Record<string, Handler> = {
         .eq("status", "active")
         .maybeSingle();
       if (spaceErr) {
-        console.error("forum.thread.list space resolve error:", spaceErr);
+        logError("forum", spaceErr, { action: "thread.list", step: "space resolve" });
         return jsonResponse({ error: "space resolve failed" }, 502);
       }
       if (!spaceRow) return jsonResponse({ error: "space not found" }, 404);
@@ -61,7 +62,7 @@ const handlers: Record<string, Handler> = {
         p_include_nsfw: false,
       });
     if (error) {
-      console.error("forum.thread.list error:", error);
+      logError("forum", error, { action: "thread.list" });
       return jsonResponse({ error: "feed fetch failed" }, 502);
     }
     return jsonResponse({ threads: data ?? [], sort, limit });
@@ -91,7 +92,7 @@ const handlers: Record<string, Handler> = {
       : query.eq("slug", slugOrId)
     ).maybeSingle();
     if (error) {
-      console.error("forum.thread.get error:", error);
+      logError("forum", error, { action: "thread.get" });
       return jsonResponse({ error: "thread lookup failed" }, 502);
     }
     if (!data) return jsonResponse({ error: "thread not found" }, 404);
@@ -109,7 +110,7 @@ const handlers: Record<string, Handler> = {
       .schema("forum")
       .rpc("service_get_thread_tags", { p_thread_id: threadId });
     if (error) {
-      console.error("forum.thread.tags error:", error);
+      logError("forum", error, { action: "thread.tags" });
       return jsonResponse({ error: "thread tags failed" }, 502);
     }
     return jsonResponse({ tags: data ?? [] });

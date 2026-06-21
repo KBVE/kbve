@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import { jsonResponse, withIrcConnection } from "./_shared.ts";
 import type { IrcRequest } from "./_shared.ts";
 
@@ -32,7 +33,7 @@ export async function handleChannel(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ channels });
       } catch (err) {
-        console.error("irc channel.list error:", err);
+        logError("irc", err, { action: "channel.list" });
         return jsonResponse(
           { error: "Failed to list channels — Ergo unreachable" },
           503,
@@ -71,7 +72,7 @@ export async function handleChannel(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ channel: safeChan, topic: topic ?? "(no topic set)" });
       } catch (err) {
-        console.error("irc channel.topic error:", err);
+        logError("irc", err, { action: "channel.topic" });
         return jsonResponse(
           { error: "Failed to get topic — Ergo unreachable" },
           503,
@@ -112,7 +113,7 @@ export async function handleChannel(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ channel: safeChan, names });
       } catch (err) {
-        console.error("irc channel.names error:", err);
+        logError("irc", err, { action: "channel.names" });
         return jsonResponse(
           { error: "Failed to get names — Ergo unreachable" },
           503,
