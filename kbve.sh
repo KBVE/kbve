@@ -1080,6 +1080,11 @@ EOF
         return 1
     fi
 
+    if [ "$1" = "path" ]; then
+        echo "$path_prefix"
+        return 0
+    fi
+
     if [ "$1" = "register" ]; then
         shift
         local remote="${1:-origin}"

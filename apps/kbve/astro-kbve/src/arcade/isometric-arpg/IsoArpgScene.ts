@@ -14,6 +14,8 @@ import {
 	type ProjectileEvent,
 	type FloorChangeEvent,
 	type Facing,
+	type InventorySync,
+	type InventoryItem,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -75,7 +77,7 @@ import {
 } from './systems/dungeon';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
-import { emitHud, clearHud } from './systems/hud';
+import { emitHud, clearHud, emitInventory } from './systems/hud';
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -91,6 +93,12 @@ import {
 	registerClassAnims,
 	RANGER_CLASS,
 } from './entities/classes';
+import {
+	preloadEnv,
+	registerEnvAnims,
+	makeEnvSprite,
+	ENV_REGISTRY,
+} from './entities/env';
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
 
@@ -162,6 +170,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
 
+	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
+	// HUD panel and the 1-9 hotkeys.
+	private inventory: InventoryItem[] = [];
+
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
@@ -174,12 +186,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	preload() {
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
+		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 	}
 
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
+		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
 
 		this.drawGrid();
 		this.buildFog();
@@ -439,6 +453,12 @@ export class IsoArpgScene extends Phaser.Scene {
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
 		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+		// Number keys 1-9 use the matching inventory slot.
+		kb.on('keydown', (ev: KeyboardEvent) => {
+			if (ev.key >= '1' && ev.key <= '9') {
+				this.useInventorySlot(Number(ev.key) - 1);
+			}
+		});
 		this.input.mouse?.disableContextMenu();
 
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -478,16 +498,29 @@ export class IsoArpgScene extends Phaser.Scene {
 	private buildBridge() {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
-				const refs: EntityRefs = isPlayerKind(this.kinds, e.kind)
-					? this.makePlayerRefs(e.kind)
-					: {
-							sprite: makeSprite(
-								this,
-								this.kinds,
-								e.kind,
-								this.syncResolvers.hostile(e.kind),
-							),
-						};
+				let refs: EntityRefs;
+				if (isPlayerKind(this.kinds, e.kind)) {
+					refs = this.makePlayerRefs(e.kind);
+				} else if (this.kinds.catName(e.kind) === 'env') {
+					const envSprite = makeEnvSprite(
+						this,
+						this.kinds.ref(e.kind),
+					);
+					refs = {
+						sprite:
+							envSprite ??
+							makeSprite(this, this.kinds, e.kind, false),
+					};
+				} else {
+					refs = {
+						sprite: makeSprite(
+							this,
+							this.kinds,
+							e.kind,
+							this.syncResolvers.hostile(e.kind),
+						),
+					};
+				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				this.syncShadow(refs);
 				if (label) {
@@ -545,8 +578,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
 		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
+		client.on('inventory', (inv: InventorySync) => {
+			this.inventory = inv.items;
+			emitInventory(inv.items);
+		});
 
 		client.connect();
+	}
+
+	// Use the item in inventory slot `idx` (0-based), bound to keys 1-9. The
+	// server consumes it and applies the effect (heal/buff); the resulting
+	// EPHEMERAL_INVENTORY refreshes the HUD.
+	private useInventorySlot(idx: number): void {
+		const item = this.inventory[idx];
+		if (item) this.client?.useItem(item.ref);
 	}
 
 	private applySnapshot(s: Snapshot) {
@@ -655,6 +700,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// the 16-dir turn curve stays fluid even between tile crossings.
 		this.tickFacing();
 		this.syncFogToZoom();
+		this.refreshEnvBlocked();
 
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
 
@@ -865,7 +911,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const path = findHierPath(
 			start,
 			tile,
-			(x, y) => this.dungeon.isFloor(x, y),
+			(x, y) => !this.isBlocked(x, y),
 			this.gateGraph,
 		);
 		if (!path) {
@@ -876,10 +922,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.moveTo(tile);
 	}
 
-	// Endless dungeon: a tile is walkable iff it's a generated floor tile. No
-	// fixed bounds — walls are simply the absence of floor.
+	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the
+	// ECS store so local prediction blocks the same tiles the server does — else
+	// the player walks onto a campfire then snaps back on the next snapshot.
+	private envBlocked = new Set<string>();
+
+	private refreshEnvBlocked(): void {
+		this.envBlocked.clear();
+		for (const sid of this.store.serverIdsWith('env')) {
+			const t = this.store.tile(sid);
+			if (t) this.envBlocked.add(`${t.x},${t.y}`);
+		}
+	}
+
+	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
+	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
-		return !this.dungeon.isFloor(x, y);
+		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
 	};
 
 	private isHostileServer(serverEid: number): boolean {

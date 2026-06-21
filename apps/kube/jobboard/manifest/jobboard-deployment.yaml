@@ -71,6 +71,8 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url-any
+                      - name: KBVE_PG_CA_PEM_FILE
+                        value: '/etc/ssl/pgca/ca.crt'
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -101,10 +103,19 @@ spec:
                   volumeMounts:
                       - name: tmp
                         mountPath: /tmp
+                      - name: pg-ca
+                        mountPath: /etc/ssl/pgca
+                        readOnly: true
             volumes:
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
+                - name: pg-ca
+                  secret:
+                      secretName: supabase-shared
+                      items:
+                          - key: db-ca-crt
+                            path: ca.crt
 ---
 apiVersion: v1
 kind: Service
