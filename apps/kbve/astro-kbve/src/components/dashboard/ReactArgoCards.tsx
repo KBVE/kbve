@@ -101,11 +101,38 @@ function ResourceBar({ tally }: { tally: ResourceTally }) {
 	);
 }
 
+// Subscribe to only this card's slice of $actionBusy so a sync on one card
+// re-renders that card's action bar alone, not every card in the grid.
+function useCardBusy(name: string): { syncing: boolean; refreshing: boolean } {
+	const [state, setState] = React.useState(() => {
+		const b = argoService.$actionBusy.get();
+		return {
+			syncing: b === `${name}:sync`,
+			refreshing: b === `${name}:refresh`,
+		};
+	});
+	React.useEffect(() => {
+		const syncKey = `${name}:sync`;
+		const refreshKey = `${name}:refresh`;
+		return argoService.$actionBusy.subscribe((b) => {
+			const next = {
+				syncing: b === syncKey,
+				refreshing: b === refreshKey,
+			};
+			setState((prev) =>
+				prev.syncing === next.syncing &&
+				prev.refreshing === next.refreshing
+					? prev
+					: next,
+			);
+		});
+	}, [name]);
+	return state;
+}
+
 function CardActions({ name }: { name: string }) {
-	const busy = useStore(argoService.$actionBusy);
-	const syncing = busy === `${name}:sync`;
-	const refreshing = busy === `${name}:refresh`;
-	const anyBusy = busy !== null;
+	const { syncing, refreshing } = useCardBusy(name);
+	const ownBusy = syncing || refreshing;
 	const btn: React.CSSProperties = {
 		display: 'inline-flex',
 		alignItems: 'center',
@@ -117,14 +144,14 @@ function CardActions({ name }: { name: string }) {
 		color: 'var(--sl-color-gray-2, #c9d1d9)',
 		fontSize: '0.7rem',
 		fontWeight: 500,
-		cursor: anyBusy ? 'wait' : 'pointer',
+		cursor: ownBusy ? 'wait' : 'pointer',
 	};
 	const stop = (e: React.MouseEvent) => e.stopPropagation();
 	return (
 		<div style={{ display: 'flex', gap: 6 }} onClick={stop}>
 			<button
 				type="button"
-				disabled={anyBusy}
+				disabled={ownBusy}
 				title="Trigger an ArgoCD sync (requires manage permission)"
 				onClick={() => argoService.syncApp(name)}
 				style={btn}>
@@ -140,7 +167,7 @@ function CardActions({ name }: { name: string }) {
 			</button>
 			<button
 				type="button"
-				disabled={anyBusy}
+				disabled={ownBusy}
 				title="Force ArgoCD to re-read the live cluster state"
 				onClick={() => argoService.hardRefreshApp(name)}
 				style={btn}>
@@ -595,7 +622,10 @@ function groupSummaries(
 }
 
 export default function ReactArgoCards() {
-	const summaries = useStore(argoService.$filteredSummaries);
+	// Defer the list so a 30s poll re-render yields to clicks/typing.
+	const summaries = React.useDeferredValue(
+		useStore(argoService.$filteredSummaries),
+	);
 	const applications = useStore(argoService.$applications);
 	const expandedApp = useStore(argoService.$expandedApp);
 	const accessToken = useStore(argoService.$accessToken);
