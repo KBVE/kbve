@@ -32,6 +32,19 @@ export function onInventory(
 	return laserEvents.on(INVENTORY_EVENT, handler as (data: unknown) => void);
 }
 
+export const INVENTORY_OPEN_EVENT = 'arpg:inventory:open';
+
+export function emitInventoryOpen(open: boolean): void {
+	laserEvents.emit(INVENTORY_OPEN_EVENT, open);
+}
+
+export function onInventoryOpen(handler: (open: boolean) => void): () => void {
+	return laserEvents.on(
+		INVENTORY_OPEN_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
 export const HUD_CLEAR_EVENT = 'arpg:hud:clear';
 
 export function clearHud(): void {

@@ -78,7 +78,12 @@ import {
 } from './systems/dungeon';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
-import { emitHud, clearHud, emitInventory } from './systems/hud';
+import {
+	emitHud,
+	clearHud,
+	emitInventory,
+	emitInventoryOpen,
+} from './systems/hud';
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -177,6 +182,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Ground items we've already sent a pickup for, so auto-pickup doesn't spam
 	// the same item during the request → despawn round-trip.
 	private pickupSent = new Set<number>();
+	// Full inventory panel open state (toggled with I).
+	private inventoryOpen = false;
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -457,10 +464,17 @@ export class IsoArpgScene extends Phaser.Scene {
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
 		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		// Number keys 1-9 use the matching inventory slot.
+		// Number keys 1-9 use the matching inventory slot; I toggles the full
+		// inventory panel; Escape closes it.
 		kb.on('keydown', (ev: KeyboardEvent) => {
 			if (ev.key >= '1' && ev.key <= '9') {
 				this.useInventorySlot(Number(ev.key) - 1);
+			} else if (ev.key === 'i' || ev.key === 'I') {
+				this.inventoryOpen = !this.inventoryOpen;
+				emitInventoryOpen(this.inventoryOpen);
+			} else if (ev.key === 'Escape' && this.inventoryOpen) {
+				this.inventoryOpen = false;
+				emitInventoryOpen(false);
 			}
 		});
 		this.input.mouse?.disableContextMenu();
@@ -527,6 +541,17 @@ export class IsoArpgScene extends Phaser.Scene {
 				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				this.syncShadow(refs);
+				// Ground loot bobs gently so it reads as a pickup, not scenery.
+				if (this.kinds.catName(e.kind) === 'item') {
+					this.tweens.add({
+						targets: refs.sprite,
+						y: refs.sprite.y - 6,
+						duration: 650,
+						yoyo: true,
+						repeat: -1,
+						ease: 'Sine.easeInOut',
+					});
+				}
 				if (label) {
 					refs.nameplate = makeNameplate(this, label);
 					this.placeNameplate(refs);
