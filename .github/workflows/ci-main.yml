@@ -465,7 +465,7 @@ jobs:
                         uconfig=$(jq -nc \
                           --arg pp "$path" --arg itch "$itch" --arg deps "$deps" \
                           --argjson di "$deploy_itch" \
-                          '{plugin_path:$pp, image_tags:["dev-5.7.4"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, skip_version_update:false}')
+                          '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, skip_version_update:false}')
                         dispatch_publish unreal \
                           --field package_name="$name" \
                           --field manifest_version="$mdx_version" \
@@ -488,7 +488,7 @@ jobs:
                         uconfig=$(jq -nc \
                           --arg pp "$path" --arg deps "$deps" \
                           --argjson sv "$win64_skip_version" \
-                          '{plugin_path:$pp, image_tags:["dev-5.7.4"], deploy_to_itch:false, itch_game_id:"", dependency_plugins:$deps, skip_version_update:$sv}')
+                          '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:false, itch_game_id:"", dependency_plugins:$deps, skip_version_update:$sv}')
                         dispatch_publish unreal-win64 \
                           --field package_name="$name" \
                           --field manifest_version="$mdx_version" \

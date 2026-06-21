@@ -22,7 +22,7 @@ on:
                 description: 'JSON of unreal-only fields {plugin_path, image_tags[], deploy_to_itch, itch_game_id, dependency_plugins, skip_version_update}. Consolidated to stay under the 10-input workflow_dispatch cap.'
                 required: false
                 type: string
-                default: '{"plugin_path":"","image_tags":["dev-5.7.4"],"deploy_to_itch":false,"itch_game_id":"","dependency_plugins":"","skip_version_update":false}'
+                default: '{"plugin_path":"","image_tags":["dev-5.8.0"],"deploy_to_itch":false,"itch_game_id":"","dependency_plugins":"","skip_version_update":false}'
             version_source:
                 description: 'Path to version source file (overrides default path convention). E.g. packages/rust/bevy/bevy_items/Cargo.toml'
                 required: false
