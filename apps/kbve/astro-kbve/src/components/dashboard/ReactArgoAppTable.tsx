@@ -72,33 +72,27 @@ function StallBadge({
 // Status helpers
 // ---------------------------------------------------------------------------
 
+const UNKNOWN_ICON = <AlertCircle size={14} />;
+
+const HEALTH_ICONS: Record<string, React.ReactNode> = {
+	Healthy: <CheckCircle2 size={14} />,
+	Degraded: <XCircle size={14} />,
+	Progressing: (
+		<Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+	),
+};
+
+const SYNC_ICONS: Record<string, React.ReactNode> = {
+	Synced: <CheckCircle2 size={14} />,
+	OutOfSync: <RefreshCw size={14} />,
+};
+
 export function healthIcon(status: string) {
-	switch (status) {
-		case 'Healthy':
-			return <CheckCircle2 size={14} />;
-		case 'Degraded':
-			return <XCircle size={14} />;
-		case 'Progressing':
-			return (
-				<Loader2
-					size={14}
-					style={{ animation: 'spin 1s linear infinite' }}
-				/>
-			);
-		default:
-			return <AlertCircle size={14} />;
-	}
+	return HEALTH_ICONS[status] ?? UNKNOWN_ICON;
 }
 
 export function syncIcon(status: string) {
-	switch (status) {
-		case 'Synced':
-			return <CheckCircle2 size={14} />;
-		case 'OutOfSync':
-			return <RefreshCw size={14} />;
-		default:
-			return <AlertCircle size={14} />;
-	}
+	return SYNC_ICONS[status] ?? UNKNOWN_ICON;
 }
 
 export function StatusBadge({
@@ -305,6 +299,46 @@ function ResourceRow({
 	);
 }
 
+// Cap on rows rendered at once. A fat app (namespace with hundreds of
+// resources) would otherwise build the entire list every expand; this keeps
+// the initial render bounded with an opt-in "show all" escape hatch.
+const MAX_VISIBLE_RESOURCES = 75;
+
+function ShowMoreBar({
+	shown,
+	total,
+	onShowAll,
+}: {
+	shown: number;
+	total: number;
+	onShowAll: () => void;
+}) {
+	if (shown >= total) return null;
+	return (
+		<button
+			type="button"
+			onClick={onShowAll}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 6,
+				width: '100%',
+				marginTop: 6,
+				padding: '6px 8px',
+				borderRadius: 6,
+				border: '1px dashed var(--sl-color-gray-5, #262626)',
+				background: 'transparent',
+				color: 'var(--sl-color-gray-3, #8b949e)',
+				fontSize: '0.75rem',
+				fontWeight: 600,
+				cursor: 'pointer',
+			}}>
+			Show all {total} resources ({total - shown} hidden)
+		</button>
+	);
+}
+
 function ResourceTreePanel({
 	token,
 	appName,
@@ -324,9 +358,11 @@ function ResourceTreePanel({
 	const [kindFilter, setKindFilter] = useState<string>('');
 	const [healthFilter, setHealthFilter] = useState<string>('');
 	const [search, setSearch] = useState<string>('');
+	const [showAll, setShowAll] = useState(false);
 
 	useEffect(() => {
 		let cancelled = false;
+		setShowAll(false);
 		(async () => {
 			try {
 				setLoading(true);
@@ -513,34 +549,39 @@ function ResourceTreePanel({
 			return kids.some(includesFilteredDescendant);
 		};
 
-		const renderNode = (
-			n: ResourceNode,
-			depth: number,
-		): React.ReactNode => {
-			if (!includesFilteredDescendant(n)) return null;
+		const ordered: { node: ResourceNode; depth: number }[] = [];
+		const collect = (n: ResourceNode, depth: number) => {
+			if (!includesFilteredDescendant(n)) return;
+			ordered.push({ node: n, depth });
 			const kids =
 				(n.uid && childrenByParentUid.get(n.uid)) ||
 				([] as ResourceNode[]);
-			return (
-				<React.Fragment
-					key={`${n.uid ?? `${n.namespace}-${n.name}-${depth}`}`}>
-					<ResourceRow
-						node={n}
-						depth={depth}
-						appName={appName}
-						selected={isSelected(n)}
-						token={token}
-						onSelectResource={onSelectResource}
-					/>
-					{kids.map((k) => renderNode(k, depth + 1))}
-				</React.Fragment>
-			);
+			kids.forEach((k) => collect(k, depth + 1));
 		};
+		roots.forEach((r) => collect(r, 0));
+		const visible = showAll
+			? ordered
+			: ordered.slice(0, MAX_VISIBLE_RESOURCES);
 
 		return (
 			<div>
 				{filterControls}
-				{roots.map((r) => renderNode(r, 0))}
+				{visible.map(({ node, depth }) => (
+					<ResourceRow
+						key={`${node.uid ?? `${node.namespace}-${node.name}-${depth}`}`}
+						node={node}
+						depth={depth}
+						appName={appName}
+						selected={isSelected(node)}
+						token={token}
+						onSelectResource={onSelectResource}
+					/>
+				))}
+				<ShowMoreBar
+					shown={visible.length}
+					total={ordered.length}
+					onShowAll={() => setShowAll(true)}
+				/>
 			</div>
 		);
 	}
@@ -555,35 +596,52 @@ function ResourceTreePanel({
 		{} as Record<string, ResourceNode[]>,
 	);
 
+	const kindLimit = showAll ? Infinity : MAX_VISIBLE_RESOURCES;
+	let kindBudget = kindLimit;
+
 	return (
 		<div>
 			{filterControls}
-			{Object.entries(grouped).map(([kind, nodes]) => (
-				<div key={kind} style={{ marginBottom: '0.75rem' }}>
-					<div
-						style={{
-							fontSize: '0.75rem',
-							fontWeight: 600,
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							marginBottom: 4,
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-						}}>
-						{kind} ({nodes.length})
+			{Object.entries(grouped).map(([kind, nodes]) => {
+				if (kindBudget <= 0) return null;
+				const take = nodes.slice(0, kindBudget);
+				kindBudget -= take.length;
+				return (
+					<div key={kind} style={{ marginBottom: '0.75rem' }}>
+						<div
+							style={{
+								fontSize: '0.75rem',
+								fontWeight: 600,
+								color: 'var(--sl-color-gray-3, #8b949e)',
+								marginBottom: 4,
+								textTransform: 'uppercase',
+								letterSpacing: '0.05em',
+							}}>
+							{kind} ({nodes.length})
+						</div>
+						{take.map((node, i) => (
+							<ResourceRow
+								key={`${node.uid ?? `${node.namespace}-${node.name}-${i}`}`}
+								node={node}
+								depth={0}
+								appName={appName}
+								selected={isSelected(node)}
+								token={token}
+								onSelectResource={onSelectResource}
+							/>
+						))}
 					</div>
-					{nodes.map((node, i) => (
-						<ResourceRow
-							key={`${node.uid ?? `${node.namespace}-${node.name}-${i}`}`}
-							node={node}
-							depth={0}
-							appName={appName}
-							selected={isSelected(node)}
-							token={token}
-							onSelectResource={onSelectResource}
-						/>
-					))}
-				</div>
-			))}
+				);
+			})}
+			<ShowMoreBar
+				shown={
+					showAll
+						? filtered.length
+						: Math.min(filtered.length, MAX_VISIBLE_RESOURCES)
+				}
+				total={filtered.length}
+				onShowAll={() => setShowAll(true)}
+			/>
 		</div>
 	);
 }
@@ -1259,7 +1317,10 @@ export function AppActionBar({ app }: { app: ArgoApplication }) {
 // ---------------------------------------------------------------------------
 
 export default function ReactArgoAppTable() {
-	const applications = useStore(argoService.$applications);
+	// Defer the list so a 30s poll re-render yields to clicks/typing.
+	const applications = React.useDeferredValue(
+		useStore(argoService.$applications),
+	);
 	const loading = useStore(argoService.$loading);
 	const error = useStore(argoService.$error);
 	const accessToken = useStore(argoService.$accessToken);
