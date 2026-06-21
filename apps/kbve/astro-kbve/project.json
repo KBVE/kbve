@@ -296,6 +296,7 @@
 		},
 		"sync:itemdb": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["sync:itemdb-uecpp"],
 			"inputs": [
 				"{projectRoot}/src/content/docs/itemdb/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",
