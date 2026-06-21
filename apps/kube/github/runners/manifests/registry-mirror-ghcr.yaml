@@ -134,6 +134,36 @@ spec:
                           port: http
                       initialDelaySeconds: 30
                       periodSeconds: 30
+                - name: janitor
+                  image: registry:2.8.3
+                  imagePullPolicy: IfNotPresent
+                  command: ['/bin/sh', '/opt/janitor/janitor.sh']
+                  env:
+                      - name: SOFT_PCT
+                        value: '80'
+                      - name: HARD_PCT
+                        value: '95'
+                      - name: INTERVAL_SECONDS
+                        value: '3600'
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/docker/registry
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/registry
+                      - name: janitor
+                        mountPath: /opt/janitor
+                        readOnly: true
+                      - name: whitelist
+                        mountPath: /etc/janitor
+                        readOnly: true
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 256Mi
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
             volumes:
                 - name: config
                   configMap:
@@ -144,6 +174,18 @@ spec:
                 - name: data
                   persistentVolumeClaim:
                       claimName: registry-mirror-ghcr-data
+                - name: janitor
+                  configMap:
+                      name: registry-mirror-ghcr-janitor
+                      items:
+                          - key: janitor.sh
+                            path: janitor.sh
+                - name: whitelist
+                  configMap:
+                      name: registry-mirror-ghcr-whitelist
+                      items:
+                          - key: whitelist
+                            path: whitelist
 ---
 apiVersion: v1
 kind: Service
@@ -162,3 +204,86 @@ spec:
           port: 5000
           targetPort: http
           protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-whitelist
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+data:
+    # One "<repo>:<tag>" per line (cache path — no ghcr.io/ host prefix).
+    # These are never pruned under the SOFT limit; only sacrificed (oldest
+    # first) under the HARD limit to avoid a full disk.
+    whitelist: |
+        epicgames/unreal-engine:dev-5.8.0
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-janitor
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+data:
+    janitor.sh: |
+        #!/bin/sh
+        # Size-bounded retention for the ghcr pull-through cache. Shares the
+        # registry's data PVC; talks to the registry on localhost. Online GC is
+        # safe: this is a proxy, so any over-collected blob is just re-pulled.
+        set -eu
+        REG="http://127.0.0.1:5000"
+        DATA="/var/lib/registry"
+        CONFIG="/etc/docker/registry/config.yml"
+        WL="/etc/janitor/whitelist"
+        SOFT="${SOFT_PCT:-80}"
+        HARD="${HARD_PCT:-95}"
+        INTERVAL="${INTERVAL_SECONDS:-3600}"
+
+        command -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1
+
+        usage() { df -P "$DATA" | awk 'NR==2{gsub("%","",$5);print $5}'; }
+        wl() { grep -qxF "$1:$2" "$WL" 2>/dev/null; }
+        gc() { registry garbage-collect --delete-untagged "$CONFIG" >/dev/null 2>&1 || true; }
+
+        # emit "mtime<TAB>repo<TAB>tag<TAB>digest", oldest first
+        tags() {
+          curl -fsS "$REG/v2/_catalog" | jq -r '.repositories[]?' | while read -r r; do
+            curl -fsS "$REG/v2/$r/tags/list" | jq -r '.tags[]?' | while read -r t; do
+              d=$(curl -fsS -o /dev/null -D - \
+                   -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+                   "$REG/v2/$r/manifests/$t" \
+                   | awk -F': ' 'tolower($1)=="docker-content-digest"{gsub("\r","",$2);print $2}')
+              [ -n "$d" ] || continue
+              m=$(stat -c %Y "$DATA/docker/registry/v2/repositories/$r/_manifests/tags/$t" 2>/dev/null || echo 0)
+              printf '%s\t%s\t%s\t%s\n' "$m" "$r" "$t" "$d"
+            done
+          done | sort -n
+        }
+        del() { curl -fsS -X DELETE \
+                 -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
+                 "$REG/v2/$1/manifests/$2" >/dev/null 2>&1 || true; }
+
+        while :; do
+          U=$(usage)
+          if [ "$U" -ge "$HARD" ]; then
+            echo "janitor: HARD ${U}% >= ${HARD}% — drop non-whitelisted, then oldest until under"
+            tags | while IFS="$(printf '\t')" read -r m r t d; do wl "$r" "$t" && continue; echo "  del $r:$t"; del "$r" "$d"; done
+            gc
+            while [ "$(usage)" -ge "$HARD" ]; do
+              line=$(tags | head -1); [ -z "$line" ] && break
+              r=$(echo "$line" | cut -f2); t=$(echo "$line" | cut -f3); d=$(echo "$line" | cut -f4)
+              echo "  HARD del (whitelisted ok) $r:$t"; del "$r" "$d"; gc
+            done
+          elif [ "$U" -ge "$SOFT" ]; then
+            echo "janitor: SOFT ${U}% >= ${SOFT}% — drop all non-whitelisted"
+            tags | while IFS="$(printf '\t')" read -r m r t d; do wl "$r" "$t" && continue; echo "  del $r:$t"; del "$r" "$d"; done
+            gc
+          else
+            echo "janitor: usage ${U}% OK"
+          fi
+          sleep "$INTERVAL"
+        done
