@@ -58,7 +58,11 @@ data:
             X-Content-Type-Options: [nosniff]
         proxy:
           remoteurl: https://ghcr.io
-          ttl: 168h
+          # Revalidate tag->manifest against upstream daily. UE 'dev-*' tags are
+          # MUTABLE; a long TTL would silently serve a stale image for that whole
+          # window after an upstream re-push. Blob bytes are immutable (addressed
+          # by digest) so revalidation stays cheap — only the manifest is re-checked.
+          ttl: 24h
           # username/password supplied via REGISTRY_PROXY_* env so the PAT
           # never lands in this ConfigMap.
         health:
@@ -75,6 +79,13 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+    annotations:
+        # REGISTRY_PROXY_PASSWORD is injected from github-arc-token at pod start
+        # only. When the PAT rotates the running pod keeps the stale value and
+        # upstream auth breaks on the next cache-miss (fallback masks it). Stakater
+        # Reloader rolls the Deployment on secret change; harmless no-op if absent.
+        reloader.stakater.com/auto: 'true'
+        secret.reloader.stakater.com/reload: github-arc-token
 spec:
     replicas: 1
     strategy:
@@ -205,6 +216,35 @@ spec:
           targetPort: http
           protocol: TCP
 ---
+# The cache serves the PRIVATE epicgames image over unauthenticated HTTP, and
+# 'delete: enabled' means any client reaching :5000 could also evict tags.
+# Restrict ingress to pods inside arc-runners (the only legitimate clients are
+# the runner DinD sidecars) so nothing in another namespace can pull the
+# licensed image or wipe the cache. Same-namespace fork-PR isolation still needs
+# the egress allow in runner-networkpolicy.yaml + ARC ephemeral-runner trust.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: registry-mirror-ghcr-ingress
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror-ghcr
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: http
+                protocol: TCP
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -276,7 +316,7 @@ data:
 
         while :; do
           if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
-            echo "janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention falls back to proxy.ttl(168h). Bake jq+curl into the image to restore."
+            echo "janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention falls back to proxy.ttl(24h). Bake jq+curl into the image to restore."
             apk add --no-cache jq curl >/dev/null 2>&1 || true
             sleep "$INTERVAL"; continue
           fi

@@ -398,12 +398,15 @@ jobs:
               run: |
                   TARGET="${{ env.UE_IMAGE }}"
                   CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                   if docker pull "$CACHE_REF"; then
                     docker tag "$CACHE_REF" "$TARGET"
                     echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
                   else
                     echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
-                    echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                     docker pull "$TARGET"
                   fi
 
@@ -713,12 +716,15 @@ jobs:
               run: |
                   TARGET="${{ env.UE_IMAGE }}"
                   CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                   if docker pull "$CACHE_REF"; then
                     docker tag "$CACHE_REF" "$TARGET"
                     echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
                   else
                     echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
-                    echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                     docker pull "$TARGET"
                   fi
 
@@ -1883,12 +1889,15 @@ jobs:
               run: |
                   TARGET="ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
                   CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+                  # Authenticate to ghcr unconditionally so a cache HIT still
+                  # leaves a valid ghcr session for any later step (and so the
+                  # fallback path needs no separate login).
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                   if docker pull "$CACHE_REF"; then
                     docker tag "$CACHE_REF" "$TARGET"
                     echo "::notice::UE image served from in-cluster cache ($CACHE_REF)"
                   else
                     echo "::warning::cache miss/unreachable -> pulling from ghcr.io"
-                    echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
                     docker pull "$TARGET"
                   fi
 

@@ -39,3 +39,14 @@ spec:
           ports:
               - port: 6379
                 protocol: TCP
+        # DinD → in-cluster pull-through caches (registry-mirror Docker Hub +
+        # registry-mirror-ghcr) on :5000, scoped to this namespace. Without this
+        # explicit allow the caches work only because egress isn't strictly
+        # enforced; this makes the dependency survive any future tightening.
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: 5000
+                protocol: TCP

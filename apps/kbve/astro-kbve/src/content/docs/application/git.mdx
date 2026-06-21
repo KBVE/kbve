@@ -797,9 +797,15 @@ every later pull is LAN speed.
 - Manifest: `apps/kube/github/runners/manifests/registry-mirror-ghcr.yaml`
 - Service: `registry-mirror-ghcr.arc-runners.svc.cluster.local:5000`
 - Upstream: `https://ghcr.io` (auth via the in-cluster `github-arc-token`)
-- Retention: 7-day TTL + soft (80%) / hard (95%) size limits. A whitelist
-  ConfigMap (`registry-mirror-ghcr-whitelist`) protects pinned tags under the
-  soft limit; the hard limit overrides it to avoid a full disk.
+- Proxy revalidation: 24h TTL — UE `dev-*` tags are mutable, so the cache
+  re-checks the tag→manifest mapping daily rather than serving a stale image for
+  a week after an upstream re-push (blob bytes are immutable, so this is cheap).
+- Retention: soft (80%) / hard (95%) size limits. A whitelist ConfigMap
+  (`registry-mirror-ghcr-whitelist`) protects pinned tags under the soft limit;
+  the hard limit overrides it to avoid a full disk.
+- Access: an Ingress NetworkPolicy (`registry-mirror-ghcr-ingress`) restricts
+  `:5000` to the `arc-runners` namespace, since the cache serves the private UE
+  image unauthenticated over HTTP and has the delete API enabled.
 
 ##### Use the cache from another runner job
 
@@ -816,7 +822,9 @@ Routing another CI job's image pulls through the cache is two steps:
 
 2. **Pull cache-first in the job.** Swap the registry host to the cache, pull,
    and retag to the canonical name (so the rest of the job is unchanged), with a
-   ghcr fallback so a cache outage degrades gracefully:
+   ghcr fallback so a cache outage degrades gracefully. Log in to ghcr
+   **unconditionally** first — a cache hit must still leave a valid ghcr session
+   for any later step that touches ghcr:
 
    ```yaml
    - name: Pull image (cache-first, ghcr fallback)
@@ -825,10 +833,10 @@ Routing another CI job's image pulls through the cache is two steps:
      run: |
        TARGET="ghcr.io/<org>/<image>:<tag>"
        CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+       echo "$GHCR_PAT" | docker login ghcr.io -u "$ACTOR" --password-stdin
        if docker pull "$CACHE_REF"; then
          docker tag "$CACHE_REF" "$TARGET"
        else
-         echo "$GHCR_PAT" | docker login ghcr.io -u "$ACTOR" --password-stdin
          docker pull "$TARGET"
        fi
    ```
