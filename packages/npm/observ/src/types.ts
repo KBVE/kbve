@@ -1,14 +1,12 @@
-export interface ErrorEvent {
-	project: string;
-	platform?: string;
-	release?: string;
-	environment?: string;
-	error_type?: string;
+import type { ErrorEvent } from './generated/telemetry-schema';
+
+export type { ErrorEvent, ErrorBatch } from './generated/telemetry-schema';
+
+export interface CaptureInput {
 	message: string;
 	stack?: string;
+	error_type?: string;
 	url?: string;
-	user_id?: string;
-	session_id?: string;
 	handled?: boolean;
 	extra?: Record<string, unknown>;
 }

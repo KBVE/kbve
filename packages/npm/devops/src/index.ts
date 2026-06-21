@@ -3,3 +3,4 @@ export * from './lib/api';
 export * from './lib/client/kbve';
 export * from './lib/ci';
 export * from './lib/forum';
+export * as telemetry from './lib/telemetry';

@@ -223,6 +223,17 @@ const protos = [
 		package: 'kbve.chat',
 		vendorTo: [{ path: '../../npm/chat/src/generated/chat-schema.ts' }],
 	},
+	{
+		name: 'telemetry',
+		protoFile: 'kbve/telemetry.proto',
+		package: 'kbve.telemetry',
+		vendorTo: [
+			{ path: '../../npm/observ/src/generated/telemetry-schema.ts' },
+			{
+				path: '../../npm/devops/src/lib/telemetry/generated/telemetry-schema.ts',
+			},
+		],
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one

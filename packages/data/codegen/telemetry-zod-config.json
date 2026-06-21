@@ -1,0 +1,10 @@
+{
+	"include": [
+		"kbve.telemetry.ErrorEvent",
+		"kbve.telemetry.ErrorBatch",
+		"kbve.telemetry.ErrorGroup",
+		"kbve.telemetry.ErrorGroupList"
+	],
+
+	"nullable": ["kbve.telemetry.ErrorEvent.extra"]
+}
