@@ -316,7 +316,7 @@ impl PgCluster {
         );
         let arc = Arc::new(Self { rw, ro, any, cfg });
         #[cfg(feature = "prometheus")]
-        let _ = spawn_state_sampler(Arc::downgrade(&arc));
+        drop(spawn_state_sampler(Arc::downgrade(&arc)));
         Ok(arc)
     }
 

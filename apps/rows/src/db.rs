@@ -45,32 +45,6 @@ pub fn connect_lazy(database_url: &str) -> anyhow::Result<DbPool> {
     Ok(pool)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn connect_lazy_does_not_dial_at_construction() {
-        // Unreachable host: a lazy pool must still build without error,
-        // because no connection is opened until first acquire.
-        let pool = connect_lazy("postgres://u:p@10.255.255.1:5432/none");
-        assert!(
-            pool.is_ok(),
-            "lazy pool construction must not fail on an unreachable host"
-        );
-    }
-
-    #[test]
-    fn build_opts_rejects_garbage() {
-        assert!(build_opts("not-a-valid-url").is_err());
-    }
-
-    #[test]
-    fn build_opts_accepts_postgres_url() {
-        assert!(build_opts("postgres://u:p@db:5432/app").is_ok());
-    }
-}
-
 /// Parse an Npgsql/ADO.NET connection string (`Host=...;Port=...;Database=...;...`).
 fn parse_npgsql(conn_str: &str) -> anyhow::Result<PgConnectOptions> {
     let mut opts = PgConnectOptions::new();
@@ -122,4 +96,30 @@ fn parse_npgsql(conn_str: &str) -> anyhow::Result<PgConnectOptions> {
     }
 
     Ok(opts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn connect_lazy_does_not_dial_at_construction() {
+        // Unreachable host: a lazy pool must still build without error,
+        // because no connection is opened until first acquire.
+        let pool = connect_lazy("postgres://u:p@10.255.255.1:5432/none");
+        assert!(
+            pool.is_ok(),
+            "lazy pool construction must not fail on an unreachable host"
+        );
+    }
+
+    #[test]
+    fn build_opts_rejects_garbage() {
+        assert!(build_opts("not-a-valid-url").is_err());
+    }
+
+    #[test]
+    fn build_opts_accepts_postgres_url() {
+        assert!(build_opts("postgres://u:p@db:5432/app").is_ok());
+    }
 }

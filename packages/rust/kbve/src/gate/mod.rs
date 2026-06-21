@@ -27,7 +27,7 @@ use std::net::SocketAddr;
 /// - `SUPABASE_JWT_SECRET`  required
 /// - `SUPABASE_URL`         required when authz=is_staff
 /// - `SUPABASE_ANON_KEY`    optional PostgREST apikey when authz=is_staff
-///                          (falls back to the minted service_role bearer)
+///   (falls back to the minted service_role bearer)
 /// - `SUPABASE_JWT_ISSUER`  optional; pins the accepted token issuer when set
 pub fn config_from_env() -> Result<GateConfig, String> {
     let upstream =

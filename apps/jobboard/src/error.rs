@@ -131,21 +131,19 @@ pub fn pg_err(e: tokio_postgres::Error) -> ApiError {
     }
 
     // SQLSTATE-class defaults for anything not named above.
-    match sqlstate {
-        &SqlState::UNIQUE_VIOLATION => ApiError::Conflict("that record already exists".into()),
-        &SqlState::FOREIGN_KEY_VIOLATION => {
+    match *sqlstate {
+        SqlState::UNIQUE_VIOLATION => ApiError::Conflict("that record already exists".into()),
+        SqlState::FOREIGN_KEY_VIOLATION => {
             ApiError::Unprocessable("a referenced record was not found".into())
         }
-        &SqlState::CHECK_VIOLATION => {
+        SqlState::CHECK_VIOLATION => {
             ApiError::BadRequest("a field failed a validation rule".into())
         }
-        &SqlState::NOT_NULL_VIOLATION => {
-            ApiError::BadRequest("a required field was missing".into())
-        }
-        &SqlState::STRING_DATA_RIGHT_TRUNCATION => {
+        SqlState::NOT_NULL_VIOLATION => ApiError::BadRequest("a required field was missing".into()),
+        SqlState::STRING_DATA_RIGHT_TRUNCATION => {
             ApiError::BadRequest("a field was too long".into())
         }
-        &SqlState::INSUFFICIENT_PRIVILEGE => ApiError::Forbidden("not permitted".into()),
+        SqlState::INSUFFICIENT_PRIVILEGE => ApiError::Forbidden("not permitted".into()),
         _ => ApiError::Internal("database error".into()),
     }
 }

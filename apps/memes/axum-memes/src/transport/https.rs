@@ -1140,7 +1140,8 @@ mod tests {
 
     // --- Meme route tests ---
 
-    use crate::meme::{FeedPage, Meme, MemeCache};
+    use crate::meme::model::FeedPage;
+    use crate::meme::{Meme, MemeCache};
 
     fn test_state() -> AppState {
         AppState {
@@ -1188,7 +1189,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(&format!("/api/v1/meme/{meme_id}"))
+                    .uri(format!("/api/v1/meme/{meme_id}"))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1212,7 +1213,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(&format!("/api/v1/meme/{meme_id}"))
+                    .uri(format!("/api/v1/meme/{meme_id}"))
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -1238,7 +1239,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri(&format!("/meme/{meme_id}"))
+                    .uri(format!("/meme/{meme_id}"))
                     .body(Body::empty())
                     .unwrap(),
             )

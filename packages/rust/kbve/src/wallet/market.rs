@@ -285,7 +285,7 @@ impl WalletClient {
         before_id: Option<i64>,
     ) -> Result<Vec<MarketMyListingRow>> {
         let mut conn = self.read().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<MarketMyListingRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -302,7 +302,7 @@ impl WalletClient {
         before_id: Option<i64>,
     ) -> Result<Vec<MarketMyListingRow>> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<MarketMyListingRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -339,7 +339,7 @@ impl WalletClient {
         before_id: Option<i64>,
     ) -> Result<Vec<MarketMyBidRow>> {
         let mut conn = self.read().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<MarketMyBidRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -356,7 +356,7 @@ impl WalletClient {
         before_id: Option<i64>,
     ) -> Result<Vec<MarketMyBidRow>> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<MarketMyBidRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -375,7 +375,7 @@ impl WalletClient {
         req: MarketCreateListingRequest,
     ) -> Result<i64> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<i64, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -398,7 +398,7 @@ impl WalletClient {
 
     pub async fn market_place_bid(&self, user_id: Uuid, req: MarketPlaceBidRequest) -> Result<i64> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<i64, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -417,7 +417,7 @@ impl WalletClient {
 
     pub async fn market_buy_now(&self, user_id: Uuid, req: MarketBuyNowRequest) -> Result<i64> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<i64, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -439,7 +439,7 @@ impl WalletClient {
         req: MarketCancelListingRequest,
     ) -> Result<()> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<(), WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;

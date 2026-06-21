@@ -220,6 +220,12 @@ pub struct InstanceEventLog {
     events: Mutex<VecDeque<InstanceEvent>>,
 }
 
+impl Default for InstanceEventLog {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InstanceEventLog {
     pub fn new() -> Self {
         Self {

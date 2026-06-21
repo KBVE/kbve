@@ -572,11 +572,11 @@ fn parse_list_response(response: &str) -> anyhow::Result<(Vec<String>, usize)> {
 fn parse_pos_response(response: &str) -> Option<(f64, f64, f64)> {
     // splitn(2) so a dimension-style suffix with a namespace colon
     // doesn't truncate the captured body.
-    let body = response.splitn(2, ':').nth(1)?.trim();
+    let body = response.split_once(':')?.1.trim();
     let inner = body.strip_prefix('[').and_then(|s| s.strip_suffix(']'))?;
     let mut parts = inner.split(',').map(|p| {
         p.trim()
-            .trim_end_matches(|c: char| c == 'd' || c == 'D' || c == 'f' || c == 'F')
+            .trim_end_matches(['d', 'D', 'f', 'F'])
             .parse::<f64>()
             .ok()
     });
@@ -589,7 +589,7 @@ fn parse_pos_response(response: &str) -> Option<(f64, f64, f64)> {
 fn parse_dimension_response(response: &str) -> Option<String> {
     // splitn(2) so the namespaced dimension id (which contains its own
     // colon, e.g. `"minecraft:overworld"`) survives intact.
-    let body = response.splitn(2, ':').nth(1)?.trim();
+    let body = response.split_once(':')?.1.trim();
     let unquoted = body.strip_prefix('"').and_then(|s| s.strip_suffix('"'))?;
     if unquoted.is_empty() {
         return None;

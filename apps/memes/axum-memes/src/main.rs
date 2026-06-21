@@ -1,3 +1,5 @@
+#![allow(dead_code, clippy::result_large_err)]
+
 mod astro;
 mod meme;
 mod transport;

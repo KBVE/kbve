@@ -72,7 +72,7 @@ impl WalletClient {
 
     async fn read_user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
         let mut conn = self.read().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<BalanceRow, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -83,7 +83,7 @@ impl WalletClient {
 
     async fn write_user_balance(&self, user_id: Uuid) -> Result<BalanceRow> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<BalanceRow, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -102,7 +102,7 @@ impl WalletClient {
 
     async fn read_user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
         let mut conn = self.read().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<CouponSummary>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -113,7 +113,7 @@ impl WalletClient {
 
     async fn write_user_coupons(&self, user_id: Uuid) -> Result<Vec<CouponSummary>> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<CouponSummary>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
@@ -129,7 +129,7 @@ impl WalletClient {
         idempotency_key: Uuid,
     ) -> Result<RedeemResult> {
         let mut conn = self.write().await?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<RedeemResult, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;

@@ -282,7 +282,6 @@ mod tests {
     use axum::{body::Body, http::StatusCode};
     use http_body_util::BodyExt;
     use serial_test::serial;
-    use std::path::PathBuf;
     use tower::ServiceExt;
 
     /// Build a throwaway Astro `dist/` with a nested Discord Activity bundle,
@@ -291,7 +290,7 @@ mod tests {
     /// directory redirect on `trailingSlash: always` routes and was reverted
     /// in #12442). Guards the `/discord/discord.js` path that 404s in prod
     /// only because the live image predates the bundle.
-    fn discord_static_app(dir: &PathBuf) -> Router {
+    fn discord_static_app(dir: &std::path::Path) -> Router {
         std::fs::create_dir_all(dir.join("discord")).unwrap();
         std::fs::write(
             dir.join("discord/index.html"),
@@ -306,7 +305,7 @@ mod tests {
         std::fs::write(dir.join("404.html"), "<h1>404</h1>").unwrap();
 
         let cfg = StaticConfig {
-            base_dir: dir.clone(),
+            base_dir: dir.to_path_buf(),
             precompressed: false,
         };
         build_static_router(&cfg)

@@ -630,9 +630,9 @@ async fn pump_ws(
             use axum::extract::ws::Message as AMsg;
             let out = match msg {
                 AMsg::Text(t) => TMsg::Text(t.as_str().into()),
-                AMsg::Binary(b) => TMsg::Binary(b.to_vec().into()),
-                AMsg::Ping(b) => TMsg::Ping(b.to_vec().into()),
-                AMsg::Pong(b) => TMsg::Pong(b.to_vec().into()),
+                AMsg::Binary(b) => TMsg::Binary(b.to_vec()),
+                AMsg::Ping(b) => TMsg::Ping(b.to_vec()),
+                AMsg::Pong(b) => TMsg::Pong(b.to_vec()),
                 AMsg::Close(_) => {
                     let _ = up_tx.send(TMsg::Close(None)).await;
                     break;
