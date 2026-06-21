@@ -8896,7 +8896,7 @@ dependencies = [
 
 [[package]]
 name = "jobboard"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -10452,7 +10452,7 @@ dependencies = [
 
 [[package]]
 name = "met"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ahash",
  "anyhow",
