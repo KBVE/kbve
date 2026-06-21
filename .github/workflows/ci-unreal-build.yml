@@ -904,7 +904,7 @@ jobs:
               run: |
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
-                  rm -rf /tmp/game-project /tmp/game-clone "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/game-clone "/tmp/${{ inputs.app_name }}-linux.zip" "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
 
     win_vm_boot:
         name: Boot Windows VM
@@ -1139,6 +1139,8 @@ jobs:
               run: |
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
+                  # Drain packaged build zips from the root of the persistent Win64 runner (current run + any backlog for this app)
+                  Get-ChildItem -Path 'C:\' -Filter '${{ inputs.app_name }}-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
     game_build_mac:
         name: Game Build (Mac client)
@@ -1309,6 +1311,11 @@ jobs:
                   itchGameId: ${{ inputs.itch_game_id }}
                   buildChannel: macos
                   buildNumber: ${{ needs.game_gate.outputs.version }}
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
 
     game_post_publish:
         name: Game Post-publish version sync
