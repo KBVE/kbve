@@ -365,6 +365,72 @@ rm -rf Pods Podfile.lock
 pod install --repo-update
 ```
 
+## Unreal Engine 5 iOS Builds
+
+KBVE also builds iOS applications using Unreal Engine 5. The UE5 iOS pipeline shares the same Apple Developer infrastructure (certificates, provisioning profiles, Team ID) as React Native builds.
+
+### UE5-Specific Requirements
+
+<Aside type="note">
+UE5 iOS builds require additional Xcode project configuration within the Unreal Engine project settings. Ensure the `.uproject` file is properly configured for iOS deployment.
+</Aside>
+
+**Key Differences from React Native:**
+
+- **Build System**: UE5 uses UnrealBuildTool (UBT) instead of xcodebuild directly
+- **Project Generation**: Xcode project generated via `GenerateProjectFiles.sh` or UE5 Editor
+- **Binary Size**: UE5 apps significantly larger due to engine runtime
+- **Shader Compilation**: Metal shaders must be precompiled for iOS targets
+
+### UE5 iOS Workflow (In Progress)
+
+The UE5 iOS CI/CD pipeline is currently under development. See [Issue #12875](https://github.com/KBVE/kbve/issues/12875) for tracking.
+
+**Planned Tasks:**
+- Configure Xcode project for UE5 iOS builds
+- Adapt code signing for UnrealBuildTool
+- Create GitHub Actions workflow for iOS builds
+- Test build pipeline on macOS runner
+- Document UE5-specific iOS build process
+
+**Shared Infrastructure:**
+
+Both React Native and UE5 iOS builds use the same:
+- Apple Developer certificates (`APPLE_CERT_DATA`, `APPLE_CERT_PASSWORD`)
+- Provisioning profiles (`PROVISIONING_PROFILE_DATA`)
+- macOS GitHub Actions runners
+- Fastlane automation (optional)
+
+<Aside type="tip">
+Complete the Apple Developer setup once, reuse credentials across all KBVE iOS projects (React Native, UE5, future frameworks).
+</Aside>
+
+### UE5 iOS Build Commands (Reference)
+
+```bash
+# Generate Xcode project from .uproject
+# (Run on macOS with UE5 installed)
+/Path/To/UE_5.X/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh \
+  -project="/Path/To/YourProject.uproject" \
+  -platforms=iOS
+
+# Build via UnrealBuildTool
+/Path/To/UE_5.X/Engine/Build/BatchFiles/RunUBT.sh \
+  YourProjectEditor iOS Development \
+  -project="/Path/To/YourProject.uproject"
+
+# Package for distribution
+/Path/To/UE_5.X/Engine/Build/BatchFiles/RunUAT.sh BuildCookRun \
+  -project="/Path/To/YourProject.uproject" \
+  -platform=iOS \
+  -clientconfig=Shipping \
+  -cook -stage -archive -package
+```
+
+<Aside type="caution">
+UE5 iOS builds require significant disk space (30GB+ for engine + project) and build time (30-60 minutes). Optimize CI/CD runners accordingly.
+</Aside>
+
 ## Related Documentation
 
 <CardGrid>
@@ -376,12 +442,20 @@ pod install --repo-update
 [Issue #12875](https://github.com/KBVE/kbve/issues/12875) - Shares Apple Developer setup
 </Card>
 
+<Card title="Unreal Engine Guide" icon="seti:unreal">
+[Unreal Engine docs](/application/unreal/) - KBVE UE5 development guide
+</Card>
+
 <Card title="Apple Developer Portal" icon="apple">
 [developer.apple.com](https://developer.apple.com) - Certificates and profiles
 </Card>
 
 <Card title="Expo iOS Builds" icon="rocket">
 [Expo iOS docs](https://docs.expo.dev/build/setup/) - Expo-specific build configuration
+</Card>
+
+<Card title="UE5 iOS Documentation" icon="document">
+[UE5 iOS Guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/ios-game-development) - Official Epic Games docs
 </Card>
 </CardGrid>
 
