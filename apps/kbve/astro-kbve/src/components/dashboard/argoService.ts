@@ -437,6 +437,10 @@ export async function rollbackApplication(
 
 export type AppTab = 'resources' | 'diff' | 'events' | 'history';
 
+export type CardFilter = 'all' | 'degraded' | 'outofsync' | 'stalled';
+
+export type CardGroupBy = 'none' | 'project' | 'namespace';
+
 export type DiffLineOp = 'context' | 'add' | 'remove';
 
 export interface DiffLine {
@@ -731,6 +735,36 @@ export function normalizeApp(app: ArgoApplication): AppSummary {
 }
 
 // ---------------------------------------------------------------------------
+// UI preference persistence (view mode + grouping survive reloads)
+// ---------------------------------------------------------------------------
+
+const PREF_VIEW = 'argo:pref:view';
+const PREF_GROUP = 'argo:pref:group';
+
+function loadPref<T extends string>(
+	key: string,
+	allowed: readonly T[],
+	fallback: T,
+): T {
+	try {
+		const v = localStorage.getItem(key);
+		return v && (allowed as readonly string[]).includes(v)
+			? (v as T)
+			: fallback;
+	} catch {
+		return fallback;
+	}
+}
+
+function savePref(key: string, value: string): void {
+	try {
+		localStorage.setItem(key, value);
+	} catch {
+		/* ignore quota / unavailable */
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
 
@@ -838,8 +872,43 @@ class ArgoService {
 			);
 	});
 
-	// View toggle: rich card grid (default) vs dense table rows.
-	public readonly $viewMode = atom<'grid' | 'table'>('grid');
+	// View toggle: rich card grid (default) vs dense table rows. Persisted.
+	public readonly $viewMode = atom<'grid' | 'table'>(
+		loadPref(PREF_VIEW, ['grid', 'table'] as const, 'grid'),
+	);
+
+	// Card grid filtering: chip filter + free-text search + grouping.
+	public readonly $cardFilter = atom<CardFilter>('all');
+	public readonly $cardSearch = atom<string>('');
+	public readonly $cardGroupBy = atom<CardGroupBy>(
+		loadPref(PREF_GROUP, ['none', 'project', 'namespace'] as const, 'none'),
+	);
+
+	public readonly $filteredSummaries = computed(
+		[this.$appSummaries, this.$cardFilter, this.$cardSearch],
+		(summaries, filter, search) => {
+			const q = search.trim().toLowerCase();
+			return summaries.filter((s) => {
+				const health = s.health?.status ?? 'Unknown';
+				if (
+					filter === 'degraded' &&
+					!(health === 'Degraded' || health === 'Missing')
+				)
+					return false;
+				if (filter === 'outofsync' && s.sync?.status !== 'OutOfSync')
+					return false;
+				if (filter === 'stalled' && !s.stalled) return false;
+				if (
+					q &&
+					!`${s.name} ${s.namespace} ${s.project}`
+						.toLowerCase()
+						.includes(q)
+				)
+					return false;
+				return true;
+			});
+		},
+	);
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
 	private _refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1064,6 +1133,20 @@ class ArgoService {
 
 	public setViewMode(mode: 'grid' | 'table'): void {
 		this.$viewMode.set(mode);
+		savePref(PREF_VIEW, mode);
+	}
+
+	public setCardFilter(filter: CardFilter): void {
+		this.$cardFilter.set(filter);
+	}
+
+	public setCardSearch(query: string): void {
+		this.$cardSearch.set(query);
+	}
+
+	public setCardGroupBy(group: CardGroupBy): void {
+		this.$cardGroupBy.set(group);
+		savePref(PREF_GROUP, group);
 	}
 
 	private _startAutoRefresh(): void {

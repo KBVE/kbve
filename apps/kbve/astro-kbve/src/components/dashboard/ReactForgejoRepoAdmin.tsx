@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { forgejoService, timeAgo } from './forgejoService';
+import { forgejoService, timeAgo, formatBytes } from './forgejoService';
 import {
 	ActionButton,
 	Modal,
@@ -19,10 +19,12 @@ import {
 	Send,
 	Webhook,
 	Tag,
+	Tags,
 	CheckCircle2,
 	XCircle,
 	ShieldCheck,
 	KeyRound,
+	Download,
 } from 'lucide-react';
 
 const { textColor, subText, border, panelBg } = uiTokens;
@@ -323,6 +325,62 @@ function CreateProtectionModal({
 	);
 }
 
+function CreateTagModal({
+	repo,
+	onClose,
+}: {
+	repo: string;
+	onClose: () => void;
+}) {
+	const busy = useStore(forgejoService.$busy);
+	const { state, set } = useForm({
+		tag_name: '',
+		target: 'main',
+		message: '',
+	});
+	const submit = async () => {
+		const ok = await forgejoService.createTag(repo, state);
+		if (ok) onClose();
+	};
+	return (
+		<Modal
+			title={`New tag · ${repo}`}
+			onClose={onClose}
+			footer={
+				<>
+					<ActionButton variant="ghost" onClick={onClose}>
+						Cancel
+					</ActionButton>
+					<ActionButton
+						variant="primary"
+						onClick={submit}
+						loading={busy === `tag-create-${repo}`}
+						disabled={!state.tag_name}>
+						Create
+					</ActionButton>
+				</>
+			}>
+			<TextField
+				label="Tag name"
+				value={state.tag_name}
+				onChange={(v) => set('tag_name', v)}
+				placeholder="v1.0.0"
+			/>
+			<TextField
+				label="Target branch / commit"
+				value={state.target}
+				onChange={(v) => set('target', v)}
+			/>
+			<TextField
+				label="Message (optional, annotated tag)"
+				value={state.message}
+				onChange={(v) => set('message', v)}
+				textarea
+			/>
+		</Modal>
+	);
+}
+
 function AddSecretVarModal({
 	repo,
 	mode,
@@ -385,9 +443,10 @@ export default function ReactForgejoRepoAdmin() {
 	const protectionsMap = useStore(forgejoService.$repoProtections);
 	const secretsMap = useStore(forgejoService.$repoSecrets);
 	const variablesMap = useStore(forgejoService.$repoVariables);
+	const tagsMap = useStore(forgejoService.$repoTags);
 	const busy = useStore(forgejoService.$busy);
 	const [modal, setModal] = useState<
-		'hook' | 'release' | 'protection' | 'secret' | 'variable' | null
+		'hook' | 'release' | 'protection' | 'secret' | 'variable' | 'tag' | null
 	>(null);
 	const [confirm, setConfirm] = useState<{
 		kind: 'hook' | 'release';
@@ -398,6 +457,12 @@ export default function ReactForgejoRepoAdmin() {
 		kind: 'secret' | 'variable';
 		name: string;
 	} | null>(null);
+	const [tagConfirm, setTagConfirm] = useState<string | null>(null);
+	const [assetConfirm, setAssetConfirm] = useState<{
+		releaseId: number;
+		assetId: number;
+		name: string;
+	} | null>(null);
 
 	if (!active) return null;
 
@@ -406,6 +471,7 @@ export default function ReactForgejoRepoAdmin() {
 	const protections = selected ? protectionsMap[selected] : undefined;
 	const secrets = selected ? secretsMap[selected] : undefined;
 	const variables = selected ? variablesMap[selected] : undefined;
+	const tags = selected ? tagsMap[selected] : undefined;
 
 	return (
 		<div className="not-content">
@@ -583,61 +649,129 @@ export default function ReactForgejoRepoAdmin() {
 								<div
 									key={r.id}
 									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 8,
 										padding: '0.6rem 0.7rem',
 										borderRadius: 8,
 										border,
 										background: panelBg,
 									}}>
-									<span
+									<div
 										style={{
-											color: textColor,
-											fontWeight: 600,
-											fontSize: '0.8rem',
+											display: 'flex',
+											alignItems: 'center',
+											gap: 8,
 										}}>
-										{r.tag_name}
-									</span>
-									{r.draft && (
 										<span
 											style={{
-												color: '#6b7280',
-												fontSize: '0.68rem',
+												color: textColor,
+												fontWeight: 600,
+												fontSize: '0.8rem',
 											}}>
-											draft
+											{r.tag_name}
 										</span>
-									)}
-									{r.prerelease && (
-										<span
-											style={{
-												color: '#f59e0b',
-												fontSize: '0.68rem',
-											}}>
-											pre
-										</span>
-									)}
-									<span
-										style={{
-											marginLeft: 'auto',
-											color: subText,
-											fontSize: '0.68rem',
-										}}>
-										{timeAgo(
-											r.published_at || r.created_at,
+										{r.draft && (
+											<span
+												style={{
+													color: '#6b7280',
+													fontSize: '0.68rem',
+												}}>
+												draft
+											</span>
 										)}
-									</span>
-									<ActionButton
-										size="sm"
-										variant="danger"
-										onClick={() =>
-											setConfirm({
-												kind: 'release',
-												id: r.id,
-											})
-										}>
-										<Trash2 size={11} />
-									</ActionButton>
+										{r.prerelease && (
+											<span
+												style={{
+													color: '#f59e0b',
+													fontSize: '0.68rem',
+												}}>
+												pre
+											</span>
+										)}
+										<span
+											style={{
+												marginLeft: 'auto',
+												color: subText,
+												fontSize: '0.68rem',
+											}}>
+											{timeAgo(
+												r.published_at || r.created_at,
+											)}
+										</span>
+										<ActionButton
+											size="sm"
+											variant="danger"
+											onClick={() =>
+												setConfirm({
+													kind: 'release',
+													id: r.id,
+												})
+											}>
+											<Trash2 size={11} />
+										</ActionButton>
+									</div>
+									{(r.assets ?? []).length > 0 && (
+										<div
+											style={{
+												display: 'flex',
+												flexDirection: 'column',
+												gap: 4,
+												marginTop: 6,
+												paddingLeft: 4,
+											}}>
+											{r.assets.map((a) => (
+												<div
+													key={a.id}
+													style={{
+														display: 'flex',
+														alignItems: 'center',
+														gap: 6,
+														fontSize: '0.72rem',
+														color: subText,
+													}}>
+													<Download size={11} />
+													<a
+														href={
+															a.browser_download_url
+														}
+														target="_blank"
+														rel="noreferrer"
+														style={{
+															color: textColor,
+															flex: 1,
+															overflow: 'hidden',
+															textOverflow:
+																'ellipsis',
+															whiteSpace:
+																'nowrap',
+														}}>
+														{a.name}
+													</a>
+													<span>
+														{formatBytes(a.size)}
+													</span>
+													<span>
+														↓{a.download_count}
+													</span>
+													<ActionButton
+														size="sm"
+														variant="danger"
+														title="Delete asset"
+														loading={
+															busy ===
+															`asset-delete-${selected}-${r.id}-${a.id}`
+														}
+														onClick={() =>
+															setAssetConfirm({
+																releaseId: r.id,
+																assetId: a.id,
+																name: a.name,
+															})
+														}>
+														<Trash2 size={10} />
+													</ActionButton>
+												</div>
+											))}
+										</div>
+									)}
 								</div>
 							))}
 							{releases && releases.length === 0 && (
@@ -647,6 +781,89 @@ export default function ReactForgejoRepoAdmin() {
 										fontSize: '0.8rem',
 									}}>
 									No releases.
+								</span>
+							)}
+						</div>
+					</div>
+
+					<div>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								marginBottom: '0.75rem',
+							}}>
+							<h3 style={{ ...sectionTitle, margin: 0, flex: 1 }}>
+								<Tags size={14} /> Tags
+							</h3>
+							<ActionButton
+								size="sm"
+								variant="primary"
+								onClick={() => setModal('tag')}>
+								<Plus size={12} /> Add
+							</ActionButton>
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 8,
+							}}>
+							{(tags ?? []).map((t) => (
+								<div
+									key={t.name}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: 8,
+										padding: '0.5rem 0.7rem',
+										borderRadius: 8,
+										border,
+										background: panelBg,
+									}}>
+									<Tag
+										size={12}
+										style={{ color: '#06b6d4' }}
+									/>
+									<span
+										style={{
+											color: textColor,
+											fontWeight: 600,
+											fontSize: '0.78rem',
+											fontFamily: 'monospace',
+										}}>
+										{t.name}
+									</span>
+									{t.commit?.sha && (
+										<span
+											style={{
+												color: subText,
+												fontSize: '0.66rem',
+												fontFamily: 'monospace',
+											}}>
+											{t.commit.sha.slice(0, 7)}
+										</span>
+									)}
+									<span style={{ flex: 1 }} />
+									<ActionButton
+										size="sm"
+										variant="danger"
+										loading={
+											busy ===
+											`tag-delete-${selected}-${t.name}`
+										}
+										onClick={() => setTagConfirm(t.name)}>
+										<Trash2 size={11} />
+									</ActionButton>
+								</div>
+							))}
+							{tags && tags.length === 0 && (
+								<span
+									style={{
+										color: subText,
+										fontSize: '0.8rem',
+									}}>
+									No tags.
 								</span>
 							)}
 						</div>
@@ -902,6 +1119,50 @@ export default function ReactForgejoRepoAdmin() {
 					repo={selected}
 					mode={modal}
 					onClose={() => setModal(null)}
+				/>
+			)}
+			{modal === 'tag' && selected && (
+				<CreateTagModal
+					repo={selected}
+					onClose={() => setModal(null)}
+				/>
+			)}
+			{tagConfirm && selected && (
+				<ConfirmDialog
+					title="Delete tag"
+					message={`Delete tag "${tagConfirm}"? This cannot be undone.`}
+					confirmLabel="Delete"
+					danger
+					loading={busy === `tag-delete-${selected}-${tagConfirm}`}
+					onCancel={() => setTagConfirm(null)}
+					onConfirm={async () => {
+						const ok = await forgejoService.deleteTag(
+							selected,
+							tagConfirm,
+						);
+						if (ok) setTagConfirm(null);
+					}}
+				/>
+			)}
+			{assetConfirm && selected && (
+				<ConfirmDialog
+					title="Delete asset"
+					message={`Delete release asset "${assetConfirm.name}"?`}
+					confirmLabel="Delete"
+					danger
+					loading={
+						busy ===
+						`asset-delete-${selected}-${assetConfirm.releaseId}-${assetConfirm.assetId}`
+					}
+					onCancel={() => setAssetConfirm(null)}
+					onConfirm={async () => {
+						const ok = await forgejoService.deleteReleaseAsset(
+							selected,
+							assetConfirm.releaseId,
+							assetConfirm.assetId,
+						);
+						if (ok) setAssetConfirm(null);
+					}}
 				/>
 			)}
 			{svConfirm && selected && (

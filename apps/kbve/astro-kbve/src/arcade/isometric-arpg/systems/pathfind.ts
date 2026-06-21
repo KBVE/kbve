@@ -187,3 +187,161 @@ function lineClear(a: TileXY, b: TileXY, isFloor: IsFloor): boolean {
 	}
 	return true;
 }
+
+// ---------------------------------------------------------------------------
+// Hierarchical pathfinding: coarse A* over the room-gate graph picks the chunk
+// route, then plain tile A* refines each gate-to-gate leg. A long cross-dungeon
+// click solves over a handful of gates + several short tile searches instead of
+// one huge flood — much cheaper and it naturally follows corridor centers.
+// ---------------------------------------------------------------------------
+
+export interface ChunkCoord {
+	cx: number;
+	cy: number;
+}
+
+/** The gate-graph view the hierarchical planner needs from the dungeon. */
+export interface GateGraph {
+	chunkSize: number;
+	chunkOf(x: number, y: number): ChunkCoord;
+	/** Gate (room center) tile for a chunk. */
+	gate(cx: number, cy: number): TileXY;
+	/** Passage width between two adjacent chunks (0 if no usable link). */
+	passageWidth(acx: number, acy: number, bcx: number, bcy: number): number;
+}
+
+const ckey = (cx: number, cy: number): string => `${cx}:${cy}`;
+const CHUNK_NEIGHBORS: ReadonlyArray<readonly [number, number]> = [
+	[1, 0],
+	[-1, 0],
+	[0, 1],
+	[0, -1],
+];
+
+/**
+ * Coarse A* over the chunk-gate graph from the start chunk to the goal chunk.
+ * Returns the ordered list of chunk coords (start included, goal included), or
+ * null if not found within the chunk budget. Edge cost = gate distance scaled
+ * down for wider passages, so main corridors are preferred routes.
+ */
+function gateRoute(
+	start: ChunkCoord,
+	goal: ChunkCoord,
+	g: GateGraph,
+	maxChunks = 600,
+): ChunkCoord[] | null {
+	if (start.cx === goal.cx && start.cy === goal.cy) return [start];
+	const open: Array<{ cx: number; cy: number; f: number }> = [
+		{ cx: start.cx, cy: start.cy, f: 0 },
+	];
+	const came = new Map<string, string>();
+	const gScore = new Map<string, number>([[ckey(start.cx, start.cy), 0]]);
+	const closed = new Set<string>();
+	let expanded = 0;
+
+	const h = (cx: number, cy: number) =>
+		Math.abs(cx - goal.cx) + Math.abs(cy - goal.cy);
+
+	while (open.length > 0 && expanded < maxChunks) {
+		let bi = 0;
+		for (let i = 1; i < open.length; i++)
+			if (open[i].f < open[bi].f) bi = i;
+		const cur = open.splice(bi, 1)[0];
+		const k = ckey(cur.cx, cur.cy);
+		if (closed.has(k)) continue;
+		closed.add(k);
+		expanded++;
+
+		if (cur.cx === goal.cx && cur.cy === goal.cy) {
+			return reconstructChunks(came, k, start);
+		}
+
+		const gateA = g.gate(cur.cx, cur.cy);
+		for (const [dx, dy] of CHUNK_NEIGHBORS) {
+			const ncx = cur.cx + dx;
+			const ncy = cur.cy + dy;
+			const width = g.passageWidth(cur.cx, cur.cy, ncx, ncy);
+			if (width <= 0) continue;
+			const nk = ckey(ncx, ncy);
+			if (closed.has(nk)) continue;
+			const gateB = g.gate(ncx, ncy);
+			const dist = Math.hypot(gateB.x - gateA.x, gateB.y - gateA.y);
+			// Wider passage -> cheaper, biasing routes onto main corridors.
+			const cost = dist / (1 + (width - 2) * 0.5);
+			const tentative = (gScore.get(k) ?? Infinity) + cost;
+			if (tentative < (gScore.get(nk) ?? Infinity)) {
+				came.set(nk, k);
+				gScore.set(nk, tentative);
+				open.push({ cx: ncx, cy: ncy, f: tentative + h(ncx, ncy) });
+			}
+		}
+	}
+	return null;
+}
+
+function reconstructChunks(
+	came: Map<string, string>,
+	endKey: string,
+	start: ChunkCoord,
+): ChunkCoord[] {
+	const out: ChunkCoord[] = [];
+	let k: string | undefined = endKey;
+	const sk = ckey(start.cx, start.cy);
+	while (k && k !== sk) {
+		const i = k.indexOf(':');
+		out.push({ cx: Number(k.slice(0, i)), cy: Number(k.slice(i + 1)) });
+		k = came.get(k);
+	}
+	out.push(start);
+	out.reverse();
+	return out;
+}
+
+/**
+ * Plan a route with the gate graph: coarse-route the chunks, then tile-A* each
+ * gate-to-gate leg (start -> gate1 -> gate2 -> ... -> goal) and stitch + smooth
+ * the legs. Falls back to a single tile A* for same-chunk (or near) moves, and
+ * if the coarse route fails. The per-leg tile searches are short, so this scales
+ * to arbitrarily distant clicks without a giant flood fill.
+ */
+export function findHierPath(
+	start: TileXY,
+	goal: TileXY,
+	isFloor: IsFloor,
+	graph: GateGraph,
+): TileXY[] | null {
+	const sc = graph.chunkOf(start.x, start.y);
+	const gc = graph.chunkOf(goal.x, goal.y);
+
+	// Same / adjacent chunk: a single tile A* is already cheap and most direct.
+	if (Math.abs(sc.cx - gc.cx) + Math.abs(sc.cy - gc.cy) <= 1) {
+		const p = findPath(start, goal, isFloor);
+		return p && smoothPath(start, p, isFloor);
+	}
+
+	const route = gateRoute(sc, gc, graph);
+	if (!route || route.length < 2) {
+		const p = findPath(start, goal, isFloor);
+		return p && smoothPath(start, p, isFloor);
+	}
+
+	// Waypoints: start -> each intermediate chunk gate -> goal.
+	const waypoints: TileXY[] = [start];
+	for (let i = 1; i < route.length - 1; i++) {
+		waypoints.push(graph.gate(route[i].cx, route[i].cy));
+	}
+	waypoints.push(goal);
+
+	const full: TileXY[] = [];
+	for (let i = 0; i < waypoints.length - 1; i++) {
+		const leg = findPath(waypoints[i], waypoints[i + 1], isFloor, 8000);
+		if (!leg) {
+			// A leg failed (rare — gate unreachable at tile level); bail to a
+			// direct tile search so the click still does something sensible.
+			const p = findPath(start, goal, isFloor);
+			return p && smoothPath(start, p, isFloor);
+		}
+		full.push(...leg);
+	}
+	return smoothPath(start, full, isFloor);
+}

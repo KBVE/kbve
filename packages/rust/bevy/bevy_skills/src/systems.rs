@@ -19,7 +19,7 @@ pub fn process_xp_grants(
 ) {
     for msg in xp_msgs.read() {
         let Ok(mut profile) = profiles.get_mut(msg.entity) else {
-            eprintln!(
+            warn!(
                 "bevy_skills: GrantXpMsg for entity {:?} but no SkillProfile found",
                 msg.entity
             );

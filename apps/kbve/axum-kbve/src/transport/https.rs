@@ -91,6 +91,16 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/askama/profile_not_found/", "/dashboard/profile/"),
     ("/askama/osrs_not_found", "/osrs/"),
     ("/askama/osrs_not_found/", "/osrs/"),
+    ("/account", "/dashboard/account/"),
+    ("/account/", "/dashboard/account/"),
+    ("/profile", "/dashboard/profile/"),
+    ("/profile/", "/dashboard/profile/"),
+    ("/profile/account", "/dashboard/account/"),
+    ("/profile/account/", "/dashboard/account/"),
+    ("/profile/market", "/dashboard/market/"),
+    ("/profile/market/", "/dashboard/market/"),
+    ("/dashboard/rows", "/dashboard/gameops/rows/"),
+    ("/dashboard/rows/", "/dashboard/gameops/rows/"),
 ];
 
 async fn lang_strip_root() -> Redirect {

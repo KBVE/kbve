@@ -107,6 +107,30 @@ function roomRect(worldSeed: number, cx: number, cy: number) {
 	return { x0: baseX + ox, y0: baseY + oy, w, h, arena };
 }
 
+/**
+ * Center tile of a chunk's room — corridor endpoints connect centers, so the
+ * room centers ARE the navigation gates: a coarse graph where each chunk gate
+ * links to its four neighbour gates via the carved corridors.
+ */
+export function chunkGate(worldSeed: number, cx: number, cy: number): TileXY {
+	return roomCenter(worldSeed, cx, cy);
+}
+
+/** Corridor width between two adjacent chunks (drives gate-edge cost). */
+export function chunkPassageWidth(
+	worldSeed: number,
+	acx: number,
+	acy: number,
+	bcx: number,
+	bcy: number,
+): number {
+	return passageWidth(
+		worldSeed,
+		roomCenter(worldSeed, acx, acy),
+		roomCenter(worldSeed, bcx, bcy),
+	);
+}
+
 /** Center tile of a chunk's room — corridor endpoints connect centers. */
 function roomCenter(worldSeed: number, cx: number, cy: number): TileXY {
 	const r = roomRect(worldSeed, cx, cy);

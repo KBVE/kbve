@@ -8,6 +8,8 @@ import {
 	type AppSummary,
 	type ResourceTally,
 	type ArgoApplication,
+	type CardFilter,
+	type CardGroupBy,
 } from './argoService';
 import {
 	AppExpandedPanel,
@@ -23,6 +25,7 @@ import {
 	RotateCw,
 	Loader2,
 	AlertTriangle,
+	Search,
 } from 'lucide-react';
 
 function ResourceBar({ tally }: { tally: ResourceTally }) {
@@ -377,8 +380,204 @@ const emptyTally: ResourceTally = {
 	out_of_sync: 0,
 };
 
+function FilterChip({
+	label,
+	count,
+	active,
+	tone,
+	onClick,
+}: {
+	label: string;
+	count: number;
+	active: boolean;
+	tone: string;
+	onClick: () => void;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-pressed={active}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 5,
+				padding: '3px 10px',
+				borderRadius: 999,
+				fontSize: '0.73rem',
+				fontWeight: 600,
+				cursor: 'pointer',
+				color: active ? '#0d0d0d' : tone,
+				background: active ? tone : 'transparent',
+				border: `1px solid ${active ? tone : 'var(--sl-color-gray-5, #262626)'}`,
+			}}>
+			{label}
+			<span
+				style={{
+					fontVariantNumeric: 'tabular-nums',
+					opacity: 0.85,
+					fontSize: '0.68rem',
+				}}>
+				{count}
+			</span>
+		</button>
+	);
+}
+
+function CardFilterBar({
+	filter,
+	search,
+	groupBy,
+	counts,
+}: {
+	filter: CardFilter;
+	search: string;
+	groupBy: CardGroupBy;
+	counts: {
+		all: number;
+		degraded: number;
+		outofsync: number;
+		stalled: number;
+	};
+}) {
+	const set = (f: CardFilter) =>
+		argoService.setCardFilter(filter === f ? 'all' : f);
+	return (
+		<div
+			style={{
+				display: 'flex',
+				flexWrap: 'wrap',
+				alignItems: 'center',
+				gap: 8,
+				marginBottom: '0.75rem',
+			}}>
+			<FilterChip
+				label="All"
+				count={counts.all}
+				active={filter === 'all'}
+				tone="#8b5cf6"
+				onClick={() => argoService.setCardFilter('all')}
+			/>
+			<FilterChip
+				label="Degraded"
+				count={counts.degraded}
+				active={filter === 'degraded'}
+				tone="#ef4444"
+				onClick={() => set('degraded')}
+			/>
+			<FilterChip
+				label="OutOfSync"
+				count={counts.outofsync}
+				active={filter === 'outofsync'}
+				tone="#f59e0b"
+				onClick={() => set('outofsync')}
+			/>
+			<FilterChip
+				label="Stalled"
+				count={counts.stalled}
+				active={filter === 'stalled'}
+				tone="#fbbf24"
+				onClick={() => set('stalled')}
+			/>
+
+			<div
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 5,
+					marginLeft: 'auto',
+					padding: '3px 8px',
+					borderRadius: 6,
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg, #0d0d0d)',
+				}}>
+				<Search
+					size={13}
+					style={{ color: 'var(--sl-color-gray-4, #6b7280)' }}
+				/>
+				<input
+					value={search}
+					onChange={(e) => argoService.setCardSearch(e.target.value)}
+					placeholder="filter by name / namespace / project"
+					style={{
+						background: 'transparent',
+						border: 'none',
+						outline: 'none',
+						color: 'var(--sl-color-text, #e6edf3)',
+						fontSize: '0.75rem',
+						width: 220,
+						maxWidth: '50vw',
+					}}
+				/>
+			</div>
+
+			<select
+				value={groupBy}
+				onChange={(e) =>
+					argoService.setCardGroupBy(e.target.value as CardGroupBy)
+				}
+				title="Group cards"
+				style={{
+					background: 'var(--sl-color-bg-nav, #111)',
+					color: 'var(--sl-color-text, #e6edf3)',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					borderRadius: 6,
+					padding: '4px 8px',
+					fontSize: '0.75rem',
+				}}>
+				<option value="none">No grouping</option>
+				<option value="project">By project</option>
+				<option value="namespace">By namespace</option>
+			</select>
+		</div>
+	);
+}
+
+function CardGrid({
+	summaries,
+	expandedApp,
+}: {
+	summaries: AppSummary[];
+	expandedApp: string | null;
+}) {
+	return (
+		<div
+			style={{
+				display: 'grid',
+				gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+				gap: '0.75rem',
+			}}>
+			{summaries.map((s) => (
+				<AppCard
+					key={s.name}
+					summary={s}
+					expanded={expandedApp === s.name}
+					onToggle={() => argoService.toggleExpandedApp(s.name)}
+				/>
+			))}
+		</div>
+	);
+}
+
+function groupSummaries(
+	summaries: AppSummary[],
+	groupBy: CardGroupBy,
+): { key: string; items: AppSummary[] }[] {
+	if (groupBy === 'none') return [{ key: '', items: summaries }];
+	const map = new Map<string, AppSummary[]>();
+	for (const s of summaries) {
+		const k = (groupBy === 'project' ? s.project : s.namespace) || '—';
+		const arr = map.get(k) ?? [];
+		arr.push(s);
+		map.set(k, arr);
+	}
+	return Array.from(map.entries())
+		.sort((a, b) => a[0].localeCompare(b[0]))
+		.map(([key, items]) => ({ key, items }));
+}
+
 export default function ReactArgoCards() {
-	const summaries = useStore(argoService.$appSummaries);
+	const summaries = useStore(argoService.$filteredSummaries);
 	const applications = useStore(argoService.$applications);
 	const expandedApp = useStore(argoService.$expandedApp);
 	const accessToken = useStore(argoService.$accessToken);
@@ -386,31 +585,78 @@ export default function ReactArgoCards() {
 	const selectedResource = useStore(argoService.$selectedResource);
 	const actionError = useStore(argoService.$actionError);
 	const actionMsg = useStore(argoService.$actionMsg);
+	const filter = useStore(argoService.$cardFilter);
+	const search = useStore(argoService.$cardSearch);
+	const groupBy = useStore(argoService.$cardGroupBy);
+	const totalApps = useStore(argoService.$totalApps);
+	const degradedCount = useStore(argoService.$degradedCount);
+	const outOfSyncCount = useStore(argoService.$outOfSyncCount);
+	const stalledCount = useStore(argoService.$stalledCount);
 
-	if (!summaries.length) return null;
+	if (!applications.length) return null;
 
 	const expandedRaw: ArgoApplication | undefined = expandedApp
 		? applications.find((a) => a.metadata.name === expandedApp)
 		: undefined;
 
+	const groups = groupSummaries(summaries, groupBy);
+
 	return (
 		<>
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns:
-						'repeat(auto-fill, minmax(280px, 1fr))',
-					gap: '0.75rem',
-				}}>
-				{summaries.map((s) => (
-					<AppCard
-						key={s.name}
-						summary={s}
-						expanded={expandedApp === s.name}
-						onToggle={() => argoService.toggleExpandedApp(s.name)}
-					/>
-				))}
-			</div>
+			<CardFilterBar
+				filter={filter}
+				search={search}
+				groupBy={groupBy}
+				counts={{
+					all: totalApps,
+					degraded: degradedCount,
+					outofsync: outOfSyncCount,
+					stalled: stalledCount,
+				}}
+			/>
+
+			{summaries.length === 0 ? (
+				<div
+					style={{
+						padding: '1.5rem',
+						textAlign: 'center',
+						color: 'var(--sl-color-gray-4, #6b7280)',
+						fontSize: '0.85rem',
+					}}>
+					No applications match the current filter
+				</div>
+			) : (
+				groups.map((g) => (
+					<div key={g.key || 'all'} style={{ marginBottom: '1rem' }}>
+						{g.key && (
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 6,
+									margin: '0 0 0.5rem',
+									fontSize: '0.72rem',
+									fontWeight: 700,
+									textTransform: 'uppercase',
+									letterSpacing: '0.05em',
+									color: 'var(--sl-color-gray-3, #8b949e)',
+								}}>
+								{g.key}
+								<span
+									style={{
+										color: 'var(--sl-color-gray-4, #6b7280)',
+									}}>
+									({g.items.length})
+								</span>
+							</div>
+						)}
+						<CardGrid
+							summaries={g.items}
+							expandedApp={expandedApp}
+						/>
+					</div>
+				))
+			)}
 
 			{expandedRaw && accessToken && (
 				<div
