@@ -30,6 +30,35 @@ import {
 const isOneShot = (s: ClassState): boolean => ONE_SHOT_STATES.includes(s);
 const isLocomotion = (s: ClassState): boolean => LOCOMOTION_STATES.includes(s);
 
+const warnedAnims = new Set<string>();
+
+/**
+ * Play an animation only when it exists and has frames. A texture that failed to
+ * load — e.g. a Git LFS pointer stub shipped instead of the real PNG — produces
+ * a zero-frame animation, and Phaser then throws in getFirstTick reading
+ * `currentFrame.duration`, taking down the whole scene at spawn. Guarding here
+ * keeps the game alive (the sprite holds its static first frame) and logs the
+ * offending key once so the missing asset is diagnosable.
+ */
+function safePlay(
+	sprite: Phaser.GameObjects.Sprite,
+	key: string,
+	ignoreIfPlaying = false,
+): void {
+	const mgr = sprite.scene.anims;
+	const anim = mgr.exists(key) ? mgr.get(key) : undefined;
+	if (!anim || anim.frames.length === 0) {
+		if (!warnedAnims.has(key)) {
+			warnedAnims.add(key);
+			console.warn(
+				`[arpg] animation "${key}" missing or has no frames — texture failed to load (LFS pointer stub?); skipping play()`,
+			);
+		}
+		return;
+	}
+	sprite.play(key, ignoreIfPlaying);
+}
+
 /** Per-player directional pose state, tracked on the entity refs. */
 export interface ClassView {
 	def: ClassDef;
@@ -86,12 +115,12 @@ export function makeClassSprite(
 	);
 	shadow.setOrigin(0.5, def.originY);
 	shadow.setDisplaySize(def.displaySize, def.displaySize);
-	shadow.play(classAnimKey(def, 'Idle', angle, 'Shadow'));
+	safePlay(shadow, classAnimKey(def, 'Idle', angle, 'Shadow'));
 
 	const sprite = scene.add.sprite(0, 0, classSheetKey(def, 'Idle', angle), 0);
 	sprite.setOrigin(0.5, def.originY);
 	sprite.setDisplaySize(def.displaySize, def.displaySize);
-	sprite.play(classAnimKey(def, 'Idle', angle));
+	safePlay(sprite, classAnimKey(def, 'Idle', angle));
 
 	const view: ClassView = {
 		def,
@@ -217,10 +246,11 @@ export function setClassPose(
 	const entryProgress = blend ? (sprite.anims?.getProgress() ?? 0) : 0;
 
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
-	sprite.play(classAnimKey(view.def, state, view.angle), !oneShot);
+	safePlay(sprite, classAnimKey(view.def, state, view.angle), !oneShot);
 	if (view.shadow) {
 		view.shadow.setDisplaySize(view.def.displaySize, view.def.displaySize);
-		view.shadow.play(
+		safePlay(
+			view.shadow,
 			classAnimKey(view.def, state, view.angle, 'Shadow'),
 			!oneShot,
 		);
@@ -247,10 +277,11 @@ export function tickClassFacing(
 	if (angle === view.angle) return false;
 	view.angle = angle;
 	const progress = sprite.anims?.getProgress() ?? 0;
-	sprite.play(classAnimKey(view.def, view.state, angle), true);
+	safePlay(sprite, classAnimKey(view.def, view.state, angle), true);
 	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 	if (view.shadow) {
-		view.shadow.play(
+		safePlay(
+			view.shadow,
 			classAnimKey(view.def, view.state, angle, 'Shadow'),
 			true,
 		);
