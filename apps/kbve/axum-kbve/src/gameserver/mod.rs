@@ -2716,7 +2716,6 @@ fn process_creature_captures(
 /// so they know which ones to skip when loading chunks, plus a full inventory
 /// snapshot so their bag mirrors the server state.
 #[allow(clippy::too_many_arguments)]
-#[allow(clippy::too_many_arguments)]
 fn send_collected_state_to_new_clients(
     mut commands: Commands,
     collected: Res<CollectedObjects>,

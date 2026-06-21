@@ -1,12 +1,9 @@
 //! MC lot/schematic HTTP surface.
 //!
 //! Three auth tiers:
-//!   * `/api/v1/mc/lots/*`           — authenticated user JWT; the caller
-//!                                     acts on their own lots.
-//!   * `/api/v1/mc/lots/staff/*`     — authenticated user JWT + `forum.is_staff`
-//!                                     check; admin/ops surface.
-//!   * `/api/v1/mc/lots/service/*`   — `service_role` JWT; MC worker mod +
-//!                                     internal queue janitors.
+//!   * `/api/v1/mc/lots/*` — authenticated user JWT; the caller acts on their own lots.
+//!   * `/api/v1/mc/lots/staff/*` — authenticated user JWT + `forum.is_staff` check; admin/ops surface.
+//!   * `/api/v1/mc/lots/service/*` — `service_role` JWT; MC worker mod + internal queue janitors.
 
 use axum::{
     Json,

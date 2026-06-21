@@ -1,3 +1,5 @@
+#![allow(dead_code, clippy::too_many_arguments, clippy::assertions_on_constants)]
+
 use axum::{
     Json, Router,
     body::Body,
@@ -4454,8 +4456,7 @@ mod tests {
             .get(format!("http://{addr}/"))
             .send()
             .await
-            .err()
-            .expect("must time out");
+            .expect_err("must time out");
         let (status, reason) = classify_reqwest_error(&err);
         assert_eq!(status, StatusCode::GATEWAY_TIMEOUT);
         assert_eq!(reason, "upstream timed out");
@@ -4473,8 +4474,7 @@ mod tests {
             .get("http://127.0.0.1:1/")
             .send()
             .await
-            .err()
-            .expect("must fail to connect");
+            .expect_err("must fail to connect");
         let (status, reason) = classify_reqwest_error(&err);
         assert_eq!(status, StatusCode::BAD_GATEWAY);
         assert!(
@@ -5152,7 +5152,7 @@ mod tests {
             "year: {year_str}"
         );
         let year: i32 = year_str.parse().unwrap();
-        assert!(year >= 2024 && year < 3000, "unreasonable year: {year}");
+        assert!((2024..3000).contains(&year), "unreasonable year: {year}");
         assert!(s.ends_with('Z'));
     }
 

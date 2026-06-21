@@ -185,7 +185,7 @@ impl LotClient {
         cursor: LotChunkCursor,
     ) -> Result<Vec<VacantLotRow>> {
         let mut conn = self.inner.read().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<VacantLotRow>, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -204,7 +204,7 @@ impl LotClient {
         cursor: LotChunkCursor,
     ) -> Result<Vec<OwnedLotRow>> {
         let mut conn = self.inner.read().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<OwnedLotRow>, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -230,7 +230,7 @@ impl LotClient {
         cursor: LotChunkCursor,
     ) -> Result<Vec<OwnedLotRow>> {
         let mut conn = self.inner.read().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<OwnedLotRow>, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -250,6 +250,7 @@ impl LotClient {
 
     /// Viewport map RPC. `state_filter` optionally narrows to a single
     /// `mc.lot_state` value; pass `None` for everything in the box.
+    #[allow(clippy::too_many_arguments)]
     pub async fn list_lots_in_viewport(
         &self,
         user_id: Uuid,
@@ -262,7 +263,7 @@ impl LotClient {
         limit: i32,
     ) -> Result<Vec<ViewportLotRow>> {
         let mut conn = self.inner.read().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<Vec<ViewportLotRow>, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -292,7 +293,7 @@ impl LotClient {
         idempotency_key: Uuid,
     ) -> Result<String> {
         let mut conn = self.inner.write().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<String, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -318,7 +319,7 @@ impl LotClient {
         idempotency_key: Uuid,
     ) -> Result<String> {
         let mut conn = self.inner.write().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<String, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -344,7 +345,7 @@ impl LotClient {
         idempotency_key: Uuid,
     ) -> Result<String> {
         let mut conn = self.inner.write().await.map_err(LotError::Wallet)?;
-        let inner: &mut AsyncPgConnection = &mut *conn;
+        let inner: &mut AsyncPgConnection = &mut conn;
         inner
             .transaction::<String, LotError, _>(async |c| {
                 set_user_claims(c, user_id)
@@ -485,6 +486,7 @@ async fn list_owned_async(
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn list_viewport_async(
     conn: &mut AsyncPgConnection,
     world: &str,

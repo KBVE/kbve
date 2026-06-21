@@ -243,7 +243,7 @@ mod tests {
             .header("x-forwarded-for", "203.0.113.50, 70.41.3.18")
             .body(Body::empty())
             .unwrap();
-        let req: Request = req.into();
+        let req: Request = req;
 
         assert_eq!(get_client_ip(&req), "203.0.113.50");
     }
@@ -254,7 +254,7 @@ mod tests {
             .header("x-real-ip", "198.51.100.78")
             .body(Body::empty())
             .unwrap();
-        let req: Request = req.into();
+        let req: Request = req;
 
         assert_eq!(get_client_ip(&req), "198.51.100.78");
     }
@@ -266,7 +266,7 @@ mod tests {
             .header("x-real-ip", "198.51.100.78")
             .body(Body::empty())
             .unwrap();
-        let req: Request = req.into();
+        let req: Request = req;
 
         assert_eq!(get_client_ip(&req), "203.0.113.50");
     }
@@ -274,7 +274,7 @@ mod tests {
     #[test]
     fn test_get_client_ip_fallback() {
         let req = HttpRequest::builder().body(Body::empty()).unwrap();
-        let req: Request = req.into();
+        let req: Request = req;
 
         assert_eq!(get_client_ip(&req), "unknown");
     }

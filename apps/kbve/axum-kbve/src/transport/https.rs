@@ -2112,10 +2112,6 @@ async fn cache_headers(request: Request, next: Next) -> Response {
 
     let cache_value = if path.starts_with("/_astro/") {
         "public, max-age=31536000, immutable"
-    } else if path.starts_with("/pagefind/") || path.starts_with("/images/") {
-        "public, max-age=86400"
-    } else if path.ends_with(".html") || path == "/" || !path.contains('.') {
-        "public, max-age=86400"
     } else {
         "public, max-age=86400"
     };

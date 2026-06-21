@@ -2844,7 +2844,7 @@ mod tests {
     fn hdrs(pairs: &[(&'static str, &'static str)]) -> HeaderMap {
         let mut h = HeaderMap::new();
         for (k, v) in pairs {
-            h.insert(*k, HeaderValue::from_static(*v));
+            h.insert(*k, HeaderValue::from_static(v));
         }
         h
     }

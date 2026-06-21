@@ -1,8 +1,8 @@
 pub mod auth;
 mod cache;
-mod model;
+pub(crate) mod model;
 mod supabase;
 
 pub use cache::MemeCache;
-pub use model::{FeedPage, Meme};
+pub use model::Meme;
 pub use supabase::{MemeSupabaseClient, MemeSupabaseConfig};
