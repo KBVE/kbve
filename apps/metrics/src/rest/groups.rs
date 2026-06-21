@@ -70,18 +70,31 @@ async fn authorize(app: &AppState, headers: &HeaderMap) -> Result<(), Response> 
     }
 }
 
+const QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
+
 async fn query(app: &AppState, sql: String, key: &str) -> Response {
-    match app.ch.execute_select(&sql).await {
-        Ok(rows) => {
+    match tokio::time::timeout(QUERY_TIMEOUT, app.ch.execute_select(&sql)).await {
+        Ok(Ok(rows)) => {
             let mut body = serde_json::Map::new();
             body.insert(key.to_string(), json!(rows));
             (StatusCode::OK, Json(serde_json::Value::Object(body))).into_response()
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             tracing::error!(error = %e, "telemetry query failed");
             (
                 StatusCode::BAD_GATEWAY,
                 Json(json!({ "error": "query failed" })),
+            )
+                .into_response()
+        }
+        Err(_) => {
+            tracing::error!(
+                timeout_s = QUERY_TIMEOUT.as_secs(),
+                "telemetry query timed out"
+            );
+            (
+                StatusCode::GATEWAY_TIMEOUT,
+                Json(json!({ "error": "query timed out" })),
             )
                 .into_response()
         }
