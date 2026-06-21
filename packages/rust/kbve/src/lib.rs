@@ -19,7 +19,7 @@ pub mod utility;
 
 pub mod entity;
 
-#[cfg(feature = "gate")]
+#[cfg(any(feature = "gate", feature = "gate-auth"))]
 pub mod gate;
 
 #[cfg(feature = "legacy-sync-db")]

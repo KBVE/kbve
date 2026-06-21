@@ -7,12 +7,14 @@ use parking_lot::Mutex;
 use serde_json::Value;
 use tokio::sync::mpsc;
 
+use crate::auth::StaffAuth;
 use crate::config::Config;
 
 pub struct AppState {
     pub cfg: Config,
     pub ch: ClickHouseConfig,
     pub tx: mpsc::Sender<Value>,
+    pub auth: Option<StaffAuth>,
     pub started_at: Instant,
     limiter: Mutex<AHashMap<String, Bucket>>,
 }
@@ -23,11 +25,17 @@ struct Bucket {
 }
 
 impl AppState {
-    pub fn new(cfg: Config, ch: ClickHouseConfig, tx: mpsc::Sender<Value>) -> Self {
+    pub fn new(
+        cfg: Config,
+        ch: ClickHouseConfig,
+        tx: mpsc::Sender<Value>,
+        auth: Option<StaffAuth>,
+    ) -> Self {
         Self {
             cfg,
             ch,
             tx,
+            auth,
             started_at: Instant::now(),
             limiter: Mutex::new(AHashMap::new()),
         }

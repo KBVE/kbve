@@ -7,7 +7,7 @@ metadata:
         app: metrics
     annotations:
         reloader.stakater.com/auto: 'true'
-        secret.reloader.stakater.com/reload: 'clickhouse-credentials'
+        secret.reloader.stakater.com/reload: 'clickhouse-credentials,supabase-shared'
 spec:
     replicas: 1
     selector:
@@ -70,6 +70,13 @@ spec:
                             secretKeyRef:
                                 name: clickhouse-credentials
                                 key: password
+                      - name: SUPABASE_URL
+                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
                   livenessProbe:
                       httpGet:
                           path: /health
