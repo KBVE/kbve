@@ -13,13 +13,12 @@ import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
 import { loadEnv, validateJwtSecret } from "../_shared/env.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
 
-loadEnv([
+const env = loadEnv([
   "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "JWT_SECRET",
 ]);
-validateJwtSecret(Deno.env.get("JWT_SECRET"));
+validateJwtSecret(env.JWT_SECRET);
 
 // ---------------------------------------------------------------------------
 // User Vault Edge Function — Unified Router

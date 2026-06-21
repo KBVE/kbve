@@ -13,13 +13,12 @@ import {
 } from "./_shared.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
 
-loadEnv([
+const env = loadEnv([
   "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "JWT_SECRET",
 ]);
-validateJwtSecret(Deno.env.get("JWT_SECRET"));
+validateJwtSecret(env.JWT_SECRET);
 
 // ---------------------------------------------------------------------------
 // Guild Vault Edge Function — Router

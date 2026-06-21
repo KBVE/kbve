@@ -21,7 +21,6 @@ import { handleThread, THREAD_ACTIONS } from "./threads.ts";
 
 loadEnv([
   "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "JWT_SECRET",
 ]);

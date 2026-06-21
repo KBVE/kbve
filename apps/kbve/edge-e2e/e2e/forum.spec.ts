@@ -28,9 +28,14 @@ describe('Forum — Smoke Tests', () => {
 	// -- CORS / method --
 
 	it('returns 200 for OPTIONS preflight without JWT', async () => {
-		const res = await fetch(`${BASE_URL}/forum`, { method: 'OPTIONS' });
+		const res = await fetch(`${BASE_URL}/forum`, {
+			method: 'OPTIONS',
+			headers: { Origin: 'https://kbve.com' },
+		});
 		expect(res.status).toBe(200);
-		expect(res.headers.get('access-control-allow-origin')).toBe('*');
+		expect(res.headers.get('access-control-allow-origin')).toBe(
+			'https://kbve.com',
+		);
 	});
 
 	it('returns 405 for GET', async () => {

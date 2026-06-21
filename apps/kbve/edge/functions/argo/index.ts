@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { preflight, withCors } from "../_shared/cors.ts";
 import { logError } from "../_shared/logging.ts";
 import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
-import { loadEnv } from "../_shared/env.ts";
 import { enforceBodySizeLimit } from "../_shared/validators.ts";
 import {
   extractToken,
@@ -22,9 +21,8 @@ import {
 //   health        — ArgoCD server health check
 // ---------------------------------------------------------------------------
 
-const env = loadEnv(["ARGOCD_UPSTREAM_URL", "ARGOCD_AUTH_TOKEN"]);
-const ARGOCD_URL = env.ARGOCD_UPSTREAM_URL;
-const ARGOCD_TOKEN = env.ARGOCD_AUTH_TOKEN;
+const ARGOCD_URL = Deno.env.get("ARGOCD_UPSTREAM_URL") ?? "";
+const ARGOCD_TOKEN = Deno.env.get("ARGOCD_AUTH_TOKEN") ?? "";
 
 async function argoFetch(
   path: string,
@@ -135,6 +133,13 @@ async function handle(req: Request): Promise<Response> {
 
     const denied = await requireStaffOrServiceRole(token, claims);
     if (denied) return denied;
+
+    if (!ARGOCD_URL || !ARGOCD_TOKEN) {
+      return jsonResponse(
+        { error: "Service unavailable: ArgoCD upstream not configured" },
+        503,
+      );
+    }
 
     const sizeErr = enforceBodySizeLimit(req);
     if (sizeErr) return sizeErr;
