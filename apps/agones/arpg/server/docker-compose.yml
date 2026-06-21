@@ -1,0 +1,59 @@
+# Personal local-dev compose for the ARPG vertical. NOT used by Agones/k8s.
+#
+#   docker compose -f apps/agones/arpg/server/docker-compose.yml up --build
+#       -> builds + runs only arpg-server on :7979 (no PG/Valkey: persistence
+#          degrades gracefully, sim + itemdb still load).
+#
+#   docker compose -f apps/agones/arpg/server/docker-compose.yml --profile web up --build
+#       -> also runs the astro-kbve dev site on :4321, pointed at the local
+#          server. First boot installs node deps into a named volume (slow once).
+#
+# The browser (on the host) talks to ws://localhost:7979/ws, so PUBLIC_ARPG_GAME_WS
+# uses localhost regardless of which service serves the page.
+
+name: arpg-local
+
+services:
+    arpg-server:
+        build:
+            context: ../../../..
+            dockerfile: apps/agones/arpg/server/Dockerfile
+        image: kbve/arpg-server:dev
+        ports:
+            - '7979:7979'
+        environment:
+            ARPG_SERVER_ADDR: 0.0.0.0:7979
+            RUST_LOG: ${RUST_LOG:-info,arpg_server=debug,simgrid=debug}
+            ARPG_SERVER_SEED: ${ARPG_SERVER_SEED:-12648430}
+            # Unset SUPABASE_JWT_SECRET -> server runs in dev-accept auth mode.
+            SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+        restart: unless-stopped
+
+    arpg-web:
+        profiles: ['web']
+        image: node:24-bookworm
+        working_dir: /workspace
+        depends_on:
+            - arpg-server
+        ports:
+            - '4321:4321'
+        environment:
+            PUBLIC_ARPG_LOCAL: 'false'
+            PUBLIC_ARPG_GAME_WS: ws://localhost:7979/ws
+            NODE_OPTIONS: --max-old-space-size=8192
+            UV_THREADPOOL_SIZE: '4'
+        volumes:
+            - ../../../..:/workspace
+            - arpg-web-node-modules:/workspace/node_modules
+        command:
+            - bash
+            - -lc
+            - |
+                corepack enable && corepack prepare pnpm@10.18.3 --activate
+                pnpm install --frozen-lockfile
+                cd apps/kbve/astro-kbve
+                nx exec -- astro sync
+                nx exec -- astro dev --host 0.0.0.0
+
+volumes:
+    arpg-web-node-modules:

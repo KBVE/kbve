@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 12;
+export const PROTOCOL_VERSION = 13;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -35,6 +35,8 @@ export type Input =
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
 	| { UseItem: { item_ref: string } }
+	| { DropItem: { item_ref: string; qty: number } }
+	| { MoveItem: { from: number; to: number } }
 	| { EquipItem: { item_ref: string } }
 	| { Heartbeat: { client_tick: number } }
 	| 'Leave'

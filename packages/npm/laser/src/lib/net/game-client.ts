@@ -201,6 +201,14 @@ export class GameClient {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
 	}
 
+	dropItem(itemRef: string, qty: number): void {
+		this.sendInputs([{ DropItem: { item_ref: itemRef, qty } }]);
+	}
+
+	moveItem(from: number, to: number): void {
+		this.sendInputs([{ MoveItem: { from, to } }]);
+	}
+
 	equipItem(itemRef: string): void {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
 	}

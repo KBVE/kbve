@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 12;
+pub const PROTOCOL_VERSION: u32 = 13;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -122,6 +122,14 @@ pub enum Input {
     },
     UseItem {
         item_ref: String,
+    },
+    DropItem {
+        item_ref: String,
+        qty: u32,
+    },
+    MoveItem {
+        from: u32,
+        to: u32,
     },
     EquipItem {
         item_ref: String,

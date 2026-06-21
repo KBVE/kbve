@@ -37,6 +37,24 @@
 				"command": "cargo clippy -p arpg-server --all-targets -- -D warnings"
 			}
 		},
+		"compose-up": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/server/docker-compose.yml up --build"
+			}
+		},
+		"compose-stack": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/server/docker-compose.yml --profile web up --build"
+			}
+		},
+		"compose-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/server/docker-compose.yml --profile web down"
+			}
+		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",

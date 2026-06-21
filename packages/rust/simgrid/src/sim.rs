@@ -98,6 +98,11 @@ pub struct EidIndex {
 #[derive(Resource, Default)]
 pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
 
+/// Items a player dropped this tick, queued for `apply_drops` to spawn as
+/// ground loot at the given tile (item already removed from the inventory).
+#[derive(Resource, Default)]
+pub struct PendingDrops(Vec<(Tile, String, u32)>);
+
 pub const TRADE_RANGE: i32 = 1;
 pub const TRADE_TIMEOUT_TICKS: u32 = SIM_TICK_HZ * 30;
 pub const MAX_INVENTORY_SLOTS: usize = 28;
@@ -614,6 +619,31 @@ impl Inventory {
             self.slots.push((item_ref.to_string(), count));
         }
     }
+
+    /// Move the stack at index `from` to index `to`, shifting the rest. Slot
+    /// order is authoritative + persisted, so client reorders survive refreshes.
+    pub fn reorder(&mut self, from: usize, to: usize) {
+        let n = self.slots.len();
+        if from >= n || to >= n || from == to {
+            return;
+        }
+        let item = self.slots.remove(from);
+        self.slots.insert(to, item);
+    }
+
+    /// Remove up to `count` of `item_ref`, returning how many were actually
+    /// removed (0 if absent). Empties the slot when it hits zero.
+    pub fn remove(&mut self, item_ref: &str, count: u32) -> u32 {
+        let Some(idx) = self.slots.iter().position(|(r, _)| r == item_ref) else {
+            return 0;
+        };
+        let taken = self.slots[idx].1.min(count);
+        self.slots[idx].1 -= taken;
+        if self.slots[idx].1 == 0 {
+            self.slots.remove(idx);
+        }
+        taken
+    }
 }
 
 #[derive(Component, Clone)]
@@ -847,6 +877,7 @@ pub fn build_app(
         .insert_resource(SpawnedSlots::default())
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
+        .insert_resource(PendingDrops::default())
         .insert_resource(PendingTrades::default())
         .insert_resource(ActiveTrades::default())
         .insert_resource(PendingShop::default())
@@ -887,6 +918,7 @@ pub fn build_app(
             Update,
             (
                 drain_inputs,
+                apply_drops,
                 apply_actions,
                 expire_trades,
                 apply_trades,
@@ -1070,6 +1102,7 @@ fn drain_inputs(
     mut trades: ResMut<PendingTrades>,
     mut shop: ResMut<PendingShop>,
     mut blackjack_inputs: ResMut<PendingBlackjack>,
+    mut drops: ResMut<PendingDrops>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -1181,6 +1214,17 @@ fn drain_inputs(
                         &mut inv,
                         &mut status,
                     );
+                }
+                Input::DropItem { item_ref, qty } => {
+                    let removed = inv.remove(item_ref, *qty);
+                    if removed > 0 {
+                        drops.0.push((pos.tile, item_ref.clone(), removed));
+                        send_inventory(&bcast, slot.0, &inv);
+                    }
+                }
+                Input::MoveItem { from, to } => {
+                    inv.reorder(*from as usize, *to as usize);
+                    send_inventory(&bcast, slot.0, &inv);
                 }
                 Input::EquipItem { item_ref } => {
                     let Some(&bonus) = equipment.0.get(item_ref.as_str()) else {
@@ -1394,6 +1438,18 @@ fn resolve_attack_hit(
                 bcast, slot, config, equipment, kill_xp, &mut xp, &mut php, &mut stats, equipped,
                 kills,
             );
+        }
+    }
+}
+
+fn apply_drops(
+    mut drops: ResMut<PendingDrops>,
+    registry: Res<KindRegistry>,
+    mut commands: Commands,
+) {
+    for (tile, item_ref, count) in drops.0.drain(..) {
+        if let Some(bundle) = ground_item_bundle(&registry, &item_ref, count, tile) {
+            commands.spawn(bundle);
         }
     }
 }
@@ -3344,6 +3400,70 @@ mod tests {
             .unwrap()
             .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
+    }
+
+    #[test]
+    fn drop_item_spawns_ground_loot_and_decrements_inventory() {
+        let (mut app, _rx, input_tx, roster) = harness(0x70);
+        let slot = join(&roster, "dropper");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 3);
+        }
+        input_tx
+            .send((
+                slot,
+                Input::DropItem {
+                    item_ref: "potion".into(),
+                    qty: 2,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        let left = inv
+            .slots
+            .iter()
+            .find(|(r, _)| r == "potion")
+            .map(|(_, c)| *c)
+            .unwrap_or(0);
+        assert_eq!(left, 1, "inventory not decremented to 1 (got {left})");
+        let mut q = app.world_mut().query::<&GroundItem>();
+        let dropped = q
+            .iter(app.world())
+            .any(|g| g.item_ref == "potion" && g.count == 2);
+        assert!(dropped, "dropped potion did not spawn as ground loot");
+    }
+
+    #[test]
+    fn move_item_reorders_inventory_slots() {
+        let (mut app, _rx, input_tx, roster) = harness(0x71);
+        let slot = join(&roster, "organizer");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 1);
+            inv.add("coin", 5);
+            inv.add("elixir", 2);
+        }
+        input_tx
+            .send((slot, Input::MoveItem { from: 0, to: 2 }))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        let order: Vec<&str> = inv.slots.iter().map(|(r, _)| r.as_str()).collect();
+        assert_eq!(
+            order,
+            vec!["coin", "elixir", "potion"],
+            "slot order not persisted after MoveItem"
+        );
     }
 
     #[test]
