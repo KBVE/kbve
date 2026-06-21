@@ -82,9 +82,31 @@ function StatCard({
 	);
 }
 
+const STORAGE_HEALTH_LABEL: Record<string, string> = {
+	schema_drift:
+		'Schema drift — Forgejo repository columns changed. Per-repo git/LFS split disabled until the storage layer contract is updated.',
+	access_denied:
+		'DB access denied — app role lost SELECT on forgejo.repository. Per-repo git/LFS split unavailable.',
+	db_error:
+		'Storage DB error — per-repo git/LFS split unavailable, falling back to combined size.',
+	unconfigured: 'Per-repo storage DB layer not configured.',
+};
+
 function StorageBreakdown() {
 	const repos = useStore(forgejoService.$repos);
 	const storage = useStore(forgejoService.$storage);
+	const health = useStore(forgejoService.$storageHealth);
+
+	const healthIssue =
+		health && health.status !== 'ok' && health.status !== 'unknown'
+			? {
+					label:
+						STORAGE_HEALTH_LABEL[health.status] ??
+						`Storage layer: ${health.status}`,
+					detail: health.detail,
+					critical: health.status !== 'unconfigured',
+				}
+			: null;
 
 	const { totalSize, top } = useMemo(() => {
 		const sorted = [...repos].sort((a, b) => b.size - a.size);
@@ -124,6 +146,29 @@ function StorageBreakdown() {
 				<HardDrive size={12} />
 				Storage by Repository
 			</div>
+			{healthIssue && (
+				<div
+					title={healthIssue.detail ?? undefined}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						padding: '0.5rem 0.7rem',
+						borderRadius: 8,
+						marginBottom: 8,
+						background: healthIssue.critical
+							? 'rgba(239, 68, 68, 0.1)'
+							: 'rgba(139, 148, 158, 0.1)',
+						border: healthIssue.critical
+							? '1px solid rgba(239, 68, 68, 0.3)'
+							: '1px solid rgba(139, 148, 158, 0.3)',
+						fontSize: '0.72rem',
+						color: healthIssue.critical ? '#ef4444' : '#8b949e',
+					}}>
+					<AlertTriangle size={14} />
+					{healthIssue.label}
+				</div>
+			)}
 			{drift && (
 				<div
 					title="Per-repo sizes are summed from Forgejo's repository.size, which only updates on push or gc. The owner quota totals include LFS that some repos haven't recomputed yet — run a Forgejo size recalculation (admin → garbage collect repositories)."

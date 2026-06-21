@@ -103,6 +103,12 @@ spec:
                               DEFAULT_INTERVAL: 10m
                           quota:
                               ENABLED: true
+                          cron:
+                              git_gc_repos:
+                                  ENABLED: true
+                                  RUN_AT_START: false
+                                  SCHEDULE: '@every 24h'
+                                  TIMEOUT: 120s
                       additionalConfigFromEnvs:
                           - name: FORGEJO__SERVER__LFS_JWT_SECRET
                             valueFrom:
