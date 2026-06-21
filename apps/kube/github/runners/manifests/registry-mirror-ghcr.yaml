@@ -243,7 +243,7 @@ data:
         HARD="${HARD_PCT:-95}"
         INTERVAL="${INTERVAL_SECONDS:-3600}"
 
-        command -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1
+        command -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1 || true
 
         usage() { df -P "$DATA" | awk 'NR==2{gsub("%","",$5);print $5}'; }
         wl() { grep -qxF "$1:$2" "$WL" 2>/dev/null; }
