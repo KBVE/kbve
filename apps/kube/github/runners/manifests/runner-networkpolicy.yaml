@@ -68,3 +68,14 @@ spec:
           ports:
               - port: 5000
                 protocol: TCP
+        # ghcr.io pull-through cache (registry-mirror-ghcr.arc-runners.svc:5000)
+        # for the UE image. Required now that egress is default-deny with every
+        # private CIDR excepted — without this allow the ghcr cache is
+        # unreachable and every UE pull silently falls back to ghcr.io.
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: registry-mirror-ghcr
+          ports:
+              - port: 5000
+                protocol: TCP

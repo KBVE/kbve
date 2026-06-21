@@ -786,6 +786,72 @@ dispatch_docker:
               [ "${{ needs.alter.outputs.kilobase }}" = "true" ]      && dispatch "kilobase"
 ```
 
+#### Docker Image Pull-Through Cache
+
+Large base images (e.g. the ~20 GB `ghcr.io/epicgames/unreal-engine` used by the
+Unreal pipeline) are otherwise re-pulled from the internet by every ephemeral
+`arc-runner-*` job, ~25 min each. An in-cluster `registry:2` running in **proxy
+mode** caches those layers on a Longhorn PVC so the first pull fills it once and
+every later pull is LAN speed.
+
+- Manifest: `apps/kube/github/runners/manifests/registry-mirror-ghcr.yaml`
+- Service: `registry-mirror-ghcr.arc-runners.svc.cluster.local:5000`
+- Upstream: `https://ghcr.io` (auth via the in-cluster `github-arc-token`)
+- Proxy revalidation: 24h TTL — UE `dev-*` tags are mutable, so the cache
+  re-checks the tag→manifest mapping daily rather than serving a stale image for
+  a week after an upstream re-push (blob bytes are immutable, so this is cheap).
+- Retention: soft (80%) / hard (95%) size limits. A whitelist ConfigMap
+  (`registry-mirror-ghcr-whitelist`) protects pinned tags under the soft limit;
+  the hard limit overrides it to avoid a full disk.
+- Access: an Ingress NetworkPolicy (`registry-mirror-ghcr-ingress`) restricts
+  `:5000` to the `arc-runners` namespace, since the cache serves the private UE
+  image unauthenticated over HTTP and has the delete API enabled.
+
+##### Use the cache from another runner job
+
+Routing another CI job's image pulls through the cache is two steps:
+
+1. **Opt the runner in.** Add the cache host to that runner's dind args so Docker
+   trusts it (the cache serves over HTTP), then bump that file's
+   `restart-trigger` to roll the pods. `arc-runner-ue` already has this:
+
+   ```yaml
+   # apps/kube/github/runners/manifests/values-<runner>.yaml (dind command)
+   exec dockerd ... --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+   ```
+
+2. **Pull cache-first in the job.** Swap the registry host to the cache, pull,
+   and retag to the canonical name (so the rest of the job is unchanged), with a
+   ghcr fallback so a cache outage degrades gracefully. Log in to ghcr
+   **unconditionally** first — a cache hit must still leave a valid ghcr session
+   for any later step that touches ghcr:
+
+   ```yaml
+   - name: Pull image (cache-first, ghcr fallback)
+     env:
+       CACHE_HOST: registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+     run: |
+       TARGET="ghcr.io/<org>/<image>:<tag>"
+       CACHE_REF="${TARGET/ghcr.io/$CACHE_HOST}"
+       echo "$GHCR_PAT" | docker login ghcr.io -u "$ACTOR" --password-stdin
+       if docker pull "$CACHE_REF"; then
+         docker tag "$CACHE_REF" "$TARGET"
+       else
+         docker pull "$TARGET"
+       fi
+   ```
+
+Only `ghcr.io` images are served by this instance (its single upstream). To keep
+a tag from being pruned under the soft limit, add its cache path
+(`<org>/<image>:<tag>`) to the `registry-mirror-ghcr-whitelist` ConfigMap.
+
+##### Cache a different registry (Docker Hub, quay.io, …)
+
+Stand up a second proxy instance: copy `registry-mirror-ghcr.yaml`, change
+`REGISTRY_PROXY_REMOTEURL` to that registry, give it its own PVC + Service name,
+and point image refs at the new service. One `registry:2` proxy serves exactly
+one upstream.
+
 #### Package Publishing
 
 The same fanout pattern applies to package publishing.
