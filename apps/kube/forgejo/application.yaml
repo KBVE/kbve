@@ -40,11 +40,12 @@ spec:
                       accessModes:
                           - ReadWriteOnce
 
-                  deployment:
-                      annotations:
-                          # Bump this value to force a pod rollout when config/secrets change.
-                          # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
-                          kbve.com/config-revision: '2026-06-20-gc-cron'
+                  # Pod-template annotation (NOT deployment.annotations, which is
+                  # Deployment metadata and does not change the pod hash). Bumping
+                  # this value changes the pod template → new ReplicaSet → rollout,
+                  # so the new [cron.gc_lfs] config is actually loaded.
+                  podAnnotations:
+                      kbve.com/config-revision: '2026-06-21-gc-lfs-cron'
 
                   gitea:
                       admin:
@@ -109,6 +110,25 @@ spec:
                                   RUN_AT_START: false
                                   SCHEDULE: '@every 24h'
                                   TIMEOUT: 120s
+                              # Prune unreferenced LFS objects from the store so
+                              # stale assets (e.g. deleted branches) stop pinning
+                              # space on the 50Gi Longhorn PVC. This frees ext4
+                              # inodes only — the freed blocks stay trapped in the
+                              # Longhorn volume/snapshot chain until a filesystem
+                              # trim runs (see the Longhorn RecurringJob in
+                              # apps/kube/storage/manifests). GC + trim together
+                              # are what actually reclaim disk. See issue #12793.
+                              #
+                              # Pinned to Sunday 01:00 (cron, not '@every 168h')
+                              # so it deterministically precedes the Longhorn
+                              # forgejo-filesystem-trim-weekly job at Sunday 03:00.
+                              # '@every' anchors to pod start, which would not
+                              # guarantee that ordering.
+                              gc_lfs:
+                                  ENABLED: true
+                                  RUN_AT_START: false
+                                  SCHEDULE: '0 1 * * 0'
+                                  OLDER_THAN: 168h
                       additionalConfigFromEnvs:
                           - name: FORGEJO__SERVER__LFS_JWT_SECRET
                             valueFrom:
