@@ -1177,7 +1177,7 @@
 			"key": "unreal_chuck_beta",
 			"app_name": "chuck",
 			"engine": {
-				"version": "5.7.4",
+				"version": "5.8.0",
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
@@ -1210,7 +1210,7 @@
 			"key": "unreal_chuck_dev",
 			"app_name": "chuck-dev",
 			"engine": {
-				"version": "5.7.4",
+				"version": "5.8.0",
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
@@ -1244,7 +1244,7 @@
 			"key": "unreal_rentearth",
 			"app_name": "rentearth",
 			"engine": {
-				"version": "5.7.4",
+				"version": "5.8.0",
 				"project_path": "apps/rentearth/unreal-rentearth",
 				"build_targets": [
 					"Win64",
