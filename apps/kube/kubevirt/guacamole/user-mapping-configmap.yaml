@@ -10,7 +10,7 @@ data:
     user-mapping.xml: |
         <user-mapping>
             <authorize username="guacadmin"
-                       password="f3293a1a94713ed45a8f23d84f41b41c670a7ae6fef7b05a2b0ba47a06061f43"
+                       password="__GUACADMIN_SHA256__"
                        encoding="sha256">
                 <connection name="Windows Builder">
                     <protocol>rdp</protocol>
