@@ -44,7 +44,7 @@ spec:
                       annotations:
                           # Bump this value to force a pod rollout when config/secrets change.
                           # ArgoCD detects the annotation change → new ReplicaSet → pod restart.
-                          kbve.com/config-revision: '2026-04-25-git-canonical-url'
+                          kbve.com/config-revision: '2026-06-20-gc-cron'
 
                   gitea:
                       admin:
