@@ -146,6 +146,9 @@ The game runs as a Discord Activity by reusing the existing web tier — no new 
 |---------|--------|---------|
 | `/` (root) | `kbve.com/discord/arpg/` | embed page + same-origin `/.proxy/api/v1/discord/session` backend (Discord prepends `/discord` to proxied paths, hence the dual route) |
 | `/arpg-game` | `arpg.kbve.com` | game WebSocket |
+| `/arpg-assets` | `kbve.com` | game art (sprites/ground) served from the site root `/assets/...` — the embed sets the arpg client asset base to `/arpg-assets` so absolute art paths resolve back to the site origin through the proxy, not under the portal-root `/discord/arpg/` dir |
+
+Everything the Activity loads is proxied through `*.discordsays.com`, so each external host (game WS, site art) needs a URL Mapping, and same-origin backend calls carry `/.proxy/`. The embed bundle uses a relative `base` so `arpg.js` + its worker chunks load relative to `/discord/arpg/`; absolute game-art paths route through the `/arpg-assets` mapping.
 
 **Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (embed):** `PUBLIC_DISCORD_CLIENT_ID` baked in by `vite.arpg-discord.config.mts` — must be set or terser dead-code-eliminates the boot body. Register a separate Discord Activity application pointing its root at `kbve.com/discord/arpg/`.
 

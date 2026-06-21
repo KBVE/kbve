@@ -91,6 +91,22 @@ export const COLORS = {
 	npc: 0xfcd34d,
 } as const;
 
+// Asset base prefix. Empty by default → art loads from the site root
+// (`/assets/arcade/arpg/...`), correct for kbve.com/arcade/arpg. The Discord
+// Activity proxies the portal root to /discord/arpg/, so the embed sets this to
+// a URL-mapping prefix (e.g. `/arpg-assets`, mapped to kbve.com) so the absolute
+// art paths resolve back to the real site origin through the proxy.
+let assetBase = '';
+
+export function setArpgAssetBase(base: string): void {
+	assetBase = base.replace(/\/$/, '');
+}
+
+/** Prefix an absolute site asset path with the active asset base. */
+export function arpgAsset(path: string): string {
+	return `${assetBase}${path}`;
+}
+
 export const GROUND_TEXTURE_KEY = 'arpg-ground';
 export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 

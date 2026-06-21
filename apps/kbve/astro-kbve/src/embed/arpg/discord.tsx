@@ -4,6 +4,7 @@ import {
 	type Types,
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
+import { setArpgAssetBase } from '../../arcade/isometric-arpg/config';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
@@ -15,13 +16,20 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 // at /discord/api/v1/discord/session too (see https.rs).
 const SESSION_ENDPOINT = '/.proxy/api/v1/discord/session';
 
-// The game WebSocket rides a portal URL Mapping: /arpg-game -> arpg.kbve.com.
-// patchUrlMappings rewrites the game's wss://arpg.kbve.com/ws to the proxied
-// host so the socket is allowed inside the Activity iframe.
+// Portal URL Mappings. The Activity iframe proxies every request through
+// *.discordsays.com; each external host needs a mapping so the SDK can rewrite
+// it. The game WS rides /arpg-game -> arpg.kbve.com; the game art (served from
+// the kbve.com site root at /assets/...) rides /arpg-assets -> kbve.com, because
+// the portal ROOT maps / -> kbve.com/discord/arpg/ and a bare /assets/ would
+// resolve under that embed dir instead of the site root.
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/arpg-game', target: 'arpg.kbve.com' },
+	{ prefix: '/arpg-assets', target: 'kbve.com' },
 ];
 const GAME_WS = 'wss://arpg.kbve.com/.proxy/arpg-game/ws';
+// Art base: the SDK rewrites /arpg-assets -> kbve.com, so /arpg-assets/assets/...
+// reaches the real site art through the proxy.
+const ASSET_BASE = '/arpg-assets';
 
 const KBVE_DISCORD_URL = 'https://discord.gg/kbve';
 const KBVE_FEEDBACK_URL = 'https://kbve.com/contact/';
@@ -172,6 +180,9 @@ async function boot(): Promise<void> {
 	}
 
 	patchUrlMappings(URL_MAPPINGS);
+	// Route the game's site-root art through the /arpg-assets mapping so it loads
+	// inside the proxied Activity iframe.
+	setArpgAssetBase(ASSET_BASE);
 
 	setStatus('Entering the dungeon…', 'Connecting to Discord.');
 	const sdk = new DiscordSDK(CLIENT_ID);

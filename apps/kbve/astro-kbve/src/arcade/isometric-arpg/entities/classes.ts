@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { arpgAsset } from '../config';
 
 // Full 16-direction facing — the engvee sheet ships rotations at 22.5° steps.
 // More angles = smoother turn blending than the 8-way subset.
@@ -139,7 +140,9 @@ function classFile(
 	angle: string,
 	layer: ClassLayer,
 ): string {
-	return `${def.assetPath}/${state}_${def.weapon}/${state}_${def.weapon}_${layer}_${angle}.png`;
+	return arpgAsset(
+		`${def.assetPath}/${state}_${def.weapon}/${state}_${def.weapon}_${layer}_${angle}.png`,
+	);
 }
 
 export function preloadClass(scene: Phaser.Scene, def: ClassDef): void {

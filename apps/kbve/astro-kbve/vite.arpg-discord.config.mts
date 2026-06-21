@@ -11,6 +11,12 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const pkg = (p: string) => resolve(here, '../../../packages', p);
 
 export default defineConfig({
+	// Relative base so arpg.js + every emitted worker chunk load via paths
+	// relative to the bundle, NOT absolute /assets/. The Discord Activity proxies
+	// every request through *.discordsays.com under the portal root
+	// (/discord/arpg/); an absolute /assets/ would resolve to the proxy root and
+	// 404, so the workers must reference ./assets/... relative to import.meta.url.
+	base: './',
 	plugins: [react()],
 	resolve: {
 		alias: [
