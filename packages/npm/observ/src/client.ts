@@ -99,6 +99,14 @@ export class Observer {
 		return this;
 	}
 
+	stop(): void {
+		if (this.timer !== null) {
+			clearInterval(this.timer);
+			this.timer = null;
+		}
+		this.flush(true);
+	}
+
 	captureException(err: unknown, extra?: Record<string, unknown>): void {
 		this.capture({
 			message: err instanceof Error ? err.message : String(err),
