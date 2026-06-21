@@ -110,6 +110,22 @@ import { resolvePlayerName } from './playerName';
 
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
+// Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
+// fixture seeds ground loot + a heal table to exercise the inventory loop. The
+// real game is server-authoritative; this only runs when localMode is set.
+const LOCAL_ITEM_KIND = 2;
+const LOCAL_ITEM_EID_BASE = 1000;
+const LOCAL_LOOT: ReadonlyArray<{
+	ref: string;
+	count: number;
+	dx: number;
+	dy: number;
+}> = [
+	{ ref: 'potion', count: 3, dx: 1, dy: -2 },
+	{ ref: 'potion', count: 1, dx: -2, dy: 1 },
+	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
+];
+const LOCAL_HEAL: ReadonlyMap<string, number> = new Map([['potion', 15]]);
 
 /**
  * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
@@ -184,6 +200,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private pickupSent = new Set<number>();
 	// Full inventory panel open state (toggled with I).
 	private inventoryOpen = false;
+	// Offline-only ground loot (server eid -> ref/count/tile). Empty online.
+	private localItems = new Map<
+		number,
+		{ ref: string; count: number; tile: TileXY }
+	>();
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -620,24 +641,78 @@ export class IsoArpgScene extends Phaser.Scene {
 	// EPHEMERAL_INVENTORY refreshes the HUD.
 	private useInventorySlot(idx: number): void {
 		const item = this.inventory[idx];
-		if (item) this.client?.useItem(item.ref);
+		if (!item) return;
+		if (this.client) {
+			this.client.useItem(item.ref);
+			return;
+		}
+		if (!this.localMode) return;
+		// Offline: apply the heal + consume the item client-side.
+		const heal = LOCAL_HEAL.get(item.ref) ?? 0;
+		if (heal > 0) {
+			const hp = Math.min(
+				this.store.maxHp(this.myEid),
+				this.store.hp(this.myEid) + heal,
+			);
+			this.store.update(this.myEid, { hp });
+		}
+		const left = item.count - 1;
+		this.inventory =
+			left <= 0
+				? this.inventory.filter((_, i) => i !== idx)
+				: this.inventory.map((s, i) =>
+						i === idx ? { ...s, count: left } : s,
+					);
+		emitInventory(this.inventory);
 	}
 
 	// Walk-over pickup: any ground item within one tile is grabbed automatically.
 	// The server validates proximity, despawns the item, and broadcasts the
 	// updated inventory; pickupSent dedupes until the despawn round-trips back.
 	private tryAutoPickup(): void {
-		if (!this.client) return;
 		const me = floatTile(this.floatState);
-		for (const sid of this.store.serverIdsWith('item')) {
-			if (this.pickupSent.has(sid)) continue;
-			const t = this.store.tile(sid);
-			if (!t) continue;
-			if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
-				this.client.action(ACTION_PICKUP, sid);
-				this.pickupSent.add(sid);
+		if (this.client) {
+			for (const sid of this.store.serverIdsWith('item')) {
+				if (this.pickupSent.has(sid)) continue;
+				const t = this.store.tile(sid);
+				if (!t) continue;
+				if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
+					this.client.action(ACTION_PICKUP, sid);
+					this.pickupSent.add(sid);
+				}
 			}
+			return;
 		}
+		if (!this.localMode) return;
+		for (const [eid, item] of this.localItems) {
+			const d = Math.max(
+				Math.abs(item.tile.x - me.x),
+				Math.abs(item.tile.y - me.y),
+			);
+			if (d <= 1) this.localPickup(eid, item);
+		}
+	}
+
+	/** Offline: grab a local ground item into the inventory + remove its sprite. */
+	private localPickup(
+		eid: number,
+		item: { ref: string; count: number; tile: TileXY },
+	): void {
+		const refs = this.store.despawn(eid);
+		if (refs) {
+			this.tweens.killTweensOf(refs.sprite);
+			refs.sprite.destroy();
+		}
+		this.localItems.delete(eid);
+		const has = this.inventory.some((s) => s.ref === item.ref);
+		this.inventory = has
+			? this.inventory.map((s) =>
+					s.ref === item.ref
+						? { ...s, count: s.count + item.count }
+						: s,
+				)
+			: [...this.inventory, { ref: item.ref, count: item.count }];
+		emitInventory(this.inventory);
 	}
 
 	private applySnapshot(s: Snapshot) {
@@ -1074,6 +1149,55 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.floatState = makeFloatState(tile);
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
 		this.cameras.main.setZoom(1.5);
+
+		// Seed offline loot so the inventory loop is testable without a server.
+		LOCAL_LOOT.forEach((l, i) => {
+			const t = this.dungeon.nearestFloor({
+				x: tile.x + l.dx,
+				y: tile.y + l.dy,
+			});
+			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
+		});
+	}
+
+	/** Offline only: render a floating ground-loot sprite tracked in localItems. */
+	private spawnLocalItem(
+		eid: number,
+		ref: string,
+		count: number,
+		tile: TileXY,
+	): void {
+		if (!this.kindRegistry.has(LOCAL_ITEM_KIND)) {
+			this.kindRegistry.set(LOCAL_ITEM_KIND, {
+				kind: LOCAL_ITEM_KIND,
+				ref,
+				cat: 2, // KIND_CAT_ITEM
+			});
+		}
+		const sprite = makeSprite(this, this.kinds, LOCAL_ITEM_KIND, false);
+		this.placeSprite(sprite, tile.x, tile.y);
+		this.tweens.add({
+			targets: sprite,
+			y: sprite.y - 6,
+			duration: 650,
+			yoyo: true,
+			repeat: -1,
+			ease: 'Sine.easeInOut',
+		});
+		this.store.spawn(
+			eid,
+			{
+				tile,
+				kind: LOCAL_ITEM_KIND,
+				cat: 'item',
+				owner: 0,
+				hostile: false,
+				hp: 0,
+				maxHp: 0,
+			},
+			{ sprite },
+		);
+		this.localItems.set(eid, { ref, count, tile });
 	}
 
 	/**
