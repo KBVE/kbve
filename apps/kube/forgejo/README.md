@@ -89,8 +89,9 @@ disk usage stays flat:
 
 ### Automation (current state)
 
-- **GC**: `[cron.gc_lfs]` runs weekly (`@every 168h`, `OLDER_THAN = 168h`),
-  configured in `apps/kube/forgejo/application.yaml`.
+- **GC**: `[cron.gc_lfs]` (`SCHEDULE = '0 1 * * 0'`, `OLDER_THAN = 168h`),
+  configured in `apps/kube/forgejo/application.yaml`. Pinned to Sunday 01:00
+  (cron, not `@every 168h`) so it deterministically runs before the trim.
 - **Trim**: Longhorn `RecurringJob forgejo-filesystem-trim-weekly` (Sun 03:00) in
   `apps/kube/storage/manifests/recurring-jobs.yaml`, with
   `removeSnapshotsDuringFilesystemTrim: true` (values.yaml) so snapshot-chain
@@ -101,11 +102,11 @@ disk usage stays flat:
   a label on the CSI-created Volume CR (not in git) — re-apply it if the PVC is
   ever recreated:
 
-  ```bash
-  kubectl -n longhorn-system label volume \
-    $(kubectl -n forgejo get pvc gitea-shared-storage -o jsonpath='{.spec.volumeName}') \
-    recurring-job-group.longhorn.io/forgejo-reclaim=enabled --overwrite
-  ```
+    ```bash
+    kubectl -n longhorn-system label volume \
+      $(kubectl -n forgejo get pvc gitea-shared-storage -o jsonpath='{.spec.volumeName}') \
+      recurring-job-group.longhorn.io/forgejo-reclaim=enabled --overwrite
+    ```
 
 ### Manual runbook (on-demand reclaim / verification)
 
