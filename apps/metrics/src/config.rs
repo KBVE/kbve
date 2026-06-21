@@ -12,6 +12,10 @@ pub struct Config {
     pub flush_rows: usize,
     pub flush_interval_ms: u64,
     pub rate_limit_per_min: u32,
+    pub project_rate_limit_per_min: u32,
+    pub global_rate_limit_per_min: u32,
+    pub trusted_proxy_hops: usize,
+    pub ingest_token: Option<String>,
 }
 
 fn get(key: &str, default: &str) -> String {
@@ -45,6 +49,17 @@ impl Config {
             rate_limit_per_min: get("METRICS_RATE_LIMIT_PER_MIN", "120")
                 .parse()
                 .unwrap_or(120),
+            project_rate_limit_per_min: get("METRICS_PROJECT_RATE_LIMIT_PER_MIN", "6000")
+                .parse()
+                .unwrap_or(6000),
+            global_rate_limit_per_min: get("METRICS_GLOBAL_RATE_LIMIT_PER_MIN", "60000")
+                .parse()
+                .unwrap_or(60000),
+            trusted_proxy_hops: get("METRICS_TRUSTED_PROXY_HOPS", "1").parse().unwrap_or(1),
+            ingest_token: env::var("METRICS_INGEST_TOKEN")
+                .ok()
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty()),
         }
     }
 }

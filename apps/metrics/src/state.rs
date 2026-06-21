@@ -41,7 +41,12 @@ impl AppState {
         }
     }
 
-    pub fn allow(&self, key: &str) -> bool {
+    /// Fixed-window counter. Returns false once `limit` is exceeded for `key`
+    /// within the 60s window. A limit of 0 disables the check (always allows).
+    fn check(&self, key: &str, limit: u32) -> bool {
+        if limit == 0 {
+            return true;
+        }
         let now = Instant::now();
         let window = Duration::from_secs(60);
         let mut map = self.limiter.lock();
@@ -57,7 +62,22 @@ impl AppState {
             bucket.window_start = now;
         }
         bucket.count += 1;
-        bucket.count <= self.cfg.rate_limit_per_min
+        bucket.count <= limit
+    }
+
+    /// Per-client-IP request cap.
+    pub fn allow_ip(&self, ip: &str) -> bool {
+        self.check(ip, self.cfg.rate_limit_per_min)
+    }
+
+    /// Per-project event cap (keyed separately from IPs).
+    pub fn allow_project(&self, project: &str) -> bool {
+        self.check(&format!("p:{project}"), self.cfg.project_rate_limit_per_min)
+    }
+
+    /// Global ingest ceiling across all clients.
+    pub fn allow_global(&self) -> bool {
+        self.check("__global__", self.cfg.global_rate_limit_per_min)
     }
 }
 
