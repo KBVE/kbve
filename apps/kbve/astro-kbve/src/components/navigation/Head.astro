@@ -184,3 +184,13 @@ if (isArticle) {
 <link rel="preconnect" href="https://i.ytimg.com" crossorigin />
 <link rel="preconnect" href="https://yt3.ggpht.com" crossorigin />
 <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+
+<script>
+	import { initObserv } from '@kbve/observ';
+	initObserv({
+		endpoint: 'https://metrics.kbve.com/api/v1/ingest/errors',
+		project: 'astro-kbve',
+		platform: 'web',
+		environment: import.meta.env.MODE,
+	});
+</script>
