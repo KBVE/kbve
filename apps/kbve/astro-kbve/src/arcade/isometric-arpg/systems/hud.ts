@@ -2,6 +2,18 @@ import { laserEvents, type InventoryItem } from '@kbve/laser';
 
 export const HUD_EVENT = 'arpg:hud';
 
+/**
+ * A square window of the dungeon around the player for the minimap. `cells` is
+ * row-major, length `size*size`, 1 = floor (walkable path/room) else wall. The
+ * window is centered so the player sits at the middle cell; `origin` is the
+ * world tile of cell (0,0).
+ */
+export interface HudMap {
+	origin: { x: number; y: number };
+	size: number;
+	cells: Uint8Array;
+}
+
 export interface HudState {
 	name: string;
 	hp: number;
@@ -10,6 +22,7 @@ export interface HudState {
 	moving: boolean;
 	fps: number;
 	tile: { x: number; y: number };
+	map: HudMap;
 }
 
 export function emitHud(state: HudState): void {

@@ -2,26 +2,71 @@
 import ReactIsoArpgApp from './ReactIsoArpgApp';
 ---
 
-<div class="not-content w-full h-full">
+<div class="iso-arpg-shell not-content">
 	<div
 		id="iso-arpg-container"
-		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#10131c]"
-		style="width: 100%; aspect-ratio: 16/9;"
+		class="focus:outline-none relative bg-[#10131c]"
 		tabindex="0">
-		<div id="iso-arpg-inner" class="w-full h-full">
+		<div id="iso-arpg-inner">
 			<ReactIsoArpgApp client:only="react" />
 		</div>
 	</div>
 </div>
 
 <style>
-	#iso-arpg-container {
-		container-type: inline-size;
+	/* Fullscreen game overlay: cover the whole viewport (nav/sidebar/footer
+	   included) so the canvas resizes to the real window instead of bleeding
+	   past an aspect-ratio box. Mirrors the isometric WebGPU embed. */
+	.iso-arpg-shell {
+		position: fixed;
+		inset: 0;
+		width: 100vw;
+		height: 100dvh;
+		margin: 0;
+		padding: 0;
+		z-index: 99999;
+		background: #10131c;
+		overflow: hidden;
 	}
 
-	@container (max-width: 600px) {
-		#iso-arpg-container {
-			aspect-ratio: 4/3;
+	#iso-arpg-container {
+		width: 100%;
+		height: 100%;
+		container-type: size;
+	}
+
+	#iso-arpg-inner {
+		width: 100%;
+		height: 100%;
+	}
+
+	:global(body:has(.iso-arpg-shell)) {
+		overflow: hidden;
+	}
+
+	:global(body:has(.iso-arpg-shell) header.header),
+	:global(body:has(.iso-arpg-shell) .sl-flex.header),
+	:global(body:has(.iso-arpg-shell) footer),
+	:global(body:has(.iso-arpg-shell) .footer),
+	:global(body:has(.iso-arpg-shell) [class*='footer']),
+	:global(body:has(.iso-arpg-shell) .sidebar),
+	:global(body:has(.iso-arpg-shell) aside),
+	:global(body:has(.iso-arpg-shell) .sl-sidebar),
+	:global(body:has(.iso-arpg-shell) .page-sidebar) {
+		display: none !important;
+	}
+
+	/* Escape opens the pause menu (body gets .arpg-menu-open): bring the
+	   starlight header back, lifted above the game shell so it's clickable. */
+	:global(body.arpg-menu-open header.header),
+	:global(body.arpg-menu-open .sl-flex.header) {
+		display: flex !important;
+		z-index: 100001 !important;
+	}
+
+	@media (pointer: coarse) {
+		:global(.iso-arpg-shell) {
+			touch-action: manipulation;
 		}
 	}
 </style>

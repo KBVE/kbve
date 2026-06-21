@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
 import ArpgHud from './ArpgHud';
+import ArpgMenu from './ArpgMenu';
 import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
 import { buildNetConfig, setNetConfig } from './net-config';
 import {
@@ -208,7 +209,12 @@ export default function ReactIsoArpgApp({
 	}
 
 	if (phase === 'ready') {
-		return <ArpgHud debug={DEBUG_HUD} />;
+		return (
+			<>
+				<ArpgHud debug={DEBUG_HUD} />
+				<ArpgMenu />
+			</>
+		);
 	}
 
 	return null;

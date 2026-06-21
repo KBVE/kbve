@@ -83,7 +83,10 @@ import {
 	clearHud,
 	emitInventory,
 	emitInventoryOpen,
+	type HudMap,
 } from './systems/hud';
+
+const HUD_MAP_SIZE = 33;
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -186,6 +189,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Last movement heading (screen deg, 0=N CW); held while idle so the compass
 	// needle doesn't snap back when the player stops.
 	private hudHeadingDeg = 0;
+	// Cached minimap window; resampled only when the player crosses a tile.
+	private hudMap: HudMap | null = null;
+	private hudMapTile: TileXY | null = null;
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
@@ -813,6 +819,8 @@ export class IsoArpgScene extends Phaser.Scene {
 			floorSeed(DUNGEON_SEED, f.z),
 			DUNGEON_RADIUS,
 		);
+		this.hudMap = null;
+		this.hudMapTile = null;
 		this.rebuildDungeon();
 	}
 
@@ -863,7 +871,40 @@ export class IsoArpgScene extends Phaser.Scene {
 			moving,
 			fps: Math.round(this.game.loop.actualFps),
 			tile,
+			map: this.sampleHudMap(tile),
 		});
+	}
+
+	/**
+	 * Sample a square dungeon window centered on the player into a floor bitset
+	 * for the minimap — rooms + the carved corridor paths between them. Rebuilt
+	 * only when the player crosses a tile (the layout is static between steps),
+	 * reusing the cached buffer otherwise to keep the 15 Hz emit cheap.
+	 */
+	private sampleHudMap(tile: TileXY): HudMap {
+		const size = HUD_MAP_SIZE;
+		if (
+			this.hudMap &&
+			this.hudMapTile &&
+			this.hudMapTile.x === tile.x &&
+			this.hudMapTile.y === tile.y
+		) {
+			return this.hudMap;
+		}
+		const r = size >> 1;
+		const ox = tile.x - r;
+		const oy = tile.y - r;
+		const cells = new Uint8Array(size * size);
+		for (let j = 0; j < size; j++) {
+			for (let i = 0; i < size; i++) {
+				if (this.dungeon.isFloor(ox + i, oy + j)) {
+					cells[j * size + i] = 1;
+				}
+			}
+		}
+		this.hudMapTile = { x: tile.x, y: tile.y };
+		this.hudMap = { origin: { x: ox, y: oy }, size, cells };
+		return this.hudMap;
 	}
 
 	/**

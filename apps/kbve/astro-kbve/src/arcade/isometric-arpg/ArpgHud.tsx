@@ -14,6 +14,7 @@ import {
 	onInventory,
 	onInventoryOpen,
 	type HudState,
+	type HudMap,
 } from './systems/hud';
 import type { InventoryItem } from '@kbve/laser';
 import { PixelPanel } from './PixelPanel';
@@ -136,7 +137,11 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 						<Vitals name={hud.name} hp={hud.hp} maxHp={hud.maxHp} />
 					</Anchor>
 					<Anchor corner="tr" scale={scale}>
-						<MinimapSlot />
+						<MinimapSlot
+							map={hud.map}
+							tile={hud.tile}
+							headingDeg={hud.headingDeg}
+						/>
 					</Anchor>
 					<Anchor corner="br" scale={scale}>
 						<Compass
@@ -406,30 +411,87 @@ function Vitals({
 	);
 }
 
-function MinimapSlot() {
+const MINIMAP_PX = 128;
+const FLOOR_COLOR = '#5a6c8c';
+const ROOM_GLOW = '#7e93b8';
+
+/**
+ * Top-down dungeon minimap: paints the floor bitset (rooms + the carved
+ * corridor paths) as lit cells over a dark void, with the player pinned at the
+ * center and a heading wedge showing walk direction. Canvas keeps the per-cell
+ * fill cheap at 15 Hz.
+ */
+function MinimapSlot({
+	map,
+	tile,
+	headingDeg,
+}: {
+	map: HudMap;
+	tile: { x: number; y: number };
+	headingDeg: number;
+}) {
+	const ref = useRef<HTMLCanvasElement>(null);
+
+	useEffect(() => {
+		const canvas = ref.current;
+		if (!canvas) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+		const { size, cells, origin } = map;
+		const cell = MINIMAP_PX / size;
+
+		ctx.clearRect(0, 0, MINIMAP_PX, MINIMAP_PX);
+		ctx.fillStyle = 'rgba(10,13,20,0.55)';
+		ctx.fillRect(0, 0, MINIMAP_PX, MINIMAP_PX);
+
+		ctx.fillStyle = FLOOR_COLOR;
+		for (let j = 0; j < size; j++) {
+			for (let i = 0; i < size; i++) {
+				if (!cells[j * size + i]) continue;
+				ctx.fillRect(
+					Math.floor(i * cell),
+					Math.floor(j * cell),
+					Math.ceil(cell),
+					Math.ceil(cell),
+				);
+			}
+		}
+
+		// Player marker at its true cell within the window (center, but use the
+		// real offset so it tracks if the window ever lags a step).
+		const pcx = (tile.x - origin.x + 0.5) * cell;
+		const pcy = (tile.y - origin.y + 0.5) * cell;
+
+		ctx.save();
+		ctx.translate(pcx, pcy);
+		ctx.rotate(((headingDeg - 90) * Math.PI) / 180);
+		ctx.fillStyle = ROOM_GLOW;
+		ctx.beginPath();
+		ctx.moveTo(7, 0);
+		ctx.lineTo(-4, -4);
+		ctx.lineTo(-4, 4);
+		ctx.closePath();
+		ctx.fill();
+		ctx.restore();
+
+		ctx.fillStyle = '#fcd34d';
+		ctx.beginPath();
+		ctx.arc(pcx, pcy, 2.5, 0, Math.PI * 2);
+		ctx.fill();
+	}, [map, tile.x, tile.y, headingDeg]);
+
 	return (
-		<PixelPanel
-			variant="slate"
-			scale={2}
-			style={{
-				width: 132,
-				height: 132,
-			}}>
-			<div
+		<PixelPanel variant="slate" scale={2} style={{ lineHeight: 0 }}>
+			<canvas
+				ref={ref}
+				width={MINIMAP_PX}
+				height={MINIMAP_PX}
 				style={{
-					width: '100%',
-					height: '100%',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					fontSize: 9,
-					letterSpacing: 2,
-					color: MUTED,
-					opacity: 0.5,
-					textShadow: TEXT_SHADOW,
-				}}>
-				MAP
-			</div>
+					display: 'block',
+					imageRendering: 'pixelated',
+					margin: -6,
+				}}
+			/>
 		</PixelPanel>
 	);
 }
