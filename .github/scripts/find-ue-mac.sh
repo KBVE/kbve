@@ -58,7 +58,7 @@ echo "::group::Searching for Unreal Engine installation"
 
 # If version is specified, look for version-specific paths first
 if [ -n "$UE_VERSION" ]; then
-    echo "Looking for UE version: $UE_VERSION"
+    echo "Looking for UE version: $UE_VERSION" >&2
 
     # Check version-specific paths
     for base in "${SEARCH_PATHS[@]}"; do
@@ -78,7 +78,7 @@ if [ -n "$UE_VERSION" ]; then
 fi
 
 # Fallback: search all common paths
-echo "Searching all common installation paths..."
+echo "Searching all common installation paths..." >&2
 for base in "${SEARCH_PATHS[@]}"; do
     if [ -d "$base" ]; then
         # Check the base path itself
