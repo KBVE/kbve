@@ -14,6 +14,8 @@ import {
 	type ProjectileEvent,
 	type FloorChangeEvent,
 	type Facing,
+	type InventorySync,
+	type InventoryItem,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -75,7 +77,7 @@ import {
 } from './systems/dungeon';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
-import { emitHud, clearHud } from './systems/hud';
+import { emitHud, clearHud, emitInventory } from './systems/hud';
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -167,6 +169,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
+
+	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
+	// HUD panel and the 1-9 hotkeys.
+	private inventory: InventoryItem[] = [];
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -447,6 +453,12 @@ export class IsoArpgScene extends Phaser.Scene {
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
 		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+		// Number keys 1-9 use the matching inventory slot.
+		kb.on('keydown', (ev: KeyboardEvent) => {
+			if (ev.key >= '1' && ev.key <= '9') {
+				this.useInventorySlot(Number(ev.key) - 1);
+			}
+		});
 		this.input.mouse?.disableContextMenu();
 
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -566,8 +578,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
 		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
+		client.on('inventory', (inv: InventorySync) => {
+			this.inventory = inv.items;
+			emitInventory(inv.items);
+		});
 
 		client.connect();
+	}
+
+	// Use the item in inventory slot `idx` (0-based), bound to keys 1-9. The
+	// server consumes it and applies the effect (heal/buff); the resulting
+	// EPHEMERAL_INVENTORY refreshes the HUD.
+	private useInventorySlot(idx: number): void {
+		const item = this.inventory[idx];
+		if (item) this.client?.useItem(item.ref);
 	}
 
 	private applySnapshot(s: Snapshot) {

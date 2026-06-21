@@ -52,6 +52,11 @@ pub const CAMPFIRE_HEAL_AMOUNT: i32 = 3;
 pub const CAMPFIRE_BURN_AMOUNT: i32 = 8;
 pub const CAMPFIRE_PERIOD_TICKS: u32 = SIM_TICK_HZ;
 
+// A few starter potions drop near spawn so the inventory + item-usage loop is
+// usable immediately: pick up -> 1-9 hotkey -> heal (itemdb says potion heals 15).
+pub const POTION_REF: &str = "potion";
+pub const POTION_START_COUNT: u32 = 3;
+
 /// Ground floor — players spawn here; stairs descend to deeper floors.
 pub const SPAWN_FLOOR: i32 = 0;
 
@@ -84,6 +89,7 @@ pub fn registry() -> KindRegistry {
     reg.register_npc(GOBLIN_REF);
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
+    reg.register_item(POTION_REF);
     reg.register_env(CAMPFIRE_REF);
     reg
 }
@@ -260,6 +266,13 @@ pub fn spawn_world(
     // down. Deeper floors gate their own keys via loot later.
     let key_tile = floor_near(Tile::new(spawn.x - 2, spawn.y + 2));
     if let Some(bundle) = ground_item_bundle(&registry, STAIR_KEY_REF, 1, key_tile) {
+        commands.spawn(bundle);
+    }
+
+    // Starter potions so the inventory + use-item loop works from spawn.
+    let potion_tile = floor_near(Tile::new(spawn.x + 1, spawn.y - 2));
+    if let Some(bundle) = ground_item_bundle(&registry, POTION_REF, POTION_START_COUNT, potion_tile)
+    {
         commands.spawn(bundle);
     }
 

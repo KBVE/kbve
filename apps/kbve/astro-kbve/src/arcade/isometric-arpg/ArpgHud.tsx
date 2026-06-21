@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
-import { onHud, onHudClear, type HudState } from './systems/hud';
+import { onHud, onHudClear, onInventory, type HudState } from './systems/hud';
+import type { InventoryItem } from '@kbve/laser';
 
 const PANEL_BG = 'rgba(8,9,14,0.62)';
 const PANEL_BORDER = '1px solid rgba(76,90,120,0.6)';
@@ -14,12 +15,18 @@ const TEXT = '#e6ebf5';
  */
 export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 	const [hud, setHud] = useState<HudState | null>(null);
+	const [inv, setInv] = useState<InventoryItem[]>([]);
 
 	useEffect(() => {
 		const off = onHud(setHud);
-		const offClear = onHudClear(() => setHud(null));
+		const offInv = onInventory(setInv);
+		const offClear = onHudClear(() => {
+			setHud(null);
+			setInv([]);
+		});
 		return () => {
 			off();
+			offInv();
 			offClear();
 		};
 	}, []);
@@ -39,7 +46,64 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 			<Vitals name={hud.name} hp={hud.hp} maxHp={hud.maxHp} />
 			<MinimapSlot />
 			<Compass headingDeg={hud.headingDeg} moving={hud.moving} />
+			<InventoryBar items={inv} />
 			{debug && <DebugReadout fps={hud.fps} tile={hud.tile} />}
+		</div>
+	);
+}
+
+/**
+ * Bottom-center inventory bar. Each slot shows the item ref + stack count and its
+ * 1-9 hotkey; pressing the number (handled in the scene) uses that item. Purely
+ * presentational — the server-authoritative inventory drives it via `arpg:inventory`.
+ */
+function InventoryBar({
+	items,
+}: {
+	items: InventoryItem[];
+}): ReactElement | null {
+	if (items.length === 0) return null;
+	const slots = items.slice(0, 9);
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				bottom: 12,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				display: 'flex',
+				gap: 6,
+			}}>
+			{slots.map((it, i) => (
+				<div
+					key={it.ref}
+					style={{
+						position: 'relative',
+						minWidth: 64,
+						padding: '6px 8px',
+						background: PANEL_BG,
+						border: PANEL_BORDER,
+						borderRadius: 6,
+						textAlign: 'center',
+						fontSize: 11,
+					}}>
+					<span
+						style={{
+							position: 'absolute',
+							top: 2,
+							left: 4,
+							color: ACCENT,
+							fontSize: 9,
+							opacity: 0.8,
+						}}>
+						{i + 1}
+					</span>
+					<div style={{ color: TEXT }}>{it.ref}</div>
+					<div style={{ color: ACCENT, fontWeight: 700 }}>
+						×{it.count}
+					</div>
+				</div>
+			))}
 		</div>
 	);
 }
