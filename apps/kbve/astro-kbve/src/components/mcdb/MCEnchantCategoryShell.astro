@@ -28,5 +28,5 @@ const { group, title, description } = Astro.props;
 		</div>
 	</header>
 
-	<MCEnchantsBrowser client:load lockedGroup={group} />
+	<MCEnchantsBrowser client:visible lockedGroup={group} />
 </section>
