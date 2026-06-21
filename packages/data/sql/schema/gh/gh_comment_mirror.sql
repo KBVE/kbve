@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS gh.comment_mirror (
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     deleted_at          TIMESTAMPTZ,
+    claim_expires_at    TIMESTAMPTZ,
     PRIMARY KEY (discord_message_id),
     CONSTRAINT gh_comment_mirror_owner_shape_chk CHECK (owner ~ '^[A-Za-z0-9_.-]{1,100}$'),
     CONSTRAINT gh_comment_mirror_repo_shape_chk  CHECK (repo  ~ '^[A-Za-z0-9_.-]{1,100}$'),
@@ -45,14 +46,20 @@ CREATE TABLE IF NOT EXISTS gh.comment_mirror (
     CONSTRAINT gh_comment_mirror_github_pos_chk  CHECK (github_comment_id IS NULL OR github_comment_id > 0),
     CONSTRAINT gh_comment_mirror_direction_chk
         CHECK (direction IN ('discord_to_github', 'github_to_discord'))
-);
+)
+-- Claim retries + delete tombstones touch no indexed column → HOT-eligible;
+-- reserve page headroom to keep them HOT and avoid index bloat.
+WITH (fillfactor = 90);
 
+-- Echo guard (is_github_comment_mirrored) + one-comment-one-mapping invariant.
 CREATE UNIQUE INDEX IF NOT EXISTS gh_comment_mirror_github_comment_unique
     ON gh.comment_mirror (github_comment_id)
     WHERE github_comment_id IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS gh_comment_mirror_issue_idx
-    ON gh.comment_mirror (owner, repo, number, created_at DESC);
+-- No list-by-issue query exists yet; add an (owner, repo, number,
+-- created_at DESC, discord_message_id DESC) index — partial on
+-- deleted_at IS NULL — alongside that query rather than carrying pure write
+-- amplification now.
 
 -- thread_id → issue reverse lookup.
 CREATE OR REPLACE FUNCTION gh.get_issue_by_thread_id(p_thread_id BIGINT)
@@ -71,7 +78,8 @@ ALTER FUNCTION gh.get_issue_by_thread_id(BIGINT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION gh.get_issue_by_thread_id(BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION gh.get_issue_by_thread_id(BIGINT) TO service_role;
 
--- Idempotency claim: returns TRUE when the caller owns posting the GH comment.
+-- Lease-based idempotency claim: returns TRUE when the caller owns posting the
+-- GH comment (fresh row, or unfinalized row whose prior lease has expired).
 CREATE OR REPLACE FUNCTION gh.claim_comment_mirror(
     p_discord_message_id BIGINT,
     p_discord_channel_id BIGINT,
@@ -79,60 +87,66 @@ CREATE OR REPLACE FUNCTION gh.claim_comment_mirror(
     p_repo               TEXT,
     p_number             INT,
     p_direction          TEXT,
-    p_author             TEXT
+    p_author             TEXT,
+    p_lease_secs         INT DEFAULT 300
 )
 RETURNS BOOLEAN
-LANGUAGE plpgsql
+LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-    v_claimed BOOLEAN := FALSE;
-BEGIN
-    INSERT INTO gh.comment_mirror (
-        discord_message_id, discord_channel_id, github_comment_id,
-        owner, repo, number, direction, author
+    WITH ins AS (
+        INSERT INTO gh.comment_mirror (
+            discord_message_id, discord_channel_id, github_comment_id,
+            owner, repo, number, direction, author, claim_expires_at
+        )
+        VALUES (
+            p_discord_message_id, p_discord_channel_id, NULL,
+            p_owner, p_repo, p_number, p_direction, p_author,
+            now() + make_interval(secs => GREATEST(p_lease_secs, 1))
+        )
+        ON CONFLICT (discord_message_id) DO UPDATE
+            SET claim_expires_at = EXCLUDED.claim_expires_at,
+                updated_at       = now()
+            WHERE gh.comment_mirror.github_comment_id IS NULL
+              AND gh.comment_mirror.claim_expires_at <= now()
+        RETURNING TRUE AS claimed
     )
-    VALUES (
-        p_discord_message_id, p_discord_channel_id, NULL,
-        p_owner, p_repo, p_number, p_direction, p_author
-    )
-    ON CONFLICT (discord_message_id) DO UPDATE
-        SET updated_at = now()
-        WHERE gh.comment_mirror.github_comment_id IS NULL
-    RETURNING TRUE INTO v_claimed;
-
-    RETURN COALESCE(v_claimed, FALSE);
-END;
+    SELECT COALESCE((SELECT claimed FROM ins), FALSE);
 $$;
 
-ALTER FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT)
+ALTER FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT, INT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT, INT)
     FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT)
+GRANT EXECUTE ON FUNCTION gh.claim_comment_mirror(BIGINT, BIGINT, TEXT, TEXT, INT, TEXT, TEXT, INT)
     TO service_role;
 
--- Finalize a claimed mirror row with the posted GitHub comment id.
+-- Finalize a claimed mirror row with the posted GitHub comment id. No-op
+-- (still TRUE) when already finalized with the same id, so retries don't rewrite.
 CREATE OR REPLACE FUNCTION gh.set_comment_mirror_github_id(
     p_discord_message_id BIGINT,
     p_github_comment_id  BIGINT
 )
 RETURNS BOOLEAN
-LANGUAGE plpgsql
+LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-    v_rows INT;
-BEGIN
-    UPDATE gh.comment_mirror
-        SET github_comment_id = p_github_comment_id,
-            updated_at        = now()
-        WHERE discord_message_id = p_discord_message_id;
-
-    GET DIAGNOSTICS v_rows = ROW_COUNT;
-    RETURN v_rows > 0;
-END;
+    WITH upd AS (
+        UPDATE gh.comment_mirror
+            SET github_comment_id = p_github_comment_id,
+                updated_at        = now()
+            WHERE discord_message_id = p_discord_message_id
+              AND github_comment_id IS NULL
+        RETURNING TRUE
+    )
+    SELECT EXISTS (SELECT FROM upd)
+        OR EXISTS (
+            SELECT 1
+            FROM gh.comment_mirror
+            WHERE discord_message_id = p_discord_message_id
+              AND github_comment_id = p_github_comment_id
+        );
 $$;
 
 ALTER FUNCTION gh.set_comment_mirror_github_id(BIGINT, BIGINT) OWNER TO service_role;
@@ -178,21 +192,16 @@ GRANT EXECUTE ON FUNCTION gh.is_github_comment_mirrored(BIGINT) TO service_role;
 -- Tombstone a mirror row when its Discord message is deleted.
 CREATE OR REPLACE FUNCTION gh.mark_comment_mirror_deleted(p_discord_message_id BIGINT)
 RETURNS gh.comment_mirror
-LANGUAGE plpgsql
+LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-DECLARE
-    v_row gh.comment_mirror;
-BEGIN
     UPDATE gh.comment_mirror
         SET deleted_at = now(),
             updated_at = now()
         WHERE discord_message_id = p_discord_message_id
-        RETURNING * INTO v_row;
-
-    RETURN v_row;
-END;
+          AND deleted_at IS NULL
+        RETURNING *;
 $$;
 
 ALTER FUNCTION gh.mark_comment_mirror_deleted(BIGINT) OWNER TO service_role;
