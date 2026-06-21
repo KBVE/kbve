@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import {
   createServiceClient,
   type ForumRequest,
@@ -25,7 +26,7 @@ const handlers: Record<string, Handler> = {
       .order("slug", { ascending: true })
       .limit(200);
     if (error) {
-      console.error("forum.space.list error:", error);
+      logError("forum", error, { action: "space.list" });
       return jsonResponse({ error: "spaces lookup failed" }, 502);
     }
     return jsonResponse({ spaces: data ?? [] });
@@ -44,7 +45,7 @@ const handlers: Record<string, Handler> = {
       .eq("status", "active")
       .maybeSingle();
     if (error) {
-      console.error("forum.space.get error:", error);
+      logError("forum", error, { action: "space.get" });
       return jsonResponse({ error: "space lookup failed" }, 502);
     }
     if (!data) return jsonResponse({ error: "space not found" }, 404);

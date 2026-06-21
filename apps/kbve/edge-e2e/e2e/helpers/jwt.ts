@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 
-const JWT_SECRET = 'super-secret-jwt-token-for-dev';
+const JWT_SECRET = 'super-secret-jwt-token-with-at-least-32-characters-long';
 
 export type JwtRole = 'service_role' | 'anon' | 'authenticated';
 

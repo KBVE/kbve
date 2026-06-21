@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import { jsonResponse, withIrcConnection } from "./_shared.ts";
 import type { IrcRequest } from "./_shared.ts";
 
@@ -28,7 +29,7 @@ export async function handleServer(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ status: "connected", info });
       } catch (err) {
-        console.error("irc server.status error:", err);
+        logError("irc", err, { action: "server.status" });
         return jsonResponse(
           { status: "unreachable", error: "Ergo IRC server is not reachable" },
           503,
@@ -52,7 +53,7 @@ export async function handleServer(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ motd });
       } catch (err) {
-        console.error("irc server.motd error:", err);
+        logError("irc", err, { action: "server.motd" });
         return jsonResponse(
           { error: "Failed to retrieve MOTD — Ergo unreachable" },
           503,

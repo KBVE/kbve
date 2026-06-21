@@ -14,6 +14,7 @@ export {
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";
+import { MC_UUID_RE } from "../_shared/formats.ts";
 
 // MC-specific request type
 export interface McRequest {
@@ -22,9 +23,6 @@ export interface McRequest {
   body: Record<string, unknown>;
   action: string;
 }
-
-// MC UUID format: 32 lowercase hex characters (no dashes), matches SQL CHECK
-const MC_UUID_RE = /^[a-f0-9]{32}$/;
 
 export function isValidMcUuid(uuid: unknown): boolean {
   return typeof uuid === "string" && MC_UUID_RE.test(uuid);

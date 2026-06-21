@@ -1,3 +1,4 @@
+import { logError } from "../_shared/logging.ts";
 import { jsonResponse, withIrcConnection } from "./_shared.ts";
 import type { IrcRequest } from "./_shared.ts";
 
@@ -53,7 +54,7 @@ export async function handleMessage(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ ok: true, channel: safeChan });
       } catch (err) {
-        console.error("irc message.send error:", err);
+        logError("irc", err, { action: "message.send" });
         return jsonResponse(
           { error: "Failed to send message — Ergo unreachable" },
           503,
@@ -113,7 +114,7 @@ export async function handleMessage(req: IrcRequest): Promise<Response> {
         });
         return jsonResponse({ channel: safeChan, messages });
       } catch (err) {
-        console.error("irc message.history error:", err);
+        logError("irc", err, { action: "message.history" });
         return jsonResponse(
           { error: "Failed to get history — Ergo unreachable" },
           503,

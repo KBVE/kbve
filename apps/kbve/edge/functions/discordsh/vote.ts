@@ -7,6 +7,10 @@ import {
   verifyCaptcha,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import {
+  claimIdempotencyKey,
+  readIdempotencyKey,
+} from "../_shared/idempotency.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh Vote Module
@@ -18,9 +22,14 @@ import { safeRpcError } from "../_shared/validators.ts";
 type Handler = (req: DiscordshRequest) => Promise<Response>;
 
 const handlers: Record<string, Handler> = {
-  async cast({ claims, token, body }) {
+  async cast({ claims, token, body, req }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
+
+    const idkey = readIdempotencyKey(req, body);
+    if (idkey && !claimIdempotencyKey("discordsh.vote", idkey)) {
+      return jsonResponse({ success: false, error: "duplicate request" }, 409);
+    }
 
     const { server_id, captcha_token } = body;
 

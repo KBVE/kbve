@@ -6,6 +6,8 @@ import {
   validateMcUuid,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import { PAGINATION } from "../_shared/constants.ts";
+import { clampLimit, clampOffset } from "../_shared/pagination.ts";
 
 // ---------------------------------------------------------------------------
 // MC Transfer Module
@@ -28,12 +30,18 @@ const handlers: Record<string, Handler> = {
     }
 
     if (batch.length === 0) {
-      return jsonResponse({ success: true, recorded_count: 0 });
+      return jsonResponse(
+        { success: false, error: "batch must not be empty", recorded_count: 0 },
+        400,
+      );
     }
 
-    if (batch.length > 1000) {
+    if (batch.length > PAGINATION.transfer.maxBatch) {
       return jsonResponse(
-        { error: "Batch size exceeds limit of 1000 transfers" },
+        {
+          error:
+            `Batch size exceeds limit of ${PAGINATION.transfer.maxBatch} transfers`,
+        },
         400,
       );
     }
@@ -58,12 +66,11 @@ const handlers: Record<string, Handler> = {
     const uuidErr = validateMcUuid(player_uuid, "player_uuid");
     if (uuidErr) return uuidErr;
 
-    // Clamp pagination parameters at edge (mirrors SQL clamping)
-    const rawLimit = Number(body.limit) || 50;
-    const limit = Math.min(Math.max(rawLimit, 1), 500);
-
-    const rawOffset = Number(body.offset) || 0;
-    const offset = Math.max(rawOffset, 0);
+    const limit = clampLimit(body.limit, {
+      def: PAGINATION.transfer.defaultLimit,
+      max: PAGINATION.transfer.maxLimit,
+    });
+    const offset = clampOffset(body.offset);
 
     const supabase = createServiceClient();
     const { data, error } = await supabase.schema("mc").rpc(
