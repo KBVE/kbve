@@ -199,6 +199,21 @@ export default function ReactAgentBotConfig() {
 		};
 	}
 
+	function onChannelCommit(k: TextFieldKey) {
+		return (value: string) => {
+			if (!guildId) return;
+			if (refs.current[k]) refs.current[k]!.value = value;
+			const err = validateField(k, value);
+			setErrors((prev) => {
+				const next = { ...prev };
+				if (err) next[k] = err;
+				else delete next[k];
+				return next;
+			});
+			agents.patchBotConfigDraft(guildId, { [k]: value });
+		};
+	}
+
 	function onBoolChange(k: BoolFieldKey, v: boolean) {
 		if (k === 'mirror_pr_events') mirrorRef.current = v;
 		else activeRef.current = v;
@@ -349,7 +364,7 @@ export default function ReactAgentBotConfig() {
 					error={errors.claim_channel_id}
 					sourceError={channelsError}
 					inputRef={(el) => (refs.current.claim_channel_id = el)}
-					onBlur={onFieldBlur('claim_channel_id')}
+					onCommit={onChannelCommit('claim_channel_id')}
 				/>
 				<ChannelPicker
 					label="Forum channel"
@@ -362,7 +377,7 @@ export default function ReactAgentBotConfig() {
 					error={errors.forum_channel_id}
 					sourceError={channelsError}
 					inputRef={(el) => (refs.current.forum_channel_id = el)}
-					onBlur={onFieldBlur('forum_channel_id')}
+					onCommit={onChannelCommit('forum_channel_id')}
 				/>
 				<ChannelPicker
 					label="Notice board channel"
@@ -377,7 +392,7 @@ export default function ReactAgentBotConfig() {
 					inputRef={(el) =>
 						(refs.current.noticeboard_channel_id = el)
 					}
-					onBlur={onFieldBlur('noticeboard_channel_id')}
+					onCommit={onChannelCommit('noticeboard_channel_id')}
 				/>
 				<ChannelPicker
 					label="Task board channel"
@@ -390,7 +405,7 @@ export default function ReactAgentBotConfig() {
 					error={errors.taskboard_channel_id}
 					sourceError={channelsError}
 					inputRef={(el) => (refs.current.taskboard_channel_id = el)}
-					onBlur={onFieldBlur('taskboard_channel_id')}
+					onCommit={onChannelCommit('taskboard_channel_id')}
 				/>
 				<TextField
 					label="Max assignees per claim"
@@ -556,7 +571,7 @@ interface ChannelPickerProps {
 	sourceError: string | null;
 	error?: string;
 	inputRef: (el: HTMLInputElement | null) => void;
-	onBlur: (e: FocusEvent<HTMLInputElement>) => void;
+	onCommit: (value: string) => void;
 }
 
 function ChannelPicker(props: ChannelPickerProps) {
@@ -571,9 +586,8 @@ function ChannelPicker(props: ChannelPickerProps) {
 		sourceError,
 		error,
 		inputRef,
-		onBlur,
+		onCommit,
 	} = props;
-	const hiddenRef = useRef<HTMLInputElement | null>(null);
 	const [showManual, setShowManual] = useState(false);
 	const [currentValue, setCurrentValue] = useState<string>(defaultValue);
 
@@ -581,23 +595,9 @@ function ChannelPicker(props: ChannelPickerProps) {
 		setCurrentValue(defaultValue);
 	}, [defaultValue]);
 
-	const setInputRef = useCallback(
-		(el: HTMLInputElement | null) => {
-			hiddenRef.current = el;
-			inputRef(el);
-		},
-		[inputRef],
-	);
-
 	function commitValue(v: string) {
 		setCurrentValue(v);
-		if (hiddenRef.current) {
-			hiddenRef.current.value = v;
-			const ev = new FocusEvent('blur', {
-				bubbles: true,
-			}) as unknown as FocusEvent<HTMLInputElement>;
-			onBlur(ev);
-		}
+		onCommit(v);
 	}
 
 	const list = channels ?? [];
@@ -610,10 +610,11 @@ function ChannelPicker(props: ChannelPickerProps) {
 			style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
 			<span style={fieldLabel}>{label}</span>
 			<input
-				ref={setInputRef}
+				ref={inputRef}
 				name={name}
 				type="hidden"
-				defaultValue={defaultValue}
+				value={currentValue}
+				readOnly
 			/>
 			{loading && (
 				<span style={subtle}>
