@@ -1064,12 +1064,6 @@ serve(async (req) => {
   }
   } catch (e) {
     console.error("gh-admin: unhandled error:", e);
-    return jsonResponse(
-      {
-        error: "Internal error",
-        detail: e instanceof Error ? e.message : String(e),
-      },
-      500,
-    );
+    return jsonResponse({ error: "Internal error" }, 500);
   }
 });

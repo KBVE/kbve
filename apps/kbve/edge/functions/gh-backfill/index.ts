@@ -296,7 +296,7 @@ serve(async (req) => {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("gh-backfill fetch error:", msg);
-      return jsonResponse({ error: "GitHub fetch failed", detail: msg }, 502);
+      return jsonResponse({ error: "GitHub fetch failed" }, 502);
     }
 
     lastRateLimitRemaining = result.rateLimitRemaining;
@@ -353,12 +353,6 @@ serve(async (req) => {
   );
   } catch (e) {
     console.error("gh-backfill: unhandled error:", e);
-    return jsonResponse(
-      {
-        error: "Internal error",
-        detail: e instanceof Error ? e.message : String(e),
-      },
-      500,
-    );
+    return jsonResponse({ error: "Internal error" }, 500);
   }
 });
