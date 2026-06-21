@@ -29,3 +29,4 @@ thiserror = "2"
 dotenvy = "0.15"
 
 jedi = { path = "../../packages/rust/jedi", features = ["clickhouse"] }
+kbve = { path = "../../packages/rust/kbve", default-features = false, features = ["gate-auth"] }

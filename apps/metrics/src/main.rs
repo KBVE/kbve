@@ -1,3 +1,4 @@
+mod auth;
 mod config;
 mod error;
 mod rest;
@@ -13,6 +14,7 @@ use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
+use crate::auth::StaffAuth;
 use crate::config::Config;
 use crate::state::{AppState, spawn_flusher};
 
@@ -30,7 +32,7 @@ fn cors_layer(cfg: &Config) -> CorsLayer {
     CorsLayer::new()
         .allow_origin(allow)
         .allow_methods([Method::GET, Method::POST])
-        .allow_headers([header::CONTENT_TYPE])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
 }
 
 #[tokio::main]
@@ -45,12 +47,15 @@ async fn main() -> anyhow::Result<()> {
     let ch = jedi::state::sidecar::ClickHouseConfig::from_env();
     tracing::info!(database = %ch.database, url = %ch.url, "clickhouse configured");
 
+    let auth = StaffAuth::from_env();
+    tracing::info!(read_api = auth.is_some(), "staff read api");
+
     let (tx, rx) = mpsc::channel(cfg.channel_capacity);
     let max_body = cfg.max_body_bytes;
     let cors = cors_layer(&cfg);
     let addr = format!("{}:{}", cfg.host, cfg.port);
 
-    let state = Arc::new(AppState::new(cfg, ch, tx));
+    let state = Arc::new(AppState::new(cfg, ch, tx, auth));
     spawn_flusher(state.clone(), rx);
 
     let app = rest::router(state)

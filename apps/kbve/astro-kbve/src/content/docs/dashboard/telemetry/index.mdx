@@ -1,0 +1,20 @@
+---
+title: Telemetry Errors
+description: KBVE in-house client error telemetry dashboard
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: Telemetry
+    order: 5
+unsplash: 1551288049-bebda4e38f71
+img: https://images.unsplash.com/photo-1551288049-bebda4e38f71?fit=crop&w=1400&h=700&q=75
+tags:
+    - dashboard
+    - observability
+    - telemetry
+---
+
+import ReactTelemetryDashboard from '@/components/dashboard/ReactTelemetryDashboard.tsx';
+
+<ReactTelemetryDashboard client:only="react" />

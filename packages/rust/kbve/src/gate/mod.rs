@@ -7,11 +7,14 @@
 //! axum-kbve can adopt the same module later.
 
 mod auth;
+#[cfg(feature = "gate")]
 mod proxy;
 
-pub use auth::{AuthError, Authz, Claims, StaffGate, validate_token};
+pub use auth::{AuthError, Authz, Claims, StaffGate, extract_token, validate_token};
+#[cfg(feature = "gate")]
 pub use proxy::{GateConfig, GateState};
 
+#[cfg(feature = "gate")]
 use std::net::SocketAddr;
 
 /// Build a [`GateConfig`] from environment variables.
@@ -29,6 +32,7 @@ use std::net::SocketAddr;
 /// - `SUPABASE_ANON_KEY`    optional PostgREST apikey when authz=is_staff
 ///   (falls back to the minted service_role bearer)
 /// - `SUPABASE_JWT_ISSUER`  optional; pins the accepted token issuer when set
+#[cfg(feature = "gate")]
 pub fn config_from_env() -> Result<GateConfig, String> {
     let upstream =
         std::env::var("GATE_UPSTREAM").unwrap_or_else(|_| "http://127.0.0.1:5679".to_string());
@@ -90,6 +94,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
 ///
 /// A Prometheus `/metrics` endpoint is served on `GATE_METRICS_PORT`
 /// (default `9090`) with the gate's low-cardinality counters.
+#[cfg(feature = "gate")]
 pub async fn serve(cfg: GateConfig) -> Result<(), String> {
     let listen: SocketAddr = std::env::var("GATE_LISTEN")
         .unwrap_or_else(|_| "0.0.0.0:5678".to_string())
