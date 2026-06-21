@@ -45,6 +45,7 @@ import type {
 	ForgejoPublicKey,
 	ForgejoGpgKey,
 	ForgejoPull,
+	ForgejoTag,
 } from '@/data/schema/forgejo';
 
 export type {
@@ -76,7 +77,28 @@ export type {
 	ForgejoPublicKey,
 	ForgejoGpgKey,
 	ForgejoPull,
+	ForgejoTag,
 };
+
+export interface ForgejoContentEntry {
+	name: string;
+	path: string;
+	type: string;
+	size: number;
+	sha: string;
+	encoding?: string;
+	content?: string;
+	download_url?: string | null;
+	html_url?: string | null;
+}
+
+export interface OpenFile {
+	path: string;
+	sha: string;
+	text: string;
+	tooLarge: boolean;
+	binary: boolean;
+}
 
 export interface RepoDetail {
 	branches: ForgejoBranch[];
@@ -111,8 +133,15 @@ export type ForgejoTab =
 	| 'webhooks'
 	| 'issues'
 	| 'packages'
+	| 'files'
 	| 'runners'
 	| 'system';
+
+export interface CreateTagInput {
+	tag_name: string;
+	target: string;
+	message: string;
+}
 
 export interface CreateUserKeyInput {
 	title: string;
@@ -596,6 +625,39 @@ export function formatSize(bytes: number): string {
 	return `${(mb / 1024).toFixed(2)} GB`;
 }
 
+export function formatBytes(bytes: number): string {
+	if (bytes < 1024) return `${bytes} B`;
+	const kb = bytes / 1024;
+	if (kb < 1024) return `${kb.toFixed(1)} KB`;
+	const mb = kb / 1024;
+	if (mb < 1024) return `${mb.toFixed(1)} MB`;
+	return `${(mb / 1024).toFixed(2)} GB`;
+}
+
+const MAX_EDIT_BYTES = 512 * 1024;
+
+function decodeBase64ToText(b64: string): { text: string; binary: boolean } {
+	try {
+		const bin = atob(b64.replace(/\s/g, ''));
+		const bytes = new Uint8Array(bin.length);
+		for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+		if (bytes.includes(0)) return { text: '', binary: true };
+		return {
+			text: new TextDecoder('utf-8', { fatal: false }).decode(bytes),
+			binary: false,
+		};
+	} catch {
+		return { text: '', binary: true };
+	}
+}
+
+function encodeTextToBase64(text: string): string {
+	const bytes = new TextEncoder().encode(text);
+	let bin = '';
+	for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+	return btoa(bin);
+}
+
 export function timeAgo(dateStr: string): string {
 	const diff = Date.now() - new Date(dateStr).getTime();
 	const mins = Math.floor(diff / 60000);
@@ -698,6 +760,14 @@ class ForgejoService {
 	public readonly $repoVariables = atom<Record<string, ForgejoVariable[]>>(
 		{},
 	);
+	public readonly $repoTags = atom<Record<string, ForgejoTag[]>>({});
+
+	// File browser
+	public readonly $filesRepo = atom<string | null>(null);
+	public readonly $filesPath = atom<string>('');
+	public readonly $filesEntries = atom<ForgejoContentEntry[]>([]);
+	public readonly $filesLoading = atom<boolean>(false);
+	public readonly $openFile = atom<OpenFile | null>(null);
 
 	public readonly $version = atom<string | null>(null);
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
@@ -1831,6 +1901,79 @@ class ForgejoService {
 		);
 	}
 
+	public deleteReleaseAsset(
+		fullName: string,
+		releaseId: number,
+		assetId: number,
+	): Promise<boolean> {
+		return this._run(
+			`asset-delete-${fullName}-${releaseId}-${assetId}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/releases/${releaseId}/assets/${assetId}`,
+				);
+				await this.loadRepoReleases(fullName);
+			},
+			`Asset deleted`,
+		);
+	}
+
+	// --- Tag actions ---
+
+	public async loadRepoTags(fullName: string): Promise<void> {
+		await this._loadResource<ForgejoTag[]>(
+			'repoAdmin',
+			`forgejo:tags:${fullName}`,
+			`/api/v1/repos/${fullName}/tags?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$repoTags.set({
+					...this.$repoTags.get(),
+					[fullName]: d,
+				}),
+		);
+	}
+
+	public createTag(
+		fullName: string,
+		input: CreateTagInput,
+	): Promise<boolean> {
+		return this._run(
+			`tag-create-${fullName}`,
+			async (t) => {
+				const body: Record<string, unknown> = {
+					tag_name: input.tag_name,
+				};
+				if (input.target) body.target = input.target;
+				if (input.message) body.message = input.message;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/tags`,
+					body,
+				);
+				await this.loadRepoTags(fullName);
+			},
+			`Tag ${input.tag_name} created`,
+		);
+	}
+
+	public deleteTag(fullName: string, tag: string): Promise<boolean> {
+		return this._run(
+			`tag-delete-${fullName}-${tag}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/tags/${encodeURIComponent(tag)}`,
+				);
+				await this.loadRepoTags(fullName);
+			},
+			`Tag ${tag} deleted`,
+		);
+	}
+
 	// --- Branch protection actions ---
 
 	public async loadRepoProtections(fullName: string): Promise<void> {
@@ -1988,6 +2131,7 @@ class ForgejoService {
 		this.loadRepoProtections(fullName);
 		this.loadRepoSecrets(fullName);
 		this.loadRepoVariables(fullName);
+		this.loadRepoTags(fullName);
 	}
 
 	// --- Issue & PR moderation actions ---
@@ -2534,6 +2678,154 @@ class ForgejoService {
 				await this.loadPackages(owner);
 			},
 			`Package ${pkg.name}@${pkg.version} deleted`,
+		);
+	}
+
+	// --- File browser actions ---
+
+	public selectFilesRepo(fullName: string): void {
+		this.$filesRepo.set(fullName);
+		this.$openFile.set(null);
+		void this.navigateDir('');
+	}
+
+	public async navigateDir(path: string): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$filesRepo.get();
+		if (!token || !repo) return;
+		this.$openFile.set(null);
+		this.$filesPath.set(path);
+		this.$filesLoading.set(true);
+		try {
+			const data = await apiFetch<
+				ForgejoContentEntry[] | ForgejoContentEntry
+			>(token, `/api/v1/repos/${repo}/contents/${path}`);
+			const entries = Array.isArray(data) ? data : data ? [data] : [];
+			entries.sort((a, b) => {
+				if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
+				return a.name.localeCompare(b.name);
+			});
+			this.$filesEntries.set(entries);
+			this.clearNotice('files');
+		} catch (e) {
+			this.$filesEntries.set([]);
+			this.setNotice('files', this._noticeFor(e));
+		} finally {
+			this.$filesLoading.set(false);
+		}
+	}
+
+	public async openFile(entry: ForgejoContentEntry): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$filesRepo.get();
+		if (!token || !repo) return;
+		this.$filesLoading.set(true);
+		try {
+			const data = await apiFetch<ForgejoContentEntry>(
+				token,
+				`/api/v1/repos/${repo}/contents/${entry.path}`,
+			);
+			const tooLarge = (data.size ?? 0) > MAX_EDIT_BYTES;
+			let text = '';
+			let binary = false;
+			if (!tooLarge && data.content) {
+				const decoded = decodeBase64ToText(data.content);
+				text = decoded.text;
+				binary = decoded.binary;
+			}
+			this.$openFile.set({
+				path: data.path,
+				sha: data.sha,
+				text,
+				tooLarge,
+				binary,
+			});
+		} catch (e) {
+			this.setNotice('files', this._noticeFor(e));
+		} finally {
+			this.$filesLoading.set(false);
+		}
+	}
+
+	public closeFile(): void {
+		this.$openFile.set(null);
+	}
+
+	public saveFile(
+		path: string,
+		sha: string,
+		text: string,
+		message: string,
+	): Promise<boolean> {
+		const repo = this.$filesRepo.get();
+		return this._run(
+			`file-save-${path}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'PUT',
+					`/api/v1/repos/${repo}/contents/${path}`,
+					{
+						content: encodeTextToBase64(text),
+						message: message || `Update ${path}`,
+						sha,
+					},
+				);
+				await this.navigateDir(this.$filesPath.get());
+			},
+			`Saved ${path}`,
+		);
+	}
+
+	public createFile(
+		name: string,
+		text: string,
+		message: string,
+	): Promise<boolean> {
+		const repo = this.$filesRepo.get();
+		const dir = this.$filesPath.get();
+		const path = dir ? `${dir}/${name}` : name;
+		return this._run(
+			`file-create-${path}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${repo}/contents/${path}`,
+					{
+						content: encodeTextToBase64(text),
+						message: message || `Create ${path}`,
+					},
+				);
+				await this.navigateDir(dir);
+			},
+			`Created ${path}`,
+		);
+	}
+
+	public deleteFile(
+		entry: ForgejoContentEntry,
+		message: string,
+	): Promise<boolean> {
+		const repo = this.$filesRepo.get();
+		return this._run(
+			`file-delete-${entry.path}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${repo}/contents/${entry.path}`,
+					{
+						message: message || `Delete ${entry.path}`,
+						sha: entry.sha,
+					},
+				);
+				await this.navigateDir(this.$filesPath.get());
+			},
+			`Deleted ${entry.path}`,
 		);
 	}
 }

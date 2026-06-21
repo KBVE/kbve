@@ -31,8 +31,11 @@ export const MOVE_FRICTION = 14; // velocity decay rate when no input
 // slides along surfaces, and rounds corners instead of catching the tile edge.
 export const BODY_RADIUS = 0.34; // tiles — circle half-width
 export const COLLISION_SKIN = 0.01; // tiny gap kept off the wall face
-// Soft funnel toward a narrow passage's centerline so room->door->room flows.
-export const CENTERLINE_PULL = 6; // higher = snappier centering in passages
+export const PROBE_AHEAD = 0.04; // lookahead past the radius for intent deflection
+// Optional funnel toward a corridor centerline. OFF by default (0) — intent
+// deflection + circle-slide already keep the body off walls without it; it read
+// as magnetised. Raise to ~1.5 to re-enable a gentle doorway funnel.
+export const CENTERLINE_PULL = 0;
 // Soft reconciliation of the float toward the server-authoritative tile.
 export const RECONCILE_LERP = 0.12; // per-snapshot pull toward server tile
 export const RECONCILE_SNAP_DIST = 2.5; // tiles of drift before a hard snap
@@ -54,7 +57,25 @@ export const BLEND_SQUASH = 0.92;
 
 export const DEPTH_TILE = 0;
 export const DEPTH_ENTITY_BASE = 10000;
+export const DEPTH_PROJECTILE = 90000; // arrows fly above entities, below UI
 export const DEPTH_UI = 100000;
+
+// Bow combat. Attack_Bow IS the full nock-pull-loose animation (Draw_Bow is the
+// bow-equip pose, not the shot). The arrow leaves on frame 14 (1-based) — frame
+// 13 is the last pull, 14 is the loose. The release delay is derived from the
+// Attack anim's frameRate so it stays correct if the rate changes. Travels at
+// ARROW_SPEED; the player can't re-fire until the shot resolves. Local-only for
+// now — damage is faked client-side until the server combat path is wired.
+export const BOW_RELEASE_FRAME = 14; // 1-based Attack frame the arrow looses on
+export const BOW_RECOVER_MS = 160; // hold the follow-through before idle
+export const BOW_MUZZLE_OFFSET = 0.55; // tiles forward of the body the arrow leaves
+// West-facing poses (sheet 247..315 — she faces screen-left and holds the bow
+// further out) need extra forward offset or the arrow spawns inside the body.
+export const BOW_MUZZLE_OFFSET_WEST = 0.45; // added on top for the west band
+export const BOW_MUZZLE_HEIGHT = 38; // px up from the ground = bow height
+export const ARROW_SPEED = 18; // tiles/sec arrow travel
+export const ARROW_MAX_RANGE = 22; // tiles
+export const ARROW_DMG = 14; // placeholder local damage
 
 // Fake contact shadow: a flattened dark ellipse on the ground under each
 // character. Sits just above the floor but below entities so it never occludes
@@ -77,6 +98,9 @@ export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 // character renders and is controllable without a live arpg-server.
 export const DEBUG_LOCAL_PLAYER = true;
 export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
+// Debug aim overlay: a screen compass + a live firing-degree/sheet-angle readout
+// above the ranger. Use it to diagnose facing skew; flip off for release.
+export const DEBUG_AIM = true;
 
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 

@@ -18,11 +18,18 @@ export function worldToScreen(tx: number, ty: number): PixelXY {
 }
 
 export function screenToWorld(px: number, py: number): TileXY {
+	const f = screenToWorldF(px, py);
+	return { x: Math.round(f.x), y: Math.round(f.y) };
+}
+
+/** Fractional world position for a screen point — no tile rounding. Use for aim
+ * direction and projectile origins where sub-tile precision matters. */
+export function screenToWorldF(px: number, py: number): TileXY {
 	const a = px / (TILE_W / 2);
 	const b = py / (TILE_H / 2);
 	return {
-		x: Math.round((a + b) / 2),
-		y: Math.round((b - a) / 2),
+		x: (a + b) / 2,
+		y: (b - a) / 2,
 	};
 }
 

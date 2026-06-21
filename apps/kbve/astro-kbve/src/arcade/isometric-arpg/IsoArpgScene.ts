@@ -34,8 +34,15 @@ import {
 	FOG_MAX_STRENGTH,
 	DEBUG_LOCAL_PLAYER,
 	DEBUG_SPAWN_TILE,
+	DEBUG_AIM,
 } from './config';
-import { worldToScreen, screenToWorld, tileDepth, type TileXY } from './iso';
+import {
+	worldToScreen,
+	screenToWorld,
+	screenToWorldF,
+	tileDepth,
+	type TileXY,
+} from './iso';
 import { EntityStore } from './ecs/store';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -52,8 +59,17 @@ import {
 	reconcileFloat,
 	type FloatState,
 } from './systems/floatMotion';
-import { DungeonField, chunkOf, CHUNK_SIZE } from './systems/dungeon';
-import { findPath, smoothPath } from './systems/pathfind';
+import {
+	DungeonField,
+	chunkOf,
+	chunkGate,
+	chunkPassageWidth,
+	CHUNK_SIZE,
+} from './systems/dungeon';
+import { findHierPath, type GateGraph } from './systems/pathfind';
+import { fireBow, showDamage, type BowShot } from './combat/bow';
+import { AimDebug } from './fx/aimDebug';
+import { facingDegFromDelta, angleFromDeg } from './entities/classes';
 import {
 	makeSprite,
 	makeClassSprite,
@@ -69,6 +85,7 @@ import {
 	RANGER_CLASS,
 } from './entities/classes';
 import { getNetConfig } from './net-config';
+import { resolvePlayerName } from './playerName';
 
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
@@ -81,6 +98,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	private slotUsername = new Map<number, string>();
 
 	private dungeon = new DungeonField(DUNGEON_SEED, DUNGEON_RADIUS);
+	// Gate-graph adapter over the dungeon: room centers are nav gates, edges are
+	// the carved corridors weighted by width. Drives hierarchical click-pathing.
+	private gateGraph: GateGraph = {
+		chunkSize: CHUNK_SIZE,
+		chunkOf: (x, y) => chunkOf(x, y),
+		gate: (cx, cy) => chunkGate(DUNGEON_SEED, cx, cy),
+		passageWidth: (acx, acy, bcx, bcy) =>
+			chunkPassageWidth(DUNGEON_SEED, acx, acy, bcx, bcy),
+	};
 	private chunkGrounds = new Map<string, Phaser.GameObjects.Container>();
 	private holeLayer!: Phaser.GameObjects.Graphics;
 	private fog?: Phaser.GameObjects.Image;
@@ -101,6 +127,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
 	// no active click move. Keyboard input clears it.
 	private movePath: TileXY[] = [];
+	private bowShot: BowShot | null = null;
+	private fireKey!: Phaser.Input.Keyboard.Key;
+	private aimDebug: AimDebug | null = null;
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -123,6 +152,7 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		this.drawGrid();
 		this.buildFog();
+		if (DEBUG_AIM) this.aimDebug = new AimDebug(this);
 		this.setupInput();
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
@@ -365,18 +395,25 @@ export class IsoArpgScene extends Phaser.Scene {
 			left: kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
+		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+		this.input.mouse?.disableContextMenu();
 
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-			const tile = screenToWorld(pointer.worldX, pointer.worldY);
+			const aim = screenToWorldF(pointer.worldX, pointer.worldY);
+			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
+
+			// Right button = fire the bow at the cursor (left = move/attack).
+			if (pointer.rightButtonDown()) {
+				this.fireBowAt(aim);
+				return;
+			}
+
 			if (this.isBlocked(tile.x, tile.y)) return;
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
 				this.client?.action(ACTION_ATTACK, hit.serverEid);
 				this.movePath = [];
-				this.poseLocalPlayer('Attack', {
-					dx: tile.x - this.floatState.pos.x,
-					dy: tile.y - this.floatState.pos.y,
-				});
+				this.fireBowAt(aim);
 				return;
 			}
 			this.startMoveTo(tile);
@@ -524,8 +561,32 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
 
+		// Space fires the bow toward the cursor.
+		if (Phaser.Input.Keyboard.JustDown(this.fireKey)) {
+			const ptr = this.input.activePointer;
+			this.fireBowAt(screenToWorldF(ptr.worldX, ptr.worldY));
+		}
+
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
+
+		if (this.aimDebug && myRefs) this.updateAimDebug(myRefs);
+	}
+
+	/** Feed the debug compass + above-bow readout with the live cursor aim. */
+	private updateAimDebug(refs: EntityRefs) {
+		const ptr = this.input.activePointer;
+		const aim = screenToWorldF(ptr.worldX, ptr.worldY);
+		const dx = aim.x - this.floatState.pos.x;
+		const dy = aim.y - this.floatState.pos.y;
+		const deg = facingDegFromDelta(dx, dy);
+		const sheet = angleFromDeg(deg);
+		this.aimDebug!.update(
+			deg,
+			sheet,
+			refs.sprite.x,
+			refs.sprite.y - refs.sprite.displayHeight - 6,
+		);
 	}
 
 	/**
@@ -549,7 +610,19 @@ export class IsoArpgScene extends Phaser.Scene {
 		// still bleeding the leftover velocity to a slide-stop. Keying off
 		// velocity instead left a few frames of run-in-place during decel.
 		const intending = Math.hypot(intent.x, intent.y) > 0;
-		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+		// Moving cancels an in-progress shot: switch straight to Run instead of
+		// sliding in the bow pose. If the cancel lands before the release frame
+		// the arrow is suppressed (no shot fired); if it already loosed, the
+		// arrow still flies and only the recover is cut.
+		if (intending && this.bowShot?.busy) {
+			this.bowShot.cancel();
+		}
+		const firing = this.bowShot?.busy ?? false;
+		if (
+			!firing &&
+			refs.cls &&
+			refs.sprite instanceof Phaser.GameObjects.Sprite
+		) {
 			if (intending) {
 				setClassPose(
 					refs.sprite,
@@ -563,6 +636,19 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.cls.state === 'WalkForward'
 			) {
 				setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
+			}
+		}
+
+		// While standing still (not moving, not firing), track the cursor: turn
+		// the body toward where the player is aiming so she's pre-aimed before a
+		// shot. tickClassFacing lerps targetDeg, so this reads as a natural turn.
+		if (!intending && !firing && refs.cls) {
+			const ptr = this.input.activePointer;
+			const aim = screenToWorldF(ptr.worldX, ptr.worldY);
+			const dx = aim.x - this.floatState.pos.x;
+			const dy = aim.y - this.floatState.pos.y;
+			if (Math.hypot(dx, dy) > 0.05) {
+				refs.cls.targetDeg = facingDegFromDelta(dx, dy);
 			}
 		}
 
@@ -654,22 +740,25 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	/**
-	 * Click-move: A*-route from the body's tile to the clicked tile over floor
-	 * tiles, string-pull the result, and follow it as waypoints. Routing through
-	 * corridors (not a straight line into a wall) is what stops the run-into-wall
-	 * hugging on long room-to-room moves. No path = no move.
+	 * Click-move: hierarchical route from the body's tile to the clicked tile.
+	 * The gate graph picks the room-to-room chunk route and tile A* refines each
+	 * leg, so long cross-dungeon clicks stay cheap and follow corridor centers
+	 * instead of straight-lining into a wall. No path = no move.
 	 */
 	private startMoveTo(tile: TileXY) {
 		if (!this.client && !this.localMode) return;
 		const start = floatTile(this.floatState);
-		const raw = findPath(start, tile, (x, y) => this.dungeon.isFloor(x, y));
-		if (!raw) {
+		const path = findHierPath(
+			start,
+			tile,
+			(x, y) => this.dungeon.isFloor(x, y),
+			this.gateGraph,
+		);
+		if (!path) {
 			this.movePath = [];
 			return;
 		}
-		this.movePath = smoothPath(start, raw, (x, y) =>
-			this.dungeon.isFloor(x, y),
-		);
+		this.movePath = path;
 		this.client?.moveTo(tile);
 	}
 
@@ -716,6 +805,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		return { sprite, shadow, cls };
 	}
 
+	/** Resolved display name: Supabase username, else the saved prompt name. */
+	private localPlayerName(): string {
+		return resolvePlayerName() || 'Ranger';
+	}
+
 	/**
 	 * Offline debug: no server, so no snapshot ever spawns the player. Register
 	 * a local ranger player kind, drop the character at the debug tile, and seed
@@ -734,8 +828,12 @@ export class IsoArpgScene extends Phaser.Scene {
 		// Drop onto the nearest floor tile so the spawn never lands in a wall.
 		const tile = this.dungeon.nearestFloor(DEBUG_SPAWN_TILE);
 		const refs = this.makePlayerRefs(kind);
+		// Nameplate from the Supabase session username (kbve_username claim);
+		// falls back to the class name when not signed in (offline testing).
+		refs.nameplate = makeNameplate(this, this.localPlayerName());
 		this.placeSprite(refs.sprite, tile.x, tile.y);
 		this.syncShadow(refs);
+		this.placeNameplate(refs);
 		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
 		this.store.spawn(
 			LOCAL_PLAYER_EID,
@@ -758,25 +856,60 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.cameras.main.setZoom(1.5);
 	}
 
-	private poseLocalPlayer(
-		state: 'Attack' | 'Death',
-		facing?: { dx: number; dy: number },
-	) {
+	/**
+	 * Fire the ranger's bow at a world tile: Draw windup -> Loose -> arrow. The
+	 * shot is gated so you can't re-fire mid-draw, and it cancels any active
+	 * click-move (you plant to shoot). Damage is resolved locally for now; the
+	 * server combat path replaces the onHit body when MP lands.
+	 */
+	private fireBowAt(aim: TileXY) {
+		if (this.bowShot?.busy) return;
 		const refs = this.store.refs(this.myEid);
 		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
 			return;
-		setClassPose(refs.sprite, refs.cls, state, facing);
-		if (state === 'Attack') {
-			this.time.delayedCall(MOVE_TWEEN_MS * 2, () => {
-				if (
-					refs.cls &&
-					refs.sprite instanceof Phaser.GameObjects.Sprite &&
-					refs.cls.state === 'Attack'
-				) {
-					setClassPose(refs.sprite, refs.cls, 'Idle');
-				}
-			});
+		this.movePath = [];
+		// Fractional origin + aim so the facing direction and arrow line are
+		// precise (rounding both to tiles flipped the angle at close range).
+		const from = { x: this.floatState.pos.x, y: this.floatState.pos.y };
+		this.client?.action(ACTION_ATTACK, this.myEid);
+		this.bowShot = fireBow(
+			this,
+			refs.sprite,
+			refs.cls,
+			from,
+			aim,
+			(tx, ty) => this.arrowHitTest(tx, ty),
+			(serverEid, dmg) => this.applyLocalHit(serverEid, dmg),
+		);
+	}
+
+	/** Arrow hit-test: first non-self entity occupying the tile, else miss. */
+	private arrowHitTest(tx: number, ty: number) {
+		const hit = this.store.at(tx, ty, this.myEid);
+		if (!hit) return null;
+		return {
+			serverEid: hit.serverEid,
+			x: hit.refs.sprite.x,
+			y: hit.refs.sprite.y,
+		};
+	}
+
+	/** Local damage application + VFX (placeholder until server confirms). */
+	private applyLocalHit(serverEid: number, dmg: number) {
+		const refs = this.store.refs(serverEid);
+		if (!refs) return;
+		const hp = Math.max(0, this.store.hp(serverEid) - dmg);
+		this.store.update(serverEid, { hp });
+		showDamage(
+			this,
+			refs.sprite.x,
+			refs.sprite.y - refs.sprite.displayHeight - 18,
+			dmg,
+		);
+		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
+			flashEntity(this, refs.sprite);
 		}
+		this.refreshHud();
 	}
 
 	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
@@ -825,7 +958,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (!refs.nameplate) return;
 		refs.nameplate.setPosition(
 			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 14,
+			refs.sprite.y - refs.sprite.displayHeight * 0.62 - 8,
 		);
 	}
 

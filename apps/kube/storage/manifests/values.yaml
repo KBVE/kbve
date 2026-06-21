@@ -29,6 +29,13 @@ defaultSettings:
   allowNodeDrainWithLastHealthyReplica: false
   mkfsExt4Parameters: "-O ^metadata_csum,^64bit"
   disableSnapshotPurge: false
+  # Let a filesystem-trim mark snapshots in the chain as removed so freed
+  # blocks are actually unmapped from the volume's actualSize. Without this,
+  # trimming the live filesystem leaves reclaimed space pinned in older
+  # snapshots (the ~18.5 GiB stuck case in #11930). Global equivalent of the
+  # per-volume unmapMarkSnapChainRemoved=enabled. Paired with the
+  # filesystem-trim RecurringJob (recurring-jobs.yaml). See issue #12793.
+  removeSnapshotsDuringFilesystemTrim: true
 
 longhornManager:
   tolerations:

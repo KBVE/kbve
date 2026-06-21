@@ -195,6 +195,15 @@ export function setClassPose(
 	view.state = state;
 	if (!changed) return;
 
+	// One-shots (Attack/Hit/Death/…) don't get the per-frame facing lerp from
+	// tickClassFacing, so snap the displayed angle to the aim NOW — otherwise the
+	// shot plays in whatever direction the body last lerped to (she'd fire the
+	// wrong way). Locomotion keeps the smooth lerp via view.angle untouched here.
+	if (oneShot && facing && (facing.dx !== 0 || facing.dy !== 0)) {
+		view.facingDeg = view.targetDeg;
+		view.angle = angleFromDeg(view.targetDeg);
+	}
+
 	const blend =
 		!!scene &&
 		!oneShot &&
