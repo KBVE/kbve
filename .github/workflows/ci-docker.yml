@@ -217,6 +217,9 @@ jobs:
             source_path: ${{ needs.config.outputs.source_path }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
+        secrets:
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # ---------------------------------------------------------------------------
     # Publish — promotes the ci-{sha} tag built in test to the release tag.
@@ -243,8 +246,11 @@ jobs:
             cargo_toml: ${{ needs.config.outputs.cargo_toml }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
+            source_path: ${{ needs.config.outputs.source_path }}
         secrets:
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # ---------------------------------------------------------------------------
     # Post-publish — single atomic PR: version.toml + Cargo.toml + kube manifest.
