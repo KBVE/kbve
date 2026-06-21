@@ -36,18 +36,6 @@ export default defineConfig({
 		prefetchAll: true,
 		defaultStrategy: 'hover',
 	},
-	redirects: {
-		'/account': '/dashboard/account/',
-		'/account/': '/dashboard/account/',
-		'/profile': '/dashboard/profile/',
-		'/profile/': '/dashboard/profile/',
-		'/profile/account': '/dashboard/account/',
-		'/profile/account/': '/dashboard/account/',
-		'/profile/market': '/dashboard/market/',
-		'/profile/market/': '/dashboard/market/',
-		'/dashboard/rows': '/dashboard/gameops/rows/',
-		'/dashboard/rows/': '/dashboard/gameops/rows/',
-	},
 	markdown: {
 		rehypePlugins: [rehypeLinkAttrs],
 	},
