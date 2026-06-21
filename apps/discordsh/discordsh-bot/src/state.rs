@@ -239,6 +239,10 @@ impl AppState {
             );
         }
 
+        // Shared L1+L2 cache (Valkey via KBVE_KV_URL when set, else L1-only) for
+        // the gh reverse-sync lookups. Same namespace/Valkey as other services.
+        let kv_cache = jedi::state::kv::KvCache::from_env().await;
+
         Self {
             health_monitor,
             tracker,
@@ -255,7 +259,7 @@ impl AppState {
             github_repo_policy: jedi::entity::github::RepoPolicy::from_env(),
             github_guard: GitHubCommandGuard::from_env(),
             github_cache: GitHubCache::new(),
-            github_store: Arc::new(GithubStore::from_env()),
+            github_store: Arc::new(GithubStore::from_env().with_kv(Some(kv_cache))),
             irc,
             relay,
             irc_forwarder_started: AtomicBool::new(false),

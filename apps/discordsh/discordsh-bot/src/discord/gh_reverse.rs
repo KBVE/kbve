@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use jedi::entity::github::GitHubClient;
 use poise::serenity_prelude as serenity;
@@ -24,6 +25,32 @@ fn delete_mode_hard() -> bool {
         std::env::var("GH_REVERSE_DELETE_MODE").ok().as_deref(),
         Some("delete")
     )
+}
+
+const FINALIZE_ATTEMPTS: u32 = 3;
+
+/// Record the posted GitHub comment id against the mirror row, retrying a few
+/// times. If the comment lands but the mapping never finalizes, the lease keeps
+/// the placeholder unfinalized and a much-later redelivery could double-post;
+/// the bounded retry closes that window for transient RPC blips.
+async fn finalize_mirror(app: &Arc<AppState>, message_id: i64, comment_id: i64) {
+    for attempt in 1..=FINALIZE_ATTEMPTS {
+        match app
+            .github_store
+            .set_comment_mirror_github_id(message_id, comment_id)
+            .await
+        {
+            Ok(_) => return,
+            Err(e) if attempt < FINALIZE_ATTEMPTS => {
+                warn!(error = %e, message_id, comment_id, attempt, "gh reverse: finalize retry");
+                tokio::time::sleep(Duration::from_millis(200 * attempt as u64)).await;
+            }
+            Err(e) => warn!(
+                error = %e, message_id, comment_id,
+                "gh reverse: finalize failed; comment posted but mapping unfinalized"
+            ),
+        }
+    }
 }
 
 async fn github_client_for(app: &Arc<AppState>, guild_id: u64) -> Option<GitHubClient> {
@@ -138,13 +165,7 @@ pub async fn handle_reverse_message(message: &serenity::Message, app: &Arc<AppSt
         .await
     {
         Ok(c) => {
-            if let Err(e) = app
-                .github_store
-                .set_comment_mirror_github_id(message_id, c.id as i64)
-                .await
-            {
-                warn!(error = %e, message_id, comment_id = c.id, "gh reverse: failed to record comment id");
-            }
+            finalize_mirror(app, message_id, c.id as i64).await;
             info!(
                 counter = "pipe_gh_reverse_posted",
                 owner = %issue.owner,

@@ -2,15 +2,27 @@ use std::num::NonZeroUsize;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
+#[cfg(feature = "kv")]
+use std::sync::Arc;
+
+#[cfg(feature = "kv")]
+use jedi::entity::error::JediError;
+#[cfg(feature = "kv")]
+use jedi::state::kv::KvCache;
 use lru::LruCache;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
 use super::supabase::SupabaseClient;
 
 const SCHEMA: &str = "gh";
+/// KvCache key prefixes for the reverse-sync lookups (namespaced again by KvCache).
+#[cfg(feature = "kv")]
+const KV_THREAD_PREFIX: &str = "gh:thread:";
+#[cfg(feature = "kv")]
+const KV_MIRROR_PREFIX: &str = "gh:cmirror:";
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CachedIssue {
     pub owner: String,
     pub repo: String,
@@ -96,7 +108,7 @@ pub struct UndeliveredEvent {
     pub claim_token: uuid::Uuid,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CommentMirror {
     pub discord_message_id: i64,
     pub discord_channel_id: i64,
@@ -129,6 +141,15 @@ pub enum GithubStoreError {
     Decode(#[from] serde_json::Error),
     #[error("response body: {0}")]
     Body(#[from] reqwest::Error),
+    #[cfg(feature = "kv")]
+    #[error("cache: {0}")]
+    Cache(String),
+}
+
+/// Bridge a store error into the `JediError` the KvCache fetch closure expects.
+#[cfg(feature = "kv")]
+fn into_jedi(e: GithubStoreError) -> JediError {
+    JediError::Internal(e.to_string().into())
 }
 
 struct CachedEntry {
@@ -139,11 +160,14 @@ struct CachedEntry {
 pub struct GithubStore {
     client: Option<SupabaseClient>,
     cache: Mutex<LruCache<(String, String, u32), CachedEntry>>,
-    /// Negative-caching reverse lookup keyed by Discord thread id. Bounds the
-    /// per-message Supabase load: `handle_reverse_message` runs on every guild
-    /// message, but most channels are not synced threads — caching the `None`
-    /// result keeps a busy non-thread channel from hammering the RPC.
-    thread_cache: Mutex<LruCache<i64, CachedEntry>>,
+    /// Optional L1(in-mem)+L2(Valkey) read-through cache for the reverse-sync
+    /// lookups. `handle_reverse_message` runs on every guild message, but most
+    /// channels are not synced threads — caching the `None` result (negative
+    /// caching) keeps a busy non-thread channel from hammering the Supabase RPC,
+    /// and the shared L2 survives pod restarts. Falls back to direct RPC when
+    /// unset.
+    #[cfg(feature = "kv")]
+    kv: Option<Arc<KvCache>>,
     ttl: Duration,
     stale_after: Duration,
 }
@@ -154,10 +178,32 @@ impl GithubStore {
         Self {
             client,
             cache: Mutex::new(LruCache::new(cap)),
-            thread_cache: Mutex::new(LruCache::new(cap)),
+            #[cfg(feature = "kv")]
+            kv: None,
             ttl,
             stale_after: Duration::from_secs(5 * 60),
         }
+    }
+
+    /// Attach a shared L1+L2 KvCache for reverse-sync lookups.
+    #[cfg(feature = "kv")]
+    pub fn with_kv(mut self, kv: Option<Arc<KvCache>>) -> Self {
+        self.kv = kv;
+        self
+    }
+
+    /// Drop the cached comment-mirror row (both cache layers) after a write so a
+    /// later edit/delete reads fresh `github_comment_id`/`deleted_at`. Best-effort.
+    async fn invalidate_mirror(&self, discord_message_id: i64) {
+        #[cfg(feature = "kv")]
+        if let Some(kv) = self.kv.as_ref() {
+            let key = format!("{KV_MIRROR_PREFIX}{discord_message_id}");
+            if let Err(e) = kv.invalidate(&key).await {
+                warn!(error = %e, discord_message_id, "gh: comment_mirror cache invalidate failed");
+            }
+        }
+        #[cfg(not(feature = "kv"))]
+        let _ = discord_message_id;
     }
 
     pub fn from_env() -> Self {
@@ -327,15 +373,25 @@ impl GithubStore {
         &self,
         thread_id: i64,
     ) -> Result<Option<CachedIssue>, GithubStoreError> {
-        {
-            let mut cache = self.thread_cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(&thread_id) {
-                if Instant::now() < entry.expires_at {
-                    return Ok(entry.issue.clone());
-                }
-            }
+        #[cfg(feature = "kv")]
+        if let Some(kv) = self.kv.as_ref() {
+            let key = format!("{KV_THREAD_PREFIX}{thread_id}");
+            return kv
+                .get_or_fetch_json(&key, Some(self.ttl), || async {
+                    self.fetch_issue_by_thread_id(thread_id)
+                        .await
+                        .map_err(into_jedi)
+                })
+                .await
+                .map_err(|e| GithubStoreError::Cache(e.to_string()));
         }
+        self.fetch_issue_by_thread_id(thread_id).await
+    }
 
+    async fn fetch_issue_by_thread_id(
+        &self,
+        thread_id: i64,
+    ) -> Result<Option<CachedIssue>, GithubStoreError> {
         let Some(client) = self.client.as_ref() else {
             return Err(GithubStoreError::NotConfigured);
         };
@@ -352,20 +408,7 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        let issue = parse_optional_row::<CachedIssue>(&text)?;
-
-        {
-            let mut cache = self.thread_cache.lock().unwrap_or_else(|e| e.into_inner());
-            cache.put(
-                thread_id,
-                CachedEntry {
-                    issue: issue.clone(),
-                    expires_at: Instant::now() + self.ttl,
-                },
-            );
-        }
-
-        Ok(issue)
+        parse_optional_row::<CachedIssue>(&text)
     }
 
     /// Idempotency claim for reverse sync. Returns `true` when the caller now
@@ -408,7 +451,9 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        parse_bool_body(&text)
+        let claimed = parse_bool_body(&text)?;
+        self.invalidate_mirror(discord_message_id).await;
+        Ok(claimed)
     }
 
     /// Finalize a claimed mirror row with the posted GitHub comment id.
@@ -436,11 +481,32 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        parse_bool_body(&text)
+        let updated = parse_bool_body(&text)?;
+        self.invalidate_mirror(discord_message_id).await;
+        Ok(updated)
     }
 
     /// Read a mirror row (edit/delete propagation + echo guard).
     pub async fn get_comment_mirror(
+        &self,
+        discord_message_id: i64,
+    ) -> Result<Option<CommentMirror>, GithubStoreError> {
+        #[cfg(feature = "kv")]
+        if let Some(kv) = self.kv.as_ref() {
+            let key = format!("{KV_MIRROR_PREFIX}{discord_message_id}");
+            return kv
+                .get_or_fetch_json(&key, Some(self.ttl), || async {
+                    self.fetch_comment_mirror(discord_message_id)
+                        .await
+                        .map_err(into_jedi)
+                })
+                .await
+                .map_err(|e| GithubStoreError::Cache(e.to_string()));
+        }
+        self.fetch_comment_mirror(discord_message_id).await
+    }
+
+    async fn fetch_comment_mirror(
         &self,
         discord_message_id: i64,
     ) -> Result<Option<CommentMirror>, GithubStoreError> {
@@ -509,7 +575,9 @@ impl GithubStore {
             return Err(GithubStoreError::Http { status, body: text });
         }
 
-        parse_optional_row::<CommentMirror>(&text)
+        let row = parse_optional_row::<CommentMirror>(&text)?;
+        self.invalidate_mirror(discord_message_id).await;
+        Ok(row)
     }
 
     pub async fn claim_undelivered(
