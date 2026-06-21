@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
 import {
   extractToken,
   jsonResponse,
@@ -7,7 +7,18 @@ import {
   parseJwt,
 } from "../_shared/supabase.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
+import { UUID_RE } from "../_shared/formats.ts";
+import { logError } from "../_shared/logging.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
+import { loadEnv, validateJwtSecret } from "../_shared/env.ts";
 import { handleTokens, TOKEN_ACTIONS } from "./tokens.ts";
+
+const env = loadEnv([
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "JWT_SECRET",
+]);
+validateJwtSecret(env.JWT_SECRET);
 
 // ---------------------------------------------------------------------------
 // User Vault Edge Function — Unified Router
@@ -46,9 +57,6 @@ function buildHelpText(): string {
   return commands.join(", ");
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 function resolveUserId(
   claims: JwtClaims,
   body: Record<string, unknown>,
@@ -81,11 +89,7 @@ function resolveUserId(
   );
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -96,6 +100,13 @@ serve(async (req) => {
   try {
     const token = extractToken(req);
     const claims = await parseJwt(token);
+
+    const rl = rateLimit(
+      rateLimitKey("user-vault", req, claims.sub as string | undefined),
+      { limit: 60, windowMs: 60_000 },
+    );
+    if (rl) return rl;
+
     const sizeErr = enforceBodySizeLimit(req);
     if (sizeErr) return sizeErr;
 
@@ -151,7 +162,7 @@ serve(async (req) => {
       userId: userIdOrError,
     });
   } catch (err) {
-    console.error("user-vault error:", err);
+    logError("user-vault", err);
     const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";
@@ -162,4 +173,11 @@ serve(async (req) => {
     }
     return jsonResponse({ error: "Internal server error" }, 500);
   }
+}
+
+serve(async (req): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return preflight(req);
+  }
+  return withCors(await handleRequest(req), req);
 });

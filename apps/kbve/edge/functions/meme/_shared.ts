@@ -13,6 +13,15 @@ export {
 import { jsonResponse } from "../_shared/supabase.ts";
 import type { JwtClaims } from "../_shared/supabase.ts";
 import { rejectIllegalChars } from "../_shared/validators.ts";
+import { TAG_RE, ULID_RE, UUID_RE } from "../_shared/formats.ts";
+import { validateLimit as sharedValidateLimit } from "../_shared/pagination.ts";
+import {
+  PAGINATION,
+  REACTION_MAX,
+  REACTION_MIN,
+  REPORT_REASON_MAX,
+  REPORT_REASON_MIN,
+} from "../_shared/constants.ts";
 
 // Meme-specific request type
 export interface MemeRequest {
@@ -21,9 +30,6 @@ export interface MemeRequest {
   body: Record<string, unknown>;
   action: string;
 }
-
-// ULID format: 26 Crockford Base32 characters
-const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/;
 
 export function validateMemeId(
   id: unknown,
@@ -51,11 +57,14 @@ export function validateReaction(reaction: unknown): Response | null {
     reaction === null ||
     !Number.isFinite(num) ||
     !Number.isInteger(num) ||
-    num < 1 ||
-    num > 6
+    num < REACTION_MIN ||
+    num > REACTION_MAX
   ) {
     return jsonResponse(
-      { error: "reaction must be an integer between 1 and 6" },
+      {
+        error:
+          `reaction must be an integer between ${REACTION_MIN} and ${REACTION_MAX}`,
+      },
       400,
     );
   }
@@ -63,8 +72,6 @@ export function validateReaction(reaction: unknown): Response | null {
 }
 
 // Tag validation: lowercase slug-safe, 1-50 chars
-const TAG_RE = /^[a-z0-9][a-z0-9_-]*$/;
-
 export function validateTag(tag: unknown): Response | null {
   if (tag === undefined || tag === null) return null;
   if (typeof tag !== "string" || tag.length < 1 || tag.length > 50) {
@@ -134,9 +141,6 @@ export function extractUserId(
 }
 
 // UUID format validation
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export function validateUserId(
   id: unknown,
   field = "user_id",
@@ -175,11 +179,14 @@ export function validateReportReason(reason: unknown): Response | null {
     reason === null ||
     !Number.isFinite(num) ||
     !Number.isInteger(num) ||
-    num < 1 ||
-    num > 7
+    num < REPORT_REASON_MIN ||
+    num > REPORT_REASON_MAX
   ) {
     return jsonResponse(
-      { error: "reason must be an integer between 1 and 7" },
+      {
+        error:
+          `reason must be an integer between ${REPORT_REASON_MIN} and ${REPORT_REASON_MAX}`,
+      },
       400,
     );
   }
@@ -205,20 +212,10 @@ export function validateLimit(limit: unknown): {
   value: number;
   error: Response | null;
 } {
-  if (limit === undefined || limit === null) {
-    return { value: 20, error: null };
-  }
-  const num = Number(limit);
-  if (!Number.isInteger(num) || num < 1 || num > 50) {
-    return {
-      value: 20,
-      error: jsonResponse(
-        { error: "limit must be an integer between 1 and 50" },
-        400,
-      ),
-    };
-  }
-  return { value: num, error: null };
+  return sharedValidateLimit(limit, {
+    def: PAGINATION.meme.defaultLimit,
+    max: PAGINATION.meme.maxLimit,
+  });
 }
 
 // Pagination cursor: optional ULID

@@ -11,6 +11,7 @@ export {
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";
+import { logError, logWarn } from "../_shared/logging.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh-specific request type
@@ -21,6 +22,7 @@ export interface DiscordshRequest {
   claims: import("../_shared/supabase.ts").JwtClaims;
   body: Record<string, unknown>;
   action: string;
+  req: Request;
 }
 
 // ---------------------------------------------------------------------------
@@ -79,7 +81,7 @@ export async function verifyCaptcha(
   captchaToken: unknown,
 ): Promise<Response | null> {
   if (!HCAPTCHA_SECRET) {
-    console.error("HCAPTCHA_SECRET not configured");
+    logError("discordsh.captcha", new Error("HCAPTCHA_SECRET not configured"));
     return jsonResponse(
       { error: "Captcha verification is not configured" },
       500,
@@ -106,7 +108,9 @@ export async function verifyCaptcha(
     });
 
     if (!res.ok) {
-      console.error("hCaptcha API error:", res.status);
+      logError("discordsh.captcha", new Error("hCaptcha API error"), {
+        status: res.status,
+      });
       return jsonResponse(
         { error: "Captcha verification service unavailable" },
         502,
@@ -116,10 +120,10 @@ export async function verifyCaptcha(
     const result: HCaptchaResult = await res.json();
 
     if (!result.success) {
-      console.warn(
-        "hCaptcha verification failed:",
-        result["error-codes"],
-      );
+      logWarn("discordsh.captcha", {
+        message: "hCaptcha verification failed",
+        errorCodes: result["error-codes"],
+      });
       return jsonResponse(
         { error: "Captcha verification failed. Please try again." },
         400,
@@ -128,7 +132,7 @@ export async function verifyCaptcha(
 
     return null;
   } catch (err) {
-    console.error("hCaptcha verification error:", err);
+    logError("discordsh.captcha", err);
     return jsonResponse(
       { error: "Captcha verification failed unexpectedly" },
       500,

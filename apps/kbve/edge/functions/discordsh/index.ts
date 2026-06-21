@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
+import { buildHelpText, parseCommand } from "../_shared/routing.ts";
+import { logError } from "../_shared/logging.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
 import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { handleVote, VOTE_ACTIONS } from "./vote.ts";
@@ -30,89 +32,63 @@ const MODULES: Record<
   list: { handler: handleList, actions: LIST_ACTIONS, public: true },
 };
 
-function buildHelpText(): string {
-  const commands: string[] = [];
-  for (const [mod, { actions }] of Object.entries(MODULES)) {
-    for (const action of actions) {
-      commands.push(`${mod}.${action}`);
-    }
-  }
-  return commands.join(", ");
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return preflight(req);
   }
 
   if (req.method !== "POST") {
-    return jsonResponse({ error: "Only POST method is allowed" }, 405);
+    return withCors(jsonResponse({ error: "Only POST method is allowed" }, 405), req);
   }
 
   const ctErr = requireJsonContentType(req);
-  if (ctErr) return ctErr;
+  if (ctErr) return withCors(ctErr, req);
   const sizeErr = enforceBodySizeLimit(req);
-  if (sizeErr) return sizeErr;
+  if (sizeErr) return withCors(sizeErr, req);
 
   try {
     const body = await req.json();
     const { command } = body;
 
-    if (!command || typeof command !== "string") {
-      return jsonResponse(
-        {
-          error:
-            `command is required (format: "module.action"). Available: ${buildHelpText()}`,
-        },
-        400,
-      );
-    }
+    const parsed = parseCommand(command, buildHelpText(MODULES));
+    if (parsed instanceof Response) return withCors(parsed, req);
 
-    const dotIndex = command.indexOf(".");
-    if (dotIndex === -1) {
-      return jsonResponse(
-        {
-          error:
-            `Invalid command format. Use "module.action" (e.g. "vote.cast"). Available: ${buildHelpText()}`,
-        },
-        400,
-      );
-    }
-
-    const moduleName = command.slice(0, dotIndex);
-    const action = command.slice(dotIndex + 1);
+    const { module: moduleName, action } = parsed;
 
     const mod = MODULES[moduleName];
     if (!mod) {
-      return jsonResponse(
-        {
-          error: `Unknown module: ${moduleName}. Available modules: ${
-            Object.keys(MODULES).join(", ")
-          }`,
-        },
-        400,
+      return withCors(
+        jsonResponse(
+          {
+            error: `Unknown module: ${moduleName}. Available modules: ${
+              Object.keys(MODULES).join(", ")
+            }`,
+          },
+          400,
+        ),
+        req,
       );
     }
 
-    // Public modules skip authentication
     let token = "";
-    let claims = {} as import("./_shared.ts").JwtClaims;
+    let claims = { role: "anon" } as import("./_shared.ts").JwtClaims;
     if (!mod.public) {
       token = extractToken(req);
       claims = await parseJwt(token);
     }
 
-    return mod.handler({ token, claims, body, action });
+    const res = await mod.handler({ token, claims, body, action, req });
+    return withCors(res, req);
   } catch (err) {
-    console.error("discordsh error:", err);
+    logError("discordsh", err);
     const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";
     const isAuthError =
       rawMessage.includes("authorization") || rawMessage.includes("JWT");
     if (isAuthError) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return withCors(jsonResponse({ error: "Unauthorized" }, 401), req);
     }
-    return jsonResponse({ error: "Internal server error" }, 500);
+    return withCors(jsonResponse({ error: "Internal server error" }, 500), req);
   }
 });

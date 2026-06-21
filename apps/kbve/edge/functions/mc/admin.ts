@@ -6,6 +6,7 @@ import {
   requireStaffOrServiceRole,
   staffPerm,
 } from "./_shared.ts";
+import { logError } from "../_shared/logging.ts";
 
 // ---------------------------------------------------------------------------
 // MC Admin Module — Staff-gated RCON execution
@@ -267,7 +268,7 @@ const handlers: Record<string, Handler> = {
         response: response || "(no output)",
       });
     } catch (err) {
-      console.error("RCON error:", err);
+      logError("mc.admin", err);
       const msg = err instanceof Error ? err.message : "RCON connection failed";
       return jsonResponse({ error: msg }, 502);
     }
@@ -316,7 +317,7 @@ const handlers: Record<string, Handler> = {
       const response = await rconExecute(config, mcCommand);
       return jsonResponse({ success: true, server, command: mcCommand, response: response || "(no output)" });
     } catch (err) {
-      console.error("RCON error:", err);
+      logError("mc.admin", err);
       const msg = err instanceof Error ? err.message : "RCON connection failed";
       return jsonResponse({ error: msg }, 502);
     }
@@ -371,7 +372,7 @@ const handlers: Record<string, Handler> = {
       const response = await rconExecute(config, mcCommand);
       return jsonResponse({ success: true, server, command: mcCommand, response: response || "(no output)" });
     } catch (err) {
-      console.error("RCON error:", err);
+      logError("mc.admin", err);
       const msg = err instanceof Error ? err.message : "RCON connection failed";
       return jsonResponse({ error: msg }, 502);
     }
@@ -411,7 +412,7 @@ const handlers: Record<string, Handler> = {
       const response = await rconExecute(config, mcCommand);
       return jsonResponse({ success: true, server, command: mcCommand, response: response || "(no output)" });
     } catch (err) {
-      console.error("RCON error:", err);
+      logError("mc.admin", err);
       const msg = err instanceof Error ? err.message : "RCON connection failed";
       return jsonResponse({ error: msg }, 502);
     }

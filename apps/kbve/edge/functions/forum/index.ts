@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { preflight, withCors } from "../_shared/cors.ts";
+import { buildHelpText, parseCommand } from "../_shared/routing.ts";
+import { logError } from "../_shared/logging.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
+import { loadEnv } from "../_shared/env.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
@@ -14,6 +18,12 @@ import {
 import { handleSpace, SPACE_ACTIONS } from "./spaces.ts";
 import { handleTag, TAG_ACTIONS } from "./tags.ts";
 import { handleThread, THREAD_ACTIONS } from "./threads.ts";
+
+loadEnv([
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "JWT_SECRET",
+]);
 
 // ---------------------------------------------------------------------------
 // Forum Edge Function — Read-only public router
@@ -37,77 +47,68 @@ const MODULES: Record<
   thread: { handler: handleThread, actions: THREAD_ACTIONS },
 };
 
-function buildHelpText(): string {
-  const out: string[] = [];
-  for (const [mod, { actions }] of Object.entries(MODULES)) {
-    for (const action of actions) out.push(`${mod}.${action}`);
-  }
-  return out.join(", ");
-}
+const HELP = buildHelpText(MODULES);
 
-serve(async (req) => {
+serve(async (req): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return preflight(req);
   }
   if (req.method !== "POST") {
-    return jsonResponse({ error: "Only POST method is allowed" }, 405);
+    return withCors(jsonResponse({ error: "Only POST method is allowed" }, 405), req);
   }
 
-  const ctErr = requireJsonContentType(req);
-  if (ctErr) return ctErr;
+  const rl = rateLimit(rateLimitKey("forum", req), {
+    limit: 120,
+    windowMs: 60_000,
+  });
+  if (rl) return withCors(rl, req);
 
-  // Verify the JWT but do NOT gate on role — anon, authenticated, and
-  // service_role all may read. The service-role RPC calls happen
-  // internally below.
+  const ctErr = requireJsonContentType(req);
+  if (ctErr) return withCors(ctErr, req);
+
   let claims: JwtClaims;
   try {
     const token = extractToken(req);
     claims = await parseJwt(token);
   } catch {
-    return jsonResponse({ error: "Authentication required" }, 401);
+    return withCors(jsonResponse({ error: "Authentication required" }, 401), req);
   }
 
   const sizeErr = enforceBodySizeLimit(req);
-  if (sizeErr) return sizeErr;
+  if (sizeErr) return withCors(sizeErr, req);
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return jsonResponse({ error: "Invalid JSON body" }, 400);
+    return withCors(jsonResponse({ error: "Invalid JSON body" }, 400), req);
   }
 
-  const command = body.command;
-  if (typeof command !== "string" || !command.includes(".")) {
-    return jsonResponse(
-      {
-        error:
-          `command is required (format: "module.action"). Available: ${buildHelpText()}`,
-      },
-      400,
-    );
-  }
+  const parsed = parseCommand(body.command, HELP);
+  if (parsed instanceof Response) return withCors(parsed, req);
 
-  const dotIndex = command.indexOf(".");
-  const moduleName = command.slice(0, dotIndex);
-  const action = command.slice(dotIndex + 1);
-
-  const mod = MODULES[moduleName];
+  const mod = MODULES[parsed.module];
   if (!mod) {
-    return jsonResponse(
-      {
-        error: `Unknown module: ${moduleName}. Available: ${
-          Object.keys(MODULES).join(", ")
-        }`,
-      },
-      400,
+    return withCors(
+      jsonResponse(
+        {
+          error: `Unknown module: ${parsed.module}. Available: ${
+            Object.keys(MODULES).join(", ")
+          }`,
+        },
+        400,
+      ),
+      req,
     );
   }
 
   try {
-    return await mod.handler({ claims, body, action });
+    return withCors(
+      await mod.handler({ claims, body, action: parsed.action }),
+      req,
+    );
   } catch (err) {
-    console.error("forum error:", err);
-    return jsonResponse({ error: "Internal server error" }, 500);
+    logError("forum", err);
+    return withCors(jsonResponse({ error: "Internal server error" }, 500), req);
   }
 });

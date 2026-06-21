@@ -18,9 +18,14 @@ describe('Meme — Smoke Tests', () => {
 	// -- CORS --
 
 	it('should return 200 for OPTIONS preflight without JWT', async () => {
-		const res = await fetch(`${BASE_URL}/meme`, { method: 'OPTIONS' });
+		const res = await fetch(`${BASE_URL}/meme`, {
+			method: 'OPTIONS',
+			headers: { Origin: 'https://kbve.com' },
+		});
 		expect(res.status).toBe(200);
-		expect(res.headers.get('access-control-allow-origin')).toBe('*');
+		expect(res.headers.get('access-control-allow-origin')).toBe(
+			'https://kbve.com',
+		);
 	});
 
 	// -- Method --
@@ -137,14 +142,20 @@ describe('Meme — Smoke Tests', () => {
 	// -- Admin module (service_role only) --
 
 	it('should reject admin.create without service_role', async () => {
-		const anonToken = createJwt({ role: 'authenticated', extraClaims: { sub: '00000000-0000-0000-0000-000000000001' } });
+		const anonToken = createJwt({
+			role: 'authenticated',
+			extraClaims: { sub: '00000000-0000-0000-0000-000000000001' },
+		});
 		const res = await fetch(`${BASE_URL}/meme`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${anonToken}`,
 			},
-			body: JSON.stringify({ command: 'admin.create', asset_url: 'https://example.com/meme.png' }),
+			body: JSON.stringify({
+				command: 'admin.create',
+				asset_url: 'https://example.com/meme.png',
+			}),
 		});
 		expect(res.status).toBe(403);
 		const body = await res.json();

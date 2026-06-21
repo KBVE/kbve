@@ -41,7 +41,6 @@ import {
 	FOG_MAX_STRENGTH,
 	DEBUG_LOCAL_PLAYER,
 	DEBUG_SPAWN_TILE,
-	DEBUG_AIM,
 } from './config';
 import {
 	worldToScreen,
@@ -76,8 +75,8 @@ import {
 } from './systems/dungeon';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
-import { AimDebug } from './fx/aimDebug';
-import { facingDegFromDelta, angleFromDeg } from './entities/classes';
+import { emitHud, clearHud } from './systems/hud';
+import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
 	makeClassSprite,
@@ -152,7 +151,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private movePath: TileXY[] = [];
 	private bowShot: BowShot | null = null;
 	private fireKey!: Phaser.Input.Keyboard.Key;
-	private aimDebug: AimDebug | null = null;
+	// HUD emits are throttled to ~15/s; this accumulates frame time between emits.
+	private hudAccum = 0;
+	// Last movement heading (screen deg, 0=N CW); held while idle so the compass
+	// needle doesn't snap back when the player stops.
+	private hudHeadingDeg = 0;
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
@@ -180,7 +183,6 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		this.drawGrid();
 		this.buildFog();
-		if (DEBUG_AIM) this.aimDebug = new AimDebug(this);
 		this.setupInput();
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
@@ -665,23 +667,35 @@ export class IsoArpgScene extends Phaser.Scene {
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
-		if (this.aimDebug && myRefs) this.updateAimDebug(myRefs);
+		this.tickHud(delta);
 	}
 
-	/** Feed the debug compass + above-bow readout with the live cursor aim. */
-	private updateAimDebug(refs: EntityRefs) {
-		const ptr = this.input.activePointer;
-		const aim = screenToWorldF(ptr.worldX, ptr.worldY);
-		const dx = aim.x - this.floatState.pos.x;
-		const dy = aim.y - this.floatState.pos.y;
-		const deg = facingDegFromDelta(dx, dy);
-		const sheet = angleFromDeg(deg);
-		this.aimDebug!.update(
-			deg,
-			sheet,
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 6,
-		);
+	/**
+	 * Push player vitals + the movement-driven compass heading to the React HUD
+	 * over the laser event bus, throttled to ~15 Hz. The compass tracks the float
+	 * body's VELOCITY (where the character is actually walking), not the cursor —
+	 * heading holds its last value while standing still so the needle doesn't
+	 * snap back to north on every stop.
+	 */
+	private tickHud(deltaMs: number) {
+		this.hudAccum += deltaMs;
+		if (this.hudAccum < 66) return;
+		this.hudAccum = 0;
+
+		const vel = this.floatState.vel;
+		const moving = Math.hypot(vel.x, vel.y) > 0.05;
+		if (moving) this.hudHeadingDeg = facingDegFromDelta(vel.x, vel.y);
+
+		const tile = floatTile(this.floatState);
+		emitHud({
+			name: this.localPlayerName(),
+			hp: this.store.hp(this.myEid),
+			maxHp: this.store.maxHp(this.myEid),
+			headingDeg: this.hudHeadingDeg,
+			moving,
+			fps: Math.round(this.game.loop.actualFps),
+			tile,
+		});
 	}
 
 	/**
@@ -1109,5 +1123,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	private teardown() {
 		this.client?.close();
 		this.client = null;
+		clearHud();
 	}
 }

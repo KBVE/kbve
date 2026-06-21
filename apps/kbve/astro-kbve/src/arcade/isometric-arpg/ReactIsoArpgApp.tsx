@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
-import { COLORS, resolveWsUrl } from './config';
+import ArpgHud from './ArpgHud';
+import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
 import { buildNetConfig, setNetConfig } from './net-config';
 import {
 	resolvePlayerName,
@@ -204,6 +205,10 @@ export default function ReactIsoArpgApp({
 				</div>
 			</div>
 		);
+	}
+
+	if (phase === 'ready') {
+		return <ArpgHud debug={DEBUG_HUD} />;
 	}
 
 	return null;

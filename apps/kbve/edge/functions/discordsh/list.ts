@@ -4,6 +4,9 @@ import {
   jsonResponse,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import { clampLimit, clampPage } from "../_shared/pagination.ts";
+import { PAGINATION } from "../_shared/constants.ts";
+import { rateLimit, rateLimitKey } from "../_shared/ratelimit.ts";
 
 // ---------------------------------------------------------------------------
 // Discordsh List Module
@@ -17,9 +20,18 @@ type Handler = (req: DiscordshRequest) => Promise<Response>;
 const VALID_SORTS = new Set(["votes", "members", "newest", "bumped"]);
 
 const handlers: Record<string, Handler> = {
-  async servers({ body }) {
-    const limit = Math.min(Math.max(Number(body.limit) || 24, 1), 50);
-    const page = Math.min(Math.max(Number(body.page) || 1, 1), 10000);
+  async servers({ body, req }) {
+    const rl = rateLimit(rateLimitKey("discordsh.list", req), {
+      limit: 60,
+      windowMs: 60_000,
+    });
+    if (rl) return rl;
+
+    const limit = clampLimit(body.limit, {
+      def: PAGINATION.discordsh.defaultLimit,
+      max: PAGINATION.discordsh.maxLimit,
+    });
+    const page = clampPage(body.page, PAGINATION.discordsh.maxPage);
     const sort = typeof body.sort === "string" && VALID_SORTS.has(body.sort)
       ? body.sort
       : "votes";
@@ -42,9 +54,14 @@ const handlers: Record<string, Handler> = {
     }
 
     const rows = Array.isArray(data) ? data : [];
+    /**
+     * `total` is a snapshot of the count returned alongside this page of rows.
+     * Because the count and the page data are read together (not in a single
+     * serializable transaction), concurrent writes can shift it, so `has_more`
+     * is best-effort rather than exact.
+     */
     const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
-    // Strip total_count from each row before sending to client
     const servers = rows.map(
       ({ total_count: _, ...rest }: Record<string, unknown>) => rest,
     );
