@@ -113,6 +113,44 @@ jobs:
                   chmod 600 "$HOME/.netrc"
                   echo "Forgejo LFS credentials configured for git.kbve.com"
 
+            - name: Pull per-game Forgejo LFS blobs
+              if: ${{ steps.lfs_detect.outputs.uses_lfs == 'true' }}
+              run: |
+                  set -euo pipefail
+                  # Stock git-lfs only resolves the repo-root .lfsconfig (rareicon
+                  # endpoint). Games whose blobs live on other Forgejo repos (arpg,
+                  # chuck, cryptothrone, ...) must be pulled through the kbve.sh
+                  # wrapper, which injects the correct per-game lfs.url. Pull every
+                  # game whose asset tree falls under this build's source_path so the
+                  # docker COPY bundles real binaries, not ~130-byte pointer stubs.
+                  SCOPE="${{ inputs.source_path }}"
+                  PREFIXES=""
+                  for game in chuck rareicon rentearth arpg cryptothrone; do
+                    prefix="$(./kbve.sh -lfs "$game" path 2>/dev/null || true)"
+                    [ -n "$prefix" ] || continue
+                    case "$prefix" in
+                      "$SCOPE"|"$SCOPE"/*)
+                        if git lfs ls-files -- "$prefix" 2>/dev/null | grep -q .; then
+                          echo "→ pulling $game LFS under $prefix"
+                          ./kbve.sh -lfs "$game" pull --include="$prefix/**"
+                          PREFIXES="$PREFIXES $prefix"
+                        fi
+                        ;;
+                    esac
+                  done
+                  # Fail the build if any pulled asset is still a pointer stub.
+                  # Real art is binary so -I skips it; a text match means the blob
+                  # never resolved and would ship broken (the arpg crash on
+                  # kbve.com/arcade/arpg was exactly this).
+                  if [ -n "$PREFIXES" ]; then
+                    STUBS="$(grep -rlI 'git-lfs.github.com/spec' $PREFIXES 2>/dev/null || true)"
+                    if [ -n "$STUBS" ]; then
+                      echo "::error::Forgejo LFS blobs unresolved — these would ship as pointer stubs:"
+                      echo "$STUBS"
+                      exit 1
+                    fi
+                  fi
+
             - name: Sync version from MDX to build manifest
               if: ${{ inputs.version_source != '' && inputs.version_target != '' }}
               run: |
