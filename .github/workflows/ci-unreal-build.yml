@@ -1175,7 +1175,7 @@ jobs:
                   chmod +x .github/scripts/find-ue-mac.sh
                   RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ inputs.engine_version }}")
                   echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
-                  UE_ROOT=$(dirname $(dirname $(dirname $(dirname "${RUNUAT}"))))
+                  UE_ROOT="${RUNUAT%/Engine/Build/BatchFiles/RunUAT.sh}"
                   echo "ue_root=${UE_ROOT}" >> "$GITHUB_OUTPUT"
                   echo "::notice::Using RunUAT: ${RUNUAT}"
 
