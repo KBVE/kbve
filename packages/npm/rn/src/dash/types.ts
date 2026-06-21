@@ -45,6 +45,10 @@ export interface StreamState<TItem> {
 	search: string;
 	filterId: string | null;
 	groupKey: string | null;
+	/** Key of the in-flight action (`<itemId>:<actionId>`), or null. */
+	actionBusy: string | null;
+	actionError: string | null;
+	actionMsg: string | null;
 }
 
 export interface StreamStore<TItem> {
@@ -64,6 +68,16 @@ export interface StreamStore<TItem> {
 	setSearch: (q: string) => void;
 	setFilter: (id: string | null) => void;
 	setGroupKey: (key: string | null) => void;
+	/**
+	 * Run a mutation with single-flight + busy/error tracking. `key` scopes the
+	 * busy indicator (`<itemId>:<actionId>`); refreshes the stream on success
+	 * unless `opts.refresh === false`.
+	 */
+	runAction: (
+		key: string,
+		fn: () => Promise<void>,
+		opts?: { refresh?: boolean; successMsg?: string },
+	) => Promise<void>;
 }
 
 export interface StatModel {
@@ -78,10 +92,10 @@ export interface StatModel {
 export interface StreamAction<TItem> {
 	id: string;
 	label: string;
-	busy?: boolean;
-	disabled?: boolean;
+	/** Requires a two-tap inline confirm before running. */
 	destructive?: boolean;
-	run: (item: TItem) => void;
+	/** The raw mutation; the store wraps it with busy/error/refresh handling. */
+	run: (item: TItem) => Promise<void>;
 }
 
 export interface StreamFilter<TItem> {
@@ -110,4 +124,6 @@ export interface StreamLens<TItem> {
 	group?: (item: TItem) => string;
 	/** Chip filters shown above the list. */
 	filters?: readonly StreamFilter<TItem>[];
+	/** Mutations offered on an expanded item (sync, refresh, rollback…). */
+	actions?: readonly StreamAction<TItem>[];
 }

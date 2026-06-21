@@ -13,6 +13,9 @@ const EMPTY = <TItem>(): StreamState<TItem> => ({
 	search: '',
 	filterId: null,
 	groupKey: null,
+	actionBusy: null,
+	actionError: null,
+	actionMsg: null,
 });
 
 /**
@@ -144,5 +147,21 @@ export function createStreamSource<TRaw, TItem>(
 		setSearch: (q) => patch({ search: q }),
 		setFilter: (filterId) => patch({ filterId }),
 		setGroupKey: (groupKey) => patch({ groupKey }),
+		runAction: async (key, fn, opts) => {
+			if (signal.get().actionBusy) return;
+			patch({ actionBusy: key, actionError: null, actionMsg: null });
+			try {
+				await fn();
+				patch({ actionMsg: opts?.successMsg ?? 'Done' });
+				if (opts?.refresh !== false) await runFetch();
+			} catch (e: unknown) {
+				patch({
+					actionError:
+						e instanceof Error ? e.message : 'Action failed',
+				});
+			} finally {
+				patch({ actionBusy: null });
+			}
+		},
 	};
 }

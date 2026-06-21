@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import {
@@ -10,8 +10,13 @@ import {
 	tokens,
 } from '../ui';
 import { StatGrid } from './StatGrid';
-import { useStream, useStreamLifecycle } from './useStream';
-import type { StreamFilter, StreamLens, StreamStore } from './types';
+import { useStream, useStreamLifecycle, useStreamSelector } from './useStream';
+import type {
+	StreamAction,
+	StreamFilter,
+	StreamLens,
+	StreamStore,
+} from './types';
 
 const TONE_COLOR: Record<string, string> = {
 	primary: tokens.color.primary,
@@ -29,11 +34,12 @@ interface RowProps {
 	row: Row;
 	lens: StreamLens<unknown>;
 	layout: 'rows' | 'cards';
+	store: StreamStore<unknown>;
 	onToggle: (key: string) => void;
 }
 
 const StreamRow = memo(
-	function StreamRow({ row, lens, layout, onToggle }: RowProps) {
+	function StreamRow({ row, lens, layout, store, onToggle }: RowProps) {
 		if (row.kind === 'header') {
 			return (
 				<Text variant="label" tone="muted" style={styles.groupHeader}>
@@ -47,8 +53,17 @@ const StreamRow = memo(
 				<Pressable onPress={() => onToggle(row.key)}>
 					{render(row.item, row.expanded)}
 				</Pressable>
-				{row.expanded && lens.detail ? (
-					<View style={styles.detail}>{lens.detail(row.item)}</View>
+				{row.expanded && (lens.detail || lens.actions?.length) ? (
+					<View style={styles.detail}>
+						{lens.detail ? lens.detail(row.item) : null}
+						{lens.actions?.length ? (
+							<ActionBar
+								store={store}
+								item={row.item}
+								actions={lens.actions}
+							/>
+						) : null}
+					</View>
 				) : null}
 			</View>
 		);
@@ -56,9 +71,78 @@ const StreamRow = memo(
 	(a, b) =>
 		a.lens === b.lens &&
 		a.layout === b.layout &&
+		a.store === b.store &&
 		a.onToggle === b.onToggle &&
 		rowEqual(a.row, b.row),
 );
+
+function ActionBar({
+	store,
+	item,
+	actions,
+}: {
+	store: StreamStore<unknown>;
+	item: unknown;
+	actions: readonly StreamAction<unknown>[];
+}) {
+	const busy = useStreamSelector(store, (s) => s.actionBusy);
+	const error = useStreamSelector(store, (s) => s.actionError);
+	const msg = useStreamSelector(store, (s) => s.actionMsg);
+	const [armed, setArmed] = useState<string | null>(null);
+	const anyBusy = busy !== null;
+	const id = store.id(item);
+
+	return (
+		<Stack gap="sm" style={styles.actionBar}>
+			<Stack direction="row" gap="sm" wrap>
+				{actions.map((a) => {
+					const key = `${id}:${a.id}`;
+					const thisBusy = busy === key;
+					const needsConfirm = a.destructive && armed !== a.id;
+					const tone = a.destructive
+						? tokens.color.danger
+						: tokens.color.primary;
+					return (
+						<Pressable
+							key={a.id}
+							disabled={anyBusy}
+							onPress={() => {
+								if (needsConfirm) {
+									setArmed(a.id);
+									return;
+								}
+								setArmed(null);
+								void store.runAction(key, () => a.run(item), {
+									successMsg: `${a.label} triggered`,
+								});
+							}}
+							style={[
+								styles.actionBtn,
+								{ borderColor: tone },
+								anyBusy ? styles.actionDisabled : null,
+							]}>
+							<Text
+								variant="caption"
+								weight="medium"
+								style={{ color: tone }}>
+								{thisBusy
+									? '…'
+									: needsConfirm
+										? `Confirm ${a.label}?`
+										: a.label}
+							</Text>
+						</Pressable>
+					);
+				})}
+			</Stack>
+			{error || msg ? (
+				<Text variant="caption" tone={error ? 'danger' : 'success'}>
+					{error ?? msg}
+				</Text>
+			) : null}
+		</Stack>
+	);
+}
 
 // Compare row CONTENT, not the wrapper identity — buildRows produces fresh
 // wrappers each poll, but a reconciled item keeps its ref, so this lets an
@@ -161,6 +245,7 @@ export function StreamView<TItem>({
 
 	const stats = lens.stats?.(state.items) ?? [];
 	const lensU = lens as unknown as StreamLens<unknown>;
+	const storeU = store as unknown as StreamStore<unknown>;
 
 	return (
 		<Stack gap="md">
@@ -196,6 +281,7 @@ export function StreamView<TItem>({
 						row={item}
 						lens={lensU}
 						layout={layout}
+						store={storeU}
 						onToggle={store.toggleExpanded}
 					/>
 				)}
@@ -295,4 +381,17 @@ const styles = StyleSheet.create({
 	},
 	separator: { height: tokens.space.sm },
 	empty: { padding: tokens.space.lg, textAlign: 'center' },
+	actionBar: {
+		marginTop: tokens.space.sm,
+		paddingTop: tokens.space.sm,
+		borderTopWidth: 1,
+		borderTopColor: tokens.color.border,
+	},
+	actionBtn: {
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 6,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+	},
+	actionDisabled: { opacity: 0.4 },
 });

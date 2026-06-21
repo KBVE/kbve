@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../../ui';
 import type { BadgeTone } from '../../ui';
 import { createStreamSource } from '../createStreamSource';
-import type { StreamLens, StreamStore } from '../types';
+import type { StreamAction, StreamLens, StreamStore } from '../types';
 
 // Minimal shape of the ArgoCD application payload we depend on. Kept local so
 // the dash library has no coupling to the astro-kbve argoService.
@@ -104,6 +104,59 @@ export function createArgoStream(
 			return json.items ?? [];
 		},
 	});
+}
+
+async function argoMutate(
+	opts: ArgoStreamOptions,
+	path: string,
+	method: 'POST' | 'GET',
+): Promise<void> {
+	const token = await opts.getToken();
+	const headers: Record<string, string> = {};
+	if (token) headers['Authorization'] = `Bearer ${token}`;
+	if (method === 'POST') headers['Content-Type'] = 'application/json';
+	const res = await fetch(
+		`${opts.baseUrl ?? ''}/dashboard/argo/proxy${path}`,
+		{
+			method,
+			headers,
+			body: method === 'POST' ? '{}' : undefined,
+		},
+	);
+	if (res.status === 403) throw new Error('Manage permission required');
+	if (!res.ok) throw new Error(`ArgoCD ${method} ${res.status}`);
+}
+
+/** Argo mutations bound to a token/baseUrl. Require DASHBOARD_MANAGE. */
+export function argoActions(opts: ArgoStreamOptions): StreamAction<ArgoItem>[] {
+	const app = (it: ArgoItem) => encodeURIComponent(it.name);
+	return [
+		{
+			id: 'sync',
+			label: 'Sync',
+			run: (it) =>
+				argoMutate(
+					opts,
+					`/api/v1/applications/${app(it)}/sync`,
+					'POST',
+				),
+		},
+		{
+			id: 'refresh',
+			label: 'Hard Refresh',
+			run: (it) =>
+				argoMutate(
+					opts,
+					`/api/v1/applications/${app(it)}?refresh=hard`,
+					'GET',
+				),
+		},
+	];
+}
+
+/** Full Argo lens with token-bound actions (preferred over the view-only `argoLens`). */
+export function createArgoLens(opts: ArgoStreamOptions): StreamLens<ArgoItem> {
+	return { ...argoLens, actions: argoActions(opts) };
 }
 
 function healthTone(status: string): BadgeTone {
