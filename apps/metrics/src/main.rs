@@ -8,7 +8,7 @@ mod telemetry;
 use std::sync::Arc;
 
 use axum::http::{HeaderValue, Method, header};
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot};
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::TraceLayer;
@@ -25,6 +25,9 @@ fn cors_layer(cfg: &Config) -> CorsLayer {
         .filter_map(|o| o.parse().ok())
         .collect();
     let allow = if origins.is_empty() {
+        tracing::warn!(
+            "METRICS_ALLOWED_ORIGINS unset — CORS allows any origin; set it in production"
+        );
         AllowOrigin::any()
     } else {
         AllowOrigin::list(origins)
@@ -55,8 +58,9 @@ async fn main() -> anyhow::Result<()> {
     let cors = cors_layer(&cfg);
     let addr = format!("{}:{}", cfg.host, cfg.port);
 
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
     let state = Arc::new(AppState::new(cfg, ch, tx, auth));
-    spawn_flusher(state.clone(), rx);
+    let flusher = spawn_flusher(state.clone(), rx, shutdown_rx);
 
     let app = rest::router(state)
         .layer(cors)
@@ -65,6 +69,37 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!(%addr, "metrics ingest listening");
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+
+    // Drain buffered telemetry before exit.
+    tracing::info!("shutdown signal received; draining telemetry buffer");
+    let _ = shutdown_tx.send(());
+    let _ = flusher.await;
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sig) => {
+                sig.recv().await;
+            }
+            Err(_) => std::future::pending::<()>().await,
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {}
+        _ = terminate => {}
+    }
 }
