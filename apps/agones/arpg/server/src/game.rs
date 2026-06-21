@@ -1,9 +1,13 @@
+use std::collections::HashMap;
+
 use bevy::prelude::{Commands, Local, Res, ResMut};
+use bevy_items::{StatusEffectKind, UseEffect, UseEffectType};
 use simgrid::arpg_dungeon;
-use simgrid::proto::Tile;
+use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
-    AggroSpec, EnvOpts, HazardZone, HealAura, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig,
-    Stairs, WalkableMap, ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
+    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, EnvOpts, HazardZone, HealAura,
+    KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap, ground_item_bundle,
+    spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -48,6 +52,11 @@ pub const CAMPFIRE_HEAL_AMOUNT: i32 = 3;
 pub const CAMPFIRE_BURN_AMOUNT: i32 = 8;
 pub const CAMPFIRE_PERIOD_TICKS: u32 = SIM_TICK_HZ;
 
+// A few starter potions drop near spawn so the inventory + item-usage loop is
+// usable immediately: pick up -> 1-9 hotkey -> heal (itemdb says potion heals 15).
+pub const POTION_REF: &str = "potion";
+pub const POTION_START_COUNT: u32 = 3;
+
 /// Ground floor — players spawn here; stairs descend to deeper floors.
 pub const SPAWN_FLOOR: i32 = 0;
 
@@ -80,6 +89,7 @@ pub fn registry() -> KindRegistry {
     reg.register_npc(GOBLIN_REF);
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
+    reg.register_item(POTION_REF);
     reg.register_env(CAMPFIRE_REF);
     reg
 }
@@ -93,6 +103,89 @@ pub fn item_db() -> bevy_items::ItemDb {
         "../../../../../packages/data/codegen/generated/itemdb-data.binpb"
     ))
     .expect("embedded itemdb-data.binpb decodes as item.ItemRegistry")
+}
+
+/// FullHeal has no amount on the wire — use a large heal; `use_item` clamps to
+/// max_hp.
+const FULL_HEAL: i32 = 9_999;
+
+/// Map an itemdb `StatusEffectKind` onto the three runtime `StatusKind`s the sim
+/// supports. Burning collapses to Poison (both periodic damage); unsupported
+/// effects return `None` so the item simply grants no buff.
+fn map_status(raw: i32) -> Option<StatusKind> {
+    match StatusEffectKind::try_from(raw).ok()? {
+        StatusEffectKind::StatusEffectRegen => Some(StatusKind::Regen),
+        StatusEffectKind::StatusEffectHaste => Some(StatusKind::Haste),
+        StatusEffectKind::StatusEffectPoison | StatusEffectKind::StatusEffectBurning => {
+            Some(StatusKind::Poison)
+        }
+        _ => None,
+    }
+}
+
+/// Fold one itemdb `UseEffect` into the consumable-heal / status-buff maps.
+fn ingest_effect(
+    ref_id: &str,
+    ue: &UseEffect,
+    heals: &mut HashMap<String, i32>,
+    buffs: &mut HashMap<String, BuffSpec>,
+) {
+    match UseEffectType::try_from(ue.r#type) {
+        Ok(UseEffectType::UseEffectHeal) => {
+            if let Some(a) = ue.amount {
+                heals.entry(ref_id.to_string()).or_insert(a);
+            }
+        }
+        Ok(UseEffectType::UseEffectFullHeal) => {
+            heals.entry(ref_id.to_string()).or_insert(FULL_HEAL);
+        }
+        Ok(UseEffectType::UseEffectApplyEffect) => {
+            if let Some(kind) = ue.status_effect.and_then(map_status) {
+                let turns = ue.turns.unwrap_or(8).max(1) as u32;
+                let magnitude = ue.amount.or(ue.stacks).unwrap_or(2).max(1);
+                // Haste is a flat move-speed modifier (no periodic tick); damage
+                // and regen tick about once per second.
+                let period_ticks = if kind == StatusKind::Haste {
+                    0
+                } else {
+                    SIM_TICK_HZ
+                };
+                buffs.entry(ref_id.to_string()).or_insert(BuffSpec {
+                    kind,
+                    magnitude,
+                    period_ticks,
+                    duration_ticks: turns.saturating_mul(SIM_TICK_HZ),
+                });
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Derive consumable heals + status buffs from the itemdb so `UseItem` resolves
+/// real effects instead of being a no-op. Reads each item's `use_effects` and
+/// `food.buff_effects` / `food.heals`. This is the data-driven path (#12972) —
+/// editing the MDX + `sync:itemdb` changes in-game item behavior with no code.
+pub fn item_effects(db: &bevy_items::ItemDb) -> (ConsumableEffects, BuffEffects) {
+    let mut heals: HashMap<String, i32> = HashMap::new();
+    let mut buffs: HashMap<String, BuffSpec> = HashMap::new();
+    for (_, item) in db.iter() {
+        let ref_id = item.r#ref.as_str();
+        for ue in &item.use_effects {
+            ingest_effect(ref_id, ue, &mut heals, &mut buffs);
+        }
+        if let Some(food) = &item.food {
+            for ue in &food.buff_effects {
+                ingest_effect(ref_id, ue, &mut heals, &mut buffs);
+            }
+            if let Some(h) = food.heals
+                && h > 0
+            {
+                heals.entry(ref_id.to_string()).or_insert(h);
+            }
+        }
+    }
+    (ConsumableEffects(heals), BuffEffects(buffs))
 }
 
 /// Endless dungeon stairs: two seed-derived stairs per floor (down + up).
@@ -176,6 +269,13 @@ pub fn spawn_world(
         commands.spawn(bundle);
     }
 
+    // Starter potions so the inventory + use-item loop works from spawn.
+    let potion_tile = floor_near(Tile::new(spawn.x + 1, spawn.y - 2));
+    if let Some(bundle) = ground_item_bundle(&registry, POTION_REF, POTION_START_COUNT, potion_tile)
+    {
+        commands.spawn(bundle);
+    }
+
     // A campfire near spawn: blocks its tile, heals the adjacent ring, burns
     // anything forced onto it. Snap to a floor tile distinct from the player
     // spawn so no one starts trapped on it.
@@ -220,5 +320,19 @@ mod tests {
             db.get_by_ref("campfire-kit").is_some(),
             "campfire-kit present"
         );
+    }
+
+    #[test]
+    fn itemdb_effects_map_heal_and_buff() {
+        let db = super::item_db();
+        let (heals, buffs) = super::item_effects(&db);
+        // potion: use_effects [{ HEAL, amount 15 }]
+        assert_eq!(heals.0.get("potion").copied(), Some(15));
+        // elixir: use_effects [{ FULL_HEAL }]
+        assert_eq!(heals.0.get("elixir").copied(), Some(super::FULL_HEAL));
+        // mana-potion: food.buff_effects [{ APPLY_EFFECT, REGEN }]
+        let mana = buffs.0.get("mana-potion").expect("mana-potion buff");
+        assert_eq!(mana.kind, super::StatusKind::Regen);
+        assert!(!heals.0.is_empty() && !buffs.0.is_empty());
     }
 }

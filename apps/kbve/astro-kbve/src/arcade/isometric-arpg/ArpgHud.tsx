@@ -8,7 +8,8 @@ import {
 	type ReactNode,
 	type RefObject,
 } from 'react';
-import { onHud, onHudClear, type HudState } from './systems/hud';
+import { onHud, onHudClear, onInventory, type HudState } from './systems/hud';
+import type { InventoryItem } from '@kbve/laser';
 import { PixelPanel } from './PixelPanel';
 
 const ACCENT = '#fcd34d';
@@ -89,14 +90,20 @@ function Anchor({
  */
 export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 	const [hud, setHud] = useState<HudState | null>(null);
+	const [inv, setInv] = useState<InventoryItem[]>([]);
 	const rootRef = useRef<HTMLDivElement>(null);
 	const scale = useHudScale(rootRef);
 
 	useEffect(() => {
 		const off = onHud(setHud);
-		const offClear = onHudClear(() => setHud(null));
+		const offInv = onInventory(setInv);
+		const offClear = onHudClear(() => {
+			setHud(null);
+			setInv([]);
+		});
 		return () => {
 			off();
+			offInv();
 			offClear();
 		};
 	}, []);
@@ -127,6 +134,7 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 							moving={hud.moving}
 						/>
 					</Anchor>
+					<InventoryBar items={inv} />
 					{debug && (
 						<Anchor corner="bl" scale={scale}>
 							<DebugReadout fps={hud.fps} tile={hud.tile} />
@@ -134,6 +142,70 @@ export default function ArpgHud({ debug = false }: { debug?: boolean }) {
 					)}
 				</>
 			)}
+		</div>
+	);
+}
+
+/**
+ * Bottom-center inventory bar. Each slot shows the item ref + stack count and its
+ * 1-9 hotkey; pressing the number (handled in the scene) uses that item. Purely
+ * presentational — the server-authoritative inventory drives it via `arpg:inventory`.
+ */
+function InventoryBar({
+	items,
+}: {
+	items: InventoryItem[];
+}): ReactElement | null {
+	if (items.length === 0) return null;
+	const slots = items.slice(0, 9);
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				bottom: 14,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				display: 'flex',
+				gap: 6,
+			}}>
+			{slots.map((it, i) => (
+				<PixelPanel
+					key={it.ref}
+					variant="slate"
+					scale={2}
+					style={{
+						minWidth: 58,
+						padding: '5px 8px 7px',
+						textAlign: 'center',
+					}}>
+					<div
+						style={{
+							fontSize: 9,
+							color: ACCENT,
+							textShadow: TEXT_SHADOW,
+							opacity: 0.85,
+						}}>
+						{i + 1}
+					</div>
+					<div
+						style={{
+							fontSize: 10,
+							color: TEXT,
+							textShadow: TEXT_SHADOW,
+						}}>
+						{it.ref}
+					</div>
+					<div
+						style={{
+							fontSize: 11,
+							fontWeight: 700,
+							color: ACCENT,
+							textShadow: TEXT_SHADOW,
+						}}>
+						×{it.count}
+					</div>
+				</PixelPanel>
+			))}
 		</div>
 	);
 }

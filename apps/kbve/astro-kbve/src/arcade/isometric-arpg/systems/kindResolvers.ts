@@ -4,6 +4,7 @@ import type { EntityCat } from '../ecs/store';
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
 export const KIND_CAT_ITEM = 2;
+export const KIND_CAT_ENV = 3;
 
 export interface KindResolvers {
 	cat(kind: number): number;
@@ -24,7 +25,9 @@ export function makeKindResolvers(
 			? 'player'
 			: c === KIND_CAT_ITEM
 				? 'item'
-				: 'npc';
+				: c === KIND_CAT_ENV
+					? 'env'
+					: 'npc';
 	};
 	return { cat, ref, catName };
 }

@@ -68,7 +68,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .expect("sim runtime");
         let mut app = build_app(out_tx, input_rx, roster, seed, config, map, registry);
         let item_db = game::item_db();
-        tracing::info!(items = item_db.len(), "itemdb loaded into sim");
+        let (consumables, buffs) = game::item_effects(&item_db);
+        tracing::info!(
+            items = item_db.len(),
+            consumables = consumables.0.len(),
+            buffs = buffs.0.len(),
+            "itemdb loaded into sim"
+        );
+        app.insert_resource(consumables);
+        app.insert_resource(buffs);
         app.insert_resource(item_db);
         app.insert_resource(game::stairs());
         app.add_systems(

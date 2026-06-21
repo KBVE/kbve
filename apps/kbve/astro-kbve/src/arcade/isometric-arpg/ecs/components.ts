@@ -25,4 +25,5 @@ export const Active = {
 export const PlayerTag: Record<string, never> = {};
 export const NpcTag: Record<string, never> = {};
 export const ItemTag: Record<string, never> = {};
+export const EnvTag: Record<string, never> = {};
 export const MonsterTag: Record<string, never> = {};
