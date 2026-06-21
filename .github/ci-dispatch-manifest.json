@@ -433,6 +433,21 @@
 			"has_test": true
 		},
 		{
+			"key": "metrics",
+			"app_name": "metrics",
+			"version": "0.1.0",
+			"version_toml": "apps/metrics/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
+			"version_target": "apps/metrics/Cargo.toml",
+			"source_path": "apps/metrics",
+			"runner": "ubuntu-latest",
+			"image": "kbve/metrics",
+			"e2e_name": "metrics",
+			"deployment_yaml": "apps/kube/metrics/manifest/metrics-deployment.yaml",
+			"has_test": false,
+			"nx_project": "met"
+		},
+		{
 			"key": "nd_server",
 			"app_name": "nd-server",
 			"version": "0.0.2",
@@ -1249,7 +1264,7 @@
 	],
 	"bevy_game": [],
 	"summary": {
-		"docker": 34,
+		"docker": 35,
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
@@ -1259,6 +1274,6 @@
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 99
+		"total": 100
 	}
 }
