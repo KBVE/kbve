@@ -54,11 +54,11 @@ with open('$version_file') as f:
     fi
 }
 
-echo "::group::Searching for Unreal Engine installation"
+echo "::group::Searching for Unreal Engine installation" >&2
 
 # If version is specified, look for version-specific paths first
 if [ -n "$UE_VERSION" ]; then
-    echo "Looking for UE version: $UE_VERSION"
+    echo "Looking for UE version: $UE_VERSION" >&2
 
     # Check version-specific paths
     for base in "${SEARCH_PATHS[@]}"; do
@@ -68,8 +68,8 @@ if [ -n "$UE_VERSION" ]; then
             candidate="${base}/${variant}"
             if runuat=$(check_ue_installation "$candidate"); then
                 detected_version=$(get_ue_version "$candidate")
-                echo "::notice::Found UE at: $candidate (version: $detected_version)"
-                echo "::endgroup::"
+                echo "::notice::Found UE at: $candidate (version: $detected_version)" >&2
+                echo "::endgroup::" >&2
                 echo "$runuat"
                 exit 0
             fi
@@ -78,14 +78,14 @@ if [ -n "$UE_VERSION" ]; then
 fi
 
 # Fallback: search all common paths
-echo "Searching all common installation paths..."
+echo "Searching all common installation paths..." >&2
 for base in "${SEARCH_PATHS[@]}"; do
     if [ -d "$base" ]; then
         # Check the base path itself
         if runuat=$(check_ue_installation "$base"); then
             detected_version=$(get_ue_version "$base")
-            echo "::notice::Found UE at: $base (version: $detected_version)"
-            echo "::endgroup::"
+            echo "::notice::Found UE at: $base (version: $detected_version)" >&2
+            echo "::endgroup::" >&2
             echo "$runuat"
             exit 0
         fi
@@ -95,8 +95,8 @@ for base in "${SEARCH_PATHS[@]}"; do
             if [ -d "$subdir" ]; then
                 if runuat=$(check_ue_installation "$subdir"); then
                     detected_version=$(get_ue_version "$subdir")
-                    echo "::notice::Found UE at: $subdir (version: $detected_version)"
-                    echo "::endgroup::"
+                    echo "::notice::Found UE at: $subdir (version: $detected_version)" >&2
+                    echo "::endgroup::" >&2
                     echo "$runuat"
                     exit 0
                 fi
@@ -105,7 +105,7 @@ for base in "${SEARCH_PATHS[@]}"; do
     fi
 done
 
-echo "::endgroup::"
-echo "::error::Unreal Engine not found. Searched paths: ${SEARCH_PATHS[*]}"
-echo "::error::Please install Unreal Engine or set a custom installation path."
+echo "::endgroup::" >&2
+echo "::error::Unreal Engine not found. Searched paths: ${SEARCH_PATHS[*]}" >&2
+echo "::error::Please install Unreal Engine or set a custom installation path." >&2
 exit 1

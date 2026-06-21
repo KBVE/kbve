@@ -1,0 +1,44 @@
+{
+	"name": "@kbve/observ",
+	"version": "0.0.1",
+	"description": "Framework-agnostic client telemetry SDK for KBVE — captures JS errors/rejections and ships batched events to the in-house metrics ingest (ClickHouse).",
+	"keywords": [
+		"kbve",
+		"observability",
+		"telemetry",
+		"errors",
+		"rum"
+	],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./src/index.ts",
+	"module": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		}
+	},
+	"files": [
+		"src/",
+		"*.md",
+		"LICENSE"
+	],
+	"dependencies": {
+		"zod": "^4.3.6"
+	},
+	"peerDependencies": {},
+	"publishConfig": {
+		"access": "public"
+	}
+}

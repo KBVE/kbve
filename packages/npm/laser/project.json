@@ -35,6 +35,12 @@
 				"parallel": false
 			}
 		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config packages/npm/laser/vite.config.ts"
+			}
+		},
 		"coverage": {
 			"executor": "nx:run-commands",
 			"options": {

@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/argocd.binpb
  * Config: ../argocd-zod-config.json
- * Generated: 2026-06-18T08:33:11.439Z
+ * Generated: 2026-06-21T00:23:42.408Z
  */
 
 import { z } from 'zod';
@@ -62,6 +62,44 @@ export const SyncStatusSchema = z.object({
 });
 
 export type SyncStatus = z.infer<typeof SyncStatusSchema>;
+
+// ResourceTally
+export const ResourceTallySchema = z.object({
+	total: z.number(),
+	healthy: z.number(),
+	degraded: z.number(),
+	progressing: z.number(),
+	missing: z.number(),
+	suspended: z.number(),
+	synced: z.number(),
+	out_of_sync: z.number(),
+});
+
+export type ResourceTally = z.infer<typeof ResourceTallySchema>;
+
+// AppSummary
+export const AppSummarySchema = z.object({
+	name: z.string(),
+	namespace: z.string(),
+	project: z.string(),
+	health: HealthStatusSchema.optional(),
+	sync: SyncStatusSchema.optional(),
+	repo_url: z.string(),
+	target_revision: z.string(),
+	path: z.string(),
+	revision: z.string(),
+	created_at: z.string(),
+	reconciled_at: z.string(),
+	last_sync_at: z.string(),
+	operation_phase: z.string(),
+	operation_message: z.string(),
+	resources: ResourceTallySchema.optional(),
+	stalled: z.boolean(),
+	stall_reason: z.string(),
+	stall_age_ms: z.number(),
+});
+
+export type AppSummary = z.infer<typeof AppSummarySchema>;
 
 // Application
 export const ApplicationSchema = z.object({

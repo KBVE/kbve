@@ -86,7 +86,7 @@ async fn enrich_repo_storage(repos: &mut [ForgejoRepo]) {
         return;
     };
     let ids: Vec<i64> = repos.iter().map(|r| r.id as i64).collect();
-    match repo_storage(&cluster, &ids).await {
+    match repo_storage(cluster, &ids).await {
         Ok(map) => {
             for r in repos.iter_mut() {
                 if let Some((git, lfs)) = map.get(&(r.id as i64)) {
@@ -277,7 +277,7 @@ async fn storage_health(headers: HeaderMap) -> Response {
         return r;
     }
     let probe = match get_pg_cluster() {
-        Some(cluster) => match verify_schema(&cluster).await {
+        Some(cluster) => match verify_schema(cluster).await {
             Ok(()) => {
                 record_storage_health(StorageHealth::Ok, None);
                 None

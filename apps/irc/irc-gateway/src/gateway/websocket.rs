@@ -103,9 +103,9 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
                 Message::Text(t) => {
                     tokio_tungstenite::tungstenite::Message::Text(t.to_string().into())
                 }
-                Message::Binary(b) => tokio_tungstenite::tungstenite::Message::Binary(b.into()),
-                Message::Ping(p) => tokio_tungstenite::tungstenite::Message::Ping(p.into()),
-                Message::Pong(p) => tokio_tungstenite::tungstenite::Message::Pong(p.into()),
+                Message::Binary(b) => tokio_tungstenite::tungstenite::Message::Binary(b),
+                Message::Ping(p) => tokio_tungstenite::tungstenite::Message::Ping(p),
+                Message::Pong(p) => tokio_tungstenite::tungstenite::Message::Pong(p),
                 Message::Close(_) => break,
             };
             if ergo_sink.send(ergo_msg).await.is_err() {
@@ -128,9 +128,9 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
                         tokio_tungstenite::tungstenite::Message::Text(t) => {
                             Message::Text(t.to_string().into())
                         }
-                        tokio_tungstenite::tungstenite::Message::Binary(b) => Message::Binary(b.into()),
-                        tokio_tungstenite::tungstenite::Message::Ping(p) => Message::Ping(p.into()),
-                        tokio_tungstenite::tungstenite::Message::Pong(p) => Message::Pong(p.into()),
+                        tokio_tungstenite::tungstenite::Message::Binary(b) => Message::Binary(b),
+                        tokio_tungstenite::tungstenite::Message::Ping(p) => Message::Ping(p),
+                        tokio_tungstenite::tungstenite::Message::Pong(p) => Message::Pong(p),
                         tokio_tungstenite::tungstenite::Message::Close(_) => break,
                         _ => continue,
                     };

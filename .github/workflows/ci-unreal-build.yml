@@ -30,10 +30,10 @@ on:
                 type: string
                 default: ''
             engine_version:
-                description: '[game] UE version pin (e.g. 5.7.4) - docker tag derived as dev-<version>'
+                description: '[game] UE version pin (e.g. 5.8.0) - docker tag derived as dev-<version>'
                 required: false
                 type: string
-                default: '5.7.4'
+                default: '5.8.0'
             build_targets:
                 description: '[game] JSON array of UE platform targets (e.g. ["Win64","Linux"])'
                 required: false
@@ -130,7 +130,7 @@ on:
                 description: '[plugin/game] Epic UE container image tag'
                 required: false
                 type: string
-                default: 'dev-5.7.4'
+                default: 'dev-5.8.0'
             target_platforms:
                 description: '[plugin] BuildPlugin platforms (e.g. Linux, Win64, Linux+Win64)'
                 required: false
@@ -317,7 +317,7 @@ jobs:
                   [ -n "${{ inputs.server_target }}" ] && SERVER_TARGET="${{ inputs.server_target }}"
                   [ -n "${{ inputs.server_config }}" ] && SERVER_CONFIG="${{ inputs.server_config }}"
 
-                  UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.7.4}"
+                  UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.8.0}"
                   SERVER_CONFIG="${SERVER_CONFIG:-Development}"
 
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
@@ -599,9 +599,21 @@ jobs:
 
                   echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
                   cd "${PVC_DIR}"
-                  DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
+
+                  # Protect latest symlink target
+                  LATEST_TARGET=$(readlink latest 2>/dev/null || echo "")
+
+                  # Sort version dirs by semver (descending), skip first KEEP
+                  DIRS=$(ls -d [0-9]* 2>/dev/null | sort -V -r | tail -n +$((KEEP+1)))
+
                   if [ -n "${DIRS}" ]; then
                     for DIR in ${DIRS}; do
+                      # Skip if this is the latest symlink target
+                      if [ "${DIR}" = "${LATEST_TARGET}" ]; then
+                        echo "  Skipping ${DIR} (latest symlink target)"
+                        continue
+                      fi
+                      # Skip if in use by running server
                       if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
                         echo "  Skipping ${DIR} (in use by running server)"
                       else
@@ -892,7 +904,7 @@ jobs:
               run: |
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
-                  rm -rf /tmp/game-project /tmp/game-clone "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/game-clone "/tmp/${{ inputs.app_name }}-linux.zip" "${GITHUB_WORKSPACE}/ue5-game-output" 2>/dev/null || true
 
     win_vm_boot:
         name: Boot Windows VM
@@ -962,7 +974,7 @@ jobs:
             - name: Locate Unreal Engine
               id: engine
               run: |
-                  $candidates = @("C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4")
+                  $candidates = @("C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.8","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4")
                   $engineRoot = $null
                   foreach ($c in $candidates) {
                       if (Test-Path (Join-Path $c "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $c; break }
@@ -1127,6 +1139,8 @@ jobs:
               run: |
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
+                  # Drain packaged build zips from the root of the persistent Win64 runner (current run + any backlog for this app)
+                  Get-ChildItem -Path 'C:\' -Filter '${{ inputs.app_name }}-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
     game_build_mac:
         name: Game Build (Mac client)
@@ -1297,6 +1311,11 @@ jobs:
                   itchGameId: ${{ inputs.itch_game_id }}
                   buildChannel: macos
                   buildNumber: ${{ needs.game_gate.outputs.version }}
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
 
     game_post_publish:
         name: Game Post-publish version sync
@@ -1966,7 +1985,7 @@ jobs:
               id: engine
               run: |
                   $engineInput = '${{ inputs.engine_root }}'
-                  $candidates = @($engineInput,"C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4","C:\Program Files\Epic Games\UE_5.5") | Where-Object { $_ -ne '' }
+                  $candidates = @($engineInput,"C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.8","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4","C:\Program Files\Epic Games\UE_5.5") | Where-Object { $_ -ne '' }
                   $engineRoot = $null
                   foreach ($candidate in $candidates) {
                       if (Test-Path (Join-Path $candidate "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $candidate; Write-Host "::notice::Engine found at: $candidate"; break }

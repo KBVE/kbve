@@ -417,14 +417,13 @@ async fn run_client(
         (cache.clone(), rx)
     };
 
-    if !cache_snapshot.is_empty() {
-        if browser_tx
+    if !cache_snapshot.is_empty()
+        && browser_tx
             .send(AxumMsg::Binary(Bytes::from(cache_snapshot)))
             .await
             .is_err()
-        {
-            return Ok(());
-        }
+    {
+        return Ok(());
     }
 
     let session_input = session.clone();

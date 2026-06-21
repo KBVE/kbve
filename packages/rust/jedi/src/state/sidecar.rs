@@ -209,7 +209,7 @@ impl ClickHouseConfig {
         let rows: Vec<serde_json::Value> = text
             .lines()
             .filter(|l| !l.is_empty())
-            .map(|l| serde_json::from_str(l))
+            .map(serde_json::from_str)
             .collect::<Result<_, _>>()
             .map_err(|e| JediError::Parse(format!("ClickHouse JSON parse error: {}", e)))?;
 
@@ -227,7 +227,7 @@ impl ClickHouseConfig {
 
         let body = rows
             .iter()
-            .map(|r| serde_json::to_string(r))
+            .map(serde_json::to_string)
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| JediError::Parse(format!("ClickHouse JSON serialize error: {}", e)))?
             .join("\n");

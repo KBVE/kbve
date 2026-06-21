@@ -6,8 +6,6 @@ import {
 	flashEntity,
 	floatingText,
 	drawHealthBar,
-	findTilePath,
-	type Dir,
 	type EntityDelta,
 	type KindEntry,
 	type Snapshot,
@@ -16,16 +14,24 @@ import {
 } from '@kbve/laser';
 import {
 	COLORS,
-	GRID_SIZE,
 	TILE_W,
 	TILE_H,
 	MOVE_TWEEN_MS,
+	WALK_SPEED,
+	RUN_SPEED,
+	ARRIVE_DIST,
+	WAYPOINT_REACH,
 	HEARTBEAT_MS,
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
+	DUNGEON_SEED,
+	DUNGEON_RADIUS,
+	FOG_ZOOM_OUT,
+	FOG_ZOOM_IN,
+	FOG_MAX_STRENGTH,
 	DEBUG_LOCAL_PLAYER,
 	DEBUG_SPAWN_TILE,
 } from './config';
@@ -39,23 +45,31 @@ import {
 	type SyncState,
 } from './systems/netSync';
 import {
-	stepDir,
-	followPath,
-	commitPredicted,
-	type PredictState,
-} from './systems/prediction';
+	makeFloatState,
+	stepFloat,
+	floatTile,
+	tileStepDir,
+	reconcileFloat,
+	type FloatState,
+} from './systems/floatMotion';
+import { DungeonField, chunkOf, CHUNK_SIZE } from './systems/dungeon';
+import { findPath, smoothPath } from './systems/pathfind';
 import {
 	makeSprite,
 	makeClassSprite,
 	makeNameplate,
 	setClassPose,
+	tickClassFacing,
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
-import { preloadClass, RANGER_CLASS } from './entities/classes';
+import {
+	preloadClass,
+	registerClassAnims,
+	RANGER_CLASS,
+} from './entities/classes';
 import { getNetConfig } from './net-config';
 
-const TICK_MS = 120;
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
 
@@ -66,7 +80,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	private kinds!: KindResolvers;
 	private slotUsername = new Map<number, string>();
 
-	private blocked = new Set<string>();
+	private dungeon = new DungeonField(DUNGEON_SEED, DUNGEON_RADIUS);
+	private chunkGrounds = new Map<string, Phaser.GameObjects.Container>();
+	private holeLayer!: Phaser.GameObjects.Graphics;
+	private fog?: Phaser.GameObjects.Image;
+	private fogVignette?: Phaser.Filters.Vignette;
+	private lastChunkKey = '';
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<
 		'up' | 'down' | 'left' | 'right',
@@ -77,9 +96,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private mySlot = -1;
 	private myEid = -1;
 	private predicted: TileXY = { x: 0, y: 0 };
-	private predictedPath: TileXY[] = [];
 	private predictSeeded = false;
-	private lastTick = 0;
+	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
+	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
+	// no active click move. Keyboard input clears it.
+	private movePath: TileXY[] = [];
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -98,16 +119,21 @@ export class IsoArpgScene extends Phaser.Scene {
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
+		registerClassAnims(this, RANGER_CLASS);
 
 		this.drawGrid();
+		this.buildFog();
 		this.setupInput();
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
 
-		this.connectClient();
-
-		if (!this.client && DEBUG_LOCAL_PLAYER) {
+		if (DEBUG_LOCAL_PLAYER) {
+			// Offline test mode: drive a local ranger, skip the server entirely
+			// (a guest/anon session still yields a jwt, so connectClient would
+			// otherwise create a client + skip this spawn).
 			this.spawnLocalPlayer();
+		} else {
+			this.connectClient();
 		}
 
 		this.time.addEvent({
@@ -120,50 +146,197 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private drawGrid() {
-		// Seamless rock floor: one tiling base layer spanning the whole iso
-		// footprint, clipped to the world diamond. No per-tile cuts, so the
-		// texture reads continuous; tile feedback is a single cursor hover
-		// highlight instead of a persistent grid (Diablo-style).
-		this.drawGroundBase();
+		// Static base ground: one non-repeating texture laid on the iso plane.
+		// It is just the backdrop — the dungeon's room/corridor look is a
+		// separate tile eco-system drawn ON TOP later. The DungeonField still
+		// drives walkability + streaming; it does NOT carve this base.
+		this.buildGroundPlane();
+		this.refreshDungeon(DEBUG_SPAWN_TILE, true);
 		this.hoverTile = this.makeHoverTile();
-		const center = worldToScreen(GRID_SIZE / 2, GRID_SIZE / 2);
-		this.cameras.main.centerOn(center.x, center.y);
 	}
 
-	private drawGroundBase() {
-		// Lay the seamless rock on the ISO ground plane. Phaser applies a
-		// GameObject's own scale BEFORE its rotation, so `rotate45 + scaleY .5`
-		// on one TileSprite squashes the texture's local axis, not the screen —
-		// it never lands on the diamond. Use a Container instead: the inner
-		// TileSprite rotates 45° (grain runs along the tile axes); the parent
-		// Container then squashes the already-rotated result 2:1 in screen
-		// space. rotate-then-scale = the correct iso projection of a flat floor.
-		const side = GRID_SIZE * TILE_W + TILE_W * 2;
-		const center = worldToScreen(GRID_SIZE / 2, GRID_SIZE / 2);
+	private buildGroundPlane() {
+		// Black diamonds punched over every non-floor tile, above the ground but
+		// below entities — the dungeon's room/corridor shape reads as the holes
+		// in the tiled ground.
+		this.holeLayer = this.add.graphics().setDepth(DEPTH_TILE + 1);
+	}
 
-		const floor = this.add.tileSprite(0, 0, side, side, GROUND_TEXTURE_KEY);
-		floor.setOrigin(0.5, 0.5);
-		floor.setRotation(-Math.PI / 4);
+	/**
+	 * Distance fog. On WebGL it uses Phaser 4's built-in per-pixel Vignette
+	 * camera filter (GPU, the right hook for richer fog / fog-of-war later). On
+	 * the canvas renderer (no filters) it falls back to a radial vignette image
+	 * locked to the camera. Either way: clear around the player, fogged toward
+	 * the streaming boundary instead of a hard void cliff. The fog only matters
+	 * when zoomed OUT (the void edge is visible); zoomed in it fades away —
+	 * driven by syncFogToZoom().
+	 */
+	private buildFog() {
+		if (this.renderer.type === Phaser.WEBGL) {
+			this.fogVignette = this.cameras.main.filters.internal.addVignette(
+				0.5,
+				0.5,
+				0.62,
+				0,
+				0x05070d,
+			);
+			this.syncFogToZoom();
+			return;
+		}
+		this.buildFogVignette();
+	}
 
-		const plane = this.add.container(center.x, center.y, [floor]);
+	/** Canvas-renderer fallback: a radial gradient vignette over the viewport. */
+	private buildFogVignette() {
+		const key = 'arpg-fog-radial';
+		if (!this.textures.exists(key)) {
+			const size = 512;
+			const tex = this.textures.createCanvas(key, size, size);
+			const ctx = tex!.getContext();
+			const r = size / 2;
+			const grad = ctx.createRadialGradient(r, r, r * 0.42, r, r, r);
+			grad.addColorStop(0, 'rgba(8,9,14,0)');
+			grad.addColorStop(0.7, 'rgba(8,9,14,0.55)');
+			grad.addColorStop(1, 'rgba(8,9,14,1)');
+			ctx.fillStyle = grad;
+			ctx.fillRect(0, 0, size, size);
+			tex!.refresh();
+		}
+
+		this.fog = this.add
+			.image(0, 0, key)
+			.setOrigin(0.5, 0.5)
+			.setScrollFactor(0)
+			.setDepth(DEPTH_UI - 1);
+		this.sizeFog();
+		this.scale.on(Phaser.Scale.Events.RESIZE, this.sizeFog, this);
+	}
+
+	/** Stretch the fog vignette to blanket the whole viewport, centred. */
+	private sizeFog() {
+		if (!this.fog) return;
+		const cam = this.cameras.main;
+		const w = cam.width;
+		const h = cam.height;
+		// Overscale so the opaque rim always reaches past the corners.
+		const span = Math.hypot(w, h) * 1.15;
+		this.fog.setPosition(w / 2, h / 2);
+		this.fog.setDisplaySize(span, span);
+	}
+
+	/**
+	 * Fog only matters when zoomed OUT, where the streamed void boundary comes
+	 * into view; zoomed in the screen is tight and fog just dims the scene. Map
+	 * zoom -> fog strength: full at FOG_ZOOM_OUT, fading to none by FOG_ZOOM_IN.
+	 * The canvas fallback image's alpha rides the same curve.
+	 */
+	private syncFogToZoom() {
+		const zoom = this.cameras.main.zoom;
+		const t = Phaser.Math.Clamp(
+			(FOG_ZOOM_IN - zoom) / (FOG_ZOOM_IN - FOG_ZOOM_OUT),
+			0,
+			1,
+		);
+		const strength = t * FOG_MAX_STRENGTH;
+		if (this.fogVignette) this.fogVignette.strength = strength;
+		if (this.fog) this.fog.setAlpha(t);
+	}
+
+	/**
+	 * Stream the dungeon window to `focus` on a chunk change: regenerate the
+	 * field, build a WORLD-anchored ground tile for each newly-entered chunk,
+	 * unload the ones left behind, and repaint the hole diamonds. Each chunk's
+	 * ground is fixed at its own world origin, so nothing slides as the player
+	 * walks — areas simply load ahead and unload behind. `force` runs on build.
+	 */
+	private refreshDungeon(focus: TileXY, force = false) {
+		const { cx, cy } = chunkOf(focus.x, focus.y);
+		const ckey = `${cx}:${cy}`;
+		if (!force && ckey === this.lastChunkKey) return;
+		this.lastChunkKey = ckey;
+
+		const { added, removed } = this.dungeon.refresh(focus);
+		for (const c of added) this.buildChunkGround(c.cx, c.cy);
+		for (const c of removed) this.unloadChunkGround(c.cx, c.cy);
+		this.paintHoles(cx, cy);
+	}
+
+	/**
+	 * One world-anchored ground tile for a chunk: a TileSprite covering the
+	 * chunk's tile square, projected onto the iso plane (inner sprite rotated
+	 * 45°, parent Container squashed 2:1 — Phaser scales before it rotates, so a
+	 * lone sprite can't be projected directly) and pinned at the chunk's world
+	 * centre. Fixed in world space → the texture never slides.
+	 */
+	private buildChunkGround(cx: number, cy: number) {
+		const key = `${cx}:${cy}`;
+		if (this.chunkGrounds.has(key)) return;
+		const side = CHUNK_SIZE * TILE_W + TILE_W * 2;
+		const sprite = this.add.tileSprite(
+			0,
+			0,
+			side,
+			side,
+			GROUND_TEXTURE_KEY,
+		);
+		sprite.setOrigin(0.5, 0.5);
+		sprite.setRotation(-Math.PI / 4);
+
+		// World centre of the chunk's tile square.
+		const midX = cx * CHUNK_SIZE + CHUNK_SIZE / 2;
+		const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
+		const c = worldToScreen(midX, midY);
+		const plane = this.add.container(c.x, c.y, [sprite]);
 		plane.setScale(1, 0.5);
 		plane.setDepth(DEPTH_TILE);
 
-		// Clip to the world diamond so the playable area has clean iso edges.
-		const mask = this.make.graphics({});
-		mask.fillStyle(0xffffff);
-		mask.beginPath();
-		const top = worldToScreen(0, 0);
-		const right = worldToScreen(GRID_SIZE, 0);
-		const bottom = worldToScreen(GRID_SIZE, GRID_SIZE);
-		const left = worldToScreen(0, GRID_SIZE);
-		mask.moveTo(top.x, top.y);
-		mask.lineTo(right.x, right.y);
-		mask.lineTo(bottom.x, bottom.y);
-		mask.lineTo(left.x, left.y);
-		mask.closePath();
-		mask.fillPath();
-		plane.setMask(mask.createGeometryMask());
+		// Phase the texture by the chunk's screen centre rotated into the
+		// sprite's own (un-rotated) frame, so every chunk samples one continuous
+		// texture — borders between chunk grounds blend with no visible seam.
+		const cos = Math.cos(Math.PI / 4);
+		const sin = Math.sin(Math.PI / 4);
+		const ux = c.x;
+		const uy = c.y / 0.5;
+		sprite.tilePositionX = ux * cos - uy * sin;
+		sprite.tilePositionY = ux * sin + uy * cos;
+		this.chunkGrounds.set(key, plane);
+	}
+
+	private unloadChunkGround(cx: number, cy: number) {
+		const key = `${cx}:${cy}`;
+		this.chunkGrounds.get(key)?.destroy();
+		this.chunkGrounds.delete(key);
+	}
+
+	/**
+	 * Repaint the hole layer: a black iso diamond on every non-floor tile in the
+	 * live chunk window. Painting holes (sparse walls) rather than floors keeps
+	 * the tiled ground texture intact underneath the walkable space.
+	 */
+	private paintHoles(cx: number, cy: number) {
+		const g = this.holeLayer;
+		g.clear();
+		g.fillStyle(0x05070d, 1);
+		const hw = TILE_W / 2;
+		const hh = TILE_H / 2;
+		const r = DUNGEON_RADIUS;
+		const minX = (cx - r) * CHUNK_SIZE;
+		const minY = (cy - r) * CHUNK_SIZE;
+		const maxX = (cx + r + 1) * CHUNK_SIZE;
+		const maxY = (cy + r + 1) * CHUNK_SIZE;
+		for (let y = minY; y < maxY; y++) {
+			for (let x = minX; x < maxX; x++) {
+				if (this.dungeon.isFloor(x, y)) continue;
+				const p = worldToScreen(x, y);
+				g.beginPath();
+				g.moveTo(p.x, p.y - hh);
+				g.lineTo(p.x + hw, p.y);
+				g.lineTo(p.x, p.y + hh);
+				g.lineTo(p.x - hw, p.y);
+				g.closePath();
+				g.fillPath();
+			}
+		}
 	}
 
 	private makeHoverTile(): Phaser.GameObjects.Graphics {
@@ -199,9 +372,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
 				this.client?.action(ACTION_ATTACK, hit.serverEid);
+				this.movePath = [];
 				this.poseLocalPlayer('Attack', {
-					dx: tile.x - this.predicted.x,
-					dy: tile.y - this.predicted.y,
+					dx: tile.x - this.floatState.pos.x,
+					dy: tile.y - this.floatState.pos.y,
 				});
 				return;
 			}
@@ -233,6 +407,7 @@ export class IsoArpgScene extends Phaser.Scene {
 							),
 						};
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
+				this.syncShadow(refs);
 				if (label) {
 					refs.nameplate = makeNameplate(this, label);
 					this.placeNameplate(refs);
@@ -240,11 +415,12 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
 				return refs;
 			},
-			move: (refs, tile) => this.tweenTo(refs, tile),
+			move: (refs, tile) => this.tweenTo(refs, tile, true),
 			setPos: (refs, tile) => this.placeRefs(refs, tile),
 			follow: (refs) =>
 				this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12),
 			remove: (refs) => {
+				refs.shadow?.destroy();
 				refs.nameplate?.destroy();
 				refs.hpBar?.destroy();
 				refs.sprite.destroy();
@@ -293,6 +469,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const p of s.players) {
 			this.slotUsername.set(p.slot, p.kbve_username);
 		}
+		const hadEid = this.myEid >= 0;
 		const state: SyncState = {
 			myEid: this.myEid,
 			mySlot: this.mySlot,
@@ -309,6 +486,17 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.myEid = state.myEid;
 		this.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
+
+		// Seed the float body when our entity first appears; thereafter soft-
+		// correct it toward the server-authoritative tile so the client stays
+		// smooth without drifting away from the server.
+		if (!hadEid && this.myEid >= 0) {
+			this.floatState = makeFloatState(this.predicted);
+			this.refreshDungeon(this.predicted, true);
+		} else if (this.myEid >= 0) {
+			reconcileFloat(this.floatState, this.predicted);
+			this.refreshDungeon(this.predicted);
+		}
 		this.refreshHud();
 	}
 
@@ -328,58 +516,167 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
-	update(time: number) {
+	update(time: number, delta: number) {
+		// Smooth facing runs every frame (independent of the movement sim) so
+		// the 16-dir turn curve stays fluid even between tile crossings.
+		this.tickFacing();
+		this.syncFogToZoom();
+
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
-		if (time - this.lastTick < TICK_MS) return;
-		this.lastTick = time;
 
 		const myRefs = this.store.refs(this.myEid);
-		if (!myRefs) return;
+		if (myRefs) this.tickLocalMotion(myRefs, delta);
+	}
 
-		const pstate: PredictState = {
-			predicted: this.predicted,
-			path: this.predictedPath,
-			seeded: this.predictSeeded,
-		};
+	/**
+	 * Float-driven local movement: keyboard (held = continuous intent) or a
+	 * click destination feeds a world-tile intent vector into the float sim,
+	 * which is then rendered, animated (Run/Idle by speed), and synced to the
+	 * server as cardinal steps whenever the underlying tile changes.
+	 */
+	private tickLocalMotion(refs: EntityRefs, deltaMs: number) {
+		const intent = this.readIntent();
+		const prevTile = floatTile(this.floatState);
 
-		let dir: Dir | null = null;
-		if (this.cursors.up.isDown || this.wasd.up.isDown) dir = 'Up';
-		else if (this.cursors.down.isDown || this.wasd.down.isDown)
-			dir = 'Down';
-		else if (this.cursors.left.isDown || this.wasd.left.isDown)
-			dir = 'Left';
-		else if (this.cursors.right.isDown || this.wasd.right.isDown)
-			dir = 'Right';
+		// Walk tier while Shift is held; run otherwise. Each tier's body speed
+		// is tuned to its anim's stride, so feet don't slide at either pace.
+		const walking = this.cursors.shift?.isDown ?? false;
+		const speed = walking ? WALK_SPEED : RUN_SPEED;
+		stepFloat(this.floatState, intent, speed, this.isBlocked, deltaMs);
 
-		if (dir) {
-			const cand = stepDir(pstate, dir, this.isBlocked);
-			if (cand) this.advance(pstate, myRefs, cand);
-			this.predictedPath = pstate.path;
-			this.predicted = pstate.predicted;
-			this.client?.step(dir);
-			return;
+		// Locomotion anim follows ACTIVE INTENT, not residual velocity: the
+		// moment input stops the body flips to Idle, even though friction is
+		// still bleeding the leftover velocity to a slide-stop. Keying off
+		// velocity instead left a few frames of run-in-place during decel.
+		const intending = Math.hypot(intent.x, intent.y) > 0;
+		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+			if (intending) {
+				setClassPose(
+					refs.sprite,
+					refs.cls,
+					walking ? 'WalkForward' : 'Run',
+					{ dx: this.floatState.vel.x, dy: this.floatState.vel.y },
+					this,
+				);
+			} else if (
+				refs.cls.state === 'Run' ||
+				refs.cls.state === 'WalkForward'
+			) {
+				setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
+			}
 		}
 
-		const next = followPath(pstate, this.isBlocked);
-		this.predictedPath = pstate.path;
-		if (next) this.advance(pstate, myRefs, next);
-		this.predicted = pstate.predicted;
+		this.renderFloat(refs);
+
+		// Keep the server roughly in sync: emit a cardinal step toward whatever
+		// new tile the float body has entered. The server stays authoritative;
+		// reconcileFloat soft-corrects any drift on the next snapshot.
+		const tile = floatTile(this.floatState);
+		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
+			this.predicted = tile;
+			this.refreshDungeon(tile); // stream chunks as the player advances
+			const dir = tileStepDir(prevTile, tile);
+			if (dir) this.client?.step(dir);
+		}
+
+		// Drop the click route once the FINAL tile is reached or overshot, so the
+		// float never orbits the goal stuck in Run (intermediate waypoints are
+		// consumed in readIntent).
+		if (this.movePath.length === 1) {
+			const goal = this.movePath[0];
+			const dx = goal.x - this.floatState.pos.x;
+			const dy = goal.y - this.floatState.pos.y;
+			const dist = Math.hypot(dx, dy);
+			const overshot =
+				dx * this.floatState.vel.x + dy * this.floatState.vel.y < 0;
+			if (dist < ARRIVE_DIST || (overshot && dist < 1)) {
+				this.movePath = [];
+			}
+		}
 	}
 
-	private advance(pstate: PredictState, refs: EntityRefs, tile: TileXY) {
-		commitPredicted(pstate, tile);
-		this.tweenTo(refs, tile);
+	/**
+	 * World-tile intent vector. Held keys win (and cancel any click route);
+	 * otherwise follow the A* path — steer toward the current waypoint, pop it
+	 * on arrival, and aim straight at the final tile (sub-unit intent near the
+	 * end so the body eases to a stop instead of overshooting).
+	 */
+	private readIntent(): TileXY {
+		const ix =
+			(this.cursors.right.isDown || this.wasd.right.isDown ? 1 : 0) -
+			(this.cursors.left.isDown || this.wasd.left.isDown ? 1 : 0);
+		const iy =
+			(this.cursors.down.isDown || this.wasd.down.isDown ? 1 : 0) -
+			(this.cursors.up.isDown || this.wasd.up.isDown ? 1 : 0);
+		if (ix !== 0 || iy !== 0) {
+			this.movePath = []; // keys override a click move
+			return { x: ix, y: iy };
+		}
+
+		while (this.movePath.length > 0) {
+			const wp = this.movePath[0];
+			const dx = wp.x - this.floatState.pos.x;
+			const dy = wp.y - this.floatState.pos.y;
+			const dist = Math.hypot(dx, dy);
+			// Reached this waypoint — pop and aim at the next. Use a looser
+			// threshold for intermediate waypoints so the body doesn't have to
+			// pass dead-center, only the final tile eases to a precise stop.
+			const last = this.movePath.length === 1;
+			const reach = last ? ARRIVE_DIST : WAYPOINT_REACH;
+			if (dist < reach) {
+				this.movePath.shift();
+				continue;
+			}
+			return { x: dx, y: dy };
+		}
+		return { x: 0, y: 0 };
 	}
 
+	/** Draw the local sprite at its fractional float position. */
+	private renderFloat(refs: EntityRefs) {
+		const p = worldToScreen(this.floatState.pos.x, this.floatState.pos.y);
+		refs.sprite.setPosition(p.x, p.y + 8);
+		refs.sprite.setDepth(
+			DEPTH_ENTITY_BASE +
+				tileDepth(this.floatState.pos.x, this.floatState.pos.y),
+		);
+		this.syncShadow(refs);
+		this.placeNameplate(refs);
+	}
+
+	/** Lerp every class entity's facing toward its movement target this frame. */
+	private tickFacing() {
+		for (const [, , refs] of this.store.entries()) {
+			if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
+				tickClassFacing(refs.sprite, refs.cls);
+			}
+		}
+	}
+
+	/**
+	 * Click-move: A*-route from the body's tile to the clicked tile over floor
+	 * tiles, string-pull the result, and follow it as waypoints. Routing through
+	 * corridors (not a straight line into a wall) is what stops the run-into-wall
+	 * hugging on long room-to-room moves. No path = no move.
+	 */
 	private startMoveTo(tile: TileXY) {
 		if (!this.client && !this.localMode) return;
-		this.predictedPath = findTilePath(this.predicted, tile, this.isBlocked);
+		const start = floatTile(this.floatState);
+		const raw = findPath(start, tile, (x, y) => this.dungeon.isFloor(x, y));
+		if (!raw) {
+			this.movePath = [];
+			return;
+		}
+		this.movePath = smoothPath(start, raw, (x, y) =>
+			this.dungeon.isFloor(x, y),
+		);
 		this.client?.moveTo(tile);
 	}
 
+	// Endless dungeon: a tile is walkable iff it's a generated floor tile. No
+	// fixed bounds — walls are simply the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
-		if (x < 0 || y < 0 || x >= GRID_SIZE || y >= GRID_SIZE) return true;
-		return this.blocked.has(`${x},${y}`);
+		return !this.dungeon.isFloor(x, y);
 	};
 
 	private isHostileServer(serverEid: number): boolean {
@@ -395,12 +692,28 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private placeRefs(refs: EntityRefs, tile: TileXY) {
 		this.placeSprite(refs.sprite, tile.x, tile.y);
+		this.syncShadow(refs);
 		this.placeNameplate(refs);
 	}
 
+	/**
+	 * The shadow is the asset's baked Shadow layer, frame-locked to the Body, so
+	 * it just mirrors the body sprite's exact transform and renders one depth
+	 * below it. No ground projection or foot fudge — the artist already aligned
+	 * the shadow to the feet for every angle and frame.
+	 */
+	private syncShadow(refs: EntityRefs) {
+		if (!refs.shadow) return;
+		refs.shadow.setPosition(refs.sprite.x, refs.sprite.y);
+		refs.shadow.setDepth(refs.sprite.depth - 1);
+	}
+
 	private makePlayerRefs(kind: number): EntityRefs {
-		const { sprite, cls } = makeClassSprite(this, this.kinds.ref(kind));
-		return { sprite, cls };
+		const { sprite, shadow, cls } = makeClassSprite(
+			this,
+			this.kinds.ref(kind),
+		);
+		return { sprite, shadow, cls };
 	}
 
 	/**
@@ -410,6 +723,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * `this.client` is null). Lets the character render + move without a server.
 	 */
 	private spawnLocalPlayer() {
+		if (this.store.has(LOCAL_PLAYER_EID)) return;
 		this.localMode = true;
 		const kind = LOCAL_PLAYER_KIND;
 		this.kindRegistry.set(kind, {
@@ -417,9 +731,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			ref: RANGER_CLASS.id,
 			cat: 0, // KIND_CAT_PLAYER
 		});
-		const tile = { x: DEBUG_SPAWN_TILE.x, y: DEBUG_SPAWN_TILE.y };
+		// Drop onto the nearest floor tile so the spawn never lands in a wall.
+		const tile = this.dungeon.nearestFloor(DEBUG_SPAWN_TILE);
 		const refs = this.makePlayerRefs(kind);
 		this.placeSprite(refs.sprite, tile.x, tile.y);
+		this.syncShadow(refs);
 		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
 		this.store.spawn(
 			LOCAL_PLAYER_EID,
@@ -437,7 +753,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.myEid = LOCAL_PLAYER_EID;
 		this.predicted = { ...tile };
 		this.predictSeeded = true;
+		this.floatState = makeFloatState(tile);
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
+		this.cameras.main.setZoom(1.5);
 	}
 
 	private poseLocalPlayer(
@@ -461,16 +779,19 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
-	private tweenTo(refs: EntityRefs, tile: TileXY) {
+	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
 		const from = screenToWorld(refs.sprite.x, refs.sprite.y - 8);
 		const p = worldToScreen(tile.x, tile.y);
 		refs.sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tile.x, tile.y));
 
 		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			setClassPose(refs.sprite, refs.cls, 'Run', {
-				dx: tile.x - from.x,
-				dy: tile.y - from.y,
-			});
+			setClassPose(
+				refs.sprite,
+				refs.cls,
+				'Run',
+				{ dx: tile.x - from.x, dy: tile.y - from.y },
+				this,
+			);
 		}
 
 		this.tweens.add({
@@ -479,16 +800,25 @@ export class IsoArpgScene extends Phaser.Scene {
 			y: p.y + 8,
 			duration: MOVE_TWEEN_MS,
 			ease: 'Linear',
-			onUpdate: () => this.placeNameplate(refs),
-			onComplete: () => {
-				if (
-					refs.cls &&
-					refs.sprite instanceof Phaser.GameObjects.Sprite
-				) {
-					setClassPose(refs.sprite, refs.cls, 'Idle');
-				}
+			onUpdate: () => {
+				this.placeNameplate(refs);
+				this.syncShadow(refs);
 			},
+			onComplete: settle ? () => this.settleRemoteIdle(refs) : undefined,
 		});
+	}
+
+	/**
+	 * Remote movers aren't input-driven, so settle them to Idle when their last
+	 * step tween ends and no follow-up tween chained on. The local player is
+	 * float-driven and settles itself in tickLocalMotion.
+	 */
+	private settleRemoteIdle(refs: EntityRefs) {
+		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
+			return;
+		if (refs.cls.state !== 'Run') return;
+		if (this.tweens.isTweening(refs.sprite)) return;
+		setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
 	}
 
 	private placeNameplate(refs: EntityRefs) {

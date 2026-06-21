@@ -21,6 +21,7 @@ members = [
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/rows',
 	'apps/jobboard',
+	'apps/metrics',
 	'apps/kbve/isometric/src-tauri',
 	'apps/kbve/desktop-kbve/src-tauri',
 	'packages/rust/bevy/bevy_inventory',

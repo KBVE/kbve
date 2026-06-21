@@ -4,7 +4,7 @@ const MANIFEST = '.github/ci-dispatch-manifest.json';
 const BUILD_PLATFORMS = ['Linux', 'Win64'];
 
 const mode = (process.env.MODE || 'changed').trim();
-const ueImageTag = (process.env.UE_IMAGE_TAG || 'dev-5.7.4').trim();
+const ueImageTag = (process.env.UE_IMAGE_TAG || 'dev-5.8.0').trim();
 const changedRaw = process.env.CHANGED_FILES || '';
 
 const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'));

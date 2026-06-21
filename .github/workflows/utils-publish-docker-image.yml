@@ -32,9 +32,18 @@ on:
                 required: false
                 type: string
                 default: ''
+            source_path:
+                description: 'Project source path (e.g. apps/cryptothrone). Used to detect Forgejo LFS assets for the rebuild fallback.'
+                required: false
+                type: string
+                default: ''
         secrets:
             MY_GITHUB_TOKEN:
                 required: true
+            FORGEJO_USER:
+                required: false
+            FORGEJO_TOKEN:
+                required: false
 
 jobs:
     publish:
@@ -185,6 +194,34 @@ jobs:
                     sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT"
                     echo "Synced version ${VER} → ${TGT}"
                   fi
+
+            - name: Detect Forgejo LFS assets
+              id: lfs_detect
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
+              run: |
+                  SCOPE="${{ inputs.source_path }}"
+                  if [ -n "$SCOPE" ] && git lfs ls-files -- "$SCOPE" 2>/dev/null | grep -q .; then
+                    echo "uses_lfs=true" >> "$GITHUB_OUTPUT"
+                    echo "Forgejo LFS assets present under $SCOPE"
+                  else
+                    echo "uses_lfs=false" >> "$GITHUB_OUTPUT"
+                    echo "No LFS assets under '${SCOPE:-<unset>}' — skipping Forgejo credential setup"
+                  fi
+
+            - name: Configure Forgejo LFS credentials
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && steps.lfs_detect.outputs.uses_lfs == 'true' }}
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com (assets would ship as pointer stubs)"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  echo "Forgejo LFS credentials configured for git.kbve.com"
 
             - name: Build Docker Image with Nx
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}

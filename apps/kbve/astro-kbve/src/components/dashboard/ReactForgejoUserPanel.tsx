@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { forgejoService, timeAgo, type ForgejoUser } from './forgejoService';
 import {
@@ -14,7 +14,16 @@ import {
 	LoadMoreButton,
 	ForgejoNotice,
 } from './forgejoUi';
-import { Plus, Pencil, Trash2, ShieldCheck, Search } from 'lucide-react';
+import {
+	Plus,
+	Pencil,
+	Trash2,
+	ShieldCheck,
+	Search,
+	KeyRound,
+	X,
+	Loader2,
+} from 'lucide-react';
 
 const { textColor, subText, border, panelBg } = uiTokens;
 
@@ -57,7 +66,228 @@ type ModalKind =
 	| { type: 'create' }
 	| { type: 'edit'; user: ForgejoUser }
 	| { type: 'delete'; user: ForgejoUser }
+	| { type: 'keys'; user: ForgejoUser }
 	| null;
+
+function KeysModal({
+	user,
+	onClose,
+}: {
+	user: ForgejoUser;
+	onClose: () => void;
+}) {
+	const busy = useStore(forgejoService.$busy);
+	const loading = useStore(forgejoService.$userKeysLoading);
+	const keysMap = useStore(forgejoService.$userKeys);
+	const gpgMap = useStore(forgejoService.$userGpgKeys);
+	const { state, set, reset } = useForm({ title: '', key: '' });
+	const keys = keysMap[user.login];
+	const gpgKeys = gpgMap[user.login] ?? [];
+
+	useEffect(() => {
+		void forgejoService.loadUserKeys(user.login);
+	}, [user.login]);
+
+	const submit = async () => {
+		const ok = await forgejoService.addUserKey(user.login, {
+			title: state.title,
+			key: state.key,
+			read_only: true,
+		});
+		if (ok) reset();
+	};
+
+	return (
+		<Modal
+			title={`Keys · ${user.login}`}
+			onClose={onClose}
+			width={560}
+			footer={
+				<ActionButton variant="ghost" onClick={onClose}>
+					Close
+				</ActionButton>
+			}>
+			<div style={{ marginBottom: '1rem' }}>
+				<div
+					style={{
+						fontSize: '0.72rem',
+						fontWeight: 600,
+						color: subText,
+						textTransform: 'uppercase',
+						letterSpacing: '0.04em',
+						marginBottom: 8,
+					}}>
+					SSH keys
+				</div>
+				{loading && (keys === undefined || keys.length === 0) ? (
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'center',
+							padding: '1rem',
+						}}>
+						<Loader2
+							size={18}
+							style={{
+								animation: 'spin 1s linear infinite',
+								color: '#06b6d4',
+							}}
+						/>
+					</div>
+				) : (
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 6,
+						}}>
+						{(keys ?? []).map((k) => (
+							<div
+								key={k.id}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 8,
+									padding: '0.45rem 0.6rem',
+									borderRadius: 7,
+									border,
+									background: panelBg,
+								}}>
+								<KeyRound
+									size={13}
+									style={{ color: subText }}
+								/>
+								<div style={{ flex: 1, minWidth: 0 }}>
+									<div
+										style={{
+											color: textColor,
+											fontSize: '0.8rem',
+											fontWeight: 500,
+										}}>
+										{k.title}
+									</div>
+									<div
+										style={{
+											color: subText,
+											fontSize: '0.68rem',
+											fontFamily: 'monospace',
+											overflow: 'hidden',
+											textOverflow: 'ellipsis',
+											whiteSpace: 'nowrap',
+										}}>
+										{k.fingerprint}
+									</div>
+								</div>
+								<ActionButton
+									size="sm"
+									variant="danger"
+									title="Delete key"
+									loading={
+										busy ===
+										`userkey-delete-${user.login}-${k.id}`
+									}
+									onClick={() =>
+										forgejoService.deleteUserKey(
+											user.login,
+											k.id,
+										)
+									}>
+									<X size={11} />
+								</ActionButton>
+							</div>
+						))}
+						{keys && keys.length === 0 && (
+							<span
+								style={{
+									color: subText,
+									fontSize: '0.78rem',
+								}}>
+								No SSH keys.
+							</span>
+						)}
+					</div>
+				)}
+			</div>
+
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 8,
+					padding: '0.75rem',
+					borderRadius: 8,
+					border,
+					marginBottom: '1.25rem',
+				}}>
+				<TextField
+					label="Key title"
+					value={state.title}
+					onChange={(v) => set('title', v)}
+					placeholder="laptop"
+				/>
+				<TextField
+					label="Public key"
+					value={state.key}
+					onChange={(v) => set('key', v)}
+					placeholder="ssh-ed25519 AAAA…"
+					textarea
+				/>
+				<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+					<ActionButton
+						variant="primary"
+						disabled={!state.title || !state.key}
+						loading={busy === `userkey-add-${user.login}`}
+						onClick={submit}>
+						<Plus size={13} /> Add SSH key
+					</ActionButton>
+				</div>
+			</div>
+
+			<div
+				style={{
+					fontSize: '0.72rem',
+					fontWeight: 600,
+					color: subText,
+					textTransform: 'uppercase',
+					letterSpacing: '0.04em',
+					marginBottom: 8,
+				}}>
+				GPG keys
+			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+				{gpgKeys.map((g) => (
+					<div
+						key={g.id}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							padding: '0.45rem 0.6rem',
+							borderRadius: 7,
+							border,
+							background: panelBg,
+							fontSize: '0.78rem',
+							color: textColor,
+						}}>
+						<span style={{ fontFamily: 'monospace' }}>
+							{g.key_id}
+						</span>
+						<span style={{ color: subText, fontSize: '0.68rem' }}>
+							{g.can_sign ? 'sign' : ''}
+							{g.can_sign && g.can_certify ? ' · ' : ''}
+							{g.can_certify ? 'certify' : ''}
+						</span>
+					</div>
+				))}
+				{gpgKeys.length === 0 && (
+					<span style={{ color: subText, fontSize: '0.78rem' }}>
+						No GPG keys.
+					</span>
+				)}
+			</div>
+		</Modal>
+	);
+}
 
 function CreateUserModal({ onClose }: { onClose: () => void }) {
 	const busy = useStore(forgejoService.$busy);
@@ -324,6 +554,17 @@ export default function ReactForgejoUserPanel() {
 										}}>
 										<ActionButton
 											size="sm"
+											title="Keys"
+											onClick={() =>
+												setModal({
+													type: 'keys',
+													user: u,
+												})
+											}>
+											<KeyRound size={12} />
+										</ActionButton>
+										<ActionButton
+											size="sm"
 											title="Edit"
 											onClick={() =>
 												setModal({
@@ -367,6 +608,9 @@ export default function ReactForgejoUserPanel() {
 					user={modal.user}
 					onClose={() => setModal(null)}
 				/>
+			)}
+			{modal?.type === 'keys' && (
+				<KeysModal user={modal.user} onClose={() => setModal(null)} />
 			)}
 			{modal?.type === 'delete' && (
 				<ConfirmDialog

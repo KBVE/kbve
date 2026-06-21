@@ -1547,7 +1547,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.50"
+version = "0.1.51"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -4885,7 +4885,7 @@ dependencies = [
 
 [[package]]
 name = "cryptothrone-server"
-version = "0.0.25"
+version = "0.0.26"
 dependencies = [
  "agones",
  "axum 0.7.9",
@@ -10447,6 +10447,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "met"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "axum 0.8.9",
+ "dotenvy",
+ "hex",
+ "jedi",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

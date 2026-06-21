@@ -603,7 +603,9 @@ pub fn init_argo_proxy() -> bool {
 
 pub async fn argo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     match ARGO.get() {
-        Some(proxy) => proxy.handle(path, req).await,
+        // Method-aware: GET reads require DASHBOARD_VIEW; mutating verbs
+        // (sync, refresh-via-POST, delete) require DASHBOARD_MANAGE.
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "ArgoCD proxy not configured"})),
@@ -693,6 +695,7 @@ pub struct ClickHouseLogsResponse {
     /// One JSON object per row. Shape depends on `command`:
     /// - `"query"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`
     /// - `"stats"` → `{ pod_namespace, service, level, cnt }`
+    /// - `"error_groups"` → `{ pod_namespace, service, signature, cnt, last_seen, sample }`
     #[schema(value_type = Vec<serde_json::Value>)]
     pub rows: Vec<serde_json::Value>,
     pub count: usize,
@@ -758,6 +761,14 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
                 minutes: req.minutes,
             };
             ch_logs::run_stats(config, &params).await
+        }
+        "error_groups" => {
+            let params = ch_logs::ErrorGroupsParams {
+                pod_namespace: req.pod_namespace,
+                minutes: req.minutes,
+                limit: req.limit,
+            };
+            ch_logs::run_error_groups(config, &params).await
         }
         "rows_request_rate" => {
             let params = ch_logs::RowsRequestRateParams {
@@ -833,7 +844,7 @@ pub async fn clickhouse_logs_proxy_handler(headers: HeaderMap, body: Bytes) -> R
                 axum::Json(json!({
                     "error": format!(
                         "unknown command '{other}', expected one of: \
-                         query, stats, rows_request_rate, rows_status_histogram, \
+                         query, stats, error_groups, rows_request_rate, rows_status_histogram, \
                          rows_top_endpoints, rows_errors, \
                          alerts_recent, alerts_firing, alerts_by_severity, alerts_top, \
                          factorio_current, factorio_snapshots, factorio_players, \
@@ -2833,7 +2844,7 @@ mod tests {
     fn hdrs(pairs: &[(&'static str, &'static str)]) -> HeaderMap {
         let mut h = HeaderMap::new();
         for (k, v) in pairs {
-            h.insert(*k, HeaderValue::from_static(*v));
+            h.insert(*k, HeaderValue::from_static(v));
         }
         h
     }

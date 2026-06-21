@@ -9,6 +9,7 @@ import ReactForgejoUserPanel from './ReactForgejoUserPanel';
 import ReactForgejoOrgPanel from './ReactForgejoOrgPanel';
 import ReactForgejoRepoAdmin from './ReactForgejoRepoAdmin';
 import ReactForgejoIssues from './ReactForgejoIssues';
+import ReactForgejoPackages from './ReactForgejoPackages';
 import ReactForgejoRunners from './ReactForgejoRunners';
 import ReactForgejoSystemPanel from './ReactForgejoSystemPanel';
 import ReactForgejoToast from './ReactForgejoToast';
@@ -46,6 +47,9 @@ import ReactForgejoToast from './ReactForgejoToast';
 				</div>
 				<div id="forgejo-issues">
 					<ReactForgejoIssues client:only="react" />
+				</div>
+				<div id="forgejo-packages">
+					<ReactForgejoPackages client:only="react" />
 				</div>
 				<div id="forgejo-runners">
 					<ReactForgejoRunners client:only="react" />

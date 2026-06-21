@@ -1,0 +1,77 @@
+---
+title: Metrics
+description: |
+    Metrics — in-house observability platform (self-hosted Sentry / Datadog / PostHog).
+    A scoped Rust/Axum ingest service that captures client telemetry into a dedicated
+    ClickHouse `telemetry` database. One pipeline, three lenses (errors / perf / product)
+    over a wide table correlated by session_id; the `platform` field keeps it
+    client-agnostic so web, Unreal, Unity and other games all feed one pipe.
+sidebar:
+    label: Metrics
+    order: 51
+    badge:
+        text: New
+        variant: tip
+unsplash: 1551288049-bebda4e38f71
+img: https://images.unsplash.com/photo-1551288049-bebda4e38f71?fit=crop&w=1400&h=700&q=75
+tags:
+    - rust
+    - axum
+    - observability
+    - clickhouse
+    - telemetry
+    - docker
+key: metrics
+pipeline: docker
+app_name: metrics
+version: "0.1.0"
+source_path: apps/metrics
+version_toml: apps/metrics/version.toml
+version_target: apps/metrics/Cargo.toml
+runner: ubuntu-latest
+image: kbve/metrics
+nx_project: met
+e2e_name: metrics
+deployment_yaml: apps/kube/metrics/manifest/metrics-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+---
+
+## Metrics — in-house observability
+
+`apps/metrics` is a scoped Rust/Axum service that ingests client telemetry into a
+self-hosted ClickHouse `telemetry` database. It replaces SaaS error/metrics tooling
+(Sentry / Datadog / PostHog) with one pipeline that exposes three lenses — errors,
+performance, and product — over a single wide table correlated by `session_id`.
+
+### Pipeline
+
+```
+@kbve/observ (browser SDK)
+   → POST metrics.kbve.com/api/v1/ingest/errors
+      → apps/metrics (axum, port 5500)
+         → jedi ClickHouseConfig::execute_insert (JSONEachRow, batched)
+            → telemetry.errors_distributed
+```
+
+The ingest path reuses the shared `jedi` ClickHouse client — no new database
+plumbing. A background tokio mpsc flusher batches rows by size and interval.
+Requests are CORS-allowlisted, per-IP rate-limited, body-capped, and run through a
+noise/PII sanitizer. Error grouping uses a `sha256(project + error_type + top-5
+stack frames)` fingerprint. `/readiness` checks ClickHouse so a degraded backend
+sheds load instead of silently 503ing.
+
+### Client-agnostic
+
+The `platform` field (`web` / `unreal` / `unity` / …) lets every client feed the
+same pipe, so the errors lens shipped for the frontend extends to game clients
+without schema changes.
+
+### Deployment
+
+Runs in the `kbve` namespace behind the Cilium Gateway at `metrics.kbve.com`,
+reusing the existing `clickhouse-credentials` ExternalSecret. Schema setup is a
+job in the `vector` namespace that creates the `telemetry` database, the
+`errors_raw` / `errors_distributed` tables, and the `error_groups` view.

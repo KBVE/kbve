@@ -8,8 +8,11 @@ import {
 	drawHealthBar,
 	attachCameraZoom,
 	findTilePath,
+	lineCast,
+	BOW_RANGE,
 	ACTION_ATTACK,
 	ACTION_PICKUP,
+	ACTION_SHOOT,
 	KIND_CAT_ITEM,
 	KIND_CAT_NPC,
 	KIND_CAT_PLAYER,
@@ -21,6 +24,7 @@ import type {
 	KindEntry,
 	ConnectionState,
 	BjActionKind,
+	ProjectileEvent,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
@@ -106,6 +110,7 @@ export class CloudCityScene extends Scene {
 		right: Phaser.Input.Keyboard.Key;
 	};
 	private attackKey!: Phaser.Input.Keyboard.Key;
+	private shootKey!: Phaser.Input.Keyboard.Key;
 	private entityDepth = 0;
 	private tilePixels = 16;
 	private zone: ZoneDef = getZone(DEFAULT_ZONE);
@@ -222,6 +227,7 @@ export class CloudCityScene extends Scene {
 			right: this.input.keyboard!.addKey(Codes.D, false),
 		};
 		this.attackKey = this.input.keyboard!.addKey(Codes.SPACE, false);
+		this.shootKey = this.input.keyboard!.addKey(Codes.F, false);
 		this.interactKey = this.input.keyboard!.addKey(Codes.E, false);
 		this.interactables = getZoneInteractables(this.zone.key);
 		this.initSyncSystems();
@@ -358,6 +364,9 @@ export class CloudCityScene extends Scene {
 						'You died! The well pulls you back to the plaza, body intact, pride bruised.',
 				});
 			}
+		});
+		client.on('projectile', (p) => {
+			this.animateProjectile(p);
 		});
 		client.on('itemUsed', (u) => {
 			laserEvents.emit('item:used', u);
@@ -861,6 +870,62 @@ export class CloudCityScene extends Scene {
 		}
 	}
 
+	private shootNearest() {
+		if (!this.client) return;
+		const me = this.myTile();
+		if (!me) return;
+		let best: number | null = null;
+		let bestDist = Infinity;
+		for (const [serverEid] of this.store.entries()) {
+			if (serverEid === this.myEid) continue;
+			if (this.kinds.cat(this.store.kind(serverEid)) !== KIND_CAT_NPC)
+				continue;
+			const t = this.store.tile(serverEid);
+			if (!t) continue;
+			const dist = Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y));
+			if (dist === 0 || dist > BOW_RANGE || dist >= bestDist) continue;
+			const path = lineCast(me, t, BOW_RANGE, (p) =>
+				this.isBlocked(p.x, p.y),
+			);
+			const last = path[path.length - 1];
+			if (!last || last.x !== t.x || last.y !== t.y) continue;
+			best = serverEid;
+			bestDist = dist;
+		}
+		if (best !== null) {
+			this.client.action(ACTION_SHOOT, best);
+		} else {
+			this.showFloatingText(this.myEid, 'no shot', '#9ca3af');
+		}
+	}
+
+	private animateProjectile(ev: ProjectileEvent) {
+		const refs = this.store.refs(ev.attacker);
+		if (!refs) return;
+		const px = this.tilePixels;
+		const offX = refs.sprite.x - ev.from.x * px;
+		const offY = refs.sprite.y - ev.from.y * px;
+		const toX = ev.to.x * px + offX;
+		const toY = ev.to.y * px + offY;
+		const color = ev.hit ? 0xfcd34d : 0x9ca3af;
+		const shot = this.add.rectangle(
+			refs.sprite.x,
+			refs.sprite.y,
+			7,
+			2,
+			color,
+		);
+		shot.setDepth(UI_DEPTH);
+		shot.setRotation(Math.atan2(toY - refs.sprite.y, toX - refs.sprite.x));
+		this.tweens.add({
+			targets: shot,
+			x: toX,
+			y: toY,
+			duration: 140,
+			onComplete: () => shot.destroy(),
+		});
+	}
+
 	/**
 	 * Fire the interactable the player is standing in, if any. Called only on
 	 * an explicit interact press — never on movement — so sprite-less points
@@ -973,6 +1038,10 @@ export class CloudCityScene extends Scene {
 
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();
+		}
+
+		if (Phaser.Input.Keyboard.JustDown(this.shootKey)) {
+			this.shootNearest();
 		}
 
 		if (Phaser.Input.Keyboard.JustDown(this.interactKey)) {

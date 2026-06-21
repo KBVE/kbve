@@ -40,7 +40,7 @@ pub async fn pipe_clickhouse(
 
         match format {
             PayloadFormat::Flex | PayloadFormat::Json => {
-                match_ch_handlers!(kind.into(), &e, ctx, format)
+                match_ch_handlers!(kind, &e, ctx, format)
             }
             _ => Err(JediError::Internal("Unsupported PayloadFormat".into())),
         }

@@ -38,6 +38,13 @@ import type {
 	ForgejoStats,
 	ForgejoStorage,
 	ForgejoIssue,
+	ForgejoLabel,
+	ForgejoMilestone,
+	ForgejoComment,
+	ForgejoPackage,
+	ForgejoPublicKey,
+	ForgejoGpgKey,
+	ForgejoPull,
 } from '@/data/schema/forgejo';
 
 export type {
@@ -62,6 +69,13 @@ export type {
 	ForgejoStats,
 	ForgejoStorage,
 	ForgejoIssue,
+	ForgejoLabel,
+	ForgejoMilestone,
+	ForgejoComment,
+	ForgejoPackage,
+	ForgejoPublicKey,
+	ForgejoGpgKey,
+	ForgejoPull,
 };
 
 export interface RepoDetail {
@@ -96,8 +110,34 @@ export type ForgejoTab =
 	| 'orgs'
 	| 'webhooks'
 	| 'issues'
+	| 'packages'
 	| 'runners'
 	| 'system';
+
+export interface CreateUserKeyInput {
+	title: string;
+	key: string;
+	read_only: boolean;
+}
+
+export interface CreateLabelInput {
+	name: string;
+	color: string;
+	description: string;
+}
+
+export interface CreateMilestoneInput {
+	title: string;
+	description: string;
+	due_on?: string;
+}
+
+export type PullMergeMethod = 'merge' | 'rebase' | 'rebase-merge' | 'squash';
+
+export interface EditPullInput {
+	title?: string;
+	body?: string;
+}
 
 export interface ForgejoRunner {
 	id?: number;
@@ -202,6 +242,19 @@ export interface ToastMsg {
 }
 
 export type NoticeKind = 'info' | 'warn' | 'error';
+
+export type StorageHealthStatus =
+	| 'ok'
+	| 'schema_drift'
+	| 'access_denied'
+	| 'db_error'
+	| 'unconfigured'
+	| 'unknown';
+
+export interface ForgejoStorageHealth {
+	status: StorageHealthStatus;
+	detail: string | null;
+}
 
 export interface Notice {
 	kind: NoticeKind;
@@ -651,6 +704,7 @@ class ForgejoService {
 	public readonly $unadopted = atom<string[]>([]);
 	public readonly $stats = atom<ForgejoStats | null>(null);
 	public readonly $storage = atom<ForgejoStorage | null>(null);
+	public readonly $storageHealth = atom<ForgejoStorageHealth | null>(null);
 	public readonly $runners = atom<ForgejoRunner[]>([]);
 	public readonly $runnerToken = atom<string | null>(null);
 	public readonly $runnerScope = atom<string>('instance');
@@ -660,6 +714,25 @@ class ForgejoService {
 	public readonly $issueType = atom<'issues' | 'pulls'>('issues');
 	public readonly $issues = atom<ForgejoIssue[]>([]);
 	public readonly $issuesLoading = atom<boolean>(false);
+	public readonly $issueComments = atom<Record<number, ForgejoComment[]>>({});
+	public readonly $pullDetails = atom<Record<number, ForgejoPull>>({});
+	public readonly $repoLabels = atom<Record<string, ForgejoLabel[]>>({});
+	public readonly $repoMilestones = atom<Record<string, ForgejoMilestone[]>>(
+		{},
+	);
+
+	// User keys
+	public readonly $userKeys = atom<Record<string, ForgejoPublicKey[]>>({});
+	public readonly $userGpgKeys = atom<Record<string, ForgejoGpgKey[]>>({});
+	public readonly $userKeysLoading = atom<boolean>(false);
+
+	// Packages
+	public readonly $packagesOwner = atom<string | null>(null);
+	public readonly $packages = atom<Record<string, ForgejoPackage[]>>({});
+	public readonly $packagesLoading = atom<boolean>(false);
+
+	// Team repositories
+	public readonly $teamRepos = atom<Record<number, ForgejoRepo[]>>({});
 
 	// Pagination + search
 	public readonly $repoQuery = atom<string>('');
@@ -934,6 +1007,7 @@ class ForgejoService {
 		this.$lastUpdated.set(new Date());
 		void this.fetchStats(force);
 		void this.fetchStorage(force);
+		void this.fetchStorageHealth();
 		this.$loading.set(false);
 	}
 
@@ -986,6 +1060,25 @@ class ForgejoService {
 			const data = (await resp.json()) as ForgejoStorage;
 			if (data && typeof data.total_bytes === 'number') {
 				this.$storage.set(data);
+			}
+		} catch {
+			return;
+		}
+	}
+
+	public async fetchStorageHealth(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		try {
+			const resp = await fetch(`${API_BASE}/storage/health`, {
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(15000),
+			});
+			const data = (await resp
+				.json()
+				.catch(() => null)) as ForgejoStorageHealth | null;
+			if (data && typeof data.status === 'string') {
+				this.$storageHealth.set(data);
 			}
 		} catch {
 			return;
@@ -1574,6 +1667,54 @@ class ForgejoService {
 		);
 	}
 
+	public async loadTeamRepos(teamId: number): Promise<void> {
+		await this._loadResource<ForgejoRepo[]>(
+			'orgs',
+			`forgejo:teamrepos:${teamId}`,
+			`/api/v1/teams/${teamId}/repos?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$teamRepos.set({ ...this.$teamRepos.get(), [teamId]: d }),
+		);
+	}
+
+	public addTeamRepo(
+		teamId: number,
+		org: string,
+		repo: string,
+	): Promise<boolean> {
+		return this._run(
+			`team-repo-add-${teamId}-${repo}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'PUT',
+					`/api/v1/teams/${teamId}/repos/${org}/${repo}`,
+				);
+				await this.loadTeamRepos(teamId);
+			},
+			`${org}/${repo} added to team`,
+		);
+	}
+
+	public removeTeamRepo(
+		teamId: number,
+		org: string,
+		repo: string,
+	): Promise<boolean> {
+		return this._run(
+			`team-repo-remove-${teamId}-${repo}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/teams/${teamId}/repos/${org}/${repo}`,
+				);
+				await this.loadTeamRepos(teamId);
+			},
+			`${org}/${repo} removed from team`,
+		);
+	}
+
 	// --- Webhook actions ---
 
 	public async loadRepoHooks(fullName: string): Promise<void> {
@@ -1854,6 +1995,145 @@ class ForgejoService {
 	public selectIssueRepo(fullName: string): void {
 		this.$issueRepo.set(fullName);
 		this.loadIssues();
+		this.loadRepoLabels();
+		this.loadRepoMilestones();
+	}
+
+	public async loadIssueComments(index: number): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		const data = await apiFetch<ForgejoComment[]>(
+			token,
+			`/api/v1/repos/${repo}/issues/${index}/comments?limit=${PAGE_SIZE}`,
+			[] as ForgejoComment[],
+		);
+		this.$issueComments.set({
+			...this.$issueComments.get(),
+			[index]: Array.isArray(data) ? data : [],
+		});
+	}
+
+	public addIssueComment(index: number, body: string): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`issue-comment-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${repo}/issues/${index}/comments`,
+					{ body },
+				);
+				await this.loadIssueComments(index);
+			},
+			`Comment added to #${index}`,
+		);
+	}
+
+	public async loadRepoLabels(): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		const data = await apiFetch<ForgejoLabel[]>(
+			token,
+			`/api/v1/repos/${repo}/labels?limit=${PAGE_SIZE}`,
+			[] as ForgejoLabel[],
+		);
+		this.$repoLabels.set({
+			...this.$repoLabels.get(),
+			[repo]: Array.isArray(data) ? data : [],
+		});
+	}
+
+	public createLabel(input: CreateLabelInput): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`label-create-${repo}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(t, 'POST', `/api/v1/repos/${repo}/labels`, {
+					name: input.name,
+					color: input.color,
+					description: input.description,
+				});
+				await this.loadRepoLabels();
+			},
+			`Label ${input.name} created`,
+		);
+	}
+
+	public deleteLabel(id: number): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`label-delete-${id}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${repo}/labels/${id}`,
+				);
+				await this.loadRepoLabels();
+			},
+			`Label deleted`,
+		);
+	}
+
+	public async loadRepoMilestones(): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		const data = await apiFetch<ForgejoMilestone[]>(
+			token,
+			`/api/v1/repos/${repo}/milestones?state=all&limit=${PAGE_SIZE}`,
+			[] as ForgejoMilestone[],
+		);
+		this.$repoMilestones.set({
+			...this.$repoMilestones.get(),
+			[repo]: Array.isArray(data) ? data : [],
+		});
+	}
+
+	public createMilestone(input: CreateMilestoneInput): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`milestone-create-${repo}`,
+			async (t) => {
+				if (!repo) return;
+				const body: Record<string, unknown> = {
+					title: input.title,
+					description: input.description,
+				};
+				if (input.due_on) body.due_on = input.due_on;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${repo}/milestones`,
+					body,
+				);
+				await this.loadRepoMilestones();
+			},
+			`Milestone ${input.title} created`,
+		);
+	}
+
+	public deleteMilestone(id: number): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`milestone-delete-${id}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${repo}/milestones/${id}`,
+				);
+				await this.loadRepoMilestones();
+			},
+			`Milestone deleted`,
+		);
 	}
 
 	public setIssueState(state: 'open' | 'closed'): void {
@@ -1930,6 +2210,68 @@ class ForgejoService {
 				await this.loadIssues();
 			},
 			lock ? `#${index} locked` : `#${index} unlocked`,
+		);
+	}
+
+	public async loadPull(index: number): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		try {
+			const pull = await apiFetch<ForgejoPull>(
+				token,
+				`/api/v1/repos/${repo}/pulls/${index}`,
+			);
+			if (pull && typeof pull.number === 'number') {
+				this.$pullDetails.set({
+					...this.$pullDetails.get(),
+					[index]: pull,
+				});
+			}
+		} catch {
+			return;
+		}
+	}
+
+	public mergePull(
+		index: number,
+		method: PullMergeMethod,
+		deleteBranch: boolean,
+	): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`pull-merge-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${repo}/pulls/${index}/merge`,
+					{ Do: method, delete_branch_after_merge: deleteBranch },
+				);
+				await this.loadPull(index);
+				await this.loadIssues();
+			},
+			`#${index} merged (${method})`,
+		);
+	}
+
+	public editPull(index: number, input: EditPullInput): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`pull-edit-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'PATCH',
+					`/api/v1/repos/${repo}/pulls/${index}`,
+					input,
+				);
+				await this.loadPull(index);
+				await this.loadIssues();
+			},
+			`#${index} updated`,
 		);
 	}
 
@@ -2086,6 +2428,112 @@ class ForgejoService {
 				await this.loadSystem();
 			},
 			`Deleted unadopted ${fullName}`,
+		);
+	}
+
+	// --- User key actions ---
+
+	public async loadUserKeys(login: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		this.$userKeysLoading.set(true);
+		try {
+			const [keys, gpg] = await Promise.all([
+				apiFetch<ForgejoPublicKey[]>(
+					token,
+					`/api/v1/users/${login}/keys?limit=${PAGE_SIZE}`,
+					[] as ForgejoPublicKey[],
+				),
+				apiFetch<ForgejoGpgKey[]>(
+					token,
+					`/api/v1/users/${login}/gpg_keys?limit=${PAGE_SIZE}`,
+					[] as ForgejoGpgKey[],
+				),
+			]);
+			this.$userKeys.set({
+				...this.$userKeys.get(),
+				[login]: Array.isArray(keys) ? keys : [],
+			});
+			this.$userGpgKeys.set({
+				...this.$userGpgKeys.get(),
+				[login]: Array.isArray(gpg) ? gpg : [],
+			});
+		} finally {
+			this.$userKeysLoading.set(false);
+		}
+	}
+
+	public addUserKey(
+		login: string,
+		input: CreateUserKeyInput,
+	): Promise<boolean> {
+		return this._run(
+			`userkey-add-${login}`,
+			async (t) => {
+				await apiMutate(t, 'POST', `/api/v1/users/${login}/keys`, {
+					title: input.title,
+					key: input.key,
+					read_only: input.read_only,
+				});
+				await this.loadUserKeys(login);
+			},
+			`SSH key added for ${login}`,
+		);
+	}
+
+	public deleteUserKey(login: string, id: number): Promise<boolean> {
+		return this._run(
+			`userkey-delete-${login}-${id}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/users/${login}/keys/${id}`,
+				);
+				await this.loadUserKeys(login);
+			},
+			`SSH key removed`,
+		);
+	}
+
+	// --- Package actions ---
+
+	public async loadPackages(owner: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		this.$packagesOwner.set(owner);
+		this.$packagesLoading.set(true);
+		try {
+			const data = await apiFetch<ForgejoPackage[]>(
+				token,
+				`/api/v1/packages/${owner}?limit=${PAGE_SIZE}&page=1`,
+			);
+			this.$packages.set({
+				...this.$packages.get(),
+				[owner]: Array.isArray(data) ? data : [],
+			});
+			this.clearNotice('packages');
+		} catch (e) {
+			this.setNotice('packages', this._noticeFor(e));
+		} finally {
+			this.$packagesLoading.set(false);
+		}
+	}
+
+	public deletePackage(owner: string, pkg: ForgejoPackage): Promise<boolean> {
+		return this._run(
+			`pkg-delete-${owner}-${pkg.type}-${pkg.name}-${pkg.version}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/packages/${owner}/${pkg.type}/${encodeURIComponent(
+						pkg.name,
+					)}/${encodeURIComponent(pkg.version)}`,
+				);
+				await this.loadPackages(owner);
+			},
+			`Package ${pkg.name}@${pkg.version} deleted`,
 		);
 	}
 }
