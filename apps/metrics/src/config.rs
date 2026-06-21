@@ -11,7 +11,13 @@ pub struct Config {
     pub channel_capacity: usize,
     pub flush_rows: usize,
     pub flush_interval_ms: u64,
+    pub insert_timeout_ms: u64,
+    pub insert_max_retries: u32,
     pub rate_limit_per_min: u32,
+    pub project_rate_limit_per_min: u32,
+    pub global_rate_limit_per_min: u32,
+    pub trusted_proxy_hops: usize,
+    pub ingest_token: Option<String>,
 }
 
 fn get(key: &str, default: &str) -> String {
@@ -42,9 +48,24 @@ impl Config {
             flush_interval_ms: get("METRICS_FLUSH_INTERVAL_MS", "2000")
                 .parse()
                 .unwrap_or(2000),
+            insert_timeout_ms: get("METRICS_INSERT_TIMEOUT_MS", "5000")
+                .parse()
+                .unwrap_or(5000),
+            insert_max_retries: get("METRICS_INSERT_MAX_RETRIES", "2").parse().unwrap_or(2),
             rate_limit_per_min: get("METRICS_RATE_LIMIT_PER_MIN", "120")
                 .parse()
                 .unwrap_or(120),
+            project_rate_limit_per_min: get("METRICS_PROJECT_RATE_LIMIT_PER_MIN", "6000")
+                .parse()
+                .unwrap_or(6000),
+            global_rate_limit_per_min: get("METRICS_GLOBAL_RATE_LIMIT_PER_MIN", "60000")
+                .parse()
+                .unwrap_or(60000),
+            trusted_proxy_hops: get("METRICS_TRUSTED_PROXY_HOPS", "1").parse().unwrap_or(1),
+            ingest_token: env::var("METRICS_INGEST_TOKEN")
+                .ok()
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty()),
         }
     }
 }

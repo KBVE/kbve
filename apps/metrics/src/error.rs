@@ -11,6 +11,8 @@ pub enum ApiError {
     TooLarge(String),
     #[error("rate limited")]
     RateLimited,
+    #[error("unauthorized")]
+    Unauthorized,
 }
 
 impl ApiError {
@@ -19,6 +21,7 @@ impl ApiError {
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             Self::TooLarge(_) => StatusCode::PAYLOAD_TOO_LARGE,
             Self::RateLimited => StatusCode::TOO_MANY_REQUESTS,
+            Self::Unauthorized => StatusCode::UNAUTHORIZED,
         }
     }
 
@@ -27,6 +30,7 @@ impl ApiError {
             Self::BadRequest(_) => "BAD_REQUEST",
             Self::TooLarge(_) => "PAYLOAD_TOO_LARGE",
             Self::RateLimited => "RATE_LIMITED",
+            Self::Unauthorized => "UNAUTHORIZED",
         }
     }
 }

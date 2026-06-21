@@ -23,7 +23,18 @@ CREATE TABLE IF NOT EXISTS telemetry.errors_raw ON CLUSTER 'cluster'
     session_id      String DEFAULT '',
     user_agent      String DEFAULT '',
     handled         UInt8 DEFAULT 0,
-    extra           String DEFAULT '{}'
+    extra           String DEFAULT '{}',
+
+    -- Last-resort tripwires: the metrics ingest already clamps every field, so
+    -- these caps sit ABOVE the app limits and only fire if a writer bypasses it
+    -- (e.g. direct CH access with the ingest creds). A violating row rejects its
+    -- INSERT batch by design — fail loud.
+    CONSTRAINT chk_project_len     CHECK length(project) > 0 AND length(project) <= 256,
+    CONSTRAINT chk_fingerprint_len CHECK length(fingerprint) <= 64,
+    CONSTRAINT chk_message_len     CHECK length(message) <= 8192,
+    CONSTRAINT chk_stack_len       CHECK length(stack) <= 32768,
+    CONSTRAINT chk_url_len         CHECK length(url) <= 2048,
+    CONSTRAINT chk_handled_bit     CHECK handled <= 1
 )
 ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/telemetry/errors_raw', '{replica}')
 ORDER BY (project, fingerprint, timestamp)
