@@ -21,6 +21,15 @@ kind: Cluster
 metadata:
     name: supabase-cluster
     namespace: kilobase
+    annotations:
+        # GUARDRAIL: bootstrap.recovery (below) re-bootstraps from the S3 base
+        # backup on any fresh creation of this Cluster. Argo prune/selfHeal
+        # could delete + recreate it, silently rolling production back to the
+        # last backup. Prune=false stops Argo from ever deleting the live
+        # Cluster; Delete=false blocks cascade deletes during app removal.
+        # Recovery stays available for an INTENTIONAL DR rebuild. Never delete
+        # this Cluster without a verified plan to restore current data.
+        argocd.argoproj.io/sync-options: Prune=false,Delete=false
 spec:
     instances: 3
     #primaryUpdateStrategy: unsupervised
@@ -190,6 +199,11 @@ spec:
               barmanObjectName: kilobase-backup-store
               serverName: kilobase-postgres-backup
 
+    # DR-ONLY: runs solely on first creation of this Cluster. The live
+    # cluster ignores it. Protected by Prune=false,Delete=false on metadata
+    # so Argo cannot delete + recreate the Cluster and silently trigger a
+    # recovery rollback to the last S3 base backup. Keep for intentional
+    # disaster recovery; do not delete the Cluster expecting in-place data.
     bootstrap:
         recovery:
             source: kilobase-postgres-backup

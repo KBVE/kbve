@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 11;
+export const PROTOCOL_VERSION = 12;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -15,6 +15,7 @@ export const EPHEMERAL_TRADE = 9;
 export const EPHEMERAL_SHOP = 10;
 export const EPHEMERAL_BLACKJACK = 11;
 export const EPHEMERAL_PROJECTILE = 12;
+export const EPHEMERAL_FLOOR = 13;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -86,6 +87,8 @@ export interface EntityDelta {
 	hp: number;
 	max_hp: number;
 	destroyed: boolean;
+	/** Dungeon floor (z-axis). Absent/0 = ground floor (single-floor games). */
+	z?: number;
 	effects?: StatusView[];
 }
 
@@ -150,6 +153,13 @@ export interface ProjectileEvent {
 	to: { x: number; y: number };
 	kind: string;
 	hit: boolean;
+}
+
+/** The local player changed dungeon floor (took a stair). The client re-streams
+ * the destination floor and snaps the body to `tile` on floor `z`. */
+export interface FloorChangeEvent {
+	z: number;
+	tile: { x: number; y: number };
 }
 
 export interface PickupEvent {

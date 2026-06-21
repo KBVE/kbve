@@ -1,0 +1,5 @@
+# Built Discord Activity bundle (nx run astro-kbve:build-arpg-discord).
+# index.html is committed; the JS + worker chunks are build artifacts.
+arpg.js
+arpg.js.map
+assets/

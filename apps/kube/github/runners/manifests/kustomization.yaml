@@ -15,6 +15,8 @@ resources:
     - ows-server-build-pvc.yaml
     - cache-cleanup-cronjob.yaml
     - registry-mirror.yaml
+    - registry-mirror-ghcr.yaml
     - valkey-sccache-externalsecret.yaml
     - vm-starter-rbac.yaml
     - runner-reaper.yaml
+    - runner-networkpolicy.yaml

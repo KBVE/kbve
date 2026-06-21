@@ -12,6 +12,19 @@ import type { TileXY } from '../iso';
 
 export const CHUNK_SIZE = 20;
 
+/**
+ * Per-floor seed: fold the dungeon level `z` into the world seed so each floor
+ * is its own independent endless dungeon (stairs link adjacent floors). Floor 0
+ * is identity — the ground floor IS the original single-floor layout, keeping
+ * the frozen parity fingerprint valid. Mirrors the Rust `arpg_dungeon::floor_seed`.
+ */
+export function floorSeed(worldSeed: number, z: number): number {
+	if (z === 0) return worldSeed >>> 0;
+	let h = worldSeed >>> 0;
+	h = Math.imul(h ^ Math.imul(z, 0x9e3779b1), 0x85ebca77) >>> 0;
+	return (h ^ (h >>> 13)) >>> 0;
+}
+
 export type TileKind = 0 | 1; // 0 = wall (blocked), 1 = floor (walkable)
 export const WALL: TileKind = 0;
 export const FLOOR: TileKind = 1;
@@ -224,6 +237,46 @@ export function chunkOf(x: number, y: number): ChunkCoord {
 		cx: Math.floor(x / CHUNK_SIZE),
 		cy: Math.floor(y / CHUNK_SIZE),
 	};
+}
+
+/**
+ * Pure floor test for a single world tile — no chunk cache, no streaming. A
+ * tile is floor iff its owning chunk OR any of the 8 neighbours (whose carved
+ * corridors can cross the border into it) covers it. This is the exact logic
+ * the Rust server mirrors (simgrid arpg_dungeon::is_floor); the parity test
+ * fingerprints a window of it against the frozen Rust value.
+ */
+export function isFloorAt(worldSeed: number, x: number, y: number): boolean {
+	const { cx, cy } = chunkOf(x, y);
+	for (let dy = -1; dy <= 1; dy++) {
+		for (let dx = -1; dx <= 1; dx++) {
+			if (generateChunk(worldSeed, cx + dx, cy + dy).floor.has(key(x, y)))
+				return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * FNV-1a over the floor bitset of a bounded window — the canonical cross-
+ * language parity fingerprint. Must equal the Rust `arpg_dungeon::fingerprint`
+ * for the same seed + window (see the frozen value in the parity spec).
+ */
+export function fingerprint(
+	worldSeed: number,
+	x0: number,
+	y0: number,
+	w: number,
+	h: number,
+): number {
+	let hh = 0x811c9dc5;
+	for (let y = y0; y < y0 + h; y++) {
+		for (let x = x0; x < x0 + w; x++) {
+			hh ^= isFloorAt(worldSeed, x, y) ? 1 : 0;
+			hh = Math.imul(hh, 0x01000193);
+		}
+	}
+	return hh >>> 0;
 }
 
 /**

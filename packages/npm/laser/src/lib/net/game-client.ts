@@ -4,6 +4,7 @@ import {
 	EPHEMERAL_BLACKJACK,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_EQUIPPED,
+	EPHEMERAL_FLOOR,
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
@@ -18,6 +19,7 @@ import {
 	type Ephemeral,
 	type EquippedEvent,
 	type Facing,
+	type FloorChangeEvent,
 	type Input,
 	type InventorySync,
 	type ItemUsedEvent,
@@ -42,6 +44,7 @@ export type GameClientEventMap = {
 	inventory: InventorySync;
 	combat: CombatEvent;
 	projectile: ProjectileEvent;
+	floor: FloorChangeEvent;
 	pickup: PickupEvent;
 	itemUsed: ItemUsedEvent;
 	equipped: EquippedEvent;
@@ -142,6 +145,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
 			const data = decodeEphemeralPayload<ProjectileEvent>(evt.payload);
 			if (data) this.bus.emit('projectile', data);
+		} else if (evt.kind === EPHEMERAL_FLOOR) {
+			const data = decodeEphemeralPayload<FloorChangeEvent>(evt.payload);
+			if (data) this.bus.emit('floor', data);
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
 			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
 			if (data) this.bus.emit('pickup', data);

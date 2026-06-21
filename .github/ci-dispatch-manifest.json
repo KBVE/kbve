@@ -299,7 +299,7 @@
 		{
 			"key": "jobboard",
 			"app_name": "jobboard",
-			"version": "0.1.8",
+			"version": "0.1.9",
 			"version_toml": "apps/jobboard/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
 			"version_target": "apps/jobboard/Cargo.toml",
@@ -435,7 +435,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",
@@ -1177,7 +1177,7 @@
 			"key": "unreal_chuck_beta",
 			"app_name": "chuck",
 			"engine": {
-				"version": "5.8.0",
+				"version": "5.7.4",
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
@@ -1197,7 +1197,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.28",
+			"version": "0.3.29",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1210,7 +1210,7 @@
 			"key": "unreal_chuck_dev",
 			"app_name": "chuck-dev",
 			"engine": {
-				"version": "5.8.0",
+				"version": "5.7.4",
 				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
@@ -1244,7 +1244,7 @@
 			"key": "unreal_rentearth",
 			"app_name": "rentearth",
 			"engine": {
-				"version": "5.8.0",
+				"version": "5.7.4",
 				"project_path": "apps/rentearth/unreal-rentearth",
 				"build_targets": [
 					"Win64",

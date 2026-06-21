@@ -41,6 +41,117 @@ status: beta
 
 The browser client lives at `apps/kbve/astro-kbve/src/arcade/isometric-arpg/` and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9).
 
+### Layout
+
+```
+apps/agones/arpg/server/
+├── Cargo.toml         # package manifest (path-dep to ../../../../packages/rust/simgrid)
+├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache); no webkit stage
+├── project.json       # nx build / run / container targets
+├── version.toml       # ci-publish version sentinel
+└── src/
+    ├── main.rs        # tokio entry + Agones lifecycle + graceful shutdown
+    ├── agones.rs      # Agones SDK heartbeat
+    ├── dungeon.rs     # seeded room-corridor generator (mirrors client systems/dungeon.ts)
+    └── game.rs        # ARPG spawn config (player tile, wandering hostiles)
+```
+
+## Build
+
+```bash
+nx run arpg-server:build-release
+```
+
+Or directly:
+
+```bash
+cargo build --release -p arpg-server
+```
+
+Release binary lands at `dist/target/release/arpg-server`.
+
+## Container
+
+```bash
+nx run arpg-server:container
+```
+
+Drops `kbve/arpg-server:latest` + version tag. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/arpg-server:buildcache`) on the shared `ghcr.io/kbve/chisel-ubuntu-axum` base. Default listen `0.0.0.0:7979` (override via `ARPG_SERVER_ADDR`).
+
+## Sim core
+
+Shares the `simgrid` crate (`packages/rust/simgrid`): postcard/JSON wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers ARPG spawn systems into `simgrid`'s ordered `SimSet` stages; transport and movement stay generic. The dungeon generator is **shared logic** — the server must produce the identical floor set the client's `systems/dungeon.ts` does for a given `DUNGEON_SEED`, so collision agrees on both sides (Mulberry32 PRNG, domain-separated per-chunk seeds, `CHUNK_SIZE=20`). Server is authoritative for occupancy; client predicts.
+
+## Wire protocol
+
+Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 12). The client wire surface (`@kbve/laser` `GameClient`) is complete and the server answers it.
+
+### Client → server
+
+| Frame | Sent when | Server duty |
+|-------|-----------|-------------|
+| `Join { jwt, kbve_username }` | on socket open | verify JWT (dev-accept fallback), admit to a roster slot, reply `Welcome` |
+| `Step { dir }` | float body crosses a tile line | validate one cardinal tile move vs occupancy, advance the player |
+| `MoveTo { tile }` | left-click destination | server-side pathfind/route the player toward `tile` (or accept as intent) |
+| `Action { id, target }` | attack | resolve combat for action `id` (`ACTION_ATTACK`) against entity `target` |
+| `Face { facing }` | aim turn | record 16-dir facing so remote clients render the right pose |
+| `Heartbeat`, `Leave` | keepalive / disconnect | liveness + slot release |
+
+### Server → client
+
+| Event | Carries | Client handler |
+|-------|---------|----------------|
+| `Welcome` | `your_slot`, kind `registry` | seed registry + slot |
+| `Snapshot` | players (slot→username), entities (eid, kind, tile, owner, hp, max_hp, **z**) | `applyEntitySync` + `reconcileFloat`, filtered to the local floor |
+| `Ephemeral(Combat)` | target eid, dmg, crit | floating damage + flash |
+| `Ephemeral(Projectile)` | shooter, origin, dir, kind | spawns the arrow visual from the server, not a local tween |
+| `Ephemeral(Floor)` | `{ z, tile }` | local player took a stair — snap to `tile`, switch floor, re-stream dungeon |
+| `Ephemeral(Stats / Pickup / ...)` | per-event | follow-up (loot, inventory) |
+
+## Z-floors & stairs
+
+The dungeon has a **z-axis**: each floor is its own endless seeded dungeon (`floor_seed = mix(world_seed, z)`, floor 0 = the ground layout / identity). This is a shared simgrid feature, not ARPG-only — single-floor games (cryptothrone) attach no `Floor` component and behave exactly as before (every entity on z = 0, `z` omitted on the wire).
+
+- **Collision** is z-aware: `WalkableMap::is_walkable_z(z, tile)` / `find_path_z`. A `Floor(i32)` component (default 0) on each entity selects its layer; sim systems read it via `Option<&Floor>`.
+- **Stairs** are a generic `Stairs` resource — `Explicit(Vec<StairLink>)` for hand-placed maps or `Dungeon { seed, descend_key }` for the endless ARPG, which derives two seed-driven stairs (down/up) per floor. Stepping a stair tile moves the player to the linked tile on the adjacent floor and emits the `Floor` ephemeral.
+- **Locks** gate a stair on a key item: descending is gated on `descend_key` (the player must hold it in inventory); ascending is free. The ground floor seeds a `dungeon-key` near spawn.
+
+Cross-language parity: the Rust `arpg_dungeon` and the client `systems/dungeon.ts` produce byte-identical floors (frozen FNV-1a fingerprint — `1764795750` for seed `0x5eed1`, floor 0, window `(0,0)..(80,80)`), asserted on both sides.
+
+## Client authority
+
+The offline client (`DEBUG_LOCAL_PLAYER`) resolves combat and movement locally; online, authority is the server's. The handoff is in place:
+
+1. **Single position truth** — `applySnapshot` reconciles the server tile into `floatState` via `reconcileFloat`.
+2. **Combat over the wire** — `fireBowAt(aim, target?)` sends `action(ACTION_ATTACK, target)` with the real target eid (null = server resolves the aim line); the click-attack no longer double-fires.
+3. **Server-driven projectiles** — the arrow visual spawns from the `Projectile` ephemeral; `applyLocalHit` is gated behind `localMode`.
+4. **Facing sync** — `client.face(facing)` fires on aim/movement change (cardinal, only on change).
+5. **Floor + event subscriptions** — `projectile` and `floor` join `combat`; snapshot entities are filtered to the local floor.
+
+Offline mode keeps the local resolution (gated on `localMode`) so single-player testing works with no server.
+
+## Discord Activity
+
+The game runs as a Discord Activity by reusing the existing web tier — no new app. The game already lives at `kbve.com/arcade/arpg`; the Activity adds a dedicated embed page + a session-exchange backend on `axum-kbve`, and the game WebSocket rides the existing `arpg.kbve.com`.
+
+**Pieces:**
+
+- **Embed page** — `kbve.com/discord/arpg/` (`public/discord/arpg/index.html` + `arpg.js`, built by `nx run astro-kbve:build-arpg-discord` from `src/embed/arpg/discord.tsx`). Boots the Discord SDK, runs OAuth, fetches a session, then mounts `ReactIsoArpgApp` with `embedSession` (skips the Supabase gate + name prompt).
+- **Session backend** — `axum-kbve` `POST /api/v1/discord/session` (and the `/discord/`-prepended variant). Exchanges the OAuth `code` → Discord token → user → linked KBVE profile (fast-registers via GoTrue admin + `tracker.*` RPCs on the shared Supabase DB) → mints the Supabase-valid HS256 JWT the game server accepts. Ported from `axum-cryptothrone`.
+- **Game WS** — the existing `wss://arpg.kbve.com/ws`, reached through a portal URL Mapping `/arpg-game → arpg.kbve.com` (`patchUrlMappings`), so the socket is allowed inside the Activity iframe.
+
+**Portal config (Discord Developer Portal → Activities → URL Mappings):**
+
+| Mapping | Target | Purpose |
+|---------|--------|---------|
+| `/` (root) | `kbve.com/discord/arpg/` | embed page + same-origin `/.proxy/api/v1/discord/session` backend (Discord prepends `/discord` to proxied paths, hence the dual route) |
+| `/arpg-game` | `arpg.kbve.com` | game WebSocket |
+| `/arpg-assets` | `kbve.com` | game art (sprites/ground) served from the site root `/assets/...` — the embed sets the arpg client asset base to `/arpg-assets` so absolute art paths resolve back to the site origin through the proxy, not under the portal-root `/discord/arpg/` dir |
+
+Everything the Activity loads is proxied through `*.discordsays.com`, so each external host (game WS, site art) needs a URL Mapping, and same-origin backend calls carry `/.proxy/`. The embed bundle uses a relative `base` so `arpg.js` + its worker chunks load relative to `/discord/arpg/`; absolute game-art paths route through the `/arpg-assets` mapping.
+
+**Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (embed):** `PUBLIC_DISCORD_CLIENT_ID` baked in by `vite.arpg-discord.config.mts` — must be set or terser dead-code-eliminates the boot body. Register a separate Discord Activity application pointing its root at `kbve.com/discord/arpg/`.
+
 ### Status
 
-Alpha — minimal walkable world (open grid + one hostile kind) to prove end-to-end multiplayer. World content (npcdb/itemdb, zones, loot tables) is a follow-up.
+Alpha — endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer; Discord Activity embed + session backend in place (point a Discord app at it once the image is baked). World content (npcdb/itemdb, zones, loot tables) is a follow-up.

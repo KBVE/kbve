@@ -54,6 +54,17 @@
 				"parallel": false
 			}
 		},
+		"build-arpg-discord": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/discord/arpg"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.arpg-discord.config.mts"
+				],
+				"parallel": false
+			}
+		},
 		"preview": {
 			"dependsOn": [
 				{
@@ -296,6 +307,7 @@
 		},
 		"sync:itemdb": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["sync:itemdb-uecpp"],
 			"inputs": [
 				"{projectRoot}/src/content/docs/itemdb/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-itemdb-data.mjs",

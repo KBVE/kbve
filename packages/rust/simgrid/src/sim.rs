@@ -15,7 +15,7 @@ use tokio::time;
 use crate::blackjack;
 use crate::combat;
 use crate::data::KindRegistry;
-use crate::grid::{GridPos, MoveSpeed, MoveTarget, WalkableMap};
+use crate::grid::{Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
@@ -789,6 +789,7 @@ pub fn build_app(
             (
                 advance_movement,
                 chain_steps,
+                stair_system,
                 tick_status_effects,
                 respawn_players,
                 regen_players,
@@ -963,6 +964,7 @@ fn drain_inputs(
         &mut Defense,
         &XpState,
         &mut StatusEffects,
+        Option<&Floor>,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -1018,11 +1020,13 @@ fn drain_inputs(
         mut defense,
         xp,
         mut status,
+        floor,
     ) in q.iter_mut()
     {
         let Some(inputs) = pending.get(&slot.0.0) else {
             continue;
         };
+        let z = floor.map(|f| f.0).unwrap_or(0);
         for input in inputs {
             match input {
                 Input::Step { dir } => {
@@ -1030,14 +1034,14 @@ fn drain_inputs(
                     pos.facing = dir.facing();
                     if mv.target.is_some() {
                         buffer.dir = Some(*dir);
-                    } else if try_move(*dir, &map, &pos, &mut mv, None) {
+                    } else if try_move(*dir, &map, z, &pos, &mut mv, None) {
                         buffer.dir = None;
                     }
                 }
                 Input::MoveTo { tile } => {
                     buffer.dir = None;
                     let from = mv.target.unwrap_or(pos.tile);
-                    match map.find_path(from, *tile, MAX_PATH_LEN) {
+                    match map.find_path_z(z, from, *tile, MAX_PATH_LEN) {
                         Some(steps) => path.steps = steps.into(),
                         None => path.steps.clear(),
                     }
@@ -2634,8 +2638,11 @@ fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
     });
 }
 
-fn follow_path(map: Res<WalkableMap>, mut q: Query<(&mut GridPos, &mut MoveTarget, &mut Path)>) {
-    for (mut pos, mut mv, mut path) in q.iter_mut() {
+fn follow_path(
+    map: Res<WalkableMap>,
+    mut q: Query<(&mut GridPos, &mut MoveTarget, &mut Path, Option<&Floor>)>,
+) {
+    for (mut pos, mut mv, mut path, floor) in q.iter_mut() {
         if mv.target.is_some() {
             continue;
         }
@@ -2646,7 +2653,8 @@ fn follow_path(map: Res<WalkableMap>, mut q: Query<(&mut GridPos, &mut MoveTarge
             path.steps.clear();
             continue;
         }
-        if !map.is_walkable(next) {
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        if !map.is_walkable_z(z, next) {
             path.steps.clear();
             continue;
         }
@@ -2676,7 +2684,16 @@ fn hostile_ai(
     config: Res<SimConfig>,
     map: Res<WalkableMap>,
     bcast: Res<Outbound>,
-    mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
+    mut q_mobs: Query<
+        (
+            Entity,
+            &mut GridPos,
+            &mut MoveTarget,
+            &mut Aggro,
+            Option<&Floor>,
+        ),
+        Without<PlayerSlotTag>,
+    >,
     mut q_players: Query<
         (
             Entity,
@@ -2685,14 +2702,20 @@ fn hostile_ai(
             &Defense,
             &PlayerSlotTag,
             &mut StatusEffects,
+            Option<&Floor>,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
-    for (mob, mut pos, mut mv, mut aggro) in q_mobs.iter_mut() {
+    for (mob, mut pos, mut mv, mut aggro, mob_floor) in q_mobs.iter_mut() {
+        let mob_z = mob_floor.map(|f| f.0).unwrap_or(0);
         let mut nearest: Option<(Entity, Tile, i32)> = None;
-        for (pe, ppos, hp, _, _, _) in q_players.iter() {
+        for (pe, ppos, hp, _, _, _, pfloor) in q_players.iter() {
             if hp.hp <= 0 {
+                continue;
+            }
+            // A mob only sees players on its own floor.
+            if pfloor.map(|f| f.0).unwrap_or(0) != mob_z {
                 continue;
             }
             // Players inside the spawn safe zone are untouchable — the
@@ -2717,7 +2740,7 @@ fn hostile_ai(
                 continue;
             }
             aggro.next_tick = clock.tick.saturating_add(aggro.period_ticks);
-            let Ok((_, _, mut hp, defense, slot, mut status)) = q_players.get_mut(player_entity)
+            let Ok((_, _, mut hp, defense, slot, mut status, _)) = q_players.get_mut(player_entity)
             else {
                 continue;
             };
@@ -2758,8 +2781,8 @@ fn hostile_ai(
             (vertical, if dx != 0 { horizontal } else { vertical })
         };
         pos.facing = primary.facing();
-        if !try_move(primary, &map, &pos, &mut mv, None) && secondary != primary {
-            try_move(secondary, &map, &pos, &mut mv, None);
+        if !try_move(primary, &map, mob_z, &pos, &mut mv, None) && secondary != primary {
+            try_move(secondary, &map, mob_z, &pos, &mut mv, None);
         }
     }
 }
@@ -2902,6 +2925,7 @@ fn respawn_npcs(clock: Res<SimClock>, mut queue: ResMut<RespawnQueue>, mut comma
 fn try_move(
     dir: Dir,
     map: &WalkableMap,
+    z: i32,
     pos: &GridPos,
     mv: &mut MoveTarget,
     bound: Option<(Tile, i32)>,
@@ -2915,7 +2939,7 @@ fn try_move(
     {
         return false;
     }
-    if !map.is_walkable(candidate) {
+    if !map.is_walkable_z(z, candidate) {
         return false;
     }
     mv.target = Some(candidate);
@@ -2941,16 +2965,23 @@ fn wander_system(
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     map: Res<WalkableMap>,
-    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Wander)>,
+    mut q: Query<(
+        Entity,
+        &mut GridPos,
+        &mut MoveTarget,
+        &mut Wander,
+        Option<&Floor>,
+    )>,
 ) {
-    for (entity, mut pos, mut mv, mut w) in q.iter_mut() {
+    for (entity, mut pos, mut mv, mut w, floor) in q.iter_mut() {
         if mv.target.is_some() || clock.tick < w.next_tick {
             continue;
         }
         w.next_tick = clock.tick.saturating_add(w.period_ticks);
         let dir = dir_from_u64(hash3(seed.0, entity.index_u32() as u64, clock.tick as u64));
         pos.facing = dir.facing();
-        try_move(dir, &map, &pos, &mut mv, Some((w.origin, w.radius)));
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        try_move(dir, &map, z, &pos, &mut mv, Some((w.origin, w.radius)));
     }
 }
 
@@ -2971,9 +3002,17 @@ fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
 #[allow(clippy::type_complexity)]
 fn chain_steps(
     map: Res<WalkableMap>,
-    mut q: Query<(&mut GridPos, &mut MoveTarget, &mut StepBuffer), With<PlayerSlotTag>>,
+    mut q: Query<
+        (
+            &mut GridPos,
+            &mut MoveTarget,
+            &mut StepBuffer,
+            Option<&Floor>,
+        ),
+        With<PlayerSlotTag>,
+    >,
 ) {
-    for (mut pos, mut mv, mut buffer) in q.iter_mut() {
+    for (mut pos, mut mv, mut buffer, floor) in q.iter_mut() {
         let Some(dir) = buffer.dir else {
             continue;
         };
@@ -2982,7 +3021,78 @@ fn chain_steps(
         }
         buffer.dir = None;
         pos.facing = dir.facing();
-        try_move(dir, &map, &pos, &mut mv, None);
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        try_move(dir, &map, z, &pos, &mut mv, None);
+    }
+}
+
+/// Move players between dungeon floors when they stand on a stair tile. The
+/// stair geometry is server-authoritative (seed-derived for the endless
+/// dungeon, explicit for hand-placed maps); a locked stair requires the player
+/// to hold its key item. On a successful transition the player's `Floor` is set
+/// (inserted on first descent), they teleport to the matching stair on the
+/// destination floor, any in-flight move is cancelled, and a `FloorChange`
+/// ephemeral tells the client to re-stream the new floor. No-op when no
+/// `Stairs` resource is registered (single-floor games).
+#[allow(clippy::type_complexity)]
+fn stair_system(
+    stairs: Option<Res<Stairs>>,
+    bcast: Res<Outbound>,
+    mut commands: Commands,
+    mut q: Query<
+        (
+            Entity,
+            &mut GridPos,
+            &mut MoveTarget,
+            &mut Path,
+            &Inventory,
+            &PlayerSlotTag,
+            Option<&mut Floor>,
+        ),
+        With<PlayerSlotTag>,
+    >,
+) {
+    let Some(stairs) = stairs else {
+        return;
+    };
+    for (entity, mut pos, mut mv, mut path, inv, slot, floor) in q.iter_mut() {
+        // Only trigger when settled on the tile, not mid-step.
+        if mv.target.is_some() {
+            continue;
+        }
+        let z = floor.as_ref().map(|f| f.0).unwrap_or(0);
+        let Some(link) = stairs.at(z, pos.tile) else {
+            continue;
+        };
+        // Locked stair: need the key item in inventory.
+        if let Some(key) = &link.lock
+            && count_ref(inv, key) == 0
+        {
+            continue;
+        }
+
+        pos.tile = link.dest_tile;
+        mv.target = None;
+        mv.progress = 0;
+        path.steps.clear();
+        match floor {
+            Some(mut f) => f.0 = link.dest_z,
+            None => {
+                commands.entity(entity).insert(Floor(link.dest_z));
+            }
+        }
+
+        let payload = json!({
+            "z": link.dest_z,
+            "tile": { "x": link.dest_tile.x, "y": link.dest_tile.y },
+        })
+        .to_string()
+        .into_bytes();
+        let _ = bcast.tx.send(ServerEvent::Ephemeral {
+            kind: proto::EPHEMERAL_FLOOR,
+            to: slot.0,
+            payload,
+        });
     }
 }
 
@@ -2999,6 +3109,7 @@ fn emit_snapshot(
         Option<&MoveSpeed>,
         Option<&Health>,
         Option<&StatusEffects>,
+        Option<&Floor>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3008,7 +3119,7 @@ fn emit_snapshot(
     let now = clock.tick;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
-        .map(|(entity, kind, slot, pos, mv, speed, hp, status)| {
+        .map(|(entity, kind, slot, pos, mv, speed, hp, status, floor)| {
             let sub = mv
                 .target
                 .map(|_| {
@@ -3037,6 +3148,7 @@ fn emit_snapshot(
                 hp: hp.map(|h| h.hp).unwrap_or(0),
                 max_hp: hp.map(|h| h.max_hp).unwrap_or(0),
                 destroyed: false,
+                z: floor.map(|f| f.0).unwrap_or(0),
                 effects,
             }
         })
