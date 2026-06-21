@@ -175,7 +175,12 @@ function syncAgeMs(s: AppSummary): number | null {
 	return Date.now() - t;
 }
 
-function AppCard({
+const AppCard = React.memo(
+	AppCardImpl,
+	(a, b) => a.summary === b.summary && a.expanded === b.expanded,
+);
+
+function AppCardImpl({
 	summary,
 	expanded,
 	onToggle,
@@ -536,9 +541,11 @@ function CardFilterBar({
 function CardGrid({
 	summaries,
 	expandedApp,
+	expandedPanel,
 }: {
 	summaries: AppSummary[];
 	expandedApp: string | null;
+	expandedPanel?: React.ReactNode;
 }) {
 	return (
 		<div
@@ -547,14 +554,25 @@ function CardGrid({
 				gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
 				gap: '0.75rem',
 			}}>
-			{summaries.map((s) => (
-				<AppCard
-					key={s.name}
-					summary={s}
-					expanded={expandedApp === s.name}
-					onToggle={() => argoService.toggleExpandedApp(s.name)}
-				/>
-			))}
+			{summaries.map((s) => {
+				const isExpanded = expandedApp === s.name;
+				return (
+					<React.Fragment key={s.name}>
+						<AppCard
+							summary={s}
+							expanded={isExpanded}
+							onToggle={() =>
+								argoService.toggleExpandedApp(s.name)
+							}
+						/>
+						{isExpanded && expandedPanel && (
+							<div style={{ gridColumn: '1 / -1' }}>
+								{expandedPanel}
+							</div>
+						)}
+					</React.Fragment>
+				);
+			})}
 		</div>
 	);
 }
@@ -600,6 +618,47 @@ export default function ReactArgoCards() {
 		: undefined;
 
 	const groups = groupSummaries(summaries, groupBy);
+
+	const expandedPanel =
+		expandedRaw && accessToken ? (
+			<div
+				style={{
+					borderRadius: 10,
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 8,
+						padding: '0.65rem 1rem',
+						fontWeight: 600,
+						fontSize: '0.9rem',
+					}}>
+					{expandedRaw.metadata.name}
+					{(actionMsg || actionError) && (
+						<span
+							style={{
+								marginLeft: 'auto',
+								fontSize: '0.75rem',
+								color: actionError ? '#fca5a5' : '#22c55e',
+							}}>
+							{actionError ?? actionMsg}
+						</span>
+					)}
+				</div>
+				<AppActionBar app={expandedRaw} />
+				<AppExpandedPanel
+					app={expandedRaw}
+					token={accessToken}
+					tab={appTab}
+					onTabChange={(t) => argoService.setAppTab(t)}
+					selectedResource={selectedResource}
+					onSelectResource={(sel) => argoService.selectResource(sel)}
+				/>
+			</div>
+		) : null;
 
 	return (
 		<>
@@ -653,52 +712,10 @@ export default function ReactArgoCards() {
 						<CardGrid
 							summaries={g.items}
 							expandedApp={expandedApp}
+							expandedPanel={expandedPanel}
 						/>
 					</div>
 				))
-			)}
-
-			{expandedRaw && accessToken && (
-				<div
-					style={{
-						marginTop: '0.75rem',
-						borderRadius: 10,
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-					}}>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							padding: '0.65rem 1rem',
-							fontWeight: 600,
-							fontSize: '0.9rem',
-						}}>
-						{expandedRaw.metadata.name}
-						{(actionMsg || actionError) && (
-							<span
-								style={{
-									marginLeft: 'auto',
-									fontSize: '0.75rem',
-									color: actionError ? '#fca5a5' : '#22c55e',
-								}}>
-								{actionError ?? actionMsg}
-							</span>
-						)}
-					</div>
-					<AppActionBar app={expandedRaw} />
-					<AppExpandedPanel
-						app={expandedRaw}
-						token={accessToken}
-						tab={appTab}
-						onTabChange={(t) => argoService.setAppTab(t)}
-						selectedResource={selectedResource}
-						onSelectResource={(sel) =>
-							argoService.selectResource(sel)
-						}
-					/>
-				</div>
 			)}
 		</>
 	);

@@ -1034,7 +1034,7 @@ export function AppExpandedPanel({
 // Application Row
 // ---------------------------------------------------------------------------
 
-export function ApplicationRow({
+function ApplicationRowImpl({
 	app,
 	token,
 	expanded,
@@ -1163,6 +1163,17 @@ export function ApplicationRow({
 		</div>
 	);
 }
+
+// Memoized so the 30s poll only re-renders rows whose app object actually
+// changed (refs are reconciled in argoService). Closure props (onToggle, etc.)
+// are behaviorally stable, so they are intentionally excluded from the compare.
+// tab/selectedResource only matter for the expanded row.
+export const ApplicationRow = React.memo(ApplicationRowImpl, (a, b) => {
+	if (a.app !== b.app || a.expanded !== b.expanded || a.token !== b.token)
+		return false;
+	if (!a.expanded) return true;
+	return a.tab === b.tab && a.selectedResource === b.selectedResource;
+});
 
 export function AppActionBar({ app }: { app: ArgoApplication }) {
 	const busy = useStore(argoService.$actionBusy);

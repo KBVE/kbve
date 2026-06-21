@@ -734,6 +734,70 @@ export function normalizeApp(app: ArgoApplication): AppSummary {
 	return summary;
 }
 
+// Render-relevant fingerprint: two app objects with the same signature look
+// identical on screen, so the previous reference can be reused across a poll.
+// Stable references let computed stores + React.memo skip unchanged rows.
+function appSignature(app: ArgoApplication): string {
+	const s = app.status;
+	return JSON.stringify([
+		app.metadata.name,
+		app.spec.project,
+		app.spec.destination.namespace,
+		app.spec.source?.repoURL,
+		app.spec.source?.targetRevision,
+		app.spec.source?.path,
+		s.sync.status,
+		s.sync.revision,
+		s.health.status,
+		s.health.message,
+		s.reconciledAt,
+		s.operationState?.phase,
+		s.operationState?.finishedAt,
+		s.operationState?.message,
+		s.resources?.map((r) => [
+			r.kind,
+			r.name,
+			r.namespace,
+			r.status,
+			r.health?.status,
+		]),
+	]);
+}
+
+const _sigCache = new WeakMap<ArgoApplication, string>();
+function sigOf(app: ArgoApplication): string {
+	let sig = _sigCache.get(app);
+	if (sig === undefined) {
+		sig = appSignature(app);
+		_sigCache.set(app, sig);
+	}
+	return sig;
+}
+
+// Reuse the previous object for any app whose signature is unchanged so the
+// poll only produces new references for apps that actually changed.
+function reconcileApps(
+	prev: ArgoApplication[],
+	next: ArgoApplication[],
+): ArgoApplication[] {
+	if (!prev.length) return next;
+	const byName = new Map(prev.map((a) => [a.metadata.name, a]));
+	return next.map((n) => {
+		const old = byName.get(n.metadata.name);
+		return old && sigOf(old) === sigOf(n) ? old : n;
+	});
+}
+
+const _summaryCache = new WeakMap<ArgoApplication, AppSummary>();
+function normalizeAppCached(app: ArgoApplication): AppSummary {
+	let summary = _summaryCache.get(app);
+	if (!summary) {
+		summary = normalizeApp(app);
+		_summaryCache.set(app, summary);
+	}
+	return summary;
+}
+
 // ---------------------------------------------------------------------------
 // UI preference persistence (view mode + grouping survive reloads)
 // ---------------------------------------------------------------------------
@@ -864,7 +928,7 @@ class ArgoService {
 			}
 		};
 		return apps
-			.map(normalizeApp)
+			.map(normalizeAppCached)
 			.sort(
 				(a, b) =>
 					rank(a.health?.status ?? 'Unknown') -
@@ -874,7 +938,7 @@ class ArgoService {
 
 	// View toggle: rich card grid (default) vs dense table rows. Persisted.
 	public readonly $viewMode = atom<'grid' | 'table'>(
-		loadPref(PREF_VIEW, ['grid', 'table'] as const, 'grid'),
+		loadPref(PREF_VIEW, ['grid', 'table'] as const, 'table'),
 	);
 
 	// Card grid filtering: chip filter + free-text search + grouping.
@@ -944,9 +1008,10 @@ class ArgoService {
 			this.$error.set(null);
 			this.$errorReason.set(null);
 			const apps = await fetchApplications(token);
-			this.$applications.set(apps);
+			const reconciled = reconcileApps(this.$applications.get(), apps);
+			this.$applications.set(reconciled);
 			this.$lastUpdated.set(new Date());
-			saveCache(apps);
+			saveCache(reconciled);
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
