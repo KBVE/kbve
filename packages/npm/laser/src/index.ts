@@ -62,6 +62,19 @@ export {
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
+// Determinism — RNG primitives mirrored byte-for-byte by simgrid rng.rs
+export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
+
+// Combat — attack geometry mirrored byte-for-byte by simgrid combat.rs
+export {
+	AttackShape,
+	MELEE_RANGE,
+	BOW_RANGE,
+	inRangeAdjacent,
+	lineCast,
+	aoeTiles,
+} from './lib/combat';
+
 // Net — shared reconnecting socket + connection state machine
 export { ReconnectingSocket, defaultCloseReason } from './lib/net/connection';
 export type {
@@ -90,8 +103,10 @@ export {
 	OWNER_NONE,
 	ACTION_ATTACK,
 	ACTION_PICKUP,
+	ACTION_SHOOT,
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_COMBAT,
+	EPHEMERAL_PROJECTILE,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_EQUIPPED,
@@ -131,6 +146,7 @@ export type {
 	InventorySync,
 	ShopResult,
 	CombatEvent,
+	ProjectileEvent,
 	PickupEvent,
 	ItemUsedEvent,
 	EquippedEvent,

@@ -1,7 +1,8 @@
-export const PROTOCOL_VERSION = 10;
+export const PROTOCOL_VERSION = 11;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
+export const ACTION_SHOOT = 3;
 
 export const EPHEMERAL_INVENTORY = 1;
 export const EPHEMERAL_COMBAT = 2;
@@ -13,6 +14,7 @@ export const EPHEMERAL_STATUS = 8;
 export const EPHEMERAL_TRADE = 9;
 export const EPHEMERAL_SHOP = 10;
 export const EPHEMERAL_BLACKJACK = 11;
+export const EPHEMERAL_PROJECTILE = 12;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -140,6 +142,14 @@ export interface CombatEvent {
 	dmg: number;
 	died: boolean;
 	crit?: boolean;
+}
+
+export interface ProjectileEvent {
+	attacker: number;
+	from: { x: number; y: number };
+	to: { x: number; y: number };
+	kind: string;
+	hit: boolean;
 }
 
 export interface PickupEvent {

@@ -7,6 +7,7 @@ import {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
+	EPHEMERAL_PROJECTILE,
 	EPHEMERAL_SHOP,
 	EPHEMERAL_STATS,
 	type BjActionKind,
@@ -21,6 +22,7 @@ import {
 	type InventorySync,
 	type ItemUsedEvent,
 	type PickupEvent,
+	type ProjectileEvent,
 	type ServerEvent,
 	type ShopResult,
 	type Snapshot,
@@ -39,6 +41,7 @@ export type GameClientEventMap = {
 	ephemeral: Ephemeral;
 	inventory: InventorySync;
 	combat: CombatEvent;
+	projectile: ProjectileEvent;
 	pickup: PickupEvent;
 	itemUsed: ItemUsedEvent;
 	equipped: EquippedEvent;
@@ -136,6 +139,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_COMBAT) {
 			const data = decodeEphemeralPayload<CombatEvent>(evt.payload);
 			if (data) this.bus.emit('combat', data);
+		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
+			const data = decodeEphemeralPayload<ProjectileEvent>(evt.payload);
+			if (data) this.bus.emit('projectile', data);
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
 			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
 			if (data) this.bus.emit('pickup', data);
