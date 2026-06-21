@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"useDefineForClassFields": true,
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["vite/client"],
+		"module": "ESNext",
+		"skipLibCheck": true,
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"jsx": "react-jsx",
+		"strict": true,
+		"baseUrl": ".",
+		"paths": {
+			"@arpg/*": ["../../../kbve/astro-kbve/src/arcade/isometric-arpg/*"],
+			"@kbve/laser": ["../../../../packages/npm/laser/src/index.ts"],
+			"@/lib/supa": ["./src/lib/supa.ts"],
+			"@/*": ["../../../kbve/astro-kbve/src/*"]
+		}
+	},
+	"include": ["src", "vite.config.ts"]
+}

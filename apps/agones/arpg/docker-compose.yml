@@ -1,26 +1,28 @@
 # Personal local-dev compose for the ARPG vertical. NOT used by Agones/k8s.
 #
-#   docker compose -f apps/agones/arpg/server/docker-compose.yml up --build
+#   docker compose -f apps/agones/arpg/docker-compose.yml up --build
 #       -> builds + runs only arpg-server on :7979 (no PG/Valkey: persistence
 #          degrades gracefully, sim + itemdb still load).
 #
-#   docker compose -f apps/agones/arpg/server/docker-compose.yml --profile web up --build
-#       -> also runs the astro-kbve dev site on :4321, pointed at the local
-#          server. First boot installs node deps into a named volume (slow once).
+#   docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build
+#       -> also runs the standalone vite arpg client on :5402, pointed at the
+#          local server. The client is its own lightweight app (apps/agones/arpg/
+#          web), NOT the full astro-kbve site — fast boot, isolated node deps.
 #
 # The browser (on the host) talks to ws://localhost:7979/ws, so PUBLIC_ARPG_GAME_WS
 # uses localhost regardless of which service serves the page.
 #
-# Auth: online mode requires a real Supabase session — the client sends its
-# session JWT and the server verifies it against SUPABASE_JWT_SECRET. Export that
-# secret (and sign in on the page) before connecting; an empty JWT is denied.
+# Auth: the client runs the real Supabase login and sends its session JWT; the
+# server verifies it against Supabase GoTrue (SUPABASE_URL + ANON_KEY below) and
+# denies an empty/invalid token. The vite dev server proxies /supabase to dodge
+# the supabase.kbve.com localhost-CORS block.
 
 name: arpg-local
 
 services:
     arpg-server:
         build:
-            context: ../../../..
+            context: ../../..
             dockerfile: apps/agones/arpg/server/Dockerfile
         image: kbve/arpg-server:dev
         ports:
@@ -43,28 +45,23 @@ services:
     arpg-web:
         profiles: ['web']
         image: node:24-bookworm
-        working_dir: /workspace
+        working_dir: /workspace/apps/agones/arpg/web
         depends_on:
             - arpg-server
         ports:
-            - '4321:4321'
+            - '5402:5402'
         environment:
             PUBLIC_ARPG_LOCAL: 'false'
             PUBLIC_ARPG_GAME_WS: ws://localhost:7979/ws
-            NODE_OPTIONS: --max-old-space-size=8192
-            UV_THREADPOOL_SIZE: '4'
         volumes:
-            - ../../../..:/workspace
-            - arpg-web-node-modules:/workspace/node_modules
+            - ../../..:/workspace
+            - arpg-web-node-modules:/workspace/apps/agones/arpg/web/node_modules
         command:
             - bash
             - -lc
             - |
-                corepack enable && corepack prepare pnpm@10.18.3 --activate
-                pnpm install --frozen-lockfile
-                cd apps/kbve/astro-kbve
-                nx exec -- astro sync
-                nx exec -- astro dev --host 0.0.0.0
+                npm install --no-save
+                npm run dev -- --host 0.0.0.0
 
 volumes:
     arpg-web-node-modules:

@@ -1,0 +1,51 @@
+{
+	"name": "arpg",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/arpg",
+	"tags": ["agones", "arpg", "game"],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "trap 'docker compose -f apps/agones/arpg/docker-compose.yml --profile web down' EXIT INT TERM; docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build"
+			}
+		},
+		"compose-up": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/docker-compose.yml up --build"
+			}
+		},
+		"compose-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "docker compose -f apps/agones/arpg/docker-compose.yml --profile web down"
+			}
+		},
+		"web-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["npm install --no-save", "npm run dev"],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist"],
+			"options": {
+				"commands": ["npm install --no-save", "npm run build"],
+				"cwd": "apps/agones/arpg/web",
+				"parallel": false
+			}
+		},
+		"web-typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "npm run typecheck",
+				"cwd": "apps/agones/arpg/web"
+			}
+		}
+	}
+}
