@@ -17,10 +17,11 @@ import {
 	PlayerTag,
 	NpcTag,
 	ItemTag,
+	EnvTag,
 	MonsterTag,
 } from './components';
 
-export type EntityCat = 'player' | 'npc' | 'item';
+export type EntityCat = 'player' | 'npc' | 'item' | 'env';
 
 export interface SpawnData {
 	tile: { x: number; y: number };
@@ -45,7 +46,13 @@ export class EntityStore<R> {
 	private sideRefs = new SideMap<R>();
 
 	private tagFor(cat: EntityCat): Record<string, never> {
-		return cat === 'player' ? PlayerTag : cat === 'npc' ? NpcTag : ItemTag;
+		return cat === 'player'
+			? PlayerTag
+			: cat === 'npc'
+				? NpcTag
+				: cat === 'env'
+					? EnvTag
+					: ItemTag;
 	}
 
 	has(serverEid: number): boolean {

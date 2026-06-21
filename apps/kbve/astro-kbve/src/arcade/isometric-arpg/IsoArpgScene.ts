@@ -91,6 +91,12 @@ import {
 	registerClassAnims,
 	RANGER_CLASS,
 } from './entities/classes';
+import {
+	preloadEnv,
+	registerEnvAnims,
+	makeEnvSprite,
+	ENV_REGISTRY,
+} from './entities/env';
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
 
@@ -174,12 +180,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	preload() {
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
+		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 	}
 
 	create() {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
+		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
 
 		this.drawGrid();
 		this.buildFog();
@@ -478,16 +486,29 @@ export class IsoArpgScene extends Phaser.Scene {
 	private buildBridge() {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
-				const refs: EntityRefs = isPlayerKind(this.kinds, e.kind)
-					? this.makePlayerRefs(e.kind)
-					: {
-							sprite: makeSprite(
-								this,
-								this.kinds,
-								e.kind,
-								this.syncResolvers.hostile(e.kind),
-							),
-						};
+				let refs: EntityRefs;
+				if (isPlayerKind(this.kinds, e.kind)) {
+					refs = this.makePlayerRefs(e.kind);
+				} else if (this.kinds.catName(e.kind) === 'env') {
+					const envSprite = makeEnvSprite(
+						this,
+						this.kinds.ref(e.kind),
+					);
+					refs = {
+						sprite:
+							envSprite ??
+							makeSprite(this, this.kinds, e.kind, false),
+					};
+				} else {
+					refs = {
+						sprite: makeSprite(
+							this,
+							this.kinds,
+							e.kind,
+							this.syncResolvers.hostile(e.kind),
+						),
+					};
+				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				this.syncShadow(refs);
 				if (label) {
@@ -655,6 +676,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// the 16-dir turn curve stays fluid even between tile crossings.
 		this.tickFacing();
 		this.syncFogToZoom();
+		this.refreshEnvBlocked();
 
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
 
@@ -865,7 +887,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const path = findHierPath(
 			start,
 			tile,
-			(x, y) => this.dungeon.isFloor(x, y),
+			(x, y) => !this.isBlocked(x, y),
 			this.gateGraph,
 		);
 		if (!path) {
@@ -876,10 +898,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.moveTo(tile);
 	}
 
-	// Endless dungeon: a tile is walkable iff it's a generated floor tile. No
-	// fixed bounds — walls are simply the absence of floor.
+	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the
+	// ECS store so local prediction blocks the same tiles the server does — else
+	// the player walks onto a campfire then snaps back on the next snapshot.
+	private envBlocked = new Set<string>();
+
+	private refreshEnvBlocked(): void {
+		this.envBlocked.clear();
+		for (const sid of this.store.serverIdsWith('env')) {
+			const t = this.store.tile(sid);
+			if (t) this.envBlocked.add(`${t.x},${t.y}`);
+		}
+	}
+
+	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
+	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
-		return !this.dungeon.isFloor(x, y);
+		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
 	};
 
 	private isHostileServer(serverEid: number): boolean {
