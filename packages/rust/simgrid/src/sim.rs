@@ -709,6 +709,124 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     }
 }
 
+/// A placed environment object (campfire, wall, …). `def_ref` is its itemdb ref
+/// so systems can resolve data-driven behavior later (#12972); for now the
+/// behavior components are attached from spawn-time `EnvOpts`.
+#[derive(Component, Clone)]
+pub struct EnvObject {
+    pub def_ref: String,
+}
+
+/// Occupies its tile — paired with `WalkableMap::block_tile_z` so movement and
+/// pathfinding route around it.
+#[derive(Component, Clone, Copy)]
+pub struct Blocker;
+
+/// Periodic heal for players within `range` (Chebyshev) of this tile, excluding
+/// the unstandable center. `range >= 1` keeps it disjoint from a `HazardZone`.
+#[derive(Component, Clone, Copy)]
+pub struct HealAura {
+    pub range: i32,
+    pub magnitude: i32,
+    pub period_ticks: u32,
+}
+
+/// Periodic burn for any entity standing ON this tile (player or NPC — reached by
+/// knockback / forced move since the tile is usually a `Blocker`).
+#[derive(Component, Clone, Copy)]
+pub struct HazardZone {
+    pub magnitude: i32,
+    pub period_ticks: u32,
+}
+
+/// Spawn-time behavior for an env object. Hardcoded by the caller today; #12972
+/// will populate these from the itemdb item def.
+#[derive(Clone, Default)]
+pub struct EnvOpts {
+    pub blocker: bool,
+    pub heal_aura: Option<HealAura>,
+    pub hazard: Option<HazardZone>,
+    pub floor: i32,
+}
+
+/// Spawn a placed env object with the mandatory snapshot trio
+/// (`EntityKind + GridPos + MoveTarget`) plus opted-in behavior components. The
+/// caller blocks the tile via `WalkableMap::block_tile_z` when `opts.blocker`.
+pub fn spawn_env_object(
+    commands: &mut Commands,
+    registry: &KindRegistry,
+    item_ref: &str,
+    tile: Tile,
+    opts: EnvOpts,
+) -> Option<Entity> {
+    let kind = registry.kind_of(item_ref)?;
+    let mut e = commands.spawn((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        EnvObject {
+            def_ref: item_ref.to_string(),
+        },
+    ));
+    if opts.floor != 0 {
+        e.insert(Floor(opts.floor));
+    }
+    if opts.blocker {
+        e.insert(Blocker);
+    }
+    if let Some(a) = opts.heal_aura {
+        e.insert(a);
+    }
+    if let Some(h) = opts.hazard {
+        e.insert(h);
+    }
+    Some(e.id())
+}
+
+/// Heal players standing in a campfire's aura ring (range >= 1, same floor).
+#[allow(clippy::type_complexity)]
+fn env_heal_aura(
+    clock: Res<SimClock>,
+    auras: Query<(&HealAura, &GridPos, Option<&Floor>)>,
+    mut players: Query<(&mut Health, &GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+) {
+    for (aura, apos, afloor) in auras.iter() {
+        if aura.period_ticks == 0 || !clock.tick.is_multiple_of(aura.period_ticks) {
+            continue;
+        }
+        let az = afloor.map(|f| f.0).unwrap_or(0);
+        for (mut hp, ppos, pfloor) in players.iter_mut() {
+            if pfloor.map(|f| f.0).unwrap_or(0) != az || hp.hp <= 0 || hp.hp >= hp.max_hp {
+                continue;
+            }
+            let d = ppos.tile.chebyshev(apos.tile);
+            if d >= 1 && d <= aura.range {
+                hp.hp = (hp.hp + aura.magnitude).min(hp.max_hp);
+            }
+        }
+    }
+}
+
+/// Burn any entity (player or NPC) standing on a hazard tile (same floor).
+#[allow(clippy::type_complexity)]
+fn env_hazard_burn(
+    clock: Res<SimClock>,
+    hazards: Query<(&HazardZone, &GridPos, Option<&Floor>)>,
+    mut victims: Query<(&mut Health, &GridPos, Option<&Floor>)>,
+) {
+    for (hz, hpos, hfloor) in hazards.iter() {
+        if hz.period_ticks == 0 || !clock.tick.is_multiple_of(hz.period_ticks) {
+            continue;
+        }
+        let hz_z = hfloor.map(|f| f.0).unwrap_or(0);
+        for (mut hp, vpos, vfloor) in victims.iter_mut() {
+            if vfloor.map(|f| f.0).unwrap_or(0) == hz_z && vpos.tile == hpos.tile {
+                hp.hp -= hz.magnitude;
+            }
+        }
+    }
+}
+
 pub fn build_app(
     tx: mpsc::UnboundedSender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
@@ -790,6 +908,8 @@ pub fn build_app(
                 advance_movement,
                 chain_steps,
                 stair_system,
+                env_hazard_burn,
+                env_heal_aura,
                 tick_status_effects,
                 respawn_players,
                 regen_players,
@@ -3224,6 +3344,74 @@ mod tests {
             .unwrap()
             .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
+    }
+
+    #[test]
+    fn env_hazard_burns_entity_on_tile() {
+        let (mut app, _rx, _tx, _roster) = harness(0x111);
+        let t = Tile::new(10, 10);
+        // Plain Health entity (no PlayerSlotTag → regen/status systems ignore it).
+        let victim = app
+            .world_mut()
+            .spawn((
+                EntityKind(1),
+                GridPos::at(t),
+                MoveTarget::default(),
+                Health {
+                    hp: 100,
+                    max_hp: 100,
+                },
+            ))
+            .id();
+        app.world_mut().spawn((
+            HazardZone {
+                magnitude: 8,
+                period_ticks: 1,
+            },
+            GridPos::at(t),
+        ));
+        for _ in 0..3 {
+            app.update();
+        }
+        let hp = app.world().get::<Health>(victim).unwrap().hp;
+        assert_eq!(hp, 100 - 8 * 3, "burned 8/tick for 3 ticks");
+    }
+
+    #[test]
+    fn env_heal_aura_heals_adjacent_player() {
+        let (mut app, _rx, _tx, _roster) = harness(0x222);
+        let center = Tile::new(10, 10);
+        let adj = Tile::new(11, 10); // Chebyshev distance 1 from center.
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(adj),
+                MoveTarget::default(),
+                MoveSpeed { ticks_per_tile: 4 },
+                Health {
+                    hp: 10,
+                    max_hp: 100,
+                },
+                StatusEffects::default(),
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().spawn((
+            HealAura {
+                range: 2,
+                magnitude: 3,
+                period_ticks: 1,
+            },
+            GridPos::at(center),
+        ));
+        // Fewer ticks than REGEN_PERIOD_TICKS (40) so regen_players never fires —
+        // any healing is purely the aura.
+        for _ in 0..5 {
+            app.update();
+        }
+        let hp = app.world().get::<Health>(player).unwrap().hp;
+        assert_eq!(hp, 10 + 3 * 5, "aura healed 3/tick for 5 ticks");
     }
 
     #[test]

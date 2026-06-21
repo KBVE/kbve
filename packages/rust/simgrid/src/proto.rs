@@ -23,6 +23,7 @@ pub const EPHEMERAL_FLOOR: u16 = 13;
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
 pub const KIND_CAT_ITEM: u8 = 2;
+pub const KIND_CAT_ENV: u8 = 3;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct EntityId(pub u32);

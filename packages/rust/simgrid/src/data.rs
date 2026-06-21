@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bevy::prelude::Resource;
 use serde::Deserialize;
 
-use crate::proto::{KIND_CAT_ITEM, KIND_CAT_NPC, KIND_CAT_PLAYER, KindEntry};
+use crate::proto::{KIND_CAT_ENV, KIND_CAT_ITEM, KIND_CAT_NPC, KIND_CAT_PLAYER, KindEntry};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct NpcDb {
@@ -147,6 +147,10 @@ impl KindRegistry {
 
     pub fn register_item(&mut self, ref_id: &str) -> u16 {
         self.insert(ref_id, KIND_CAT_ITEM)
+    }
+
+    pub fn register_env(&mut self, ref_id: &str) -> u16 {
+        self.insert(ref_id, KIND_CAT_ENV)
     }
 
     pub fn kind_of(&self, ref_id: &str) -> Option<u16> {
