@@ -1,30 +1,23 @@
 {
-  "generated_at": "2026-06-20T09:14:10Z",
+  "generated_at": "2026-06-21T09:25:47Z",
   "summary": {
     "critical": 2,
     "high": 26,
-    "medium": 53,
+    "medium": 52,
     "low": 11,
     "info": 31
   },
   "ecosystems": {
     "npm": {
-      "total": 73,
+      "total": 72,
       "severities": {
         "critical": 2,
         "high": 26,
-        "medium": 34,
+        "medium": 33,
         "low": 11,
         "info": 0
       },
       "advisories": [
-        {
-          "id": "1088948",
-          "title": "Got allows a redirect to a UNIX socket",
-          "severity": "medium",
-          "package": "got",
-          "url": "https://github.com/advisories/GHSA-pfrx-2q88-qq97"
-        },
         {
           "id": "1109842",
           "title": "glob CLI: Command injection via -c/--cmd executes matches with shell:true",
