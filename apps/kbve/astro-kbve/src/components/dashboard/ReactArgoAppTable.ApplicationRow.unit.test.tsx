@@ -39,8 +39,8 @@ function renderRow(
 		app?: ArgoApplication;
 		expanded?: boolean;
 		onToggle?: () => void;
-		tab?: 'resources' | 'events' | 'history';
-		onTabChange?: (t: 'resources' | 'events' | 'history') => void;
+		tab?: 'resources' | 'diff' | 'events' | 'history';
+		onTabChange?: (t: 'resources' | 'diff' | 'events' | 'history') => void;
 		selectedResource?: ResourceSelector | null;
 		onSelectResource?: (sel: ResourceSelector) => void;
 	} = {},

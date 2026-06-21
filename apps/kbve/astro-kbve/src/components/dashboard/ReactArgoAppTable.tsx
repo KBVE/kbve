@@ -6,11 +6,16 @@ import {
 	syncColor,
 	fetchResourceTree,
 	fetchAppEvents,
+	fetchManagedResources,
 	detectAppStall,
 	detectResourceStall,
 	formatAge,
+	diffLines,
+	prettyManifest,
 	type AppEvent,
+	type AppTab,
 	type ArgoApplication,
+	type ManagedResource,
 	type ResourceTree,
 	type ResourceNode,
 	type ResourceSelector,
@@ -27,6 +32,8 @@ import {
 	ChevronRight,
 	Box,
 	Clock,
+	FileDiff,
+	Undo2,
 } from 'lucide-react';
 
 function StallBadge({
@@ -626,6 +633,10 @@ function AppEventsPanel({
 }
 
 function AppHistoryPanel({ app }: { app: ArgoApplication }) {
+	const busy = useStore(argoService.$actionBusy);
+	const name = app.metadata.name;
+	const rolling = busy === `${name}:rollback`;
+	const anyBusy = busy !== null;
 	const history = (app.status as Record<string, unknown>)?.history as
 		| Array<Record<string, unknown>>
 		| undefined;
@@ -705,6 +716,68 @@ function AppHistoryPanel({ app }: { app: ArgoApplication }) {
 									? new Date(deployedAt).toLocaleString()
 									: ''}
 							</span>
+							{i === 0 ? (
+								<span
+									style={{
+										padding: '1px 6px',
+										borderRadius: 4,
+										background: 'rgba(34, 197, 94, 0.12)',
+										border: '1px solid rgba(34, 197, 94, 0.35)',
+										color: '#4ade80',
+										fontSize: '0.65rem',
+										fontWeight: 600,
+										textTransform: 'uppercase',
+									}}>
+									Current
+								</span>
+							) : (
+								id != null && (
+									<button
+										type="button"
+										disabled={anyBusy}
+										title={`Roll back to revision #${id}`}
+										onClick={() => {
+											if (
+												window.confirm(
+													`Roll back ${name} to revision #${id}? This deploys the older manifests.`,
+												)
+											)
+												void argoService.rollbackApp(
+													name,
+													id,
+												);
+										}}
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: 4,
+											padding: '0.2rem 0.5rem',
+											borderRadius: 5,
+											border: '1px solid var(--sl-color-gray-5, #262626)',
+											background:
+												'var(--sl-color-bg-nav, #111)',
+											color: 'var(--sl-color-gray-2, #c9d1d9)',
+											fontSize: '0.7rem',
+											fontWeight: 500,
+											cursor: anyBusy
+												? 'wait'
+												: 'pointer',
+										}}>
+										{rolling ? (
+											<Loader2
+												size={11}
+												style={{
+													animation:
+														'spin 1s linear infinite',
+												}}
+											/>
+										) : (
+											<Undo2 size={11} />
+										)}
+										Rollback
+									</button>
+								)
+							)}
 						</div>
 						{source && (
 							<div
@@ -726,6 +799,159 @@ function AppHistoryPanel({ app }: { app: ArgoApplication }) {
 	);
 }
 
+function resourceLabel(r: ManagedResource): string {
+	const g = r.group ? `${r.group}/` : '';
+	const ns = r.namespace ? `${r.namespace}/` : '';
+	return `${g}${r.kind} · ${ns}${r.name}`;
+}
+
+function isOutOfSync(r: ManagedResource): boolean {
+	const live = prettyManifest(r.normalizedLiveState ?? r.liveState);
+	const target = prettyManifest(r.predictedLiveState ?? r.targetState);
+	return live !== target;
+}
+
+function DiffView({ before, after }: { before: string; after: string }) {
+	const lines = diffLines(before, after);
+	return (
+		<pre
+			style={{
+				margin: 0,
+				padding: '0.5rem 0.75rem',
+				overflowX: 'auto',
+				fontSize: '0.72rem',
+				lineHeight: 1.55,
+				fontFamily: 'var(--sl-font-mono, monospace)',
+				background: 'var(--sl-color-bg, #0d1117)',
+				borderRadius: 6,
+				border: '1px solid var(--sl-color-gray-5, #262626)',
+			}}>
+			{lines.map((l, i) => {
+				const sign =
+					l.op === 'add' ? '+' : l.op === 'remove' ? '-' : ' ';
+				const color =
+					l.op === 'add'
+						? '#22c55e'
+						: l.op === 'remove'
+							? '#ef4444'
+							: 'var(--sl-color-gray-3, #8b949e)';
+				const bg =
+					l.op === 'add'
+						? 'rgba(34, 197, 94, 0.08)'
+						: l.op === 'remove'
+							? 'rgba(239, 68, 68, 0.08)'
+							: 'transparent';
+				return (
+					<div key={i} style={{ color, background: bg }}>
+						{sign} {l.text}
+					</div>
+				);
+			})}
+		</pre>
+	);
+}
+
+function AppDiffPanel({ token, appName }: { token: string; appName: string }) {
+	const [resources, setResources] = useState<ManagedResource[] | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			try {
+				setLoading(true);
+				const data = await fetchManagedResources(token, appName);
+				if (!cancelled) setResources(data);
+			} catch (e: unknown) {
+				if (!cancelled)
+					setError(e instanceof Error ? e.message : 'Failed to load');
+			} finally {
+				if (!cancelled) setLoading(false);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [token, appName]);
+
+	if (loading) return <LoadingBlock label="Computing diff..." />;
+	if (error) return <ErrorBlock message={error} />;
+
+	const drifted = (resources ?? []).filter(isOutOfSync);
+	if (drifted.length === 0) {
+		return (
+			<div
+				style={{
+					padding: '1rem',
+					color: '#22c55e',
+					fontSize: '0.85rem',
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+				}}>
+				<CheckCircle2 size={14} />
+				All managed resources match the desired state
+			</div>
+		);
+	}
+
+	return (
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+			<div
+				style={{
+					fontSize: '0.75rem',
+					color: 'var(--sl-color-gray-4, #6b7280)',
+				}}>
+				{drifted.length} resource{drifted.length === 1 ? '' : 's'}{' '}
+				differ from target —{' '}
+				<span style={{ color: '#ef4444' }}>red</span> is live,{' '}
+				<span style={{ color: '#22c55e' }}>green</span> is target.
+			</div>
+			{drifted.map((r, i) => (
+				<div key={`${r.kind}-${r.namespace}-${r.name}-${i}`}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							marginBottom: 4,
+							fontSize: '0.78rem',
+							fontWeight: 600,
+							color: 'var(--sl-color-text, #e6edf3)',
+						}}>
+						<FileDiff size={13} style={{ color: '#8b5cf6' }} />
+						{resourceLabel(r)}
+						{r.requiresPruning && (
+							<span
+								style={{
+									padding: '0 6px',
+									borderRadius: 4,
+									background: 'rgba(239, 68, 68, 0.12)',
+									border: '1px solid rgba(239, 68, 68, 0.35)',
+									color: '#fca5a5',
+									fontSize: '0.65rem',
+									fontWeight: 600,
+									textTransform: 'uppercase',
+								}}>
+								Prune
+							</span>
+						)}
+					</div>
+					<DiffView
+						before={prettyManifest(
+							r.normalizedLiveState ?? r.liveState,
+						)}
+						after={prettyManifest(
+							r.predictedLiveState ?? r.targetState,
+						)}
+					/>
+				</div>
+			))}
+		</div>
+	);
+}
+
 export function AppExpandedPanel({
 	app,
 	token,
@@ -736,13 +962,15 @@ export function AppExpandedPanel({
 }: {
 	app: ArgoApplication;
 	token: string;
-	tab: 'resources' | 'events' | 'history';
-	onTabChange: (t: 'resources' | 'events' | 'history') => void;
+	tab: AppTab;
+	onTabChange: (t: AppTab) => void;
 	selectedResource: ResourceSelector | null;
 	onSelectResource: (sel: ResourceSelector) => void;
 }) {
-	const tabs: { id: 'resources' | 'events' | 'history'; label: string }[] = [
+	const outOfSync = app.status.sync.status === 'OutOfSync';
+	const tabs: { id: AppTab; label: string }[] = [
 		{ id: 'resources', label: 'Resources' },
+		{ id: 'diff', label: outOfSync ? 'Diff •' : 'Diff' },
 		{ id: 'events', label: 'Events' },
 		{ id: 'history', label: 'Sync History' },
 	];
@@ -791,6 +1019,9 @@ export function AppExpandedPanel({
 					onSelectResource={onSelectResource}
 				/>
 			)}
+			{tab === 'diff' && (
+				<AppDiffPanel token={token} appName={app.metadata.name} />
+			)}
 			{tab === 'events' && (
 				<AppEventsPanel token={token} appName={app.metadata.name} />
 			)}
@@ -817,8 +1048,8 @@ export function ApplicationRow({
 	token: string;
 	expanded: boolean;
 	onToggle: () => void;
-	tab: 'resources' | 'events' | 'history';
-	onTabChange: (t: 'resources' | 'events' | 'history') => void;
+	tab: AppTab;
+	onTabChange: (t: AppTab) => void;
 	selectedResource: ResourceSelector | null;
 	onSelectResource: (sel: ResourceSelector) => void;
 }) {

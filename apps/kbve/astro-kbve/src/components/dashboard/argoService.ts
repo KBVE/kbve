@@ -408,6 +408,108 @@ export async function hardRefreshApplication(
 	if (!resp.ok) throw new Error(`Refresh failed: ${resp.status}`);
 }
 
+export async function rollbackApplication(
+	token: string,
+	appName: string,
+	id: number,
+): Promise<void> {
+	const resp = await fetch(
+		`${PROXY_BASE}/api/v1/applications/${encodeURIComponent(appName)}/rollback`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ id, prune: false, dryRun: false }),
+			signal: AbortSignal.timeout(30000),
+		},
+	);
+	if (resp.status === 403) throw new ManageForbiddenError();
+	if (!resp.ok) throw new Error(`Rollback failed: ${resp.status}`);
+}
+
+// ---------------------------------------------------------------------------
+// Diff helpers — readable live-vs-target comparison for OutOfSync resources.
+// ArgoCD's managed-resources endpoint returns JSON manifests as strings; we
+// pretty-print with stable key ordering, then run a line LCS to mark changes.
+// ---------------------------------------------------------------------------
+
+export type AppTab = 'resources' | 'diff' | 'events' | 'history';
+
+export type DiffLineOp = 'context' | 'add' | 'remove';
+
+export interface DiffLine {
+	op: DiffLineOp;
+	text: string;
+}
+
+function stableStringify(value: unknown): string {
+	const seen = new WeakSet();
+	const sort = (v: unknown): unknown => {
+		if (v === null || typeof v !== 'object') return v;
+		if (seen.has(v as object)) return undefined;
+		seen.add(v as object);
+		if (Array.isArray(v)) return v.map(sort);
+		const out: Record<string, unknown> = {};
+		for (const k of Object.keys(v as Record<string, unknown>).sort()) {
+			out[k] = sort((v as Record<string, unknown>)[k]);
+		}
+		return out;
+	};
+	return JSON.stringify(sort(value), null, 2);
+}
+
+export function prettyManifest(raw: string | undefined): string {
+	if (!raw) return '';
+	try {
+		return stableStringify(JSON.parse(raw));
+	} catch {
+		return raw;
+	}
+}
+
+/**
+ * Minimal line diff via longest-common-subsequence. Manifests are small
+ * (typically <500 lines) so the O(n·m) DP table is fine.
+ */
+export function diffLines(before: string, after: string): DiffLine[] {
+	const a = before ? before.split('\n') : [];
+	const b = after ? after.split('\n') : [];
+	const n = a.length;
+	const m = b.length;
+	const lcs: number[][] = Array.from({ length: n + 1 }, () =>
+		new Array<number>(m + 1).fill(0),
+	);
+	for (let i = n - 1; i >= 0; i--) {
+		for (let j = m - 1; j >= 0; j--) {
+			lcs[i][j] =
+				a[i] === b[j]
+					? lcs[i + 1][j + 1] + 1
+					: Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+		}
+	}
+	const out: DiffLine[] = [];
+	let i = 0;
+	let j = 0;
+	while (i < n && j < m) {
+		if (a[i] === b[j]) {
+			out.push({ op: 'context', text: a[i] });
+			i++;
+			j++;
+		} else if (lcs[i + 1][j] >= lcs[i][j + 1]) {
+			out.push({ op: 'remove', text: a[i] });
+			i++;
+		} else {
+			out.push({ op: 'add', text: b[j] });
+			j++;
+		}
+	}
+	while (i < n) out.push({ op: 'remove', text: a[i++] });
+	while (j < m) out.push({ op: 'add', text: b[j++] });
+	return out;
+}
+
 // ---------------------------------------------------------------------------
 // Cache helpers — IndexedDB-backed (SharedWorker → Dexie → localStorage →
 // memory) via the shared idb-cache layer. Render from here first, then pull.
@@ -645,9 +747,7 @@ class ArgoService {
 	public readonly $lastUpdated = atom<Date | null>(null);
 	public readonly $expandedApp = atom<string | null>(null);
 	public readonly $selectedResource = atom<ResourceSelector | null>(null);
-	public readonly $appTab = atom<'resources' | 'events' | 'history'>(
-		'resources',
-	);
+	public readonly $appTab = atom<AppTab>('resources');
 
 	// Per-app action state: $actionBusy holds `${name}:sync` | `${name}:refresh`
 	// while the request is in flight; messages are transient banners.
@@ -865,6 +965,30 @@ class ArgoService {
 		}
 	}
 
+	public async rollbackApp(name: string, id: number): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$actionBusy.get()) return;
+		this.$actionBusy.set(`${name}:rollback`);
+		this.$actionError.set(null);
+		this.$actionMsg.set(null);
+		try {
+			await rollbackApplication(token, name, id);
+			this.$actionMsg.set(`Rollback to revision #${id} triggered`);
+			await this.invalidateCache();
+			this._scheduleRefresh(true);
+		} catch (e: unknown) {
+			this.$actionError.set(
+				e instanceof ManageForbiddenError
+					? 'Rollback needs DASHBOARD_MANAGE permission'
+					: e instanceof Error
+						? e.message
+						: 'Rollback failed',
+			);
+		} finally {
+			this.$actionBusy.set(null);
+		}
+	}
+
 	private _scheduleRefresh(immediate = false): void {
 		if (this._refreshTimer) clearTimeout(this._refreshTimer);
 		this._refreshTimer = setTimeout(
@@ -934,7 +1058,7 @@ class ArgoService {
 		}
 	}
 
-	public setAppTab(tab: 'resources' | 'events' | 'history'): void {
+	public setAppTab(tab: AppTab): void {
 		this.$appTab.set(tab);
 	}
 
