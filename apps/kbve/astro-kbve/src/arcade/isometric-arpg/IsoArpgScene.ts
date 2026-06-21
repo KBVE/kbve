@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import {
 	GameClient,
 	ACTION_ATTACK,
+	ACTION_PICKUP,
 	attachCameraZoom,
 	flashEntity,
 	floatingText,
@@ -173,6 +174,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
 	private inventory: InventoryItem[] = [];
+	// Ground items we've already sent a pickup for, so auto-pickup doesn't spam
+	// the same item during the request → despawn round-trip.
+	private pickupSent = new Set<number>();
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -594,6 +598,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (item) this.client?.useItem(item.ref);
 	}
 
+	// Walk-over pickup: any ground item within one tile is grabbed automatically.
+	// The server validates proximity, despawns the item, and broadcasts the
+	// updated inventory; pickupSent dedupes until the despawn round-trips back.
+	private tryAutoPickup(): void {
+		if (!this.client) return;
+		const me = floatTile(this.floatState);
+		for (const sid of this.store.serverIdsWith('item')) {
+			if (this.pickupSent.has(sid)) continue;
+			const t = this.store.tile(sid);
+			if (!t) continue;
+			if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
+				this.client.action(ACTION_PICKUP, sid);
+				this.pickupSent.add(sid);
+			}
+		}
+	}
+
 	private applySnapshot(s: Snapshot) {
 		for (const p of s.players) {
 			this.slotUsername.set(p.slot, p.kbve_username);
@@ -713,6 +734,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
+		this.tryAutoPickup();
 		this.tickHud(delta);
 	}
 
