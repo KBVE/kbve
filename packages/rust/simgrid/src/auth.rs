@@ -2,6 +2,25 @@ use serde::{Deserialize, Serialize};
 
 use jsonwebtoken::{DecodingKey, Validation, decode};
 
+/// A token verified by an external authority (e.g. Supabase GoTrue): the stable
+/// identity and the canonical KBVE username.
+#[derive(Clone, Debug)]
+pub struct VerifiedUser {
+    pub sub: String,
+    pub kbve_username: String,
+}
+
+/// Pluggable async token verification. The sim is content/infra-agnostic, so a
+/// host (the arpg server) injects a verifier — typically the shared jedi
+/// GoTrue + LRU cache — without simgrid taking that dependency. When no verifier
+/// is set, `admit` falls back to local HS256 (jwt_secret) or dev-accept.
+#[async_trait::async_trait]
+pub trait TokenVerifier: Send + Sync {
+    /// Verify a raw bearer token. `Ok` yields the identity; `Err` is a short,
+    /// client-facing reason.
+    async fn verify(&self, token: &str) -> Result<VerifiedUser, String>;
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SupabaseClaims {
     pub sub: String,

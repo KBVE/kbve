@@ -151,6 +151,7 @@ export type {
 	FloorChangeEvent,
 	PickupEvent,
 	ItemUsedEvent,
+	ItemPlacedEvent,
 	EquippedEvent,
 	StatsEvent,
 	StatusEvent,

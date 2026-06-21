@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 13;
+pub const PROTOCOL_VERSION: u32 = 14;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const ACTION_ATTACK: u16 = 1;
@@ -19,6 +19,7 @@ pub const EPHEMERAL_SHOP: u16 = 10;
 pub const EPHEMERAL_BLACKJACK: u16 = 11;
 pub const EPHEMERAL_PROJECTILE: u16 = 12;
 pub const EPHEMERAL_FLOOR: u16 = 13;
+pub const EPHEMERAL_ITEM_PLACED: u16 = 14;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -133,6 +134,10 @@ pub enum Input {
     },
     EquipItem {
         item_ref: String,
+    },
+    PlaceItem {
+        item_ref: String,
+        tile: Tile,
     },
     Heartbeat {
         client_tick: u32,

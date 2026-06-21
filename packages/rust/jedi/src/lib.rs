@@ -11,6 +11,7 @@ mod tests {
 
 pub mod builder;
 pub mod entity;
+pub mod jwt_cache;
 pub mod proto;
 pub mod rcon;
 pub mod state;

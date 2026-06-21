@@ -103,6 +103,26 @@ pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>
 #[derive(Resource, Default)]
 pub struct PendingDrops(Vec<(Tile, String, u32)>);
 
+/// How a deployable item (e.g. `campfire-kit`) becomes a placed world object:
+/// which env ref to spawn and the behavior to give it. Game-supplied (the sim is
+/// content-agnostic); arpg-server inserts the table after `build_app`.
+#[derive(Clone)]
+pub struct DeployableSpec {
+    pub env_ref: String,
+    pub opts: EnvOpts,
+}
+
+/// item_ref -> how to place it. Empty by default; a game registers its
+/// deployables (campfire-kit, etc.). A PlaceItem for an unlisted ref is ignored.
+#[derive(Resource, Default)]
+pub struct Deployables(pub HashMap<String, DeployableSpec>);
+
+/// A player's placement request this tick, queued for `apply_placements` to spawn
+/// the env object (item already removed from the inventory). `floor` pins it to
+/// the placer's dungeon level.
+#[derive(Resource, Default)]
+pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
+
 pub const TRADE_RANGE: i32 = 1;
 pub const TRADE_TIMEOUT_TICKS: u32 = SIM_TICK_HZ * 30;
 pub const MAX_INVENTORY_SLOTS: usize = 28;
@@ -878,6 +898,8 @@ pub fn build_app(
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
         .insert_resource(PendingDrops::default())
+        .insert_resource(Deployables::default())
+        .insert_resource(PendingPlacements::default())
         .insert_resource(PendingTrades::default())
         .insert_resource(ActiveTrades::default())
         .insert_resource(PendingShop::default())
@@ -919,6 +941,7 @@ pub fn build_app(
             (
                 drain_inputs,
                 apply_drops,
+                apply_placements,
                 apply_actions,
                 expire_trades,
                 apply_trades,
@@ -1103,6 +1126,8 @@ fn drain_inputs(
     mut shop: ResMut<PendingShop>,
     mut blackjack_inputs: ResMut<PendingBlackjack>,
     mut drops: ResMut<PendingDrops>,
+    deployables: Res<Deployables>,
+    mut placements: ResMut<PendingPlacements>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -1270,6 +1295,20 @@ fn drain_inputs(
                         stats.attack,
                         defense.0,
                     );
+                }
+                Input::PlaceItem { item_ref, tile } => {
+                    let placed =
+                        place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
+                    match placed {
+                        Ok(()) => {
+                            placements.0.push((slot.0, item_ref.clone(), *tile, z));
+                            send_inventory(&bcast, slot.0, &inv);
+                            send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
+                        }
+                        Err(reason) => {
+                            send_item_placed(&bcast, slot.0, item_ref, *tile, false, Some(reason));
+                        }
+                    }
                 }
                 Input::Action { .. }
                 | Input::Heartbeat { .. }
@@ -2812,6 +2851,87 @@ fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
         to: slot,
         payload,
     });
+}
+
+/// How far (Chebyshev) from the player a deployable may be placed.
+pub const PLACE_RANGE: i32 = 4;
+
+/// Validate and consume one deployable item for placement. On success the item is
+/// already removed from `inv` and the caller queues the env spawn. Failure leaves
+/// the inventory untouched and returns a short reason for the client.
+fn place_item(
+    deployables: &Deployables,
+    map: &WalkableMap,
+    z: i32,
+    from: Tile,
+    tile: Tile,
+    item_ref: &str,
+    inv: &mut Inventory,
+) -> Result<(), &'static str> {
+    if !deployables.0.contains_key(item_ref) {
+        return Err("not_placeable");
+    }
+    if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
+        return Err("not_held");
+    }
+    if from.chebyshev(tile) > PLACE_RANGE {
+        return Err("too_far");
+    }
+    if !map.is_walkable_z(z, tile) {
+        return Err("blocked");
+    }
+    if inv.remove(item_ref, 1) == 0 {
+        return Err("not_held");
+    }
+    Ok(())
+}
+
+fn send_item_placed(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    item_ref: &str,
+    tile: Tile,
+    ok: bool,
+    reason: Option<&'static str>,
+) {
+    let payload = json!({
+        "item_ref": item_ref,
+        "tile": { "x": tile.x, "y": tile.y },
+        "ok": ok,
+        "reason": reason,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_ITEM_PLACED,
+        to: slot,
+        payload,
+    });
+}
+
+/// Spawn queued placements as env objects (item already removed from inventory by
+/// `place_item`). Mirrors `apply_drops` but reads the game's `Deployables` table
+/// for the env ref + behavior, and blocks the tile when the env is a blocker.
+fn apply_placements(
+    mut placements: ResMut<PendingPlacements>,
+    deployables: Res<Deployables>,
+    registry: Res<KindRegistry>,
+    mut map: ResMut<WalkableMap>,
+    mut commands: Commands,
+) {
+    for (_slot, item_ref, tile, z) in placements.0.drain(..) {
+        let Some(spec) = deployables.0.get(&item_ref) else {
+            continue;
+        };
+        let mut opts = spec.opts.clone();
+        opts.floor = z;
+        let blocker = opts.blocker;
+        if spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts).is_some()
+            && blocker
+        {
+            map.block_tile_z(z, tile);
+        }
+    }
 }
 
 fn follow_path(

@@ -123,6 +123,10 @@ pub struct ServerState {
     pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
     pub registry: Vec<proto::KindEntry>,
+    /// Optional external token verifier (e.g. Supabase GoTrue via the jedi cache).
+    /// Takes precedence over local HS256 when set.
+    #[cfg(feature = "supabase-auth")]
+    pub verifier: Option<Arc<dyn crate::auth::TokenVerifier>>,
     conns: Arc<DashMap<Ulid, ConnHandle>>,
     slot2id: Arc<DashMap<proto::PlayerSlot, Ulid>>,
     kicks: Arc<Mutex<HashMap<u16, watch::Sender<bool>>>>,
@@ -143,6 +147,8 @@ impl ServerState {
             require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
             registry: Vec::new(),
+            #[cfg(feature = "supabase-auth")]
+            verifier: None,
             conns: Arc::new(DashMap::new()),
             slot2id: Arc::new(DashMap::new()),
             kicks: Arc::new(Mutex::new(HashMap::new())),
@@ -151,6 +157,14 @@ impl ServerState {
 
     pub fn with_registry(mut self, registry: Vec<proto::KindEntry>) -> Self {
         self.registry = registry;
+        self
+    }
+
+    /// Attach an external token verifier (Supabase GoTrue + cache). When set it
+    /// authenticates joins ahead of the local HS256 secret.
+    #[cfg(feature = "supabase-auth")]
+    pub fn with_verifier(mut self, verifier: Arc<dyn crate::auth::TokenVerifier>) -> Self {
+        self.verifier = Some(verifier);
         self
     }
 
@@ -406,7 +420,17 @@ async fn admit(
     jm: proto::JoinMatch,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    let (raw, sub) = if state.jwt_secret.is_empty() {
+    let (raw, sub) = if let Some(verifier) = &state.verifier {
+        // External authority (Supabase GoTrue via the jedi cache): an empty or
+        // invalid token is denied — no dev-accept fallthrough when a verifier set.
+        match verifier.verify(&jm.jwt).await {
+            Ok(user) => (user.kbve_username, user.sub),
+            Err(e) => {
+                send_reject(socket, format, &format!("auth rejected: {e}")).await;
+                return None;
+            }
+        }
+    } else if state.jwt_secret.is_empty() {
         (jm.kbve_username, String::new())
     } else {
         match crate::auth::verify_supabase_jwt(&jm.jwt, &state.jwt_secret) {

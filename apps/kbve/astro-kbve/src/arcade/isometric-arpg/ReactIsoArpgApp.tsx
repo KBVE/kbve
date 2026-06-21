@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
 import ArpgHud from './ArpgHud';
 import ArpgMenu from './ArpgMenu';
-import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
-import { buildNetConfig, setNetConfig } from './net-config';
+import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
+import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import {
 	resolvePlayerName,
 	hasSessionName,
@@ -32,11 +32,12 @@ export default function ReactIsoArpgApp({
 	embedSession?: ArpgEmbedSession;
 } = {}) {
 	const gameRef = useRef<Phaser.Game | null>(null);
-	// 'loading' while the session resolves, 'prompt' to ask for a name, 'ready'
-	// once the scene should boot.
-	const [phase, setPhase] = useState<'loading' | 'prompt' | 'ready'>(
-		'loading',
-	);
+	// 'loading' while the session resolves, 'prompt' to ask for a name (offline
+	// only), 'signin' when online play needs a Supabase session, 'ready' once the
+	// scene should boot.
+	const [phase, setPhase] = useState<
+		'loading' | 'prompt' | 'signin' | 'ready'
+	>('loading');
 	const [draft, setDraft] = useState('');
 
 	const getDimensions = useCallback(() => {
@@ -64,13 +65,24 @@ export default function ReactIsoArpgApp({
 			return;
 		}
 		let cancelled = false;
-		buildNetConfig().finally(() => {
-			if (cancelled) return;
+		// Offline sim (PUBLIC_ARPG_LOCAL) drives a local ranger with no server, so a
+		// display name is all it needs. Online play requires a real Supabase
+		// session — buildNetConfig only resolves with a valid JWT; without one we
+		// can't connect (the server denies an empty JWT), so prompt to sign in
+		// rather than fake-readying off a stale saved name.
+		if (DEBUG_LOCAL_PLAYER) {
 			if (hasSessionName() || resolvePlayerName()) {
 				setPhase('ready');
 			} else {
 				setPhase('prompt');
 			}
+			return () => {
+				cancelled = true;
+			};
+		}
+		buildNetConfig().finally(() => {
+			if (cancelled) return;
+			setPhase(getNetConfig() ? 'ready' : 'signin');
 		});
 		return () => {
 			cancelled = true;
@@ -139,6 +151,63 @@ export default function ReactIsoArpgApp({
 		saveName(name);
 		setPhase('ready');
 	}, [draft]);
+
+	if (phase === 'signin') {
+		return (
+			<div
+				style={{
+					position: 'absolute',
+					inset: 0,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					background: 'rgba(8,9,14,0.85)',
+					zIndex: 20,
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						gap: '12px',
+						padding: '28px 32px',
+						borderRadius: '10px',
+						background: '#181c28',
+						border: '1px solid #3c465c',
+						minWidth: '280px',
+						maxWidth: '360px',
+						fontFamily: 'monospace',
+						color: '#e6ebf5',
+						textAlign: 'center',
+					}}>
+					<div style={{ fontSize: '15px', color: '#fcd34d' }}>
+						Sign in to play
+					</div>
+					<div
+						style={{
+							fontSize: '13px',
+							lineHeight: 1.5,
+							color: '#9fb3d8',
+						}}>
+						The ARPG is server-authoritative and needs a KBVE
+						session. Sign in, then reload this page.
+					</div>
+					<a
+						href="/login"
+						style={{
+							padding: '10px 12px',
+							fontSize: '14px',
+							fontWeight: 700,
+							borderRadius: '6px',
+							background: '#6ea8ff',
+							color: '#0b0e16',
+							textDecoration: 'none',
+						}}>
+						Sign in
+					</a>
+				</div>
+			</div>
+		);
+	}
 
 	if (phase === 'prompt') {
 		return (

@@ -10,6 +10,10 @@
 #
 # The browser (on the host) talks to ws://localhost:7979/ws, so PUBLIC_ARPG_GAME_WS
 # uses localhost regardless of which service serves the page.
+#
+# Auth: online mode requires a real Supabase session — the client sends its
+# session JWT and the server verifies it against SUPABASE_JWT_SECRET. Export that
+# secret (and sign in on the page) before connecting; an empty JWT is denied.
 
 name: arpg-local
 
@@ -25,7 +29,14 @@ services:
             ARPG_SERVER_ADDR: 0.0.0.0:7979
             RUST_LOG: ${RUST_LOG:-info,arpg_server=debug,simgrid=debug}
             ARPG_SERVER_SEED: ${ARPG_SERVER_SEED:-12648430}
-            # Unset SUPABASE_JWT_SECRET -> server runs in dev-accept auth mode.
+            # Verify the browser's session JWT against Supabase GoTrue (no local
+            # secret needed). The URL + anon key are public (same values the web
+            # client ships in src/lib/supa.ts); the server caches verified tokens
+            # (LRU) so it hits GoTrue once each. Override only to point elsewhere.
+            SUPABASE_URL: ${SUPABASE_URL:-https://supabase.kbve.com}
+            SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg}
+            # Fallback: local HS256 verification if you'd rather hold the secret.
+            # Unset SUPABASE_URL to fall back to this, or to dev-accept if both unset.
             SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
         restart: unless-stopped
 
