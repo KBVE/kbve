@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-06-20T09:10:30.404Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-06-21T09:22:29.579Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,13 +21,13 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **48** items
+    **64** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
   </Card>
   <Card title="Todo" icon="list-format">
-    **7** items
+    **23** items
   </Card>
   <Card title="Backlog" icon="document">
     **5** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **365** items
+    **359** items
   </Card>
 </CardGrid>
 
@@ -55,23 +55,23 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 48
+    "Theory" : 64
     "AI" : 1
-    "Todo" : 7
+    "Todo" : 23
     "Backlog" : 5
     "Error" : 7
     "Staging" : 3
     "Review" : 1
-    "Done" : 365
+    "Done" : 359
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 11
+    "Active (Todo+Staging+Review)" : 27
     "Blocked (Error+Support)" : 7
-    "Done" : 365
-    "Planning (Theory+AI+Backlog)" : 54
+    "Done" : 359
+    "Planning (Theory+AI+Backlog)" : 70
 ```
 
   </TabItem>
@@ -83,11 +83,11 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>48</strong>"]
+    Theory["Theory<br/><strong>64</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
-    Todo["Todo<br/><strong>7</strong>"]
+    Todo["Todo<br/><strong>23</strong>"]
     Todo --> Backlog
     Backlog["Backlog<br/><strong>5</strong>"]
     Backlog --> Error
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>365</strong>"]
+    Done["Done<br/><strong>359</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,29 +116,29 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 346
-    "Issue" : 91
+    "Pull Request" : 338
+    "Issue" : 125
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 346 |
-| dev→main | 177 |
-| atomic | 149 |
-| enhancement | 63 |
+| auto-pr | 338 |
+| dev→main | 165 |
+| atomic | 151 |
+| enhancement | 97 |
+| todo | 33 |
 | 0 | 19 |
+| rust | 16 |
 | 1 | 14 |
 | unity | 10 |
 | bug | 10 |
-| backlog | 8 |
-| todo | 7 |
 
   </TabItem>
 </Tabs>
 
-### Theory (48)
+### Theory (64)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -185,11 +185,27 @@ pie showData
 | [#12694](https://github.com/KBVE/kbve/issues/12694) | jobboard-web: validate API responses at runtime with the generated zod schemas | — | — | enhancement, good first issue |
 | [#12693](https://github.com/KBVE/kbve/issues/12693) | jobboard: write audit_log entries on membership approve/reject | — | — | enhancement, good first issue |
 | [#12695](https://github.com/KBVE/kbve/issues/12695) | jobboard: complete the gRPC envelope or retire the dead bytes-id membership mess | — | — | enhancement, rust |
-| [#12701](https://github.com/KBVE/kbve/issues/12701) | [Cryptothrone] Multiplayer blackjack mini-game at the casino table | — | — | enhancement |
 | [#12702](https://github.com/KBVE/kbve/issues/12702) | [Cryptothrone] Internal coin economy (coin / gold-bar) — design &amp; isolation  | — | — | enhancement |
 | [#12703](https://github.com/KBVE/kbve/issues/12703) | cryptothrone: bring map/tile data into the ECS MapSystem (phased) | — | — | enhancement |
 | [#12705](https://github.com/KBVE/kbve/issues/12705) | cryptothrone: Discord Activity mobile + lobby — real-device verification &amp; p | — | — | enhancement |
 | [#12735](https://github.com/KBVE/kbve/issues/12735) | [Factorio] Remaining work — Agones server, factorio-ctl, telemetry, rotation (su | — | — | enhancement |
+| [#12875](https://github.com/KBVE/kbve/issues/12875) | UE5 iOS CI/CD Pipeline | — | — | enhancement, todo, ios |
+| [#12879](https://github.com/KBVE/kbve/issues/12879) | UE5 Android CI/CD Pipeline | — | — | enhancement, todo, android |
+| [#12880](https://github.com/KBVE/kbve/issues/12880) | React Native Android CI/CD Pipeline | — | — | enhancement, todo, android |
+| [#12915](https://github.com/KBVE/kbve/issues/12915) | Extend Longhorn filesystem-trim beyond Forgejo LFS volume (cluster-wide block re | — | — | enhancement |
+| [#12924](https://github.com/KBVE/kbve/issues/12924) | feat(dashboard): per-app health + sync-history timeline (Argo) | — | — | enhancement |
+| [#12925](https://github.com/KBVE/kbve/issues/12925) | feat(dashboard): collapse unchanged context in Argo Diff tab (hunk view) | — | — | enhancement |
+| [#12926](https://github.com/KBVE/kbve/issues/12926) | feat(dashboard): Argo sync options — prune toggle + dry-run preview | — | — | enhancement |
+| [#12927](https://github.com/KBVE/kbve/issues/12927) | feat(dashboard): selective resource sync from the Argo resource tree | — | — | enhancement |
+| [#12928](https://github.com/KBVE/kbve/issues/12928) | feat(dashboard): deep-linkable Argo triage — persist filter/search/group in URL | — | — | enhancement |
+| [#12929](https://github.com/KBVE/kbve/issues/12929) | feat(dashboard): bulk sync/refresh OutOfSync apps from the attention panel | — | — | enhancement |
+| [#12930](https://github.com/KBVE/kbve/issues/12930) | feat(dashboard): rollback diff preview before confirm (Argo) | — | — | enhancement |
+| [#12938](https://github.com/KBVE/kbve/issues/12938) | refactor(astro-kbve): shared collection-index util + typed API responses | — | — | enhancement, todo, npm |
+| [#12939](https://github.com/KBVE/kbve/issues/12939) | perf(astro-kbve): precompute sitegraph at build instead of per-request | — | — | enhancement, todo, npm |
+| [#12958](https://github.com/KBVE/kbve/issues/12958) | ARPG server — WalkableMap dynamic blocked-tile overlay | — | — | enhancement, todo, rust |
+| [#12957](https://github.com/KBVE/kbve/issues/12957) | ARPG server — KIND_CAT_ENV + register_env | — | — | enhancement, todo, rust |
+| [#12961](https://github.com/KBVE/kbve/issues/12961) | ARPG server — burn DoT via itemdb StatusEffectKind (no new proto) | — | — | enhancement, todo, rust |
+| [#12972](https://github.com/KBVE/kbve/issues/12972) | ARPG server — read itemdb effect data (data-driven env objects) | — | — | enhancement, todo, rust |
 
 ### AI (1)
 
@@ -197,7 +213,7 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
 
-### Todo (7)
+### Todo (23)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -208,6 +224,22 @@ pie showData
 | [#8148](https://github.com/KBVE/kbve/issues/8148) | [PSQL] Audit Discord Public Server Listing Functions | — | h0lybyte | 3, security, todo |
 | [#8817](https://github.com/KBVE/kbve/issues/8817) | [E2E] kilobase needs pgrx/PostgreSQL build environment | — | h0lybyte | 1, todo |
 | [#11013](https://github.com/KBVE/kbve/issues/11013) | [CICD] [Github] Migrate workflows to arc-runner-set-kbve + strip apt-install ban | — | — | enhancement, update |
+| [#12931](https://github.com/KBVE/kbve/issues/12931) | perf(axum-kbve): hash JWT cache keys instead of storing raw token strings | — | — | enhancement, todo, rust |
+| [#12932](https://github.com/KBVE/kbve/issues/12932) | perf(axum-kbve): zero-copy proxy hot path (borrow query/headers, avoid per-reque | — | — | enhancement, todo, rust |
+| [#12933](https://github.com/KBVE/kbve/issues/12933) | perf(axum-kbve): tighten borrow scopes — pass &amp;TokenInfo, drop redundant Arc | — | — | enhancement, todo, rust |
+| [#12934](https://github.com/KBVE/kbve/issues/12934) | perf(axum-kbve): serialize marketplace enums as &amp;'static str instead of per- | — | — | enhancement, todo, rust |
+| [#12935](https://github.com/KBVE/kbve/issues/12935) | perf(astro-kbve): add Cache-Control headers to data/game API endpoints | — | — | enhancement, todo, npm |
+| [#12936](https://github.com/KBVE/kbve/issues/12936) | perf(astro-kbve): audit island hydration — reduce client:only, defer off-viewpor | — | — | enhancement, todo, npm |
+| [#12937](https://github.com/KBVE/kbve/issues/12937) | refactor(astro-kbve): split 3163-line AskamaProfileProvider into subcomponents | — | — | enhancement, todo, npm |
+| [#12955](https://github.com/KBVE/kbve/issues/12955) | Epic: ARPG environment objects — generic placeable foundation + campfire | — | — | enhancement, todo |
+| [#12956](https://github.com/KBVE/kbve/issues/12956) | ARPG env assets — environment LFS folder structure + campfire sheet | — | — | enhancement, todo, media |
+| [#12959](https://github.com/KBVE/kbve/issues/12959) | ARPG server — generic env components + bundle (EnvObject/Blocker/HealAura/Hazard | — | — | enhancement, todo, rust |
+| [#12960](https://github.com/KBVE/kbve/issues/12960) | ARPG server — proximity heal/buff aura system | — | — | enhancement, todo, rust |
+| [#12962](https://github.com/KBVE/kbve/issues/12962) | ARPG server — spawn campfire in spawn_world | — | — | enhancement, todo, rust |
+| [#12964](https://github.com/KBVE/kbve/issues/12964) | ARPG client — EnvironmentDef + preload/anim + sprite factory | — | — | enhancement, todo, npm |
+| [#12963](https://github.com/KBVE/kbve/issues/12963) | ARPG client — env category plumbing (resolvers + store + EnvTag) | — | — | enhancement, todo, npm |
+| [#12966](https://github.com/KBVE/kbve/issues/12966) | ARPG — campfire as itemdb item + deployable craft→place flow | — | — | enhancement, todo, backlog |
+| [#12965](https://github.com/KBVE/kbve/issues/12965) | ARPG client — prediction collision + burn/heal feedback | — | — | enhancement, todo, npm |
 
 ### Backlog (5)
 
@@ -243,9 +275,9 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#12869](https://github.com/KBVE/kbve/pull/12869) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12951](https://github.com/KBVE/kbve/pull/12951) | Release: 5 features, 3 fixes, 2 perfs, 1 build, 4 chores → Main | — | — | auto-pr, dev→main |
 
-### Done (365)
+### Done (359)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -264,32 +296,6 @@ pie showData
 | [#9230](https://github.com/KBVE/kbve/issues/9230) | [CHUCKRPG] [UNREAL] Version Control from Monorepo | — | h0lybyte | 1, ue |
 | [#10560](https://github.com/KBVE/kbve/issues/10560) | chore(redis): evaluate Bitnami chart bump 21.2.13 -&gt; 25.x | — | — | update |
 | [#11138](https://github.com/KBVE/kbve/issues/11138) | [Plan] Agones-managed Factorio dedicated server | — | — | enhancement |
-| [#11810](https://github.com/KBVE/kbve/pull/11810) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11812](https://github.com/KBVE/kbve/pull/11812) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#11814](https://github.com/KBVE/kbve/pull/11814) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#11816](https://github.com/KBVE/kbve/pull/11816) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#11817](https://github.com/KBVE/kbve/pull/11817) | Atomic: builder http egress | — | — | auto-pr, atomic |
-| [#11820](https://github.com/KBVE/kbve/pull/11820) | Atomic: rdp multisession | — | — | auto-pr, atomic |
-| [#11821](https://github.com/KBVE/kbve/pull/11821) | Release: 5 fixes, 1 CI, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11823](https://github.com/KBVE/kbve/pull/11823) | Atomic: vnc viewport resize | — | — | auto-pr, atomic |
-| [#11832](https://github.com/KBVE/kbve/pull/11832) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
-| [#11834](https://github.com/KBVE/kbve/pull/11834) | chore(dashboard): daily sync — 2026-06-06 | — | — | auto-pr |
-| [#11835](https://github.com/KBVE/kbve/pull/11835) | Release: 2 features, 2 fixes, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#11837](https://github.com/KBVE/kbve/pull/11837) | Atomic: axum-kbve v1.0.184 post-publish sync | — | — | auto-pr, atomic |
-| [#11840](https://github.com/KBVE/kbve/pull/11840) | Atomic: kbve-kubectl v0.1.4 post-publish sync | — | — | auto-pr, atomic |
-| [#11841](https://github.com/KBVE/kbve/pull/11841) | Release: 4 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11842](https://github.com/KBVE/kbve/pull/11842) | Atomic: vnc canvas resize | — | — | auto-pr, atomic |
-| [#11847](https://github.com/KBVE/kbve/pull/11847) | Release: 3 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11848](https://github.com/KBVE/kbve/pull/11848) | Release: 9 features, 5 fixes, 1 CI → Main | — | — | auto-pr, dev→main |
-| [#11860](https://github.com/KBVE/kbve/pull/11860) | Release: 1 feature, 3 fixes, 2 perfs, 1 test, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#11867](https://github.com/KBVE/kbve/pull/11867) | Atomic: edge v0.1.38 post-publish sync | — | — | auto-pr, atomic |
-| [#11868](https://github.com/KBVE/kbve/pull/11868) | Release: 4 features, 5 fixes, 3 perfs, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11885](https://github.com/KBVE/kbve/pull/11885) | Release: 3 features, 4 fixes, 1 perf, 1 refactor, 1 test, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11897](https://github.com/KBVE/kbve/pull/11897) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11898](https://github.com/KBVE/kbve/pull/11898) | Atomic: arc-runner v0.1.4 post-publish sync | — | — | auto-pr, atomic |
-| [#11904](https://github.com/KBVE/kbve/pull/11904) | Release: 4 fixes, 2 perfs, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11911](https://github.com/KBVE/kbve/pull/11911) | Atomic: axum-kbve v1.0.185 post-publish sync | — | — | auto-pr, atomic |
-| [#11915](https://github.com/KBVE/kbve/pull/11915) | Atomic: vnc screen fill | — | — | auto-pr, atomic |
 | [#11916](https://github.com/KBVE/kbve/pull/11916) | Atomic: vnc publish bump | — | — | auto-pr, atomic |
 | [#11917](https://github.com/KBVE/kbve/pull/11917) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#11918](https://github.com/KBVE/kbve/pull/11918) | Release: 7 features, 4 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
@@ -560,6 +566,7 @@ pie showData
 | [#12698](https://github.com/KBVE/kbve/pull/12698) | Atomic: rows v0.1.30 post-publish sync | — | — | auto-pr, atomic |
 | [#12699](https://github.com/KBVE/kbve/pull/12699) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#12700](https://github.com/KBVE/kbve/pull/12700) | Release: 3 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12701](https://github.com/KBVE/kbve/issues/12701) | [Cryptothrone] Multiplayer blackjack mini-game at the casino table | — | — | enhancement |
 | [#12707](https://github.com/KBVE/kbve/pull/12707) | Atomic: chuckrpg dev cooked | — | — | auto-pr, atomic |
 | [#12708](https://github.com/KBVE/kbve/pull/12708) | Atomic: cryptothrone-server v0.0.22 post-publish sync | — | — | auto-pr, atomic |
 | [#12709](https://github.com/KBVE/kbve/pull/12709) | Atomic: rows agones fleet name | — | — | auto-pr, atomic |
@@ -614,6 +621,25 @@ pie showData
 | [#12862](https://github.com/KBVE/kbve/pull/12862) | Atomic: kbve-gate v0.1.3 post-publish sync | — | — | auto-pr, atomic |
 | [#12864](https://github.com/KBVE/kbve/pull/12864) | Release: 2 features, 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#12868](https://github.com/KBVE/kbve/pull/12868) | Atomic: cryptothrone-server v0.0.25 post-publish sync | — | — | auto-pr, atomic |
+| [#12869](https://github.com/KBVE/kbve/pull/12869) | Release: 8 features, 2 fixes, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#12870](https://github.com/KBVE/kbve/pull/12870) | Atomic: cryptothrone v0.1.50 post-publish sync | — | — | auto-pr, atomic |
+| [#12871](https://github.com/KBVE/kbve/pull/12871) | chore(dashboard): daily sync — 2026-06-20 | — | — | auto-pr |
+| [#12876](https://github.com/KBVE/kbve/issues/12876) | React Native iOS CI/CD Pipeline | — | — | enhancement, todo, ios |
+| [#12882](https://github.com/KBVE/kbve/pull/12882) | Atomic: cryptothrone-server v0.0.26 post-publish sync | — | — | auto-pr, atomic |
+| [#12883](https://github.com/KBVE/kbve/pull/12883) | Release: 17 features, 7 fixes, 2 docs, 1 CI, 1 perf, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#12884](https://github.com/KBVE/kbve/pull/12884) | chore(laser): update version.toml to 0.1.4 | — | — | auto-pr |
+| [#12885](https://github.com/KBVE/kbve/pull/12885) | Atomic: cryptothrone v0.1.51 post-publish sync | — | — | auto-pr, atomic |
+| [#12888](https://github.com/KBVE/kbve/pull/12888) | Atomic: chuck v0.3.28 post-publish sync | — | — | auto-pr, atomic |
+| [#12904](https://github.com/KBVE/kbve/pull/12904) | Atomic: unreal 58 | — | — | auto-pr, atomic |
+| [#12905](https://github.com/KBVE/kbve/pull/12905) | Atomic: unreal clean outputs | — | — | auto-pr, atomic |
+| [#12909](https://github.com/KBVE/kbve/pull/12909) | Atomic: contribute nx | — | — | auto-pr, atomic |
+| [#12910](https://github.com/KBVE/kbve/pull/12910) | Atomic: bevy skills log | — | — | auto-pr, atomic |
+| [#12911](https://github.com/KBVE/kbve/pull/12911) | Release: 6 features, 5 fixes, 1 doc, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#12913](https://github.com/KBVE/kbve/pull/12913) | Atomic: drop deps t1 | — | — | auto-pr, atomic |
+| [#12923](https://github.com/KBVE/kbve/pull/12923) | Atomic: chuck beta 0329 | — | — | auto-pr, atomic |
+| [#12949](https://github.com/KBVE/kbve/pull/12949) | Atomic: unreal mac ue root quoting | — | — | auto-pr, atomic |
+| [#12950](https://github.com/KBVE/kbve/pull/12950) | deploy(isometric): update WASM build | — | — | auto-pr |
+| [#12967](https://github.com/KBVE/kbve/pull/12967) | Atomic: unreal ue58 image tags | — | — | auto-pr, atomic |
 
 ---
 

@@ -1,7 +1,15 @@
-# Egress restriction for self-hosted GitHub Actions runners
-# Allows only the ports needed for CI/CD (DNS, HTTPS, HTTP, SSH, sccache).
-# Blocks direct access to internal cluster services on non-standard ports
-# (e.g., PostgreSQL 5432, Redis on non-sccache services, RCON 25575).
+# Default-deny egress for self-hosted GitHub Actions runners.
+# Runner pods run privileged DinD as root, so a fork/PR job that escapes
+# the container has the pod's network reach. This policy denies all egress
+# by default and re-allows only:
+#   - DNS (kube-dns)
+#   - Public internet on 443/80/22 (GitHub, registries, git over SSH),
+#     with every in-cluster / private RFC1918 / metadata range carved out
+#   - Valkey (sccache) in the valkey namespace on 6379
+#   - registry-mirror in arc-runners on 5000
+# Internal cluster services (PostgreSQL 5432, RCON 25575, etc.) are
+# unreachable because the public-internet rule excepts all private CIDRs
+# and no other rule selects them.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -13,21 +21,34 @@ spec:
         - Egress
     egress:
         # DNS resolution (kube-dns)
-        - ports:
+        - to:
+              - namespaceSelector: {}
+                podSelector:
+                    matchLabels:
+                        k8s-app: kube-dns
+          ports:
               - port: 53
                 protocol: UDP
               - port: 53
                 protocol: TCP
-        # HTTPS (GitHub API, container registries, npm/cargo registries)
-        - ports:
+        # Public internet only — HTTPS/HTTP/SSH for GitHub, container/package
+        # registries, git over SSH. Pod CIDR (10.244/16), service CIDR
+        # (10.96/12), WireGuard (10.0/24), all RFC1918, and link-local
+        # metadata (169.254/16) are excepted so a job cannot pivot to
+        # in-cluster or node-local endpoints via raw IP.
+        - to:
+              - ipBlock:
+                    cidr: 0.0.0.0/0
+                    except:
+                        - 10.0.0.0/8
+                        - 172.16.0.0/12
+                        - 192.168.0.0/16
+                        - 169.254.0.0/16
+          ports:
               - port: 443
                 protocol: TCP
-        # HTTP (some registries, apt/apk repos)
-        - ports:
               - port: 80
                 protocol: TCP
-        # SSH (git clone via SSH)
-        - ports:
               - port: 22
                 protocol: TCP
         # sccache → Valkey (port 6379, scoped to valkey ns only).
@@ -39,14 +60,22 @@ spec:
           ports:
               - port: 6379
                 protocol: TCP
-        # DinD → in-cluster pull-through caches (registry-mirror Docker Hub +
-        # registry-mirror-ghcr) on :5000, scoped to this namespace. Without this
-        # explicit allow the caches work only because egress isn't strictly
-        # enforced; this makes the dependency survive any future tightening.
+        # Docker Hub pull-through mirror (registry-mirror.arc-runners.svc:5000).
         - to:
-              - namespaceSelector:
+              - podSelector:
                     matchLabels:
-                        kubernetes.io/metadata.name: arc-runners
+                        app.kubernetes.io/name: registry-mirror
+          ports:
+              - port: 5000
+                protocol: TCP
+        # ghcr.io pull-through cache (registry-mirror-ghcr.arc-runners.svc:5000)
+        # for the UE image. Required now that egress is default-deny with every
+        # private CIDR excepted — without this allow the ghcr cache is
+        # unreachable and every UE pull silently falls back to ghcr.io.
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: registry-mirror-ghcr
           ports:
               - port: 5000
                 protocol: TCP

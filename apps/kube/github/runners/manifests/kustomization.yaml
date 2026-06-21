@@ -19,3 +19,4 @@ resources:
     - valkey-sccache-externalsecret.yaml
     - vm-starter-rbac.yaml
     - runner-reaper.yaml
+    - runner-networkpolicy.yaml

@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-20T09:11:12.131Z",
+  "generated_at": "2026-06-21T09:22:59.390Z",
   "summary": {
-    "total_protos": 43,
-    "registered": 34,
+    "total_protos": 44,
+    "registered": 35,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 792,
+    "total_messages": 798,
     "total_enums": 158
   },
   "protos": [
@@ -234,6 +234,8 @@
         "SyncStatus",
         "Application",
         "ApplicationList",
+        "ResourceTally",
+        "AppSummary",
         "ApplicationQuery",
         "ArgoHealthCheck"
       ],
@@ -241,7 +243,7 @@
         "HealthStatusCode",
         "SyncStatusCode"
       ],
-      "message_count": 6,
+      "message_count": 8,
       "enum_count": 2,
       "codegen": {
         "registered": true,
@@ -1138,6 +1140,26 @@
       }
     },
     {
+      "proto": "packages/data/proto/kbve/telemetry.proto",
+      "package": "kbve.telemetry",
+      "messages": [
+        "ErrorEvent",
+        "ErrorBatch",
+        "ErrorGroup",
+        "ErrorGroupList"
+      ],
+      "enums": [],
+      "message_count": 4,
+      "enum_count": 0,
+      "codegen": {
+        "registered": true,
+        "name": "telemetry",
+        "zod_config": "packages/data/codegen/telemetry-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/telemetry-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/telemetry.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/kbve/vm.proto",
       "package": "kbve.vm",
       "messages": [
@@ -1687,7 +1709,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-20T09:11:12Z",
+  "checked_at": "2026-06-21T09:22:59Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
@@ -1724,6 +1746,7 @@
     "packages/data/codegen/generated/schema-schema.ts",
     "packages/data/codegen/generated/snapshot-schema.ts",
     "packages/data/codegen/generated/staff-schema.ts",
+    "packages/data/codegen/generated/telemetry-schema.ts",
     "packages/data/codegen/generated/twitch-schema.ts",
     "packages/data/codegen/generated/vm-schema.ts"
   ]

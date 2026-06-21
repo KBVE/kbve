@@ -31,6 +31,7 @@ import {
 	DEPTH_PROJECTILE,
 	ARROW_SPEED,
 	BOW_MUZZLE_HEIGHT,
+	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
 	DUNGEON_SEED,
@@ -168,7 +169,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.image(GROUND_TEXTURE_KEY, GROUND_TEXTURE_PATH);
+		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
 	}
 
