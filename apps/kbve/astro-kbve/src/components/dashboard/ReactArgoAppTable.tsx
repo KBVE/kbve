@@ -65,7 +65,7 @@ function StallBadge({
 // Status helpers
 // ---------------------------------------------------------------------------
 
-function healthIcon(status: string) {
+export function healthIcon(status: string) {
 	switch (status) {
 		case 'Healthy':
 			return <CheckCircle2 size={14} />;
@@ -83,7 +83,7 @@ function healthIcon(status: string) {
 	}
 }
 
-function syncIcon(status: string) {
+export function syncIcon(status: string) {
 	switch (status) {
 		case 'Synced':
 			return <CheckCircle2 size={14} />;
@@ -726,7 +726,7 @@ function AppHistoryPanel({ app }: { app: ArgoApplication }) {
 	);
 }
 
-function AppExpandedPanel({
+export function AppExpandedPanel({
 	app,
 	token,
 	tab,
@@ -933,7 +933,7 @@ export function ApplicationRow({
 	);
 }
 
-function AppActionBar({ app }: { app: ArgoApplication }) {
+export function AppActionBar({ app }: { app: ArgoApplication }) {
 	const busy = useStore(argoService.$actionBusy);
 	const actionError = useStore(argoService.$actionError);
 	const actionMsg = useStore(argoService.$actionMsg);

@@ -1,6 +1,17 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
 import { cacheGet, cacheSet, cacheDel } from '@/lib/idb-cache';
+import {
+	HealthStatusCodes,
+	SyncStatusCodes,
+	AppSummarySchema,
+	type HealthStatusCodeValue,
+	type SyncStatusCodeValue,
+	type AppSummary,
+	type ResourceTally,
+} from '@kbve/devops';
+
+export type { AppSummary, ResourceTally } from '@kbve/devops';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -32,11 +43,11 @@ export interface ArgoApplication {
 	};
 	status: {
 		sync: {
-			status: string;
+			status: SyncStatusCodeValue;
 			revision?: string;
 		};
 		health: {
-			status: string;
+			status: HealthStatusCodeValue;
 			message?: string;
 		};
 		operationState?: {
@@ -46,6 +57,20 @@ export interface ArgoApplication {
 			startedAt?: string;
 		};
 		reconciledAt?: string;
+		resources?: AppResourceStatus[];
+	};
+}
+
+export interface AppResourceStatus {
+	group?: string;
+	version?: string;
+	kind: string;
+	namespace?: string;
+	name: string;
+	status?: SyncStatusCodeValue;
+	health?: {
+		status?: HealthStatusCodeValue;
+		message?: string;
 	};
 }
 
@@ -510,6 +535,100 @@ export function formatAge(ageMs: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Proto projection — raw ArgoCD application → typed AppSummary (the card view).
+// Cards render from this; the raw payload stays for the deep panels. Validated
+// against the generated zod schema in dev so silent API drift surfaces loudly.
+// ---------------------------------------------------------------------------
+
+const HEALTH_SET = new Set<string>(HealthStatusCodes);
+const SYNC_SET = new Set<string>(SyncStatusCodes);
+
+function asHealth(s: string | undefined): HealthStatusCodeValue {
+	return s && HEALTH_SET.has(s) ? (s as HealthStatusCodeValue) : 'Unknown';
+}
+
+function asSync(s: string | undefined): SyncStatusCodeValue {
+	return s && SYNC_SET.has(s) ? (s as SyncStatusCodeValue) : 'Unknown';
+}
+
+function tallyResources(resources?: AppResourceStatus[]): ResourceTally {
+	const t: ResourceTally = {
+		total: 0,
+		healthy: 0,
+		degraded: 0,
+		progressing: 0,
+		missing: 0,
+		suspended: 0,
+		synced: 0,
+		out_of_sync: 0,
+	};
+	for (const r of resources ?? []) {
+		t.total += 1;
+		switch (asHealth(r.health?.status)) {
+			case 'Healthy':
+				t.healthy += 1;
+				break;
+			case 'Degraded':
+				t.degraded += 1;
+				break;
+			case 'Progressing':
+				t.progressing += 1;
+				break;
+			case 'Missing':
+				t.missing += 1;
+				break;
+			case 'Suspended':
+				t.suspended += 1;
+				break;
+		}
+		if (asSync(r.status) === 'Synced') t.synced += 1;
+		else if (asSync(r.status) === 'OutOfSync') t.out_of_sync += 1;
+	}
+	return t;
+}
+
+export function normalizeApp(app: ArgoApplication): AppSummary {
+	const op = app.status.operationState;
+	const stall = detectAppStall(app);
+	const summary: AppSummary = {
+		name: app.metadata.name,
+		namespace: app.spec.destination.namespace || '',
+		project: app.spec.project,
+		health: {
+			status: asHealth(app.status.health.status),
+			message: app.status.health.message ?? '',
+		},
+		sync: {
+			status: asSync(app.status.sync.status),
+			revision: app.status.sync.revision ?? '',
+		},
+		repo_url: app.spec.source?.repoURL ?? '',
+		target_revision: app.spec.source?.targetRevision ?? '',
+		path: app.spec.source?.path ?? '',
+		revision: (app.status.sync.revision ?? '').slice(0, 7),
+		created_at: app.metadata.creationTimestamp ?? '',
+		reconciled_at: app.status.reconciledAt ?? '',
+		last_sync_at: op?.finishedAt ?? '',
+		operation_phase: op?.phase ?? '',
+		operation_message: op?.message ?? '',
+		resources: tallyResources(app.status.resources),
+		stalled: stall !== null,
+		stall_reason: stall?.reason ?? '',
+		stall_age_ms: stall?.ageMs ?? 0,
+	};
+	if (import.meta.env?.DEV) {
+		const parsed = AppSummarySchema.safeParse(summary);
+		if (!parsed.success) {
+			console.warn(
+				`[argo] AppSummary drift for ${summary.name}:`,
+				parsed.error.issues,
+			);
+		}
+	}
+	return summary;
+}
+
+// ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
 
@@ -590,6 +709,37 @@ class ArgoService {
 		[this.$stalledApps],
 		(s) => s.length,
 	);
+
+	// Typed card projection (proto AppSummary), sorted worst-health-first so
+	// the grid surfaces what needs attention at the top.
+	public readonly $appSummaries = computed([this.$applications], (apps) => {
+		const rank = (h: HealthStatusCodeValue): number => {
+			switch (h) {
+				case 'Degraded':
+					return 0;
+				case 'Missing':
+					return 1;
+				case 'Progressing':
+					return 2;
+				case 'Suspended':
+					return 3;
+				case 'Unknown':
+					return 4;
+				default:
+					return 5;
+			}
+		};
+		return apps
+			.map(normalizeApp)
+			.sort(
+				(a, b) =>
+					rank(a.health?.status ?? 'Unknown') -
+					rank(b.health?.status ?? 'Unknown'),
+			);
+	});
+
+	// View toggle: rich card grid (default) vs dense table rows.
+	public readonly $viewMode = atom<'grid' | 'table'>('grid');
 
 	private _refreshInterval: ReturnType<typeof setInterval> | undefined;
 	private _refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -786,6 +936,10 @@ class ArgoService {
 
 	public setAppTab(tab: 'resources' | 'events' | 'history'): void {
 		this.$appTab.set(tab);
+	}
+
+	public setViewMode(mode: 'grid' | 'table'): void {
+		this.$viewMode.set(mode);
 	}
 
 	private _startAutoRefresh(): void {

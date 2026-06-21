@@ -2,7 +2,7 @@
 import ReactArgoAuth from './ReactArgoAuth';
 import ReactArgoHeader from './ReactArgoHeader';
 import ReactArgoSummary from './ReactArgoSummary';
-import ReactArgoAppTable from './ReactArgoAppTable';
+import ReactArgoApps from './ReactArgoApps';
 ---
 
 <section
@@ -22,9 +22,9 @@ import ReactArgoAppTable from './ReactArgoAppTable';
 					<ReactArgoSummary client:only="react" />
 				</div>
 
-				<!-- Island: Application table with expandable resource trees -->
+				<!-- Island: Application cards/table (view toggle) with expandable resource trees -->
 				<div id="argo-app-table">
-					<ReactArgoAppTable client:only="react" />
+					<ReactArgoApps client:only="react" />
 				</div>
 			</div>
 		</ReactArgoAuth>
