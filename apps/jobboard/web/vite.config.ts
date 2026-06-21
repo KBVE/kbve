@@ -75,6 +75,13 @@ export default defineConfig(({ mode }) => ({
 				),
 			},
 			{
+				find: /^@kbve\/observ$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/npm/observ/src/index.ts',
+				),
+			},
+			{
 				find: /^@kbve\/jobboard-schema$/,
 				replacement: path.join(
 					repoRoot,

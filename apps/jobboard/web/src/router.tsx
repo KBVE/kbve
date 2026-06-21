@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
 	createRootRoute,
 	createRoute,
@@ -8,7 +8,9 @@ import {
 	useNavigate,
 	useRouterState,
 } from '@tanstack/react-router';
-import { useAuth as useKbveAuth } from '@kbve/rn/auth';
+import { useAuth as useKbveAuth, useKbve } from '@kbve/rn/auth';
+import { reconcileCache, ensureSessionReady } from './lib/loginReadiness';
+import { LoginChecklist } from './components/LoginChecklist';
 import type {
 	Availability,
 	GigQuery,
@@ -55,13 +57,18 @@ const num = (v: unknown): number | undefined => {
 // /). Fires only on the false→true transition so a signed-in user can still
 // browse home; a brand-new social signup needing a username is sent to /login
 // where SetUsernameScreen renders.
-function usePostAuthRedirect(pathname: string) {
+function PostAuthGate({ pathname }: { pathname: string }) {
 	const auth = useKbveAuth();
+	const { client } = useKbve();
 	const navigate = useNavigate();
 	const wasSignedIn = useRef(auth.signedIn);
+	const running = useRef(false);
+	const [steps, setSteps] = useState<{
+		idb: boolean;
+		cookie: boolean;
+	} | null>(null);
+
 	useEffect(() => {
-		// navigate() rejects with AbortError when a transition is superseded;
-		// that's expected here, so swallow it.
 		const go = (to: string) =>
 			void Promise.resolve(navigate({ to })).catch(() => {});
 
@@ -74,14 +81,57 @@ function usePostAuthRedirect(pathname: string) {
 
 		if (auth.needsUsername) {
 			if (pathname !== '/login') go('/login');
-		} else if (pathname === '/login') {
-			// never leave a signed-in member on the login page
-			go('/dashboard');
-		} else if (justSignedIn && pathname === '/') {
-			// social OAuth returns to the app root — forward to the dashboard
-			go('/dashboard');
+			return;
 		}
-	}, [auth.signedIn, auth.needsUsername, pathname, navigate]);
+
+		const dest =
+			pathname === '/login'
+				? '/dashboard'
+				: justSignedIn && pathname === '/'
+					? '/dashboard'
+					: null;
+		if (!dest || running.current) return;
+
+		running.current = true;
+		let active = true;
+		setSteps({ idb: false, cookie: false });
+		void (async () => {
+			const uid = auth.user?.id;
+			if (uid && (await reconcileCache(uid)) === 'cleared') {
+				queryClient.clear();
+			}
+			if (!active) return;
+			setSteps({ idb: true, cookie: false });
+			await ensureSessionReady(client);
+			if (!active) return;
+			setSteps({ idb: true, cookie: true });
+			await new Promise((res) => setTimeout(res, 350));
+			if (!active) return;
+			setSteps(null);
+			running.current = false;
+			go(dest);
+		})();
+		return () => {
+			active = false;
+		};
+	}, [
+		auth.signedIn,
+		auth.needsUsername,
+		auth.user?.id,
+		pathname,
+		navigate,
+		client,
+	]);
+
+	if (!steps) return null;
+	return (
+		<LoginChecklist
+			steps={[
+				{ label: 'Preparing IDB', done: steps.idb },
+				{ label: 'Preparing Cookie Auth', done: steps.cookie },
+			]}
+		/>
+	);
 }
 
 // Flat route tree (children of root) so getRouteApi('/gigs') etc. resolve
@@ -91,10 +141,17 @@ function RootLayout() {
 	const pathname = useRouterState({
 		select: (s) => s.location.pathname,
 	});
-	usePostAuthRedirect(pathname);
-	if (pathname === '/login' || pathname === '/dashboard') return <Outlet />;
+	const gate = <PostAuthGate pathname={pathname} />;
+	if (pathname === '/login' || pathname === '/dashboard')
+		return (
+			<>
+				{gate}
+				<Outlet />
+			</>
+		);
 	return (
 		<div className="min-h-screen text-zinc-100">
+			{gate}
 			<NavBar />
 			<main className="px-6 py-8">
 				<Outlet />

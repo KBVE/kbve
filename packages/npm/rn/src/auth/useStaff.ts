@@ -31,14 +31,42 @@ export function useStaff(): StaffState {
 
 	useEffect(() => {
 		let active = true;
-		void client
-			.rpc('staff_permissions')
-			.then(({ data, error }: { data: unknown; error: unknown }) => {
-				if (!active) return;
-				setPermissions(!error && typeof data === 'number' ? data : 0);
-			});
+		let lastUid: string | undefined;
+
+		const resolve = (uid: string | undefined) => {
+			if (!uid) {
+				if (active) setPermissions(0);
+				return;
+			}
+			void client
+				.rpc('staff_permissions')
+				.then(({ data, error }: { data: unknown; error: unknown }) => {
+					if (!active) return;
+					setPermissions(
+						!error && typeof data === 'number' ? data : 0,
+					);
+				});
+		};
+
+		void client.auth.getSession().then(({ data }) => {
+			if (!active) return;
+			lastUid = data.session?.user?.id;
+			resolve(lastUid);
+		});
+
+		const { data: sub } = client.auth.onAuthStateChange(
+			(_event, session) => {
+				const uid = session?.user?.id;
+				if (uid === lastUid) return;
+				lastUid = uid;
+				setPermissions(uid ? null : 0);
+				resolve(uid);
+			},
+		);
+
 		return () => {
 			active = false;
+			sub.subscription.unsubscribe();
 		};
 	}, [client]);
 
