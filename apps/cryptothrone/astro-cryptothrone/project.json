@@ -23,6 +23,7 @@
 			"options": {
 				"cwd": "apps/cryptothrone/astro-cryptothrone",
 				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs cryptothrone pull --include='apps/cryptothrone/astro-cryptothrone/public/assets/**') || echo 'cryptothrone LFS pull skipped (no creds / offline) — assets may be pointer stubs'",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 				],
 				"parallel": false
