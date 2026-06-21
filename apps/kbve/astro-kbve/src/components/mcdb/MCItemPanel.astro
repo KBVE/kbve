@@ -249,7 +249,7 @@ const item = MCItemSchema.parse(data);
 												)}
 												{cell.ref ? (
 													<MCTextureImage
-														client:load
+														client:visible
 														ref={cell.ref}
 														alt={cell.ref}
 														size={56}
@@ -272,7 +272,7 @@ const item = MCItemSchema.parse(data);
 											<li>
 												{ing.ref && (
 													<MCTextureImage
-														client:load
+														client:visible
 														ref={ing.ref}
 														alt={ing.ref}
 														size={28}

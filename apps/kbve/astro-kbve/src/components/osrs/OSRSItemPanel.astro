@@ -213,11 +213,11 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 				<span class="osrs-section__dot"></span>
 				<h4 class="osrs-section__title">Live GE Prices</h4>
 			</div>
-			<OSRSPriceWidget itemId={item.id} client:load />
+			<OSRSPriceWidget itemId={item.id} client:visible />
 		</div>
 
 		<!-- Price History Chart — full width -->
-		<OSRSCharts itemId={item.id} client:load />
+		<OSRSCharts itemId={item.id} client:visible />
 
 		<OSRSAdsenseSlot />
 
