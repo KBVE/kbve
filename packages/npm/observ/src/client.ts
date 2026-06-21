@@ -1,4 +1,4 @@
-import type { ErrorEvent, ObservConfig } from './types';
+import type { CaptureInput, ErrorEvent, ObservConfig } from './types';
 
 const NOISE = [
 	'ResizeObserver loop limit exceeded',
@@ -110,19 +110,24 @@ export class Observer {
 		});
 	}
 
-	private capture(partial: Partial<ErrorEvent> & { message: string }): void {
+	private capture(input: CaptureInput): void {
 		if (this.cfg.sampleRate < 1 && Math.random() > this.cfg.sampleRate)
 			return;
-		if (!partial.message || isNoise(partial.message)) return;
+		if (!input.message || isNoise(input.message)) return;
 
 		let event: ErrorEvent = {
 			project: this.cfg.project,
 			platform: this.cfg.platform ?? 'web',
-			release: this.cfg.release,
-			environment: this.cfg.environment,
+			release: this.cfg.release ?? '',
+			environment: this.cfg.environment ?? '',
+			error_type: input.error_type ?? '',
+			message: input.message,
+			stack: input.stack ?? '',
+			url: input.url ?? '',
+			user_id: this.cfg.getUserId?.() ?? '',
 			session_id: this.session,
-			user_id: this.cfg.getUserId?.(),
-			...partial,
+			handled: input.handled ?? false,
+			extra: input.extra,
 		};
 
 		if (this.cfg.beforeSend) {

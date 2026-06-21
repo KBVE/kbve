@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package kbve.telemetry;
+
+import "google/protobuf/struct.proto";
+
+message ErrorEvent {
+  string project = 1;
+  string platform = 2;
+  string release = 3;
+  string environment = 4;
+  string error_type = 5;
+  string message = 6;
+  string stack = 7;
+  string url = 8;
+  string user_id = 9;
+  string session_id = 10;
+  bool handled = 11;
+  google.protobuf.Struct extra = 12;
+}
+
+message ErrorBatch {
+  repeated ErrorEvent events = 1;
+}
+
+message ErrorGroup {
+  string project = 1;
+  string fingerprint = 2;
+  string error_type = 3;
+  string sample_message = 4;
+  string events = 5;
+  string sessions = 6;
+  string first_seen = 7;
+  string last_seen = 8;
+}
+
+message ErrorGroupList {
+  repeated ErrorGroup groups = 1;
+}
