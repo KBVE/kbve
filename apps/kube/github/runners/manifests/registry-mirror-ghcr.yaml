@@ -1,0 +1,164 @@
+# ghcr.io pull-through cache for arc-runner-ue DinD.
+#
+# The UE image (ghcr.io/epicgames/unreal-engine, ~20GB) is re-pulled from the
+# internet by every Unreal build job (~25min each) because arc-runner-ue dind
+# uses an emptyDir data-root and the existing registry-mirror only proxies
+# Docker Hub. This registry:2 in proxy mode caches ghcr layers on a Longhorn
+# PVC so the first pull fills it once and every later pull is LAN speed.
+#
+# Auth: proxies the PRIVATE epicgames image, so it authenticates upstream with
+# the GitHub PAT already in the cluster (github-arc-token / github_token,
+# owner h0lybyte — verified read:packages + EpicGames org access).
+#
+# Retention (janitor sidecar, Task 3): 7-day TTL + soft/hard size limits with
+# a whitelist. Proxy mode is pull-only; clients cannot push. Online GC is safe
+# because every blob is reconstructable from ghcr (a wrong collect = re-pull).
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: registry-mirror-ghcr-data
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 100Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: registry-mirror-ghcr-config
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+data:
+    config.yml: |
+        version: 0.1
+        log:
+          level: info
+          fields:
+            service: registry
+        storage:
+          filesystem:
+            rootdirectory: /var/lib/registry
+          cache:
+            blobdescriptor: inmemory
+          delete:
+            enabled: true
+        http:
+          addr: :5000
+          headers:
+            X-Content-Type-Options: [nosniff]
+        proxy:
+          remoteurl: https://ghcr.io
+          ttl: 168h
+          # username/password supplied via REGISTRY_PROXY_* env so the PAT
+          # never lands in this ConfigMap.
+        health:
+          storagedriver:
+            enabled: true
+            interval: 10s
+            threshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: registry-mirror-ghcr
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    replicas: 1
+    strategy:
+        # RWO PVC + single replica: Recreate avoids the rolling-update deadlock
+        # where the new pod can't attach the volume the old pod still holds.
+        type: Recreate
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror-ghcr
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: registry-mirror-ghcr
+                app.kubernetes.io/part-of: arc-runner-set
+        spec:
+            containers:
+                - name: registry
+                  image: registry:2.8.3
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: 5000
+                  env:
+                      - name: REGISTRY_HTTP_ADDR
+                        value: ':5000'
+                      - name: REGISTRY_PROXY_REMOTEURL
+                        value: 'https://ghcr.io'
+                      - name: REGISTRY_PROXY_USERNAME
+                        value: 'h0lybyte'
+                      - name: REGISTRY_PROXY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: github-arc-token
+                                key: github_token
+                  volumeMounts:
+                      - name: config
+                        mountPath: /etc/docker/registry
+                        readOnly: true
+                      - name: data
+                        mountPath: /var/lib/registry
+                  resources:
+                      limits:
+                          cpu: '2'
+                          memory: 2Gi
+                      requests:
+                          cpu: 100m
+                          memory: 256Mi
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+            volumes:
+                - name: config
+                  configMap:
+                      name: registry-mirror-ghcr-config
+                      items:
+                          - key: config.yml
+                            path: config.yml
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: registry-mirror-ghcr-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: registry-mirror-ghcr
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror-ghcr
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    type: ClusterIP
+    selector:
+        app.kubernetes.io/name: registry-mirror-ghcr
+    ports:
+        - name: http
+          port: 5000
+          targetPort: http
+          protocol: TCP
