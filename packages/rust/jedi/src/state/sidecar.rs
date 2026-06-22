@@ -174,8 +174,29 @@ impl ClickHouseConfig {
         client
     }
 
+    /// Process-wide pooled HTTP client with timeouts. Reused across every
+    /// ClickHouse call so a hung server can't block indefinitely (a missing
+    /// timeout previously let one stalled request wedge a caller) and TCP
+    /// connections are pooled instead of rebuilt per request.
+    /// Tunable via `CLICKHOUSE_HTTP_TIMEOUT_MS` (default 30s).
+    fn shared_http_client() -> &'static reqwest::Client {
+        static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+        CLIENT.get_or_init(|| {
+            let timeout_ms = std::env::var("CLICKHOUSE_HTTP_TIMEOUT_MS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(30_000u64);
+            reqwest::Client::builder()
+                .timeout(std::time::Duration::from_millis(timeout_ms))
+                .connect_timeout(std::time::Duration::from_secs(5))
+                .pool_idle_timeout(std::time::Duration::from_secs(90))
+                .build()
+                .unwrap_or_else(|_| reqwest::Client::new())
+        })
+    }
+
     pub async fn execute_select(&self, query: &str) -> Result<Vec<serde_json::Value>, JediError> {
-        let http = reqwest::Client::new();
+        let http = Self::shared_http_client();
         let full_query = format!("{} FORMAT JSONEachRow", query);
 
         let mut req = http
@@ -233,7 +254,7 @@ impl ClickHouseConfig {
             .join("\n");
 
         let insert_query = format!("INSERT INTO {} FORMAT JSONEachRow", table);
-        let http = reqwest::Client::new();
+        let http = Self::shared_http_client();
 
         let mut req = http
             .post(&self.url)

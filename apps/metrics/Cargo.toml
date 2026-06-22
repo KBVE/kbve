@@ -28,5 +28,6 @@ anyhow = "1.0"
 thiserror = "2"
 dotenvy = "0.15"
 
-jedi = { path = "../../packages/rust/jedi", features = ["clickhouse"] }
+metrics = "0.24"
+jedi = { path = "../../packages/rust/jedi", features = ["clickhouse", "prometheus"] }
 kbve = { path = "../../packages/rust/kbve", default-features = false, features = ["gate-auth"] }

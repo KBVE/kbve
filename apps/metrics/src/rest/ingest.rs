@@ -17,11 +17,17 @@ fn header_str<'a>(headers: &'a HeaderMap, name: &str) -> &'a str {
         .unwrap_or("")
 }
 
-/// Resolve the client IP from `X-Forwarded-For`, counting from the RIGHT so the
-/// value is one the infrastructure appended — not the attacker-controlled
-/// leftmost entry (which let anyone rotate IPs to bypass the rate limit).
-/// `trusted_hops` is how many reverse proxies sit between us and the internet.
+/// Resolve the client IP. Prefer Cloudflare's `cf-connecting-ip` (CF overwrites
+/// it with the true client IP on every proxied request, so it isn't
+/// client-spoofable). Otherwise fall back to `X-Forwarded-For` counting from the
+/// RIGHT — the infra-appended end, not the attacker-controlled leftmost entry
+/// (which let anyone rotate IPs to bypass the rate limit). `trusted_hops` is how
+/// many reverse proxies sit between us and the internet.
 fn client_ip(headers: &HeaderMap, trusted_hops: usize) -> String {
+    let cf = header_str(headers, "cf-connecting-ip");
+    if !cf.is_empty() {
+        return cf.to_string();
+    }
     let xff = header_str(headers, "x-forwarded-for");
     if !xff.is_empty() {
         let parts: Vec<&str> = xff
@@ -62,45 +68,66 @@ pub async fn ingest_errors(
     if let Some(expected) = &app.cfg.ingest_token {
         let provided = header_str(&headers, "x-kbve-ingest");
         if !ct_eq(provided, expected) {
+            metrics::counter!("metrics_ingest_rejected_total", "reason" => "unauthorized")
+                .increment(1);
             return Err(ApiError::Unauthorized);
         }
     }
 
     let ip = client_ip(&headers, app.cfg.trusted_proxy_hops);
     if !app.allow_ip(&ip) {
+        metrics::counter!("metrics_ingest_rejected_total", "reason" => "rate_limited_ip")
+            .increment(1);
         return Err(ApiError::RateLimited);
     }
     if !app.allow_global() {
+        metrics::counter!("metrics_ingest_rejected_total", "reason" => "rate_limited_global")
+            .increment(1);
         return Err(ApiError::RateLimited);
     }
     if batch.events.is_empty() {
         return Err(ApiError::BadRequest("empty batch".into()));
     }
     if batch.events.len() > app.cfg.max_batch {
+        metrics::counter!("metrics_ingest_rejected_total", "reason" => "batch_too_large")
+            .increment(1);
         return Err(ApiError::TooLarge(format!(
             "batch exceeds {} events",
             app.cfg.max_batch
         )));
     }
 
-    let user_agent = header_str(&headers, "user-agent").to_string();
-    let mut accepted = 0usize;
-    let mut dropped = 0usize;
+    let user_agent = header_str(&headers, "user-agent");
+    let mut accepted = 0u64;
+    let mut dropped = 0u64;
     for event in batch.events {
-        match event.into_row(&user_agent) {
+        match event.into_row(user_agent) {
             Some(row) => {
                 let project = row.get("project").and_then(|v| v.as_str()).unwrap_or("");
                 if !app.allow_project(project) {
                     dropped += 1;
+                    metrics::counter!("metrics_ingest_dropped_total", "reason" => "project_capped")
+                        .increment(1);
                     continue;
                 }
                 match app.tx.try_send(row) {
                     Ok(_) => accepted += 1,
-                    Err(_) => dropped += 1,
+                    Err(_) => {
+                        dropped += 1;
+                        metrics::counter!("metrics_ingest_dropped_total", "reason" => "queue_full")
+                            .increment(1);
+                    }
                 }
             }
-            None => dropped += 1,
+            None => {
+                dropped += 1;
+                metrics::counter!("metrics_ingest_dropped_total", "reason" => "sanitized")
+                    .increment(1);
+            }
         }
+    }
+    if accepted > 0 {
+        metrics::counter!("metrics_ingest_accepted_total").increment(accepted);
     }
 
     Ok((
@@ -134,6 +161,13 @@ mod tests {
     fn client_ip_handles_short_chain_and_missing() {
         assert_eq!(client_ip(&hdrs("7.7.7.7"), 1), "7.7.7.7");
         assert_eq!(client_ip(&hdrs(""), 1), "unknown");
+    }
+
+    #[test]
+    fn client_ip_prefers_cf_connecting_ip() {
+        let mut h = hdrs("1.1.1.1, 9.9.9.9");
+        h.insert("cf-connecting-ip", "5.5.5.5".parse().unwrap());
+        assert_eq!(client_ip(&h, 1), "5.5.5.5");
     }
 
     #[test]

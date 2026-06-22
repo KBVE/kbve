@@ -59,34 +59,33 @@ pub struct ErrorEvent {
     pub extra: Option<Map<String, Value>>,
 }
 
-/// Byte-truncate without splitting a UTF-8 code point (`String::truncate`
+/// Byte-truncate in place without splitting a UTF-8 code point (`String::truncate`
 /// panics on a non-boundary index — a multibyte char at the limit would crash
-/// the ingest handler).
-fn truncate(s: String, max: usize) -> String {
-    if s.len() <= max {
-        return s;
+/// the ingest handler). Reuses the buffer rather than allocating a copy.
+fn truncate(mut s: String, max: usize) -> String {
+    if s.len() > max {
+        let mut end = max;
+        while end > 0 && !s.is_char_boundary(end) {
+            end -= 1;
+        }
+        s.truncate(end);
     }
-    let mut end = max;
-    while end > 0 && !s.is_char_boundary(end) {
-        end -= 1;
-    }
-    s[..end].to_string()
+    s
 }
 
 /// Strip null bytes and control characters (incl. ESC, so ANSI escape
 /// sequences and terminal/log-injection payloads can't survive), then truncate.
+/// Takes the String by value and filters in place (`retain`) so the caller's
+/// existing allocation is reused instead of allocating a sanitized copy.
 /// `keep_newlines` preserves `\n`/`\t` for multi-line fields like stacks.
-fn sanitize(s: &str, max: usize, keep_newlines: bool) -> String {
-    let cleaned: String = s
-        .chars()
-        .filter(|c| {
-            if keep_newlines && (*c == '\n' || *c == '\t') {
-                return true;
-            }
-            !c.is_control()
-        })
-        .collect();
-    truncate(cleaned, max)
+fn sanitize(mut s: String, max: usize, keep_newlines: bool) -> String {
+    s.retain(|c| {
+        if keep_newlines && (c == '\n' || c == '\t') {
+            return true;
+        }
+        !c.is_control()
+    });
+    truncate(s, max)
 }
 
 /// Clamp a free-form dimension to a known allow-list, falling back to a default.
@@ -105,9 +104,11 @@ fn allow_enum(val: Option<String>, allowed: &[&str], default: &str) -> String {
     }
 }
 
-fn strip_query(url: &str) -> String {
-    let base = url.split(['?', '#']).next().unwrap_or(url);
-    sanitize(base, MAX_URL, false)
+fn strip_query(mut url: String) -> String {
+    if let Some(i) = url.find(['?', '#']) {
+        url.truncate(i);
+    }
+    sanitize(url, MAX_URL, false)
 }
 
 fn is_noise(message: &str) -> bool {
@@ -137,14 +138,14 @@ fn sanitize_extra(extra: Option<Map<String, Value>>) -> String {
     };
     let mut out = Map::new();
     for (k, v) in map.into_iter().take(MAX_EXTRA_KEYS) {
-        let key = sanitize(&k, MAX_EXTRA_KEY, false);
+        let key = sanitize(k, MAX_EXTRA_KEY, false);
         if key.is_empty() {
             continue;
         }
         let s = match v {
-            Value::String(s) => Value::String(sanitize(&s, MAX_EXTRA_VALUE, false)),
+            Value::String(s) => Value::String(sanitize(s, MAX_EXTRA_VALUE, false)),
             Value::Object(_) | Value::Array(_) => {
-                Value::String(sanitize(&v.to_string(), MAX_EXTRA_VALUE, false))
+                Value::String(sanitize(v.to_string(), MAX_EXTRA_VALUE, false))
             }
             other => other,
         };
@@ -155,32 +156,32 @@ fn sanitize_extra(extra: Option<Map<String, Value>>) -> String {
 
 impl ErrorEvent {
     pub fn into_row(self, user_agent: &str) -> Option<Value> {
-        let message = sanitize(&self.message, MAX_MESSAGE, true);
+        let message = sanitize(self.message, MAX_MESSAGE, true);
         if message.is_empty() || is_noise(&message) {
             return None;
         }
-        let project = sanitize(&self.project, 128, false);
+        let project = sanitize(self.project, 128, false);
         if project.is_empty() {
             return None;
         }
-        let error_type = sanitize(&self.error_type.unwrap_or_default(), 128, false);
-        let stack = sanitize(&self.stack.unwrap_or_default(), MAX_STACK, true);
-        let url = self.url.map(|u| strip_query(&u)).unwrap_or_default();
+        let error_type = sanitize(self.error_type.unwrap_or_default(), 128, false);
+        let stack = sanitize(self.stack.unwrap_or_default(), MAX_STACK, true);
+        let url = self.url.map(strip_query).unwrap_or_default();
         let fp = fingerprint(&project, &error_type, &stack, &message);
 
         Some(json!({
             "project": project,
             "platform": allow_enum(self.platform, PLATFORMS, "web"),
-            "release": sanitize(&self.release.unwrap_or_default(), 64, false),
+            "release": sanitize(self.release.unwrap_or_default(), 64, false),
             "environment": allow_enum(self.environment, ENVIRONMENTS, "production"),
             "fingerprint": fp,
             "error_type": error_type,
             "message": message,
             "stack": stack,
             "url": url,
-            "user_id": sanitize(&self.user_id.unwrap_or_default(), 128, false),
-            "session_id": sanitize(&self.session_id.unwrap_or_default(), 128, false),
-            "user_agent": sanitize(user_agent, 512, false),
+            "user_id": sanitize(self.user_id.unwrap_or_default(), 128, false),
+            "session_id": sanitize(self.session_id.unwrap_or_default(), 128, false),
+            "user_agent": sanitize(user_agent.to_string(), 512, false),
             "handled": if self.handled.unwrap_or(false) { 1u8 } else { 0u8 },
             "extra": sanitize_extra(self.extra),
         }))
@@ -220,14 +221,14 @@ mod tests {
 
     #[test]
     fn sanitize_strips_control_and_ansi() {
-        let out = sanitize("a\u{0}b\u{1b}[31mred\u{1b}[0mc\u{7}", 64, false);
+        let out = sanitize("a\u{0}b\u{1b}[31mred\u{1b}[0mc\u{7}".to_string(), 64, false);
         assert_eq!(out, "ab[31mred[0mc");
     }
 
     #[test]
     fn sanitize_keeps_newlines_when_asked() {
-        assert_eq!(sanitize("a\nb\tc", 64, true), "a\nb\tc");
-        assert_eq!(sanitize("a\nb\tc", 64, false), "abc");
+        assert_eq!(sanitize("a\nb\tc".to_string(), 64, true), "a\nb\tc");
+        assert_eq!(sanitize("a\nb\tc".to_string(), 64, false), "abc");
     }
 
     #[test]
