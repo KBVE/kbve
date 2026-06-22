@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PixelPanel } from './PixelPanel';
+import { authBridge } from '../lib/auth';
 
 const ACCENT = '#fcd34d';
 const TEXT = '#e6ebf5';
@@ -15,6 +16,15 @@ export default function ArpgMenu() {
 	const [open, setOpen] = useState(false);
 
 	const close = useCallback(() => setOpen(false), []);
+
+	const signOut = useCallback(async () => {
+		try {
+			await authBridge.signOut();
+		} catch (err) {
+			console.error('arpg sign-out failed', err);
+		}
+		window.location.reload();
+	}, []);
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
@@ -80,6 +90,7 @@ export default function ArpgMenu() {
 							}}>
 							Exit to Arcade
 						</MenuButton>
+						<MenuButton onClick={signOut}>Sign out</MenuButton>
 					</div>
 					<div
 						style={{
