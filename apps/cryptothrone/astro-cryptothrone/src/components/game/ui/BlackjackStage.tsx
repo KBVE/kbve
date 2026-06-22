@@ -8,7 +8,7 @@ import {
 } from '../scenes/BlackjackStageScene';
 
 const W = 520;
-const H = 250;
+const H = 300;
 
 function dealerValue(cards: number[]): number {
 	let total = 0;
@@ -26,38 +26,44 @@ function dealerValue(cards: number[]): number {
 }
 
 function toStageState(state: BlackjackStateView, myName: string): StageState {
-	const mySeat = state.seats.find((s) => s.username === myName) ?? null;
 	return {
 		dealer: state.dealer_hand,
 		dealerHidden: state.dealer_hidden,
 		dealerValue: state.dealer_hidden
 			? null
 			: dealerValue(state.dealer_hand),
-		hands: mySeat?.hands ?? [],
-		activeHand:
-			mySeat && state.active_slot === mySeat.slot
-				? state.active_hand
-				: null,
-		mine: !!mySeat,
+		seats: state.seats.map((s) => ({
+			slot: s.slot,
+			name: s.username,
+			mine: s.username === myName,
+			bet: s.bet,
+			insurance: s.insurance,
+			hands: s.hands,
+			disconnected: !!s.disconnected,
+		})),
+		activeSlot: state.active_slot,
+		activeHand: state.active_hand,
 		phase: state.phase,
+		mySeated: state.seats.some((s) => s.username === myName),
 	};
 }
 
 function signature(state: BlackjackStateView, myName: string): string {
-	const mySeat = state.seats.find((s) => s.username === myName);
 	return JSON.stringify({
 		d: state.dealer_hand,
 		dh: state.dealer_hidden,
 		p: state.phase,
-		ah: state.active_slot === mySeat?.slot ? state.active_hand : null,
-		h:
-			mySeat?.hands.map((h) => [
-				h.cards,
-				h.outcome,
-				h.doubled,
-				h.bet,
-				h.value,
-			]) ?? [],
+		as: state.active_slot,
+		ah: state.active_hand,
+		me: myName,
+		s: state.seats.map((s) => [
+			s.slot,
+			s.username,
+			s.bet,
+			s.insurance,
+			s.disconnected ? 1 : 0,
+			s.hands.map((h) => [h.cards, h.outcome, h.doubled, h.bet, h.value]),
+		]),
 	});
 }
 

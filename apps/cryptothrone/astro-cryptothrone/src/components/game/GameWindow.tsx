@@ -19,6 +19,7 @@ import { BlackjackTable } from './ui/BlackjackTable';
 import { TradeModal } from './ui/TradeModal';
 import { ConnectionOverlay } from './ui/ConnectionOverlay';
 import { ZoneBanner } from './ui/ZoneBanner';
+import { InteractPrompt } from './ui/InteractPrompt';
 import { GoldCounter } from './ui/GoldCounter';
 import { MinimapPanel } from './ui/MinimapPanel';
 import { CombatLog } from './ui/CombatLog';
@@ -109,6 +110,7 @@ function GameUI({ username }: { username?: string }) {
 			<CharacterDialog />
 			<NotificationToast />
 			<ZoneBanner />
+			<InteractPrompt />
 			<GoldCounter />
 			<div className="pointer-events-none absolute bottom-3 right-3 z-30 hidden md:block">
 				<MinimapPanel />

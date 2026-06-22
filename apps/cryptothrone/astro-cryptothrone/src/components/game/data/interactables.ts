@@ -30,6 +30,8 @@ export interface Interactable {
 	backgroundImage?: string;
 	/** Special interaction handled by the scene instead of a dialog. */
 	action?: 'casino';
+	/** Short verb shown in the in-world "Press [E] to …" prompt. */
+	hint?: string;
 }
 
 const ZONE_INTERACTABLES: Record<string, Interactable[]> = {
@@ -39,6 +41,7 @@ const ZONE_INTERACTABLES: Record<string, Interactable[]> = {
 			action: 'casino',
 			bounds: { xMin: 5, xMax: 7, yMin: 7, yMax: 9 },
 			message: 'A blackjack table. Press E to take a seat.',
+			hint: 'take a seat',
 		},
 		{
 			ref: 'well',
