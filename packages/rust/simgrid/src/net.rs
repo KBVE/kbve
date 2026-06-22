@@ -110,9 +110,30 @@ impl Roster {
     }
 }
 
+/// A broadcast event encoded once per live wire format, shared across every
+/// recipient via `Arc` so a snapshot is serialized once per tick instead of
+/// once per client. axum 0.7's `Message` owns its buffer, so each writer still
+/// pays one flat memcpy to hand the socket an owned copy — but the expensive
+/// serialization + the deep `ServerEvent` clone happen a single time.
+#[derive(Default)]
+struct EncodedFrame {
+    postcard: Option<Vec<u8>>,
+    json: Option<String>,
+}
+
+impl EncodedFrame {
+    fn message(&self, format: WireFormat) -> Option<Message> {
+        match format {
+            WireFormat::Postcard => self.postcard.clone().map(Message::Binary),
+            WireFormat::Json => self.json.clone().map(Message::Text),
+        }
+    }
+}
+
 struct ConnHandle {
-    tx: mpsc::Sender<ServerEvent>,
+    tx: mpsc::Sender<Arc<EncodedFrame>>,
     slot: proto::PlayerSlot,
+    format: WireFormat,
 }
 
 #[derive(Clone)]
@@ -175,9 +196,10 @@ impl ServerState {
     pub fn spawn_event_router(&self, mut out_rx: mpsc::UnboundedReceiver<ServerEvent>) {
         let conns = self.conns.clone();
         let slot2id = self.slot2id.clone();
+        let roster = self.roster.clone();
         tokio::spawn(async move {
             while let Some(evt) = out_rx.recv().await {
-                route_event(&conns, &slot2id, evt);
+                route_event(&conns, &slot2id, &roster, evt);
             }
         });
     }
@@ -186,6 +208,7 @@ impl ServerState {
 fn route_event(
     conns: &DashMap<Ulid, ConnHandle>,
     slot2id: &DashMap<proto::PlayerSlot, Ulid>,
+    roster: &Arc<RwLock<Roster>>,
     evt: ServerEvent,
 ) {
     if let ServerEvent::Ephemeral { to, .. } = &evt
@@ -194,17 +217,48 @@ fn route_event(
         if let Some(id) = slot2id.get(to).map(|e| *e.value())
             && let Some(h) = conns.get(&id)
         {
-            deliver(h.value(), evt);
+            let frame = Arc::new(encode_frame(&evt, &[h.format]));
+            deliver(h.value(), frame);
         }
         return;
     }
+
+    // Broadcast: fill the roster + serialize once per live format, then fan the
+    // shared `Arc` out to every connection.
+    let evt = inject_roster(evt, roster);
+    let mut formats: Vec<WireFormat> = Vec::new();
     for h in conns.iter() {
-        deliver(h.value(), evt.clone());
+        if !formats.contains(&h.format) {
+            formats.push(h.format);
+        }
+    }
+    if formats.is_empty() {
+        return;
+    }
+    let frame = Arc::new(encode_frame(&evt, &formats));
+    for h in conns.iter() {
+        deliver(h.value(), frame.clone());
     }
 }
 
-fn deliver(handle: &ConnHandle, evt: ServerEvent) {
-    match handle.tx.try_send(evt) {
+fn encode_frame(evt: &ServerEvent, formats: &[WireFormat]) -> EncodedFrame {
+    let mut frame = EncodedFrame::default();
+    for f in formats {
+        match f {
+            WireFormat::Postcard if frame.postcard.is_none() => {
+                frame.postcard = proto::encode(evt).ok();
+            }
+            WireFormat::Json if frame.json.is_none() => {
+                frame.json = proto::encode_json(evt).ok();
+            }
+            _ => {}
+        }
+    }
+    frame
+}
+
+fn deliver(handle: &ConnHandle, frame: Arc<EncodedFrame>) {
+    match handle.tx.try_send(frame) {
         Ok(()) => {}
         Err(mpsc::error::TrySendError::Full(_)) => {
             tracing::warn!(
@@ -234,7 +288,7 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
     h
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum WireFormat {
     Postcard,
     Json,
@@ -307,10 +361,17 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     }
 
     let (sink, mut stream) = socket.split();
-    let (conn_tx, conn_rx) = mpsc::channel(CONN_CHANNEL_CAPACITY);
-    state.conns.insert(ulid, ConnHandle { tx: conn_tx, slot });
+    let (conn_tx, conn_rx) = mpsc::channel::<Arc<EncodedFrame>>(CONN_CHANNEL_CAPACITY);
+    state.conns.insert(
+        ulid,
+        ConnHandle {
+            tx: conn_tx,
+            slot,
+            format,
+        },
+    );
     state.slot2id.insert(slot, ulid);
-    let writer = tokio::spawn(run_writer(sink, conn_rx, format, state.roster.clone()));
+    let writer = tokio::spawn(run_writer(sink, conn_rx, format));
 
     loop {
         tokio::select! {
@@ -343,13 +404,11 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
 
 async fn run_writer(
     mut sink: SplitSink<WebSocket, Message>,
-    mut rx: mpsc::Receiver<ServerEvent>,
+    mut rx: mpsc::Receiver<Arc<EncodedFrame>>,
     format: WireFormat,
-    roster: Arc<RwLock<Roster>>,
 ) {
-    while let Some(evt) = rx.recv().await {
-        let evt = inject_roster(evt, &roster);
-        let Some(msg) = encode_event(&evt, format) else {
+    while let Some(frame) = rx.recv().await {
+        let Some(msg) = frame.message(format) else {
             continue;
         };
         if sink.send(msg).await.is_err() {
@@ -623,6 +682,7 @@ mod tests {
             ConnHandle {
                 tx: atx,
                 slot: proto::PlayerSlot(0),
+                format: WireFormat::Postcard,
             },
         );
         conns.insert(
@@ -630,14 +690,17 @@ mod tests {
             ConnHandle {
                 tx: btx,
                 slot: proto::PlayerSlot(1),
+                format: WireFormat::Postcard,
             },
         );
         slot2id.insert(proto::PlayerSlot(0), aid);
         slot2id.insert(proto::PlayerSlot(1), bid);
 
+        let roster = Arc::new(RwLock::new(Roster::new(4)));
         route_event(
             &conns,
             &slot2id,
+            &roster,
             ServerEvent::Ephemeral {
                 kind: 1,
                 to: proto::PlayerSlot(0),
@@ -662,6 +725,7 @@ mod tests {
             ConnHandle {
                 tx: atx,
                 slot: proto::PlayerSlot(0),
+                format: WireFormat::Postcard,
             },
         );
         conns.insert(
@@ -669,14 +733,17 @@ mod tests {
             ConnHandle {
                 tx: btx,
                 slot: proto::PlayerSlot(1),
+                format: WireFormat::Postcard,
             },
         );
         slot2id.insert(proto::PlayerSlot(0), aid);
         slot2id.insert(proto::PlayerSlot(1), bid);
 
+        let roster = Arc::new(RwLock::new(Roster::new(4)));
         route_event(
             &conns,
             &slot2id,
+            &roster,
             ServerEvent::Ephemeral {
                 kind: 1,
                 to: proto::PLAYER_SLOT_NONE,

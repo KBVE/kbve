@@ -1,0 +1,100 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: kilobase-backup-drills
+    namespace: kilobase
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: kilobase-backup-drills.failures
+          rules:
+              - alert: BackupWatchdogJobFailed
+                annotations:
+                    summary: 'Backup watchdog drill job failed'
+                    description: |
+                        CronJob backup-watchdog (namespace kilobase) has a failed Job.
+                        The watchdog that verifies CNPG backups are fresh is itself
+                        failing — backup freshness is now unverified. Inspect:
+                        kubectl logs -n kilobase job/{{ $labels.job_name }}
+                expr: |
+                    kube_job_status_failed{namespace="kilobase",job_name=~"backup-watchdog.*"} > 0
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: BackupRestoreDrillJobFailed
+                annotations:
+                    summary: 'CNPG restore fire-drill failed'
+                    description: |
+                        CronJob backup-restore-test (namespace kilobase) has a failed Job.
+                        The drill that restores prod from S3 and asserts data integrity
+                        is failing — disaster-recovery restore capability is unproven.
+                        Inspect: kubectl logs -n kilobase job/{{ $labels.job_name }}
+                expr: |
+                    kube_job_status_failed{namespace="kilobase",job_name=~"backup-restore-test.*"} > 0
+                for: 5m
+                labels:
+                    severity: critical
+
+              - alert: S3HealthcheckJobFailed
+                annotations:
+                    summary: 'S3 backup-store healthcheck failed'
+                    description: |
+                        CronJob s3-healthcheck (namespace crossplane-system) has a failed
+                        Job. The object store backing CNPG barman backups may be
+                        unreachable or misconfigured. Inspect:
+                        kubectl logs -n crossplane-system job/{{ $labels.job_name }}
+                expr: |
+                    kube_job_status_failed{namespace="crossplane-system",job_name=~"s3-healthcheck.*"} > 0
+                for: 10m
+                labels:
+                    severity: warning
+
+        - name: kilobase-backup-drills.success
+          rules:
+              - alert: BackupWatchdogNoRecentSuccess
+                annotations:
+                    summary: 'Backup watchdog has no recent successful run'
+                    description: |
+                        backup-watchdog (daily) has not completed successfully in 48h, or
+                        has never succeeded. The drill that verifies CNPG backup freshness
+                        is not producing a healthy result — backup freshness is unverified.
+                expr: |
+                    absent(kube_cronjob_status_last_successful_time{namespace="kilobase",cronjob="backup-watchdog"})
+                    or
+                    time() - kube_cronjob_status_last_successful_time{namespace="kilobase",cronjob="backup-watchdog"} > 172800
+                for: 1h
+                labels:
+                    severity: warning
+
+              - alert: BackupRestoreDrillNoRecentSuccess
+                annotations:
+                    summary: 'CNPG restore fire-drill has no recent successful run'
+                    description: |
+                        backup-restore-test (weekly) has not completed successfully in 14d,
+                        or has never succeeded. Covers a wedged drill too: with
+                        concurrencyPolicy Forbid, a hung Job blocks all future runs while
+                        emitting neither success nor failure. DR restore is unproven.
+                expr: |
+                    absent(kube_cronjob_status_last_successful_time{namespace="kilobase",cronjob="backup-restore-test"})
+                    or
+                    time() - kube_cronjob_status_last_successful_time{namespace="kilobase",cronjob="backup-restore-test"} > 1209600
+                for: 1h
+                labels:
+                    severity: critical
+
+              - alert: S3HealthcheckNoRecentSuccess
+                annotations:
+                    summary: 'S3 healthcheck has no recent successful run'
+                    description: |
+                        s3-healthcheck (every 12h) has not completed successfully in 26h, or
+                        has never succeeded. Backup-store reachability is unverified.
+                expr: |
+                    absent(kube_cronjob_status_last_successful_time{namespace="crossplane-system",cronjob="s3-healthcheck"})
+                    or
+                    time() - kube_cronjob_status_last_successful_time{namespace="crossplane-system",cronjob="s3-healthcheck"} > 93600
+                for: 1h
+                labels:
+                    severity: warning

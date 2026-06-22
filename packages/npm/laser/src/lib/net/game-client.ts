@@ -16,7 +16,6 @@ import {
 	type BlackjackStateView,
 	type ClientMessage,
 	type CombatEvent,
-	type Dir,
 	type Ephemeral,
 	type EquippedEvent,
 	type Facing,
@@ -196,10 +195,6 @@ export class GameClient {
 		this.send(inputFrame(this.clientTick, inputs));
 	}
 
-	step(dir: Dir): void {
-		this.sendInputs([{ Step: { dir } }]);
-	}
-
 	move(mx: number, my: number, run: boolean): number {
 		this.moveSeq += 1;
 		const seq = this.moveSeq;
@@ -214,10 +209,6 @@ export class GameClient {
 			this.unackedMoves = this.unackedMoves.filter((m) => m.seq > ack);
 		}
 		return this.unackedMoves;
-	}
-
-	moveTo(tile: Tile): void {
-		this.sendInputs([{ MoveTo: { tile } }]);
 	}
 
 	action(id: number, target: number | null): void {

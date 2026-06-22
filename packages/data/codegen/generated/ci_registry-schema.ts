@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-06-01T09:26:01.608Z
+ * Generated: 2026-06-22T21:31:58.936Z
  */
 
 import { z } from 'zod';
@@ -107,9 +107,41 @@ export const GameEngineConfigSchema = z.object({
 	test_args: z.array(z.string().max(256)).max(50).optional(),
 	features: z.array(z.string().min(1).max(64)).max(50).optional(),
 	external_repo_url: z.string().url().max(512).optional(),
+	external_repo_ref: z.string().optional(),
+	server_target: z.string().optional(),
+	server_config: z.string().optional(),
+	client_config: z.string().optional(),
+	maps: z.array(z.string()).optional(),
+	game_mode: z.string().optional(),
+	custom_config: z.string().optional(),
 });
 
 export type GameEngineConfig = z.infer<typeof GameEngineConfigSchema>;
+
+// KubeMetadata
+export const KubeMetadataSchema = z.object({
+	stack: z
+		.enum(['agones', 'infrastructure', 'application', 'data', 'tooling'])
+		.optional(),
+	environment: z.enum(['dev', 'beta', 'prod']).optional(),
+	tier: z
+		.enum([
+			'web',
+			'api',
+			'worker',
+			'database',
+			'cache',
+			'gateway',
+			'server',
+		])
+		.optional(),
+	owner: z.string().min(1).max(64).optional(),
+	criticality: z.enum(['critical', 'high', 'medium', 'low']).optional(),
+	component: z.string().min(1).max(64).optional(),
+	part_of: z.string().min(1).max(64).optional(),
+});
+
+export type KubeMetadata = z.infer<typeof KubeMetadataSchema>;
 
 // CiProject
 export const CiProjectSchema = z.object({
@@ -168,6 +200,7 @@ export const CiProjectSchema = z.object({
 	shell_path: z.string().max(256).optional(),
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
+	kube: KubeMetadataSchema.optional(),
 });
 
 export type CiProject = z.infer<typeof CiProjectSchema>;

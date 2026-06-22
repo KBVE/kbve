@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/discordsh_agents.binpb
  * Config: ../discordsh_agents-zod-config.json
- * Generated: 2026-06-11T05:28:53.204Z
+ * Generated: 2026-06-22T21:31:58.935Z
  */
 
 import { z } from 'zod';

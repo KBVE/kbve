@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/git_common.binpb
  * Config: ../git_common-zod-config.json
- * Generated: 2026-06-14T19:49:30.904Z
+ * Generated: 2026-06-22T21:31:58.965Z
  */
 
 import { z } from 'zod';

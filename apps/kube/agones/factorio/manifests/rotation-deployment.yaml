@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: factorio-rotator
+    namespace: factorio
+    labels:
+        app: factorio-rotator
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: factorio-rotator
+    template:
+        metadata:
+            labels:
+                app: factorio-rotator
+        spec:
+            serviceAccountName: factorio-rotator
+            automountServiceAccountToken: true
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: rotator
+                  image: ghcr.io/kbve/kubectl:0.1.5
+                  imagePullPolicy: IfNotPresent
+                  args:
+                      - rotate-gameserver
+                      - --watch
+                      - --interval=15
+                      - --namespace=factorio
+                      - --gameserver=factorio
+                      - --container=factorio
+                      - --delete-timeout=180
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                      readOnlyRootFilesystem: true
+                  livenessProbe:
+                      exec:
+                          command:
+                              - /bin/sh
+                              - -c
+                              - test $(( $(date +%s) - $(stat -c %Y /tmp/.rotator-heartbeat) )) -lt 60
+                      initialDelaySeconds: 20
+                      periodSeconds: 20
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  resources:
+                      requests:
+                          cpu: 25m
+                          memory: 64Mi
+                      limits:
+                          cpu: 100m
+                          memory: 128Mi
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 16Mi

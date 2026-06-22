@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/forgejo.binpb
  * Config: ../forgejo-zod-config.json
- * Generated: 2026-06-14T23:42:25.120Z
+ * Generated: 2026-06-22T21:31:58.966Z
  */
 
 import { z } from 'zod';

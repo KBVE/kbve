@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/telemetry.binpb
  * Config: ../telemetry-zod-config.json
- * Generated: 2026-06-21T00:06:26.561Z
+ * Generated: 2026-06-22T21:31:58.986Z
  */
 
 import { z } from 'zod';

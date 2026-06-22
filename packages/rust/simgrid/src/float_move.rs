@@ -1,10 +1,10 @@
 pub const WALK_SPEED: f32 = 3.4;
 pub const RUN_SPEED: f32 = 6.6;
 pub const MOVE_ACCEL: f32 = 18.0;
-pub const MOVE_FRICTION: f32 = 30.0;
+pub const MOVE_FRICTION: f32 = 60.0;
 pub const BODY_RADIUS: f32 = 0.34;
 pub const COLLISION_SKIN: f32 = 0.01;
-pub const STOP_SPEED: f32 = 2.0;
+pub const STOP_SPEED: f32 = 1.5;
 pub const MAX_MOVE_STEP: f32 = 0.2;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

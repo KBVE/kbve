@@ -21,6 +21,9 @@ function delta(p: {
 	y: number;
 	hp?: number;
 	maxHp?: number;
+	qx?: number;
+	qy?: number;
+	inputAck?: number;
 }): EntityDelta {
 	return {
 		eid: p.eid,
@@ -29,6 +32,9 @@ function delta(p: {
 		tile: { x: p.x, y: p.y },
 		hp: p.hp ?? 10,
 		max_hp: p.maxHp ?? 10,
+		qx: p.qx,
+		qy: p.qy,
+		input_ack: p.inputAck,
 	} as unknown as EntityDelta;
 }
 
@@ -41,7 +47,6 @@ function harness(mySlot = 7) {
 			return { id: e.eid };
 		},
 		move: (r, t) => calls.push(`move:${r.id}->${t.x},${t.y}`),
-		setPos: (r, t) => calls.push(`setPos:${r.id}->${t.x},${t.y}`),
 		follow: (r) => calls.push(`follow:${r.id}`),
 		remove: (r) => calls.push(`remove:${r.id}`),
 	};
@@ -102,8 +107,10 @@ describe('applyEntitySync', () => {
 		expect(h.state.myEid).toBe(-1);
 	});
 
-	it('reconciles the local player: keeps prediction within drift, snaps past it', () => {
+	it('exposes the server float pos + input ack for the local player', () => {
 		const h = harness(7);
+		// Spawn frame seeds myEid; serverPos stays undefined (the scene seeds its
+		// float body from the tile via `serverPos ?? predicted`).
 		applyEntitySync(
 			[delta({ eid: 1, kind: 1, owner: 7, x: 5, y: 5 })],
 			h.store,
@@ -111,28 +118,42 @@ describe('applyEntitySync', () => {
 			h.resolve,
 			h.state,
 		);
-		h.state.predicted = { x: 6, y: 5 }; // client predicted one step
-		// server still at 5,5 → drift 1 ≤ 2 → keep prediction, no setPos
+		expect(h.state.serverPos).toBeUndefined();
+		expect(h.state.predicted).toEqual({ x: 5, y: 5 });
+
+		// Next sync (already in store, no qx/qy) → server pos falls back to tile.
 		applyEntitySync(
 			[delta({ eid: 1, kind: 1, owner: 7, x: 5, y: 5 })],
+			h.store,
+			h.bridge,
+			h.resolve,
+			h.state,
+		);
+		expect(h.state.serverPos).toEqual({ x: 5, y: 5 });
+
+		// qx/qy are quantized at POS_SCALE=32; predicted always tracks the
+		// authoritative tile while the scene reconciles its float body itself.
+		applyEntitySync(
+			[
+				delta({
+					eid: 1,
+					kind: 1,
+					owner: 7,
+					x: 6,
+					y: 5,
+					qx: 6 * 32 + 16,
+					qy: 5 * 32,
+					inputAck: 4,
+				}),
+			],
 			h.store,
 			h.bridge,
 			h.resolve,
 			h.state,
 		);
 		expect(h.state.predicted).toEqual({ x: 6, y: 5 });
-		expect(h.calls.filter((c) => c.startsWith('setPos'))).toHaveLength(0);
-
-		// server jumps to 10,10 → drift 4 > 2 → snap back
-		applyEntitySync(
-			[delta({ eid: 1, kind: 1, owner: 7, x: 10, y: 10 })],
-			h.store,
-			h.bridge,
-			h.resolve,
-			h.state,
-		);
-		expect(h.state.predicted).toEqual({ x: 10, y: 10 });
-		expect(h.calls).toContain('setPos:1->10,10');
+		expect(h.state.serverPos).toEqual({ x: 6.5, y: 5 });
+		expect(h.state.inputAck).toBe(4);
 	});
 
 	it('interpolates other entities toward the authoritative tile', () => {

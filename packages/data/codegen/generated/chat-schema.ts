@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/chat.binpb
  * Config: ../chat-zod-config.json
- * Generated: 2026-06-18T18:44:58.633Z
+ * Generated: 2026-06-22T21:31:58.985Z
  */
 
 import { z } from 'zod';

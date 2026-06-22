@@ -21,6 +21,12 @@ export const FOG_MAX_STRENGTH = 0.6; // vignette strength when fully fogged
 export const MOVE_TWEEN_MS = 140;
 export const HEARTBEAT_MS = 20000;
 
+// Server sim cadence — must match simgrid SIM_TICK_HZ. Input replay during
+// reconciliation steps the float body at this fixed dt so it matches the
+// server's per-tick advance exactly (live frames use the variable frame dt).
+export const SIM_TICK_HZ = 20;
+export const SIM_DT_MS = 1000 / SIM_TICK_HZ;
+
 // Continuous float motion (client-side). Position is fractional world-tile
 // units; the integer tile underneath drives collision + the cardinal wire step.
 // Two locomotion tiers, each tuned so the body speed matches its anim's stride
@@ -28,8 +34,8 @@ export const HEARTBEAT_MS = 20000;
 export const WALK_SPEED = 3.4; // tiles/sec, matches WalkForward stride
 export const RUN_SPEED = 6.6; // tiles/sec, matches Run stride
 export const MOVE_ACCEL = 18; // velocity steer rate toward intent
-export const MOVE_FRICTION = 30; // velocity decay rate when no input
-export const STOP_SPEED = 2.0; // speed below which a released body snaps to rest
+export const MOVE_FRICTION = 60; // velocity decay rate when no input
+export const STOP_SPEED = 1.5; // speed below which a released body snaps to rest
 export const MAX_MOVE_STEP = 0.2; // tiles per collision substep
 // Player collides as a circle, not a point: keeps a gap off walls (no hugging),
 // slides along surfaces, and rounds corners instead of catching the tile edge.

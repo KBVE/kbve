@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/jedi.binpb
  * Config: ../jedi-zod-config.json
- * Generated: 2026-06-01T06:12:05.368Z
+ * Generated: 2026-06-22T21:31:58.970Z
  */
 
 import { z } from 'zod';

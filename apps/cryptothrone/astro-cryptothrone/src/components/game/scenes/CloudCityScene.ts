@@ -19,7 +19,6 @@ import {
 } from '@kbve/laser';
 import type {
 	CharacterEventData,
-	Dir,
 	Snapshot,
 	KindEntry,
 	ConnectionState,
@@ -45,12 +44,18 @@ import {
 	type SyncState,
 } from '../systems/netSync';
 import {
-	stepDir,
-	followPath,
-	commitPredicted,
-	type PredictState,
+	makeFloatState,
+	floatTile,
+	stepFloat,
+	reconcileFloat,
+	WALK_SPEED,
+	RUN_SPEED,
+	SIM_DT_MS,
+	ARRIVE_DIST,
+	WAYPOINT_REACH,
+	type FloatState,
 	type IsBlocked,
-} from '../systems/prediction';
+} from '../systems/floatMotion';
 import {
 	chebyshev,
 	resolveClick,
@@ -140,9 +145,13 @@ export class CloudCityScene extends Scene {
 	private readonly isBlocked: IsBlocked = (x, y) =>
 		this.blocked.has(`${x},${y}`);
 	private predicted = { x: 0, y: 0 };
-	private predictedPath: { x: number; y: number }[] = [];
 	private predictSeeded = false;
 	private lastWorldTimeMs = -100000;
+	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
+	private movePath: { x: number; y: number }[] = [];
+	private moveSendAccumMs = 0;
+	private wasMoving = false;
+	private spriteOffset: { x: number; y: number } | null = null;
 
 	constructor() {
 		super({ key: 'CloudCity' });
@@ -250,6 +259,12 @@ export class CloudCityScene extends Scene {
 			this.onPointerMove(pointer),
 		);
 
+		this.events.on(
+			Phaser.Scenes.Events.POST_UPDATE,
+			this.renderLocalFloat,
+			this,
+		);
+
 		this.laserUnsubs.push(
 			laserEvents.on('item:use', (data) => {
 				const d = data as { ref: string };
@@ -293,6 +308,11 @@ export class CloudCityScene extends Scene {
 		);
 
 		this.events.once('shutdown', () => {
+			this.events.off(
+				Phaser.Scenes.Events.POST_UPDATE,
+				this.renderLocalFloat,
+				this,
+			);
 			window.clearTimeout(this.slowTimer);
 			window.clearInterval(this.heartbeatTimer);
 			this.laserUnsubs.forEach((off) => off());
@@ -569,8 +589,6 @@ export class CloudCityScene extends Scene {
 				return refs;
 			},
 			move: (refs, tile) => this.gridEngine.moveTo(refs.charId, tile),
-			setPos: (refs, tile) =>
-				this.gridEngine.setPosition(refs.charId, tile),
 			follow: (refs) => this.cameras.main.startFollow(refs.sprite, true),
 			remove: (refs) => {
 				if (this.gridEngine.hasCharacter(refs.charId)) {
@@ -603,6 +621,7 @@ export class CloudCityScene extends Scene {
 			this.slotUsername.set(pv.slot, pv.kbve_username);
 		}
 
+		const hadEid = this.myEid >= 0;
 		const state: SyncState = {
 			myEid: this.myEid,
 			mySlot: this.mySlot,
@@ -619,6 +638,14 @@ export class CloudCityScene extends Scene {
 		this.myEid = state.myEid;
 		this.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
+
+		if (!hadEid && this.myEid >= 0) {
+			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
+			this.captureSpriteOffset();
+		} else if (this.myEid >= 0 && state.serverPos) {
+			this.reconcilePlayer(state.serverPos, state.inputAck ?? 0);
+		}
+		if (this.myEid >= 0) this.predicted = floatTile(this.floatState);
 		for (const eid of despawned) {
 			if (this.pendingAction?.eid === eid) this.pendingAction = null;
 		}
@@ -827,15 +854,14 @@ export class CloudCityScene extends Scene {
 	}
 
 	/**
-	 * Predict a click-move client-side: pathfind locally over the same
-	 * walkability the server uses (so the routes match) and walk it tile by
-	 * tile, while the server runs its own authoritative MoveTo. Reconciliation
-	 * snaps us back only if the two genuinely diverge.
+	 * Click-move: pathfind locally over the same walkability the server uses and
+	 * walk the route as float waypoints (readIntent). No server MoveTo — the
+	 * server mirrors the analog Move stream and reconcileFloat corrects drift.
 	 */
 	private startMoveTo(tile: { x: number; y: number }) {
 		if (!this.client) return;
-		this.predictedPath = findTilePath(this.predicted, tile, this.isBlocked);
-		this.client.moveTo(tile);
+		this.movePath =
+			findTilePath(this.predicted, tile, this.isBlocked) ?? [];
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -1031,7 +1057,7 @@ export class CloudCityScene extends Scene {
 		}
 	}
 
-	update(time: number) {
+	update(time: number, delta: number) {
 		if (!this.client) return;
 		this.updateHpBars();
 		this.updateOverlays(time);
@@ -1054,47 +1080,137 @@ export class CloudCityScene extends Scene {
 		}
 
 		if (this.myEid < 0 || !this.predictSeeded) return;
-		const myChar = `e${this.myEid}`;
-		// One predicted tile at a time: wait for the local tween to finish so
-		// prediction tracks the server's tile rate instead of outrunning it.
-		if (this.gridEngine.isMoving(myChar)) return;
-
-		const pstate: PredictState = {
-			predicted: this.predicted,
-			path: this.predictedPath,
-			seeded: this.predictSeeded,
-		};
-
-		let dir: Dir | null = null;
-		if (this.cursors.up.isDown || this.wasd.up.isDown) dir = 'Up';
-		else if (this.cursors.down.isDown || this.wasd.down.isDown)
-			dir = 'Down';
-		else if (this.cursors.left.isDown || this.wasd.left.isDown)
-			dir = 'Left';
-		else if (this.cursors.right.isDown || this.wasd.right.isDown)
-			dir = 'Right';
-
-		if (dir) {
-			const cand = stepDir(pstate, dir, this.isBlocked);
-			if (cand) this.advancePredicted(pstate, myChar, cand);
-			this.predictedPath = pstate.path;
-			this.client.step(dir);
-			return;
-		}
-
-		const next = followPath(pstate, this.isBlocked);
-		this.predictedPath = pstate.path;
-		if (next) this.advancePredicted(pstate, myChar, next);
+		this.tickLocalMotion(delta);
 	}
 
-	private advancePredicted(
-		state: PredictState,
-		myChar: string,
-		tile: { x: number; y: number },
-	) {
-		commitPredicted(state, tile);
-		this.predicted = state.predicted;
-		this.gridEngine.moveTo(myChar, tile);
-		this.store.update(this.myEid, { tile: { ...tile } });
+	/**
+	 * Continuous float locomotion: keyboard or click-path feeds a world-tile
+	 * intent into the float sim, which advances the body every frame, drives the
+	 * gridEngine walk animation, and emits analog Move to the server every 50ms.
+	 * The sprite is positioned from the float body in renderLocalFloat
+	 * (POST_UPDATE) so gridEngine's tile tween never fights it.
+	 */
+	private tickLocalMotion(deltaMs: number) {
+		const myChar = `e${this.myEid}`;
+		const intent = this.readIntent();
+		const prevTile = floatTile(this.floatState);
+		const walking = this.cursors.shift?.isDown ?? false;
+		const speed = walking ? WALK_SPEED : RUN_SPEED;
+		stepFloat(this.floatState, intent, speed, this.isBlocked, deltaMs);
+
+		const mag = Math.hypot(intent.x, intent.y);
+		const moving = mag > 0;
+		if (moving) {
+			this.gridEngine.move(myChar, this.intentDir(intent));
+		} else if (this.gridEngine.isMoving(myChar)) {
+			this.gridEngine.stopMovement(myChar);
+		}
+
+		const tile = floatTile(this.floatState);
+		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
+			this.predicted = tile;
+			this.store.update(this.myEid, { tile: { ...tile } });
+		}
+
+		this.moveSendAccumMs += deltaMs;
+		if (this.moveSendAccumMs >= 50) {
+			this.moveSendAccumMs = 0;
+			if (moving || this.wasMoving) {
+				const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
+				const my = moving ? Math.round((intent.y / mag) * 127) : 0;
+				this.client?.move(mx, my, !walking);
+			}
+			this.wasMoving = moving;
+		}
+
+		if (this.movePath.length === 1) {
+			const goal = this.movePath[0];
+			const dx = goal.x - this.floatState.pos.x;
+			const dy = goal.y - this.floatState.pos.y;
+			const dist = Math.hypot(dx, dy);
+			const overshot =
+				dx * this.floatState.vel.x + dy * this.floatState.vel.y < 0;
+			if (dist < ARRIVE_DIST || (overshot && dist < 1))
+				this.movePath = [];
+		}
+	}
+
+	/**
+	 * World-tile intent vector. Held keys win and cancel any click route;
+	 * otherwise steer toward the current A* waypoint, popping it on arrival.
+	 */
+	private readIntent(): { x: number; y: number } {
+		const ix =
+			(this.cursors.right.isDown || this.wasd.right.isDown ? 1 : 0) -
+			(this.cursors.left.isDown || this.wasd.left.isDown ? 1 : 0);
+		const iy =
+			(this.cursors.down.isDown || this.wasd.down.isDown ? 1 : 0) -
+			(this.cursors.up.isDown || this.wasd.up.isDown ? 1 : 0);
+		if (ix !== 0 || iy !== 0) {
+			this.movePath = [];
+			return { x: ix, y: iy };
+		}
+
+		while (this.movePath.length > 0) {
+			const wp = this.movePath[0];
+			const dx = wp.x - this.floatState.pos.x;
+			const dy = wp.y - this.floatState.pos.y;
+			const dist = Math.hypot(dx, dy);
+			const last = this.movePath.length === 1;
+			const reach = last ? ARRIVE_DIST : WAYPOINT_REACH;
+			if (dist < reach) {
+				this.movePath.shift();
+				continue;
+			}
+			return { x: dx, y: dy };
+		}
+		return { x: 0, y: 0 };
+	}
+
+	private intentDir(intent: { x: number; y: number }): string {
+		if (Math.abs(intent.x) >= Math.abs(intent.y)) {
+			return intent.x > 0 ? 'right' : 'left';
+		}
+		return intent.y > 0 ? 'down' : 'up';
+	}
+
+	private reconcilePlayer(serverPos: { x: number; y: number }, ack: number) {
+		const unacked = this.client?.ackMoves(ack) ?? [];
+		const replay = makeFloatState(serverPos);
+		for (const m of unacked) {
+			const speed = m.run ? RUN_SPEED : WALK_SPEED;
+			stepFloat(
+				replay,
+				{ x: m.mx / 127, y: m.my / 127 },
+				speed,
+				this.isBlocked,
+				SIM_DT_MS,
+			);
+		}
+		reconcileFloat(this.floatState, replay.pos);
+	}
+
+	/** Capture gridEngine's fixed sprite-vs-tile pixel offset for float render. */
+	private captureSpriteOffset() {
+		const refs = this.store.refs(this.myEid);
+		if (!refs) return;
+		const span = this.tilePixels * MAP_SCALE;
+		this.spriteOffset = {
+			x: refs.sprite.x - this.predicted.x * span,
+			y: refs.sprite.y - this.predicted.y * span,
+		};
+	}
+
+	/** Draw the local sprite at its fractional float position (post gridEngine). */
+	private renderLocalFloat() {
+		if (this.myEid < 0 || !this.predictSeeded || !this.spriteOffset) return;
+		const refs = this.store.refs(this.myEid);
+		if (!refs) return;
+		const span = this.tilePixels * MAP_SCALE;
+		refs.sprite.x = this.floatState.pos.x * span + this.spriteOffset.x;
+		refs.sprite.y = this.floatState.pos.y * span + this.spriteOffset.y;
+		refs.sprite.setDepth(
+			this.entityDepth + refs.sprite.y + refs.sprite.displayHeight / 2,
+		);
 	}
 }
