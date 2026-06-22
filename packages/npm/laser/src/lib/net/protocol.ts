@@ -1,4 +1,13 @@
-export const PROTOCOL_VERSION = 14;
+export const PROTOCOL_VERSION = 15;
+
+export const POS_SCALE = 32;
+export const VEL_SCALE = 256;
+
+export const dequantizePos = (q: number): number => q / POS_SCALE;
+export const dequantizeVel = (q: number): number => q / VEL_SCALE;
+export const quantizePos = (v: number): number => Math.round(v * POS_SCALE);
+export const quantizeVel = (v: number): number =>
+	Math.max(-32768, Math.min(32767, Math.round(v * VEL_SCALE)));
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -33,6 +42,7 @@ export interface Tile {
 
 export type Input =
 	| { Step: { dir: Dir } }
+	| { Move: { seq: number; mx: number; my: number; run: boolean } }
 	| { MoveTo: { tile: Tile } }
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
@@ -89,6 +99,11 @@ export interface EntityDelta {
 	tile: Tile;
 	facing: Facing;
 	sub: number;
+	qx?: number;
+	qy?: number;
+	qvx?: number;
+	qvy?: number;
+	input_ack?: number;
 	hp: number;
 	max_hp: number;
 	destroyed: boolean;

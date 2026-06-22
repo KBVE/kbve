@@ -68,8 +68,17 @@ export interface GameClientOptions {
 	maxReconnects?: number;
 }
 
+export interface MoveSample {
+	seq: number;
+	mx: number;
+	my: number;
+	run: boolean;
+}
+
 export class GameClient {
 	private clientTick = 0;
+	private moveSeq = 0;
+	private unackedMoves: MoveSample[] = [];
 	private terminal = false;
 	private readonly bus = new LaserEventBus<GameClientEventMap>();
 	private readonly opts: GameClientOptions;
@@ -189,6 +198,22 @@ export class GameClient {
 
 	step(dir: Dir): void {
 		this.sendInputs([{ Step: { dir } }]);
+	}
+
+	move(mx: number, my: number, run: boolean): number {
+		this.moveSeq += 1;
+		const seq = this.moveSeq;
+		this.unackedMoves.push({ seq, mx, my, run });
+		if (this.unackedMoves.length > 256) this.unackedMoves.shift();
+		this.sendInputs([{ Move: { seq, mx, my, run } }]);
+		return seq;
+	}
+
+	ackMoves(ack: number): MoveSample[] {
+		if (ack > 0) {
+			this.unackedMoves = this.unackedMoves.filter((m) => m.seq > ack);
+		}
+		return this.unackedMoves;
 	}
 
 	moveTo(tile: Tile): void {
