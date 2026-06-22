@@ -2160,7 +2160,7 @@ jobs:
                     --repo "${{ github.repository }}" \
                     --title "${{ inputs.plugin_name }} v${{ needs.plugin_check.outputs.version }}" \
                     --notes "${{ inputs.plugin_name }} plugin v${{ needs.plugin_check.outputs.version }} (${{ inputs.target_platforms }})" \
-                    --prerelease \
+                    --latest=false \
                     "./artifact/${{ needs.plugin_check.outputs.zip_name }}"
 
     plugin_itch:
