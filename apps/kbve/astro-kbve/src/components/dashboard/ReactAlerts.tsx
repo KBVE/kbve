@@ -33,6 +33,7 @@ import {
 	fetchAlertsFiring,
 	invalidateAlertsCache,
 	severityColor,
+	severityClass,
 	severityTextClass,
 	formatRelative,
 	ALERTS_RANGES,
@@ -297,7 +298,9 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 									{severity.map((s, i) => (
 										<Cell
 											key={i}
-											fill={severityColor(s.severity)}
+											className={severityClass(
+												s.severity,
+											)}
 										/>
 									))}
 									<LabelList

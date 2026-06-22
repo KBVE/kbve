@@ -103,6 +103,24 @@ html[data-auth-tone='staff'] li[data-auth-visibility='anon'] {
 	--sl-color-border: var(--color-gold-dark);
 }
 
+/* Status palette — theme-aware so dashboard charts stay readable on either
+   surface. Dark-first defaults (brighter on near-black); light overrides
+   below go deeper for contrast on parchment/white. */
+:root {
+	--kbve-status-healthy: #34d399;
+	--kbve-status-warning: #fbbf24;
+	--kbve-status-critical: #f87171;
+	--kbve-status-info: #60a5fa;
+	--kbve-status-neutral: #94a3b8;
+}
+:root[data-theme='light'] {
+	--kbve-status-healthy: #047857;
+	--kbve-status-warning: #b45309;
+	--kbve-status-critical: #b91c1c;
+	--kbve-status-info: #1d4ed8;
+	--kbve-status-neutral: #64748b;
+}
+
 /* ── Typography: Playfair Display for display, Lora for body ── */
 :root {
 	--sl-font:

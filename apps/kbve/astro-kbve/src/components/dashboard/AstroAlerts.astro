@@ -55,4 +55,17 @@ import ReactAlerts from './ReactAlerts';
 		stroke: var(--sl-color-bg-nav);
 		stroke-width: 3px;
 	}
+
+	.alerts-panel :global(.kbve-sev-critical) {
+		fill: var(--kbve-status-critical);
+	}
+	.alerts-panel :global(.kbve-sev-warning) {
+		fill: var(--kbve-status-warning);
+	}
+	.alerts-panel :global(.kbve-sev-info) {
+		fill: var(--kbve-status-info);
+	}
+	.alerts-panel :global(.kbve-sev-neutral) {
+		fill: var(--kbve-status-neutral);
+	}
 </style>

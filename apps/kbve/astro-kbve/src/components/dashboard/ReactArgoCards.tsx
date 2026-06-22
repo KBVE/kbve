@@ -67,10 +67,10 @@ function ResourceBar({ tally }: { tally: ResourceTally }) {
 					overflow: 'hidden',
 					background: 'var(--sl-color-gray-6, #1c1c1c)',
 				}}>
-				{seg(tally.healthy, '#22c55e', 'h')}
-				{seg(tally.progressing, '#f59e0b', 'p')}
-				{seg(bad, '#ef4444', 'b')}
-				{seg(tally.suspended, '#6b7280', 's')}
+				{seg(tally.healthy, 'var(--kbve-status-healthy)', 'h')}
+				{seg(tally.progressing, 'var(--kbve-status-warning)', 'p')}
+				{seg(bad, 'var(--kbve-status-critical)', 'b')}
+				{seg(tally.suspended, 'var(--kbve-status-neutral)', 's')}
 			</div>
 			<div
 				style={{
@@ -87,7 +87,7 @@ function ResourceBar({ tally }: { tally: ResourceTally }) {
 							display: 'inline-flex',
 							alignItems: 'center',
 							gap: 3,
-							color: '#ef4444',
+							color: 'var(--kbve-status-critical)',
 							fontWeight: 600,
 						}}>
 						<AlertTriangle size={10} />
@@ -95,7 +95,7 @@ function ResourceBar({ tally }: { tally: ResourceTally }) {
 					</span>
 				)}
 				{tally.progressing > 0 && (
-					<span style={{ color: '#f59e0b' }}>
+					<span style={{ color: 'var(--kbve-status-warning)' }}>
 						{tally.progressing} progressing
 					</span>
 				)}
