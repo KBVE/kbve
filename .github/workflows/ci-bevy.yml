@@ -63,7 +63,7 @@ jobs:
             contents: read
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -170,7 +170,7 @@ jobs:
             actions: write
         steps:
             - name: Checkout dev
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   fetch-depth: 1
@@ -304,7 +304,7 @@ jobs:
     #   runs-on: macos-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #       working-directory: apps/kbve/isometric/src-tauri  # update path when native
@@ -316,7 +316,7 @@ jobs:
     #   runs-on: ubuntu-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #
@@ -327,7 +327,7 @@ jobs:
     #   runs-on: windows-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #     - run: cargo build --release
     #
@@ -338,7 +338,7 @@ jobs:
     #   runs-on: macos-latest
     #   timeout-minutes: 120
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #       with:
     #         targets: aarch64-apple-ios
@@ -399,7 +399,7 @@ jobs:
     #   outputs:
     #     should_publish: ${{ steps.check.outputs.should_publish }}
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - id: check
     #       run: |
     #         LOCAL="${{ inputs.manifest_version }}"; VTOML="${{ inputs.version_toml }}"; PUB="0.0.0"
@@ -421,7 +421,7 @@ jobs:
     #     matrix:
     #       target: ${{ fromJSON(inputs.build_targets) }}
     #   steps:
-    #     - uses: actions/checkout@v6
+    #     - uses: actions/checkout@v7
     #     - uses: dtolnay/rust-toolchain@stable
     #       with: { targets: ${{ matrix.target }} }
     #     - uses: Swatinem/rust-cache@v2

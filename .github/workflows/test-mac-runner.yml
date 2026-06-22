@@ -61,7 +61,7 @@ jobs:
                   python3 --version || echo "python3 not found"
 
             - name: Checkout Test
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Verify Checkout
               run: |

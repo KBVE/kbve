@@ -34,7 +34,7 @@ jobs:
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/verify
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
@@ -65,7 +65,7 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/asan
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/asan
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
@@ -96,7 +96,7 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/miri
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/miri
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
@@ -123,7 +123,7 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/fuzz
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/fuzz
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Install build prerequisites
               run: |
                   sudo apt-get update -qq
@@ -148,7 +148,7 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_linux
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_linux
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
@@ -180,7 +180,7 @@ jobs:
             CARGO_TARGET_DIR: /home/runner/_cache/cargo/target/build_android
             RUSTUP_HOME: /home/runner/_cache/cargo/rustup/build_android
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install build prerequisites
               run: |
@@ -224,7 +224,7 @@ jobs:
         runs-on: macos-latest
         timeout-minutes: 45
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install protoc (macOS)
               run: brew install protobuf

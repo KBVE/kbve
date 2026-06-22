@@ -279,7 +279,7 @@ jobs:
             server_config: ${{ steps.parse.outputs.server_config }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Parse shell project
               id: parse
@@ -411,7 +411,7 @@ jobs:
                   fi
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -656,7 +656,7 @@ jobs:
             version: ${{ steps.compare.outputs.version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Compare versions
               id: compare
@@ -730,7 +730,7 @@ jobs:
 
             - name: Checkout monorepo
               if: inputs.external_repo_url == ''
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -989,7 +989,7 @@ jobs:
         steps:
             - name: Checkout monorepo
               if: inputs.external_repo_url == ''
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -1181,7 +1181,7 @@ jobs:
                   echo "Client config: ${{ inputs.client_config || 'Shipping' }}"
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -1374,7 +1374,7 @@ jobs:
             tag: ${{ steps.compare.outputs.tag }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Extract version
               id: extract
@@ -1587,7 +1587,7 @@ jobs:
                   sudo apt-get install -y build-essential clang xdg-utils shared-mime-info libssl-dev python3 curl zip
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Clone or update engine source
               env:
@@ -1736,7 +1736,7 @@ jobs:
             pull-requests: write
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
 
@@ -1789,7 +1789,7 @@ jobs:
             engine: ${{ steps.extract.outputs.engine }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Extract versions
               id: extract
@@ -1862,7 +1862,7 @@ jobs:
                   echo "::notice::Plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
 
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Stamp plugin version
               run: |
@@ -2005,7 +2005,7 @@ jobs:
                   Write-Host "::notice::Win64 plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
 
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Stamp plugin version
               run: |

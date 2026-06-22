@@ -78,7 +78,7 @@ jobs:
                   echo "::notice::Tauri Linux build: actor=${{ github.actor }}, ref=${{ github.ref }}, runner=${{ inputs.linux_runner }}"
 
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -196,7 +196,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -294,7 +294,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -392,7 +392,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
@@ -479,7 +479,7 @@ jobs:
 
         steps:
             - name: Checkout dev
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   fetch-depth: 1

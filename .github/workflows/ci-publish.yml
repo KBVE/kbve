@@ -93,7 +93,7 @@ jobs:
             registry_version: ${{ steps.check.outputs.registry_version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Check version against version.toml
               id: check
