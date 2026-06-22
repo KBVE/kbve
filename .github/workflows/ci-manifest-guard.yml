@@ -51,9 +51,8 @@ jobs:
 
             - run: pnpm install --frozen-lockfile
 
-            # nx 22 occasionally hits a flaky "Failed to process project graph" race
-            # on the first cold attempt (apps/jobboard/web mixes pnpm + standalone
-            # npm lockfile, which confuses the project-graph merge). Retry once before
+            # Nx occasionally hits a flaky "Failed to process project graph" race
+            # on the first cold attempt. Retry with verbose logging and reset before
             # surfacing as a real failure.
             - name: Build astro-kbve (retry on flaky graph)
               run: |

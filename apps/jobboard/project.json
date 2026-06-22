@@ -44,7 +44,7 @@
 			"executor": "nx:run-commands",
 			"cache": false,
 			"options": {
-				"commands": ["npm install --no-save", "npm run dev"],
+				"commands": ["npm run dev"],
 				"cwd": "apps/jobboard/web",
 				"parallel": false
 			}
@@ -53,7 +53,7 @@
 			"executor": "nx:run-commands",
 			"outputs": ["{projectRoot}/web/dist"],
 			"options": {
-				"commands": ["npm install --no-save", "npm run build"],
+				"commands": ["npm run build"],
 				"cwd": "apps/jobboard/web",
 				"parallel": false
 			}
