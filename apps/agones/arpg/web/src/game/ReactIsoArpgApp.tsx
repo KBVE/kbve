@@ -2,9 +2,16 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
 import ArpgHud from './ArpgHud';
+import D2Hud from './ui/D2Hud';
 import ArpgMenu from './ArpgMenu';
 import ChatPanel from './ChatPanel';
-import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
+import {
+	COLORS,
+	DEBUG_HUD,
+	DEBUG_LOCAL_PLAYER,
+	USE_D2_HUD,
+	resolveWsUrl,
+} from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import { authBridge } from '../lib/auth';
 import {
@@ -304,7 +311,11 @@ export default function ReactIsoArpgApp({
 	if (phase === 'ready') {
 		return (
 			<>
-				<ArpgHud debug={DEBUG_HUD} />
+				{USE_D2_HUD ? (
+					<D2Hud debug={DEBUG_HUD} />
+				) : (
+					<ArpgHud debug={DEBUG_HUD} />
+				)}
 				<ArpgMenu />
 				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
 			</>

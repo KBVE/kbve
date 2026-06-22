@@ -122,6 +122,10 @@ export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
 // Flip off for release; the compass + vitals panels render regardless.
 export const DEBUG_HUD = true;
 
+export const USE_D2_HUD =
+	((import.meta.env.PUBLIC_ARPG_D2_HUD as string | undefined) ?? 'true') !==
+	'false';
+
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 
 export const resolveWsUrl = makeWsResolver(
