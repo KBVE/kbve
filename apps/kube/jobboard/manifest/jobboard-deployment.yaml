@@ -19,7 +19,7 @@ spec:
                 rollout-restart: '2026-06-15T00:00:00Z'
             labels:
                 app: jobboard
-                version: '0.1.0'
+                version: '0.1.9'
         spec:
             serviceAccountName: jobboard-sa
             automountServiceAccountToken: false
