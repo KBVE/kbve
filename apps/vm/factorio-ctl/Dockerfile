@@ -14,6 +14,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS pla
 ENV CARGO_INCREMENTAL=0
 
 COPY apps/vm/factorio-ctl/Cargo.workspace.toml Cargo.toml
+COPY Cargo.lock ./
 COPY apps/vm/factorio-ctl/Cargo.toml apps/vm/factorio-ctl/Cargo.toml
 
 COPY packages/rust/jedi packages/rust/jedi
@@ -30,7 +31,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS bui
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
-COPY --from=planner /app/Cargo.toml ./
+COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
 COPY --from=planner /app/apps apps
 COPY --from=planner /app/packages packages
 
