@@ -36,7 +36,7 @@ on:
                 type: string
                 default: '{}'
             publish:
-                description: '[game] JSON publish config: deploy_to_itch, itch_user, itch_game'
+                description: '[game] JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel'
                 required: false
                 type: string
                 default: '{}'
@@ -74,6 +74,7 @@ jobs:
             deploy_to_itch: ${{ fromJSON(inputs.publish).deploy_to_itch }}
             itch_username: ${{ fromJSON(inputs.publish).itch_user }}
             itch_game_id: ${{ fromJSON(inputs.publish).itch_game }}
+            itch_channel: ${{ fromJSON(inputs.publish).itch_channel }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}

@@ -18,6 +18,8 @@ source_path: apps/agones/arpg/web
 version_toml: apps/agones/arpg/web/version.toml
 runner: arc-runner-set
 image: kbve/arpg-web
+nx_project: arpg
+target: container-web
 deployment_yaml: apps/kube/agones/arpg/manifests/web-deployment.yaml
 has_test: false
 author: h0lybyte

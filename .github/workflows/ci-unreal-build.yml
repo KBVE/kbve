@@ -178,10 +178,10 @@ on:
                 type: string
                 default: ''
             itch_channel:
-                description: '[plugin] Itch.io build channel'
+                description: 'Itch.io channel. [game] empty = plain linux/macos/windows; set = suffix (e.g. dev -> linux-dev). [plugin] empty = plugin_name.'
                 required: false
                 type: string
-                default: 'plugin'
+                default: ''
         secrets:
             epic_pat:
                 description: 'PAT for ghcr.io/epicgames + game repo (falls back to UNITY_PAT)'
@@ -918,7 +918,7 @@ jobs:
                   gameData: ./ue5-game-output
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: linux
+                  buildChannel: ${{ inputs.itch_channel != '' && format('linux-{0}', inputs.itch_channel) || 'linux' }}
                   buildNumber: ${{ needs.game_gate.outputs.version }}
 
             - name: Cleanup
@@ -1149,8 +1149,8 @@ jobs:
                   Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\butler" -Force
                   $butler = "$env:RUNNER_TEMP\butler\butler.exe"
                   $version = "${{ needs.game_gate.outputs.version }}"
-                  $channel = '${{ inputs.itch_channel }}'
-                  if (-not $channel) { $channel = "windows" }
+                  $ic = '${{ inputs.itch_channel }}'
+                  $channel = if ($ic) { "windows-$ic" } else { "windows" }
                   $target = "${{ inputs.itch_username }}/${{ inputs.itch_game_id }}:$channel"
                   Write-Host "::notice::butler push C:\ue5-game-output -> $target (v$version)"
                   & $butler push "C:\ue5-game-output" $target --userversion $version
@@ -1379,7 +1379,7 @@ jobs:
                   gameData: ./deploy
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: macos
+                  buildChannel: ${{ inputs.itch_channel != '' && format('macos-{0}', inputs.itch_channel) || 'macos' }}
                   buildNumber: ${{ needs.game_gate.outputs.version }}
 
     game_post_publish:
@@ -2196,7 +2196,7 @@ jobs:
                   gameData: ./deploy/${{ inputs.plugin_name }}
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: ${{ inputs.itch_channel }}-v${{ needs.plugin_check.outputs.version }}
+                  buildChannel: ${{ inputs.itch_channel != '' && inputs.itch_channel || inputs.plugin_name }}
                   buildNumber: ${{ needs.plugin_check.outputs.version }}
 
     # ════════════════ VM SETUP (Windows / macOS) ════════════════
