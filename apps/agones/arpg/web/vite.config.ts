@@ -39,7 +39,13 @@ export default defineConfig(({ mode }) => {
 	const base = {
 		plugins: [stubLaserR3F(), react()],
 		resolve: {
-			dedupe: ['react', 'react-dom'],
+			// dedupe bitecs: laser declares it an optional peer, so aliasing
+			// @kbve/laser to source otherwise lets vite resolve laser's `bitecs`
+			// import to its optional-peer stub. That works at the repo root
+			// (hoisted node_modules) but breaks the container's isolated install
+			// ("query is not exported by __vite-optional-peer-dep:bitecs"). This
+			// app depends on bitecs directly, so pin everyone to that one copy.
+			dedupe: ['react', 'react-dom', 'bitecs'],
 			alias: [laserAlias],
 			extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
 		},

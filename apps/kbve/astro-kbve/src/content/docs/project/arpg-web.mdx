@@ -74,12 +74,15 @@ The client runs the real Supabase login (`buildNetConfig` → `src/lib/auth.ts`,
 Playwright e2e for the whole stack lives in `apps/agones/arpg/arpg-e2e` (Nx project `arpg-e2e`):
 
 ```bash
-nx run arpg-e2e:e2e          # both: boots arpg-server + this web app, runs all specs
-nx run arpg-e2e:e2e:server   # arpg-server only (/healthz, /ws JoinMatch handshake)
-nx run arpg-e2e:e2e:web      # this app only (SPA shell, root mount, SPA fallback, clean boot)
+nx run arpg-e2e:e2e          # boots arpg-server + this web app, runs server + web specs
+nx run arpg-e2e:e2e:server   # arpg-server only (handshake + live sim)
+nx run arpg-e2e:e2e:web      # this app via the Vite dev server (SPA shell, boot)
+nx run arpg-e2e:e2e:cdn      # the built nginx image — CORS, embed + Discord bundles
 ```
 
-The server specs sign a Supabase-style HS256 JWT (the server runs in local-secret mode) and assert the JSON wire handshake — `Welcome` carries `PROTOCOL_VERSION` 14, and protocol/auth/username failures each emit a `Reject`. The web specs boot the Vite dev server with the prod Supabase URL injected and assert the app shell loads without an uncaught console error.
+- **Server** — signs a Supabase-style HS256 JWT (the server runs in local-secret mode) and drives the JSON wire from Node. Covers the handshake (`Welcome` carries `PROTOCOL_VERSION` 14 + the `player`/`goblin`/`coin`/`dungeon-key` registry; protocol / auth / empty-token / missing-username each emit a `Reject`) **and** the live sim: the admitted player shows up in the snapshot roster, the seeded world spawns goblins, a `Step` input advances the player tile, ticks + `input_ack` progress, a second login under the same username evicts the first (newest-wins), and two distinct players share the world on separate slots.
+- **Web** — boots the Vite dev server with the prod Supabase URL injected and asserts the app shell loads, mounts its root, serves the SPA fallback, and boots with no uncaught console error.
+- **CDN** (`e2e:cdn`) — runs the built `kbve/arpg-web` nginx image (needs Docker, so it's the container tier like `irc-e2e:e2e:docker`) and asserts the real CDN headers the other surfaces depend on: `Access-Control-Allow-Origin: *` on `/arpg-embed.js` and `/assets/`, the Discord Activity page + bundle under `/discord/arpg/`, and the SPA fallback. Build the image first (`nx run arpg:container-web`).
 
 ### Status
 
