@@ -53,6 +53,23 @@ export function Spinner({ label }: { label?: string }) {
 	);
 }
 
+export function Skeleton({
+	width = '100%',
+	height = 14,
+	radius = 6,
+}: {
+	width?: number | string;
+	height?: number;
+	radius?: number;
+}) {
+	return (
+		<div
+			className="animate-pulse bg-zinc-800"
+			style={{ width, height, borderRadius: radius }}
+		/>
+	);
+}
+
 export function Stars({
 	value,
 	count,

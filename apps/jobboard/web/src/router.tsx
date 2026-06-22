@@ -31,6 +31,7 @@ import { GigsPage } from './routes/gigs';
 import { TalentPage } from './routes/talent';
 import { NavBar } from './components/NavBar';
 import { Footer } from './components/Footer';
+import { Skeleton } from './components/ui';
 
 const GigDetailPage = lazyRouteComponent(
 	() => import('./routes/gig-detail'),
@@ -315,8 +316,19 @@ const routeTree = rootRoute.addChildren([
 
 function RoutePending() {
 	return (
-		<div className="flex min-h-[40vh] items-center justify-center">
-			<div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-quest-400" />
+		<div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+			<Skeleton width="40%" height={28} />
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{Array.from({ length: 6 }).map((_, i) => (
+					<div
+						key={i}
+						className="space-y-3 rounded-xl border border-zinc-800 p-4">
+						<Skeleton width="60%" height={18} />
+						<Skeleton width="100%" />
+						<Skeleton width="80%" />
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }
