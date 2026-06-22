@@ -71,6 +71,18 @@ jobs:
                   psql --version
                   docker compose version
 
+            - name: Wait for docker daemon
+              run: |
+                  for i in $(seq 1 60); do
+                    if docker info >/dev/null 2>&1; then
+                      echo "docker daemon ready after $i attempts"
+                      exit 0
+                    fi
+                    sleep 2
+                  done
+                  echo "::error::docker daemon (dind sidecar) never came up in 120s"
+                  exit 1
+
             - name: Bring up kilobase compose stack
               working-directory: packages/data/sql/dbmate
               run: |
@@ -127,4 +139,9 @@ jobs:
             - name: Tear down kilobase
               if: always()
               working-directory: packages/data/sql/dbmate
-              run: docker compose -f kilobase-docker-compose.yml down -v
+              run: |
+                  if docker info >/dev/null 2>&1; then
+                    docker compose -f kilobase-docker-compose.yml down -v
+                  else
+                    echo "docker daemon unreachable; nothing to tear down"
+                  fi
