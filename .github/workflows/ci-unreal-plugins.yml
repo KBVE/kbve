@@ -29,8 +29,8 @@ permissions:
     actions: write
 
 concurrency:
-    group: ci-unreal-plugins-${{ github.ref }}
-    cancel-in-progress: true
+    group: ci-unreal-plugins-${{ github.ref }}-${{ github.sha }}
+    cancel-in-progress: false
 
 jobs:
     discover:

@@ -257,6 +257,29 @@ export function isFloorAt(worldSeed: number, x: number, y: number): boolean {
 	return false;
 }
 
+function isFloorCached(
+	worldSeed: number,
+	x: number,
+	y: number,
+	cache: Map<string, DungeonChunk>,
+): boolean {
+	const { cx, cy } = chunkOf(x, y);
+	for (let dy = -1; dy <= 1; dy++) {
+		for (let dx = -1; dx <= 1; dx++) {
+			const ccx = cx + dx;
+			const ccy = cy + dy;
+			const ck = `${ccx}:${ccy}`;
+			let chunk = cache.get(ck);
+			if (!chunk) {
+				chunk = generateChunk(worldSeed, ccx, ccy);
+				cache.set(ck, chunk);
+			}
+			if (chunk.floor.has(key(x, y))) return true;
+		}
+	}
+	return false;
+}
+
 /**
  * FNV-1a over the floor bitset of a bounded window — the canonical cross-
  * language parity fingerprint. Must equal the Rust `arpg_dungeon::fingerprint`
@@ -269,10 +292,11 @@ export function fingerprint(
 	w: number,
 	h: number,
 ): number {
+	const cache = new Map<string, DungeonChunk>();
 	let hh = 0x811c9dc5;
 	for (let y = y0; y < y0 + h; y++) {
 		for (let x = x0; x < x0 + w; x++) {
-			hh ^= isFloorAt(worldSeed, x, y) ? 1 : 0;
+			hh ^= isFloorCached(worldSeed, x, y, cache) ? 1 : 0;
 			hh = Math.imul(hh, 0x01000193);
 		}
 	}

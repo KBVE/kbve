@@ -1,0 +1,61 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: kyverno:cnpg-cluster-read
+    labels:
+        rbac.kyverno.io/aggregate-to-admission-controller: 'true'
+        rbac.kyverno.io/aggregate-to-background-controller: 'true'
+        rbac.kyverno.io/aggregate-to-reports-controller: 'true'
+rules:
+    - apiGroups: ['postgresql.cnpg.io']
+      resources: ['clusters']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    name: kilobase-cnpg-cluster-delete-guard
+    annotations:
+        policies.kyverno.io/title: kilobase-cnpg-cluster-delete-guard
+        policies.kyverno.io/category: Reliability
+        policies.kyverno.io/severity: critical
+        policies.kyverno.io/description: >-
+            Blocks DELETE of the supabase-cluster CNPG Cluster in the
+            kilobase namespace at the admission layer. The Cluster keeps
+            bootstrap.recovery (a DR-only restore from the S3 base backup
+            that runs on fresh creation). Argo already carries
+            Prune=false,Delete=false on the Cluster so GitOps cannot
+            delete + recreate it, but that guard is a sync-option only —
+            a manual kubectl delete (or namespace delete cascade) would
+            still re-trigger the recovery bootstrap and silently roll
+            production Postgres back to the last backup. This policy is
+            the operator-level second wall: even cluster-admin cannot
+            delete the Cluster CR without first removing or disabling
+            this policy. For an intentional DR rebuild, delete this
+            ClusterPolicy first, then the Cluster.
+spec:
+    validationFailureAction: Enforce
+    background: false
+    rules:
+        - name: block-delete-supabase-cluster
+          match:
+              any:
+                  - resources:
+                        kinds:
+                            - postgresql.cnpg.io/v1/Cluster
+                        names:
+                            - supabase-cluster
+                        namespaces:
+                            - kilobase
+                        operations:
+                            - DELETE
+          validate:
+              message: >-
+                  Deleting the supabase-cluster CNPG Cluster is blocked:
+                  it carries a DR-only bootstrap.recovery that would
+                  silently restore production from the last S3 base backup
+                  on recreate. For an intentional disaster-recovery
+                  rebuild, remove the kilobase-cnpg-cluster-delete-guard
+                  ClusterPolicy first, then delete the Cluster.
+              deny: {}
