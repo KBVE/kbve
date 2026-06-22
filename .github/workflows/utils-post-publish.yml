@@ -250,9 +250,7 @@ jobs:
                     OLD_TAG=$(grep -oP "image: ${IMAGE}:\K[^\s\"]+" "$FILE" | head -1 || echo "unknown")
 
                     sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${VERSION}|g" "$FILE"
-                    if [ "$OLD_TAG" != "unknown" ]; then
-                      sed -i "s|version: \"${OLD_TAG}\"|version: \"${VERSION}\"|g" "$FILE"
-                    fi
+                    sed -i -E "s|^([[:space:]]+)version: ['\"][^'\"]*['\"]|\1version: '${VERSION}'|g" "$FILE"
                     # Keep an APP_VERSION env (apps that surface a runtime version
                     # via /health) in sync with the image tag. No-op if absent.
                     if grep -q "name: APP_VERSION" "$FILE"; then
