@@ -40,4 +40,19 @@ import ReactAlerts from './ReactAlerts';
 		flex-direction: column;
 		gap: 1rem;
 	}
+
+	.alerts-panel :global(.recharts-cartesian-grid line) {
+		stroke: var(--sl-color-gray-5);
+	}
+
+	.alerts-panel :global(.recharts-cartesian-axis-tick-value) {
+		fill: var(--sl-color-gray-2);
+	}
+
+	.alerts-panel :global(.recharts-label-list text) {
+		fill: var(--sl-color-text);
+		paint-order: stroke;
+		stroke: var(--sl-color-bg-nav);
+		stroke-width: 3px;
+	}
 </style>

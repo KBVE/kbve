@@ -46,6 +46,7 @@ const tooltipStyle = {
 	border: '1px solid var(--sl-color-gray-5, #262626)',
 	borderRadius: '0.375rem',
 	fontSize: '0.75rem',
+	color: 'var(--sl-color-text, #e6edf3)',
 };
 
 export type AlertsVariant = 'compact' | 'full';
@@ -259,7 +260,6 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 								}}
 								barCategoryGap="25%">
 								<CartesianGrid
-									stroke="#374151"
 									strokeDasharray="3 3"
 									vertical={false}
 								/>
@@ -267,7 +267,6 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 									dataKey="severity"
 									tick={{
 										fontSize: 12,
-										fill: '#d1d5db',
 										fontWeight: 600,
 									}}
 									tickFormatter={(v: string) =>
@@ -276,19 +275,20 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 												v.slice(1)
 											: v
 									}
-									axisLine={{ stroke: '#4b5563' }}
 									tickLine={false}
 								/>
 								<YAxis
 									allowDecimals={false}
-									tick={{ fontSize: 11, fill: '#9ca3af' }}
+									tick={{ fontSize: 11 }}
 									axisLine={false}
 									tickLine={false}
 									width={32}
 								/>
 								<Tooltip
 									contentStyle={tooltipStyle}
-									cursor={{ fill: 'rgba(148,163,184,0.12)' }}
+									cursor={{
+										fill: 'color-mix(in srgb, var(--sl-color-gray-4) 18%, transparent)',
+									}}
 								/>
 								<Bar
 									dataKey="firing_events"
@@ -303,7 +303,6 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 									<LabelList
 										dataKey="firing_events"
 										position="top"
-										fill="#e5e7eb"
 										fontSize={12}
 										fontWeight={700}
 									/>
