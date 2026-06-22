@@ -443,7 +443,14 @@ jobs:
                     deps=$(echo "$entry" | jq -r '.dependency_plugins // ""')
                     itch=$(echo "$entry" | jq -r '.itch_game_id // ""')
                     tp=$(echo "$entry" | jq -r 'if (.supported_platforms // [] | length) > 0 then (.supported_platforms | join("+")) else "Linux" end')
-                    mdx_version=$(echo "$entry" | jq -r '.version')
+                    # Read the version LIVE from MDX (version_source) so a bare MDX
+                    # bump triggers without a manifest regen — same as game entries.
+                    src=$(echo "$entry" | jq -r '.version_source // empty')
+                    if [ -n "$src" ]; then
+                      mdx_version=$(read_source_version "$src")
+                    else
+                      mdx_version=$(echo "$entry" | jq -r '.version')
+                    fi
                     altered=$(is_altered "$key")
                     deploy_itch="false"
                     [ -n "$itch" ] && deploy_itch="true"
