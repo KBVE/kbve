@@ -5,6 +5,7 @@
 		"kbve.ci.ExternalPublish",
 		"kbve.ci.FactorioMod",
 		"kbve.ci.GameEngineConfig",
+		"kbve.ci.KubeMetadata",
 		"kbve.ci.SteamApp"
 	],
 
@@ -108,6 +109,14 @@
 		"kbve.ci.ExternalPublish.curseforge_release_type": "z.enum(['alpha', 'beta', 'release']).optional()",
 		"kbve.ci.ExternalPublish.factorio_mods": "z.array(FactorioModSchema).max(10).optional()",
 		"kbve.ci.FactorioMod.name": "z.string().min(1).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Factorio mod name must match the portal slug')",
-		"kbve.ci.FactorioMod.source_path": "z.string().min(1).max(256)"
+		"kbve.ci.FactorioMod.source_path": "z.string().min(1).max(256)",
+		"kbve.ci.KubeMetadata.stack": "z.enum(['agones', 'infrastructure', 'application', 'data', 'tooling']).optional()",
+		"kbve.ci.KubeMetadata.environment": "z.enum(['dev', 'beta', 'prod']).optional()",
+		"kbve.ci.KubeMetadata.tier": "z.enum(['web', 'api', 'worker', 'database', 'cache', 'gateway', 'server']).optional()",
+		"kbve.ci.KubeMetadata.owner": "z.string().min(1).max(64).optional()",
+		"kbve.ci.KubeMetadata.criticality": "z.enum(['critical', 'high', 'medium', 'low']).optional()",
+		"kbve.ci.KubeMetadata.component": "z.string().min(1).max(64).optional()",
+		"kbve.ci.KubeMetadata.part_of": "z.string().min(1).max(64).optional()",
+		"kbve.ci.CiProject.kube": "KubeMetadataSchema.optional()"
 	}
 }

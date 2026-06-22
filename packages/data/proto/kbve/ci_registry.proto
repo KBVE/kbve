@@ -130,6 +130,40 @@ message FactorioMod {
   string source_path = 2; // Repo-relative path to the mod folder containing info.json
 }
 
+// Kubernetes deployment metadata — drives label generation for pods, services,
+// and Argo Applications. Maps to both standard app.kubernetes.io/* labels and
+// custom kbve.com/* labels. Used for graph visualization, RBAC policies, and
+// monitoring tag extraction.
+//
+// All fields optional. When unset, downstream tooling can infer defaults:
+//   - stack: derived from pipeline or tags
+//   - environment: derived from deployment_yaml path or instance suffix
+//   - tier: inferred from pipeline (docker→api, unreal_game→web, etc.)
+//   - owner: defaults to author field
+//   - part_of: defaults to key field
+message KubeMetadata {
+  optional string stack = 1;         // kbve.com/stack — Infrastructure category
+                                     // (agones, infrastructure, application, data, tooling)
+
+  optional string environment = 2;   // kbve.com/environment — Deployment stage
+                                     // (dev, beta, prod)
+
+  optional string tier = 3;          // kbve.com/tier — Application layer
+                                     // (web, api, worker, database, cache, gateway, server)
+
+  optional string owner = 4;         // kbve.com/owner — Team or maintainer
+                                     // (h0lybyte, platform-team, etc.)
+
+  optional string criticality = 5;   // kbve.com/criticality — Service priority
+                                     // (critical, high, medium, low)
+
+  optional string component = 6;     // app.kubernetes.io/component — Sub-component
+                                     // (rcon, graceful-restart, vnc-auth, etc.)
+
+  optional string part_of = 7;       // app.kubernetes.io/part-of — Parent application
+                                     // Defaults to key if unset
+}
+
 // External publish targets — storefronts, mod platforms, package indexes
 // outside the GitHub/GHCR/PyPI core. Consumed by utils-external-publish.yml
 // after a successful Docker / package build to fan out artifacts.
@@ -247,6 +281,11 @@ message CiProject {
   // Required when pipeline is one of the four game-engine pipelines.
   // Drives the per-engine workflow's matrix, test runner, and build args.
   optional GameEngineConfig engine = 35;
+
+  // --- Kubernetes deployment metadata (label generation) ----------------
+  // Consumed by manifest generation tooling and graph visualization.
+  // All fields optional; downstream tools can infer defaults from other fields.
+  optional KubeMetadata kube = 37;
 }
 
 // The full registry — a flat list of all tracked items.

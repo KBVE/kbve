@@ -12,6 +12,7 @@ import {
 	DispatchPipelines,
 	ExternalPublishSchema,
 	GameEngineConfigSchema,
+	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 } from '@kbve/proto/ci_registry-schema';
@@ -22,6 +23,7 @@ export {
 	DispatchPipelines,
 	ExternalPublishSchema,
 	GameEngineConfigSchema,
+	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
 };
@@ -29,6 +31,7 @@ export type {
 	CiProject,
 	DispatchPipelineValue,
 	ExternalPublish,
+	KubeMetadata,
 	TestFrameworkValue,
 } from '@kbve/proto/ci_registry-schema';
 
@@ -81,6 +84,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	shell_path: CiProjectSchema.shape.shell_path,
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
+	kube: KubeMetadataSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;
