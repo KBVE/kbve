@@ -164,8 +164,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0(dexie@4.4.2)(react@19.2.3)
       dompurify:
-        specifier: ^3.4.1
-        version: 3.4.1
+        specifier: ^3.4.11
+        version: 3.4.11
       expo:
         specifier: ^56.0.11
         version: 56.0.11(@babel/core@7.26.10)(@expo/dom-webview@56.0.5)(expo-router@4.0.20)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(encoding@0.1.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-webview@13.16.1(react-native@0.85.3(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@react-native/metro-config@0.86.0(@babel/core@7.26.10))(@types/react@19.2.9)(react@19.2.3))(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.26.10)(@react-native/metro-config@0.86.0(@babel/core@7.26.10))(react-native@0.85.3(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@react-native/metro-config@0.86.0(@babel/core@7.26.10))(@types/react@19.2.9)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@react-native/metro-config@0.86.0(@babel/core@7.26.10))(@types/react@19.2.9)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
@@ -8453,8 +8453,8 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
-  dompurify@3.4.1:
-    resolution: {integrity: sha512-JahakDAIg1gyOm7dlgWSDjV4n7Ip2PKR55NIT6jrMfIgLFgWo81vdr1/QGqWtFNRqXP9UV71oVePtjqS2ebnPw==}
+  dompurify@3.4.11:
+    resolution: {integrity: sha512-zhlUV12GsaRzMsf9q5M254YhA4+VuF0fG+QFqu6aYpoGlKtz+w8//jBcGVYBgQkR5GHjUomejY84AV+/uPbWdw==}
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
@@ -22958,7 +22958,7 @@ snapshots:
 
   '@types/dompurify@3.2.0':
     dependencies:
-      dompurify: 3.4.1
+      dompurify: 3.4.11
 
   '@types/draco3d@1.4.10': {}
 
@@ -26247,7 +26247,7 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  dompurify@3.4.1:
+  dompurify@3.4.11:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -30076,7 +30076,7 @@ snapshots:
       d3-sankey: 0.12.3
       dagre-d3-es: 7.0.14
       dayjs: 1.11.20
-      dompurify: 3.4.1
+      dompurify: 3.4.11
       es-toolkit: 1.46.1
       katex: 0.16.45
       khroma: 2.1.0
@@ -30660,7 +30660,7 @@ snapshots:
 
   monaco-editor@0.55.1:
     dependencies:
-      dompurify: 3.4.1
+      dompurify: 3.4.11
       marked: 14.0.0
 
   monaco-languageserver-types@0.4.0:
