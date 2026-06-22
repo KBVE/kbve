@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { AppState } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
 	AuthStore,
 	authCore,
@@ -13,6 +11,8 @@ import type { KbveApi } from '@kbve/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseClient, mapSession } from './supabase';
 import { createSupabaseAuthExecutor } from './executor';
+import { useAutoRefresh } from './useAutoRefresh';
+import { AuthSafeArea } from './AuthSafeArea';
 import { createChatExecutor } from '../chat/executor';
 import { createWorkerPool } from '../worker/pool';
 import type { WorkerPool } from '../worker/types';
@@ -113,29 +113,14 @@ export function KbveProvider({
 		return () => data.subscription.unsubscribe();
 	}, [value]);
 
-	useEffect(() => {
-		const { client } = value;
-		const refresh = (state: string) => {
-			if (state === 'active') {
-				client.auth.startAutoRefresh();
-			} else {
-				client.auth.stopAutoRefresh();
-			}
-		};
-		refresh(AppState.currentState);
-		const subscription = AppState.addEventListener('change', refresh);
-		return () => {
-			subscription.remove();
-			client.auth.stopAutoRefresh();
-		};
-	}, [value]);
+	useAutoRefresh(value.client);
 
 	return (
-		<SafeAreaProvider>
+		<AuthSafeArea>
 			<KbveContext.Provider value={value}>
 				{children}
 			</KbveContext.Provider>
-		</SafeAreaProvider>
+		</AuthSafeArea>
 	);
 }
 
