@@ -32,8 +32,8 @@ hex = "0.4.3"
 globset = "0.4.18"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
-kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
+kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen", "kv"] }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
 bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }

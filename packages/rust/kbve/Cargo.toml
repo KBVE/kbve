@@ -13,6 +13,7 @@ rust-version = "1.78"
 [features]
 default = []
 supabase = ["dep:lru", "dep:uuid"]
+kv = ["supabase", "jedi/valkey"]
 image-gen = ["dep:resvg"]
 wallet = ["dep:uuid"]
 legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
