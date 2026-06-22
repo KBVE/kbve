@@ -1,0 +1,26 @@
+{
+	"name": "metrics-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/metrics/e2e",
+	"implicitDependencies": ["met"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["bash run.sh"],
+				"parallel": false,
+				"cwd": "apps/metrics/e2e"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:metrics", "e2e"]
+}
