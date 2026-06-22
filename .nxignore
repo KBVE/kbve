@@ -4,4 +4,3 @@
 # Directories with their own Cargo.toml/package.json that break NX project graph
 apps/kbve/edge/edge-runtime/
 apps/jobboard/web/
-apps/agones/arpg/web/
