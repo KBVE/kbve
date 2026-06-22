@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
@@ -12,13 +12,16 @@ use serde_json::json;
 use tokio::sync::mpsc;
 use tokio::time;
 
-use crate::blackjack;
+use crate::blackjack::{self, BjInput, PendingBlackjack, Tables};
 use crate::combat;
 use crate::data::KindRegistry;
+use crate::float_move::FloatBody;
 use crate::grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
+use crate::shop::{PendingShop, ShopInput};
+use crate::trade::{PendingTrades, TradeInput};
 
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
@@ -87,12 +90,12 @@ pub struct RosterHandle(pub Arc<RwLock<Roster>>);
 
 #[derive(Resource, Default)]
 pub struct SpawnedSlots {
-    by_slot: HashMap<u16, (Entity, String)>,
+    pub by_slot: HashMap<u16, (Entity, String)>,
 }
 
 #[derive(Resource, Default)]
 pub struct EidIndex {
-    by_eid: HashMap<u32, Entity>,
+    pub by_eid: HashMap<u32, Entity>,
 }
 
 #[derive(Resource, Default)]
@@ -123,73 +126,6 @@ pub struct Deployables(pub HashMap<String, DeployableSpec>);
 #[derive(Resource, Default)]
 pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
 
-pub const TRADE_RANGE: i32 = 1;
-pub const TRADE_TIMEOUT_TICKS: u32 = SIM_TICK_HZ * 30;
-pub const MAX_INVENTORY_SLOTS: usize = 28;
-
-#[derive(Default, Clone)]
-pub struct TradeSide {
-    pub items: Vec<(String, u32)>,
-    pub accepted: bool,
-}
-
-pub struct TradeSession {
-    pub a: u16,
-    pub b: u16,
-    pub a_side: TradeSide,
-    pub b_side: TradeSide,
-    pub expires_tick: u32,
-}
-
-impl TradeSession {
-    fn has(&self, slot: u16) -> bool {
-        slot == self.a || slot == self.b
-    }
-
-    fn other(&self, slot: u16) -> u16 {
-        if slot == self.a { self.b } else { self.a }
-    }
-
-    fn side(&self, slot: u16) -> &TradeSide {
-        if slot == self.a {
-            &self.a_side
-        } else {
-            &self.b_side
-        }
-    }
-
-    fn side_mut(&mut self, slot: u16) -> &mut TradeSide {
-        if slot == self.a {
-            &mut self.a_side
-        } else {
-            &mut self.b_side
-        }
-    }
-}
-
-pub enum TradeInput {
-    Offer {
-        target: proto::EntityId,
-        items: Vec<(String, u32)>,
-    },
-    Accept,
-    Cancel,
-}
-
-#[derive(Resource, Default)]
-pub struct PendingTrades(Vec<(proto::PlayerSlot, TradeInput)>);
-
-#[derive(Resource, Default)]
-pub struct ActiveTrades {
-    sessions: Vec<TradeSession>,
-}
-
-impl ActiveTrades {
-    fn index_of(&self, slot: u16) -> Option<usize> {
-        self.sessions.iter().position(|s| s.has(slot))
-    }
-}
-
 pub const COIN_REF: &str = "coin";
 pub const GOLD_BAR_REF: &str = "gold-bar";
 pub const GOLD_BAR_VALUE: u32 = 100;
@@ -201,233 +137,6 @@ pub struct ShopStock(pub HashMap<String, Vec<String>>);
 /// Item economy: item ref -> (buy_price, sell_price) in coin units.
 #[derive(Resource, Default, Clone)]
 pub struct ItemPrices(pub HashMap<String, (u32, u32)>);
-
-pub enum ShopInput {
-    Buy {
-        npc: proto::EntityId,
-        item_ref: String,
-        qty: u32,
-    },
-    Sell {
-        npc: proto::EntityId,
-        item_ref: String,
-        qty: u32,
-    },
-}
-
-#[derive(Resource, Default)]
-pub struct PendingShop(Vec<(proto::PlayerSlot, ShopInput)>);
-
-// ---- Multiplayer blackjack tables ----
-
-pub const BJ_SEAT_CAP: usize = 5;
-pub const BJ_MIN_BET: u32 = 1;
-pub const BJ_PROXIMITY: i32 = 1;
-pub const BJ_SPECTATE: i32 = 4;
-pub const BJ_BET_TICKS: u32 = SIM_TICK_HZ * 20;
-pub const BJ_TURN_TICKS: u32 = SIM_TICK_HZ * 20;
-pub const BJ_SETTLE_TICKS: u32 = SIM_TICK_HZ * 5;
-/// Grace window a vacated seat is reserved for the same player to reconnect into
-/// before it is released back to the table.
-pub const BJ_HOLD_TICKS: u32 = SIM_TICK_HZ * 30;
-/// Window to buy insurance when the dealer shows an ace, before play begins.
-pub const BJ_INSURANCE_TICKS: u32 = SIM_TICK_HZ * 10;
-/// Most hands one seat can hold after splitting (original + up to three splits).
-pub const BJ_MAX_HANDS: usize = 4;
-
-/// A casino table the game crate exposes for blackjack. Generic so simgrid stays
-/// game-agnostic; cryptothrone populates `Tables` at bootstrap.
-#[derive(Clone)]
-pub struct TableDef {
-    pub table_ref: String,
-    pub tile: Tile,
-    pub seats: u8,
-}
-
-#[derive(Resource, Default, Clone)]
-pub struct Tables(pub Vec<TableDef>);
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum BjPhase {
-    Betting,
-    Insurance,
-    PlayerTurn,
-    DealerTurn,
-    Settle,
-}
-
-impl BjPhase {
-    fn as_str(self) -> &'static str {
-        match self {
-            BjPhase::Betting => "betting",
-            BjPhase::Insurance => "insurance",
-            BjPhase::PlayerTurn => "player_turn",
-            BjPhase::DealerTurn => "dealer_turn",
-            BjPhase::Settle => "settle",
-        }
-    }
-}
-
-/// One playable hand within a seat. A seat normally holds a single hand; splitting
-/// adds siblings, each with its own bet, that are played and settled independently.
-struct Hand {
-    cards: Vec<u8>,
-    bet: u32,
-    natural: bool,
-    doubled: bool,
-    surrendered: bool,
-    done: bool,
-    outcome: Option<blackjack::Outcome>,
-}
-
-impl Hand {
-    fn new(bet: u32) -> Self {
-        Self {
-            cards: Vec::new(),
-            bet,
-            natural: false,
-            doubled: false,
-            surrendered: false,
-            done: false,
-            outcome: None,
-        }
-    }
-}
-
-struct Seat {
-    slot: u16,
-    username: String,
-    /// Main bet locked in during the betting window; each dealt/split hand stakes it.
-    bet: u32,
-    insurance: u32,
-    hands: Vec<Hand>,
-    /// Tick the player's entity vanished; `Some` means the seat is held open for a
-    /// reconnect and the occupant is currently offline.
-    disconnected_since: Option<u32>,
-}
-
-impl Seat {
-    fn new(slot: u16, username: String) -> Self {
-        Self {
-            slot,
-            username,
-            bet: 0,
-            insurance: 0,
-            hands: Vec::new(),
-            disconnected_since: None,
-        }
-    }
-
-    fn reset_for_round(&mut self) {
-        self.bet = 0;
-        self.insurance = 0;
-        self.hands.clear();
-    }
-}
-
-struct TableSession {
-    tile: Tile,
-    shoe: Vec<u8>,
-    dealer: Vec<u8>,
-    phase: BjPhase,
-    seats: Vec<Option<Seat>>,
-    active_seat: usize,
-    active_hand: usize,
-    deadline_tick: u32,
-    rng: blackjack::Rng,
-    /// Provable fairness: the seed the current round's shoe was shuffled from and
-    /// its published SHA-256 commitment. The seed is only revealed at settle.
-    round_seed: u64,
-    commitment: String,
-}
-
-impl TableSession {
-    fn create(def: &TableDef, mut rng: blackjack::Rng, tick: u32) -> Self {
-        let cap = (def.seats as usize).clamp(1, BJ_SEAT_CAP);
-        let mut shoe = blackjack::build_shoe();
-        blackjack::shuffle(&mut shoe, &mut rng);
-        Self {
-            tile: def.tile,
-            shoe,
-            dealer: Vec::new(),
-            phase: BjPhase::Betting,
-            seats: (0..cap).map(|_| None).collect(),
-            active_seat: 0,
-            active_hand: 0,
-            deadline_tick: tick + BJ_BET_TICKS,
-            rng,
-            round_seed: 0,
-            commitment: String::new(),
-        }
-    }
-
-    fn occupied(&self) -> usize {
-        self.seats.iter().filter(|s| s.is_some()).count()
-    }
-
-    fn seat_of(&self, slot: u16) -> Option<usize> {
-        self.seats
-            .iter()
-            .position(|s| s.as_ref().map(|x| x.slot) == Some(slot))
-    }
-
-    fn first_free(&self) -> Option<usize> {
-        self.seats.iter().position(|s| s.is_none())
-    }
-
-    /// A seat reserved for `username` whose occupant is offline, awaiting reconnect.
-    fn held_seat_for(&mut self, username: &str) -> Option<&mut Seat> {
-        self.seats.iter_mut().flatten().find(|s| {
-            s.disconnected_since.is_some() && !s.username.is_empty() && s.username == username
-        })
-    }
-
-    /// The `(seat, hand)` currently owing a decision, in seat-then-hand order.
-    fn active(&self) -> Option<(usize, usize)> {
-        for (si, slot) in self.seats.iter().enumerate() {
-            let Some(seat) = slot else { continue };
-            if seat.bet == 0 {
-                continue;
-            }
-            for (hi, hand) in seat.hands.iter().enumerate() {
-                if !hand.done {
-                    return Some((si, hi));
-                }
-            }
-        }
-        None
-    }
-
-    fn participants(&self) -> usize {
-        self.seats
-            .iter()
-            .filter(|s| matches!(s, Some(seat) if seat.bet > 0))
-            .count()
-    }
-
-    fn dealer_upcard_ace(&self) -> bool {
-        self.dealer
-            .first()
-            .map(|&c| blackjack::is_ace(c))
-            .unwrap_or(false)
-    }
-}
-
-enum BjInput {
-    Join { table_ref: String },
-    Leave,
-    Bet { amount: u32 },
-    Act { kind: proto::BjActionKind },
-    Insure { amount: u32 },
-}
-
-#[derive(Resource, Default)]
-pub struct PendingBlackjack(Vec<(proto::PlayerSlot, BjInput)>);
-
-#[derive(Resource, Default)]
-pub struct TableRegistry {
-    sessions: HashMap<String, TableSession>,
-}
 
 #[derive(Clone)]
 pub struct SavedPlayer {
@@ -677,16 +386,6 @@ pub struct Loot {
     pub item_ref: Option<String>,
 }
 
-#[derive(Component, Clone, Default)]
-pub struct Path {
-    pub steps: VecDeque<Tile>,
-}
-
-#[derive(Component, Clone, Copy, Default)]
-pub struct StepBuffer {
-    pub dir: Option<Dir>,
-}
-
 #[derive(Component, Clone, Copy)]
 pub struct Wander {
     pub origin: Tile,
@@ -900,13 +599,8 @@ pub fn build_app(
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
-        .insert_resource(PendingTrades::default())
-        .insert_resource(ActiveTrades::default())
-        .insert_resource(PendingShop::default())
         .insert_resource(ShopStock::default())
         .insert_resource(ItemPrices::default())
-        .insert_resource(PendingBlackjack::default())
-        .insert_resource(TableRegistry::default())
         .insert_resource(Tables::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
@@ -943,26 +637,23 @@ pub fn build_app(
                 apply_drops,
                 apply_placements,
                 apply_actions,
-                expire_trades,
-                apply_trades,
-                apply_shop,
-                apply_blackjack,
+                crate::trade::expire_trades,
+                crate::trade::apply_trades,
+                crate::shop::apply_shop,
+                blackjack::apply_blackjack,
             )
                 .chain()
                 .in_set(SimSet::Input),
         )
         .add_systems(
             Update,
-            (follow_path, hostile_ai, wander_system)
-                .chain()
-                .in_set(SimSet::Ai),
+            (hostile_ai, wander_system).chain().in_set(SimSet::Ai),
         )
         .add_systems(
             Update,
             (
                 advance_float,
                 advance_movement,
-                chain_steps,
                 stair_system,
                 env_hazard_burn,
                 env_heal_aura,
@@ -974,6 +665,9 @@ pub fn build_app(
                 .in_set(SimSet::Movement),
         )
         .add_systems(Update, emit_snapshot.in_set(SimSet::Snapshot));
+    blackjack::plugin(&mut app);
+    crate::trade::plugin(&mut app);
+    crate::shop::plugin(&mut app);
     app
 }
 
@@ -1053,7 +747,6 @@ fn sync_roster(
                 PlayerSlotTag(*slot),
                 EntityKind(config.player_kind),
                 GridPos::at(config.spawn),
-                MoveTarget::default(),
                 MoveSpeed {
                     ticks_per_tile: config.ticks_per_tile,
                 },
@@ -1063,8 +756,6 @@ fn sync_roster(
                 XpState { level, xp },
                 inventory,
                 Equipped { weapon, armor },
-                Path::default(),
-                StepBuffer::default(),
                 StatusEffects::default(),
                 FloatMove::at(config.spawn),
             ))
@@ -1134,9 +825,6 @@ fn drain_inputs(
         Entity,
         &PlayerSlotTag,
         &mut GridPos,
-        &mut MoveTarget,
-        &mut Path,
-        &mut StepBuffer,
         &mut Health,
         &mut Inventory,
         &mut Equipped,
@@ -1191,9 +879,6 @@ fn drain_inputs(
         _entity,
         slot,
         mut pos,
-        mut mv,
-        mut path,
-        mut buffer,
         mut hp,
         mut inv,
         mut equipped,
@@ -1211,30 +896,12 @@ fn drain_inputs(
         let z = floor.map(|f| f.0).unwrap_or(0);
         for input in inputs {
             match input {
-                Input::Step { dir } => {
-                    path.steps.clear();
-                    pos.facing = dir.facing();
-                    if mv.target.is_some() {
-                        buffer.dir = Some(*dir);
-                    } else if try_move(*dir, &map, z, &pos, &mut mv, None) {
-                        buffer.dir = None;
-                    }
-                }
                 Input::Move { seq, mx, my, run } => {
                     if *seq >= fm.last_seq {
                         fm.last_seq = *seq;
                         fm.intent_x = *mx;
                         fm.intent_y = *my;
                         fm.run = *run;
-                    }
-                    path.steps.clear();
-                }
-                Input::MoveTo { tile } => {
-                    buffer.dir = None;
-                    let from = mv.target.unwrap_or(pos.tile);
-                    match map.find_path_z(z, from, *tile, MAX_PATH_LEN) {
-                        Some(steps) => path.steps = steps.into(),
-                        None => path.steps.clear(),
                     }
                 }
                 Input::Face { facing } => {
@@ -1323,7 +990,9 @@ fn drain_inputs(
                         }
                     }
                 }
-                Input::Action { .. }
+                Input::Step { .. }
+                | Input::MoveTo { .. }
+                | Input::Action { .. }
                 | Input::Heartbeat { .. }
                 | Input::Leave
                 | Input::TradeOffer { .. }
@@ -1534,6 +1203,12 @@ fn apply_actions(
         by_slot.insert(slot.0.0, entity);
     }
 
+    // Ground items despawn via deferred commands (flushed after this system), so
+    // two same-tick pickups of one item would both see it alive and dupe it to
+    // both players. Claim the item the first time it is taken; later attempts in
+    // this batch find it already claimed and bail.
+    let mut claimed_items: HashSet<Entity> = HashSet::new();
+
     for (slot, action_id, target) in drained {
         let Some(&player_entity) = by_slot.get(&slot.0) else {
             continue;
@@ -1632,6 +1307,9 @@ fn apply_actions(
                 if pos.tile.chebyshev(item_tile) > 1 {
                     continue;
                 }
+                if !claimed_items.insert(target_entity) {
+                    continue;
+                }
                 inv.add(&item_ref, count);
                 commands.entity(target_entity).despawn();
                 let pickup = json!({
@@ -1652,266 +1330,7 @@ fn apply_actions(
     }
 }
 
-fn normalize_items(items: Vec<(String, u32)>) -> Vec<(String, u32)> {
-    let mut out: Vec<(String, u32)> = Vec::new();
-    for (r, n) in items {
-        if n == 0 || r.is_empty() {
-            continue;
-        }
-        if let Some(slot) = out.iter_mut().find(|(ir, _)| *ir == r) {
-            slot.1 = slot.1.saturating_add(n);
-        } else {
-            out.push((r, n));
-        }
-    }
-    out
-}
-
-fn inv_holds(inv: &Inventory, items: &[(String, u32)]) -> bool {
-    items
-        .iter()
-        .all(|(r, n)| inv.slots.iter().any(|(ir, ic)| ir == r && ic >= n))
-}
-
-fn settle(
-    inv: &Inventory,
-    give: &[(String, u32)],
-    recv: &[(String, u32)],
-    cap: usize,
-) -> Option<Vec<(String, u32)>> {
-    let mut slots = inv.slots.clone();
-    for (r, n) in give {
-        let idx = slots.iter().position(|(ir, _)| ir == r)?;
-        if slots[idx].1 < *n {
-            return None;
-        }
-        slots[idx].1 -= *n;
-        if slots[idx].1 == 0 {
-            slots.remove(idx);
-        }
-    }
-    for (r, n) in recv {
-        if let Some(slot) = slots.iter_mut().find(|(ir, _)| ir == r) {
-            slot.1 = slot.1.saturating_add(*n);
-        } else {
-            if slots.len() >= cap {
-                return None;
-            }
-            slots.push((r.clone(), *n));
-        }
-    }
-    Some(slots)
-}
-
-fn trade_payload(session: &TradeSession, slot: u16, status: &str) -> Vec<u8> {
-    let you = session.side(slot);
-    let them = session.side(session.other(slot));
-    let map_items = |items: &[(String, u32)]| -> Vec<serde_json::Value> {
-        items
-            .iter()
-            .map(|(r, c)| json!({ "ref": r, "count": c }))
-            .collect()
-    };
-    json!({
-        "status": status,
-        "with": session.other(slot),
-        "you": { "items": map_items(&you.items), "accepted": you.accepted },
-        "them": { "items": map_items(&them.items), "accepted": them.accepted },
-    })
-    .to_string()
-    .into_bytes()
-}
-
-fn send_trade(bcast: &Outbound, session: &TradeSession, status: &str) {
-    for slot in [session.a, session.b] {
-        let _ = bcast.tx.send(ServerEvent::Ephemeral {
-            kind: proto::EPHEMERAL_TRADE,
-            to: proto::PlayerSlot(slot),
-            payload: trade_payload(session, slot, status),
-        });
-    }
-}
-
-fn send_trade_closed(bcast: &Outbound, slot: u16, status: &str) {
-    let payload = json!({ "status": status }).to_string().into_bytes();
-    let _ = bcast.tx.send(ServerEvent::Ephemeral {
-        kind: proto::EPHEMERAL_TRADE,
-        to: proto::PlayerSlot(slot),
-        payload,
-    });
-}
-
-fn expire_trades(
-    mut trades: ResMut<ActiveTrades>,
-    clock: Res<SimClock>,
-    spawned: Res<SpawnedSlots>,
-    bcast: Res<Outbound>,
-) {
-    if trades.sessions.is_empty() {
-        return;
-    }
-    let now = clock.tick;
-    let mut closed: Vec<(u16, u16)> = Vec::new();
-    trades.sessions.retain(|s| {
-        let present = spawned.by_slot.contains_key(&s.a) && spawned.by_slot.contains_key(&s.b);
-        if present && now < s.expires_tick {
-            true
-        } else {
-            closed.push((s.a, s.b));
-            false
-        }
-    });
-    for (a, b) in closed {
-        send_trade_closed(&bcast, a, "cancelled");
-        send_trade_closed(&bcast, b, "cancelled");
-    }
-}
-
-#[allow(clippy::type_complexity)]
-fn apply_trades(
-    mut pending: ResMut<PendingTrades>,
-    mut trades: ResMut<ActiveTrades>,
-    clock: Res<SimClock>,
-    bcast: Res<Outbound>,
-    mut q: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
-) {
-    if pending.0.is_empty() {
-        return;
-    }
-
-    let mut slot_of_entity: HashMap<u32, u16> = HashMap::new();
-    let mut entity_of_slot: HashMap<u16, Entity> = HashMap::new();
-    let mut tile_of_slot: HashMap<u16, Tile> = HashMap::new();
-    for (entity, slot, pos, _) in q.iter() {
-        slot_of_entity.insert(entity.index_u32(), slot.0.0);
-        entity_of_slot.insert(slot.0.0, entity);
-        tile_of_slot.insert(slot.0.0, pos.tile);
-    }
-
-    let adjacent = |a: u16, b: u16| -> bool {
-        match (tile_of_slot.get(&a), tile_of_slot.get(&b)) {
-            (Some(ta), Some(tb)) => ta.chebyshev(*tb) <= TRADE_RANGE,
-            _ => false,
-        }
-    };
-
-    let drained: Vec<_> = pending.0.drain(..).collect();
-    for (slot, input) in drained {
-        let me = slot.0;
-        if !entity_of_slot.contains_key(&me) {
-            continue;
-        }
-        match input {
-            TradeInput::Offer { target, items } => {
-                let Some(&partner) = slot_of_entity.get(&target.0).filter(|p| **p != me) else {
-                    send_trade_closed(&bcast, me, "cancelled");
-                    continue;
-                };
-                let items = normalize_items(items);
-                let me_holds = entity_of_slot
-                    .get(&me)
-                    .and_then(|e| q.get(*e).ok())
-                    .map(|(_, _, _, inv)| inv_holds(inv, &items))
-                    .unwrap_or(false);
-                if !adjacent(me, partner) || !me_holds {
-                    send_trade_closed(&bcast, me, "cancelled");
-                    continue;
-                }
-                if let Some(idx) = trades.index_of(me) {
-                    if trades.sessions[idx].other(me) != partner {
-                        send_trade_closed(&bcast, me, "cancelled");
-                        continue;
-                    }
-                } else if trades.index_of(partner).is_some() {
-                    send_trade_closed(&bcast, me, "cancelled");
-                    continue;
-                }
-                let idx = match trades.index_of(me) {
-                    Some(idx) => idx,
-                    None => {
-                        trades.sessions.push(TradeSession {
-                            a: me,
-                            b: partner,
-                            a_side: TradeSide::default(),
-                            b_side: TradeSide::default(),
-                            expires_tick: clock.tick.saturating_add(TRADE_TIMEOUT_TICKS),
-                        });
-                        trades.sessions.len() - 1
-                    }
-                };
-                let session = &mut trades.sessions[idx];
-                session.a_side.accepted = false;
-                session.b_side.accepted = false;
-                session.side_mut(me).items = items;
-                session.expires_tick = clock.tick.saturating_add(TRADE_TIMEOUT_TICKS);
-                send_trade(&bcast, session, "update");
-            }
-            TradeInput::Accept => {
-                let Some(idx) = trades.index_of(me) else {
-                    continue;
-                };
-                let (a, b, a_items, b_items) = {
-                    let s = &trades.sessions[idx];
-                    (s.a, s.b, s.a_side.items.clone(), s.b_side.items.clone())
-                };
-                let a_holds = q
-                    .get(entity_of_slot[&a])
-                    .map(|(_, _, _, inv)| inv_holds(inv, &a_items))
-                    .unwrap_or(false);
-                let b_holds = q
-                    .get(entity_of_slot[&b])
-                    .map(|(_, _, _, inv)| inv_holds(inv, &b_items))
-                    .unwrap_or(false);
-                if !adjacent(a, b) || !a_holds || !b_holds {
-                    let session = trades.sessions.remove(idx);
-                    send_trade(&bcast, &session, "cancelled");
-                    continue;
-                }
-                trades.sessions[idx].side_mut(me).accepted = true;
-                if !(trades.sessions[idx].a_side.accepted && trades.sessions[idx].b_side.accepted) {
-                    let session = &trades.sessions[idx];
-                    send_trade(&bcast, session, "update");
-                    continue;
-                }
-                let (ea, eb) = (entity_of_slot[&a], entity_of_slot[&b]);
-                let inv_a = q.get(ea).map(|(.., inv)| inv.clone()).ok();
-                let inv_b = q.get(eb).map(|(.., inv)| inv.clone()).ok();
-                let (Some(inv_a), Some(inv_b)) = (inv_a, inv_b) else {
-                    continue;
-                };
-                let new_a = settle(&inv_a, &a_items, &b_items, MAX_INVENTORY_SLOTS);
-                let new_b = settle(&inv_b, &b_items, &a_items, MAX_INVENTORY_SLOTS);
-                let (Some(new_a), Some(new_b)) = (new_a, new_b) else {
-                    let session = trades.sessions.remove(idx);
-                    send_trade(&bcast, &session, "cancelled");
-                    continue;
-                };
-                if let Ok((.., mut inv)) = q.get_mut(ea) {
-                    inv.slots = new_a;
-                }
-                if let Ok((.., mut inv)) = q.get_mut(eb) {
-                    inv.slots = new_b;
-                }
-                let session = trades.sessions.remove(idx);
-                send_trade(&bcast, &session, "completed");
-                if let Ok((.., inv)) = q.get(ea) {
-                    send_inventory(&bcast, proto::PlayerSlot(a), inv);
-                }
-                if let Ok((.., inv)) = q.get(eb) {
-                    send_inventory(&bcast, proto::PlayerSlot(b), inv);
-                }
-            }
-            TradeInput::Cancel => {
-                if let Some(idx) = trades.index_of(me) {
-                    let session = trades.sessions.remove(idx);
-                    send_trade(&bcast, &session, "cancelled");
-                }
-            }
-        }
-    }
-}
-
-fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
+pub fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
     inv.slots
         .iter()
         .find(|(r, _)| r == item_ref)
@@ -1919,7 +1338,7 @@ fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
         .unwrap_or(0)
 }
 
-fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
+pub fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
     let Some(idx) = inv.slots.iter().position(|(r, _)| r == item_ref) else {
         return false;
     };
@@ -1934,7 +1353,7 @@ fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
 }
 
 /// Combined spendable coin: loose coins plus gold-bars at GOLD_BAR_VALUE each.
-fn coin_balance(inv: &Inventory) -> u32 {
+pub fn coin_balance(inv: &Inventory) -> u32 {
     inv.slots.iter().fold(0u32, |acc, (r, c)| {
         if r == COIN_REF {
             acc.saturating_add(*c)
@@ -1948,7 +1367,7 @@ fn coin_balance(inv: &Inventory) -> u32 {
 
 /// Spend `amount` coin-equivalent, breaking gold-bars into loose coins as needed.
 /// Returns false (and leaves the inventory untouched) if the balance is short.
-fn spend_coins(inv: &mut Inventory, amount: u32) -> bool {
+pub fn spend_coins(inv: &mut Inventory, amount: u32) -> bool {
     if coin_balance(inv) < amount {
         return false;
     }
@@ -1959,815 +1378,6 @@ fn spend_coins(inv: &mut Inventory, amount: u32) -> bool {
         inv.add(COIN_REF, GOLD_BAR_VALUE);
     }
     remove_ref(inv, COIN_REF, amount)
-}
-
-#[allow(clippy::too_many_arguments)]
-fn send_shop_result(
-    bcast: &Outbound,
-    slot: proto::PlayerSlot,
-    action: &str,
-    item_ref: &str,
-    qty: u32,
-    ok: bool,
-    reason: &str,
-    balance: u32,
-) {
-    let payload = json!({
-        "action": action,
-        "item_ref": item_ref,
-        "qty": qty,
-        "ok": ok,
-        "reason": reason,
-        "balance": balance,
-    })
-    .to_string()
-    .into_bytes();
-    let _ = bcast.tx.send(ServerEvent::Ephemeral {
-        kind: proto::EPHEMERAL_SHOP,
-        to: slot,
-        payload,
-    });
-}
-
-#[allow(clippy::type_complexity, clippy::too_many_arguments)]
-fn apply_shop(
-    mut pending: ResMut<PendingShop>,
-    index: Res<EidIndex>,
-    registry: Res<KindRegistry>,
-    stock: Res<ShopStock>,
-    prices: Res<ItemPrices>,
-    bcast: Res<Outbound>,
-    mut q_players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
-    q_npcs: Query<(&GridPos, &EntityKind), Without<PlayerSlotTag>>,
-) {
-    if pending.0.is_empty() {
-        return;
-    }
-
-    let mut by_slot: HashMap<u16, Entity> = HashMap::new();
-    for (entity, slot, ..) in q_players.iter() {
-        by_slot.insert(slot.0.0, entity);
-    }
-
-    for (slot, input) in pending.0.drain(..) {
-        let (is_buy, npc, item_ref, qty) = match input {
-            ShopInput::Buy { npc, item_ref, qty } => (true, npc, item_ref, qty),
-            ShopInput::Sell { npc, item_ref, qty } => (false, npc, item_ref, qty),
-        };
-        let action = if is_buy { "buy" } else { "sell" };
-        let reject = |bcast: &Outbound, reason: &str, balance: u32| {
-            send_shop_result(bcast, slot, action, &item_ref, qty, false, reason, balance);
-        };
-
-        if qty == 0 {
-            reject(&bcast, "bad_qty", 0);
-            continue;
-        }
-        let Some(&player_entity) = by_slot.get(&slot.0) else {
-            continue;
-        };
-        let Some(npc_entity) = index.by_eid.get(&npc.0).copied() else {
-            reject(&bcast, "no_merchant", 0);
-            continue;
-        };
-        let Ok((npc_pos, npc_kind)) = q_npcs.get(npc_entity) else {
-            reject(&bcast, "no_merchant", 0);
-            continue;
-        };
-        let npc_tile = npc_pos.tile;
-        let Some(npc_ref) = registry.ref_of(npc_kind.0).map(str::to_string) else {
-            reject(&bcast, "no_merchant", 0);
-            continue;
-        };
-        let Some(stocked) = stock.0.get(&npc_ref) else {
-            reject(&bcast, "not_a_merchant", 0);
-            continue;
-        };
-        let Some(&(buy_price, sell_price)) = prices.0.get(&item_ref) else {
-            reject(&bcast, "no_price", 0);
-            continue;
-        };
-
-        let Ok((_, _, pos, mut inv)) = q_players.get_mut(player_entity) else {
-            continue;
-        };
-        if pos.tile.chebyshev(npc_tile) > TRADE_RANGE {
-            reject(&bcast, "too_far", coin_balance(&inv));
-            continue;
-        }
-
-        if is_buy {
-            if !stocked.iter().any(|r| r == &item_ref) {
-                reject(&bcast, "out_of_stock", coin_balance(&inv));
-                continue;
-            }
-            if buy_price == 0 {
-                reject(&bcast, "not_for_sale", coin_balance(&inv));
-                continue;
-            }
-            let total = buy_price.saturating_mul(qty);
-            if coin_balance(&inv) < total {
-                reject(&bcast, "insufficient", coin_balance(&inv));
-                continue;
-            }
-            spend_coins(&mut inv, total);
-            inv.add(&item_ref, qty);
-        } else {
-            if sell_price == 0 {
-                reject(&bcast, "not_sellable", coin_balance(&inv));
-                continue;
-            }
-            if count_ref(&inv, &item_ref) < qty {
-                reject(&bcast, "no_item", coin_balance(&inv));
-                continue;
-            }
-            remove_ref(&mut inv, &item_ref, qty);
-            inv.add(COIN_REF, sell_price.saturating_mul(qty));
-        }
-
-        let balance = coin_balance(&inv);
-        send_shop_result(&bcast, slot, action, &item_ref, qty, true, "", balance);
-        send_inventory(&bcast, slot, &inv);
-    }
-}
-
-fn table_salt(table_ref: &str) -> u64 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for b in table_ref.bytes() {
-        h ^= b as u64;
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    h
-}
-
-type PlayerQuery<'w, 's> = Query<
-    'w,
-    's,
-    (
-        Entity,
-        &'static PlayerSlotTag,
-        &'static GridPos,
-        &'static mut Inventory,
-    ),
->;
-
-/// Credit coins back to a player's live inventory and resync it.
-fn credit_coins(
-    q: &mut PlayerQuery<'_, '_>,
-    entity: Entity,
-    bcast: &Outbound,
-    slot: u16,
-    amount: u32,
-) {
-    if amount == 0 {
-        return;
-    }
-    if let Ok((_, _, _, mut inv)) = q.get_mut(entity) {
-        inv.add(COIN_REF, amount);
-        send_inventory(bcast, proto::PlayerSlot(slot), &inv);
-    }
-}
-
-#[allow(clippy::type_complexity, clippy::too_many_arguments)]
-fn apply_blackjack(
-    mut pending: ResMut<PendingBlackjack>,
-    mut reg: ResMut<TableRegistry>,
-    tables: Res<Tables>,
-    roster: Res<RosterHandle>,
-    seed: Res<SimSeed>,
-    clock: Res<SimClock>,
-    bcast: Res<Outbound>,
-    mut q: PlayerQuery<'_, '_>,
-) {
-    let tick = clock.tick;
-
-    let mut entity_of: HashMap<u16, Entity> = HashMap::new();
-    let mut tile_of: HashMap<u16, Tile> = HashMap::new();
-    for (entity, slot, pos, _inv) in q.iter() {
-        entity_of.insert(slot.0.0, entity);
-        tile_of.insert(slot.0.0, pos.tile);
-    }
-
-    // ---- Intent pass ----
-    for (pslot, input) in pending.0.drain(..) {
-        let slot = pslot.0;
-        match input {
-            BjInput::Join { table_ref } => {
-                if reg.sessions.values().any(|s| s.seat_of(slot).is_some()) {
-                    continue;
-                }
-                let Some(def) = tables.0.iter().find(|d| d.table_ref == table_ref) else {
-                    continue;
-                };
-                let username = roster
-                    .0
-                    .read()
-                    .ok()
-                    .and_then(|r| r.username(pslot))
-                    .unwrap_or_default();
-                // Reclaiming a seat held open from a disconnect skips the proximity
-                // gate — a reconnecting player respawns away from the table but was
-                // already seated. Fresh seating still requires being adjacent.
-                if let Some(seat) = reg
-                    .sessions
-                    .get_mut(&table_ref)
-                    .and_then(|s| s.held_seat_for(&username))
-                {
-                    seat.slot = slot;
-                    seat.disconnected_since = None;
-                    continue;
-                }
-                let Some(&ptile) = tile_of.get(&slot) else {
-                    continue;
-                };
-                if ptile.chebyshev(def.tile) > BJ_PROXIMITY {
-                    continue;
-                }
-                let salt = table_salt(&table_ref);
-                let session = reg.sessions.entry(table_ref.clone()).or_insert_with(|| {
-                    TableSession::create(def, blackjack::Rng::seed(seed.0, salt, tick as u64), tick)
-                });
-                if let Some(i) = session.first_free() {
-                    session.seats[i] = Some(Seat::new(slot, username));
-                }
-            }
-            BjInput::Leave => {
-                leave_seat(&mut reg, &mut q, &entity_of, &bcast, slot);
-            }
-            BjInput::Bet { amount } => {
-                let Some(session) = reg
-                    .sessions
-                    .values_mut()
-                    .find(|s| s.seat_of(slot).is_some())
-                else {
-                    continue;
-                };
-                if session.phase != BjPhase::Betting {
-                    continue;
-                }
-                let i = session.seat_of(slot).unwrap();
-                if session.seats[i].as_ref().unwrap().bet > 0 {
-                    continue;
-                }
-                let Some(&entity) = entity_of.get(&slot) else {
-                    continue;
-                };
-                let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
-                    continue;
-                };
-                let held = coin_balance(&inv);
-                if held < BJ_MIN_BET {
-                    continue;
-                }
-                let stake = amount.clamp(BJ_MIN_BET, held);
-                if !spend_coins(&mut inv, stake) {
-                    continue;
-                }
-                session.seats[i].as_mut().unwrap().bet = stake;
-                send_inventory(&bcast, pslot, &inv);
-            }
-            BjInput::Act { kind } => {
-                handle_bj_action(&mut reg, &mut q, &entity_of, &bcast, slot, kind);
-            }
-            BjInput::Insure { amount } => {
-                handle_bj_insurance(&mut reg, &mut q, &entity_of, &bcast, slot, amount);
-            }
-        }
-    }
-
-    // ---- Disconnect sweep: hold a vacated seat for the same player to reconnect
-    // into; release it (forfeiting any live bet) once the grace window lapses.
-    // Anonymous seats can't be name-matched on reconnect, so they drop at once. ----
-    let name_of: HashMap<u16, String> = {
-        let guard = roster.0.read().ok();
-        entity_of
-            .keys()
-            .filter_map(|&s| {
-                guard
-                    .as_ref()
-                    .and_then(|g| g.username(proto::PlayerSlot(s)))
-                    .map(|n| (s, n))
-            })
-            .collect()
-    };
-    for session in reg.sessions.values_mut() {
-        for slot_opt in session.seats.iter_mut() {
-            let Some(seat) = slot_opt.as_mut() else {
-                continue;
-            };
-            // A live entity at the seat's slot only counts if it is the same player;
-            // a slot reassigned to someone else must not silently inherit the seat.
-            let present = entity_of.contains_key(&seat.slot)
-                && name_of.get(&seat.slot) == Some(&seat.username);
-            if present {
-                seat.disconnected_since = None;
-                continue;
-            }
-            let release = if seat.username.is_empty() {
-                true
-            } else {
-                match seat.disconnected_since {
-                    None => {
-                        // Park the seat: detach the stale slot so a reused slot can't
-                        // route this table's state or be mistaken for the occupant.
-                        seat.disconnected_since = Some(tick);
-                        seat.slot = proto::PLAYER_SLOT_NONE.0;
-                        false
-                    }
-                    Some(since) => tick.saturating_sub(since) >= BJ_HOLD_TICKS,
-                }
-            };
-            if release {
-                *slot_opt = None;
-            }
-        }
-    }
-
-    // ---- Per-tick phase driver ----
-    for session in reg.sessions.values_mut() {
-        advance_bj_phase(session, tick, &mut q, &entity_of, &bcast);
-    }
-
-    // ---- Teardown empty tables ----
-    reg.sessions.retain(|_, s| s.occupied() > 0);
-
-    // ---- Scoped broadcast ----
-    let mut balance_of: HashMap<u16, u32> = HashMap::new();
-    for (_, slot, _, inv) in q.iter() {
-        balance_of.insert(slot.0.0, coin_balance(inv));
-    }
-    for (table_ref, session) in reg.sessions.iter() {
-        let mut recipients: Vec<u16> = session
-            .seats
-            .iter()
-            .filter_map(|s| s.as_ref().map(|x| x.slot))
-            .collect();
-        for (&slot, &tile) in tile_of.iter() {
-            if tile.chebyshev(session.tile) <= BJ_SPECTATE && !recipients.contains(&slot) {
-                recipients.push(slot);
-            }
-        }
-        for slot in recipients {
-            let balance = balance_of.get(&slot).copied().unwrap_or(0);
-            send_blackjack(&bcast, table_ref, session, slot, balance, tick);
-        }
-    }
-}
-
-fn leave_seat(
-    reg: &mut TableRegistry,
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-    slot: u16,
-) {
-    let Some(session) = reg
-        .sessions
-        .values_mut()
-        .find(|s| s.seat_of(slot).is_some())
-    else {
-        return;
-    };
-    let i = session.seat_of(slot).unwrap();
-    let Some(seat) = session.seats[i].take() else {
-        return;
-    };
-    // Refund only when the round hasn't been dealt yet (betting window).
-    if session.phase == BjPhase::Betting
-        && seat.bet > 0
-        && let Some(&entity) = entity_of.get(&slot)
-    {
-        credit_coins(q, entity, bcast, slot, seat.bet);
-    }
-}
-
-fn handle_bj_insurance(
-    reg: &mut TableRegistry,
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-    slot: u16,
-    amount: u32,
-) {
-    let Some(session) = reg
-        .sessions
-        .values_mut()
-        .find(|s| s.seat_of(slot).is_some())
-    else {
-        return;
-    };
-    if session.phase != BjPhase::Insurance {
-        return;
-    }
-    let i = session.seat_of(slot).unwrap();
-    let seat = session.seats[i].as_ref().unwrap();
-    // Insurance is a one-time side bet, capped at half the main bet.
-    if seat.bet == 0 || seat.insurance > 0 {
-        return;
-    }
-    let cap = seat.bet / 2;
-    if cap == 0 {
-        return;
-    }
-    let Some(&entity) = entity_of.get(&slot) else {
-        return;
-    };
-    let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
-        return;
-    };
-    let stake = amount.min(cap).min(coin_balance(&inv));
-    if stake == 0 || !spend_coins(&mut inv, stake) {
-        return;
-    }
-    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
-    session.seats[i].as_mut().unwrap().insurance = stake;
-}
-
-fn handle_bj_action(
-    reg: &mut TableRegistry,
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-    slot: u16,
-    kind: proto::BjActionKind,
-) {
-    let Some(session) = reg
-        .sessions
-        .values_mut()
-        .find(|s| s.seat_of(slot).is_some())
-    else {
-        return;
-    };
-    if session.phase != BjPhase::PlayerTurn {
-        return;
-    }
-    // Only the player owning the active seat may act, and only on its active hand.
-    let Some((si, hi)) = session.active() else {
-        return;
-    };
-    if session.seats[si].as_ref().unwrap().slot != slot {
-        return;
-    }
-    match kind {
-        proto::BjActionKind::Hit => {
-            let card = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let hand = &mut session.seats[si].as_mut().unwrap().hands[hi];
-            hand.cards.push(card);
-            if blackjack::value_hand(&hand.cards).0 >= 21 {
-                hand.done = true;
-            }
-        }
-        proto::BjActionKind::Stand => {
-            session.seats[si].as_mut().unwrap().hands[hi].done = true;
-        }
-        proto::BjActionKind::Double => {
-            let bet = {
-                let hand = &session.seats[si].as_ref().unwrap().hands[hi];
-                if hand.cards.len() != 2 || hand.doubled {
-                    return;
-                }
-                hand.bet
-            };
-            if !try_debit(q, entity_of, bcast, slot, bet) {
-                return;
-            }
-            let card = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let hand = &mut session.seats[si].as_mut().unwrap().hands[hi];
-            hand.bet = hand.bet.saturating_add(bet);
-            hand.doubled = true;
-            hand.cards.push(card);
-            hand.done = true;
-        }
-        proto::BjActionKind::Split => {
-            let bet = {
-                let seat = session.seats[si].as_ref().unwrap();
-                if seat.hands.len() >= BJ_MAX_HANDS {
-                    return;
-                }
-                let hand = &seat.hands[hi];
-                if !blackjack::can_split(&hand.cards) {
-                    return;
-                }
-                hand.bet
-            };
-            if !try_debit(q, entity_of, bcast, slot, bet) {
-                return;
-            }
-            let moved = session.seats[si].as_mut().unwrap().hands[hi]
-                .cards
-                .pop()
-                .unwrap();
-            let aces = blackjack::is_ace(session.seats[si].as_ref().unwrap().hands[hi].cards[0]);
-            let card_a = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let card_b = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let seat = session.seats[si].as_mut().unwrap();
-            seat.hands[hi].cards.push(card_a);
-            let mut split_hand = Hand::new(bet);
-            split_hand.cards.push(moved);
-            split_hand.cards.push(card_b);
-            // Split aces draw a single card each and stand automatically.
-            if aces {
-                seat.hands[hi].done = true;
-                split_hand.done = true;
-            }
-            seat.hands.insert(hi + 1, split_hand);
-        }
-        proto::BjActionKind::Surrender => {
-            // Late surrender: only the untouched original hand, never after a split.
-            let bet = {
-                let seat = session.seats[si].as_ref().unwrap();
-                if seat.hands.len() != 1 {
-                    return;
-                }
-                let hand = &seat.hands[0];
-                if hand.cards.len() != 2 || hand.doubled || hand.natural {
-                    return;
-                }
-                hand.bet
-            };
-            let refund = blackjack::surrender_credit(bet);
-            if refund > 0
-                && let Some(&entity) = entity_of.get(&slot)
-            {
-                credit_coins(q, entity, bcast, slot, refund);
-            }
-            let hand = &mut session.seats[si].as_mut().unwrap().hands[0];
-            hand.surrendered = true;
-            hand.outcome = Some(blackjack::Outcome::Loss);
-            hand.done = true;
-        }
-    }
-    // The phase driver resets the turn clock once the active hand changes.
-}
-
-/// Debit `amount` coins from the player's inventory, pushing an inventory sync on
-/// success. Returns false (and changes nothing) if they can't cover it.
-fn try_debit(
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-    slot: u16,
-    amount: u32,
-) -> bool {
-    let Some(&entity) = entity_of.get(&slot) else {
-        return false;
-    };
-    let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
-        return false;
-    };
-    if coin_balance(&inv) < amount || !spend_coins(&mut inv, amount) {
-        return false;
-    }
-    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
-    true
-}
-
-fn start_player_turn(session: &mut TableSession, tick: u32) {
-    session.phase = BjPhase::PlayerTurn;
-    let (si, hi) = session.active().unwrap_or((0, 0));
-    session.active_seat = si;
-    session.active_hand = hi;
-    session.deadline_tick = tick + BJ_TURN_TICKS;
-}
-
-/// Settle every live hand against the dealer's final hand and pay out per seat.
-/// Hands already carrying an outcome (surrenders) are left untouched.
-fn settle_bj_round(
-    session: &mut TableSession,
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-) {
-    let dealer = session.dealer.clone();
-    let dealer_natural = blackjack::is_blackjack(&dealer);
-    for i in 0..session.seats.len() {
-        let Some(slot) = session.seats[i]
-            .as_ref()
-            .and_then(|s| (s.bet > 0).then_some(s.slot))
-        else {
-            continue;
-        };
-        let mut credit = 0u32;
-        let hands_len = session.seats[i].as_ref().unwrap().hands.len();
-        for hi in 0..hands_len {
-            let (bet, natural, cards, settled) = {
-                let hand = &session.seats[i].as_ref().unwrap().hands[hi];
-                (
-                    hand.bet,
-                    hand.natural,
-                    hand.cards.clone(),
-                    hand.outcome.is_some(),
-                )
-            };
-            if settled {
-                continue;
-            }
-            let outcome = blackjack::settle(&cards, &dealer, natural);
-            credit = credit.saturating_add(blackjack::payout_credit(bet, outcome));
-            let hand = &mut session.seats[i].as_mut().unwrap().hands[hi];
-            hand.outcome = Some(outcome);
-            hand.done = true;
-        }
-        // Insurance pays 2:1 when the dealer turned a natural.
-        let insurance = session.seats[i].as_ref().unwrap().insurance;
-        if insurance > 0 {
-            credit = credit.saturating_add(blackjack::insurance_credit(insurance, dealer_natural));
-        }
-        if credit > 0
-            && let Some(&entity) = entity_of.get(&slot)
-        {
-            credit_coins(q, entity, bcast, slot, credit);
-        }
-    }
-}
-
-fn advance_bj_phase(
-    session: &mut TableSession,
-    tick: u32,
-    q: &mut PlayerQuery<'_, '_>,
-    entity_of: &HashMap<u16, Entity>,
-    bcast: &Outbound,
-) {
-    match session.phase {
-        BjPhase::Betting => {
-            if tick < session.deadline_tick {
-                return;
-            }
-            if session.participants() == 0 {
-                session.deadline_tick = tick + BJ_BET_TICKS;
-                return;
-            }
-            // Provable fairness: draw a fresh round seed, build the shoe solely from
-            // it, and publish its commitment before any card is dealt. The seed is
-            // revealed at settle so clients can replay this exact shoe.
-            session.round_seed = session.rng.next_u64();
-            session.commitment = blackjack::commit_seed(session.round_seed);
-            session.shoe = blackjack::shoe_for_seed(session.round_seed);
-            session.dealer.clear();
-            for i in 0..session.seats.len() {
-                let bet = {
-                    let Some(seat) = session.seats[i].as_mut() else {
-                        continue;
-                    };
-                    seat.hands.clear();
-                    seat.insurance = 0;
-                    seat.bet
-                };
-                if bet == 0 {
-                    continue;
-                }
-                let c1 = blackjack::draw(&mut session.shoe, &mut session.rng);
-                let c2 = blackjack::draw(&mut session.shoe, &mut session.rng);
-                let mut hand = Hand::new(bet);
-                hand.cards.push(c1);
-                hand.cards.push(c2);
-                hand.natural = blackjack::is_blackjack(&hand.cards);
-                hand.done = hand.natural;
-                session.seats[i].as_mut().unwrap().hands.push(hand);
-            }
-            let d1 = blackjack::draw(&mut session.shoe, &mut session.rng);
-            let d2 = blackjack::draw(&mut session.shoe, &mut session.rng);
-            session.dealer.push(d1);
-            session.dealer.push(d2);
-            // Offer insurance only when the dealer's upcard is an ace.
-            if session.dealer_upcard_ace() {
-                session.phase = BjPhase::Insurance;
-                session.deadline_tick = tick + BJ_INSURANCE_TICKS;
-            } else {
-                start_player_turn(session, tick);
-            }
-        }
-        BjPhase::Insurance => {
-            if tick < session.deadline_tick {
-                return;
-            }
-            // Window closed — peek the hole card. A dealer natural ends the round now;
-            // insurance (and any player naturals) settle, everyone else loses.
-            if blackjack::is_blackjack(&session.dealer) {
-                settle_bj_round(session, q, entity_of, bcast);
-                session.phase = BjPhase::Settle;
-                session.deadline_tick = tick + BJ_SETTLE_TICKS;
-            } else {
-                start_player_turn(session, tick);
-            }
-        }
-        BjPhase::PlayerTurn => match session.active() {
-            None => {
-                session.phase = BjPhase::DealerTurn;
-            }
-            Some((si, hi)) => {
-                if (si, hi) != (session.active_seat, session.active_hand) {
-                    session.active_seat = si;
-                    session.active_hand = hi;
-                    session.deadline_tick = tick + BJ_TURN_TICKS;
-                } else if tick >= session.deadline_tick {
-                    session.seats[si].as_mut().unwrap().hands[hi].done = true;
-                }
-            }
-        },
-        BjPhase::DealerTurn => {
-            blackjack::play_dealer(&mut session.dealer, &mut session.shoe, &mut session.rng);
-            settle_bj_round(session, q, entity_of, bcast);
-            session.phase = BjPhase::Settle;
-            session.deadline_tick = tick + BJ_SETTLE_TICKS;
-        }
-        BjPhase::Settle => {
-            if tick >= session.deadline_tick {
-                session.dealer.clear();
-                for seat in session.seats.iter_mut().flatten() {
-                    seat.reset_for_round();
-                }
-                session.phase = BjPhase::Betting;
-                session.active_seat = 0;
-                session.active_hand = 0;
-                session.deadline_tick = tick + BJ_BET_TICKS;
-            }
-        }
-    }
-}
-
-fn send_blackjack(
-    bcast: &Outbound,
-    table_ref: &str,
-    session: &TableSession,
-    slot: u16,
-    your_balance: u32,
-    tick: u32,
-) {
-    let dealer_hidden = matches!(
-        session.phase,
-        BjPhase::Betting | BjPhase::Insurance | BjPhase::PlayerTurn
-    );
-    let dealer_hand: Vec<u8> = if dealer_hidden {
-        session.dealer.iter().take(1).copied().collect()
-    } else {
-        session.dealer.clone()
-    };
-    let seats: Vec<_> = session
-        .seats
-        .iter()
-        .filter_map(|s| s.as_ref())
-        .map(|seat| {
-            let hands: Vec<_> = seat
-                .hands
-                .iter()
-                .map(|hand| {
-                    let (value, soft) = blackjack::value_hand(&hand.cards);
-                    json!({
-                        "cards": hand.cards,
-                        "bet": hand.bet,
-                        "value": value,
-                        "soft": soft,
-                        "doubled": hand.doubled,
-                        "surrendered": hand.surrendered,
-                        "done": hand.done,
-                        "outcome": hand.outcome.map(|o| o.as_str()),
-                    })
-                })
-                .collect();
-            json!({
-                "slot": seat.slot,
-                "username": seat.username,
-                "bet": seat.bet,
-                "insurance": seat.insurance,
-                "hands": hands,
-                "disconnected": seat.disconnected_since.is_some(),
-            })
-        })
-        .collect();
-    let active = (session.phase == BjPhase::PlayerTurn)
-        .then(|| session.active())
-        .flatten();
-    let active_slot = active.map(|(si, _)| session.seats[si].as_ref().unwrap().slot);
-    let active_hand = active.map(|(_, hi)| hi);
-    let deadline_ms = session
-        .deadline_tick
-        .saturating_sub(tick)
-        .saturating_mul(1000 / SIM_TICK_HZ);
-    // Reveal the seed only once the round is over; until then clients hold the
-    // commitment and verify it against the seed after settle.
-    let revealed_seed = (session.phase == BjPhase::Settle && !session.commitment.is_empty())
-        .then(|| session.round_seed.to_string());
-    let payload = json!({
-        "table_ref": table_ref,
-        "phase": session.phase.as_str(),
-        "seats": seats,
-        "dealer_hand": dealer_hand,
-        "dealer_hidden": dealer_hidden,
-        "active_slot": active_slot,
-        "active_hand": active_hand,
-        "your_balance": your_balance,
-        "deadline_ms": deadline_ms,
-        "commitment": session.commitment,
-        "seed": revealed_seed,
-    })
-    .to_string()
-    .into_bytes();
-    let _ = bcast.tx.send(ServerEvent::Ephemeral {
-        kind: proto::EPHEMERAL_BLACKJACK,
-        to: proto::PlayerSlot(slot),
-        payload,
-    });
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -2852,7 +1462,7 @@ fn send_stats(
     });
 }
 
-fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
+pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
     let items: Vec<_> = inv
         .slots
         .iter()
@@ -2944,36 +1554,6 @@ fn apply_placements(
         {
             map.block_tile_z(z, tile);
         }
-    }
-}
-
-fn follow_path(
-    map: Res<WalkableMap>,
-    mut q: Query<(&mut GridPos, &mut MoveTarget, &mut Path, Option<&Floor>)>,
-) {
-    for (mut pos, mut mv, mut path, floor) in q.iter_mut() {
-        if mv.target.is_some() {
-            continue;
-        }
-        let Some(&next) = path.steps.front() else {
-            continue;
-        };
-        if pos.tile.manhattan(next) != 1 {
-            path.steps.clear();
-            continue;
-        }
-        let z = floor.map(|f| f.0).unwrap_or(0);
-        if !map.is_walkable_z(z, next) {
-            path.steps.clear();
-            continue;
-        }
-        let dir = dir_between(pos.tile, next);
-        if let Some(dir) = dir {
-            pos.facing = dir.facing();
-        }
-        path.steps.pop_front();
-        mv.target = Some(next);
-        mv.progress = 0;
     }
 }
 
@@ -3187,25 +1767,23 @@ fn respawn_players(
     mut q: Query<
         (
             &mut GridPos,
-            &mut MoveTarget,
-            &mut Path,
-            &mut StepBuffer,
             &mut Health,
             &mut StatusEffects,
             &mut MoveSpeed,
+            &mut FloatMove,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
-    for (mut pos, mut mv, mut path, mut buffer, mut hp, mut status, mut speed) in q.iter_mut() {
+    for (mut pos, mut hp, mut status, mut speed, mut fm) in q.iter_mut() {
         if hp.hp > 0 {
             continue;
         }
         pos.tile = config.spawn;
-        mv.target = None;
-        mv.progress = 0;
-        path.steps.clear();
-        buffer.dir = None;
+        fm.body = FloatBody::at(config.spawn.x as f32, config.spawn.y as f32);
+        fm.intent_x = 0;
+        fm.intent_y = 0;
+        fm.run = false;
         hp.hp = hp.max_hp;
         status.0.clear();
         speed.ticks_per_tile = config.ticks_per_tile;
@@ -3346,33 +1924,6 @@ fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
     }
 }
 
-#[allow(clippy::type_complexity)]
-fn chain_steps(
-    map: Res<WalkableMap>,
-    mut q: Query<
-        (
-            &mut GridPos,
-            &mut MoveTarget,
-            &mut StepBuffer,
-            Option<&Floor>,
-        ),
-        With<PlayerSlotTag>,
-    >,
-) {
-    for (mut pos, mut mv, mut buffer, floor) in q.iter_mut() {
-        let Some(dir) = buffer.dir else {
-            continue;
-        };
-        if mv.target.is_some() {
-            continue;
-        }
-        buffer.dir = None;
-        pos.facing = dir.facing();
-        let z = floor.map(|f| f.0).unwrap_or(0);
-        try_move(dir, &map, z, &pos, &mut mv, None);
-    }
-}
-
 /// Move players between dungeon floors when they stand on a stair tile. The
 /// stair geometry is server-authoritative (seed-derived for the endless
 /// dungeon, explicit for hand-placed maps); a locked stair requires the player
@@ -3390,8 +1941,7 @@ fn stair_system(
         (
             Entity,
             &mut GridPos,
-            &mut MoveTarget,
-            &mut Path,
+            &mut FloatMove,
             &Inventory,
             &PlayerSlotTag,
             Option<&mut Floor>,
@@ -3402,11 +1952,7 @@ fn stair_system(
     let Some(stairs) = stairs else {
         return;
     };
-    for (entity, mut pos, mut mv, mut path, inv, slot, floor) in q.iter_mut() {
-        // Only trigger when settled on the tile, not mid-step.
-        if mv.target.is_some() {
-            continue;
-        }
+    for (entity, mut pos, mut fm, inv, slot, floor) in q.iter_mut() {
         let z = floor.as_ref().map(|f| f.0).unwrap_or(0);
         let Some(link) = stairs.at(z, pos.tile) else {
             continue;
@@ -3419,9 +1965,7 @@ fn stair_system(
         }
 
         pos.tile = link.dest_tile;
-        mv.target = None;
-        mv.progress = 0;
-        path.steps.clear();
+        fm.body = FloatBody::at(link.dest_tile.x as f32, link.dest_tile.y as f32);
         match floor {
             Some(mut f) => f.0 = link.dest_z,
             None => {
@@ -3452,7 +1996,7 @@ fn emit_snapshot(
         &EntityKind,
         Option<&PlayerSlotTag>,
         &GridPos,
-        &MoveTarget,
+        Option<&MoveTarget>,
         Option<&MoveSpeed>,
         Option<&Health>,
         Option<&StatusEffects>,
@@ -3470,10 +2014,10 @@ fn emit_snapshot(
         .map(
             |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm)| {
                 let sub = mv
-                    .target
-                    .map(|_| {
+                    .filter(|m| m.target.is_some())
+                    .map(|m| {
                         let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
-                        ((mv.progress as u32 * 255) / span).min(255) as u8
+                        ((m.progress as u32 * 255) / span).min(255) as u8
                     })
                     .unwrap_or(0);
                 let effects = status
@@ -3546,11 +2090,10 @@ pub async fn run_sim_loop(mut app: App) {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod test_support {
     use super::*;
-    use std::collections::HashSet;
 
-    type Harness = (
+    pub(crate) type Harness = (
         App,
         mpsc::UnboundedReceiver<ServerEvent>,
         mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
@@ -3566,7 +2109,7 @@ mod tests {
         ulid::Ulid::from(h as u128)
     }
 
-    fn harness(seed: u64) -> Harness {
+    pub(crate) fn harness(seed: u64) -> Harness {
         let (tx, rx) = mpsc::unbounded_channel();
         let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
@@ -3589,13 +2132,44 @@ mod tests {
         (app, rx, input_tx, roster)
     }
 
-    fn join(roster: &Arc<RwLock<Roster>>, name: &str) -> proto::PlayerSlot {
+    pub(crate) fn join(roster: &Arc<RwLock<Roster>>, name: &str) -> proto::PlayerSlot {
         roster
             .write()
             .unwrap()
             .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
     }
+
+    pub(crate) fn player_for_slot(app: &mut App, slot: proto::PlayerSlot) -> Entity {
+        let mut q = app.world_mut().query::<(Entity, &PlayerSlotTag)>();
+        q.iter(app.world())
+            .find(|(_, s)| s.0 == slot)
+            .map(|(e, _)| e)
+            .expect("player for slot")
+    }
+
+    pub(crate) fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
+        let mut inv = app.world_mut().get_mut::<Inventory>(entity).unwrap();
+        inv.slots = items.iter().map(|(r, c)| (r.to_string(), *c)).collect();
+    }
+
+    pub(crate) fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
+        app.world()
+            .get::<Inventory>(entity)
+            .unwrap()
+            .slots
+            .iter()
+            .find(|(r, _)| r == item_ref)
+            .map(|(_, c)| *c)
+            .unwrap_or(0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::test_support::*;
+    use super::*;
+    use std::collections::HashSet;
 
     #[test]
     fn drop_item_spawns_ground_loot_and_decrements_inventory() {
@@ -3796,73 +2370,6 @@ mod tests {
             }
         }
         assert!(saw, "non-player entity missing from snapshot");
-    }
-
-    #[test]
-    fn move_to_walks_full_path() {
-        let (mut app, mut rx, input_tx, roster) = harness(7);
-        let slot = join(&roster, "walker");
-        app.update();
-
-        input_tx
-            .send((
-                slot,
-                Input::MoveTo {
-                    tile: Tile::new(12, 8),
-                },
-            ))
-            .unwrap();
-
-        for _ in 0..80 {
-            app.update();
-        }
-
-        let mut last_tile = None;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Snapshot(snap) = evt {
-                for e in snap.entities {
-                    if e.kind == PLAYER_KIND {
-                        last_tile = Some(e.tile);
-                    }
-                }
-            }
-        }
-        assert_eq!(last_tile, Some(Tile::new(12, 8)), "player did not arrive");
-    }
-
-    #[test]
-    fn buffered_step_chains_after_move() {
-        let (mut app, mut rx, input_tx, roster) = harness(9);
-        let slot = join(&roster, "chainer");
-        app.update();
-
-        input_tx
-            .send((slot, Input::Step { dir: Dir::Right }))
-            .unwrap();
-        app.update();
-        input_tx
-            .send((slot, Input::Step { dir: Dir::Right }))
-            .unwrap();
-
-        for _ in 0..20 {
-            app.update();
-        }
-
-        let mut last_tile = None;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Snapshot(snap) = evt {
-                for e in snap.entities {
-                    if e.kind == PLAYER_KIND {
-                        last_tile = Some(e.tile);
-                    }
-                }
-            }
-        }
-        assert_eq!(
-            last_tile,
-            Some(Tile::new(10, 8)),
-            "second step was not buffered"
-        );
     }
 
     #[test]
@@ -4795,916 +3302,5 @@ mod tests {
             poisoned || saw_status,
             "venomous mob never poisoned the player"
         );
-    }
-
-    fn player_for_slot(app: &mut App, slot: proto::PlayerSlot) -> Entity {
-        let mut q = app.world_mut().query::<(Entity, &PlayerSlotTag)>();
-        q.iter(app.world())
-            .find(|(_, s)| s.0 == slot)
-            .map(|(e, _)| e)
-            .expect("player for slot")
-    }
-
-    fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
-        let mut inv = app.world_mut().get_mut::<Inventory>(entity).unwrap();
-        inv.slots = items.iter().map(|(r, c)| (r.to_string(), *c)).collect();
-    }
-
-    fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
-        app.world()
-            .get::<Inventory>(entity)
-            .unwrap()
-            .slots
-            .iter()
-            .find(|(r, _)| r == item_ref)
-            .map(|(_, c)| *c)
-            .unwrap_or(0)
-    }
-
-    fn eid_of(app: &mut App, slot: proto::PlayerSlot) -> proto::EntityId {
-        proto::EntityId(player_for_slot(app, slot).index_u32())
-    }
-
-    /// Both players offer, both accept, and the offered items swap atomically.
-    #[test]
-    fn trade_offer_accept_swaps_items() {
-        let (mut app, _rx, input_tx, roster) = harness(101);
-        let a = join(&roster, "alice");
-        let b = join(&roster, "bob");
-        app.update();
-
-        let ea = player_for_slot(&mut app, a);
-        let eb = player_for_slot(&mut app, b);
-        set_inventory(&mut app, ea, &[("coin", 5)]);
-        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
-        let a_eid = eid_of(&mut app, a);
-        let b_eid = eid_of(&mut app, b);
-
-        input_tx
-            .send((
-                a,
-                Input::TradeOffer {
-                    target: b_eid,
-                    items: vec![("coin".into(), 2)],
-                },
-            ))
-            .unwrap();
-        input_tx
-            .send((
-                b,
-                Input::TradeOffer {
-                    target: a_eid,
-                    items: vec![("gold-bar".into(), 1)],
-                },
-            ))
-            .unwrap();
-        input_tx.send((a, Input::TradeAccept)).unwrap();
-        input_tx.send((b, Input::TradeAccept)).unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-
-        assert_eq!(inv_count(&app, ea, "coin"), 3, "alice coin not debited");
-        assert_eq!(
-            inv_count(&app, ea, "gold-bar"),
-            1,
-            "alice gold not credited"
-        );
-        assert_eq!(inv_count(&app, eb, "coin"), 2, "bob coin not credited");
-        assert_eq!(inv_count(&app, eb, "gold-bar"), 2, "bob gold not debited");
-        assert!(
-            app.world().resource::<ActiveTrades>().sessions.is_empty(),
-            "session lingered after completion"
-        );
-    }
-
-    /// A cancel from either party tears the session down with no transfer.
-    #[test]
-    fn trade_cancel_aborts_without_transfer() {
-        let (mut app, _rx, input_tx, roster) = harness(102);
-        let a = join(&roster, "alice");
-        let b = join(&roster, "bob");
-        app.update();
-
-        let ea = player_for_slot(&mut app, a);
-        let eb = player_for_slot(&mut app, b);
-        set_inventory(&mut app, ea, &[("coin", 5)]);
-        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
-        let a_eid = eid_of(&mut app, a);
-        let b_eid = eid_of(&mut app, b);
-
-        input_tx
-            .send((
-                a,
-                Input::TradeOffer {
-                    target: b_eid,
-                    items: vec![("coin".into(), 2)],
-                },
-            ))
-            .unwrap();
-        input_tx
-            .send((
-                b,
-                Input::TradeOffer {
-                    target: a_eid,
-                    items: vec![("gold-bar".into(), 1)],
-                },
-            ))
-            .unwrap();
-        input_tx.send((a, Input::TradeAccept)).unwrap();
-        input_tx.send((b, Input::TradeCancel)).unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-
-        assert_eq!(inv_count(&app, ea, "coin"), 5, "alice coin changed");
-        assert_eq!(inv_count(&app, eb, "gold-bar"), 3, "bob gold changed");
-        assert_eq!(inv_count(&app, ea, "gold-bar"), 0, "alice got gold");
-        assert!(
-            app.world().resource::<ActiveTrades>().sessions.is_empty(),
-            "session survived cancel"
-        );
-    }
-
-    /// A disconnect mid-trade cancels the session; no items are lost or duped.
-    #[test]
-    fn trade_disconnect_mid_trade_cancels() {
-        let (mut app, _rx, input_tx, roster) = harness(103);
-        let a = join(&roster, "alice");
-        let b = join(&roster, "bob");
-        app.update();
-
-        let ea = player_for_slot(&mut app, a);
-        let eb = player_for_slot(&mut app, b);
-        set_inventory(&mut app, ea, &[("coin", 5)]);
-        set_inventory(&mut app, eb, &[("gold-bar", 3)]);
-        let a_eid = eid_of(&mut app, a);
-        let b_eid = eid_of(&mut app, b);
-
-        input_tx
-            .send((
-                a,
-                Input::TradeOffer {
-                    target: b_eid,
-                    items: vec![("coin".into(), 2)],
-                },
-            ))
-            .unwrap();
-        input_tx
-            .send((
-                b,
-                Input::TradeOffer {
-                    target: a_eid,
-                    items: vec![("gold-bar".into(), 1)],
-                },
-            ))
-            .unwrap();
-        app.update();
-        assert_eq!(
-            app.world().resource::<ActiveTrades>().sessions.len(),
-            1,
-            "session not opened"
-        );
-
-        roster.write().unwrap().release(b);
-        for _ in 0..3 {
-            app.update();
-        }
-
-        assert!(
-            app.world().resource::<ActiveTrades>().sessions.is_empty(),
-            "session not cancelled on disconnect"
-        );
-        assert_eq!(
-            inv_count(&app, ea, "coin"),
-            5,
-            "alice lost coin on disconnect"
-        );
-        assert_eq!(inv_count(&app, ea, "gold-bar"), 0, "alice duped gold");
-    }
-
-    /// A trade that would overflow the recipient's inventory is rejected whole.
-    #[test]
-    fn trade_full_inventory_rejected() {
-        let (mut app, _rx, input_tx, roster) = harness(104);
-        let a = join(&roster, "alice");
-        let b = join(&roster, "bob");
-        app.update();
-
-        let ea = player_for_slot(&mut app, a);
-        let eb = player_for_slot(&mut app, b);
-        set_inventory(&mut app, ea, &[("coin", 5)]);
-        let full: Vec<(String, u32)> = (0..MAX_INVENTORY_SLOTS)
-            .map(|i| (format!("item{i}"), 1))
-            .collect();
-        {
-            let mut inv = app.world_mut().get_mut::<Inventory>(eb).unwrap();
-            inv.slots = full;
-        }
-        let b_eid = eid_of(&mut app, b);
-
-        input_tx
-            .send((
-                a,
-                Input::TradeOffer {
-                    target: b_eid,
-                    items: vec![("coin".into(), 2)],
-                },
-            ))
-            .unwrap();
-        input_tx.send((a, Input::TradeAccept)).unwrap();
-        input_tx.send((b, Input::TradeAccept)).unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-
-        assert_eq!(
-            inv_count(&app, ea, "coin"),
-            5,
-            "alice debited on rejected trade"
-        );
-        assert_eq!(
-            inv_count(&app, eb, "coin"),
-            0,
-            "coin forced into full inventory"
-        );
-        assert_eq!(
-            app.world().get::<Inventory>(eb).unwrap().slots.len(),
-            MAX_INVENTORY_SLOTS,
-            "bob inventory mutated by rejected trade"
-        );
-        assert!(
-            app.world().resource::<ActiveTrades>().sessions.is_empty(),
-            "rejected trade left a session"
-        );
-    }
-
-    /// Spawn a merchant entity adjacent to spawn and stock it; returns its eid.
-    fn spawn_merchant(app: &mut App, tile: Tile, stock: &[&str]) -> proto::EntityId {
-        let kind = app
-            .world()
-            .resource::<KindRegistry>()
-            .kind_of("training-dummy")
-            .expect("training-dummy kind");
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityKind(kind),
-                GridPos::at(tile),
-                MoveTarget::default(),
-                MoveSpeed { ticks_per_tile: 2 },
-            ))
-            .id();
-        app.world_mut().resource_mut::<ShopStock>().0.insert(
-            "training-dummy".to_string(),
-            stock.iter().map(|s| s.to_string()).collect(),
-        );
-        app.update();
-        proto::EntityId(entity.index_u32())
-    }
-
-    fn set_prices(app: &mut App, prices: &[(&str, u32, u32)]) {
-        let mut p = app.world_mut().resource_mut::<ItemPrices>();
-        for (r, buy, sell) in prices {
-            p.0.insert(r.to_string(), (*buy, *sell));
-        }
-    }
-
-    #[test]
-    fn shop_buy_deducts_coin_and_grants_item() {
-        let (mut app, _rx, input_tx, roster) = harness(201);
-        let slot = join(&roster, "buyer");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("coin", 10)]);
-        set_prices(&mut app, &[("potion", 5, 2)]);
-        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::BuyItem {
-                    npc,
-                    item_ref: "potion".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(inv_count(&app, player, "coin"), 5, "coin not deducted");
-        assert_eq!(inv_count(&app, player, "potion"), 1, "item not granted");
-    }
-
-    #[test]
-    fn shop_buy_insufficient_coin_rejected() {
-        let (mut app, mut rx, input_tx, roster) = harness(202);
-        let slot = join(&roster, "broke");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("coin", 3)]);
-        set_prices(&mut app, &[("potion", 5, 2)]);
-        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::BuyItem {
-                    npc,
-                    item_ref: "potion".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(
-            inv_count(&app, player, "coin"),
-            3,
-            "coin spent on failed buy"
-        );
-        assert_eq!(
-            inv_count(&app, player, "potion"),
-            0,
-            "item granted for free"
-        );
-        let mut saw_fail = false;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
-                && kind == proto::EPHEMERAL_SHOP
-            {
-                let body = String::from_utf8(payload).unwrap();
-                if body.contains("\"ok\":false") && body.contains("insufficient") {
-                    saw_fail = true;
-                }
-            }
-        }
-        assert!(saw_fail, "no shop rejection ephemeral");
-    }
-
-    #[test]
-    fn shop_buy_breaks_gold_bar_for_change() {
-        let (mut app, _rx, input_tx, roster) = harness(203);
-        let slot = join(&roster, "rich");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("gold-bar", 1)]);
-        set_prices(&mut app, &[("potion", 5, 2)]);
-        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::BuyItem {
-                    npc,
-                    item_ref: "potion".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(
-            inv_count(&app, player, "gold-bar"),
-            0,
-            "gold-bar not broken"
-        );
-        assert_eq!(inv_count(&app, player, "coin"), 95, "change not returned");
-        assert_eq!(inv_count(&app, player, "potion"), 1, "item not granted");
-    }
-
-    #[test]
-    fn shop_sell_grants_coin_removes_item() {
-        let (mut app, _rx, input_tx, roster) = harness(204);
-        let slot = join(&roster, "seller");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("potion", 2)]);
-        set_prices(&mut app, &[("potion", 5, 2)]);
-        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::SellItem {
-                    npc,
-                    item_ref: "potion".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(inv_count(&app, player, "potion"), 1, "item not removed");
-        assert_eq!(inv_count(&app, player, "coin"), 2, "coin not granted");
-    }
-
-    #[test]
-    fn shop_buy_out_of_stock_rejected() {
-        let (mut app, _rx, input_tx, roster) = harness(205);
-        let slot = join(&roster, "picky");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("coin", 100)]);
-        set_prices(&mut app, &[("iron-sword", 50, 20)]);
-        let npc = spawn_merchant(&mut app, Tile::new(8, 8), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::BuyItem {
-                    npc,
-                    item_ref: "iron-sword".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(inv_count(&app, player, "coin"), 100, "coin spent off-menu");
-        assert_eq!(
-            inv_count(&app, player, "iron-sword"),
-            0,
-            "got unstocked item"
-        );
-    }
-
-    #[test]
-    fn shop_buy_too_far_rejected() {
-        let (mut app, _rx, input_tx, roster) = harness(206);
-        let slot = join(&roster, "distant");
-        app.update();
-        let player = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, player, &[("coin", 100)]);
-        set_prices(&mut app, &[("potion", 5, 2)]);
-        let npc = spawn_merchant(&mut app, Tile::new(20, 20), &["potion"]);
-
-        input_tx
-            .send((
-                slot,
-                Input::BuyItem {
-                    npc,
-                    item_ref: "potion".into(),
-                    qty: 1,
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-        assert_eq!(inv_count(&app, player, "coin"), 100, "coin spent from afar");
-        assert_eq!(
-            inv_count(&app, player, "potion"),
-            0,
-            "item bought from afar"
-        );
-    }
-
-    // ---- Blackjack tables ----
-
-    fn bj_harness(seed: u64, table: Tile) -> Harness {
-        let (mut app, rx, tx, roster) = harness(seed);
-        app.world_mut().insert_resource(Tables(vec![TableDef {
-            table_ref: "table".into(),
-            tile: table,
-            seats: 5,
-        }]));
-        (app, rx, tx, roster)
-    }
-
-    #[test]
-    fn join_requires_proximity() {
-        let (mut app, _rx, tx, roster) = bj_harness(201, Tile::new(0, 0));
-        let slot = join(&roster, "p1");
-        app.update();
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        assert!(
-            app.world().resource::<TableRegistry>().sessions.is_empty(),
-            "seated from out of range"
-        );
-    }
-
-    #[test]
-    fn bet_caps_and_debits_held_coin() {
-        let (mut app, _rx, tx, roster) = bj_harness(202, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        app.update();
-        let e = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, e, &[("coin", 10)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        assert_eq!(
-            app.world().resource::<TableRegistry>().sessions.len(),
-            1,
-            "did not seat adjacent player"
-        );
-        tx.send((slot, Input::PlaceBet { amount: 1000 })).unwrap();
-        app.update();
-        assert_eq!(
-            inv_count(&app, e, "coin"),
-            0,
-            "bet not capped to held coin + debited"
-        );
-    }
-
-    #[test]
-    fn leave_during_betting_refunds_and_tears_down() {
-        let (mut app, _rx, tx, roster) = bj_harness(203, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        app.update();
-        let e = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, e, &[("coin", 10)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        tx.send((slot, Input::PlaceBet { amount: 4 })).unwrap();
-        app.update();
-        assert_eq!(inv_count(&app, e, "coin"), 6, "bet not debited");
-        tx.send((slot, Input::LeaveTable)).unwrap();
-        app.update();
-        assert_eq!(inv_count(&app, e, "coin"), 10, "bet not refunded on leave");
-        assert!(
-            app.world().resource::<TableRegistry>().sessions.is_empty(),
-            "empty table not torn down"
-        );
-    }
-
-    #[test]
-    fn full_round_settles_to_valid_total() {
-        let (mut app, _rx, tx, roster) = bj_harness(204, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        app.update();
-        let e = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, e, &[("coin", 100)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        tx.send((slot, Input::PlaceBet { amount: 10 })).unwrap();
-        app.update();
-        // No action -> turn timer auto-stands the seat, dealer plays, round settles.
-        for _ in 0..(BJ_BET_TICKS + BJ_TURN_TICKS + BJ_SETTLE_TICKS + 30) {
-            app.update();
-        }
-        let coin = inv_count(&app, e, "coin");
-        assert!(
-            [90, 100, 110, 115].contains(&coin),
-            "unexpected settled coin total: {coin}"
-        );
-        assert_eq!(
-            app.world().resource::<TableRegistry>().sessions.len(),
-            1,
-            "session torn down while player still seated"
-        );
-    }
-
-    fn occupied_seats(app: &App) -> usize {
-        app.world()
-            .resource::<TableRegistry>()
-            .sessions
-            .values()
-            .map(|s| s.occupied())
-            .sum()
-    }
-
-    #[test]
-    fn disconnect_holds_seat_then_releases_after_grace() {
-        let (mut app, _rx, tx, roster) = bj_harness(205, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        app.update();
-        let e = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, e, &[("coin", 50)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        tx.send((slot, Input::PlaceBet { amount: 10 })).unwrap();
-        app.update();
-        for _ in 0..(BJ_BET_TICKS + 2) {
-            app.update();
-        }
-        roster.write().unwrap().release(slot);
-        app.update();
-        app.update();
-        // Seat is held open through the grace window, not dropped immediately.
-        assert_eq!(occupied_seats(&app), 1, "seat dropped before grace elapsed");
-        for _ in 0..(BJ_HOLD_TICKS + 2) {
-            app.update();
-        }
-        assert!(
-            app.world().resource::<TableRegistry>().sessions.is_empty(),
-            "held seat not released + table not torn down after grace"
-        );
-    }
-
-    #[test]
-    fn reconnect_reclaims_held_seat() {
-        let (mut app, _rx, tx, roster) = bj_harness(207, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        app.update();
-        let e = player_for_slot(&mut app, slot);
-        set_inventory(&mut app, e, &[("coin", 50)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        // Disconnect, then let the seat park for a few ticks (still within grace).
-        roster.write().unwrap().release(slot);
-        for _ in 0..5 {
-            app.update();
-        }
-        assert_eq!(occupied_seats(&app), 1, "seat not held after disconnect");
-        // Reconnect under the same name (new slot) and re-join from the table tile.
-        let slot2 = join(&roster, "p1");
-        app.update();
-        tx.send((
-            slot2,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        assert_eq!(
-            occupied_seats(&app),
-            1,
-            "reconnect took a second seat instead of reclaiming the held one"
-        );
-        let session = app
-            .world()
-            .resource::<TableRegistry>()
-            .sessions
-            .values()
-            .next()
-            .unwrap();
-        let seat = session.seats.iter().flatten().next().unwrap();
-        assert_eq!(seat.slot, slot2.0, "reclaimed seat not rebound to new slot");
-        assert!(
-            seat.disconnected_since.is_none(),
-            "reclaimed seat still flagged offline"
-        );
-    }
-
-    fn bj_card(suit: u8, rank: u8) -> u8 {
-        (suit << 4) | rank
-    }
-
-    /// Mutate the (single) live table session for a deterministic rule scenario.
-    fn with_session(app: &mut App, f: impl FnOnce(&mut TableSession)) {
-        let mut reg = app.world_mut().resource_mut::<TableRegistry>();
-        let session = reg.sessions.values_mut().next().expect("a live session");
-        f(session);
-    }
-
-    /// Seat a funded player, lock in a bet, and run the table through the deal.
-    fn bj_seated_and_dealt(
-        app: &mut App,
-        tx: &mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
-        slot: proto::PlayerSlot,
-        coins: u32,
-        bet: u32,
-    ) -> Entity {
-        app.update();
-        let e = player_for_slot(app, slot);
-        set_inventory(app, e, &[("coin", coins)]);
-        tx.send((
-            slot,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        tx.send((slot, Input::PlaceBet { amount: bet })).unwrap();
-        app.update();
-        for _ in 0..(BJ_BET_TICKS + 2) {
-            app.update();
-        }
-        e
-    }
-
-    #[test]
-    fn surrender_refunds_half_the_bet() {
-        let (mut app, _rx, tx, roster) = bj_harness(210, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
-        // Force a 16 vs a non-ace dealer, mid player-turn.
-        with_session(&mut app, |s| {
-            s.phase = BjPhase::PlayerTurn;
-            s.deadline_tick = u32::MAX;
-            s.dealer = vec![bj_card(0, 9), bj_card(0, 8)];
-            let bet = s.seats.iter().flatten().next().unwrap().bet;
-            let seat = s.seats.iter_mut().flatten().next().unwrap();
-            let mut h = Hand::new(bet);
-            h.cards = vec![bj_card(0, 9), bj_card(0, 5)];
-            seat.hands = vec![h];
-            s.active_seat = usize::MAX;
-            s.active_hand = 0;
-        });
-        tx.send((
-            slot,
-            Input::BjAction {
-                kind: proto::BjActionKind::Surrender,
-            },
-        ))
-        .unwrap();
-        app.update();
-        assert_eq!(
-            inv_count(&app, e, "coin"),
-            95,
-            "surrender did not refund half the 10 bet"
-        );
-        let session = app
-            .world()
-            .resource::<TableRegistry>()
-            .sessions
-            .values()
-            .next()
-            .unwrap();
-        let seat = session.seats.iter().flatten().next().unwrap();
-        assert!(seat.hands[0].surrendered, "hand not flagged surrendered");
-    }
-
-    #[test]
-    fn split_creates_two_hands_and_debits_a_second_bet() {
-        let (mut app, _rx, tx, roster) = bj_harness(211, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
-        with_session(&mut app, |s| {
-            s.phase = BjPhase::PlayerTurn;
-            s.deadline_tick = u32::MAX;
-            s.dealer = vec![bj_card(0, 9), bj_card(0, 8)];
-            let bet = s.seats.iter().flatten().next().unwrap().bet;
-            let seat = s.seats.iter_mut().flatten().next().unwrap();
-            let mut h = Hand::new(bet);
-            h.cards = vec![bj_card(0, 7), bj_card(1, 7)]; // pair of eights
-            seat.hands = vec![h];
-            s.active_seat = usize::MAX;
-            s.active_hand = 0;
-        });
-        tx.send((
-            slot,
-            Input::BjAction {
-                kind: proto::BjActionKind::Split,
-            },
-        ))
-        .unwrap();
-        app.update();
-        assert_eq!(
-            inv_count(&app, e, "coin"),
-            80,
-            "split did not debit a second 10 bet"
-        );
-        let session = app
-            .world()
-            .resource::<TableRegistry>()
-            .sessions
-            .values()
-            .next()
-            .unwrap();
-        let seat = session.seats.iter().flatten().next().unwrap();
-        assert_eq!(seat.hands.len(), 2, "split did not produce two hands");
-        assert!(
-            seat.hands.iter().all(|h| h.cards.len() == 2),
-            "split hands not topped up to two cards"
-        );
-    }
-
-    #[test]
-    fn insurance_debits_and_caps_at_half_the_bet() {
-        let (mut app, _rx, tx, roster) = bj_harness(212, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        let e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
-        with_session(&mut app, |s| {
-            s.phase = BjPhase::Insurance;
-            s.deadline_tick = u32::MAX; // keep the window open
-            s.dealer = vec![bj_card(0, 0), bj_card(0, 8)]; // ace up
-        });
-        // Ask for far more than allowed; it caps at bet/2 = 5.
-        tx.send((slot, Input::Insure { amount: 999 })).unwrap();
-        app.update();
-        assert_eq!(
-            inv_count(&app, e, "coin"),
-            85,
-            "insurance stake not capped to half the bet"
-        );
-        let session = app
-            .world()
-            .resource::<TableRegistry>()
-            .sessions
-            .values()
-            .next()
-            .unwrap();
-        let seat = session.seats.iter().flatten().next().unwrap();
-        assert_eq!(seat.insurance, 5, "insurance not recorded at the cap");
-    }
-
-    #[test]
-    fn settled_round_reveals_a_seed_matching_its_commitment() {
-        let (mut app, mut rx, tx, roster) = bj_harness(220, Tile::new(8, 8));
-        let slot = join(&roster, "p1");
-        let _e = bj_seated_and_dealt(&mut app, &tx, slot, 100, 10);
-        // No action: the turn timer auto-stands, the dealer plays, the round settles.
-        for _ in 0..(BJ_INSURANCE_TICKS + BJ_TURN_TICKS + BJ_SETTLE_TICKS + 20) {
-            app.update();
-        }
-        let mut commitment_seen = false;
-        let mut verified = false;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
-                && kind == proto::EPHEMERAL_BLACKJACK
-            {
-                let v: serde_json::Value = serde_json::from_slice(&payload).unwrap();
-                if v["commitment"].as_str().is_some_and(|s| !s.is_empty()) {
-                    commitment_seen = true;
-                }
-                if let Some(seed_str) = v["seed"].as_str() {
-                    let seed: u64 = seed_str.parse().unwrap();
-                    let commitment = v["commitment"].as_str().unwrap();
-                    assert_eq!(
-                        blackjack::commit_seed(seed),
-                        commitment,
-                        "revealed seed does not match the published commitment"
-                    );
-                    verified = true;
-                }
-            }
-        }
-        assert!(commitment_seen, "no commitment broadcast during the round");
-        assert!(verified, "round never revealed a verifiable seed at settle");
-    }
-
-    #[test]
-    fn nearby_spectator_receives_scoped_state() {
-        let (mut app, mut rx, tx, roster) = bj_harness(206, Tile::new(8, 8));
-        let player = join(&roster, "player");
-        let watcher = join(&roster, "watcher");
-        app.update();
-        let ep = player_for_slot(&mut app, player);
-        set_inventory(&mut app, ep, &[("coin", 20)]);
-        tx.send((
-            player,
-            Input::JoinTable {
-                table_ref: "table".into(),
-            },
-        ))
-        .unwrap();
-        app.update();
-        tx.send((player, Input::PlaceBet { amount: 5 })).unwrap();
-        app.update();
-        for _ in 0..(BJ_BET_TICKS + 5) {
-            app.update();
-        }
-        let mut to_watcher = 0usize;
-        let mut saw_hidden = false;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Ephemeral { kind, to, payload } = evt
-                && kind == proto::EPHEMERAL_BLACKJACK
-                && to == watcher
-            {
-                to_watcher += 1;
-                let txt = String::from_utf8(payload).unwrap();
-                if txt.contains("\"dealer_hidden\":true") {
-                    saw_hidden = true;
-                }
-            }
-        }
-        assert!(to_watcher > 0, "spectator never received scoped state");
-        assert!(saw_hidden, "dealer hole card was not hidden pre-reveal");
     }
 }

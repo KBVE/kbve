@@ -11,8 +11,8 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use simgrid::proto::{
-    self, ClientFrame, ClientMessage, Dir, EntityId, Input, JoinMatch, PROTOCOL_VERSION,
-    PlayerSlot, ServerEvent,
+    self, ClientFrame, ClientMessage, EntityId, Input, JoinMatch, PROTOCOL_VERSION, PlayerSlot,
+    ServerEvent,
 };
 use simgrid::{
     KindRegistry, ServerState, SimConfig, WalkableMap, build_app, proto::Tile, router, run_sim_loop,
@@ -148,7 +148,7 @@ async fn join_spawns_player_at_spawn_tile() {
 }
 
 #[tokio::test]
-async fn step_input_moves_player() {
+async fn move_input_moves_player() {
     let url = spawn_server(8).await;
     let mut ws = join_and_welcome(&url, "mover").await;
 
@@ -164,10 +164,15 @@ async fn step_input_moves_player() {
     }
     let start_y = start_y.expect("player spawned");
 
-    // Step up a few times; y should decrease.
+    // Steer the float body up (negative y); y should decrease.
     let frame = ClientMessage::Frame(ClientFrame {
         client_tick: 1,
-        inputs: vec![Input::Step { dir: Dir::Up }],
+        inputs: vec![Input::Move {
+            seq: 1,
+            mx: 0,
+            my: -127,
+            run: true,
+        }],
     });
     for _ in 0..5 {
         ws.send(Message::Text(proto::encode_json(&frame).unwrap()))
