@@ -1021,18 +1021,6 @@
 			"version_toml": "packages/unreal/KBVEULID/version.toml"
 		},
 		{
-			"key": "ue_kbveunrealmcp",
-			"plugin_name": "KBVEUnrealMCP",
-			"plugin_path": "packages/unreal/KBVEUnrealMCP",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEUnrealMCP/version.toml"
-		},
-		{
 			"key": "ue_kbvewasm",
 			"plugin_name": "KBVEWASM",
 			"plugin_path": "packages/unreal/KBVEWASM",
@@ -1282,12 +1270,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 29,
+		"unreal": 28,
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 101
+		"total": 100
 	}
 }
