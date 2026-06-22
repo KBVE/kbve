@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { OverlayHost, ToastViewport } from '@kbve/rn/ui';
 import { DashboardShell } from '../layout/DashboardShell';
 import { Spinner } from '../components/ui';
 import { useAuth } from '../lib/auth';
@@ -41,5 +42,11 @@ export function DashboardPage() {
 		);
 	}
 
-	return <DashboardShell />;
+	return (
+		<>
+			<DashboardShell />
+			<OverlayHost />
+			<ToastViewport />
+		</>
+	);
 }
