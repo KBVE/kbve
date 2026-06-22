@@ -151,7 +151,7 @@
 		"@tauri-apps/plugin-opener": "^2.5.4",
 		"@tauri-apps/plugin-store": "^2.4.3",
 		"@types/d3-force": "^3.0.10",
-		"astro-mermaid": "^2.0.1",
+		"astro-mermaid": "^2.0.4",
 		"babel-preset-expo": "~56.0.15",
 		"bitecs": "^0.4.0",
 		"clsx": "^2.1.1",
