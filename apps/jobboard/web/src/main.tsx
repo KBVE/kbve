@@ -60,7 +60,8 @@ createRoot(document.getElementById('root')!).render(
 				supabaseUrl={supabaseUrl}
 				anonKey={KBVE_SUPABASE_ANON_KEY}
 				apiBaseUrl={`${window.location.origin}/kbveapi`}
-				oauthUrl="https://supabase.kbve.com">
+				oauthUrl="https://supabase.kbve.com"
+				pooledApi>
 				<AuthBridge />
 				<StaffProvider>
 					<ThemeProvider theme={jobboardTheme}>
