@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/vm.binpb
  * Config: ../vm-zod-config.json
- * Generated: 2026-06-01T06:12:05.358Z
+ * Generated: 2026-06-22T21:31:58.936Z
  */
 
 import { z } from 'zod';

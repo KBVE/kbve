@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/agents.binpb
  * Config: ../agents-zod-config.json
- * Generated: 2026-06-10T23:51:25.025Z
+ * Generated: 2026-06-22T21:31:58.927Z
  */
 
 import { z } from 'zod';

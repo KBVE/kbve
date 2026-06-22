@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mc_lot.binpb
  * Config: ../mc_lot-zod-config.json
- * Generated: 2026-06-04T10:31:02.264Z
+ * Generated: 2026-06-22T21:31:58.981Z
  */
 
 import { z } from 'zod';
