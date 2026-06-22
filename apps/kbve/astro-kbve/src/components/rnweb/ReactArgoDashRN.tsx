@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StreamView, createArgoStream, argoLens } from '@kbve/rn/dash';
+import { StreamView, createArgoStream, createArgoLens } from '@kbve/rn/dash';
 import { initSupa, getSupa } from '@/lib/supa';
 
 async function getToken(): Promise<string | null> {
@@ -20,10 +20,11 @@ async function getToken(): Promise<string | null> {
  */
 export default function ReactArgoDashRN() {
 	const store = useMemo(() => createArgoStream({ getToken }), []);
+	const lens = useMemo(() => createArgoLens({ getToken }), []);
 	return (
 		<StreamView
 			store={store}
-			lens={argoLens}
+			lens={lens}
 			layout="rows"
 			searchPlaceholder="filter by name / namespace / project"
 		/>
