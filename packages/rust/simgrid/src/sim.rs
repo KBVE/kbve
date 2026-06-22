@@ -6,7 +6,8 @@ use bevy::app::App;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::schedule::SystemSet;
 use bevy::prelude::{
-    Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
+    Added, Commands, Component, IntoScheduleConfigs, Query, RemovedComponents, Res, ResMut,
+    Resource, Update, With, Without,
 };
 use serde_json::json;
 use tokio::sync::mpsc;
@@ -797,9 +798,15 @@ fn sync_roster(
 /// is deliberately no occupancy grid; players and NPCs pass through each other
 /// (terrain in `WalkableMap` is the only movement blocker), matching the
 /// client's gridEngine `collides: false`.
-fn rebuild_index(mut index: ResMut<EidIndex>, q: Query<Entity, With<GridPos>>) {
-    index.by_eid.clear();
-    for entity in q.iter() {
+fn rebuild_index(
+    mut index: ResMut<EidIndex>,
+    added: Query<Entity, Added<GridPos>>,
+    mut removed: RemovedComponents<GridPos>,
+) {
+    for entity in removed.read() {
+        index.by_eid.remove(&entity.index_u32());
+    }
+    for entity in added.iter() {
         index.by_eid.insert(entity.index_u32(), entity);
     }
 }
