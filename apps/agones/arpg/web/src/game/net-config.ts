@@ -1,43 +1,27 @@
+import { createNetConfig, type GameNetConfig } from '@kbve/laser';
 import { resolveWsUrl } from './config';
+import { authBridge } from '../lib/auth';
 
-export interface NetConfig {
-	wsUrl: string;
-	jwt: string;
-	username: string;
-}
+// Re-export laser's config type under the arpg-local name the game uses.
+export type NetConfig = GameNetConfig;
 
-let current: NetConfig | null = null;
+// The shared net-config store, wired to the arpg WS resolver + the web Supabase
+// session source (lib/auth). buildNetConfig resolves null with no session, so
+// ReactIsoArpgApp shows the sign-in gate (the server denies an empty JWT).
+const store = createNetConfig({ source: authBridge, resolveWsUrl });
 
 export function setNetConfig(cfg: NetConfig): void {
-	current = cfg;
+	store.set(cfg);
 }
 
 export function getNetConfig(): NetConfig | null {
-	return current;
+	return store.get();
 }
 
 export function clearNetConfig(): void {
-	current = null;
+	store.clear();
 }
 
-function usernameFromToken(token: string): string {
-	try {
-		const payload = token.split('.')[1];
-		const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-		const claims = JSON.parse(json) as { kbve_username?: string };
-		return claims.kbve_username ?? '';
-	} catch {
-		return '';
-	}
-}
-
-export async function buildNetConfig(): Promise<NetConfig | null> {
-	const { authBridge } = await import('../lib/auth');
-	const session = await authBridge.getSession();
-	const jwt = session?.access_token ?? '';
-	if (!jwt) return null;
-	const username = usernameFromToken(jwt);
-	const cfg: NetConfig = { wsUrl: resolveWsUrl(), jwt, username };
-	setNetConfig(cfg);
-	return cfg;
+export function buildNetConfig(): Promise<NetConfig | null> {
+	return store.build();
 }

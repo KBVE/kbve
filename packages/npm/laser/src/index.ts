@@ -163,3 +163,18 @@ export type {
 	CardRank,
 	DecodedCard,
 } from './lib/net/protocol';
+
+// Game auth — session -> { jwt, username, wsUrl } glue shared by KBVE Phaser
+// games. The Supabase client is injected (laser stays dep-free).
+export {
+	usernameFromToken,
+	createNetConfig,
+	makeWsResolver,
+} from './lib/auth/game-auth';
+export type {
+	GameSession,
+	SessionSource,
+	GameNetConfig,
+	NetConfigOptions,
+	GameNetConfigStore,
+} from './lib/auth/game-auth';
