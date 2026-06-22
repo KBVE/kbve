@@ -134,6 +134,13 @@ export default defineConfig(({ mode }) => {
 					secure: true,
 					rewrite: (p) => p.replace(/^\/supabase/, ''),
 				},
+				'/gamechat': {
+					target: 'wss://chat.kbve.com',
+					ws: true,
+					changeOrigin: true,
+					secure: true,
+					headers: { origin: 'https://arpg.kbve.com' },
+				},
 			},
 		},
 	};
