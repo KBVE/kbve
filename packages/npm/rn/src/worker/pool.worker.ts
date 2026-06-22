@@ -1,6 +1,7 @@
 import * as Comlink from 'comlink';
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
+import { request as coreRequest } from '@kbve/core';
 import type { PoolRequestInit, PoolResponse } from './types';
 
 interface Row {
@@ -23,27 +24,11 @@ const api = {
 		url: string,
 		init?: PoolRequestInit,
 	): Promise<PoolResponse<T>> {
-		try {
-			const res = await fetch(url, {
-				method: init?.method ?? 'GET',
-				headers: init?.headers,
-				body: init?.body,
-			});
-			const data = (await res.json().catch(() => null)) as T | null;
-			return {
-				ok: res.ok,
-				status: res.status,
-				data,
-				error: res.ok ? null : `HTTP ${res.status}`,
-			};
-		} catch (e) {
-			return {
-				ok: false,
-				status: 0,
-				data: null,
-				error: e instanceof Error ? e.message : 'request failed',
-			};
-		}
+		return coreRequest<T>(url, {
+			method: init?.method,
+			headers: init?.headers,
+			body: init?.body,
+		});
 	},
 	async cacheGet<T>(key: string): Promise<T | null> {
 		const row = await db.kv.get(key);
