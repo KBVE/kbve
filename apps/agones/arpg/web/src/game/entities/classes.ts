@@ -171,7 +171,7 @@ export function registerClassAnims(scene: Phaser.Scene, def: ClassDef): void {
 					key,
 					frames: scene.anims.generateFrameNumbers(
 						classSheetKey(def, state, angle, layer),
-						{ start: 0, end: spec.frames - 1 },
+						{ start: 0, end: -1 },
 					),
 					frameRate: spec.frameRate,
 					repeat: spec.loop ? -1 : 0,

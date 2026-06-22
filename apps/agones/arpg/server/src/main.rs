@@ -47,17 +47,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_default()
         .into_bytes();
 
-    // Auth precedence: a GoTrue verifier (SUPABASE_URL + SUPABASE_ANON_KEY) wins —
-    // it validates real session JWTs against Supabase + caches them, so local dev
-    // needs no JWT secret. Else fall back to the local HS256 secret, else
+    // Auth precedence: a local HS256 secret (SUPABASE_JWT_SECRET) wins — verifying
+    // the signature locally is what the rest of the platform does (irc-gateway,
+    // jobboard, rows, kbve-gate) and avoids depending on GoTrue's /auth/v1/user,
+    // which rejects validly-signed tokens when its verifying secret drifts. Else
+    // fall back to a GoTrue verifier (SUPABASE_URL + SUPABASE_ANON_KEY), else
     // dev-accept (no auth) when neither is set.
-    let verifier = auth::gotrue_verifier();
-    let auth_mode = if verifier.is_some() {
-        "supabase GoTrue (verify + cache)"
-    } else if jwt_secret.is_empty() {
-        "dev-accept (no auth configured)"
+    let verifier = if jwt_secret.is_empty() {
+        auth::gotrue_verifier()
     } else {
+        None
+    };
+    let auth_mode = if !jwt_secret.is_empty() {
         "supabase HS256 (local secret)"
+    } else if verifier.is_some() {
+        "supabase GoTrue (verify + cache)"
+    } else {
+        "dev-accept (no auth configured)"
     };
 
     let registry = game::registry();

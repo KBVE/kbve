@@ -1818,7 +1818,7 @@ jobs:
     plugin_check:
         name: Plugin Version Gate
         needs: guard
-        if: (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') && needs.guard.outputs.allowed == 'true'
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true'
         runs-on: arc-runner-set-kbve
         timeout-minutes: 5
         permissions:
@@ -1828,8 +1828,10 @@ jobs:
             published_version: ${{ steps.extract.outputs.published_version }}
             should_release: ${{ steps.compare.outputs.should_release }}
             tag: ${{ steps.compare.outputs.tag }}
-            zip_name: ${{ steps.extract.outputs.zip_name }}
             engine: ${{ steps.extract.outputs.engine }}
+            zip_linux: ${{ steps.extract.outputs.zip_linux }}
+            zip_mac: ${{ steps.extract.outputs.zip_mac }}
+            zip_win: ${{ steps.extract.outputs.zip_win }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -1854,13 +1856,15 @@ jobs:
                     PUBLISHED="0.0.0"
                   fi
 
-                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then SUFFIX="-Win64"; else SUFFIX="-Linux"; fi
                   ENGINE=$(printf '%s' "${{ inputs.ue_image_tag }}" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
                   [ -z "${ENGINE}" ] && ENGINE="unknown"
+                  NAME="${{ inputs.plugin_name }}"
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
                   echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
                   echo "engine=${ENGINE}" >> "$GITHUB_OUTPUT"
-                  echo "zip_name=${{ inputs.plugin_name }}${SUFFIX}-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "zip_linux=${NAME}-Linux-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "zip_mac=${NAME}-Mac-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "zip_win=${NAME}-Win64-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
                   echo "::notice::Plugin ${{ inputs.plugin_name }} - uplugin: ${VERSION}, published: ${PUBLISHED}, engine: ${ENGINE}"
 
             - name: Compare versions
@@ -1873,8 +1877,7 @@ jobs:
 
                   PREFIX="${{ inputs.release_tag_prefix }}"
                   if [ -z "${PREFIX}" ]; then
-                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')
-                    if [ "${{ inputs.mode }}" = "plugin-win" ]; then PREFIX="${PREFIX}-win64-v"; else PREFIX="${PREFIX}-v"; fi
+                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')-v
                   fi
                   TAG="${PREFIX}${VERSION}"
                   echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
@@ -1891,9 +1894,9 @@ jobs:
                   fi
 
     plugin_build_linux:
-        name: Build Plugin (${{ inputs.plugin_name }})
+        name: Build Plugin Linux (${{ inputs.plugin_name }})
         needs: [guard, plugin_check]
-        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true'
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Linux')
         runs-on: arc-runner-ue
         timeout-minutes: ${{ inputs.build_timeout }}
         permissions:
@@ -1989,7 +1992,7 @@ jobs:
                           "$RUNUAT" BuildPlugin \
                             -Plugin="$dep_uplugin" \
                             -Package="$MARKETPLACE_DIR/$dep_name" \
-                            -TargetPlatforms=${{ inputs.target_platforms }} \
+                            -TargetPlatforms=Linux \
                             -Rocket
                           echo "::endgroup::"
                         done
@@ -1998,7 +2001,7 @@ jobs:
                       "$RUNUAT" BuildPlugin \
                         -Plugin=/plugin/${{ inputs.plugin_name }}.uplugin \
                         -Package=/output/${{ inputs.plugin_name }} \
-                        -TargetPlatforms=${{ inputs.target_platforms }} \
+                        -TargetPlatforms=Linux \
                         -Rocket -StrictIncludes
                     '
 
@@ -2014,14 +2017,14 @@ jobs:
             - name: Package plugin zip
               run: |
                   cd output
-                  zip -r "${{ needs.plugin_check.outputs.zip_name }}" "${{ inputs.plugin_name }}/"
-                  ls -lh "${{ needs.plugin_check.outputs.zip_name }}"
+                  zip -r "${{ needs.plugin_check.outputs.zip_linux }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.plugin_check.outputs.zip_linux }}"
 
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ needs.plugin_check.outputs.zip_name }}
-                  path: output/${{ needs.plugin_check.outputs.zip_name }}
+                  name: ${{ needs.plugin_check.outputs.zip_linux }}
+                  path: output/${{ needs.plugin_check.outputs.zip_linux }}
                   retention-days: 30
 
             - name: Cleanup
@@ -2034,7 +2037,7 @@ jobs:
     plugin_build_win:
         name: Build Plugin Win64 (${{ inputs.plugin_name }})
         needs: [guard, plugin_check]
-        if: inputs.mode == 'plugin-win' && needs.guard.outputs.allowed == 'true'
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Win64')
         runs-on: UE5-Win
         timeout-minutes: ${{ inputs.build_timeout }}
         defaults:
@@ -2091,7 +2094,7 @@ jobs:
                       if (-not $depUplugin) { Write-Host "::error::No .uplugin in dependency $depName"; exit 1 }
                       $dst = Join-Path $marketplaceDir $depName
                       Write-Host "::group::Build dependency plugin $depName"
-                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$dst" -TargetPlatforms=${{ inputs.target_platforms }} -Rocket
+                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$dst" -TargetPlatforms=Win64 -Rocket
                       if ($LASTEXITCODE -ne 0) { Write-Host "::error::Dependency BuildPlugin failed for $depName ($LASTEXITCODE)"; exit $LASTEXITCODE }
                       Write-Host "::endgroup::"
                   }
@@ -2104,7 +2107,7 @@ jobs:
                   New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
                   & $runuat BuildPlugin `
                       -Plugin="$pluginPath" -Package="$outputDir" `
-                      -TargetPlatforms=${{ inputs.target_platforms }} `
+                      -TargetPlatforms=Win64 `
                       -Rocket -StrictIncludes
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::RunUAT BuildPlugin failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
@@ -2121,56 +2124,153 @@ jobs:
             - name: Package plugin zip
               run: |
                   $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output'
-                  $zipPath = Join-Path $outputDir '${{ needs.plugin_check.outputs.zip_name }}'
+                  $zipPath = Join-Path $outputDir '${{ needs.plugin_check.outputs.zip_win }}'
                   Compress-Archive -Path (Join-Path $outputDir '${{ inputs.plugin_name }}') -DestinationPath $zipPath
                   Write-Host "::notice::Packaged: $zipPath"
 
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ needs.plugin_check.outputs.zip_name }}
-                  path: output/${{ needs.plugin_check.outputs.zip_name }}
+                  name: ${{ needs.plugin_check.outputs.zip_win }}
+                  path: output/${{ needs.plugin_check.outputs.zip_win }}
                   retention-days: 30
+
+    plugin_build_mac:
+        name: Build Plugin Mac (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true' && contains(inputs.target_platforms, 'Mac')
+        runs-on: [self-hosted, macOS, ARM64]
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: echo "::notice::Mac plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Stamp plugin version
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  jq --arg v "${{ needs.plugin_check.outputs.version }}" '.VersionName = $v' "$UPLUGIN" > "$UPLUGIN.tmp" && mv "$UPLUGIN.tmp" "$UPLUGIN"
+
+            - name: Find Unreal Engine
+              id: engine
+              run: |
+                  chmod +x .github/scripts/find-ue-mac.sh
+                  RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ needs.plugin_check.outputs.engine }}")
+                  echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
+                  echo "engine_root=${RUNUAT%/Engine/Build/BatchFiles/RunUAT.sh}" >> "$GITHUB_OUTPUT"
+
+            - name: Build dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
+                  mkdir -p "$MARKETPLACE"
+                  for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                    dep_name=$(basename "$dep_path")
+                    dep_uplugin=$(find "${{ github.workspace }}/${dep_path}" -maxdepth 1 -name "*.uplugin" | head -1)
+                    [ -z "$dep_uplugin" ] && { echo "::error::No .uplugin in dependency $dep_name"; exit 1; }
+                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$MARKETPLACE/$dep_name" -TargetPlatforms=Mac -Rocket
+                  done
+
+            - name: Build plugin with RunUAT
+              run: |
+                  mkdir -p "${{ github.workspace }}/output"
+                  "${{ steps.engine.outputs.runuat }}" BuildPlugin \
+                    -Plugin="${{ github.workspace }}/${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin" \
+                    -Package="${{ github.workspace }}/output/${{ inputs.plugin_name }}" \
+                    -TargetPlatforms=Mac \
+                    -Rocket -StrictIncludes
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "output/${{ inputs.plugin_name }}/${{ inputs.plugin_name }}.uplugin" ]; then
+                    echo "::error::Build output missing"
+                    ls -laR output/ 2>/dev/null | head -50 || true
+                    exit 1
+                  fi
+
+            - name: Package plugin zip
+              run: |
+                  cd output
+                  zip -ry "${{ needs.plugin_check.outputs.zip_mac }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.plugin_check.outputs.zip_mac }}"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_mac }}
+                  path: output/${{ needs.plugin_check.outputs.zip_mac }}
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: rm -rf "${{ github.workspace }}/output" 2>/dev/null || true
 
     plugin_release:
         name: Plugin GitHub Release
-        needs: [plugin_check, plugin_build_linux, plugin_build_win]
+        needs:
+            [
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_mac,
+                plugin_build_win,
+            ]
+        # Gate: release only when every DECLARED platform passed. A platform not
+        # in target_platforms is 'skipped' (allowed); 'failure'/'cancelled' blocks.
         if: |
-            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
+            inputs.mode == 'plugin' &&
             always() &&
             inputs.verify_only != true &&
             needs.plugin_check.outputs.should_release == 'true' &&
-            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
+            needs.plugin_build_linux.result != 'failure' &&
+            needs.plugin_build_linux.result != 'cancelled' &&
+            needs.plugin_build_mac.result != 'failure' &&
+            needs.plugin_build_mac.result != 'cancelled' &&
+            needs.plugin_build_win.result != 'failure' &&
+            needs.plugin_build_win.result != 'cancelled' &&
+            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_mac.result == 'success' || needs.plugin_build_win.result == 'success')
         runs-on: arc-runner-set-kbve
         timeout-minutes: 10
         permissions:
             contents: write
         steps:
-            - name: Download build artifact
+            - name: Download build artifacts
               uses: actions/download-artifact@v8
               with:
-                  name: ${{ needs.plugin_check.outputs.zip_name }}
                   path: ./artifact
 
             - name: Create release
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |
+                  ASSETS=$(find ./artifact -name '*.zip')
+                  if [ -z "${ASSETS}" ]; then echo "::error::No plugin assets to release"; exit 1; fi
+                  echo "::notice::Releasing assets:"; echo "${ASSETS}"
                   gh release create "${{ needs.plugin_check.outputs.tag }}" \
                     --repo "${{ github.repository }}" \
                     --title "${{ inputs.plugin_name }} v${{ needs.plugin_check.outputs.version }}" \
                     --notes "${{ inputs.plugin_name }} plugin v${{ needs.plugin_check.outputs.version }} (${{ inputs.target_platforms }})" \
-                    --prerelease \
-                    "./artifact/${{ needs.plugin_check.outputs.zip_name }}"
+                    --latest=false \
+                    ${ASSETS}
 
     plugin_itch:
         name: Plugin Deploy to itch.io
         needs:
-            [plugin_check, plugin_build_linux, plugin_build_win, plugin_release]
+            [
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_mac,
+                plugin_build_win,
+                plugin_release,
+            ]
         if: |
-            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
+            inputs.mode == 'plugin' &&
             always() &&
-            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success') &&
+            needs.plugin_release.result == 'success' &&
+            needs.plugin_build_linux.result == 'success' &&
             inputs.deploy_to_itch == true &&
             inputs.itch_game_id != ''
         runs-on: arc-runner-set-kbve
@@ -2181,13 +2281,13 @@ jobs:
             - name: Download build artifact
               uses: actions/download-artifact@v8
               with:
-                  name: ${{ needs.plugin_check.outputs.zip_name }}
+                  name: ${{ needs.plugin_check.outputs.zip_linux }}
                   path: ./artifact
 
             - name: Extract zip for butler
               run: |
                   mkdir -p ./deploy
-                  unzip "./artifact/${{ needs.plugin_check.outputs.zip_name }}" -d ./deploy
+                  unzip "./artifact/${{ needs.plugin_check.outputs.zip_linux }}" -d ./deploy
 
             - name: Deploy to itch.io
               uses: KikimoraGames/itch-publish@v0.0.3

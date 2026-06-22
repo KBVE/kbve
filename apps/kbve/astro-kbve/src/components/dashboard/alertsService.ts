@@ -247,10 +247,18 @@ export function invalidateAlertsCache(): void {
 
 export function severityColor(sev: string): string {
 	const s = sev.toLowerCase();
-	if (s === 'critical') return '#ef4444';
-	if (s === 'warning') return '#f59e0b';
-	if (s === 'info') return '#3b82f6';
-	return '#6b7280';
+	if (s === 'critical') return 'var(--kbve-status-critical)';
+	if (s === 'warning') return 'var(--kbve-status-warning)';
+	if (s === 'info') return 'var(--kbve-status-info)';
+	return 'var(--kbve-status-neutral)';
+}
+
+export function severityClass(sev: string): string {
+	const s = sev.toLowerCase();
+	if (s === 'critical') return 'kbve-sev-critical';
+	if (s === 'warning') return 'kbve-sev-warning';
+	if (s === 'info') return 'kbve-sev-info';
+	return 'kbve-sev-neutral';
 }
 
 export function severityTextClass(sev: string): string {

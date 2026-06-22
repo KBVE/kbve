@@ -1,6 +1,7 @@
 import { View } from 'react-native';
-import { Stack, Text, Badge, Avatar, Skeleton, tokens } from '@kbve/rn/ui';
+import { Stack, Text, Badge, Avatar, tokens } from '@kbve/rn/ui';
 import { useApiResource } from '@kbve/rn/auth';
+import { Skeleton } from '../components/ui';
 import { Coins, Gem } from 'lucide-react';
 import { Panel } from '../ui/Panel';
 

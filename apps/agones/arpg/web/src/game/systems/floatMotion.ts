@@ -2,10 +2,9 @@ import type { Dir } from '@kbve/laser';
 import type { TileXY } from '../iso';
 import {
 	MOVE_ACCEL,
-	MOVE_FRICTION,
 	BODY_RADIUS,
 	COLLISION_SKIN,
-	PROBE_AHEAD,
+	MAX_MOVE_STEP,
 	CENTERLINE_PULL,
 	RECONCILE_LERP,
 	RECONCILE_SNAP_DIST,
@@ -60,6 +59,8 @@ export function floatSpeed(s: FloatState): number {
  * clamped per-axis against blocked tiles so the body slides along walls instead
  * of sticking. `dtMs` is the frame delta in milliseconds.
  */
+const expDecay = (rate: number, dt: number): number => Math.exp(-rate * dt);
+
 export function stepFloat(
 	s: FloatState,
 	intent: TileXY,
@@ -67,82 +68,46 @@ export function stepFloat(
 	isBlocked: IsBlocked,
 	dtMs: number,
 ): void {
-	const dt = Math.min(dtMs, 50) / 1000; // clamp huge frame gaps
-	let ix = intent.x;
-	let iy = intent.y;
+	const dt = Math.min(dtMs, 50) / 1000;
+	const ix = intent.x;
+	const iy = intent.y;
 	const mag = Math.hypot(ix, iy);
 
 	if (mag > 0) {
-		// Deflect intent along walls BEFORE accelerating: if the component of the
-		// move that pushes into a wall is blocked, drop it from the intent so all
-		// the accel budget goes into the open (tangent) axis. Velocity then
-		// reaches full speed *along* the wall instead of stalling against it —
-		// this is what kills the "edge lag" when grazing a wall.
-		if (ix !== 0 && axisWouldBlock(s, 'x', Math.sign(ix), isBlocked))
-			ix = 0;
-		if (iy !== 0 && axisWouldBlock(s, 'y', Math.sign(iy), isBlocked))
-			iy = 0;
-
-		const dmag = Math.hypot(ix, iy);
-		if (dmag > 0) {
-			const nx = ix / dmag;
-			const ny = iy / dmag;
-			// Sub-unit ORIGINAL intent magnitude still eases a click-move into
-			// its destination; deflection above only changes direction.
-			const scale = Math.min(mag, 1);
-			const targetVx = nx * speed * scale;
-			const targetVy = ny * speed * scale;
-			const k = Math.min(MOVE_ACCEL * dt, 1);
-			s.vel.x += (targetVx - s.vel.x) * k;
-			s.vel.y += (targetVy - s.vel.y) * k;
-		} else {
-			// Pushing straight into a wall with nowhere tangent to go: bleed off.
-			s.vel.x *= Math.max(0, 1 - MOVE_FRICTION * dt);
-			s.vel.y *= Math.max(0, 1 - MOVE_FRICTION * dt);
-		}
+		const nx = ix / mag;
+		const ny = iy / mag;
+		const scale = Math.min(mag, 1);
+		const targetVx = nx * speed * scale;
+		const targetVy = ny * speed * scale;
+		const response = 1 - expDecay(MOVE_ACCEL, dt);
+		s.vel.x += (targetVx - s.vel.x) * response;
+		s.vel.y += (targetVy - s.vel.y) * response;
 	} else {
-		const decay = Math.max(0, 1 - MOVE_FRICTION * dt);
-		s.vel.x *= decay;
-		s.vel.y *= decay;
-		if (floatSpeed(s) < 0.01) {
-			s.vel.x = 0;
-			s.vel.y = 0;
-		}
+		s.vel.x = 0;
+		s.vel.y = 0;
 	}
 
-	// Intent deflection + circle-slide already keep the body off walls naturally,
-	// so the centerline assist stays OFF by default (it read as magnetised). Flip
-	// CENTERLINE_PULL > 0 and re-enable here only if doorways need extra funnel.
 	if (CENTERLINE_PULL > 0) applyCenterlinePull(s, isBlocked, dt);
-	moveAxis(s, 'x', s.vel.x * dt, isBlocked);
-	moveAxis(s, 'y', s.vel.y * dt, isBlocked);
+	moveAxisSub(s, 'x', s.vel.x * dt, isBlocked);
+	moveAxisSub(s, 'y', s.vel.y * dt, isBlocked);
 }
 
-/**
- * Peek whether moving the body's circle one frame's reach along `axis` in `dir`
- * would hit a wall, WITHOUT mutating state. Used to deflect intent before accel
- * so the player never wastes speed pushing into a wall.
- */
-function axisWouldBlock(
+function moveAxisSub(
 	s: FloatState,
 	axis: 'x' | 'y',
-	dir: number,
+	delta: number,
 	isBlocked: IsBlocked,
 ): boolean {
-	const other: 'x' | 'y' = axis === 'x' ? 'y' : 'x';
-	const edgeTile = tileAt(s.pos[axis] + dir * (BODY_RADIUS + PROBE_AHEAD));
-	const o0 = tileAt(s.pos[other] - BODY_RADIUS);
-	const o1 = tileAt(s.pos[other] + BODY_RADIUS);
-	for (let o = o0; o <= o1; o++) {
-		const tx = axis === 'x' ? edgeTile : o;
-		const ty = axis === 'x' ? o : edgeTile;
-		if (isBlocked(tx, ty)) return true;
+	if (delta === 0) return false;
+	const steps = Math.max(1, Math.ceil(Math.abs(delta) / MAX_MOVE_STEP));
+	const step = delta / steps;
+	for (let i = 0; i < steps; i++) {
+		if (moveAxis(s, axis, step, isBlocked)) return true;
 	}
 	return false;
 }
 
-/** Tile that a world coordinate falls in (tile centers on integers). */
-const tileAt = (v: number): number => Math.round(v);
+const tileAt = (v: number): number => Math.floor(v + 0.5);
 
 /**
  * Move one axis treating the player as a circle of BODY_RADIUS, not a point.
@@ -252,8 +217,14 @@ function applyCenterlinePull(
  * while the server stays the source of truth.
  */
 export function reconcileFloat(s: FloatState, serverTile: TileXY): void {
+	const cur = floatTile(s);
+	if (cur.x === serverTile.x && cur.y === serverTile.y) return;
+
 	const dx = serverTile.x - s.pos.x;
 	const dy = serverTile.y - s.pos.y;
+
+	if (floatSpeed(s) > 0.05 && dx * s.vel.x + dy * s.vel.y < 0) return;
+
 	const dist = Math.hypot(dx, dy);
 	if (dist > RECONCILE_SNAP_DIST) {
 		s.pos.x = serverTile.x;

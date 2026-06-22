@@ -3,6 +3,7 @@ pub mod blackjack;
 pub mod combat;
 pub mod data;
 pub mod dungeon;
+pub mod float_move;
 pub mod grid;
 pub mod net;
 pub mod proto;
@@ -13,7 +14,7 @@ pub mod sim;
 pub mod auth;
 
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
-pub use grid::{Floor, GridPos, MoveSpeed, MoveTarget, StairLink, Stairs, WalkableMap};
+pub use grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairLink, Stairs, WalkableMap};
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use sim::{
     Aggro, AggroSpec, Blocker, BuffEffects, BuffSpec, CombatStats, ConsumableEffects, Defense,

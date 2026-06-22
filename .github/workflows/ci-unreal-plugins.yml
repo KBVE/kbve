@@ -14,6 +14,12 @@ on:
                 description: 'Epic UE container image tag'
                 type: string
                 default: 'dev-5.8.0'
+    pull_request:
+        paths:
+            - 'packages/unreal/**'
+            - '.github/workflows/ci-unreal-plugins.yml'
+            - '.github/workflows/ci-unreal-build.yml'
+            - '.github/scripts/ue-plugin-matrix.mjs'
 
 permissions:
     contents: write
@@ -91,7 +97,7 @@ jobs:
             matrix: ${{ fromJson(needs.discover.outputs.win) }}
         uses: ./.github/workflows/ci-unreal-build.yml
         with:
-            mode: plugin-win
+            mode: plugin
             plugin_name: ${{ matrix.plugin_name }}
             plugin_path: ${{ matrix.plugin_path }}
             dependency_plugin_paths: ${{ matrix.dependency_plugins }}

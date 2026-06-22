@@ -115,6 +115,17 @@ spec:
                         value: '935690630657638422'
                       - name: RELAY_IRC_CHANNEL
                         value: '#general'
+                      # gh reverse-sync VS6: on issue close, archive the forum
+                      # thread then lock it (needs the bot to have MANAGE_THREADS).
+                      - name: GH_SYNC_LOCK_ON_CLOSE
+                        value: 'true'
+                      # One-shot backfill: archive/lock threads for issues that
+                      # were ALREADY closed before VS6 shipped (no webhook fires
+                      # for them). Runs once at worker start. UNSET this after a
+                      # clean run so restarts don't re-archive manually-reopened
+                      # threads.
+                      - name: GH_SYNC_BACKFILL_ON_START
+                        value: 'true'
                   resources:
                       requests:
                           memory: '256Mi'

@@ -1,7 +1,28 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 14;
+pub const PROTOCOL_VERSION: u32 = 15;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
+
+pub const POS_SCALE: i32 = 32;
+pub const VEL_SCALE: i32 = 256;
+
+pub fn quantize_pos(v: f32) -> i32 {
+    (v * POS_SCALE as f32).round() as i32
+}
+
+pub fn dequantize_pos(q: i32) -> f32 {
+    q as f32 / POS_SCALE as f32
+}
+
+pub fn quantize_vel(v: f32) -> i16 {
+    (v * VEL_SCALE as f32)
+        .round()
+        .clamp(i16::MIN as f32, i16::MAX as f32) as i16
+}
+
+pub fn dequantize_vel(q: i16) -> f32 {
+    q as f32 / VEL_SCALE as f32
+}
 
 pub const ACTION_ATTACK: u16 = 1;
 pub const ACTION_PICKUP: u16 = 2;
@@ -111,6 +132,12 @@ pub enum Input {
     Step {
         dir: Dir,
     },
+    Move {
+        seq: u32,
+        mx: i8,
+        my: i8,
+        run: bool,
+    },
     MoveTo {
         tile: Tile,
     },
@@ -214,6 +241,14 @@ fn is_zero_i32(v: &i32) -> bool {
     *v == 0
 }
 
+fn is_zero_i16(v: &i16) -> bool {
+    *v == 0
+}
+
+fn is_zero_u32(v: &u32) -> bool {
+    *v == 0
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityDelta {
     pub eid: EntityId,
@@ -222,6 +257,16 @@ pub struct EntityDelta {
     pub tile: Tile,
     pub facing: Facing,
     pub sub: u8,
+    #[serde(default)]
+    pub qx: i32,
+    #[serde(default)]
+    pub qy: i32,
+    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    pub qvx: i16,
+    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    pub qvy: i16,
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub input_ack: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub destroyed: bool,

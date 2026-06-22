@@ -163,6 +163,11 @@ async fn run_loop(
     cfg: GhSyncConfig,
 ) {
     let routes: Arc<RwLock<RoutingTable>> = Arc::new(RwLock::new(RoutingTable::default()));
+
+    if backfill_on_start_enabled() {
+        backfill_closed_threads(&store, &http).await;
+    }
+
     loop {
         tokio::time::sleep(cfg.poll).await;
 
@@ -430,41 +435,138 @@ async fn comment_is_mirrored(store: &Arc<GithubStore>, ev: &UndeliveredEvent) ->
     }
 }
 
-/// Mirror GitHub issue state onto the forum thread (close→archive,
-/// reopen→unarchive). Event-driven only (never a reconcile loop), so a human
-/// who manually re-opens a thread is not repeatedly re-archived. Best-effort:
-/// missing MANAGE_THREADS or any HTTP error logs + returns without failing the
+fn lock_on_close_enabled() -> bool {
+    matches!(
+        std::env::var("GH_SYNC_LOCK_ON_CLOSE").ok().as_deref(),
+        Some("1") | Some("true") | Some("on")
+    )
+}
+
+fn backfill_on_start_enabled() -> bool {
+    matches!(
+        std::env::var("GH_SYNC_BACKFILL_ON_START").ok().as_deref(),
+        Some("1") | Some("true") | Some("on")
+    )
+}
+
+/// One-shot reverse-sync reconcile run at worker start when
+/// `GH_SYNC_BACKFILL_ON_START` is set. Archives (and locks, if
+/// `GH_SYNC_LOCK_ON_CLOSE`) the threads of issues that are already closed —
+/// these closed before VS6 was live so no `closed` webhook will ever fire for
+/// them. Idempotent against already-archived threads. Best-effort; unset the
+/// env after a clean run so a restart does not re-archive a thread a human has
+/// since manually reopened.
+async fn backfill_closed_threads(store: &Arc<GithubStore>, http: &Arc<serenity::Http>) {
+    const CAP: u32 = 1000;
+    let rows = match store.list_closed_issue_threads(CAP).await {
+        Ok(r) => r,
+        Err(e) => {
+            warn!(error = %e, "gh sync: backfill list_closed_issue_threads failed");
+            return;
+        }
+    };
+    if rows.is_empty() {
+        info!("gh sync: backfill — no closed-issue threads to reconcile");
+        return;
+    }
+    warn!(
+        count = rows.len(),
+        "gh sync: BACKFILL running — archiving closed-issue threads; unset GH_SYNC_BACKFILL_ON_START after this completes"
+    );
+    for issue in &rows {
+        set_thread_archived(http, issue, true).await;
+    }
+    if rows.len() as u32 == CAP {
+        warn!(
+            cap = CAP,
+            "gh sync: backfill hit cap — more closed threads may remain, rerun"
+        );
+    }
+    info!(archived = rows.len(), "gh sync: backfill complete");
+}
+
+/// Mirror GitHub issue state onto the forum thread (close→archive[+lock],
+/// reopen→unarchive+unlock). Event-driven only (never a reconcile loop), so a
+/// human who manually re-opens a thread is not repeatedly re-archived.
+///
+/// On close the archive and lock are SEPARATE best-effort calls: the archive
+/// lands first, then (if `GH_SYNC_LOCK_ON_CLOSE`) a second call re-asserts
+/// archived + adds the lock, so a lock failure (e.g. missing MANAGE_THREADS)
+/// never costs us the archive. All steps log + continue without failing the
 /// event delivery.
 async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, archived: bool) {
     let Some(thread_id) = issue.discord_thread_id else {
         return;
     };
-    let lock_on_close = archived
-        && matches!(
-            std::env::var("GH_SYNC_LOCK_ON_CLOSE").ok().as_deref(),
-            Some("1") | Some("true") | Some("on")
-        );
-    let mut builder = EditThread::new().archived(archived);
-    if lock_on_close {
-        builder = builder.locked(true);
-    } else if !archived {
-        builder = builder.locked(false);
-    }
     let thread = serenity::ChannelId::new(thread_id as u64);
+
+    if !archived {
+        // Reopen: unarchive + unlock in one call.
+        edit_thread_step(
+            http,
+            thread,
+            EditThread::new().archived(false).locked(false),
+            issue.number,
+            thread_id,
+            "unarchive",
+        )
+        .await;
+        return;
+    }
+
+    // Close: archive first so it lands even if a later lock is rejected.
+    let archived_ok = edit_thread_step(
+        http,
+        thread,
+        EditThread::new().archived(true),
+        issue.number,
+        thread_id,
+        "archive",
+    )
+    .await;
+
+    // Then try to lock (re-assert archived so the thread stays archived).
+    if archived_ok && lock_on_close_enabled() {
+        edit_thread_step(
+            http,
+            thread,
+            EditThread::new().archived(true).locked(true),
+            issue.number,
+            thread_id,
+            "lock",
+        )
+        .await;
+    }
+}
+
+async fn edit_thread_step(
+    http: &Arc<serenity::Http>,
+    thread: serenity::ChannelId,
+    builder: EditThread<'_>,
+    number: u32,
+    thread_id: i64,
+    step: &str,
+) -> bool {
     match thread.edit_thread(&**http, builder).await {
-        Ok(_) => debug!(
-            number = issue.number,
-            thread = thread_id,
-            archived,
-            "gh sync: thread lifecycle updated"
-        ),
-        Err(e) => warn!(
-            error = %e,
-            number = issue.number,
-            thread = thread_id,
-            archived,
-            "gh sync: thread lifecycle update failed (missing MANAGE_THREADS?)"
-        ),
+        Ok(_) => {
+            debug!(
+                number,
+                thread = thread_id,
+                step,
+                "gh sync: thread lifecycle step ok"
+            );
+            true
+        }
+        Err(e) => {
+            warn!(
+                error = %e,
+                number,
+                thread = thread_id,
+                step,
+                "gh sync: thread lifecycle step failed (missing MANAGE_THREADS?)"
+            );
+            false
+        }
     }
 }
 

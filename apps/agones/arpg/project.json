@@ -75,6 +75,17 @@
 				"cwd": "apps/agones/arpg/web"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx run arpg:web-test",
+					"nx run arpg:container-web",
+					"nx run arpg-e2e:e2e:cdn"
+				],
+				"parallel": false
+			}
+		},
 		"container-web": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",

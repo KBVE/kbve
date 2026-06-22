@@ -15,7 +15,7 @@ use tokio::time;
 use crate::blackjack;
 use crate::combat;
 use crate::data::KindRegistry;
-use crate::grid::{Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
+use crate::grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
@@ -960,6 +960,7 @@ pub fn build_app(
         .add_systems(
             Update,
             (
+                advance_float,
                 advance_movement,
                 chain_steps,
                 stair_system,
@@ -1065,6 +1066,7 @@ fn sync_roster(
                 Path::default(),
                 StepBuffer::default(),
                 StatusEffects::default(),
+                FloatMove::at(config.spawn),
             ))
             .id();
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
@@ -1143,6 +1145,7 @@ fn drain_inputs(
         &XpState,
         &mut StatusEffects,
         Option<&Floor>,
+        &mut FloatMove,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -1199,6 +1202,7 @@ fn drain_inputs(
         xp,
         mut status,
         floor,
+        mut fm,
     ) in q.iter_mut()
     {
         let Some(inputs) = pending.get(&slot.0.0) else {
@@ -1215,6 +1219,15 @@ fn drain_inputs(
                     } else if try_move(*dir, &map, z, &pos, &mut mv, None) {
                         buffer.dir = None;
                     }
+                }
+                Input::Move { seq, mx, my, run } => {
+                    if *seq >= fm.last_seq {
+                        fm.last_seq = *seq;
+                        fm.intent_x = *mx;
+                        fm.intent_y = *my;
+                        fm.run = *run;
+                    }
+                    path.steps.clear();
                 }
                 Input::MoveTo { tile } => {
                     buffer.dir = None;
@@ -3281,6 +3294,44 @@ fn wander_system(
     }
 }
 
+fn facing_from_intent(mx: i8, my: i8) -> proto::Facing {
+    if mx.abs() >= my.abs() {
+        if mx >= 0 {
+            proto::Facing::Right
+        } else {
+            proto::Facing::Left
+        }
+    } else if my > 0 {
+        proto::Facing::Down
+    } else {
+        proto::Facing::Up
+    }
+}
+
+fn advance_float(
+    map: Res<WalkableMap>,
+    mut q: Query<(&mut GridPos, &mut FloatMove, Option<&Floor>), With<PlayerSlotTag>>,
+) {
+    let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
+    for (mut pos, mut fm, floor) in q.iter_mut() {
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
+        let (mx, my, run) = (fm.intent_x, fm.intent_y, fm.run);
+        let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
+        let speed = if run {
+            crate::float_move::RUN_SPEED
+        } else {
+            crate::float_move::WALK_SPEED
+        };
+        crate::float_move::step_float(&mut fm.body, ix, iy, speed, &is_blocked, dt_ms);
+        let (tx, ty) = fm.body.tile();
+        pos.tile = Tile::new(tx, ty);
+        if mx != 0 || my != 0 {
+            pos.facing = facing_from_intent(mx, my);
+        }
+    }
+}
+
 fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
     for (mut pos, mut mv, speed) in q.iter_mut() {
         let Some(target) = mv.target else {
@@ -3406,6 +3457,7 @@ fn emit_snapshot(
         Option<&Health>,
         Option<&StatusEffects>,
         Option<&Floor>,
+        Option<&FloatMove>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3415,39 +3467,62 @@ fn emit_snapshot(
     let now = clock.tick;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
-        .map(|(entity, kind, slot, pos, mv, speed, hp, status, floor)| {
-            let sub = mv
-                .target
-                .map(|_| {
-                    let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
-                    ((mv.progress as u32 * 255) / span).min(255) as u8
-                })
-                .unwrap_or(0);
-            let effects = status
-                .map(|s| {
-                    s.0.iter()
-                        .map(|e| proto::StatusView {
-                            kind: e.kind,
-                            remaining: e.expires_tick.saturating_sub(now).min(u16::MAX as u32)
-                                as u16,
-                        })
-                        .collect()
-                })
-                .unwrap_or_default();
-            proto::EntityDelta {
-                eid: proto::EntityId(entity.index_u32()),
-                kind: kind.0,
-                owner: slot.map(|s| s.0).unwrap_or(proto::PLAYER_SLOT_NONE),
-                tile: pos.tile,
-                facing: pos.facing,
-                sub,
-                hp: hp.map(|h| h.hp).unwrap_or(0),
-                max_hp: hp.map(|h| h.max_hp).unwrap_or(0),
-                destroyed: false,
-                z: floor.map(|f| f.0).unwrap_or(0),
-                effects,
-            }
-        })
+        .map(
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm)| {
+                let sub = mv
+                    .target
+                    .map(|_| {
+                        let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
+                        ((mv.progress as u32 * 255) / span).min(255) as u8
+                    })
+                    .unwrap_or(0);
+                let effects = status
+                    .map(|s| {
+                        s.0.iter()
+                            .map(|e| proto::StatusView {
+                                kind: e.kind,
+                                remaining: e.expires_tick.saturating_sub(now).min(u16::MAX as u32)
+                                    as u16,
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                let (qx, qy, qvx, qvy, input_ack) = match fm {
+                    Some(f) => (
+                        proto::quantize_pos(f.body.x),
+                        proto::quantize_pos(f.body.y),
+                        proto::quantize_vel(f.body.vx),
+                        proto::quantize_vel(f.body.vy),
+                        f.last_seq,
+                    ),
+                    None => (
+                        proto::quantize_pos(pos.tile.x as f32),
+                        proto::quantize_pos(pos.tile.y as f32),
+                        0,
+                        0,
+                        0,
+                    ),
+                };
+                proto::EntityDelta {
+                    eid: proto::EntityId(entity.index_u32()),
+                    kind: kind.0,
+                    owner: slot.map(|s| s.0).unwrap_or(proto::PLAYER_SLOT_NONE),
+                    tile: pos.tile,
+                    facing: pos.facing,
+                    sub,
+                    qx,
+                    qy,
+                    qvx,
+                    qvy,
+                    input_ack,
+                    hp: hp.map(|h| h.hp).unwrap_or(0),
+                    max_hp: hp.map(|h| h.max_hp).unwrap_or(0),
+                    destroyed: false,
+                    z: floor.map(|f| f.0).unwrap_or(0),
+                    effects,
+                }
+            },
+        )
         .collect();
 
     let snap = proto::Snapshot {

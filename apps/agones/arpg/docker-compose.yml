@@ -53,6 +53,7 @@ services:
         environment:
             PUBLIC_ARPG_LOCAL: 'false'
             PUBLIC_ARPG_GAME_WS: ws://localhost:7979/ws
+            PUBLIC_ARPG_CHAT_WS: ws://localhost:5402/gamechat
         volumes:
             - ../../..:/workspace
             - arpg-web-node-modules:/workspace/apps/agones/arpg/web/node_modules

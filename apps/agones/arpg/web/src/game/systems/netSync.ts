@@ -16,11 +16,15 @@ export interface SyncResolvers {
 	label(e: EntityDelta, cat: EntityCat): string | undefined;
 }
 
+const POS_SCALE = 32;
+
 export interface SyncState {
 	myEid: number;
 	mySlot: number;
 	predicted: TileXY;
 	predictSeeded: boolean;
+	serverPos?: TileXY;
+	inputAck?: number;
 }
 
 export function applyEntitySync<R>(
@@ -61,15 +65,12 @@ export function applyEntitySync<R>(
 				state.predictSeeded = true;
 			}
 		} else if (e.eid === state.myEid) {
-			const drift = Math.max(
-				Math.abs(e.tile.x - state.predicted.x),
-				Math.abs(e.tile.y - state.predicted.y),
-			);
-			if (drift > 2) {
-				state.predicted = { x: e.tile.x, y: e.tile.y };
-				const refs = store.refs(e.eid);
-				if (refs) bridge.setPos(refs, e.tile);
-			}
+			state.serverPos =
+				e.qx !== undefined && e.qy !== undefined
+					? { x: e.qx / POS_SCALE, y: e.qy / POS_SCALE }
+					: { x: e.tile.x, y: e.tile.y };
+			state.inputAck = e.input_ack ?? 0;
+			state.predicted = { x: e.tile.x, y: e.tile.y };
 			store.update(e.eid, {
 				tile: { ...state.predicted },
 				hp: e.hp,

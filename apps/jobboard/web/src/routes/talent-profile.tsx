@@ -8,9 +8,9 @@ import {
 	Button,
 	ErrorNote,
 	RankPill,
+	Stars,
 	TagRow,
 } from '../components/ui';
-import { Stars } from '@kbve/rn/ui';
 import { person, breadcrumbList } from '@kbve/core';
 import {
 	AVAILABILITY_LABELS,

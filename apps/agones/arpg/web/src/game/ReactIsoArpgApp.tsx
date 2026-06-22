@@ -6,6 +6,7 @@ import ArpgMenu from './ArpgMenu';
 import ChatPanel from './ChatPanel';
 import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
+import { authBridge } from '../lib/auth';
 import {
 	resolvePlayerName,
 	hasSessionName,
@@ -153,6 +154,17 @@ export default function ReactIsoArpgApp({
 		setPhase('ready');
 	}, [draft]);
 
+	const signIn = useCallback(
+		async (provider: 'github' | 'discord' | 'twitch') => {
+			try {
+				await authBridge.signInWithOAuth(provider);
+			} catch (err) {
+				console.error('arpg sign-in failed', err);
+			}
+		},
+		[],
+	);
+
 	if (phase === 'signin') {
 		return (
 			<div
@@ -190,21 +202,32 @@ export default function ReactIsoArpgApp({
 							color: '#9fb3d8',
 						}}>
 						The ARPG is server-authoritative and needs a KBVE
-						session. Sign in, then reload this page.
+						session. Sign in to play.
 					</div>
-					<a
-						href="/login"
-						style={{
-							padding: '10px 12px',
-							fontSize: '14px',
-							fontWeight: 700,
-							borderRadius: '6px',
-							background: '#6ea8ff',
-							color: '#0b0e16',
-							textDecoration: 'none',
-						}}>
-						Sign in
-					</a>
+					{(
+						[
+							['github', 'GitHub', '#6ea8ff'],
+							['discord', 'Discord', '#7c83f7'],
+							['twitch', 'Twitch', '#a970ff'],
+						] as const
+					).map(([provider, label, color]) => (
+						<button
+							key={provider}
+							type="button"
+							onClick={() => signIn(provider)}
+							style={{
+								padding: '10px 12px',
+								fontSize: '14px',
+								fontWeight: 700,
+								borderRadius: '6px',
+								border: 'none',
+								cursor: 'pointer',
+								background: color,
+								color: '#0b0e16',
+							}}>
+							Sign in with {label}
+						</button>
+					))}
 				</div>
 			</div>
 		);

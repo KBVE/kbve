@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import {
-	Stack,
-	PressableSurface,
-	Text,
-	Badge,
-	Skeleton,
-	tokens,
-} from '@kbve/rn/ui';
+import { Stack, PressableSurface, Text, Badge, tokens } from '@kbve/rn/ui';
+import { Skeleton } from '../components/ui';
 import { fetchVerticals, type Vertical } from '../api/client';
 
 export function BrowseView({

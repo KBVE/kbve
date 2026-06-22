@@ -18,7 +18,7 @@ function sharedWorkerBackend(): CacheBackend | null {
 	try {
 		const worker = new SharedWorker(
 			new URL('../workers/supabase.shared.ts', import.meta.url),
-			{ type: 'module' },
+			{ type: 'module', name: 'supabase-shared' },
 		);
 		port = worker.port;
 	} catch {

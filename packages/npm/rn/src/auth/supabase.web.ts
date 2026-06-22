@@ -1,41 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { AuthSession } from '@kbve/core';
-import { createWorkerPool } from '../worker/pool';
-
-const NULL_BODY_STATUS = new Set([204, 205, 304]);
-
-function createWorkerFetch(): typeof fetch {
-	const pool = createWorkerPool();
-	return async (input, init) => {
-		const body = init?.body;
-		if (
-			input instanceof Request ||
-			(body != null && typeof body !== 'string')
-		)
-			return fetch(input, init);
-
-		const url = typeof input === 'string' ? input : input.toString();
-		const headers: Record<string, string> = {};
-		new Headers(init?.headers).forEach((value, key) => {
-			headers[key] = value;
-		});
-
-		const raw = await pool.fetchRaw(url, {
-			method: init?.method,
-			headers,
-			body: body ?? undefined,
-		});
-		return new Response(
-			NULL_BODY_STATUS.has(raw.status) ? null : raw.body,
-			{
-				status: raw.status,
-				statusText: raw.statusText,
-				headers: raw.headers,
-			},
-		);
-	};
-}
 
 export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
 	return createClient(config.url, config.anonKey, {
@@ -47,7 +12,6 @@ export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
 			detectSessionInUrl: true,
 			flowType: 'pkce',
 		},
-		global: { fetch: createWorkerFetch() },
 	});
 }
 

@@ -54,7 +54,7 @@ class AuthBridge {
 			auth: {
 				storage: this.storage, // Critical: same storage as worker!
 				persistSession: true,
-				autoRefreshToken: true,
+				autoRefreshToken: false,
 				detectSessionInUrl: true, // Important for OAuth redirects
 			},
 		});
