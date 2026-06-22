@@ -5,7 +5,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import type { Persister } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
 import { KbveProvider, KBVE_SUPABASE_ANON_KEY, useKbve } from '@kbve/rn/auth';
-import { OverlayHost, ThemeProvider, ToastViewport } from '@kbve/rn/ui';
+import { ThemeProvider } from '@kbve/rn/ui';
 import { createKvPersister } from '@kbve/rn/store';
 import { router } from './router';
 import { DevBanner } from './components/DevBanner';
@@ -71,8 +71,6 @@ createRoot(document.getElementById('root')!).render(
 							<DevBanner />
 							<RouterProvider router={router} />
 						</PersistQueryClientProvider>
-						<OverlayHost />
-						<ToastViewport />
 					</ThemeProvider>
 				</StaffProvider>
 			</KbveProvider>

@@ -5,8 +5,7 @@ import {
 	AVAILABILITY_TONE,
 	formatRate,
 } from '../lib/format';
-import { Avatar, RankPill, TagRow } from './ui';
-import { Stars } from '@kbve/rn/ui';
+import { Avatar, RankPill, Stars, TagRow } from './ui';
 import { RANKS } from '../api/client';
 
 export function TalentCard({ talent }: { talent: TalentProfile }) {
