@@ -15,10 +15,7 @@
 		"strict": true,
 		"baseUrl": ".",
 		"paths": {
-			"@arpg/*": ["../../../kbve/astro-kbve/src/arcade/isometric-arpg/*"],
-			"@kbve/laser": ["../../../../packages/npm/laser/src/index.ts"],
-			"@/lib/supa": ["./src/lib/supa.ts"],
-			"@/*": ["../../../kbve/astro-kbve/src/*"]
+			"@kbve/laser": ["../../../../packages/npm/laser/src/index.ts"]
 		}
 	},
 	"include": ["src", "vite.config.ts"]

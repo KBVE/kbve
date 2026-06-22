@@ -27,7 +27,7 @@ status: beta
 
 ## Overview
 
-`arpg-web` is a standalone [Vite](https://vite.dev) + React client for the **ARPG**, served as static files behind nginx. It is the third way to play the game — the other two being the Astro page at `kbve.com/arcade/arpg/` and the Discord Activity embed — and the source it boots is the **same** `isometric-arpg` game tree, consumed via Vite aliases rather than forked.
+`arpg-web` is a standalone [Vite](https://vite.dev) + React client for the **ARPG**, served as static files behind nginx. It **is** the single source of truth for the game — the source lives at `apps/agones/arpg/web/src/game/`. The two other play surfaces (the Astro page at `kbve.com/arcade/arpg/` and the Discord Activity embed) consume a built **bundle** emitted from this app rather than the game source, so all three surfaces run one build.
 
 ### Why a separate app
 
@@ -35,21 +35,23 @@ Booting the full `astro-kbve` site (Starlight + hundreds of content pages + the 
 
 ### Single source of truth
 
-The app owns no game code. Its Vite config aliases the game source so all surfaces stay in lockstep:
+The game source, embed entries, and sprite art all live under `apps/agones/arpg/web/`. The only cross-repo dependency is `@kbve/laser` (net + phaser helpers), aliased to its package source; the optional r3f layer is stubbed since the game never uses three.js. Three build modes share that one source:
 
-- `@arpg/*` → `apps/kbve/astro-kbve/src/arcade/isometric-arpg`
-- `@kbve/laser` → the package source (net + phaser helpers; the optional r3f layer is stubbed since the game never uses three.js)
-- `@/lib/supa` → a small shim pointing Supabase at the dev `/supabase` proxy (CORS), `@/` → astro `src` for `AuthBridge` + `IDBStorage`
+- default (`vite build`) → the standalone app for `arpg.kbve.com` (`dist/`)
+- `--mode embed` → `window.ArpgEmbed` IIFE → `astro public/arpg/arpg-embed.js`, loaded by `kbve.com/arcade/arpg`
+- `--mode discord` → Discord Activity bundle → `astro public/discord/arpg/arpg.js`
 
-Sprite/tileset art is served from astro's Git-LFS-tracked `public/assets/arcade/arpg/` — **not duplicated**.
+Sprite/tileset art lives in this app's Git-LFS-tracked `public/assets/arcade/arpg/` (blobs on `git.kbve.com/KBVE/arpg.git`). The other surfaces load it cross-origin from `arpg.kbve.com` (nginx sends `Access-Control-Allow-Origin: *` on `/assets/`).
 
 ## Build
 
 ```bash
-nx run arpg:web-build
+nx run arpg:web-build           # standalone app -> dist/
+nx run arpg:web-build-embed     # kbve.com bundle -> astro public/arpg/arpg-embed.js
+nx run arpg:web-build-discord   # Discord bundle -> astro public/discord/arpg/arpg.js
 ```
 
-Vite emits `apps/agones/arpg/web/dist`. The container build (below) bakes that behind nginx.
+`web-build` emits `apps/agones/arpg/web/dist` (the container build bakes that behind nginx). The two bundle builds emit into astro's `public/` and are committed so the astro build serves them as static files — no astro→arpg build dependency.
 
 ## Container
 
@@ -61,7 +63,7 @@ Multi-stage: a Node stage runs the Vite build with prod endpoints baked in (`PUB
 
 ## Auth
 
-The client runs the real Supabase login (`buildNetConfig` → `AuthBridge`); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
+The client runs the real Supabase login (`buildNetConfig` → `src/lib/auth.ts`, a web-local Supabase session bridge); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
 
 ## Deploy
 

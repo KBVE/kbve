@@ -32,7 +32,7 @@ function usernameFromToken(token: string): string {
 }
 
 export async function buildNetConfig(): Promise<NetConfig | null> {
-	const { authBridge } = await import('../../components/auth/AuthBridge');
+	const { authBridge } = await import('../lib/auth');
 	const session = await authBridge.getSession();
 	const jwt = session?.access_token ?? '';
 	if (!jwt) return null;

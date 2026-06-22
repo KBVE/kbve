@@ -1063,7 +1063,7 @@ EOF
             ;;
         arpg)
             url="https://git.kbve.com/KBVE/arpg.git/info/lfs"
-            path_prefix="apps/kbve/astro-kbve/public/assets/arcade/arpg"
+            path_prefix="apps/agones/arpg/web/public/assets/arcade/arpg"
             ;;
         cryptothrone)
             url="https://git.kbve.com/KBVE/cryptothrone.git/info/lfs"

@@ -28,13 +28,15 @@
 			}
 		},
 		"build": {
-			"dependsOn": ["proto"],
+			"dependsOn": [
+				"proto",
+				{ "target": "web-build-embed", "projects": "arpg" }
+			],
 			"executor": "nx:run-commands",
 			"outputs": ["{workspaceRoot}/dist/apps/astro-kbve"],
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": [
-					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/kbve/astro-kbve/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
 				],
 				"parallel": false
@@ -58,10 +60,15 @@
 			"executor": "nx:run-commands",
 			"outputs": ["{projectRoot}/public/discord/arpg"],
 			"options": {
-				"cwd": "apps/kbve/astro-kbve",
-				"commands": [
-					"NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.arpg-discord.config.mts"
-				],
+				"commands": ["nx run arpg:web-build-discord"],
+				"parallel": false
+			}
+		},
+		"build-arpg-embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/public/arpg"],
+			"options": {
+				"commands": ["nx run arpg:web-build-embed"],
 				"parallel": false
 			}
 		},

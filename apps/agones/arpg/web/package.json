@@ -6,10 +6,13 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"build:embed": "vite build --mode embed",
+		"build:discord": "vite build --mode discord",
 		"typecheck": "tsc --noEmit",
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@discord/embedded-app-sdk": "^2.4.1",
 		"@phaserjs/rapier-connector": "^1.0.2",
 		"@supabase/supabase-js": "^2.95.3",
 		"bitecs": "^0.4.0",
@@ -22,6 +25,7 @@
 		"@types/react": "19.2.9",
 		"@types/react-dom": "^19.0.0",
 		"@vitejs/plugin-react": "^5.0.0",
+		"terser": "^5.36.0",
 		"typescript": "^5.0.0",
 		"vite": "7.3.1"
 	}

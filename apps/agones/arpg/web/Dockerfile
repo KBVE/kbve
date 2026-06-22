@@ -2,11 +2,12 @@
 # arpg-web — standalone Vite client for the ARPG, served as static files.
 # A third play surface alongside kbve.com/arcade/arpg and the Discord embed.
 #
-# Build context = repo root. The app owns no game code: it consumes the game
-# source from astro-kbve + @kbve/laser via vite aliases (see web/vite.config.ts)
-# and serves the LFS-tracked sprite assets from astro's public dir. So this
-# build mirrors the relevant repo subtrees under /app and installs only the
-# app's own (npm, non-workspace) deps.
+# Build context = repo root. The game source + LFS-tracked sprite art live under
+# apps/agones/arpg/web; the one cross-repo dep is @kbve/laser (aliased to source
+# in web/vite.config.ts). So this build mirrors those two subtrees under /app and
+# installs only the app's own (npm, non-workspace) deps.
+# NOTE: the LFS art must be smudged (real PNGs, not pointer stubs) in the build
+# context — CI runs `./kbve.sh -lfs arpg pull` before the docker build.
 # ============================================================================
 
 FROM node:24-bookworm-slim AS web
@@ -16,12 +17,10 @@ WORKDIR /app
 COPY apps/agones/arpg/web/package.json apps/agones/arpg/web/
 RUN cd apps/agones/arpg/web && npm install --no-save
 
-# Source the vite app aliases: the arpg game source + the @/ modules it pulls
-# (AuthBridge, IDBStorage), @kbve/laser, and the sprite assets it serves.
+# The game source + sprite art now live entirely under apps/agones/arpg/web.
+# @kbve/laser is the one cross-repo dep the vite config aliases to source.
 COPY tsconfig.base.json tsconfig.base.json
 COPY packages/npm/laser packages/npm/laser
-COPY apps/kbve/astro-kbve/src apps/kbve/astro-kbve/src
-COPY apps/kbve/astro-kbve/public/assets/arcade/arpg apps/kbve/astro-kbve/public/assets/arcade/arpg
 COPY apps/agones/arpg/web apps/agones/arpg/web
 
 # Prod endpoints baked at build time. arpg.kbve.com and supabase.kbve.com are

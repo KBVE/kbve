@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import ReactIsoArpgApp from '@arpg/ReactIsoArpgApp';
-import { setArpgAssetBase } from '@arpg/config';
+import ReactIsoArpgApp from './game/ReactIsoArpgApp';
+import { setArpgAssetBase } from './game/config';
 
 // Assets (sprites, tilesets) are served from this app's public dir at the site
 // root, the same `/assets/arcade/arpg/...` layout the astro build uses.
