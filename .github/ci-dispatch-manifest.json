@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.206",
+			"version": "1.0.207",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -94,14 +94,15 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
-			"source_path": "apps/agones/arpg/web",
+			"source_path": "apps/agones/arpg",
 			"runner": "arc-runner-set",
 			"image": "kbve/arpg-web",
+			"e2e_name": "arpg",
 			"deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
-			"has_test": false,
+			"has_test": true,
 			"target": "container-web",
 			"nx_project": "arpg"
 		},
