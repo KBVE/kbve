@@ -443,6 +443,27 @@ pub struct MoveTarget {
 }
 
 #[derive(Component, Clone, Copy)]
+pub struct FloatMove {
+    pub body: crate::float_move::FloatBody,
+    pub intent_x: i8,
+    pub intent_y: i8,
+    pub run: bool,
+    pub last_seq: u32,
+}
+
+impl FloatMove {
+    pub fn at(tile: Tile) -> Self {
+        Self {
+            body: crate::float_move::FloatBody::at(tile.x as f32, tile.y as f32),
+            intent_x: 0,
+            intent_y: 0,
+            run: false,
+            last_seq: 0,
+        }
+    }
+}
+
+#[derive(Component, Clone, Copy)]
 pub struct MoveSpeed {
     pub ticks_per_tile: u8,
 }
