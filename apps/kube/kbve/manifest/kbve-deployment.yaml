@@ -14,7 +14,7 @@ metadata:
         # picks up the new Postgres password. Without this the pool holds
         # stale creds and `/api/v1/wallet/*` starts 5xx-ing until manual
         # restart on every CNPG password rotation.
-        secret.reloader.stakater.com/reload: 'supabase-shared,forgejo-deploy-keys,valkey-auth'
+        secret.reloader.stakater.com/reload: 'supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord'
 spec:
     replicas: 1
     strategy:
@@ -274,6 +274,21 @@ spec:
                             secretKeyRef:
                                 name: referral-config
                                 key: hash-secret
+                                optional: true
+                      # DISCORD_REDIRECT_URI intentionally unset — Activities
+                      # authorize in-client; a non-empty redirect_uri makes
+                      # Discord reject the exchange.
+                      - name: DISCORD_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: arpg-discord
+                                key: DISCORD_CLIENT_ID
+                                optional: true
+                      - name: DISCORD_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: arpg-discord
+                                key: DISCORD_CLIENT_SECRET
                                 optional: true
                   volumeMounts:
                       - name: pg-ca
