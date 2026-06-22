@@ -1,4 +1,3 @@
-import 'react-native-url-polyfill/auto';
 import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
