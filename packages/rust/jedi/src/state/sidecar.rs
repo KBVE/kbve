@@ -253,13 +253,24 @@ impl ClickHouseConfig {
             .map_err(|e| JediError::Parse(format!("ClickHouse JSON serialize error: {}", e)))?
             .join("\n");
 
+        self.execute_insert_raw(table, &body).await
+    }
+
+    /// Insert a pre-serialized JSONEachRow body (newline-delimited JSON objects).
+    /// Lets hot callers serialize once on their own threads and hand the flusher
+    /// a ready body, avoiding a second pass over `serde_json::Value`.
+    pub async fn execute_insert_raw(&self, table: &str, body: &str) -> Result<(), JediError> {
+        if body.is_empty() {
+            return Ok(());
+        }
+
         let insert_query = format!("INSERT INTO {} FORMAT JSONEachRow", table);
         let http = Self::shared_http_client();
 
         let mut req = http
             .post(&self.url)
             .query(&[("database", &self.database), ("query", &insert_query)])
-            .body(body);
+            .body(body.to_string());
 
         if !self.user.is_empty() {
             req = req.header("X-ClickHouse-User", &self.user);

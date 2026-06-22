@@ -102,15 +102,14 @@ pub async fn ingest_errors(
     let mut dropped = 0u64;
     for event in batch.events {
         match event.into_row(user_agent) {
-            Some(row) => {
-                let project = row.get("project").and_then(|v| v.as_str()).unwrap_or("");
-                if !app.allow_project(project) {
+            Some(prepared) => {
+                if !app.allow_project(&prepared.project) {
                     dropped += 1;
                     metrics::counter!("metrics_ingest_dropped_total", "reason" => "project_capped")
                         .increment(1);
                     continue;
                 }
-                match app.tx.try_send(row) {
+                match app.tx.try_send(prepared.line) {
                     Ok(_) => accepted += 1,
                     Err(_) => {
                         dropped += 1;

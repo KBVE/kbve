@@ -1,23 +1,30 @@
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use ahash::AHashMap;
 use jedi::state::sidecar::ClickHouseConfig;
 use parking_lot::Mutex;
-use serde_json::Value;
 use tokio::sync::{mpsc, oneshot};
 use tokio::task::JoinHandle;
 
 use crate::auth::StaffAuth;
 use crate::config::Config;
 
+const LIMITER_SHARDS: usize = 32;
+const WINDOW: Duration = Duration::from_secs(60);
+
 pub struct AppState {
     pub cfg: Config,
     pub ch: ClickHouseConfig,
-    pub tx: mpsc::Sender<Value>,
+    pub tx: mpsc::Sender<String>,
     pub auth: Option<StaffAuth>,
     pub started_at: Instant,
-    limiter: Mutex<AHashMap<String, Bucket>>,
+    ip_limiter: Sharded,
+    project_limiter: Sharded,
+    global_count: AtomicU32,
+    global_window_ms: AtomicU64,
 }
 
 struct Bucket {
@@ -25,11 +32,58 @@ struct Bucket {
     window_start: Instant,
 }
 
+/// Fixed-window rate limiter split across `LIMITER_SHARDS` independently-locked
+/// maps. Under concurrent ingest, requests hash to different shards instead of
+/// all serializing on one global mutex.
+struct Sharded {
+    shards: [Mutex<AHashMap<String, Bucket>>; LIMITER_SHARDS],
+}
+
+impl Sharded {
+    fn new() -> Self {
+        Self {
+            shards: std::array::from_fn(|_| Mutex::new(AHashMap::new())),
+        }
+    }
+
+    fn check(&self, key: &str, limit: u32) -> bool {
+        if limit == 0 {
+            return true;
+        }
+        let now = Instant::now();
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        key.hash(&mut hasher);
+        let shard = &self.shards[(hasher.finish() as usize) % LIMITER_SHARDS];
+
+        let mut map = shard.lock();
+        if map.len() > 4096 {
+            map.retain(|_, b| now.duration_since(b.window_start) < WINDOW);
+        }
+        // Fast path: existing key needs no allocation.
+        if let Some(b) = map.get_mut(key) {
+            if now.duration_since(b.window_start) >= WINDOW {
+                b.count = 0;
+                b.window_start = now;
+            }
+            b.count += 1;
+            return b.count <= limit;
+        }
+        map.insert(
+            key.to_string(),
+            Bucket {
+                count: 1,
+                window_start: now,
+            },
+        );
+        1 <= limit
+    }
+}
+
 impl AppState {
     pub fn new(
         cfg: Config,
         ch: ClickHouseConfig,
-        tx: mpsc::Sender<Value>,
+        tx: mpsc::Sender<String>,
         auth: Option<StaffAuth>,
     ) -> Self {
         Self {
@@ -38,53 +92,49 @@ impl AppState {
             tx,
             auth,
             started_at: Instant::now(),
-            limiter: Mutex::new(AHashMap::new()),
+            ip_limiter: Sharded::new(),
+            project_limiter: Sharded::new(),
+            global_count: AtomicU32::new(0),
+            global_window_ms: AtomicU64::new(0),
         }
-    }
-
-    /// Fixed-window counter. Returns false once `limit` is exceeded for `key`
-    /// within the 60s window. A limit of 0 disables the check (always allows).
-    fn check(&self, key: &str, limit: u32) -> bool {
-        if limit == 0 {
-            return true;
-        }
-        let now = Instant::now();
-        let window = Duration::from_secs(60);
-        let mut map = self.limiter.lock();
-        if map.len() > 50_000 {
-            map.retain(|_, b| now.duration_since(b.window_start) < window);
-        }
-        let bucket = map.entry(key.to_string()).or_insert(Bucket {
-            count: 0,
-            window_start: now,
-        });
-        if now.duration_since(bucket.window_start) >= window {
-            bucket.count = 0;
-            bucket.window_start = now;
-        }
-        bucket.count += 1;
-        bucket.count <= limit
     }
 
     /// Per-client-IP request cap.
     pub fn allow_ip(&self, ip: &str) -> bool {
-        self.check(ip, self.cfg.rate_limit_per_min)
+        self.ip_limiter.check(ip, self.cfg.rate_limit_per_min)
     }
 
-    /// Per-project event cap (keyed separately from IPs).
+    /// Per-project event cap (separate shard map; no key allocation on hits).
     pub fn allow_project(&self, project: &str) -> bool {
-        self.check(&format!("p:{project}"), self.cfg.project_rate_limit_per_min)
+        self.project_limiter
+            .check(project, self.cfg.project_rate_limit_per_min)
     }
 
-    /// Global ingest ceiling across all clients.
+    /// Global ingest ceiling — a single lock-free fixed-window counter so the
+    /// hottest check on every request never takes a lock.
     pub fn allow_global(&self) -> bool {
-        self.check("__global__", self.cfg.global_rate_limit_per_min)
+        let limit = self.cfg.global_rate_limit_per_min;
+        if limit == 0 {
+            return true;
+        }
+        let now_ms = self.started_at.elapsed().as_millis() as u64;
+        let start = self.global_window_ms.load(Ordering::Relaxed);
+        if now_ms.saturating_sub(start) >= WINDOW.as_millis() as u64
+            && self
+                .global_window_ms
+                .compare_exchange(start, now_ms, Ordering::Relaxed, Ordering::Relaxed)
+                .is_ok()
+        {
+            self.global_count.store(0, Ordering::Relaxed);
+        }
+        // fetch_add returns the prior value; prior + 1 <= limit  ==  prior < limit.
+        self.global_count.fetch_add(1, Ordering::Relaxed) < limit
     }
 }
 
 pub fn spawn_flusher(
     state: Arc<AppState>,
-    mut rx: mpsc::Receiver<Value>,
+    mut rx: mpsc::Receiver<String>,
     mut shutdown: oneshot::Receiver<()>,
 ) -> JoinHandle<()> {
     let table = state.cfg.errors_table.clone();
@@ -93,7 +143,7 @@ pub fn spawn_flusher(
     let timeout = Duration::from_millis(state.cfg.insert_timeout_ms);
     let retries = state.cfg.insert_max_retries;
     tokio::spawn(async move {
-        let mut buf: Vec<Value> = Vec::with_capacity(flush_rows);
+        let mut buf: Vec<String> = Vec::with_capacity(flush_rows);
         let mut tick = tokio::time::interval(interval);
         loop {
             tokio::select! {
@@ -136,7 +186,7 @@ pub fn spawn_flusher(
 async fn flush(
     ch: &ClickHouseConfig,
     table: &str,
-    buf: &mut Vec<Value>,
+    buf: &mut Vec<String>,
     timeout: Duration,
     max_retries: u32,
 ) {
@@ -145,9 +195,12 @@ async fn flush(
     }
     let rows = std::mem::take(buf);
     let n = rows.len();
+    // Rows arrive pre-serialized; the flusher only concatenates the
+    // JSONEachRow body (single allocation), never re-walks a Value.
+    let body = rows.join("\n");
     let mut attempt = 0u32;
     loop {
-        let result = tokio::time::timeout(timeout, ch.execute_insert(table, &rows)).await;
+        let result = tokio::time::timeout(timeout, ch.execute_insert_raw(table, &body)).await;
         match result {
             Ok(Ok(())) => {
                 tracing::debug!(rows = n, "flushed telemetry rows");
@@ -177,5 +230,20 @@ async fn flush(
                 tokio::time::sleep(Duration::from_millis(250 * attempt as u64)).await;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sharded_limiter_enforces_and_isolates_keys() {
+        let s = Sharded::new();
+        assert!(s.check("k", 2));
+        assert!(s.check("k", 2));
+        assert!(!s.check("k", 2)); // third over a limit of 2
+        assert!(s.check("other", 2)); // independent key unaffected
+        assert!(s.check("k", 0)); // limit 0 disables the check
     }
 }
