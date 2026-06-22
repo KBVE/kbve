@@ -13,6 +13,7 @@ import {
 	BarChart,
 	CartesianGrid,
 	Cell,
+	LabelList,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -247,27 +248,65 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 						)}
 					</div>
 					{severity && severity.length > 0 ? (
-						<ResponsiveContainer width="100%" height={180}>
-							<BarChart data={severity}>
+						<ResponsiveContainer width="100%" height={240}>
+							<BarChart
+								data={severity}
+								margin={{
+									top: 24,
+									right: 12,
+									left: 0,
+									bottom: 4,
+								}}
+								barCategoryGap="25%">
 								<CartesianGrid
-									stroke="#262626"
+									stroke="#374151"
 									strokeDasharray="3 3"
+									vertical={false}
 								/>
 								<XAxis
 									dataKey="severity"
-									tick={{ fontSize: 10, fill: '#9ca3af' }}
+									tick={{
+										fontSize: 12,
+										fill: '#d1d5db',
+										fontWeight: 600,
+									}}
+									tickFormatter={(v: string) =>
+										v
+											? v.charAt(0).toUpperCase() +
+												v.slice(1)
+											: v
+									}
+									axisLine={{ stroke: '#4b5563' }}
+									tickLine={false}
 								/>
 								<YAxis
-									tick={{ fontSize: 10, fill: '#9ca3af' }}
+									allowDecimals={false}
+									tick={{ fontSize: 11, fill: '#9ca3af' }}
+									axisLine={false}
+									tickLine={false}
+									width={32}
 								/>
-								<Tooltip contentStyle={tooltipStyle} />
-								<Bar dataKey="firing_events">
+								<Tooltip
+									contentStyle={tooltipStyle}
+									cursor={{ fill: 'rgba(148,163,184,0.12)' }}
+								/>
+								<Bar
+									dataKey="firing_events"
+									radius={[4, 4, 0, 0]}
+									maxBarSize={72}>
 									{severity.map((s, i) => (
 										<Cell
 											key={i}
 											fill={severityColor(s.severity)}
 										/>
 									))}
+									<LabelList
+										dataKey="firing_events"
+										position="top"
+										fill="#e5e7eb"
+										fontSize={12}
+										fontWeight={700}
+									/>
 								</Bar>
 							</BarChart>
 						</ResponsiveContainer>
