@@ -12,6 +12,7 @@ public class KBVECombat : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"NetCore",
+			"MassCore",
 			"MassEntity",
 			"MassCommon",
 			"KBVEGameplay"

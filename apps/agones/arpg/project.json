@@ -68,6 +68,13 @@
 				"cwd": "apps/agones/arpg/web"
 			}
 		},
+		"web-test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "npm run test",
+				"cwd": "apps/agones/arpg/web"
+			}
+		},
 		"container-web": {
 			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",

@@ -17,6 +17,7 @@ public class KBVEWorld : ModuleRules
 			"MeshDescription",
 			"StaticMeshDescription",
 			"PhysicsCore",
+			"MassCore",
 			"MassEntity",
 			"MassCommon"
 		});

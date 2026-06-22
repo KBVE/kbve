@@ -80,7 +80,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
 	M->SetShadingModel(MSM_Unlit);
-	M->bUsedWithInstancedStaticMeshes = true;
+	M->SetUsageByFlag(MATUSAGE_InstancedStaticMeshes, true);
 
 	UMaterialExpressionVertexColor*       VC      = MakeExpr<UMaterialExpressionVertexColor>(M);
 	UMaterialExpressionConstant3Vector*   Tint    = MakeExpr<UMaterialExpressionConstant3Vector>(M);
@@ -121,7 +121,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	M->OpacityMaskClipValue  = 0.33f;
 	M->DitheredLODTransition = true;
 	M->SetShadingModel(MSM_Unlit);
-	M->bUsedWithInstancedStaticMeshes = true;
+	M->SetUsageByFlag(MATUSAGE_InstancedStaticMeshes, true);
 
 	auto LoadMaster = [](const TCHAR* Name) -> UTexture2D*
 	{

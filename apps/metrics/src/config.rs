@@ -18,6 +18,7 @@ pub struct Config {
     pub global_rate_limit_per_min: u32,
     pub trusted_proxy_hops: usize,
     pub ingest_token: Option<String>,
+    pub metrics_port: u16,
 }
 
 fn get(key: &str, default: &str) -> String {
@@ -66,6 +67,9 @@ impl Config {
                 .ok()
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty()),
+            metrics_port: get("METRICS_PROMETHEUS_PORT", "9090")
+                .parse()
+                .unwrap_or(9090),
         }
     }
 }

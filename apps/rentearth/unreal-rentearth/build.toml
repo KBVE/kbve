@@ -1,6 +1,6 @@
 [project]
-repo = "KBVE/chuck"
-path = "chuck.uproject"
+repo = "KBVE/kbve"
+path = "rentearth.uproject"
 server_target = "chuckServer"
 ue_image_tag = "dev-5.8.0"
 server_config = "Development"

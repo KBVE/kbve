@@ -17,6 +17,9 @@ spec:
         metadata:
             annotations:
                 rollout-restart: '2026-06-20T00:00:00Z'
+                prometheus.io/scrape: 'true'
+                prometheus.io/port: '9090'
+                prometheus.io/path: '/metrics'
             labels:
                 app: metrics
                 version: '0.1.0'
@@ -38,9 +41,14 @@ spec:
                   ports:
                       - containerPort: 5500
                         protocol: TCP
+                      - name: metrics
+                        containerPort: 9090
+                        protocol: TCP
                   env:
                       - name: APP_VERSION
                         value: '0.1.1'
+                      - name: METRICS_PROMETHEUS_PORT
+                        value: '9090'
                       - name: HTTP_HOST
                         value: '0.0.0.0'
                       - name: HTTP_PORT

@@ -141,7 +141,7 @@ UMaterialInterface* UKBVENpcSpriteRenderSubsystem::GetOrCreateBillboardMaterial(
 	M->SetShadingModel(MSM_Unlit);
 	M->BlendMode = BLEND_Masked;
 	M->TwoSided = true;
-	M->bUsedWithInstancedStaticMeshes = true;
+	M->SetUsageByFlag(MATUSAGE_InstancedStaticMeshes, true);
 	M->OpacityMaskClipValue = 0.5f;
 
 	UMaterialExpressionWorldPosition* WorldP = MakeExpr<UMaterialExpressionWorldPosition>(M);

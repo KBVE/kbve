@@ -93,10 +93,10 @@ void UKBVEWorldGrassRenderSubsystem::EnsureMaterialISMFlag(UMaterialInterface* M
 	}
 	if (UMaterial* BaseMat = Cast<UMaterial>(Cur))
 	{
-		if (!BaseMat->bUsedWithInstancedStaticMeshes)
+		if (!BaseMat->GetUsageByFlag(MATUSAGE_InstancedStaticMeshes))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] ISM-flag recompile on material '%s' (synchronous shader compile)"), *BaseMat->GetName());
-			BaseMat->bUsedWithInstancedStaticMeshes = true;
+			BaseMat->SetUsageByFlag(MATUSAGE_InstancedStaticMeshes, true);
 #if WITH_EDITOR
 			BaseMat->PostEditChange();
 			BaseMat->ForceRecompileForRendering();

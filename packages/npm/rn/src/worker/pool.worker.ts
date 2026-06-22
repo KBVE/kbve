@@ -1,7 +1,11 @@
 import * as Comlink from 'comlink';
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
-import type { PoolRequestInit, PoolResponse } from './types';
+import { request as coreRequest } from '@kbve/core';
+import type { PoolRawResponse, PoolRequestInit, PoolResponse } from './types';
+
+const RAW_TIMEOUT_MS = 20000;
+const STRIP_HEADERS = new Set(['content-encoding', 'content-length']);
 
 interface Row {
 	key: string;
@@ -23,26 +27,38 @@ const api = {
 		url: string,
 		init?: PoolRequestInit,
 	): Promise<PoolResponse<T>> {
+		return coreRequest<T>(url, {
+			method: init?.method,
+			headers: init?.headers,
+			body: init?.body,
+		});
+	},
+	async fetchRaw(
+		url: string,
+		init?: PoolRequestInit,
+	): Promise<PoolRawResponse> {
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), RAW_TIMEOUT_MS);
 		try {
 			const res = await fetch(url, {
 				method: init?.method ?? 'GET',
 				headers: init?.headers,
 				body: init?.body,
+				signal: controller.signal,
 			});
-			const data = (await res.json().catch(() => null)) as T | null;
+			const body = await res.text();
+			const headers: Record<string, string> = {};
+			res.headers.forEach((value, key) => {
+				if (!STRIP_HEADERS.has(key.toLowerCase())) headers[key] = value;
+			});
 			return {
-				ok: res.ok,
 				status: res.status,
-				data,
-				error: res.ok ? null : `HTTP ${res.status}`,
+				statusText: res.statusText,
+				headers,
+				body,
 			};
-		} catch (e) {
-			return {
-				ok: false,
-				status: 0,
-				data: null,
-				error: e instanceof Error ? e.message : 'request failed',
-			};
+		} finally {
+			clearTimeout(timer);
 		}
 	},
 	async cacheGet<T>(key: string): Promise<T | null> {

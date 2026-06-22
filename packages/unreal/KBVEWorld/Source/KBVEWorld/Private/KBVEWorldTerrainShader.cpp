@@ -81,7 +81,7 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 	M->BlendMode = BLEND_Opaque;
 	M->TwoSided  = false;
 	M->SetShadingModel(MSM_DefaultLit);
-	M->bUsedWithStaticLighting = true;
+	M->SetUsageByFlag(MATUSAGE_StaticLighting, true);
 
 	UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
 

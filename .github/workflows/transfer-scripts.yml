@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout the repository using git
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces failures as GitHub issues (#8186).

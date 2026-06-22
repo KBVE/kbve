@@ -81,7 +81,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -94,7 +94,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"source_path": "apps/agones/arpg/web",
@@ -172,7 +172,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.19",
+			"version": "0.1.20",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -297,7 +297,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.26",
+			"version": "0.1.27",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -447,7 +447,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.2",
+			"version": "0.1.4",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",
@@ -1256,7 +1256,7 @@
 			"key": "unreal_rentearth",
 			"app_name": "rentearth",
 			"engine": {
-				"version": "5.7.4",
+				"version": "5.8.0",
 				"project_path": "apps/rentearth/unreal-rentearth",
 				"build_targets": [
 					"Win64",

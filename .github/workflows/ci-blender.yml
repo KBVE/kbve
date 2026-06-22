@@ -145,7 +145,7 @@ jobs:
         runs-on: ${{ inputs.runner_label }}
         timeout-minutes: 10
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install Blender (if needed)
               id: blender_check
@@ -184,7 +184,7 @@ jobs:
         runs-on: ${{ inputs.runner_label }}
         timeout-minutes: 120
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install Blender (if needed)
               id: setup
@@ -319,7 +319,7 @@ jobs:
         runs-on: ${{ inputs.runner_label }}
         timeout-minutes: 30
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install Blender (if needed)
               id: setup
@@ -441,7 +441,7 @@ jobs:
         runs-on: ${{ inputs.runner_label }}
         timeout-minutes: 60
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install Blender (if needed)
               id: setup
@@ -539,7 +539,7 @@ jobs:
         runs-on: ${{ inputs.runner_label }}
         timeout-minutes: 60
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
             - name: Install Blender (if needed)
               id: setup

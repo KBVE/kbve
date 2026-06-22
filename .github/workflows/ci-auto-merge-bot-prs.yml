@@ -53,7 +53,7 @@ jobs:
             app_name: ${{ steps.check.outputs.app_name }}
         steps:
             - name: Checkout manifest
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   sparse-checkout: .github/ci-dispatch-manifest.json

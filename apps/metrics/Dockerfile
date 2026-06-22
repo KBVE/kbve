@@ -4,6 +4,10 @@ ENV CARGO_INCREMENTAL=0
 
 RUN printf '[workspace]\nmembers = ["apps/metrics", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
 
+# Pin dependency resolution to the committed lockfile — without it cargo-chef
+# resolves fresh and can pick an uncompilable pairing (e.g. time/time-macros).
+COPY Cargo.lock Cargo.lock
+
 COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
@@ -20,6 +24,8 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS coo
 ENV CARGO_INCREMENTAL=0
 
 RUN printf '[workspace]\nmembers = ["apps/metrics", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+
+COPY Cargo.lock Cargo.lock
 
 COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml

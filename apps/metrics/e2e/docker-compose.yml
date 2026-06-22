@@ -1,0 +1,42 @@
+# Metrics ingest e2e: real ClickHouse + the metrics binary built from source.
+# Run via ./run.sh (orchestrates readiness + assertions + teardown).
+services:
+    clickhouse:
+        image: clickhouse/clickhouse-server:25.8
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        volumes:
+            - ./init:/docker-entrypoint-initdb.d:ro
+        healthcheck:
+            test:
+                ['CMD', 'wget', '--spider', '-q', 'http://localhost:8123/ping']
+            interval: 2s
+            timeout: 3s
+            retries: 30
+        ports:
+            - '8123' # ephemeral host port; queried inside the compose network
+
+    metrics:
+        build:
+            context: ../../..
+            dockerfile: apps/metrics/Dockerfile
+        depends_on:
+            clickhouse:
+                condition: service_healthy
+        environment:
+            HTTP_HOST: '0.0.0.0'
+            HTTP_PORT: '5500'
+            RUST_LOG: 'met=info,tower_http=warn'
+            CLICKHOUSE_ENDPOINT: 'http://clickhouse:8123'
+            CLICKHOUSE_DATABASE: 'telemetry'
+            CLICKHOUSE_USERNAME: 'default'
+            CLICKHOUSE_PASSWORD: ''
+            METRICS_ERRORS_TABLE: 'errors_distributed'
+            METRICS_FLUSH_INTERVAL_MS: '500'
+            METRICS_FLUSH_ROWS: '10'
+            METRICS_INGEST_TOKEN: 'e2e-secret-token'
+            METRICS_RATE_LIMIT_PER_MIN: '1000'
+        ports:
+            - '5500:5500'

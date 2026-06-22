@@ -13,6 +13,7 @@
 		"build:embed": "vite build --mode embed",
 		"build:discord": "vite build --mode discord",
 		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
 		"preview": "vite preview"
 	},
 	"dependencies": {

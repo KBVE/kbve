@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { usernameFromToken as kbveUsernameFromToken } from '@kbve/laser';
 import { KbveUsernameSetup } from '@kbve/astro';
 import { authBridge, initSupa } from '@/lib/supa';
 import { setCtNetConfig, resolveWsUrl } from '@/lib/net-config';
@@ -87,7 +86,8 @@ export default function ReactGameGate() {
 			return;
 		}
 		setToken(accessToken);
-		const name = kbveUsernameFromToken(accessToken);
+		const { usernameFromToken } = await import('@kbve/laser');
+		const name = usernameFromToken(accessToken);
 		if (!name) {
 			setPhase('username');
 			return;

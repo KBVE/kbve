@@ -288,7 +288,7 @@ bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 	CachedFps = DeltaSeconds > 0.0f ? 1.0f / DeltaSeconds : 0.0f;
 	CachedGameMs = FPlatformTime::ToMilliseconds(GGameThreadTime);
 	CachedRenderMs = FPlatformTime::ToMilliseconds(GRenderThreadTime);
-	CachedGpuMs = FPlatformTime::ToMilliseconds(GGPUFrameTime);
+	CachedGpuMs = FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());
 	CachedRhiMs = FPlatformTime::ToMilliseconds(GRHIThreadTime);
 
 	if (CVarPerfOverlay.GetValueOnGameThread() != 0 && FKBVEPerf::IsEnabled() && GEngine)

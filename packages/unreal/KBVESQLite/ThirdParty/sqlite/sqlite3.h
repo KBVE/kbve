@@ -32,6 +32,7 @@
 */
 #ifndef SQLITE3_H
 #define SQLITE3_H
+#include "sqlite3_prefix.h"
 #include <stdarg.h>     /* Needed for the definition of va_list */
 
 /*

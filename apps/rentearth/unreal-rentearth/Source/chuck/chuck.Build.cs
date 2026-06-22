@@ -20,6 +20,7 @@ public class chuck : ModuleRules
 			"UMG",
 			"Slate",
 			"SlateCore",
+			"MassCore",
 			"MassEntity",
 			"MassCommon",
 			"NetCore",

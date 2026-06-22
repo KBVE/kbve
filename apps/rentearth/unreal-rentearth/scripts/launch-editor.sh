@@ -10,7 +10,7 @@
 set -uo pipefail
 
 PROJ_DIR="apps/rentearth/unreal-rentearth"
-UE_ROOT="${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}"
+UE_ROOT="${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}"
 UPROJECT="$PROJ_DIR/rentearth.uproject"
 EDITOR="$UE_ROOT/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor"
 

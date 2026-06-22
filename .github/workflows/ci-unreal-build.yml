@@ -279,7 +279,7 @@ jobs:
             server_config: ${{ steps.parse.outputs.server_config }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Parse shell project
               id: parse
@@ -411,7 +411,7 @@ jobs:
                   fi
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -656,7 +656,7 @@ jobs:
             version: ${{ steps.compare.outputs.version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Compare versions
               id: compare
@@ -730,7 +730,7 @@ jobs:
 
             - name: Checkout monorepo
               if: inputs.external_repo_url == ''
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -989,7 +989,7 @@ jobs:
         steps:
             - name: Checkout monorepo
               if: inputs.external_repo_url == ''
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -1181,7 +1181,7 @@ jobs:
                   echo "Client config: ${{ inputs.client_config || 'Shipping' }}"
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   lfs: false
 
@@ -1274,8 +1274,6 @@ jobs:
             - name: Build Mac client
               run: |
                   PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
-                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
-                  mkdir -p "${OUTPUT_DIR}"
 
                   UPROJECT=$(find "${PROJECT_ROOT}" -maxdepth 1 -name "*.uproject" | head -1)
                   if [ -z "${UPROJECT}" ]; then
@@ -1299,22 +1297,43 @@ jobs:
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
+                  # No -archive: under Modern Xcode (UE 5.3+) BuildCookRun -archive copies
+                  # the exe-only Binaries/Mac bundle, not the staged one with Contents/UE
+                  # + dylibs. Stage only; package the staged .app below. (issue #12996)
                   "${{ steps.find_ue.outputs.runuat }}" BuildCookRun \
                     -project="${UPROJECT}" \
                     -targetplatform=Mac \
                     -clientconfig="${CLIENT_CONFIG}" \
                     -cook ${MAP_ARG} \
-                    -build -stage -pak -archive -prereqs \
+                    -build -stage -pak -prereqs \
                     ${CUSTOM_CONFIG_ARG} \
-                    -archivedirectory="${OUTPUT_DIR}" \
                     -nodebuginfo \
                     -unattended -utf8output -NoP4
 
-            - name: Package archive
+            - name: Package staged build
               run: |
-                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
-                  cd "${OUTPUT_DIR}"
-                  zip -r "/tmp/${{ inputs.app_name }}-macos.zip" .
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+
+                  APP=$(find "${STAGE}" -maxdepth 1 -name '*.app' 2>/dev/null | head -1)
+                  if [ -z "${APP}" ]; then
+                    echo "::error::No staged .app at ${STAGE}"
+                    ls -la "${PROJECT_ROOT}/Saved/StagedBuilds" 2>/dev/null || true
+                    exit 1
+                  fi
+
+                  DYLIBS=$(find "${APP}" -name '*.dylib' | wc -l | tr -d ' ')
+                  HAS_UE=$([ -d "${APP}/Contents/UE" ] && echo yes || echo no)
+                  echo "::notice::Staged $(basename "${APP}") — ${DYLIBS} dylib(s), Contents/UE: ${HAS_UE}"
+                  if [ "${DYLIBS}" -eq 0 ] || [ "${HAS_UE}" != "yes" ]; then
+                    echo "::error::Staged Mac bundle is not self-contained (no dylibs / missing Contents/UE) — would crash at @rpath/libtbb.12.dylib. See issue #12996"
+                    exit 1
+                  fi
+
+                  # -y preserves symlinks (UE bundles dylib version chains); keep the
+                  # Mac/ top-level so the artifact layout matches Linux/Windows.
+                  cd "${PROJECT_ROOT}/Saved/StagedBuilds"
+                  zip -ry "/tmp/${{ inputs.app_name }}-macos.zip" Mac
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
@@ -1323,21 +1342,45 @@ jobs:
                   path: /tmp/${{ inputs.app_name }}-macos.zip
                   retention-days: 30
 
-            - name: Deploy to itch.io
-              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: ${{ runner.temp }}/ue5-game-output
-                  itchUsername: ${{ inputs.itch_username }}
-                  itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: macos
-                  buildNumber: ${{ needs.game_gate.outputs.version }}
-
             - name: Cleanup
               if: always()
               run: |
                   rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
+
+    game_itch_mac:
+        name: Game Deploy to itch.io (Mac client)
+        needs: [game_gate, game_build_mac]
+        if: |
+            inputs.mode == 'game' &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            needs.game_build_mac.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ inputs.app_name }}-macos.zip" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: macos
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
 
     game_post_publish:
         name: Game Post-publish version sync
@@ -1374,7 +1417,7 @@ jobs:
             tag: ${{ steps.compare.outputs.tag }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Extract version
               id: extract
@@ -1587,7 +1630,7 @@ jobs:
                   sudo apt-get install -y build-essential clang xdg-utils shared-mime-info libssl-dev python3 curl zip
 
             - name: Checkout monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Clone or update engine source
               env:
@@ -1736,7 +1779,7 @@ jobs:
             pull-requests: write
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
 
@@ -1789,7 +1832,7 @@ jobs:
             engine: ${{ steps.extract.outputs.engine }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Extract versions
               id: extract
@@ -1862,7 +1905,7 @@ jobs:
                   echo "::notice::Plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
 
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Stamp plugin version
               run: |
@@ -2005,7 +2048,7 @@ jobs:
                   Write-Host "::notice::Win64 plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
 
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Stamp plugin version
               run: |

@@ -1,8 +1,14 @@
 import * as Comlink from 'comlink';
-import type { PoolRequestInit, PoolResponse, WorkerPool } from './types';
+import type {
+	PoolRawResponse,
+	PoolRequestInit,
+	PoolResponse,
+	WorkerPool,
+} from './types';
 
 interface PoolApi {
 	request<T>(url: string, init?: PoolRequestInit): Promise<PoolResponse<T>>;
+	fetchRaw(url: string, init?: PoolRequestInit): Promise<PoolRawResponse>;
 	cacheGet<T>(key: string): Promise<T | null>;
 	cacheSet<T>(key: string, value: T): Promise<void>;
 	cacheRemove(key: string): Promise<void>;
@@ -36,6 +42,8 @@ export function createWorkerPool(): WorkerPool {
 	const pool = {
 		request: (url: string, init?: PoolRequestInit) =>
 			get().request(url, init),
+		fetchRaw: (url: string, init?: PoolRequestInit) =>
+			get().fetchRaw(url, init),
 		cacheGet: (key: string) => get().cacheGet(key),
 		cacheSet: (key: string, value: unknown) => get().cacheSet(key, value),
 		cacheRemove: (key: string) => get().cacheRemove(key),

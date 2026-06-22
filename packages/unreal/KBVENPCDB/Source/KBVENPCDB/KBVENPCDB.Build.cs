@@ -11,6 +11,7 @@ public class KBVENPCDB : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"MassCore",
 			"MassEntity",
 			"KBVEYYJson"
 		});
