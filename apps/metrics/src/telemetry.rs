@@ -1,5 +1,5 @@
-use serde::Deserialize;
-use serde_json::{Map, Value, json};
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 
 const MAX_MESSAGE: usize = 4096;
@@ -154,8 +154,37 @@ fn sanitize_extra(extra: Option<Map<String, Value>>) -> String {
     serde_json::to_string(&out).unwrap_or_else(|_| "{}".to_string())
 }
 
+/// One sanitized telemetry row, shaped to match the `telemetry.errors_raw`
+/// columns. Serialized to a JSONEachRow line on the request thread so the
+/// flusher never has to walk a `serde_json::Value` again.
+#[derive(Serialize)]
+struct Row {
+    project: String,
+    platform: String,
+    release: String,
+    environment: String,
+    fingerprint: String,
+    error_type: String,
+    message: String,
+    stack: String,
+    url: String,
+    user_id: String,
+    session_id: String,
+    user_agent: String,
+    handled: u8,
+    extra: String,
+}
+
+/// A row ready for the queue: the pre-serialized JSONEachRow `line` plus the
+/// `project` it belongs to (needed for the per-project rate cap without
+/// re-parsing the line).
+pub struct PreparedRow {
+    pub project: String,
+    pub line: String,
+}
+
 impl ErrorEvent {
-    pub fn into_row(self, user_agent: &str) -> Option<Value> {
+    pub fn into_row(self, user_agent: &str) -> Option<PreparedRow> {
         let message = sanitize(self.message, MAX_MESSAGE, true);
         if message.is_empty() || is_noise(&message) {
             return None;
@@ -167,24 +196,27 @@ impl ErrorEvent {
         let error_type = sanitize(self.error_type.unwrap_or_default(), 128, false);
         let stack = sanitize(self.stack.unwrap_or_default(), MAX_STACK, true);
         let url = self.url.map(strip_query).unwrap_or_default();
-        let fp = fingerprint(&project, &error_type, &stack, &message);
+        let fingerprint = fingerprint(&project, &error_type, &stack, &message);
 
-        Some(json!({
-            "project": project,
-            "platform": allow_enum(self.platform, PLATFORMS, "web"),
-            "release": sanitize(self.release.unwrap_or_default(), 64, false),
-            "environment": allow_enum(self.environment, ENVIRONMENTS, "production"),
-            "fingerprint": fp,
-            "error_type": error_type,
-            "message": message,
-            "stack": stack,
-            "url": url,
-            "user_id": sanitize(self.user_id.unwrap_or_default(), 128, false),
-            "session_id": sanitize(self.session_id.unwrap_or_default(), 128, false),
-            "user_agent": sanitize(user_agent.to_string(), 512, false),
-            "handled": if self.handled.unwrap_or(false) { 1u8 } else { 0u8 },
-            "extra": sanitize_extra(self.extra),
-        }))
+        let row = Row {
+            project: project.clone(),
+            platform: allow_enum(self.platform, PLATFORMS, "web"),
+            release: sanitize(self.release.unwrap_or_default(), 64, false),
+            environment: allow_enum(self.environment, ENVIRONMENTS, "production"),
+            fingerprint,
+            error_type,
+            message,
+            stack,
+            url,
+            user_id: sanitize(self.user_id.unwrap_or_default(), 128, false),
+            session_id: sanitize(self.session_id.unwrap_or_default(), 128, false),
+            user_agent: sanitize(user_agent.to_string(), 512, false),
+            handled: u8::from(self.handled.unwrap_or(false)),
+            extra: sanitize_extra(self.extra),
+        };
+
+        let line = serde_json::to_string(&row).ok()?;
+        Some(PreparedRow { project, line })
     }
 }
 
@@ -259,7 +291,9 @@ mod tests {
         let mut map = Map::new();
         map.insert("ok\u{0}key".into(), Value::String("va\u{1b}lue".into()));
         ev.extra = Some(map);
-        let row = ev.into_row("agent\u{0}x").unwrap();
+        let prepared = ev.into_row("agent\u{0}x").unwrap();
+        assert_eq!(prepared.project, "kbve");
+        let row: Value = serde_json::from_str(&prepared.line).unwrap();
         assert_eq!(row["platform"], "android");
         assert_eq!(row["environment"], "production");
         assert_eq!(row["user_agent"], "agentx");
