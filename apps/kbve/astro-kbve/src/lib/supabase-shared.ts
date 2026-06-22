@@ -15,7 +15,7 @@ export class SupaShared {
 		// Use Vite's native worker import syntax
 		this.worker = new SharedWorker(
 			new URL('../workers/supabase.shared.ts', import.meta.url),
-			{ type: 'module' },
+			{ type: 'module', name: 'supabase-shared' },
 		);
 		this.port = this.worker.port;
 		this.port.onmessage = (e) => this.onMessage(e.data);
