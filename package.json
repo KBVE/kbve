@@ -182,7 +182,7 @@
 		"marked": "^18.0.2",
 		"mermaid": "^11.15.0",
 		"openapi-fetch": "^0.15.2",
-		"openpgp": "^6.3.0",
+		"openpgp": "^6.3.1",
 		"phaser": "^4.1.0",
 		"pngjs": "^7.0.0",
 		"react-helmet-async": "^2.0.5",
