@@ -1304,7 +1304,7 @@ jobs:
                     -targetplatform=Mac \
                     -clientconfig="${CLIENT_CONFIG}" \
                     -cook ${MAP_ARG} \
-                    -build -stage -pak -archive \
+                    -build -stage -pak -archive -prereqs \
                     ${CUSTOM_CONFIG_ARG} \
                     -archivedirectory="${OUTPUT_DIR}" \
                     -nodebuginfo \
