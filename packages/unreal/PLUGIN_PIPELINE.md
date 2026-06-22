@@ -55,6 +55,34 @@ published marker and is never pre-synced; the build fires only while MDX >
 `.uplugin` VersionName from MDX (e.g. after backfilling versions); it is not part
 of the release path.
 
+## Verify & test
+
+Three tiers, all hung off the same MDX → version.toml gate (mirrors how
+npm/crates/python do `test → gate → publish`).
+
+- **Tier 0 — compile (active).** `BuildPlugin -StrictIncludes` per declared
+  platform. The release gate requires every declared platform to compile, so a
+  version bump never publishes a plugin that fails to build. Catches compile,
+  link, header-order, and `-Werror` breakage.
+- **Tier 1 — PR auto-verify (active).** `ci-unreal-plugins.yml` runs on
+  `pull_request` (paths `packages/unreal/**` + the workflow/matrix files),
+  discovers the changed plugins, and compile-verifies them (`verify_only: true`,
+  no release) on Linux + Win64. Breakage is caught at PR time, not just at
+  release. Manual `workflow_dispatch` (`scope: all|changed`) still works.
+- **Tier 2 — automation tests (planned, not wired).** Run each plugin's UE
+  automation specs headless and gate the release on them. Design:
+    - Author `*.spec.cpp` (`IMPLEMENT_SIMPLE_AUTOMATION_TEST` / Spec macros)
+      under each plugin's `Source/<Module>/Tests/`, namespaced `KBVE.<Plugin>.*`.
+    - A `plugin_test` job builds a minimal host project (or reuses an existing
+      one) with the plugin enabled, then:
+      `UnrealEditor-Cmd <host>.uproject -ExecCmds="Automation RunTests KBVE.<Plugin>; Quit" -unattended -nullrhi -nosound -ReportOutputPath=<dir>`
+      and parses `index.json` for failures.
+    - Insert between build and `plugin_release`: release gates on
+      `plugin_test` success in addition to the per-platform builds.
+    - Why not wired yet: no specs exist, and a release-gating test stage with
+      zero tests either no-ops (false confidence) or blocks every release. Land
+      the host-project harness + a first real spec together, then flip the gate.
+
 ## Win64 prerequisites
 
 `UE5-Win` is a single self-hosted KubeVirt VM (`windows-builder`, `angelscript`
