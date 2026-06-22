@@ -252,8 +252,14 @@ function applyCenterlinePull(
  * while the server stays the source of truth.
  */
 export function reconcileFloat(s: FloatState, serverTile: TileXY): void {
+	const cur = floatTile(s);
+	if (cur.x === serverTile.x && cur.y === serverTile.y) return;
+
 	const dx = serverTile.x - s.pos.x;
 	const dy = serverTile.y - s.pos.y;
+
+	if (floatSpeed(s) > 0.05 && dx * s.vel.x + dy * s.vel.y < 0) return;
+
 	const dist = Math.hypot(dx, dy);
 	if (dist > RECONCILE_SNAP_DIST) {
 		s.pos.x = serverTile.x;

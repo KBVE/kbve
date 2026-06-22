@@ -67,8 +67,6 @@ export function applyEntitySync<R>(
 			);
 			if (drift > 2) {
 				state.predicted = { x: e.tile.x, y: e.tile.y };
-				const refs = store.refs(e.eid);
-				if (refs) bridge.setPos(refs, e.tile);
 			}
 			store.update(e.eid, {
 				tile: { ...state.predicted },

@@ -39,8 +39,8 @@ export const PROBE_AHEAD = 0.04; // lookahead past the radius for intent deflect
 // as magnetised. Raise to ~1.5 to re-enable a gentle doorway funnel.
 export const CENTERLINE_PULL = 0;
 // Soft reconciliation of the float toward the server-authoritative tile.
-export const RECONCILE_LERP = 0.12; // per-snapshot pull toward server tile
-export const RECONCILE_SNAP_DIST = 2.5; // tiles of drift before a hard snap
+export const RECONCILE_LERP = 0.18; // per-snapshot pull toward server tile
+export const RECONCILE_SNAP_DIST = 3.5; // tiles of drift before a hard snap
 export const ARRIVE_DIST = 0.15; // tiles from a click target counted as arrived
 export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 
