@@ -107,7 +107,7 @@
 		"typescript": "5.9.3",
 		"verdaccio": "6.5.1",
 		"vite": "8.0.9",
-		"vite-plugin-dts": "4.5.3",
+		"vite-plugin-dts": "4.5.4",
 		"vite-plugin-istanbul": "^9.0.1",
 		"vite-plugin-top-level-await": "^1.6.0",
 		"vitest": "4.0.9",
