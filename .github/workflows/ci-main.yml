@@ -539,6 +539,7 @@ jobs:
                     maps=$(echo "$entry" | jq -c '.engine.maps // []')
                     itch_user=$(echo "$entry" | jq -r '.external_publish.itch_user // empty')
                     itch_game=$(echo "$entry" | jq -r '.external_publish.itch_game // empty')
+                    itch_chan=$(echo "$entry" | jq -r '.external_publish.itch_channel // empty')
                     deploy_itch="false"
                     [ -n "$itch_user" ] && [ -n "$itch_game" ] && deploy_itch="true"
 
@@ -571,8 +572,8 @@ jobs:
                       '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // [])}')
                     version_json=$(jq -nc --arg s "$src" --arg t "$vtoml" --arg m "$ver" \
                       '{source:$s, toml:$t, manifest:$m}')
-                    publish_json=$(jq -nc --argjson d "$deploy_itch" --arg u "$itch_user" --arg g "$itch_game" \
-                      '{deploy_to_itch:$d, itch_user:$u, itch_game:$g}')
+                    publish_json=$(jq -nc --argjson d "$deploy_itch" --arg u "$itch_user" --arg g "$itch_game" --arg c "$itch_chan" \
+                      '{deploy_to_itch:$d, itch_user:$u, itch_game:$g, itch_channel:$c}')
 
                     gh workflow run "$workflow" --repo "$REPO" --ref main \
                       --field key="$key" \
