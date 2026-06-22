@@ -326,6 +326,35 @@ impl GithubStore {
         Ok(rows)
     }
 
+    /// Closed issues that still carry a `discord_thread_id`, for the one-shot
+    /// reverse-sync backfill (archive/lock threads whose issues closed before
+    /// VS6 thread-lifecycle shipped). Not cached — a startup sweep, not a
+    /// hot path.
+    pub async fn list_closed_issue_threads(
+        &self,
+        limit: u32,
+    ) -> Result<Vec<CachedIssue>, GithubStoreError> {
+        let Some(client) = self.client.as_ref() else {
+            return Err(GithubStoreError::NotConfigured);
+        };
+
+        let params = serde_json::json!({ "p_limit": limit });
+        let resp = client
+            .rpc_schema("list_closed_issue_threads", params, SCHEMA)
+            .await?;
+        let status = resp.status();
+        let text = resp.text().await?;
+
+        if !status.is_success() {
+            warn!(%status, body = %text, "gh.list_closed_issue_threads HTTP error");
+            return Err(GithubStoreError::Http { status, body: text });
+        }
+
+        let rows: Vec<CachedIssue> = serde_json::from_str(&text)?;
+        info!(count = rows.len(), "gh.list_closed_issue_threads");
+        Ok(rows)
+    }
+
     pub async fn set_discord_thread(
         &self,
         owner: &str,
