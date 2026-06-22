@@ -5,10 +5,10 @@ import {
 	Text,
 	Badge,
 	Avatar,
-	Skeleton,
 	PressableSurface,
 	tokens,
 } from '@kbve/rn/ui';
+import { Skeleton } from '../components/ui';
 import { Phone, Video, MessageSquare } from 'lucide-react';
 import { Panel } from '../ui/Panel';
 import { fetchTaxonomy, type TaxonomyItem, type Vertical } from '../api/client';
