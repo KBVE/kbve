@@ -58,12 +58,13 @@ jobs:
             - name: Build astro-kbve (retry on flaky graph)
               run: |
                   for attempt in 1 2 3; do
-                      if npx nx run astro-kbve:build; then
+                      if npx nx run astro-kbve:build --verbose; then
                           echo "Build succeeded on attempt $attempt"
                           exit 0
                       fi
                       echo "::warning::astro-kbve:build attempt $attempt failed, retrying..."
                       npx nx reset || true
+                      sleep 5
                   done
                   echo "::error::astro-kbve:build failed after 3 attempts"
                   exit 1
