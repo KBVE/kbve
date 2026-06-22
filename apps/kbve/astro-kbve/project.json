@@ -53,14 +53,6 @@
 				"parallel": false
 			}
 		},
-		"build-arpg-discord": {
-			"executor": "nx:run-commands",
-			"outputs": ["{projectRoot}/public/discord/arpg"],
-			"options": {
-				"commands": ["nx run arpg:web-build-discord"],
-				"parallel": false
-			}
-		},
 		"preview": {
 			"dependsOn": [
 				{

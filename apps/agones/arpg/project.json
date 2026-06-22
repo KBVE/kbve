@@ -55,9 +55,7 @@
 		},
 		"web-build-discord": {
 			"executor": "nx:run-commands",
-			"outputs": [
-				"{workspaceRoot}/apps/kbve/astro-kbve/public/discord/arpg/arpg.js"
-			],
+			"outputs": ["{projectRoot}/web/dist/discord/arpg/arpg.js"],
 			"options": {
 				"commands": ["npm install --no-save", "npm run build:discord"],
 				"cwd": "apps/agones/arpg/web",

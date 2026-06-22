@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && vite build --mode embed",
+		"build": "vite build && vite build --mode embed && vite build --mode discord",
 		"build:app": "vite build",
 		"build:embed": "vite build --mode embed",
 		"build:discord": "vite build --mode discord",

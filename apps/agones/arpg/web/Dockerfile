@@ -27,8 +27,13 @@ COPY apps/agones/arpg/web apps/agones/arpg/web
 # both *.kbve.com so the browser calls Supabase directly (no dev /supabase proxy).
 ARG PUBLIC_ARPG_GAME_WS=wss://arpg.kbve.com/ws
 ARG PUBLIC_SUPABASE_URL=https://supabase.kbve.com
+# Discord Activity client id, baked into the discord bundle. Empty by default;
+# if unset, terser dead-code-eliminates the Activity boot body (the page shows a
+# "missing client id" notice) — set it in CI to ship a working Activity.
+ARG PUBLIC_DISCORD_CLIENT_ID=
 ENV PUBLIC_ARPG_GAME_WS=$PUBLIC_ARPG_GAME_WS
 ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL
+ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
 ENV PUBLIC_ARPG_LOCAL=false
 
 RUN cd apps/agones/arpg/web && npm run build

@@ -10,21 +10,21 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
 	| undefined;
 
-// Same-origin backend on axum-kbve (kbve.com). Every Activity request must carry
-// the /.proxy/ prefix; the SDK strips it and applies the portal mappings. The
-// portal root maps / -> kbve.com/discord/arpg/, so axum-kbve serves the session
-// at /discord/api/v1/discord/session too (see https.rs).
-const SESSION_ENDPOINT = '/.proxy/api/v1/discord/session';
-
 // Portal URL Mappings. The Activity iframe proxies every request through
 // *.discordsays.com; each external host needs a mapping so the SDK can rewrite
-// it. Both the game WS and the art now live on arpg.kbve.com: /arpg-game ->
-// arpg.kbve.com for the socket, /arpg-assets -> arpg.kbve.com for the sprites
-// (served from the vite app's /assets/ with CORS).
+// it. The portal ROOT now maps / -> arpg.kbve.com/discord/arpg/, so the page +
+// arpg.js load same-origin (relative), but everything else needs a mapping:
+//   /arpg-game    -> arpg.kbve.com  (game WS, a sibling of the /discord/arpg/ dir)
+//   /arpg-assets  -> arpg.kbve.com  (sprite art at /assets/, served with CORS)
+//   /arpg-session -> kbve.com       (OAuth->Supabase JWT bridge on axum-kbve,
+//                                     which holds DISCORD_CLIENT_SECRET; it stays
+//                                     on kbve.com, now a cross-origin host)
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/arpg-game', target: 'arpg.kbve.com' },
 	{ prefix: '/arpg-assets', target: 'arpg.kbve.com' },
+	{ prefix: '/arpg-session', target: 'kbve.com' },
 ];
+const SESSION_ENDPOINT = '/.proxy/arpg-session/api/v1/discord/session';
 const GAME_WS = 'wss://arpg.kbve.com/.proxy/arpg-game/ws';
 // Art base: the SDK rewrites /arpg-assets -> arpg.kbve.com, so
 // /arpg-assets/assets/... reaches the vite app's art through the proxy.

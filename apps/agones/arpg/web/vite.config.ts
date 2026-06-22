@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 const repoRoot = path.resolve(__dirname, '../../../..');
-const astroPublic = path.join(repoRoot, 'apps/kbve/astro-kbve/public');
 
 const GAME_WS = process.env.PUBLIC_ARPG_GAME_WS || 'ws://localhost:7979/ws';
 
@@ -59,13 +58,14 @@ export default defineConfig(({ mode }) => {
 				),
 			},
 			build: {
-				// discord -> astro public (the Discord Activity page is served
-				// same-origin from kbve.com and loads arpg.js relatively).
-				// embed -> this app's own dist, so arpg.kbve.com serves it as a
-				// CDN: kbve.com/arcade/arpg loads the bundle cross-origin from
-				// arpg.kbve.com/arpg-embed.js (same as the game art).
+				// Both bundles emit into this app's own dist so arpg.kbve.com
+				// serves everything (CDN). The app build's publicDir copies the
+				// Discord page (public/discord/arpg/index.html) into dist, and
+				// these lib builds drop the JS beside it:
+				//   embed   -> dist/arpg-embed.js   (kbve.com/arcade/arpg loads it)
+				//   discord -> dist/discord/arpg/arpg.js (Discord Activity root)
 				outDir: discord
-					? path.join(astroPublic, 'discord/arpg')
+					? path.join(__dirname, 'dist/discord/arpg')
 					: path.join(__dirname, 'dist'),
 				emptyOutDir: false,
 				minify: 'terser',
