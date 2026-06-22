@@ -93,7 +93,7 @@ jobs:
             should_publish: ${{ steps.check.outputs.should_publish }}
             local_version: ${{ steps.check.outputs.local }}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - id: check
               run: |
                   LOCAL="${{ inputs.manifest_version }}"
@@ -121,7 +121,7 @@ jobs:
         container:
             image: barichello/godot-ci:${{ inputs.engine_version }}${{ inputs.dotnet_enabled && '-mono' || '' }}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
@@ -153,7 +153,7 @@ jobs:
             matrix:
                 preset: ${{ fromJSON(inputs.build_targets) }}
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
             - name: Stage export templates
               run: |
                   mkdir -p ~/.local/share/godot/export_templates/${{ inputs.engine_version }}

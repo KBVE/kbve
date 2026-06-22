@@ -150,7 +150,7 @@ jobs:
                   echo "::notice::Self-hosted job audit: actor=${{ github.actor }}, event=${{ github.event_name }}, ref=${{ github.ref }}, sha=${{ github.sha }}, runner=${{ inputs.runner }}, run_id=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: ${{ inputs.checkout_ref || github.ref }}
                   submodules: ${{ inputs.checkout_submodules }}

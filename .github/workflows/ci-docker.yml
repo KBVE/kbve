@@ -67,7 +67,7 @@ jobs:
             local_version: ${{ steps.check.outputs.local_version }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Check version against version.toml
               id: check
@@ -162,7 +162,7 @@ jobs:
             external_publish: ${{ steps.resolve.outputs.external_publish }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   sparse-checkout: .github/ci-dispatch-manifest.json
                   sparse-checkout-cone-mode: false

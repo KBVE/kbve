@@ -83,7 +83,7 @@ jobs:
                              /etc/apt/sources.list.d/microsoft*.list 2>/dev/null || true
 
             - name: Checkout the monorepo
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               continue-on-error: true
 
             - name: Detect Forgejo LFS assets

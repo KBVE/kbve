@@ -35,7 +35,7 @@ jobs:
 
         steps:
             - name: Checkout main branch to read version
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: main
                   path: main-ref
@@ -54,7 +54,7 @@ jobs:
                   echo "Resolved version: $NEW_VER"
 
             - name: Checkout dev branch
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   ref: dev
                   token: ${{ secrets.TRIGGER_PAT }}

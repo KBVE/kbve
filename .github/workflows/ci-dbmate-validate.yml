@@ -48,7 +48,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Install dbmate + psql client + docker compose v2
               run: |
