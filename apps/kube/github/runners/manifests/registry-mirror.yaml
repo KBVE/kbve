@@ -56,11 +56,9 @@ data:
             X-Content-Type-Options: [nosniff]
         proxy:
           remoteurl: https://registry-1.docker.io
-          # Hub creds bypass anon 100/6h pull cap. Wire later via
-          # ExternalSecret if rate-limit hit; for now anon is fine
-          # because cached layers don't re-fetch from upstream.
-          # username: ""
-          # password: ""
+          # Hub creds (bypass the anon 100/6h pull cap) come from the optional
+          # registry-mirror-hub-creds secret via REGISTRY_PROXY_USERNAME /
+          # REGISTRY_PROXY_PASSWORD env. Absent secret -> anonymous pulls.
         health:
           storagedriver:
             enabled: true
@@ -101,6 +99,18 @@ spec:
                   env:
                       - name: REGISTRY_HTTP_ADDR
                         value: ':5000'
+                      - name: REGISTRY_PROXY_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: registry-mirror-hub-creds
+                                key: username
+                                optional: true
+                      - name: REGISTRY_PROXY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: registry-mirror-hub-creds
+                                key: password
+                                optional: true
                   volumeMounts:
                       - name: config
                         mountPath: /etc/docker/registry
@@ -154,3 +164,31 @@ spec:
           port: 5000
           targetPort: http
           protocol: TCP
+---
+# The mirror serves cached Hub layers over unauthenticated HTTP, and
+# 'delete: enabled' means any client reaching :5000 could evict tags or
+# poison the cache. Restrict ingress to pods inside arc-runners (the only
+# legitimate clients are the runner DinD sidecars) so nothing in another
+# namespace can MITM/poison the cache. Mirrors the registry-mirror-ghcr lock.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: registry-mirror-ingress
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: registry-mirror
+        app.kubernetes.io/part-of: arc-runner-set
+spec:
+    podSelector:
+        matchLabels:
+            app.kubernetes.io/name: registry-mirror
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: arc-runners
+          ports:
+              - port: http
+                protocol: TCP
