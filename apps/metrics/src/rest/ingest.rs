@@ -97,11 +97,11 @@ pub async fn ingest_errors(
         )));
     }
 
-    let user_agent = header_str(&headers, "user-agent").to_string();
+    let user_agent = header_str(&headers, "user-agent");
     let mut accepted = 0u64;
     let mut dropped = 0u64;
     for event in batch.events {
-        match event.into_row(&user_agent) {
+        match event.into_row(user_agent) {
             Some(row) => {
                 let project = row.get("project").and_then(|v| v.as_str()).unwrap_or("");
                 if !app.allow_project(project) {
