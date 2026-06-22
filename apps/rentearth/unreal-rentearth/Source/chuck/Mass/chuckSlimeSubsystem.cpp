@@ -294,7 +294,8 @@ UKBVENetEntityReplicator* UchuckSlimeSubsystem::EnsureReplicator(bool bAuthority
 		NetActor = Spawned;
 		return Spawned ? Spawned->GetReplicator() : nullptr;
 	}
-	for (TActorIterator<AchuckSlimeNetActor> It(World); It; ++It)
+	TActorIterator<AchuckSlimeNetActor> It(World);
+	if (It)
 	{
 		NetActor = *It;
 		return It->GetReplicator();

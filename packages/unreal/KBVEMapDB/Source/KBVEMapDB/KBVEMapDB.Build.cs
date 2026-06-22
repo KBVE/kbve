@@ -11,6 +11,7 @@ public class KBVEMapDB : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"MassCore",
 			"MassEntity"
 		});
 

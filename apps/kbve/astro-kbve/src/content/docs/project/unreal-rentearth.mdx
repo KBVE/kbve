@@ -20,7 +20,7 @@ author: h0lybyte
 license: KBVE
 status: beta
 engine:
-    version: "5.7.4"
+    version: "5.8.0"
     project_path: apps/rentearth/unreal-rentearth
     build_targets:
         - Win64
@@ -41,16 +41,16 @@ repo), the same way the early Chuck demo did, and is wired to the shared `unreal
 `pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`) when the MDX
 `version:` here outpaces `version.toml`, or `source_path` files change. With no
 `engine.external_repo_url`, the builder checks out the monorepo and builds the `.uproject` under
-`engine.project_path` against the prebuilt UE5.7 on the `UE5-Win` KubeVirt VM
-(`C:\Program Files\Epic Games\UE_5.7`); the Linux client builds in the cached
-`ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-ue`.
+`engine.project_path` against the prebuilt UE5.8 on the `UE5-Win` KubeVirt VM
+(`C:\Program Files\Epic Games\UE_5.8`); the Linux client builds in the cached
+`ghcr.io/epicgames/unreal-engine:dev-5.8.0` image on `arc-runner-ue`.
 
 ## Build Matrix
 
 `engine.build_targets`:
 
-- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.7)
-- `Linux` — `arc-runner-ue` in the Epic UE5.7 Docker image
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.8)
+- `Linux` — `arc-runner-ue` in the Epic UE5.8 Docker image
 
 The dedicated server is not wired yet — add `shell_path` + a `build.toml` (`server_target`,
 `repo`, UE image) under `apps/rentearth/unreal-rentearth` to fan the server build off this same

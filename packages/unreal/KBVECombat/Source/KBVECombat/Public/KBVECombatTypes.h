@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "KBVECombatTypes.generated.h"
 
 /** Damage school — mirrors the npcdb Element taxonomy without coupling to its generated proto. */

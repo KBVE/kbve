@@ -11,6 +11,7 @@ public class KBVEItemDB : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"MassCore",
 			"MassEntity",
 			"KBVEYYJson"
 		});

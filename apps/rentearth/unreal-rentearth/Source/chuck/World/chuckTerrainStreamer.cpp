@@ -59,8 +59,8 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 	UE_LOG(LogTemp, Display, TEXT("[chuck] TerrainStreamer pool spawned %d/%d actors"), ChunkPool.Num(), PoolSize);
 
 	// Spawn sky/atmosphere if level doesn't have one.
-	bool bSkyPresent = false;
-	for (TActorIterator<AchuckSky> It(&InWorld); It; ++It) { bSkyPresent = true; break; }
+	TActorIterator<AchuckSky> SkyIt(&InWorld);
+	bool bSkyPresent = (bool)SkyIt;
 	if (!bSkyPresent)
 	{
 		FActorSpawnParameters SkyParams;

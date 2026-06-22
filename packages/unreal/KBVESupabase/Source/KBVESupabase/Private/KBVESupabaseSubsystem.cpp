@@ -330,7 +330,7 @@ bool UKBVESupabaseSubsystem::ParseUserObject(const TSharedPtr<FJsonObject>& Root
 			FString AsString;
 			if (Pair.Value->TryGetString(AsString))
 			{
-				OutUser.UserMetadata.Add(Pair.Key, AsString);
+				OutUser.UserMetadata.Add(FString(*Pair.Key), AsString);
 			}
 		}
 	}
@@ -343,7 +343,7 @@ bool UKBVESupabaseSubsystem::ParseUserObject(const TSharedPtr<FJsonObject>& Root
 			FString AsString;
 			if (Pair.Value->TryGetString(AsString))
 			{
-				OutUser.AppMetadata.Add(Pair.Key, AsString);
+				OutUser.AppMetadata.Add(FString(*Pair.Key), AsString);
 			}
 		}
 	}

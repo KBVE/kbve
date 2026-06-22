@@ -11,6 +11,7 @@ public class KBVEGameplay : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"MassCore",
 			"MassEntity",
 			"GameplayTags"
 		});

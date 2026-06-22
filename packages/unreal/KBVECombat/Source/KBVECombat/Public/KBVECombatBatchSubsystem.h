@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Containers/Queue.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "KBVECombatTypes.h"
 #include "KBVECombatBatchSubsystem.generated.h"
 

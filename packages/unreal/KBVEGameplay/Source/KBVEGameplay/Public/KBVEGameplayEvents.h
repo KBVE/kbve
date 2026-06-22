@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 
 // Shared gameplay event payloads — the cross-game vocabulary for stat / combat
 // signals. Plain POD structs; transport (channels, MPSC queues) is the game's,

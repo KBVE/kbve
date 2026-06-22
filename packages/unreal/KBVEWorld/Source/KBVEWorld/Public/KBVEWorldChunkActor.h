@@ -4,7 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "KBVEWorldChunkBlob.h"
 #include "KBVEWorldFoliageBucket.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "KBVEWorldChunkActor.generated.h"
 
 class UProceduralMeshComponent;
