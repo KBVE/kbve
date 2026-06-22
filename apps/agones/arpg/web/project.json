@@ -1,0 +1,73 @@
+{
+	"name": "arpg-web",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/arpg/web/src",
+	"tags": ["vite", "react", "game-client", "arpg"],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "vite"
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"commands": [
+					"vite build",
+					"vite build --mode embed",
+					"vite build --mode discord"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
+		"build:app": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "vite build"
+			},
+			"cache": true
+		},
+		"build:embed": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist/arpg-embed.js"],
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "vite build --mode embed"
+			},
+			"cache": true
+		},
+		"build:discord": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist/discord/arpg/arpg.js"],
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "vite build --mode discord"
+			},
+			"cache": true
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "tsc --noEmit"
+			},
+			"cache": true
+		},
+		"preview": {
+			"dependsOn": ["build:app"],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/arpg/web",
+				"command": "vite preview"
+			}
+		}
+	}
+}
