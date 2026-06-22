@@ -3,6 +3,7 @@ import {
 	createRootRoute,
 	createRoute,
 	createRouter,
+	lazyRouteComponent,
 	Outlet,
 	redirect,
 	useNavigate,
@@ -27,15 +28,34 @@ import {
 import { queryClient } from './lib/queryClient';
 import { HomePage } from './routes/home';
 import { GigsPage } from './routes/gigs';
-import { GigDetailPage } from './routes/gig-detail';
 import { TalentPage } from './routes/talent';
-import { TalentProfilePage } from './routes/talent-profile';
-import { PostGigPage } from './routes/post-gig';
-import { LoginPage } from './routes/login';
-import { ApplyPage } from './routes/apply';
-import { DashboardPage } from './routes/dashboard';
 import { NavBar } from './components/NavBar';
-import { Footer } from '@kbve/rn/ui';
+import { Footer } from './components/Footer';
+
+const GigDetailPage = lazyRouteComponent(
+	() => import('./routes/gig-detail'),
+	'GigDetailPage',
+);
+const TalentProfilePage = lazyRouteComponent(
+	() => import('./routes/talent-profile'),
+	'TalentProfilePage',
+);
+const PostGigPage = lazyRouteComponent(
+	() => import('./routes/post-gig'),
+	'PostGigPage',
+);
+const LoginPage = lazyRouteComponent(
+	() => import('./routes/login'),
+	'LoginPage',
+);
+const ApplyPage = lazyRouteComponent(
+	() => import('./routes/apply'),
+	'ApplyPage',
+);
+const DashboardPage = lazyRouteComponent(
+	() => import('./routes/dashboard'),
+	'DashboardPage',
+);
 
 const GAME_DEV_ID = 1;
 
@@ -293,11 +313,20 @@ const routeTree = rootRoute.addChildren([
 	accountRoute,
 ]);
 
+function RoutePending() {
+	return (
+		<div className="flex min-h-[40vh] items-center justify-center">
+			<div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-quest-400" />
+		</div>
+	);
+}
+
 export const router = createRouter({
 	routeTree,
 	defaultViewTransition: true,
 	defaultPreload: 'intent',
 	defaultPreloadStaleTime: 0,
+	defaultPendingComponent: RoutePending,
 });
 
 declare module '@tanstack/react-router' {
