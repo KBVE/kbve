@@ -101,11 +101,38 @@ function ResourceBar({ tally }: { tally: ResourceTally }) {
 	);
 }
 
+// Subscribe to only this card's slice of $actionBusy so a sync on one card
+// re-renders that card's action bar alone, not every card in the grid.
+function useCardBusy(name: string): { syncing: boolean; refreshing: boolean } {
+	const [state, setState] = React.useState(() => {
+		const b = argoService.$actionBusy.get();
+		return {
+			syncing: b === `${name}:sync`,
+			refreshing: b === `${name}:refresh`,
+		};
+	});
+	React.useEffect(() => {
+		const syncKey = `${name}:sync`;
+		const refreshKey = `${name}:refresh`;
+		return argoService.$actionBusy.subscribe((b) => {
+			const next = {
+				syncing: b === syncKey,
+				refreshing: b === refreshKey,
+			};
+			setState((prev) =>
+				prev.syncing === next.syncing &&
+				prev.refreshing === next.refreshing
+					? prev
+					: next,
+			);
+		});
+	}, [name]);
+	return state;
+}
+
 function CardActions({ name }: { name: string }) {
-	const busy = useStore(argoService.$actionBusy);
-	const syncing = busy === `${name}:sync`;
-	const refreshing = busy === `${name}:refresh`;
-	const anyBusy = busy !== null;
+	const { syncing, refreshing } = useCardBusy(name);
+	const ownBusy = syncing || refreshing;
 	const btn: React.CSSProperties = {
 		display: 'inline-flex',
 		alignItems: 'center',
@@ -117,14 +144,14 @@ function CardActions({ name }: { name: string }) {
 		color: 'var(--sl-color-gray-2, #c9d1d9)',
 		fontSize: '0.7rem',
 		fontWeight: 500,
-		cursor: anyBusy ? 'wait' : 'pointer',
+		cursor: ownBusy ? 'wait' : 'pointer',
 	};
 	const stop = (e: React.MouseEvent) => e.stopPropagation();
 	return (
 		<div style={{ display: 'flex', gap: 6 }} onClick={stop}>
 			<button
 				type="button"
-				disabled={anyBusy}
+				disabled={ownBusy}
 				title="Trigger an ArgoCD sync (requires manage permission)"
 				onClick={() => argoService.syncApp(name)}
 				style={btn}>
@@ -140,7 +167,7 @@ function CardActions({ name }: { name: string }) {
 			</button>
 			<button
 				type="button"
-				disabled={anyBusy}
+				disabled={ownBusy}
 				title="Force ArgoCD to re-read the live cluster state"
 				onClick={() => argoService.hardRefreshApp(name)}
 				style={btn}>
@@ -175,7 +202,12 @@ function syncAgeMs(s: AppSummary): number | null {
 	return Date.now() - t;
 }
 
-function AppCard({
+const AppCard = React.memo(
+	AppCardImpl,
+	(a, b) => a.summary === b.summary && a.expanded === b.expanded,
+);
+
+function AppCardImpl({
 	summary,
 	expanded,
 	onToggle,
@@ -536,9 +568,11 @@ function CardFilterBar({
 function CardGrid({
 	summaries,
 	expandedApp,
+	expandedPanel,
 }: {
 	summaries: AppSummary[];
 	expandedApp: string | null;
+	expandedPanel?: React.ReactNode;
 }) {
 	return (
 		<div
@@ -547,14 +581,25 @@ function CardGrid({
 				gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
 				gap: '0.75rem',
 			}}>
-			{summaries.map((s) => (
-				<AppCard
-					key={s.name}
-					summary={s}
-					expanded={expandedApp === s.name}
-					onToggle={() => argoService.toggleExpandedApp(s.name)}
-				/>
-			))}
+			{summaries.map((s) => {
+				const isExpanded = expandedApp === s.name;
+				return (
+					<React.Fragment key={s.name}>
+						<AppCard
+							summary={s}
+							expanded={isExpanded}
+							onToggle={() =>
+								argoService.toggleExpandedApp(s.name)
+							}
+						/>
+						{isExpanded && expandedPanel && (
+							<div style={{ gridColumn: '1 / -1' }}>
+								{expandedPanel}
+							</div>
+						)}
+					</React.Fragment>
+				);
+			})}
 		</div>
 	);
 }
@@ -577,7 +622,10 @@ function groupSummaries(
 }
 
 export default function ReactArgoCards() {
-	const summaries = useStore(argoService.$filteredSummaries);
+	// Defer the list so a 30s poll re-render yields to clicks/typing.
+	const summaries = React.useDeferredValue(
+		useStore(argoService.$filteredSummaries),
+	);
 	const applications = useStore(argoService.$applications);
 	const expandedApp = useStore(argoService.$expandedApp);
 	const accessToken = useStore(argoService.$accessToken);
@@ -600,6 +648,47 @@ export default function ReactArgoCards() {
 		: undefined;
 
 	const groups = groupSummaries(summaries, groupBy);
+
+	const expandedPanel =
+		expandedRaw && accessToken ? (
+			<div
+				style={{
+					borderRadius: 10,
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 8,
+						padding: '0.65rem 1rem',
+						fontWeight: 600,
+						fontSize: '0.9rem',
+					}}>
+					{expandedRaw.metadata.name}
+					{(actionMsg || actionError) && (
+						<span
+							style={{
+								marginLeft: 'auto',
+								fontSize: '0.75rem',
+								color: actionError ? '#fca5a5' : '#22c55e',
+							}}>
+							{actionError ?? actionMsg}
+						</span>
+					)}
+				</div>
+				<AppActionBar app={expandedRaw} />
+				<AppExpandedPanel
+					app={expandedRaw}
+					token={accessToken}
+					tab={appTab}
+					onTabChange={(t) => argoService.setAppTab(t)}
+					selectedResource={selectedResource}
+					onSelectResource={(sel) => argoService.selectResource(sel)}
+				/>
+			</div>
+		) : null;
 
 	return (
 		<>
@@ -653,52 +742,10 @@ export default function ReactArgoCards() {
 						<CardGrid
 							summaries={g.items}
 							expandedApp={expandedApp}
+							expandedPanel={expandedPanel}
 						/>
 					</div>
 				))
-			)}
-
-			{expandedRaw && accessToken && (
-				<div
-					style={{
-						marginTop: '0.75rem',
-						borderRadius: 10,
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-					}}>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							padding: '0.65rem 1rem',
-							fontWeight: 600,
-							fontSize: '0.9rem',
-						}}>
-						{expandedRaw.metadata.name}
-						{(actionMsg || actionError) && (
-							<span
-								style={{
-									marginLeft: 'auto',
-									fontSize: '0.75rem',
-									color: actionError ? '#fca5a5' : '#22c55e',
-								}}>
-								{actionError ?? actionMsg}
-							</span>
-						)}
-					</div>
-					<AppActionBar app={expandedRaw} />
-					<AppExpandedPanel
-						app={expandedRaw}
-						token={accessToken}
-						tab={appTab}
-						onTabChange={(t) => argoService.setAppTab(t)}
-						selectedResource={selectedResource}
-						onSelectResource={(sel) =>
-							argoService.selectResource(sel)
-						}
-					/>
-				</div>
 			)}
 		</>
 	);

@@ -6,6 +6,7 @@ import {
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_FLOOR,
 	EPHEMERAL_INVENTORY,
+	EPHEMERAL_ITEM_PLACED,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_PROJECTILE,
@@ -22,6 +23,7 @@ import {
 	type FloorChangeEvent,
 	type Input,
 	type InventorySync,
+	type ItemPlacedEvent,
 	type ItemUsedEvent,
 	type PickupEvent,
 	type ProjectileEvent,
@@ -47,6 +49,7 @@ export type GameClientEventMap = {
 	floor: FloorChangeEvent;
 	pickup: PickupEvent;
 	itemUsed: ItemUsedEvent;
+	itemPlaced: ItemPlacedEvent;
 	equipped: EquippedEvent;
 	stats: StatsEvent;
 	shop: ShopResult;
@@ -154,6 +157,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
 			const data = decodeEphemeralPayload<ItemUsedEvent>(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
+		} else if (evt.kind === EPHEMERAL_ITEM_PLACED) {
+			const data = decodeEphemeralPayload<ItemPlacedEvent>(evt.payload);
+			if (data) this.bus.emit('itemPlaced', data);
 		} else if (evt.kind === EPHEMERAL_EQUIPPED) {
 			const data = decodeEphemeralPayload<EquippedEvent>(evt.payload);
 			if (data) this.bus.emit('equipped', data);
@@ -201,8 +207,20 @@ export class GameClient {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
 	}
 
+	dropItem(itemRef: string, qty: number): void {
+		this.sendInputs([{ DropItem: { item_ref: itemRef, qty } }]);
+	}
+
+	moveItem(from: number, to: number): void {
+		this.sendInputs([{ MoveItem: { from, to } }]);
+	}
+
 	equipItem(itemRef: string): void {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
+	}
+
+	placeItem(itemRef: string, tile: Tile): void {
+		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile } }]);
 	}
 
 	buyItem(npc: number, itemRef: string, qty: number): void {

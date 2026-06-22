@@ -1,0 +1,192 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: telemetry-ch-setup-script
+    namespace: kbve
+data:
+    setup.sh: |
+        #!/bin/sh
+        set -eu
+
+        echo "Verifying ClickHouse connectivity..."
+        curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "SELECT 1" >/dev/null || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CLICKHOUSE_ENDPOINT}"
+          exit 1
+        }
+        echo "ClickHouse connection OK."
+
+        echo "Creating telemetry database..."
+        curl -sf --max-time 10 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "CREATE DATABASE IF NOT EXISTS telemetry ON CLUSTER 'cluster'" || {
+          echo "ERROR: Failed to create telemetry database"
+          exit 1
+        }
+        echo "Database 'telemetry' ready."
+
+        echo "Creating errors_raw table (ReplicatedMergeTree, 30d TTL)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS telemetry.errors_raw ON CLUSTER 'cluster'
+        (
+            timestamp       DateTime64(3, 'UTC') DEFAULT now64(3),
+            project         LowCardinality(String),
+            platform        LowCardinality(String) DEFAULT 'web',
+            release         LowCardinality(String) DEFAULT '',
+            environment     LowCardinality(String) DEFAULT 'production',
+            fingerprint     String,
+            error_type      LowCardinality(String) DEFAULT '',
+            message         String,
+            stack           String DEFAULT '',
+            url             String DEFAULT '',
+            user_id         String DEFAULT '',
+            session_id      String DEFAULT '',
+            user_agent      String DEFAULT '',
+            handled         UInt8 DEFAULT 0,
+            extra           String DEFAULT '{}'
+        )
+        ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/telemetry/errors_raw', '{replica}')
+        ORDER BY (project, fingerprint, timestamp)
+        PARTITION BY toYYYYMMDD(timestamp)
+        TTL toDateTime(timestamp) + INTERVAL 30 DAY
+        " || {
+          echo "ERROR: Failed to create errors_raw table"
+          exit 1
+        }
+        echo "Table 'telemetry.errors_raw' ready."
+
+        echo "Enforcing 30-day TTL on errors_raw..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
+          echo "ERROR: Failed to apply TTL to errors_raw"
+          exit 1
+        }
+        echo "TTL on 'telemetry.errors_raw' enforced at 30 days."
+
+        echo "Creating errors_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS telemetry.errors_distributed ON CLUSTER 'cluster'
+        AS telemetry.errors_raw
+        ENGINE = Distributed('cluster', 'telemetry', 'errors_raw', cityHash64(fingerprint))
+        " || {
+          echo "ERROR: Failed to create errors_distributed table"
+          exit 1
+        }
+        echo "Table 'telemetry.errors_distributed' ready."
+
+        # Defense-in-depth tripwires on the raw table (canonical list:
+        # packages/data/ch/schemas/telemetry.sql). Caps sit above the metrics
+        # ingest clamps; ADD CONSTRAINT only checks future inserts (no backfill).
+        echo "Applying sanitization constraints on errors_raw..."
+        for c in \
+          "chk_project_len CHECK length(project) > 0 AND length(project) <= 256" \
+          "chk_fingerprint_len CHECK length(fingerprint) <= 64" \
+          "chk_message_len CHECK length(message) <= 8192" \
+          "chk_stack_len CHECK length(stack) <= 32768" \
+          "chk_url_len CHECK length(url) <= 2048" \
+          "chk_handled_bit CHECK handled <= 1"; do
+          curl -sf --max-time 30 \
+            "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+            -d "ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' ADD CONSTRAINT IF NOT EXISTS ${c}" || {
+            echo "ERROR: Failed to add constraint: ${c}"
+            exit 1
+          }
+        done
+        echo "Constraints on 'telemetry.errors_raw' applied."
+
+        echo "Creating error_groups view (fingerprint rollup)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE VIEW IF NOT EXISTS telemetry.error_groups ON CLUSTER 'cluster'
+        AS SELECT
+            project,
+            fingerprint,
+            any(error_type)  AS error_type,
+            any(message)     AS sample_message,
+            count()          AS events,
+            uniq(session_id) AS sessions,
+            min(timestamp)   AS first_seen,
+            max(timestamp)   AS last_seen
+        FROM telemetry.errors_distributed
+        GROUP BY project, fingerprint
+        " || {
+          echo "ERROR: Failed to create error_groups view"
+          exit 1
+        }
+        echo "View 'telemetry.error_groups' ready."
+
+        echo ""
+        echo "Telemetry schema setup complete."
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: telemetry-ch-setup
+    namespace: kbve
+    labels:
+        app: telemetry-ch-setup
+        component: vector
+    annotations:
+        argocd.argoproj.io/hook: PostSync
+spec:
+    ttlSecondsAfterFinished: 86400
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app: telemetry-ch-setup
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: setup
+                  image: curlimages/curl:8.12.1
+                  command: ['/bin/sh', '/scripts/setup.sh']
+                  env:
+                      - name: CLICKHOUSE_ENDPOINT
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                  volumeMounts:
+                      - name: setup-script
+                        mountPath: /scripts
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '32Mi'
+                          cpu: '50m'
+                      limits:
+                          memory: '64Mi'
+                          cpu: '100m'
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: setup-script
+                  configMap:
+                      name: telemetry-ch-setup-script
+                      defaultMode: 0555

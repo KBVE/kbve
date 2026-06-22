@@ -19,4 +19,5 @@ axum = { version = "0.7", default-features = false, features = ["ws", "json", "h
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+async-trait = "0.1.88"
 agones = "1.57"

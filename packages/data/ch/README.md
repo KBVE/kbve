@@ -14,7 +14,9 @@ ClickHouse DDL for the KBVE observability stack. Two flavors live side by side:
 | `metrics.sql`            | Logflare OTEL metric templates.                                                                                                   |
 | `traces.sql`             | Logflare OTEL trace templates.                                                                                                    |
 | `observability.sql`      | `observability.logs_raw` (replicated) + `logs_distributed` — direct Vector → ClickHouse log pipeline. Day-partitioned, 8-day TTL. |
+| `telemetry.sql`          | `telemetry.errors_raw` (replicated) + `errors_distributed` + `error_groups` view — direct metrics ingest pipeline. 30-day TTL.    |
 | `firecracker.sql`        | `firecracker.vm_events` — microVM lifecycle telemetry from `firecracker-ctl`. 90-day TTL for capacity planning.                   |
+| `grants.sql`             | Canonical GRANTs for the shared `logflare` ingest user (incl. `CLUSTER ON *.*` required for all `ON CLUSTER` DDL).                |
 | `migrations/`            | One-shot deltas to align an existing cluster with `schemas/*.sql`. See `migrations/README.md` for the naming + apply convention.  |
 | `dev-docker-compose.yml` | Single-node ClickHouse for local DDL validation (no Logflare, no Postgres). Mounted on `tmpfs` for cheap teardown.                |
 
@@ -27,6 +29,8 @@ ClickHouse DDL for the KBVE observability stack. Two flavors live side by side:
 | `logflare.otel_traces_template`  | MergeTree (templated) | daily          | 45 days |
 | `observability.logs_raw`         | ReplicatedMergeTree   | `toYYYYMMDD`   | 8 days  |
 | `observability.logs_distributed` | Distributed           | (fan-out only) | n/a     |
+| `telemetry.errors_raw`           | ReplicatedMergeTree   | `toYYYYMMDD`   | 30 days |
+| `telemetry.errors_distributed`   | Distributed           | (fan-out only) | n/a     |
 | `firecracker.vm_events`          | MergeTree             | `toYYYYMMDD`   | 90 days |
 
 Production overrides Logflare's default engine via:

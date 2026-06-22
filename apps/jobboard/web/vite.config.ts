@@ -6,8 +6,33 @@ import path from 'node:path';
 const API_TARGET = process.env.JOBBOARD_API_TARGET || 'http://127.0.0.1:5400';
 const repoRoot = path.resolve(__dirname, '../../..');
 
+// expo-modules-core ships only raw TS (no built JS) and its index side-effect
+// imports ./ts-declarations/global, a pure ambient-types file whose value-style
+// imports of `declare class` symbols rolldown follows to type-only modules
+// (MISSING_EXPORT). On web the expo native layer is never used (RN libs resolve
+// their .web.ts variants), so neutralize that type-only side-effect import.
+function stubExpoTypeDeclarations() {
+	const virtual = '\0expo-empty-global';
+	return {
+		name: 'stub-expo-ts-declarations',
+		enforce: 'pre' as const,
+		resolveId(source: string, importer: string | undefined) {
+			if (
+				source.includes('ts-declarations/global') &&
+				importer?.includes('expo-modules-core')
+			)
+				return virtual;
+			return null;
+		},
+		load(id: string) {
+			return id === virtual ? 'export {};' : null;
+		},
+	};
+}
+
 export default defineConfig(({ mode }) => ({
 	plugins: [
+		stubExpoTypeDeclarations(),
 		react({
 			babel: {
 				// reanimated v4 ships its babel plugin via react-native-worklets
@@ -72,6 +97,13 @@ export default defineConfig(({ mode }) => ({
 				replacement: path.join(
 					repoRoot,
 					'packages/npm/fx/src/index.ts',
+				),
+			},
+			{
+				find: /^@kbve\/observ$/,
+				replacement: path.join(
+					repoRoot,
+					'packages/npm/observ/src/index.ts',
 				),
 			},
 			{

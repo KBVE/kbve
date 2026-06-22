@@ -98,6 +98,31 @@ pub struct EidIndex {
 #[derive(Resource, Default)]
 pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
 
+/// Items a player dropped this tick, queued for `apply_drops` to spawn as
+/// ground loot at the given tile (item already removed from the inventory).
+#[derive(Resource, Default)]
+pub struct PendingDrops(Vec<(Tile, String, u32)>);
+
+/// How a deployable item (e.g. `campfire-kit`) becomes a placed world object:
+/// which env ref to spawn and the behavior to give it. Game-supplied (the sim is
+/// content-agnostic); arpg-server inserts the table after `build_app`.
+#[derive(Clone)]
+pub struct DeployableSpec {
+    pub env_ref: String,
+    pub opts: EnvOpts,
+}
+
+/// item_ref -> how to place it. Empty by default; a game registers its
+/// deployables (campfire-kit, etc.). A PlaceItem for an unlisted ref is ignored.
+#[derive(Resource, Default)]
+pub struct Deployables(pub HashMap<String, DeployableSpec>);
+
+/// A player's placement request this tick, queued for `apply_placements` to spawn
+/// the env object (item already removed from the inventory). `floor` pins it to
+/// the placer's dungeon level.
+#[derive(Resource, Default)]
+pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
+
 pub const TRADE_RANGE: i32 = 1;
 pub const TRADE_TIMEOUT_TICKS: u32 = SIM_TICK_HZ * 30;
 pub const MAX_INVENTORY_SLOTS: usize = 28;
@@ -614,6 +639,31 @@ impl Inventory {
             self.slots.push((item_ref.to_string(), count));
         }
     }
+
+    /// Move the stack at index `from` to index `to`, shifting the rest. Slot
+    /// order is authoritative + persisted, so client reorders survive refreshes.
+    pub fn reorder(&mut self, from: usize, to: usize) {
+        let n = self.slots.len();
+        if from >= n || to >= n || from == to {
+            return;
+        }
+        let item = self.slots.remove(from);
+        self.slots.insert(to, item);
+    }
+
+    /// Remove up to `count` of `item_ref`, returning how many were actually
+    /// removed (0 if absent). Empties the slot when it hits zero.
+    pub fn remove(&mut self, item_ref: &str, count: u32) -> u32 {
+        let Some(idx) = self.slots.iter().position(|(r, _)| r == item_ref) else {
+            return 0;
+        };
+        let taken = self.slots[idx].1.min(count);
+        self.slots[idx].1 -= taken;
+        if self.slots[idx].1 == 0 {
+            self.slots.remove(idx);
+        }
+        taken
+    }
 }
 
 #[derive(Component, Clone)]
@@ -847,6 +897,9 @@ pub fn build_app(
         .insert_resource(SpawnedSlots::default())
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
+        .insert_resource(PendingDrops::default())
+        .insert_resource(Deployables::default())
+        .insert_resource(PendingPlacements::default())
         .insert_resource(PendingTrades::default())
         .insert_resource(ActiveTrades::default())
         .insert_resource(PendingShop::default())
@@ -887,6 +940,8 @@ pub fn build_app(
             Update,
             (
                 drain_inputs,
+                apply_drops,
+                apply_placements,
                 apply_actions,
                 expire_trades,
                 apply_trades,
@@ -1070,6 +1125,9 @@ fn drain_inputs(
     mut trades: ResMut<PendingTrades>,
     mut shop: ResMut<PendingShop>,
     mut blackjack_inputs: ResMut<PendingBlackjack>,
+    mut drops: ResMut<PendingDrops>,
+    deployables: Res<Deployables>,
+    mut placements: ResMut<PendingPlacements>,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -1182,6 +1240,17 @@ fn drain_inputs(
                         &mut status,
                     );
                 }
+                Input::DropItem { item_ref, qty } => {
+                    let removed = inv.remove(item_ref, *qty);
+                    if removed > 0 {
+                        drops.0.push((pos.tile, item_ref.clone(), removed));
+                        send_inventory(&bcast, slot.0, &inv);
+                    }
+                }
+                Input::MoveItem { from, to } => {
+                    inv.reorder(*from as usize, *to as usize);
+                    send_inventory(&bcast, slot.0, &inv);
+                }
                 Input::EquipItem { item_ref } => {
                     let Some(&bonus) = equipment.0.get(item_ref.as_str()) else {
                         continue;
@@ -1226,6 +1295,20 @@ fn drain_inputs(
                         stats.attack,
                         defense.0,
                     );
+                }
+                Input::PlaceItem { item_ref, tile } => {
+                    let placed =
+                        place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
+                    match placed {
+                        Ok(()) => {
+                            placements.0.push((slot.0, item_ref.clone(), *tile, z));
+                            send_inventory(&bcast, slot.0, &inv);
+                            send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
+                        }
+                        Err(reason) => {
+                            send_item_placed(&bcast, slot.0, item_ref, *tile, false, Some(reason));
+                        }
+                    }
                 }
                 Input::Action { .. }
                 | Input::Heartbeat { .. }
@@ -1394,6 +1477,18 @@ fn resolve_attack_hit(
                 bcast, slot, config, equipment, kill_xp, &mut xp, &mut php, &mut stats, equipped,
                 kills,
             );
+        }
+    }
+}
+
+fn apply_drops(
+    mut drops: ResMut<PendingDrops>,
+    registry: Res<KindRegistry>,
+    mut commands: Commands,
+) {
+    for (tile, item_ref, count) in drops.0.drain(..) {
+        if let Some(bundle) = ground_item_bundle(&registry, &item_ref, count, tile) {
+            commands.spawn(bundle);
         }
     }
 }
@@ -2758,6 +2853,87 @@ fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
     });
 }
 
+/// How far (Chebyshev) from the player a deployable may be placed.
+pub const PLACE_RANGE: i32 = 4;
+
+/// Validate and consume one deployable item for placement. On success the item is
+/// already removed from `inv` and the caller queues the env spawn. Failure leaves
+/// the inventory untouched and returns a short reason for the client.
+fn place_item(
+    deployables: &Deployables,
+    map: &WalkableMap,
+    z: i32,
+    from: Tile,
+    tile: Tile,
+    item_ref: &str,
+    inv: &mut Inventory,
+) -> Result<(), &'static str> {
+    if !deployables.0.contains_key(item_ref) {
+        return Err("not_placeable");
+    }
+    if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
+        return Err("not_held");
+    }
+    if from.chebyshev(tile) > PLACE_RANGE {
+        return Err("too_far");
+    }
+    if !map.is_walkable_z(z, tile) {
+        return Err("blocked");
+    }
+    if inv.remove(item_ref, 1) == 0 {
+        return Err("not_held");
+    }
+    Ok(())
+}
+
+fn send_item_placed(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    item_ref: &str,
+    tile: Tile,
+    ok: bool,
+    reason: Option<&'static str>,
+) {
+    let payload = json!({
+        "item_ref": item_ref,
+        "tile": { "x": tile.x, "y": tile.y },
+        "ok": ok,
+        "reason": reason,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_ITEM_PLACED,
+        to: slot,
+        payload,
+    });
+}
+
+/// Spawn queued placements as env objects (item already removed from inventory by
+/// `place_item`). Mirrors `apply_drops` but reads the game's `Deployables` table
+/// for the env ref + behavior, and blocks the tile when the env is a blocker.
+fn apply_placements(
+    mut placements: ResMut<PendingPlacements>,
+    deployables: Res<Deployables>,
+    registry: Res<KindRegistry>,
+    mut map: ResMut<WalkableMap>,
+    mut commands: Commands,
+) {
+    for (_slot, item_ref, tile, z) in placements.0.drain(..) {
+        let Some(spec) = deployables.0.get(&item_ref) else {
+            continue;
+        };
+        let mut opts = spec.opts.clone();
+        opts.floor = z;
+        let blocker = opts.blocker;
+        if spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts).is_some()
+            && blocker
+        {
+            map.block_tile_z(z, tile);
+        }
+    }
+}
+
 fn follow_path(
     map: Res<WalkableMap>,
     mut q: Query<(&mut GridPos, &mut MoveTarget, &mut Path, Option<&Floor>)>,
@@ -3344,6 +3520,70 @@ mod tests {
             .unwrap()
             .claim(name.to_string(), test_ulid(name))
             .expect("slot available")
+    }
+
+    #[test]
+    fn drop_item_spawns_ground_loot_and_decrements_inventory() {
+        let (mut app, _rx, input_tx, roster) = harness(0x70);
+        let slot = join(&roster, "dropper");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 3);
+        }
+        input_tx
+            .send((
+                slot,
+                Input::DropItem {
+                    item_ref: "potion".into(),
+                    qty: 2,
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        let left = inv
+            .slots
+            .iter()
+            .find(|(r, _)| r == "potion")
+            .map(|(_, c)| *c)
+            .unwrap_or(0);
+        assert_eq!(left, 1, "inventory not decremented to 1 (got {left})");
+        let mut q = app.world_mut().query::<&GroundItem>();
+        let dropped = q
+            .iter(app.world())
+            .any(|g| g.item_ref == "potion" && g.count == 2);
+        assert!(dropped, "dropped potion did not spawn as ground loot");
+    }
+
+    #[test]
+    fn move_item_reorders_inventory_slots() {
+        let (mut app, _rx, input_tx, roster) = harness(0x71);
+        let slot = join(&roster, "organizer");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 1);
+            inv.add("coin", 5);
+            inv.add("elixir", 2);
+        }
+        input_tx
+            .send((slot, Input::MoveItem { from: 0, to: 2 }))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        let order: Vec<&str> = inv.slots.iter().map(|(r, _)| r.as_str()).collect();
+        assert_eq!(
+            order,
+            vec!["coin", "elixir", "potion"],
+            "slot order not persisted after MoveItem"
+        );
     }
 
     #[test]

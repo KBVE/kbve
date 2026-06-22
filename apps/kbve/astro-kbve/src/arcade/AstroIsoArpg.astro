@@ -1,0 +1,97 @@
+---
+// The game source lives in the standalone vite app (apps/agones/arpg/web) and
+// is the single source of truth. arpg.kbve.com acts as the CDN: it serves both
+// the embed bundle (/arpg-embed.js) and the sprite art (/assets/...). This page
+// loads them cross-origin from that origin (CORS-enabled on the arpg nginx), so
+// kbve.com/arcade/arpg, the Discord embed, and arpg.kbve.com all run one build
+// with no game code or assets duplicated into the astro site.
+// Override the origin with PUBLIC_ARPG_ORIGIN.
+const ARPG_ORIGIN =
+	import.meta.env.PUBLIC_ARPG_ORIGIN ?? 'https://arpg.kbve.com';
+const EMBED_SRC = `${ARPG_ORIGIN}/arpg-embed.js`;
+---
+
+<div class="iso-arpg-shell not-content">
+	<div
+		id="iso-arpg-container"
+		class="focus:outline-none relative bg-[#10131c]"
+		tabindex="0">
+	</div>
+</div>
+
+<script src={EMBED_SRC} is:inline crossorigin="anonymous"></script>
+<script define:vars={{ ARPG_ORIGIN }} is:inline>
+	(function () {
+		const boot = function () {
+			const api = window.ArpgEmbed;
+			if (!api || typeof api.mountApp !== 'function') {
+				console.error('[ARPG] embed bundle not loaded');
+				return;
+			}
+			api.mountApp({ el: '#iso-arpg-container', assetBase: ARPG_ORIGIN });
+		};
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', boot, { once: true });
+		} else {
+			boot();
+		}
+	})();
+</script>
+
+<style>
+	/* Fullscreen game overlay: cover the whole viewport (nav/sidebar/footer
+	   included) so the canvas resizes to the real window instead of bleeding
+	   past an aspect-ratio box. Mirrors the isometric WebGPU embed. */
+	.iso-arpg-shell {
+		position: fixed;
+		inset: 0;
+		width: 100vw;
+		height: 100dvh;
+		margin: 0;
+		padding: 0;
+		z-index: 99999;
+		background: #10131c;
+		overflow: hidden;
+	}
+
+	#iso-arpg-container {
+		width: 100%;
+		height: 100%;
+		container-type: size;
+	}
+
+	#iso-arpg-inner {
+		width: 100%;
+		height: 100%;
+	}
+
+	:global(body:has(.iso-arpg-shell)) {
+		overflow: hidden;
+	}
+
+	:global(body:has(.iso-arpg-shell) header.header),
+	:global(body:has(.iso-arpg-shell) .sl-flex.header),
+	:global(body:has(.iso-arpg-shell) footer),
+	:global(body:has(.iso-arpg-shell) .footer),
+	:global(body:has(.iso-arpg-shell) [class*='footer']),
+	:global(body:has(.iso-arpg-shell) .sidebar),
+	:global(body:has(.iso-arpg-shell) aside),
+	:global(body:has(.iso-arpg-shell) .sl-sidebar),
+	:global(body:has(.iso-arpg-shell) .page-sidebar) {
+		display: none !important;
+	}
+
+	/* Escape opens the pause menu (body gets .arpg-menu-open): bring the
+	   starlight header back, lifted above the game shell so it's clickable. */
+	:global(body.arpg-menu-open header.header),
+	:global(body.arpg-menu-open .sl-flex.header) {
+		display: flex !important;
+		z-index: 100001 !important;
+	}
+
+	@media (pointer: coarse) {
+		:global(.iso-arpg-shell) {
+			touch-action: manipulation;
+		}
+	}
+</style>

@@ -115,6 +115,7 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
 const GAME_PROFILES: &[(&str, &str, &str)] = &[
     // (game key, channel, platform)
     ("cryptothrone", "#general", "cryptothrone"),
+    ("arpg", "#general", "arpg"),
 ];
 
 fn game_profile(game: &str) -> Option<(&'static str, &'static str)> {

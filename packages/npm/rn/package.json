@@ -39,6 +39,10 @@
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"
 		},
+		"./dash": {
+			"types": "./src/dash/index.ts",
+			"import": "./src/dash/index.ts"
+		},
 		"./toasts": {
 			"types": "./src/toasts/index.ts",
 			"import": "./src/toasts/index.ts"

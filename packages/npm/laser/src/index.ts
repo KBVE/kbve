@@ -151,6 +151,7 @@ export type {
 	FloorChangeEvent,
 	PickupEvent,
 	ItemUsedEvent,
+	ItemPlacedEvent,
 	EquippedEvent,
 	StatsEvent,
 	StatusEvent,
@@ -162,3 +163,32 @@ export type {
 	CardRank,
 	DecodedCard,
 } from './lib/net/protocol';
+
+// Game auth — session -> { jwt, username, wsUrl } glue shared by KBVE Phaser
+// games. The Supabase client is injected (laser stays dep-free).
+export {
+	usernameFromToken,
+	createNetConfig,
+	makeWsResolver,
+	createChatClient,
+} from './lib/auth/game-auth';
+export type {
+	GameSession,
+	SessionSource,
+	GameNetConfig,
+	NetConfigOptions,
+	GameNetConfigStore,
+	ChatConfig,
+} from './lib/auth/game-auth';
+
+// i18n — framework-agnostic translation store + React provider/hook
+export {
+	I18nStore,
+	laserI18n,
+	I18nProvider,
+	useTranslation,
+	type LocaleMessages,
+	type I18nVars,
+	type I18nOptions,
+	type UseTranslation,
+} from './lib/i18n';

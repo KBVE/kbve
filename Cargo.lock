@@ -796,6 +796,7 @@ name = "arpg-server"
 version = "0.0.1"
 dependencies = [
  "agones",
+ "async-trait",
  "axum 0.7.9",
  "bevy",
  "bevy_items",
@@ -1664,7 +1665,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.205"
+version = "1.0.206"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -15291,6 +15292,7 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 name = "simgrid"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "axum 0.7.9",
  "bevy",
  "dashmap 6.1.0",

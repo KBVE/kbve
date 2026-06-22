@@ -1,0 +1,89 @@
+---
+title: ARPG Web
+description: |
+    Standalone Vite client for the ARPG — a third play surface (alongside kbve.com/arcade/arpg and the Discord embed) served as static files at arpg.kbve.com.
+sidebar:
+    label: ARPG Web
+    order: 60
+tags:
+    - docker
+    - vite
+    - game-client
+    - arpg
+key: arpg_web
+pipeline: docker
+app_name: arpg-web
+version: "0.1.0"
+source_path: apps/agones/arpg/web
+version_toml: apps/agones/arpg/web/version.toml
+runner: arc-runner-set
+image: kbve/arpg-web
+deployment_yaml: apps/kube/agones/arpg/manifests/web-deployment.yaml
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+---
+
+## Overview
+
+`arpg-web` is a standalone [Vite](https://vite.dev) + React client for the **ARPG**, served as static files behind nginx. It **is** the single source of truth for the game — the source lives at `apps/agones/arpg/web/src/game/`. The two other play surfaces (the Astro page at `kbve.com/arcade/arpg/` and the Discord Activity embed) consume a built **bundle** emitted from this app rather than the game source, so all three surfaces run one build.
+
+### Why a separate app
+
+Booting the full `astro-kbve` site (Starlight + hundreds of content pages + the proto/content pipeline) just to serve one game page is heavy. This app pulls only what the game needs, so it builds and boots fast, and gives `arpg.kbve.com` a real frontend instead of only the WebSocket endpoint.
+
+### Single source of truth
+
+The game source, embed entries, and sprite art all live under `apps/agones/arpg/web/`. The only cross-repo dependency is `@kbve/laser` (net + phaser helpers), aliased to its package source; the optional r3f layer is stubbed since the game never uses three.js. Three build modes share that one source:
+
+- default (`vite build`) → the standalone app for `arpg.kbve.com` (`dist/`)
+- `--mode embed` → `window.ArpgEmbed` IIFE → `dist/arpg-embed.js`, served by `arpg.kbve.com` and loaded cross-origin by `kbve.com/arcade/arpg`
+- `--mode discord` → Discord Activity bundle → `dist/discord/arpg/arpg.js` (same arpg origin; the Activity portal proxies its page root to `arpg.kbve.com/discord/arpg/`)
+
+`arpg.kbve.com` is the CDN: it serves the app, the embed bundle (`/arpg-embed.js`), the Discord Activity (`/discord/arpg/`), and the Git-LFS-tracked sprite art (`public/assets/arcade/arpg/`, blobs on `git.kbve.com/KBVE/arpg.git`). The other surfaces load the bundle, Activity page, and art cross-origin from it (nginx sends `Access-Control-Allow-Origin: *` on `/assets/` and `/arpg-embed.js`). Nothing arpg-specific ships into the astro site.
+
+## Build
+
+```bash
+nx run arpg:web-build           # app + embed bundle -> dist/ (arpg.kbve.com serves both)
+nx run arpg:web-build-embed     # embed bundle only -> dist/arpg-embed.js
+nx run arpg:web-build-discord   # Discord bundle -> dist/discord/arpg/arpg.js
+```
+
+`web-build` runs `vite build && vite build --mode embed && vite build --mode discord`, so `apps/agones/arpg/web/dist` holds the standalone app (`index.html`), the embed bundle (`arpg-embed.js`), and the Discord Activity bundle (`discord/arpg/arpg.js`). The container bakes all of it behind nginx, so **arpg.kbve.com is the CDN** — `kbve.com/arcade/arpg` loads `arpg.kbve.com/arpg-embed.js` cross-origin (like the art), the Discord Activity loads from `arpg.kbve.com/discord/arpg/`, and nothing arpg-specific is bundled into the astro site.
+
+## Container
+
+```bash
+nx run arpg:container-web
+```
+
+Multi-stage: a Node stage runs the Vite build with prod endpoints baked in (`PUBLIC_ARPG_GAME_WS=wss://arpg.kbve.com/ws`, `PUBLIC_SUPABASE_URL=https://supabase.kbve.com`), then an `nginx:alpine` stage serves the static `dist` on `:5402` with an SPA fallback. CI publishes `kbve/arpg-web`.
+
+## Auth
+
+The client runs the real Supabase login (`buildNetConfig` → `src/lib/auth.ts`, a web-local Supabase session bridge); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
+
+## Deploy
+
+`arpg.kbve.com` routes split: `/ws` (and the WebSocket upgrade) → the `arpg-server` game pods on `:7979`; everything else → this static app on `:5402`. See `apps/kube/agones/arpg/manifests/web-deployment.yaml` and `game-httproute.yaml`.
+
+## Testing
+
+Playwright e2e for the whole stack lives in `apps/agones/arpg/arpg-e2e` (Nx project `arpg-e2e`):
+
+```bash
+nx run arpg-e2e:e2e          # boots arpg-server + this web app, runs server + web specs
+nx run arpg-e2e:e2e:server   # arpg-server only (handshake + live sim)
+nx run arpg-e2e:e2e:web      # this app via the Vite dev server (SPA shell, boot)
+nx run arpg-e2e:e2e:cdn      # the built nginx image — CORS, embed + Discord bundles
+```
+
+- **Server** — signs a Supabase-style HS256 JWT (the server runs in local-secret mode) and drives the JSON wire from Node. Covers the handshake (`Welcome` carries `PROTOCOL_VERSION` 14 + the `player`/`goblin`/`coin`/`dungeon-key` registry; protocol / auth / empty-token / missing-username each emit a `Reject`) **and** the live sim: the admitted player shows up in the snapshot roster, the seeded world spawns goblins, a `Step` input advances the player tile, ticks + `input_ack` progress, a second login under the same username evicts the first (newest-wins), and two distinct players share the world on separate slots.
+- **Web** — boots the Vite dev server with the prod Supabase URL injected and asserts the app shell loads, mounts its root, serves the SPA fallback, and boots with no uncaught console error.
+- **CDN** (`e2e:cdn`) — runs the built `kbve/arpg-web` nginx image (needs Docker, so it's the container tier like `irc-e2e:e2e:docker`) and asserts the real CDN headers the other surfaces depend on: `Access-Control-Allow-Origin: *` on `/arpg-embed.js` and `/assets/`, the Discord Activity page + bundle under `/discord/arpg/`, and the SPA fallback. Build the image first (`nx run arpg:container-web`).
+
+### Status
+
+Beta — local dev runs the full stack via `nx run arpg:dev`; production `arpg.kbve.com` serves this client once the image is baked and the HTTPRoute split lands.

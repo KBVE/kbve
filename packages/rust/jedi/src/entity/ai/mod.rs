@@ -1,5 +1,5 @@
-pub mod groq;
 pub mod featherless;
+pub mod groq;
 
-pub use groq::*;
 pub use featherless::*;
+pub use groq::*;

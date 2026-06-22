@@ -129,6 +129,7 @@ export class CloudCityScene extends Scene {
 	private lastPosKey = '';
 	private currentZone = '';
 	private atCasino = false;
+	private lastInteractRef: string | null = null;
 	private heartbeatTimer = 0;
 	private lastAutoPickup = 0;
 	private prevLevel = -1;
@@ -991,11 +992,15 @@ export class CloudCityScene extends Scene {
 			if (key !== this.lastPosKey) {
 				this.lastPosKey = key;
 				laserEvents.emit('player:position', { x: me.x, y: me.y });
-				if (
-					this.atCasino &&
-					interactableAt(this.interactables, me.x, me.y)?.action !==
-						'casino'
-				) {
+				const here = interactableAt(this.interactables, me.x, me.y);
+				const ref = here?.ref ?? null;
+				if (ref !== this.lastInteractRef) {
+					this.lastInteractRef = ref;
+					laserEvents.emit('interact:prompt', {
+						hint: here ? (here.hint ?? 'inspect') : null,
+					});
+				}
+				if (this.atCasino && here?.action !== 'casino') {
 					this.atCasino = false;
 					this.client?.leaveTable();
 					laserEvents.emit('blackjack:close', undefined);

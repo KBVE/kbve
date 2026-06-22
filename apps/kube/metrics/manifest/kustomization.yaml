@@ -6,3 +6,4 @@ resources:
     - metrics-serviceaccount.yaml
     - metrics-deployment.yaml
     - httproute.yaml
+    - telemetry-ch-setup-job.yaml

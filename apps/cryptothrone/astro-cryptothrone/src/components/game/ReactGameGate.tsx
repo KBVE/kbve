@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { usernameFromToken as kbveUsernameFromToken } from '@kbve/laser';
 import { KbveUsernameSetup } from '@kbve/astro';
 import { authBridge, initSupa } from '@/lib/supa';
 import { setCtNetConfig, resolveWsUrl } from '@/lib/net-config';
@@ -8,17 +9,6 @@ import GameWindowLoader from './GameWindowLoader';
 const KBVE_API_BASE = 'https://kbve.com';
 
 type Phase = 'loading' | 'login' | 'username' | 'ready';
-
-function kbveUsernameFromToken(token: string): string {
-	try {
-		const payload = token.split('.')[1];
-		const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-		const claims = JSON.parse(json) as { kbve_username?: string };
-		return claims.kbve_username ?? '';
-	} catch {
-		return '';
-	}
-}
 
 function CrownIcon() {
 	return (

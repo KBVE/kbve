@@ -31,6 +31,22 @@ fn clamp(limit: Option<u32>, fallback: u32) -> u32 {
     limit.unwrap_or(fallback).clamp(1, 1000)
 }
 
+/// Bound a project filter before it reaches the query (length cap; quote()
+/// already neutralizes injection — this is defense in depth).
+fn cap_project(project: Option<String>) -> Option<String> {
+    project.map(|p| p.chars().take(256).collect())
+}
+
+/// Fingerprints are server-generated hex (see telemetry::fingerprint); reject
+/// anything that isn't, so the read path can't be probed with arbitrary input.
+fn valid_fingerprint(fp: &str) -> bool {
+    !fp.is_empty() && fp.len() <= 64 && fp.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+fn bad_request(msg: &str) -> Response {
+    (StatusCode::BAD_REQUEST, Json(json!({ "error": msg }))).into_response()
+}
+
 fn auth_status(err: &AuthError) -> StatusCode {
     match err {
         AuthError::MissingToken | AuthError::InvalidToken(_) | AuthError::TokenExpired => {
@@ -54,18 +70,31 @@ async fn authorize(app: &AppState, headers: &HeaderMap) -> Result<(), Response> 
     }
 }
 
+const QUERY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
+
 async fn query(app: &AppState, sql: String, key: &str) -> Response {
-    match app.ch.execute_select(&sql).await {
-        Ok(rows) => {
+    match tokio::time::timeout(QUERY_TIMEOUT, app.ch.execute_select(&sql)).await {
+        Ok(Ok(rows)) => {
             let mut body = serde_json::Map::new();
             body.insert(key.to_string(), json!(rows));
             (StatusCode::OK, Json(serde_json::Value::Object(body))).into_response()
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             tracing::error!(error = %e, "telemetry query failed");
             (
                 StatusCode::BAD_GATEWAY,
                 Json(json!({ "error": "query failed" })),
+            )
+                .into_response()
+        }
+        Err(_) => {
+            tracing::error!(
+                timeout_s = QUERY_TIMEOUT.as_secs(),
+                "telemetry query timed out"
+            );
+            (
+                StatusCode::GATEWAY_TIMEOUT,
+                Json(json!({ "error": "query timed out" })),
             )
                 .into_response()
         }
@@ -80,8 +109,7 @@ pub async fn groups(
     if let Err(resp) = authorize(&app, &headers).await {
         return resp;
     }
-    let where_clause = p
-        .project
+    let where_clause = cap_project(p.project)
         .as_deref()
         .map(|pr| format!("WHERE project = {}", quote(pr)))
         .unwrap_or_default();
@@ -104,8 +132,11 @@ pub async fn events(
     if let Err(resp) = authorize(&app, &headers).await {
         return resp;
     }
+    if !valid_fingerprint(&p.fingerprint) {
+        return bad_request("invalid fingerprint");
+    }
     let mut conds = vec![format!("fingerprint = {}", quote(&p.fingerprint))];
-    if let Some(pr) = p.project.as_deref() {
+    if let Some(pr) = cap_project(p.project).as_deref() {
         conds.push(format!("project = {}", quote(pr)));
     }
     let sql = format!(
@@ -116,4 +147,25 @@ pub async fn events(
         clamp(p.limit, 50)
     );
     query(&app, sql, "events").await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fingerprint_validation() {
+        assert!(valid_fingerprint("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"));
+        assert!(!valid_fingerprint(""));
+        assert!(!valid_fingerprint("' OR 1=1 --"));
+        assert!(!valid_fingerprint("xyz"));
+        assert!(!valid_fingerprint(&"a".repeat(65)));
+    }
+
+    #[test]
+    fn project_is_length_capped() {
+        let long = "p".repeat(500);
+        assert_eq!(cap_project(Some(long)).unwrap().chars().count(), 256);
+        assert!(cap_project(None).is_none());
+    }
 }

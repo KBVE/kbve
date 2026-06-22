@@ -291,17 +291,13 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/osrs/{item_id}", get(osrs_api_handler))
         .route("/api/v1/profile/me", get(profile_me_handler))
         .route("/api/v1/profile/username", post(set_username_handler))
-        // Discord Activity session bridge (arpg embed). kbve.com /api/v1/*
-        // convention, served at BOTH the bare path and the /.proxy/-prepended
-        // path the Activity iframe sends — the portal root maps
-        // / -> kbve.com/discord/arpg/, so Discord prefixes /discord to every
-        // proxied request. The embed fetches /.proxy/api/v1/discord/session.
+        // Discord Activity session bridge (arpg embed): OAuth code -> Discord
+        // token -> linked KBVE profile -> Supabase HS256 JWT. The Activity itself
+        // is served from arpg.kbve.com/discord/arpg/ (portal root); it reaches
+        // this kbve.com endpoint cross-origin through the portal URL Mapping
+        // /arpg-session -> kbve.com, fetching /.proxy/arpg-session/api/v1/discord/session.
         .route(
             "/api/v1/discord/session",
-            post(super::discord_session::session),
-        )
-        .route(
-            "/discord/api/v1/discord/session",
             post(super::discord_session::session),
         )
         .route("/api/v1/profile/{username}", get(profile_api_handler))

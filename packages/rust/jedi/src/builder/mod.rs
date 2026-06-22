@@ -1,5 +1,5 @@
-pub mod validator;
 pub mod regexmap;
+pub mod validator;
 
-pub use validator::*;
 pub use regexmap::*;
+pub use validator::*;

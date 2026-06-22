@@ -39,7 +39,7 @@ status: beta
 
 ### Relationship to the client
 
-The browser client lives at `apps/kbve/astro-kbve/src/arcade/isometric-arpg/` and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 9).
+The browser client lives at `apps/agones/arpg/web/src/game/` (the standalone vite app — see [ARPG Web](/project/arpg-web/)) and connects over `PUBLIC_ARPG_GAME_WS` (default `wss://arpg.kbve.com/ws`). Isometric projection is a client-side render transform only; the server keeps everything in orthogonal tile `(x, y)` space and speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 14).
 
 ### Layout
 
@@ -84,7 +84,7 @@ Shares the `simgrid` crate (`packages/rust/simgrid`): postcard/JSON wire types, 
 
 ## Wire protocol
 
-Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 12). The client wire surface (`@kbve/laser` `GameClient`) is complete and the server answers it.
+Speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 14). The client wire surface (`@kbve/laser` `GameClient`) is complete and the server answers it.
 
 ### Client → server
 
@@ -136,21 +136,22 @@ The game runs as a Discord Activity by reusing the existing web tier — no new 
 
 **Pieces:**
 
-- **Embed page** — `kbve.com/discord/arpg/` (`public/discord/arpg/index.html` + `arpg.js`, built by `nx run astro-kbve:build-arpg-discord` from `src/embed/arpg/discord.tsx`). Boots the Discord SDK, runs OAuth, fetches a session, then mounts `ReactIsoArpgApp` with `embedSession` (skips the Supabase gate + name prompt).
-- **Session backend** — `axum-kbve` `POST /api/v1/discord/session` (and the `/discord/`-prepended variant). Exchanges the OAuth `code` → Discord token → user → linked KBVE profile (fast-registers via GoTrue admin + `tracker.*` RPCs on the shared Supabase DB) → mints the Supabase-valid HS256 JWT the game server accepts. Ported from `axum-cryptothrone`.
+- **Embed page** — `arpg.kbve.com/discord/arpg/` (`index.html` + `arpg.js`, built by `nx run arpg:web-build-discord` from `apps/agones/arpg/web/src/embed/discord.tsx` into the vite app's `dist/discord/arpg/`, served by the arpg nginx). Boots the Discord SDK, runs OAuth, fetches a session, then mounts `ReactIsoArpgApp` with `embedSession` (skips the Supabase gate + name prompt). The whole Activity now lives on the arpg origin alongside the app + art.
+- **Session backend** — `axum-kbve` `POST /api/v1/discord/session` (on kbve.com — it holds `DISCORD_CLIENT_SECRET`). Exchanges the OAuth `code` → Discord token → user → linked KBVE profile (fast-registers via GoTrue admin + `tracker.*` RPCs on the shared Supabase DB) → mints the Supabase-valid HS256 JWT the game server accepts. Reached cross-origin from the Activity via the `/arpg-session` mapping. Ported from `axum-cryptothrone`.
 - **Game WS** — the existing `wss://arpg.kbve.com/ws`, reached through a portal URL Mapping `/arpg-game → arpg.kbve.com` (`patchUrlMappings`), so the socket is allowed inside the Activity iframe.
 
 **Portal config (Discord Developer Portal → Activities → URL Mappings):**
 
 | Mapping | Target | Purpose |
 |---------|--------|---------|
-| `/` (root) | `kbve.com/discord/arpg/` | embed page + same-origin `/.proxy/api/v1/discord/session` backend (Discord prepends `/discord` to proxied paths, hence the dual route) |
-| `/arpg-game` | `arpg.kbve.com` | game WebSocket |
-| `/arpg-assets` | `kbve.com` | game art (sprites/ground) served from the site root `/assets/...` — the embed sets the arpg client asset base to `/arpg-assets` so absolute art paths resolve back to the site origin through the proxy, not under the portal-root `/discord/arpg/` dir |
+| `/` (root) | `arpg.kbve.com/discord/arpg/` | Activity page + `arpg.js` (same-origin, loaded relatively) |
+| `/arpg-game` | `arpg.kbve.com` | game WebSocket (`/ws`, a sibling of the `/discord/arpg/` dir) |
+| `/arpg-assets` | `arpg.kbve.com` | game art at `/assets/...` (CORS-enabled); the embed sets the client asset base to `/arpg-assets` |
+| `/arpg-session` | `kbve.com` | the axum session backend (cross-origin); the embed fetches `/.proxy/arpg-session/api/v1/discord/session` |
 
-Everything the Activity loads is proxied through `*.discordsays.com`, so each external host (game WS, site art) needs a URL Mapping, and same-origin backend calls carry `/.proxy/`. The embed bundle uses a relative `base` so `arpg.js` + its worker chunks load relative to `/discord/arpg/`; absolute game-art paths route through the `/arpg-assets` mapping.
+Everything the Activity loads is proxied through `*.discordsays.com`, so each external host (game WS, art, session backend) needs a URL Mapping. The page + `arpg.js` are same-origin under the portal root, so they load relatively.
 
-**Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (embed):** `PUBLIC_DISCORD_CLIENT_ID` baked in by `vite.arpg-discord.config.mts` — must be set or terser dead-code-eliminates the boot body. Register a separate Discord Activity application pointing its root at `kbve.com/discord/arpg/`.
+**Env (axum-kbve):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` (required); `GOTRUE_INTERNAL_URL` / `SUPABASE_URL` for fast-register; leave `DISCORD_REDIRECT_URI` **unset** (the RPC authorize flow rejects an explicit redirect_uri). **Build (discord):** `PUBLIC_DISCORD_CLIENT_ID` baked in by the `--mode discord` build in `apps/agones/arpg/web/vite.config.ts` (web Dockerfile ARG) — must be set or terser dead-code-eliminates the boot body. Register a Discord Activity application pointing its root at `arpg.kbve.com/discord/arpg/`.
 
 ### Status
 

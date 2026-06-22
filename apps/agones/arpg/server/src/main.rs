@@ -1,4 +1,5 @@
 mod agones;
+mod auth;
 mod db;
 mod game;
 
@@ -45,16 +46,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
         .unwrap_or_default()
         .into_bytes();
-    let auth_mode = if jwt_secret.is_empty() {
-        "dev-accept (SUPABASE_JWT_SECRET unset)"
+
+    // Auth precedence: a GoTrue verifier (SUPABASE_URL + SUPABASE_ANON_KEY) wins —
+    // it validates real session JWTs against Supabase + caches them, so local dev
+    // needs no JWT secret. Else fall back to the local HS256 secret, else
+    // dev-accept (no auth) when neither is set.
+    let verifier = auth::gotrue_verifier();
+    let auth_mode = if verifier.is_some() {
+        "supabase GoTrue (verify + cache)"
+    } else if jwt_secret.is_empty() {
+        "dev-accept (no auth configured)"
     } else {
-        "supabase HS256"
+        "supabase HS256 (local secret)"
     };
 
     let registry = game::registry();
 
-    let state = ServerState::new(input_tx, seed, jwt_secret, true, game::MAX_PLAYERS)
+    let mut state = ServerState::new(input_tx, seed, jwt_secret, true, game::MAX_PLAYERS)
         .with_registry(registry.entries());
+    if let Some(v) = verifier {
+        state = state.with_verifier(v);
+    }
     let roster = state.roster.clone();
     state.spawn_event_router(out_rx);
 
@@ -79,6 +91,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(buffs);
         app.insert_resource(item_db);
         app.insert_resource(game::stairs());
+        app.insert_resource(game::deployables());
         app.add_systems(
             bevy::prelude::Update,
             game::spawn_world.in_set(simgrid::SimSet::Spawn),

@@ -30,6 +30,7 @@ jobs:
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
+                  lfs: false
 
             - name: Configure Git
               run: |
@@ -87,6 +88,8 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v6
+              with:
+                  lfs: false
 
             - name: Write alterations JSON
               uses: actions/github-script@v9

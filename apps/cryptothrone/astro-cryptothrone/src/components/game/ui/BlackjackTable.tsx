@@ -5,12 +5,7 @@ import {
 	decodeCard,
 	verifyBlackjackCommitment,
 } from '@kbve/laser';
-import type {
-	BlackjackSeatView,
-	BlackjackHandView,
-	BlackjackStateView,
-	BjActionKind,
-} from '@kbve/laser';
+import type { BlackjackStateView, BjActionKind } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
 import { BlackjackStage } from './BlackjackStage';
 import './BlackjackTable.css';
@@ -20,56 +15,6 @@ const PHASE_SECONDS: Record<string, number> = {
 	betting: 20,
 	insurance: 10,
 	player_turn: 20,
-};
-
-const SUIT_GLYPH: Record<string, string> = {
-	spades: '♠',
-	hearts: '♥',
-	diamonds: '♦',
-	clubs: '♣',
-};
-
-function Card({ byte }: { byte: number }) {
-	const c = decodeCard(byte);
-	return (
-		<span
-			className={`bj-card inline-flex h-9 min-w-7 items-center justify-center rounded border border-gray-500 bg-white px-1 text-sm font-bold shadow-sm ${c.red ? 'text-red-600' : 'text-gray-900'}`}>
-			{c.rank}
-			{SUIT_GLYPH[c.suit]}
-		</span>
-	);
-}
-
-function CardBack() {
-	return (
-		<span className="bj-card-back inline-flex h-9 min-w-7 items-center justify-center rounded border border-indigo-300 bg-indigo-700 px-1 text-sm text-indigo-200">
-			🂠
-		</span>
-	);
-}
-
-function Hand({
-	cards,
-	hideSecond,
-}: {
-	cards: number[];
-	hideSecond?: boolean;
-}) {
-	return (
-		<div className="flex flex-wrap gap-1">
-			{cards.map((b, i) => (
-				<Card key={i} byte={b} />
-			))}
-			{hideSecond && <CardBack />}
-		</div>
-	);
-}
-
-const OUTCOME_LABEL: Record<string, string> = {
-	win: 'Win',
-	loss: 'Loss',
-	push: 'Push',
-	blackjack: 'Blackjack!',
 };
 
 function sameRank(cards: number[]): boolean {
@@ -158,91 +103,6 @@ function FairnessBadge({
 	);
 }
 
-function HandRow({
-	hand,
-	active,
-}: {
-	hand: BlackjackHandView;
-	active: boolean;
-}) {
-	const outcomeColor =
-		hand.outcome === 'win' || hand.outcome === 'blackjack'
-			? 'text-emerald-400'
-			: hand.outcome === 'push'
-				? 'text-zinc-300'
-				: 'text-rose-400';
-	return (
-		<div
-			className={`flex items-center justify-between rounded px-2 py-1 transition-colors ${active ? 'bj-active bg-yellow-500/20 ring-1 ring-yellow-400' : 'bg-zinc-900/50'}`}>
-			<Hand cards={hand.cards} />
-			<div className="flex flex-col items-end text-xs">
-				{hand.cards.length > 0 && (
-					<span className="text-zinc-200">
-						{hand.value}
-						{hand.soft ? ' (soft)' : ''}
-					</span>
-				)}
-				<span className="text-amber-300">
-					bet {hand.bet}
-					{hand.doubled && ' ·2x'}
-					{hand.surrendered && ' · surrender'}
-				</span>
-				{hand.outcome && (
-					<span
-						className={`bj-outcome font-semibold ${outcomeColor}`}>
-						{OUTCOME_LABEL[hand.outcome] ?? hand.outcome}
-					</span>
-				)}
-			</div>
-		</div>
-	);
-}
-
-function SeatRow({
-	seat,
-	activeSlot,
-	activeHand,
-	mine,
-}: {
-	seat: BlackjackSeatView;
-	activeSlot: number | null;
-	activeHand: number | null;
-	mine: boolean;
-}) {
-	const seatActive = activeSlot === seat.slot;
-	return (
-		<div className="flex flex-col gap-1 rounded bg-zinc-800/60 px-2 py-1">
-			<div className="flex items-center justify-between">
-				<span className="text-xs text-zinc-300">
-					{seat.username}
-					{mine && <span className="text-yellow-400"> (you)</span>}
-					{seat.disconnected && (
-						<span className="text-rose-400"> (reconnecting…)</span>
-					)}
-				</span>
-				{seat.insurance > 0 && (
-					<span className="text-xs text-sky-300">
-						insurance {seat.insurance}
-					</span>
-				)}
-			</div>
-			{seat.hands.length === 0 ? (
-				<span className="text-xs text-zinc-500">
-					{seat.bet > 0 ? `bet ${seat.bet} — waiting` : 'no bet'}
-				</span>
-			) : (
-				seat.hands.map((hand, i) => (
-					<HandRow
-						key={i}
-						hand={hand}
-						active={seatActive && activeHand === i}
-					/>
-				))
-			)}
-		</div>
-	);
-}
-
 // Watches server state transitions and fires sound cues; SoundManager plays them.
 function BlackjackSfx({
 	state,
@@ -318,7 +178,6 @@ export function BlackjackTable() {
 	};
 
 	const mySeat = state?.seats.find((s) => s.username === myName) ?? null;
-	const otherSeats = state?.seats.filter((s) => s.username !== myName) ?? [];
 	const myActiveHandIdx =
 		mySeat && state?.active_slot === mySeat.slot ? state.active_hand : null;
 	const isMyTurn = myActiveHandIdx != null;
@@ -403,28 +262,19 @@ export function BlackjackTable() {
 
 						<BlackjackStage state={state} myName={myName} />
 
-						{otherSeats.length > 0 && (
-							<div className="flex max-h-28 flex-col gap-1 overflow-y-auto">
-								<span className="text-[10px] uppercase tracking-wide text-zinc-500">
-									Others at the table
-								</span>
-								{otherSeats.map((seat) => (
-									<SeatRow
-										key={seat.slot}
-										seat={seat}
-										activeSlot={state.active_slot}
-										activeHand={state.active_hand}
-										mine={false}
-									/>
-								))}
-							</div>
-						)}
-
 						{!mySeat && (
 							<p className="text-xs text-zinc-400">
 								Spectating — walk up and press E to take a seat.
 							</p>
 						)}
+
+						{mySeat &&
+							mySeat.bet === 0 &&
+							state.phase !== 'betting' && (
+								<p className="text-xs text-emerald-300">
+									Seated — next round starts soon.
+								</p>
+							)}
 
 						{canBet && (
 							<div className="flex items-center gap-2">

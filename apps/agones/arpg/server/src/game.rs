@@ -5,9 +5,9 @@ use bevy_items::{StatusEffectKind, UseEffect, UseEffectType};
 use simgrid::arpg_dungeon;
 use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
-    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, EnvOpts, HazardZone, HealAura,
-    KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap, ground_item_bundle,
-    spawn_env_object, spawn_npc_from_spec,
+    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EnvOpts,
+    HazardZone, HealAura, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
+    ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -52,6 +52,10 @@ pub const CAMPFIRE_HEAL_AMOUNT: i32 = 3;
 pub const CAMPFIRE_BURN_AMOUNT: i32 = 8;
 pub const CAMPFIRE_PERIOD_TICKS: u32 = SIM_TICK_HZ;
 
+// The deployable inventory item that places a `campfire` env object. Carried in
+// the pack, consumed on placement. itemdb ref `campfire-kit` (key 77).
+pub const CAMPFIRE_KIT_REF: &str = "campfire-kit";
+
 // A few starter potions drop near spawn so the inventory + item-usage loop is
 // usable immediately: pick up -> 1-9 hotkey -> heal (itemdb says potion heals 15).
 pub const POTION_REF: &str = "potion";
@@ -90,8 +94,44 @@ pub fn registry() -> KindRegistry {
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
+    reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
     reg
+}
+
+/// Behavior for a campfire env object: blocks its tile, heals the adjacent ring,
+/// burns anything forced onto it. Shared by the starter campfire near spawn and
+/// player-placed campfires (`floor` set per spawn). `#12972` will read this from
+/// the itemdb `campfire` def instead of hardcoding.
+pub fn campfire_env_opts(floor: i32) -> EnvOpts {
+    EnvOpts {
+        blocker: true,
+        heal_aura: Some(HealAura {
+            range: CAMPFIRE_HEAL_RANGE,
+            magnitude: CAMPFIRE_HEAL_AMOUNT,
+            period_ticks: CAMPFIRE_PERIOD_TICKS,
+        }),
+        hazard: Some(HazardZone {
+            magnitude: CAMPFIRE_BURN_AMOUNT,
+            period_ticks: CAMPFIRE_PERIOD_TICKS,
+        }),
+        floor,
+    }
+}
+
+/// Item-ref -> placement spec. Driving the sim's `PlaceItem` handling: using a
+/// `campfire-kit` from the inventory spawns a `campfire` env object on the target
+/// tile. `apply_placements` overrides `floor` with the placer's level.
+pub fn deployables() -> Deployables {
+    let mut map = HashMap::new();
+    map.insert(
+        CAMPFIRE_KIT_REF.to_string(),
+        DeployableSpec {
+            env_ref: CAMPFIRE_REF.to_string(),
+            opts: campfire_env_opts(SPAWN_FLOOR),
+        },
+    );
+    Deployables(map)
 }
 
 /// Full itemdb registry, embedded from the canonical proto binary
@@ -276,6 +316,13 @@ pub fn spawn_world(
         commands.spawn(bundle);
     }
 
+    // A campfire kit on the ground so the placement loop is testable from spawn:
+    // pick up -> select -> place on a target tile -> server spawns the campfire.
+    let kit_tile = floor_near(Tile::new(spawn.x - 1, spawn.y - 2));
+    if let Some(bundle) = ground_item_bundle(&registry, CAMPFIRE_KIT_REF, 1, kit_tile) {
+        commands.spawn(bundle);
+    }
+
     // A campfire near spawn: blocks its tile, heals the adjacent ring, burns
     // anything forced onto it. Snap to a floor tile distinct from the player
     // spawn so no one starts trapped on it.
@@ -286,19 +333,7 @@ pub fn spawn_world(
             &registry,
             CAMPFIRE_REF,
             fire,
-            EnvOpts {
-                blocker: true,
-                heal_aura: Some(HealAura {
-                    range: CAMPFIRE_HEAL_RANGE,
-                    magnitude: CAMPFIRE_HEAL_AMOUNT,
-                    period_ticks: CAMPFIRE_PERIOD_TICKS,
-                }),
-                hazard: Some(HazardZone {
-                    magnitude: CAMPFIRE_BURN_AMOUNT,
-                    period_ticks: CAMPFIRE_PERIOD_TICKS,
-                }),
-                floor: SPAWN_FLOOR,
-            },
+            campfire_env_opts(SPAWN_FLOOR),
         )
         .is_some()
     {

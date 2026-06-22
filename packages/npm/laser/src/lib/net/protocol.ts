@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 12;
+export const PROTOCOL_VERSION = 14;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -16,10 +16,12 @@ export const EPHEMERAL_SHOP = 10;
 export const EPHEMERAL_BLACKJACK = 11;
 export const EPHEMERAL_PROJECTILE = 12;
 export const EPHEMERAL_FLOOR = 13;
+export const EPHEMERAL_ITEM_PLACED = 14;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
 export const KIND_CAT_ITEM = 2;
+export const KIND_CAT_ENV = 3;
 
 export type Dir = 'Up' | 'Down' | 'Left' | 'Right';
 export type Facing = 'Up' | 'Down' | 'Left' | 'Right';
@@ -35,7 +37,10 @@ export type Input =
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
 	| { UseItem: { item_ref: string } }
+	| { DropItem: { item_ref: string; qty: number } }
+	| { MoveItem: { from: number; to: number } }
 	| { EquipItem: { item_ref: string } }
+	| { PlaceItem: { item_ref: string; tile: Tile } }
 	| { Heartbeat: { client_tick: number } }
 	| 'Leave'
 	| { TradeOffer: { target: number; items: [string, number][] } }
@@ -170,6 +175,13 @@ export interface PickupEvent {
 export interface ItemUsedEvent {
 	item_ref: string;
 	heal: number;
+}
+
+export interface ItemPlacedEvent {
+	item_ref: string;
+	tile: { x: number; y: number };
+	ok: boolean;
+	reason?: string;
 }
 
 export interface EquippedEvent {
