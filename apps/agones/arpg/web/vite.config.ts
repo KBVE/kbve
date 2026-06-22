@@ -30,11 +30,12 @@ const laserAlias = {
 
 // Build modes:
 //   (default)     -> the standalone app for arpg.kbve.com (dist/)
-//   --mode embed  -> IIFE mount()/unmount() bundle the astro kbve.com/arcade/arpg
-//                    page loads (public/arpg/arpg-embed.js)
-//   --mode discord-> IIFE for the Discord Activity (public/discord/arpg/arpg.js)
-// The embed + discord bundles emit into astro's public dir so astro serves them
-// as static files; the game source itself lives here and is the single source.
+//   --mode embed  -> window.ArpgEmbed IIFE (mount/mountApp) -> dist/arpg-embed.js,
+//                    so arpg.kbve.com serves it as a CDN and kbve.com/arcade/arpg
+//                    loads it cross-origin (npm run build emits app + embed)
+//   --mode discord-> IIFE for the Discord Activity -> astro public/discord/arpg/
+//                    arpg.js (served same-origin from kbve.com, loaded relatively)
+// arpg.kbve.com is the single source: app, embed bundle, and art all ship here.
 export default defineConfig(({ mode }) => {
 	const base = {
 		plugins: [stubLaserR3F(), react()],
@@ -58,9 +59,14 @@ export default defineConfig(({ mode }) => {
 				),
 			},
 			build: {
+				// discord -> astro public (the Discord Activity page is served
+				// same-origin from kbve.com and loads arpg.js relatively).
+				// embed -> this app's own dist, so arpg.kbve.com serves it as a
+				// CDN: kbve.com/arcade/arpg loads the bundle cross-origin from
+				// arpg.kbve.com/arpg-embed.js (same as the game art).
 				outDir: discord
 					? path.join(astroPublic, 'discord/arpg')
-					: path.join(astroPublic, 'arpg'),
+					: path.join(__dirname, 'dist'),
 				emptyOutDir: false,
 				minify: 'terser',
 				sourcemap: false,

@@ -46,9 +46,7 @@
 		},
 		"web-build-embed": {
 			"executor": "nx:run-commands",
-			"outputs": [
-				"{workspaceRoot}/apps/kbve/astro-kbve/public/arpg/arpg-embed.js"
-			],
+			"outputs": ["{projectRoot}/web/dist/arpg-embed.js"],
 			"options": {
 				"commands": ["npm install --no-save", "npm run build:embed"],
 				"cwd": "apps/agones/arpg/web",

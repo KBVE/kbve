@@ -28,10 +28,7 @@
 			}
 		},
 		"build": {
-			"dependsOn": [
-				"proto",
-				{ "target": "web-build-embed", "projects": "arpg" }
-			],
+			"dependsOn": ["proto"],
 			"executor": "nx:run-commands",
 			"outputs": ["{workspaceRoot}/dist/apps/astro-kbve"],
 			"options": {
@@ -61,14 +58,6 @@
 			"outputs": ["{projectRoot}/public/discord/arpg"],
 			"options": {
 				"commands": ["nx run arpg:web-build-discord"],
-				"parallel": false
-			}
-		},
-		"build-arpg-embed": {
-			"executor": "nx:run-commands",
-			"outputs": ["{projectRoot}/public/arpg"],
-			"options": {
-				"commands": ["nx run arpg:web-build-embed"],
 				"parallel": false
 			}
 		},

@@ -38,20 +38,19 @@ Booting the full `astro-kbve` site (Starlight + hundreds of content pages + the 
 The game source, embed entries, and sprite art all live under `apps/agones/arpg/web/`. The only cross-repo dependency is `@kbve/laser` (net + phaser helpers), aliased to its package source; the optional r3f layer is stubbed since the game never uses three.js. Three build modes share that one source:
 
 - default (`vite build`) → the standalone app for `arpg.kbve.com` (`dist/`)
-- `--mode embed` → `window.ArpgEmbed` IIFE → `astro public/arpg/arpg-embed.js`, loaded by `kbve.com/arcade/arpg`
-- `--mode discord` → Discord Activity bundle → `astro public/discord/arpg/arpg.js`
+- `--mode embed` → `window.ArpgEmbed` IIFE → `dist/arpg-embed.js`, served by `arpg.kbve.com` and loaded cross-origin by `kbve.com/arcade/arpg`
+- `--mode discord` → Discord Activity bundle → `astro public/discord/arpg/arpg.js` (same-origin on kbve.com — the Activity portal proxies the page root there)
 
-Sprite/tileset art lives in this app's Git-LFS-tracked `public/assets/arcade/arpg/` (blobs on `git.kbve.com/KBVE/arpg.git`). The other surfaces load it cross-origin from `arpg.kbve.com` (nginx sends `Access-Control-Allow-Origin: *` on `/assets/`).
+`arpg.kbve.com` is the CDN: it serves the app, the embed bundle (`/arpg-embed.js`), and the Git-LFS-tracked sprite art (`public/assets/arcade/arpg/`, blobs on `git.kbve.com/KBVE/arpg.git`). The other surfaces load both the bundle and the art cross-origin from it (nginx sends `Access-Control-Allow-Origin: *` on `/assets/` and `/arpg-embed.js`).
 
 ## Build
 
 ```bash
-nx run arpg:web-build           # standalone app -> dist/
-nx run arpg:web-build-embed     # kbve.com bundle -> astro public/arpg/arpg-embed.js
+nx run arpg:web-build           # app + embed bundle -> dist/ (arpg.kbve.com serves both)
 nx run arpg:web-build-discord   # Discord bundle -> astro public/discord/arpg/arpg.js
 ```
 
-`web-build` emits `apps/agones/arpg/web/dist` (the container build bakes that behind nginx). The two bundle builds emit into astro's `public/` and are committed so the astro build serves them as static files — no astro→arpg build dependency.
+`web-build` runs `vite build && vite build --mode embed`, so `apps/agones/arpg/web/dist` holds both the standalone app (`index.html`) and the embed bundle (`arpg-embed.js`). The container bakes that behind nginx, so **arpg.kbve.com is the CDN** — `kbve.com/arcade/arpg` loads `arpg.kbve.com/arpg-embed.js` cross-origin (like the art), and nothing arpg-specific is bundled into the astro site. Only the Discord bundle still emits into astro `public/` (the Activity page is served same-origin from kbve.com and loads `arpg.js` relatively).
 
 ## Container
 

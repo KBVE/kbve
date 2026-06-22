@@ -73,7 +73,7 @@
 			"options": {
 				"parallel": false,
 				"commands": [
-					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/kbve/astro-kbve/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may ship as pointer stubs'"
+					"echo 'no arpg prep: the game art + embed bundle now live on arpg.kbve.com (CDN); kbve.com loads them cross-origin, so the astro build bundles nothing arpg-specific'"
 				]
 			}
 		},

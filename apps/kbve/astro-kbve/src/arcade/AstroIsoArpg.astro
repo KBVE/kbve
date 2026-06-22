@@ -1,15 +1,14 @@
 ---
 // The game source lives in the standalone vite app (apps/agones/arpg/web) and
-// is the single source of truth. This page consumes the built embed bundle
-// (public/arpg/arpg-embed.js, emitted by `nx run arpg:web-build-embed`) rather
-// than importing the game source — so kbve.com/arcade/arpg, the Discord embed,
-// and arpg.kbve.com all run one game build.
-//
-// The sprite/tileset art now lives with the vite app and is served from
-// arpg.kbve.com; this page points the game's asset base there (cross-origin,
-// CORS-enabled on the arpg nginx). Override with PUBLIC_ARPG_ASSET_BASE.
-const ASSET_BASE =
-	import.meta.env.PUBLIC_ARPG_ASSET_BASE ?? 'https://arpg.kbve.com';
+// is the single source of truth. arpg.kbve.com acts as the CDN: it serves both
+// the embed bundle (/arpg-embed.js) and the sprite art (/assets/...). This page
+// loads them cross-origin from that origin (CORS-enabled on the arpg nginx), so
+// kbve.com/arcade/arpg, the Discord embed, and arpg.kbve.com all run one build
+// with no game code or assets duplicated into the astro site.
+// Override the origin with PUBLIC_ARPG_ORIGIN.
+const ARPG_ORIGIN =
+	import.meta.env.PUBLIC_ARPG_ORIGIN ?? 'https://arpg.kbve.com';
+const EMBED_SRC = `${ARPG_ORIGIN}/arpg-embed.js`;
 ---
 
 <div class="iso-arpg-shell not-content">
@@ -20,8 +19,8 @@ const ASSET_BASE =
 	</div>
 </div>
 
-<script src="/arpg/arpg-embed.js" is:inline></script>
-<script define:vars={{ ASSET_BASE }} is:inline>
+<script src={EMBED_SRC} is:inline crossorigin="anonymous"></script>
+<script define:vars={{ ARPG_ORIGIN }} is:inline>
 	(function () {
 		const boot = function () {
 			const api = window.ArpgEmbed;
@@ -29,7 +28,7 @@ const ASSET_BASE =
 				console.error('[ARPG] embed bundle not loaded');
 				return;
 			}
-			api.mountApp({ el: '#iso-arpg-container', assetBase: ASSET_BASE });
+			api.mountApp({ el: '#iso-arpg-container', assetBase: ARPG_ORIGIN });
 		};
 		if (document.readyState === 'loading') {
 			document.addEventListener('DOMContentLoaded', boot, { once: true });
