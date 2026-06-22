@@ -79,6 +79,16 @@ spec:
                             secretKeyRef:
                                 name: valkey-auth
                                 key: valkey-password
+                      # KBVE_KV_URL (jedi KvCache → Valkey) = shared L2 for the
+                      # gh reverse-sync lookups (thread→issue, comment_mirror).
+                      # Optional so the pod boots before the ExternalSecret
+                      # renders; KvCache falls back to L1-only until then.
+                      - name: KBVE_KV_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: discordsh-bot-valkey
+                                key: KBVE_KV_URL
+                                optional: true
                       - name: SUPABASE_URL
                         value: 'http://kong.kilobase.svc.cluster.local:8000'
                       - name: SUPABASE_SERVICE_ROLE_KEY

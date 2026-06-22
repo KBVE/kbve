@@ -172,7 +172,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.19",
+			"version": "0.1.20",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -447,7 +447,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.3",
+			"version": "0.1.4",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",

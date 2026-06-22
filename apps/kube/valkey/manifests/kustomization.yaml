@@ -9,3 +9,4 @@ resources:
     - valkey-auth-sync-policy.yaml
     - cryptothrone-valkey-rbac.yaml
     - irc-gateway-valkey-rbac.yaml
+    - discordsh-valkey-rbac.yaml
