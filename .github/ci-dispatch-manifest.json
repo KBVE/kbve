@@ -101,7 +101,9 @@
 			"runner": "arc-runner-set",
 			"image": "kbve/arpg-web",
 			"deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
-			"has_test": false
+			"has_test": false,
+			"target": "container-web",
+			"nx_project": "arpg"
 		},
 		{
 			"key": "chisel_ubuntu_axum",
@@ -1209,7 +1211,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.30",
+			"version": "0.3.31",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
