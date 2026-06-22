@@ -23,7 +23,7 @@ The Deployment runs under a restricted PodSecurity profile:
 - `readOnlyRootFilesystem: true` with a 64Mi `emptyDir` mounted at `/tmp` for scratch
 - `allowPrivilegeEscalation: false`, all Linux capabilities dropped
 - `seccompProfile: RuntimeDefault`
-- Dedicated `cryptothrone-sa` ServiceAccount with `automountServiceAccountToken: false` at both the SA and pod level. The pod no longer rides on the `default` SA.
+- Dedicated `cryptothrone-sa` ServiceAccount with `automountServiceAccountToken: true` at both the SA and pod level — the pod calls the kube API to allocate Agones game servers (`GameServerAllocation`), scoped by the `cryptothrone-sa-agones-allocator` Role. The pod no longer rides on the `default` SA. (Sibling web apps that never touch the API set this `false`.)
 - CPU/memory `requests` and `limits` set so the kubelet enforces a cgroup; bursts cap at `2 CPU / 512 MiB`.
 
 ## Reloader integration
