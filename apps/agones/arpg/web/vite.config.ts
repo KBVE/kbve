@@ -97,6 +97,12 @@ export default defineConfig(({ mode }) => {
 				process.env.PUBLIC_ARPG_LOCAL ?? 'false',
 			),
 			'import.meta.env.PUBLIC_ARPG_GAME_WS': JSON.stringify(GAME_WS),
+			'import.meta.env.PUBLIC_SUPABASE_URL': JSON.stringify(
+				process.env.PUBLIC_SUPABASE_URL ?? '',
+			),
+			'import.meta.env.PUBLIC_ARPG_CHAT_WS': JSON.stringify(
+				process.env.PUBLIC_ARPG_CHAT_WS ?? '',
+			),
 		},
 		publicDir: path.join(__dirname, 'public'),
 		build: { outDir: 'dist', emptyOutDir: true },
