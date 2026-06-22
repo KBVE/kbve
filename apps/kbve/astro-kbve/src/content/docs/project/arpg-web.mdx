@@ -1,0 +1,72 @@
+---
+title: ARPG Web
+description: |
+    Standalone Vite client for the ARPG — a third play surface (alongside kbve.com/arcade/arpg and the Discord embed) served as static files at arpg.kbve.com.
+sidebar:
+    label: ARPG Web
+    order: 60
+tags:
+    - docker
+    - vite
+    - game-client
+    - arpg
+key: arpg_web
+pipeline: docker
+app_name: arpg-web
+version: "0.1.0"
+source_path: apps/agones/arpg/web
+version_toml: apps/agones/arpg/web/version.toml
+runner: arc-runner-set
+image: kbve/arpg-web
+deployment_yaml: apps/kube/agones/arpg/manifests/web-deployment.yaml
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+---
+
+## Overview
+
+`arpg-web` is a standalone [Vite](https://vite.dev) + React client for the **ARPG**, served as static files behind nginx. It is the third way to play the game — the other two being the Astro page at `kbve.com/arcade/arpg/` and the Discord Activity embed — and the source it boots is the **same** `isometric-arpg` game tree, consumed via Vite aliases rather than forked.
+
+### Why a separate app
+
+Booting the full `astro-kbve` site (Starlight + hundreds of content pages + the proto/content pipeline) just to serve one game page is heavy. This app pulls only what the game needs, so it builds and boots fast, and gives `arpg.kbve.com` a real frontend instead of only the WebSocket endpoint.
+
+### Single source of truth
+
+The app owns no game code. Its Vite config aliases the game source so all surfaces stay in lockstep:
+
+- `@arpg/*` → `apps/kbve/astro-kbve/src/arcade/isometric-arpg`
+- `@kbve/laser` → the package source (net + phaser helpers; the optional r3f layer is stubbed since the game never uses three.js)
+- `@/lib/supa` → a small shim pointing Supabase at the dev `/supabase` proxy (CORS), `@/` → astro `src` for `AuthBridge` + `IDBStorage`
+
+Sprite/tileset art is served from astro's Git-LFS-tracked `public/assets/arcade/arpg/` — **not duplicated**.
+
+## Build
+
+```bash
+nx run arpg:web-build
+```
+
+Vite emits `apps/agones/arpg/web/dist`. The container build (below) bakes that behind nginx.
+
+## Container
+
+```bash
+nx run arpg:container-web
+```
+
+Multi-stage: a Node stage runs the Vite build with prod endpoints baked in (`PUBLIC_ARPG_GAME_WS=wss://arpg.kbve.com/ws`, `PUBLIC_SUPABASE_URL=https://supabase.kbve.com`), then an `nginx:alpine` stage serves the static `dist` on `:5402` with an SPA fallback. CI publishes `kbve/arpg-web`.
+
+## Auth
+
+The client runs the real Supabase login (`buildNetConfig` → `AuthBridge`); the resulting session JWT is verified by `arpg-server` against Supabase GoTrue (shared `jedi` JWT cache). An empty/invalid token is denied — there is no guest path.
+
+## Deploy
+
+`arpg.kbve.com` routes split: `/ws` (and the WebSocket upgrade) → the `arpg-server` game pods on `:7979`; everything else → this static app on `:5402`. See `apps/kube/agones/arpg/manifests/web-deployment.yaml` and `game-httproute.yaml`.
+
+### Status
+
+Beta — local dev runs the full stack via `nx run arpg:dev`; production `arpg.kbve.com` serves this client once the image is baked and the HTTPRoute split lands.

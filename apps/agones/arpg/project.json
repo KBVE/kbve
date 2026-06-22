@@ -46,6 +46,35 @@
 				"command": "npm run typecheck",
 				"cwd": "apps/agones/arpg/web"
 			}
+		},
+		"container-web": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/arpg/web/Dockerfile",
+				"load": true,
+				"tags": ["kbve/arpg-web:latest"]
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-web:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/arpg-web:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/arpg-web:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max"
+					]
+				}
+			}
 		}
 	}
 }

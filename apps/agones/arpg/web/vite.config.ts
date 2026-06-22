@@ -9,14 +9,50 @@ const arpgSrc = path.join(astroSrc, 'arcade/isometric-arpg');
 // Local arpg-server WebSocket (the compose service publishes :7979 on the host).
 const GAME_WS = process.env.PUBLIC_ARPG_GAME_WS || 'ws://localhost:7979/ws';
 
+// @kbve/laser's barrel re-exports an r3f layer (lib/r3f/*) whose three /
+// @react-three peers (heavy 3D libs) the arpg never uses. Stub just that subtree
+// so the barrel resolves without dragging three into the bundle. The lighter
+// optional peers it also touches (bitecs, rapier-connector) are installed instead,
+// so their real exports resolve and tree-shake if unused.
+function stubLaserR3F() {
+	const virtual = '\0arpg-laser-r3f-stub';
+	return {
+		name: 'stub-laser-r3f',
+		enforce: 'pre' as const,
+		resolveId(source: string) {
+			return /[\\/]lib[\\/]r3f[\\/]/.test(source) ? virtual : null;
+		},
+		load(id: string) {
+			return id === virtual
+				? 'export const Stage = () => null; export const useGameLoop = () => {};'
+				: null;
+		},
+	};
+}
+
 export default defineConfig(({ mode }) => ({
-	plugins: [react()],
+	plugins: [stubLaserR3F(), react()],
 	base: '/',
 	resolve: {
 		// One React copy: the arpg source resolves react from the repo-root
 		// node_modules while the app uses web/node_modules -> "Invalid hook call".
 		dedupe: ['react', 'react-dom'],
 		alias: [
+			// Bare deps imported from the aliased astro source (outside this app's
+			// dir) must resolve to THIS app's node_modules — node's upward lookup
+			// from the astro tree wouldn't find them in a clean (Docker) build.
+			...[
+				'phaser',
+				'react',
+				'react-dom',
+				'@supabase/supabase-js',
+				'dexie',
+				'bitecs',
+				'@phaserjs/rapier-connector',
+			].map((dep) => ({
+				find: new RegExp(`^${dep.replace('/', '\\/')}$`),
+				replacement: path.join(__dirname, 'node_modules', dep),
+			})),
 			// The arpg game source lives in astro-kbve and is consumed buildless
 			// (vite transpiles it). @arpg is this app's handle for that tree.
 			{ find: /^@arpg\//, replacement: `${arpgSrc}/` },
