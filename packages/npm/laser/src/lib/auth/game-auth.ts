@@ -10,6 +10,8 @@
  * game can pass a raw supabase-js client or its own AuthBridge wrapper.
  */
 
+import { RealmChatClient } from '../net/realm-chat-client';
+
 /** Minimal session shape this module reads — a supabase-js Session subset. */
 export interface GameSession {
 	access_token: string;
@@ -93,4 +95,33 @@ export function makeWsResolver(
 		const env = typeof envValue === 'string' ? envValue : undefined;
 		return env && env.length > 0 ? env : fallback;
 	};
+}
+
+/** Per-game realm-chat config — the only bits that differ between games. */
+export interface ChatConfig {
+	/** Game key registered in the irc-gateway GAME_PROFILES, e.g. "arpg". */
+	game: string;
+	/** Channel the gateway routes this game to, e.g. "#general". */
+	channel: string;
+	/** Resolve the gamechat URL (game-specific env + default). */
+	resolveUrl: () => string;
+}
+
+/**
+ * Build a `RealmChatClient` for a game from its `ChatConfig` and a session JWT.
+ * Returns null when there's no token (the game shows its chat as offline rather
+ * than connecting). The caller `.connect()`s and owns the lifecycle — the UI is
+ * per-game; only the client + wire are shared.
+ */
+export function createChatClient(
+	chat: ChatConfig,
+	jwt: string | null | undefined,
+): RealmChatClient | null {
+	if (!jwt) return null;
+	return new RealmChatClient({
+		url: chat.resolveUrl(),
+		jwt,
+		game: chat.game,
+		channel: chat.channel,
+	});
 }

@@ -1,3 +1,5 @@
+import { makeWsResolver, type ChatConfig } from '@kbve/laser';
+
 export const TILE_W = 64;
 export const TILE_H = 32;
 
@@ -122,18 +124,19 @@ export const DEBUG_HUD = true;
 
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 
-export function resolveWsUrl(): string {
-	const env = import.meta.env.PUBLIC_ARPG_GAME_WS as string | undefined;
-	return env && env.length > 0 ? env : WS_URL_FALLBACK;
-}
+export const resolveWsUrl = makeWsResolver(
+	import.meta.env.PUBLIC_ARPG_GAME_WS,
+	WS_URL_FALLBACK,
+);
 
 // Realm chat over the shared irc-gateway (laser RealmChatClient). The gateway
 // routes `?game=arpg` to #general (GAME_PROFILES in irc-gateway minechat.rs).
-export const REALM_CHAT_GAME = 'arpg';
-export const REALM_CHAT_CHANNEL = '#general';
-export const CHAT_URL_FALLBACK = 'wss://chat.kbve.com/gamechat';
-
-export function resolveChatUrl(): string {
-	const env = import.meta.env.PUBLIC_ARPG_CHAT_WS as string | undefined;
-	return env && env.length > 0 ? env : CHAT_URL_FALLBACK;
-}
+// Only these per-game values differ — the client + wire live in @kbve/laser.
+export const ARPG_CHAT: ChatConfig = {
+	game: 'arpg',
+	channel: '#general',
+	resolveUrl: makeWsResolver(
+		import.meta.env.PUBLIC_ARPG_CHAT_WS,
+		'wss://chat.kbve.com/gamechat',
+	),
+};

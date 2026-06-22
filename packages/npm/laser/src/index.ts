@@ -170,6 +170,7 @@ export {
 	usernameFromToken,
 	createNetConfig,
 	makeWsResolver,
+	createChatClient,
 } from './lib/auth/game-auth';
 export type {
 	GameSession,
@@ -177,4 +178,5 @@ export type {
 	GameNetConfig,
 	NetConfigOptions,
 	GameNetConfigStore,
+	ChatConfig,
 } from './lib/auth/game-auth';

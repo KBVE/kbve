@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { RealmChatClient, type RealmChatState } from '@kbve/laser';
-import { REALM_CHAT_CHANNEL, REALM_CHAT_GAME, resolveChatUrl } from './config';
+import {
+	createChatClient,
+	type RealmChatClient,
+	type RealmChatState,
+} from '@kbve/laser';
+import { ARPG_CHAT } from './config';
 import { getNetConfig } from './net-config';
 
 interface ChatLine {
@@ -28,15 +32,8 @@ export default function ChatPanel() {
 	const logRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
-		const cfg = getNetConfig();
-		if (!cfg?.jwt) return;
-
-		const client = new RealmChatClient({
-			url: resolveChatUrl(),
-			jwt: cfg.jwt,
-			game: REALM_CHAT_GAME,
-			channel: REALM_CHAT_CHANNEL,
-		});
+		const client = createChatClient(ARPG_CHAT, getNetConfig()?.jwt);
+		if (!client) return;
 		clientRef.current = client;
 
 		const offMsg = client.on('message', (m) =>
