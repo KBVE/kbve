@@ -1323,21 +1323,45 @@ jobs:
                   path: /tmp/${{ inputs.app_name }}-macos.zip
                   retention-days: 30
 
-            - name: Deploy to itch.io
-              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
-              uses: KikimoraGames/itch-publish@v0.0.3
-              with:
-                  butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: ${{ runner.temp }}/ue5-game-output
-                  itchUsername: ${{ inputs.itch_username }}
-                  itchGameId: ${{ inputs.itch_game_id }}
-                  buildChannel: macos
-                  buildNumber: ${{ needs.game_gate.outputs.version }}
-
             - name: Cleanup
               if: always()
               run: |
                   rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
+
+    game_itch_mac:
+        name: Game Deploy to itch.io (Mac client)
+        needs: [game_gate, game_build_mac]
+        if: |
+            inputs.mode == 'game' &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            needs.game_build_mac.result == 'success' &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ inputs.app_name }}-macos-v${{ needs.game_gate.outputs.version }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ inputs.app_name }}-macos.zip" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: macos
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
 
     game_post_publish:
         name: Game Post-publish version sync
