@@ -217,6 +217,11 @@ spec:
                             secretKeyRef:
                                 name: n8n-gate-supabase-jwt
                                 key: SUPABASE_JWT_SECRET
+                      - name: SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: n8n-gate-supabase-jwt
+                                key: anon-key
                       - name: RUST_LOG
                         value: 'info'
                   resources:
