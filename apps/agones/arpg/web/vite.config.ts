@@ -45,7 +45,18 @@ export default defineConfig(({ mode }) => {
 			// (hoisted node_modules) but breaks the container's isolated install
 			// ("query is not exported by __vite-optional-peer-dep:bitecs"). This
 			// app depends on bitecs directly, so pin everyone to that one copy.
-			dedupe: ['react', 'react-dom', 'bitecs'],
+			// phaser + @phaserjs/rapier-connector are the same trap: laser source
+			// lives outside web/, so vite resolves its bare imports relative to
+			// packages/npm/laser, which has no node_modules in the container
+			// ("Could not resolve 'phaser' imported by @kbve/laser"). Pin them
+			// to this app's copy. Local builds mask it via root node_modules.
+			dedupe: [
+				'react',
+				'react-dom',
+				'bitecs',
+				'phaser',
+				'@phaserjs/rapier-connector',
+			],
 			alias: [laserAlias],
 			extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
 		},
