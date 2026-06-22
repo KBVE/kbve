@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { IsoArpgScene } from './IsoArpgScene';
 import ArpgHud from './ArpgHud';
 import ArpgMenu from './ArpgMenu';
+import ChatPanel from './ChatPanel';
 import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import {
@@ -282,6 +283,7 @@ export default function ReactIsoArpgApp({
 			<>
 				<ArpgHud debug={DEBUG_HUD} />
 				<ArpgMenu />
+				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
 			</>
 		);
 	}

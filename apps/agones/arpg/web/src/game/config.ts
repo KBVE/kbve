@@ -126,3 +126,14 @@ export function resolveWsUrl(): string {
 	const env = import.meta.env.PUBLIC_ARPG_GAME_WS as string | undefined;
 	return env && env.length > 0 ? env : WS_URL_FALLBACK;
 }
+
+// Realm chat over the shared irc-gateway (laser RealmChatClient). The gateway
+// routes `?game=arpg` to #general (GAME_PROFILES in irc-gateway minechat.rs).
+export const REALM_CHAT_GAME = 'arpg';
+export const REALM_CHAT_CHANNEL = '#general';
+export const CHAT_URL_FALLBACK = 'wss://chat.kbve.com/gamechat';
+
+export function resolveChatUrl(): string {
+	const env = import.meta.env.PUBLIC_ARPG_CHAT_WS as string | undefined;
+	return env && env.length > 0 ? env : CHAT_URL_FALLBACK;
+}
