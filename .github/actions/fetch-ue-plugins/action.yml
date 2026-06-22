@@ -64,11 +64,7 @@ runs:
                   name=$(echo "$entry" | jq -r '.name')
                   version=$(echo "$entry" | jq -r '.version')
                   lower=$(echo "$name" | tr '[:upper:]' '[:lower:]')
-                  if [ "$PLATFORM" = "Win64" ]; then
-                      tag="${lower}-win64-v${version}"
-                  else
-                      tag="${lower}-v${version}"
-                  fi
+                  tag="${lower}-v${version}"
                   asset="${name}-${PLATFORM}-UE${ENGINE}-v${version}.zip"
 
                   echo "::group::${name} v${version} (${PLATFORM}, UE${ENGINE})"

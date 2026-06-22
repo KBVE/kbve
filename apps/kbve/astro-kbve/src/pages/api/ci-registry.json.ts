@@ -227,6 +227,8 @@ function toManifestEntry(
 				ue.supported_platforms = d.supported_platforms;
 			if (ver) ue.version = ver;
 			if (vt) ue.version_toml = vt;
+			const ueVs = d.version_source || mdxPath;
+			if (ueVs) ue.version_source = ueVs;
 			return ue;
 		}
 		case 'ue5_server': {
