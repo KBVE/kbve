@@ -53,6 +53,7 @@ import {
 	tileDepth,
 	type TileXY,
 } from './iso';
+import { CursorController, Cursor } from './input/cursor';
 import { EntityStore } from './ecs/store';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -243,6 +244,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
+	private cursor!: CursorController;
 	private localMode = false;
 	// Active deployable placement: the item ref being placed (e.g. campfire-kit)
 	// and a translucent ghost sprite tracking the cursor, tinted green/red for a
@@ -549,7 +551,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		this.input.mouse?.disableContextMenu();
 
+		this.cursor = new CursorController(this.game.canvas);
+		this.cursor.set(Cursor.Pointer);
+
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+			this.cursor.set(Cursor.Hold);
 			const aim = screenToWorldF(pointer.worldX, pointer.worldY);
 			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
 
@@ -582,8 +588,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.startMoveTo(tile);
 		});
 
+		this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+			this.updateCursorFor(
+				screenToWorld(pointer.worldX, pointer.worldY),
+				false,
+			);
+		});
+
 		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
 			const tile = screenToWorld(pointer.worldX, pointer.worldY);
+			this.updateCursorFor(tile, pointer.isDown);
 			// Placement mode drives the ghost instead of the move-hover diamond.
 			if (this.placingRef) {
 				this.hoverTile.setVisible(false);
@@ -597,6 +611,22 @@ export class IsoArpgScene extends Phaser.Scene {
 			const p = worldToScreen(tile.x, tile.y);
 			this.hoverTile.setPosition(p.x, p.y).setVisible(true);
 		});
+	}
+
+	// Hold while a button is down or placing; open hand (Take) over a pickup or
+	// NPC; pointing finger otherwise.
+	private updateCursorFor(tile: TileXY, pointerDown: boolean): void {
+		if (this.placingRef || pointerDown) {
+			this.cursor.set(Cursor.Hold);
+			return;
+		}
+		const hit = this.store.at(tile.x, tile.y, this.myEid);
+		const cat = hit
+			? this.kinds.catName(this.store.kind(hit.serverEid))
+			: null;
+		this.cursor.set(
+			cat === 'item' || cat === 'npc' ? Cursor.Take : Cursor.Pointer,
+		);
 	}
 
 	private buildBridge() {
