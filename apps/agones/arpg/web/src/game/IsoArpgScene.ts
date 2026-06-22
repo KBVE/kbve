@@ -1034,15 +1034,28 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
 			this.refreshDungeon(this.predicted, true);
 		} else if (this.myEid >= 0 && state.serverPos) {
-			this.reconcilePlayer(state.serverPos, state.inputAck ?? 0);
+			this.reconcilePlayer(
+				state.serverPos,
+				state.serverVel ?? { x: 0, y: 0 },
+				state.inputAck ?? 0,
+			);
 			this.refreshDungeon(this.predicted);
 		}
 		this.refreshHud();
 	}
 
-	private reconcilePlayer(serverPos: TileXY, inputAck: number) {
+	private reconcilePlayer(
+		serverPos: TileXY,
+		serverVel: TileXY,
+		inputAck: number,
+	) {
 		const unacked = this.client?.ackMoves(inputAck) ?? [];
 		const replay = makeFloatState(serverPos);
+		// Seed the replay with the server's reported velocity so unacked inputs
+		// reproduce the authoritative coast; replaying from rest left the body
+		// trailing the server's still-moving position and drifting on stop.
+		replay.vel.x = serverVel.x;
+		replay.vel.y = serverVel.y;
 		for (const m of unacked) {
 			const speed = m.run ? RUN_SPEED : WALK_SPEED;
 			stepFloat(
@@ -1284,7 +1297,12 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 
 		this.moveSendAccumMs += deltaMs;
-		if (this.moveSendAccumMs >= 50) {
+		// Flush a release (moving -> idle) immediately instead of waiting for the
+		// 50ms cadence, so the server stops powering the held intent a throttle
+		// window sooner — cuts the on-stop over-travel the client can't predict.
+		const idleNow = intent.x === 0 && intent.y === 0;
+		const releaseEdge = this.wasMoving && idleNow;
+		if (releaseEdge || this.moveSendAccumMs >= 50) {
 			this.moveSendAccumMs = 0;
 			const mag = Math.hypot(intent.x, intent.y);
 			const moving = mag > 0;

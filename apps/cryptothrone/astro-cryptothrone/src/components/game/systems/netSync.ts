@@ -25,6 +25,7 @@ export interface SyncResolvers {
 }
 
 const POS_SCALE = 32;
+const VEL_SCALE = 256;
 
 /** Mutable local-player + prediction state the sync reads and advances. */
 export interface SyncState {
@@ -33,6 +34,7 @@ export interface SyncState {
 	predicted: TileXY;
 	predictSeeded: boolean;
 	serverPos?: TileXY;
+	serverVel?: TileXY;
 	inputAck?: number;
 }
 
@@ -90,6 +92,10 @@ export function applyEntitySync<R>(
 				e.qx !== undefined && e.qy !== undefined
 					? { x: e.qx / POS_SCALE, y: e.qy / POS_SCALE }
 					: { x: e.tile.x, y: e.tile.y };
+			state.serverVel =
+				e.qvx !== undefined && e.qvy !== undefined
+					? { x: e.qvx / VEL_SCALE, y: e.qvy / VEL_SCALE }
+					: { x: 0, y: 0 };
 			state.inputAck = e.input_ack ?? 0;
 			state.predicted = { x: e.tile.x, y: e.tile.y };
 			store.update(e.eid, {
