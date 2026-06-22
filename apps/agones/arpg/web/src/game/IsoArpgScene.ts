@@ -26,6 +26,7 @@ import {
 	MOVE_TWEEN_MS,
 	WALK_SPEED,
 	RUN_SPEED,
+	SIM_DT_MS,
 	ARRIVE_DIST,
 	WAYPOINT_REACH,
 	HEARTBEAT_MS,
@@ -66,7 +67,6 @@ import {
 	makeFloatState,
 	stepFloat,
 	floatTile,
-	tileStepDir,
 	reconcileFloat,
 	type FloatState,
 } from './systems/floatMotion';
@@ -226,9 +226,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
 	private inventory: InventoryItem[] = [];
-	// Ground items we've already sent a pickup for, so auto-pickup doesn't spam
-	// the same item during the request → despawn round-trip.
-	private pickupSent = new Set<number>();
+	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
+	// The client predicts ahead of the server, so an early walk-over pickup can
+	// land before the server sees us adjacent and gets rejected; we retry on a
+	// short cadence until the successful pickup despawns the item.
+	private pickupCooldown = new Map<number, number>();
+	private static readonly PICKUP_RESEND_MS = 300;
 	// Full inventory panel open state (toggled with I).
 	private inventoryOpen = false;
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
@@ -943,18 +946,22 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	// Walk-over pickup: any ground item within one tile is grabbed automatically.
 	// The server validates proximity, despawns the item, and broadcasts the
-	// updated inventory; pickupSent dedupes until the despawn round-trips back.
+	// updated inventory; the per-item cooldown throttles resends between attempts.
 	private tryAutoPickup(): void {
 		if (this.time.now < this.pickupSuspendUntil) return;
 		const me = floatTile(this.floatState);
 		if (this.client) {
 			for (const sid of this.store.serverIdsWith('item')) {
-				if (this.pickupSent.has(sid)) continue;
+				if (this.time.now < (this.pickupCooldown.get(sid) ?? 0))
+					continue;
 				const t = this.store.tile(sid);
 				if (!t) continue;
 				if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
 					this.client.action(ACTION_PICKUP, sid);
-					this.pickupSent.add(sid);
+					this.pickupCooldown.set(
+						sid,
+						this.time.now + IsoArpgScene.PICKUP_RESEND_MS,
+					);
 				}
 			}
 			return;
@@ -1043,7 +1050,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				{ x: m.mx / 127, y: m.my / 127 },
 				speed,
 				this.isBlocked,
-				50,
+				SIM_DT_MS,
 			);
 		}
 		reconcileFloat(this.floatState, replay.pos);
@@ -1383,7 +1390,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			return;
 		}
 		this.movePath = path;
-		this.client?.moveTo(tile);
 	}
 
 	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the

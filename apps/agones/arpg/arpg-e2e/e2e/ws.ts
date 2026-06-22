@@ -56,8 +56,6 @@ export interface JoinOpts {
 	timeoutMs?: number;
 }
 
-export type Dir = 'Up' | 'Down' | 'Left' | 'Right';
-
 function joinPayload(opts: JoinOpts): string {
 	return JSON.stringify({
 		JoinMatch: {
@@ -174,17 +172,11 @@ export class GameSession {
 		this.ws?.send(JSON.stringify(msg));
 	}
 
-	step(dir: Dir, clientTick = 1): void {
-		this.send({
-			Frame: { client_tick: clientTick, inputs: [{ Step: { dir } }] },
-		});
-	}
-
-	moveTo(x: number, y: number, clientTick = 1): void {
+	move(mx: number, my: number, seq = 1, run = true, clientTick = 1): void {
 		this.send({
 			Frame: {
 				client_tick: clientTick,
-				inputs: [{ MoveTo: { tile: { x, y } } }],
+				inputs: [{ Move: { seq, mx, my, run } }],
 			},
 		});
 	}

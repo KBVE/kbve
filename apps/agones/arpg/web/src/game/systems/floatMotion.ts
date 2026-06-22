@@ -2,6 +2,8 @@ import type { Dir } from '@kbve/laser';
 import type { TileXY } from '../iso';
 import {
 	MOVE_ACCEL,
+	MOVE_FRICTION,
+	STOP_SPEED,
 	BODY_RADIUS,
 	COLLISION_SKIN,
 	MAX_MOVE_STEP,
@@ -30,7 +32,7 @@ export function makeFloatState(start: TileXY): FloatState {
 
 /** Integer tile the float position currently occupies. */
 export function floatTile(s: FloatState): TileXY {
-	return { x: Math.round(s.pos.x), y: Math.round(s.pos.y) };
+	return { x: tileAt(s.pos.x), y: tileAt(s.pos.y) };
 }
 
 /**
@@ -83,8 +85,13 @@ export function stepFloat(
 		s.vel.x += (targetVx - s.vel.x) * response;
 		s.vel.y += (targetVy - s.vel.y) * response;
 	} else {
-		s.vel.x = 0;
-		s.vel.y = 0;
+		const decay = expDecay(MOVE_FRICTION, dt);
+		s.vel.x *= decay;
+		s.vel.y *= decay;
+		if (floatSpeed(s) < STOP_SPEED) {
+			s.vel.x = 0;
+			s.vel.y = 0;
+		}
 	}
 
 	if (CENTERLINE_PULL > 0) applyCenterlinePull(s, isBlocked, dt);

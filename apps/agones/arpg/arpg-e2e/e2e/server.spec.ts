@@ -113,7 +113,7 @@ test.describe('arpg-server: sim', () => {
 		}
 	});
 
-	test('a Step input advances the player tile', async () => {
+	test('a Move input advances the player tile', async () => {
 		const jwt = await signJwt({ kbve_username: 'walker' });
 		const s = await GameSession.open({ jwt, username: 'walker' });
 		try {
@@ -122,9 +122,9 @@ test.describe('arpg-server: sim', () => {
 				sn.entities.find((e) => e.owner === slot && e.kind === 0)?.tile;
 			const start = await s.waitFor((sn) => !!tileOf(sn));
 			const from = tileOf(start)!;
-			// Drive several steps so the integer tile crosses at least once,
-			// regardless of which cardinal is unobstructed by the seeded walls.
-			for (let i = 0; i < 8; i++) s.step('Up', i + 1);
+			// Steer the float body up (negative y) repeatedly so the integer
+			// tile crosses at least once before the body stalls on a wall.
+			for (let i = 0; i < 8; i++) s.move(0, -127, i + 1);
 			const moved = await s.waitFor((sn) => {
 				const t = tileOf(sn);
 				return !!t && (t.x !== from.x || t.y !== from.y);
