@@ -2569,7 +2569,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2578,7 +2578,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2587,7 +2587,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2596,7 +2596,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2605,7 +2605,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/rentearth.uproject\" -game -engine"
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/rentearth.uproject\" -game -engine"
               },
               "configurations": {},
               "parallelism": true
@@ -2625,7 +2625,7 @@
               "options": {
                 "cwd": "",
                 "commands": [
-                  "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
+                  "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
                   "./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
                 ],
                 "parallel": false
@@ -6122,6 +6122,77 @@
           }
         }
       },
+      "arpg-e2e": {
+        "name": "arpg-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/agones/arpg/arpg-e2e",
+          "targets": {
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": false,
+              "executor": "@nx/playwright:playwright",
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e:server": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.server.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e:web": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.web.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e:cdn": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.cdn.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "arpg-e2e",
+          "projectType": "application",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/agones/arpg/arpg-e2e/e2e",
+          "tags": [
+            "npm:private",
+            "agones",
+            "arpg",
+            "e2e"
+          ],
+          "implicitDependencies": [
+            "arpg-server",
+            "arpg"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "arpg-e2e",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          }
+        }
+      },
       "kasm-void": {
         "name": "kasm-void",
         "type": "lib",
@@ -9051,6 +9122,242 @@
           "implicitDependencies": []
         }
       },
+      "arpg-web": {
+        "name": "arpg-web",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/arpg/web",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@kbve/arpg-web",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "commands": [
+                  "vite build",
+                  "vite build --mode embed",
+                  "vite build --mode discord"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "continuous": true,
+              "dependsOn": [
+                "build:app"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "cache": true,
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "tsc --noEmit"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects arpg-web --includeDependencies -- pnpm exec nx build-deps arpg-web"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "cache": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "outputs": [
+                "{workspaceRoot}/coverage/{projectRoot}"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vitest"
+                ],
+                "description": "Run Vitest tests",
+                "help": {
+                  "command": "pnpm exec vitest --help",
+                  "example": {
+                    "options": {
+                      "bail": 1,
+                      "coverage": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vitest"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:app": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:embed": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/dist/arpg-embed.js"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite build --mode embed"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:discord": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/dist/discord/arpg/arpg.js"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/agones/arpg/web",
+                "command": "vite build --mode discord"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "arpg-web",
+          "includedScripts": [],
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/agones/arpg/web/src",
+          "tags": [
+            "npm:private",
+            "vite",
+            "react",
+            "game-client",
+            "arpg"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "astro-kbve": {
         "name": "astro-kbve",
         "type": "app",
@@ -9085,7 +9392,6 @@
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
                 "commands": [
-                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/kbve/astro-kbve/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
                 ],
                 "parallel": false
@@ -9160,21 +9466,6 @@
                   "node scripts/generate-osrs-items.mjs",
                   "nx exec -- astro sync",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-arpg-discord": {
-              "executor": "nx:run-commands",
-              "outputs": [
-                "{projectRoot}/public/discord/arpg"
-              ],
-              "options": {
-                "cwd": "apps/kbve/astro-kbve",
-                "commands": [
-                  "NODE_OPTIONS=\"--max-old-space-size=4096\" npx vite build --config vite.arpg-discord.config.mts"
                 ],
                 "parallel": false
               },
@@ -10383,9 +10674,23 @@
               "configurations": {},
               "parallelism": true
             },
+            "container-prep": {
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "echo 'no arpg prep: the game art + embed bundle now live on arpg.kbve.com (CDN); kbve.com loads them cross-origin, so the astro build bundles nothing arpg-specific'"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "container": {
               "executor": "nx:run-commands",
               "defaultConfiguration": "local",
+              "dependsOn": [
+                "container-prep"
+              ],
               "options": {
                 "parallel": false
               },
@@ -12316,7 +12621,7 @@
               "options": {
                 "commands": [
                   "docker rm -f edge-e2e-test 2>/dev/null || true",
-                  "docker run -d --name edge-e2e-test -p 9100:9000 -e JWT_SECRET=super-secret-jwt-token-for-dev -e VERIFY_JWT=true -e SUPABASE_URL=http://localhost:54321 -e SUPABASE_SERVICE_ROLE_KEY=dummy-service-role-key kbve/edge:latest start --main-service /home/deno/functions/main",
+                  "docker run -d --name edge-e2e-test -p 9100:9000 -e JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long -e VERIFY_JWT=true -e SUPABASE_URL=http://localhost:54321 -e SUPABASE_ANON_KEY=dummy-anon-key -e SUPABASE_SERVICE_ROLE_KEY=dummy-service-role-key -e CLICKHOUSE_ENDPOINT=http://localhost:8123 -e CLICKHOUSE_USER=default -e CLICKHOUSE_PASSWORD=dummy kbve/edge:latest start --main-service /home/deno/functions/main",
                   "npx vitest run; EC=$?; if [ $EC -ne 0 ]; then echo '--- edge-e2e-test container state ---'; docker ps -a --filter name=edge-e2e-test --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}' || true; echo '--- edge-e2e-test logs (last 200 lines) ---'; docker logs --tail 200 edge-e2e-test 2>&1 || true; echo '--- end edge-e2e-test logs ---'; fi; docker rm -f edge-e2e-test 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
@@ -13688,6 +13993,179 @@
           "tags": []
         }
       },
+      "arpg": {
+        "name": "arpg",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/arpg",
+          "targets": {
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "nx run arpg:web-test",
+                  "nx run arpg:container-web",
+                  "nx run arpg-e2e:e2e:cdn"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "trap 'docker compose -f apps/agones/arpg/docker-compose.yml --profile web down' EXIT INT TERM; docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "compose-up": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f apps/agones/arpg/docker-compose.yml up --build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "compose-down": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f apps/agones/arpg/docker-compose.yml --profile web down"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "npm run dev"
+                ],
+                "cwd": "apps/agones/arpg/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/web/dist"
+              ],
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/agones/arpg/web/public/assets/arcade/arpg/**') || echo 'arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'",
+                  "npm run build"
+                ],
+                "cwd": "apps/agones/arpg/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-build-embed": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/web/dist/arpg-embed.js"
+              ],
+              "options": {
+                "commands": [
+                  "npm run build:embed"
+                ],
+                "cwd": "apps/agones/arpg/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-build-discord": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/web/dist/discord/arpg/arpg.js"
+              ],
+              "options": {
+                "commands": [
+                  "npm run build:discord"
+                ],
+                "cwd": "apps/agones/arpg/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npm run typecheck",
+                "cwd": "apps/agones/arpg/web"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "npm run test",
+                "cwd": "apps/agones/arpg/web"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container-web": {
+              "executor": "@nx-tools/nx-container:build",
+              "defaultConfiguration": "local",
+              "options": {
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/agones/arpg/web/Dockerfile",
+                "load": true,
+                "tags": [
+                  "kbve/arpg-web:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/arpg-web:latest"
+                  ]
+                },
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/arpg-web:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/arpg-web:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max"
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "arpg",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/arpg",
+          "tags": [
+            "agones",
+            "arpg",
+            "game"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "irc-e2e": {
         "name": "irc-e2e",
         "type": "e2e",
@@ -13828,6 +14306,56 @@
             "scope:mc"
           ],
           "implicitDependencies": []
+        }
+      },
+      "metrics-e2e": {
+        "name": "metrics-e2e",
+        "type": "e2e",
+        "data": {
+          "root": "apps/metrics/e2e",
+          "targets": {
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": false,
+              "executor": "nx:noop",
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": false,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "bash run.sh"
+                ],
+                "parallel": false,
+                "cwd": "apps/metrics/e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true
+            }
+          },
+          "name": "metrics-e2e",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/metrics/e2e",
+          "tags": [
+            "scope:metrics",
+            "e2e"
+          ],
+          "implicitDependencies": [
+            "met"
+          ]
         }
       },
       "fx": {
@@ -14240,6 +14768,10 @@
                   "types": "./src/store/index.ts",
                   "import": "./src/store/index.ts"
                 },
+                "./dash": {
+                  "types": "./src/dash/index.ts",
+                  "import": "./src/dash/index.ts"
+                },
                 "./toasts": {
                   "types": "./src/toasts/index.ts",
                   "import": "./src/toasts/index.ts"
@@ -14619,7 +15151,6 @@
               "cache": false,
               "options": {
                 "commands": [
-                  "npm install --no-save",
                   "npm run dev"
                 ],
                 "cwd": "apps/jobboard/web",
@@ -14635,7 +15166,6 @@
               ],
               "options": {
                 "commands": [
-                  "npm install --no-save",
                   "npm run build"
                 ],
                 "cwd": "apps/jobboard/web",
@@ -15757,6 +16287,11 @@
           "source": "astro-cryptothrone",
           "target": "laser",
           "type": "static"
+        },
+        {
+          "source": "astro-cryptothrone",
+          "target": "laser",
+          "type": "dynamic"
         }
       ],
       "bevy_statemachine": [],
@@ -15944,6 +16479,18 @@
           "type": "implicit"
         }
       ],
+      "arpg-e2e": [
+        {
+          "source": "arpg-e2e",
+          "target": "arpg-server",
+          "type": "implicit"
+        },
+        {
+          "source": "arpg-e2e",
+          "target": "arpg",
+          "type": "implicit"
+        }
+      ],
       "kasm-void": [],
       "astro-kbve-e2e": [
         {
@@ -16061,6 +16608,13 @@
       ],
       "simgrid": [],
       "agones-factorio": [],
+      "arpg-web": [
+        {
+          "source": "arpg-web",
+          "target": "laser",
+          "type": "static"
+        }
+      ],
       "astro-kbve": [
         {
           "source": "astro-kbve",
@@ -16080,6 +16634,11 @@
         {
           "source": "astro-kbve",
           "target": "devops",
+          "type": "static"
+        },
+        {
+          "source": "astro-kbve",
+          "target": "rn",
           "type": "static"
         },
         {
@@ -16170,6 +16729,7 @@
       "cryptothrone": [],
       "data-sql": [],
       "angelscript": [],
+      "arpg": [],
       "irc-e2e": [
         {
           "source": "irc-e2e",
@@ -16183,6 +16743,13 @@
         }
       ],
       "mc-velocity": [],
+      "metrics-e2e": [
+        {
+          "source": "metrics-e2e",
+          "target": "met",
+          "type": "implicit"
+        }
+      ],
       "fx": [],
       "kbve-kubectl": [],
       "q": [],
@@ -16196,7 +16763,28 @@
       "discordsh": [],
       "edge": [],
       "herbmail": [],
-      "jobboard": [],
+      "jobboard": [
+        {
+          "source": "jobboard",
+          "target": "rn",
+          "type": "static"
+        },
+        {
+          "source": "jobboard",
+          "target": "core",
+          "type": "static"
+        },
+        {
+          "source": "jobboard",
+          "target": "fx",
+          "type": "static"
+        },
+        {
+          "source": "jobboard",
+          "target": "observ",
+          "type": "static"
+        }
+      ],
       "mc-lobby": [],
       "met": [],
       "pydesk": [],

@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-06-21T09:25:47Z",
+  "generated_at": "2026-06-22T10:11:44Z",
   "summary": {
     "critical": 2,
     "high": 26,
-    "medium": 52,
-    "low": 11,
+    "medium": 46,
+    "low": 8,
     "info": 31
   },
   "ecosystems": {
     "npm": {
-      "total": 72,
+      "total": 64,
       "severities": {
         "critical": 2,
         "high": 26,
-        "medium": 33,
-        "low": 11,
+        "medium": 28,
+        "low": 8,
         "info": 0
       },
       "advisories": [
@@ -369,55 +369,6 @@
           "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
         },
         {
-          "id": "1120800",
-          "title": "DOMPurify: `IN_PLACE` mode trusts attacker-controlled `nodeName` on live non-form nodes, allowing script retention and XSS via attacker-supplied DOM objects",
-          "severity": "low",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-x4vx-rjvf-j5p4"
-        },
-        {
-          "id": "1120801",
-          "title": "DOMPurify: Hook mutation of `data.allowedTags` / `data.allowedAttributes` permanently pollutes `DEFAULT_ALLOWED_TAGS` / `DEFAULT_ALLOWED_ATTR`",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-76mc-f452-cxcm"
-        },
-        {
-          "id": "1120802",
-          "title": "DOMPurify: Cross-realm IN_PLACE sanitization leaves executable markup intact via realm-bound `instanceof` checks",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-hpcv-96wg-7vj8"
-        },
-        {
-          "id": "1120803",
-          "title": "DOMPurify: IN_PLACE mode preserves attributes of a clobbered root element, allowing XSS via attacker-controlled root DOM",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-r47g-fvhr-h676"
-        },
-        {
-          "id": "1120805",
-          "title": "DOMPurify: Trusted Types policy survives `clearConfig()` and can poison later `RETURN_TRUSTED_TYPE` output",
-          "severity": "low",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-vxr8-fq34-vvx9"
-        },
-        {
-          "id": "1120812",
-          "title": "DOMPurify: SAFE_FOR_TEMPLATES bypass - template expressions survive sanitization inside <template> content when using DOM output modes",
-          "severity": "low",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-gvmj-g25r-r7wr"
-        },
-        {
-          "id": "1120813",
-          "title": "DOMPurify IN_PLACE Sanitization Bypass via Attached Shadow Root Inside <template>.content",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-rp9w-3fw7-7cwq"
-        },
-        {
           "id": "1121163",
           "title": "http-proxy-middleware: multipart/form-data field injection via unescaped CRLF in `fixRequestBody`",
           "severity": "high",
@@ -451,13 +402,6 @@
           "severity": "high",
           "package": "nodemailer",
           "url": "https://github.com/advisories/GHSA-p6gq-j5cr-w38f"
-        },
-        {
-          "id": "1121192",
-          "title": "DOMPurify: Permanent `ALLOWED_ATTR` pollution via `setConfig()` bypassing the hook clone-guard (incomplete fix of the 3.4.7 hook-pollution patch)",
-          "severity": "medium",
-          "package": "dompurify",
-          "url": "https://github.com/advisories/GHSA-cmwh-pvxp-8882"
         },
         {
           "id": "1121241",
@@ -891,23 +835,15 @@
       "advisories": []
     },
     "codeql": {
-      "total": 1,
+      "total": 0,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 1,
+        "medium": 0,
         "low": 0,
         "info": 0
       },
-      "alerts": [
-        {
-          "rule_id": "js/stack-trace-exposure",
-          "description": "Information exposure through a stack trace",
-          "severity": "medium",
-          "path": "apps/kbve/edge/functions/_shared/supabase.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/501"
-        }
-      ]
+      "alerts": []
     },
     "dependabot": {
       "total": 0,
