@@ -442,7 +442,7 @@ jobs:
                     path=$(echo "$entry" | jq -r '.plugin_path')
                     deps=$(echo "$entry" | jq -r '.dependency_plugins // ""')
                     itch=$(echo "$entry" | jq -r '.itch_game_id // ""')
-                    platforms=$(echo "$entry" | jq -r 'if (.supported_platforms // [] | length) > 0 then (.supported_platforms | join(",")) else "Linux" end')
+                    tp=$(echo "$entry" | jq -r 'if (.supported_platforms // [] | length) > 0 then (.supported_platforms | join("+")) else "Linux" end')
                     mdx_version=$(echo "$entry" | jq -r '.version')
                     altered=$(is_altered "$key")
                     deploy_itch="false"
@@ -458,46 +458,23 @@ jobs:
                       continue
                     fi
 
-                    # Linux build (docker) — keeps itch deploy when configured.
-                    if printf '%s' ",${platforms}," | grep -q ',Linux,'; then
-                      if [ "$(is_publish_running unreal "$name")" = "true" ]; then
-                        echo "  · $name (Linux) — already running ($reason), skipping duplicate"
-                        SKIPPED=$((SKIPPED + 1))
-                      else
-                        echo "  ✓ $name (Linux) — $reason, dispatching"
-                        uconfig=$(jq -nc \
-                          --arg pp "$path" --arg itch "$itch" --arg deps "$deps" \
-                          --argjson di "$deploy_itch" \
-                          '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, skip_version_update:false}')
-                        dispatch_publish unreal \
-                          --field package_name="$name" \
-                          --field manifest_version="$mdx_version" \
-                          --field unreal_config="$uconfig"
-                        DISPATCHED=$((DISPATCHED + 1))
-                      fi
-                    fi
-
-                    # Win64 build (native UE5-Win VM) — GitHub Release only, no itch.
-                    # Linux owns the shared version.toml bump when both build, so the
-                    # Win64 publish skips it; a Win64-only plugin owns it itself.
-                    if printf '%s' ",${platforms}," | grep -q ',Win64,'; then
-                      win64_skip_version="false"
-                      printf '%s' ",${platforms}," | grep -q ',Linux,' && win64_skip_version="true"
-                      if [ "$(is_publish_running unreal-win64 "$name")" = "true" ]; then
-                        echo "  · $name (Win64) — already running ($reason), skipping duplicate"
-                        SKIPPED=$((SKIPPED + 1))
-                      else
-                        echo "  ✓ $name (Win64) — $reason, dispatching"
-                        uconfig=$(jq -nc \
-                          --arg pp "$path" --arg deps "$deps" \
-                          --argjson sv "$win64_skip_version" \
-                          '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:false, itch_game_id:"", dependency_plugins:$deps, skip_version_update:$sv}')
-                        dispatch_publish unreal-win64 \
-                          --field package_name="$name" \
-                          --field manifest_version="$mdx_version" \
-                          --field unreal_config="$uconfig"
-                        DISPATCHED=$((DISPATCHED + 1))
-                      fi
+                    # One dispatch per plugin version: the run fans out to all
+                    # declared platforms (Linux/Mac/Win64) and only cuts the
+                    # release when every one passes (gate lives in ci-unreal-build).
+                    if [ "$(is_publish_running unreal "$name")" = "true" ]; then
+                      echo "  · $name — already running ($reason), skipping duplicate"
+                      SKIPPED=$((SKIPPED + 1))
+                    else
+                      echo "  ✓ $name ($tp) — $reason, dispatching"
+                      uconfig=$(jq -nc \
+                        --arg pp "$path" --arg itch "$itch" --arg deps "$deps" --arg tp "$tp" \
+                        --argjson di "$deploy_itch" \
+                        '{plugin_path:$pp, image_tags:["dev-5.8.0"], deploy_to_itch:$di, itch_game_id:$itch, dependency_plugins:$deps, target_platforms:$tp, skip_version_update:false}')
+                      dispatch_publish unreal \
+                        --field package_name="$name" \
+                        --field manifest_version="$mdx_version" \
+                        --field unreal_config="$uconfig"
+                      DISPATCHED=$((DISPATCHED + 1))
                     fi
                   done < <(jq -c '.unreal[]' "$MANIFEST")
 

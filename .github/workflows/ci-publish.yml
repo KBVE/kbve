@@ -144,7 +144,7 @@ jobs:
                       fi
                       VTOML="packages/python/${PYPI}/version.toml"
                       ;;
-                    unreal | unreal-win64)
+                    unreal)
                       # MDX manifest_version is the lever; uplugin VersionName is a
                       # build-stamped/post-publish-synced mirror, not the source.
                       MANIFEST_V="${{ inputs.manifest_version }}"
@@ -314,42 +314,10 @@ jobs:
             plugin_name: ${{ inputs.package_name }}
             manifest_version: ${{ inputs.manifest_version }}
             ue_image_tag: ${{ matrix.ue_tag }}
-            target_platforms: Linux
+            target_platforms: ${{ fromJSON(inputs.unreal_config).target_platforms }}
             deploy_to_itch: ${{ fromJSON(inputs.unreal_config).deploy_to_itch }}
             itch_username: kbve
             itch_game_id: ${{ fromJSON(inputs.unreal_config).itch_game_id }}
-            itch_channel: plugin
-            dependency_plugin_paths: ${{ fromJSON(inputs.unreal_config).dependency_plugins }}
-        secrets:
-            epic_pat: ${{ secrets.UNITY_PAT }}
-            butler_api: ${{ secrets.ITCH_API }}
-
-    # ===========================================================================
-    # Unreal Win64 — native Windows build on KubeVirt VM
-    # (only runs when package_type == 'unreal-win64')
-    # ===========================================================================
-    publish_unreal_win64:
-        name: Publish Unreal Win64 — ${{ inputs.package_name }}
-        needs: [queue_guard, version_gate]
-        if: inputs.package_type == 'unreal-win64' && needs.version_gate.outputs.should_publish == 'true'
-        permissions:
-            contents: write
-            packages: write
-            issues: write
-            pull-requests: write
-            actions: write
-        uses: ./.github/workflows/ci-unreal-build.yml
-        with:
-            mode: plugin-win
-            plugin_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}
-            plugin_name: ${{ inputs.package_name }}
-            manifest_version: ${{ inputs.manifest_version }}
-            ue_image_tag: ${{ fromJson(inputs.unreal_config).image_tags[0] }}
-            target_platforms: Win64
-            deploy_to_itch: ${{ fromJSON(inputs.unreal_config).deploy_to_itch }}
-            itch_username: kbve
-            itch_game_id: ${{ fromJSON(inputs.unreal_config).itch_game_id }}
-            itch_channel: plugin-win64
             dependency_plugin_paths: ${{ fromJSON(inputs.unreal_config).dependency_plugins }}
         secrets:
             epic_pat: ${{ secrets.UNITY_PAT }}
@@ -423,22 +391,6 @@ jobs:
             version_toml_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/version.toml
             version_target_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/${{ inputs.package_name }}.uplugin
 
-    update_version_unreal_win64:
-        name: Update version.toml (unreal-win64)
-        needs: [publish_unreal_win64, version_gate]
-        if: always() && needs.publish_unreal_win64.result == 'success' && needs.version_gate.outputs.should_publish == 'true' && fromJSON(inputs.unreal_config).skip_version_update != true
-        permissions:
-            contents: write
-            pull-requests: write
-            actions: write
-        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
-        with:
-            package_type: unreal
-            package_name: ${{ inputs.package_name }}
-            version: ${{ needs.version_gate.outputs.local_version }}
-            version_toml_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/version.toml
-            version_target_path: ${{ fromJSON(inputs.unreal_config).plugin_path }}/${{ inputs.package_name }}.uplugin
-
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
     # Per-package job_name makes the issue title actionable.
@@ -456,7 +408,6 @@ jobs:
                 test_python,
                 publish_python,
                 publish_unreal,
-                publish_unreal_win64,
             ]
         permissions:
             issues: write

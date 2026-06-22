@@ -29,19 +29,27 @@ published marker and is never pre-synced; the build fires only while MDX >
 2. Merge to dev → release PR dev→main.
 3. On push to main, `ci-main.yml` reads `.github/ci-dispatch-manifest.json`,
    sees manifest `version` > `version.toml`, and dispatches `ci-publish.yml`
-   once per platform in `supported_platforms`:
-    - `unreal` → Linux (`arc-runner-ue`, docker)
-    - `unreal-win64` → Win64 (`UE5-Win` KubeVirt VM)
-      The MDX version rides along as `manifest_version`.
-4. The build stamps the `.uplugin` `VersionName` with `manifest_version` before
-   `BuildPlugin`, then packages and uploads a GitHub Release asset named with
-   platform + engine + version:
-   `KBVEZstd-Linux-UE5.7.4-v1.5.8.zip`, `KBVEZstd-Win64-UE5.7.4-v1.5.8.zip`.
-5. Post-build: `ci-publish.yml` opens ONE auto-PR via
-   `utils-update-version-toml.yml` that bumps **both** `version.toml` and the
-   source `.uplugin` `VersionName` to the published version. For multi-platform
-   plugins the Linux publish owns this PR and Win64 skips it
-   (`skip_version_update`, set by the dispatcher). A Win64-only plugin owns it.
+   **once per plugin**. The plugin's `supported_platforms` ride along as
+   `target_platforms` (e.g. `Linux+Mac+Win64`), the MDX version as
+   `manifest_version`.
+4. That single `ci-unreal-build` run fans out to one build job per _declared_
+   platform, each stamping the `.uplugin` `VersionName` and running `BuildPlugin`
+   for its own platform:
+    - Linux — `arc-runner-ue`, docker UE image
+    - Mac — `self-hosted macOS ARM64`, engine via `find-ue-mac.sh`
+    - Win64 — `UE5-Win` KubeVirt VM
+      Assets are named platform + engine + version:
+      `KBVEZstd-Linux-UE5.8.0-v1.5.8.zip`, `-Mac-…`, `-Win64-…`.
+5. **Release gate** — `plugin_release` fires only when _every declared platform
+   passed_ (a platform not in `supported_platforms` is `skipped`, not a failure;
+   any `failure`/`cancelled` blocks). It cuts ONE GitHub Release (tag
+   `<name>-v<version>`, full release with `--latest=false`) carrying all platform
+   assets. If any platform fails, no release fires and `version.toml` stays
+   behind MDX → the next run retries. (e.g. Agones is `supported_platforms:
+[Linux]` → gated on Linux alone.)
+6. Post-release: `ci-publish.yml` opens ONE auto-PR (`utils-update-version-toml`)
+   bumping `version.toml` and the source `.uplugin` `VersionName`. One PR per
+   plugin — the old Linux-owns / Win64-skips split is gone.
 
 `npx nx run astro-kbve:sync:unreal` exists as a manual tool to bulk-resync every
 `.uplugin` VersionName from MDX (e.g. after backfilling versions); it is not part
@@ -93,22 +101,23 @@ Mechanism (scaffolded, not yet active):
     ```
 
 - `.github/actions/fetch-ue-plugins` reads the lockfile, resolves the build
-  platform + engine, downloads the matching release asset
-  (`<name>-<platform>-UE<engine>-v<version>.zip`) into `<project>/Plugins/`, and
-  falls back to a source build if the asset is missing.
+  platform + engine, downloads the matching release asset (tag `<name>-v<version>`,
+  asset `<name>-<platform>-UE<engine>-v<version>.zip`) into `<project>/Plugins/`,
+  and falls back to a source build if the asset is missing.
 - UE skips compiling a plugin whose `Binaries/` already match the engine +
   platform, so prebuilt assets cut game build time.
 
 ### Open items before activation
 
-- Mac (`.dylib`) plugin builds — no `macos-builder` VM provisioned; engine
-  provision + plugin-mac jobs are stubs.
 - Win64 asset engine version: `plugin_check` derives engine from `ue_image_tag`,
-  but the VM builds against `C:\UnrealEngine` (the AngelScript engine). The asset
-  name engine field should be sourced from the VM's actual engine, not the image
-  tag passed for naming.
+  but the VM builds against `C:\UnrealEngine` (the AngelScript engine). All three
+  platforms currently name assets with the `ue_image_tag` engine string for a
+  consistent lockfile match; if the AngelScript engine ever diverges from the tag,
+  the Win64 asset name should source the VM's actual engine.
 - Engine-version matrix: `ci-publish.yml` passes `ue_image_tags` as a JSON
   array but plugin builds consume a single tag; multi-engine fan-out is not wired.
 - Lockfile resolver + source-build fallback need integration into the game build
   jobs in `ci-unreal-build.yml`.
 - A consumer registry / checksum so game builds verify the asset they pulled.
+- Mac plugin builds depend on the single self-hosted `macOS ARM64` runner; if it
+  is offline a release blocks (this is the gate working as intended).
