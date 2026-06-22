@@ -1274,8 +1274,6 @@ jobs:
             - name: Build Mac client
               run: |
                   PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
-                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
-                  mkdir -p "${OUTPUT_DIR}"
 
                   UPROJECT=$(find "${PROJECT_ROOT}" -maxdepth 1 -name "*.uproject" | head -1)
                   if [ -z "${UPROJECT}" ]; then
@@ -1299,22 +1297,43 @@ jobs:
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
+                  # No -archive: under Modern Xcode (UE 5.3+) BuildCookRun -archive copies
+                  # the exe-only Binaries/Mac bundle, not the staged one with Contents/UE
+                  # + dylibs. Stage only; package the staged .app below. (issue #12996)
                   "${{ steps.find_ue.outputs.runuat }}" BuildCookRun \
                     -project="${UPROJECT}" \
                     -targetplatform=Mac \
                     -clientconfig="${CLIENT_CONFIG}" \
                     -cook ${MAP_ARG} \
-                    -build -stage -pak -archive -prereqs \
+                    -build -stage -pak -prereqs \
                     ${CUSTOM_CONFIG_ARG} \
-                    -archivedirectory="${OUTPUT_DIR}" \
                     -nodebuginfo \
                     -unattended -utf8output -NoP4
 
-            - name: Package archive
+            - name: Package staged build
               run: |
-                  OUTPUT_DIR="${RUNNER_TEMP}/ue5-game-output"
-                  cd "${OUTPUT_DIR}"
-                  zip -r "/tmp/${{ inputs.app_name }}-macos.zip" .
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+
+                  APP=$(find "${STAGE}" -maxdepth 1 -name '*.app' 2>/dev/null | head -1)
+                  if [ -z "${APP}" ]; then
+                    echo "::error::No staged .app at ${STAGE}"
+                    ls -la "${PROJECT_ROOT}/Saved/StagedBuilds" 2>/dev/null || true
+                    exit 1
+                  fi
+
+                  DYLIBS=$(find "${APP}" -name '*.dylib' | wc -l | tr -d ' ')
+                  HAS_UE=$([ -d "${APP}/Contents/UE" ] && echo yes || echo no)
+                  echo "::notice::Staged $(basename "${APP}") — ${DYLIBS} dylib(s), Contents/UE: ${HAS_UE}"
+                  if [ "${DYLIBS}" -eq 0 ] || [ "${HAS_UE}" != "yes" ]; then
+                    echo "::error::Staged Mac bundle is not self-contained (no dylibs / missing Contents/UE) — would crash at @rpath/libtbb.12.dylib. See issue #12996"
+                    exit 1
+                  fi
+
+                  # -y preserves symlinks (UE bundles dylib version chains); keep the
+                  # Mac/ top-level so the artifact layout matches Linux/Windows.
+                  cd "${PROJECT_ROOT}/Saved/StagedBuilds"
+                  zip -ry "/tmp/${{ inputs.app_name }}-macos.zip" Mac
 
             - name: Upload artifact
               uses: actions/upload-artifact@v7
