@@ -200,6 +200,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	private mySlot = -1;
 	private myEid = -1;
 	private predicted: TileXY = { x: 0, y: 0 };
+	private moveSendAccumMs = 0;
+	private wasMoving = false;
 	private predictSeeded = false;
 	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
 	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
@@ -1022,13 +1024,29 @@ export class IsoArpgScene extends Phaser.Scene {
 		// correct it toward the server-authoritative tile so the client stays
 		// smooth without drifting away from the server.
 		if (!hadEid && this.myEid >= 0) {
-			this.floatState = makeFloatState(this.predicted);
+			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
 			this.refreshDungeon(this.predicted, true);
-		} else if (this.myEid >= 0) {
-			reconcileFloat(this.floatState, this.predicted);
+		} else if (this.myEid >= 0 && state.serverPos) {
+			this.reconcilePlayer(state.serverPos, state.inputAck ?? 0);
 			this.refreshDungeon(this.predicted);
 		}
 		this.refreshHud();
+	}
+
+	private reconcilePlayer(serverPos: TileXY, inputAck: number) {
+		const unacked = this.client?.ackMoves(inputAck) ?? [];
+		const replay = makeFloatState(serverPos);
+		for (const m of unacked) {
+			const speed = m.run ? RUN_SPEED : WALK_SPEED;
+			stepFloat(
+				replay,
+				{ x: m.mx / 127, y: m.my / 127 },
+				speed,
+				this.isBlocked,
+				50,
+			);
+		}
+		reconcileFloat(this.floatState, replay.pos);
 	}
 
 	private onCombat(c: CombatEvent) {
@@ -1255,12 +1273,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		const tile = floatTile(this.floatState);
 		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
 			this.predicted = tile;
-			this.refreshDungeon(tile); // stream chunks as the player advances
-			const dir = tileStepDir(prevTile, tile);
-			if (dir) {
-				this.client?.step(dir);
-				this.sendFacing(dir); // movement also sets cardinal facing
+			this.refreshDungeon(tile);
+		}
+
+		this.moveSendAccumMs += deltaMs;
+		if (this.moveSendAccumMs >= 50) {
+			this.moveSendAccumMs = 0;
+			const mag = Math.hypot(intent.x, intent.y);
+			const moving = mag > 0;
+			if (moving || this.wasMoving) {
+				const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
+				const my = moving ? Math.round((intent.y / mag) * 127) : 0;
+				this.client?.move(mx, my, !walking);
 			}
+			this.wasMoving = moving;
 		}
 
 		// Drop the click route once the FINAL tile is reached or overshot, so the

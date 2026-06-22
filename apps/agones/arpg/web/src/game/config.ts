@@ -27,8 +27,10 @@ export const HEARTBEAT_MS = 20000;
 // (no foot-sliding): WALK (slower, WalkForward sheet) and RUN (faster, Run).
 export const WALK_SPEED = 3.4; // tiles/sec, matches WalkForward stride
 export const RUN_SPEED = 6.6; // tiles/sec, matches Run stride
-export const MOVE_ACCEL = 16; // velocity steer rate toward intent
-export const MOVE_FRICTION = 14; // velocity decay rate when no input
+export const MOVE_ACCEL = 18; // velocity steer rate toward intent
+export const MOVE_FRICTION = 30; // velocity decay rate when no input
+export const STOP_SPEED = 2.0; // speed below which a released body snaps to rest
+export const MAX_MOVE_STEP = 0.2; // tiles per collision substep
 // Player collides as a circle, not a point: keeps a gap off walls (no hugging),
 // slides along surfaces, and rounds corners instead of catching the tile edge.
 export const BODY_RADIUS = 0.34; // tiles — circle half-width
@@ -39,8 +41,8 @@ export const PROBE_AHEAD = 0.04; // lookahead past the radius for intent deflect
 // as magnetised. Raise to ~1.5 to re-enable a gentle doorway funnel.
 export const CENTERLINE_PULL = 0;
 // Soft reconciliation of the float toward the server-authoritative tile.
-export const RECONCILE_LERP = 0.18; // per-snapshot pull toward server tile
-export const RECONCILE_SNAP_DIST = 3.5; // tiles of drift before a hard snap
+export const RECONCILE_LERP = 0.25; // per-snapshot pull toward server pos
+export const RECONCILE_SNAP_DIST = 6; // tiles of drift before a hard snap
 export const ARRIVE_DIST = 0.15; // tiles from a click target counted as arrived
 export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 
