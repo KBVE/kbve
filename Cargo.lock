@@ -10462,6 +10462,7 @@ dependencies = [
  "hex",
  "jedi",
  "kbve",
+ "metrics",
  "parking_lot",
  "serde",
  "serde_json",

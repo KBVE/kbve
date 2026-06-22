@@ -55,8 +55,21 @@ async fn main() -> anyhow::Result<()> {
 
     let (tx, rx) = mpsc::channel(cfg.channel_capacity);
     let max_body = cfg.max_body_bytes;
+    let metrics_port = cfg.metrics_port;
     let cors = cors_layer(&cfg);
     let addr = format!("{}:{}", cfg.host, cfg.port);
+
+    // Prometheus: install the recorder, expose /metrics on a side port, and
+    // wrap the ingest router so HTTP request metrics are captured too.
+    let (metric_layer, metric_handle) =
+        jedi::entity::pipe_prometheus::build_metrics_layer("metrics");
+    tokio::spawn(jedi::entity::pipe_prometheus::serve_metrics(
+        jedi::entity::pipe_prometheus::MetricsConfig {
+            service_name: "metrics",
+            port: metrics_port,
+        },
+        metric_handle,
+    ));
 
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
     let state = Arc::new(AppState::new(cfg, ch, tx, auth));
@@ -65,6 +78,7 @@ async fn main() -> anyhow::Result<()> {
     let app = rest::router(state)
         .layer(cors)
         .layer(RequestBodyLimitLayer::new(max_body))
+        .layer(metric_layer)
         .layer(TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;

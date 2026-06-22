@@ -151,10 +151,13 @@ async fn flush(
         match result {
             Ok(Ok(())) => {
                 tracing::debug!(rows = n, "flushed telemetry rows");
+                metrics::counter!("metrics_flush_rows_total").increment(n as u64);
                 return;
             }
             outcome => {
                 if attempt >= max_retries {
+                    metrics::counter!("metrics_flush_failures_total").increment(1);
+                    metrics::counter!("metrics_flush_dropped_rows_total").increment(n as u64);
                     match outcome {
                         Ok(Err(e)) => {
                             tracing::error!(error = %e, rows = n, attempts = attempt + 1, "clickhouse insert failed; dropping rows")
