@@ -3,6 +3,9 @@
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
+	"nx": {
+		"includedScripts": []
+	},
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build && vite build --mode embed && vite build --mode discord",
