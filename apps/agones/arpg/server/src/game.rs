@@ -149,16 +149,14 @@ pub fn item_db() -> bevy_items::ItemDb {
 /// max_hp.
 const FULL_HEAL: i32 = 9_999;
 
-/// Map an itemdb `StatusEffectKind` onto the three runtime `StatusKind`s the sim
-/// supports. Burning collapses to Poison (both periodic damage); unsupported
-/// effects return `None` so the item simply grants no buff.
+/// Map an itemdb `StatusEffectKind` onto the runtime `StatusKind`s the sim
+/// supports. Unsupported effects return `None` so the item simply grants no buff.
 fn map_status(raw: i32) -> Option<StatusKind> {
     match StatusEffectKind::try_from(raw).ok()? {
         StatusEffectKind::StatusEffectRegen => Some(StatusKind::Regen),
         StatusEffectKind::StatusEffectHaste => Some(StatusKind::Haste),
-        StatusEffectKind::StatusEffectPoison | StatusEffectKind::StatusEffectBurning => {
-            Some(StatusKind::Poison)
-        }
+        StatusEffectKind::StatusEffectPoison => Some(StatusKind::Poison),
+        StatusEffectKind::StatusEffectBurning => Some(StatusKind::Burn),
         _ => None,
     }
 }
@@ -373,5 +371,26 @@ mod tests {
         let mana = buffs.0.get("mana-potion").expect("mana-potion buff");
         assert_eq!(mana.kind, super::StatusKind::Regen);
         assert!(!heals.0.is_empty() && !buffs.0.is_empty());
+    }
+
+    #[test]
+    fn status_kind_subset_of_itemdb() {
+        use super::{StatusEffectKind, StatusKind};
+        fn itemdb_of(k: StatusKind) -> StatusEffectKind {
+            match k {
+                StatusKind::Poison => StatusEffectKind::StatusEffectPoison,
+                StatusKind::Regen => StatusEffectKind::StatusEffectRegen,
+                StatusKind::Haste => StatusEffectKind::StatusEffectHaste,
+                StatusKind::Burn => StatusEffectKind::StatusEffectBurning,
+            }
+        }
+        for (k, name) in [
+            (StatusKind::Poison, "STATUS_EFFECT_POISON"),
+            (StatusKind::Regen, "STATUS_EFFECT_REGEN"),
+            (StatusKind::Haste, "STATUS_EFFECT_HASTE"),
+            (StatusKind::Burn, "STATUS_EFFECT_BURNING"),
+        ] {
+            assert_eq!(itemdb_of(k).as_str_name(), name);
+        }
     }
 }

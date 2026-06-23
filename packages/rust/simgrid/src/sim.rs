@@ -561,21 +561,38 @@ fn env_heal_aura(
     }
 }
 
-/// Burn any entity (player or NPC) standing on a hazard tile (same floor).
+/// Burn any entity standing on a hazard tile (same floor). Status-bearers refresh a
+/// `Burn` effect (ticked by the status system); bare entities take it directly.
 #[allow(clippy::type_complexity)]
 fn env_hazard_burn(
     clock: Res<SimClock>,
     hazards: Query<(&HazardZone, &GridPos, Option<&Floor>)>,
-    mut victims: Query<(&mut Health, &GridPos, Option<&Floor>)>,
+    mut victims: Query<(
+        &mut Health,
+        &GridPos,
+        Option<&Floor>,
+        Option<&mut StatusEffects>,
+    )>,
 ) {
+    let now = clock.tick;
     for (hz, hpos, hfloor) in hazards.iter() {
-        if hz.period_ticks == 0 || !clock.tick.is_multiple_of(hz.period_ticks) {
+        if hz.period_ticks == 0 || !now.is_multiple_of(hz.period_ticks) {
             continue;
         }
         let hz_z = hfloor.map(|f| f.0).unwrap_or(0);
-        for (mut hp, vpos, vfloor) in victims.iter_mut() {
-            if vfloor.map(|f| f.0).unwrap_or(0) == hz_z && vpos.tile == hpos.tile {
-                hp.hp -= hz.magnitude;
+        for (mut hp, vpos, vfloor, status) in victims.iter_mut() {
+            if vfloor.map(|f| f.0).unwrap_or(0) != hz_z || vpos.tile != hpos.tile {
+                continue;
+            }
+            match status {
+                Some(mut s) => s.apply(StatusEffect {
+                    kind: proto::StatusKind::Burn,
+                    magnitude: hz.magnitude,
+                    period_ticks: hz.period_ticks,
+                    next_tick: now.saturating_add(hz.period_ticks),
+                    expires_tick: now.saturating_add(hz.period_ticks.saturating_mul(3)),
+                }),
+                None => hp.hp -= hz.magnitude,
             }
         }
     }
@@ -1730,7 +1747,7 @@ fn tick_status_effects(
             }
             while now >= e.next_tick && e.next_tick <= e.expires_tick {
                 match e.kind {
-                    proto::StatusKind::Poison => hp.hp -= e.magnitude,
+                    proto::StatusKind::Poison | proto::StatusKind::Burn => hp.hp -= e.magnitude,
                     proto::StatusKind::Regen => hp.hp = (hp.hp + e.magnitude).min(hp.max_hp),
                     proto::StatusKind::Haste => {}
                 }
@@ -2277,6 +2294,44 @@ mod tests {
         }
         let hp = app.world().get::<Health>(victim).unwrap().hp;
         assert_eq!(hp, 100 - 8 * 3, "burned 8/tick for 3 ticks");
+    }
+
+    #[test]
+    fn env_hazard_applies_burn_status_to_player() {
+        let (mut app, _rx, _tx, _roster) = harness(0x333);
+        let t = Tile::new(12, 12);
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(t),
+                MoveTarget::default(),
+                MoveSpeed { ticks_per_tile: 4 },
+                Health {
+                    hp: 100,
+                    max_hp: 100,
+                },
+                StatusEffects::default(),
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().spawn((
+            HazardZone {
+                magnitude: 8,
+                period_ticks: 2,
+            },
+            GridPos::at(t),
+        ));
+        for _ in 0..6 {
+            app.update();
+        }
+        let hp = app.world().get::<Health>(player).unwrap().hp;
+        assert_eq!(hp, 100 - 8 * 2, "burn status ticked 8 twice");
+        let status = app.world().get::<StatusEffects>(player).unwrap();
+        assert!(
+            status.0.iter().any(|e| e.kind == proto::StatusKind::Burn),
+            "Burn status present while standing on hazard"
+        );
     }
 
     #[test]

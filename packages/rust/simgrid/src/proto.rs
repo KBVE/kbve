@@ -229,6 +229,7 @@ pub enum StatusKind {
     Poison = 0,
     Regen = 1,
     Haste = 2,
+    Burn = 3,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -375,5 +376,19 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn status_kind_serializes_by_name() {
+        assert_eq!(
+            serde_json::to_string(&StatusKind::Burn).unwrap(),
+            "\"Burn\""
+        );
+        assert_eq!(
+            serde_json::to_string(&StatusKind::Poison).unwrap(),
+            "\"Poison\""
+        );
+        let back: StatusKind = serde_json::from_str("\"Burn\"").unwrap();
+        assert_eq!(back, StatusKind::Burn);
     }
 }
