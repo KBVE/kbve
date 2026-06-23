@@ -9,6 +9,9 @@ metadata:
         app.kubernetes.io/instance: kong
         app.kubernetes.io/name: kong
         app.kubernetes.io/version: '3.9'
+        kbve.com/category: networking
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     replicas: 2
     selector:
@@ -36,12 +39,13 @@ spec:
                 runAsNonRoot: true
                 runAsUser: 1000
                 runAsGroup: 1000
-
             initContainers:
-                # Clear stale PID files
                 - name: clear-stale-pid
                   image: kong:3.9.1
-                  command: ['rm', '-vrf', '$KONG_PREFIX/pids']
+                  command:
+                      - rm
+                      - -vrf
+                      - $KONG_PREFIX/pids
                   env:
                       - name: KONG_PREFIX
                         value: /kong_prefix/
@@ -60,18 +64,23 @@ spec:
                               - ALL
                       seccompProfile:
                           type: RuntimeDefault
-
-                # Template processing init container
                 - name: config-templater
                   image: dibi/envsubst:1
-                  command: ['sh', '-c']
+                  command:
+                      - sh
+                      - -c
                   args:
-                      - |
-                          echo "Processing Kong configuration template..."
-                          envsubst < /kong-template/kong.yml > /kong/kong.yml
-                          echo "Template processing completed"
-                          echo "First 50 lines of processed config:"
-                          head -50 /kong/kong.yml
+                      - 'echo "Processing Kong configuration template..."
+
+                        envsubst < /kong-template/kong.yml > /kong/kong.yml
+
+                        echo "Template processing completed"
+
+                        echo "First 50 lines of processed config:"
+
+                        head -50 /kong/kong.yml
+
+                        '
                   env:
                       - name: anon_key
                         valueFrom:
@@ -101,7 +110,6 @@ spec:
                       capabilities:
                           drop:
                               - ALL
-
             containers:
                 - name: proxy
                   image: kong:3.9.1
@@ -121,92 +129,77 @@ spec:
                       - name: status
                         containerPort: 8100
                         protocol: TCP
-
                   env:
-                      # Database mode - using DB-less mode
                       - name: KONG_DATABASE
                         value: 'off'
-
-                      # Use declarative config
                       - name: KONG_DECLARATIVE_CONFIG
-                        value: '/kong/kong.yml'
-
-                      # Admin API configuration
+                        value: /kong/kong.yml
                       - name: KONG_ADMIN_API_URI
-                        value: 'http://kong-admin.kilobase.svc.cluster.local:8001'
+                        value: http://kong-admin.kilobase.svc.cluster.local:8001
                       - name: KONG_ADMIN_GUI_URL
-                        value: 'http://kong-manager.kilobase.svc.cluster.local:8002'
+                        value: http://kong-manager.kilobase.svc.cluster.local:8002
                       - name: KONG_ADMIN_LISTEN
-                        value: '0.0.0.0:8001, [::]:8001, 0.0.0.0:8444 http2 ssl, [::]:8444 http2 ssl'
-
-                      # Proxy configuration
+                        value:
+                            0.0.0.0:8001, [::]:8001, 0.0.0.0:8444 http2 ssl, [::]:8444 http2
+                            ssl
                       - name: KONG_PROXY_URL
-                        value: 'http://kong.kilobase.svc.cluster.local'
+                        value: http://kong.kilobase.svc.cluster.local
                       - name: KONG_PROXY_LISTEN
-                        value: '0.0.0.0:8000, [::]:8000, 0.0.0.0:8443 http2 ssl, [::]:8443 http2 ssl'
+                        value:
+                            0.0.0.0:8000, [::]:8000, 0.0.0.0:8443 http2 ssl, [::]:8443 http2
+                            ssl
                       - name: KONG_PORT_MAPS
-                        value: '80:8000, 443:8443'
-
-                      # Plugins
+                        value: 80:8000, 443:8443
                       - name: KONG_PLUGINS
-                        value: 'bundled,cors,rate-limiting,jwt,oauth2,acl,key-auth,request-transformer,response-transformer'
-
-                      # Logging
+                        value: bundled,cors,rate-limiting,jwt,oauth2,acl,key-auth,request-transformer,response-transformer
                       - name: KONG_LOG_LEVEL
-                        value: 'info'
+                        value: info
                       - name: KONG_PROXY_ACCESS_LOG
-                        value: '/dev/stdout'
+                        value: /dev/stdout
                       - name: KONG_PROXY_ERROR_LOG
-                        value: '/dev/stderr'
+                        value: /dev/stderr
                       - name: KONG_ADMIN_ACCESS_LOG
-                        value: '/dev/stdout'
+                        value: /dev/stdout
                       - name: KONG_ADMIN_ERROR_LOG
-                        value: '/dev/stderr'
+                        value: /dev/stderr
                       - name: KONG_ADMIN_GUI_ACCESS_LOG
-                        value: '/dev/stdout'
+                        value: /dev/stdout
                       - name: KONG_ADMIN_GUI_ERROR_LOG
-                        value: '/dev/stderr'
+                        value: /dev/stderr
                       - name: KONG_PORTAL_API_ACCESS_LOG
-                        value: '/dev/stdout'
+                        value: /dev/stdout
                       - name: KONG_PORTAL_API_ERROR_LOG
-                        value: '/dev/stderr'
+                        value: /dev/stderr
                       - name: KONG_PROXY_STREAM_ACCESS_LOG
-                        value: '/dev/stdout basic'
+                        value: /dev/stdout basic
                       - name: KONG_PROXY_STREAM_ERROR_LOG
-                        value: '/dev/stderr'
+                        value: /dev/stderr
                       - name: KONG_STATUS_ACCESS_LOG
                         value: 'off'
                       - name: KONG_STATUS_ERROR_LOG
-                        value: '/dev/stderr'
-
-                      # Status API
+                        value: /dev/stderr
                       - name: KONG_STATUS_LISTEN
-                        value: '0.0.0.0:8100, [::]:8100'
-
-                      # Nginx buffer settings for WebSocket and large payloads
+                        value: 0.0.0.0:8100, [::]:8100
                       - name: KONG_NGINX_PROXY_PROXY_BUFFER_SIZE
-                        value: '160k'
+                        value: 160k
                       - name: KONG_NGINX_PROXY_PROXY_BUFFERS
-                        value: '64 160k'
-
-                      # Other settings
+                        value: 64 160k
                       - name: KONG_CLUSTER_LISTEN
                         value: 'off'
                       - name: RESTART_TRIGGER
-                        value: 'cors-chat-supabase-forgejo-2026-04-02'
+                        value: cors-chat-supabase-forgejo-2026-04-02
                       - name: KONG_STREAM_LISTEN
                         value: 'off'
                       - name: KONG_PREFIX
-                        value: '/kong_prefix/'
+                        value: /kong_prefix/
                       - name: KONG_NGINX_WORKER_PROCESSES
                         value: '2'
                       - name: KONG_NGINX_DAEMON
                         value: 'off'
                       - name: KONG_ROUTER_FLAVOR
-                        value: 'traditional'
+                        value: traditional
                       - name: KONG_LUA_PACKAGE_PATH
-                        value: '/opt/?.lua;/opt/?/init.lua;;'
-
+                        value: /opt/?.lua;/opt/?/init.lua;;
                   volumeMounts:
                       - name: kong-kong-prefix-dir
                         mountPath: /kong_prefix/
@@ -214,7 +207,6 @@ spec:
                         mountPath: /tmp
                       - name: kong-config-processed
                         mountPath: /kong
-
                   resources:
                       limits:
                           cpu: 1000m
@@ -222,7 +214,6 @@ spec:
                       requests:
                           cpu: 500m
                           memory: 512Mi
-
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -233,7 +224,6 @@ spec:
                               - ALL
                       seccompProfile:
                           type: RuntimeDefault
-
                   livenessProbe:
                       httpGet:
                           path: /status
@@ -242,7 +232,6 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   readinessProbe:
                       httpGet:
                           path: /status/ready
@@ -251,12 +240,13 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   lifecycle:
                       preStop:
                           exec:
-                              command: ['kong', 'quit', '--wait=15']
-
+                              command:
+                                  - kong
+                                  - quit
+                                  - --wait=15
             volumes:
                 - name: kong-kong-prefix-dir
                   emptyDir:
@@ -269,7 +259,6 @@ spec:
                       name: kong-config
                 - name: kong-config-processed
                   emptyDir: {}
-
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -280,11 +269,7 @@ metadata:
         app.kubernetes.io/instance: kong
         app.kubernetes.io/name: kong
 automountServiceAccountToken: false
-
 ---
-# KEDA ScaledObject: Scale Kong based on Prometheus CPU utilization.
-# Replaces the HPA which required metrics-server (not installed).
-# Uses the existing kube-prometheus-stack as the metrics source.
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -304,7 +289,11 @@ spec:
         - type: prometheus
           metadata:
               serverAddress: http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
-              query: |
-                  avg(rate(container_cpu_usage_seconds_total{namespace="kilobase",pod=~"kong-kong-.*",container="kong"}[5m])) / avg(kube_pod_container_resource_limits{namespace="kilobase",pod=~"kong-kong-.*",container="kong",resource="cpu"}) * 100
+              query:
+                  'avg(rate(container_cpu_usage_seconds_total{namespace="kilobase",pod=~"kong-kong-.*",container="kong"}[5m]))
+                  / avg(kube_pod_container_resource_limits{namespace="kilobase",pod=~"kong-kong-.*",container="kong",resource="cpu"})
+                  * 100
+
+                  '
               threshold: '80'
               activationThreshold: '50'

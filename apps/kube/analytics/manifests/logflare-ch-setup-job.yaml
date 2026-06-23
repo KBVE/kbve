@@ -1,138 +1,79 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
     name: logflare-ch-setup-v5-script
     namespace: kilobase
+    labels:
+        kbve.com/category: observability
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 data:
-    setup.sh: |
-        #!/bin/sh
-        set -eu
-
-        LOGFLARE_API="http://analytics.kilobase.svc.cluster.local:4000"
-        MAX_RETRIES=30
-        RETRY_INTERVAL=10
-
-        # --- Wait for Logflare to be healthy ---
-        echo "Waiting for Logflare to be healthy..."
-        attempt=0
-        until curl -sf "${LOGFLARE_API}/health" > /dev/null 2>&1; do
-          attempt=$((attempt + 1))
-          if [ "$attempt" -ge "$MAX_RETRIES" ]; then
-            echo "ERROR: Logflare not healthy after ${MAX_RETRIES} attempts"
-            exit 1
-          fi
-          echo "  Attempt ${attempt}/${MAX_RETRIES} — waiting ${RETRY_INTERVAL}s..."
-          sleep "$RETRY_INTERVAL"
-        done
-        echo "Logflare is healthy."
-
-        # --- Verify ClickHouse admin connectivity ---
-        echo "Verifying ClickHouse admin connectivity..."
-        CH_TEST=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "SELECT 1" 2>&1) || {
-          echo "ERROR: Cannot connect to ClickHouse at ${CH_ADMIN_URL} with admin user"
-          exit 1
-        }
-        echo "ClickHouse admin connection OK."
-
-        # --- Create the logflare database ---
-        echo "Creating logflare database..."
-        DB_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "CREATE DATABASE IF NOT EXISTS ${CH_DATABASE} ON CLUSTER 'cluster'" 2>&1) || {
-          echo "ERROR: Failed to create database: ${DB_RESULT}"
-          exit 1
-        }
-        echo "Database '${CH_DATABASE}' ready."
-
-        # --- Create logflare SQL user (idempotent) ---
-        echo "Creating logflare SQL user..."
-        USER_RESULT=$(curl -sf --max-time 10 "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
-          -d "CREATE USER IF NOT EXISTS ${CH_USERNAME} ON CLUSTER 'cluster' IDENTIFIED WITH sha256_password BY '${CH_PASSWORD}'" 2>&1) || {
-          echo "ERROR: Failed to create logflare user: ${USER_RESULT}"
-          exit 1
-        }
-        echo "User '${CH_USERNAME}' ready."
-
-        # Grants are owned by the ch-ingest-grants Job (apps/kube/clickhouse) —
-        # it issues CLUSTER + per-database privileges (logflare/telemetry/observability)
-        # as the shared `logflare` ingest user. Canonical list: packages/data/ch/schemas/grants.sql
-
-        # --- Verify logflare user connectivity ---
-        echo "Verifying logflare user connectivity..."
-        LF_TEST=$(curl -sf --max-time 10 "${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}" \
-          -d "SELECT 1" 2>&1) || {
-          echo "ERROR: Cannot connect to ClickHouse as logflare user"
-          exit 1
-        }
-        echo "Logflare user connection OK."
-
-        # --- Remove existing ClickHouse backend if present ---
-        echo "Checking for existing ClickHouse backends..."
-        EXISTING=$(curl -sf "${LOGFLARE_API}/api/backends" \
-          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
-          -H "Accept: application/json" || echo "[]")
-
-        OLD_TOKEN=$(echo "$EXISTING" | grep -o '"type":"clickhouse"[^}]*"token":"[^"]*"' \
-          | sed -n 's/.*"token":"\([^"]*\)".*/\1/p' || true)
-
-        if [ -n "$OLD_TOKEN" ]; then
-          echo "Removing old ClickHouse backend (token: ${OLD_TOKEN})..."
-          curl -sf -X DELETE "${LOGFLARE_API}/api/backends/${OLD_TOKEN}" \
-            -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" > /dev/null 2>&1 || \
-            echo "  WARNING: Failed to delete old backend, proceeding anyway"
-          echo "Old backend removed."
-        fi
-
-        # --- Create ClickHouse backend via Logflare API (using logflare user) ---
-        echo "Creating ClickHouse backend..."
-        BACKEND_RESPONSE=$(curl -sf -X POST "${LOGFLARE_API}/api/backends" \
-          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
-          -H "Content-Type: application/json" \
-          -d "{
-            \"name\": \"ClickHouse cluster\",
-            \"type\": \"clickhouse\",
-            \"config\": {
-              \"url\": \"${CH_URL}\",
-              \"username\": \"${CH_USERNAME}\",
-              \"password\": \"${CH_PASSWORD}\",
-              \"database\": \"${CH_DATABASE}\",
-              \"port\": ${CH_PORT}
-            }
-          }")
-
-        if [ -z "$BACKEND_RESPONSE" ]; then
-          echo "ERROR: Failed to create ClickHouse backend"
-          exit 1
-        fi
-
-        BACKEND_TOKEN=$(echo "$BACKEND_RESPONSE" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
-        echo "ClickHouse backend created with token: ${BACKEND_TOKEN}"
-
-        # --- Test backend connection via Logflare ---
-        echo "Testing backend connection..."
-        TEST_RESULT=$(curl -sf "${LOGFLARE_API}/api/backends/${BACKEND_TOKEN}/test" \
-          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" || echo "skipped")
-        echo "Connection test: ${TEST_RESULT}"
-
-        # --- Assign all sources to the ClickHouse backend ---
-        echo "Fetching sources..."
-        SOURCES=$(curl -sf "${LOGFLARE_API}/api/sources" \
-          -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
-          -H "Accept: application/json")
-
-        echo "$SOURCES" | grep -o '"token":"[^"]*"' | sed 's/"token":"//;s/"//' | while read -r SOURCE_TOKEN; do
-          echo "  Assigning source ${SOURCE_TOKEN} to CH backend..."
-          curl -sf -X POST "${LOGFLARE_API}/api/sources/${SOURCE_TOKEN}/backends/${BACKEND_TOKEN}" \
-            -H "Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}" \
-            -H "Content-Type: application/json" > /dev/null 2>&1 || \
-            echo "    WARNING: Failed to assign source ${SOURCE_TOKEN}"
-        done
-
-        echo ""
-        echo "Setup complete. ClickHouse backend configured and sources assigned."
-        echo "Logflare will auto-create OTEL tables on first log ingest."
-
+    setup.sh:
+        "#!/bin/sh\nset -eu\n\nLOGFLARE_API=\"http://analytics.kilobase.svc.cluster.local:4000\"\
+        \nMAX_RETRIES=30\nRETRY_INTERVAL=10\n\n# --- Wait for Logflare to be healthy ---\n\
+        echo \"Waiting for Logflare to be healthy...\"\nattempt=0\nuntil curl -sf \"${LOGFLARE_API}/health\"\
+        \ > /dev/null 2>&1; do\n  attempt=$((attempt + 1))\n  if [ \"$attempt\" -ge \"\
+        $MAX_RETRIES\" ]; then\n    echo \"ERROR: Logflare not healthy after ${MAX_RETRIES}\
+        \ attempts\"\n    exit 1\n  fi\n  echo \"  Attempt ${attempt}/${MAX_RETRIES} —\
+        \ waiting ${RETRY_INTERVAL}s...\"\n  sleep \"$RETRY_INTERVAL\"\ndone\necho \"\
+        Logflare is healthy.\"\n\n# --- Verify ClickHouse admin connectivity ---\necho\
+        \ \"Verifying ClickHouse admin connectivity...\"\nCH_TEST=$(curl -sf --max-time\
+        \ 10 \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
+        \ \\\n  -d \"SELECT 1\" 2>&1) || {\n  echo \"ERROR: Cannot connect to ClickHouse\
+        \ at ${CH_ADMIN_URL} with admin user\"\n  exit 1\n}\necho \"ClickHouse admin connection\
+        \ OK.\"\n\n# --- Create the logflare database ---\necho \"Creating logflare database...\"\
+        \nDB_RESULT=$(curl -sf --max-time 10 \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
+        \ \\\n  -d \"CREATE DATABASE IF NOT EXISTS ${CH_DATABASE} ON CLUSTER 'cluster'\"\
+        \ 2>&1) || {\n  echo \"ERROR: Failed to create database: ${DB_RESULT}\"\n  exit\
+        \ 1\n}\necho \"Database '${CH_DATABASE}' ready.\"\n\n# --- Create logflare SQL\
+        \ user (idempotent) ---\necho \"Creating logflare SQL user...\"\nUSER_RESULT=$(curl\
+        \ -sf --max-time 10 \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
+        \ \\\n  -d \"CREATE USER IF NOT EXISTS ${CH_USERNAME} ON CLUSTER 'cluster' IDENTIFIED\
+        \ WITH sha256_password BY '${CH_PASSWORD}'\" 2>&1) || {\n  echo \"ERROR: Failed\
+        \ to create logflare user: ${USER_RESULT}\"\n  exit 1\n}\necho \"User '${CH_USERNAME}'\
+        \ ready.\"\n\n# Grants are owned by the ch-ingest-grants Job (apps/kube/clickhouse)\
+        \ —\n# it issues CLUSTER + per-database privileges (logflare/telemetry/observability)\n\
+        # as the shared `logflare` ingest user. Canonical list: packages/data/ch/schemas/grants.sql\n\
+        \n# --- Verify logflare user connectivity ---\necho \"Verifying logflare user\
+        \ connectivity...\"\nLF_TEST=$(curl -sf --max-time 10 \"${CH_URL}/?user=${CH_USERNAME}&password=${CH_PASSWORD}\"\
+        \ \\\n  -d \"SELECT 1\" 2>&1) || {\n  echo \"ERROR: Cannot connect to ClickHouse\
+        \ as logflare user\"\n  exit 1\n}\necho \"Logflare user connection OK.\"\n\n#\
+        \ --- Remove existing ClickHouse backend if present ---\necho \"Checking for existing\
+        \ ClickHouse backends...\"\nEXISTING=$(curl -sf \"${LOGFLARE_API}/api/backends\"\
+        \ \\\n  -H \"Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}\" \\\n  -H \"Accept:\
+        \ application/json\" || echo \"[]\")\n\nOLD_TOKEN=$(echo \"$EXISTING\" | grep\
+        \ -o '\"type\":\"clickhouse\"[^}]*\"token\":\"[^\"]*\"' \\\n  | sed -n 's/.*\"\
+        token\":\"\\([^\"]*\\)\".*/\\1/p' || true)\n\nif [ -n \"$OLD_TOKEN\" ]; then\n\
+        \  echo \"Removing old ClickHouse backend (token: ${OLD_TOKEN})...\"\n  curl -sf\
+        \ -X DELETE \"${LOGFLARE_API}/api/backends/${OLD_TOKEN}\" \\\n    -H \"Authorization:\
+        \ Bearer ${LOGFLARE_PRIVATE_TOKEN}\" > /dev/null 2>&1 || \\\n    echo \"  WARNING:\
+        \ Failed to delete old backend, proceeding anyway\"\n  echo \"Old backend removed.\"\
+        \nfi\n\n# --- Create ClickHouse backend via Logflare API (using logflare user)\
+        \ ---\necho \"Creating ClickHouse backend...\"\nBACKEND_RESPONSE=$(curl -sf -X\
+        \ POST \"${LOGFLARE_API}/api/backends\" \\\n  -H \"Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}\"\
+        \ \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\n    \\\"name\\\":\
+        \ \\\"ClickHouse cluster\\\",\n    \\\"type\\\": \\\"clickhouse\\\",\n    \\\"\
+        config\\\": {\n      \\\"url\\\": \\\"${CH_URL}\\\",\n      \\\"username\\\":\
+        \ \\\"${CH_USERNAME}\\\",\n      \\\"password\\\": \\\"${CH_PASSWORD}\\\",\n \
+        \     \\\"database\\\": \\\"${CH_DATABASE}\\\",\n      \\\"port\\\": ${CH_PORT}\n\
+        \    }\n  }\")\n\nif [ -z \"$BACKEND_RESPONSE\" ]; then\n  echo \"ERROR: Failed\
+        \ to create ClickHouse backend\"\n  exit 1\nfi\n\nBACKEND_TOKEN=$(echo \"$BACKEND_RESPONSE\"\
+        \ | sed -n 's/.*\"token\":\"\\([^\"]*\\)\".*/\\1/p')\necho \"ClickHouse backend\
+        \ created with token: ${BACKEND_TOKEN}\"\n\n# --- Test backend connection via\
+        \ Logflare ---\necho \"Testing backend connection...\"\nTEST_RESULT=$(curl -sf\
+        \ \"${LOGFLARE_API}/api/backends/${BACKEND_TOKEN}/test\" \\\n  -H \"Authorization:\
+        \ Bearer ${LOGFLARE_PRIVATE_TOKEN}\" || echo \"skipped\")\necho \"Connection test:\
+        \ ${TEST_RESULT}\"\n\n# --- Assign all sources to the ClickHouse backend ---\n\
+        echo \"Fetching sources...\"\nSOURCES=$(curl -sf \"${LOGFLARE_API}/api/sources\"\
+        \ \\\n  -H \"Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}\" \\\n  -H \"Accept:\
+        \ application/json\")\n\necho \"$SOURCES\" | grep -o '\"token\":\"[^\"]*\"' |\
+        \ sed 's/\"token\":\"//;s/\"//' | while read -r SOURCE_TOKEN; do\n  echo \"  Assigning\
+        \ source ${SOURCE_TOKEN} to CH backend...\"\n  curl -sf -X POST \"${LOGFLARE_API}/api/sources/${SOURCE_TOKEN}/backends/${BACKEND_TOKEN}\"\
+        \ \\\n    -H \"Authorization: Bearer ${LOGFLARE_PRIVATE_TOKEN}\" \\\n    -H \"\
+        Content-Type: application/json\" > /dev/null 2>&1 || \\\n    echo \"    WARNING:\
+        \ Failed to assign source ${SOURCE_TOKEN}\"\ndone\n\necho \"\"\necho \"Setup complete.\
+        \ ClickHouse backend configured and sources assigned.\"\necho \"Logflare will\
+        \ auto-create OTEL tables on first log ingest.\"\n"
 ---
 apiVersion: batch/v1
 kind: Job
@@ -142,6 +83,9 @@ metadata:
     labels:
         app: logflare-ch-setup-v5
         component: analytics
+        kbve.com/category: observability
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
     annotations:
         kbve.sh/last-updated: '2026-03-16'
         argocd.argoproj.io/hook: PostSync
@@ -157,14 +101,15 @@ spec:
             containers:
                 - name: setup
                   image: curlimages/curl:8.12.1
-                  command: ['/bin/sh', '/scripts/setup.sh']
+                  command:
+                      - /bin/sh
+                      - /scripts/setup.sh
                   env:
                       - name: LOGFLARE_PRIVATE_TOKEN
                         valueFrom:
                             secretKeyRef:
                                 name: logflare-config
                                 key: private-access-token
-                      # Admin credentials (for SQL bootstrapping)
                       - name: CH_ADMIN_URL
                         valueFrom:
                             secretKeyRef:
@@ -180,7 +125,6 @@ spec:
                             secretKeyRef:
                                 name: clickhouse-admin-credentials
                                 key: password
-                      # Logflare user credentials (for Logflare API backend config)
                       - name: CH_URL
                         valueFrom:
                             secretKeyRef:
@@ -212,11 +156,11 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '32Mi'
-                          cpu: '50m'
+                          memory: 32Mi
+                          cpu: 50m
                       limits:
-                          memory: '64Mi'
-                          cpu: '100m'
+                          memory: 64Mi
+                          cpu: 100m
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -229,4 +173,4 @@ spec:
                 - name: setup-script
                   configMap:
                       name: logflare-ch-setup-v5-script
-                      defaultMode: 0555
+                      defaultMode: 365

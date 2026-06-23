@@ -1,17 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rest
-  namespace: kilobase
-  labels:
-    app: postgrest
-    component: rest
+    name: rest
+    namespace: kilobase
+    labels:
+        app: postgrest
+        component: rest
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
-  type: ClusterIP
-  ports:
-  - port: 3000
-    targetPort: 3000
-    protocol: TCP
-    name: http
-  selector:
-    app: postgrest
+    type: ClusterIP
+    ports:
+        - port: 3000
+          targetPort: 3000
+          protocol: TCP
+          name: http
+    selector:
+        app: postgrest
