@@ -1151,6 +1151,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
 			flashEntity(this, refs.sprite);
 		}
+
+		// Drive creature combat poses: the attacker swings (facing its target),
+		// the victim recoils. Death is left to the hp<=0 check in refreshHud.
+		const atk = this.store.refs(c.attacker);
+		if (atk?.creature && atk.sprite instanceof Phaser.GameObjects.Sprite) {
+			const a = this.store.tile(c.attacker);
+			const t = this.store.tile(c.target);
+			const face = a && t ? { dx: t.x - a.x, dy: t.y - a.y } : undefined;
+			setCreaturePose(atk.sprite, atk.creature, 'Attack1', face);
+		}
+		if (
+			refs.creature &&
+			refs.sprite instanceof Phaser.GameObjects.Sprite &&
+			!c.died
+		) {
+			setCreaturePose(refs.sprite, refs.creature, 'GetHit');
+		}
 	}
 
 	/**

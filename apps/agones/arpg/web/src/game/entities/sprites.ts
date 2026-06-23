@@ -400,7 +400,16 @@ export function setCreaturePose(
 	}
 	if (!changed) return;
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
-	safePlay(sprite, creatureAnimKey(view.def, state, view.dir), !oneShot);
+	const key = creatureAnimKey(view.def, state, view.dir);
+	safePlay(sprite, key, !oneShot);
+	// One-shots (Attack/GetHit/…) play once then would freeze on their last
+	// frame; settle back to Idle when done so the creature keeps breathing. Dead
+	// is the exception — it holds its final frame.
+	if (oneShot && state !== 'Dead') {
+		sprite.once(`animationcomplete-${key}`, () => {
+			if (view.state === state) setCreaturePose(sprite, view, 'Idle');
+		});
+	}
 }
 
 /**
