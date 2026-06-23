@@ -800,6 +800,7 @@ dependencies = [
  "axum 0.7.9",
  "bevy",
  "bevy_items",
+ "bevy_mapdb",
  "jedi",
  "simgrid",
  "tokio",

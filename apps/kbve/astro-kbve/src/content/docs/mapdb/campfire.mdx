@@ -1,0 +1,36 @@
+---
+id: "01KVV0AF8RDMV29GQY5CKT18FP"
+ref: "campfire"
+drafted: false
+name: "Campfire"
+title: "Campfire"
+description: "A placed campfire — blocks its tile, warms the ring around it, and burns anything forced onto the embers."
+type: "prop"
+sub_kind: "campfire"
+img: "/assets/arcade/arpg/environment/hazards/campfire/campfire-Sheet.png"
+interactable: false
+destructible: false
+blocks_movement: true
+placed_effects:
+  - { status: "regen", magnitude: 3, period_ticks: 20, range: 2 }
+  - { status: "burning", magnitude: 8, period_ticks: 20, range: 0 }
+credits: |
+    Campfire sprite by Rodwan - https://rodwan.itch.io/isometric-asset-campfire
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Campfire
+
+A deployed campfire. The grate sits dead-center on its tile and nothing paths through it. Stand a step back and the warmth knits cuts closed; stand on the coals and they take their due.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Behavior
+
+- **Blocks its tile** — pathfinding routes around the grate.
+- **Heal ring** — anything within 2 tiles (but not on the fire) regenerates 3 HP per second.
+- **On-tile burn** — anything forced onto the center tile takes 8 burn damage per second.

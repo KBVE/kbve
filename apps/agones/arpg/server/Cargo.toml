@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 simgrid = { path = "../../../../packages/rust/simgrid" }
 bevy_items = { path = "../../../../packages/rust/bevy/bevy_items" }
+bevy_mapdb = { path = "../../../../packages/rust/bevy/bevy_mapdb" }
 jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey"] }
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 axum = { version = "0.7", default-features = false, features = ["ws", "json", "http1", "tokio"] }
