@@ -1,211 +1,112 @@
-# Tiered cache cleanup strategy for ARC runner PVC.
-#
-# Three tiers run the same script with TIER env, gated on phases:
-#   1. Light  (every 6h)  — Phase 1 only: per-cache age prune (parallel)
-#   2. Medium (daily)     — Phase 1 + Phase 2: cap enforcement
-#   3. Heavy  (every 3d)  — Phase 1 + 2 + 3: capacity gate (>80% → LRU prune largest)
-#
-# Per-cache policy via CACHE_POLICIES (space-separated NAME:MODE:CAP_GB):
-#   - mode=age:          age out files older than AGE_DAYS, then file-level LRU
-#   - mode=cap:          NEVER age out; file-level LRU when over CAP_GB
-#                        (use only for caches WITHOUT internal manifests)
-#   - mode=cap-project:  NEVER age out; per-subdir LRU when over CAP_GB —
-#                        evicts whole project subdirs (safe for Unity Library
-#                        which has ArtifactDB/SourceAssetDB integrity)
-#
-# Unity Library structure: /cache/unity-library/<project-platform>/{ArtifactDB,
-# SourceAssetDB, Artifacts/, ShaderCache/, ...}. File-level LRU on the inner
-# Artifacts/ would orphan ArtifactDB entries → corruption on next import.
-# cap-project drops whole platform dirs; Unity reimports that platform once.
-#
-# Uses mtime (not atime) because Longhorn/NFS may mount with noatime.
-# All three share the same PVC mount at /cache.
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
     name: arc-cache-cleanup-script
     namespace: arc-runners
+    labels:
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 data:
-    cleanup.sh: |
-        #!/bin/sh
-        set -u
-        CACHE="${CACHE:-/cache}"
-        TIER="${TIER:-light}"
-        AGE_DAYS="${AGE_DAYS:-3}"
-        CAPACITY_PCT="${CAPACITY_PCT:-80}"
-        # Per-cache policy: NAME:MODE:CAP_GB (space-separated)
-        # NEVER age unity-library — Unity rebuilds the entire Library on cache miss (~30min)
-        CACHE_POLICIES="${CACHE_POLICIES:-cargo:age:20 lfs:age:5 unity-library:cap-project:80}"
-
-        echo "=== ${TIER} cleanup starting ==="
-        echo "  age=${AGE_DAYS}d  policies='${CACHE_POLICIES}'"
-        df -h "${CACHE}" || true
-        echo ""
-
-        age_prune() {
-            DIR="$1"
-            [ -d "$DIR" ] || return 0
-            START=$(date +%s)
-            find "$DIR" -type f -mtime +"${AGE_DAYS}" -delete 2>/dev/null || true
-            find "$DIR" -type d -empty -delete 2>/dev/null || true
-            ELAPSED=$(( $(date +%s) - START ))
-            echo "  age-pruned $(basename "$DIR") in ${ELAPSED}s"
-        }
-
-        # BusyBox-safe LRU: sort by mtime via `stat`, drop oldest until under cap.
-        cap_prune() {
-            DIR="$1"
-            CAP_GB="$2"
-            [ -d "$DIR" ] || return 0
-            CAP_KB=$(( CAP_GB * 1024 * 1024 ))
-            DIR_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
-            [ -z "${DIR_KB}" ] && return 0
-            if [ "${DIR_KB}" -le "${CAP_KB}" ]; then
-                echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap"
-                return 0
-            fi
-            OVER_KB=$(( DIR_KB - CAP_KB ))
-            echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi over cap by $(( OVER_KB / 1024 ))Mi — LRU pruning"
-            START=$(date +%s)
-            # Headroom: prune to 90% of cap to avoid thrashing on next run
-            HEADROOM_KB=$(( CAP_KB / 10 ))
-            TARGET_PRUNE_KB=$(( OVER_KB + HEADROOM_KB ))
-            find "$DIR" -type f -exec stat -c '%Y %s %n' {} + 2>/dev/null \
-                | sort -n \
-                | awk -v target="${TARGET_PRUNE_KB}" '
-                    {
-                        size_kb = int($2 / 1024) + 1
-                        cum += size_kb
-                        # %Y %s name — print everything after column 2
-                        sub(/^[0-9]+ [0-9]+ /, "")
-                        print
-                        if (cum >= target) exit
-                    }
-                  ' \
-                | xargs -r rm -f 2>/dev/null || true
-            find "$DIR" -type d -empty -delete 2>/dev/null || true
-            ELAPSED=$(( $(date +%s) - START ))
-            NEW_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
-            echo "  $(basename "$DIR"): now $(( NEW_KB / 1024 ))Mi (cap-prune ${ELAPSED}s)"
-        }
-
-        # Per-subdir LRU: when DIR exceeds cap, drop whole oldest subdirs
-        # (one nesting level). Used for caches with internal manifests where
-        # file-level deletion would corrupt state (e.g., Unity Library).
-        # Subdir freshness tracked via the most-recently-touched file inside.
-        cap_project_prune() {
-            DIR="$1"
-            CAP_GB="$2"
-            [ -d "$DIR" ] || return 0
-            CAP_KB=$(( CAP_GB * 1024 * 1024 ))
-            DIR_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
-            [ -z "${DIR_KB}" ] && return 0
-            if [ "${DIR_KB}" -le "${CAP_KB}" ]; then
-                echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap (project-LRU)"
-                return 0
-            fi
-            OVER_KB=$(( DIR_KB - CAP_KB ))
-            HEADROOM_KB=$(( CAP_KB / 10 ))
-            TARGET_PRUNE_KB=$(( OVER_KB + HEADROOM_KB ))
-            echo "  $(basename "$DIR"): $(( DIR_KB / 1024 ))Mi over by $(( OVER_KB / 1024 ))Mi — evicting oldest projects"
-            START=$(date +%s)
-            # awk picks subdirs to evict via cumulative size; while executes rm.
-            # Freshness via -maxdepth 2 (Unity touches ArtifactDB/SourceAssetDB
-            # on every import — captures activity without walking 350K artifacts).
-            for SUB in "$DIR"/*/; do
-                [ -d "$SUB" ] || continue
-                NEWEST=$(find "$SUB" -maxdepth 2 -type f -exec stat -c '%Y' {} + 2>/dev/null \
-                    | sort -rn | head -1)
-                [ -z "${NEWEST}" ] && NEWEST=$(stat -c '%Y' "$SUB" 2>/dev/null || echo 0)
-                SUB_KB=$(du -sk "$SUB" 2>/dev/null | cut -f1)
-                [ -z "${SUB_KB}" ] && SUB_KB=0
-                printf '%s\t%s\t%s\n' "${NEWEST}" "${SUB_KB}" "$SUB"
-            done | sort -n | awk -v target="${TARGET_PRUNE_KB}" -F'\t' '
-                {
-                    cum += $2
-                    print $3
-                    if (cum >= target) exit
-                }
-              ' | while IFS= read -r EVICT_PATH; do
-                [ -d "$EVICT_PATH" ] || continue
-                EVICT_KB=$(du -sk "$EVICT_PATH" 2>/dev/null | cut -f1)
-                echo "  evict $(basename "$EVICT_PATH") ($(( EVICT_KB / 1024 ))Mi)"
-                rm -rf "$EVICT_PATH"
-            done
-            ELAPSED=$(( $(date +%s) - START ))
-            NEW_KB=$(du -sk "$DIR" 2>/dev/null | cut -f1)
-            echo "  $(basename "$DIR"): now $(( NEW_KB / 1024 ))Mi (project-LRU ${ELAPSED}s)"
-        }
-
-        # Phase 1: per-cache age prune (parallel; only for mode=age)
-        echo "Phase 1: age prune (parallel)"
-        for ENTRY in ${CACHE_POLICIES}; do
-            NAME=$(echo "${ENTRY}" | cut -d: -f1)
-            MODE=$(echo "${ENTRY}" | cut -d: -f2)
-            if [ "${MODE}" = "age" ]; then
-                age_prune "${CACHE}/${NAME}" &
-            fi
-        done
-        wait
-        echo ""
-
-        # Phase 2: cap enforcement (medium + heavy)
-        if [ "${TIER}" = "medium" ] || [ "${TIER}" = "heavy" ]; then
-            echo "Phase 2: cap enforcement"
-            for ENTRY in ${CACHE_POLICIES}; do
-                NAME=$(echo "${ENTRY}" | cut -d: -f1)
-                MODE=$(echo "${ENTRY}" | cut -d: -f2)
-                CAP=$(echo "${ENTRY}" | cut -d: -f3)
-                case "${MODE}" in
-                    age|cap)
-                        cap_prune "${CACHE}/${NAME}" "${CAP}"
-                        ;;
-                    cap-project)
-                        cap_project_prune "${CACHE}/${NAME}" "${CAP}"
-                        ;;
-                    *)
-                        echo "  $(basename "${CACHE}/${NAME}"): unknown mode '${MODE}' — skipping"
-                        ;;
-                esac
-            done
-            echo ""
-        fi
-
-        # Phase 3: capacity gate — heavy only
-        # Last-resort: cache fills despite caps (new dir not in policy?). Nuke largest.
-        if [ "${TIER}" = "heavy" ]; then
-            echo "Phase 3: capacity gate (>${CAPACITY_PCT}%)"
-            USAGE=$(df "${CACHE}" | tail -1 | awk '{gsub(/%/,""); print $5}')
-            echo "  current usage: ${USAGE}%"
-            ATTEMPTS=0
-            while [ "${USAGE}" -gt "${CAPACITY_PCT}" ] && [ "${ATTEMPTS}" -lt 5 ]; do
-                ATTEMPTS=$(( ATTEMPTS + 1 ))
-                LARGEST=$(du -sk "${CACHE}"/*/ 2>/dev/null | sort -rn | head -1 | cut -f2)
-                if [ -z "${LARGEST}" ]; then
-                    echo "  no cache dirs remain"
-                    break
-                fi
-                LNAME=$(basename "${LARGEST}")
-                LKB=$(du -sk "${LARGEST}" 2>/dev/null | cut -f1)
-                echo "  emergency: clearing ${LNAME} ($(( LKB / 1024 ))Mi) at ${USAGE}%"
-                rm -rf "${LARGEST:?}"/* 2>/dev/null || true
-                USAGE=$(df "${CACHE}" | tail -1 | awk '{gsub(/%/,""); print $5}')
-            done
-            echo ""
-        fi
-
-        df -h "${CACHE}" || true
-        echo "=== ${TIER} cleanup done ==="
+    cleanup.sh:
+        "#!/bin/sh\nset -u\nCACHE=\"${CACHE:-/cache}\"\nTIER=\"${TIER:-light}\"\
+        \nAGE_DAYS=\"${AGE_DAYS:-3}\"\nCAPACITY_PCT=\"${CAPACITY_PCT:-80}\"\n# Per-cache\
+        \ policy: NAME:MODE:CAP_GB (space-separated)\n# NEVER age unity-library — Unity\
+        \ rebuilds the entire Library on cache miss (~30min)\nCACHE_POLICIES=\"${CACHE_POLICIES:-cargo:age:20\
+        \ lfs:age:5 unity-library:cap-project:80}\"\n\necho \"=== ${TIER} cleanup starting\
+        \ ===\"\necho \"  age=${AGE_DAYS}d  policies='${CACHE_POLICIES}'\"\ndf -h \"${CACHE}\"\
+        \ || true\necho \"\"\n\nage_prune() {\n    DIR=\"$1\"\n    [ -d \"$DIR\" ] ||\
+        \ return 0\n    START=$(date +%s)\n    find \"$DIR\" -type f -mtime +\"${AGE_DAYS}\"\
+        \ -delete 2>/dev/null || true\n    find \"$DIR\" -type d -empty -delete 2>/dev/null\
+        \ || true\n    ELAPSED=$(( $(date +%s) - START ))\n    echo \"  age-pruned $(basename\
+        \ \"$DIR\") in ${ELAPSED}s\"\n}\n\n# BusyBox-safe LRU: sort by mtime via `stat`,\
+        \ drop oldest until under cap.\ncap_prune() {\n    DIR=\"$1\"\n    CAP_GB=\"$2\"\
+        \n    [ -d \"$DIR\" ] || return 0\n    CAP_KB=$(( CAP_GB * 1024 * 1024 ))\n  \
+        \  DIR_KB=$(du -sk \"$DIR\" 2>/dev/null | cut -f1)\n    [ -z \"${DIR_KB}\" ] &&\
+        \ return 0\n    if [ \"${DIR_KB}\" -le \"${CAP_KB}\" ]; then\n        echo \"\
+        \  $(basename \"$DIR\"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap\"\n    \
+        \    return 0\n    fi\n    OVER_KB=$(( DIR_KB - CAP_KB ))\n    echo \"  $(basename\
+        \ \"$DIR\"): $(( DIR_KB / 1024 ))Mi over cap by $(( OVER_KB / 1024 ))Mi — LRU\
+        \ pruning\"\n    START=$(date +%s)\n    # Headroom: prune to 90% of cap to avoid\
+        \ thrashing on next run\n    HEADROOM_KB=$(( CAP_KB / 10 ))\n    TARGET_PRUNE_KB=$((\
+        \ OVER_KB + HEADROOM_KB ))\n    find \"$DIR\" -type f -exec stat -c '%Y %s %n'\
+        \ {} + 2>/dev/null \\\n        | sort -n \\\n        | awk -v target=\"${TARGET_PRUNE_KB}\"\
+        \ '\n            {\n                size_kb = int($2 / 1024) + 1\n           \
+        \     cum += size_kb\n                # %Y %s name — print everything after column\
+        \ 2\n                sub(/^[0-9]+ [0-9]+ /, \"\")\n                print\n   \
+        \             if (cum >= target) exit\n            }\n          ' \\\n       \
+        \ | xargs -r rm -f 2>/dev/null || true\n    find \"$DIR\" -type d -empty -delete\
+        \ 2>/dev/null || true\n    ELAPSED=$(( $(date +%s) - START ))\n    NEW_KB=$(du\
+        \ -sk \"$DIR\" 2>/dev/null | cut -f1)\n    echo \"  $(basename \"$DIR\"): now\
+        \ $(( NEW_KB / 1024 ))Mi (cap-prune ${ELAPSED}s)\"\n}\n\n# Per-subdir LRU: when\
+        \ DIR exceeds cap, drop whole oldest subdirs\n# (one nesting level). Used for\
+        \ caches with internal manifests where\n# file-level deletion would corrupt state\
+        \ (e.g., Unity Library).\n# Subdir freshness tracked via the most-recently-touched\
+        \ file inside.\ncap_project_prune() {\n    DIR=\"$1\"\n    CAP_GB=\"$2\"\n   \
+        \ [ -d \"$DIR\" ] || return 0\n    CAP_KB=$(( CAP_GB * 1024 * 1024 ))\n    DIR_KB=$(du\
+        \ -sk \"$DIR\" 2>/dev/null | cut -f1)\n    [ -z \"${DIR_KB}\" ] && return 0\n\
+        \    if [ \"${DIR_KB}\" -le \"${CAP_KB}\" ]; then\n        echo \"  $(basename\
+        \ \"$DIR\"): $(( DIR_KB / 1024 ))Mi under ${CAP_GB}Gi cap (project-LRU)\"\n  \
+        \      return 0\n    fi\n    OVER_KB=$(( DIR_KB - CAP_KB ))\n    HEADROOM_KB=$((\
+        \ CAP_KB / 10 ))\n    TARGET_PRUNE_KB=$(( OVER_KB + HEADROOM_KB ))\n    echo \"\
+        \  $(basename \"$DIR\"): $(( DIR_KB / 1024 ))Mi over by $(( OVER_KB / 1024 ))Mi\
+        \ — evicting oldest projects\"\n    START=$(date +%s)\n    # awk picks subdirs\
+        \ to evict via cumulative size; while executes rm.\n    # Freshness via -maxdepth\
+        \ 2 (Unity touches ArtifactDB/SourceAssetDB\n    # on every import — captures\
+        \ activity without walking 350K artifacts).\n    for SUB in \"$DIR\"/*/; do\n\
+        \        [ -d \"$SUB\" ] || continue\n        NEWEST=$(find \"$SUB\" -maxdepth\
+        \ 2 -type f -exec stat -c '%Y' {} + 2>/dev/null \\\n            | sort -rn | head\
+        \ -1)\n        [ -z \"${NEWEST}\" ] && NEWEST=$(stat -c '%Y' \"$SUB\" 2>/dev/null\
+        \ || echo 0)\n        SUB_KB=$(du -sk \"$SUB\" 2>/dev/null | cut -f1)\n      \
+        \  [ -z \"${SUB_KB}\" ] && SUB_KB=0\n        printf '%s\\t%s\\t%s\\n' \"${NEWEST}\"\
+        \ \"${SUB_KB}\" \"$SUB\"\n    done | sort -n | awk -v target=\"${TARGET_PRUNE_KB}\"\
+        \ -F'\\t' '\n        {\n            cum += $2\n            print $3\n        \
+        \    if (cum >= target) exit\n        }\n      ' | while IFS= read -r EVICT_PATH;\
+        \ do\n        [ -d \"$EVICT_PATH\" ] || continue\n        EVICT_KB=$(du -sk \"\
+        $EVICT_PATH\" 2>/dev/null | cut -f1)\n        echo \"  evict $(basename \"$EVICT_PATH\"\
+        ) ($(( EVICT_KB / 1024 ))Mi)\"\n        rm -rf \"$EVICT_PATH\"\n    done\n   \
+        \ ELAPSED=$(( $(date +%s) - START ))\n    NEW_KB=$(du -sk \"$DIR\" 2>/dev/null\
+        \ | cut -f1)\n    echo \"  $(basename \"$DIR\"): now $(( NEW_KB / 1024 ))Mi (project-LRU\
+        \ ${ELAPSED}s)\"\n}\n\n# Phase 1: per-cache age prune (parallel; only for mode=age)\n\
+        echo \"Phase 1: age prune (parallel)\"\nfor ENTRY in ${CACHE_POLICIES}; do\n \
+        \   NAME=$(echo \"${ENTRY}\" | cut -d: -f1)\n    MODE=$(echo \"${ENTRY}\" | cut\
+        \ -d: -f2)\n    if [ \"${MODE}\" = \"age\" ]; then\n        age_prune \"${CACHE}/${NAME}\"\
+        \ &\n    fi\ndone\nwait\necho \"\"\n\n# Phase 2: cap enforcement (medium + heavy)\n\
+        if [ \"${TIER}\" = \"medium\" ] || [ \"${TIER}\" = \"heavy\" ]; then\n    echo\
+        \ \"Phase 2: cap enforcement\"\n    for ENTRY in ${CACHE_POLICIES}; do\n     \
+        \   NAME=$(echo \"${ENTRY}\" | cut -d: -f1)\n        MODE=$(echo \"${ENTRY}\"\
+        \ | cut -d: -f2)\n        CAP=$(echo \"${ENTRY}\" | cut -d: -f3)\n        case\
+        \ \"${MODE}\" in\n            age|cap)\n                cap_prune \"${CACHE}/${NAME}\"\
+        \ \"${CAP}\"\n                ;;\n            cap-project)\n                cap_project_prune\
+        \ \"${CACHE}/${NAME}\" \"${CAP}\"\n                ;;\n            *)\n      \
+        \          echo \"  $(basename \"${CACHE}/${NAME}\"): unknown mode '${MODE}' —\
+        \ skipping\"\n                ;;\n        esac\n    done\n    echo \"\"\nfi\n\n\
+        # Phase 3: capacity gate — heavy only\n# Last-resort: cache fills despite caps\
+        \ (new dir not in policy?). Nuke largest.\nif [ \"${TIER}\" = \"heavy\" ]; then\n\
+        \    echo \"Phase 3: capacity gate (>${CAPACITY_PCT}%)\"\n    USAGE=$(df \"${CACHE}\"\
+        \ | tail -1 | awk '{gsub(/%/,\"\"); print $5}')\n    echo \"  current usage: ${USAGE}%\"\
+        \n    ATTEMPTS=0\n    while [ \"${USAGE}\" -gt \"${CAPACITY_PCT}\" ] && [ \"${ATTEMPTS}\"\
+        \ -lt 5 ]; do\n        ATTEMPTS=$(( ATTEMPTS + 1 ))\n        LARGEST=$(du -sk\
+        \ \"${CACHE}\"/*/ 2>/dev/null | sort -rn | head -1 | cut -f2)\n        if [ -z\
+        \ \"${LARGEST}\" ]; then\n            echo \"  no cache dirs remain\"\n      \
+        \      break\n        fi\n        LNAME=$(basename \"${LARGEST}\")\n        LKB=$(du\
+        \ -sk \"${LARGEST}\" 2>/dev/null | cut -f1)\n        echo \"  emergency: clearing\
+        \ ${LNAME} ($(( LKB / 1024 ))Mi) at ${USAGE}%\"\n        rm -rf \"${LARGEST:?}\"\
+        /* 2>/dev/null || true\n        USAGE=$(df \"${CACHE}\" | tail -1 | awk '{gsub(/%/,\"\
+        \"); print $5}')\n    done\n    echo \"\"\nfi\n\ndf -h \"${CACHE}\" || true\n\
+        echo \"=== ${TIER} cleanup done ===\"\n"
 ---
-# ── Tier 1: Light — every 6 hours ──────────────────────────────────────────
 apiVersion: batch/v1
 kind: CronJob
 metadata:
     name: arc-cache-cleanup-light
     namespace: arc-runners
+    labels:
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '0 */6 * * *'
+    schedule: 0 */6 * * *
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
@@ -261,16 +162,19 @@ spec:
                         - name: cleanup-script
                           configMap:
                               name: arc-cache-cleanup-script
-                              defaultMode: 0755
+                              defaultMode: 493
 ---
-# ── Tier 2: Medium — daily at 3 AM UTC ────────────────────────────────────
 apiVersion: batch/v1
 kind: CronJob
 metadata:
     name: arc-cache-cleanup-medium
     namespace: arc-runners
+    labels:
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '0 3 * * *'
+    schedule: 0 3 * * *
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
@@ -326,16 +230,19 @@ spec:
                         - name: cleanup-script
                           configMap:
                               name: arc-cache-cleanup-script
-                              defaultMode: 0755
+                              defaultMode: 493
 ---
-# ── Tier 3: Heavy — every 3 days at 4 AM UTC ──────────────────────────────
 apiVersion: batch/v1
 kind: CronJob
 metadata:
     name: arc-cache-cleanup-heavy
     namespace: arc-runners
+    labels:
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '0 4 */3 * *'
+    schedule: 0 4 */3 * *
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
@@ -393,4 +300,4 @@ spec:
                         - name: cleanup-script
                           configMap:
                               name: arc-cache-cleanup-script
-                              defaultMode: 0755
+                              defaultMode: 493

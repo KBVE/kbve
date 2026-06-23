@@ -1,21 +1,3 @@
-# Shared cache PVC for GitHub Actions runners.
-#
-# Persists across pod restarts and is mounted at /home/runner/_cache on
-# every runner + dind container. Layout under the mount point is owned
-# by the workflows that write into it:
-#
-#   /home/runner/_cache/unity-library/<app>-<target>/   Unity Library/
-#   /home/runner/_cache/cargo/home/                     CARGO_HOME
-#   /home/runner/_cache/cargo/target/<job>/             CARGO_TARGET_DIR
-#   /home/runner/_cache/docker/                         (separate PVC overlays here)
-#
-# Pinned to longhorn-sdb (secondary SSD) to match the UE engine cache
-# pattern — keeps heavy build I/O off the primary disk that backs cluster
-# control plane + general workloads.
-#
-# Renamed from `arc-runner-cache` (50Gi, longhorn) so Argo can transition
-# storage classes cleanly. storageClassName is immutable on a bound PVC,
-# so the old name is pruned and the new name is created fresh.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -24,6 +6,9 @@ metadata:
     labels:
         app.kubernetes.io/component: runner-cache
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteMany

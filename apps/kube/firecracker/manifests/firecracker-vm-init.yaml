@@ -5,51 +5,28 @@ metadata:
     namespace: firecracker
     labels:
         app: firecracker-ctl
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    init: |
-        #!/bin/sh
-        mount -t proc proc /proc
-        mount -t sysfs sys /sys
-        mount -t devtmpfs dev /dev 2>/dev/null
-        mount -t tmpfs tmpfs /tmp
-
-        ENTRYPOINT="/bin/sh"
-        for param in $(cat /proc/cmdline); do
-          case "$param" in
-            fc_entrypoint=*) ENTRYPOINT="${param#fc_entrypoint=}" ;;
-          esac
-        done
-
-        # Install packages from local cache if vdc (manifest) and vdd (cache) exist.
-        if [ -b /dev/vdc ] && [ -b /dev/vdd ]; then
-          dd if=/dev/vdc of=/tmp/packages.raw bs=4096 2>/dev/null
-          tr -d '\0' < /tmp/packages.raw > /tmp/packages.txt
-
-          mkdir -p /mnt/packages
-          mount -o ro /dev/vdd /mnt/packages 2>/dev/null
-
-          if [ -d /mnt/packages/pip ] && command -v pip3 >/dev/null 2>&1; then
-            pip3 install --no-index --find-links /mnt/packages/pip \
-              $(cat /tmp/packages.txt) 2>/tmp/pkg-install.log || true
-          elif [ -d /mnt/packages/node_modules ] && command -v node >/dev/null 2>&1; then
-            # Node path: copy the prebuilt node_modules tree into the guest's
-            # global module path so `require('fastify')` resolves without a
-            # registry hop. /tmp is tmpfs; /usr/lib persists for the VM lifetime.
-            mkdir -p /usr/lib/node_modules
-            cp -r /mnt/packages/node_modules/. /usr/lib/node_modules/ 2>/tmp/pkg-install.log || true
-            export NODE_PATH=/usr/lib/node_modules
-          fi
-
-          umount /mnt/packages 2>/dev/null
-        fi
-
-        if [ -b /dev/vdb ]; then
-          dd if=/dev/vdb of=/tmp/code.raw bs=4096 2>/dev/null
-          tr -d '\0' < /tmp/code.raw > /tmp/code
-          echo "---FC_OUTPUT_START---"
-          "$ENTRYPOINT" /tmp/code
-          EC=$?
-          echo "---FC_OUTPUT_END---"
-          exit $EC
-        fi
-        exec /bin/sh
+    init:
+        "#!/bin/sh\nmount -t proc proc /proc\nmount -t sysfs sys /sys\nmount -t devtmpfs\
+        \ dev /dev 2>/dev/null\nmount -t tmpfs tmpfs /tmp\n\nENTRYPOINT=\"/bin/sh\"\n\
+        for param in $(cat /proc/cmdline); do\n  case \"$param\" in\n    fc_entrypoint=*)\
+        \ ENTRYPOINT=\"${param#fc_entrypoint=}\" ;;\n  esac\ndone\n\n# Install packages\
+        \ from local cache if vdc (manifest) and vdd (cache) exist.\nif [ -b /dev/vdc\
+        \ ] && [ -b /dev/vdd ]; then\n  dd if=/dev/vdc of=/tmp/packages.raw bs=4096 2>/dev/null\n\
+        \  tr -d '\\0' < /tmp/packages.raw > /tmp/packages.txt\n\n  mkdir -p /mnt/packages\n\
+        \  mount -o ro /dev/vdd /mnt/packages 2>/dev/null\n\n  if [ -d /mnt/packages/pip\
+        \ ] && command -v pip3 >/dev/null 2>&1; then\n    pip3 install --no-index --find-links\
+        \ /mnt/packages/pip \\\n      $(cat /tmp/packages.txt) 2>/tmp/pkg-install.log\
+        \ || true\n  elif [ -d /mnt/packages/node_modules ] && command -v node >/dev/null\
+        \ 2>&1; then\n    # Node path: copy the prebuilt node_modules tree into the guest's\n\
+        \    # global module path so `require('fastify')` resolves without a\n    # registry\
+        \ hop. /tmp is tmpfs; /usr/lib persists for the VM lifetime.\n    mkdir -p /usr/lib/node_modules\n\
+        \    cp -r /mnt/packages/node_modules/. /usr/lib/node_modules/ 2>/tmp/pkg-install.log\
+        \ || true\n    export NODE_PATH=/usr/lib/node_modules\n  fi\n\n  umount /mnt/packages\
+        \ 2>/dev/null\nfi\n\nif [ -b /dev/vdb ]; then\n  dd if=/dev/vdb of=/tmp/code.raw\
+        \ bs=4096 2>/dev/null\n  tr -d '\\0' < /tmp/code.raw > /tmp/code\n  echo \"---FC_OUTPUT_START---\"\
+        \n  \"$ENTRYPOINT\" /tmp/code\n  EC=$?\n  echo \"---FC_OUTPUT_END---\"\n  exit\
+        \ $EC\nfi\nexec /bin/sh\n"

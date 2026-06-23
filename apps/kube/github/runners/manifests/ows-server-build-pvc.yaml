@@ -6,6 +6,9 @@ metadata:
     labels:
         app.kubernetes.io/part-of: ows
         app.kubernetes.io/component: dedicated-server
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteMany

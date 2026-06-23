@@ -1,17 +1,3 @@
-# Docker Hub pull-through cache for arc-runner-set DinD sidecars.
-#
-# Why: dind-storage cannot live on Longhorn RWX (NFS share-manager) —
-# overlayfs returns EINVAL on NFS lower dirs. Switching dind-storage to
-# emptyDir means each cold pod re-pulls ~5GB of unityci/editor from
-# Docker Hub. This in-cluster registry:2 in proxy mode caches Hub layers
-# on a Longhorn RWO PVC so subsequent pulls are LAN speed and Hub anon
-# rate limits aren't hit on every scale-up.
-#
-# Wiring: dockerd args in values.yaml add
-#   --registry-mirror=http://registry-mirror.arc-runners.svc.cluster.local:5000
-#   --insecure-registry=registry-mirror.arc-runners.svc.cluster.local:5000
-# Mirror only proxies Docker Hub. ghcr.io / quay.io etc bypass mirror.
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -20,6 +6,9 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce
@@ -36,34 +25,19 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 data:
-    config.yml: |
-        version: 0.1
-        log:
-          level: info
-          fields:
-            service: registry
-        storage:
-          filesystem:
-            rootdirectory: /var/lib/registry
-          cache:
-            blobdescriptor: inmemory
-          delete:
-            enabled: true
-        http:
-          addr: :5000
-          headers:
-            X-Content-Type-Options: [nosniff]
-        proxy:
-          remoteurl: https://registry-1.docker.io
-          # Hub creds (bypass the anon 100/6h pull cap) come from the optional
-          # registry-mirror-hub-creds secret via REGISTRY_PROXY_USERNAME /
-          # REGISTRY_PROXY_PASSWORD env. Absent secret -> anonymous pulls.
-        health:
-          storagedriver:
-            enabled: true
-            interval: 10s
-            threshold: 3
+    config.yml:
+        "version: 0.1\nlog:\n  level: info\n  fields:\n    service: registry\n\
+        storage:\n  filesystem:\n    rootdirectory: /var/lib/registry\n  cache:\n    blobdescriptor:\
+        \ inmemory\n  delete:\n    enabled: true\nhttp:\n  addr: :5000\n  headers:\n \
+        \   X-Content-Type-Options: [nosniff]\nproxy:\n  remoteurl: https://registry-1.docker.io\n\
+        \  # Hub creds (bypass the anon 100/6h pull cap) come from the optional\n  # registry-mirror-hub-creds\
+        \ secret via REGISTRY_PROXY_USERNAME /\n  # REGISTRY_PROXY_PASSWORD env. Absent\
+        \ secret -> anonymous pulls.\nhealth:\n  storagedriver:\n    enabled: true\n \
+        \   interval: 10s\n    threshold: 3\n"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -73,12 +47,12 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     strategy:
-        # RWO PVC + single replica: Recreate avoids the rolling-update
-        # deadlock where the new pod can't attach the volume the old
-        # pod still holds.
         type: Recreate
     selector:
         matchLabels:
@@ -98,7 +72,7 @@ spec:
                         containerPort: 5000
                   env:
                       - name: REGISTRY_HTTP_ADDR
-                        value: ':5000'
+                        value: :5000
                       - name: REGISTRY_PROXY_USERNAME
                         valueFrom:
                             secretKeyRef:
@@ -155,6 +129,9 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
@@ -165,11 +142,6 @@ spec:
           targetPort: http
           protocol: TCP
 ---
-# The mirror serves cached Hub layers over unauthenticated HTTP, and
-# 'delete: enabled' means any client reaching :5000 could evict tags or
-# poison the cache. Restrict ingress to pods inside arc-runners (the only
-# legitimate clients are the runner DinD sidecars) so nothing in another
-# namespace can MITM/poison the cache. Mirrors the registry-mirror-ghcr lock.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

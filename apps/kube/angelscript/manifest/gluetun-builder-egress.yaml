@@ -6,8 +6,11 @@ metadata:
     labels:
         app: gluetun-builder-egress
         component: vm-egress
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        secret.reloader.stakater.com/reload: 'vpn-wireguard'
+        secret.reloader.stakater.com/reload: vpn-wireguard
 spec:
     replicas: 1
     strategy:
@@ -41,29 +44,29 @@ spec:
                             name: vpn-wireguard
                   env:
                       - name: TZ
-                        value: 'UTC'
+                        value: UTC
                       - name: UPDATER_PERIOD
-                        value: '24h'
+                        value: 24h
                       - name: HTTPPROXY
                         value: 'on'
                       - name: HTTPPROXY_LISTENING_ADDRESS
-                        value: ':8888'
+                        value: :8888
                       - name: FIREWALL_INPUT_PORTS
-                        value: '8888,9999'
+                        value: 8888,9999
                       - name: FIREWALL_OUTBOUND_SUBNETS
-                        value: '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'
+                        value: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
-                        value: '127.0.0.1'
+                        value: 127.0.0.1
                       - name: DNS_UPSTREAM_RESOLVER_TYPE
-                        value: 'DoH'
+                        value: DoH
                       - name: DNS_UPSTREAM_RESOLVERS
-                        value: 'cloudflare'
+                        value: cloudflare
                       - name: HEALTH_VPN_DURATION_INITIAL
-                        value: '30s'
+                        value: 30s
                       - name: HEALTH_SERVER_ADDRESS
-                        value: '0.0.0.0:9999'
+                        value: 0.0.0.0:9999
                   livenessProbe:
                       httpGet:
                           path: /
@@ -103,6 +106,9 @@ metadata:
     labels:
         app: gluetun-builder-egress
         component: vm-egress
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
