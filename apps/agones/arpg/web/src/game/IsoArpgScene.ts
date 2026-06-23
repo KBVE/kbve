@@ -17,6 +17,8 @@ import {
 	type InventorySync,
 	type InventoryItem,
 	type ItemPlacedEvent,
+	type StatusView,
+	type StatusKind,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -114,6 +116,19 @@ import { resolvePlayerName } from './playerName';
 
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
+// Status effect aura/pip colours and the aura precedence (harm before help).
+const STATUS_COLOR: Record<StatusKind, number> = {
+	Burn: 0xfb923c,
+	Poison: 0x84cc16,
+	Regen: 0x4ade80,
+	Haste: 0x38bdf8,
+};
+const STATUS_PRIORITY: readonly StatusKind[] = [
+	'Burn',
+	'Poison',
+	'Regen',
+	'Haste',
+];
 // Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
 // fixture seeds ground loot + a heal table to exercise the inventory loop. The
 // real game is server-authoritative; this only runs when localMode is set.
@@ -675,6 +690,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					this.placeNameplate(refs);
 				}
 				refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
+				refs.statusFx = this.add.graphics().setDepth(DEPTH_UI - 1);
 				return refs;
 			},
 			move: (refs, tile) => this.tweenTo(refs, tile, true),
@@ -685,6 +701,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.shadow?.destroy();
 				refs.nameplate?.destroy();
 				refs.hpBar?.destroy();
+				refs.statusFx?.destroy();
 				refs.sprite.destroy();
 			},
 		};
@@ -1018,6 +1035,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.syncBridge,
 			this.syncResolvers,
 			state,
+			this.markEnvDirty,
 		);
 		this.myEid = state.myEid;
 		this.predicted = state.predicted;
@@ -1105,7 +1123,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		// the 16-dir turn curve stays fluid even between tile crossings.
 		this.tickFacing();
 		this.syncFogToZoom();
-		this.refreshEnvBlocked();
+		if (this.envDirty) {
+			this.refreshEnvBlocked();
+			this.envDirty = false;
+		}
 
 		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
 
@@ -1387,6 +1408,13 @@ export class IsoArpgScene extends Phaser.Scene {
 	// ECS store so local prediction blocks the same tiles the server does — else
 	// the player walks onto a campfire then snaps back on the next snapshot.
 	private envBlocked = new Set<string>();
+	// Set by netSync on any env spawn/despawn/move; the set is rebuilt on the next
+	// frame instead of every frame. Starts dirty so the first snapshot seeds it.
+	private envDirty = true;
+
+	private markEnvDirty = (): void => {
+		this.envDirty = true;
+	};
 
 	private refreshEnvBlocked(): void {
 		this.envBlocked.clear();
@@ -1469,6 +1497,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.syncShadow(refs);
 		this.placeNameplate(refs);
 		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
+		refs.statusFx = this.add.graphics().setDepth(DEPTH_UI - 1);
 		this.store.spawn(
 			LOCAL_PLAYER_EID,
 			{
@@ -1691,9 +1720,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private refreshHud() {
+		const now = this.time.now;
 		for (const [serverEid, , refs] of this.store.entries()) {
 			const hp = this.store.hp(serverEid);
 			const maxHp = this.store.maxHp(serverEid);
+
+			if (refs.statusFx) {
+				this.drawStatusFx(refs, this.store.effects(serverEid), now);
+			}
 
 			if (
 				refs.cls &&
@@ -1719,6 +1753,49 @@ export class IsoArpgScene extends Phaser.Scene {
 				hp,
 				maxHp,
 			);
+		}
+	}
+
+	// Status feedback: a pulsing ground aura tinted by the dominant effect (doubles
+	// as the on-tile burn cue) plus a row of colour pips, one per active effect.
+	// Kept off sprite.setTint so it never fights the combat hit-flash.
+	private drawStatusFx(
+		refs: EntityRefs,
+		effects: readonly StatusView[],
+		now: number,
+	): void {
+		const g = refs.statusFx;
+		if (!g) return;
+		g.clear();
+		if (effects.length === 0) return;
+
+		const sprite = refs.sprite;
+		const footY = sprite.y;
+		const dominant = STATUS_PRIORITY.find((k) =>
+			effects.some((e) => e.kind === k),
+		);
+		if (dominant) {
+			const color = STATUS_COLOR[dominant];
+			// Sine pulse; burn/poison flicker harder than buffs for urgency.
+			const fast = dominant === 'Burn' || dominant === 'Poison';
+			const pulse =
+				0.5 + 0.5 * Math.sin((now / (fast ? 90 : 220)) % (Math.PI * 2));
+			const rx = sprite.displayWidth * 0.42;
+			g.fillStyle(color, 0.18 + 0.22 * pulse);
+			g.fillEllipse(sprite.x, footY, rx * 2, 12);
+			g.lineStyle(1.5, color, 0.4 + 0.4 * pulse);
+			g.strokeEllipse(sprite.x, footY, rx * 2, 12);
+		}
+
+		const pipY = footY - sprite.displayHeight - 14;
+		const pipW = 5;
+		const gap = 2;
+		const totalW = effects.length * pipW + (effects.length - 1) * gap;
+		let px = sprite.x - totalW / 2;
+		for (const e of effects) {
+			g.fillStyle(STATUS_COLOR[e.kind], 0.95);
+			g.fillRect(px, pipY, pipW, pipW);
+			px += pipW + gap;
 		}
 	}
 

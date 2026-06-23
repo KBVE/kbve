@@ -88,6 +88,7 @@ export class EntityStore<R> {
 		this.toEid.set(serverEid, eid);
 		this.toServer.set(eid, serverEid);
 		this.sideRefs.set(eid, refs);
+		if (data.effects) this.effectsMap.set(serverEid, data.effects);
 		return eid;
 	}
 
@@ -100,6 +101,11 @@ export class EntityStore<R> {
 		}
 		if (data.hp !== undefined) Health.hp[eid] = data.hp;
 		if (data.maxHp !== undefined) Health.maxHp[eid] = data.maxHp;
+		if (data.effects !== undefined) {
+			if (data.effects.length)
+				this.effectsMap.set(serverEid, data.effects);
+			else this.effectsMap.delete(serverEid);
+		}
 	}
 
 	despawn(serverEid: number): R | undefined {
@@ -109,6 +115,7 @@ export class EntityStore<R> {
 		removeEntity(this.world, eid);
 		this.toEid.delete(serverEid);
 		this.toServer.delete(eid);
+		this.effectsMap.delete(serverEid);
 		return refs;
 	}
 
@@ -140,6 +147,10 @@ export class EntityStore<R> {
 	kind(serverEid: number): number {
 		const eid = this.toEid.get(serverEid);
 		return eid === undefined ? -1 : Kind.value[eid];
+	}
+
+	effects(serverEid: number): readonly StatusView[] {
+		return this.effectsMap.get(serverEid) ?? NO_EFFECTS;
 	}
 
 	*entries(): Generator<[number, number, R]> {
