@@ -8,9 +8,9 @@ use simgrid::proto::{StatusKind, Tile};
 use simgrid::rng::hash3;
 use simgrid::{
     AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EntityKind,
-    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PlayerSlotTag, SIM_TICK_HZ,
-    SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle, spawn_env_object,
-    spawn_npc_from_spec,
+    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
+    SIM_TICK_HZ, SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle,
+    spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -442,6 +442,7 @@ pub fn spawn_world(
     mut done: Local<bool>,
     registry: Res<KindRegistry>,
     mut walkable: ResMut<WalkableMap>,
+    restored: Res<PersistedEnvLog>,
     mut commands: Commands,
 ) {
     if *done {
@@ -503,6 +504,20 @@ pub fn spawn_world(
         .is_some()
     {
         walkable.block_tile_z(SPAWN_FLOOR, fire);
+    }
+
+    // Restore player-placed objects persisted from a previous server lifetime.
+    // They return as unowned world fixtures (no PlacedBy, behavior re-derived
+    // from the mapdb def) — still block/heal/burn, but no longer reclaimable.
+    for o in &restored.0 {
+        let tile = Tile::new(o.x, o.y);
+        let Some(opts) = env_opts_from_mapdb(&o.env_ref, o.floor) else {
+            continue;
+        };
+        let blocker = opts.blocker;
+        if spawn_env_object(&mut commands, &registry, &o.env_ref, tile, opts).is_some() && blocker {
+            walkable.block_tile_z(o.floor, tile);
+        }
     }
 }
 

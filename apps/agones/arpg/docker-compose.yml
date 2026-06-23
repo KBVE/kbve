@@ -1,8 +1,9 @@
 # Personal local-dev compose for the ARPG vertical. NOT used by Agones/k8s.
 #
 #   docker compose -f apps/agones/arpg/docker-compose.yml up --build
-#       -> builds + runs only arpg-server on :7979 (no PG/Valkey: persistence
-#          degrades gracefully, sim + itemdb still load).
+#       -> builds + runs arpg-server on :7979 + a Valkey on :6379. Placed env
+#          objects (campfires) persist to Valkey and survive a server restart;
+#          drop the valkey service / unset KBVE_KV_URL to degrade gracefully.
 #
 #   docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build
 #       -> also runs the standalone vite arpg client on :5402, pointed at the
@@ -40,6 +41,22 @@ services:
             # Fallback: local HS256 verification if you'd rather hold the secret.
             # Unset SUPABASE_URL to fall back to this, or to dev-accept if both unset.
             SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+            # Durable store for player-placed env objects (campfires). Unset to
+            # run without persistence (sim still works, placements are in-memory).
+            KBVE_KV_URL: ${KBVE_KV_URL:-redis://valkey:6379}
+        depends_on:
+            - valkey
+        restart: unless-stopped
+
+    valkey:
+        image: valkey/valkey:8-alpine
+        ports:
+            - '6379:6379'
+        # appendonly so placed objects survive a Valkey container restart too —
+        # restart persistence is then genuinely end-to-end testable.
+        command: ['valkey-server', '--appendonly', 'yes']
+        volumes:
+            - arpg-valkey-data:/data
         restart: unless-stopped
 
     arpg-web:
@@ -66,3 +83,4 @@ services:
 
 volumes:
     arpg-web-node-modules:
+    arpg-valkey-data:

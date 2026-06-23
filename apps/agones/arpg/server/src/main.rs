@@ -79,6 +79,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = game::config();
     let map = game::walkable_map();
 
+    // Durable store for player-placed env objects (campfires), keyed per world
+    // seed. Load the prior snapshot so they survive a restart; wire a channel the
+    // sim pushes every change through, drained by an async writer below.
+    let env_key = format!("arpg:env:{seed}");
+    let restored_env = db::load_persisted_env(&env_key).await;
+    if !restored_env.is_empty() {
+        tracing::info!(count = restored_env.len(), "restored placed env objects");
+    }
+    let (env_tx, mut env_rx) = mpsc::unbounded_channel::<Vec<simgrid::PersistedEnvObject>>();
+
     let sim_handle = tokio::task::spawn_blocking(move || {
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_time()
@@ -98,11 +108,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(item_db);
         app.insert_resource(game::stairs());
         app.insert_resource(game::deployables());
+        app.insert_resource(simgrid::PersistedEnvLog(restored_env));
+        app.insert_resource(simgrid::EnvPersistSink(Some(env_tx)));
         app.add_systems(
             bevy::prelude::Update,
             (game::spawn_world, game::stream_predators).in_set(simgrid::SimSet::Spawn),
         );
         rt.block_on(run_sim_loop(app));
+    });
+
+    // Drain placed-object snapshots from the sim and write them to the durable
+    // store. Best-effort: a write failure is logged inside the db layer and the
+    // next change overwrites it.
+    let env_writer = tokio::spawn(async move {
+        while let Some(snapshot) = env_rx.recv().await {
+            db::save_persisted_env(&env_key, &snapshot).await;
+        }
     });
 
     let router = simgrid::router(state);
@@ -120,6 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let _ = tokio::time::timeout(std::time::Duration::from_secs(1), agones::shutdown()).await;
     agones_handle.abort();
+    env_writer.abort();
     drop(sim_handle);
     Ok(())
 }
