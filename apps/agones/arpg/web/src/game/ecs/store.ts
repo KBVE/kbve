@@ -7,6 +7,7 @@ import {
 	queryInRange,
 	query,
 	type World,
+	type StatusView,
 } from '@kbve/laser';
 import {
 	Position,
@@ -31,19 +32,24 @@ export interface SpawnData {
 	hostile: boolean;
 	hp: number;
 	maxHp: number;
+	effects?: StatusView[];
 }
 
 export interface UpdateData {
 	tile?: { x: number; y: number };
 	hp?: number;
 	maxHp?: number;
+	effects?: StatusView[];
 }
+
+const NO_EFFECTS: readonly StatusView[] = [];
 
 export class EntityStore<R> {
 	readonly world: World = createWorld();
 	private toEid = new Map<number, number>();
 	private toServer = new Map<number, number>();
 	private sideRefs = new SideMap<R>();
+	private effectsMap = new Map<number, StatusView[]>();
 
 	private tagFor(cat: EntityCat): Record<string, never> {
 		return cat === 'player'

@@ -85,7 +85,7 @@ export interface PlayerView {
 	connected: boolean;
 }
 
-export type StatusKind = 'Poison' | 'Regen' | 'Haste';
+export type StatusKind = 'Poison' | 'Regen' | 'Haste' | 'Burn';
 
 export interface StatusView {
 	kind: StatusKind;
