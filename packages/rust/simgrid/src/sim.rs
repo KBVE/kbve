@@ -52,6 +52,9 @@ pub struct SimConfig {
     /// Hostiles won't target players within this Chebyshev distance of
     /// `spawn` — a safe starting town. 0 disables the safe zone.
     pub safe_radius: i32,
+    /// Items granted to a brand-new player (no saved state). Returning players
+    /// keep their persisted inventory instead.
+    pub starting_inventory: Vec<(String, u32)>,
 }
 
 impl Default for SimConfig {
@@ -63,6 +66,7 @@ impl Default for SimConfig {
             player_attack: 5,
             spawn: Tile::new(0, 0),
             ticks_per_tile: 4,
+            starting_inventory: Vec::new(),
         }
     }
 }
@@ -721,7 +725,9 @@ fn sync_roster(
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let armor = saved.as_ref().and_then(|s| s.armor.clone());
         let inventory = Inventory {
-            slots: saved.map(|s| s.slots).unwrap_or_default(),
+            slots: saved
+                .map(|s| s.slots)
+                .unwrap_or_else(|| config.starting_inventory.clone()),
         };
         if !inventory.slots.is_empty() {
             send_inventory(&bcast, *slot, &inventory);
