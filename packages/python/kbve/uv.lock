@@ -449,6 +449,7 @@ dependencies = [
     { name = "grpcio" },
     { name = "protobuf" },
     { name = "pydantic" },
+    { name = "pyyaml" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -472,6 +473,7 @@ requires-dist = [
     { name = "grpcio", specifier = ">=1.62,<2.0" },
     { name = "protobuf", specifier = ">=4.25,<6.0" },
     { name = "pydantic", specifier = ">=1.10,<3.0" },
+    { name = "pyyaml", specifier = ">=6.0,<7.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32,<1.0" },
 ]
 
