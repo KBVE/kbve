@@ -64,6 +64,7 @@ gameservers:
         - factorio
         - cryptothrone
         - nexus-defense
+        - arpg
 
     # Port range for game server host ports.
     # Capped at 7900 to avoid MetalLB speaker memberlist port (7946).

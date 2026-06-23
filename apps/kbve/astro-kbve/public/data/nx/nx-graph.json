@@ -14009,6 +14009,7 @@
               "options": {
                 "commands": [
                   "nx run arpg:web-test",
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs arpg pull --include='apps/agones/arpg/web/public/assets/arcade/arpg/**')",
                   "nx run arpg:container-web",
                   "nx run arpg-e2e:e2e:cdn"
                 ],

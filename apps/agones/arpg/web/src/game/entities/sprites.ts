@@ -78,6 +78,7 @@ export interface EntityRefs {
 	shadow?: Phaser.GameObjects.Sprite;
 	nameplate?: Phaser.GameObjects.Text;
 	hpBar?: Phaser.GameObjects.Graphics;
+	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
 }
 
