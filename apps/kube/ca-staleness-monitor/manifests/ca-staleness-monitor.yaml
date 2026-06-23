@@ -1,24 +1,3 @@
-# Cluster-wide detection of pods with stale Kubernetes service-account CA.
-#
-# When the cluster CA is rotated (Talos `talosctl rotate-certificates`
-# cycle), pods that started before the rotation still have the old CA
-# baked into their in-memory HTTP clients. They can no longer verify the
-# API server's new serving cert and fail with `x509: certificate signed
-# by unknown authority`. The failure cascades silently — Multus CNI
-# breaks new pod scheduling, ingress-nginx stops reading Ingress rules,
-# cert-manager can't issue certs, ArgoCD freezes mid-sync, and so on.
-#
-# This CronJob runs every 15 minutes, compares the current CA cert's
-# `notBefore` against each pod's `creationTimestamp`, and emits one
-# structured JSON log line per stale pod. Vector already ingests pod
-# stdout cluster-wide and ships it to ClickHouse; a Grafana alert on
-# `event = "stale_ca_pod"` closes the loop.
-#
-# Phase 1 of the CA-rotation remediation story: detect only. Zero write
-# access anywhere in the cluster — this job cannot modify or restart
-# anything. Phase 2 adds opt-in remediation with a separate controller
-# and RBAC.
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -38,17 +17,28 @@ metadata:
         app.kubernetes.io/component: cluster-ops
         app.kubernetes.io/managed-by: argocd
 rules:
-    - apiGroups: ['']
-      resources: ['pods']
-      verbs: ['get', 'list']
-    - apiGroups: ['']
-      resources: ['configmaps']
-      verbs: ['get']
-      resourceNames: ['kube-root-ca.crt']
-    # Read ArgoCD Applications to detect stuck syncs (>1h in Running).
-    - apiGroups: ['argoproj.io']
-      resources: ['applications']
-      verbs: ['get', 'list']
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - get
+          - list
+    - apiGroups:
+          - ''
+      resources:
+          - configmaps
+      verbs:
+          - get
+      resourceNames:
+          - kube-root-ca.crt
+    - apiGroups:
+          - argoproj.io
+      resources:
+          - applications
+      verbs:
+          - get
+          - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -76,6 +66,9 @@ metadata:
         app.kubernetes.io/name: ca-staleness-monitor
         app.kubernetes.io/component: cluster-ops
         app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     schedule: '*/15 * * * *'
     concurrencyPolicy: Forbid
@@ -108,12 +101,6 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: scan
-                          # alpine/k8s bundles kubectl + openssl + jq, all
-                          # needed to parse the CA cert's notBefore and
-                          # cross-reference against pod creation times.
-                          # Pinned by digest in Phase 2 once we trust the
-                          # signal; for now, tag pin is acceptable for a
-                          # read-only monitor.
                           image: alpine/k8s:1.33.0
                           imagePullPolicy: IfNotPresent
                           securityContext:
@@ -140,110 +127,64 @@ spec:
                           command:
                               - /bin/bash
                               - -c
-                              - |
-                                  set -euo pipefail
-
-                                  # Parse the current cluster CA cert's notBefore.
-                                  # Any pod older than this value was started against
-                                  # a previous CA and has a stale in-memory client.
-                                  CA_PEM=$(kubectl get configmap kube-root-ca.crt -n kube-system -o jsonpath='{.data.ca\.crt}')
-                                  CA_NOT_BEFORE=$(printf '%s' "${CA_PEM}" | openssl x509 -noout -startdate | cut -d= -f2)
-                                  CA_EPOCH=$(date -u -d "${CA_NOT_BEFORE}" +%s)
-                                  NOW=$(date -u +%s)
-                                  CA_AGE_S=$((NOW - CA_EPOCH))
-                                  SCAN_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-                                  STALE_COUNT=0
-                                  TOTAL_COUNT=0
-                                  SKIPPED_COUNT=0
-
-                                  # Single pod list call, TSV-delimited for safe parsing.
-                                  # Pipe '|' is safe: pod/namespace/SA names can't contain it.
-                                  PODS=$(kubectl get pods --all-namespaces \
-                                      -o jsonpath='{range .items[*]}{.metadata.namespace}|{.metadata.name}|{.status.phase}|{.metadata.creationTimestamp}|{.spec.serviceAccountName}|{.spec.automountServiceAccountToken}{"\n"}{end}' \
-                                      2>/dev/null || echo "")
-
-                                  while IFS='|' read -r NS NAME PHASE CREATED SA AUTOMOUNT; do
-                                      [ -z "${NAME}" ] && continue
-                                      TOTAL_COUNT=$((TOTAL_COUNT + 1))
-
-                                      # Only Running pods matter; Completed/Failed
-                                      # pods won't try to hit the API again.
-                                      if [ "${PHASE}" != "Running" ]; then
-                                          SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
-                                          continue
-                                      fi
-
-                                      # automountServiceAccountToken defaults to true
-                                      # when unset, so empty string = still mounted.
-                                      if [ "${AUTOMOUNT}" = "false" ]; then
-                                          SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
-                                          continue
-                                      fi
-
-                                      CREATED_EPOCH=$(date -u -d "${CREATED}" +%s 2>/dev/null || echo 0)
-                                      [ "${CREATED_EPOCH}" = "0" ] && continue
-
-                                      if [ "${CREATED_EPOCH}" -lt "${CA_EPOCH}" ]; then
-                                          POD_AGE_S=$((NOW - CREATED_EPOCH))
-                                          STALENESS_S=$((CA_EPOCH - CREATED_EPOCH))
-                                          jq -cn \
-                                              --arg ts "${SCAN_TS}" \
-                                              --arg ns "${NS}" \
-                                              --arg pod "${NAME}" \
-                                              --arg sa "${SA:-default}" \
-                                              --argjson pod_age "${POD_AGE_S}" \
-                                              --argjson ca_age "${CA_AGE_S}" \
-                                              --argjson staleness "${STALENESS_S}" \
-                                              '{level:"warn",component:"ca-staleness-monitor",event:"stale_ca_pod",scan_ts:$ts,namespace:$ns,pod:$pod,service_account:$sa,pod_age_seconds:$pod_age,ca_age_seconds:$ca_age,staleness_seconds:$staleness,recommendation:"kubectl rollout restart the owning Deployment/DaemonSet"}'
-                                          STALE_COUNT=$((STALE_COUNT + 1))
-                                      fi
-                                  done <<< "${PODS}"
-
-                                  jq -cn \
-                                      --arg ts "${SCAN_TS}" \
-                                      --arg not_before "${CA_NOT_BEFORE}" \
-                                      --argjson stale "${STALE_COUNT}" \
-                                      --argjson total "${TOTAL_COUNT}" \
-                                      --argjson skipped "${SKIPPED_COUNT}" \
-                                      --argjson ca_age "${CA_AGE_S}" \
-                                      '{level:"info",component:"ca-staleness-monitor",event:"ca_scan_complete",scan_ts:$ts,ca_not_before:$not_before,ca_age_seconds:$ca_age,stale_pods:$stale,total_pods:$total,skipped_pods:$skipped}'
-
-                                  # ── ArgoCD sync stall detection ────────────────
-                                  # Any Application stuck in a Running sync phase
-                                  # for over 1 hour is likely deadlocked (health
-                                  # check wait on a resource that will never heal).
-                                  STUCK_THRESHOLD=3600
-                                  STUCK_COUNT=0
-
-                                  APPS=$(kubectl get applications.argoproj.io -n argocd \
-                                      -o jsonpath='{range .items[*]}{.metadata.name}|{.status.operationState.phase}|{.status.operationState.startedAt}|{.status.sync.status}|{.status.operationState.message}{"\n"}{end}' \
-                                      2>/dev/null || echo "")
-
-                                  while IFS='|' read -r APP_NAME PHASE STARTED SYNC_STATUS MSG; do
-                                      [ -z "${APP_NAME}" ] && continue
-                                      [ "${PHASE}" != "Running" ] && continue
-
-                                      STARTED_EPOCH=$(date -u -d "${STARTED}" +%s 2>/dev/null || echo 0)
-                                      [ "${STARTED_EPOCH}" = "0" ] && continue
-
-                                      ELAPSED=$((NOW - STARTED_EPOCH))
-                                      if [ "${ELAPSED}" -ge "${STUCK_THRESHOLD}" ]; then
-                                          jq -cn \
-                                              --arg ts "${SCAN_TS}" \
-                                              --arg app "${APP_NAME}" \
-                                              --arg sync "${SYNC_STATUS}" \
-                                              --arg msg "${MSG}" \
-                                              --argjson elapsed "${ELAPSED}" \
-                                              '{level:"warn",component:"ca-staleness-monitor",event:"argocd_sync_stuck",scan_ts:$ts,application:$app,sync_status:$sync,elapsed_seconds:$elapsed,blocking_message:$msg,recommendation:"Terminate the stuck operation and investigate the blocking resource"}'
-                                          STUCK_COUNT=$((STUCK_COUNT + 1))
-                                      fi
-                                  done <<< "${APPS}"
-
-                                  jq -cn \
-                                      --arg ts "${SCAN_TS}" \
-                                      --argjson stuck "${STUCK_COUNT}" \
-                                      '{level:"info",component:"ca-staleness-monitor",event:"argocd_scan_complete",scan_ts:$ts,stuck_syncs:$stuck}'
+                              - "set -euo pipefail\n\n# Parse the current cluster CA cert's notBefore.\n\
+                                # Any pod older than this value was started against\n# a previous CA\
+                                \ and has a stale in-memory client.\nCA_PEM=$(kubectl get configmap\
+                                \ kube-root-ca.crt -n kube-system -o jsonpath='{.data.ca\\.crt}')\n\
+                                CA_NOT_BEFORE=$(printf '%s' \"${CA_PEM}\" | openssl x509 -noout -startdate\
+                                \ | cut -d= -f2)\nCA_EPOCH=$(date -u -d \"${CA_NOT_BEFORE}\" +%s)\n\
+                                NOW=$(date -u +%s)\nCA_AGE_S=$((NOW - CA_EPOCH))\nSCAN_TS=$(date -u\
+                                \ +%Y-%m-%dT%H:%M:%SZ)\n\nSTALE_COUNT=0\nTOTAL_COUNT=0\nSKIPPED_COUNT=0\n\
+                                \n# Single pod list call, TSV-delimited for safe parsing.\n# Pipe '|'\
+                                \ is safe: pod/namespace/SA names can't contain it.\nPODS=$(kubectl\
+                                \ get pods --all-namespaces \\\n    -o jsonpath='{range .items[*]}{.metadata.namespace}|{.metadata.name}|{.status.phase}|{.metadata.creationTimestamp}|{.spec.serviceAccountName}|{.spec.automountServiceAccountToken}{\"\
+                                \\n\"}{end}' \\\n    2>/dev/null || echo \"\")\n\nwhile IFS='|' read\
+                                \ -r NS NAME PHASE CREATED SA AUTOMOUNT; do\n    [ -z \"${NAME}\" ]\
+                                \ && continue\n    TOTAL_COUNT=$((TOTAL_COUNT + 1))\n\n    # Only Running\
+                                \ pods matter; Completed/Failed\n    # pods won't try to hit the API\
+                                \ again.\n    if [ \"${PHASE}\" != \"Running\" ]; then\n        SKIPPED_COUNT=$((SKIPPED_COUNT\
+                                \ + 1))\n        continue\n    fi\n\n    # automountServiceAccountToken\
+                                \ defaults to true\n    # when unset, so empty string = still mounted.\n\
+                                \    if [ \"${AUTOMOUNT}\" = \"false\" ]; then\n        SKIPPED_COUNT=$((SKIPPED_COUNT\
+                                \ + 1))\n        continue\n    fi\n\n    CREATED_EPOCH=$(date -u -d\
+                                \ \"${CREATED}\" +%s 2>/dev/null || echo 0)\n    [ \"${CREATED_EPOCH}\"\
+                                \ = \"0\" ] && continue\n\n    if [ \"${CREATED_EPOCH}\" -lt \"${CA_EPOCH}\"\
+                                \ ]; then\n        POD_AGE_S=$((NOW - CREATED_EPOCH))\n        STALENESS_S=$((CA_EPOCH\
+                                \ - CREATED_EPOCH))\n        jq -cn \\\n            --arg ts \"${SCAN_TS}\"\
+                                \ \\\n            --arg ns \"${NS}\" \\\n            --arg pod \"${NAME}\"\
+                                \ \\\n            --arg sa \"${SA:-default}\" \\\n            --argjson\
+                                \ pod_age \"${POD_AGE_S}\" \\\n            --argjson ca_age \"${CA_AGE_S}\"\
+                                \ \\\n            --argjson staleness \"${STALENESS_S}\" \\\n      \
+                                \      '{level:\"warn\",component:\"ca-staleness-monitor\",event:\"\
+                                stale_ca_pod\",scan_ts:$ts,namespace:$ns,pod:$pod,service_account:$sa,pod_age_seconds:$pod_age,ca_age_seconds:$ca_age,staleness_seconds:$staleness,recommendation:\"\
+                                kubectl rollout restart the owning Deployment/DaemonSet\"}'\n      \
+                                \  STALE_COUNT=$((STALE_COUNT + 1))\n    fi\ndone <<< \"${PODS}\"\n\n\
+                                jq -cn \\\n    --arg ts \"${SCAN_TS}\" \\\n    --arg not_before \"${CA_NOT_BEFORE}\"\
+                                \ \\\n    --argjson stale \"${STALE_COUNT}\" \\\n    --argjson total\
+                                \ \"${TOTAL_COUNT}\" \\\n    --argjson skipped \"${SKIPPED_COUNT}\"\
+                                \ \\\n    --argjson ca_age \"${CA_AGE_S}\" \\\n    '{level:\"info\"\
+                                ,component:\"ca-staleness-monitor\",event:\"ca_scan_complete\",scan_ts:$ts,ca_not_before:$not_before,ca_age_seconds:$ca_age,stale_pods:$stale,total_pods:$total,skipped_pods:$skipped}'\n\
+                                \n# ── ArgoCD sync stall detection ────────────────\n# Any Application\
+                                \ stuck in a Running sync phase\n# for over 1 hour is likely deadlocked\
+                                \ (health\n# check wait on a resource that will never heal).\nSTUCK_THRESHOLD=3600\n\
+                                STUCK_COUNT=0\n\nAPPS=$(kubectl get applications.argoproj.io -n argocd\
+                                \ \\\n    -o jsonpath='{range .items[*]}{.metadata.name}|{.status.operationState.phase}|{.status.operationState.startedAt}|{.status.sync.status}|{.status.operationState.message}{\"\
+                                \\n\"}{end}' \\\n    2>/dev/null || echo \"\")\n\nwhile IFS='|' read\
+                                \ -r APP_NAME PHASE STARTED SYNC_STATUS MSG; do\n    [ -z \"${APP_NAME}\"\
+                                \ ] && continue\n    [ \"${PHASE}\" != \"Running\" ] && continue\n\n\
+                                \    STARTED_EPOCH=$(date -u -d \"${STARTED}\" +%s 2>/dev/null || echo\
+                                \ 0)\n    [ \"${STARTED_EPOCH}\" = \"0\" ] && continue\n\n    ELAPSED=$((NOW\
+                                \ - STARTED_EPOCH))\n    if [ \"${ELAPSED}\" -ge \"${STUCK_THRESHOLD}\"\
+                                \ ]; then\n        jq -cn \\\n            --arg ts \"${SCAN_TS}\" \\\
+                                \n            --arg app \"${APP_NAME}\" \\\n            --arg sync \"\
+                                ${SYNC_STATUS}\" \\\n            --arg msg \"${MSG}\" \\\n         \
+                                \   --argjson elapsed \"${ELAPSED}\" \\\n            '{level:\"warn\"\
+                                ,component:\"ca-staleness-monitor\",event:\"argocd_sync_stuck\",scan_ts:$ts,application:$app,sync_status:$sync,elapsed_seconds:$elapsed,blocking_message:$msg,recommendation:\"\
+                                Terminate the stuck operation and investigate the blocking resource\"\
+                                }'\n        STUCK_COUNT=$((STUCK_COUNT + 1))\n    fi\ndone <<< \"${APPS}\"\
+                                \n\njq -cn \\\n    --arg ts \"${SCAN_TS}\" \\\n    --argjson stuck \"\
+                                ${STUCK_COUNT}\" \\\n    '{level:\"info\",component:\"ca-staleness-monitor\"\
+                                ,event:\"argocd_scan_complete\",scan_ts:$ts,stuck_syncs:$stuck}'\n"
                     volumes:
                         - name: tmp
                           emptyDir: {}

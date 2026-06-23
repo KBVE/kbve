@@ -2,210 +2,97 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
     name: argocd-cm
+    labels:
+        kbve.com/category: infrastructure
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
     accounts.admin: apiKey, login
-    resource.customizations.health.cert-manager.io_Certificate: |
-        hs = {}
-        if obj.status and obj.status.conditions then
-          for _, c in ipairs(obj.status.conditions) do
-            if c.type == "Ready" then
-              if c.status == "True" then
-                hs.status = "Healthy"
-                hs.message = c.message or "Certificate is Ready"
-                return hs
-              elseif c.status == "False" then
-                hs.status = "Degraded"
-                hs.message = c.message or "Certificate Ready=False"
-                return hs
-              end
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for Ready=True"
-        return hs
-    resource.customizations.health.external-secrets.io_ExternalSecret: |
-        hs = {}
-        if obj.status and obj.status.conditions then
-          for _, c in ipairs(obj.status.conditions) do
-            if c.type == "Ready" then
-              if c.status == "True" then
-                hs.status = "Healthy"
-                hs.message = c.reason or "Secret synced"
-                return hs
-              elseif c.status == "False" then
-                hs.status = "Degraded"
-                hs.message = c.message or "Sync failed"
-                return hs
-              end
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for sync"
-        return hs
-    resource.customizations.health.external-secrets.io_SecretStore: |
-        hs = {}
-        if obj.status and obj.status.conditions then
-          for _, c in ipairs(obj.status.conditions) do
-            if c.type == "Ready" then
-              if c.status == "True" then
-                hs.status = "Healthy"
-                hs.message = c.reason or "Store valid"
-                return hs
-              elseif c.status == "False" then
-                hs.status = "Degraded"
-                hs.message = c.message or "Store invalid"
-                return hs
-              end
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Validating store"
-        return hs
-    resource.customizations.health.keda.sh_ScaledObject: |
-        hs = {}
-        if obj.status and obj.status.conditions then
-          for _, c in ipairs(obj.status.conditions) do
-            if c.type == "Ready" then
-              if c.status == "True" then
-                hs.status = "Healthy"
-                hs.message = c.message or "ScaledObject ready"
-                return hs
-              elseif c.status == "False" then
-                hs.status = "Degraded"
-                hs.message = c.message or "ScaledObject not ready"
-                return hs
-              end
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for ready"
-        return hs
-    resource.customizations.health.keda.sh_ScaledJob: |
-        hs = {}
-        if obj.status and obj.status.conditions then
-          for _, c in ipairs(obj.status.conditions) do
-            if c.type == "Ready" then
-              if c.status == "True" then
-                hs.status = "Healthy"
-                hs.message = c.message or "ScaledJob ready"
-                return hs
-              elseif c.status == "False" then
-                hs.status = "Degraded"
-                hs.message = c.message or "ScaledJob not ready"
-                return hs
-              end
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for ready"
-        return hs
-    resource.customizations.health.actions.github.com_AutoscalingRunnerSet: |
-        hs = {}
-        if obj.status then
-          if obj.status.currentRunners ~= nil then
-            hs.status = "Healthy"
-            hs.message = "Runners: " .. (obj.status.currentRunners or 0)
-            return hs
-          end
-        end
-        hs.status = "Healthy"
-        hs.message = "Runner set configured"
-        return hs
-    # LoadBalancer Services with a pending external IP must not block
-    # ArgoCD sync completion. Return Healthy (not Progressing) because
-    # ArgoCD waits for Progressing→Healthy before completing a sync,
-    # which deadlocks PruneLast when the Service is being removed.
-    resource.customizations.health.Service: |
-        hs = {}
-        if obj.spec.type == "LoadBalancer" then
-          if obj.status and obj.status.loadBalancer and obj.status.loadBalancer.ingress then
-            local ingress = obj.status.loadBalancer.ingress
-            if #ingress > 0 and (ingress[1].ip or ingress[1].hostname) then
-              hs.status = "Healthy"
-              hs.message = "LoadBalancer IP assigned"
-              return hs
-            end
-          end
-          hs.status = "Healthy"
-          hs.message = "LoadBalancer IP pending (non-blocking)"
-          return hs
-        end
-        hs.status = "Healthy"
-        return hs
-    # KubeVirt VirtualMachine: Manual/Halted runStrategy + Stopped is the
-    # steady state for builder VMs that KEDA boots on demand. Default Argo
-    # health treats any non-Running VM as Progressing forever, which leaves
-    # the angelscript app permanently STALLED. Mirror printableStatus +
-    # runStrategy so intentionally-off VMs report Healthy.
-    resource.customizations.health.kubevirt.io_VirtualMachine: |
-        hs = {}
-        local status = obj.status or {}
-        local printable = status.printableStatus or ""
-        local runStrategy = (obj.spec or {}).runStrategy or ""
-        if printable == "Running" then
-          hs.status = "Healthy"
-          hs.message = "VM running"
-          return hs
-        end
-        if printable == "Stopped" then
-          if runStrategy == "Manual" or runStrategy == "Halted" then
-            hs.status = "Healthy"
-            hs.message = "VM intentionally stopped (" .. runStrategy .. ")"
-            return hs
-          end
-          hs.status = "Degraded"
-          hs.message = "VM stopped but runStrategy=" .. runStrategy
-          return hs
-        end
-        if printable == "Paused" then
-          hs.status = "Healthy"
-          hs.message = "VM paused"
-          return hs
-        end
-        if printable == "Starting" or printable == "Stopping"
-           or printable == "Migrating" or printable == "Provisioning"
-           or printable == "WaitingForVolumeBinding" or printable == "Terminating" then
-          hs.status = "Progressing"
-          hs.message = "VM " .. string.lower(printable)
-          return hs
-        end
-        if string.find(printable, "Error") or printable == "CrashLoopBackOff"
-           or printable == "Unknown" then
-          hs.status = "Degraded"
-          hs.message = "VM " .. printable
-          return hs
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for printableStatus"
-        return hs
-    resource.customizations.health.kubevirt.io_VirtualMachineInstance: |
-        hs = {}
-        local phase = (obj.status or {}).phase or ""
-        if phase == "Running" then
-          hs.status = "Healthy"
-          hs.message = "VMI running"
-          return hs
-        end
-        if phase == "Succeeded" then
-          hs.status = "Healthy"
-          hs.message = "VMI terminated cleanly"
-          return hs
-        end
-        if phase == "Failed" or phase == "Unknown" then
-          hs.status = "Degraded"
-          hs.message = "VMI " .. phase
-          return hs
-        end
-        if phase == "Pending" or phase == "Scheduling" or phase == "Scheduled" then
-          hs.status = "Progressing"
-          hs.message = "VMI " .. phase
-          return hs
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for phase"
-        return hs
+    resource.customizations.health.cert-manager.io_Certificate:
+        "hs = {}\nif obj.status\
+        \ and obj.status.conditions then\n  for _, c in ipairs(obj.status.conditions)\
+        \ do\n    if c.type == \"Ready\" then\n      if c.status == \"True\" then\n  \
+        \      hs.status = \"Healthy\"\n        hs.message = c.message or \"Certificate\
+        \ is Ready\"\n        return hs\n      elseif c.status == \"False\" then\n   \
+        \     hs.status = \"Degraded\"\n        hs.message = c.message or \"Certificate\
+        \ Ready=False\"\n        return hs\n      end\n    end\n  end\nend\nhs.status\
+        \ = \"Progressing\"\nhs.message = \"Waiting for Ready=True\"\nreturn hs\n"
+    resource.customizations.health.external-secrets.io_ExternalSecret:
+        "hs = {}\nif\
+        \ obj.status and obj.status.conditions then\n  for _, c in ipairs(obj.status.conditions)\
+        \ do\n    if c.type == \"Ready\" then\n      if c.status == \"True\" then\n  \
+        \      hs.status = \"Healthy\"\n        hs.message = c.reason or \"Secret synced\"\
+        \n        return hs\n      elseif c.status == \"False\" then\n        hs.status\
+        \ = \"Degraded\"\n        hs.message = c.message or \"Sync failed\"\n        return\
+        \ hs\n      end\n    end\n  end\nend\nhs.status = \"Progressing\"\nhs.message\
+        \ = \"Waiting for sync\"\nreturn hs\n"
+    resource.customizations.health.external-secrets.io_SecretStore:
+        "hs = {}\nif obj.status\
+        \ and obj.status.conditions then\n  for _, c in ipairs(obj.status.conditions)\
+        \ do\n    if c.type == \"Ready\" then\n      if c.status == \"True\" then\n  \
+        \      hs.status = \"Healthy\"\n        hs.message = c.reason or \"Store valid\"\
+        \n        return hs\n      elseif c.status == \"False\" then\n        hs.status\
+        \ = \"Degraded\"\n        hs.message = c.message or \"Store invalid\"\n      \
+        \  return hs\n      end\n    end\n  end\nend\nhs.status = \"Progressing\"\nhs.message\
+        \ = \"Validating store\"\nreturn hs\n"
+    resource.customizations.health.keda.sh_ScaledObject:
+        "hs = {}\nif obj.status and\
+        \ obj.status.conditions then\n  for _, c in ipairs(obj.status.conditions) do\n\
+        \    if c.type == \"Ready\" then\n      if c.status == \"True\" then\n       \
+        \ hs.status = \"Healthy\"\n        hs.message = c.message or \"ScaledObject ready\"\
+        \n        return hs\n      elseif c.status == \"False\" then\n        hs.status\
+        \ = \"Degraded\"\n        hs.message = c.message or \"ScaledObject not ready\"\
+        \n        return hs\n      end\n    end\n  end\nend\nhs.status = \"Progressing\"\
+        \nhs.message = \"Waiting for ready\"\nreturn hs\n"
+    resource.customizations.health.keda.sh_ScaledJob:
+        "hs = {}\nif obj.status and obj.status.conditions\
+        \ then\n  for _, c in ipairs(obj.status.conditions) do\n    if c.type == \"Ready\"\
+        \ then\n      if c.status == \"True\" then\n        hs.status = \"Healthy\"\n\
+        \        hs.message = c.message or \"ScaledJob ready\"\n        return hs\n  \
+        \    elseif c.status == \"False\" then\n        hs.status = \"Degraded\"\n   \
+        \     hs.message = c.message or \"ScaledJob not ready\"\n        return hs\n \
+        \     end\n    end\n  end\nend\nhs.status = \"Progressing\"\nhs.message = \"Waiting\
+        \ for ready\"\nreturn hs\n"
+    resource.customizations.health.actions.github.com_AutoscalingRunnerSet:
+        "hs = {}\n\
+        if obj.status then\n  if obj.status.currentRunners ~= nil then\n    hs.status\
+        \ = \"Healthy\"\n    hs.message = \"Runners: \" .. (obj.status.currentRunners\
+        \ or 0)\n    return hs\n  end\nend\nhs.status = \"Healthy\"\nhs.message = \"Runner\
+        \ set configured\"\nreturn hs\n"
+    resource.customizations.health.Service:
+        "hs = {}\nif obj.spec.type == \"LoadBalancer\"\
+        \ then\n  if obj.status and obj.status.loadBalancer and obj.status.loadBalancer.ingress\
+        \ then\n    local ingress = obj.status.loadBalancer.ingress\n    if #ingress >\
+        \ 0 and (ingress[1].ip or ingress[1].hostname) then\n      hs.status = \"Healthy\"\
+        \n      hs.message = \"LoadBalancer IP assigned\"\n      return hs\n    end\n\
+        \  end\n  hs.status = \"Healthy\"\n  hs.message = \"LoadBalancer IP pending (non-blocking)\"\
+        \n  return hs\nend\nhs.status = \"Healthy\"\nreturn hs\n"
+    resource.customizations.health.kubevirt.io_VirtualMachine:
+        "hs = {}\nlocal status\
+        \ = obj.status or {}\nlocal printable = status.printableStatus or \"\"\nlocal\
+        \ runStrategy = (obj.spec or {}).runStrategy or \"\"\nif printable == \"Running\"\
+        \ then\n  hs.status = \"Healthy\"\n  hs.message = \"VM running\"\n  return hs\n\
+        end\nif printable == \"Stopped\" then\n  if runStrategy == \"Manual\" or runStrategy\
+        \ == \"Halted\" then\n    hs.status = \"Healthy\"\n    hs.message = \"VM intentionally\
+        \ stopped (\" .. runStrategy .. \")\"\n    return hs\n  end\n  hs.status = \"\
+        Degraded\"\n  hs.message = \"VM stopped but runStrategy=\" .. runStrategy\n  return\
+        \ hs\nend\nif printable == \"Paused\" then\n  hs.status = \"Healthy\"\n  hs.message\
+        \ = \"VM paused\"\n  return hs\nend\nif printable == \"Starting\" or printable\
+        \ == \"Stopping\"\n   or printable == \"Migrating\" or printable == \"Provisioning\"\
+        \n   or printable == \"WaitingForVolumeBinding\" or printable == \"Terminating\"\
+        \ then\n  hs.status = \"Progressing\"\n  hs.message = \"VM \" .. string.lower(printable)\n\
+        \  return hs\nend\nif string.find(printable, \"Error\") or printable == \"CrashLoopBackOff\"\
+        \n   or printable == \"Unknown\" then\n  hs.status = \"Degraded\"\n  hs.message\
+        \ = \"VM \" .. printable\n  return hs\nend\nhs.status = \"Progressing\"\nhs.message\
+        \ = \"Waiting for printableStatus\"\nreturn hs\n"
+    resource.customizations.health.kubevirt.io_VirtualMachineInstance:
+        "hs = {}\nlocal\
+        \ phase = (obj.status or {}).phase or \"\"\nif phase == \"Running\" then\n  hs.status\
+        \ = \"Healthy\"\n  hs.message = \"VMI running\"\n  return hs\nend\nif phase ==\
+        \ \"Succeeded\" then\n  hs.status = \"Healthy\"\n  hs.message = \"VMI terminated\
+        \ cleanly\"\n  return hs\nend\nif phase == \"Failed\" or phase == \"Unknown\"\
+        \ then\n  hs.status = \"Degraded\"\n  hs.message = \"VMI \" .. phase\n  return\
+        \ hs\nend\nif phase == \"Pending\" or phase == \"Scheduling\" or phase == \"Scheduled\"\
+        \ then\n  hs.status = \"Progressing\"\n  hs.message = \"VMI \" .. phase\n  return\
+        \ hs\nend\nhs.status = \"Progressing\"\nhs.message = \"Waiting for phase\"\nreturn\
+        \ hs\n"
