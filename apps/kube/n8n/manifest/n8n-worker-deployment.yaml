@@ -43,7 +43,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: n8n-worker
-                  image: n8nio/n8n:2.9.4
+                  image: n8nio/n8n:2.27.3
                   imagePullPolicy: IfNotPresent
                   command: ['n8n', 'worker', '--concurrency=10']
                   ports:
@@ -182,7 +182,7 @@ spec:
                       failureThreshold: 3
                 # Task runner sidecar (executes Code node JS/Python)
                 - name: n8n-runner
-                  image: n8nio/runners:2.9.4
+                  image: n8nio/runners:2.27.3
                   imagePullPolicy: IfNotPresent
                   ports:
                       - name: launcher-health
