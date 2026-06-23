@@ -1968,6 +1968,36 @@ fn try_move(
     true
 }
 
+/// Queue a one-tile move by an arbitrary (dx,dy) step where each component is
+/// -1/0/1 — the 8-way counterpart to `try_move`. A diagonal step also requires
+/// both orthogonal neighbors to be open so mobs can't cut through wall corners.
+fn try_step(
+    dx: i32,
+    dy: i32,
+    map: &WalkableMap,
+    z: i32,
+    pos: &GridPos,
+    mv: &mut MoveTarget,
+) -> bool {
+    if mv.target.is_some() || (dx == 0 && dy == 0) {
+        return false;
+    }
+    let candidate = Tile::new(pos.tile.x + dx, pos.tile.y + dy);
+    if !map.is_walkable_z(z, candidate) {
+        return false;
+    }
+    if dx != 0
+        && dy != 0
+        && (!map.is_walkable_z(z, Tile::new(pos.tile.x + dx, pos.tile.y))
+            || !map.is_walkable_z(z, Tile::new(pos.tile.x, pos.tile.y + dy)))
+    {
+        return false;
+    }
+    mv.target = Some(candidate);
+    mv.progress = 0;
+    true
+}
+
 fn step_tile(tile: Tile, dir: Dir) -> Tile {
     let (dx, dy) = dir.delta();
     Tile::new(tile.x + dx, tile.y + dy)
@@ -2029,21 +2059,16 @@ fn roam_system(
         let z = floor.map(|f| f.0).unwrap_or(0);
         match roam.target {
             Some(dest) if dest != pos.tile => {
-                let dx = dest.x - pos.tile.x;
-                let dy = dest.y - pos.tile.y;
-                let horizontal = if dx > 0 { Dir::Right } else { Dir::Left };
-                let vertical = if dy > 0 { Dir::Down } else { Dir::Up };
-                let (primary, secondary) = if dx.abs() >= dy.abs() {
-                    (horizontal, if dy != 0 { vertical } else { horizontal })
-                } else {
-                    (vertical, if dx != 0 { horizontal } else { vertical })
-                };
-                pos.facing = primary.facing();
-                if !try_move(primary, &map, z, &pos, &mut mv, None) && secondary != primary {
-                    pos.facing = secondary.facing();
-                    try_move(secondary, &map, z, &pos, &mut mv, None);
-                }
-                // Both ways blocked — abandon this trip and dwell briefly.
+                // 8-way stepping: prefer the diagonal toward the target, then
+                // fall back to a single axis. Diagonal tile-steps give the
+                // client true diagonal deltas, so all 8 sheet facings surface.
+                let sx = (dest.x - pos.tile.x).signum();
+                let sy = (dest.y - pos.tile.y).signum();
+                pos.facing = facing_from_intent(sx as i8, sy as i8);
+                let _ = try_step(sx, sy, &map, z, &pos, &mut mv)
+                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv))
+                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv));
+                // Fully blocked — abandon this trip and dwell briefly.
                 if mv.target.is_none() {
                     roam.target = None;
                     roam.resume_tick = clock.tick.saturating_add(roam.dwell_min);
