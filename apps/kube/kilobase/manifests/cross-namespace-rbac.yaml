@@ -75,6 +75,9 @@ subjects:
       name: cryptothrone-external-secrets
       namespace: cryptothrone
     - kind: ServiceAccount
+      name: arpg-external-secrets
+      namespace: arpg
+    - kind: ServiceAccount
       name: firecracker-external-secrets
       namespace: firecracker
 ---
