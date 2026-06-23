@@ -200,7 +200,7 @@ jobs:
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
               run: |
                   SCOPE="${{ inputs.source_path }}"
-                  if [ -n "$SCOPE" ] && git lfs ls-files -- "$SCOPE" 2>/dev/null | grep -q .; then
+                  if [ -n "$SCOPE" ] && git lfs ls-files -I "$SCOPE/**" 2>/dev/null | grep -q .; then
                     echo "uses_lfs=true" >> "$GITHUB_OUTPUT"
                     echo "Forgejo LFS assets present under $SCOPE"
                   else
@@ -240,7 +240,7 @@ jobs:
                     [ -n "$prefix" ] || continue
                     case "$prefix" in
                       "$SCOPE"|"$SCOPE"/*)
-                        if git lfs ls-files -- "$prefix" 2>/dev/null | grep -q .; then
+                        if git lfs ls-files -I "$prefix/**" 2>/dev/null | grep -q .; then
                           echo "→ pulling $game LFS under $prefix"
                           ./kbve.sh -lfs "$game" pull --include="$prefix/**"
                           PREFIXES="$PREFIXES $prefix"
