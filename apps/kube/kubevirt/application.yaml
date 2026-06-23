@@ -1,7 +1,3 @@
-# KubeVirt namespace — operator is installed manually via:
-#   export RELEASE=$(curl https://storage.googleapis.com/kubevirt-prow/release/kubevirt/kubevirt/stable.txt)
-#   kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/${RELEASE}/kubevirt-operator.yaml
-# ArgoCD manages the namespace + KubeVirt CR (via kubevirt-cr app).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -9,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '1'
+        kbve.com/source-path: kube/kubevirt
+        kbve.com/manifest-path: apps/kube/kubevirt/manifests
+        kbve.com/application-file: kube/kubevirt/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: virtualization
+        kbve.com/stack: core
     finalizers:
         - resources-finalizer.argocd.argoproj.io
 spec:

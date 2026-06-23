@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: security-profiles-operator
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/security-profiles-operator
+        kbve.com/manifest-path: kube/security-profiles-operator
+        kbve.com/application-file: kube/security-profiles-operator/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: security
+        kbve.com/stack: core
 spec:
     project: default
     sources:

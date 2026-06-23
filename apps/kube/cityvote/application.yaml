@@ -1,24 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cityvote
-  namespace: argocd
+    name: cityvote
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/cityvote
+        kbve.com/manifest-path: apps/kube/cityvote/manifest
+        kbve.com/application-file: kube/cityvote/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/KBVE/kbve
-    targetRevision: HEAD
-    path: apps/kube/cityvote/manifest
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cityvote
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - RespectIgnoreDifferences=true
-    - Replace=false
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/cityvote/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: cityvote
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+            - RespectIgnoreDifferences=true
+            - Replace=false

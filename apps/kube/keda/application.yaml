@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: keda
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/keda
+        kbve.com/manifest-path: kube/keda
+        kbve.com/application-file: kube/keda/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: operator
+        kbve.com/stack: core
 spec:
     project: default
     sources:

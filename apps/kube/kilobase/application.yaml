@@ -6,6 +6,14 @@ metadata:
     labels:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: database
+    annotations:
+        kbve.com/source-path: kube/kilobase
+        kbve.com/manifest-path: apps/kube/kilobase/manifests
+        kbve.com/application-file: kube/kilobase/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
     project: default
     source:

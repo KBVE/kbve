@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: isometric
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/isometric
+        kbve.com/manifest-path: apps/kube/isometric/manifest
+        kbve.com/application-file: kube/isometric/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
     project: default
     source:

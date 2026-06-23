@@ -5,6 +5,14 @@ metadata:
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/firecracker
+        kbve.com/manifest-path: apps/kube/firecracker/manifests
+        kbve.com/application-file: kube/firecracker/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: virtualization
+        kbve.com/stack: core
 spec:
     project: default
     source:

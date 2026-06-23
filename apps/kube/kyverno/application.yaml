@@ -5,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '-1'
+        kbve.com/source-path: kube/kyverno
+        kbve.com/manifest-path: kube/kyverno
+        kbve.com/application-file: kube/kyverno/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: operator
+        kbve.com/stack: core
 spec:
     project: default
     source:
@@ -12,64 +19,30 @@ spec:
         chart: kyverno
         targetRevision: 3.8.0
         helm:
-            values: |
-                fullnameOverride: kyverno
-                admissionController:
-                    replicas: 2
-                    container:
-                        resources:
-                            limits: { cpu: 1000m, memory: 1Gi }
-                            requests: { cpu: 500m, memory: 256Mi }
-                    livenessProbe:
-                        timeoutSeconds: 10
-                        failureThreshold: 6
-                    readinessProbe:
-                        timeoutSeconds: 10
-                        failureThreshold: 10
-                backgroundController:
-                    replicas: 1
-                    container:
-                        resources:
-                            limits: { cpu: 500m, memory: 512Mi }
-                            requests: { cpu: 100m, memory: 128Mi }
-                cleanupController:
-                    replicas: 1
-                    container:
-                        resources:
-                            limits: { cpu: 500m, memory: 256Mi }
-                            requests: { cpu: 100m, memory: 128Mi }
-                reportsController:
-                    replicas: 1
-                    container:
-                        resources:
-                            limits: { cpu: 500m, memory: 512Mi }
-                            requests: { cpu: 100m, memory: 128Mi }
-                config:
-                    excludeKyvernoNamespace: true
-                    resourceFilters:
-                        - '[Event,*,*]'
-                        - '[Node,*,*]'
-                        - '[Node/*,*,*]'
-                        - '[APIService,*,*]'
-                        - '[APIService/*,*,*]'
-                        - '[TokenReview,*,*]'
-                        - '[SubjectAccessReview,*,*]'
-                        - '[SelfSubjectAccessReview,*,*]'
-                        - '[Binding,*,*]'
-                        - '[ReplicaSet,*,*]'
-                        - '[ReplicaSet/*,*,*]'
-                        - '[AdmissionReport,*,*]'
-                        - '[ClusterAdmissionReport,*,*]'
-                        - '[BackgroundScanReport,*,*]'
-                        - '[ClusterBackgroundScanReport,*,*]'
-                        - '[ClusterRole,*,system:*]'
-                        - '[ClusterRoleBinding,*,system:*]'
-                        - '[Role,*,system:*]'
-                        - '[RoleBinding,*,system:*]'
-                        - '[*,kube-system,*]'
-                        - '[*,kube-public,*]'
-                        - '[*,kube-node-lease,*]'
-                        - '[*,argocd,*]'
+            values:
+                "fullnameOverride: kyverno\nadmissionController:\n    replicas: 2\n\
+                \    container:\n        resources:\n            limits: { cpu: 1000m, memory:\
+                \ 1Gi }\n            requests: { cpu: 500m, memory: 256Mi }\n    livenessProbe:\n\
+                \        timeoutSeconds: 10\n        failureThreshold: 6\n    readinessProbe:\n\
+                \        timeoutSeconds: 10\n        failureThreshold: 10\nbackgroundController:\n\
+                \    replicas: 1\n    container:\n        resources:\n            limits:\
+                \ { cpu: 500m, memory: 512Mi }\n            requests: { cpu: 100m, memory:\
+                \ 128Mi }\ncleanupController:\n    replicas: 1\n    container:\n        resources:\n\
+                \            limits: { cpu: 500m, memory: 256Mi }\n            requests: {\
+                \ cpu: 100m, memory: 128Mi }\nreportsController:\n    replicas: 1\n    container:\n\
+                \        resources:\n            limits: { cpu: 500m, memory: 512Mi }\n  \
+                \          requests: { cpu: 100m, memory: 128Mi }\nconfig:\n    excludeKyvernoNamespace:\
+                \ true\n    resourceFilters:\n        - '[Event,*,*]'\n        - '[Node,*,*]'\n\
+                \        - '[Node/*,*,*]'\n        - '[APIService,*,*]'\n        - '[APIService/*,*,*]'\n\
+                \        - '[TokenReview,*,*]'\n        - '[SubjectAccessReview,*,*]'\n  \
+                \      - '[SelfSubjectAccessReview,*,*]'\n        - '[Binding,*,*]'\n    \
+                \    - '[ReplicaSet,*,*]'\n        - '[ReplicaSet/*,*,*]'\n        - '[AdmissionReport,*,*]'\n\
+                \        - '[ClusterAdmissionReport,*,*]'\n        - '[BackgroundScanReport,*,*]'\n\
+                \        - '[ClusterBackgroundScanReport,*,*]'\n        - '[ClusterRole,*,system:*]'\n\
+                \        - '[ClusterRoleBinding,*,system:*]'\n        - '[Role,*,system:*]'\n\
+                \        - '[RoleBinding,*,system:*]'\n        - '[*,kube-system,*]'\n   \
+                \     - '[*,kube-public,*]'\n        - '[*,kube-node-lease,*]'\n        -\
+                \ '[*,argocd,*]'\n"
     destination:
         server: https://kubernetes.default.svc
         namespace: kyverno

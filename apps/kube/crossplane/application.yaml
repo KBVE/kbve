@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: crossplane
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/crossplane
+        kbve.com/manifest-path: kube/crossplane
+        kbve.com/application-file: kube/crossplane/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: operator
+        kbve.com/stack: core
 spec:
     project: default
     sources:
