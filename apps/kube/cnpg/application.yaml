@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: cnpg-operator
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/cnpg
+        kbve.com/manifest-path: kube/cnpg
+        kbve.com/application-file: kube/cnpg/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: database
+        kbve.com/stack: core
 spec:
     project: default
     sources:
