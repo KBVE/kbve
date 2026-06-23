@@ -31,7 +31,7 @@ spec:
                 rollout-restart: '2026-06-13T16:30:00Z'
             labels:
                 app: kbve
-                version: '1.0.22'
+                version: '1.0.208'
         spec:
             serviceAccountName: kbve-app
             affinity:
@@ -45,7 +45,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.207
+                  image: ghcr.io/kbve/kbve:1.0.208
                   imagePullPolicy: Always
                   ports:
                       - name: http
