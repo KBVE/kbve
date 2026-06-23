@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: agones
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/agones
+        kbve.com/manifest-path: kube/agones
+        kbve.com/application-file: kube/agones/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
 spec:
     project: default
     sources:
@@ -20,8 +28,6 @@ spec:
         server: https://kubernetes.default.svc
         namespace: agones-system
     ignoreDifferences:
-        # Agones Helm generates TLS certs and webhook configs at install time.
-        # These are not in git and should not cause drift.
         - group: ''
           kind: Secret
           jsonPointers:
