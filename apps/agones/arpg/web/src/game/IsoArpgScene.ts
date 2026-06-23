@@ -94,9 +94,12 @@ import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
 	makeClassSprite,
+	makeCreatureSprite,
 	makeNameplate,
 	setClassPose,
+	setCreaturePose,
 	tickClassFacing,
+	tickCreatureFacing,
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
@@ -105,6 +108,12 @@ import {
 	registerClassAnims,
 	RANGER_CLASS,
 } from './entities/classes';
+import {
+	preloadCreature,
+	registerCreatureAnims,
+	resolveCreature,
+	APEX_PREDATOR,
+} from './entities/creatures';
 import {
 	preloadEnv,
 	registerEnvAnims,
@@ -278,6 +287,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	preload() {
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
+		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 	}
 
@@ -285,6 +295,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
+		registerCreatureAnims(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
 
 		this.drawGrid();
@@ -650,8 +661,16 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
 				let refs: EntityRefs;
+				const creatureSprite = isPlayerKind(this.kinds, e.kind)
+					? null
+					: makeCreatureSprite(this, this.kinds.ref(e.kind));
 				if (isPlayerKind(this.kinds, e.kind)) {
 					refs = this.makePlayerRefs(e.kind);
+				} else if (creatureSprite) {
+					refs = {
+						sprite: creatureSprite.sprite,
+						creature: creatureSprite.creature,
+					};
 				} else if (this.kinds.catName(e.kind) === 'env') {
 					const envSprite = makeEnvSprite(
 						this,
@@ -1378,6 +1397,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const [, , refs] of this.store.entries()) {
 			if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
 				tickClassFacing(refs.sprite, refs.cls);
+			} else if (
+				refs.creature &&
+				refs.sprite instanceof Phaser.GameObjects.Sprite
+			) {
+				tickCreatureFacing(refs.sprite, refs.creature);
 			}
 		}
 	}
@@ -1682,6 +1706,14 @@ export class IsoArpgScene extends Phaser.Scene {
 				{ dx: tile.x - from.x, dy: tile.y - from.y },
 				this,
 			);
+		} else if (
+			refs.creature &&
+			refs.sprite instanceof Phaser.GameObjects.Sprite
+		) {
+			setCreaturePose(refs.sprite, refs.creature, 'Walking', {
+				dx: tile.x - from.x,
+				dy: tile.y - from.y,
+			});
 		}
 
 		this.tweens.add({
@@ -1704,10 +1736,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * float-driven and settles itself in tickLocalMotion.
 	 */
 	private settleRemoteIdle(refs: EntityRefs) {
-		if (!refs.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
-			return;
-		if (refs.cls.state !== 'Run') return;
+		if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) return;
 		if (this.tweens.isTweening(refs.sprite)) return;
+		if (refs.creature) {
+			if (refs.creature.state !== 'Walking') return;
+			setCreaturePose(refs.sprite, refs.creature, 'Idle');
+			return;
+		}
+		if (!refs.cls) return;
+		if (refs.cls.state !== 'Run') return;
 		setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
 	}
 
@@ -1736,6 +1773,15 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.cls.state !== 'Death'
 			) {
 				setClassPose(refs.sprite, refs.cls, 'Death');
+			}
+
+			if (
+				refs.creature &&
+				refs.sprite instanceof Phaser.GameObjects.Sprite &&
+				hp <= 0 &&
+				refs.creature.state !== 'Dead'
+			) {
+				setCreaturePose(refs.sprite, refs.creature, 'Dead');
 			}
 
 			if (!refs.hpBar) continue;
