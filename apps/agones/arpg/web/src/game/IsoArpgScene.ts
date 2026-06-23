@@ -1653,10 +1653,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		return best;
 	}
 
-	/** Arrow hit-test: first non-self entity occupying the tile, else miss. */
+	/**
+	 * Arrow hit-test: first HOSTILE entity occupying the tile, else miss. Only
+	 * hostiles collide so the arrow flies through placed props (campfires),
+	 * ground loot, and friendly players instead of being consumed by them.
+	 */
 	private arrowHitTest(tx: number, ty: number) {
 		const hit = this.store.at(tx, ty, this.myEid);
-		if (!hit) return null;
+		if (!hit || !this.isHostileServer(hit.serverEid)) return null;
 		return {
 			serverEid: hit.serverEid,
 			x: hit.refs.sprite.x,
@@ -1747,7 +1751,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			}
 
 			if (!refs.hpBar) continue;
-			if (maxHp <= 0 || hp >= maxHp) {
+			// Hostiles always show a bar so the player gets combat feedback the
+			// moment a shot lands; friendlies only show one once they're hurt.
+			const hostile = this.isHostileServer(serverEid);
+			if (maxHp <= 0 || (!hostile && hp >= maxHp)) {
 				refs.hpBar.clear();
 				continue;
 			}
