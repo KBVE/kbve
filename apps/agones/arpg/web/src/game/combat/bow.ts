@@ -55,7 +55,6 @@ export function fireBow(
 	hitTest: ArrowHitTest,
 	onHit: (serverEid: number, dmg: number) => void,
 	onLoose?: () => void,
-	spawnLocalArrow = true,
 ): BowShot {
 	const facing = { dx: target.x - from.x, dy: target.y - from.y };
 
@@ -73,9 +72,7 @@ export function fireBow(
 		// fire time made the authoritative arrow appear mid-draw. A shot cancelled
 		// before release removes this timer, so no server shot fires either.
 		onLoose?.();
-		// Online the server's authoritative projectile event draws the arrow, so
-		// only spawn a local one offline — otherwise the shot shows two arrows.
-		if (spawnLocalArrow) spawnArrow(scene, from, target, hitTest, onHit);
+		spawnArrow(scene, from, target, hitTest, onHit);
 	});
 
 	const recoverTimer = scene.time.delayedCall(

@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import {
 	GameClient,
-	ACTION_ATTACK,
 	ACTION_SHOOT,
 	ACTION_PICKUP,
 	attachCameraZoom,
@@ -13,7 +12,6 @@ import {
 	type Snapshot,
 	type Welcome,
 	type CombatEvent,
-	type ProjectileEvent,
 	type FloorChangeEvent,
 	type Facing,
 	type InventorySync,
@@ -34,10 +32,7 @@ import {
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
-	DEPTH_PROJECTILE,
-	ARROW_SPEED,
 	ARROW_MAX_RANGE,
-	BOW_MUZZLE_HEIGHT,
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
@@ -728,7 +723,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
-		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 		client.on('inventory', (inv: InventorySync) => {
 			this.inventory = inv.items;
@@ -1085,32 +1079,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
 			flashEntity(this, refs.sprite);
 		}
-	}
-
-	/**
-	 * Server-authoritative arrow: the server fired a projectile, so fly the
-	 * visual from its origin to its endpoint. Online this replaces the local
-	 * tween (which only runs in offline localMode); damage rides the separate
-	 * Combat event.
-	 */
-	private onProjectile(p: ProjectileEvent) {
-		const a = worldToScreen(p.from.x, p.from.y);
-		a.y -= BOW_MUZZLE_HEIGHT;
-		const b = worldToScreen(p.to.x, p.to.y);
-		b.y -= BOW_MUZZLE_HEIGHT;
-		const arrow = this.add.rectangle(a.x, a.y, 16, 3, 0xfde68a);
-		arrow.setStrokeStyle(1, 0x78350f, 0.9);
-		arrow.setDepth(DEPTH_PROJECTILE);
-		arrow.setRotation(Math.atan2(b.y - a.y, b.x - a.x));
-		const dist = Math.hypot(b.x - a.x, b.y - a.y);
-		this.tweens.add({
-			targets: arrow,
-			x: b.x,
-			y: b.y,
-			duration: (dist / (ARROW_SPEED * TILE_W)) * 1000,
-			ease: 'Linear',
-			onComplete: () => arrow.destroy(),
-		});
 	}
 
 	/**
@@ -1590,19 +1558,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
 			return;
 		this.movePath = [];
-		// Fractional origin + aim so the facing direction and arrow line are
-		// precise (rounding both to tiles flipped the angle at close range).
 		const from = { x: this.floatState.pos.x, y: this.floatState.pos.y };
-		// Tell the server to shoot — at the explicitly-clicked enemy if any,
-		// else null (the server resolves what the aim line hits). The arrow
-		// visual + damage are server-authoritative online; the local arrow is
-		// only resolved client-side in offline localMode.
-		// Bow is ranged: ACTION_SHOOT (line-cast), not ACTION_ATTACK (melee, which
-		// the server gates on adjacency so a goblin at range never takes the hit).
-		// With no explicitly-clicked enemy, auto-acquire the hostile best aligned
-		// with the aim so right-click aim-fire still lands. The server shot is sent
-		// on the animation's release frame (onLoose) — not now — so the authoritative
-		// arrow looses in sync with the draw instead of mid-animation.
 		const shotTarget = target ?? this.acquireBowTarget(from, aim);
 		this.bowShot = fireBow(
 			this,
@@ -1612,12 +1568,9 @@ export class IsoArpgScene extends Phaser.Scene {
 			aim,
 			(tx, ty) => this.arrowHitTest(tx, ty),
 			(serverEid, dmg) => {
-				// Offline only: fake the hit locally. Online, the server's
-				// Combat/Projectile events drive damage + the arrow.
 				if (this.localMode) this.applyLocalHit(serverEid, dmg);
 			},
 			() => this.client?.action(ACTION_SHOOT, shotTarget ?? null),
-			this.localMode,
 		);
 	}
 
