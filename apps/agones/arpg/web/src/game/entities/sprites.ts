@@ -95,6 +95,8 @@ export interface EntityRefs {
 	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
 	creature?: CreatureView;
+	dbgText?: Phaser.GameObjects.Text;
+	dbgArrow?: Phaser.GameObjects.Graphics;
 }
 
 /** Per-creature directional pose state, analogous to ClassView for NPCs. */

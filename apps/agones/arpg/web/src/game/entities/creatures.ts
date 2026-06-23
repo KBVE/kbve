@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import { arpgAsset } from '../config';
 import { facingDegFromDelta, SOUTH_DEG } from './classes';
 
+// Temporary: draws each creature's code-believed direction + a movement arrow so
+// the 8-way sheet mapping can be eyeballed against actual facing. Flip off (or
+// delete the dbg* plumbing) once the mapping is locked.
+export const DEBUG_CREATURE_DIRS = true;
+
 /**
  * Creatures differ from player classes: instead of one PNG per facing angle,
  * the art ships as packed sprite sheets. Each sheet is a 4096x4096 image laid
