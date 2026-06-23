@@ -51,24 +51,31 @@ test.describe('arpg-web CDN (nginx container)', () => {
 		expect(res.headers()['content-type'] ?? '').toMatch(/javascript/);
 	});
 
-	test('art under /assets/ carries CORS + immutable cache', async ({
-		request,
-		baseURL,
-	}) => {
-		// ground.png is the one art asset the game always loads; assert the CDN
-		// headers on it (CORS so kbve.com can pull it cross-origin).
-		const res = await request.get(
-			`${baseURL}/assets/arcade/arpg/ground.png`,
-		);
-		if (res.status() === 404) {
-			test.info().annotations.push({
-				type: 'note',
-				description:
-					'ground.png absent (LFS art not pulled into the image) — header assertion skipped',
-			});
-			return;
-		}
-		expect(res.headers()['access-control-allow-origin']).toBe('*');
-		expect(res.headers()['cache-control'] ?? '').toMatch(/immutable/);
-	});
+	const ART_ASSETS = [
+		'/assets/arcade/arpg/ground.png',
+		'/assets/arcade/arpg/ui/panel-gold.png',
+		'/assets/arcade/arpg/ui/cursor/glove3.png',
+		'/assets/arcade/arpg/characters/ranger/Idle_Bow/Idle_Bow_Body_000.png',
+		'/assets/arcade/arpg/environment/hazards/campfire/campfire-Sheet.png',
+	];
+
+	for (const path of ART_ASSETS) {
+		test(`art is a real PNG, not an LFS pointer: ${path}`, async ({
+			request,
+			baseURL,
+		}) => {
+			const res = await request.get(`${baseURL}${path}`);
+			expect(res.status(), `${path} must exist`).toBe(200);
+
+			const body = await res.body();
+			expect(
+				body.subarray(0, 4).toString('hex'),
+				`${path} is not a real PNG (likely an LFS pointer stub)`,
+			).toBe('89504e47');
+
+			expect(res.headers()['content-type'] ?? '').toMatch(/image\/png/);
+			expect(res.headers()['access-control-allow-origin']).toBe('*');
+			expect(res.headers()['cache-control'] ?? '').toMatch(/immutable/);
+		});
+	}
 });
