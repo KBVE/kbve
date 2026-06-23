@@ -26,6 +26,8 @@ import { Giscus, Adsense } from '@/components/astropad';
 
 Kubernetes is a CNCF-certified open-source container orchestration system for automating the deployment, scaling and management of virtual micro machines within a hybrid cloud.
 
+The KBVE production cluster uses [ArgoCD](/application/argocd/) for GitOps-based continuous delivery of applications.
+
 <Adsense />
 
 ## K
@@ -181,7 +183,7 @@ Verify Hetzner Robot KVM console is reachable **before** the upgrade — not whi
 
 #### 2. Pause ArgoCD reconciliation
 
-ArgoCD's application-controller will fight any temporary scale-down made for the upgrade. Pause it:
+ArgoCD's application-controller will fight any temporary scale-down made for the upgrade. See [ArgoCD - Talos Integration](/application/argocd/#talos-integration) for detailed instructions.
 
 ```shell
 kubectl -n argocd scale sts argocd-application-controller --replicas=0
