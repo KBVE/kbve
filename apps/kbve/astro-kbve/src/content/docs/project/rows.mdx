@@ -111,7 +111,12 @@ ROWS has three distinct identities. They are different axes — do not conflate 
 
 `SUPABASE_SERVICE_KEY_HASH` (rows) and the plaintext `OWS_SERVICE_KEY` (fleet) both derive from the one kilobase secret `supabase-service-key` (`hash` + `key`). The GoTrue `customer_guid` JWT claim is intentionally unused — tenant identity comes from the process config (`OWS_API_KEY`), never from the token.
 
-kube:n    stack: applicationn    environment: betan    tier: apin    owner: h0lybyten    criticality: low
+kube:
+    stack: application
+    environment: beta
+    tier: api
+    owner: h0lybyte
+    criticality: low
 ---
 
 ### Procedural World — Seed-Based Multi-Zone Architecture
