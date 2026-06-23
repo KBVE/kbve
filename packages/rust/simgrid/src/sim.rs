@@ -131,6 +131,19 @@ pub struct Deployables(pub HashMap<String, DeployableSpec>);
 #[derive(Resource, Default)]
 pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
 
+/// A player's pickup request this tick, queued for `apply_pickups` to validate
+/// (owner + range) and resolve: `(slot, target_tile, floor, player_tile)`.
+#[derive(Resource, Default)]
+pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
+
+/// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
+/// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct DeployQueues<'w> {
+    placements: ResMut<'w, PendingPlacements>,
+    pickups: ResMut<'w, PendingPickups>,
+}
+
 pub const COIN_REF: &str = "coin";
 pub const GOLD_BAR_REF: &str = "gold-bar";
 pub const GOLD_BAR_VALUE: u32 = 100;
@@ -471,6 +484,16 @@ pub struct EnvObject {
     pub def_ref: String,
 }
 
+/// Ownership for a player-placed env object. `owner` is the placer's slot;
+/// `kit_ref` is the deployable item refunded when the owner picks it back up.
+/// Absent on world-fixture objects (e.g. the starter campfire) — those can't be
+/// reclaimed.
+#[derive(Component, Clone)]
+pub struct PlacedBy {
+    pub owner: proto::PlayerSlot,
+    pub kit_ref: String,
+}
+
 /// Occupies its tile — paired with `WalkableMap::block_tile_z` so movement and
 /// pathfinding route around it.
 #[derive(Component, Clone, Copy)]
@@ -621,6 +644,7 @@ pub fn build_app(
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
+        .insert_resource(PendingPickups::default())
         .insert_resource(ShopStock::default())
         .insert_resource(ItemPrices::default())
         .insert_resource(Tables::default())
@@ -658,6 +682,7 @@ pub fn build_app(
                 drain_inputs,
                 apply_drops,
                 apply_placements,
+                apply_pickups,
                 apply_actions,
                 crate::trade::expire_trades,
                 crate::trade::apply_trades,
@@ -850,7 +875,7 @@ fn drain_inputs(
     mut blackjack_inputs: ResMut<PendingBlackjack>,
     mut drops: ResMut<PendingDrops>,
     deployables: Res<Deployables>,
-    mut placements: ResMut<PendingPlacements>,
+    mut deploy: DeployQueues,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -1011,7 +1036,10 @@ fn drain_inputs(
                         place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
                     match placed {
                         Ok(()) => {
-                            placements.0.push((slot.0, item_ref.clone(), *tile, z));
+                            deploy
+                                .placements
+                                .0
+                                .push((slot.0, item_ref.clone(), *tile, z));
                             send_inventory(&bcast, slot.0, &inv);
                             send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
                         }
@@ -1019,6 +1047,9 @@ fn drain_inputs(
                             send_item_placed(&bcast, slot.0, item_ref, *tile, false, Some(reason));
                         }
                     }
+                }
+                Input::PickupObject { tile } => {
+                    deploy.pickups.0.push((slot.0, *tile, z, pos.tile));
                 }
                 Input::Step { .. }
                 | Input::MoveTo { .. }
@@ -1572,18 +1603,52 @@ fn apply_placements(
     mut map: ResMut<WalkableMap>,
     mut commands: Commands,
 ) {
-    for (_slot, item_ref, tile, z) in placements.0.drain(..) {
+    for (slot, item_ref, tile, z) in placements.0.drain(..) {
         let Some(spec) = deployables.0.get(&item_ref) else {
             continue;
         };
         let mut opts = spec.opts.clone();
         opts.floor = z;
         let blocker = opts.blocker;
-        if spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts).is_some()
-            && blocker
-        {
-            map.block_tile_z(z, tile);
+        if let Some(eid) = spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts) {
+            commands.entity(eid).insert(PlacedBy {
+                owner: slot,
+                kit_ref: item_ref.clone(),
+            });
+            if blocker {
+                map.block_tile_z(z, tile);
+            }
         }
+    }
+}
+
+/// Resolve queued pickups: the owning player reclaims a placed env object within
+/// reach — the kit is refunded, the object despawned, and its tile unblocked. A
+/// mismatched owner, out-of-range request, or missing object is dropped silently.
+#[allow(clippy::type_complexity)]
+fn apply_pickups(
+    mut pickups: ResMut<PendingPickups>,
+    bcast: Res<Outbound>,
+    mut map: ResMut<WalkableMap>,
+    env_q: Query<(Entity, &GridPos, Option<&Floor>, &PlacedBy)>,
+    mut players: Query<(&PlayerSlotTag, &mut Inventory)>,
+    mut commands: Commands,
+) {
+    for (slot, tile, z, from) in pickups.0.drain(..) {
+        if from.chebyshev(tile) > PLACE_RANGE {
+            continue;
+        }
+        let Some((eid, _, _, placed)) = env_q.iter().find(|(_, gp, fl, pb)| {
+            gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && pb.owner == slot
+        }) else {
+            continue;
+        };
+        if let Some((_, mut inv)) = players.iter_mut().find(|(tag, _)| tag.0 == slot) {
+            inv.add(&placed.kit_ref, 1);
+            send_inventory(&bcast, slot, &inv);
+        }
+        commands.entity(eid).despawn();
+        map.unblock_tile_z(z, tile);
     }
 }
 
@@ -2032,6 +2097,7 @@ fn emit_snapshot(
         Option<&StatusEffects>,
         Option<&Floor>,
         Option<&FloatMove>,
+        Option<&PlacedBy>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2042,7 +2108,7 @@ fn emit_snapshot(
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm)| {
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed)| {
                 let sub = mv
                     .filter(|m| m.target.is_some())
                     .map(|m| {
@@ -2080,7 +2146,10 @@ fn emit_snapshot(
                 proto::EntityDelta {
                     eid: proto::EntityId(entity.index_u32()),
                     kind: kind.0,
-                    owner: slot.map(|s| s.0).unwrap_or(proto::PLAYER_SLOT_NONE),
+                    owner: slot
+                        .map(|s| s.0)
+                        .or(placed.map(|p| p.owner))
+                        .unwrap_or(proto::PLAYER_SLOT_NONE),
                     tile: pos.tile,
                     facing: pos.facing,
                     sub,
@@ -2294,6 +2363,84 @@ mod tests {
         }
         let hp = app.world().get::<Health>(victim).unwrap().hp;
         assert_eq!(hp, 100 - 8 * 3, "burned 8/tick for 3 ticks");
+    }
+
+    fn spawn_owned_campfire(app: &mut App, tile: Tile, owner: u16) -> Entity {
+        app.world_mut()
+            .resource_mut::<WalkableMap>()
+            .block_tile_z(0, tile);
+        app.world_mut()
+            .spawn((
+                EntityKind(1),
+                GridPos::at(tile),
+                MoveTarget::default(),
+                Blocker,
+                PlacedBy {
+                    owner: proto::PlayerSlot(owner),
+                    kit_ref: "campfire-kit".to_string(),
+                },
+            ))
+            .id()
+    }
+
+    #[test]
+    fn owner_pickup_refunds_kit_and_frees_tile() {
+        let (mut app, _rx, _tx, _roster) = harness(0x555);
+        let tile = Tile::new(9, 9);
+        let from = Tile::new(9, 10);
+        let env = spawn_owned_campfire(&mut app, tile, 0);
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(from),
+                MoveTarget::default(),
+                Inventory::default(),
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(0),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        assert!(app.world().get::<GridPos>(env).is_none(), "env despawned");
+        assert!(
+            app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
+            "tile freed"
+        );
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        assert!(
+            inv.slots
+                .iter()
+                .any(|(r, c)| r == "campfire-kit" && *c >= 1),
+            "kit refunded"
+        );
+    }
+
+    #[test]
+    fn non_owner_pickup_is_rejected() {
+        let (mut app, _rx, _tx, _roster) = harness(0x556);
+        let tile = Tile::new(9, 9);
+        let from = Tile::new(9, 10);
+        let env = spawn_owned_campfire(&mut app, tile, 0);
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(1),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        assert!(
+            app.world().get::<GridPos>(env).is_some(),
+            "env survives non-owner pickup"
+        );
+        assert!(
+            !app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
+            "tile stays blocked"
+        );
     }
 
     #[test]

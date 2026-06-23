@@ -166,6 +166,9 @@ pub enum Input {
         item_ref: String,
         tile: Tile,
     },
+    PickupObject {
+        tile: Tile,
+    },
     Heartbeat {
         client_tick: u32,
     },

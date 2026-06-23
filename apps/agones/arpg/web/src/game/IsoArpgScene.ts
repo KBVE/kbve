@@ -592,6 +592,23 @@ export class IsoArpgScene extends Phaser.Scene {
 				return;
 			}
 
+			// Reclaim an owned placed object (campfire). Checked before isBlocked
+			// since the object occupies — and therefore blocks — its own tile.
+			const owned = this.store.at(tile.x, tile.y, this.myEid);
+			if (
+				owned &&
+				this.kinds.catName(this.store.kind(owned.serverEid)) ===
+					'env' &&
+				this.store.owner(owned.serverEid) === this.mySlot
+			) {
+				const d = Math.max(
+					Math.abs(this.predicted.x - tile.x),
+					Math.abs(this.predicted.y - tile.y),
+				);
+				if (d <= PLACE_RANGE) this.client?.pickupObject(tile);
+				return;
+			}
+
 			if (this.isBlocked(tile.x, tile.y)) return;
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
