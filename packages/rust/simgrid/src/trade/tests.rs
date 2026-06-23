@@ -1,5 +1,4 @@
 use bevy::app::App;
-use bevy::ecs::entity::Entity;
 
 use crate::proto::{self, Input};
 use crate::sim::Inventory;
