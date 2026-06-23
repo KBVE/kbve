@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use bevy::prelude::{Commands, Local, Res, ResMut};
+use bevy::prelude::{Commands, Entity, Local, Query, Res, ResMut, With, Without};
 use bevy_items::{StatusEffectKind, UseEffect, UseEffectType};
 use simgrid::arpg_dungeon;
 use simgrid::proto::{StatusKind, Tile};
+use simgrid::rng::hash3;
 use simgrid::{
-    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EnvOpts,
-    HazardZone, HealAura, KindRegistry, NpcSpec, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
-    ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
+    AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EntityKind,
+    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PlayerSlotTag, SIM_TICK_HZ,
+    SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle, spawn_env_object,
+    spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -47,6 +49,25 @@ pub const HOSTILE_AGGRO_RANGE: i32 = 6;
 // Campfire: a placed env object near spawn. Blocks its tile, heals players in the
 // adjacent ring, and burns anything forced onto the tile. Behavior is read from
 // the `campfire` mapdb WorldObjectDef — change the MDX + sync:mapdb to retune it.
+// Apex Predator — a roaming hostile creature streamed in around players as they
+// explore the endless dungeon (vs goblins, which are seeded once near spawn).
+// Tankier and harder-hitting than a goblin; rendered with the packed creature
+// sheets on the client.
+pub const PREDATOR_REF: &str = "apex_predator";
+pub const PREDATOR_HP: i32 = 60;
+pub const PREDATOR_DAMAGE: i32 = 8;
+pub const PREDATOR_DEFENSE: i32 = 2;
+pub const PREDATOR_TICKS_PER_TILE: u8 = 5;
+pub const PREDATOR_LEVEL: i32 = 3;
+// Streaming spawn budget: how many predators may exist near each player, the
+// ring (in tiles) they appear within, and how close they're allowed to pop in.
+pub const PREDATOR_PER_PLAYER: usize = 3;
+pub const PREDATOR_SPAWN_MIN: i32 = 12;
+pub const PREDATOR_SPAWN_MAX: i32 = 22;
+pub const PREDATOR_DESPAWN_RADIUS: i32 = 40;
+// Re-evaluate the streamed population a few times a second, not every tick.
+pub const PREDATOR_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+
 pub const CAMPFIRE_REF: &str = "campfire";
 
 // The deployable inventory item that places a `campfire` env object. Carried in
@@ -88,6 +109,7 @@ fn floor_near(hint: Tile) -> Tile {
 pub fn registry() -> KindRegistry {
     let mut reg = KindRegistry::new();
     reg.register_npc(GOBLIN_REF);
+    reg.register_npc(PREDATOR_REF);
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
@@ -305,6 +327,115 @@ fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         respawn_ticks: NPC_RESPAWN_TICKS,
     })
+}
+
+fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
+    let kind = registry.kind_of(PREDATOR_REF)?;
+    Some(NpcSpec {
+        kind,
+        origin,
+        ticks_per_tile: PREDATOR_TICKS_PER_TILE,
+        max_hp: PREDATOR_HP,
+        level: PREDATOR_LEVEL,
+        defense: PREDATOR_DEFENSE,
+        wander: Some((6, 18)),
+        aggro: Some(AggroSpec {
+            range: HOSTILE_AGGRO_RANGE,
+            damage: PREDATOR_DAMAGE,
+            period_ticks: SIM_TICK_HZ,
+            poison: None,
+        }),
+        loot: Some(GOBLIN_LOOT_REF.to_string()),
+        // Streamed predators are culled by distance, not respawned in place.
+        respawn_ticks: 0,
+    })
+}
+
+fn chebyshev(a: Tile, b: Tile) -> i32 {
+    (a.x - b.x).abs().max((a.y - b.y).abs())
+}
+
+/// Stream apex predators around players as they explore. Periodically: cull any
+/// predator that has drifted out of every player's despawn radius, then top each
+/// player's local population back up to `PREDATOR_PER_PLAYER` by spawning fresh
+/// ones on floor tiles in a ring ahead of them. Ground-floor only for now
+/// (matches the seeded-goblin scope); deeper floors stream once spawns carry a
+/// `Floor`.
+pub fn stream_predators(
+    clock: Res<SimClock>,
+    seed: Res<SimSeed>,
+    registry: Res<KindRegistry>,
+    players: Query<&GridPos, With<PlayerSlotTag>>,
+    predators: Query<(Entity, &GridPos, &EntityKind), Without<PlayerSlotTag>>,
+    mut commands: Commands,
+) {
+    if !clock.tick.is_multiple_of(PREDATOR_STREAM_PERIOD_TICKS) {
+        return;
+    }
+    let Some(pred_kind) = registry.kind_of(PREDATOR_REF) else {
+        return;
+    };
+
+    let player_tiles: Vec<Tile> = players.iter().map(|p| p.tile).collect();
+    if player_tiles.is_empty() {
+        return;
+    }
+
+    let mut alive: Vec<Tile> = Vec::new();
+    for (entity, pos, kind) in predators.iter() {
+        if kind.0 != pred_kind {
+            continue;
+        }
+        let near_any = player_tiles
+            .iter()
+            .any(|pt| chebyshev(*pt, pos.tile) <= PREDATOR_DESPAWN_RADIUS);
+        if near_any {
+            alive.push(pos.tile);
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+
+    for (i, ptile) in player_tiles.iter().enumerate() {
+        let local = alive
+            .iter()
+            .filter(|t| chebyshev(**t, *ptile) <= PREDATOR_SPAWN_MAX)
+            .count();
+        if local >= PREDATOR_PER_PLAYER {
+            continue;
+        }
+        for attempt in 0..8u64 {
+            let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
+            let span = (PREDATOR_SPAWN_MAX - PREDATOR_SPAWN_MIN + 1) as u64;
+            let dist = PREDATOR_SPAWN_MIN + ((h >> 8) % span) as i32;
+            let (dx, dy) = ring_offset((h % 8) as u8, dist);
+            let hint = Tile::new(ptile.x + dx, ptile.y + dy);
+            let origin = floor_near(hint);
+            if chebyshev(origin, *ptile) < PREDATOR_SPAWN_MIN {
+                continue;
+            }
+            if let Some(spec) = predator_spec(&registry, origin) {
+                spawn_npc_from_spec(&mut commands, &spec);
+                alive.push(origin);
+            }
+            break;
+        }
+    }
+}
+
+/// One of 8 compass offsets at `dist` tiles — picks a coarse heading for a ring
+/// spawn so predators appear spread around the player, not all in a line.
+fn ring_offset(oct: u8, dist: i32) -> (i32, i32) {
+    match oct % 8 {
+        0 => (0, -dist),
+        1 => (dist, -dist),
+        2 => (dist, 0),
+        3 => (dist, dist),
+        4 => (0, dist),
+        5 => (-dist, dist),
+        6 => (-dist, 0),
+        _ => (-dist, -dist),
+    }
 }
 
 pub fn spawn_world(
