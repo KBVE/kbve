@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: cilium
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/cilium
+        kbve.com/manifest-path: kube/cilium
+        kbve.com/application-file: kube/cilium/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: networking
+        kbve.com/stack: cilium
 spec:
     project: default
     sources:

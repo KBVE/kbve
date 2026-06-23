@@ -9,6 +9,13 @@ metadata:
     annotations:
         argocd.argoproj.io/sync-wave: '2'
         kbve.sh/last-updated: '2026-03-20'
+        kbve.com/source-path: kube/elk
+        kbve.com/manifest-path: kube/elk
+        kbve.com/application-file: kube/elk/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: observability
+        kbve.com/stack: core
 spec:
     project: default
     sources:

@@ -5,6 +5,16 @@ metadata:
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/rows/tenants/overlays/chuckrpg-dev
+        kbve.com/manifest-path: apps/kube/rows/tenants/overlays/chuckrpg-dev
+        kbve.com/application-file: kube/rows/tenants/overlays/chuckrpg-dev/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: rows
+        kbve.com/deployment-model: multi-tenant-overlay
+        kbve.com/tenant: chuckrpg-dev
 spec:
     project: default
     source:

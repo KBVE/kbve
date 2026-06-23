@@ -6,6 +6,14 @@ metadata:
     labels:
         app.kubernetes.io/part-of: rows
         app.kubernetes.io/instance: chuckrpg-dev
+    annotations:
+        kbve.com/source-path: kube/agones/rows-tenants/chuckrpg-dev
+        kbve.com/manifest-path: apps/kube/agones/rows-tenants/chuckrpg-dev/manifests
+        kbve.com/application-file: kube/agones/rows-tenants/chuckrpg-dev/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
 spec:
     project: default
     source:
