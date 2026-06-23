@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import {
 	GameClient,
 	ACTION_ATTACK,
+	ACTION_SHOOT,
 	ACTION_PICKUP,
 	attachCameraZoom,
 	flashEntity,
@@ -35,6 +36,7 @@ import {
 	DEPTH_UI,
 	DEPTH_PROJECTILE,
 	ARROW_SPEED,
+	ARROW_MAX_RANGE,
 	BOW_MUZZLE_HEIGHT,
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
@@ -1034,15 +1036,28 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
 			this.refreshDungeon(this.predicted, true);
 		} else if (this.myEid >= 0 && state.serverPos) {
-			this.reconcilePlayer(state.serverPos, state.inputAck ?? 0);
+			this.reconcilePlayer(
+				state.serverPos,
+				state.serverVel ?? { x: 0, y: 0 },
+				state.inputAck ?? 0,
+			);
 			this.refreshDungeon(this.predicted);
 		}
 		this.refreshHud();
 	}
 
-	private reconcilePlayer(serverPos: TileXY, inputAck: number) {
+	private reconcilePlayer(
+		serverPos: TileXY,
+		serverVel: TileXY,
+		inputAck: number,
+	) {
 		const unacked = this.client?.ackMoves(inputAck) ?? [];
 		const replay = makeFloatState(serverPos);
+		// Seed the replay with the server's reported velocity so unacked inputs
+		// reproduce the authoritative coast; replaying from rest left the body
+		// trailing the server's still-moving position and drifting on stop.
+		replay.vel.x = serverVel.x;
+		replay.vel.y = serverVel.y;
 		for (const m of unacked) {
 			const speed = m.run ? RUN_SPEED : WALK_SPEED;
 			stepFloat(
@@ -1136,6 +1151,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
 		this.tryAutoPickup();
+		// Redraw health bars every frame so they track the smoothly interpolated
+		// sprite instead of lagging behind it at snapshot cadence.
+		this.refreshHud();
 		this.tickHud(delta);
 	}
 
@@ -1284,7 +1302,12 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 
 		this.moveSendAccumMs += deltaMs;
-		if (this.moveSendAccumMs >= 50) {
+		// Flush a release (moving -> idle) immediately instead of waiting for the
+		// 50ms cadence, so the server stops powering the held intent a throttle
+		// window sooner — cuts the on-stop over-travel the client can't predict.
+		const idleNow = intent.x === 0 && intent.y === 0;
+		const releaseEdge = this.wasMoving && idleNow;
+		if (releaseEdge || this.moveSendAccumMs >= 50) {
 			this.moveSendAccumMs = 0;
 			const mag = Math.hypot(intent.x, intent.y);
 			const moving = mag > 0;
@@ -1574,7 +1597,13 @@ export class IsoArpgScene extends Phaser.Scene {
 		// else null (the server resolves what the aim line hits). The arrow
 		// visual + damage are server-authoritative online; the local arrow is
 		// only resolved client-side in offline localMode.
-		this.client?.action(ACTION_ATTACK, target ?? null);
+		// Bow is ranged: ACTION_SHOOT (line-cast), not ACTION_ATTACK (melee, which
+		// the server gates on adjacency so a goblin at range never takes the hit).
+		// With no explicitly-clicked enemy, auto-acquire the hostile best aligned
+		// with the aim so right-click aim-fire still lands. The server shot is sent
+		// on the animation's release frame (onLoose) — not now — so the authoritative
+		// arrow looses in sync with the draw instead of mid-animation.
+		const shotTarget = target ?? this.acquireBowTarget(from, aim);
 		this.bowShot = fireBow(
 			this,
 			refs.sprite,
@@ -1587,13 +1616,51 @@ export class IsoArpgScene extends Phaser.Scene {
 				// Combat/Projectile events drive damage + the arrow.
 				if (this.localMode) this.applyLocalHit(serverEid, dmg);
 			},
+			() => this.client?.action(ACTION_SHOOT, shotTarget ?? null),
 		);
 	}
 
-	/** Arrow hit-test: first non-self entity occupying the tile, else miss. */
+	/**
+	 * Pick the hostile best aligned with the aim ray within bow range: nearest
+	 * along the aim direction whose perpendicular offset from the line is small.
+	 * Lets right-click aim-fire send the server a concrete ACTION_SHOOT target
+	 * (the server resolves the hit from the target entity, not a bare direction).
+	 */
+	private acquireBowTarget(from: TileXY, aim: TileXY): number | undefined {
+		const adx = aim.x - from.x;
+		const ady = aim.y - from.y;
+		const amag = Math.hypot(adx, ady);
+		if (amag < 1e-3) return undefined;
+		const nx = adx / amag;
+		const ny = ady / amag;
+		let best: number | undefined;
+		let bestAlong = Infinity;
+		for (const [serverEid] of this.store.entries()) {
+			if (!this.isHostileServer(serverEid)) continue;
+			const t = this.store.tile(serverEid);
+			if (!t) continue;
+			const dx = t.x - from.x;
+			const dy = t.y - from.y;
+			const along = dx * nx + dy * ny;
+			if (along <= 0 || along > ARROW_MAX_RANGE) continue;
+			const perp = Math.abs(dx * ny - dy * nx);
+			if (perp > 0.8) continue;
+			if (along < bestAlong) {
+				bestAlong = along;
+				best = serverEid;
+			}
+		}
+		return best;
+	}
+
+	/**
+	 * Arrow hit-test: first HOSTILE entity occupying the tile, else miss. Only
+	 * hostiles collide so the arrow flies through placed props (campfires),
+	 * ground loot, and friendly players instead of being consumed by them.
+	 */
 	private arrowHitTest(tx: number, ty: number) {
 		const hit = this.store.at(tx, ty, this.myEid);
-		if (!hit) return null;
+		if (!hit || !this.isHostileServer(hit.serverEid)) return null;
 		return {
 			serverEid: hit.serverEid,
 			x: hit.refs.sprite.x,
@@ -1684,7 +1751,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			}
 
 			if (!refs.hpBar) continue;
-			if (maxHp <= 0 || hp >= maxHp) {
+			// Hostiles always show a bar so the player gets combat feedback the
+			// moment a shot lands; friendlies only show one once they're hurt.
+			const hostile = this.isHostileServer(serverEid);
+			if (maxHp <= 0 || (!hostile && hp >= maxHp)) {
 				refs.hpBar.clear();
 				continue;
 			}

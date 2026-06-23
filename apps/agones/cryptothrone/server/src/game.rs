@@ -172,6 +172,7 @@ pub fn config() -> SimConfig {
         spawn: PLAYER_SPAWN,
         ticks_per_tile: PLAYER_TICKS_PER_TILE,
         safe_radius: PLAYER_SAFE_RADIUS,
+        starting_inventory: Vec::new(),
     }
 }
 

@@ -54,6 +54,7 @@ export function fireBow(
 	target: TileXY,
 	hitTest: ArrowHitTest,
 	onHit: (serverEid: number, dmg: number) => void,
+	onLoose?: () => void,
 ): BowShot {
 	const facing = { dx: target.x - from.x, dy: target.y - from.y };
 
@@ -67,6 +68,10 @@ export function fireBow(
 	const releaseTimer = scene.time.delayedCall(releaseMs, () => {
 		shot.loosed = true;
 		if (!sprite.active) return;
+		// Tell the server to loose only now, on the release frame — sending it at
+		// fire time made the authoritative arrow appear mid-draw. A shot cancelled
+		// before release removes this timer, so no server shot fires either.
+		onLoose?.();
 		spawnArrow(scene, from, target, hitTest, onHit);
 	});
 

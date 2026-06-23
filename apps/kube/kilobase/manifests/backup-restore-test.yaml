@@ -223,7 +223,7 @@ spec:
                     restartPolicy: Never
                     containers:
                         - name: restore-test
-                          image: ghcr.io/kbve/kubectl:0.1.4
+                          image: ghcr.io/kbve/kubectl:0.1.5
                           resources:
                               limits:
                                   cpu: 200m

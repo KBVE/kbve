@@ -245,6 +245,10 @@ pub fn config() -> SimConfig {
         spawn: player_spawn(),
         ticks_per_tile: PLAYER_TICKS_PER_TILE,
         safe_radius: PLAYER_SAFE_RADIUS,
+        starting_inventory: vec![
+            (CAMPFIRE_KIT_REF.to_string(), 5),
+            (POTION_REF.to_string(), 3),
+        ],
     }
 }
 
@@ -319,7 +323,7 @@ pub fn spawn_world(
     // A campfire kit on the ground so the placement loop is testable from spawn:
     // pick up -> select -> place on a target tile -> server spawns the campfire.
     let kit_tile = floor_near(Tile::new(spawn.x - 1, spawn.y - 2));
-    if let Some(bundle) = ground_item_bundle(&registry, CAMPFIRE_KIT_REF, 1, kit_tile) {
+    if let Some(bundle) = ground_item_bundle(&registry, CAMPFIRE_KIT_REF, 25, kit_tile) {
         commands.spawn(bundle);
     }
 
