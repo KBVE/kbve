@@ -35,6 +35,7 @@ export function applyEntitySync<R>(
 	bridge: SyncBridge<R>,
 	resolve: SyncResolvers,
 	state: SyncState,
+	onEnvChange?: () => void,
 ): number[] {
 	const seen = new Set<number>();
 	for (const e of entities) {
@@ -53,9 +54,11 @@ export function applyEntitySync<R>(
 					hostile: resolve.hostile(e.kind),
 					hp: e.hp,
 					maxHp: e.max_hp,
+					effects: e.effects,
 				},
 				refs,
 			);
+			if (cat === 'env') onEnvChange?.();
 			if (
 				cat === 'player' &&
 				e.owner === state.mySlot &&
@@ -81,17 +84,19 @@ export function applyEntitySync<R>(
 				tile: { ...state.predicted },
 				hp: e.hp,
 				maxHp: e.max_hp,
+				effects: e.effects,
 			});
 		} else {
 			const cur = store.tile(e.eid);
 			const refs = store.refs(e.eid);
-			if (cur && refs && (cur.x !== e.tile.x || cur.y !== e.tile.y)) {
-				bridge.move(refs, e.tile);
-			}
+			const moved = !!cur && (cur.x !== e.tile.x || cur.y !== e.tile.y);
+			if (refs && moved) bridge.move(refs, e.tile);
+			if (cat === 'env' && moved) onEnvChange?.();
 			store.update(e.eid, {
 				tile: { x: e.tile.x, y: e.tile.y },
 				hp: e.hp,
 				maxHp: e.max_hp,
+				effects: e.effects,
 			});
 		}
 	}
@@ -99,6 +104,7 @@ export function applyEntitySync<R>(
 	const despawned: number[] = [];
 	for (const [serverEid, , refs] of [...store.entries()]) {
 		if (seen.has(serverEid)) continue;
+		if (resolve.cat(store.kind(serverEid)) === 'env') onEnvChange?.();
 		bridge.remove(refs);
 		store.despawn(serverEid);
 		despawned.push(serverEid);
