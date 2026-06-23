@@ -20,7 +20,8 @@ metadata:
 rules:
     - apiGroups: ['']
       resources: ['secrets']
-      resourceNames: ['supabase-postgres', 'supabase-jwt']
+      resourceNames:
+          ['supabase-postgres', 'supabase-jwt', 'supabase-service-key']
       verbs: ['get']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -61,3 +62,28 @@ subjects:
     - kind: ServiceAccount
       name: discordsh-external-secrets
       namespace: discordsh
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: rabbitmq-secrets-reader-for-n8n
+    namespace: rabbitmq-system
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['rabbitmq-default-user']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: n8n-read-rabbitmq-secrets
+    namespace: rabbitmq-system
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: rabbitmq-secrets-reader-for-n8n
+subjects:
+    - kind: ServiceAccount
+      name: n8n-external-secrets
+      namespace: n8n
