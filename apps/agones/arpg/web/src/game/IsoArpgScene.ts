@@ -1617,6 +1617,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				if (this.localMode) this.applyLocalHit(serverEid, dmg);
 			},
 			() => this.client?.action(ACTION_SHOOT, shotTarget ?? null),
+			this.localMode,
 		);
 	}
 
