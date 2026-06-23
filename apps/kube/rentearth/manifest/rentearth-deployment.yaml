@@ -5,11 +5,10 @@ metadata:
     namespace: rentearth
     labels:
         app: rentearth
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Reloader rolls this Deployment whenever supabase-shared
-        # rotates (rendered hourly by rentearth-supabase-secrets
-        # ExternalSecret) — Supabase JWT/key rotations propagate
-        # without a manual kubectl rollout restart.
         reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
@@ -19,13 +18,10 @@ spec:
     template:
         metadata:
             annotations:
-                # Manual rollout-restart trigger preserved as a fallback
-                # if Reloader misses a Secret rotation — bump the value
-                # to force the Deployment controller to roll the pods.
                 rollout-restart: '2026-01-12T02:11:58Z'
             labels:
                 app: rentearth
-                version: '1.0.18'
+                version: 1.0.18
         spec:
             serviceAccountName: rentearth-sa
             automountServiceAccountToken: false
@@ -48,7 +44,7 @@ spec:
                       - name: PORT
                         value: '4321'
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
@@ -59,22 +55,21 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: service-role-key
-                      # IRC configuration - connects to Ergo IRC server in cluster
                       - name: IRC_ENABLED
                         value: 'true'
                       - name: IRC_SERVER
-                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                        value: ergo-irc-service.irc.svc.cluster.local
                       - name: IRC_NICKNAME
-                        value: 'RentEarthBot'
+                        value: RentEarthBot
                       - name: IRC_CHANNEL
                         value: '#general'
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '250m'
+                          memory: 512Mi
+                          cpu: 250m
                       limits:
-                          memory: '1024Mi'
-                          cpu: '2000m'
+                          memory: 1024Mi
+                          cpu: 2000m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -85,10 +80,6 @@ spec:
                       - name: tmp
                         mountPath: /tmp
             volumes:
-                # Writable scratch for the binary while the rootfs
-                # itself stays read-only. Verified locally that the
-                # ghcr.io/kbve/rentearth:1.0.18 image starts cleanly
-                # under runAsUser:10001 + read-only rootfs + tmpfs /tmp.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
@@ -100,6 +91,9 @@ metadata:
     namespace: rentearth
     labels:
         app: rentearth
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

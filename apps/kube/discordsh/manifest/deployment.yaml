@@ -5,6 +5,9 @@ metadata:
     namespace: discordsh
     labels:
         app: discordsh
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     clusterIP: None
     selector:
@@ -23,11 +26,10 @@ metadata:
     labels:
         app: discordsh
         tier: frontend
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Reloader rolls this StatefulSet whenever any referenced
-        # Secret or ConfigMap changes — discordsh-config (envFrom),
-        # discordsh-redis-secret (envFrom), and
-        # discordsh-supabase-shared (env.valueFrom) all qualify.
         reloader.stakater.com/auto: 'true'
 spec:
     serviceName: discordsh-headless
@@ -64,7 +66,7 @@ spec:
                             name: discordsh-config
                   env:
                       - name: REDIS_HOST
-                        value: 'valkey.valkey.svc.cluster.local'
+                        value: valkey.valkey.svc.cluster.local
                       - name: REDIS_PORT
                         value: '6379'
                       - name: REDIS_PASSWORD
@@ -73,7 +75,7 @@ spec:
                                 name: valkey-auth
                                 key: valkey-password
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
                       - name: SUPABASE_SERVICE_ROLE_KEY
                         valueFrom:
                             secretKeyRef:
@@ -82,15 +84,13 @@ spec:
                       - name: SHARD_COUNT
                         value: '1'
                       - name: IRC_HOST
-                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                        value: ergo-irc-service.irc.svc.cluster.local
                       - name: IRC_PORT
                         value: '6667'
                       - name: IRC_NICK
-                        value: 'mud-discordsh'
+                        value: mud-discordsh
                       - name: IRC_CHANNELS
                         value: '#global,#world-events,#dungeon'
-                      # PgCluster direct DB access (bypasses Postgrest)
-                      # Password injected via ESO template into full connection URLs
                       - name: KBVE_PG_RW_URL
                         valueFrom:
                             secretKeyRef:
@@ -102,14 +102,14 @@ spec:
                                 name: supabase-postgres-password
                                 key: ro_url
                       - name: KBVE_PG_APPLICATION_NAME
-                        value: 'axum-discordsh'
+                        value: axum-discordsh
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '100m'
+                          memory: 256Mi
+                          cpu: 100m
                       limits:
-                          memory: '512Mi'
-                          cpu: '500m'
+                          memory: 512Mi
+                          cpu: 500m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -136,8 +136,6 @@ spec:
                       timeoutSeconds: 3
                       failureThreshold: 3
             volumes:
-                # Writable scratch for the axum binary while the
-                # rootfs itself stays read-only. Sized small.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi

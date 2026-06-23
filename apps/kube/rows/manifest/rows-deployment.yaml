@@ -1,5 +1,3 @@
----
-# ROWS — Rust OWS single-binary game backend (REST + gRPC)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,6 +6,9 @@ metadata:
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
+        kbve.com/category: game-server
+        kbve.com/stack: rows
+        kbve.com/managed-by: argocd
 spec:
     replicas: 0
     strategy:
@@ -25,35 +26,19 @@ spec:
                 app.kubernetes.io/part-of: ows
         spec:
             serviceAccountName: ows-instancelauncher
-            # TODO(security): Enable after verifying ROWS doesn't write to filesystem
-            # securityContext:
-            #     runAsNonRoot: true
-            #     runAsUser: 1000
-            #     runAsGroup: 1000
-            #     fsGroup: 1000
-            # TODO(graceful-shutdown): Increase after session drain is implemented
-            # terminationGracePeriodSeconds: 60
             containers:
                 - name: rows
                   image: ghcr.io/kbve/rows:0.1.30
                   imagePullPolicy: Always
-                  # TODO(security): Enable after verifying compatibility
-                  # securityContext:
-                  #     allowPrivilegeEscalation: false
-                  #     readOnlyRootFilesystem: true
-                  #     capabilities:
-                  #         drop: ["ALL"]
                   env:
-                      # ─── Core ───────────────────────────────
                       - name: HTTP_HOST
-                        value: '0.0.0.0'
+                        value: 0.0.0.0
                       - name: HTTP_PORT
                         value: '4322'
                       - name: DOCS_PORT
                         value: '4323'
                       - name: RUST_LOG
-                        value: 'info'
-                      # ─── Secrets ─────────────────────────────
+                        value: info
                       - name: DATABASE_URL
                         valueFrom:
                             secretKeyRef:
@@ -69,7 +54,6 @@ spec:
                             secretKeyRef:
                                 name: ows-customer-guid
                                 key: customer-guid
-                      # ─── Supabase Auth ──────────────────────
                       - name: SUPABASE_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
@@ -82,19 +66,17 @@ spec:
                                 key: hash
                                 optional: true
                       - name: SUPABASE_URL
-                        value: 'https://supabase.kbve.com'
-                      # ─── Agones ──────────────────────────────
+                        value: https://supabase.kbve.com
                       - name: AGONES_NAMESPACE
-                        value: 'arc-runners'
+                        value: arc-runners
                       - name: AGONES_FLEET
-                        value: 'ows-hubworld'
+                        value: ows-hubworld
                       - name: AGONES_API_TIMEOUT_SECS
                         value: '10'
                       - name: AGONES_CIRCUIT_BREAKER_THRESHOLD
                         value: '5'
                       - name: AGONES_CIRCUIT_BREAKER_RESET_SECS
                         value: '30'
-                      # ─── Spinup Tuning ───────────────────────
                       - name: ROWS_SPINUP_TIMEOUT_SECS
                         value: '60'
                       - name: ROWS_SPINUP_POLL_INTERVAL_MS
@@ -115,11 +97,11 @@ spec:
                         protocol: TCP
                   resources:
                       requests:
-                          memory: '1Gi'
-                          cpu: '500m'
+                          memory: 1Gi
+                          cpu: 500m
                       limits:
-                          memory: '4Gi'
-                          cpu: '2000m'
+                          memory: 4Gi
+                          cpu: 2000m
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -145,6 +127,9 @@ metadata:
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
+        kbve.com/category: game-server
+        kbve.com/stack: rows
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
@@ -163,7 +148,6 @@ spec:
           targetPort: 4324
           protocol: TCP
 ---
-# PodDisruptionBudget — ensure at least 1 pod during rolling updates
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

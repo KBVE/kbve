@@ -5,6 +5,9 @@ metadata:
     namespace: discordsh
     labels:
         app: discordsh-bot
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     clusterIP: None
     selector:
@@ -21,12 +24,10 @@ metadata:
     namespace: discordsh
     labels:
         app: discordsh-bot
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Reloader rolls the StatefulSet on Secret/ConfigMap rotation.
-        # The bot resolves DISCORD_TOKEN at runtime from Supabase
-        # Vault, so it does not need a Secret reference for that, but
-        # discordsh-config, discordsh-redis-secret, and
-        # discordsh-supabase-shared still benefit from auto-rolls.
         reloader.stakater.com/auto: 'true'
 spec:
     serviceName: discordsh-bot-headless
@@ -61,17 +62,15 @@ spec:
                             optional: true
                   env:
                       - name: RUST_LOG
-                        value: 'discordsh_bot=debug,kbve=debug'
+                        value: discordsh_bot=debug,kbve=debug
                       - name: FONT_PATH
-                        value: '/app/alagard.ttf'
+                        value: /app/alagard.ttf
                       - name: SYMBOL_FONT_PATH
-                        value: '/app/NotoSansSymbols-Regular.ttf'
+                        value: /app/NotoSansSymbols-Regular.ttf
                       - name: SHARD_COUNT
                         value: '1'
-                      # DISCORD_TOKEN is resolved at runtime from Supabase Vault.
-                      # Set DISCORD_TOKEN env var to override (dev/testing).
                       - name: REDIS_HOST
-                        value: 'valkey.valkey.svc.cluster.local'
+                        value: valkey.valkey.svc.cluster.local
                       - name: REDIS_PORT
                         value: '6379'
                       - name: REDIS_PASSWORD
@@ -79,10 +78,6 @@ spec:
                             secretKeyRef:
                                 name: valkey-auth
                                 key: valkey-password
-                      # KBVE_KV_URL (jedi KvCache → Valkey) = shared L2 for the
-                      # gh reverse-sync lookups (thread→issue, comment_mirror).
-                      # Optional so the pod boots before the ExternalSecret
-                      # renders; KvCache falls back to L1-only until then.
                       - name: KBVE_KV_URL
                         valueFrom:
                             secretKeyRef:
@@ -90,23 +85,20 @@ spec:
                                 key: KBVE_KV_URL
                                 optional: true
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
                       - name: SUPABASE_SERVICE_ROLE_KEY
                         valueFrom:
                             secretKeyRef:
                                 name: discordsh-supabase-shared
                                 key: service-role-key
-                      # Local KV cache (redb) — DungeonProfile L2 cache
-                      # backed by a Longhorn PVC. Survives pod restarts so
-                      # profiles stay warm during Supabase outages.
                       - name: DB_PATH
-                        value: '/data/discordsh.redb'
+                        value: /data/discordsh.redb
                       - name: IRC_HOST
-                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                        value: ergo-irc-service.irc.svc.cluster.local
                       - name: IRC_PORT
                         value: '6667'
                       - name: IRC_NICK
-                        value: 'discordsh-bot'
+                        value: discordsh-bot
                       - name: IRC_CHANNELS
                         value: '#general'
                       - name: RELAY_GUILD_ID
@@ -115,24 +107,17 @@ spec:
                         value: '935690630657638422'
                       - name: RELAY_IRC_CHANNEL
                         value: '#general'
-                      # gh reverse-sync VS6: on issue close, archive the forum
-                      # thread then lock it (needs the bot to have MANAGE_THREADS).
                       - name: GH_SYNC_LOCK_ON_CLOSE
                         value: 'true'
-                      # One-shot backfill: archive/lock threads for issues that
-                      # were ALREADY closed before VS6 shipped (no webhook fires
-                      # for them). Runs once at worker start. UNSET this after a
-                      # clean run so restarts don't re-archive manually-reopened
-                      # threads.
                       - name: GH_SYNC_BACKFILL_ON_START
                         value: 'true'
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '100m'
+                          memory: 256Mi
+                          cpu: 100m
                       limits:
-                          memory: '512Mi'
-                          cpu: '500m'
+                          memory: 512Mi
+                          cpu: 500m
                   ports:
                       - name: health
                         containerPort: 4322
@@ -160,8 +145,6 @@ spec:
                       initialDelaySeconds: 10
                       periodSeconds: 10
             volumes:
-                # Writable scratch for image rendering and any temp
-                # files the bot needs while the rootfs stays read-only.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
