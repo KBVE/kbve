@@ -48,6 +48,17 @@ export { Stage } from './lib/r3f/components/Stage';
 export type { StageProps } from './lib/r3f/components/Stage';
 export { useGameLoop } from './lib/r3f/hooks/use-game-loop';
 
+// WebGL context-loss guard (framework-agnostic; shared across WebGL games)
+export {
+	isWebGLAvailable,
+	installWebGLContextGuard,
+	reportWebGLEvent,
+} from './lib/webgl/context-guard';
+export type {
+	WebGLEventKind,
+	ContextGuardHandlers,
+} from './lib/webgl/context-guard';
+
 // ECS (bitecs) — full re-export of bitecs core API
 export * from './lib/ecs/bitecs';
 

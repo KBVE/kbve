@@ -800,6 +800,7 @@ dependencies = [
  "axum 0.7.9",
  "bevy",
  "bevy_items",
+ "bevy_mapdb",
  "jedi",
  "simgrid",
  "tokio",
@@ -1665,7 +1666,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.208"
+version = "1.0.209"
 dependencies = [
  "anyhow",
  "askama 0.16.0",

@@ -1,28 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
-  namespace: argocd
+    name: cert-manager
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/cert-manager
+        kbve.com/manifest-path: apps/kube/cert-manager/manifests
+        kbve.com/application-file: kube/cert-manager/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: infrastructure
+        kbve.com/stack: core
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/kbve/kbve
-    targetRevision: main
-    path: apps/kube/cert-manager/manifests
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cert-manager
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-      - RespectIgnoreDifferences=true
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/cert-manager/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: cert-manager
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m

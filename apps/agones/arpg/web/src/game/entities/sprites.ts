@@ -26,8 +26,22 @@ import {
 	type ClassDef,
 	type ClassState,
 } from './classes';
+import {
+	CREATURE_LOCOMOTION,
+	CREATURE_SOUTH,
+	creatureAnimKey,
+	creatureFirstFrame,
+	dirFromDeg,
+	nearestCreatureDir,
+	resolveCreature,
+	type CreatureDef,
+	type CreatureDir,
+	type CreatureState,
+} from './creatures';
 
 const isOneShot = (s: ClassState): boolean => ONE_SHOT_STATES.includes(s);
+const isCreatureLocomotion = (s: CreatureState): boolean =>
+	CREATURE_LOCOMOTION.includes(s);
 const isLocomotion = (s: ClassState): boolean => LOCOMOTION_STATES.includes(s);
 
 const warnedAnims = new Set<string>();
@@ -80,6 +94,16 @@ export interface EntityRefs {
 	hpBar?: Phaser.GameObjects.Graphics;
 	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
+	creature?: CreatureView;
+}
+
+/** Per-creature directional pose state, analogous to ClassView for NPCs. */
+export interface CreatureView {
+	def: CreatureDef;
+	dir: CreatureDir;
+	state: CreatureState;
+	facingDeg: number;
+	targetDeg: number;
 }
 
 function bodyColor(cat: number, hostile: boolean): number {
@@ -322,4 +346,76 @@ export function makeNameplate(
 		})
 		.setOrigin(0.5, 1)
 		.setDepth(DEPTH_UI + 1);
+}
+
+/**
+ * Spawn an animated creature NPC (e.g. apex_predator) facing south at Idle.
+ * Returns null when the kind ref isn't a registered creature, so callers can
+ * fall back to the plain Rectangle sprite path.
+ */
+export function makeCreatureSprite(
+	scene: Phaser.Scene,
+	ref: string | null,
+): { sprite: Phaser.GameObjects.Sprite; creature: CreatureView } | null {
+	const def = resolveCreature(ref);
+	if (!def) return null;
+	const dir: CreatureDir = dirFromDeg(CREATURE_SOUTH);
+	const first = creatureFirstFrame(def, 'Idle', dir);
+	const sprite = scene.add.sprite(0, 0, first.key, first.frame);
+	sprite.setOrigin(0.5, def.originY);
+	sprite.setDisplaySize(def.displaySize, def.displaySize);
+	const view: CreatureView = {
+		def,
+		dir,
+		state: 'Idle',
+		facingDeg: CREATURE_SOUTH,
+		targetDeg: CREATURE_SOUTH,
+	};
+	safePlay(sprite, creatureAnimKey(def, 'Idle', dir));
+	return { sprite, creature: view };
+}
+
+/**
+ * Set a creature's STATE and (when given a movement delta) facing TARGET. Like
+ * setClassPose but 8-way and shadow-less: locomotion re-plays only on a state
+ * change; one-shots always re-play and snap facing to the aim immediately.
+ */
+export function setCreaturePose(
+	sprite: Phaser.GameObjects.Sprite,
+	view: CreatureView,
+	state: CreatureState,
+	facing?: { dx: number; dy: number },
+): void {
+	if (facing && (facing.dx !== 0 || facing.dy !== 0)) {
+		view.targetDeg = facingDegFromDelta(facing.dx, facing.dy);
+	}
+	const oneShot = !isCreatureLocomotion(state);
+	const changed = state !== view.state || oneShot;
+	view.state = state;
+	if (oneShot && facing && (facing.dx !== 0 || facing.dy !== 0)) {
+		view.facingDeg = view.targetDeg;
+		view.dir = nearestCreatureDir(facing.dx, facing.dy);
+	}
+	if (!changed) return;
+	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
+	safePlay(sprite, creatureAnimKey(view.def, state, view.dir), !oneShot);
+}
+
+/**
+ * Advance a creature's smooth facing each frame: lerp toward the target and,
+ * when it crosses into a new 8-way bucket, swap the looping sheet run WITHOUT
+ * restarting (progress preserved) so a turn re-aims mid-stride. One-shots hold.
+ */
+export function tickCreatureFacing(
+	sprite: Phaser.GameObjects.Sprite,
+	view: CreatureView,
+): void {
+	if (!isCreatureLocomotion(view.state)) return;
+	view.facingDeg = lerpAngleDeg(view.facingDeg, view.targetDeg, TURN_LERP);
+	const dir = dirFromDeg(view.facingDeg);
+	if (dir === view.dir) return;
+	view.dir = dir;
+	const progress = sprite.anims?.getProgress() ?? 0;
+	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
+	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 }

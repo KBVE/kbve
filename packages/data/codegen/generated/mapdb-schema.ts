@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-06-22T21:31:58.920Z
+ * Generated: 2026-06-23T20:15:20.011Z
  */
 
 import { z } from 'zod';
@@ -848,6 +848,16 @@ export const AuraSpecSchema = z.object({
 
 export type AuraSpec = z.infer<typeof AuraSpecSchema>;
 
+// PlacedEffect
+export const PlacedEffectSchema = z.object({
+	status: z.string(),
+	magnitude: z.number().optional(),
+	period_ticks: z.number().optional(),
+	range: z.number().optional(),
+});
+
+export type PlacedEffect = z.infer<typeof PlacedEffectSchema>;
+
 // WorldObjectDef
 export const WorldObjectDefSchema = z.object({
 	id: z.string(),
@@ -921,6 +931,7 @@ export const WorldObjectDefSchema = z.object({
 	religion_ref: z.string().optional(),
 	dialogue_tree_ref: z.string().optional(),
 	interaction_cooldown_secs: z.number().optional(),
+	placed_effects: z.array(PlacedEffectSchema).optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;

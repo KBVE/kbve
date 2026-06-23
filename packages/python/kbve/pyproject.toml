@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn[standard]>=0.32,<1.0",
     "grpcio>=1.62,<2.0",
     "protobuf>=4.25,<6.0",
+    "pyyaml>=6.0,<7.0",
 ]
 
 [dependency-groups]

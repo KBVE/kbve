@@ -14,18 +14,24 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 // *.discordsays.com; each external host needs a mapping so the SDK can rewrite
 // it. The portal ROOT now maps / -> arpg.kbve.com/discord/arpg/, so the page +
 // arpg.js load same-origin (relative), but everything else needs a mapping:
-//   /arpg-game    -> arpg.kbve.com  (game WS, a sibling of the /discord/arpg/ dir)
-//   /arpg-assets  -> arpg.kbve.com  (sprite art at /assets/, served with CORS)
-//   /arpg-session -> kbve.com       (OAuth->Supabase JWT bridge on axum-kbve,
-//                                     which holds DISCORD_CLIENT_SECRET; it stays
-//                                     on kbve.com, now a cross-origin host)
+//   /arpg-game     -> arpg.kbve.com     (game WS, sibling of the /discord/arpg/ dir)
+//   /arpg-assets   -> arpg.kbve.com     (sprite art at /assets/, served with CORS)
+//   /arpg-session  -> kbve.com          (OAuth->Supabase JWT bridge on axum-kbve,
+//                                         which holds DISCORD_CLIENT_SECRET; it stays
+//                                         on kbve.com, now a cross-origin host)
+//   /arpg-chat     -> chat.kbve.com     (realm chat WS, irc-gateway /gamechat)
+//   /arpg-supabase -> supabase.kbve.com (Supabase auth/REST, if the client runs)
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/arpg-game', target: 'arpg.kbve.com' },
 	{ prefix: '/arpg-assets', target: 'arpg.kbve.com' },
 	{ prefix: '/arpg-session', target: 'kbve.com' },
+	{ prefix: '/arpg-chat', target: 'chat.kbve.com' },
+	{ prefix: '/arpg-supabase', target: 'supabase.kbve.com' },
 ];
 const SESSION_ENDPOINT = '/.proxy/arpg-session/api/v1/discord/session';
 const GAME_WS = 'wss://arpg.kbve.com/.proxy/arpg-game/ws';
+const CHAT_WS = 'wss://chat.kbve.com/.proxy/arpg-chat/gamechat';
+const SUPABASE_URL = 'https://supabase.kbve.com/.proxy/arpg-supabase';
 // Art base: the SDK rewrites /arpg-assets -> arpg.kbve.com, so
 // /arpg-assets/assets/... reaches the vite app's art through the proxy.
 const ASSET_BASE = '/arpg-assets';
@@ -221,6 +227,8 @@ async function boot(): Promise<void> {
 		jwt: session.jwt,
 		username: session.username,
 		gameWs: GAME_WS,
+		chatWs: CHAT_WS,
+		supabaseUrl: SUPABASE_URL,
 		height: '100vh',
 	});
 }

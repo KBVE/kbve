@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Phaser from 'phaser';
+import {
+	isWebGLAvailable,
+	installWebGLContextGuard,
+	reportWebGLEvent,
+} from '@kbve/laser';
 import { IsoArpgScene } from './IsoArpgScene';
+import WebGLOverlay from './WebGLOverlay';
 import ArpgHud from './ArpgHud';
 import D2Hud from './ui/D2Hud';
 import ArpgMenu from './ArpgMenu';
@@ -48,6 +54,7 @@ export default function ReactIsoArpgApp({
 		'loading' | 'prompt' | 'signin' | 'ready'
 	>('loading');
 	const [draft, setDraft] = useState('');
+	const [glState, setGlState] = useState<'ok' | 'lost' | 'unsupported'>('ok');
 
 	const getDimensions = useCallback(() => {
 		const container = document.getElementById(CONTAINER_ID);
@@ -104,6 +111,12 @@ export default function ReactIsoArpgApp({
 		const container = document.getElementById(CONTAINER_ID);
 		if (!container || gameRef.current) return;
 
+		if (!isWebGLAvailable()) {
+			reportWebGLEvent('unsupported');
+			setGlState('unsupported');
+			return;
+		}
+
 		const dims = getDimensions();
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
@@ -135,6 +148,16 @@ export default function ReactIsoArpgApp({
 		};
 		gameRef.current = new Phaser.Game(config);
 
+		let disposeGuard: (() => void) | null = null;
+		gameRef.current.events.once(Phaser.Core.Events.READY, () => {
+			const canvas = gameRef.current?.canvas;
+			if (!canvas) return;
+			disposeGuard = installWebGLContextGuard(canvas, {
+				onLost: () => setGlState('lost'),
+				onRestored: () => setGlState('ok'),
+			});
+		});
+
 		const handleResize = () => {
 			if (gameRef.current) {
 				const d = getDimensions();
@@ -148,6 +171,7 @@ export default function ReactIsoArpgApp({
 		return () => {
 			window.removeEventListener('resize', handleResize);
 			ro.disconnect();
+			disposeGuard?.();
 			if (gameRef.current) {
 				gameRef.current.destroy(true);
 				gameRef.current = null;
@@ -308,6 +332,10 @@ export default function ReactIsoArpgApp({
 		);
 	}
 
+	if (glState === 'unsupported') {
+		return <WebGLOverlay mode="unsupported" />;
+	}
+
 	if (phase === 'ready') {
 		return (
 			<>
@@ -318,6 +346,7 @@ export default function ReactIsoArpgApp({
 				)}
 				<ArpgMenu />
 				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
+				{glState === 'lost' && <WebGLOverlay mode="lost" />}
 			</>
 		);
 	}
