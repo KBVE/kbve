@@ -954,6 +954,27 @@ pub struct WorldObjectDef {
     pub dialogue_tree_ref: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(float, optional, tag = "72")]
     pub interaction_cooldown_secs: ::core::option::Option<f32>,
+    /// Ongoing periodic effects emitted by the placed object (campfire heal ring,
+    /// hazard burn, totem buff). Independent of interaction — active while alive.
+    #[prost(message, repeated, tag = "73")]
+    pub placed_effects: ::prost::alloc::vec::Vec<PlacedEffect>,
+}
+/// A periodic status effect emitted by a placed world object. `status` is a
+/// StatusEffectKind slug (e.g. "regen", "burning"); `range` 0 = on-tile only
+/// (hazard), >=1 = surrounding ring radius (aura). `period_ticks` is the sim
+/// cadence between applications.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PlacedEffect {
+    #[prost(string, tag = "1")]
+    pub status: ::prost::alloc::string::String,
+    #[prost(int32, optional, tag = "2")]
+    pub magnitude: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "3")]
+    pub period_ticks: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "4")]
+    pub range: ::core::option::Option<i32>,
 }
 /// Resource cost for constructing a structure
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -1317,6 +1338,188 @@ pub struct HexWorldMap {
     pub hex_size: f64,
     #[prost(message, repeated, tag = "6")]
     pub hexes: ::prost::alloc::vec::Vec<HexZoneRecord>,
+}
+/// One render layer of an orthogonal grid: row-major tile ids (Tiled-style
+/// gids; 0 = empty), width*height long.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct GridTileLayer {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(uint32, repeated, tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u32>,
+}
+/// A named rectangular region inside a grid (plaza / camp / cavern …).
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NamedRegion {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(int32, tag = "2")]
+    pub x: i32,
+    #[prost(int32, tag = "3")]
+    pub y: i32,
+    #[prost(int32, tag = "4")]
+    pub w: i32,
+    #[prost(int32, tag = "5")]
+    pub h: i32,
+}
+/// Orthogonal grid tilemap — cryptothrone-style towns/dungeons.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GridTilemap {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#ref: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "4")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// tiles
+    #[prost(int32, tag = "5")]
+    pub width: i32,
+    /// tiles
+    #[prost(int32, tag = "6")]
+    pub height: i32,
+    /// px per tile (render hint)
+    #[prost(int32, tag = "7")]
+    pub tile_size: i32,
+    /// default player spawn
+    #[prost(message, optional, tag = "8")]
+    pub spawn: ::core::option::Option<GridPos>,
+    /// row-major collision, width*height
+    #[prost(bool, repeated, tag = "9")]
+    pub blocked: ::prost::alloc::vec::Vec<bool>,
+    #[prost(message, repeated, tag = "10")]
+    pub layers: ::prost::alloc::vec::Vec<GridTileLayer>,
+    #[prost(message, repeated, tag = "11")]
+    pub regions: ::prost::alloc::vec::Vec<NamedRegion>,
+    #[prost(enumeration = "GenerationMode", tag = "12")]
+    pub generation: i32,
+    #[prost(uint64, tag = "13")]
+    pub seed: u64,
+    /// render: tileset atlas path
+    #[prost(string, tag = "14")]
+    pub tileset_image: ::prost::alloc::string::String,
+    #[prost(int32, tag = "15")]
+    pub tileset_columns: i32,
+    #[prost(bool, tag = "16")]
+    pub drafted: bool,
+}
+/// One hex cell — axial coord + tile id + flags.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct HexTile {
+    #[prost(message, optional, tag = "1")]
+    pub coord: ::core::option::Option<HexCoord>,
+    #[prost(uint32, tag = "2")]
+    pub tile: u32,
+    #[prost(bool, tag = "3")]
+    pub blocked: bool,
+    #[prost(int32, tag = "4")]
+    pub biome: i32,
+}
+/// Hex tilemap — rareicon-style maps (axial q/r).
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct HexTilemap {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#ref: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "4")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(enumeration = "HexOrientation", tag = "5")]
+    pub orientation: i32,
+    #[prost(double, tag = "6")]
+    pub hex_size: f64,
+    #[prost(message, repeated, tag = "7")]
+    pub tiles: ::prost::alloc::vec::Vec<HexTile>,
+    #[prost(enumeration = "GenerationMode", tag = "8")]
+    pub generation: i32,
+    #[prost(uint64, tag = "9")]
+    pub seed: u64,
+    #[prost(bool, tag = "10")]
+    pub drafted: bool,
+}
+/// One role's render options: gid variants picked deterministically by seed so
+/// repeated roles don't tile flatly. gids\[0\] is the canonical/single tile.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct TilePaletteEntry {
+    #[prost(enumeration = "TileRole", tag = "1")]
+    pub role: i32,
+    #[prost(uint32, repeated, tag = "2")]
+    pub gids: ::prost::alloc::vec::Vec<u32>,
+}
+/// Maps semantic TileRoles to render gids for one biome/style. Presentation
+/// only — never affects collision (that comes from the role grid). Swap the
+/// palette to restyle the same generated layout for a different location.
+/// Standalone artifact, like GridTilemap — not embedded in MapRegistry.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TilePalette {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#ref: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(enumeration = "Biome", tag = "4")]
+    pub biome: i32,
+    #[prost(string, tag = "5")]
+    pub tileset_image: ::prost::alloc::string::String,
+    #[prost(int32, tag = "6")]
+    pub tileset_columns: i32,
+    #[prost(int32, tag = "7")]
+    pub tile_size: i32,
+    #[prost(message, repeated, tag = "8")]
+    pub entries: ::prost::alloc::vec::Vec<TilePaletteEntry>,
+}
+/// A single catalogued tile — one sliced sprite with its semantic role,
+/// collision, animation, and biome tags. Source of truth is the tiledb astro
+/// collection (one MDX per tile); the palette packer sources tiles by ref.
+/// Animation framing + render hints are layered in the Astro schema (like
+/// WorldObjectDef), so this proto holds the cross-consumer core.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct TileAsset {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#ref: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(enumeration = "TileRole", tag = "4")]
+    pub role: i32,
+    /// per-tile sprite path (relative to assets)
+    #[prost(string, tag = "5")]
+    pub image: ::prost::alloc::string::String,
+    /// px per frame (square)
+    #[prost(int32, tag = "6")]
+    pub tile_size: i32,
+    /// 1 = static; >1 = animated strip
+    #[prost(int32, tag = "7")]
+    pub frame_count: i32,
+    /// per-tile override of the role default
+    #[prost(bool, optional, tag = "8")]
+    pub collides: ::core::option::Option<bool>,
+    /// palettes this tile may appear in
+    #[prost(enumeration = "Biome", repeated, tag = "9")]
+    pub biomes: ::prost::alloc::vec::Vec<i32>,
+    #[prost(string, repeated, tag = "10")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 /// Visual identity block — banner / sigil / motto. Reused by Faction,
 /// Settlement, GuildHall, and any nameable owning entity.
@@ -4496,6 +4699,131 @@ impl ReplicationHint {
             "REPLICATION_LOCAL_DYNAMIC" => Some(Self::ReplicationLocalDynamic),
             "REPLICATION_CHUNK_SCOPED" => Some(Self::ReplicationChunkScoped),
             "REPLICATION_FULL_INSTANCE" => Some(Self::ReplicationFullInstance),
+            _ => None,
+        }
+    }
+}
+/// Hex tile orientation (rareicon hex maps).
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum HexOrientation {
+    Unspecified = 0,
+    Pointy = 1,
+    Flat = 2,
+}
+impl HexOrientation {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "HEX_ORIENTATION_UNSPECIFIED",
+            Self::Pointy => "HEX_ORIENTATION_POINTY",
+            Self::Flat => "HEX_ORIENTATION_FLAT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "HEX_ORIENTATION_UNSPECIFIED" => Some(Self::Unspecified),
+            "HEX_ORIENTATION_POINTY" => Some(Self::Pointy),
+            "HEX_ORIENTATION_FLAT" => Some(Self::Flat),
+            _ => None,
+        }
+    }
+}
+/// Semantic tile classification — separates WHAT a tile is (its role) from
+/// WHICH gid renders it. Procedural generators emit a row-major role grid
+/// (deterministic per seed); collision derives from the role; a per-biome
+/// TilePalette resolves role -> gid for presentation.
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum TileRole {
+    Unspecified = 0,
+    /// generic walkable terrain
+    Ground = 1,
+    /// open civic space (walkable)
+    Plaza = 2,
+    /// street / path (walkable)
+    Road = 3,
+    /// vegetation ground (walkable)
+    Grass = 4,
+    /// building wall / solid (blocks)
+    Wall = 5,
+    /// building roof (blocks)
+    Roof = 6,
+    /// building entrance (walkable)
+    Door = 7,
+    /// water (blocks)
+    Water = 8,
+    /// decorative, walkable (rug, lamp base)
+    Prop = 9,
+    /// decorative obstacle (tree, statue, barrel)
+    PropSolid = 10,
+    /// empty / out of bounds (blocks)
+    Void = 11,
+}
+impl TileRole {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "TILE_ROLE_UNSPECIFIED",
+            Self::Ground => "TILE_ROLE_GROUND",
+            Self::Plaza => "TILE_ROLE_PLAZA",
+            Self::Road => "TILE_ROLE_ROAD",
+            Self::Grass => "TILE_ROLE_GRASS",
+            Self::Wall => "TILE_ROLE_WALL",
+            Self::Roof => "TILE_ROLE_ROOF",
+            Self::Door => "TILE_ROLE_DOOR",
+            Self::Water => "TILE_ROLE_WATER",
+            Self::Prop => "TILE_ROLE_PROP",
+            Self::PropSolid => "TILE_ROLE_PROP_SOLID",
+            Self::Void => "TILE_ROLE_VOID",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "TILE_ROLE_UNSPECIFIED" => Some(Self::Unspecified),
+            "TILE_ROLE_GROUND" => Some(Self::Ground),
+            "TILE_ROLE_PLAZA" => Some(Self::Plaza),
+            "TILE_ROLE_ROAD" => Some(Self::Road),
+            "TILE_ROLE_GRASS" => Some(Self::Grass),
+            "TILE_ROLE_WALL" => Some(Self::Wall),
+            "TILE_ROLE_ROOF" => Some(Self::Roof),
+            "TILE_ROLE_DOOR" => Some(Self::Door),
+            "TILE_ROLE_WATER" => Some(Self::Water),
+            "TILE_ROLE_PROP" => Some(Self::Prop),
+            "TILE_ROLE_PROP_SOLID" => Some(Self::PropSolid),
+            "TILE_ROLE_VOID" => Some(Self::Void),
             _ => None,
         }
     }

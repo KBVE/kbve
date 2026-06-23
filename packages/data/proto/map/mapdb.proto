@@ -1029,6 +1029,21 @@ message WorldObjectDef {
   optional string religion_ref = 70;
   optional string dialogue_tree_ref = 71;     // Upgrade for QuestGiverSpec / NPC dialog
   optional float interaction_cooldown_secs = 72;
+
+  // Ongoing periodic effects emitted by the placed object (campfire heal ring,
+  // hazard burn, totem buff). Independent of interaction — active while alive.
+  repeated PlacedEffect placed_effects = 73;
+}
+
+// A periodic status effect emitted by a placed world object. `status` is a
+// StatusEffectKind slug (e.g. "regen", "burning"); `range` 0 = on-tile only
+// (hazard), >=1 = surrounding ring radius (aura). `period_ticks` is the sim
+// cadence between applications.
+message PlacedEffect {
+  string status = 1;
+  optional int32 magnitude = 2;
+  optional int32 period_ticks = 3;
+  optional int32 range = 4;
 }
 
 // Resource cost for constructing a structure
