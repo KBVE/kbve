@@ -336,6 +336,11 @@ pub struct NpcSpec {
     pub level: i32,
     pub defense: i32,
     pub wander: Option<(i32, u32)>,
+    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks). The
+    /// mob picks a random tile within `radius` of its origin, walks the whole
+    /// path there, then idles a random dwell in [min,max] before the next trip —
+    /// longer purposeful movement vs `wander`'s single-tile jitter.
+    pub roam: Option<(i32, u32, u32)>,
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
@@ -445,6 +450,35 @@ impl Wander {
     }
 }
 
+/// Roam-to-target wandering: walk the whole path to a random tile within
+/// `radius` of `origin`, then idle a random dwell before the next trip. Gives
+/// longer, more purposeful movement than `Wander`'s single-tile jitter.
+#[derive(Component, Clone, Copy)]
+pub struct Roam {
+    pub origin: Tile,
+    pub radius: i32,
+    pub dwell_min: u32,
+    pub dwell_max: u32,
+    /// Current destination, or None while dwelling/awaiting a new pick.
+    pub target: Option<Tile>,
+    /// Earliest tick the next trip may begin (set when a trip completes).
+    pub resume_tick: u32,
+}
+
+impl Roam {
+    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32) -> Self {
+        let dwell_min = dwell_min.max(1);
+        Self {
+            origin,
+            radius: radius.max(1),
+            dwell_min,
+            dwell_max: dwell_max.max(dwell_min),
+            target: None,
+            resume_tick: 0,
+        }
+    }
+}
+
 pub fn ground_item_bundle(
     registry: &KindRegistry,
     item_ref: &str,
@@ -483,6 +517,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     ));
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
+    }
+    if let Some((radius, dwell_min, dwell_max)) = spec.roam {
+        e.insert(Roam::new(spec.origin, radius, dwell_min, dwell_max));
     }
     if let Some(a) = spec.aggro {
         e.insert(Aggro {
@@ -718,7 +755,9 @@ pub fn build_app(
         )
         .add_systems(
             Update,
-            (hostile_ai, wander_system).chain().in_set(SimSet::Ai),
+            (hostile_ai, wander_system, roam_system)
+                .chain()
+                .in_set(SimSet::Ai),
         )
         .add_systems(
             Update,
@@ -1982,6 +2021,36 @@ fn try_move(
     true
 }
 
+/// Queue a one-tile move by an arbitrary (dx,dy) step where each component is
+/// -1/0/1 — the 8-way counterpart to `try_move`. A diagonal step also requires
+/// both orthogonal neighbors to be open so mobs can't cut through wall corners.
+fn try_step(
+    dx: i32,
+    dy: i32,
+    map: &WalkableMap,
+    z: i32,
+    pos: &GridPos,
+    mv: &mut MoveTarget,
+) -> bool {
+    if mv.target.is_some() || (dx == 0 && dy == 0) {
+        return false;
+    }
+    let candidate = Tile::new(pos.tile.x + dx, pos.tile.y + dy);
+    if !map.is_walkable_z(z, candidate) {
+        return false;
+    }
+    if dx != 0
+        && dy != 0
+        && (!map.is_walkable_z(z, Tile::new(pos.tile.x + dx, pos.tile.y))
+            || !map.is_walkable_z(z, Tile::new(pos.tile.x, pos.tile.y + dy)))
+    {
+        return false;
+    }
+    mv.target = Some(candidate);
+    mv.progress = 0;
+    true
+}
+
 fn step_tile(tile: Tile, dir: Dir) -> Tile {
     let (dx, dy) = dir.delta();
     Tile::new(tile.x + dx, tile.y + dy)
@@ -2017,6 +2086,72 @@ fn wander_system(
         pos.facing = dir.facing();
         let z = floor.map(|f| f.0).unwrap_or(0);
         try_move(dir, &map, z, &pos, &mut mv, Some((w.origin, w.radius)));
+    }
+}
+
+/// Roam: greedy-step toward a random target tile within `radius` of the origin,
+/// then dwell idle a random span before the next trip. One tile is queued per
+/// call (advance_movement walks it); the whole path plays out across ticks, so
+/// the mob reads as deliberately travelling rather than jittering in place.
+fn roam_system(
+    clock: Res<SimClock>,
+    seed: Res<SimSeed>,
+    map: Res<WalkableMap>,
+    mut q: Query<(
+        Entity,
+        &mut GridPos,
+        &mut MoveTarget,
+        &mut Roam,
+        Option<&Floor>,
+    )>,
+) {
+    for (entity, mut pos, mut mv, mut roam, floor) in q.iter_mut() {
+        if mv.target.is_some() {
+            continue;
+        }
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        match roam.target {
+            Some(dest) if dest != pos.tile => {
+                // 8-way stepping: prefer the diagonal toward the target, then
+                // fall back to a single axis. Diagonal tile-steps give the
+                // client true diagonal deltas, so all 8 sheet facings surface.
+                let sx = (dest.x - pos.tile.x).signum();
+                let sy = (dest.y - pos.tile.y).signum();
+                pos.facing = facing_from_intent(sx as i8, sy as i8);
+                let _ = try_step(sx, sy, &map, z, &pos, &mut mv)
+                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv))
+                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv));
+                // Fully blocked — abandon this trip and dwell briefly.
+                if mv.target.is_none() {
+                    roam.target = None;
+                    roam.resume_tick = clock.tick.saturating_add(roam.dwell_min);
+                }
+            }
+            Some(_) => {
+                // Arrived: dwell a random span before picking the next target.
+                let span = (roam.dwell_max - roam.dwell_min + 1).max(1) as u64;
+                let dwell = roam.dwell_min
+                    + (hash3(seed.0, entity.index_u32() as u64, clock.tick as u64) % span) as u32;
+                roam.target = None;
+                roam.resume_tick = clock.tick.saturating_add(dwell);
+            }
+            None => {
+                if clock.tick < roam.resume_tick {
+                    continue;
+                }
+                let h = hash3(seed.0, entity.index_u32() as u64, clock.tick as u64);
+                let span = (2 * roam.radius + 1) as u64;
+                let rx = (h % span) as i32 - roam.radius;
+                let ry = ((h >> 20) % span) as i32 - roam.radius;
+                let cand = Tile::new(roam.origin.x + rx, roam.origin.y + ry);
+                if cand != pos.tile && map.is_walkable_z(z, cand) {
+                    roam.target = Some(cand);
+                } else {
+                    // Bad pick — retry shortly instead of every tick.
+                    roam.resume_tick = clock.tick.saturating_add(1);
+                }
+            }
+        }
     }
 }
 
@@ -2844,6 +2979,7 @@ mod tests {
             level: 1,
             defense: 0,
             wander: None,
+            roam: None,
             aggro: Some(AggroSpec {
                 range: 8,
                 damage: 60,

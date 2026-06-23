@@ -114,7 +114,9 @@ export const APEX_PREDATOR: CreatureDef = {
 	assetPath: '/assets/arcade/arpg/creatures/apex_predator',
 	frameSize: 512,
 	displaySize: 160,
-	originY: 0.86,
+	// Feet + baked shadow sit ~0.82 down the 512px frame; anchor there so the
+	// creature stands ON the tile instead of floating a few px above it.
+	originY: 0.82,
 	// Calibrated in-game vs the debug overlay: side profiles read L/R-swapped
 	// (block 1 = head-LEFT/W, block 2 = head-RIGHT/E) and the NE/SW diagonal
 	// pair is swapped from a naive read.
