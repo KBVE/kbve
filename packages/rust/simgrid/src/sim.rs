@@ -144,6 +144,28 @@ pub struct DeployQueues<'w> {
     pickups: ResMut<'w, PendingPickups>,
 }
 
+/// A durably-persisted player-placed env object. Behavior is re-derived from
+/// `env_ref` on restore (mapdb), so only placement coordinates are stored.
+#[derive(Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PersistedEnvObject {
+    pub env_ref: String,
+    pub x: i32,
+    pub y: i32,
+    pub floor: i32,
+}
+
+/// Authoritative set of player-placed env objects to persist across restarts.
+/// World fixtures (starter campfire) are re-spawned by the game each boot and
+/// are deliberately absent. Mutated by `apply_placements`/`apply_pickups`, which
+/// push the snapshot through `EnvPersistSink`.
+#[derive(Resource, Default)]
+pub struct PersistedEnvLog(pub Vec<PersistedEnvObject>);
+
+/// Optional sink the game wires to a durable store. When present, every change
+/// to `PersistedEnvLog` sends the full snapshot; absent in tests / no-DB runs.
+#[derive(Resource, Default)]
+pub struct EnvPersistSink(pub Option<mpsc::UnboundedSender<Vec<PersistedEnvObject>>>);
+
 pub const COIN_REF: &str = "coin";
 pub const GOLD_BAR_REF: &str = "gold-bar";
 pub const GOLD_BAR_VALUE: u32 = 100;
@@ -645,6 +667,8 @@ pub fn build_app(
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
         .insert_resource(PendingPickups::default())
+        .insert_resource(PersistedEnvLog::default())
+        .insert_resource(EnvPersistSink::default())
         .insert_resource(ShopStock::default())
         .insert_resource(ItemPrices::default())
         .insert_resource(Tables::default())
@@ -1601,8 +1625,11 @@ fn apply_placements(
     deployables: Res<Deployables>,
     registry: Res<KindRegistry>,
     mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
     mut commands: Commands,
 ) {
+    let mut changed = false;
     for (slot, item_ref, tile, z) in placements.0.drain(..) {
         let Some(spec) = deployables.0.get(&item_ref) else {
             continue;
@@ -1618,22 +1645,42 @@ fn apply_placements(
             if blocker {
                 map.block_tile_z(z, tile);
             }
+            log.0.push(PersistedEnvObject {
+                env_ref: spec.env_ref.clone(),
+                x: tile.x,
+                y: tile.y,
+                floor: z,
+            });
+            changed = true;
         }
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
+    }
+}
+
+/// Push the current placed-object set to the durable sink, if wired.
+fn persist_env_snapshot(log: &PersistedEnvLog, sink: &EnvPersistSink) {
+    if let Some(tx) = &sink.0 {
+        let _ = tx.send(log.0.clone());
     }
 }
 
 /// Resolve queued pickups: the owning player reclaims a placed env object within
 /// reach — the kit is refunded, the object despawned, and its tile unblocked. A
 /// mismatched owner, out-of-range request, or missing object is dropped silently.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn apply_pickups(
     mut pickups: ResMut<PendingPickups>,
     bcast: Res<Outbound>,
     mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
     env_q: Query<(Entity, &GridPos, Option<&Floor>, &PlacedBy)>,
     mut players: Query<(&PlayerSlotTag, &mut Inventory)>,
     mut commands: Commands,
 ) {
+    let mut changed = false;
     for (slot, tile, z, from) in pickups.0.drain(..) {
         if from.chebyshev(tile) > PLACE_RANGE {
             continue;
@@ -1649,6 +1696,12 @@ fn apply_pickups(
         }
         commands.entity(eid).despawn();
         map.unblock_tile_z(z, tile);
+        log.0
+            .retain(|o| !(o.x == tile.x && o.y == tile.y && o.floor == z));
+        changed = true;
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
     }
 }
 
@@ -2441,6 +2494,65 @@ mod tests {
             !app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
             "tile stays blocked"
         );
+    }
+
+    #[test]
+    fn placement_persists_and_pickup_clears_snapshot() {
+        let (mut app, _rx, _tx, _roster) = harness(0x557);
+        let (ptx, mut prx) = mpsc::unbounded_channel::<Vec<PersistedEnvObject>>();
+        {
+            let w = app.world_mut();
+            w.resource_mut::<EnvPersistSink>().0 = Some(ptx);
+            w.resource_mut::<KindRegistry>().register_item("test-kit");
+            w.resource_mut::<KindRegistry>().register_env("test-env");
+            let mut dep = Deployables::default();
+            dep.0.insert(
+                "test-kit".to_string(),
+                DeployableSpec {
+                    env_ref: "test-env".to_string(),
+                    opts: EnvOpts {
+                        blocker: true,
+                        ..Default::default()
+                    },
+                },
+            );
+            w.insert_resource(dep);
+        }
+        let tile = Tile::new(5, 5);
+        let from = Tile::new(5, 6);
+        app.world_mut().spawn((
+            EntityKind(PLAYER_KIND),
+            GridPos::at(from),
+            MoveTarget::default(),
+            Inventory {
+                slots: vec![("test-kit".to_string(), 1)],
+            },
+            PlayerSlotTag(proto::PlayerSlot(0)),
+        ));
+
+        app.world_mut().resource_mut::<PendingPlacements>().0.push((
+            proto::PlayerSlot(0),
+            "test-kit".to_string(),
+            tile,
+            0,
+        ));
+        app.update();
+        let placed = prx.try_recv().expect("placement snapshot sent");
+        assert_eq!(placed.len(), 1);
+        assert_eq!(
+            (placed[0].x, placed[0].y, placed[0].env_ref.as_str()),
+            (5, 5, "test-env")
+        );
+
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(0),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        let cleared = prx.try_recv().expect("pickup snapshot sent");
+        assert!(cleared.is_empty(), "log cleared after pickup");
     }
 
     #[test]

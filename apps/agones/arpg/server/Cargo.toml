@@ -22,3 +22,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 async-trait = "0.1.88"
 agones = "1.57"
+serde_json = "1.0"

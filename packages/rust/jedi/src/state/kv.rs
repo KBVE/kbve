@@ -482,6 +482,29 @@ impl KvCache {
         let lkey = self.qualified(key);
         pool.lrange::<Vec<String>, _>(&lkey, 0, -1).await.ok()
     }
+
+    /// Authoritative write to L2 (Valkey) with no TTL — durable app/game state,
+    /// not a cache entry. `None` when L2 is unavailable.
+    pub async fn kv_set_str(&self, key: &str, value: &str) -> Option<()> {
+        let pool = self.l2.as_ref()?;
+        let qkey = self.qualified(key);
+        let fut = pool.set::<(), _, _>(&qkey, value, None, None, false);
+        match tokio::time::timeout(L2_OP_TIMEOUT, fut).await {
+            Ok(Ok(())) => Some(()),
+            _ => None,
+        }
+    }
+
+    /// Read a persistent L2 string written by [`KvCache::kv_set_str`]. `None`
+    /// when L2 is unavailable or the key is unset.
+    pub async fn kv_get_str(&self, key: &str) -> Option<String> {
+        let pool = self.l2.as_ref()?;
+        let qkey = self.qualified(key);
+        match tokio::time::timeout(L2_OP_TIMEOUT, pool.get::<Option<String>, _>(&qkey)).await {
+            Ok(Ok(v)) => v,
+            _ => None,
+        }
+    }
 }
 
 async fn build_valkey_pool() -> Result<ValkeyPool, String> {
