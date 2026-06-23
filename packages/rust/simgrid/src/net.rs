@@ -555,9 +555,16 @@ async fn claim_slot(
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let ulid = ulid_from_identity(&identity);
+    if state.conns.contains_key(&ulid) {
+        send_reject(
+            socket,
+            format,
+            "already connected — close the other window or tab to play here",
+        )
+        .await;
+        return None;
+    }
     let name = kbve_username.clone();
-    // Find any prior session(s) for this username, then claim a fresh slot —
-    // both under one write lock so two simultaneous joins can't race.
     let (slot, prior) = match state.roster.write() {
         Ok(mut r) => {
             let prior = r.slots_for_username(&name);
@@ -575,9 +582,6 @@ async fn claim_slot(
         return None;
     };
 
-    // Newest wins: kick prior sessions so this player isn't two ghosts. Each
-    // kicked session breaks its loop and releases its own slot (the sim then
-    // despawns that ghost and persists its state by username).
     if !prior.is_empty()
         && let Ok(kicks) = state.kicks.lock()
     {
