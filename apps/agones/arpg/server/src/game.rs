@@ -59,6 +59,11 @@ pub const PREDATOR_DAMAGE: i32 = 8;
 pub const PREDATOR_DEFENSE: i32 = 2;
 pub const PREDATOR_TICKS_PER_TILE: u8 = 5;
 pub const PREDATOR_LEVEL: i32 = 3;
+// Roam: wander toward a random tile up to this far from spawn, then idle a
+// random dwell in [min,max] before the next trip — longer, deliberate movement.
+pub const PREDATOR_ROAM_RADIUS: i32 = 10;
+pub const PREDATOR_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
+pub const PREDATOR_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 3;
 // Streaming spawn budget: how many predators may exist near each player, the
 // ring (in tiles) they appear within, and how close they're allowed to pop in.
 pub const PREDATOR_PER_PLAYER: usize = 3;
@@ -318,6 +323,7 @@ fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
         level: 1,
         defense: GOBLIN_DEFENSE,
         wander: Some((8, 25)),
+        roam: None,
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: GOBLIN_DAMAGE,
@@ -338,7 +344,14 @@ fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
         max_hp: PREDATOR_HP,
         level: PREDATOR_LEVEL,
         defense: PREDATOR_DEFENSE,
-        wander: Some((6, 18)),
+        wander: None,
+        // Roam in longer purposeful trips with idle dwells between, instead of
+        // the single-tile jitter `wander` produces.
+        roam: Some((
+            PREDATOR_ROAM_RADIUS,
+            PREDATOR_DWELL_MIN_TICKS,
+            PREDATOR_DWELL_MAX_TICKS,
+        )),
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: PREDATOR_DAMAGE,
