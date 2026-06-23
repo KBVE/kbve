@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-06-22T10:11:44Z",
+  "generated_at": "2026-06-23T09:20:27Z",
   "summary": {
-    "critical": 2,
+    "critical": 5,
     "high": 26,
-    "medium": 46,
+    "medium": 48,
     "low": 8,
-    "info": 31
+    "info": 32
   },
   "ecosystems": {
     "npm": {
-      "total": 64,
+      "total": 65,
       "severities": {
         "critical": 2,
         "high": 26,
-        "medium": 28,
+        "medium": 29,
         "low": 8,
         "info": 0
       },
@@ -376,13 +376,6 @@
           "url": "https://github.com/advisories/GHSA-gcq2-9pq2-cxqm"
         },
         {
-          "id": "1121165",
-          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
-          "severity": "medium",
-          "package": "http-proxy-middleware",
-          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
-        },
-        {
           "id": "1121187",
           "title": "undici vulnerable to TLS certificate validation bypass via dropped requestTls in SOCKS5 ProxyAgent",
           "severity": "high",
@@ -465,17 +458,31 @@
           "severity": "low",
           "package": "undici",
           "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
+        },
+        {
+          "id": "1121323",
+          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
+          "severity": "medium",
+          "package": "http-proxy-middleware",
+          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
+        },
+        {
+          "id": "1121324",
+          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
+          "severity": "medium",
+          "package": "http-proxy-middleware",
+          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
         }
       ]
     },
     "cargo": {
-      "total": 49,
+      "total": 51,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 18,
+        "medium": 19,
         "low": 0,
-        "info": 31
+        "info": 32
       },
       "advisories": [
         {
@@ -505,6 +512,13 @@
           "severity": "medium",
           "package": "postgres-protocol",
           "url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
+        },
+        {
+          "id": "RUSTSEC-2026-0185",
+          "title": " Remote memory exhaustion in quinn-proto from unbounded out-of-order stream reassembly",
+          "severity": "medium",
+          "package": "quinn-proto",
+          "url": "https://github.com/quinn-rs/quinn/pull/2694"
         },
         {
           "id": "RUSTSEC-2023-0071",
@@ -794,6 +808,13 @@
           "url": "https://github.com/jeromefroe/lru-rs/pull/224"
         },
         {
+          "id": "RUSTSEC-2026-0186",
+          "title": "Unchecked pointer offset in crate `memmap2`",
+          "severity": "info",
+          "package": "memmap2",
+          "url": "https://github.com/RazrFalcon/memmap2-rs/issues/169"
+        },
+        {
           "id": "RUSTSEC-2026-0097",
           "title": "Rand is unsound with a custom logger using `rand::rng()`",
           "severity": "info",
@@ -835,15 +856,37 @@
       "advisories": []
     },
     "codeql": {
-      "total": 0,
+      "total": 3,
       "severities": {
-        "critical": 0,
+        "critical": 3,
         "high": 0,
         "medium": 0,
         "low": 0,
         "info": 0
       },
-      "alerts": []
+      "alerts": [
+        {
+          "rule_id": "rust/hard-coded-cryptographic-value",
+          "description": "Hard-coded cryptographic value",
+          "severity": "critical",
+          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/512"
+        },
+        {
+          "rule_id": "rust/hard-coded-cryptographic-value",
+          "description": "Hard-coded cryptographic value",
+          "severity": "critical",
+          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/511"
+        },
+        {
+          "rule_id": "rust/hard-coded-cryptographic-value",
+          "description": "Hard-coded cryptographic value",
+          "severity": "critical",
+          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/510"
+        }
+      ]
     },
     "dependabot": {
       "total": 0,
