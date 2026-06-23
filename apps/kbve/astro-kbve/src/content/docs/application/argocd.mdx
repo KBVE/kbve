@@ -1,0 +1,462 @@
+---
+title: ArgoCD
+description: |
+    ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes.
+sidebar:
+    label: ArgoCD
+    order: 12
+unsplash: 1667372459726-a8fb4f5e4a5b
+img: https://images.unsplash.com/photo-1667372459726-a8fb4f5e4a5b?fit=crop&w=1400&h=700&q=75
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+  Tabs,
+  TabItem,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It automates the deployment of applications by synchronizing the desired state defined in Git repositories with the actual state in Kubernetes clusters.
+
+<Adsense />
+
+## Architecture
+
+ArgoCD follows the GitOps pattern where Git repositories are the source of truth for defining the desired application state. Key components include:
+
+<CardGrid>
+  <Card title="Application Controller" icon="puzzle">
+    Continuously monitors running applications and compares the current live state against the desired target state specified in Git.
+  </Card>
+  <Card title="Repo Server" icon="document">
+    Internal service that maintains a local cache of Git repositories holding application manifests.
+  </Card>
+  <Card title="API Server" icon="setting">
+    gRPC/REST server that exposes the API consumed by the Web UI, CLI, and CI/CD systems.
+  </Card>
+  <Card title="Application Definitions" icon="list-format">
+    Kubernetes custom resources (CRDs) that define applications, projects, and repositories.
+  </Card>
+</CardGrid>
+
+---
+
+## KBVE Cluster Integration
+
+The KBVE production cluster runs ArgoCD to manage 68+ applications across multiple namespaces. All application manifests are stored in the [`apps/kube/`](https://github.com/kbve/kbve/tree/main/apps/kube) directory.
+
+### Dashboard Access
+
+View live deployment status: [ArgoCD Dashboard](/dashboard/argo/)
+
+---
+
+## Application Annotation Standard
+
+### Overview
+
+KBVE uses a standardized annotation schema on ArgoCD Application resources to link them back to their source directories in `apps/kube`. These annotations provide zero-risk metadata that enables traceability, automation, and better observability.
+
+### Schema Version: v1
+
+#### Core Annotations (Required)
+
+These annotations MUST be present on every ArgoCD Application resource:
+
+| Annotation | Description | Example |
+|------------|-------------|---------|
+| `kbve.com/source-path` | Relative path from repo root to the application directory | `apps/kube/agones/arpg` |
+| `kbve.com/manifest-path` | Relative path to the actual Kubernetes manifest directory | `apps/kube/agones/arpg/manifests` |
+| `kbve.com/application-file` | Relative path to this ArgoCD Application resource file | `apps/kube/agones/arpg/application.yaml` |
+| `kbve.com/managed-by` | Management tool (always `argocd` for these resources) | `argocd` |
+| `kbve.com/schema-version` | Version of this annotation schema | `v1` |
+
+#### Classification Annotations (Recommended)
+
+These annotations SHOULD be present to enable categorization and filtering:
+
+| Annotation | Description | Example Values |
+|------------|-------------|----------------|
+| `kbve.com/category` | Application category | `game-server`, `application`, `infrastructure`, `database`, `observability`, `ci-cd`, `networking` |
+| `kbve.com/stack` | Technology stack or framework | `agones`, `rows`, `supabase`, `clickhouse`, `cilium`, `core` |
+
+#### Optional Annotations
+
+Additional context-specific annotations:
+
+| Annotation | Description | When to Use | Example |
+|------------|-------------|-------------|---------|
+| `kbve.com/tenant` | Tenant identifier | Multi-tenant deployments | `chuckrpg-beta`, `rentearth-release` |
+| `kbve.com/deployment-model` | Deployment architecture pattern | Complex deployments | `multi-tenant-overlay`, `singleton`, `replicated` |
+| `kbve.com/environment` | Environment stage | When explicit environment tracking needed | `dev`, `staging`, `prod` |
+| `kbve.com/owner` | Team or individual responsible | Large teams with ownership boundaries | `platform-team`, `game-dev` |
+
+### Examples
+
+<Tabs>
+  <TabItem label="Simple Application">
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kbve
+  namespace: argocd
+  annotations:
+    kbve.com/source-path: "apps/kube/kbve"
+    kbve.com/manifest-path: "apps/kube/kbve/manifest"
+    kbve.com/application-file: "apps/kube/kbve/application.yaml"
+    kbve.com/managed-by: "argocd"
+    kbve.com/schema-version: "v1"
+    kbve.com/category: "application"
+    kbve.com/stack: "core"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KBVE/kbve
+    targetRevision: HEAD
+    path: apps/kube/kbve/manifest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kbve
+```
+
+  </TabItem>
+  <TabItem label="Game Server">
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-arpg
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: arpg
+    annotations:
+        kbve.com/source-path: "apps/kube/agones/arpg"
+        kbve.com/manifest-path: "apps/kube/agones/arpg/manifests"
+        kbve.com/application-file: "apps/kube/agones/arpg/application.yaml"
+        kbve.com/managed-by: "argocd"
+        kbve.com/schema-version: "v1"
+        kbve.com/category: "game-server"
+        kbve.com/stack: "agones"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kbve/kbve
+    targetRevision: main
+    path: apps/kube/agones/arpg/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: arpg
+```
+
+  </TabItem>
+  <TabItem label="Multi-Tenant">
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: rows-chuckrpg-beta
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: "apps/kube/rows/tenants/overlays/chuckrpg-beta"
+        kbve.com/manifest-path: "apps/kube/rows/tenants/overlays/chuckrpg-beta"
+        kbve.com/application-file: "apps/kube/rows/tenants/overlays/chuckrpg-beta/application.yaml"
+        kbve.com/managed-by: "argocd"
+        kbve.com/schema-version: "v1"
+        kbve.com/category: "game-server"
+        kbve.com/stack: "rows"
+        kbve.com/tenant: "chuckrpg-beta"
+        kbve.com/deployment-model: "multi-tenant-overlay"
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KBVE/kbve
+    targetRevision: main
+    path: apps/kube/rows/tenants/overlays/chuckrpg-beta
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rows-chuckrpg-beta
+```
+
+  </TabItem>
+</Tabs>
+
+### Category Reference
+
+| Category | Description | Example Apps |
+|----------|-------------|--------------|
+| `game-server` | Game server deployments | arpg, cryptothrone, factorio, mc |
+| `application` | Core business applications | kbve, herbmail, n8n, jobboard |
+| `infrastructure` | Infrastructure components | argocd, cert-manager, reloader, gateway-api |
+| `database` | Database systems | cnpg, clickhouse, valkey, rabbitmq |
+| `observability` | Monitoring and logging | monitoring, metrics, vector, analytics |
+| `ci-cd` | CI/CD tools and runners | github/runners, github/controller, forgejo |
+| `networking` | Network infrastructure | cilium, kong, multus |
+| `virtualization` | Virtualization platforms | kubevirt, kasm, firecracker |
+| `operator` | Kubernetes operators | agones, clickhouse-operator, kyverno, keda |
+| `security` | Security tooling | sealed-secrets, external-secrets, security-profiles-operator |
+
+### Querying Applications
+
+These annotations enable powerful kubectl queries:
+
+```bash
+# List all game servers
+kubectl get applications -n argocd -o json | \
+  jq '.items[] | select(.metadata.annotations."kbve.com/category" == "game-server") | .metadata.name'
+
+# Find all ROWS tenants
+kubectl get applications -n argocd -o json | \
+  jq '.items[] | select(.metadata.annotations."kbve.com/stack" == "rows") |
+  {name: .metadata.name, tenant: .metadata.annotations."kbve.com/tenant"}'
+
+# Get source paths for all applications
+kubectl get applications -n argocd -o json | \
+  jq '.items[] | {name: .metadata.name, path: .metadata.annotations."kbve.com/source-path"}'
+```
+
+---
+
+## Talos Integration
+
+### Pause ArgoCD During Upgrades
+
+When performing Talos node upgrades, pause ArgoCD reconciliation to prevent it from fighting manual scale-down operations:
+
+```shell
+# Pause ArgoCD application controller
+kubectl -n argocd scale sts argocd-application-controller --replicas=0
+
+# After upgrade completes, restore
+kubectl -n argocd scale sts argocd-application-controller --replicas=1
+```
+
+This prevents the application-controller from interfering with:
+- Pre-upgrade workload scale-down
+- Longhorn maintenance mode preparation
+- Manual pod eviction for graceful drain
+
+See the full Talos upgrade procedure in [Kubernetes - Talos](/application/kubernetes/#talos).
+
+---
+
+## CLI Commands
+
+### Installation
+
+<Tabs>
+  <TabItem label="macOS">
+
+```shell
+brew install argocd
+```
+
+  </TabItem>
+  <TabItem label="Linux">
+
+```shell
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+```
+
+  </TabItem>
+</Tabs>
+
+### Login
+
+```shell
+# Port-forward ArgoCD server
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# Login via CLI
+argocd login localhost:8080
+```
+
+### Common Commands
+
+```shell
+# List all applications
+argocd app list
+
+# Get application details
+argocd app get <app-name>
+
+# Sync an application
+argocd app sync <app-name>
+
+# Get sync status
+argocd app sync-status <app-name>
+
+# View application logs
+argocd app logs <app-name>
+
+# Delete an application
+argocd app delete <app-name>
+
+# Create an application from YAML
+argocd app create -f application.yaml
+```
+
+---
+
+## Application Management
+
+### Sync Policies
+
+KBVE applications use automated sync with self-healing:
+
+```yaml
+syncPolicy:
+  automated:
+    prune: true        # Delete resources removed from Git
+    selfHeal: true     # Revert manual kubectl changes
+  syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - RespectIgnoreDifferences=true
+```
+
+### Ignore Differences
+
+Some resources have fields that ArgoCD should not sync (e.g., Agones Fleet replicas managed by autoscalers):
+
+```yaml
+ignoreDifferences:
+  - group: agones.dev
+    kind: Fleet
+    jsonPointers:
+      - /spec/replicas
+```
+
+### Finalizers
+
+Multi-tenant applications use finalizers to ensure cascading deletion:
+
+```yaml
+metadata:
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+```
+
+This ensures when an ArgoCD Application is deleted, all deployed resources are cleaned up.
+
+---
+
+## Troubleshooting
+
+### Application Stuck in Progressing
+
+```shell
+# Check sync operation status
+argocd app get <app-name>
+
+# Terminate stuck operation
+argocd app terminate-op <app-name>
+
+# Force sync
+argocd app sync <app-name> --force
+```
+
+### Out of Sync Despite Matching Git
+
+```shell
+# Hard refresh (bypass cache)
+argocd app get <app-name> --hard-refresh
+
+# Check diff
+argocd app diff <app-name>
+```
+
+### Health Check Failing
+
+Some resources need custom health checks. ArgoCD has built-in checks for common resources, but custom CRDs may require configuration:
+
+```yaml
+# ConfigMap in argocd namespace
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  resource.customizations: |
+    agones.dev/Fleet:
+      health.lua: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.readyReplicas ~= nil and obj.status.readyReplicas > 0 then
+            hs.status = "Healthy"
+            return hs
+          end
+        end
+        hs.status = "Progressing"
+        return hs
+```
+
+### Controller Logs
+
+```shell
+# View application controller logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller -f
+
+# View repo server logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-repo-server -f
+```
+
+---
+
+## Best Practices
+
+<Steps>
+
+1. **Use Git as Source of Truth**
+   - Never manually apply manifests that are managed by ArgoCD
+   - All changes should go through Git commits
+
+2. **Enable Auto-Sync with Self-Heal**
+   - Automatically corrects drift from manual changes
+   - Ensures cluster state matches Git
+
+3. **Use Annotations for Metadata**
+   - Link applications back to source code
+   - Enable programmatic discovery and automation
+
+4. **Implement Proper RBAC**
+   - Limit who can sync/delete applications in production
+   - Use ArgoCD Projects for multi-tenant isolation
+
+5. **Monitor Sync Status**
+   - Set up alerts for applications stuck in Progressing
+   - Track sync failures in observability stack
+
+6. **Use Resource Hooks**
+   - `PreSync`, `Sync`, `PostSync` hooks for migrations
+   - `SyncFail` hooks for rollback logic
+
+</Steps>
+
+---
+
+## Related Documentation
+
+- [Kubernetes](/application/kubernetes/) - General Kubernetes operations
+- [ArgoCD Dashboard](/dashboard/argo/) - Live cluster deployment status
+- [GitHub Actions](/application/git/) - CI/CD integration with ArgoCD
+
+---
+
+<Giscus />

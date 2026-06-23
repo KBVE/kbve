@@ -3,6 +3,16 @@ kind: Application
 metadata:
     name: rows-chuckrpg-beta
     namespace: argocd
+    annotations:
+        kbve.com/source-path: 'apps/kube/rows/tenants/overlays/chuckrpg-beta'
+        kbve.com/manifest-path: 'apps/kube/rows/tenants/overlays/chuckrpg-beta'
+        kbve.com/application-file: 'apps/kube/rows/tenants/overlays/chuckrpg-beta/application.yaml'
+        kbve.com/managed-by: 'argocd'
+        kbve.com/schema-version: 'v1'
+        kbve.com/category: 'game-server'
+        kbve.com/stack: 'rows'
+        kbve.com/tenant: 'chuckrpg-beta'
+        kbve.com/deployment-model: 'multi-tenant-overlay'
     finalizers:
         - resources-finalizer.argocd.argoproj.io
 spec:
