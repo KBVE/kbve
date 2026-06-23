@@ -6,6 +6,9 @@ metadata:
     labels:
         app: arpg-web
         app.kubernetes.io/part-of: arpg
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     replicas: 2
     selector:
@@ -39,11 +42,11 @@ spec:
                       periodSeconds: 20
                   resources:
                       requests:
-                          cpu: '25m'
-                          memory: '32Mi'
+                          cpu: 25m
+                          memory: 32Mi
                       limits:
-                          cpu: '250m'
-                          memory: '128Mi'
+                          cpu: 250m
+                          memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -53,6 +56,9 @@ metadata:
     labels:
         app: arpg-web
         app.kubernetes.io/part-of: arpg
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

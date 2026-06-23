@@ -5,6 +5,9 @@ metadata:
     namespace: factorio
     labels:
         app: factorio-rotator
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     strategy:
@@ -49,7 +52,8 @@ spec:
                           command:
                               - /bin/sh
                               - -c
-                              - test $(( $(date +%s) - $(stat -c %Y /tmp/.rotator-heartbeat) )) -lt 60
+                              - test $(( $(date +%s) - $(stat -c %Y /tmp/.rotator-heartbeat) )) -lt
+                                60
                       initialDelaySeconds: 20
                       periodSeconds: 20
                       timeoutSeconds: 5

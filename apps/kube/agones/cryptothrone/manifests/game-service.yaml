@@ -6,6 +6,9 @@ metadata:
     labels:
         app: cryptothrone-server
         app.kubernetes.io/part-of: cryptothrone
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
