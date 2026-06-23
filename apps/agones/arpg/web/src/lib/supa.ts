@@ -9,5 +9,15 @@ export const SUPABASE_URL =
 		? `${window.location.origin}${RAW_SUPABASE_URL}`
 		: RAW_SUPABASE_URL;
 
+let supabaseUrlOverride: string | null = null;
+
+export function setSupabaseUrl(url: string): void {
+	supabaseUrlOverride = url;
+}
+
+export function getSupabaseUrl(): string {
+	return supabaseUrlOverride ?? SUPABASE_URL;
+}
+
 export const SUPABASE_ANON_KEY =
 	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg';

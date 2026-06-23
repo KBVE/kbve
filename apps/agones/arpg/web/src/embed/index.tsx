@@ -1,7 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import ReactIsoArpgApp from '../game/ReactIsoArpgApp';
-import { setArpgAssetBase } from '../game/config';
+import { setArpgAssetBase, setArpgChatUrl } from '../game/config';
+import { setSupabaseUrl } from '../lib/supa';
 
 /**
  * Embed entry for the ARPG. Exposes two mounts on the IIFE global:
@@ -21,6 +22,10 @@ export interface ArpgEmbedOptions {
 	username: string;
 	/** Game server WebSocket. Defaults to wss://arpg.kbve.com/ws (config). */
 	gameWs?: string;
+	/** Realm chat WebSocket. Discord Activity passes the proxied URL. */
+	chatWs?: string;
+	/** Supabase base URL. Discord Activity passes the proxied URL. */
+	supabaseUrl?: string;
 	height?: string;
 }
 
@@ -53,6 +58,9 @@ export function mount(opts: ArpgEmbedOptions): void {
 		console.error('[ARPG] mount requires jwt + username');
 		return;
 	}
+
+	if (opts.chatWs) setArpgChatUrl(opts.chatWs);
+	if (opts.supabaseUrl) setSupabaseUrl(opts.supabaseUrl);
 
 	target.style.display = 'block';
 	target.style.height = opts.height ?? DEFAULT_HEIGHT;

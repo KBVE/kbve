@@ -144,11 +144,19 @@ export const resolveWsUrl = makeWsResolver(
 // Realm chat over the shared irc-gateway (laser RealmChatClient). The gateway
 // routes `?game=arpg` to #general (GAME_PROFILES in irc-gateway minechat.rs).
 // Only these per-game values differ — the client + wire live in @kbve/laser.
+let chatUrlOverride: string | null = null;
+
+export function setArpgChatUrl(url: string): void {
+	chatUrlOverride = url;
+}
+
+const resolveChatEnv = makeWsResolver(
+	import.meta.env.PUBLIC_ARPG_CHAT_WS,
+	'wss://chat.kbve.com/gamechat',
+);
+
 export const ARPG_CHAT: ChatConfig = {
 	game: 'arpg',
 	channel: '#general',
-	resolveUrl: makeWsResolver(
-		import.meta.env.PUBLIC_ARPG_CHAT_WS,
-		'wss://chat.kbve.com/gamechat',
-	),
+	resolveUrl: () => chatUrlOverride ?? resolveChatEnv(),
 };
