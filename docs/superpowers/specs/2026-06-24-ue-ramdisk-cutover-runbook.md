@@ -53,12 +53,23 @@
 Scope: **only** `server_build` and `game_build_linux` jobs + one new `prepare` job. `ci-unreal.yml`, `ci-unreal-plugins.yml`, and all other jobs (engine_*, plugin_*, mac, windows-native) are untouched.
 
 1. **New `prepare` job** (`runs-on: arc-runner-ue`, `needs: [guard, ...gates]`): under `flock /var/mnt/ramdisk/.prepare.lock`:
-   - fetch/clone the mirror to `/var/mnt/ramdisk/repo.git` and ensure the **run's explicit commit SHA** is present (pin it for the run's lifetime — not a branch ref);
+   - fetch/clone the mirror to `/var/mnt/ramdisk/repo.git` and ensure the **run's explicit commit SHA** is present (pin it for the run's lifetime — not a branch ref). This is the **external game repo** (Forgejo LFS), so `prepare` carries the GH/Forgejo creds — builders do not:
+     ```bash
+     git clone --mirror <url> /var/mnt/ramdisk/repo.git   # first run only; else: git -C repo.git fetch --all
+     git -C /var/mnt/ramdisk/repo.git lfs fetch --all     # populate repo.git/lfs ONCE (mirror does NOT fetch LFS)
+     ```
    - `docker pull` the engine once into the shared dind;
    - **pre-flight free-space check:** fail fast if `image + mirror + N×scratch_estimate > free tmpfs`;
    - **GC:** remove prior runs' `/var/mnt/ramdisk/*-scratch` and `docker image prune` dangling layers — but **only while holding the lock and with no other build running** (guard against pruning a concurrent build's base; design §4).
 2. **`server_build` / `game_build_linux`:** add `needs: prepare`.
-3. **Path namespacing (B1/B3):** replace every `/tmp/game-clone`, `/tmp/game-project`, `/tmp/ue5-build-output` with `/var/mnt/ramdisk/${GITHUB_RUN_ID}-<job>/...`. The `docker run -v` bind sources (currently `-v /tmp/game-project:/project`, `-v /tmp/ue5-build-output:/output`) must point at these shared-tmpfs paths so they resolve inside the shared dind. Each Linux tree: `git clone --local --shared /var/mnt/ramdisk/repo.git <ns>/work` at the pinned SHA.
+3. **Path namespacing (B1/B3):** replace every `/tmp/game-clone`, `/tmp/game-project`, `/tmp/ue5-build-output` with `/var/mnt/ramdisk/${GITHUB_RUN_ID}-<job>/...`. The `docker run -v` bind sources (currently `-v /tmp/game-project:/project`, `-v /tmp/ue5-build-output:/output`) must point at these shared-tmpfs paths so they resolve inside the shared dind. Each Linux tree clones from the mirror at the pinned SHA and reads LFS from the **shared** store (no creds, no pull):
+   ```bash
+   git clone --local --shared /var/mnt/ramdisk/repo.git <ns>/work
+   git -C <ns>/work checkout <PINNED_SHA>
+   git -C <ns>/work config lfs.storage /var/mnt/ramdisk/repo.git/lfs
+   git -C <ns>/work lfs checkout         # smudge from shared blobs; never `lfs pull`
+   ```
+   This replaces the current per-run `git clone --depth 1` + `git lfs pull` (which re-downloaded the art every build).
 4. **Remove the per-build prune (B2):** delete `docker system prune -f` from the `Cleanup` steps (lines ~658, ~965). Replace with `rm -rf /var/mnt/ramdisk/${GITHUB_RUN_ID}-<job>` only. Centralized prune lives in `prepare` (step 1).
 5. **Alternate-loss tolerance (§4):** on an `object ... not found` git error, re-run `prepare` and re-clone once before failing.
 
