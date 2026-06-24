@@ -783,3 +783,78 @@ git commit -m "feat(rows): stamp empty-shutdown-minutes annotation on allocation
 **Type consistency:** `reap_decision` signature is identical in Task 1 (def), Task 5 (call). `spin_up_server_instance_ready` gains `game_server_name: &str` in Task 3 and is called with `&alloc.game_server_name` same task. `ZoneInstance.game_server_name: Option<String>` (Task 3) is only read for SELECT mapping. `allocate(map, zone_instance_id, empty_shutdown_minutes)` consistent across Task 7 def + call.
 
 **Placeholder scan:** no TBD/"handle errors"/"similar to" — every code step shows the code. Manual-verification steps are used only where there is genuinely no DB test harness (documented as a Global Constraint), not as a substitute for unit tests on the pure logic.
+
+---
+
+## Operational Runbook (production-audit follow-up)
+
+Folds in the merge-condition items from the PR #13200 production audit. The reaper ships **inert**
+(`ROWS_EMPTY_REAPER_ENABLED=false`); the only live behavior on merge is the harmless
+`lastserveremptydate` marker writes in the heartbeat handler.
+
+### 1. Migration / image ordering (`gameservername` column)
+
+The `gameservername` migration (`20260623120000`) is applied by the **manually-triggered**
+`ci-dbmate-deploy` workflow (`workflow_dispatch`, SHA-confirmed, gated by the `kilobase-prod`
+GitHub Environment), **not** automatically on merge or on the rows image rollout — the two are
+independent steps.
+
+- **Degrade-safe by code:** `spin_up_server_instance_ready` catches SQLSTATE 42703
+  (undefined_column) and falls back to a column-less INSERT, so a rows image that ships **before**
+  the migration no longer causes a scale-from-0 allocation outage — allocation succeeds, only
+  `gameservername` persistence is deferred (the reaper's DB-name fallback is gated off anyway).
+- **Recommended order anyway:** run `ci-dbmate-deploy` for the target SHA **before** rolling the
+  rows image, so restart-safe teardown is fully functional from the first allocation.
+- **Verify after dbmate runs:**
+  ```sql
+  SET search_path TO ows;
+  SELECT column_name FROM information_schema.columns
+   WHERE table_schema='ows' AND table_name='mapinstances' AND column_name='gameservername';
+  ```
+  Expect one row. If empty, the migration has not applied — rows is running in degrade mode.
+
+### 2. Per-env enablement (do this per environment, never globally at once)
+
+`ROWS_REAP_NEVER_REPORTED=true` **without live UE heartbeats** will deallocate *populated* servers
+~`boot_grace` (default 4h) after spawn, because a full server is indistinguishable from a dead one
+when no heartbeat is arriving. Enable strictly in this order, per env (dev → beta → release):
+
+1. **Confirm heartbeats are live in THIS env first.** With the env carrying real player traffic,
+   check that `lastupdatefromserver` advances and `numberofreportedplayers` reflects reality:
+   ```sql
+   SET search_path TO ows;
+   SELECT mapinstanceid, numberofreportedplayers, lastupdatefromserver, lastserveremptydate
+     FROM mapinstances WHERE customerguid = '<tenant-guid>' AND status > 0
+     ORDER BY lastupdatefromserver DESC NULLS LAST LIMIT 20;
+   ```
+   If `lastupdatefromserver` is NULL/stale for live servers, **stop** — heartbeats are not live;
+   enabling the never-reported path here would evict players.
+2. **Enable the count-based path only:** set `ROWS_EMPTY_REAPER_ENABLED=true`, leave
+   `ROWS_REAP_NEVER_REPORTED` unset/false. Watch logs for `Reaping empty/abandoned zone server`
+   and confirm only genuinely-empty instances are torn down.
+3. **Enable `ROWS_REAP_NEVER_REPORTED=true` only after** step 1 holds for that env. Startup emits a
+   `warn!` for each dangerous knob — confirm the logged config matches intent.
+4. **`ROWS_EMPTY_REAP_STALE_SECS > 0`** (crashed-while-populated) only once heartbeat delivery is
+   trusted; a *global* heartbeat outage would otherwise make every live server look stale.
+
+Env flags drift between dev/beta/release values files — treat enablement as a per-env change, not a
+single global toggle.
+
+### 3. Multiple rows replicas
+
+The reaper now guards each cycle with a tenant-scoped Postgres advisory lock
+(`pg_try_advisory_lock`), so scaling rows past `replicas: 1` no longer risks two reapers
+double-deallocating the same GameServer — only the lock holder reaps per cycle. No manual step
+required before scaling; the spin-up path remains protected by its existing per-zone lock.
+
+### 4. Reaper index (`idx_mapinstances_active`) stranded INVALID
+
+A `CREATE INDEX CONCURRENTLY` interrupted mid-build leaves an INVALID index; `IF NOT EXISTS` makes a
+re-run skip it, so reaper scans silently fall back to seq scans. Recovery (also noted in the
+migration file):
+```sql
+SET search_path TO ows;
+SELECT c.relname FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
+  WHERE NOT i.indisvalid AND c.relname = 'idx_mapinstances_active';   -- confirm invalid
+DROP INDEX CONCURRENTLY IF EXISTS idx_mapinstances_active;            -- then re-run dbmate up
+```

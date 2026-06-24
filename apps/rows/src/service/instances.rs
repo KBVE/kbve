@@ -36,10 +36,23 @@ impl OWSService {
         // Per-map empty timeout drives the `empty-shutdown-minutes` allocation annotation.
         // Read from `maps` directly: the first server of a zone is allocated before its
         // `mapinstances` row exists, so a mapinstances-joined lookup would miss it.
-        let empty_shutdown_minutes = InstanceRepo(&self.state.db)
+        // Distinguish a DB error from "map not found": Ok(_) (incl. the `1` not-found default) is
+        // used as-is; only a transient DB error falls back to the conservative value, so a blip
+        // can't stamp `empty-shutdown-minutes=1` and prematurely self-shutdown a populated server.
+        let empty_shutdown_minutes = match InstanceRepo(&self.state.db)
             .get_map_minutes_to_shutdown_after_empty(customer_guid, &resolved_zone)
             .await
-            .unwrap_or(1);
+        {
+            Ok(m) => m,
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    zone = %resolved_zone,
+                    "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
+                );
+                crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
+            }
+        };
 
         let pipeline = AllocationPipeline::new(
             customer_guid,

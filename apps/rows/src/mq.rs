@@ -262,10 +262,23 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             // Per-map empty timeout for the `empty-shutdown-minutes` allocation annotation.
             // Read from `maps` directly (not via `mapinstances`): the first server of a zone is
             // allocated before its `mapinstances` row exists.
-            let empty_shutdown_minutes = InstanceRepo(&svc.state().db)
+            // Distinguish a DB error from "map not found": Ok(_) (incl. the `1` not-found default)
+            // is used as-is; only a transient DB error falls back to the conservative value, so a
+            // blip can't stamp `empty-shutdown-minutes=1` and prematurely self-shutdown a server.
+            let empty_shutdown_minutes = match InstanceRepo(&svc.state().db)
                 .get_map_minutes_to_shutdown_after_empty(guid, &msg.map_name)
                 .await
-                .unwrap_or(1);
+            {
+                Ok(m) => m,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        map = %msg.map_name,
+                        "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
+                    );
+                    crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
+                }
+            };
 
             let pipeline =
                 AllocationPipeline::new(guid, &msg.map_name, &svc.state().db, empty_shutdown_minutes);

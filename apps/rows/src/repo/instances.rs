@@ -1,7 +1,23 @@
 use crate::db::DbPool;
 use crate::error::RowsError;
 use crate::models::*;
+use tracing::warn;
 use uuid::Uuid;
+
+/// True for Postgres SQLSTATE 42703 (undefined_column). Used to detect the deployment window where
+/// the rows image rolled out ahead of the `gameservername` column migration so the allocation
+/// INSERT can degrade gracefully instead of failing player-facing.
+fn is_undefined_column(e: &sqlx::Error) -> bool {
+    matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42703"))
+}
+
+/// Conservative `empty-shutdown-minutes` annotation value used only when the per-map timeout
+/// lookup fails with a *DB error* (not "map not found"). The annotation is consumed UE-side to
+/// self-shutdown, and the reaper's `min_empty_secs` floor does NOT protect it — so collapsing a
+/// transient DB blip to the aggressive `1`-minute default would self-shutdown a populated server
+/// prematurely. A larger fallback only delays UE self-shutdown on a rare blip; the reaper still
+/// reaps at the real per-map timeout (it reads the column live at reap time, not the annotation).
+pub const FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR: i32 = 30;
 
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
@@ -54,13 +70,15 @@ impl<'a> InstanceRepo<'a> {
         number_of_players: i32,
     ) -> Result<(), RowsError> {
         sqlx::query(
-            // GREATEST($3, 0): a bogus negative count must not be stored, nor (being non-positive)
-            // silently stamp the empty marker and make a live server look reap-eligible.
+            // GREATEST($3, 0): a bogus negative count must not be stored, nor start the empty
+            // timer and make a live server look reap-eligible. Only an exact 0 (genuine empty)
+            // stamps the marker; a negative is treated as a glitch and leaves it untouched.
             "UPDATE mapinstances
              SET numberofreportedplayers = GREATEST($3, 0),
                  lastupdatefromserver = NOW(),
                  lastserveremptydate = CASE
                      WHEN $3 > 0 THEN NULL
+                     WHEN $3 < 0 THEN lastserveremptydate
                      WHEN lastserveremptydate IS NULL THEN NOW()
                      ELSE lastserveremptydate
                  END
@@ -451,7 +469,7 @@ impl<'a> InstanceRepo<'a> {
         port: i32,
         game_server_name: &str,
     ) -> Result<i32, RowsError> {
-        let row: Option<(i32,)> = sqlx::query_as(
+        let full = sqlx::query_as::<_, (i32,)>(
             "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status, gameservername)
              SELECT $1, $2, m.mapid, $4, 2, $5
              FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
@@ -464,9 +482,40 @@ impl<'a> InstanceRepo<'a> {
         .bind(port)
         .bind(game_server_name)
         .fetch_optional(self.0)
-        .await?;
+        .await;
 
-        Ok(row.map(|r| r.0).unwrap_or(0))
+        match full {
+            Ok(row) => Ok(row.map(|r| r.0).unwrap_or(0)),
+            // Migration-vs-image ordering guard: migrations apply via the dbmate runner job,
+            // decoupled from the rows image rollout. If a rows image ships before the
+            // `gameservername` column migration lands, the INSERT above fails with SQLSTATE 42703
+            // (undefined_column) and every scale-from-0 allocation would error player-facing.
+            // Degrade to a column-less INSERT so allocation still succeeds; the reaper's DB-name
+            // fallback that reads this column ships gated OFF, so a transiently-absent value is
+            // harmless until the migration runs and later allocations persist it again.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    zone = zone_name,
+                    "mapinstances.gameservername missing (migration not yet applied) — inserting \
+                     without it; apply the dbmate migration to restore restart-safe teardown"
+                );
+                let row: Option<(i32,)> = sqlx::query_as(
+                    "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
+                     SELECT $1, $2, m.mapid, $4, 2
+                     FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
+                     ON CONFLICT DO NOTHING
+                     RETURNING mapinstanceid",
+                )
+                .bind(customer_guid)
+                .bind(world_server_id)
+                .bind(zone_name)
+                .bind(port)
+                .fetch_optional(self.0)
+                .await?;
+                Ok(row.map(|r| r.0).unwrap_or(0))
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn shut_down_server_instance(
@@ -487,8 +536,10 @@ impl<'a> InstanceRepo<'a> {
     /// Per-map empty timeout straight from `maps` (not via `mapinstances`). Used to stamp the
     /// `empty-shutdown-minutes` annotation at allocation time — which is *before* the instance
     /// row exists for the first (scale-from-0) server of a zone, so a `mapinstances`-joined
-    /// lookup would return nothing and fall back to the default. Defaults to 1 when the zone
-    /// has no `maps` row (mirrors the column's own `DEFAULT 1`).
+    /// lookup would return nothing and fall back to the default. Returns `Ok(1)` when the zone
+    /// has no `maps` row (mirrors the column's own `DEFAULT 1`); a DB error propagates as `Err`
+    /// so callers can distinguish "map not found" (safe to use 1) from a transient blip (which
+    /// must use a conservative fallback — see `FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR`).
     pub async fn get_map_minutes_to_shutdown_after_empty(
         &self,
         customer_guid: Uuid,

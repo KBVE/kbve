@@ -136,14 +136,13 @@ struct ReapTarget {
 /// GameServer name (legacy/reconcile-miss): there's nothing to deallocate, so it's flipped
 /// `status=0` (terminal) with a one-time warn rather than re-warned forever.
 ///
-/// SINGLE-REPLICA ASSUMPTION: unlike the spin-up path (which holds a per-zone lock), the reaper
-/// takes no lock — it assumes exactly one rows replica runs this loop (`tenants/base` is
-/// `replicas: 1`). Scaling rows beyond one replica would let two reapers concurrently deallocate
-/// the same GameServer; add leader election / a shared lock before raising the replica count.
+/// MULTI-REPLICA SAFETY: unlike the spin-up path (which holds a per-zone in-memory lock), the
+/// reaper guards each cycle with a tenant-scoped Postgres advisory lock. If rows is ever scaled
+/// past one replica, only the lock holder reaps that cycle, so two reapers can never concurrently
+/// deallocate the same GameServer. The lock is keyed on the tenant guid so co-tenants sharing the
+/// DB don't block each other; it's taken with `pg_try_advisory_lock` (non-blocking) and released
+/// at the end of the cycle.
 async fn empty_server_reaper(svc: Arc<OWSService>) {
-    use crate::agones::reaper::reap_decision;
-    use tokio::task::JoinSet;
-
     let mut interval = tokio::time::interval(Duration::from_secs(60));
     interval.tick().await;
 
@@ -156,105 +155,158 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         }
 
         let guid = svc.state().config.customer_guid;
-        let now = chrono::Utc::now().naive_utc();
-        let repo = InstanceRepo(&svc.state().db);
 
-        let candidates = match repo.get_active_reap_candidates(guid).await {
+        // Acquire a dedicated connection and try the advisory lock. Two int4 keys: a constant
+        // namespace (`'rows-empty-reaper'`) + the tenant guid hash, so the lock is per-tenant.
+        let mut lock_conn = match svc.state().db.acquire().await {
             Ok(c) => c,
             Err(e) => {
-                warn!(error = %e, "Reaper: failed to load active instances");
+                warn!(error = %e, "Reaper: failed to acquire DB connection for advisory lock — skipping cycle");
                 continue;
             }
         };
-        if candidates.len() >= 500 {
-            warn!(count = candidates.len(), "Reaper: candidate query hit the 500-row cap — possible under-reaping");
-        }
-
-        if svc.state().agones.is_none() {
+        let locked = match sqlx::query_scalar::<_, bool>(
+            "SELECT pg_try_advisory_lock(hashtext('rows-empty-reaper'), hashtext($1))",
+        )
+        .bind(guid.to_string())
+        .fetch_one(&mut *lock_conn)
+        .await
+        {
+            Ok(v) => v,
+            Err(e) => {
+                warn!(error = %e, "Reaper: advisory-lock query failed — skipping cycle");
+                continue;
+            }
+        };
+        if !locked {
+            // Another replica holds the reap lock this cycle; back off until the next tick.
             continue;
         }
 
-        // Phase 1: decide, then resolve GameServer names — in-memory `zone_servers` first, with
-        // the DB fallback BATCHED into one `ANY($)` query for all cache-misses (a post-restart
-        // cycle would otherwise fan out to hundreds of sequential lookups).
-        let mut targets: Vec<ReapTarget> = Vec::new();
-        let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
-        for inst in &candidates {
-            let Some(reason) = reap_decision(
-                inst.number_of_reported_players,
-                inst.last_update_from_server,
-                inst.last_server_empty_date,
-                inst.create_date,
-                inst.minutes_to_shutdown_after_empty,
-                reaper.boot_grace_secs,
-                reaper.buffer_secs,
-                reaper.stale_secs,
-                reaper.min_empty_secs,
-                reaper.never_reported,
-                now,
-            ) else {
-                continue;
-            };
+        run_reap_cycle(&svc, guid, &reaper).await;
 
-            match svc.state().zone_servers.get(&inst.map_instance_id) {
-                Some(v) => targets.push(ReapTarget {
-                    instance_id: inst.map_instance_id,
-                    gs: v.value().clone(),
-                    reason,
-                }),
-                None => misses.push((inst.map_instance_id, reason)),
-            }
+        // Release explicitly: a session-level advisory lock outlives a pooled connection's return,
+        // so it must be unlocked before the connection goes back to the pool or it would leak.
+        if let Err(e) = sqlx::query(
+            "SELECT pg_advisory_unlock(hashtext('rows-empty-reaper'), hashtext($1))",
+        )
+        .bind(guid.to_string())
+        .execute(&mut *lock_conn)
+        .await
+        {
+            warn!(error = %e, "Reaper: failed to release advisory lock");
         }
+    }
+}
 
-        if !misses.is_empty() {
-            let ids: Vec<i32> = misses.iter().map(|(id, _)| *id).collect();
-            match repo.get_gameserver_names(guid, &ids).await {
-                Ok(rows) => {
-                    let resolved: HashMap<i32, Option<String>> = rows.into_iter().collect();
-                    for (id, reason) in misses {
-                        match resolved.get(&id).cloned().flatten() {
-                            Some(gs) => targets.push(ReapTarget {
-                                instance_id: id,
-                                gs,
-                                reason,
-                            }),
-                            None => {
-                                // Terminal state for the no-name case (legacy rows from before the
-                                // `gameservername` column, or a `reconcile_allocations` miss). We
-                                // can't deallocate a GameServer we can't name, so flip status=0 to
-                                // drop it from routing AND the candidate set, and surface it ONCE
-                                // for manual/infra check — instead of re-warning every 60s forever.
-                                // Deliberate, narrow exception to deallocate-first: in practice
-                                // these are legacy rows whose pod is already gone; a still-live one
-                                // is flagged for `kubectl` cleanup.
-                                match repo.shut_down_server_instance(guid, id).await {
-                                    Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
-                                    Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
-                                }
+/// One reap pass, run under the advisory lock held by the caller. Loads candidates, decides per
+/// instance, resolves GameServer names (in-memory `zone_servers` first, with the DB fallback
+/// BATCHED into one `ANY($)` query for all cache-misses so a post-restart cycle doesn't fan out to
+/// hundreds of sequential lookups), then performs deallocate-first teardown with bounded concurrency.
+async fn run_reap_cycle(
+    svc: &Arc<OWSService>,
+    guid: uuid::Uuid,
+    reaper: &crate::config::ReaperKnobs,
+) {
+    use crate::agones::reaper::reap_decision;
+    use tokio::task::JoinSet;
+
+    let now = chrono::Utc::now().naive_utc();
+    let repo = InstanceRepo(&svc.state().db);
+
+    let candidates = match repo.get_active_reap_candidates(guid).await {
+        Ok(c) => c,
+        Err(e) => {
+            warn!(error = %e, "Reaper: failed to load active instances");
+            return;
+        }
+    };
+    if candidates.len() >= 500 {
+        warn!(count = candidates.len(), "Reaper: candidate query hit the 500-row cap — possible under-reaping");
+    }
+
+    if svc.state().agones.is_none() {
+        return;
+    }
+
+    // Phase 1: decide, then resolve GameServer names.
+    let mut targets: Vec<ReapTarget> = Vec::new();
+    let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
+    for inst in &candidates {
+        let Some(reason) = reap_decision(
+            inst.number_of_reported_players,
+            inst.last_update_from_server,
+            inst.last_server_empty_date,
+            inst.create_date,
+            inst.minutes_to_shutdown_after_empty,
+            reaper.boot_grace_secs,
+            reaper.buffer_secs,
+            reaper.stale_secs,
+            reaper.min_empty_secs,
+            reaper.never_reported,
+            now,
+        ) else {
+            continue;
+        };
+
+        match svc.state().zone_servers.get(&inst.map_instance_id) {
+            Some(v) => targets.push(ReapTarget {
+                instance_id: inst.map_instance_id,
+                gs: v.value().clone(),
+                reason,
+            }),
+            None => misses.push((inst.map_instance_id, reason)),
+        }
+    }
+
+    if !misses.is_empty() {
+        let ids: Vec<i32> = misses.iter().map(|(id, _)| *id).collect();
+        match repo.get_gameserver_names(guid, &ids).await {
+            Ok(rows) => {
+                let resolved: HashMap<i32, Option<String>> = rows.into_iter().collect();
+                for (id, reason) in misses {
+                    match resolved.get(&id).cloned().flatten() {
+                        Some(gs) => targets.push(ReapTarget {
+                            instance_id: id,
+                            gs,
+                            reason,
+                        }),
+                        None => {
+                            // Terminal state for the no-name case (legacy rows from before the
+                            // `gameservername` column, or a `reconcile_allocations` miss). We
+                            // can't deallocate a GameServer we can't name, so flip status=0 to
+                            // drop it from routing AND the candidate set, and surface it ONCE
+                            // for manual/infra check — instead of re-warning every 60s forever.
+                            // Deliberate, narrow exception to deallocate-first: in practice
+                            // these are legacy rows whose pod is already gone; a still-live one
+                            // is flagged for `kubectl` cleanup.
+                            match repo.shut_down_server_instance(guid, id).await {
+                                Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
+                                Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
                             }
                         }
                     }
                 }
-                // A transient DB error must NOT mass-flip the misses to status=0; leave them for
-                // the next cycle (still tracked, still status>0).
-                Err(e) => warn!(error = %e, "Reaper: failed to batch-resolve GameServer names — retrying next cycle"),
             }
+            // A transient DB error must NOT mass-flip the misses to status=0; leave them for
+            // the next cycle (still tracked, still status>0).
+            Err(e) => warn!(error = %e, "Reaper: failed to batch-resolve GameServer names — retrying next cycle"),
         }
+    }
 
-        // Phase 2 (bounded concurrency): deallocate-first teardown, up to MAX_CONCURRENT_REAPS at
-        // once, so a large batch doesn't overrun the 60s cycle.
-        let mut iter = targets.into_iter();
-        let mut set: JoinSet<()> = JoinSet::new();
-        loop {
-            while set.len() < MAX_CONCURRENT_REAPS {
-                let Some(target) = iter.next() else { break };
-                set.spawn(reap_one(svc.clone(), guid, target));
-            }
-            match set.join_next().await {
-                None => break, // no work left and nothing in flight
-                Some(Ok(())) => {}
-                Some(Err(e)) => error!(error = %e, "Reaper: teardown task failed (panic/cancelled)"),
-            }
+    // Phase 2 (bounded concurrency): deallocate-first teardown, up to MAX_CONCURRENT_REAPS at
+    // once, so a large batch doesn't overrun the 60s cycle.
+    let mut iter = targets.into_iter();
+    let mut set: JoinSet<()> = JoinSet::new();
+    loop {
+        while set.len() < MAX_CONCURRENT_REAPS {
+            let Some(target) = iter.next() else { break };
+            set.spawn(reap_one(svc.clone(), guid, target));
+        }
+        match set.join_next().await {
+            None => break, // no work left and nothing in flight
+            Some(Ok(())) => {}
+            Some(Err(e)) => error!(error = %e, "Reaper: teardown task failed (panic/cancelled)"),
         }
     }
 }
