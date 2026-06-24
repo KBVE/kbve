@@ -21,7 +21,7 @@ maxRunners: 1
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260624-ram-dind-64g'
+            kbve.com/restart-trigger: '20260624-pvc-dind-tiered'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -85,7 +85,7 @@ template:
               # exceeds RLIMIT_NOFILE → exit code 134.
               command: ['sh', '-c']
               args:
-                  - 'ulimit -n 1048576 && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000'
+                  - 'ulimit -n 1048576 && exec dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2376 --tls=false --default-ulimit=nofile=1048576:1048576 --feature=containerd-snapshotter=false --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000'
               securityContext:
                   privileged: true
               resources:
@@ -115,10 +115,15 @@ template:
               emptyDir: {}
             - name: dind-externals
               emptyDir: {}
+            # Persistent docker image store on longhorn-sdb (ext4 block → overlay2
+            # mounts cleanly; RWX would EINVAL). RWO is safe: maxRunners:1 = single
+            # attach. The 50GB UE image is pulled once and stays resident across
+            # ephemeral runner pods instead of re-extracting into RAM every job.
+            # Frees the 64Gi RAM the old tmpfs store burned; write-heavy UE caches
+            # (DDC) are tiered onto a per-build /ram tmpfs in ci-unreal-build.yml.
             - name: dind-storage
-              emptyDir:
-                  medium: Memory
-                  sizeLimit: 64Gi
+              persistentVolumeClaim:
+                  claimName: arc-ue-dind-cache
             - name: shared-tmp
               emptyDir:
                   medium: Memory

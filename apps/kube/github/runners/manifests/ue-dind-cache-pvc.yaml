@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: arc-ue-dind-cache
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/component: dind-cache
+        app.kubernetes.io/part-of: arc-runner-ue
+        engine: unrealengine
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn-sdb
+    resources:
+        requests:
+            storage: 250Gi

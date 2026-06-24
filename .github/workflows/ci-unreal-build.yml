@@ -525,10 +525,20 @@ jobs:
                   docker run --rm \
                     -v "${PROJECT_MOUNT}:/project" \
                     -v /tmp/ue5-build-output:/output \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
                     ${LOGGING_ENV_ARG} \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
                       set -euo pipefail
+
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM) so it
+                      # stays out of dockers writable layer on the longhorn-sdb PVC store.
+                      # report() measures the DDC + residual home/tmp writes so a later
+                      # pass can redirect whatever still escapes to the overlay.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
 
                       RUNUAT=""
                       for candidate in \
@@ -894,10 +904,18 @@ jobs:
                   docker run --rm \
                     -v /tmp/game-project:/project \
                     -v "${GITHUB_WORKSPACE}/ue5-game-output:/output" \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
                     ${LOGGING_ENV_ARG} \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
                       set -euo pipefail
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM), out of
+                      # dockers writable layer on the longhorn-sdb PVC store. report()
+                      # measures the DDC + residual writes so a later pass can redirect them.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
                       RUNUAT=""
                       for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
                         if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
