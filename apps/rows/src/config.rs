@@ -67,6 +67,10 @@ pub struct RowsConfig {
     pub http_addr: SocketAddr,
     pub metrics_port: u16,
     pub docs_port: u16,
+    pub empty_reaper_enabled: bool,
+    pub reap_never_reported: bool,
+    pub empty_reap_boot_grace_secs: i64,
+    pub empty_reap_buffer_secs: i64,
 }
 
 impl RowsConfig {
@@ -122,6 +126,25 @@ impl RowsConfig {
             .parse()
             .unwrap_or(4323);
 
+        // Empty-server reaper knobs. Both booleans default OFF: the reaper ships inert and the
+        // time-based path stays gated until a live heartbeat is confirmed (see reaper safety note).
+        let empty_reaper_enabled = std::env::var("ROWS_EMPTY_REAPER_ENABLED")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(false);
+        let reap_never_reported = std::env::var("ROWS_REAP_NEVER_REPORTED")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(false);
+        let empty_reap_boot_grace_secs = std::env::var("ROWS_EMPTY_REAP_BOOT_GRACE_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(14400);
+        let empty_reap_buffer_secs = std::env::var("ROWS_EMPTY_REAP_BUFFER_SECS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(30);
+
         Ok(Self {
             tenant: TenantConfig {
                 customer_guid,
@@ -135,6 +158,10 @@ impl RowsConfig {
             http_addr,
             metrics_port,
             docs_port,
+            empty_reaper_enabled,
+            reap_never_reported,
+            empty_reap_boot_grace_secs,
+            empty_reap_buffer_secs,
         })
     }
 }
