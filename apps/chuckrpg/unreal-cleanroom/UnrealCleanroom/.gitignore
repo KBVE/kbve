@@ -64,10 +64,12 @@ Plugins/*/Intermediate/
 # Cache files for the editor
 DerivedDataCache/*
 
-# Content - track LFS pointer files for Fab assets
-# .gitattributes handles LFS tracking for .uasset, .fbx, textures
-# Pointer files (~150 bytes) committed to monorepo
-# Actual blobs pushed to Forgejo via kbve.sh wrapper
+# Content - track only Fab Store evaluation assets
+# Block all Content, then whitelist specific Fab assets
+Content/*
+!Content/Wildlands/
+!Content/Wildwood/
+# Future Fab assets - add explicit whitelist entries here
 
 # macOS
 .DS_Store
