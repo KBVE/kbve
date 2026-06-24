@@ -89,6 +89,66 @@ for `get_fleet_restart`/`set_admission`; TGPS vs save budget.
 
 ---
 
+## Restart triggers, modes & version-parity gate (2026-06-24 design addition)
+
+The MVP above models *how* a fleet drains but not **who triggers it / how aggressively**, nor the
+hard precondition that the **client build exists before a server restart-to-deploy is arranged**.
+
+### V1 (BLOCKER-class hole 🕳️) — version-parity gate: never roll the server ahead of the client
+
+A new server binary that drains the fleet and comes up speaking a protocol the *shipped client*
+can't speak is a self-inflicted outage: every player is bounced and **none can reconnect**. So the
+*arrangement* of a restart-for-update is gated on client⟷server version parity.
+
+- **Primary enforcement — the post-publish / dispatch layer, NOT ROWS. The post-publish "sync" is a
+  PR.** Post-publish opens a **GitOps PR** that bumps the server image and arranges the
+  non-aggressive `fleet_restart` (so it's a reviewable diff with the same posture as the reaper
+  enablement switches — no out-of-band Argo drift). The **version-parity check is a required PR
+  status check / merge gate**: the PR cannot merge until the matching **client** artifact for that
+  version published. No client build ⇒ the check stays red ⇒ the image bump waits. Merge is what
+  triggers the roll. This sits next to the existing dbmate-before-image ordering and is the **same
+  consumer** as the F2/B4 orchestrator (post-merge **+** `all_drained` ⇒ run `dbmate` + roll the
+  image). Lives in `.github` CI / post-publish dispatch, not the binary.
+- **Defense in depth — runtime.** The existing `ows.kbve.com/version` label + UE-contract obligation
+  #12 (client-version gate): a connecting client below the required version gets an "update required"
+  signal, not a raw disconnect.
+- **Scope:** wire this in **beta first** (prod is not live yet); the automated sync fires only once
+  **both** the server image and the client build for the version are published.
+
+### Two restart modes — the trigger source decides aggression
+
+The `fleet_restart` control already carries `urgency` + `drop_players`; pin their values to the
+trigger:
+
+| Mode | Trigger | `urgency` | `drop_players` | Behavior |
+|---|---|---|---|---|
+| **Non-aggressive (update)** | **post-publish GitOps PR** (beta/prod), merge-gated on version parity | `0` = `when_able` | `false` | Drain-to-natural-empty: an instance restarts only once **all its players have left on their own** — no forced disconnects. Slow, zero player interruption. The default path for a routine version roll. |
+| **Aggressive (expedite)** | **dashboard** (operator), deadline-bounded | `1` = `asap` | `true` | Save-then-disconnect remaining players at the deadline; forces convergence (reuses H-3 stuck-instance deadline). For urgent / security rolls. |
+
+### Correction to Task 1 defaults (apply with the migration)
+
+Task 1's table defaults `Urgency=1 (asap)`, `DropPlayers=true` — the **aggressive** values. **Flip the
+column defaults to the safe/non-aggressive values** so the automated path is safe-by-default and
+aggression is an explicit dashboard opt-in:
+
+```sql
+    Urgency       SMALLINT NOT NULL DEFAULT 0,     -- 0 = when_able (non-aggressive); 1 = asap
+    DropPlayers   BOOLEAN  NOT NULL DEFAULT false,  -- aggressive paths set true explicitly
+    ...
+    CONSTRAINT chk_urgency CHECK (Urgency IN (0,1))  -- (also L-1)
+```
+
+A stray or automated control row must **never** default to bouncing live players; the dashboard
+writes `urgency=1, dropplayers=true` to opt into the aggressive path.
+
+> 🕳️ **V1 open decision:** the exact signal the post-publish layer checks for "client build
+> published" (launcher manifest? itch/Steam channel? a `client_versions` row?) is pinned when the
+> dispatch step is built — tracked with the F2/B4 orchestrator (same component). This supersedes the
+> "Version targeting" hole below for the *gate*; version-**selective** drain (drain only
+> `≠ target_version`) remains separately deferred.
+
+---
+
 ### Task 1: `fleet_restart` control table + model
 
 **Files:**

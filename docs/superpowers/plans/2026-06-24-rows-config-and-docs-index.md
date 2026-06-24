@@ -96,7 +96,21 @@ marked 🕳️ are unpinned — see [ue-chuck-drain-contract](./2026-06-24-ue-ch
 |---|---|---|---|---|
 | `ROWS_DRAIN_GRACE_SECS` | u64 | `8` | **live** (`main.rs`, process shutdown grace) | lifecycle-spec |
 | `ROWS_ACCEPT_NEW_JOINS` | bool | — | proposed | [drain-core](./2026-06-24-rows-drain-core.md) |
+| `fleet_restart` control row (`active`/`reason`/`urgency`/`drop_players`/`stagger`/`batchsize`/`lockout`/`targetversion`/`requestid`) | DB table | safe-by-default (`urgency=0 when_able`, `dropplayers=false`) | proposed | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
 | drain request schema (`reason`/`urgency`/`drop_players`/`deadline`/`request_id`) | annotations | — | 🕳️ unpinned | [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) |
+
+### Restart triggers & version-parity gate (Phase 3 — proposed)
+
+Not a runtime knob ROWS reads — a **deploy-pipeline** control, recorded here so the surface is in one
+place. Owning doc: [drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) "Restart triggers,
+modes & version-parity gate" (🕳️ V1).
+
+| Concern | Where | Behavior |
+|---|---|---|
+| **Version-parity gate** | CI post-publish / dispatch (`.github`), **not** the rows binary | The post-publish **sync is a GitOps PR** (bumps image + arranges restart); the parity check is a **required PR merge gate** — the PR can't merge until the matching **client** build for that version is published. Beta first; prod not live yet. |
+| **Non-aggressive restart** | post-publish GitOps PR (merge-gated) | `urgency=0 (when_able)`, `drop_players=false` — drain-to-natural-empty, no forced disconnects. The default routine roll. |
+| **Aggressive restart** | dashboard (operator) | `urgency=1 (asap)`, `drop_players=true` — save-then-disconnect at a deadline. Explicit opt-in. |
+| Runtime client gate | `ows.kbve.com/version` label + UE obligation #12 | reject below-version clients with "update required", not a raw disconnect. |
 
 ## 5. Core service env (tenant / DB / Agones / auth)
 

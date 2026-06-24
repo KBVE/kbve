@@ -145,6 +145,12 @@ gated-off + `require_heartbeat`.
   dungeon-in-progress?) is chuck game-design.
 - **Transfer protocol** (#11) — how chuck travels a party to `transfer_target` (seamless vs
   reconnect).
+- **Version-parity gate (deploy-side, 🕳️ V1)** — obligation #12 is the *runtime* half (reject
+  old clients). Its *deploy-time* half lives in ROWS Phase 3
+  ([rows-drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md) "Restart triggers, modes &
+  version-parity gate"): the post-publish sync must not arrange a server fleet-restart until the
+  matching client build is published. Automated post-publish rolls are **non-aggressive**
+  (drain-to-empty); aggressive rolls are dashboard-triggered.
 
 ## Changelog
 
