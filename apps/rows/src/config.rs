@@ -67,6 +67,11 @@ pub struct ReaperKnobs {
     /// Independently gates the time-based `NeverReported` path; keep off until the heartbeat
     /// is confirmed live in the target env, or it deallocates populated servers.
     pub never_reported: bool,
+    /// Auto-safety for the `NeverReported` path. When true (default), never-reported reaping is
+    /// suppressed until at least one heartbeat has *ever* been observed for the tenant. If UE isn't
+    /// configured to heartbeat, none is ever seen, so populated servers are never reaped — the
+    /// system detects "heartbeats not live" instead of relying on the operator to know.
+    pub require_heartbeat: bool,
     /// `NeverReported` boot-grace window.
     pub boot_grace_secs: i64,
     /// Buffer added to the per-map empty timeout so the server's own `SDK.Shutdown()` wins first.
@@ -84,10 +89,49 @@ impl Default for ReaperKnobs {
         Self {
             enabled: false,
             never_reported: false,
+            require_heartbeat: true,
             boot_grace_secs: 14400,
             buffer_secs: 30,
             stale_secs: 0,
             min_empty_secs: 300,
+        }
+    }
+}
+
+/// Per-tenant overrides for the reaper knobs, read from the `ows.reaper_config` table. Every field
+/// is `Option`: `None` means "fall back to the env/default value", so a tenant can override any
+/// subset. `ReaperKnobs::merged_with` applies these field-by-field (DB wins when present).
+#[derive(Debug, Clone, Default, sqlx::FromRow)]
+pub struct ReaperConfigOverride {
+    // Postgres folds the unquoted DDL identifiers to concatenated lowercase (e.g. `NeverReported`
+    // -> `neverreported`), matching the rest of the ows schema; map them back to snake_case fields.
+    pub enabled: Option<bool>,
+    #[sqlx(rename = "neverreported")]
+    pub never_reported: Option<bool>,
+    #[sqlx(rename = "requireheartbeat")]
+    pub require_heartbeat: Option<bool>,
+    #[sqlx(rename = "bootgracesecs")]
+    pub boot_grace_secs: Option<i64>,
+    #[sqlx(rename = "buffersecs")]
+    pub buffer_secs: Option<i64>,
+    #[sqlx(rename = "stalesecs")]
+    pub stale_secs: Option<i64>,
+    #[sqlx(rename = "minemptysecs")]
+    pub min_empty_secs: Option<i64>,
+}
+
+impl ReaperKnobs {
+    /// Returns the effective knobs: the env-derived baseline (`self`) with any non-`None`
+    /// per-tenant override applied. Env sets the floor; the DB row wins per field when present.
+    pub fn merged_with(&self, ov: &ReaperConfigOverride) -> ReaperKnobs {
+        ReaperKnobs {
+            enabled: ov.enabled.unwrap_or(self.enabled),
+            never_reported: ov.never_reported.unwrap_or(self.never_reported),
+            require_heartbeat: ov.require_heartbeat.unwrap_or(self.require_heartbeat),
+            boot_grace_secs: ov.boot_grace_secs.unwrap_or(self.boot_grace_secs),
+            buffer_secs: ov.buffer_secs.unwrap_or(self.buffer_secs),
+            stale_secs: ov.stale_secs.unwrap_or(self.stale_secs),
+            min_empty_secs: ov.min_empty_secs.unwrap_or(self.min_empty_secs),
         }
     }
 }
@@ -176,6 +220,7 @@ impl RowsConfig {
         let reaper = ReaperKnobs {
             enabled: env_bool("ROWS_EMPTY_REAPER_ENABLED", false),
             never_reported: env_bool("ROWS_REAP_NEVER_REPORTED", false),
+            require_heartbeat: env_bool("ROWS_REAP_REQUIRE_HEARTBEAT", true),
             boot_grace_secs: env_i64("ROWS_EMPTY_REAP_BOOT_GRACE_SECS", 14400),
             buffer_secs: env_i64("ROWS_EMPTY_REAP_BUFFER_SECS", 30),
             stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
@@ -197,5 +242,56 @@ impl RowsConfig {
             docs_port,
             reaper,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // No DB override row -> the env/default baseline is used unchanged.
+    #[test]
+    fn merge_empty_override_keeps_baseline() {
+        let base = ReaperKnobs::default();
+        let merged = base.merged_with(&ReaperConfigOverride::default());
+        assert!(!merged.enabled);
+        assert!(!merged.never_reported);
+        assert!(merged.require_heartbeat);
+        assert_eq!(merged.boot_grace_secs, 14400);
+        assert_eq!(merged.min_empty_secs, 300);
+    }
+
+    // A per-tenant row overrides each present field; absent fields fall back to baseline.
+    #[test]
+    fn merge_applies_present_fields_only() {
+        let base = ReaperKnobs::default();
+        let ov = ReaperConfigOverride {
+            enabled: Some(true),
+            never_reported: Some(true),
+            require_heartbeat: None, // not overridden -> baseline (true)
+            boot_grace_secs: Some(60),
+            buffer_secs: None,
+            stale_secs: Some(120),
+            min_empty_secs: None,
+        };
+        let merged = base.merged_with(&ov);
+        assert!(merged.enabled); // overridden
+        assert!(merged.never_reported); // overridden
+        assert!(merged.require_heartbeat); // baseline kept
+        assert_eq!(merged.boot_grace_secs, 60); // overridden
+        assert_eq!(merged.buffer_secs, 30); // baseline kept
+        assert_eq!(merged.stale_secs, 120); // overridden
+        assert_eq!(merged.min_empty_secs, 300); // baseline kept
+    }
+
+    // A tenant can disable the heartbeat auto-gate explicitly even when env defaults it on.
+    #[test]
+    fn merge_can_disable_require_heartbeat() {
+        let base = ReaperKnobs::default();
+        let ov = ReaperConfigOverride {
+            require_heartbeat: Some(false),
+            ..Default::default()
+        };
+        assert!(!base.merged_with(&ov).require_heartbeat);
     }
 }

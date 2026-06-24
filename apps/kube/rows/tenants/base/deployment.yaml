@@ -101,7 +101,14 @@ spec:
                       #   value: 'true'
                       # - name: ROWS_EMPTY_REAP_STALE_SECS     # crashed-while-populated; needs
                       #   value: '120'                         # trusted heartbeat delivery (0 = off)
-                      # Tuning knobs (safe; inert while the switches above stay off):
+                      # Safety auto-gate (default ON): never-reported reaping stays suppressed until
+                      # a heartbeat has ever been observed for the tenant, so enabling the reaper
+                      # before UE heartbeats are live can't evict populated servers. Leave 'true'.
+                      - name: ROWS_REAP_REQUIRE_HEARTBEAT
+                        value: 'true'
+                      # Tuning knobs (safe; inert while the switches above stay off). All knobs
+                      # (incl. the switches) are also overridable per tenant via the ows.reaper_config
+                      # table — see Operational Runbook section 5; the DB value wins per field.
                       - name: ROWS_EMPTY_REAP_BOOT_GRACE_SECS
                         value: '14400'
                       - name: ROWS_EMPTY_REAP_BUFFER_SECS

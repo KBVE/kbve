@@ -149,12 +149,25 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
     loop {
         interval.tick().await;
 
-        let reaper = svc.state().config.reaper.clone();
-        if !reaper.enabled {
-            continue; // master kill switch — ships OFF
-        }
-
+        let env_reaper = svc.state().config.reaper.clone();
         let guid = svc.state().config.customer_guid;
+
+        // Effective config = env baseline with the per-tenant `reaper_config` override applied
+        // (DB wins per field). Read every cycle so a DB-side enable/disable/tune takes effect
+        // without a redeploy; on read failure fall back to the env baseline (which ships OFF).
+        let reaper = match InstanceRepo(&svc.state().db)
+            .get_reaper_config_override(guid)
+            .await
+        {
+            Ok(ov) => env_reaper.merged_with(&ov),
+            Err(e) => {
+                warn!(error = %e, "Reaper: failed to read per-tenant config override — using env defaults");
+                env_reaper
+            }
+        };
+        if !reaper.enabled {
+            continue; // master kill switch — env baseline OR per-tenant override
+        }
 
         // Acquire a dedicated connection and try the advisory lock. Two int4 keys: a constant
         // namespace (`'rows-empty-reaper'`) + the tenant guid hash, so the lock is per-tenant.
@@ -229,6 +242,30 @@ async fn run_reap_cycle(
         return;
     }
 
+    // Heartbeat auto-gate (`require_heartbeat`): the never-reported path is only safe once a
+    // heartbeat has *ever* been observed for this tenant. If UE isn't configured to heartbeat,
+    // none is ever seen, so we suppress never-reported entirely — a full server (pre-heartbeat
+    // indistinguishable from a dead one) is never reaped. Fail-safe: any error suppresses it.
+    let allow_never_reported = if reaper.never_reported {
+        if reaper.require_heartbeat {
+            match repo.tenant_has_observed_heartbeat(guid).await {
+                Ok(true) => true,
+                Ok(false) => {
+                    warn!("Reaper: never_reported suppressed — no heartbeat ever observed for this tenant (UE heartbeat not configured?)");
+                    false
+                }
+                Err(e) => {
+                    warn!(error = %e, "Reaper: heartbeat-observed check failed — suppressing never_reported this cycle");
+                    false
+                }
+            }
+        } else {
+            true
+        }
+    } else {
+        false
+    };
+
     // Phase 1: decide, then resolve GameServer names.
     let mut targets: Vec<ReapTarget> = Vec::new();
     let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
@@ -243,7 +280,7 @@ async fn run_reap_cycle(
             reaper.buffer_secs,
             reaper.stale_secs,
             reaper.min_empty_secs,
-            reaper.never_reported,
+            allow_never_reported,
             now,
         ) else {
             continue;

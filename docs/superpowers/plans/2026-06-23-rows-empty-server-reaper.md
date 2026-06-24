@@ -837,6 +837,16 @@ edit that drifts from Argo.
 > signed off for that env.** It deallocates *populated* servers ~`boot_grace` (default 4h) after
 > spawn when heartbeats aren't live, because a full server is then indistinguishable from a dead
 > one. This is the single most dangerous flag in the PR.
+>
+> **Defence in depth — the `require_heartbeat` auto-gate (default ON).** Even if `never_reported`
+> is enabled prematurely, the reaper suppresses the never-reported path until it has observed *at
+> least one* heartbeat for the tenant (`lastupdatefromserver IS NOT NULL` on any instance). With no
+> UE heartbeat configured, none is ever seen, so populated servers are never reaped. This makes the
+> gate above a defense-in-depth process control rather than the only thing standing between you and
+> an outage — but **do not** disable `require_heartbeat` to "force" cleanup of the current backlog
+> (those rows also have `gameservername = NULL`, so they'd take the no-name terminal path anyway —
+> use `kubectl delete gs`). Note the auto-gate latches once satisfied: a *later* global heartbeat
+> outage is still a (narrow) risk for servers spawned during it.
 
 Enable strictly in this order, per env (dev → beta → release):
 
@@ -879,3 +889,39 @@ SELECT c.relname FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
   WHERE NOT i.indisvalid AND c.relname = 'idx_mapinstances_active';   -- confirm invalid
 DROP INDEX CONCURRENTLY IF EXISTS idx_mapinstances_active;            -- then re-run dbmate up
 ```
+
+### 5. Per-tenant reaper config (`ows.reaper_config`)
+
+All seven reaper knobs are configurable two ways, with the env providing the baseline and the DB
+overriding per field:
+
+- **Env baseline (per deployment):** the `ROWS_EMPTY_REAP*` / `ROWS_REAP_*` env vars in
+  `tenants/base/deployment.yaml` (overridable per tenant via overlay env patch). Changing these is a
+  redeploy.
+- **DB override (per tenant, no redeploy):** a row in `ows.reaper_config` keyed on `customerguid`.
+  The reaper reads it **every cycle** and merges it over the env baseline — any non-NULL column wins,
+  NULL means "use the env value". So enable/disable/tune a single tenant live, without a rollout.
+
+Columns (all NULLable): `enabled`, `neverreported`, `requireheartbeat`, `bootgracesecs`,
+`buffersecs`, `stalesecs`, `minemptysecs`.
+
+```sql
+SET search_path TO ows;
+-- Enable the count-based reaper for one tenant, leave never-reported off, keep the heartbeat gate:
+INSERT INTO reaper_config (customerguid, enabled, neverreported, requireheartbeat)
+VALUES ('<tenant-guid>', true, false, true)
+ON CONFLICT (customerguid) DO UPDATE
+   SET enabled = EXCLUDED.enabled,
+       neverreported = EXCLUDED.neverreported,
+       requireheartbeat = EXCLUDED.requireheartbeat;
+
+-- Revert a tenant to pure env behavior: delete its row.
+DELETE FROM reaper_config WHERE customerguid = '<tenant-guid>';
+```
+
+Notes:
+- The master `enabled` is itself overridable, so a tenant can be turned on via DB even when the env
+  ships it off — apply the same step-1 heartbeat sign-off before doing so. The `require_heartbeat`
+  auto-gate (section 2) still applies regardless of how `never_reported` was enabled.
+- The table is created by migration `20260624120000`. Until that migration runs, the reaper detects
+  the missing table (SQLSTATE 42P01) and cleanly falls back to env config — no per-cycle errors.

@@ -11,6 +11,13 @@ fn is_undefined_column(e: &sqlx::Error) -> bool {
     matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42703"))
 }
 
+/// True for Postgres SQLSTATE 42P01 (undefined_table). Lets the per-tenant `reaper_config` read
+/// degrade to "no override" during the window where the rows image rolled out ahead of the
+/// `reaper_config` migration, instead of erroring every reaper cycle.
+fn is_undefined_table(e: &sqlx::Error) -> bool {
+    matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42P01"))
+}
+
 /// Conservative `empty-shutdown-minutes` annotation value used only when the per-map timeout
 /// lookup fails with a *DB error* (not "map not found"). The annotation is consumed UE-side to
 /// self-shutdown, and the reaper's `min_empty_secs` floor does NOT protect it — so collapsing a
@@ -374,6 +381,47 @@ impl<'a> InstanceRepo<'a> {
         .fetch_all(self.0)
         .await?;
         Ok(zones)
+    }
+
+    /// Per-tenant reaper overrides from `ows.reaper_config`. Returns the all-`None` default when no
+    /// row exists for the tenant (use env defaults) AND when the table doesn't exist yet (migration
+    /// not applied) — so a rows image that ships ahead of the migration cleanly runs on env config
+    /// instead of erroring every cycle. Other DB errors propagate so the caller can fall back loudly.
+    pub async fn get_reaper_config_override(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<crate::config::ReaperConfigOverride, RowsError> {
+        let result = sqlx::query_as::<_, crate::config::ReaperConfigOverride>(
+            "SELECT enabled, neverreported, requireheartbeat,
+                    bootgracesecs, buffersecs, stalesecs, minemptysecs
+             FROM reaper_config WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+
+        match result {
+            Ok(ov) => Ok(ov.unwrap_or_default()),
+            Err(e) if is_undefined_table(&e) => Ok(crate::config::ReaperConfigOverride::default()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Whether this tenant has *ever* received a heartbeat (any instance with a non-NULL
+    /// `lastupdatefromserver`). Drives the `require_heartbeat` auto-gate: if no heartbeat has ever
+    /// arrived, UE isn't configured to report, so the never-reported path must stay suppressed.
+    pub async fn tenant_has_observed_heartbeat(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<bool, RowsError> {
+        let seen: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM mapinstances
+             WHERE customerguid = $1 AND lastupdatefromserver IS NOT NULL)",
+        )
+        .bind(customer_guid)
+        .fetch_one(self.0)
+        .await?;
+        Ok(seen)
     }
 
     /// Label-independent teardown fallback: resolve the persisted `gameservername` for a batch of
