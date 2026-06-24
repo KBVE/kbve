@@ -1,4 +1,3 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,466 +5,194 @@ metadata:
     namespace: vector
     annotations:
         kbve.sh/last-updated: '2026-05-19T00:00:00Z'
-        kbve.sh/config-version: 'v7-lua-inline-hooks'
+        kbve.sh/config-version: v7-lua-inline-hooks
+    labels:
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    vector.yml: |
-        api:
-          enabled: true
-          address: 0.0.0.0:9001
-
-        sources:
-          kubernetes_logs:
-            type: kubernetes_logs
-            self_node_name: "${VECTOR_SELF_NODE_NAME}"
-            exclude_paths_glob_patterns:
-              - "**/vector_*/**"
-              - "**/kube-system_*/**"
-            auto_partial_merge: true
-            data_dir: "/vector-data-dir"
-          alertmanager_webhook:
-            type: http_server
-            address: 0.0.0.0:9002
-            path: /alertmanager
-            method: POST
-            decoding:
-              codec: json
-
-        transforms:
-          # mc-fabric multiline aggregation. Java stack traces emit one line
-          # per frame; the default per-line ingest makes exception search
-          # useless. Route mc-fabric pods through a `reduce` that joins
-          # continuation lines onto the preceding `[HH:MM:SS]` header.
-          # Non-mc pods bypass the reduce via `pod_route._unmatched`.
-          pod_route:
-            type: route
-            inputs:
-              - kubernetes_logs
-            route:
-              mc_fabric: 'string!(.kubernetes.pod_namespace) == "arc-runners" && starts_with(string!(.kubernetes.pod_name), "mc-fabric")'
-
-          mc_fabric_multiline:
-            type: reduce
-            inputs:
-              - pod_route.mc_fabric
-            group_by:
-              - kubernetes.pod_name
-              - kubernetes.container_name
-            merge_strategies:
-              message: concat_newline
-            starts_when:
-              type: vrl
-              source: |-
-                msg = string(.message) ?? ""
-                match(msg, r'^\[\d{2}:\d{2}:\d{2}\]') ||
-                match(msg, r'^\d{4}-\d{2}-\d{2}T')
-            expire_after_ms: 2000
-            flush_period_ms: 500
-
-          project_logs:
-            type: remap
-            inputs:
-              - mc_fabric_multiline
-              - pod_route._unmatched
-            source: |-
-              .event_message = del(.message)
-              .appname = del(.kubernetes.container_name)
-              .pod_name = del(.kubernetes.pod_name)
-              .pod_namespace = del(.kubernetes.pod_namespace)
-              .project = string(.pod_namespace) ?? "default"
-              del(.kubernetes)
-              del(.source_type)
-              del(.stream)
-              del(.file)
-              del(.host)
-
-              # Drop empty messages
-              if is_empty(string(.event_message) ?? "") { abort }
-
-              # Drop bare stack frame lines (e.g. "0. DB::Exception::..." )
-              # Drop single-word low-value messages (e.g. "record", "Trace")
-              msg = string(.event_message) ?? ""
-              if match(msg, r'^\d+\. \S+::\S+') { abort }
-              if match(msg, r'^(record|Trace)$') { abort }
-
-              # Strip ANSI escape codes
-              .event_message = replace(string!(.event_message), r'\x1b\[[0-9;]*m', "")
-
-              # Try parsing JSON messages (argocd, etc.) to extract level/msg
-              parsed, err = parse_json(.event_message)
-              if err == null {
-                  if exists(parsed.level) { .severity = del(parsed.level) }
-                  if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }
-                  .metadata = parsed
-              }
-          # Drop info/debug from noisy infra namespaces; keep warn+/error+ from
-          # them and everything from app namespaces. Cost discipline — these
-          # 13 namespaces emit massive low-signal chatter.
-          noise_filter:
-            type: filter
-            inputs:
-              - project_logs
-            condition:
-              type: vrl
-              source: |-
-                noisy = ["argocd", "clickhouse", "arc-systems", "arc-runners", "monitoring",
-                         "kube-system", "kube-node-lease", "kube-public",
-                         "longhorn-system", "metallb-system", "cnpg-system",
-                         "cert-manager", "external-secrets-system"]
-                ns = string(.pod_namespace) ?? ""
-                if !includes(noisy, ns) {
-                    true
-                } else {
-                    msg = string(.event_message) ?? ""
-                    match(msg, r'(?i)(warn|error|fatal|panic|crit|exception|fail)')
-                }
-          # Heartbeat: emit at most 1 row per namespace per 5min straight from
-          # project_logs (pre-filter), so quiet namespaces with no warn+/error+
-          # in window still show up on the dashboard's namespace count.
-          # ~600 rows/hour cluster-wide. Bypasses the appname router and lands
-          # directly in ch_normalize.
-          namespace_heartbeat:
-            type: throttle
-            inputs:
-              - project_logs
-            threshold: 1
-            window_secs: 300
-            key_field: "{{ pod_namespace }}"
-          router:
-            type: route
-            inputs:
-              - noise_filter
-            route:
-              kong: '.appname == "supabase-kong" || .appname == "kong-kong" || .appname == "proxy"'
-              auth: '.appname == "supabase-auth" || .appname == "gotrue"'
-              rest: '.appname == "supabase-rest" || .appname == "postgrest"'
-              realtime: '.appname == "supabase-realtime" || .appname == "realtime"'
-              storage: '.appname == "supabase-storage" || .appname == "storage"'
-              functions: '.appname == "supabase-functions" || .appname == "functions" || .appname == "edge-functions"'
-              db: '.appname == "supabase-db" || .appname == "postgres"'
-              analytics: '.appname == "logflare" || .appname == "supabase-analytics"'
-              meta: '.appname == "postgres-meta" || .appname == "supabase-meta"'
-              studio: '.appname == "studio" || .appname == "supabase-studio"'
-              firecracker: '.appname == "firecracker-ctl"'
-          kong_logs:
-            type: remap
-            inputs:
-              - router.kong
-            source: |-
-              req, err = parse_nginx_log(.event_message, "combined")
-              if err == null {
-                  .timestamp = req.timestamp
-                  .metadata.request.headers.referer = req.referer
-                  .metadata.request.headers.user_agent = req.agent
-                  .metadata.request.headers.cf_connecting_ip = req.client
-                  .metadata.request.method = req.method
-                  .metadata.request.path = req.path
-                  .metadata.request.protocol = req.protocol
-                  .metadata.response.status_code = req.status
-              }
-              if err != null {
-                abort
-              }
-          kong_err:
-            type: remap
-            inputs:
-              - router.kong
-            source: |-
-              .metadata.request.method = "GET"
-              .metadata.response.status_code = 200
-              parsed, err = parse_nginx_log(.event_message, "error")
-              if err == null {
-                  .timestamp = parsed.timestamp
-                  .severity = parsed.severity
-                  .metadata.request.host = parsed.host
-                  .metadata.request.headers.cf_connecting_ip = parsed.client
-                  url, err = split(parsed.request, " ")
-                  if err == null {
-                      .metadata.request.method = url[0]
-                      .metadata.request.path = url[1]
-                      .metadata.request.protocol = url[2]
-                  }
-              }
-              if err != null {
-                abort
-              }
-          auth_logs:
-            type: remap
-            inputs:
-              - router.auth
-            source: |-
-              parsed, err = parse_json(.event_message)
-              if err == null {
-                  .metadata.timestamp = parsed.time
-                  .metadata = merge!(.metadata, parsed)
-              }
-          rest_logs:
-            type: remap
-            inputs:
-              - router.rest
-            source: |-
-              parsed, err = parse_regex(.event_message, r'^(?P<time>.*): (?P<msg>.*)')
-              if err == null {
-                  .event_message = parsed.msg
-                  .timestamp = parse_timestamp!(parsed.time, "%+")
-                  .metadata.host = .project
-              }
-          realtime_logs:
-            type: remap
-            inputs:
-              - router.realtime
-            source: |-
-              .metadata.project = del(.project)
-              .metadata.external_id = .metadata.project
-              parsed, err = parse_regex(.event_message, r'^(?P<time>\d+:\d+:\d+\.\d+) \[(?P<level>\w+)\] (?P<msg>.*)')
-              if err == null {
-                  .event_message = parsed.msg
-                  .metadata.level = parsed.level
-              }
-          storage_logs:
-            type: remap
-            inputs:
-              - router.storage
-            source: |-
-              .metadata.project = del(.project)
-              .metadata.tenantId = .metadata.project
-              parsed, err = parse_json(.event_message)
-              if err == null {
-                  .event_message = parsed.msg
-                  .metadata.level = parsed.level
-                  .metadata.timestamp = parsed.time
-                  .metadata.context[0].host = parsed.hostname
-                  .metadata.context[0].pid = parsed.pid
-              }
-          db_logs:
-            type: remap
-            inputs:
-              - router.db
-            source: |-
-              .metadata.host = "db-default"
-              .metadata.parsed.timestamp = .timestamp
-
-              parsed, err = parse_regex(.event_message, r'.*(?P<level>INFO|NOTICE|WARNING|ERROR|LOG|FATAL|PANIC?):.*', numeric_groups: true)
-
-              if err == null && parsed != null {
-                .metadata.parsed.error_severity = parsed.level
-              } else {
-                .metadata.parsed.error_severity = "info"
-              }
-              if (string(.metadata.parsed.error_severity) ?? "") == "info" {
-                  .metadata.parsed.error_severity = "log"
-              }
-              .metadata.parsed.error_severity = upcase(string(.metadata.parsed.error_severity) ?? "LOG")
-
-          analytics_logs:
-            type: remap
-            inputs:
-              - router.analytics
-            source: |-
-              .metadata.service = "analytics"
-              parsed, err = parse_json(.event_message)
-              if err == null {
-                  .metadata = merge!(.metadata, parsed)
-              }
-
-          meta_logs:
-            type: remap
-            inputs:
-              - router.meta
-            source: |-
-              .metadata.service = "meta"
-              parsed, err = parse_json(.event_message)
-              if err == null {
-                  .metadata = merge!(.metadata, parsed)
-              }
-
-          studio_logs:
-            type: remap
-            inputs:
-              - router.studio
-            source: |-
-              .metadata.service = "studio"
-              .metadata.host = .project
-
-          # Normalize all service logs into the ClickHouse schema
-          ch_normalize:
-            type: remap
-            inputs:
-              - kong_logs
-              - kong_err
-              - auth_logs
-              - rest_logs
-              - realtime_logs
-              - storage_logs
-              - db_logs
-              - analytics_logs
-              - meta_logs
-              - studio_logs
-              - router.functions
-              - router.firecracker
-              - router._unmatched
-              - namespace_heartbeat
-            source: |-
-              # Extract level from metadata fields first
-              .level = string(.severity) ??
-                       string(.metadata.level) ??
-                       string(.metadata.parsed.error_severity) ??
-                       ""
-
-              # If no metadata level, parse from raw message
-              if .level == "" {
-                  msg = string(.event_message) ?? ""
-                  # ClickHouse: <Error>, <Warning>, <Fatal>, <Critical>
-                  if match(msg, r'<(Fatal|Error|Critical)>') {
-                      .level = "error"
-                  } else if match(msg, r'<Warning>') {
-                      .level = "warn"
-                  } else if match(msg, r'<Debug>') || match(msg, r'<Trace>') {
-                      .level = "debug"
-                  # kube-system: E0302 (error), W0302 (warn), F0302 (fatal)
-                  } else if match(msg, r'^[EF]\d{4} ') {
-                      .level = "error"
-                  } else if match(msg, r'^W\d{4} ') {
-                      .level = "warn"
-                  } else if match(msg, r'^I\d{4} ') {
-                      .level = "info"
-                  # Structured: level=error, level=warn, level=ERROR
-                  } else if match(msg, r'(?i)level=(error|fatal|panic|crit)') {
-                      .level = "error"
-                  } else if match(msg, r'(?i)level=(warn|warning)') {
-                      .level = "warn"
-                  } else if match(msg, r'(?i)level=debug') {
-                      .level = "debug"
-                  } else if match(msg, r'(?i)level=info') {
-                      .level = "info"
-                  # ANSI/generic: ERROR, WARN, FATAL, PANIC in message
-                  } else if match(msg, r'(?i)\b(ERROR|FATAL|PANIC)\b') {
-                      .level = "error"
-                  } else if match(msg, r'(?i)\b(WARN|WARNING)\b') {
-                      .level = "warn"
-                  } else if match(msg, r'(?i)\bDEBUG\b') {
-                      .level = "debug"
-                  } else {
-                      .level = "info"
-                  }
-              }
-              .level = downcase(.level)
-
-              .service = string(.appname) ?? "unknown"
-              .message = string(.event_message) ?? ""
-              .metadata = encode_json(object(.metadata) ?? {})
-
-              # Keep only the columns the CH table expects
-              del(.event_message)
-              del(.appname)
-              del(.severity)
-              del(.project)
-
-          alertmanager_explode:
-            type: lua
-            version: "2"
-            inputs:
-              - alertmanager_webhook
-            hooks:
-              process: |
-                function(event, emit)
-                  local alerts = event.log.alerts
-                  if type(alerts) ~= "table" then return end
-                  for _, a in ipairs(alerts) do
-                    emit({ log = { alert = a } })
-                  end
-                end
-
-          alertmanager_flatten:
-            type: remap
-            inputs:
-              - alertmanager_explode
-            drop_on_error: true
-            source: |-
-              a = object(.alert) ?? {}
-              labels = object(a.labels) ?? {}
-              annotations = object(a.annotations) ?? {}
-
-              fingerprint = string(a.fingerprint) ?? ""
-              if fingerprint == "" { abort }
-
-              status_in = downcase(string(a.status) ?? "firing")
-              if status_in != "firing" && status_in != "resolved" {
-                  status_in = "firing"
-              }
-
-              starts_at_raw = string(a.startsAt) ?? ""
-              starts_at = if starts_at_raw == "" {
-                  now()
-              } else {
-                  parse_timestamp(starts_at_raw, "%+") ?? now()
-              }
-
-              ends_at_raw = string(a.endsAt) ?? ""
-              ends_at = if ends_at_raw == "" || starts_with(ends_at_raw, "0001-01-01") {
-                  null
-              } else {
-                  parse_timestamp(ends_at_raw, "%+") ?? null
-              }
-
-              .timestamp = now()
-              .status = status_in
-              .alertname = string(labels.alertname) ?? "unknown"
-              .severity = string(labels.severity) ?? ""
-              .namespace = string(labels.namespace) ?? ""
-              .pod = string(labels.pod) ?? ""
-              .service = string(labels.service) ?? ""
-              .summary = string(annotations.summary) ?? ""
-              .description = string(annotations.description) ?? ""
-              .labels = encode_json(labels)
-              .annotations = encode_json(annotations)
-              .fingerprint = fingerprint
-              .starts_at = starts_at
-              .ends_at = ends_at
-              .generator_url = string(a.generatorURL) ?? ""
-              .source = "webhook"
-
-              del(.alert)
-
-        sinks:
-          clickhouse:
-            type: clickhouse
-            inputs:
-              - ch_normalize
-            endpoint: "${CLICKHOUSE_ENDPOINT}"
-            database: observability
-            table: logs_distributed
-            auth:
-              strategy: basic
-              user: "${CLICKHOUSE_USER}"
-              password: "${CLICKHOUSE_PASSWORD}"
-            skip_unknown_fields: true
-            date_time_best_effort: true
-            batch:
-              max_bytes: 10485760
-              timeout_secs: 5
-            buffer:
-              type: memory
-              max_events: 10000
-            encoding:
-              timestamp_format: rfc3339
-          clickhouse_alerts:
-            type: clickhouse
-            inputs:
-              - alertmanager_flatten
-            endpoint: "${CLICKHOUSE_ENDPOINT}"
-            database: observability
-            table: alerts_distributed
-            auth:
-              strategy: basic
-              user: "${CLICKHOUSE_USER}"
-              password: "${CLICKHOUSE_PASSWORD}"
-            skip_unknown_fields: true
-            date_time_best_effort: true
-            batch:
-              max_bytes: 1048576
-              timeout_secs: 2
-            buffer:
-              type: memory
-              max_events: 2000
-            encoding:
-              timestamp_format: rfc3339
+    vector.yml:
+        "api:\n  enabled: true\n  address: 0.0.0.0:9001\n\nsources:\n  kubernetes_logs:\n\
+        \    type: kubernetes_logs\n    self_node_name: \"${VECTOR_SELF_NODE_NAME}\"\n\
+        \    exclude_paths_glob_patterns:\n      - \"**/vector_*/**\"\n      - \"**/kube-system_*/**\"\
+        \n    auto_partial_merge: true\n    data_dir: \"/vector-data-dir\"\n  alertmanager_webhook:\n\
+        \    type: http_server\n    address: 0.0.0.0:9002\n    path: /alertmanager\n \
+        \   method: POST\n    decoding:\n      codec: json\n\ntransforms:\n  # mc-fabric\
+        \ multiline aggregation. Java stack traces emit one line\n  # per frame; the default\
+        \ per-line ingest makes exception search\n  # useless. Route mc-fabric pods through\
+        \ a `reduce` that joins\n  # continuation lines onto the preceding `[HH:MM:SS]`\
+        \ header.\n  # Non-mc pods bypass the reduce via `pod_route._unmatched`.\n  pod_route:\n\
+        \    type: route\n    inputs:\n      - kubernetes_logs\n    route:\n      mc_fabric:\
+        \ 'string!(.kubernetes.pod_namespace) == \"arc-runners\" && starts_with(string!(.kubernetes.pod_name),\
+        \ \"mc-fabric\")'\n\n  mc_fabric_multiline:\n    type: reduce\n    inputs:\n \
+        \     - pod_route.mc_fabric\n    group_by:\n      - kubernetes.pod_name\n    \
+        \  - kubernetes.container_name\n    merge_strategies:\n      message: concat_newline\n\
+        \    starts_when:\n      type: vrl\n      source: |-\n        msg = string(.message)\
+        \ ?? \"\"\n        match(msg, r'^\\[\\d{2}:\\d{2}:\\d{2}\\]') ||\n        match(msg,\
+        \ r'^\\d{4}-\\d{2}-\\d{2}T')\n    expire_after_ms: 2000\n    flush_period_ms:\
+        \ 500\n\n  project_logs:\n    type: remap\n    inputs:\n      - mc_fabric_multiline\n\
+        \      - pod_route._unmatched\n    source: |-\n      .event_message = del(.message)\n\
+        \      .appname = del(.kubernetes.container_name)\n      .pod_name = del(.kubernetes.pod_name)\n\
+        \      .pod_namespace = del(.kubernetes.pod_namespace)\n      .project = string(.pod_namespace)\
+        \ ?? \"default\"\n      del(.kubernetes)\n      del(.source_type)\n      del(.stream)\n\
+        \      del(.file)\n      del(.host)\n\n      # Drop empty messages\n      if is_empty(string(.event_message)\
+        \ ?? \"\") { abort }\n\n      # Drop bare stack frame lines (e.g. \"0. DB::Exception::...\"\
+        \ )\n      # Drop single-word low-value messages (e.g. \"record\", \"Trace\")\n\
+        \      msg = string(.event_message) ?? \"\"\n      if match(msg, r'^\\d+\\. \\\
+        S+::\\S+') { abort }\n      if match(msg, r'^(record|Trace)$') { abort }\n\n \
+        \     # Strip ANSI escape codes\n      .event_message = replace(string!(.event_message),\
+        \ r'\\x1b\\[[0-9;]*m', \"\")\n\n      # Try parsing JSON messages (argocd, etc.)\
+        \ to extract level/msg\n      parsed, err = parse_json(.event_message)\n     \
+        \ if err == null {\n          if exists(parsed.level) { .severity = del(parsed.level)\
+        \ }\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ??\
+        \ .event_message }\n          .metadata = parsed\n      }\n  # Drop info/debug\
+        \ from noisy infra namespaces; keep warn+/error+ from\n  # them and everything\
+        \ from app namespaces. Cost discipline — these\n  # 13 namespaces emit massive\
+        \ low-signal chatter.\n  noise_filter:\n    type: filter\n    inputs:\n      -\
+        \ project_logs\n    condition:\n      type: vrl\n      source: |-\n        noisy\
+        \ = [\"argocd\", \"clickhouse\", \"arc-systems\", \"arc-runners\", \"monitoring\"\
+        ,\n                 \"kube-system\", \"kube-node-lease\", \"kube-public\",\n \
+        \                \"longhorn-system\", \"metallb-system\", \"cnpg-system\",\n \
+        \                \"cert-manager\", \"external-secrets-system\"]\n        ns =\
+        \ string(.pod_namespace) ?? \"\"\n        if !includes(noisy, ns) {\n        \
+        \    true\n        } else {\n            msg = string(.event_message) ?? \"\"\n\
+        \            match(msg, r'(?i)(warn|error|fatal|panic|crit|exception|fail)')\n\
+        \        }\n  # Heartbeat: emit at most 1 row per namespace per 5min straight\
+        \ from\n  # project_logs (pre-filter), so quiet namespaces with no warn+/error+\n\
+        \  # in window still show up on the dashboard's namespace count.\n  # ~600 rows/hour\
+        \ cluster-wide. Bypasses the appname router and lands\n  # directly in ch_normalize.\n\
+        \  namespace_heartbeat:\n    type: throttle\n    inputs:\n      - project_logs\n\
+        \    threshold: 1\n    window_secs: 300\n    key_field: \"{{ pod_namespace }}\"\
+        \n  router:\n    type: route\n    inputs:\n      - noise_filter\n    route:\n\
+        \      kong: '.appname == \"supabase-kong\" || .appname == \"kong-kong\" || .appname\
+        \ == \"proxy\"'\n      auth: '.appname == \"supabase-auth\" || .appname == \"\
+        gotrue\"'\n      rest: '.appname == \"supabase-rest\" || .appname == \"postgrest\"\
+        '\n      realtime: '.appname == \"supabase-realtime\" || .appname == \"realtime\"\
+        '\n      storage: '.appname == \"supabase-storage\" || .appname == \"storage\"\
+        '\n      functions: '.appname == \"supabase-functions\" || .appname == \"functions\"\
+        \ || .appname == \"edge-functions\"'\n      db: '.appname == \"supabase-db\" ||\
+        \ .appname == \"postgres\"'\n      analytics: '.appname == \"logflare\" || .appname\
+        \ == \"supabase-analytics\"'\n      meta: '.appname == \"postgres-meta\" || .appname\
+        \ == \"supabase-meta\"'\n      studio: '.appname == \"studio\" || .appname ==\
+        \ \"supabase-studio\"'\n      firecracker: '.appname == \"firecracker-ctl\"'\n\
+        \  kong_logs:\n    type: remap\n    inputs:\n      - router.kong\n    source:\
+        \ |-\n      req, err = parse_nginx_log(.event_message, \"combined\")\n      if\
+        \ err == null {\n          .timestamp = req.timestamp\n          .metadata.request.headers.referer\
+        \ = req.referer\n          .metadata.request.headers.user_agent = req.agent\n\
+        \          .metadata.request.headers.cf_connecting_ip = req.client\n         \
+        \ .metadata.request.method = req.method\n          .metadata.request.path = req.path\n\
+        \          .metadata.request.protocol = req.protocol\n          .metadata.response.status_code\
+        \ = req.status\n      }\n      if err != null {\n        abort\n      }\n  kong_err:\n\
+        \    type: remap\n    inputs:\n      - router.kong\n    source: |-\n      .metadata.request.method\
+        \ = \"GET\"\n      .metadata.response.status_code = 200\n      parsed, err = parse_nginx_log(.event_message,\
+        \ \"error\")\n      if err == null {\n          .timestamp = parsed.timestamp\n\
+        \          .severity = parsed.severity\n          .metadata.request.host = parsed.host\n\
+        \          .metadata.request.headers.cf_connecting_ip = parsed.client\n      \
+        \    url, err = split(parsed.request, \" \")\n          if err == null {\n   \
+        \           .metadata.request.method = url[0]\n              .metadata.request.path\
+        \ = url[1]\n              .metadata.request.protocol = url[2]\n          }\n \
+        \     }\n      if err != null {\n        abort\n      }\n  auth_logs:\n    type:\
+        \ remap\n    inputs:\n      - router.auth\n    source: |-\n      parsed, err =\
+        \ parse_json(.event_message)\n      if err == null {\n          .metadata.timestamp\
+        \ = parsed.time\n          .metadata = merge!(.metadata, parsed)\n      }\n  rest_logs:\n\
+        \    type: remap\n    inputs:\n      - router.rest\n    source: |-\n      parsed,\
+        \ err = parse_regex(.event_message, r'^(?P<time>.*): (?P<msg>.*)')\n      if err\
+        \ == null {\n          .event_message = parsed.msg\n          .timestamp = parse_timestamp!(parsed.time,\
+        \ \"%+\")\n          .metadata.host = .project\n      }\n  realtime_logs:\n  \
+        \  type: remap\n    inputs:\n      - router.realtime\n    source: |-\n      .metadata.project\
+        \ = del(.project)\n      .metadata.external_id = .metadata.project\n      parsed,\
+        \ err = parse_regex(.event_message, r'^(?P<time>\\d+:\\d+:\\d+\\.\\d+) \\[(?P<level>\\\
+        w+)\\] (?P<msg>.*)')\n      if err == null {\n          .event_message = parsed.msg\n\
+        \          .metadata.level = parsed.level\n      }\n  storage_logs:\n    type:\
+        \ remap\n    inputs:\n      - router.storage\n    source: |-\n      .metadata.project\
+        \ = del(.project)\n      .metadata.tenantId = .metadata.project\n      parsed,\
+        \ err = parse_json(.event_message)\n      if err == null {\n          .event_message\
+        \ = parsed.msg\n          .metadata.level = parsed.level\n          .metadata.timestamp\
+        \ = parsed.time\n          .metadata.context[0].host = parsed.hostname\n     \
+        \     .metadata.context[0].pid = parsed.pid\n      }\n  db_logs:\n    type: remap\n\
+        \    inputs:\n      - router.db\n    source: |-\n      .metadata.host = \"db-default\"\
+        \n      .metadata.parsed.timestamp = .timestamp\n\n      parsed, err = parse_regex(.event_message,\
+        \ r'.*(?P<level>INFO|NOTICE|WARNING|ERROR|LOG|FATAL|PANIC?):.*', numeric_groups:\
+        \ true)\n\n      if err == null && parsed != null {\n        .metadata.parsed.error_severity\
+        \ = parsed.level\n      } else {\n        .metadata.parsed.error_severity = \"\
+        info\"\n      }\n      if (string(.metadata.parsed.error_severity) ?? \"\") ==\
+        \ \"info\" {\n          .metadata.parsed.error_severity = \"log\"\n      }\n \
+        \     .metadata.parsed.error_severity = upcase(string(.metadata.parsed.error_severity)\
+        \ ?? \"LOG\")\n\n  analytics_logs:\n    type: remap\n    inputs:\n      - router.analytics\n\
+        \    source: |-\n      .metadata.service = \"analytics\"\n      parsed, err =\
+        \ parse_json(.event_message)\n      if err == null {\n          .metadata = merge!(.metadata,\
+        \ parsed)\n      }\n\n  meta_logs:\n    type: remap\n    inputs:\n      - router.meta\n\
+        \    source: |-\n      .metadata.service = \"meta\"\n      parsed, err = parse_json(.event_message)\n\
+        \      if err == null {\n          .metadata = merge!(.metadata, parsed)\n   \
+        \   }\n\n  studio_logs:\n    type: remap\n    inputs:\n      - router.studio\n\
+        \    source: |-\n      .metadata.service = \"studio\"\n      .metadata.host =\
+        \ .project\n\n  # Normalize all service logs into the ClickHouse schema\n  ch_normalize:\n\
+        \    type: remap\n    inputs:\n      - kong_logs\n      - kong_err\n      - auth_logs\n\
+        \      - rest_logs\n      - realtime_logs\n      - storage_logs\n      - db_logs\n\
+        \      - analytics_logs\n      - meta_logs\n      - studio_logs\n      - router.functions\n\
+        \      - router.firecracker\n      - router._unmatched\n      - namespace_heartbeat\n\
+        \    source: |-\n      # Extract level from metadata fields first\n      .level\
+        \ = string(.severity) ??\n               string(.metadata.level) ??\n        \
+        \       string(.metadata.parsed.error_severity) ??\n               \"\"\n\n  \
+        \    # If no metadata level, parse from raw message\n      if .level == \"\" {\n\
+        \          msg = string(.event_message) ?? \"\"\n          # ClickHouse: <Error>,\
+        \ <Warning>, <Fatal>, <Critical>\n          if match(msg, r'<(Fatal|Error|Critical)>')\
+        \ {\n              .level = \"error\"\n          } else if match(msg, r'<Warning>')\
+        \ {\n              .level = \"warn\"\n          } else if match(msg, r'<Debug>')\
+        \ || match(msg, r'<Trace>') {\n              .level = \"debug\"\n          # kube-system:\
+        \ E0302 (error), W0302 (warn), F0302 (fatal)\n          } else if match(msg, r'^[EF]\\\
+        d{4} ') {\n              .level = \"error\"\n          } else if match(msg, r'^W\\\
+        d{4} ') {\n              .level = \"warn\"\n          } else if match(msg, r'^I\\\
+        d{4} ') {\n              .level = \"info\"\n          # Structured: level=error,\
+        \ level=warn, level=ERROR\n          } else if match(msg, r'(?i)level=(error|fatal|panic|crit)')\
+        \ {\n              .level = \"error\"\n          } else if match(msg, r'(?i)level=(warn|warning)')\
+        \ {\n              .level = \"warn\"\n          } else if match(msg, r'(?i)level=debug')\
+        \ {\n              .level = \"debug\"\n          } else if match(msg, r'(?i)level=info')\
+        \ {\n              .level = \"info\"\n          # ANSI/generic: ERROR, WARN, FATAL,\
+        \ PANIC in message\n          } else if match(msg, r'(?i)\\b(ERROR|FATAL|PANIC)\\\
+        b') {\n              .level = \"error\"\n          } else if match(msg, r'(?i)\\\
+        b(WARN|WARNING)\\b') {\n              .level = \"warn\"\n          } else if match(msg,\
+        \ r'(?i)\\bDEBUG\\b') {\n              .level = \"debug\"\n          } else {\n\
+        \              .level = \"info\"\n          }\n      }\n      .level = downcase(.level)\n\
+        \n      .service = string(.appname) ?? \"unknown\"\n      .message = string(.event_message)\
+        \ ?? \"\"\n      .metadata = encode_json(object(.metadata) ?? {})\n\n      # Keep\
+        \ only the columns the CH table expects\n      del(.event_message)\n      del(.appname)\n\
+        \      del(.severity)\n      del(.project)\n\n  alertmanager_explode:\n    type:\
+        \ lua\n    version: \"2\"\n    inputs:\n      - alertmanager_webhook\n    hooks:\n\
+        \      process: |\n        function(event, emit)\n          local alerts = event.log.alerts\n\
+        \          if type(alerts) ~= \"table\" then return end\n          for _, a in\
+        \ ipairs(alerts) do\n            emit({ log = { alert = a } })\n          end\n\
+        \        end\n\n  alertmanager_flatten:\n    type: remap\n    inputs:\n      -\
+        \ alertmanager_explode\n    drop_on_error: true\n    source: |-\n      a = object(.alert)\
+        \ ?? {}\n      labels = object(a.labels) ?? {}\n      annotations = object(a.annotations)\
+        \ ?? {}\n\n      fingerprint = string(a.fingerprint) ?? \"\"\n      if fingerprint\
+        \ == \"\" { abort }\n\n      status_in = downcase(string(a.status) ?? \"firing\"\
+        )\n      if status_in != \"firing\" && status_in != \"resolved\" {\n         \
+        \ status_in = \"firing\"\n      }\n\n      starts_at_raw = string(a.startsAt)\
+        \ ?? \"\"\n      starts_at = if starts_at_raw == \"\" {\n          now()\n   \
+        \   } else {\n          parse_timestamp(starts_at_raw, \"%+\") ?? now()\n    \
+        \  }\n\n      ends_at_raw = string(a.endsAt) ?? \"\"\n      ends_at = if ends_at_raw\
+        \ == \"\" || starts_with(ends_at_raw, \"0001-01-01\") {\n          null\n    \
+        \  } else {\n          parse_timestamp(ends_at_raw, \"%+\") ?? null\n      }\n\
+        \n      .timestamp = now()\n      .status = status_in\n      .alertname = string(labels.alertname)\
+        \ ?? \"unknown\"\n      .severity = string(labels.severity) ?? \"\"\n      .namespace\
+        \ = string(labels.namespace) ?? \"\"\n      .pod = string(labels.pod) ?? \"\"\n\
+        \      .service = string(labels.service) ?? \"\"\n      .summary = string(annotations.summary)\
+        \ ?? \"\"\n      .description = string(annotations.description) ?? \"\"\n    \
+        \  .labels = encode_json(labels)\n      .annotations = encode_json(annotations)\n\
+        \      .fingerprint = fingerprint\n      .starts_at = starts_at\n      .ends_at\
+        \ = ends_at\n      .generator_url = string(a.generatorURL) ?? \"\"\n      .source\
+        \ = \"webhook\"\n\n      del(.alert)\n\nsinks:\n  clickhouse:\n    type: clickhouse\n\
+        \    inputs:\n      - ch_normalize\n    endpoint: \"${CLICKHOUSE_ENDPOINT}\"\n\
+        \    database: observability\n    table: logs_distributed\n    auth:\n      strategy:\
+        \ basic\n      user: \"${CLICKHOUSE_USER}\"\n      password: \"${CLICKHOUSE_PASSWORD}\"\
+        \n    skip_unknown_fields: true\n    date_time_best_effort: true\n    batch:\n\
+        \      max_bytes: 10485760\n      timeout_secs: 5\n    buffer:\n      type: memory\n\
+        \      max_events: 10000\n    encoding:\n      timestamp_format: rfc3339\n  clickhouse_alerts:\n\
+        \    type: clickhouse\n    inputs:\n      - alertmanager_flatten\n    endpoint:\
+        \ \"${CLICKHOUSE_ENDPOINT}\"\n    database: observability\n    table: alerts_distributed\n\
+        \    auth:\n      strategy: basic\n      user: \"${CLICKHOUSE_USER}\"\n      password:\
+        \ \"${CLICKHOUSE_PASSWORD}\"\n    skip_unknown_fields: true\n    date_time_best_effort:\
+        \ true\n    batch:\n      max_bytes: 1048576\n      timeout_secs: 2\n    buffer:\n\
+        \      type: memory\n      max_events: 2000\n    encoding:\n      timestamp_format:\
+        \ rfc3339\n"

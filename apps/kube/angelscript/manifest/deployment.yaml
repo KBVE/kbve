@@ -5,9 +5,10 @@ metadata:
     namespace: angelscript
     labels:
         app: angelscript
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-    # replicas: 0 until a real engine build is published to GHCR
-    # (image ghcr.io/kbve/angelscript-server:0.0.0 does not exist)
     replicas: 0
     strategy:
         type: Recreate
@@ -28,8 +29,8 @@ spec:
                   image: ghcr.io/kbve/angelscript-server:0.0.0
                   imagePullPolicy: Always
                   args:
-                      - '-log'
-                      - '-Port=7777'
+                      - -log
+                      - -Port=7777
                   ports:
                       - name: game-udp
                         containerPort: 7777
@@ -48,11 +49,11 @@ spec:
                         mountPath: /server/data
                   resources:
                       requests:
-                          memory: '4Gi'
-                          cpu: '2000m'
+                          memory: 4Gi
+                          cpu: 2000m
                       limits:
-                          memory: '8Gi'
-                          cpu: '4000m'
+                          memory: 8Gi
+                          cpu: 4000m
                   livenessProbe:
                       tcpSocket:
                           port: game-tcp

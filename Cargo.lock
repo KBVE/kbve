@@ -802,6 +802,7 @@ dependencies = [
  "bevy_items",
  "bevy_mapdb",
  "jedi",
+ "serde_json",
  "simgrid",
  "tokio",
  "tracing",

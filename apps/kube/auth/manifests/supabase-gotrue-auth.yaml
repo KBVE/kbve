@@ -6,6 +6,9 @@ metadata:
     labels:
         app: supabase-auth
         component: auth
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     replicas: 2
     selector:
@@ -24,65 +27,50 @@ spec:
                       - containerPort: 9999
                         name: http
                   env:
-                      # Basic GoTrue configuration
                       - name: GOTRUE_API_HOST
-                        value: '0.0.0.0'
+                        value: 0.0.0.0
                       - name: GOTRUE_API_PORT
                         value: '9999'
                       - name: API_EXTERNAL_URL
-                        value: 'https://supabase.kbve.com'
-
-                      # Database configuration
+                        value: https://supabase.kbve.com
                       - name: GOTRUE_DB_DRIVER
-                        value: 'postgres'
+                        value: postgres
                       - name: GOTRUE_DB_DATABASE_URL
                         valueFrom:
                             secretKeyRef:
                                 name: gotrue-database
                                 key: database-url
-
-                      # Site configuration - hardcoded for now
                       - name: GOTRUE_SITE_URL
-                        value: 'https://kbve.com'
+                        value: https://kbve.com
                       - name: GOTRUE_URI_ALLOW_LIST
-                        value: 'https://kbve.com/**,https://*.kbve.com/**,https://chat.kbve.com/**,https://supabase.kbve.com/**,https://forgejo.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://rentearth.com/**,https://*.rentearth.com/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,https://chuckrpg.com/**,https://*.chuckrpg.com/**,https://cryptothrone.com/**,https://*.cryptothrone.com/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**,http://127.0.0.1:**,kbve://**'
+                        value: https://kbve.com/**,https://*.kbve.com/**,https://chat.kbve.com/**,https://supabase.kbve.com/**,https://forgejo.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://rentearth.com/**,https://*.rentearth.com/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,https://chuckrpg.com/**,https://*.chuckrpg.com/**,https://cryptothrone.com/**,https://*.cryptothrone.com/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**,http://127.0.0.1:**,kbve://**
                       - name: GOTRUE_DISABLE_SIGNUP
                         value: 'false'
-
-                      # JWT configuration - hardcoded basic values
                       - name: GOTRUE_JWT_ADMIN_ROLES
-                        value: 'supabase_admin,service_role'
+                        value: supabase_admin,service_role
                       - name: GOTRUE_JWT_AUD
-                        value: 'authenticated'
+                        value: authenticated
                       - name: GOTRUE_JWT_DEFAULT_GROUP_NAME
-                        value: 'authenticated'
-
-                      # Email configuration - hardcoded for simplicity
+                        value: authenticated
                       - name: GOTRUE_EXTERNAL_EMAIL_ENABLED
                         value: 'true'
                       - name: GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED
                         value: 'false'
                       - name: GOTRUE_MAILER_AUTOCONFIRM
                         value: 'true'
-
-                      # Phone
                       - name: GOTRUE_SMS_AUTOCONFIRM
                         value: 'false'
-
-                      # Captcha configuration
                       - name: GOTRUE_SECURITY_CAPTCHA_ENABLED
                         value: 'true'
                       - name: GOTRUE_SECURITY_CAPTCHA_PROVIDER
-                        value: 'hcaptcha'
+                        value: hcaptcha
                       - name: GOTRUE_SECURITY_CAPTCHA_TIMEOUT
-                        value: '10s'
+                        value: 10s
                       - name: GOTRUE_SECURITY_CAPTCHA_SECRET
                         valueFrom:
                             secretKeyRef:
                                 name: hcaptcha-config
                                 key: secret-key
-
-                      # Discord OAuth configuration
                       - name: GOTRUE_EXTERNAL_DISCORD_ENABLED
                         value: 'true'
                       - name: GOTRUE_EXTERNAL_DISCORD_CLIENT_ID
@@ -96,9 +84,7 @@ spec:
                                 name: discord-oauth-config
                                 key: client-secret
                       - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
-                        value: 'https://supabase.kbve.com/auth/v1/callback'
-
-                      # GitHub OAuth configuration
+                        value: https://supabase.kbve.com/auth/v1/callback
                       - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
                         value: 'true'
                       - name: GOTRUE_EXTERNAL_GITHUB_CLIENT_ID
@@ -112,9 +98,7 @@ spec:
                                 name: github-oauth-config
                                 key: client-secret
                       - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
-                        value: 'https://supabase.kbve.com/auth/v1/callback'
-
-                      # Twitch OAuth configuration
+                        value: https://supabase.kbve.com/auth/v1/callback
                       - name: GOTRUE_EXTERNAL_TWITCH_ENABLED
                         value: 'true'
                       - name: GOTRUE_EXTERNAL_TWITCH_CLIENT_ID
@@ -128,18 +112,11 @@ spec:
                                 name: twitch-oauth-config
                                 key: client-secret
                       - name: GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI
-                        value: 'https://supabase.kbve.com/auth/v1/callback'
-
-                      # Custom Access Token hook (Postgres-backed):
-                      # injects profile.username into the JWT as
-                      # kbve_username. See migration
-                      # 20260510210000_profile_custom_access_token_hook.sql.
+                        value: https://supabase.kbve.com/auth/v1/callback
                       - name: GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_ENABLED
                         value: 'true'
                       - name: GOTRUE_HOOK_CUSTOM_ACCESS_TOKEN_URI
-                        value: 'pg-functions://postgres/public/custom_access_token_hook'
-
-                      # Secrets from Kubernetes
+                        value: pg-functions://postgres/public/custom_access_token_hook
                       - name: GOTRUE_JWT_EXP
                         valueFrom:
                             secretKeyRef:
@@ -155,8 +132,6 @@ spec:
                             secretKeyRef:
                                 name: supabase-postgres
                                 key: password
-
-                  # Health check
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -165,7 +140,6 @@ spec:
                       periodSeconds: 30
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   readinessProbe:
                       httpGet:
                           path: /health
@@ -174,15 +148,13 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   resources:
                       requests:
-                          memory: '128Mi'
-                          cpu: '100m'
+                          memory: 128Mi
+                          cpu: 100m
                       limits:
-                          memory: '512Mi'
-                          cpu: '500m'
-
+                          memory: 512Mi
+                          cpu: 500m
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -191,7 +163,6 @@ spec:
                       capabilities:
                           drop:
                               - ALL
-
 ---
 apiVersion: v1
 kind: Service
@@ -201,6 +172,9 @@ metadata:
     labels:
         app: supabase-auth
         component: auth
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     ports:

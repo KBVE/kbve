@@ -5,6 +5,9 @@ metadata:
     namespace: rareicon
     labels:
         app: rareicon
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     strategy:
@@ -55,18 +58,18 @@ spec:
                       failureThreshold: 3
                   env:
                       - name: HTTP_HOST
-                        value: '0.0.0.0'
+                        value: 0.0.0.0
                       - name: HTTP_PORT
                         value: '4323'
                       - name: RUST_LOG
-                        value: 'info'
+                        value: info
                   resources:
                       requests:
-                          memory: '128Mi'
-                          cpu: '100m'
+                          memory: 128Mi
+                          cpu: 100m
                       limits:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -88,6 +91,9 @@ metadata:
     namespace: rareicon
     labels:
         app: rareicon
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

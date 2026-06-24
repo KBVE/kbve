@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
     name: functions
     namespace: kilobase
+    labels:
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     selector:
@@ -20,10 +24,10 @@ spec:
                   image: ghcr.io/kbve/edge:0.1.45
                   imagePullPolicy: Always
                   command:
-                      - 'edge-runtime'
-                      - 'start'
-                      - '--main-service'
-                      - '/home/deno/functions/main'
+                      - edge-runtime
+                      - start
+                      - --main-service
+                      - /home/deno/functions/main
                   env:
                       - name: JWT_SECRET
                         valueFrom:
@@ -31,9 +35,9 @@ spec:
                                 name: supabase-shared
                                 key: jwt-secret
                       - name: SUPABASE_URL
-                        value: 'http://kong:8000'
+                        value: http://kong:8000
                       - name: WEBHOOK_PUBLIC_BASE
-                        value: 'https://supabase.kbve.com'
+                        value: https://supabase.kbve.com
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
@@ -62,7 +66,7 @@ spec:
                       - name: VERIFY_JWT
                         value: 'true'
                       - name: FIRECRACKER_URL
-                        value: 'http://firecracker-ctl.firecracker.svc.cluster.local:9001'
+                        value: http://firecracker-ctl.firecracker.svc.cluster.local:9001
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:
@@ -78,9 +82,8 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: clickhouse-password
-                      # MC RCON — service DNS resolves dynamically to current pods
                       - name: MC_RCON_LOBBY_HOST
-                        value: 'mc-lobby-backend.arc-runners.svc.cluster.local'
+                        value: mc-lobby-backend.arc-runners.svc.cluster.local
                       - name: MC_RCON_LOBBY_PORT
                         value: '25575'
                       - name: MC_RCON_LOBBY_PASSWORD
@@ -89,7 +92,7 @@ spec:
                                 name: mc-rcon-credentials
                                 key: rcon-password
                       - name: MC_RCON_SURVIVAL_HOST
-                        value: 'mc-fabric-backend.arc-runners.svc.cluster.local'
+                        value: mc-fabric-backend.arc-runners.svc.cluster.local
                       - name: MC_RCON_SURVIVAL_PORT
                         value: '25575'
                       - name: MC_RCON_SURVIVAL_PASSWORD
@@ -99,8 +102,8 @@ spec:
                                 key: rcon-password
                   resources:
                       requests:
-                          memory: '384Mi'
-                          cpu: '100m'
+                          memory: 384Mi
+                          cpu: 100m
                       limits:
-                          memory: '1Gi'
-                          cpu: '500m'
+                          memory: 1Gi
+                          cpu: 500m

@@ -5,12 +5,10 @@ metadata:
     namespace: cryptothrone
     labels:
         app: cryptothrone
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Reloader rolls this Deployment whenever the supabase-shared
-        # Secret (rendered by cryptothrone-supabase-secrets ExternalSecret)
-        # rotates. Today the deployment only consumes HTTP_PORT, but the
-        # envFrom + secretRef block is wired now so future KBVE / Supabase
-        # integration adds become a Secret edit, not a manifest rewrite.
         reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
@@ -26,7 +24,7 @@ spec:
         metadata:
             labels:
                 app: cryptothrone
-                version: '0.1.0'
+                version: 0.1.0
         spec:
             serviceAccountName: cryptothrone-sa
             automountServiceAccountToken: true
@@ -66,43 +64,30 @@ spec:
                       - name: HTTP_PORT
                         value: '4321'
                       - name: CT_AGONES_NAMESPACE
-                        value: 'cryptothrone'
+                        value: cryptothrone
                       - name: CT_AGONES_FLEET
-                        value: 'cryptothrone-server'
-                      # jedi PgCluster pool identity (KBVE_PG_RW_URL / RO_URL
-                      # arrive via the supabase-shared envFrom below).
+                        value: cryptothrone-server
                       - name: KBVE_PG_APPLICATION_NAME
-                        value: 'axum-cryptothrone'
-                      # GoTrue admin (fast-register) talks to the auth service
-                      # directly, bypassing Kong's /auth/v1/admin gateway ACL.
+                        value: axum-cryptothrone
                       - name: GOTRUE_INTERNAL_URL
-                        value: 'http://auth.kilobase.svc.cluster.local:9999'
+                        value: http://auth.kilobase.svc.cluster.local:9999
                   envFrom:
-                      # Optional so the pod still boots before the
-                      # ExternalSecret has rendered or the kilobase
-                      # RBAC has been wired. Once supabase-shared
-                      # exists Reloader rolls the Deployment automatically.
                       - secretRef:
                             name: supabase-shared
                             optional: true
-                      # KBVE_KV_URL (jedi KvCache → Valkey). Optional for the
-                      # same boot-before-render reason.
                       - secretRef:
                             name: cryptothrone-valkey
                             optional: true
-                      # DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET for the
-                      # /api/discord/session OAuth bridge (SealedSecret).
-                      # Optional so the pod boots before it is applied.
                       - secretRef:
                             name: cryptothrone-discord
                             optional: true
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                       limits:
-                          memory: '512Mi'
-                          cpu: '2000m'
+                          memory: 512Mi
+                          cpu: 2000m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -113,8 +98,6 @@ spec:
                       - name: tmp
                         mountPath: /tmp
             volumes:
-                # Writable scratch for the axum binary while the rootfs
-                # itself stays read-only.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
@@ -126,6 +109,9 @@ metadata:
     namespace: cryptothrone
     labels:
         app: cryptothrone
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

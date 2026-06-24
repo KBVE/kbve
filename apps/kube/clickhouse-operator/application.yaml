@@ -5,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '2'
+        kbve.com/source-path: kube/clickhouse-operator
+        kbve.com/manifest-path: kube/clickhouse-operator
+        kbve.com/application-file: kube/clickhouse-operator/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: operator
+        kbve.com/stack: clickhouse
 spec:
     project: default
     sources:

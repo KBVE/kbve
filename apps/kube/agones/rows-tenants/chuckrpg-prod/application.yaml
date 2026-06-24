@@ -1,15 +1,3 @@
-# DISABLED SCAFFOLD — prod Agones fleet for the ROWS chuckrpg-prod tenant.
-#
-# This Argo Application is intentionally NOT registered in apps/kube/kustomization.yaml
-# (its entry there is commented out), so ArgoCD never creates it and nothing deploys.
-#
-# To ENABLE prod:
-#   1. Stage the cooked prod server build on the ows-server-build PVC at subPath `chuckServerProd`
-#      (/server/latest/LinuxServer/chuckServer.sh).
-#   2. Seal `rows-customer-guid` + `rows-encryption-key` for namespace `rows-chuckrpg-prod`
-#      and bring up the rows-chuckrpg-prod tenant (rows/tenants/overlays/chuckrpg-prod).
-#   3. Uncomment the `agones/rows-tenants/chuckrpg-prod/application.yaml` line in
-#      apps/kube/kustomization.yaml.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -18,6 +6,14 @@ metadata:
     labels:
         app.kubernetes.io/part-of: rows
         app.kubernetes.io/instance: chuckrpg-prod
+    annotations:
+        kbve.com/source-path: kube/agones/rows-tenants/chuckrpg-prod
+        kbve.com/manifest-path: apps/kube/agones/rows-tenants/chuckrpg-prod/manifests
+        kbve.com/application-file: kube/agones/rows-tenants/chuckrpg-prod/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
 spec:
     project: default
     source:

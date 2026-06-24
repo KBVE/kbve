@@ -5,11 +5,10 @@ metadata:
     namespace: chuckrpg
     labels:
         app: chuckrpg
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
-        # Stakater Reloader watches every ConfigMap/Secret referenced by
-        # this Deployment (envFrom, env.valueFrom, volumes) and triggers a
-        # rolling restart on change. Currently only chuckrpg-config exists;
-        # chuckrpg-secrets is optional until SealedSecret is added.
         reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
@@ -63,19 +62,16 @@ spec:
                   envFrom:
                       - configMapRef:
                             name: chuckrpg-config
-                      # Optional so the pod still boots before the
-                      # SealedSecret lands. Once chuckrpg-secrets exists
-                      # Reloader will roll the Deployment automatically.
                       - secretRef:
                             name: chuckrpg-secrets
                             optional: true
                   resources:
                       requests:
-                          memory: '128Mi'
-                          cpu: '100m'
+                          memory: 128Mi
+                          cpu: 100m
                       limits:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -86,9 +82,6 @@ spec:
                       - name: tmp
                         mountPath: /tmp
             volumes:
-                # Writable scratch for the axum binary while the rootfs
-                # itself stays read-only. Sized small — chuckrpg does not
-                # cache anything significant at runtime.
                 - name: tmp
                   emptyDir:
                       sizeLimit: 64Mi
@@ -100,6 +93,9 @@ metadata:
     namespace: chuckrpg
     labels:
         app: chuckrpg
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

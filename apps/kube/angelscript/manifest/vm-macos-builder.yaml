@@ -1,63 +1,3 @@
-# macOS VM for Xcode + UE AngelScript builds via GitHub Actions runner.
-# Requires: KubeVirt operator + CDI deployed in the cluster.
-# Uses OSX-KVM approach (https://github.com/kholia/OSX-KVM) for KVM-based macOS.
-#
-# IMPORTANT: Running macOS VMs requires genuine Apple hardware (Mac Pro, etc.)
-# per Apple's EULA. Only deploy this on Apple-branded physical hosts.
-#
-# macOS cannot boot from SeaBIOS — it requires UEFI (OVMF) firmware AND the
-# OpenCore bootloader as a separate disk. Plain EFI cannot load the macOS
-# kernel directly. The boot order is OpenCore → rootdisk → BaseSystem.
-#
-# Target version: macOS Sonoma (14.x, Darwin 23).
-#   - Tahoe (26.x) is unworkable: boot.efi requires x86legacyap.im4m, the
-#     bundled OpenCore.qcow2 lacks Tahoe patches (see kholia/OSX-KVM PR #273).
-#   - Sequoia (15.x) needs -cpu Skylake-Client per OSX-KVM's boot script, but
-#     our AMD EPYC Rome node only advertises Penryn/EPYC/Nehalem/etc in the
-#     schedulable cpu-model.node.kubevirt.io labels — no Skylake. Sequoia
-#     hangs at the Apple logo because the kernel can't match expected CPUID.
-#   - Sonoma works with Penryn/Haswell-noTSX CPU models and still supports
-#     Xcode 16 (requires macOS 14.5+), so UE5 plugin builds work identically.
-#
-# Provisioning steps (one-time, after KubeVirt + CDI are running):
-#   1. Prepare a macOS install image and OpenCore boot disk using OSX-KVM:
-#        - Clone https://github.com/kholia/OSX-KVM
-#        - Run: python3 fetch-macOS-v2.py --action download -s sonoma -os latest
-#          Output: com.apple.recovery.boot/BaseSystem.dmg (~900 MB)
-#        - Convert to raw: qemu-img convert -f dmg -O raw BaseSystem.dmg BaseSystem-sonoma.img
-#          (~2.5 GB raw)
-#        - Copy the bundled OpenCore.qcow2 from the OSX-KVM repo AND enable
-#          SurPlus v1 patches (both PART 1 and PART 2) in EFI/OC/config.plist.
-#          The bundled config ships these DISABLED — they're required on AMD
-#          hosts to work around read_erandom / _early_random hangs.
-#   2. Port-forward the CDI upload proxy:
-#        kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
-#   3. Upload the OpenCore bootloader with SurPlus enabled (one-time):
-#        virtctl image-upload dv macos-opencore \
-#          --size=1Gi \
-#          --image-path=/path/to/OpenCore-surplus.qcow2 \
-#          --storage-class=longhorn \
-#          --namespace=angelscript \
-#          --uploadproxy-url=https://localhost:8443 \
-#          --insecure
-#   4. Upload the Sonoma install image (~2.5 GB raw, takes a few minutes):
-#        virtctl image-upload dv macos-sonoma-installer \
-#          --size=4Gi \
-#          --image-path=./BaseSystem-sonoma.img \
-#          --storage-class=longhorn \
-#          --namespace=angelscript \
-#          --uploadproxy-url=https://localhost:8443 \
-#          --insecure
-#   5. Start the VM: virtctl start macos-builder -n angelscript
-#   6. Connect via VNC: virtctl vnc macos-builder -n angelscript
-#   7. At the OpenCore boot picker, select the macOS BaseSystem entry to begin
-#      installation. After install completes, OpenCore will boot from rootdisk.
-#   8. Inside macOS, install:
-#      - Xcode + Command Line Tools
-#      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
-#   9. After setup, the VM runs as a persistent self-hosted runner.
----
-# Root disk — blank Longhorn volume for the macOS installation
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -66,13 +6,15 @@ metadata:
     labels:
         app: angelscript
         component: macos-builder
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce
     storageClassName: longhorn
     resources:
         requests:
-            # 256Gi: macOS ~30Gi + Xcode ~25Gi + UE build cache ~150Gi + headroom
             storage: 256Gi
 ---
 apiVersion: kubevirt.io/v1
@@ -84,7 +26,6 @@ metadata:
         app: angelscript
         component: macos-builder
 spec:
-    # Manual — start/stop via virtctl after uploading the install image
     runStrategy: Manual
     template:
         metadata:
@@ -115,24 +56,18 @@ spec:
                           policy: require
                 devices:
                     disks:
-                        # OpenCore bootloader — required first; loads the macOS kernel
                         - name: opencore
                           disk:
                               bus: sata
                           bootOrder: 1
-                        # Root disk — macOS installation target / boot volume
                         - name: rootdisk
                           disk:
                               bus: sata
                           bootOrder: 2
-                        # macOS install image — must be attached as a disk, not cdrom.
-                        # BaseSystem.img is a raw HFS+/APFS image (not ISO9660), so
-                        # OpenCore's macOS scanner only finds it on a regular disk bus.
                         - name: installer
                           disk:
                               bus: sata
                           bootOrder: 3
-                        # Shared storage — ISOs, Xcode .xip, installers staging
                         - name: shared-storage
                           disk:
                               bus: sata
@@ -144,9 +79,6 @@ spec:
                           bus: usb
                           name: tablet
                     useVirtioTransitional: true
-                # OVMF (UEFI) is required — macOS will not boot from SeaBIOS.
-                # secureBoot is disabled because macOS uses OpenCore, not signed
-                # Microsoft/RedHat keys. SMM is required by OVMF regardless.
                 firmware:
                     bootloader:
                         efi:

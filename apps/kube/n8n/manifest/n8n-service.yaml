@@ -5,6 +5,9 @@ metadata:
     namespace: n8n
     labels:
         app: n8n
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

@@ -5,6 +5,14 @@ metadata:
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/angelscript
+        kbve.com/manifest-path: apps/kube/angelscript/manifest
+        kbve.com/application-file: kube/angelscript/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
     project: default
     source:

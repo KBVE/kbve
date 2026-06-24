@@ -131,6 +131,41 @@ pub struct Deployables(pub HashMap<String, DeployableSpec>);
 #[derive(Resource, Default)]
 pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
 
+/// A player's pickup request this tick, queued for `apply_pickups` to validate
+/// (owner + range) and resolve: `(slot, target_tile, floor, player_tile)`.
+#[derive(Resource, Default)]
+pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
+
+/// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
+/// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct DeployQueues<'w> {
+    placements: ResMut<'w, PendingPlacements>,
+    pickups: ResMut<'w, PendingPickups>,
+}
+
+/// A durably-persisted player-placed env object. Behavior is re-derived from
+/// `env_ref` on restore (mapdb), so only placement coordinates are stored.
+#[derive(Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PersistedEnvObject {
+    pub env_ref: String,
+    pub x: i32,
+    pub y: i32,
+    pub floor: i32,
+}
+
+/// Authoritative set of player-placed env objects to persist across restarts.
+/// World fixtures (starter campfire) are re-spawned by the game each boot and
+/// are deliberately absent. Mutated by `apply_placements`/`apply_pickups`, which
+/// push the snapshot through `EnvPersistSink`.
+#[derive(Resource, Default)]
+pub struct PersistedEnvLog(pub Vec<PersistedEnvObject>);
+
+/// Optional sink the game wires to a durable store. When present, every change
+/// to `PersistedEnvLog` sends the full snapshot; absent in tests / no-DB runs.
+#[derive(Resource, Default)]
+pub struct EnvPersistSink(pub Option<mpsc::UnboundedSender<Vec<PersistedEnvObject>>>);
+
 pub const COIN_REF: &str = "coin";
 pub const GOLD_BAR_REF: &str = "gold-bar";
 pub const GOLD_BAR_VALUE: u32 = 100;
@@ -301,6 +336,11 @@ pub struct NpcSpec {
     pub level: i32,
     pub defense: i32,
     pub wander: Option<(i32, u32)>,
+    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks). The
+    /// mob picks a random tile within `radius` of its origin, walks the whole
+    /// path there, then idles a random dwell in [min,max] before the next trip —
+    /// longer purposeful movement vs `wander`'s single-tile jitter.
+    pub roam: Option<(i32, u32, u32)>,
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
@@ -410,6 +450,35 @@ impl Wander {
     }
 }
 
+/// Roam-to-target wandering: walk the whole path to a random tile within
+/// `radius` of `origin`, then idle a random dwell before the next trip. Gives
+/// longer, more purposeful movement than `Wander`'s single-tile jitter.
+#[derive(Component, Clone, Copy)]
+pub struct Roam {
+    pub origin: Tile,
+    pub radius: i32,
+    pub dwell_min: u32,
+    pub dwell_max: u32,
+    /// Current destination, or None while dwelling/awaiting a new pick.
+    pub target: Option<Tile>,
+    /// Earliest tick the next trip may begin (set when a trip completes).
+    pub resume_tick: u32,
+}
+
+impl Roam {
+    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32) -> Self {
+        let dwell_min = dwell_min.max(1);
+        Self {
+            origin,
+            radius: radius.max(1),
+            dwell_min,
+            dwell_max: dwell_max.max(dwell_min),
+            target: None,
+            resume_tick: 0,
+        }
+    }
+}
+
 pub fn ground_item_bundle(
     registry: &KindRegistry,
     item_ref: &str,
@@ -449,6 +518,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
     }
+    if let Some((radius, dwell_min, dwell_max)) = spec.roam {
+        e.insert(Roam::new(spec.origin, radius, dwell_min, dwell_max));
+    }
     if let Some(a) = spec.aggro {
         e.insert(Aggro {
             range: a.range,
@@ -469,6 +541,16 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
 #[derive(Component, Clone)]
 pub struct EnvObject {
     pub def_ref: String,
+}
+
+/// Ownership for a player-placed env object. `owner` is the placer's slot;
+/// `kit_ref` is the deployable item refunded when the owner picks it back up.
+/// Absent on world-fixture objects (e.g. the starter campfire) — those can't be
+/// reclaimed.
+#[derive(Component, Clone)]
+pub struct PlacedBy {
+    pub owner: proto::PlayerSlot,
+    pub kit_ref: String,
 }
 
 /// Occupies its tile — paired with `WalkableMap::block_tile_z` so movement and
@@ -621,6 +703,9 @@ pub fn build_app(
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
+        .insert_resource(PendingPickups::default())
+        .insert_resource(PersistedEnvLog::default())
+        .insert_resource(EnvPersistSink::default())
         .insert_resource(ShopStock::default())
         .insert_resource(ItemPrices::default())
         .insert_resource(Tables::default())
@@ -658,6 +743,7 @@ pub fn build_app(
                 drain_inputs,
                 apply_drops,
                 apply_placements,
+                apply_pickups,
                 apply_actions,
                 crate::trade::expire_trades,
                 crate::trade::apply_trades,
@@ -669,7 +755,9 @@ pub fn build_app(
         )
         .add_systems(
             Update,
-            (hostile_ai, wander_system).chain().in_set(SimSet::Ai),
+            (hostile_ai, wander_system, roam_system)
+                .chain()
+                .in_set(SimSet::Ai),
         )
         .add_systems(
             Update,
@@ -850,7 +938,7 @@ fn drain_inputs(
     mut blackjack_inputs: ResMut<PendingBlackjack>,
     mut drops: ResMut<PendingDrops>,
     deployables: Res<Deployables>,
-    mut placements: ResMut<PendingPlacements>,
+    mut deploy: DeployQueues,
     mut q: Query<(
         Entity,
         &PlayerSlotTag,
@@ -1011,7 +1099,10 @@ fn drain_inputs(
                         place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
                     match placed {
                         Ok(()) => {
-                            placements.0.push((slot.0, item_ref.clone(), *tile, z));
+                            deploy
+                                .placements
+                                .0
+                                .push((slot.0, item_ref.clone(), *tile, z));
                             send_inventory(&bcast, slot.0, &inv);
                             send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
                         }
@@ -1019,6 +1110,9 @@ fn drain_inputs(
                             send_item_placed(&bcast, slot.0, item_ref, *tile, false, Some(reason));
                         }
                     }
+                }
+                Input::PickupObject { tile } => {
+                    deploy.pickups.0.push((slot.0, *tile, z, pos.tile));
                 }
                 Input::Step { .. }
                 | Input::MoveTo { .. }
@@ -1570,20 +1664,83 @@ fn apply_placements(
     deployables: Res<Deployables>,
     registry: Res<KindRegistry>,
     mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
     mut commands: Commands,
 ) {
-    for (_slot, item_ref, tile, z) in placements.0.drain(..) {
+    let mut changed = false;
+    for (slot, item_ref, tile, z) in placements.0.drain(..) {
         let Some(spec) = deployables.0.get(&item_ref) else {
             continue;
         };
         let mut opts = spec.opts.clone();
         opts.floor = z;
         let blocker = opts.blocker;
-        if spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts).is_some()
-            && blocker
-        {
-            map.block_tile_z(z, tile);
+        if let Some(eid) = spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts) {
+            commands.entity(eid).insert(PlacedBy {
+                owner: slot,
+                kit_ref: item_ref.clone(),
+            });
+            if blocker {
+                map.block_tile_z(z, tile);
+            }
+            log.0.push(PersistedEnvObject {
+                env_ref: spec.env_ref.clone(),
+                x: tile.x,
+                y: tile.y,
+                floor: z,
+            });
+            changed = true;
         }
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
+    }
+}
+
+/// Push the current placed-object set to the durable sink, if wired.
+fn persist_env_snapshot(log: &PersistedEnvLog, sink: &EnvPersistSink) {
+    if let Some(tx) = &sink.0 {
+        let _ = tx.send(log.0.clone());
+    }
+}
+
+/// Resolve queued pickups: the owning player reclaims a placed env object within
+/// reach — the kit is refunded, the object despawned, and its tile unblocked. A
+/// mismatched owner, out-of-range request, or missing object is dropped silently.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn apply_pickups(
+    mut pickups: ResMut<PendingPickups>,
+    bcast: Res<Outbound>,
+    mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
+    env_q: Query<(Entity, &GridPos, Option<&Floor>, &PlacedBy)>,
+    mut players: Query<(&PlayerSlotTag, &mut Inventory)>,
+    mut commands: Commands,
+) {
+    let mut changed = false;
+    for (slot, tile, z, from) in pickups.0.drain(..) {
+        if from.chebyshev(tile) > PLACE_RANGE {
+            continue;
+        }
+        let Some((eid, _, _, placed)) = env_q.iter().find(|(_, gp, fl, pb)| {
+            gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && pb.owner == slot
+        }) else {
+            continue;
+        };
+        if let Some((_, mut inv)) = players.iter_mut().find(|(tag, _)| tag.0 == slot) {
+            inv.add(&placed.kit_ref, 1);
+            send_inventory(&bcast, slot, &inv);
+        }
+        commands.entity(eid).despawn();
+        map.unblock_tile_z(z, tile);
+        log.0
+            .retain(|o| !(o.x == tile.x && o.y == tile.y && o.floor == z));
+        changed = true;
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
     }
 }
 
@@ -1864,6 +2021,36 @@ fn try_move(
     true
 }
 
+/// Queue a one-tile move by an arbitrary (dx,dy) step where each component is
+/// -1/0/1 — the 8-way counterpart to `try_move`. A diagonal step also requires
+/// both orthogonal neighbors to be open so mobs can't cut through wall corners.
+fn try_step(
+    dx: i32,
+    dy: i32,
+    map: &WalkableMap,
+    z: i32,
+    pos: &GridPos,
+    mv: &mut MoveTarget,
+) -> bool {
+    if mv.target.is_some() || (dx == 0 && dy == 0) {
+        return false;
+    }
+    let candidate = Tile::new(pos.tile.x + dx, pos.tile.y + dy);
+    if !map.is_walkable_z(z, candidate) {
+        return false;
+    }
+    if dx != 0
+        && dy != 0
+        && (!map.is_walkable_z(z, Tile::new(pos.tile.x + dx, pos.tile.y))
+            || !map.is_walkable_z(z, Tile::new(pos.tile.x, pos.tile.y + dy)))
+    {
+        return false;
+    }
+    mv.target = Some(candidate);
+    mv.progress = 0;
+    true
+}
+
 fn step_tile(tile: Tile, dir: Dir) -> Tile {
     let (dx, dy) = dir.delta();
     Tile::new(tile.x + dx, tile.y + dy)
@@ -1899,6 +2086,72 @@ fn wander_system(
         pos.facing = dir.facing();
         let z = floor.map(|f| f.0).unwrap_or(0);
         try_move(dir, &map, z, &pos, &mut mv, Some((w.origin, w.radius)));
+    }
+}
+
+/// Roam: greedy-step toward a random target tile within `radius` of the origin,
+/// then dwell idle a random span before the next trip. One tile is queued per
+/// call (advance_movement walks it); the whole path plays out across ticks, so
+/// the mob reads as deliberately travelling rather than jittering in place.
+fn roam_system(
+    clock: Res<SimClock>,
+    seed: Res<SimSeed>,
+    map: Res<WalkableMap>,
+    mut q: Query<(
+        Entity,
+        &mut GridPos,
+        &mut MoveTarget,
+        &mut Roam,
+        Option<&Floor>,
+    )>,
+) {
+    for (entity, mut pos, mut mv, mut roam, floor) in q.iter_mut() {
+        if mv.target.is_some() {
+            continue;
+        }
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        match roam.target {
+            Some(dest) if dest != pos.tile => {
+                // 8-way stepping: prefer the diagonal toward the target, then
+                // fall back to a single axis. Diagonal tile-steps give the
+                // client true diagonal deltas, so all 8 sheet facings surface.
+                let sx = (dest.x - pos.tile.x).signum();
+                let sy = (dest.y - pos.tile.y).signum();
+                pos.facing = facing_from_intent(sx as i8, sy as i8);
+                let _ = try_step(sx, sy, &map, z, &pos, &mut mv)
+                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv))
+                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv));
+                // Fully blocked — abandon this trip and dwell briefly.
+                if mv.target.is_none() {
+                    roam.target = None;
+                    roam.resume_tick = clock.tick.saturating_add(roam.dwell_min);
+                }
+            }
+            Some(_) => {
+                // Arrived: dwell a random span before picking the next target.
+                let span = (roam.dwell_max - roam.dwell_min + 1).max(1) as u64;
+                let dwell = roam.dwell_min
+                    + (hash3(seed.0, entity.index_u32() as u64, clock.tick as u64) % span) as u32;
+                roam.target = None;
+                roam.resume_tick = clock.tick.saturating_add(dwell);
+            }
+            None => {
+                if clock.tick < roam.resume_tick {
+                    continue;
+                }
+                let h = hash3(seed.0, entity.index_u32() as u64, clock.tick as u64);
+                let span = (2 * roam.radius + 1) as u64;
+                let rx = (h % span) as i32 - roam.radius;
+                let ry = ((h >> 20) % span) as i32 - roam.radius;
+                let cand = Tile::new(roam.origin.x + rx, roam.origin.y + ry);
+                if cand != pos.tile && map.is_walkable_z(z, cand) {
+                    roam.target = Some(cand);
+                } else {
+                    // Bad pick — retry shortly instead of every tick.
+                    roam.resume_tick = clock.tick.saturating_add(1);
+                }
+            }
+        }
     }
 }
 
@@ -2032,6 +2285,7 @@ fn emit_snapshot(
         Option<&StatusEffects>,
         Option<&Floor>,
         Option<&FloatMove>,
+        Option<&PlacedBy>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2042,7 +2296,7 @@ fn emit_snapshot(
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm)| {
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed)| {
                 let sub = mv
                     .filter(|m| m.target.is_some())
                     .map(|m| {
@@ -2080,7 +2334,10 @@ fn emit_snapshot(
                 proto::EntityDelta {
                     eid: proto::EntityId(entity.index_u32()),
                     kind: kind.0,
-                    owner: slot.map(|s| s.0).unwrap_or(proto::PLAYER_SLOT_NONE),
+                    owner: slot
+                        .map(|s| s.0)
+                        .or(placed.map(|p| p.owner))
+                        .unwrap_or(proto::PLAYER_SLOT_NONE),
                     tile: pos.tile,
                     facing: pos.facing,
                     sub,
@@ -2294,6 +2551,143 @@ mod tests {
         }
         let hp = app.world().get::<Health>(victim).unwrap().hp;
         assert_eq!(hp, 100 - 8 * 3, "burned 8/tick for 3 ticks");
+    }
+
+    fn spawn_owned_campfire(app: &mut App, tile: Tile, owner: u16) -> Entity {
+        app.world_mut()
+            .resource_mut::<WalkableMap>()
+            .block_tile_z(0, tile);
+        app.world_mut()
+            .spawn((
+                EntityKind(1),
+                GridPos::at(tile),
+                MoveTarget::default(),
+                Blocker,
+                PlacedBy {
+                    owner: proto::PlayerSlot(owner),
+                    kit_ref: "campfire-kit".to_string(),
+                },
+            ))
+            .id()
+    }
+
+    #[test]
+    fn owner_pickup_refunds_kit_and_frees_tile() {
+        let (mut app, _rx, _tx, _roster) = harness(0x555);
+        let tile = Tile::new(9, 9);
+        let from = Tile::new(9, 10);
+        let env = spawn_owned_campfire(&mut app, tile, 0);
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(from),
+                MoveTarget::default(),
+                Inventory::default(),
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(0),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        assert!(app.world().get::<GridPos>(env).is_none(), "env despawned");
+        assert!(
+            app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
+            "tile freed"
+        );
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        assert!(
+            inv.slots
+                .iter()
+                .any(|(r, c)| r == "campfire-kit" && *c >= 1),
+            "kit refunded"
+        );
+    }
+
+    #[test]
+    fn non_owner_pickup_is_rejected() {
+        let (mut app, _rx, _tx, _roster) = harness(0x556);
+        let tile = Tile::new(9, 9);
+        let from = Tile::new(9, 10);
+        let env = spawn_owned_campfire(&mut app, tile, 0);
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(1),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        assert!(
+            app.world().get::<GridPos>(env).is_some(),
+            "env survives non-owner pickup"
+        );
+        assert!(
+            !app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
+            "tile stays blocked"
+        );
+    }
+
+    #[test]
+    fn placement_persists_and_pickup_clears_snapshot() {
+        let (mut app, _rx, _tx, _roster) = harness(0x557);
+        let (ptx, mut prx) = mpsc::unbounded_channel::<Vec<PersistedEnvObject>>();
+        {
+            let w = app.world_mut();
+            w.resource_mut::<EnvPersistSink>().0 = Some(ptx);
+            w.resource_mut::<KindRegistry>().register_item("test-kit");
+            w.resource_mut::<KindRegistry>().register_env("test-env");
+            let mut dep = Deployables::default();
+            dep.0.insert(
+                "test-kit".to_string(),
+                DeployableSpec {
+                    env_ref: "test-env".to_string(),
+                    opts: EnvOpts {
+                        blocker: true,
+                        ..Default::default()
+                    },
+                },
+            );
+            w.insert_resource(dep);
+        }
+        let tile = Tile::new(5, 5);
+        let from = Tile::new(5, 6);
+        app.world_mut().spawn((
+            EntityKind(PLAYER_KIND),
+            GridPos::at(from),
+            MoveTarget::default(),
+            Inventory {
+                slots: vec![("test-kit".to_string(), 1)],
+            },
+            PlayerSlotTag(proto::PlayerSlot(0)),
+        ));
+
+        app.world_mut().resource_mut::<PendingPlacements>().0.push((
+            proto::PlayerSlot(0),
+            "test-kit".to_string(),
+            tile,
+            0,
+        ));
+        app.update();
+        let placed = prx.try_recv().expect("placement snapshot sent");
+        assert_eq!(placed.len(), 1);
+        assert_eq!(
+            (placed[0].x, placed[0].y, placed[0].env_ref.as_str()),
+            (5, 5, "test-env")
+        );
+
+        app.world_mut().resource_mut::<PendingPickups>().0.push((
+            proto::PlayerSlot(0),
+            tile,
+            0,
+            from,
+        ));
+        app.update();
+        let cleared = prx.try_recv().expect("pickup snapshot sent");
+        assert!(cleared.is_empty(), "log cleared after pickup");
     }
 
     #[test]
@@ -2585,6 +2979,7 @@ mod tests {
             level: 1,
             defense: 0,
             wander: None,
+            roam: None,
             aggro: Some(AggroSpec {
                 range: 8,
                 damage: 60,

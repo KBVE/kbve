@@ -15,7 +15,7 @@ pipeline: unreal_game
 app_name: chuck
 source_path: apps/chuckrpg/unreal-chuck
 version_toml: apps/chuckrpg/unreal-chuck/version.toml
-version: "0.3.32"
+version: "0.3.34"
 runner: arc-runner-ue
 author: h0lybyte
 license: KBVE
@@ -34,6 +34,7 @@ engine:
     server_config: Shipping
     game_mode: /Script/Chuck.ChuckGameMode
     custom_config: Beta
+    use_logging_in_shipping: "1"
     maps:
         - /Game/Menus/L_MainMenu
         - /Game/Map/L_ChuckWorld

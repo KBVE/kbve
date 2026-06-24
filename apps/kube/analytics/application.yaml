@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: analytics
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/analytics
+        kbve.com/manifest-path: apps/kube/analytics/manifests
+        kbve.com/application-file: kube/analytics/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: observability
+        kbve.com/stack: supabase
 spec:
     project: default
     source:

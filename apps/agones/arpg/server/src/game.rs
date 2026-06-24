@@ -8,9 +8,9 @@ use simgrid::proto::{StatusKind, Tile};
 use simgrid::rng::hash3;
 use simgrid::{
     AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EntityKind,
-    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PlayerSlotTag, SIM_TICK_HZ,
-    SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle, spawn_env_object,
-    spawn_npc_from_spec,
+    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
+    SIM_TICK_HZ, SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle,
+    spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -59,6 +59,11 @@ pub const PREDATOR_DAMAGE: i32 = 8;
 pub const PREDATOR_DEFENSE: i32 = 2;
 pub const PREDATOR_TICKS_PER_TILE: u8 = 5;
 pub const PREDATOR_LEVEL: i32 = 3;
+// Roam: wander toward a random tile up to this far from spawn, then idle a
+// random dwell in [min,max] before the next trip — longer, deliberate movement.
+pub const PREDATOR_ROAM_RADIUS: i32 = 10;
+pub const PREDATOR_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
+pub const PREDATOR_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 3;
 // Streaming spawn budget: how many predators may exist near each player, the
 // ring (in tiles) they appear within, and how close they're allowed to pop in.
 pub const PREDATOR_PER_PLAYER: usize = 3;
@@ -318,6 +323,7 @@ fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
         level: 1,
         defense: GOBLIN_DEFENSE,
         wander: Some((8, 25)),
+        roam: None,
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: GOBLIN_DAMAGE,
@@ -338,7 +344,14 @@ fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
         max_hp: PREDATOR_HP,
         level: PREDATOR_LEVEL,
         defense: PREDATOR_DEFENSE,
-        wander: Some((6, 18)),
+        wander: None,
+        // Roam in longer purposeful trips with idle dwells between, instead of
+        // the single-tile jitter `wander` produces.
+        roam: Some((
+            PREDATOR_ROAM_RADIUS,
+            PREDATOR_DWELL_MIN_TICKS,
+            PREDATOR_DWELL_MAX_TICKS,
+        )),
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: PREDATOR_DAMAGE,
@@ -442,6 +455,7 @@ pub fn spawn_world(
     mut done: Local<bool>,
     registry: Res<KindRegistry>,
     mut walkable: ResMut<WalkableMap>,
+    restored: Res<PersistedEnvLog>,
     mut commands: Commands,
 ) {
     if *done {
@@ -503,6 +517,20 @@ pub fn spawn_world(
         .is_some()
     {
         walkable.block_tile_z(SPAWN_FLOOR, fire);
+    }
+
+    // Restore player-placed objects persisted from a previous server lifetime.
+    // They return as unowned world fixtures (no PlacedBy, behavior re-derived
+    // from the mapdb def) — still block/heal/burn, but no longer reclaimable.
+    for o in &restored.0 {
+        let tile = Tile::new(o.x, o.y);
+        let Some(opts) = env_opts_from_mapdb(&o.env_ref, o.floor) else {
+            continue;
+        };
+        let blocker = opts.blocker;
+        if spawn_env_object(&mut commands, &registry, &o.env_ref, tile, opts).is_some() && blocker {
+            walkable.block_tile_z(o.floor, tile);
+        }
     }
 }
 

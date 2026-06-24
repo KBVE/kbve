@@ -1,10 +1,3 @@
-# Network-enabled Firecracker deployment with Gluetun (WireGuard VPN) sidecar.
-# All VM traffic exits through the WireGuard tunnel — user code in VMs gets
-# internet access via the VPN, never seeing the raw host network.
-#
-# This is a separate deployment from firecracker-ctl (no-network) so that
-# untrusted user code by default runs without network, and privileged staff
-# can opt into the network-enabled backend via a permission-gated proxy route.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +7,9 @@ metadata:
         app: firecracker-ctl-net
         app.kubernetes.io/part-of: firecracker
         app.kubernetes.io/component: vm-runtime-net
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     strategy:
@@ -37,18 +33,11 @@ spec:
                   command:
                       - /bin/sh
                       - -c
-                      - |
-                          for i in $(seq 1 60); do
-                            if [ -f /var/lib/firecracker/rootfs/vmlinux ] && \
-                               [ -f /var/lib/firecracker/rootfs/alpine-minimal.ext4 ]; then
-                              echo "rootfs ready after ${i}s"
-                              exit 0
-                            fi
-                            echo "waiting for rootfs init job... ${i}/60"
-                            sleep 2
-                          done
-                          echo "rootfs not ready after 120s, proceeding anyway"
-                          exit 0
+                      - "for i in $(seq 1 60); do\n  if [ -f /var/lib/firecracker/rootfs/vmlinux\
+                        \ ] && \\\n     [ -f /var/lib/firecracker/rootfs/alpine-minimal.ext4 ];\
+                        \ then\n    echo \"rootfs ready after ${i}s\"\n    exit 0\n  fi\n  echo\
+                        \ \"waiting for rootfs init job... ${i}/60\"\n  sleep 2\ndone\necho \"rootfs\
+                        \ not ready after 120s, proceeding anyway\"\nexit 0\n"
                   volumeMounts:
                       - name: rootfs-cache
                         mountPath: /var/lib/firecracker/rootfs
@@ -79,26 +68,25 @@ spec:
                             name: vpn-wireguard
                   env:
                       - name: UPDATER_PERIOD
-                        value: '24h'
+                        value: 24h
                       - name: TZ
-                        value: 'UTC'
+                        value: UTC
                       - name: FIREWALL_INPUT_PORTS
-                        value: '9001,9999'
+                        value: 9001,9999
                       - name: FIREWALL_OUTBOUND_SUBNETS
-                        value: '10.0.0.0/8,172.16.0.0/12'
-                      # DoH over 443 — Proton blocks 53 and 853 over tunnel.
+                        value: 10.0.0.0/8,172.16.0.0/12
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
-                        value: '127.0.0.1'
+                        value: 127.0.0.1
                       - name: DNS_UPSTREAM_RESOLVER_TYPE
-                        value: 'DoH'
+                        value: DoH
                       - name: DNS_UPSTREAM_RESOLVERS
-                        value: 'cloudflare'
+                        value: cloudflare
                       - name: HEALTH_VPN_DURATION_INITIAL
-                        value: '30s'
+                        value: 30s
                       - name: HEALTH_SERVER_ADDRESS
-                        value: '0.0.0.0:9999'
+                        value: 0.0.0.0:9999
                   livenessProbe:
                       httpGet:
                           path: /
@@ -121,7 +109,6 @@ spec:
                       limits:
                           cpu: 500m
                           memory: 384Mi
-
                 - name: firecracker-ctl
                   image: ghcr.io/kbve/firecracker-ctl:0.1.41
                   resources:
@@ -143,7 +130,7 @@ spec:
                       - name: FC_PERSISTENT_ENDPOINTS_ENABLED
                         value: 'true'
                       - name: FC_TUNNEL_IFACE
-                        value: 'tun0'
+                        value: tun0
                       - name: FC_BILLING_ENABLED
                         value: 'false'
                       - name: WALLET_DATABASE_URL
@@ -157,7 +144,6 @@ spec:
                                 name: supabase-shared
                                 key: db-url-ro
                   securityContext:
-                      # jailer pivot_root requires Unconfined seccomp.
                       seccompProfile:
                           type: Unconfined
                       readOnlyRootFilesystem: true
@@ -185,7 +171,6 @@ spec:
                         mountPath: /tmp
                       - name: tun-device
                         mountPath: /dev/net/tun
-                  # No probes — port 9001 is owned by Gluetun (shared netns).
             volumes:
                 - name: rootfs-cache
                   persistentVolumeClaim:

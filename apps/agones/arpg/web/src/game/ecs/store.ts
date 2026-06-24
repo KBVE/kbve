@@ -149,6 +149,11 @@ export class EntityStore<R> {
 		return eid === undefined ? -1 : Kind.value[eid];
 	}
 
+	owner(serverEid: number): number {
+		const eid = this.toEid.get(serverEid);
+		return eid === undefined ? -1 : Owner.slot[eid];
+	}
+
 	effects(serverEid: number): readonly StatusView[] {
 		return this.effectsMap.get(serverEid) ?? NO_EFFECTS;
 	}

@@ -193,20 +193,29 @@ async fn move_input_moves_player() {
 }
 
 #[tokio::test]
-async fn second_login_evicts_first() {
+async fn second_live_session_is_rejected() {
     let url = spawn_server(8).await;
     let mut first = join_and_welcome(&url, "dup").await;
-    let _second = join_and_welcome(&url, "dup").await;
 
-    // The first session should be disconnected (stream ends) by the newest-wins
-    // eviction once "dup" reconnects.
-    for _ in 0..200 {
-        match next_event(&mut first).await {
-            None => return, // closed/evicted
-            Some(_) => continue,
+    // A second live login for the same identity is rejected — the existing
+    // session keeps the slot (reject-duplicate, not newest-wins eviction).
+    let (mut second, _) = connect_async(&url).await.expect("connect");
+    second.send(join("dup")).await.expect("send join");
+    match next_event(&mut second).await {
+        Some(ServerEvent::Reject { reason }) => {
+            assert!(
+                reason.contains("already connected"),
+                "unexpected reason: {reason}"
+            );
         }
+        other => panic!("expected Reject for a duplicate live session, got {other:?}"),
     }
-    panic!("first session for duplicate username was never evicted");
+
+    // The first session survives — it still receives snapshots.
+    match next_event(&mut first).await {
+        Some(_) => {}
+        None => panic!("first session was evicted; it should outlive the rejected duplicate"),
+    }
 }
 
 #[tokio::test]

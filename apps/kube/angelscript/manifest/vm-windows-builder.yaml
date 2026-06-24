@@ -1,36 +1,3 @@
-# Windows VM for MSVC + UE AngelScript builds via GitHub Actions runner.
-# Requires: KubeVirt operator + CDI deployed in the cluster.
-#
-# Provisioning steps (one-time, after KubeVirt + CDI are running):
-#   1. Port-forward the CDI upload proxy:
-#        kubectl port-forward -n cdi svc/cdi-uploadproxy 8443:443
-#   2. Upload Windows ISO via virtctl DataVolume:
-#        virtctl image-upload dv windows-server-builder-iso \
-#          --size=8Gi \
-#          --image-path=/Users/~/Downloads/win_server.iso \
-#          --storage-class=longhorn \
-#          --namespace=angelscript \
-#          --uploadproxy-url=https://localhost:8443 \
-#          --insecure
-#   3. Start the VM: virtctl start windows-builder -n angelscript
-#   4. Connect via VNC and install Windows:
-#        virtctl vnc windows-builder -n angelscript
-#   5. Inside Windows, install:
-#      - virtio-win drivers (requires temporarily re-attaching the virtio-drivers
-#        containerDisk — see the removed block below)
-#      - Visual Studio Build Tools (MSVC)
-#      - GitHub Actions runner (configured for KBVE/UnrealEngine-Angelscript)
-#   6. After setup, the VM runs as a persistent self-hosted runner.
-#
-# Note: the virtio-drivers containerDisk sidecar (quay.io/kubevirt/virtio-container-disk)
-# was removed from this manifest because it has a reproducible startup race on
-# cold-start under KubeVirt v1.7.2: the sidecar terminates with
-# "socket disk_2.sock does not exist anymore", leaving the VMI stuck in
-# Scheduled phase and the pod 2/3 NotReady. Drivers are already installed
-# inside Windows, so the ISO is no longer needed at runtime. If you ever need
-# to reinstall or refresh drivers, re-add the disk + volume entries temporarily.
----
-# Root disk — blank Longhorn volume for the Windows installation
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -39,13 +6,15 @@ metadata:
     labels:
         app: angelscript
         component: windows-builder
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce
     storageClassName: longhorn
     resources:
         requests:
-            # 120Gi: Windows ~30Gi + MSVC ~20Gi + UE build cache ~50Gi + headroom
             storage: 120Gi
 ---
 apiVersion: kubevirt.io/v1
@@ -73,17 +42,14 @@ spec:
                     threads: 1
                 devices:
                     disks:
-                        # Root disk — Windows installation
                         - name: rootdisk
                           disk:
                               bus: virtio
                           bootOrder: 1
-                        # Windows ISO — uploaded via virtctl, managed by CDI DataVolume
                         - name: iso
                           cdrom:
                               bus: sata
                           bootOrder: 2
-                        # Shared storage — ISOs, installers, Xcode .xip staging
                         - name: shared-storage
                           disk:
                               bus: virtio

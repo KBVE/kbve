@@ -1,24 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: storage-api
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    name: storage-api
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/storage-api
+        kbve.com/manifest-path: apps/kube/storage-api/manifests
+        kbve.com/application-file: kube/storage-api/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: supabase
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/kbve/kbve
-    targetRevision: HEAD
-    path: apps/kube/storage-api/manifests
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kilobase
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=false
-      - ServerSideApply=true
-      - RespectIgnoreDifferences=true
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: HEAD
+        path: apps/kube/storage-api/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kilobase
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=false
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true

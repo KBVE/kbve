@@ -1,8 +1,3 @@
-# Weekly backup restore fire drill
-# Proves S3 backups can restore into a working CNPG cluster end-to-end.
-# Runs every Sunday at 4 AM UTC. Creates a temporary 1-instance cluster,
-# validates it with SQL health checks, then tears it down.
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -23,24 +18,52 @@ metadata:
         app.kubernetes.io/component: backup-testing
         app.kubernetes.io/managed-by: argocd
 rules:
-    - apiGroups: ['postgresql.cnpg.io']
-      resources: ['clusters']
-      verbs: ['create', 'get', 'list', 'watch', 'delete', 'patch']
-    - apiGroups: ['']
-      resources: ['secrets']
-      verbs: ['get', 'list']
-    - apiGroups: ['']
-      resources: ['pods']
-      verbs: ['get', 'list', 'watch']
-    - apiGroups: ['']
-      resources: ['pods/exec']
-      verbs: ['create']
-    - apiGroups: ['']
-      resources: ['persistentvolumeclaims']
-      verbs: ['get', 'list', 'delete']
-    - apiGroups: ['']
-      resources: ['configmaps']
-      verbs: ['get']
+    - apiGroups:
+          - postgresql.cnpg.io
+      resources:
+          - clusters
+      verbs:
+          - create
+          - get
+          - list
+          - watch
+          - delete
+          - patch
+    - apiGroups:
+          - ''
+      resources:
+          - secrets
+      verbs:
+          - get
+          - list
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - get
+          - list
+          - watch
+    - apiGroups:
+          - ''
+      resources:
+          - pods/exec
+      verbs:
+          - create
+    - apiGroups:
+          - ''
+      resources:
+          - persistentvolumeclaims
+      verbs:
+          - get
+          - list
+          - delete
+    - apiGroups:
+          - ''
+      resources:
+          - configmaps
+      verbs:
+          - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -69,127 +92,91 @@ metadata:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: backup-testing
         app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    test-cluster.yaml: |
-        apiVersion: postgresql.cnpg.io/v1
-        kind: Cluster
-        metadata:
-            name: supabase-cluster-restore-test
-            namespace: kilobase
-            labels:
-                app.kubernetes.io/name: kilobase
-                app.kubernetes.io/component: backup-testing
-                kilobase/fire-drill: "true"
-        spec:
-            instances: 1
-            imageName: 'ghcr.io/kbve/postgres:17.4.1.069-kilobase'
-            imagePullPolicy: Always
-            superuserSecret:
-                name: supabase-postgres
-            postgresUID: 101
-            postgresGID: 102
-
-            storage:
-                size: 10Gi
-                storageClass: longhorn
-
-            enableSuperuserAccess: true
-
-            projectedVolumeTemplate:
-                sources:
-                    - secret:
-                          name: supabase-pgsodium
-                          items:
-                              - key: pgsodium_root.key
-                                path: postgresql-custom/pgsodium_root.key
-                    - configMap:
-                          name: pgsodium-getkey
-                          items:
-                              - key: pgsodium_getkey.sh
-                                path: postgresql-custom/pgsodium_getkey.sh
-                                mode: 511
-
-            postgresql:
-                parameters:
-                    cron.database_name: supabase
-                    pg_net.database_name: supabase
-                    vault.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
-                    pgsodium.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
-                    auto_explain.log_min_duration: 10s
-                    supautils.extensions_parameter_overrides: '{"pg_cron":{"schema":"pg_catalog"}}'
-                    supautils.policy_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
-                    supautils.drop_trigger_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
-                    supautils.privileged_extensions: 'address_standardizer, address_standardizer_data_us, autoinc, bloom, btree_gin, btree_gist, citext, cube, dblink, dict_int, dict_xsyn, earthdistance, fuzzystrmatch, hstore, http, hypopg, index_advisor, insert_username, intarray, isn, kilobase, ltree, moddatetime, orioledb, pg_buffercache, pg_cron, pg_failover_slots, pg_graphql, pg_hashids, pg_jsonschema, pg_net, pg_prewarm, pg_repack, pg_stat_monitor, pg_stat_statements, pg_tle, pg_trgm, pg_walinspect, pgaudit, pgcrypto, pgjwt, pgroonga, pgroonga_database, pgrouting, pgrowlocks, pgsodium, pgstattuple, pgtap, plcoffee, pljava, plls, plpgsql_check, postgis, postgis_raster, postgis_sfcgal, postgis_tiger_geocoder, postgis_topology, postgres_fdw, refint, rum, seg, sslinfo, supabase_vault, supautils, tablefunc, tcn, tsm_system_rows, tsm_system_time, unaccent, uuid-ossp, vector, wrappers'
-                    supautils.privileged_extensions_custom_scripts_path: '/etc/postgresql-custom/extension-custom-scripts'
-                    supautils.privileged_extensions_superuser: 'supabase_admin'
-                    supautils.privileged_role: 'postgres'
-                    supautils.privileged_role_allowed_configs: 'auto_explain.*, log_lock_waits, log_min_duration_statement, log_min_messages, log_replication_commands, log_statement, log_temp_files, pg_net.batch_size, pg_net.ttl, pg_stat_statements.*, pgaudit.log, pgaudit.log_catalog, pgaudit.log_client, pgaudit.log_level, pgaudit.log_relation, pgaudit.log_rows, pgaudit.log_statement, pgaudit.log_statement_once, pgaudit.role, pgrst.*, plan_filter.*, safeupdate.enabled, session_replication_role, track_io_timing, wal_compression'
-                    supautils.reserved_memberships: 'pg_read_server_files, pg_write_server_files, pg_execute_server_program, supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer, authenticator'
-                    supautils.reserved_roles: 'supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer, service_role*, authenticator*, authenticated*, anon*'
-
-                pg_hba:
-                    - local all  supabase_admin       scram-sha-256
-                    - local all  all                  peer map=supabase_map
-                    - host  all  all  127.0.0.1/32    trust
-                    - host  all  all  ::1/128         trust
-                    - host  all  all  10.0.0.0/8      scram-sha-256
-                    - host  all  all  172.16.0.0/12   scram-sha-256
-                    - host  all  all  192.168.0.0/16  scram-sha-256
-                    - host  all  all  0.0.0.0/0       scram-sha-256
-                    - host  all  all  ::0/0           scram-sha-256
-
-                pg_ident:
-                    - supabase_map  postgres   postgres
-                    - supabase_map  gotrue     supabase_auth_admin
-                    - supabase_map  postgrest  authenticator
-                    - supabase_map  adminapi   postgres
-
-                shared_preload_libraries:
-                    [
-                        pg_stat_statements,
-                        pg_stat_monitor,
-                        pgaudit,
-                        plpgsql,
-                        plpgsql_check,
-                        pg_cron,
-                        pg_net,
-                        auto_explain,
-                        pg_tle,
-                        supautils,
-                        pgsodium,
-                        supabase_vault,
-                        plan_filter,
-                        kilobase,
-                        pg_failover_slots
-                    ]
-
-            env:
-                - name: JWT_SECRET
-                  valueFrom:
-                      secretKeyRef:
-                          name: supabase-jwt
-                          key: secret
-                - name: JWT_EXP
-                  value: '3600'
-
-            bootstrap:
-                recovery:
-                    source: kilobase-postgres-backup
-
-            externalClusters:
-                - name: kilobase-postgres-backup
-                  barmanObjectStore:
-                      destinationPath: s3://kilobase/barman/backup
-                      serverName: kilobase-postgres-backup
-                      s3Credentials:
-                          accessKeyId:
-                              name: kilobase-s3-secret
-                              key: keyId
-                          secretAccessKey:
-                              name: kilobase-s3-secret
-                              key: accessKey
-                      wal:
-                          compression: gzip
+    test-cluster.yaml:
+        "apiVersion: postgresql.cnpg.io/v1\nkind: Cluster\nmetadata:\n\
+        \    name: supabase-cluster-restore-test\n    namespace: kilobase\n    labels:\n\
+        \        app.kubernetes.io/name: kilobase\n        app.kubernetes.io/component:\
+        \ backup-testing\n        kilobase/fire-drill: \"true\"\nspec:\n    instances:\
+        \ 1\n    imageName: 'ghcr.io/kbve/postgres:17.4.1.069-kilobase'\n    imagePullPolicy:\
+        \ Always\n    superuserSecret:\n        name: supabase-postgres\n    postgresUID:\
+        \ 101\n    postgresGID: 102\n\n    storage:\n        size: 10Gi\n        storageClass:\
+        \ longhorn\n\n    enableSuperuserAccess: true\n\n    projectedVolumeTemplate:\n\
+        \        sources:\n            - secret:\n                  name: supabase-pgsodium\n\
+        \                  items:\n                      - key: pgsodium_root.key\n  \
+        \                      path: postgresql-custom/pgsodium_root.key\n           \
+        \ - configMap:\n                  name: pgsodium-getkey\n                  items:\n\
+        \                      - key: pgsodium_getkey.sh\n                        path:\
+        \ postgresql-custom/pgsodium_getkey.sh\n                        mode: 511\n\n\
+        \    postgresql:\n        parameters:\n            cron.database_name: supabase\n\
+        \            pg_net.database_name: supabase\n            vault.getkey_script:\
+        \ '/projected/postgresql-custom/pgsodium_getkey.sh'\n            pgsodium.getkey_script:\
+        \ '/projected/postgresql-custom/pgsodium_getkey.sh'\n            auto_explain.log_min_duration:\
+        \ 10s\n            supautils.extensions_parameter_overrides: '{\"pg_cron\":{\"\
+        schema\":\"pg_catalog\"}}'\n            supautils.policy_grants: '{\"postgres\"\
+        :[\"auth.audit_log_entries\",\"auth.identities\",\"auth.refresh_tokens\",\"auth.sessions\"\
+        ,\"auth.users\",\"realtime.messages\",\"storage.buckets\",\"storage.migrations\"\
+        ,\"storage.objects\",\"storage.s3_multipart_uploads\",\"storage.s3_multipart_uploads_parts\"\
+        ]}'\n            supautils.drop_trigger_grants: '{\"postgres\":[\"auth.audit_log_entries\"\
+        ,\"auth.identities\",\"auth.refresh_tokens\",\"auth.sessions\",\"auth.users\"\
+        ,\"realtime.messages\",\"storage.buckets\",\"storage.migrations\",\"storage.objects\"\
+        ,\"storage.s3_multipart_uploads\",\"storage.s3_multipart_uploads_parts\"]}'\n\
+        \            supautils.privileged_extensions: 'address_standardizer, address_standardizer_data_us,\
+        \ autoinc, bloom, btree_gin, btree_gist, citext, cube, dblink, dict_int, dict_xsyn,\
+        \ earthdistance, fuzzystrmatch, hstore, http, hypopg, index_advisor, insert_username,\
+        \ intarray, isn, kilobase, ltree, moddatetime, orioledb, pg_buffercache, pg_cron,\
+        \ pg_failover_slots, pg_graphql, pg_hashids, pg_jsonschema, pg_net, pg_prewarm,\
+        \ pg_repack, pg_stat_monitor, pg_stat_statements, pg_tle, pg_trgm, pg_walinspect,\
+        \ pgaudit, pgcrypto, pgjwt, pgroonga, pgroonga_database, pgrouting, pgrowlocks,\
+        \ pgsodium, pgstattuple, pgtap, plcoffee, pljava, plls, plpgsql_check, postgis,\
+        \ postgis_raster, postgis_sfcgal, postgis_tiger_geocoder, postgis_topology, postgres_fdw,\
+        \ refint, rum, seg, sslinfo, supabase_vault, supautils, tablefunc, tcn, tsm_system_rows,\
+        \ tsm_system_time, unaccent, uuid-ossp, vector, wrappers'\n            supautils.privileged_extensions_custom_scripts_path:\
+        \ '/etc/postgresql-custom/extension-custom-scripts'\n            supautils.privileged_extensions_superuser:\
+        \ 'supabase_admin'\n            supautils.privileged_role: 'postgres'\n      \
+        \      supautils.privileged_role_allowed_configs: 'auto_explain.*, log_lock_waits,\
+        \ log_min_duration_statement, log_min_messages, log_replication_commands, log_statement,\
+        \ log_temp_files, pg_net.batch_size, pg_net.ttl, pg_stat_statements.*, pgaudit.log,\
+        \ pgaudit.log_catalog, pgaudit.log_client, pgaudit.log_level, pgaudit.log_relation,\
+        \ pgaudit.log_rows, pgaudit.log_statement, pgaudit.log_statement_once, pgaudit.role,\
+        \ pgrst.*, plan_filter.*, safeupdate.enabled, session_replication_role, track_io_timing,\
+        \ wal_compression'\n            supautils.reserved_memberships: 'pg_read_server_files,\
+        \ pg_write_server_files, pg_execute_server_program, supabase_admin, supabase_auth_admin,\
+        \ supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin,\
+        \ dashboard_user, pgbouncer, authenticator'\n            supautils.reserved_roles:\
+        \ 'supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user,\
+        \ supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer,\
+        \ service_role*, authenticator*, authenticated*, anon*'\n\n        pg_hba:\n \
+        \           - local all  supabase_admin       scram-sha-256\n            - local\
+        \ all  all                  peer map=supabase_map\n            - host  all  all\
+        \  127.0.0.1/32    trust\n            - host  all  all  ::1/128         trust\n\
+        \            - host  all  all  10.0.0.0/8      scram-sha-256\n            - host\
+        \  all  all  172.16.0.0/12   scram-sha-256\n            - host  all  all  192.168.0.0/16\
+        \  scram-sha-256\n            - host  all  all  0.0.0.0/0       scram-sha-256\n\
+        \            - host  all  all  ::0/0           scram-sha-256\n\n        pg_ident:\n\
+        \            - supabase_map  postgres   postgres\n            - supabase_map \
+        \ gotrue     supabase_auth_admin\n            - supabase_map  postgrest  authenticator\n\
+        \            - supabase_map  adminapi   postgres\n\n        shared_preload_libraries:\n\
+        \            [\n                pg_stat_statements,\n                pg_stat_monitor,\n\
+        \                pgaudit,\n                plpgsql,\n                plpgsql_check,\n\
+        \                pg_cron,\n                pg_net,\n                auto_explain,\n\
+        \                pg_tle,\n                supautils,\n                pgsodium,\n\
+        \                supabase_vault,\n                plan_filter,\n             \
+        \   kilobase,\n                pg_failover_slots\n            ]\n\n    env:\n\
+        \        - name: JWT_SECRET\n          valueFrom:\n              secretKeyRef:\n\
+        \                  name: supabase-jwt\n                  key: secret\n       \
+        \ - name: JWT_EXP\n          value: '3600'\n\n    bootstrap:\n        recovery:\n\
+        \            source: kilobase-postgres-backup\n\n    externalClusters:\n     \
+        \   - name: kilobase-postgres-backup\n          barmanObjectStore:\n         \
+        \     destinationPath: s3://kilobase/barman/backup\n              serverName:\
+        \ kilobase-postgres-backup\n              s3Credentials:\n                  accessKeyId:\n\
+        \                      name: kilobase-s3-secret\n                      key: keyId\n\
+        \                  secretAccessKey:\n                      name: kilobase-s3-secret\n\
+        \                      key: accessKey\n              wal:\n                  compression:\
+        \ gzip\n"
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -200,8 +187,11 @@ metadata:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: backup-testing
         app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-    schedule: '0 4 * * 0'
+    schedule: 0 4 * * 0
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 3
     failedJobsHistoryLimit: 3
@@ -234,223 +224,115 @@ spec:
                           command:
                               - /bin/bash
                               - -c
-                              - |
-                                  set -euo pipefail
-
-                                  TEST_CLUSTER="supabase-cluster-restore-test"
-                                  NAMESPACE="kilobase"
-                                  TIMEOUT=900
-                                  POLL_INTERVAL=15
-
-                                  echo "=== Backup Restore Fire Drill ==="
-                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-                                  echo ""
-
-                                  # ── Cleanup function (always runs via trap) ──────────
-                                  cleanup() {
-                                      echo ""
-                                      echo "=== Cleanup ==="
-                                      echo "Deleting test cluster ${TEST_CLUSTER}..."
-                                      kubectl delete cluster "${TEST_CLUSTER}" \
-                                          -n "${NAMESPACE}" --ignore-not-found --wait=false || true
-
-                                      local i=0
-                                      while kubectl get cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" &>/dev/null; do
-                                          sleep 5
-                                          i=$((i + 5))
-                                          if [ $i -ge 120 ]; then
-                                              echo "WARNING: Cluster CR still exists after 120s, removing finalizers"
-                                              kubectl patch cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" \
-                                                  --type=merge -p '{"metadata":{"finalizers":[]}}' 2>/dev/null || true
-                                              sleep 5
-                                              break
-                                          fi
-                                      done
-
-                                      echo "Deleting test cluster PVCs..."
-                                      kubectl delete pvc -n "${NAMESPACE}" \
-                                          -l "cnpg.io/cluster=${TEST_CLUSTER}" \
-                                          --ignore-not-found || true
-
-                                      echo "Cleanup complete."
-                                  }
-                                  trap cleanup EXIT
-
-                                  # ── Step 0: Capture production baselines ────────────
-                                  echo "Step 0: Capturing production data baselines..."
-
-                                  PROD_PRIMARY=$(kubectl get cluster supabase-cluster \
-                                      -n "${NAMESPACE}" \
-                                      -o jsonpath='{.status.currentPrimary}')
-                                  echo "  Production primary pod: ${PROD_PRIMARY}"
-
-                                  prod_sql() {
-                                      local db="${1}"
-                                      local query="${2}"
-                                      kubectl exec "${PROD_PRIMARY}" -n "${NAMESPACE}" \
-                                          -c postgres -- \
-                                          psql -U postgres -d "${db}" -t -A -c "${query}" 2>&1
-                                  }
-
-                                  PROD_USER_COUNT=$(prod_sql supabase "SELECT count(*) FROM auth.users;")
-                                  echo "  Production auth.users count: ${PROD_USER_COUNT}"
-
-                                  if ! [[ "${PROD_USER_COUNT}" =~ ^[0-9]+$ ]]; then
-                                      echo "ERROR: Could not read production user count (got: ${PROD_USER_COUNT})"
-                                      echo "Continuing with threshold of 1 (at least some data must exist)"
-                                      PROD_USER_COUNT=1
-                                  fi
-                                  echo ""
-
-                                  # ── Pre-cleanup: remove leftover resources ───────────
-                                  echo "Pre-cleanup: removing any leftover test resources..."
-                                  kubectl delete cluster "${TEST_CLUSTER}" \
-                                      -n "${NAMESPACE}" --ignore-not-found --wait=false || true
-                                  kubectl delete pvc -n "${NAMESPACE}" \
-                                      -l "cnpg.io/cluster=${TEST_CLUSTER}" \
-                                      --ignore-not-found || true
-                                  sleep 10
-
-                                  # ── Step 1: Apply test cluster ──────────────────────
-                                  echo "Step 1: Creating test cluster from S3 backup..."
-                                  kubectl get configmap backup-restore-test-template \
-                                      -n "${NAMESPACE}" \
-                                      -o jsonpath='{.data.test-cluster\.yaml}' | \
-                                      kubectl apply -f -
-                                  echo "Test cluster CR created."
-
-                                  # ── Step 2: Wait for Ready ─────────────────────────
-                                  echo ""
-                                  echo "Step 2: Waiting for test cluster to become Ready (timeout: ${TIMEOUT}s)..."
-                                  elapsed=0
-                                  while true; do
-                                      phase=$(kubectl get cluster "${TEST_CLUSTER}" \
-                                          -n "${NAMESPACE}" \
-                                          -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
-
-                                      ready=$(kubectl get cluster "${TEST_CLUSTER}" \
-                                          -n "${NAMESPACE}" \
-                                          -o jsonpath='{.status.readyInstances}' 2>/dev/null || echo "0")
-
-                                      echo "  [${elapsed}s] Phase: ${phase}, Ready: ${ready}/1"
-
-                                      if [ "${phase}" = "Cluster in healthy state" ] && [ "${ready}" = "1" ]; then
-                                          echo "Test cluster is Ready!"
-                                          break
-                                      fi
-
-                                      if [ ${elapsed} -ge ${TIMEOUT} ]; then
-                                          echo "ERROR: Timeout waiting for test cluster"
-                                          echo "Final phase: ${phase}"
-                                          kubectl get cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" \
-                                              -o jsonpath='{.status.conditions}' 2>/dev/null || true
-                                          echo ""
-                                          exit 1
-                                      fi
-
-                                      sleep ${POLL_INTERVAL}
-                                      elapsed=$((elapsed + POLL_INTERVAL))
-                                  done
-
-                                  # ── Step 3: SQL Health Checks ───────────────────────
-                                  echo ""
-                                  echo "Step 3: Running SQL health checks..."
-
-                                  TEST_POD="${TEST_CLUSTER}-1"
-                                  kubectl wait pod "${TEST_POD}" \
-                                      -n "${NAMESPACE}" \
-                                      --for=condition=Ready \
-                                      --timeout=60s
-
-                                  run_sql() {
-                                      local db="${1}"
-                                      local query="${2}"
-                                      kubectl exec "${TEST_POD}" -n "${NAMESPACE}" \
-                                          -c postgres -- \
-                                          psql -U postgres -d "${db}" -t -A -c "${query}" 2>&1
-                                  }
-
-                                  CHECKS_PASSED=0
-                                  CHECKS_TOTAL=0
-
-                                  check() {
-                                      local name="${1}"
-                                      local result="${2}"
-                                      local expected="${3}"
-                                      CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
-                                      if [ "${result}" = "${expected}" ]; then
-                                          echo "  PASS: ${name}"
-                                          CHECKS_PASSED=$((CHECKS_PASSED + 1))
-                                      else
-                                          echo "  FAIL: ${name} (got '${result}', expected '${expected}')"
-                                      fi
-                                  }
-
-                                  # Check 1: Basic connectivity
-                                  result=$(run_sql postgres "SELECT 1;")
-                                  check "SELECT 1" "${result}" "1"
-
-                                  # Check 2: supabase database exists
-                                  result=$(run_sql postgres "SELECT 1 FROM pg_database WHERE datname = 'supabase';")
-                                  check "supabase database exists" "${result}" "1"
-
-                                  # Check 3: Key extensions installed
-                                  for ext in pgsodium pg_stat_statements pgaudit; do
-                                      result=$(run_sql postgres "SELECT count(*) FROM pg_extension WHERE extname = '${ext}';")
-                                      check "extension ${ext} installed" "${result}" "1"
-                                  done
-
-                                  # Check 4: auth.users table exists in supabase db
-                                  result=$(run_sql supabase \
-                                      "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'auth' AND table_name = 'users';")
-                                  check "auth.users table exists" "${result}" "1"
-
-                                  # Check 5: shared_preload_libraries
-                                  libs=$(run_sql postgres "SHOW shared_preload_libraries;")
-                                  echo "  Libraries: ${libs}"
-                                  echo "${libs}" | grep -q "pgsodium"
-                                  check "pgsodium in shared_preload_libraries" "$?" "0"
-                                  echo "${libs}" | grep -q "kilobase"
-                                  check "kilobase in shared_preload_libraries" "$?" "0"
-
-                                  # Check 6: Data integrity — auth.users count close to production
-                                  echo ""
-                                  echo "  --- Data Integrity Checks ---"
-                                  restored_user_count=$(run_sql supabase "SELECT count(*) FROM auth.users;")
-                                  echo "  Restored auth.users count: ${restored_user_count}"
-                                  echo "  Production auth.users count: ${PROD_USER_COUNT}"
-                                  CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
-                                  if [[ "${restored_user_count}" =~ ^[0-9]+$ ]] && [ "${restored_user_count}" -gt 0 ]; then
-                                      min_expected=$(( PROD_USER_COUNT * 80 / 100 ))
-                                      if [ "${min_expected}" -lt 1 ]; then min_expected=1; fi
-                                      if [ "${restored_user_count}" -ge "${min_expected}" ]; then
-                                          echo "  PASS: auth.users data integrity (${restored_user_count} >= 80% of ${PROD_USER_COUNT})"
-                                          CHECKS_PASSED=$((CHECKS_PASSED + 1))
-                                      else
-                                          echo "  FAIL: auth.users data integrity (${restored_user_count} < 80% of ${PROD_USER_COUNT}, min expected: ${min_expected})"
-                                      fi
-                                  else
-                                      echo "  FAIL: auth.users data integrity (got invalid count: '${restored_user_count}')"
-                                  fi
-
-                                  # Check 7: Data integrity — storage.buckets has data
-                                  restored_bucket_count=$(run_sql supabase "SELECT count(*) FROM storage.buckets;")
-                                  echo "  Restored storage.buckets count: ${restored_bucket_count}"
-                                  CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
-                                  if [[ "${restored_bucket_count}" =~ ^[0-9]+$ ]] && [ "${restored_bucket_count}" -gt 0 ]; then
-                                      echo "  PASS: storage.buckets has data (${restored_bucket_count} rows)"
-                                      CHECKS_PASSED=$((CHECKS_PASSED + 1))
-                                  else
-                                      echo "  FAIL: storage.buckets has no data (got: '${restored_bucket_count}')"
-                                  fi
-
-                                  echo ""
-                                  echo "=== Results: ${CHECKS_PASSED}/${CHECKS_TOTAL} checks passed ==="
-
-                                  if [ ${CHECKS_PASSED} -lt ${CHECKS_TOTAL} ]; then
-                                      echo "FAILED: Some health checks did not pass"
-                                      exit 1
-                                  fi
-
-                                  echo "Backup restore fire drill SUCCEEDED"
-                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                              - "set -euo pipefail\n\nTEST_CLUSTER=\"supabase-cluster-restore-test\"\
+                                \nNAMESPACE=\"kilobase\"\nTIMEOUT=900\nPOLL_INTERVAL=15\n\necho \"===\
+                                \ Backup Restore Fire Drill ===\"\necho \"Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)\"\
+                                \necho \"\"\n\n# ── Cleanup function (always runs via trap) ──────────\n\
+                                cleanup() {\n    echo \"\"\n    echo \"=== Cleanup ===\"\n    echo \"\
+                                Deleting test cluster ${TEST_CLUSTER}...\"\n    kubectl delete cluster\
+                                \ \"${TEST_CLUSTER}\" \\\n        -n \"${NAMESPACE}\" --ignore-not-found\
+                                \ --wait=false || true\n\n    local i=0\n    while kubectl get cluster\
+                                \ \"${TEST_CLUSTER}\" -n \"${NAMESPACE}\" &>/dev/null; do\n        sleep\
+                                \ 5\n        i=$((i + 5))\n        if [ $i -ge 120 ]; then\n       \
+                                \     echo \"WARNING: Cluster CR still exists after 120s, removing finalizers\"\
+                                \n            kubectl patch cluster \"${TEST_CLUSTER}\" -n \"${NAMESPACE}\"\
+                                \ \\\n                --type=merge -p '{\"metadata\":{\"finalizers\"\
+                                :[]}}' 2>/dev/null || true\n            sleep 5\n            break\n\
+                                \        fi\n    done\n\n    echo \"Deleting test cluster PVCs...\"\n\
+                                \    kubectl delete pvc -n \"${NAMESPACE}\" \\\n        -l \"cnpg.io/cluster=${TEST_CLUSTER}\"\
+                                \ \\\n        --ignore-not-found || true\n\n    echo \"Cleanup complete.\"\
+                                \n}\ntrap cleanup EXIT\n\n# ── Step 0: Capture production baselines\
+                                \ ────────────\necho \"Step 0: Capturing production data baselines...\"\
+                                \n\nPROD_PRIMARY=$(kubectl get cluster supabase-cluster \\\n    -n \"\
+                                ${NAMESPACE}\" \\\n    -o jsonpath='{.status.currentPrimary}')\necho\
+                                \ \"  Production primary pod: ${PROD_PRIMARY}\"\n\nprod_sql() {\n  \
+                                \  local db=\"${1}\"\n    local query=\"${2}\"\n    kubectl exec \"\
+                                ${PROD_PRIMARY}\" -n \"${NAMESPACE}\" \\\n        -c postgres -- \\\n\
+                                \        psql -U postgres -d \"${db}\" -t -A -c \"${query}\" 2>&1\n\
+                                }\n\nPROD_USER_COUNT=$(prod_sql supabase \"SELECT count(*) FROM auth.users;\"\
+                                )\necho \"  Production auth.users count: ${PROD_USER_COUNT}\"\n\nif\
+                                \ ! [[ \"${PROD_USER_COUNT}\" =~ ^[0-9]+$ ]]; then\n    echo \"ERROR:\
+                                \ Could not read production user count (got: ${PROD_USER_COUNT})\"\n\
+                                \    echo \"Continuing with threshold of 1 (at least some data must\
+                                \ exist)\"\n    PROD_USER_COUNT=1\nfi\necho \"\"\n\n# ── Pre-cleanup:\
+                                \ remove leftover resources ───────────\necho \"Pre-cleanup: removing\
+                                \ any leftover test resources...\"\nkubectl delete cluster \"${TEST_CLUSTER}\"\
+                                \ \\\n    -n \"${NAMESPACE}\" --ignore-not-found --wait=false || true\n\
+                                kubectl delete pvc -n \"${NAMESPACE}\" \\\n    -l \"cnpg.io/cluster=${TEST_CLUSTER}\"\
+                                \ \\\n    --ignore-not-found || true\nsleep 10\n\n# ── Step 1: Apply\
+                                \ test cluster ──────────────────────\necho \"Step 1: Creating test\
+                                \ cluster from S3 backup...\"\nkubectl get configmap backup-restore-test-template\
+                                \ \\\n    -n \"${NAMESPACE}\" \\\n    -o jsonpath='{.data.test-cluster\\\
+                                .yaml}' | \\\n    kubectl apply -f -\necho \"Test cluster CR created.\"\
+                                \n\n# ── Step 2: Wait for Ready ─────────────────────────\necho \"\"\
+                                \necho \"Step 2: Waiting for test cluster to become Ready (timeout:\
+                                \ ${TIMEOUT}s)...\"\nelapsed=0\nwhile true; do\n    phase=$(kubectl\
+                                \ get cluster \"${TEST_CLUSTER}\" \\\n        -n \"${NAMESPACE}\" \\\
+                                \n        -o jsonpath='{.status.phase}' 2>/dev/null || echo \"NotFound\"\
+                                )\n\n    ready=$(kubectl get cluster \"${TEST_CLUSTER}\" \\\n      \
+                                \  -n \"${NAMESPACE}\" \\\n        -o jsonpath='{.status.readyInstances}'\
+                                \ 2>/dev/null || echo \"0\")\n\n    echo \"  [${elapsed}s] Phase: ${phase},\
+                                \ Ready: ${ready}/1\"\n\n    if [ \"${phase}\" = \"Cluster in healthy\
+                                \ state\" ] && [ \"${ready}\" = \"1\" ]; then\n        echo \"Test cluster\
+                                \ is Ready!\"\n        break\n    fi\n\n    if [ ${elapsed} -ge ${TIMEOUT}\
+                                \ ]; then\n        echo \"ERROR: Timeout waiting for test cluster\"\n\
+                                \        echo \"Final phase: ${phase}\"\n        kubectl get cluster\
+                                \ \"${TEST_CLUSTER}\" -n \"${NAMESPACE}\" \\\n            -o jsonpath='{.status.conditions}'\
+                                \ 2>/dev/null || true\n        echo \"\"\n        exit 1\n    fi\n\n\
+                                \    sleep ${POLL_INTERVAL}\n    elapsed=$((elapsed + POLL_INTERVAL))\n\
+                                done\n\n# ── Step 3: SQL Health Checks ───────────────────────\necho\
+                                \ \"\"\necho \"Step 3: Running SQL health checks...\"\n\nTEST_POD=\"\
+                                ${TEST_CLUSTER}-1\"\nkubectl wait pod \"${TEST_POD}\" \\\n    -n \"\
+                                ${NAMESPACE}\" \\\n    --for=condition=Ready \\\n    --timeout=60s\n\
+                                \nrun_sql() {\n    local db=\"${1}\"\n    local query=\"${2}\"\n   \
+                                \ kubectl exec \"${TEST_POD}\" -n \"${NAMESPACE}\" \\\n        -c postgres\
+                                \ -- \\\n        psql -U postgres -d \"${db}\" -t -A -c \"${query}\"\
+                                \ 2>&1\n}\n\nCHECKS_PASSED=0\nCHECKS_TOTAL=0\n\ncheck() {\n    local\
+                                \ name=\"${1}\"\n    local result=\"${2}\"\n    local expected=\"${3}\"\
+                                \n    CHECKS_TOTAL=$((CHECKS_TOTAL + 1))\n    if [ \"${result}\" = \"\
+                                ${expected}\" ]; then\n        echo \"  PASS: ${name}\"\n        CHECKS_PASSED=$((CHECKS_PASSED\
+                                \ + 1))\n    else\n        echo \"  FAIL: ${name} (got '${result}',\
+                                \ expected '${expected}')\"\n    fi\n}\n\n# Check 1: Basic connectivity\n\
+                                result=$(run_sql postgres \"SELECT 1;\")\ncheck \"SELECT 1\" \"${result}\"\
+                                \ \"1\"\n\n# Check 2: supabase database exists\nresult=$(run_sql postgres\
+                                \ \"SELECT 1 FROM pg_database WHERE datname = 'supabase';\")\ncheck\
+                                \ \"supabase database exists\" \"${result}\" \"1\"\n\n# Check 3: Key\
+                                \ extensions installed\nfor ext in pgsodium pg_stat_statements pgaudit;\
+                                \ do\n    result=$(run_sql postgres \"SELECT count(*) FROM pg_extension\
+                                \ WHERE extname = '${ext}';\")\n    check \"extension ${ext} installed\"\
+                                \ \"${result}\" \"1\"\ndone\n\n# Check 4: auth.users table exists in\
+                                \ supabase db\nresult=$(run_sql supabase \\\n    \"SELECT count(*) FROM\
+                                \ information_schema.tables WHERE table_schema = 'auth' AND table_name\
+                                \ = 'users';\")\ncheck \"auth.users table exists\" \"${result}\" \"\
+                                1\"\n\n# Check 5: shared_preload_libraries\nlibs=$(run_sql postgres\
+                                \ \"SHOW shared_preload_libraries;\")\necho \"  Libraries: ${libs}\"\
+                                \necho \"${libs}\" | grep -q \"pgsodium\"\ncheck \"pgsodium in shared_preload_libraries\"\
+                                \ \"$?\" \"0\"\necho \"${libs}\" | grep -q \"kilobase\"\ncheck \"kilobase\
+                                \ in shared_preload_libraries\" \"$?\" \"0\"\n\n# Check 6: Data integrity\
+                                \ — auth.users count close to production\necho \"\"\necho \"  --- Data\
+                                \ Integrity Checks ---\"\nrestored_user_count=$(run_sql supabase \"\
+                                SELECT count(*) FROM auth.users;\")\necho \"  Restored auth.users count:\
+                                \ ${restored_user_count}\"\necho \"  Production auth.users count: ${PROD_USER_COUNT}\"\
+                                \nCHECKS_TOTAL=$((CHECKS_TOTAL + 1))\nif [[ \"${restored_user_count}\"\
+                                \ =~ ^[0-9]+$ ]] && [ \"${restored_user_count}\" -gt 0 ]; then\n   \
+                                \ min_expected=$(( PROD_USER_COUNT * 80 / 100 ))\n    if [ \"${min_expected}\"\
+                                \ -lt 1 ]; then min_expected=1; fi\n    if [ \"${restored_user_count}\"\
+                                \ -ge \"${min_expected}\" ]; then\n        echo \"  PASS: auth.users\
+                                \ data integrity (${restored_user_count} >= 80% of ${PROD_USER_COUNT})\"\
+                                \n        CHECKS_PASSED=$((CHECKS_PASSED + 1))\n    else\n        echo\
+                                \ \"  FAIL: auth.users data integrity (${restored_user_count} < 80%\
+                                \ of ${PROD_USER_COUNT}, min expected: ${min_expected})\"\n    fi\n\
+                                else\n    echo \"  FAIL: auth.users data integrity (got invalid count:\
+                                \ '${restored_user_count}')\"\nfi\n\n# Check 7: Data integrity — storage.buckets\
+                                \ has data\nrestored_bucket_count=$(run_sql supabase \"SELECT count(*)\
+                                \ FROM storage.buckets;\")\necho \"  Restored storage.buckets count:\
+                                \ ${restored_bucket_count}\"\nCHECKS_TOTAL=$((CHECKS_TOTAL + 1))\nif\
+                                \ [[ \"${restored_bucket_count}\" =~ ^[0-9]+$ ]] && [ \"${restored_bucket_count}\"\
+                                \ -gt 0 ]; then\n    echo \"  PASS: storage.buckets has data (${restored_bucket_count}\
+                                \ rows)\"\n    CHECKS_PASSED=$((CHECKS_PASSED + 1))\nelse\n    echo\
+                                \ \"  FAIL: storage.buckets has no data (got: '${restored_bucket_count}')\"\
+                                \nfi\n\necho \"\"\necho \"=== Results: ${CHECKS_PASSED}/${CHECKS_TOTAL}\
+                                \ checks passed ===\"\n\nif [ ${CHECKS_PASSED} -lt ${CHECKS_TOTAL} ];\
+                                \ then\n    echo \"FAILED: Some health checks did not pass\"\n    exit\
+                                \ 1\nfi\n\necho \"Backup restore fire drill SUCCEEDED\"\necho \"Timestamp:\
+                                \ $(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n"

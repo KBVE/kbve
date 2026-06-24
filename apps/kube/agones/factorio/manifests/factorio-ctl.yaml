@@ -15,9 +15,14 @@ metadata:
     labels:
         app.kubernetes.io/part-of: factorio
 rules:
-    - apiGroups: ['agones.dev']
-      resources: ['gameservers']
-      verbs: ['get', 'list', 'watch']
+    - apiGroups:
+          - agones.dev
+      resources:
+          - gameservers
+      verbs:
+          - get
+          - list
+          - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -43,6 +48,9 @@ metadata:
     labels:
         app: factorio-ctl
         app.kubernetes.io/part-of: factorio
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     selector:
         app: factorio-ctl
@@ -60,6 +68,9 @@ metadata:
     labels:
         app: factorio-ctl
         app.kubernetes.io/part-of: factorio
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     replicas: 0
     selector:
@@ -90,13 +101,13 @@ spec:
                       - name: FACTORIO_CTL_PORT
                         value: '9002'
                       - name: FACTORIO_NAMESPACE
-                        value: 'factorio'
+                        value: factorio
                       - name: FACTORIO_GAMESERVER
-                        value: 'factorio'
+                        value: factorio
                       - name: FACTORIO_SERVER_ID
-                        value: 'factorio-1'
+                        value: factorio-1
                       - name: CLICKHOUSE_DATABASE
-                        value: 'gameops'
+                        value: gameops
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:
@@ -116,7 +127,7 @@ spec:
                                 key: password
                                 optional: true
                       - name: RUST_LOG
-                        value: 'factorio_ctl=info,tower_http=info'
+                        value: factorio_ctl=info,tower_http=info
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -131,11 +142,11 @@ spec:
                       periodSeconds: 10
                   resources:
                       requests:
-                          cpu: '25m'
-                          memory: '32Mi'
+                          cpu: 25m
+                          memory: 32Mi
                       limits:
-                          cpu: '250m'
-                          memory: '128Mi'
+                          cpu: 250m
+                          memory: 128Mi
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true

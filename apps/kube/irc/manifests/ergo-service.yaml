@@ -5,6 +5,9 @@ metadata:
     namespace: irc
     labels:
         app: ergo-irc
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

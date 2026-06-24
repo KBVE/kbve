@@ -5,6 +5,9 @@ metadata:
     namespace: firecracker
     labels:
         app: firecracker-ctl-net
+        kbve.com/category: virtualization
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

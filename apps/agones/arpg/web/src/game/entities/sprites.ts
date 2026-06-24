@@ -59,6 +59,10 @@ function safePlay(
 	key: string,
 	ignoreIfPlaying = false,
 ): void {
+	// A destroyed sprite (despawned/killed mid-animation) has a null scene; a
+	// deferred callback — e.g. a one-shot's animationcomplete settling to Idle —
+	// can still reach here after the entity was removed. Bail instead of throwing.
+	if (!sprite.scene) return;
 	const mgr = sprite.scene.anims;
 	const anim = mgr.exists(key) ? mgr.get(key) : undefined;
 	if (!anim || anim.frames.length === 0) {
@@ -95,6 +99,8 @@ export interface EntityRefs {
 	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
 	creature?: CreatureView;
+	dbgText?: Phaser.GameObjects.Text;
+	dbgArrow?: Phaser.GameObjects.Graphics;
 }
 
 /** Per-creature directional pose state, analogous to ClassView for NPCs. */
@@ -398,7 +404,17 @@ export function setCreaturePose(
 	}
 	if (!changed) return;
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
-	safePlay(sprite, creatureAnimKey(view.def, state, view.dir), !oneShot);
+	const key = creatureAnimKey(view.def, state, view.dir);
+	safePlay(sprite, key, !oneShot);
+	// One-shots (Attack/GetHit/…) play once then would freeze on their last
+	// frame; settle back to Idle when done so the creature keeps breathing. Dead
+	// is the exception — it holds its final frame.
+	if (oneShot && state !== 'Dead') {
+		sprite.once(`animationcomplete-${key}`, () => {
+			if (sprite.scene && view.state === state)
+				setCreaturePose(sprite, view, 'Idle');
+		});
+	}
 }
 
 /**

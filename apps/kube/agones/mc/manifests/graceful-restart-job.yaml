@@ -1,19 +1,3 @@
----
-# Graceful restart — ArgoCD PreSync hook.
-#
-# Runs BEFORE the fleet.yaml update so players get a warning and are
-# moved to the lobby (via Velocity fallback) before the old pod dies.
-#
-# Flow:
-#   1. Broadcast "restarting in 30s" via RCON
-#   2. Sleep 20s
-#   3. Broadcast "restarting in 10s"
-#   4. Sleep 10s
-#   5. Kick all players with a message (Velocity routes them to lobby)
-#   6. Job completes → ArgoCD proceeds with fleet rolling update
-#
-# If no GameServer pods are running (fleet at 0 replicas), the Job
-# exits cleanly — the RCON connection failure is not fatal.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -26,6 +10,9 @@ metadata:
     labels:
         app.kubernetes.io/part-of: mc
         app.kubernetes.io/component: graceful-restart
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 spec:
     ttlSecondsAfterFinished: 3600
     backoffLimit: 0
@@ -39,54 +26,36 @@ spec:
             containers:
                 - name: rcon-restart
                   image: alpine:3.20
-                  command: ['sh', '-c']
+                  command:
+                      - sh
+                      - -c
                   args:
-                      - |
-                          set -eu
-
-                          # Install mcrcon (lightweight C RCON client)
-                          apk add --no-cache gcc musl-dev git > /dev/null 2>&1
-                          git clone --depth 1 https://github.com/Tiiffi/mcrcon.git /tmp/mcrcon
-                          gcc -std=gnu11 -pedantic -Wall -Wextra -O2 -s \
-                              -o /usr/local/bin/mcrcon /tmp/mcrcon/mcrcon.c
-                          rm -rf /tmp/mcrcon
-
-                          # Resolve target — find any running mc-gameserver pod
-                          # via DNS. If none are running, exit cleanly.
-                          RCON_HOST="${RCON_HOST:-mc-fabric-rcon.arc-runners.svc.cluster.local}"
-                          RCON_PORT="${RCON_PORT:-25575}"
-
-                          rcon() {
-                              mcrcon -H "$RCON_HOST" -P "$RCON_PORT" -p "$RCON_PASSWORD" "$@" 2>/dev/null
-                          }
-
-                          # Test connectivity — if no server is running, skip gracefully
-                          if ! rcon "list" > /dev/null 2>&1; then
-                              echo "No MC server reachable on $RCON_HOST:$RCON_PORT — skipping graceful restart."
-                              exit 0
-                          fi
-
-                          echo "Connected to MC server. Starting graceful restart sequence..."
-
-                          # Phase 1: 30-second warning
-                          rcon 'tellraw @a {"text":"[Server] ","color":"gold","extra":[{"text":"Restarting for an update in 30 seconds...","color":"white"}]}'
-                          rcon 'title @a times 10 70 20'
-                          rcon 'title @a title {"text":"Server Update","color":"gold"}'
-                          rcon 'title @a subtitle {"text":"Restarting in 30 seconds","color":"white"}'
-                          echo "Broadcast: 30 seconds"
-                          sleep 20
-
-                          # Phase 2: 10-second warning
-                          rcon 'tellraw @a {"text":"[Server] ","color":"gold","extra":[{"text":"Restarting in 10 seconds!","color":"red"}]}'
-                          rcon 'title @a times 10 70 20'
-                          rcon 'title @a title {"text":"Server Update","color":"red"}'
-                          rcon 'title @a subtitle {"text":"Restarting in 10 seconds!","color":"white"}'
-                          echo "Broadcast: 10 seconds"
-                          sleep 10
-
-                          # Phase 3: Kick all players (Velocity routes them to lobby)
-                          rcon 'kick @a Server is restarting for an update. Returning to lobby...'
-                          echo "All players kicked. Graceful restart complete."
+                      - "set -eu\n\n# Install mcrcon (lightweight C RCON client)\napk add --no-cache\
+                        \ gcc musl-dev git > /dev/null 2>&1\ngit clone --depth 1 https://github.com/Tiiffi/mcrcon.git\
+                        \ /tmp/mcrcon\ngcc -std=gnu11 -pedantic -Wall -Wextra -O2 -s \\\n    -o\
+                        \ /usr/local/bin/mcrcon /tmp/mcrcon/mcrcon.c\nrm -rf /tmp/mcrcon\n\n# Resolve\
+                        \ target — find any running mc-gameserver pod\n# via DNS. If none are running,\
+                        \ exit cleanly.\nRCON_HOST=\"${RCON_HOST:-mc-fabric-rcon.arc-runners.svc.cluster.local}\"\
+                        \nRCON_PORT=\"${RCON_PORT:-25575}\"\n\nrcon() {\n    mcrcon -H \"$RCON_HOST\"\
+                        \ -P \"$RCON_PORT\" -p \"$RCON_PASSWORD\" \"$@\" 2>/dev/null\n}\n\n# Test\
+                        \ connectivity — if no server is running, skip gracefully\nif ! rcon \"\
+                        list\" > /dev/null 2>&1; then\n    echo \"No MC server reachable on $RCON_HOST:$RCON_PORT\
+                        \ — skipping graceful restart.\"\n    exit 0\nfi\n\necho \"Connected to\
+                        \ MC server. Starting graceful restart sequence...\"\n\n# Phase 1: 30-second\
+                        \ warning\nrcon 'tellraw @a {\"text\":\"[Server] \",\"color\":\"gold\",\"\
+                        extra\":[{\"text\":\"Restarting for an update in 30 seconds...\",\"color\"\
+                        :\"white\"}]}'\nrcon 'title @a times 10 70 20'\nrcon 'title @a title {\"\
+                        text\":\"Server Update\",\"color\":\"gold\"}'\nrcon 'title @a subtitle {\"\
+                        text\":\"Restarting in 30 seconds\",\"color\":\"white\"}'\necho \"Broadcast:\
+                        \ 30 seconds\"\nsleep 20\n\n# Phase 2: 10-second warning\nrcon 'tellraw\
+                        \ @a {\"text\":\"[Server] \",\"color\":\"gold\",\"extra\":[{\"text\":\"\
+                        Restarting in 10 seconds!\",\"color\":\"red\"}]}'\nrcon 'title @a times\
+                        \ 10 70 20'\nrcon 'title @a title {\"text\":\"Server Update\",\"color\"\
+                        :\"red\"}'\nrcon 'title @a subtitle {\"text\":\"Restarting in 10 seconds!\"\
+                        ,\"color\":\"white\"}'\necho \"Broadcast: 10 seconds\"\nsleep 10\n\n# Phase\
+                        \ 3: Kick all players (Velocity routes them to lobby)\nrcon 'kick @a Server\
+                        \ is restarting for an update. Returning to lobby...'\necho \"All players\
+                        \ kicked. Graceful restart complete.\"\n"
                   env:
                       - name: RCON_PASSWORD
                         valueFrom:

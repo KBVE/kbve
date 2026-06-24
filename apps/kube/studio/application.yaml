@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: studio
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/studio
+        kbve.com/manifest-path: apps/kube/studio/manifests
+        kbve.com/application-file: kube/studio/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: supabase
 spec:
     project: default
     source:

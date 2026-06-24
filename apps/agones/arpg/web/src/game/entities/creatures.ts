@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import { arpgAsset } from '../config';
 import { facingDegFromDelta, SOUTH_DEG } from './classes';
 
+// Temporary: draws each creature's code-believed direction + a movement arrow so
+// the 8-way sheet mapping can be eyeballed against actual facing. Flip off (or
+// delete the dbg* plumbing) once the mapping is locked.
+export const DEBUG_CREATURE_DIRS = true;
+
 /**
  * Creatures differ from player classes: instead of one PNG per facing angle,
  * the art ships as packed sprite sheets. Each sheet is a 4096x4096 image laid
@@ -33,9 +38,17 @@ const DIAGONAL_DIRS: ReadonlySet<CreatureDir> = new Set([
 	'SE',
 ]);
 
-// Index of a direction WITHIN its half (cardinal or diagonal), 0..3. This is
-// the block multiplier into the half's frame run.
-const DIR_BLOCK: Record<CreatureDir, number> = {
+/**
+ * Maps each facing to its block index (0..3) WITHIN its half (cardinal or
+ * diagonal) — the multiplier into that half's frame run. Sheets from different
+ * art packs order their 8 renders differently, so this lives per-creature on
+ * `CreatureDef.dirBlocks` rather than as one global table.
+ */
+export type DirBlocks = Record<CreatureDir, number>;
+
+// The order a naive left-to-right read of a sheet would assume. Handy starting
+// point; most packs need a tweak or two against the in-game debug overlay.
+export const NAIVE_DIR_BLOCKS: DirBlocks = {
 	N: 0,
 	E: 1,
 	W: 2,
@@ -90,6 +103,8 @@ export interface CreatureDef {
 	frameSize: number;
 	displaySize: number;
 	originY: number;
+	/** Facing -> in-half block index for this creature's sheet packing. */
+	dirBlocks: DirBlocks;
 	anims: Partial<Record<CreatureState, CreatureAnim>>;
 }
 
@@ -99,7 +114,22 @@ export const APEX_PREDATOR: CreatureDef = {
 	assetPath: '/assets/arcade/arpg/creatures/apex_predator',
 	frameSize: 512,
 	displaySize: 160,
-	originY: 0.86,
+	// Feet + baked shadow sit ~0.82 down the 512px frame; anchor there so the
+	// creature stands ON the tile instead of floating a few px above it.
+	originY: 0.82,
+	// Calibrated in-game vs the debug overlay: side profiles read L/R-swapped
+	// (block 1 = head-LEFT/W, block 2 = head-RIGHT/E) and the NE/SW diagonal
+	// pair is swapped from a naive read.
+	dirBlocks: {
+		N: 0,
+		W: 1,
+		E: 2,
+		S: 3,
+		SW: 0,
+		NW: 1,
+		SE: 2,
+		NE: 3,
+	},
 	anims: {
 		Walking: {
 			sheet: 'Sprite_1',
@@ -246,6 +276,7 @@ export function creatureAnimKey(
 function frameRange(
 	anim: CreatureAnim,
 	dir: CreatureDir,
+	dirBlocks: DirBlocks,
 ): { start: number; end: number } {
 	if (anim.dirless) {
 		return {
@@ -254,7 +285,7 @@ function frameRange(
 		};
 	}
 	const base = DIAGONAL_DIRS.has(dir) ? anim.diagonalBase : anim.cardinalBase;
-	const start = base + DIR_BLOCK[dir] * anim.framesPerDir;
+	const start = base + dirBlocks[dir] * anim.framesPerDir;
 	return { start, end: start + anim.framesPerDir - 1 };
 }
 
@@ -284,7 +315,7 @@ export function registerCreatureAnims(
 		for (const dir of dirs) {
 			const key = creatureAnimKey(def, state, dir);
 			if (scene.anims.exists(key)) continue;
-			const { start, end } = frameRange(anim, dir);
+			const { start, end } = frameRange(anim, dir, def.dirBlocks);
 			scene.anims.create({
 				key,
 				frames: scene.anims.generateFrameNumbers(
@@ -310,7 +341,7 @@ export function creatureFirstFrame(
 	const anim = def.anims[state] ?? def.anims.Idle!;
 	return {
 		key: sheetKey(def, anim.sheet),
-		frame: frameRange(anim, dir).start,
+		frame: frameRange(anim, dir, def.dirBlocks).start,
 	};
 }
 

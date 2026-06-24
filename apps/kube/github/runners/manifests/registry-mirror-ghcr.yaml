@@ -1,19 +1,3 @@
-# ghcr.io pull-through cache for arc-runner-ue DinD.
-#
-# The UE image (ghcr.io/epicgames/unreal-engine, ~20GB) is re-pulled from the
-# internet by every Unreal build job (~25min each) because arc-runner-ue dind
-# uses an emptyDir data-root and the existing registry-mirror only proxies
-# Docker Hub. This registry:2 in proxy mode caches ghcr layers on a Longhorn
-# PVC so the first pull fills it once and every later pull is LAN speed.
-#
-# Auth: proxies the PRIVATE epicgames image, so it authenticates upstream with
-# the GitHub PAT already in the cluster (github-arc-token / github_token,
-# owner h0lybyte — verified read:packages + EpicGames org access).
-#
-# Retention (janitor sidecar, Task 3): 7-day TTL + soft/hard size limits with
-# a whitelist. Proxy mode is pull-only; clients cannot push. Online GC is safe
-# because every blob is reconstructable from ghcr (a wrong collect = re-pull).
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -22,6 +6,9 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce
@@ -38,38 +25,22 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 data:
-    config.yml: |
-        version: 0.1
-        log:
-          level: info
-          fields:
-            service: registry
-        storage:
-          filesystem:
-            rootdirectory: /var/lib/registry
-          cache:
-            blobdescriptor: inmemory
-          delete:
-            enabled: true
-        http:
-          addr: :5000
-          headers:
-            X-Content-Type-Options: [nosniff]
-        proxy:
-          remoteurl: https://ghcr.io
-          # Revalidate tag->manifest against upstream daily. UE 'dev-*' tags are
-          # MUTABLE; a long TTL would silently serve a stale image for that whole
-          # window after an upstream re-push. Blob bytes are immutable (addressed
-          # by digest) so revalidation stays cheap — only the manifest is re-checked.
-          ttl: 24h
-          # username/password supplied via REGISTRY_PROXY_* env so the PAT
-          # never lands in this ConfigMap.
-        health:
-          storagedriver:
-            enabled: true
-            interval: 10s
-            threshold: 3
+    config.yml:
+        "version: 0.1\nlog:\n  level: info\n  fields:\n    service: registry\n\
+        storage:\n  filesystem:\n    rootdirectory: /var/lib/registry\n  cache:\n    blobdescriptor:\
+        \ inmemory\n  delete:\n    enabled: true\nhttp:\n  addr: :5000\n  headers:\n \
+        \   X-Content-Type-Options: [nosniff]\nproxy:\n  remoteurl: https://ghcr.io\n\
+        \  # Revalidate tag->manifest against upstream daily. UE 'dev-*' tags are\n  #\
+        \ MUTABLE; a long TTL would silently serve a stale image for that whole\n  # window\
+        \ after an upstream re-push. Blob bytes are immutable (addressed\n  # by digest)\
+        \ so revalidation stays cheap — only the manifest is re-checked.\n  ttl: 24h\n\
+        \  # username/password supplied via REGISTRY_PROXY_* env so the PAT\n  # never\
+        \ lands in this ConfigMap.\nhealth:\n  storagedriver:\n    enabled: true\n   \
+        \ interval: 10s\n    threshold: 3\n"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -79,18 +50,15 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
     annotations:
-        # REGISTRY_PROXY_PASSWORD is injected from github-arc-token at pod start
-        # only. When the PAT rotates the running pod keeps the stale value and
-        # upstream auth breaks on the next cache-miss (fallback masks it). Stakater
-        # Reloader rolls the Deployment on secret change; harmless no-op if absent.
         reloader.stakater.com/auto: 'true'
         secret.reloader.stakater.com/reload: github-arc-token
 spec:
     replicas: 1
     strategy:
-        # RWO PVC + single replica: Recreate avoids the rolling-update deadlock
-        # where the new pod can't attach the volume the old pod still holds.
         type: Recreate
     selector:
         matchLabels:
@@ -110,11 +78,11 @@ spec:
                         containerPort: 5000
                   env:
                       - name: REGISTRY_HTTP_ADDR
-                        value: ':5000'
+                        value: :5000
                       - name: REGISTRY_PROXY_REMOTEURL
-                        value: 'https://ghcr.io'
+                        value: https://ghcr.io
                       - name: REGISTRY_PROXY_USERNAME
-                        value: 'h0lybyte'
+                        value: h0lybyte
                       - name: REGISTRY_PROXY_PASSWORD
                         valueFrom:
                             secretKeyRef:
@@ -148,7 +116,9 @@ spec:
                 - name: janitor
                   image: registry:2.8.3
                   imagePullPolicy: IfNotPresent
-                  command: ['/bin/sh', '/opt/janitor/janitor.sh']
+                  command:
+                      - /bin/sh
+                      - /opt/janitor/janitor.sh
                   env:
                       - name: SOFT_PCT
                         value: '80'
@@ -206,6 +176,9 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
@@ -216,12 +189,6 @@ spec:
           targetPort: http
           protocol: TCP
 ---
-# The cache serves the PRIVATE epicgames image over unauthenticated HTTP, and
-# 'delete: enabled' means any client reaching :5000 could also evict tags.
-# Restrict ingress to pods inside arc-runners (the only legitimate clients are
-# the runner DinD sidecars) so nothing in another namespace can pull the
-# licensed image or wipe the cache. Same-namespace fork-PR isolation still needs
-# the egress allow in runner-networkpolicy.yaml + ARC ephemeral-runner trust.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -253,12 +220,13 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 data:
-    # One "<repo>:<tag>" per line (cache path — no ghcr.io/ host prefix).
-    # These are never pruned under the SOFT limit; only sacrificed (oldest
-    # first) under the HARD limit to avoid a full disk.
-    whitelist: |
-        epicgames/unreal-engine:dev-5.8.0
+    whitelist: 'epicgames/unreal-engine:dev-5.8.0
+
+        '
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -268,74 +236,50 @@ metadata:
     labels:
         app.kubernetes.io/name: registry-mirror-ghcr
         app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
 data:
-    janitor.sh: |
-        #!/bin/sh
-        # Size-bounded retention for the ghcr pull-through cache. Shares the
-        # registry's data PVC; talks to the registry on localhost. Online GC is
-        # safe: this is a proxy, so any over-collected blob is just re-pulled.
-        set -eu
-        REG="http://127.0.0.1:5000"
-        DATA="/var/lib/registry"
-        CONFIG="/etc/docker/registry/config.yml"
-        WL="/etc/janitor/whitelist"
-        SOFT="${SOFT_PCT:-80}"
-        HARD="${HARD_PCT:-95}"
-        INTERVAL="${INTERVAL_SECONDS:-3600}"
-
-        command -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1 || true
-
-        usage() { df -P "$DATA" | awk 'NR==2{gsub("%","",$5);print $5}'; }
-        wl() { grep -qxF "$1:$2" "$WL" 2>/dev/null; }
-        # GC runs online. Blob loss is safe (proxy cache is reconstructable from
-        # ghcr). A blob being written by a concurrent pull could be collected
-        # mid-flight, failing THAT one pull; it self-heals on retry. Fires only
-        # at >= SOFT usage.
-        gc() { registry garbage-collect --delete-untagged "$CONFIG" >/dev/null 2>&1 || true; }
-
-        # NOTE: _catalog and tags/list are single-page (registry default ~100).
-        # Fine for the few large images cached today; a multi-repo cache would
-        # need Link-header pagination here.
-        # emit "mtime<TAB>repo<TAB>tag<TAB>digest", oldest first
-        tags() {
-          curl -fsS "$REG/v2/_catalog" | jq -r '.repositories[]?' | while read -r r; do
-            curl -fsS "$REG/v2/$r/tags/list" | jq -r '.tags[]?' | while read -r t; do
-              d=$(curl -fsS -o /dev/null -D - \
-                   -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-                   "$REG/v2/$r/manifests/$t" \
-                   | awk -F': ' 'tolower($1)=="docker-content-digest"{gsub("\r","",$2);print $2}')
-              [ -n "$d" ] || continue
-              m=$(stat -c %Y "$DATA/docker/registry/v2/repositories/$r/_manifests/tags/$t" 2>/dev/null || echo 0)
-              printf '%s\t%s\t%s\t%s\n' "$m" "$r" "$t" "$d"
-            done
-          done | sort -n
-        }
-        del() { curl -fsS -X DELETE \
-                 -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
-                 "$REG/v2/$1/manifests/$2" >/dev/null 2>&1 || true; }
-
-        while :; do
-          if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
-            echo "janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention falls back to proxy.ttl(24h). Bake jq+curl into the image to restore."
-            apk add --no-cache jq curl >/dev/null 2>&1 || true
-            sleep "$INTERVAL"; continue
-          fi
-          U=$(usage)
-          if [ "$U" -ge "$HARD" ]; then
-            echo "janitor: HARD ${U}% >= ${HARD}% — drop non-whitelisted, then oldest until under"
-            tags | while IFS="$(printf '\t')" read -r m r t d; do wl "$r" "$t" && continue; echo "  del $r:$t"; del "$r" "$d"; done
-            gc
-            while [ "$(usage)" -ge "$HARD" ]; do
-              line=$(tags | head -1); [ -z "$line" ] && break
-              r=$(echo "$line" | cut -f2); t=$(echo "$line" | cut -f3); d=$(echo "$line" | cut -f4)
-              echo "  HARD del (whitelisted ok) $r:$t"; del "$r" "$d"; gc
-            done
-          elif [ "$U" -ge "$SOFT" ]; then
-            echo "janitor: SOFT ${U}% >= ${SOFT}% — drop all non-whitelisted"
-            tags | while IFS="$(printf '\t')" read -r m r t d; do wl "$r" "$t" && continue; echo "  del $r:$t"; del "$r" "$d"; done
-            gc
-          else
-            echo "janitor: usage ${U}% OK"
-          fi
-          sleep "$INTERVAL"
-        done
+    janitor.sh:
+        "#!/bin/sh\n# Size-bounded retention for the ghcr pull-through cache.\
+        \ Shares the\n# registry's data PVC; talks to the registry on localhost. Online\
+        \ GC is\n# safe: this is a proxy, so any over-collected blob is just re-pulled.\n\
+        set -eu\nREG=\"http://127.0.0.1:5000\"\nDATA=\"/var/lib/registry\"\nCONFIG=\"\
+        /etc/docker/registry/config.yml\"\nWL=\"/etc/janitor/whitelist\"\nSOFT=\"${SOFT_PCT:-80}\"\
+        \nHARD=\"${HARD_PCT:-95}\"\nINTERVAL=\"${INTERVAL_SECONDS:-3600}\"\n\ncommand\
+        \ -v jq >/dev/null 2>&1 || apk add --no-cache jq curl >/dev/null 2>&1 || true\n\
+        \nusage() { df -P \"$DATA\" | awk 'NR==2{gsub(\"%\",\"\",$5);print $5}'; }\nwl()\
+        \ { grep -qxF \"$1:$2\" \"$WL\" 2>/dev/null; }\n# GC runs online. Blob loss is\
+        \ safe (proxy cache is reconstructable from\n# ghcr). A blob being written by\
+        \ a concurrent pull could be collected\n# mid-flight, failing THAT one pull; it\
+        \ self-heals on retry. Fires only\n# at >= SOFT usage.\ngc() { registry garbage-collect\
+        \ --delete-untagged \"$CONFIG\" >/dev/null 2>&1 || true; }\n\n# NOTE: _catalog\
+        \ and tags/list are single-page (registry default ~100).\n# Fine for the few large\
+        \ images cached today; a multi-repo cache would\n# need Link-header pagination\
+        \ here.\n# emit \"mtime<TAB>repo<TAB>tag<TAB>digest\", oldest first\ntags() {\n\
+        \  curl -fsS \"$REG/v2/_catalog\" | jq -r '.repositories[]?' | while read -r r;\
+        \ do\n    curl -fsS \"$REG/v2/$r/tags/list\" | jq -r '.tags[]?' | while read -r\
+        \ t; do\n      d=$(curl -fsS -o /dev/null -D - \\\n           -H 'Accept: application/vnd.docker.distribution.manifest.v2+json'\
+        \ \\\n           \"$REG/v2/$r/manifests/$t\" \\\n           | awk -F': ' 'tolower($1)==\"\
+        docker-content-digest\"{gsub(\"\\r\",\"\",$2);print $2}')\n      [ -n \"$d\" ]\
+        \ || continue\n      m=$(stat -c %Y \"$DATA/docker/registry/v2/repositories/$r/_manifests/tags/$t\"\
+        \ 2>/dev/null || echo 0)\n      printf '%s\\t%s\\t%s\\t%s\\n' \"$m\" \"$r\" \"\
+        $t\" \"$d\"\n    done\n  done | sort -n\n}\ndel() { curl -fsS -X DELETE \\\n \
+        \        -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \\\n\
+        \         \"$REG/v2/$1/manifests/$2\" >/dev/null 2>&1 || true; }\n\nwhile :; do\n\
+        \  if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then\n\
+        \    echo \"janitor: ERROR jq/curl unavailable - size pruning DISABLED; retention\
+        \ falls back to proxy.ttl(24h). Bake jq+curl into the image to restore.\"\n  \
+        \  apk add --no-cache jq curl >/dev/null 2>&1 || true\n    sleep \"$INTERVAL\"\
+        ; continue\n  fi\n  U=$(usage)\n  if [ \"$U\" -ge \"$HARD\" ]; then\n    echo\
+        \ \"janitor: HARD ${U}% >= ${HARD}% — drop non-whitelisted, then oldest until\
+        \ under\"\n    tags | while IFS=\"$(printf '\\t')\" read -r m r t d; do wl \"\
+        $r\" \"$t\" && continue; echo \"  del $r:$t\"; del \"$r\" \"$d\"; done\n    gc\n\
+        \    while [ \"$(usage)\" -ge \"$HARD\" ]; do\n      line=$(tags | head -1); [\
+        \ -z \"$line\" ] && break\n      r=$(echo \"$line\" | cut -f2); t=$(echo \"$line\"\
+        \ | cut -f3); d=$(echo \"$line\" | cut -f4)\n      echo \"  HARD del (whitelisted\
+        \ ok) $r:$t\"; del \"$r\" \"$d\"; gc\n    done\n  elif [ \"$U\" -ge \"$SOFT\"\
+        \ ]; then\n    echo \"janitor: SOFT ${U}% >= ${SOFT}% — drop all non-whitelisted\"\
+        \n    tags | while IFS=\"$(printf '\\t')\" read -r m r t d; do wl \"$r\" \"$t\"\
+        \ && continue; echo \"  del $r:$t\"; del \"$r\" \"$d\"; done\n    gc\n  else\n\
+        \    echo \"janitor: usage ${U}% OK\"\n  fi\n  sleep \"$INTERVAL\"\ndone\n"

@@ -1,6 +1,3 @@
-# Velocity proxy configuration
-# Forwards client connections from port 25565 → backend MC servers
-# discovered via the mc-fabric-backend headless Service.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,62 +6,116 @@ metadata:
     labels:
         app: mc-velocity
         app.kubernetes.io/part-of: mc
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
 data:
-    velocity.toml: |
-        config-version = "2.7"
+    velocity.toml: 'config-version = "2.7"
+
 
         bind = "0.0.0.0:25565"
+
         motd = "<#FFD700>KBVE Minecraft Server"
+
         show-max-players = 67
+
         # Velocity authenticates clients against Mojang
+
         online-mode = true
+
         force-key-authentication = true
+
         prevent-client-proxy-connections = false
+
         # Modern Velocity forwarding — backend Fabric server runs
+
         # FabricProxy-Lite to validate the forwarding signature.
+
         player-info-forwarding-mode = "modern"
+
         forwarding-secret-file = "forwarding.secret"
+
         announce-forge = false
+
         announce-proxy-commands = true
 
+
         [servers]
+
         # Two backends:
+
         #   - lobby: a single PaperMC Deployment fronted by the mc-lobby-backend
+
         #     ClusterIP Service. Superflat peaceful world, always-on singleton.
+
         #   - mc: the Agones Fleet of Fabric gameservers routed via the
+
         #     mc-fabric-backend headless Service (load-balanced across Ready pods).
+
         #
+
         # try = ["lobby", "mc"] means:
+
         #   - New players land in the lobby first.
+
         #   - `failover-on-unexpected-server-disconnect = true` (line below) walks
+
         #     this list when a backend drops, so players on mc get sent back to
+
         #     lobby instead of kicked when Fabric restarts or a pod recycles.
+
         lobby = "mc-lobby-backend.arc-runners.svc.cluster.local:25565"
+
         mc = "mc-fabric-backend.arc-runners.svc.cluster.local:25565"
+
         try = ["lobby", "mc"]
+
 
         [forced-hosts]
 
+
         [advanced]
+
         compression-threshold = 256
+
         compression-level = -1
+
         login-ratelimit = 3000
+
         connection-timeout = 5000
+
         read-timeout = 30000
+
         haproxy-protocol = false
+
         tcp-fast-open = false
+
         bungee-plugin-message-channel = true
+
         show-ping-requests = false
+
         failover-on-unexpected-server-disconnect = true
+
         announce-proxy-commands = true
+
         log-command-executions = false
+
         log-player-connections = true
+
         accepts-transfers = false
 
+
         [query]
+
         enabled = false
+
         port = 25577
+
         map = "Velocity"
+
         show-plugins = false
-    forwarding.secret: |
-        kbve-velocity-forwarding-secret-change-me
+
+        '
+    forwarding.secret: 'kbve-velocity-forwarding-secret-change-me
+
+        '

@@ -1,9 +1,3 @@
-# Multus CNI — enables multiple network interfaces on pods/VMs.
-# Vendored from upstream v4.2.1 with Talos-specific fixes:
-#   - /run/netns → /var/run/netns/ (volume mount)
-#   - install_multus thick mode (init container)
-#   - Increased resource limits (prevent OOM)
-# Ref: https://docs.siderolabs.com/kubernetes-guides/cni/multus
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,6 +5,13 @@ metadata:
     namespace: argocd
     annotations:
         argocd.argoproj.io/sync-wave: '0'
+        kbve.com/source-path: kube/multus
+        kbve.com/manifest-path: apps/kube/multus/manifests
+        kbve.com/application-file: kube/multus/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: networking
+        kbve.com/stack: core
     finalizers:
         - resources-finalizer.argocd.argoproj.io
 spec:

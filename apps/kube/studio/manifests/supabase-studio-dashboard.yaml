@@ -6,6 +6,9 @@ metadata:
     labels:
         app: supabase-studio
         component: studio
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     selector:
@@ -30,31 +33,22 @@ spec:
                       - name: tmp
                         mountPath: /tmp
                   env:
-                      # Core studio configuration
                       - name: STUDIO_PG_META_URL
-                        value: 'http://meta:8080'
-
-                      # Organization and project defaults - hardcoded for now
+                        value: http://meta:8080
                       - name: DEFAULT_ORGANIZATION_NAME
-                        value: 'KBVE'
+                        value: KBVE
                       - name: DEFAULT_PROJECT_NAME
-                        value: 'Kilobase'
-
-                      # Supabase API configuration
+                        value: Kilobase
                       - name: SUPABASE_URL
-                        value: 'http://kong-kong-proxy:80'
+                        value: http://kong-kong-proxy:80
                       - name: SUPABASE_PUBLIC_URL
-                        value: 'https://supabase.kbve.com'
-
-                      # Analytics configuration
+                        value: https://supabase.kbve.com
                       - name: LOGFLARE_URL
-                        value: 'http://analytics:4000'
+                        value: http://analytics:4000
                       - name: NEXT_PUBLIC_ENABLE_LOGS
                         value: 'true'
                       - name: NEXT_ANALYTICS_BACKEND_PROVIDER
-                        value: 'postgres'
-
-                      # Secrets from Kubernetes
+                        value: postgres
                       - name: POSTGRES_PASSWORD
                         valueFrom:
                             secretKeyRef:
@@ -80,7 +74,6 @@ spec:
                             secretKeyRef:
                                 name: logflare-config
                                 key: private-access-token
-
                   livenessProbe:
                       httpGet:
                           path: /api/platform/profile
@@ -89,7 +82,6 @@ spec:
                       periodSeconds: 30
                       timeoutSeconds: 10
                       failureThreshold: 3
-
                   readinessProbe:
                       httpGet:
                           path: /api/platform/profile
@@ -98,15 +90,13 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 10
                       failureThreshold: 3
-
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '200m'
+                          memory: 512Mi
+                          cpu: 200m
                       limits:
-                          memory: '2Gi'
-                          cpu: '1000m'
-
+                          memory: 2Gi
+                          cpu: 1000m
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -115,7 +105,6 @@ spec:
                       capabilities:
                           drop:
                               - ALL
-
 ---
 apiVersion: v1
 kind: Service
@@ -125,6 +114,9 @@ metadata:
     labels:
         app: supabase-studio
         component: studio
+        kbve.com/category: application
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     ports:

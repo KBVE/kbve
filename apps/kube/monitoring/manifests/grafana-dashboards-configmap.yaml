@@ -1,624 +1,215 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-dashboards
-  namespace: monitoring
-  labels:
-    grafana_dashboard: "1"
+    name: grafana-dashboards
+    namespace: monitoring
+    labels:
+        grafana_dashboard: '1'
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-  kubernetes-cluster-overview.json: |
-    {
-      "annotations": {
-        "list": [
-          {
-            "builtIn": 1,
-            "datasource": "-- Grafana --",
-            "enable": true,
-            "hide": true,
-            "iconColor": "rgba(0, 211, 255, 1)",
-            "name": "Annotations & Alerts",
-            "type": "dashboard"
-          }
-        ]
-      },
-      "editable": true,
-      "gnetId": null,
-      "graphTooltip": 0,
-      "id": null,
-      "links": [],
-      "panels": [
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 0
-          },
-          "id": 2,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-              "refId": "A"
-            }
-          ],
-          "title": "CPU Usage",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 0
-          },
-          "id": 3,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
-              "refId": "A"
-            }
-          ],
-          "title": "Memory Usage",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 1
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 8
-          },
-          "id": 4,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "values": false,
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": ""
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "sum(kube_pod_status_phase{phase=\"Running\"})",
-              "refId": "A"
-            }
-          ],
-          "title": "Running Pods",
-          "type": "stat"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 6,
-            "y": 8
-          },
-          "id": 5,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "values": false,
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": ""
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "count(kube_node_info)",
-              "refId": "A"
-            }
-          ],
-          "title": "Total Nodes",
-          "type": "stat"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "binBps"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 8
-          },
-          "id": 6,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "sum(rate(container_network_receive_bytes_total[5m])) by (pod)",
-              "legendFormat": "RX {{pod}}",
-              "refId": "A"
-            },
-            {
-              "expr": "sum(rate(container_network_transmit_bytes_total[5m])) by (pod)",
-              "legendFormat": "TX {{pod}}",
-              "refId": "B"
-            }
-          ],
-          "title": "Network Traffic",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "tooltip": false,
-                  "viz": false,
-                  "legend": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 16
-          },
-          "id": 7,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "(node_filesystem_size_bytes{mountpoint=\"/\"} - node_filesystem_free_bytes{mountpoint=\"/\"}) / node_filesystem_size_bytes{mountpoint=\"/\"} * 100",
-              "refId": "A"
-            }
-          ],
-          "title": "Disk Usage",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 1
-                  },
-                  {
-                    "color": "red",
-                    "value": 5
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 12,
-            "y": 16
-          },
-          "id": 8,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "values": false,
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": ""
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "sum(kube_pod_container_status_restarts_total)",
-              "refId": "A"
-            }
-          ],
-          "title": "Pod Restarts",
-          "type": "stat"
-        },
-        {
-          "datasource": "${datasource}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "red",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 1
-                  },
-                  {
-                    "color": "green",
-                    "value": 2
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 18,
-            "y": 16
-          },
-          "id": 9,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "values": false,
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": ""
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.0.0",
-          "targets": [
-            {
-              "expr": "sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})",
-              "refId": "A"
-            }
-          ],
-          "title": "Nodes Ready",
-          "type": "stat"
-        }
-      ],
-      "refresh": "10s",
-      "schemaVersion": 27,
-      "style": "dark",
-      "tags": ["kubernetes", "cluster"],
-      "templating": {
-        "list": [
-          {
-            "current": {
-              "selected": false,
-              "text": "Prometheus",
-              "value": "Prometheus"
-            },
-            "hide": 0,
-            "includeAll": false,
-            "label": null,
-            "multi": false,
-            "name": "datasource",
-            "options": [],
-            "query": "prometheus",
-            "refresh": 1,
-            "regex": "",
-            "skipUrlSync": false,
-            "type": "datasource"
-          }
-        ]
-      },
-      "time": {
-        "from": "now-6h",
-        "to": "now"
-      },
-      "timepicker": {},
-      "timezone": "",
-      "title": "Kubernetes Cluster Overview",
-      "uid": "kubernetes-cluster-overview",
-      "version": 0
-    }
+    kubernetes-cluster-overview.json:
+        "{\n  \"annotations\": {\n    \"list\": [\n  \
+        \    {\n        \"builtIn\": 1,\n        \"datasource\": \"-- Grafana --\",\n\
+        \        \"enable\": true,\n        \"hide\": true,\n        \"iconColor\": \"\
+        rgba(0, 211, 255, 1)\",\n        \"name\": \"Annotations & Alerts\",\n       \
+        \ \"type\": \"dashboard\"\n      }\n    ]\n  },\n  \"editable\": true,\n  \"gnetId\"\
+        : null,\n  \"graphTooltip\": 0,\n  \"id\": null,\n  \"links\": [],\n  \"panels\"\
+        : [\n    {\n      \"datasource\": \"${datasource}\",\n      \"fieldConfig\": {\n\
+        \        \"defaults\": {\n          \"color\": {\n            \"mode\": \"palette-classic\"\
+        \n          },\n          \"custom\": {\n            \"axisLabel\": \"\",\n  \
+        \          \"axisPlacement\": \"auto\",\n            \"barAlignment\": 0,\n  \
+        \          \"drawStyle\": \"line\",\n            \"fillOpacity\": 10,\n      \
+        \      \"gradientMode\": \"none\",\n            \"hideFrom\": {\n            \
+        \  \"tooltip\": false,\n              \"viz\": false,\n              \"legend\"\
+        : false\n            },\n            \"lineInterpolation\": \"linear\",\n    \
+        \        \"lineWidth\": 1,\n            \"pointSize\": 5,\n            \"scaleDistribution\"\
+        : {\n              \"type\": \"linear\"\n            },\n            \"showPoints\"\
+        : \"never\",\n            \"spanNulls\": false,\n            \"stacking\": {\n\
+        \              \"group\": \"A\",\n              \"mode\": \"none\"\n         \
+        \   },\n            \"thresholdsStyle\": {\n              \"mode\": \"off\"\n\
+        \            }\n          },\n          \"mappings\": [],\n          \"thresholds\"\
+        : {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+        \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+        \              },\n              {\n                \"color\": \"red\",\n    \
+        \            \"value\": 80\n              }\n            ]\n          },\n   \
+        \       \"unit\": \"percent\"\n        },\n        \"overrides\": []\n      },\n\
+        \      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 0,\n\
+        \        \"y\": 0\n      },\n      \"id\": 2,\n      \"options\": {\n        \"\
+        legend\": {\n          \"calcs\": [],\n          \"displayMode\": \"list\",\n\
+        \          \"placement\": \"bottom\"\n        },\n        \"tooltip\": {\n   \
+        \       \"mode\": \"single\"\n        }\n      },\n      \"pluginVersion\": \"\
+        8.0.0\",\n      \"targets\": [\n        {\n          \"expr\": \"100 - (avg by\
+        \ (instance) (irate(node_cpu_seconds_total{mode=\\\"idle\\\"}[5m])) * 100)\",\n\
+        \          \"refId\": \"A\"\n        }\n      ],\n      \"title\": \"CPU Usage\"\
+        ,\n      \"type\": \"timeseries\"\n    },\n    {\n      \"datasource\": \"${datasource}\"\
+        ,\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"color\": {\n\
+        \            \"mode\": \"palette-classic\"\n          },\n          \"custom\"\
+        : {\n            \"axisLabel\": \"\",\n            \"axisPlacement\": \"auto\"\
+        ,\n            \"barAlignment\": 0,\n            \"drawStyle\": \"line\",\n  \
+        \          \"fillOpacity\": 10,\n            \"gradientMode\": \"none\",\n   \
+        \         \"hideFrom\": {\n              \"tooltip\": false,\n              \"\
+        viz\": false,\n              \"legend\": false\n            },\n            \"\
+        lineInterpolation\": \"linear\",\n            \"lineWidth\": 1,\n            \"\
+        pointSize\": 5,\n            \"scaleDistribution\": {\n              \"type\"\
+        : \"linear\"\n            },\n            \"showPoints\": \"never\",\n       \
+        \     \"spanNulls\": false,\n            \"stacking\": {\n              \"group\"\
+        : \"A\",\n              \"mode\": \"none\"\n            },\n            \"thresholdsStyle\"\
+        : {\n              \"mode\": \"off\"\n            }\n          },\n          \"\
+        mappings\": [],\n          \"thresholds\": {\n            \"mode\": \"absolute\"\
+        ,\n            \"steps\": [\n              {\n                \"color\": \"green\"\
+        ,\n                \"value\": null\n              },\n              {\n      \
+        \          \"color\": \"red\",\n                \"value\": 80\n              }\n\
+        \            ]\n          },\n          \"unit\": \"percent\"\n        },\n  \
+        \      \"overrides\": []\n      },\n      \"gridPos\": {\n        \"h\": 8,\n\
+        \        \"w\": 12,\n        \"x\": 12,\n        \"y\": 0\n      },\n      \"\
+        id\": 3,\n      \"options\": {\n        \"legend\": {\n          \"calcs\": [],\n\
+        \          \"displayMode\": \"list\",\n          \"placement\": \"bottom\"\n \
+        \       },\n        \"tooltip\": {\n          \"mode\": \"single\"\n        }\n\
+        \      },\n      \"pluginVersion\": \"8.0.0\",\n      \"targets\": [\n       \
+        \ {\n          \"expr\": \"(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))\
+        \ * 100\",\n          \"refId\": \"A\"\n        }\n      ],\n      \"title\":\
+        \ \"Memory Usage\",\n      \"type\": \"timeseries\"\n    },\n    {\n      \"datasource\"\
+        : \"${datasource}\",\n      \"fieldConfig\": {\n        \"defaults\": {\n    \
+        \      \"color\": {\n            \"mode\": \"thresholds\"\n          },\n    \
+        \      \"mappings\": [],\n          \"thresholds\": {\n            \"mode\": \"\
+        absolute\",\n            \"steps\": [\n              {\n                \"color\"\
+        : \"green\",\n                \"value\": null\n              },\n            \
+        \  {\n                \"color\": \"red\",\n                \"value\": 1\n    \
+        \          }\n            ]\n          },\n          \"unit\": \"short\"\n   \
+        \     },\n        \"overrides\": []\n      },\n      \"gridPos\": {\n        \"\
+        h\": 8,\n        \"w\": 6,\n        \"x\": 0,\n        \"y\": 8\n      },\n  \
+        \    \"id\": 4,\n      \"options\": {\n        \"colorMode\": \"value\",\n   \
+        \     \"graphMode\": \"area\",\n        \"justifyMode\": \"auto\",\n        \"\
+        orientation\": \"auto\",\n        \"reduceOptions\": {\n          \"values\":\
+        \ false,\n          \"calcs\": [\n            \"lastNotNull\"\n          ],\n\
+        \          \"fields\": \"\"\n        },\n        \"text\": {},\n        \"textMode\"\
+        : \"auto\"\n      },\n      \"pluginVersion\": \"8.0.0\",\n      \"targets\":\
+        \ [\n        {\n          \"expr\": \"sum(kube_pod_status_phase{phase=\\\"Running\\\
+        \"})\",\n          \"refId\": \"A\"\n        }\n      ],\n      \"title\": \"\
+        Running Pods\",\n      \"type\": \"stat\"\n    },\n    {\n      \"datasource\"\
+        : \"${datasource}\",\n      \"fieldConfig\": {\n        \"defaults\": {\n    \
+        \      \"color\": {\n            \"mode\": \"thresholds\"\n          },\n    \
+        \      \"mappings\": [],\n          \"thresholds\": {\n            \"mode\": \"\
+        absolute\",\n            \"steps\": [\n              {\n                \"color\"\
+        : \"green\",\n                \"value\": null\n              }\n            ]\n\
+        \          },\n          \"unit\": \"short\"\n        },\n        \"overrides\"\
+        : []\n      },\n      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 6,\n \
+        \       \"x\": 6,\n        \"y\": 8\n      },\n      \"id\": 5,\n      \"options\"\
+        : {\n        \"colorMode\": \"value\",\n        \"graphMode\": \"area\",\n   \
+        \     \"justifyMode\": \"auto\",\n        \"orientation\": \"auto\",\n       \
+        \ \"reduceOptions\": {\n          \"values\": false,\n          \"calcs\": [\n\
+        \            \"lastNotNull\"\n          ],\n          \"fields\": \"\"\n     \
+        \   },\n        \"text\": {},\n        \"textMode\": \"auto\"\n      },\n    \
+        \  \"pluginVersion\": \"8.0.0\",\n      \"targets\": [\n        {\n          \"\
+        expr\": \"count(kube_node_info)\",\n          \"refId\": \"A\"\n        }\n  \
+        \    ],\n      \"title\": \"Total Nodes\",\n      \"type\": \"stat\"\n    },\n\
+        \    {\n      \"datasource\": \"${datasource}\",\n      \"fieldConfig\": {\n \
+        \       \"defaults\": {\n          \"color\": {\n            \"mode\": \"palette-classic\"\
+        \n          },\n          \"custom\": {\n            \"axisLabel\": \"\",\n  \
+        \          \"axisPlacement\": \"auto\",\n            \"barAlignment\": 0,\n  \
+        \          \"drawStyle\": \"line\",\n            \"fillOpacity\": 10,\n      \
+        \      \"gradientMode\": \"none\",\n            \"hideFrom\": {\n            \
+        \  \"tooltip\": false,\n              \"viz\": false,\n              \"legend\"\
+        : false\n            },\n            \"lineInterpolation\": \"linear\",\n    \
+        \        \"lineWidth\": 1,\n            \"pointSize\": 5,\n            \"scaleDistribution\"\
+        : {\n              \"type\": \"linear\"\n            },\n            \"showPoints\"\
+        : \"never\",\n            \"spanNulls\": false,\n            \"stacking\": {\n\
+        \              \"group\": \"A\",\n              \"mode\": \"none\"\n         \
+        \   },\n            \"thresholdsStyle\": {\n              \"mode\": \"off\"\n\
+        \            }\n          },\n          \"mappings\": [],\n          \"thresholds\"\
+        : {\n            \"mode\": \"absolute\",\n            \"steps\": [\n         \
+        \     {\n                \"color\": \"green\",\n                \"value\": null\n\
+        \              },\n              {\n                \"color\": \"red\",\n    \
+        \            \"value\": 80\n              }\n            ]\n          },\n   \
+        \       \"unit\": \"binBps\"\n        },\n        \"overrides\": []\n      },\n\
+        \      \"gridPos\": {\n        \"h\": 8,\n        \"w\": 12,\n        \"x\": 12,\n\
+        \        \"y\": 8\n      },\n      \"id\": 6,\n      \"options\": {\n        \"\
+        legend\": {\n          \"calcs\": [],\n          \"displayMode\": \"list\",\n\
+        \          \"placement\": \"bottom\"\n        },\n        \"tooltip\": {\n   \
+        \       \"mode\": \"single\"\n        }\n      },\n      \"pluginVersion\": \"\
+        8.0.0\",\n      \"targets\": [\n        {\n          \"expr\": \"sum(rate(container_network_receive_bytes_total[5m]))\
+        \ by (pod)\",\n          \"legendFormat\": \"RX {{pod}}\",\n          \"refId\"\
+        : \"A\"\n        },\n        {\n          \"expr\": \"sum(rate(container_network_transmit_bytes_total[5m]))\
+        \ by (pod)\",\n          \"legendFormat\": \"TX {{pod}}\",\n          \"refId\"\
+        : \"B\"\n        }\n      ],\n      \"title\": \"Network Traffic\",\n      \"\
+        type\": \"timeseries\"\n    },\n    {\n      \"datasource\": \"${datasource}\"\
+        ,\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"color\": {\n\
+        \            \"mode\": \"palette-classic\"\n          },\n          \"custom\"\
+        : {\n            \"axisLabel\": \"\",\n            \"axisPlacement\": \"auto\"\
+        ,\n            \"barAlignment\": 0,\n            \"drawStyle\": \"line\",\n  \
+        \          \"fillOpacity\": 10,\n            \"gradientMode\": \"none\",\n   \
+        \         \"hideFrom\": {\n              \"tooltip\": false,\n              \"\
+        viz\": false,\n              \"legend\": false\n            },\n            \"\
+        lineInterpolation\": \"linear\",\n            \"lineWidth\": 1,\n            \"\
+        pointSize\": 5,\n            \"scaleDistribution\": {\n              \"type\"\
+        : \"linear\"\n            },\n            \"showPoints\": \"never\",\n       \
+        \     \"spanNulls\": false,\n            \"stacking\": {\n              \"group\"\
+        : \"A\",\n              \"mode\": \"none\"\n            },\n            \"thresholdsStyle\"\
+        : {\n              \"mode\": \"off\"\n            }\n          },\n          \"\
+        mappings\": [],\n          \"thresholds\": {\n            \"mode\": \"absolute\"\
+        ,\n            \"steps\": [\n              {\n                \"color\": \"green\"\
+        ,\n                \"value\": null\n              },\n              {\n      \
+        \          \"color\": \"red\",\n                \"value\": 80\n              }\n\
+        \            ]\n          },\n          \"unit\": \"percent\"\n        },\n  \
+        \      \"overrides\": []\n      },\n      \"gridPos\": {\n        \"h\": 8,\n\
+        \        \"w\": 12,\n        \"x\": 0,\n        \"y\": 16\n      },\n      \"\
+        id\": 7,\n      \"options\": {\n        \"legend\": {\n          \"calcs\": [],\n\
+        \          \"displayMode\": \"list\",\n          \"placement\": \"bottom\"\n \
+        \       },\n        \"tooltip\": {\n          \"mode\": \"single\"\n        }\n\
+        \      },\n      \"pluginVersion\": \"8.0.0\",\n      \"targets\": [\n       \
+        \ {\n          \"expr\": \"(node_filesystem_size_bytes{mountpoint=\\\"/\\\"} -\
+        \ node_filesystem_free_bytes{mountpoint=\\\"/\\\"}) / node_filesystem_size_bytes{mountpoint=\\\
+        \"/\\\"} * 100\",\n          \"refId\": \"A\"\n        }\n      ],\n      \"title\"\
+        : \"Disk Usage\",\n      \"type\": \"timeseries\"\n    },\n    {\n      \"datasource\"\
+        : \"${datasource}\",\n      \"fieldConfig\": {\n        \"defaults\": {\n    \
+        \      \"color\": {\n            \"mode\": \"thresholds\"\n          },\n    \
+        \      \"mappings\": [],\n          \"thresholds\": {\n            \"mode\": \"\
+        absolute\",\n            \"steps\": [\n              {\n                \"color\"\
+        : \"green\",\n                \"value\": null\n              },\n            \
+        \  {\n                \"color\": \"yellow\",\n                \"value\": 1\n \
+        \             },\n              {\n                \"color\": \"red\",\n     \
+        \           \"value\": 5\n              }\n            ]\n          },\n     \
+        \     \"unit\": \"short\"\n        },\n        \"overrides\": []\n      },\n \
+        \     \"gridPos\": {\n        \"h\": 8,\n        \"w\": 6,\n        \"x\": 12,\n\
+        \        \"y\": 16\n      },\n      \"id\": 8,\n      \"options\": {\n       \
+        \ \"colorMode\": \"value\",\n        \"graphMode\": \"area\",\n        \"justifyMode\"\
+        : \"auto\",\n        \"orientation\": \"auto\",\n        \"reduceOptions\": {\n\
+        \          \"values\": false,\n          \"calcs\": [\n            \"lastNotNull\"\
+        \n          ],\n          \"fields\": \"\"\n        },\n        \"text\": {},\n\
+        \        \"textMode\": \"auto\"\n      },\n      \"pluginVersion\": \"8.0.0\"\
+        ,\n      \"targets\": [\n        {\n          \"expr\": \"sum(kube_pod_container_status_restarts_total)\"\
+        ,\n          \"refId\": \"A\"\n        }\n      ],\n      \"title\": \"Pod Restarts\"\
+        ,\n      \"type\": \"stat\"\n    },\n    {\n      \"datasource\": \"${datasource}\"\
+        ,\n      \"fieldConfig\": {\n        \"defaults\": {\n          \"color\": {\n\
+        \            \"mode\": \"thresholds\"\n          },\n          \"mappings\": [],\n\
+        \          \"thresholds\": {\n            \"mode\": \"absolute\",\n          \
+        \  \"steps\": [\n              {\n                \"color\": \"red\",\n      \
+        \          \"value\": null\n              },\n              {\n              \
+        \  \"color\": \"yellow\",\n                \"value\": 1\n              },\n  \
+        \            {\n                \"color\": \"green\",\n                \"value\"\
+        : 2\n              }\n            ]\n          },\n          \"unit\": \"short\"\
+        \n        },\n        \"overrides\": []\n      },\n      \"gridPos\": {\n    \
+        \    \"h\": 8,\n        \"w\": 6,\n        \"x\": 18,\n        \"y\": 16\n   \
+        \   },\n      \"id\": 9,\n      \"options\": {\n        \"colorMode\": \"value\"\
+        ,\n        \"graphMode\": \"area\",\n        \"justifyMode\": \"auto\",\n    \
+        \    \"orientation\": \"auto\",\n        \"reduceOptions\": {\n          \"values\"\
+        : false,\n          \"calcs\": [\n            \"lastNotNull\"\n          ],\n\
+        \          \"fields\": \"\"\n        },\n        \"text\": {},\n        \"textMode\"\
+        : \"auto\"\n      },\n      \"pluginVersion\": \"8.0.0\",\n      \"targets\":\
+        \ [\n        {\n          \"expr\": \"sum(kube_node_status_condition{condition=\\\
+        \"Ready\\\", status=\\\"true\\\"})\",\n          \"refId\": \"A\"\n        }\n\
+        \      ],\n      \"title\": \"Nodes Ready\",\n      \"type\": \"stat\"\n    }\n\
+        \  ],\n  \"refresh\": \"10s\",\n  \"schemaVersion\": 27,\n  \"style\": \"dark\"\
+        ,\n  \"tags\": [\"kubernetes\", \"cluster\"],\n  \"templating\": {\n    \"list\"\
+        : [\n      {\n        \"current\": {\n          \"selected\": false,\n       \
+        \   \"text\": \"Prometheus\",\n          \"value\": \"Prometheus\"\n        },\n\
+        \        \"hide\": 0,\n        \"includeAll\": false,\n        \"label\": null,\n\
+        \        \"multi\": false,\n        \"name\": \"datasource\",\n        \"options\"\
+        : [],\n        \"query\": \"prometheus\",\n        \"refresh\": 1,\n        \"\
+        regex\": \"\",\n        \"skipUrlSync\": false,\n        \"type\": \"datasource\"\
+        \n      }\n    ]\n  },\n  \"time\": {\n    \"from\": \"now-6h\",\n    \"to\":\
+        \ \"now\"\n  },\n  \"timepicker\": {},\n  \"timezone\": \"\",\n  \"title\": \"\
+        Kubernetes Cluster Overview\",\n  \"uid\": \"kubernetes-cluster-overview\",\n\
+        \  \"version\": 0\n}"

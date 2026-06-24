@@ -113,6 +113,7 @@ import {
 	registerCreatureAnims,
 	resolveCreature,
 	APEX_PREDATOR,
+	DEBUG_CREATURE_DIRS,
 } from './entities/creatures';
 import {
 	preloadEnv,
@@ -603,6 +604,23 @@ export class IsoArpgScene extends Phaser.Scene {
 				return;
 			}
 
+			// Reclaim an owned placed object (campfire). Checked before isBlocked
+			// since the object occupies — and therefore blocks — its own tile.
+			const owned = this.store.at(tile.x, tile.y, this.myEid);
+			if (
+				owned &&
+				this.kinds.catName(this.store.kind(owned.serverEid)) ===
+					'env' &&
+				this.store.owner(owned.serverEid) === this.mySlot
+			) {
+				const d = Math.max(
+					Math.abs(this.predicted.x - tile.x),
+					Math.abs(this.predicted.y - tile.y),
+				);
+				if (d <= PLACE_RANGE) this.client?.pickupObject(tile);
+				return;
+			}
+
 			if (this.isBlocked(tile.x, tile.y)) return;
 			const hit = this.store.at(tile.x, tile.y, this.myEid);
 			if (hit && this.isHostileServer(hit.serverEid)) {
@@ -671,6 +689,21 @@ export class IsoArpgScene extends Phaser.Scene {
 						sprite: creatureSprite.sprite,
 						creature: creatureSprite.creature,
 					};
+					if (DEBUG_CREATURE_DIRS) {
+						refs.dbgText = this.add
+							.text(0, 0, '', {
+								fontFamily: 'monospace',
+								fontSize: '13px',
+								color: '#34d399',
+								stroke: '#000000',
+								strokeThickness: 4,
+							})
+							.setOrigin(0.5, 1)
+							.setDepth(DEPTH_UI + 2);
+						refs.dbgArrow = this.add
+							.graphics()
+							.setDepth(DEPTH_UI + 2);
+					}
 				} else if (this.kinds.catName(e.kind) === 'env') {
 					const envSprite = makeEnvSprite(
 						this,
@@ -721,6 +754,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.nameplate?.destroy();
 				refs.hpBar?.destroy();
 				refs.statusFx?.destroy();
+				refs.dbgText?.destroy();
+				refs.dbgArrow?.destroy();
 				refs.sprite.destroy();
 			},
 		};
@@ -1116,6 +1151,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
 			flashEntity(this, refs.sprite);
 		}
+
+		// Drive creature combat poses: the attacker swings (facing its target),
+		// the victim recoils. Death is left to the hp<=0 check in refreshHud.
+		const atk = this.store.refs(c.attacker);
+		if (atk?.creature && atk.sprite instanceof Phaser.GameObjects.Sprite) {
+			const a = this.store.tile(c.attacker);
+			const t = this.store.tile(c.target);
+			const face = a && t ? { dx: t.x - a.x, dy: t.y - a.y } : undefined;
+			setCreaturePose(atk.sprite, atk.creature, 'Attack1', face);
+		}
+		if (
+			refs.creature &&
+			refs.sprite instanceof Phaser.GameObjects.Sprite &&
+			!c.died
+		) {
+			setCreaturePose(refs.sprite, refs.creature, 'GetHit');
+		}
 	}
 
 	/**
@@ -1402,7 +1454,55 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.sprite instanceof Phaser.GameObjects.Sprite
 			) {
 				tickCreatureFacing(refs.sprite, refs.creature);
+				if (DEBUG_CREATURE_DIRS) this.drawCreatureDebug(refs);
 			}
+		}
+	}
+
+	/**
+	 * Debug overlay: a green arrow in the creature's TRUE screen heading
+	 * (targetDeg, straight from the movement delta) plus the sheet direction
+	 * block the code currently picked. If the body visually faces away from the
+	 * arrow, the art<->direction mapping in creatures.ts is off.
+	 */
+	private drawCreatureDebug(refs: EntityRefs) {
+		if (
+			!refs.creature ||
+			!(refs.sprite instanceof Phaser.GameObjects.Sprite)
+		)
+			return;
+		const sx = refs.sprite.x;
+		const sy = refs.sprite.y - refs.sprite.displayHeight * 0.45;
+		if (refs.dbgText) {
+			refs.dbgText.setText(
+				`${refs.creature.dir} ${Math.round(refs.creature.targetDeg)}°`,
+			);
+			refs.dbgText.setPosition(sx, sy - 14);
+		}
+		if (refs.dbgArrow) {
+			const rad = (refs.creature.targetDeg * Math.PI) / 180;
+			const vx = Math.sin(rad);
+			const vy = -Math.cos(rad);
+			const len = 34;
+			const ex = sx + vx * len;
+			const ey = sy + vy * len;
+			const g = refs.dbgArrow;
+			g.clear();
+			g.lineStyle(3, 0x34d399, 1);
+			g.beginPath();
+			g.moveTo(sx, sy);
+			g.lineTo(ex, ey);
+			g.strokePath();
+			// arrowhead
+			const ah = 8;
+			const a1 = rad + Math.PI * 0.85;
+			const a2 = rad - Math.PI * 0.85;
+			g.beginPath();
+			g.moveTo(ex, ey);
+			g.lineTo(ex + Math.sin(a1) * ah, ey - Math.cos(a1) * ah);
+			g.moveTo(ex, ey);
+			g.lineTo(ex + Math.sin(a2) * ah, ey - Math.cos(a2) * ah);
+			g.strokePath();
 		}
 	}
 

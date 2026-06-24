@@ -1,17 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: discordsh-service
-  namespace: discordsh
-  labels:
-    app: discordsh
-    tier: frontend
+    name: discordsh-service
+    namespace: discordsh
+    labels:
+        app: discordsh
+        tier: frontend
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
-  type: ClusterIP
-  selector:
-    app: discordsh
-  ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 4321
+    type: ClusterIP
+    selector:
+        app: discordsh
+    ports:
+        - name: http
+          protocol: TCP
+          port: 80
+          targetPort: 4321

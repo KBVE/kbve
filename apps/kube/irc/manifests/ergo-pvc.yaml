@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
     name: ergo-data-pvc
     namespace: irc
+    labels:
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     accessModes:
         - ReadWriteOnce

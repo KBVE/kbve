@@ -3,290 +3,93 @@ kind: ConfigMap
 metadata:
     name: kong-config
     namespace: kilobase
+    labels:
+        kbve.com/category: networking
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 data:
-    kong.yml: |
-        _format_version: '2.1'
-        _transform: true
-
-        ###
-        ### Global Plugins
-        ###
-        plugins:
-          - name: cors
-            config:
-              origins:
-                - https://([a-z0-9-]+\.)?discord\.sh
-                - https://([a-z0-9-]+\.)?meme\.sh
-                - https://([a-z0-9-]+\.)?kbve\.com
-                - https://([a-z0-9-]+\.)?chuckrpg\.com
-                - https://([a-z0-9-]+\.)?cryptothrone\.com
-                - http://localhost:4321
-                - http://localhost:3000
-                - http://localhost:3333
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-                - PATCH
-                - HEAD
-              headers:
-                - Accept
-                - Accept-Version
-                - Accept-Profile
-                - Content-Profile
-                - Authorization
-                - Content-Length
-                - Content-MD5
-                - Content-Type
-                - Date
-                - Origin
-                - User-Agent
-                - X-Auth-Token
-                - X-Requested-With
-                - x-client-info
-                - x-supabase-api-version
-                - apikey
-                - DNT
-                - Cache-Control
-                - X-Mx-ReqToken
-                - Keep-Alive
-                - If-Modified-Since
-                - Range
-              exposed_headers:
-                - "*"
-              credentials: true
-              max_age: 86400
-              preflight_continue: false
-
-        ###
-        ### Consumers / Users
-        ###
-        consumers:
-          - username: DASHBOARD
-          - username: anon
-            keyauth_credentials:
-              - key: ${anon_key}
-          - username: service_role
-            keyauth_credentials:
-              - key: ${service_key}
-
-        ###
-        ### Access Control List
-        ###
-        acls:
-          - consumer: anon
-            group: anon
-          - consumer: service_role
-            group: admin
-
-        ###
-        ### Dashboard credentials  
-        ###
-        basicauth_credentials:
-          - consumer: DASHBOARD
-            username: dashboard
-            password: ${secret}
-
-        ###
-        ### API Routes
-        ###
-        services:
-          ## Open Auth routes
-          - name: auth-v1-open
-            url: http://auth:9999/verify
-            routes:
-              - name: auth-v1-open
-                strip_path: true
-                paths:
-                  - /auth/v1/verify
-          - name: auth-v1-open-callback
-            url: http://auth:9999/callback
-            routes:
-              - name: auth-v1-open-callback
-                strip_path: true
-                paths:
-                  - /auth/v1/callback
-          - name: auth-v1-open-authorize
-            url: http://auth:9999/authorize
-            routes:
-              - name: auth-v1-open-authorize
-                strip_path: true
-                paths:
-                  - /auth/v1/authorize
-
-          ## Secure Auth routes
-          - name: auth-v1
-            _comment: 'GoTrue: /auth/v1/* -> http://auth:9999/*'
-            url: http://auth:9999/
-            routes:
-              - name: auth-v1-all
-                strip_path: true
-                paths:
-                  - /auth/v1/
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: false
-                  run_on_preflight: false
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-                    - anon
-
-          ## Secure REST routes
-          - name: rest-v1
-            _comment: 'PostgREST: /rest/v1/* -> http://rest:3000/*'
-            url: http://rest:3000/
-            routes:
-              - name: rest-v1-all
-                strip_path: true
-                paths:
-                  - /rest/v1/
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: true
-                  run_on_preflight: false
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-                    - anon
-
-          ## Secure GraphQL routes
-          - name: graphql-v1
-            _comment: 'PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql'
-            url: http://rest:3000/rpc/graphql
-            routes:
-              - name: graphql-v1-all
-                strip_path: true
-                paths:
-                  - /graphql/v1
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: true
-                  run_on_preflight: false
-              - name: request-transformer
-                config:
-                  add:
-                    headers:
-                      - Content-Profile:graphql_public
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-                    - anon
-
-          ## Secure Realtime routes
-          - name: realtime-v1-ws
-            _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
-            url: http://realtime-prod:4000/socket
-            protocol: ws
-            routes:
-              - name: realtime-v1-ws
-                strip_path: true
-                paths:
-                  - /realtime/v1/
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: false
-                  run_on_preflight: false
-                  
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-                    - anon
-          - name: realtime-v1-rest
-            _comment: 'Realtime: /realtime/v1/api/* -> http://realtime:4000/api/*'
-            url: http://realtime-prod:4000/api
-            protocol: http
-            routes:
-              - name: realtime-v1-rest
-                strip_path: true
-                paths:
-                  - /realtime/v1/api
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: false
-                  run_on_preflight: false
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-                    - anon
-
-          ## Storage routes: the storage server manages its own auth
-          - name: storage-v1
-            _comment: 'Storage: /storage/v1/* -> http://storage:5000/*'
-            url: http://storage:5000/
-            routes:
-              - name: storage-v1-all
-                strip_path: true
-                paths:
-                  - /storage/v1/
-
-          ## Edge Functions routes
-          - name: functions-v1
-            _comment: 'Edge Functions: /functions/v1/* -> http://functions:9000/*'
-            url: http://functions:9000/
-            routes:
-              - name: functions-v1-all
-                strip_path: true
-                paths:
-                  - /functions/v1/
-
-          ## Analytics routes
-          - name: analytics-v1
-            _comment: 'Analytics: /analytics/v1/* -> http://analytics:4000/*'
-            url: http://analytics:4000/
-            routes:
-              - name: analytics-v1-all
-                strip_path: true
-                paths:
-                  - /analytics/v1/
-
-          ## Secure Database routes
-          - name: meta
-            _comment: 'pg-meta: /pg/* -> http://meta:8080/*'
-            url: http://meta:8080/
-            routes:
-              - name: meta-all
-                strip_path: true
-                paths:
-                  - /pg/
-            plugins:
-              - name: key-auth
-                config:
-                  hide_credentials: false
-                  run_on_preflight: false
-              - name: acl
-                config:
-                  hide_groups_header: true
-                  allow:
-                    - admin
-
-          ## Protected Dashboard - catch all remaining routes
-          - name: dashboard
-            _comment: 'Studio: /* -> http://studio:3000/*'
-            url: http://studio:3000/
-            routes:
-              - name: dashboard-all
-                strip_path: true
-                paths:
-                  - /
-            plugins:
-              - name: basic-auth
-                config:
-                  hide_credentials: true
+    kong.yml:
+        "_format_version: '2.1'\n_transform: true\n\n###\n### Global Plugins\n\
+        ###\nplugins:\n  - name: cors\n    config:\n      origins:\n        - https://([a-z0-9-]+\\\
+        .)?discord\\.sh\n        - https://([a-z0-9-]+\\.)?meme\\.sh\n        - https://([a-z0-9-]+\\\
+        .)?kbve\\.com\n        - https://([a-z0-9-]+\\.)?chuckrpg\\.com\n        - https://([a-z0-9-]+\\\
+        .)?cryptothrone\\.com\n        - http://localhost:4321\n        - http://localhost:3000\n\
+        \        - http://localhost:3333\n      methods:\n        - GET\n        - POST\n\
+        \        - PUT\n        - DELETE\n        - OPTIONS\n        - PATCH\n       \
+        \ - HEAD\n      headers:\n        - Accept\n        - Accept-Version\n       \
+        \ - Accept-Profile\n        - Content-Profile\n        - Authorization\n     \
+        \   - Content-Length\n        - Content-MD5\n        - Content-Type\n        -\
+        \ Date\n        - Origin\n        - User-Agent\n        - X-Auth-Token\n     \
+        \   - X-Requested-With\n        - x-client-info\n        - x-supabase-api-version\n\
+        \        - apikey\n        - DNT\n        - Cache-Control\n        - X-Mx-ReqToken\n\
+        \        - Keep-Alive\n        - If-Modified-Since\n        - Range\n      exposed_headers:\n\
+        \        - \"*\"\n      credentials: true\n      max_age: 86400\n      preflight_continue:\
+        \ false\n\n###\n### Consumers / Users\n###\nconsumers:\n  - username: DASHBOARD\n\
+        \  - username: anon\n    keyauth_credentials:\n      - key: ${anon_key}\n  - username:\
+        \ service_role\n    keyauth_credentials:\n      - key: ${service_key}\n\n###\n\
+        ### Access Control List\n###\nacls:\n  - consumer: anon\n    group: anon\n  -\
+        \ consumer: service_role\n    group: admin\n\n###\n### Dashboard credentials \
+        \ \n###\nbasicauth_credentials:\n  - consumer: DASHBOARD\n    username: dashboard\n\
+        \    password: ${secret}\n\n###\n### API Routes\n###\nservices:\n  ## Open Auth\
+        \ routes\n  - name: auth-v1-open\n    url: http://auth:9999/verify\n    routes:\n\
+        \      - name: auth-v1-open\n        strip_path: true\n        paths:\n      \
+        \    - /auth/v1/verify\n  - name: auth-v1-open-callback\n    url: http://auth:9999/callback\n\
+        \    routes:\n      - name: auth-v1-open-callback\n        strip_path: true\n\
+        \        paths:\n          - /auth/v1/callback\n  - name: auth-v1-open-authorize\n\
+        \    url: http://auth:9999/authorize\n    routes:\n      - name: auth-v1-open-authorize\n\
+        \        strip_path: true\n        paths:\n          - /auth/v1/authorize\n\n\
+        \  ## Secure Auth routes\n  - name: auth-v1\n    _comment: 'GoTrue: /auth/v1/*\
+        \ -> http://auth:9999/*'\n    url: http://auth:9999/\n    routes:\n      - name:\
+        \ auth-v1-all\n        strip_path: true\n        paths:\n          - /auth/v1/\n\
+        \    plugins:\n      - name: key-auth\n        config:\n          hide_credentials:\
+        \ false\n          run_on_preflight: false\n      - name: acl\n        config:\n\
+        \          hide_groups_header: true\n          allow:\n            - admin\n \
+        \           - anon\n\n  ## Secure REST routes\n  - name: rest-v1\n    _comment:\
+        \ 'PostgREST: /rest/v1/* -> http://rest:3000/*'\n    url: http://rest:3000/\n\
+        \    routes:\n      - name: rest-v1-all\n        strip_path: true\n        paths:\n\
+        \          - /rest/v1/\n    plugins:\n      - name: key-auth\n        config:\n\
+        \          hide_credentials: true\n          run_on_preflight: false\n      -\
+        \ name: acl\n        config:\n          hide_groups_header: true\n          allow:\n\
+        \            - admin\n            - anon\n\n  ## Secure GraphQL routes\n  - name:\
+        \ graphql-v1\n    _comment: 'PostgREST: /graphql/v1/* -> http://rest:3000/rpc/graphql'\n\
+        \    url: http://rest:3000/rpc/graphql\n    routes:\n      - name: graphql-v1-all\n\
+        \        strip_path: true\n        paths:\n          - /graphql/v1\n    plugins:\n\
+        \      - name: key-auth\n        config:\n          hide_credentials: true\n \
+        \         run_on_preflight: false\n      - name: request-transformer\n       \
+        \ config:\n          add:\n            headers:\n              - Content-Profile:graphql_public\n\
+        \      - name: acl\n        config:\n          hide_groups_header: true\n    \
+        \      allow:\n            - admin\n            - anon\n\n  ## Secure Realtime\
+        \ routes\n  - name: realtime-v1-ws\n    _comment: 'Realtime: /realtime/v1/* ->\
+        \ ws://realtime:4000/socket/*'\n    url: http://realtime-prod:4000/socket\n  \
+        \  protocol: ws\n    routes:\n      - name: realtime-v1-ws\n        strip_path:\
+        \ true\n        paths:\n          - /realtime/v1/\n    plugins:\n      - name:\
+        \ key-auth\n        config:\n          hide_credentials: false\n          run_on_preflight:\
+        \ false\n          \n      - name: acl\n        config:\n          hide_groups_header:\
+        \ true\n          allow:\n            - admin\n            - anon\n  - name: realtime-v1-rest\n\
+        \    _comment: 'Realtime: /realtime/v1/api/* -> http://realtime:4000/api/*'\n\
+        \    url: http://realtime-prod:4000/api\n    protocol: http\n    routes:\n   \
+        \   - name: realtime-v1-rest\n        strip_path: true\n        paths:\n     \
+        \     - /realtime/v1/api\n    plugins:\n      - name: key-auth\n        config:\n\
+        \          hide_credentials: false\n          run_on_preflight: false\n      -\
+        \ name: acl\n        config:\n          hide_groups_header: true\n          allow:\n\
+        \            - admin\n            - anon\n\n  ## Storage routes: the storage server\
+        \ manages its own auth\n  - name: storage-v1\n    _comment: 'Storage: /storage/v1/*\
+        \ -> http://storage:5000/*'\n    url: http://storage:5000/\n    routes:\n    \
+        \  - name: storage-v1-all\n        strip_path: true\n        paths:\n        \
+        \  - /storage/v1/\n\n  ## Edge Functions routes\n  - name: functions-v1\n    _comment:\
+        \ 'Edge Functions: /functions/v1/* -> http://functions:9000/*'\n    url: http://functions:9000/\n\
+        \    routes:\n      - name: functions-v1-all\n        strip_path: true\n     \
+        \   paths:\n          - /functions/v1/\n\n  ## Analytics routes\n  - name: analytics-v1\n\
+        \    _comment: 'Analytics: /analytics/v1/* -> http://analytics:4000/*'\n    url:\
+        \ http://analytics:4000/\n    routes:\n      - name: analytics-v1-all\n      \
+        \  strip_path: true\n        paths:\n          - /analytics/v1/\n\n  ## Secure\
+        \ Database routes\n  - name: meta\n    _comment: 'pg-meta: /pg/* -> http://meta:8080/*'\n\
+        \    url: http://meta:8080/\n    routes:\n      - name: meta-all\n        strip_path:\
+        \ true\n        paths:\n          - /pg/\n    plugins:\n      - name: key-auth\n\
+        \        config:\n          hide_credentials: false\n          run_on_preflight:\
+        \ false\n      - name: acl\n        config:\n          hide_groups_header: true\n\
+        \          allow:\n            - admin\n\n  ## Protected Dashboard - catch all\
+        \ remaining routes\n  - name: dashboard\n    _comment: 'Studio: /* -> http://studio:3000/*'\n\
+        \    url: http://studio:3000/\n    routes:\n      - name: dashboard-all\n    \
+        \    strip_path: true\n        paths:\n          - /\n    plugins:\n      - name:\
+        \ basic-auth\n        config:\n          hide_credentials: true\n"

@@ -5,6 +5,9 @@ metadata:
     namespace: monitoring
     labels:
         app: grafana-gate
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

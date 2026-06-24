@@ -5,9 +5,12 @@ metadata:
     namespace: kbve
     labels:
         app: metrics
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
     annotations:
         reloader.stakater.com/auto: 'true'
-        secret.reloader.stakater.com/reload: 'clickhouse-credentials,supabase-shared'
+        secret.reloader.stakater.com/reload: clickhouse-credentials,supabase-shared
 spec:
     replicas: 1
     selector:
@@ -19,10 +22,10 @@ spec:
                 rollout-restart: '2026-06-20T00:00:00Z'
                 prometheus.io/scrape: 'true'
                 prometheus.io/port: '9090'
-                prometheus.io/path: '/metrics'
+                prometheus.io/path: /metrics
             labels:
                 app: metrics
-                version: '0.1.0'
+                version: 0.1.0
         spec:
             serviceAccountName: metrics-sa
             automountServiceAccountToken: false
@@ -46,21 +49,21 @@ spec:
                         protocol: TCP
                   env:
                       - name: APP_VERSION
-                        value: '0.1.4'
+                        value: 0.1.4
                       - name: METRICS_PROMETHEUS_PORT
                         value: '9090'
                       - name: HTTP_HOST
-                        value: '0.0.0.0'
+                        value: 0.0.0.0
                       - name: HTTP_PORT
                         value: '5500'
                       - name: RUST_LOG
-                        value: 'met=info,tower_http=warn'
+                        value: met=info,tower_http=warn
                       - name: CLICKHOUSE_DATABASE
-                        value: 'telemetry'
+                        value: telemetry
                       - name: METRICS_ERRORS_TABLE
-                        value: 'errors_distributed'
+                        value: errors_distributed
                       - name: METRICS_ALLOWED_ORIGINS
-                        value: 'https://kbve.com,https://www.kbve.com,https://jobs.kbve.com'
+                        value: https://kbve.com,https://www.kbve.com,https://jobs.kbve.com
                       - name: METRICS_RATE_LIMIT_PER_MIN
                         value: '120'
                       - name: CLICKHOUSE_ENDPOINT
@@ -79,7 +82,7 @@ spec:
                                 name: clickhouse-credentials
                                 key: password
                       - name: SUPABASE_URL
-                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                        value: http://kong.kilobase.svc.cluster.local:8000
                       - name: SUPABASE_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
@@ -101,11 +104,11 @@ spec:
                       timeoutSeconds: 3
                   resources:
                       requests:
-                          memory: '64Mi'
-                          cpu: '50m'
+                          memory: 64Mi
+                          cpu: 50m
                       limits:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
@@ -127,6 +130,9 @@ metadata:
     namespace: kbve
     labels:
         app: metrics
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

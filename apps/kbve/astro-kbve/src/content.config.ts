@@ -139,6 +139,9 @@ const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 			maps: z.array(z.string().min(1).max(128)).max(50).optional(),
 			game_mode: z.string().min(1).max(256).optional(),
 			custom_config: z.string().min(1).max(128).optional(),
+			// UE Shipping logging toggle ("1" keeps UE_LOG in Shipping cooks;
+			// default UE strips it). Threaded to ci-unreal-build.yml cook steps.
+			use_logging_in_shipping: z.enum(['0', '1']).optional(),
 		})
 		.optional(),
 	external_publish: ExternalPublishInline,

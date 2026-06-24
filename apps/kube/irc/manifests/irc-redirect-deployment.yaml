@@ -5,6 +5,9 @@ metadata:
     namespace: irc
     labels:
         app: irc-redirect
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     selector:
@@ -32,11 +35,11 @@ spec:
                         readOnly: true
                   resources:
                       requests:
-                          memory: '16Mi'
-                          cpu: '10m'
+                          memory: 16Mi
+                          cpu: 10m
                       limits:
-                          memory: '64Mi'
-                          cpu: '50m'
+                          memory: 64Mi
+                          cpu: 50m
                   livenessProbe:
                       httpGet:
                           path: /
@@ -67,6 +70,9 @@ metadata:
     namespace: irc
     labels:
         app: irc-redirect
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

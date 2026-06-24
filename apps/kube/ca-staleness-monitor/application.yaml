@@ -3,6 +3,14 @@ kind: Application
 metadata:
     name: ca-staleness-monitor
     namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/ca-staleness-monitor
+        kbve.com/manifest-path: apps/kube/ca-staleness-monitor/manifests
+        kbve.com/application-file: kube/ca-staleness-monitor/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
 spec:
     project: default
     source:

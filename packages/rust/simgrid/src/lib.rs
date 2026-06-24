@@ -21,9 +21,10 @@ pub use grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairLink, Stai
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use sim::{
     Aggro, AggroSpec, Blocker, BuffEffects, BuffSpec, CombatStats, ConsumableEffects, Defense,
-    DeployableSpec, Deployables, EntityKind, EnvObject, EnvOpts, EquipBonus, EquipmentEffects,
-    Equipped, HazardZone, HealAura, Health, Inventory, ItemPrices, Loot, NpcLevel, NpcSpec,
-    PlayerSlotTag, PlayerStore, RespawnOnDeath, SIM_TICK_HZ, ShopStock, SimClock, SimConfig,
-    SimSeed, SimSet, StatusEffect, StatusEffects, Wander, XpState, build_app, ground_item_bundle,
-    level_attack, level_max_hp, run_sim_loop, spawn_env_object, spawn_npc_from_spec, xp_to_next,
+    DeployableSpec, Deployables, EntityKind, EnvObject, EnvOpts, EnvPersistSink, EquipBonus,
+    EquipmentEffects, Equipped, HazardZone, HealAura, Health, Inventory, ItemPrices, Loot,
+    NpcLevel, NpcSpec, PersistedEnvLog, PersistedEnvObject, PlayerSlotTag, PlayerStore,
+    RespawnOnDeath, SIM_TICK_HZ, ShopStock, SimClock, SimConfig, SimSeed, SimSet, StatusEffect,
+    StatusEffects, Wander, XpState, build_app, ground_item_bundle, level_attack, level_max_hp,
+    run_sim_loop, spawn_env_object, spawn_npc_from_spec, xp_to_next,
 };

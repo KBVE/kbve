@@ -5,6 +5,9 @@ metadata:
     namespace: angelscript
     labels:
         app: angelscript
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

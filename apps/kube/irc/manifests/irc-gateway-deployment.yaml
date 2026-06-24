@@ -5,6 +5,9 @@ metadata:
     namespace: irc
     labels:
         app: irc-gateway
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     replicas: 1
     selector:
@@ -16,7 +19,7 @@ spec:
                 rollout-restart: '2026-06-14T15:27:33Z'
             labels:
                 app: irc-gateway
-                version: '0.1.25'
+                version: 0.1.25
         spec:
             containers:
                 - name: irc-gateway
@@ -35,9 +38,9 @@ spec:
                       - name: IRC_PROXY_PORT
                         value: '6667'
                       - name: ERGO_WS_URL
-                        value: 'ws://ergo-irc-service.irc.svc.cluster.local:8080'
+                        value: ws://ergo-irc-service.irc.svc.cluster.local:8080
                       - name: ERGO_IRC_HOST
-                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                        value: ergo-irc-service.irc.svc.cluster.local
                       - name: ERGO_IRC_PORT
                         value: '6667'
                       - name: JWT_SECRET
@@ -45,9 +48,6 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: jwt-secret
-                      # KBVE_KV_URL (jedi KvCache -> Valkey) for shared anti-spam counters.
-                      # Optional so the pod boots before the ExternalSecret renders; the
-                      # limiter falls back to its in-process window until then.
                       - name: KBVE_KV_URL
                         valueFrom:
                             secretKeyRef:
@@ -56,11 +56,11 @@ spec:
                                 optional: true
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '500m'
+                          memory: 256Mi
+                          cpu: 500m
                       limits:
-                          memory: '512Mi'
-                          cpu: '1000m'
+                          memory: 512Mi
+                          cpu: 1000m
 ---
 apiVersion: v1
 kind: Service
@@ -69,6 +69,9 @@ metadata:
     namespace: irc
     labels:
         app: irc-gateway
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:

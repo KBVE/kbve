@@ -6,6 +6,9 @@ metadata:
     labels:
         app: supabase-analytics
         component: analytics
+        kbve.com/category: observability
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
     annotations:
         kbve.sh/last-updated: '2026-03-16'
 spec:
@@ -25,11 +28,15 @@ spec:
                   command:
                       - sh
                       - -c
-                      - |
-                          echo "Copying tzdata from base image..."
-                          cp -r /opt/app/rel/logflare/lib/tzdata-1.1.3/priv/* /tzdata-cache/
-                          echo "Tzdata init completed"
-                          ls -la /tzdata-cache/
+                      - 'echo "Copying tzdata from base image..."
+
+                        cp -r /opt/app/rel/logflare/lib/tzdata-1.1.3/priv/* /tzdata-cache/
+
+                        echo "Tzdata init completed"
+
+                        ls -la /tzdata-cache/
+
+                        '
                   volumeMounts:
                       - name: tzdata-cache
                         mountPath: /tzdata-cache
@@ -48,61 +55,40 @@ spec:
                       - containerPort: 4000
                         name: http
                   env:
-                      # Basic Logflare configuration
                       - name: LOGFLARE_NODE_HOST
-                        value: '127.0.0.1'
-
-                      # Database configuration for metadata
+                        value: 127.0.0.1
                       - name: DB_USERNAME
-                        value: 'supabase_admin'
+                        value: supabase_admin
                       - name: DB_DATABASE
-                        value: '_supabase'
+                        value: _supabase
                       - name: DB_HOSTNAME
-                        value: 'supabase-cluster-rw'
+                        value: supabase-cluster-rw
                       - name: DB_PORT
                         value: '5432'
                       - name: DB_SCHEMA
-                        value: '_analytics'
-
-                      # Supabase mode configuration
+                        value: _analytics
                       - name: LOGFLARE_SINGLE_TENANT
                         value: 'true'
                       - name: LOGFLARE_SUPABASE_MODE
                         value: 'true'
                       - name: LOGFLARE_MIN_CLUSTER_SIZE
                         value: '1'
-
-                      # PostgreSQL backend for analytics data
                       - name: POSTGRES_BACKEND_SCHEMA
-                        value: '_analytics'
+                        value: _analytics
                       - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
-                        value: 'multibackend=true'
-
-                      # Disable BigQuery backend - use PostgreSQL only
-                      # - name: LOGFLARE_GOOGLE_PROJECT_ID
-                      #   value: ""
-                      # - name: LOGFLARE_GOOGLE_PROJECT_NUMBER
-                      #   value: ""
-                      # - name: GOOGLE_APPLICATION_CREDENTIALS
-                      #   value: ""
+                        value: multibackend=true
                       - name: LOGFLARE_BACKEND
-                        value: 'postgres'
-
-                      # PostgreSQL backend URL from sealed secret
+                        value: postgres
                       - name: POSTGRES_BACKEND_URL
                         valueFrom:
                             secretKeyRef:
                                 name: logflare-postgres
                                 key: postgres-backend-url
-
-                      # Required encryption key for sensitive data
                       - name: LOGFLARE_DB_ENCRYPTION_KEY
                         valueFrom:
                             secretKeyRef:
                                 name: logflare-config
                                 key: encryption-key
-
-                      # Access tokens for single-tenant mode
                       - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
                         valueFrom:
                             secretKeyRef:
@@ -113,17 +99,11 @@ spec:
                             secretKeyRef:
                                 name: logflare-config
                                 key: private-access-token
-
-                      # Password from secret
                       - name: DB_PASSWORD
                         valueFrom:
                             secretKeyRef:
                                 name: supabase-superuser
                                 key: password
-
-                  # Remove POSTGRES_BACKEND_URL and let Logflare use DB_* variables
-
-                  # Health check
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -132,7 +112,6 @@ spec:
                       periodSeconds: 30
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   readinessProbe:
                       httpGet:
                           path: /health
@@ -141,19 +120,16 @@ spec:
                       periodSeconds: 10
                       timeoutSeconds: 5
                       failureThreshold: 3
-
                   resources:
                       requests:
-                          memory: '256Mi'
-                          cpu: '200m'
+                          memory: 256Mi
+                          cpu: 200m
                       limits:
-                          memory: '1Gi'
-                          cpu: '1000m'
-
+                          memory: 1Gi
+                          cpu: 1000m
                   volumeMounts:
                       - name: tzdata-cache
                         mountPath: /opt/app/rel/logflare/lib/tzdata-1.1.3/priv
-
                   securityContext:
                       runAsNonRoot: true
                       runAsUser: 1000
@@ -164,14 +140,11 @@ spec:
                               - ALL
                       seccompProfile:
                           type: RuntimeDefault
-
             volumes:
                 - name: tzdata-cache
                   emptyDir: {}
-
             securityContext:
                 fsGroup: 1000
-
 ---
 apiVersion: v1
 kind: Service
@@ -181,6 +154,9 @@ metadata:
     labels:
         app: supabase-analytics
         component: analytics
+        kbve.com/category: observability
+        kbve.com/stack: supabase
+        kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     ports:
