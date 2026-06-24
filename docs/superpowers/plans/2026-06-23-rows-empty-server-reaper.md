@@ -4,7 +4,9 @@
 
 **Goal:** Make ROWS automatically tear down empty/abandoned Agones zone servers, so allocated GameServers stop piling up for days.
 
-**Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap *action* reuses the existing `status=0` → `stale_zone_cleanup` → `deallocate` path. A persisted `gameservername` makes teardown survive ROWS restarts. The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.
+**Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap *action* deallocates the GameServer (failure leaves the row reap-eligible so the next cycle retries). The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.
+
+**⚠️ Safety / sequencing (do not skip):** ROWS has **no real occupancy signal until heartbeats are live** — without them `numberofreportedplayers` is permanently `0` and `lastupdatefromserver` permanently `NULL` for every instance, so a full server is indistinguishable from a dead one (and `join_map` routes players onto the oldest, lowest-count instance — the first to cross any age threshold). Therefore: **the reaper ships gated OFF by default. The count-based (`Empty`) path is only meaningful once the heartbeat is live; the time-based (`NeverReported`) path is independently gated and must stay off until the heartbeat is confirmed live in the target env, or it will deallocate populated servers ~`boot_grace` after spawn.** Until then, stuck servers are cleared manually (`kubectl delete gs`). Phase 1 builds the machinery inert; Phase 2 + the UE heartbeat make it safe to enable.
 
 **Tech Stack:** Rust, axum, sqlx (runtime queries, Postgres), tokio, Agones via kube; dbmate migrations under `packages/data/sql`.
 
@@ -34,7 +36,7 @@
 
 ---
 
-## Phase 1 — Safety-net reaper (ships alone, fixes today's stuck servers, no UE dependency)
+## Phase 1 — Reaper machinery (ships gated OFF; safe to enable only after the heartbeat is live)
 
 ### Task 1: Pure reap-decision function
 
@@ -45,7 +47,8 @@
 
 **Interfaces:**
 - Produces: `pub enum ReapReason { NeverReported, Empty }` and
-  `pub fn reap_decision(player_count: i32, last_update_from_server: Option<NaiveDateTime>, last_server_empty_date: Option<NaiveDateTime>, create_date: Option<NaiveDateTime>, minutes_to_shutdown_after_empty: i32, boot_grace_secs: i64, empty_buffer_secs: i64, now: NaiveDateTime) -> Option<ReapReason>`
+  `pub fn reap_decision(player_count: i32, last_update_from_server: Option<NaiveDateTime>, last_server_empty_date: Option<NaiveDateTime>, create_date: Option<NaiveDateTime>, minutes_to_shutdown_after_empty: i32, boot_grace_secs: i64, empty_buffer_secs: i64, allow_never_reported: bool, now: NaiveDateTime) -> Option<ReapReason>`
+- `allow_never_reported` independently gates the time-based path (see safety note); pass `false` until the heartbeat is confirmed live.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -69,13 +72,22 @@ mod tests {
         NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").unwrap()
     }
 
-    // never-reported: NULL last_update, created longer ago than boot grace -> reap
+    // never-reported allowed: NULL last_update, created longer ago than boot grace -> reap
     #[test]
-    fn never_reported_past_grace_is_reaped() {
+    fn never_reported_past_grace_is_reaped_when_allowed() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:40:00"); // 20 min ago
-        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, now);
+        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, true, now);
         assert_eq!(d, Some(ReapReason::NeverReported));
+    }
+
+    // never-reported but gating OFF -> keep (the dangerous default; protects populated servers)
+    #[test]
+    fn never_reported_is_kept_when_gated_off() {
+        let now = ts("2026-06-23 12:00:00");
+        let created = ts("2026-06-23 11:40:00"); // 20 min ago, well past grace
+        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, false, now);
+        assert_eq!(d, None);
     }
 
     // never-reported but still inside boot grace -> keep
@@ -83,16 +95,16 @@ mod tests {
     fn never_reported_within_grace_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:55:00"); // 5 min ago, grace 10 min
-        let d = reap_decision(0, None, Some(ts("2026-06-23 11:55:00")), Some(created), 1, 600, 30, now);
+        let d = reap_decision(0, None, Some(ts("2026-06-23 11:55:00")), Some(created), 1, 600, 30, true, now);
         assert_eq!(d, None);
     }
 
-    // empty long enough past minutes+buffer -> reap
+    // empty long enough past minutes+buffer -> reap (count-based, independent of never-reported gate)
     #[test]
     fn empty_past_timeout_is_reaped() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; 1 min(60s)+30s buffer = 90s
-        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, false, now);
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
@@ -101,7 +113,7 @@ mod tests {
     fn empty_within_timeout_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:59:30"); // empty 30s < 90s
-        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, false, now);
         assert_eq!(d, None);
     }
 
@@ -109,7 +121,7 @@ mod tests {
     #[test]
     fn populated_is_never_reaped() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(5, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        let d = reap_decision(5, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, true, now);
         assert_eq!(d, None);
     }
 
@@ -117,7 +129,7 @@ mod tests {
     #[test]
     fn zero_players_without_empty_marker_is_kept() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(0, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        let d = reap_decision(0, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, true, now);
         assert_eq!(d, None);
     }
 }
@@ -143,6 +155,7 @@ pub fn reap_decision(
     minutes_to_shutdown_after_empty: i32,
     boot_grace_secs: i64,
     empty_buffer_secs: i64,
+    allow_never_reported: bool,
     now: NaiveDateTime,
 ) -> Option<ReapReason> {
     // A populated server is never reaped here.
@@ -151,10 +164,14 @@ pub fn reap_decision(
     }
 
     // Layer 4: never heard from it, and it's older than the boot grace window.
+    // GATED: without a live heartbeat, *every* instance looks never-reported (including full
+    // ones), so this stays off until heartbeats are confirmed live in the target env.
     if last_update_from_server.is_none() {
-        if let Some(created) = create_date {
-            if (now - created).num_seconds() > boot_grace_secs {
-                return Some(ReapReason::NeverReported);
+        if allow_never_reported {
+            if let Some(created) = create_date {
+                if (now - created).num_seconds() > boot_grace_secs {
+                    return Some(ReapReason::NeverReported);
+                }
             }
         }
         return None;
@@ -181,7 +198,7 @@ pub mod reaper;
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `cd apps/rows && cargo test reaper:: 2>&1 | tail -20`
-Expected: PASS — 6 passed.
+Expected: PASS — 7 passed.
 
 - [ ] **Step 5: Commit**
 
@@ -198,7 +215,12 @@ git commit -m "feat(rows): pure reap-decision policy for empty/abandoned zone se
 - Modify: `apps/rows/src/config.rs`
 
 **Interfaces:**
-- Produces: two fields on the app config — `empty_reap_boot_grace_secs: i64` (default `600`) and `empty_reap_buffer_secs: i64` (default `30`) — read from env `ROWS_EMPTY_REAP_BOOT_GRACE_SECS` / `ROWS_EMPTY_REAP_BUFFER_SECS`.
+- Produces four fields on the app config:
+  - `empty_reaper_enabled: bool` (default **`false`** — master kill switch; the whole reaper loop no-ops when off)
+  - `reap_never_reported: bool` (default **`false`** — independently gates the time-based path; keep off until the heartbeat is confirmed live)
+  - `empty_reap_boot_grace_secs: i64` (default **`14400`** = 4h, not 10 min)
+  - `empty_reap_buffer_secs: i64` (default `30`)
+- Env: `ROWS_EMPTY_REAPER_ENABLED`, `ROWS_REAP_NEVER_REPORTED`, `ROWS_EMPTY_REAP_BOOT_GRACE_SECS`, `ROWS_EMPTY_REAP_BUFFER_SECS`.
 
 - [ ] **Step 1: Read the existing config struct and its env-parse site**
 
@@ -210,24 +232,34 @@ Expected: see the config struct fields and the `from_env`/builder that uses `std
 Add to the config struct (next to the existing numeric fields):
 
 ```rust
+    pub empty_reaper_enabled: bool,
+    pub reap_never_reported: bool,
     pub empty_reap_boot_grace_secs: i64,
     pub empty_reap_buffer_secs: i64,
 ```
 
-Populate them where the struct is built from env (next to the port parsing), using the established `std::env::var(...).ok().and_then(|v| v.parse().ok()).unwrap_or(default)` idiom:
+Populate them where the struct is built from env (next to the port parsing), using the established `std::env::var(...).ok().and_then(|v| v.parse().ok()).unwrap_or(default)` idiom. Booleans default **off**:
 
 ```rust
+    let empty_reaper_enabled = std::env::var("ROWS_EMPTY_REAPER_ENABLED")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(false);
+    let reap_never_reported = std::env::var("ROWS_REAP_NEVER_REPORTED")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(false);
     let empty_reap_boot_grace_secs = std::env::var("ROWS_EMPTY_REAP_BOOT_GRACE_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(600);
+        .unwrap_or(14400);
     let empty_reap_buffer_secs = std::env::var("ROWS_EMPTY_REAP_BUFFER_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(30);
 ```
 
-…and pass both into the struct literal that the builder returns.
+…and pass all four into the struct literal that the builder returns.
 
 - [ ] **Step 3: Verify it compiles**
 
@@ -243,7 +275,9 @@ git commit -m "feat(rows): add empty-reaper boot-grace and buffer config knobs"
 
 ---
 
-### Task 3: Persist `gameservername` on `mapinstances`
+### Task 3: Persist `gameservername` on `mapinstances` (label-independent teardown fallback)
+
+> Rationale: `main.rs:138` already rehydrates `zone_servers` on startup via `reconcile_allocations()` (`sdk.rs:266`), but that maps GameServers back to instances using the `ows.kbve.com/zone-instance` **label** — which is written `0` at allocation and only patched by the best-effort `tag_gameserver` (the #13192 hardening gap). When that label is `0`/missing, reconcile can't recover the instance and the reaper's in-memory lookup misses. The persisted `gameservername` is the label-independent fallback the reaper consults (Task 5). It is **not** "the only restart-recovery" — it's the backstop for unreliable labels.
 
 **Files:**
 - Create: `packages/data/sql/dbmate/migrations/<ts>_ows_mapinstance_gameservername.sql`
@@ -264,16 +298,13 @@ SET search_path TO ows;
 
 ALTER TABLE MapInstances ADD COLUMN IF NOT EXISTS GameServerName VARCHAR(253) NULL;
 
--- Supports gs-name -> instance lookup for restart-safe teardown.
-CREATE INDEX IF NOT EXISTS idx_mapinstances_gameservername
-    ON MapInstances (CustomerGUID, GameServerName);
-
 -- migrate:down
 SET search_path TO ows;
 
-DROP INDEX IF EXISTS ows.idx_mapinstances_gameservername;
 ALTER TABLE MapInstances DROP COLUMN IF EXISTS GameServerName;
 ```
+
+> No index: the only reader (`get_gameserver_name`) queries by the PK `(CustomerGUID, MapInstanceID)`. A `(CustomerGUID, GameServerName)` index would only be justified by a gs-name→instance lookup, which nothing does — don't add it speculatively (YAGNI).
 
 - [ ] **Step 2: Mirror it in the reference schema file**
 
@@ -366,7 +397,7 @@ git commit -m "feat(rows): persist gameservername on mapinstances for restart-sa
 **Interfaces:**
 - Produces:
   - `InstanceRepo::get_active_reap_candidates(&self, customer_guid: Uuid) -> Result<Vec<ZoneInstance>, RowsError>` — active (`status > 0`) instances with the `maps` join, capped at 500.
-  - `InstanceRepo::get_gameserver_name(&self, customer_guid: Uuid, map_instance_id: i32) -> Result<Option<String>, RowsError>` — DB fallback when the in-memory `zone_servers` map is cold (e.g. after a ROWS restart).
+  - `InstanceRepo::get_gameserver_name(&self, customer_guid: Uuid, map_instance_id: i32) -> Result<Option<String>, RowsError>` — DB fallback when the in-memory `zone_servers` map is missing the instance (e.g. `reconcile_allocations` couldn't rehydrate it because the `zone-instance` label was `0`/missing).
 
 - [ ] **Step 1: Add the candidate query**
 
@@ -456,11 +487,16 @@ pub fn spawn_all(svc: Arc<OWSService>) {
 Add to `apps/rows/src/jobs.rs` (import `crate::agones::reaper`):
 
 ```rust
-/// Backstop for the server's own `SDK.Shutdown()`: flips empty/abandoned instances to
-/// `status=0`, which `stale_zone_cleanup` then deallocates. Resolves the GameServer name from
-/// the in-memory map first, falling back to the DB column so teardown survives a ROWS restart.
+/// Backstop for the server's own `SDK.Shutdown()`. Gated OFF by default (see safety note):
+/// the whole loop no-ops unless `empty_reaper_enabled`, and the time-based `NeverReported`
+/// path is independently gated by `reap_never_reported`.
+///
+/// Teardown ordering is deallocate-FIRST: only on a successful `deallocate` do we drop the
+/// in-memory tracking and flip `status=0`. On failure (or unknown GameServer) we leave the row
+/// at `status>0` and tracked, so the next 60s cycle re-evaluates and retries — a transient
+/// Agones error can never strand a GameServer.
 async fn empty_server_reaper(svc: Arc<OWSService>) {
-    use crate::agones::reaper::{reap_decision, ReapReason};
+    use crate::agones::reaper::reap_decision;
 
     let mut interval = tokio::time::interval(Duration::from_secs(60));
     interval.tick().await;
@@ -468,9 +504,14 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
     loop {
         interval.tick().await;
 
+        if !svc.state().config.empty_reaper_enabled {
+            continue; // master kill switch — ships OFF
+        }
+
         let guid = svc.state().config.customer_guid;
         let boot_grace = svc.state().config.empty_reap_boot_grace_secs;
         let buffer = svc.state().config.empty_reap_buffer_secs;
+        let allow_never_reported = svc.state().config.reap_never_reported;
         let now = chrono::Utc::now().naive_utc();
         let repo = InstanceRepo(&svc.state().db);
 
@@ -481,9 +522,14 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                 continue;
             }
         };
+        if candidates.len() >= 500 {
+            warn!(count = candidates.len(), "Reaper: candidate query hit the 500-row cap — possible under-reaping");
+        }
+
+        let Some(ref agones) = svc.state().agones else { continue };
 
         for inst in &candidates {
-            let decision = reap_decision(
+            let Some(reason) = reap_decision(
                 inst.number_of_reported_players,
                 inst.last_update_from_server,
                 inst.last_server_empty_date,
@@ -491,11 +537,13 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                 inst.minutes_to_shutdown_after_empty,
                 boot_grace,
                 buffer,
+                allow_never_reported,
                 now,
-            );
-            let Some(reason) = decision else { continue };
+            ) else {
+                continue;
+            };
 
-            // Resolve the GameServer name: in-memory tracking first, DB fallback (cold after restart).
+            // Resolve the GameServer: in-memory tracking first, DB column as label-independent fallback.
             let gs_name = match svc.state().zone_servers.get(&inst.map_instance_id) {
                 Some(v) => Some(v.value().clone()),
                 None => repo
@@ -504,25 +552,24 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                     .ok()
                     .flatten(),
             };
-
-            info!(
-                instance_id = inst.map_instance_id,
-                ?reason,
-                gs = gs_name.as_deref().unwrap_or("unknown"),
-                "Reaping empty/abandoned zone server"
-            );
-
-            // Flip to status=0 so stale_zone_cleanup completes teardown idempotently.
-            if let Err(e) = repo.shut_down_server_instance(guid, inst.map_instance_id).await {
-                warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0");
+            let Some(gs) = gs_name else {
+                warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: cannot resolve GameServer name — leaving for retry");
                 continue;
-            }
+            };
 
-            // Deallocate immediately when we know the GameServer (don't wait a full cycle).
-            if let (Some(ref agones), Some(ref gs)) = (&svc.state().agones, gs_name) {
-                svc.state().zone_servers.remove(&inst.map_instance_id);
-                if let Err(e) = agones.deallocate(gs).await {
-                    warn!(error = %e, gs = %gs, "Reaper: deallocate failed (stale_zone_cleanup will retry)");
+            info!(instance_id = inst.map_instance_id, ?reason, gs = %gs, "Reaping empty/abandoned zone server");
+
+            // Deallocate FIRST. Only on success do we drop tracking + flip status=0.
+            match agones.deallocate(&gs).await {
+                Ok(()) => {
+                    svc.state().zone_servers.remove(&inst.map_instance_id);
+                    if let Err(e) = repo.shut_down_server_instance(guid, inst.map_instance_id).await {
+                        warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: deallocated but failed to set status=0");
+                    }
+                }
+                Err(e) => {
+                    // Leave status>0 + tracking intact; next cycle re-evaluates and retries.
+                    warn!(error = %e, gs = %gs, instance_id = inst.map_instance_id, "Reaper: deallocate failed — will retry next cycle");
                 }
             }
         }
@@ -542,7 +589,11 @@ Expected: no new warnings in `jobs.rs`/`reaper.rs`.
 
 - [ ] **Step 5: Manual verification (no DB test harness)**
 
-Document in the PR: against a dev DB with one allocated `mapinstances` row whose `lastupdatefromserver IS NULL` and `createdate` older than `ROWS_EMPTY_REAP_BOOT_GRACE_SECS`, after ≤60s the reaper logs "Reaping…", the row goes `status=0`, and the GameServer is deleted. Confirm a row with `numberofreportedplayers > 0` is untouched.
+Document in the PR, in a throwaway dev env only:
+1. **Default-off:** with no env set, the reaper loop no-ops — confirm no "Reaping…" logs even with an eligible row present.
+2. **Count-based (safe path):** set `ROWS_EMPTY_REAPER_ENABLED=true`; with a row at `numberofreportedplayers=0` and `lastserveremptydate` older than `minutes*60 + buffer`, after ≤60s the GameServer is deallocated, then the row goes `status=0`. A row with `numberofreportedplayers > 0` is untouched.
+3. **Deallocate-failure retry:** simulate a deallocate error (e.g. delete the GameServer out-of-band first) → the row stays `status>0` and is retried next cycle (no permanent orphan).
+4. **Never-reported stays off:** with `ROWS_REAP_NEVER_REPORTED` unset, a `lastupdatefromserver IS NULL` row past grace is **not** reaped (guards populated servers pre-heartbeat).
 
 - [ ] **Step 6: Commit**
 
@@ -706,12 +757,17 @@ git commit -m "feat(rows): stamp empty-shutdown-minutes annotation on allocation
 
 **Spec coverage (#13194 ROWS side):**
 - Heartbeat ingest maintains `LastServerEmptyDate` → Task 6. ✅
-- Count-based reap (layer 3) → Tasks 1 + 5. ✅
-- Time-based net (layer 4) → Tasks 1 + 5. ✅
-- Reap action via `deallocate` → Task 5 (status=0 → `stale_zone_cleanup`, plus immediate deallocate). ✅
-- Persist `gameservername` (restart-safety) → Task 3, used in Task 5. ✅
+- Count-based reap (layer 3) → Tasks 1 + 5, behind `empty_reaper_enabled`. ✅
+- Time-based net (layer 4) → Tasks 1 + 5, behind `reap_never_reported` (off until heartbeat live). ✅
+- Reap action via `deallocate` → Task 5, **deallocate-first** (failure leaves the row reap-eligible for retry; no orphan). ✅
+- Persist `gameservername` (label-independent teardown fallback) → Task 3, used in Task 5. ✅
 - `empty-shutdown-minutes` annotation → Task 7. ✅
 - Drop server-side `RegisterLauncher` → out of scope here (UE contract + #13192 removal). Noted.
+
+**Review fixes (PR #13200 audit) folded in:**
+- ⚠️ Mass-reap of populated servers pre-heartbeat → reaper gated OFF by default; `NeverReported` independently gated; `boot_grace` default 4h. (Tasks 1, 2, 5)
+- 🐛 Orphan on failed deallocate → deallocate-first ordering, retry on failure. (Task 5)
+- 🧹 Dead index dropped; restart rationale corrected (`reconcile_allocations`); 500-row truncation now logged. (Tasks 3, 4, 5)
 
 **Type consistency:** `reap_decision` signature is identical in Task 1 (def), Task 5 (call). `spin_up_server_instance_ready` gains `game_server_name: &str` in Task 3 and is called with `&alloc.game_server_name` same task. `ZoneInstance.game_server_name: Option<String>` (Task 3) is only read for SELECT mapping. `allocate(map, zone_instance_id, empty_shutdown_minutes)` consistent across Task 7 def + call.
 
