@@ -5,25 +5,25 @@
 #include "HttpResultCallback.h"
 #include "HttpServerRequest.h"
 #include "HttpServerResponse.h"
-
-DECLARE_DELEGATE_FiveParams(FKBVESupabaseOAuthLoopbackComplete,
-	bool /*bSuccess*/,
-	FString /*Code*/,
-	FString /*State*/,
-	FString /*Error*/,
-	FString /*AccessToken*/);
+#include "KBVESupabaseLoopback.h"
 
 /**
- * One-shot loopback HTTP listener for the OAuth redirect (RFC 8252).
- * Binds 127.0.0.1:<port> via the engine HttpServer, registers a single
- * GET route, captures ?code= + ?state= + ?error=, and replies with a
- * plain HTML "you can close this window" page.
+ * One-shot loopback HTTP listener for the OAuth redirect (RFC 8252), backed
+ * by the engine FHttpServerModule. Binds 127.0.0.1:<port>, registers a single
+ * GET route, captures ?code= + ?state= + ?error= (+ ?access_token=), and
+ * replies with HTML / a redirect.
  *
- * Lifecycle: hold the TSharedPtr returned by Start() while the flow is
- * active. Reset/Stop() unbinds the route. The HttpServer module's port
- * listener is left running (it is shared across the process).
+ * Layer A of the belt-and-suspenders flow. Well-exercised on Windows + editor;
+ * weak on packaged macOS Shipping (route binds but the socket may never
+ * listen). Callers should ProbeSelf() after Start() and fall back to the
+ * raw-socket listener if it reports false.
+ *
+ * Lifecycle: hold the TSharedPtr returned by Start() while the flow is active.
+ * Stop() unbinds the route.
  */
-class KBVESUPABASE_API FKBVESupabaseOAuthLoopback : public TSharedFromThis<FKBVESupabaseOAuthLoopback>
+class KBVESUPABASE_API FKBVESupabaseOAuthLoopback
+	: public IKBVESupabaseLoopback
+	, public TSharedFromThis<FKBVESupabaseOAuthLoopback>
 {
 public:
 	static TSharedPtr<FKBVESupabaseOAuthLoopback> Start(
@@ -34,11 +34,15 @@ public:
 		const FString& InErrorHtml,
 		FKBVESupabaseOAuthLoopbackComplete InOnComplete);
 
-	~FKBVESupabaseOAuthLoopback();
+	virtual ~FKBVESupabaseOAuthLoopback();
 
-	int32 GetPort() const { return BoundPort; }
-	FString GetCallbackURL() const;
-	void Stop();
+	// IKBVESupabaseLoopback
+	virtual int32 GetPort() const override { return BoundPort; }
+	virtual FString GetCallbackURL() const override;
+	virtual void Stop() override;
+
+	/** Confirm the route's socket is actually accepting connections. */
+	bool ProbeSelf(float TimeoutSeconds = 0.5f) const;
 
 private:
 	int32 BoundPort = 0;

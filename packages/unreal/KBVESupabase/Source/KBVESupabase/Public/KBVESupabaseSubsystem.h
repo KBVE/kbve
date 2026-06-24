@@ -12,7 +12,7 @@
 class UKBVESupabaseSettings;
 class UKBVESupabaseStorage;
 class UKBVESupabaseChat;
-class FKBVESupabaseOAuthLoopback;
+class IKBVESupabaseLoopback;
 
 /**
  * Game-instance scoped Supabase client. GoTrue (/auth/v1) + optional
@@ -204,8 +204,10 @@ protected:
 
 	FTimerHandle RefreshTimerHandle;
 
-	TSharedPtr<FKBVESupabaseOAuthLoopback> ActiveOAuthLoopback;
+	TSharedPtr<IKBVESupabaseLoopback> ActiveOAuthLoopback;
 	FKBVESupabasePKCE PendingPKCE;
+	FDelegateHandle DeepLinkHandle;
+	bool bOAuthViaDeepLink = false;
 
 	const UKBVESupabaseSettings* GetSettings() const;
 	FString GetAnonKey() const;
@@ -236,5 +238,6 @@ protected:
 	void TryRestoreSession();
 
 	void HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error, FString AccessToken);
+	void HandleDeepLinkURL(const FString& Url);
 	void ResetOAuthLoopback();
 };
