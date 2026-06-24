@@ -84,7 +84,11 @@ export const BOW_MUZZLE_OFFSET = 0.55; // tiles forward of the body the arrow le
 export const BOW_MUZZLE_OFFSET_WEST = 0.45; // added on top for the west band
 export const BOW_MUZZLE_HEIGHT = 38; // px up from the ground = bow height
 export const ARROW_SPEED = 18; // tiles/sec arrow travel
-export const ARROW_MAX_RANGE = 22; // tiles
+// MUST equal the server's combat::BOW_RANGE. The server resolves a bow shot with
+// a line_cast bounded to BOW_RANGE, so a target past it is rejected — if the
+// arrow flew/acquired farther than that, shots that visually connected dealt no
+// damage. Bump both together to lengthen the bow.
+export const ARROW_MAX_RANGE = 8; // tiles (= server combat::BOW_RANGE)
 export const ARROW_DMG = 14; // placeholder local damage
 
 // Fake contact shadow: a flattened dark ellipse on the ground under each
