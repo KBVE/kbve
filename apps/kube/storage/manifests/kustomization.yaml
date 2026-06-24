@@ -3,6 +3,10 @@ kind: Kustomization
 
 resources:
     - recurring-jobs.yaml
+    - longhorn-gate-externalsecret.yaml
+    - longhorn-gate-deployment.yaml
+    - longhorn-gate-service.yaml
+    - longhorn-gate-httproute.yaml
 
 configMapGenerator:
     - name: longhorn-values
