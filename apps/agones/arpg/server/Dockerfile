@@ -77,9 +77,10 @@ COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_spells packages/rust/bevy/bevy_spells
-# arpg-server include_bytes!s the canonical itemdb + mapdb binaries at compile time.
+# arpg-server include_bytes!s the canonical itemdb + mapdb + spelldb binaries at compile time.
 COPY packages/data/codegen/generated/itemdb-data.binpb packages/data/codegen/generated/itemdb-data.binpb
 COPY packages/data/codegen/generated/mapdb-data.binpb packages/data/codegen/generated/mapdb-data.binpb
+COPY packages/data/codegen/generated/spelldb-data.binpb packages/data/codegen/generated/spelldb-data.binpb
 COPY apps/agones/arpg/server apps/agones/arpg/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
