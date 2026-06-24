@@ -59,6 +59,10 @@ function safePlay(
 	key: string,
 	ignoreIfPlaying = false,
 ): void {
+	// A destroyed sprite (despawned/killed mid-animation) has a null scene; a
+	// deferred callback — e.g. a one-shot's animationcomplete settling to Idle —
+	// can still reach here after the entity was removed. Bail instead of throwing.
+	if (!sprite.scene) return;
 	const mgr = sprite.scene.anims;
 	const anim = mgr.exists(key) ? mgr.get(key) : undefined;
 	if (!anim || anim.frames.length === 0) {
@@ -407,7 +411,8 @@ export function setCreaturePose(
 	// is the exception — it holds its final frame.
 	if (oneShot && state !== 'Dead') {
 		sprite.once(`animationcomplete-${key}`, () => {
-			if (view.state === state) setCreaturePose(sprite, view, 'Idle');
+			if (sprite.scene && view.state === state)
+				setCreaturePose(sprite, view, 'Idle');
 		});
 	}
 }
