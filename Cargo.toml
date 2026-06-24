@@ -8,7 +8,6 @@ members = [
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
 	'packages/rust/q',
-	'apps/godot/nexus-defense/server',
 'apps/herbmail/axum-herbmail',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
