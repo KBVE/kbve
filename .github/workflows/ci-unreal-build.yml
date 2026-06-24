@@ -69,6 +69,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            verify_baked_config:
+                description: '[game] When "true", print the cooked DefaultGame.ini OWS endpoint before packaging to confirm the per-env backend config baked (KBVE/kbve#13081). Opt-in per project; leave empty for projects without per-env backend config.'
+                required: false
+                type: string
+                default: ''
             use_logging_in_shipping:
                 description: '[game/server] When "1", export USE_LOGGING_IN_SHIPPING=1 so the UE target keeps UE_LOG in Shipping builds (default UE strips it). Empty = leave UE default.'
                 required: false
@@ -911,6 +916,12 @@ jobs:
                         -unattended -utf8output -NoP4
                     '
 
+            - name: Verify baked backend config (pre-pak, Linux)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Linux):"
+                  grep -ahE 'OWS2APIPath|OWSAPICustomerKey' /tmp/game-project/Saved/Cooked/Linux/*/Config/DefaultGame.ini 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+
             - name: Package archive
               run: |
                   if ! command -v zip >/dev/null 2>&1; then
@@ -1151,6 +1162,16 @@ jobs:
                       -unattended -utf8output -NoP4
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
+            - name: Verify baked backend config (pre-pak, Win64)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  $cookedGame = Get-ChildItem -Path (Join-Path $projRoot 'Saved\Cooked\Windows') -Recurse -Filter DefaultGame.ini -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\\Config\\DefaultGame\.ini$' } | Select-Object -First 1
+                  if ($cookedGame) {
+                      Write-Host "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Win64):"
+                      Select-String -Path $cookedGame.FullName -Pattern 'OWS2APIPath','OWSAPICustomerKey' | ForEach-Object { Write-Host ("  " + $_.Line.Trim()) }
+                  } else { Write-Host "::warning::cooked DefaultGame.ini not found under Saved\Cooked\Windows" }
+
             - name: Package archive
               run: |
                   $zip = "C:\${{ inputs.app_name }}-windows.zip"
@@ -1337,6 +1358,13 @@ jobs:
                     ${CUSTOM_CONFIG_ARG} \
                     -nodebuginfo \
                     -unattended -utf8output -NoP4
+
+            - name: Verify baked backend config (pre-pak, Mac)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Mac):"
+                  grep -ahE 'OWS2APIPath|OWSAPICustomerKey' "${PROJECT_ROOT}"/Saved/Cooked/Mac/*/Config/DefaultGame.ini 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
 
             - name: Package staged build
               run: |

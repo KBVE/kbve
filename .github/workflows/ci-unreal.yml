@@ -66,6 +66,7 @@ jobs:
             server_config: ${{ fromJSON(inputs.engine).server_config }}
             client_config: ${{ fromJSON(inputs.engine).client_config }}
             custom_config: ${{ fromJSON(inputs.engine).custom_config }}
+            verify_baked_config: ${{ fromJSON(inputs.engine).verify_baked_config }}
             use_logging_in_shipping: ${{ fromJSON(inputs.engine).use_logging_in_shipping }}
             game_mode: ${{ fromJSON(inputs.engine).game_mode }}
             maps: ${{ toJSON(fromJSON(inputs.engine).maps) }}
