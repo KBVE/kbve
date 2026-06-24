@@ -9,6 +9,8 @@ metadata:
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
+    annotations:
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 1
     strategy:

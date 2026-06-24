@@ -9,6 +9,8 @@ metadata:
         kbve.com/category: game-server
         kbve.com/stack: rows
         kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 0
     strategy:
