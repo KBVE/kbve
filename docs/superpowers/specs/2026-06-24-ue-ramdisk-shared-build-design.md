@@ -96,6 +96,20 @@ A second adversarial audit read the spec **against the workflow it modifies** (`
 
 This work ships as **one PR** (#13278): the items below are workstreams (WS-1…WS-5) within this single PR, not separate follow-up PRs. They are sequenced, not independent — WS-1 gates the `maxRunners: 2` flip.
 
+**Deliverables in this PR (all INERT — nothing auto-activates on merge; Argo auto-sync is avoided by keeping new manifests out of `kustomization.yaml` and leaving `values-ue.yaml` unchanged):**
+
+| WS | Deliverable | File | State |
+|----|-------------|------|-------|
+| WS-1 | Workflow edit set (path namespacing, prune removal, `prepare`/`flock`, clone-by-SHA) — applied at **cutover**, not in this PR (a reusable workflow goes live at its merged ref; it is coupled to the runner rework and untestable here) | exact edits pinned in the runbook | Specified, not applied |
+| WS-2 | RAM-budget worksheet + runtime alert | `2026-06-24-ue-ramdisk-ram-budget.md`, `manifests/ue-ramdisk-tmpfs-alert.yaml` | Worksheet + inert alert |
+| WS-3 | Shared-dind DaemonSet (+ PDB, host-local socket gid, 2-build envelope) | `manifests/shared-dind-daemonset.yaml` | Inert (not in kustomization) |
+| WS-4 | Talos tmpfs decision record (**reverses §2.1**: DaemonSet, not machine-config) | `2026-06-24-ue-ramdisk-talos-tmpfs-decision.md` | Decision (needs cluster validation) |
+| WS-5 | Cutover + rollback runbook (deploy order, KubeVirt gate revert) | `2026-06-24-ue-ramdisk-cutover-runbook.md` | Keystone |
+
+> **Why WS-1 is specified, not applied:** `ci-unreal-build.yml` is a `workflow_call` reusable workflow — the moment a rewritten version reaches the merged ref it is live for the next UE build, and its new code paths require the shared dind + tmpfs that do not exist until cutover. Hand-editing a ~2600-line workflow blind and untestable, coupled to absent infra, is the larger risk. The precise, minimal in-place edits (only `server_build`, `game_build_linux`, + a new `prepare` job; `ci-unreal.yml`/`ci-unreal-plugins.yml` untouched) are pinned in the runbook and applied together with the runner rework during cutover.
+>
+> **Runner topology clarification (not the 3 scale sets):** the "2 Linux + 1 Windows" consumers are **not** the three `arc-runner-ue*` Helm releases. Both Linux builders are pods of the single **`arc-runner-ue`** scale set (concurrency = `maxRunners`); the Windows builder is the **KubeVirt VM** whose in-guest self-hosted runner registers as **`UE5-Win`**. `arc-runner-ue-win` (expects a physical Windows node) and `arc-runner-ue-mac` are **dormant (0 runners)** and need no changes — do not wire virtio-fs into them.
+
 ### Blockers (must land before restoring concurrency)
 
 - **B1 — `docker run -v /tmp/...` will not resolve in a shared dind.** Both Linux builds bind-mount RAM-emptyDir paths into the daemon: `docker run --rm -v /tmp/game-project:/project -v /tmp/ue5-build-output:/output` (`ci-unreal-build.yml` ~L525/L894). Today this works *only* because the per-pod dind sidecar shares the pod's `shared-tmp`/`work` emptyDirs. A shared DaemonSet dind sees its **own** `/tmp`, so the bind source is empty → the container builds nothing. **Every** hardcoded `/tmp/game-clone`, `/tmp/game-project`, `/tmp/ue5-build-output` (dozens, ~L441–L965) must move under the shared hostPath. §2.6 ("add `needs: prepare`") drastically understates this — it is a workflow rewrite, captured as WS-1.

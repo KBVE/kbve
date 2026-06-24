@@ -1,0 +1,131 @@
+# ══════════════════════════════════════════════════════════════════════════
+# WS-3 — Shared DinD DaemonSet for UE Linux builds (arc-runner-ue)
+#
+# STATUS: INERT. This file is intentionally NOT listed in
+#   apps/kube/github/runners/manifests/kustomization.yaml
+# so Argo (auto-sync + prune + selfHeal) will NOT deploy it on merge.
+# Activate ONLY via the cutover runbook
+#   (docs/superpowers/specs/2026-06-24-ue-ramdisk-cutover-runbook.md)
+# AFTER the RAM budget (WS-2) closes and the tmpfs ceiling is proven.
+#
+# WHAT THIS IS: one privileged dockerd per node (single node ⇒ one pod) whose
+# --data-root lives on a host tmpfs at /var/mnt/ramdisk/docker, so the ~40 GB
+# UE engine image is extracted once and shared by both Linux builders. The
+# init container also provisions the tmpfs (WS-4 decision: DaemonSet, not
+# Talos machine-config). The daemon is exposed ONLY via a host-local UNIX
+# socket on a hostPath — never TCP (design §4 DinD exposure).
+#
+# UNVALIDATED: never run against this cluster. Treat every value as a
+# proposal to confirm during WS-2 validation. <CEILING> MUST be replaced with
+# the WS-2-proven tmpfs size before activation.
+# ══════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+    name: ue-shared-dind
+    namespace: arc-runners
+    labels:
+        app: ue-shared-dind
+        kbve.com/category: ci-cd
+    annotations:
+        kbve.com/status: inert-pending-cutover
+        kbve.com/runbook: docs/superpowers/specs/2026-06-24-ue-ramdisk-cutover-runbook.md
+spec:
+    selector:
+        matchLabels:
+            app: ue-shared-dind
+    template:
+        metadata:
+            labels:
+                app: ue-shared-dind
+        spec:
+            # Single-node cluster ⇒ exactly one pod. No nodeSelector needed
+            # (design §Platform facts: co-location is automatic).
+            hostPID: true
+            # initContainer provisions the tmpfs in the host mount namespace.
+            initContainers:
+                - name: provision-tmpfs
+                  image: alpine:3.20
+                  securityContext:
+                      privileged: true
+                  command:
+                      - nsenter
+                      - '--mount=/proc/1/ns/mnt'
+                      - '--'
+                      - sh
+                      - -c
+                      # Idempotent: mount only if not already a mountpoint.
+                      # size=<CEILING> is the WS-2 hard RAM ceiling. mode=1777
+                      # so the non-root runner (uid 1000) can create its own
+                      # per-run scratch subdirs.
+                      - |
+                          set -eu
+                          mkdir -p /var/mnt/ramdisk
+                          if ! mountpoint -q /var/mnt/ramdisk; then
+                            mount -t tmpfs -o size=<CEILING>,mode=1777 tmpfs /var/mnt/ramdisk
+                          fi
+                          mkdir -p /var/mnt/ramdisk/docker
+            containers:
+                - name: dind
+                  image: docker:29.3.0-dind
+                  securityContext:
+                      privileged: true
+                  # Keep the dev baseline's fd limits + ghcr mirror. Bind the
+                  # daemon to a host-local UNIX socket on the shared hostPath —
+                  # NOT tcp://0.0.0.0:2376 (design §4: that would be an
+                  # unauthenticated privileged Docker API, trivial node-root
+                  # escape). A background watcher chgrps the socket to gid 1000
+                  # so the non-root runner (runAsUser/Group 1000) can reach it
+                  # (default socket is root:root 0660 → permission denied).
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          ulimit -n 1048576
+                          (
+                            SOCK=/var/mnt/ramdisk/docker.sock
+                            while [ ! -S "$SOCK" ]; do sleep 1; done
+                            chgrp 1000 "$SOCK" && chmod 0660 "$SOCK"
+                          ) &
+                          exec dockerd \
+                            --host=unix:///var/mnt/ramdisk/docker.sock \
+                            --data-root=/var/mnt/ramdisk/docker \
+                            --default-ulimit=nofile=1048576:1048576 \
+                            --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+                  resources:
+                      # Sized for TWO concurrent UE cooks served by ONE daemon
+                      # (the per-pod sidecars were 80Gi/4cpu EACH; this one
+                      # serves both). Co-resident with etcd on the same cores —
+                      # confirm CPU headroom in WS-2 validation.
+                      limits:
+                          cpu: '8'
+                          memory: 8Gi   # daemon RSS only; image+layers live on tmpfs, not here
+                      requests:
+                          cpu: '2'
+                          memory: 2Gi
+                  volumeMounts:
+                      - name: ramdisk
+                        mountPath: /var/mnt/ramdisk
+                        # Must match the runner pods' mount so `docker run -v`
+                        # bind sources resolve in the daemon (design §4).
+                        mountPropagation: HostToContainer
+            volumes:
+                - name: ramdisk
+                  hostPath:
+                      path: /var/mnt/ramdisk
+                      type: DirectoryOrCreate
+---
+# PodDisruptionBudget: this single daemon is now a SHARED SPOF — its loss
+# fails BOTH concurrent builds and wipes the tmpfs cache. Keep it from being
+# voluntarily evicted during node drains while builds run.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: ue-shared-dind
+    namespace: arc-runners
+    annotations:
+        kbve.com/status: inert-pending-cutover
+spec:
+    minAvailable: 1
+    selector:
+        matchLabels:
+            app: ue-shared-dind
