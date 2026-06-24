@@ -16,6 +16,7 @@ resources:
     - cache-cleanup-cronjob.yaml
     - registry-mirror.yaml
     - registry-mirror-ghcr.yaml
+    - buildkitd.yaml
     - valkey-sccache-externalsecret.yaml
     - vm-starter-rbac.yaml
     - runner-reaper.yaml

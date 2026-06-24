@@ -170,6 +170,8 @@ jobs:
                     echo "Synced version ${VER} → ${TGT}"
                   fi
 
+            # Installs buildx and provisions a docker-container builder that
+            # doubles as the fallback if the persistent buildkitd is down.
             - name: Setup Docker Buildx
               uses: Wandalen/wretry.action@v3.8.0
               with:
@@ -181,6 +183,22 @@ jobs:
                       driver-opts: |
                           image=moby/buildkit:v0.24.0
                           network=host
+
+            # Prefer the persistent in-cluster buildkitd (warm .astro / cargo /
+            # sccache-local / layer cache across runs). If it is unreachable
+            # (not yet deployed, restarting), silently keep the docker-container
+            # builder above so builds never break on the cutover.
+            - name: Prefer persistent remote buildkitd
+              run: |
+                  REMOTE=tcp://buildkitd.arc-runners.svc.cluster.local:1234
+                  if docker buildx create --name kbve-remote --driver remote "$REMOTE" 2>/dev/null \
+                     && timeout 60 docker buildx inspect --bootstrap kbve-remote >/dev/null 2>&1; then
+                      docker buildx use kbve-remote
+                      echo "::notice::buildx using persistent remote buildkitd ($REMOTE)"
+                  else
+                      echo "::warning::remote buildkitd unreachable -> keeping docker-container builder"
+                      docker buildx rm kbve-remote 2>/dev/null || true
+                  fi
 
             - name: Login to GHCR
               uses: docker/login-action@v4
