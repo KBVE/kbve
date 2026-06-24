@@ -4,14 +4,14 @@ use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
 fn circuit_breaker_threshold() -> u32 {
-    std::env::var("AGONES_circuit_breaker_threshold()")
+    std::env::var("AGONES_CIRCUIT_BREAKER_THRESHOLD")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(5)
 }
 
 fn circuit_breaker_reset_secs() -> u64 {
-    std::env::var("AGONES_circuit_breaker_reset_secs()")
+    std::env::var("AGONES_CIRCUIT_BREAKER_RESET_SECS")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(30)

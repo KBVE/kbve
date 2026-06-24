@@ -358,23 +358,26 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
-    /// Label-independent teardown fallback: resolve the persisted `gameservername` for an
-    /// instance when the in-memory `zone_servers` map can't (e.g. `reconcile_allocations`
-    /// couldn't rehydrate it because the `zone-instance` label was `0`/missing).
-    pub async fn get_gameserver_name(
+    /// Label-independent teardown fallback: resolve the persisted `gameservername` for a batch of
+    /// instances the in-memory `zone_servers` map couldn't (e.g. `reconcile_allocations` couldn't
+    /// rehydrate them because the `zone-instance` label was `0`/missing). One `ANY($2)` query
+    /// instead of a per-instance round-trip, so a post-restart reap cycle doesn't fan out to
+    /// hundreds of sequential lookups. Rows with a NULL `gameservername` are still returned (with
+    /// `None`) so the caller can give them the no-name terminal treatment.
+    pub async fn get_gameserver_names(
         &self,
         customer_guid: Uuid,
-        map_instance_id: i32,
-    ) -> Result<Option<String>, RowsError> {
-        let row: Option<(Option<String>,)> = sqlx::query_as(
-            "SELECT gameservername FROM mapinstances
-             WHERE customerguid = $1 AND mapinstanceid = $2",
+        map_instance_ids: &[i32],
+    ) -> Result<Vec<(i32, Option<String>)>, RowsError> {
+        let rows: Vec<(i32, Option<String>)> = sqlx::query_as(
+            "SELECT mapinstanceid, gameservername FROM mapinstances
+             WHERE customerguid = $1 AND mapinstanceid = ANY($2)",
         )
         .bind(customer_guid)
-        .bind(map_instance_id)
-        .fetch_optional(self.0)
+        .bind(map_instance_ids)
+        .fetch_all(self.0)
         .await?;
-        Ok(row.and_then(|r| r.0))
+        Ok(rows)
     }
 
     /// LEFT JOIN + GROUP BY instead of the previous correlated subquery (N+1 fix); returns

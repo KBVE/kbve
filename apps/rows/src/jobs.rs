@@ -1,5 +1,6 @@
 use crate::repo::InstanceRepo;
 use crate::service::OWSService;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, warn};
@@ -173,9 +174,11 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
             continue;
         }
 
-        // Phase 1 (sequential, cheap): decide + resolve GameServer names. The no-name terminal
-        // path is a quick DB update, handled here. Builds the teardown work-list for phase 2.
+        // Phase 1: decide, then resolve GameServer names — in-memory `zone_servers` first, with
+        // the DB fallback BATCHED into one `ANY($)` query for all cache-misses (a post-restart
+        // cycle would otherwise fan out to hundreds of sequential lookups).
         let mut targets: Vec<ReapTarget> = Vec::new();
+        let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
         for inst in &candidates {
             let Some(reason) = reap_decision(
                 inst.number_of_reported_players,
@@ -193,34 +196,48 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                 continue;
             };
 
-            // Resolve the GameServer: in-memory tracking first, DB column as label-independent fallback.
-            let gs_name = match svc.state().zone_servers.get(&inst.map_instance_id) {
-                Some(v) => Some(v.value().clone()),
-                None => repo
-                    .get_gameserver_name(guid, inst.map_instance_id)
-                    .await
-                    .ok()
-                    .flatten(),
-            };
-            match gs_name {
-                Some(gs) => targets.push(ReapTarget {
+            match svc.state().zone_servers.get(&inst.map_instance_id) {
+                Some(v) => targets.push(ReapTarget {
                     instance_id: inst.map_instance_id,
-                    gs,
+                    gs: v.value().clone(),
                     reason,
                 }),
-                None => {
-                    // Terminal state for the no-name case (legacy rows from before the
-                    // `gameservername` column, or a `reconcile_allocations` miss). We can't
-                    // deallocate a GameServer we can't name, so flip status=0 to drop it from
-                    // routing AND the candidate set, and surface it ONCE for manual/infra check —
-                    // instead of re-warning every 60s forever. Deliberate, narrow exception to
-                    // deallocate-first: in practice these are legacy rows whose pod is already
-                    // gone; a still-live one is flagged for `kubectl` cleanup.
-                    match repo.shut_down_server_instance(guid, inst.map_instance_id).await {
-                        Ok(()) => warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
-                        Err(e) => warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0 for unresolvable instance"),
+                None => misses.push((inst.map_instance_id, reason)),
+            }
+        }
+
+        if !misses.is_empty() {
+            let ids: Vec<i32> = misses.iter().map(|(id, _)| *id).collect();
+            match repo.get_gameserver_names(guid, &ids).await {
+                Ok(rows) => {
+                    let resolved: HashMap<i32, Option<String>> = rows.into_iter().collect();
+                    for (id, reason) in misses {
+                        match resolved.get(&id).cloned().flatten() {
+                            Some(gs) => targets.push(ReapTarget {
+                                instance_id: id,
+                                gs,
+                                reason,
+                            }),
+                            None => {
+                                // Terminal state for the no-name case (legacy rows from before the
+                                // `gameservername` column, or a `reconcile_allocations` miss). We
+                                // can't deallocate a GameServer we can't name, so flip status=0 to
+                                // drop it from routing AND the candidate set, and surface it ONCE
+                                // for manual/infra check — instead of re-warning every 60s forever.
+                                // Deliberate, narrow exception to deallocate-first: in practice
+                                // these are legacy rows whose pod is already gone; a still-live one
+                                // is flagged for `kubectl` cleanup.
+                                match repo.shut_down_server_instance(guid, id).await {
+                                    Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
+                                    Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
+                                }
+                            }
+                        }
                     }
                 }
+                // A transient DB error must NOT mass-flip the misses to status=0; leave them for
+                // the next cycle (still tracked, still status>0).
+                Err(e) => warn!(error = %e, "Reaper: failed to batch-resolve GameServer names — retrying next cycle"),
             }
         }
 
@@ -233,8 +250,10 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                 let Some(target) = iter.next() else { break };
                 set.spawn(reap_one(svc.clone(), guid, target));
             }
-            if set.join_next().await.is_none() {
-                break; // no work left and nothing in flight
+            match set.join_next().await {
+                None => break, // no work left and nothing in flight
+                Some(Ok(())) => {}
+                Some(Err(e)) => error!(error = %e, "Reaper: teardown task failed (panic/cancelled)"),
             }
         }
     }
