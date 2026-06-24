@@ -9,7 +9,6 @@ import {
 	type Welcome,
 	type CombatEvent,
 	type FloorChangeEvent,
-	type Facing,
 	type InventorySync,
 	type ItemPlacedEvent,
 } from '@kbve/laser';
@@ -18,11 +17,6 @@ import {
 	TILE_W,
 	TILE_H,
 	MOVE_TWEEN_MS,
-	WALK_SPEED,
-	RUN_SPEED,
-	SIM_DT_MS,
-	ARRIVE_DIST,
-	WAYPOINT_REACH,
 	HEARTBEAT_MS,
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
@@ -97,13 +91,7 @@ import {
 	type SyncResolvers,
 	type SyncState,
 } from './systems/netSync';
-import {
-	makeFloatState,
-	stepFloat,
-	floatTile,
-	reconcileFloat,
-	type FloatState,
-} from './systems/floatMotion';
+import { makeFloatState, floatTile } from './systems/floatMotion';
 import {
 	DungeonField,
 	floorSeed,
@@ -122,7 +110,15 @@ import {
 	placeStairs as placeStairsView,
 	type DungeonView,
 } from './systems/dungeonView';
-import { findHierPath, type GateGraph } from './systems/pathfind';
+import { type GateGraph } from './systems/pathfind';
+import {
+	makeMovementState,
+	tickLocalMotion as tickLocalMotionV,
+	reconcilePlayer as reconcilePlayerV,
+	startMoveTo as startMoveToV,
+	type MovementState,
+	type MovementDeps,
+} from './systems/movement';
 import {
 	clearHud,
 	emitInventoryOpen,
@@ -131,7 +127,6 @@ import {
 	type InventoryIntent,
 } from './systems/hud';
 import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
-import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
 	makeClassSprite,
@@ -188,19 +183,6 @@ const LOCAL_LOOT: ReadonlyArray<{
 	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
 ];
 
-/**
- * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
- * cardinal directions the wire protocol carries. The server only needs a coarse
- * facing for remote-player pose; the client keeps the full 16-dir locally.
- */
-function cardinalFromDeg(deg: number): Facing {
-	const d = ((deg % 360) + 360) % 360;
-	if (d >= 315 || d < 45) return 'Up';
-	if (d < 135) return 'Right';
-	if (d < 225) return 'Down';
-	return 'Left';
-}
-
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
 	private store = new EntityStore<EntityRefs>();
@@ -231,21 +213,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	private netReady = false;
 	private mySlot = -1;
 	private myEid = -1;
-	private predicted: TileXY = { x: 0, y: 0 };
-	private moveSendAccumMs = 0;
-	private wasMoving = false;
 	private predictSeeded = false;
-	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
-	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
-	// no active click move. Keyboard input clears it.
-	private movePath: TileXY[] = [];
+	// Local player kinematic model: float body, click route, predicted tile,
+	// move-send throttle. Shared with combat/hud/inventory.
+	private move: MovementState = makeMovementState({ x: 0, y: 0 });
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
-	// Last cardinal facing sent to the server, so face() only fires on change.
-	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
@@ -347,7 +323,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.dungeonView,
 			this.dungeon,
 			this.isSurface(),
-			this.predicted,
+			this.move.predicted,
 		);
 	}
 
@@ -444,8 +420,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.store.owner(owned.serverEid) === this.mySlot
 			) {
 				const d = Math.max(
-					Math.abs(this.predicted.x - tile.x),
-					Math.abs(this.predicted.y - tile.y),
+					Math.abs(this.move.predicted.x - tile.x),
+					Math.abs(this.move.predicted.y - tile.y),
 				);
 				if (d <= PLACE_RANGE) this.client?.pickupObject(tile);
 				return;
@@ -457,7 +433,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				// Fire at the clicked enemy. fireBowAt sends the single
 				// authoritative attack (targeting THIS enemy) — no separate
 				// action() call, or the server would see a double-fire.
-				this.movePath = [];
+				this.move.movePath = [];
 				this.fireBowAt(aim, hit.serverEid);
 				return;
 			}
@@ -677,7 +653,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			localMode: () => this.localMode,
-			floatTilePos: () => floatTile(this.floatState),
+			floatTilePos: () => floatTile(this.move.floatState),
 			dungeon: () => this.dungeon,
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			onPlacementArmed: () => this.hoverTile.setVisible(false),
@@ -709,7 +685,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * hit; the server is authoritative on whether the cast lands.
 	 */
 	private nearestHostile(range: number): number | null {
-		const me = this.predicted;
+		const me = this.move.predicted;
 		let best: number | null = null;
 		let bestD = Infinity;
 		for (const sid of this.store.serverIdsWith('npc')) {
@@ -755,7 +731,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const state: SyncState = {
 			myEid: this.myEid,
 			mySlot: this.mySlot,
-			predicted: this.predicted,
+			predicted: this.move.predicted,
 			predictSeeded: this.predictSeeded,
 		};
 		// Only render entities on the floor the local player is on. The snapshot
@@ -774,22 +750,24 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.markEnvDirty,
 		);
 		this.myEid = state.myEid;
-		this.predicted = state.predicted;
+		this.move.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
 
 		// Seed the float body when our entity first appears; thereafter soft-
 		// correct it toward the server-authoritative tile so the client stays
 		// smooth without drifting away from the server.
 		if (!hadEid && this.myEid >= 0) {
-			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
-			this.refreshDungeon(this.predicted, true);
+			this.move.floatState = makeFloatState(
+				state.serverPos ?? this.move.predicted,
+			);
+			this.refreshDungeon(this.move.predicted, true);
 		} else if (this.myEid >= 0 && state.serverPos) {
 			this.reconcilePlayer(
 				state.serverPos,
 				state.serverVel ?? { x: 0, y: 0 },
 				state.inputAck ?? 0,
 			);
-			this.refreshDungeon(this.predicted);
+			this.refreshDungeon(this.move.predicted);
 		}
 		this.refreshHud();
 	}
@@ -799,24 +777,28 @@ export class IsoArpgScene extends Phaser.Scene {
 		serverVel: TileXY,
 		inputAck: number,
 	) {
-		const unacked = this.client?.ackMoves(inputAck) ?? [];
-		const replay = makeFloatState(serverPos);
-		// Seed the replay with the server's reported velocity so unacked inputs
-		// reproduce the authoritative coast; replaying from rest left the body
-		// trailing the server's still-moving position and drifting on stop.
-		replay.vel.x = serverVel.x;
-		replay.vel.y = serverVel.y;
-		for (const m of unacked) {
-			const speed = m.run ? RUN_SPEED : WALK_SPEED;
-			stepFloat(
-				replay,
-				{ x: m.mx / 127, y: m.my / 127 },
-				speed,
-				this.isBlocked,
-				SIM_DT_MS,
-			);
-		}
-		reconcileFloat(this.floatState, replay.pos);
+		reconcilePlayerV(
+			this.move,
+			this.moveDeps(),
+			serverPos,
+			serverVel,
+			inputAck,
+		);
+	}
+
+	private moveDeps(): MovementDeps {
+		return {
+			scene: this,
+			client: () => this.client,
+			localMode: () => this.localMode,
+			dungeon: () => this.dungeon,
+			gateGraph: this.gateGraph,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			cursors: this.cursors,
+			wasd: this.wasd,
+			combat: this.combat,
+			refreshDungeon: (tile) => this.refreshDungeon(tile),
+		};
 	}
 
 	private onCombat(c: CombatEvent) {
@@ -830,10 +812,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			localMode: () => this.localMode,
-			floatPos: () => this.floatState.pos,
+			floatPos: () => this.move.floatState.pos,
 			isHostile: (eid) => this.isHostileServer(eid),
 			clearMovePath: () => {
-				this.movePath = [];
+				this.move.movePath = [];
 			},
 			refreshHud: () => this.refreshHud(),
 			destroyRefs: (refs) => this.destroyRefs(refs),
@@ -853,8 +835,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
-		this.predicted = { x: f.tile.x, y: f.tile.y };
-		this.floatState = makeFloatState(this.predicted);
+		this.move.predicted = { x: f.tile.x, y: f.tile.y };
+		this.move.floatState = makeFloatState(this.move.predicted);
 		this.dungeon = new DungeonField(
 			floorSeed(DUNGEON_SEED, f.z),
 			DUNGEON_RADIUS,
@@ -912,7 +894,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		return {
 			scene: this,
 			store: this.store,
-			floatState: this.floatState,
+			floatState: this.move.floatState,
 			dungeon: this.dungeon,
 			myEid: this.myEid,
 			surface: this.isSurface(),
@@ -920,163 +902,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		};
 	}
 
-	/**
-	 * Float-driven local movement: keyboard (held = continuous intent) or a
-	 * click destination feeds a world-tile intent vector into the float sim,
-	 * which is then rendered, animated (Run/Idle by speed), and synced to the
-	 * server as cardinal steps whenever the underlying tile changes.
-	 */
 	private tickLocalMotion(refs: EntityRefs, deltaMs: number) {
-		const intent = this.readIntent();
-		const prevTile = floatTile(this.floatState);
-
-		// Walk tier while Shift is held; run otherwise. Each tier's body speed
-		// is tuned to its anim's stride, so feet don't slide at either pace.
-		const walking = this.cursors.shift?.isDown ?? false;
-		const speed = walking ? WALK_SPEED : RUN_SPEED;
-		stepFloat(this.floatState, intent, speed, this.isBlocked, deltaMs);
-
-		// Locomotion anim follows ACTIVE INTENT, not residual velocity: the
-		// moment input stops the body flips to Idle, even though friction is
-		// still bleeding the leftover velocity to a slide-stop. Keying off
-		// velocity instead left a few frames of run-in-place during decel.
-		const intending = Math.hypot(intent.x, intent.y) > 0;
-		// Moving cancels an in-progress shot: switch straight to Run instead of
-		// sliding in the bow pose. If the cancel lands before the release frame
-		// the arrow is suppressed (no shot fired); if it already loosed, the
-		// arrow still flies and only the recover is cut.
-		if (intending && this.combat.bowShot?.busy) {
-			this.combat.bowShot.cancel();
-		}
-		const firing = this.combat.bowShot?.busy ?? false;
-		if (
-			!firing &&
-			refs.cls &&
-			refs.sprite instanceof Phaser.GameObjects.Sprite
-		) {
-			if (intending) {
-				setClassPose(
-					refs.sprite,
-					refs.cls,
-					walking ? 'WalkForward' : 'Run',
-					{ dx: this.floatState.vel.x, dy: this.floatState.vel.y },
-					this,
-				);
-			} else if (
-				refs.cls.state === 'Run' ||
-				refs.cls.state === 'WalkForward'
-			) {
-				setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
-			}
-		}
-
-		// While standing still (not moving, not firing), track the cursor: turn
-		// the body toward where the player is aiming so she's pre-aimed before a
-		// shot. tickClassFacing lerps targetDeg, so this reads as a natural turn.
-		if (!intending && !firing && refs.cls) {
-			const ptr = this.input.activePointer;
-			const aim = screenToWorldF(ptr.worldX, ptr.worldY);
-			const dx = aim.x - this.floatState.pos.x;
-			const dy = aim.y - this.floatState.pos.y;
-			if (Math.hypot(dx, dy) > 0.05) {
-				const deg = facingDegFromDelta(dx, dy);
-				refs.cls.targetDeg = deg;
-				this.sendFacing(cardinalFromDeg(deg));
-			}
-		}
-
-		this.renderFloat(refs);
-
-		// Keep the server roughly in sync: emit a cardinal step toward whatever
-		// new tile the float body has entered. The server stays authoritative;
-		// reconcileFloat soft-corrects any drift on the next snapshot.
-		const tile = floatTile(this.floatState);
-		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
-			this.predicted = tile;
-			this.refreshDungeon(tile);
-		}
-
-		this.moveSendAccumMs += deltaMs;
-		// Flush a release (moving -> idle) immediately instead of waiting for the
-		// 50ms cadence, so the server stops powering the held intent a throttle
-		// window sooner — cuts the on-stop over-travel the client can't predict.
-		const idleNow = intent.x === 0 && intent.y === 0;
-		const releaseEdge = this.wasMoving && idleNow;
-		if (releaseEdge || this.moveSendAccumMs >= 50) {
-			this.moveSendAccumMs = 0;
-			const mag = Math.hypot(intent.x, intent.y);
-			const moving = mag > 0;
-			if (moving || this.wasMoving) {
-				const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
-				const my = moving ? Math.round((intent.y / mag) * 127) : 0;
-				this.client?.move(mx, my, !walking);
-			}
-			this.wasMoving = moving;
-		}
-
-		// Drop the click route once the FINAL tile is reached or overshot, so the
-		// float never orbits the goal stuck in Run (intermediate waypoints are
-		// consumed in readIntent).
-		if (this.movePath.length === 1) {
-			const goal = this.movePath[0];
-			const dx = goal.x - this.floatState.pos.x;
-			const dy = goal.y - this.floatState.pos.y;
-			const dist = Math.hypot(dx, dy);
-			const overshot =
-				dx * this.floatState.vel.x + dy * this.floatState.vel.y < 0;
-			if (dist < ARRIVE_DIST || (overshot && dist < 1)) {
-				this.movePath = [];
-			}
-		}
-	}
-
-	/**
-	 * World-tile intent vector. Held keys win (and cancel any click route);
-	 * otherwise follow the A* path — steer toward the current waypoint, pop it
-	 * on arrival, and aim straight at the final tile (sub-unit intent near the
-	 * end so the body eases to a stop instead of overshooting).
-	 */
-	private readIntent(): TileXY {
-		const ix =
-			(this.cursors.right.isDown || this.wasd.right.isDown ? 1 : 0) -
-			(this.cursors.left.isDown || this.wasd.left.isDown ? 1 : 0);
-		const iy =
-			(this.cursors.down.isDown || this.wasd.down.isDown ? 1 : 0) -
-			(this.cursors.up.isDown || this.wasd.up.isDown ? 1 : 0);
-		if (ix !== 0 || iy !== 0) {
-			this.movePath = []; // keys override a click move
-			return { x: ix, y: iy };
-		}
-
-		while (this.movePath.length > 0) {
-			const wp = this.movePath[0];
-			const dx = wp.x - this.floatState.pos.x;
-			const dy = wp.y - this.floatState.pos.y;
-			const dist = Math.hypot(dx, dy);
-			// Reached this waypoint — pop and aim at the next. Use a looser
-			// threshold for intermediate waypoints so the body doesn't have to
-			// pass dead-center, only the final tile eases to a precise stop.
-			const last = this.movePath.length === 1;
-			const reach = last ? ARRIVE_DIST : WAYPOINT_REACH;
-			if (dist < reach) {
-				this.movePath.shift();
-				continue;
-			}
-			return { x: dx, y: dy };
-		}
-		return { x: 0, y: 0 };
-	}
-
-	/** Draw the local sprite at its fractional float position. */
-	private renderFloat(refs: EntityRefs) {
-		const p = worldToScreen(this.floatState.pos.x, this.floatState.pos.y);
-		refs.sprite.setPosition(p.x, p.y + 8);
-		refs.sprite.setDepth(
-			DEPTH_ENTITY_BASE +
-				tileDepth(this.floatState.pos.x, this.floatState.pos.y),
-		);
-		this.syncShadow(refs);
-		this.placeNameplate(refs);
+		tickLocalMotionV(this.move, this.moveDeps(), refs, deltaMs);
 	}
 
 	private tickCreatureInterp() {
@@ -1128,19 +955,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * instead of straight-lining into a wall. No path = no move.
 	 */
 	private startMoveTo(tile: TileXY) {
-		if (!this.client && !this.localMode) return;
-		const start = floatTile(this.floatState);
-		const path = findHierPath(
-			start,
-			tile,
-			(x, y) => !this.isBlocked(x, y),
-			this.gateGraph,
-		);
-		if (!path) {
-			this.movePath = [];
-			return;
-		}
-		this.movePath = path;
+		startMoveToV(this.move, this.moveDeps(), tile);
 	}
 
 	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the
@@ -1240,9 +1055,9 @@ export class IsoArpgScene extends Phaser.Scene {
 			refs,
 		);
 		this.myEid = LOCAL_PLAYER_EID;
-		this.predicted = { ...tile };
+		this.move.predicted = { ...tile };
 		this.predictSeeded = true;
-		this.floatState = makeFloatState(tile);
+		this.move.floatState = makeFloatState(tile);
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
 		this.cameras.main.setZoom(1.5);
 
@@ -1264,13 +1079,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		tile: TileXY,
 	): void {
 		spawnLocalItemV(this.inv, this.invDeps(), eid, ref, count, tile);
-	}
-
-	/** Send the cardinal aim to the server, but only when it changes. */
-	private sendFacing(facing: Facing) {
-		if (facing === this.lastSentFacing) return;
-		this.lastSentFacing = facing;
-		this.client?.face(facing);
 	}
 
 	/**

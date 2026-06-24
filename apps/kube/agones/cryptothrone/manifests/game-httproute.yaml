@@ -7,7 +7,9 @@ metadata:
         app.kubernetes.io/part-of: cryptothrone
 spec:
     parentRefs:
-        - name: kbve-gateway
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: kbve-gateway
           namespace: kbve
     hostnames:
         - game.cryptothrone.com
@@ -17,9 +19,10 @@ spec:
                     type: PathPrefix
                     value: /
           timeouts:
-              # Long-lived WebSocket — override Envoy's ~15s default backend
-              # timeout so wss connections survive (matches kbve /ws rule).
               backendRequest: 3600s
           backendRefs:
-              - name: cryptothrone-game
+              - group: ''
+                kind: Service
+                name: cryptothrone-game
                 port: 7979
+                weight: 1
