@@ -61,6 +61,12 @@ import {
 	syncFogToZoom,
 	type FogState,
 } from './systems/fog';
+import {
+	makeHudState,
+	tickHud,
+	resetHudMap,
+	type HudState,
+} from './systems/hudEmit';
 import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -97,18 +103,15 @@ import {
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
 import {
-	emitHud,
 	clearHud,
 	emitInventory,
 	emitInventoryOpen,
 	emitSpellLoadout,
 	onInventoryIntent,
-	type HudMap,
 	type InventoryIntent,
 } from './systems/hud';
 import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
 
-const HUD_MAP_SIZE = 33;
 // How far (tiles) a hostile's center may sit off the aim line and still be hit
 // by the arrow — the thick-ray half-width. Bigger = more forgiving aim.
 const BOW_ACQUIRE_PERP = 0.85;
@@ -267,14 +270,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	// the arrow lands (keyed by server eid).
 	private dyingSprites = new Map<number, EntityRefs>();
 	private fireKey!: Phaser.Input.Keyboard.Key;
-	// HUD emits are throttled to ~15/s; this accumulates frame time between emits.
-	private hudAccum = 0;
-	// Last movement heading (screen deg, 0=N CW); held while idle so the compass
-	// needle doesn't snap back when the player stops.
-	private hudHeadingDeg = 0;
-	// Cached minimap window; resampled only when the player crosses a tile.
-	private hudMap: HudMap | null = null;
-	private hudMapTile: TileXY | null = null;
+	// React HUD emit throttle + cached compass heading and minimap window.
+	private hud: HudState = makeHudState();
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
@@ -1199,8 +1196,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			floorSeed(DUNGEON_SEED, f.z),
 			DUNGEON_RADIUS,
 		);
-		this.hudMap = null;
-		this.hudMapTile = null;
+		resetHudMap(this.hud);
 		this.rebuildDungeon();
 		this.placeStairs();
 	}
@@ -1245,73 +1241,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.tickHud(delta);
 	}
 
-	/**
-	 * Push player vitals + the movement-driven compass heading to the React HUD
-	 * over the laser event bus, throttled to ~15 Hz. The compass tracks the float
-	 * body's VELOCITY (where the character is actually walking), not the cursor —
-	 * heading holds its last value while standing still so the needle doesn't
-	 * snap back to north on every stop.
-	 */
 	private tickHud(deltaMs: number) {
-		this.hudAccum += deltaMs;
-		if (this.hudAccum < 66) return;
-		this.hudAccum = 0;
-
-		const vel = this.floatState.vel;
-		const moving = Math.hypot(vel.x, vel.y) > 0.05;
-		if (moving) this.hudHeadingDeg = facingDegFromDelta(vel.x, vel.y);
-
-		const tile = floatTile(this.floatState);
-		const maxHp = this.store.maxHp(this.myEid);
-		emitHud({
-			name: this.localPlayerName(),
-			hp: this.store.hp(this.myEid),
-			maxHp,
-			mp: maxHp,
-			maxMp: maxHp,
-			ep: maxHp,
-			maxEp: maxHp,
-			sp: maxHp,
-			maxSp: maxHp,
-			headingDeg: this.hudHeadingDeg,
-			moving,
-			fps: Math.round(this.game.loop.actualFps),
-			tile,
-			map: this.sampleHudMap(tile),
-		});
+		tickHud(this.hud, this.hudDeps(), deltaMs);
 	}
 
-	/**
-	 * Sample a square dungeon window centered on the player into a floor bitset
-	 * for the minimap — rooms + the carved corridor paths between them. Rebuilt
-	 * only when the player crosses a tile (the layout is static between steps),
-	 * reusing the cached buffer otherwise to keep the 15 Hz emit cheap.
-	 */
-	private sampleHudMap(tile: TileXY): HudMap {
-		const size = HUD_MAP_SIZE;
-		if (
-			this.hudMap &&
-			this.hudMapTile &&
-			this.hudMapTile.x === tile.x &&
-			this.hudMapTile.y === tile.y
-		) {
-			return this.hudMap;
-		}
-		const r = size >> 1;
-		const ox = tile.x - r;
-		const oy = tile.y - r;
-		const cells = new Uint8Array(size * size);
-		const surface = this.isSurface();
-		for (let j = 0; j < size; j++) {
-			for (let i = 0; i < size; i++) {
-				if (surface || this.dungeon.isFloor(ox + i, oy + j)) {
-					cells[j * size + i] = 1;
-				}
-			}
-		}
-		this.hudMapTile = { x: tile.x, y: tile.y };
-		this.hudMap = { origin: { x: ox, y: oy }, size, cells };
-		return this.hudMap;
+	private hudDeps() {
+		return {
+			scene: this,
+			store: this.store,
+			floatState: this.floatState,
+			dungeon: this.dungeon,
+			myEid: this.myEid,
+			surface: this.isSurface(),
+			playerName: this.localPlayerName(),
+		};
 	}
 
 	/**
