@@ -17,8 +17,6 @@ import {
 	type InventorySync,
 	type InventoryItem,
 	type ItemPlacedEvent,
-	type StatusView,
-	type StatusKind,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -67,6 +65,15 @@ import {
 	resetHudMap,
 	type HudState,
 } from './systems/hudEmit';
+import {
+	placeSprite as placeSpriteV,
+	placeRefs as placeRefsV,
+	syncShadow as syncShadowV,
+	placeNameplate as placeNameplateV,
+	destroyRefs as destroyRefsV,
+	drawStatusFx as drawStatusFxV,
+	drawCreatureDebug as drawCreatureDebugV,
+} from './systems/entityView';
 import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -161,19 +168,6 @@ import { resolvePlayerName } from './playerName';
 
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
-// Status effect aura/pip colours and the aura precedence (harm before help).
-const STATUS_COLOR: Record<StatusKind, number> = {
-	Burn: 0xfb923c,
-	Poison: 0x84cc16,
-	Regen: 0x4ade80,
-	Haste: 0x38bdf8,
-};
-const STATUS_PRIORITY: readonly StatusKind[] = [
-	'Burn',
-	'Poison',
-	'Regen',
-	'Haste',
-];
 // Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
 // fixture seeds ground loot + a heal table to exercise the inventory loop. The
 // real game is server-authoritative; this only runs when localMode is set.
@@ -1172,14 +1166,7 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
-		refs.settleTimer?.remove(false);
-		refs.shadow?.destroy();
-		refs.nameplate?.destroy();
-		refs.hpBar?.destroy();
-		refs.statusFx?.destroy();
-		refs.dbgText?.destroy();
-		refs.dbgArrow?.destroy();
-		refs.sprite.destroy();
+		destroyRefsV(refs);
 	}
 
 	/**
@@ -1453,55 +1440,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.sprite instanceof Phaser.GameObjects.Sprite
 			) {
 				tickCreatureFacing(refs.sprite, refs.creature);
-				if (DEBUG_CREATURE_DIRS) this.drawCreatureDebug(refs);
+				if (DEBUG_CREATURE_DIRS) drawCreatureDebugV(refs);
 			}
-		}
-	}
-
-	/**
-	 * Debug overlay: a green arrow in the creature's TRUE screen heading
-	 * (targetDeg, straight from the movement delta) plus the sheet direction
-	 * block the code currently picked. If the body visually faces away from the
-	 * arrow, the art<->direction mapping in creatures.ts is off.
-	 */
-	private drawCreatureDebug(refs: EntityRefs) {
-		if (
-			!refs.creature ||
-			!(refs.sprite instanceof Phaser.GameObjects.Sprite)
-		)
-			return;
-		const sx = refs.sprite.x;
-		const sy = refs.sprite.y - refs.sprite.displayHeight * 0.45;
-		if (refs.dbgText) {
-			refs.dbgText.setText(
-				`${refs.creature.dir} ${Math.round(refs.creature.targetDeg)}°`,
-			);
-			refs.dbgText.setPosition(sx, sy - 14);
-		}
-		if (refs.dbgArrow) {
-			const rad = (refs.creature.targetDeg * Math.PI) / 180;
-			const vx = Math.sin(rad);
-			const vy = -Math.cos(rad);
-			const len = 34;
-			const ex = sx + vx * len;
-			const ey = sy + vy * len;
-			const g = refs.dbgArrow;
-			g.clear();
-			g.lineStyle(3, 0x34d399, 1);
-			g.beginPath();
-			g.moveTo(sx, sy);
-			g.lineTo(ex, ey);
-			g.strokePath();
-			// arrowhead
-			const ah = 8;
-			const a1 = rad + Math.PI * 0.85;
-			const a2 = rad - Math.PI * 0.85;
-			g.beginPath();
-			g.moveTo(ex, ey);
-			g.lineTo(ex + Math.sin(a1) * ah, ey - Math.cos(a1) * ah);
-			g.moveTo(ex, ey);
-			g.lineTo(ex + Math.sin(a2) * ah, ey - Math.cos(a2) * ah);
-			g.strokePath();
 		}
 	}
 
@@ -1560,27 +1500,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private placeSprite(sprite: EntityRefs['sprite'], tx: number, ty: number) {
-		const p = worldToScreen(tx, ty);
-		sprite.setPosition(p.x, p.y + 8);
-		sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tx, ty));
+		placeSpriteV(this, sprite, tx, ty);
 	}
 
 	private placeRefs(refs: EntityRefs, tile: TileXY) {
-		this.placeSprite(refs.sprite, tile.x, tile.y);
-		this.syncShadow(refs);
-		this.placeNameplate(refs);
+		placeRefsV(this, refs, tile);
 	}
 
-	/**
-	 * The shadow is the asset's baked Shadow layer, frame-locked to the Body, so
-	 * it just mirrors the body sprite's exact transform and renders one depth
-	 * below it. No ground projection or foot fudge — the artist already aligned
-	 * the shadow to the feet for every angle and frame.
-	 */
 	private syncShadow(refs: EntityRefs) {
-		if (!refs.shadow) return;
-		refs.shadow.setPosition(refs.sprite.x, refs.sprite.y);
-		refs.shadow.setDepth(refs.sprite.depth - 1);
+		syncShadowV(refs);
 	}
 
 	private makePlayerRefs(kind: number): EntityRefs {
@@ -1905,11 +1833,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private placeNameplate(refs: EntityRefs) {
-		if (!refs.nameplate) return;
-		refs.nameplate.setPosition(
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight * 0.62 - 8,
-		);
+		placeNameplateV(refs);
 	}
 
 	private refreshHud() {
@@ -1919,7 +1843,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const maxHp = this.store.maxHp(serverEid);
 
 			if (refs.statusFx) {
-				this.drawStatusFx(refs, this.store.effects(serverEid), now);
+				drawStatusFxV(refs, this.store.effects(serverEid), now);
 			}
 
 			if (
@@ -1955,49 +1879,6 @@ export class IsoArpgScene extends Phaser.Scene {
 				hp,
 				maxHp,
 			);
-		}
-	}
-
-	// Status feedback: a pulsing ground aura tinted by the dominant effect (doubles
-	// as the on-tile burn cue) plus a row of colour pips, one per active effect.
-	// Kept off sprite.setTint so it never fights the combat hit-flash.
-	private drawStatusFx(
-		refs: EntityRefs,
-		effects: readonly StatusView[],
-		now: number,
-	): void {
-		const g = refs.statusFx;
-		if (!g) return;
-		g.clear();
-		if (effects.length === 0) return;
-
-		const sprite = refs.sprite;
-		const footY = sprite.y;
-		const dominant = STATUS_PRIORITY.find((k) =>
-			effects.some((e) => e.kind === k),
-		);
-		if (dominant) {
-			const color = STATUS_COLOR[dominant];
-			// Sine pulse; burn/poison flicker harder than buffs for urgency.
-			const fast = dominant === 'Burn' || dominant === 'Poison';
-			const pulse =
-				0.5 + 0.5 * Math.sin((now / (fast ? 90 : 220)) % (Math.PI * 2));
-			const rx = sprite.displayWidth * 0.42;
-			g.fillStyle(color, 0.18 + 0.22 * pulse);
-			g.fillEllipse(sprite.x, footY, rx * 2, 12);
-			g.lineStyle(1.5, color, 0.4 + 0.4 * pulse);
-			g.strokeEllipse(sprite.x, footY, rx * 2, 12);
-		}
-
-		const pipY = footY - sprite.displayHeight - 14;
-		const pipW = 5;
-		const gap = 2;
-		const totalW = effects.length * pipW + (effects.length - 1) * gap;
-		let px = sprite.x - totalW / 2;
-		for (const e of effects) {
-			g.fillStyle(STATUS_COLOR[e.kind], 0.95);
-			g.fillRect(px, pipY, pipW, pipW);
-			px += pipW + gap;
 		}
 	}
 
