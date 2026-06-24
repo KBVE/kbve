@@ -85,7 +85,7 @@ import {
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore } from '@kbve/laser';
+import { EntityStore, packTile } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -858,7 +858,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the
 	// ECS store so local prediction blocks the same tiles the server does — else
 	// the player walks onto a campfire then snaps back on the next snapshot.
-	private envBlocked = new Set<string>();
+	private envBlocked = new Set<number>();
 	// Set by netSync on any env spawn/despawn/move; the set is rebuilt on the next
 	// frame instead of every frame. Starts dirty so the first snapshot seeds it.
 	private envDirty = true;
@@ -871,15 +871,17 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.envBlocked.clear();
 		for (const sid of this.store.serverIdsWith('env')) {
 			const t = this.store.tile(sid);
-			if (t) this.envBlocked.add(`${t.x},${t.y}`);
+			if (t) this.envBlocked.add(packTile(t.x, t.y));
 		}
 	}
 
 	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
 	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
-		if (this.isSurface()) return this.envBlocked.has(`${x},${y}`);
-		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
+		if (this.isSurface()) return this.envBlocked.has(packTile(x, y));
+		return (
+			!this.dungeon.isFloor(x, y) || this.envBlocked.has(packTile(x, y))
+		);
 	};
 
 	private isHostileServer(serverEid: number): boolean {

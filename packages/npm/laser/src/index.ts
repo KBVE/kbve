@@ -67,6 +67,7 @@ export {
 	SideMap,
 	nearestInRange,
 	queryInRange,
+	packTile,
 	type PositionLike,
 } from './lib/ecs/helpers';
 
