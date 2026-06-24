@@ -30,6 +30,8 @@ jsonld:
         - firewall evasion
         - host discovery
         - cybersecurity tools
+        - nmap vs masscan
+        - filtered vs closed ports
     breadcrumb:
         - name: KBVE
           path: /
@@ -62,6 +64,13 @@ jsonld:
               grouped into categories such as default, safe, vuln and
               intrusive, and run via --script, for example
               "sudo nmap --script vuln TARGET".
+        - question: What does filtered mean in an Nmap scan, and how is it different from closed?
+          answer: >-
+              "closed" means the port is reachable and the host replied, but no
+              application is listening. "filtered" means a firewall or filter
+              dropped the probe, so Nmap cannot tell whether the port is open
+              or closed. Filtered almost always indicates a firewall; re-probe
+              with -Pn, a trusted source port, or an ACK scan.
         - question: How do I detect service versions and the operating system with Nmap?
           answer: >-
               Use -sV for service and version detection and -O for OS
@@ -72,6 +81,62 @@ jsonld:
 import { Aside, Steps, Card, CardGrid, Code, Tabs, TabItem } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+import JsonLd from '@kbve/astro/seo/JsonLd.astro';
+import { seo } from '@/lib/seo';
+
+export const nmapUrl = seo.url('/application/nmap/');
+export const howTos = [
+	{
+		'@type': 'HowTo',
+		'@id': `${nmapUrl}#howto-ctf`,
+		name: 'How to scan a CTF / HackTheBox host with Nmap',
+		description:
+			'A two-stage Nmap workflow: a fast full-port sweep, then a deep service, version, and OS scan against only the open ports.',
+		tool: [{ '@type': 'HowToTool', name: 'Nmap' }],
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: 'Fast full-port discovery',
+				text: 'Scan every TCP port quickly to find what is open: sudo nmap -p- --min-rate 5000 -T4 -oN stage1.txt TARGET',
+				url: `${nmapUrl}#ctf--hackthebox-first-contact`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'Deep scan the open ports',
+				text: 'Pull the open ports from stage 1 and run service, version, default-script, and OS detection: PORTS=$(grep ^[0-9] stage1.txt | cut -d/ -f1 | paste -sd,); sudo nmap -p "$PORTS" -sC -sV -O -oA stage2 TARGET',
+				url: `${nmapUrl}#ctf--hackthebox-first-contact`,
+			},
+		],
+	},
+	{
+		'@type': 'HowTo',
+		'@id': `${nmapUrl}#howto-inventory`,
+		name: 'How to inventory an internal subnet with Nmap',
+		description:
+			'Discover live hosts on a subnet, then run targeted TCP and UDP scans against only the hosts that responded.',
+		tool: [{ '@type': 'HowToTool', name: 'Nmap' }],
+		step: [
+			{
+				'@type': 'HowToStep',
+				name: 'Find live hosts',
+				text: 'ARP ping sweep the subnet with no port scan: sudo nmap -sn -PR -oA inv-live 10.0.0.0/24',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'TCP scan the live hosts',
+				text: 'Extract the up hosts and run a top-1000 TCP scan: grep "Status: Up" inv-live.gnmap | awk \'{print $2}\' > live-hosts.txt; sudo nmap -sS --top-ports 1000 -iL live-hosts.txt -oA inv-tcp',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+			{
+				'@type': 'HowToStep',
+				name: 'UDP scan the usual suspects',
+				text: 'Scan common UDP services against the live hosts: sudo nmap -sU -p 53,67,68,69,123,137,138,161,162,500,514,520,1900,5353 -iL live-hosts.txt -oA inv-udp',
+				url: `${nmapUrl}#internal-subnet-inventory`,
+			},
+		],
+	},
+];
 
 ## Information
 
@@ -203,6 +268,34 @@ sudo nmap -sU -sS -p0-65535 TARGET
 # Only show open ports in the output (great for diff'ing scans).
 sudo nmap --open TARGET
 ```
+
+## Understanding Scan Results
+
+Nmap reports one of six states per port. Knowing the difference between
+`closed` and `filtered` is the single most useful skill when reading output.
+
+| State | Meaning |
+|-------|---------|
+| `open` | An application is actively accepting connections on the port |
+| `closed` | Port is reachable (host replied) but no application is listening |
+| `filtered` | A firewall/filter dropped the probe — Nmap can't tell open vs closed |
+| `unfiltered` | Port is reachable but Nmap can't tell open vs closed (ACK scan) |
+| `open|filtered` | No reply — either open or filtered (common on UDP / FIN / Null / Xmas) |
+| `closed|filtered` | Can't tell closed vs filtered (idle scan only) |
+
+```text
+PORT     STATE    SERVICE   VERSION
+22/tcp   open     ssh       OpenSSH 8.9p1 Ubuntu 3ubuntu0.6
+80/tcp   open     http      nginx 1.18.0
+443/tcp  filtered https
+3306/tcp closed   mysql
+```
+
+<Aside type="tip">
+	`filtered` almost always means a firewall. Re-probe with `-Pn` (skip host
+	discovery), a trusted source port (`-g 53`), or a different scan type
+	(`-sA` to map the firewall rules) before concluding the port is dead.
+</Aside>
 
 ## Service & Version Detection
 
@@ -360,6 +453,8 @@ sudo nmap -T1 -sS -f --data-length 24 TARGET
 
 ## Common Recipes
 
+<JsonLd graph={howTos} />
+
 ### Internal subnet inventory
 
 ```shell
@@ -423,6 +518,49 @@ sudo nmap -oA scan TARGET            # save all formats
 sudo nmap -T4 --min-rate 1000 TARGET # fast pass
 ```
 
+## Troubleshooting
+
+Common failures and the fix.
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `You requested a scan type which requires root privileges` | `-sS`, `-sU`, `-O`, `-PE` need raw sockets | Run with `sudo`, or fall back to `-sT` (unprivileged connect scan) |
+| `Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn` | Host blocks ICMP/TCP discovery probes | Add `-Pn` to skip discovery and treat the host as up |
+| All ports show `filtered` | A firewall is dropping probes | Try `-Pn`, a trusted source port (`-g 53`), or an ACK scan (`-sA`) to map rules |
+| UDP scan crawls / takes forever | UDP is rate-limited and retransmit-heavy | Limit ports (`-p 53,161,500`), raise `--min-rate`, add `--host-timeout` |
+| `dnet: Failed to open device ethX` / no results on LAN | Wrong interface or no L2 access | Pin the interface with `-e eth0`, or use `-Pn` to avoid ARP |
+| `Failed to resolve "TARGET"` | DNS lookup failed | Check the hostname, or scan the IP directly and add `-n` to skip DNS |
+| Scan is accurate but extremely slow | Default timing too polite for the link | Raise to `-T4` and set `--min-rate`; drop `-A`/`-O` if you don't need them |
+| NSE: `'X' did not match a category, filename, or directory` | Script DB is stale or the name is wrong | Run `sudo nmap --script-updatedb`; verify with `nmap --script-help X` |
+
+<Aside type="tip">
+	When a scan misbehaves, add `--reason` (shows *why* Nmap marked each port a
+	given state) and `-d` (debug, repeatable `-dd`) to see the packets Nmap
+	actually sent and received.
+</Aside>
+
+## Nmap vs Other Scanners
+
+Nmap is the most accurate all-rounder, but it's not the fastest at internet
+scale. Pick the right tool, then hand off to Nmap for the deep pass.
+
+| Tool | Strength | Trade-off |
+|------|----------|-----------|
+| **Nmap** | Accuracy, NSE scripts, version + OS detection | Slower on huge ranges |
+| **masscan** | Asynchronous, scans the whole IPv4 internet in minutes | No version detection, accuracy drops at high rates |
+| **RustScan** | Fast port discovery, then auto-pipes into Nmap | Just a front-end; still needs Nmap for depth |
+| **ZMap** | Single-port internet-wide research scanning | Built for one port at a time, not host audits |
+| **naabu** | Fast SYN/CONNECT discovery, scriptable pipelines | Discovery only, no service fingerprinting |
+
+A common pattern: discover open ports fast, then deep-scan only those.
+
+```shell
+# masscan finds open ports fast, Nmap fingerprints them accurately.
+sudo masscan -p1-65535 TARGET --rate 10000 -oG masscan.gnmap
+PORTS=$(grep -oP 'Ports: \K[0-9]+' masscan.gnmap | sort -un | paste -sd,)
+sudo nmap -p "$PORTS" -sC -sV -O TARGET
+```
+
 ## FAQ
 
 **Is it legal to use Nmap?**
@@ -445,6 +583,12 @@ NSE runs Lua scripts for advanced discovery, version detection, vulnerability
 checks and brute forcing. Scripts are grouped into categories (`default`,
 `safe`, `vuln`, `intrusive`, …) and run via `--script`, e.g.
 `sudo nmap --script vuln TARGET`.
+
+**What does `filtered` mean, and how is it different from `closed`?**
+`closed` means the port is reachable but nothing is listening. `filtered`
+means a firewall dropped the probe, so Nmap can't tell open from closed.
+Filtered almost always means a firewall — re-probe with `-Pn`, a trusted
+source port (`-g 53`), or an ACK scan (`-sA`).
 
 **How do I detect service versions and the OS?**
 Use `-sV` for service/version detection and `-O` for OS fingerprinting. The
