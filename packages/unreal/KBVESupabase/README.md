@@ -89,6 +89,63 @@ OS-assigned (`port 0`) means the redirect URI changes every launch, which forces
 
 `BuildOAuthAuthorizeURL(Provider, RedirectTo, Scopes)` still exists for cases where the redirect target is your own deep link / web callback. The hash-fragment implicit flow (`access_token` in URL fragment) only works in a browser — not from a loopback HTTP listener — so always pass `flow_type=pkce` when targeting the loopback yourself.
 
+## OAuth capture: belt-and-suspenders (loopback + deep link)
+
+`StartOAuthSignIn` opens the callback channel with automatic failover so the flow survives platforms where the engine HTTP server never actually listens (packaged macOS Shipping) or where a firewall blocks loopback:
+
+1. **Layer A — FHttpServer loopback.** Binds `127.0.0.1:<port>` via `FHttpServerModule`, then **self-probes** by opening a throwaway client socket. Well-exercised on Windows + editor.
+2. **Layer B — raw FSocket loopback.** If Layer A binds a route but never accepts (the macOS gap — the app logs "bound" but no socket listens), the plugin tears it down and brings up a raw `FTcpListener` on the same `3450-3460` range, serving a minimal HTTP/1.1 GET handler. Same `http://127.0.0.1:<port>/auth/callback` redirect, so **no extra Supabase config**.
+3. **Layer C — custom URL scheme deep link.** If neither loopback opens a socket, the redirect handed to Supabase becomes `<DeepLinkScheme>://auth/callback` (default `kbve://auth/callback`). macOS delivers it natively via the Apple Event Manager (`kAEGetURL`), sidestepping loopback + firewall entirely; Windows relaunches with the URL on the command line.
+
+Settings (_Project Settings → Plugins → KBVE Supabase → OAuth Deep Link_):
+
+| Key                       | Default | Purpose                                                                                                          |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `DeepLinkScheme`          | `kbve`  | Scheme for the Layer C redirect. Set a per-game value (e.g. `chuckrpg`) to avoid collisions between KBVE titles. |
+| `bEnableDeepLinkFallback` | `True`  | Allow Layer C when both loopbacks fail.                                                                          |
+| `bPreferDeepLink`         | `False` | Skip loopback entirely; always use the scheme.                                                                   |
+
+### Diagnosing the macOS loopback gap
+
+At the login screen, on the Mac:
+
+```
+lsof -nP -iTCP -sTCP:LISTEN | grep -E '34(5[0-9]|60)'
+```
+
+- **Nothing listening** → `FHttpServerModule` is not opening the socket; Layer B (raw socket) now covers this automatically.
+- **Listening on 3451 not 3450** → a double-launch race; the redirect tracks the bound port, so it still completes.
+
+### Supabase setup for deep link
+
+Allowlist the scheme URI alongside the loopback range at _Auth → URL Configuration → Redirect URLs_:
+
+```
+kbve://auth/callback
+```
+
+### Registering the scheme with the OS
+
+**macOS** — add to the packaged app's `Info.plist` (`<App>.app/Contents/Info.plist`), or the project's Mac packaging template:
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>com.kbve.oauth</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>kbve</string>
+    </array>
+  </dict>
+</array>
+```
+
+**Windows** — register the scheme in `HKCU\Software\Classes\kbve` at install time (`URL Protocol` empty value + `shell\open\command` → `"<Game>.exe" "%1"`). The module parses the relaunch URL off the command line.
+
+> The plugin code (probe, raw socket, Apple Event handler, command-line parse) ships ready. The OS registration above and the Supabase allowlist entry are environment steps that must be applied per build/tenant.
+
 ## Database (PostgREST) helpers
 
 ```cpp

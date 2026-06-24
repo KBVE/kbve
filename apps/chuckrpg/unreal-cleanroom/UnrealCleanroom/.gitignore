@@ -1,0 +1,101 @@
+# Unreal Engine 5.8 Cleanroom .gitignore
+
+# Visual Studio 2015/2017/2019/2022 cache/options directory
+.vs/
+
+# Rider cache directory
+.idea/
+
+# Visual Studio Code cache directory
+.vscode/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.ipa
+
+# Unreal Engine Build Files
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+Script/
+
+# Unreal Engine Plugin Intermediate
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# Compiled source files for the engine to use
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
+
+# Cache files for the editor
+DerivedDataCache/*
+
+# Content - track only Fab Store evaluation assets
+# Block all Content, then whitelist specific Fab assets
+Content/*
+!Content/Wildlands/
+!Content/Wildwood/
+# Future Fab assets - add explicit whitelist entries here
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Crash logs
+*.log
+*.dmp
+
+# Build artifacts
+*.target.xml
+
+# ShaderCache
+/Saved/ShaderDebugInfo/
+
+# Automation Testing Cache
+/Saved/Automation/
+
+# Analytics Cache
+/Saved/Analytics/

@@ -106,6 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(consumables);
         app.insert_resource(buffs);
         app.insert_resource(item_db);
+        app.insert_resource(game::spell_db());
         app.insert_resource(game::stairs());
         app.insert_resource(game::deployables());
         app.insert_resource(simgrid::PersistedEnvLog(restored_env));

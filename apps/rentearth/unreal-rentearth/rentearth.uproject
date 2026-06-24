@@ -109,6 +109,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVESpellDB",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEWebSurface",
 			"Enabled": true
 		},
