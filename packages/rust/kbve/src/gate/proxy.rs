@@ -449,10 +449,16 @@ fn sanitize_cookies(headers: &mut HeaderMap) {
 fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
     let path = uri.path();
     let query = uri.query().map(|q| format!("?{q}")).unwrap_or_default();
+    let applied_prefix =
+        if prefix.is_empty() || path == prefix || path.starts_with(&format!("{prefix}/")) {
+            ""
+        } else {
+            prefix
+        };
     format!(
         "{}{}{}{}",
         upstream.trim_end_matches('/'),
-        prefix,
+        applied_prefix,
         path,
         query
     )
