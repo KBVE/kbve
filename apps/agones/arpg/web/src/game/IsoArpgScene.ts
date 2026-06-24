@@ -39,6 +39,9 @@ import {
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
+	GRASS_TEXTURE_KEY,
+	GRASS_TEXTURE_PATH,
+	SURFACE_MAX_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
 	FOG_ZOOM_OUT,
@@ -77,7 +80,15 @@ import {
 	chunkGate,
 	chunkPassageWidth,
 	CHUNK_SIZE,
+	StairKind,
+	stairTile,
 } from './systems/dungeon';
+import {
+	preloadStairs,
+	makeStairSprite,
+	type StairId,
+	type StairMaterial,
+} from './entities/stairs';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
 import {
@@ -267,6 +278,17 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
+	// Floors above the dungeon (z <= SURFACE_MAX_Z) are open grassland: grass
+	// ground, no dungeon walls/holes, everything walkable. Base layer for now.
+	private isSurface = (): boolean => this.currentFloor <= SURFACE_MAX_Z;
+	// The two stair props on the active floor (down = inverted pit, up = raised
+	// steps). Rebuilt whenever the floor changes.
+	private stairSprites: Phaser.GameObjects.Image[] = [];
+	// Material set + which sprite (1-12) renders for the up (ascend) and down
+	// (descend) stair. 1-8 are raised steps, 9-12 inverted pits; swap freely.
+	private readonly stairMaterial: StairMaterial = 'grey_stone';
+	private readonly stairUpId: StairId = 1;
+	private readonly stairDownId: StairId = 9;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -312,9 +334,11 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	preload() {
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
+		this.load.image(GRASS_TEXTURE_KEY, arpgAsset(GRASS_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
+		preloadStairs(this);
 	}
 
 	create() {
@@ -361,6 +385,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// drives walkability + streaming; it does NOT carve this base.
 		this.buildGroundPlane();
 		this.refreshDungeon(DEBUG_SPAWN_TILE, true);
+		this.placeStairs();
 		this.hoverTile = this.makeHoverTile();
 	}
 
@@ -484,6 +509,28 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	/**
+	 * Drop and re-place the two stair props for the active floor. Tiles come from
+	 * the field's parity-shared `stairTile`, so each prop sits exactly on the tile
+	 * the server's `Stairs::at` triggers a floor change — stepping on the raised
+	 * steps ascends (z-1), on the inverted pit descends (z+1). Depth sits just
+	 * under entities so the player renders climbing onto it.
+	 */
+	private placeStairs() {
+		for (const s of this.stairSprites) s.destroy();
+		this.stairSprites = [];
+		const place = (kind: StairKind, id: StairId) => {
+			const tile = this.dungeon.stairTile(kind);
+			const sprite = makeStairSprite(this, this.stairMaterial, id);
+			const p = worldToScreen(tile.x, tile.y);
+			sprite.setPosition(p.x, p.y + 8);
+			sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tile.x, tile.y) - 1);
+			this.stairSprites.push(sprite);
+		};
+		place(StairKind.Up, this.stairUpId);
+		place(StairKind.Down, this.stairDownId);
+	}
+
+	/**
 	 * One world-anchored ground tile for a chunk: a TileSprite covering the
 	 * chunk's tile square, projected onto the iso plane (inner sprite rotated
 	 * 45°, parent Container squashed 2:1 — Phaser scales before it rotates, so a
@@ -499,7 +546,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			0,
 			side,
 			side,
-			GROUND_TEXTURE_KEY,
+			this.isSurface() ? GRASS_TEXTURE_KEY : GROUND_TEXTURE_KEY,
 		);
 		sprite.setOrigin(0.5, 0.5);
 		sprite.setRotation(-Math.PI / 4);
@@ -538,6 +585,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	private paintHoles(cx: number, cy: number) {
 		const g = this.holeLayer;
 		g.clear();
+		// Surface floors are open grass — no walls to punch holes for.
+		if (this.isSurface()) return;
 		g.fillStyle(0x05070d, 1);
 		const hw = TILE_W / 2;
 		const hh = TILE_H / 2;
@@ -601,6 +650,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			} else if (ev.key === 'i' || ev.key === 'I') {
 				this.inventoryOpen = !this.inventoryOpen;
 				emitInventoryOpen(this.inventoryOpen);
+			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
+				this.debugChangeFloor(-1); // ascend (toward grass surface)
+			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
+				this.debugChangeFloor(1); // descend (deeper dungeon)
 			} else if (ev.key === 'Escape') {
 				if (this.placingRef) {
 					this.exitPlacement();
@@ -1351,6 +1404,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.hudMap = null;
 		this.hudMapTile = null;
 		this.rebuildDungeon();
+		this.placeStairs();
+	}
+
+	/**
+	 * Offline-only floor change (no server). Mirrors the server stair link: dz=-1
+	 * ascends onto the target floor's Down stair, dz=+1 descends onto its Up
+	 * stair, so the local player lands on a real tile. Lets us test the grass
+	 * surface (z<0) without a live arpg-server.
+	 */
+	private debugChangeFloor(dz: number) {
+		const z = this.currentFloor + dz;
+		const land = dz < 0 ? StairKind.Down : StairKind.Up;
+		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
+		this.onFloorChange({ z, tile });
 	}
 
 	update(time: number, delta: number) {
@@ -1436,9 +1503,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		const ox = tile.x - r;
 		const oy = tile.y - r;
 		const cells = new Uint8Array(size * size);
+		const surface = this.isSurface();
 		for (let j = 0; j < size; j++) {
 			for (let i = 0; i < size; i++) {
-				if (this.dungeon.isFloor(ox + i, oy + j)) {
+				if (surface || this.dungeon.isFloor(ox + i, oy + j)) {
 					cells[j * size + i] = 1;
 				}
 			}
@@ -1741,6 +1809,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
 	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
+		if (this.isSurface()) return this.envBlocked.has(`${x},${y}`);
 		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
 	};
 

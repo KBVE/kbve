@@ -124,6 +124,14 @@ export function arpgAsset(path: string): string {
 export const GROUND_TEXTURE_KEY = 'arpg-ground';
 export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 
+// Surface (overworld) floors sit ABOVE the dungeon. The up-stair goes z-1, so any
+// floor below z=0 is open grassland — no dungeon walls, grass ground. Base layer
+// for now; per-tile detailing comes later.
+export const SURFACE_MAX_Z = -1; // z <= this = open grass surface
+export const GRASS_TEXTURE_KEY = 'arpg-grass';
+export const GRASS_TEXTURE_PATH =
+	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
+
 // Offline debug: when no server connects, spawn a locally-driven ranger so the
 // character renders and is controllable without a live arpg-server.
 export const DEBUG_LOCAL_PLAYER =
