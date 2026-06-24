@@ -81,6 +81,45 @@ subjects:
       name: firecracker-external-secrets
       namespace: firecracker
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: supabase-service-key-reader-for-rows-tenants
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['supabase-service-key']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: rows-tenants-read-service-key
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: supabase-service-key-reader-for-rows-tenants
+subjects:
+    - kind: ServiceAccount
+      name: ows-external-secrets
+      namespace: rows
+    - kind: ServiceAccount
+      name: rows-external-secrets
+      namespace: rows-chuckrpg-beta
+    - kind: ServiceAccount
+      name: rows-external-secrets
+      namespace: rows-chuckrpg-dev
+---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
