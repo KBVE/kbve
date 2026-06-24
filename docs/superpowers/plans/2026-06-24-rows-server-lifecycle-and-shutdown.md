@@ -282,6 +282,20 @@ A `draining` instance is **exempt from the empty / never-reported reap** (a drai
 server that's draining and then crashes mid-save must still be reclaimed. So drain changes *which*
 reap reasons apply, it does not remove the instance from reaping entirely.
 
+**Known residual — "silence ≠ dead" on the Empty path (v1; carried by gated-off-by-default).** The
+Empty path keys on a frozen `lastserveremptydate` and never consults `lastupdatefromserver` freshness
+or Agones liveness. Narrow failure: a server stamps exactly-0 (marker set) → its ROWS-bound heartbeat
+path partitions while the game-data path survives and players reconnect out-of-band → ROWS sees
+frozen-zero + aging marker → Empty force-deletes a now-populated server. It requires the partition to
+land between "stamped 0" and "players back," and new joins can't route there during the gap; a *full*
+ROWS outage doesn't trigger it (no joins occur while ROWS is down → the server stays genuinely empty).
+A **freshness guard is the wrong fix** — it would suppress the intended silence→`Stale`/`NeverReported`
+reaping. The proper close is **cross-checking the Agones GameServer `Ready`/health before a
+force-delete** (the v2 valkey-liveness direction). Until then, the reaper's **gated-off-by-default**
+posture is what carries this. The v1 SQL is otherwise well-defended: a single positive heartbeat sets
+`lastserveremptydate = NULL` (instant clear), and `GREATEST($3,0)` + "only an exact 0 stamps the
+marker" close the lagging-positive-count hard-kill.
+
 ## Fleet-restart (binary / gameplay / migration rollout)
 
 **Default for every rollout** — even with no DB change, because gameplay/protocol logic can break
@@ -423,7 +437,8 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
   (rows already has a valkey deployed.)
 - **Reaper v2 (valkey-backed occupancy)** — move the reaper's count/empty/liveness reads from
   `mapinstances` to valkey (DB still source for instance lifecycle + `gameservername`), with
-  fail-safe-on-no-data. The #13200 reaper is v1 (DB counts).
+  fail-safe-on-no-data, **and cross-check the Agones GameServer `Ready`/health before a force-delete**
+  (closes the "silence ≠ dead" Empty residual — see Reaper interaction). The #13200 reaper is v1.
 - **UE/chuck contract** — receiving requests, admission policy, save-to-DB, drain pacing, transfer,
   `SDK.Shutdown()` timing, player broadcasts. Extends #13194.
 - **RabbitMQ write-behind** save buffer (only when stagger waves aren't enough).
