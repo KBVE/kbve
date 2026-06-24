@@ -324,6 +324,48 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
+    /// Active (`status > 0`) instances with the `maps` join — the reaper's candidate set.
+    /// Capped at 500; the caller logs when the cap is hit (possible under-reaping).
+    pub async fn get_active_reap_candidates(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Vec<ZoneInstance>, RowsError> {
+        let zones = sqlx::query_as::<_, ZoneInstance>(
+            "SELECT mi.*, m.mapname AS map_name, m.mapmode AS map_mode,
+                    m.softplayercap AS soft_player_cap,
+                    m.hardplayercap AS hard_player_cap,
+                    m.minutestoshutdownafterempty AS minutes_to_shutdown_after_empty
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.status > 0
+             ORDER BY mi.mapinstanceid
+             LIMIT 500",
+        )
+        .bind(customer_guid)
+        .fetch_all(self.0)
+        .await?;
+        Ok(zones)
+    }
+
+    /// Label-independent teardown fallback: resolve the persisted `gameservername` for an
+    /// instance when the in-memory `zone_servers` map can't (e.g. `reconcile_allocations`
+    /// couldn't rehydrate it because the `zone-instance` label was `0`/missing).
+    pub async fn get_gameserver_name(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+    ) -> Result<Option<String>, RowsError> {
+        let row: Option<(Option<String>,)> = sqlx::query_as(
+            "SELECT gameservername FROM mapinstances
+             WHERE customerguid = $1 AND mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(row.and_then(|r| r.0))
+    }
+
     /// LEFT JOIN + GROUP BY instead of the previous correlated subquery (N+1 fix); returns
     /// `(world_server_id, server_ip, instance_count)` sorted least-loaded first.
     pub async fn get_active_world_servers_by_load(
