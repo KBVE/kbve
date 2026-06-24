@@ -64,13 +64,10 @@ Plugins/*/Intermediate/
 # Cache files for the editor
 DerivedDataCache/*
 
-# Content - ignore all except blueprints and project-specific configs
-# For cleanroom, we want to track evaluations but not full assets
-Content/
-
-# Allow tracking specific evaluation blueprints or notes if needed
-# Uncomment to whitelist:
-# !Content/Evaluations/
+# Content - track LFS pointer files for Fab assets
+# .gitattributes handles LFS tracking for .uasset, .fbx, textures
+# Pointer files (~150 bytes) committed to monorepo
+# Actual blobs pushed to Forgejo via kbve.sh wrapper
 
 # macOS
 .DS_Store
