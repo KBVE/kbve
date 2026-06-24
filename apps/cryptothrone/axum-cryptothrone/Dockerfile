@@ -41,7 +41,9 @@ WORKDIR /app/apps/cryptothrone/astro-cryptothrone
 # Build the standalone embed.js + Discord Activity discord.js into public/
 # first, so `astro build` copies them into dist (served by the rust binary at
 # /embed/embed.js and /discord/{index.html,discord.js}).
-RUN rm -rf .astro && npx astro sync && \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-cryptothrone-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
     NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.embed.config.mts && \
     NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.discord.config.mts && \
     # Cache-bust the fixed-name discord.js: stamp its content hash as a query so
@@ -50,6 +52,7 @@ RUN rm -rf .astro && npx astro sync && \
     DJS_V=$(sha1sum public/discord/discord.js | cut -c1-8) && \
     sed -i "s#src=\"discord.js\"#src=\"discord.js?v=$DJS_V\"#" public/discord/index.html && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true && \
     # Fail loud if the embed/discord bundles didn't make it into dist (a stale
     # cached astro-builder layer once shipped without them -> silent 404s).
     test -f ../../../dist/apps/astro-cryptothrone/embed/embed.js && \

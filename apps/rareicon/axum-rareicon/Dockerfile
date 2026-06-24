@@ -29,7 +29,7 @@ COPY apps/rareicon/icons-codegen/ apps/rareicon/icons-codegen/
 COPY apps/rareicon/astro-rareicon/ apps/rareicon/astro-rareicon/
 
 WORKDIR /app/apps/rareicon/astro-rareicon
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-rareicon-cache \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-rareicon-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \
