@@ -223,6 +223,27 @@ pub struct ZoneInstance {
     pub minutes_to_shutdown_after_empty: i32,
 }
 
+/// Slim projection for the reaper's per-cycle candidate scan. `reap_decision` reads only these
+/// `Copy` fields, so a narrowed `SELECT` into this struct (vs `SELECT mi.*` into `ZoneInstance`)
+/// avoids the per-row `String` allocations (`map_name`, `game_server_name`) for up to 500 rows
+/// every 60s. GameServer-name resolution for an actual reap target is a separate query
+/// (`get_gameserver_names`), so the scan itself needs no text columns.
+#[derive(Debug, sqlx::FromRow)]
+pub struct ReapRow {
+    #[sqlx(rename = "mapinstanceid")]
+    pub map_instance_id: i32,
+    #[sqlx(rename = "numberofreportedplayers")]
+    pub number_of_reported_players: i32,
+    #[sqlx(rename = "lastupdatefromserver")]
+    pub last_update_from_server: Option<NaiveDateTime>,
+    #[sqlx(rename = "lastserveremptydate")]
+    pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "createdate")]
+    pub create_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "minutestoshutdownafterempty")]
+    pub minutes_to_shutdown_after_empty: i32,
+}
+
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct JoinMapResult {

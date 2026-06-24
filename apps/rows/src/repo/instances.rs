@@ -357,20 +357,23 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
-    /// Active (`status > 0`) instances with the `maps` join — the reaper's candidate set.
-    /// Capped at 500; the caller logs when the cap is hit (possible under-reaping). Ordered
-    /// longest-empty first (`lastserveremptydate ASC NULLS LAST`) so the most reap-worthy rows
-    /// are always inside the cap rather than starved behind a low-id head; `mapinstanceid`
-    /// breaks ties for deterministic ordering when empty-dates are equal/NULL.
+    /// Active (`status > 0`) instances — the reaper's candidate set. Returns the slim
+    /// [`ReapRow`] projection (only the columns `reap_decision` reads) rather than a full
+    /// `SELECT mi.*` into `ZoneInstance`, so the scan allocates no per-row `String`s
+    /// (`map_name`/`gameservername`) for up to 500 rows every cycle. Still joins `maps` for the
+    /// per-map `minutestoshutdownafterempty`. Capped at 500; the caller logs when the cap is hit
+    /// (possible under-reaping). Ordered longest-empty first (`lastserveremptydate ASC NULLS
+    /// LAST`) so the most reap-worthy rows are always inside the cap rather than starved behind a
+    /// low-id head; `mapinstanceid` breaks ties for deterministic ordering when empty-dates are
+    /// equal/NULL.
     pub async fn get_active_reap_candidates(
         &self,
         customer_guid: Uuid,
-    ) -> Result<Vec<ZoneInstance>, RowsError> {
-        let zones = sqlx::query_as::<_, ZoneInstance>(
-            "SELECT mi.*, m.mapname AS map_name, m.mapmode AS map_mode,
-                    m.softplayercap AS soft_player_cap,
-                    m.hardplayercap AS hard_player_cap,
-                    m.minutestoshutdownafterempty AS minutes_to_shutdown_after_empty
+    ) -> Result<Vec<ReapRow>, RowsError> {
+        let rows = sqlx::query_as::<_, ReapRow>(
+            "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
+                    mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
+                    m.minutestoshutdownafterempty
              FROM mapinstances mi
              JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0
@@ -380,7 +383,7 @@ impl<'a> InstanceRepo<'a> {
         .bind(customer_guid)
         .fetch_all(self.0)
         .await?;
-        Ok(zones)
+        Ok(rows)
     }
 
     /// Per-tenant reaper overrides from `ows.reaper_config`. Returns the all-`None` default when no
