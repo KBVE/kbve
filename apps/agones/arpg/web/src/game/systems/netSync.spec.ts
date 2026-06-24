@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { EntityDelta, StatusView } from '@kbve/laser';
-import type { EntityCat, EntityStore } from '../ecs/store';
+import type {
+	EntityDelta,
+	StatusView,
+	EntityCat,
+	EntityStore,
+} from '@kbve/laser';
 import {
 	applyEntitySync,
 	type SyncBridge,

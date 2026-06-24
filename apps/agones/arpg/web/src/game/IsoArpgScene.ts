@@ -58,7 +58,7 @@ import {
 	type TileXY,
 } from './iso';
 import { CursorController, Cursor } from './input/cursor';
-import { EntityStore } from './ecs/store';
+import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,

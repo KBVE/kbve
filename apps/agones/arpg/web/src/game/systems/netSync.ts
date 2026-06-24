@@ -1,5 +1,4 @@
-import type { EntityDelta } from '@kbve/laser';
-import type { EntityCat, EntityStore } from '../ecs/store';
+import type { EntityDelta, EntityCat, EntityStore } from '@kbve/laser';
 import type { TileXY } from '../iso';
 
 export interface SyncBridge<R> {

@@ -3,12 +3,11 @@ import {
 	addEntity,
 	removeEntity,
 	addComponent,
-	SideMap,
-	queryInRange,
 	query,
 	type World,
-	type StatusView,
-} from '@kbve/laser';
+} from './bitecs';
+import { SideMap, queryInRange } from './helpers';
+import type { StatusView } from '../net/protocol';
 import {
 	Position,
 	Health,
