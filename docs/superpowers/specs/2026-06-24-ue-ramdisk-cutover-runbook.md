@@ -24,8 +24,8 @@
 
 ## Preconditions (do not start cutover until all true)
 
-1. **WS-2 budget closes.** Run §5 validation at `maxRunners: 1`; the inequality in `2026-06-24-ue-ramdisk-ram-budget.md` holds with measured peak scratch + ≥10 GB margin. If it does not close → **stop, stay at `maxRunners: 1`** (this is the safe state; abandoning cutover is a valid outcome).
-2. **`<CEILING>` chosen** = proven tmpfs size; substituted into the DaemonSet and the alert.
+1. **WS-2 sizing confirmed.** On the ~500 GB node the budget closes with large margin (WS-2), so this is a confirmation, not a gate: run §5 at `maxRunners: 1` and check that measured peak `2×scratch + engine + mirror` stays under the **150 GB tmpfs ceiling**. If a project's scratch is unexpectedly large, **raise the ceiling** (room to ~250 GB) rather than abandoning cutover.
+2. **tmpfs ceiling set** = `size=150G` (already baked into the DaemonSet and the nsenter mount). If you are also raising `maxRunners` to 3–4 for plugin/engine overlap, bump `size=` per the WS-2 "Scaling `maxRunners`" table in the same edit.
 3. **VM snapshot (optional, cheap insurance).** A `VirtualMachineSnapshot` of `windows-builder` before the first run is nice-to-have, but **no longer required** — the RO `repo.img` attach does **not** modify the guest (no driver install), so the rootdisk is unchanged.
 4. Maintenance window agreed; UE CI quiesced (no in-flight builds).
 
@@ -33,10 +33,10 @@
 
 **Order rationale:** provision the tmpfs → bring up the daemon that owns it → point runners at it → only then re-enable concurrency → Windows RO repo-disk last (independent of the Linux path). Workflow edits go in the same change as the runner rework so the two never disagree.
 
-0. **Substitute `<CEILING>` first.** `<CEILING>` is a literal placeholder in `shared-dind-daemonset.yaml`, **not** a kustomize variable — nothing substitutes it for you. Replace it with the WS-2-proven size before adding the file to `kustomization.yaml`. (The init container now hard-fails if it ever runs unsubstituted, but catch it here, not at runtime.)
+0. **Confirm the tmpfs ceiling fits.** `size=150G` is baked into `shared-dind-daemonset.yaml`. Confirm it still covers `engine + mirror + maxRunners×peak_scratch`; if you are raising `maxRunners` above 2, raise `size=` per the WS-2 table in the same edit before adding the file to `kustomization.yaml`.
 1. **Provision tmpfs + shared dind (WS-3 + WS-4).** Add `shared-dind-daemonset.yaml` to `kustomization.yaml`; let Argo sync (or `kubectl apply` in the window). Verify:
    - `kubectl -n arc-runners get ds ue-shared-dind` → 1/1 ready.
-   - `kubectl -n arc-runners exec ds/ue-shared-dind -- mount | grep /var/mnt/ramdisk` → `tmpfs ... size=<CEILING>`.
+   - `kubectl -n arc-runners exec ds/ue-shared-dind -- mount | grep /var/mnt/ramdisk` → `tmpfs ... size=150G`.
    - **Assert it is really RAM-backed (silent-OS-disk-fallback guard):** `kubectl -n arc-runners exec ds/ue-shared-dind -- stat -f -c %T /var/mnt/ramdisk` → must print `tmpfs`. If it prints `ext2/ext3` (or anything else) the mount/propagation failed and dockerd would put 40 GB on the node OS disk that etcd lives on — STOP. (The pod also self-asserts this and CrashLoops rather than proceed.)
    - socket exists & group-readable: `ls -l /var/mnt/ramdisk/docker.sock` → group `1000`, mode `srw-rw----`.
 2. **Repopulate check.** `kubectl -n arc-runners exec ds/ue-shared-dind -- docker pull <engine-ref>` once; confirm `du -sh /var/mnt/ramdisk/docker` ≈ engine size (not doubled).
@@ -110,6 +110,6 @@ Scope: **only** `server_build` and `game_build_linux` jobs + one new `prepare` j
 | Second concurrent build re-pulls 40 GB / ENOSPC | confirm WS-1 prune removal landed; a stray `docker system prune` is wiping the shared image |
 | `object not found` mid-build | tmpfs/dind was wiped under a `--shared` clone; re-run `prepare` (alternate-loss tolerance) |
 | Windows job reads stale/empty repo | `repo.img` not packed before boot; confirm `prepare → win_vm_boot` ordering and that the RO disk attached |
-| `ue-shared-dind` CrashLoop, `FATAL: ... not tmpfs` | mount/propagation failed — data-root would land on the node OS disk. Do NOT bypass the assert; fix the tmpfs mount (check init container, `<CEILING>` substituted, host mount-ns access) before retry. |
-| `ue-shared-dind` CrashLoop, `FATAL: ... <CEILING> not substituted` | the placeholder was never replaced; set the WS-2 size in `shared-dind-daemonset.yaml` and re-sync (cutover step 0). |
+| `ue-shared-dind` CrashLoop, `FATAL: ... not tmpfs` | mount/propagation failed — data-root would land on the node OS disk. Do NOT bypass the assert; fix the tmpfs mount (check the init container ran, host mount-ns access, `nsenter` worked) before retry. |
+| tmpfs `size=` too small for the chosen `maxRunners` (ENOSPC mid-build) | raise the DaemonSet `size=` per the WS-2 "Scaling `maxRunners`" table; you have headroom to ~250 GB on the 500 GB node. |
 | `kubectl drain` / Talos node maintenance hangs | the `ue-shared-dind` PDB (`minAvailable:1`, single pod) blocks eviction; `kubectl -n arc-runners delete pdb ue-shared-dind` first, then drain. |
