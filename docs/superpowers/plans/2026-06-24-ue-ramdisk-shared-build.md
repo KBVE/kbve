@@ -13,7 +13,7 @@
 These apply to every task. Exact values, copied from the verified repo state.
 
 - **Node:** one Talos node, **~500 GB** RAM, **no failover**. It shares that RAM across the k8s control plane, etcd, ClickHouse, Postgres, the KubeVirt `windows-builder` VM, and the ARC runner pods. etcd `fdatasync` starvation already flaps this cluster (#12987) — memory pressure that evicts page cache or stalls etcd drops the control-plane lease.
-- **Baseline to implement against:** `origin/dev` @ `2df4b35`. `values-ue.yaml` there is `maxRunners: 1`, a RAM-backed `dind-storage` emptyDir (`medium: Memory`, `sizeLimit: 64Gi`), and a ghcr pull-through mirror (`--insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000`). `origin/main` drifts (`maxRunners: 2`, `dind-storage 40Gi`) — pin to the `dev` SHA, not `main`.
+- **Baseline to implement against:** `origin/dev` @ `2df4b35`. `values-ue.yaml` there is `maxRunners: 1`, a RAM-backed `dind-storage` emptyDir (`medium: Memory`, `sizeLimit: 64Gi`), and a ghcr pull-through mirror (`--insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000`). `origin/main` drifts (`maxRunners: 2`, `dind-storage 40Gi`) — pin to the `dev` SHA, not `main`. Reconcile the `dev`/`main` interim states before the next `dev→main` promotion, or that merge yields an untested third combination.
 - **Concurrency target:** `maxRunners: 3` — `server_build` + `game_build_linux` + one plugin/engine Linux build. All are pods of the single `arc-runner-ue` scale set. The Windows builder is the KubeVirt VM (registers as `UE5-Win`) and runs in parallel on its own. Mac is a separate physical box and costs this node nothing.
 - **tmpfs ceiling:** `size=200G`. It caps `engine (~45) + mirror (~7) + N × per_build_scratch (~49 each) + repo.img`. Raising `maxRunners` requires raising the ceiling in the same edit (see [Reference: RAM sizing](#reference-ram-sizing)); never raise one without the other.
 - **Runner identity:** runner pods run `runAsUser: 1000` / `runAsGroup: 1000`. The shared docker socket must be group-readable by gid 1000.
@@ -49,9 +49,18 @@ These apply to every task. Exact values, copied from the verified repo state.
 
 Read this once; the tasks assume it.
 
+### Verified repo state (the audit trail behind the facts above)
+
+Confirmed against the repo so a reviewer need not re-derive it:
+
+- **The Windows builder is a KubeVirt VM** (`apps/kube/angelscript/manifest/vm-windows-builder.yaml`) with disks: `rootdisk` (PVC `windows-builder-rootdisk`, 120Gi), `iso` (dataVolume), and `shared-storage` (PVC `builder-shared-storage`, 50Gi RWX Longhorn, attached as a **virtio block** disk). There is **no `filesystems`/virtio-fs device**. The new `repo.img` (Task 8) is the *same kind* of plain block-disk attach as `builder-shared-storage`.
+- **KubeVirt feature gates** (`apps/kube/kubevirt/cr/kubevirt.yaml`) are `LiveMigration, HotplugVolumes, NetworkBindingPlugins, ExpandDisks` — **`ExperimentalVirtiofsSupport` is NOT enabled**, and this plan adds none. (Stated as confirmed current state so the virtio-fs question is closed, not re-opened at review.)
+- **`node.kbve.com/type=intel-nuc` and "NUC SSD" comments in `talos-worker.yaml` are leftover template strings, not a node fleet.** This is one ~500 GB node, not many NUCs — do not read the labels as a cluster.
+- **One node ⇒ co-location is automatic.** No `nodeSelector`/affinity/pinning is required for any consumer to share the host-local tmpfs; the DaemonSet's single pod and the runner pods all land on the same node by construction.
+
 - **The failure being fixed:** UE CI hit `no space left on device` on `/var/lib/docker/.../overlayfs` extracting `epicgames/unreal-engine:dev-5.8.0`. Each Linux pod ran its own DinD with a per-pod RAM image store, so two concurrent jobs each extracted their own ~40 GB engine and exhausted the RAM store. The interim fix was `maxRunners: 1` (serialize). This plan removes the duplication instead.
 - **What sharing actually saves:** de-duplication, not relocation. One engine copy instead of N (~40 GB saved) and one mirror instead of per-build clones. Per-build scratch is the *same* RAM whether it sits in a per-pod emptyDir or the shared tmpfs. On ~500 GB the saved copy is not the margin — the [tmpfs ceiling](#reference-ram-sizing) is what bounds concurrency.
-- **Shared dind over a UNIX socket, never TCP.** A TCP dind (`tcp://0.0.0.0:2376 --tls=false`) behind a ClusterIP is an unauthenticated privileged Docker API reachable cluster-wide — any pod drives it and escapes to node root. A host-local UNIX socket on the shared `hostPath` is reachable only by the co-located runner pods that mount it. (A compromised UE build step still reaches node root via that socket by design — that is inherent to giving CI a shared daemon; the socket choice keeps the exposure node-local instead of cluster-wide.)
+- **Shared dind over a UNIX socket, never TCP.** A TCP dind (`tcp://0.0.0.0:2376 --tls=false`) behind a ClusterIP is an unauthenticated privileged Docker API reachable cluster-wide — any pod drives it and escapes to node root. A host-local UNIX socket on the shared `hostPath` is reachable only by the co-located runner pods that mount it. (A compromised UE build step still reaches node root via that socket by design — that is inherent to giving CI a shared daemon; the socket choice keeps the exposure node-local instead of cluster-wide.) If TCP is ever genuinely required, it must be `--tls` with client certs **and** a `NetworkPolicy` scoping the daemon to the UE runner pods only — never the bare `--tls=false` form.
 - **tmpfs via privileged DaemonSet, not Talos `machine.config`.** Talos v1.8 has no primitive that mounts an arbitrary host tmpfs visible to pod `hostPath` (`machine.kubelet.extraMounts` injects into the kubelet container, `machine.disks` targets block devices, `machine.files` writes files). A machine-config apply to the sole control-plane node is a brick risk with no failover. The DaemonSet `nsenter`s into the host mount namespace and mounts the tmpfs — no Talos change, no reboot, revertible by deleting the pod. The tmpfs is volatile cache; `prepare` repopulates it after any wipe.
 - **Windows gets a read-only block image, not a shared directory.** A VM can't read a host directory — only a block disk or a file-sharing protocol. A *writable* block disk shared between two kernels corrupts regardless of filesystem (independent metadata caches, no coordinator). True file sharing (virtio-fs / SMB) needs a server and, for virtio-fs, the install-wide `ExperimentalVirtiofsSupport` gate. Windows doesn't need the *same live tree* — it needs *a* copy. So `prepare` packs the repo into a read-only `repo.img` (written only while the VM is off), attaches it RO at boot, and the guest plain-clones from it into its own RAM work disk. Sole-writer-of-its-own-disk ⇒ no corruption, no gate, no reboot.
 - **The git/LFS sharing trick.** `git clone --mirror` does NOT fetch LFS blobs, and `git clone --local --shared` shares git objects via alternates but NOT `.git/lfs/objects`. So `prepare` must `git lfs fetch --all` into the mirror once, and each Linux builder points `lfs.storage` at the shared store (`git config lfs.storage /var/mnt/ramdisk/repo.git/lfs`) and `git lfs checkout` — reading blobs, never pulling. The mirror is of the **external game repo** (Forgejo LFS is the heavy payload), so only `prepare` carries the GH/Forgejo creds; builders carry none.
@@ -125,7 +134,9 @@ git commit -m "chore(ue-ci): set shared-dind tmpfs ceiling for chosen maxRunners
   Run: `kubectl -n arc-runners exec ds/ue-shared-dind -- ls -l /var/mnt/ramdisk/docker.sock`
   Expected: `srw-rw---- ... 1000 ...` (group `1000`, mode `0660`).
 
-- [ ] **Step 6: Commit.**
+- [ ] **Step 6: Reboot drill (within this window).** A pod-mounted tmpfs is not re-created on node reboot until the DaemonSet pod reschedules and re-runs its init — this confirms the "volatile cache, repopulated by `prepare`" assumption holds. Delete the pod (`kubectl -n arc-runners delete pod -l app=ue-shared-dind`) and confirm it reschedules and re-mounts (`mount | grep /var/mnt/ramdisk` shows the tmpfs again). Optional but recommended before depending on it.
+
+- [ ] **Step 7: Commit.**
 
 ```bash
 git add apps/kube/github/runners/manifests/kustomization.yaml
@@ -388,6 +399,8 @@ Node ~500 GB. Two ceilings; the tighter binds.
 | 4 | + plugin matrix overlap | ~250 GB | ⚠️ ~30 GB free — validate peak scratch + baseline first |
 
 `maxRunners` is a concurrency cap, not a correctness gate — over-subscription just queues (FIFO), it never corrupts. Plugin builds (`ci-unreal-plugins.yml`, auto on PRs touching `packages/unreal/**`, matrixed per plugin) and engine builds also land on `arc-runner-ue`, so they can coincide with a game build; `maxRunners: 3` lets one of them run rather than queue. The engine `--data-root` stays in RAM — with ~500 GB there is no reason to move it to disk.
+
+**Open question (deferred, not decided):** once the system is stable, benchmark all-in-RAM vs. the engine `--data-root` on disk. The engine base is read-mostly, so it may run just as fast from disk via the page cache while freeing ~45 GB of RAM. Decide on measured numbers, not assumption — this is a real future-work item, not a closed door.
 
 **Measure these on the first run** to confirm the ceiling (they don't gate go/no-go at 500 GB, but they tell you if a project is unusually large): `du -sh /var/mnt/ramdisk/docker` (engine), `du -sh /var/mnt/ramdisk/repo.git` (mirror), and peak `du -sh /var/mnt/ramdisk/<run>-<job>/{work,output}` via `ramdisk-watch-kube.sh`.
 
