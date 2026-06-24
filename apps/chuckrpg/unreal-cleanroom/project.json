@@ -1,0 +1,45 @@
+{
+	"name": "unreal-cleanroom",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+	"tags": ["unreal", "cleanroom", "evaluation"],
+	"targets": {
+		"open": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "open apps/chuckrpg/unreal-cleanroom/UnrealCleanroom/UnrealCleanroom.uproject",
+				"description": "Open Unreal Cleanroom project in UE 5.8"
+			}
+		},
+		"clean": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+				"commands": [
+					"rm -rf Binaries",
+					"rm -rf Build",
+					"rm -rf DerivedDataCache",
+					"rm -rf Intermediate",
+					"rm -rf Saved"
+				],
+				"parallel": false
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+				"commands": [
+					"git lfs install",
+					"git add -A",
+					"git commit -m 'sync: update cleanroom assets' || echo 'No changes to commit'",
+					"git remote add forgejo-archive https://git.kbve.com/KBVE/cleanroom.git || true",
+					"git push forgejo-archive HEAD:main --force"
+				],
+				"parallel": false
+			},
+			"description": "Sync cleanroom changes and push to Forgejo LFS backup"
+		}
+	}
+}
