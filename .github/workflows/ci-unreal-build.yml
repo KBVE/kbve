@@ -919,12 +919,15 @@ jobs:
             - name: Verify baked backend config (pre-pak, Linux)
               if: inputs.verify_baked_config == 'true'
               run: |
-                  COOKED=$(find /tmp/game-project/Saved/Cooked/Linux -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
-                  if [ -n "${COOKED}" ]; then
-                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Linux):"
-                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED=/tmp/game-project/Saved/StagedBuilds/Linux
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Linux config:"
+                    echo "${HITS}"
                   else
-                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Linux"
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
                   fi
 
             - name: Package archive
@@ -1171,11 +1174,14 @@ jobs:
               if: inputs.verify_baked_config == 'true'
               run: |
                   $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
-                  $cookedGame = Get-ChildItem -Path (Join-Path $projRoot 'Saved\Cooked\Windows') -Recurse -Filter DefaultGame.ini -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\\Config\\DefaultGame\.ini$' } | Select-Object -First 1
-                  if ($cookedGame) {
-                      Write-Host "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Win64):"
-                      Select-String -Path $cookedGame.FullName -Pattern 'OWS2APIPath','OWSAPICustomerKey' | ForEach-Object { Write-Host ("  " + $_.Line.Trim()) }
-                  } else { Write-Host "::warning::cooked DefaultGame.ini not found under Saved\Cooked\Windows" }
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  $staged = Join-Path $projRoot 'Saved\StagedBuilds\Windows'
+                  $hits = Get-ChildItem -Path $staged -Recurse -Filter *.ini -ErrorAction SilentlyContinue | Select-String -Pattern 'OWS2APIPath','OWSAPICustomerKey'
+                  if ($hits) {
+                      Write-Host "::notice::OWS endpoint in staged Win64 config:"
+                      $hits | ForEach-Object { Write-Host ("  " + $_.Path + ": " + $_.Line.Trim()) }
+                  } else { Write-Host "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)" }
 
             - name: Package archive
               run: |
@@ -1368,12 +1374,15 @@ jobs:
               if: inputs.verify_baked_config == 'true'
               run: |
                   PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
-                  COOKED=$(find "${PROJECT_ROOT}/Saved/Cooked/Mac" -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
-                  if [ -n "${COOKED}" ]; then
-                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Mac):"
-                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Mac config:"
+                    echo "${HITS}"
                   else
-                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Mac"
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
                   fi
 
             - name: Package staged build
