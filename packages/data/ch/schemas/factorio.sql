@@ -113,11 +113,14 @@ ENGINE = Distributed('cluster', 'gameops', 'factorio_player_events_raw', rand())
 -- ---------------------------------------------------------------------------
 -- factorio_rotations_raw — map lifecycle row, one per rotation.
 --
--- `ReplacingMergeTree(ended_at)` so the producer can upsert the same
+-- `ReplacingMergeTree(updated_at)` so the producer can upsert the same
 -- `rotation_id` repeatedly while the map is live: `end_reason` starts as
 -- 'open', flips to the real reason on close, peak counters tick upward,
--- final aggregates land at close. Background merges collapse to the row
--- with the highest `ended_at`.
+-- final aggregates land at close. Background merges collapse to the
+-- most-recently-written row (`updated_at` DEFAULT now64(3) per insert).
+-- The version column must be non-Nullable (CH 25.8 rejects Nullable
+-- version cols, BAD_TYPE_OF_FIELD), so `ended_at` stays a plain data
+-- column and `updated_at` carries the version.
 --
 -- 90 day retention so "real shelf life" decay analysis (game-time hours
 -- per rotation) can span the full lifecycle of long-form maps even after
@@ -147,12 +150,13 @@ CREATE TABLE IF NOT EXISTS gameops.factorio_rotations_raw ON CLUSTER 'cluster'
     joins_first_60m        UInt32,
     total_player_seconds   UInt64,
     wall_age_s             UInt64,
-    game_age_s             UInt64
+    game_age_s             UInt64,
+    updated_at             DateTime64(3, 'UTC') DEFAULT now64(3)
 )
 ENGINE = ReplicatedReplacingMergeTree(
     '/clickhouse/tables/{shard}/gameops/factorio_rotations_raw',
     '{replica}',
-    ended_at
+    updated_at
 )
 ORDER BY (server_id, started_at)
 PARTITION BY toYYYYMM(started_at)
