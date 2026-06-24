@@ -877,7 +877,10 @@ jobs:
                   fi
                   CUSTOM_CONFIG='${{ inputs.custom_config }}'
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
                   USE_LOGGING_IN_SHIPPING='${{ inputs.use_logging_in_shipping }}'
                   LOGGING_ENV_ARG=""
                   [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
@@ -1126,7 +1129,13 @@ jobs:
                   }
                   $customConfig = '${{ inputs.custom_config }}'
                   $customConfigArgs = @()
-                  if ($customConfig) { $customConfigArgs += "-CustomConfig=$customConfig" }
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  if ($customConfig) {
+                      $customConfigArgs += "-CustomConfig=$customConfig"
+                      $customConfigArgs += "-AdditionalCookerOptions=-CustomConfig=$customConfig"
+                  }
                   $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
                   if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
                   Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
@@ -1309,7 +1318,10 @@ jobs:
 
                   CUSTOM_CONFIG="${{ inputs.custom_config }}"
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
