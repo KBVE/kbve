@@ -18,6 +18,23 @@ rules:
           - get
           - list
           - delete
+    - apiGroups:
+          - ''
+      resources:
+          - serviceaccounts
+      verbs:
+          - get
+          - list
+          - patch
+    - apiGroups:
+          - rbac.authorization.k8s.io
+      resources:
+          - roles
+          - rolebindings
+      verbs:
+          - get
+          - list
+          - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -64,12 +81,38 @@ spec:
                               - /bin/sh
                               - -c
                           args:
-                              - "set -eu\nNS=arc-runners\nFAILED=$(kubectl get ephemeralrunner -n \"\
-                                $NS\" -o json \\\n  | jq -r '.items[] | select(.status.phase == \"Failed\"\
-                                ) | .metadata.name')\nif [ -z \"$FAILED\" ]; then\n  echo \"No Failed\
-                                \ ephemeralrunners; nothing to reap.\"\n  exit 0\nfi\necho \"Reaping\
-                                \ Failed ephemeralrunners:\"\necho \"$FAILED\"\necho \"$FAILED\" | xargs\
-                                \ -r kubectl delete ephemeralrunner -n \"$NS\"\n"
+                              - |
+                                  set -eu
+                                  NS=arc-runners
+                                  FZ=actions.github.com/cleanup-protection
+                                  STUCK_AFTER=1800
+
+                                  FAILED=$(kubectl get ephemeralrunner -n "$NS" -o json \
+                                    | jq -r '.items[] | select(.status.phase == "Failed") | .metadata.name')
+                                  if [ -z "$FAILED" ]; then
+                                    echo "No Failed ephemeralrunners; nothing to reap."
+                                  else
+                                    echo "Reaping Failed ephemeralrunners:"
+                                    echo "$FAILED"
+                                    echo "$FAILED" | xargs -r kubectl delete ephemeralrunner -n "$NS"
+                                  fi
+
+                                  for KIND in serviceaccount role rolebinding; do
+                                    STUCK=$(kubectl get "$KIND" -n "$NS" -o json \
+                                      | jq -r --arg fz "$FZ" --argjson after "$STUCK_AFTER" '
+                                          .items[]
+                                          | select(.metadata.deletionTimestamp != null)
+                                          | select((.metadata.finalizers // []) | index($fz))
+                                          | select(now - (.metadata.deletionTimestamp | fromdateiso8601) > $after)
+                                          | .metadata.name')
+                                    if [ -z "$STUCK" ]; then
+                                      continue
+                                    fi
+                                    echo "Clearing stuck $FZ finalizer on ${KIND}s (Terminating > ${STUCK_AFTER}s):"
+                                    echo "$STUCK"
+                                    echo "$STUCK" | xargs -r -I{} kubectl patch "$KIND" {} -n "$NS" \
+                                      --type=merge -p '{"metadata":{"finalizers":null}}'
+                                  done
                           resources:
                               requests:
                                   cpu: 25m
