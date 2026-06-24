@@ -323,4 +323,6 @@ DELETE FROM admission_control WHERE customerguid = '<tenant-guid>';
 
 **Phase 4 — Reaper v2 (valkey-backed occupancy) + UE drain contract** → tracked in the lifecycle spec `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md` ("Out of scope" / "Reaper v2"). These are the cross-repo / decision-blocked items (W1 UE ack, B4 orchestrator, valkey occupancy) — no executable ROWS plan yet; each gets its own once its blocker clears.
 
+**Cross-repo (chuck/UE):** the UE-side obligations are spec'd in `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md` (living doc — update it after each ROWS phase).
+
 (Previous: Phase 2 Admission → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`. This is the last ROWS-side buildable phase.)

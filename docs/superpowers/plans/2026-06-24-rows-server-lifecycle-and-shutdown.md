@@ -493,7 +493,8 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
   fail-safe-on-no-data, **and cross-check the Agones GameServer `Ready`/health before a force-delete**
   (closes the "silence ≠ dead" Empty residual — see Reaper interaction). The #13200 reaper is v1.
 - **UE/chuck contract** — receiving requests, admission policy, save-to-DB, drain pacing, transfer,
-  `SDK.Shutdown()` timing, player broadcasts. Extends #13194.
+  `SDK.Shutdown()` timing, player broadcasts. Extends #13194. **Spec'd for the UE dev in**
+  `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md` (living doc — updated per phase).
 - **RabbitMQ write-behind** save buffer (only when stagger waves aren't enough).
 - **client-version gate** — reject old clients with "update required" during/after a rollout.
 - **Dashboard control plane** — UI + DB-backed toggles (global join freeze, per-cluster routing,
