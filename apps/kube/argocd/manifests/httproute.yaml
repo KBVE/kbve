@@ -14,12 +14,8 @@ spec:
               - path:
                     type: PathPrefix
                     value: /
-          filters:
-              - type: RequestRedirect
-                requestRedirect:
-                    scheme: https
-                    hostname: kbve.com
-                    path:
-                        type: ReplaceFullPath
-                        replaceFullPath: /dashboard/argo
-                    statusCode: 301
+          timeouts:
+              backendRequest: 3600s
+          backendRefs:
+              - name: argocd-gate
+                port: 5678
