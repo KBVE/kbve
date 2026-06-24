@@ -19,7 +19,7 @@ A one-pod DaemonSet (single node) runs an init that enters the host mount namesp
 nsenter --mount=/proc/1/ns/mnt -- \
   sh -c 'mountpoint -q /var/mnt/ramdisk || \
          (mkdir -p /var/mnt/ramdisk && \
-          mount -t tmpfs -o size=150G,mode=1777 tmpfs /var/mnt/ramdisk)'
+          mount -t tmpfs -o size=200G,mode=1777 tmpfs /var/mnt/ramdisk)'
 ```
 then sleeps. Requires `hostPID: true`, `securityContext.privileged: true`, host mount-ns access.
 
@@ -42,7 +42,7 @@ So the machine-config route is, at best, version-dependent and unproven, and at 
 - **RAM accounting:** tmpfs pages count against node RAM; the `size=` ceiling must equal the WS-2 proven budget, never larger. Enforced in the DaemonSet's mount options.
 
 ## Validation checklist (must run on-cluster before relying on this)
-1. Apply Option A DaemonSet; `kubectl exec` in and confirm `mount | grep /var/mnt/ramdisk` shows `tmpfs size=150G` (and `stat -f -c %T /var/mnt/ramdisk` prints `tmpfs`, not a disk fs).
+1. Apply Option A DaemonSet; `kubectl exec` in and confirm `mount | grep /var/mnt/ramdisk` shows `tmpfs size=200G` (and `stat -f -c %T /var/mnt/ramdisk` prints `tmpfs`, not a disk fs).
 2. From a throwaway hostPath pod, write/read a file under `/var/mnt/ramdisk` — confirms other pods see the same mount.
 3. Confirm a `hostPath` PV over `/var/mnt/ramdisk/repo.git` binds and KubeVirt can consume it as a virtio-fs source.
 4. Reboot drill (maintenance window): confirm the DaemonSet re-mounts on reschedule and `prepare` repopulates.

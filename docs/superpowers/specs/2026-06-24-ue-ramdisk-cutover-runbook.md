@@ -24,8 +24,8 @@
 
 ## Preconditions (do not start cutover until all true)
 
-1. **WS-2 sizing confirmed.** On the ~500 GB node the budget closes with large margin (WS-2), so this is a confirmation, not a gate: run §5 at `maxRunners: 1` and check that measured peak `2×scratch + engine + mirror` stays under the **150 GB tmpfs ceiling**. If a project's scratch is unexpectedly large, **raise the ceiling** (room to ~250 GB) rather than abandoning cutover.
-2. **tmpfs ceiling set** = `size=150G` (already baked into the DaemonSet and the nsenter mount). If you are also raising `maxRunners` to 3–4 for plugin/engine overlap, bump `size=` per the WS-2 "Scaling `maxRunners`" table in the same edit.
+1. **WS-2 sizing confirmed.** On the ~500 GB node the budget closes with large margin (WS-2), so this is a confirmation, not a gate: run §5 at `maxRunners: 1` and check that measured peak `3×scratch + engine + mirror` stays under the **200 GB tmpfs ceiling**. If a project's scratch is unexpectedly large, **raise the ceiling** (room to ~250 GB) rather than abandoning cutover.
+2. **tmpfs ceiling set** = `size=200G` (already baked into the DaemonSet and the nsenter mount), sized for the `maxRunners: 3` target. If you push `maxRunners` to 4 for more plugin/engine overlap, bump `size=` per the WS-2 "Scaling `maxRunners`" table in the same edit.
 3. **VM snapshot (optional, cheap insurance).** A `VirtualMachineSnapshot` of `windows-builder` before the first run is nice-to-have, but **no longer required** — the RO `repo.img` attach does **not** modify the guest (no driver install), so the rootdisk is unchanged.
 4. Maintenance window agreed; UE CI quiesced (no in-flight builds).
 
@@ -33,10 +33,10 @@
 
 **Order rationale:** provision the tmpfs → bring up the daemon that owns it → point runners at it → only then re-enable concurrency → Windows RO repo-disk last (independent of the Linux path). Workflow edits go in the same change as the runner rework so the two never disagree.
 
-0. **Confirm the tmpfs ceiling fits.** `size=150G` is baked into `shared-dind-daemonset.yaml`. Confirm it still covers `engine + mirror + maxRunners×peak_scratch`; if you are raising `maxRunners` above 2, raise `size=` per the WS-2 table in the same edit before adding the file to `kustomization.yaml`.
+0. **Confirm the tmpfs ceiling fits.** `size=200G` is baked into `shared-dind-daemonset.yaml` for `maxRunners: 3`. Confirm it still covers `engine + mirror + maxRunners×peak_scratch`; if you are raising `maxRunners` above 3, raise `size=` per the WS-2 table in the same edit before adding the file to `kustomization.yaml`.
 1. **Provision tmpfs + shared dind (WS-3 + WS-4).** Add `shared-dind-daemonset.yaml` to `kustomization.yaml`; let Argo sync (or `kubectl apply` in the window). Verify:
    - `kubectl -n arc-runners get ds ue-shared-dind` → 1/1 ready.
-   - `kubectl -n arc-runners exec ds/ue-shared-dind -- mount | grep /var/mnt/ramdisk` → `tmpfs ... size=150G`.
+   - `kubectl -n arc-runners exec ds/ue-shared-dind -- mount | grep /var/mnt/ramdisk` → `tmpfs ... size=200G`.
    - **Assert it is really RAM-backed (silent-OS-disk-fallback guard):** `kubectl -n arc-runners exec ds/ue-shared-dind -- stat -f -c %T /var/mnt/ramdisk` → must print `tmpfs`. If it prints `ext2/ext3` (or anything else) the mount/propagation failed and dockerd would put 40 GB on the node OS disk that etcd lives on — STOP. (The pod also self-asserts this and CrashLoops rather than proceed.)
    - socket exists & group-readable: `ls -l /var/mnt/ramdisk/docker.sock` → group `1000`, mode `srw-rw----`.
 2. **Repopulate check.** `kubectl -n arc-runners exec ds/ue-shared-dind -- docker pull <engine-ref>` once; confirm `du -sh /var/mnt/ramdisk/docker` ≈ engine size (not doubled).
@@ -49,7 +49,7 @@
    Verify a single real build (still serialized) is green end-to-end via the shared dind.
 4. **Apply WS-1 workflow edits** (same PR/commit as step 3 — see "WS-1 edit set" below). Re-run a build; confirm per-run scratch lands under `/var/mnt/ramdisk/<run>-<job>/` and the engine is reused (one copy).
 5. **Add the alert** (`ue-ramdisk-tmpfs-alert.yaml` → `kustomization.yaml`). Confirm it loads in Prometheus.
-6. **Flip `maxRunners: 2`** only now. Run two concurrent builds; watch `ramdisk-watch-kube.sh`; confirm the WS-2 inequality holds with real peak and that `df /var/mnt/ramdisk/docker` does not double.
+6. **Flip `maxRunners: 3`** only now. Run three concurrent Linux builds (e.g. server + game + a plugin build); watch `ramdisk-watch-kube.sh`; confirm the WS-2 inequality holds with real peak and that `df /var/mnt/ramdisk/docker` does not double.
 7. **Windows RO repo disk (last; independent of the Linux path, zero cluster-wide change):**
    - `prepare` packs the populated repo into `/var/mnt/ramdisk/repo.img` (a sized disk image; git objects + LFS). Create a `hostPath` PV/PVC over it.
    - add a **read-only** `disk` volume to `vm-windows-builder.yaml` backed by that PVC — same mechanism as the existing `builder-shared-storage` attach. **Do NOT touch `kubevirt/cr/kubevirt.yaml`** (no feature gate) and add no `filesystems`/virtio-fs device.

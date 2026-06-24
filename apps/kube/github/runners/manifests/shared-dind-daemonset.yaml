@@ -17,10 +17,10 @@
 #
 # UNVALIDATED: never run against this cluster. Treat every value as a
 # proposal to confirm during WS-2 validation. The tmpfs ceiling is set to
-# size=150G — a deliberate cap well under the ~500 GB node RAM (holds the
-# ~45 GB engine + ~7 GB mirror + 2 concurrent build scratches with room to
-# spare). Raise it (you have headroom to ~250 GB) only if maxRunners goes
-# above 2; see the RAM-budget worksheet.
+# size=200G — a deliberate cap well under the ~500 GB node RAM (holds the
+# ~45 GB engine + ~7 GB mirror + 3 concurrent build scratches for the
+# maxRunners:3 target, with room to spare). Raise it together with maxRunners
+# (headroom to ~250 GB on this node); see the RAM-budget worksheet.
 # ══════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: DaemonSet
@@ -58,7 +58,7 @@ spec:
                       - sh
                       - -c
                       # Idempotent: mount only if not already a mountpoint.
-                      # size=150G is the hard RAM ceiling (cap, not reservation;
+                      # size=200G is the hard RAM ceiling (cap, not reservation;
                       # well under the ~500 GB node). mode=1777 so the non-root
                       # runner (uid 1000) can create its own per-run scratch
                       # subdirs.
@@ -66,7 +66,7 @@ spec:
                           set -eu
                           mkdir -p /var/mnt/ramdisk
                           if ! mountpoint -q /var/mnt/ramdisk; then
-                            mount -t tmpfs -o size=150G,mode=1777 tmpfs /var/mnt/ramdisk
+                            mount -t tmpfs -o size=200G,mode=1777 tmpfs /var/mnt/ramdisk
                           fi
                           # Assert it is REALLY tmpfs. hostPath type is
                           # DirectoryOrCreate, so a failed/absent mount silently
@@ -128,12 +128,13 @@ spec:
                             --default-ulimit=nofile=1048576:1048576 \
                             --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
                   resources:
-                      # Sized for TWO concurrent UE cooks served by ONE daemon
-                      # (the per-pod sidecars were 80Gi/4cpu EACH; this one
-                      # serves both). Co-resident with etcd on the same cores —
-                      # confirm CPU headroom in WS-2 validation.
+                      # Sized for up to THREE concurrent UE cooks (maxRunners:3
+                      # target) served by ONE daemon (the per-pod sidecars were
+                      # 80Gi/4cpu EACH). Co-resident with etcd on the same cores
+                      # — CPU is the tighter term at 3 cooks; confirm headroom in
+                      # WS-2 and raise the cpu limit if cooks contend.
                       limits:
-                          cpu: '8'
+                          cpu: '12'
                           memory: 8Gi   # daemon RSS only; image+layers live on tmpfs, not here
                       requests:
                           cpu: '2'
