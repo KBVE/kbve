@@ -7,7 +7,7 @@ export interface SyncBridge<R> {
 	move(refs: R, tile: TileXY): void;
 	setPos(refs: R, tile: TileXY): void;
 	follow(refs: R): void;
-	remove(refs: R): void;
+	remove(refs: R, eid: number): void;
 }
 
 export interface SyncResolvers {
@@ -105,7 +105,7 @@ export function applyEntitySync<R>(
 	for (const [serverEid, , refs] of [...store.entries()]) {
 		if (seen.has(serverEid)) continue;
 		if (resolve.cat(store.kind(serverEid)) === 'env') onEnvChange?.();
-		bridge.remove(refs);
+		bridge.remove(refs, serverEid);
 		store.despawn(serverEid);
 		despawned.push(serverEid);
 		if (serverEid === state.myEid) state.myEid = -1;
