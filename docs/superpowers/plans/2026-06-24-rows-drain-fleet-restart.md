@@ -100,15 +100,21 @@ A new server binary that drains the fleet and comes up speaking a protocol the *
 can't speak is a self-inflicted outage: every player is bounced and **none can reconnect**. So the
 *arrangement* of a restart-for-update is gated on client⟷server version parity.
 
-- **Primary enforcement — the post-publish / dispatch layer, NOT ROWS. The post-publish "sync" is a
-  PR.** Post-publish opens a **GitOps PR** that bumps the server image and arranges the
-  non-aggressive `fleet_restart` (so it's a reviewable diff with the same posture as the reaper
-  enablement switches — no out-of-band Argo drift). The **version-parity check is a required PR
-  status check / merge gate**: the PR cannot merge until the matching **client** artifact for that
-  version published. No client build ⇒ the check stays red ⇒ the image bump waits. Merge is what
-  triggers the roll. This sits next to the existing dbmate-before-image ordering and is the **same
-  consumer** as the F2/B4 orchestrator (post-merge **+** `all_drained` ⇒ run `dbmate` + roll the
-  image). Lives in `.github` CI / post-publish dispatch, not the binary.
+- **Primary enforcement — the post-publish / dispatch layer, NOT ROWS. The post-publish "sync" is
+  the existing `utils-post-publish.yml` auto-PR.** That workflow already opens an atomic GitOps PR
+  per publish — e.g. **PR #13262** (axum-kbve v1.0.211): bumps `Cargo.toml` / `version.toml` /
+  `Cargo.lock` **and the deployment `image:` tag** in one commit. (Per repo rule, the publish is
+  driven by bumping the project's `*.mdx` `version:`; CI's post-publish PR owns `version.toml` + the
+  deployment image tag — never hand-edited.) For **rows**, extend that same auto-PR with two things:
+  1. **A required version-parity status check / merge gate** — the PR cannot merge until the matching
+     **client** build for that version published. No client build ⇒ check stays red ⇒ the image bump
+     waits. Merge is what triggers the roll (reviewable diff, same posture as the reaper switches; no
+     out-of-band Argo drift).
+  2. **Arrange the non-aggressive `fleet_restart` instead of a bare image-tag swap.** A plain tag bump
+     under the chuck Fleet's `RollingUpdate, maxSurge:25%` surges new-version pods alongside draining
+     old ones — the mixed-version coexistence **B-1** forbids. The rows post-publish PR must instead
+     gate the roll on `all_drained` (scale-to-0 cutover / Argo PreSync per B-1), i.e. it **is** the
+     F2/B4 orchestrator surface: post-merge **+** `all_drained` ⇒ run `dbmate` + roll the image.
 - **Defense in depth — runtime.** The existing `ows.kbve.com/version` label + UE-contract obligation
   #12 (client-version gate): a connecting client below the required version gets an "update required"
   signal, not a raw disconnect.

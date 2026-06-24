@@ -107,7 +107,7 @@ modes & version-parity gate" (🕳️ V1).
 
 | Concern | Where | Behavior |
 |---|---|---|
-| **Version-parity gate** | CI post-publish / dispatch (`.github`), **not** the rows binary | The post-publish **sync is a GitOps PR** (bumps image + arranges restart); the parity check is a **required PR merge gate** — the PR can't merge until the matching **client** build for that version is published. Beta first; prod not live yet. |
+| **Version-parity gate** | `utils-post-publish.yml` auto-PR (`.github`), **not** the rows binary | The post-publish **sync is the existing auto-PR** (e.g. PR #13262 — bumps `version.toml`/`Cargo.*` + deployment image tag). For rows, add a **required parity merge check** (can't merge until the matching **client** build published) + arrange the non-aggressive restart instead of a bare tag swap (B-1). Beta first; prod not live yet. |
 | **Non-aggressive restart** | post-publish GitOps PR (merge-gated) | `urgency=0 (when_able)`, `drop_players=false` — drain-to-natural-empty, no forced disconnects. The default routine roll. |
 | **Aggressive restart** | dashboard (operator) | `urgency=1 (asap)`, `drop_players=true` — save-then-disconnect at a deadline. Explicit opt-in. |
 | Runtime client gate | `ows.kbve.com/version` label + UE obligation #12 | reject below-version clients with "update required", not a raw disconnect. |
