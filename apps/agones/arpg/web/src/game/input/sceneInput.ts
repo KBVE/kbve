@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GameClient, EntityStore } from '@kbve/laser';
+import { GameClient, EntityStore, Cat } from '@kbve/laser';
 import { DEBUG_LOCAL_PLAYER } from '../config';
 import {
 	worldToScreen,
@@ -116,7 +116,7 @@ export function setupInput(
 		const owned = deps.store.at(tile.x, tile.y, deps.myEid());
 		if (
 			owned &&
-			deps.kinds.catName(deps.store.kind(owned.serverEid)) === 'env' &&
+			deps.kinds.cat(deps.store.kind(owned.serverEid)) === Cat.Env &&
 			deps.store.owner(owned.serverEid) === deps.mySlot()
 		) {
 			const d = Math.max(
@@ -182,6 +182,8 @@ function updateCursorFor(
 		return;
 	}
 	const hit = deps.store.at(tile.x, tile.y, deps.myEid());
-	const cat = hit ? deps.kinds.catName(deps.store.kind(hit.serverEid)) : null;
-	cursor.set(cat === 'item' || cat === 'npc' ? Cursor.Take : Cursor.Pointer);
+	const cat = hit ? deps.kinds.cat(deps.store.kind(hit.serverEid)) : null;
+	cursor.set(
+		cat === Cat.Item || cat === Cat.Npc ? Cursor.Take : Cursor.Pointer,
+	);
 }

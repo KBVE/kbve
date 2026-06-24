@@ -21,7 +21,20 @@ import {
 	MonsterTag,
 } from './components';
 
-export type EntityCat = 'player' | 'npc' | 'item' | 'env';
+/**
+ * Entity category as a numeric tag matching the wire protocol's `KindEntry.cat`
+ * (0..3, server-authoritative). Kept numeric — not a string union — so it crosses
+ * a worker / WASM boundary as a plain int (shared/transferable typed arrays, no
+ * structured-clone or encode/decode marshalling) and compares as a branchless
+ * integer on the hot sim paths.
+ */
+export const Cat = {
+	Player: 0,
+	Npc: 1,
+	Item: 2,
+	Env: 3,
+} as const;
+export type EntityCat = (typeof Cat)[keyof typeof Cat];
 
 export interface SpawnData {
 	tile: { x: number; y: number };
@@ -71,11 +84,11 @@ export class EntityStore<R> {
 	}
 
 	private tagFor(cat: EntityCat): Record<string, never> {
-		return cat === 'player'
+		return cat === Cat.Player
 			? PlayerTag
-			: cat === 'npc'
+			: cat === Cat.Npc
 				? NpcTag
-				: cat === 'env'
+				: cat === Cat.Env
 					? EnvTag
 					: ItemTag;
 	}

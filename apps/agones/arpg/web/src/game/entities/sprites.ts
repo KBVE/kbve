@@ -7,11 +7,8 @@ import {
 	DEPTH_UI,
 	TURN_LERP,
 } from '../config';
-import {
-	KIND_CAT_ITEM,
-	KIND_CAT_PLAYER,
-	type KindResolvers,
-} from '../systems/kindResolvers';
+import { Cat } from '@kbve/laser';
+import type { KindResolvers } from '../systems/kindResolvers';
 import type { InterpBuffer } from '../systems/interp';
 import {
 	CLASS_ANGLES,
@@ -121,12 +118,12 @@ export interface CreatureView {
 
 function bodyColor(cat: number, hostile: boolean): number {
 	// Ground loot reads as a bright amber gem so it stands out against the floor.
-	if (cat === KIND_CAT_ITEM) return 0xfacc15;
+	if (cat === Cat.Item) return 0xfacc15;
 	return hostile ? COLORS.enemy : COLORS.npc;
 }
 
 export function isPlayerKind(kinds: KindResolvers, kind: number): boolean {
-	return kinds.cat(kind) === KIND_CAT_PLAYER;
+	return kinds.cat(kind) === Cat.Player;
 }
 
 /**
@@ -338,7 +335,7 @@ export function makeSprite(
 	hostile: boolean,
 ): Phaser.GameObjects.Rectangle {
 	const cat = kinds.cat(kind);
-	const isItem = cat === KIND_CAT_ITEM;
+	const isItem = cat === Cat.Item;
 	const w = isItem ? 16 : 22;
 	const h = isItem ? 16 : 34;
 	const rect = scene.add.rectangle(0, 0, w, h, bodyColor(cat, hostile));

@@ -85,7 +85,7 @@ import {
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore, packTile } from '@kbve/laser';
+import { EntityStore, packTile, Cat } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -124,6 +124,7 @@ import {
 import {
 	clearHud,
 	emitSpellLoadout,
+	emitNotification,
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
@@ -229,6 +230,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	// z is elevation: z>=SURFACE_MIN_Z (0) is open grassland — grass ground, no
 	// dungeon walls/holes, all walkable. The dungeon is underground at z<0.
 	private isSurface = (): boolean => this.currentFloor >= SURFACE_MIN_Z;
+	// The surface up-stair leads to z>0 (cities/above-ground), which isn't built
+	// yet — so it's a dead end. Tracks the tile we've already flashed the
+	// "goes nowhere" notice for, so it fires once per step-on, not every frame.
+	private deadStairTile: string | null = null;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -408,7 +413,7 @@ export class IsoArpgScene extends Phaser.Scene {
 							.graphics()
 							.setDepth(DEPTH_UI + 2);
 					}
-				} else if (this.kinds.catName(e.kind) === 'env') {
+				} else if (this.kinds.cat(e.kind) === Cat.Env) {
 					const envSprite = makeEnvSprite(
 						this,
 						this.kinds.ref(e.kind),
@@ -431,7 +436,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				this.syncShadow(refs);
 				// Ground loot bobs gently so it reads as a pickup, not scenery.
-				if (this.kinds.catName(e.kind) === 'item') {
+				if (this.kinds.cat(e.kind) === Cat.Item) {
 					this.tweens.add({
 						targets: refs.sprite,
 						y: refs.sprite.y - 6,
@@ -488,14 +493,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		};
 
 		this.syncResolvers = {
-			cat: (kind) => this.kinds.catName(kind),
+			cat: (kind) => this.kinds.cat(kind),
 			hostile: (kind) => {
 				const cat = this.kinds.cat(kind);
 				return cat === 1 && this.kindRegistry.get(kind) !== undefined;
 			},
 			label: (e, cat) => {
-				if (cat === 'player') return this.slotUsername.get(e.owner);
-				if (cat === 'npc') return this.kinds.ref(e.kind) ?? undefined;
+				if (cat === Cat.Player) return this.slotUsername.get(e.owner);
+				if (cat === Cat.Npc) return this.kinds.ref(e.kind) ?? undefined;
 				return undefined;
 			},
 		};
@@ -585,7 +590,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const me = this.move.predicted;
 		let best: number | null = null;
 		let bestD = Infinity;
-		for (const sid of this.store.serverIdsWith('npc')) {
+		for (const sid of this.store.serverIdsWith(Cat.Npc)) {
 			if (!this.isHostileServer(sid)) continue;
 			const t = this.store.tile(sid);
 			if (!t) continue;
@@ -751,9 +756,47 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private debugChangeFloor(dz: number) {
 		const z = this.currentFloor + dz;
+		// Surface cap: z>0 (cities/above-ground) isn't built yet — going up past
+		// the grass surface leads nowhere. Mirrors the server's Stairs::at cap.
+		if (z > 0) {
+			this.flashMessage('These stairs seem to go nowhere?!');
+			return;
+		}
 		const land = dz < 0 ? StairKind.Up : StairKind.Down;
 		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
 		this.onFloorChange({ z, tile });
+	}
+
+	/**
+	 * The surface up-stair (z=0 -> z+1) is a dead end until cities/above-ground
+	 * floors exist. When the player stands on it, flash a one-shot notice — the
+	 * server won't move them (Stairs::at caps ascent at z=0), so without this the
+	 * stair would just silently do nothing.
+	 */
+	private checkDeadStair() {
+		if (this.currentFloor < 0) {
+			this.deadStairTile = null;
+			return;
+		}
+		const t = floatTile(this.move.floatState);
+		const up = stairTile(
+			floorSeed(DUNGEON_SEED, this.currentFloor),
+			StairKind.Up,
+		);
+		const key = `${up.x},${up.y}`;
+		if (t.x === up.x && t.y === up.y) {
+			if (this.deadStairTile !== key) {
+				this.deadStairTile = key;
+				this.flashMessage('These stairs seem to go nowhere?!');
+			}
+		} else if (this.deadStairTile === key) {
+			this.deadStairTile = null; // stepped off — allow it to fire again
+		}
+	}
+
+	/** One-shot on-screen notice via laser's global `notification` event. */
+	private flashMessage(text: string) {
+		emitNotification({ title: '', message: text });
 	}
 
 	update(time: number, delta: number) {
@@ -776,6 +819,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
+		this.checkDeadStair();
 		this.tryAutoPickup();
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.
@@ -869,7 +913,7 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private refreshEnvBlocked(): void {
 		this.envBlocked.clear();
-		for (const sid of this.store.serverIdsWith('env')) {
+		for (const sid of this.store.serverIdsWith(Cat.Env)) {
 			const t = this.store.tile(sid);
 			if (t) this.envBlocked.add(packTile(t.x, t.y));
 		}
@@ -927,7 +971,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.kindRegistry.set(kind, {
 			kind,
 			ref: RANGER_CLASS.id,
-			cat: 0, // KIND_CAT_PLAYER
+			cat: Cat.Player,
 		});
 		// Drop onto the nearest floor tile so the spawn never lands in a wall.
 		const tile = this.dungeon.nearestFloor(DEBUG_SPAWN_TILE);
@@ -945,7 +989,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			{
 				tile,
 				kind,
-				cat: 'player',
+				cat: Cat.Player,
 				owner: 0,
 				hostile: false,
 				hp: 100,

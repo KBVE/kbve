@@ -407,13 +407,19 @@ impl Stairs {
                 let (ux, uy) = stair_tile(*seed, z, StairKind::Up);
                 if tile == Tile::new(ux, uy) {
                     let (dest_z, (tx, ty)) = stair_dest(*seed, z, StairKind::Up);
-                    return Some(StairLink {
-                        z,
-                        tile,
-                        dest_z,
-                        dest_tile: Tile::new(tx, ty),
-                        lock: None, // ascending is always free
-                    });
+                    // Surface cap: z=0 is the top of the world for now (no cities /
+                    // above-ground floors built yet), so ascending past it leads
+                    // nowhere — the up-stair on the surface is a dead end. Only
+                    // allow Up while still underground (dest stays <= 0).
+                    if dest_z <= 0 {
+                        return Some(StairLink {
+                            z,
+                            tile,
+                            dest_z,
+                            dest_tile: Tile::new(tx, ty),
+                            lock: None, // ascending is always free
+                        });
+                    }
                 }
                 None
             }
@@ -516,15 +522,24 @@ mod tests {
             seed,
             descend_key: Some("dungeon-key".into()),
         };
+        // Descend from the surface (z=0) goes underground to z-1, key-gated.
         let down = stair_tile(seed, 0, StairKind::Down);
         let d = stairs.at(0, Tile::new(down.0, down.1)).expect("down stair");
-        assert_eq!(d.dest_z, 1);
+        assert_eq!(d.dest_z, -1);
         assert_eq!(d.lock.as_deref(), Some("dungeon-key"), "descend is locked");
 
-        let up = stair_tile(seed, 1, StairKind::Up);
-        let u = stairs.at(1, Tile::new(up.0, up.1)).expect("up stair");
+        // Ascend from underground (z=-1) returns to the surface, free.
+        let up = stair_tile(seed, -1, StairKind::Up);
+        let u = stairs.at(-1, Tile::new(up.0, up.1)).expect("up stair");
         assert_eq!(u.dest_z, 0);
         assert!(u.lock.is_none(), "ascend is free");
+
+        // The surface up-stair leads to z>0, which isn't built yet — dead end.
+        let up0 = stair_tile(seed, 0, StairKind::Up);
+        assert!(
+            stairs.at(0, Tile::new(up0.0, up0.1)).is_none(),
+            "surface up-stair caps at z=0 (no cities/above-ground yet)"
+        );
     }
 
     #[test]

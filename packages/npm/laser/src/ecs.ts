@@ -13,6 +13,7 @@ export {
 export * from './lib/ecs/components';
 export {
 	EntityStore,
+	Cat,
 	type EntityCat,
 	type SpawnData,
 	type UpdateData,
