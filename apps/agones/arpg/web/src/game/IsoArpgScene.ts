@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import {
 	GameClient,
-	ACTION_PICKUP,
 	attachCameraZoom,
 	drawHealthBar,
 	type EntityDelta,
@@ -12,7 +11,6 @@ import {
 	type FloorChangeEvent,
 	type Facing,
 	type InventorySync,
-	type InventoryItem,
 	type ItemPlacedEvent,
 } from '@kbve/laser';
 import {
@@ -76,6 +74,21 @@ import {
 	type CombatState,
 	type CombatDeps,
 } from './systems/combat';
+import {
+	makeInventoryState,
+	setInventory,
+	useInventorySlot as useInventorySlotV,
+	handleInventoryIntent as handleInventoryIntentV,
+	tryAutoPickup as tryAutoPickupV,
+	exitPlacement as exitPlacementV,
+	updatePlaceGhost as updatePlaceGhostV,
+	commitPlacement as commitPlacementV,
+	spawnLocalItem as spawnLocalItemV,
+	LOCAL_ITEM_EID_BASE,
+	PLACE_RANGE,
+	type InventoryState,
+	type InventoryDeps,
+} from './systems/inventory';
 import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -112,7 +125,6 @@ import {
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import {
 	clearHud,
-	emitInventory,
 	emitInventoryOpen,
 	emitSpellLoadout,
 	onInventoryIntent,
@@ -163,29 +175,8 @@ import { resolvePlayerName } from './playerName';
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
 // Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
-// fixture seeds ground loot + a heal table to exercise the inventory loop. The
-// real game is server-authoritative; this only runs when localMode is set.
-const LOCAL_ITEM_KIND = 2;
-const LOCAL_ITEM_EID_BASE = 1000;
-// Deployable inventory items → the env object they place. Mirrors the server's
-// game::deployables() table so online + offline placement render the same thing.
-const DEPLOYABLES: ReadonlyMap<string, string> = new Map([
-	['campfire-kit', 'campfire'],
-]);
-// How far (Chebyshev) from the player a deployable may be placed. Mirrors the
-// server's PLACE_RANGE so the client ghost reads valid exactly when the server
-// would accept the placement.
-const PLACE_RANGE = 4;
-// Offline-placed env objects get a private kind id + eid range so they don't
-// collide with loot or the server's authoritative entities.
-const LOCAL_ENV_KIND = 3;
-const LOCAL_ENV_EID_BASE = 5000;
-// Offline dropped items get eids well above the seeded-loot range to avoid
-// colliding with LOCAL_LOOT (LOCAL_ITEM_EID_BASE + index).
-const LOCAL_DROP_EID_OFFSET = 1000;
-// After a drop, suppress walk-over auto-pickup briefly so the item doesn't
-// bounce straight back into the inventory.
-const DROP_PICKUP_GRACE_MS = 1200;
+// fixture seeds ground loot to exercise the inventory loop. The real game is
+// server-authoritative; this only runs when localMode is set.
 const LOCAL_LOOT: ReadonlyArray<{
 	ref: string;
 	count: number;
@@ -196,7 +187,6 @@ const LOCAL_LOOT: ReadonlyArray<{
 	{ ref: 'potion', count: 1, dx: -2, dy: 1 },
 	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
 ];
-const LOCAL_HEAL: ReadonlyMap<string, number> = new Map([['potion', 15]]);
 
 /**
  * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
@@ -265,41 +255,19 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
-	private inventory: InventoryItem[] = [];
+	// Inventory + placement + offline-loot state (items, panel-open, pickup
+	// cooldowns, deployable ghost). Drives the HUD panel and the 1-9 hotkeys.
+	private inv: InventoryState = makeInventoryState();
 	private spellLoadout: (string | undefined)[] = [];
 	private spellMeta: Map<string, SpellMeta> = new Map();
-	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
-	// The client predicts ahead of the server, so an early walk-over pickup can
-	// land before the server sees us adjacent and gets rejected; we retry on a
-	// short cadence until the successful pickup despawns the item.
-	private pickupCooldown = new Map<number, number>();
-	private static readonly PICKUP_RESEND_MS = 300;
-	// Full inventory panel open state (toggled with I).
-	private inventoryOpen = false;
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
-	// Monotonic counter for offline dropped-item eids.
-	private localDropSeq = 0;
-	// Scene-time (ms) until which walk-over auto-pickup is suspended after a drop.
-	private pickupSuspendUntil = 0;
-	// Offline-only ground loot (server eid -> ref/count/tile). Empty online.
-	private localItems = new Map<
-		number,
-		{ ref: string; count: number; tile: TileXY }
-	>();
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
 	private cursor!: CursorController;
 	private localMode = false;
-	// Active deployable placement: the item ref being placed (e.g. campfire-kit)
-	// and a translucent ghost sprite tracking the cursor, tinted green/red for a
-	// valid/invalid target. Null when not placing.
-	private placingRef: string | null = null;
-	private placeGhost: Phaser.GameObjects.Sprite | null = null;
-	// Monotonic eid for offline-placed env objects.
-	private localEnvSeq = 0;
 
 	constructor() {
 		super({ key: 'IsoArpgScene' });
@@ -425,17 +393,17 @@ export class IsoArpgScene extends Phaser.Scene {
 				if (ev.shiftKey) this.useInventorySlot(idx);
 				else this.castSpellSlot(idx);
 			} else if (ev.key === 'i' || ev.key === 'I') {
-				this.inventoryOpen = !this.inventoryOpen;
-				emitInventoryOpen(this.inventoryOpen);
+				this.inv.open = !this.inv.open;
+				emitInventoryOpen(this.inv.open);
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
 				this.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
 				this.debugChangeFloor(-1); // descend z-1 (deeper underground)
 			} else if (ev.key === 'Escape') {
-				if (this.placingRef) {
+				if (this.inv.placingRef) {
 					this.exitPlacement();
-				} else if (this.inventoryOpen) {
-					this.inventoryOpen = false;
+				} else if (this.inv.open) {
+					this.inv.open = false;
 					emitInventoryOpen(false);
 				}
 			}
@@ -451,7 +419,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
 
 			// Placement mode: left-click commits the deployable, right-click cancels.
-			if (this.placingRef) {
+			if (this.inv.placingRef) {
 				if (pointer.rightButtonDown()) {
 					this.exitPlacement();
 				} else {
@@ -507,7 +475,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const tile = screenToWorld(pointer.worldX, pointer.worldY);
 			this.updateCursorFor(tile, pointer.isDown);
 			// Placement mode drives the ghost instead of the move-hover diamond.
-			if (this.placingRef) {
+			if (this.inv.placingRef) {
 				this.hoverTile.setVisible(false);
 				this.updatePlaceGhost(tile);
 				return;
@@ -524,7 +492,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Hold while a button is down or placing; open hand (Take) over a pickup or
 	// NPC; pointing finger otherwise.
 	private updateCursorFor(tile: TileXY, pointerDown: boolean): void {
-		if (this.placingRef || pointerDown) {
+		if (this.inv.placingRef || pointerDown) {
 			this.cursor.set(Cursor.Hold);
 			return;
 		}
@@ -682,13 +650,12 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 		client.on('inventory', (inv: InventorySync) => {
-			this.inventory = inv.items;
-			emitInventory(inv.items);
+			setInventory(this.inv, inv.items);
 		});
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
-			if (!e.ok) this.exitPlacement();
+			if (!e.ok) exitPlacementV(this.inv);
 		});
 
 		client.connect();
@@ -698,36 +665,23 @@ export class IsoArpgScene extends Phaser.Scene {
 	// server consumes it and applies the effect (heal/buff); the resulting
 	// EPHEMERAL_INVENTORY refreshes the HUD.
 	private useInventorySlot(idx: number): void {
-		const item = this.inventory[idx];
-		if (!item) return;
-		// Deployables don't consume on use — they arm placement mode so the player
-		// picks a target tile (server spawns the env object on commit).
-		if (DEPLOYABLES.has(item.ref)) {
-			this.enterPlacement(item.ref);
-			return;
-		}
-		if (this.client) {
-			this.client.useItem(item.ref);
-			return;
-		}
-		if (!this.localMode) return;
-		// Offline: apply the heal + consume the item client-side.
-		const heal = LOCAL_HEAL.get(item.ref) ?? 0;
-		if (heal > 0) {
-			const hp = Math.min(
-				this.store.maxHp(this.myEid),
-				this.store.hp(this.myEid) + heal,
-			);
-			this.store.update(this.myEid, { hp });
-		}
-		const left = item.count - 1;
-		this.inventory =
-			left <= 0
-				? this.inventory.filter((_, i) => i !== idx)
-				: this.inventory.map((s, i) =>
-						i === idx ? { ...s, count: left } : s,
-					);
-		emitInventory(this.inventory);
+		useInventorySlotV(this.inv, this.invDeps(), idx);
+	}
+
+	private invDeps(): InventoryDeps {
+		return {
+			scene: this,
+			store: this.store,
+			kinds: this.kinds,
+			kindRegistry: this.kindRegistry,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			localMode: () => this.localMode,
+			floatTilePos: () => floatTile(this.floatState),
+			dungeon: () => this.dungeon,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			onPlacementArmed: () => this.hoverTile.setVisible(false),
+		};
 	}
 
 	private initSpellLoadout(): void {
@@ -772,225 +726,25 @@ export class IsoArpgScene extends Phaser.Scene {
 		return best;
 	}
 
-	/**
-	 * Arm placement mode for a deployable item: spawn a translucent ghost of the
-	 * env it places that tracks the cursor, tinted for valid/invalid. Left-click
-	 * commits, right-click / Escape cancels. A second arm of the same ref toggles
-	 * it off.
-	 */
-	private enterPlacement(itemRef: string): void {
-		if (this.placingRef === itemRef) {
-			this.exitPlacement();
-			return;
-		}
-		const envRef = DEPLOYABLES.get(itemRef);
-		if (!envRef) return;
-		this.exitPlacement();
-		this.placingRef = itemRef;
-		const ghost = makeEnvSprite(this, envRef);
-		if (ghost) {
-			ghost.setAlpha(0.55);
-			ghost.setDepth(DEPTH_UI);
-			this.placeGhost = ghost;
-		}
-		this.hoverTile.setVisible(false);
-	}
-
 	private exitPlacement(): void {
-		this.placingRef = null;
-		this.placeGhost?.destroy();
-		this.placeGhost = null;
+		exitPlacementV(this.inv);
 	}
 
-	/** A placement target is valid when it's a free floor tile within reach of the
-	 * player and not already occupied. Mirrors the server's place_item checks. */
-	private canPlaceAt(tile: TileXY): boolean {
-		if (this.isBlocked(tile.x, tile.y)) return false;
-		if (this.store.at(tile.x, tile.y, this.myEid)) return false;
-		const me = floatTile(this.floatState);
-		const cheb = Math.max(Math.abs(tile.x - me.x), Math.abs(tile.y - me.y));
-		return cheb <= PLACE_RANGE;
-	}
-
-	/** Move the ghost to a tile and tint it by validity. */
 	private updatePlaceGhost(tile: TileXY): void {
-		const ghost = this.placeGhost;
-		if (!ghost) return;
-		const p = worldToScreen(tile.x, tile.y);
-		ghost.setPosition(p.x, p.y + 8);
-		ghost.setDepth(DEPTH_UI);
-		ghost.setTint(this.canPlaceAt(tile) ? 0x86efac : 0xf87171);
+		updatePlaceGhostV(this.inv, this.invDeps(), tile);
 	}
 
-	/**
-	 * Commit the armed placement at a tile: server-authoritative online (the
-	 * campfire appears via the snapshot env path; an itemPlaced reject reopens
-	 * nothing since the server keeps the item), client-spawned offline.
-	 */
 	private commitPlacement(tile: TileXY): void {
-		const itemRef = this.placingRef;
-		if (!itemRef) return;
-		if (!this.canPlaceAt(tile)) return;
-		const idx = this.inventory.findIndex((s) => s.ref === itemRef);
-		if (idx < 0) return;
-
-		if (this.client) {
-			this.client.placeItem(itemRef, tile);
-			this.exitPlacement();
-			return;
-		}
-		if (!this.localMode) {
-			this.exitPlacement();
-			return;
-		}
-		const envRef = DEPLOYABLES.get(itemRef);
-		if (envRef) this.spawnLocalEnv(envRef, tile);
-		const item = this.inventory[idx];
-		const left = item.count - 1;
-		this.inventory =
-			left <= 0
-				? this.inventory.filter((_, i) => i !== idx)
-				: this.inventory.map((s, i) =>
-						i === idx ? { ...s, count: left } : s,
-					);
-		emitInventory(this.inventory);
-		this.exitPlacement();
+		commitPlacementV(this.inv, this.invDeps(), tile);
 	}
 
-	/** Offline-only: spawn a placed env object as a real entity + block its tile,
-	 * mirroring the server's apply_placements so the campfire reads the same. */
-	private spawnLocalEnv(envRef: string, tile: TileXY): void {
-		const kind = LOCAL_ENV_KIND;
-		if (!this.kindRegistry.has(kind)) {
-			this.kindRegistry.set(kind, { kind, ref: envRef, cat: 3 });
-		}
-		const eid = LOCAL_ENV_EID_BASE + this.localEnvSeq++;
-		const sprite =
-			makeEnvSprite(this, envRef) ??
-			makeSprite(this, this.kinds, kind, false);
-		this.placeSprite(sprite, tile.x, tile.y);
-		this.store.spawn(
-			eid,
-			{
-				tile,
-				kind,
-				cat: 'env',
-				owner: 0,
-				hostile: false,
-				hp: 0,
-				maxHp: 0,
-			},
-			{ sprite },
-		);
-	}
-
-	// HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder
-	// two slots. The HUD is purely presentational; the scene owns the client +
-	// offline sim, so all mutations route through here.
+	// HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder.
 	private handleInventoryIntent(intent: InventoryIntent): void {
-		switch (intent.type) {
-			case 'use':
-				this.useInventorySlot(intent.index);
-				break;
-			case 'drop':
-				this.dropInventorySlot(intent.index);
-				break;
-			case 'reorder':
-				this.reorderInventory(intent.from, intent.to);
-				break;
-		}
+		handleInventoryIntentV(this.inv, this.invDeps(), intent);
 	}
 
-	// Move slot `from` to index `to`, shifting the rest. The server owns slot
-	// order (persisted), so online we send MoveItem and apply the same splice
-	// optimistically — the authoritative refresh confirms it. Offline the splice
-	// is the source of truth.
-	private reorderInventory(from: number, to: number): void {
-		const n = this.inventory.length;
-		if (from < 0 || from >= n || to < 0 || to >= n || from === to) return;
-		this.client?.moveItem(from, to);
-		const next = this.inventory.slice();
-		const [moved] = next.splice(from, 1);
-		next.splice(to, 0, moved);
-		this.inventory = next;
-		emitInventory(this.inventory);
-	}
-
-	// Drop the whole stack in slot `idx` to the floor at the player's tile. The
-	// brief pickup-suspend stops walk-over auto-pickup from instantly grabbing it
-	// back (both online and offline share the same auto-pickup loop).
-	private dropInventorySlot(idx: number): void {
-		const item = this.inventory[idx];
-		if (!item) return;
-		this.pickupSuspendUntil = this.time.now + DROP_PICKUP_GRACE_MS;
-		if (this.client) {
-			this.client.dropItem(item.ref, item.count);
-			this.inventory = this.inventory.filter((_, i) => i !== idx);
-			emitInventory(this.inventory);
-			return;
-		}
-		if (!this.localMode) return;
-		const me = floatTile(this.floatState);
-		const tile = this.dungeon.nearestFloor({ x: me.x, y: me.y });
-		const eid =
-			LOCAL_ITEM_EID_BASE + LOCAL_DROP_EID_OFFSET + this.localDropSeq++;
-		this.spawnLocalItem(eid, item.ref, item.count, tile);
-		this.inventory = this.inventory.filter((_, i) => i !== idx);
-		emitInventory(this.inventory);
-	}
-
-	// Walk-over pickup: any ground item within one tile is grabbed automatically.
-	// The server validates proximity, despawns the item, and broadcasts the
-	// updated inventory; the per-item cooldown throttles resends between attempts.
 	private tryAutoPickup(): void {
-		if (this.time.now < this.pickupSuspendUntil) return;
-		const me = floatTile(this.floatState);
-		if (this.client) {
-			for (const sid of this.store.serverIdsWith('item')) {
-				if (this.time.now < (this.pickupCooldown.get(sid) ?? 0))
-					continue;
-				const t = this.store.tile(sid);
-				if (!t) continue;
-				if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
-					this.client.action(ACTION_PICKUP, sid);
-					this.pickupCooldown.set(
-						sid,
-						this.time.now + IsoArpgScene.PICKUP_RESEND_MS,
-					);
-				}
-			}
-			return;
-		}
-		if (!this.localMode) return;
-		for (const [eid, item] of this.localItems) {
-			const d = Math.max(
-				Math.abs(item.tile.x - me.x),
-				Math.abs(item.tile.y - me.y),
-			);
-			if (d <= 1) this.localPickup(eid, item);
-		}
-	}
-
-	/** Offline: grab a local ground item into the inventory + remove its sprite. */
-	private localPickup(
-		eid: number,
-		item: { ref: string; count: number; tile: TileXY },
-	): void {
-		const refs = this.store.despawn(eid);
-		if (refs) {
-			this.tweens.killTweensOf(refs.sprite);
-			refs.sprite.destroy();
-		}
-		this.localItems.delete(eid);
-		const has = this.inventory.some((s) => s.ref === item.ref);
-		this.inventory = has
-			? this.inventory.map((s) =>
-					s.ref === item.ref
-						? { ...s, count: s.count + item.count }
-						: s,
-				)
-			: [...this.inventory, { ref: item.ref, count: item.count }];
-		emitInventory(this.inventory);
+		tryAutoPickupV(this.inv, this.invDeps());
 	}
 
 	private applySnapshot(s: Snapshot) {
@@ -1509,37 +1263,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		count: number,
 		tile: TileXY,
 	): void {
-		if (!this.kindRegistry.has(LOCAL_ITEM_KIND)) {
-			this.kindRegistry.set(LOCAL_ITEM_KIND, {
-				kind: LOCAL_ITEM_KIND,
-				ref,
-				cat: 2, // KIND_CAT_ITEM
-			});
-		}
-		const sprite = makeSprite(this, this.kinds, LOCAL_ITEM_KIND, false);
-		this.placeSprite(sprite, tile.x, tile.y);
-		this.tweens.add({
-			targets: sprite,
-			y: sprite.y - 6,
-			duration: 650,
-			yoyo: true,
-			repeat: -1,
-			ease: 'Sine.easeInOut',
-		});
-		this.store.spawn(
-			eid,
-			{
-				tile,
-				kind: LOCAL_ITEM_KIND,
-				cat: 'item',
-				owner: 0,
-				hostile: false,
-				hp: 0,
-				maxHp: 0,
-			},
-			{ sprite },
-		);
-		this.localItems.set(eid, { ref, count, tile });
+		spawnLocalItemV(this.inv, this.invDeps(), eid, ref, count, tile);
 	}
 
 	/** Send the cardinal aim to the server, but only when it changes. */
