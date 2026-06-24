@@ -19,6 +19,9 @@
 			"@kbve/itemdb-data": [
 				"../../../../packages/data/codegen/generated/itemdb.json"
 			],
+			"@kbve/spelldb-data": [
+				"../../../../packages/data/codegen/generated/spelldb-data.json"
+			],
 			"@kbve/itemdb-schema": [
 				"../../../../packages/data/codegen/generated/itemdb-schema.ts"
 			]

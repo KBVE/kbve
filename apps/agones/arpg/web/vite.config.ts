@@ -35,6 +35,14 @@ const itemdbDataAlias = {
 	),
 };
 
+const spelldbDataAlias = {
+	find: /^@kbve\/spelldb-data$/,
+	replacement: path.join(
+		repoRoot,
+		'packages/data/codegen/generated/spelldb-data.json',
+	),
+};
+
 const itemdbSchemaAlias = {
 	find: /^@kbve\/itemdb-schema$/,
 	replacement: path.join(
@@ -73,7 +81,12 @@ export default defineConfig(({ mode }) => {
 				'phaser',
 				'@phaserjs/rapier-connector',
 			],
-			alias: [laserAlias, itemdbDataAlias, itemdbSchemaAlias],
+			alias: [
+				laserAlias,
+				itemdbDataAlias,
+				spelldbDataAlias,
+				itemdbSchemaAlias,
+			],
 			extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
 		},
 	};

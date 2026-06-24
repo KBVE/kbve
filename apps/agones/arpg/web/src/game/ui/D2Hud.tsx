@@ -6,9 +6,12 @@ import {
 	onHudClear,
 	onInventory,
 	onInventoryOpen,
+	onSpellLoadout,
 	type HudState,
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
+import type { SpellMeta } from '../entities/spellMeta';
+import { SpellBar } from './spells/SpellBar';
 import { registerArpgI18n } from './i18n';
 import { StatOrb, useWavePhase, type OrbStat } from './orbs/StatOrb';
 import { Minimap } from './minimap/Minimap';
@@ -55,6 +58,7 @@ export default function D2Hud({ debug = false }: { debug?: boolean }) {
 function D2HudInner({ debug }: { debug: boolean }) {
 	const [hud, setHud] = useState<HudState | null>(null);
 	const [inv, setInv] = useState<InventoryItem[]>([]);
+	const [spells, setSpells] = useState<SpellMeta[]>([]);
 	const [open, setOpen] = useState(false);
 	const meta = useItemMeta();
 	const dnd = useInventoryDnd(inv.length);
@@ -62,15 +66,18 @@ function D2HudInner({ debug }: { debug: boolean }) {
 	useEffect(() => {
 		const off = onHud(setHud);
 		const offInv = onInventory(setInv);
+		const offSpells = onSpellLoadout(setSpells);
 		const offOpen = onInventoryOpen(setOpen);
 		const offClear = onHudClear(() => {
 			setHud(null);
 			setInv([]);
+			setSpells([]);
 			setOpen(false);
 		});
 		return () => {
 			off();
 			offInv();
+			offSpells();
 			offOpen();
 			offClear();
 		};
@@ -131,6 +138,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 							headingDeg={hud.headingDeg}
 						/>
 					</div>
+					<SpellBar spells={spells} />
 					<InventoryBar items={inv} meta={meta} dnd={dnd} />
 					{open && (
 						<InventoryPanel items={inv} meta={meta} dnd={dnd} />

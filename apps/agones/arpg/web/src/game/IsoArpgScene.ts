@@ -85,10 +85,12 @@ import {
 	clearHud,
 	emitInventory,
 	emitInventoryOpen,
+	emitSpellLoadout,
 	onInventoryIntent,
 	type HudMap,
 	type InventoryIntent,
 } from './systems/hud';
+import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
 
 const HUD_MAP_SIZE = 33;
 // Safety net for the deferred-bow-hit buffer: if the local arrow never visually
@@ -259,6 +261,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// HUD panel and the 1-9 hotkeys.
 	private inventory: InventoryItem[] = [];
 	private spellLoadout: (string | undefined)[] = [];
+	private spellMeta: Map<string, SpellMeta> = new Map();
 	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
 	// The client predicts ahead of the server, so an early walk-over pickup can
 	// land before the server sees us adjacent and gets rejected; we retry on a
@@ -334,6 +337,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offIntent = onInventoryIntent((intent) =>
 			this.handleInventoryIntent(intent),
 		);
+
+		this.initSpellLoadout();
 
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
 	}
@@ -860,9 +865,46 @@ export class IsoArpgScene extends Phaser.Scene {
 		emitInventory(this.inventory);
 	}
 
+	private initSpellLoadout(): void {
+		void loadSpellMeta().then((meta) => {
+			this.spellMeta = meta;
+			const ordered = [...meta.values()].sort((a, b) => a.key - b.key);
+			this.spellLoadout = ordered.slice(0, 9).map((s) => s.ref);
+			emitSpellLoadout(ordered.slice(0, 9));
+		});
+	}
+
 	private castSpellSlot(idx: number): void {
-		const spell = this.spellLoadout[idx];
-		if (!spell) return;
+		const ref = this.spellLoadout[idx];
+		if (!ref) return;
+		const meta = this.spellMeta.get(ref);
+		const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
+		const target = targeted ? this.nearestHostile(meta?.range ?? 0) : null;
+		this.client?.castSpell(ref, target);
+	}
+
+	/**
+	 * Nearest hostile NPC to the player, within `range` tiles (0 = unbounded).
+	 * Returns the server eid or null when none is in range. v1 spell targeting
+	 * is auto-acquire (no aim ray) — an honest nearest-in-range pick, not a fake
+	 * hit; the server is authoritative on whether the cast lands.
+	 */
+	private nearestHostile(range: number): number | null {
+		const me = this.predicted;
+		let best: number | null = null;
+		let bestD = Infinity;
+		for (const sid of this.store.serverIdsWith('npc')) {
+			if (!this.isHostileServer(sid)) continue;
+			const t = this.store.tile(sid);
+			if (!t) continue;
+			const d = Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y));
+			if (range > 0 && d > range) continue;
+			if (d < bestD) {
+				bestD = d;
+				best = sid;
+			}
+		}
+		return best;
 	}
 
 	/**

@@ -204,6 +204,13 @@ pub fn item_db() -> bevy_items::ItemDb {
     .expect("embedded itemdb-data.binpb decodes as item.ItemRegistry")
 }
 
+pub fn spell_db() -> bevy_spells::SpellDb {
+    bevy_spells::SpellDb::from_bytes(include_bytes!(
+        "../../../../../packages/data/codegen/generated/spelldb-data.binpb"
+    ))
+    .expect("embedded spelldb-data.binpb decodes")
+}
+
 /// FullHeal has no amount on the wire — use a large heal; `use_item` clamps to
 /// max_hp.
 const FULL_HEAL: i32 = 9_999;
