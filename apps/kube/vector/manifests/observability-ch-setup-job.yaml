@@ -105,10 +105,7 @@ spec:
                                 name: clickhouse-vector-credentials
                                 key: endpoint
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-vector-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:

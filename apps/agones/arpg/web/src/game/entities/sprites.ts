@@ -212,7 +212,7 @@ function crossfadeBlend(
 		ease: 'Cubic.easeIn',
 	});
 
-	if (sprite.anims) {
+	if (sprite.anims?.currentAnim) {
 		sprite.anims.setProgress(Phaser.Math.Clamp(entryProgress, 0, 1));
 		scene.tweens.killTweensOf(sprite.anims);
 		sprite.anims.timeScale = BLEND_TIMESCALE_FROM;
@@ -317,14 +317,16 @@ export function tickClassFacing(
 	view.angle = angle;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, classAnimKey(view.def, view.state, angle), true);
-	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+	if (sprite.anims?.currentAnim)
+		sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 	if (view.shadow) {
 		safePlay(
 			view.shadow,
 			classAnimKey(view.def, view.state, angle, 'Shadow'),
 			true,
 		);
-		view.shadow.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+		if (view.shadow.anims?.currentAnim)
+			view.shadow.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 	}
 	return true;
 }
@@ -440,5 +442,6 @@ export function tickCreatureFacing(
 	view.dir = dir;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
-	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+	if (sprite.anims?.currentAnim)
+		sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 }

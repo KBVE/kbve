@@ -1,11 +1,7 @@
 import Phaser from 'phaser';
 import {
 	GameClient,
-	ACTION_SHOOT,
-	ACTION_PICKUP,
 	attachCameraZoom,
-	flashEntity,
-	floatingText,
 	drawHealthBar,
 	type EntityDelta,
 	type KindEntry,
@@ -15,10 +11,7 @@ import {
 	type FloorChangeEvent,
 	type Facing,
 	type InventorySync,
-	type InventoryItem,
 	type ItemPlacedEvent,
-	type StatusView,
-	type StatusKind,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -34,14 +27,12 @@ import {
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
-	ARROW_MAX_RANGE,
-	ARROW_SPEED,
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
 	GRASS_TEXTURE_KEY,
 	GRASS_TEXTURE_PATH,
-	SURFACE_MAX_Z,
+	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
 	DEBUG_LOCAL_PLAYER,
@@ -61,6 +52,43 @@ import {
 	syncFogToZoom,
 	type FogState,
 } from './systems/fog';
+import {
+	makeHudState,
+	tickHud,
+	resetHudMap,
+	type HudState,
+} from './systems/hudEmit';
+import {
+	placeSprite as placeSpriteV,
+	placeRefs as placeRefsV,
+	syncShadow as syncShadowV,
+	placeNameplate as placeNameplateV,
+	destroyRefs as destroyRefsV,
+	drawStatusFx as drawStatusFxV,
+	drawCreatureDebug as drawCreatureDebugV,
+} from './systems/entityView';
+import {
+	makeCombatState,
+	fireBowAt as fireBowAtV,
+	onCombat as onCombatV,
+	type CombatState,
+	type CombatDeps,
+} from './systems/combat';
+import {
+	makeInventoryState,
+	setInventory,
+	useInventorySlot as useInventorySlotV,
+	handleInventoryIntent as handleInventoryIntentV,
+	tryAutoPickup as tryAutoPickupV,
+	exitPlacement as exitPlacementV,
+	updatePlaceGhost as updatePlaceGhostV,
+	commitPlacement as commitPlacementV,
+	spawnLocalItem as spawnLocalItemV,
+	LOCAL_ITEM_EID_BASE,
+	PLACE_RANGE,
+	type InventoryState,
+	type InventoryDeps,
+} from './systems/inventory';
 import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -95,26 +123,14 @@ import {
 	type DungeonView,
 } from './systems/dungeonView';
 import { findHierPath, type GateGraph } from './systems/pathfind';
-import { fireBow, showDamage, type BowShot } from './combat/bow';
 import {
-	emitHud,
 	clearHud,
-	emitInventory,
 	emitInventoryOpen,
 	emitSpellLoadout,
 	onInventoryIntent,
-	type HudMap,
 	type InventoryIntent,
 } from './systems/hud';
 import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
-
-const HUD_MAP_SIZE = 33;
-// How far (tiles) a hostile's center may sit off the aim line and still be hit
-// by the arrow — the thick-ray half-width. Bigger = more forgiving aim.
-const BOW_ACQUIRE_PERP = 0.85;
-// How long a corpse (a monster the arrow just killed) plays its death before it
-// is torn down.
-const CORPSE_FADE_MS = 900;
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -158,43 +174,9 @@ import { resolvePlayerName } from './playerName';
 
 const LOCAL_PLAYER_EID = 1;
 const LOCAL_PLAYER_KIND = 1;
-// Status effect aura/pip colours and the aura precedence (harm before help).
-const STATUS_COLOR: Record<StatusKind, number> = {
-	Burn: 0xfb923c,
-	Poison: 0x84cc16,
-	Regen: 0x4ade80,
-	Haste: 0x38bdf8,
-};
-const STATUS_PRIORITY: readonly StatusKind[] = [
-	'Burn',
-	'Poison',
-	'Regen',
-	'Haste',
-];
 // Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
-// fixture seeds ground loot + a heal table to exercise the inventory loop. The
-// real game is server-authoritative; this only runs when localMode is set.
-const LOCAL_ITEM_KIND = 2;
-const LOCAL_ITEM_EID_BASE = 1000;
-// Deployable inventory items → the env object they place. Mirrors the server's
-// game::deployables() table so online + offline placement render the same thing.
-const DEPLOYABLES: ReadonlyMap<string, string> = new Map([
-	['campfire-kit', 'campfire'],
-]);
-// How far (Chebyshev) from the player a deployable may be placed. Mirrors the
-// server's PLACE_RANGE so the client ghost reads valid exactly when the server
-// would accept the placement.
-const PLACE_RANGE = 4;
-// Offline-placed env objects get a private kind id + eid range so they don't
-// collide with loot or the server's authoritative entities.
-const LOCAL_ENV_KIND = 3;
-const LOCAL_ENV_EID_BASE = 5000;
-// Offline dropped items get eids well above the seeded-loot range to avoid
-// colliding with LOCAL_LOOT (LOCAL_ITEM_EID_BASE + index).
-const LOCAL_DROP_EID_OFFSET = 1000;
-// After a drop, suppress walk-over auto-pickup briefly so the item doesn't
-// bounce straight back into the inventory.
-const DROP_PICKUP_GRACE_MS = 1200;
+// fixture seeds ground loot to exercise the inventory loop. The real game is
+// server-authoritative; this only runs when localMode is set.
 const LOCAL_LOOT: ReadonlyArray<{
 	ref: string;
 	count: number;
@@ -205,7 +187,6 @@ const LOCAL_LOOT: ReadonlyArray<{
 	{ ref: 'potion', count: 1, dx: -2, dy: 1 },
 	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
 ];
-const LOCAL_HEAL: ReadonlyMap<string, number> = new Map([['potion', 15]]);
 
 /**
  * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
@@ -258,69 +239,35 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
 	// no active click move. Keyboard input clears it.
 	private movePath: TileXY[] = [];
-	private bowShot: BowShot | null = null;
-	// In-flight bow shot (online): the server-authoritative hit for `target` is
-	// buffered until the local arrow lands so feedback syncs to impact.
-	private inflightArrow: { target: number; arrived: boolean } | null = null;
-	private bufferedHits = new Map<number, CombatEvent>();
-	// Monsters despawned server-side by an in-flight arrow, held as corpses until
-	// the arrow lands (keyed by server eid).
-	private dyingSprites = new Map<number, EntityRefs>();
+	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
+	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
-	// HUD emits are throttled to ~15/s; this accumulates frame time between emits.
-	private hudAccum = 0;
-	// Last movement heading (screen deg, 0=N CW); held while idle so the compass
-	// needle doesn't snap back when the player stops.
-	private hudHeadingDeg = 0;
-	// Cached minimap window; resampled only when the player crosses a tile.
-	private hudMap: HudMap | null = null;
-	private hudMapTile: TileXY | null = null;
+	// React HUD emit throttle + cached compass heading and minimap window.
+	private hud: HudState = makeHudState();
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
-	// Floors above the dungeon (z <= SURFACE_MAX_Z) are open grassland: grass
-	// ground, no dungeon walls/holes, everything walkable. Base layer for now.
-	private isSurface = (): boolean => this.currentFloor <= SURFACE_MAX_Z;
+	// z is elevation: z>=SURFACE_MIN_Z (0) is open grassland — grass ground, no
+	// dungeon walls/holes, all walkable. The dungeon is underground at z<0.
+	private isSurface = (): boolean => this.currentFloor >= SURFACE_MIN_Z;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
-	private inventory: InventoryItem[] = [];
+	// Inventory + placement + offline-loot state (items, panel-open, pickup
+	// cooldowns, deployable ghost). Drives the HUD panel and the 1-9 hotkeys.
+	private inv: InventoryState = makeInventoryState();
 	private spellLoadout: (string | undefined)[] = [];
 	private spellMeta: Map<string, SpellMeta> = new Map();
-	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
-	// The client predicts ahead of the server, so an early walk-over pickup can
-	// land before the server sees us adjacent and gets rejected; we retry on a
-	// short cadence until the successful pickup despawns the item.
-	private pickupCooldown = new Map<number, number>();
-	private static readonly PICKUP_RESEND_MS = 300;
-	// Full inventory panel open state (toggled with I).
-	private inventoryOpen = false;
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
-	// Monotonic counter for offline dropped-item eids.
-	private localDropSeq = 0;
-	// Scene-time (ms) until which walk-over auto-pickup is suspended after a drop.
-	private pickupSuspendUntil = 0;
-	// Offline-only ground loot (server eid -> ref/count/tile). Empty online.
-	private localItems = new Map<
-		number,
-		{ ref: string; count: number; tile: TileXY }
-	>();
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
 	private cursor!: CursorController;
 	private localMode = false;
-	// Active deployable placement: the item ref being placed (e.g. campfire-kit)
-	// and a translucent ghost sprite tracking the cursor, tinted green/red for a
-	// valid/invalid target. Null when not placing.
-	private placingRef: string | null = null;
-	private placeGhost: Phaser.GameObjects.Sprite | null = null;
-	// Monotonic eid for offline-placed env objects.
-	private localEnvSeq = 0;
 
 	constructor() {
 		super({ key: 'IsoArpgScene' });
@@ -446,17 +393,17 @@ export class IsoArpgScene extends Phaser.Scene {
 				if (ev.shiftKey) this.useInventorySlot(idx);
 				else this.castSpellSlot(idx);
 			} else if (ev.key === 'i' || ev.key === 'I') {
-				this.inventoryOpen = !this.inventoryOpen;
-				emitInventoryOpen(this.inventoryOpen);
+				this.inv.open = !this.inv.open;
+				emitInventoryOpen(this.inv.open);
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
-				this.debugChangeFloor(-1); // ascend (toward grass surface)
+				this.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
-				this.debugChangeFloor(1); // descend (deeper dungeon)
+				this.debugChangeFloor(-1); // descend z-1 (deeper underground)
 			} else if (ev.key === 'Escape') {
-				if (this.placingRef) {
+				if (this.inv.placingRef) {
 					this.exitPlacement();
-				} else if (this.inventoryOpen) {
-					this.inventoryOpen = false;
+				} else if (this.inv.open) {
+					this.inv.open = false;
 					emitInventoryOpen(false);
 				}
 			}
@@ -472,7 +419,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
 
 			// Placement mode: left-click commits the deployable, right-click cancels.
-			if (this.placingRef) {
+			if (this.inv.placingRef) {
 				if (pointer.rightButtonDown()) {
 					this.exitPlacement();
 				} else {
@@ -528,7 +475,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const tile = screenToWorld(pointer.worldX, pointer.worldY);
 			this.updateCursorFor(tile, pointer.isDown);
 			// Placement mode drives the ghost instead of the move-hover diamond.
-			if (this.placingRef) {
+			if (this.inv.placingRef) {
 				this.hoverTile.setVisible(false);
 				this.updatePlaceGhost(tile);
 				return;
@@ -545,7 +492,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Hold while a button is down or placing; open hand (Take) over a pickup or
 	// NPC; pointing finger otherwise.
 	private updateCursorFor(tile: TileXY, pointerDown: boolean): void {
-		if (this.placingRef || pointerDown) {
+		if (this.inv.placingRef || pointerDown) {
 			this.cursor.set(Cursor.Hold);
 			return;
 		}
@@ -650,8 +597,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				// freeze motion) until the arrow lands; onArrowArrive plays its
 				// death + number, then destroys it. Otherwise destroy now.
 				if (
-					this.inflightArrow?.target === eid &&
-					!this.inflightArrow.arrived
+					this.combat.inflightArrow?.target === eid &&
+					!this.combat.inflightArrow.arrived
 				) {
 					this.tweens.killTweensOf(refs.sprite);
 					refs.settleTimer?.remove(false);
@@ -660,7 +607,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs.statusFx?.destroy();
 					refs.dbgText?.destroy();
 					refs.dbgArrow?.destroy();
-					this.dyingSprites.set(eid, refs);
+					this.combat.dyingSprites.set(eid, refs);
 					return;
 				}
 				this.destroyRefs(refs);
@@ -703,13 +650,12 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 		client.on('inventory', (inv: InventorySync) => {
-			this.inventory = inv.items;
-			emitInventory(inv.items);
+			setInventory(this.inv, inv.items);
 		});
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
-			if (!e.ok) this.exitPlacement();
+			if (!e.ok) exitPlacementV(this.inv);
 		});
 
 		client.connect();
@@ -719,36 +665,23 @@ export class IsoArpgScene extends Phaser.Scene {
 	// server consumes it and applies the effect (heal/buff); the resulting
 	// EPHEMERAL_INVENTORY refreshes the HUD.
 	private useInventorySlot(idx: number): void {
-		const item = this.inventory[idx];
-		if (!item) return;
-		// Deployables don't consume on use — they arm placement mode so the player
-		// picks a target tile (server spawns the env object on commit).
-		if (DEPLOYABLES.has(item.ref)) {
-			this.enterPlacement(item.ref);
-			return;
-		}
-		if (this.client) {
-			this.client.useItem(item.ref);
-			return;
-		}
-		if (!this.localMode) return;
-		// Offline: apply the heal + consume the item client-side.
-		const heal = LOCAL_HEAL.get(item.ref) ?? 0;
-		if (heal > 0) {
-			const hp = Math.min(
-				this.store.maxHp(this.myEid),
-				this.store.hp(this.myEid) + heal,
-			);
-			this.store.update(this.myEid, { hp });
-		}
-		const left = item.count - 1;
-		this.inventory =
-			left <= 0
-				? this.inventory.filter((_, i) => i !== idx)
-				: this.inventory.map((s, i) =>
-						i === idx ? { ...s, count: left } : s,
-					);
-		emitInventory(this.inventory);
+		useInventorySlotV(this.inv, this.invDeps(), idx);
+	}
+
+	private invDeps(): InventoryDeps {
+		return {
+			scene: this,
+			store: this.store,
+			kinds: this.kinds,
+			kindRegistry: this.kindRegistry,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			localMode: () => this.localMode,
+			floatTilePos: () => floatTile(this.floatState),
+			dungeon: () => this.dungeon,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			onPlacementArmed: () => this.hoverTile.setVisible(false),
+		};
 	}
 
 	private initSpellLoadout(): void {
@@ -793,225 +726,25 @@ export class IsoArpgScene extends Phaser.Scene {
 		return best;
 	}
 
-	/**
-	 * Arm placement mode for a deployable item: spawn a translucent ghost of the
-	 * env it places that tracks the cursor, tinted for valid/invalid. Left-click
-	 * commits, right-click / Escape cancels. A second arm of the same ref toggles
-	 * it off.
-	 */
-	private enterPlacement(itemRef: string): void {
-		if (this.placingRef === itemRef) {
-			this.exitPlacement();
-			return;
-		}
-		const envRef = DEPLOYABLES.get(itemRef);
-		if (!envRef) return;
-		this.exitPlacement();
-		this.placingRef = itemRef;
-		const ghost = makeEnvSprite(this, envRef);
-		if (ghost) {
-			ghost.setAlpha(0.55);
-			ghost.setDepth(DEPTH_UI);
-			this.placeGhost = ghost;
-		}
-		this.hoverTile.setVisible(false);
-	}
-
 	private exitPlacement(): void {
-		this.placingRef = null;
-		this.placeGhost?.destroy();
-		this.placeGhost = null;
+		exitPlacementV(this.inv);
 	}
 
-	/** A placement target is valid when it's a free floor tile within reach of the
-	 * player and not already occupied. Mirrors the server's place_item checks. */
-	private canPlaceAt(tile: TileXY): boolean {
-		if (this.isBlocked(tile.x, tile.y)) return false;
-		if (this.store.at(tile.x, tile.y, this.myEid)) return false;
-		const me = floatTile(this.floatState);
-		const cheb = Math.max(Math.abs(tile.x - me.x), Math.abs(tile.y - me.y));
-		return cheb <= PLACE_RANGE;
-	}
-
-	/** Move the ghost to a tile and tint it by validity. */
 	private updatePlaceGhost(tile: TileXY): void {
-		const ghost = this.placeGhost;
-		if (!ghost) return;
-		const p = worldToScreen(tile.x, tile.y);
-		ghost.setPosition(p.x, p.y + 8);
-		ghost.setDepth(DEPTH_UI);
-		ghost.setTint(this.canPlaceAt(tile) ? 0x86efac : 0xf87171);
+		updatePlaceGhostV(this.inv, this.invDeps(), tile);
 	}
 
-	/**
-	 * Commit the armed placement at a tile: server-authoritative online (the
-	 * campfire appears via the snapshot env path; an itemPlaced reject reopens
-	 * nothing since the server keeps the item), client-spawned offline.
-	 */
 	private commitPlacement(tile: TileXY): void {
-		const itemRef = this.placingRef;
-		if (!itemRef) return;
-		if (!this.canPlaceAt(tile)) return;
-		const idx = this.inventory.findIndex((s) => s.ref === itemRef);
-		if (idx < 0) return;
-
-		if (this.client) {
-			this.client.placeItem(itemRef, tile);
-			this.exitPlacement();
-			return;
-		}
-		if (!this.localMode) {
-			this.exitPlacement();
-			return;
-		}
-		const envRef = DEPLOYABLES.get(itemRef);
-		if (envRef) this.spawnLocalEnv(envRef, tile);
-		const item = this.inventory[idx];
-		const left = item.count - 1;
-		this.inventory =
-			left <= 0
-				? this.inventory.filter((_, i) => i !== idx)
-				: this.inventory.map((s, i) =>
-						i === idx ? { ...s, count: left } : s,
-					);
-		emitInventory(this.inventory);
-		this.exitPlacement();
+		commitPlacementV(this.inv, this.invDeps(), tile);
 	}
 
-	/** Offline-only: spawn a placed env object as a real entity + block its tile,
-	 * mirroring the server's apply_placements so the campfire reads the same. */
-	private spawnLocalEnv(envRef: string, tile: TileXY): void {
-		const kind = LOCAL_ENV_KIND;
-		if (!this.kindRegistry.has(kind)) {
-			this.kindRegistry.set(kind, { kind, ref: envRef, cat: 3 });
-		}
-		const eid = LOCAL_ENV_EID_BASE + this.localEnvSeq++;
-		const sprite =
-			makeEnvSprite(this, envRef) ??
-			makeSprite(this, this.kinds, kind, false);
-		this.placeSprite(sprite, tile.x, tile.y);
-		this.store.spawn(
-			eid,
-			{
-				tile,
-				kind,
-				cat: 'env',
-				owner: 0,
-				hostile: false,
-				hp: 0,
-				maxHp: 0,
-			},
-			{ sprite },
-		);
-	}
-
-	// HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder
-	// two slots. The HUD is purely presentational; the scene owns the client +
-	// offline sim, so all mutations route through here.
+	// HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder.
 	private handleInventoryIntent(intent: InventoryIntent): void {
-		switch (intent.type) {
-			case 'use':
-				this.useInventorySlot(intent.index);
-				break;
-			case 'drop':
-				this.dropInventorySlot(intent.index);
-				break;
-			case 'reorder':
-				this.reorderInventory(intent.from, intent.to);
-				break;
-		}
+		handleInventoryIntentV(this.inv, this.invDeps(), intent);
 	}
 
-	// Move slot `from` to index `to`, shifting the rest. The server owns slot
-	// order (persisted), so online we send MoveItem and apply the same splice
-	// optimistically — the authoritative refresh confirms it. Offline the splice
-	// is the source of truth.
-	private reorderInventory(from: number, to: number): void {
-		const n = this.inventory.length;
-		if (from < 0 || from >= n || to < 0 || to >= n || from === to) return;
-		this.client?.moveItem(from, to);
-		const next = this.inventory.slice();
-		const [moved] = next.splice(from, 1);
-		next.splice(to, 0, moved);
-		this.inventory = next;
-		emitInventory(this.inventory);
-	}
-
-	// Drop the whole stack in slot `idx` to the floor at the player's tile. The
-	// brief pickup-suspend stops walk-over auto-pickup from instantly grabbing it
-	// back (both online and offline share the same auto-pickup loop).
-	private dropInventorySlot(idx: number): void {
-		const item = this.inventory[idx];
-		if (!item) return;
-		this.pickupSuspendUntil = this.time.now + DROP_PICKUP_GRACE_MS;
-		if (this.client) {
-			this.client.dropItem(item.ref, item.count);
-			this.inventory = this.inventory.filter((_, i) => i !== idx);
-			emitInventory(this.inventory);
-			return;
-		}
-		if (!this.localMode) return;
-		const me = floatTile(this.floatState);
-		const tile = this.dungeon.nearestFloor({ x: me.x, y: me.y });
-		const eid =
-			LOCAL_ITEM_EID_BASE + LOCAL_DROP_EID_OFFSET + this.localDropSeq++;
-		this.spawnLocalItem(eid, item.ref, item.count, tile);
-		this.inventory = this.inventory.filter((_, i) => i !== idx);
-		emitInventory(this.inventory);
-	}
-
-	// Walk-over pickup: any ground item within one tile is grabbed automatically.
-	// The server validates proximity, despawns the item, and broadcasts the
-	// updated inventory; the per-item cooldown throttles resends between attempts.
 	private tryAutoPickup(): void {
-		if (this.time.now < this.pickupSuspendUntil) return;
-		const me = floatTile(this.floatState);
-		if (this.client) {
-			for (const sid of this.store.serverIdsWith('item')) {
-				if (this.time.now < (this.pickupCooldown.get(sid) ?? 0))
-					continue;
-				const t = this.store.tile(sid);
-				if (!t) continue;
-				if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
-					this.client.action(ACTION_PICKUP, sid);
-					this.pickupCooldown.set(
-						sid,
-						this.time.now + IsoArpgScene.PICKUP_RESEND_MS,
-					);
-				}
-			}
-			return;
-		}
-		if (!this.localMode) return;
-		for (const [eid, item] of this.localItems) {
-			const d = Math.max(
-				Math.abs(item.tile.x - me.x),
-				Math.abs(item.tile.y - me.y),
-			);
-			if (d <= 1) this.localPickup(eid, item);
-		}
-	}
-
-	/** Offline: grab a local ground item into the inventory + remove its sprite. */
-	private localPickup(
-		eid: number,
-		item: { ref: string; count: number; tile: TileXY },
-	): void {
-		const refs = this.store.despawn(eid);
-		if (refs) {
-			this.tweens.killTweensOf(refs.sprite);
-			refs.sprite.destroy();
-		}
-		this.localItems.delete(eid);
-		const has = this.inventory.some((s) => s.ref === item.ref);
-		this.inventory = has
-			? this.inventory.map((s) =>
-					s.ref === item.ref
-						? { ...s, count: s.count + item.count }
-						: s,
-				)
-			: [...this.inventory, { ref: item.ref, count: item.count }];
-		emitInventory(this.inventory);
+		tryAutoPickupV(this.inv, this.invDeps());
 	}
 
 	private applySnapshot(s: Snapshot) {
@@ -1087,102 +820,29 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private onCombat(c: CombatEvent) {
-		// The server resolves a bow shot the instant it looses, but the client's
-		// arrow is still in flight. If this hit is from the local player's arrow
-		// heading at this target, defer the feedback until the arrow lands
-		// (flushed in onArrowArrive / a travel-time fallback) so the number and
-		// recoil sync to impact instead of popping at release.
-		if (
-			c.attacker === this.myEid &&
-			this.inflightArrow &&
-			this.inflightArrow.target === c.target &&
-			!this.inflightArrow.arrived
-		) {
-			// Hold it — onArrowArrive (scheduled at the arrow's travel time, or
-			// fired early by the visual hit-test) shows it on impact.
-			this.bufferedHits.set(c.target, c);
-			return;
-		}
-		this.showCombat(c);
+		onCombatV(this.combat, this.combatDeps(), c);
 	}
 
-	/**
-	 * The local player's arrow reached its target: release the deferred server
-	 * hit (number, recoil/death) and, if the target was a kill held as a corpse,
-	 * play its death then clear it. Idempotent — both the visual hit-test and the
-	 * travel-time timer call it.
-	 */
-	private onArrowArrive(target: number) {
-		if (this.inflightArrow?.target === target)
-			this.inflightArrow.arrived = true;
-		const c = this.bufferedHits.get(target);
-		if (c) {
-			this.bufferedHits.delete(target);
-			this.showCombat(c);
-		}
-		const corpse = this.dyingSprites.get(target);
-		if (corpse) {
-			this.dyingSprites.delete(target);
-			if (
-				corpse.creature &&
-				corpse.sprite instanceof Phaser.GameObjects.Sprite
-			) {
-				setCreaturePose(corpse.sprite, corpse.creature, 'Dead');
-				this.time.delayedCall(CORPSE_FADE_MS, () =>
-					this.destroyRefs(corpse),
-				);
-			} else {
-				this.destroyRefs(corpse);
-			}
-		}
-		if (this.inflightArrow?.target === target) this.inflightArrow = null;
-	}
-
-	private showCombat(c: CombatEvent) {
-		const refs =
-			this.store.refs(c.target) ?? this.dyingSprites.get(c.target);
-		if (!refs) return;
-		floatingText(
-			this,
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 18,
-			c.crit ? `CRIT ${c.dmg}!` : `-${c.dmg}`,
-			c.crit ? '#fbbf24' : '#f87171',
-			DEPTH_UI + 2,
-		);
-		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			flashEntity(this, refs.sprite);
-		}
-
-		// Drive creature combat poses: the attacker swings (facing its target),
-		// the victim recoils (or dies). Non-arrow deaths still settle via the
-		// hp<=0 check in refreshHud.
-		const atk = this.store.refs(c.attacker);
-		if (atk?.creature && atk.sprite instanceof Phaser.GameObjects.Sprite) {
-			const a = this.store.tile(c.attacker);
-			const t = this.store.tile(c.target);
-			const face = a && t ? { dx: t.x - a.x, dy: t.y - a.y } : undefined;
-			setCreaturePose(atk.sprite, atk.creature, 'Attack1', face);
-		}
-		if (refs.creature && refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			setCreaturePose(
-				refs.sprite,
-				refs.creature,
-				c.died ? 'Dead' : 'GetHit',
-			);
-		}
+	private combatDeps(): CombatDeps {
+		return {
+			scene: this,
+			store: this.store,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			localMode: () => this.localMode,
+			floatPos: () => this.floatState.pos,
+			isHostile: (eid) => this.isHostileServer(eid),
+			clearMovePath: () => {
+				this.movePath = [];
+			},
+			refreshHud: () => this.refreshHud(),
+			destroyRefs: (refs) => this.destroyRefs(refs),
+		};
 	}
 
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
-		refs.settleTimer?.remove(false);
-		refs.shadow?.destroy();
-		refs.nameplate?.destroy();
-		refs.hpBar?.destroy();
-		refs.statusFx?.destroy();
-		refs.dbgText?.destroy();
-		refs.dbgArrow?.destroy();
-		refs.sprite.destroy();
+		destroyRefsV(refs);
 	}
 
 	/**
@@ -1199,21 +859,20 @@ export class IsoArpgScene extends Phaser.Scene {
 			floorSeed(DUNGEON_SEED, f.z),
 			DUNGEON_RADIUS,
 		);
-		this.hudMap = null;
-		this.hudMapTile = null;
+		resetHudMap(this.hud);
 		this.rebuildDungeon();
 		this.placeStairs();
 	}
 
 	/**
-	 * Offline-only floor change (no server). Mirrors the server stair link: dz=-1
-	 * ascends onto the target floor's Down stair, dz=+1 descends onto its Up
-	 * stair, so the local player lands on a real tile. Lets us test the grass
-	 * surface (z<0) without a live arpg-server.
+	 * Offline-only floor change (no server). Mirrors the server stair link:
+	 * ascending (dz=+1) lands on the target floor's Down stair, descending
+	 * (dz=-1) lands on its Up stair, so the local player arrives on a real tile.
+	 * Lets us test the grass surface (z>=0) and dungeon (z<0) without a server.
 	 */
 	private debugChangeFloor(dz: number) {
 		const z = this.currentFloor + dz;
-		const land = dz < 0 ? StairKind.Down : StairKind.Up;
+		const land = dz < 0 ? StairKind.Up : StairKind.Down;
 		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
 		this.onFloorChange({ z, tile });
 	}
@@ -1245,73 +904,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.tickHud(delta);
 	}
 
-	/**
-	 * Push player vitals + the movement-driven compass heading to the React HUD
-	 * over the laser event bus, throttled to ~15 Hz. The compass tracks the float
-	 * body's VELOCITY (where the character is actually walking), not the cursor —
-	 * heading holds its last value while standing still so the needle doesn't
-	 * snap back to north on every stop.
-	 */
 	private tickHud(deltaMs: number) {
-		this.hudAccum += deltaMs;
-		if (this.hudAccum < 66) return;
-		this.hudAccum = 0;
-
-		const vel = this.floatState.vel;
-		const moving = Math.hypot(vel.x, vel.y) > 0.05;
-		if (moving) this.hudHeadingDeg = facingDegFromDelta(vel.x, vel.y);
-
-		const tile = floatTile(this.floatState);
-		const maxHp = this.store.maxHp(this.myEid);
-		emitHud({
-			name: this.localPlayerName(),
-			hp: this.store.hp(this.myEid),
-			maxHp,
-			mp: maxHp,
-			maxMp: maxHp,
-			ep: maxHp,
-			maxEp: maxHp,
-			sp: maxHp,
-			maxSp: maxHp,
-			headingDeg: this.hudHeadingDeg,
-			moving,
-			fps: Math.round(this.game.loop.actualFps),
-			tile,
-			map: this.sampleHudMap(tile),
-		});
+		tickHud(this.hud, this.hudDeps(), deltaMs);
 	}
 
-	/**
-	 * Sample a square dungeon window centered on the player into a floor bitset
-	 * for the minimap — rooms + the carved corridor paths between them. Rebuilt
-	 * only when the player crosses a tile (the layout is static between steps),
-	 * reusing the cached buffer otherwise to keep the 15 Hz emit cheap.
-	 */
-	private sampleHudMap(tile: TileXY): HudMap {
-		const size = HUD_MAP_SIZE;
-		if (
-			this.hudMap &&
-			this.hudMapTile &&
-			this.hudMapTile.x === tile.x &&
-			this.hudMapTile.y === tile.y
-		) {
-			return this.hudMap;
-		}
-		const r = size >> 1;
-		const ox = tile.x - r;
-		const oy = tile.y - r;
-		const cells = new Uint8Array(size * size);
-		const surface = this.isSurface();
-		for (let j = 0; j < size; j++) {
-			for (let i = 0; i < size; i++) {
-				if (surface || this.dungeon.isFloor(ox + i, oy + j)) {
-					cells[j * size + i] = 1;
-				}
-			}
-		}
-		this.hudMapTile = { x: tile.x, y: tile.y };
-		this.hudMap = { origin: { x: ox, y: oy }, size, cells };
-		return this.hudMap;
+	private hudDeps() {
+		return {
+			scene: this,
+			store: this.store,
+			floatState: this.floatState,
+			dungeon: this.dungeon,
+			myEid: this.myEid,
+			surface: this.isSurface(),
+			playerName: this.localPlayerName(),
+		};
 	}
 
 	/**
@@ -1339,10 +945,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		// sliding in the bow pose. If the cancel lands before the release frame
 		// the arrow is suppressed (no shot fired); if it already loosed, the
 		// arrow still flies and only the recover is cut.
-		if (intending && this.bowShot?.busy) {
-			this.bowShot.cancel();
+		if (intending && this.combat.bowShot?.busy) {
+			this.combat.bowShot.cancel();
 		}
-		const firing = this.bowShot?.busy ?? false;
+		const firing = this.combat.bowShot?.busy ?? false;
 		if (
 			!firing &&
 			refs.cls &&
@@ -1510,55 +1116,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.sprite instanceof Phaser.GameObjects.Sprite
 			) {
 				tickCreatureFacing(refs.sprite, refs.creature);
-				if (DEBUG_CREATURE_DIRS) this.drawCreatureDebug(refs);
+				if (DEBUG_CREATURE_DIRS) drawCreatureDebugV(refs);
 			}
-		}
-	}
-
-	/**
-	 * Debug overlay: a green arrow in the creature's TRUE screen heading
-	 * (targetDeg, straight from the movement delta) plus the sheet direction
-	 * block the code currently picked. If the body visually faces away from the
-	 * arrow, the art<->direction mapping in creatures.ts is off.
-	 */
-	private drawCreatureDebug(refs: EntityRefs) {
-		if (
-			!refs.creature ||
-			!(refs.sprite instanceof Phaser.GameObjects.Sprite)
-		)
-			return;
-		const sx = refs.sprite.x;
-		const sy = refs.sprite.y - refs.sprite.displayHeight * 0.45;
-		if (refs.dbgText) {
-			refs.dbgText.setText(
-				`${refs.creature.dir} ${Math.round(refs.creature.targetDeg)}°`,
-			);
-			refs.dbgText.setPosition(sx, sy - 14);
-		}
-		if (refs.dbgArrow) {
-			const rad = (refs.creature.targetDeg * Math.PI) / 180;
-			const vx = Math.sin(rad);
-			const vy = -Math.cos(rad);
-			const len = 34;
-			const ex = sx + vx * len;
-			const ey = sy + vy * len;
-			const g = refs.dbgArrow;
-			g.clear();
-			g.lineStyle(3, 0x34d399, 1);
-			g.beginPath();
-			g.moveTo(sx, sy);
-			g.lineTo(ex, ey);
-			g.strokePath();
-			// arrowhead
-			const ah = 8;
-			const a1 = rad + Math.PI * 0.85;
-			const a2 = rad - Math.PI * 0.85;
-			g.beginPath();
-			g.moveTo(ex, ey);
-			g.lineTo(ex + Math.sin(a1) * ah, ey - Math.cos(a1) * ah);
-			g.moveTo(ex, ey);
-			g.lineTo(ex + Math.sin(a2) * ah, ey - Math.cos(a2) * ah);
-			g.strokePath();
 		}
 	}
 
@@ -1617,27 +1176,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private placeSprite(sprite: EntityRefs['sprite'], tx: number, ty: number) {
-		const p = worldToScreen(tx, ty);
-		sprite.setPosition(p.x, p.y + 8);
-		sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(tx, ty));
+		placeSpriteV(this, sprite, tx, ty);
 	}
 
 	private placeRefs(refs: EntityRefs, tile: TileXY) {
-		this.placeSprite(refs.sprite, tile.x, tile.y);
-		this.syncShadow(refs);
-		this.placeNameplate(refs);
+		placeRefsV(this, refs, tile);
 	}
 
-	/**
-	 * The shadow is the asset's baked Shadow layer, frame-locked to the Body, so
-	 * it just mirrors the body sprite's exact transform and renders one depth
-	 * below it. No ground projection or foot fudge — the artist already aligned
-	 * the shadow to the feet for every angle and frame.
-	 */
 	private syncShadow(refs: EntityRefs) {
-		if (!refs.shadow) return;
-		refs.shadow.setPosition(refs.sprite.x, refs.sprite.y);
-		refs.shadow.setDepth(refs.sprite.depth - 1);
+		syncShadowV(refs);
 	}
 
 	private makePlayerRefs(kind: number): EntityRefs {
@@ -1716,45 +1263,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		count: number,
 		tile: TileXY,
 	): void {
-		if (!this.kindRegistry.has(LOCAL_ITEM_KIND)) {
-			this.kindRegistry.set(LOCAL_ITEM_KIND, {
-				kind: LOCAL_ITEM_KIND,
-				ref,
-				cat: 2, // KIND_CAT_ITEM
-			});
-		}
-		const sprite = makeSprite(this, this.kinds, LOCAL_ITEM_KIND, false);
-		this.placeSprite(sprite, tile.x, tile.y);
-		this.tweens.add({
-			targets: sprite,
-			y: sprite.y - 6,
-			duration: 650,
-			yoyo: true,
-			repeat: -1,
-			ease: 'Sine.easeInOut',
-		});
-		this.store.spawn(
-			eid,
-			{
-				tile,
-				kind: LOCAL_ITEM_KIND,
-				cat: 'item',
-				owner: 0,
-				hostile: false,
-				hp: 0,
-				maxHp: 0,
-			},
-			{ sprite },
-		);
-		this.localItems.set(eid, { ref, count, tile });
+		spawnLocalItemV(this.inv, this.invDeps(), eid, ref, count, tile);
 	}
 
-	/**
-	 * Fire the ranger's bow at a world tile: Draw windup -> Loose -> arrow. The
-	 * shot is gated so you can't re-fire mid-draw, and it cancels any active
-	 * click-move (you plant to shoot). Damage is resolved locally for now; the
-	 * server combat path replaces the onHit body when MP lands.
-	 */
 	/** Send the cardinal aim to the server, but only when it changes. */
 	private sendFacing(facing: Facing) {
 		if (facing === this.lastSentFacing) return;
@@ -1762,128 +1273,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.face(facing);
 	}
 
+	/**
+	 * Fire the ranger's bow at a world tile: Draw windup -> Loose -> arrow. The
+	 * shot is gated so you can't re-fire mid-draw, and it cancels any active
+	 * click-move (you plant to shoot). Online the server is authoritative;
+	 * offline the hit is applied locally.
+	 */
 	private fireBowAt(aim: TileXY, target?: number) {
-		if (this.bowShot?.busy) return;
-		const refs = this.store.refs(this.myEid);
-		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
-			return;
-		this.movePath = [];
-		const from = { x: this.floatState.pos.x, y: this.floatState.pos.y };
-		const shotTarget = target ?? this.acquireBowTarget(from, aim);
-		// Fly the arrow AT the acquired enemy (not the raw cursor point) so the
-		// visual shot connects with whatever the server resolves — a near-path
-		// target snaps the arrow onto it instead of sailing past.
-		const shotTile =
-			shotTarget != null ? (this.store.tile(shotTarget) ?? aim) : aim;
-		this.bowShot = fireBow(
-			this,
-			refs.sprite,
-			refs.cls,
-			from,
-			shotTile,
-			(tx, ty) => this.arrowHitTest(tx, ty),
-			(serverEid, dmg) => {
-				if (this.localMode) {
-					this.applyLocalHit(serverEid, dmg);
-					return;
-				}
-				// Online: the arrow reached a still-living target — land the
-				// deferred server hit now.
-				this.onArrowArrive(serverEid);
-			},
-			() => {
-				this.client?.action(ACTION_SHOOT, shotTarget ?? null);
-				if (shotTarget == null) {
-					this.inflightArrow = null;
-					return;
-				}
-				this.inflightArrow = { target: shotTarget, arrived: false };
-				// A lethal shot despawns the target before the arrow's own
-				// hit-test can fire, so settle the hit when the arrow WOULD
-				// arrive (its travel time to the target tile).
-				const dist = Math.hypot(
-					shotTile.x - from.x,
-					shotTile.y - from.y,
-				);
-				const travelMs =
-					(Math.min(dist, ARROW_MAX_RANGE) / ARROW_SPEED) * 1000;
-				this.time.delayedCall(travelMs + 30, () =>
-					this.onArrowArrive(shotTarget),
-				);
-			},
-		);
-	}
-
-	/**
-	 * Acquire the hostile the arrow will actually hit by marching the aim ray in
-	 * tile steps and returning the first hostile tile crossed — the SAME rounded
-	 * `store.at` model the flying arrow's `arrowHitTest` uses. Keeping acquisition
-	 * and the visual arrow on one hit model is what makes the server register the
-	 * shot the player sees connect (a perpendicular-distance test diverged from
-	 * the arrow and dropped grazing hits).
-	 */
-	private acquireBowTarget(from: TileXY, aim: TileXY): number | undefined {
-		const adx = aim.x - from.x;
-		const ady = aim.y - from.y;
-		const amag = Math.hypot(adx, ady);
-		if (amag < 1e-3) return undefined;
-		const nx = adx / amag;
-		const ny = ady / amag;
-		// Thick-ray: the arrow flies a direction, so it hits the FIRST hostile
-		// along that line — the nearest one whose center sits within
-		// BOW_ACQUIRE_PERP tiles of the centerline, in range. Forgiving so a
-		// roughly-aimed shot still connects, while staying first-in-path.
-		let best: number | undefined;
-		let bestAlong = Infinity;
-		for (const [serverEid] of this.store.entries()) {
-			if (!this.isHostileServer(serverEid)) continue;
-			const t = this.store.tile(serverEid);
-			if (!t) continue;
-			const dx = t.x - from.x;
-			const dy = t.y - from.y;
-			const along = dx * nx + dy * ny;
-			if (along <= 0 || along > ARROW_MAX_RANGE) continue;
-			const perp = Math.abs(dx * ny - dy * nx);
-			if (perp > BOW_ACQUIRE_PERP) continue;
-			if (along < bestAlong) {
-				bestAlong = along;
-				best = serverEid;
-			}
-		}
-		return best;
-	}
-
-	/**
-	 * Arrow hit-test: first HOSTILE entity occupying the tile, else miss. Only
-	 * hostiles collide so the arrow flies through placed props (campfires),
-	 * ground loot, and friendly players instead of being consumed by them.
-	 */
-	private arrowHitTest(tx: number, ty: number) {
-		const hit = this.store.at(tx, ty, this.myEid);
-		if (!hit || !this.isHostileServer(hit.serverEid)) return null;
-		return {
-			serverEid: hit.serverEid,
-			x: hit.refs.sprite.x,
-			y: hit.refs.sprite.y,
-		};
-	}
-
-	/** Local damage application + VFX (placeholder until server confirms). */
-	private applyLocalHit(serverEid: number, dmg: number) {
-		const refs = this.store.refs(serverEid);
-		if (!refs) return;
-		const hp = Math.max(0, this.store.hp(serverEid) - dmg);
-		this.store.update(serverEid, { hp });
-		showDamage(
-			this,
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 18,
-			dmg,
-		);
-		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			flashEntity(this, refs.sprite);
-		}
-		this.refreshHud();
+		fireBowAtV(this.combat, this.combatDeps(), aim, target);
 	}
 
 	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
@@ -1962,11 +1359,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private placeNameplate(refs: EntityRefs) {
-		if (!refs.nameplate) return;
-		refs.nameplate.setPosition(
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight * 0.62 - 8,
-		);
+		placeNameplateV(refs);
 	}
 
 	private refreshHud() {
@@ -1976,7 +1369,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			const maxHp = this.store.maxHp(serverEid);
 
 			if (refs.statusFx) {
-				this.drawStatusFx(refs, this.store.effects(serverEid), now);
+				drawStatusFxV(refs, this.store.effects(serverEid), now);
 			}
 
 			if (
@@ -2012,49 +1405,6 @@ export class IsoArpgScene extends Phaser.Scene {
 				hp,
 				maxHp,
 			);
-		}
-	}
-
-	// Status feedback: a pulsing ground aura tinted by the dominant effect (doubles
-	// as the on-tile burn cue) plus a row of colour pips, one per active effect.
-	// Kept off sprite.setTint so it never fights the combat hit-flash.
-	private drawStatusFx(
-		refs: EntityRefs,
-		effects: readonly StatusView[],
-		now: number,
-	): void {
-		const g = refs.statusFx;
-		if (!g) return;
-		g.clear();
-		if (effects.length === 0) return;
-
-		const sprite = refs.sprite;
-		const footY = sprite.y;
-		const dominant = STATUS_PRIORITY.find((k) =>
-			effects.some((e) => e.kind === k),
-		);
-		if (dominant) {
-			const color = STATUS_COLOR[dominant];
-			// Sine pulse; burn/poison flicker harder than buffs for urgency.
-			const fast = dominant === 'Burn' || dominant === 'Poison';
-			const pulse =
-				0.5 + 0.5 * Math.sin((now / (fast ? 90 : 220)) % (Math.PI * 2));
-			const rx = sprite.displayWidth * 0.42;
-			g.fillStyle(color, 0.18 + 0.22 * pulse);
-			g.fillEllipse(sprite.x, footY, rx * 2, 12);
-			g.lineStyle(1.5, color, 0.4 + 0.4 * pulse);
-			g.strokeEllipse(sprite.x, footY, rx * 2, 12);
-		}
-
-		const pipY = footY - sprite.displayHeight - 14;
-		const pipW = 5;
-		const gap = 2;
-		const totalW = effects.length * pipW + (effects.length - 1) * gap;
-		let px = sprite.x - totalW / 2;
-		for (const e of effects) {
-			g.fillStyle(STATUS_COLOR[e.kind], 0.95);
-			g.fillRect(px, pipY, pipW, pipW);
-			px += pipW + gap;
 		}
 	}
 

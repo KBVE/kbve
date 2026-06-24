@@ -97,10 +97,7 @@ spec:
                       - name: CLICKHOUSE_ENDPOINT
                         value: http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:

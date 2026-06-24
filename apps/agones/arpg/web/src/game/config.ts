@@ -124,10 +124,11 @@ export function arpgAsset(path: string): string {
 export const GROUND_TEXTURE_KEY = 'arpg-ground';
 export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 
-// Surface (overworld) floors sit ABOVE the dungeon. The up-stair goes z-1, so any
-// floor below z=0 is open grassland — no dungeon walls, grass ground. Base layer
-// for now; per-tile detailing comes later.
-export const SURFACE_MAX_Z = -1; // z <= this = open grass surface
+// z is elevation: z=0 is the grass surface (spawn/overworld), z>0 is above-ground
+// (city/towers — future), and the carved dungeon is UNDERGROUND at z<0 (deeper =
+// more negative). Floors at z>=0 are open grassland: grass ground, no walls, all
+// walkable. Mirrors the server gate in arpg_dungeon::is_floor. Base layer for now.
+export const SURFACE_MIN_Z = 0; // z >= this = open grass surface/overworld
 export const GRASS_TEXTURE_KEY = 'arpg-grass';
 export const GRASS_TEXTURE_PATH =
 	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
