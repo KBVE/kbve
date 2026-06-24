@@ -33,6 +33,83 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 
 ---
 
+## ⚠️ Audit corrections (2026-06-24 core-plan audit — these OVERRIDE the task blocks below)
+
+Apply these; where they conflict with the original task code, **these win**. Also note: the shipped
+`reap_decision` gained a 12th arg **`empty_fresh_secs`** (the reaper freshness fix) *after* this plan
+was written, so the base signature is 12-arg and `is_draining` makes it 13 (plus `drain_deadline`,
+C2, → 14). Re-base Task 2 on the **shipped** `reaper.rs`, not the 11-arg listing below.
+
+### C1 (HIGH) — update EVERY `reap_decision` call site, not "all existing calls"
+There are 15 `reap_decision(` sites after the freshness fix (13 in `reaper.rs` tests + the
+`run_reap_cycle` call + the new freshness tests). Adding `is_draining` breaks all of them. Task 2's
+"update existing calls" step MUST **enumerate** them and insert the arg — no single literal
+`replace_all` covers all (freshness tests end `…, 120, now)`, others `…, 0, now)`). Build after and
+confirm zero `reap_decision` arity errors before moving on.
+
+### C2 (HIGH) — a draining instance must STILL be reaped on lost-liveness / past-deadline
+The blanket `if is_draining { return None }` leaks a crashed-while-empty draining server forever (it
+drains to 0 = the goal, then crashes → `player_count == 0` skips the Stale block → exempted; GS +
+`mapinstances` + `charonmapinstance` rows orphan). Thread `drain_deadline: Option<NaiveDateTime>`
+into `reap_decision` and replace the exemption:
+
+```rust
+    if is_draining {
+        // Deadline backstop: a drain not complete by its deadline is force-reaped (covers
+        // crash-while-draining AND never-empties). Closes the "DrainDeadline never read" MEDIUM.
+        if let Some(deadline) = drain_deadline {
+            if now > deadline { return Some(ReapReason::Stale); }
+        }
+        // Lost-liveness: a draining server whose heartbeat went stale (or never arrived) has
+        // crashed mid/post-drain — reap it. Uses the always-on freshness window (empty_fresh_secs,
+        // default 180), NOT stale_secs (gated off by default).
+        if empty_fresh_secs > 0 {
+            match last_update_from_server {
+                Some(last) if (now - last).num_seconds() <= empty_fresh_secs => {} // alive + draining -> exempt
+                _ => return Some(ReapReason::Stale),
+            }
+        }
+        return None;
+    }
+```
+
+Task 3 passes `inst.drain_deadline` alongside `is_draining`. **Required tests:** draining + count==0 +
+stale heartbeat → `Stale` (the leak case the audit flagged — the existing `draining_stale` test only
+covers count=5, which already worked); draining + past `drain_deadline` → `Stale`; draining + fresh
+heartbeat + count 0 → `None`.
+
+### C3 (MEDIUM) — don't leak `Drain*` into the UE REST/OpenAPI contract
+`ZoneInstance` serializes PascalCase and is returned by `GetZoneInstance`/`GetZoneInstancesForZone`.
+Add `#[serde(skip_serializing_if = "Option::is_none")]` to all six `drain_*` fields in Task 1, so an
+un-drained instance's responses + OpenAPI schema are unchanged.
+
+### C4 (MEDIUM) — `set_drain_state`: monotonic guard + `rows_affected`; guarded clear
+Replace the blind overwrite (Task 4) so a later `when_able` can't downgrade an in-flight `asap`, and
+return `rows_affected` so callers distinguish no-op (instance gone) from success:
+
+```rust
+    let result = sqlx::query(
+        "UPDATE mapinstances SET drainstate=$3, drainurgency=$4, draindropplayers=$5,
+            drainreason=$6, drainrequestid=$7, draindeadline=$8
+         WHERE customerguid=$1 AND mapinstanceid=$2
+           AND (drainstate IS NULL OR drainurgency <= $4)",  // escalate only, never downgrade
+    ) /* …binds… */ .execute(self.0).await?;
+    Ok(result.rows_affected())
+```
+`clear_drain_state` should clear only its own drain (match `drainrequestid`) or be explicitly
+operator-forced, and return `rows_affected` — so it can't wipe a stricter drain set by another
+request.
+
+### C5 (LOW) — TZ, migration CI gate, drainstate CHECK
+- `draindeadline` is naive `TIMESTAMP` compared to `Utc::now().naive_utc()` — callers MUST pass UTC
+  (assert at the write boundary) or switch the column to `TIMESTAMPTZ`.
+- `join_map`'s explicit `drainstate`/`drainurgency` columns raise `ColumnNotFound` on the hot path if
+  the migration lagged — make migration-before-image a **hard CI/deploy gate** (rows deploy waits on
+  the dbmate job), not just the Task 6 runbook line.
+- Add `CHECK (drainstate IN (1,2))` (NULL = not draining) to drop the dead `0` semantic.
+
+---
+
 ## Phase 1 — Core drain plumbing (this plan)
 
 ### Task 1: `drain_*` columns — migration, schema ref, model
