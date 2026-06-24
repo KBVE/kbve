@@ -19,19 +19,58 @@ We want a richer, data-safe lifecycle in between: drain reasons with conditions,
 to veto a soft shutdown with ground truth, graceful saves with no arbitrary time limit, player
 transfer/rebalance, and a coordinated fleet-wide restart for binary/gameplay/DB-migration rollouts.
 
+## Current-state gaps / prerequisites (blocks implementation)
+
+Audited against what's actually deployed on this branch. Three load-bearing assumptions are false
+against the cluster today — **merging this doc is harmless, but building any rung on it as-written
+would ship outages.** Implementation of any rung is **blocked until B1–B3 are resolved.**
+
+**B1 — Unlimited save time collides with k8s eviction.** Node-drain / autoscaler / Talos reboot
+impose `terminationGracePeriodSeconds` then unconditional SIGKILL, and Agones reclaims the pod if a
+blocking save starves the SDK `Health()` ping. `rows/tenants/base/deployment.yaml` runs **TGPS=30s**
+(and the chuck GameServer likewise), so "data always saved" is false in exactly the motivating cases
+(node-drain, fleet-restart). *Prereq:* bound the save budget to TGPS; set TGPS explicitly on the
+Fleet; run the UE save off-thread from the Agones health ping.
+
+**B2 — valkey is a non-durable SPOF, not hot-path truth.** `apps/kube/rows/manifest/valkey.yaml` =
+`replicas: 1`, `emptyDir` (AOF *is* enabled but written to a volume that evaporates on reschedule),
+256Mi limit with no `maxmemory`/eviction policy (→ OOMKill+wipe under a fleet-wide dump), no PDB, no
+anti-affinity. Every valkey pod move wipes all party anchors + reserved markers — and a fleet-restart
+is exactly when valkey is most likely to also be evicted. *Prereq:* if it holds hot-path claims it
+needs a PVC + PDB + bounded `maxmemory`/`noeviction`; otherwise keep it pure-cache and make every
+consumer provably fail-safe (B3).
+
+**B3 — "valkey loss is self-healing" is fail-*dangerous* for two key classes.** Empty-since loss →
+fresh grace (fail-safe ✅). But reserved/warming-marker loss → a warming instance looks reapable →
+reaper kills it → a traveling party connects to a deleted GameServer; and anchor loss → party
+splits. *Prereq:* reserved-grace lives durably (the `drain_*` row), not valkey-only; fail-direction
+is decided **per key**, not blanket "self-healing" (corrected in Live-state data tiering below).
+
+See also the High/Medium findings folded in below: F1 (migration rollback) and F2 (Argo barrier
+orchestrator) under Open decisions; W1 (capability handshake / deploy order) in the contract section.
+
 ## Principles
 
 1. **UE is authoritative on occupancy.** ROWS' player count is a derived, possibly-stale cache.
    Shutdowns motivated by *ROWS's belief about players* must be vetoable; shutdowns motivated by
    *infra need* are not.
-2. **Liveness, not a clock, is the kill trigger.** A server that is heartbeating and making drain
-   progress is given unlimited time to save. Force-kill fires only on **lost liveness** (crash) or
-   an explicit **operator emergency** — never on a drain timer.
-3. **Data is always saved except on Force.** Every cooperative rung persists player state before the
-   server dies. `Force` is the only path that accepts data loss.
+2. **Liveness gates the kill, but the *cluster* bounds the clock.** A heartbeating server making
+   drain progress isn't killed by an arbitrary *ROWS* timer — but it is **not** unlimited: k8s caps
+   it at the pod's `terminationGracePeriodSeconds` (then unconditional SIGKILL), and Agones reclaims
+   the pod if a blocking save starves the SDK `Health()` ping. So the save budget MUST fit within
+   TGPS, TGPS must be set explicitly on the Fleet (currently **30s** — see Current-state gaps B1),
+   and the UE save must run **off-thread** from the health ping. *(Earlier draft said "unlimited
+   time to save" — false against every k8s eviction primitive; B1.)*
+3. **Completed saves are durable; in-flight saves on the cooperative path are not (yet).** Each rung
+   *aims* to persist before the server dies, but a crash mid-`Saving` loses whatever hadn't been
+   written — until the RabbitMQ write-behind exists there's no durable buffer. The guarantee is
+   "completed saves survive," not "no save is ever lost." `Force` accepts data loss outright.
+   *(Earlier draft said "data always saved except on Force"; F4.)*
 4. **Durable state vs cache.** `mapinstances` (Postgres) is the lifecycle source of truth; valkey
    holds only routing/affinity. Authoritative player saves never live solely in the volatile cache —
-   if "save" must survive a crash, it goes to Postgres (or a durable queue), not valkey.
+   if "save" must survive a crash, it goes to Postgres (or a durable queue), not valkey. **Note:**
+   valkey is currently `emptyDir` / single-replica / 256Mi — a non-durable SPOF (B2), so "cache" is
+   load-bearing: see the per-key fail-direction in Live-state data tiering (B3).
 
 ## Two actions
 
@@ -111,6 +150,18 @@ GameServer watches (recommended — no new network path; UE already has the Agon
 
 Drain is **complete when UE says `complete`**, not when ROWS' (laggy) count hits 0.
 
+> **Wire-contract reality (W1):** none of `request_id / state / players_remaining / reject_reason /
+> last_progress_at` exist in the heartbeat proto today — "piggybacks the heartbeat" actually means
+> *redefining the wire contract on both sides*. Deploy ROWS-first against an old UE → UE ignores the
+> annotation → ROWS marks the instance draining but never gets an ack → it's drain-exempt from
+> empty-reap yet still alive (so not force-killed) → **stuck capacity that never frees.** *Prereq:* a
+> **capability handshake** — UE advertises a drain-protocol version in the heartbeat; ROWS applies
+> drain semantics only to capable servers and otherwise falls back to today's annotation-self-shutdown
+> + force backstop. Specify deploy order (UE-capable ships before ROWS enforces).
+>
+> **Delivery is level-triggered** (annotation = last-write-wins) with ack latency ≈ one heartbeat
+> period. For `asap` under a node deadline, the deadline must budget ≥1 heartbeat (B1).
+
 ## Allocation & travel — one preference order
 
 Travel is just re-allocation through `join_map`, so there's no special "travel during shutdown"
@@ -157,6 +208,14 @@ valkey-only** (rebuilt from heartbeats); **last-zone = DB on logout/autosave** (
 heartbeat, just the count.
 
 **Caveats:**
+- **Fail-direction is per-key, not blanket "self-healing" (B3).** Empty-since/last-seen loss = fresh
+  grace (fail-safe ✅). But **reserved/warming-marker loss = the reaper kills a warming instance under
+  an inbound party**, and **anchor loss = party split** — both fail-*dangerous*. So reserved-grace
+  must live durably (the `drain_*` row), not valkey-only, and each key's loss behavior is decided
+  individually. The table's "rebuild" column is only benign where the rebuild is fail-safe.
+- **valkey today is a SPOF (B2):** `emptyDir` + single-replica + 256Mi/no-eviction. Anything holding
+  hot-path *claims* (anchors, reserved markers, `SETNX`) needs PVC + PDB + bounded memory first, or
+  must be backed by a durable fallback.
 - **Reaper reads the live layer and fail-safes on no-data.** Reaper reads valkey for
   count/empty/liveness, DB for *which instances exist* + `gameservername` to deallocate. When
   occupancy data is missing/stale (valkey blip), it must **not reap** — same philosophy as
@@ -323,7 +382,16 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
 - **Anchor eviction:** when an instance enters Draining, evict its `(group → instance)` binding from
   valkey so new joiners aren't routed to a dying server (except `when_able` party continuity).
 - **Reserved instance:** a freshly-allocated instance held for a traveling party looks empty → needs
-  a "reserved/warming" grace so the reaper doesn't kill it before they connect.
+  a "reserved/warming" grace so the reaper doesn't kill it before they connect. **Must be durable**
+  (`drain_*` row), not valkey-only (B3).
+- **Operator Force is data-losing → authz, not just audit (W3).** `issued_by` is an audit field; the
+  Force `DELETE` must be RBAC-gated, not merely attributed.
+- **Hot-path cost (F5):** admission-gate + affinity add valkey hops to the today-DB-only `join_map`;
+  budget p99 and guard the cache-miss thundering-herd on a valkey restart (rebuild from DB/heartbeats
+  happens under load).
+- **Crash during `Saving` (F4):** the cooperative path has no durable buffer until the RabbitMQ
+  write-behind exists, so an in-flight save is lost on crash — Principle 3 is "completed saves are
+  durable," not "no save is ever lost."
 
 ## Open decisions
 
@@ -333,6 +401,17 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
    (composes with the Argo image roll, idempotent/self-healing). Leaning `target_version`.
 3. **Node-drain deadline** — big `terminationGracePeriodSeconds` (blunt) vs proactive pre-drain
    (ROWS watches node cordon/drain events, drains those GameServers first with unlimited time).
+4. **Migration rollback (F1).** A `migration` fleet-restart runs `dbmate` at the barrier, then
+   launches new; if the new binary is bad, Argo rolls the image back to the **old binary against the
+   already-migrated schema** (the degrade guard protects forward, not backward; there's no
+   `dbmate down` story). *Resolution leaning:* mandate **expand-contract / backward-compatible**
+   migrations — never destructive at the barrier — and consider enforcing it in CI.
+5. **Fleet-restart orchestrator (F2).** "All old down" is a *runtime* signal ROWS emits, but Argo CD
+   reconciles declaratively and rolls the Fleet image the moment the manifest changes — it won't wait
+   for a drain-complete signal, so new pods scale up while old still drain (the coexistence this spec
+   forbids). A plain GitOps image roll can't be both the launch mechanism AND respect a runtime
+   barrier. *Must name the orchestrator:* Argo Workflows / a sync-wave or PreSync hook gated on ROWS'
+   drain-complete / a dedicated operator.
 
 ## Out of scope (separate tickets / repos)
 
