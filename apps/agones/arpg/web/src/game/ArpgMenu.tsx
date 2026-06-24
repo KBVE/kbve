@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PixelPanel } from './PixelPanel';
 import { authBridge } from '../lib/auth';
+import CreatureCodex from './ui/codex/CreatureCodex';
 
 const ACCENT = '#fcd34d';
 const TEXT = '#e6ebf5';
@@ -14,6 +15,7 @@ const MUTED = '#9fb3d8';
  */
 export default function ArpgMenu() {
 	const [open, setOpen] = useState(false);
+	const [codex, setCodex] = useState(false);
 
 	const close = useCallback(() => setOpen(false), []);
 
@@ -41,70 +43,82 @@ export default function ArpgMenu() {
 		return () => document.body.classList.remove('arpg-menu-open');
 	}, [open]);
 
-	if (!open) return null;
-
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				inset: 0,
-				zIndex: 30,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				background: 'rgba(8,9,14,0.6)',
-				backdropFilter: 'blur(3px)',
-				fontFamily: 'monospace',
-				color: TEXT,
-			}}
-			onClick={close}>
-			<div onClick={(e) => e.stopPropagation()}>
-				<PixelPanel
-					variant="gold"
-					scale={3}
-					style={{ minWidth: 260, padding: '20px 22px' }}>
-					<div
-						style={{
-							fontSize: 18,
-							fontWeight: 700,
-							color: ACCENT,
-							textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-							textAlign: 'center',
-							letterSpacing: 1,
-							marginBottom: 16,
-						}}>
-						PAUSED
+		<>
+			{codex && <CreatureCodex onClose={() => setCodex(false)} />}
+			{open && (
+				<div
+					style={{
+						position: 'absolute',
+						inset: 0,
+						zIndex: 30,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						background: 'rgba(8,9,14,0.6)',
+						backdropFilter: 'blur(3px)',
+						fontFamily: 'monospace',
+						color: TEXT,
+					}}
+					onClick={close}>
+					<div onClick={(e) => e.stopPropagation()}>
+						<PixelPanel
+							variant="gold"
+							scale={3}
+							style={{ minWidth: 260, padding: '20px 22px' }}>
+							<div
+								style={{
+									fontSize: 18,
+									fontWeight: 700,
+									color: ACCENT,
+									textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+									textAlign: 'center',
+									letterSpacing: 1,
+									marginBottom: 16,
+								}}>
+								PAUSED
+							</div>
+							<div
+								style={{
+									display: 'flex',
+									flexDirection: 'column',
+									gap: 10,
+								}}>
+								<MenuButton primary onClick={close}>
+									Resume
+								</MenuButton>
+								<MenuButton
+									onClick={() => {
+										setCodex(true);
+										setOpen(false);
+									}}>
+									Bestiary
+								</MenuButton>
+								<MenuButton
+									onClick={() => {
+										window.location.assign('/arcade/');
+									}}>
+									Exit to Arcade
+								</MenuButton>
+								<MenuButton onClick={signOut}>
+									Sign out
+								</MenuButton>
+							</div>
+							<div
+								style={{
+									marginTop: 14,
+									fontSize: 10,
+									color: MUTED,
+									textAlign: 'center',
+									opacity: 0.7,
+								}}>
+								Esc to resume
+							</div>
+						</PixelPanel>
 					</div>
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							gap: 10,
-						}}>
-						<MenuButton primary onClick={close}>
-							Resume
-						</MenuButton>
-						<MenuButton
-							onClick={() => {
-								window.location.assign('/arcade/');
-							}}>
-							Exit to Arcade
-						</MenuButton>
-						<MenuButton onClick={signOut}>Sign out</MenuButton>
-					</div>
-					<div
-						style={{
-							marginTop: 14,
-							fontSize: 10,
-							color: MUTED,
-							textAlign: 'center',
-							opacity: 0.7,
-						}}>
-						Esc to resume
-					</div>
-				</PixelPanel>
-			</div>
-		</div>
+				</div>
+			)}
+		</>
 	);
 }
 
