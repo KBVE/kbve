@@ -2095,127 +2095,6 @@
           "implicitDependencies": []
         }
       },
-      "nd-server": {
-        "name": "nd-server",
-        "type": "app",
-        "data": {
-          "root": "apps/godot/nexus-defense/server",
-          "targets": {
-            "build": {
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "outputs": [
-                "{workspaceRoot}/dist/target/debug/nd-server"
-              ],
-              "options": {
-                "command": "cargo build -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test": {
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo test -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "lint": {
-              "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo clippy -p nd-server --all-targets -- -D warnings"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-release": {
-              "executor": "nx:run-commands",
-              "outputs": [
-                "{workspaceRoot}/dist/target/release/nd-server"
-              ],
-              "options": {
-                "command": "cargo build --release -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "run": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo run -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "container": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": ".",
-                "file": "apps/godot/nexus-defense/server/Dockerfile",
-                "load": true,
-                "tags": [
-                  "kbve/nd-server:latest"
-                ]
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/nd-server:latest"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/nd-server:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            }
-          },
-          "name": "nd-server",
-          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/godot/nexus-defense/server/src",
-          "tags": [
-            "rust",
-            "game-server",
-            "nexus-defense"
-          ],
-          "implicitDependencies": []
-        }
-      },
       "notification-bot": {
         "name": "notification-bot",
         "type": "app",
@@ -3515,6 +3394,64 @@
             "type:mod",
             "lang:lua"
           ],
+          "implicitDependencies": []
+        }
+      },
+      "unreal-cleanroom": {
+        "name": "unreal-cleanroom",
+        "type": "app",
+        "data": {
+          "root": "apps/chuckrpg/unreal-cleanroom",
+          "name": "unreal-cleanroom",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+          "tags": [
+            "unreal",
+            "cleanroom",
+            "evaluation"
+          ],
+          "targets": {
+            "open": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "open apps/chuckrpg/unreal-cleanroom/UnrealCleanroom/UnrealCleanroom.uproject",
+                "description": "Open Unreal Cleanroom project in UE 5.8"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "clean": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+                "commands": [
+                  "rm -rf Binaries",
+                  "rm -rf Build",
+                  "rm -rf DerivedDataCache",
+                  "rm -rf Intermediate",
+                  "rm -rf Saved"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync": {
+              "executor": "nx:run-commands",
+              "description": "Sync cleanroom changes and push LFS to Forgejo using kbve.sh wrapper",
+              "options": {
+                "commands": [
+                  "git add apps/chuckrpg/unreal-cleanroom/",
+                  "git commit -m 'chore(cleanroom): sync assets' || echo 'No changes to commit'",
+                  "./kbve.sh -lfs cleanroom push origin dev"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
           "implicitDependencies": []
         }
       },
@@ -6405,83 +6342,6 @@
           "implicitDependencies": [
             "axum-kbve"
           ]
-        }
-      },
-      "nexus-defense": {
-        "name": "nexus-defense",
-        "type": "app",
-        "data": {
-          "root": "apps/godot/nexus-defense",
-          "name": "nexus-defense",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "apps/godot/nexus-defense",
-          "projectType": "application",
-          "tags": [
-            "godot",
-            "game",
-            "nexus-defense"
-          ],
-          "targets": {
-            "test-godot": {
-              "executor": "nx:run-commands",
-              "inputs": [
-                "{projectRoot}/scenes/**/*",
-                "{projectRoot}/ui/**/*",
-                "{projectRoot}/ecs/**/*",
-                "{projectRoot}/tests/ui/**/*",
-                "{projectRoot}/tests/components/**/*",
-                "{projectRoot}/tests/helpers/**/*",
-                "{projectRoot}/project.godot",
-                "{projectRoot}/scripts/test.sh"
-              ],
-              "options": {
-                "command": "bash apps/godot/nexus-defense/scripts/test.sh"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test-e2e": {
-              "executor": "nx:run-commands",
-              "inputs": [
-                "{projectRoot}/scenes/**/*",
-                "{projectRoot}/ui/**/*",
-                "{projectRoot}/ecs/**/*",
-                "{projectRoot}/tests/**/*",
-                "{projectRoot}/project.godot",
-                "{projectRoot}/scripts/test-e2e.sh",
-                "{projectRoot}/server/**/*",
-                "{workspaceRoot}/packages/rust/q/src/proto/**/*",
-                "{workspaceRoot}/packages/rust/q/src/net/**/*",
-                "{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
-              ],
-              "options": {
-                "command": "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test-ci": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "bash apps/godot/nexus-defense/scripts/test.sh",
-                  "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-server": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo build --release -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "implicitDependencies": []
         }
       },
       "uniti": {
@@ -9848,6 +9708,46 @@
               "cache": true,
               "options": {
                 "command": "node packages/data/codegen/gen-npcdb-data.mjs",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:spelldb": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "sync:spelldb-uecpp"
+              ],
+              "inputs": [
+                "{projectRoot}/src/content/docs/spelldb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-spelldb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/spelldb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/spelldb-data.binpb"
+              ],
+              "cache": true,
+              "options": {
+                "command": "node packages/data/codegen/gen-spelldb-data.mjs",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:spelldb-uecpp": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-spelldb-uecpp.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoTypes.h",
+                "{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoParse.h"
+              ],
+              "cache": true,
+              "options": {
+                "command": "node packages/data/codegen/gen-spelldb-uecpp.mjs",
                 "cwd": ""
               },
               "configurations": {},
@@ -16340,7 +16240,6 @@
         }
       ],
       "cryptothrone-server": [],
-      "nd-server": [],
       "notification-bot": [],
       "steamcmd-ubuntu": [],
       "unreal-rentearth": [],
@@ -16369,6 +16268,7 @@
       "bevy_skills": [],
       "bevy_tasker": [],
       "kbve-spider": [],
+      "unreal-cleanroom": [],
       "axum-discordsh": [],
       "bevy_items": [],
       "bevy_mapdb": [],
@@ -16500,7 +16400,6 @@
           "type": "implicit"
         }
       ],
-      "nexus-defense": [],
       "uniti": [],
       "aria2-proxy-e2e": [
         {

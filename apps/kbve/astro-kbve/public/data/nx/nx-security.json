@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T09:20:27Z",
+  "generated_at": "2026-06-24T09:21:22Z",
   "summary": {
     "critical": 5,
     "high": 26,
@@ -460,14 +460,14 @@
           "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
         },
         {
-          "id": "1121323",
+          "id": "1121360",
           "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
           "severity": "medium",
           "package": "http-proxy-middleware",
           "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
         },
         {
-          "id": "1121324",
+          "id": "1121361",
           "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
           "severity": "medium",
           "package": "http-proxy-middleware",
