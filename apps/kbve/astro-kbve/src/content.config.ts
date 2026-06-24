@@ -11,6 +11,7 @@ import {
 	IQuestSchema,
 	IMapObjectSchema,
 	INpcSchema,
+	ISpellSchema,
 	ITileSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
@@ -212,6 +213,14 @@ const npcdb = defineCollection({
 	schema: INpcSchema,
 });
 
+const spelldb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/spelldb',
+	}),
+	schema: ISpellSchema,
+});
+
 const tiledb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
@@ -291,6 +300,7 @@ export const collections = {
 	itemdb,
 	questdb,
 	npcdb,
+	spelldb,
 	application,
 	gdd,
 	project,

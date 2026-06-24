@@ -43,6 +43,11 @@ const protos = [
 		package: 'item',
 	},
 	{
+		name: 'spelldb',
+		protoFile: 'spell/spelldb.proto',
+		package: 'spell',
+	},
+	{
 		name: 'questdb',
 		protoFile: 'quest/questdb.proto',
 		package: 'quest',

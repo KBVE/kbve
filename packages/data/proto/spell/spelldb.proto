@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package spell;
+
+option csharp_namespace = "KBVE.Proto.Spell";
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Magic school / damage affinity a spell draws from.
+enum SpellSchool {
+  SPELL_SCHOOL_UNSPECIFIED = 0;
+  SPELL_SCHOOL_FIRE = 1;
+  SPELL_SCHOOL_ICE = 2;
+  SPELL_SCHOOL_LIGHTNING = 3;
+  SPELL_SCHOOL_ARCANE = 4;
+  SPELL_SCHOOL_SHADOW = 5;
+  SPELL_SCHOOL_HOLY = 6;
+  SPELL_SCHOOL_NATURE = 7;
+  SPELL_SCHOOL_BLOOD = 8;
+  SPELL_SCHOOL_POISON = 9;
+}
+
+// How the spell selects what it hits.
+enum SpellTarget {
+  SPELL_TARGET_UNSPECIFIED = 0;
+  SPELL_TARGET_SELF = 1;
+  SPELL_TARGET_ENEMY = 2;
+  SPELL_TARGET_ALLY = 3;
+  SPELL_TARGET_GROUND = 4;
+  SPELL_TARGET_PROJECTILE = 5;
+  SPELL_TARGET_CONE = 6;
+  SPELL_TARGET_NOVA = 7;
+}
+
+// Primary outcome the spell resolves to on the server.
+enum SpellEffect {
+  SPELL_EFFECT_UNSPECIFIED = 0;
+  SPELL_EFFECT_DAMAGE = 1;
+  SPELL_EFFECT_HEAL = 2;
+  SPELL_EFFECT_BUFF = 3;
+  SPELL_EFFECT_DEBUFF = 4;
+  SPELL_EFFECT_STATUS = 5;
+  SPELL_EFFECT_SHIELD = 6;
+  SPELL_EFFECT_SUMMON = 7;
+  SPELL_EFFECT_TELEPORT = 8;
+}
+
+// Rarity tier — mirrors itemdb tiers so the HUD can reuse rarity colors.
+enum SpellRarity {
+  SPELL_RARITY_COMMON = 0;
+  SPELL_RARITY_UNCOMMON = 1;
+  SPELL_RARITY_RARE = 2;
+  SPELL_RARITY_EPIC = 3;
+  SPELL_RARITY_LEGENDARY = 4;
+  SPELL_RARITY_MYTHIC = 5;
+}
+
+// =============================================================================
+// Messages
+// =============================================================================
+
+// A single castable spell. The MDX frontmatter under
+// astro-kbve/src/content/docs/spelldb/*.mdx is the source of truth; this proto
+// is the wire/codegen shape every consumer (web HUD, Rust sim) decodes.
+message Spell {
+  string ref = 1;
+  uint32 key = 2;
+  string id = 3;
+  string name = 4;
+  optional string description = 5;
+
+  SpellSchool school = 6;
+  SpellTarget target = 7;
+  SpellEffect effect = 8;
+  SpellRarity rarity = 9;
+
+  optional string emoji = 10;
+  optional string img = 11;
+
+  optional uint32 mana_cost = 12;
+  optional uint32 cooldown_ms = 13;
+  optional uint32 cast_time_ms = 14;
+  optional uint32 range = 15;
+  optional uint32 radius = 16;
+
+  optional int32 power = 17;
+  optional uint32 duration_ms = 18;
+  optional uint32 level_req = 19;
+
+  // Status effect this spell applies, by ref (matches itemdb StatusEffectKind
+  // slugs, e.g. "burn", "freeze", "poison"). Empty when effect != STATUS.
+  optional string status_ref = 20;
+
+  optional bool drafted = 21;
+}
+
+message SpellRegistry {
+  repeated Spell spells = 1;
+}

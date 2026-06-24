@@ -400,6 +400,23 @@
 			},
 			"cache": true
 		},
+		"sync:spelldb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/spelldb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-spelldb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/spelldb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/spelldb-data.binpb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-spelldb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:itemdb-atlas": {
 			"executor": "nx:run-commands",
 			"inputs": [
