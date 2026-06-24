@@ -32,7 +32,7 @@ on:
 jobs:
     kilobase-rollout:
         name: Apply all migrations on kilobase prod-replica
-        runs-on: arc-runner-set
+        runs-on: ubuntu-latest
         timeout-minutes: 15
 
         env:
