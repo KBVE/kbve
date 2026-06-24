@@ -33,7 +33,20 @@ impl OWSService {
 
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
-        let pipeline = AllocationPipeline::new(customer_guid, &resolved_zone, &self.state.db);
+        // Per-map empty timeout drives the `empty-shutdown-minutes` allocation annotation.
+        let empty_shutdown_minutes = InstanceRepo(&self.state.db)
+            .get_zone_instances_for_zone(customer_guid, &resolved_zone)
+            .await
+            .ok()
+            .and_then(|v| v.first().map(|z| z.minutes_to_shutdown_after_empty))
+            .unwrap_or(1);
+
+        let pipeline = AllocationPipeline::new(
+            customer_guid,
+            &resolved_zone,
+            &self.state.db,
+            empty_shutdown_minutes,
+        );
         match pipeline.find_existing(char_name).await {
             Err(crate::agones::pipeline::FindResult::Found(result)) => return Ok(result),
             Err(crate::agones::pipeline::FindResult::Error(e)) => return Err(e),
@@ -117,7 +130,9 @@ impl OWSService {
         let pipeline = match pipeline.acquire_lock(&self.state.zone_spinup_locks) {
             Ok(p) => p,
             Err(_) => {
-                return AllocationPipeline::new(customer_guid, zone, &self.state.db)
+                // Re-poll path only waits for an in-flight allocation to finish; it never
+                // allocates, so the annotation value is irrelevant here (0).
+                return AllocationPipeline::new(customer_guid, zone, &self.state.db, 0)
                     .poll_until_ready(char_name)
                     .await;
             }

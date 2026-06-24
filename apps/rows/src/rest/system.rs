@@ -592,7 +592,7 @@ pub async fn verify_deployment(
     let mut alloc_ok = false;
     if fleet_ok && db_clean {
         if let Some(ref agones) = hs.app.agones {
-            match agones.allocate("__verify__", 0).await {
+            match agones.allocate("__verify__", 0, 0).await {
                 Ok(alloc) => {
                     let gs_name = alloc.game_server_name.clone();
                     if let Err(e) = agones.deallocate(&gs_name).await {

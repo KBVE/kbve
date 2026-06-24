@@ -21,6 +21,7 @@ impl AgonesClient {
         &self,
         map_name: &str,
         zone_instance_id: i32,
+        empty_shutdown_minutes: i32,
     ) -> Result<AllocationResult, AgonesError> {
         self.check_circuit()?;
 
@@ -34,7 +35,10 @@ impl AgonesClient {
                 tokio::time::sleep(backoff).await;
             }
 
-            match self.try_allocate(map_name, zone_instance_id).await {
+            match self
+                .try_allocate(map_name, zone_instance_id, empty_shutdown_minutes)
+                .await
+            {
                 Ok(result) => {
                     self.record_success();
                     info!(
@@ -73,6 +77,7 @@ impl AgonesClient {
         &self,
         map_name: &str,
         zone_instance_id: i32,
+        empty_shutdown_minutes: i32,
     ) -> Result<AllocationResult, AgonesError> {
         let allocation = json!({
             "apiVersion": "allocation.agones.dev/v1",
@@ -88,6 +93,9 @@ impl AgonesClient {
                     "labels": {
                         "ows.kbve.com/map": map_name,
                         "ows.kbve.com/zone-instance": zone_instance_id.to_string()
+                    },
+                    "annotations": {
+                        "ows.kbve.com/empty-shutdown-minutes": empty_shutdown_minutes.to_string()
                     }
                 }
             }

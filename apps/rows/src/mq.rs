@@ -257,8 +257,18 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
 
         if let Some(ref agones) = svc.state().agones {
             use crate::agones::AllocationPipeline;
+            use crate::repo::InstanceRepo;
 
-            let pipeline = AllocationPipeline::new(guid, &msg.map_name, &svc.state().db);
+            // Per-map empty timeout for the `empty-shutdown-minutes` allocation annotation.
+            let empty_shutdown_minutes = InstanceRepo(&svc.state().db)
+                .get_zone_instances_for_zone(guid, &msg.map_name)
+                .await
+                .ok()
+                .and_then(|v| v.first().map(|z| z.minutes_to_shutdown_after_empty))
+                .unwrap_or(1);
+
+            let pipeline =
+                AllocationPipeline::new(guid, &msg.map_name, &svc.state().db, empty_shutdown_minutes);
 
             match async {
                 let p = pipeline.allocate_via_agones(agones).await?;
