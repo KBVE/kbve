@@ -125,6 +125,13 @@ import {
 	DEBUG_CREATURE_DIRS,
 } from './entities/creatures';
 import {
+	newInterp,
+	pushSample,
+	resetInterp,
+	sampleAt,
+	INTERP_DELAY_MS,
+} from './systems/interp';
+import {
 	preloadEnv,
 	registerEnvAnims,
 	makeEnvSprite,
@@ -713,6 +720,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs = {
 						sprite: creatureSprite.sprite,
 						creature: creatureSprite.creature,
+						interp: newInterp(this.time.now, e.tile.x, e.tile.y),
 					};
 					if (DEBUG_CREATURE_DIRS) {
 						refs.dbgText = this.add
@@ -770,8 +778,18 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.statusFx = this.add.graphics().setDepth(DEPTH_UI - 1);
 				return refs;
 			},
-			move: (refs, tile) => this.tweenTo(refs, tile, true),
-			setPos: (refs, tile) => this.placeRefs(refs, tile),
+			move: (refs, tile) => {
+				if (refs.interp) {
+					pushSample(refs.interp, this.time.now, tile.x, tile.y);
+				} else {
+					this.tweenTo(refs, tile, true);
+				}
+			},
+			setPos: (refs, tile) => {
+				if (refs.interp)
+					resetInterp(refs.interp, this.time.now, tile.x, tile.y);
+				this.placeRefs(refs, tile);
+			},
 			follow: (refs) =>
 				this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12),
 			remove: (refs, eid) => {
@@ -1336,8 +1354,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	update(time: number, delta: number) {
-		// Smooth facing runs every frame (independent of the movement sim) so
-		// the 16-dir turn curve stays fluid even between tile crossings.
+		this.tickCreatureInterp();
 		this.tickFacing();
 		this.syncFogToZoom();
 		if (this.envDirty) {
@@ -1588,6 +1605,33 @@ export class IsoArpgScene extends Phaser.Scene {
 		);
 		this.syncShadow(refs);
 		this.placeNameplate(refs);
+	}
+
+	private tickCreatureInterp() {
+		const renderTime = this.time.now - INTERP_DELAY_MS;
+		for (const [, , refs] of this.store.entries()) {
+			if (!refs.interp || !refs.creature) continue;
+			if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
+			const s = sampleAt(refs.interp, renderTime);
+			if (!s) continue;
+			const p = worldToScreen(s.x, s.y);
+			refs.sprite.setPosition(p.x, p.y + 8);
+			refs.sprite.setDepth(
+				DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
+			);
+			this.syncShadow(refs);
+			this.placeNameplate(refs);
+			const st = refs.creature.state;
+			if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
+			if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
+				setCreaturePose(refs.sprite, refs.creature, 'Walking', {
+					dx: s.vx,
+					dy: s.vy,
+				});
+			} else {
+				setCreaturePose(refs.sprite, refs.creature, 'Idle');
+			}
+		}
 	}
 
 	/** Lerp every class entity's facing toward its movement target this frame. */

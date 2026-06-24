@@ -57,7 +57,7 @@ export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 // BLEND_TIMESCALE_FROM up to 1 so the flipbook spins up instead of snapping.
 // Facing turn curve: per-frame lerp factor pulling the visual facing angle
 // toward the movement target. Lower = lazier, smoother arcs; 1 = instant snap.
-export const TURN_LERP = 0.22;
+export const TURN_LERP = 0.15;
 
 export const BLEND_MS = 110;
 export const BLEND_TIMESCALE_FROM = 0.45;
