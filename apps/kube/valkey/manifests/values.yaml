@@ -24,7 +24,7 @@ dataStorage:
     # Cold-build populates ~2-5GB of cache entries; 32Gi leaves headroom
     # for additional projects + LRU churn.
     requestedSize: 32Gi
-    className: longhorn
+    className: longhorn-sdb
     accessModes:
         - ReadWriteOnce
 
