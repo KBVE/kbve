@@ -21,7 +21,7 @@ maxRunners: 2
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260621-ghcr-cache'
+            kbve.com/restart-trigger: '20260624-ram-dind'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -52,10 +52,10 @@ template:
               resources:
                   limits:
                       cpu: '16'
-                      memory: 48Gi
+                      memory: 96Gi
                   requests:
                       cpu: '4'
-                      memory: 16Gi
+                      memory: 24Gi
               securityContext:
                   runAsUser: 1000
                   runAsGroup: 1000
@@ -91,10 +91,10 @@ template:
               resources:
                   limits:
                       cpu: '4'
-                      memory: 8Gi
+                      memory: 56Gi
                   requests:
                       cpu: '1'
-                      memory: 2Gi
+                      memory: 8Gi
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
@@ -108,15 +108,21 @@ template:
                     mountPath: /tmp
         volumes:
             - name: work
-              emptyDir: {}
+              emptyDir:
+                  medium: Memory
+                  sizeLimit: 24Gi
             - name: dind-sock
               emptyDir: {}
             - name: dind-externals
               emptyDir: {}
             - name: dind-storage
-              emptyDir: {}
+              emptyDir:
+                  medium: Memory
+                  sizeLimit: 40Gi
             - name: shared-tmp
-              emptyDir: {}
+              emptyDir:
+                  medium: Memory
+                  sizeLimit: 16Gi
             - name: engine-cache
               persistentVolumeClaim:
                   claimName: arc-engine-cache
