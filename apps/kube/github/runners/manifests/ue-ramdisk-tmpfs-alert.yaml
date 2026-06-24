@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════════════════
-# WS-2 — Runtime RAM/tmpfs pressure alerts for the UE shared ramdisk.
+# Runtime RAM/tmpfs pressure alerts for the UE shared ramdisk.
 #
 # STATUS: INERT. NOT listed in kustomization.yaml; add it during cutover.
 # Rationale: the design §4 pre-flight free-space check runs BEFORE the cook and
@@ -59,7 +59,7 @@ spec:
                         On this single control-plane node, sustained low MemAvailable
                         risks etcd lease loss and cluster-wide Argo/Kyverno flapping.
                         ACTION: identify and stop the UE build consuming RAM; revert
-                        maxRunners to 1 until the WS-2 budget is re-proven.
+                        maxRunners to 1 until the budget is re-proven.
                 expr: |
                     node_memory_MemAvailable_bytes < 8 * 1024 * 1024 * 1024
                 for: 2m

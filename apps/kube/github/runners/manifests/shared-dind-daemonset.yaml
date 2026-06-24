@@ -1,26 +1,26 @@
 # ══════════════════════════════════════════════════════════════════════════
-# WS-3 — Shared DinD DaemonSet for UE Linux builds (arc-runner-ue)
+# Shared DinD DaemonSet for UE Linux builds (arc-runner-ue)
 #
 # STATUS: INERT. This file is intentionally NOT listed in
 #   apps/kube/github/runners/manifests/kustomization.yaml
 # so Argo (auto-sync + prune + selfHeal) will NOT deploy it on merge.
-# Activate ONLY via the cutover runbook
-#   (docs/superpowers/specs/2026-06-24-ue-ramdisk-cutover-runbook.md)
-# AFTER the RAM budget (WS-2) closes and the tmpfs ceiling is proven.
+# Activate ONLY via the plan
+#   (docs/superpowers/plans/2026-06-24-ue-ramdisk-shared-build.md)
+# AFTER the tmpfs ceiling is confirmed for the chosen maxRunners.
 #
 # WHAT THIS IS: one privileged dockerd per node (single node ⇒ one pod) whose
 # --data-root lives on a host tmpfs at /var/mnt/ramdisk/docker, so the ~40 GB
-# UE engine image is extracted once and shared by both Linux builders. The
-# init container also provisions the tmpfs (WS-4 decision: DaemonSet, not
-# Talos machine-config). The daemon is exposed ONLY via a host-local UNIX
-# socket on a hostPath — never TCP (design §4 DinD exposure).
+# UE engine image is extracted once and shared by all Linux builders. The
+# init container also provisions the tmpfs (DaemonSet, not Talos
+# machine-config). The daemon is exposed ONLY via a host-local UNIX socket on
+# a hostPath — never TCP.
 #
-# UNVALIDATED: never run against this cluster. Treat every value as a
-# proposal to confirm during WS-2 validation. The tmpfs ceiling is set to
-# size=200G — a deliberate cap well under the ~500 GB node RAM (holds the
-# ~45 GB engine + ~7 GB mirror + 3 concurrent build scratches for the
-# maxRunners:3 target, with room to spare). Raise it together with maxRunners
-# (headroom to ~250 GB on this node); see the RAM-budget worksheet.
+# UNVALIDATED: never run against this cluster. Confirm every value during the
+# plan's validation. The tmpfs ceiling is size=200G — a deliberate cap well
+# under the ~500 GB node RAM (holds the ~45 GB engine + ~7 GB mirror + 3
+# concurrent build scratches for the maxRunners:3 target, with room to spare).
+# Raise it together with maxRunners (headroom to ~250 GB on this node); see
+# the plan's "Reference: RAM sizing".
 # ══════════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: DaemonSet
@@ -32,7 +32,7 @@ metadata:
         kbve.com/category: ci-cd
     annotations:
         kbve.com/status: inert-pending-cutover
-        kbve.com/runbook: docs/superpowers/specs/2026-06-24-ue-ramdisk-cutover-runbook.md
+        kbve.com/runbook: docs/superpowers/plans/2026-06-24-ue-ramdisk-shared-build.md
 spec:
     selector:
         matchLabels:
@@ -132,7 +132,7 @@ spec:
                       # target) served by ONE daemon (the per-pod sidecars were
                       # 80Gi/4cpu EACH). Co-resident with etcd on the same cores
                       # — CPU is the tighter term at 3 cooks; confirm headroom in
-                      # WS-2 and raise the cpu limit if cooks contend.
+                      # validation and raise the cpu limit if cooks contend.
                       limits:
                           cpu: '12'
                           memory: 8Gi   # daemon RSS only; image+layers live on tmpfs, not here
