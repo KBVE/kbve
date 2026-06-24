@@ -19,7 +19,7 @@ controllerServiceAccount:
 
 # Scaling — Windows UE builds are heavy
 minRunners: 0
-maxRunners: 2
+maxRunners: 1
 
 template:
     metadata:
