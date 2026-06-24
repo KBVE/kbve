@@ -26,6 +26,6 @@ pub use sim::{
     EquipmentEffects, Equipped, HazardZone, HealAura, Health, Inventory, ItemPrices, Loot,
     NpcLevel, NpcSpec, PersistedEnvLog, PersistedEnvObject, PlayerSlotTag, PlayerStore,
     RespawnOnDeath, SIM_TICK_HZ, ShopStock, SimClock, SimConfig, SimSeed, SimSet, StatusEffect,
-    StatusEffects, Wander, XpState, build_app, ground_item_bundle, level_attack, level_max_hp,
-    run_sim_loop, spawn_env_object, spawn_npc_from_spec, xp_to_next,
+    StatusEffects, Wander, XpState, build_app, ground_item_bundle, has_clearance, level_attack,
+    level_max_hp, run_sim_loop, spawn_env_object, spawn_npc_from_spec, xp_to_next,
 };

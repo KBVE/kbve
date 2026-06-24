@@ -10,7 +10,7 @@ use simgrid::{
     AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EntityKind,
     EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
     SIM_TICK_HZ, SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle,
-    spawn_env_object, spawn_npc_from_spec,
+    has_clearance, spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -64,6 +64,10 @@ pub const PREDATOR_LEVEL: i32 = 3;
 pub const PREDATOR_ROAM_RADIUS: i32 = 10;
 pub const PREDATOR_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
 pub const PREDATOR_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 3;
+// Open-space ring the predator needs per tile: its sprite spans ~2.5 tiles, so
+// it only roams/spawns where a 3×3 block is clear — keeps the big body in rooms
+// and wide junctions instead of clipping walls or overhanging the void.
+pub const PREDATOR_CLEARANCE: i32 = 1;
 // Streaming spawn budget: how many predators may exist near each player, the
 // ring (in tiles) they appear within, and how close they're allowed to pop in.
 pub const PREDATOR_PER_PLAYER: usize = 3;
@@ -358,6 +362,7 @@ fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
             PREDATOR_ROAM_RADIUS,
             PREDATOR_DWELL_MIN_TICKS,
             PREDATOR_DWELL_MAX_TICKS,
+            PREDATOR_CLEARANCE,
         )),
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
@@ -385,6 +390,7 @@ pub fn stream_predators(
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     registry: Res<KindRegistry>,
+    map: Res<WalkableMap>,
     players: Query<&GridPos, With<PlayerSlotTag>>,
     predators: Query<(Entity, &GridPos, &EntityKind), Without<PlayerSlotTag>>,
     mut commands: Commands,
@@ -432,6 +438,11 @@ pub fn stream_predators(
             let hint = Tile::new(ptile.x + dx, ptile.y + dy);
             let origin = floor_near(hint);
             if chebyshev(origin, *ptile) < PREDATOR_SPAWN_MIN {
+                continue;
+            }
+            // Don't spawn the big creature pinned against a wall — require the
+            // same open ring it needs to roam.
+            if !has_clearance(&map, SPAWN_FLOOR, origin, PREDATOR_CLEARANCE) {
                 continue;
             }
             if let Some(spec) = predator_spec(&registry, origin) {

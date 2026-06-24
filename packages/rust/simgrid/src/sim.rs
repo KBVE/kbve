@@ -339,11 +339,12 @@ pub struct NpcSpec {
     pub level: i32,
     pub defense: i32,
     pub wander: Option<(i32, u32)>,
-    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks). The
-    /// mob picks a random tile within `radius` of its origin, walks the whole
-    /// path there, then idles a random dwell in [min,max] before the next trip —
-    /// longer purposeful movement vs `wander`'s single-tile jitter.
-    pub roam: Option<(i32, u32, u32)>,
+    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks,
+    /// clearance). The mob picks a random tile within `radius` of its origin,
+    /// walks the whole path there, then idles a random dwell in [min,max] before
+    /// the next trip. `clearance` is the open-space ring a large creature
+    /// requires per tile (0 = none) so it stays out of narrow halls.
+    pub roam: Option<(i32, u32, u32, i32)>,
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
@@ -471,6 +472,10 @@ pub struct Roam {
     pub radius: i32,
     pub dwell_min: u32,
     pub dwell_max: u32,
+    /// Open-space requirement: a large creature only targets/steps onto tiles
+    /// whose surrounding `clearance`-ring is fully walkable, so its oversized
+    /// sprite never wedges into a narrow hall or overhangs a wall. 0 = no req.
+    pub clearance: i32,
     /// Current destination, or None while dwelling/awaiting a new pick.
     pub target: Option<Tile>,
     /// Earliest tick the next trip may begin (set when a trip completes).
@@ -478,17 +483,32 @@ pub struct Roam {
 }
 
 impl Roam {
-    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32) -> Self {
+    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32, clearance: i32) -> Self {
         let dwell_min = dwell_min.max(1);
         Self {
             origin,
             radius: radius.max(1),
             dwell_min,
             dwell_max: dwell_max.max(dwell_min),
+            clearance: clearance.max(0),
             target: None,
             resume_tick: 0,
         }
     }
+}
+
+/// True when `tile` and every tile within Chebyshev `radius` of it are walkable
+/// on floor `z`. The open-space test a large creature uses so it stays in rooms
+/// and wide junctions instead of clipping through narrow corridors.
+pub fn has_clearance(map: &WalkableMap, z: i32, tile: Tile, radius: i32) -> bool {
+    for dy in -radius..=radius {
+        for dx in -radius..=radius {
+            if !map.is_walkable_z(z, Tile::new(tile.x + dx, tile.y + dy)) {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 pub fn ground_item_bundle(
@@ -530,8 +550,14 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
     }
-    if let Some((radius, dwell_min, dwell_max)) = spec.roam {
-        e.insert(Roam::new(spec.origin, radius, dwell_min, dwell_max));
+    if let Some((radius, dwell_min, dwell_max, clearance)) = spec.roam {
+        e.insert(Roam::new(
+            spec.origin,
+            radius,
+            dwell_min,
+            dwell_max,
+            clearance,
+        ));
     }
     if let Some(a) = spec.aggro {
         e.insert(Aggro {
@@ -2124,6 +2150,8 @@ fn try_move(
 /// Queue a one-tile move by an arbitrary (dx,dy) step where each component is
 /// -1/0/1 — the 8-way counterpart to `try_move`. A diagonal step also requires
 /// both orthogonal neighbors to be open so mobs can't cut through wall corners.
+/// `clearance` > 0 additionally requires the destination to have that open ring,
+/// so a large creature never steps onto a wall-adjacent or narrow-hall tile.
 fn try_step(
     dx: i32,
     dy: i32,
@@ -2131,6 +2159,7 @@ fn try_step(
     z: i32,
     pos: &GridPos,
     mv: &mut MoveTarget,
+    clearance: i32,
 ) -> bool {
     if mv.target.is_some() || (dx == 0 && dy == 0) {
         return false;
@@ -2144,6 +2173,9 @@ fn try_step(
         && (!map.is_walkable_z(z, Tile::new(pos.tile.x + dx, pos.tile.y))
             || !map.is_walkable_z(z, Tile::new(pos.tile.x, pos.tile.y + dy)))
     {
+        return false;
+    }
+    if clearance > 0 && !has_clearance(map, z, candidate, clearance) {
         return false;
     }
     mv.target = Some(candidate);
@@ -2217,10 +2249,11 @@ fn roam_system(
                 // client true diagonal deltas, so all 8 sheet facings surface.
                 let sx = (dest.x - pos.tile.x).signum();
                 let sy = (dest.y - pos.tile.y).signum();
+                let c = roam.clearance;
                 pos.facing = facing_from_intent(sx as i8, sy as i8);
-                let _ = try_step(sx, sy, &map, z, &pos, &mut mv)
-                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv))
-                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv));
+                let _ = try_step(sx, sy, &map, z, &pos, &mut mv, c)
+                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv, c))
+                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv, c));
                 // Fully blocked — abandon this trip and dwell briefly.
                 if mv.target.is_none() {
                     roam.target = None;
@@ -2244,7 +2277,10 @@ fn roam_system(
                 let rx = (h % span) as i32 - roam.radius;
                 let ry = ((h >> 20) % span) as i32 - roam.radius;
                 let cand = Tile::new(roam.origin.x + rx, roam.origin.y + ry);
-                if cand != pos.tile && map.is_walkable_z(z, cand) {
+                let ok = cand != pos.tile
+                    && map.is_walkable_z(z, cand)
+                    && (roam.clearance == 0 || has_clearance(&map, z, cand, roam.clearance));
+                if ok {
                     roam.target = Some(cand);
                 } else {
                     // Bad pick — retry shortly instead of every tick.
