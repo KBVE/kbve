@@ -281,6 +281,7 @@ async fn run_reap_cycle(
             reaper.stale_secs,
             reaper.min_empty_secs,
             allow_never_reported,
+            reaper.empty_fresh_secs,
             now,
         ) else {
             continue;

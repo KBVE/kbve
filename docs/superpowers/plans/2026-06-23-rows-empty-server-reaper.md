@@ -1,5 +1,19 @@
 # ROWS Empty-Server Reaper Implementation Plan
 
+> **⚠️ IMPLEMENTED — code listings below are the v1 PROPOSAL; the shipped code supersedes them.**
+> This reaper is built on PR #13200 (`apps/rows/src/agones/reaper.rs`, `jobs.rs`, `repo/instances.rs`,
+> `config.rs`). The shipped code has folded in three rounds of audit fixes that are **not** reflected
+> in the listings below — when auditing, read the source, not these snippets. Deltas vs the listings:
+> - `ReapReason` has a third variant **`Stale`** (crashed-while-populated) + `stale_secs` knob.
+> - `update_number_of_players` uses **`GREATEST($3,0)`** + a `WHEN $3 < 0` CASE (negative-count guard).
+> - **`ows.reaper_config`** per-tenant override table ships (migration `20260624120000` + `merged_with`).
+> - **gameservername degrade** on SQLSTATE 42703 (`is_undefined_column`); reaper-config degrade on 42P01.
+> - **`pg_try_advisory_lock`** guards each reap cycle (multi-replica safe); 60s tick.
+> - **`require_heartbeat`** auto-gate (never-reported suppressed until a heartbeat is ever seen).
+> - **Empty freshness gate `empty_fresh_secs`** (default 180s): the empty marker is only honored when
+>   `last_update_from_server` is recent — closes the "wedged heartbeat freezes 0 → reap a populated
+>   server" blocker (the 2026-06-24 audit). Stays gated-off-by-default regardless.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make ROWS automatically tear down empty/abandoned Agones zone servers, so allocated GameServers stop piling up for days.

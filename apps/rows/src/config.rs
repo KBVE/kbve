@@ -82,6 +82,11 @@ pub struct ReaperKnobs {
     /// Floor on the effective empty timeout so a freshly allocated server isn't reaped under a
     /// still-loading player even if a map is misconfigured with a tiny timeout.
     pub min_empty_secs: i64,
+    /// Freshness window for the `Empty` reap: the empty marker is only trusted if the heartbeat
+    /// arrived within this many seconds. A wedged/crashed heartbeat freezes the reported count at a
+    /// stale `0` while players may have reconnected out-of-band; without this gate the reaper would
+    /// hard-deallocate a populated-but-silent server. `0` = disabled (no freshness check).
+    pub empty_fresh_secs: i64,
 }
 
 impl Default for ReaperKnobs {
@@ -94,6 +99,7 @@ impl Default for ReaperKnobs {
             buffer_secs: 30,
             stale_secs: 0,
             min_empty_secs: 300,
+            empty_fresh_secs: 180,
         }
     }
 }
@@ -118,6 +124,8 @@ pub struct ReaperConfigOverride {
     pub stale_secs: Option<i64>,
     #[sqlx(rename = "minemptysecs")]
     pub min_empty_secs: Option<i64>,
+    #[sqlx(rename = "emptyfreshsecs")]
+    pub empty_fresh_secs: Option<i64>,
 }
 
 impl ReaperKnobs {
@@ -132,6 +140,7 @@ impl ReaperKnobs {
             buffer_secs: ov.buffer_secs.unwrap_or(self.buffer_secs),
             stale_secs: ov.stale_secs.unwrap_or(self.stale_secs),
             min_empty_secs: ov.min_empty_secs.unwrap_or(self.min_empty_secs),
+            empty_fresh_secs: ov.empty_fresh_secs.unwrap_or(self.empty_fresh_secs),
         }
     }
 }
@@ -225,6 +234,7 @@ impl RowsConfig {
             buffer_secs: env_i64("ROWS_EMPTY_REAP_BUFFER_SECS", 30),
             stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
             min_empty_secs: env_i64("ROWS_EMPTY_REAP_MIN_EMPTY_SECS", 300),
+            empty_fresh_secs: env_i64("ROWS_EMPTY_REAP_FRESH_SECS", 180),
         };
 
         Ok(Self {
@@ -273,6 +283,7 @@ mod tests {
             buffer_secs: None,
             stale_secs: Some(120),
             min_empty_secs: None,
+            empty_fresh_secs: None, // not overridden -> baseline (180)
         };
         let merged = base.merged_with(&ov);
         assert!(merged.enabled); // overridden

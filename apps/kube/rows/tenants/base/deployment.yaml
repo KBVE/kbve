@@ -115,6 +115,11 @@ spec:
                         value: '30'
                       - name: ROWS_EMPTY_REAP_MIN_EMPTY_SECS
                         value: '300'
+                      # Empty-reap freshness gate (default ON): the empty marker is only honored if
+                      # a heartbeat arrived within this window, so a wedged heartbeat (frozen 0)
+                      # can't hard-deallocate a populated-but-silent server. 0 disables the gate.
+                      - name: ROWS_EMPTY_REAP_FRESH_SECS
+                        value: '180'
                   ports:
                       - name: http
                         containerPort: 4322

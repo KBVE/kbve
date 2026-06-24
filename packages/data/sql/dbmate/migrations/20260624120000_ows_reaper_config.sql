@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS reaper_config
     BufferSecs        BIGINT  NULL,
     StaleSecs         BIGINT  NULL,
     MinEmptySecs      BIGINT  NULL,
+    EmptyFreshSecs    BIGINT  NULL,
     CONSTRAINT PK_ReaperConfig PRIMARY KEY (CustomerGUID)
 );
 

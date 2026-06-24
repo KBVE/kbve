@@ -393,7 +393,7 @@ impl<'a> InstanceRepo<'a> {
     ) -> Result<crate::config::ReaperConfigOverride, RowsError> {
         let result = sqlx::query_as::<_, crate::config::ReaperConfigOverride>(
             "SELECT enabled, neverreported, requireheartbeat,
-                    bootgracesecs, buffersecs, stalesecs, minemptysecs
+                    bootgracesecs, buffersecs, stalesecs, minemptysecs, emptyfreshsecs
              FROM reaper_config WHERE customerguid = $1",
         )
         .bind(customer_guid)

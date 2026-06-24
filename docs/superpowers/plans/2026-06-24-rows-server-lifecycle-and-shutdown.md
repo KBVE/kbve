@@ -323,12 +323,17 @@ path partitions while the game-data path survives and players reconnect out-of-b
 frozen-zero + aging marker → Empty force-deletes a now-populated server. It requires the partition to
 land between "stamped 0" and "players back," and new joins can't route there during the gap; a *full*
 ROWS outage doesn't trigger it (no joins occur while ROWS is down → the server stays genuinely empty).
-A **freshness guard is the wrong fix** — it would suppress the intended silence→`Stale`/`NeverReported`
-reaping. The proper close is **cross-checking the Agones GameServer `Ready`/health before a
-force-delete** (the v2 valkey-liveness direction). Until then, the reaper's **gated-off-by-default**
-posture is what carries this. The v1 SQL is otherwise well-defended: a single positive heartbeat sets
-`lastserveremptydate = NULL` (instant clear), and `GREATEST($3,0)` + "only an exact 0 stamps the
-marker" close the lagging-positive-count hard-kill.
+**UPDATE (shipped) — the Empty path now has a freshness gate (`empty_fresh_secs`, default 180s).**
+Reversing the earlier "freshness guard is the wrong fix" stance: the 2026-06-24 reaper audit showed
+the wedged-heartbeat-with-players-reconnected case is real and *not* covered by gated-off alone, so
+the shipped `reap_decision` now requires `last_update_from_server` within `empty_fresh_secs` before
+honoring the Empty marker. A stale heartbeat ⇒ the marker is **not** trusted ⇒ no Empty reap (errs
+toward keeping). This closes the wedged-heartbeat hard-kill. It does **not** suppress the intended
+silence reaping wrongly: a genuinely empty+dead server is simply left to the v2 **Agones `Ready`/health
+cross-check** (or manual cleanup) rather than reaped on stale data — the safe direction. The v1 SQL
+defenses still hold (positive heartbeat clears the marker instantly; `GREATEST($3,0)` + exact-0-only
+stamping). The reaper remains **gated-off-by-default**; the freshness gate makes the count-based path
+safe to enable without waiting for the full v2 cross-check.
 
 ## Fleet-restart (binary / gameplay / migration rollout)
 
