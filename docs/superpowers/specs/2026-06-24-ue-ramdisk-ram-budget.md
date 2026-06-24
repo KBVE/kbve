@@ -22,6 +22,7 @@ The only RAM the design actually reclaims is **de-duplication**, not relocation:
 + repo_mirror                      (~7 GB objects)
 + N_runners × per_build_scratch    (materialized project + cook output, RAM-backed)
 + VM_ram                           (20 GiB limit / 16 GiB guest)
++ repo_img + win_clone_copy        (Windows RO disk image + the guest's full clone — RAM only while the VM is up; count if Windows can overlap Linux)
 + node_baseline                    (etcd + ClickHouse + Postgres + control plane + kubelet + OS)
 + page_cache_margin                (eviction headroom — etcd fdatasync is already the documented failure, #12987)
   ────────────────────────────────
@@ -37,6 +38,8 @@ The only RAM the design actually reclaims is **de-duplication**, not relocation:
 | `per_build_scratch` (peak) | `du -sh` of `/var/mnt/ramdisk/<run>-<job>/{project,output}` at cook peak; watch with `ramdisk-watch-kube.sh` | `MEASURE` — **the dominant unknown** |
 | `N_runners` | `maxRunners` in `values-ue.yaml` | 1 today; 2 = the target |
 | `VM_ram` | `vm-windows-builder.yaml` `domain.memory.limits` | 20 GiB |
+| `repo_img` (Windows) | sized RO disk image on tmpfs (git + LFS); `du -sh /var/mnt/ramdisk/repo.img` | `MEASURE` — RAM only while VM up |
+| `win_clone_copy` (Windows) | full plain clone in the guest's own work disk (objects + LFS, **not** deduped) | `MEASURE` — RAM only while VM up |
 | `node_baseline` | node `free -g` with builds idle, VM off | `MEASURE` (est. 15–25 GB) |
 | `page_cache_margin` | policy choice | ≥ 10 GB recommended |
 

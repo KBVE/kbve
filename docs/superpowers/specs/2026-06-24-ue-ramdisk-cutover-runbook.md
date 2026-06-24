@@ -15,17 +15,19 @@
 | `values-ue.yaml` | **unchanged** — still `maxRunners: 1`, per-pod dind, `tcp://localhost:2376` |
 | `ci-unreal-build.yml` | **unchanged** — old `/tmp` paths, per-pod dind. WS-1 edits below are applied *at cutover*, not in this PR |
 | Talos tmpfs | not applied (WS-4 = DaemonSet, no machine-config change) |
+| `kubevirt/cr/kubevirt.yaml` | **untouched** — Windows uses a RO block-disk attach, not virtio-fs; no feature gate |
+| `vm-windows-builder.yaml` | **unchanged** until cutover — RO `repo.img` disk added then |
 
 ## Preconditions (do not start cutover until all true)
 
 1. **WS-2 budget closes.** Run §5 validation at `maxRunners: 1`; the inequality in `2026-06-24-ue-ramdisk-ram-budget.md` holds with measured peak scratch + ≥10 GB margin. If it does not close → **stop, stay at `maxRunners: 1`** (this is the safe state; abandoning cutover is a valid outcome).
 2. **`<CEILING>` chosen** = proven tmpfs size; substituted into the DaemonSet and the alert.
-3. **VM snapshot taken** (design §4): `VirtualMachineSnapshot` of `windows-builder` (or Longhorn `VolumeSnapshot` of `windows-builder-rootdisk`) with the VM **off**, restore point verified — BEFORE any WinFsp/VirtIO-FS install.
+3. **VM snapshot (optional, cheap insurance).** A `VirtualMachineSnapshot` of `windows-builder` before the first run is nice-to-have, but **no longer required** — the RO `repo.img` attach does **not** modify the guest (no driver install), so the rootdisk is unchanged.
 4. Maintenance window agreed; UE CI quiesced (no in-flight builds).
 
 ## Cutover — ordered (each step verifies before the next)
 
-**Order rationale:** provision the tmpfs → bring up the daemon that owns it → point runners at it → only then re-enable concurrency → Windows virtio-fs last (most experimental). Workflow edits go in the same change as the runner rework so the two never disagree.
+**Order rationale:** provision the tmpfs → bring up the daemon that owns it → point runners at it → only then re-enable concurrency → Windows RO repo-disk last (independent of the Linux path). Workflow edits go in the same change as the runner rework so the two never disagree.
 
 1. **Provision tmpfs + shared dind (WS-3 + WS-4).** Add `shared-dind-daemonset.yaml` to `kustomization.yaml`; let Argo sync (or `kubectl apply` in the window). Verify:
    - `kubectl -n arc-runners get ds ue-shared-dind` → 1/1 ready.
@@ -42,11 +44,11 @@
 4. **Apply WS-1 workflow edits** (same PR/commit as step 3 — see "WS-1 edit set" below). Re-run a build; confirm per-run scratch lands under `/var/mnt/ramdisk/<run>-<job>/` and the engine is reused (one copy).
 5. **Add the alert** (`ue-ramdisk-tmpfs-alert.yaml` → `kustomization.yaml`). Confirm it loads in Prometheus.
 6. **Flip `maxRunners: 2`** only now. Run two concurrent builds; watch `ramdisk-watch-kube.sh`; confirm the WS-2 inequality holds with real peak and that `df /var/mnt/ramdisk/docker` does not double.
-7. **Windows virtio-fs (last, most experimental):**
-   - add `ExperimentalVirtiofsSupport` to `kubevirt/cr/kubevirt.yaml` `featureGates`; confirm KubeVirt reconciles and the VM still boots + live-migration/hotplug unaffected;
-   - add the `filesystems` (virtiofs) device + volume to `vm-windows-builder.yaml` backed by the repo hostPath PV;
-   - install WinFsp + VirtIO-FS driver (`VirtioFsSvc`) in the guest (snapshot already taken);
-   - confirm the guest auto-mounts the share as a drive and an in-guest `git clone` from it succeeds, **and** that `win_vm_boot` ordering still gates the Windows job until the mount is ready.
+7. **Windows RO repo disk (last; independent of the Linux path, zero cluster-wide change):**
+   - `prepare` packs the populated repo into `/var/mnt/ramdisk/repo.img` (a sized disk image; git objects + LFS). Create a `hostPath` PV/PVC over it.
+   - add a **read-only** `disk` volume to `vm-windows-builder.yaml` backed by that PVC — same mechanism as the existing `builder-shared-storage` attach. **Do NOT touch `kubevirt/cr/kubevirt.yaml`** (no feature gate) and add no `filesystems`/virtio-fs device.
+   - ensure ordering `prepare → win_vm_boot → game_build_windows` so `repo.img` exists before the VM boots (the disk is attached at boot, so a booted VM ⇒ the RO disk is present — no mount-readiness race).
+   - confirm the guest sees the RO disk as a drive and an in-guest **plain** `git clone` from it into the guest's own work disk succeeds.
 
 ## WS-1 edit set (apply at step 4 — `ci-unreal-build.yml`, in-place, no restructuring)
 
@@ -57,6 +59,14 @@ Scope: **only** `server_build` and `game_build_linux` jobs + one new `prepare` j
      ```bash
      git clone --mirror <url> /var/mnt/ramdisk/repo.git   # first run only; else: git -C repo.git fetch --all
      git -C /var/mnt/ramdisk/repo.git lfs fetch --all     # populate repo.git/lfs ONCE (mirror does NOT fetch LFS)
+     ```
+   - **(Windows only)** pack the populated repo into a read-only disk image for the VM (written here, while the VM is off; attached RO at `win_vm_boot`):
+     ```bash
+     # size for git objects + LFS + headroom; counts against the node RAM budget (WS-2)
+     truncate -s <SIZE> /var/mnt/ramdisk/repo.img
+     mkfs.ext4 -F /var/mnt/ramdisk/repo.img            # or mkfs.vfat/ntfs per guest preference
+     mnt=$(mktemp -d); mount -o loop /var/mnt/ramdisk/repo.img "$mnt"
+     cp -a /var/mnt/ramdisk/repo.git "$mnt"/ && umount "$mnt"   # image is now self-contained; never mounted RW again this run
      ```
    - `docker pull` the engine once into the shared dind;
    - **pre-flight free-space check:** fail fast if `image + mirror + N×scratch_estimate > free tmpfs`;
@@ -77,7 +87,7 @@ Scope: **only** `server_build` and `game_build_linux` jobs + one new `prepare` j
 
 ## Rollback (reverse order; each surface independently revertible)
 
-- **Windows virtio-fs:** stop the VM; restore the WS-5/precond snapshot; remove the `filesystems` device from `vm-windows-builder.yaml`; **remove `ExperimentalVirtiofsSupport`** from `kubevirt/cr/kubevirt.yaml`. ⚠ The gate is **install-wide** and now load-bearing for the VM — confirm no *other* VM started depending on virtiofs before removing it; on a single node a clean revert requires the VM to be off. This is the least-reversible step → it is sequenced last in cutover for exactly this reason.
+- **Windows RO repo disk:** stop the VM; remove the RO `disk` volume from `vm-windows-builder.yaml`; the VM boots as before. Clean, per-VM, fully reversible — **no `kubevirt/cr/kubevirt.yaml` change to revert** (no feature gate was ever added). `repo.img` is volatile tmpfs (vanishes on its own).
 - **Concurrency:** set `maxRunners: 1` (instant mitigation for any RAM/etcd pressure — do this FIRST in any incident, before deeper rollback).
 - **Workflow:** revert the `ci-unreal-build.yml` WS-1 commit. Because it's coupled to the runner rework, revert it together with the next item.
 - **Runner rework:** restore `values-ue.yaml` to the `dev` baseline (`2df4b35`: per-pod dind sidecar, `dind-storage` RAM 64Gi, `DOCKER_HOST=tcp://localhost:2376`, `maxRunners: 1`); bump restart-trigger.
@@ -93,4 +103,4 @@ Scope: **only** `server_build` and `game_build_linux` jobs + one new `prepare` j
 | Builds fail `permission denied` on docker socket | check `/var/mnt/ramdisk/docker.sock` group = 1000 (WS-3 chgrp watcher) |
 | Second concurrent build re-pulls 40 GB / ENOSPC | confirm WS-1 prune removal landed; a stray `docker system prune` is wiping the shared image |
 | `object not found` mid-build | tmpfs/dind was wiped under a `--shared` clone; re-run `prepare` (alternate-loss tolerance) |
-| Windows job reads stale/empty repo | virtio-fs mount not ready at job start; confirm `win_vm_boot` ordering gates the mount |
+| Windows job reads stale/empty repo | `repo.img` not packed before boot; confirm `prepare → win_vm_boot` ordering and that the RO disk attached |

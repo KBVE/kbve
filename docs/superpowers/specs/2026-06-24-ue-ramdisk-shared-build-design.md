@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-24
 **Status:** Design accepted; **NOT implementation-ready** — `maxRunners: 2` must not be restored until the blockers in §6 are closed (round-2 audit, 2026-06-24).
-**Target:** Full three-way RAM share — one node tmpfs holds the engine image + repo; both Linux builders and the Windows VM read from it.
+**Target:** One node tmpfs holds the engine image + repo. The two Linux builders share it directly (hostPath); the Windows VM gets its **own** RAM-backed copy from a read-only block image of the repo — **no file sharing across the VM boundary, no virtio-fs, no KubeVirt feature gate.**
 **Scope:** Unreal Engine CI on the single Talos node. Mac builder out of scope.
 
 ## Problem
@@ -17,8 +17,8 @@ Current state (`apps/kube/github/runners/manifests/values-ue.yaml`) is an interi
 
 - Keep build data in RAM for speed (avoid disk I/O).
 - **Extract the Linux engine image once**, shared by both Linux builders → restore `maxRunners: 2` (concurrent Linux builds).
-- **Clone the repo once**, shared by all three builders (2 Linux + 1 Windows).
-- Windows sees the shared repo **as a drive**.
+- **Populate the repo (git + LFS) once** on the tmpfs; the 2 Linux builders share it read-only via `--local --shared`; the Windows VM reads a read-only **block image** of it and plain-clones into its own RAM work disk.
+- Windows gets the repo as a RAM-backed **drive** — its own copy, sole writer — with **zero cluster-wide changes** (plain block-disk attach, like the existing `builder-shared-storage` PVC).
 
 ## Platform facts (verified against the repo)
 
@@ -30,9 +30,17 @@ Current state (`apps/kube/github/runners/manifests/values-ue.yaml`) is an interi
 - Today the Windows job gets the repo by **git clone inside the guest** (`.github/workflows/ci-unreal-build.yml`, `game_build_windows` ~lines 1014–1224); it is a native build (no Docker).
 - The Linux engine image is **~40 GB** extracted. The UE engine is **installed natively on Windows** — the Windows builder never pulls the Docker image.
 
-## Why virtio-fs (not a block disk) for the Windows share
+## Why a read-only block image for Windows (NOT virtio-fs)
 
-A block device (how `builder-shared-storage` is attached) can have only one writer, so it cannot be a repo shared read-write with the Linux side. **virtio-fs is file-level sharing**: the node tmpfs is exported as a KubeVirt `filesystems` device and the guest mounts it as a drive via the VirtIO-FS driver + WinFsp (`VirtioFsSvc`). File-level sharing allows Linux and Windows to read the same tree concurrently — required for "clone once, all three read it."
+**Decision (supersedes the earlier virtio-fs design): Windows gets its own RAM copy via a read-only block image. No virtio-fs, no `ExperimentalVirtiofsSupport` gate.**
+
+Why the reversal:
+- **A VM can't read a host directory** — only a block disk or a file-sharing protocol. The Linux pods read `repo.git` as a tmpfs *directory* (hostPath); the guest has no equivalent.
+- **A shared *writable* block disk corrupts** regardless of filesystem (FAT/NTFS/ext4 alike): two independent kernels (host + guest) cache filesystem metadata separately with no coordinator, so concurrent RW = corruption. FAT does not help. The only safe block sharing is **read-only everywhere**.
+- **True file-level sharing** (Linux + Windows read/write the *same live tree*) needs a server that arbitrates access — virtio-fs (host=server) or SMB/NFS. virtio-fs requires the install-wide `ExperimentalVirtiofsSupport` gate; SMB requires an extra Samba pod. Both add blast radius / moving parts.
+- **We don't need true sharing.** Windows clones its **own** copy. So instead: `prepare` packs the populated repo into a **read-only disk image** on the tmpfs (`repo.img`, RAM-backed); `win_vm_boot` attaches it to the VM **read-only** (the safe RO-everywhere exception — it's written only while the VM is off); the guest mounts it as a drive and does a **plain full clone** into its own RAM work disk. Sole-writer-of-its-own-disk ⇒ no corruption, no gate, no Talos, no reboot — a plain block-disk attach exactly like `builder-shared-storage` today.
+
+Trade-off (accepted): the repo exists in **two representations** — a *directory* for the Linux pods, a *disk image* for the VM (there is no single representation that serves both a pod and a VM without a file-sharing server). And the Windows clone is a **full RAM copy** (objects + LFS, not deduped) — fine for one VM; sized in §4/WS-2.
 
 ## Architecture (§1 — single tmpfs, three consumers)
 
@@ -45,43 +53,44 @@ One host tmpfs on the Talos node at `/var/mnt/ramdisk` (size validated against n
 Consumers (all on the one node, no pinning needed):
 
 - **2 Linux builders** (`server_build`, `game_build_linux`): drop the per-pod dind sidecar; set `DOCKER_HOST` to the shared dind. Each `hostPath`-mounts `/var/mnt/ramdisk` so `docker run -v <project>` resolves inside the shared dind (the bind-mount source must exist in the dind's filesystem, which is the same node tmpfs). Each gets an **isolated** working tree via `git clone --local --shared /var/mnt/ramdisk/repo.git <work>` (object alternates — objects referenced not copied; tree is writable/private so the two concurrent builds never collide on `Intermediate/`, `Saved/`, `Binaries/`), then `git config lfs.storage /var/mnt/ramdisk/repo.git/lfs` + `git lfs checkout` so LFS blobs smudge from the **shared** store (no network, no per-job copy). Builders are pure readers — never `git lfs pull`.
-- **1 Windows builder** (`game_build_windows`): mounts `/var/mnt/ramdisk/repo.git` via **virtio-fs as a drive**, then does a **plain** `git clone` inside the guest (not `--shared` — avoids Windows-git alternates referencing a virtio-fs path) and points `lfs.storage` at the virtio-fs-mounted **readonly** `repo.git/lfs` so the heavy LFS art is read from the shared store rather than re-pulled. (This is the reconciliation of the "shared clone vs plain clone" discussion: Windows does **not** share git objects via alternates — that's the unsafe-across-virtio-fs part — but it **does** share the LFS blob store readonly, which is where the size win actually is.) Engine is installed natively.
+- **1 Windows builder** (`game_build_windows`): `prepare` packs the populated repo (git + LFS) into a **read-only disk image** on the tmpfs (`/var/mnt/ramdisk/repo.img`); `win_vm_boot` attaches it to the VM **read-only**; the guest mounts it as a drive (e.g. `R:`) and does a **plain full `git clone`** into its own RAM work disk (e.g. `W:`) — not `--shared` (alternates don't cross the VM boundary; the path differs in the guest). Engine is installed natively. The clone is a full copy (objects + LFS), so the VM is the sole writer of its own work disk → no cross-OS block corruption.
 - **Mac**: out of scope (separate host, stub).
 
 Sharing graph:
-- `repo.git` (tmpfs) → all 3 (Linux ×2 via hostPath + `--local --shared`; Windows via virtio-fs + plain clone)
+- `repo.git` directory (tmpfs) → **Linux ×2** via hostPath + `--local --shared` (+ shared `lfs.storage`)
+- `repo.img` read-only block image (tmpfs) → **Windows VM** (RO attach → plain full clone into its own work disk; no live sharing)
 - dind image-store (tmpfs) → Linux ×2 only
 
 ## Components (§2 — what to build/change)
 
 1. **Node tmpfs** — provision a host tmpfs at `/var/mnt/ramdisk` on the Talos node. **DECISION (WS-4, supersedes the earlier preference): use a privileged DaemonSet that mounts `tmpfs` into the host namespace — NOT a Talos `machine.config` mount.** Rationale: Talos v1.8 has no clean host-tmpfs primitive, and any machine-config apply to the **single control-plane node carries reboot/brick risk with no failover** — an OS-level change this design must avoid. The DaemonSet needs **no Talos change and no reboot** and is revertible by deleting the pod. See `2026-06-24-ue-ramdisk-talos-tmpfs-decision.md`. Single sizing knob (`size=<CEILING>`, the WS-2 budget); validated in §5.
-2. **hostPath PV/PVC** over `/var/mnt/ramdisk/repo.git` so KubeVirt can consume it as a virtio-fs source.
+2. **hostPath PV/PVC** over `/var/mnt/ramdisk/repo.img` (the RO repo disk image) so KubeVirt can attach it to the VM as a plain block disk — same mechanism as the existing `builder-shared-storage` PVC. **No virtio-fs, no feature gate.**
 3. **Shared dind** — DaemonSet (one pod on the node), privileged, `--data-root=/var/mnt/ramdisk/docker`, hostPath-mounts `/var/mnt/ramdisk`, keeps the existing `--insecure-registry=registry-mirror-ghcr...` and fd-limit flags. **Exposes the daemon to runner pods via a host-local UNIX socket on a hostPath (`/var/mnt/ramdisk/docker.sock`), NOT a cluster TCP Service** — see §4 (DinD exposure). Runner pods set `DOCKER_HOST=unix:///var/mnt/ramdisk/docker.sock`.
 4. **`values-ue.yaml` rework** — remove the per-pod `dind` sidecar and `dind-storage` emptyDir; add hostPath mount of `/var/mnt/ramdisk`; set `DOCKER_HOST` to the host-local socket (above); preserve the existing `forgejo-lfs-credentials` (`api-token`) secret mount on the new runner template (drift-prone per ops notes); restore `maxRunners: 2`.
-5. **KubeVirt virtio-fs** — add `ExperimentalVirtiofsSupport` to `featureGates` in `kubevirt/cr/kubevirt.yaml`; add a `filesystems` (virtiofs) device + volume to `vm-windows-builder.yaml` backed by the repo PV; install WinFsp + VirtIO-FS driver in the guest (`VirtioFsSvc`) so the share auto-mounts as a drive. **Precondition: snapshot the VM/rootdisk first (see §4).**
-6. **`prepare` gate** in `ci-unreal-build.yml` — **see §6 WS-1: this is a workflow rewrite (per-job path namespacing, removing the per-build `docker system prune -f`), not just an added `needs:`** — idempotent, `flock`-guarded: clone/fetch the mirror to the run SHA and `docker pull` the image once into the shared stores; includes the **pre-flight free-space check** (§4). `server_build`, `game_build_linux` gain `needs: prepare`. **`game_build_windows` runs on the `UE5-Win` label and already `needs: [guard, game_gate, win_vm_boot]`** — adding `prepare` there must keep `win_vm_boot` ordering so the virtio-fs mount is ready before the guild reads it; the VM-boot/virtio-fs-mount race is an explicit task in the Windows plan.
+5. **Windows RO repo disk (NO KubeVirt config change)** — add a **read-only block disk** to `vm-windows-builder.yaml` backed by the `repo.img` hostPath PVC (a plain `disk` volume, like the existing `builder-shared-storage` attach). **No `featureGates` change, no `filesystems`/virtio-fs device, no WinFsp/VirtIO-FS driver install** — so `kubevirt/cr/kubevirt.yaml` is **untouched** and there is **no install-wide change**. The guest auto-mounts the RO disk and plain-clones from it. No driver install ⇒ the VM-snapshot precondition is no longer required for this step (the rootdisk is unmodified), though a snapshot before the first run is still cheap insurance.
+6. **`prepare` gate** in `ci-unreal-build.yml` — **see §6 WS-1: this is a workflow rewrite (per-job path namespacing, removing the per-build `docker system prune -f`), not just an added `needs:`** — idempotent, `flock`-guarded: clone/fetch the mirror to the run SHA, `git lfs fetch --all`, pack the RO `repo.img`, and `docker pull` the image once into the shared stores; includes the **pre-flight free-space check** (§4). `server_build`, `game_build_linux` gain `needs: prepare`. **`game_build_windows` runs on the `UE5-Win` label and already `needs: [guard, game_gate, win_vm_boot]`** — `prepare` must complete (and `repo.img` exist) **before** `win_vm_boot` attaches it RO and boots, so the ordering is `prepare → win_vm_boot → game_build_windows`. Because the disk is attached at boot (not hot-mounted into a running guest), a booted VM implies the RO disk is present — no separate mount-readiness race.
 
 ## Data flow (§3 — per pipeline run)
 
 `prepare` (under `flock`) ensures the mirror is fetched to the run's SHA, **its LFS blobs are populated once** (`git lfs fetch --all` into `repo.git/lfs`), and the image is present in the shared dind → fan out:
 - Each **Linux** job `git clone --local --shared` into its own tree on the tmpfs, sets `lfs.storage` to the shared `repo.git/lfs` and `git lfs checkout` (reads blobs, never pulls), builds via the shared dind, writing cook output to its own `/var/mnt/ramdisk/<job>-scratch`.
-- The **Windows** job reads the repo over virtio-fs (drive), plain-clones to its own working area, builds with the installed engine.
+- The **Windows** job boots with the RO `repo.img` attached (drive `R:`), plain-clones from it into its own RAM work disk (`W:`), builds with the installed engine.
 
 ## Failure modes & guards (§4)
 
 - **DinD exposure (security, HIGH — do NOT ship as TCP).** The shared daemon listens on `tcp://0.0.0.0:2376 --tls=false`. Fronting that with a ClusterIP Service would expose an **unauthenticated privileged Docker API cluster-wide** — any pod could drive it and trivially escape to node root. On a single node this is unnecessary: bind the daemon to a **host-local UNIX socket on the shared hostPath** (`unix:///var/mnt/ramdisk/docker.sock`) that only the co-located runner pods mount. If TCP is ever required, it must be `--tls` with client certs **and** a `NetworkPolicy` scoping the daemon to the UE runner pods only. The current per-pod localhost sidecar must not be replaced by a less-scoped transport.
 - **Node RAM ceiling (the dominant risk, single node).** The tmpfs shares ~109 GB with etcd, the KubeVirt VM RAM (16Gi guest / 20Gi limit), and node databases (ClickHouse/Postgres). etcd `fdatasync` latency on this node is already the documented failure mode (issue [[project_etcd_io_starvation_argo_flapping]] / #12987); memory pressure that evicts page cache or stalls etcd can drop the control-plane lease and flap the whole cluster. Treat this as the design's primary constraint, not a tunable knob:
-    - **Prove the budget before enabling:** `2×engine-overlay + 7 GB mirror + 2×scratch + 20 GB VM + etcd/CH/PG baseline + page-cache margin < 109 GB`. If it doesn't close with margin, do not raise `maxRunners` to 2.
+    - **Prove the budget before enabling:** `engine-overlay + mirror + 2×Linux-scratch + repo.img + Windows-clone-copy + 20 GB VM + etcd/CH/PG baseline + page-cache margin < 109 GB` (note: `repo.img` and the Windows full-copy clone are RAM terms only while the VM is up; if Windows builds can overlap Linux builds, count them). If it doesn't close with margin, do not raise `maxRunners` to 2.
     - **Image base stays in RAM** (all-in-RAM, by design decision). The whole `--data-root` lives on tmpfs; the budget proof above must close *with* the engine in RAM. If it doesn't, reduce `maxRunners` rather than moving the image to disk. *(Revisit later: once stable, benchmark all-in-RAM vs. image-`--data-root`-on-disk to see which is actually faster — the read-mostly base may run just as fast from disk via page cache, freeing RAM. Decide on measured numbers, not assumption.)*
     - Enforce a hard tmpfs `size=` so it cannot grow past budget.
-- **Windows driver install is irreversible-ish.** **Snapshot `windows-builder` (KubeVirt `VirtualMachineSnapshot`, or Longhorn `VolumeSnapshot` of `windows-builder-rootdisk`) with the VM paused/off, and verify a restore point, BEFORE installing WinFsp/VirtIO-FS.** The virtio-fs task begins with the snapshot, not the install.
-- **virtio-fs is experimental.** Enabling the feature gate affects the whole KubeVirt install; validate the VM still boots and live-migration/hotplug behavior is unaffected on the single node.
+- **Windows RO repo image — RAM budget + volatility.** `repo.img` is a fixed-size RAM-backed disk on the tmpfs; its written bytes count against the **node** RAM budget (§Node RAM ceiling / WS-2), and the Windows guest's plain clone is a **full RAM copy** (objects + LFS, not deduped) inside its own work disk — both terms must be in the budget. The image is volatile (tmpfs wipe ⇒ gone); `prepare` repacks it per run, and `win_vm_boot` only attaches it after `prepare` succeeds.
+- **RO-everywhere is the only safe block sharing.** `repo.img` is written **only while the VM is off** (during `prepare`), then attached **read-only**; the VM never writes it and Linux never mounts it (Linux uses the `repo.git` *directory*, not the image). No concurrent writer ⇒ no cross-OS cache-coherency corruption. Do **not** attach `repo.img` read-write to the VM or loop-mount it RW on Linux while the VM holds it.
 - **No eviction = ENOSPC relocated to RAM.** A fixed-size tmpfs is a cache with no GC. Without reclamation, accumulating working trees, cook scratch, and stale image layers will hit the hard `size=` cap mid-build — the *same* ENOSPC failure class, just moved into RAM. Required: (a) a **pre-flight free-space check in `prepare`** that fails fast if projected need (image + mirror + N×scratch estimate) exceeds free tmpfs, and (b) a **GC step** that reclaims prior runs' `<job>-scratch` and prunes dangling docker layers (`docker image prune`) between pipelines. No silent unbounded growth.
 - **`--shared` alternates AND shared LFS storage on a volatile store can corrupt in-flight builds.** Linux trees use `git clone --local --shared` (git objects referenced in `repo.git`, not copied) **and** `lfs.storage` pointing at the shared `repo.git/lfs` (LFS blobs referenced, not copied). If the tmpfs/dind is wiped while a tree still references it, **both git objects and LFS blobs** vanish underneath the job → cryptic `object not found` *or* git-lfs smudge/`missing object` failures. Builders must **tolerate alternate/LFS loss**: on an object-missing or LFS-smudge error, re-run `prepare` and re-clone. (A full local clone + local `git lfs pull` instead of shared storage is the resilient fallback if corruption recurs — at the cost of the dedup.)
 - **Concurrent pipelines / SHA skew on the shared mirror.** A second `prepare` can fast-forward the mirror to a newer SHA while the first pipeline's builders are still cloning, yielding a tree mismatched to the pipeline's SHA. Builders must **clone by explicit commit SHA** (not branch ref), and `prepare` must keep that SHA's objects pinned for the pipeline's lifetime. `flock` only serializes populate, not this skew — it does not by itself prevent the mismatch.
 - **tmpfs is volatile** — reboot / dind restart wipes it. `prepare` repopulates (cold start = one clone + one pull). Treated as a cache, never durable.
 - **`docker run -v` source visibility** — the shared dind and runner pods must mount the *same* tmpfs hostPath, or bind-mount sources won't exist in the dind. Both mount `/var/mnt/ramdisk`.
-- **Windows cross-FS clone** — plain clone (not `--shared`) avoids Windows-git alternates referencing a virtio-fs path.
+- **Windows cross-FS clone** — plain full clone (not `--shared`) from the RO `R:` drive into the guest's own work disk; alternates don't cross the VM boundary (the object-store path differs in the guest), so a full copy is required and is the robust choice.
 
 ## Validation & measurement (§5)
 
@@ -89,7 +98,7 @@ Sharing graph:
 - Measure extracted image footprint (`docker system df`, `du -sh /var/mnt/ramdisk/docker`) and per-build scratch (`du -sh` of the project tree, plus watch peak) on the first run.
 - Confirm measured **peak tmpfs + VM RAM + node baseline < physical RAM** before locking the tmpfs `size=`.
 - Confirm both Linux builds reuse one image (`docker images` shows one engine; `df /var/mnt/ramdisk/docker` does not double) at `maxRunners: 2`.
-- Confirm the Windows guest mounts the virtio-fs share as a drive and the in-guest `git clone` from it succeeds.
+- Confirm the Windows guest boots with the RO `repo.img` attached, sees it as a drive, and the in-guest plain `git clone` from it succeeds. Confirm `kubevirt/cr/kubevirt.yaml` is unchanged (no feature gate added).
 
 ## Implementation prerequisites & workstreams (§6 — round-2 audit, 2026-06-24)
 
@@ -105,18 +114,18 @@ This work ships as **one PR** (#13278): the items below are workstreams (WS-1…
 | WS-2 | RAM-budget worksheet + runtime alert | `2026-06-24-ue-ramdisk-ram-budget.md`, `manifests/ue-ramdisk-tmpfs-alert.yaml` | Worksheet + inert alert |
 | WS-3 | Shared-dind DaemonSet (+ PDB, host-local socket gid, 2-build envelope) | `manifests/shared-dind-daemonset.yaml` | Inert (not in kustomization) |
 | WS-4 | Talos tmpfs decision record (**reverses §2.1**: DaemonSet, not machine-config) | `2026-06-24-ue-ramdisk-talos-tmpfs-decision.md` | Decision (needs cluster validation) |
-| WS-5 | Cutover + rollback runbook (deploy order, KubeVirt gate revert) | `2026-06-24-ue-ramdisk-cutover-runbook.md` | Keystone |
+| WS-5 | Cutover + rollback runbook (deploy order, per-VM RO-disk revert; no gate to revert) | `2026-06-24-ue-ramdisk-cutover-runbook.md` | Keystone |
 
 > **Why WS-1 is specified, not applied:** `ci-unreal-build.yml` is a `workflow_call` reusable workflow — the moment a rewritten version reaches the merged ref it is live for the next UE build, and its new code paths require the shared dind + tmpfs that do not exist until cutover. Hand-editing a ~2600-line workflow blind and untestable, coupled to absent infra, is the larger risk. The precise, minimal in-place edits (only `server_build`, `game_build_linux`, + a new `prepare` job; `ci-unreal.yml`/`ci-unreal-plugins.yml` untouched) are pinned in the runbook and applied together with the runner rework during cutover.
 >
 > **Blast-radius / scope inventory (read this before approving):**
-> - **Cluster/install-wide changes: exactly ONE** — the KubeVirt `ExperimentalVirtiofsSupport` feature gate in `kubevirt/cr/kubevirt.yaml`. It is install-wide and the least-reversible step, and it exists **only** for the Windows virtio-fs repo share. Sequenced last in cutover; revert documented (runbook).
-> - **Talos / OS-level changes: NONE.** WS-4 deliberately rejects the machine-config tmpfs route. The tmpfs is a privileged DaemonSet — **no machine-config apply, no reboot** (an OS-level change on the single control-plane node is a brick risk with no failover; explicitly avoided).
+> - **Cluster/install-wide changes: ZERO.** The earlier virtio-fs design's one install-wide change (the KubeVirt `ExperimentalVirtiofsSupport` feature gate) is **removed** — Windows now uses a plain read-only block-disk attach (`repo.img`), so `kubevirt/cr/kubevirt.yaml` is untouched. No feature gates, no ClusterRoles, no cluster-scoped RBAC, no CRD changes.
+> - **Talos / OS-level changes: NONE.** WS-4 rejects the machine-config tmpfs route. The tmpfs is a privileged DaemonSet — **no machine-config apply, no reboot** (an OS-level change on the single control-plane node is a brick risk with no failover; explicitly avoided).
 > - **Node-level privileged workload: ONE** — the shared-dind DaemonSet (`hostPID` + `nsenter` to mount tmpfs). Not a cluster-API/Talos change; revertible by deleting the pod; namespaced to `arc-runners`.
-> - **Everything else is namespaced/app-level** — no ClusterRoles, no cluster-scoped RBAC, no CRD changes.
-> - **Implication:** the Linux engine + repo/LFS dedup (the main win) needs **zero** cluster-wide and **zero** Talos changes. The only cluster-wide change is the Windows-virtio-fs gate, which can be dropped/deferred to ship the Linux half with no install-wide blast radius.
+> - **VM spec change: per-object only** — one read-only block disk added to `vm-windows-builder.yaml` (same mechanism as the existing `builder-shared-storage` attach). Affects only that one VM.
+> - **Net:** the entire plan is namespaced workloads + one per-VM disk attach. **No install-wide, no Talos, no reboot anywhere.**
 >
-> **Runner topology clarification (not the 3 scale sets):** the "2 Linux + 1 Windows" consumers are **not** the three `arc-runner-ue*` Helm releases. Both Linux builders are pods of the single **`arc-runner-ue`** scale set (concurrency = `maxRunners`); the Windows builder is the **KubeVirt VM** whose in-guest self-hosted runner registers as **`UE5-Win`**. `arc-runner-ue-win` (expects a physical Windows node) and `arc-runner-ue-mac` are **dormant (0 runners)** and need no changes — do not wire virtio-fs into them.
+> **Runner topology clarification (not the 3 scale sets):** the "2 Linux + 1 Windows" consumers are **not** the three `arc-runner-ue*` Helm releases. Both Linux builders are pods of the single **`arc-runner-ue`** scale set (concurrency = `maxRunners`); the Windows builder is the **KubeVirt VM** whose in-guest self-hosted runner registers as **`UE5-Win`**. `arc-runner-ue-win` (expects a physical Windows node) and `arc-runner-ue-mac` are **dormant (0 runners)** and need no changes — do not wire the repo disk into them.
 
 ### Blockers (must land before restoring concurrency)
 
@@ -130,7 +139,7 @@ This work ships as **one PR** (#13278): the items below are workstreams (WS-1…
 2. **Corrected RAM-budget worksheet + hard cap + alert** — the §4 budget proof omits the runner pods' own RAM emptyDirs (`work` `medium: Memory` 24Gi + `shared-tmp` `medium: Memory` 16Gi, per `values-ue.yaml`), i.e. up to **2×40 = 80 GB** at `maxRunners: 2` that the proof never counts. Either migrate these onto the shared hostPath (then they enter the budget) or keep them (then the budget cannot close). Deliver: a worksheet counting **all** RAM emptyDirs + tmpfs + VM (20Gi) + etcd/CH/PG baseline + page-cache margin against 109 GB; a hard tmpfs `size=`; and a **runtime** tmpfs-usage alert — the §4 pre-flight check runs *before* the cook and cannot see peak scratch (the unguarded etcd-flap path, #12987).
 3. **Shared-dind DaemonSet manifest** — privileged, `--data-root=/var/mnt/ramdisk/docker`, host-local UNIX socket on the shared hostPath with an explicit **socket gid** the non-root runner (`runAsUser: 1000`) can access (default root:root 0660 socket → `permission denied`); a **PodDisruptionBudget**; and a resource envelope sized for **two** concurrent cooks (today each per-pod dind had 80Gi/4cpu) co-resident with etcd. Note: shared dind is now a **single point of failure** — its crash/tmpfs-wipe fails *both* concurrent builds, not one.
 4. **Talos tmpfs spike + decision record** — §2.1 prefers a `machine.config` mount, but Talos has no generic fstab/tmpfs primitive; this may force the privileged-DaemonSet fallback the spec tries to avoid. Treat as a spike with a written decision (machine-config vs DaemonSet), not a foregone preference.
-5. **Deploy-order + rollback runbook** — this is a 6-surface change (workflow rewrite, `values-ue.yaml`, dind DaemonSet, Talos tmpfs, KubeVirt CR feature gate, VM virtio-fs device) with no sequence and no revert plan today. The runbook must include ordering **and** rollback, explicitly covering reverting the install-wide `ExperimentalVirtiofsSupport` gate once the VM depends on it (not a clean revert on a single node), plus `win_vm_boot` virtio-fs **mount-readiness** (a booted VM ≠ a mounted share — the boot gate at ~L967 has no mount probe).
+5. **Deploy-order + rollback runbook** — this is a multi-surface change (workflow rewrite, `values-ue.yaml`, dind DaemonSet + tmpfs, one RO repo disk on `vm-windows-builder.yaml`) with no sequence and no revert plan today. The runbook must include ordering **and** rollback. **Note:** the virtio-fs/`ExperimentalVirtiofsSupport` surface is **removed** from this plan (Windows uses a RO block-disk attach), so there is no install-wide gate to revert; rollback is namespaced-workload + per-VM-disk removal only. The `prepare → win_vm_boot` ordering must ensure `repo.img` exists before the VM boots (disk attached at boot ⇒ no mount-readiness race).
 
 ### Branch-drift reminder
 
@@ -150,5 +159,6 @@ An adversarial review of this spec was run. Disposition:
 
 - Mac builder (separate host; stub).
 - Cross-node sharing (single node — not applicable).
-- Replacing the existing `builder-shared-storage` block PVC (kept for ISO/installer staging).
+- Replacing the existing `builder-shared-storage` block PVC (kept for ISO/installer staging; the new RO `repo.img` disk is a separate, additional attach).
+- virtio-fs / `ExperimentalVirtiofsSupport` / WinFsp — **explicitly dropped** (superseded by the RO block-image approach; no install-wide change).
 - Any change to the native Windows engine install.
