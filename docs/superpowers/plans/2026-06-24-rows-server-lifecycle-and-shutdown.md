@@ -23,24 +23,33 @@ transfer/rebalance, and a coordinated fleet-wide restart for binary/gameplay/DB-
 
 Audited against what's actually deployed on this branch. Three load-bearing assumptions are false
 against the cluster today — **merging this doc is harmless, but building any rung on it as-written
-would ship outages.** Implementation of any rung is **blocked until B1–B3 are resolved.**
+would ship outages.** Implementation of any rung is **blocked until B1–B6 are resolved.**
 
-**B1 — Unlimited save time collides with k8s eviction.** Node-drain / autoscaler / Talos reboot
-impose `terminationGracePeriodSeconds` then unconditional SIGKILL, and Agones reclaims the pod if a
-blocking save starves the SDK `Health()` ping. **The save-budget constraint is the chuck *UE
-GameServer* Fleet's TGPS + Agones health — NOT the rows allocator pod.** The rows pod
-(`rows/tenants/base/deployment.yaml`, TGPS=30s) is the API/allocator and persists *no* player state;
-only the UE GameServer saves. So "data always saved" is false on the *GameServer* side in the
-motivating cases (node-drain, fleet-restart). *Prereq:* set TGPS explicitly on the **chuck Fleet** ≥
-max save budget; run the UE save off-thread from the Agones health ping.
+> In-flight remediation (N5): the valkey-harden atomic (PR #13275) and this reaper branch
+> (PR #13200) are landing in parallel — whichever merges first must update B2/B3 current-state here.
+
+**B1 — Unlimited save time collides with k8s eviction; TGPS is unset, not "30s".** The save-budget
+constraint is the chuck **UE GameServer Fleet's** TGPS + Agones health — NOT the rows allocator pod
+(`rows/tenants/base/deployment.yaml`, TGPS=30s, which persists no player state). **Correction (N3):**
+the Fleet (`apps/kube/agones/rows-tenants/chuckrpg-{dev,beta,prod}/manifests/fleet.yaml`) sets **no**
+`terminationGracePeriodSeconds` — the 30s is the *implicit k8s default*, not a declared value, so
+nothing in GitOps guarantees it. **The binding killer is SIGKILL at TGPS (N4):** the Agones health
+window is ~75s (`initialDelaySeconds: 180` then `periodSeconds 15 × failureThreshold 5`), which is
+*longer* than the 30s SIGKILL — so a save that runs off-thread but takes 45s is still killed. Off-thread
+is therefore **necessary but insufficient**; raising TGPS is the binding lever. *Prereq, in order:*
+(1) pick `max_save_budget`; (2) set TGPS **explicitly** on the Fleet ≥ that budget (it's editable in
+this monorepo); (3) run the UE save off-thread from the health ping.
 
 **B2 — valkey is a non-durable SPOF, not hot-path truth.** `apps/kube/rows/manifest/valkey.yaml` =
 `replicas: 1`, `emptyDir` (AOF *is* enabled but written to a volume that evaporates on reschedule),
 256Mi limit with no `maxmemory`/eviction policy (→ OOMKill+wipe under a fleet-wide dump), no PDB, no
 anti-affinity. Every valkey pod move wipes all party anchors + reserved markers — and a fleet-restart
-is exactly when valkey is most likely to also be evicted. *Prereq:* if it holds hot-path claims it
-needs a PVC + PDB + bounded `maxmemory`/`noeviction`; otherwise keep it pure-cache and make every
-consumer provably fail-safe (B3).
+is exactly when valkey is most likely to also be evicted. **AOF on an `emptyDir` is decorative —
+even a *graceful* pod move (not just OOM) wipes it, so durability is nil by construction.** *Prereq:*
+if it holds hot-path claims it needs a PVC + PDB + bounded `maxmemory`/`noeviction`; otherwise keep it
+pure-cache and make every consumer provably fail-safe (B3). *(Partly addressed: the valkey-harden
+atomic PR #13275 drops the no-op AOF, adds `--maxmemory 192mb` + `allkeys-lru` so it self-evicts
+instead of OOMKill+wipe — i.e. takes the honest pure-cache path; durable claims still need B3.)*
 
 **B3 — "valkey loss is self-healing" is fail-*dangerous* for two key classes.** Empty-since loss →
 fresh grace (fail-safe ✅). But reserved/warming-marker loss → a warming instance looks reapable →
@@ -48,8 +57,33 @@ reaper kills it → a traveling party connects to a deleted GameServer; and anch
 splits. *Prereq:* reserved-grace lives durably (the `drain_*` row), not valkey-only; fail-direction
 is decided **per key**, not blanket "self-healing" (corrected in Live-state data tiering below).
 
-See also the High/Medium findings folded in below: F1 (migration rollback) and F2 (Argo barrier
-orchestrator) under Open decisions; W1 (capability handshake / deploy order) in the contract section.
+**B4 — Fleet-restart needs a named orchestrator (was "open decision" F2).** A vanilla GitOps image
+roll is `strategy: RollingUpdate, maxSurge: 25%` (`…/chuckrpg-prod/manifests/fleet.yaml`), which
+*structurally* surges new-version GameServers while old ones still run — the exact mixed-version
+coexistence this spec forbids. "All-old-down before any-new-up" cannot be honored by a declarative
+image roll. *Prereq:* name + build the orchestrator (Argo Workflows / a PreSync hook gated on ROWS'
+`/fleet-restart/status` drain-complete / a dedicated operator) **before any fleet-restart rung is
+implemented.** Promoted from open-decision to blocker.
+
+**B5 — ROWS is `replicas: 1`; the lifecycle orchestrator is a non-HA SPOF.** The Ownership table
+assigns ROWS every coordination role (drain-state authority, all-drained signal, transfer handout,
+stagger orchestration, reaper Force). On a single pod, a reschedule *during* a fleet-restart (peak
+churn) loses any in-memory orchestration state mid-cutover. `drain_*` columns survive (Principle 4),
+but orchestration continuity is never addressed. *Prereq:* either run ROWS HA (≥2 replicas + leader
+election for the orchestrator role) **or** require the fleet-restart state machine to be fully
+reconstructable from `mapinstances` on cold-start, and test a "kill ROWS mid-restart" case. The spec
+must pick one.
+
+**B6 — `rows-pdb minAvailable: 1` on a single replica deadlocks node drains.** With `replicas: 1`
+(`rows/tenants/base/deployment.yaml`) and a PDB `minAvailable: 1`, a node drain of the ROWS-hosting
+node can never evict the pod (evicting it would drop below minAvailable) → the drain hangs. *Prereq:*
+couple the PDB with `replicas ≥ 2` (B5), or set `minAvailable: 0` / remove the PDB for a single-replica
+deployment. Document the interaction.
+
+See also: W1 (capability handshake / deploy order) in the contract section; F1 (migration rollback)
+under Open decisions — its CI expand-contract gate is itself a prerequisite (the barrier's
+"safe-by-construction" property only holds if destructive migrations are *impossible*, not merely
+discouraged).
 
 ## Principles
 
@@ -401,7 +435,12 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
   a "reserved/warming" grace so the reaper doesn't kill it before they connect. **Must be durable**
   (`drain_*` row), not valkey-only (B3).
 - **Operator Force is data-losing → authz, not just audit (W3).** `issued_by` is an audit field; the
-  Force `DELETE` must be RBAC-gated, not merely attributed.
+  Force `DELETE` must be RBAC-gated, not merely attributed. **And k8s RBAC won't bound the blast
+  radius:** `launcher-agones-rbac.yaml` already grants the allocator SA blanket `gameservers: delete`
+  in `arc-runners`, so a logic bug or compromised ROWS can DELETE *any* GameServer regardless of
+  in-app authz. The in-app Force gate is therefore **security-critical** (the only blast-radius
+  limit), and per-tenant RBAC scoping (so one tenant's ROWS can't delete another's GameServers)
+  should be considered.
 - **Hot-path cost (F5):** admission-gate + affinity add valkey hops to the today-DB-only `join_map`;
   budget p99 and guard the cache-miss thundering-herd on a valkey restart (rebuild from DB/heartbeats
   happens under load).
@@ -422,12 +461,26 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
    already-migrated schema** (the degrade guard protects forward, not backward; there's no
    `dbmate down` story). *Resolution leaning:* mandate **expand-contract / backward-compatible**
    migrations — never destructive at the barrier — and consider enforcing it in CI.
-5. **Fleet-restart orchestrator (F2).** "All old down" is a *runtime* signal ROWS emits, but Argo CD
+5. **Fleet-restart orchestrator (F2) — PROMOTED TO BLOCKER B4 (see Current-state gaps).** "All old down" is a *runtime* signal ROWS emits, but Argo CD
    reconciles declaratively and rolls the Fleet image the moment the manifest changes — it won't wait
    for a drain-complete signal, so new pods scale up while old still drain (the coexistence this spec
    forbids). A plain GitOps image roll can't be both the launch mechanism AND respect a runtime
    barrier. *Must name the orchestrator:* Argo Workflows / a sync-wave or PreSync hook gated on ROWS'
    drain-complete / a dedicated operator.
+
+## Verification cases (when implementing — not before)
+
+- **Kill ROWS mid-fleet-restart** → the barrier/orchestration resumes from `mapinstances` on
+  cold-start (proves B5).
+- **`kubectl drain` the ROWS node** → it does not hang on the PDB (proves B6).
+- **Save that runs 45s with TGPS=30s** → confirm data loss is observed (proves N4 — off-thread alone
+  doesn't save it; TGPS must be raised).
+- **valkey OOMKill / pod-move mid-dump** → confirm reserved/warming markers survive (proves B3 needs
+  durable backing, not valkey-only).
+- **Deploy ROWS-new against UE-old without the capability handshake** → confirm no stuck capacity
+  (instances never enter drain-exempt-but-unacked limbo) (proves W1).
+- **Enable empty-reap before the v2 Agones-health cross-check** → confirm the "silence ≠ dead"
+  residual; keep the gate OFF until v2 (the single most likely 30-day incident on the shipped reaper).
 
 ## Out of scope (separate tickets / repos)
 
