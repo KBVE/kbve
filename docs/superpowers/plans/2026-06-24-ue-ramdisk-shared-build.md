@@ -32,6 +32,7 @@ These apply to every task. Exact values, copied from the verified repo state.
 |---|---|
 | `apps/kube/github/runners/manifests/shared-dind-daemonset.yaml` | Privileged DaemonSet: provisions the tmpfs (init container via `nsenter`) and runs the one shared `dockerd` on a host-local UNIX socket. Plus a PodDisruptionBudget. **Not** in `kustomization.yaml`. |
 | `apps/kube/github/runners/manifests/ue-ramdisk-tmpfs-alert.yaml` | `PrometheusRule`: fires on tmpfs >85% full or node `MemAvailable` <8 GB during a build. **Not** in `kustomization.yaml`. |
+| `apps/kube/github/runners/manifests/ue-shared-dind-idle-reaper.yaml` | CronJob (+ SA/Role/RoleBinding): frees the ~52 GB cache after `IDLE_TTL_SECONDS` (default 4 h) of no UE builds. **Not** in `kustomization.yaml`. |
 | `docs/superpowers/plans/2026-06-24-ue-ramdisk-shared-build.md` | This plan. |
 
 **Modified at cutover (each in the task that owns it, below):**
@@ -212,6 +213,10 @@ These three defects break the build the moment `maxRunners > 1`. All live in `.g
 - [ ] **Step 1: Add a `prepare` job.** `runs-on: arc-runner-ue`, `needs: [guard, <existing gates>]`. Body runs under `flock /var/mnt/ramdisk/.prepare.lock`:
 
 ```bash
+# Mark activity so the idle reaper (Task 6b) never frees a cache that is
+# actively in use, and measures idle from the last build start.
+touch /var/mnt/ramdisk/.last-build
+
 # Mirror the EXTERNAL game repo (objects + LFS) once; pin the run's SHA.
 # PINNED_SHA = the dispatching run's commit (github.sha); URL/creds: Forgejo.
 git clone --mirror <url> /var/mnt/ramdisk/repo.git 2>/dev/null \
@@ -289,6 +294,29 @@ git add apps/kube/github/runners/manifests/kustomization.yaml
 git commit -m "feat(ue-ci): activate ramdisk pressure alert"
 ```
 
+### Task 6b: Activate the idle-cache reaper
+
+**Files:**
+- Modify: `apps/kube/github/runners/manifests/kustomization.yaml`
+
+The reaper frees the ~52 GB cache after the node is idle of UE builds for `IDLE_TTL_SECONDS` (default 4 h), so the cache isn't pinned in RAM overnight/over weekends. See [Reference: lifecycle](#reference-lifecycle-what-is-kept-vs-freed).
+
+- [ ] **Step 1: Tune the TTL if 4 h isn't right.** Edit `IDLE_TTL_SECONDS` in `ue-shared-dind-idle-reaper.yaml` (`14400` = 4 h). Lower = RAM back sooner, more cold starts; higher = fewer cold starts, RAM held longer.
+
+- [ ] **Step 2: Add the reaper to kustomize.** Append `ue-shared-dind-idle-reaper.yaml` to `resources:`.
+
+- [ ] **Step 3: Verify it runs and is correctly guarded.** Wait for one scheduled run (or `kubectl -n arc-runners create job --from=cronjob/ue-shared-dind-idle-reaper reaper-test`).
+
+  Run: `kubectl -n arc-runners logs job/reaper-test`
+  Expected (cache hot, recent build): `last build <N>s ago (< 14400s TTL); keep cache hot` — it must NOT free a fresh cache. (Confirm it only frees after a real >TTL idle with no running builds.)
+
+- [ ] **Step 4: Commit.**
+
+```bash
+git add apps/kube/github/runners/manifests/kustomization.yaml
+git commit -m "feat(ue-ci): activate shared-dind idle-cache reaper (4h TTL)"
+```
+
 ### Task 7: Flip to `maxRunners: 3`
 
 **Files:**
@@ -349,7 +377,7 @@ git commit -m "feat(ue-ci): attach read-only repo.img to windows-builder VM"
 - **Windows RO disk:** stop the VM; remove the RO `disk` volume from `vm-windows-builder.yaml`; the VM boots as before. No `kubevirt/cr/kubevirt.yaml` change to revert. `repo.img` is volatile tmpfs (vanishes on its own).
 - **Workflow:** revert the `ci-unreal-build.yml` commit (Task 5) together with the runner rework (next item) — they are coupled.
 - **Runner rework:** restore `values-ue.yaml` to `dev` @ `2df4b35` (per-pod dind sidecar, `dind-storage` RAM 64Gi, `DOCKER_HOST=tcp://localhost:2376`, `maxRunners: 1`); bump restart-trigger.
-- **Shared dind + tmpfs + alert:** remove `shared-dind-daemonset.yaml` and `ue-ramdisk-tmpfs-alert.yaml` from `kustomization.yaml`; Argo prune deletes the DaemonSet; the tmpfs disappears with its pod (volatile by design — no data to preserve).
+- **Shared dind + tmpfs + alert + reaper:** remove `shared-dind-daemonset.yaml`, `ue-ramdisk-tmpfs-alert.yaml`, and `ue-shared-dind-idle-reaper.yaml` from `kustomization.yaml`; Argo prune deletes them; the tmpfs disappears with its pod (volatile by design — no data to preserve).
 - **End state of full rollback = the current safe interim:** `maxRunners: 1`, per-pod RAM dind. Known-good.
 
 **Before node maintenance:** the `ue-shared-dind` PDB is `minAvailable: 1` on a single-pod/single-node workload, so it permanently blocks voluntary eviction. `kubectl -n arc-runners delete pdb ue-shared-dind` before any `kubectl drain` / Talos maintenance, or the drain hangs.
@@ -413,6 +441,24 @@ Node ~500 GB. Two ceilings; the tighter binds.
 - **SHA skew on the shared mirror.** A second `prepare` can fast-forward the mirror while the first pipeline's builders are still cloning. Builders clone by explicit commit SHA (not branch ref); `prepare` keeps that SHA pinned for the pipeline's lifetime. `flock` serializes populate, not this skew.
 - **`docker run -v` source visibility.** The shared dind and the runner pods must mount the *same* `/var/mnt/ramdisk` hostPath, or bind sources won't exist in the daemon.
 - **No silent unbounded growth.** A fixed-size tmpfs is a cache with no GC; without the `prepare` pre-flight check + GC step, accumulating scratch and stale layers hit the `size=` cap mid-build — the original ENOSPC, relocated into RAM.
+
+---
+
+## Reference: lifecycle (what is kept vs freed)
+
+Three different lifetimes — do not collapse them. The common mistake is to tear down the *cache* per build; that re-pays the 40 GB extraction every run (and that I/O is what the whole design keeps off etcd's shared SSD).
+
+| Thing | Lifetime | Freed by |
+|---|---|---|
+| Runner pod | per job | ARC (ephemeral runners) |
+| Per-run scratch `/var/mnt/ramdisk/${GITHUB_RUN_ID}-<job>/` | per job | the job's `rm -rf` cleanup step (Task 5) |
+| Stale scratch from crashed runs + dangling docker layers | per pipeline | `prepare` GC, under `flock`, no other build running (Task 5) |
+| **Shared cache** — engine image + git mirror (~52 GB in tmpfs) | **kept hot across builds**, freed only on real idle | the **idle reaper** after `IDLE_TTL_SECONDS` (default 4 h) of no UE builds, or node reboot / pod reschedule |
+| The tmpfs *mount* itself | host mount namespace; survives pod restarts | node reboot, or an explicit `umount` |
+
+**Why the reaper frees contents instead of deleting the pod:** the tmpfs is mounted into the host mount namespace by the dind init's `nsenter`, so it survives pod deletion — deleting the pod would NOT return the RAM. The reaper instead frees the bytes in-daemon (`docker image prune -a -f` + `rm -rf` the mirror/scratch), leaving an empty tmpfs (which costs ~0 RAM). Two guards make mid-build reaping impossible: it skips if any `arc-runner-ue` runner pod is Running, and skips if the shared daemon has any running container. The next build after a reap cold-starts via `prepare` (one re-pull + re-extract); steady-state bursts reuse the hot cache.
+
+**Tuning:** `IDLE_TTL_SECONDS` in `ue-shared-dind-idle-reaper.yaml`. Lower = RAM back sooner, more cold starts; higher = fewer cold starts, RAM held longer. 4 h frees the cache nights/weekends without re-extracting during a normal day of builds.
 
 ---
 
