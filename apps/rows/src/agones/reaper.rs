@@ -6,6 +6,10 @@ pub enum ReapReason {
     NeverReported,
     /// Reported 0 players for longer than its per-map empty timeout (+ buffer).
     Empty,
+    /// Still claims players but its heartbeat went silent past the stale window — crashed while
+    /// populated (e.g. SIGSEGV-on-login), so its positive count is a lie and join_map would
+    /// route new players onto a corpse.
+    Stale,
 }
 
 /// Pure policy: should this instance be torn down, and why?
@@ -19,11 +23,24 @@ pub fn reap_decision(
     minutes_to_shutdown_after_empty: i32,
     boot_grace_secs: i64,
     empty_buffer_secs: i64,
+    stale_secs: i64,
+    min_empty_secs: i64,
     allow_never_reported: bool,
     now: NaiveDateTime,
 ) -> Option<ReapReason> {
-    // A populated server is never reaped here.
     if player_count > 0 {
+        // Layer 5: crashed-while-populated. The instance still claims players, but its heartbeat
+        // has gone silent past `stale_secs` — once heartbeats are reliably live (opt-in
+        // `stale_secs > 0`), that gap means the server died with players "present". Gated off by
+        // default because a *global* heartbeat outage would otherwise make every live server look
+        // stale; only enable once heartbeat delivery is trusted.
+        if stale_secs > 0 {
+            if let Some(last) = last_update_from_server {
+                if (now - last).num_seconds() > stale_secs {
+                    return Some(ReapReason::Stale);
+                }
+            }
+        }
         return None;
     }
 
@@ -42,8 +59,12 @@ pub fn reap_decision(
     }
 
     // Layer 3: empty for longer than its per-map timeout (+ buffer so the server self-shuts first).
+    // The effective limit is floored at `min_empty_secs` so a freshly allocated server isn't
+    // reaped under a still-loading player even if a map is misconfigured with a tiny timeout
+    // (UE5 map travel + asset streaming can exceed a 1-minute timeout).
     if let Some(empty_since) = last_server_empty_date {
-        let limit = (minutes_to_shutdown_after_empty.max(0) as i64) * 60 + empty_buffer_secs;
+        let limit = ((minutes_to_shutdown_after_empty.max(0) as i64) * 60 + empty_buffer_secs)
+            .max(min_empty_secs);
         if (now - empty_since).num_seconds() > limit {
             return Some(ReapReason::Empty);
         }
@@ -64,7 +85,7 @@ mod tests {
     fn never_reported_past_grace_is_reaped_when_allowed() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:40:00"); // 20 min ago
-        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, true, now);
+        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, 0, 0, true, now);
         assert_eq!(d, Some(ReapReason::NeverReported));
     }
 
@@ -73,7 +94,7 @@ mod tests {
     fn never_reported_is_kept_when_gated_off() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:40:00"); // 20 min ago, well past grace
-        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, false, now);
+        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, 0, 0, false, now);
         assert_eq!(d, None);
     }
 
@@ -82,7 +103,7 @@ mod tests {
     fn never_reported_within_grace_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:55:00"); // 5 min ago, grace 10 min
-        let d = reap_decision(0, None, Some(ts("2026-06-23 11:55:00")), Some(created), 1, 600, 30, true, now);
+        let d = reap_decision(0, None, Some(ts("2026-06-23 11:55:00")), Some(created), 1, 600, 30, 0, 0, true, now);
         assert_eq!(d, None);
     }
 
@@ -91,7 +112,7 @@ mod tests {
     fn empty_past_timeout_is_reaped() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; 1 min(60s)+30s buffer = 90s
-        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, false, now);
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 0, false, now);
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
@@ -100,7 +121,7 @@ mod tests {
     fn empty_within_timeout_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:59:30"); // empty 30s < 90s
-        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, false, now);
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 0, false, now);
         assert_eq!(d, None);
     }
 
@@ -108,7 +129,7 @@ mod tests {
     #[test]
     fn populated_is_never_reaped() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(5, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, true, now);
+        let d = reap_decision(5, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 0, true, now);
         assert_eq!(d, None);
     }
 
@@ -116,7 +137,52 @@ mod tests {
     #[test]
     fn zero_players_without_empty_marker_is_kept() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(0, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, true, now);
+        let d = reap_decision(0, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 0, true, now);
         assert_eq!(d, None);
+    }
+
+    // MEDIUM 4: still claims players but heartbeat is stale past stale_secs -> reap (Stale)
+    #[test]
+    fn stale_populated_is_reaped_when_enabled() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:56:40"); // 200s ago > stale_secs 120
+        let d = reap_decision(5, Some(last), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 120, 0, false, now);
+        assert_eq!(d, Some(ReapReason::Stale));
+    }
+
+    // stale rule gated off (stale_secs = 0) -> a stale-but-populated server is kept
+    #[test]
+    fn stale_populated_is_kept_when_disabled() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:56:40"); // 200s ago, but stale_secs 0 = off
+        let d = reap_decision(5, Some(last), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 0, false, now);
+        assert_eq!(d, None);
+    }
+
+    // populated with a recent heartbeat -> kept even when the stale rule is on
+    #[test]
+    fn populated_with_recent_heartbeat_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:59:00"); // 60s ago < stale_secs 120
+        let d = reap_decision(5, Some(last), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 120, 0, false, now);
+        assert_eq!(d, None);
+    }
+
+    // MEDIUM 5: empty past its tiny per-map timeout but still within the min-empty floor -> keep
+    #[test]
+    fn empty_within_floor_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; limit max(90, 300) = 300
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 300, false, now);
+        assert_eq!(d, None);
+    }
+
+    // empty past the floor -> reap (floor doesn't block a genuinely long-empty server)
+    #[test]
+    fn empty_past_floor_is_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let empty_since = ts("2026-06-23 11:53:20"); // empty 400s > floor 300
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 300, false, now);
+        assert_eq!(d, Some(ReapReason::Empty));
     }
 }

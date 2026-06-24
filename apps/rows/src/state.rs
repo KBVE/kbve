@@ -1,5 +1,5 @@
 use crate::agones::AgonesClient;
-use crate::config::{Environment, TenantConfig};
+use crate::config::{Environment, ReaperKnobs, TenantConfig};
 use crate::db::DbPool;
 use crate::drain::{ShutdownNotifier, default_notifier};
 use crate::mq::MqProducer;
@@ -39,11 +39,7 @@ pub struct AppConfig {
     pub agones_namespace: String,
     pub agones_fleet: String,
     /// Empty-server reaper knobs (parsed in `RowsConfig`, threaded here for the jobs to read).
-    /// Both booleans default OFF — the reaper ships inert (see reaper safety note).
-    pub empty_reaper_enabled: bool,
-    pub reap_never_reported: bool,
-    pub empty_reap_boot_grace_secs: i64,
-    pub empty_reap_buffer_secs: i64,
+    pub reaper: ReaperKnobs,
 }
 
 impl AppState {
@@ -62,10 +58,7 @@ pub struct AppStateBuilder {
     agones_fleet: Option<String>,
     mq: Option<MqProducer>,
     agones: Option<AgonesClient>,
-    empty_reaper_enabled: bool,
-    reap_never_reported: bool,
-    empty_reap_boot_grace_secs: Option<i64>,
-    empty_reap_buffer_secs: Option<i64>,
+    reaper: Option<ReaperKnobs>,
 }
 
 impl AppStateBuilder {
@@ -105,17 +98,8 @@ impl AppStateBuilder {
         self
     }
 
-    pub fn reaper_config(
-        mut self,
-        enabled: bool,
-        never_reported: bool,
-        boot_grace_secs: i64,
-        buffer_secs: i64,
-    ) -> Self {
-        self.empty_reaper_enabled = enabled;
-        self.reap_never_reported = never_reported;
-        self.empty_reap_boot_grace_secs = Some(boot_grace_secs);
-        self.empty_reap_buffer_secs = Some(buffer_secs);
+    pub fn reaper_config(mut self, knobs: ReaperKnobs) -> Self {
+        self.reaper = Some(knobs);
         self
     }
 
@@ -138,10 +122,7 @@ impl AppStateBuilder {
                 environment: tenant.environment,
                 agones_namespace: self.agones_namespace.unwrap_or_else(|| "ows".into()),
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
-                empty_reaper_enabled: self.empty_reaper_enabled,
-                reap_never_reported: self.reap_never_reported,
-                empty_reap_boot_grace_secs: self.empty_reap_boot_grace_secs.unwrap_or(14400),
-                empty_reap_buffer_secs: self.empty_reap_buffer_secs.unwrap_or(30),
+                reaper: self.reaper.unwrap_or_default(),
             },
             mq: self.mq,
             agones: self.agones,

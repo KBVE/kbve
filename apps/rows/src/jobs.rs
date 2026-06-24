@@ -8,18 +8,26 @@ pub fn spawn_all(svc: Arc<OWSService>) {
     // Surface destructive-reaper enablement loudly at startup so a stray env flag in a values
     // file is visible in the logs, not silently active. `reap_never_reported` is the dangerous
     // one (deallocates populated servers ~boot_grace after spawn if heartbeats aren't live yet).
-    let cfg = &svc.state().config;
-    if cfg.empty_reaper_enabled {
+    let reaper = &svc.state().config.reaper;
+    if reaper.enabled {
         warn!(
-            reap_never_reported = cfg.reap_never_reported,
-            boot_grace_secs = cfg.empty_reap_boot_grace_secs,
+            never_reported = reaper.never_reported,
+            boot_grace_secs = reaper.boot_grace_secs,
+            stale_secs = reaper.stale_secs,
             "Empty-server reaper ENABLED — it will deallocate empty GameServers"
         );
     }
-    if cfg.reap_never_reported {
+    if reaper.never_reported {
         warn!(
             "ROWS_REAP_NEVER_REPORTED is ON — never-reported instances are reap-eligible past boot grace; \
              confirm UE heartbeats are live in this env or populated servers will be torn down"
+        );
+    }
+    if reaper.stale_secs > 0 {
+        warn!(
+            stale_secs = reaper.stale_secs,
+            "ROWS_EMPTY_REAP_STALE_SECS is ON — populated instances with a stale heartbeat are \
+             reap-eligible; a global heartbeat outage would make live servers look stale"
         );
     }
 
@@ -103,9 +111,22 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
     }
 }
 
+/// Max GameServers torn down concurrently per cycle. Each `deallocate` can take up to
+/// retries × backoff × 10s; serial teardown of a large batch would overrun the 60s cadence, so
+/// fan out with a bound (kept modest to avoid hammering the K8s API / Agones allocator).
+const MAX_CONCURRENT_REAPS: usize = 8;
+
+/// A candidate that `reap_decision` selected and whose GameServer name resolved — ready to tear down.
+struct ReapTarget {
+    instance_id: i32,
+    gs: String,
+    reason: crate::agones::reaper::ReapReason,
+}
+
 /// Backstop for the server's own `SDK.Shutdown()`. Gated OFF by default (see safety note):
-/// the whole loop no-ops unless `empty_reaper_enabled`, and the time-based `NeverReported`
-/// path is independently gated by `reap_never_reported`.
+/// the whole loop no-ops unless `reaper.enabled`, the time-based `NeverReported` path is
+/// independently gated by `reaper.never_reported`, and the crashed-while-populated `Stale` path
+/// by `reaper.stale_secs > 0`.
 ///
 /// Teardown ordering is deallocate-FIRST: only on a successful `deallocate` do we drop the
 /// in-memory tracking and flip `status=0`. On a deallocate *failure* we leave the row at
@@ -120,6 +141,7 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
 /// the same GameServer; add leader election / a shared lock before raising the replica count.
 async fn empty_server_reaper(svc: Arc<OWSService>) {
     use crate::agones::reaper::reap_decision;
+    use tokio::task::JoinSet;
 
     let mut interval = tokio::time::interval(Duration::from_secs(60));
     interval.tick().await;
@@ -127,14 +149,12 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
     loop {
         interval.tick().await;
 
-        if !svc.state().config.empty_reaper_enabled {
+        let reaper = svc.state().config.reaper.clone();
+        if !reaper.enabled {
             continue; // master kill switch — ships OFF
         }
 
         let guid = svc.state().config.customer_guid;
-        let boot_grace = svc.state().config.empty_reap_boot_grace_secs;
-        let buffer = svc.state().config.empty_reap_buffer_secs;
-        let allow_never_reported = svc.state().config.reap_never_reported;
         let now = chrono::Utc::now().naive_utc();
         let repo = InstanceRepo(&svc.state().db);
 
@@ -149,10 +169,13 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
             warn!(count = candidates.len(), "Reaper: candidate query hit the 500-row cap — possible under-reaping");
         }
 
-        let Some(ref agones) = svc.state().agones else {
+        if svc.state().agones.is_none() {
             continue;
-        };
+        }
 
+        // Phase 1 (sequential, cheap): decide + resolve GameServer names. The no-name terminal
+        // path is a quick DB update, handled here. Builds the teardown work-list for phase 2.
+        let mut targets: Vec<ReapTarget> = Vec::new();
         for inst in &candidates {
             let Some(reason) = reap_decision(
                 inst.number_of_reported_players,
@@ -160,9 +183,11 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                 inst.last_server_empty_date,
                 inst.create_date,
                 inst.minutes_to_shutdown_after_empty,
-                boot_grace,
-                buffer,
-                allow_never_reported,
+                reaper.boot_grace_secs,
+                reaper.buffer_secs,
+                reaper.stale_secs,
+                reaper.min_empty_secs,
+                reaper.never_reported,
                 now,
             ) else {
                 continue;
@@ -177,35 +202,70 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                     .ok()
                     .flatten(),
             };
-            let Some(gs) = gs_name else {
-                // Terminal state for the no-name case (legacy rows from before the `gameservername`
-                // column, or a `reconcile_allocations` miss). We can't deallocate a GameServer we
-                // can't name, so flip status=0 to drop it from routing AND the candidate set, and
-                // surface it ONCE for manual/infra check — instead of re-warning every 60s forever.
-                // Deliberate, narrow exception to deallocate-first: in practice these are legacy
-                // rows whose pod is already gone; a still-live one is flagged for `kubectl` cleanup.
-                match repo.shut_down_server_instance(guid, inst.map_instance_id).await {
-                    Ok(()) => warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
-                    Err(e) => warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0 for unresolvable instance"),
-                }
-                continue;
-            };
-
-            info!(instance_id = inst.map_instance_id, ?reason, gs = %gs, "Reaping empty/abandoned zone server");
-
-            // Deallocate FIRST. Only on success do we drop tracking + flip status=0.
-            match agones.deallocate(&gs).await {
-                Ok(()) => {
-                    svc.state().zone_servers.remove(&inst.map_instance_id);
-                    if let Err(e) = repo.shut_down_server_instance(guid, inst.map_instance_id).await {
-                        warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: deallocated but failed to set status=0");
+            match gs_name {
+                Some(gs) => targets.push(ReapTarget {
+                    instance_id: inst.map_instance_id,
+                    gs,
+                    reason,
+                }),
+                None => {
+                    // Terminal state for the no-name case (legacy rows from before the
+                    // `gameservername` column, or a `reconcile_allocations` miss). We can't
+                    // deallocate a GameServer we can't name, so flip status=0 to drop it from
+                    // routing AND the candidate set, and surface it ONCE for manual/infra check —
+                    // instead of re-warning every 60s forever. Deliberate, narrow exception to
+                    // deallocate-first: in practice these are legacy rows whose pod is already
+                    // gone; a still-live one is flagged for `kubectl` cleanup.
+                    match repo.shut_down_server_instance(guid, inst.map_instance_id).await {
+                        Ok(()) => warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
+                        Err(e) => warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0 for unresolvable instance"),
                     }
                 }
-                Err(e) => {
-                    // Leave status>0 + tracking intact; next cycle re-evaluates and retries.
-                    warn!(error = %e, gs = %gs, instance_id = inst.map_instance_id, "Reaper: deallocate failed — will retry next cycle");
-                }
             }
+        }
+
+        // Phase 2 (bounded concurrency): deallocate-first teardown, up to MAX_CONCURRENT_REAPS at
+        // once, so a large batch doesn't overrun the 60s cycle.
+        let mut iter = targets.into_iter();
+        let mut set: JoinSet<()> = JoinSet::new();
+        loop {
+            while set.len() < MAX_CONCURRENT_REAPS {
+                let Some(target) = iter.next() else { break };
+                set.spawn(reap_one(svc.clone(), guid, target));
+            }
+            if set.join_next().await.is_none() {
+                break; // no work left and nothing in flight
+            }
+        }
+    }
+}
+
+/// Tears down one resolved target: deallocate FIRST, then (only on success) drop tracking and
+/// flip `status=0`. A deallocate failure leaves the row reap-eligible for the next cycle.
+async fn reap_one(svc: Arc<OWSService>, guid: uuid::Uuid, target: ReapTarget) {
+    let ReapTarget {
+        instance_id,
+        gs,
+        reason,
+    } = target;
+
+    let Some(ref agones) = svc.state().agones else {
+        return;
+    };
+
+    info!(instance_id, ?reason, gs = %gs, "Reaping empty/abandoned zone server");
+
+    match agones.deallocate(&gs).await {
+        Ok(()) => {
+            svc.state().zone_servers.remove(&instance_id);
+            let repo = InstanceRepo(&svc.state().db);
+            if let Err(e) = repo.shut_down_server_instance(guid, instance_id).await {
+                warn!(error = %e, instance_id, "Reaper: deallocated but failed to set status=0");
+            }
+        }
+        Err(e) => {
+            // Leave status>0 + tracking intact; next cycle re-evaluates and retries.
+            warn!(error = %e, gs = %gs, instance_id, "Reaper: deallocate failed — will retry next cycle");
         }
     }
 }

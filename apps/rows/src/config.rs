@@ -58,6 +58,54 @@ pub struct TenantConfig {
     pub environment: Environment,
 }
 
+/// Empty-server reaper knobs (all gated OFF / inert by default). Grouped so the six values
+/// thread through the state builder as one argument instead of six positional primitives.
+#[derive(Clone, Debug)]
+pub struct ReaperKnobs {
+    /// Master kill switch — the whole reaper loop no-ops when false.
+    pub enabled: bool,
+    /// Independently gates the time-based `NeverReported` path; keep off until the heartbeat
+    /// is confirmed live in the target env, or it deallocates populated servers.
+    pub never_reported: bool,
+    /// `NeverReported` boot-grace window.
+    pub boot_grace_secs: i64,
+    /// Buffer added to the per-map empty timeout so the server's own `SDK.Shutdown()` wins first.
+    pub buffer_secs: i64,
+    /// Reap a still-"populated" instance whose heartbeat went stale this many seconds ago
+    /// (crashed-while-populated). `0` = disabled. Only safe once heartbeats are reliably live.
+    pub stale_secs: i64,
+    /// Floor on the effective empty timeout so a freshly allocated server isn't reaped under a
+    /// still-loading player even if a map is misconfigured with a tiny timeout.
+    pub min_empty_secs: i64,
+}
+
+impl Default for ReaperKnobs {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            never_reported: false,
+            boot_grace_secs: 14400,
+            buffer_secs: 30,
+            stale_secs: 0,
+            min_empty_secs: 300,
+        }
+    }
+}
+
+fn env_bool(key: &str, default: bool) -> bool {
+    std::env::var(key)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
+fn env_i64(key: &str, default: i64) -> i64 {
+    std::env::var(key)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
 pub struct RowsConfig {
     pub tenant: TenantConfig,
     pub database_url: String,
@@ -67,10 +115,7 @@ pub struct RowsConfig {
     pub http_addr: SocketAddr,
     pub metrics_port: u16,
     pub docs_port: u16,
-    pub empty_reaper_enabled: bool,
-    pub reap_never_reported: bool,
-    pub empty_reap_boot_grace_secs: i64,
-    pub empty_reap_buffer_secs: i64,
+    pub reaper: ReaperKnobs,
 }
 
 impl RowsConfig {
@@ -126,24 +171,16 @@ impl RowsConfig {
             .parse()
             .unwrap_or(4323);
 
-        // Empty-server reaper knobs. Both booleans default OFF: the reaper ships inert and the
-        // time-based path stays gated until a live heartbeat is confirmed (see reaper safety note).
-        let empty_reaper_enabled = std::env::var("ROWS_EMPTY_REAPER_ENABLED")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(false);
-        let reap_never_reported = std::env::var("ROWS_REAP_NEVER_REPORTED")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(false);
-        let empty_reap_boot_grace_secs = std::env::var("ROWS_EMPTY_REAP_BOOT_GRACE_SECS")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(14400);
-        let empty_reap_buffer_secs = std::env::var("ROWS_EMPTY_REAP_BUFFER_SECS")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(30);
+        // Empty-server reaper knobs. Booleans default OFF: the reaper ships inert and the
+        // time-based paths stay gated until a live heartbeat is confirmed (see reaper safety note).
+        let reaper = ReaperKnobs {
+            enabled: env_bool("ROWS_EMPTY_REAPER_ENABLED", false),
+            never_reported: env_bool("ROWS_REAP_NEVER_REPORTED", false),
+            boot_grace_secs: env_i64("ROWS_EMPTY_REAP_BOOT_GRACE_SECS", 14400),
+            buffer_secs: env_i64("ROWS_EMPTY_REAP_BUFFER_SECS", 30),
+            stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
+            min_empty_secs: env_i64("ROWS_EMPTY_REAP_MIN_EMPTY_SECS", 300),
+        };
 
         Ok(Self {
             tenant: TenantConfig {
@@ -158,10 +195,7 @@ impl RowsConfig {
             http_addr,
             metrics_port,
             docs_port,
-            empty_reaper_enabled,
-            reap_never_reported,
-            empty_reap_boot_grace_secs,
-            empty_reap_buffer_secs,
+            reaper,
         })
     }
 }
