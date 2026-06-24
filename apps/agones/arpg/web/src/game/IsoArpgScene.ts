@@ -1,11 +1,8 @@
 import Phaser from 'phaser';
 import {
 	GameClient,
-	ACTION_SHOOT,
 	ACTION_PICKUP,
 	attachCameraZoom,
-	flashEntity,
-	floatingText,
 	drawHealthBar,
 	type EntityDelta,
 	type KindEntry,
@@ -32,14 +29,12 @@ import {
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
-	ARROW_MAX_RANGE,
-	ARROW_SPEED,
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
 	GRASS_TEXTURE_KEY,
 	GRASS_TEXTURE_PATH,
-	SURFACE_MAX_Z,
+	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
 	DEBUG_LOCAL_PLAYER,
@@ -74,6 +69,13 @@ import {
 	drawStatusFx as drawStatusFxV,
 	drawCreatureDebug as drawCreatureDebugV,
 } from './systems/entityView';
+import {
+	makeCombatState,
+	fireBowAt as fireBowAtV,
+	onCombat as onCombatV,
+	type CombatState,
+	type CombatDeps,
+} from './systems/combat';
 import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
@@ -108,7 +110,6 @@ import {
 	type DungeonView,
 } from './systems/dungeonView';
 import { findHierPath, type GateGraph } from './systems/pathfind';
-import { fireBow, showDamage, type BowShot } from './combat/bow';
 import {
 	clearHud,
 	emitInventory,
@@ -118,13 +119,6 @@ import {
 	type InventoryIntent,
 } from './systems/hud';
 import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
-
-// How far (tiles) a hostile's center may sit off the aim line and still be hit
-// by the arrow — the thick-ray half-width. Bigger = more forgiving aim.
-const BOW_ACQUIRE_PERP = 0.85;
-// How long a corpse (a monster the arrow just killed) plays its death before it
-// is torn down.
-const CORPSE_FADE_MS = 900;
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -255,14 +249,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
 	// no active click move. Keyboard input clears it.
 	private movePath: TileXY[] = [];
-	private bowShot: BowShot | null = null;
-	// In-flight bow shot (online): the server-authoritative hit for `target` is
-	// buffered until the local arrow lands so feedback syncs to impact.
-	private inflightArrow: { target: number; arrived: boolean } | null = null;
-	private bufferedHits = new Map<number, CombatEvent>();
-	// Monsters despawned server-side by an in-flight arrow, held as corpses until
-	// the arrow lands (keyed by server eid).
-	private dyingSprites = new Map<number, EntityRefs>();
+	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
+	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
@@ -271,9 +259,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
-	// Floors above the dungeon (z <= SURFACE_MAX_Z) are open grassland: grass
-	// ground, no dungeon walls/holes, everything walkable. Base layer for now.
-	private isSurface = (): boolean => this.currentFloor <= SURFACE_MAX_Z;
+	// z is elevation: z>=SURFACE_MIN_Z (0) is open grassland — grass ground, no
+	// dungeon walls/holes, all walkable. The dungeon is underground at z<0.
+	private isSurface = (): boolean => this.currentFloor >= SURFACE_MIN_Z;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -440,9 +428,9 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.inventoryOpen = !this.inventoryOpen;
 				emitInventoryOpen(this.inventoryOpen);
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
-				this.debugChangeFloor(-1); // ascend (toward grass surface)
+				this.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
 			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
-				this.debugChangeFloor(1); // descend (deeper dungeon)
+				this.debugChangeFloor(-1); // descend z-1 (deeper underground)
 			} else if (ev.key === 'Escape') {
 				if (this.placingRef) {
 					this.exitPlacement();
@@ -641,8 +629,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				// freeze motion) until the arrow lands; onArrowArrive plays its
 				// death + number, then destroys it. Otherwise destroy now.
 				if (
-					this.inflightArrow?.target === eid &&
-					!this.inflightArrow.arrived
+					this.combat.inflightArrow?.target === eid &&
+					!this.combat.inflightArrow.arrived
 				) {
 					this.tweens.killTweensOf(refs.sprite);
 					refs.settleTimer?.remove(false);
@@ -651,7 +639,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs.statusFx?.destroy();
 					refs.dbgText?.destroy();
 					refs.dbgArrow?.destroy();
-					this.dyingSprites.set(eid, refs);
+					this.combat.dyingSprites.set(eid, refs);
 					return;
 				}
 				this.destroyRefs(refs);
@@ -1078,90 +1066,24 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private onCombat(c: CombatEvent) {
-		// The server resolves a bow shot the instant it looses, but the client's
-		// arrow is still in flight. If this hit is from the local player's arrow
-		// heading at this target, defer the feedback until the arrow lands
-		// (flushed in onArrowArrive / a travel-time fallback) so the number and
-		// recoil sync to impact instead of popping at release.
-		if (
-			c.attacker === this.myEid &&
-			this.inflightArrow &&
-			this.inflightArrow.target === c.target &&
-			!this.inflightArrow.arrived
-		) {
-			// Hold it — onArrowArrive (scheduled at the arrow's travel time, or
-			// fired early by the visual hit-test) shows it on impact.
-			this.bufferedHits.set(c.target, c);
-			return;
-		}
-		this.showCombat(c);
+		onCombatV(this.combat, this.combatDeps(), c);
 	}
 
-	/**
-	 * The local player's arrow reached its target: release the deferred server
-	 * hit (number, recoil/death) and, if the target was a kill held as a corpse,
-	 * play its death then clear it. Idempotent — both the visual hit-test and the
-	 * travel-time timer call it.
-	 */
-	private onArrowArrive(target: number) {
-		if (this.inflightArrow?.target === target)
-			this.inflightArrow.arrived = true;
-		const c = this.bufferedHits.get(target);
-		if (c) {
-			this.bufferedHits.delete(target);
-			this.showCombat(c);
-		}
-		const corpse = this.dyingSprites.get(target);
-		if (corpse) {
-			this.dyingSprites.delete(target);
-			if (
-				corpse.creature &&
-				corpse.sprite instanceof Phaser.GameObjects.Sprite
-			) {
-				setCreaturePose(corpse.sprite, corpse.creature, 'Dead');
-				this.time.delayedCall(CORPSE_FADE_MS, () =>
-					this.destroyRefs(corpse),
-				);
-			} else {
-				this.destroyRefs(corpse);
-			}
-		}
-		if (this.inflightArrow?.target === target) this.inflightArrow = null;
-	}
-
-	private showCombat(c: CombatEvent) {
-		const refs =
-			this.store.refs(c.target) ?? this.dyingSprites.get(c.target);
-		if (!refs) return;
-		floatingText(
-			this,
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 18,
-			c.crit ? `CRIT ${c.dmg}!` : `-${c.dmg}`,
-			c.crit ? '#fbbf24' : '#f87171',
-			DEPTH_UI + 2,
-		);
-		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			flashEntity(this, refs.sprite);
-		}
-
-		// Drive creature combat poses: the attacker swings (facing its target),
-		// the victim recoils (or dies). Non-arrow deaths still settle via the
-		// hp<=0 check in refreshHud.
-		const atk = this.store.refs(c.attacker);
-		if (atk?.creature && atk.sprite instanceof Phaser.GameObjects.Sprite) {
-			const a = this.store.tile(c.attacker);
-			const t = this.store.tile(c.target);
-			const face = a && t ? { dx: t.x - a.x, dy: t.y - a.y } : undefined;
-			setCreaturePose(atk.sprite, atk.creature, 'Attack1', face);
-		}
-		if (refs.creature && refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			setCreaturePose(
-				refs.sprite,
-				refs.creature,
-				c.died ? 'Dead' : 'GetHit',
-			);
-		}
+	private combatDeps(): CombatDeps {
+		return {
+			scene: this,
+			store: this.store,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			localMode: () => this.localMode,
+			floatPos: () => this.floatState.pos,
+			isHostile: (eid) => this.isHostileServer(eid),
+			clearMovePath: () => {
+				this.movePath = [];
+			},
+			refreshHud: () => this.refreshHud(),
+			destroyRefs: (refs) => this.destroyRefs(refs),
+		};
 	}
 
 	/** Tear down an entity's display objects. */
@@ -1189,14 +1111,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	/**
-	 * Offline-only floor change (no server). Mirrors the server stair link: dz=-1
-	 * ascends onto the target floor's Down stair, dz=+1 descends onto its Up
-	 * stair, so the local player lands on a real tile. Lets us test the grass
-	 * surface (z<0) without a live arpg-server.
+	 * Offline-only floor change (no server). Mirrors the server stair link:
+	 * ascending (dz=+1) lands on the target floor's Down stair, descending
+	 * (dz=-1) lands on its Up stair, so the local player arrives on a real tile.
+	 * Lets us test the grass surface (z>=0) and dungeon (z<0) without a server.
 	 */
 	private debugChangeFloor(dz: number) {
 		const z = this.currentFloor + dz;
-		const land = dz < 0 ? StairKind.Down : StairKind.Up;
+		const land = dz < 0 ? StairKind.Up : StairKind.Down;
 		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
 		this.onFloorChange({ z, tile });
 	}
@@ -1269,10 +1191,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		// sliding in the bow pose. If the cancel lands before the release frame
 		// the arrow is suppressed (no shot fired); if it already loosed, the
 		// arrow still flies and only the recover is cut.
-		if (intending && this.bowShot?.busy) {
-			this.bowShot.cancel();
+		if (intending && this.combat.bowShot?.busy) {
+			this.combat.bowShot.cancel();
 		}
-		const firing = this.bowShot?.busy ?? false;
+		const firing = this.combat.bowShot?.busy ?? false;
 		if (
 			!firing &&
 			refs.cls &&
@@ -1620,12 +1542,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.localItems.set(eid, { ref, count, tile });
 	}
 
-	/**
-	 * Fire the ranger's bow at a world tile: Draw windup -> Loose -> arrow. The
-	 * shot is gated so you can't re-fire mid-draw, and it cancels any active
-	 * click-move (you plant to shoot). Damage is resolved locally for now; the
-	 * server combat path replaces the onHit body when MP lands.
-	 */
 	/** Send the cardinal aim to the server, but only when it changes. */
 	private sendFacing(facing: Facing) {
 		if (facing === this.lastSentFacing) return;
@@ -1633,128 +1549,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.face(facing);
 	}
 
+	/**
+	 * Fire the ranger's bow at a world tile: Draw windup -> Loose -> arrow. The
+	 * shot is gated so you can't re-fire mid-draw, and it cancels any active
+	 * click-move (you plant to shoot). Online the server is authoritative;
+	 * offline the hit is applied locally.
+	 */
 	private fireBowAt(aim: TileXY, target?: number) {
-		if (this.bowShot?.busy) return;
-		const refs = this.store.refs(this.myEid);
-		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
-			return;
-		this.movePath = [];
-		const from = { x: this.floatState.pos.x, y: this.floatState.pos.y };
-		const shotTarget = target ?? this.acquireBowTarget(from, aim);
-		// Fly the arrow AT the acquired enemy (not the raw cursor point) so the
-		// visual shot connects with whatever the server resolves — a near-path
-		// target snaps the arrow onto it instead of sailing past.
-		const shotTile =
-			shotTarget != null ? (this.store.tile(shotTarget) ?? aim) : aim;
-		this.bowShot = fireBow(
-			this,
-			refs.sprite,
-			refs.cls,
-			from,
-			shotTile,
-			(tx, ty) => this.arrowHitTest(tx, ty),
-			(serverEid, dmg) => {
-				if (this.localMode) {
-					this.applyLocalHit(serverEid, dmg);
-					return;
-				}
-				// Online: the arrow reached a still-living target — land the
-				// deferred server hit now.
-				this.onArrowArrive(serverEid);
-			},
-			() => {
-				this.client?.action(ACTION_SHOOT, shotTarget ?? null);
-				if (shotTarget == null) {
-					this.inflightArrow = null;
-					return;
-				}
-				this.inflightArrow = { target: shotTarget, arrived: false };
-				// A lethal shot despawns the target before the arrow's own
-				// hit-test can fire, so settle the hit when the arrow WOULD
-				// arrive (its travel time to the target tile).
-				const dist = Math.hypot(
-					shotTile.x - from.x,
-					shotTile.y - from.y,
-				);
-				const travelMs =
-					(Math.min(dist, ARROW_MAX_RANGE) / ARROW_SPEED) * 1000;
-				this.time.delayedCall(travelMs + 30, () =>
-					this.onArrowArrive(shotTarget),
-				);
-			},
-		);
-	}
-
-	/**
-	 * Acquire the hostile the arrow will actually hit by marching the aim ray in
-	 * tile steps and returning the first hostile tile crossed — the SAME rounded
-	 * `store.at` model the flying arrow's `arrowHitTest` uses. Keeping acquisition
-	 * and the visual arrow on one hit model is what makes the server register the
-	 * shot the player sees connect (a perpendicular-distance test diverged from
-	 * the arrow and dropped grazing hits).
-	 */
-	private acquireBowTarget(from: TileXY, aim: TileXY): number | undefined {
-		const adx = aim.x - from.x;
-		const ady = aim.y - from.y;
-		const amag = Math.hypot(adx, ady);
-		if (amag < 1e-3) return undefined;
-		const nx = adx / amag;
-		const ny = ady / amag;
-		// Thick-ray: the arrow flies a direction, so it hits the FIRST hostile
-		// along that line — the nearest one whose center sits within
-		// BOW_ACQUIRE_PERP tiles of the centerline, in range. Forgiving so a
-		// roughly-aimed shot still connects, while staying first-in-path.
-		let best: number | undefined;
-		let bestAlong = Infinity;
-		for (const [serverEid] of this.store.entries()) {
-			if (!this.isHostileServer(serverEid)) continue;
-			const t = this.store.tile(serverEid);
-			if (!t) continue;
-			const dx = t.x - from.x;
-			const dy = t.y - from.y;
-			const along = dx * nx + dy * ny;
-			if (along <= 0 || along > ARROW_MAX_RANGE) continue;
-			const perp = Math.abs(dx * ny - dy * nx);
-			if (perp > BOW_ACQUIRE_PERP) continue;
-			if (along < bestAlong) {
-				bestAlong = along;
-				best = serverEid;
-			}
-		}
-		return best;
-	}
-
-	/**
-	 * Arrow hit-test: first HOSTILE entity occupying the tile, else miss. Only
-	 * hostiles collide so the arrow flies through placed props (campfires),
-	 * ground loot, and friendly players instead of being consumed by them.
-	 */
-	private arrowHitTest(tx: number, ty: number) {
-		const hit = this.store.at(tx, ty, this.myEid);
-		if (!hit || !this.isHostileServer(hit.serverEid)) return null;
-		return {
-			serverEid: hit.serverEid,
-			x: hit.refs.sprite.x,
-			y: hit.refs.sprite.y,
-		};
-	}
-
-	/** Local damage application + VFX (placeholder until server confirms). */
-	private applyLocalHit(serverEid: number, dmg: number) {
-		const refs = this.store.refs(serverEid);
-		if (!refs) return;
-		const hp = Math.max(0, this.store.hp(serverEid) - dmg);
-		this.store.update(serverEid, { hp });
-		showDamage(
-			this,
-			refs.sprite.x,
-			refs.sprite.y - refs.sprite.displayHeight - 18,
-			dmg,
-		);
-		if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
-			flashEntity(this, refs.sprite);
-		}
-		this.refreshHud();
+		fireBowAtV(this.combat, this.combatDeps(), aim, target);
 	}
 
 	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
