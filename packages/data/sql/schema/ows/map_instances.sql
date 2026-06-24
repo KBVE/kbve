@@ -13,6 +13,7 @@ CREATE TABLE MapInstances
     NumberOfReportedPlayers INT       DEFAULT 0     NOT NULL,
     LastUpdateFromServer    TIMESTAMP               NULL,
     LastServerEmptyDate     TIMESTAMP               NULL,
+    GameServerName          VARCHAR(253)            NULL,
     CreateDate              TIMESTAMP DEFAULT NOW() NOT NULL,
     CONSTRAINT PK_MapInstances
         PRIMARY KEY (CustomerGUID, MapInstanceID)

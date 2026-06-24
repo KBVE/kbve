@@ -250,6 +250,7 @@ impl<'a> AllocationPipeline<'a> {
                 self.world_server_id,
                 self.zone,
                 alloc.port,
+                &alloc.game_server_name,
             )
             .await?;
 

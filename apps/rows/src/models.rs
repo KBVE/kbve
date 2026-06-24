@@ -208,6 +208,8 @@ pub struct ZoneInstance {
     pub last_update_from_server: Option<NaiveDateTime>,
     #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "gameservername")]
+    pub game_server_name: Option<String>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,

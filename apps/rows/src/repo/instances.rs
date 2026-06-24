@@ -393,10 +393,11 @@ impl<'a> InstanceRepo<'a> {
         world_server_id: i32,
         zone_name: &str,
         port: i32,
+        game_server_name: &str,
     ) -> Result<i32, RowsError> {
         let row: Option<(i32,)> = sqlx::query_as(
-            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
-             SELECT $1, $2, m.mapid, $4, 2
+            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status, gameservername)
+             SELECT $1, $2, m.mapid, $4, 2, $5
              FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
              ON CONFLICT DO NOTHING
              RETURNING mapinstanceid",
@@ -405,6 +406,7 @@ impl<'a> InstanceRepo<'a> {
         .bind(world_server_id)
         .bind(zone_name)
         .bind(port)
+        .bind(game_server_name)
         .fetch_optional(self.0)
         .await?;
 
