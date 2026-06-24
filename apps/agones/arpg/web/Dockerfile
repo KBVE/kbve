@@ -21,6 +21,7 @@ RUN cd apps/agones/arpg/web && npm install --no-save
 # @kbve/laser is the one cross-repo dep the vite config aliases to source.
 COPY tsconfig.base.json tsconfig.base.json
 COPY packages/npm/laser packages/npm/laser
+COPY packages/data/codegen/generated packages/data/codegen/generated
 COPY apps/agones/arpg/web apps/agones/arpg/web
 
 # Prod endpoints baked at build time. arpg.kbve.com and supabase.kbve.com are
