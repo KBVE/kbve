@@ -35,6 +35,7 @@ import {
 	DEPTH_ENTITY_BASE,
 	DEPTH_UI,
 	ARROW_MAX_RANGE,
+	ARROW_SPEED,
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
@@ -90,6 +91,11 @@ import {
 } from './systems/hud';
 
 const HUD_MAP_SIZE = 33;
+// Safety net for the deferred-bow-hit buffer: if the local arrow never visually
+// lands (its tile-path missed the target), flush the server hit after the
+// longest possible arrow flight so the number still shows. The visual onHit
+// normally flushes first.
+const ARROW_BUFFER_FALLBACK_MS = (ARROW_MAX_RANGE / ARROW_SPEED) * 1000 + 200;
 import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
@@ -230,6 +236,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	// no active click move. Keyboard input clears it.
 	private movePath: TileXY[] = [];
 	private bowShot: BowShot | null = null;
+	// In-flight bow shot (online): the server-authoritative hit for `target` is
+	// buffered until the local arrow lands so feedback syncs to impact.
+	private inflightArrow: { target: number; arrived: boolean } | null = null;
+	private bufferedHits = new Map<number, CombatEvent>();
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// HUD emits are throttled to ~15/s; this accumulates frame time between emits.
 	private hudAccum = 0;
@@ -248,6 +258,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
 	private inventory: InventoryItem[] = [];
+	private spellLoadout: (string | undefined)[] = [];
 	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
 	// The client predicts ahead of the server, so an early walk-over pickup can
 	// land before the server sees us adjacent and gets rejected; we retry on a
@@ -561,11 +572,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
 		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		// Number keys 1-9 use the matching inventory slot; I toggles the full
-		// inventory panel; Escape closes it.
+		// 1-9 cast the matching spell slot; Shift+1-9 use the matching inventory
+		// slot. Read ev.code (Digit1..Digit9), not ev.key: holding Shift rewrites
+		// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
+		// I toggles the full inventory panel; Escape closes it.
 		kb.on('keydown', (ev: KeyboardEvent) => {
-			if (ev.key >= '1' && ev.key <= '9') {
-				this.useInventorySlot(Number(ev.key) - 1);
+			const digit = /^Digit([1-9])$/.exec(ev.code);
+			if (digit) {
+				const idx = Number(digit[1]) - 1;
+				if (ev.shiftKey) this.useInventorySlot(idx);
+				else this.castSpellSlot(idx);
 			} else if (ev.key === 'i' || ev.key === 'I') {
 				this.inventoryOpen = !this.inventoryOpen;
 				emitInventoryOpen(this.inventoryOpen);
@@ -842,6 +858,11 @@ export class IsoArpgScene extends Phaser.Scene {
 						i === idx ? { ...s, count: left } : s,
 					);
 		emitInventory(this.inventory);
+	}
+
+	private castSpellSlot(idx: number): void {
+		const spell = this.spellLoadout[idx];
+		if (!spell) return;
 	}
 
 	/**
@@ -1138,6 +1159,36 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private onCombat(c: CombatEvent) {
+		// The server resolves a bow shot the instant it looses, but the client's
+		// arrow is still in flight. If this hit is from the local player's arrow
+		// heading at this target, defer the feedback until the arrow lands
+		// (flushed in onArrowArrive / a travel-time fallback) so the number and
+		// recoil sync to impact instead of popping at release.
+		if (
+			c.attacker === this.myEid &&
+			this.inflightArrow &&
+			this.inflightArrow.target === c.target &&
+			!this.inflightArrow.arrived
+		) {
+			this.bufferedHits.set(c.target, c);
+			this.time.delayedCall(ARROW_BUFFER_FALLBACK_MS, () =>
+				this.flushBufferedHit(c.target),
+			);
+			return;
+		}
+		this.showCombat(c);
+	}
+
+	/** Flush a deferred bow hit (server already resolved it) on arrow impact. */
+	private flushBufferedHit(target: number) {
+		if (this.inflightArrow?.target === target) this.inflightArrow = null;
+		const c = this.bufferedHits.get(target);
+		if (!c) return;
+		this.bufferedHits.delete(target);
+		this.showCombat(c);
+	}
+
+	private showCombat(c: CombatEvent) {
 		const refs = this.store.refs(c.target);
 		if (!refs) return;
 		floatingText(
@@ -1721,17 +1772,34 @@ export class IsoArpgScene extends Phaser.Scene {
 			aim,
 			(tx, ty) => this.arrowHitTest(tx, ty),
 			(serverEid, dmg) => {
-				if (this.localMode) this.applyLocalHit(serverEid, dmg);
+				if (this.localMode) {
+					this.applyLocalHit(serverEid, dmg);
+					return;
+				}
+				// Online: the arrow reached the target — release the buffered
+				// server hit now so the number + recoil land on impact.
+				if (this.inflightArrow?.target === serverEid) {
+					this.inflightArrow.arrived = true;
+					this.flushBufferedHit(serverEid);
+				}
 			},
-			() => this.client?.action(ACTION_SHOOT, shotTarget ?? null),
+			() => {
+				this.client?.action(ACTION_SHOOT, shotTarget ?? null);
+				this.inflightArrow =
+					shotTarget != null
+						? { target: shotTarget, arrived: false }
+						: null;
+			},
 		);
 	}
 
 	/**
-	 * Pick the hostile best aligned with the aim ray within bow range: nearest
-	 * along the aim direction whose perpendicular offset from the line is small.
-	 * Lets right-click aim-fire send the server a concrete ACTION_SHOOT target
-	 * (the server resolves the hit from the target entity, not a bare direction).
+	 * Acquire the hostile the arrow will actually hit by marching the aim ray in
+	 * tile steps and returning the first hostile tile crossed — the SAME rounded
+	 * `store.at` model the flying arrow's `arrowHitTest` uses. Keeping acquisition
+	 * and the visual arrow on one hit model is what makes the server register the
+	 * shot the player sees connect (a perpendicular-distance test diverged from
+	 * the arrow and dropped grazing hits).
 	 */
 	private acquireBowTarget(from: TileXY, aim: TileXY): number | undefined {
 		const adx = aim.x - from.x;
@@ -1740,24 +1808,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (amag < 1e-3) return undefined;
 		const nx = adx / amag;
 		const ny = ady / amag;
-		let best: number | undefined;
-		let bestAlong = Infinity;
-		for (const [serverEid] of this.store.entries()) {
-			if (!this.isHostileServer(serverEid)) continue;
-			const t = this.store.tile(serverEid);
-			if (!t) continue;
-			const dx = t.x - from.x;
-			const dy = t.y - from.y;
-			const along = dx * nx + dy * ny;
-			if (along <= 0 || along > ARROW_MAX_RANGE) continue;
-			const perp = Math.abs(dx * ny - dy * nx);
-			if (perp > 0.8) continue;
-			if (along < bestAlong) {
-				bestAlong = along;
-				best = serverEid;
-			}
+		const range = Math.min(amag, ARROW_MAX_RANGE);
+		let lastTx = Number.NaN;
+		let lastTy = Number.NaN;
+		for (let d = 0.5; d <= range; d += 0.5) {
+			const tx = Math.round(from.x + nx * d);
+			const ty = Math.round(from.y + ny * d);
+			if (tx === lastTx && ty === lastTy) continue;
+			lastTx = tx;
+			lastTy = ty;
+			const hit = this.store.at(tx, ty, this.myEid);
+			if (hit && this.isHostileServer(hit.serverEid))
+				return hit.serverEid;
 		}
-		return best;
+		return undefined;
 	}
 
 	/**

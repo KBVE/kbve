@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "agones",
  "async-trait",
@@ -3123,6 +3123,17 @@ name = "bevy_skills"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bevy_spells"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost 0.14.3",
+ "prost-build 0.14.3",
  "serde",
  "serde_json",
 ]
