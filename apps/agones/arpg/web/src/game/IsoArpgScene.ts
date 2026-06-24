@@ -39,11 +39,11 @@ import {
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
+	GRASS_TEXTURE_KEY,
+	GRASS_TEXTURE_PATH,
+	SURFACE_MAX_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
-	FOG_ZOOM_OUT,
-	FOG_ZOOM_IN,
-	FOG_MAX_STRENGTH,
 	DEBUG_LOCAL_PLAYER,
 	DEBUG_SPAWN_TILE,
 } from './config';
@@ -55,7 +55,13 @@ import {
 	type TileXY,
 } from './iso';
 import { CursorController, Cursor } from './input/cursor';
-import { EntityStore } from './ecs/store';
+import {
+	makeFogState,
+	buildFog,
+	syncFogToZoom,
+	type FogState,
+} from './systems/fog';
+import { EntityStore } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -77,7 +83,17 @@ import {
 	chunkGate,
 	chunkPassageWidth,
 	CHUNK_SIZE,
+	StairKind,
+	stairTile,
 } from './systems/dungeon';
+import { preloadStairs } from './entities/stairs';
+import {
+	makeDungeonView,
+	refreshDungeonView,
+	rebuildDungeonView,
+	placeStairs as placeStairsView,
+	type DungeonView,
+} from './systems/dungeonView';
 import { findHierPath, type GateGraph } from './systems/pathfind';
 import { fireBow, showDamage, type BowShot } from './combat/bow';
 import {
@@ -124,6 +140,13 @@ import {
 	APEX_PREDATOR,
 	DEBUG_CREATURE_DIRS,
 } from './entities/creatures';
+import {
+	newInterp,
+	pushSample,
+	resetInterp,
+	sampleAt,
+	INTERP_DELAY_MS,
+} from './systems/interp';
 import {
 	preloadEnv,
 	registerEnvAnims,
@@ -216,11 +239,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		passageWidth: (acx, acy, bcx, bcy) =>
 			chunkPassageWidth(this.dungeon.worldSeed, acx, acy, bcx, bcy),
 	};
-	private chunkGrounds = new Map<string, Phaser.GameObjects.Container>();
-	private holeLayer!: Phaser.GameObjects.Graphics;
-	private fog?: Phaser.GameObjects.Image;
-	private fogVignette?: Phaser.Filters.Vignette;
-	private lastChunkKey = '';
+	private dungeonView!: DungeonView;
+	private fog: FogState = makeFogState();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<
 		'up' | 'down' | 'left' | 'right',
@@ -260,6 +280,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
+	// Floors above the dungeon (z <= SURFACE_MAX_Z) are open grassland: grass
+	// ground, no dungeon walls/holes, everything walkable. Base layer for now.
+	private isSurface = (): boolean => this.currentFloor <= SURFACE_MAX_Z;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -305,9 +328,11 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	preload() {
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
+		this.load.image(GRASS_TEXTURE_KEY, arpgAsset(GRASS_TEXTURE_PATH));
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
+		preloadStairs(this);
 	}
 
 	create() {
@@ -318,7 +343,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
 
 		this.drawGrid();
-		this.buildFog();
+		buildFog(this, this.fog);
 		this.setupInput();
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
@@ -352,206 +377,35 @@ export class IsoArpgScene extends Phaser.Scene {
 		// It is just the backdrop — the dungeon's room/corridor look is a
 		// separate tile eco-system drawn ON TOP later. The DungeonField still
 		// drives walkability + streaming; it does NOT carve this base.
-		this.buildGroundPlane();
+		this.dungeonView = makeDungeonView(this);
 		this.refreshDungeon(DEBUG_SPAWN_TILE, true);
+		this.placeStairs();
 		this.hoverTile = this.makeHoverTile();
 	}
 
-	private buildGroundPlane() {
-		// Black diamonds punched over every non-floor tile, above the ground but
-		// below entities — the dungeon's room/corridor shape reads as the holes
-		// in the tiled ground.
-		this.holeLayer = this.add.graphics().setDepth(DEPTH_TILE + 1);
-	}
-
-	/**
-	 * Distance fog. On WebGL it uses Phaser 4's built-in per-pixel Vignette
-	 * camera filter (GPU, the right hook for richer fog / fog-of-war later). On
-	 * the canvas renderer (no filters) it falls back to a radial vignette image
-	 * locked to the camera. Either way: clear around the player, fogged toward
-	 * the streaming boundary instead of a hard void cliff. The fog only matters
-	 * when zoomed OUT (the void edge is visible); zoomed in it fades away —
-	 * driven by syncFogToZoom().
-	 */
-	private buildFog() {
-		if (this.renderer.type === Phaser.WEBGL) {
-			this.fogVignette = this.cameras.main.filters.internal.addVignette(
-				0.5,
-				0.5,
-				0.62,
-				0,
-				0x05070d,
-			);
-			this.syncFogToZoom();
-			return;
-		}
-		this.buildFogVignette();
-	}
-
-	/** Canvas-renderer fallback: a radial gradient vignette over the viewport. */
-	private buildFogVignette() {
-		const key = 'arpg-fog-radial';
-		if (!this.textures.exists(key)) {
-			const size = 512;
-			const tex = this.textures.createCanvas(key, size, size);
-			const ctx = tex!.getContext();
-			const r = size / 2;
-			const grad = ctx.createRadialGradient(r, r, r * 0.42, r, r, r);
-			grad.addColorStop(0, 'rgba(8,9,14,0)');
-			grad.addColorStop(0.7, 'rgba(8,9,14,0.55)');
-			grad.addColorStop(1, 'rgba(8,9,14,1)');
-			ctx.fillStyle = grad;
-			ctx.fillRect(0, 0, size, size);
-			tex!.refresh();
-		}
-
-		this.fog = this.add
-			.image(0, 0, key)
-			.setOrigin(0.5, 0.5)
-			.setScrollFactor(0)
-			.setDepth(DEPTH_UI - 1);
-		this.sizeFog();
-		this.scale.on(Phaser.Scale.Events.RESIZE, this.sizeFog, this);
-	}
-
-	/** Stretch the fog vignette to blanket the whole viewport, centred. */
-	private sizeFog() {
-		if (!this.fog) return;
-		const cam = this.cameras.main;
-		const w = cam.width;
-		const h = cam.height;
-		// Overscale so the opaque rim always reaches past the corners.
-		const span = Math.hypot(w, h) * 1.15;
-		this.fog.setPosition(w / 2, h / 2);
-		this.fog.setDisplaySize(span, span);
-	}
-
-	/**
-	 * Fog only matters when zoomed OUT, where the streamed void boundary comes
-	 * into view; zoomed in the screen is tight and fog just dims the scene. Map
-	 * zoom -> fog strength: full at FOG_ZOOM_OUT, fading to none by FOG_ZOOM_IN.
-	 * The canvas fallback image's alpha rides the same curve.
-	 */
-	private syncFogToZoom() {
-		const zoom = this.cameras.main.zoom;
-		const t = Phaser.Math.Clamp(
-			(FOG_ZOOM_IN - zoom) / (FOG_ZOOM_IN - FOG_ZOOM_OUT),
-			0,
-			1,
-		);
-		const strength = t * FOG_MAX_STRENGTH;
-		if (this.fogVignette) this.fogVignette.strength = strength;
-		if (this.fog) this.fog.setAlpha(t);
-	}
-
-	/**
-	 * Stream the dungeon window to `focus` on a chunk change: regenerate the
-	 * field, build a WORLD-anchored ground tile for each newly-entered chunk,
-	 * unload the ones left behind, and repaint the hole diamonds. Each chunk's
-	 * ground is fixed at its own world origin, so nothing slides as the player
-	 * walks — areas simply load ahead and unload behind. `force` runs on build.
-	 */
 	private refreshDungeon(focus: TileXY, force = false) {
-		const { cx, cy } = chunkOf(focus.x, focus.y);
-		const ckey = `${cx}:${cy}`;
-		if (!force && ckey === this.lastChunkKey) return;
-		this.lastChunkKey = ckey;
-
-		const { added, removed } = this.dungeon.refresh(focus);
-		for (const c of added) this.buildChunkGround(c.cx, c.cy);
-		for (const c of removed) this.unloadChunkGround(c.cx, c.cy);
-		this.paintHoles(cx, cy);
-	}
-
-	/**
-	 * Hard reset of the rendered dungeon — used on a floor change, where the
-	 * whole layout is replaced (a fresh `this.dungeon` was assigned). Tear down
-	 * every chunk ground, clear holes, and force a re-stream around the new
-	 * position.
-	 */
-	private rebuildDungeon() {
-		for (const plane of this.chunkGrounds.values()) plane.destroy();
-		this.chunkGrounds.clear();
-		this.lastChunkKey = '';
-		this.refreshDungeon(this.predicted, true);
-	}
-
-	/**
-	 * One world-anchored ground tile for a chunk: a TileSprite covering the
-	 * chunk's tile square, projected onto the iso plane (inner sprite rotated
-	 * 45°, parent Container squashed 2:1 — Phaser scales before it rotates, so a
-	 * lone sprite can't be projected directly) and pinned at the chunk's world
-	 * centre. Fixed in world space → the texture never slides.
-	 */
-	private buildChunkGround(cx: number, cy: number) {
-		const key = `${cx}:${cy}`;
-		if (this.chunkGrounds.has(key)) return;
-		const side = CHUNK_SIZE * TILE_W + TILE_W * 2;
-		const sprite = this.add.tileSprite(
-			0,
-			0,
-			side,
-			side,
-			GROUND_TEXTURE_KEY,
+		refreshDungeonView(
+			this,
+			this.dungeonView,
+			this.dungeon,
+			this.isSurface(),
+			focus,
+			force,
 		);
-		sprite.setOrigin(0.5, 0.5);
-		sprite.setRotation(-Math.PI / 4);
-
-		// World centre of the chunk's tile square.
-		const midX = cx * CHUNK_SIZE + CHUNK_SIZE / 2;
-		const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
-		const c = worldToScreen(midX, midY);
-		const plane = this.add.container(c.x, c.y, [sprite]);
-		plane.setScale(1, 0.5);
-		plane.setDepth(DEPTH_TILE);
-
-		// Phase the texture by the chunk's screen centre rotated into the
-		// sprite's own (un-rotated) frame, so every chunk samples one continuous
-		// texture — borders between chunk grounds blend with no visible seam.
-		const cos = Math.cos(Math.PI / 4);
-		const sin = Math.sin(Math.PI / 4);
-		const ux = c.x;
-		const uy = c.y / 0.5;
-		sprite.tilePositionX = ux * cos - uy * sin;
-		sprite.tilePositionY = ux * sin + uy * cos;
-		this.chunkGrounds.set(key, plane);
 	}
 
-	private unloadChunkGround(cx: number, cy: number) {
-		const key = `${cx}:${cy}`;
-		this.chunkGrounds.get(key)?.destroy();
-		this.chunkGrounds.delete(key);
+	private rebuildDungeon() {
+		rebuildDungeonView(
+			this,
+			this.dungeonView,
+			this.dungeon,
+			this.isSurface(),
+			this.predicted,
+		);
 	}
 
-	/**
-	 * Repaint the hole layer: a black iso diamond on every non-floor tile in the
-	 * live chunk window. Painting holes (sparse walls) rather than floors keeps
-	 * the tiled ground texture intact underneath the walkable space.
-	 */
-	private paintHoles(cx: number, cy: number) {
-		const g = this.holeLayer;
-		g.clear();
-		g.fillStyle(0x05070d, 1);
-		const hw = TILE_W / 2;
-		const hh = TILE_H / 2;
-		const r = DUNGEON_RADIUS;
-		const minX = (cx - r) * CHUNK_SIZE;
-		const minY = (cy - r) * CHUNK_SIZE;
-		const maxX = (cx + r + 1) * CHUNK_SIZE;
-		const maxY = (cy + r + 1) * CHUNK_SIZE;
-		for (let y = minY; y < maxY; y++) {
-			for (let x = minX; x < maxX; x++) {
-				if (this.dungeon.isFloor(x, y)) continue;
-				const p = worldToScreen(x, y);
-				g.beginPath();
-				g.moveTo(p.x, p.y - hh);
-				g.lineTo(p.x + hw, p.y);
-				g.lineTo(p.x, p.y + hh);
-				g.lineTo(p.x - hw, p.y);
-				g.closePath();
-				g.fillPath();
-			}
-		}
+	private placeStairs() {
+		placeStairsView(this, this.dungeonView, this.dungeon);
 	}
 
 	private makeHoverTile(): Phaser.GameObjects.Graphics {
@@ -594,6 +448,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			} else if (ev.key === 'i' || ev.key === 'I') {
 				this.inventoryOpen = !this.inventoryOpen;
 				emitInventoryOpen(this.inventoryOpen);
+			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
+				this.debugChangeFloor(-1); // ascend (toward grass surface)
+			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
+				this.debugChangeFloor(1); // descend (deeper dungeon)
 			} else if (ev.key === 'Escape') {
 				if (this.placingRef) {
 					this.exitPlacement();
@@ -713,6 +571,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs = {
 						sprite: creatureSprite.sprite,
 						creature: creatureSprite.creature,
+						interp: newInterp(this.time.now, e.tile.x, e.tile.y),
 					};
 					if (DEBUG_CREATURE_DIRS) {
 						refs.dbgText = this.add
@@ -770,8 +629,18 @@ export class IsoArpgScene extends Phaser.Scene {
 				refs.statusFx = this.add.graphics().setDepth(DEPTH_UI - 1);
 				return refs;
 			},
-			move: (refs, tile) => this.tweenTo(refs, tile, true),
-			setPos: (refs, tile) => this.placeRefs(refs, tile),
+			move: (refs, tile) => {
+				if (refs.interp) {
+					pushSample(refs.interp, this.time.now, tile.x, tile.y);
+				} else {
+					this.tweenTo(refs, tile, true);
+				}
+			},
+			setPos: (refs, tile) => {
+				if (refs.interp)
+					resetInterp(refs.interp, this.time.now, tile.x, tile.y);
+				this.placeRefs(refs, tile);
+			},
 			follow: (refs) =>
 				this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12),
 			remove: (refs, eid) => {
@@ -1333,13 +1202,26 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.hudMap = null;
 		this.hudMapTile = null;
 		this.rebuildDungeon();
+		this.placeStairs();
+	}
+
+	/**
+	 * Offline-only floor change (no server). Mirrors the server stair link: dz=-1
+	 * ascends onto the target floor's Down stair, dz=+1 descends onto its Up
+	 * stair, so the local player lands on a real tile. Lets us test the grass
+	 * surface (z<0) without a live arpg-server.
+	 */
+	private debugChangeFloor(dz: number) {
+		const z = this.currentFloor + dz;
+		const land = dz < 0 ? StairKind.Down : StairKind.Up;
+		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
+		this.onFloorChange({ z, tile });
 	}
 
 	update(time: number, delta: number) {
-		// Smooth facing runs every frame (independent of the movement sim) so
-		// the 16-dir turn curve stays fluid even between tile crossings.
+		this.tickCreatureInterp();
 		this.tickFacing();
-		this.syncFogToZoom();
+		syncFogToZoom(this, this.fog);
 		if (this.envDirty) {
 			this.refreshEnvBlocked();
 			this.envDirty = false;
@@ -1419,9 +1301,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		const ox = tile.x - r;
 		const oy = tile.y - r;
 		const cells = new Uint8Array(size * size);
+		const surface = this.isSurface();
 		for (let j = 0; j < size; j++) {
 			for (let i = 0; i < size; i++) {
-				if (this.dungeon.isFloor(ox + i, oy + j)) {
+				if (surface || this.dungeon.isFloor(ox + i, oy + j)) {
 					cells[j * size + i] = 1;
 				}
 			}
@@ -1590,6 +1473,33 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.placeNameplate(refs);
 	}
 
+	private tickCreatureInterp() {
+		const renderTime = this.time.now - INTERP_DELAY_MS;
+		for (const [, , refs] of this.store.entries()) {
+			if (!refs.interp || !refs.creature) continue;
+			if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
+			const s = sampleAt(refs.interp, renderTime);
+			if (!s) continue;
+			const p = worldToScreen(s.x, s.y);
+			refs.sprite.setPosition(p.x, p.y + 8);
+			refs.sprite.setDepth(
+				DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
+			);
+			this.syncShadow(refs);
+			this.placeNameplate(refs);
+			const st = refs.creature.state;
+			if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
+			if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
+				setCreaturePose(refs.sprite, refs.creature, 'Walking', {
+					dx: s.vx,
+					dy: s.vy,
+				});
+			} else {
+				setCreaturePose(refs.sprite, refs.creature, 'Idle');
+			}
+		}
+	}
+
 	/** Lerp every class entity's facing toward its movement target this frame. */
 	private tickFacing() {
 		for (const [, , refs] of this.store.entries()) {
@@ -1697,6 +1607,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
 	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
+		if (this.isSurface()) return this.envBlocked.has(`${x},${y}`);
 		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
 	};
 

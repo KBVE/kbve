@@ -6,6 +6,8 @@ import {
 	chunkGate,
 	generateChunk,
 	CHUNK_SIZE,
+	stairTile,
+	StairKind,
 } from './dungeon';
 
 const SEED = 0x5eed1;
@@ -63,6 +65,30 @@ describe('arpg dungeon parity', () => {
 		const a = chunkGate(SEED, 0, 0);
 		const b = chunkGate(SEED, 1, 0);
 		expect(isFloorAt(SEED, b.x, a.y)).toBe(true);
+	});
+
+	it('stair tiles match the frozen Rust stair_tile (parity)', () => {
+		// FROZEN — equals simgrid::arpg_dungeon::stair_tile(0x5eed1, z, kind). The
+		// client renders the stair prop on this exact tile; the server's
+		// Stairs::at triggers the floor change on it. Update BOTH sides together.
+		const frozen: Record<
+			number,
+			{ down: [number, number]; up: [number, number] }
+		> = {
+			0: { down: [-30, -28], up: [46, -6] },
+			1: { down: [33, 27], up: [46, -10] },
+			2: { down: [-30, 14], up: [10, -34] },
+		};
+		for (const z of [0, 1, 2]) {
+			const fs = floorSeed(SEED, z);
+			const d = stairTile(fs, StairKind.Down);
+			const u = stairTile(fs, StairKind.Up);
+			expect([d.x, d.y]).toEqual(frozen[z].down);
+			expect([u.x, u.y]).toEqual(frozen[z].up);
+			// Both endpoints are walkable on their floor.
+			expect(isFloorAt(fs, d.x, d.y)).toBe(true);
+			expect(isFloorAt(fs, u.x, u.y)).toBe(true);
+		}
 	});
 
 	it('isFloorAt agrees with a generated chunk floor set', () => {

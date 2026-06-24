@@ -15,13 +15,13 @@ controllerServiceAccount:
 
 # Scaling — UE builds are heavy, keep pool small
 minRunners: 0
-maxRunners: 2
+maxRunners: 1
 
 # Bump RESTART_TRIGGER to force a pod rollout without changing images.
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260624-ram-dind'
+            kbve.com/restart-trigger: '20260624-ram-dind-64g'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -91,7 +91,7 @@ template:
               resources:
                   limits:
                       cpu: '4'
-                      memory: 56Gi
+                      memory: 80Gi
                   requests:
                       cpu: '1'
                       memory: 8Gi
@@ -118,7 +118,7 @@ template:
             - name: dind-storage
               emptyDir:
                   medium: Memory
-                  sizeLimit: 40Gi
+                  sizeLimit: 64Gi
             - name: shared-tmp
               emptyDir:
                   medium: Memory

@@ -12,6 +12,7 @@ import {
 	KIND_CAT_PLAYER,
 	type KindResolvers,
 } from '../systems/kindResolvers';
+import type { InterpBuffer } from '../systems/interp';
 import {
 	CLASS_ANGLES,
 	LOCOMOTION_STATES,
@@ -99,6 +100,7 @@ export interface EntityRefs {
 	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
 	creature?: CreatureView;
+	interp?: InterpBuffer;
 	dbgText?: Phaser.GameObjects.Text;
 	dbgArrow?: Phaser.GameObjects.Graphics;
 	/** Time of this entity's last step tween — used to pace the next one to the

@@ -1,5 +1,4 @@
-import type { KindEntry } from '@kbve/laser';
-import type { EntityCat } from '../ecs/store';
+import type { KindEntry, EntityCat } from '@kbve/laser';
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;

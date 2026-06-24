@@ -57,7 +57,7 @@ export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 // BLEND_TIMESCALE_FROM up to 1 so the flipbook spins up instead of snapping.
 // Facing turn curve: per-frame lerp factor pulling the visual facing angle
 // toward the movement target. Lower = lazier, smoother arcs; 1 = instant snap.
-export const TURN_LERP = 0.22;
+export const TURN_LERP = 0.15;
 
 export const BLEND_MS = 110;
 export const BLEND_TIMESCALE_FROM = 0.45;
@@ -123,6 +123,14 @@ export function arpgAsset(path: string): string {
 
 export const GROUND_TEXTURE_KEY = 'arpg-ground';
 export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
+
+// Surface (overworld) floors sit ABOVE the dungeon. The up-stair goes z-1, so any
+// floor below z=0 is open grassland — no dungeon walls, grass ground. Base layer
+// for now; per-tile detailing comes later.
+export const SURFACE_MAX_Z = -1; // z <= this = open grass surface
+export const GRASS_TEXTURE_KEY = 'arpg-grass';
+export const GRASS_TEXTURE_PATH =
+	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
 
 // Offline debug: when no server connects, spawn a locally-driven ranger so the
 // character renders and is controllable without a live arpg-server.
