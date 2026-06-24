@@ -229,6 +229,11 @@ spec:
                                 name: arpg-discord
                                 key: DISCORD_CLIENT_SECRET
                                 optional: true
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
                   volumeMounts:
                       - name: pg-ca
                         mountPath: /etc/ssl/pgca
