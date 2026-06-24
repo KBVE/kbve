@@ -9,6 +9,8 @@ metadata:
         kbve.com/category: observability
         kbve.com/stack: core
         kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
 spec:
     selector:
         matchLabels:

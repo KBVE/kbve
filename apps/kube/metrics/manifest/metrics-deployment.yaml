@@ -67,10 +67,7 @@ spec:
                       - name: METRICS_RATE_LIMIT_PER_MIN
                         value: '120'
                       - name: CLICKHOUSE_ENDPOINT
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-credentials
-                                key: endpoint
+                        value: http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123
                       - name: CLICKHOUSE_USERNAME
                         valueFrom:
                             secretKeyRef:

@@ -15,7 +15,7 @@ controllerServiceAccount:
 
 # Scaling — UE builds are heavy, keep pool small
 minRunners: 0
-maxRunners: 3
+maxRunners: 2
 
 # Bump RESTART_TRIGGER to force a pod rollout without changing images.
 template:
