@@ -492,9 +492,11 @@ Add to `apps/rows/src/jobs.rs` (import `crate::agones::reaper`):
 /// path is independently gated by `reap_never_reported`.
 ///
 /// Teardown ordering is deallocate-FIRST: only on a successful `deallocate` do we drop the
-/// in-memory tracking and flip `status=0`. On failure (or unknown GameServer) we leave the row
-/// at `status>0` and tracked, so the next 60s cycle re-evaluates and retries — a transient
-/// Agones error can never strand a GameServer.
+/// in-memory tracking and flip `status=0`. On a deallocate *failure* we leave the row at
+/// `status>0` and tracked, so the next 60s cycle re-evaluates and retries — a transient Agones
+/// error can never strand a GameServer. The one exception is an instance with no resolvable
+/// GameServer name (legacy/reconcile-miss): there's nothing to deallocate, so it's flipped
+/// `status=0` (terminal) with a one-time warn rather than re-warned forever.
 async fn empty_server_reaper(svc: Arc<OWSService>) {
     use crate::agones::reaper::reap_decision;
 
@@ -553,7 +555,16 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
                     .flatten(),
             };
             let Some(gs) = gs_name else {
-                warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: cannot resolve GameServer name — leaving for retry");
+                // Terminal state for the no-name case (legacy rows from before the `gameservername`
+                // column, or a `reconcile_allocations` miss). We can't deallocate a GameServer we
+                // can't name, so flip status=0 to drop it from routing AND the candidate set, and
+                // surface it ONCE for manual/infra check — instead of re-warning every 60s forever.
+                // Deliberate, narrow exception to deallocate-first: in practice these are legacy
+                // rows whose pod is already gone; a still-live one is flagged for `kubectl` cleanup.
+                match repo.shut_down_server_instance(guid, inst.map_instance_id).await {
+                    Ok(()) => warn!(instance_id = inst.map_instance_id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
+                    Err(e) => warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0 for unresolvable instance"),
+                }
                 continue;
             };
 
