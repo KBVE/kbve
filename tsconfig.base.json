@@ -27,6 +27,7 @@
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["packages/npm/laser/src/ecs.ts"],
 			"@kbve/npcdb": ["packages/data/codegen/npcdb.ts"],
+			"@kbve/spelldb": ["packages/data/codegen/spelldb.ts"],
 			"@kbve/observ": ["packages/npm/observ/src/index.ts"],
 			"@kbve/proto": ["packages/data/codegen/generated/index.ts"],
 			"@kbve/proto/*": ["packages/data/codegen/generated/*"],
