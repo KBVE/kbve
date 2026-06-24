@@ -64,7 +64,6 @@ resources:
     - agones/rows-tenants/chuckrpg-beta/application.yaml
     # - agones/rows-tenants/chuckrpg-prod/application.yaml  # DISABLED: prod fleet scaffolded; enable per chuckrpg-prod/application.yaml steps
     - agones/mc/application.yaml
-    - agones/nd-server/application.yaml
     - agones/cryptothrone/application.yaml
     - agones/arpg/application.yaml
     - agones/factorio/application.yaml
