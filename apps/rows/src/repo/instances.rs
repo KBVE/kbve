@@ -55,7 +55,13 @@ impl<'a> InstanceRepo<'a> {
     ) -> Result<(), RowsError> {
         sqlx::query(
             "UPDATE mapinstances
-             SET numberofreportedplayers = $3, lastupdatefromserver = NOW()
+             SET numberofreportedplayers = $3,
+                 lastupdatefromserver = NOW(),
+                 lastserveremptydate = CASE
+                     WHEN $3 > 0 THEN NULL
+                     WHEN lastserveremptydate IS NULL THEN NOW()
+                     ELSE lastserveremptydate
+                 END
              WHERE customerguid = $1 AND mapinstanceid = $2",
         )
         .bind(customer_guid)
