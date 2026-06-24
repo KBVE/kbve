@@ -1,0 +1,56 @@
+---
+title: Portal
+description: |
+  Staff portal — quick links to KBVE internal dashboards and external infrastructure UIs.
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: Portal
+    order: 0
+tags:
+    - dashboard
+    - portal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+The portal gathers the gated KBVE tooling in one place. The **external** infrastructure UIs open
+in a new tab and sit behind their own logins; the **internal** entries are the in-site dashboards.
+
+## External Infrastructure
+
+<CardGrid>
+	<Card title="Longhorn">
+		Distributed block storage — volumes, snapshots, and backups.
+
+		<a href="https://longhorn.kbve.com/" target="_blank" rel="noopener noreferrer">Open Longhorn →</a>
+	</Card>
+	<Card title="Grafana">
+		Cluster metrics, dashboards, and alerting.
+
+		<a href="https://grafana.kbve.com/" target="_blank" rel="noopener noreferrer">Open Grafana →</a>
+	</Card>
+	<Card title="ArgoCD">
+		GitOps deployments and application sync status.
+
+		<a href="https://argo.kbve.com/" target="_blank" rel="noopener noreferrer">Open ArgoCD →</a>
+	</Card>
+</CardGrid>
+
+## Internal Dashboards
+
+<CardGrid>
+	<LinkCard title="Overview" href="/dashboard/" description="Dashboard home — service status at a glance." />
+	<LinkCard title="Grafana" href="/dashboard/grafana/" description="Proxied cluster monitoring." />
+	<LinkCard title="ArgoCD" href="/dashboard/argo/" description="Proxied deployment status." />
+	<LinkCard title="ClickHouse" href="/dashboard/clickhouse/" description="Log aggregation and analytics." />
+	<LinkCard title="Edge" href="/dashboard/edge/" description="Edge function health." />
+	<LinkCard title="Forgejo" href="/dashboard/forgejo/" description="Git hosting dashboard." />
+	<LinkCard title="Virtual Machines" href="/dashboard/vm/" description="KubeVirt VM management." />
+	<LinkCard title="IDE" href="/dashboard/ide/" description="Cloud development environment." />
+	<LinkCard title="Telemetry" href="/dashboard/telemetry/" description="Observability and traces." />
+	<LinkCard title="GameOps" href="/dashboard/gameops/" description="ROWS, Factorio, and Minecraft ops." />
+	<LinkCard title="Security" href="/dashboard/security/" description="Security audit dashboard." />
+	<LinkCard title="API" href="/dashboard/api/" description="Live OpenAPI reference." />
+</CardGrid>
