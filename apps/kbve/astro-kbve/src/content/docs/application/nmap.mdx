@@ -1,5 +1,5 @@
 ---
-title: Nmap
+title: 'Nmap Cheatsheet: Commands, Examples & Tutorials'
 description: |
     Nmap is a network scanner, port mapper, service fingerprinter and
     NSE-driven security probe. Full cheatsheet with practical recipes.
@@ -11,6 +11,62 @@ img: https://images.unsplash.com/photo-1551609189-eba71b3a8566?fit=crop&w=1400&h
 tags:
     - network
     - security
+jsonld:
+    type: Article
+    section: Security
+    author: KBVE
+    datePublished: '2026-06-24'
+    dateModified: '2026-06-24'
+    keywords:
+        - nmap
+        - network scanner
+        - port scanning
+        - service detection
+        - OS fingerprinting
+        - NSE
+        - Nmap Scripting Engine
+        - vulnerability scanning
+        - penetration testing
+        - firewall evasion
+        - host discovery
+        - cybersecurity tools
+    breadcrumb:
+        - name: KBVE
+          path: /
+        - name: Application
+          path: /application/
+        - name: Nmap
+          path: /application/nmap/
+    faq:
+        - question: Is it legal to use Nmap?
+          answer: >-
+              Nmap itself is legal, but scanning networks you do not own or
+              lack written permission to scan is illegal in most jurisdictions.
+              Stick to your own infrastructure, CTF ranges like HackTheBox or
+              TryHackMe, scanme.nmap.org, and engagements with a signed scope.
+        - question: What is the difference between an -sS and -sT scan in Nmap?
+          answer: >-
+              -sS is a TCP SYN (half-open) scan that never completes the
+              handshake, making it fast and stealthier, but it requires root.
+              -sT is a full TCP connect() scan that completes the handshake;
+              it works unprivileged but is slower and noisier.
+        - question: How do I scan all 65535 ports with Nmap?
+          answer: >-
+              Use the -p- flag, for example "sudo nmap -p- TARGET", to scan
+              every TCP port. Combine with --min-rate and -T4 for speed, e.g.
+              "sudo nmap -p- --min-rate 5000 -T4 TARGET".
+        - question: What is the Nmap Scripting Engine (NSE)?
+          answer: >-
+              NSE lets Nmap run Lua scripts for advanced discovery, version
+              detection, vulnerability checks and brute forcing. Scripts are
+              grouped into categories such as default, safe, vuln and
+              intrusive, and run via --script, for example
+              "sudo nmap --script vuln TARGET".
+        - question: How do I detect service versions and the operating system with Nmap?
+          answer: >-
+              Use -sV for service and version detection and -O for OS
+              fingerprinting. The -A flag bundles both with default scripts and
+              traceroute, equivalent to "-sV -sC -O --traceroute".
 ---
 
 import { Aside, Steps, Card, CardGrid, Code, Tabs, TabItem } from '@astrojs/starlight/components';
@@ -366,6 +422,34 @@ sudo nmap --script vuln TARGET       # known-CVE checks
 sudo nmap -oA scan TARGET            # save all formats
 sudo nmap -T4 --min-rate 1000 TARGET # fast pass
 ```
+
+## FAQ
+
+**Is it legal to use Nmap?**
+Nmap itself is legal, but scanning networks you don't own or lack written
+permission to scan is illegal in most jurisdictions. Stick to your own
+infrastructure, CTF ranges (HackTheBox / TryHackMe), `scanme.nmap.org`, and
+engagements with a signed scope.
+
+**What is the difference between an `-sS` and `-sT` scan?**
+`-sS` is a TCP SYN (half-open) scan that never finishes the handshake — fast
+and stealthier, but root-only. `-sT` is a full TCP `connect()` scan that
+completes the handshake; it works unprivileged but is slower and noisier.
+
+**How do I scan all 65535 ports?**
+Use `-p-`, e.g. `sudo nmap -p- TARGET`. For speed, add a rate floor and timing
+template: `sudo nmap -p- --min-rate 5000 -T4 TARGET`.
+
+**What is the Nmap Scripting Engine (NSE)?**
+NSE runs Lua scripts for advanced discovery, version detection, vulnerability
+checks and brute forcing. Scripts are grouped into categories (`default`,
+`safe`, `vuln`, `intrusive`, …) and run via `--script`, e.g.
+`sudo nmap --script vuln TARGET`.
+
+**How do I detect service versions and the OS?**
+Use `-sV` for service/version detection and `-O` for OS fingerprinting. The
+`-A` flag bundles both with default scripts and traceroute
+(`-sV -sC -O --traceroute`).
 
 ## Related Companions
 

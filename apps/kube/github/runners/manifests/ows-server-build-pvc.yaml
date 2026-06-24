@@ -12,7 +12,7 @@ metadata:
 spec:
     accessModes:
         - ReadWriteMany
-    storageClassName: longhorn
+    storageClassName: longhorn-sdb
     resources:
         requests:
             storage: 50Gi
