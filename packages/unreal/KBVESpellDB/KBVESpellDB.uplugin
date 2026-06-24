@@ -1,0 +1,29 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Spell Database",
+	"Description": "Game-agnostic spell database types for KBVE games. Carries the generated USTRUCTs + yyjson parsers for the shared spelldb artifact (Content/Data/spelldb-data.json), synced from astro-kbve MDX (spelldb).",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Plugins": [
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		}
+	],
+	"Modules": [
+		{
+			"Name": "KBVESpellDB",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
