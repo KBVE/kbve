@@ -402,6 +402,7 @@
 		},
 		"sync:spelldb": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["sync:spelldb-uecpp"],
 			"inputs": [
 				"{projectRoot}/src/content/docs/spelldb/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-spelldb-data.mjs",
@@ -413,6 +414,22 @@
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-spelldb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:spelldb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-spelldb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-spelldb-uecpp.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true
