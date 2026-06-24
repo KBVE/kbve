@@ -1,0 +1,718 @@
+# ROWS Empty-Server Reaper Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Make ROWS automatically tear down empty/abandoned Agones zone servers, so allocated GameServers stop piling up for days.
+
+**Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap *action* reuses the existing `status=0` → `stale_zone_cleanup` → `deallocate` path. A persisted `gameservername` makes teardown survive ROWS restarts. The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.
+
+**Tech Stack:** Rust, axum, sqlx (runtime queries, Postgres), tokio, Agones via kube; dbmate migrations under `packages/data/sql`.
+
+## Global Constraints
+
+- All work in an isolated git worktree off `dev` (per `AGENTS.md`): `./kbve.sh -worktree rows-reaper`. Never commit to `dev`/`main`.
+- Run Nx via `./kbve.sh -nx` in the worktree (sources `.env.local`), never bare `pnpm nx`.
+- Build/test the crate with `cargo` inside `apps/rows` (e.g. `cargo test -p rows`), or `./kbve.sh -nx run rows:test` if a target exists.
+- Conventional commits, no co-author lines. PR targets `dev`.
+- sqlx queries are **runtime** (`sqlx::query`/`query_as`), not the `query!` macro — no `DATABASE_URL` needed to compile, no `.sqlx` cache to update.
+- Migrations: add a new timestamped file under `packages/data/sql/dbmate/migrations/`; also update the reference schema file under `packages/data/sql/schema/ows/` to match. Never hand-edit generated artifacts.
+- Time type is `chrono::NaiveDateTime` (DB `TIMESTAMP`). Compute "now" with `chrono::Utc::now().naive_utc()`.
+
+---
+
+## File Structure
+
+- **Create** `apps/rows/src/agones/reaper.rs` — pure reap-decision logic + unit tests. One responsibility: "given a row's counts/timestamps and config, should it be reaped and why?" No IO.
+- **Modify** `apps/rows/src/agones/mod.rs` — declare `pub mod reaper;` and re-export.
+- **Modify** `apps/rows/src/config.rs` — two new env-driven knobs on the config struct.
+- **Modify** `apps/rows/src/repo/instances.rs` — `get_active_reap_candidates`; resolve `gameservername` for deallocation; persist `gameservername` in `spin_up_server_instance_ready`.
+- **Modify** `apps/rows/src/agones/pipeline.rs` — pass `gameservername` through `create_instance`.
+- **Modify** `apps/rows/src/jobs.rs` — new `empty_server_reaper` task; teach `stale_zone_cleanup` to fall back to the DB `gameservername`.
+- **Modify** `apps/rows/src/repo/instances.rs` (heartbeat) + `apps/rows/src/service/instances.rs` — maintain `LastServerEmptyDate` on player-count update.
+- **Modify** `apps/rows/src/agones/allocate.rs` + callers — stamp `empty-shutdown-minutes` annotation in the allocation request.
+- **Create** `packages/data/sql/dbmate/migrations/<ts>_ows_mapinstance_gameservername.sql` + **Modify** `packages/data/sql/schema/ows/map_instances.sql` — add `GameServerName` column + index.
+
+---
+
+## Phase 1 — Safety-net reaper (ships alone, fixes today's stuck servers, no UE dependency)
+
+### Task 1: Pure reap-decision function
+
+**Files:**
+- Create: `apps/rows/src/agones/reaper.rs`
+- Modify: `apps/rows/src/agones/mod.rs`
+- Test: inline `#[cfg(test)]` in `apps/rows/src/agones/reaper.rs`
+
+**Interfaces:**
+- Produces: `pub enum ReapReason { NeverReported, Empty }` and
+  `pub fn reap_decision(player_count: i32, last_update_from_server: Option<NaiveDateTime>, last_server_empty_date: Option<NaiveDateTime>, create_date: Option<NaiveDateTime>, minutes_to_shutdown_after_empty: i32, boot_grace_secs: i64, empty_buffer_secs: i64, now: NaiveDateTime) -> Option<ReapReason>`
+
+- [ ] **Step 1: Write the failing tests**
+
+```rust
+// apps/rows/src/agones/reaper.rs
+use chrono::NaiveDateTime;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReapReason {
+    /// Allocated but never sent a heartbeat within the boot grace window (crash/legacy/id-bug).
+    NeverReported,
+    /// Reported 0 players for longer than its per-map empty timeout (+ buffer).
+    Empty,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ts(s: &str) -> NaiveDateTime {
+        NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").unwrap()
+    }
+
+    // never-reported: NULL last_update, created longer ago than boot grace -> reap
+    #[test]
+    fn never_reported_past_grace_is_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let created = ts("2026-06-23 11:40:00"); // 20 min ago
+        let d = reap_decision(0, None, None, Some(created), 1, 600, 30, now);
+        assert_eq!(d, Some(ReapReason::NeverReported));
+    }
+
+    // never-reported but still inside boot grace -> keep
+    #[test]
+    fn never_reported_within_grace_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let created = ts("2026-06-23 11:55:00"); // 5 min ago, grace 10 min
+        let d = reap_decision(0, None, Some(ts("2026-06-23 11:55:00")), Some(created), 1, 600, 30, now);
+        assert_eq!(d, None);
+    }
+
+    // empty long enough past minutes+buffer -> reap
+    #[test]
+    fn empty_past_timeout_is_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; 1 min(60s)+30s buffer = 90s
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        assert_eq!(d, Some(ReapReason::Empty));
+    }
+
+    // empty but not yet past minutes+buffer -> keep (server gets first crack)
+    #[test]
+    fn empty_within_timeout_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let empty_since = ts("2026-06-23 11:59:30"); // empty 30s < 90s
+        let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        assert_eq!(d, None);
+    }
+
+    // has players -> never reaped, even if empty marker is stale
+    #[test]
+    fn populated_is_never_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let d = reap_decision(5, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        assert_eq!(d, None);
+    }
+
+    // reported (last_update set), empty marker NULL, has 0 players but no empty-since yet -> keep
+    #[test]
+    fn zero_players_without_empty_marker_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let d = reap_decision(0, Some(now), None, Some(ts("2026-06-23 10:00:00")), 1, 600, 30, now);
+        assert_eq!(d, None);
+    }
+}
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `cd apps/rows && cargo test reaper:: 2>&1 | tail -20`
+Expected: FAIL — `cannot find function reap_decision in this scope`.
+
+- [ ] **Step 3: Write the minimal implementation**
+
+```rust
+// apps/rows/src/agones/reaper.rs  (above the #[cfg(test)] mod)
+
+/// Pure policy: should this instance be torn down, and why?
+/// `None` = keep. The server's own `SDK.Shutdown()` is the primary path; this is the backstop.
+pub fn reap_decision(
+    player_count: i32,
+    last_update_from_server: Option<NaiveDateTime>,
+    last_server_empty_date: Option<NaiveDateTime>,
+    create_date: Option<NaiveDateTime>,
+    minutes_to_shutdown_after_empty: i32,
+    boot_grace_secs: i64,
+    empty_buffer_secs: i64,
+    now: NaiveDateTime,
+) -> Option<ReapReason> {
+    // A populated server is never reaped here.
+    if player_count > 0 {
+        return None;
+    }
+
+    // Layer 4: never heard from it, and it's older than the boot grace window.
+    if last_update_from_server.is_none() {
+        if let Some(created) = create_date {
+            if (now - created).num_seconds() > boot_grace_secs {
+                return Some(ReapReason::NeverReported);
+            }
+        }
+        return None;
+    }
+
+    // Layer 3: empty for longer than its per-map timeout (+ buffer so the server self-shuts first).
+    if let Some(empty_since) = last_server_empty_date {
+        let limit = (minutes_to_shutdown_after_empty.max(0) as i64) * 60 + empty_buffer_secs;
+        if (now - empty_since).num_seconds() > limit {
+            return Some(ReapReason::Empty);
+        }
+    }
+    None
+}
+```
+
+And register the module:
+
+```rust
+// apps/rows/src/agones/mod.rs  — add alongside the other `pub mod` lines
+pub mod reaper;
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `cd apps/rows && cargo test reaper:: 2>&1 | tail -20`
+Expected: PASS — 6 passed.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add apps/rows/src/agones/reaper.rs apps/rows/src/agones/mod.rs
+git commit -m "feat(rows): pure reap-decision policy for empty/abandoned zone servers"
+```
+
+---
+
+### Task 2: Reaper config knobs
+
+**Files:**
+- Modify: `apps/rows/src/config.rs`
+
+**Interfaces:**
+- Produces: two fields on the app config — `empty_reap_boot_grace_secs: i64` (default `600`) and `empty_reap_buffer_secs: i64` (default `30`) — read from env `ROWS_EMPTY_REAP_BOOT_GRACE_SECS` / `ROWS_EMPTY_REAP_BUFFER_SECS`.
+
+- [ ] **Step 1: Read the existing config struct and its env-parse site**
+
+Run: `cd apps/rows && sed -n '50,130p' src/config.rs`
+Expected: see the config struct fields and the `from_env`/builder that uses `std::env::var(...).unwrap_or_else(...)`. Note the exact struct name and where ports are parsed — mirror that pattern.
+
+- [ ] **Step 2: Add the two fields and their env parsing**
+
+Add to the config struct (next to the existing numeric fields):
+
+```rust
+    pub empty_reap_boot_grace_secs: i64,
+    pub empty_reap_buffer_secs: i64,
+```
+
+Populate them where the struct is built from env (next to the port parsing), using the established `std::env::var(...).ok().and_then(|v| v.parse().ok()).unwrap_or(default)` idiom:
+
+```rust
+    let empty_reap_boot_grace_secs = std::env::var("ROWS_EMPTY_REAP_BOOT_GRACE_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(600);
+    let empty_reap_buffer_secs = std::env::var("ROWS_EMPTY_REAP_BUFFER_SECS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(30);
+```
+
+…and pass both into the struct literal that the builder returns.
+
+- [ ] **Step 3: Verify it compiles**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20`
+Expected: builds clean (no "missing field" error on the config literal).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add apps/rows/src/config.rs
+git commit -m "feat(rows): add empty-reaper boot-grace and buffer config knobs"
+```
+
+---
+
+### Task 3: Persist `gameservername` on `mapinstances`
+
+**Files:**
+- Create: `packages/data/sql/dbmate/migrations/<ts>_ows_mapinstance_gameservername.sql`
+- Modify: `packages/data/sql/schema/ows/map_instances.sql`
+- Modify: `apps/rows/src/models.rs` (ZoneInstance) and `apps/rows/src/repo/instances.rs` (`spin_up_server_instance_ready`)
+- Modify: `apps/rows/src/agones/pipeline.rs` (`create_instance`)
+
+**Interfaces:**
+- Produces: `mapinstances.GameServerName VARCHAR(253) NULL`; `spin_up_server_instance_ready` gains a `game_server_name: &str` parameter and writes it; `ZoneInstance` gains `pub game_server_name: Option<String>`.
+
+- [ ] **Step 1: Write the migration**
+
+Use a timestamp after the latest existing migration (e.g. `20260623120000`). Create `packages/data/sql/dbmate/migrations/20260623120000_ows_mapinstance_gameservername.sql`:
+
+```sql
+-- migrate:up
+SET search_path TO ows;
+
+ALTER TABLE MapInstances ADD COLUMN IF NOT EXISTS GameServerName VARCHAR(253) NULL;
+
+-- Supports gs-name -> instance lookup for restart-safe teardown.
+CREATE INDEX IF NOT EXISTS idx_mapinstances_gameservername
+    ON MapInstances (CustomerGUID, GameServerName);
+
+-- migrate:down
+SET search_path TO ows;
+
+DROP INDEX IF EXISTS ows.idx_mapinstances_gameservername;
+ALTER TABLE MapInstances DROP COLUMN IF EXISTS GameServerName;
+```
+
+- [ ] **Step 2: Mirror it in the reference schema file**
+
+Edit `packages/data/sql/schema/ows/map_instances.sql` — add the column inside the `CREATE TABLE MapInstances ( … )` block, after `LastServerEmptyDate`:
+
+```sql
+    GameServerName          VARCHAR(253)            NULL,
+```
+
+- [ ] **Step 3: Add the model field**
+
+In `apps/rows/src/models.rs`, inside `pub struct ZoneInstance`, after the `last_server_empty_date` field:
+
+```rust
+    #[sqlx(rename = "gameservername")]
+    pub game_server_name: Option<String>,
+```
+
+> Note: `get_all_inactive_map_instances` / `get_active_reap_candidates` use `SELECT mi.*`, so the new column maps automatically. Any `SELECT`-list that names columns explicitly for `ZoneInstance` must add `mi.gameservername`.
+
+- [ ] **Step 4: Write `gameservername` on instance creation**
+
+In `apps/rows/src/repo/instances.rs`, change `spin_up_server_instance_ready` to accept and store the name:
+
+```rust
+    pub async fn spin_up_server_instance_ready(
+        &self,
+        customer_guid: Uuid,
+        world_server_id: i32,
+        zone_name: &str,
+        port: i32,
+        game_server_name: &str,
+    ) -> Result<i32, RowsError> {
+        let row: Option<(i32,)> = sqlx::query_as(
+            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status, gameservername)
+             SELECT $1, $2, m.mapid, $4, 2, $5
+             FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
+             ON CONFLICT DO NOTHING
+             RETURNING mapinstanceid",
+        )
+        .bind(customer_guid)
+        .bind(world_server_id)
+        .bind(zone_name)
+        .bind(port)
+        .bind(game_server_name)
+        .fetch_optional(self.0)
+        .await?;
+
+        Ok(row.map(|r| r.0).unwrap_or(0))
+    }
+```
+
+- [ ] **Step 5: Pass the name through the pipeline**
+
+In `apps/rows/src/agones/pipeline.rs`, `create_instance` already holds `alloc.game_server_name`. Update its call:
+
+```rust
+        self.instance_id = repo
+            .spin_up_server_instance_ready(
+                self.customer_guid,
+                self.world_server_id,
+                self.zone,
+                alloc.port,
+                &alloc.game_server_name,
+            )
+            .await?;
+```
+
+- [ ] **Step 6: Verify it compiles**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20`
+Expected: builds clean.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add packages/data/sql/dbmate/migrations/20260623120000_ows_mapinstance_gameservername.sql \
+        packages/data/sql/schema/ows/map_instances.sql \
+        apps/rows/src/models.rs apps/rows/src/repo/instances.rs apps/rows/src/agones/pipeline.rs
+git commit -m "feat(rows): persist gameservername on mapinstances for restart-safe teardown"
+```
+
+---
+
+### Task 4: Reap-candidate query + gs-name deallocation fallback
+
+**Files:**
+- Modify: `apps/rows/src/repo/instances.rs`
+
+**Interfaces:**
+- Produces:
+  - `InstanceRepo::get_active_reap_candidates(&self, customer_guid: Uuid) -> Result<Vec<ZoneInstance>, RowsError>` — active (`status > 0`) instances with the `maps` join, capped at 500.
+  - `InstanceRepo::get_gameserver_name(&self, customer_guid: Uuid, map_instance_id: i32) -> Result<Option<String>, RowsError>` — DB fallback when the in-memory `zone_servers` map is cold (e.g. after a ROWS restart).
+
+- [ ] **Step 1: Add the candidate query**
+
+In `apps/rows/src/repo/instances.rs`, mirror `get_all_inactive_map_instances` but for active rows:
+
+```rust
+    pub async fn get_active_reap_candidates(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Vec<ZoneInstance>, RowsError> {
+        let zones = sqlx::query_as::<_, ZoneInstance>(
+            "SELECT mi.*, m.mapname AS map_name, m.mapmode AS map_mode,
+                    m.softplayercap AS soft_player_cap,
+                    m.hardplayercap AS hard_player_cap,
+                    m.minutestoshutdownafterempty AS minutes_to_shutdown_after_empty
+             FROM mapinstances mi
+             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.status > 0
+             ORDER BY mi.mapinstanceid
+             LIMIT 500",
+        )
+        .bind(customer_guid)
+        .fetch_all(self.0)
+        .await?;
+        Ok(zones)
+    }
+```
+
+- [ ] **Step 2: Add the gs-name fallback lookup**
+
+```rust
+    pub async fn get_gameserver_name(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+    ) -> Result<Option<String>, RowsError> {
+        let row: Option<(Option<String>,)> = sqlx::query_as(
+            "SELECT gameservername FROM mapinstances
+             WHERE customerguid = $1 AND mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(row.and_then(|r| r.0))
+    }
+```
+
+- [ ] **Step 3: Verify it compiles**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20`
+Expected: builds clean.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add apps/rows/src/repo/instances.rs
+git commit -m "feat(rows): reap-candidate query and gs-name deallocation fallback"
+```
+
+---
+
+### Task 5: Wire the reaper job
+
+**Files:**
+- Modify: `apps/rows/src/jobs.rs`
+
+**Interfaces:**
+- Consumes: `reaper::reap_decision`, `InstanceRepo::get_active_reap_candidates`, `InstanceRepo::get_gameserver_name`, `InstanceRepo::shut_down_server_instance`, `AgonesClient::deallocate`, config `empty_reap_boot_grace_secs` / `empty_reap_buffer_secs`.
+
+- [ ] **Step 1: Add the reaper to `spawn_all`**
+
+In `apps/rows/src/jobs.rs`, register the new task:
+
+```rust
+pub fn spawn_all(svc: Arc<OWSService>) {
+    tokio::spawn(zone_health_monitor(svc.clone()));
+    tokio::spawn(stale_zone_cleanup(svc.clone()));
+    tokio::spawn(empty_server_reaper(svc.clone()));
+    tokio::spawn(spinup_lock_expiry(svc.clone()));
+    tokio::spawn(session_cache_sweep(svc));
+}
+```
+
+- [ ] **Step 2: Implement the reaper task**
+
+Add to `apps/rows/src/jobs.rs` (import `crate::agones::reaper`):
+
+```rust
+/// Backstop for the server's own `SDK.Shutdown()`: flips empty/abandoned instances to
+/// `status=0`, which `stale_zone_cleanup` then deallocates. Resolves the GameServer name from
+/// the in-memory map first, falling back to the DB column so teardown survives a ROWS restart.
+async fn empty_server_reaper(svc: Arc<OWSService>) {
+    use crate::agones::reaper::{reap_decision, ReapReason};
+
+    let mut interval = tokio::time::interval(Duration::from_secs(60));
+    interval.tick().await;
+
+    loop {
+        interval.tick().await;
+
+        let guid = svc.state().config.customer_guid;
+        let boot_grace = svc.state().config.empty_reap_boot_grace_secs;
+        let buffer = svc.state().config.empty_reap_buffer_secs;
+        let now = chrono::Utc::now().naive_utc();
+        let repo = InstanceRepo(&svc.state().db);
+
+        let candidates = match repo.get_active_reap_candidates(guid).await {
+            Ok(c) => c,
+            Err(e) => {
+                warn!(error = %e, "Reaper: failed to load active instances");
+                continue;
+            }
+        };
+
+        for inst in &candidates {
+            let decision = reap_decision(
+                inst.number_of_reported_players,
+                inst.last_update_from_server,
+                inst.last_server_empty_date,
+                inst.create_date,
+                inst.minutes_to_shutdown_after_empty,
+                boot_grace,
+                buffer,
+                now,
+            );
+            let Some(reason) = decision else { continue };
+
+            // Resolve the GameServer name: in-memory tracking first, DB fallback (cold after restart).
+            let gs_name = match svc.state().zone_servers.get(&inst.map_instance_id) {
+                Some(v) => Some(v.value().clone()),
+                None => repo
+                    .get_gameserver_name(guid, inst.map_instance_id)
+                    .await
+                    .ok()
+                    .flatten(),
+            };
+
+            info!(
+                instance_id = inst.map_instance_id,
+                ?reason,
+                gs = gs_name.as_deref().unwrap_or("unknown"),
+                "Reaping empty/abandoned zone server"
+            );
+
+            // Flip to status=0 so stale_zone_cleanup completes teardown idempotently.
+            if let Err(e) = repo.shut_down_server_instance(guid, inst.map_instance_id).await {
+                warn!(error = %e, instance_id = inst.map_instance_id, "Reaper: failed to set status=0");
+                continue;
+            }
+
+            // Deallocate immediately when we know the GameServer (don't wait a full cycle).
+            if let (Some(ref agones), Some(ref gs)) = (&svc.state().agones, gs_name) {
+                svc.state().zone_servers.remove(&inst.map_instance_id);
+                if let Err(e) = agones.deallocate(gs).await {
+                    warn!(error = %e, gs = %gs, "Reaper: deallocate failed (stale_zone_cleanup will retry)");
+                }
+            }
+        }
+    }
+}
+```
+
+- [ ] **Step 3: Verify it compiles and unit tests still pass**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail -15`
+Expected: builds clean; existing + reaper unit tests pass.
+
+- [ ] **Step 4: Lint**
+
+Run: `cd apps/rows && cargo clippy 2>&1 | tail -20`
+Expected: no new warnings in `jobs.rs`/`reaper.rs`.
+
+- [ ] **Step 5: Manual verification (no DB test harness)**
+
+Document in the PR: against a dev DB with one allocated `mapinstances` row whose `lastupdatefromserver IS NULL` and `createdate` older than `ROWS_EMPTY_REAP_BOOT_GRACE_SECS`, after ≤60s the reaper logs "Reaping…", the row goes `status=0`, and the GameServer is deleted. Confirm a row with `numberofreportedplayers > 0` is untouched.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add apps/rows/src/jobs.rs
+git commit -m "feat(rows): empty-server reaper job (count-based + never-reported backstop)"
+```
+
+---
+
+## Phase 2 — Precision once UE heartbeats land
+
+### Task 6: Maintain `LastServerEmptyDate` on player-count update
+
+**Files:**
+- Modify: `apps/rows/src/repo/instances.rs` (`update_number_of_players`)
+
+**Interfaces:**
+- Consumes: existing `update_number_of_players(customer_guid, zone_instance_id, number_of_players)` call sites (REST/gRPC `health_stream`) — signature unchanged.
+- Produces: side effect — `LastServerEmptyDate` stamped `NOW()` on the 0→still-0 transition (first time it's seen empty) and cleared when players > 0.
+
+- [ ] **Step 1: Update the query to maintain the empty marker**
+
+Replace the body of `update_number_of_players` in `apps/rows/src/repo/instances.rs`:
+
+```rust
+    pub async fn update_number_of_players(
+        &self,
+        customer_guid: Uuid,
+        zone_instance_id: i32,
+        number_of_players: i32,
+    ) -> Result<(), RowsError> {
+        sqlx::query(
+            "UPDATE mapinstances
+             SET numberofreportedplayers = $3,
+                 lastupdatefromserver = NOW(),
+                 lastserveremptydate = CASE
+                     WHEN $3 > 0 THEN NULL
+                     WHEN lastserveremptydate IS NULL THEN NOW()
+                     ELSE lastserveremptydate
+                 END
+             WHERE customerguid = $1 AND mapinstanceid = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_instance_id)
+        .bind(number_of_players)
+        .execute(self.0)
+        .await?;
+        Ok(())
+    }
+```
+
+- [ ] **Step 2: Verify it compiles**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20`
+Expected: builds clean.
+
+- [ ] **Step 3: Manual verification**
+
+Document in the PR: POST `/api/Instance/UpdateNumberOfPlayers` with count 0 sets `lastserveremptydate` once; a follow-up with count 0 leaves it unchanged; a POST with count > 0 clears it to NULL. Combined with Task 5, an instance reported empty for `minutes*60 + buffer` is then reaped.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add apps/rows/src/repo/instances.rs
+git commit -m "feat(rows): maintain LastServerEmptyDate on player-count heartbeat"
+```
+
+---
+
+### Task 7: Stamp `empty-shutdown-minutes` annotation in the allocation request
+
+**Files:**
+- Modify: `apps/rows/src/agones/allocate.rs` (`allocate` / `try_allocate` signatures + request body)
+- Modify: `apps/rows/src/agones/pipeline.rs` (`allocate_via_agones` passes the value)
+- Modify: `apps/rows/src/service/instances.rs` (look up the per-map value and thread it in)
+
+**Interfaces:**
+- Consumes: per-map `minutes_to_shutdown_after_empty` (already on `ZoneInstance` from `get_zone_instances_for_zone`).
+- Produces: `allocate(map_name, zone_instance_id, empty_shutdown_minutes)`; the GameServerAllocation request includes `spec.metadata.annotations["ows.kbve.com/empty-shutdown-minutes"]`.
+
+- [ ] **Step 1: Add the annotation to the allocation request**
+
+In `apps/rows/src/agones/allocate.rs`, extend `try_allocate` (and the public `allocate`) with an `empty_shutdown_minutes: i32` parameter, and add annotations to the allocation `metadata`:
+
+```rust
+        let allocation = json!({
+            "apiVersion": "allocation.agones.dev/v1",
+            "kind": "GameServerAllocation",
+            "metadata": { "namespace": &self.namespace },
+            "spec": {
+                "required": { "matchLabels": { "agones.dev/fleet": &self.fleet } },
+                "metadata": {
+                    "labels": {
+                        "ows.kbve.com/map": map_name,
+                        "ows.kbve.com/zone-instance": zone_instance_id.to_string()
+                    },
+                    "annotations": {
+                        "ows.kbve.com/empty-shutdown-minutes": empty_shutdown_minutes.to_string()
+                    }
+                }
+            }
+        });
+```
+
+- [ ] **Step 2: Thread the value from the pipeline**
+
+In `apps/rows/src/agones/pipeline.rs`, `allocate_via_agones` calls `agones.allocate(self.zone, 0)`. Add a field to the pipeline (e.g. `empty_shutdown_minutes: i32`, set in `new`) or pass it through, and call:
+
+```rust
+        let alloc = agones
+            .allocate(self.zone, 0, self.empty_shutdown_minutes)
+            .await
+            .map_err(|e| RowsError::Internal(format!("Agones allocation failed: {e}")))?;
+```
+
+- [ ] **Step 3: Source the per-map value in the service**
+
+In `apps/rows/src/service/instances.rs::get_server_to_connect_to`, after `resolve_zone`, look up the per-map timeout and pass it into `AllocationPipeline::new`:
+
+```rust
+        let minutes = InstanceRepo(&self.state.db)
+            .get_zone_instances_for_zone(customer_guid, &resolved_zone)
+            .await
+            .ok()
+            .and_then(|v| v.first().map(|z| z.minutes_to_shutdown_after_empty))
+            .unwrap_or(1);
+
+        let pipeline = AllocationPipeline::new(customer_guid, &resolved_zone, &self.state.db, minutes);
+```
+
+> Update `AllocationPipeline::new` to accept and store `empty_shutdown_minutes`. Any other `AllocationPipeline::new` call site (e.g. the lock-contention re-poll path in `allocate_and_track`) passes the same value; for the re-poll path `0` is acceptable since it does not allocate.
+
+- [ ] **Step 4: Verify it compiles and tests pass**
+
+Run: `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail -15`
+Expected: builds clean; all tests pass.
+
+- [ ] **Step 5: Manual verification**
+
+Document in the PR: after an allocation, `kubectl get gs <name> -o jsonpath='{.metadata.annotations.ows\.kbve\.com/empty-shutdown-minutes}'` returns the map's configured value.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add apps/rows/src/agones/allocate.rs apps/rows/src/agones/pipeline.rs apps/rows/src/service/instances.rs
+git commit -m "feat(rows): stamp empty-shutdown-minutes annotation on allocation for UE self-shutdown"
+```
+
+---
+
+## Out of scope (other repo / other tickets)
+
+- **UE (chuck repo):** `SDK.Shutdown()` on empty timer (reads the annotation), heartbeat `{ zoneInstanceId, playerCount }`, drop server-side `RegisterLauncher`. Tracked in #13194's "Unreal side" contract.
+- **Hardening the `zone-instance` label** onto the allocation critical path — shared with #13192; not required for the Phase-1 backstop (which keys on `createdate`, not the label).
+- **Multi-zone travel-on-allocate** — #13192.
+
+---
+
+## Self-Review
+
+**Spec coverage (#13194 ROWS side):**
+- Heartbeat ingest maintains `LastServerEmptyDate` → Task 6. ✅
+- Count-based reap (layer 3) → Tasks 1 + 5. ✅
+- Time-based net (layer 4) → Tasks 1 + 5. ✅
+- Reap action via `deallocate` → Task 5 (status=0 → `stale_zone_cleanup`, plus immediate deallocate). ✅
+- Persist `gameservername` (restart-safety) → Task 3, used in Task 5. ✅
+- `empty-shutdown-minutes` annotation → Task 7. ✅
+- Drop server-side `RegisterLauncher` → out of scope here (UE contract + #13192 removal). Noted.
+
+**Type consistency:** `reap_decision` signature is identical in Task 1 (def), Task 5 (call). `spin_up_server_instance_ready` gains `game_server_name: &str` in Task 3 and is called with `&alloc.game_server_name` same task. `ZoneInstance.game_server_name: Option<String>` (Task 3) is only read for SELECT mapping. `allocate(map, zone_instance_id, empty_shutdown_minutes)` consistent across Task 7 def + call.
+
+**Placeholder scan:** no TBD/"handle errors"/"similar to" — every code step shows the code. Manual-verification steps are used only where there is genuinely no DB test harness (documented as a Global Constraint), not as a substitute for unit tests on the pure logic.
