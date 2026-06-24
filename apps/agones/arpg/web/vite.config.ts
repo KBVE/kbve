@@ -27,6 +27,22 @@ const laserAlias = {
 	replacement: path.join(repoRoot, 'packages/npm/laser/src/index.ts'),
 };
 
+const itemdbDataAlias = {
+	find: /^@kbve\/itemdb-data$/,
+	replacement: path.join(
+		repoRoot,
+		'packages/data/codegen/generated/itemdb.json',
+	),
+};
+
+const itemdbSchemaAlias = {
+	find: /^@kbve\/itemdb-schema$/,
+	replacement: path.join(
+		repoRoot,
+		'packages/data/codegen/generated/itemdb-schema.ts',
+	),
+};
+
 // Build modes:
 //   (default)     -> the standalone app for arpg.kbve.com (dist/)
 //   --mode embed  -> window.ArpgEmbed IIFE (mount/mountApp) -> dist/arpg-embed.js,
@@ -57,7 +73,7 @@ export default defineConfig(({ mode }) => {
 				'phaser',
 				'@phaserjs/rapier-connector',
 			],
-			alias: [laserAlias],
+			alias: [laserAlias, itemdbDataAlias, itemdbSchemaAlias],
 			extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
 		},
 	};

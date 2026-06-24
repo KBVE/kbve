@@ -4,6 +4,12 @@ import type { InventoryItem } from '@kbve/laser';
 import { emitInventoryIntent } from '../../systems/hud';
 import { PixelPanel } from '../../PixelPanel';
 import { rarityColor, type ItemMeta } from '../../entities/itemMeta';
+import {
+	ATLAS_URL,
+	ATLAS_SIZE,
+	TILE_SIZE,
+	atlasCell,
+} from '../../entities/itemAtlas.generated';
 
 const ACCENT = '#fcd34d';
 const MUTED = '#9fb3d8';
@@ -95,14 +101,23 @@ function ItemIcon({
 	itemRef: string;
 	size: number;
 }): ReactElement {
-	if (meta?.img) {
+	if (meta?.img && meta.key > 0) {
+		const cell = atlasCell(meta.key);
+		const scaled = ATLAS_SIZE * (size / TILE_SIZE);
 		return (
-			<img
-				src={meta.img}
-				alt={meta.name ?? itemRef}
-				width={size}
-				height={size}
-				style={{ imageRendering: 'pixelated', display: 'block' }}
+			<span
+				role="img"
+				aria-label={meta.name ?? itemRef}
+				style={{
+					display: 'block',
+					width: size,
+					height: size,
+					backgroundImage: `url(${ATLAS_URL})`,
+					backgroundRepeat: 'no-repeat',
+					backgroundSize: `${scaled}px ${scaled}px`,
+					backgroundPosition: `-${cell.col * size}px -${cell.row * size}px`,
+					imageRendering: 'pixelated',
+				}}
 			/>
 		);
 	}
@@ -180,7 +195,7 @@ export function InventoryBar({
 								textShadow: TEXT_SHADOW,
 								opacity: 0.85,
 							}}>
-							{i + 1}
+							⇧{i + 1}
 						</div>
 						<div
 							style={{

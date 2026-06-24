@@ -55,6 +55,10 @@ const WEB_ATLAS_URL = '/assets/items/itemdb-atlas.png';
 const WEB_ATLAS_OUT = resolve(repoRoot, 'apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png');
 const WEB_TS_OUT    = resolve(repoRoot, 'apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts');
 
+// arpg (apps/agones/arpg) consumes the same atlas under the same web URL.
+const ARPG_ATLAS_OUT = resolve(repoRoot, 'apps/agones/arpg/web/public/assets/items/itemdb-atlas.png');
+const ARPG_TS_OUT    = resolve(repoRoot, 'apps/agones/arpg/web/src/game/entities/itemAtlas.generated.ts');
+
 const TILE_SIZE     = 64;
 const TILES_PER_ROW = 32;
 const ATLAS_SIZE    = TILE_SIZE * TILES_PER_ROW;
@@ -254,6 +258,10 @@ function main() {
 	writeFileSync(WEB_ATLAS_OUT, encoded);
 	console.log(`Wrote ${WEB_ATLAS_OUT}`);
 
+	ensureDir(dirname(ARPG_ATLAS_OUT));
+	writeFileSync(ARPG_ATLAS_OUT, encoded);
+	console.log(`Wrote ${ARPG_ATLAS_OUT}`);
+
 	const norm  = 1.0 / TILES_PER_ROW;
 	const tileN = norm.toFixed(8);
 	const lines = [
@@ -317,6 +325,10 @@ function main() {
 	ensureDir(dirname(WEB_TS_OUT));
 	writeFileSync(WEB_TS_OUT, tsLines.join('\n'));
 	console.log(`Wrote ${WEB_TS_OUT}`);
+
+	ensureDir(dirname(ARPG_TS_OUT));
+	writeFileSync(ARPG_TS_OUT, tsLines.join('\n'));
+	console.log(`Wrote ${ARPG_TS_OUT}`);
 
 	console.log(`Built atlas: ${realCount} real tiles, ${placeholders.length} placeholders, max key ${maxKey}`);
 	if (placeholders.length > 0 && placeholders.length <= 20) {

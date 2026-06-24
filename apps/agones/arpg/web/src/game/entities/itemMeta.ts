@@ -1,11 +1,15 @@
-// Client-side itemdb lookup. The canonical data is the MDX-sourced itemdb
-// served at /api/itemdb.json ({ items, index }); we fetch it once and expose a
-// ref -> meta map so the HUD can show names/emoji/rarity instead of raw refs.
-// SoT stays the itemdb — nothing here is hand-maintained.
+// Client-side itemdb lookup. The canonical data is the MDX-sourced itemdb,
+// bundled at build via the `@kbve/itemdb-data` alias (generated/itemdb.json) so
+// the HUD shows names/rarity/sprite instead of raw refs with no network round
+// trip. `key` indexes the generated sprite atlas (frame == key). SoT stays the
+// itemdb — nothing here is hand-maintained.
+
+import itemdb from '@kbve/itemdb-data';
 
 export interface ItemMeta {
 	ref: string;
 	name: string;
+	key: number;
 	emoji?: string;
 	img?: string;
 	rarity?: string;
@@ -26,40 +30,27 @@ export function rarityColor(rarity?: string): string {
 }
 
 let cache: Map<string, ItemMeta> | null = null;
-let inflight: Promise<Map<string, ItemMeta>> | null = null;
 
-async function fetchItemMeta(): Promise<Map<string, ItemMeta>> {
+function buildItemMeta(): Map<string, ItemMeta> {
 	const map = new Map<string, ItemMeta>();
-	try {
-		const res = await fetch('/api/itemdb.json');
-		if (!res.ok) return map;
-		const data = (await res.json()) as { items?: any[] };
-		for (const it of data.items ?? []) {
-			if (!it?.ref) continue;
-			map.set(it.ref, {
-				ref: it.ref,
-				name: it.name ?? it.ref,
-				emoji: it.emoji,
-				img: it.img,
-				rarity: it.rarity,
-				consumable: it.consumable,
-			});
-		}
-	} catch {
-		// offline / endpoint missing: callers fall back to the raw ref.
+	const items = (itemdb as { items?: any[] }).items ?? [];
+	for (const it of items) {
+		if (!it?.ref) continue;
+		map.set(it.ref, {
+			ref: it.ref,
+			name: it.name ?? it.ref,
+			key: it.key ?? 0,
+			emoji: it.emoji,
+			img: it.img,
+			rarity: it.rarity,
+			consumable: it.consumable,
+		});
 	}
 	return map;
 }
 
-/** Resolve the itemdb map once, sharing one in-flight request across callers. */
+/** Resolve the itemdb map (built once from the bundled data). */
 export function loadItemMeta(): Promise<Map<string, ItemMeta>> {
-	if (cache) return Promise.resolve(cache);
-	if (!inflight) {
-		inflight = fetchItemMeta().then((m) => {
-			cache = m;
-			inflight = null;
-			return m;
-		});
-	}
-	return inflight;
+	if (!cache) cache = buildItemMeta();
+	return Promise.resolve(cache);
 }
