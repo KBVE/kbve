@@ -78,13 +78,18 @@ buildkitd is persistent, ids become **shared state**. Audit:
   irc-gateway, cryptothrone, herbmail, discordsh) — add uniquely-id'd
   `astro-<app>-cache` mounts so persistent buildkit makes them incremental too.
 
-## e2e quick wins (independent of buildkitd)
+## e2e cache win (independent of buildkitd)
 
-- Build the e2e image **unoptimized** (debug profile) — the e2e checks behavior,
-  not perf; `--release` full-opt of the app crate is ~12min wasted. Publish keeps
-  `--release`.
 - Drop `--cache-to=registry,mode=max` from the **e2e** path (~4min export). The
   persistent builder is the cache; the publish workflow owns the registry seed.
+
+**Rejected: debug-profile e2e image.** The publish job does not rebuild — its
+`promote` step pulls the exact `ghcr.io/<image>:ci-<sha>` the e2e built+tested
+and ships *that* (rebuild is fallback-only; build-once by design). So a debug e2e
+image would ship a debug binary to production. e2e must build `--release` — the
+tested bytes are the published bytes. The app crate's ~12min release compile is
+the price of that fidelity; persistent buildkit can't shorten it (changed source,
+sccache can't hit), so it stays.
 
 ## Runner wiring (the flip — lands LAST)
 
@@ -118,7 +123,7 @@ cold. Single-node today; runners reach buildkitd over TCP so no node-pinning.
 1. **C1** — land buildkitd infra (inert; nothing targets it). Verify Ready.
 2. **C2** — cache-id hygiene (namespace astro ids + `sharing=locked` + 5 missing
    mounts). Safe with the still-ephemeral builders.
-3. **C3** — e2e quick wins (debug profile + drop e2e cache-to).
+3. **C3** — drop e2e `cache-to` (e2e stays `--release`; see "e2e cache win").
 4. **C4** — flip the workflow buildx step to the remote driver. Measure 2–3 e2e
    runs on `arc-runner-set`, then it's the default for all buildx jobs.
 
@@ -127,9 +132,10 @@ buildkitd that isn't up) is avoided by landing C4 only after C1 is verified live
 
 ## Expected result
 
-e2e ~31min → ~13–15min once warm (astro 9.5→~1min, import ~3.5→0, export 4→0;
-app compile addressed separately by debug profile). Every other buildx job
-inherits the same warm cache.
+e2e ~31min → ~16min once warm (astro 9.5→~1min, import ~3.5→0, export 4→0). The
+app crate's ~12min `--release` compile stays — the e2e image is the promoted
+published artifact, so it must be release, and a changed app crate can't hit
+sccache. Every other buildx job inherits the same warm cache.
 
 ## Out of scope
 
