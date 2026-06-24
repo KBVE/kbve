@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: grafana-gate
-    namespace: monitoring
+    name: argocd-gate
+    namespace: argocd
     labels:
-        app: grafana-gate
-        kbve.com/category: observability
+        app: argocd-gate
+        kbve.com/category: infrastructure
         kbve.com/stack: core
         kbve.com/managed-by: argocd
     annotations:
@@ -14,13 +14,13 @@ spec:
     replicas: 1
     selector:
         matchLabels:
-            app: grafana-gate
+            app: argocd-gate
     template:
         metadata:
             labels:
-                app: grafana-gate
+                app: argocd-gate
         spec:
-            serviceAccountName: grafana-gate-sa
+            serviceAccountName: argocd-gate-sa
             automountServiceAccountToken: false
             securityContext:
                 runAsNonRoot: true
@@ -40,13 +40,14 @@ spec:
                       - name: GATE_LISTEN
                         value: 0.0.0.0:5678
                       - name: GATE_UPSTREAM
-                        value: http://monitoring-grafana.monitoring.svc.cluster.local:80
-                      - name: GATE_UPSTREAM_PREFIX
-                        value: /dashboard/grafana/proxy
-                      - name: GATE_FORWARD_USER_HEADER
-                        value: X-WEBAUTH-USER
-                      - name: GATE_FORWARD_USER_VALUE
-                        value: kbve-staff
+                        value: https://argocd-server.argocd.svc.cluster.local:443
+                      - name: GATE_UPSTREAM_CA_CERT_PATH
+                        value: /etc/ssl/argocd/ca.crt
+                      - name: GATE_UPSTREAM_BEARER
+                        valueFrom:
+                            secretKeyRef:
+                                name: argocd-gate-argo-token
+                                key: token
                       - name: GATE_AUTHZ
                         value: is_staff
                       - name: GATE_STAFF_SCHEMA
@@ -60,12 +61,12 @@ spec:
                       - name: SUPABASE_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
-                                name: grafana-gate-supabase-jwt
+                                name: argocd-gate-supabase-jwt
                                 key: SUPABASE_JWT_SECRET
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
-                                name: grafana-gate-supabase-jwt
+                                name: argocd-gate-supabase-jwt
                                 key: anon-key
                       - name: RUST_LOG
                         value: info
@@ -81,6 +82,10 @@ spec:
                       capabilities:
                           drop:
                               - ALL
+                  volumeMounts:
+                      - name: argocd-ca
+                        mountPath: /etc/ssl/argocd
+                        readOnly: true
                   livenessProbe:
                       httpGet:
                           path: /healthz
@@ -97,3 +102,10 @@ spec:
                       periodSeconds: 5
                       timeoutSeconds: 3
                       failureThreshold: 3
+            volumes:
+                - name: argocd-ca
+                  secret:
+                      secretName: argocd-server-tls
+                      items:
+                          - key: ca.crt
+                            path: ca.crt

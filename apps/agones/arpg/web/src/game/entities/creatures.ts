@@ -113,18 +113,21 @@ export const APEX_PREDATOR: CreatureDef = {
 	id: 'apex_predator',
 	assetPath: '/assets/arcade/arpg/creatures/apex_predator',
 	frameSize: 512,
-	displaySize: 160,
+	// Tile is 64px wide; 120 keeps the predator reading as a big creature while
+	// cutting the overhang that hung the old 160px body over walls/void. Pairs
+	// with the server clearance rule that keeps it in open areas.
+	displaySize: 120,
 	// Feet + baked shadow sit ~0.82 down the 512px frame; anchor there so the
 	// creature stands ON the tile instead of floating a few px above it.
 	originY: 0.82,
-	// Calibrated in-game vs the debug overlay: side profiles read L/R-swapped
-	// (block 1 = head-LEFT/W, block 2 = head-RIGHT/E) and the NE/SW diagonal
-	// pair is swapped from a naive read.
+	// Calibrated against the codex: cardinal block order is S,W,E,N (block 0 is
+	// the toward-viewer/South render, block 3 the away/North); the diagonal half
+	// packs SW,NW,SE,NE.
 	dirBlocks: {
-		N: 0,
+		N: 3,
 		W: 1,
 		E: 2,
-		S: 3,
+		S: 0,
 		SW: 0,
 		NW: 1,
 		SE: 2,
@@ -168,7 +171,7 @@ export const APEX_PREDATOR: CreatureDef = {
 			cardinalBase: 0,
 			diagonalBase: 12,
 			framesPerDir: 3,
-			frameRate: 16,
+			frameRate: 9,
 			loop: false,
 		},
 		Attack2: {
@@ -176,7 +179,7 @@ export const APEX_PREDATOR: CreatureDef = {
 			cardinalBase: 24,
 			diagonalBase: 36,
 			framesPerDir: 3,
-			frameRate: 16,
+			frameRate: 9,
 			loop: false,
 		},
 		UseSkill: {
@@ -330,6 +333,38 @@ export function registerCreatureAnims(
 			});
 		}
 	}
+}
+
+// --- Codex / audit metadata (DOM-renderable, no Phaser) -------------------
+
+/** Sheets are an 8x8 grid (4096px / 512px frame). */
+export const CREATURE_SHEET_COLS = 8;
+
+/** Every registered creature, for the in-game bestiary/codex. */
+export const CREATURES: CreatureDef[] = [APEX_PREDATOR];
+
+/** States a creature actually ships, in declaration order. */
+export function creatureStates(def: CreatureDef): CreatureState[] {
+	return Object.keys(def.anims) as CreatureState[];
+}
+
+/** Public frame range for a state+direction (honors the creature's dirBlocks). */
+export function creatureFrameRange(
+	def: CreatureDef,
+	state: CreatureState,
+	dir: CreatureDir,
+): { start: number; end: number } | null {
+	const anim = def.anims[state];
+	return anim ? frameRange(anim, dir, def.dirBlocks) : null;
+}
+
+/** Resolved URL of the sheet a state lives on. */
+export function creatureSheetUrl(
+	def: CreatureDef,
+	state: CreatureState,
+): string | null {
+	const anim = def.anims[state];
+	return anim ? arpgAsset(`${def.assetPath}/${anim.sheet}.png`) : null;
 }
 
 /** First-frame texture key + frame for a state+direction (initial sprite). */

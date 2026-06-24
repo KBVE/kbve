@@ -14,7 +14,7 @@ tags:
 key: kbve_gate
 pipeline: docker
 app_name: kbve-gate
-version: "0.1.4"
+version: "0.1.5"
 source_path: apps/kbve/kbve-gate
 version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
@@ -23,6 +23,8 @@ image: kbve/kbve-gate
 deployment_yamls:
     - apps/kube/n8n/manifest/n8n-deployment.yaml
     - apps/kube/monitoring/manifests/grafana-gate-deployment.yaml
+    - apps/kube/argocd/manifests/argocd-gate-deployment.yaml
+    - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE

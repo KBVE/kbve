@@ -101,6 +101,11 @@ export interface EntityRefs {
 	creature?: CreatureView;
 	dbgText?: Phaser.GameObjects.Text;
 	dbgArrow?: Phaser.GameObjects.Graphics;
+	/** Time of this entity's last step tween — used to pace the next one to the
+	 * mover's real per-tile cadence. */
+	lastMoveAt?: number;
+	/** Pending Idle settle, cancelled if another step arrives first. */
+	settleTimer?: Phaser.Time.TimerEvent;
 }
 
 /** Per-creature directional pose state, analogous to ClassView for NPCs. */

@@ -135,6 +135,7 @@ impl ServiceProxy {
         headers.remove("trailers");
         headers.remove("upgrade");
         headers.remove("proxy-connection");
+        headers.remove("x-webauth-user");
 
         if let Some(val) = upstream_auth_override
             .as_deref()

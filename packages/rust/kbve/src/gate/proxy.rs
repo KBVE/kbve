@@ -41,6 +41,23 @@ pub struct GateConfig {
     pub cookie_domain: Option<String>,
     /// Staff RPC gate. Required when `authz` is `IsStaff`.
     pub staff: Option<StaffGate>,
+    /// PEM CA bundle trusted for the upstream TLS connection. Lets the gate
+    /// speak HTTPS to an upstream signed by a private CA (e.g. argocd-server
+    /// behind the cluster internal CA) without disabling verification.
+    pub upstream_ca_cert_path: Option<String>,
+    /// Bearer token injected as `Authorization: Bearer <token>` on every
+    /// upstream request, so an upstream that authenticates by API token (e.g.
+    /// ArgoCD) treats every gated request as that service account — the user
+    /// never sees the upstream's own login.
+    pub upstream_bearer: Option<String>,
+    /// When set, the authenticated user's identity is forwarded upstream in
+    /// this header (e.g. `X-WEBAUTH-USER` for a Grafana auth-proxy). The gate
+    /// always overwrites any client-supplied value, so it cannot be spoofed.
+    pub forward_user_header: Option<String>,
+    /// Constant value for `forward_user_header`, overriding the per-user
+    /// identity. Used to log every gated user in as one shared upstream account
+    /// (e.g. a single elevated Grafana user) rather than provisioning per-user.
+    pub forward_user_value: Option<String>,
 }
 
 pub struct GateState {
@@ -50,11 +67,19 @@ pub struct GateState {
 
 impl GateState {
     pub fn new(cfg: GateConfig) -> Self {
-        let client = Client::builder()
+        let mut builder = Client::builder()
             .connect_timeout(std::time::Duration::from_secs(10))
-            .pool_idle_timeout(std::time::Duration::from_secs(90))
-            .build()
-            .unwrap_or_else(|_| Client::new());
+            .pool_idle_timeout(std::time::Duration::from_secs(90));
+        if let Some(path) = &cfg.upstream_ca_cert_path {
+            match std::fs::read(path).and_then(|pem| {
+                reqwest::Certificate::from_pem(&pem)
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+            }) {
+                Ok(cert) => builder = builder.add_root_certificate(cert),
+                Err(e) => warn!(%path, "gate upstream CA load failed: {e}"),
+            }
+        }
+        let client = builder.build().unwrap_or_else(|_| Client::new());
         Self { cfg, client }
     }
 
@@ -300,7 +325,7 @@ async fn authorize(
     query: Option<&str>,
     ext_url: &str,
     bounced: bool,
-) -> Result<i64, Response> {
+) -> Result<(i64, String), Response> {
     let token = extract_token(
         headers
             .get(header::AUTHORIZATION)
@@ -336,11 +361,17 @@ async fn authorize(
             ));
         }
     };
-    let sub = data.claims.sub;
     let exp = data.claims.exp;
+    let user = data
+        .claims
+        .kbve_username
+        .clone()
+        .or_else(|| data.claims.email.clone())
+        .unwrap_or_else(|| data.claims.sub.clone());
+    let sub = data.claims.sub;
 
     match &state.cfg.authz {
-        Authz::JwtOnly => Ok(exp),
+        Authz::JwtOnly => Ok((exp, user)),
         Authz::IsStaff => {
             let staff = match &state.cfg.staff {
                 Some(s) => s,
@@ -354,7 +385,7 @@ async fn authorize(
                 }
             };
             match staff.is_staff(&sub).await {
-                Ok(true) => Ok(exp),
+                Ok(true) => Ok((exp, user)),
                 Ok(false) => Err(deny(
                     state,
                     headers,
@@ -382,8 +413,8 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     let ext_url = external_url(&headers, req.uri());
     let bounced = query.as_deref().and_then(access_token_in_query).is_some();
 
-    let exp = match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
-        Ok(exp) => exp,
+    let (exp, user) = match authorize(&state, &headers, query.as_deref(), &ext_url, bounced).await {
+        Ok(ok) => ok,
         Err(resp) => return resp,
     };
     metrics::counter!("gate_auth_total", "result" => "allow").increment(1);
@@ -398,10 +429,10 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     }
 
     if is_websocket_upgrade(&headers) {
-        return ws_bridge(&state, req).await;
+        return ws_bridge(&state, req, &user).await;
     }
 
-    forward_http(&state, req).await
+    forward_http(&state, req, &user).await
 }
 
 const HOP_BY_HOP: &[&str] = &[
@@ -464,7 +495,32 @@ fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
     )
 }
 
-async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
+/// Inject the gate's upstream credentials: an optional Basic/Bearer
+/// `Authorization` and an optional trusted user header. `insert` overwrites any
+/// client-supplied value, so the user header cannot be spoofed.
+fn inject_upstream_auth(state: &GateState, headers: &mut HeaderMap, user: &str) {
+    if let Some(basic) = &state.cfg.upstream_basic {
+        if let Ok(v) = HeaderValue::from_str(basic) {
+            headers.insert(header::AUTHORIZATION, v);
+        }
+    }
+    if let Some(bearer) = &state.cfg.upstream_bearer {
+        if let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
+            headers.insert(header::AUTHORIZATION, v);
+        }
+    }
+    if let Some(name) = &state.cfg.forward_user_header {
+        let value = state.cfg.forward_user_value.as_deref().unwrap_or(user);
+        if let (Ok(hn), Ok(hv)) = (
+            HeaderName::from_bytes(name.as_bytes()),
+            HeaderValue::from_str(value),
+        ) {
+            headers.insert(hn, hv);
+        }
+    }
+}
+
+async fn forward_http(state: &GateState, req: Request<Body>, user: &str) -> Response {
     let method = req.method().clone();
     let url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     let mut headers = req.headers().clone();
@@ -477,11 +533,7 @@ async fn forward_http(state: &GateState, req: Request<Body>) -> Response {
         headers.remove(*h);
     }
 
-    if let Some(basic) = &state.cfg.upstream_basic {
-        if let Ok(v) = HeaderValue::from_str(basic) {
-            headers.insert(header::AUTHORIZATION, v);
-        }
-    }
+    inject_upstream_auth(state, &mut headers, user);
 
     let body = reqwest::Body::wrap_stream(req.into_body().into_data_stream());
 
@@ -569,14 +621,27 @@ fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
 
 /// Bridge a browser WebSocket to the upstream. reqwest is HTTP-only, so the
 /// upgrade leg uses tokio-tungstenite directly.
-async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
+async fn ws_bridge(state: &GateState, req: Request<Body>, user: &str) -> Response {
     let mut ws_url = upstream_uri(&state.cfg.upstream, &state.cfg.upstream_prefix, req.uri());
     if let Some(rest) = ws_url.strip_prefix("http://") {
         ws_url = format!("ws://{rest}");
     } else if let Some(rest) = ws_url.strip_prefix("https://") {
         ws_url = format!("wss://{rest}");
     }
-    let basic = state.cfg.upstream_basic.clone();
+    let auth = state
+        .cfg
+        .upstream_bearer
+        .as_ref()
+        .map(|b| format!("Bearer {b}"))
+        .or_else(|| state.cfg.upstream_basic.clone());
+    let user_header = state.cfg.forward_user_header.clone().map(|h| {
+        let v = state
+            .cfg
+            .forward_user_value
+            .clone()
+            .unwrap_or_else(|| user.to_string());
+        (h, v)
+    });
 
     let (mut parts, _body) = req.into_parts();
     let cookie = parts
@@ -591,7 +656,7 @@ async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
     };
 
     ws.on_upgrade(move |browser_ws| async move {
-        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), basic, cookie).await {
+        if let Err(e) = pump_ws(browser_ws, ws_url.clone(), auth, cookie, user_header).await {
             warn!(%ws_url, "gate ws bridge error: {e}");
         }
     })
@@ -600,8 +665,9 @@ async fn ws_bridge(state: &GateState, req: Request<Body>) -> Response {
 async fn pump_ws(
     browser: axum::extract::ws::WebSocket,
     upstream_url: String,
-    basic: Option<String>,
+    auth: Option<String>,
     cookie: Option<String>,
+    user_header: Option<(String, String)>,
 ) -> Result<(), String> {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::tungstenite::Message as TMsg;
@@ -611,10 +677,19 @@ async fn pump_ws(
         .as_str()
         .into_client_request()
         .map_err(|e| format!("ws request build: {e}"))?;
-    if let Some(b) = &basic {
+    if let Some(b) = &auth {
         request.headers_mut().insert(
             "authorization",
-            b.parse().map_err(|e| format!("ws basic header: {e}"))?,
+            b.parse().map_err(|e| format!("ws auth header: {e}"))?,
+        );
+    }
+    if let Some((name, value)) = &user_header {
+        let hn =
+            tokio_tungstenite::tungstenite::http::header::HeaderName::from_bytes(name.as_bytes())
+                .map_err(|e| format!("ws user header name: {e}"))?;
+        request.headers_mut().insert(
+            hn,
+            value.parse().map_err(|e| format!("ws user header: {e}"))?,
         );
     }
     if let Some(c) = &cookie {
