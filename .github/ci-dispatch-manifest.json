@@ -1019,7 +1019,7 @@
 			"key": "ue_kbveui",
 			"plugin_name": "KBVEUI",
 			"plugin_path": "packages/unreal/KBVEUI",
-			"dependency_plugins": "packages/unreal/KBVESupabase packages/unreal/KBVEROWS",
+			"dependency_plugins": "packages/unreal/KBVEROWS packages/unreal/KBVESupabase",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
