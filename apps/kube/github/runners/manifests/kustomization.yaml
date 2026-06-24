@@ -12,6 +12,7 @@ resources:
     - longhorn-sdb-storageclass.yaml
     - runner-cache-pvc.yaml
     - engine-cache-pvc.yaml
+    - ue-dind-cache-pvc.yaml
     - ows-server-build-pvc.yaml
     - cache-cleanup-cronjob.yaml
     - registry-mirror.yaml
