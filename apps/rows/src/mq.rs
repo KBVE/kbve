@@ -260,11 +260,11 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             use crate::repo::InstanceRepo;
 
             // Per-map empty timeout for the `empty-shutdown-minutes` allocation annotation.
+            // Read from `maps` directly (not via `mapinstances`): the first server of a zone is
+            // allocated before its `mapinstances` row exists.
             let empty_shutdown_minutes = InstanceRepo(&svc.state().db)
-                .get_zone_instances_for_zone(guid, &msg.map_name)
+                .get_map_minutes_to_shutdown_after_empty(guid, &msg.map_name)
                 .await
-                .ok()
-                .and_then(|v| v.first().map(|z| z.minutes_to_shutdown_after_empty))
                 .unwrap_or(1);
 
             let pipeline =

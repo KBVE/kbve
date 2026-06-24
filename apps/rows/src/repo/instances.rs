@@ -54,8 +54,10 @@ impl<'a> InstanceRepo<'a> {
         number_of_players: i32,
     ) -> Result<(), RowsError> {
         sqlx::query(
+            // GREATEST($3, 0): a bogus negative count must not be stored, nor (being non-positive)
+            // silently stamp the empty marker and make a live server look reap-eligible.
             "UPDATE mapinstances
-             SET numberofreportedplayers = $3,
+             SET numberofreportedplayers = GREATEST($3, 0),
                  lastupdatefromserver = NOW(),
                  lastserveremptydate = CASE
                      WHEN $3 > 0 THEN NULL
@@ -331,7 +333,10 @@ impl<'a> InstanceRepo<'a> {
     }
 
     /// Active (`status > 0`) instances with the `maps` join — the reaper's candidate set.
-    /// Capped at 500; the caller logs when the cap is hit (possible under-reaping).
+    /// Capped at 500; the caller logs when the cap is hit (possible under-reaping). Ordered
+    /// longest-empty first (`lastserveremptydate ASC NULLS LAST`) so the most reap-worthy rows
+    /// are always inside the cap rather than starved behind a low-id head; `mapinstanceid`
+    /// breaks ties for deterministic ordering when empty-dates are equal/NULL.
     pub async fn get_active_reap_candidates(
         &self,
         customer_guid: Uuid,
@@ -344,7 +349,7 @@ impl<'a> InstanceRepo<'a> {
              FROM mapinstances mi
              JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0
-             ORDER BY mi.mapinstanceid
+             ORDER BY mi.lastserveremptydate ASC NULLS LAST, mi.mapinstanceid
              LIMIT 500",
         )
         .bind(customer_guid)
@@ -474,6 +479,27 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
         Ok(())
+    }
+
+    /// Per-map empty timeout straight from `maps` (not via `mapinstances`). Used to stamp the
+    /// `empty-shutdown-minutes` annotation at allocation time — which is *before* the instance
+    /// row exists for the first (scale-from-0) server of a zone, so a `mapinstances`-joined
+    /// lookup would return nothing and fall back to the default. Defaults to 1 when the zone
+    /// has no `maps` row (mirrors the column's own `DEFAULT 1`).
+    pub async fn get_map_minutes_to_shutdown_after_empty(
+        &self,
+        customer_guid: Uuid,
+        zone_name: &str,
+    ) -> Result<i32, RowsError> {
+        let row: Option<(i32,)> = sqlx::query_as(
+            "SELECT minutestoshutdownafterempty FROM maps
+             WHERE customerguid = $1 AND zonename = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_name)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(row.map(|r| r.0).unwrap_or(1))
     }
 
     pub async fn get_zone_instances_for_zone(

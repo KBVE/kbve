@@ -208,7 +208,11 @@ pub struct ZoneInstance {
     pub last_update_from_server: Option<NaiveDateTime>,
     #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
-    #[sqlx(rename = "gameservername")]
+    // `default` so a `SELECT mi.*` against a DB that hasn't run the gameservername migration
+    // yet deserializes the absent column to `None` instead of erroring `ColumnNotFound` — which
+    // would otherwise break every ZoneInstance query (incl. the allocate/join routing hot path)
+    // if the rows image ships before the dbmate deploy runs.
+    #[sqlx(rename = "gameservername", default)]
     pub game_server_name: Option<String>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,

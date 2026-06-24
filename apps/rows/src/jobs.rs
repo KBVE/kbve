@@ -5,6 +5,24 @@ use std::time::Duration;
 use tracing::{error, info, warn};
 
 pub fn spawn_all(svc: Arc<OWSService>) {
+    // Surface destructive-reaper enablement loudly at startup so a stray env flag in a values
+    // file is visible in the logs, not silently active. `reap_never_reported` is the dangerous
+    // one (deallocates populated servers ~boot_grace after spawn if heartbeats aren't live yet).
+    let cfg = &svc.state().config;
+    if cfg.empty_reaper_enabled {
+        warn!(
+            reap_never_reported = cfg.reap_never_reported,
+            boot_grace_secs = cfg.empty_reap_boot_grace_secs,
+            "Empty-server reaper ENABLED — it will deallocate empty GameServers"
+        );
+    }
+    if cfg.reap_never_reported {
+        warn!(
+            "ROWS_REAP_NEVER_REPORTED is ON — never-reported instances are reap-eligible past boot grace; \
+             confirm UE heartbeats are live in this env or populated servers will be torn down"
+        );
+    }
+
     tokio::spawn(zone_health_monitor(svc.clone()));
     tokio::spawn(stale_zone_cleanup(svc.clone()));
     tokio::spawn(empty_server_reaper(svc.clone()));
@@ -95,6 +113,11 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
 /// error can never strand a GameServer. The one exception is an instance with no resolvable
 /// GameServer name (legacy/reconcile-miss): there's nothing to deallocate, so it's flipped
 /// `status=0` (terminal) with a one-time warn rather than re-warned forever.
+///
+/// SINGLE-REPLICA ASSUMPTION: unlike the spin-up path (which holds a per-zone lock), the reaper
+/// takes no lock — it assumes exactly one rows replica runs this loop (`tenants/base` is
+/// `replicas: 1`). Scaling rows beyond one replica would let two reapers concurrently deallocate
+/// the same GameServer; add leader election / a shared lock before raising the replica count.
 async fn empty_server_reaper(svc: Arc<OWSService>) {
     use crate::agones::reaper::reap_decision;
 

@@ -34,11 +34,11 @@ impl OWSService {
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
         // Per-map empty timeout drives the `empty-shutdown-minutes` allocation annotation.
+        // Read from `maps` directly: the first server of a zone is allocated before its
+        // `mapinstances` row exists, so a mapinstances-joined lookup would miss it.
         let empty_shutdown_minutes = InstanceRepo(&self.state.db)
-            .get_zone_instances_for_zone(customer_guid, &resolved_zone)
+            .get_map_minutes_to_shutdown_after_empty(customer_guid, &resolved_zone)
             .await
-            .ok()
-            .and_then(|v| v.first().map(|z| z.minutes_to_shutdown_after_empty))
             .unwrap_or(1);
 
         let pipeline = AllocationPipeline::new(
