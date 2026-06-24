@@ -70,10 +70,7 @@ spec:
                                 name: clickhouse-credentials
                                 key: endpoint
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:
