@@ -5,7 +5,8 @@
 > built by the `rows-drain-*` plans. **Maintenance:** update this after each ROWS phase lands — the
 > "Obligation matrix" maps each UE obligation to the ROWS phase that needs it, so keep that in sync.
 > Wire formats marked 🕳️ are not finalized; treat them as proposed until the matching ROWS phase
-> pins them.
+> pins them. Config knobs + the full Agones wire-key registry are catalogued in
+> [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md).
 
 ## Why this exists
 

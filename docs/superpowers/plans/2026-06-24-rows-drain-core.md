@@ -1,6 +1,7 @@
 # ROWS Drain — Core Plumbing Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) — register `ROWS_ACCEPT_NEW_JOINS` and any new drain knob there when this lands.
 
 **Goal:** Build the inert ROWS-side foundation of the cooperative drain lifecycle — drain state on `mapinstances`, reaper exemption for draining instances, and drain-aware join routing — so a server can be marked draining and ROWS stops sending it new players and stops reaping it as "empty," while UE owns the actual shutdown.
 

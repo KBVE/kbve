@@ -2,6 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 > **Depends on:** Phase 1 (`2026-06-24-rows-drain-core.md`) — drain state + routing must exist first.
+> **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md).
 > **Hard build/deploy gate (L1):** Task 3 reuses `is_undefined_table` and the `reaper_config` control-plane pattern, both introduced by the reaper/Core work — **this plan does not compile until those have landed.** Also, a `migrate:down` (drop table) against running code that *lacks* the degrade path would 500 every new join, so the Core degrade must be present before this migration can ever be rolled back. Enforce Phase-1-first as a deploy gate, not just a note.
 
 **Goal:** Add the admission gate hierarchy (global + tenant `accept_new_joins`) and the new-join-vs-travel distinction, so an operator can freeze new joins game-wide or per-tenant (incident/load) while letting existing players keep playing and traveling.

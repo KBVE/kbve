@@ -4,6 +4,8 @@
 > lost. This is a **cross-repo contract** (ROWS ⟷ UE/chuck ⟷ deploy/Argo), so most of it lands as
 > follow-up work, not in the reaper PR (#13200). The reaper PR ships the *force/unresponsive*
 > backstop only; this spec is the cooperative lifecycle that sits on top of it.
+>
+> **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md).
 
 ## Motivation
 

@@ -16,6 +16,10 @@
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Config & docs index:** all knobs in this plan are catalogued in
+> [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) (the living registry) —
+> add new knobs there in the same PR.
+
 **Goal:** Make ROWS automatically tear down empty/abandoned Agones zone servers, so allocated GameServers stop piling up for days.
 
 **Architecture:** ROWS gains a background reaper that decides — via a pure, unit-tested function — whether each active `mapinstances` row should be torn down, using player count + timestamps already in the DB. The reap *action* deallocates the GameServer (failure leaves the row reap-eligible so the next cycle retries). The heartbeat handler is extended to maintain the `LastServerEmptyDate` marker, and the allocation request gains an `empty-shutdown-minutes` annotation so the UE side (separate repo) can self-shutdown first.

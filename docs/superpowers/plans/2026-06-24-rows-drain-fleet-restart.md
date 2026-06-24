@@ -2,6 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 > **Depends on:** Phase 1 (`2026-06-24-rows-drain-core.md`, drain state + setter) and Phase 2 (`2026-06-24-rows-drain-admission.md`, the `accept_new_joins` lockout).
+> **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) — pin the drain request annotation schema there once Phase 3 emits it.
 
 **Goal:** Give ROWS the orchestration to drive a coordinated fleet-wide restart — mark every active instance draining, run the new-join lockout, optionally stagger in batches, and emit an "all drained" signal a deploy orchestrator waits on before launching the new binary.
 
