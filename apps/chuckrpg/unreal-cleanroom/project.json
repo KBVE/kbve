@@ -29,17 +29,14 @@
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
 				"commands": [
-					"git lfs install",
-					"git add -A",
-					"git commit -m 'sync: update cleanroom assets' || echo 'No changes to commit'",
-					"git remote add forgejo-archive https://git.kbve.com/KBVE/cleanroom.git || true",
-					"git push forgejo-archive HEAD:main --force"
+					"git add apps/chuckrpg/unreal-cleanroom/",
+					"git commit -m 'chore(cleanroom): sync assets' || echo 'No changes to commit'",
+					"./kbve.sh -lfs cleanroom push origin dev"
 				],
 				"parallel": false
 			},
-			"description": "Sync cleanroom changes and push to Forgejo LFS backup"
+			"description": "Sync cleanroom changes and push LFS to Forgejo using kbve.sh wrapper"
 		}
 	}
 }

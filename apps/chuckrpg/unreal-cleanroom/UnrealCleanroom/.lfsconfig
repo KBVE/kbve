@@ -1,0 +1,19 @@
+; Git LFS endpoint for cleanroom / unreal-cleanroom binary assets.
+;
+; Pointer files (~150 byte text stubs) live in this GitHub monorepo;
+; the real blobs live on the self-hosted Forgejo instance at
+; git.kbve.com/KBVE/cleanroom.git.
+;
+; LIMITATION: stock git-lfs only honors `lfs.url` from the .lfsconfig
+; at the *repository root*. To push/pull cleanroom LFS blobs to the
+; correct endpoint, use the kbve.sh wrapper:
+;
+;   ./kbve.sh -lfs cleanroom push origin <branch>
+;   ./kbve.sh -lfs cleanroom pull
+;   ./kbve.sh -lfs cleanroom fetch --all
+;
+; The wrapper injects `-c lfs.url=<this url>` so devs never have to
+; remember it. This .lfsconfig stays as the documented source of
+; truth for the endpoint value.
+[lfs]
+    url = https://git.kbve.com/KBVE/cleanroom.git/info/lfs
