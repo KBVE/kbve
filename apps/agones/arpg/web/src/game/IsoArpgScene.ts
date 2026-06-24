@@ -248,6 +248,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
 	private inventory: InventoryItem[] = [];
+	private spellLoadout: (string | undefined)[] = [];
 	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
 	// The client predicts ahead of the server, so an early walk-over pickup can
 	// land before the server sees us adjacent and gets rejected; we retry on a
@@ -561,11 +562,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
 		};
 		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		// Number keys 1-9 use the matching inventory slot; I toggles the full
-		// inventory panel; Escape closes it.
+		// 1-9 cast the matching spell slot; Shift+1-9 use the matching inventory
+		// slot. Read ev.code (Digit1..Digit9), not ev.key: holding Shift rewrites
+		// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
+		// I toggles the full inventory panel; Escape closes it.
 		kb.on('keydown', (ev: KeyboardEvent) => {
-			if (ev.key >= '1' && ev.key <= '9') {
-				this.useInventorySlot(Number(ev.key) - 1);
+			const digit = /^Digit([1-9])$/.exec(ev.code);
+			if (digit) {
+				const idx = Number(digit[1]) - 1;
+				if (ev.shiftKey) this.useInventorySlot(idx);
+				else this.castSpellSlot(idx);
 			} else if (ev.key === 'i' || ev.key === 'I') {
 				this.inventoryOpen = !this.inventoryOpen;
 				emitInventoryOpen(this.inventoryOpen);
@@ -842,6 +848,11 @@ export class IsoArpgScene extends Phaser.Scene {
 						i === idx ? { ...s, count: left } : s,
 					);
 		emitInventory(this.inventory);
+	}
+
+	private castSpellSlot(idx: number): void {
+		const spell = this.spellLoadout[idx];
+		if (!spell) return;
 	}
 
 	/**
