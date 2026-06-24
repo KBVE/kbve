@@ -69,6 +69,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            verify_baked_config:
+                description: '[game] When "true", print the cooked DefaultGame.ini OWS endpoint before packaging to confirm the per-env backend config baked (KBVE/kbve#13081). Opt-in per project; leave empty for projects without per-env backend config.'
+                required: false
+                type: string
+                default: ''
             use_logging_in_shipping:
                 description: '[game/server] When "1", export USE_LOGGING_IN_SHIPPING=1 so the UE target keeps UE_LOG in Shipping builds (default UE strips it). Empty = leave UE default.'
                 required: false
@@ -877,7 +882,10 @@ jobs:
                   fi
                   CUSTOM_CONFIG='${{ inputs.custom_config }}'
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
                   USE_LOGGING_IN_SHIPPING='${{ inputs.use_logging_in_shipping }}'
                   LOGGING_ENV_ARG=""
                   [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
@@ -907,6 +915,17 @@ jobs:
                         -archivedirectory=/output \
                         -unattended -utf8output -NoP4
                     '
+
+            - name: Verify baked backend config (pre-pak, Linux)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  COOKED=$(find /tmp/game-project/Saved/Cooked/Linux -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
+                  if [ -n "${COOKED}" ]; then
+                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Linux):"
+                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  else
+                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Linux"
+                  fi
 
             - name: Package archive
               run: |
@@ -1126,7 +1145,13 @@ jobs:
                   }
                   $customConfig = '${{ inputs.custom_config }}'
                   $customConfigArgs = @()
-                  if ($customConfig) { $customConfigArgs += "-CustomConfig=$customConfig" }
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  if ($customConfig) {
+                      $customConfigArgs += "-CustomConfig=$customConfig"
+                      $customConfigArgs += "-AdditionalCookerOptions=-CustomConfig=$customConfig"
+                  }
                   $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
                   if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
                   Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
@@ -1141,6 +1166,16 @@ jobs:
                       -nodebuginfo `
                       -unattended -utf8output -NoP4
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Verify baked backend config (pre-pak, Win64)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  $cookedGame = Get-ChildItem -Path (Join-Path $projRoot 'Saved\Cooked\Windows') -Recurse -Filter DefaultGame.ini -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '\\Config\\DefaultGame\.ini$' } | Select-Object -First 1
+                  if ($cookedGame) {
+                      Write-Host "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Win64):"
+                      Select-String -Path $cookedGame.FullName -Pattern 'OWS2APIPath','OWSAPICustomerKey' | ForEach-Object { Write-Host ("  " + $_.Line.Trim()) }
+                  } else { Write-Host "::warning::cooked DefaultGame.ini not found under Saved\Cooked\Windows" }
 
             - name: Package archive
               run: |
@@ -1309,7 +1344,10 @@ jobs:
 
                   CUSTOM_CONFIG="${{ inputs.custom_config }}"
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
+                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
+                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
@@ -1325,6 +1363,18 @@ jobs:
                     ${CUSTOM_CONFIG_ARG} \
                     -nodebuginfo \
                     -unattended -utf8output -NoP4
+
+            - name: Verify baked backend config (pre-pak, Mac)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  COOKED=$(find "${PROJECT_ROOT}/Saved/Cooked/Mac" -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
+                  if [ -n "${COOKED}" ]; then
+                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Mac):"
+                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  else
+                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Mac"
+                  fi
 
             - name: Package staged build
               run: |
