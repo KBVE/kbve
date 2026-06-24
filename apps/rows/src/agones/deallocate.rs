@@ -20,7 +20,7 @@ impl AgonesClient {
     /// Retries transient K8s errors with exponential backoff up to `MAX_RETRIES`.
     #[tracing::instrument(skip(self))]
     pub async fn deallocate(&self, game_server_name: &str) -> Result<(), AgonesError> {
-        self.check_circuit()?;
+        self.check_circuit_dealloc()?;
 
         let start = Instant::now();
         let mut last_err = None;
@@ -33,7 +33,7 @@ impl AgonesClient {
 
             match self.try_deallocate(game_server_name).await {
                 Ok(()) => {
-                    self.record_success();
+                    self.record_dealloc_success();
                     info!(
                         game_server_name,
                         elapsed_ms = start.elapsed().as_millis() as u64,
@@ -43,7 +43,7 @@ impl AgonesClient {
                 }
                 Err(e) => {
                     if !e.is_retryable() {
-                        self.record_failure();
+                        self.record_dealloc_failure();
                         error!(error = %e, game_server_name, "Deallocation failed (non-retryable)");
                         return Err(e);
                     }
@@ -53,7 +53,7 @@ impl AgonesClient {
             }
         }
 
-        self.record_failure();
+        self.record_dealloc_failure();
         Err(last_err.unwrap_or_else(|| {
             AgonesError::Other(anyhow::anyhow!(
                 "Deallocation failed after {MAX_RETRIES} retries"

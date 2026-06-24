@@ -199,10 +199,16 @@ impl RowsConfig {
 
         let slug = std::env::var("OWS_TENANT_SLUG").unwrap_or_else(|_| "default".into());
 
-        let database_url = std::env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/ows".into());
-        let rabbitmq_url = std::env::var("RABBITMQ_URL")
-            .unwrap_or_else(|_| "amqp://dev:test@localhost:5672".into());
+        // Route DB/MQ URLs through require_or_default like the other tenant-critical vars: dev gets
+        // the localhost default, but beta/release ERROR on a missing secret instead of silently
+        // connecting to localhost (a confusing failure when a secret is misconfigured).
+        let database_url = require_or_default(
+            "DATABASE_URL",
+            "postgres://postgres:postgres@localhost:5432/ows",
+            environment,
+        )?;
+        let rabbitmq_url =
+            require_or_default("RABBITMQ_URL", "amqp://dev:test@localhost:5672", environment)?;
         let agones_namespace = require_or_default("AGONES_NAMESPACE", "ows", environment)?;
         let agones_fleet = require_or_default("AGONES_FLEET", "ows-hubworld", environment)?;
 

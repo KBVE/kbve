@@ -196,7 +196,13 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
             continue;
         }
 
-        run_reap_cycle(&svc, guid, &reaper).await;
+        // Run the cycle as a supervised task: a panic inside it is caught at the task boundary
+        // (JoinError) instead of killing this loop — and, critically, the advisory unlock below
+        // ALWAYS runs. A session-level lock skipped on panic would leak on the pooled connection
+        // and permanently wedge reaping for this tenant.
+        if let Err(e) = tokio::spawn(run_reap_cycle(svc.clone(), guid, reaper.clone())).await {
+            error!(error = %e, "Reaper: reap cycle panicked — releasing lock, loop continues");
+        }
 
         // Release explicitly: a session-level advisory lock outlives a pooled connection's return,
         // so it must be unlocked before the connection goes back to the pool or it would leak.
@@ -217,11 +223,13 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
 /// BATCHED into one `ANY($)` query for all cache-misses so a post-restart cycle doesn't fan out to
 /// hundreds of sequential lookups), then performs deallocate-first teardown with bounded concurrency.
 async fn run_reap_cycle(
-    svc: &Arc<OWSService>,
+    svc: Arc<OWSService>,
     guid: uuid::Uuid,
-    reaper: &crate::config::ReaperKnobs,
+    reaper: crate::config::ReaperKnobs,
 ) {
     use crate::agones::reaper::reap_decision;
+    let svc = &svc;
+    let reaper = &reaper;
     use tokio::task::JoinSet;
 
     let now = chrono::Utc::now().naive_utc();

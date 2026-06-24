@@ -305,11 +305,15 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                 Err(e) => {
                     error!(error = %e, zone = msg.zone_instance_id, "MQ spin-up: pipeline failed");
 
-                    if delivery.delivery_tag > 2 {
-                        warn!(
-                            zone = msg.zone_instance_id,
-                            "DLQ: rejecting after repeated failures"
-                        );
+                    // Retry-once policy keyed on `redelivered` (per-MESSAGE), not `delivery_tag`
+                    // (a per-CHANNEL counter — `> 2` would drop any failure once the channel warmed
+                    // up, and requeue forever on a cold channel). First failure → requeue; a message
+                    // that fails again (redelivered) → reject no-requeue.
+                    // NOTE: no dead-letter exchange is configured on this queue, so reject-no-requeue
+                    // DROPS the message (it is not actually dead-lettered). Add `x-dead-letter-exchange`
+                    // to the queue args for a real DLQ.
+                    if delivery.redelivered {
+                        warn!(zone = msg.zone_instance_id, "Dropping spin-up after one retry (no DLX configured)");
                         let _ = delivery.reject(BasicRejectOptions { requeue: false }).await;
                         continue;
                     }
