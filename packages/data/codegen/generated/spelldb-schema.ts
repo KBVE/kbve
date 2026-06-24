@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/spelldb.binpb
  * Config: ../spelldb-zod-config.json
- * Generated: 2026-06-24T00:42:20.476Z
+ * Generated: 2026-06-24T00:44:53.099Z
  */
 
 import { z } from 'zod';
