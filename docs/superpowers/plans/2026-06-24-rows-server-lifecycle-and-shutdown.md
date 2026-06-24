@@ -27,10 +27,12 @@ would ship outages.** Implementation of any rung is **blocked until B1–B3 are 
 
 **B1 — Unlimited save time collides with k8s eviction.** Node-drain / autoscaler / Talos reboot
 impose `terminationGracePeriodSeconds` then unconditional SIGKILL, and Agones reclaims the pod if a
-blocking save starves the SDK `Health()` ping. `rows/tenants/base/deployment.yaml` runs **TGPS=30s**
-(and the chuck GameServer likewise), so "data always saved" is false in exactly the motivating cases
-(node-drain, fleet-restart). *Prereq:* bound the save budget to TGPS; set TGPS explicitly on the
-Fleet; run the UE save off-thread from the Agones health ping.
+blocking save starves the SDK `Health()` ping. **The save-budget constraint is the chuck *UE
+GameServer* Fleet's TGPS + Agones health — NOT the rows allocator pod.** The rows pod
+(`rows/tenants/base/deployment.yaml`, TGPS=30s) is the API/allocator and persists *no* player state;
+only the UE GameServer saves. So "data always saved" is false on the *GameServer* side in the
+motivating cases (node-drain, fleet-restart). *Prereq:* set TGPS explicitly on the **chuck Fleet** ≥
+max save budget; run the UE save off-thread from the Agones health ping.
 
 **B2 — valkey is a non-durable SPOF, not hot-path truth.** `apps/kube/rows/manifest/valkey.yaml` =
 `replicas: 1`, `emptyDir` (AOF *is* enabled but written to a volume that evaporates on reschedule),
