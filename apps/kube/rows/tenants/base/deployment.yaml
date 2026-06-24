@@ -86,6 +86,28 @@ spec:
                         value: '2000'
                       - name: ROWS_SPINUP_INITIAL_DELAY_MS
                         value: '3000'
+                      # --- Empty-server reaper (PR #13200) — ships INERT. ---
+                      # Backstops the UE server's own SDK.Shutdown(). UNSAFE to enable until UE
+                      # heartbeats are confirmed LIVE in this env: pre-heartbeat a full server is
+                      # indistinguishable from a dead one, so ROWS_REAP_NEVER_REPORTED would
+                      # deallocate populated servers ~boot-grace after spawn. Enabling the switches
+                      # below is a HARD-GATED runbook step — see Operational Runbook section 2 in
+                      # docs/superpowers/plans/2026-06-23-rows-empty-server-reaper.md. Leave the two
+                      # switches commented until that gate is satisfied; flipping them on is then a
+                      # deliberate, reviewable GitOps diff (no out-of-band env edits / Argo drift).
+                      # - name: ROWS_EMPTY_REAPER_ENABLED      # master switch (count-based reap)
+                      #   value: 'true'
+                      # - name: ROWS_REAP_NEVER_REPORTED       # DANGER: reaps pre-heartbeat servers
+                      #   value: 'true'
+                      # - name: ROWS_EMPTY_REAP_STALE_SECS     # crashed-while-populated; needs
+                      #   value: '120'                         # trusted heartbeat delivery (0 = off)
+                      # Tuning knobs (safe; inert while the switches above stay off):
+                      - name: ROWS_EMPTY_REAP_BOOT_GRACE_SECS
+                        value: '14400'
+                      - name: ROWS_EMPTY_REAP_BUFFER_SECS
+                        value: '30'
+                      - name: ROWS_EMPTY_REAP_MIN_EMPTY_SECS
+                        value: '300'
                   ports:
                       - name: http
                         containerPort: 4322

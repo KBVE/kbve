@@ -792,6 +792,18 @@ Folds in the merge-condition items from the PR #13200 production audit. The reap
 (`ROWS_EMPTY_REAPER_ENABLED=false`); the only live behavior on merge is the harmless
 `lastserveremptydate` marker writes in the heartbeat handler.
 
+> **⚠️ This PR does NOT auto-clean the servers currently piled up — in any safe configuration.**
+> Existing stuck instances have `last_update_from_server = NULL` and `player_count = 0` (no live
+> heartbeat), so the only path that could reap them is `NeverReported`, gated by
+> `ROWS_REAP_NEVER_REPORTED` — and turning that on **pre-heartbeat also deallocates *populated*
+> servers** (a full server is indistinguishable from a dead one without heartbeats). Additionally,
+> pre-existing rows have `gameservername = NULL` (it's only written on INSERT, never backfilled —
+> `ON CONFLICT DO NOTHING`), so even if the reaper selected them it would take the no-name terminal
+> path: flip `status=0` and log "verify no orphaned pod" **while the real GameServer keeps
+> running**. **Until UE heartbeats are live, clear the current backlog manually** with
+> `kubectl delete gs <name> -n <agones-ns>`. The reaper is a forward-looking backstop, not a
+> backfill for today's mess.
+
 ### 1. Migration / image ordering (`gameservername` column)
 
 The `gameservername` migration (`20260623120000`) is applied by the **manually-triggered**
@@ -813,11 +825,20 @@ independent steps.
   ```
   Expect one row. If empty, the migration has not applied — rows is running in degrade mode.
 
-### 2. Per-env enablement (do this per environment, never globally at once)
+### 2. Per-env enablement — HARD GATE (do this per environment, never globally at once)
 
-`ROWS_REAP_NEVER_REPORTED=true` **without live UE heartbeats** will deallocate *populated* servers
-~`boot_grace` (default 4h) after spawn, because a full server is indistinguishable from a dead one
-when no heartbeat is arriving. Enable strictly in this order, per env (dev → beta → release):
+The reaper knobs live in `apps/kube/rows/tenants/base/deployment.yaml`: the tuning values
+(`BOOT_GRACE`/`BUFFER`/`MIN_EMPTY`) are present at safe defaults, and the three dangerous switches
+(`ROWS_EMPTY_REAPER_ENABLED`, `ROWS_REAP_NEVER_REPORTED`, `ROWS_EMPTY_REAP_STALE_SECS`) ship
+**commented out** so enabling is a deliberate, reviewable GitOps diff — never an out-of-band env
+edit that drifts from Argo.
+
+> **GATE — `ROWS_REAP_NEVER_REPORTED` MUST NOT be uncommented in any env until step 1 below is
+> signed off for that env.** It deallocates *populated* servers ~`boot_grace` (default 4h) after
+> spawn when heartbeats aren't live, because a full server is then indistinguishable from a dead
+> one. This is the single most dangerous flag in the PR.
+
+Enable strictly in this order, per env (dev → beta → release):
 
 1. **Confirm heartbeats are live in THIS env first.** With the env carrying real player traffic,
    check that `lastupdatefromserver` advances and `numberofreportedplayers` reflects reality:

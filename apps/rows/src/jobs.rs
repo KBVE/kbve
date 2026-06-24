@@ -263,28 +263,30 @@ async fn run_reap_cycle(
         let ids: Vec<i32> = misses.iter().map(|(id, _)| *id).collect();
         match repo.get_gameserver_names(guid, &ids).await {
             Ok(rows) => {
+                // Partition the misses against the DB-resolved names (pure, unit-tested). Only
+                // reached on Ok — a transient DB error skips this whole block so the misses are
+                // never misclassified as unresolved and mass-flipped to status=0.
                 let resolved: HashMap<i32, Option<String>> = rows.into_iter().collect();
-                for (id, reason) in misses {
-                    match resolved.get(&id).cloned().flatten() {
-                        Some(gs) => targets.push(ReapTarget {
-                            instance_id: id,
-                            gs,
-                            reason,
-                        }),
-                        None => {
-                            // Terminal state for the no-name case (legacy rows from before the
-                            // `gameservername` column, or a `reconcile_allocations` miss). We
-                            // can't deallocate a GameServer we can't name, so flip status=0 to
-                            // drop it from routing AND the candidate set, and surface it ONCE
-                            // for manual/infra check — instead of re-warning every 60s forever.
-                            // Deliberate, narrow exception to deallocate-first: in practice
-                            // these are legacy rows whose pod is already gone; a still-live one
-                            // is flagged for `kubectl` cleanup.
-                            match repo.shut_down_server_instance(guid, id).await {
-                                Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
-                                Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
-                            }
-                        }
+                let (resolved_targets, unresolved) =
+                    crate::agones::reaper::resolve_misses(misses, &resolved);
+                for (id, gs, reason) in resolved_targets {
+                    targets.push(ReapTarget {
+                        instance_id: id,
+                        gs,
+                        reason,
+                    });
+                }
+                for (id, reason) in unresolved {
+                    // Terminal state for the no-name case (legacy rows from before the
+                    // `gameservername` column, or a `reconcile_allocations` miss). We can't
+                    // deallocate a GameServer we can't name, so flip status=0 to drop it from
+                    // routing AND the candidate set, and surface it ONCE for manual/infra check —
+                    // instead of re-warning every 60s forever. Deliberate, narrow exception to
+                    // deallocate-first: in practice these are legacy rows whose pod is already gone;
+                    // a still-live one is flagged for `kubectl` cleanup.
+                    match repo.shut_down_server_instance(guid, id).await {
+                        Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
+                        Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
                     }
                 }
             }

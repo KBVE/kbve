@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReapReason {
@@ -70,6 +71,33 @@ pub fn reap_decision(
         }
     }
     None
+}
+
+/// Splits a batch of reap "misses" — candidates the in-memory `zone_servers` map couldn't name —
+/// against the GameServer names resolved from the DB, into:
+///   - `targets`: `(instance_id, gs_name, reason)` ready for deallocate-first teardown.
+///   - `unresolved`: `(instance_id, reason)` with no resolvable name (NULL column, or a row the DB
+///     batch didn't return) — nothing to deallocate, so the caller takes the terminal `status=0`
+///     path with a one-time warn.
+///
+/// Pure (no DB/Agones) so the miss-resolution + terminal-state branch is unit-testable; the caller
+/// owns IO (the DB batch lookup feeding `resolved`, and the teardown/status flip on the results).
+/// A DB error must NOT reach here as an empty `resolved` map — that would misclassify every miss as
+/// unresolved and mass-flip live rows to `status=0`; the caller skips this call entirely on error.
+#[allow(clippy::type_complexity)]
+pub fn resolve_misses(
+    misses: Vec<(i32, ReapReason)>,
+    resolved: &HashMap<i32, Option<String>>,
+) -> (Vec<(i32, String, ReapReason)>, Vec<(i32, ReapReason)>) {
+    let mut targets = Vec::new();
+    let mut unresolved = Vec::new();
+    for (id, reason) in misses {
+        match resolved.get(&id).cloned().flatten() {
+            Some(gs) => targets.push((id, gs, reason)),
+            None => unresolved.push((id, reason)),
+        }
+    }
+    (targets, unresolved)
 }
 
 #[cfg(test)]
@@ -184,5 +212,60 @@ mod tests {
         let empty_since = ts("2026-06-23 11:53:20"); // empty 400s > floor 300
         let d = reap_decision(0, Some(now), Some(empty_since), Some(ts("2026-06-23 10:00:00")), 1, 600, 30, 0, 300, false, now);
         assert_eq!(d, Some(ReapReason::Empty));
+    }
+
+    // resolve_misses: a row whose DB lookup returned a name -> teardown target
+    #[test]
+    fn resolve_misses_named_becomes_target() {
+        let resolved = HashMap::from([(1, Some("gs-alpha".to_string()))]);
+        let (targets, unresolved) = resolve_misses(vec![(1, ReapReason::Empty)], &resolved);
+        assert_eq!(targets, vec![(1, "gs-alpha".to_string(), ReapReason::Empty)]);
+        assert!(unresolved.is_empty());
+    }
+
+    // resolve_misses: a row present with a NULL name -> terminal (no GameServer to deallocate)
+    #[test]
+    fn resolve_misses_null_name_is_unresolved() {
+        let resolved = HashMap::from([(2, None)]);
+        let (targets, unresolved) = resolve_misses(vec![(2, ReapReason::NeverReported)], &resolved);
+        assert!(targets.is_empty());
+        assert_eq!(unresolved, vec![(2, ReapReason::NeverReported)]);
+    }
+
+    // resolve_misses: a row the DB batch didn't return at all -> terminal (treated as no-name)
+    #[test]
+    fn resolve_misses_absent_row_is_unresolved() {
+        let resolved = HashMap::new();
+        let (targets, unresolved) = resolve_misses(vec![(3, ReapReason::Stale)], &resolved);
+        assert!(targets.is_empty());
+        assert_eq!(unresolved, vec![(3, ReapReason::Stale)]);
+    }
+
+    // resolve_misses: mixed batch is partitioned correctly, order preserved within each bucket
+    #[test]
+    fn resolve_misses_mixed_batch_partitions() {
+        let resolved = HashMap::from([
+            (1, Some("gs-a".to_string())),
+            (2, None),
+            (4, Some("gs-d".to_string())),
+        ]);
+        let misses = vec![
+            (1, ReapReason::Empty),
+            (2, ReapReason::Empty),
+            (3, ReapReason::NeverReported), // absent from resolved
+            (4, ReapReason::Stale),
+        ];
+        let (targets, unresolved) = resolve_misses(misses, &resolved);
+        assert_eq!(
+            targets,
+            vec![
+                (1, "gs-a".to_string(), ReapReason::Empty),
+                (4, "gs-d".to_string(), ReapReason::Stale),
+            ]
+        );
+        assert_eq!(
+            unresolved,
+            vec![(2, ReapReason::Empty), (3, ReapReason::NeverReported)]
+        );
     }
 }
