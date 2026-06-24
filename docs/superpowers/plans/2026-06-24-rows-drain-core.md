@@ -527,3 +527,11 @@ blocker clears:
 **Placeholder scan:** every code step shows code; manual-verification is used only for the DB-routing SQL (no harness, per the reaper plan precedent), not as a substitute for the pure-logic unit tests in Task 2.
 
 **Type consistency:** `reap_decision` gains `is_draining: bool` before `now` in Task 2 (def + existing call updates) and Task 3 (cycle call) — consistent 12-arg signature. `ZoneInstance.drain_state: Option<i16>` (Task 1) is read in Task 3 (`inst.drain_state.unwrap_or(0) >= 1`). `set_drain_state`/`clear_drain_state` (Task 4) use the same column names as the migration (Task 1) and the `join_map` query (Task 5): `drainstate`, `drainurgency`, `draindropplayers`, `drainreason`, `drainrequestid`, `draindeadline`.
+
+---
+
+## Next up
+
+**Phase 2 — Admission control plane** → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`
+
+(Phase 2 hard-depends on this Core phase: it reuses `is_undefined_table` and the drain state landed here. Land Core first.)

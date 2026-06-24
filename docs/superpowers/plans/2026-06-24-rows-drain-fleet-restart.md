@@ -316,3 +316,11 @@ DELETE FROM admission_control WHERE customerguid = '<tenant-guid>';
 - 🕳️ **B1 save budget** — the chuck Fleet `terminationGracePeriodSeconds` must exceed the save budget, else SIGKILL eats saves mid-restart (chuck/agones repo, not ROWS).
 - 🕳️ **Player broadcast / countdown** — "restarting in X" messaging is UE-rendered; ROWS supplies `drain_deadline`. The notify seam (`ShutdownNotifier`) is logging-only today.
 - 🕳️ **Stagger by zone vs by server** — this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
+
+---
+
+## Next up
+
+**Phase 4 — Reaper v2 (valkey-backed occupancy) + UE drain contract** → tracked in the lifecycle spec `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md` ("Out of scope" / "Reaper v2"). These are the cross-repo / decision-blocked items (W1 UE ack, B4 orchestrator, valkey occupancy) — no executable ROWS plan yet; each gets its own once its blocker clears.
+
+(Previous: Phase 2 Admission → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`. This is the last ROWS-side buildable phase.)

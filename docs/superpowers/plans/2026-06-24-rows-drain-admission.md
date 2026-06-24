@@ -298,3 +298,11 @@ DELETE FROM admission_control WHERE customerguid = '00000000-0000-0000-0000-0000
 - 🕳️ **Hot-path cost** — gate read is a DB hit per *new* join (not travel). Fine at low scale; valkey-cache it with the occupancy layer (reaper v2 / valkey ticket).
 - 🕳️ **M1 trust boundary** — if untrusted non-player identities ever reach the join path, verify character ownership for them too (today only `Player` is checked; `Service` is trusted).
 - 🕳️ **Dashboard write contract** — ROWS only reads the table; the dashboard UI that writes it is separate.
+
+---
+
+## Next up
+
+**Phase 3 — Fleet-restart orchestration** → `docs/superpowers/plans/2026-06-24-rows-drain-fleet-restart.md`
+
+(Phase 3 reuses this phase's `accept_new_joins` gate for the restart lockout, and is blocked on B4 — the named Argo orchestrator. Previous: Phase 1 Core → `docs/superpowers/plans/2026-06-24-rows-drain-core.md`.)
