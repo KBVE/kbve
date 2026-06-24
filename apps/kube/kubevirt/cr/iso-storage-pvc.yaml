@@ -1,7 +1,6 @@
-# Shared Longhorn PVC for staging ISOs, Xcode .xip, installers, etc.
-# Mounted as a data disk on both Windows and macOS builder VMs.
-# Upload files via virtctl or kubectl cp, then access from inside each VM.
-# RWX so both VMs can mount simultaneously.
+# Shared Longhorn PVC for staging ISOs, installers, etc.
+# Mounted as a data disk on the Windows builder VM.
+# Upload files via virtctl or kubectl cp, then access from inside the VM.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
