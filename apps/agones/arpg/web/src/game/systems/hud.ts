@@ -1,4 +1,5 @@
 import { laserEvents, type InventoryItem } from '@kbve/laser';
+import type { SpellMeta } from '../entities/spellMeta';
 
 export const HUD_EVENT = 'arpg:hud';
 
@@ -49,6 +50,21 @@ export function onInventory(
 	handler: (items: InventoryItem[]) => void,
 ): () => void {
 	return laserEvents.on(INVENTORY_EVENT, handler as (data: unknown) => void);
+}
+
+export const SPELL_LOADOUT_EVENT = 'arpg:spells';
+
+export function emitSpellLoadout(spells: SpellMeta[]): void {
+	laserEvents.emit(SPELL_LOADOUT_EVENT, spells);
+}
+
+export function onSpellLoadout(
+	handler: (spells: SpellMeta[]) => void,
+): () => void {
+	return laserEvents.on(
+		SPELL_LOADOUT_EVENT,
+		handler as (data: unknown) => void,
+	);
 }
 
 /** Player-driven inventory actions emitted by the HUD, handled by the scene

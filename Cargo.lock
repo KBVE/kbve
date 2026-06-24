@@ -801,6 +801,7 @@ dependencies = [
  "bevy",
  "bevy_items",
  "bevy_mapdb",
+ "bevy_spells",
  "jedi",
  "serde_json",
  "simgrid",
@@ -3123,6 +3124,17 @@ name = "bevy_skills"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bevy_spells"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "prost 0.14.3",
+ "prost-build 0.14.3",
  "serde",
  "serde_json",
 ]
@@ -15298,6 +15310,7 @@ dependencies = [
  "async-trait",
  "axum 0.7.9",
  "bevy",
+ "bevy_spells",
  "dashmap 6.1.0",
  "futures-util",
  "hex",

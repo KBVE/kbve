@@ -142,6 +142,7 @@ pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
 pub struct DeployQueues<'w> {
     placements: ResMut<'w, PendingPlacements>,
     pickups: ResMut<'w, PendingPickups>,
+    spells: ResMut<'w, crate::spells::PendingSpells>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -267,6 +268,8 @@ pub const REGEN_PERIOD_TICKS: u32 = SIM_TICK_HZ * 2;
 pub const REGEN_AMOUNT: i32 = 2;
 pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
+pub const PLAYER_MAX_MP: i32 = 100;
+pub const MANA_REGEN_AMOUNT: i32 = 5;
 
 #[derive(Clone, Copy)]
 pub struct StatusEffect {
@@ -380,6 +383,15 @@ pub struct Health {
 pub struct CombatStats {
     pub attack: i32,
 }
+
+#[derive(Component, Clone, Copy)]
+pub struct Mana {
+    pub mp: i32,
+    pub max_mp: i32,
+}
+
+#[derive(Resource, Default)]
+pub struct SpellCooldowns(pub HashMap<(u16, String), u32>);
 
 #[derive(Component, Clone, Default)]
 pub struct Inventory {
@@ -741,6 +753,9 @@ pub fn build_app(
         .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
         .insert_resource(KillCounts::default())
+        .insert_resource(crate::spells::PendingSpells::default())
+        .insert_resource(SpellCooldowns::default())
+        .insert_resource(bevy_spells::SpellDb::default())
         .insert_resource(map)
         .insert_resource(config)
         .insert_resource(registry)
@@ -771,6 +786,7 @@ pub fn build_app(
                 apply_placements,
                 apply_pickups,
                 apply_actions,
+                crate::spells::apply_spells,
                 crate::trade::expire_trades,
                 crate::trade::apply_trades,
                 crate::shop::apply_shop,
@@ -804,6 +820,7 @@ pub fn build_app(
     blackjack::plugin(&mut app);
     crate::trade::plugin(&mut app);
     crate::shop::plugin(&mut app);
+    crate::spells::plugin(&mut app);
     app
 }
 
@@ -879,7 +896,17 @@ fn sync_roster(
         if armor.is_some() {
             send_equipped(&bcast, *slot, "armor", armor.as_deref(), attack, defense);
         }
-        send_stats(&bcast, *slot, level, xp, max_hp, attack, kills);
+        send_stats(
+            &bcast,
+            *slot,
+            level,
+            xp,
+            max_hp,
+            attack,
+            kills,
+            PLAYER_MAX_MP,
+            PLAYER_MAX_MP,
+        );
         let entity = commands
             .spawn((
                 PlayerSlotTag(*slot),
@@ -889,6 +916,10 @@ fn sync_roster(
                     ticks_per_tile: config.ticks_per_tile,
                 },
                 Health { hp, max_hp },
+                Mana {
+                    mp: PLAYER_MAX_MP,
+                    max_mp: PLAYER_MAX_MP,
+                },
                 CombatStats { attack },
                 Defense(defense),
                 XpState { level, xp },
@@ -989,6 +1020,9 @@ fn drain_inputs(
         while let Ok((slot, input)) = guard.try_recv() {
             match input {
                 Input::Action { id, target } => actions.0.push((slot, id, target)),
+                Input::CastSpell { spell_ref, target } => {
+                    deploy.spells.0.push((slot, spell_ref, target))
+                }
                 Input::TradeOffer { target, items } => {
                     trades.0.push((slot, TradeInput::Offer { target, items }));
                 }
@@ -1143,6 +1177,7 @@ fn drain_inputs(
                 Input::Step { .. }
                 | Input::MoveTo { .. }
                 | Input::Action { .. }
+                | Input::CastSpell { .. }
                 | Input::Heartbeat { .. }
                 | Input::Leave
                 | Input::TradeOffer { .. }
@@ -1203,7 +1238,7 @@ fn use_item(
     send_inventory(bcast, slot, inv);
 }
 
-type AttackPlayerQuery<'w, 's> = Query<
+pub(crate) type AttackPlayerQuery<'w, 's> = Query<
     'w,
     's,
     (
@@ -1215,10 +1250,11 @@ type AttackPlayerQuery<'w, 's> = Query<
         &'static mut Health,
         &'static mut XpState,
         &'static Equipped,
+        &'static mut Mana,
     ),
 >;
 
-type AttackMobQuery<'w, 's> = Query<
+pub(crate) type AttackMobQuery<'w, 's> = Query<
     'w,
     's,
     (
@@ -1238,7 +1274,7 @@ type AttackMobQuery<'w, 's> = Query<
 /// handle loot, respawn, despawn and XP. Shared by melee and ranged attacks —
 /// only target selection differs upstream.
 #[allow(clippy::too_many_arguments)]
-fn resolve_attack_hit(
+pub(crate) fn resolve_attack_hit(
     player_entity: Entity,
     target_entity: Entity,
     slot: proto::PlayerSlot,
@@ -1302,12 +1338,13 @@ fn resolve_attack_hit(
             *k += 1;
             *k
         };
-        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
+        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana)) =
             q_players.get_mut(player_entity)
         {
+            let (mp, max_mp) = (mana.mp, mana.max_mp);
             award_xp(
                 bcast, slot, config, equipment, kill_xp, &mut xp, &mut php, &mut stats, equipped,
-                kills,
+                kills, mp, max_mp,
             );
         }
     }
@@ -1542,6 +1579,8 @@ fn award_xp(
     stats: &mut CombatStats,
     equipped: &Equipped,
     kills: u32,
+    mp: i32,
+    max_mp: i32,
 ) {
     xp.xp += gained.max(0);
     let mut leveled = false;
@@ -1560,7 +1599,17 @@ fn award_xp(
         hp.hp = hp.max_hp;
         stats.attack = level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
     }
-    send_stats(bcast, slot, xp.level, xp.xp, hp.max_hp, stats.attack, kills);
+    send_stats(
+        bcast,
+        slot,
+        xp.level,
+        xp.xp,
+        hp.max_hp,
+        stats.attack,
+        kills,
+        mp,
+        max_mp,
+    );
 }
 
 fn send_equipped(
@@ -1586,6 +1635,7 @@ fn send_equipped(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn send_stats(
     bcast: &Outbound,
     slot: proto::PlayerSlot,
@@ -1594,6 +1644,8 @@ fn send_stats(
     max_hp: i32,
     attack: i32,
     kills: u32,
+    mp: i32,
+    max_mp: i32,
 ) {
     let payload = json!({
         "level": level,
@@ -1602,6 +1654,8 @@ fn send_stats(
         "max_hp": max_hp,
         "attack": attack,
         "kills": kills,
+        "mp": mp,
+        "max_mp": max_mp,
     })
     .to_string()
     .into_bytes();
@@ -1610,6 +1664,29 @@ fn send_stats(
         to: slot,
         payload,
     });
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn broadcast_player_stats(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    xp: &XpState,
+    health: &Health,
+    stats: &CombatStats,
+    mana: &Mana,
+    kills: u32,
+) {
+    send_stats(
+        bcast,
+        slot,
+        xp.level,
+        xp.xp,
+        health.max_hp,
+        stats.attack,
+        kills,
+        mana.mp,
+        mana.max_mp,
+    );
 }
 
 pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
@@ -1950,27 +2027,50 @@ fn tick_status_effects(
 }
 
 #[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity)]
 fn regen_players(
     clock: Res<SimClock>,
     config: Res<SimConfig>,
-    mut q: Query<(&mut Health, &GridPos), With<PlayerSlotTag>>,
+    bcast: Res<Outbound>,
+    kill_counts: Res<KillCounts>,
+    mut q: Query<(
+        &PlayerSlotTag,
+        &mut Health,
+        &mut Mana,
+        &GridPos,
+        &XpState,
+        &CombatStats,
+    )>,
 ) {
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for (mut hp, pos) in q.iter_mut() {
-        if hp.hp <= 0 || hp.hp >= hp.max_hp {
-            continue;
+    for (slot, mut hp, mut mana, pos, xp, stats) in q.iter_mut() {
+        if hp.hp > 0 && hp.hp < hp.max_hp {
+            // The town fountain mends faster — return to the plaza to recover.
+            let in_town =
+                config.safe_radius > 0 && pos.tile.chebyshev(config.spawn) <= config.safe_radius;
+            let amount = if in_town {
+                TOWN_REGEN_AMOUNT
+            } else {
+                REGEN_AMOUNT
+            };
+            hp.hp = (hp.hp + amount).min(hp.max_hp);
         }
-        // The town fountain mends faster — return to the plaza to recover.
-        let in_town =
-            config.safe_radius > 0 && pos.tile.chebyshev(config.spawn) <= config.safe_radius;
-        let amount = if in_town {
-            TOWN_REGEN_AMOUNT
-        } else {
-            REGEN_AMOUNT
-        };
-        hp.hp = (hp.hp + amount).min(hp.max_hp);
+        if hp.hp > 0 && mana.mp < mana.max_mp {
+            mana.mp = (mana.mp + MANA_REGEN_AMOUNT).min(mana.max_mp);
+            send_stats(
+                &bcast,
+                slot.0,
+                xp.level,
+                xp.xp,
+                hp.max_hp,
+                stats.attack,
+                kill_counts.0.get(&slot.0.0).copied().unwrap_or(0),
+                mana.mp,
+                mana.max_mp,
+            );
+        }
     }
 }
 

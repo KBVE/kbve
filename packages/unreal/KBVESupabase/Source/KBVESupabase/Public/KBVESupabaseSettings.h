@@ -108,6 +108,40 @@ public:
 	FString LoopbackErrorHtml;
 
 	/**
+	 * Custom URL scheme used as the OAuth deep-link fallback when the HTTP
+	 * loopback cannot open a socket (e.g. packaged macOS Shipping builds where
+	 * FHttpServerModule never listens, or a firewall blocks 127.0.0.1).
+	 *
+	 * The redirect handed to Supabase becomes "<Scheme>://<LoopbackCallbackPath>",
+	 * e.g. kbve://auth/callback. Register the scheme with the OS (macOS Info.plist
+	 * CFBundleURLSchemes, Windows registry on install) and allowlist the full URI
+	 * in Supabase → Auth → URL Configuration.
+	 *
+	 * Per-game override: set a unique scheme to avoid collisions between multiple
+	 * KBVE titles on the same machine (e.g. chuckrpg).
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Deep Link")
+	FString DeepLinkScheme;
+
+	/**
+	 * Allow the deep-link scheme as a fallback when neither the FHttpServer nor
+	 * the raw-socket loopback verifies an open listening socket. Disable to fail
+	 * hard on loopback (no scheme handoff).
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Deep Link")
+	bool bEnableDeepLinkFallback;
+
+	/**
+	 * Skip the HTTP loopback entirely and always use the deep-link scheme. For
+	 * platforms where loopback is known-bad and you want a deterministic path.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Deep Link", AdvancedDisplay)
+	bool bPreferDeepLink;
+
+	/** Resolved deep-link redirect URI, e.g. kbve://auth/callback (empty if scheme unset). */
+	FString GetDeepLinkRedirectURI() const;
+
+	/**
 	 * KBVE chat (irc-gateway) WebSocket URL. JWT injected via
 	 * Authorization: Bearer on the upgrade. Leave blank to disable chat.
 	 */

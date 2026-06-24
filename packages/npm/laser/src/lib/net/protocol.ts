@@ -47,6 +47,7 @@ export type Input =
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
 	| { UseItem: { item_ref: string } }
+	| { CastSpell: { spell_ref: string; target: number | null } }
 	| { DropItem: { item_ref: string; qty: number } }
 	| { MoveItem: { from: number; to: number } }
 	| { EquipItem: { item_ref: string } }

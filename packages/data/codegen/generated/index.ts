@@ -34,6 +34,7 @@ export * from './redis-schema.js';
 export * from './rows-schema.js';
 export * from './schema-schema.js';
 export * from './snapshot-schema.js';
+export * from './spelldb-schema.js';
 export * from './staff-schema.js';
 export * from './telemetry-schema.js';
 export * from './twitch-schema.js';
