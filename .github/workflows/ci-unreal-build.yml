@@ -919,8 +919,13 @@ jobs:
             - name: Verify baked backend config (pre-pak, Linux)
               if: inputs.verify_baked_config == 'true'
               run: |
-                  echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Linux):"
-                  grep -ahE 'OWS2APIPath|OWSAPICustomerKey' /tmp/game-project/Saved/Cooked/Linux/*/Config/DefaultGame.ini 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  COOKED=$(find /tmp/game-project/Saved/Cooked/Linux -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
+                  if [ -n "${COOKED}" ]; then
+                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Linux):"
+                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  else
+                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Linux"
+                  fi
 
             - name: Package archive
               run: |
@@ -1363,8 +1368,13 @@ jobs:
               if: inputs.verify_baked_config == 'true'
               run: |
                   PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
-                  echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Mac):"
-                  grep -ahE 'OWS2APIPath|OWSAPICustomerKey' "${PROJECT_ROOT}"/Saved/Cooked/Mac/*/Config/DefaultGame.ini 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  COOKED=$(find "${PROJECT_ROOT}/Saved/Cooked/Mac" -type f -path '*/Config/DefaultGame.ini' 2>/dev/null)
+                  if [ -n "${COOKED}" ]; then
+                    echo "::notice::OWS endpoint baked into cooked DefaultGame.ini (pre-pak, Mac):"
+                    grep -ahE 'OWS2APIPath|OWSAPICustomerKey' ${COOKED} 2>/dev/null || echo "  (OWS keys not found in cooked DefaultGame.ini)"
+                  else
+                    echo "::warning::cooked DefaultGame.ini not found under Saved/Cooked/Mac"
+                  fi
 
             - name: Package staged build
               run: |
