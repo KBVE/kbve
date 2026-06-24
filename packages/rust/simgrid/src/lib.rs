@@ -10,6 +10,7 @@ pub mod proto;
 pub mod rng;
 pub mod shop;
 pub mod sim;
+pub mod spells;
 pub mod trade;
 
 #[cfg(feature = "supabase-auth")]
