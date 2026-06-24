@@ -22,6 +22,72 @@
 
 ---
 
+## ⚠️ Audit corrections (2026-06-24 Phase-3 audit — these OVERRIDE the tasks below)
+
+Highest-blast-radius plan; apply all. **Dependency reality:** this hard-depends on Phase 1
+(`drainstate`, `set_drain_state`) and Phase 2 (`admission_control`, `set_admission`) — **neither is
+built yet**, so merge-readiness is gated on Core + Admission landing first. There is also an EXISTING
+imperative `restart_fleet` (`apps/rows/src/rest/system.rs` — scale-to-0 → `delete_all_map_instances`
+→ scale-up); this cooperative flow must **supersede** it, not silently duplicate it.
+
+### B-1 / B-3 (BLOCKER) — enforce the barrier at the DEPLOY layer + name the orchestrator
+`/fleet-restart/status` is advisory only; the chuck Fleet is `RollingUpdate, maxSurge:25%` under Argo
+(`automated.prune:true`, `ignoreDifferences` only on `/spec/replicas`), so committing a new image
+surges 25% new pods *immediately*, parallel with draining old ones — the mixed-version coexistence
+this plan forbids. ROWS emitting a signal does **not** block the roll. **Required — pick one and
+specify the manifest change:**
+- (a) **Scale-to-0 cutover** (recommended; mirrors the existing `restart_fleet`): the orchestrator
+  scales the Fleet to 0 *gated on `all_drained=true`*, THEN bumps the image, THEN scales up, with
+  Fleet `maxSurge:0` during cutover so no new-version pod starts before old are gone.
+- (b) **Argo Workflow / PreSync hook** that polls `/fleet-restart/status` and only proceeds to the
+  image bump + `dbmate` Job after `all_drained`.
+
+The orchestrator is a **REQUIRED deliverable (B4)**, not "out of scope." Until built, this PR is
+**signal + manual runbook only** = the existing imperative `restart_fleet` with extra steps; the
+plan framing must say "signal-only" if the orchestrator isn't shipped here.
+
+### B-2 (BLOCKER) — migration rollback / enforce expand-contract
+dbmate is up-only and runs at the barrier *before* new-binary launch; a bad new binary rolled back
+leaves the OLD binary on the NEW schema. Required: (1) **CI guard rejecting non-additive DDL** in a
+migration shipping with a binary roll; (2) **pre-deploy compat test** (binary N-1 vs schema N);
+(3) documented **forward-fix recovery** (no `dbmate down`).
+
+### H-2 (HIGH) — the reconciler MUST own the lockout lifecycle
+Task 3 sets `acceptnewjoins=false` while active but never lifts it. Fix: the reconcile loop sets the
+lockout on `active=true` AND **clears it on `active=false`/absent row**. **Remove** the manual
+`DELETE FROM admission_control` from the runbook — a two-statement manual teardown silently locks
+players out after a "successful" restart.
+
+### H-1 (HIGH) — ROWS `replicas:1` orchestrator SPOF
+The reconcile loop runs on one pod (lifecycle B5/B6). Required: fully resume-safe — re-derives the
+batch from `drainstate IS NULL` each tick (already so) AND idempotently re-applies/lifts the lockout
+on resume (H-2). Document the manual unlock SQL as break-glass. Prod should run ROWS HA
+(leader-elected) or at minimum fix the PDB (lifecycle B6).
+
+### H-3 (HIGH) — stuck instances block convergence forever
+"drained" = row leaves `status>0`, and `list_drainable_instances` skips already-draining, so a hung
+instance pins `all_drained=false` forever (lockout stays on). Required: a per-restart **deadline**
+after which the reconciler **force-deallocates** overdue instances (Agones) and/or `count_active`
+excludes them. Define the "stuck" SLA. (Reuses the Core `drain_deadline` enforcement, C2.)
+
+### MEDIUM / LOW
+- **M-1:** set explicit `terminationGracePeriodSeconds` > save budget on the chuck Fleet (unset →
+  30s; SIGKILL eats saves). Same as lifecycle B1.
+- **M-2:** `/fleet-restart/status` MUST be service-authenticated / cluster-internal, not public.
+- **M-3:** `batch_size` has no inter-batch completion gate (drains the next batch each tick
+  regardless of the prior finishing) — don't promise wave-by-wave isolation; document real cadence.
+- **M-4:** whole-fleet-only (`target_version` unused) = guaranteed full-tenant downtime — state it.
+- **L-1:** `urgency smallint` (1=asap) is unintuitive; add `CHECK (urgency IN (0,1))` + document the
+  scale. **L-2:** name the whole-fleet cap (the `4096` magic). **L-3:** the lifecycle spec the runbook
+  edits does exist.
+
+### Missed tests
+F2-no-surge-while-draining; rollback drill (N-1 binary vs schema N); stuck-instance convergence;
+lockout auto-lift on `active=false`; ROWS-crash-mid-drain resume; degrade-on-missing-table (42P01)
+for `get_fleet_restart`/`set_admission`; TGPS vs save budget.
+
+---
+
 ### Task 1: `fleet_restart` control table + model
 
 **Files:**
