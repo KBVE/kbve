@@ -134,6 +134,10 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS bui
 ENV CARGO_INCREMENTAL=0
 ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
+# release (default, prod) or dev (e2e image — unoptimized, builds far faster).
+# Must match across cook/foundation/app so chef-cooked deps are reused.
+ARG CARGO_PROFILE=release
+
 COPY --from=planner /app/recipe.json recipe.json
 COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
 COPY --from=planner /app/apps apps
@@ -151,13 +155,16 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     else \
         echo "sccache: Redis password not provided, falling back to local disk cache"; \
     fi && \
-    cargo chef cook --release --recipe-path recipe.json -p axum-kbve && \
+    PROFILE_FLAG=""; [ "${CARGO_PROFILE}" = "release" ] && PROFILE_FLAG="--release"; \
+    cargo chef cook ${PROFILE_FLAG} --recipe-path recipe.json -p axum-kbve && \
     (sccache --show-stats || true)
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
 ENV CARGO_INCREMENTAL=0
 ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
+
+ARG CARGO_PROFILE=release
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
@@ -190,7 +197,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
+    PROFILE_FLAG=""; [ "${CARGO_PROFILE}" = "release" ] && PROFILE_FLAG="--release"; \
+    cargo build ${PROFILE_FLAG} -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
         -p bevy_inventory -p bevy_items -p bevy_skills && \
     (sccache --show-stats || true)
 
@@ -198,6 +206,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # [STAGE F] - Build Application
 # ============================================================================
 FROM foundation AS builder
+ARG CARGO_PROFILE=release
 
 # Ensure make is available for tikv-jemalloc-sys compilation (build from source)
 RUN dpkg -s make >/dev/null 2>&1 || \
@@ -235,16 +244,19 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p axum-kbve --features jemalloc && \
+    PROFILE_FLAG=""; PROFILE_DIR="debug"; \
+    [ "${CARGO_PROFILE}" = "release" ] && { PROFILE_FLAG="--release"; PROFILE_DIR="release"; }; \
+    cargo build ${PROFILE_FLAG} -p axum-kbve --features jemalloc && \
     (sccache --show-stats || true) && \
-    strip target/release/axum-kbve
+    strip target/${PROFILE_DIR}/axum-kbve && \
+    cp target/${PROFILE_DIR}/axum-kbve /app/axum-kbve.bin
 
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-kbve
+COPY --from=builder --chown=10001:10001 /app/axum-kbve.bin /app/axum-kbve
 
 # Ship Cargo.toml alongside the binary so `/health` reports the version
 # that was current when *this image* was built. CI's pre-build sync step
