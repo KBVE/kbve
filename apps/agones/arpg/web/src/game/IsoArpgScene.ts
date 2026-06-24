@@ -39,7 +39,10 @@ import {
 	tileDepth,
 	type TileXY,
 } from './iso';
-import { CursorController, Cursor } from './input/cursor';
+import {
+	setupInput as setupInputV,
+	type SceneInputDeps,
+} from './input/sceneInput';
 import {
 	makeFogState,
 	buildFog,
@@ -79,7 +82,6 @@ import {
 	commitPlacement as commitPlacementV,
 	spawnLocalItem as spawnLocalItemV,
 	LOCAL_ITEM_EID_BASE,
-	PLACE_RANGE,
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
@@ -121,7 +123,6 @@ import {
 } from './systems/movement';
 import {
 	clearHud,
-	emitInventoryOpen,
 	emitSpellLoadout,
 	onInventoryIntent,
 	type InventoryIntent,
@@ -242,7 +243,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
-	private cursor!: CursorController;
 	private localMode = false;
 
 	constructor() {
@@ -349,136 +349,33 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private setupInput() {
-		const kb = this.input.keyboard!;
-		this.cursors = kb.createCursorKeys();
-		this.wasd = {
-			up: kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-			down: kb.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-			left: kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-		};
-		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		// 1-9 cast the matching spell slot; Shift+1-9 use the matching inventory
-		// slot. Read ev.code (Digit1..Digit9), not ev.key: holding Shift rewrites
-		// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
-		// I toggles the full inventory panel; Escape closes it.
-		kb.on('keydown', (ev: KeyboardEvent) => {
-			const digit = /^Digit([1-9])$/.exec(ev.code);
-			if (digit) {
-				const idx = Number(digit[1]) - 1;
-				if (ev.shiftKey) this.useInventorySlot(idx);
-				else this.castSpellSlot(idx);
-			} else if (ev.key === 'i' || ev.key === 'I') {
-				this.inv.open = !this.inv.open;
-				emitInventoryOpen(this.inv.open);
-			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
-				this.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
-			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
-				this.debugChangeFloor(-1); // descend z-1 (deeper underground)
-			} else if (ev.key === 'Escape') {
-				if (this.inv.placingRef) {
-					this.exitPlacement();
-				} else if (this.inv.open) {
-					this.inv.open = false;
-					emitInventoryOpen(false);
-				}
-			}
-		});
-		this.input.mouse?.disableContextMenu();
-
-		this.cursor = new CursorController(this.game.canvas);
-		this.cursor.set(Cursor.Pointer);
-
-		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-			this.cursor.set(Cursor.Hold);
-			const aim = screenToWorldF(pointer.worldX, pointer.worldY);
-			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
-
-			// Placement mode: left-click commits the deployable, right-click cancels.
-			if (this.inv.placingRef) {
-				if (pointer.rightButtonDown()) {
-					this.exitPlacement();
-				} else {
-					this.commitPlacement(tile);
-				}
-				return;
-			}
-
-			// Right button = fire the bow at the cursor (left = move/attack).
-			if (pointer.rightButtonDown()) {
-				this.fireBowAt(aim);
-				return;
-			}
-
-			// Reclaim an owned placed object (campfire). Checked before isBlocked
-			// since the object occupies — and therefore blocks — its own tile.
-			const owned = this.store.at(tile.x, tile.y, this.myEid);
-			if (
-				owned &&
-				this.kinds.catName(this.store.kind(owned.serverEid)) ===
-					'env' &&
-				this.store.owner(owned.serverEid) === this.mySlot
-			) {
-				const d = Math.max(
-					Math.abs(this.move.predicted.x - tile.x),
-					Math.abs(this.move.predicted.y - tile.y),
-				);
-				if (d <= PLACE_RANGE) this.client?.pickupObject(tile);
-				return;
-			}
-
-			if (this.isBlocked(tile.x, tile.y)) return;
-			const hit = this.store.at(tile.x, tile.y, this.myEid);
-			if (hit && this.isHostileServer(hit.serverEid)) {
-				// Fire at the clicked enemy. fireBowAt sends the single
-				// authoritative attack (targeting THIS enemy) — no separate
-				// action() call, or the server would see a double-fire.
-				this.move.movePath = [];
-				this.fireBowAt(aim, hit.serverEid);
-				return;
-			}
-			this.startMoveTo(tile);
-		});
-
-		this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-			this.updateCursorFor(
-				screenToWorld(pointer.worldX, pointer.worldY),
-				false,
-			);
-		});
-
-		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-			const tile = screenToWorld(pointer.worldX, pointer.worldY);
-			this.updateCursorFor(tile, pointer.isDown);
-			// Placement mode drives the ghost instead of the move-hover diamond.
-			if (this.inv.placingRef) {
-				this.hoverTile.setVisible(false);
-				this.updatePlaceGhost(tile);
-				return;
-			}
-			if (this.isBlocked(tile.x, tile.y)) {
-				this.hoverTile.setVisible(false);
-				return;
-			}
-			const p = worldToScreen(tile.x, tile.y);
-			this.hoverTile.setPosition(p.x, p.y).setVisible(true);
-		});
+		const refs = setupInputV(this, this.inputDeps());
+		this.cursors = refs.cursors;
+		this.wasd = refs.wasd;
+		this.fireKey = refs.fireKey;
 	}
 
-	// Hold while a button is down or placing; open hand (Take) over a pickup or
-	// NPC; pointing finger otherwise.
-	private updateCursorFor(tile: TileXY, pointerDown: boolean): void {
-		if (this.inv.placingRef || pointerDown) {
-			this.cursor.set(Cursor.Hold);
-			return;
-		}
-		const hit = this.store.at(tile.x, tile.y, this.myEid);
-		const cat = hit
-			? this.kinds.catName(this.store.kind(hit.serverEid))
-			: null;
-		this.cursor.set(
-			cat === 'item' || cat === 'npc' ? Cursor.Take : Cursor.Pointer,
-		);
+	private inputDeps(): SceneInputDeps {
+		return {
+			store: this.store,
+			kinds: this.kinds,
+			inv: this.inv,
+			move: this.move,
+			hoverTile: this.hoverTile,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			mySlot: () => this.mySlot,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			isHostile: (e) => this.isHostileServer(e),
+			useInventorySlot: (i) => this.useInventorySlot(i),
+			castSpellSlot: (i) => this.castSpellSlot(i),
+			debugChangeFloor: (dz) => this.debugChangeFloor(dz),
+			exitPlacement: () => this.exitPlacement(),
+			commitPlacement: (t) => this.commitPlacement(t),
+			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
+			fireBowAt: (a, t) => this.fireBowAt(a, t),
+			startMoveTo: (t) => this.startMoveTo(t),
+		};
 	}
 
 	private buildBridge() {
