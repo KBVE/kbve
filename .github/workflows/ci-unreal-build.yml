@@ -1998,7 +1998,8 @@ jobs:
                         MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
                         mkdir -p "$MARKETPLACE_DIR"
                         DEP_SRC=/tmp/dep_src
-                        mkdir -p "$DEP_SRC"
+                        DEP_OUT=/tmp/dep_out
+                        mkdir -p "$DEP_SRC" "$DEP_OUT"
                         for dep in /deps/*/; do
                           dep_name=$(basename "$dep")
                           cp -r "$dep" "$DEP_SRC/$dep_name"
@@ -2007,9 +2008,11 @@ jobs:
                           echo "::group::Build dependency plugin $dep_name"
                           "$RUNUAT" BuildPlugin \
                             -Plugin="$dep_uplugin" \
-                            -Package="$MARKETPLACE_DIR/$dep_name" \
+                            -Package="$DEP_OUT/$dep_name" \
                             -TargetPlatforms=Linux \
                             -Rocket
+                          rm -rf "$MARKETPLACE_DIR/$dep_name"
+                          cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE_DIR/$dep_name"
                           echo "::endgroup::"
                         done
                       fi
@@ -2071,7 +2074,7 @@ jobs:
 
             - name: Stamp plugin version
               run: |
-                  $up = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
+                  $up = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
                   $json = Get-Content $up -Raw | ConvertFrom-Json
                   $json.VersionName = '${{ needs.plugin_check.outputs.version }}'
                   $json | ConvertTo-Json -Depth 20 | Set-Content $up
@@ -2101,6 +2104,8 @@ jobs:
                   $engineRoot = '${{ steps.engine.outputs.engine_root }}'
                   $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
                   New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
+                  $depOut = Join-Path $env:RUNNER_TEMP 'dep_out'
+                  New-Item -ItemType Directory -Force -Path $depOut | Out-Null
                   $deps = '${{ inputs.dependency_plugin_paths }}' -split '\s+'
                   foreach ($depPath in $deps) {
                       if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
@@ -2108,18 +2113,21 @@ jobs:
                       $src = Join-Path $env:GITHUB_WORKSPACE $depPath
                       $depUplugin = Get-ChildItem -Path $src -Filter *.uplugin -File | Select-Object -First 1
                       if (-not $depUplugin) { Write-Host "::error::No .uplugin in dependency $depName"; exit 1 }
+                      $pkg = Join-Path $depOut $depName
                       $dst = Join-Path $marketplaceDir $depName
                       Write-Host "::group::Build dependency plugin $depName"
-                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$dst" -TargetPlatforms=Win64 -Rocket
+                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$pkg" -TargetPlatforms=Win64 -Rocket
                       if ($LASTEXITCODE -ne 0) { Write-Host "::error::Dependency BuildPlugin failed for $depName ($LASTEXITCODE)"; exit $LASTEXITCODE }
+                      if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+                      Copy-Item -Recurse -Force $pkg $dst
                       Write-Host "::endgroup::"
                   }
 
             - name: Build plugin with RunUAT
               run: |
                   $runuat = '${{ steps.engine.outputs.runuat }}'
-                  $pluginPath = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
-                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}'
+                  $pluginPath = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
+                  $outputDir = Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}'
                   New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
                   & $runuat BuildPlugin `
                       -Plugin="$pluginPath" -Package="$outputDir" `
@@ -2129,13 +2137,13 @@ jobs:
 
             - name: Verify build output
               run: |
-                  $uplugin = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}' '${{ inputs.plugin_name }}.uplugin'
+                  $uplugin = Join-Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') '${{ inputs.plugin_name }}.uplugin'
                   if (-not (Test-Path $uplugin)) {
                       Write-Host "::error::Build output missing - .uplugin not found at $uplugin"
                       Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
                       exit 1
                   }
-                  Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
+                  Get-ChildItem -Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
 
             - name: Package plugin zip
               run: |
@@ -2183,12 +2191,15 @@ jobs:
               if: inputs.dependency_plugin_paths != ''
               run: |
                   MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
-                  mkdir -p "$MARKETPLACE"
+                  DEP_OUT="${RUNNER_TEMP:-/tmp}/dep_out"
+                  mkdir -p "$MARKETPLACE" "$DEP_OUT"
                   for dep_path in ${{ inputs.dependency_plugin_paths }}; do
                     dep_name=$(basename "$dep_path")
                     dep_uplugin=$(find "${{ github.workspace }}/${dep_path}" -maxdepth 1 -name "*.uplugin" | head -1)
                     [ -z "$dep_uplugin" ] && { echo "::error::No .uplugin in dependency $dep_name"; exit 1; }
-                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$MARKETPLACE/$dep_name" -TargetPlatforms=Mac -Rocket
+                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$DEP_OUT/$dep_name" -TargetPlatforms=Mac -Rocket
+                    rm -rf "$MARKETPLACE/$dep_name"
+                    cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE/$dep_name"
                   done
 
             - name: Build plugin with RunUAT
