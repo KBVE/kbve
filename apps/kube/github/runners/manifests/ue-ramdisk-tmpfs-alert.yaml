@@ -6,8 +6,14 @@
 # cannot see peak scratch. These alerts catch tmpfs/RAM pressure DURING a build
 # before it reaches etcd (the documented cluster-flap failure, #12987).
 #
-# Thresholds use <CEILING> (the WS-2-proven tmpfs size) — replace before use.
+# Thresholds are ratio-based (>85% of tmpfs size) and an absolute MemAvailable
+# floor (<8 GB) — they self-scale to whatever tmpfs size= is set, so there is
+# NO <CEILING> to substitute in this file.
 # Metrics assume kube-prometheus node-exporter (node_* series) on the node.
+# IMPORTANT: the `prometheus: kube-prometheus` / `role: alert-rules` labels must
+# match this cluster's Prometheus `ruleSelector`, or the rule silently never
+# loads and this runtime safety net is absent. Verify it appears in Prometheus
+# (runbook cutover step 5) before relying on it.
 # ══════════════════════════════════════════════════════════════════════════
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule

@@ -60,9 +60,28 @@ spec:
                       # per-run scratch subdirs.
                       - |
                           set -eu
+                          # Fail loud if <CEILING> was never substituted (it is a
+                          # literal placeholder, NOT a kustomize var — applying
+                          # this unedited otherwise reaches `mount` at runtime,
+                          # past every CI/Argo gate). Refuse to start.
+                          case "<CEILING>" in
+                            *'<CEILING>'*)
+                              echo "FATAL: tmpfs size placeholder <CEILING> not substituted (WS-2 ceiling required)" >&2
+                              exit 1 ;;
+                          esac
                           mkdir -p /var/mnt/ramdisk
                           if ! mountpoint -q /var/mnt/ramdisk; then
                             mount -t tmpfs -o size=<CEILING>,mode=1777 tmpfs /var/mnt/ramdisk
+                          fi
+                          # Assert it is REALLY tmpfs. hostPath type is
+                          # DirectoryOrCreate, so a failed/absent mount silently
+                          # leaves data-root on the node OS disk (etcd's disk) →
+                          # the original ENOSPC relocated onto the control plane.
+                          # Refuse to proceed unless the data-root lives on tmpfs.
+                          fstype=$(stat -f -c %T /var/mnt/ramdisk)
+                          if [ "$fstype" != "tmpfs" ] && [ "$fstype" != "ramfs" ]; then
+                            echo "FATAL: /var/mnt/ramdisk is '$fstype', not tmpfs — refusing to put dockerd data-root on the node OS disk" >&2
+                            exit 1
                           fi
                           mkdir -p /var/mnt/ramdisk/docker
             containers:
@@ -81,10 +100,32 @@ spec:
                   args:
                       - |
                           ulimit -n 1048576
+                          # Defence-in-depth: the init container already asserts
+                          # tmpfs, but dockerd here mounts the hostPath via
+                          # HostToContainer propagation — re-verify the data-root
+                          # is RAM-backed inside THIS namespace before serving, so
+                          # a propagation gap can never silently land 40 GB of
+                          # image layers on the node OS disk.
+                          fstype=$(stat -f -c %T /var/mnt/ramdisk)
+                          if [ "$fstype" != "tmpfs" ] && [ "$fstype" != "ramfs" ]; then
+                            echo "FATAL: /var/mnt/ramdisk is '$fstype' inside dind, not tmpfs — refusing to start dockerd" >&2
+                            exit 1
+                          fi
+                          # Persistently keep the socket reachable by the non-root
+                          # runner (gid 1000). A one-shot fixup would not survive a
+                          # dockerd socket recreate → builds get permission denied
+                          # with no self-heal. Re-apply on every loss/recreate.
                           (
                             SOCK=/var/mnt/ramdisk/docker.sock
-                            while [ ! -S "$SOCK" ]; do sleep 1; done
-                            chgrp 1000 "$SOCK" && chmod 0660 "$SOCK"
+                            while :; do
+                              if [ -S "$SOCK" ]; then
+                                cur=$(stat -c %g "$SOCK" 2>/dev/null || echo "")
+                                if [ "$cur" != "1000" ]; then
+                                  chgrp 1000 "$SOCK" && chmod 0660 "$SOCK"
+                                fi
+                              fi
+                              sleep 2
+                            done
                           ) &
                           exec dockerd \
                             --host=unix:///var/mnt/ramdisk/docker.sock \
@@ -117,6 +158,13 @@ spec:
 # PodDisruptionBudget: this single daemon is now a SHARED SPOF — its loss
 # fails BOTH concurrent builds and wipes the tmpfs cache. Keep it from being
 # voluntarily evicted during node drains while builds run.
+#
+# OPERATIONAL TRAP: this is a single-pod workload on a single node, so
+# minAvailable:1 blocks ALL voluntary eviction permanently — not just during
+# builds. `kubectl drain` / any Talos maintenance using eviction WILL hang on
+# this PDB. Before node maintenance, delete this PDB first (the tmpfs is
+# volatile cache; `prepare` repopulates on the next run). See the runbook
+# "Incident quick-reference" / node-maintenance note.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
