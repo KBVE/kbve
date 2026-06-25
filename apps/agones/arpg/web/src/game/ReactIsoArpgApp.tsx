@@ -7,21 +7,14 @@ import {
 } from '@kbve/laser';
 import { IsoArpgScene } from './IsoArpgScene';
 import WebGLOverlay from './WebGLOverlay';
-import ArpgHud from './ArpgHud';
 import D2Hud from './ui/D2Hud';
 import ArpgMenu from './ArpgMenu';
 import ChatPanel from './ChatPanel';
-import ArpgToasts from './ArpgToasts';
+import ArpgToasts from './ui/toasts/Toasts';
 import ArpgBootOverlay from './ArpgBootOverlay';
 import ArpgConnectionStatus from './ArpgConnectionStatus';
 import ArpgStairGuide from './ArpgStairGuide';
-import {
-	COLORS,
-	DEBUG_HUD,
-	DEBUG_LOCAL_PLAYER,
-	USE_D2_HUD,
-	resolveWsUrl,
-} from './config';
+import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import { authBridge } from '../lib/auth';
 import {
@@ -343,11 +336,7 @@ export default function ReactIsoArpgApp({
 	if (phase === 'ready') {
 		return (
 			<>
-				{USE_D2_HUD ? (
-					<D2Hud debug={DEBUG_HUD} />
-				) : (
-					<ArpgHud debug={DEBUG_HUD} />
-				)}
+				<D2Hud debug={DEBUG_HUD} />
 				<ArpgMenu />
 				<ArpgToasts />
 				<ArpgBootOverlay />
