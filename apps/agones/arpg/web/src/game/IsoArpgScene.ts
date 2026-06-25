@@ -262,6 +262,13 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const b of BIOMES) {
 			this.load.image(biomeTextureKey(b), arpgAsset(biomeTexturePath(b)));
 		}
+		this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+			for (const b of BIOMES) {
+				this.textures
+					.get(biomeTextureKey(b))
+					.setFilter(Phaser.Textures.FilterMode.LINEAR);
+			}
+		});
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
