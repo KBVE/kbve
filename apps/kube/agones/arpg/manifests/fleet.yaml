@@ -81,6 +81,12 @@ spec:
                                         name: supabase-shared
                                         key: KBVE_PG_RO_URL
                                         optional: true
+                              - name: KBVE_KV_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: arpg-valkey
+                                        key: KBVE_KV_URL
+                                        optional: true
                           ports:
                               - name: ws
                                 containerPort: 7979

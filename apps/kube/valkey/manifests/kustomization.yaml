@@ -10,3 +10,4 @@ resources:
     - cryptothrone-valkey-rbac.yaml
     - irc-gateway-valkey-rbac.yaml
     - discordsh-valkey-rbac.yaml
+    - arpg-valkey-rbac.yaml
