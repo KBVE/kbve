@@ -141,10 +141,32 @@ async fn main() {
 
     tracing::info!("serving static files from {}", static_dir.display());
 
-    let static_svc = ServeDir::new(&static_dir)
-        .precompressed_br()
-        .precompressed_gzip()
-        .append_index_html_on_directories(true);
+    // SPA fallback: the web is a TanStack single-page app, so any client-routed
+    // path that isn't a real file (deep link / refresh) must serve index.html
+    // with 200 rather than 404. Explicit /api + /downloads routes match first.
+    let index_html = std::fs::read_to_string(static_dir.join("index.html")).unwrap_or_default();
+    let spa_index = tower::service_fn(move |_req: axum::extract::Request| {
+        let html = index_html.clone();
+        std::future::ready(Ok::<_, std::convert::Infallible>(
+            Html(html).into_response(),
+        ))
+    });
+    // not_found_service supplies the index body but tower-http pins the status to
+    // 404 (it's meant for 404 pages); rewrite to 200 so the SPA loads cleanly.
+    let static_svc = tower::ServiceBuilder::new()
+        .map_response(|mut res| {
+            if res.status() == axum::http::StatusCode::NOT_FOUND {
+                *res.status_mut() = axum::http::StatusCode::OK;
+            }
+            res
+        })
+        .service(
+            ServeDir::new(&static_dir)
+                .precompressed_br()
+                .precompressed_gzip()
+                .append_index_html_on_directories(true)
+                .not_found_service(spa_index),
+        );
 
     let app: Router = match download_state() {
         Some(state) => {
