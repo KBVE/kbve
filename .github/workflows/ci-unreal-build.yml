@@ -887,10 +887,29 @@ jobs:
                   fi
                   CUSTOM_CONFIG='${{ inputs.custom_config }}'
                   CUSTOM_CONFIG_ARG=""
-                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
-                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
-                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="/tmp/game-project/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="/tmp/game-project/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
                   USE_LOGGING_IN_SHIPPING='${{ inputs.use_logging_in_shipping }}'
                   LOGGING_ENV_ARG=""
                   [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
@@ -1166,12 +1185,27 @@ jobs:
                   }
                   $customConfig = '${{ inputs.custom_config }}'
                   $customConfigArgs = @()
-                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
-                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
-                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
                   if ($customConfig) {
                       $customConfigArgs += "-CustomConfig=$customConfig"
                       $customConfigArgs += "-AdditionalCookerOptions=-CustomConfig=$customConfig"
+                      $layer = Join-Path $projRoot "Config\Custom\$customConfig"
+                      if (Test-Path $layer) {
+                          $merged = @(Get-ChildItem -Path $layer -Filter 'Default*.ini')
+                          $merged | ForEach-Object {
+                              $base = Join-Path $projRoot "Config\$($_.Name)"
+                              Add-Content -Path $base -Value "`n; --- merged from Config/Custom/$customConfig (ci-unreal #13081) ---"
+                              Add-Content -Path $base -Value (Get-Content -Raw $_.FullName)
+                              Write-Host "::notice::Merged $($_.FullName) -> $base"
+                          }
+                          if ($merged.Count -eq 0) { Write-Host "::warning::custom_config='$customConfig': $layer exists but holds no Default*.ini to merge" }
+                      } else {
+                          Write-Host "::warning::custom_config='$customConfig' set but $layer not found"
+                      }
                   }
                   $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
                   if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
@@ -1368,10 +1402,29 @@ jobs:
 
                   CUSTOM_CONFIG="${{ inputs.custom_config }}"
                   CUSTOM_CONFIG_ARG=""
-                  # -CustomConfig on BuildCookRun is NOT forwarded to the cook commandlet, so the
-                  # Config/Custom/<name> layer never merges into the cooked config; mirror it via
-                  # -AdditionalCookerOptions so the layer actually bakes (KBVE/kbve#13081).
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="${PROJECT_ROOT}/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="${PROJECT_ROOT}/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
