@@ -12,42 +12,51 @@ Keycloak (sso.kbve.com, IdP / OAuth provider)
 ```
 
 - **Image**: `quay.io/keycloak/keycloak:26.0`, production `start` mode
-- **DB**: `keycloak` schema on the kilobase CNPG cluster (`supabase` database)
+- **DB**: `keycloak` schema on the kilobase CNPG cluster (`supabase` database),
+  role + password managed by CNPG, schema by a dbmate migration
 - **Ingress**: `sso.kbve.com` via `kbve-gateway` (TLS terminates at the gateway;
   Keycloak runs plain HTTP with `KC_PROXY_HEADERS=xforwarded`)
 
 ## Deploy runbook
 
-### 1. Database (kilobase CNPG)
+No manual `psql` — the `keycloak` role, schema, and password are all GitOps.
 
-Create the schema + user (mirrors the forgejo pattern):
+| Concern | Owner |
+|---------|-------|
+| `keycloak` role + password | CNPG `managed.roles` on `supabase-cluster` (reads `keycloak-db-password`) |
+| `keycloak` schema + grants | dbmate migration `20260625120000_keycloak_schema.sql` (runs as `postgres`) |
+| pod DB auth + bootstrap admin | `keycloak-credentials` secret (this dir) |
 
-```bash
-kubectl port-forward -n kilobase svc/supabase-cluster-rw 54322:5432
-```
-```sql
-CREATE SCHEMA IF NOT EXISTS keycloak;
-CREATE USER keycloak WITH PASSWORD '<db-password>';
-GRANT ALL ON SCHEMA keycloak TO keycloak;
-ALTER DEFAULT PRIVILEGES IN SCHEMA keycloak GRANT ALL ON TABLES TO keycloak;
-ALTER DEFAULT PRIVILEGES IN SCHEMA keycloak GRANT ALL ON SEQUENCES TO keycloak;
-```
+The migration is order-independent: it creates the role `NOLOGIN` with no
+password if absent; CNPG then layers `login: true` + the password from the
+sealed secret. Either reconcile order converges.
 
-### 2. Seal credentials
+### 1. Seal credentials
 
 ```bash
-./apps/kube/keycloak/seal-credentials.sh   # prompts for db + admin creds
-git add apps/kube/keycloak/manifest/sealed-credentials.yaml
+./apps/kube/keycloak/seal-credentials.sh   # generates a random DB password
+```
+Writes **two** sealed files from one generated password (so they always agree)
+and prints the bootstrap admin creds — **save them**, they are not recoverable
+from the sealed file:
+
+```
+apps/kube/kilobase/manifests/sealed-keycloak-db-password.yaml   # CNPG, ns kilobase
+apps/kube/keycloak/manifest/sealed-credentials.yaml             # pod,  ns keycloak
+```
+```bash
+git add apps/kube/kilobase/manifests/sealed-keycloak-db-password.yaml \
+        apps/kube/keycloak/manifest/sealed-credentials.yaml
 ```
 The committed `sealed-credentials.yaml` placeholder is **not** valid — Keycloak
-will not start until you regenerate it with the script and commit the result.
+will not start until you regenerate it and commit the result.
 
-### 3. Go live
+### 2. Go live
 
-`keycloak/application.yaml` is wired into `apps/kube/kustomization.yaml`. Once
-the schema exists and the sealed secret is committed + synced to `main`,
-ArgoCD brings Keycloak up. First boot runs the Keycloak build + DB migration
-(slow — watch the startup probe).
+Both `keycloak/application.yaml` and the kilobase CNPG change track `main`, so
+land them via the dev→main release. On sync: CNPG creates the role, the
+`dbmate-up` CI job applies the schema migration, and Keycloak builds its tables
+on first boot (slow — watch the startup probe).
 
 ## Phase 2 — wire the clients (after Keycloak is up)
 
