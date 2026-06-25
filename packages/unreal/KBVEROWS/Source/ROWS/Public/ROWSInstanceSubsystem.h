@@ -5,6 +5,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "ROWSTypes.h"
+#include "Containers/Ticker.h"
 #include "ROWSInstanceSubsystem.generated.h"
 
 class UROWSSubsystem;
@@ -25,6 +26,22 @@ class ROWS_API UROWSInstanceSubsystem : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+
+	// --- Heartbeat ---
+
+	/** Begin a background heartbeat that POSTs UpdateNumberOfPlayers every IntervalSeconds.
+	 *  Intended for the dedicated server; the reported count is set via SetReportedPlayerCount. */
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Instance")
+	void StartPlayerCountHeartbeat(int32 ZoneInstanceID, float IntervalSeconds = 15.0f);
+
+	/** Stop the player-count heartbeat. Safe to call when not running. */
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Instance")
+	void StopPlayerCountHeartbeat();
+
+	/** Set the player count the heartbeat reports on its next tick. */
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Instance")
+	void SetReportedPlayerCount(int32 Count) { ReportedPlayerCount = Count; }
 
 	// --- Instance API ---
 
@@ -72,4 +89,10 @@ protected:
 	void OnGetZoneInstanceResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnUpdateNumberOfPlayersResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnGetServerToConnectToResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+
+	bool HeartbeatTick(float DeltaTime);
+
+	FTSTicker::FDelegateHandle HeartbeatTickerHandle;
+	int32 HeartbeatZoneInstanceID = 0;
+	int32 ReportedPlayerCount = 0;
 };
