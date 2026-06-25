@@ -54,7 +54,8 @@ COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 # NOTE: Mount cache to a staging path, then copy in/out. Mounting directly on
 # .astro/ causes EBUSY when Astro tries to rmdir the mount point after build.
 WORKDIR /app/apps/kbve/astro-kbve
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-kbve-cache,sharing=locked \
+ARG ASTRO_CACHE_KEY=astro6
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-kbve-cache-${ASTRO_CACHE_KEY},sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \

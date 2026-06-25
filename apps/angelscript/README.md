@@ -7,7 +7,7 @@ Automated builds for the private [KBVE/UnrealEngine-Angelscript](https://github.
 | Platform                     | Runner              | Output                                                              |
 | ---------------------------- | ------------------- | ------------------------------------------------------------------- |
 | Windows Client (x86)         | `arc-runner-ue-win` | `.zip` artifact + GitHub Release                                    |
-| Mac Client (x86)             | `arc-runner-ue-mac` | `.zip` artifact + GitHub Release                                    |
+| Mac Client (ARM64)           | `[self-hosted, macOS, ARM64]` | `.zip` artifact + GitHub Release                          |
 | Linux Dedicated Server (x86) | `arc-runner-ue`     | `.zip` artifact + Docker image at `ghcr.io/kbve/angelscript-server` |
 
 ## How It Works

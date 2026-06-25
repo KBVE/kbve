@@ -25,18 +25,7 @@ const DEPLOYABLES: ReadonlyMap<string, string> = new Map([
 // server's PLACE_RANGE so the client ghost reads valid exactly when the server
 // would accept the placement.
 export const PLACE_RANGE = 4;
-// Offline kinds + eid ranges, kept disjoint from loot and the server's entities.
-const LOCAL_ITEM_KIND = 2;
-export const LOCAL_ITEM_EID_BASE = 1000;
-const LOCAL_ENV_KIND = 3;
-const LOCAL_ENV_EID_BASE = 5000;
-// Offline dropped items get eids well above the seeded-loot range to avoid
-// colliding with LOCAL_LOOT (LOCAL_ITEM_EID_BASE + index).
-const LOCAL_DROP_EID_OFFSET = 1000;
-// After a drop, suppress walk-over auto-pickup briefly so the item doesn't
-// bounce straight back into the inventory.
 const DROP_PICKUP_GRACE_MS = 1200;
-const LOCAL_HEAL: ReadonlyMap<string, number> = new Map([['potion', 15]]);
 // Per-item pickup resend cooldown: the client predicts ahead of the server, so
 // an early walk-over pickup can land before the server sees us adjacent and is
 // rejected; we retry on this cadence until the pickup despawns the item.
@@ -48,22 +37,12 @@ const PICKUP_RESEND_MS = 300;
  * and offline (client-sim) share one code path.
  */
 export interface InventoryState {
-	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY online).
 	items: InventoryItem[];
-	// Full inventory panel open state (toggled with I).
 	open: boolean;
-	// Per-item resend cooldown (server eid -> next scene-time a pickup may fire).
 	pickupCooldown: Map<number, number>;
-	// Scene-time (ms) until which walk-over auto-pickup is suspended after a drop.
 	pickupSuspendUntil: number;
-	// Offline-only ground loot (eid -> ref/count/tile). Empty online.
-	localItems: Map<number, { ref: string; count: number; tile: TileXY }>;
-	localDropSeq: number;
-	// Active deployable placement: the item ref being placed + a translucent
-	// ghost tracking the cursor. Null when not placing.
 	placingRef: string | null;
 	placeGhost: Phaser.GameObjects.Sprite | null;
-	localEnvSeq: number;
 }
 
 export function makeInventoryState(): InventoryState {
@@ -72,11 +51,8 @@ export function makeInventoryState(): InventoryState {
 		open: false,
 		pickupCooldown: new Map(),
 		pickupSuspendUntil: 0,
-		localItems: new Map(),
-		localDropSeq: 0,
 		placingRef: null,
 		placeGhost: null,
-		localEnvSeq: 0,
 	};
 }
 
@@ -87,7 +63,6 @@ export interface InventoryDeps {
 	kindRegistry: Map<number, KindEntry>;
 	client(): GameClient | null;
 	myEid(): number;
-	localMode(): boolean;
 	floatTilePos(): TileXY;
 	dungeon(): DungeonField;
 	isBlocked(x: number, y: number): boolean;
@@ -117,25 +92,7 @@ export function useInventorySlot(
 		enterPlacement(st, deps, item.ref);
 		return;
 	}
-	const client = deps.client();
-	if (client) {
-		client.useItem(item.ref);
-		return;
-	}
-	if (!deps.localMode()) return;
-	const heal = LOCAL_HEAL.get(item.ref) ?? 0;
-	if (heal > 0) {
-		const eid = deps.myEid();
-		const hp = Math.min(deps.store.maxHp(eid), deps.store.hp(eid) + heal);
-		deps.store.update(eid, { hp });
-	}
-	const left = item.count - 1;
-	setInventory(
-		st,
-		left <= 0
-			? st.items.filter((_, i) => i !== idx)
-			: st.items.map((s, i) => (i === idx ? { ...s, count: left } : s)),
-	);
+	deps.client()?.useItem(item.ref);
 }
 
 // HUD drag-and-drop dispatch: use a slot, drop it to the floor, or reorder.
@@ -189,20 +146,7 @@ export function dropInventorySlot(
 	const item = st.items[idx];
 	if (!item) return;
 	st.pickupSuspendUntil = deps.scene.time.now + DROP_PICKUP_GRACE_MS;
-	const client = deps.client();
-	if (client) {
-		client.dropItem(item.ref, item.count);
-		setInventory(
-			st,
-			st.items.filter((_, i) => i !== idx),
-		);
-		return;
-	}
-	if (!deps.localMode()) return;
-	const me = deps.floatTilePos();
-	const tile = deps.dungeon().nearestFloor({ x: me.x, y: me.y });
-	const eid = LOCAL_ITEM_EID_BASE + LOCAL_DROP_EID_OFFSET + st.localDropSeq++;
-	spawnLocalItem(st, deps, eid, item.ref, item.count, tile);
+	deps.client()?.dropItem(item.ref, item.count);
 	setInventory(
 		st,
 		st.items.filter((_, i) => i !== idx),
@@ -217,54 +161,18 @@ export function dropInventorySlot(
 export function tryAutoPickup(st: InventoryState, deps: InventoryDeps): void {
 	const now = deps.scene.time.now;
 	if (now < st.pickupSuspendUntil) return;
-	const me = deps.floatTilePos();
 	const client = deps.client();
-	if (client) {
-		for (const sid of deps.store.serverIdsWith(Cat.Item)) {
-			if (now < (st.pickupCooldown.get(sid) ?? 0)) continue;
-			const t = deps.store.tile(sid);
-			if (!t) continue;
-			if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
-				client.action(ACTION_PICKUP, sid);
-				st.pickupCooldown.set(sid, now + PICKUP_RESEND_MS);
-			}
+	if (!client) return;
+	const me = deps.floatTilePos();
+	for (const sid of deps.store.serverIdsWith(Cat.Item)) {
+		if (now < (st.pickupCooldown.get(sid) ?? 0)) continue;
+		const t = deps.store.tile(sid);
+		if (!t) continue;
+		if (Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y)) <= 1) {
+			client.action(ACTION_PICKUP, sid);
+			st.pickupCooldown.set(sid, now + PICKUP_RESEND_MS);
 		}
-		return;
 	}
-	if (!deps.localMode()) return;
-	for (const [eid, item] of st.localItems) {
-		const d = Math.max(
-			Math.abs(item.tile.x - me.x),
-			Math.abs(item.tile.y - me.y),
-		);
-		if (d <= 1) localPickup(st, deps, eid, item);
-	}
-}
-
-/** Offline: grab a local ground item into the inventory + remove its sprite. */
-export function localPickup(
-	st: InventoryState,
-	deps: InventoryDeps,
-	eid: number,
-	item: { ref: string; count: number; tile: TileXY },
-): void {
-	const refs = deps.store.despawn(eid);
-	if (refs) {
-		deps.scene.tweens.killTweensOf(refs.sprite);
-		refs.sprite.destroy();
-	}
-	st.localItems.delete(eid);
-	const has = st.items.some((s) => s.ref === item.ref);
-	setInventory(
-		st,
-		has
-			? st.items.map((s) =>
-					s.ref === item.ref
-						? { ...s, count: s.count + item.count }
-						: s,
-				)
-			: [...st.items, { ref: item.ref, count: item.count }],
-	);
 }
 
 /**
@@ -346,93 +254,6 @@ export function commitPlacement(
 	const idx = st.items.findIndex((s) => s.ref === itemRef);
 	if (idx < 0) return;
 
-	const client = deps.client();
-	if (client) {
-		client.placeItem(itemRef, tile);
-		exitPlacement(st);
-		return;
-	}
-	if (!deps.localMode()) {
-		exitPlacement(st);
-		return;
-	}
-	const envRef = DEPLOYABLES.get(itemRef);
-	if (envRef) spawnLocalEnv(st, deps, envRef, tile);
-	const item = st.items[idx];
-	const left = item.count - 1;
-	setInventory(
-		st,
-		left <= 0
-			? st.items.filter((_, i) => i !== idx)
-			: st.items.map((s, i) => (i === idx ? { ...s, count: left } : s)),
-	);
+	deps.client()?.placeItem(itemRef, tile);
 	exitPlacement(st);
-}
-
-/**
- * Offline-only: spawn a placed env object as a real entity + block its tile,
- * mirroring the server's apply_placements so the campfire reads the same.
- */
-export function spawnLocalEnv(
-	st: InventoryState,
-	deps: InventoryDeps,
-	envRef: string,
-	tile: TileXY,
-): void {
-	const kind = LOCAL_ENV_KIND;
-	if (!deps.kindRegistry.has(kind)) {
-		deps.kindRegistry.set(kind, { kind, ref: envRef, cat: Cat.Env });
-	}
-	const eid = LOCAL_ENV_EID_BASE + st.localEnvSeq++;
-	const sprite =
-		makeEnvSprite(deps.scene, envRef) ??
-		makeSprite(deps.scene, deps.kinds, kind, false);
-	placeSprite(deps.scene, sprite, tile.x, tile.y);
-	deps.store.spawn(
-		eid,
-		{ tile, kind, cat: Cat.Env, owner: 0, hostile: false, hp: 0, maxHp: 0 },
-		{ sprite },
-	);
-}
-
-/** Offline only: render a floating ground-loot sprite tracked in localItems. */
-export function spawnLocalItem(
-	st: InventoryState,
-	deps: InventoryDeps,
-	eid: number,
-	ref: string,
-	count: number,
-	tile: TileXY,
-): void {
-	if (!deps.kindRegistry.has(LOCAL_ITEM_KIND)) {
-		deps.kindRegistry.set(LOCAL_ITEM_KIND, {
-			kind: LOCAL_ITEM_KIND,
-			ref,
-			cat: Cat.Item,
-		});
-	}
-	const sprite = makeSprite(deps.scene, deps.kinds, LOCAL_ITEM_KIND, false);
-	placeSprite(deps.scene, sprite, tile.x, tile.y);
-	deps.scene.tweens.add({
-		targets: sprite,
-		y: sprite.y - 6,
-		duration: 650,
-		yoyo: true,
-		repeat: -1,
-		ease: 'Sine.easeInOut',
-	});
-	deps.store.spawn(
-		eid,
-		{
-			tile,
-			kind: LOCAL_ITEM_KIND,
-			cat: Cat.Item,
-			owner: 0,
-			hostile: false,
-			hp: 0,
-			maxHp: 0,
-		},
-		{ sprite },
-	);
-	st.localItems.set(eid, { ref, count, tile });
 }

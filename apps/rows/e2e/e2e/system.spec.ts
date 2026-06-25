@@ -73,6 +73,47 @@ describe('ROWS API — Aggregated Health (no DB)', () => {
 	});
 });
 
+describe('ROWS API — ReportBuild → /health', () => {
+	beforeAll(async () => {
+		await waitForReady();
+	});
+
+	it('records a reported build version and surfaces it on /health', async () => {
+		const version = `e2e-build-${Date.now()}`;
+		const post = await fetch(`${BASE_URL}/api/System/ReportBuild`, {
+			method: 'POST',
+			headers: { ...authHeaders, 'Content-Type': 'application/json' },
+			body: JSON.stringify({ version }),
+		});
+		expect(post.status).toBe(200);
+		const posted = await post.json();
+		expect(posted.success).toBe(true);
+
+		const health = await fetch(`${BASE_URL}/health`);
+		const body = await health.json();
+		expect(body.unreal_version).toBe(version);
+	});
+
+	it('rejects an empty version', async () => {
+		const res = await fetch(`${BASE_URL}/api/System/ReportBuild`, {
+			method: 'POST',
+			headers: { ...authHeaders, 'Content-Type': 'application/json' },
+			body: JSON.stringify({ version: '' }),
+		});
+		const body = await res.json();
+		expect(body.success).toBe(false);
+	});
+
+	it('is tenant-gated (401 without the GUID header)', async () => {
+		const res = await fetch(`${BASE_URL}/api/System/ReportBuild`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ version: 'nope' }),
+		});
+		expect(res.status).toBe(401);
+	});
+});
+
 describe('ROWS API — Fleet + Instance log (no DB)', () => {
 	beforeAll(async () => {
 		await waitForReady();

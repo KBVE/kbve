@@ -881,11 +881,19 @@ fn sync_roster(
             .min(max_hp);
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let armor = saved.as_ref().and_then(|s| s.armor.clone());
-        let inventory = Inventory {
-            slots: saved
-                .map(|s| s.slots)
-                .unwrap_or_else(|| config.starting_inventory.clone()),
-        };
+        let mut slots = saved
+            .map(|s| s.slots)
+            .unwrap_or_else(|| config.starting_inventory.clone());
+        // Top up any starter item the player is entirely missing, so essentials
+        // added after a save was created (e.g. a dungeon-key) still reach
+        // existing players — only granted when they hold zero of that ref, so a
+        // partially-used starter stack is left alone.
+        for (item_ref, count) in &config.starting_inventory {
+            if !slots.iter().any(|(r, _)| r == item_ref) {
+                slots.push((item_ref.clone(), *count));
+            }
+        }
+        let inventory = Inventory { slots };
         if !inventory.slots.is_empty() {
             send_inventory(&bcast, *slot, &inventory);
         }

@@ -54,7 +54,6 @@ export interface CombatDeps {
 	store: EntityStore<EntityRefs>;
 	client(): GameClient | null;
 	myEid(): number;
-	localMode(): boolean;
 	floatPos(): { x: number; y: number };
 	isHostile(serverEid: number): boolean;
 	clearMovePath(): void;
@@ -94,13 +93,7 @@ export function fireBowAt(
 		from,
 		shotTile,
 		(tx, ty) => arrowHitTest(deps, tx, ty),
-		(serverEid, dmg) => {
-			if (deps.localMode()) {
-				applyLocalHit(deps, serverEid, dmg);
-				return;
-			}
-			// Online: the arrow reached a still-living target — land the deferred
-			// server hit now.
+		(serverEid) => {
 			onArrowArrive(st, deps, serverEid);
 		},
 		() => {
@@ -274,26 +267,4 @@ export function showCombat(
 	if (refs.creature && refs.sprite instanceof Phaser.GameObjects.Sprite) {
 		setCreaturePose(refs.sprite, refs.creature, c.died ? 'Dead' : 'GetHit');
 	}
-}
-
-/** Local damage application + VFX (placeholder until server confirms). */
-export function applyLocalHit(
-	deps: CombatDeps,
-	serverEid: number,
-	dmg: number,
-): void {
-	const refs = deps.store.refs(serverEid);
-	if (!refs) return;
-	const hp = Math.max(0, deps.store.hp(serverEid) - dmg);
-	deps.store.update(serverEid, { hp });
-	showDamage(
-		deps.scene,
-		refs.sprite.x,
-		refs.sprite.y - refs.sprite.displayHeight - 18,
-		dmg,
-	);
-	if (refs.sprite instanceof Phaser.GameObjects.Sprite) {
-		flashEntity(deps.scene, refs.sprite);
-	}
-	deps.refreshHud();
 }

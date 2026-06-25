@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PixelPanel } from './PixelPanel';
-import { authBridge } from '../lib/auth';
-import CreatureCodex from './ui/codex/CreatureCodex';
+import { PixelPanel } from '../../PixelPanel';
+import { authBridge } from '../../../lib/auth';
+import CreatureCodex from '../codex/CreatureCodex';
 
 const ACCENT = '#fcd34d';
 const TEXT = '#e6ebf5';

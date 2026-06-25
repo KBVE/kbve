@@ -96,7 +96,7 @@ pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
-        unreal_version: hs.app.fleet_image_tag.read().unwrap().clone(),
+        unreal_version: hs.app.server_build_version.read().unwrap().clone(),
     })
 }
 

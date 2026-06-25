@@ -32,8 +32,6 @@ import {
 	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
-	DEBUG_LOCAL_PLAYER,
-	DEBUG_SPAWN_TILE,
 } from './config';
 import {
 	worldToScreen,
@@ -83,8 +81,6 @@ import {
 	exitPlacement as exitPlacementV,
 	updatePlaceGhost as updatePlaceGhostV,
 	commitPlacement as commitPlacementV,
-	spawnLocalItem as spawnLocalItemV,
-	LOCAL_ITEM_EID_BASE,
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
@@ -181,22 +177,6 @@ import {
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
 
-const LOCAL_PLAYER_EID = 1;
-const LOCAL_PLAYER_KIND = 1;
-// Offline (DEBUG_LOCAL_PLAYER) sim: there is no server, so a small client-only
-// fixture seeds ground loot to exercise the inventory loop. The real game is
-// server-authoritative; this only runs when localMode is set.
-const LOCAL_LOOT: ReadonlyArray<{
-	ref: string;
-	count: number;
-	dx: number;
-	dy: number;
-}> = [
-	{ ref: 'potion', count: 3, dx: 1, dy: -2 },
-	{ ref: 'potion', count: 1, dx: -2, dy: 1 },
-	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
-];
-
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
 	private store = new EntityStore<EntityRefs>();
@@ -267,7 +247,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
-	private localMode = false;
 
 	constructor() {
 		super({ key: 'IsoArpgScene' });
@@ -307,14 +286,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
 
-		if (DEBUG_LOCAL_PLAYER) {
-			// Offline test mode: drive a local ranger, skip the server entirely
-			// (a guest/anon session still yields a jwt, so connectClient would
-			// otherwise create a client + skip this spawn).
-			this.spawnLocalPlayer();
-		} else {
-			this.connectClient();
-		}
+		this.connectClient();
 
 		this.time.addEvent({
 			delay: HEARTBEAT_MS,
@@ -337,7 +309,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// separate tile eco-system drawn ON TOP later. The DungeonField still
 		// drives walkability + streaming; it does NOT carve this base.
 		this.dungeonView = makeDungeonView(this);
-		this.refreshDungeon(DEBUG_SPAWN_TILE, true);
+		this.refreshDungeon({ x: 0, y: 0 }, true);
 		this.placeStairs();
 		this.hoverTile = this.makeHoverTile();
 	}
@@ -405,7 +377,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			isHostile: (e) => this.isHostileServer(e),
 			useInventorySlot: (i) => this.useInventorySlot(i),
 			castSpellSlot: (i) => this.castSpellSlot(i),
-			debugChangeFloor: (dz) => this.debugChangeFloor(dz),
 			exitPlacement: () => this.exitPlacement(),
 			commitPlacement: (t) => this.commitPlacement(t),
 			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
@@ -735,7 +706,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			kindRegistry: this.kindRegistry,
 			client: () => this.client,
 			myEid: () => this.myEid,
-			localMode: () => this.localMode,
 			floatTilePos: () => floatTile(this.move.floatState),
 			dungeon: () => this.dungeon,
 			isBlocked: (x, y) => this.isBlocked(x, y),
@@ -891,7 +861,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		return {
 			scene: this,
 			client: () => this.client,
-			localMode: () => this.localMode,
 			dungeon: () => this.dungeon,
 			gateGraph: this.gateGraph,
 			isBlocked: (x, y) => this.isBlocked(x, y),
@@ -912,7 +881,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			store: this.store,
 			client: () => this.client,
 			myEid: () => this.myEid,
-			localMode: () => this.localMode,
 			floatPos: () => this.move.floatState.pos,
 			isHostile: (eid) => this.isHostileServer(eid),
 			clearMovePath: () => {
@@ -1001,25 +969,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	/**
-	 * Offline-only floor change (no server). Mirrors the server stair link:
-	 * ascending (dz=+1) lands on the target floor's Down stair, descending
-	 * (dz=-1) lands on its Up stair, so the local player arrives on a real tile.
-	 * Lets us test the grass surface (z>=0) and dungeon (z<0) without a server.
-	 */
-	private debugChangeFloor(dz: number) {
-		const z = this.currentFloor + dz;
-		// Surface cap: z>0 (cities/above-ground) isn't built yet — going up past
-		// the grass surface leads nowhere. Mirrors the server's Stairs::at cap.
-		if (z > 0) {
-			this.flashMessage('These stairs seem to go nowhere?!');
-			return;
-		}
-		const land = dz < 0 ? StairKind.Up : StairKind.Down;
-		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
-		this.onFloorChange({ z, tile });
-	}
-
-	/**
 	 * The surface up-stair (z=0 -> z+1) is a dead end until cities/above-ground
 	 * floors exist. When the player stands on it, flash a one-shot notice — the
 	 * server won't move them (Stairs::at caps ascent at z=0), so without this the
@@ -1060,7 +1009,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.envDirty = false;
 		}
 
-		if ((!this.client && !this.localMode) || !this.predictSeeded) return;
+		if (!this.client || !this.predictSeeded) return;
 
 		// Space fires the bow toward the cursor.
 		if (Phaser.Input.Keyboard.JustDown(this.fireKey)) {
@@ -1208,74 +1157,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	/** Resolved display name: Supabase username, else the saved prompt name. */
 	private localPlayerName(): string {
 		return resolvePlayerName() || 'Ranger';
-	}
-
-	/**
-	 * Offline debug: no server, so no snapshot ever spawns the player. Register
-	 * a local ranger player kind, drop the character at the debug tile, and seed
-	 * prediction so keyboard/click drive it client-side (sends are no-ops while
-	 * `this.client` is null). Lets the character render + move without a server.
-	 */
-	private spawnLocalPlayer() {
-		if (this.store.has(LOCAL_PLAYER_EID)) return;
-		this.localMode = true;
-		const kind = LOCAL_PLAYER_KIND;
-		this.kindRegistry.set(kind, {
-			kind,
-			ref: RANGER_CLASS.id,
-			cat: Cat.Player,
-		});
-		// Drop onto the nearest floor tile so the spawn never lands in a wall.
-		const tile = this.dungeon.nearestFloor(DEBUG_SPAWN_TILE);
-		const refs = this.makePlayerRefs(kind);
-		// Nameplate from the Supabase session username (kbve_username claim);
-		// falls back to the class name when not signed in (offline testing).
-		refs.nameplate = makeNameplate(this, this.localPlayerName());
-		this.placeSprite(refs.sprite, tile.x, tile.y);
-		this.syncShadow(refs);
-		this.placeNameplate(refs);
-		refs.hpBar = this.add.graphics().setDepth(DEPTH_UI);
-		refs.statusFx = this.add.graphics().setDepth(DEPTH_UI - 1);
-		this.store.spawn(
-			LOCAL_PLAYER_EID,
-			{
-				tile,
-				kind,
-				cat: Cat.Player,
-				owner: 0,
-				hostile: false,
-				hp: 100,
-				maxHp: 100,
-			},
-			refs,
-		);
-		this.myEid = LOCAL_PLAYER_EID;
-		this.move.predicted = { ...tile };
-		this.predictSeeded = true;
-		this.move.floatState = makeFloatState(tile);
-		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
-		this.cameras.main.setZoom(1.5);
-
-		// Seed offline loot so the inventory loop is testable without a server.
-		LOCAL_LOOT.forEach((l, i) => {
-			const t = this.dungeon.nearestFloor({
-				x: tile.x + l.dx,
-				y: tile.y + l.dy,
-			});
-			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
-		});
-		this.bootReady = true;
-		emitBoot({ phase: 'ready', message: '' });
-	}
-
-	/** Offline only: render a floating ground-loot sprite tracked in localItems. */
-	private spawnLocalItem(
-		eid: number,
-		ref: string,
-		count: number,
-		tile: TileXY,
-	): void {
-		spawnLocalItemV(this.inv, this.invDeps(), eid, ref, count, tile);
 	}
 
 	/**
