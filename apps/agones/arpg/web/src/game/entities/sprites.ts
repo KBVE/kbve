@@ -114,6 +114,8 @@ export interface CreatureView {
 	state: CreatureState;
 	facingDeg: number;
 	targetDeg: number;
+	/** Last walk-loop progress, to detect the cycle wrap a turn waits for. */
+	lastProgress?: number;
 }
 
 function bodyColor(cat: number, hostile: boolean): number {
@@ -447,11 +449,26 @@ export function setCreaturePose(
 		view.targetDeg = facingDegFromDelta(facing.dx, facing.dy);
 	}
 	const oneShot = !isCreatureLocomotion(state);
+	const prevState = view.state;
 	const changed = state !== view.state || oneShot;
 	view.state = state;
 	if (oneShot && facing && (facing.dx !== 0 || facing.dy !== 0)) {
 		view.facingDeg = view.targetDeg;
 		view.dir = nearestCreatureDir(facing.dx, facing.dy);
+	}
+	// Starting to move from rest: snap to the heading now so the first stride faces
+	// the way it sets off, rather than walking a full cycle in the old facing before
+	// the stride-gated turn kicks in.
+	if (
+		changed &&
+		isCreatureLocomotion(state) &&
+		!isCreatureLocomotion(prevState) &&
+		facing &&
+		(facing.dx !== 0 || facing.dy !== 0)
+	) {
+		view.facingDeg = view.targetDeg;
+		view.dir = nearestCreatureDir(facing.dx, facing.dy);
+		view.lastProgress = 0;
 	}
 	if (!changed) return;
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
@@ -483,7 +500,7 @@ export function setCreaturePose(
 // heading change instead of snapping. The bucket only flips once the facing is
 // firmly past the 22.5° edge (+ deadband), so a heading hovering on a boundary
 // doesn't strobe between two adjacent directions.
-const CREATURE_TURN_LERP = 0.06;
+const CREATURE_TURN_LERP = 0.14;
 const DIR_SWITCH_DEADBAND = 12;
 const DIR_CENTER_DEG: Record<CreatureDir, number> = {
 	N: 0,
@@ -505,11 +522,19 @@ export function tickCreatureFacing(
 	view: CreatureView,
 ): void {
 	if (!isCreatureLocomotion(view.state)) return;
+	// The heading still eases toward the target every frame, but the visible body
+	// only re-aims at a stride boundary (the walk loop wrapping back to ~0). A
+	// long-bodied creature thus finishes its step, plants, then pivots — instead of
+	// swivelling mid-stride.
 	view.facingDeg = lerpAngleDeg(
 		view.facingDeg,
 		view.targetDeg,
 		CREATURE_TURN_LERP,
 	);
+	const progress = sprite.anims?.getProgress() ?? 0;
+	const strideWrapped = progress + 1e-3 < (view.lastProgress ?? 0);
+	view.lastProgress = progress;
+	if (!strideWrapped) return;
 	const dir = dirFromDeg(view.facingDeg);
 	if (dir === view.dir) return;
 	if (
@@ -519,8 +544,5 @@ export function tickCreatureFacing(
 		return;
 	}
 	view.dir = dir;
-	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
-	if (sprite.anims?.currentAnim)
-		sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 }
