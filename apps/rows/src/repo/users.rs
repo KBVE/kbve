@@ -360,9 +360,15 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
-        sqlx::query(
+        // The select-character flow fires concurrent auth requests, so two callers can both pass the
+        // checks above and reach this INSERT for the same Supabase `sub`. `ON CONFLICT DO NOTHING`
+        // keys on pk_users (customerguid, userguid) so the loser of the race no-ops instead of
+        // failing with "duplicate key value violates unique constraint pk_users". Either way the row
+        // now exists keyed on `supabase_uuid`, so returning it is correct regardless of who won.
+        let inserted = sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
-             VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())",
+             VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
+             ON CONFLICT (customerguid, userguid) DO NOTHING",
         )
         .bind(customer_guid)
         .bind(supabase_uuid)
@@ -371,9 +377,14 @@ impl<'a> UsersRepo<'a> {
         .bind(first_name)
         .bind(last_name)
         .execute(self.0)
-        .await?;
+        .await?
+        .rows_affected();
 
-        tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");
+        if inserted > 0 {
+            tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");
+        } else {
+            tracing::info!(email = %email, user_guid = %supabase_uuid, "OWS user already created concurrently; skipped duplicate insert");
+        }
         Ok(supabase_uuid)
     }
 
