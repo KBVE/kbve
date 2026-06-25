@@ -896,6 +896,17 @@ The reaper now guards each cycle with a tenant-scoped Postgres advisory lock
 double-deallocating the same GameServer — only the lock holder reaps per cycle. No manual step
 required before scaling; the spin-up path remains protected by its existing per-zone lock.
 
+> **Cancellation caveat (post-merge audit, G3).** The cycle is *panic*-safe — `run_reap_cycle`
+> runs as a supervised `tokio::spawn(...).await`, so the explicit `pg_advisory_unlock` below it
+> always runs after a panic. It is **not** *cancellation*-safe: if the `empty_server_reaper` task is
+> aborted between `pg_try_advisory_lock` and `pg_advisory_unlock`, the session-level lock is skipped
+> and leaks on the pooled `lock_conn` (the lock outlives the connection's return to the pool), wedging
+> this tenant's reaping until that connection is recycled. Harmless today (nothing aborts the jobs
+> selectively; at process exit the connection closes and Postgres releases the lock). **Becomes real
+> when the drain/shutdown work starts aborting background tasks** — see the interaction note in
+> `2026-06-24-rows-drain-core.md`. Mitigation when drain lands: drain the reaper via a cancellation
+> token that lets the in-flight cycle finish, or scope the lock to a transaction.
+
 ### 4. Reaper index (`idx_mapinstances_active`) stranded INVALID
 
 A `CREATE INDEX CONCURRENTLY` interrupted mid-build leaves an INVALID index; `IF NOT EXISTS` makes a
@@ -943,3 +954,59 @@ Notes:
   auto-gate (section 2) still applies regardless of how `never_reported` was enabled.
 - The table is created by migration `20260624120000`. Until that migration runs, the reaper detects
   the missing table (SQLSTATE 42P01) and cleanly falls back to env config — no per-cycle errors.
+
+### 6. Connection-pool budget — size the pool BEFORE enabling (post-merge audit, G1)
+
+The reaper is the single largest concurrent consumer of the DB pool, and the pool is **smaller than
+the code default** in production:
+
+- Deployment sets `DB_MAX_CONNECTIONS=10` (`apps/kube/rows/tenants/base/deployment.yaml`); the code
+  default is `50` (`apps/rows/src/db.rs`). The discrepancy is catalogued in
+  [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) — but its **interaction
+  with the reaper** is the operational risk, documented here.
+- Per cycle the reaper holds `lock_conn` **out of the pool for the entire cycle** (advisory
+  lock → run cycle → unlock), then `run_reap_cycle` fans out up to `MAX_CONCURRENT_REAPS = 8`
+  `reap_one` tasks, **each of which acquires a pool connection** for the `status=0` flip. Peak draw
+  ≈ `1 (lock) + 8 (teardown flips) + transient candidate/override queries` ≈ **9–10 of 10**.
+- Meanwhile the **player hot path** needs the same pool every cycle: `update_number_of_players` on
+  every UE heartbeat, and `join_map`/allocation. When a reap batch saturates the pool, these block on
+  `acquire()` (sqlx default 30s timeout). A heartbeat gap can then make *other* servers look
+  reap-eligible — a feedback loop.
+
+**Before enabling the reaper in an env, satisfy the budget invariant:**
+
+```
+MAX_CONCURRENT_REAPS + (hot-path headroom) ≤ DB_MAX_CONNECTIONS
+```
+
+Concretely: raise `DB_MAX_CONNECTIONS` (e.g. to `20`+), and/or lower `MAX_CONCURRENT_REAPS`, and/or
+move `lock_conn` to a dedicated single-connection pool so it never competes with teardown. This step
+is **inert-safe to skip while the reaper ships off** — the lock + teardown connections are only
+acquired *after* the `enabled` check — but it is a hard prerequisite for step 2's enablement.
+
+### 7. Known residuals (post-merge audit, PR #13200)
+
+Carried as tracked residuals; none block the inert merge, all are pre-enablement / follow-up.
+
+- **G2 — spin-up MQ failures are silently dropped (no DLX).** `apps/rows/src/mq.rs` rejects a
+  twice-failed spin-up `requeue:false`, but **no `x-dead-letter-exchange` is configured on the
+  queue**, so the message is *dropped*, not dead-lettered (the code comment says so). A zone whose
+  allocation fails through the retry window is lost with only a `warn!`; the requesting player is
+  stuck. **Follow-up PR:** add a DLX to the spin-up queue + alert on DLQ depth. (Not reaper-specific;
+  rode in on this PR via the `redelivered` retry fix. Also noted under Out-of-scope in
+  `2026-06-24-rows-server-lifecycle-and-shutdown.md`.)
+- **G3 — advisory-lock unlock is panic-safe but not cancellation-safe.** See the cancellation caveat
+  in §3 above and the interaction note in `2026-06-24-rows-drain-core.md`.
+- **G4 — never-reported rows can be starved past the 500-row cap.** `get_active_reap_candidates`
+  orders `lastserveremptydate ASC NULLS LAST`, so never-reported rows (`lastserveremptydate IS NULL`)
+  sort *last* and, in a backlog > 500 active rows, never enter the candidate set. Acceptable: the
+  never-reported path is gated off, and the cap-hit is logged (`Reaper: candidate query hit the
+  500-row cap`). If the never-reported backstop is ever leaned on at scale, page the candidate scan
+  or raise the cap rather than relying on a single 500-row window.
+- **Q1 — `worldservers.serverstatus` is not touched on reap (CONFIRM).** `reap_one` deletes the
+  GameServer and sets `mapinstances.status=0`, but leaves the `worldservers` row at
+  `serverstatus=1`; the join "pending" path selects `worldservers WHERE serverstatus = 1`. This is
+  presumed covered by the out-of-scope *"drop server-side `RegisterLauncher`"* (UE deregisters the
+  launcher), but it is unverified end-to-end. **Confirm** a reaped GameServer's `worldservers` row
+  cannot be re-selected for a fresh spin-up; if the launcher is 1:1 with the GameServer, the reaper
+  must also deactivate it (`deactivate_world_server_by_instance` exists).

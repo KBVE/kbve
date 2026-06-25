@@ -503,6 +503,12 @@ DB = lifecycle truth (survives ROWS restart + valkey loss). valkey = routing/aff
   `SDK.Shutdown()` timing, player broadcasts. Extends #13194. **Spec'd for the UE dev in**
   `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md` (living doc — updated per phase).
 - **RabbitMQ write-behind** save buffer (only when stagger waves aren't enough).
+- **Spin-up dead-letter exchange (G2, PR #13200 residual)** — the spin-up consumer
+  (`apps/rows/src/mq.rs`) rejects a twice-failed allocation `requeue:false`, but the queue has **no
+  `x-dead-letter-exchange`**, so the message is *dropped*, not dead-lettered: a zone that fails to
+  spin up through the retry window is silently lost (player stuck, only a `warn!`). Add a DLX + alert
+  on DLQ depth so allocator-instability drops are inspectable/replayable. Tracked in the reaper plan
+  Runbook §7.
 - **client-version gate** — reject old clients with "update required" during/after a rollout.
 - **Dashboard control plane** — UI + DB-backed toggles (global join freeze, per-cluster routing,
   reaper knobs, fleet-restart triggers), valkey-cached for hot-path reads. Generalizes

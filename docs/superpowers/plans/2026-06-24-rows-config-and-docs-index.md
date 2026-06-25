@@ -125,7 +125,7 @@ Parsed in `RowsConfig::from_env` + `db.rs`. Beta/release **require** the tenant-
 | `OWS_TENANT_SLUG` | `default` | — | log/metrics label `rows-<slug>` |
 | `DATABASE_URL` | `postgres://…localhost:5432/ows` | **required** | |
 | `DATABASE_URL_RO` | (falls back to RW) | — | read-only pool |
-| `DB_MAX_CONNECTIONS` | **`50`** (code) | — | ⚠️ deployment sets **`10`** — code default ≠ deployed value |
+| `DB_MAX_CONNECTIONS` | **`50`** (code) | — | ⚠️ deployment sets **`10`** — code default ≠ deployed value. **Reaper budget:** enabling the reaper draws up to `MAX_CONCURRENT_REAPS(8) + 1` lock conn ≈ 9–10 of 10 → can starve the player hot path. Size the pool before enabling — see reaper plan Runbook §6 (G1). |
 | `RABBITMQ_URL` | `amqp://dev:test@localhost:5672` | **required** | |
 | `AGONES_NAMESPACE` | `ows` (code) | **required** | deployment sets `arc-runners` |
 | `AGONES_FLEET` | `ows-hubworld` (code) | **required** | watcher filters `agones.dev/fleet=<fleet>` |

@@ -591,6 +591,16 @@ blocker clears:
 - Move count/empty/liveness reads to valkey + Agones `Ready`/health cross-check before force-delete
   (closes the "silence ≠ dead" residual). Separate from this plan.
 
+### Reaper advisory-lock cancellation safety (drain interaction, G3)
+- The empty-server reaper guards each cycle with a **session-level** `pg_try_advisory_lock` on a
+  pooled connection, releasing it with an explicit `pg_advisory_unlock` after the cycle. That release
+  is panic-safe but **not cancellation-safe**: if this drain/shutdown work aborts the
+  `empty_server_reaper` task between lock and unlock, the lock leaks on the pooled connection and
+  wedges that tenant's reaping until the connection is recycled.
+- **When this plan starts aborting background jobs**, drain the reaper via a cancellation token that
+  lets the in-flight cycle finish (or scope the lock to a transaction) — do **not** hard-abort it.
+  See the cancellation caveat in `2026-06-23-rows-empty-server-reaper.md` Runbook §3.
+
 ---
 
 ## Self-Review
