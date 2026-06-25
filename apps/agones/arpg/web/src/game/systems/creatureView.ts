@@ -9,7 +9,7 @@ import {
 	tickCreatureFacing,
 	type EntityRefs,
 } from '../entities/sprites';
-import { syncShadow, placeNameplate, drawCreatureDebug } from './entityView';
+import { placeNameplate, drawCreatureDebug } from './entityView';
 import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
 
 // Locomotion smoothing: ignore sub-pixel velocity noise, and hold Walking for a
@@ -35,20 +35,25 @@ export function tickCreatureInterp<R extends EntityRefs>(
 		const s = sampleAt(refs.interp, renderTime);
 		if (!s) continue;
 		const p = worldToScreen(s.x, s.y);
-		refs.sprite.setPosition(p.x, p.y + 8);
-		refs.sprite.setDepth(
-			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
-		);
-		syncShadow(refs);
-		// Frame-lock the ground shadow to the body's current pose (shared layout,
-		// so the same frame index reads the matching silhouette). Skip until both
-		// sheets are resident, else __MISSING would warn.
-		if (
-			refs.shadow &&
-			refs.sprite.texture.key !== '__MISSING' &&
-			refs.shadow.texture.key !== '__MISSING'
-		) {
-			refs.shadow.setFrame(refs.sprite.frame.name);
+		const def = refs.creature.def;
+		const groundY = p.y + 8;
+		const baseDepth =
+			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y));
+		// Flyers hover above their ground tile (the shadow stays grounded) and sort
+		// into a sky band so they draw over trees/props instead of being occluded.
+		refs.sprite.setPosition(p.x, groundY - (def.hover ?? 0));
+		refs.sprite.setDepth(baseDepth + (def.depthBias ?? 0));
+		if (refs.shadow) {
+			refs.shadow.setPosition(p.x, groundY);
+			refs.shadow.setDepth(baseDepth - 1);
+			// Frame-lock the ground shadow to the body's pose (shared layout → same
+			// frame index). Skip until both sheets are resident, else __MISSING warns.
+			if (
+				refs.sprite.texture.key !== '__MISSING' &&
+				refs.shadow.texture.key !== '__MISSING'
+			) {
+				refs.shadow.setFrame(refs.sprite.frame.name);
+			}
 		}
 		placeNameplate(refs);
 		const st = refs.creature.state;

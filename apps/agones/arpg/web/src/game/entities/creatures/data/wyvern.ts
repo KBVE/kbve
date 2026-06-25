@@ -35,10 +35,15 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 		// Sheet shipped at 7168x1024 (256px frames downscaled 2x -> 128px) to stay
 		// under the 8192 WebGL max-texture size; frame indices are unchanged.
 		frameSize: 128,
-		displaySize: 112,
+		displaySize: 160,
 		// Flyer: anchor high in the frame so the body hovers above the tile instead
 		// of standing on it. Eyeball against the debug overlay like apex's 0.82.
 		originY: 0.6,
+		// Sky-level flyer: lift the body well above its ground tile (the shadow
+		// stays planted) and bias its depth above ground props so it reads as
+		// flying over the trees, not standing among them.
+		hover: 90,
+		depthBias: 40000,
 		sheetCols: 56,
 		dirBlocks: NAIVE_DIR_BLOCKS,
 		// Calibrated in-game: the 8 rows step by 45° starting at West, so each

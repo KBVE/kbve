@@ -106,6 +106,10 @@ export interface CreatureDef {
 	frameSize: number;
 	displaySize: number;
 	originY: number;
+	/** Screen px the body floats above its ground tile (shadow stays grounded). */
+	hover?: number;
+	/** Added to the body's sort depth so flyers draw over ground props/trees. */
+	depthBias?: number;
 	/** Facing -> in-half block index for this creature's sheet packing. */
 	dirBlocks: DirBlocks;
 	/**
