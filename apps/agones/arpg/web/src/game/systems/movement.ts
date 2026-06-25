@@ -219,8 +219,11 @@ function readIntent(st: MovementState, deps: MovementDeps): TileXY {
 		(cursors.down.isDown || wasd.down.isDown ? 1 : 0) -
 		(cursors.up.isDown || wasd.up.isDown ? 1 : 0);
 	if (ix !== 0 || iy !== 0) {
-		st.movePath = []; // keys override a click move
-		return { x: ix, y: iy };
+		st.movePath = [];
+		const wx = ix + iy;
+		const wy = iy - ix;
+		const mag = Math.hypot(wx, wy) || 1;
+		return { x: wx / mag, y: wy / mag };
 	}
 
 	while (st.movePath.length > 0) {
