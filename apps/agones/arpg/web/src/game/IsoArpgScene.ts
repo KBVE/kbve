@@ -63,7 +63,6 @@ import {
 	placeNameplate as placeNameplateV,
 	destroyRefs as destroyRefsV,
 	drawStatusFx as drawStatusFxV,
-	drawCreatureDebug as drawCreatureDebugV,
 } from './systems/entityView';
 import {
 	makeCombatState,
@@ -110,6 +109,10 @@ import {
 	type SpellState,
 	type SpellDeps,
 } from './systems/spells';
+import {
+	tickCreatureInterp as tickCreatureInterpV,
+	tickFacing as tickFacingV,
+} from './systems/creatureView';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -146,8 +149,6 @@ import {
 	makeNameplate,
 	setClassPose,
 	setCreaturePose,
-	tickClassFacing,
-	tickCreatureFacing,
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
@@ -164,13 +165,7 @@ import {
 	APEX_PREDATOR,
 	DEBUG_CREATURE_DIRS,
 } from './entities/creatures';
-import {
-	newInterp,
-	pushSample,
-	resetInterp,
-	sampleAt,
-	INTERP_DELAY_MS,
-} from './systems/interp';
+import { newInterp, pushSample, resetInterp } from './systems/interp';
 import {
 	preloadEnv,
 	registerEnvAnims,
@@ -969,8 +964,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	update(time: number, delta: number) {
-		this.tickCreatureInterp();
-		this.tickFacing();
+		tickCreatureInterpV(this, this.store);
+		tickFacingV(this.store);
 		syncFogToZoom(this, this.fog);
 		if (this.envDirty) {
 			this.refreshEnvBlocked();
@@ -1014,48 +1009,6 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private tickLocalMotion(refs: EntityRefs, deltaMs: number) {
 		tickLocalMotionV(this.move, this.moveDeps(), refs, deltaMs);
-	}
-
-	private tickCreatureInterp() {
-		const renderTime = this.time.now - INTERP_DELAY_MS;
-		for (const [, , refs] of this.store.entries()) {
-			if (!refs.interp || !refs.creature) continue;
-			if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
-			const s = sampleAt(refs.interp, renderTime);
-			if (!s) continue;
-			const p = worldToScreen(s.x, s.y);
-			refs.sprite.setPosition(p.x, p.y + 8);
-			refs.sprite.setDepth(
-				DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
-			);
-			this.syncShadow(refs);
-			this.placeNameplate(refs);
-			const st = refs.creature.state;
-			if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
-			if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
-				setCreaturePose(refs.sprite, refs.creature, 'Walking', {
-					dx: s.vx,
-					dy: s.vy,
-				});
-			} else {
-				setCreaturePose(refs.sprite, refs.creature, 'Idle');
-			}
-		}
-	}
-
-	/** Lerp every class entity's facing toward its movement target this frame. */
-	private tickFacing() {
-		for (const [, , refs] of this.store.entries()) {
-			if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
-				tickClassFacing(refs.sprite, refs.cls);
-			} else if (
-				refs.creature &&
-				refs.sprite instanceof Phaser.GameObjects.Sprite
-			) {
-				tickCreatureFacing(refs.sprite, refs.creature);
-				if (DEBUG_CREATURE_DIRS) drawCreatureDebugV(refs);
-			}
-		}
 	}
 
 	/**
