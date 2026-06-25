@@ -1500,7 +1500,9 @@ name = "axum-chuckrpg"
 version = "0.1.8"
 dependencies = [
  "anyhow",
+ "askama 0.15.6",
  "axum 0.8.9",
+ "jedi",
  "serde",
  "serde_json",
  "tokio",
