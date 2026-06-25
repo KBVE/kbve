@@ -16,7 +16,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"lsof -ti:1422 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && cargo tauri dev"
+					"lsof -ti:1422 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
 				],
 				"cwd": "apps/chuckrpg/chuck-launcher"
 			}
@@ -49,12 +49,16 @@
 		"build:tauri": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["cargo tauri build"],
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+				],
 				"cwd": "apps/chuckrpg/chuck-launcher"
 			},
 			"configurations": {
 				"production": {
-					"commands": ["cargo tauri build --release"],
+					"commands": [
+						"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+					],
 					"cwd": "apps/chuckrpg/chuck-launcher"
 				}
 			}
