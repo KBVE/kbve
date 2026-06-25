@@ -952,6 +952,171 @@ With easy installation and maintenance, Gitea empowers developers to host their 
 
 ---
 
+## Forgejo
+
+Forgejo is a community-driven fork of Gitea focused on self-hosted Git service with enhanced features and governance.
+Built on the foundation of Gitea, Forgejo maintains the same lightweight and efficient architecture while ensuring long-term community ownership and development.
+
+### Forgejo OAuth/OIDC Setup with Supabase
+
+This section describes how to configure Forgejo to use Supabase (GoTrue) as an OAuth2/OIDC provider for automatic login with KBVE infrastructure.
+
+#### Overview
+
+Users can log into Forgejo using their KBVE/Supabase credentials automatically through the following flow:
+
+<Steps>
+1. User visits `forgejo.kbve.com` (routes through kbve-gate)
+2. Gate validates Supabase JWT and checks staff role
+3. If authenticated, user accesses Forgejo and is automatically logged in via OAuth
+4. User account is auto-created in Forgejo on first login
+</Steps>
+
+#### Prerequisites
+
+##### 1. Create OAuth Application in Supabase
+
+Register Forgejo as an OAuth client in Supabase:
+
+**Option A: Via Supabase Dashboard**
+- Navigate to Authentication > URL Configuration or Providers
+- Add a new OAuth client for Forgejo
+
+**Option B: Via Database (SQL)**
+```sql
+-- Insert into auth.saml_providers or equivalent table
+-- This depends on your Supabase version and configuration
+```
+
+**Required Configuration:**
+- **Client Name**: `forgejo` or `forgejo-kbve`
+- **Redirect URI**: `https://forgejo.kbve.com/user/oauth2/kbve/callback`
+- **Scopes**: `openid email profile`
+- **PKCE**: Optional but recommended
+
+After creation, you'll receive:
+- **Client ID**: Save this value
+- **Client Secret**: Save this value securely
+
+##### 2. Create Kubernetes Secret
+
+Create a sealed secret with the OAuth credentials:
+
+```bash
+# Create the secret YAML
+kubectl create secret generic forgejo-oauth-config \
+  --from-literal=client-id='YOUR_CLIENT_ID' \
+  --from-literal=client-secret='YOUR_CLIENT_SECRET' \
+  --namespace=forgejo \
+  --dry-run=client -o yaml > /tmp/forgejo-oauth-config.yaml
+
+# Seal it
+kubeseal --format=yaml \
+  --cert=<path-to-pub-cert>.pem \
+  < /tmp/forgejo-oauth-config.yaml \
+  > apps/kube/forgejo/manifest/sealed-oauth-config.yaml
+
+# Clean up
+rm /tmp/forgejo-oauth-config.yaml
+```
+
+#### Configuration Methods
+
+##### Method 1: CLI Configuration (Recommended for Automation)
+
+Create a Kubernetes Job that runs after Forgejo is deployed:
+
+```bash
+forgejo admin auth add-oauth \
+  --provider=openidConnect \
+  --name=kbve \
+  --key=$OAUTH_CLIENT_ID \
+  --secret=$OAUTH_CLIENT_SECRET \
+  --auto-discover-url=https://supabase.kbve.com/auth/v1/.well-known/openid-configuration \
+  --scopes='openid email profile' \
+  --group-claim-name='groups' \
+  --admin-group='staff'
+```
+
+##### Method 2: Web GUI Configuration
+
+<Steps>
+1. Log in to Forgejo as admin
+2. Navigate to: Site Administration (gear icon) > Authentication Sources
+3. Click "Add Authentication Source"
+4. Configure the following settings:
+   - **Authentication Type**: OAuth2
+   - **Authentication Name**: `kbve` (must match redirect URI)
+   - **OAuth2 Provider**: OpenID Connect
+   - **Client ID**: `<from secret>`
+   - **Client Secret**: `<from secret>`
+   - **OpenID Connect Auto Discovery URL**: `https://supabase.kbve.com/auth/v1/.well-known/openid-configuration`
+   - **Icon URL**: (optional) `https://kbve.com/favicon.ico`
+   - **Scopes**: `openid email profile`
+   - **Required Claim Name**: (optional) leave empty
+   - **Required Claim Value**: (optional) leave empty
+   - **Group Claim Name**: (optional) `groups`
+   - **Admin Group**: (optional) `staff`
+   - **Restricted Group**: (optional) leave empty
+   - **Skip Local 2FA**: false
+5. Click "Add Authentication Source"
+</Steps>
+
+#### Application Configuration
+
+The Forgejo `application.yaml` includes the following OAuth settings:
+
+```yaml
+service:
+    DISABLE_REGISTRATION: false  # Allow OAuth registration
+    REQUIRE_SIGNIN_VIEW: true    # Still require login to view
+    ALLOW_ONLY_EXTERNAL_REGISTRATION: true  # Only via OAuth
+    SHOW_REGISTRATION_BUTTON: false  # Hide manual registration
+openid:
+    ENABLE_OPENID_SIGNIN: true
+    ENABLE_OPENID_SIGNUP: true
+oauth2_client:
+    ENABLE_AUTO_REGISTRATION: true  # Auto-create accounts
+    ACCOUNT_LINKING: auto          # Auto-link existing accounts
+    UPDATE_AVATAR: true            # Sync avatars from OAuth
+    USERNAME: preferred_username   # Use preferred_username claim
+```
+
+#### Verification
+
+Test the OAuth flow after setup:
+
+<Steps>
+1. Log out of Forgejo (if logged in)
+2. Visit `https://forgejo.kbve.com`
+3. You should see "Sign in with kbve" button
+4. Click it - should redirect to Supabase login
+5. After Supabase authentication, redirects back to Forgejo
+6. User account is auto-created and logged in
+</Steps>
+
+#### Troubleshooting
+
+<Aside type="caution">
+
+**Issue: No "Sign in with kbve" button**
+- Check authentication source was added correctly
+- Verify the authentication source name matches redirect URI
+
+**Issue: OAuth flow fails**
+- Check Supabase logs for OAuth errors
+- Verify redirect URI matches exactly
+- Check client ID and secret are correct
+
+**Issue: User not auto-registered**
+- Verify `ENABLE_AUTO_REGISTRATION` is `true`
+- Check Supabase returns required claims (email, preferred_username)
+- Review Forgejo logs for registration errors
+
+</Aside>
+
+---
+
 ## Submodules
 
 Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
