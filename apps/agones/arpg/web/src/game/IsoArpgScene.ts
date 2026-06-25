@@ -137,6 +137,7 @@ import {
 	makeSprite,
 	makeClassSprite,
 	makeCreatureSprite,
+	resetCreaturePose,
 	makeNameplate,
 	setClassPose,
 	setCreaturePose,
@@ -145,6 +146,7 @@ import {
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
+import { CreaturePool } from './systems/creaturePool';
 import {
 	preloadClass,
 	registerClassAnims,
@@ -195,6 +197,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private kindRegistry = new Map<number, KindEntry>();
 	private kinds!: KindResolvers;
 	private slotUsername = new Map<number, string>();
+
+	// Reuse pool for streamed creature sprites (predators cull/respawn constantly).
+	private creaturePool = new CreaturePool();
 
 	private dungeon = new DungeonField(DUNGEON_SEED, DUNGEON_RADIUS);
 	// Gate-graph adapter over the dungeon: room centers are nav gates, edges are
@@ -396,11 +401,19 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
 				let refs: EntityRefs;
-				const creatureSprite = isPlayerKind(this.kinds, e.kind)
+				const player = isPlayerKind(this.kinds, e.kind);
+				const cref = this.kinds.ref(e.kind);
+				// Wake a parked creature of this def if one is pooled; only build a
+				// fresh sprite on a cold pool. Player + non-creature kinds skip both.
+				const pooled = player
 					? null
-					: makeCreatureSprite(this, this.kinds.ref(e.kind));
-				if (isPlayerKind(this.kinds, e.kind)) {
+					: this.creaturePool.acquire(cref ?? '');
+				const creatureSprite =
+					player || pooled ? null : makeCreatureSprite(this, cref);
+				if (player) {
 					refs = this.makePlayerRefs(e.kind);
+				} else if (pooled) {
+					refs = this.wakeCreature(pooled, e);
 				} else if (creatureSprite) {
 					refs = {
 						sprite: creatureSprite.sprite,
@@ -506,6 +519,17 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs.dbgText?.destroy();
 					refs.dbgArrow?.destroy();
 					this.combat.dyingSprites.set(eid, refs);
+					return;
+				}
+				// Pool culled creatures (streaming predators churn constantly) so the
+				// next spawn of the same def reuses the Sprite instead of rebuilding.
+				if (
+					refs.creature &&
+					refs.sprite instanceof Phaser.GameObjects.Sprite
+				) {
+					const defId = refs.creature.def.id;
+					this.parkCreature(refs);
+					this.creaturePool.release(defId, refs);
 					return;
 				}
 				this.destroyRefs(refs);
@@ -747,6 +771,59 @@ export class IsoArpgScene extends Phaser.Scene {
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
 		destroyRefsV(refs);
+	}
+
+	/**
+	 * Park a culled creature for reuse: kill its tween, drop the cheap per-entity
+	 * HUD bits (rebuilt on wake), and hide the Sprite + shadow so Phaser's update
+	 * loop skips them. The pooled refs keep only sprite/shadow/creature.
+	 */
+	private parkCreature(refs: EntityRefs) {
+		this.tweens.killTweensOf(refs.sprite);
+		refs.settleTimer?.remove(false);
+		refs.settleTimer = undefined;
+		refs.nameplate?.destroy();
+		refs.nameplate = undefined;
+		refs.hpBar?.destroy();
+		refs.hpBar = undefined;
+		refs.statusFx?.destroy();
+		refs.statusFx = undefined;
+		refs.dbgText?.destroy();
+		refs.dbgText = undefined;
+		refs.dbgArrow?.destroy();
+		refs.dbgArrow = undefined;
+		refs.interp = undefined;
+		(refs.sprite as Phaser.GameObjects.Sprite)
+			.setActive(false)
+			.setVisible(false);
+		refs.shadow?.setActive(false).setVisible(false);
+	}
+
+	/**
+	 * Wake a pooled creature for a new spawn: reactivate the Sprite + shadow, reset
+	 * its pose to a fresh Idle/south, and re-seed interpolation. The cheap HUD bits
+	 * (nameplate/hpBar/statusFx) are rebuilt by the common create tail.
+	 */
+	private wakeCreature(refs: EntityRefs, e: EntityDelta): EntityRefs {
+		const sprite = refs.sprite as Phaser.GameObjects.Sprite;
+		sprite.setActive(true).setVisible(true);
+		refs.shadow?.setActive(true).setVisible(true);
+		if (refs.creature) resetCreaturePose(sprite, refs.creature);
+		refs.interp = newInterp(this.time.now, e.tile.x, e.tile.y);
+		if (DEBUG_CREATURE_DIRS) {
+			refs.dbgText = this.add
+				.text(0, 0, '', {
+					fontFamily: 'monospace',
+					fontSize: '13px',
+					color: '#34d399',
+					stroke: '#000000',
+					strokeThickness: 4,
+				})
+				.setOrigin(0.5, 1)
+				.setDepth(DEPTH_UI + 2);
+			refs.dbgArrow = this.add.graphics().setDepth(DEPTH_UI + 2);
+		}
+		return refs;
 	}
 
 	/**
