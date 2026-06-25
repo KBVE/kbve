@@ -1,7 +1,7 @@
 import { useState, type DragEvent, type ReactElement } from 'react';
 import { useTranslation } from '@kbve/laser';
 import type { InventoryItem } from '@kbve/laser';
-import { emitInventoryIntent } from '../../systems/hud';
+import { emitInventoryIntent, emitInventoryOpen } from '../../systems/hud';
 import { PixelPanel } from '../../PixelPanel';
 import { rarityColor, type ItemMeta } from '../../entities/itemMeta';
 import {
@@ -15,6 +15,8 @@ import {
 	GothicSlot,
 	GothicTitleBar,
 	GothicDivider,
+	GothicCloseButton,
+	useMountTransition,
 } from '../gothic/Gothic';
 
 const ACCENT = '#fcd34d';
@@ -249,17 +251,21 @@ const GRID_ROWS = 7;
 const SLOT_GAP = 5;
 
 export function InventoryPanel({
+	open,
 	items,
 	meta,
 	dnd,
 }: {
+	open: boolean;
 	items: InventoryItem[];
 	meta: Map<string, ItemMeta>;
 	dnd: InventoryDnd;
-}): ReactElement {
+}): ReactElement | null {
 	const { t } = useTranslation();
 	const { drag, floorHot } = dnd;
 	const slotCount = GRID_COLS * GRID_ROWS;
+	const { mounted, shown } = useMountTransition(open, 200);
+	if (!mounted) return null;
 
 	return (
 		<div
@@ -270,15 +276,32 @@ export function InventoryPanel({
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
-				background: 'rgba(2,3,6,0.55)',
-				pointerEvents: 'auto',
+				background: shown ? 'rgba(2,3,6,0.55)' : 'rgba(2,3,6,0)',
+				pointerEvents: shown ? 'auto' : 'none',
+				transition: 'background 0.2s ease',
 			}}>
 			<GothicPanel
 				padding={18}
 				style={{
+					position: 'relative',
 					width: 380,
 					filter: 'drop-shadow(0 14px 40px rgba(0,0,0,0.6))',
+					transformOrigin: 'center',
+					transform: shown ? 'scale(1)' : 'scale(0.9)',
+					opacity: shown ? 1 : 0,
+					transition:
+						'transform 0.2s cubic-bezier(0.2,0.8,0.3,1.1), opacity 0.2s ease',
 				}}>
+				<GothicCloseButton
+					size={32}
+					onClick={() => emitInventoryOpen(false)}
+					style={{
+						position: 'absolute',
+						top: -16,
+						right: -16,
+						zIndex: 1,
+					}}
+				/>
 				<GothicTitleBar style={{ marginBottom: 12 }}>
 					{t('arpg.inventory.title')}
 				</GothicTitleBar>

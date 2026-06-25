@@ -66,6 +66,31 @@ export const STRIP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6
   <path d="M26 32h220M394 32h220" stroke="#4a3b29" stroke-width="2"/>
 </svg>`;
 
+export const CLOSE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3c3328"/><stop offset="1" stop-color="#11100f"/></linearGradient></defs>
+  <rect x="3" y="3" width="66" height="66" rx="5" fill="#090909" stroke="#080706" stroke-width="5"/>
+  <rect x="9" y="9" width="54" height="54" rx="3" fill="url(#bg)" stroke="#8d7651" stroke-width="3"/>
+  <path d="M22 22l28 28M50 22L22 50" stroke="#c7b387" stroke-width="8" stroke-linecap="square"/>
+  <path d="M22 20l30 30" stroke="#3b1713" stroke-width="3"/>
+</svg>`;
+
+// Orb bezel ring (from the expansion orb-frame, baked red sphere + highlight
+// removed). Drawn as an annulus with a transparent center so the existing
+// StatOrb fluid shows through — the orbs stay, this only frames them. The clear
+// hole is ~r61 of the 180 viewbox, so place an orb sized ~0.68× the ring.
+export const ORB_FRAME_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#aa8c5c"/><stop offset=".5" stop-color="#2f281f"/><stop offset="1" stop-color="#846c48"/></linearGradient></defs>
+  <circle cx="90" cy="90" r="79" fill="none" stroke="#070707" stroke-width="10"/>
+  <circle cx="90" cy="90" r="70" fill="none" stroke="url(#rim)" stroke-width="10"/>
+  <circle cx="90" cy="90" r="63" fill="none" stroke="#b2925d" stroke-width="2"/>
+  <path d="M18 90l18-14 8 14-8 14zM162 90l-18-14-8 14 8 14z" fill="#2b241c" stroke="#9a7e53" stroke-width="3"/>
+</svg>`;
+
+/** Clear-hole fraction of the orb-frame ring (place orbs at ring*RATIO). */
+export const ORB_FRAME_HOLE = 0.68;
+
 /** SVG string → CSS background-image data URI. Single-quoted: the inner SVG uses
  *  only double quotes (escaped by encodeURIComponent), and some renderers choke
  *  on a double-quoted data-URI wrapper. */
