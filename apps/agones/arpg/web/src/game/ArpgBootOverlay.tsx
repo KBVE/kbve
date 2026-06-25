@@ -22,7 +22,7 @@ const STEPS: { phase: BootStatus['phase']; label: string }[] = [
 	{ phase: 'entering', label: 'World' },
 ];
 
-const LOGO = arpgAsset('/assets/brand/logo/rentearthlogo.png');
+const LOGO = arpgAsset('/assets/brand/logo/rentearthlogo.webp');
 
 export default function ArpgBootOverlay() {
 	const [boot, setBoot] = useState<BootStatus>({
