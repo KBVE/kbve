@@ -362,10 +362,17 @@ impl<'a> InstanceRepo<'a> {
     /// `SELECT mi.*` into `ZoneInstance`, so the scan allocates no per-row `String`s
     /// (`map_name`/`gameservername`) for up to 500 rows every cycle. Still joins `maps` for the
     /// per-map `minutestoshutdownafterempty`. Capped at 500; the caller logs when the cap is hit
-    /// (possible under-reaping). Ordered longest-empty first (`lastserveremptydate ASC NULLS
-    /// LAST`) so the most reap-worthy rows are always inside the cap rather than starved behind a
-    /// low-id head; `mapinstanceid` breaks ties for deterministic ordering when empty-dates are
-    /// equal/NULL.
+    /// (possible under-reaping).
+    ///
+    /// Ordered by each row's *own* reap clock, oldest first: `COALESCE(lastserveremptydate,
+    /// createdate)` (audit G4). An Empty candidate's clock is its `lastserveremptydate`; a
+    /// never-reported candidate has a NULL empty-date and its clock is `createdate` (boot grace).
+    /// A plain `lastserveremptydate ASC NULLS LAST` buried every never-reported row *after* all
+    /// empty rows, so in a backlog > 500 the never-reported backstop was starved out of the cap
+    /// entirely. COALESCE interleaves both by reap-worthiness so the most reapable rows of *either*
+    /// kind stay inside the cap. The partial index `idx_mapinstances_active` still serves the
+    /// `customerguid = $1 AND status > 0` predicate; the ≤500-row sort is in-memory and cheap.
+    /// `mapinstanceid` breaks ties deterministically.
     pub async fn get_active_reap_candidates(
         &self,
         customer_guid: Uuid,
@@ -377,7 +384,7 @@ impl<'a> InstanceRepo<'a> {
              FROM mapinstances mi
              JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0
-             ORDER BY mi.lastserveremptydate ASC NULLS LAST, mi.mapinstanceid
+             ORDER BY COALESCE(mi.lastserveremptydate, mi.createdate) ASC, mi.mapinstanceid
              LIMIT 500",
         )
         .bind(customer_guid)
@@ -738,6 +745,44 @@ impl<'a> InstanceRepo<'a> {
         .await?;
 
         Ok(())
+    }
+
+    /// Deactivate the `worldservers` row backing `instance_id`, but ONLY when no *other* active
+    /// (`status > 0`) instance still shares that worldserver (audit Q1). The Agones allocation path
+    /// mints a fresh `worldservers` row per GameServer (`register_world_server` uses a new
+    /// `Uuid::new_v4()` each time, so the `ON CONFLICT (customerguid, zoneserverguid)` never fires),
+    /// i.e. 1:1 — and `reap_one` deletes the GameServer + flips the instance `status=0` but never
+    /// cleared that row, leaking a `serverstatus=1` launcher row forever. This bounds that leak.
+    /// The `NOT EXISTS` guard makes it safe for the 1:N launcher case too (a shared launcher hosting
+    /// other live instances is left alone). Returns the count of worldserver rows deactivated —
+    /// either zero or one — so the caller can log. Call AFTER the instance's own `status=0` flip; the
+    /// `<> $2` guard excludes the just-reaped row regardless, so ordering is not load-bearing.
+    pub async fn deactivate_world_server_if_last_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<u64, RowsError> {
+        let result = sqlx::query(
+            "UPDATE worldservers ws SET serverstatus = 0
+             WHERE ws.customerguid = $1
+               AND ws.worldserverid = (
+                   SELECT worldserverid FROM mapinstances
+                   WHERE mapinstanceid = $2 AND customerguid = $1
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM mapinstances other
+                   WHERE other.customerguid = $1
+                     AND other.worldserverid = ws.worldserverid
+                     AND other.status > 0
+                     AND other.mapinstanceid <> $2
+               )",
+        )
+        .bind(customer_guid)
+        .bind(instance_id)
+        .execute(self.0)
+        .await?;
+
+        Ok(result.rows_affected())
     }
 
     pub async fn delete_all_map_instances(&self, customer_guid: Uuid) -> Result<(), RowsError> {

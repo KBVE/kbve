@@ -955,38 +955,40 @@ Notes:
 - The table is created by migration `20260624120000`. Until that migration runs, the reaper detects
   the missing table (SQLSTATE 42P01) and cleanly falls back to env config — no per-cycle errors.
 
-### 6. Connection-pool budget — size the pool BEFORE enabling (post-merge audit, G1)
+### 6. Connection-pool budget (post-merge audit, G1 — FIXED in code)
 
-The reaper is the single largest concurrent consumer of the DB pool, and the pool is **smaller than
-the code default** in production:
+The reaper is the single largest concurrent consumer of the DB pool. `rows` connects **directly to
+the CNPG RW primary** (`supabase-cluster-rw.kilobase…:5432`) with a `DB_MAX_CONNECTIONS`-sized sqlx
+pool (deployment: **10**; `acquire_timeout` 5s, `db.rs`). The pool's 10 slots are real primary
+backends, and the reaper's draw is:
 
-- Deployment sets `DB_MAX_CONNECTIONS=10` (`apps/kube/rows/tenants/base/deployment.yaml`); the code
-  default is `50` (`apps/rows/src/db.rs`). The discrepancy is catalogued in
-  [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) — but its **interaction
-  with the reaper** is the operational risk, documented here.
-- Per cycle the reaper holds `lock_conn` **out of the pool for the entire cycle** (advisory
-  lock → run cycle → unlock), then `run_reap_cycle` fans out up to `MAX_CONCURRENT_REAPS = 8`
-  `reap_one` tasks, **each of which acquires a pool connection** for the `status=0` flip. Peak draw
-  ≈ `1 (lock) + 8 (teardown flips) + transient candidate/override queries` ≈ **9–10 of 10**.
-- Meanwhile the **player hot path** needs the same pool every cycle: `update_number_of_players` on
-  every UE heartbeat, and `join_map`/allocation. When a reap batch saturates the pool, these block on
-  `acquire()` (sqlx default 30s timeout). A heartbeat gap can then make *other* servers look
-  reap-eligible — a feedback loop.
+- `lock_conn` held **out of the pool for the entire cycle** (advisory lock → run cycle → unlock),
+  plus `run_reap_cycle` fanning out up to `MAX_CONCURRENT_REAPS` `reap_one` tasks, **each acquiring a
+  pool connection** for the `status=0` flip → peak ≈ `1 + MAX_CONCURRENT_REAPS`.
+- Meanwhile the **player hot path** needs the same pool: `update_number_of_players` on every UE
+  heartbeat, and `join_map`/allocation. A reap batch saturating the pool blocks these on `acquire()`
+  (fails after 5s); a heartbeat gap can then make *other* servers look reap-eligible — a feedback loop.
 
-**Before enabling the reaper in an env, satisfy the budget invariant:**
+**Fix shipped (PR #13200):** `MAX_CONCURRENT_REAPS` lowered **8 → 4** (`jobs.rs`), so the reaper draws
+≤ `1 + 4 = 5` of 10, leaving ≥5 for the hot path. The invariant the constant must keep:
 
 ```
-MAX_CONCURRENT_REAPS + (hot-path headroom) ≤ DB_MAX_CONNECTIONS
+1 (lock) + MAX_CONCURRENT_REAPS + (hot-path headroom) ≤ DB_MAX_CONNECTIONS
 ```
 
-Concretely: raise `DB_MAX_CONNECTIONS` (e.g. to `20`+), and/or lower `MAX_CONCURRENT_REAPS`, and/or
-move `lock_conn` to a dedicated single-connection pool so it never competes with teardown. This step
-is **inert-safe to skip while the reaper ships off** — the lock + teardown connections are only
-acquired *after* the `enabled` check — but it is a hard prerequisite for step 2's enablement.
+`DB_MAX_CONNECTIONS` is **deliberately NOT raised** here: it lives in `tenants/base`, so a bump
+multiplies across every tenant against the primary's `max_connections`. Scaling teardown throughput
+by enlarging the pool belongs to the **pooler migration (KBVE #7593)** — and even then the reaper's
+*lock* connection must stay session-pinned (see §3): the transaction-mode RW pooler would void the
+advisory lock. This whole concern is **inert while the reaper ships off** (lock + teardown
+connections are acquired only *after* the `enabled` check), but the capped constant is the standing
+guard for whenever it's enabled.
 
 ### 7. Known residuals (post-merge audit, PR #13200)
 
-Carried as tracked residuals; none block the inert merge, all are pre-enablement / follow-up.
+Status after the audit-action pass: **G1, G4, Q1 fixed in code** (PR #13200); **G2, G3 remain
+tracked follow-ups** (G2 is RabbitMQ infra; G3 only bites once the drain feature lands). None blocked
+the inert merge.
 
 - **G2 — spin-up MQ failures are silently dropped (no DLX).** `apps/rows/src/mq.rs` rejects a
   twice-failed spin-up `requeue:false`, but **no `x-dead-letter-exchange` is configured on the
@@ -997,13 +999,17 @@ Carried as tracked residuals; none block the inert merge, all are pre-enablement
   `2026-06-24-rows-server-lifecycle-and-shutdown.md`.)
 - **G3 — advisory-lock unlock is panic-safe but not cancellation-safe.** See the cancellation caveat
   in §3 above and the interaction note in `2026-06-24-rows-drain-core.md`.
-- **G4 — never-reported rows can be starved past the 500-row cap.** `get_active_reap_candidates`
-  orders `lastserveremptydate ASC NULLS LAST`, so never-reported rows (`lastserveremptydate IS NULL`)
-  sort *last* and, in a backlog > 500 active rows, never enter the candidate set. Acceptable: the
-  never-reported path is gated off, and the cap-hit is logged (`Reaper: candidate query hit the
-  500-row cap`). If the never-reported backstop is ever leaned on at scale, page the candidate scan
-  or raise the cap rather than relying on a single 500-row window.
-- **Q1 — `worldservers` row leak on reap (RESOLVED: Low, pre-existing — not a routing hazard).**
+- **G4 — never-reported rows starved past the 500-row cap (FIXED in code).** The candidate scan
+  ordered `lastserveremptydate ASC NULLS LAST`, burying every never-reported row
+  (`lastserveremptydate IS NULL`) *after* all empty rows, so in a backlog > 500 they never entered
+  the candidate set. **Fix shipped (PR #13200):** order by `COALESCE(lastserveremptydate, createdate)
+  ASC` — each row sorts by its *own* reap clock (empty rows by empty-date, never-reported by
+  createdate/boot-grace), interleaving both by reap-worthiness. The partial index still serves the
+  `status > 0` predicate; the ≤500-row sort is in-memory. The cap-hit is still logged.
+- **Q1 — `worldservers` row leak on reap (RESOLVED + FIXED in code: Low, pre-existing — not a routing hazard).**
+  Fix shipped (PR #13200): `reap_one` now calls `deactivate_world_server_if_last_instance` after the
+  `status=0` flip — a single `UPDATE … WHERE NOT EXISTS (other active instance on that worldserver)`,
+  best-effort, so it bounds the leak without breaking the 1:N launcher case. Original analysis:
   `reap_one` deletes the GameServer and sets `mapinstances.status=0`, but leaves the `worldservers`
   row at `serverstatus=1`. Cardinality *is* effectively 1:1 — `register_world_server`
   (`pipeline.rs`) mints a fresh `Uuid::new_v4()` per allocation, so the `register_launcher`

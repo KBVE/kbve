@@ -115,7 +115,18 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
 /// Max GameServers torn down concurrently per cycle. Each `deallocate` can take up to
 /// retries × backoff × 10s; serial teardown of a large batch would overrun the 60s cadence, so
 /// fan out with a bound (kept modest to avoid hammering the K8s API / Agones allocator).
-const MAX_CONCURRENT_REAPS: usize = 8;
+///
+/// CONNECTION-POOL BUDGET (audit G1): each concurrent `reap_one` acquires one DB connection for its
+/// `status=0` flip, and the cycle additionally holds `lock_conn` out of the pool for its whole
+/// duration. So the reaper's peak draw is `1 (lock) + MAX_CONCURRENT_REAPS`. `rows` connects
+/// *directly* to the CNPG RW primary (`supabase-cluster-rw:5432`) with a `DB_MAX_CONNECTIONS`-sized
+/// sqlx pool (deployment: 10). Keep the invariant `1 + MAX_CONCURRENT_REAPS + hot-path headroom ≤
+/// DB_MAX_CONNECTIONS` so a reap batch never starves the player hot path (heartbeats / joins) on
+/// `acquire()`. With pool=10 and this value=4 the reaper draws ≤5, leaving ≥5 for the hot path.
+/// Raising the pool to scale teardown belongs to the pooler migration (KBVE #7593) — but see the
+/// advisory-lock note in `empty_server_reaper`: the lock MUST stay on a session-capable endpoint
+/// (direct RW or the *session*-mode pooler), never the transaction-mode RW pooler.
+const MAX_CONCURRENT_REAPS: usize = 4;
 
 /// A candidate that `reap_decision` selected and whose GameServer name resolved — ready to tear down.
 struct ReapTarget {
@@ -171,6 +182,16 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
 
         // Acquire a dedicated connection and try the advisory lock. Two int4 keys: a constant
         // namespace (`'rows-empty-reaper'`) + the tenant guid hash, so the lock is per-tenant.
+        //
+        // POOLER CONSTRAINT (audit G1/G3): this is a SESSION-level advisory lock — taken here and
+        // released by the `pg_advisory_unlock` below, across two separate statements on the SAME
+        // pinned `lock_conn`. That is only sound on a session-pinned endpoint: today `DATABASE_URL`
+        // points directly at `supabase-cluster-rw:5432` (correct). If `rows` is ever migrated onto
+        // the CNPG *transaction*-mode RW pooler (`supabase-cluster-pooler-rw`, KBVE #7593), each
+        // statement may land on a different backend — the lock would be taken on one, never held,
+        // and never released, silently voiding the multi-replica double-deallocate guard. Keep this
+        // connection on the direct RW (or a session-mode pooler) regardless of where bulk traffic
+        // goes.
         let mut lock_conn = match svc.state().db.acquire().await {
             Ok(c) => c,
             Err(e) => {
@@ -380,6 +401,19 @@ async fn reap_one(svc: Arc<OWSService>, guid: uuid::Uuid, target: ReapTarget) {
             let repo = InstanceRepo(&svc.state().db);
             if let Err(e) = repo.shut_down_server_instance(guid, instance_id).await {
                 warn!(error = %e, instance_id, "Reaper: deallocated but failed to set status=0");
+            }
+            // Bound the worldservers leak (audit Q1): the Agones path mints a fresh worldserver row
+            // per GameServer, so a reaped instance otherwise leaves its launcher row stuck at
+            // serverstatus=1 forever. Deactivate it — but only if no other active instance shares it
+            // (safe for the 1:N launcher case). Best-effort: a failure just leaves the stale row, so
+            // it never blocks teardown.
+            match repo
+                .deactivate_world_server_if_last_instance(guid, instance_id)
+                .await
+            {
+                Ok(n) if n > 0 => info!(instance_id, "Reaper: deactivated now-empty worldserver"),
+                Ok(_) => {}
+                Err(e) => warn!(error = %e, instance_id, "Reaper: failed to deactivate worldserver (non-fatal)"),
             }
         }
         Err(e) => {
