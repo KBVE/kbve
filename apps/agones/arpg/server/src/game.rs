@@ -325,6 +325,10 @@ pub fn config() -> SimConfig {
         starting_inventory: vec![
             (CAMPFIRE_KIT_REF.to_string(), 5),
             (POTION_REF.to_string(), 3),
+            // One dungeon-key so the first descent isn't gated behind loot the
+            // player hasn't found yet. Held, not consumed (Stairs::at only checks
+            // count > 0), so one lasts.
+            (STAIR_KEY_REF.to_string(), 1),
         ],
     }
 }

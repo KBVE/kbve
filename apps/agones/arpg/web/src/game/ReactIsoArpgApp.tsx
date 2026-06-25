@@ -8,21 +8,15 @@ import {
 import { IsoArpgScene } from './IsoArpgScene';
 import WebGLOverlay from './WebGLOverlay';
 import D2Hud from './ui/D2Hud';
-import ArpgMenu from './ArpgMenu';
+import ArpgMenu from './ui/menu/Menu';
 import ChatPanel from './ChatPanel';
 import ArpgToasts from './ui/toasts/Toasts';
 import ArpgBootOverlay from './ArpgBootOverlay';
 import ArpgConnectionStatus from './ArpgConnectionStatus';
 import ArpgStairGuide from './ArpgStairGuide';
-import { COLORS, DEBUG_HUD, DEBUG_LOCAL_PLAYER, resolveWsUrl } from './config';
+import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import { authBridge } from '../lib/auth';
-import {
-	resolvePlayerName,
-	hasSessionName,
-	saveName,
-	sanitizeName,
-} from './playerName';
 
 const CONTAINER_ID = 'iso-arpg-inner';
 
@@ -47,10 +41,9 @@ export default function ReactIsoArpgApp({
 	// 'loading' while the session resolves, 'prompt' to ask for a name (offline
 	// only), 'signin' when online play needs a Supabase session, 'ready' once the
 	// scene should boot.
-	const [phase, setPhase] = useState<
-		'loading' | 'prompt' | 'signin' | 'ready'
-	>('loading');
-	const [draft, setDraft] = useState('');
+	const [phase, setPhase] = useState<'loading' | 'signin' | 'ready'>(
+		'loading',
+	);
 	const [glState, setGlState] = useState<'ok' | 'lost' | 'unsupported'>('ok');
 
 	const getDimensions = useCallback(() => {
@@ -83,16 +76,6 @@ export default function ReactIsoArpgApp({
 		// session — buildNetConfig only resolves with a valid JWT; without one we
 		// can't connect (the server denies an empty JWT), so prompt to sign in
 		// rather than fake-readying off a stale saved name.
-		if (DEBUG_LOCAL_PLAYER) {
-			if (hasSessionName() || resolvePlayerName()) {
-				setPhase('ready');
-			} else {
-				setPhase('prompt');
-			}
-			return () => {
-				cancelled = true;
-			};
-		}
 		buildNetConfig().finally(() => {
 			if (cancelled) return;
 			setPhase(getNetConfig() ? 'ready' : 'signin');
@@ -176,12 +159,6 @@ export default function ReactIsoArpgApp({
 		};
 	}, [phase, getDimensions]);
 
-	const startWithName = useCallback(() => {
-		const name = sanitizeName(draft) || 'Ranger';
-		saveName(name);
-		setPhase('ready');
-	}, [draft]);
-
 	const signIn = useCallback(
 		async (provider: 'github' | 'discord' | 'twitch') => {
 			try {
@@ -261,74 +238,6 @@ export default function ReactIsoArpgApp({
 		);
 	}
 
-	if (phase === 'prompt') {
-		return (
-			<div
-				style={{
-					position: 'absolute',
-					inset: 0,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					background: 'rgba(8,9,14,0.85)',
-					zIndex: 20,
-				}}>
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						gap: '12px',
-						padding: '28px 32px',
-						borderRadius: '10px',
-						background: '#181c28',
-						border: '1px solid #3c465c',
-						minWidth: '280px',
-						fontFamily: 'monospace',
-						color: '#e6ebf5',
-					}}>
-					<div style={{ fontSize: '15px', color: '#fcd34d' }}>
-						Enter your name
-					</div>
-					<input
-						autoFocus
-						value={draft}
-						maxLength={18}
-						placeholder="Ranger"
-						onChange={(e) => setDraft(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter') startWithName();
-						}}
-						style={{
-							padding: '10px 12px',
-							fontSize: '14px',
-							fontFamily: 'monospace',
-							borderRadius: '6px',
-							border: '1px solid #4c5a78',
-							background: '#0f1320',
-							color: '#e6ebf5',
-							outline: 'none',
-						}}
-					/>
-					<button
-						onClick={startWithName}
-						style={{
-							padding: '10px 12px',
-							fontSize: '14px',
-							fontFamily: 'monospace',
-							fontWeight: 700,
-							borderRadius: '6px',
-							border: 'none',
-							background: '#6ea8ff',
-							color: '#0b0e16',
-							cursor: 'pointer',
-						}}>
-						Play
-					</button>
-				</div>
-			</div>
-		);
-	}
-
 	if (glState === 'unsupported') {
 		return <WebGLOverlay mode="unsupported" />;
 	}
@@ -341,8 +250,8 @@ export default function ReactIsoArpgApp({
 				<ArpgToasts />
 				<ArpgBootOverlay />
 				<ArpgStairGuide />
-				{!DEBUG_LOCAL_PLAYER && <ArpgConnectionStatus />}
-				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
+				<ArpgConnectionStatus />
+				<ChatPanel />
 				{glState === 'lost' && <WebGLOverlay mode="lost" />}
 			</>
 		);

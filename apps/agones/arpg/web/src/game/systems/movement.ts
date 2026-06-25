@@ -56,7 +56,6 @@ export function makeMovementState(start: TileXY): MovementState {
 export interface MovementDeps {
 	scene: Phaser.Scene;
 	client(): GameClient | null;
-	localMode(): boolean;
 	dungeon(): DungeonField;
 	gateGraph: GateGraph;
 	isBlocked(x: number, y: number): boolean;
@@ -296,7 +295,7 @@ export function startMoveTo(
 	deps: MovementDeps,
 	tile: TileXY,
 ): void {
-	if (!deps.client() && !deps.localMode()) return;
+	if (!deps.client()) return;
 	const start = floatTile(st.floatState);
 	const path = findHierPath(
 		start,

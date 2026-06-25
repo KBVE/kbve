@@ -139,12 +139,6 @@ export const GRASS_DETAIL_TEXTURE_KEY = 'arpg-grass-detail';
 export const GRASS_DETAIL_TEXTURE_PATH =
 	'/assets/arcade/arpg/textures/grass/grass_04_l.png';
 
-// Offline debug: when no server connects, spawn a locally-driven ranger so the
-// character renders and is controllable without a live arpg-server.
-export const DEBUG_LOCAL_PLAYER =
-	((import.meta.env.PUBLIC_ARPG_LOCAL as string | undefined) ?? 'true') !==
-	'false';
-export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
 // React HUD debug panel: shows fps + current tile alongside the compass/vitals.
 // Flip off for release; the compass + vitals panels render regardless.
 export const DEBUG_HUD = true;

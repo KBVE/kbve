@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { GameClient, EntityStore, Cat } from '@kbve/laser';
-import { DEBUG_LOCAL_PLAYER } from '../config';
 import {
 	worldToScreen,
 	screenToWorld,
@@ -33,7 +32,6 @@ export interface SceneInputDeps {
 	isHostile(serverEid: number): boolean;
 	useInventorySlot(idx: number): void;
 	castSpellSlot(idx: number): void;
-	debugChangeFloor(dz: number): void;
 	exitPlacement(): void;
 	commitPlacement(tile: TileXY): void;
 	updatePlaceGhost(tile: TileXY): void;
@@ -75,10 +73,6 @@ export function setupInput(
 		} else if (ev.key === 'i' || ev.key === 'I') {
 			deps.inv.open = !deps.inv.open;
 			emitInventoryOpen(deps.inv.open);
-		} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
-			deps.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
-		} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
-			deps.debugChangeFloor(-1); // descend z-1 (deeper underground)
 		} else if (ev.key === 'Escape') {
 			if (deps.inv.placingRef) {
 				deps.exitPlacement();
