@@ -111,8 +111,8 @@ function roomRect(worldSeed: number, cx: number, cy: number) {
 	// directly — they're joined only by intentional corridors. Arena chunks get
 	// a much larger footprint for boss fights; normal rooms stay mid-sized.
 	const arena = isArena(worldSeed, cx, cy);
-	const w = arena ? 11 + Math.floor(rng() * 3) : 6 + Math.floor(rng() * 5); // arena 11..13, room 6..10
-	const h = arena ? 11 + Math.floor(rng() * 3) : 6 + Math.floor(rng() * 5);
+	const w = arena ? 14 + Math.floor(rng() * 4) : 6 + Math.floor(rng() * 5); // arena 14..17, room 6..10
+	const h = arena ? 14 + Math.floor(rng() * 4) : 6 + Math.floor(rng() * 5);
 	const maxOffX = CHUNK_SIZE - w - 2;
 	const maxOffY = CHUNK_SIZE - h - 2;
 	const ox = 1 + Math.floor(rng() * Math.max(1, maxOffX));

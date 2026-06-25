@@ -88,13 +88,15 @@ fn room_rect(world_seed: u32, cx: i32, cy: i32) -> RoomRect {
     let base_x = cx * CHUNK_SIZE;
     let base_y = cy * CHUNK_SIZE;
     let arena = is_arena(world_seed, cx, cy);
+    // Arena (boss-sized) rooms 14..17, normal rooms 6..10. One rng draw per
+    // dimension either way — keep the draw count/order identical to the client.
     let w = if arena {
-        11 + floor_mul(&mut rng, 3)
+        14 + floor_mul(&mut rng, 4)
     } else {
         6 + floor_mul(&mut rng, 5)
     };
     let h = if arena {
-        11 + floor_mul(&mut rng, 3)
+        14 + floor_mul(&mut rng, 4)
     } else {
         6 + floor_mul(&mut rng, 5)
     };
@@ -358,7 +360,7 @@ mod tests {
         // Floor 0 == the original single-floor dungeon (floor_seed identity), so
         // the committed parity fingerprint must still hold.
         assert_eq!(floor_seed(SEED, 0), SEED);
-        assert_eq!(fingerprint(SEED, 0, 0, 0, 80, 80), 1764795750);
+        assert_eq!(fingerprint(SEED, 0, 0, 0, 80, 80), 3726471204);
     }
 
     #[test]
