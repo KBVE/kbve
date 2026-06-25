@@ -30,8 +30,9 @@ pub struct AppState {
     pub supabase: SupabaseConfig,
     pub instance_log: crate::rest::system::InstanceEventLog,
     pub started_at: Instant,
-    /// UE build version (tag of the Agones fleet container image), resolved once at startup.
-    pub fleet_image_tag: Option<String>,
+    /// UE build version (tag of the Agones gameserver container image). Seeded from the fleet
+    /// spec at startup, then kept live by the GameServer watcher as rollouts swap the image.
+    pub fleet_image_tag: std::sync::RwLock<Option<String>>,
 }
 
 pub struct AppConfig {
@@ -128,7 +129,7 @@ impl AppStateBuilder {
             supabase: SupabaseConfig::from_env(),
             instance_log: crate::rest::system::InstanceEventLog::new(),
             started_at: Instant::now(),
-            fleet_image_tag: self.fleet_image_tag,
+            fleet_image_tag: std::sync::RwLock::new(self.fleet_image_tag),
         }))
     }
 }
