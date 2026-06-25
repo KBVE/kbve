@@ -460,7 +460,17 @@ jobs:
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
                       ;;
                     *)
                       echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
@@ -833,7 +843,17 @@ jobs:
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
                       ;;
                     *)
                       echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
