@@ -262,11 +262,51 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const b of BIOMES) {
 			this.load.image(biomeTextureKey(b), arpgAsset(biomeTexturePath(b)));
 		}
+		this.load.once(Phaser.Loader.Events.COMPLETE, () =>
+			this.applyBiomeFiltering(),
+		);
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 		preloadStairs(this);
 		preloadItemAtlas(this);
+	}
+
+	private applyBiomeFiltering(): void {
+		const renderer = this.renderer;
+		if (renderer.type !== Phaser.WEBGL) return;
+		const gl = (renderer as Phaser.Renderer.WebGL.WebGLRenderer).gl;
+		const aniso =
+			gl.getExtension('EXT_texture_filter_anisotropic') ??
+			gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+		const anisoMax = aniso
+			? (gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT) as number)
+			: 0;
+		for (const b of BIOMES) {
+			const raw = (
+				this.textures.get(biomeTextureKey(b)).source[0]
+					.glTexture as unknown as {
+					webGLTexture: WebGLTexture | null;
+				}
+			)?.webGLTexture;
+			if (!raw) continue;
+			gl.bindTexture(gl.TEXTURE_2D, raw);
+			gl.generateMipmap(gl.TEXTURE_2D);
+			gl.texParameteri(
+				gl.TEXTURE_2D,
+				gl.TEXTURE_MIN_FILTER,
+				gl.LINEAR_MIPMAP_LINEAR,
+			);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			if (aniso) {
+				gl.texParameterf(
+					gl.TEXTURE_2D,
+					aniso.TEXTURE_MAX_ANISOTROPY_EXT,
+					anisoMax,
+				);
+			}
+		}
+		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
 	create() {

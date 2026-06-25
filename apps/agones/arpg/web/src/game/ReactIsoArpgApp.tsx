@@ -104,10 +104,7 @@ export default function ReactIsoArpgApp({
 			height: dims.height,
 			parent: container,
 			backgroundColor: COLORS.background,
-			render: {
-				pixelArt: true,
-				mipmapFilter: 'LINEAR_MIPMAP_LINEAR',
-			},
+			pixelArt: true,
 			scale: {
 				mode: Phaser.Scale.RESIZE,
 				autoCenter: Phaser.Scale.CENTER_BOTH,
