@@ -14,7 +14,9 @@ export function isCreatureLoaded(
 	def: CreatureDef,
 ): boolean {
 	for (const anim of Object.values(def.anims)) {
-		if (anim) return scene.textures.exists(sheetKey(def, anim.sheet));
+		if (!anim) continue;
+		if (!scene.textures.exists(sheetKey(def, anim.sheet))) return false;
+		return def.shadow ? isCreatureLoaded(scene, def.shadow) : true;
 	}
 	return false;
 }

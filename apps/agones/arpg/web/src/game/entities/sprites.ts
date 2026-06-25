@@ -400,6 +400,22 @@ export function makeCreatureSprite(
 }
 
 /**
+ * Re-point a ground shadow at its packed sheet once it's resident. A cold-spawned
+ * shadow is born on Phaser's __MISSING placeholder (the sheet hadn't loaded yet);
+ * the per-tick frame-lock only setFrames, never reloads the texture, so without
+ * this it stays invisible forever. Call from the residency onReady.
+ */
+export function resetCreatureShadow(
+	shadow: Phaser.GameObjects.Sprite,
+	view: CreatureView,
+): void {
+	if (!view.def.shadow) return;
+	const sf = creatureFirstFrame(view.def.shadow, 'Idle', view.dir);
+	shadow.setTexture(sf.key, sf.frame);
+	shadow.setDisplaySize(view.def.displaySize, view.def.displaySize);
+}
+
+/**
  * Reset a recycled creature sprite + view back to the fresh-spawn state (Idle,
  * facing south, correct display size + frame). Lets a pooled sprite be reused for
  * a new creature of the same def without rebuilding the GameObject.

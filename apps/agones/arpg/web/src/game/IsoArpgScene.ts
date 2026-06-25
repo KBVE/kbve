@@ -149,6 +149,7 @@ import {
 	makeClassSprite,
 	makeCreatureSprite,
 	resetCreaturePose,
+	resetCreatureShadow,
 	makeNameplate,
 	setClassPose,
 	setCreaturePose,
@@ -641,6 +642,7 @@ export class IsoArpgScene extends Phaser.Scene {
 							// loaded; only reveal + re-pose if it's still in the scene.
 							if (!sprite.scene) return;
 							resetCreaturePose(sprite, view);
+							if (shadow) resetCreatureShadow(shadow, view);
 							sprite.setVisible(true);
 							shadow?.setVisible(true);
 						},
