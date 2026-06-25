@@ -1202,6 +1202,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			});
 			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
 		});
+		this.bootReady = true;
 		emitBoot({ phase: 'ready', message: '' });
 	}
 
