@@ -74,6 +74,8 @@ spec:
                         value: '4321'
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: GOTRUE_INTERNAL_URL
+                        value: http://auth.kilobase.svc.cluster.local:9999
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
