@@ -620,14 +620,24 @@ export class IsoArpgScene extends Phaser.Scene {
 				if (refs.creature) {
 					const view = refs.creature;
 					const sprite = refs.sprite as Phaser.GameObjects.Sprite;
-					this.residency.acquire(
+					const shadow = refs.shadow;
+					const ready = this.residency.acquire(
 						this.creatureResource(view.def),
 						() => {
 							// The sprite may have been culled/destroyed while its sheets
-							// loaded; only re-pose if it's still in the scene.
-							if (sprite.scene) resetCreaturePose(sprite, view);
+							// loaded; only reveal + re-pose if it's still in the scene.
+							if (!sprite.scene) return;
+							resetCreaturePose(sprite, view);
+							sprite.setVisible(true);
+							shadow?.setVisible(true);
 						},
 					);
+					// Hide until the sheets are resident so Phaser's __MISSING box
+					// (the lazy-load placeholder) never flashes on first spawn.
+					if (!ready) {
+						sprite.setVisible(false);
+						shadow?.setVisible(false);
+					}
 				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				if (this.kinds.cat(e.kind) === Cat.Env) {
