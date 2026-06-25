@@ -7,6 +7,7 @@ import {
 	DEPTH_ENTITY_BASE,
 	GROUND_TEXTURE_KEY,
 	DUNGEON_RADIUS,
+	USE_GROUND_SHADER,
 } from '../config';
 import { worldToScreen, tileDepth, type TileXY } from '../iso';
 import { DungeonField, chunkOf, CHUNK_SIZE, StairKind } from './dungeon';
@@ -60,6 +61,11 @@ export function makeDungeonView(scene: Phaser.Scene): DungeonView {
  * at its own world origin, so nothing slides as the player walks — areas simply
  * load ahead and unload behind. `force` runs on build.
  */
+export interface ChunkCoord {
+	cx: number;
+	cy: number;
+}
+
 export function refreshDungeonView(
 	scene: Phaser.Scene,
 	view: DungeonView,
@@ -67,6 +73,7 @@ export function refreshDungeonView(
 	surface: boolean,
 	focus: TileXY,
 	force = false,
+	onChunks?: (added: ChunkCoord[], removed: ChunkCoord[]) => void,
 ): void {
 	const { cx, cy } = chunkOf(focus.x, focus.y);
 	const ckey = packTile(cx, cy);
@@ -76,7 +83,10 @@ export function refreshDungeonView(
 	const { added, removed } = dungeon.refresh(focus);
 	for (const c of added) buildChunkGround(scene, view, surface, c.cx, c.cy);
 	for (const c of removed) unloadChunkGround(view, c.cx, c.cy);
-	paintHoles(scene, view, dungeon, surface, cx, cy);
+	if (force || added.length || removed.length) {
+		paintHoles(scene, view, dungeon, surface, cx, cy);
+	}
+	if (onChunks && (added.length || removed.length)) onChunks(added, removed);
 }
 
 /**
@@ -90,11 +100,12 @@ export function rebuildDungeonView(
 	dungeon: DungeonField,
 	surface: boolean,
 	focus: TileXY,
+	onChunks?: (added: ChunkCoord[], removed: ChunkCoord[]) => void,
 ): void {
 	for (const plane of view.chunkGrounds.values()) plane.destroy();
 	view.chunkGrounds.clear();
 	view.lastChunkKey = -1;
-	refreshDungeonView(scene, view, dungeon, surface, focus, true);
+	refreshDungeonView(scene, view, dungeon, surface, focus, true, onChunks);
 }
 
 /**
@@ -153,6 +164,7 @@ function buildChunkGround(
 ): void {
 	const key = packTile(cx, cy);
 	if (view.chunkGrounds.has(key)) return;
+	if (surface && USE_GROUND_SHADER) return;
 	const side = CHUNK_SIZE * TILE_W + TILE_W * 2;
 	const sprite = scene.add.tileSprite(
 		0,

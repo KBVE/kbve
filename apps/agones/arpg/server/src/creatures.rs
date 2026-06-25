@@ -1,13 +1,14 @@
-use bevy::prelude::{Commands, Entity, Query, Res, With, Without};
+use bevy::prelude::{Commands, Entity, Query, Res, ResMut, With, Without};
 use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::rng::hash3;
 use simgrid::{
-    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PlayerSlotTag, SIM_TICK_HZ,
-    SimClock, SimSeed, WalkableMap, has_clearance, spawn_npc_from_spec,
+    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
+    SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState, WalkableMap, has_clearance,
+    spawn_npc_from_spec, spawn_tree, tree_at,
 };
 
-use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, floor_near_z};
+use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, SPAWN_FLOOR, floor_near_z, player_spawn};
 
 pub const NPC_RESPAWN_TICKS: u32 = SIM_TICK_HZ * 30;
 
@@ -58,7 +59,7 @@ pub const STAIR_SAFE_RADIUS: i32 = 8;
 // (aggro: None), so the surface stays safe. Ships as four elemental variant sheets
 // on the client; the server rolls one per spawn. Flyer, so no big-body clearance
 // rule — it hovers above the tiles instead of clipping walls.
-pub const WYVERN_REFS: [&str; 4] = ["wyvern_air", "wyvern_water", "wyvern_fire", "wyvern_shadow"];
+pub const WYVERN_REFS: [&str; 3] = ["wyvern_air", "wyvern_water", "wyvern_fire"];
 pub const WYVERN_HP: i32 = 40;
 pub const WYVERN_DEFENSE: i32 = 1;
 pub const WYVERN_TICKS_PER_TILE: u8 = 4;
@@ -101,6 +102,7 @@ pub fn goblin_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<
         }),
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         respawn_ticks: NPC_RESPAWN_TICKS,
+        float_steer: false,
     })
 }
 
@@ -132,6 +134,7 @@ fn predator_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<Np
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         // Streamed predators are culled by distance, not respawned in place.
         respawn_ticks: 0,
+        float_steer: false,
     })
 }
 
@@ -253,6 +256,8 @@ fn wyvern_spec(
         aggro: None,
         loot: None,
         respawn_ticks: 0,
+        // Float-steered: banks smoothly over the surface toward roam waypoints.
+        float_steer: true,
     })
 }
 
@@ -332,6 +337,103 @@ pub fn stream_wyverns(
                 alive.push((origin, *pz));
             }
             break;
+        }
+    }
+}
+
+// Trees — NEUTRAL static env props on the z=0 grass surface. Each standing tree
+// blocks its tile; a player adjacent to one fells it (server-authoritative). They
+// realise the deterministic `tree_at` forest around surface players and persist
+// felled state via the env log.
+// Realise trees out to the client's view radius (DUNGEON_RADIUS chunks) so every
+// visible tree is server-authoritative for felled state, and despawn well beyond it
+// so a tree never disappears while its chunk is still rendered (the client adopts
+// each server entity onto its predicted sprite).
+pub const TREE_SPAWN_MAX: i32 = 52;
+pub const TREE_DESPAWN_RADIUS: i32 = 64;
+pub const TREE_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+
+/// Realise the deterministic surface forest around z=0 players: walk the tiles in
+/// range and spawn the `tree_at(DUNGEON_SEED, tile)` tree (standing -> blocked,
+/// felled -> walkable remnant), despawning ones that fall out of range. Placement is
+/// a pure function of the world seed, so the client reproduces the identical forest
+/// and streams it in with the ground. Skips the spawn tile and the surface stairs.
+#[allow(clippy::too_many_arguments)]
+pub fn stream_trees(
+    clock: Res<SimClock>,
+    registry: Res<KindRegistry>,
+    mut map: ResMut<WalkableMap>,
+    log: Res<PersistedEnvLog>,
+    players: Query<(&GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+    trees: Query<(Entity, &GridPos, Option<&Floor>), With<TreeState>>,
+    mut commands: Commands,
+) {
+    if !clock.tick.is_multiple_of(TREE_STREAM_PERIOD_TICKS) {
+        return;
+    }
+    if registry.kind_of(TREE_REF).is_none() {
+        return;
+    }
+
+    let surface_players: Vec<Tile> = players
+        .iter()
+        .filter(|(_, f)| f.map(|f| f.0).unwrap_or(0) == SPAWN_FLOOR)
+        .map(|(p, _)| p.tile)
+        .collect();
+
+    let mut alive: Vec<Tile> = Vec::new();
+    for (entity, pos, pfloor) in trees.iter() {
+        if pfloor.map(|f| f.0).unwrap_or(0) != SPAWN_FLOOR {
+            continue;
+        }
+        let near = surface_players
+            .iter()
+            .any(|pt| chebyshev(*pt, pos.tile) <= TREE_DESPAWN_RADIUS);
+        if near {
+            alive.push(pos.tile);
+        } else {
+            commands.entity(entity).despawn();
+            map.unblock_tile_z(SPAWN_FLOOR, pos.tile);
+        }
+    }
+
+    let spawn = player_spawn();
+    let (dx_t, dy_t) =
+        arpg_dungeon::stair_tile(DUNGEON_SEED, SPAWN_FLOOR, arpg_dungeon::StairKind::Down);
+    let down_stair = Tile::new(dx_t, dy_t);
+    let felled_tiles: std::collections::HashSet<(i32, i32)> = log
+        .0
+        .iter()
+        .filter(|o| o.env_ref == TREE_REF && o.floor == SPAWN_FLOOR)
+        .map(|o| (o.x, o.y))
+        .collect();
+
+    // Deterministic surface forest: every tree is a pure function of (DUNGEON_SEED,
+    // tile) via `tree_at`, so the client reproduces the identical set and trees stream
+    // in with the ground instead of popping. A felled tile still spawns its entity
+    // (walkable, felled=true) so the client's standing prediction gets overridden.
+    for ptile in &surface_players {
+        for dy in -TREE_SPAWN_MAX..=TREE_SPAWN_MAX {
+            for dx in -TREE_SPAWN_MAX..=TREE_SPAWN_MAX {
+                let tile = Tile::new(ptile.x + dx, ptile.y + dy);
+                if tile == spawn || tile == down_stair || alive.contains(&tile) {
+                    continue;
+                }
+                let Some(variant) = tree_at(DUNGEON_SEED, tile.x, tile.y) else {
+                    continue;
+                };
+                let felled = felled_tiles.contains(&(tile.x, tile.y));
+                if !felled && !map.is_walkable_z(SPAWN_FLOOR, tile) {
+                    continue;
+                }
+                let state = TreeState { variant, felled };
+                if spawn_tree(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
+                    if !felled {
+                        map.block_tile_z(SPAWN_FLOOR, tile);
+                    }
+                    alive.push(tile);
+                }
+            }
         }
     }
 }

@@ -223,8 +223,20 @@ fn route_event(
         return;
     }
 
-    // Broadcast: fill the roster + serialize once per live format, then fan the
-    // shared `Arc` out to every connection.
+    // Snapshots get per-recipient interest management (AOI): each client receives
+    // only entities within AOI_RADIUS of its own player, on its own floor. This
+    // trades the serialize-once broadcast for a per-connection encode, but bounds
+    // each client's tracked set to what it can see — the scaling win.
+    let evt = match evt {
+        ServerEvent::Snapshot(snap) => {
+            route_snapshot_aoi(conns, roster, snap);
+            return;
+        }
+        other => other,
+    };
+
+    // Other broadcasts (roster-only, etc.): fill the roster + serialize once per
+    // live format, then fan the shared `Arc` out to every connection.
     let evt = inject_roster(evt, roster);
     let mut formats: Vec<WireFormat> = Vec::new();
     for h in conns.iter() {
@@ -238,6 +250,52 @@ fn route_event(
     let frame = Arc::new(encode_frame(&evt, &formats));
     for h in conns.iter() {
         deliver(h.value(), frame.clone());
+    }
+}
+
+/// Chebyshev (king-move) tile radius a client is sent entities within. Must exceed
+/// every creature despawn radius + the client's chunk view so nothing visible is
+/// culled from the wire.
+const AOI_RADIUS: i32 = 64;
+
+fn aoi_chebyshev(a: proto::Tile, b: proto::Tile) -> i32 {
+    (a.x - b.x).abs().max((a.y - b.y).abs())
+}
+
+/// Fan a snapshot out per-connection, trimmed to each recipient's area of interest.
+/// The recipient's own position comes from its player entity in the snapshot
+/// (owner == slot and max_hp > 0 — owned placeables/items carry no Health). A client
+/// not yet spawned (no matching entity) receives the full set so it bootstraps.
+fn route_snapshot_aoi(
+    conns: &DashMap<Ulid, ConnHandle>,
+    roster: &Arc<RwLock<Roster>>,
+    snap: proto::Snapshot,
+) {
+    let players = roster.read().ok().map(|r| r.snapshot()).unwrap_or_default();
+    for h in conns.iter() {
+        let me = snap
+            .entities
+            .iter()
+            .find(|e| e.owner == h.slot && e.max_hp > 0);
+        let entities: Vec<proto::EntityDelta> = match me {
+            Some(me) => snap
+                .entities
+                .iter()
+                .filter(|e| e.z == me.z && aoi_chebyshev(e.tile, me.tile) <= AOI_RADIUS)
+                .cloned()
+                .collect(),
+            None => snap.entities.clone(),
+        };
+        let view = proto::Snapshot {
+            tick: snap.tick,
+            server_time_ms: snap.server_time_ms,
+            input_ack: snap.input_ack,
+            players: players.clone(),
+            entities,
+            keyframe: snap.keyframe,
+        };
+        let frame = Arc::new(encode_frame(&ServerEvent::Snapshot(view), &[h.format]));
+        deliver(h.value(), frame);
     }
 }
 

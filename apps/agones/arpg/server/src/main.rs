@@ -118,6 +118,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 game::spawn_world,
                 game::stream_predators,
                 game::stream_wyverns,
+                game::stream_trees,
             )
                 .in_set(simgrid::SimSet::Spawn),
         );

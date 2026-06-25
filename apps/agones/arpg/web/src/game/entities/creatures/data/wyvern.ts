@@ -32,13 +32,24 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 	return {
 		id,
 		assetPath: '/assets/arcade/arpg/creatures/wyvern',
-		frameSize: 256,
-		displaySize: 112,
+		ext: 'webp',
+		// Sheet shipped at 7168x1024 (256px frames downscaled 2x -> 128px) to stay
+		// under the 8192 WebGL max-texture size; frame indices are unchanged.
+		frameSize: 128,
+		displaySize: 160,
 		// Flyer: anchor high in the frame so the body hovers above the tile instead
 		// of standing on it. Eyeball against the debug overlay like apex's 0.82.
 		originY: 0.6,
+		// Sky-level flyer: lift the body well above its ground tile (the shadow
+		// stays planted) and bias its depth above ground props so it reads as
+		// flying over the trees, not standing among them.
+		hover: 90,
+		depthBias: 40000,
 		sheetCols: 56,
 		dirBlocks: NAIVE_DIR_BLOCKS,
+		// Calibrated in-game: the 8 rows step by 45° starting at West, so each
+		// facing maps to an absolute row (row 0=W,1=NW,2=N,3=NE,4=E,5=SE,6=S,7=SW).
+		dirRows: { N: 2, NE: 3, E: 4, SE: 5, S: 6, SW: 7, W: 0, NW: 1 },
 		anims: {
 			Idle: at(0, 6, true),
 			Walking: at(1, 10, true),
@@ -52,7 +63,14 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 	};
 }
 
-export const WYVERN_AIR = wyvernDef('wyvern_air', 'wyvern_air');
-export const WYVERN_WATER = wyvernDef('wyvern_water', 'wyvern_water');
-export const WYVERN_FIRE = wyvernDef('wyvern_fire', 'wyvern_fire');
-export const WYVERN_SHADOW = wyvernDef('wyvern_shadow', 'wyvern_shadow');
+// Shared ground-shadow layer for every wyvern: same frame layout, the silhouette
+// sheet. NOT a spawnable creature — attached as each variant's `shadow`.
+const WYVERN_SHADOW = wyvernDef('wyvern_shadow', 'wyvern_shadow');
+
+function wyvernVariant(id: string, sheet: string): CreatureDef {
+	return { ...wyvernDef(id, sheet), shadow: WYVERN_SHADOW };
+}
+
+export const WYVERN_AIR = wyvernVariant('wyvern_air', 'wyvern_air');
+export const WYVERN_WATER = wyvernVariant('wyvern_water', 'wyvern_water');
+export const WYVERN_FIRE = wyvernVariant('wyvern_fire', 'wyvern_fire');

@@ -129,15 +129,18 @@ export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 // more negative). Floors at z>=0 are open grassland: grass ground, no walls, all
 // walkable. Mirrors the server gate in arpg_dungeon::is_floor. Base layer for now.
 export const SURFACE_MIN_Z = 0; // z >= this = open grass surface/overworld
-export const GRASS_TEXTURE_KEY = 'arpg-grass';
-export const GRASS_TEXTURE_PATH =
-	'/assets/arcade/arpg/textures/grass/grass_03_l.webp';
 
 export const BIOMES = ['meadow', 'spring', 'forest', 'wetland'] as const;
 export type BiomeId = (typeof BIOMES)[number];
 export const biomeTextureKey = (b: BiomeId) => `arpg-biome-${b}`;
 export const biomeTexturePath = (b: BiomeId) =>
 	`/assets/arcade/arpg/textures/grass/biome_${b}.webp`;
+
+// Per-pixel ground shader: one screen quad unprojects each surface pixel to a
+// world tile, samples the biome field + atlases and blends biomes per-pixel for
+// seamless borders. Replaces the per-chunk biome TileSprite on the surface; the
+// chunk-atlas path stays for dungeon floors and as a fallback when this is off.
+export const USE_GROUND_SHADER = true;
 
 // React HUD debug panel: shows fps + current tile alongside the compass/vitals.
 // Flip off for release; the compass + vitals panels render regardless.

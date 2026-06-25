@@ -1,5 +1,6 @@
 #include "ROWSSubsystem.h"
-#include "HttpModule.h"
+#include "ROWSHttpTransport.h"
+#include "ROWSGrpcTransport.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -20,7 +21,6 @@ void UROWSSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	GConfig->GetString(Section, TEXT("OWS2InstanceManagementAPIPath"), InstanceManagementPath, GGameIni);
 	GConfig->GetString(Section, TEXT("OWS2CharacterPersistenceAPIPath"), CharacterPersistencePath, GGameIni);
 	GConfig->GetString(Section, TEXT("OWS2GlobalDataAPIPath"), GlobalDataPath, GGameIni);
-	GConfig->GetString(Section, TEXT("OWSEncryptionKey"), EncryptionKey, GGameIni);
 
 	// Environment variable overrides (Kubernetes / container deployments)
 	auto OverrideFromEnv = [](const TCHAR* EnvVar, FString& Target)
@@ -51,9 +51,22 @@ void UROWSSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		ServiceKey = FPlatformMisc::GetEnvironmentVariable(TEXT("OWS_SERVICE_KEY"));
 	}
 
-	UE_LOG(LogROWS, Log, TEXT("ROWS initialized — API: %s | Instance: %s | Character: %s | GlobalData: %s | ServiceKey: %s"),
+	const FString TransportEnv = FPlatformMisc::GetEnvironmentVariable(TEXT("OWS_TRANSPORT"));
+	if (TransportEnv.Equals(TEXT("grpc"), ESearchCase::IgnoreCase))
+	{
+		TransportMode = EROWSTransport::Grpc;
+		Transport = MakeUnique<FROWSGrpcTransport>();
+	}
+	else
+	{
+		TransportMode = EROWSTransport::Http;
+		Transport = MakeUnique<FROWSHttpTransport>();
+	}
+
+	UE_LOG(LogROWS, Log, TEXT("ROWS initialized — API: %s | Instance: %s | Character: %s | GlobalData: %s | ServiceKey: %s | Transport: %s"),
 		*APIPath, *InstanceManagementPath, *CharacterPersistencePath, *GlobalDataPath,
-		HasServiceKey() ? TEXT("loaded") : TEXT("none"));
+		HasServiceKey() ? TEXT("loaded") : TEXT("none"),
+		TransportMode == EROWSTransport::Grpc ? TEXT("grpc") : TEXT("http"));
 }
 
 void UROWSSubsystem::Deinitialize()
@@ -65,37 +78,32 @@ void UROWSSubsystem::Deinitialize()
 // HTTP
 // ---------------------------------------------------------------------------
 
+FROWSRequestContext UROWSSubsystem::BuildRequestContext() const
+{
+	FROWSRequestContext Context;
+	Context.CustomerKey = CustomerKey;
+	Context.ServiceKey = ServiceKey;
+	Context.SupabaseAccessToken = SupabaseAccessToken;
+	Context.SupabaseUserId = SupabaseUserId;
+	return Context;
+}
+
 void UROWSSubsystem::PostRequest(
 	const FString& BasePath,
 	const FString& Endpoint,
 	const FString& PostContent,
-	const FHttpRequestCompleteDelegate& Callback)
+	const FHttpRequestCompleteDelegate& Callback,
+	const FROWSRequestOptions& Options)
 {
-	FHttpModule& Http = FHttpModule::Get();
-	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http.CreateRequest();
-
-	Request->OnProcessRequestComplete() = Callback;
-	Request->SetURL(BasePath + Endpoint);
-	Request->SetVerb(TEXT("POST"));
-	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-	Request->SetHeader(TEXT("X-CustomerGUID"), CustomerKey);
-	if (!ServiceKey.IsEmpty())
+	if (!Transport.IsValid())
 	{
-		Request->SetHeader(TEXT("x-service-key"), ServiceKey);
+		UE_LOG(LogROWS, Error, TEXT("ROWS transport not initialized; dropped %s%s"), *BasePath, *Endpoint);
+		Callback.ExecuteIfBound(nullptr, nullptr, false);
+		return;
 	}
-	if (!SupabaseAccessToken.IsEmpty())
-	{
-		Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *SupabaseAccessToken));
-	}
-	if (!SupabaseUserId.IsEmpty())
-	{
-		Request->SetHeader(TEXT("X-Supabase-User-Id"), SupabaseUserId);
-	}
-	Request->SetContentAsString(PostContent);
 
 	UE_LOG(LogROWS, Verbose, TEXT("POST %s%s"), *BasePath, *Endpoint);
-
-	Request->ProcessRequest();
+	Transport->Send(BasePath, Endpoint, PostContent, BuildRequestContext(), Options, Callback);
 }
 
 bool UROWSSubsystem::ParseJsonResponse(

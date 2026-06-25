@@ -230,8 +230,6 @@ export function reconcileFloat(s: FloatState, serverTile: TileXY): void {
 	const dx = serverTile.x - s.pos.x;
 	const dy = serverTile.y - s.pos.y;
 
-	if (floatSpeed(s) > 0.05 && dx * s.vel.x + dy * s.vel.y < 0) return;
-
 	const dist = Math.hypot(dx, dy);
 	if (dist > RECONCILE_SNAP_DIST) {
 		s.pos.x = serverTile.x;
@@ -240,6 +238,14 @@ export function reconcileFloat(s: FloatState, serverTile: TileXY): void {
 		s.vel.y = 0;
 		return;
 	}
-	s.pos.x += dx * RECONCILE_LERP;
-	s.pos.y += dy * RECONCILE_LERP;
+
+	// A full backward pull mid-run reads as rubber-banding, so while moving against
+	// the correction we used to skip it entirely — but that lets drift pile up and
+	// lurch the camera the instant you stop. Instead bleed it off gently and
+	// continuously, so there's nothing left to snap on release.
+	const movingAgainst =
+		floatSpeed(s) > 0.05 && dx * s.vel.x + dy * s.vel.y < 0;
+	const lerp = movingAgainst ? RECONCILE_LERP * 0.2 : RECONCILE_LERP;
+	s.pos.x += dx * lerp;
+	s.pos.y += dy * lerp;
 }

@@ -22,6 +22,13 @@ function loadSheet(url: string): HTMLImageElement {
 	let img = sheetCache.get(url);
 	if (!img) {
 		img = new Image();
+		const png = url.replace(/\.webp$/, '.png');
+		if (png !== url) {
+			img.onerror = () => {
+				img!.onerror = null;
+				img!.src = png;
+			};
+		}
 		img.src = url;
 		sheetCache.set(url, img);
 	}
@@ -143,7 +150,8 @@ export default function CreatureCodex({ onClose }: { onClose: () => void }) {
 					borderRadius: 10,
 					overflow: 'hidden',
 					boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-					minWidth: 720,
+					width: 760,
+					height: 470,
 				}}>
 				{/* Creature index */}
 				<div
@@ -152,6 +160,7 @@ export default function CreatureCodex({ onClose }: { onClose: () => void }) {
 						borderRight: '1px solid rgba(120,138,170,0.25)',
 						padding: '14px 10px',
 						background: 'rgba(10,13,20,0.6)',
+						overflowY: 'auto',
 					}}>
 					<div style={titleStyle}>BESTIARY</div>
 					{CREATURES.map((c, i) => (
@@ -230,8 +239,10 @@ export default function CreatureCodex({ onClose }: { onClose: () => void }) {
 								style={{
 									display: 'flex',
 									flexWrap: 'wrap',
+									alignContent: 'flex-start',
 									gap: 4,
 									marginBottom: 12,
+									minHeight: 52,
 								}}>
 								{states.map((s) => (
 									<button

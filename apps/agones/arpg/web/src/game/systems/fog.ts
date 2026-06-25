@@ -9,6 +9,7 @@ import {
 export interface FogState {
 	image?: Phaser.GameObjects.Image;
 	vignette?: Phaser.Filters.Vignette;
+	lastZoom?: number;
 }
 
 export function makeFogState(): FogState {
@@ -83,6 +84,8 @@ function sizeFog(scene: Phaser.Scene, st: FogState): void {
  */
 export function syncFogToZoom(scene: Phaser.Scene, st: FogState): void {
 	const zoom = scene.cameras.main.zoom;
+	if (zoom === st.lastZoom) return;
+	st.lastZoom = zoom;
 	const t = Phaser.Math.Clamp(
 		(FOG_ZOOM_IN - zoom) / (FOG_ZOOM_IN - FOG_ZOOM_OUT),
 		0,

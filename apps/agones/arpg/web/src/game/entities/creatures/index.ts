@@ -17,13 +17,13 @@ export {
 	creatureSheetUrl,
 	creatureFirstFrame,
 } from './frames';
-export { preloadCreature, registerCreatureAnims } from './render';
+export {
+	preloadCreature,
+	registerCreatureAnims,
+	isCreatureLoaded,
+	unloadCreature,
+} from './render';
 export { dirFromDeg, nearestCreatureDir, CREATURE_SOUTH } from './direction';
 export { resolveCreature, CREATURES } from './registry';
 export { APEX_PREDATOR } from './data/apex-predator';
-export {
-	WYVERN_AIR,
-	WYVERN_WATER,
-	WYVERN_FIRE,
-	WYVERN_SHADOW,
-} from './data/wyvern';
+export { WYVERN_AIR, WYVERN_WATER, WYVERN_FIRE } from './data/wyvern';

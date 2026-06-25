@@ -5,6 +5,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "ROWSTypes.h"
+#include "ROWSTransport.h"
 #include "JsonObjectConverter.h"
 #include "ROWSSubsystem.generated.h"
 
@@ -87,7 +88,8 @@ public:
 		const FString& BasePath,
 		const FString& Endpoint,
 		const FString& PostContent,
-		const FHttpRequestCompleteDelegate& Callback
+		const FHttpRequestCompleteDelegate& Callback,
+		const FROWSRequestOptions& Options = FROWSRequestOptions()
 	);
 
 	bool ParseJsonResponse(
@@ -106,17 +108,23 @@ public:
 	}
 
 protected:
+	/// Snapshots the current auth/identity headers for a single request.
+	FROWSRequestContext BuildRequestContext() const;
+
 	// Config — loaded once at init
 	FString CustomerKey;
 	FString APIPath;
 	FString InstanceManagementPath;
 	FString CharacterPersistencePath;
 	FString GlobalDataPath;
-	FString EncryptionKey;
 	FString ServiceKey;
 
 	// Session
 	FString UserSessionGUID;
 	FString SupabaseAccessToken;
 	FString SupabaseUserId;
+
+	// Transport (HTTP today; gRPC slots in behind IROWSTransport)
+	EROWSTransport TransportMode = EROWSTransport::Http;
+	TUniquePtr<IROWSTransport> Transport;
 };

@@ -4878,55 +4878,6 @@
       }
     },
     {
-      "description": "A dusk-colored wyvern that seems to swallow the light around it, gliding silent and low over the grass. It roams the surface but never aggresses.\n",
-      "ref": "wyvern_shadow",
-      "id": "01KVZH165HGV92SHYBAM75WXX1",
-      "name": "Shadow Wyvern",
-      "typeFlags": 1,
-      "rarity": "NPC_RARITY_UNCOMMON",
-      "personality": "PERSONALITY_PASSIVE",
-      "rank": "NPC_RANK_ELITE",
-      "family": "dragon",
-      "element": "ELEMENT_SHADOW",
-      "level": 2,
-      "stats": {
-        "hp": 40,
-        "maxHp": 40,
-        "attack": 0,
-        "defense": 1,
-        "speed": 5,
-        "armor": 0
-      },
-      "behavior": {
-        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
-        "firstStrike": false
-      },
-      "spatial": {
-        "walkSpeed": 0.5,
-        "canFly": true
-      },
-      "flavorText": [
-        {
-          "action": "flee",
-          "messages": [
-            "The Shadow Wyvern melts into the dimness at the edge of sight and is simply not there anymore.",
-            "It folds into a long shadow and slides away across the grass without a sound."
-          ]
-        },
-        {
-          "action": "death",
-          "messages": [
-            "The Shadow Wyvern unravels into dusk as it falls, the gloom around it lifting."
-          ]
-        }
-      ],
-      "lore": "Shadow Wyverns haunt the long shadows of evening grasslands, harmless to travelers who leave them be.\nThey glide low and silent, drinking the dim light, never stooping to attack.\n",
-      "credits": "KBVE Isometric ambient creature system.\n",
-      "faction": {
-        "factionId": "neutral"
-      }
-    },
-    {
       "description": "A sleek wyvern whose scales shimmer like rain on glass, trailing a fine mist as it glides over the grass. It roams the surface but never aggresses.\n",
       "ref": "wyvern_water",
       "id": "01KVZH165HXHX87DESWFBHGF8Y",

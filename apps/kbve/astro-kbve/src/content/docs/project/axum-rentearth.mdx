@@ -1,0 +1,38 @@
+---
+title: RentEarth API
+description: |
+    RentEarth - itch.io download backend + Vite web for the RentEarth game.
+sidebar:
+    label: RentEarth API
+    order: 31
+tags:
+    - game
+    - api
+key: axum_rentearth
+pipeline: docker
+app_name: axum-rentearth
+version: "0.1.0"
+source_path: apps/rentearth/axum-rentearth
+version_toml: apps/rentearth/axum-rentearth/version.toml
+version_target: apps/rentearth/axum-rentearth/Cargo.toml
+runner: ubuntu-latest
+image: kbve/axum-rentearth
+deployment_yaml: apps/kube/rentearth/manifest/axum-rentearth-deployment.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: beta
+kube:
+    stack: agones
+    environment: beta
+    tier: api
+    owner: h0lybyte
+    criticality: low
+---
+
+The `axum-rentearth` service resolves RentEarth desktop downloads from itch.io
+(via the shared `jedi` itch client) and serves the Vite + TanStack web at `/`.
+
+It mirrors `axum-chuckrpg`: `/downloads/{platform}` redirects to the signed itch
+URL, `/downloads` renders an askama page, and `/api/downloads` exposes the live
+per-platform build state the web consumes.

@@ -241,7 +241,7 @@ export function showCombat(
 	c: CombatEvent,
 ): void {
 	const refs = deps.store.refs(c.target) ?? st.dyingSprites.get(c.target);
-	if (!refs) return;
+	if (!refs?.sprite) return;
 	floatingText(
 		deps.scene,
 		refs.sprite.x,

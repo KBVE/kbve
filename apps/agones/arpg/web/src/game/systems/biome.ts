@@ -25,7 +25,7 @@ function valueNoise(x: number, y: number, seed: number): number {
 	return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
 }
 
-export function biomeAt(cx: number, cy: number): BiomeId {
+function biomeAt(cx: number, cy: number): BiomeId {
 	const n = valueNoise(cx * REGION_FREQ, cy * REGION_FREQ, BIOME_SEED);
 	const i = Math.min(BIOMES.length - 1, Math.floor(n * BIOMES.length));
 	return BIOMES[i];

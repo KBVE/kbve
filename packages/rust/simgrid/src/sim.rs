@@ -29,6 +29,11 @@ use crate::trade::{PendingTrades, TradeInput};
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
+/// Float-steered NPCs emit their sub-tile pos/vel only every Nth snapshot (the
+/// player always emits, for prediction). The client interp coasts between, so
+/// halving the rate halves their per-snapshot float bytes for ~free. 1 = no
+/// throttle. Raise if NPC motion looks stepped.
+pub const NPC_FLOAT_EMIT_EVERY: u32 = 2;
 
 pub const PLAYER_KIND: u16 = 0;
 pub const MAX_PATH_LEN: usize = 64;
@@ -138,12 +143,19 @@ pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
 #[derive(Resource, Default)]
 pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
 
+/// A player's fell request this tick, queued for `apply_fells` to validate
+/// (standing tree on the player's floor + adjacency) and resolve:
+/// `(target_tile, floor, player_tile)`.
+#[derive(Resource, Default)]
+pub struct PendingFells(Vec<(Tile, i32, Tile)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
 pub struct DeployQueues<'w> {
     placements: ResMut<'w, PendingPlacements>,
     pickups: ResMut<'w, PendingPickups>,
+    fells: ResMut<'w, PendingFells>,
     spells: ResMut<'w, crate::spells::PendingSpells>,
 }
 
@@ -155,6 +167,15 @@ pub struct PersistedEnvObject {
     pub x: i32,
     pub y: i32,
     pub floor: i32,
+    /// Per-instance state byte, mirroring `EntityDelta.sub`. Streamed felled trees
+    /// persist their `variant | 0x80` here so a re-spawn returns felled with the
+    /// same visual variant. Absent (0) for placed campfires.
+    #[serde(default, skip_serializing_if = "is_zero_u8")]
+    pub sub: u8,
+}
+
+fn is_zero_u8(v: &u8) -> bool {
+    *v == 0
 }
 
 /// Authoritative set of player-placed env objects to persist across restarts.
@@ -354,6 +375,9 @@ pub struct NpcSpec {
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
+    /// Opt-in float steering: attaches `FloatMove` + `FloatSteer` so the NPC
+    /// banks smoothly toward its Roam waypoints instead of grid-stepping.
+    pub float_steer: bool,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -488,6 +512,12 @@ pub struct Roam {
     pub resume_tick: u32,
 }
 
+/// Opt-in marker: entities carrying it use float steering (`advance_npc_float`)
+/// toward their Roam waypoint instead of the grid mover, banking smoothly via
+/// `FloatBody`. Predators/goblins/players omit it and stay grid-based.
+#[derive(Component, Clone, Copy)]
+pub struct FloatSteer;
+
 impl Roam {
     pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32, clearance: i32) -> Self {
         let dwell_min = dwell_min.max(1);
@@ -577,6 +607,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if spec.respawn_ticks > 0 {
         e.insert(RespawnOnDeath { spec: spec.clone() });
     }
+    if spec.float_steer {
+        e.insert((FloatMove::at(spec.origin), FloatSteer));
+    }
     if spec.floor != 0 {
         e.insert(Floor(spec.floor));
     }
@@ -604,6 +637,28 @@ pub struct PlacedBy {
 /// pathfinding route around it.
 #[derive(Component, Clone, Copy)]
 pub struct Blocker;
+
+/// Per-instance state for an env tree. `variant` ∈ 0..=69 selects the client
+/// visual; `felled` flips the tile from blocking to walkable. Encoded onto the
+/// snapshot's `EntityDelta.sub` as `(variant & 0x7F) | (felled ? 0x80 : 0)`.
+#[derive(Component, Clone, Copy)]
+pub struct TreeState {
+    pub variant: u8,
+    pub felled: bool,
+}
+
+impl TreeState {
+    pub fn sub(self) -> u8 {
+        (self.variant & 0x7F) | if self.felled { 0x80 } else { 0 }
+    }
+
+    pub fn from_sub(sub: u8) -> Self {
+        Self {
+            variant: sub & 0x7F,
+            felled: sub & 0x80 != 0,
+        }
+    }
+}
 
 /// Periodic heal for players within `range` (Chebyshev) of this tile, excluding
 /// the unstandable center. `range >= 1` keeps it disjoint from a `HazardZone`.
@@ -662,6 +717,57 @@ pub fn spawn_env_object(
     }
     if let Some(h) = opts.hazard {
         e.insert(h);
+    }
+    Some(e.id())
+}
+
+/// Kind ref for the surface tree env prop. One ref covers all 70 visual variants;
+/// the variant + felled state ride `TreeState` (and `EntityDelta.sub` on the wire).
+pub const TREE_REF: &str = "tree";
+
+/// Number of tree visual variants the client ships (0..=TREE_VARIANTS-1).
+pub const TREE_VARIANTS: u8 = 70;
+
+/// Per-mille of surface grass tiles that carry a tree. Forest-density knob.
+pub const TREE_DENSITY_PER_MILLE: u32 = 22;
+
+/// Deterministic surface tree field: a pure function of (seed, tile), built on the
+/// client-mirrorable `stream` so the client reproduces the identical forest. Returns
+/// the visual variant for a tile that carries a tree, else `None`. Placement only —
+/// callers apply tile exclusions (spawn, stairs) identically on both sides.
+pub fn tree_at(seed: u32, x: i32, y: i32) -> Option<u8> {
+    let mut s = crate::rng::stream(seed, crate::rng::domain::TREE, &[x as u32, y as u32]);
+    if s.next_u32() % 1000 >= TREE_DENSITY_PER_MILLE {
+        return None;
+    }
+    Some((s.next_u32() % TREE_VARIANTS as u32) as u8)
+}
+
+/// Spawn a surface tree env entity carrying `TreeState`. A standing tree gets the
+/// `Blocker` marker (the caller blocks the tile via `WalkableMap::block_tile_z`);
+/// a felled one is walkable. Returns `None` when `tree` isn't registered.
+pub fn spawn_tree(
+    commands: &mut Commands,
+    registry: &KindRegistry,
+    tile: Tile,
+    floor: i32,
+    state: TreeState,
+) -> Option<Entity> {
+    let kind = registry.kind_of(TREE_REF)?;
+    let mut e = commands.spawn((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        EnvObject {
+            def_ref: TREE_REF.to_string(),
+        },
+        state,
+    ));
+    if floor != 0 {
+        e.insert(Floor(floor));
+    }
+    if !state.felled {
+        e.insert(Blocker);
     }
     Some(e.id())
 }
@@ -751,6 +857,7 @@ pub fn build_app(
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
         .insert_resource(PendingPickups::default())
+        .insert_resource(PendingFells::default())
         .insert_resource(PersistedEnvLog::default())
         .insert_resource(EnvPersistSink::default())
         .insert_resource(ShopStock::default())
@@ -794,6 +901,7 @@ pub fn build_app(
                 apply_drops,
                 apply_placements,
                 apply_pickups,
+                apply_fells,
                 apply_actions,
                 crate::spells::apply_spells,
                 crate::trade::expire_trades,
@@ -814,6 +922,7 @@ pub fn build_app(
             Update,
             (
                 advance_float,
+                advance_npc_float,
                 advance_movement,
                 stair_system,
                 env_hazard_burn,
@@ -1190,6 +1299,9 @@ fn drain_inputs(
                 }
                 Input::PickupObject { tile } => {
                     deploy.pickups.0.push((slot.0, *tile, z, pos.tile));
+                }
+                Input::Fell { tile } => {
+                    deploy.fells.0.push((*tile, z, pos.tile));
                 }
                 Input::Step { .. }
                 | Input::MoveTo { .. }
@@ -1809,6 +1921,7 @@ fn apply_placements(
                 x: tile.x,
                 y: tile.y,
                 floor: z,
+                sub: 0,
             });
             changed = true;
         }
@@ -1857,6 +1970,49 @@ fn apply_pickups(
         map.unblock_tile_z(z, tile);
         log.0
             .retain(|o| !(o.x == tile.x && o.y == tile.y && o.floor == z));
+        changed = true;
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
+    }
+}
+
+/// Resolve queued tree fellings: a player adjacent (Chebyshev <= 1) to a standing
+/// tree on their floor fells it — collision clears, state flips to felled, and the
+/// felled instance is persisted so it survives a restart. Invalid, out-of-range, or
+/// duplicate requests are dropped silently.
+#[allow(clippy::type_complexity)]
+fn apply_fells(
+    mut fells: ResMut<PendingFells>,
+    mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
+    mut trees: Query<(Entity, &GridPos, Option<&Floor>, &mut TreeState)>,
+    mut commands: Commands,
+) {
+    let mut changed = false;
+    for (tile, z, from) in fells.0.drain(..) {
+        if from.chebyshev(tile) > 1 {
+            continue;
+        }
+        let Some((eid, _, _, mut state)) = trees.iter_mut().find(|(_, gp, fl, st)| {
+            gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && !st.felled
+        }) else {
+            continue;
+        };
+        state.felled = true;
+        let sub = state.sub();
+        map.unblock_tile_z(z, tile);
+        commands.entity(eid).remove::<Blocker>();
+        log.0
+            .retain(|o| !(o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == z));
+        log.0.push(PersistedEnvObject {
+            env_ref: TREE_REF.to_string(),
+            x: tile.x,
+            y: tile.y,
+            floor: z,
+            sub,
+        });
         changed = true;
     }
     if changed {
@@ -2252,15 +2408,22 @@ fn roam_system(
         &mut MoveTarget,
         &mut Roam,
         Option<&Floor>,
+        Option<&FloatSteer>,
     )>,
 ) {
-    for (entity, mut pos, mut mv, mut roam, floor) in q.iter_mut() {
+    for (entity, mut pos, mut mv, mut roam, floor, steer) in q.iter_mut() {
         if mv.target.is_some() {
             continue;
         }
         let z = floor.map(|f| f.0).unwrap_or(0);
         match roam.target {
             Some(dest) if dest != pos.tile => {
+                // Float-steered mobs (wyverns) follow the waypoint via
+                // `advance_npc_float`; roam only owns target selection for them,
+                // never the per-tile grid step.
+                if steer.is_some() {
+                    continue;
+                }
                 // 8-way stepping: prefer the diagonal toward the target, then
                 // fall back to a single axis. Diagonal tile-steps give the
                 // client true diagonal deltas, so all 8 sheet facings surface.
@@ -2346,7 +2509,60 @@ fn advance_float(
     }
 }
 
-fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
+/// Float steering for opt-in NPCs (wyverns): steer the `FloatBody` toward the
+/// current Roam waypoint with a banking turn-rate cap, then sync `GridPos.tile`
+/// from the float tile so all grid systems (collision/streaming/aggro/targeting)
+/// stay authoritative. Runs in the Movement set alongside the grid mover, which
+/// is gated `Without<FloatSteer>` so nothing double-moves.
+fn advance_npc_float(
+    map: Res<WalkableMap>,
+    mut q: Query<(&mut GridPos, &mut FloatMove, &Roam, Option<&Floor>), With<FloatSteer>>,
+) {
+    let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
+    for (mut pos, mut fm, roam, floor) in q.iter_mut() {
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
+        // No waypoint (dwelling): ease to a stop in place.
+        let dest = roam.target.unwrap_or_else(|| {
+            let (tx, ty) = fm.body.tile();
+            Tile::new(tx, ty)
+        });
+        crate::float_move::step_steer(
+            &mut fm.body,
+            dest.x as f32,
+            dest.y as f32,
+            crate::float_move::WALK_SPEED,
+            crate::float_move::NPC_MAX_TURN_RATE,
+            crate::float_move::NPC_ARRIVE_RADIUS,
+            &is_blocked,
+            dt_ms,
+        );
+        let (tx, ty) = fm.body.tile();
+        pos.tile = Tile::new(tx, ty);
+        if fm.body.speed() > 0.05 {
+            pos.facing = facing_from_vel(fm.body.vx, fm.body.vy);
+        }
+    }
+}
+
+/// Facing from a float velocity — the float counterpart to `facing_from_intent`.
+fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
+    if vx.abs() >= vy.abs() {
+        if vx >= 0.0 {
+            proto::Facing::Right
+        } else {
+            proto::Facing::Left
+        }
+    } else if vy > 0.0 {
+        proto::Facing::Down
+    } else {
+        proto::Facing::Up
+    }
+}
+
+fn advance_movement(
+    mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed), Without<FloatSteer>>,
+) {
     for (mut pos, mut mv, speed) in q.iter_mut() {
         let Some(target) = mv.target else {
             continue;
@@ -2453,6 +2669,7 @@ fn emit_snapshot(
         Option<&Floor>,
         Option<&FloatMove>,
         Option<&PlacedBy>,
+        Option<&TreeState>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2460,17 +2677,21 @@ fn emit_snapshot(
     }
 
     let now = clock.tick;
+    let snap_idx = now / SNAPSHOT_EVERY_N_TICKS;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed)| {
-                let sub = mv
-                    .filter(|m| m.target.is_some())
-                    .map(|m| {
-                        let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
-                        ((m.progress as u32 * 255) / span).min(255) as u8
-                    })
-                    .unwrap_or(0);
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree)| {
+                let sub = match tree {
+                    Some(t) => t.sub(),
+                    None => mv
+                        .filter(|m| m.target.is_some())
+                        .map(|m| {
+                            let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
+                            ((m.progress as u32 * 255) / span).min(255) as u8
+                        })
+                        .unwrap_or(0),
+                };
                 let effects = status
                     .map(|s| {
                         s.0.iter()
@@ -2482,14 +2703,23 @@ fn emit_snapshot(
                             .collect()
                     })
                     .unwrap_or_default();
+                // Throttle: a non-player float NPC emits its sub-tile float only on
+                // every Nth snapshot; on skip snapshots it sends nothing (qx/qy zero
+                // -> omitted on the wire) and the client interp coasts on its last
+                // sample. Sending a tile-rounded pos instead would wobble, so we skip
+                // outright. The player always emits (prediction needs every frame).
+                let skip_float = fm.is_some()
+                    && slot.is_none()
+                    && !snap_idx.is_multiple_of(NPC_FLOAT_EMIT_EVERY);
                 let (qx, qy, qvx, qvy, input_ack) = match fm {
-                    Some(f) => (
+                    Some(f) if !skip_float => (
                         proto::quantize_pos(f.body.x),
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
                         f.last_seq,
                     ),
+                    Some(_) => (0, 0, 0, 0, 0),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
                         proto::quantize_pos(pos.tile.y as f32),
@@ -3156,6 +3386,7 @@ mod tests {
             }),
             loot: None,
             respawn_ticks: 4,
+            float_steer: false,
         }
     }
 

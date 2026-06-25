@@ -9,8 +9,14 @@ import {
 	tickCreatureFacing,
 	type EntityRefs,
 } from '../entities/sprites';
-import { syncShadow, placeNameplate, drawCreatureDebug } from './entityView';
+import { placeNameplate, drawCreatureDebug } from './entityView';
 import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
+
+// Locomotion smoothing: ignore sub-pixel velocity noise, and hold Walking for a
+// grace window after the last real movement so brief interp plateaus between
+// tiles don't flap the pose back to Idle and restart the wing-flap.
+const MOVE_EPS = 2e-3;
+const MOVE_IDLE_GRACE_MS = 180;
 
 /**
  * Render-interpolate every creature entity: sample its interp buffer at the
@@ -29,20 +35,42 @@ export function tickCreatureInterp<R extends EntityRefs>(
 		const s = sampleAt(refs.interp, renderTime);
 		if (!s) continue;
 		const p = worldToScreen(s.x, s.y);
-		refs.sprite.setPosition(p.x, p.y + 8);
-		refs.sprite.setDepth(
-			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
-		);
-		syncShadow(refs);
+		const def = refs.creature.def;
+		const groundY = p.y + 8;
+		const baseDepth =
+			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y));
+		// Flyers hover above their ground tile (the shadow stays grounded) and sort
+		// into a sky band so they draw over trees/props instead of being occluded.
+		refs.sprite.setPosition(p.x, groundY - (def.hover ?? 0));
+		refs.sprite.setDepth(baseDepth + (def.depthBias ?? 0));
+		if (refs.shadow) {
+			refs.shadow.setPosition(p.x, groundY);
+			refs.shadow.setDepth(baseDepth - 1);
+			// Frame-lock the ground shadow to the body's pose (shared layout → same
+			// frame index). Skip until both sheets are resident, else __MISSING warns.
+			if (
+				refs.sprite.texture.key !== '__MISSING' &&
+				refs.shadow.texture.key !== '__MISSING'
+			) {
+				refs.shadow.setFrame(refs.sprite.frame.name);
+			}
+		}
 		placeNameplate(refs);
 		const st = refs.creature.state;
 		if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
-		if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
+		const moving =
+			s.moving &&
+			(Math.abs(s.vx) > MOVE_EPS || Math.abs(s.vy) > MOVE_EPS);
+		if (moving) {
+			refs.lastMoveAt = scene.time.now;
 			setCreaturePose(refs.sprite, refs.creature, 'Walking', {
 				dx: s.vx,
 				dy: s.vy,
 			});
-		} else {
+		} else if (
+			st !== 'Idle' &&
+			scene.time.now - (refs.lastMoveAt ?? 0) > MOVE_IDLE_GRACE_MS
+		) {
 			setCreaturePose(refs.sprite, refs.creature, 'Idle');
 		}
 	}

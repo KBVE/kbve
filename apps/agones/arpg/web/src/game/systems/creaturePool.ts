@@ -27,4 +27,13 @@ export class CreaturePool {
 		}
 		list.push(refs);
 	}
+
+	/** Remove + return every parked sprite for a def (used when its texture is
+	 * unloaded, so no pooled sprite is left referencing a freed texture). */
+	drain(defId: string): EntityRefs[] {
+		const list = this.idle.get(defId);
+		if (!list) return [];
+		this.idle.delete(defId);
+		return list;
+	}
 }

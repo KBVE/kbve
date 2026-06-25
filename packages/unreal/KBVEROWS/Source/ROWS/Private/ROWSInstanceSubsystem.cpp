@@ -10,6 +10,40 @@ void UROWSInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Core = GetGameInstance()->GetSubsystem<UROWSSubsystem>();
 }
 
+void UROWSInstanceSubsystem::Deinitialize()
+{
+	StopPlayerCountHeartbeat();
+	Super::Deinitialize();
+}
+
+// ---------------------------------------------------------------------------
+// Heartbeat
+// ---------------------------------------------------------------------------
+
+void UROWSInstanceSubsystem::StartPlayerCountHeartbeat(int32 ZoneInstanceID, float IntervalSeconds)
+{
+	StopPlayerCountHeartbeat();
+	HeartbeatZoneInstanceID = ZoneInstanceID;
+	HeartbeatTickerHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &UROWSInstanceSubsystem::HeartbeatTick), IntervalSeconds);
+	UE_LOG(LogROWS, Log, TEXT("ROWS heartbeat started — zone %d every %.0fs"), ZoneInstanceID, IntervalSeconds);
+}
+
+void UROWSInstanceSubsystem::StopPlayerCountHeartbeat()
+{
+	if (HeartbeatTickerHandle.IsValid())
+	{
+		FTSTicker::GetCoreTicker().RemoveTicker(HeartbeatTickerHandle);
+		HeartbeatTickerHandle.Reset();
+	}
+}
+
+bool UROWSInstanceSubsystem::HeartbeatTick(float DeltaTime)
+{
+	UpdateNumberOfPlayers(HeartbeatZoneInstanceID, ReportedPlayerCount);
+	return true;
+}
+
 // ---------------------------------------------------------------------------
 // Instance API
 // ---------------------------------------------------------------------------
@@ -41,8 +75,10 @@ void UROWSInstanceSubsystem::GetZoneInstance(int32 ZoneInstanceID)
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
 	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
 
+	FROWSRequestOptions Options;
+	Options.MaxRetries = 2;
 	Core->PostRequest(Core->GetInstanceManagementPath(), TEXT("api/Instance/GetZoneInstance"), Body,
-		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSInstanceSubsystem::OnGetZoneInstanceResponse));
+		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSInstanceSubsystem::OnGetZoneInstanceResponse), Options);
 }
 
 void UROWSInstanceSubsystem::UpdateNumberOfPlayers(int32 ZoneInstanceID, int32 NumberOfPlayers)
@@ -55,8 +91,11 @@ void UROWSInstanceSubsystem::UpdateNumberOfPlayers(int32 ZoneInstanceID, int32 N
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
 	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
 
+	FROWSRequestOptions Options;
+	Options.TimeoutSeconds = 10.0f;
+	Options.MaxRetries = 2;
 	Core->PostRequest(Core->GetInstanceManagementPath(), TEXT("api/Instance/UpdateNumberOfPlayers"), Body,
-		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSInstanceSubsystem::OnUpdateNumberOfPlayersResponse));
+		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSInstanceSubsystem::OnUpdateNumberOfPlayersResponse), Options);
 }
 
 void UROWSInstanceSubsystem::GetServerToConnectTo(const FString& CharacterName, const FString& ZoneName)

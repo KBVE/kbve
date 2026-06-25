@@ -20,6 +20,8 @@ export interface BootStatus {
 	message: string;
 	/** 0..1 asset-load fraction, only during the `assets` phase. */
 	progress?: number;
+	/** Secondary line under the bar (file counts, current step). */
+	detail?: string;
 }
 
 export const BOOT_EVENT = 'arpg:boot';
