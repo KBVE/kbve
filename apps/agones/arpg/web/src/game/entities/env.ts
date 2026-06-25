@@ -126,20 +126,27 @@ export function attachEnvLight(
 	glow.setAlpha(intensity);
 	glow.setDisplaySize(radius * 2, radius * 2);
 	glow.setDepth(sprite.depth - 1);
-	// Fire flicker: a quick irregular alpha + scale wobble around the base.
-	const tween = scene.tweens.add({
+	const baseScale = glow.scaleX;
+	const shimmer = scene.tweens.add({
 		targets: glow,
-		alpha: { from: intensity, to: intensity * 0.6 },
-		scaleX: { from: glow.scaleX, to: glow.scaleX * 0.92 },
-		scaleY: { from: glow.scaleY, to: glow.scaleY * 0.92 },
-		duration: 110,
+		alpha: { from: intensity, to: intensity * 0.88 },
+		duration: 720,
 		yoyo: true,
 		repeat: -1,
-		repeatDelay: 40,
+		ease: 'Sine.easeInOut',
+	});
+	const breathe = scene.tweens.add({
+		targets: glow,
+		scaleX: { from: baseScale, to: baseScale * 1.04 },
+		scaleY: { from: baseScale, to: baseScale * 1.04 },
+		duration: 1100,
+		yoyo: true,
+		repeat: -1,
 		ease: 'Sine.easeInOut',
 	});
 	sprite.once('destroy', () => {
-		tween.remove();
+		shimmer.remove();
+		breathe.remove();
 		glow.destroy();
 	});
 }
