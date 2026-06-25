@@ -28,6 +28,7 @@ export const Domain = {
 	DUNGEON: fourcc('DUNG'),
 	WANDER: fourcc('WAND'),
 	LOOT: fourcc('LOOT'),
+	TREE: fourcc('TREE'),
 } as const;
 
 /** Mulberry32 — mirrors Rust `Mulberry32`. Returns a u32-yielding generator. */

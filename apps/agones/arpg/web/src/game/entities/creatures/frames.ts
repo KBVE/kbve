@@ -4,7 +4,6 @@ import {
 	type CreatureDef,
 	type CreatureDir,
 	type CreatureState,
-	type DirBlocks,
 	DIAGONAL_DIRS,
 } from './model';
 
@@ -28,7 +27,7 @@ export function creatureAnimKey(
 export function frameRange(
 	anim: CreatureAnim,
 	dir: CreatureDir,
-	dirBlocks: DirBlocks,
+	def: Pick<CreatureDef, 'dirBlocks' | 'dirRows'>,
 ): { start: number; end: number } {
 	if (anim.dirless) {
 		return {
@@ -36,9 +35,13 @@ export function frameRange(
 			end: anim.cardinalBase + anim.framesPerDir - 1,
 		};
 	}
-	const base = DIAGONAL_DIRS.has(dir) ? anim.diagonalBase : anim.cardinalBase;
 	const stride = anim.dirStride ?? anim.framesPerDir;
-	const start = base + dirBlocks[dir] * stride;
+	if (def.dirRows) {
+		const start = def.dirRows[dir] * stride + anim.cardinalBase;
+		return { start, end: start + anim.framesPerDir - 1 };
+	}
+	const base = DIAGONAL_DIRS.has(dir) ? anim.diagonalBase : anim.cardinalBase;
+	const start = base + def.dirBlocks[dir] * stride;
 	return { start, end: start + anim.framesPerDir - 1 };
 }
 
@@ -54,7 +57,7 @@ export function creatureFrameRange(
 	dir: CreatureDir,
 ): { start: number; end: number } | null {
 	const anim = def.anims[state];
-	return anim ? frameRange(anim, dir, def.dirBlocks) : null;
+	return anim ? frameRange(anim, dir, def) : null;
 }
 
 /** Resolved URL of the sheet a state lives on. */
@@ -75,6 +78,6 @@ export function creatureFirstFrame(
 	const anim = def.anims[state] ?? def.anims.Idle!;
 	return {
 		key: sheetKey(def, anim.sheet),
-		frame: frameRange(anim, dir, def.dirBlocks).start,
+		frame: frameRange(anim, dir, def).start,
 	};
 }

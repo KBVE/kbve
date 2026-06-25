@@ -711,6 +711,21 @@ pub const TREE_REF: &str = "tree";
 /// Number of tree visual variants the client ships (0..=TREE_VARIANTS-1).
 pub const TREE_VARIANTS: u8 = 70;
 
+/// Per-mille of surface grass tiles that carry a tree. Forest-density knob.
+pub const TREE_DENSITY_PER_MILLE: u32 = 22;
+
+/// Deterministic surface tree field: a pure function of (seed, tile), built on the
+/// client-mirrorable `stream` so the client reproduces the identical forest. Returns
+/// the visual variant for a tile that carries a tree, else `None`. Placement only —
+/// callers apply tile exclusions (spawn, stairs) identically on both sides.
+pub fn tree_at(seed: u32, x: i32, y: i32) -> Option<u8> {
+    let mut s = crate::rng::stream(seed, crate::rng::domain::TREE, &[x as u32, y as u32]);
+    if s.next_u32() % 1000 >= TREE_DENSITY_PER_MILLE {
+        return None;
+    }
+    Some((s.next_u32() % TREE_VARIANTS as u32) as u8)
+}
+
 /// Spawn a surface tree env entity carrying `TreeState`. A standing tree gets the
 /// `Blocker` marker (the caller blocks the tile via `WalkableMap::block_tile_z`);
 /// a felled one is walkable. Returns `None` when `tree` isn't registered.

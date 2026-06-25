@@ -41,6 +41,9 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 		originY: 0.6,
 		sheetCols: 56,
 		dirBlocks: NAIVE_DIR_BLOCKS,
+		// Calibrated in-game: the 8 rows step by 45° starting at West, so each
+		// facing maps to an absolute row (row 0=W,1=NW,2=N,3=NE,4=E,5=SE,6=S,7=SW).
+		dirRows: { N: 2, NE: 3, E: 4, SE: 5, S: 6, SW: 7, W: 0, NW: 1 },
 		anims: {
 			Idle: at(0, 6, true),
 			Walking: at(1, 10, true),
@@ -54,7 +57,14 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 	};
 }
 
-export const WYVERN_AIR = wyvernDef('wyvern_air', 'wyvern_air');
-export const WYVERN_WATER = wyvernDef('wyvern_water', 'wyvern_water');
-export const WYVERN_FIRE = wyvernDef('wyvern_fire', 'wyvern_fire');
-export const WYVERN_SHADOW = wyvernDef('wyvern_shadow', 'wyvern_shadow');
+// Shared ground-shadow layer for every wyvern: same frame layout, the silhouette
+// sheet. NOT a spawnable creature — attached as each variant's `shadow`.
+const WYVERN_SHADOW = wyvernDef('wyvern_shadow', 'wyvern_shadow');
+
+function wyvernVariant(id: string, sheet: string): CreatureDef {
+	return { ...wyvernDef(id, sheet), shadow: WYVERN_SHADOW };
+}
+
+export const WYVERN_AIR = wyvernVariant('wyvern_air', 'wyvern_air');
+export const WYVERN_WATER = wyvernVariant('wyvern_water', 'wyvern_water');
+export const WYVERN_FIRE = wyvernVariant('wyvern_fire', 'wyvern_fire');

@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import {
 	GameClient,
 	PROTOCOL_VERSION,
-	attachCameraZoom,
 	drawHealthBar,
 	type EntityDelta,
 	type KindEntry,
@@ -165,9 +164,15 @@ import {
 import {
 	preloadCreature,
 	registerCreatureAnims,
-	APEX_PREDATOR,
+	isCreatureLoaded,
+	unloadCreature,
 	DEBUG_CREATURE_DIRS,
+	type CreatureDef,
 } from './entities/creatures';
+import {
+	TextureResidency,
+	type TextureResource,
+} from './systems/textureResidency';
 import { newInterp, pushSample, resetInterp } from './systems/interp';
 import {
 	preloadEnv,
@@ -196,6 +201,11 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	// Reuse pool for streamed creature sprites (predators cull/respawn constantly).
 	private creaturePool = new CreaturePool();
+	// Lazy GPU-texture residency: creature sheets load on first spawn and free a
+	// grace period after the last instance is culled, so VRAM tracks what's on
+	// screen rather than the whole creature catalog.
+	private residency = new TextureResidency(this);
+	private creatureResources = new Map<string, TextureResource>();
 
 	private dungeon = new DungeonField(DUNGEON_SEED, DUNGEON_RADIUS);
 	// Gate-graph adapter over the dungeon: room centers are nav gates, edges are
@@ -212,7 +222,17 @@ export class IsoArpgScene extends Phaser.Scene {
 	private dungeonView!: DungeonView;
 	private fog: FogState = makeFogState();
 	private ground?: GroundShaderHandle;
-	private onResize?: (size: Phaser.Structs.Size) => void;
+	// Eased zoom: wheel/keys nudge zoomTarget, update() smooth-damps the camera
+	// toward it (critically-damped spring) so zoom accelerates then settles instead
+	// of snapping. SMOOTH_TIME ~ time to converge; MAX_SPEED caps the glide rate.
+	private zoomTarget = 1;
+	private zoomVel = 0;
+	private static readonly ZOOM_MIN = 0.5;
+	private static readonly ZOOM_MAX = 2.0;
+	private static readonly ZOOM_STEP = 0.1;
+	private static readonly ZOOM_MAX_LEAD = 0.35;
+	private static readonly ZOOM_SMOOTH_TIME = 0.28;
+	private static readonly ZOOM_MAX_SPEED = 6.0;
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<
 		'up' | 'down' | 'left' | 'right',
@@ -264,13 +284,16 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	preload() {
-		this.load.on('progress', (p: number) =>
+		// Boot-only: the lazy texture residency also drives this loader mid-game, and
+		// its progress must NOT re-raise the boot overlay over the running game.
+		this.load.on('progress', (p: number) => {
+			if (this.bootReady) return;
 			emitBoot({
 				phase: 'assets',
 				message: 'Loading assets',
 				progress: p,
-			}),
-		);
+			});
+		});
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		for (const b of BIOMES) {
 			this.load.image(biomeTextureKey(b), arpgAsset(biomeTexturePath(b)));
@@ -279,7 +302,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.applyBiomeFiltering(),
 		);
 		preloadClass(this, RANGER_CLASS);
-		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 		preloadTrees(this);
 		preloadStairs(this);
@@ -327,21 +349,18 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
-		registerCreatureAnims(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
 
 		this.drawGrid();
 		buildFog(this, this.fog);
 		if (USE_GROUND_SHADER) {
 			this.ground = makeGroundShader(this);
+			this.ground.update(this.cameras.main);
 			this.ground.shader.setVisible(this.isSurface());
-			this.onResize = (size: Phaser.Structs.Size) =>
-				this.ground?.resize(size.width, size.height);
-			this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize);
 		}
 		this.setupInput();
 		this.buildBridge();
-		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
+		this.setupZoom();
 
 		this.connectClient();
 
@@ -420,6 +439,65 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.fireKey = refs.fireKey;
 	}
 
+	private setupZoom() {
+		this.zoomTarget = this.cameras.main.zoom;
+		// Bound the target to a small lead past the CURRENT zoom so Safari/macOS
+		// trackpad momentum (one swipe = a burst of decaying wheel events) can't fling
+		// the target across the whole range; it tracks ~LEAD ahead while you scroll.
+		const bump = (d: number) => {
+			const z = this.cameras.main.zoom;
+			this.zoomTarget = Phaser.Math.Clamp(
+				Phaser.Math.Clamp(
+					this.zoomTarget + d,
+					z - IsoArpgScene.ZOOM_MAX_LEAD,
+					z + IsoArpgScene.ZOOM_MAX_LEAD,
+				),
+				IsoArpgScene.ZOOM_MIN,
+				IsoArpgScene.ZOOM_MAX,
+			);
+		};
+		this.input.keyboard?.on('keydown-PLUS', () =>
+			bump(IsoArpgScene.ZOOM_STEP),
+		);
+		this.input.keyboard?.on('keydown-MINUS', () =>
+			bump(-IsoArpgScene.ZOOM_STEP),
+		);
+		this.input.on(
+			'wheel',
+			(_p: unknown, _o: unknown, _dx: number, dy: number) =>
+				bump(dy > 0 ? -IsoArpgScene.ZOOM_STEP : IsoArpgScene.ZOOM_STEP),
+		);
+	}
+
+	private tickZoom(deltaMs: number) {
+		const cam = this.cameras.main;
+		const target = this.zoomTarget;
+		if (
+			Math.abs(target - cam.zoom) < 0.0005 &&
+			Math.abs(this.zoomVel) < 1e-4
+		) {
+			if (cam.zoom !== target) cam.setZoom(target);
+			this.zoomVel = 0;
+			return;
+		}
+		const dt = Math.min(deltaMs, 50) / 1000;
+		const omega = 2 / IsoArpgScene.ZOOM_SMOOTH_TIME;
+		const x = omega * dt;
+		const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+		const maxChange =
+			IsoArpgScene.ZOOM_MAX_SPEED * IsoArpgScene.ZOOM_SMOOTH_TIME;
+		let change = cam.zoom - target;
+		change = Phaser.Math.Clamp(change, -maxChange, maxChange);
+		const temp = (this.zoomVel + omega * change) * dt;
+		this.zoomVel = (this.zoomVel - omega * temp) * exp;
+		let next = target + (change + temp) * exp;
+		if (cam.zoom - target > 0 === next > target) {
+			next = target;
+			this.zoomVel = 0;
+		}
+		cam.setZoom(next);
+	}
+
 	private inputDeps(): SceneInputDeps {
 		return {
 			store: this.store,
@@ -463,6 +541,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					refs = {
 						sprite: creatureSprite.sprite,
 						creature: creatureSprite.creature,
+						shadow: creatureSprite.shadow,
 						interp: newInterp(this.time.now, e.tile.x, e.tile.y),
 					};
 					if (DEBUG_CREATURE_DIRS) {
@@ -518,6 +597,18 @@ export class IsoArpgScene extends Phaser.Scene {
 							this.syncResolvers.hostile(e.kind),
 						),
 					};
+				}
+				if (refs.creature) {
+					const view = refs.creature;
+					const sprite = refs.sprite as Phaser.GameObjects.Sprite;
+					this.residency.acquire(
+						this.creatureResource(view.def),
+						() => {
+							// The sprite may have been culled/destroyed while its sheets
+							// loaded; only re-pose if it's still in the scene.
+							if (sprite.scene) resetCreaturePose(sprite, view);
+						},
+					);
 				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				if (this.kinds.cat(e.kind) === Cat.Env) {
@@ -586,6 +677,7 @@ export class IsoArpgScene extends Phaser.Scene {
 					const defId = refs.creature.def.id;
 					this.parkCreature(refs);
 					this.creaturePool.release(defId, refs);
+					this.residency.release(`creature:${defId}`);
 					return;
 				}
 				if (
@@ -936,6 +1028,23 @@ export class IsoArpgScene extends Phaser.Scene {
 		destroyRefsV(refs);
 	}
 
+	/** Cached lazy-residency descriptor for a creature def's packed sheets. */
+	private creatureResource(def: CreatureDef): TextureResource {
+		const id = `creature:${def.id}`;
+		let res = this.creatureResources.get(id);
+		if (!res) {
+			res = {
+				id,
+				load: (s) => preloadCreature(s, def),
+				register: (s) => registerCreatureAnims(s, def),
+				unload: (s) => unloadCreature(s, def),
+				isLoaded: (s) => isCreatureLoaded(s, def),
+			};
+			this.creatureResources.set(id, res);
+		}
+		return res;
+	}
+
 	/**
 	 * Park a culled creature for reuse: kill its tween, drop the cheap per-entity
 	 * HUD bits (rebuilt on wake), and hide the Sprite + shadow so Phaser's update
@@ -1045,7 +1154,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	update(_time: number, delta: number) {
 		tickCreatureInterpV(this, this.store);
 		tickFacingV(this.store);
+		this.tickZoom(delta);
 		syncFogToZoom(this, this.fog);
+		this.ground?.update(this.cameras.main);
+		this.residency.tick((id) => {
+			if (!id.startsWith('creature:')) return;
+			for (const r of this.creaturePool.drain(id.slice(9)))
+				this.destroyRefs(r);
+		});
 		if (this.envDirty) {
 			this.refreshEnvBlocked();
 			this.envDirty = false;
@@ -1379,10 +1495,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private teardown() {
-		if (this.onResize) {
-			this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize);
-			this.onResize = undefined;
-		}
 		this.ground?.shader.destroy();
 		this.ground = undefined;
 		this.offIntent?.();

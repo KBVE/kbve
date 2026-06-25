@@ -4,8 +4,8 @@ use simgrid::proto::Tile;
 use simgrid::rng::hash3;
 use simgrid::{
     AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
-    SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TREE_VARIANTS, TreeState, WalkableMap, has_clearance,
-    spawn_npc_from_spec, spawn_tree,
+    SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState, WalkableMap, has_clearance,
+    spawn_npc_from_spec, spawn_tree, tree_at,
 };
 
 use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, SPAWN_FLOOR, floor_near_z, player_spawn};
@@ -59,7 +59,7 @@ pub const STAIR_SAFE_RADIUS: i32 = 8;
 // (aggro: None), so the surface stays safe. Ships as four elemental variant sheets
 // on the client; the server rolls one per spawn. Flyer, so no big-body clearance
 // rule — it hovers above the tiles instead of clipping walls.
-pub const WYVERN_REFS: [&str; 4] = ["wyvern_air", "wyvern_water", "wyvern_fire", "wyvern_shadow"];
+pub const WYVERN_REFS: [&str; 3] = ["wyvern_air", "wyvern_water", "wyvern_fire"];
 pub const WYVERN_HP: i32 = 40;
 pub const WYVERN_DEFENSE: i32 = 1;
 pub const WYVERN_TICKS_PER_TILE: u8 = 4;
@@ -339,23 +339,20 @@ pub fn stream_wyverns(
 
 // Trees — NEUTRAL static env props on the z=0 grass surface. Each standing tree
 // blocks its tile; a player adjacent to one fells it (server-authoritative). They
-// stream around surface players like wyverns, each rolling a random visual variant
-// (0..=69), and persist their felled state via the env log.
-pub const TREE_PER_PLAYER: usize = 6;
-pub const TREE_SPAWN_MIN: i32 = 5;
+// realise the deterministic `tree_at` forest around surface players and persist
+// felled state via the env log.
 pub const TREE_SPAWN_MAX: i32 = 18;
 pub const TREE_DESPAWN_RADIUS: i32 = 40;
 pub const TREE_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
 
-/// Stream surface trees around z=0 players, mirroring `stream_wyverns` but for a
-/// static blocking prop. Periodically tops each surface player's local stand back
-/// up to `TREE_PER_PLAYER` on open grass tiles in a ring, rolling a random variant
-/// per spawn and blocking the tile. Never spawns on the player spawn tile, the
-/// surface stairs, an already-occupied tile, or a tile a felled tree persisted to.
+/// Realise the deterministic surface forest around z=0 players: walk the tiles in
+/// range and spawn the `tree_at(DUNGEON_SEED, tile)` tree (standing -> blocked,
+/// felled -> walkable remnant), despawning ones that fall out of range. Placement is
+/// a pure function of the world seed, so the client reproduces the identical forest
+/// and streams it in with the ground. Skips the spawn tile and the surface stairs.
 #[allow(clippy::too_many_arguments)]
 pub fn stream_trees(
     clock: Res<SimClock>,
-    seed: Res<SimSeed>,
     registry: Res<KindRegistry>,
     mut map: ResMut<WalkableMap>,
     log: Res<PersistedEnvLog>,
@@ -396,45 +393,39 @@ pub fn stream_trees(
     let (dx_t, dy_t) =
         arpg_dungeon::stair_tile(DUNGEON_SEED, SPAWN_FLOOR, arpg_dungeon::StairKind::Down);
     let down_stair = Tile::new(dx_t, dy_t);
+    let felled_tiles: std::collections::HashSet<(i32, i32)> = log
+        .0
+        .iter()
+        .filter(|o| o.env_ref == TREE_REF && o.floor == SPAWN_FLOOR)
+        .map(|o| (o.x, o.y))
+        .collect();
 
-    for (i, ptile) in surface_players.iter().enumerate() {
-        let local = alive
-            .iter()
-            .filter(|t| chebyshev(**t, *ptile) <= TREE_SPAWN_MAX)
-            .count();
-        if local >= TREE_PER_PLAYER {
-            continue;
-        }
-        for attempt in 0..8u64 {
-            let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
-            let span = (TREE_SPAWN_MAX - TREE_SPAWN_MIN + 1) as u64;
-            let dist = TREE_SPAWN_MIN + ((h >> 8) % span) as i32;
-            let (dx, dy) = ring_offset((h % 8) as u8, dist);
-            let tile = Tile::new(ptile.x + dx, ptile.y + dy);
-            if tile == spawn || tile == down_stair {
-                continue;
+    // Deterministic surface forest: every tree is a pure function of (DUNGEON_SEED,
+    // tile) via `tree_at`, so the client reproduces the identical set and trees stream
+    // in with the ground instead of popping. A felled tile still spawns its entity
+    // (walkable, felled=true) so the client's standing prediction gets overridden.
+    for ptile in &surface_players {
+        for dy in -TREE_SPAWN_MAX..=TREE_SPAWN_MAX {
+            for dx in -TREE_SPAWN_MAX..=TREE_SPAWN_MAX {
+                let tile = Tile::new(ptile.x + dx, ptile.y + dy);
+                if tile == spawn || tile == down_stair || alive.contains(&tile) {
+                    continue;
+                }
+                let Some(variant) = tree_at(DUNGEON_SEED, tile.x, tile.y) else {
+                    continue;
+                };
+                let felled = felled_tiles.contains(&(tile.x, tile.y));
+                if !felled && !map.is_walkable_z(SPAWN_FLOOR, tile) {
+                    continue;
+                }
+                let state = TreeState { variant, felled };
+                if spawn_tree(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
+                    if !felled {
+                        map.block_tile_z(SPAWN_FLOOR, tile);
+                    }
+                    alive.push(tile);
+                }
             }
-            if !map.is_walkable_z(SPAWN_FLOOR, tile) {
-                continue;
-            }
-            if alive.contains(&tile) {
-                continue;
-            }
-            if log.0.iter().any(|o| {
-                o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == SPAWN_FLOOR
-            }) {
-                continue;
-            }
-            let variant = ((h >> 16) % TREE_VARIANTS as u64) as u8;
-            let state = TreeState {
-                variant,
-                felled: false,
-            };
-            if spawn_tree(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
-                map.block_tile_z(SPAWN_FLOOR, tile);
-                alive.push(tile);
-            }
-            break;
         }
     }
 }

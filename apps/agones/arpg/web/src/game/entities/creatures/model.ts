@@ -108,8 +108,23 @@ export interface CreatureDef {
 	originY: number;
 	/** Facing -> in-half block index for this creature's sheet packing. */
 	dirBlocks: DirBlocks;
+	/**
+	 * Facing -> ABSOLUTE sheet row (0-based). Set this for sheets whose 8 rows are
+	 * NOT ordered cardinal-half-then-diagonal-half (e.g. the wyvern's rows step by
+	 * 45°): it bypasses `dirBlocks`/the half split and `anim.cardinalBase` becomes
+	 * the anim's column offset within the chosen row.
+	 */
+	dirRows?: Record<CreatureDir, number>;
 	/** Sheet width in frames; the codex grid uses it. Defaults to 8 (apex grid). */
 	sheetCols?: number;
+	/**
+	 * Optional ground-shadow layer: a def whose sheet shares this creature's frame
+	 * layout (so frame indices line up) and is drawn behind the body at the same
+	 * transform. The shadow art is baked low in each cell, so same-position render
+	 * lands it on the ground below a hovering body — sells flight. Shared across
+	 * variants (e.g. all wyverns use one wyvern_shadow def).
+	 */
+	shadow?: CreatureDef;
 	anims: Partial<Record<CreatureState, CreatureAnim>>;
 }
 

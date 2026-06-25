@@ -368,10 +368,22 @@ export function makeNameplate(
 export function makeCreatureSprite(
 	scene: Phaser.Scene,
 	ref: string | null,
-): { sprite: Phaser.GameObjects.Sprite; creature: CreatureView } | null {
+): {
+	sprite: Phaser.GameObjects.Sprite;
+	creature: CreatureView;
+	shadow?: Phaser.GameObjects.Sprite;
+} | null {
 	const def = resolveCreature(ref);
 	if (!def) return null;
 	const dir: CreatureDir = dirFromDeg(CREATURE_SOUTH);
+	// Ground shadow first so the body draws over it; frame-locked per tick.
+	let shadow: Phaser.GameObjects.Sprite | undefined;
+	if (def.shadow) {
+		const sf = creatureFirstFrame(def.shadow, 'Idle', dir);
+		shadow = scene.add.sprite(0, 0, sf.key, sf.frame);
+		shadow.setOrigin(0.5, def.originY);
+		shadow.setDisplaySize(def.displaySize, def.displaySize);
+	}
 	const first = creatureFirstFrame(def, 'Idle', dir);
 	const sprite = scene.add.sprite(0, 0, first.key, first.frame);
 	sprite.setOrigin(0.5, def.originY);
@@ -384,7 +396,7 @@ export function makeCreatureSprite(
 		targetDeg: CREATURE_SOUTH,
 	};
 	safePlay(sprite, creatureAnimKey(def, 'Idle', dir));
-	return { sprite, creature: view };
+	return { sprite, creature: view, shadow };
 }
 
 /**
@@ -428,7 +440,13 @@ export function setCreaturePose(
 	if (!changed) return;
 	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
 	const key = creatureAnimKey(view.def, state, view.dir);
+	// Carry the looping flap's phase across an Idle<->Walking swap so the wing
+	// cycle continues instead of snapping back to frame 0 (one-shots restart).
+	const carry = oneShot ? 0 : (sprite.anims?.getProgress() ?? 0);
 	safePlay(sprite, key, !oneShot);
+	if (!oneShot && sprite.anims?.currentAnim) {
+		sprite.anims.setProgress(Phaser.Math.Clamp(carry, 0, 1));
+	}
 	// One-shots (Attack/GetHit/…) play once then would freeze on their last
 	// frame; settle back to Idle when done so the creature keeps breathing. Dead
 	// is the exception — it holds its final frame.
@@ -445,14 +463,45 @@ export function setCreaturePose(
  * when it crosses into a new 8-way bucket, swap the looping sheet run WITHOUT
  * restarting (progress preserved) so a turn re-aims mid-stride. One-shots hold.
  */
+// Creatures turn slower than the player (0.15) so an 8-way body eases through a
+// heading change instead of snapping. The bucket only flips once the facing is
+// firmly past the 22.5° edge (+ deadband), so a heading hovering on a boundary
+// doesn't strobe between two adjacent directions.
+const CREATURE_TURN_LERP = 0.06;
+const DIR_SWITCH_DEADBAND = 12;
+const DIR_CENTER_DEG: Record<CreatureDir, number> = {
+	N: 0,
+	NE: 45,
+	E: 90,
+	SE: 135,
+	S: 180,
+	SW: 225,
+	W: 270,
+	NW: 315,
+};
+
+function angleDiffDeg(a: number, b: number): number {
+	return ((a - b + 540) % 360) - 180;
+}
+
 export function tickCreatureFacing(
 	sprite: Phaser.GameObjects.Sprite,
 	view: CreatureView,
 ): void {
 	if (!isCreatureLocomotion(view.state)) return;
-	view.facingDeg = lerpAngleDeg(view.facingDeg, view.targetDeg, TURN_LERP);
+	view.facingDeg = lerpAngleDeg(
+		view.facingDeg,
+		view.targetDeg,
+		CREATURE_TURN_LERP,
+	);
 	const dir = dirFromDeg(view.facingDeg);
 	if (dir === view.dir) return;
+	if (
+		Math.abs(angleDiffDeg(view.facingDeg, DIR_CENTER_DEG[view.dir])) <
+		22.5 + DIR_SWITCH_DEADBAND
+	) {
+		return;
+	}
 	view.dir = dir;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);

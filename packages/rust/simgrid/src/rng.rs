@@ -20,6 +20,7 @@ pub mod domain {
     pub const DUNGEON: u32 = u32::from_be_bytes(*b"DUNG");
     pub const WANDER: u32 = u32::from_be_bytes(*b"WAND");
     pub const LOOT: u32 = u32::from_be_bytes(*b"LOOT");
+    pub const TREE: u32 = u32::from_be_bytes(*b"TREE");
 }
 
 /// Mulberry32 — tiny 32-bit PRNG. Pure u32 wrapping ops so it reproduces

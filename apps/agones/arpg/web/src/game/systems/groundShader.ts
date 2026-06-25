@@ -77,7 +77,7 @@ void main() {
 
 export interface GroundShaderHandle {
 	shader: Phaser.GameObjects.Shader;
-	resize(width: number, height: number): void;
+	update(cam: Phaser.Cameras.Scene2D.Camera): void;
 }
 
 export function makeGroundShader(scene: Phaser.Scene): GroundShaderHandle {
@@ -110,13 +110,18 @@ export function makeGroundShader(scene: Phaser.Scene): GroundShaderHandle {
 		textures,
 	);
 	shader.setScrollFactor(0);
+	shader.setOrigin(0.5);
 	shader.setDepth(0);
 
+	// Screen-pinned quad: the camera zoom still scales it, so counter-scale by
+	// 1/zoom each frame -> it renders exactly viewport-sized at any zoom, and
+	// uWorldView (which already encodes zoom) maps outTexCoord 0..1 to the viewport.
 	return {
 		shader,
-		resize(width: number, height: number) {
-			shader.setPosition(width / 2, height / 2);
-			shader.setSize(width, height);
+		update(cam: Phaser.Cameras.Scene2D.Camera) {
+			shader.setSize(cam.width, cam.height);
+			shader.setPosition(cam.width / 2, cam.height / 2);
+			shader.setScale(1 / cam.zoom);
 		},
 	};
 }

@@ -12,7 +12,11 @@ import {
 import { syncShadow, placeNameplate, drawCreatureDebug } from './entityView';
 import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
 
-const lastSampled = new WeakMap<object, { x: number; y: number }>();
+// Locomotion smoothing: ignore sub-pixel velocity noise, and hold Walking for a
+// grace window after the last real movement so brief interp plateaus between
+// tiles don't flap the pose back to Idle and restart the wing-flap.
+const MOVE_EPS = 2e-3;
+const MOVE_IDLE_GRACE_MS = 180;
 
 /**
  * Render-interpolate every creature entity: sample its interp buffer at the
@@ -36,27 +40,32 @@ export function tickCreatureInterp<R extends EntityRefs>(
 			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
 		);
 		syncShadow(refs);
+		// Frame-lock the ground shadow to the body's current pose (shared layout,
+		// so the same frame index reads the matching silhouette). Skip until both
+		// sheets are resident, else __MISSING would warn.
+		if (
+			refs.shadow &&
+			refs.sprite.texture.key !== '__MISSING' &&
+			refs.shadow.texture.key !== '__MISSING'
+		) {
+			refs.shadow.setFrame(refs.sprite.frame.name);
+		}
 		placeNameplate(refs);
 		const st = refs.creature.state;
 		if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
-		const prev = lastSampled.get(refs.creature);
-		if (prev && prev.x === s.x && prev.y === s.y) {
-			if (st !== 'Idle')
-				setCreaturePose(refs.sprite, refs.creature, 'Idle');
-			continue;
-		}
-		if (prev) {
-			prev.x = s.x;
-			prev.y = s.y;
-		} else {
-			lastSampled.set(refs.creature, { x: s.x, y: s.y });
-		}
-		if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
+		const moving =
+			s.moving &&
+			(Math.abs(s.vx) > MOVE_EPS || Math.abs(s.vy) > MOVE_EPS);
+		if (moving) {
+			refs.lastMoveAt = scene.time.now;
 			setCreaturePose(refs.sprite, refs.creature, 'Walking', {
 				dx: s.vx,
 				dy: s.vy,
 			});
-		} else {
+		} else if (
+			st !== 'Idle' &&
+			scene.time.now - (refs.lastMoveAt ?? 0) > MOVE_IDLE_GRACE_MS
+		) {
 			setCreaturePose(refs.sprite, refs.creature, 'Idle');
 		}
 	}

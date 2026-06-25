@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { stream, Domain } from '@kbve/laser';
 import { arpgAsset } from '../config';
 
 // Trees ship as one packed sheet: 3840x10752 of 384x768 cells = 10 COLS x 14
@@ -12,6 +13,22 @@ const TREE_TEX = 'env:trees_01';
 
 /** Env kind ref the server tags tree entities with. */
 export const TREE_REF = 'tree';
+
+// Per-mille of surface tiles that carry a tree. MUST match simgrid
+// TREE_DENSITY_PER_MILLE (sim.rs) — the forest is a shared deterministic field.
+const TREE_DENSITY_PER_MILLE = 22;
+
+/**
+ * Deterministic surface tree field — byte-for-byte mirror of simgrid `tree_at`
+ * (sim.rs), built on the shared `stream` RNG + `Domain.TREE`. Returns the visual
+ * variant for a tile that carries a tree, else null. Placement only; callers apply
+ * the same tile exclusions (spawn, stairs) the server does.
+ */
+export function treeAt(seed: number, x: number, y: number): number | null {
+	const next = stream(seed, Domain.TREE, [x, y]);
+	if (next() % 1000 >= TREE_DENSITY_PER_MILLE) return null;
+	return next() % TREE_VARIANTS;
+}
 
 /**
  * Per-tree state rides the `EntityDelta.sub` byte: low 7 bits = variant (0..69),
