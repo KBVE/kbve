@@ -29,6 +29,11 @@ use crate::trade::{PendingTrades, TradeInput};
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
+/// Float-steered NPCs emit their sub-tile pos/vel only every Nth snapshot (the
+/// player always emits, for prediction). The client interp coasts between, so
+/// halving the rate halves their per-snapshot float bytes for ~free. 1 = no
+/// throttle. Raise if NPC motion looks stepped.
+pub const NPC_FLOAT_EMIT_EVERY: u32 = 2;
 
 pub const PLAYER_KIND: u16 = 0;
 pub const MAX_PATH_LEN: usize = 64;
@@ -370,6 +375,9 @@ pub struct NpcSpec {
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
+    /// Opt-in float steering: attaches `FloatMove` + `FloatSteer` so the NPC
+    /// banks smoothly toward its Roam waypoints instead of grid-stepping.
+    pub float_steer: bool,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -504,6 +512,12 @@ pub struct Roam {
     pub resume_tick: u32,
 }
 
+/// Opt-in marker: entities carrying it use float steering (`advance_npc_float`)
+/// toward their Roam waypoint instead of the grid mover, banking smoothly via
+/// `FloatBody`. Predators/goblins/players omit it and stay grid-based.
+#[derive(Component, Clone, Copy)]
+pub struct FloatSteer;
+
 impl Roam {
     pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32, clearance: i32) -> Self {
         let dwell_min = dwell_min.max(1);
@@ -592,6 +606,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     }
     if spec.respawn_ticks > 0 {
         e.insert(RespawnOnDeath { spec: spec.clone() });
+    }
+    if spec.float_steer {
+        e.insert((FloatMove::at(spec.origin), FloatSteer));
     }
     if spec.floor != 0 {
         e.insert(Floor(spec.floor));
@@ -905,6 +922,7 @@ pub fn build_app(
             Update,
             (
                 advance_float,
+                advance_npc_float,
                 advance_movement,
                 stair_system,
                 env_hazard_burn,
@@ -2390,15 +2408,22 @@ fn roam_system(
         &mut MoveTarget,
         &mut Roam,
         Option<&Floor>,
+        Option<&FloatSteer>,
     )>,
 ) {
-    for (entity, mut pos, mut mv, mut roam, floor) in q.iter_mut() {
+    for (entity, mut pos, mut mv, mut roam, floor, steer) in q.iter_mut() {
         if mv.target.is_some() {
             continue;
         }
         let z = floor.map(|f| f.0).unwrap_or(0);
         match roam.target {
             Some(dest) if dest != pos.tile => {
+                // Float-steered mobs (wyverns) follow the waypoint via
+                // `advance_npc_float`; roam only owns target selection for them,
+                // never the per-tile grid step.
+                if steer.is_some() {
+                    continue;
+                }
                 // 8-way stepping: prefer the diagonal toward the target, then
                 // fall back to a single axis. Diagonal tile-steps give the
                 // client true diagonal deltas, so all 8 sheet facings surface.
@@ -2484,7 +2509,60 @@ fn advance_float(
     }
 }
 
-fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
+/// Float steering for opt-in NPCs (wyverns): steer the `FloatBody` toward the
+/// current Roam waypoint with a banking turn-rate cap, then sync `GridPos.tile`
+/// from the float tile so all grid systems (collision/streaming/aggro/targeting)
+/// stay authoritative. Runs in the Movement set alongside the grid mover, which
+/// is gated `Without<FloatSteer>` so nothing double-moves.
+fn advance_npc_float(
+    map: Res<WalkableMap>,
+    mut q: Query<(&mut GridPos, &mut FloatMove, &Roam, Option<&Floor>), With<FloatSteer>>,
+) {
+    let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
+    for (mut pos, mut fm, roam, floor) in q.iter_mut() {
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
+        // No waypoint (dwelling): ease to a stop in place.
+        let dest = roam.target.unwrap_or_else(|| {
+            let (tx, ty) = fm.body.tile();
+            Tile::new(tx, ty)
+        });
+        crate::float_move::step_steer(
+            &mut fm.body,
+            dest.x as f32,
+            dest.y as f32,
+            crate::float_move::WALK_SPEED,
+            crate::float_move::NPC_MAX_TURN_RATE,
+            crate::float_move::NPC_ARRIVE_RADIUS,
+            &is_blocked,
+            dt_ms,
+        );
+        let (tx, ty) = fm.body.tile();
+        pos.tile = Tile::new(tx, ty);
+        if fm.body.speed() > 0.05 {
+            pos.facing = facing_from_vel(fm.body.vx, fm.body.vy);
+        }
+    }
+}
+
+/// Facing from a float velocity — the float counterpart to `facing_from_intent`.
+fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
+    if vx.abs() >= vy.abs() {
+        if vx >= 0.0 {
+            proto::Facing::Right
+        } else {
+            proto::Facing::Left
+        }
+    } else if vy > 0.0 {
+        proto::Facing::Down
+    } else {
+        proto::Facing::Up
+    }
+}
+
+fn advance_movement(
+    mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed), Without<FloatSteer>>,
+) {
     for (mut pos, mut mv, speed) in q.iter_mut() {
         let Some(target) = mv.target else {
             continue;
@@ -2599,6 +2677,7 @@ fn emit_snapshot(
     }
 
     let now = clock.tick;
+    let snap_idx = now / SNAPSHOT_EVERY_N_TICKS;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
@@ -2624,14 +2703,23 @@ fn emit_snapshot(
                             .collect()
                     })
                     .unwrap_or_default();
+                // Throttle: a non-player float NPC emits its sub-tile float only on
+                // every Nth snapshot; on skip snapshots it sends nothing (qx/qy zero
+                // -> omitted on the wire) and the client interp coasts on its last
+                // sample. Sending a tile-rounded pos instead would wobble, so we skip
+                // outright. The player always emits (prediction needs every frame).
+                let skip_float = fm.is_some()
+                    && slot.is_none()
+                    && !snap_idx.is_multiple_of(NPC_FLOAT_EMIT_EVERY);
                 let (qx, qy, qvx, qvy, input_ack) = match fm {
-                    Some(f) => (
+                    Some(f) if !skip_float => (
                         proto::quantize_pos(f.body.x),
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
                         f.last_seq,
                     ),
+                    Some(_) => (0, 0, 0, 0, 0),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
                         proto::quantize_pos(pos.tile.y as f32),
@@ -3298,6 +3386,7 @@ mod tests {
             }),
             loot: None,
             respawn_ticks: 4,
+            float_steer: false,
         }
     }
 

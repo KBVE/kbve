@@ -4,6 +4,7 @@ import type { EntityDelta, EntityCat, EntityStore } from '@kbve/laser';
 // vitest's node env, where a value import of @kbve/laser's barrel won't resolve,
 // so we keep this module's laser imports type-only.
 const CAT_PLAYER = 0;
+const CAT_NPC = 1;
 const CAT_ENV = 3;
 import type { TileXY } from '../iso';
 
@@ -97,7 +98,22 @@ export function applyEntitySync<R>(
 			const cur = store.tile(e.eid);
 			const refs = store.refs(e.eid);
 			const moved = !!cur && (cur.x !== e.tile.x || cur.y !== e.tile.y);
-			if (refs && moved) bridge.move(refs, e.tile);
+			// NPCs (interp-backed) get the server's sub-tile pos (qx/qy) fed in every
+			// snapshot so they curve with the server's steering. A throttled float NPC
+			// omits qx/qy on skip snapshots — qx absent on an NPC means exactly that,
+			// so coast on the interp instead of injecting a tile-rounded sample (which
+			// would wobble). Grid NPCs always carry qx (= their tile), so they're fed
+			// too. Non-NPCs (env/item) + remote players (no interp) take the tile path.
+			if (refs && cat === CAT_NPC) {
+				if (e.qx !== undefined && e.qy !== undefined) {
+					bridge.move(refs, {
+						x: e.qx / POS_SCALE,
+						y: e.qy / POS_SCALE,
+					});
+				}
+			} else if (refs && moved) {
+				bridge.move(refs, e.tile);
+			}
 			if (cat === CAT_ENV && moved) onEnvChange?.();
 			store.update(e.eid, {
 				tile: { x: e.tile.x, y: e.tile.y },

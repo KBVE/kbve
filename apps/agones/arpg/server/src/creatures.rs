@@ -102,6 +102,7 @@ pub fn goblin_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<
         }),
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         respawn_ticks: NPC_RESPAWN_TICKS,
+        float_steer: false,
     })
 }
 
@@ -133,6 +134,7 @@ fn predator_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<Np
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         // Streamed predators are culled by distance, not respawned in place.
         respawn_ticks: 0,
+        float_steer: false,
     })
 }
 
@@ -254,6 +256,8 @@ fn wyvern_spec(
         aggro: None,
         loot: None,
         respawn_ticks: 0,
+        // Float-steered: banks smoothly over the surface toward roam waypoints.
+        float_steer: true,
     })
 }
 

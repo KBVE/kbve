@@ -7,6 +7,13 @@ pub const COLLISION_SKIN: f32 = 0.01;
 pub const STOP_SPEED: f32 = 1.5;
 pub const MAX_MOVE_STEP: f32 = 0.2;
 
+// Feel knobs for float-steered NPCs (wyverns). NPC_MAX_TURN_RATE caps how fast
+// the heading may rotate per second, so the body banks/curves toward a waypoint
+// instead of snapping. NPC_ARRIVE_RADIUS (tiles) is the slow-down radius the
+// `arrive` behavior eases to a stop within.
+pub const NPC_MAX_TURN_RATE: f32 = 3.5;
+pub const NPC_ARRIVE_RADIUS: f32 = 1.5;
+
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct FloatBody {
     pub x: f32,
@@ -91,18 +98,112 @@ pub fn step_float(
         let nx = ix / mag;
         let ny = iy / mag;
         let scale = mag.min(1.0);
-        let target_vx = nx * speed * scale;
-        let target_vy = ny * speed * scale;
-        let response = 1.0 - exp_decay(MOVE_ACCEL, dt);
-        b.vx += (target_vx - b.vx) * response;
-        b.vy += (target_vy - b.vy) * response;
+        accelerate(b, nx * speed * scale, ny * speed * scale, dt);
     } else {
         b.vx = 0.0;
         b.vy = 0.0;
     }
 
+    integrate(b, dt, is_blocked);
+}
+
+/// Velocity ease toward a target velocity, shared accel model used by both the
+/// player intent step and NPC steering.
+fn accelerate(b: &mut FloatBody, target_vx: f32, target_vy: f32, dt: f32) {
+    let response = 1.0 - exp_decay(MOVE_ACCEL, dt);
+    b.vx += (target_vx - b.vx) * response;
+    b.vy += (target_vy - b.vy) * response;
+}
+
+/// Sub-stepped collision integration, shared by every step variant.
+fn integrate(b: &mut FloatBody, dt: f32, is_blocked: &impl Fn(i32, i32) -> bool) {
     move_axis_sub(b, Axis::X, b.vx * dt, is_blocked);
     move_axis_sub(b, Axis::Y, b.vy * dt, is_blocked);
+}
+
+/// Unit intent vector from the body toward (tx,ty). Zero when already on target.
+pub fn seek(b: &FloatBody, tx: f32, ty: f32) -> (f32, f32) {
+    let dx = tx - b.x;
+    let dy = ty - b.y;
+    let d = dx.hypot(dy);
+    if d > 1e-4 {
+        (dx / d, dy / d)
+    } else {
+        (0.0, 0.0)
+    }
+}
+
+/// Like `seek`, but the intent magnitude scales down linearly inside
+/// `slow_radius` (0 at the target) so the body eases to a stop.
+pub fn arrive(b: &FloatBody, tx: f32, ty: f32, slow_radius: f32) -> (f32, f32) {
+    let dx = tx - b.x;
+    let dy = ty - b.y;
+    let d = dx.hypot(dy);
+    if d <= 1e-4 {
+        return (0.0, 0.0);
+    }
+    let mag = if slow_radius > 0.0 {
+        (d / slow_radius).min(1.0)
+    } else {
+        1.0
+    };
+    (dx / d * mag, dy / d * mag)
+}
+
+/// Steer toward (tx,ty) with a banking turn: rotate the velocity heading toward
+/// the arrive-intent heading by at most `max_turn_rate_rad_s * dt` radians, then
+/// integrate via the same accel/friction model as `step_float`. Collision
+/// handling is identical (shared `integrate`).
+#[allow(clippy::too_many_arguments)]
+pub fn step_steer(
+    b: &mut FloatBody,
+    tx: f32,
+    ty: f32,
+    speed: f32,
+    max_turn_rate_rad_s: f32,
+    slow_radius: f32,
+    is_blocked: &impl Fn(i32, i32) -> bool,
+    dt_ms: f32,
+) {
+    let dt = dt_ms.min(50.0) / 1000.0;
+    let (ix, iy) = arrive(b, tx, ty, slow_radius);
+    let mag = ix.hypot(iy);
+
+    if mag <= 1e-4 {
+        b.vx = 0.0;
+        b.vy = 0.0;
+        integrate(b, dt, is_blocked);
+        return;
+    }
+
+    let desired = iy.atan2(ix);
+    // Current heading: use velocity when moving, else aim straight at the target
+    // so a stationary body starts turning from the goal direction.
+    let cur = if b.speed() > 1e-3 {
+        b.vy.atan2(b.vx)
+    } else {
+        desired
+    };
+    let max_step = max_turn_rate_rad_s * dt;
+    let heading = cur + wrap_pi(desired - cur).clamp(-max_step, max_step);
+
+    let scale = mag.min(1.0);
+    let target_vx = heading.cos() * speed * scale;
+    let target_vy = heading.sin() * speed * scale;
+    accelerate(b, target_vx, target_vy, dt);
+    integrate(b, dt, is_blocked);
+}
+
+/// Wrap an angle delta into (-PI, PI] for shortest-arc rotation.
+fn wrap_pi(a: f32) -> f32 {
+    use core::f32::consts::PI;
+    let mut a = a % (2.0 * PI);
+    if a > PI {
+        a -= 2.0 * PI;
+    } else if a <= -PI {
+        a += 2.0 * PI;
+    }
+    a
 }
 
 fn move_axis_sub(
@@ -189,5 +290,70 @@ pub fn intent_from_axes(mx: i8, my: i8) -> (f32, f32) {
         (ix * inv, iy * inv)
     } else {
         (ix, iy)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn never_blocked(_x: i32, _y: i32) -> bool {
+        false
+    }
+
+    #[test]
+    fn seek_is_unit_toward_target() {
+        let b = FloatBody::at(0.0, 0.0);
+        let (x, y) = seek(&b, 3.0, 4.0);
+        assert!((x.hypot(y) - 1.0).abs() < 1e-4);
+        assert!((x - 0.6).abs() < 1e-4 && (y - 0.8).abs() < 1e-4);
+    }
+
+    #[test]
+    fn seek_zero_on_target() {
+        let b = FloatBody::at(1.0, 1.0);
+        let (x, y) = seek(&b, 1.0, 1.0);
+        assert_eq!((x, y), (0.0, 0.0));
+    }
+
+    #[test]
+    fn arrive_scales_inside_slow_radius() {
+        let b = FloatBody::at(0.0, 0.0);
+        let outside = arrive(&b, 10.0, 0.0, 2.0);
+        assert!((outside.0.hypot(outside.1) - 1.0).abs() < 1e-4);
+        let inside = arrive(&b, 1.0, 0.0, 2.0);
+        assert!((inside.0.hypot(inside.1) - 0.5).abs() < 1e-4);
+    }
+
+    #[test]
+    fn step_steer_caps_turn_rate() {
+        // Moving +X, target straight up: heading may rotate at most rate*dt.
+        let mut b = FloatBody::at(0.0, 0.0);
+        b.vx = 4.0;
+        b.vy = 0.0;
+        let dt_ms = 50.0;
+        let rate = 3.5;
+        step_steer(&mut b, 0.0, 100.0, 6.0, rate, 1.5, &never_blocked, dt_ms);
+        let heading = b.vy.atan2(b.vx);
+        let cap = rate * (dt_ms / 1000.0);
+        // Heading should have rotated toward +Y but not past the per-tick cap.
+        assert!(heading > 0.0);
+        assert!(heading <= cap + 1e-3);
+    }
+
+    #[test]
+    fn step_steer_moves_toward_target() {
+        let mut b = FloatBody::at(0.0, 0.0);
+        for _ in 0..40 {
+            step_steer(&mut b, 5.0, 0.0, 6.0, 3.5, 1.5, &never_blocked, 50.0);
+        }
+        assert!(b.x > 2.0);
+    }
+
+    #[test]
+    fn wrap_pi_shortest_arc() {
+        use core::f32::consts::PI;
+        assert!((wrap_pi(1.5 * PI) - (-0.5 * PI)).abs() < 1e-4);
+        assert!((wrap_pi(-1.5 * PI) - (0.5 * PI)).abs() < 1e-4);
     }
 }
