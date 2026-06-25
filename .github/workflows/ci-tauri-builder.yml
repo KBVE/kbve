@@ -1,4 +1,4 @@
-name: Utils Tauri Build
+name: CI Tauri Builder
 
 on:
     workflow_call:
