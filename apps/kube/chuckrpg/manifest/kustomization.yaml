@@ -6,6 +6,7 @@ resources:
     - namespace.yaml
     - serviceaccount.yaml
     - configmap.yaml
+    - chuckrpg-secrets-sealedsecret.yaml
     - deployment.yaml
     - httproute.yaml
     - certificate.yaml
