@@ -71,7 +71,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: register-client
-                  image: curlimages/curl:8.11.1
+                  image: ghcr.io/kbve/kubectl:0.1.5
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       allowPrivilegeEscalation: false
@@ -97,7 +97,7 @@ spec:
                           SERVICE_KEY=$(kubectl get secret -n kilobase supabase-jwt -o jsonpath='{.data.service-key}' | base64 -d)
 
                           echo "==> Registering Forgejo OAuth client with Supabase..."
-                          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://auth.kilobase.svc.cluster.local:9999/auth/v1/admin/oauth/clients" \
+                          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://auth.kilobase.svc.cluster.local:9999/admin/oauth/clients" \
                             -H "Authorization: Bearer ${SERVICE_KEY}" \
                             -H "Content-Type: application/json" \
                             -d '{

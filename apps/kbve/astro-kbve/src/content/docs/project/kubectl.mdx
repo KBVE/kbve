@@ -23,10 +23,13 @@ deployment_yamls:
     - apps/kube/kubevirt/autologon/job.yaml
     - apps/kube/kubevirt/autologon/scaled-job.yaml
     - apps/kube/kubevirt/runner/job.yaml
+    - apps/kube/kubevirt/runner/scaled-job.yaml
     - apps/kube/kubevirt/keda/scaled-jobs.yaml
-    - apps/kube/agones/factorio/manifests/rotation-cronjob.yaml
+    - apps/kube/agones/factorio/manifests/rotation-deployment.yaml
     - apps/kube/namespace/manifests/pod-gc-cronjob.yaml
     - apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml
+    - apps/kube/github/runners/manifests/runner-reaper.yaml
+    - apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml
     - apps/kube/kilobase/manifests/backup-restore-test.yaml
     - apps/kube/kilobase/manifests/backup-watchdog.yaml
 has_test: true
@@ -77,7 +80,7 @@ containers:
 
 ### Where it ships
 
-The image is pinned in three manifests today, all kept in sync by the `deployment_yamls` field above:
+The image is pinned across every manifest in the `deployment_yamls` field above, all kept in sync on each publish. A representative sample:
 
 | Manifest | Job | Pattern |
 |---|---|---|
