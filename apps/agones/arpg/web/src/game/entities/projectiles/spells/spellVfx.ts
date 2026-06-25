@@ -89,6 +89,21 @@ function burst(
 	emitter.setDepth(DEPTH_PROJECTILE + 1);
 	emitter.explode(28);
 	scene.time.delayedCall(560, () => emitter.destroy());
+
+	const flash = scene.add
+		.image(x, y, SPARK_TEX)
+		.setBlendMode(Phaser.BlendModes.ADD)
+		.setTint(ramp[0])
+		.setScale(2)
+		.setDepth(DEPTH_PROJECTILE + 1);
+	scene.tweens.add({
+		targets: flash,
+		scale: 6,
+		alpha: 0,
+		duration: 180,
+		ease: 'Quad.easeOut',
+		onComplete: () => flash.destroy(),
+	});
 }
 
 function castBolt(
