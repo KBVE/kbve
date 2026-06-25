@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: keycloak
+    namespace: keycloak
+    labels:
+        app: keycloak
+        kbve.com/category: security
+        kbve.com/stack: core
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: keycloak
+    template:
+        metadata:
+            labels:
+                app: keycloak
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: keycloak
+                  image: quay.io/keycloak/keycloak:26.0
+                  imagePullPolicy: IfNotPresent
+                  args: ['start']
+                  env:
+                      - name: KC_DB
+                        value: postgres
+                      - name: KC_DB_URL
+                        value: jdbc:postgresql://supabase-cluster-rw.kilobase.svc.cluster.local:5432/supabase?currentSchema=keycloak
+                      - name: KC_DB_SCHEMA
+                        value: keycloak
+                      - name: KC_DB_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: keycloak-credentials
+                                key: db-username
+                      - name: KC_DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: keycloak-credentials
+                                key: db-password
+                      # Hostname v2 (Keycloak 26). TLS terminates at kbve-gateway,
+                      # so run plain HTTP and trust the forwarded headers.
+                      - name: KC_HOSTNAME
+                        value: https://sso.kbve.com
+                      - name: KC_HTTP_ENABLED
+                        value: 'true'
+                      - name: KC_PROXY_HEADERS
+                        value: xforwarded
+                      - name: KC_HEALTH_ENABLED
+                        value: 'true'
+                      - name: KC_METRICS_ENABLED
+                        value: 'true'
+                      # Bootstrap admin (Keycloak 26 renamed from KEYCLOAK_ADMIN).
+                      # Used once to seed the master-realm admin; rotate after.
+                      - name: KC_BOOTSTRAP_ADMIN_USERNAME
+                        valueFrom:
+                            secretKeyRef:
+                                name: keycloak-credentials
+                                key: admin-username
+                      - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: keycloak-credentials
+                                key: admin-password
+                  ports:
+                      - name: http
+                        containerPort: 8080
+                      - name: management
+                        containerPort: 9000
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  startupProbe:
+                      httpGet:
+                          path: /health/started
+                          port: 9000
+                      failureThreshold: 30
+                      periodSeconds: 10
+                  readinessProbe:
+                      httpGet:
+                          path: /health/ready
+                          port: 9000
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /health/live
+                          port: 9000
+                      periodSeconds: 15
+                  resources:
+                      requests:
+                          cpu: 250m
+                          memory: 768Mi
+                      limits:
+                          cpu: '2'
+                          memory: 1536Mi

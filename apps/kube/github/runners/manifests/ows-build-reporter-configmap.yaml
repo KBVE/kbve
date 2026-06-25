@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: ows-build-reporter
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/component: dedicated-server
+data:
+    report.sh: |
+        #!/bin/sh
+        set -u
+        BIN="${OWS_SERVER_BIN:-/server/latest/LinuxServer/chuckServer.sh}"
+        [ -f "$BIN" ] || BIN=$(find /server -maxdepth 4 -name '*Server.sh' 2>/dev/null | sort -V | tail -1)
+        REAL=$(readlink -f "$BIN" 2>/dev/null || echo "$BIN")
+        VER=$(printf '%s' "${REAL#/server/}" | cut -d/ -f1)
+        if [ -z "$VER" ] || [ "$VER" = "latest" ]; then
+            VER=$(find /server -maxdepth 1 -type d -name '[0-9]*' 2>/dev/null | sort -V | tail -1 | xargs -r basename)
+        fi
+        [ -n "$VER" ] || { echo "ows-build-reporter: no build version resolved"; exit 0; }
+        URL="${OWS_API_PATH%/}/api/System/ReportBuild"
+        if curl -sf -m 5 -X POST "$URL" \
+            -H "X-CustomerGUID: ${OWS_API_CUSTOMER_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"version\":\"${VER}\"}" >/dev/null 2>&1; then
+            echo "ows-build-reporter: reported ${VER}"
+        else
+            echo "ows-build-reporter: report failed for ${VER} (best-effort)"
+        fi

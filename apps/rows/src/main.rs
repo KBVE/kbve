@@ -123,25 +123,6 @@ async fn main() -> anyhow::Result<()> {
         "Agones initialization complete"
     );
 
-    let fleet_image_tag = match &agones_client {
-        Some(client) => match client.fleet_container_image().await {
-            Ok(Some(image)) => {
-                let tag = agones::fleet::image_tag(&image);
-                info!(image = %image, tag = %tag, "Resolved fleet container image");
-                Some(tag)
-            }
-            Ok(None) => {
-                warn!("Fleet container image not found in spec");
-                None
-            }
-            Err(e) => {
-                warn!(error = %e, "Fleet image resolution failed (non-fatal)");
-                None
-            }
-        },
-        None => None,
-    };
-
     let app_state = state::AppState::builder()
         .db(pool)
         .db_ro(pool_ro)
@@ -150,7 +131,6 @@ async fn main() -> anyhow::Result<()> {
         .reaper_config(cfg.reaper.clone())
         .mq(mq_producer)
         .agones(agones_client)
-        .fleet_image_tag(fleet_image_tag)
         .build()?;
 
     let svc = Arc::new(service::OWSService::new(app_state.clone()));

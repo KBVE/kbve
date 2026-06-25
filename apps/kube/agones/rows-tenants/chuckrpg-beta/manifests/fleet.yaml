@@ -38,6 +38,32 @@ spec:
                         runAsUser: 1000
                         runAsGroup: 1000
                         fsGroup: 1000
+                    initContainers:
+                        - name: build-reporter-init
+                          image: ghcr.io/kbve/kubectl:0.1.5
+                          command: ['/bin/sh', '-c', 'sh /scripts/report.sh']
+                          env:
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                                readOnly: true
+                              - name: build-reporter-script
+                                mountPath: /scripts
+                          resources:
+                              requests:
+                                  memory: 16Mi
+                                  cpu: 10m
+                              limits:
+                                  memory: 32Mi
+                                  cpu: 50m
                     containers:
                         - name: ue5-server
                           image: ubuntu:24.04
@@ -109,7 +135,41 @@ spec:
                               - name: server-binary
                                 mountPath: /server
                                 subPath: chuckServer
+                        - name: build-reporter
+                          image: ghcr.io/kbve/kubectl:0.1.5
+                          command:
+                              [
+                                  '/bin/sh',
+                                  '-c',
+                                  'while true; do sh /scripts/report.sh; sleep 60; done',
+                              ]
+                          env:
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                                readOnly: true
+                              - name: build-reporter-script
+                                mountPath: /scripts
+                          resources:
+                              requests:
+                                  memory: 16Mi
+                                  cpu: 10m
+                              limits:
+                                  memory: 32Mi
+                                  cpu: 50m
                     volumes:
                         - name: server-binary
                           persistentVolumeClaim:
                               claimName: ows-server-build
+                        - name: build-reporter-script
+                          configMap:
+                              name: ows-build-reporter
+                              defaultMode: 0555

@@ -13,6 +13,7 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .route("/api/System/ActivePlayers", get(active_players))
         .route("/api/System/InstanceLog", get(instance_log))
         .route("/api/System/DeploymentInfo", get(deployment_info))
+        .route("/api/System/ReportBuild", axum::routing::post(report_build))
         .route(
             "/api/System/RestartGameServer",
             axum::routing::post(restart_game_server),
@@ -309,6 +310,38 @@ pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json:
             "url_configured": hs.app.supabase.url.is_some(),
         },
     }))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/System/ReportBuild",
+    tag = "system",
+    summary = "Report loaded UE build version",
+    description = "Gameservers POST the build version they loaded off the ows-server-build PVC on boot; surfaced on /health as unreal_version.",
+    request_body(description = "{ version: string }", content_type = "application/json"),
+    responses((status = 200, description = "{ success: bool, version?: string }")),
+)]
+pub async fn report_build(
+    State(hs): State<HandlerState>,
+    Json(body): Json<serde_json::Value>,
+) -> Json<serde_json::Value> {
+    let version = body
+        .get("version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim();
+
+    if version.is_empty() {
+        return Json(serde_json::json!({ "success": false, "error": "version required" }));
+    }
+
+    let mut current = hs.app.server_build_version.write().unwrap();
+    if current.as_deref() != Some(version) {
+        tracing::info!(version, "Gameserver reported loaded UE build version");
+    }
+    *current = Some(version.to_string());
+
+    Json(serde_json::json!({ "success": true, "version": version }))
 }
 
 #[utoipa::path(

@@ -13,6 +13,7 @@ resources:
     - runner-cache-pvc.yaml
     - ue-dind-cache-pvc.yaml
     - ows-server-build-pvc.yaml
+    - ows-build-reporter-configmap.yaml
     - cache-cleanup-cronjob.yaml
     - registry-mirror.yaml
     - registry-mirror-ghcr.yaml

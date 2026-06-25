@@ -10,6 +10,7 @@ const DEFAULT_BASE: &str = "https://itch.io/api/1";
 #[serde(rename_all = "lowercase")]
 pub enum ItchPlatform {
     Windows,
+    #[serde(rename = "macos")]
     Mac,
     Linux,
 }

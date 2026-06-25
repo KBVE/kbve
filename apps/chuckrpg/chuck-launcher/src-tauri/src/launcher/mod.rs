@@ -194,11 +194,7 @@ fn discover_entrypoint(dir: &Path, platform: &str) -> Option<PathBuf> {
             .filter(|p| !is_aux_exe(p))
             .min_by_key(|p| (!name_has_chuck(p), depth_of(dir, p)))
             .cloned(),
-        "macos" => files
-            .iter()
-            .find(|p| has_ext(p, "app"))
-            .cloned()
-            .or_else(|| dir_app_bundle(dir)),
+        "macos" => find_app_bundle(dir, 0, 4),
         _ => files
             .iter()
             .filter(|p| has_ext(p, "sh") || (is_executable(p) && p.extension().is_none()))
@@ -224,12 +220,24 @@ fn collect_files(dir: &Path, depth: usize, max: usize, out: &mut Vec<PathBuf>) {
     }
 }
 
-fn dir_app_bundle(dir: &Path) -> Option<PathBuf> {
-    fs::read_dir(dir)
-        .ok()?
-        .flatten()
-        .map(|e| e.path())
-        .find(|p| p.is_dir() && has_ext(p, "app"))
+fn find_app_bundle(dir: &Path, depth: usize, max: usize) -> Option<PathBuf> {
+    if depth > max {
+        return None;
+    }
+    let entries = fs::read_dir(dir).ok()?;
+    let mut subdirs = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if has_ext(&path, "app") {
+                return Some(path);
+            }
+            subdirs.push(path);
+        }
+    }
+    subdirs
+        .into_iter()
+        .find_map(|d| find_app_bundle(&d, depth + 1, max))
 }
 
 fn has_ext(p: &Path, ext: &str) -> bool {
@@ -294,4 +302,45 @@ pub fn launch() -> Result<(), LauncherError> {
         std::process::Command::new(&path).spawn()?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn scratch(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("chuck-test-{name}"));
+        let _ = fs::remove_dir_all(&dir);
+        dir
+    }
+
+    #[test]
+    fn macos_finds_nested_app_bundle() {
+        let root = scratch("macos");
+        fs::create_dir_all(root.join("Mac/chuck-Mac-Shipping.app/Contents")).unwrap();
+        let ep = discover_entrypoint(&root, "macos").unwrap();
+        assert!(ep.ends_with("Mac/chuck-Mac-Shipping.app"));
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn windows_prefers_game_exe_over_aux() {
+        let root = scratch("windows");
+        fs::create_dir_all(root.join("Windows")).unwrap();
+        fs::write(root.join("Windows/chuck-Win64-Shipping.exe"), b"x").unwrap();
+        fs::write(root.join("Windows/CrashReportClient.exe"), b"x").unwrap();
+        let ep = discover_entrypoint(&root, "windows").unwrap();
+        assert!(ep.ends_with("chuck-Win64-Shipping.exe"));
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn linux_finds_launch_script() {
+        let root = scratch("linux");
+        fs::create_dir_all(root.join("Linux")).unwrap();
+        fs::write(root.join("Linux/chuck-Linux-Shipping.sh"), b"#!/bin/sh\n").unwrap();
+        let ep = discover_entrypoint(&root, "linux").unwrap();
+        assert!(ep.ends_with("chuck-Linux-Shipping.sh"));
+        fs::remove_dir_all(&root).unwrap();
+    }
 }
