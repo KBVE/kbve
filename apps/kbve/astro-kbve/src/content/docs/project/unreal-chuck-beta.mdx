@@ -68,7 +68,7 @@ version gate / `version_toml` tracker still lives in this monorepo.
 
 - `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat)
 - `Linux` — `BuildCookRun` in the cached Epic UE Docker image on `arc-runner-ue`
-- `Mac` — native build on the `arc-runner-ue-mac` self-hosted macOS runner
+- `Mac` — native build on the `[self-hosted, macOS, ARM64]` runner (MacBook Air, registered directly with GitHub)
 
 Plus the bundled Linux **dedicated server** (`shell_path` → `task: server`): the
 `chuckServerBeta` target (`server_config: Shipping`) is cooked from the monorepo shell
