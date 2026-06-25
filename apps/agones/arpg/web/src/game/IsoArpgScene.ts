@@ -25,12 +25,9 @@ import {
 	arpgAsset,
 	GROUND_TEXTURE_KEY,
 	GROUND_TEXTURE_PATH,
-	GRASS_TEXTURE_KEY,
-	GRASS_TEXTURE_PATH,
-	GRASS_DETAIL_TEXTURE_KEY,
-	GRASS_DETAIL_TEXTURE_PATH,
-	GRASS_MACRO_TEXTURE_KEY,
-	GRASS_MACRO_TEXTURE_PATH,
+	BIOMES,
+	biomeTextureKey,
+	biomeTexturePath,
 	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
@@ -262,15 +259,9 @@ export class IsoArpgScene extends Phaser.Scene {
 			}),
 		);
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
-		this.load.image(GRASS_TEXTURE_KEY, arpgAsset(GRASS_TEXTURE_PATH));
-		this.load.image(
-			GRASS_DETAIL_TEXTURE_KEY,
-			arpgAsset(GRASS_DETAIL_TEXTURE_PATH),
-		);
-		this.load.image(
-			GRASS_MACRO_TEXTURE_KEY,
-			arpgAsset(GRASS_MACRO_TEXTURE_PATH),
-		);
+		for (const b of BIOMES) {
+			this.load.image(biomeTextureKey(b), arpgAsset(biomeTexturePath(b)));
+		}
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
