@@ -14,6 +14,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
+use tower::ServiceExt;
 use tower_http::{
     compression::CompressionLayer, cors::CorsLayer, services::ServeDir, trace::TraceLayer,
 };
@@ -153,20 +154,17 @@ async fn main() {
     });
     // not_found_service supplies the index body but tower-http pins the status to
     // 404 (it's meant for 404 pages); rewrite to 200 so the SPA loads cleanly.
-    let static_svc = tower::ServiceBuilder::new()
+    let static_svc = ServeDir::new(&static_dir)
+        .precompressed_br()
+        .precompressed_gzip()
+        .append_index_html_on_directories(true)
+        .not_found_service(spa_index)
         .map_response(|mut res| {
-            if res.status() == axum::http::StatusCode::NOT_FOUND {
-                *res.status_mut() = axum::http::StatusCode::OK;
+            if res.status() == StatusCode::NOT_FOUND {
+                *res.status_mut() = StatusCode::OK;
             }
             res
-        })
-        .service(
-            ServeDir::new(&static_dir)
-                .precompressed_br()
-                .precompressed_gzip()
-                .append_index_html_on_directories(true)
-                .not_found_service(spa_index),
-        );
+        });
 
     let app: Router = match download_state() {
         Some(state) => {
