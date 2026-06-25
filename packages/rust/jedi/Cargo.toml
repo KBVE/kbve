@@ -97,6 +97,7 @@ default = []
 clickhouse = ["dep:clickhouse"]
 prometheus = ["dep:axum-prometheus", "dep:metrics"]
 forgejo = []
+itch = []
 postgres = [
     "dep:tokio-postgres",
     "dep:bb8",

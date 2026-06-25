@@ -7,6 +7,8 @@ pub mod flex;
 pub mod forgejo;
 pub mod github;
 pub mod hash;
+#[cfg(feature = "itch")]
+pub mod itch;
 pub mod pipe;
 #[cfg(feature = "clickhouse")]
 pub mod pipe_clickhouse;
