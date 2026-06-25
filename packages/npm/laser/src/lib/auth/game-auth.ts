@@ -123,5 +123,6 @@ export function createChatClient(
 		jwt,
 		game: chat.game,
 		channel: chat.channel,
+		nick: usernameFromToken(jwt),
 	});
 }

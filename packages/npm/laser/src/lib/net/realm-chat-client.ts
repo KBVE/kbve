@@ -31,6 +31,10 @@ export interface RealmChatOptions {
 	game: string;
 	/** Channel the gateway routes this game to, e.g. "#cryptothrone" */
 	channel: string;
+	/** Sender's own display nick (from the JWT). Local-echoed on send — the
+	 * IRC gateway broadcasts to other clients but doesn't echo PRIVMSG back to
+	 * the originator, so without this the player never sees their own message. */
+	nick?: string;
 }
 
 /**
@@ -114,6 +118,13 @@ export class RealmChatClient {
 			content: trimmed,
 		};
 		this.socket.send(JSON.stringify(frame));
+		// Local echo: the gateway broadcasts to other clients but never sends
+		// the message back to its originator, so surface it locally under the
+		// player's own nick. Mirrors what other clients receive for this sender.
+		this.bus.emit('message', {
+			from: this.opts.nick || 'you',
+			text: trimmed,
+		});
 	}
 
 	close(): void {
