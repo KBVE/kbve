@@ -74,6 +74,13 @@ spec:
                         value: '4321'
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
+                      # Direct GoTrue (auth svc) for the Discord session bridge's
+                      # admin create-or-get — bypasses Kong's apikey ACL, which
+                      # rejects the runtime-minted service_role JWT with 401
+                      # (Kong wants the real API key, not a JWT). GoTrue validates
+                      # the JWT against GOTRUE_JWT_SECRET directly.
+                      - name: GOTRUE_INTERNAL_URL
+                        value: http://auth.kilobase.svc.cluster.local:9999
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
