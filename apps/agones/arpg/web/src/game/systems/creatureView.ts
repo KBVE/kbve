@@ -12,6 +12,8 @@ import {
 import { syncShadow, placeNameplate, drawCreatureDebug } from './entityView';
 import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
 
+const lastSampled = new WeakMap<object, { x: number; y: number }>();
+
 /**
  * Render-interpolate every creature entity: sample its interp buffer at the
  * delayed render time, place the sprite/shadow/nameplate, and drive its
@@ -37,6 +39,18 @@ export function tickCreatureInterp<R extends EntityRefs>(
 		placeNameplate(refs);
 		const st = refs.creature.state;
 		if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
+		const prev = lastSampled.get(refs.creature);
+		if (prev && prev.x === s.x && prev.y === s.y) {
+			if (st !== 'Idle')
+				setCreaturePose(refs.sprite, refs.creature, 'Idle');
+			continue;
+		}
+		if (prev) {
+			prev.x = s.x;
+			prev.y = s.y;
+		} else {
+			lastSampled.set(refs.creature, { x: s.x, y: s.y });
+		}
 		if (s.moving && (Math.abs(s.vx) > 1e-4 || Math.abs(s.vy) > 1e-4)) {
 			setCreaturePose(refs.sprite, refs.creature, 'Walking', {
 				dx: s.vx,

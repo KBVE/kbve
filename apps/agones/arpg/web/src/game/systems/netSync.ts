@@ -24,6 +24,8 @@ export interface SyncResolvers {
 const POS_SCALE = 32;
 const VEL_SCALE = 256;
 
+const despawnScratch: number[] = [];
+
 export interface SyncState {
 	myEid: number;
 	mySlot: number;
@@ -106,11 +108,15 @@ export function applyEntitySync<R>(
 		}
 	}
 
+	despawnScratch.length = 0;
+	for (const [serverEid] of store.entries()) {
+		if (!seen.has(serverEid)) despawnScratch.push(serverEid);
+	}
 	const despawned: number[] = [];
-	for (const [serverEid, , refs] of [...store.entries()]) {
-		if (seen.has(serverEid)) continue;
+	for (const serverEid of despawnScratch) {
+		const refs = store.refs(serverEid);
 		if (resolve.cat(store.kind(serverEid)) === CAT_ENV) onEnvChange?.();
-		bridge.remove(refs, serverEid);
+		if (refs !== undefined) bridge.remove(refs, serverEid);
 		store.despawn(serverEid);
 		despawned.push(serverEid);
 		if (serverEid === state.myEid) state.myEid = -1;
