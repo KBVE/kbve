@@ -106,6 +106,7 @@ import {
 	StairKind,
 	stairTile,
 } from './systems/dungeon';
+import { castFireballVfx } from './combat/spellVfx';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -129,6 +130,9 @@ import {
 	clearHud,
 	emitSpellLoadout,
 	emitNotification,
+	emitBoot,
+	emitConnection,
+	emitPlayers,
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
@@ -137,6 +141,7 @@ import {
 	makeSprite,
 	makeClassSprite,
 	makeCreatureSprite,
+	resetCreaturePose,
 	makeNameplate,
 	setClassPose,
 	setCreaturePose,
@@ -145,6 +150,7 @@ import {
 	isPlayerKind,
 	type EntityRefs,
 } from './entities/sprites';
+import { CreaturePool } from './systems/creaturePool';
 import {
 	preloadClass,
 	registerClassAnims,
@@ -196,6 +202,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private kinds!: KindResolvers;
 	private slotUsername = new Map<number, string>();
 
+	// Reuse pool for streamed creature sprites (predators cull/respawn constantly).
+	private creaturePool = new CreaturePool();
+
 	private dungeon = new DungeonField(DUNGEON_SEED, DUNGEON_RADIUS);
 	// Gate-graph adapter over the dungeon: room centers are nav gates, edges are
 	// the carved corridors weighted by width. Drives hierarchical click-pathing.
@@ -217,6 +226,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	>;
 
 	private netReady = false;
+	// True once the local player has spawned in-world: routes connection-state
+	// changes to the in-game reconnect banner instead of the boot overlay.
+	private bootReady = false;
+	private static readonly MAX_RECONNECTS = 3;
 	private mySlot = -1;
 	private myEid = -1;
 	private predictSeeded = false;
@@ -259,6 +272,13 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	preload() {
+		this.load.on('progress', (p: number) =>
+			emitBoot({
+				phase: 'assets',
+				message: 'Loading assets',
+				progress: p,
+			}),
+		);
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		this.load.image(GRASS_TEXTURE_KEY, arpgAsset(GRASS_TEXTURE_PATH));
 		this.load.image(
@@ -396,11 +416,19 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.syncBridge = {
 			create: (e: EntityDelta, label) => {
 				let refs: EntityRefs;
-				const creatureSprite = isPlayerKind(this.kinds, e.kind)
+				const player = isPlayerKind(this.kinds, e.kind);
+				const cref = this.kinds.ref(e.kind);
+				// Wake a parked creature of this def if one is pooled; only build a
+				// fresh sprite on a cold pool. Player + non-creature kinds skip both.
+				const pooled = player
 					? null
-					: makeCreatureSprite(this, this.kinds.ref(e.kind));
-				if (isPlayerKind(this.kinds, e.kind)) {
+					: this.creaturePool.acquire(cref ?? '');
+				const creatureSprite =
+					player || pooled ? null : makeCreatureSprite(this, cref);
+				if (player) {
 					refs = this.makePlayerRefs(e.kind);
+				} else if (pooled) {
+					refs = this.wakeCreature(pooled, e);
 				} else if (creatureSprite) {
 					refs = {
 						sprite: creatureSprite.sprite,
@@ -508,6 +536,17 @@ export class IsoArpgScene extends Phaser.Scene {
 					this.combat.dyingSprites.set(eid, refs);
 					return;
 				}
+				// Pool culled creatures (streaming predators churn constantly) so the
+				// next spawn of the same def reuses the Sprite instead of rebuilding.
+				if (
+					refs.creature &&
+					refs.sprite instanceof Phaser.GameObjects.Sprite
+				) {
+					const defId = refs.creature.def.id;
+					this.parkCreature(refs);
+					this.creaturePool.release(defId, refs);
+					return;
+				}
 				this.destroyRefs(refs);
 			},
 		};
@@ -529,6 +568,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private connectClient() {
 		const cfg = getNetConfig();
 		if (!cfg) return;
+		emitBoot({ phase: 'connecting', message: 'Connecting to the realm' });
 		const client = new GameClient({
 			url: cfg.wsUrl,
 			jwt: cfg.jwt,
@@ -543,6 +583,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
 			}
+			emitBoot({ phase: 'entering', message: 'Entering the dungeon' });
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
@@ -554,6 +595,58 @@ export class IsoArpgScene extends Phaser.Scene {
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
 			if (!e.ok) exitPlacementV(this.inv);
+		});
+
+		// Connection health: before the player spawns, drive the boot overlay;
+		// after, drive the in-game reconnect banner.
+		const max = IsoArpgScene.MAX_RECONNECTS;
+		client.on('state', (s) => {
+			if (this.bootReady) {
+				if (s.status === 'connected') {
+					emitConnection({
+						status: 'connected',
+						attempts: 0,
+						maxAttempts: max,
+					});
+				} else if (s.status === 'reconnecting') {
+					emitConnection({
+						status: 'reconnecting',
+						attempts: s.attempts,
+						maxAttempts: max,
+					});
+				} else if (s.status === 'closed') {
+					emitConnection({
+						status: 'closed',
+						attempts: s.attempts,
+						maxAttempts: max,
+					});
+				}
+			} else if (s.status === 'reconnecting') {
+				emitBoot({
+					phase: 'connecting',
+					message: `Reconnecting (${s.attempts}/${max})`,
+				});
+			} else if (s.status === 'closed') {
+				emitBoot({
+					phase: 'error',
+					message: 'Could not reach the server',
+				});
+			}
+		});
+		// Server refused us for good (bad/expired token, server full): terminal.
+		client.on('reject', (reason: string) => {
+			if (this.bootReady) {
+				emitConnection({
+					status: 'closed',
+					attempts: max,
+					maxAttempts: max,
+				});
+			} else {
+				emitBoot({
+					phase: 'error',
+					message: reason || 'Connection rejected',
+				});
+			}
 		});
 
 		client.connect();
@@ -598,6 +691,25 @@ export class IsoArpgScene extends Phaser.Scene {
 		const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
 		const target = targeted ? this.nearestHostile(meta?.range ?? 0) : null;
 		this.client?.castSpell(ref, target);
+		this.playSpellVfx(meta, target);
+	}
+
+	/**
+	 * Optimistic spell VFX fired on cast (server stays authoritative on damage).
+	 * Fire-school spells fly a fireball at the acquired target, or straight ahead
+	 * of the player when nothing is in range. Other schools have no VFX yet.
+	 */
+	private playSpellVfx(
+		meta: SpellMeta | undefined,
+		target: number | null,
+	): void {
+		if (meta?.school !== 'fire') return;
+		const from = this.move.predicted;
+		const to =
+			(target != null ? this.store.tile(target) : null) ??
+			floatTile(this.move.floatState);
+		if (to.x === from.x && to.y === from.y) return;
+		castFireballVfx(this, from, to);
 	}
 
 	/**
@@ -649,6 +761,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const p of s.players) {
 			this.slotUsername.set(p.slot, p.kbve_username);
 		}
+		emitPlayers(s.players.length);
 		const hadEid = this.myEid >= 0;
 		const state: SyncState = {
 			myEid: this.myEid,
@@ -683,6 +796,10 @@ export class IsoArpgScene extends Phaser.Scene {
 				state.serverPos ?? this.move.predicted,
 			);
 			this.refreshDungeon(this.move.predicted, true);
+			// Local player is in-world — tear down the boot/loading overlay and
+			// route any further connection drops to the in-game banner.
+			this.bootReady = true;
+			emitBoot({ phase: 'ready', message: '' });
 		} else if (this.myEid >= 0 && state.serverPos) {
 			this.reconcilePlayer(
 				state.serverPos,
@@ -747,6 +864,59 @@ export class IsoArpgScene extends Phaser.Scene {
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
 		destroyRefsV(refs);
+	}
+
+	/**
+	 * Park a culled creature for reuse: kill its tween, drop the cheap per-entity
+	 * HUD bits (rebuilt on wake), and hide the Sprite + shadow so Phaser's update
+	 * loop skips them. The pooled refs keep only sprite/shadow/creature.
+	 */
+	private parkCreature(refs: EntityRefs) {
+		this.tweens.killTweensOf(refs.sprite);
+		refs.settleTimer?.remove(false);
+		refs.settleTimer = undefined;
+		refs.nameplate?.destroy();
+		refs.nameplate = undefined;
+		refs.hpBar?.destroy();
+		refs.hpBar = undefined;
+		refs.statusFx?.destroy();
+		refs.statusFx = undefined;
+		refs.dbgText?.destroy();
+		refs.dbgText = undefined;
+		refs.dbgArrow?.destroy();
+		refs.dbgArrow = undefined;
+		refs.interp = undefined;
+		(refs.sprite as Phaser.GameObjects.Sprite)
+			.setActive(false)
+			.setVisible(false);
+		refs.shadow?.setActive(false).setVisible(false);
+	}
+
+	/**
+	 * Wake a pooled creature for a new spawn: reactivate the Sprite + shadow, reset
+	 * its pose to a fresh Idle/south, and re-seed interpolation. The cheap HUD bits
+	 * (nameplate/hpBar/statusFx) are rebuilt by the common create tail.
+	 */
+	private wakeCreature(refs: EntityRefs, e: EntityDelta): EntityRefs {
+		const sprite = refs.sprite as Phaser.GameObjects.Sprite;
+		sprite.setActive(true).setVisible(true);
+		refs.shadow?.setActive(true).setVisible(true);
+		if (refs.creature) resetCreaturePose(sprite, refs.creature);
+		refs.interp = newInterp(this.time.now, e.tile.x, e.tile.y);
+		if (DEBUG_CREATURE_DIRS) {
+			refs.dbgText = this.add
+				.text(0, 0, '', {
+					fontFamily: 'monospace',
+					fontSize: '13px',
+					color: '#34d399',
+					stroke: '#000000',
+					strokeThickness: 4,
+				})
+				.setOrigin(0.5, 1)
+				.setDepth(DEPTH_UI + 2);
+			refs.dbgArrow = this.add.graphics().setDepth(DEPTH_UI + 2);
+		}
+		return refs;
 	}
 
 	/**
@@ -1032,6 +1202,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			});
 			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
 		});
+		emitBoot({ phase: 'ready', message: '' });
 	}
 
 	/** Offline only: render a floating ground-loot sprite tracked in localItems. */

@@ -388,6 +388,23 @@ export function makeCreatureSprite(
 }
 
 /**
+ * Reset a recycled creature sprite + view back to the fresh-spawn state (Idle,
+ * facing south, correct display size + frame). Lets a pooled sprite be reused for
+ * a new creature of the same def without rebuilding the GameObject.
+ */
+export function resetCreaturePose(
+	sprite: Phaser.GameObjects.Sprite,
+	view: CreatureView,
+): void {
+	view.state = 'Idle';
+	view.facingDeg = CREATURE_SOUTH;
+	view.targetDeg = CREATURE_SOUTH;
+	view.dir = dirFromDeg(CREATURE_SOUTH);
+	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
+	safePlay(sprite, creatureAnimKey(view.def, 'Idle', view.dir));
+}
+
+/**
  * Set a creature's STATE and (when given a movement delta) facing TARGET. Like
  * setClassPose but 8-way and shadow-less: locomotion re-plays only on a state
  * change; one-shots always re-play and snap facing to the aim immediately.

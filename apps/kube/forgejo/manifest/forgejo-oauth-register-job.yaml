@@ -2,12 +2,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
     name: forgejo-oauth-register
-    namespace: kilobase
+    namespace: forgejo
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-    name: forgejo-oauth-register
+    name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
 rules:
     - apiGroups: ['']
@@ -22,22 +22,22 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-    name: forgejo-oauth-register
+    name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
-    name: forgejo-oauth-register
+    name: forgejo-oauth-register-kilobase-access
 subjects:
     - kind: ServiceAccount
       name: forgejo-oauth-register
-      namespace: kilobase
+      namespace: forgejo
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
     name: forgejo-oauth-register
-    namespace: kilobase
+    namespace: forgejo
     labels:
         app: forgejo-oauth-register
         kbve.com/category: development

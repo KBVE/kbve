@@ -5,6 +5,66 @@ import {
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
+// Boot/loading feedback while the scene preloads art, connects, and streams the
+// first map window — so the player sees progress instead of a blank canvas
+// between Discord approve and being in-world. `ready` tears the overlay down.
+export type BootPhase =
+	| 'assets'
+	| 'connecting'
+	| 'entering'
+	| 'ready'
+	| 'error';
+
+export interface BootStatus {
+	phase: BootPhase;
+	message: string;
+	/** 0..1 asset-load fraction, only during the `assets` phase. */
+	progress?: number;
+}
+
+export const BOOT_EVENT = 'arpg:boot';
+
+export function emitBoot(status: BootStatus): void {
+	laserEvents.emit(BOOT_EVENT, status);
+}
+
+export function onBoot(handler: (status: BootStatus) => void): () => void {
+	return laserEvents.on(BOOT_EVENT, handler as (data: unknown) => void);
+}
+
+// Post-boot connection health for the in-game banner (the boot overlay owns the
+// pre-spawn phase). Drives a "reconnecting" / "disconnected" banner so a dropped
+// socket reads as a clear state instead of a silently frozen world.
+export interface ConnectionView {
+	status: 'connected' | 'reconnecting' | 'closed';
+	attempts: number;
+	maxAttempts: number;
+}
+
+export const CONNECTION_EVENT = 'arpg:connection';
+
+export function emitConnection(view: ConnectionView): void {
+	laserEvents.emit(CONNECTION_EVENT, view);
+}
+
+export function onConnection(
+	handler: (view: ConnectionView) => void,
+): () => void {
+	return laserEvents.on(CONNECTION_EVENT, handler as (data: unknown) => void);
+}
+
+// Count of players currently in the world (incl. self), from each snapshot — so
+// the HUD can show "N online" and solo play reads as "you're alone", not broken.
+export const PLAYERS_EVENT = 'arpg:players';
+
+export function emitPlayers(count: number): void {
+	laserEvents.emit(PLAYERS_EVENT, count);
+}
+
+export function onPlayers(handler: (count: number) => void): () => void {
+	return laserEvents.on(PLAYERS_EVENT, handler as (data: unknown) => void);
+}
+
 export const HUD_EVENT = 'arpg:hud';
 
 /**

@@ -15,6 +15,39 @@ import {
 import { worldToScreen, type TileXY } from '../iso';
 import { setClassPose, type ClassView } from '../entities/sprites';
 import { facingDegFromDelta } from '../entities/classes';
+import { GameObjectPool } from './projectilePool';
+
+// Per-scene reuse pools for the two short-lived projectile objects. Arrows fly +
+// resolve constantly during combat; pooling them (and the impact sparks) avoids
+// the per-shot GameObject create/destroy + GC churn. Keyed by scene so a torn-
+// down scene drops its pools with it.
+interface ProjectilePools {
+	arrows: GameObjectPool<Phaser.GameObjects.Rectangle>;
+	sparks: GameObjectPool<Phaser.GameObjects.Arc>;
+}
+const poolsByScene = new WeakMap<Phaser.Scene, ProjectilePools>();
+
+function projectilePools(scene: Phaser.Scene): ProjectilePools {
+	let p = poolsByScene.get(scene);
+	if (!p) {
+		p = {
+			arrows: new GameObjectPool(() => {
+				const r = scene.add.rectangle(0, 0, 16, 3, 0xfde68a);
+				r.setStrokeStyle(1, 0x78350f, 0.9);
+				r.setOrigin(0.5, 0.5);
+				r.setDepth(DEPTH_PROJECTILE);
+				return r;
+			}),
+			sparks: new GameObjectPool(() => {
+				const c = scene.add.circle(0, 0, 5, 0xfff7d6, 0.9);
+				c.setDepth(DEPTH_PROJECTILE + 1);
+				return c;
+			}),
+		};
+		poolsByScene.set(scene, p);
+	}
+	return p;
+}
 
 /** Hit-test a flying arrow against a target each frame. */
 export type ArrowHitTest = (
@@ -142,11 +175,10 @@ function spawnArrow(
 	const b = worldToScreen(endTile.x, endTile.y);
 	b.y -= BOW_MUZZLE_HEIGHT;
 
-	// Small bright shaft; rotate to face the screen-space travel direction.
-	const arrow = scene.add.rectangle(a.x, a.y, 16, 3, 0xfde68a);
-	arrow.setStrokeStyle(1, 0x78350f, 0.9);
-	arrow.setOrigin(0.5, 0.5);
-	arrow.setDepth(DEPTH_PROJECTILE);
+	// Small bright shaft (pooled); rotate to face the screen-space travel dir.
+	const pools = projectilePools(scene);
+	const arrow = pools.arrows.acquire();
+	arrow.setPosition(a.x, a.y);
 	arrow.setRotation(Math.atan2(b.y - a.y, b.x - a.x));
 
 	const travelMs = (range / ARROW_SPEED) * 1000;
@@ -172,29 +204,31 @@ function spawnArrow(
 				tw.stop();
 				impact(scene, hit.x, hit.y);
 				onHit(hit.serverEid, ARROW_DMG);
-				arrow.destroy();
+				pools.arrows.release(arrow);
 			}
 		},
 		onComplete: () => {
 			if (!resolved) {
 				impact(scene, b.x, b.y);
-				arrow.destroy();
+				pools.arrows.release(arrow);
 			}
 		},
 	});
 }
 
-/** Brief impact spark where an arrow lands or hits. */
+/** Brief impact spark (pooled) where an arrow lands or hits. */
 function impact(scene: Phaser.Scene, x: number, y: number): void {
-	const spark = scene.add.circle(x, y, 5, 0xfff7d6, 0.9);
-	spark.setDepth(DEPTH_PROJECTILE + 1);
+	const spark = projectilePools(scene).sparks.acquire();
+	spark.setPosition(x, y);
+	spark.setScale(1);
+	spark.setAlpha(0.9);
 	scene.tweens.add({
 		targets: spark,
 		scale: 2.4,
 		alpha: 0,
 		duration: 160,
 		ease: 'Quad.easeOut',
-		onComplete: () => spark.destroy(),
+		onComplete: () => projectilePools(scene).sparks.release(spark),
 	});
 }
 

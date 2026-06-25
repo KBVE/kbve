@@ -12,6 +12,7 @@ import D2Hud from './ui/D2Hud';
 import ArpgMenu from './ArpgMenu';
 import ChatPanel from './ChatPanel';
 import ArpgToasts from './ArpgToasts';
+import ArpgBootOverlay from './ArpgBootOverlay';
 import {
 	COLORS,
 	DEBUG_HUD,
@@ -347,6 +348,7 @@ export default function ReactIsoArpgApp({
 				)}
 				<ArpgMenu />
 				<ArpgToasts />
+				<ArpgBootOverlay />
 				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
 				{glState === 'lost' && <WebGLOverlay mode="lost" />}
 			</>
