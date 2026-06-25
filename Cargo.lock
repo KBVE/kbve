@@ -1813,6 +1813,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-rentearth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama 0.15.6",
+ "axum 0.8.9",
+ "jedi",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "axum-server"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

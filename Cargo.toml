@@ -16,6 +16,7 @@ members = [
 	'apps/kbve/axum-kbve',
 	'apps/kbve/kbve-gate',
 	'apps/chuckrpg/axum-chuckrpg',
+	'apps/rentearth/axum-rentearth',
 	'apps/rareicon/axum-rareicon',
 	'apps/cryptothrone/axum-cryptothrone',
 	'apps/rows',
