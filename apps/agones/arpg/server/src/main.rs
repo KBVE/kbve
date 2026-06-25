@@ -1,5 +1,6 @@
 mod agones;
 mod auth;
+mod creatures;
 mod db;
 mod game;
 

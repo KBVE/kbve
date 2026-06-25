@@ -4780,6 +4780,202 @@
       "credits": "Asset reference: [Undead Executioner by DarkPixel Kronovi](https://darkpixel-kronovi.itch.io/undead-executioner).\nFuture integration: UV-ready shader for apps/kbve/isometric.\n"
     },
     {
+      "description": "A lithe sky-wyvern with translucent wings that hum with rushing wind, drifting in lazy spirals over the open grass. It roams the surface but never aggresses.\n",
+      "ref": "wyvern_air",
+      "id": "01KVZH165F3RA3QXDXZT5G2D3K",
+      "name": "Air Wyvern",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_PASSIVE",
+      "rank": "NPC_RANK_ELITE",
+      "family": "dragon",
+      "element": "ELEMENT_WIND",
+      "level": 2,
+      "stats": {
+        "hp": 40,
+        "maxHp": 40,
+        "attack": 0,
+        "defense": 1,
+        "speed": 5,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false
+      },
+      "spatial": {
+        "walkSpeed": 0.5,
+        "canFly": true
+      },
+      "flavorText": [
+        {
+          "action": "flee",
+          "messages": [
+            "The Air Wyvern banks hard on a gust and climbs out of reach in a single beat of its wings.",
+            "It catches a thermal and spirals up into the open sky, indifferent to those below."
+          ]
+        },
+        {
+          "action": "death",
+          "messages": [
+            "The Air Wyvern folds its wings and falls, the wind around it going suddenly still."
+          ]
+        }
+      ],
+      "lore": "Air Wyverns ride the high currents above the grasslands, harmless to travelers who leave them be.\nThey steer by the wind alone, riding thermals in wide, drifting circles and never stooping to attack.\n",
+      "credits": "KBVE Isometric ambient creature system.\n",
+      "faction": {
+        "factionId": "neutral"
+      }
+    },
+    {
+      "description": "A wyvern wreathed in heat-shimmer, embers curling from its wingtips as it wheels over the grass. It roams the surface but never aggresses.\n",
+      "ref": "wyvern_fire",
+      "id": "01KVZH165H90EGYDVTE5H2BAR9",
+      "name": "Fire Wyvern",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_PASSIVE",
+      "rank": "NPC_RANK_ELITE",
+      "family": "dragon",
+      "element": "ELEMENT_FIRE",
+      "level": 2,
+      "stats": {
+        "hp": 40,
+        "maxHp": 40,
+        "attack": 0,
+        "defense": 1,
+        "speed": 5,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false
+      },
+      "spatial": {
+        "walkSpeed": 0.5,
+        "canFly": true
+      },
+      "flavorText": [
+        {
+          "action": "flee",
+          "messages": [
+            "The Fire Wyvern flares its wings, scattering sparks, and beats away on a wash of hot air.",
+            "It climbs in a spiral of rising heat, leaving only a faint smell of smoke behind."
+          ]
+        },
+        {
+          "action": "death",
+          "messages": [
+            "The Fire Wyvern's embers gutter out as it falls, the air around it cooling fast."
+          ]
+        }
+      ],
+      "lore": "Fire Wyverns ride the warm updrafts of sun-baked grasslands, harmless to travelers who leave them be.\nEmbers trail from their wings as they wheel overhead, never stooping to attack.\n",
+      "credits": "KBVE Isometric ambient creature system.\n",
+      "faction": {
+        "factionId": "neutral"
+      }
+    },
+    {
+      "description": "A dusk-colored wyvern that seems to swallow the light around it, gliding silent and low over the grass. It roams the surface but never aggresses.\n",
+      "ref": "wyvern_shadow",
+      "id": "01KVZH165HGV92SHYBAM75WXX1",
+      "name": "Shadow Wyvern",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_PASSIVE",
+      "rank": "NPC_RANK_ELITE",
+      "family": "dragon",
+      "element": "ELEMENT_SHADOW",
+      "level": 2,
+      "stats": {
+        "hp": 40,
+        "maxHp": 40,
+        "attack": 0,
+        "defense": 1,
+        "speed": 5,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false
+      },
+      "spatial": {
+        "walkSpeed": 0.5,
+        "canFly": true
+      },
+      "flavorText": [
+        {
+          "action": "flee",
+          "messages": [
+            "The Shadow Wyvern melts into the dimness at the edge of sight and is simply not there anymore.",
+            "It folds into a long shadow and slides away across the grass without a sound."
+          ]
+        },
+        {
+          "action": "death",
+          "messages": [
+            "The Shadow Wyvern unravels into dusk as it falls, the gloom around it lifting."
+          ]
+        }
+      ],
+      "lore": "Shadow Wyverns haunt the long shadows of evening grasslands, harmless to travelers who leave them be.\nThey glide low and silent, drinking the dim light, never stooping to attack.\n",
+      "credits": "KBVE Isometric ambient creature system.\n",
+      "faction": {
+        "factionId": "neutral"
+      }
+    },
+    {
+      "description": "A sleek wyvern whose scales shimmer like rain on glass, trailing a fine mist as it glides over the grass. It roams the surface but never aggresses.\n",
+      "ref": "wyvern_water",
+      "id": "01KVZH165HXHX87DESWFBHGF8Y",
+      "name": "Water Wyvern",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_PASSIVE",
+      "rank": "NPC_RANK_ELITE",
+      "family": "dragon",
+      "element": "ELEMENT_ICE",
+      "level": 2,
+      "stats": {
+        "hp": 40,
+        "maxHp": 40,
+        "attack": 0,
+        "defense": 1,
+        "speed": 5,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false
+      },
+      "spatial": {
+        "walkSpeed": 0.5,
+        "canFly": true
+      },
+      "flavorText": [
+        {
+          "action": "flee",
+          "messages": [
+            "The Water Wyvern slips sideways through a curtain of its own mist and is gone.",
+            "It dives low, skims the dew, and rises away on cool damp air, paying no mind to those below."
+          ]
+        },
+        {
+          "action": "death",
+          "messages": [
+            "The Water Wyvern falls, its misty trail thinning to nothing before it lands."
+          ]
+        }
+      ],
+      "lore": "Water Wyverns drift along the morning fog lines, harmless to travelers who leave them be.\nThey gather dew on their wings and ride the cool air over the grasslands, never stooping to attack.\n",
+      "credits": "KBVE Isometric ambient creature system.\n",
+      "faction": {
+        "factionId": "neutral"
+      }
+    },
+    {
       "description": "Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't fatigue.\n",
       "ref": "zombie",
       "id": "01KSAVP0BZN4KBB5Y1P62RVVWS",
