@@ -35,7 +35,7 @@ concurrency:
 jobs:
     discover:
         name: Discover plugins
-        runs-on: arc-runner-set-kbve
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         outputs:
             linux: ${{ steps.matrix.outputs.linux }}

@@ -228,7 +228,7 @@ permissions: {}
 jobs:
     guard:
         name: Fork Guard
-        runs-on: arc-runner-set-kbve
+        runs-on: ubuntu-latest
         timeout-minutes: 2
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
