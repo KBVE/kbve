@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "agones",
  "async-trait",
@@ -1805,6 +1805,23 @@ dependencies = [
  "socket2 0.6.3",
  "thiserror 2.0.18",
  "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "axum-rentearth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama 0.15.6",
+ "axum 0.8.9",
+ "jedi",
+ "serde",
+ "serde_json",
  "tokio",
  "tower 0.5.3",
  "tower-http",
