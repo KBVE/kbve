@@ -47,7 +47,7 @@ export function preloadCreature(scene: Phaser.Scene, def: CreatureDef): void {
 		seen.add(anim.sheet);
 		scene.load.spritesheet(
 			sheetKey(def, anim.sheet),
-			arpgAsset(`${def.assetPath}/${anim.sheet}.png`),
+			arpgAsset(`${def.assetPath}/${anim.sheet}.${def.ext ?? 'png'}`),
 			{ frameWidth: def.frameSize, frameHeight: def.frameSize },
 		);
 	}

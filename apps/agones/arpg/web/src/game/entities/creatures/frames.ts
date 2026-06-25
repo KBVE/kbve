@@ -66,7 +66,9 @@ export function creatureSheetUrl(
 	state: CreatureState,
 ): string | null {
 	const anim = def.anims[state];
-	return anim ? arpgAsset(`${def.assetPath}/${anim.sheet}.png`) : null;
+	return anim
+		? arpgAsset(`${def.assetPath}/${anim.sheet}.${def.ext ?? 'png'}`)
+		: null;
 }
 
 /** First-frame texture key + frame for a state+direction (initial sprite). */

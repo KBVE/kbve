@@ -103,6 +103,9 @@ export interface CreatureAnim {
 export interface CreatureDef {
 	id: string;
 	assetPath: string;
+	/** Sheet file extension under assetPath. Defaults to `png`; webp-packed
+	 * creatures (e.g. wyvern) set `webp`. */
+	ext?: string;
 	frameSize: number;
 	displaySize: number;
 	originY: number;

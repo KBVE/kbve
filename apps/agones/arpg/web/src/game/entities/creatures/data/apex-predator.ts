@@ -4,6 +4,7 @@ import { type CreatureDef } from '../model';
 export const APEX_PREDATOR: CreatureDef = {
 	id: 'apex_predator',
 	assetPath: '/assets/arcade/arpg/creatures/apex_predator',
+	ext: 'webp',
 	frameSize: 512,
 	// Tile is 64px wide; 120 keeps the predator reading as a big creature while
 	// cutting the overhang that hung the old 160px body over walls/void. Pairs

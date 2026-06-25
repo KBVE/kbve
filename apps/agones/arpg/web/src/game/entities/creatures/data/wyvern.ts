@@ -32,6 +32,7 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 	return {
 		id,
 		assetPath: '/assets/arcade/arpg/creatures/wyvern',
+		ext: 'webp',
 		// Sheet shipped at 7168x1024 (256px frames downscaled 2x -> 128px) to stay
 		// under the 8192 WebGL max-texture size; frame indices are unchanged.
 		frameSize: 128,
