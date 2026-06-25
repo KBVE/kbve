@@ -7,3 +7,7 @@ resources:
     - rentearth-externalsecret.yaml
     - rentearth-deployment.yaml
     - httproute.yaml
+    - axum-rentearth-configmap.yaml
+    - axum-rentearth-secrets-sealedsecret.yaml
+    - axum-rentearth-deployment.yaml
+    - axum-rentearth-httproute.yaml

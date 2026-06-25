@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: axum-rentearth-config
+    namespace: rentearth
+    labels:
+        app: axum-rentearth
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+data:
+    HTTP_HOST: 0.0.0.0
+    HTTP_PORT: '4323'
+    RUST_LOG: info
+    ITCH_GAME_ID: '4147439'
