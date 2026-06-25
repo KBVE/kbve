@@ -3,12 +3,18 @@ kind: ServiceAccount
 metadata:
     name: forgejo-oauth-register
     namespace: forgejo
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
     name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 rules:
     - apiGroups: ['']
       resources: ['secrets']
@@ -24,6 +30,9 @@ kind: RoleBinding
 metadata:
     name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
