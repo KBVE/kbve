@@ -281,25 +281,64 @@ fn is_executable(_p: &Path) -> bool {
     false
 }
 
-pub fn launch() -> Result<(), LauncherError> {
+// Apple-Silicon UE scene-culling crash workaround; passed via -execcmds (UE
+// splits cvars on commas). Harmless on already-stable configs.
+const SAFE_CVARS: &str = "r.GPUScene.UpdateMode 0,r.InstanceCulling.OcclusionCull 0";
+
+fn set_executable(path: &Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(meta) = fs::metadata(path) {
+            let mut perms = meta.permissions();
+            perms.set_mode(perms.mode() | 0o755);
+            let _ = fs::set_permissions(path, perms);
+        }
+    }
+    #[cfg(not(unix))]
+    let _ = path;
+}
+
+fn mac_inner_binary(app: &Path) -> Option<PathBuf> {
+    let macos = app.join("Contents/MacOS");
+    if let Some(stem) = app.file_stem().and_then(|s| s.to_str()) {
+        let named = macos.join(stem);
+        if named.is_file() {
+            return Some(named);
+        }
+    }
+    fs::read_dir(&macos)
+        .ok()?
+        .flatten()
+        .map(|e| e.path())
+        .find(|p| p.is_file())
+}
+
+pub fn launch(url: Option<&str>) -> Result<(), LauncherError> {
     let state = read_state().ok_or(LauncherError::NotInstalled)?;
     let entrypoint = state.entrypoint.ok_or(LauncherError::NoEntrypoint)?;
     let path = PathBuf::from(&entrypoint);
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        if let Ok(meta) = fs::metadata(&path) {
-            let mut perms = meta.permissions();
-            perms.set_mode(perms.mode() | 0o755);
-            let _ = fs::set_permissions(&path, perms);
+    if cfg!(target_os = "macos") && has_ext(&path, "app") {
+        let _ = std::process::Command::new("xattr")
+            .args(["-d", "-r", "com.apple.quarantine"])
+            .arg(&path)
+            .status();
+        let bin = mac_inner_binary(&path).unwrap_or_else(|| path.clone());
+        set_executable(&bin);
+        let mut cmd = std::process::Command::new(&bin);
+        if let Some(u) = url {
+            cmd.arg(u);
         }
-    }
-
-    if cfg!(target_os = "macos") {
-        std::process::Command::new("open").arg(&path).spawn()?;
+        cmd.arg(format!("-execcmds={SAFE_CVARS}"));
+        cmd.spawn()?;
     } else {
-        std::process::Command::new(&path).spawn()?;
+        set_executable(&path);
+        let mut cmd = std::process::Command::new(&path);
+        if let Some(u) = url {
+            cmd.arg(u);
+        }
+        cmd.spawn()?;
     }
     Ok(())
 }

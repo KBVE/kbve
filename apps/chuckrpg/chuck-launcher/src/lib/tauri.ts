@@ -29,7 +29,7 @@ export const launcherApi = {
 	installState: () => invoke<Installed | null>('install_state'),
 	installUpdate: (backendUrl?: string) =>
 		invoke<Installed>('install_update', { backendUrl }),
-	launch: () => invoke<void>('launch'),
+	launch: (url?: string) => invoke<void>('launch', { url }),
 	onProgress: (cb: (p: Progress) => void): Promise<UnlistenFn> =>
 		listen<Progress>('install://progress', (e) => cb(e.payload)),
 };
