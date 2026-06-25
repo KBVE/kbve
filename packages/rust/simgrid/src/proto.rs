@@ -207,6 +207,9 @@ pub enum Input {
     Insure {
         amount: u32,
     },
+    Fell {
+        tile: Tile,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

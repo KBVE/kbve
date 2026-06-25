@@ -247,6 +247,10 @@ export class GameClient {
 		this.sendInputs([{ PickupObject: { tile } }]);
 	}
 
+	fell(tile: Tile): void {
+		this.sendInputs([{ Fell: { tile } }]);
+	}
+
 	buyItem(npc: number, itemRef: string, qty: number): void {
 		this.sendInputs([{ BuyItem: { npc, item_ref: itemRef, qty } }]);
 	}

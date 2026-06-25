@@ -138,12 +138,19 @@ pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
 #[derive(Resource, Default)]
 pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
 
+/// A player's fell request this tick, queued for `apply_fells` to validate
+/// (standing tree on the player's floor + adjacency) and resolve:
+/// `(target_tile, floor, player_tile)`.
+#[derive(Resource, Default)]
+pub struct PendingFells(Vec<(Tile, i32, Tile)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
 pub struct DeployQueues<'w> {
     placements: ResMut<'w, PendingPlacements>,
     pickups: ResMut<'w, PendingPickups>,
+    fells: ResMut<'w, PendingFells>,
     spells: ResMut<'w, crate::spells::PendingSpells>,
 }
 
@@ -155,6 +162,15 @@ pub struct PersistedEnvObject {
     pub x: i32,
     pub y: i32,
     pub floor: i32,
+    /// Per-instance state byte, mirroring `EntityDelta.sub`. Streamed felled trees
+    /// persist their `variant | 0x80` here so a re-spawn returns felled with the
+    /// same visual variant. Absent (0) for placed campfires.
+    #[serde(default, skip_serializing_if = "is_zero_u8")]
+    pub sub: u8,
+}
+
+fn is_zero_u8(v: &u8) -> bool {
+    *v == 0
 }
 
 /// Authoritative set of player-placed env objects to persist across restarts.
@@ -605,6 +621,28 @@ pub struct PlacedBy {
 #[derive(Component, Clone, Copy)]
 pub struct Blocker;
 
+/// Per-instance state for an env tree. `variant` ∈ 0..=69 selects the client
+/// visual; `felled` flips the tile from blocking to walkable. Encoded onto the
+/// snapshot's `EntityDelta.sub` as `(variant & 0x7F) | (felled ? 0x80 : 0)`.
+#[derive(Component, Clone, Copy)]
+pub struct TreeState {
+    pub variant: u8,
+    pub felled: bool,
+}
+
+impl TreeState {
+    pub fn sub(self) -> u8 {
+        (self.variant & 0x7F) | if self.felled { 0x80 } else { 0 }
+    }
+
+    pub fn from_sub(sub: u8) -> Self {
+        Self {
+            variant: sub & 0x7F,
+            felled: sub & 0x80 != 0,
+        }
+    }
+}
+
 /// Periodic heal for players within `range` (Chebyshev) of this tile, excluding
 /// the unstandable center. `range >= 1` keeps it disjoint from a `HazardZone`.
 #[derive(Component, Clone, Copy)]
@@ -662,6 +700,42 @@ pub fn spawn_env_object(
     }
     if let Some(h) = opts.hazard {
         e.insert(h);
+    }
+    Some(e.id())
+}
+
+/// Kind ref for the surface tree env prop. One ref covers all 70 visual variants;
+/// the variant + felled state ride `TreeState` (and `EntityDelta.sub` on the wire).
+pub const TREE_REF: &str = "tree";
+
+/// Number of tree visual variants the client ships (0..=TREE_VARIANTS-1).
+pub const TREE_VARIANTS: u8 = 70;
+
+/// Spawn a surface tree env entity carrying `TreeState`. A standing tree gets the
+/// `Blocker` marker (the caller blocks the tile via `WalkableMap::block_tile_z`);
+/// a felled one is walkable. Returns `None` when `tree` isn't registered.
+pub fn spawn_tree(
+    commands: &mut Commands,
+    registry: &KindRegistry,
+    tile: Tile,
+    floor: i32,
+    state: TreeState,
+) -> Option<Entity> {
+    let kind = registry.kind_of(TREE_REF)?;
+    let mut e = commands.spawn((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        EnvObject {
+            def_ref: TREE_REF.to_string(),
+        },
+        state,
+    ));
+    if floor != 0 {
+        e.insert(Floor(floor));
+    }
+    if !state.felled {
+        e.insert(Blocker);
     }
     Some(e.id())
 }
@@ -751,6 +825,7 @@ pub fn build_app(
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
         .insert_resource(PendingPickups::default())
+        .insert_resource(PendingFells::default())
         .insert_resource(PersistedEnvLog::default())
         .insert_resource(EnvPersistSink::default())
         .insert_resource(ShopStock::default())
@@ -794,6 +869,7 @@ pub fn build_app(
                 apply_drops,
                 apply_placements,
                 apply_pickups,
+                apply_fells,
                 apply_actions,
                 crate::spells::apply_spells,
                 crate::trade::expire_trades,
@@ -1190,6 +1266,9 @@ fn drain_inputs(
                 }
                 Input::PickupObject { tile } => {
                     deploy.pickups.0.push((slot.0, *tile, z, pos.tile));
+                }
+                Input::Fell { tile } => {
+                    deploy.fells.0.push((*tile, z, pos.tile));
                 }
                 Input::Step { .. }
                 | Input::MoveTo { .. }
@@ -1809,6 +1888,7 @@ fn apply_placements(
                 x: tile.x,
                 y: tile.y,
                 floor: z,
+                sub: 0,
             });
             changed = true;
         }
@@ -1857,6 +1937,49 @@ fn apply_pickups(
         map.unblock_tile_z(z, tile);
         log.0
             .retain(|o| !(o.x == tile.x && o.y == tile.y && o.floor == z));
+        changed = true;
+    }
+    if changed {
+        persist_env_snapshot(&log, &sink);
+    }
+}
+
+/// Resolve queued tree fellings: a player adjacent (Chebyshev <= 1) to a standing
+/// tree on their floor fells it — collision clears, state flips to felled, and the
+/// felled instance is persisted so it survives a restart. Invalid, out-of-range, or
+/// duplicate requests are dropped silently.
+#[allow(clippy::type_complexity)]
+fn apply_fells(
+    mut fells: ResMut<PendingFells>,
+    mut map: ResMut<WalkableMap>,
+    mut log: ResMut<PersistedEnvLog>,
+    sink: Res<EnvPersistSink>,
+    mut trees: Query<(Entity, &GridPos, Option<&Floor>, &mut TreeState)>,
+    mut commands: Commands,
+) {
+    let mut changed = false;
+    for (tile, z, from) in fells.0.drain(..) {
+        if from.chebyshev(tile) > 1 {
+            continue;
+        }
+        let Some((eid, _, _, mut state)) = trees.iter_mut().find(|(_, gp, fl, st)| {
+            gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && !st.felled
+        }) else {
+            continue;
+        };
+        state.felled = true;
+        let sub = state.sub();
+        map.unblock_tile_z(z, tile);
+        commands.entity(eid).remove::<Blocker>();
+        log.0
+            .retain(|o| !(o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == z));
+        log.0.push(PersistedEnvObject {
+            env_ref: TREE_REF.to_string(),
+            x: tile.x,
+            y: tile.y,
+            floor: z,
+            sub,
+        });
         changed = true;
     }
     if changed {
@@ -2453,6 +2576,7 @@ fn emit_snapshot(
         Option<&Floor>,
         Option<&FloatMove>,
         Option<&PlacedBy>,
+        Option<&TreeState>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2463,14 +2587,17 @@ fn emit_snapshot(
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed)| {
-                let sub = mv
-                    .filter(|m| m.target.is_some())
-                    .map(|m| {
-                        let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
-                        ((m.progress as u32 * 255) / span).min(255) as u8
-                    })
-                    .unwrap_or(0);
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree)| {
+                let sub = match tree {
+                    Some(t) => t.sub(),
+                    None => mv
+                        .filter(|m| m.target.is_some())
+                        .map(|m| {
+                            let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
+                            ((m.progress as u32 * 255) / span).min(255) as u8
+                        })
+                        .unwrap_or(0),
+                };
                 let effects = status
                     .map(|s| {
                         s.0.iter()

@@ -14,7 +14,7 @@ use simgrid::{
 use crate::creatures;
 use crate::creatures::{GOBLIN_COUNT, GOBLIN_LOOT_REF, goblin_spec};
 
-pub use crate::creatures::{stream_predators, stream_wyverns};
+pub use crate::creatures::{stream_predators, stream_trees, stream_wyverns};
 
 pub const MAX_PLAYERS: usize = 32;
 
@@ -92,6 +92,7 @@ pub fn registry() -> KindRegistry {
     reg.register_item(POTION_REF);
     reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
+    reg.register_env(simgrid::TREE_REF);
     reg
 }
 
@@ -373,6 +374,19 @@ pub fn spawn_world(
     // from the mapdb def) — still block/heal/burn, but no longer reclaimable.
     for o in &restored.0 {
         let tile = Tile::new(o.x, o.y);
+        // Felled trees persist as `tree` records carrying their variant|0x80 in
+        // `sub`. They come back already felled (walkable, no blocker) so a
+        // re-streamed tree on that tile stays down.
+        if o.env_ref == simgrid::TREE_REF {
+            simgrid::spawn_tree(
+                &mut commands,
+                &registry,
+                tile,
+                o.floor,
+                simgrid::TreeState::from_sub(o.sub),
+            );
+            continue;
+        }
         let Some(opts) = env_opts_from_mapdb(&o.env_ref, o.floor) else {
             continue;
         };

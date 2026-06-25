@@ -1,13 +1,14 @@
-use bevy::prelude::{Commands, Entity, Query, Res, With, Without};
+use bevy::prelude::{Commands, Entity, Query, Res, ResMut, With, Without};
 use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::rng::hash3;
 use simgrid::{
-    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PlayerSlotTag, SIM_TICK_HZ,
-    SimClock, SimSeed, WalkableMap, has_clearance, spawn_npc_from_spec,
+    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
+    SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TREE_VARIANTS, TreeState, WalkableMap, has_clearance,
+    spawn_npc_from_spec, spawn_tree,
 };
 
-use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, floor_near_z};
+use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, SPAWN_FLOOR, floor_near_z, player_spawn};
 
 pub const NPC_RESPAWN_TICKS: u32 = SIM_TICK_HZ * 30;
 
@@ -330,6 +331,108 @@ pub fn stream_wyverns(
             if let Some(spec) = wyvern_spec(&registry, origin, *pz, variant) {
                 spawn_npc_from_spec(&mut commands, &spec);
                 alive.push((origin, *pz));
+            }
+            break;
+        }
+    }
+}
+
+// Trees — NEUTRAL static env props on the z=0 grass surface. Each standing tree
+// blocks its tile; a player adjacent to one fells it (server-authoritative). They
+// stream around surface players like wyverns, each rolling a random visual variant
+// (0..=69), and persist their felled state via the env log.
+pub const TREE_PER_PLAYER: usize = 6;
+pub const TREE_SPAWN_MIN: i32 = 5;
+pub const TREE_SPAWN_MAX: i32 = 18;
+pub const TREE_DESPAWN_RADIUS: i32 = 40;
+pub const TREE_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+
+/// Stream surface trees around z=0 players, mirroring `stream_wyverns` but for a
+/// static blocking prop. Periodically tops each surface player's local stand back
+/// up to `TREE_PER_PLAYER` on open grass tiles in a ring, rolling a random variant
+/// per spawn and blocking the tile. Never spawns on the player spawn tile, the
+/// surface stairs, an already-occupied tile, or a tile a felled tree persisted to.
+#[allow(clippy::too_many_arguments)]
+pub fn stream_trees(
+    clock: Res<SimClock>,
+    seed: Res<SimSeed>,
+    registry: Res<KindRegistry>,
+    mut map: ResMut<WalkableMap>,
+    log: Res<PersistedEnvLog>,
+    players: Query<(&GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+    trees: Query<(Entity, &GridPos, Option<&Floor>), With<TreeState>>,
+    mut commands: Commands,
+) {
+    if !clock.tick.is_multiple_of(TREE_STREAM_PERIOD_TICKS) {
+        return;
+    }
+    if registry.kind_of(TREE_REF).is_none() {
+        return;
+    }
+
+    let surface_players: Vec<Tile> = players
+        .iter()
+        .filter(|(_, f)| f.map(|f| f.0).unwrap_or(0) == SPAWN_FLOOR)
+        .map(|(p, _)| p.tile)
+        .collect();
+
+    let mut alive: Vec<Tile> = Vec::new();
+    for (entity, pos, pfloor) in trees.iter() {
+        if pfloor.map(|f| f.0).unwrap_or(0) != SPAWN_FLOOR {
+            continue;
+        }
+        let near = surface_players
+            .iter()
+            .any(|pt| chebyshev(*pt, pos.tile) <= TREE_DESPAWN_RADIUS);
+        if near {
+            alive.push(pos.tile);
+        } else {
+            commands.entity(entity).despawn();
+            map.unblock_tile_z(SPAWN_FLOOR, pos.tile);
+        }
+    }
+
+    let spawn = player_spawn();
+    let (dx_t, dy_t) =
+        arpg_dungeon::stair_tile(DUNGEON_SEED, SPAWN_FLOOR, arpg_dungeon::StairKind::Down);
+    let down_stair = Tile::new(dx_t, dy_t);
+
+    for (i, ptile) in surface_players.iter().enumerate() {
+        let local = alive
+            .iter()
+            .filter(|t| chebyshev(**t, *ptile) <= TREE_SPAWN_MAX)
+            .count();
+        if local >= TREE_PER_PLAYER {
+            continue;
+        }
+        for attempt in 0..8u64 {
+            let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
+            let span = (TREE_SPAWN_MAX - TREE_SPAWN_MIN + 1) as u64;
+            let dist = TREE_SPAWN_MIN + ((h >> 8) % span) as i32;
+            let (dx, dy) = ring_offset((h % 8) as u8, dist);
+            let tile = Tile::new(ptile.x + dx, ptile.y + dy);
+            if tile == spawn || tile == down_stair {
+                continue;
+            }
+            if !map.is_walkable_z(SPAWN_FLOOR, tile) {
+                continue;
+            }
+            if alive.contains(&tile) {
+                continue;
+            }
+            if log.0.iter().any(|o| {
+                o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == SPAWN_FLOOR
+            }) {
+                continue;
+            }
+            let variant = ((h >> 16) % TREE_VARIANTS as u64) as u8;
+            let state = TreeState {
+                variant,
+                felled: false,
+            };
+            if spawn_tree(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
+                map.block_tile_z(SPAWN_FLOOR, tile);
+                alive.push(tile);
             }
             break;
         }

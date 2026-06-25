@@ -28,6 +28,7 @@ import {
 	BIOMES,
 	biomeTextureKey,
 	biomeTexturePath,
+	USE_GROUND_SHADER,
 	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
@@ -49,6 +50,10 @@ import {
 	syncFogToZoom,
 	type FogState,
 } from './systems/fog';
+import {
+	makeGroundShader,
+	type GroundShaderHandle,
+} from './systems/groundShader';
 import {
 	makeHudState,
 	tickHud,
@@ -160,7 +165,6 @@ import {
 import {
 	preloadCreature,
 	registerCreatureAnims,
-	resolveCreature,
 	APEX_PREDATOR,
 	DEBUG_CREATURE_DIRS,
 } from './entities/creatures';
@@ -172,6 +176,13 @@ import {
 	attachEnvLight,
 	ENV_REGISTRY,
 } from './entities/env';
+import {
+	preloadTrees,
+	makeTreeSprite,
+	fellTreeSprite,
+	decodeTreeSub,
+	TREE_REF,
+} from './entities/trees';
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
 
@@ -199,13 +210,14 @@ export class IsoArpgScene extends Phaser.Scene {
 	};
 	private dungeonView!: DungeonView;
 	private fog: FogState = makeFogState();
+	private ground?: GroundShaderHandle;
+	private onResize?: (size: Phaser.Structs.Size) => void;
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<
 		'up' | 'down' | 'left' | 'right',
 		Phaser.Input.Keyboard.Key
 	>;
 
-	private netReady = false;
 	// True once the local player has spawned in-world: routes connection-state
 	// changes to the in-game reconnect banner instead of the boot overlay.
 	private bootReady = false;
@@ -268,6 +280,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
+		preloadTrees(this);
 		preloadStairs(this);
 		preloadItemAtlas(this);
 	}
@@ -318,6 +331,13 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		this.drawGrid();
 		buildFog(this, this.fog);
+		if (USE_GROUND_SHADER) {
+			this.ground = makeGroundShader(this);
+			this.ground.shader.setVisible(this.isSurface());
+			this.onResize = (size: Phaser.Structs.Size) =>
+				this.ground?.resize(size.width, size.height);
+			this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize);
+		}
 		this.setupInput();
 		this.buildBridge();
 		attachCameraZoom(this, { min: 0.5, max: 2.0, step: 0.2 });
@@ -460,15 +480,23 @@ export class IsoArpgScene extends Phaser.Scene {
 							.setDepth(DEPTH_UI + 2);
 					}
 				} else if (this.kinds.cat(e.kind) === Cat.Env) {
-					const envSprite = makeEnvSprite(
-						this,
-						this.kinds.ref(e.kind),
-					);
-					refs = {
-						sprite:
-							envSprite ??
-							makeSprite(this, this.kinds, e.kind, false),
-					};
+					if (this.kinds.ref(e.kind) === TREE_REF) {
+						const { variant, felled } = decodeTreeSub(e.sub);
+						this.treeState.set(e.eid, { variant, felled });
+						refs = {
+							sprite: makeTreeSprite(this, variant, felled),
+						};
+					} else {
+						const envSprite = makeEnvSprite(
+							this,
+							this.kinds.ref(e.kind),
+						);
+						refs = {
+							sprite:
+								envSprite ??
+								makeSprite(this, this.kinds, e.kind, false),
+						};
+					}
 				} else if (this.kinds.cat(e.kind) === Cat.Item) {
 					// Ground loot: crop the item's tile from the itemdb atlas (a "?"
 					// placeholder until art lands). Falls back to the plain rect for
@@ -603,7 +631,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			} catch {
 				/* private mode */
 			}
-			this.netReady = true;
 			this.mySlot = w.your_slot;
 			this.kindRegistry.clear();
 			for (const entry of w.registry ?? []) {
@@ -816,6 +843,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			state,
 			this.markEnvDirty,
 		);
+		this.reconcileTrees(onFloor);
 		this.myEid = state.myEid;
 		this.move.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
@@ -916,6 +944,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		refs.dbgArrow?.destroy();
 		refs.dbgArrow = undefined;
 		refs.interp = undefined;
+		refs.lastMoveAt = undefined;
 		(refs.sprite as Phaser.GameObjects.Sprite)
 			.setActive(false)
 			.setVisible(false);
@@ -957,6 +986,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
+		this.ground?.shader.setVisible(this.isSurface());
 		this.move.predicted = { x: f.tile.x, y: f.tile.y };
 		this.move.floatState = makeFloatState(this.move.predicted);
 		this.dungeon = new DungeonField(
@@ -1000,7 +1030,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		emitNotification({ title: '', message: text });
 	}
 
-	update(time: number, delta: number) {
+	update(_time: number, delta: number) {
 		tickCreatureInterpV(this, this.store);
 		tickFacingV(this.store);
 		syncFogToZoom(this, this.fog);
@@ -1011,10 +1041,13 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		if (!this.client || !this.predictSeeded) return;
 
-		// Space fires the bow toward the cursor.
+		// Space fells an adjacent standing tree if there is one, else fires the bow
+		// toward the cursor.
 		if (Phaser.Input.Keyboard.JustDown(this.fireKey)) {
-			const ptr = this.input.activePointer;
-			this.fireBowAt(screenToWorldF(ptr.worldX, ptr.worldY));
+			if (!this.tryFellAdjacentTree()) {
+				const ptr = this.input.activePointer;
+				this.fireBowAt(screenToWorldF(ptr.worldX, ptr.worldY));
+			}
 		}
 
 		const myRefs = this.store.refs(this.myEid);
@@ -1070,12 +1103,71 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.envDirty = true;
 	};
 
+	// Tree felling is server-authoritative; per-tree variant + felled state rides
+	// the EntityDelta `sub` byte. Tracked here (not in the ECS store) so the env
+	// blocker rebuild can drop felled tiles and a standing->felled flip can play
+	// the cosmetic topple. Keyed by server eid.
+	private treeState = new Map<number, { variant: number; felled: boolean }>();
+
+	private reconcileTrees(entities: readonly EntityDelta[]): void {
+		const seen = new Set<number>();
+		for (const e of entities) {
+			if (this.kinds.cat(e.kind) !== Cat.Env) continue;
+			if (this.kinds.ref(e.kind) !== TREE_REF) continue;
+			seen.add(e.eid);
+			const { variant, felled } = decodeTreeSub(e.sub);
+			const prev = this.treeState.get(e.eid);
+			if (!prev) {
+				this.treeState.set(e.eid, { variant, felled });
+				continue;
+			}
+			if (felled && !prev.felled) {
+				const refs = this.store.refs(e.eid);
+				const sprite = refs?.sprite;
+				if (sprite instanceof Phaser.GameObjects.Sprite) {
+					const toRight = ((e.tile.x + e.tile.y) & 1) === 0;
+					fellTreeSprite(this, sprite, variant, toRight);
+				}
+				this.markEnvDirty();
+			}
+			prev.variant = variant;
+			prev.felled = felled;
+		}
+		for (const eid of [...this.treeState.keys()]) {
+			if (!seen.has(eid)) this.treeState.delete(eid);
+		}
+	}
+
 	private refreshEnvBlocked(): void {
 		this.envBlocked.clear();
 		for (const sid of this.store.serverIdsWith(Cat.Env)) {
+			if (this.treeState.get(sid)?.felled) continue;
 			const t = this.store.tile(sid);
 			if (t) this.envBlocked.add(packTile(t.x, t.y));
 		}
+	}
+
+	// Scan the 8 tiles around the player for a standing tree and ask the server to
+	// fell it (server validates adjacency + state and broadcasts the result).
+	private tryFellAdjacentTree(): boolean {
+		if (!this.client || this.myEid < 0) return false;
+		const me = this.store.tile(this.myEid);
+		if (!me) return false;
+		for (let dy = -1; dy <= 1; dy++) {
+			for (let dx = -1; dx <= 1; dx++) {
+				if (dx === 0 && dy === 0) continue;
+				const tx = me.x + dx;
+				const ty = me.y + dy;
+				const hit = this.store.at(tx, ty, this.myEid);
+				if (!hit) continue;
+				if (this.kinds.ref(this.store.kind(hit.serverEid)) !== TREE_REF)
+					continue;
+				if (this.treeState.get(hit.serverEid)?.felled) continue;
+				this.client.fell({ x: tx, y: ty });
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
@@ -1253,6 +1345,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private teardown() {
+		if (this.onResize) {
+			this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize);
+			this.onResize = undefined;
+		}
+		this.ground?.shader.destroy();
+		this.ground = undefined;
 		this.offIntent?.();
 		this.offIntent = undefined;
 		this.client?.close();

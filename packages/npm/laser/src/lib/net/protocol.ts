@@ -64,7 +64,8 @@ export type Input =
 	| 'LeaveTable'
 	| { PlaceBet: { amount: number } }
 	| { BjAction: { kind: BjActionKind } }
-	| { Insure: { amount: number } };
+	| { Insure: { amount: number } }
+	| { Fell: { tile: Tile } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
