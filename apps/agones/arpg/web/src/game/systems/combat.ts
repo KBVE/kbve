@@ -259,6 +259,9 @@ export function showCombat(
 		cam.flash(120, 90, 0, 0);
 		cam.shake(70, 0.004);
 	}
+	if (c.died && c.attacker === deps.myEid()) {
+		deps.scene.cameras.main.shake(90, 0.005);
+	}
 
 	// Drive creature combat poses: the attacker swings (facing its target), the
 	// victim recoils (or dies). Non-arrow deaths still settle via the hp<=0 check
