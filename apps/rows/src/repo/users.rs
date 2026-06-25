@@ -5,10 +5,7 @@ use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use uuid::Uuid;
 
 fn is_unique_violation(e: &sqlx::Error) -> bool {
-    e.as_database_error()
-        .and_then(|d| d.code())
-        .as_deref()
-        == Some("23505")
+    e.as_database_error().and_then(|d| d.code()).as_deref() == Some("23505")
 }
 
 pub struct UsersRepo<'a>(pub &'a DbPool);
