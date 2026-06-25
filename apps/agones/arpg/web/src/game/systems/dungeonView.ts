@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { packTile } from '@kbve/laser';
 import {
 	TILE_W,
 	TILE_H,
@@ -23,10 +24,13 @@ import {
  * this view owns only the Phaser display objects derived from it.
  */
 export interface DungeonView {
-	chunkGrounds: Map<string, Phaser.GameObjects.Container>;
+	// Packed chunk key (packTile(cx, cy)) -> world-anchored ground container.
+	chunkGrounds: Map<number, Phaser.GameObjects.Container>;
 	holeLayer: Phaser.GameObjects.Graphics;
 	stairSprites: Phaser.GameObjects.Image[];
-	lastChunkKey: string;
+	// Packed key of the chunk last streamed around; -1 = none yet (packed keys
+	// are always >= 0, so the sentinel never collides).
+	lastChunkKey: number;
 	// Material set + which sprite (1-12) renders for the up (ascend) and down
 	// (descend) stair. 1-8 are raised steps, 9-12 inverted pits; swap freely.
 	stairMaterial: StairMaterial;
@@ -42,7 +46,7 @@ export function makeDungeonView(scene: Phaser.Scene): DungeonView {
 		// in the tiled ground.
 		holeLayer: scene.add.graphics().setDepth(DEPTH_TILE + 1),
 		stairSprites: [],
-		lastChunkKey: '',
+		lastChunkKey: -1,
 		stairMaterial: 'grey_stone',
 		stairUpId: 1,
 		stairDownId: 9,
@@ -65,7 +69,7 @@ export function refreshDungeonView(
 	force = false,
 ): void {
 	const { cx, cy } = chunkOf(focus.x, focus.y);
-	const ckey = `${cx}:${cy}`;
+	const ckey = packTile(cx, cy);
 	if (!force && ckey === view.lastChunkKey) return;
 	view.lastChunkKey = ckey;
 
@@ -89,7 +93,7 @@ export function rebuildDungeonView(
 ): void {
 	for (const plane of view.chunkGrounds.values()) plane.destroy();
 	view.chunkGrounds.clear();
-	view.lastChunkKey = '';
+	view.lastChunkKey = -1;
 	refreshDungeonView(scene, view, dungeon, surface, focus, true);
 }
 
@@ -133,7 +137,7 @@ function buildChunkGround(
 	cx: number,
 	cy: number,
 ): void {
-	const key = `${cx}:${cy}`;
+	const key = packTile(cx, cy);
 	if (view.chunkGrounds.has(key)) return;
 	const side = CHUNK_SIZE * TILE_W + TILE_W * 2;
 	const sprite = scene.add.tileSprite(
@@ -166,7 +170,7 @@ function buildChunkGround(
 }
 
 function unloadChunkGround(view: DungeonView, cx: number, cy: number): void {
-	const key = `${cx}:${cy}`;
+	const key = packTile(cx, cy);
 	view.chunkGrounds.get(key)?.destroy();
 	view.chunkGrounds.delete(key);
 }

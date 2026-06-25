@@ -3,6 +3,7 @@ import {
 	GameClient,
 	EntityStore,
 	ACTION_PICKUP,
+	Cat,
 	type KindEntry,
 	type InventoryItem,
 } from '@kbve/laser';
@@ -219,7 +220,7 @@ export function tryAutoPickup(st: InventoryState, deps: InventoryDeps): void {
 	const me = deps.floatTilePos();
 	const client = deps.client();
 	if (client) {
-		for (const sid of deps.store.serverIdsWith('item')) {
+		for (const sid of deps.store.serverIdsWith(Cat.Item)) {
 			if (now < (st.pickupCooldown.get(sid) ?? 0)) continue;
 			const t = deps.store.tile(sid);
 			if (!t) continue;
@@ -380,7 +381,7 @@ export function spawnLocalEnv(
 ): void {
 	const kind = LOCAL_ENV_KIND;
 	if (!deps.kindRegistry.has(kind)) {
-		deps.kindRegistry.set(kind, { kind, ref: envRef, cat: 3 });
+		deps.kindRegistry.set(kind, { kind, ref: envRef, cat: Cat.Env });
 	}
 	const eid = LOCAL_ENV_EID_BASE + st.localEnvSeq++;
 	const sprite =
@@ -389,7 +390,7 @@ export function spawnLocalEnv(
 	placeSprite(deps.scene, sprite, tile.x, tile.y);
 	deps.store.spawn(
 		eid,
-		{ tile, kind, cat: 'env', owner: 0, hostile: false, hp: 0, maxHp: 0 },
+		{ tile, kind, cat: Cat.Env, owner: 0, hostile: false, hp: 0, maxHp: 0 },
 		{ sprite },
 	);
 }
@@ -407,7 +408,7 @@ export function spawnLocalItem(
 		deps.kindRegistry.set(LOCAL_ITEM_KIND, {
 			kind: LOCAL_ITEM_KIND,
 			ref,
-			cat: 2,
+			cat: Cat.Item,
 		});
 	}
 	const sprite = makeSprite(deps.scene, deps.kinds, LOCAL_ITEM_KIND, false);
@@ -425,7 +426,7 @@ export function spawnLocalItem(
 		{
 			tile,
 			kind: LOCAL_ITEM_KIND,
-			cat: 'item',
+			cat: Cat.Item,
 			owner: 0,
 			hostile: false,
 			hp: 0,

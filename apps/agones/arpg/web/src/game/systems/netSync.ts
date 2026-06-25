@@ -1,4 +1,10 @@
 import type { EntityDelta, EntityCat, EntityStore } from '@kbve/laser';
+
+// Numeric Cat values inlined (Player=0, Env=3) — netSync is unit-tested under
+// vitest's node env, where a value import of @kbve/laser's barrel won't resolve,
+// so we keep this module's laser imports type-only.
+const CAT_PLAYER = 0;
+const CAT_ENV = 3;
 import type { TileXY } from '../iso';
 
 export interface SyncBridge<R> {
@@ -57,9 +63,9 @@ export function applyEntitySync<R>(
 				},
 				refs,
 			);
-			if (cat === 'env') onEnvChange?.();
+			if (cat === CAT_ENV) onEnvChange?.();
 			if (
-				cat === 'player' &&
+				cat === CAT_PLAYER &&
 				e.owner === state.mySlot &&
 				state.myEid < 0
 			) {
@@ -90,7 +96,7 @@ export function applyEntitySync<R>(
 			const refs = store.refs(e.eid);
 			const moved = !!cur && (cur.x !== e.tile.x || cur.y !== e.tile.y);
 			if (refs && moved) bridge.move(refs, e.tile);
-			if (cat === 'env' && moved) onEnvChange?.();
+			if (cat === CAT_ENV && moved) onEnvChange?.();
 			store.update(e.eid, {
 				tile: { x: e.tile.x, y: e.tile.y },
 				hp: e.hp,
@@ -103,7 +109,7 @@ export function applyEntitySync<R>(
 	const despawned: number[] = [];
 	for (const [serverEid, , refs] of [...store.entries()]) {
 		if (seen.has(serverEid)) continue;
-		if (resolve.cat(store.kind(serverEid)) === 'env') onEnvChange?.();
+		if (resolve.cat(store.kind(serverEid)) === CAT_ENV) onEnvChange?.();
 		bridge.remove(refs, serverEid);
 		store.despawn(serverEid);
 		despawned.push(serverEid);

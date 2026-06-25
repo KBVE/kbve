@@ -36,8 +36,11 @@ WORKDIR /app/apps/irc/astro-irc
 # Host pages drop in `<script src="https://chat.kbve.com/embed/chat.js">`.
 RUN npx vite build --config vite.embed.config.ts
 
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-irc-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

@@ -9,7 +9,6 @@ import {
 	type Welcome,
 	type CombatEvent,
 	type FloorChangeEvent,
-	type Facing,
 	type InventorySync,
 	type ItemPlacedEvent,
 } from '@kbve/laser';
@@ -18,11 +17,6 @@ import {
 	TILE_W,
 	TILE_H,
 	MOVE_TWEEN_MS,
-	WALK_SPEED,
-	RUN_SPEED,
-	SIM_DT_MS,
-	ARRIVE_DIST,
-	WAYPOINT_REACH,
 	HEARTBEAT_MS,
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
@@ -45,7 +39,10 @@ import {
 	tileDepth,
 	type TileXY,
 } from './iso';
-import { CursorController, Cursor } from './input/cursor';
+import {
+	setupInput as setupInputV,
+	type SceneInputDeps,
+} from './input/sceneInput';
 import {
 	makeFogState,
 	buildFog,
@@ -85,11 +82,10 @@ import {
 	commitPlacement as commitPlacementV,
 	spawnLocalItem as spawnLocalItemV,
 	LOCAL_ITEM_EID_BASE,
-	PLACE_RANGE,
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore } from '@kbve/laser';
+import { EntityStore, packTile, Cat } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -97,13 +93,7 @@ import {
 	type SyncResolvers,
 	type SyncState,
 } from './systems/netSync';
-import {
-	makeFloatState,
-	stepFloat,
-	floatTile,
-	reconcileFloat,
-	type FloatState,
-} from './systems/floatMotion';
+import { makeFloatState, floatTile } from './systems/floatMotion';
 import {
 	DungeonField,
 	floorSeed,
@@ -122,16 +112,23 @@ import {
 	placeStairs as placeStairsView,
 	type DungeonView,
 } from './systems/dungeonView';
-import { findHierPath, type GateGraph } from './systems/pathfind';
+import { type GateGraph } from './systems/pathfind';
+import {
+	makeMovementState,
+	tickLocalMotion as tickLocalMotionV,
+	reconcilePlayer as reconcilePlayerV,
+	startMoveTo as startMoveToV,
+	type MovementState,
+	type MovementDeps,
+} from './systems/movement';
 import {
 	clearHud,
-	emitInventoryOpen,
 	emitSpellLoadout,
+	emitNotification,
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
 import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
-import { facingDegFromDelta } from './entities/classes';
 import {
 	makeSprite,
 	makeClassSprite,
@@ -188,19 +185,6 @@ const LOCAL_LOOT: ReadonlyArray<{
 	{ ref: 'coin', count: 12, dx: 2, dy: 2 },
 ];
 
-/**
- * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
- * cardinal directions the wire protocol carries. The server only needs a coarse
- * facing for remote-player pose; the client keeps the full 16-dir locally.
- */
-function cardinalFromDeg(deg: number): Facing {
-	const d = ((deg % 360) + 360) % 360;
-	if (d >= 315 || d < 45) return 'Up';
-	if (d < 135) return 'Right';
-	if (d < 225) return 'Down';
-	return 'Left';
-}
-
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
 	private store = new EntityStore<EntityRefs>();
@@ -231,27 +215,25 @@ export class IsoArpgScene extends Phaser.Scene {
 	private netReady = false;
 	private mySlot = -1;
 	private myEid = -1;
-	private predicted: TileXY = { x: 0, y: 0 };
-	private moveSendAccumMs = 0;
-	private wasMoving = false;
 	private predictSeeded = false;
-	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
-	// Click-move route: A* waypoints (smoothed), consumed front-to-back. Empty =
-	// no active click move. Keyboard input clears it.
-	private movePath: TileXY[] = [];
+	// Local player kinematic model: float body, click route, predicted tile,
+	// move-send throttle. Shared with combat/hud/inventory.
+	private move: MovementState = makeMovementState({ x: 0, y: 0 });
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
-	// Last cardinal facing sent to the server, so face() only fires on change.
-	private lastSentFacing: Facing | null = null;
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
 	// z is elevation: z>=SURFACE_MIN_Z (0) is open grassland — grass ground, no
 	// dungeon walls/holes, all walkable. The dungeon is underground at z<0.
 	private isSurface = (): boolean => this.currentFloor >= SURFACE_MIN_Z;
+	// The surface up-stair leads to z>0 (cities/above-ground), which isn't built
+	// yet — so it's a dead end. Tracks the tile we've already flashed the
+	// "goes nowhere" notice for, so it fires once per step-on, not every frame.
+	private deadStairTile: string | null = null;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -266,7 +248,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
-	private cursor!: CursorController;
 	private localMode = false;
 
 	constructor() {
@@ -347,7 +328,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.dungeonView,
 			this.dungeon,
 			this.isSurface(),
-			this.predicted,
+			this.move.predicted,
 		);
 	}
 
@@ -373,136 +354,33 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private setupInput() {
-		const kb = this.input.keyboard!;
-		this.cursors = kb.createCursorKeys();
-		this.wasd = {
-			up: kb.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-			down: kb.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-			left: kb.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-			right: kb.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-		};
-		this.fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		// 1-9 cast the matching spell slot; Shift+1-9 use the matching inventory
-		// slot. Read ev.code (Digit1..Digit9), not ev.key: holding Shift rewrites
-		// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
-		// I toggles the full inventory panel; Escape closes it.
-		kb.on('keydown', (ev: KeyboardEvent) => {
-			const digit = /^Digit([1-9])$/.exec(ev.code);
-			if (digit) {
-				const idx = Number(digit[1]) - 1;
-				if (ev.shiftKey) this.useInventorySlot(idx);
-				else this.castSpellSlot(idx);
-			} else if (ev.key === 'i' || ev.key === 'I') {
-				this.inv.open = !this.inv.open;
-				emitInventoryOpen(this.inv.open);
-			} else if (DEBUG_LOCAL_PLAYER && ev.key === '<') {
-				this.debugChangeFloor(1); // ascend z+1 (surface / above-ground)
-			} else if (DEBUG_LOCAL_PLAYER && ev.key === '>') {
-				this.debugChangeFloor(-1); // descend z-1 (deeper underground)
-			} else if (ev.key === 'Escape') {
-				if (this.inv.placingRef) {
-					this.exitPlacement();
-				} else if (this.inv.open) {
-					this.inv.open = false;
-					emitInventoryOpen(false);
-				}
-			}
-		});
-		this.input.mouse?.disableContextMenu();
-
-		this.cursor = new CursorController(this.game.canvas);
-		this.cursor.set(Cursor.Pointer);
-
-		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-			this.cursor.set(Cursor.Hold);
-			const aim = screenToWorldF(pointer.worldX, pointer.worldY);
-			const tile = { x: Math.round(aim.x), y: Math.round(aim.y) };
-
-			// Placement mode: left-click commits the deployable, right-click cancels.
-			if (this.inv.placingRef) {
-				if (pointer.rightButtonDown()) {
-					this.exitPlacement();
-				} else {
-					this.commitPlacement(tile);
-				}
-				return;
-			}
-
-			// Right button = fire the bow at the cursor (left = move/attack).
-			if (pointer.rightButtonDown()) {
-				this.fireBowAt(aim);
-				return;
-			}
-
-			// Reclaim an owned placed object (campfire). Checked before isBlocked
-			// since the object occupies — and therefore blocks — its own tile.
-			const owned = this.store.at(tile.x, tile.y, this.myEid);
-			if (
-				owned &&
-				this.kinds.catName(this.store.kind(owned.serverEid)) ===
-					'env' &&
-				this.store.owner(owned.serverEid) === this.mySlot
-			) {
-				const d = Math.max(
-					Math.abs(this.predicted.x - tile.x),
-					Math.abs(this.predicted.y - tile.y),
-				);
-				if (d <= PLACE_RANGE) this.client?.pickupObject(tile);
-				return;
-			}
-
-			if (this.isBlocked(tile.x, tile.y)) return;
-			const hit = this.store.at(tile.x, tile.y, this.myEid);
-			if (hit && this.isHostileServer(hit.serverEid)) {
-				// Fire at the clicked enemy. fireBowAt sends the single
-				// authoritative attack (targeting THIS enemy) — no separate
-				// action() call, or the server would see a double-fire.
-				this.movePath = [];
-				this.fireBowAt(aim, hit.serverEid);
-				return;
-			}
-			this.startMoveTo(tile);
-		});
-
-		this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-			this.updateCursorFor(
-				screenToWorld(pointer.worldX, pointer.worldY),
-				false,
-			);
-		});
-
-		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-			const tile = screenToWorld(pointer.worldX, pointer.worldY);
-			this.updateCursorFor(tile, pointer.isDown);
-			// Placement mode drives the ghost instead of the move-hover diamond.
-			if (this.inv.placingRef) {
-				this.hoverTile.setVisible(false);
-				this.updatePlaceGhost(tile);
-				return;
-			}
-			if (this.isBlocked(tile.x, tile.y)) {
-				this.hoverTile.setVisible(false);
-				return;
-			}
-			const p = worldToScreen(tile.x, tile.y);
-			this.hoverTile.setPosition(p.x, p.y).setVisible(true);
-		});
+		const refs = setupInputV(this, this.inputDeps());
+		this.cursors = refs.cursors;
+		this.wasd = refs.wasd;
+		this.fireKey = refs.fireKey;
 	}
 
-	// Hold while a button is down or placing; open hand (Take) over a pickup or
-	// NPC; pointing finger otherwise.
-	private updateCursorFor(tile: TileXY, pointerDown: boolean): void {
-		if (this.inv.placingRef || pointerDown) {
-			this.cursor.set(Cursor.Hold);
-			return;
-		}
-		const hit = this.store.at(tile.x, tile.y, this.myEid);
-		const cat = hit
-			? this.kinds.catName(this.store.kind(hit.serverEid))
-			: null;
-		this.cursor.set(
-			cat === 'item' || cat === 'npc' ? Cursor.Take : Cursor.Pointer,
-		);
+	private inputDeps(): SceneInputDeps {
+		return {
+			store: this.store,
+			kinds: this.kinds,
+			inv: this.inv,
+			move: this.move,
+			hoverTile: this.hoverTile,
+			client: () => this.client,
+			myEid: () => this.myEid,
+			mySlot: () => this.mySlot,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			isHostile: (e) => this.isHostileServer(e),
+			useInventorySlot: (i) => this.useInventorySlot(i),
+			castSpellSlot: (i) => this.castSpellSlot(i),
+			debugChangeFloor: (dz) => this.debugChangeFloor(dz),
+			exitPlacement: () => this.exitPlacement(),
+			commitPlacement: (t) => this.commitPlacement(t),
+			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
+			fireBowAt: (a, t) => this.fireBowAt(a, t),
+			startMoveTo: (t) => this.startMoveTo(t),
+		};
 	}
 
 	private buildBridge() {
@@ -535,7 +413,7 @@ export class IsoArpgScene extends Phaser.Scene {
 							.graphics()
 							.setDepth(DEPTH_UI + 2);
 					}
-				} else if (this.kinds.catName(e.kind) === 'env') {
+				} else if (this.kinds.cat(e.kind) === Cat.Env) {
 					const envSprite = makeEnvSprite(
 						this,
 						this.kinds.ref(e.kind),
@@ -558,7 +436,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
 				this.syncShadow(refs);
 				// Ground loot bobs gently so it reads as a pickup, not scenery.
-				if (this.kinds.catName(e.kind) === 'item') {
+				if (this.kinds.cat(e.kind) === Cat.Item) {
 					this.tweens.add({
 						targets: refs.sprite,
 						y: refs.sprite.y - 6,
@@ -615,14 +493,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		};
 
 		this.syncResolvers = {
-			cat: (kind) => this.kinds.catName(kind),
+			cat: (kind) => this.kinds.cat(kind),
 			hostile: (kind) => {
 				const cat = this.kinds.cat(kind);
 				return cat === 1 && this.kindRegistry.get(kind) !== undefined;
 			},
 			label: (e, cat) => {
-				if (cat === 'player') return this.slotUsername.get(e.owner);
-				if (cat === 'npc') return this.kinds.ref(e.kind) ?? undefined;
+				if (cat === Cat.Player) return this.slotUsername.get(e.owner);
+				if (cat === Cat.Npc) return this.kinds.ref(e.kind) ?? undefined;
 				return undefined;
 			},
 		};
@@ -677,7 +555,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			localMode: () => this.localMode,
-			floatTilePos: () => floatTile(this.floatState),
+			floatTilePos: () => floatTile(this.move.floatState),
 			dungeon: () => this.dungeon,
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			onPlacementArmed: () => this.hoverTile.setVisible(false),
@@ -709,10 +587,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * hit; the server is authoritative on whether the cast lands.
 	 */
 	private nearestHostile(range: number): number | null {
-		const me = this.predicted;
+		const me = this.move.predicted;
 		let best: number | null = null;
 		let bestD = Infinity;
-		for (const sid of this.store.serverIdsWith('npc')) {
+		for (const sid of this.store.serverIdsWith(Cat.Npc)) {
 			if (!this.isHostileServer(sid)) continue;
 			const t = this.store.tile(sid);
 			if (!t) continue;
@@ -755,7 +633,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const state: SyncState = {
 			myEid: this.myEid,
 			mySlot: this.mySlot,
-			predicted: this.predicted,
+			predicted: this.move.predicted,
 			predictSeeded: this.predictSeeded,
 		};
 		// Only render entities on the floor the local player is on. The snapshot
@@ -774,22 +652,24 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.markEnvDirty,
 		);
 		this.myEid = state.myEid;
-		this.predicted = state.predicted;
+		this.move.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
 
 		// Seed the float body when our entity first appears; thereafter soft-
 		// correct it toward the server-authoritative tile so the client stays
 		// smooth without drifting away from the server.
 		if (!hadEid && this.myEid >= 0) {
-			this.floatState = makeFloatState(state.serverPos ?? this.predicted);
-			this.refreshDungeon(this.predicted, true);
+			this.move.floatState = makeFloatState(
+				state.serverPos ?? this.move.predicted,
+			);
+			this.refreshDungeon(this.move.predicted, true);
 		} else if (this.myEid >= 0 && state.serverPos) {
 			this.reconcilePlayer(
 				state.serverPos,
 				state.serverVel ?? { x: 0, y: 0 },
 				state.inputAck ?? 0,
 			);
-			this.refreshDungeon(this.predicted);
+			this.refreshDungeon(this.move.predicted);
 		}
 		this.refreshHud();
 	}
@@ -799,24 +679,28 @@ export class IsoArpgScene extends Phaser.Scene {
 		serverVel: TileXY,
 		inputAck: number,
 	) {
-		const unacked = this.client?.ackMoves(inputAck) ?? [];
-		const replay = makeFloatState(serverPos);
-		// Seed the replay with the server's reported velocity so unacked inputs
-		// reproduce the authoritative coast; replaying from rest left the body
-		// trailing the server's still-moving position and drifting on stop.
-		replay.vel.x = serverVel.x;
-		replay.vel.y = serverVel.y;
-		for (const m of unacked) {
-			const speed = m.run ? RUN_SPEED : WALK_SPEED;
-			stepFloat(
-				replay,
-				{ x: m.mx / 127, y: m.my / 127 },
-				speed,
-				this.isBlocked,
-				SIM_DT_MS,
-			);
-		}
-		reconcileFloat(this.floatState, replay.pos);
+		reconcilePlayerV(
+			this.move,
+			this.moveDeps(),
+			serverPos,
+			serverVel,
+			inputAck,
+		);
+	}
+
+	private moveDeps(): MovementDeps {
+		return {
+			scene: this,
+			client: () => this.client,
+			localMode: () => this.localMode,
+			dungeon: () => this.dungeon,
+			gateGraph: this.gateGraph,
+			isBlocked: (x, y) => this.isBlocked(x, y),
+			cursors: this.cursors,
+			wasd: this.wasd,
+			combat: this.combat,
+			refreshDungeon: (tile) => this.refreshDungeon(tile),
+		};
 	}
 
 	private onCombat(c: CombatEvent) {
@@ -830,10 +714,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			localMode: () => this.localMode,
-			floatPos: () => this.floatState.pos,
+			floatPos: () => this.move.floatState.pos,
 			isHostile: (eid) => this.isHostileServer(eid),
 			clearMovePath: () => {
-				this.movePath = [];
+				this.move.movePath = [];
 			},
 			refreshHud: () => this.refreshHud(),
 			destroyRefs: (refs) => this.destroyRefs(refs),
@@ -853,8 +737,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
-		this.predicted = { x: f.tile.x, y: f.tile.y };
-		this.floatState = makeFloatState(this.predicted);
+		this.move.predicted = { x: f.tile.x, y: f.tile.y };
+		this.move.floatState = makeFloatState(this.move.predicted);
 		this.dungeon = new DungeonField(
 			floorSeed(DUNGEON_SEED, f.z),
 			DUNGEON_RADIUS,
@@ -872,9 +756,47 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private debugChangeFloor(dz: number) {
 		const z = this.currentFloor + dz;
+		// Surface cap: z>0 (cities/above-ground) isn't built yet — going up past
+		// the grass surface leads nowhere. Mirrors the server's Stairs::at cap.
+		if (z > 0) {
+			this.flashMessage('These stairs seem to go nowhere?!');
+			return;
+		}
 		const land = dz < 0 ? StairKind.Up : StairKind.Down;
 		const tile = stairTile(floorSeed(DUNGEON_SEED, z), land);
 		this.onFloorChange({ z, tile });
+	}
+
+	/**
+	 * The surface up-stair (z=0 -> z+1) is a dead end until cities/above-ground
+	 * floors exist. When the player stands on it, flash a one-shot notice — the
+	 * server won't move them (Stairs::at caps ascent at z=0), so without this the
+	 * stair would just silently do nothing.
+	 */
+	private checkDeadStair() {
+		if (this.currentFloor < 0) {
+			this.deadStairTile = null;
+			return;
+		}
+		const t = floatTile(this.move.floatState);
+		const up = stairTile(
+			floorSeed(DUNGEON_SEED, this.currentFloor),
+			StairKind.Up,
+		);
+		const key = `${up.x},${up.y}`;
+		if (t.x === up.x && t.y === up.y) {
+			if (this.deadStairTile !== key) {
+				this.deadStairTile = key;
+				this.flashMessage('These stairs seem to go nowhere?!');
+			}
+		} else if (this.deadStairTile === key) {
+			this.deadStairTile = null; // stepped off — allow it to fire again
+		}
+	}
+
+	/** One-shot on-screen notice via laser's global `notification` event. */
+	private flashMessage(text: string) {
+		emitNotification({ title: '', message: text });
 	}
 
 	update(time: number, delta: number) {
@@ -897,6 +819,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
+		this.checkDeadStair();
 		this.tryAutoPickup();
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.
@@ -912,7 +835,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		return {
 			scene: this,
 			store: this.store,
-			floatState: this.floatState,
+			floatState: this.move.floatState,
 			dungeon: this.dungeon,
 			myEid: this.myEid,
 			surface: this.isSurface(),
@@ -920,163 +843,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		};
 	}
 
-	/**
-	 * Float-driven local movement: keyboard (held = continuous intent) or a
-	 * click destination feeds a world-tile intent vector into the float sim,
-	 * which is then rendered, animated (Run/Idle by speed), and synced to the
-	 * server as cardinal steps whenever the underlying tile changes.
-	 */
 	private tickLocalMotion(refs: EntityRefs, deltaMs: number) {
-		const intent = this.readIntent();
-		const prevTile = floatTile(this.floatState);
-
-		// Walk tier while Shift is held; run otherwise. Each tier's body speed
-		// is tuned to its anim's stride, so feet don't slide at either pace.
-		const walking = this.cursors.shift?.isDown ?? false;
-		const speed = walking ? WALK_SPEED : RUN_SPEED;
-		stepFloat(this.floatState, intent, speed, this.isBlocked, deltaMs);
-
-		// Locomotion anim follows ACTIVE INTENT, not residual velocity: the
-		// moment input stops the body flips to Idle, even though friction is
-		// still bleeding the leftover velocity to a slide-stop. Keying off
-		// velocity instead left a few frames of run-in-place during decel.
-		const intending = Math.hypot(intent.x, intent.y) > 0;
-		// Moving cancels an in-progress shot: switch straight to Run instead of
-		// sliding in the bow pose. If the cancel lands before the release frame
-		// the arrow is suppressed (no shot fired); if it already loosed, the
-		// arrow still flies and only the recover is cut.
-		if (intending && this.combat.bowShot?.busy) {
-			this.combat.bowShot.cancel();
-		}
-		const firing = this.combat.bowShot?.busy ?? false;
-		if (
-			!firing &&
-			refs.cls &&
-			refs.sprite instanceof Phaser.GameObjects.Sprite
-		) {
-			if (intending) {
-				setClassPose(
-					refs.sprite,
-					refs.cls,
-					walking ? 'WalkForward' : 'Run',
-					{ dx: this.floatState.vel.x, dy: this.floatState.vel.y },
-					this,
-				);
-			} else if (
-				refs.cls.state === 'Run' ||
-				refs.cls.state === 'WalkForward'
-			) {
-				setClassPose(refs.sprite, refs.cls, 'Idle', undefined, this);
-			}
-		}
-
-		// While standing still (not moving, not firing), track the cursor: turn
-		// the body toward where the player is aiming so she's pre-aimed before a
-		// shot. tickClassFacing lerps targetDeg, so this reads as a natural turn.
-		if (!intending && !firing && refs.cls) {
-			const ptr = this.input.activePointer;
-			const aim = screenToWorldF(ptr.worldX, ptr.worldY);
-			const dx = aim.x - this.floatState.pos.x;
-			const dy = aim.y - this.floatState.pos.y;
-			if (Math.hypot(dx, dy) > 0.05) {
-				const deg = facingDegFromDelta(dx, dy);
-				refs.cls.targetDeg = deg;
-				this.sendFacing(cardinalFromDeg(deg));
-			}
-		}
-
-		this.renderFloat(refs);
-
-		// Keep the server roughly in sync: emit a cardinal step toward whatever
-		// new tile the float body has entered. The server stays authoritative;
-		// reconcileFloat soft-corrects any drift on the next snapshot.
-		const tile = floatTile(this.floatState);
-		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
-			this.predicted = tile;
-			this.refreshDungeon(tile);
-		}
-
-		this.moveSendAccumMs += deltaMs;
-		// Flush a release (moving -> idle) immediately instead of waiting for the
-		// 50ms cadence, so the server stops powering the held intent a throttle
-		// window sooner — cuts the on-stop over-travel the client can't predict.
-		const idleNow = intent.x === 0 && intent.y === 0;
-		const releaseEdge = this.wasMoving && idleNow;
-		if (releaseEdge || this.moveSendAccumMs >= 50) {
-			this.moveSendAccumMs = 0;
-			const mag = Math.hypot(intent.x, intent.y);
-			const moving = mag > 0;
-			if (moving || this.wasMoving) {
-				const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
-				const my = moving ? Math.round((intent.y / mag) * 127) : 0;
-				this.client?.move(mx, my, !walking);
-			}
-			this.wasMoving = moving;
-		}
-
-		// Drop the click route once the FINAL tile is reached or overshot, so the
-		// float never orbits the goal stuck in Run (intermediate waypoints are
-		// consumed in readIntent).
-		if (this.movePath.length === 1) {
-			const goal = this.movePath[0];
-			const dx = goal.x - this.floatState.pos.x;
-			const dy = goal.y - this.floatState.pos.y;
-			const dist = Math.hypot(dx, dy);
-			const overshot =
-				dx * this.floatState.vel.x + dy * this.floatState.vel.y < 0;
-			if (dist < ARRIVE_DIST || (overshot && dist < 1)) {
-				this.movePath = [];
-			}
-		}
-	}
-
-	/**
-	 * World-tile intent vector. Held keys win (and cancel any click route);
-	 * otherwise follow the A* path — steer toward the current waypoint, pop it
-	 * on arrival, and aim straight at the final tile (sub-unit intent near the
-	 * end so the body eases to a stop instead of overshooting).
-	 */
-	private readIntent(): TileXY {
-		const ix =
-			(this.cursors.right.isDown || this.wasd.right.isDown ? 1 : 0) -
-			(this.cursors.left.isDown || this.wasd.left.isDown ? 1 : 0);
-		const iy =
-			(this.cursors.down.isDown || this.wasd.down.isDown ? 1 : 0) -
-			(this.cursors.up.isDown || this.wasd.up.isDown ? 1 : 0);
-		if (ix !== 0 || iy !== 0) {
-			this.movePath = []; // keys override a click move
-			return { x: ix, y: iy };
-		}
-
-		while (this.movePath.length > 0) {
-			const wp = this.movePath[0];
-			const dx = wp.x - this.floatState.pos.x;
-			const dy = wp.y - this.floatState.pos.y;
-			const dist = Math.hypot(dx, dy);
-			// Reached this waypoint — pop and aim at the next. Use a looser
-			// threshold for intermediate waypoints so the body doesn't have to
-			// pass dead-center, only the final tile eases to a precise stop.
-			const last = this.movePath.length === 1;
-			const reach = last ? ARRIVE_DIST : WAYPOINT_REACH;
-			if (dist < reach) {
-				this.movePath.shift();
-				continue;
-			}
-			return { x: dx, y: dy };
-		}
-		return { x: 0, y: 0 };
-	}
-
-	/** Draw the local sprite at its fractional float position. */
-	private renderFloat(refs: EntityRefs) {
-		const p = worldToScreen(this.floatState.pos.x, this.floatState.pos.y);
-		refs.sprite.setPosition(p.x, p.y + 8);
-		refs.sprite.setDepth(
-			DEPTH_ENTITY_BASE +
-				tileDepth(this.floatState.pos.x, this.floatState.pos.y),
-		);
-		this.syncShadow(refs);
-		this.placeNameplate(refs);
+		tickLocalMotionV(this.move, this.moveDeps(), refs, deltaMs);
 	}
 
 	private tickCreatureInterp() {
@@ -1128,25 +896,13 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * instead of straight-lining into a wall. No path = no move.
 	 */
 	private startMoveTo(tile: TileXY) {
-		if (!this.client && !this.localMode) return;
-		const start = floatTile(this.floatState);
-		const path = findHierPath(
-			start,
-			tile,
-			(x, y) => !this.isBlocked(x, y),
-			this.gateGraph,
-		);
-		if (!path) {
-			this.movePath = [];
-			return;
-		}
-		this.movePath = path;
+		startMoveToV(this.move, this.moveDeps(), tile);
 	}
 
 	// Tiles occupied by env objects (campfire, …), rebuilt once per frame from the
 	// ECS store so local prediction blocks the same tiles the server does — else
 	// the player walks onto a campfire then snaps back on the next snapshot.
-	private envBlocked = new Set<string>();
+	private envBlocked = new Set<number>();
 	// Set by netSync on any env spawn/despawn/move; the set is rebuilt on the next
 	// frame instead of every frame. Starts dirty so the first snapshot seeds it.
 	private envDirty = true;
@@ -1157,17 +913,19 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private refreshEnvBlocked(): void {
 		this.envBlocked.clear();
-		for (const sid of this.store.serverIdsWith('env')) {
+		for (const sid of this.store.serverIdsWith(Cat.Env)) {
 			const t = this.store.tile(sid);
-			if (t) this.envBlocked.add(`${t.x},${t.y}`);
+			if (t) this.envBlocked.add(packTile(t.x, t.y));
 		}
 	}
 
 	// Endless dungeon: a tile is walkable iff it's a generated floor tile AND not
 	// occupied by an env blocker. No fixed bounds — walls are the absence of floor.
 	private isBlocked = (x: number, y: number): boolean => {
-		if (this.isSurface()) return this.envBlocked.has(`${x},${y}`);
-		return !this.dungeon.isFloor(x, y) || this.envBlocked.has(`${x},${y}`);
+		if (this.isSurface()) return this.envBlocked.has(packTile(x, y));
+		return (
+			!this.dungeon.isFloor(x, y) || this.envBlocked.has(packTile(x, y))
+		);
 	};
 
 	private isHostileServer(serverEid: number): boolean {
@@ -1213,7 +971,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.kindRegistry.set(kind, {
 			kind,
 			ref: RANGER_CLASS.id,
-			cat: 0, // KIND_CAT_PLAYER
+			cat: Cat.Player,
 		});
 		// Drop onto the nearest floor tile so the spawn never lands in a wall.
 		const tile = this.dungeon.nearestFloor(DEBUG_SPAWN_TILE);
@@ -1231,7 +989,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			{
 				tile,
 				kind,
-				cat: 'player',
+				cat: Cat.Player,
 				owner: 0,
 				hostile: false,
 				hp: 100,
@@ -1240,9 +998,9 @@ export class IsoArpgScene extends Phaser.Scene {
 			refs,
 		);
 		this.myEid = LOCAL_PLAYER_EID;
-		this.predicted = { ...tile };
+		this.move.predicted = { ...tile };
 		this.predictSeeded = true;
-		this.floatState = makeFloatState(tile);
+		this.move.floatState = makeFloatState(tile);
 		this.cameras.main.startFollow(refs.sprite, true, 0.12, 0.12);
 		this.cameras.main.setZoom(1.5);
 
@@ -1264,13 +1022,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		tile: TileXY,
 	): void {
 		spawnLocalItemV(this.inv, this.invDeps(), eid, ref, count, tile);
-	}
-
-	/** Send the cardinal aim to the server, but only when it changes. */
-	private sendFacing(facing: Facing) {
-		if (facing === this.lastSentFacing) return;
-		this.lastSentFacing = facing;
-		this.client?.face(facing);
 	}
 
 	/**

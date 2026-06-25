@@ -6,7 +6,7 @@ import {
 	query,
 	type World,
 } from './bitecs';
-import { SideMap, queryInRange } from './helpers';
+import { SideMap, queryInRange, packTile } from './helpers';
 import type { StatusView } from '../net/protocol';
 import {
 	Position,
@@ -21,7 +21,20 @@ import {
 	MonsterTag,
 } from './components';
 
-export type EntityCat = 'player' | 'npc' | 'item' | 'env';
+/**
+ * Entity category as a numeric tag matching the wire protocol's `KindEntry.cat`
+ * (0..3, server-authoritative). Kept numeric — not a string union — so it crosses
+ * a worker / WASM boundary as a plain int (shared/transferable typed arrays, no
+ * structured-clone or encode/decode marshalling) and compares as a branchless
+ * integer on the hot sim paths.
+ */
+export const Cat = {
+	Player: 0,
+	Npc: 1,
+	Item: 2,
+	Env: 3,
+} as const;
+export type EntityCat = (typeof Cat)[keyof typeof Cat];
 
 export interface SpawnData {
 	tile: { x: number; y: number };
@@ -49,13 +62,33 @@ export class EntityStore<R> {
 	private toServer = new Map<number, number>();
 	private sideRefs = new SideMap<R>();
 	private effectsMap = new Map<number, StatusView[]>();
+	// Spatial index: packed tile key -> eids occupying that tile. Maintained on
+	// spawn/update/despawn so at() is an O(bucket) lookup instead of an O(n) scan
+	// over every entity (it runs several times per frame: cursor, pickup, click,
+	// arrow hit-test).
+	private byTile = new Map<number, Set<number>>();
+
+	private indexAdd(eid: number, x: number, y: number): void {
+		const key = packTile(x, y);
+		let bucket = this.byTile.get(key);
+		if (!bucket) this.byTile.set(key, (bucket = new Set()));
+		bucket.add(eid);
+	}
+
+	private indexRemove(eid: number, x: number, y: number): void {
+		const key = packTile(x, y);
+		const bucket = this.byTile.get(key);
+		if (!bucket) return;
+		bucket.delete(eid);
+		if (bucket.size === 0) this.byTile.delete(key);
+	}
 
 	private tagFor(cat: EntityCat): Record<string, never> {
-		return cat === 'player'
+		return cat === Cat.Player
 			? PlayerTag
-			: cat === 'npc'
+			: cat === Cat.Npc
 				? NpcTag
-				: cat === 'env'
+				: cat === Cat.Env
 					? EnvTag
 					: ItemTag;
 	}
@@ -87,6 +120,7 @@ export class EntityStore<R> {
 		this.toEid.set(serverEid, eid);
 		this.toServer.set(eid, serverEid);
 		this.sideRefs.set(eid, refs);
+		this.indexAdd(eid, data.tile.x, data.tile.y);
 		if (data.effects) this.effectsMap.set(serverEid, data.effects);
 		return eid;
 	}
@@ -95,6 +129,12 @@ export class EntityStore<R> {
 		const eid = this.toEid.get(serverEid);
 		if (eid === undefined) return;
 		if (data.tile) {
+			const ox = Position.x[eid];
+			const oy = Position.y[eid];
+			if (data.tile.x !== ox || data.tile.y !== oy) {
+				this.indexRemove(eid, ox, oy);
+				this.indexAdd(eid, data.tile.x, data.tile.y);
+			}
 			Position.x[eid] = data.tile.x;
 			Position.y[eid] = data.tile.y;
 		}
@@ -111,6 +151,7 @@ export class EntityStore<R> {
 		const eid = this.toEid.get(serverEid);
 		if (eid === undefined) return undefined;
 		const refs = this.sideRefs.delete(eid);
+		this.indexRemove(eid, Position.x[eid], Position.y[eid]);
 		removeEntity(this.world, eid);
 		this.toEid.delete(serverEid);
 		this.toServer.delete(eid);
@@ -169,11 +210,13 @@ export class EntityStore<R> {
 		ty: number,
 		exceptServer: number,
 	): { serverEid: number; eid: number; refs: R } | null {
-		for (const [serverEid, eid, refs] of this.entries()) {
-			if (serverEid === exceptServer) continue;
-			if (Position.x[eid] === tx && Position.y[eid] === ty) {
-				return { serverEid, eid, refs };
-			}
+		const bucket = this.byTile.get(packTile(tx, ty));
+		if (!bucket) return null;
+		for (const eid of bucket) {
+			const serverEid = this.toServer.get(eid);
+			if (serverEid === undefined || serverEid === exceptServer) continue;
+			const refs = this.sideRefs.get(eid);
+			if (refs !== undefined) return { serverEid, eid, refs };
 		}
 		return null;
 	}

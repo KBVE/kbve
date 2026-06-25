@@ -1,4 +1,8 @@
-import { laserEvents, type InventoryItem } from '@kbve/laser';
+import {
+	laserEvents,
+	type InventoryItem,
+	type NotificationEventData,
+} from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
 export const HUD_EVENT = 'arpg:hud';
@@ -131,4 +135,16 @@ export function clearHud(): void {
 
 export function onHudClear(handler: () => void): () => void {
 	return laserEvents.on(HUD_CLEAR_EVENT, handler as (data: unknown) => void);
+}
+
+// Transient on-screen toast — uses laser's native `notification` event so any
+// system (stairs, pickups, level-up) can surface a message the HUD renders.
+export function emitNotification(n: NotificationEventData): void {
+	laserEvents.emit('notification', n);
+}
+
+export function onNotification(
+	handler: (n: NotificationEventData) => void,
+): () => void {
+	return laserEvents.on('notification', handler as (data: unknown) => void);
 }
