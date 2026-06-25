@@ -10,6 +10,12 @@ import {
 	TILE_SIZE,
 	atlasCell,
 } from '../../entities/itemAtlas.generated';
+import {
+	GothicPanel,
+	GothicSlot,
+	GothicTitleBar,
+	GothicDivider,
+} from '../gothic/Gothic';
 
 const ACCENT = '#fcd34d';
 const MUTED = '#9fb3d8';
@@ -239,7 +245,8 @@ export function InventoryBar({
 }
 
 const GRID_COLS = 6;
-const MIN_SLOTS = 24;
+const GRID_ROWS = 7;
+const SLOT_GAP = 5;
 
 export function InventoryPanel({
 	items,
@@ -252,10 +259,7 @@ export function InventoryPanel({
 }): ReactElement {
 	const { t } = useTranslation();
 	const { drag, floorHot } = dnd;
-	const slotCount = Math.max(
-		MIN_SLOTS,
-		Math.ceil(items.length / GRID_COLS) * GRID_COLS,
-	);
+	const slotCount = GRID_COLS * GRID_ROWS;
 
 	return (
 		<div
@@ -266,30 +270,24 @@ export function InventoryPanel({
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
-				background: 'rgba(2,3,6,0.45)',
+				background: 'rgba(2,3,6,0.55)',
 				pointerEvents: 'auto',
 			}}>
-			<PixelPanel
-				variant="gold"
-				scale={3}
-				style={{ width: 380, padding: '14px 16px 18px' }}>
-				<div
-					style={{
-						fontSize: 14,
-						fontWeight: 700,
-						color: ACCENT,
-						textShadow: TEXT_SHADOW,
-						letterSpacing: 0.5,
-						marginBottom: 12,
-						textAlign: 'center',
-					}}>
+			<GothicPanel
+				padding={18}
+				style={{
+					width: 380,
+					filter: 'drop-shadow(0 14px 40px rgba(0,0,0,0.6))',
+				}}>
+				<GothicTitleBar style={{ marginBottom: 12 }}>
 					{t('arpg.inventory.title')}
-				</div>
+				</GothicTitleBar>
+
 				<div
 					style={{
 						display: 'grid',
 						gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
-						gap: 6,
+						gap: SLOT_GAP,
 					}}>
 					{Array.from({ length: slotCount }, (_, i) => {
 						const it = items[i];
@@ -297,10 +295,10 @@ export function InventoryPanel({
 						const isDragging = drag === i;
 						const slot = dnd.slotProps(i, !!it);
 						return (
-							<div
+							<GothicSlot
 								key={i}
-								draggable={slot.draggable}
 								title={it ? (m?.name ?? it.ref) : undefined}
+								draggable={slot.draggable}
 								onDragStart={slot.onDragStart}
 								onDragOver={slot.onDragOver}
 								onDrop={slot.onDrop}
@@ -312,112 +310,58 @@ export function InventoryPanel({
 										});
 								}}
 								style={{
-									position: 'relative',
-									minHeight: 64,
-									padding: '6px 4px',
-									borderRadius: 4,
-									background: it
-										? 'rgba(0,0,0,0.35)'
-										: 'rgba(0,0,0,0.18)',
-									border: `1px solid ${
-										it
-											? `${rarityColor(m?.rarity)}55`
-											: 'rgba(120,140,180,0.18)'
-									}`,
-									textAlign: 'center',
 									cursor: it ? 'grab' : 'default',
 									opacity: isDragging ? 0.4 : 1,
 								}}>
-								{it && i < 9 && (
-									<span
-										style={{
-											position: 'absolute',
-											top: 2,
-											left: 4,
-											fontSize: 9,
-											color: ACCENT,
-											textShadow: TEXT_SHADOW,
-											opacity: 0.85,
-										}}>
-										{i + 1}
-									</span>
-								)}
 								{it && (
 									<>
-										<div
-											style={{
-												height: 24,
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												marginTop: 4,
-											}}>
-											<ItemIcon
-												meta={m}
-												itemRef={it.ref}
-												size={22}
-											/>
-										</div>
-										<div
-											style={{
-												fontSize: 8,
-												color: rarityColor(m?.rarity),
-												textShadow: TEXT_SHADOW,
-												marginTop: 3,
-												wordBreak: 'break-word',
-											}}>
-											{m?.name ?? it.ref}
-										</div>
-										<div
-											style={{
-												fontSize: 10,
-												fontWeight: 700,
-												color: ACCENT,
-												textShadow: TEXT_SHADOW,
-											}}>
-											×{it.count}
-										</div>
+										<ItemIcon
+											meta={m}
+											itemRef={it.ref}
+											size={30}
+										/>
+										{it.count > 1 && (
+											<span
+												style={{
+													position: 'absolute',
+													right: 4,
+													bottom: 2,
+													fontSize: 10,
+													fontWeight: 700,
+													color: ACCENT,
+													textShadow: TEXT_SHADOW,
+												}}>
+												{it.count}
+											</span>
+										)}
 									</>
 								)}
-							</div>
+							</GothicSlot>
 						);
 					})}
 				</div>
+
+				<GothicDivider style={{ margin: '12px 0 8px' }} />
 
 				<div
 					onDragOver={dnd.floorProps.onDragOver}
 					onDragLeave={dnd.floorProps.onDragLeave}
 					onDrop={dnd.floorProps.onDrop}
 					style={{
-						marginTop: 10,
-						padding: '8px 0',
+						padding: '7px 0',
 						borderRadius: 4,
-						border: `1px dashed ${floorHot ? '#f87171' : 'rgba(160,120,120,0.5)'}`,
-						background: floorHot
-							? 'rgba(248,113,113,0.18)'
-							: 'rgba(0,0,0,0.2)',
-						color: floorHot ? '#fca5a5' : MUTED,
-						textShadow: TEXT_SHADOW,
 						textAlign: 'center',
 						fontSize: 10,
+						color: floorHot ? '#fca5a5' : MUTED,
+						textShadow: TEXT_SHADOW,
+						border: `1px dashed ${floorHot ? '#f87171' : 'rgba(160,120,120,0.4)'}`,
+						background: floorHot
+							? 'rgba(248,113,113,0.18)'
+							: 'rgba(0,0,0,0.18)',
 					}}>
 					🗑 {t('arpg.inventory.dropFloor')}
 				</div>
-
-				<div
-					style={{
-						marginTop: 10,
-						fontSize: 9,
-						color: MUTED,
-						textShadow: TEXT_SHADOW,
-						textAlign: 'center',
-						opacity: 0.8,
-					}}>
-					{items.length === 0
-						? t('arpg.inventory.empty')
-						: t('arpg.inventory.hint')}
-				</div>
-			</PixelPanel>
+			</GothicPanel>
 		</div>
 	);
 }
