@@ -179,6 +179,7 @@ import {
 import {
 	preloadTrees,
 	makeTreeSprite,
+	reskinTreeSprite,
 	fellTreeSprite,
 	decodeTreeSub,
 	TREE_REF,
@@ -484,7 +485,7 @@ export class IsoArpgScene extends Phaser.Scene {
 						const { variant, felled } = decodeTreeSub(e.sub);
 						this.treeState.set(e.eid, { variant, felled });
 						refs = {
-							sprite: makeTreeSprite(this, variant, felled),
+							sprite: this.acquireTree(variant, felled),
 						};
 					} else {
 						const envSprite = makeEnvSprite(
@@ -585,6 +586,17 @@ export class IsoArpgScene extends Phaser.Scene {
 					const defId = refs.creature.def.id;
 					this.parkCreature(refs);
 					this.creaturePool.release(defId, refs);
+					return;
+				}
+				if (
+					this.treeState.has(eid) &&
+					refs.sprite instanceof Phaser.GameObjects.Sprite &&
+					this.treePool.length < IsoArpgScene.TREE_POOL_MAX
+				) {
+					this.tweens.killTweensOf(refs.sprite);
+					refs.sprite.setActive(false).setVisible(false);
+					this.treePool.push(refs.sprite);
+					this.treeState.delete(eid);
 					return;
 				}
 				this.destroyRefs(refs);
@@ -1108,6 +1120,28 @@ export class IsoArpgScene extends Phaser.Scene {
 	// blocker rebuild can drop felled tiles and a standing->felled flip can play
 	// the cosmetic topple. Keyed by server eid.
 	private treeState = new Map<number, { variant: number; felled: boolean }>();
+	// Idle tree sprites parked on despawn; reused on the next surface tree spawn so
+	// the streaming churn doesn't rebuild Sprites. Bounded to avoid unbounded hold.
+	private treePool: Phaser.GameObjects.Sprite[] = [];
+	private static readonly TREE_POOL_MAX = 64;
+
+	private acquireTree(
+		variant: number,
+		felled: boolean,
+	): Phaser.GameObjects.Sprite {
+		const pooled = this.treePool.pop();
+		const sprite = pooled
+			? reskinTreeSprite(pooled, variant, felled)
+			: makeTreeSprite(this, variant, felled);
+		sprite.setAlpha(0);
+		this.tweens.add({
+			targets: sprite,
+			alpha: 1,
+			duration: 300,
+			ease: 'Quad.easeOut',
+		});
+		return sprite;
+	}
 
 	private reconcileTrees(entities: readonly EntityDelta[]): void {
 		const seen = new Set<number>();

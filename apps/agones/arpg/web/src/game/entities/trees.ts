@@ -37,8 +37,8 @@ const BARE_FRAME_OFFSET = TREE_COLS * TREE_LEAFY_ROWS;
 
 // On-screen footprint (tile is 64px wide). Keep the cell's 1:2 ratio and anchor
 // near the trunk base so the tree plants on its tile and the canopy rises off it.
-export const TREE_DISPLAY_W = 96;
-export const TREE_DISPLAY_H = 192;
+export const TREE_DISPLAY_W = 144;
+export const TREE_DISPLAY_H = 288;
 export const TREE_ORIGIN_Y = 0.92;
 
 /** Sheet frame index for a leafy variant (wrapped into range). */
@@ -65,10 +65,24 @@ export function makeTreeSprite(
 	variant: number,
 	felled = false,
 ): Phaser.GameObjects.Sprite {
-	const frame = felled ? bareFrame(variant) : leafyFrame(variant);
-	const sprite = scene.add.sprite(0, 0, TREE_TEX, frame);
+	const sprite = scene.add.sprite(0, 0, TREE_TEX, leafyFrame(variant));
+	return reskinTreeSprite(sprite, variant, felled);
+}
+
+/** Reset a (possibly pooled) tree sprite to a clean standing/felled variant. */
+export function reskinTreeSprite(
+	sprite: Phaser.GameObjects.Sprite,
+	variant: number,
+	felled: boolean,
+): Phaser.GameObjects.Sprite {
+	sprite.setTexture(
+		TREE_TEX,
+		felled ? bareFrame(variant) : leafyFrame(variant),
+	);
 	sprite.setOrigin(0.5, TREE_ORIGIN_Y);
 	sprite.setDisplaySize(TREE_DISPLAY_W, TREE_DISPLAY_H);
+	sprite.setAngle(0);
+	sprite.setActive(true).setVisible(true);
 	return sprite;
 }
 
