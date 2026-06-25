@@ -81,8 +81,9 @@ metadata:
         kbve.com/stack: core
         kbve.com/managed-by: argocd
     annotations:
-        kbve.sh/last-updated: '2026-05-11'
+        kbve.sh/last-updated: '2026-06-25'
         argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     ttlSecondsAfterFinished: 86400
     backoffLimit: 3
