@@ -95,6 +95,13 @@ export interface CreatureAnim {
 	frameRate: number;
 	loop: boolean;
 	dirless?: boolean;
+	/**
+	 * Frames between one direction's run and the next WITHIN a half. Defaults to
+	 * `framesPerDir` (apex packs directions back-to-back). Row-major sheets that
+	 * give each direction a full row of multiple anims set this to the row width
+	 * (e.g. wyvern: 56-frame rows, 8 frames per anim → dirStride 56).
+	 */
+	dirStride?: number;
 }
 
 export interface CreatureDef {
@@ -105,6 +112,8 @@ export interface CreatureDef {
 	originY: number;
 	/** Facing -> in-half block index for this creature's sheet packing. */
 	dirBlocks: DirBlocks;
+	/** Sheet width in frames; the codex grid uses it. Defaults to 8 (apex grid). */
+	sheetCols?: number;
 	anims: Partial<Record<CreatureState, CreatureAnim>>;
 }
 
@@ -250,8 +259,65 @@ export const APEX_PREDATOR: CreatureDef = {
 	},
 };
 
+// Wyvern — a NEUTRAL flying creature that streams over the grass surface (z=0).
+// Sheet layout differs from apex: 14336x2048 of 256px frames = 8 ROWS (one per
+// facing) x 56 COLS, where each row holds 7 anims of 8 frames laid left-to-right:
+//   col-block 0 Hover · 1 Fly · 2 Sting · 3 Breathe · 4 Ram · 5 Hit · 6 Die
+// Directions are a full row apart (dirStride 56), anims 8 frames each. Rows 0-3
+// are the cardinal half, rows 4-7 the diagonal half (diagonalBase 4*56=224).
+// Ships as four elemental variants, each its own one-sheet CreatureDef.
+const WYVERN_FRAMES_PER_DIR = 8;
+const WYVERN_DIR_STRIDE = 56;
+const WYVERN_DIAG_BASE = 4 * WYVERN_DIR_STRIDE;
+
+function wyvernDef(id: string, sheet: string): CreatureDef {
+	const at = (
+		col: number,
+		frameRate: number,
+		loop: boolean,
+	): CreatureAnim => ({
+		sheet,
+		cardinalBase: col * WYVERN_FRAMES_PER_DIR,
+		diagonalBase: WYVERN_DIAG_BASE + col * WYVERN_FRAMES_PER_DIR,
+		framesPerDir: WYVERN_FRAMES_PER_DIR,
+		dirStride: WYVERN_DIR_STRIDE,
+		frameRate,
+		loop,
+	});
+	return {
+		id,
+		assetPath: '/assets/arcade/arpg/creatures/wyvern',
+		frameSize: 256,
+		displaySize: 112,
+		// Flyer: anchor high in the frame so the body hovers above the tile instead
+		// of standing on it. Eyeball against the debug overlay like apex's 0.82.
+		originY: 0.6,
+		sheetCols: 56,
+		dirBlocks: NAIVE_DIR_BLOCKS,
+		anims: {
+			Idle: at(0, 6, true),
+			Walking: at(1, 10, true),
+			Running: at(1, 14, true),
+			Attack1: at(2, 12, false),
+			Attack2: at(3, 10, false),
+			UseSkill: at(4, 12, false),
+			GetHit: at(5, 14, false),
+			Dead: at(6, 8, false),
+		},
+	};
+}
+
+export const WYVERN_AIR = wyvernDef('wyvern_air', 'wyvern_air');
+export const WYVERN_WATER = wyvernDef('wyvern_water', 'wyvern_water');
+export const WYVERN_FIRE = wyvernDef('wyvern_fire', 'wyvern_fire');
+export const WYVERN_SHADOW = wyvernDef('wyvern_shadow', 'wyvern_shadow');
+
 const CREATURE_REGISTRY: Record<string, CreatureDef> = {
 	apex_predator: APEX_PREDATOR,
+	wyvern_air: WYVERN_AIR,
+	wyvern_water: WYVERN_WATER,
+	wyvern_fire: WYVERN_FIRE,
+	wyvern_shadow: WYVERN_SHADOW,
 };
 
 /** Look up a creature def by its kind ref, or null if the ref isn't a creature. */
@@ -288,7 +354,8 @@ function frameRange(
 		};
 	}
 	const base = DIAGONAL_DIRS.has(dir) ? anim.diagonalBase : anim.cardinalBase;
-	const start = base + dirBlocks[dir] * anim.framesPerDir;
+	const stride = anim.dirStride ?? anim.framesPerDir;
+	const start = base + dirBlocks[dir] * stride;
 	return { start, end: start + anim.framesPerDir - 1 };
 }
 
@@ -341,7 +408,13 @@ export function registerCreatureAnims(
 export const CREATURE_SHEET_COLS = 8;
 
 /** Every registered creature, for the in-game bestiary/codex. */
-export const CREATURES: CreatureDef[] = [APEX_PREDATOR];
+export const CREATURES: CreatureDef[] = [
+	APEX_PREDATOR,
+	WYVERN_AIR,
+	WYVERN_WATER,
+	WYVERN_FIRE,
+	WYVERN_SHADOW,
+];
 
 /** States a creature actually ships, in declaration order. */
 export function creatureStates(def: CreatureDef): CreatureState[] {

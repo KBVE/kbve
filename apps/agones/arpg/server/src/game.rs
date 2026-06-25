@@ -81,6 +81,26 @@ pub const PREDATOR_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
 // floor isn't an instant ambush.
 pub const STAIR_SAFE_RADIUS: i32 = 8;
 
+// Wyvern — a NEUTRAL flying creature that drifts over the grass surface (z >= 0),
+// the peaceful counterpart to the underground predator. It roams but never aggros
+// (aggro: None), so the surface stays safe. Ships as four elemental variant sheets
+// on the client; the server rolls one per spawn. Flyer, so no big-body clearance
+// rule — it hovers above the tiles instead of clipping walls.
+pub const WYVERN_REFS: [&str; 4] = ["wyvern_air", "wyvern_water", "wyvern_fire", "wyvern_shadow"];
+pub const WYVERN_HP: i32 = 40;
+pub const WYVERN_DEFENSE: i32 = 1;
+pub const WYVERN_TICKS_PER_TILE: u8 = 4;
+pub const WYVERN_LEVEL: i32 = 2;
+pub const WYVERN_ROAM_RADIUS: i32 = 14;
+pub const WYVERN_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
+pub const WYVERN_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 2;
+pub const WYVERN_CLEARANCE: i32 = 0;
+pub const WYVERN_PER_PLAYER: usize = 2;
+pub const WYVERN_SPAWN_MIN: i32 = 14;
+pub const WYVERN_SPAWN_MAX: i32 = 24;
+pub const WYVERN_DESPAWN_RADIUS: i32 = 44;
+pub const WYVERN_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+
 pub const CAMPFIRE_REF: &str = "campfire";
 
 // The deployable inventory item that places a `campfire` env object. Carried in
@@ -128,6 +148,9 @@ pub fn registry() -> KindRegistry {
     let mut reg = KindRegistry::new();
     reg.register_npc(GOBLIN_REF);
     reg.register_npc(PREDATOR_REF);
+    for wyvern in WYVERN_REFS {
+        reg.register_npc(wyvern);
+    }
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
@@ -475,6 +498,115 @@ pub fn stream_predators(
                 continue;
             }
             if let Some(spec) = predator_spec(&registry, origin, *pz) {
+                spawn_npc_from_spec(&mut commands, &spec);
+                alive.push((origin, *pz));
+            }
+            break;
+        }
+    }
+}
+
+fn wyvern_spec(
+    registry: &KindRegistry,
+    origin: Tile,
+    floor: i32,
+    variant: usize,
+) -> Option<NpcSpec> {
+    let kind = registry.kind_of(WYVERN_REFS[variant % WYVERN_REFS.len()])?;
+    Some(NpcSpec {
+        kind,
+        origin,
+        floor,
+        ticks_per_tile: WYVERN_TICKS_PER_TILE,
+        max_hp: WYVERN_HP,
+        level: WYVERN_LEVEL,
+        defense: WYVERN_DEFENSE,
+        wander: None,
+        roam: Some((
+            WYVERN_ROAM_RADIUS,
+            WYVERN_DWELL_MIN_TICKS,
+            WYVERN_DWELL_MAX_TICKS,
+            WYVERN_CLEARANCE,
+        )),
+        // Neutral: drifts past players without engaging.
+        aggro: None,
+        loot: None,
+        respawn_ticks: 0,
+    })
+}
+
+/// Stream neutral wyverns over the grass surface, mirroring `stream_predators`
+/// but for SURFACE players (z >= 0) and with no aggro. Periodically culls any
+/// wyvern that drifted out of every surface player's despawn radius, then tops
+/// each player's local flock back up to `WYVERN_PER_PLAYER` on open tiles in a
+/// ring around them, rolling a random elemental variant per spawn.
+pub fn stream_wyverns(
+    clock: Res<SimClock>,
+    seed: Res<SimSeed>,
+    registry: Res<KindRegistry>,
+    map: Res<WalkableMap>,
+    players: Query<(&GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+    wyverns: Query<(Entity, &GridPos, Option<&Floor>, &EntityKind), Without<PlayerSlotTag>>,
+    mut commands: Commands,
+) {
+    if !clock.tick.is_multiple_of(WYVERN_STREAM_PERIOD_TICKS) {
+        return;
+    }
+    let wyvern_kinds: Vec<u16> = WYVERN_REFS
+        .iter()
+        .filter_map(|r| registry.kind_of(r))
+        .collect();
+    if wyvern_kinds.is_empty() {
+        return;
+    }
+
+    // Only players on the surface (z >= 0) attract wyverns; the dungeon is the
+    // predator's domain.
+    let surface_players: Vec<(Tile, i32)> = players
+        .iter()
+        .map(|(p, f)| (p.tile, f.map(|f| f.0).unwrap_or(0)))
+        .filter(|(_, z)| *z >= 0)
+        .collect();
+
+    let mut alive: Vec<(Tile, i32)> = Vec::new();
+    for (entity, pos, pfloor, kind) in wyverns.iter() {
+        if !wyvern_kinds.contains(&kind.0) {
+            continue;
+        }
+        let pz = pfloor.map(|f| f.0).unwrap_or(0);
+        let near = surface_players
+            .iter()
+            .any(|(pt, z)| *z == pz && chebyshev(*pt, pos.tile) <= WYVERN_DESPAWN_RADIUS);
+        if near {
+            alive.push((pos.tile, pz));
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+
+    for (i, (ptile, pz)) in surface_players.iter().enumerate() {
+        let local = alive
+            .iter()
+            .filter(|(t, z)| z == pz && chebyshev(*t, *ptile) <= WYVERN_SPAWN_MAX)
+            .count();
+        if local >= WYVERN_PER_PLAYER {
+            continue;
+        }
+        for attempt in 0..8u64 {
+            let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
+            let span = (WYVERN_SPAWN_MAX - WYVERN_SPAWN_MIN + 1) as u64;
+            let dist = WYVERN_SPAWN_MIN + ((h >> 8) % span) as i32;
+            let (dx, dy) = ring_offset((h % 8) as u8, dist);
+            let hint = Tile::new(ptile.x + dx, ptile.y + dy);
+            let origin = floor_near_z(hint, *pz);
+            if chebyshev(origin, *ptile) < WYVERN_SPAWN_MIN {
+                continue;
+            }
+            if !has_clearance(&map, *pz, origin, WYVERN_CLEARANCE) {
+                continue;
+            }
+            let variant = ((h >> 16) % WYVERN_REFS.len() as u64) as usize;
+            if let Some(spec) = wyvern_spec(&registry, origin, *pz, variant) {
                 spawn_npc_from_spec(&mut commands, &spec);
                 alive.push((origin, *pz));
             }

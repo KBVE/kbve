@@ -82,8 +82,9 @@ export default function CreatureCodex({ onClose }: { onClose: () => void }) {
 				lastF = f;
 				ctx.clearRect(0, 0, VIEW, VIEW);
 				if (img.complete && img.naturalWidth > 0) {
-					const col = f % CREATURE_SHEET_COLS;
-					const row = Math.floor(f / CREATURE_SHEET_COLS);
+					const cols = def.sheetCols ?? CREATURE_SHEET_COLS;
+					const col = f % cols;
+					const row = Math.floor(f / cols);
 					ctx.imageSmoothingEnabled = true;
 					ctx.drawImage(
 						img,
