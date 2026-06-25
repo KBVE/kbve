@@ -32,7 +32,9 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 	return {
 		id,
 		assetPath: '/assets/arcade/arpg/creatures/wyvern',
-		frameSize: 256,
+		// Sheet shipped at 7168x1024 (256px frames downscaled 2x -> 128px) to stay
+		// under the 8192 WebGL max-texture size; frame indices are unchanged.
+		frameSize: 128,
 		displaySize: 112,
 		// Flyer: anchor high in the frame so the body hovers above the tile instead
 		// of standing on it. Eyeball against the debug overlay like apex's 0.82.

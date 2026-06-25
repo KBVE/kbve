@@ -24,8 +24,10 @@ export function decodeTreeSub(sub: number): {
 	return { variant: sub & 0x7f, felled: (sub & 0x80) !== 0 };
 }
 
-export const TREE_FRAME_W = 384;
-export const TREE_FRAME_H = 768;
+// Sheet shipped at 1920x5376 (384x768 cells downscaled 2x -> 192x384) to stay
+// under the 8192 WebGL max-texture size; the 10x14 grid is unchanged.
+export const TREE_FRAME_W = 192;
+export const TREE_FRAME_H = 384;
 export const TREE_COLS = 10;
 export const TREE_LEAFY_ROWS = 7;
 /** Distinct leafy tree variants (rows 0..6 x 10 cols). */
