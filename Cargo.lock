@@ -1497,7 +1497,7 @@ dependencies = [
 
 [[package]]
 name = "axum-chuckrpg"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
