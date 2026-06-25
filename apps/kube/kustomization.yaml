@@ -89,11 +89,8 @@ resources:
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
 
-    # ECK (Elastic Cloud on Kubernetes) — operator only; ES + Kibana retired
-    # (unused: Vector ships to ClickHouse, no Kibana route, no consumers).
-    # Operator kept transiently so it runs the ES/Kibana finalizers (pod+PVC
-    # cleanup); removed in the follow-up once the stack is fully pruned.
-    - elk/application.yaml
+    # ECK (Elastic Cloud on Kubernetes) fully retired — ES + Kibana were
+    # unused (Vector ships to ClickHouse, no Kibana route, no consumers).
 
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml

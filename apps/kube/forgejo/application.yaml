@@ -67,8 +67,18 @@ spec:
                               STORAGE_TYPE: local
                               PATH: /data/lfs
                           service:
-                              DISABLE_REGISTRATION: true
+                              DISABLE_REGISTRATION: false
                               REQUIRE_SIGNIN_VIEW: true
+                              ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+                              SHOW_REGISTRATION_BUTTON: false
+                          openid:
+                              ENABLE_OPENID_SIGNIN: true
+                              ENABLE_OPENID_SIGNUP: true
+                          oauth2_client:
+                              ENABLE_AUTO_REGISTRATION: true
+                              ACCOUNT_LINKING: auto
+                              UPDATE_AVATAR: true
+                              USERNAME: preferred_username
                           actions:
                               ENABLED: true
                           repository:

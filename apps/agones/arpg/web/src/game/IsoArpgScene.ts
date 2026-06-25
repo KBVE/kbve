@@ -105,6 +105,8 @@ import {
 	stairTile,
 } from './systems/dungeon';
 import { preloadStairs } from './entities/stairs';
+import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
+import { itemKey } from './entities/itemMeta';
 import {
 	makeDungeonView,
 	refreshDungeonView,
@@ -261,6 +263,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		preloadCreature(this, APEX_PREDATOR);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
 		preloadStairs(this);
+		preloadItemAtlas(this);
 	}
 
 	create() {
@@ -422,6 +425,17 @@ export class IsoArpgScene extends Phaser.Scene {
 						sprite:
 							envSprite ??
 							makeSprite(this, this.kinds, e.kind, false),
+					};
+				} else if (this.kinds.cat(e.kind) === Cat.Item) {
+					// Ground loot: crop the item's tile from the itemdb atlas (a "?"
+					// placeholder until art lands). Falls back to the plain rect for
+					// items with no atlas key.
+					const key = itemKey(this.kinds.ref(e.kind));
+					refs = {
+						sprite:
+							key > 0
+								? makeItemSprite(this, key)
+								: makeSprite(this, this.kinds, e.kind, false),
 					};
 				} else {
 					refs = {
