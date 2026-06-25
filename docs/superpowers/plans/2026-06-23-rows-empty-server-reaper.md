@@ -1003,10 +1003,20 @@ Carried as tracked residuals; none block the inert merge, all are pre-enablement
   never-reported path is gated off, and the cap-hit is logged (`Reaper: candidate query hit the
   500-row cap`). If the never-reported backstop is ever leaned on at scale, page the candidate scan
   or raise the cap rather than relying on a single 500-row window.
-- **Q1 — `worldservers.serverstatus` is not touched on reap (CONFIRM).** `reap_one` deletes the
-  GameServer and sets `mapinstances.status=0`, but leaves the `worldservers` row at
-  `serverstatus=1`; the join "pending" path selects `worldservers WHERE serverstatus = 1`. This is
-  presumed covered by the out-of-scope *"drop server-side `RegisterLauncher`"* (UE deregisters the
-  launcher), but it is unverified end-to-end. **Confirm** a reaped GameServer's `worldservers` row
-  cannot be re-selected for a fresh spin-up; if the launcher is 1:1 with the GameServer, the reaper
-  must also deactivate it (`deactivate_world_server_by_instance` exists).
+- **Q1 — `worldservers` row leak on reap (RESOLVED: Low, pre-existing — not a routing hazard).**
+  `reap_one` deletes the GameServer and sets `mapinstances.status=0`, but leaves the `worldservers`
+  row at `serverstatus=1`. Cardinality *is* effectively 1:1 — `register_world_server`
+  (`pipeline.rs`) mints a fresh `Uuid::new_v4()` per allocation, so the `register_launcher`
+  `ON CONFLICT (customerguid, zoneserverguid)` never fires and every allocation inserts a new
+  `worldservers` row. **But there is no mis-routing hazard:** the Agones spin-up path never reuses an
+  existing `serverstatus=1` worldserver — `find_existing` only short-circuits a player to a *ready*
+  instance (`map_instance_status == 2`); a "pending" row falls through to `allocate_via_agones` →
+  `register_world_server`, which creates a *new* worldserver and ignores the stale one. So a reaped
+  GameServer's dangling row can never be handed to a player as a connect target. The real consequence
+  is **`worldservers` table growth** — each reaped GS orphans a `serverstatus=1` row that's never set
+  to 0. This is **pre-existing**, not reaper-introduced: `stale_zone_cleanup` and
+  `deallocate_on_failure` don't clean `worldservers` either; the reaper just adds volume.
+  **Optional hygiene fix (not required to prevent an incident):** call
+  `deactivate_world_server_by_instance` in `reap_one` (and ideally in the other deallocate paths)
+  before the `mapinstances` row's `status` is flipped, while the instance→worldserver subquery still
+  resolves — bounds the table growth.
