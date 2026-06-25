@@ -175,6 +175,7 @@ import {
 	preloadEnv,
 	registerEnvAnims,
 	makeEnvSprite,
+	attachEnvLight,
 	ENV_REGISTRY,
 } from './entities/env';
 import { getNetConfig } from './net-config';
@@ -483,6 +484,9 @@ export class IsoArpgScene extends Phaser.Scene {
 					};
 				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
+				if (this.kinds.cat(e.kind) === Cat.Env) {
+					attachEnvLight(this, refs.sprite, this.kinds.ref(e.kind));
+				}
 				this.syncShadow(refs);
 				// Ground loot bobs gently so it reads as a pickup, not scenery.
 				if (this.kinds.cat(e.kind) === Cat.Item) {
