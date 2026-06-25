@@ -106,6 +106,7 @@ import {
 	StairKind,
 	stairTile,
 } from './systems/dungeon';
+import { castFireballVfx } from './combat/spellVfx';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -130,6 +131,8 @@ import {
 	emitSpellLoadout,
 	emitNotification,
 	emitBoot,
+	emitConnection,
+	emitPlayers,
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
@@ -223,6 +226,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	>;
 
 	private netReady = false;
+	// True once the local player has spawned in-world: routes connection-state
+	// changes to the in-game reconnect banner instead of the boot overlay.
+	private bootReady = false;
+	private static readonly MAX_RECONNECTS = 3;
 	private mySlot = -1;
 	private myEid = -1;
 	private predictSeeded = false;
@@ -590,6 +597,58 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (!e.ok) exitPlacementV(this.inv);
 		});
 
+		// Connection health: before the player spawns, drive the boot overlay;
+		// after, drive the in-game reconnect banner.
+		const max = IsoArpgScene.MAX_RECONNECTS;
+		client.on('state', (s) => {
+			if (this.bootReady) {
+				if (s.status === 'connected') {
+					emitConnection({
+						status: 'connected',
+						attempts: 0,
+						maxAttempts: max,
+					});
+				} else if (s.status === 'reconnecting') {
+					emitConnection({
+						status: 'reconnecting',
+						attempts: s.attempts,
+						maxAttempts: max,
+					});
+				} else if (s.status === 'closed') {
+					emitConnection({
+						status: 'closed',
+						attempts: s.attempts,
+						maxAttempts: max,
+					});
+				}
+			} else if (s.status === 'reconnecting') {
+				emitBoot({
+					phase: 'connecting',
+					message: `Reconnecting (${s.attempts}/${max})`,
+				});
+			} else if (s.status === 'closed') {
+				emitBoot({
+					phase: 'error',
+					message: 'Could not reach the server',
+				});
+			}
+		});
+		// Server refused us for good (bad/expired token, server full): terminal.
+		client.on('reject', (reason: string) => {
+			if (this.bootReady) {
+				emitConnection({
+					status: 'closed',
+					attempts: max,
+					maxAttempts: max,
+				});
+			} else {
+				emitBoot({
+					phase: 'error',
+					message: reason || 'Connection rejected',
+				});
+			}
+		});
+
 		client.connect();
 	}
 
@@ -632,6 +691,25 @@ export class IsoArpgScene extends Phaser.Scene {
 		const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
 		const target = targeted ? this.nearestHostile(meta?.range ?? 0) : null;
 		this.client?.castSpell(ref, target);
+		this.playSpellVfx(meta, target);
+	}
+
+	/**
+	 * Optimistic spell VFX fired on cast (server stays authoritative on damage).
+	 * Fire-school spells fly a fireball at the acquired target, or straight ahead
+	 * of the player when nothing is in range. Other schools have no VFX yet.
+	 */
+	private playSpellVfx(
+		meta: SpellMeta | undefined,
+		target: number | null,
+	): void {
+		if (meta?.school !== 'fire') return;
+		const from = this.move.predicted;
+		const to =
+			(target != null ? this.store.tile(target) : null) ??
+			floatTile(this.move.floatState);
+		if (to.x === from.x && to.y === from.y) return;
+		castFireballVfx(this, from, to);
 	}
 
 	/**
@@ -683,6 +761,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const p of s.players) {
 			this.slotUsername.set(p.slot, p.kbve_username);
 		}
+		emitPlayers(s.players.length);
 		const hadEid = this.myEid >= 0;
 		const state: SyncState = {
 			myEid: this.myEid,
@@ -717,7 +796,9 @@ export class IsoArpgScene extends Phaser.Scene {
 				state.serverPos ?? this.move.predicted,
 			);
 			this.refreshDungeon(this.move.predicted, true);
-			// Local player is in-world — tear down the boot/loading overlay.
+			// Local player is in-world — tear down the boot/loading overlay and
+			// route any further connection drops to the in-game banner.
+			this.bootReady = true;
 			emitBoot({ phase: 'ready', message: '' });
 		} else if (this.myEid >= 0 && state.serverPos) {
 			this.reconcilePlayer(
