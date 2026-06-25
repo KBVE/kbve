@@ -14,6 +14,7 @@ import ChatPanel from './ChatPanel';
 import ArpgToasts from './ArpgToasts';
 import ArpgBootOverlay from './ArpgBootOverlay';
 import ArpgConnectionStatus from './ArpgConnectionStatus';
+import ArpgStairGuide from './ArpgStairGuide';
 import {
 	COLORS,
 	DEBUG_HUD,
@@ -350,6 +351,7 @@ export default function ReactIsoArpgApp({
 				<ArpgMenu />
 				<ArpgToasts />
 				<ArpgBootOverlay />
+				<ArpgStairGuide />
 				{!DEBUG_LOCAL_PLAYER && <ArpgConnectionStatus />}
 				{!DEBUG_LOCAL_PLAYER && <ChatPanel />}
 				{glState === 'lost' && <WebGLOverlay mode="lost" />}

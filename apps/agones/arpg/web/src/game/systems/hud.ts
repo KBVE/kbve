@@ -65,6 +65,26 @@ export function onPlayers(handler: (count: number) => void): () => void {
 	return laserEvents.on(PLAYERS_EVENT, handler as (data: unknown) => void);
 }
 
+// Objective guide: a bearing + distance to the nearest descent (down-stairs).
+// The seed places the stair deterministically (server-authoritative), often off
+// the spawn screen; this on-top hybrid layer just points the player at it
+// without touching the seed/parity. `deg` is screen-space (0=N, CW), matching
+// the compass. null hides the arrow (underground, or standing on the stair).
+export interface GuideView {
+	deg: number;
+	dist: number;
+}
+
+export const GUIDE_EVENT = 'arpg:guide';
+
+export function emitGuide(view: GuideView | null): void {
+	laserEvents.emit(GUIDE_EVENT, view);
+}
+
+export function onGuide(handler: (view: GuideView | null) => void): () => void {
+	return laserEvents.on(GUIDE_EVENT, handler as (data: unknown) => void);
+}
+
 export const HUD_EVENT = 'arpg:hud';
 
 /**

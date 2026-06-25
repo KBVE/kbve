@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { EntityStore } from '@kbve/laser';
 import { facingDegFromDelta } from '../entities/classes';
 import { floatTile, type FloatState } from './floatMotion';
-import { DungeonField } from './dungeon';
-import { emitHud, type HudMap } from './hud';
+import { DungeonField, StairKind } from './dungeon';
+import { emitHud, emitGuide, type HudMap } from './hud';
 import type { EntityRefs } from '../entities/sprites';
 import type { TileXY } from '../iso';
 
@@ -81,6 +81,18 @@ export function tickHud(
 		tile,
 		map: sampleHudMap(st, tile, deps.dungeon, deps.surface),
 	});
+
+	// Objective arrow to the down-stairs. Only on the surface (the descent into
+	// the dungeon); hidden once the player is on/adjacent to the stair tile.
+	if (deps.surface) {
+		const s = deps.dungeon.stairTile(StairKind.Down);
+		const dx = s.x - tile.x;
+		const dy = s.y - tile.y;
+		const dist = Math.hypot(dx, dy);
+		emitGuide(dist <= 2 ? null : { deg: facingDegFromDelta(dx, dy), dist });
+	} else {
+		emitGuide(null);
+	}
 }
 
 /**
