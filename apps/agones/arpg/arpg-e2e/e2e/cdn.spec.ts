@@ -55,12 +55,14 @@ test.describe('arpg-web CDN (nginx container)', () => {
 		'/assets/arcade/arpg/ground.png',
 		'/assets/arcade/arpg/ui/panel-gold.png',
 		'/assets/arcade/arpg/ui/cursor/glove3.png',
-		'/assets/arcade/arpg/characters/ranger/Idle_Bow/Idle_Bow_Body_000.png',
+		'/assets/arcade/arpg/characters/ranger/Idle_Bow/Idle_Bow_Body_000.webp',
+		'/assets/arcade/arpg/creatures/wyvern/wyvern_fire.webp',
 		'/assets/arcade/arpg/environment/hazards/campfire/campfire-Sheet.png',
 	];
 
 	for (const path of ART_ASSETS) {
-		test(`art is a real PNG, not an LFS pointer: ${path}`, async ({
+		const webp = path.endsWith('.webp');
+		test(`art is a real ${webp ? 'WebP' : 'PNG'}, not an LFS pointer: ${path}`, async ({
 			request,
 			baseURL,
 		}) => {
@@ -68,12 +70,25 @@ test.describe('arpg-web CDN (nginx container)', () => {
 			expect(res.status(), `${path} must exist`).toBe(200);
 
 			const body = await res.body();
-			expect(
-				body.subarray(0, 4).toString('hex'),
-				`${path} is not a real PNG (likely an LFS pointer stub)`,
-			).toBe('89504e47');
-
-			expect(res.headers()['content-type'] ?? '').toMatch(/image\/png/);
+			if (webp) {
+				// RIFF....WEBP container header — a pointer stub is text ("version ...").
+				expect(
+					body.subarray(0, 4).toString('hex'),
+					`${path} is not a real WebP (likely an LFS pointer stub)`,
+				).toBe('52494646');
+				expect(body.subarray(8, 12).toString('hex')).toBe('57454250');
+				expect(res.headers()['content-type'] ?? '').toMatch(
+					/image\/webp/,
+				);
+			} else {
+				expect(
+					body.subarray(0, 4).toString('hex'),
+					`${path} is not a real PNG (likely an LFS pointer stub)`,
+				).toBe('89504e47');
+				expect(res.headers()['content-type'] ?? '').toMatch(
+					/image\/png/,
+				);
+			}
 			expect(res.headers()['access-control-allow-origin']).toBe('*');
 			expect(res.headers()['cache-control'] ?? '').toMatch(/immutable/);
 		});

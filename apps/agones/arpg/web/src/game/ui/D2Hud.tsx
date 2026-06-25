@@ -14,6 +14,7 @@ import type { SpellMeta } from '../entities/spellMeta';
 import { SpellBar } from './spells/SpellBar';
 import { registerArpgI18n } from './i18n';
 import { StatOrb, useWavePhase, type OrbStat } from './orbs/StatOrb';
+import { GothicOrbRing, ORB_FRAME_HOLE } from './gothic/Gothic';
 import { Minimap } from './minimap/Minimap';
 import { Tooltip } from './Tooltip';
 import {
@@ -140,9 +141,12 @@ function D2HudInner({ debug }: { debug: boolean }) {
 					</div>
 					<SpellBar spells={spells} />
 					<InventoryBar items={inv} meta={meta} dnd={dnd} />
-					{open && (
-						<InventoryPanel items={inv} meta={meta} dnd={dnd} />
-					)}
+					<InventoryPanel
+						open={open}
+						items={inv}
+						meta={meta}
+						dnd={dnd}
+					/>
 					{debug && <DebugReadout fps={hud.fps} tile={hud.tile} />}
 				</>
 			)}
@@ -169,6 +173,8 @@ function OrbFlank({
 	orbs: OrbStat[];
 }) {
 	const phase = useWavePhase();
+	const RING = 84;
+	const ORB = Math.round(RING * ORB_FRAME_HOLE);
 	return (
 		<div
 			style={{
@@ -177,10 +183,12 @@ function OrbFlank({
 				[corner]: 14,
 				display: 'flex',
 				flexDirection: 'row',
-				gap: 4,
+				gap: 2,
 			}}>
 			{orbs.map((o, i) => (
-				<StatOrb key={o.key} stat={o} phase={phase + i * 1.7} />
+				<GothicOrbRing key={o.key} size={RING}>
+					<StatOrb stat={o} phase={phase + i * 1.7} size={ORB} />
+				</GothicOrbRing>
 			))}
 		</div>
 	);

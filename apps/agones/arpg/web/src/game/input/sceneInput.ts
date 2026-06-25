@@ -12,7 +12,7 @@ import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
 import type { MovementState } from '../systems/movement';
 import { PLACE_RANGE } from '../systems/inventory';
-import { emitInventoryOpen } from '../systems/hud';
+import { emitInventoryOpen, onInventoryOpen } from '../systems/hud';
 
 /**
  * Everything the scene's input bindings dispatch into. Input is the hub that
@@ -82,6 +82,13 @@ export function setupInput(
 			}
 		}
 	});
+
+	// Keep scene-side open state in sync when the panel is closed from the UI
+	// (gothic ✕), so the next `I` press toggles from the real state.
+	onInventoryOpen((o) => {
+		deps.inv.open = o;
+	});
+
 	scene.input.mouse?.disableContextMenu();
 
 	const cursor = new CursorController(scene.game.canvas);

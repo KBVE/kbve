@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: keycloak-db-provision
+    namespace: kilobase
+    labels:
+        app: keycloak-db-provision
+        kbve.com/category: security
+        kbve.com/stack: core
+automountServiceAccountToken: false
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -5,6 +16,7 @@ metadata:
     namespace: kilobase
     labels:
         app: keycloak-db-provision
+        kbve.com/job: keycloak-db-provision
         kbve.com/category: security
         kbve.com/stack: core
     annotations:
@@ -19,8 +31,11 @@ spec:
         metadata:
             labels:
                 app: keycloak-db-provision
+                kbve.com/job: keycloak-db-provision
         spec:
             restartPolicy: Never
+            serviceAccountName: keycloak-db-provision
+            automountServiceAccountToken: false
             securityContext:
                 runAsNonRoot: true
                 runAsUser: 101
@@ -32,6 +47,7 @@ spec:
                   image: ghcr.io/kbve/postgres:17.4.1.069-kilobase
                   imagePullPolicy: IfNotPresent
                   securityContext:
+                      runAsNonRoot: true
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true
                       capabilities:

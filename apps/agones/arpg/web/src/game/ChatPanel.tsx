@@ -71,7 +71,7 @@ export default function ChatPanel() {
 			style={{
 				position: 'absolute',
 				left: 12,
-				bottom: 12,
+				bottom: 108,
 				width: 320,
 				maxWidth: 'calc(100vw - 24px)',
 				fontFamily: 'monospace',
