@@ -962,7 +962,7 @@ jobs:
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
         runs-on: arc-runner-set-kbve
-        timeout-minutes: 15
+        timeout-minutes: 20
         permissions:
             contents: read
         outputs:
@@ -984,24 +984,29 @@ jobs:
                     printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
                       || echo "Unknown"
                   }
-                  S=$(status); echo "::notice::$VM status: $S"
-                  if [ "$S" != "Running" ]; then
+                  request_start() {
                     echo "Requesting start..."
                     curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       -X PUT -H "Content-Type: application/json" -d '{}' \
                       "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" || true
-                  fi
-                  for i in $(seq 1 36); do
+                  }
+                  S=$(status); echo "::notice::$VM status: $S"
+                  [ "$S" != "Running" ] && request_start
+                  for i in $(seq 1 48); do
                     S=$(status)
                     if [ "$S" = "Running" ]; then
                       echo "::notice::$VM is Running; Win64 build proceeds once the UE5-Win runner registers."
                       echo "vm_ready=true" >> "$GITHUB_OUTPUT"
                       exit 0
                     fi
-                    echo "waiting for $VM to reach Running ($i/36): $S"
-                    sleep 10
+                    if [ "$S" = "Stopped" ]; then
+                      echo "$VM is Stopped (idle-shutdown race or lost start) — re-requesting start"
+                      request_start
+                    fi
+                    echo "waiting for $VM to reach Running ($i/48): $S"
+                    sleep 15
                   done
-                  echo "::warning::$VM did not reach Running in ~6m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
+                  echo "::warning::$VM did not reach Running in ~12m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
                   echo "vm_ready=false" >> "$GITHUB_OUTPUT"
 
     game_build_windows:
