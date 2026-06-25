@@ -17,7 +17,9 @@ use crate::blackjack::{self, BjInput, PendingBlackjack, Tables};
 use crate::combat;
 use crate::data::KindRegistry;
 use crate::float_move::FloatBody;
-use crate::grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
+use crate::grid::{
+    FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, Stairs, WalkableMap,
+};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
@@ -2371,6 +2373,7 @@ fn stair_system(
             &Inventory,
             &PlayerSlotTag,
             Option<&mut Floor>,
+            Option<&StairGrace>,
         ),
         With<PlayerSlotTag>,
     >,
@@ -2378,7 +2381,17 @@ fn stair_system(
     let Some(stairs) = stairs else {
         return;
     };
-    for (entity, mut pos, mut fm, inv, slot, floor) in q.iter_mut() {
+    for (entity, mut pos, mut fm, inv, slot, floor, grace) in q.iter_mut() {
+        // Step-off grace: while still standing on the tile we just arrived at
+        // via a stair, don't re-trigger — otherwise a descent that lands on the
+        // destination floor's reciprocal stair bounces straight back. Clear the
+        // grace once the player has moved off that tile.
+        if let Some(g) = grace {
+            if g.0 == pos.tile {
+                continue;
+            }
+            commands.entity(entity).remove::<StairGrace>();
+        }
         let z = floor.as_ref().map(|f| f.0).unwrap_or(0);
         let Some(link) = stairs.at(z, pos.tile) else {
             continue;
@@ -2398,6 +2411,9 @@ fn stair_system(
                 commands.entity(entity).insert(Floor(link.dest_z));
             }
         }
+        // Arm the step-off grace on the arrival tile (the reciprocal stair), so
+        // the player must leave it before another transition can fire.
+        commands.entity(entity).insert(StairGrace(link.dest_tile));
 
         let payload = json!({
             "z": link.dest_z,
