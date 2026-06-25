@@ -29,6 +29,7 @@ use crate::models::*;
         crate::rest::system::active_players,
         crate::rest::system::instance_log,
         crate::rest::system::deployment_info,
+        crate::rest::system::report_build,
         crate::rest::system::restart_game_server,
         crate::rest::system::restart_fleet,
         crate::rest::system::verify_deployment,
