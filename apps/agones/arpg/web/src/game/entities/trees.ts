@@ -109,36 +109,56 @@ export function reskinTreeSprite(
 }
 
 /**
- * Play the fell animation on a standing tree sprite: the leafy canopy fades while
- * the trunk topples over, then it settles to the bare twin frame (upright, full
- * alpha) as the lingering remnant. `toRight` picks the fall direction. Resolves
- * via `onSettled` once the bare remnant is in place so the caller can drop the
- * tile's collision in sync.
+ * Fell a standing tree: burst its canopy into scattering leaves while the trunk
+ * topples + fades, then vanish (no lingering stump). `toRight` picks the fall
+ * direction; `onSettled` fires once the sprite is hidden so the caller can sync.
+ * The sprite is left hidden + reset so a pool can reuse it.
  */
 export function fellTreeSprite(
 	scene: Phaser.Scene,
 	sprite: Phaser.GameObjects.Sprite,
-	variant: number,
 	toRight: boolean,
 	onSettled?: () => void,
 ): void {
+	const leaf = ensureLeafTexture(scene);
+	const burst = scene.add.particles(
+		sprite.x,
+		sprite.y - TREE_DISPLAY_H * (TREE_ORIGIN_Y - 0.35),
+		leaf,
+		{
+			speed: { min: 30, max: 130 },
+			angle: { min: 195, max: 345 },
+			gravityY: 260,
+			lifespan: { min: 480, max: 950 },
+			scale: { start: 1, end: 0.2 },
+			alpha: { start: 1, end: 0 },
+			rotate: { min: 0, max: 360 },
+			tint: [0x3f6e2e, 0x5b8c3a, 0x6fae46, 0x86b24a],
+			emitting: false,
+		},
+	);
+	burst.setDepth(sprite.depth + 1);
+	burst.explode(20);
+	scene.time.delayedCall(1100, () => burst.destroy());
+
+	const sx = sprite.scaleX;
+	const sy = sprite.scaleY;
 	scene.tweens.add({
 		targets: sprite,
-		angle: toRight ? 82 : -82,
+		angle: toRight ? 80 : -80,
 		alpha: 0,
-		duration: 640,
+		scaleX: sx * 0.82,
+		scaleY: sy * 0.82,
+		duration: 560,
 		ease: 'Quad.easeIn',
 		onComplete: () => {
-			sprite.setAngle(0);
-			sprite.setTexture(TREE_TEX, bareFrame(variant));
-			sprite.setAlpha(0);
-			scene.tweens.add({
-				targets: sprite,
-				alpha: 1,
-				duration: 260,
-				ease: 'Quad.easeOut',
-				onComplete: () => onSettled?.(),
-			});
+			sprite
+				.setActive(false)
+				.setVisible(false)
+				.setAngle(0)
+				.setAlpha(1)
+				.setScale(sx, sy);
+			onSettled?.();
 		},
 	});
 }

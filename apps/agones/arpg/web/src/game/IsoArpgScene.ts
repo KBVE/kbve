@@ -1362,7 +1362,7 @@ export class IsoArpgScene extends Phaser.Scene {
 				const sprite = refs?.sprite;
 				if (sprite instanceof Phaser.GameObjects.Sprite) {
 					const toRight = ((e.tile.x + e.tile.y) & 1) === 0;
-					fellTreeSprite(this, sprite, variant, toRight);
+					fellTreeSprite(this, sprite, toRight);
 				}
 				this.markEnvDirty();
 			}
