@@ -360,11 +360,6 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
-        // The select-character flow fires concurrent auth requests, so two callers can both pass the
-        // checks above and reach this INSERT for the same Supabase `sub`. `ON CONFLICT DO NOTHING`
-        // keys on pk_users (customerguid, userguid) so the loser of the race no-ops instead of
-        // failing with "duplicate key value violates unique constraint pk_users". Either way the row
-        // now exists keyed on `supabase_uuid`, so returning it is correct regardless of who won.
         let inserted = sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
