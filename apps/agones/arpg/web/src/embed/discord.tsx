@@ -28,10 +28,12 @@ const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/arpg-chat', target: 'chat.kbve.com' },
 	{ prefix: '/arpg-supabase', target: 'supabase.kbve.com' },
 ];
+const PROXY_WS = `wss://${location.host}`;
+const PROXY_HTTP = `https://${location.host}`;
 const SESSION_ENDPOINT = '/.proxy/arpg-session/api/v1/discord/session';
-const GAME_WS = 'wss://arpg.kbve.com/.proxy/arpg-game/ws';
-const CHAT_WS = 'wss://chat.kbve.com/.proxy/arpg-chat/gamechat';
-const SUPABASE_URL = 'https://supabase.kbve.com/.proxy/arpg-supabase';
+const GAME_WS = `${PROXY_WS}/.proxy/arpg-game/ws`;
+const CHAT_WS = `${PROXY_WS}/.proxy/arpg-chat/gamechat`;
+const SUPABASE_URL = `${PROXY_HTTP}/.proxy/arpg-supabase`;
 // Art base: the SDK rewrites /arpg-assets -> arpg.kbve.com, so
 // /arpg-assets/assets/... reaches the vite app's art through the proxy.
 const ASSET_BASE = '/arpg-assets';

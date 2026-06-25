@@ -131,13 +131,13 @@ export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 export const SURFACE_MIN_Z = 0; // z >= this = open grass surface/overworld
 export const GRASS_TEXTURE_KEY = 'arpg-grass';
 export const GRASS_TEXTURE_PATH =
-	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
-// A second grass variant overlaid at a different tile-scale + multiply blend, so
-// the two layers' repeat periods don't line up — the base grass stops reading as
-// an obvious tiled pattern. First-pass blend; real per-tile variety comes later.
-export const GRASS_DETAIL_TEXTURE_KEY = 'arpg-grass-detail';
-export const GRASS_DETAIL_TEXTURE_PATH =
-	'/assets/arcade/arpg/textures/grass/grass_04_l.png';
+	'/assets/arcade/arpg/textures/grass/grass_03_l.webp';
+
+export const BIOMES = ['meadow', 'spring', 'forest', 'wetland'] as const;
+export type BiomeId = (typeof BIOMES)[number];
+export const biomeTextureKey = (b: BiomeId) => `arpg-biome-${b}`;
+export const biomeTexturePath = (b: BiomeId) =>
+	`/assets/arcade/arpg/textures/grass/biome_${b}.webp`;
 
 // React HUD debug panel: shows fps + current tile alongside the compass/vitals.
 // Flip off for release; the compass + vitals panels render regardless.

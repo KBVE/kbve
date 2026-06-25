@@ -1,4 +1,4 @@
-name: Utils Tauri Build
+name: CI Tauri Builder
 
 on:
     workflow_call:
@@ -20,6 +20,11 @@ on:
                 required: false
                 type: string
                 default: 'arc-runner-set'
+            notarize:
+                description: 'Sign + notarize the macOS build (requires APPLE_* secrets via secrets: inherit)'
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     # --- Fork guard for self-hosted runners ---
@@ -260,6 +265,12 @@ jobs:
               run: cargo tauri build
               env:
                   CI: true
+                  APPLE_CERTIFICATE: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE || '' }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+                  APPLE_SIGNING_IDENTITY: ${{ inputs.notarize && secrets.APPLE_SIGNING_IDENTITY || '' }}
+                  APPLE_ID: ${{ inputs.notarize && secrets.APPLE_ID || '' }}
+                  APPLE_PASSWORD: ${{ inputs.notarize && secrets.APPLE_PASSWORD || '' }}
+                  APPLE_TEAM_ID: ${{ inputs.notarize && secrets.APPLE_TEAM_ID || '' }}
 
             - name: Upload macOS artifacts
               uses: actions/upload-artifact@v7

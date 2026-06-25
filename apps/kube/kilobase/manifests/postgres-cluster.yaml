@@ -63,6 +63,18 @@ spec:
               connectionLimit: 10
               passwordSecret:
                   name: ows-db-password
+            - name: keycloak
+              ensure: present
+              comment: Keycloak IdP service role — owns the keycloak schema, no superuser
+              login: true
+              superuser: false
+              createdb: false
+              createrole: false
+              bypassrls: false
+              inherit: true
+              connectionLimit: 20
+              passwordSecret:
+                  name: keycloak-db-password
             - name: supabase_admin
               ensure: present
               comment: Supabase Admin

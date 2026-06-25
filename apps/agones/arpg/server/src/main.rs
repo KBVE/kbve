@@ -113,7 +113,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(simgrid::EnvPersistSink(Some(env_tx)));
         app.add_systems(
             bevy::prelude::Update,
-            (game::spawn_world, game::stream_predators).in_set(simgrid::SimSet::Spawn),
+            (
+                game::spawn_world,
+                game::stream_predators,
+                game::stream_wyverns,
+            )
+                .in_set(simgrid::SimSet::Spawn),
         );
         rt.block_on(run_sim_loop(app));
     });

@@ -6,12 +6,11 @@ import {
 	DEPTH_TILE,
 	DEPTH_ENTITY_BASE,
 	GROUND_TEXTURE_KEY,
-	GRASS_TEXTURE_KEY,
-	GRASS_DETAIL_TEXTURE_KEY,
 	DUNGEON_RADIUS,
 } from '../config';
 import { worldToScreen, tileDepth, type TileXY } from '../iso';
 import { DungeonField, chunkOf, CHUNK_SIZE, StairKind } from './dungeon';
+import { biomeKeyAt } from './biome';
 import {
 	makeStairSprite,
 	type StairId,
@@ -124,6 +123,20 @@ export function placeStairs(
 	place(StairKind.Down, view.stairDownId);
 }
 
+const BASE_ROT = -Math.PI / 4;
+
+/**
+ * tilePosition that pins the ground TileSprite to world space so its texture
+ * neither slides as the camera moves nor seams at chunk borders. The chunk
+ * container squashes Y by 0.5 and the inverse un-squash baked into the caller's
+ * uy is only valid at the base iso rotation, so the ground rides BASE_ROT.
+ */
+function worldAnchor(ux: number, uy: number, rot: number, scale: number) {
+	const c = Math.cos(rot);
+	const s = Math.sin(rot);
+	return { x: (ux * c + uy * s) / scale, y: (-ux * s + uy * c) / scale };
+}
+
 /**
  * One world-anchored ground tile for a chunk: a TileSprite covering the chunk's
  * tile square, projected onto the iso plane (inner sprite rotated 45°, parent
@@ -146,7 +159,7 @@ function buildChunkGround(
 		0,
 		side,
 		side,
-		surface ? GRASS_TEXTURE_KEY : GROUND_TEXTURE_KEY,
+		surface ? biomeKeyAt(cx, cy) : GROUND_TEXTURE_KEY,
 	);
 	sprite.setOrigin(0.5, 0.5);
 	sprite.setRotation(-Math.PI / 4);
@@ -155,37 +168,13 @@ function buildChunkGround(
 	const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const c = worldToScreen(midX, midY);
 
-	// On the grass surface, lay a second grass variant over the base at a larger
-	// tile-scale + multiply blend. The two layers repeat on different periods, so
-	// the combined ground no longer reads as one obviously tiled texture while
-	// staying seamless across chunks. Dungeon floors keep the single stone tile.
-	const layers = [sprite];
-	const cos = Math.cos(Math.PI / 4);
-	const sin = Math.sin(Math.PI / 4);
 	const ux = c.x;
 	const uy = c.y / 0.5;
-	sprite.tilePositionX = ux * cos - uy * sin;
-	sprite.tilePositionY = ux * sin + uy * cos;
-	if (surface) {
-		const detail = scene.add.tileSprite(
-			0,
-			0,
-			side,
-			side,
-			GRASS_DETAIL_TEXTURE_KEY,
-		);
-		detail.setOrigin(0.5, 0.5);
-		detail.setRotation(-Math.PI / 4);
-		const DETAIL_SCALE = 1.6;
-		detail.setTileScale(DETAIL_SCALE, DETAIL_SCALE);
-		detail.tilePositionX = (ux * cos - uy * sin) / DETAIL_SCALE;
-		detail.tilePositionY = (ux * sin + uy * cos) / DETAIL_SCALE;
-		detail.setAlpha(0.5);
-		detail.setBlendMode(Phaser.BlendModes.MULTIPLY);
-		layers.push(detail);
-	}
+	const baseAnchor = worldAnchor(ux, uy, BASE_ROT, 1);
+	sprite.tilePositionX = baseAnchor.x;
+	sprite.tilePositionY = baseAnchor.y;
 
-	const plane = scene.add.container(c.x, c.y, layers);
+	const plane = scene.add.container(c.x, c.y, [sprite]);
 	plane.setScale(1, 0.5);
 	plane.setDepth(DEPTH_TILE);
 	view.chunkGrounds.set(key, plane);

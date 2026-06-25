@@ -77,11 +77,18 @@ jobs:
             itch_username: ${{ fromJSON(inputs.publish).itch_user }}
             itch_game_id: ${{ fromJSON(inputs.publish).itch_game }}
             itch_channel: ${{ fromJSON(inputs.publish).itch_channel }}
+            notarize: ${{ fromJSON(inputs.publish).notarize || false }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
             FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
             FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+            APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+            APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+            APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+            APPLE_ID: ${{ secrets.APPLE_ID }}
+            APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+            APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     server:
         name: Dedicated Server

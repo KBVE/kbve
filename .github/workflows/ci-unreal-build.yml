@@ -172,6 +172,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            notarize:
+                description: '[game] Developer ID sign + notarize the Mac .app (requires APPLE_* secrets)'
+                required: false
+                type: boolean
+                default: false
         secrets:
             epic_pat:
                 description: 'PAT for ghcr.io/epicgames + game repo (falls back to UNITY_PAT)'
@@ -187,6 +192,24 @@ on:
                 required: false
             FORGEJO_TOKEN:
                 description: 'Forgejo (git.kbve.com) token for per-game LFS pull'
+                required: false
+            APPLE_CERTIFICATE:
+                description: '[game/notarize] base64 Developer ID Application .p12'
+                required: false
+            APPLE_CERTIFICATE_PASSWORD:
+                description: '[game/notarize] .p12 export password'
+                required: false
+            APPLE_SIGNING_IDENTITY:
+                description: '[game/notarize] "Developer ID Application: Name (TEAMID)"'
+                required: false
+            APPLE_ID:
+                description: '[game/notarize] Apple ID email'
+                required: false
+            APPLE_PASSWORD:
+                description: '[game/notarize] app-specific password'
+                required: false
+            APPLE_TEAM_ID:
+                description: '[game/notarize] 10-char team id'
                 required: false
         outputs:
             version:
@@ -1455,6 +1478,49 @@ jobs:
                   else
                     echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
                   fi
+
+            - name: Sign + notarize Mac app
+              if: inputs.notarize
+              env:
+                  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+                  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+              run: |
+                  set -euo pipefail
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  APP=$(find "${STAGE}" -maxdepth 1 -name '*.app' 2>/dev/null | head -1)
+                  [ -n "${APP}" ] || { echo "::error::no staged .app to sign"; exit 1; }
+
+                  KEYCHAIN="${RUNNER_TEMP}/ue-signing.keychain-db"
+                  KCPASS=$(uuidgen)
+                  security create-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  security set-keychain-settings -lut 21600 "${KEYCHAIN}"
+                  security unlock-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  printf '%s' "${APPLE_CERTIFICATE}" | base64 --decode > "${RUNNER_TEMP}/cert.p12"
+                  security import "${RUNNER_TEMP}/cert.p12" -k "${KEYCHAIN}" -P "${APPLE_CERTIFICATE_PASSWORD}" -T /usr/bin/codesign
+                  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${KCPASS}" "${KEYCHAIN}" >/dev/null
+                  ORIG_KEYCHAINS=$(security list-keychains -d user | sed -e 's/"//g' -e 's/^ *//')
+                  security list-keychains -d user -s "${KEYCHAIN}" ${ORIG_KEYCHAINS}
+                  cleanup() { security delete-keychain "${KEYCHAIN}" 2>/dev/null || true; rm -f "${RUNNER_TEMP}/cert.p12" "${RUNNER_TEMP}/notarize.zip" 2>/dev/null || true; }
+                  trap cleanup EXIT
+
+                  ENT="${GITHUB_WORKSPACE}/.github/signing/ue-mac-entitlements.plist"
+                  # Sign nested mach-o inside-out, then the bundle with entitlements + hardened runtime.
+                  find "${APP}" -type f \( -name '*.dylib' -o -name '*.so' \) -print0 \
+                    | xargs -0 -I{} codesign --force --timestamp --options runtime -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" {}
+                  codesign --force --timestamp --options runtime --entitlements "${ENT}" \
+                    -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" "${APP}"
+                  codesign --verify --strict --verbose=2 "${APP}"
+
+                  ditto -c -k --keepParent "${APP}" "${RUNNER_TEMP}/notarize.zip"
+                  xcrun notarytool submit "${RUNNER_TEMP}/notarize.zip" \
+                    --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" --team-id "${APPLE_TEAM_ID}" --wait
+                  xcrun stapler staple "${APP}"
+                  echo "::notice::Signed + notarized $(basename "${APP}")"
 
             - name: Package staged build
               run: |

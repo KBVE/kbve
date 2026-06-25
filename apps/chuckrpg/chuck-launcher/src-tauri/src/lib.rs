@@ -56,8 +56,8 @@ async fn install_update(
 }
 
 #[tauri::command]
-fn launch() -> Result<(), LauncherError> {
-    launcher::launch()
+fn launch(url: Option<String>) -> Result<(), LauncherError> {
+    launcher::launch(url.as_deref())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
