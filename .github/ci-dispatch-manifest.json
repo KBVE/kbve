@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.213",
+			"version": "1.0.214",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -76,12 +76,13 @@
 			"runner": "arc-runner-set",
 			"image": "kbve/aria2-proxy",
 			"e2e_name": "aria2-proxy-e2e",
+			"deployment_yaml": "apps/kube/kubevirt/download-proxy/deployment.yaml",
 			"has_test": true
 		},
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.9",
+			"version": "0.1.11",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -94,7 +95,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.9",
+			"version": "0.1.11",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"source_path": "apps/agones/arpg",
