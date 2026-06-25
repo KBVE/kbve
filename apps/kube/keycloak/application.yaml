@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: keycloak
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/keycloak
+        kbve.com/manifest-path: kube/keycloak/manifest
+        kbve.com/application-file: kube/keycloak/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: security
+        kbve.com/stack: core
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve.git
+        targetRevision: main
+        path: apps/kube/keycloak/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: keycloak
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 3m
