@@ -11,6 +11,7 @@ import { worldToScreen, type TileXY } from '../iso';
 const SPARK_TEX = 'spell-spark';
 const FIREBALL_SPEED = 0.9; // screen px per ms
 const FIRE_RAMP = [0xfff3b0, 0xffae3b, 0xff5a1f, 0x7a1f0a];
+const HEAL_RAMP = [0xeaffd0, 0x86efac, 0x34d399];
 
 /** Generate the soft round spark texture once per scene (cheap radial falloff). */
 function ensureSpellTextures(scene: Phaser.Scene): void {
@@ -99,4 +100,43 @@ export function castFireballVfx(
 			scene.time.delayedCall(400, () => trail.destroy());
 		},
 	});
+}
+
+export function castHealVfx(scene: Phaser.Scene, at: TileXY): void {
+	ensureSpellTextures(scene);
+	const p = worldToScreen(at.x, at.y);
+	const emitter = scene.add.particles(p.x, p.y - 8, SPARK_TEX, {
+		x: { min: -18, max: 18 },
+		y: { min: -4, max: 6 },
+		speed: { min: 6, max: 22 },
+		angle: { min: 250, max: 290 },
+		lifespan: { min: 520, max: 900 },
+		scale: { start: 0.85, end: 0 },
+		alpha: { start: 0.9, end: 0 },
+		color: HEAL_RAMP,
+		colorEase: 'quad.out',
+		gravityY: -70,
+		frequency: 36,
+		quantity: 1,
+		blendMode: 'ADD',
+	});
+	emitter.setDepth(DEPTH_PROJECTILE + 1);
+	scene.time.delayedCall(520, () => emitter.stop());
+	scene.time.delayedCall(1500, () => emitter.destroy());
+}
+
+export function playSpellVfx(
+	scene: Phaser.Scene,
+	school: string,
+	effect: string,
+	from: TileXY,
+	to: TileXY,
+): void {
+	if (school === 'fire') {
+		castFireballVfx(scene, from, to);
+		return;
+	}
+	if (effect === 'heal') {
+		castHealVfx(scene, from);
+	}
 }

@@ -107,7 +107,7 @@ import {
 	StairKind,
 	stairTile,
 } from './systems/dungeon';
-import { castFireballVfx } from './combat/spellVfx';
+import { playSpellVfx as playSpellVfxV } from './combat/spellVfx';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -762,22 +762,16 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.playSpellVfx(meta, target);
 	}
 
-	/**
-	 * Optimistic spell VFX fired on cast (server stays authoritative on damage).
-	 * Fire-school spells fly a fireball at the acquired target, or straight ahead
-	 * of the player when nothing is in range. Other schools have no VFX yet.
-	 */
 	private playSpellVfx(
 		meta: SpellMeta | undefined,
 		target: number | null,
 	): void {
-		if (meta?.school !== 'fire') return;
+		if (!meta) return;
 		const from = this.move.predicted;
 		const to =
 			(target != null ? this.store.tile(target) : null) ??
 			floatTile(this.move.floatState);
-		if (to.x === from.x && to.y === from.y) return;
-		castFireballVfx(this, from, to);
+		playSpellVfxV(this, meta.school, meta.effect, from, to);
 	}
 
 	/**
