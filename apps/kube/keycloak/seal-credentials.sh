@@ -64,5 +64,5 @@ echo "Bootstrap admin (SAVE NOW — not recoverable from the sealed file):"
 echo "  username: $ADMIN_USER"
 echo "  password: $ADMIN_PASS"
 echo
-echo "Commit both files. CNPG sets the role password on reconcile; the dbmate"
-echo "keycloak_schema migration creates the schema; Keycloak builds its tables."
+echo "Commit both files. The keycloak-db-provision Sync-hook Job sets the role"
+echo "password + creates the schema on the next kilobase sync; KC builds tables."

@@ -12,24 +12,33 @@ Keycloak (sso.kbve.com, IdP / OAuth provider)
 ```
 
 - **Image**: `quay.io/keycloak/keycloak:26.0`, production `start` mode
-- **DB**: `keycloak` schema on the kilobase CNPG cluster (`supabase` database),
-  role + password managed by CNPG, schema by a dbmate migration
+- **DB**: `keycloak` role + schema on the kilobase CNPG cluster (`supabase`
+  database), provisioned by an idempotent ArgoCD Sync-hook Job
 - **Ingress**: `sso.kbve.com` via `kbve-gateway` (TLS terminates at the gateway;
   Keycloak runs plain HTTP with `KC_PROXY_HEADERS=xforwarded`)
 
 ## Deploy runbook
 
-No manual `psql` — the `keycloak` role, schema, and password are all GitOps.
+No manual `psql` — the `keycloak` role, password, and schema are all GitOps,
+owned by a single idempotent Job.
 
 | Concern | Owner |
 |---------|-------|
-| `keycloak` role + password | CNPG `managed.roles` on `supabase-cluster` (reads `keycloak-db-password`) |
-| `keycloak` schema + grants | dbmate migration `20260625120000_keycloak_schema.sql` (runs as `postgres`) |
+| `keycloak` role + password + schema + grants | `keycloak-db-provision` Job (ArgoCD Sync hook, ns kilobase) |
 | pod DB auth + bootstrap admin | `keycloak-credentials` secret (this dir) |
 
-The migration is order-independent: it creates the role `NOLOGIN` with no
-password if absent; CNPG then layers `login: true` + the password from the
-sealed secret. Either reconcile order converges.
+`apps/kube/kilobase/manifests/keycloak-db-provision-job.yaml` runs on every
+kilobase sync (`hook: Sync`, `hook-delete-policy: BeforeHookCreation`). It
+connects as the superuser (`supabase-postgres`) and runs idempotent SQL:
+`CREATE ROLE keycloak LOGIN` if absent, `ALTER ROLE ... PASSWORD` from the
+sealed `keycloak-db-password` secret (so it always matches the pod's
+`keycloak-credentials`), then `CREATE SCHEMA ... AUTHORIZATION keycloak` +
+grants. Re-running after a credential reseal re-syncs the password. Keycloak
+then builds its own tables on first boot.
+
+This replaces the earlier CNPG `managed.roles` + dbmate-migration split, which
+left the role passwordless in practice (CNPG did not enforce the password and
+the dbmate-up Job never fired).
 
 ### 1. Seal credentials
 
@@ -41,8 +50,8 @@ and prints the bootstrap admin creds — **save them**, they are not recoverable
 from the sealed file:
 
 ```
-apps/kube/kilobase/manifests/sealed-keycloak-db-password.yaml   # CNPG, ns kilobase
-apps/kube/keycloak/manifest/sealed-credentials.yaml             # pod,  ns keycloak
+apps/kube/kilobase/manifests/sealed-keycloak-db-password.yaml   # provision Job, ns kilobase
+apps/kube/keycloak/manifest/sealed-credentials.yaml             # pod,          ns keycloak
 ```
 ```bash
 git add apps/kube/kilobase/manifests/sealed-keycloak-db-password.yaml \
@@ -53,10 +62,10 @@ will not start until you regenerate it and commit the result.
 
 ### 2. Go live
 
-Both `keycloak/application.yaml` and the kilobase CNPG change track `main`, so
-land them via the dev→main release. On sync: CNPG creates the role, the
-`dbmate-up` CI job applies the schema migration, and Keycloak builds its tables
-on first boot (slow — watch the startup probe).
+Both `keycloak/application.yaml` and the kilobase manifests track `main`, so
+land them via the dev→main release. On sync: the `keycloak-db-provision` Sync
+hook creates the role/password/schema, then Keycloak builds its tables on first
+boot (slow — watch the startup probe).
 
 ## Phase 2 — wire the clients (after Keycloak is up)
 
