@@ -4,6 +4,13 @@ use crate::models::*;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use uuid::Uuid;
 
+fn is_unique_violation(e: &sqlx::Error) -> bool {
+    e.as_database_error()
+        .and_then(|d| d.code())
+        .as_deref()
+        == Some("23505")
+}
+
 pub struct UsersRepo<'a>(pub &'a DbPool);
 
 impl<'a> UsersRepo<'a> {
@@ -309,14 +316,22 @@ impl<'a> UsersRepo<'a> {
         first_name: &str,
         last_name: &str,
     ) -> Result<Uuid, RowsError> {
+        let mut tx = self.0.begin().await?;
+
+        sqlx::query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))")
+            .bind(format!("{customer_guid}:{supabase_uuid}"))
+            .execute(&mut *tx)
+            .await?;
+
         let by_uuid: Option<(Uuid,)> =
             sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND userguid = $2")
                 .bind(customer_guid)
                 .bind(supabase_uuid)
-                .fetch_optional(self.0)
+                .fetch_optional(&mut *tx)
                 .await?;
 
         if by_uuid.is_some() {
+            tx.commit().await?;
             return Ok(supabase_uuid);
         }
 
@@ -324,11 +339,12 @@ impl<'a> UsersRepo<'a> {
             sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND email = $2")
                 .bind(customer_guid)
                 .bind(email)
-                .fetch_optional(self.0)
+                .fetch_optional(&mut *tx)
                 .await?;
 
         if let Some((old_guid,)) = by_email {
             if old_guid == supabase_uuid {
+                tx.commit().await?;
                 return Ok(supabase_uuid);
             }
             sqlx::query(
@@ -342,9 +358,10 @@ impl<'a> UsersRepo<'a> {
             .bind(supabase_uuid)
             .bind(customer_guid)
             .bind(old_guid)
-            .execute(self.0)
+            .execute(&mut *tx)
             .await?;
 
+            tx.commit().await?;
             tracing::info!(email = %email, old = %old_guid, new = %supabase_uuid, "Re-keyed legacy OWS user onto Supabase UUID");
             return Ok(supabase_uuid);
         }
@@ -360,7 +377,7 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
-        let inserted = sqlx::query(
+        let inserted = match sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
              ON CONFLICT (customerguid, userguid) DO NOTHING",
@@ -371,9 +388,19 @@ impl<'a> UsersRepo<'a> {
         .bind(&password_hash)
         .bind(first_name)
         .bind(last_name)
-        .execute(self.0)
-        .await?
-        .rows_affected();
+        .execute(&mut *tx)
+        .await
+        {
+            Ok(done) => done.rows_affected(),
+            Err(e) if is_unique_violation(&e) => {
+                return Err(RowsError::Conflict(format!(
+                    "OWS user with email {email} already exists under a different account"
+                )));
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        tx.commit().await?;
 
         if inserted > 0 {
             tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");

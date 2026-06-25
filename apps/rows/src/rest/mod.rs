@@ -67,7 +67,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
 
     Router::new()
         .route("/", get(root))
-        .route("/health", get(health))
+        .route("/health", get(health).with_state(hs.clone()))
         .route("/ready", get(readiness).with_state(hs.clone()))
         .merge(public)
         .merge(instance)
@@ -92,10 +92,11 @@ pub async fn root() -> Json<serde_json::Value> {
 #[utoipa::path(get, path = "/health", tag = "health",
     responses((status = 200, description = "Health check", body = HealthResponse))
 )]
-pub async fn health() -> Json<HealthResponse> {
+pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
+        unreal_version: hs.app.fleet_image_tag.clone(),
     })
 }
 

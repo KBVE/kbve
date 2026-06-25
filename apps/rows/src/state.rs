@@ -30,6 +30,8 @@ pub struct AppState {
     pub supabase: SupabaseConfig,
     pub instance_log: crate::rest::system::InstanceEventLog,
     pub started_at: Instant,
+    /// UE build version (tag of the Agones fleet container image), resolved once at startup.
+    pub fleet_image_tag: Option<String>,
 }
 
 pub struct AppConfig {
@@ -56,6 +58,7 @@ pub struct AppStateBuilder {
     agones_fleet: Option<String>,
     mq: Option<MqProducer>,
     agones: Option<AgonesClient>,
+    fleet_image_tag: Option<String>,
 }
 
 impl AppStateBuilder {
@@ -95,6 +98,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn fleet_image_tag(mut self, tag: Option<String>) -> Self {
+        self.fleet_image_tag = tag;
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -120,6 +128,7 @@ impl AppStateBuilder {
             supabase: SupabaseConfig::from_env(),
             instance_log: crate::rest::system::InstanceEventLog::new(),
             started_at: Instant::now(),
+            fleet_image_tag: self.fleet_image_tag,
         }))
     }
 }

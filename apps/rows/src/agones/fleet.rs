@@ -24,7 +24,39 @@ pub struct FleetStatus {
     pub game_servers: Vec<GameServerInfo>,
 }
 
+pub fn image_tag(image: &str) -> String {
+    let repo_and_tag = image.rsplit('/').next().unwrap_or(image);
+    match repo_and_tag.rsplit_once(':') {
+        Some((_, tag)) if !tag.is_empty() => tag.to_string(),
+        _ => image.to_string(),
+    }
+}
+
 impl AgonesClient {
+    #[tracing::instrument(skip(self))]
+    pub async fn fleet_container_image(&self) -> Result<Option<String>, AgonesError> {
+        let url = format!(
+            "/apis/agones.dev/v1/namespaces/{}/fleets/{}",
+            self.namespace, self.fleet
+        );
+
+        let req = http::Request::get(&url)
+            .body(Vec::new())
+            .map_err(|e| anyhow::anyhow!("Failed to build fleet image request: {e}"))?;
+
+        let resp: serde_json::Value =
+            tokio::time::timeout(super::client::api_timeout(), self.client.request(req))
+                .await
+                .map_err(|_| anyhow::anyhow!("K8s fleet image request timed out"))??;
+
+        let image = resp
+            .pointer("/spec/template/spec/template/spec/containers/0/image")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        Ok(image)
+    }
+
     #[tracing::instrument(skip(self))]
     pub async fn fleet_status(&self) -> Result<FleetStatus, AgonesError> {
         let url = format!(
