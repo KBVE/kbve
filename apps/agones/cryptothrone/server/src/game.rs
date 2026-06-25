@@ -247,11 +247,13 @@ fn npc_spec(
     Some(NpcSpec {
         kind,
         origin,
+        floor: 0,
         ticks_per_tile: ticks_per_tile_for_speed(def.stats.speed),
         max_hp,
         level: def.level.max(1),
         defense: def.stats.defense.max(0),
         wander,
+        roam: None,
         aggro: def.is_hostile().then(|| AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: def.stats.attack.max(1),

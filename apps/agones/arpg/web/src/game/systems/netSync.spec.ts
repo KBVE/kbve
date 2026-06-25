@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { EntityDelta, StatusView } from '@kbve/laser';
-import type { EntityCat, EntityStore } from '../ecs/store';
+import type {
+	EntityDelta,
+	StatusView,
+	EntityCat,
+	EntityStore,
+} from '@kbve/laser';
 import {
 	applyEntitySync,
 	type SyncBridge,
@@ -15,10 +19,13 @@ type Row = {
 	effects: StatusView[];
 };
 
+// Numeric Cat values (Player=0, Npc=1, Env=3) inlined rather than importing Cat
+// as a value — this spec stays free of the @kbve/laser runtime barrel, which is
+// unresolvable under vitest's node env.
 const CAT_BY_KIND: Record<number, EntityCat> = {
-	1: 'player',
-	2: 'npc',
-	3: 'env',
+	1: 0,
+	2: 1,
+	3: 3,
 };
 
 // Hand-rolled store so the spec never value-imports ../ecs/store (which pulls the

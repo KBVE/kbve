@@ -41,6 +41,7 @@ pub const EPHEMERAL_BLACKJACK: u16 = 11;
 pub const EPHEMERAL_PROJECTILE: u16 = 12;
 pub const EPHEMERAL_FLOOR: u16 = 13;
 pub const EPHEMERAL_ITEM_PLACED: u16 = 14;
+pub const EPHEMERAL_SPELL: u16 = 15;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -146,6 +147,10 @@ pub enum Input {
     },
     Action {
         id: u16,
+        target: Option<EntityId>,
+    },
+    CastSpell {
+        spell_ref: String,
         target: Option<EntityId>,
     },
     UseItem {

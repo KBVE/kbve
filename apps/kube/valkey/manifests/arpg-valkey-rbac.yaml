@@ -1,0 +1,18 @@
+# Lets the arpg ExternalSecrets ServiceAccount read the shared valkey-auth
+# secret out of the valkey namespace, so the valkey-remote-secret-store
+# SecretStore (apps/kube/agones/arpg/manifests/external-secrets.yaml) can compose
+# KBVE_KV_URL for the arpg-server gameserver. Reuses the existing
+# valkey-auth-reader Role.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arpg-read-valkey-auth
+    namespace: valkey
+subjects:
+    - kind: ServiceAccount
+      name: arpg-external-secrets
+      namespace: arpg
+roleRef:
+    kind: Role
+    name: valkey-auth-reader
+    apiGroup: rbac.authorization.k8s.io

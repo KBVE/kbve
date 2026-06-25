@@ -37,7 +37,10 @@ COPY apps/discordsh/astro-discordsh/ apps/discordsh/astro-discordsh/
 WORKDIR /app/apps/discordsh/astro-discordsh
 # astro build handles sync internally — avoid separate sync which can
 # leave partial image cache entries that break the optimizer
-RUN UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-discordsh-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

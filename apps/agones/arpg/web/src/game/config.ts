@@ -57,7 +57,7 @@ export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 // BLEND_TIMESCALE_FROM up to 1 so the flipbook spins up instead of snapping.
 // Facing turn curve: per-frame lerp factor pulling the visual facing angle
 // toward the movement target. Lower = lazier, smoother arcs; 1 = instant snap.
-export const TURN_LERP = 0.22;
+export const TURN_LERP = 0.15;
 
 export const BLEND_MS = 110;
 export const BLEND_TIMESCALE_FROM = 0.45;
@@ -84,7 +84,11 @@ export const BOW_MUZZLE_OFFSET = 0.55; // tiles forward of the body the arrow le
 export const BOW_MUZZLE_OFFSET_WEST = 0.45; // added on top for the west band
 export const BOW_MUZZLE_HEIGHT = 38; // px up from the ground = bow height
 export const ARROW_SPEED = 18; // tiles/sec arrow travel
-export const ARROW_MAX_RANGE = 22; // tiles
+// MUST equal the server's combat::BOW_RANGE. The server resolves a bow shot with
+// a line_cast bounded to BOW_RANGE, so a target past it is rejected — if the
+// arrow flew/acquired farther than that, shots that visually connected dealt no
+// damage. Bump both together to lengthen the bow.
+export const ARROW_MAX_RANGE = 8; // tiles (= server combat::BOW_RANGE)
 export const ARROW_DMG = 14; // placeholder local damage
 
 // Fake contact shadow: a flattened dark ellipse on the ground under each
@@ -120,19 +124,24 @@ export function arpgAsset(path: string): string {
 export const GROUND_TEXTURE_KEY = 'arpg-ground';
 export const GROUND_TEXTURE_PATH = '/assets/arcade/arpg/ground.png';
 
-// Offline debug: when no server connects, spawn a locally-driven ranger so the
-// character renders and is controllable without a live arpg-server.
-export const DEBUG_LOCAL_PLAYER =
-	((import.meta.env.PUBLIC_ARPG_LOCAL as string | undefined) ?? 'true') !==
-	'false';
-export const DEBUG_SPAWN_TILE = { x: 12, y: 12 };
+// z is elevation: z=0 is the grass surface (spawn/overworld), z>0 is above-ground
+// (city/towers — future), and the carved dungeon is UNDERGROUND at z<0 (deeper =
+// more negative). Floors at z>=0 are open grassland: grass ground, no walls, all
+// walkable. Mirrors the server gate in arpg_dungeon::is_floor. Base layer for now.
+export const SURFACE_MIN_Z = 0; // z >= this = open grass surface/overworld
+export const GRASS_TEXTURE_KEY = 'arpg-grass';
+export const GRASS_TEXTURE_PATH =
+	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
+// A second grass variant overlaid at a different tile-scale + multiply blend, so
+// the two layers' repeat periods don't line up — the base grass stops reading as
+// an obvious tiled pattern. First-pass blend; real per-tile variety comes later.
+export const GRASS_DETAIL_TEXTURE_KEY = 'arpg-grass-detail';
+export const GRASS_DETAIL_TEXTURE_PATH =
+	'/assets/arcade/arpg/textures/grass/grass_04_l.png';
+
 // React HUD debug panel: shows fps + current tile alongside the compass/vitals.
 // Flip off for release; the compass + vitals panels render regardless.
 export const DEBUG_HUD = true;
-
-export const USE_D2_HUD =
-	((import.meta.env.PUBLIC_ARPG_D2_HUD as string | undefined) ?? 'true') !==
-	'false';
 
 export const WS_URL_FALLBACK = 'wss://arpg.kbve.com/ws';
 

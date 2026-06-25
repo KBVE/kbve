@@ -24,5 +24,10 @@ public class KBVESupabase : ModuleRules
 			"Sockets",
 			"Networking"
 		});
+
+		if (Target.Platform == UnrealTargetPlatform.Mac)
+		{
+			PublicFrameworks.Add("Cocoa");
+		}
 	}
 }

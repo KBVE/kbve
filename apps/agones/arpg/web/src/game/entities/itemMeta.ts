@@ -54,3 +54,10 @@ export function loadItemMeta(): Promise<Map<string, ItemMeta>> {
 	if (!cache) cache = buildItemMeta();
 	return Promise.resolve(cache);
 }
+
+/** Atlas slot for an item ref (0 = none). Sync — for Phaser sprite creation. */
+export function itemKey(ref: string | null): number {
+	if (!ref) return 0;
+	if (!cache) cache = buildItemMeta();
+	return cache.get(ref)?.key ?? 0;
+}

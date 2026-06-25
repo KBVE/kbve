@@ -19,7 +19,7 @@ controllerServiceAccount:
 
 # Scaling — Windows UE builds are heavy
 minRunners: 0
-maxRunners: 2
+maxRunners: 1
 
 template:
     metadata:
@@ -50,14 +50,9 @@ template:
               volumeMounts:
                   - name: work
                     mountPath: /home/runner/_work
-                  - name: engine-cache
-                    mountPath: /mnt/longhorn/angelscript-engine
         volumes:
             - name: work
               emptyDir: {}
-            - name: engine-cache
-              persistentVolumeClaim:
-                  claimName: arc-engine-cache
 
 listenerTemplate:
     spec:

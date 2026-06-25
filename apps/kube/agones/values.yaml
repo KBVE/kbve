@@ -63,7 +63,6 @@ gameservers:
         - arc-runners
         - factorio
         - cryptothrone
-        - nexus-defense
         - arpg
 
     # Port range for game server host ports.

@@ -200,6 +200,7 @@ export default defineConfig({
 					collapsed: true,
 					items: [
 						{ label: 'Overview', link: '/dashboard/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Portal', link: '/dashboard/portal/', attrs: { 'data-auth-visibility': 'staff' } },
 						{
 							label: 'Account',
 							collapsed: true,

@@ -95,15 +95,9 @@ spec:
                       - /scripts/setup.sh
                   env:
                       - name: CLICKHOUSE_ENDPOINT
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-credentials
-                                key: endpoint
+                        value: http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123
                       - name: CLICKHOUSE_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: clickhouse-credentials
-                                key: username
+                        value: kbve_ingest
                       - name: CLICKHOUSE_PASSWORD
                         valueFrom:
                             secretKeyRef:

@@ -3,7 +3,7 @@ title: KBVE Gate
 description: |
     Reusable auth reverse-proxy sidecar. Validates a Supabase JWT and an
     authz policy (jwt-only or is_staff), then proxies HTTP and WebSocket
-    traffic to an internal upstream. First deployment fronts n8n.
+    traffic to an internal upstream. Fronts n8n, Grafana, Longhorn, ArgoCD, and Forgejo.
 sidebar:
     label: KBVE Gate
     order: 52
@@ -14,7 +14,7 @@ tags:
 key: kbve_gate
 pipeline: docker
 app_name: kbve-gate
-version: "0.1.3"
+version: "0.1.5"
 source_path: apps/kbve/kbve-gate
 version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
@@ -23,6 +23,9 @@ image: kbve/kbve-gate
 deployment_yamls:
     - apps/kube/n8n/manifest/n8n-deployment.yaml
     - apps/kube/monitoring/manifests/grafana-gate-deployment.yaml
+    - apps/kube/argocd/manifests/argocd-gate-deployment.yaml
+    - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
+    - apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
@@ -60,8 +63,13 @@ After the JWT validates it applies an authz policy:
 | --- | --- | --- |
 | `GATE_LISTEN` | `0.0.0.0:5678` | bind address |
 | `GATE_UPSTREAM` | `http://127.0.0.1:5679` | upstream base URL |
+| `GATE_UPSTREAM_PREFIX` | — | path prefix prepended to every upstream request (Grafana sub-path) |
+| `GATE_UPSTREAM_CA_CERT_PATH` | — | CA bundle to trust an HTTPS upstream (ArgoCD TLS) |
 | `GATE_AUTHZ` | `is_staff` | `is_staff` or `jwt-only` |
+| `GATE_STAFF_SCHEMA` | `forum` | Postgres schema holding `is_staff` |
 | `GATE_UPSTREAM_BASIC` | — | `Basic <b64>` injected downstream |
+| `GATE_UPSTREAM_BEARER` | — | `Authorization: Bearer <token>` injected downstream (ArgoCD apiKey) |
+| `GATE_FORWARD_USER_HEADER` / `GATE_FORWARD_USER_VALUE` | — | trusted identity header injected downstream (Grafana auth-proxy) |
 | `GATE_LOGIN_REDIRECT` | — | 302 target for unauthed browser navigations |
 | `GATE_COOKIE_DOMAIN` | — | domain scope for the minted session cookie (e.g. `.kbve.com`) |
 | `SUPABASE_JWT_SECRET` | — | required |
@@ -87,8 +95,48 @@ navigation carries no token. The gate completes auth with a bounce:
 The login page only honours `redirect_to` targets on `*.kbve.com` over https,
 so the token can never be handed to a foreign origin.
 
-### n8n deployment
+### Deployment shapes
+
+Two shapes depending on whether the upstream is in the same pod:
+
+- **Sidecar** — the gate shares a pod with the upstream, which binds
+  `127.0.0.1`. Used when the workload is ours to edit (n8n).
+- **Standalone** — the gate is its own `Deployment` + `Service` + `HTTPRoute`
+  and proxies a separate in-cluster `Service`. Used for Helm- or
+  operator-managed upstreams we don't own (Grafana, Longhorn, ArgoCD).
+
+### n8n (sidecar)
 
 The first consumer fronts n8n: n8n moves to `127.0.0.1:5681`, the gate owns the
 Service port `5678`, and `n8n.kbve.com` routes through it so the panel stays
 staff-only.
+
+### Grafana (standalone)
+
+`grafana.kbve.com` → standalone gate in `monitoring` → `monitoring-grafana:80`.
+`GATE_UPSTREAM_PREFIX=/dashboard/grafana/proxy` matches Grafana's sub-path
+`root_url`. Grafana's own login is bypassed with its auth-proxy:
+`GATE_FORWARD_USER_HEADER=X-WEBAUTH-USER` / `GATE_FORWARD_USER_VALUE=kbve-staff`,
+so the gate-authed staff user is trusted downstream.
+
+### Longhorn (standalone)
+
+`longhorn.kbve.com` → standalone gate in `longhorn-system` →
+`longhorn-frontend:80`. No prefix (the UI roots at `/`) and no upstream login —
+the gate's `is_staff` is the only auth in front of the panel.
+
+### ArgoCD (standalone)
+
+`argo.kbve.com` → standalone gate in `argocd` → `argocd-server:443` over HTTPS
+(`GATE_UPSTREAM_CA_CERT_PATH` trusts the `argocd-server-tls` CA). ArgoCD keeps
+its own login, so the gate injects an admin apiKey as `GATE_UPSTREAM_BEARER`
+(synced by ESO from the `argocd-auth` secret) on every request — the SPA then
+authenticates as that account instead of redirecting to ArgoCD's login.
+
+### Forgejo (standalone)
+
+`forgejo.kbve.com` → standalone gate in `forgejo` → `forgejo-http:3000`.
+The gate enforces `is_staff` authz while API and git operations (e.g., `/api/`,
+`/v2/`, `/KBVE/`) bypass the gate for token-based auth. Forgejo is configured
+with OAuth/OIDC to use Supabase as the identity provider, enabling automatic
+account creation and login for authenticated staff users.

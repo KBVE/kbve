@@ -88,13 +88,15 @@ fn room_rect(world_seed: u32, cx: i32, cy: i32) -> RoomRect {
     let base_x = cx * CHUNK_SIZE;
     let base_y = cy * CHUNK_SIZE;
     let arena = is_arena(world_seed, cx, cy);
+    // Arena (boss-sized) rooms 14..17, normal rooms 6..10. One rng draw per
+    // dimension either way — keep the draw count/order identical to the client.
     let w = if arena {
-        11 + floor_mul(&mut rng, 3)
+        14 + floor_mul(&mut rng, 4)
     } else {
         6 + floor_mul(&mut rng, 5)
     };
     let h = if arena {
-        11 + floor_mul(&mut rng, 3)
+        14 + floor_mul(&mut rng, 4)
     } else {
         6 + floor_mul(&mut rng, 5)
     };
@@ -224,11 +226,17 @@ fn is_floor_fs(fs: u32, x: i32, y: i32) -> bool {
     false
 }
 
-/// Walkable test for a single world tile on dungeon floor `z`. A tile is floor
-/// iff its owning chunk OR any of the (up to 9) chunks whose carved corridors
-/// can reach into it covers it. Each floor is an independent endless dungeon
-/// (z folded into the seed); stairs are the only way between floors.
+/// Walkable test for a single world tile on floor `z`. `z >= 0` is the open
+/// overworld — grass surface at 0, above-ground (city/towers) at >0 — with no
+/// walls, so every tile is floor. The carved endless dungeon lives UNDERGROUND
+/// at `z < 0` (deeper = more negative); there a tile is floor iff its owning
+/// chunk OR any of the (up to 9) neighbour chunks whose corridors reach into it
+/// covers it. Only collision goes through here — the pure carve
+/// (`is_floor_fs`/`fingerprint`) is unchanged, so cross-language parity holds.
 pub fn is_floor(world_seed: u32, z: i32, x: i32, y: i32) -> bool {
+    if z >= 0 {
+        return true;
+    }
     is_floor_fs(floor_seed(world_seed, z), x, y)
 }
 
@@ -254,8 +262,9 @@ pub fn nearest_floor(world_seed: u32, z: i32, tx: i32, ty: i32, max_r: i32) -> (
     (tx, ty)
 }
 
-/// The two stair endpoints on a floor: `Down` descends to z+1, `Up` ascends to
-/// z-1. Floor 0's `Up` is unused (top of the dungeon).
+/// The two stair endpoints on a floor: `Down` descends to z-1 (deeper
+/// underground), `Up` ascends to z+1 (toward the surface / above-ground). z=0 is
+/// the grass surface; the dungeon is below at z<0.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum StairKind {
     Down,
@@ -266,7 +275,7 @@ pub enum StairKind {
 /// hosts the stair (snapped to guaranteed floor), domain-separated per kind so
 /// up/down never collide. Pure — client predicts the exact tile, server agrees.
 /// The link is fixed by convention: descending `Down` on z arrives at `Up` on
-/// z+1, and ascending `Up` on z arrives at `Down` on z-1.
+/// z-1, and ascending `Up` on z arrives at `Down` on z+1.
 pub fn stair_tile(world_seed: u32, z: i32, kind: StairKind) -> (i32, i32) {
     let fs = floor_seed(world_seed, z);
     let tag = match kind {
@@ -285,11 +294,11 @@ pub fn stair_tile(world_seed: u32, z: i32, kind: StairKind) -> (i32, i32) {
 }
 
 /// Where you arrive when taking `kind` from floor `z`: the matching opposite
-/// stair on the adjacent floor. Down on z -> Up on z+1; Up on z -> Down on z-1.
+/// stair on the adjacent floor. Down on z -> Up on z-1; Up on z -> Down on z+1.
 pub fn stair_dest(world_seed: u32, z: i32, kind: StairKind) -> (i32, (i32, i32)) {
     match kind {
-        StairKind::Down => (z + 1, stair_tile(world_seed, z + 1, StairKind::Up)),
-        StairKind::Up => (z - 1, stair_tile(world_seed, z - 1, StairKind::Down)),
+        StairKind::Down => (z - 1, stair_tile(world_seed, z - 1, StairKind::Up)),
+        StairKind::Up => (z + 1, stair_tile(world_seed, z + 1, StairKind::Down)),
     }
 }
 
@@ -351,7 +360,7 @@ mod tests {
         // Floor 0 == the original single-floor dungeon (floor_seed identity), so
         // the committed parity fingerprint must still hold.
         assert_eq!(floor_seed(SEED, 0), SEED);
-        assert_eq!(fingerprint(SEED, 0, 0, 0, 80, 80), 1764795750);
+        assert_eq!(fingerprint(SEED, 0, 0, 0, 80, 80), 3726471204);
     }
 
     #[test]
@@ -386,11 +395,11 @@ mod tests {
 
     #[test]
     fn stair_link_is_symmetric() {
-        // Descending Down from z arrives at z+1's Up; ascending Up from there
+        // Descending Down from z arrives at z-1's Up; ascending Up from there
         // returns to z's Down. The two endpoints round-trip.
         let z = 1;
         let (down_z, _down_dest) = stair_dest(SEED, z, StairKind::Down);
-        assert_eq!(down_z, z + 1);
+        assert_eq!(down_z, z - 1);
         let (back_z, _) = stair_dest(SEED, down_z, StairKind::Up);
         assert_eq!(back_z, z);
     }

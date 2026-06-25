@@ -1,4 +1,5 @@
 #include "KBVESupabaseModule.h"
+#include "KBVESupabaseDeepLink.h"
 
 DEFINE_LOG_CATEGORY(LogKBVESupabase);
 
@@ -6,10 +7,12 @@ DEFINE_LOG_CATEGORY(LogKBVESupabase);
 
 void FKBVESupabaseModule::StartupModule()
 {
+	FKBVESupabaseDeepLink::RegisterHandlers();
 }
 
 void FKBVESupabaseModule::ShutdownModule()
 {
+	FKBVESupabaseDeepLink::UnregisterHandlers();
 }
 
 #undef LOCTEXT_NAMESPACE

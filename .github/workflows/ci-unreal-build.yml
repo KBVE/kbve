@@ -4,7 +4,7 @@ on:
     workflow_call:
         inputs:
             mode:
-                description: 'server | game | engine | plugin | plugin-win | win-setup | mac-setup'
+                description: 'server | game | plugin | plugin-win | win-setup | mac-setup'
                 required: true
                 type: string
 
@@ -69,6 +69,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            verify_baked_config:
+                description: '[game] When "true", print the cooked DefaultGame.ini OWS endpoint before packaging to confirm the per-env backend config baked (KBVE/kbve#13081). Opt-in per project; leave empty for projects without per-env backend config.'
+                required: false
+                type: string
+                default: ''
             use_logging_in_shipping:
                 description: '[game/server] When "1", export USE_LOGGING_IN_SHIPPING=1 so the UE target keeps UE_LOG in Shipping builds (default UE strips it). Empty = leave UE default.'
                 required: false
@@ -100,26 +105,6 @@ on:
                 type: string
                 default: ''
 
-            platforms:
-                description: '[engine] Comma-separated: windows,mac,linux'
-                required: false
-                type: string
-                default: 'linux'
-            engine_ref:
-                description: '[engine] Branch or tag of UnrealEngine-Angelscript'
-                required: false
-                type: string
-                default: 'angelscript-master'
-            skip_version_gate:
-                description: '[engine] Force rebuild'
-                required: false
-                type: boolean
-                default: false
-            build_dedicated_server:
-                description: '[engine] Build + push Linux dedicated-server Docker image'
-                required: false
-                type: boolean
-                default: true
 
             plugin_path:
                 description: '[plugin] Plugin dir relative to repo root'
@@ -216,11 +201,6 @@ concurrency:
     cancel-in-progress: false
 
 permissions: {}
-
-env:
-    ENGINE_REPO: KBVE/UnrealEngine-Angelscript
-    DOCKER_IMAGE: ghcr.io/kbve/angelscript-server
-    ENGINE_CACHE_PATH: /mnt/longhorn/angelscript-engine
 
 jobs:
     guard:
@@ -480,7 +460,17 @@ jobs:
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
                       ;;
                     *)
                       echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
@@ -520,10 +510,20 @@ jobs:
                   docker run --rm \
                     -v "${PROJECT_MOUNT}:/project" \
                     -v /tmp/ue5-build-output:/output \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
                     ${LOGGING_ENV_ARG} \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
                       set -euo pipefail
+
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM) so it
+                      # stays out of dockers writable layer on the longhorn-sdb PVC store.
+                      # report() measures the DDC + residual home/tmp writes so a later
+                      # pass can redirect whatever still escapes to the overlay.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
 
                       RUNUAT=""
                       for candidate in \
@@ -843,7 +843,17 @@ jobs:
                       fi
                       echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      git config --local lfs.transfer.maxretries 10
+                      n=0
+                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
+                        n=$((n+1))
+                        if [ "$n" -ge 4 ]; then
+                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
+                          exit 1
+                        fi
+                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
+                        sleep $((n*15))
+                      done
                       ;;
                     *)
                       echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
@@ -877,7 +887,29 @@ jobs:
                   fi
                   CUSTOM_CONFIG='${{ inputs.custom_config }}'
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="/tmp/game-project/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="/tmp/game-project/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
                   USE_LOGGING_IN_SHIPPING='${{ inputs.use_logging_in_shipping }}'
                   LOGGING_ENV_ARG=""
                   [ -n "${USE_LOGGING_IN_SHIPPING}" ] && LOGGING_ENV_ARG="-e USE_LOGGING_IN_SHIPPING=${USE_LOGGING_IN_SHIPPING}"
@@ -886,10 +918,18 @@ jobs:
                   docker run --rm \
                     -v /tmp/game-project:/project \
                     -v "${GITHUB_WORKSPACE}/ue5-game-output:/output" \
+                    --mount type=tmpfs,destination=/ram,tmpfs-size=34359738368 \
+                    --env UE-LocalDataCachePath=/ram/ddc \
                     ${LOGGING_ENV_ARG} \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
                       set -euo pipefail
+                      # Tier the write-heavy UE local DDC onto the /ram tmpfs (RAM), out of
+                      # dockers writable layer on the longhorn-sdb PVC store. report()
+                      # measures the DDC + residual writes so a later pass can redirect them.
+                      mkdir -p /ram/ddc
+                      report() { echo "::group::DDC tiering report"; printf "DDC=%s\n" "$(printenv UE-LocalDataCachePath || true)"; df -h /ram || true; du -sh /ram/ddc 2>/dev/null || true; echo "-- residual (redirect next if large) --"; du -sh "$HOME/.cache" "$HOME/.config" "$HOME/.nuget" "$HOME/.dotnet" /tmp 2>/dev/null || true; echo "::endgroup::"; }
+                      trap report EXIT
                       RUNUAT=""
                       for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
                         if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
@@ -907,6 +947,20 @@ jobs:
                         -archivedirectory=/output \
                         -unattended -utf8output -NoP4
                     '
+
+            - name: Verify baked backend config (pre-pak, Linux)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED=/tmp/game-project/Saved/StagedBuilds/Linux
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Linux config:"
+                    echo "${HITS}"
+                  else
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
+                  fi
 
             - name: Package archive
               run: |
@@ -947,7 +1001,7 @@ jobs:
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
         runs-on: arc-runner-set-kbve
-        timeout-minutes: 10
+        timeout-minutes: 20
         permissions:
             contents: read
         outputs:
@@ -963,30 +1017,35 @@ jobs:
                   VM=windows-builder
                   status() {
                     local body
-                    body=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    body=$(curl -sS --max-time 8 --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>/dev/null) \
                       || { echo "Unknown"; return 0; }
                     printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
                       || echo "Unknown"
                   }
-                  S=$(status); echo "::notice::$VM status: $S"
-                  if [ "$S" != "Running" ]; then
+                  request_start() {
                     echo "Requesting start..."
-                    curl -sS --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       -X PUT -H "Content-Type: application/json" -d '{}' \
                       "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" || true
-                  fi
-                  for i in $(seq 1 30); do
+                  }
+                  S=$(status); echo "::notice::$VM status: $S"
+                  [ "$S" != "Running" ] && request_start
+                  for i in $(seq 1 48); do
                     S=$(status)
                     if [ "$S" = "Running" ]; then
                       echo "::notice::$VM is Running; Win64 build proceeds once the UE5-Win runner registers."
                       echo "vm_ready=true" >> "$GITHUB_OUTPUT"
                       exit 0
                     fi
-                    echo "waiting for $VM to reach Running ($i/30): $S"
-                    sleep 10
+                    if [ "$S" = "Stopped" ]; then
+                      echo "$VM is Stopped (idle-shutdown race or lost start) — re-requesting start"
+                      request_start
+                    fi
+                    echo "waiting for $VM to reach Running ($i/48): $S"
+                    sleep 15
                   done
-                  echo "::warning::$VM did not reach Running in ~5m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
+                  echo "::warning::$VM did not reach Running in ~12m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
                   echo "vm_ready=false" >> "$GITHUB_OUTPUT"
 
     game_build_windows:
@@ -1126,7 +1185,28 @@ jobs:
                   }
                   $customConfig = '${{ inputs.custom_config }}'
                   $customConfigArgs = @()
-                  if ($customConfig) { $customConfigArgs += "-CustomConfig=$customConfig" }
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if ($customConfig) {
+                      $customConfigArgs += "-CustomConfig=$customConfig"
+                      $customConfigArgs += "-AdditionalCookerOptions=-CustomConfig=$customConfig"
+                      $layer = Join-Path $projRoot "Config\Custom\$customConfig"
+                      if (Test-Path $layer) {
+                          $merged = @(Get-ChildItem -Path $layer -Filter 'Default*.ini')
+                          $merged | ForEach-Object {
+                              $base = Join-Path $projRoot "Config\$($_.Name)"
+                              Add-Content -Path $base -Value "`n; --- merged from Config/Custom/$customConfig (ci-unreal #13081) ---"
+                              Add-Content -Path $base -Value (Get-Content -Raw $_.FullName)
+                              Write-Host "::notice::Merged $($_.FullName) -> $base"
+                          }
+                          if ($merged.Count -eq 0) { Write-Host "::warning::custom_config='$customConfig': $layer exists but holds no Default*.ini to merge" }
+                      } else {
+                          Write-Host "::warning::custom_config='$customConfig' set but $layer not found"
+                      }
+                  }
                   $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
                   if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
                   Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
@@ -1141,6 +1221,19 @@ jobs:
                       -nodebuginfo `
                       -unattended -utf8output -NoP4
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Verify baked backend config (pre-pak, Win64)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  $staged = Join-Path $projRoot 'Saved\StagedBuilds\Windows'
+                  $hits = Get-ChildItem -Path $staged -Recurse -Filter *.ini -ErrorAction SilentlyContinue | Select-String -Pattern 'OWS2APIPath','OWSAPICustomerKey'
+                  if ($hits) {
+                      Write-Host "::notice::OWS endpoint in staged Win64 config:"
+                      $hits | ForEach-Object { Write-Host ("  " + $_.Path + ": " + $_.Line.Trim()) }
+                  } else { Write-Host "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)" }
 
             - name: Package archive
               run: |
@@ -1309,7 +1402,29 @@ jobs:
 
                   CUSTOM_CONFIG="${{ inputs.custom_config }}"
                   CUSTOM_CONFIG_ARG=""
-                  [ -n "${CUSTOM_CONFIG}" ] && CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG}"
+                  # -CustomConfig does NOT reliably bake into the iostore/zen cooked config: the
+                  # Config/Custom/<name> layer is "Excluded" at stage time and never lands on
+                  # Linux/Mac (KBVE/kbve#13081). Deterministically fold the layer into the BASE
+                  # Config/Default*.ini before cook — appended keys win, so the override bakes on
+                  # every platform. -CustomConfig kept as belt-and-suspenders.
+                  if [ -n "${CUSTOM_CONFIG}" ]; then
+                    CUSTOM_CONFIG_ARG="-CustomConfig=${CUSTOM_CONFIG} -AdditionalCookerOptions=-CustomConfig=${CUSTOM_CONFIG}"
+                    LAYER="${PROJECT_ROOT}/Config/Custom/${CUSTOM_CONFIG}"
+                    if [ -d "${LAYER}" ]; then
+                      MERGED=0
+                      for f in "${LAYER}"/Default*.ini; do
+                        [ -e "${f}" ] || continue
+                        base="${PROJECT_ROOT}/Config/$(basename "${f}")"
+                        printf '\n; --- merged from Config/Custom/%s (ci-unreal #13081) ---\n' "${CUSTOM_CONFIG}" >> "${base}"
+                        cat "${f}" >> "${base}"
+                        echo "::notice::Merged ${f} -> ${base}"
+                        MERGED=$((MERGED + 1))
+                      done
+                      [ "${MERGED}" -eq 0 ] && echo "::warning::custom_config='${CUSTOM_CONFIG}': ${LAYER} exists but holds no Default*.ini to merge"
+                    else
+                      echo "::warning::custom_config='${CUSTOM_CONFIG}' set but ${LAYER} not found"
+                    fi
+                  fi
 
                   echo "::notice::Building $(basename ${UPROJECT}) (Mac client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
@@ -1325,6 +1440,21 @@ jobs:
                     ${CUSTOM_CONFIG_ARG} \
                     -nodebuginfo \
                     -unattended -utf8output -NoP4
+
+            - name: Verify baked backend config (pre-pak, Mac)
+              if: inputs.verify_baked_config == 'true'
+              run: |
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  # Zen/iostore cooks pack config into a binary container (no loose cooked
+                  # DefaultGame.ini), so inspect the staged build's .ini config instead.
+                  STAGED="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  HITS=$(grep -ranE --include='*.ini' 'OWS2APIPath|OWSAPICustomerKey' "${STAGED}" 2>/dev/null || true)
+                  if [ -n "${HITS}" ]; then
+                    echo "::notice::OWS endpoint in staged Mac config:"
+                    echo "${HITS}"
+                  else
+                    echo "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)"
+                  fi
 
             - name: Package staged build
               run: |
@@ -1417,418 +1547,6 @@ jobs:
             version_toml_path: ${{ inputs.version_toml }}
         secrets:
             TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
-
-    # ════════════════ ENGINE (AngelScript UE) ════════════════
-    engine_gate:
-        name: Engine Version Gate
-        needs: guard
-        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true'
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 5
-        permissions:
-            contents: read
-        outputs:
-            version: ${{ steps.extract.outputs.version }}
-            should_build: ${{ steps.compare.outputs.should_build }}
-            tag: ${{ steps.compare.outputs.tag }}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Extract version
-              id: extract
-              run: |
-                  VERSION_TOML="apps/angelscript/version.toml"
-                  if [ -f "${VERSION_TOML}" ]; then
-                    VERSION=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
-                  else
-                    VERSION="0.0.0"
-                  fi
-                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Current version: ${VERSION}"
-
-            - name: Compare versions
-              id: compare
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
-              run: |
-                  VERSION="${{ steps.extract.outputs.version }}"
-                  TAG="angelscript-v${VERSION}"
-                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-
-                  if [ "${{ inputs.skip_version_gate }}" = "true" ]; then
-                    echo "::notice::Version gate skipped (forced rebuild)"
-                    echo "should_build=true" >> "$GITHUB_OUTPUT"
-                  elif [ "${VERSION}" = "0.0.0" ]; then
-                    echo "::notice::Version is 0.0.0 - initial build"
-                    echo "should_build=true" >> "$GITHUB_OUTPUT"
-                  elif gh release view "${TAG}" --repo "${{ env.ENGINE_REPO }}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists - skipping build"
-                    echo "should_build=false" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "::notice::No existing release for ${TAG} - will build"
-                    echo "should_build=true" >> "$GITHUB_OUTPUT"
-                  fi
-
-    engine_build_windows:
-        name: Engine Provision (UE5-Win VM)
-        needs: [guard, engine_gate]
-        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'windows')
-        runs-on: UE5-Win
-        timeout-minutes: 1440
-        permissions:
-            contents: read
-        env:
-            ENGINE_ROOT: C:\UnrealEngine
-        steps:
-            - name: Audit log
-              shell: powershell
-              run: Write-Host "::notice::Windows engine provision - ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, root=$env:ENGINE_ROOT"
-
-            - name: Check existing engine
-              id: check
-              shell: powershell
-              run: |
-                  $runuat = Test-Path (Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat')
-                  $marker = Join-Path $env:ENGINE_ROOT '.kbve-engine-ref'
-                  $builtRef = if (Test-Path $marker) { (Get-Content $marker -Raw).Trim() } else { '' }
-                  $force = '${{ inputs.skip_version_gate }}' -eq 'true'
-                  if ($runuat -and ($builtRef -eq '${{ inputs.engine_ref }}') -and (-not $force)) {
-                      Write-Host "Engine already provisioned (ref=$builtRef) - skipping build."
-                      "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
-                  } else {
-                      Write-Host "Building engine (runuat=$runuat builtRef='$builtRef' force=$force)."
-                      "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
-                  }
-
-            - name: Verify build tools
-              if: steps.check.outputs.skip != 'true'
-              shell: powershell
-              run: |
-                  $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-                  if (-not (Test-Path $vsWhere)) { Write-Host "::error::vswhere not found - run the win-setup task first"; exit 1 }
-                  Write-Host "::notice::VS: $(& $vsWhere -latest -property installationPath)"
-                  git --version
-                  git lfs version
-
-            - name: Clone or update engine source
-              if: steps.check.outputs.skip != 'true'
-              env:
-                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
-              shell: powershell
-              run: |
-                  $url = "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
-                  if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
-                      Push-Location $env:ENGINE_ROOT
-                      git remote set-url origin $url
-                      git fetch --depth 1 origin '${{ inputs.engine_ref }}'
-                      git checkout -f FETCH_HEAD
-                      git reset --hard FETCH_HEAD
-                      git lfs pull
-                      Pop-Location
-                  } else {
-                      git clone --depth 1 --branch '${{ inputs.engine_ref }}' $url $env:ENGINE_ROOT
-                  }
-
-            - name: Run Setup
-              if: steps.check.outputs.skip != 'true'
-              timeout-minutes: 180
-              shell: powershell
-              run: |
-                  Push-Location $env:ENGINE_ROOT
-                  & .\Engine\Binaries\DotNET\GitDependencies\win-x64\GitDependencies.exe --force
-                  $rc = $LASTEXITCODE
-                  Pop-Location
-                  if ($rc -ne 0) { Write-Host "::error::GitDependencies failed ($rc)"; exit $rc }
-
-            - name: Generate project files
-              if: steps.check.outputs.skip != 'true'
-              shell: powershell
-              run: |
-                  Push-Location $env:ENGINE_ROOT; .\GenerateProjectFiles.bat; Pop-Location
-
-            - name: Build Editor (Win64)
-              if: steps.check.outputs.skip != 'true'
-              shell: powershell
-              run: |
-                  $logdir = Join-Path $env:GITHUB_WORKSPACE '_enginelogs'
-                  New-Item -ItemType Directory -Force -Path $logdir | Out-Null
-                  $log = Join-Path $logdir 'engine-build-editor.log'
-                  Push-Location $env:ENGINE_ROOT
-                  .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
-                    -target=UnrealEditor -platform=Win64 -configuration=Development `
-                    -notools -unattended -utf8output 2>&1 | Tee-Object -FilePath $log
-                  $rc = $LASTEXITCODE
-                  Pop-Location
-                  $free = [math]::Round((Get-Volume -DriveLetter C).SizeRemaining / 1GB)
-                  Write-Host "::notice::Build Editor exit=$rc freeC=${free}GB"
-                  if ($rc -ne 0) { Write-Host "::error::Build Editor failed ($rc)"; exit $rc }
-
-            - name: Stage engine logs
-              if: always() && steps.check.outputs.skip != 'true'
-              shell: powershell
-              run: |
-                  $logdir = Join-Path $env:GITHUB_WORKSPACE '_enginelogs'
-                  New-Item -ItemType Directory -Force -Path $logdir | Out-Null
-                  $src = 'C:\UnrealEngine\Engine\Programs\AutomationTool\Saved\Logs'
-                  if (Test-Path $src) { Copy-Item "$src\*" $logdir -Recurse -Force -ErrorAction SilentlyContinue }
-                  Get-ChildItem 'C:\UnrealEngine\Engine\Programs\UnrealBuildTool\Log*.txt' -ErrorAction SilentlyContinue | Copy-Item -Destination $logdir -Force -ErrorAction SilentlyContinue
-
-            - name: Upload engine build logs
-              if: always() && steps.check.outputs.skip != 'true'
-              uses: actions/upload-artifact@v4
-              with:
-                  name: engine-win-logs-${{ github.run_id }}
-                  if-no-files-found: ignore
-                  retention-days: 7
-                  path: _enginelogs/
-
-            - name: Mark engine ref
-              if: steps.check.outputs.skip != 'true'
-              shell: powershell
-              run: |
-                  '${{ inputs.engine_ref }}' | Out-File -FilePath (Join-Path $env:ENGINE_ROOT '.kbve-engine-ref') -Encoding ascii -NoNewline
-
-            - name: Verify engine root
-              shell: powershell
-              run: |
-                  $runuat = Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
-                  if (-not (Test-Path $runuat)) { Write-Host "::error::Engine not provisioned - RunUAT.bat missing at $runuat"; exit 1 }
-                  Write-Host "::notice::Engine ready at $env:ENGINE_ROOT"
-
-            - name: Cleanup secrets
-              if: always()
-              shell: powershell
-              run: |
-                  if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
-                      Push-Location $env:ENGINE_ROOT
-                      git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
-                      Pop-Location
-                  }
-
-    engine_build_mac:
-        name: Engine Build (Mac client)
-        needs: [guard, engine_gate]
-        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: [self-hosted, macOS, ARM64]
-        timeout-minutes: 240
-        permissions:
-            contents: read
-        steps:
-            - name: Audit log
-              run: |
-                  echo "::notice::Mac engine build - ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }}"
-                  sw_vers
-                  xcodebuild -version || echo "Xcode not found"
-
-            - name: Mac engine build placeholder
-              run: |
-                  echo "::warning::Mac engine build implementation in progress"
-                  echo "Runner is configured and ready for UE engine builds"
-
-    engine_build_linux:
-        name: Engine Build (Linux dedicated server)
-        needs: [guard, engine_gate]
-        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'linux')
-        runs-on: arc-runner-ue
-        timeout-minutes: 480
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Audit log
-              run: |
-                  echo "::notice::Linux engine build - ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, image=${{ env.DOCKER_IMAGE }}"
-
-            - name: Install build dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y build-essential clang xdg-utils shared-mime-info libssl-dev python3 curl zip
-
-            - name: Checkout monorepo
-              uses: actions/checkout@v7
-
-            - name: Clone or update engine source
-              env:
-                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
-              run: |
-                  CACHE="${{ env.ENGINE_CACHE_PATH }}"
-                  if [ -d "${CACHE}/.git" ]; then
-                    cd "${CACHE}"
-                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
-                    git fetch origin ${{ inputs.engine_ref }}
-                    git reset --hard FETCH_HEAD
-                  else
-                    if [ -d "${CACHE}" ]; then rm -rf "${CACHE:?}"/*; fi
-                    git clone --depth 1 --branch ${{ inputs.engine_ref }} \
-                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" "${CACHE}"
-                  fi
-
-            - name: Run Setup
-              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x Setup.sh && ./Setup.sh
-
-            - name: Generate project files
-              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x GenerateProjectFiles.sh && ./GenerateProjectFiles.sh
-
-            - name: Build Linux Dedicated Server
-              run: |
-                  cd "${{ env.ENGINE_CACHE_PATH }}"
-                  ./Engine/Build/BatchFiles/RunUAT.sh BuildTarget \
-                    -target=UnrealServer -platform=Linux -configuration=Development \
-                    -notools -unattended -utf8output
-
-            - name: Package Linux server
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  OUT_DIR="angelscript-linux-server-v${VERSION}"
-                  mkdir -p "${OUT_DIR}"
-                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux/"* "${OUT_DIR}/"
-                  zip -r "angelscript-linux-server-v${VERSION}.zip" "${OUT_DIR}"
-
-            - name: Upload Linux artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: angelscript-linux-server-v${{ needs.engine_gate.outputs.version }}
-                  path: angelscript-linux-server-v${{ needs.engine_gate.outputs.version }}.zip
-                  retention-days: 30
-
-            - name: Build and push Docker image
-              if: inputs.build_dedicated_server == true
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  mkdir -p docker-context/server
-                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux/"* docker-context/server/
-                  cp apps/angelscript/Dockerfile.dedicated-server docker-context/Dockerfile
-
-                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-                  docker buildx create --name vfs-builder --driver docker-container \
-                    --driver-opt "image=moby/buildkit:latest" --use
-
-                  docker buildx build --load \
-                    -t "${{ env.DOCKER_IMAGE }}:${VERSION}" \
-                    -t "${{ env.DOCKER_IMAGE }}:latest" \
-                    -f docker-context/Dockerfile docker-context/
-
-                  docker push "${{ env.DOCKER_IMAGE }}:${VERSION}"
-                  docker push "${{ env.DOCKER_IMAGE }}:latest"
-                  echo "::notice::Pushed ${{ env.DOCKER_IMAGE }}:${VERSION}"
-
-            - name: Cleanup
-              if: always()
-              run: |
-                  cd "${{ env.ENGINE_CACHE_PATH }}" 2>/dev/null && \
-                    git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git" || true
-                  docker logout ghcr.io 2>/dev/null || true
-                  docker system prune -f 2>/dev/null || true
-
-    engine_release:
-        name: Engine GitHub Release
-        needs: [engine_gate, engine_build_mac, engine_build_linux]
-        if: |
-            inputs.mode == 'engine' &&
-            always() &&
-            needs.engine_gate.outputs.should_build == 'true' &&
-            (needs.engine_build_mac.result == 'success' || needs.engine_build_mac.result == 'skipped') &&
-            (needs.engine_build_linux.result == 'success' || needs.engine_build_linux.result == 'skipped') &&
-            (needs.engine_build_mac.result == 'success' || needs.engine_build_linux.result == 'success')
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 15
-        permissions:
-            contents: read
-        steps:
-            - name: Download all artifacts
-              uses: actions/download-artifact@v8
-              with:
-                  path: ./artifacts
-                  pattern: angelscript-*
-                  merge-multiple: false
-
-            - name: Create release on private repo
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  TAG="${{ needs.engine_gate.outputs.tag }}"
-                  find ./artifacts -name "*.zip" -type f > /tmp/release_files.txt
-                  echo "::notice::Creating release ${TAG} on ${{ env.ENGINE_REPO }}:"
-                  cat /tmp/release_files.txt
-
-                  RELEASE_NOTES="## AngelScript Engine v${VERSION}
-
-                  Built from ref: \`${{ inputs.engine_ref }}\`
-
-                  ### Artifacts
-                  | Platform | Status |
-                  |----------|--------|
-                  | Mac x86 | ${{ needs.engine_build_mac.result }} |
-                  | Linux Server | ${{ needs.engine_build_linux.result }} |
-
-                  ### Docker
-                  Linux dedicated server image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`
-                  "
-
-                  UPLOAD_ARGS=""
-                  while IFS= read -r file; do
-                    UPLOAD_ARGS="${UPLOAD_ARGS} \"${file}\""
-                  done < /tmp/release_files.txt
-
-                  eval gh release create "${TAG}" \
-                    --repo "${{ env.ENGINE_REPO }}" \
-                    --title "AngelScript Engine v${VERSION}" \
-                    --notes "'${RELEASE_NOTES}'" \
-                    --prerelease \
-                    ${UPLOAD_ARGS}
-
-    engine_update_version:
-        name: Engine PR version.toml + kube image
-        needs: [engine_gate, engine_release, engine_build_linux]
-        if: |
-            inputs.mode == 'engine' &&
-            always() &&
-            needs.engine_gate.outputs.should_build == 'true' &&
-            needs.engine_release.result == 'success'
-        runs-on: arc-runner-set-kbve
-        timeout-minutes: 10
-        permissions:
-            contents: write
-            pull-requests: write
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-              with:
-                  ref: dev
-
-            - name: Update version.toml
-              run: |
-                  echo 'version = "${{ needs.engine_gate.outputs.version }}"' > apps/angelscript/version.toml
-                  cat apps/angelscript/version.toml
-
-            - name: Update kube deployment image tag
-              if: needs.engine_build_linux.result == 'success'
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  DEPLOY="apps/kube/angelscript/manifest/deployment.yaml"
-                  sed -i "s|image: ghcr.io/kbve/angelscript-server:.*|image: ghcr.io/kbve/angelscript-server:${VERSION}|" "${DEPLOY}"
-                  echo "::notice::Updated deployment image to ghcr.io/kbve/angelscript-server:${VERSION}"
-                  grep "image:" "${DEPLOY}"
-
-            - name: Create PR
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  BRANCH="auto/update-angelscript-version-${VERSION}"
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git checkout -b "${BRANCH}"
-                  git add apps/angelscript/version.toml apps/kube/angelscript/manifest/deployment.yaml
-                  git commit -m "chore(angelscript): update version.toml + kube image to ${VERSION} [skip ci]"
-                  git push origin "${BRANCH}"
-                  gh pr create \
-                    --base dev --head "${BRANCH}" \
-                    --title "chore(angelscript): update to v${VERSION}" \
-                    --body "Automated post-build update. AngelScript Engine v${VERSION} released on ${{ env.ENGINE_REPO }}. Docker image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`"
 
     # ════════════════ PLUGIN (Linux docker + Win64 native) ════════════════
     plugin_check:
@@ -1998,7 +1716,8 @@ jobs:
                         MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
                         mkdir -p "$MARKETPLACE_DIR"
                         DEP_SRC=/tmp/dep_src
-                        mkdir -p "$DEP_SRC"
+                        DEP_OUT=/tmp/dep_out
+                        mkdir -p "$DEP_SRC" "$DEP_OUT"
                         for dep in /deps/*/; do
                           dep_name=$(basename "$dep")
                           cp -r "$dep" "$DEP_SRC/$dep_name"
@@ -2007,9 +1726,11 @@ jobs:
                           echo "::group::Build dependency plugin $dep_name"
                           "$RUNUAT" BuildPlugin \
                             -Plugin="$dep_uplugin" \
-                            -Package="$MARKETPLACE_DIR/$dep_name" \
+                            -Package="$DEP_OUT/$dep_name" \
                             -TargetPlatforms=Linux \
                             -Rocket
+                          rm -rf "$MARKETPLACE_DIR/$dep_name"
+                          cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE_DIR/$dep_name"
                           echo "::endgroup::"
                         done
                       fi
@@ -2071,7 +1792,7 @@ jobs:
 
             - name: Stamp plugin version
               run: |
-                  $up = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
+                  $up = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
                   $json = Get-Content $up -Raw | ConvertFrom-Json
                   $json.VersionName = '${{ needs.plugin_check.outputs.version }}'
                   $json | ConvertTo-Json -Depth 20 | Set-Content $up
@@ -2101,6 +1822,8 @@ jobs:
                   $engineRoot = '${{ steps.engine.outputs.engine_root }}'
                   $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
                   New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
+                  $depOut = Join-Path $env:RUNNER_TEMP 'dep_out'
+                  New-Item -ItemType Directory -Force -Path $depOut | Out-Null
                   $deps = '${{ inputs.dependency_plugin_paths }}' -split '\s+'
                   foreach ($depPath in $deps) {
                       if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
@@ -2108,18 +1831,21 @@ jobs:
                       $src = Join-Path $env:GITHUB_WORKSPACE $depPath
                       $depUplugin = Get-ChildItem -Path $src -Filter *.uplugin -File | Select-Object -First 1
                       if (-not $depUplugin) { Write-Host "::error::No .uplugin in dependency $depName"; exit 1 }
+                      $pkg = Join-Path $depOut $depName
                       $dst = Join-Path $marketplaceDir $depName
                       Write-Host "::group::Build dependency plugin $depName"
-                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$dst" -TargetPlatforms=Win64 -Rocket
+                      & $runuat BuildPlugin -Plugin="$($depUplugin.FullName)" -Package="$pkg" -TargetPlatforms=Win64 -Rocket
                       if ($LASTEXITCODE -ne 0) { Write-Host "::error::Dependency BuildPlugin failed for $depName ($LASTEXITCODE)"; exit $LASTEXITCODE }
+                      if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
+                      Copy-Item -Recurse -Force $pkg $dst
                       Write-Host "::endgroup::"
                   }
 
             - name: Build plugin with RunUAT
               run: |
                   $runuat = '${{ steps.engine.outputs.runuat }}'
-                  $pluginPath = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
-                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}'
+                  $pluginPath = Join-Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}') '${{ inputs.plugin_name }}.uplugin'
+                  $outputDir = Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}'
                   New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
                   & $runuat BuildPlugin `
                       -Plugin="$pluginPath" -Package="$outputDir" `
@@ -2129,13 +1855,13 @@ jobs:
 
             - name: Verify build output
               run: |
-                  $uplugin = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}' '${{ inputs.plugin_name }}.uplugin'
+                  $uplugin = Join-Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') '${{ inputs.plugin_name }}.uplugin'
                   if (-not (Test-Path $uplugin)) {
                       Write-Host "::error::Build output missing - .uplugin not found at $uplugin"
                       Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
                       exit 1
                   }
-                  Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
+                  Get-ChildItem -Path (Join-Path (Join-Path $env:GITHUB_WORKSPACE 'output') '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
 
             - name: Package plugin zip
               run: |
@@ -2183,12 +1909,15 @@ jobs:
               if: inputs.dependency_plugin_paths != ''
               run: |
                   MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
-                  mkdir -p "$MARKETPLACE"
+                  DEP_OUT="${RUNNER_TEMP:-/tmp}/dep_out"
+                  mkdir -p "$MARKETPLACE" "$DEP_OUT"
                   for dep_path in ${{ inputs.dependency_plugin_paths }}; do
                     dep_name=$(basename "$dep_path")
                     dep_uplugin=$(find "${{ github.workspace }}/${dep_path}" -maxdepth 1 -name "*.uplugin" | head -1)
                     [ -z "$dep_uplugin" ] && { echo "::error::No .uplugin in dependency $dep_name"; exit 1; }
-                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$MARKETPLACE/$dep_name" -TargetPlatforms=Mac -Rocket
+                    "${{ steps.engine.outputs.runuat }}" BuildPlugin -Plugin="$dep_uplugin" -Package="$DEP_OUT/$dep_name" -TargetPlatforms=Mac -Rocket
+                    rm -rf "$MARKETPLACE/$dep_name"
+                    cp -r "$DEP_OUT/$dep_name" "$MARKETPLACE/$dep_name"
                   done
 
             - name: Build plugin with RunUAT
@@ -2534,11 +2263,6 @@ jobs:
                 game_build_linux,
                 game_build_windows,
                 game_build_mac,
-                engine_gate,
-                engine_build_windows,
-                engine_build_mac,
-                engine_build_linux,
-                engine_release,
                 plugin_check,
                 plugin_build_linux,
                 plugin_build_win,
@@ -2571,12 +2295,6 @@ jobs:
                 game_build_windows,
                 game_build_mac,
                 game_post_publish,
-                engine_gate,
-                engine_build_windows,
-                engine_build_mac,
-                engine_build_linux,
-                engine_release,
-                engine_update_version,
                 plugin_check,
                 plugin_build_linux,
                 plugin_build_win,

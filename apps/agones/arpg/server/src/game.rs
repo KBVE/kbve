@@ -8,9 +8,9 @@ use simgrid::proto::{StatusKind, Tile};
 use simgrid::rng::hash3;
 use simgrid::{
     AggroSpec, BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EntityKind,
-    EnvOpts, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
-    SIM_TICK_HZ, SimClock, SimConfig, SimSeed, Stairs, WalkableMap, ground_item_bundle,
-    spawn_env_object, spawn_npc_from_spec,
+    EnvOpts, Floor, GridPos, HazardZone, HealAura, KindRegistry, NpcSpec, PersistedEnvLog,
+    PlayerSlotTag, SIM_TICK_HZ, SimClock, SimConfig, SimSeed, Stairs, WalkableMap,
+    ground_item_bundle, has_clearance, spawn_env_object, spawn_npc_from_spec,
 };
 
 pub const MAX_PLAYERS: usize = 32;
@@ -64,6 +64,10 @@ pub const PREDATOR_LEVEL: i32 = 3;
 pub const PREDATOR_ROAM_RADIUS: i32 = 10;
 pub const PREDATOR_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
 pub const PREDATOR_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 3;
+// Open-space ring the predator needs per tile: its sprite spans ~2.5 tiles, so
+// it only roams/spawns where a 3×3 block is clear — keeps the big body in rooms
+// and wide junctions instead of clipping walls or overhanging the void.
+pub const PREDATOR_CLEARANCE: i32 = 1;
 // Streaming spawn budget: how many predators may exist near each player, the
 // ring (in tiles) they appear within, and how close they're allowed to pop in.
 pub const PREDATOR_PER_PLAYER: usize = 3;
@@ -72,6 +76,10 @@ pub const PREDATOR_SPAWN_MAX: i32 = 22;
 pub const PREDATOR_DESPAWN_RADIUS: i32 = 40;
 // Re-evaluate the streamed population a few times a second, not every tick.
 pub const PREDATOR_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+// Safe zone (Chebyshev tiles) around each floor's up-stair — the room players
+// land in when they descend. No predator spawns inside it, so arriving on a new
+// floor isn't an instant ambush.
+pub const STAIR_SAFE_RADIUS: i32 = 8;
 
 pub const CAMPFIRE_REF: &str = "campfire";
 
@@ -99,15 +107,20 @@ pub fn player_spawn() -> Tile {
     Tile::new(x, y)
 }
 
+/// First dungeon floor below the grass surface. Hostile creatures live here and
+/// deeper (z <= this); the surface (z >= 0) is peaceful.
+pub const DUNGEON_TOP_Z: i32 = -1;
+
 /// Nearest floor tile to a hint on the ground floor — keeps spawns out of rock.
 fn floor_near(hint: Tile) -> Tile {
-    let (x, y) = arpg_dungeon::nearest_floor(
-        DUNGEON_SEED,
-        SPAWN_FLOOR,
-        hint.x,
-        hint.y,
-        arpg_dungeon::CHUNK_SIZE,
-    );
+    floor_near_z(hint, SPAWN_FLOOR)
+}
+
+/// Nearest walkable tile to a hint on dungeon floor `z` — keeps spawns out of
+/// rock on any floor (the surface is fully open; dungeon floors snap to carve).
+fn floor_near_z(hint: Tile, z: i32) -> Tile {
+    let (x, y) =
+        arpg_dungeon::nearest_floor(DUNGEON_SEED, z, hint.x, hint.y, arpg_dungeon::CHUNK_SIZE);
     Tile::new(x, y)
 }
 
@@ -202,6 +215,13 @@ pub fn item_db() -> bevy_items::ItemDb {
         "../../../../../packages/data/codegen/generated/itemdb-data.binpb"
     ))
     .expect("embedded itemdb-data.binpb decodes as item.ItemRegistry")
+}
+
+pub fn spell_db() -> bevy_spells::SpellDb {
+    bevy_spells::SpellDb::from_bytes(include_bytes!(
+        "../../../../../packages/data/codegen/generated/spelldb-data.binpb"
+    ))
+    .expect("embedded spelldb-data.binpb decodes")
 }
 
 /// FullHeal has no amount on the wire — use a large heal; `use_item` clamps to
@@ -305,6 +325,10 @@ pub fn config() -> SimConfig {
         starting_inventory: vec![
             (CAMPFIRE_KIT_REF.to_string(), 5),
             (POTION_REF.to_string(), 3),
+            // One dungeon-key so the first descent isn't gated behind loot the
+            // player hasn't found yet. Held, not consumed (Stairs::at only checks
+            // count > 0), so one lasts.
+            (STAIR_KEY_REF.to_string(), 1),
         ],
     }
 }
@@ -313,11 +337,12 @@ pub fn walkable_map() -> WalkableMap {
     WalkableMap::arpg_dungeon(DUNGEON_SEED, PATH_WINDOW)
 }
 
-fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
+fn goblin_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<NpcSpec> {
     let kind = registry.kind_of(GOBLIN_REF)?;
     Some(NpcSpec {
         kind,
         origin,
+        floor,
         ticks_per_tile: GOBLIN_TICKS_PER_TILE,
         max_hp: GOBLIN_HP,
         level: 1,
@@ -335,11 +360,12 @@ fn goblin_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
     })
 }
 
-fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
+fn predator_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<NpcSpec> {
     let kind = registry.kind_of(PREDATOR_REF)?;
     Some(NpcSpec {
         kind,
         origin,
+        floor,
         ticks_per_tile: PREDATOR_TICKS_PER_TILE,
         max_hp: PREDATOR_HP,
         level: PREDATOR_LEVEL,
@@ -351,6 +377,7 @@ fn predator_spec(registry: &KindRegistry, origin: Tile) -> Option<NpcSpec> {
             PREDATOR_ROAM_RADIUS,
             PREDATOR_DWELL_MIN_TICKS,
             PREDATOR_DWELL_MAX_TICKS,
+            PREDATOR_CLEARANCE,
         )),
         aggro: Some(AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
@@ -378,8 +405,9 @@ pub fn stream_predators(
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
     registry: Res<KindRegistry>,
-    players: Query<&GridPos, With<PlayerSlotTag>>,
-    predators: Query<(Entity, &GridPos, &EntityKind), Without<PlayerSlotTag>>,
+    map: Res<WalkableMap>,
+    players: Query<(&GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+    predators: Query<(Entity, &GridPos, Option<&Floor>, &EntityKind), Without<PlayerSlotTag>>,
     mut commands: Commands,
 ) {
     if !clock.tick.is_multiple_of(PREDATOR_STREAM_PERIOD_TICKS) {
@@ -389,47 +417,66 @@ pub fn stream_predators(
         return;
     };
 
-    let player_tiles: Vec<Tile> = players.iter().map(|p| p.tile).collect();
-    if player_tiles.is_empty() {
-        return;
-    }
+    // Only players underground (z <= DUNGEON_TOP_Z) attract predators — the grass
+    // surface (z >= 0) is peaceful. Track each dungeon player's floor so spawns +
+    // culling stay on the right level.
+    let dungeon_players: Vec<(Tile, i32)> = players
+        .iter()
+        .map(|(p, f)| (p.tile, f.map(|f| f.0).unwrap_or(0)))
+        .filter(|(_, z)| *z <= DUNGEON_TOP_Z)
+        .collect();
 
-    let mut alive: Vec<Tile> = Vec::new();
-    for (entity, pos, kind) in predators.iter() {
+    // Cull any predator not near a player on its own floor (surface players never
+    // keep one alive). Despawns everything when no one is underground.
+    let mut alive: Vec<(Tile, i32)> = Vec::new();
+    for (entity, pos, pfloor, kind) in predators.iter() {
         if kind.0 != pred_kind {
             continue;
         }
-        let near_any = player_tiles
+        let pz = pfloor.map(|f| f.0).unwrap_or(0);
+        let near = dungeon_players
             .iter()
-            .any(|pt| chebyshev(*pt, pos.tile) <= PREDATOR_DESPAWN_RADIUS);
-        if near_any {
-            alive.push(pos.tile);
+            .any(|(pt, z)| *z == pz && chebyshev(*pt, pos.tile) <= PREDATOR_DESPAWN_RADIUS);
+        if near {
+            alive.push((pos.tile, pz));
         } else {
             commands.entity(entity).despawn();
         }
     }
 
-    for (i, ptile) in player_tiles.iter().enumerate() {
+    for (i, (ptile, pz)) in dungeon_players.iter().enumerate() {
         let local = alive
             .iter()
-            .filter(|t| chebyshev(**t, *ptile) <= PREDATOR_SPAWN_MAX)
+            .filter(|(t, z)| z == pz && chebyshev(*t, *ptile) <= PREDATOR_SPAWN_MAX)
             .count();
         if local >= PREDATOR_PER_PLAYER {
             continue;
         }
+        // This floor's arrival room: the up-stair tile players land on when they
+        // descend. Keep predators out of a safe radius around it.
+        let (ex, ey) = arpg_dungeon::stair_tile(DUNGEON_SEED, *pz, arpg_dungeon::StairKind::Up);
+        let entry = Tile::new(ex, ey);
         for attempt in 0..8u64 {
             let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
             let span = (PREDATOR_SPAWN_MAX - PREDATOR_SPAWN_MIN + 1) as u64;
             let dist = PREDATOR_SPAWN_MIN + ((h >> 8) % span) as i32;
             let (dx, dy) = ring_offset((h % 8) as u8, dist);
             let hint = Tile::new(ptile.x + dx, ptile.y + dy);
-            let origin = floor_near(hint);
+            let origin = floor_near_z(hint, *pz);
             if chebyshev(origin, *ptile) < PREDATOR_SPAWN_MIN {
                 continue;
             }
-            if let Some(spec) = predator_spec(&registry, origin) {
+            if chebyshev(origin, entry) <= STAIR_SAFE_RADIUS {
+                continue;
+            }
+            // Don't spawn the big creature pinned against a wall — require the
+            // same open ring it needs to roam.
+            if !has_clearance(&map, *pz, origin, PREDATOR_CLEARANCE) {
+                continue;
+            }
+            if let Some(spec) = predator_spec(&registry, origin, *pz) {
                 spawn_npc_from_spec(&mut commands, &spec);
-                alive.push(origin);
+                alive.push((origin, *pz));
             }
             break;
         }
@@ -463,18 +510,22 @@ pub fn spawn_world(
     }
     *done = true;
 
-    // Seed a few goblins around the spawn room, each snapped to a floor tile so
-    // none start embedded in rock. They wander/respawn within their own bounds,
-    // so the sim only ticks this populated pocket of the endless dungeon.
-    let spawn = player_spawn();
+    // Seed a few goblins on the FIRST DUNGEON FLOOR (z=-1), clustered near where
+    // the surface down-stair drops players in, so the dungeon has hostiles
+    // waiting while the grass surface stays peaceful. Each snaps to a carve floor
+    // tile so none start embedded in rock.
+    let (dungeon_z, (lx, ly)) =
+        arpg_dungeon::stair_dest(DUNGEON_SEED, SPAWN_FLOOR, arpg_dungeon::StairKind::Down);
     for i in 0..GOBLIN_COUNT {
-        let hint = Tile::new(spawn.x + 4 + (i % 3) * 2, spawn.y + 4 + (i / 3) * 2);
-        let origin = floor_near(hint);
-        if let Some(spec) = goblin_spec(&registry, origin) {
+        let hint = Tile::new(lx + 4 + (i % 3) * 2, ly + 4 + (i / 3) * 2);
+        let origin = floor_near_z(hint, dungeon_z);
+        if let Some(spec) = goblin_spec(&registry, origin, dungeon_z) {
             spawn_npc_from_spec(&mut commands, &spec);
         }
     }
 
+    // Starter loot/key/potions sit on the grass surface near the player spawn.
+    let spawn = player_spawn();
     // One starter loot pile near spawn.
     let coin = floor_near(Tile::new(spawn.x + 2, spawn.y + 1));
     if let Some(bundle) = ground_item_bundle(&registry, GOBLIN_LOOT_REF, 5, coin) {

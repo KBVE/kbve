@@ -59,6 +59,9 @@ UKBVESupabaseSettings::UKBVESupabaseSettings()
 		"div{text-align:center;padding:2rem;max-width:32rem}h1{font-weight:600;margin:0 0 .5rem;color:#ff6b6b}"
 		"p{opacity:.7;margin:0}</style></head><body><div><h1>Sign-in failed</h1>"
 		"<p>The provider returned an error. You can close this window.</p></div></body></html>"))
+	, DeepLinkScheme(TEXT("kbve"))
+	, bEnableDeepLinkFallback(true)
+	, bPreferDeepLink(false)
 	, ChatURL(TEXT("wss://chat.kbve.com/ws"))
 	, bChatRespondToPing(true)
 	, bChatTokenInQueryParam(false)
@@ -100,6 +103,27 @@ FString UKBVESupabaseSettings::GetFunctionsBase() const
 FString UKBVESupabaseSettings::GetStorageBase() const
 {
 	return ResolveProjectURL(ProjectURL) + NormalizePath(StoragePath, TEXT("/storage/v1"));
+}
+
+FString UKBVESupabaseSettings::GetDeepLinkRedirectURI() const
+{
+	FString Scheme = DeepLinkScheme.TrimStartAndEnd();
+	if (Scheme.IsEmpty())
+	{
+		return FString();
+	}
+	Scheme = Scheme.Replace(TEXT("://"), TEXT("")).Replace(TEXT(":"), TEXT("")).Replace(TEXT("/"), TEXT(""));
+
+	FString Path = LoopbackCallbackPath.TrimStartAndEnd();
+	if (Path.IsEmpty())
+	{
+		Path = TEXT("/auth/callback");
+	}
+	if (!Path.StartsWith(TEXT("/")))
+	{
+		Path = TEXT("/") + Path;
+	}
+	return FString::Printf(TEXT("%s://%s"), *Scheme, *Path.RightChop(1));
 }
 
 FString UKBVESupabaseSettings::GetEffectiveProjectSlug() const

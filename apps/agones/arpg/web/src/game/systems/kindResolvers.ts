@@ -1,33 +1,17 @@
-import type { KindEntry } from '@kbve/laser';
-import type { EntityCat } from '../ecs/store';
-
-export const KIND_CAT_PLAYER = 0;
-export const KIND_CAT_NPC = 1;
-export const KIND_CAT_ITEM = 2;
-export const KIND_CAT_ENV = 3;
+import { Cat, type KindEntry, type EntityCat } from '@kbve/laser';
 
 export interface KindResolvers {
-	cat(kind: number): number;
+	// Numeric entity category (Cat.*), matching the wire `KindEntry.cat`.
+	cat(kind: number): EntityCat;
 	ref(kind: number): string | null;
-	catName(kind: number): EntityCat;
 }
 
 export function makeKindResolvers(
 	registry: Map<number, KindEntry>,
 ): KindResolvers {
-	const cat = (kind: number): number =>
-		registry.get(kind)?.cat ?? KIND_CAT_NPC;
+	const cat = (kind: number): EntityCat =>
+		(registry.get(kind)?.cat as EntityCat) ?? Cat.Npc;
 	const ref = (kind: number): string | null =>
 		registry.get(kind)?.ref ?? null;
-	const catName = (kind: number): EntityCat => {
-		const c = cat(kind);
-		return c === KIND_CAT_PLAYER
-			? 'player'
-			: c === KIND_CAT_ITEM
-				? 'item'
-				: c === KIND_CAT_ENV
-					? 'env'
-					: 'npc';
-	};
-	return { cat, ref, catName };
+	return { cat, ref };
 }

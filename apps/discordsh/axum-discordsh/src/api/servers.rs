@@ -72,7 +72,7 @@ pub fn router() -> Router<HttpState> {
     Router::new()
         .route("/api/servers/submit", post(submit_server))
         .route("/api/servers/list", get(list_servers))
-        .route("/api/servers/:server_id", get(get_server))
+        .route("/api/servers/{server_id}", get(get_server))
 }
 
 /// POST /api/servers/submit

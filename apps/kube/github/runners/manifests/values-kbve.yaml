@@ -28,7 +28,7 @@ controllerServiceAccount:
 # releases, version-sync PRs, Win VM boot) so no UE job touches a
 # GitHub-hosted runner. Sized for concurrent game+server dispatch.
 minRunners: 0
-maxRunners: 6
+maxRunners: 2
 
 template:
     metadata:

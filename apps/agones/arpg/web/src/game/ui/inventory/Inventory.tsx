@@ -101,7 +101,11 @@ function ItemIcon({
 	itemRef: string;
 	size: number;
 }): ReactElement {
-	if (meta?.img && meta.key > 0) {
+	// Atlas is the source of truth for every item: each key slot holds the item's
+	// pixel art, or a "?" placeholder until art (`img:`) is added to its MDX and
+	// the atlas is regenerated. Render it for any keyed item so all items share
+	// one pipeline; emoji/text only cover items with no atlas key at all.
+	if (meta && meta.key > 0) {
 		const cell = atlasCell(meta.key);
 		const scaled = ATLAS_SIZE * (size / TILE_SIZE);
 		return (

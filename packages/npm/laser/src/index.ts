@@ -67,8 +67,20 @@ export {
 	SideMap,
 	nearestInRange,
 	queryInRange,
+	packTile,
 	type PositionLike,
 } from './lib/ecs/helpers';
+
+// ECS shared components + managed entity store (canonical home; game clients
+// import these instead of redefining a local world wrapper)
+export * from './lib/ecs/components';
+export {
+	EntityStore,
+	Cat,
+	type EntityCat,
+	type SpawnData,
+	type UpdateData,
+} from './lib/ecs/store';
 
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';

@@ -21,7 +21,7 @@ controllerServiceAccount:
 
 # Scaling configuration
 minRunners: 0
-maxRunners: 10
+maxRunners: 2
 
 # Runner group (optional - for enterprise/org runners)
 # runnerGroup: "default"

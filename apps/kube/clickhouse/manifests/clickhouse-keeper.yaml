@@ -8,7 +8,7 @@ spec:
         clusters:
             - name: keeper
               layout:
-                  replicasCount: 3
+                  replicasCount: 1
     defaults:
         templates:
             dataVolumeClaimTemplate: keeper-storage

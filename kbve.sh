@@ -1069,8 +1069,12 @@ EOF
             url="https://git.kbve.com/KBVE/cryptothrone.git/info/lfs"
             path_prefix="apps/cryptothrone/astro-cryptothrone/public/assets"
             ;;
+        cleanroom)
+            url="https://git.kbve.com/KBVE/cleanroom.git/info/lfs"
+            path_prefix="apps/chuckrpg/unreal-cleanroom/UnrealCleanroom"
+            ;;
         *)
-            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone" >&2
+            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom" >&2
             return 1
             ;;
     esac

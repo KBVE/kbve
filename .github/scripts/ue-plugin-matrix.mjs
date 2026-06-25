@@ -19,6 +19,23 @@ function depPaths(p) {
 		.filter(Boolean);
 }
 
+function orderedDeps(p) {
+	const ordered = [];
+	const done = new Set();
+	const stack = new Set();
+	const visit = (path) => {
+		if (done.has(path) || stack.has(path)) return;
+		stack.add(path);
+		const node = byPath.get(path);
+		if (node) for (const d of depPaths(node)) visit(d);
+		stack.delete(path);
+		done.add(path);
+		ordered.push(path);
+	};
+	for (const d of depPaths(p)) visit(d);
+	return ordered;
+}
+
 function selectAll() {
 	return new Set(plugins.map((p) => p.plugin_path));
 }
@@ -68,7 +85,7 @@ for (const p of plugins) {
 			key: p.key,
 			plugin_name: p.plugin_name,
 			plugin_path: p.plugin_path,
-			dependency_plugins: p.dependency_plugins || '',
+			dependency_plugins: orderedDeps(p).join(' '),
 			ue_image_tag: ueImageTag,
 			platform,
 		};

@@ -1,0 +1,105 @@
+---
+
+---
+
+<div id="chuck-downloads" class="chuck-downloads">
+	Loading live build status…
+</div>
+
+<style>
+	.chuck-downloads {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.chuck-downloads .row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.6rem 0;
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+	.chuck-downloads .row:last-child {
+		border-bottom: none;
+	}
+	.chuck-downloads .meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+	.chuck-downloads .name {
+		font-weight: 600;
+	}
+	.chuck-downloads .sub {
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+	}
+	.chuck-downloads .tag {
+		font-size: 0.7rem;
+		padding: 0.05rem 0.4rem;
+		border-radius: 999px;
+		border: 1px solid;
+	}
+	.chuck-downloads .tag.live {
+		color: var(--sl-color-green);
+		border-color: var(--sl-color-green);
+	}
+	.chuck-downloads .tag.pending {
+		color: var(--sl-color-orange);
+		border-color: var(--sl-color-orange);
+	}
+	.chuck-downloads a.dl {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		text-decoration: none;
+		font-weight: 600;
+		padding: 0.4rem 0.9rem;
+		border-radius: 8px;
+	}
+	.chuck-downloads .dl.disabled {
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-gray-3);
+	}
+</style>
+
+<script>
+	const PLATFORMS = [
+		{ slug: 'windows', name: 'Windows' },
+		{ slug: 'macos', name: 'macOS' },
+		{ slug: 'linux', name: 'Linux' },
+	];
+
+	async function renderDownloads() {
+		const el = document.getElementById('chuck-downloads');
+		if (!el) return;
+		try {
+			const res = await fetch('/api/downloads', {
+				headers: { accept: 'application/json' },
+			});
+			if (!res.ok) throw new Error(String(res.status));
+			const clients = await res.json();
+			const byPlatform = Object.fromEntries(
+				clients.map((c) => [c.platform, c]),
+			);
+
+			el.innerHTML = PLATFORMS.map(({ slug, name }) => {
+				const c = byPlatform[slug];
+				if (!c)
+					return `<div class="row"><div class="meta"><span class="name">${name}</span><span class="sub">no build available</span></div></div>`;
+				const ver = c.user_version ?? '—';
+				const tagClass = c.live ? 'live' : 'pending';
+				const tagText = c.live ? 'live' : (c.state ?? 'pending');
+				const action = c.live
+					? `<a class="dl" href="/downloads/${slug}">Download</a>`
+					: `<span class="dl disabled">Processing…</span>`;
+				return `<div class="row"><div class="meta"><span class="name">${name}</span><span class="sub">v${ver} <span class="tag ${tagClass}">${tagText}</span></span></div>${action}</div>`;
+			}).join('');
+		} catch (err) {
+			el.innerHTML =
+				'<p>Build status unavailable. Try <a href="/downloads">the downloads page</a>.</p>';
+		}
+	}
+
+	renderDownloads();
+</script>

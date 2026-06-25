@@ -16,6 +16,7 @@ COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
 COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
 COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
+COPY packages/rust/bevy/bevy_spells/Cargo.toml packages/rust/bevy/bevy_spells/Cargo.toml
 
 RUN mkdir -p apps/agones/arpg/server/src && \
     echo "fn main() {}" > apps/agones/arpg/server/src/main.rs && \
@@ -28,7 +29,9 @@ RUN mkdir -p apps/agones/arpg/server/src && \
     mkdir -p packages/rust/bevy/bevy_inventory/src && \
     echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_mapdb/src && \
-    echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs
+    echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_spells/src && \
+    echo "" > packages/rust/bevy/bevy_spells/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin arpg-server
 
@@ -73,9 +76,11 @@ COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
-# arpg-server include_bytes!s the canonical itemdb + mapdb binaries at compile time.
+COPY packages/rust/bevy/bevy_spells packages/rust/bevy/bevy_spells
+# arpg-server include_bytes!s the canonical itemdb + mapdb + spelldb binaries at compile time.
 COPY packages/data/codegen/generated/itemdb-data.binpb packages/data/codegen/generated/itemdb-data.binpb
 COPY packages/data/codegen/generated/mapdb-data.binpb packages/data/codegen/generated/mapdb-data.binpb
+COPY packages/data/codegen/generated/spelldb-data.binpb packages/data/codegen/generated/spelldb-data.binpb
 COPY apps/agones/arpg/server apps/agones/arpg/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

@@ -1,0 +1,68 @@
+{
+	"name": "chuck-launcher",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/chuck-launcher",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": [
+					"apps/chuckrpg/chuck-launcher/src/**/*.{ts,tsx}"
+				]
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1422 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
+				],
+				"cwd": "apps/chuckrpg/chuck-launcher"
+			}
+		},
+		"dev:web": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1422 | xargs kill 2>/dev/null; pnpm dev"
+				],
+				"cwd": "apps/chuckrpg/chuck-launcher"
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+				],
+				"cwd": "apps/chuckrpg/chuck-launcher"
+			}
+		},
+		"test:rust": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p chuck-launcher"],
+				"cwd": "apps/chuckrpg/chuck-launcher/src-tauri"
+			}
+		},
+		"build:tauri": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+				],
+				"cwd": "apps/chuckrpg/chuck-launcher"
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+					],
+					"cwd": "apps/chuckrpg/chuck-launcher"
+				}
+			}
+		}
+	},
+	"tags": []
+}

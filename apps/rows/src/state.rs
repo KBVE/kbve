@@ -30,6 +30,9 @@ pub struct AppState {
     pub supabase: SupabaseConfig,
     pub instance_log: crate::rest::system::InstanceEventLog,
     pub started_at: Instant,
+    /// UE build version (tag of the Agones gameserver container image). Seeded from the fleet
+    /// spec at startup, then kept live by the GameServer watcher as rollouts swap the image.
+    pub fleet_image_tag: std::sync::RwLock<Option<String>>,
 }
 
 pub struct AppConfig {
@@ -59,6 +62,7 @@ pub struct AppStateBuilder {
     mq: Option<MqProducer>,
     agones: Option<AgonesClient>,
     reaper: Option<ReaperKnobs>,
+    fleet_image_tag: Option<String>,
 }
 
 impl AppStateBuilder {
@@ -103,6 +107,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn fleet_image_tag(mut self, tag: Option<String>) -> Self {
+        self.fleet_image_tag = tag;
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -129,6 +138,7 @@ impl AppStateBuilder {
             supabase: SupabaseConfig::from_env(),
             instance_log: crate::rest::system::InstanceEventLog::new(),
             started_at: Instant::now(),
+            fleet_image_tag: std::sync::RwLock::new(self.fleet_image_tag),
         }))
     }
 }

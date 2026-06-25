@@ -28,7 +28,7 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 COPY apps/chuckrpg/astro-chuckrpg/ apps/chuckrpg/astro-chuckrpg/
 
 WORKDIR /app/apps/chuckrpg/astro-chuckrpg
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-chuckrpg-cache \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-chuckrpg-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \

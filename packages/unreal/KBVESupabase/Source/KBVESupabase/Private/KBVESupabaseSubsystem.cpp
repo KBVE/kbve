@@ -3,6 +3,8 @@
 #include "KBVESupabaseSettings.h"
 #include "KBVESupabaseSessionStore.h"
 #include "KBVESupabaseOAuthLoopback.h"
+#include "KBVESupabaseRawLoopback.h"
+#include "KBVESupabaseDeepLink.h"
 #include "KBVESupabaseStorage.h"
 #include "KBVESupabaseChat.h"
 #include "KBVESupabaseJWT.h"
@@ -715,26 +717,75 @@ FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::StartOAuthSignIn(EKBVESupa
 			}
 		});
 
-	ActiveOAuthLoopback = FKBVESupabaseOAuthLoopback::Start(
-		Settings->LoopbackPortMin,
-		Settings->LoopbackPortMax,
-		Settings->LoopbackCallbackPath,
-		Settings->LoopbackSuccessHtml,
-		Settings->LoopbackErrorHtml,
-		CompleteCb);
+	// Belt-and-suspenders capture: try the FHttpServer loopback, fall back to a
+	// raw-socket loopback if its socket never actually listens (packaged macOS),
+	// and fall back again to the custom-scheme deep-link if neither opens a port.
+	FString RedirectURL;
+	bOAuthViaDeepLink = false;
 
+	if (!Settings->bPreferDeepLink)
+	{
+		// Layer A — engine FHttpServer loopback.
+		if (TSharedPtr<FKBVESupabaseOAuthLoopback> HttpLoop = FKBVESupabaseOAuthLoopback::Start(
+				Settings->LoopbackPortMin, Settings->LoopbackPortMax,
+				Settings->LoopbackCallbackPath, Settings->LoopbackSuccessHtml,
+				Settings->LoopbackErrorHtml, CompleteCb))
+		{
+			if (HttpLoop->ProbeSelf())
+			{
+				ActiveOAuthLoopback = HttpLoop;
+				RedirectURL = HttpLoop->GetCallbackURL();
+			}
+			else
+			{
+				UE_LOG(LogKBVESupabase, Warning,
+					TEXT("FHttpServer loopback bound but is not accepting connections; falling back to raw socket."));
+				HttpLoop->Stop();
+			}
+		}
+
+		// Layer B — raw FSocket loopback.
+		if (!ActiveOAuthLoopback.IsValid())
+		{
+			if (TSharedPtr<FKBVESupabaseRawLoopback> RawLoop = FKBVESupabaseRawLoopback::Start(
+					Settings->LoopbackPortMin, Settings->LoopbackPortMax,
+					Settings->LoopbackCallbackPath, Settings->LoopbackErrorHtml, CompleteCb))
+			{
+				if (KBVESupabaseProbeLoopback(RawLoop->GetPort()))
+				{
+					ActiveOAuthLoopback = RawLoop;
+					RedirectURL = RawLoop->GetCallbackURL();
+				}
+				else
+				{
+					RawLoop->Stop();
+				}
+			}
+		}
+	}
+
+	// Layer C — custom URL scheme deep-link.
 	if (!ActiveOAuthLoopback.IsValid())
 	{
-		PendingPKCE = FKBVESupabasePKCE();
-		BroadcastError(0, FString::Printf(
-			TEXT("Failed to bind OAuth loopback in range %d-%d"),
-			Settings->LoopbackPortMin, Settings->LoopbackPortMax));
-		return Result;
+		const FString DeepLinkURI = Settings->GetDeepLinkRedirectURI();
+		const bool bDeepLinkAllowed = (Settings->bEnableDeepLinkFallback || Settings->bPreferDeepLink) && !DeepLinkURI.IsEmpty();
+		if (!bDeepLinkAllowed)
+		{
+			PendingPKCE = FKBVESupabasePKCE();
+			BroadcastError(0, FString::Printf(
+				TEXT("Failed to open OAuth loopback in range %d-%d and deep-link fallback is unavailable"),
+				Settings->LoopbackPortMin, Settings->LoopbackPortMax));
+			return Result;
+		}
+
+		RedirectURL = DeepLinkURI;
+		bOAuthViaDeepLink = true;
+		DeepLinkHandle = FKBVESupabaseDeepLink::OnDeepLinkURL().AddUObject(this, &UKBVESupabaseSubsystem::HandleDeepLinkURL);
+		UE_LOG(LogKBVESupabase, Log, TEXT("OAuth using deep-link redirect %s"), *RedirectURL);
 	}
 
 	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
 
-	const FString RedirectURL = ActiveOAuthLoopback->GetCallbackURL();
 	// HARDCODED endpoint. Bypassing settings entirely because UDeveloperSettings
 	// config load is flaky for out-of-tree plugins. supabase.kbve.com is the only
 	// project this client talks to anyway.
@@ -759,7 +810,7 @@ FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::StartOAuthSignIn(EKBVESupa
 
 void UKBVESupabaseSubsystem::CancelOAuthSignIn()
 {
-	if (!ActiveOAuthLoopback.IsValid())
+	if (!IsOAuthFlowActive())
 	{
 		return;
 	}
@@ -772,7 +823,7 @@ void UKBVESupabaseSubsystem::CancelOAuthSignIn()
 
 bool UKBVESupabaseSubsystem::IsOAuthFlowActive() const
 {
-	return ActiveOAuthLoopback.IsValid();
+	return ActiveOAuthLoopback.IsValid() || bOAuthViaDeepLink;
 }
 
 void UKBVESupabaseSubsystem::ResetOAuthLoopback()
@@ -782,7 +833,33 @@ void UKBVESupabaseSubsystem::ResetOAuthLoopback()
 		ActiveOAuthLoopback->Stop();
 		ActiveOAuthLoopback.Reset();
 	}
+	if (DeepLinkHandle.IsValid())
+	{
+		FKBVESupabaseDeepLink::OnDeepLinkURL().Remove(DeepLinkHandle);
+		DeepLinkHandle.Reset();
+	}
+	bOAuthViaDeepLink = false;
 	PendingPKCE = FKBVESupabasePKCE();
+}
+
+void UKBVESupabaseSubsystem::HandleDeepLinkURL(const FString& Url)
+{
+	const UKBVESupabaseSettings* Settings = GetSettings();
+	if (!Settings || !FKBVESupabaseDeepLink::MatchesScheme(Url, Settings->DeepLinkScheme))
+	{
+		return;
+	}
+
+	TMap<FString, FString> Params;
+	FKBVESupabaseDeepLink::ParseURL(Url, Params);
+
+	const FKBVESupabaseCallbackDecision Decision = KBVESupabaseEvaluateOAuthCallback(Params, Settings->LoopbackErrorHtml);
+	if (!Decision.bFireComplete)
+	{
+		return;
+	}
+
+	HandleOAuthLoopbackComplete(Decision.bOk, Decision.Code, Decision.State, Decision.FullError, Decision.AccessToken);
 }
 
 void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error, FString AccessToken)

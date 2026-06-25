@@ -35,6 +35,15 @@ pub struct SessionRequest {
     code: String,
 }
 
+/// Structured JSON error body so the Discord Activity can surface the failing
+/// stage to the player (and branch on a stable `error` code) instead of a bare
+/// status line. The HTTP status still classifies the failure: 401 = the user's
+/// Discord auth, 502/503 = transient upstream/DB (retryable), 500 = a server
+/// misconfiguration the player can't fix.
+fn err(status: StatusCode, code: &'static str) -> Response {
+    (status, Json(serde_json::json!({ "error": code }))).into_response()
+}
+
 #[derive(Serialize)]
 pub struct SessionResponse {
     /// Discord access token — fed back to `discordSdk.commands.authenticate`.
@@ -83,14 +92,13 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
     let redirect_uri = std::env::var("DISCORD_REDIRECT_URI").unwrap_or_default();
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
     if client_id.is_empty() || client_secret.is_empty() || jwt_secret.is_empty() {
-        return (
+        return err(
             StatusCode::INTERNAL_SERVER_ERROR,
             "discord session bridge not configured",
-        )
-            .into_response();
+        );
     }
     let Some(pg) = crate::db::get_pg_cluster() else {
-        return (StatusCode::SERVICE_UNAVAILABLE, "database offline").into_response();
+        return err(StatusCode::SERVICE_UNAVAILABLE, "database offline");
     };
 
     let http = reqwest::Client::new();
@@ -116,11 +124,11 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
     {
         Ok(r) => match r.json().await {
             Ok(t) => t,
-            Err(_) => return (StatusCode::BAD_GATEWAY, "bad token response").into_response(),
+            Err(_) => return err(StatusCode::BAD_GATEWAY, "bad token response"),
         },
         Err(e) => {
             tracing::warn!(error = %e, "discord code exchange failed");
-            return (StatusCode::UNAUTHORIZED, "discord code exchange failed").into_response();
+            return err(StatusCode::UNAUTHORIZED, "discord code exchange failed");
         }
     };
 
@@ -134,11 +142,11 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
     {
         Ok(r) => match r.json().await {
             Ok(u) => u,
-            Err(_) => return (StatusCode::BAD_GATEWAY, "bad user response").into_response(),
+            Err(_) => return err(StatusCode::BAD_GATEWAY, "bad user response"),
         },
         Err(e) => {
             tracing::warn!(error = %e, "discord /users/@me failed");
-            return (StatusCode::BAD_GATEWAY, "discord user fetch failed").into_response();
+            return err(StatusCode::BAD_GATEWAY, "discord user fetch failed");
         }
     };
 
@@ -148,7 +156,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
         Ok(c) => c,
         Err(e) => {
             tracing::error!(error = %e, "pg acquire failed");
-            return (StatusCode::SERVICE_UNAVAILABLE, "database unavailable").into_response();
+            return err(StatusCode::SERVICE_UNAVAILABLE, "database unavailable");
         }
     };
     let linked: Option<(String, Option<String>)> = match conn
@@ -167,7 +175,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
                 discord_id = %user.id,
                 "discord profile lookup failed (tracker.find_claim_identity_by_discord_id)"
             );
-            return (StatusCode::INTERNAL_SERVER_ERROR, "profile lookup failed").into_response();
+            return err(StatusCode::INTERNAL_SERVER_ERROR, "profile lookup failed");
         }
     };
 
@@ -177,7 +185,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
             let existing = other.map(|(uid, _)| uid);
             match provision_user(&http, &conn, &user, existing).await {
                 Ok(pair) => pair,
-                Err((code, msg)) => return (code, msg).into_response(),
+                Err((code, msg)) => return err(code, msg),
             }
         }
     };
@@ -193,7 +201,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
                 user_id = %user_id,
                 "session jwt mint failed"
             );
-            return (StatusCode::INTERNAL_SERVER_ERROR, "jwt mint failed").into_response();
+            return err(StatusCode::INTERNAL_SERVER_ERROR, "jwt mint failed");
         }
     };
 

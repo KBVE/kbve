@@ -17,7 +17,9 @@ use crate::blackjack::{self, BjInput, PendingBlackjack, Tables};
 use crate::combat;
 use crate::data::KindRegistry;
 use crate::float_move::FloatBody;
-use crate::grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, Stairs, WalkableMap};
+use crate::grid::{
+    FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, Stairs, WalkableMap,
+};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
 use crate::rng::hash3;
@@ -142,6 +144,7 @@ pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
 pub struct DeployQueues<'w> {
     placements: ResMut<'w, PendingPlacements>,
     pickups: ResMut<'w, PendingPickups>,
+    spells: ResMut<'w, crate::spells::PendingSpells>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -267,6 +270,8 @@ pub const REGEN_PERIOD_TICKS: u32 = SIM_TICK_HZ * 2;
 pub const REGEN_AMOUNT: i32 = 2;
 pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
+pub const PLAYER_MAX_MP: i32 = 100;
+pub const MANA_REGEN_AMOUNT: i32 = 5;
 
 #[derive(Clone, Copy)]
 pub struct StatusEffect {
@@ -331,16 +336,21 @@ pub struct AggroSpec {
 pub struct NpcSpec {
     pub kind: u16,
     pub origin: Tile,
+    /// Dungeon floor (z) the NPC lives on. 0 = ground/surface; negative = deeper
+    /// underground. Spawned as a `Floor` component so collision + per-floor
+    /// systems scope it to its level.
+    pub floor: i32,
     pub ticks_per_tile: u8,
     pub max_hp: i32,
     pub level: i32,
     pub defense: i32,
     pub wander: Option<(i32, u32)>,
-    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks). The
-    /// mob picks a random tile within `radius` of its origin, walks the whole
-    /// path there, then idles a random dwell in [min,max] before the next trip —
-    /// longer purposeful movement vs `wander`'s single-tile jitter.
-    pub roam: Option<(i32, u32, u32)>,
+    /// Roam-to-target behavior: (radius, dwell_min_ticks, dwell_max_ticks,
+    /// clearance). The mob picks a random tile within `radius` of its origin,
+    /// walks the whole path there, then idles a random dwell in [min,max] before
+    /// the next trip. `clearance` is the open-space ring a large creature
+    /// requires per tile (0 = none) so it stays out of narrow halls.
+    pub roam: Option<(i32, u32, u32, i32)>,
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
     pub respawn_ticks: u32,
@@ -379,6 +389,15 @@ pub struct Health {
 pub struct CombatStats {
     pub attack: i32,
 }
+
+#[derive(Component, Clone, Copy)]
+pub struct Mana {
+    pub mp: i32,
+    pub max_mp: i32,
+}
+
+#[derive(Resource, Default)]
+pub struct SpellCooldowns(pub HashMap<(u16, String), u32>);
 
 #[derive(Component, Clone, Default)]
 pub struct Inventory {
@@ -459,6 +478,10 @@ pub struct Roam {
     pub radius: i32,
     pub dwell_min: u32,
     pub dwell_max: u32,
+    /// Open-space requirement: a large creature only targets/steps onto tiles
+    /// whose surrounding `clearance`-ring is fully walkable, so its oversized
+    /// sprite never wedges into a narrow hall or overhangs a wall. 0 = no req.
+    pub clearance: i32,
     /// Current destination, or None while dwelling/awaiting a new pick.
     pub target: Option<Tile>,
     /// Earliest tick the next trip may begin (set when a trip completes).
@@ -466,17 +489,32 @@ pub struct Roam {
 }
 
 impl Roam {
-    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32) -> Self {
+    pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32, clearance: i32) -> Self {
         let dwell_min = dwell_min.max(1);
         Self {
             origin,
             radius: radius.max(1),
             dwell_min,
             dwell_max: dwell_max.max(dwell_min),
+            clearance: clearance.max(0),
             target: None,
             resume_tick: 0,
         }
     }
+}
+
+/// True when `tile` and every tile within Chebyshev `radius` of it are walkable
+/// on floor `z`. The open-space test a large creature uses so it stays in rooms
+/// and wide junctions instead of clipping through narrow corridors.
+pub fn has_clearance(map: &WalkableMap, z: i32, tile: Tile, radius: i32) -> bool {
+    for dy in -radius..=radius {
+        for dx in -radius..=radius {
+            if !map.is_walkable_z(z, Tile::new(tile.x + dx, tile.y + dy)) {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 pub fn ground_item_bundle(
@@ -518,8 +556,14 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
     }
-    if let Some((radius, dwell_min, dwell_max)) = spec.roam {
-        e.insert(Roam::new(spec.origin, radius, dwell_min, dwell_max));
+    if let Some((radius, dwell_min, dwell_max, clearance)) = spec.roam {
+        e.insert(Roam::new(
+            spec.origin,
+            radius,
+            dwell_min,
+            dwell_max,
+            clearance,
+        ));
     }
     if let Some(a) = spec.aggro {
         e.insert(Aggro {
@@ -532,6 +576,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     }
     if spec.respawn_ticks > 0 {
         e.insert(RespawnOnDeath { spec: spec.clone() });
+    }
+    if spec.floor != 0 {
+        e.insert(Floor(spec.floor));
     }
 }
 
@@ -715,6 +762,9 @@ pub fn build_app(
         .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
         .insert_resource(KillCounts::default())
+        .insert_resource(crate::spells::PendingSpells::default())
+        .insert_resource(SpellCooldowns::default())
+        .insert_resource(bevy_spells::SpellDb::default())
         .insert_resource(map)
         .insert_resource(config)
         .insert_resource(registry)
@@ -745,6 +795,7 @@ pub fn build_app(
                 apply_placements,
                 apply_pickups,
                 apply_actions,
+                crate::spells::apply_spells,
                 crate::trade::expire_trades,
                 crate::trade::apply_trades,
                 crate::shop::apply_shop,
@@ -778,6 +829,7 @@ pub fn build_app(
     blackjack::plugin(&mut app);
     crate::trade::plugin(&mut app);
     crate::shop::plugin(&mut app);
+    crate::spells::plugin(&mut app);
     app
 }
 
@@ -829,11 +881,19 @@ fn sync_roster(
             .min(max_hp);
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let armor = saved.as_ref().and_then(|s| s.armor.clone());
-        let inventory = Inventory {
-            slots: saved
-                .map(|s| s.slots)
-                .unwrap_or_else(|| config.starting_inventory.clone()),
-        };
+        let mut slots = saved
+            .map(|s| s.slots)
+            .unwrap_or_else(|| config.starting_inventory.clone());
+        // Top up any starter item the player is entirely missing, so essentials
+        // added after a save was created (e.g. a dungeon-key) still reach
+        // existing players — only granted when they hold zero of that ref, so a
+        // partially-used starter stack is left alone.
+        for (item_ref, count) in &config.starting_inventory {
+            if !slots.iter().any(|(r, _)| r == item_ref) {
+                slots.push((item_ref.clone(), *count));
+            }
+        }
+        let inventory = Inventory { slots };
         if !inventory.slots.is_empty() {
             send_inventory(&bcast, *slot, &inventory);
         }
@@ -853,7 +913,17 @@ fn sync_roster(
         if armor.is_some() {
             send_equipped(&bcast, *slot, "armor", armor.as_deref(), attack, defense);
         }
-        send_stats(&bcast, *slot, level, xp, max_hp, attack, kills);
+        send_stats(
+            &bcast,
+            *slot,
+            level,
+            xp,
+            max_hp,
+            attack,
+            kills,
+            PLAYER_MAX_MP,
+            PLAYER_MAX_MP,
+        );
         let entity = commands
             .spawn((
                 PlayerSlotTag(*slot),
@@ -863,6 +933,10 @@ fn sync_roster(
                     ticks_per_tile: config.ticks_per_tile,
                 },
                 Health { hp, max_hp },
+                Mana {
+                    mp: PLAYER_MAX_MP,
+                    max_mp: PLAYER_MAX_MP,
+                },
                 CombatStats { attack },
                 Defense(defense),
                 XpState { level, xp },
@@ -963,6 +1037,9 @@ fn drain_inputs(
         while let Ok((slot, input)) = guard.try_recv() {
             match input {
                 Input::Action { id, target } => actions.0.push((slot, id, target)),
+                Input::CastSpell { spell_ref, target } => {
+                    deploy.spells.0.push((slot, spell_ref, target))
+                }
                 Input::TradeOffer { target, items } => {
                     trades.0.push((slot, TradeInput::Offer { target, items }));
                 }
@@ -1117,6 +1194,7 @@ fn drain_inputs(
                 Input::Step { .. }
                 | Input::MoveTo { .. }
                 | Input::Action { .. }
+                | Input::CastSpell { .. }
                 | Input::Heartbeat { .. }
                 | Input::Leave
                 | Input::TradeOffer { .. }
@@ -1177,7 +1255,7 @@ fn use_item(
     send_inventory(bcast, slot, inv);
 }
 
-type AttackPlayerQuery<'w, 's> = Query<
+pub(crate) type AttackPlayerQuery<'w, 's> = Query<
     'w,
     's,
     (
@@ -1189,10 +1267,11 @@ type AttackPlayerQuery<'w, 's> = Query<
         &'static mut Health,
         &'static mut XpState,
         &'static Equipped,
+        &'static mut Mana,
     ),
 >;
 
-type AttackMobQuery<'w, 's> = Query<
+pub(crate) type AttackMobQuery<'w, 's> = Query<
     'w,
     's,
     (
@@ -1212,7 +1291,7 @@ type AttackMobQuery<'w, 's> = Query<
 /// handle loot, respawn, despawn and XP. Shared by melee and ranged attacks —
 /// only target selection differs upstream.
 #[allow(clippy::too_many_arguments)]
-fn resolve_attack_hit(
+pub(crate) fn resolve_attack_hit(
     player_entity: Entity,
     target_entity: Entity,
     slot: proto::PlayerSlot,
@@ -1276,12 +1355,13 @@ fn resolve_attack_hit(
             *k += 1;
             *k
         };
-        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
+        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana)) =
             q_players.get_mut(player_entity)
         {
+            let (mp, max_mp) = (mana.mp, mana.max_mp);
             award_xp(
                 bcast, slot, config, equipment, kill_xp, &mut xp, &mut php, &mut stats, equipped,
-                kills,
+                kills, mp, max_mp,
             );
         }
     }
@@ -1516,6 +1596,8 @@ fn award_xp(
     stats: &mut CombatStats,
     equipped: &Equipped,
     kills: u32,
+    mp: i32,
+    max_mp: i32,
 ) {
     xp.xp += gained.max(0);
     let mut leveled = false;
@@ -1534,7 +1616,17 @@ fn award_xp(
         hp.hp = hp.max_hp;
         stats.attack = level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
     }
-    send_stats(bcast, slot, xp.level, xp.xp, hp.max_hp, stats.attack, kills);
+    send_stats(
+        bcast,
+        slot,
+        xp.level,
+        xp.xp,
+        hp.max_hp,
+        stats.attack,
+        kills,
+        mp,
+        max_mp,
+    );
 }
 
 fn send_equipped(
@@ -1560,6 +1652,7 @@ fn send_equipped(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn send_stats(
     bcast: &Outbound,
     slot: proto::PlayerSlot,
@@ -1568,6 +1661,8 @@ fn send_stats(
     max_hp: i32,
     attack: i32,
     kills: u32,
+    mp: i32,
+    max_mp: i32,
 ) {
     let payload = json!({
         "level": level,
@@ -1576,6 +1671,8 @@ fn send_stats(
         "max_hp": max_hp,
         "attack": attack,
         "kills": kills,
+        "mp": mp,
+        "max_mp": max_mp,
     })
     .to_string()
     .into_bytes();
@@ -1584,6 +1681,29 @@ fn send_stats(
         to: slot,
         payload,
     });
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn broadcast_player_stats(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    xp: &XpState,
+    health: &Health,
+    stats: &CombatStats,
+    mana: &Mana,
+    kills: u32,
+) {
+    send_stats(
+        bcast,
+        slot,
+        xp.level,
+        xp.xp,
+        health.max_hp,
+        stats.attack,
+        kills,
+        mana.mp,
+        mana.max_mp,
+    );
 }
 
 pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
@@ -1924,27 +2044,50 @@ fn tick_status_effects(
 }
 
 #[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity)]
 fn regen_players(
     clock: Res<SimClock>,
     config: Res<SimConfig>,
-    mut q: Query<(&mut Health, &GridPos), With<PlayerSlotTag>>,
+    bcast: Res<Outbound>,
+    kill_counts: Res<KillCounts>,
+    mut q: Query<(
+        &PlayerSlotTag,
+        &mut Health,
+        &mut Mana,
+        &GridPos,
+        &XpState,
+        &CombatStats,
+    )>,
 ) {
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for (mut hp, pos) in q.iter_mut() {
-        if hp.hp <= 0 || hp.hp >= hp.max_hp {
-            continue;
+    for (slot, mut hp, mut mana, pos, xp, stats) in q.iter_mut() {
+        if hp.hp > 0 && hp.hp < hp.max_hp {
+            // The town fountain mends faster — return to the plaza to recover.
+            let in_town =
+                config.safe_radius > 0 && pos.tile.chebyshev(config.spawn) <= config.safe_radius;
+            let amount = if in_town {
+                TOWN_REGEN_AMOUNT
+            } else {
+                REGEN_AMOUNT
+            };
+            hp.hp = (hp.hp + amount).min(hp.max_hp);
         }
-        // The town fountain mends faster — return to the plaza to recover.
-        let in_town =
-            config.safe_radius > 0 && pos.tile.chebyshev(config.spawn) <= config.safe_radius;
-        let amount = if in_town {
-            TOWN_REGEN_AMOUNT
-        } else {
-            REGEN_AMOUNT
-        };
-        hp.hp = (hp.hp + amount).min(hp.max_hp);
+        if hp.hp > 0 && mana.mp < mana.max_mp {
+            mana.mp = (mana.mp + MANA_REGEN_AMOUNT).min(mana.max_mp);
+            send_stats(
+                &bcast,
+                slot.0,
+                xp.level,
+                xp.xp,
+                hp.max_hp,
+                stats.attack,
+                kill_counts.0.get(&slot.0.0).copied().unwrap_or(0),
+                mana.mp,
+                mana.max_mp,
+            );
+        }
     }
 }
 
@@ -2024,6 +2167,8 @@ fn try_move(
 /// Queue a one-tile move by an arbitrary (dx,dy) step where each component is
 /// -1/0/1 — the 8-way counterpart to `try_move`. A diagonal step also requires
 /// both orthogonal neighbors to be open so mobs can't cut through wall corners.
+/// `clearance` > 0 additionally requires the destination to have that open ring,
+/// so a large creature never steps onto a wall-adjacent or narrow-hall tile.
 fn try_step(
     dx: i32,
     dy: i32,
@@ -2031,6 +2176,7 @@ fn try_step(
     z: i32,
     pos: &GridPos,
     mv: &mut MoveTarget,
+    clearance: i32,
 ) -> bool {
     if mv.target.is_some() || (dx == 0 && dy == 0) {
         return false;
@@ -2044,6 +2190,9 @@ fn try_step(
         && (!map.is_walkable_z(z, Tile::new(pos.tile.x + dx, pos.tile.y))
             || !map.is_walkable_z(z, Tile::new(pos.tile.x, pos.tile.y + dy)))
     {
+        return false;
+    }
+    if clearance > 0 && !has_clearance(map, z, candidate, clearance) {
         return false;
     }
     mv.target = Some(candidate);
@@ -2117,10 +2266,11 @@ fn roam_system(
                 // client true diagonal deltas, so all 8 sheet facings surface.
                 let sx = (dest.x - pos.tile.x).signum();
                 let sy = (dest.y - pos.tile.y).signum();
+                let c = roam.clearance;
                 pos.facing = facing_from_intent(sx as i8, sy as i8);
-                let _ = try_step(sx, sy, &map, z, &pos, &mut mv)
-                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv))
-                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv));
+                let _ = try_step(sx, sy, &map, z, &pos, &mut mv, c)
+                    || (sx != 0 && try_step(sx, 0, &map, z, &pos, &mut mv, c))
+                    || (sy != 0 && try_step(0, sy, &map, z, &pos, &mut mv, c));
                 // Fully blocked — abandon this trip and dwell briefly.
                 if mv.target.is_none() {
                     roam.target = None;
@@ -2144,7 +2294,10 @@ fn roam_system(
                 let rx = (h % span) as i32 - roam.radius;
                 let ry = ((h >> 20) % span) as i32 - roam.radius;
                 let cand = Tile::new(roam.origin.x + rx, roam.origin.y + ry);
-                if cand != pos.tile && map.is_walkable_z(z, cand) {
+                let ok = cand != pos.tile
+                    && map.is_walkable_z(z, cand)
+                    && (roam.clearance == 0 || has_clearance(&map, z, cand, roam.clearance));
+                if ok {
                     roam.target = Some(cand);
                 } else {
                     // Bad pick — retry shortly instead of every tick.
@@ -2228,6 +2381,7 @@ fn stair_system(
             &Inventory,
             &PlayerSlotTag,
             Option<&mut Floor>,
+            Option<&StairGrace>,
         ),
         With<PlayerSlotTag>,
     >,
@@ -2235,7 +2389,17 @@ fn stair_system(
     let Some(stairs) = stairs else {
         return;
     };
-    for (entity, mut pos, mut fm, inv, slot, floor) in q.iter_mut() {
+    for (entity, mut pos, mut fm, inv, slot, floor, grace) in q.iter_mut() {
+        // Step-off grace: while still standing on the tile we just arrived at
+        // via a stair, don't re-trigger — otherwise a descent that lands on the
+        // destination floor's reciprocal stair bounces straight back. Clear the
+        // grace once the player has moved off that tile.
+        if let Some(g) = grace {
+            if g.0 == pos.tile {
+                continue;
+            }
+            commands.entity(entity).remove::<StairGrace>();
+        }
         let z = floor.as_ref().map(|f| f.0).unwrap_or(0);
         let Some(link) = stairs.at(z, pos.tile) else {
             continue;
@@ -2255,6 +2419,9 @@ fn stair_system(
                 commands.entity(entity).insert(Floor(link.dest_z));
             }
         }
+        // Arm the step-off grace on the arrival tile (the reciprocal stair), so
+        // the player must leave it before another transition can fire.
+        commands.entity(entity).insert(StairGrace(link.dest_tile));
 
         let payload = json!({
             "z": link.dest_z,
@@ -2974,6 +3141,7 @@ mod tests {
         NpcSpec {
             kind,
             origin,
+            floor: 0,
             ticks_per_tile: 1,
             max_hp: 30,
             level: 1,

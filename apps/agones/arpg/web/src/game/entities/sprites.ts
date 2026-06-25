@@ -7,11 +7,9 @@ import {
 	DEPTH_UI,
 	TURN_LERP,
 } from '../config';
-import {
-	KIND_CAT_ITEM,
-	KIND_CAT_PLAYER,
-	type KindResolvers,
-} from '../systems/kindResolvers';
+import { Cat } from '@kbve/laser';
+import type { KindResolvers } from '../systems/kindResolvers';
+import type { InterpBuffer } from '../systems/interp';
 import {
 	CLASS_ANGLES,
 	LOCOMOTION_STATES,
@@ -99,8 +97,14 @@ export interface EntityRefs {
 	statusFx?: Phaser.GameObjects.Graphics;
 	cls?: ClassView;
 	creature?: CreatureView;
+	interp?: InterpBuffer;
 	dbgText?: Phaser.GameObjects.Text;
 	dbgArrow?: Phaser.GameObjects.Graphics;
+	/** Time of this entity's last step tween — used to pace the next one to the
+	 * mover's real per-tile cadence. */
+	lastMoveAt?: number;
+	/** Pending Idle settle, cancelled if another step arrives first. */
+	settleTimer?: Phaser.Time.TimerEvent;
 }
 
 /** Per-creature directional pose state, analogous to ClassView for NPCs. */
@@ -114,12 +118,12 @@ export interface CreatureView {
 
 function bodyColor(cat: number, hostile: boolean): number {
 	// Ground loot reads as a bright amber gem so it stands out against the floor.
-	if (cat === KIND_CAT_ITEM) return 0xfacc15;
+	if (cat === Cat.Item) return 0xfacc15;
 	return hostile ? COLORS.enemy : COLORS.npc;
 }
 
 export function isPlayerKind(kinds: KindResolvers, kind: number): boolean {
-	return kinds.cat(kind) === KIND_CAT_PLAYER;
+	return kinds.cat(kind) === Cat.Player;
 }
 
 /**
@@ -205,7 +209,7 @@ function crossfadeBlend(
 		ease: 'Cubic.easeIn',
 	});
 
-	if (sprite.anims) {
+	if (sprite.anims?.currentAnim) {
 		sprite.anims.setProgress(Phaser.Math.Clamp(entryProgress, 0, 1));
 		scene.tweens.killTweensOf(sprite.anims);
 		sprite.anims.timeScale = BLEND_TIMESCALE_FROM;
@@ -310,14 +314,16 @@ export function tickClassFacing(
 	view.angle = angle;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, classAnimKey(view.def, view.state, angle), true);
-	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+	if (sprite.anims?.currentAnim)
+		sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 	if (view.shadow) {
 		safePlay(
 			view.shadow,
 			classAnimKey(view.def, view.state, angle, 'Shadow'),
 			true,
 		);
-		view.shadow.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+		if (view.shadow.anims?.currentAnim)
+			view.shadow.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 	}
 	return true;
 }
@@ -329,7 +335,7 @@ export function makeSprite(
 	hostile: boolean,
 ): Phaser.GameObjects.Rectangle {
 	const cat = kinds.cat(kind);
-	const isItem = cat === KIND_CAT_ITEM;
+	const isItem = cat === Cat.Item;
 	const w = isItem ? 16 : 22;
 	const h = isItem ? 16 : 34;
 	const rect = scene.add.rectangle(0, 0, w, h, bodyColor(cat, hostile));
@@ -379,6 +385,23 @@ export function makeCreatureSprite(
 	};
 	safePlay(sprite, creatureAnimKey(def, 'Idle', dir));
 	return { sprite, creature: view };
+}
+
+/**
+ * Reset a recycled creature sprite + view back to the fresh-spawn state (Idle,
+ * facing south, correct display size + frame). Lets a pooled sprite be reused for
+ * a new creature of the same def without rebuilding the GameObject.
+ */
+export function resetCreaturePose(
+	sprite: Phaser.GameObjects.Sprite,
+	view: CreatureView,
+): void {
+	view.state = 'Idle';
+	view.facingDeg = CREATURE_SOUTH;
+	view.targetDeg = CREATURE_SOUTH;
+	view.dir = dirFromDeg(CREATURE_SOUTH);
+	sprite.setDisplaySize(view.def.displaySize, view.def.displaySize);
+	safePlay(sprite, creatureAnimKey(view.def, 'Idle', view.dir));
 }
 
 /**
@@ -433,5 +456,6 @@ export function tickCreatureFacing(
 	view.dir = dir;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
-	sprite.anims?.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+	if (sprite.anims?.currentAnim)
+		sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
 }

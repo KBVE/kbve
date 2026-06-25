@@ -21,6 +21,12 @@ use std::net::SocketAddr;
 ///
 /// - `GATE_UPSTREAM`        upstream base URL (default `http://127.0.0.1:5679`)
 /// - `GATE_UPSTREAM_PREFIX` path prefix prepended upstream (default empty)
+/// - `GATE_UPSTREAM_CA_CERT_PATH` PEM CA trusted for upstream TLS (private CA)
+/// - `GATE_UPSTREAM_BEARER` token injected as `Authorization: Bearer` upstream
+/// - `GATE_FORWARD_USER_HEADER` header carrying the authed user upstream
+///   (e.g. `X-WEBAUTH-USER` for a Grafana auth-proxy)
+/// - `GATE_FORWARD_USER_VALUE` constant override for that header (shared
+///   upstream identity for everyone who passes the gate)
 /// - `GATE_AUTHZ`           `is_staff` (default) | `jwt-only`
 /// - `GATE_UPSTREAM_BASIC`  optional `Basic <b64>` injected upstream
 /// - `GATE_LOGIN_REDIRECT`  optional 302 target for unauthed navigations
@@ -52,6 +58,18 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         .ok()
         .filter(|s| !s.is_empty());
     let cookie_domain = std::env::var("GATE_COOKIE_DOMAIN")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let upstream_ca_cert_path = std::env::var("GATE_UPSTREAM_CA_CERT_PATH")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let upstream_bearer = std::env::var("GATE_UPSTREAM_BEARER")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let forward_user_header = std::env::var("GATE_FORWARD_USER_HEADER")
+        .ok()
+        .filter(|s| !s.is_empty());
+    let forward_user_value = std::env::var("GATE_FORWARD_USER_VALUE")
         .ok()
         .filter(|s| !s.is_empty());
 
@@ -87,6 +105,10 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         login_redirect,
         cookie_domain,
         staff,
+        upstream_ca_cert_path,
+        upstream_bearer,
+        forward_user_header,
+        forward_user_value,
     })
 }
 

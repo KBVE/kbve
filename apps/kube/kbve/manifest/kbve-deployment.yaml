@@ -10,7 +10,7 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         configmap.reloader.stakater.com/reload: kube-root-ca.crt
-        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord
+        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials
 spec:
     replicas: 1
     strategy:
@@ -41,7 +41,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.209
+                  image: ghcr.io/kbve/kbve:1.0.212
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -74,6 +74,8 @@ spec:
                         value: '4321'
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: GOTRUE_INTERNAL_URL
+                        value: http://auth.kilobase.svc.cluster.local:9999
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
                             secretKeyRef:
@@ -229,6 +231,11 @@ spec:
                                 name: arpg-discord
                                 key: DISCORD_CLIENT_SECRET
                                 optional: true
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: jwt-secret
                   volumeMounts:
                       - name: pg-ca
                         mountPath: /etc/ssl/pgca

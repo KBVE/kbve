@@ -111,8 +111,8 @@ function roomRect(worldSeed: number, cx: number, cy: number) {
 	// directly — they're joined only by intentional corridors. Arena chunks get
 	// a much larger footprint for boss fights; normal rooms stay mid-sized.
 	const arena = isArena(worldSeed, cx, cy);
-	const w = arena ? 11 + Math.floor(rng() * 3) : 6 + Math.floor(rng() * 5); // arena 11..13, room 6..10
-	const h = arena ? 11 + Math.floor(rng() * 3) : 6 + Math.floor(rng() * 5);
+	const w = arena ? 14 + Math.floor(rng() * 4) : 6 + Math.floor(rng() * 5); // arena 14..17, room 6..10
+	const h = arena ? 14 + Math.floor(rng() * 4) : 6 + Math.floor(rng() * 5);
 	const maxOffX = CHUNK_SIZE - w - 2;
 	const maxOffY = CHUNK_SIZE - h - 2;
 	const ox = 1 + Math.floor(rng() * Math.max(1, maxOffX));
@@ -304,6 +304,53 @@ export function fingerprint(
 }
 
 /**
+ * The two stair endpoints on a floor: Down descends to z+1, Up ascends to z-1.
+ * Mirrors the Rust `arpg_dungeon::StairKind`.
+ */
+export enum StairKind {
+	Down = 0,
+	Up = 1,
+}
+
+/**
+ * Deterministic stair tile on a floor, given that floor's per-floor seed (already
+ * folded through `floorSeed`). A seed-derived chunk's room center hosts the stair,
+ * domain-separated per kind so up/down never collide. PURE — byte-for-byte mirror
+ * of the Rust `arpg_dungeon::stair_tile`, so the client renders the stair prop on
+ * the exact tile the server's `Stairs::at` triggers a floor change.
+ */
+export function stairTile(floorSeedVal: number, kind: StairKind): TileXY {
+	const tag = kind === StairKind.Down ? 0xd0 : 0x11;
+	const rng = mulberry32(
+		(floorSeedVal ^ (Math.imul(tag, 0x9e3779b1) >>> 0)) >>> 0,
+	);
+	const cx = Math.floor(rng() * 5) - 2;
+	const cy = Math.floor(rng() * 5) - 2;
+	const g = roomCenter(floorSeedVal, cx, cy); // already floor, snap defensively
+	return nearestFloorPure(floorSeedVal, g.x, g.y, CHUNK_SIZE);
+}
+
+/** Spiral (chebyshev) search to the nearest floor tile on a per-floor seed. */
+function nearestFloorPure(
+	floorSeedVal: number,
+	tx: number,
+	ty: number,
+	maxR: number,
+): TileXY {
+	if (isFloorAt(floorSeedVal, tx, ty)) return { x: tx, y: ty };
+	for (let r = 1; r <= maxR; r++) {
+		for (let dy = -r; dy <= r; dy++) {
+			for (let dx = -r; dx <= r; dx++) {
+				if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
+				if (isFloorAt(floorSeedVal, tx + dx, ty + dy))
+					return { x: tx + dx, y: ty + dy };
+			}
+		}
+	}
+	return { x: tx, y: ty };
+}
+
+/**
  * Live window of generated chunks around a focus tile. Call refresh() with the
  * player's tile each step; it generates newly-entered chunks within `radius`
  * and drops chunks that fall outside, invoking the supplied hooks so the scene
@@ -386,6 +433,11 @@ export class DungeonField {
 			}
 		}
 		return { added, removed };
+	}
+
+	/** The two stair tiles on this field's floor (down + up). */
+	stairTile(kind: StairKind): TileXY {
+		return stairTile(this.worldSeed, kind);
 	}
 
 	/** Nearest floor tile to a target (spiral search), for safe spawns. */

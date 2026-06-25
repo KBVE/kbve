@@ -19,8 +19,11 @@ interface CursorSpec {
 const CURSORS: Record<CursorState, CursorSpec> = {
 	[Cursor.Pointer]: {
 		path: '/assets/arcade/arpg/ui/cursor/glove3.png',
-		hotX: 36,
-		hotY: 6,
+		// glove3's index finger points up-left; the click-point is its tip, not
+		// the knuckle the old (36,6) sat on (which made tile picks read ~26px
+		// right of the finger).
+		hotX: 11,
+		hotY: 11,
 		fallback: 'default',
 	},
 	[Cursor.Hold]: {

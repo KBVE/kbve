@@ -223,6 +223,10 @@ export class GameClient {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
 	}
 
+	castSpell(spellRef: string, target: number | null): void {
+		this.sendInputs([{ CastSpell: { spell_ref: spellRef, target } }]);
+	}
+
 	dropItem(itemRef: string, qty: number): void {
 		this.sendInputs([{ DropItem: { item_ref: itemRef, qty } }]);
 	}

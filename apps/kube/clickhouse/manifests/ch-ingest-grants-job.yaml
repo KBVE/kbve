@@ -17,12 +17,12 @@ data:
         \ \\\n    -d \"$1\" || {\n    echo \"ERROR: grant failed: $1\"\n    exit 1\n \
         \ }\n}\n\n# CLUSTER privilege is required for every ON CLUSTER statement (CH 25.x);\n\
         # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).\ngrant\
-        \ \"GRANT CLUSTER ON *.* TO logflare ON CLUSTER 'cluster'\"\n\n# Data access for\
+        \ \"GRANT CLUSTER ON *.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\n# Data access for\
         \ each direct-write pipeline. Creating a table does not\n# grant the creator data\
-        \ rights in CH RBAC.\ngrant \"GRANT ALL ON logflare.* TO logflare ON CLUSTER 'cluster'\"\
-        \ngrant \"GRANT ALL ON telemetry.* TO logflare ON CLUSTER 'cluster'\"\ngrant \"\
-        GRANT ALL ON observability.* TO logflare ON CLUSTER 'cluster'\"\ngrant \"GRANT\
-        \ ALL ON mc.* TO logflare ON CLUSTER 'cluster'\"\n\necho \"\"\necho \"Ingest-user\
+        \ rights in CH RBAC.\ngrant \"GRANT ALL ON logflare.* TO kbve_ingest ON CLUSTER 'cluster'\"\
+        \ngrant \"GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"\
+        GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"GRANT\
+        \ ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\necho \"\"\necho \"Ingest-user\
         \ grants applied.\"\n"
 ---
 apiVersion: batch/v1

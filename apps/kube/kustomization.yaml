@@ -64,7 +64,6 @@ resources:
     - agones/rows-tenants/chuckrpg-beta/application.yaml
     # - agones/rows-tenants/chuckrpg-prod/application.yaml  # DISABLED: prod fleet scaffolded; enable per chuckrpg-prod/application.yaml steps
     - agones/mc/application.yaml
-    - agones/nd-server/application.yaml
     - agones/cryptothrone/application.yaml
     - agones/arpg/application.yaml
     - agones/factorio/application.yaml
@@ -90,9 +89,8 @@ resources:
     # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
     - cilium/lb-application.yaml
 
-    # ECK (Elastic Cloud on Kubernetes) — operator + Elasticsearch + Kibana
-    - elk/application.yaml
-    - elk/stack-application.yaml
+    # ECK (Elastic Cloud on Kubernetes) fully retired — ES + Kibana were
+    # unused (Vector ships to ClickHouse, no Kibana route, no consumers).
 
     # Forgejo — Git LFS server + Actions runner, UE asset storage on sdb
     - forgejo/application.yaml

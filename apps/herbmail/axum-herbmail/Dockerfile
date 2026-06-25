@@ -29,8 +29,11 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 COPY apps/herbmail/astro-herbmail/ apps/herbmail/astro-herbmail/
 
 WORKDIR /app/apps/herbmail/astro-herbmail
-RUN rm -rf .astro && npx astro sync && \
-    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-herbmail-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets

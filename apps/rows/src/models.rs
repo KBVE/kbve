@@ -378,6 +378,8 @@ pub struct UserInfo {
 pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unreal_version: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]

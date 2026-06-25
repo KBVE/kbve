@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-23T09:17:01.306Z",
+  "generated_at": "2026-06-25T09:14:24.020Z",
   "summary": {
-    "total_protos": 44,
-    "registered": 35,
+    "total_protos": 45,
+    "registered": 36,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 799,
-    "total_enums": 158
+    "total_messages": 802,
+    "total_enums": 162
   },
   "protos": [
     {
@@ -1226,6 +1226,7 @@
         "QuestGiverSpec",
         "AuraSpec",
         "WorldObjectDef",
+        "PlacedEffect",
         "BuildCost",
         "WorldObjectPlacement",
         "SpawnPoint",
@@ -1304,7 +1305,7 @@
         "HexOrientation",
         "TileRole"
       ],
-      "message_count": 73,
+      "message_count": 74,
       "enum_count": 36,
       "codegen": {
         "registered": true,
@@ -1655,6 +1656,29 @@
       }
     },
     {
+      "proto": "packages/data/proto/spell/spelldb.proto",
+      "package": "spell",
+      "messages": [
+        "Spell",
+        "SpellRegistry"
+      ],
+      "enums": [
+        "SpellSchool",
+        "SpellTarget",
+        "SpellEffect",
+        "SpellRarity"
+      ],
+      "message_count": 2,
+      "enum_count": 4,
+      "codegen": {
+        "registered": true,
+        "name": "spelldb",
+        "zod_config": "packages/data/codegen/spelldb-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/spelldb-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/spelldb.binpb"
+      }
+    },
+    {
       "proto": "packages/data/proto/wallet/wallet.proto",
       "package": "wallet",
       "messages": [
@@ -1710,7 +1734,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-23T09:17:01Z",
+  "checked_at": "2026-06-25T09:14:24Z",
   "drift_detected": false,
   "drift_files": []
 }

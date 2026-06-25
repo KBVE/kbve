@@ -429,7 +429,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_statemachine",
+          "name": "bevy_statemachine",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -535,7 +550,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_statemachine",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_statemachine/src",
@@ -663,6 +677,12 @@
         "type": "app",
         "data": {
           "root": "apps/cryptothrone/axum-cryptothrone",
+          "name": "axum-cryptothrone",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -864,7 +884,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-cryptothrone",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/cryptothrone/axum-cryptothrone/src",
@@ -877,7 +896,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_pathfinder",
+          "name": "bevy_pathfinder",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -983,7 +1017,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_pathfinder",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_pathfinder/src",
@@ -1239,7 +1272,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_inventory",
+          "name": "bevy_inventory",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -1345,7 +1393,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_inventory",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_inventory/src",
@@ -1519,7 +1566,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_behavior",
+          "name": "bevy_behavior",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -1625,7 +1687,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_behavior",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_behavior/src",
@@ -1638,7 +1699,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_kbve_net",
+          "name": "bevy_kbve_net",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -1744,7 +1820,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_kbve_net",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_kbve_net/src",
@@ -1810,6 +1885,32 @@
           "implicitDependencies": [
             "discordsh-bot"
           ]
+        }
+      },
+      "kbve-desktop": {
+        "name": "kbve-desktop",
+        "type": "lib",
+        "data": {
+          "root": "apps/kbve/desktop-kbve/src-tauri",
+          "name": "kbve-desktop",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": [],
+          "tags": []
         }
       },
       "axum-chuckrpg-e2e": {
@@ -1951,9 +2052,22 @@
         "type": "app",
         "data": {
           "root": "apps/agones/cryptothrone/server",
-          "projectType": "application",
-          "metadata": {},
+          "name": "cryptothrone-server",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "test": {
               "executor": "nx:run-commands",
               "options": {
@@ -2083,7 +2197,8 @@
               "parallelism": true
             }
           },
-          "name": "cryptothrone-server",
+          "projectType": "application",
+          "metadata": {},
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "sourceRoot": "apps/agones/cryptothrone/server/src",
           "tags": [
@@ -2091,127 +2206,6 @@
             "game-server",
             "agones",
             "cryptothrone"
-          ],
-          "implicitDependencies": []
-        }
-      },
-      "nd-server": {
-        "name": "nd-server",
-        "type": "app",
-        "data": {
-          "root": "apps/godot/nexus-defense/server",
-          "targets": {
-            "build": {
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "outputs": [
-                "{workspaceRoot}/dist/target/debug/nd-server"
-              ],
-              "options": {
-                "command": "cargo build -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test": {
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo test -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "lint": {
-              "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo clippy -p nd-server --all-targets -- -D warnings"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-release": {
-              "executor": "nx:run-commands",
-              "outputs": [
-                "{workspaceRoot}/dist/target/release/nd-server"
-              ],
-              "options": {
-                "command": "cargo build --release -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "run": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo run -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "container": {
-              "executor": "@nx-tools/nx-container:build",
-              "defaultConfiguration": "local",
-              "options": {
-                "engine": "docker",
-                "context": ".",
-                "file": "apps/godot/nexus-defense/server/Dockerfile",
-                "load": true,
-                "tags": [
-                  "kbve/nd-server:latest"
-                ]
-              },
-              "configurations": {
-                "local": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/nd-server:latest"
-                  ]
-                },
-                "production": {
-                  "load": true,
-                  "push": false,
-                  "tags": [
-                    "kbve/nd-server:latest"
-                  ],
-                  "cache-from": [
-                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache"
-                  ],
-                  "cache-to": [
-                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max"
-                  ]
-                }
-              },
-              "parallelism": true
-            }
-          },
-          "name": "nd-server",
-          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/godot/nexus-defense/server/src",
-          "tags": [
-            "rust",
-            "game-server",
-            "nexus-defense"
           ],
           "implicitDependencies": []
         }
@@ -2799,7 +2793,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_battle",
+          "name": "bevy_battle",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -2905,7 +2914,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_battle",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_battle/src",
@@ -2918,7 +2926,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_player",
+          "name": "bevy_player",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3024,7 +3047,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_player",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_player/src",
@@ -3037,7 +3059,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_quests",
+          "name": "bevy_quests",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3143,7 +3180,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_quests",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_quests/src",
@@ -3156,7 +3192,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_skills",
+          "name": "bevy_skills",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3262,7 +3313,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_skills",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_skills/src",
@@ -3270,12 +3320,53 @@
           "implicitDependencies": []
         }
       },
+      "bevy_spells": {
+        "name": "bevy_spells",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/bevy/bevy_spells",
+          "name": "bevy_spells",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": [],
+          "tags": []
+        }
+      },
       "bevy_tasker": {
         "name": "bevy_tasker",
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_tasker",
+          "name": "bevy_tasker",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3381,7 +3472,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_tasker",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_tasker/src",
@@ -3518,11 +3608,75 @@
           "implicitDependencies": []
         }
       },
+      "unreal-cleanroom": {
+        "name": "unreal-cleanroom",
+        "type": "app",
+        "data": {
+          "root": "apps/chuckrpg/unreal-cleanroom",
+          "name": "unreal-cleanroom",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+          "tags": [
+            "unreal",
+            "cleanroom",
+            "evaluation"
+          ],
+          "targets": {
+            "open": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "open apps/chuckrpg/unreal-cleanroom/UnrealCleanroom/UnrealCleanroom.uproject",
+                "description": "Open Unreal Cleanroom project in UE 5.8"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "clean": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/unreal-cleanroom/UnrealCleanroom",
+                "commands": [
+                  "rm -rf Binaries",
+                  "rm -rf Build",
+                  "rm -rf DerivedDataCache",
+                  "rm -rf Intermediate",
+                  "rm -rf Saved"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync": {
+              "executor": "nx:run-commands",
+              "description": "Sync cleanroom changes and push LFS to Forgejo using kbve.sh wrapper",
+              "options": {
+                "commands": [
+                  "git add apps/chuckrpg/unreal-cleanroom/",
+                  "git commit -m 'chore(cleanroom): sync assets' || echo 'No changes to commit'",
+                  "./kbve.sh -lfs cleanroom push origin dev"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "axum-discordsh": {
         "name": "axum-discordsh",
         "type": "app",
         "data": {
           "root": "apps/discordsh/axum-discordsh",
+          "name": "axum-discordsh",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -3708,7 +3862,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-discordsh",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/discordsh/axum-discordsh/src",
@@ -3721,7 +3874,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_items",
+          "name": "bevy_items",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3827,7 +3995,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_items",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_items/src",
@@ -3840,7 +4007,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_mapdb",
+          "name": "bevy_mapdb",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -3946,12 +4128,37 @@
               "parallelism": true
             }
           },
-          "name": "bevy_mapdb",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_mapdb/src",
           "tags": [],
           "implicitDependencies": []
+        }
+      },
+      "isometric-game": {
+        "name": "isometric-game",
+        "type": "lib",
+        "data": {
+          "root": "apps/kbve/isometric/src-tauri",
+          "name": "isometric-game",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": [],
+          "tags": []
         }
       },
       "astro-chuckrpg": {
@@ -4394,7 +4601,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_chat",
+          "name": "bevy_chat",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -4500,7 +4722,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_chat",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_chat/src",
@@ -4513,7 +4734,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_supa",
+          "name": "bevy_supa",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -4619,7 +4855,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_supa",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_supa/src",
@@ -4633,9 +4868,11 @@
         "data": {
           "root": "apps/discordsh/discordsh-bot",
           "name": "discordsh-bot",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "apps/discordsh/discordsh-bot/src",
-          "projectType": "application",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "container": {
               "executor": "nx:run-commands",
@@ -4692,6 +4929,9 @@
               "parallelism": true
             }
           },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/discordsh/discordsh-bot/src",
+          "projectType": "application",
           "implicitDependencies": [],
           "tags": []
         }
@@ -4787,6 +5027,12 @@
         "type": "app",
         "data": {
           "root": "apps/chuckrpg/axum-chuckrpg",
+          "name": "axum-chuckrpg",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -4819,7 +5065,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-chuckrpg",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/chuckrpg/axum-chuckrpg/src",
@@ -4832,6 +5077,12 @@
         "type": "app",
         "data": {
           "root": "apps/herbmail/axum-herbmail",
+          "name": "axum-herbmail",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -5016,7 +5267,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-herbmail",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/herbmail/axum-herbmail/src",
@@ -5029,6 +5279,12 @@
         "type": "app",
         "data": {
           "root": "apps/rareicon/axum-rareicon",
+          "name": "axum-rareicon",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -5095,7 +5351,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-rareicon",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/rareicon/axum-rareicon/src",
@@ -5108,7 +5363,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_cam",
+          "name": "bevy_cam",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -5214,7 +5484,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_cam",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_cam/src",
@@ -5227,7 +5496,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_npc",
+          "name": "bevy_npc",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -5333,7 +5617,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_npc",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_npc/src",
@@ -5737,6 +6020,12 @@
         "type": "app",
         "data": {
           "root": "apps/agones/factorio/relay",
+          "name": "agones-factorio-relay",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -5857,7 +6146,6 @@
               "parallelism": true
             }
           },
-          "name": "agones-factorio-relay",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/agones/factorio/relay/src",
@@ -5953,12 +6241,43 @@
           "implicitDependencies": []
         }
       },
+      "behavior_statetree": {
+        "name": "behavior_statetree",
+        "type": "lib",
+        "data": {
+          "root": "apps/mc/behavior_statetree",
+          "name": "behavior_statetree",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {},
+          "implicitDependencies": [],
+          "tags": []
+        }
+      },
       "bevy_db": {
         "name": "bevy_db",
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/bevy_db",
+          "name": "bevy_db",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -6064,7 +6383,6 @@
               "parallelism": true
             }
           },
-          "name": "bevy_db",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_db/src",
@@ -6407,89 +6725,27 @@
           ]
         }
       },
-      "nexus-defense": {
-        "name": "nexus-defense",
-        "type": "app",
-        "data": {
-          "root": "apps/godot/nexus-defense",
-          "name": "nexus-defense",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "apps/godot/nexus-defense",
-          "projectType": "application",
-          "tags": [
-            "godot",
-            "game",
-            "nexus-defense"
-          ],
-          "targets": {
-            "test-godot": {
-              "executor": "nx:run-commands",
-              "inputs": [
-                "{projectRoot}/scenes/**/*",
-                "{projectRoot}/ui/**/*",
-                "{projectRoot}/ecs/**/*",
-                "{projectRoot}/tests/ui/**/*",
-                "{projectRoot}/tests/components/**/*",
-                "{projectRoot}/tests/helpers/**/*",
-                "{projectRoot}/project.godot",
-                "{projectRoot}/scripts/test.sh"
-              ],
-              "options": {
-                "command": "bash apps/godot/nexus-defense/scripts/test.sh"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test-e2e": {
-              "executor": "nx:run-commands",
-              "inputs": [
-                "{projectRoot}/scenes/**/*",
-                "{projectRoot}/ui/**/*",
-                "{projectRoot}/ecs/**/*",
-                "{projectRoot}/tests/**/*",
-                "{projectRoot}/project.godot",
-                "{projectRoot}/scripts/test-e2e.sh",
-                "{projectRoot}/server/**/*",
-                "{workspaceRoot}/packages/rust/q/src/proto/**/*",
-                "{workspaceRoot}/packages/rust/q/src/net/**/*",
-                "{workspaceRoot}/packages/rust/q/src/nexus_defense*/**/*"
-              ],
-              "options": {
-                "command": "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test-ci": {
-              "executor": "nx:run-commands",
-              "options": {
-                "commands": [
-                  "bash apps/godot/nexus-defense/scripts/test.sh",
-                  "bash apps/godot/nexus-defense/scripts/test-e2e.sh"
-                ],
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-server": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo build --release -p nd-server"
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "implicitDependencies": []
-        }
-      },
       "uniti": {
         "name": "uniti",
         "type": "lib",
         "data": {
           "root": "packages/rust/bevy/uniti",
+          "name": "uniti",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -6704,7 +6960,6 @@
               "parallelism": true
             }
           },
-          "name": "uniti",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/uniti/src",
@@ -6783,7 +7038,22 @@
         "type": "app",
         "data": {
           "root": "apps/agones/arpg/server",
+          "name": "arpg-server",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -6887,7 +7157,6 @@
               "parallelism": true
             }
           },
-          "name": "arpg-server",
           "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/agones/arpg/server/src",
@@ -7107,6 +7376,12 @@
         "type": "app",
         "data": {
           "root": "apps/vm/firecracker-ctl",
+          "name": "firecracker-ctl",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -7227,7 +7502,6 @@
               "parallelism": true
             }
           },
-          "name": "firecracker-ctl",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/vm/firecracker-ctl/src",
@@ -7293,7 +7567,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/kbve_wgpu",
+          "name": "kbve_wgpu",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -7417,7 +7706,6 @@
               "parallelism": true
             }
           },
-          "name": "kbve_wgpu",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/kbve_wgpu/src",
@@ -8696,6 +8984,12 @@
         "type": "app",
         "data": {
           "root": "apps/memes/axum-memes",
+          "name": "axum-memes",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -8881,7 +9175,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-memes",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/memes/axum-memes/src",
@@ -8969,7 +9262,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/simgrid",
+          "name": "simgrid",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -9018,7 +9326,6 @@
               "parallelism": true
             }
           },
-          "name": "simgrid",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/simgrid/src",
@@ -9853,6 +10160,46 @@
               "configurations": {},
               "parallelism": true
             },
+            "sync:spelldb": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "sync:spelldb-uecpp"
+              ],
+              "inputs": [
+                "{projectRoot}/src/content/docs/spelldb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-spelldb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/spelldb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/spelldb-data.binpb"
+              ],
+              "cache": true,
+              "options": {
+                "command": "node packages/data/codegen/gen-spelldb-data.mjs",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:spelldb-uecpp": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-spelldb-uecpp.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/spelldb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoTypes.h",
+                "{workspaceRoot}/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoParse.h"
+              ],
+              "cache": true,
+              "options": {
+                "command": "node packages/data/codegen/gen-spelldb-uecpp.mjs",
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "sync:itemdb-atlas": {
               "executor": "nx:run-commands",
               "inputs": [
@@ -9967,6 +10314,12 @@
         "type": "app",
         "data": {
           "root": "apps/vm/factorio-ctl",
+          "name": "factorio-ctl",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -10087,7 +10440,6 @@
               "parallelism": true
             }
           },
-          "name": "factorio-ctl",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/vm/factorio-ctl/src",
@@ -10104,6 +10456,12 @@
         "type": "app",
         "data": {
           "root": "apps/irc/irc-gateway",
+          "name": "irc-gateway",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -10287,7 +10645,6 @@
               "parallelism": true
             }
           },
-          "name": "irc-gateway",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/irc/irc-gateway/src",
@@ -10570,6 +10927,12 @@
         "type": "app",
         "data": {
           "root": "apps/kbve/axum-kbve",
+          "name": "axum-kbve",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -10709,7 +11072,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
                     "VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
                   ]
                 }
@@ -10764,7 +11127,6 @@
               "parallelism": true
             }
           },
-          "name": "axum-kbve",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/kbve/axum-kbve/src",
@@ -11188,7 +11550,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/erust",
+          "name": "erust",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -11267,7 +11644,6 @@
               "parallelism": true
             }
           },
-          "name": "erust",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/erust/src",
@@ -11474,6 +11850,12 @@
         "type": "app",
         "data": {
           "root": "apps/kbve/kbve-gate",
+          "name": "kbve-gate",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -11605,7 +11987,6 @@
               "parallelism": true
             }
           },
-          "name": "kbve-gate",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/kbve/kbve-gate/src",
@@ -12648,7 +13029,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/holy",
+          "name": "holy",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -12727,7 +13123,6 @@
               "parallelism": true
             }
           },
-          "name": "holy",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/holy/src",
@@ -12740,7 +13135,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/jedi",
+          "name": "jedi",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -12854,7 +13264,6 @@
               "parallelism": true
             }
           },
-          "name": "jedi",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/jedi/src",
@@ -12867,7 +13276,22 @@
         "type": "lib",
         "data": {
           "root": "packages/rust/kbve",
+          "name": "kbve",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -12957,7 +13381,6 @@
               "parallelism": true
             }
           },
-          "name": "kbve",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/kbve/src",
@@ -12970,7 +13393,22 @@
         "type": "app",
         "data": {
           "root": "apps/kbve/kilobase",
+          "name": "kilobase",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -13256,7 +13694,6 @@
               "parallelism": true
             }
           },
-          "name": "kilobase",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/kbve/kilobase/src",
@@ -14445,6 +14882,12 @@
         "type": "app",
         "data": {
           "root": "apps/vm/kubectl",
+          "name": "kbve-kubectl",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -14565,7 +15008,6 @@
               "parallelism": true
             }
           },
-          "name": "kbve-kubectl",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/vm/kubectl/src",
@@ -14577,12 +15019,43 @@
           "implicitDependencies": []
         }
       },
+      "mc_auth": {
+        "name": "mc_auth",
+        "type": "lib",
+        "data": {
+          "root": "apps/mc/mc_auth",
+          "name": "mc_auth",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {},
+          "implicitDependencies": [],
+          "tags": []
+        }
+      },
       "q": {
         "name": "q",
         "type": "lib",
         "data": {
           "root": "packages/rust/q",
+          "name": "q",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
+            "nx-release-publish": {
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "executor": "@monodon/rust:release-publish",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "dependsOn": [
                 "^build"
@@ -14686,7 +15159,6 @@
               "parallelism": true
             }
           },
-          "name": "q",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "projectType": "library",
           "sourceRoot": "packages/rust/q/src",
@@ -15072,6 +15544,12 @@
         "type": "app",
         "data": {
           "root": "apps/jobboard",
+          "name": "jobboard",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -15273,7 +15751,6 @@
               "parallelism": true
             }
           },
-          "name": "jobboard",
           "$schema": "../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/jobboard/src",
@@ -15409,6 +15886,12 @@
         "type": "app",
         "data": {
           "root": "apps/metrics",
+          "name": "met",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -15540,7 +16023,6 @@
               "parallelism": true
             }
           },
-          "name": "met",
           "$schema": "../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/metrics/src",
@@ -15721,6 +16203,12 @@
         "type": "app",
         "data": {
           "root": "apps/rows",
+          "name": "rows",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
           "targets": {
             "build": {
               "dependsOn": [
@@ -15799,7 +16287,7 @@
               "options": {
                 "commands": [
                   "docker rm -f rows-e2e 2>/dev/null || true",
-                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
+                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e OWS_API_KEY=be92671d-af96-4a6b-bdf7-6a3b6270dae6 -e DATABASE_URL='postgres://e2e:e2e@127.0.0.1:1/none' kbve/rows:latest",
                   "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
                 ],
                 "parallel": false,
@@ -15888,7 +16376,6 @@
               "parallelism": true
             }
           },
-          "name": "rows",
           "$schema": "../../node_modules/nx/schemas/project-schema.json",
           "projectType": "application",
           "sourceRoot": "apps/rows/src",
@@ -16297,7 +16784,18 @@
       ],
       "bevy_statemachine": [],
       "firecracker-node-web": [],
-      "axum-cryptothrone": [],
+      "axum-cryptothrone": [
+        {
+          "source": "axum-cryptothrone",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "axum-cryptothrone",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "bevy_pathfinder": [],
       "chisel-ubuntu-axum": [],
       "axum-discordsh-e2e": [
@@ -16317,7 +16815,18 @@
         }
       ],
       "bevy_behavior": [],
-      "bevy_kbve_net": [],
+      "bevy_kbve_net": [
+        {
+          "source": "bevy_kbve_net",
+          "target": "bevy_npc",
+          "type": "static"
+        },
+        {
+          "source": "bevy_kbve_net",
+          "target": "bevy_tasker",
+          "type": "static"
+        }
+      ],
       "discordsh-bot-e2e": [
         {
           "source": "discordsh-bot-e2e",
@@ -16325,6 +16834,7 @@
           "type": "implicit"
         }
       ],
+      "kbve-desktop": [],
       "axum-chuckrpg-e2e": [
         {
           "source": "axum-chuckrpg-e2e",
@@ -16339,8 +16849,18 @@
           "type": "implicit"
         }
       ],
-      "cryptothrone-server": [],
-      "nd-server": [],
+      "cryptothrone-server": [
+        {
+          "source": "cryptothrone-server",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "cryptothrone-server",
+          "target": "simgrid",
+          "type": "static"
+        }
+      ],
       "notification-bot": [],
       "steamcmd-ubuntu": [],
       "unreal-rentearth": [],
@@ -16363,15 +16883,92 @@
           "type": "static"
         }
       ],
-      "bevy_battle": [],
+      "bevy_battle": [
+        {
+          "source": "bevy_battle",
+          "target": "bevy_behavior",
+          "type": "static"
+        }
+      ],
       "bevy_player": [],
       "bevy_quests": [],
       "bevy_skills": [],
+      "bevy_spells": [],
       "bevy_tasker": [],
       "kbve-spider": [],
-      "axum-discordsh": [],
-      "bevy_items": [],
+      "unreal-cleanroom": [],
+      "axum-discordsh": [
+        {
+          "source": "axum-discordsh",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "axum-discordsh",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
+      "bevy_items": [
+        {
+          "source": "bevy_items",
+          "target": "bevy_inventory",
+          "type": "static"
+        }
+      ],
       "bevy_mapdb": [],
+      "isometric-game": [
+        {
+          "source": "isometric-game",
+          "target": "bevy_behavior",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_cam",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_chat",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_db",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_items",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_kbve_net",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_pathfinder",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_skills",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_tasker",
+          "type": "static"
+        }
+      ],
       "astro-chuckrpg": [
         {
           "source": "astro-chuckrpg",
@@ -16410,7 +17007,73 @@
       ],
       "bevy_chat": [],
       "bevy_supa": [],
-      "discordsh-bot": [],
+      "discordsh-bot": [
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_battle",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_behavior",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_chat",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_db",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_items",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_mapdb",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_npc",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_pathfinder",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_quests",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "bevy_skills",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "discordsh-bot",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "discordsh-e2e": [
         {
           "source": "discordsh-e2e",
@@ -16424,9 +17087,32 @@
         }
       ],
       "unity-rareicon": [],
-      "axum-chuckrpg": [],
-      "axum-herbmail": [],
-      "axum-rareicon": [],
+      "axum-chuckrpg": [
+        {
+          "source": "axum-chuckrpg",
+          "target": "jedi",
+          "type": "static"
+        }
+      ],
+      "axum-herbmail": [
+        {
+          "source": "axum-herbmail",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "axum-herbmail",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
+      "axum-rareicon": [
+        {
+          "source": "axum-rareicon",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "bevy_cam": [],
       "bevy_npc": [],
       "firecracker-ctl-e2e": [
@@ -16465,9 +17151,43 @@
           "type": "static"
         }
       ],
-      "agones-factorio-relay": [],
+      "agones-factorio-relay": [
+        {
+          "source": "agones-factorio-relay",
+          "target": "jedi",
+          "type": "static"
+        }
+      ],
       "arc-runner": [],
-      "bevy_db": [],
+      "behavior_statetree": [
+        {
+          "source": "behavior_statetree",
+          "target": "bevy_behavior",
+          "type": "static"
+        },
+        {
+          "source": "behavior_statetree",
+          "target": "bevy_chat",
+          "type": "static"
+        },
+        {
+          "source": "behavior_statetree",
+          "target": "bevy_npc",
+          "type": "static"
+        },
+        {
+          "source": "behavior_statetree",
+          "target": "bevy_pathfinder",
+          "type": "static"
+        }
+      ],
+      "bevy_db": [
+        {
+          "source": "bevy_db",
+          "target": "bevy_tasker",
+          "type": "static"
+        }
+      ],
       "herbmail-e2e": [
         {
           "source": "herbmail-e2e",
@@ -16500,8 +17220,28 @@
           "type": "implicit"
         }
       ],
-      "nexus-defense": [],
-      "uniti": [],
+      "uniti": [
+        {
+          "source": "uniti",
+          "target": "bevy_battle",
+          "type": "static"
+        },
+        {
+          "source": "uniti",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "uniti",
+          "target": "bevy_pathfinder",
+          "type": "static"
+        },
+        {
+          "source": "uniti",
+          "target": "bevy_skills",
+          "type": "static"
+        }
+      ],
       "aria2-proxy-e2e": [
         {
           "source": "aria2-proxy-e2e",
@@ -16509,7 +17249,33 @@
           "type": "implicit"
         }
       ],
-      "arpg-server": [],
+      "arpg-server": [
+        {
+          "source": "arpg-server",
+          "target": "bevy_items",
+          "type": "static"
+        },
+        {
+          "source": "arpg-server",
+          "target": "bevy_mapdb",
+          "type": "static"
+        },
+        {
+          "source": "arpg-server",
+          "target": "bevy_spells",
+          "type": "static"
+        },
+        {
+          "source": "arpg-server",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "arpg-server",
+          "target": "simgrid",
+          "type": "static"
+        }
+      ],
       "axum-kbve-e2e": [
         {
           "source": "axum-kbve-e2e",
@@ -16534,9 +17300,21 @@
           "type": "dynamic"
         }
       ],
-      "firecracker-ctl": [],
+      "firecracker-ctl": [
+        {
+          "source": "firecracker-ctl",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "iot-edge-worker": [],
-      "kbve_wgpu": [],
+      "kbve_wgpu": [
+        {
+          "source": "kbve_wgpu",
+          "target": "isometric-game",
+          "type": "static"
+        }
+      ],
       "khashvault": [
         {
           "source": "khashvault",
@@ -16599,7 +17377,18 @@
           "type": "static"
         }
       ],
-      "axum-memes": [],
+      "axum-memes": [
+        {
+          "source": "axum-memes",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "axum-memes",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "rn-astro": [
         {
           "source": "rn-astro",
@@ -16607,7 +17396,13 @@
           "type": "static"
         }
       ],
-      "simgrid": [],
+      "simgrid": [
+        {
+          "source": "simgrid",
+          "target": "bevy_spells",
+          "type": "static"
+        }
+      ],
       "agones-factorio": [],
       "arpg-web": [
         {
@@ -16648,8 +17443,30 @@
           "type": "static"
         }
       ],
-      "factorio-ctl": [],
-      "irc-gateway": [],
+      "factorio-ctl": [
+        {
+          "source": "factorio-ctl",
+          "target": "jedi",
+          "type": "static"
+        }
+      ],
+      "irc-gateway": [
+        {
+          "source": "irc-gateway",
+          "target": "bevy_chat",
+          "type": "static"
+        },
+        {
+          "source": "irc-gateway",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "irc-gateway",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "memes-e2e": [
         {
           "source": "memes-e2e",
@@ -16664,12 +17481,55 @@
       ],
       "python-kbve": [],
       "aria2-proxy": [],
-      "axum-kbve": [],
+      "axum-kbve": [
+        {
+          "source": "axum-kbve",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "axum-kbve",
+          "target": "bevy_items",
+          "type": "static"
+        },
+        {
+          "source": "axum-kbve",
+          "target": "bevy_kbve_net",
+          "type": "static"
+        },
+        {
+          "source": "axum-kbve",
+          "target": "bevy_skills",
+          "type": "static"
+        },
+        {
+          "source": "axum-kbve",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "axum-kbve",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "data-proto": [],
       "devops": [],
-      "erust": [],
+      "erust": [
+        {
+          "source": "erust",
+          "target": "holy",
+          "type": "static"
+        }
+      ],
       "isometric": [],
-      "kbve-gate": [],
+      "kbve-gate": [
+        {
+          "source": "kbve-gate",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "kubectl-e2e": [
         {
           "source": "kubectl-e2e",
@@ -16722,7 +17582,18 @@
       ],
       "holy": [],
       "jedi": [],
-      "kbve": [],
+      "kbve": [
+        {
+          "source": "kbve",
+          "target": "holy",
+          "type": "static"
+        },
+        {
+          "source": "kbve",
+          "target": "jedi",
+          "type": "static"
+        }
+      ],
       "kilobase": [],
       "laser": [],
       "chat": [],
@@ -16753,7 +17624,25 @@
       ],
       "fx": [],
       "kbve-kubectl": [],
-      "q": [],
+      "mc_auth": [
+        {
+          "source": "mc_auth",
+          "target": "bevy_supa",
+          "type": "static"
+        }
+      ],
+      "q": [
+        {
+          "source": "q",
+          "target": "bevy_mapdb",
+          "type": "static"
+        },
+        {
+          "source": "q",
+          "target": "bevy_npc",
+          "type": "static"
+        }
+      ],
       "rn": [
         {
           "source": "rn",
@@ -16765,6 +17654,11 @@
       "edge": [],
       "herbmail": [],
       "jobboard": [
+        {
+          "source": "jobboard",
+          "target": "jedi",
+          "type": "static"
+        },
         {
           "source": "jobboard",
           "target": "rn",
@@ -16787,10 +17681,32 @@
         }
       ],
       "mc-lobby": [],
-      "met": [],
+      "met": [
+        {
+          "source": "met",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "met",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "pydesk": [],
       "memes": [],
-      "rows": [],
+      "rows": [
+        {
+          "source": "rows",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "rows",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
       "irc": [],
       "mc": [],
       "@kbve/source": [
