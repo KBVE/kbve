@@ -61,6 +61,11 @@ export function makeDungeonView(scene: Phaser.Scene): DungeonView {
  * at its own world origin, so nothing slides as the player walks — areas simply
  * load ahead and unload behind. `force` runs on build.
  */
+export interface ChunkCoord {
+	cx: number;
+	cy: number;
+}
+
 export function refreshDungeonView(
 	scene: Phaser.Scene,
 	view: DungeonView,
@@ -68,6 +73,7 @@ export function refreshDungeonView(
 	surface: boolean,
 	focus: TileXY,
 	force = false,
+	onChunks?: (added: ChunkCoord[], removed: ChunkCoord[]) => void,
 ): void {
 	const { cx, cy } = chunkOf(focus.x, focus.y);
 	const ckey = packTile(cx, cy);
@@ -80,6 +86,7 @@ export function refreshDungeonView(
 	if (force || added.length || removed.length) {
 		paintHoles(scene, view, dungeon, surface, cx, cy);
 	}
+	if (onChunks && (added.length || removed.length)) onChunks(added, removed);
 }
 
 /**
@@ -93,11 +100,12 @@ export function rebuildDungeonView(
 	dungeon: DungeonField,
 	surface: boolean,
 	focus: TileXY,
+	onChunks?: (added: ChunkCoord[], removed: ChunkCoord[]) => void,
 ): void {
 	for (const plane of view.chunkGrounds.values()) plane.destroy();
 	view.chunkGrounds.clear();
 	view.lastChunkKey = -1;
-	refreshDungeonView(scene, view, dungeon, surface, focus, true);
+	refreshDungeonView(scene, view, dungeon, surface, focus, true, onChunks);
 }
 
 /**

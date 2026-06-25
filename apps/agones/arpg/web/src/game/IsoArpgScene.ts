@@ -187,6 +187,7 @@ import {
 	reskinTreeSprite,
 	fellTreeSprite,
 	decodeTreeSub,
+	treeAt,
 	TREE_REF,
 } from './entities/trees';
 import { getNetConfig } from './net-config';
@@ -398,6 +399,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.isSurface(),
 			focus,
 			force,
+			(added, removed) => {
+				for (const c of removed) this.unpredictChunkTrees(c.cx, c.cy);
+				for (const c of added) this.predictChunkTrees(c.cx, c.cy);
+			},
 		);
 	}
 
@@ -408,6 +413,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.dungeon,
 			this.isSurface(),
 			this.move.predicted,
+			(added, removed) => {
+				for (const c of removed) this.unpredictChunkTrees(c.cx, c.cy);
+				for (const c of added) this.predictChunkTrees(c.cx, c.cy);
+			},
 		);
 	}
 
@@ -563,9 +572,19 @@ export class IsoArpgScene extends Phaser.Scene {
 					if (this.kinds.ref(e.kind) === TREE_REF) {
 						const { variant, felled } = decodeTreeSub(e.sub);
 						this.treeState.set(e.eid, { variant, felled });
-						refs = {
-							sprite: this.acquireTree(variant, felled),
-						};
+						const key = packTile(e.tile.x, e.tile.y);
+						this.serverTreeTiles.add(key);
+						const predicted = this.predictedTrees.get(key);
+						let sprite: Phaser.GameObjects.Sprite;
+						if (predicted) {
+							this.predictedTrees.delete(key);
+							sprite = felled
+								? reskinTreeSprite(predicted, variant, true)
+								: predicted;
+						} else {
+							sprite = this.acquireTree(variant, felled);
+						}
+						refs = { sprite };
 					} else {
 						const envSprite = makeEnvSprite(
 							this,
@@ -682,12 +701,11 @@ export class IsoArpgScene extends Phaser.Scene {
 				}
 				if (
 					this.treeState.has(eid) &&
-					refs.sprite instanceof Phaser.GameObjects.Sprite &&
-					this.treePool.length < IsoArpgScene.TREE_POOL_MAX
+					refs.sprite instanceof Phaser.GameObjects.Sprite
 				) {
-					this.tweens.killTweensOf(refs.sprite);
-					refs.sprite.setActive(false).setVisible(false);
-					this.treePool.push(refs.sprite);
+					const t = this.store.tile(eid);
+					if (t) this.serverTreeTiles.delete(packTile(t.x, t.y));
+					this.poolTree(refs.sprite);
 					this.treeState.delete(eid);
 					return;
 				}
@@ -1108,6 +1126,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
 		this.ground?.shader.setVisible(this.isSurface());
+		if (!this.isSurface()) {
+			this.clearPredictedTrees();
+			this.serverTreeTiles.clear();
+		}
 		this.move.predicted = { x: f.tile.x, y: f.tile.y };
 		this.move.floatState = makeFloatState(this.move.predicted);
 		this.dungeon = new DungeonField(
@@ -1259,6 +1281,70 @@ export class IsoArpgScene extends Phaser.Scene {
 		return sprite;
 	}
 
+	private poolTree(sprite: Phaser.GameObjects.Sprite): void {
+		this.tweens.killTweensOf(sprite);
+		sprite.setActive(false).setVisible(false);
+		if (this.treePool.length < IsoArpgScene.TREE_POOL_MAX) {
+			this.treePool.push(sprite);
+		} else {
+			sprite.destroy();
+		}
+	}
+
+	// Client-side deterministic tree prediction: place the `treeAt` forest as chunks
+	// stream (instant, no network pop). A server tree entity later ADOPTS its predicted
+	// sprite at the same tile (serverTreeTiles), so there's never a duplicate. Felled +
+	// authoritative state still ride the server entity.
+	private predictedTrees = new Map<number, Phaser.GameObjects.Sprite>();
+	private serverTreeTiles = new Set<number>();
+
+	private predictChunkTrees(cx: number, cy: number): void {
+		if (!this.isSurface()) return;
+		const ds = this.dungeon.stairTile(StairKind.Down);
+		const x0 = cx * CHUNK_SIZE;
+		const y0 = cy * CHUNK_SIZE;
+		for (let ty = y0; ty < y0 + CHUNK_SIZE; ty++) {
+			for (let tx = x0; tx < x0 + CHUNK_SIZE; tx++) {
+				if ((tx === 12 && ty === 12) || (tx === ds.x && ty === ds.y))
+					continue;
+				const variant = treeAt(DUNGEON_SEED, tx, ty);
+				if (variant === null) continue;
+				const key = packTile(tx, ty);
+				if (
+					this.predictedTrees.has(key) ||
+					this.serverTreeTiles.has(key)
+				) {
+					continue;
+				}
+				const sprite = this.acquireTree(variant, false);
+				this.placeSprite(sprite, tx, ty);
+				this.predictedTrees.set(key, sprite);
+			}
+		}
+		this.markEnvDirty();
+	}
+
+	private unpredictChunkTrees(cx: number, cy: number): void {
+		const x0 = cx * CHUNK_SIZE;
+		const y0 = cy * CHUNK_SIZE;
+		for (let ty = y0; ty < y0 + CHUNK_SIZE; ty++) {
+			for (let tx = x0; tx < x0 + CHUNK_SIZE; tx++) {
+				const key = packTile(tx, ty);
+				const sprite = this.predictedTrees.get(key);
+				if (sprite) {
+					this.poolTree(sprite);
+					this.predictedTrees.delete(key);
+				}
+			}
+		}
+	}
+
+	private clearPredictedTrees(): void {
+		for (const sprite of this.predictedTrees.values())
+			this.poolTree(sprite);
+		this.predictedTrees.clear();
+	}
+
 	private reconcileTrees(entities: readonly EntityDelta[]): void {
 		const seen = new Set<number>();
 		for (const e of entities) {
@@ -1290,6 +1376,8 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private refreshEnvBlocked(): void {
 		this.envBlocked.clear();
+		// Predicted (standing) trees the server hasn't realised yet still block.
+		for (const key of this.predictedTrees.keys()) this.envBlocked.add(key);
 		for (const sid of this.store.serverIdsWith(Cat.Env)) {
 			if (this.treeState.get(sid)?.felled) continue;
 			const t = this.store.tile(sid);

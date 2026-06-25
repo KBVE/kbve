@@ -341,8 +341,12 @@ pub fn stream_wyverns(
 // blocks its tile; a player adjacent to one fells it (server-authoritative). They
 // realise the deterministic `tree_at` forest around surface players and persist
 // felled state via the env log.
-pub const TREE_SPAWN_MAX: i32 = 18;
-pub const TREE_DESPAWN_RADIUS: i32 = 40;
+// Realise trees out to the client's view radius (DUNGEON_RADIUS chunks) so every
+// visible tree is server-authoritative for felled state, and despawn well beyond it
+// so a tree never disappears while its chunk is still rendered (the client adopts
+// each server entity onto its predicted sprite).
+pub const TREE_SPAWN_MAX: i32 = 52;
+pub const TREE_DESPAWN_RADIUS: i32 = 64;
 pub const TREE_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
 
 /// Realise the deterministic surface forest around z=0 players: walk the tiles in

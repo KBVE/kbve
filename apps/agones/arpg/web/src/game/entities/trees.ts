@@ -49,13 +49,11 @@ export const TREE_COLS = 10;
 export const TREE_LEAFY_ROWS = 7;
 /** Distinct leafy tree variants (rows 0..6 x 10 cols). */
 export const TREE_VARIANTS = TREE_COLS * TREE_LEAFY_ROWS;
-/** Frame delta from a leafy cell to its bare twin (7 rows down). */
-const BARE_FRAME_OFFSET = TREE_COLS * TREE_LEAFY_ROWS;
 
 // On-screen footprint (tile is 64px wide). Keep the cell's 1:2 ratio and anchor
 // near the trunk base so the tree plants on its tile and the canopy rises off it.
-export const TREE_DISPLAY_W = 144;
-export const TREE_DISPLAY_H = 288;
+export const TREE_DISPLAY_W = 192;
+export const TREE_DISPLAY_H = 384;
 export const TREE_ORIGIN_Y = 0.92;
 
 /** Sheet frame index for a leafy variant (wrapped into range). */
@@ -63,9 +61,17 @@ export function leafyFrame(variant: number): number {
 	return ((variant % TREE_VARIANTS) + TREE_VARIANTS) % TREE_VARIANTS;
 }
 
-/** Sheet frame index for a variant's bare twin (the felled remnant). */
-export function bareFrame(variant: number): number {
-	return leafyFrame(variant) + BARE_FRAME_OFFSET;
+const LEAF_TEX = 'tree-leaf';
+
+/** Lazily build the small leaf particle the fell burst scatters. */
+function ensureLeafTexture(scene: Phaser.Scene): string {
+	if (scene.textures.exists(LEAF_TEX)) return LEAF_TEX;
+	const g = scene.make.graphics({ x: 0, y: 0 }, false);
+	g.fillStyle(0xffffff, 1);
+	g.fillEllipse(7, 5, 14, 10);
+	g.generateTexture(LEAF_TEX, 14, 10);
+	g.destroy();
+	return LEAF_TEX;
 }
 
 export function preloadTrees(scene: Phaser.Scene): void {
@@ -86,20 +92,19 @@ export function makeTreeSprite(
 	return reskinTreeSprite(sprite, variant, felled);
 }
 
-/** Reset a (possibly pooled) tree sprite to a clean standing/felled variant. */
+/** Reset a (possibly pooled) tree sprite to a clean standing tree. A felled tree
+ * leaves nothing behind, so it's reset hidden. */
 export function reskinTreeSprite(
 	sprite: Phaser.GameObjects.Sprite,
 	variant: number,
 	felled: boolean,
 ): Phaser.GameObjects.Sprite {
-	sprite.setTexture(
-		TREE_TEX,
-		felled ? bareFrame(variant) : leafyFrame(variant),
-	);
+	sprite.setTexture(TREE_TEX, leafyFrame(variant));
 	sprite.setOrigin(0.5, TREE_ORIGIN_Y);
 	sprite.setDisplaySize(TREE_DISPLAY_W, TREE_DISPLAY_H);
 	sprite.setAngle(0);
-	sprite.setActive(true).setVisible(true);
+	sprite.setAlpha(1);
+	sprite.setActive(!felled).setVisible(!felled);
 	return sprite;
 }
 
