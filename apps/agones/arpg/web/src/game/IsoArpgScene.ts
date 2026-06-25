@@ -129,6 +129,7 @@ import {
 	clearHud,
 	emitSpellLoadout,
 	emitNotification,
+	emitBoot,
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
@@ -264,6 +265,13 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	preload() {
+		this.load.on('progress', (p: number) =>
+			emitBoot({
+				phase: 'assets',
+				message: 'Loading assets',
+				progress: p,
+			}),
+		);
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
 		this.load.image(GRASS_TEXTURE_KEY, arpgAsset(GRASS_TEXTURE_PATH));
 		this.load.image(
@@ -553,6 +561,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private connectClient() {
 		const cfg = getNetConfig();
 		if (!cfg) return;
+		emitBoot({ phase: 'connecting', message: 'Connecting to the realm' });
 		const client = new GameClient({
 			url: cfg.wsUrl,
 			jwt: cfg.jwt,
@@ -567,6 +576,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
 			}
+			emitBoot({ phase: 'entering', message: 'Entering the dungeon' });
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
@@ -707,6 +717,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				state.serverPos ?? this.move.predicted,
 			);
 			this.refreshDungeon(this.move.predicted, true);
+			// Local player is in-world — tear down the boot/loading overlay.
+			emitBoot({ phase: 'ready', message: '' });
 		} else if (this.myEid >= 0 && state.serverPos) {
 			this.reconcilePlayer(
 				state.serverPos,
@@ -1109,6 +1121,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			});
 			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
 		});
+		emitBoot({ phase: 'ready', message: '' });
 	}
 
 	/** Offline only: render a floating ground-loot sprite tracked in localItems. */

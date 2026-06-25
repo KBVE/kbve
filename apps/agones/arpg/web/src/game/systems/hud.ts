@@ -5,6 +5,33 @@ import {
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
+// Boot/loading feedback while the scene preloads art, connects, and streams the
+// first map window — so the player sees progress instead of a blank canvas
+// between Discord approve and being in-world. `ready` tears the overlay down.
+export type BootPhase =
+	| 'assets'
+	| 'connecting'
+	| 'entering'
+	| 'ready'
+	| 'error';
+
+export interface BootStatus {
+	phase: BootPhase;
+	message: string;
+	/** 0..1 asset-load fraction, only during the `assets` phase. */
+	progress?: number;
+}
+
+export const BOOT_EVENT = 'arpg:boot';
+
+export function emitBoot(status: BootStatus): void {
+	laserEvents.emit(BOOT_EVENT, status);
+}
+
+export function onBoot(handler: (status: BootStatus) => void): () => void {
+	return laserEvents.on(BOOT_EVENT, handler as (data: unknown) => void);
+}
+
 export const HUD_EVENT = 'arpg:hud';
 
 /**
