@@ -289,10 +289,22 @@ export class IsoArpgScene extends Phaser.Scene {
 		// its progress must NOT re-raise the boot overlay over the running game.
 		this.load.on('progress', (p: number) => {
 			if (this.bootReady) return;
+			const done = this.load.totalComplete;
+			const total = done + this.load.totalToLoad;
 			emitBoot({
 				phase: 'assets',
 				message: 'Loading assets',
 				progress: p,
+				detail: total > 0 ? `${done}/${total} files` : undefined,
+			});
+		});
+		this.load.on('fileprogress', (file: Phaser.Loader.File) => {
+			if (this.bootReady) return;
+			emitBoot({
+				phase: 'assets',
+				message: 'Loading assets',
+				progress: this.load.progress,
+				detail: file?.key ? `Fetching ${file.key}` : undefined,
 			});
 		});
 		this.load.image(GROUND_TEXTURE_KEY, arpgAsset(GROUND_TEXTURE_PATH));
@@ -363,6 +375,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.buildBridge();
 		this.setupZoom();
 
+		this.prewarmTreePool();
 		this.connectClient();
 
 		this.time.addEvent({
@@ -1298,6 +1311,25 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.treePool.push(sprite);
 		} else {
 			sprite.destroy();
+		}
+	}
+
+	private static readonly TREE_POOL_PREWARM = 24;
+
+	// Build a batch of parked tree sprites up front so the first chunk of forest
+	// streams from the pool instead of allocating Sprites mid-frame (first-spawn
+	// hitch). Tree textures are already resident from preload().
+	private prewarmTreePool(): void {
+		emitBoot({
+			phase: 'assets',
+			message: 'Loading assets',
+			progress: 1,
+			detail: 'Warming sprite pool',
+		});
+		for (let i = 0; i < IsoArpgScene.TREE_POOL_PREWARM; i++) {
+			const sprite = makeTreeSprite(this, 0, false);
+			sprite.setActive(false).setVisible(false);
+			this.treePool.push(sprite);
 		}
 	}
 
