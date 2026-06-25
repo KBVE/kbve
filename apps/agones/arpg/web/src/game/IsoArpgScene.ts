@@ -103,7 +103,13 @@ import {
 	StairKind,
 	stairTile,
 } from './systems/dungeon';
-import { playSpellVfx as playSpellVfxV } from './entities/projectiles/spells/spellVfx';
+import {
+	makeSpellState,
+	initSpellLoadout as initSpellLoadoutV,
+	castSpellSlot as castSpellSlotV,
+	type SpellState,
+	type SpellDeps,
+} from './systems/spells';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -125,7 +131,6 @@ import {
 } from './systems/movement';
 import {
 	clearHud,
-	emitSpellLoadout,
 	emitNotification,
 	emitBoot,
 	emitConnection,
@@ -133,7 +138,6 @@ import {
 	onInventoryIntent,
 	type InventoryIntent,
 } from './systems/hud';
-import { loadSpellMeta, type SpellMeta } from './entities/spellMeta';
 import {
 	makeSprite,
 	makeClassSprite,
@@ -239,8 +243,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Inventory + placement + offline-loot state (items, panel-open, pickup
 	// cooldowns, deployable ghost). Drives the HUD panel and the 1-9 hotkeys.
 	private inv: InventoryState = makeInventoryState();
-	private spellLoadout: (string | undefined)[] = [];
-	private spellMeta: Map<string, SpellMeta> = new Map();
+	// Spell loadout (first 9 spelldb spells) + casting state.
+	private spells: SpellState = makeSpellState();
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
 
@@ -714,58 +718,22 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private initSpellLoadout(): void {
-		void loadSpellMeta().then((meta) => {
-			this.spellMeta = meta;
-			const ordered = [...meta.values()].sort((a, b) => a.key - b.key);
-			this.spellLoadout = ordered.slice(0, 9).map((s) => s.ref);
-			emitSpellLoadout(ordered.slice(0, 9));
-		});
+		initSpellLoadoutV(this.spells);
 	}
 
 	private castSpellSlot(idx: number): void {
-		const ref = this.spellLoadout[idx];
-		if (!ref) return;
-		const meta = this.spellMeta.get(ref);
-		const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
-		const target = targeted ? this.nearestHostile(meta?.range ?? 0) : null;
-		this.client?.castSpell(ref, target);
-		this.playSpellVfx(meta, target);
+		castSpellSlotV(this.spells, this.spellDeps(), idx);
 	}
 
-	private playSpellVfx(
-		meta: SpellMeta | undefined,
-		target: number | null,
-	): void {
-		if (!meta) return;
-		const from = this.move.predicted;
-		const to =
-			(target != null ? this.store.tile(target) : null) ??
-			floatTile(this.move.floatState);
-		playSpellVfxV(this, meta.school, meta.effect, from, to);
-	}
-
-	/**
-	 * Nearest hostile NPC to the player, within `range` tiles (0 = unbounded).
-	 * Returns the server eid or null when none is in range. v1 spell targeting
-	 * is auto-acquire (no aim ray) — an honest nearest-in-range pick, not a fake
-	 * hit; the server is authoritative on whether the cast lands.
-	 */
-	private nearestHostile(range: number): number | null {
-		const me = this.move.predicted;
-		let best: number | null = null;
-		let bestD = Infinity;
-		for (const sid of this.store.serverIdsWith(Cat.Npc)) {
-			if (!this.isHostileServer(sid)) continue;
-			const t = this.store.tile(sid);
-			if (!t) continue;
-			const d = Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y));
-			if (range > 0 && d > range) continue;
-			if (d < bestD) {
-				bestD = d;
-				best = sid;
-			}
-		}
-		return best;
+	private spellDeps(): SpellDeps {
+		return {
+			scene: this,
+			client: () => this.client,
+			store: this.store,
+			floatState: this.move.floatState,
+			predicted: () => this.move.predicted,
+			isHostile: (e) => this.isHostileServer(e),
+		};
 	}
 
 	private exitPlacement(): void {
