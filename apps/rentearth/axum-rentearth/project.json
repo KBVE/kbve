@@ -5,11 +5,40 @@
 	"sourceRoot": "apps/rentearth/axum-rentearth/src",
 	"tags": [],
 	"targets": {
+		"web-build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/web/dist"],
+			"options": {
+				"commands": ["npm run build"],
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"parallel": false
+			}
+		},
+		"web-dev": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["npm run dev"],
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"parallel": false
+			}
+		},
 		"build": {
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": ["cargo build --release -p axum-rentearth"],
 				"cwd": "{workspaceRoot}"
+			}
+		},
+		"serve-static": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"STATIC_DIR=apps/rentearth/axum-rentearth/web/dist cargo run -p axum-rentearth"
+				],
+				"cwd": "{workspaceRoot}",
+				"parallel": false
 			}
 		},
 		"container": {

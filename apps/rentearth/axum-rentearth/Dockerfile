@@ -1,7 +1,20 @@
 # ============================================================================
-# axum-rentearth Dockerfile — itch download backend (no astro; askama-rendered)
+# axum-rentearth Dockerfile — itch download backend + Vite/TanStack web
 # Uses ghcr.io/kbve/chisel-ubuntu-axum for pre-built builder + runtime
 # ============================================================================
+
+# ============================================================================
+# [STAGE W] - Build the Vite + TanStack web (self-contained, no monorepo deps)
+# ============================================================================
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS web-builder
+
+WORKDIR /web
+
+COPY apps/rentearth/axum-rentearth/web/package.json apps/rentearth/axum-rentearth/web/package-lock.json ./
+RUN npm ci
+
+COPY apps/rentearth/axum-rentearth/web/ ./
+RUN npm run build
 
 # ============================================================================
 # [STAGE C] - Cargo Chef Planner
@@ -122,6 +135,9 @@ FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
 WORKDIR /app
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-rentearth /app/axum-rentearth
+
+# Vite web build -> served as static at / (axum keeps /downloads + /api/downloads)
+COPY --from=web-builder --chown=10001:10001 /web/dist /app/templates/dist
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4323
