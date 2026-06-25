@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.0.8"
+version = "0.1.9"
 dependencies = [
  "agones",
  "async-trait",
@@ -1497,7 +1497,7 @@ dependencies = [
 
 [[package]]
 name = "axum-chuckrpg"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
@@ -14136,7 +14136,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.30"
+version = "0.1.31"
 dependencies = [
  "anyhow",
  "argon2",
