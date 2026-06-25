@@ -107,7 +107,7 @@ import {
 	StairKind,
 	stairTile,
 } from './systems/dungeon';
-import { playSpellVfx as playSpellVfxV } from './combat/spellVfx';
+import { playSpellVfx as playSpellVfxV } from './entities/projectiles/spells/spellVfx';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';

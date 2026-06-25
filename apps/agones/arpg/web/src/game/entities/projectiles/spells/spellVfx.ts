@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { DEPTH_PROJECTILE } from '../config';
-import { worldToScreen, type TileXY } from '../iso';
+import { DEPTH_PROJECTILE } from '../../../config';
+import { worldToScreen, type TileXY } from '../../../iso';
 
 const SPARK_TEX = 'spell-spark';
 const BOLT_SPEED = 0.9;

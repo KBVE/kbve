@@ -8,7 +8,11 @@ import {
 	type CombatEvent,
 } from '@kbve/laser';
 import { DEPTH_UI, ARROW_MAX_RANGE, ARROW_SPEED } from '../config';
-import { fireBow, showDamage, type BowShot } from '../combat/bow';
+import {
+	fireBow,
+	showDamage,
+	type BowShot,
+} from '../entities/projectiles/arrows/bow';
 import { setCreaturePose, type EntityRefs } from '../entities/sprites';
 import type { TileXY } from '../iso';
 

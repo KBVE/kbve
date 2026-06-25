@@ -11,11 +11,11 @@ import {
 	BOW_MUZZLE_HEIGHT,
 	DEPTH_PROJECTILE,
 	DEPTH_UI,
-} from '../config';
-import { worldToScreen, type TileXY } from '../iso';
-import { setClassPose, type ClassView } from '../entities/sprites';
-import { facingDegFromDelta } from '../entities/classes';
-import { GameObjectPool } from './projectilePool';
+} from '../../../config';
+import { worldToScreen, type TileXY } from '../../../iso';
+import { setClassPose, type ClassView } from '../../sprites';
+import { facingDegFromDelta } from '../../classes';
+import { GameObjectPool } from '../pool';
 
 // Per-scene reuse pools for the two short-lived projectile objects. Arrows fly +
 // resolve constantly during combat; pooling them (and the impact sparks) avoids
