@@ -8,6 +8,7 @@ import {
 	GROUND_TEXTURE_KEY,
 	GRASS_TEXTURE_KEY,
 	GRASS_DETAIL_TEXTURE_KEY,
+	GRASS_MACRO_TEXTURE_KEY,
 	DUNGEON_RADIUS,
 } from '../config';
 import { worldToScreen, tileDepth, type TileXY } from '../iso';
@@ -124,6 +125,64 @@ export function placeStairs(
 	place(StairKind.Down, view.stairDownId);
 }
 
+const BASE_ROT = -Math.PI / 4;
+
+interface GrassOverlay {
+	key: string;
+	scale: number;
+	rot: number;
+	alpha: number;
+	blend: Phaser.BlendModes;
+}
+
+const GRASS_OVERLAYS: GrassOverlay[] = [
+	{
+		key: GRASS_DETAIL_TEXTURE_KEY,
+		scale: 1.73,
+		rot: BASE_ROT + 0.45,
+		alpha: 0.5,
+		blend: Phaser.BlendModes.MULTIPLY,
+	},
+	{
+		key: GRASS_MACRO_TEXTURE_KEY,
+		scale: 4.3,
+		rot: BASE_ROT - 0.7,
+		alpha: 0.28,
+		blend: Phaser.BlendModes.MULTIPLY,
+	},
+];
+
+/**
+ * tilePosition that pins a tile-scaled, rotated TileSprite to world space so its
+ * texture neither slides as the camera moves nor seams at chunk borders. It is
+ * the inverse of the layer's own rotation (NOT the base 45°), so each overlay can
+ * lean at its own angle and still line up across chunks.
+ */
+function worldAnchor(ux: number, uy: number, rot: number, scale: number) {
+	const c = Math.cos(rot);
+	const s = Math.sin(rot);
+	return { x: (ux * c + uy * s) / scale, y: (-ux * s + uy * c) / scale };
+}
+
+function addGrassOverlay(
+	scene: Phaser.Scene,
+	side: number,
+	ux: number,
+	uy: number,
+	o: GrassOverlay,
+): Phaser.GameObjects.TileSprite {
+	const t = scene.add.tileSprite(0, 0, side, side, o.key);
+	t.setOrigin(0.5, 0.5);
+	t.setRotation(o.rot);
+	t.setTileScale(o.scale, o.scale);
+	const a = worldAnchor(ux, uy, o.rot, o.scale);
+	t.tilePositionX = a.x;
+	t.tilePositionY = a.y;
+	t.setAlpha(o.alpha);
+	t.setBlendMode(o.blend);
+	return t;
+}
+
 /**
  * One world-anchored ground tile for a chunk: a TileSprite covering the chunk's
  * tile square, projected onto the iso plane (inner sprite rotated 45°, parent
@@ -155,34 +214,22 @@ function buildChunkGround(
 	const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const c = worldToScreen(midX, midY);
 
-	// On the grass surface, lay a second grass variant over the base at a larger
-	// tile-scale + multiply blend. The two layers repeat on different periods, so
-	// the combined ground no longer reads as one obviously tiled texture while
-	// staying seamless across chunks. Dungeon floors keep the single stone tile.
+	// On the grass surface, stack overlay grass layers over the base. Each rides a
+	// different tile-scale AND a different texture rotation, so the grass blades
+	// lean different ways instead of all pointing the iso diagonal — the field
+	// reads as natural ground, not one tiled bitmap. Every layer is world-anchored
+	// through its OWN rotation (worldAnchor below), so they stay seamless across
+	// chunks despite the varied angles. Dungeon floors keep the single stone tile.
 	const layers = [sprite];
-	const cos = Math.cos(Math.PI / 4);
-	const sin = Math.sin(Math.PI / 4);
 	const ux = c.x;
 	const uy = c.y / 0.5;
-	sprite.tilePositionX = ux * cos - uy * sin;
-	sprite.tilePositionY = ux * sin + uy * cos;
+	const baseAnchor = worldAnchor(ux, uy, BASE_ROT, 1);
+	sprite.tilePositionX = baseAnchor.x;
+	sprite.tilePositionY = baseAnchor.y;
 	if (surface) {
-		const detail = scene.add.tileSprite(
-			0,
-			0,
-			side,
-			side,
-			GRASS_DETAIL_TEXTURE_KEY,
-		);
-		detail.setOrigin(0.5, 0.5);
-		detail.setRotation(-Math.PI / 4);
-		const DETAIL_SCALE = 1.6;
-		detail.setTileScale(DETAIL_SCALE, DETAIL_SCALE);
-		detail.tilePositionX = (ux * cos - uy * sin) / DETAIL_SCALE;
-		detail.tilePositionY = (ux * sin + uy * cos) / DETAIL_SCALE;
-		detail.setAlpha(0.5);
-		detail.setBlendMode(Phaser.BlendModes.MULTIPLY);
-		layers.push(detail);
+		for (const L of GRASS_OVERLAYS) {
+			layers.push(addGrassOverlay(scene, side * 1.5, ux, uy, L));
+		}
 	}
 
 	const plane = scene.add.container(c.x, c.y, layers);

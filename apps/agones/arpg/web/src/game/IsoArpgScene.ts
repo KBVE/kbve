@@ -29,6 +29,8 @@ import {
 	GRASS_TEXTURE_PATH,
 	GRASS_DETAIL_TEXTURE_KEY,
 	GRASS_DETAIL_TEXTURE_PATH,
+	GRASS_MACRO_TEXTURE_KEY,
+	GRASS_MACRO_TEXTURE_PATH,
 	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
@@ -264,6 +266,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.load.image(
 			GRASS_DETAIL_TEXTURE_KEY,
 			arpgAsset(GRASS_DETAIL_TEXTURE_PATH),
+		);
+		this.load.image(
+			GRASS_MACRO_TEXTURE_KEY,
+			arpgAsset(GRASS_MACRO_TEXTURE_PATH),
 		);
 		preloadClass(this, RANGER_CLASS);
 		preloadCreature(this, APEX_PREDATOR);
