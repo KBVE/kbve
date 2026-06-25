@@ -32,6 +32,30 @@ pub fn image_tag(image: &str) -> String {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::image_tag;
+
+    #[test]
+    fn extracts_tag() {
+        assert_eq!(image_tag("ghcr.io/kbve/chuckrpg:0.1.31"), "0.1.31");
+    }
+
+    #[test]
+    fn registry_port_is_not_mistaken_for_tag() {
+        assert_eq!(image_tag("registry:5000/kbve/chuckrpg:abc123"), "abc123");
+    }
+
+    #[test]
+    fn untagged_falls_back_to_full_ref() {
+        assert_eq!(
+            image_tag("registry:5000/kbve/chuckrpg"),
+            "registry:5000/kbve/chuckrpg"
+        );
+        assert_eq!(image_tag("chuckrpg"), "chuckrpg");
+    }
+}
+
 impl AgonesClient {
     #[tracing::instrument(skip(self))]
     pub async fn fleet_container_image(&self) -> Result<Option<String>, AgonesError> {
