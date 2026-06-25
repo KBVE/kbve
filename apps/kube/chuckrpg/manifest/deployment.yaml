@@ -37,7 +37,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: chuckrpg
-                  image: ghcr.io/kbve/chuckrpg:0.1.8
+                  image: ghcr.io/kbve/chuckrpg:0.1.9
                   imagePullPolicy: Always
                   ports:
                       - name: http
