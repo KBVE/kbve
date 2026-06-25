@@ -76,6 +76,10 @@ pub const PREDATOR_SPAWN_MAX: i32 = 22;
 pub const PREDATOR_DESPAWN_RADIUS: i32 = 40;
 // Re-evaluate the streamed population a few times a second, not every tick.
 pub const PREDATOR_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+// Safe zone (Chebyshev tiles) around each floor's up-stair — the room players
+// land in when they descend. No predator spawns inside it, so arriving on a new
+// floor isn't an instant ambush.
+pub const STAIR_SAFE_RADIUS: i32 = 8;
 
 pub const CAMPFIRE_REF: &str = "campfire";
 
@@ -444,6 +448,10 @@ pub fn stream_predators(
         if local >= PREDATOR_PER_PLAYER {
             continue;
         }
+        // This floor's arrival room: the up-stair tile players land on when they
+        // descend. Keep predators out of a safe radius around it.
+        let (ex, ey) = arpg_dungeon::stair_tile(DUNGEON_SEED, *pz, arpg_dungeon::StairKind::Up);
+        let entry = Tile::new(ex, ey);
         for attempt in 0..8u64 {
             let h = hash3(seed.0, ((i as u64) << 8) | attempt, clock.tick as u64);
             let span = (PREDATOR_SPAWN_MAX - PREDATOR_SPAWN_MIN + 1) as u64;
@@ -452,6 +460,9 @@ pub fn stream_predators(
             let hint = Tile::new(ptile.x + dx, ptile.y + dy);
             let origin = floor_near_z(hint, *pz);
             if chebyshev(origin, *ptile) < PREDATOR_SPAWN_MIN {
+                continue;
+            }
+            if chebyshev(origin, entry) <= STAIR_SAFE_RADIUS {
                 continue;
             }
             // Don't spawn the big creature pinned against a wall — require the

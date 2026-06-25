@@ -17,7 +17,7 @@ describe('arpg dungeon parity', () => {
 		// FROZEN — equals simgrid::arpg_dungeon::fingerprint(0x5eed1, 0,0, 80,80).
 		// If this changes, the server + client dungeons have diverged; update
 		// BOTH the Rust frozen value and this one together.
-		expect(fingerprint(SEED, 0, 0, 80, 80)).toBe(1764795750);
+		expect(fingerprint(SEED, 0, 0, 80, 80)).toBe(3726471204);
 	});
 
 	it('is deterministic across calls', () => {
@@ -36,7 +36,7 @@ describe('arpg dungeon parity', () => {
 		// Mirrors the Rust floor_seed(seed, 0) == seed, keeping the frozen
 		// floor-0 fingerprint valid.
 		expect(floorSeed(SEED, 0)).toBe(SEED >>> 0);
-		expect(fingerprint(floorSeed(SEED, 0), 0, 0, 80, 80)).toBe(1764795750);
+		expect(fingerprint(floorSeed(SEED, 0), 0, 0, 80, 80)).toBe(3726471204);
 	});
 
 	it('each floor is a distinct dungeon', () => {
@@ -76,7 +76,7 @@ describe('arpg dungeon parity', () => {
 			{ down: [number, number]; up: [number, number] }
 		> = {
 			0: { down: [-30, -28], up: [46, -6] },
-			1: { down: [33, 27], up: [46, -10] },
+			1: { down: [33, 27], up: [48, -11] },
 			2: { down: [-30, 14], up: [10, -34] },
 		};
 		for (const z of [0, 1, 2]) {

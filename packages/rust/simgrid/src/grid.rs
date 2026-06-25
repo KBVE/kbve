@@ -11,6 +11,13 @@ use crate::proto::{Facing, Tile};
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub struct Floor(pub i32);
 
+/// Step-off grace for stairs: the tile a player just arrived on via a stair.
+/// `stair_system` won't re-trigger while the player still stands here, so a
+/// descent that lands on the destination floor's reciprocal stair doesn't
+/// instantly bounce back (z+1 -> z-1 -> ...). Cleared once they move off it.
+#[derive(Component, Clone, Copy)]
+pub struct StairGrace(pub Tile);
+
 const TILED_GID_FLAGS_MASK: u32 = 0x1FFF_FFFF;
 const TILED_COLLIDE_PROP: &str = "ge_collide";
 

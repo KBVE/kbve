@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import {
 	GameClient,
+	PROTOCOL_VERSION,
 	attachCameraZoom,
 	drawHealthBar,
 	type EntityDelta,
@@ -174,6 +175,7 @@ import {
 	preloadEnv,
 	registerEnvAnims,
 	makeEnvSprite,
+	attachEnvLight,
 	ENV_REGISTRY,
 } from './entities/env';
 import { getNetConfig } from './net-config';
@@ -482,6 +484,9 @@ export class IsoArpgScene extends Phaser.Scene {
 					};
 				}
 				this.placeSprite(refs.sprite, e.tile.x, e.tile.y);
+				if (this.kinds.cat(e.kind) === Cat.Env) {
+					attachEnvLight(this, refs.sprite, this.kinds.ref(e.kind));
+				}
 				this.syncShadow(refs);
 				// Ground loot bobs gently so it reads as a pickup, not scenery.
 				if (this.kinds.cat(e.kind) === Cat.Item) {
@@ -577,6 +582,20 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client = client;
 
 		client.on('welcome', (w: Welcome) => {
+			// Belt-and-suspenders: the server rejects a mismatched JoinMatch, but if
+			// a stale client bundle somehow gets a Welcome from a newer server, the
+			// wire shapes won't match — refresh to the current bundle.
+			if (w.protocol !== PROTOCOL_VERSION) {
+				this.recoverStaleClient('version');
+				return;
+			}
+			// Connected clean — clear the one-shot version-reload guard so a future
+			// real mismatch can reload again.
+			try {
+				sessionStorage.removeItem('arpg-version-reload');
+			} catch {
+				/* private mode */
+			}
 			this.netReady = true;
 			this.mySlot = w.your_slot;
 			this.kindRegistry.clear();
@@ -633,8 +652,22 @@ export class IsoArpgScene extends Phaser.Scene {
 				});
 			}
 		});
-		// Server refused us for good (bad/expired token, server full): terminal.
+		// Server refused us for good (bad/expired token, version mismatch, full).
 		client.on('reject', (reason: string) => {
+			const r = (reason || '').toLowerCase();
+			// Stale/expired Supabase session — the stored JWT points at a session
+			// that no longer exists, so a plain reload just re-sends the dead token.
+			// Drop the session and reload to the sign-in flow (auto-recovers what
+			// used to need a manual localStorage.clear()).
+			if (/auth rejected|session|expired|invalid|jwt|token/.test(r)) {
+				this.recoverStaleClient('session');
+				return;
+			}
+			// Out-of-date client bundle — clear local state + reload (one-shot).
+			if (/protocol mismatch|out of date|version/.test(r)) {
+				this.recoverStaleClient('version');
+				return;
+			}
 			if (this.bootReady) {
 				emitConnection({
 					status: 'closed',
@@ -650,6 +683,41 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 
 		client.connect();
+	}
+
+	/**
+	 * Auto-recover a wedged client instead of stranding the player on a dead
+	 * error. `session`: the stored Supabase token references an expired/missing
+	 * session — drop the sb-* keys so the reload lands on sign-in (no token = no
+	 * auto-connect, so it can't loop). `version`: the client bundle is out of date
+	 * — clear non-session state and reload to fetch the new bundle, but ONCE: if
+	 * the server is the older side a reload can't fix it, so a one-shot guard
+	 * surfaces a terminal message instead of reload-looping.
+	 */
+	private recoverStaleClient(kind: 'session' | 'version'): void {
+		try {
+			if (kind === 'version') {
+				if (sessionStorage.getItem('arpg-version-reload')) {
+					emitBoot({
+						phase: 'error',
+						message: 'Game out of date — update required',
+					});
+					return;
+				}
+				sessionStorage.setItem('arpg-version-reload', '1');
+				for (const k of Object.keys(localStorage)) {
+					if (!k.startsWith('sb-')) localStorage.removeItem(k);
+				}
+			} else {
+				for (const k of Object.keys(localStorage)) {
+					if (k.startsWith('sb-')) localStorage.removeItem(k);
+				}
+			}
+		} catch {
+			/* storage blocked (private mode) — fall through to reload */
+		}
+		this.client?.close();
+		location.reload();
 	}
 
 	// Use the item in inventory slot `idx` (0-based), bound to keys 1-9. The
@@ -1202,6 +1270,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			});
 			this.spawnLocalItem(LOCAL_ITEM_EID_BASE + i, l.ref, l.count, t);
 		});
+		this.bootReady = true;
 		emitBoot({ phase: 'ready', message: '' });
 	}
 

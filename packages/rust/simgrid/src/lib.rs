@@ -18,7 +18,9 @@ pub mod auth;
 
 pub use blackjack::{TableDef, Tables};
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
-pub use grid::{FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairLink, Stairs, WalkableMap};
+pub use grid::{
+    FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
+};
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use sim::{
     Aggro, AggroSpec, Blocker, BuffEffects, BuffSpec, CombatStats, ConsumableEffects, Defense,
