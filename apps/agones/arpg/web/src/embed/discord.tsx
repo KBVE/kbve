@@ -208,7 +208,18 @@ async function boot(): Promise<void> {
 		}),
 	);
 	if (!res.ok) {
-		fail(`Session exchange failed (${res.status}).`);
+		// Surface the bridge's structured `{ error }` reason instead of a bare
+		// status. 502/503 are transient (Discord/DB upstream) — worth a retry;
+		// 401 is the user's Discord auth; 500 is a server misconfig they can't fix.
+		const reason = await res
+			.json()
+			.then((b: { error?: string }) => b?.error)
+			.catch(() => null);
+		const transient = res.status === 502 || res.status === 503;
+		fail(
+			`Session exchange failed (${res.status})${reason ? `: ${reason}` : ''}.` +
+				(transient ? ' This is usually temporary — try again.' : ''),
+		);
 		return;
 	}
 	const session = (await step('session parse', () =>
