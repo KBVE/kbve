@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T09:21:22Z",
+  "generated_at": "2026-06-25T09:18:09Z",
   "summary": {
     "critical": 5,
     "high": 26,
@@ -383,13 +383,6 @@
           "url": "https://github.com/advisories/GHSA-vmh5-mc38-953g"
         },
         {
-          "id": "1121189",
-          "title": "undici vulnerable to cross-user information disclosure via shared cache whitespace bypass",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
-        },
-        {
           "id": "1121191",
           "title": "Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message",
           "severity": "high",
@@ -472,6 +465,13 @@
           "severity": "medium",
           "package": "http-proxy-middleware",
           "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
+        },
+        {
+          "id": "1121428",
+          "title": "undici vulnerable to cross-user information disclosure via shared cache whitespace bypass",
+          "severity": "medium",
+          "package": "undici",
+          "url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
         }
       ]
     },
@@ -486,18 +486,18 @@
       },
       "advisories": [
         {
-          "id": "RUSTSEC-2026-0118",
-          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
-        },
-        {
           "id": "RUSTSEC-2026-0119",
           "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
           "severity": "medium",
           "package": "hickory-proto",
           "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+        },
+        {
+          "id": "RUSTSEC-2026-0118",
+          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
+          "severity": "medium",
+          "package": "hickory-proto",
+          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
         },
         {
           "id": "RUSTSEC-2026-0179",
@@ -528,8 +528,8 @@
           "url": "https://github.com/RustCrypto/RSA/issues/626"
         },
         {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
+          "id": "RUSTSEC-2026-0104",
+          "title": "Reachable panic in certificate revocation list parsing",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
@@ -537,6 +537,13 @@
         {
           "id": "RUSTSEC-2026-0099",
           "title": "Name constraints were accepted for certificates asserting a wildcard name",
+          "severity": "medium",
+          "package": "rustls-webpki",
+          "url": null
+        },
+        {
+          "id": "RUSTSEC-2026-0098",
+          "title": "Name constraints for URI names were incorrectly accepted",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
@@ -556,22 +563,8 @@
           "url": null
         },
         {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
           "id": "RUSTSEC-2026-0099",
           "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
@@ -584,6 +577,13 @@
           "url": null
         },
         {
+          "id": "RUSTSEC-2026-0104",
+          "title": "Reachable panic in certificate revocation list parsing",
+          "severity": "medium",
+          "package": "rustls-webpki",
+          "url": null
+        },
+        {
           "id": "RUSTSEC-2026-0099",
           "title": "Name constraints were accepted for certificates asserting a wildcard name",
           "severity": "medium",
@@ -591,8 +591,8 @@
           "url": null
         },
         {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
+          "id": "RUSTSEC-2026-0098",
+          "title": "Name constraints for URI names were incorrectly accepted",
           "severity": "medium",
           "package": "rustls-webpki",
           "url": null
