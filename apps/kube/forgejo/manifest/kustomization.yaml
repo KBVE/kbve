@@ -11,6 +11,7 @@ resources:
     - forgejo-gate-externalsecret.yaml
     - forgejo-gate-deployment.yaml
     - forgejo-gate-service.yaml
+    - forgejo-oauth-externalsecret.yaml
     - sealed-deploy-keys.yaml
     - sealed-kbve-ci.yaml
     # Future: actions-runner.yaml

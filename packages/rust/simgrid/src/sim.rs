@@ -334,6 +334,10 @@ pub struct AggroSpec {
 pub struct NpcSpec {
     pub kind: u16,
     pub origin: Tile,
+    /// Dungeon floor (z) the NPC lives on. 0 = ground/surface; negative = deeper
+    /// underground. Spawned as a `Floor` component so collision + per-floor
+    /// systems scope it to its level.
+    pub floor: i32,
     pub ticks_per_tile: u8,
     pub max_hp: i32,
     pub level: i32,
@@ -570,6 +574,9 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     }
     if spec.respawn_ticks > 0 {
         e.insert(RespawnOnDeath { spec: spec.clone() });
+    }
+    if spec.floor != 0 {
+        e.insert(Floor(spec.floor));
     }
 }
 
@@ -3110,6 +3117,7 @@ mod tests {
         NpcSpec {
             kind,
             origin,
+            floor: 0,
             ticks_per_tile: 1,
             max_hp: 30,
             level: 1,
