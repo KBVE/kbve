@@ -10,7 +10,7 @@ describe('ROWS API — System', () => {
 
 	it('GET /api/System/Status returns true', async () => {
 		const res = await fetch(`${BASE_URL}/api/System/Status`, {
-			headers: { 'X-Customer-GUID': VALID_GUID },
+			headers: { 'X-CustomerGUID': VALID_GUID },
 		});
 		expect(res.status).toBe(200);
 	});
@@ -21,23 +21,23 @@ describe('ROWS API — Auth guard', () => {
 		await waitForReady();
 	});
 
-	it('rejects requests without X-Customer-GUID', async () => {
+	it('rejects requests without X-CustomerGUID', async () => {
 		const res = await fetch(`${BASE_URL}/api/System/Status`);
 		expect(res.status).toBe(401);
 	});
 
-	it('rejects empty GUID', async () => {
+	it('rejects nil GUID as cross-tenant', async () => {
 		const res = await fetch(`${BASE_URL}/api/System/Status`, {
 			headers: {
-				'X-Customer-GUID': '00000000-0000-0000-0000-000000000000',
+				'X-CustomerGUID': '00000000-0000-0000-0000-000000000000',
 			},
 		});
-		expect(res.status).toBe(401);
+		expect(res.status).toBe(403);
 	});
 
 	it('rejects invalid GUID format', async () => {
 		const res = await fetch(`${BASE_URL}/api/System/Status`, {
-			headers: { 'X-Customer-GUID': 'not-a-guid' },
+			headers: { 'X-CustomerGUID': 'not-a-guid' },
 		});
 		expect(res.status).toBe(401);
 	});
@@ -53,7 +53,7 @@ describe('ROWS API — Users (no DB)', () => {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-Customer-GUID': VALID_GUID,
+				'X-CustomerGUID': VALID_GUID,
 			},
 			body: JSON.stringify({
 				email: 'test@example.com',
@@ -69,7 +69,7 @@ describe('ROWS API — Users (no DB)', () => {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-Customer-GUID': VALID_GUID,
+				'X-CustomerGUID': VALID_GUID,
 			},
 			body: JSON.stringify({
 				email: 'newuser@example.com',
