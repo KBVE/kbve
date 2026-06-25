@@ -8,7 +8,7 @@ import { arpgAsset } from '../config';
 // leafy frame for that bare twin. Cells are a uniform 1:2 box — canopy art varies
 // in height inside the cell, so base-anchoring is what makes "some trees taller"
 // read correctly without per-variant tuning.
-const SHEET = '/assets/arcade/arpg/environment/trees/trees_01.png';
+const SHEET = '/assets/arcade/arpg/environment/trees/trees_01.webp';
 const TREE_TEX = 'env:trees_01';
 
 /** Env kind ref the server tags tree entities with. */
