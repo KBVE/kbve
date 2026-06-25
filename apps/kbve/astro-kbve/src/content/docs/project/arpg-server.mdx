@@ -13,7 +13,7 @@ tags:
 key: arpg_server
 pipeline: docker
 app_name: arpg-server
-version: "0.0.8"
+version: "0.1.9"
 source_path: apps/agones/arpg/server
 version_toml: apps/agones/arpg/server/version.toml
 version_target: apps/agones/arpg/server/Cargo.toml
@@ -122,7 +122,7 @@ The dungeon has a **z-axis**: each floor is its own endless seeded dungeon (`flo
 - **Stairs** are a generic `Stairs` resource — `Explicit(Vec<StairLink>)` for hand-placed maps or `Dungeon { seed, descend_key }` for the endless ARPG, which derives two seed-driven stairs (down/up) per floor. Stepping a stair tile moves the player to the linked tile on the adjacent floor and emits the `Floor` ephemeral.
 - **Locks** gate a stair on a key item: descending is gated on `descend_key` (the player must hold it in inventory); ascending is free. The ground floor seeds a `dungeon-key` near spawn.
 
-Cross-language parity: the Rust `arpg_dungeon` and the client `systems/dungeon.ts` produce byte-identical floors (frozen FNV-1a fingerprint — `1764795750` for seed `0x5eed1`, floor 0, window `(0,0)..(80,80)`), asserted on both sides.
+Cross-language parity: the Rust `arpg_dungeon` and the client `systems/dungeon.ts` produce byte-identical floors (frozen FNV-1a fingerprint — `3726471204` for seed `0x5eed1`, floor 0, window `(0,0)..(80,80)`), asserted on both sides.
 
 ## Client authority
 

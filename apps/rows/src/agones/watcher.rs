@@ -84,6 +84,8 @@ async fn run_watcher(state: &AppState) -> WatcherExit {
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
 
+                refresh_fleet_image_tag(&gs, state);
+
                 if gs_state == "Shutdown" {
                     info!(gs = name, "GameServer shutdown detected — cleaning up");
                     cleanup_shutdown_server(name, state).await;
@@ -102,6 +104,23 @@ async fn run_watcher(state: &AppState) -> WatcherExit {
     }
 
     WatcherExit::StreamEnded
+}
+
+fn refresh_fleet_image_tag(gs: &DynamicObject, state: &AppState) {
+    let Some(image) = gs
+        .data
+        .pointer("/spec/template/spec/containers/0/image")
+        .and_then(|v| v.as_str())
+    else {
+        return;
+    };
+
+    let tag = crate::agones::fleet::image_tag(image);
+    let mut current = state.fleet_image_tag.write().unwrap();
+    if current.as_deref() != Some(tag.as_str()) {
+        info!(image, tag, "Fleet image tag updated from GameServer");
+        *current = Some(tag);
+    }
 }
 
 async fn cleanup_shutdown_server(gs_name: &str, state: &AppState) {
