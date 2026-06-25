@@ -12,6 +12,10 @@ describe('ROWS Health', () => {
 		const body = await res.json();
 		expect(body).toHaveProperty('status', 'healthy');
 		expect(body).toHaveProperty('service', 'rows');
+		if ('unreal_version' in body) {
+			expect(typeof body.unreal_version).toBe('string');
+			expect(body.unreal_version.length).toBeGreaterThan(0);
+		}
 	});
 
 	it('GET /health responds within 500ms', async () => {
