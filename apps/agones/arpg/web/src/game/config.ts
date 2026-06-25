@@ -132,6 +132,12 @@ export const SURFACE_MIN_Z = 0; // z >= this = open grass surface/overworld
 export const GRASS_TEXTURE_KEY = 'arpg-grass';
 export const GRASS_TEXTURE_PATH =
 	'/assets/arcade/arpg/textures/grass/grass_03_l.png';
+// A second grass variant overlaid at a different tile-scale + multiply blend, so
+// the two layers' repeat periods don't line up — the base grass stops reading as
+// an obvious tiled pattern. First-pass blend; real per-tile variety comes later.
+export const GRASS_DETAIL_TEXTURE_KEY = 'arpg-grass-detail';
+export const GRASS_DETAIL_TEXTURE_PATH =
+	'/assets/arcade/arpg/textures/grass/grass_04_l.png';
 
 // Offline debug: when no server connects, spawn a locally-driven ranger so the
 // character renders and is controllable without a live arpg-server.

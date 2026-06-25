@@ -7,6 +7,7 @@ import {
 	DEPTH_ENTITY_BASE,
 	GROUND_TEXTURE_KEY,
 	GRASS_TEXTURE_KEY,
+	GRASS_DETAIL_TEXTURE_KEY,
 	DUNGEON_RADIUS,
 } from '../config';
 import { worldToScreen, tileDepth, type TileXY } from '../iso';
@@ -153,19 +154,40 @@ function buildChunkGround(
 	const midX = cx * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const c = worldToScreen(midX, midY);
-	const plane = scene.add.container(c.x, c.y, [sprite]);
-	plane.setScale(1, 0.5);
-	plane.setDepth(DEPTH_TILE);
 
-	// Phase the texture by the chunk's screen centre rotated into the sprite's
-	// own (un-rotated) frame, so every chunk samples one continuous texture —
-	// borders between chunk grounds blend with no visible seam.
+	// On the grass surface, lay a second grass variant over the base at a larger
+	// tile-scale + multiply blend. The two layers repeat on different periods, so
+	// the combined ground no longer reads as one obviously tiled texture while
+	// staying seamless across chunks. Dungeon floors keep the single stone tile.
+	const layers = [sprite];
 	const cos = Math.cos(Math.PI / 4);
 	const sin = Math.sin(Math.PI / 4);
 	const ux = c.x;
 	const uy = c.y / 0.5;
 	sprite.tilePositionX = ux * cos - uy * sin;
 	sprite.tilePositionY = ux * sin + uy * cos;
+	if (surface) {
+		const detail = scene.add.tileSprite(
+			0,
+			0,
+			side,
+			side,
+			GRASS_DETAIL_TEXTURE_KEY,
+		);
+		detail.setOrigin(0.5, 0.5);
+		detail.setRotation(-Math.PI / 4);
+		const DETAIL_SCALE = 1.6;
+		detail.setTileScale(DETAIL_SCALE, DETAIL_SCALE);
+		detail.tilePositionX = (ux * cos - uy * sin) / DETAIL_SCALE;
+		detail.tilePositionY = (ux * sin + uy * cos) / DETAIL_SCALE;
+		detail.setAlpha(0.5);
+		detail.setBlendMode(Phaser.BlendModes.MULTIPLY);
+		layers.push(detail);
+	}
+
+	const plane = scene.add.container(c.x, c.y, layers);
+	plane.setScale(1, 0.5);
+	plane.setDepth(DEPTH_TILE);
 	view.chunkGrounds.set(key, plane);
 }
 
