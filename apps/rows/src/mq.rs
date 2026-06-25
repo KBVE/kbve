@@ -1,6 +1,6 @@
 use lapin::{
     Channel, Connection, ConnectionProperties, Consumer, ExchangeKind, options::*,
-    types::FieldTable,
+    types::{AMQPValue, FieldTable},
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -138,6 +138,58 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
     let spinup_queue = format!("rows.spinup.{world_server_id}");
     let shutdown_queue = format!("rows.shutdown.{world_server_id}");
 
+    // Audit L1: dead-letter path for spin-up. The retry policy in `consume_spin_up`
+    // reject-no-requeues a twice-failed message; with no DLX that silently DROPS it (the player's
+    // join never gets a server). Declare a durable DLX + a bounded, durable DLQ so those failures
+    // are captured and inspectable instead of lost. Best-effort: if any of these declarations fail
+    // we log and proceed (a missing DLX just reverts to the prior drop-on-reject behavior). The
+    // spin-up queue is exclusive+auto_delete (recreated each connection), so adding
+    // `x-dead-letter-exchange` to it below is safe — no immutable-args conflict on a durable queue.
+    const SPINUP_DLX: &str = "ows.serverspinup.dlx";
+    const SPINUP_DLQ: &str = "rows.spinup.dlq";
+    if let Err(e) = channel
+        .exchange_declare(
+            SPINUP_DLX.into(),
+            ExchangeKind::Fanout,
+            ExchangeDeclareOptions {
+                durable: true,
+                ..Default::default()
+            },
+            FieldTable::default(),
+        )
+        .await
+    {
+        warn!(error = %e, "Failed to declare spin-up DLX (continuing without dead-lettering)");
+    } else {
+        // Bounded so a sustained allocation outage can't grow the DLQ without limit.
+        let mut dlq_args = FieldTable::default();
+        dlq_args.insert("x-max-length".into(), AMQPValue::LongLongInt(10_000));
+        if let Err(e) = channel
+            .queue_declare(
+                SPINUP_DLQ.into(),
+                QueueDeclareOptions {
+                    durable: true,
+                    ..Default::default()
+                },
+                dlq_args,
+            )
+            .await
+        {
+            warn!(error = %e, "Failed to declare spin-up DLQ");
+        } else if let Err(e) = channel
+            .queue_bind(
+                SPINUP_DLQ.into(),
+                SPINUP_DLX.into(),
+                "".into(), // fanout: routing key ignored
+                QueueBindOptions::default(),
+                FieldTable::default(),
+            )
+            .await
+        {
+            warn!(error = %e, "Failed to bind spin-up DLQ to DLX");
+        }
+    }
+
     for (queue, exchange, routing_key) in [
         (
             &spinup_queue,
@@ -150,6 +202,14 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
             format!("ows.servershutdown.{world_server_id}"),
         ),
     ] {
+        // Only the spin-up queue dead-letters — its reject-no-requeue is the drop the audit flagged.
+        let mut queue_args = FieldTable::default();
+        if queue == &spinup_queue {
+            queue_args.insert(
+                "x-dead-letter-exchange".into(),
+                AMQPValue::LongString(SPINUP_DLX.into()),
+            );
+        }
         if let Err(e) = channel
             .queue_declare(
                 queue.as_str().into(),
@@ -158,7 +218,7 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
                     auto_delete: true,
                     ..Default::default()
                 },
-                FieldTable::default(),
+                queue_args,
             )
             .await
         {
@@ -279,6 +339,10 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                     crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
                 }
             };
+            // Audit M3: floor the annotation by the reaper's `min_empty_secs` so the UE self-shutdown
+            // path can't fire under a still-loading player when a map keeps the aggressive 1-min default.
+            let empty_shutdown_minutes = empty_shutdown_minutes
+                .max(svc.state().config.reaper.empty_shutdown_minutes_floor());
 
             let pipeline =
                 AllocationPipeline::new(guid, &msg.map_name, &svc.state().db, empty_shutdown_minutes);
@@ -308,12 +372,11 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
                     // Retry-once policy keyed on `redelivered` (per-MESSAGE), not `delivery_tag`
                     // (a per-CHANNEL counter — `> 2` would drop any failure once the channel warmed
                     // up, and requeue forever on a cold channel). First failure → requeue; a message
-                    // that fails again (redelivered) → reject no-requeue.
-                    // NOTE: no dead-letter exchange is configured on this queue, so reject-no-requeue
-                    // DROPS the message (it is not actually dead-lettered). Add `x-dead-letter-exchange`
-                    // to the queue args for a real DLQ.
+                    // that fails again (redelivered) → reject no-requeue, which dead-letters it to
+                    // `ows.serverspinup.dlx` → `rows.spinup.dlq` (declared in `spawn_consumer`, audit
+                    // L1) for inspection, instead of silently dropping it.
                     if delivery.redelivered {
-                        warn!(zone = msg.zone_instance_id, "Dropping spin-up after one retry (no DLX configured)");
+                        warn!(zone = msg.zone_instance_id, "Dead-lettering spin-up after one retry (→ rows.spinup.dlq)");
                         let _ = delivery.reject(BasicRejectOptions { requeue: false }).await;
                         continue;
                     }

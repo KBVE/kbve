@@ -5,7 +5,7 @@ SET search_path TO ows;
 -- every value column is NULLable so a tenant can override any subset — NULL means "fall back to
 -- the rows env/default value". The reaper reads this each cycle and merges over its env baseline
 -- (DB wins per field), so enable/disable/tuning is a DB change, no redeploy required.
-CREATE TABLE IF NOT EXISTS reaper_config
+CREATE TABLE IF NOT EXISTS reaperconfig
 (
     CustomerGUID      UUID    NOT NULL,
     Enabled           BOOLEAN NULL,
@@ -21,15 +21,15 @@ CREATE TABLE IF NOT EXISTS reaper_config
 
 -- Security: mirror the ows-table pattern — block anon/authenticated/public, full access for the
 -- ows + service_role roles (tenant isolation is enforced app-side via WHERE customerguid).
-ALTER TABLE reaper_config ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reaper_config FORCE ROW LEVEL SECURITY;
-REVOKE ALL ON reaper_config FROM anon, authenticated, PUBLIC;
-GRANT SELECT, INSERT, UPDATE, DELETE ON reaper_config TO service_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON reaper_config TO ows;
-CREATE POLICY ows_access ON reaper_config FOR ALL TO ows USING (true) WITH CHECK (true);
-CREATE POLICY service_role_access ON reaper_config FOR ALL TO service_role USING (true) WITH CHECK (true);
+ALTER TABLE reaperconfig ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reaperconfig FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON reaperconfig FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON reaperconfig TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON reaperconfig TO ows;
+CREATE POLICY ows_access ON reaperconfig FOR ALL TO ows USING (true) WITH CHECK (true);
+CREATE POLICY service_role_access ON reaperconfig FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- migrate:down
 SET search_path TO ows;
 
-DROP TABLE IF EXISTS reaper_config;
+DROP TABLE IF EXISTS reaperconfig;

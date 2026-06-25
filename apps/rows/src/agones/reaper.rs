@@ -90,6 +90,28 @@ pub fn reap_decision(
     None
 }
 
+/// Audit M2: true when an empty (0-player, empty-marker-set) instance is being RETAINED *purely*
+/// because its heartbeat is stale relative to `empty_fresh_secs` — i.e. the only thing blocking its
+/// Empty reap is the freshness gate. The caller sums this per cycle and logs it, so a misconfigured
+/// `empty_fresh_secs < heartbeat_interval` (which makes the Empty reap silently never fire) is
+/// visible in the logs instead of looking like "nothing to reap". Mirrors the freshness predicate in
+/// `reap_decision`'s Empty branch: a NULL `last_update` is the never-reported path, NOT this gate.
+pub fn retained_due_to_stale_heartbeat(
+    player_count: i32,
+    last_update_from_server: Option<NaiveDateTime>,
+    last_server_empty_date: Option<NaiveDateTime>,
+    empty_fresh_secs: i64,
+    now: NaiveDateTime,
+) -> bool {
+    if player_count != 0 || empty_fresh_secs <= 0 || last_server_empty_date.is_none() {
+        return false;
+    }
+    match last_update_from_server {
+        Some(last) => (now - last).num_seconds() > empty_fresh_secs,
+        None => false, // NULL last_update is the never-reported path, not the freshness gate
+    }
+}
+
 /// Splits a batch of reap "misses" — candidates the in-memory `zone_servers` map couldn't name —
 /// against the GameServer names resolved from the DB, into:
 ///   - `targets`: `(instance_id, gs_name, reason)` ready for deallocate-first teardown.
@@ -305,5 +327,74 @@ mod tests {
             unresolved,
             vec![(2, ReapReason::Empty), (3, ReapReason::NeverReported)]
         );
+    }
+
+    // Audit M2: empty + stale heartbeat -> flagged as "retained due to freshness gate".
+    #[test]
+    fn retained_stale_empty_is_flagged() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:55:00"); // 300s ago > fresh 120
+        let empty = ts("2026-06-23 11:50:00");
+        assert!(retained_due_to_stale_heartbeat(
+            0,
+            Some(last),
+            Some(empty),
+            120,
+            now
+        ));
+    }
+
+    // empty + FRESH heartbeat -> not flagged (it'd be reaped on its own timeline, not freshness-held)
+    #[test]
+    fn retained_fresh_empty_is_not_flagged() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:59:30"); // 30s ago < fresh 120
+        let empty = ts("2026-06-23 11:50:00");
+        assert!(!retained_due_to_stale_heartbeat(
+            0,
+            Some(last),
+            Some(empty),
+            120,
+            now
+        ));
+    }
+
+    // NULL last_update is the never-reported path, not the freshness gate -> not flagged
+    #[test]
+    fn retained_never_reported_is_not_flagged() {
+        let now = ts("2026-06-23 12:00:00");
+        let empty = ts("2026-06-23 11:50:00");
+        assert!(!retained_due_to_stale_heartbeat(
+            0, None, Some(empty), 120, now
+        ));
+    }
+
+    // gate off (empty_fresh_secs = 0) or populated or no empty marker -> not flagged
+    #[test]
+    fn retained_gate_off_or_populated_or_no_marker_not_flagged() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:55:00");
+        let empty = ts("2026-06-23 11:50:00");
+        assert!(!retained_due_to_stale_heartbeat(
+            0,
+            Some(last),
+            Some(empty),
+            0,
+            now
+        )); // gate off
+        assert!(!retained_due_to_stale_heartbeat(
+            3,
+            Some(last),
+            Some(empty),
+            120,
+            now
+        )); // populated
+        assert!(!retained_due_to_stale_heartbeat(
+            0,
+            Some(last),
+            None,
+            120,
+            now
+        )); // no empty marker
     }
 }

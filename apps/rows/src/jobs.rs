@@ -1,5 +1,6 @@
 use crate::repo::InstanceRepo;
 use crate::service::OWSService;
+use sqlx::Connection; // for PgConnection::close() on the detached advisory-lock connection (audit M1)
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -163,7 +164,7 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         let env_reaper = svc.state().config.reaper.clone();
         let guid = svc.state().config.customer_guid;
 
-        // Effective config = env baseline with the per-tenant `reaper_config` override applied
+        // Effective config = env baseline with the per-tenant `reaperconfig` override applied
         // (DB wins per field). Read every cycle so a DB-side enable/disable/tune takes effect
         // without a redeploy; on read failure fall back to the env baseline (which ships OFF).
         let reaper = match InstanceRepo(&svc.state().db)
@@ -234,7 +235,17 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         .execute(&mut *lock_conn)
         .await
         {
-            warn!(error = %e, "Reaper: failed to release advisory lock");
+            // Audit M1: a failed unlock that nonetheless returns a HEALTHY connection to the pool
+            // leaves the session-level lock held on that pooled backend — every later cycle's
+            // pg_try_advisory_lock (on a different conn) then returns false and reaping is wedged
+            // for this tenant until that exact connection happens to be recycled. Detach the
+            // connection from the pool and close it so the backend session ends and the lock is
+            // released by Postgres, instead of trusting the unlock that just failed.
+            warn!(error = %e, "Reaper: failed to release advisory lock — closing connection to drop the session lock");
+            if let Err(e) = lock_conn.detach().close().await {
+                warn!(error = %e, "Reaper: error closing detached lock connection (lock still released on session end)");
+            }
+            continue;
         }
     }
 }
@@ -298,6 +309,10 @@ async fn run_reap_cycle(
     // Phase 1: decide, then resolve GameServer names.
     let mut targets: Vec<ReapTarget> = Vec::new();
     let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
+    // Audit M2: count empty servers retained purely because their heartbeat is stale vs
+    // `empty_fresh_secs`. A persistent nonzero count means `empty_fresh_secs < heartbeat_interval`,
+    // so the Empty reap silently never fires — surface it instead of looking like "nothing to reap".
+    let mut retained_stale_empty: u32 = 0;
     for inst in &candidates {
         let Some(reason) = reap_decision(
             inst.number_of_reported_players,
@@ -313,6 +328,15 @@ async fn run_reap_cycle(
             reaper.empty_fresh_secs,
             now,
         ) else {
+            if crate::agones::reaper::retained_due_to_stale_heartbeat(
+                inst.number_of_reported_players,
+                inst.last_update_from_server,
+                inst.last_server_empty_date,
+                reaper.empty_fresh_secs,
+                now,
+            ) {
+                retained_stale_empty += 1;
+            }
             continue;
         };
 
@@ -324,6 +348,14 @@ async fn run_reap_cycle(
             }),
             None => misses.push((inst.map_instance_id, reason)),
         }
+    }
+    if retained_stale_empty > 0 {
+        warn!(
+            count = retained_stale_empty,
+            empty_fresh_secs = reaper.empty_fresh_secs,
+            "Reaper: empty servers retained — heartbeat stale vs empty_fresh_secs (Empty reap suppressed; \
+             confirm heartbeat_interval < empty_fresh_secs)"
+        );
     }
 
     if !misses.is_empty() {

@@ -11,9 +11,9 @@ fn is_undefined_column(e: &sqlx::Error) -> bool {
     matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42703"))
 }
 
-/// True for Postgres SQLSTATE 42P01 (undefined_table). Lets the per-tenant `reaper_config` read
+/// True for Postgres SQLSTATE 42P01 (undefined_table). Lets the per-tenant `reaperconfig` read
 /// degrade to "no override" during the window where the rows image rolled out ahead of the
-/// `reaper_config` migration, instead of erroring every reaper cycle.
+/// `reaperconfig` migration, instead of erroring every reaper cycle.
 fn is_undefined_table(e: &sqlx::Error) -> bool {
     matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42P01"))
 }
@@ -373,6 +373,11 @@ impl<'a> InstanceRepo<'a> {
     /// kind stay inside the cap. The partial index `idx_mapinstances_active` still serves the
     /// `customerguid = $1 AND status > 0` predicate; the ≤500-row sort is in-memory and cheap.
     /// `mapinstanceid` breaks ties deterministically.
+    ///
+    /// LEFT JOIN on `maps` (audit L2): an INNER JOIN silently dropped any active instance whose
+    /// `maps` row was deleted (orphan), making it unreapable forever. With LEFT JOIN it stays a
+    /// candidate; `COALESCE(m.minutestoshutdownafterempty, 1)` mirrors the column's own `DEFAULT 1`
+    /// for the orphan (and the `min_empty_secs` floor still applies in `reap_decision`).
     pub async fn get_active_reap_candidates(
         &self,
         customer_guid: Uuid,
@@ -380,9 +385,9 @@ impl<'a> InstanceRepo<'a> {
         let rows = sqlx::query_as::<_, ReapRow>(
             "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
                     mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
-                    m.minutestoshutdownafterempty
+                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
              FROM mapinstances mi
-             JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0
              ORDER BY COALESCE(mi.lastserveremptydate, mi.createdate) ASC, mi.mapinstanceid
              LIMIT 500",
@@ -393,7 +398,7 @@ impl<'a> InstanceRepo<'a> {
         Ok(rows)
     }
 
-    /// Per-tenant reaper overrides from `ows.reaper_config`. Returns the all-`None` default when no
+    /// Per-tenant reaper overrides from `ows.reaperconfig`. Returns the all-`None` default when no
     /// row exists for the tenant (use env defaults) AND when the table doesn't exist yet (migration
     /// not applied) — so a rows image that ships ahead of the migration cleanly runs on env config
     /// instead of erroring every cycle. Other DB errors propagate so the caller can fall back loudly.
@@ -404,7 +409,7 @@ impl<'a> InstanceRepo<'a> {
         let result = sqlx::query_as::<_, crate::config::ReaperConfigOverride>(
             "SELECT enabled, neverreported, requireheartbeat,
                     bootgracesecs, buffersecs, stalesecs, minemptysecs, emptyfreshsecs
-             FROM reaper_config WHERE customerguid = $1",
+             FROM reaperconfig WHERE customerguid = $1",
         )
         .bind(customer_guid)
         .fetch_optional(self.0)

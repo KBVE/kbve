@@ -104,7 +104,7 @@ impl Default for ReaperKnobs {
     }
 }
 
-/// Per-tenant overrides for the reaper knobs, read from the `ows.reaper_config` table. Every field
+/// Per-tenant overrides for the reaper knobs, read from the `ows.reaperconfig` table. Every field
 /// is `Option`: `None` means "fall back to the env/default value", so a tenant can override any
 /// subset. `ReaperKnobs::merged_with` applies these field-by-field (DB wins when present).
 #[derive(Debug, Clone, Default, sqlx::FromRow)]
@@ -142,6 +142,21 @@ impl ReaperKnobs {
             min_empty_secs: ov.min_empty_secs.unwrap_or(self.min_empty_secs),
             empty_fresh_secs: ov.empty_fresh_secs.unwrap_or(self.empty_fresh_secs),
         }
+    }
+
+    /// Audit M3: minimum `empty-shutdown-minutes` annotation value, mirroring the reaper's own
+    /// `min_empty_secs` floor onto the UE self-shutdown path. The annotation tells the UE server
+    /// when to self-shutdown after going empty; the per-map `minutestoshutdownafterempty` defaults
+    /// to 1 minute, which can self-terminate a server during UE5 map travel / asset streaming
+    /// (a player mid-load). The reaper's `min_empty_secs` floor protects the ROWS-side teardown but
+    /// NOT the UE annotation, so the caller applies this same floor (`value.max(floor)`) before
+    /// stamping it. `min_empty_secs <= 0` (floor disabled) returns `0` — no minimum imposed.
+    pub fn empty_shutdown_minutes_floor(&self) -> i32 {
+        if self.min_empty_secs <= 0 {
+            return 0;
+        }
+        // ceil(min_empty_secs / 60), at least 1 minute.
+        (((self.min_empty_secs + 59) / 60) as i32).max(1)
     }
 }
 
@@ -310,5 +325,21 @@ mod tests {
             ..Default::default()
         };
         assert!(!base.merged_with(&ov).require_heartbeat);
+    }
+
+    // Audit M3: the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
+    #[test]
+    fn empty_shutdown_minutes_floor_ceils_and_clamps() {
+        let floor = |secs: i64| ReaperKnobs {
+            min_empty_secs: secs,
+            ..ReaperKnobs::default()
+        }
+        .empty_shutdown_minutes_floor();
+        assert_eq!(floor(300), 5); // exact
+        assert_eq!(floor(301), 6); // ceils up
+        assert_eq!(floor(59), 1); // sub-minute clamps to 1
+        assert_eq!(floor(30), 1); // at least 1 when floor enabled
+        assert_eq!(floor(0), 0); // floor disabled -> no minimum
+        assert_eq!(floor(-5), 0); // negative treated as disabled
     }
 }

@@ -53,6 +53,10 @@ impl OWSService {
                 crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
             }
         };
+        // Audit M3: floor the annotation by the reaper's `min_empty_secs` so the UE self-shutdown
+        // path can't fire under a still-loading player when a map keeps the aggressive 1-min default.
+        let empty_shutdown_minutes =
+            empty_shutdown_minutes.max(self.state.config.reaper.empty_shutdown_minutes_floor());
 
         let pipeline = AllocationPipeline::new(
             customer_guid,

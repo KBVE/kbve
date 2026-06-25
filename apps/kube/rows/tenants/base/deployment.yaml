@@ -109,7 +109,7 @@ spec:
                       - name: ROWS_REAP_REQUIRE_HEARTBEAT
                         value: 'true'
                       # Tuning knobs (safe; inert while the switches above stay off). All knobs
-                      # (incl. the switches) are also overridable per tenant via the ows.reaper_config
+                      # (incl. the switches) are also overridable per tenant via the ows.reaperconfig
                       # table — see Operational Runbook section 5; the DB value wins per field.
                       - name: ROWS_EMPTY_REAP_BOOT_GRACE_SECS
                         value: '14400'
@@ -120,6 +120,12 @@ spec:
                       # Empty-reap freshness gate (default ON): the empty marker is only honored if
                       # a heartbeat arrived within this window, so a wedged heartbeat (frozen 0)
                       # can't hard-deallocate a populated-but-silent server. 0 disables the gate.
+                      # INVARIANT (audit M2): this MUST exceed the UE heartbeat interval. If UE
+                      # heartbeats less often than FRESH_SECS, every empty server's last heartbeat is
+                      # always "stale" → the Empty reap can NEVER fire (it silently no-ops even when
+                      # ROWS_EMPTY_REAPER_ENABLED=true). Before enabling the reaper, confirm
+                      # heartbeat_interval < ROWS_EMPTY_REAP_FRESH_SECS; the reaper logs a per-cycle
+                      # "empty servers retained: heartbeat stale vs empty_fresh_secs" count to catch this.
                       - name: ROWS_EMPTY_REAP_FRESH_SECS
                         value: '180'
                   ports:
