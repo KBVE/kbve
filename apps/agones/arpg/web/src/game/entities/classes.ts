@@ -67,6 +67,9 @@ export interface StateAnim {
 export interface ClassDef {
 	id: string;
 	assetPath: string;
+	/** Sheet file extension under assetPath. Defaults to `png`; webp-packed
+	 * classes (e.g. ranger) set `webp`. */
+	ext?: string;
 	weapon: ClassWeapon;
 	frameSize: number;
 	displaySize: number;
@@ -77,6 +80,7 @@ export interface ClassDef {
 export const RANGER_CLASS: ClassDef = {
 	id: 'ranger',
 	assetPath: '/assets/arcade/arpg/characters/ranger',
+	ext: 'webp',
 	weapon: 'Bow',
 	frameSize: 180,
 	displaySize: 128,
@@ -141,7 +145,7 @@ function classFile(
 	layer: ClassLayer,
 ): string {
 	return arpgAsset(
-		`${def.assetPath}/${state}_${def.weapon}/${state}_${def.weapon}_${layer}_${angle}.png`,
+		`${def.assetPath}/${state}_${def.weapon}/${state}_${def.weapon}_${layer}_${angle}.${def.ext ?? 'png'}`,
 	);
 }
 
