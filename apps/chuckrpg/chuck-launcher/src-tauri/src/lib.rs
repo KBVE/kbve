@@ -6,8 +6,20 @@ use tauri::{Emitter, Window};
 
 fn backend(arg: Option<String>) -> String {
     arg.filter(|s| !s.is_empty())
-        .or_else(|| std::env::var("CHUCK_BACKEND").ok())
-        .unwrap_or_else(|| launcher::DEFAULT_BACKEND.to_string())
+        .or_else(|| {
+            std::env::var("CHUCK_BACKEND")
+                .ok()
+                .filter(|s| !s.is_empty())
+        })
+        .unwrap_or_else(default_backend)
+}
+
+fn default_backend() -> String {
+    if cfg!(debug_assertions) {
+        "http://localhost:4399".to_string()
+    } else {
+        launcher::DEFAULT_BACKEND.to_string()
+    }
 }
 
 #[tauri::command]
