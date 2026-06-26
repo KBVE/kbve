@@ -96,6 +96,36 @@ export default function ChatPanel() {
 		if (el) el.scrollTop = el.scrollHeight;
 	}, [lines, active]);
 
+	// Global "/" opens the chat (switch to Chat, pin, focus the input) from
+	// anywhere in-game — additive to the tab buttons. Ignored while another field
+	// is focused; while the chat input is focused "/" types normally (and an empty
+	// input handles "/" as close in its own onKeyDown), so it reads as a toggle.
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key !== '/') return;
+			const el = document.activeElement;
+			if (
+				el instanceof HTMLInputElement ||
+				el instanceof HTMLTextAreaElement
+			)
+				return;
+			e.preventDefault();
+			e.stopPropagation();
+			setTab('chat');
+			setPinned(true);
+			inputRef.current?.focus();
+		};
+		window.addEventListener('keydown', onKey, true);
+		return () => window.removeEventListener('keydown', onKey, true);
+	}, []);
+
+	// Clicking the chat box activates it: pin open + focus the input (chat tab).
+	const activateChat = () => {
+		if (tab !== 'chat') return;
+		setPinned(true);
+		inputRef.current?.focus();
+	};
+
 	const send = () => {
 		const text = draft.trim();
 		if (!text) return;
@@ -199,7 +229,9 @@ export default function ChatPanel() {
 					<>
 						<div
 							ref={logRef}
+							onClick={activateChat}
 							style={{
+								cursor: 'text',
 								height: active ? 162 : 52,
 								overflowY: active ? 'auto' : 'hidden',
 								maskImage: active
@@ -262,6 +294,14 @@ export default function ChatPanel() {
 								onBlur={() => setInputFocused(false)}
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') send();
+									// "/" on an empty message closes the chat, so the
+									// same key toggles open/closed; with text typed it
+									// inserts normally (slash-command friendly).
+									else if (e.key === '/' && draft === '') {
+										e.preventDefault();
+										setPinned(false);
+										inputRef.current?.blur();
+									}
 									e.stopPropagation();
 								}}
 								placeholder={connected ? 'Message…' : 'Offline'}
