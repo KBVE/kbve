@@ -17,7 +17,8 @@ export type TextTone =
 	| 'faint'
 	| 'primary'
 	| 'success'
-	| 'danger';
+	| 'danger'
+	| 'warning';
 export type TextWeight = 'regular' | 'medium' | 'bold';
 
 export interface TextProps extends RNTextProps {
@@ -41,6 +42,7 @@ export const Text = memo(function Text({
 		primary: t.color.primary,
 		success: t.color.success,
 		danger: t.color.danger,
+		warning: t.color.warning,
 	}[tone];
 	return (
 		<RNText

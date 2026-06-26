@@ -7,16 +7,20 @@ import type { StreamAction, StreamLens, StreamStore } from '../types';
 // Minimal shape of the ArgoCD application payload we depend on. Kept local so
 // the dash library has no coupling to the astro-kbve argoService.
 interface RawArgoApp {
-	metadata: { name: string };
+	metadata: { name: string; creationTimestamp?: string };
 	spec: {
 		project: string;
 		source?: { repoURL?: string };
 		destination: { namespace: string };
 	};
 	status: {
-		sync: { status: string; revision?: string };
+		sync: { status: string; revision?: string; startedAt?: string };
 		health: { status: string };
-		operationState?: { finishedAt?: string };
+		operationState?: {
+			finishedAt?: string;
+			startedAt?: string;
+			phase?: string;
+		};
 		reconciledAt?: string;
 		resources?: Array<{ status?: string; health?: { status?: string } }>;
 	};
@@ -34,7 +38,13 @@ export interface ArgoItem {
 	total: number;
 	healthy: number;
 	degraded: number;
+	progressing: number;
+	missing: number;
+	suspended: number;
 	outOfSync: number;
+	stalled: boolean;
+	stallReason: string;
+	stallAgeMs: number;
 }
 
 export interface ArgoStreamOptions {
@@ -49,19 +59,79 @@ function normalize(raw: RawArgoApp): ArgoItem {
 	const res = raw.status.resources ?? [];
 	let healthy = 0;
 	let degraded = 0;
+	let progressing = 0;
+	let missing = 0;
+	let suspended = 0;
 	let outOfSync = 0;
+
 	for (const r of res) {
 		const h = r.health?.status;
 		if (h === 'Healthy') healthy++;
-		else if (h === 'Degraded' || h === 'Missing') degraded++;
+		else if (h === 'Degraded') degraded++;
+		else if (h === 'Progressing') progressing++;
+		else if (h === 'Missing') missing++;
+		else if (h === 'Suspended') suspended++;
 		if (r.status && r.status !== 'Synced') outOfSync++;
 	}
+
+	const health = raw.status.health.status || 'Unknown';
+	const sync = raw.status.sync.status || 'Unknown';
+
+	// Stall detection (mirrors argoService.ts detectAppStall)
+	const now = Date.now();
+	let stalled = false;
+	let stallReason = '';
+	let stallAgeMs = 0;
+
+	// Check if sync operation is running
+	const opStarted = raw.status.operationState?.startedAt;
+	const opFinished = raw.status.operationState?.finishedAt;
+	const opPhase = raw.status.operationState?.phase;
+	if (opStarted && !opFinished && opPhase === 'Running') {
+		const age = now - new Date(opStarted).getTime();
+		if (age > 5 * 60 * 1000) {
+			// >5 minutes
+			stalled = true;
+			stallReason = 'Sync running';
+			stallAgeMs = age;
+		}
+	}
+
+	// Check if health is stuck in Progressing
+	if (!stalled && health === 'Progressing') {
+		const reconciledAt = raw.status.reconciledAt;
+		if (reconciledAt) {
+			const age = now - new Date(reconciledAt).getTime();
+			if (age > 5 * 60 * 1000) {
+				// >5 minutes
+				stalled = true;
+				stallReason = 'Health Progressing';
+				stallAgeMs = age;
+			}
+		}
+	}
+
+	// Check if OutOfSync for too long
+	if (!stalled && sync === 'OutOfSync') {
+		const lastSyncTime =
+			raw.status.operationState?.finishedAt ?? raw.status.reconciledAt;
+		if (lastSyncTime) {
+			const age = now - new Date(lastSyncTime).getTime();
+			if (age > 30 * 60 * 1000) {
+				// >30 minutes
+				stalled = true;
+				stallReason = 'OutOfSync';
+				stallAgeMs = age;
+			}
+		}
+	}
+
 	return {
 		name: raw.metadata.name,
 		project: raw.spec.project,
 		namespace: raw.spec.destination.namespace || '',
-		health: raw.status.health.status || 'Unknown',
-		sync: raw.status.sync.status || 'Unknown',
+		health,
+		sync,
 		repo: raw.spec.source?.repoURL ?? '',
 		revision: (raw.status.sync.revision ?? '').slice(0, 7),
 		lastSync:
@@ -71,7 +141,13 @@ function normalize(raw: RawArgoApp): ArgoItem {
 		total: res.length,
 		healthy,
 		degraded,
+		progressing,
+		missing,
+		suspended,
 		outOfSync,
+		stalled,
+		stallReason,
+		stallAgeMs,
 	};
 }
 
@@ -85,7 +161,7 @@ export function createArgoStream(
 		cacheTtlMs: 60_000,
 		id: (it) => it.name,
 		signature: (it) =>
-			`${it.sync}|${it.health}|${it.lastSync}|${it.total}|${it.degraded}|${it.outOfSync}`,
+			`${it.sync}|${it.health}|${it.lastSync}|${it.total}|${it.degraded}|${it.outOfSync}|${it.stalled}`,
 		normalize,
 		fetch: async ({ signal }) => {
 			const token = await getToken();
@@ -180,6 +256,98 @@ function healthDotColor(status: string): string {
 	return tokens.color.textFaint;
 }
 
+function formatAge(ms: number): string {
+	const min = Math.floor(ms / 60000);
+	if (min < 60) return `${min}m`;
+	const hr = Math.floor(min / 60);
+	if (hr < 24) return `${hr}h`;
+	return `${Math.floor(hr / 24)}d`;
+}
+
+/** Resource health bar showing healthy/degraded/progressing/suspended resources */
+function ResourceBar({ it }: { it: ArgoItem }) {
+	const { total, healthy, degraded, missing, progressing, suspended } = it;
+	if (!total) {
+		return (
+			<Text variant="caption" tone="muted">
+				no tracked resources
+			</Text>
+		);
+	}
+
+	const bad = degraded + missing;
+	const healthyPct = (healthy / total) * 100;
+	const progressingPct = (progressing / total) * 100;
+	const badPct = (bad / total) * 100;
+	const suspendedPct = (suspended / total) * 100;
+
+	return (
+		<Stack gap="xs">
+			<View style={styles.resourceBar}>
+				{healthy > 0 && (
+					<View
+						style={[
+							styles.resourceSegment,
+							{
+								width: `${healthyPct}%`,
+								backgroundColor: tokens.color.success,
+							},
+						]}
+					/>
+				)}
+				{progressing > 0 && (
+					<View
+						style={[
+							styles.resourceSegment,
+							{
+								width: `${progressingPct}%`,
+								backgroundColor: tokens.color.warning,
+							},
+						]}
+					/>
+				)}
+				{bad > 0 && (
+					<View
+						style={[
+							styles.resourceSegment,
+							{
+								width: `${badPct}%`,
+								backgroundColor: tokens.color.danger,
+							},
+						]}
+					/>
+				)}
+				{suspended > 0 && (
+					<View
+						style={[
+							styles.resourceSegment,
+							{
+								width: `${suspendedPct}%`,
+								backgroundColor: tokens.color.textFaint,
+							},
+						]}
+					/>
+				)}
+			</View>
+			<Stack direction="row" gap="xs" align="center">
+				<Text variant="caption" tone="muted">
+					{total} res
+				</Text>
+				{bad > 0 && (
+					<Text variant="caption" tone="danger">
+						{bad} unhealthy
+					</Text>
+				)}
+				{progressing > 0 && (
+					<Text variant="caption" tone="warning">
+						{progressing} progressing
+					</Text>
+				)}
+			</Stack>
+		</Stack>
+	);
+}
+
 /** The Argo lens (t): projects an ArgoItem into row/card/detail/stat models. */
 export const argoLens: StreamLens<ArgoItem> = {
 	searchText: (it) => `${it.name} ${it.namespace} ${it.project}`,
@@ -197,6 +365,12 @@ export const argoLens: StreamLens<ArgoItem> = {
 			label: 'OutOfSync',
 			tone: 'warning',
 			predicate: (it) => it.sync === 'OutOfSync',
+		},
+		{
+			id: 'stalled',
+			label: 'Stalled',
+			tone: 'warning',
+			predicate: (it) => it.stalled,
 		},
 	],
 	stats: (items) => [
@@ -226,6 +400,12 @@ export const argoLens: StreamLens<ArgoItem> = {
 			label: 'OutOfSync',
 			tone: 'warning',
 			value: items.filter((i) => i.sync === 'OutOfSync').length,
+		},
+		{
+			id: 'stalled',
+			label: 'Stalled',
+			tone: 'warning',
+			value: items.filter((i) => i.stalled).length,
 		},
 	],
 	row: (it) => (
@@ -260,6 +440,12 @@ export const argoLens: StreamLens<ArgoItem> = {
 					<Text variant="label" numberOfLines={1} style={styles.name}>
 						{it.name}
 					</Text>
+					{it.stalled && (
+						<Badge
+							label={`Stalled ${it.stallAgeMs > 0 ? formatAge(it.stallAgeMs) : ''}`}
+							tone="warning"
+						/>
+					)}
 				</Stack>
 				<Text variant="caption" tone="muted" numberOfLines={1}>
 					{it.namespace || '—'} · {it.project}
@@ -268,6 +454,7 @@ export const argoLens: StreamLens<ArgoItem> = {
 					<Badge label={it.sync} tone={syncTone(it.sync)} />
 					<Badge label={it.health} tone={healthTone(it.health)} />
 				</Stack>
+				<ResourceBar it={it} />
 			</Stack>
 		</Surface>
 	),
@@ -276,10 +463,17 @@ export const argoLens: StreamLens<ArgoItem> = {
 			<Fact label="Repo" value={it.repo || '—'} />
 			<Fact label="Revision" value={it.revision || '—'} />
 			<Fact label="Last sync" value={it.lastSync || '—'} />
+			{it.stalled && (
+				<Fact
+					label="Stalled"
+					value={`${it.stallReason} for ${formatAge(it.stallAgeMs)}`}
+				/>
+			)}
 			<Fact
 				label="Resources"
-				value={`${it.total} total · ${it.degraded} degraded · ${it.outOfSync} out-of-sync`}
+				value={`${it.total} total · ${it.healthy} healthy · ${it.degraded} degraded · ${it.progressing} progressing`}
 			/>
+			<ResourceBar it={it} />
 		</Stack>
 	),
 };
@@ -310,4 +504,15 @@ const styles = StyleSheet.create({
 	name: { flexShrink: 1 },
 	spacer: { flexGrow: 1 },
 	factValue: { flexShrink: 1, textAlign: 'right' },
+	resourceBar: {
+		flexDirection: 'row',
+		height: 10,
+		borderRadius: 5,
+		overflow: 'hidden',
+		backgroundColor: tokens.color.bgSubtle,
+	},
+	resourceSegment: {
+		height: '100%',
+		minWidth: 3,
+	},
 });
