@@ -51,6 +51,9 @@ export const GOBLIN: CreatureDef = {
 	// against the codex if it floats or clips the tile.
 	displaySize: 128,
 	originY: 0.79,
+	// Goblins bound tile-to-tile rather than walk; the body arcs up ~14px each
+	// hop. Shadow is baked into the frame, so it rides along — kept modest.
+	hopHeight: 14,
 	dirBlocks: NAIVE_DIR_BLOCKS,
 	dirRows: { W: 0, SW: 1, S: 2, SE: 3, E: 4, NE: 5, N: 6, NW: 7 },
 	sheetCols: GOBLIN_DIR_STRIDE,

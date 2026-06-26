@@ -103,6 +103,11 @@ export interface EntityRefs {
 	/** Time of this entity's last step tween — used to pace the next one to the
 	 * mover's real per-tile cadence. */
 	lastMoveAt?: number;
+	/** Hop-locomotion arc state: tiles travelled so far (phase) + the last sampled
+	 * world position the delta is measured from. */
+	hopPhase?: number;
+	hopLastX?: number;
+	hopLastY?: number;
 	/** Pending Idle settle, cancelled if another step arrives first. */
 	settleTimer?: Phaser.Time.TimerEvent;
 	/** Last drawn HP/maxHP, skip redraw if unchanged. */
