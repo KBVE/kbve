@@ -37,8 +37,7 @@ data:
         \    routes:\n      - name: auth-v1-open-callback\n        strip_path: true\n\
         \        paths:\n          - /auth/v1/callback\n  - name: auth-v1-open-authorize\n\
         \    url: http://auth:9999/authorize\n    routes:\n      - name: auth-v1-open-authorize\n\
-        \        strip_path: true\n        paths:\n          - /auth/v1/authorize\n\n\
-        \  ## Secure Auth routes\n  - name: auth-v1\n    _comment: 'GoTrue: /auth/v1/*\
+        \        strip_path: true\n        paths:\n          - /auth/v1/authorize\n\n  - name: auth-v1-open-oidc\n    _comment: 'OIDC discovery + OAuth2 server endpoints — public, no apikey'\n    url: http://auth:9999/\n    routes:\n      - name: auth-v1-open-oidc\n        strip_path: true\n        paths:\n          - /auth/v1/.well-known/openid-configuration\n          - /auth/v1/.well-known/oauth-authorization-server\n          - /auth/v1/.well-known/jwks.json\n          - /auth/v1/oauth/\n\n  ## Secure Auth routes\n  - name: auth-v1\n    _comment: 'GoTrue: /auth/v1/*\
         \ -> http://auth:9999/*'\n    url: http://auth:9999/\n    routes:\n      - name:\
         \ auth-v1-all\n        strip_path: true\n        paths:\n          - /auth/v1/\n\
         \    plugins:\n      - name: key-auth\n        config:\n          hide_credentials:\
