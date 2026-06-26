@@ -1626,6 +1626,8 @@ pub(crate) type AttackPlayerQuery<'w, 's> = Query<
         &'static mut XpState,
         &'static Equipped,
         &'static mut Mana,
+        Option<&'static Floor>,
+        &'static Defense,
     ),
 >;
 
@@ -1690,7 +1692,7 @@ pub(crate) fn resolve_attack_hit(
     let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_COMBAT,
-        to: slot,
+        to: proto::PLAYER_SLOT_NONE,
         payload,
     });
     if died {
@@ -1712,7 +1714,7 @@ pub(crate) fn resolve_attack_hit(
             *k += 1;
             *k
         };
-        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana)) =
+        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana, _, _)) =
             q_players.get_mut(player_entity)
         {
             let (mp, max_mp) = (mana.mp, mana.max_mp);
@@ -1722,6 +1724,52 @@ pub(crate) fn resolve_attack_hit(
             );
         }
     }
+}
+
+/// PvP is allowed only between two players on the SAME dungeon floor (z < 0). The
+/// surface (z >= 0) stays peaceful, and the spawn safe zone (also surface) with it.
+pub(crate) fn pvp_allowed(az: i32, tz: i32) -> bool {
+    az < 0 && tz < 0 && az == tz
+}
+
+/// Apply a confirmed player-vs-player hit. Disjoint mutable access to attacker +
+/// target via `get_many_mut`; rolls damage (target defense + deterministic crit)
+/// and broadcasts the combat event to ALL clients. A kill (hp <= 0) is picked up
+/// by `respawn_players` like any other death. The caller has already range- and
+/// hostility-gated; self-targeting fails the disjoint borrow and no-ops.
+fn resolve_pvp_hit(
+    attacker: Entity,
+    target: Entity,
+    attack: i32,
+    bcast: &Outbound,
+    seed: &SimSeed,
+    clock: &SimClock,
+    q_players: &mut AttackPlayerQuery,
+) {
+    let Ok([_atk, tgt]) = q_players.get_many_mut([attacker, target]) else {
+        return;
+    };
+    let (_, _, _, _, _, mut t_hp, _, _, _, _, t_def) = tgt;
+    let base = (attack - t_def.0).max(1);
+    let crit =
+        hash3(seed.0, attacker.index_u32() as u64, clock.tick as u64) % 100 < CRIT_CHANCE_PCT;
+    let damage = if crit { base * 2 } else { base };
+    t_hp.hp -= damage;
+    let died = t_hp.hp <= 0;
+    let event = proto::CombatEvent {
+        attacker: attacker.index_u32(),
+        target: target.index_u32(),
+        target_ref: None,
+        dmg: damage,
+        crit,
+        died,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_COMBAT,
+        to: proto::PLAYER_SLOT_NONE,
+        payload,
+    });
 }
 
 fn apply_drops(
@@ -1780,43 +1828,79 @@ fn apply_actions(
 
         match action_id {
             proto::ACTION_ATTACK => {
-                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
+                let Ok((_, _, pos, stats, _, _, _, _, _, a_floor, _)) =
+                    q_players.get(player_entity)
+                else {
                     continue;
                 };
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
-                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
-                    continue;
-                };
-                if !combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
-                    continue;
+                let az = a_floor.map(|f| f.0).unwrap_or(0);
+                // Mob target first; else a PvP player target (dungeon-floor only).
+                if let Ok((mob_pos, ..)) = q_mobs.get(target_entity) {
+                    if combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
+                        resolve_attack_hit(
+                            player_entity,
+                            target_entity,
+                            proto::PlayerSlot(slot.0),
+                            attack,
+                            &bcast,
+                            &registry,
+                            &clock,
+                            &seed,
+                            &config,
+                            &equipment,
+                            &mut respawns,
+                            &mut kill_counts,
+                            &mut commands,
+                            &mut q_players,
+                            &mut q_mobs,
+                        );
+                    }
+                } else if let Some((target_tile, tz)) = match q_players.get(target_entity) {
+                    Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
+                        Some((t_pos.tile, t_floor.map(|f| f.0).unwrap_or(0)))
+                    }
+                    Err(_) => None,
+                } {
+                    if pvp_allowed(az, tz)
+                        && combat::in_range_adjacent(
+                            attacker_tile,
+                            target_tile,
+                            combat::MELEE_RANGE,
+                        )
+                    {
+                        resolve_pvp_hit(
+                            player_entity,
+                            target_entity,
+                            attack,
+                            &bcast,
+                            &seed,
+                            &clock,
+                            &mut q_players,
+                        );
+                    }
                 }
-                resolve_attack_hit(
-                    player_entity,
-                    target_entity,
-                    proto::PlayerSlot(slot.0),
-                    attack,
-                    &bcast,
-                    &registry,
-                    &clock,
-                    &seed,
-                    &config,
-                    &equipment,
-                    &mut respawns,
-                    &mut kill_counts,
-                    &mut commands,
-                    &mut q_players,
-                    &mut q_mobs,
-                );
             }
             proto::ACTION_SHOOT => {
-                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
+                let Ok((_, _, pos, stats, _, _, _, _, _, a_floor, _)) =
+                    q_players.get(player_entity)
+                else {
                     continue;
                 };
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
-                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
+                let az = a_floor.map(|f| f.0).unwrap_or(0);
+                // Target tile + whether it's a PvP player (Some(z)) or a mob (None).
+                let Some((target_tile, target_z)) = (match q_mobs.get(target_entity) {
+                    Ok((mob_pos, ..)) => Some((mob_pos.tile, None)),
+                    Err(_) => match q_players.get(target_entity) {
+                        Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
+                            Some((t_pos.tile, Some(t_floor.map(|f| f.0).unwrap_or(0))))
+                        }
+                        Err(_) => None,
+                    },
+                }) else {
                     continue;
                 };
-                let target_tile = mob_pos.tile;
                 let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
                     !map.is_walkable(t)
                 });
@@ -1836,23 +1920,35 @@ fn apply_actions(
                     payload,
                 });
                 if los_clear {
-                    resolve_attack_hit(
-                        player_entity,
-                        target_entity,
-                        proto::PlayerSlot(slot.0),
-                        attack,
-                        &bcast,
-                        &registry,
-                        &clock,
-                        &seed,
-                        &config,
-                        &equipment,
-                        &mut respawns,
-                        &mut kill_counts,
-                        &mut commands,
-                        &mut q_players,
-                        &mut q_mobs,
-                    );
+                    match target_z {
+                        None => resolve_attack_hit(
+                            player_entity,
+                            target_entity,
+                            proto::PlayerSlot(slot.0),
+                            attack,
+                            &bcast,
+                            &registry,
+                            &clock,
+                            &seed,
+                            &config,
+                            &equipment,
+                            &mut respawns,
+                            &mut kill_counts,
+                            &mut commands,
+                            &mut q_players,
+                            &mut q_mobs,
+                        ),
+                        Some(tz) if pvp_allowed(az, tz) => resolve_pvp_hit(
+                            player_entity,
+                            target_entity,
+                            attack,
+                            &bcast,
+                            &seed,
+                            &clock,
+                            &mut q_players,
+                        ),
+                        Some(_) => {}
+                    }
                 }
             }
             proto::ACTION_PICKUP => {
@@ -3697,6 +3793,87 @@ mod tests {
         }
         assert!(saw_combat, "no combat ephemeral emitted");
         assert!(saw_potion_drop, "loot did not drop");
+    }
+
+    /// Place a joined player at a tile on dungeon floor `z` (None = surface), and
+    /// settle the float body there so `advance_float` keeps it put for the test.
+    fn place_player(app: &mut App, e: Entity, tile: Tile, z: Option<i32>) {
+        {
+            let mut fm = app.world_mut().get_mut::<FloatMove>(e).unwrap();
+            fm.body = crate::float_move::FloatBody::at(tile.x as f32, tile.y as f32);
+            fm.intent_x = 0;
+            fm.intent_y = 0;
+        }
+        app.world_mut().get_mut::<GridPos>(e).unwrap().tile = tile;
+        match z {
+            Some(z) => {
+                app.world_mut().entity_mut(e).insert(Floor(z));
+            }
+            None => {
+                app.world_mut().entity_mut(e).remove::<Floor>();
+            }
+        }
+    }
+
+    #[test]
+    fn pvp_melee_damages_player_on_dungeon_floor() {
+        let (mut app, _rx, input_tx, roster) = harness(71);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), Some(-1));
+        place_player(&mut app, eb, Tile::new(6, 5), Some(-1));
+        app.update();
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert!(
+            hp1 < hp0,
+            "PvP melee did not damage target (hp {hp0}->{hp1})"
+        );
+    }
+
+    #[test]
+    fn pvp_blocked_on_surface() {
+        let (mut app, _rx, input_tx, roster) = harness(72);
+        let a = join(&roster, "carol");
+        let b = join(&roster, "dave");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), None);
+        place_player(&mut app, eb, Tile::new(6, 5), None);
+        app.update();
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert_eq!(hp1, hp0, "PvP wrongly allowed on the peaceful surface");
     }
 
     fn spawn_bow_target(app: &mut App, kind: u16, tile: Tile) -> Entity {

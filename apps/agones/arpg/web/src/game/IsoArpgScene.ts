@@ -1567,7 +1567,16 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private isHostileServer(serverEid: number): boolean {
 		const kind = this.store.kind(serverEid);
-		return kind >= 0 && this.syncResolvers.hostile(kind);
+		if (kind < 0) return false;
+		if (this.syncResolvers.hostile(kind)) return true;
+		// PvP: other players become valid targets on dungeon floors (z < 0). The
+		// server enforces the same gate (pvp_allowed), so don't offer surface
+		// players as targets — a shot there would just whiff server-side.
+		return (
+			!this.isSurface() &&
+			serverEid !== this.myEid &&
+			isPlayerKind(this.kinds, kind)
+		);
 	}
 
 	private placeSprite(sprite: EntityRefs['sprite'], tx: number, ty: number) {
