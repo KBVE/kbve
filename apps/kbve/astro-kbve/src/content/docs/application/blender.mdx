@@ -841,17 +841,27 @@ blender -b scene.blend -P batch_export.py
 
 The ARPG iso renderer draws environment props and vehicles as upright screen
 billboards. To turn a 3D model into a prop, we bake a 360° spin into a sprite
-sheet whose frame index maps directly to a facing. The component lives at
-`apps/agones/arpg/web/scripts/gen-model-sprites.py` with an interactive angle
-finder beside it.
+sheet whose frame index maps directly to a facing. The toolchain lives in the
+**kbve python package** (`kbve.sprite`) and runs via `uv` console entrypoints, so it
+can be invoked from anywhere in the repo; the interactive angle finder stays beside
+the arpg assets.
 
 <FileTree>
+- packages/python/kbve/kbve/sprite/
+  - model_sprites.py       `uv run kbve-model-sprites` — Blender baker (OBJ/FBX → sheet)
+  - sprite_postprocess.py  `uv run kbve-sprite-postprocess` — ground shadow + stitch
+  - skin_variant.py        `uv run kbve-skin-variant` — kill a glow color → "off" skin
+  - ship_footprint.py      `uv run kbve-ship-footprint` — bake ship collision (.ts + .rs)
 - apps/agones/arpg/web/scripts/
-  - gen-model-sprites.py        Blender headless baker (OBJ/FBX → sheet + strip)
-  - sprite-postprocess.py       Bakes a soft ground shadow, then stitches the sheet
-  - gen-skin-variant.py         Kills a glow color → "powered-down" skin variant
   - preview-model-sprites.html  Three.js angle finder (mirrors the baker's math)
+  - gen-bush-sheet.py           Proc bush baker (shelved — bush env parked)
 </FileTree>
+
+Enable the toolchain (pulls Pillow + numpy, kept off the core install):
+
+```bash
+uv sync --project packages/python/kbve --extra sprite
+```
 
 **What it does** — loads a model + skin texture, lays the hull flat on the ground
 plane (`--pitch`, baked into the mesh), spins it through N yaw facings under an
@@ -893,13 +903,16 @@ a vehicle resting on the iso floor.
    # open: http://localhost:8765/preview-model-sprites.html?model=PATH.obj&skin=PATH.jpg
    ```
 
-2. **Bake the sheet** — paste the copied flags:
+2. **Bake the sheet** — paste the copied flags. The entrypoint finds Blender and
+   runs it headless (set `BLENDER_BIN` to override discovery):
 
    ```bash
-   blender -b -P gen-model-sprites.py -- \
+   uv run --project packages/python/kbve kbve-model-sprites -- \
      --model fighter1.obj --skin idolknight.jpg --out render_flat \
      --frames 16 --res 256 --elev 35 --pitch 90 --yaw-offset 0
    ```
+
+   Equivalent direct form: `blender -b -P packages/python/kbve/kbve/sprite/model_sprites.py -- <flags>`.
 
    For a single static "parked" frame: `--frames 1 --yaw-offset <heading>`.
 
@@ -910,7 +923,8 @@ a vehicle resting on the iso floor.
    `dir * frames + f`), so the `EnvDef` reads it as `frames: 8, directions: 16`:
 
    ```bash
-   blender -b -P gen-model-sprites.py -- --model fighter1.obj --skin idolknight.jpg \
+   uv run --project packages/python/kbve kbve-model-sprites -- \
+     --model fighter1.obj --skin idolknight.jpg \
      --out ship_lift --frames 16 --anim-frames 8 --lift 0.6 --res 256 \
      --elev 30 --pitch 90 --yaw-offset 45 --real-shadow
    ```
@@ -959,7 +973,7 @@ Two shadow modes:
   sun (`--sun-elev`/`--sun-az`/`--sun-soft`). Shape follows the real 3D form and the
   light, per facing — no guessing. Costs a Cycles pass (slower than EEVEE, but 16
   frames is seconds).
-- **Fake (default)** — `sprite-postprocess.py` derives a shadow from each frame's own
+- **Fake (default)** — `kbve-sprite-postprocess` derives a shadow from each frame's own
   alpha silhouette and projects it onto the iso floor: squashed toward the contact
   line, **sheared** along the iso axis, **dilated** so a soft rim haloes past the hull,
   then offset/blurred/darkened. The grow + near-zero offset read as a grounded *contact
@@ -968,12 +982,13 @@ Two shadow modes:
 
 #### State variants (engines off / on)
 
-A prop can ship multiple skins for different states. `gen-skin-variant.py` masks a
+A prop can ship multiple skins for different states. `kbve-skin-variant` masks a
 glow color in the skin and desaturates + darkens it, so e.g. the parked ship's green
 engines read as **off**:
 
 ```bash
-python3 gen-skin-variant.py --in idolknight.jpg --out idolknight_off.jpg --hue green
+uv run --project packages/python/kbve kbve-skin-variant \
+  --in idolknight.jpg --out idolknight_off.jpg --hue green
 ```
 
 Bake one sheet per skin (`ship.png` from the off skin, `ship_on.png` from the

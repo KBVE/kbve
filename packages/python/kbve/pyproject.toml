@@ -15,6 +15,20 @@ dependencies = [
     "pyyaml>=6.0,<7.0",
 ]
 
+[project.optional-dependencies]
+# ARPG sprite-baking toolchain (kbve.sprite.*). Kept off the core/server install
+# so API consumers don't pull numpy/Pillow. Enable with: uv sync --extra sprite
+sprite = [
+    "pillow>=10.0,<12.0",
+    "numpy>=1.26,<3.0",
+]
+
+[project.scripts]
+kbve-skin-variant = "kbve.sprite.skin_variant:main"
+kbve-sprite-postprocess = "kbve.sprite.sprite_postprocess:main"
+kbve-ship-footprint = "kbve.sprite.ship_footprint:main"
+kbve-model-sprites = "kbve.sprite.model_sprites_cli:main"
+
 [dependency-groups]
 dev = [
     "autopep8==2.0.2",
