@@ -1,5 +1,6 @@
 pub mod bot;
 pub mod branding;
+pub mod chat_blocklist;
 pub mod commands;
 pub mod components;
 pub mod embeds;
@@ -10,6 +11,7 @@ pub mod gh_sync;
 pub mod github;
 pub mod github_cache;
 pub mod github_permissions;
+pub mod mention;
 pub mod n8n;
 pub mod relay;
 pub mod scheduler;

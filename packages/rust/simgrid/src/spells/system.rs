@@ -88,7 +88,7 @@ pub fn apply_spells(
         let cd_ms = spell.cooldown_ms.unwrap_or(0);
         let key = (slot.0, spell_ref.clone());
 
-        let Ok((_, _, _, _, _, _, _, _, mana)) = q_players.get(player_entity) else {
+        let Ok((_, _, _, _, _, _, _, _, mana, _, _)) = q_players.get(player_entity) else {
             continue;
         };
         if mana.mp < mana_cost {
@@ -107,7 +107,7 @@ pub fn apply_spells(
 
         match effect {
             SpellEffect::Heal => {
-                let Ok((_, _, _, _, _, mut health, _, _, mut mana)) =
+                let Ok((_, _, _, _, _, mut health, _, _, mut mana, _, _)) =
                     q_players.get_mut(player_entity)
                 else {
                     continue;
@@ -122,7 +122,8 @@ pub fn apply_spells(
                 send_spell_result(
                     bcast, slot, caster, target_eid, &spell_ref, "heal", healed, true, "",
                 );
-                let Ok((_, _, _, stats, _, health, xp, _, mana)) = q_players.get(player_entity)
+                let Ok((_, _, _, stats, _, health, xp, _, mana, _, _)) =
+                    q_players.get(player_entity)
                 else {
                     continue;
                 };
@@ -153,7 +154,9 @@ pub fn apply_spells(
                     continue;
                 }
 
-                if let Ok((_, _, _, _, _, _, _, _, mut mana)) = q_players.get_mut(player_entity) {
+                if let Ok((_, _, _, _, _, _, _, _, mut mana, _, _)) =
+                    q_players.get_mut(player_entity)
+                {
                     mana.mp -= mana_cost;
                 }
                 if cd_ms > 0 {
@@ -181,7 +184,9 @@ pub fn apply_spells(
                 send_spell_result(
                     bcast, slot, caster, target_eid, &spell_ref, "damage", power, true, "",
                 );
-                if let Ok((_, _, _, stats, _, health, xp, _, mana)) = q_players.get(player_entity) {
+                if let Ok((_, _, _, stats, _, health, xp, _, mana, _, _)) =
+                    q_players.get(player_entity)
+                {
                     let kills = kill_counts.0.get(&slot.0).copied().unwrap_or(0);
                     broadcast_player_stats(bcast, slot, xp, health, stats, mana, kills);
                 }

@@ -1037,12 +1037,27 @@ Custom subcommands:
                 ownership for pointers whose blobs were pushed via the root
                 .lfsconfig endpoint (e.g. by the husky pre-push hook).
 
+  ssh-push [remote] [branch]
+                Push large LFS files via SSH NodePort, bypassing HTTP upload
+                size limits. Automatically detects Forgejo SSH NodePort via
+                kubectl and temporarily switches git remote to SSH. Useful for
+                files >100MB that fail with HTTP 413 errors.
+                Default remote: forgejo-archive, default branch: dev
+
+  direct-push [remote] [branch]
+                Push large LFS files via direct.git.kbve.com, bypassing
+                Cloudflare's 100MB upload limit. Uses direct server IP access
+                for files >100MB that fail with HTTP 413 through Cloudflare.
+                Default remote: forgejo-archive, default branch: dev
+
 Examples:
   ./kbve.sh -lfs chuck push origin dev
   ./kbve.sh -lfs chuck pull
   ./kbve.sh -lfs chuck fetch --all
   ./kbve.sh -lfs chuck ls-files
   ./kbve.sh -lfs chuck register
+  ./kbve.sh -lfs cleanroom ssh-push forgejo-archive dev
+  ./kbve.sh -lfs cleanroom direct-push forgejo-archive dev
 EOF
         return 1
     fi
@@ -1104,6 +1119,99 @@ EOF
         echo "→ registering $count OIDs with $url via --object-id (bytes deduped server-side)"
         printf '%s\n' "$oids" | xargs git -c "lfs.url=$url" lfs push --object-id "$remote"
         return $?
+    fi
+
+    if [ "$1" = "ssh-push" ]; then
+        shift
+        local remote="${1:-forgejo-archive}"
+        local branch="${2:-dev}"
+
+        echo "=== SSH LFS Push for $game ==="
+        echo "→ Using SSH endpoint via NodePort for large file uploads"
+        echo "→ Remote: $remote"
+        echo "→ Branch: $branch"
+        echo ""
+
+        # Get SSH NodePort from kubectl
+        local ssh_nodeport
+        ssh_nodeport=$(kubectl get svc -n forgejo forgejo-ssh -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null)
+        if [ -z "$ssh_nodeport" ]; then
+            echo "ERROR: Could not get Forgejo SSH NodePort from kubectl"
+            echo "  Make sure kubectl is configured and forgejo-ssh service exists"
+            return 1
+        fi
+
+        # Get node IP
+        local node_ip
+        node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null)
+        if [ -z "$node_ip" ]; then
+            echo "ERROR: Could not get node IP from kubectl"
+            return 1
+        fi
+
+        echo "→ Forgejo SSH: $node_ip:$ssh_nodeport"
+        echo ""
+
+        # Temporarily update remote URL to use SSH
+        local original_url
+        original_url=$(git remote get-url "$remote" 2>/dev/null)
+        if [ -z "$original_url" ]; then
+            echo "ERROR: Remote '$remote' not found"
+            return 1
+        fi
+
+        local ssh_url="ssh://git@${node_ip}:${ssh_nodeport}/KBVE/${game}.git"
+        echo "→ Temporarily switching remote to SSH: $ssh_url"
+        git remote set-url "$remote" "$ssh_url"
+
+        # Push LFS objects with the game-specific endpoint
+        echo "→ Pushing LFS objects to $url"
+        echo ""
+
+        if git -c "lfs.url=$url" lfs push "$remote" "$branch" --all; then
+            echo ""
+            echo "✓ LFS push successful!"
+            status=0
+        else
+            echo ""
+            echo "✗ LFS push failed"
+            status=1
+        fi
+
+        # Restore original remote URL
+        echo ""
+        echo "→ Restoring original remote URL"
+        git remote set-url "$remote" "$original_url"
+
+        return $status
+    fi
+
+    if [ "$1" = "direct-push" ]; then
+        shift
+        local remote="${1:-forgejo-archive}"
+        local branch="${2:-dev}"
+
+        echo "=== Direct LFS Push for $game ==="
+        echo "→ Bypassing Cloudflare via direct.git.kbve.com"
+        echo "→ Remote: $remote"
+        echo "→ Branch: $branch"
+        echo ""
+
+        # Use direct.git.kbve.com subdomain which points directly to the server
+        local direct_url="https://direct.git.kbve.com/KBVE/${game}.git/info/lfs"
+
+        echo "→ Pushing LFS objects to $direct_url"
+        echo ""
+
+        if git -c "lfs.url=$direct_url" lfs push "$remote" "$branch" --all; then
+            echo ""
+            echo "✓ LFS push successful!"
+            return 0
+        else
+            echo ""
+            echo "✗ LFS push failed"
+            return 1
+        fi
     fi
 
     echo "→ git -c lfs.url=$url lfs $*"

@@ -54,6 +54,17 @@ pub const CAMPFIRE_KIT_REF: &str = "campfire-kit";
 pub const CANDELABRUM_REF: &str = "candelabrum";
 pub const CANDELABRUM_KIT_REF: &str = "candelabrum-stand";
 
+// Shrine: a static decorative stone structure placed near spawn, set apart from
+// the campfire and tree line. Purely a landmark — blocks only its base tile, no
+// auras or hazards (constructed inline, not driven from mapdb).
+pub const SHRINE_REF: &str = "shrine";
+
+// Corpse: spawned where a player dies (PvE + PvP), holding their dropped
+// inventory. Walkable + lootable (ACTION_LOOT from an adjacent tile transfers
+// everything). The client renders it as the dead class's death-frame, staled,
+// labelled "Graveyard of <name>". One env kind covers every corpse.
+pub const CORPSE_REF: &str = "corpse";
+
 // A few starter potions drop near spawn so the inventory + item-usage loop is
 // usable immediately: pick up -> 1-9 hotkey -> heal (itemdb says potion heals 15).
 pub const POTION_REF: &str = "potion";
@@ -101,6 +112,8 @@ pub fn registry() -> KindRegistry {
     reg.register_item(CANDELABRUM_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
     reg.register_env(CANDELABRUM_REF);
+    reg.register_env(SHRINE_REF);
+    reg.register_env(CORPSE_REF);
     reg.register_env(simgrid::TREE_REF);
     reg.register_env(simgrid::BUSH_REF);
     reg
@@ -316,6 +329,9 @@ pub fn config() -> SimConfig {
         spawn: player_spawn(),
         ticks_per_tile: PLAYER_TICKS_PER_TILE,
         safe_radius: PLAYER_SAFE_RADIUS,
+        // Dead players drop everything into a `corpse` env object (resolved from
+        // the deterministic registry, so the kind matches build_app's).
+        corpse_kind: registry().kind_of(CORPSE_REF),
         starting_inventory: vec![
             (CAMPFIRE_KIT_REF.to_string(), 5),
             (CANDELABRUM_KIT_REF.to_string(), 3),
@@ -409,6 +425,29 @@ pub fn spawn_world(
         .is_some()
     {
         walkable.block_tile_z(SPAWN_FLOOR, fire);
+    }
+
+    // A stone shrine set well apart from the campfire and the immediate tree line
+    // — a landmark to orient new players. Blocks only its base tile.
+    let shrine = floor_near(Tile::new(spawn.x - 6, spawn.y + 5));
+    if shrine != spawn
+        && shrine != fire
+        && spawn_env_object(
+            &mut commands,
+            &registry,
+            SHRINE_REF,
+            shrine,
+            EnvOpts {
+                blocker: true,
+                heal_aura: None,
+                mana_aura: None,
+                hazard: None,
+                floor: SPAWN_FLOOR,
+            },
+        )
+        .is_some()
+    {
+        walkable.block_tile_z(SPAWN_FLOOR, shrine);
     }
 
     // Restore player-placed objects persisted from a previous server lifetime.

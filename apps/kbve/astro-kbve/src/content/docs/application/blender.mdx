@@ -25,6 +25,7 @@ import {
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+import SpriteSheetBaker from '@/components/blender/SpriteSheetBaker.tsx';
 
 ## Information
 
@@ -707,7 +708,12 @@ Blender can be integrated into KBVE workflows for procedural asset generation, b
 
 ### CI/CD Workflow
 
-The KBVE monorepo includes a Blender CI workflow at [`.github/workflows/ci-blender.yml`](.github/workflows/ci-blender.yml) that runs on macOS runners (including self-hosted MacBook Air).
+The KBVE monorepo runs headless Blender through a **router → flow** pair on the self-hosted `mac-blender` runner:
+
+- [`.github/workflows/ci-blender-router.yml`](.github/workflows/ci-blender-router.yml) — `workflow_dispatch` entry point. Validates inputs, picks the LFS backend (`forgejo` or `azure`), then hands off to the flow.
+- [`.github/workflows/ci-blender-flow.yml`](.github/workflows/ci-blender-flow.yml) — reusable `workflow_call` builder. Pulls the target object from LFS, runs the task on `[self-hosted, macOS, ARM64, mac-blender]`, and uploads artifacts.
+
+The object lives in external LFS — Forgejo (`git.kbve.com`, via `FORGEJO_USER`/`FORGEJO_TOKEN`) or Azure DevOps (via `AZURE_PAT`). Tag your runner with the `mac-blender` label so only Blender jobs land on it.
 
 **Available tasks:**
 
@@ -720,25 +726,27 @@ The KBVE monorepo includes a Blender CI workflow at [`.github/workflows/ci-blend
 **Example workflow dispatch:**
 
 ```bash
-# Render with Cycles GPU
-gh workflow run ci-blender.yml \
+# Render with Cycles GPU — object pulled from Forgejo LFS
+gh workflow run ci-blender-router.yml \
   -f task=render \
   -f app_name=my-project \
+  -f lfs_backend=forgejo \
+  -f object_glob=assets/blender \
   -f blend_file=assets/blender/scene.blend \
   -f render_engine=CYCLES \
   -f render_device=GPU \
   -f frame_range=1-100 \
-  -f samples=128 \
-  -f runner_label=macos-latest
+  -f samples=128
 
-# Export all objects as FBX for Unreal
-gh workflow run ci-blender.yml \
+# Export all objects as FBX for Unreal — object pulled from Azure DevOps
+gh workflow run ci-blender-router.yml \
   -f task=batch-export \
   -f app_name=game-assets \
-  -f blend_file=assets/blender/props.blend \
+  -f lfs_backend=azure \
+  -f external_repo_url=dev.azure.com/kbve/art/_git/props \
+  -f blend_file=external-blender/props.blend \
   -f export_format=FBX \
-  -f output_path=/tmp/exports \
-  -f runner_label=self-hosted
+  -f output_path=/tmp/exports
 ```
 
 **Automatic Blender installation:**
@@ -776,11 +784,14 @@ The workflow outputs artifacts via `actions/upload-artifact@v7`, which can be co
 # Example: Render in Blender, then deploy to Unreal
 jobs:
   render:
-    uses: KBVE/kbve/.github/workflows/ci-blender.yml@dev
+    uses: KBVE/kbve/.github/workflows/ci-blender-flow.yml@dev
     with:
       task: render
-      blend_file: assets/environment.blend
+      lfs_backend: forgejo
+      object_glob: assets/blender
+      blend_file: assets/blender/environment.blend
       output_path: /tmp/renders
+    secrets: inherit
 
   unreal_import:
     needs: [render]
@@ -788,7 +799,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: blender-project-renders
+          name: blender-project-render
           path: ./renders
       # ... import into Unreal via Python/C++ automation
 ```
@@ -825,6 +836,155 @@ Run via:
 ```bash
 blender -b scene.blend -P batch_export.py
 ```
+
+### Isometric Sprite Sheet Baker (ARPG)
+
+The ARPG iso renderer draws environment props and vehicles as upright screen
+billboards. To turn a 3D model into a prop, we bake a 360° spin into a sprite
+sheet whose frame index maps directly to a facing. The component lives at
+`apps/agones/arpg/web/scripts/gen-model-sprites.py` with an interactive angle
+finder beside it.
+
+<FileTree>
+- apps/agones/arpg/web/scripts/
+  - gen-model-sprites.py        Blender headless baker (OBJ/FBX → sheet + strip)
+  - sprite-postprocess.py       Bakes a soft ground shadow, then stitches the sheet
+  - gen-skin-variant.py         Kills a glow color → "powered-down" skin variant
+  - preview-model-sprites.html  Three.js angle finder (mirrors the baker's math)
+</FileTree>
+
+**What it does** — loads a model + skin texture, lays the hull flat on the ground
+plane (`--pitch`, baked into the mesh), spins it through N yaw facings under an
+orthographic isometric camera, and writes one transparent PNG per facing plus a
+square row-major `sheet.png` and a `strip.png`.
+
+#### Try it in the browser
+
+The island below is the baker's zero-install twin — same yaw / elevation / lay-flat
+math, rasterized straight from WebGL. Pick a model (`.obj`, `.glb`, or `.fbx`) and a
+skin, dial the angle, then **Bake** to download the sheet. It also prints the matching
+Blender command (for a higher-fidelity offline bake) and a ready `EnvDef` snippet.
+
+<SpriteSheetBaker client:only="react" />
+
+<Aside>
+The browser baker is for fast iteration and previewing. For final assets prefer the
+Blender command it generates — EEVEE shading and antialiasing are crisper than the
+live WebGL capture.
+</Aside>
+
+<Aside type="caution">
+Many ship/vehicle models import **standing upright** (nose along the model's up
+axis). Because an env sprite is a flat upright billboard, an upright render reads
+as a ship standing on its tail. `--pitch 90` rotates the hull onto the ground
+(deck toward the camera-up) and bakes it before the spin, so every frame reads as
+a vehicle resting on the iso floor.
+</Aside>
+
+<Steps>
+
+1. **Find the angle** — serve the previewer (file URLs block local model/texture
+   loads) and dial yaw / camera elevation / lay-flat pitch. It prints the exact
+   baker command for the heading you pick.
+
+   ```bash
+   cd apps/agones/arpg/web/scripts
+   python3 -m http.server 8765
+   # open: http://localhost:8765/preview-model-sprites.html?model=PATH.obj&skin=PATH.jpg
+   ```
+
+2. **Bake the sheet** — paste the copied flags:
+
+   ```bash
+   blender -b -P gen-model-sprites.py -- \
+     --model fighter1.obj --skin idolknight.jpg --out render_flat \
+     --frames 16 --res 256 --elev 35 --pitch 90 --yaw-offset 0
+   ```
+
+   For a single static "parked" frame: `--frames 1 --yaw-offset <heading>`.
+
+   For a **lift / spool-up animation** (engines rising off the ground), add
+   `--anim-frames 8 --lift 0.6`. The hull rises over the frames while a Cycles
+   shadow-catcher keeps the shadow on the floor, so the gap grows = a real hover.
+   The sheet lays out one row per facing × one column per anim frame (row-major
+   `dir * frames + f`), so the `EnvDef` reads it as `frames: 8, directions: 16`:
+
+   ```bash
+   blender -b -P gen-model-sprites.py -- --model fighter1.obj --skin idolknight.jpg \
+     --out ship_lift --frames 16 --anim-frames 8 --lift 0.6 --res 256 \
+     --elev 30 --pitch 90 --yaw-offset 45 --real-shadow
+   ```
+
+3. **Wire the prop** — drop `sheet.png` (or a chosen `frame_NN.png`) under
+   `web/public/assets/...` and register an `EnvDef` in
+   `web/src/game/entities/env.ts`. A static prop uses `frames: 1`; a rotatable
+   one uses `directions: 16` and the full sheet (row-major: row = facing).
+
+</Steps>
+
+| Flag | Meaning | Default |
+| --- | --- | --- |
+| `--model` | source `.obj` / `.fbx` | required |
+| `--skin` | texture applied to all meshes | required |
+| `--out` | output dir (frames + `sheet.png` + `strip.png`) | required |
+| `--frames` | yaw facings (`1` = static) | `16` |
+| `--anim-frames` | animation frames PER facing (`>1` bakes an animation) | `1` |
+| `--anim-mode` | `lift` (rise, once), `idle` (bob loop), `move` (fly bob+sway loop), `bank` (monotonic roll L→R for turn lean), `launch` (ascent to space, once) | `lift` |
+| `--lift` | hover height as a fraction of model size (lift / idle / move / bank base) | `0.6` |
+| `--bob` | vertical bob amplitude as a fraction of model size (idle/move) | `0.06` |
+| `--sway` | roll amplitude in degrees (move sway / bank extent) | `8` |
+| `--launch-height` | launch ascent height × model size | `5` |
+| `--launch-pitch` | launch nose-up pitch deg at apex | `70` |
+| `--launch-shrink` | launch final scale (fakes distance) | `0.12` |
+| `--res` | px per frame (square) | `256` |
+| `--elev` | camera elevation deg (`35` = 2:1 iso) | `35` |
+| `--pitch` | lay-flat hull pitch, baked before spin | `90` |
+| `--yaw-offset` | heading added to every frame; sets `frame_00` | `0` |
+| `--real-shadow` | render a TRUE cast shadow (Cycles + ground catcher) instead of the fake 2D one | off |
+| `--sun-elev` / `--sun-az` | sun elevation / azimuth deg (real-shadow; shadow falls opposite) | `55` / `135` |
+| `--sun-soft` | sun angular size deg = penumbra softness | `4` |
+| `--samples` | Cycles samples (real-shadow) | `64` |
+| `--no-shadow` | skip the baked ground shadow | off |
+| `--shadow-alpha` | shadow darkness `0..1` | `0.45` |
+| `--shadow-squash` | vertical flatten of the silhouette `0..1` | `0.7` |
+| `--shadow-shear` | iso ground skew (x per y about the contact line) | `0.15` |
+| `--shadow-grow` | dilate the pool past the hull (rim halo, fraction of frame) | `0.05` |
+| `--shadow-dx` / `--shadow-dy` | shadow offset along the light (fraction of frame) | `0.0` / `0.045` |
+
+Two shadow modes:
+
+- **Real (`--real-shadow`)** — the proper one. A ground plane under the hull is flagged
+  as a Cycles shadow catcher; with the transparent film it contributes only the cast
+  shadow's alpha, so each frame carries the **true** shadow for that facing under the
+  sun (`--sun-elev`/`--sun-az`/`--sun-soft`). Shape follows the real 3D form and the
+  light, per facing — no guessing. Costs a Cycles pass (slower than EEVEE, but 16
+  frames is seconds).
+- **Fake (default)** — `sprite-postprocess.py` derives a shadow from each frame's own
+  alpha silhouette and projects it onto the iso floor: squashed toward the contact
+  line, **sheared** along the iso axis, **dilated** so a soft rim haloes past the hull,
+  then offset/blurred/darkened. The grow + near-zero offset read as a grounded *contact
+  pool* (parked); raise `--shadow-dx/dy` for a hovering cast look. No 3D pass, engine-
+  agnostic, fully tunable. Drop either with `--no-shadow`.
+
+#### State variants (engines off / on)
+
+A prop can ship multiple skins for different states. `gen-skin-variant.py` masks a
+glow color in the skin and desaturates + darkens it, so e.g. the parked ship's green
+engines read as **off**:
+
+```bash
+python3 gen-skin-variant.py --in idolknight.jpg --out idolknight_off.jpg --hue green
+```
+
+Bake one sheet per skin (`ship.png` from the off skin, `ship_on.png` from the
+original glowing one). They share frame layout, so the game swaps the `EnvDef.sheet`
+to switch state — powered-down while parked, glowing when engines are on.
+
+<Aside>
+Blender's bundled Python has no Pillow, so the stitch step shells out to the
+system `python3` (which carries it) to assemble the sheet — frames are written
+regardless. EEVEE is used for fast, flat, sprite-friendly renders.
+</Aside>
 
 ### Legacy CI Pipeline Example
 

@@ -11,6 +11,7 @@ export const InputContextId = {
 	Menu: 1,
 	Placement: 2,
 	Dialog: 3,
+	Chat: 4,
 } as const;
 
 export type InputContextId =
@@ -93,6 +94,7 @@ export function createDefaultContextStack(): InputContextStack {
 		Action.Pickup,
 		Action.Confirm,
 		Action.Cancel,
+		Action.ToggleChat,
 		...MENU_TOGGLES,
 	]);
 	stack.define(InputContextId.Menu, [
@@ -104,7 +106,12 @@ export function createDefaultContextStack(): InputContextStack {
 		...MOVE,
 		Action.Confirm,
 		Action.Cancel,
+		Action.ToggleChat,
 	]);
 	stack.define(InputContextId.Dialog, [Action.Confirm, Action.Cancel]);
+	// Chat-focused: only let the player close/confirm; MOVE + combat + a fresh
+	// ToggleChat are gated, so typing can't move the character or fire, and the
+	// focused DOM input owns the "/" key for close/insert.
+	stack.define(InputContextId.Chat, [Action.Confirm, Action.Cancel]);
 	return stack;
 }

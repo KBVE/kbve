@@ -1,0 +1,24 @@
+---
+title: Grafana Alerts Dashboard (RN)
+description: Grafana alerts stream rendered via the generic @kbve/rn/dash kit on react-native-web
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: Grafana (RN)
+    order: 5
+    badge: POC
+tags:
+    - dashboard
+    - grafana
+    - alerts
+    - react-native
+---
+
+import AstroGrafanaDashRN from '@/components/rnweb/AstroGrafanaDashRN.astro';
+
+Proof-of-concept: the same Grafana alerts stream rendered through the
+generic `@kbve/rn/dash` library (StreamSource + StreamLens) on
+react-native-web. One source + lens, destined to also mount on Expo mobile.
+
+<AstroGrafanaDashRN />

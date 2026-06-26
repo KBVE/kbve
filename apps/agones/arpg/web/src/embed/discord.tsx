@@ -34,9 +34,13 @@ const SESSION_ENDPOINT = '/.proxy/arpg-session/api/v1/discord/session';
 const GAME_WS = `${PROXY_WS}/.proxy/arpg-game/ws`;
 const CHAT_WS = `${PROXY_WS}/.proxy/arpg-chat/gamechat`;
 const SUPABASE_URL = `${PROXY_HTTP}/.proxy/arpg-supabase`;
-// Art base: the SDK rewrites /arpg-assets -> arpg.kbve.com, so
-// /arpg-assets/assets/... reaches the vite app's art through the proxy.
-const ASSET_BASE = '/arpg-assets';
+// Art base: the literal proxy path for the /arpg-assets mapping. We can't lean on
+// patchUrlMappings to rewrite /arpg-assets here — it only patches JS network APIs
+// (fetch/Image/WebSocket), NOT CSS `url()` (item atlas, panel border-image), which
+// the browser resolves itself. So bake the real `/.proxy/...` path that the proxy
+// serves directly; Phaser's JS loads resolve it too (the patch is a no-op on an
+// already-proxied path). Mirrors GAME_WS/SESSION_ENDPOINT above.
+const ASSET_BASE = '/.proxy/arpg-assets';
 
 const KBVE_DISCORD_URL = 'https://discord.gg/kbve';
 const KBVE_FEEDBACK_URL = 'https://kbve.com/contact/';

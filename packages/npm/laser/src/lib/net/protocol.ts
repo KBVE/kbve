@@ -12,6 +12,7 @@ export const quantizeVel = (v: number): number =>
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
 export const ACTION_SHOOT = 3;
+export const ACTION_LOOT = 4;
 
 export const EPHEMERAL_INVENTORY = 1;
 export const EPHEMERAL_COMBAT = 2;

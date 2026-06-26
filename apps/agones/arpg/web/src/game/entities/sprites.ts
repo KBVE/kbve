@@ -143,6 +143,37 @@ export function isPlayerKind(kinds: KindResolvers, kind: number): boolean {
  * display size so the artist's shadow lands exactly under the feet at every
  * angle/frame. Both are returned; the scene positions them together.
  */
+/** Env kind ref the server streams for a dead player's lootable corpse. */
+export const CORPSE_REF = 'corpse';
+
+/**
+ * A dead player's corpse: the class's Death animation frozen on its last frame and
+ * drained of colour, so it reads as a body on the ground. Single class for now, so
+ * it always uses the default (ranger) rig. The scene labels it "Graveyard of …".
+ */
+export function makeCorpseSprite(
+	scene: Phaser.Scene,
+): Phaser.GameObjects.Sprite {
+	const def = resolvePlayerClass(null);
+	const angle = CLASS_ANGLES[8]; // south
+	const sprite = scene.add.sprite(
+		0,
+		0,
+		classSheetKey(def, 'Death', angle),
+		0,
+	);
+	sprite.setOrigin(0.5, def.originY);
+	sprite.setDisplaySize(def.displaySize, def.displaySize);
+	safePlay(sprite, classAnimKey(def, 'Death', angle));
+	// Hold the final death frame, greyed out.
+	if (sprite.anims?.currentAnim) {
+		sprite.anims.setProgress(1);
+		sprite.anims.pause();
+	}
+	sprite.setTint(0x6f6f6f);
+	return sprite;
+}
+
 export function makeClassSprite(
 	scene: Phaser.Scene,
 	classRef: string | null,

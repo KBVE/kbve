@@ -9,3 +9,4 @@ export * from './useStream';
 export * from './StreamView';
 export * from './StatGrid';
 export * from './adapters/argo';
+export * from './adapters/grafana';

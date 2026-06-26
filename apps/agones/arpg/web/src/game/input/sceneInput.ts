@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GameClient, EntityStore, Cat } from '@kbve/laser';
+import { GameClient, EntityStore, Cat, ACTION_LOOT } from '@kbve/laser';
 import {
 	worldToScreen,
 	screenToWorld,
@@ -7,6 +7,7 @@ import {
 	type TileXY,
 } from '../iso';
 import { CursorController, Cursor } from './cursor';
+import { isTextInputFocused } from './devices/keyboard';
 import type { KindResolvers } from '../systems/kindResolvers';
 import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
@@ -30,6 +31,7 @@ export interface SceneInputDeps {
 	mySlot(): number;
 	isBlocked(x: number, y: number): boolean;
 	isHostile(serverEid: number): boolean;
+	isCorpse(serverEid: number): boolean;
 	useInventorySlot(idx: number): void;
 	castSpellSlot(idx: number): void;
 	exitPlacement(): void;
@@ -66,6 +68,8 @@ export function setupInput(
 	// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
 	// I toggles the full inventory panel; Escape closes it.
 	kb.on('keydown', (ev: KeyboardEvent) => {
+		// Chat (or any text field) owns the keyboard — don't fire hotbar/toggles.
+		if (isTextInputFocused()) return;
 		const digit = /^Digit([1-9])$/.exec(ev.code);
 		if (digit) {
 			const idx = Number(digit[1]) - 1;
@@ -131,6 +135,19 @@ export function setupInput(
 				Math.abs(deps.move.predicted.y - tile.y),
 			);
 			if (d <= PLACE_RANGE) deps.client()?.pickupObject(tile);
+			return;
+		}
+
+		// A corpse: loot it from an adjacent tile (server transfers everything),
+		// else walk toward it so the next click lands in range.
+		const corpse = deps.store.at(tile.x, tile.y, deps.myEid());
+		if (corpse && deps.isCorpse(corpse.serverEid)) {
+			const d = Math.max(
+				Math.abs(deps.move.predicted.x - tile.x),
+				Math.abs(deps.move.predicted.y - tile.y),
+			);
+			if (d <= 1) deps.client()?.action(ACTION_LOOT, corpse.serverEid);
+			else deps.startMoveTo(tile);
 			return;
 		}
 

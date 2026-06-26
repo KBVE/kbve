@@ -56,9 +56,10 @@ spec:
                               SSH_LISTEN_PORT: 2222
                               LFS_START_SERVER: true
                               LFS_JWT_SECRET: ''
+                              LFS_MAX_FILE_SIZE: 524288000
                           database:
                               DB_TYPE: postgres
-                              HOST: supabase-cluster-rw.kilobase.svc.cluster.local:5432
+                              HOST: kilobase-rw.kilobase.svc.cluster.local:5432
                               NAME: supabase
                               USER: forgejo
                               SSL_MODE: require

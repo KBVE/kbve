@@ -7,6 +7,7 @@ import {
 	onInventory,
 	onInventoryOpen,
 	onSpellLoadout,
+	onDeath,
 	type HudState,
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
@@ -146,6 +147,67 @@ function D2HudInner({ debug }: { debug: boolean }) {
 				</>
 			)}
 			<Tooltip />
+			<DeathScreen />
+		</div>
+	);
+}
+
+/**
+ * Brief "You Died" overlay on local death. Death is server-instant (respawn next
+ * tick), so it's triggered by the DEATH event, not a sustained hp=0; it fades
+ * itself out after a few seconds.
+ */
+function DeathScreen() {
+	const [shown, setShown] = useState(false);
+	useEffect(() => {
+		let t: ReturnType<typeof setTimeout> | undefined;
+		const off = onDeath(() => {
+			setShown(true);
+			if (t) clearTimeout(t);
+			t = setTimeout(() => setShown(false), 3600);
+		});
+		return () => {
+			off();
+			if (t) clearTimeout(t);
+		};
+	}, []);
+	if (!shown) return null;
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				inset: 0,
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 10,
+				background:
+					'radial-gradient(ellipse at center, rgba(60,0,0,0.35), rgba(0,0,0,0.82))',
+				zIndex: 35,
+				pointerEvents: 'none',
+				animation: 'arpgDeathFade 0.5s ease',
+			}}>
+			<div
+				style={{
+					fontFamily: 'serif',
+					fontSize: 64,
+					fontWeight: 700,
+					letterSpacing: 4,
+					color: '#b91c1c',
+					textShadow: '0 2px 12px rgba(0,0,0,0.9)',
+				}}>
+				YOU DIED
+			</div>
+			<div
+				style={{
+					fontSize: 14,
+					color: '#cbb4a0',
+					textShadow: TEXT_SHADOW,
+				}}>
+				Your corpse holds your belongings. Respawned at the surface —
+				find your way back.
+			</div>
 		</div>
 	);
 }

@@ -46,6 +46,15 @@ import {
 	type SceneInputDeps,
 } from './input/sceneInput';
 import { preloadCursors } from './input/cursor';
+import { getInputRouter, type InputRouter } from './input/input-router';
+import {
+	createDefaultContextStack,
+	InputContextId,
+	type InputContextStack,
+} from './input/input-context';
+import { KeyboardDevice, isTextInputFocused } from './input/devices/keyboard';
+import { Action } from './input/actions';
+import { emitChatToggle, onChatFocus, emitDeath } from './systems/hud';
 import {
 	makeFogState,
 	buildFog,
@@ -152,6 +161,8 @@ import {
 import {
 	makeSprite,
 	makeClassSprite,
+	makeCorpseSprite,
+	CORPSE_REF,
 	makeCreatureSprite,
 	resetCreaturePose,
 	resetCreatureShadow,
@@ -241,11 +252,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private static readonly ZOOM_MAX_LEAD = 0.35;
 	private static readonly ZOOM_SMOOTH_TIME = 0.28;
 	private static readonly ZOOM_MAX_SPEED = 6.0;
+	// Kept only for the Shift (walk-tier) read; direction now flows through the
+	// input router. WASD/arrows are bound on the keyboard device.
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-	private wasd!: Record<
-		'up' | 'down' | 'left' | 'right',
-		Phaser.Input.Keyboard.Key
-	>;
 
 	// True once the local player has spawned in-world: routes connection-state
 	// changes to the in-game reconnect banner instead of the boot overlay.
@@ -263,6 +272,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
+	// Central input: a keyboard device feeds the router (movement, ToggleChat, …);
+	// the context stack gates actions per mode (Gameplay / Chat). Polled + cleared
+	// each frame in update().
+	private inputRouter: InputRouter = getInputRouter();
+	private inputCtx: InputContextStack = createDefaultContextStack();
+	private kbDevice?: KeyboardDevice;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
 	// Dungeon floor the local player is on (z). Server-authoritative via the
@@ -275,6 +290,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// yet — so it's a dead end. Tracks the tile we've already flashed the
 	// "goes nowhere" notice for, so it fires once per step-on, not every frame.
 	private deadStairTile: string | null = null;
+	// Same one-shot guard for the surface down-stair: flash the PvP/danger notice
+	// once per step-on as the player is about to descend into the dungeon.
+	private downStairWarnTile: string | null = null;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -468,9 +486,21 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private setupInput() {
+		// Stand up the central input: router + context stack + keyboard device.
+		this.inputRouter.setContext(this.inputCtx);
+		this.kbDevice = new KeyboardDevice(
+			this.input.keyboard!,
+			this.inputRouter,
+		);
+		this.kbDevice.attach();
+		// While the chat input is focused, push the Chat context so MOVE/combat
+		// actions gate (typing can't move or fire); pop it on blur.
+		onChatFocus((focused) => {
+			if (focused) this.inputCtx.push(InputContextId.Chat);
+			else this.inputCtx.pop(InputContextId.Chat);
+		});
 		const refs = setupInputV(this, this.inputDeps());
 		this.cursors = refs.cursors;
-		this.wasd = refs.wasd;
 		this.fireKey = refs.fireKey;
 	}
 
@@ -545,6 +575,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			mySlot: () => this.mySlot,
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			isHostile: (e) => this.isHostileServer(e),
+			isCorpse: (e) => this.kinds.ref(this.store.kind(e)) === CORPSE_REF,
 			useInventorySlot: (i) => this.useInventorySlot(i),
 			castSpellSlot: (i) => this.castSpellSlot(i),
 			exitPlacement: () => this.exitPlacement(),
@@ -618,6 +649,8 @@ export class IsoArpgScene extends Phaser.Scene {
 							sprite = this.acquireTree(variant, felled);
 						}
 						refs = { sprite };
+					} else if (this.kinds.ref(e.kind) === CORPSE_REF) {
+						refs = { sprite: makeCorpseSprite(this) };
 					} else {
 						const envSprite = makeEnvSprite(
 							this,
@@ -785,6 +818,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			label: (e, cat) => {
 				if (cat === Cat.Player) return this.slotUsername.get(e.owner);
 				if (cat === Cat.Npc) return this.kinds.ref(e.kind) ?? undefined;
+				if (this.kinds.ref(e.kind) === CORPSE_REF) {
+					const name =
+						this.slotUsername.get(e.owner) ?? 'a fallen hero';
+					return `Graveyard of ${name}`;
+				}
 				return undefined;
 			},
 		};
@@ -1082,8 +1120,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			dungeon: () => this.dungeon,
 			gateGraph: this.gateGraph,
 			isBlocked: (x, y) => this.isBlocked(x, y),
-			cursors: this.cursors,
-			wasd: this.wasd,
+			moveAxisX: () =>
+				this.inputRouter.axis(Action.MoveLeft, Action.MoveRight),
+			moveAxisY: () =>
+				this.inputRouter.axis(Action.MoveUp, Action.MoveDown),
+			walking: () => this.cursors.shift?.isDown ?? false,
 			combat: this.combat,
 			refreshDungeon: (tile) => this.refreshDungeon(tile),
 		};
@@ -1091,6 +1132,9 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private onCombat(c: CombatEvent) {
 		onCombatV(this.combat, this.combatDeps(), c);
+		// Local player died — surface the death overlay (server respawns instantly,
+		// so this is the reliable trigger, not a sustained hp=0).
+		if (c.died && c.target === this.myEid) emitDeath();
 	}
 
 	/**
@@ -1296,12 +1340,47 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
+	/**
+	 * Entering the dungeon is a step into hostile, PvP-enabled territory. When the
+	 * player stands on the surface down-stair (z>=SURFACE_MIN_Z, about to descend),
+	 * flash a one-shot danger notice so the descent is never a surprise. Deeper
+	 * floors are already hostile, so the warning fires only at the surface gate.
+	 */
+	private checkDownStairWarning() {
+		if (!this.isSurface()) {
+			this.downStairWarnTile = null;
+			return;
+		}
+		const t = floatTile(this.move.floatState);
+		const down = stairTile(
+			floorSeed(DUNGEON_SEED, this.currentFloor),
+			StairKind.Down,
+		);
+		const key = `${down.x},${down.y}`;
+		if (t.x === down.x && t.y === down.y) {
+			if (this.downStairWarnTile !== key) {
+				this.downStairWarnTile = key;
+				this.flashMessage(
+					'Beware — the dungeon below is dangerous and PvP is enabled. Tread carefully.',
+				);
+			}
+		} else if (this.downStairWarnTile === key) {
+			this.downStairWarnTile = null; // stepped off — allow it to fire again
+		}
+	}
+
 	/** One-shot on-screen notice via laser's global `notification` event. */
 	private flashMessage(text: string) {
 		emitNotification({ title: '', message: text });
 	}
 
 	update(_time: number, delta: number) {
+		// Edge-read UI actions off the router, then clear the frame's press/release
+		// bits. Done up top so it runs even on the early-out below; movement reads
+		// the held `down` state (unaffected by endFrame) later in the frame.
+		if (this.inputRouter.consume(Action.ToggleChat)) emitChatToggle();
+		this.inputRouter.endFrame();
+
 		tickCreatureInterpV(this, this.store);
 		tickPlayerInterpV(this, this.store, this.myEid);
 		tickFacingV(this, this.store);
@@ -1321,8 +1400,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (!this.client || !this.predictSeeded) return;
 
 		// Space fells an adjacent standing tree if there is one, else fires the bow
-		// toward the cursor.
-		if (Phaser.Input.Keyboard.JustDown(this.fireKey)) {
+		// toward the cursor. Suppressed while the chat input owns the keyboard.
+		if (
+			!isTextInputFocused() &&
+			Phaser.Input.Keyboard.JustDown(this.fireKey)
+		) {
 			if (!this.tryFellAdjacentTree()) {
 				const ptr = this.input.activePointer;
 				this.fireBowAt(screenToWorldF(ptr.worldX, ptr.worldY));
@@ -1333,6 +1415,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
 		this.checkDeadStair();
+		this.checkDownStairWarning();
 		this.tryAutoPickup();
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.
@@ -1567,7 +1650,16 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private isHostileServer(serverEid: number): boolean {
 		const kind = this.store.kind(serverEid);
-		return kind >= 0 && this.syncResolvers.hostile(kind);
+		if (kind < 0) return false;
+		if (this.syncResolvers.hostile(kind)) return true;
+		// PvP: other players become valid targets on dungeon floors (z < 0). The
+		// server enforces the same gate (pvp_allowed), so don't offer surface
+		// players as targets — a shot there would just whiff server-side.
+		return (
+			!this.isSurface() &&
+			serverEid !== this.myEid &&
+			isPlayerKind(this.kinds, kind)
+		);
 	}
 
 	private placeSprite(sprite: EntityRefs['sprite'], tx: number, ty: number) {

@@ -3,6 +3,7 @@ import { useTranslation } from '@kbve/laser';
 import type { InventoryItem } from '@kbve/laser';
 import { emitInventoryIntent, emitInventoryOpen } from '../../systems/hud';
 import { type ItemMeta } from '../../entities/itemMeta';
+import { arpgAsset } from '../../config';
 import {
 	ATLAS_URL,
 	ATLAS_SIZE,
@@ -123,7 +124,7 @@ export function ItemIcon({
 					display: 'block',
 					width: size,
 					height: size,
-					backgroundImage: `url(${ATLAS_URL})`,
+					backgroundImage: `url(${arpgAsset(ATLAS_URL)})`,
 					backgroundRepeat: 'no-repeat',
 					backgroundSize: `${scaled}px ${scaled}px`,
 					backgroundPosition: `-${cell.col * size}px -${cell.row * size}px`,

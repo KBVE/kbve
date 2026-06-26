@@ -56,6 +56,9 @@ pub struct SimConfig {
     /// Items granted to a brand-new player (no saved state). Returning players
     /// keep their persisted inventory instead.
     pub starting_inventory: Vec<(String, u32)>,
+    /// Kind to spawn for a dead player's lootable corpse (game-registered, since
+    /// the sim is content-agnostic). `None` disables corpses — death just respawns.
+    pub corpse_kind: Option<u16>,
 }
 
 impl Default for SimConfig {
@@ -68,6 +71,7 @@ impl Default for SimConfig {
             spawn: Tile::new(0, 0),
             ticks_per_tile: 4,
             starting_inventory: Vec::new(),
+            corpse_kind: None,
         }
     }
 }
@@ -694,6 +698,13 @@ pub struct PlacedBy {
     pub kit_ref: String,
 }
 
+/// A dead player's lootable corpse. Holds the dropped inventory (an `Inventory`
+/// component) and carries `PlacedBy { owner }` so the client labels it
+/// "Graveyard of <name>". Walkable (no `Blocker`) — loot it from an adjacent
+/// tile via `ACTION_LOOT`, which transfers everything and despawns it.
+#[derive(Component)]
+pub struct Corpse;
+
 /// Occupies its tile — paired with `WalkableMap::block_tile_z` so movement and
 /// pathfinding route around it.
 #[derive(Component, Clone, Copy)]
@@ -1104,12 +1115,13 @@ pub fn build_app(
                 advance_float,
                 advance_npc_float,
                 advance_movement,
+                record_pos_history,
                 stair_system,
                 env_hazard_burn,
                 env_heal_aura,
                 env_mana_aura,
                 tick_status_effects,
-                respawn_players,
+                handle_death_and_respawn,
                 regen_players,
             )
                 .chain()
@@ -1236,6 +1248,7 @@ fn sync_roster(
                 FloatMove::at(config.spawn),
                 IntentBuffer::default(),
             ))
+            .insert(PosHistory::default())
             .id();
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
     }
@@ -1300,6 +1313,53 @@ pub struct IntentBuffer {
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
+}
+
+/// Recent server-tick positions per player, for lag-compensated PvP hit checks:
+/// the shooter sees remote players ~INTERP_DELAY + RTT in the past, so on a hit we
+/// rewind the TARGET to where the shooter saw it instead of its live position.
+const POS_HISTORY_LEN: usize = 16;
+/// Ticks to rewind a player target on a hit check — covers the client interp
+/// delay (200ms = 4 ticks @ 20Hz) plus a nominal RTT. Fixed for now; per-client
+/// RTT precision is a refinement.
+const LAG_COMP_TICKS: usize = 5;
+
+#[derive(Component)]
+pub struct PosHistory {
+    ring: [Tile; POS_HISTORY_LEN],
+    head: usize,
+    len: usize,
+}
+
+impl Default for PosHistory {
+    fn default() -> Self {
+        Self {
+            ring: [Tile::new(0, 0); POS_HISTORY_LEN],
+            head: 0,
+            len: 0,
+        }
+    }
+}
+
+impl PosHistory {
+    /// Record this tick's tile in the most-recent slot.
+    fn record(&mut self, tile: Tile) {
+        if self.len == 0 {
+            self.ring = [tile; POS_HISTORY_LEN];
+            self.head = 0;
+            self.len = POS_HISTORY_LEN;
+            return;
+        }
+        self.head = (self.head + 1) % POS_HISTORY_LEN;
+        self.ring[self.head] = tile;
+    }
+
+    /// Tile `ticks` ago (0 = most recent), clamped to the recorded window.
+    fn ago(&self, ticks: usize) -> Tile {
+        let back = ticks.min(self.len.saturating_sub(1));
+        let idx = (self.head + POS_HISTORY_LEN - back) % POS_HISTORY_LEN;
+        self.ring[idx]
+    }
 }
 
 /// Inputs to buffer before consumption starts — absorbs network arrival variance
@@ -1626,6 +1686,8 @@ pub(crate) type AttackPlayerQuery<'w, 's> = Query<
         &'static mut XpState,
         &'static Equipped,
         &'static mut Mana,
+        Option<&'static Floor>,
+        &'static Defense,
     ),
 >;
 
@@ -1690,7 +1752,7 @@ pub(crate) fn resolve_attack_hit(
     let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_COMBAT,
-        to: slot,
+        to: proto::PLAYER_SLOT_NONE,
         payload,
     });
     if died {
@@ -1712,7 +1774,7 @@ pub(crate) fn resolve_attack_hit(
             *k += 1;
             *k
         };
-        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana)) =
+        if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped, mana, _, _)) =
             q_players.get_mut(player_entity)
         {
             let (mp, max_mp) = (mana.mp, mana.max_mp);
@@ -1722,6 +1784,52 @@ pub(crate) fn resolve_attack_hit(
             );
         }
     }
+}
+
+/// PvP is allowed only between two players on the SAME dungeon floor (z < 0). The
+/// surface (z >= 0) stays peaceful, and the spawn safe zone (also surface) with it.
+pub(crate) fn pvp_allowed(az: i32, tz: i32) -> bool {
+    az < 0 && tz < 0 && az == tz
+}
+
+/// Apply a confirmed player-vs-player hit. Disjoint mutable access to attacker +
+/// target via `get_many_mut`; rolls damage (target defense + deterministic crit)
+/// and broadcasts the combat event to ALL clients. A kill (hp <= 0) is picked up
+/// by `respawn_players` like any other death. The caller has already range- and
+/// hostility-gated; self-targeting fails the disjoint borrow and no-ops.
+fn resolve_pvp_hit(
+    attacker: Entity,
+    target: Entity,
+    attack: i32,
+    bcast: &Outbound,
+    seed: &SimSeed,
+    clock: &SimClock,
+    q_players: &mut AttackPlayerQuery,
+) {
+    let Ok([_atk, tgt]) = q_players.get_many_mut([attacker, target]) else {
+        return;
+    };
+    let (_, _, _, _, _, mut t_hp, _, _, _, _, t_def) = tgt;
+    let base = (attack - t_def.0).max(1);
+    let crit =
+        hash3(seed.0, attacker.index_u32() as u64, clock.tick as u64) % 100 < CRIT_CHANCE_PCT;
+    let damage = if crit { base * 2 } else { base };
+    t_hp.hp -= damage;
+    let died = t_hp.hp <= 0;
+    let event = proto::CombatEvent {
+        attacker: attacker.index_u32(),
+        target: target.index_u32(),
+        target_ref: None,
+        dmg: damage,
+        crit,
+        died,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_COMBAT,
+        to: proto::PLAYER_SLOT_NONE,
+        payload,
+    });
 }
 
 fn apply_drops(
@@ -1734,6 +1842,22 @@ fn apply_drops(
             commands.spawn(bundle);
         }
     }
+}
+
+/// Read-only-ish target queries for `apply_actions`, grouped into one `SystemParam`
+/// so the system stays under Bevy's 16-param ceiling: ground items (pickup),
+/// position history (lag-comp), and corpses (loot).
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct ActionTargets<'w, 's> {
+    items: Query<'w, 's, (&'static GridPos, &'static GroundItem)>,
+    history: Query<'w, 's, &'static PosHistory>,
+    #[allow(clippy::type_complexity)]
+    corpses: Query<
+        'w,
+        's,
+        (&'static GridPos, &'static mut Inventory),
+        (With<Corpse>, Without<PlayerSlotTag>),
+    >,
 }
 
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
@@ -1752,7 +1876,7 @@ fn apply_actions(
     mut commands: Commands,
     mut q_players: AttackPlayerQuery,
     mut q_mobs: AttackMobQuery,
-    q_items: Query<(&GridPos, &GroundItem)>,
+    mut targets: ActionTargets,
 ) {
     if actions.0.is_empty() {
         return;
@@ -1780,43 +1904,92 @@ fn apply_actions(
 
         match action_id {
             proto::ACTION_ATTACK => {
-                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
+                let Ok((_, _, pos, stats, _, _, _, _, _, a_floor, _)) =
+                    q_players.get(player_entity)
+                else {
                     continue;
                 };
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
-                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
-                    continue;
-                };
-                if !combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
-                    continue;
+                let az = a_floor.map(|f| f.0).unwrap_or(0);
+                // Mob target first; else a PvP player target (dungeon-floor only).
+                if let Ok((mob_pos, ..)) = q_mobs.get(target_entity) {
+                    if combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
+                        resolve_attack_hit(
+                            player_entity,
+                            target_entity,
+                            proto::PlayerSlot(slot.0),
+                            attack,
+                            &bcast,
+                            &registry,
+                            &clock,
+                            &seed,
+                            &config,
+                            &equipment,
+                            &mut respawns,
+                            &mut kill_counts,
+                            &mut commands,
+                            &mut q_players,
+                            &mut q_mobs,
+                        );
+                    }
+                } else if let Some((live_tile, tz)) = match q_players.get(target_entity) {
+                    Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
+                        Some((t_pos.tile, t_floor.map(|f| f.0).unwrap_or(0)))
+                    }
+                    Err(_) => None,
+                } {
+                    // Lag-comp: adjudicate against where the shooter SAW the target.
+                    let target_tile = targets
+                        .history
+                        .get(target_entity)
+                        .map(|h| h.ago(LAG_COMP_TICKS))
+                        .unwrap_or(live_tile);
+                    if pvp_allowed(az, tz)
+                        && combat::in_range_adjacent(
+                            attacker_tile,
+                            target_tile,
+                            combat::MELEE_RANGE,
+                        )
+                    {
+                        resolve_pvp_hit(
+                            player_entity,
+                            target_entity,
+                            attack,
+                            &bcast,
+                            &seed,
+                            &clock,
+                            &mut q_players,
+                        );
+                    }
                 }
-                resolve_attack_hit(
-                    player_entity,
-                    target_entity,
-                    proto::PlayerSlot(slot.0),
-                    attack,
-                    &bcast,
-                    &registry,
-                    &clock,
-                    &seed,
-                    &config,
-                    &equipment,
-                    &mut respawns,
-                    &mut kill_counts,
-                    &mut commands,
-                    &mut q_players,
-                    &mut q_mobs,
-                );
             }
             proto::ACTION_SHOOT => {
-                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
+                let Ok((_, _, pos, stats, _, _, _, _, _, a_floor, _)) =
+                    q_players.get(player_entity)
+                else {
                     continue;
                 };
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
-                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
+                let az = a_floor.map(|f| f.0).unwrap_or(0);
+                // Target tile + whether it's a PvP player (Some(z)) or a mob (None).
+                let Some((mut target_tile, target_z)) = (match q_mobs.get(target_entity) {
+                    Ok((mob_pos, ..)) => Some((mob_pos.tile, None)),
+                    Err(_) => match q_players.get(target_entity) {
+                        Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
+                            Some((t_pos.tile, Some(t_floor.map(|f| f.0).unwrap_or(0))))
+                        }
+                        Err(_) => None,
+                    },
+                }) else {
                     continue;
                 };
-                let target_tile = mob_pos.tile;
+                // Lag-comp a PvP target: fly + adjudicate the arrow against where the
+                // shooter SAW the target (rewound), not its live position.
+                if target_z.is_some()
+                    && let Ok(h) = targets.history.get(target_entity)
+                {
+                    target_tile = h.ago(LAG_COMP_TICKS);
+                }
                 let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
                     !map.is_walkable(t)
                 });
@@ -1836,27 +2009,39 @@ fn apply_actions(
                     payload,
                 });
                 if los_clear {
-                    resolve_attack_hit(
-                        player_entity,
-                        target_entity,
-                        proto::PlayerSlot(slot.0),
-                        attack,
-                        &bcast,
-                        &registry,
-                        &clock,
-                        &seed,
-                        &config,
-                        &equipment,
-                        &mut respawns,
-                        &mut kill_counts,
-                        &mut commands,
-                        &mut q_players,
-                        &mut q_mobs,
-                    );
+                    match target_z {
+                        None => resolve_attack_hit(
+                            player_entity,
+                            target_entity,
+                            proto::PlayerSlot(slot.0),
+                            attack,
+                            &bcast,
+                            &registry,
+                            &clock,
+                            &seed,
+                            &config,
+                            &equipment,
+                            &mut respawns,
+                            &mut kill_counts,
+                            &mut commands,
+                            &mut q_players,
+                            &mut q_mobs,
+                        ),
+                        Some(tz) if pvp_allowed(az, tz) => resolve_pvp_hit(
+                            player_entity,
+                            target_entity,
+                            attack,
+                            &bcast,
+                            &seed,
+                            &clock,
+                            &mut q_players,
+                        ),
+                        Some(_) => {}
+                    }
                 }
             }
             proto::ACTION_PICKUP => {
-                let Ok((item_pos, item)) = q_items.get(target_entity) else {
+                let Ok((item_pos, item)) = targets.items.get(target_entity) else {
                     continue;
                 };
                 let (item_ref, count, item_tile) =
@@ -1882,6 +2067,30 @@ fn apply_actions(
                     to: proto::PlayerSlot(slot.0),
                     payload: pickup,
                 });
+                send_inventory(&bcast, slot, &inv);
+            }
+            proto::ACTION_LOOT => {
+                let Ok((corpse_pos, mut corpse_inv)) = targets.corpses.get_mut(target_entity)
+                else {
+                    continue;
+                };
+                let corpse_tile = corpse_pos.tile;
+                let Ok((_, _, pos, _, mut inv, ..)) = q_players.get_mut(player_entity) else {
+                    continue;
+                };
+                if pos.tile.chebyshev(corpse_tile) > 1 {
+                    continue;
+                }
+                // Transfer everything, then the empty corpse despawns.
+                let items = std::mem::take(&mut corpse_inv.slots);
+                if items.is_empty() {
+                    commands.entity(target_entity).despawn();
+                    continue;
+                }
+                for (item_ref, count) in items {
+                    inv.add(&item_ref, count);
+                }
+                commands.entity(target_entity).despawn();
                 send_inventory(&bcast, slot, &inv);
             }
             _ => {}
@@ -2514,22 +2723,62 @@ fn regen_players(
 }
 
 #[allow(clippy::type_complexity)]
-fn respawn_players(
+/// On death (hp <= 0): drop the player's entire inventory into a lootable corpse
+/// at the death spot (PvE + PvP), then respawn them at the SURFACE spawn with full
+/// HP — dropping any dungeon `Floor` so they come back up top, not on the floor
+/// they died on. Corpses are disabled (items just clear) when no `corpse_kind` is
+/// configured.
+fn handle_death_and_respawn(
     config: Res<SimConfig>,
+    mut commands: Commands,
     mut q: Query<
         (
+            Entity,
+            &PlayerSlotTag,
             &mut GridPos,
             &mut Health,
             &mut StatusEffects,
             &mut MoveSpeed,
             &mut FloatMove,
+            &mut Inventory,
+            Option<&Floor>,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
-    for (mut pos, mut hp, mut status, mut speed, mut fm) in q.iter_mut() {
+    for (entity, slot, mut pos, mut hp, mut status, mut speed, mut fm, mut inv, floor) in
+        q.iter_mut()
+    {
         if hp.hp > 0 {
             continue;
+        }
+        let death_tile = pos.tile;
+        let death_floor = floor.map(|f| f.0).unwrap_or(0);
+
+        // Drop everything into a corpse where they fell.
+        if let Some(corpse_kind) = config.corpse_kind
+            && !inv.slots.is_empty()
+        {
+            let items = std::mem::take(&mut inv.slots);
+            let mut e = commands.spawn((
+                EntityKind(corpse_kind),
+                GridPos::at(death_tile),
+                MoveTarget::default(),
+                Inventory { slots: items },
+                Corpse,
+                PlacedBy {
+                    owner: slot.0,
+                    kit_ref: String::new(),
+                },
+            ));
+            if death_floor != 0 {
+                e.insert(Floor(death_floor));
+            }
+        }
+
+        // Respawn topside.
+        if death_floor != 0 {
+            commands.entity(entity).remove::<Floor>();
         }
         pos.tile = config.spawn;
         fm.body = FloatBody::at(config.spawn.x as f32, config.spawn.y as f32);
@@ -2929,6 +3178,15 @@ fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
     }
 }
 
+/// Snapshot each player's tile into its `PosHistory` ring every tick (after the
+/// float advance), so lag-compensated hit checks can rewind a target to where the
+/// shooter saw it.
+fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory), With<PlayerSlotTag>>) {
+    for (pos, mut h) in q.iter_mut() {
+        h.record(pos.tile);
+    }
+}
+
 fn advance_movement(
     mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed), Without<FloatSteer>>,
 ) {
@@ -3182,6 +3440,7 @@ pub(crate) mod test_support {
         let mut registry = KindRegistry::new();
         registry.register_npc("training-dummy");
         registry.register_item("potion");
+        let corpse_kind = registry.register_env("corpse");
         let app = build_app(
             tx,
             input_rx,
@@ -3189,6 +3448,7 @@ pub(crate) mod test_support {
             seed,
             SimConfig {
                 spawn: Tile::new(8, 8),
+                corpse_kind: Some(corpse_kind),
                 ..SimConfig::default()
             },
             map,
@@ -3687,16 +3947,204 @@ mod tests {
                 ServerEvent::Ephemeral { kind, .. } if kind == proto::EPHEMERAL_COMBAT => {
                     saw_combat = true;
                 }
-                ServerEvent::Snapshot(snap) => {
-                    if snap.entities.iter().any(|e| e.kind == potion_kind) {
-                        saw_potion_drop = true;
-                    }
+                ServerEvent::Snapshot(snap)
+                    if snap.entities.iter().any(|e| e.kind == potion_kind) =>
+                {
+                    saw_potion_drop = true;
                 }
                 _ => {}
             }
         }
         assert!(saw_combat, "no combat ephemeral emitted");
         assert!(saw_potion_drop, "loot did not drop");
+    }
+
+    /// Place a joined player at a tile on dungeon floor `z` (None = surface), and
+    /// settle the float body there so `advance_float` keeps it put for the test.
+    fn place_player(app: &mut App, e: Entity, tile: Tile, z: Option<i32>) {
+        {
+            let mut fm = app.world_mut().get_mut::<FloatMove>(e).unwrap();
+            fm.body = crate::float_move::FloatBody::at(tile.x as f32, tile.y as f32);
+            fm.intent_x = 0;
+            fm.intent_y = 0;
+        }
+        app.world_mut().get_mut::<GridPos>(e).unwrap().tile = tile;
+        match z {
+            Some(z) => {
+                app.world_mut().entity_mut(e).insert(Floor(z));
+            }
+            None => {
+                app.world_mut().entity_mut(e).remove::<Floor>();
+            }
+        }
+    }
+
+    #[test]
+    fn pvp_melee_damages_player_on_dungeon_floor() {
+        let (mut app, _rx, input_tx, roster) = harness(71);
+        let a = join(&roster, "alice");
+        let b = join(&roster, "bob");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), Some(-1));
+        place_player(&mut app, eb, Tile::new(6, 5), Some(-1));
+        // Settle so the lag-comp history reflects the adjacent position.
+        for _ in 0..(LAG_COMP_TICKS + 2) {
+            app.update();
+        }
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert!(
+            hp1 < hp0,
+            "PvP melee did not damage target (hp {hp0}->{hp1})"
+        );
+    }
+
+    #[test]
+    fn pvp_blocked_on_surface() {
+        let (mut app, _rx, input_tx, roster) = harness(72);
+        let a = join(&roster, "carol");
+        let b = join(&roster, "dave");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), None);
+        place_player(&mut app, eb, Tile::new(6, 5), None);
+        app.update();
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert_eq!(hp1, hp0, "PvP wrongly allowed on the peaceful surface");
+    }
+
+    #[test]
+    fn lag_comp_hits_target_at_shooter_view_position() {
+        let (mut app, _rx, input_tx, roster) = harness(73);
+        let a = join(&roster, "shooter");
+        let b = join(&roster, "runner");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), Some(-1));
+        place_player(&mut app, eb, Tile::new(6, 5), Some(-1));
+        // Fill B's history at the adjacent tile the shooter sees it at.
+        for _ in 0..(LAG_COMP_TICKS + 4) {
+            app.update();
+        }
+        // B sprints far away THIS tick: its LIVE pos is now well out of melee range,
+        // but its rewound (shooter-view) pos is still adjacent — lag-comp must hit.
+        {
+            let mut fm = app.world_mut().get_mut::<FloatMove>(eb).unwrap();
+            fm.body = crate::float_move::FloatBody::at(25.0, 25.0);
+        }
+        app.world_mut().get_mut::<GridPos>(eb).unwrap().tile = Tile::new(25, 25);
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert!(
+            hp1 < hp0,
+            "lag-comp did not rewind the target to the shooter's view (hp {hp0}->{hp1})"
+        );
+    }
+
+    #[test]
+    fn death_drops_corpse_and_loot_transfers() {
+        let (mut app, _rx, input_tx, roster) = harness(81);
+        let a = join(&roster, "victim");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        set_inventory(&mut app, ea, &[("potion", 3)]);
+        place_player(&mut app, ea, Tile::new(10, 10), Some(-1));
+        // Kill the player.
+        app.world_mut().get_mut::<Health>(ea).unwrap().hp = 0;
+        app.update();
+
+        // Respawned topside (spawn 8,8), dungeon Floor dropped, inventory emptied.
+        assert_eq!(
+            app.world().get::<GridPos>(ea).unwrap().tile,
+            Tile::new(8, 8)
+        );
+        assert!(app.world().get::<Floor>(ea).is_none(), "Floor dropped");
+        assert!(
+            app.world().get::<Inventory>(ea).unwrap().slots.is_empty(),
+            "inventory dropped on death"
+        );
+
+        // A corpse holds the dropped items at the death tile.
+        let corpse = {
+            let mut q = app
+                .world_mut()
+                .query_filtered::<(Entity, &GridPos, &Inventory), With<Corpse>>();
+            let (e, gp, inv) = q.iter(app.world()).next().expect("corpse spawned");
+            assert_eq!(gp.tile, Tile::new(10, 10));
+            assert_eq!(inv.slots, vec![("potion".to_string(), 3)]);
+            e
+        };
+
+        // An adjacent looter takes everything; the empty corpse despawns.
+        let b = join(&roster, "looter");
+        app.update();
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, eb, &[]);
+        place_player(&mut app, eb, Tile::new(11, 10), Some(-1));
+        app.update();
+        input_tx
+            .send((
+                b,
+                Input::Action {
+                    id: proto::ACTION_LOOT,
+                    target: Some(proto::EntityId(corpse.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+
+        assert_eq!(
+            app.world().get::<Inventory>(eb).unwrap().slots,
+            vec![("potion".to_string(), 3)],
+            "looter received the corpse's items"
+        );
+        let mut q = app.world_mut().query_filtered::<Entity, With<Corpse>>();
+        assert!(
+            q.iter(app.world()).next().is_none(),
+            "looted corpse despawned"
+        );
     }
 
     fn spawn_bow_target(app: &mut App, kind: u16, tile: Tile) -> Entity {

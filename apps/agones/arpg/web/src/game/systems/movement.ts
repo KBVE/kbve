@@ -77,8 +77,11 @@ export interface MovementDeps {
 	dungeon(): DungeonField;
 	gateGraph: GateGraph;
 	isBlocked(x: number, y: number): boolean;
-	cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-	wasd: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
+	// Movement intent off the central input router (context-gated), -1..1 per axis.
+	moveAxisX(): number;
+	moveAxisY(): number;
+	// Walk tier (Shift held) vs run.
+	walking(): boolean;
 	combat: CombatState;
 	refreshDungeon(tile: TileXY): void;
 }
@@ -126,7 +129,7 @@ export function tickLocalMotion(
 	refs: EntityRefs,
 	deltaMs: number,
 ): void {
-	const walking = deps.cursors.shift?.isDown ?? false;
+	const walking = deps.walking();
 	const speed = walking ? WALK_SPEED : RUN_SPEED;
 
 	// Integrate the local sim at the SAME fixed cadence as the server (SIM_DT_MS),
@@ -238,13 +241,10 @@ export function tickLocalMotion(
  * the body eases to a stop instead of overshooting).
  */
 function readIntent(st: MovementState, deps: MovementDeps): TileXY {
-	const { cursors, wasd } = deps;
-	const ix =
-		(cursors.right.isDown || wasd.right.isDown ? 1 : 0) -
-		(cursors.left.isDown || wasd.left.isDown ? 1 : 0);
-	const iy =
-		(cursors.down.isDown || wasd.down.isDown ? 1 : 0) -
-		(cursors.up.isDown || wasd.up.isDown ? 1 : 0);
+	// Direction off the router's gated axes (WASD/arrows -> MoveLeft/Right/Up/Down),
+	// so a Chat/Menu context zeroes movement without touching this code.
+	const ix = deps.moveAxisX();
+	const iy = deps.moveAxisY();
 	if (ix !== 0 || iy !== 0) {
 		st.movePath = [];
 		const wx = ix + iy;

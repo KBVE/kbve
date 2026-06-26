@@ -44,6 +44,8 @@ spec:
                         value: https://kbve.com
                       - name: GOTRUE_OAUTH_SERVER_ENABLED
                         value: 'true'
+                      - name: GOTRUE_OAUTH_SERVER_AUTHORIZATION_PATH
+                        value: /auth/consent
                       - name: GOTRUE_JWT_ISSUER
                         value: https://supabase.kbve.com/auth/v1
                       - name: GOTRUE_URI_ALLOW_LIST

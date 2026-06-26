@@ -20,7 +20,8 @@ export const Action = {
 	ToggleQuestLog: 18,
 	Interact: 19,
 	Pickup: 20,
-	Count: 21,
+	ToggleChat: 21,
+	Count: 22,
 } as const;
 
 export type ActionId = (typeof Action)[Exclude<keyof typeof Action, 'Count'>];
