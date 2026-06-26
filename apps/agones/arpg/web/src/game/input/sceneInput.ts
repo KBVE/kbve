@@ -7,6 +7,7 @@ import {
 	type TileXY,
 } from '../iso';
 import { CursorController, Cursor } from './cursor';
+import { isTextInputFocused } from './devices/keyboard';
 import type { KindResolvers } from '../systems/kindResolvers';
 import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
@@ -66,6 +67,8 @@ export function setupInput(
 	// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
 	// I toggles the full inventory panel; Escape closes it.
 	kb.on('keydown', (ev: KeyboardEvent) => {
+		// Chat (or any text field) owns the keyboard — don't fire hotbar/toggles.
+		if (isTextInputFocused()) return;
 		const digit = /^Digit([1-9])$/.exec(ev.code);
 		if (digit) {
 			const idx = Number(digit[1]) - 1;

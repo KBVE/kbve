@@ -46,6 +46,15 @@ import {
 	type SceneInputDeps,
 } from './input/sceneInput';
 import { preloadCursors } from './input/cursor';
+import { getInputRouter, type InputRouter } from './input/input-router';
+import {
+	createDefaultContextStack,
+	InputContextId,
+	type InputContextStack,
+} from './input/input-context';
+import { KeyboardDevice, isTextInputFocused } from './input/devices/keyboard';
+import { Action } from './input/actions';
+import { emitChatToggle, onChatFocus } from './systems/hud';
 import {
 	makeFogState,
 	buildFog,
@@ -241,11 +250,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private static readonly ZOOM_MAX_LEAD = 0.35;
 	private static readonly ZOOM_SMOOTH_TIME = 0.28;
 	private static readonly ZOOM_MAX_SPEED = 6.0;
+	// Kept only for the Shift (walk-tier) read; direction now flows through the
+	// input router. WASD/arrows are bound on the keyboard device.
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-	private wasd!: Record<
-		'up' | 'down' | 'left' | 'right',
-		Phaser.Input.Keyboard.Key
-	>;
 
 	// True once the local player has spawned in-world: routes connection-state
 	// changes to the in-game reconnect banner instead of the boot overlay.
@@ -263,6 +270,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
 	private fireKey!: Phaser.Input.Keyboard.Key;
+	// Central input: a keyboard device feeds the router (movement, ToggleChat, …);
+	// the context stack gates actions per mode (Gameplay / Chat). Polled + cleared
+	// each frame in update().
+	private inputRouter: InputRouter = getInputRouter();
+	private inputCtx: InputContextStack = createDefaultContextStack();
+	private kbDevice?: KeyboardDevice;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
 	// Dungeon floor the local player is on (z). Server-authoritative via the
@@ -471,9 +484,21 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private setupInput() {
+		// Stand up the central input: router + context stack + keyboard device.
+		this.inputRouter.setContext(this.inputCtx);
+		this.kbDevice = new KeyboardDevice(
+			this.input.keyboard!,
+			this.inputRouter,
+		);
+		this.kbDevice.attach();
+		// While the chat input is focused, push the Chat context so MOVE/combat
+		// actions gate (typing can't move or fire); pop it on blur.
+		onChatFocus((focused) => {
+			if (focused) this.inputCtx.push(InputContextId.Chat);
+			else this.inputCtx.pop(InputContextId.Chat);
+		});
 		const refs = setupInputV(this, this.inputDeps());
 		this.cursors = refs.cursors;
-		this.wasd = refs.wasd;
 		this.fireKey = refs.fireKey;
 	}
 
@@ -1085,8 +1110,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			dungeon: () => this.dungeon,
 			gateGraph: this.gateGraph,
 			isBlocked: (x, y) => this.isBlocked(x, y),
-			cursors: this.cursors,
-			wasd: this.wasd,
+			moveAxisX: () =>
+				this.inputRouter.axis(Action.MoveLeft, Action.MoveRight),
+			moveAxisY: () =>
+				this.inputRouter.axis(Action.MoveUp, Action.MoveDown),
+			walking: () => this.cursors.shift?.isDown ?? false,
 			combat: this.combat,
 			refreshDungeon: (tile) => this.refreshDungeon(tile),
 		};
@@ -1334,6 +1362,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	update(_time: number, delta: number) {
+		// Edge-read UI actions off the router, then clear the frame's press/release
+		// bits. Done up top so it runs even on the early-out below; movement reads
+		// the held `down` state (unaffected by endFrame) later in the frame.
+		if (this.inputRouter.consume(Action.ToggleChat)) emitChatToggle();
+		this.inputRouter.endFrame();
+
 		tickCreatureInterpV(this, this.store);
 		tickPlayerInterpV(this, this.store, this.myEid);
 		tickFacingV(this, this.store);
@@ -1353,8 +1387,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (!this.client || !this.predictSeeded) return;
 
 		// Space fells an adjacent standing tree if there is one, else fires the bow
-		// toward the cursor.
-		if (Phaser.Input.Keyboard.JustDown(this.fireKey)) {
+		// toward the cursor. Suppressed while the chat input owns the keyboard.
+		if (
+			!isTextInputFocused() &&
+			Phaser.Input.Keyboard.JustDown(this.fireKey)
+		) {
 			if (!this.tryFellAdjacentTree()) {
 				const ptr = this.input.activePointer;
 				this.fireBowAt(screenToWorldF(ptr.worldX, ptr.worldY));

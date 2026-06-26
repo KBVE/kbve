@@ -6,6 +6,7 @@ import {
 } from '@kbve/laser';
 import { ARPG_CHAT } from './config';
 import { getNetConfig } from './net-config';
+import { onChatToggle, emitChatFocus } from './systems/hud';
 import { GOTHIC } from './ui/gothic/svg';
 import { GothicFrame } from './ui/gothic/GothicFrame';
 import { ChevronIcon, ChatIcon, NewsIcon, TipsIcon } from './ui/gothic/icons';
@@ -96,28 +97,22 @@ export default function ChatPanel() {
 		if (el) el.scrollTop = el.scrollHeight;
 	}, [lines, active]);
 
-	// Global "/" opens the chat (switch to Chat, pin, focus the input) from
-	// anywhere in-game — additive to the tab buttons. Ignored while another field
-	// is focused; while the chat input is focused "/" types normally (and an empty
-	// input handles "/" as close in its own onKeyDown), so it reads as a toggle.
+	// "/" (Action.ToggleChat) is read by the scene's input router and bridged here
+	// via CHAT_TOGGLE — additive to the tab buttons. The router gates ToggleChat in
+	// the Chat context (input focused), so "/" only fires this OPEN path from
+	// gameplay; closing/typing is the focused DOM input's own onKeyDown.
 	useEffect(() => {
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key !== '/') return;
-			const el = document.activeElement;
-			if (
-				el instanceof HTMLInputElement ||
-				el instanceof HTMLTextAreaElement
-			)
-				return;
-			e.preventDefault();
-			e.stopPropagation();
-			setTab('chat');
-			setPinned(true);
-			inputRef.current?.focus();
-		};
-		window.addEventListener('keydown', onKey, true);
-		return () => window.removeEventListener('keydown', onKey, true);
-	}, []);
+		return onChatToggle(() => {
+			if (tab === 'chat' && pinned) {
+				setPinned(false);
+				inputRef.current?.blur();
+			} else {
+				setTab('chat');
+				setPinned(true);
+				inputRef.current?.focus();
+			}
+		});
+	}, [tab, pinned]);
 
 	// Clicking the chat box activates it: pin open + focus the input (chat tab).
 	const activateChat = () => {
@@ -290,8 +285,14 @@ export default function ChatPanel() {
 								ref={inputRef}
 								value={draft}
 								onChange={(e) => setDraft(e.target.value)}
-								onFocus={() => setInputFocused(true)}
-								onBlur={() => setInputFocused(false)}
+								onFocus={() => {
+									setInputFocused(true);
+									emitChatFocus(true);
+								}}
+								onBlur={() => {
+									setInputFocused(false);
+									emitChatFocus(false);
+								}}
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') send();
 									// "/" on an empty message closes the chat, so the

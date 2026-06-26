@@ -18,7 +18,8 @@ export type KeyCode =
 	| 'KeyC'
 	| 'KeyL'
 	| 'Escape'
-	| 'Enter';
+	| 'Enter'
+	| 'Slash';
 
 export type KeyBindings = Readonly<Partial<Record<KeyCode, ActionId>>>;
 
@@ -45,6 +46,8 @@ export const DEFAULT_KEY_BINDINGS = {
 
 	Escape: Action.Cancel,
 	Enter: Action.Confirm,
+
+	Slash: Action.ToggleChat,
 } as const satisfies KeyBindings;
 
 export interface GamepadBindings {

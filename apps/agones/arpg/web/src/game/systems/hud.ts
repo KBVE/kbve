@@ -209,6 +209,29 @@ export function onInventoryOpen(handler: (open: boolean) => void): () => void {
 	);
 }
 
+// Chat <-> scene bridge. The scene polls the input router's ToggleChat action and
+// emits CHAT_TOGGLE so the React ChatPanel opens/focuses; the panel emits
+// CHAT_FOCUS back so the scene can push/pop the Chat input context (gates
+// movement/combat while typing).
+export const CHAT_TOGGLE_EVENT = 'arpg:chat:toggle';
+export const CHAT_FOCUS_EVENT = 'arpg:chat:focus';
+
+export function emitChatToggle(): void {
+	laserEvents.emit(CHAT_TOGGLE_EVENT, undefined);
+}
+
+export function onChatToggle(handler: () => void): () => void {
+	return laserEvents.on(CHAT_TOGGLE_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitChatFocus(focused: boolean): void {
+	laserEvents.emit(CHAT_FOCUS_EVENT, focused);
+}
+
+export function onChatFocus(handler: (focused: boolean) => void): () => void {
+	return laserEvents.on(CHAT_FOCUS_EVENT, handler as (data: unknown) => void);
+}
+
 export const HUD_CLEAR_EVENT = 'arpg:hud:clear';
 
 export function clearHud(): void {
