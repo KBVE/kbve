@@ -275,6 +275,41 @@ interface ManagedResource {
 	requiresPruning?: boolean;
 }
 
+interface LogLine {
+	content?: string;
+	podName?: string;
+	containerName?: string;
+	timeStamp?: string;
+}
+
+interface PodLogOptions {
+	namespace: string;
+	podName: string;
+	container?: string;
+	tailLines?: number;
+	sinceSeconds?: number;
+}
+
+interface IndexedLogQuery {
+	namespace?: string;
+	podName?: string;
+	service?: string;
+	level?: string;
+	search?: string;
+	minutes?: number;
+	limit?: number;
+}
+
+interface IndexedLogRow {
+	timestamp: string;
+	level?: string;
+	message?: string;
+	pod_name?: string;
+	pod_namespace?: string;
+	service?: string;
+	container_name?: string;
+}
+
 /** Fetch resource tree (K8s resource hierarchy for an app). */
 export async function fetchResourceTree(
 	opts: ArgoStreamOptions,
@@ -321,11 +356,87 @@ export async function fetchManagedResources(
 	return json.items ?? [];
 }
 
+/** Fetch pod logs from ArgoCD. */
+export async function fetchPodLogs(
+	opts: ArgoStreamOptions,
+	appName: string,
+	logOpts: PodLogOptions,
+): Promise<LogLine[]> {
+	const token = await opts.getToken();
+	const params = new URLSearchParams({
+		container: logOpts.container ?? '',
+		namespace: logOpts.namespace,
+		podName: logOpts.podName,
+		tailLines: String(logOpts.tailLines ?? 200),
+		follow: 'false',
+	});
+	if (logOpts.sinceSeconds) {
+		params.set('sinceSeconds', String(logOpts.sinceSeconds));
+	}
+
+	const res = await fetch(
+		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/pods/${encodeURIComponent(logOpts.podName)}/logs?${params}`,
+		{ headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+	);
+	if (res.status === 404) throw new Error('Pod not found');
+	if (!res.ok) throw new Error(`Failed to fetch pod logs: ${res.status}`);
+
+	const text = await res.text();
+	const lines: LogLine[] = [];
+	for (const raw of text.split('\n')) {
+		if (!raw.trim()) continue;
+		try {
+			const parsed = JSON.parse(raw);
+			if (parsed?.result) lines.push(parsed.result as LogLine);
+		} catch {
+			lines.push({ content: raw });
+		}
+	}
+	return lines;
+}
+
+/** Fetch indexed logs from ClickHouse. */
+export async function fetchIndexedLogs(
+	opts: ArgoStreamOptions,
+	query: IndexedLogQuery,
+): Promise<IndexedLogRow[]> {
+	const token = await opts.getToken();
+	const body: Record<string, unknown> = {
+		command: 'query',
+		minutes: query.minutes ?? 60,
+		limit: query.limit ?? 200,
+	};
+	if (query.namespace) body['pod_namespace'] = query.namespace;
+	if (query.podName) body['pod_name'] = query.podName;
+	if (query.service) body['service'] = query.service;
+	if (query.level) body['level'] = query.level;
+	if (query.search) body['search'] = query.search;
+
+	const res = await fetch(
+		`${opts.baseUrl ?? ''}/dashboard/clickhouse/proxy`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(body),
+		},
+	);
+
+	if (res.status === 403)
+		throw new Error('Access restricted to indexed logs');
+	if (!res.ok) throw new Error(`ClickHouse logs error: ${res.status}`);
+
+	const data = (await res.json()) as { rows?: IndexedLogRow[] };
+	return Array.isArray(data?.rows) ? data.rows : [];
+}
+
 // ---------------------------------------------------------------------------
 // Enhanced detail component with tabs
 // ---------------------------------------------------------------------------
 
-type DetailTab = 'summary' | 'resources' | 'events' | 'diff';
+type DetailTab = 'summary' | 'resources' | 'events' | 'diff' | 'logs';
 
 function ArgoDetailPanel({
 	item,
@@ -340,6 +451,7 @@ function ArgoDetailPanel({
 	const [managedRes, setManagedRes] = useState<ManagedResource[] | null>(
 		null,
 	);
+	const [logs, setLogs] = useState<IndexedLogRow[] | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -364,6 +476,13 @@ function ArgoDetailPanel({
 						item.name,
 					);
 					if (!cancelled) setManagedRes(managed);
+				} else if (tab === 'logs') {
+					const indexed = await fetchIndexedLogs(opts, {
+						namespace: item.namespace,
+						minutes: 60,
+						limit: 100,
+					});
+					if (!cancelled) setLogs(indexed);
 				}
 			} catch (e) {
 				if (!cancelled)
@@ -377,13 +496,14 @@ function ArgoDetailPanel({
 		return () => {
 			cancelled = true;
 		};
-	}, [tab, item.name, opts]);
+	}, [tab, item.name, item.namespace, opts]);
 
 	const tabs: { id: DetailTab; label: string }[] = [
 		{ id: 'summary', label: 'Summary' },
 		{ id: 'resources', label: 'Resources' },
 		{ id: 'events', label: 'Events' },
 		{ id: 'diff', label: 'Diff' },
+		{ id: 'logs', label: 'Logs' },
 	];
 
 	return (
@@ -438,6 +558,14 @@ function ArgoDetailPanel({
 					<ErrorText message={error} />
 				) : (
 					<DiffTab managed={managedRes ?? []} />
+				))}
+			{tab === 'logs' &&
+				(loading ? (
+					<LoadingIndicator />
+				) : error ? (
+					<ErrorText message={error} />
+				) : (
+					<LogsTab logs={logs ?? []} />
 				))}
 		</Stack>
 	);
@@ -629,6 +757,68 @@ function DiffTab({ managed }: { managed: ManagedResource[] }) {
 					</Stack>
 				</Surface>
 			))}
+		</Stack>
+	);
+}
+
+function LogsTab({ logs }: { logs: IndexedLogRow[] }) {
+	if (logs.length === 0) {
+		return (
+			<Text variant="caption" tone="muted">
+				No logs found in the last hour
+			</Text>
+		);
+	}
+
+	return (
+		<Stack gap="xs">
+			<Text variant="caption" tone="muted" weight="medium">
+				Showing {logs.length} log entries from ClickHouse (last 60 min)
+			</Text>
+			{logs.map((log, i) => {
+				const level = log.level?.toLowerCase() ?? 'info';
+				const levelColor =
+					level === 'error'
+						? tokens.color.danger
+						: level === 'warn' || level === 'warning'
+							? tokens.color.warning
+							: level === 'debug'
+								? tokens.color.textFaint
+								: tokens.color.textMuted;
+
+				return (
+					<Surface key={i} style={styles.logItem}>
+						<Stack gap="xs">
+							<Stack direction="row" align="center" gap="xs">
+								<Text
+									variant="caption"
+									weight="medium"
+									style={{ color: levelColor }}>
+									{log.level ?? 'INFO'}
+								</Text>
+								{log.pod_name && (
+									<Text variant="caption" tone="faint">
+										{log.pod_name}
+									</Text>
+								)}
+								{log.container_name && (
+									<Text variant="caption" tone="faint">
+										/{log.container_name}
+									</Text>
+								)}
+							</Stack>
+							<Text variant="caption" tone="muted">
+								{log.message ?? ''}
+							</Text>
+							{log.timestamp && (
+								<Text variant="caption" tone="faint">
+									{new Date(log.timestamp).toLocaleString()}
+								</Text>
+							)}
+						</Stack>
+					</Surface>
+				);
+			})}
 		</Stack>
 	);
 }
@@ -968,5 +1158,10 @@ const styles = StyleSheet.create({
 	diffItem: {
 		padding: tokens.space.sm,
 		borderRadius: tokens.radius.md,
+	},
+	logItem: {
+		padding: tokens.space.sm,
+		borderRadius: tokens.radius.md,
+		backgroundColor: tokens.color.surfaceAlt,
 	},
 });
