@@ -445,6 +445,65 @@ mod tests {
         assert_eq!(hex2, "010b0f03746f6b0468306c7900");
     }
 
+    // Cross-language wire fixtures: the TS postcard decoder pins the SAME hex
+    // (laser postcard-wire.spec.ts) and asserts the decoded fields.
+    #[test]
+    fn server_event_fixtures() {
+        let welcome = ServerEvent::Welcome {
+            protocol: 15,
+            your_slot: PlayerSlot(3),
+            seed: 0xC0FFEE,
+            registry: vec![KindEntry {
+                kind: 1,
+                ref_id: "wyvern_fire".into(),
+                cat: 1,
+            }],
+        };
+        let snap = ServerEvent::Snapshot(Snapshot {
+            tick: 9,
+            server_time_ms: 100,
+            input_ack: 0,
+            players: vec![],
+            entities: vec![EntityDelta {
+                eid: EntityId(2),
+                kind: 7,
+                owner: PLAYER_SLOT_NONE,
+                tile: Tile::new(5, -3),
+                facing: Facing::Down,
+                sub: 0x81,
+                qx: 160,
+                qy: -96,
+                qvx: 12,
+                qvy: -7,
+                input_ack: 0,
+                hp: 30,
+                max_hp: 40,
+                destroyed: false,
+                z: -1,
+                effects: vec![StatusView {
+                    kind: StatusKind::Burn,
+                    remaining: 5,
+                }],
+            }],
+            keyframe: true,
+        });
+        let h = |e: &ServerEvent| -> String {
+            encode(e)
+                .unwrap()
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect()
+        };
+        assert_eq!(
+            h(&welcome),
+            "01160f03eeff830601010b77797665726e5f666972650100"
+        );
+        assert_eq!(
+            h(&snap),
+            "040109640109010207ffff030a050881c002bf01180d033c5006010103050100"
+        );
+    }
+
     #[test]
     fn snapshot_with_zeroed_fields_round_trips_postcard() {
         // Postcard is positional: a zero in a former skip_serializing_if field must

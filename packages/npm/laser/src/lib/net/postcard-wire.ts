@@ -6,11 +6,23 @@ import type {
 	BjActionKind,
 	ClientMessage,
 	Dir,
+	EntityDelta,
 	Facing,
 	Input,
+	KindEntry,
+	PlayerView,
+	ServerEvent,
+	Snapshot,
+	StatusKind,
+	StatusView,
 	Tile,
 } from './protocol';
-import { PostcardWriter, cobsEncode } from './postcard';
+import {
+	PostcardReader,
+	PostcardWriter,
+	cobsDecode,
+	cobsEncode,
+} from './postcard';
 
 const DIR: Record<Dir, number> = { Up: 0, Down: 1, Left: 2, Right: 3 };
 const FACING: Record<Facing, number> = { Down: 0, Up: 1, Left: 2, Right: 3 };
@@ -132,6 +144,109 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('Fell' in inp) {
 		w.variant(24);
 		writeTile(w, inp.Fell.tile);
+	}
+}
+
+// --- ServerEvent decode (Binary postcard -> the externally-tagged shape the
+// client already dispatches on: { Welcome } | { Snapshot } | { Ephemeral } |
+// { Reject }). Enum discriminants map back to their Rust order. ---
+
+const FACING_NAME: Facing[] = ['Down', 'Up', 'Left', 'Right'];
+const STATUS_NAME: StatusKind[] = ['Poison', 'Regen', 'Haste', 'Burn'];
+
+function readTile(r: PostcardReader): Tile {
+	return { x: r.i32(), y: r.i32() };
+}
+
+function readKindEntry(r: PostcardReader): KindEntry {
+	return { kind: r.u16(), ref: r.string(), cat: r.u8() };
+}
+
+function readStatusView(r: PostcardReader): StatusView {
+	return { kind: STATUS_NAME[r.variant()], remaining: r.u16() };
+}
+
+function readPlayerView(r: PostcardReader): PlayerView {
+	return { slot: r.u16(), kbve_username: r.string(), connected: r.bool() };
+}
+
+function readEntityDelta(r: PostcardReader): EntityDelta {
+	const eid = r.u32();
+	const kind = r.u16();
+	const owner = r.u16();
+	const tile = readTile(r);
+	const facing = FACING_NAME[r.variant()];
+	const sub = r.u8();
+	const qx = r.i32();
+	const qy = r.i32();
+	const qvx = r.i16();
+	const qvy = r.i16();
+	const input_ack = r.u32();
+	const hp = r.i32();
+	const max_hp = r.i32();
+	const destroyed = r.bool();
+	const z = r.i32();
+	const effects: StatusView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) effects.push(readStatusView(r));
+	return {
+		eid,
+		kind,
+		owner,
+		tile,
+		facing,
+		sub,
+		qx,
+		qy,
+		qvx,
+		qvy,
+		input_ack,
+		hp,
+		max_hp,
+		destroyed,
+		z,
+		effects,
+	};
+}
+
+function readSnapshot(r: PostcardReader): Snapshot {
+	const tick = r.u32();
+	const server_time_ms = r.u32();
+	const input_ack = r.u32();
+	const players: PlayerView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) players.push(readPlayerView(r));
+	const entities: EntityDelta[] = [];
+	for (let n = r.seqLen(); n > 0; n--) entities.push(readEntityDelta(r));
+	const keyframe = r.bool();
+	return { tick, server_time_ms, input_ack, players, entities, keyframe };
+}
+
+/** Decode a COBS-framed postcard ServerEvent (received as Binary). */
+export function decodeServerEvent(frame: Uint8Array): ServerEvent {
+	const r = new PostcardReader(cobsDecode(frame));
+	const variant = r.variant();
+	switch (variant) {
+		case 0: {
+			const protocol = r.u32();
+			const your_slot = r.u16();
+			const seed = Number(r.varU64());
+			const registry: KindEntry[] = [];
+			for (let n = r.seqLen(); n > 0; n--)
+				registry.push(readKindEntry(r));
+			return { Welcome: { protocol, your_slot, seed, registry } };
+		}
+		case 1:
+			return { Snapshot: readSnapshot(r) };
+		case 2: {
+			const kind = r.u16();
+			const to = r.u16();
+			const payload: number[] = [];
+			for (let n = r.seqLen(); n > 0; n--) payload.push(r.u8());
+			return { Ephemeral: { kind, to, payload } };
+		}
+		case 3:
+			return { Reject: { reason: r.string() } };
+		default:
+			throw new Error(`postcard: unknown ServerEvent variant ${variant}`);
 	}
 }
 
