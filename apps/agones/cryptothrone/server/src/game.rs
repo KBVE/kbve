@@ -254,6 +254,8 @@ fn npc_spec(
         defense: def.stats.defense.max(0),
         wander,
         roam: None,
+        float_steer: false,
+        move_profile: None,
         aggro: def.is_hostile().then(|| AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
             damage: def.stats.attack.max(1),
