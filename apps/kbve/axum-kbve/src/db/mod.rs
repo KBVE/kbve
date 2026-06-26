@@ -43,7 +43,7 @@ pub use osrs::{get_osrs_cache, init_osrs_cache};
 pub use pg_cluster::{get_pg_cluster, init_pg_cluster};
 pub use profile::{
     DiscordInfo, GithubInfo, TwitchInfo, UserProfile, UserProvider, get_profile_service,
-    init_profile_service, validate_username,
+    init_profile_service, spawn_chat_blocklist_mirror, validate_username,
 };
 pub use referral::{get_referral_client, init_referral_client};
 pub use rentearth::{RentEarthProfile, get_rentearth_service, init_rentearth_service};
