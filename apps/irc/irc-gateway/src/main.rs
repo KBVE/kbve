@@ -36,6 +36,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     gateway::history::spawn_listeners();
+    gateway::filter::spawn_blocklist_refresher();
 
     // Drop idle anti-spam buckets every minute so memory stays bounded.
     tokio::spawn(async {
@@ -43,6 +44,7 @@ async fn main() -> anyhow::Result<()> {
         loop {
             tick.tick().await;
             gateway::ratelimit::prune(std::time::Duration::from_secs(300));
+            gateway::filter::prune(std::time::Duration::from_secs(300));
         }
     });
 

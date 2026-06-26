@@ -96,8 +96,8 @@ export class ReconnectingSocket {
 		return this.ws?.readyState === WebSocket.OPEN;
 	}
 
-	send(data: string): void {
-		if (this.isOpen()) this.ws!.send(data);
+	send(data: string | ArrayBufferView | ArrayBuffer): void {
+		if (this.isOpen()) this.ws!.send(data as string);
 	}
 
 	connect(): void {
@@ -114,6 +114,9 @@ export class ReconnectingSocket {
 				? this.opts.url()
 				: this.opts.url;
 		const ws = new WebSocket(url);
+		// Binary frames (postcard) arrive as ArrayBuffer rather than Blob, so the
+		// message handler can decode them synchronously.
+		ws.binaryType = 'arraybuffer';
 		this.ws = ws;
 
 		ws.addEventListener('open', () => {

@@ -228,7 +228,7 @@ permissions: {}
 jobs:
     guard:
         name: Fork Guard
-        runs-on: arc-runner-set-kbve
+        runs-on: ubuntu-latest
         timeout-minutes: 2
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
@@ -1970,6 +1970,12 @@ jobs:
                   RUNUAT=$(.github/scripts/find-ue-mac.sh "${{ needs.plugin_check.outputs.engine }}")
                   echo "runuat=${RUNUAT}" >> "$GITHUB_OUTPUT"
                   echo "engine_root=${RUNUAT%/Engine/Build/BatchFiles/RunUAT.sh}" >> "$GITHUB_OUTPUT"
+
+            - name: Clean stale Marketplace plugins
+              run: |
+                  MARKETPLACE="${{ steps.engine.outputs.engine_root }}/Engine/Plugins/Marketplace"
+                  rm -rf "$MARKETPLACE"/* 2>/dev/null || true
+                  echo "::notice::Cleaned stale Marketplace plugins under $MARKETPLACE"
 
             - name: Build dependency plugins
               if: inputs.dependency_plugin_paths != ''

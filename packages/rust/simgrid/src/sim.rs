@@ -29,11 +29,6 @@ use crate::trade::{PendingTrades, TradeInput};
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
-/// Float-steered NPCs emit their sub-tile pos/vel only every Nth snapshot (the
-/// player always emits, for prediction). The client interp coasts between, so
-/// halving the rate halves their per-snapshot float bytes for ~free. 1 = no
-/// throttle. Raise if NPC motion looks stepped.
-pub const NPC_FLOAT_EMIT_EVERY: u32 = 1;
 
 pub const PLAYER_KIND: u16 = 0;
 pub const MAX_PATH_LEN: usize = 64;
@@ -727,6 +722,29 @@ impl TreeState {
     }
 }
 
+/// Per-instance state for an env bush. `variant` ∈ 0..=69 selects the client
+/// visual; `harvested` marks it picked. Encoded onto the snapshot's
+/// `EntityDelta.sub` as `(variant & 0x7F) | (harvested ? 0x80 : 0)`. Unlike a tree
+/// a bush never blocks its tile.
+#[derive(Component, Clone, Copy)]
+pub struct BushState {
+    pub variant: u8,
+    pub harvested: bool,
+}
+
+impl BushState {
+    pub fn sub(self) -> u8 {
+        (self.variant & 0x7F) | if self.harvested { 0x80 } else { 0 }
+    }
+
+    pub fn from_sub(sub: u8) -> Self {
+        Self {
+            variant: sub & 0x7F,
+            harvested: sub & 0x80 != 0,
+        }
+    }
+}
+
 /// Periodic heal for players within `range` (Chebyshev) of this tile, excluding
 /// the unstandable center. `range >= 1` keeps it disjoint from a `HazardZone`.
 #[derive(Component, Clone, Copy)]
@@ -835,6 +853,57 @@ pub fn spawn_tree(
     }
     if !state.felled {
         e.insert(Blocker);
+    }
+    Some(e.id())
+}
+
+/// Kind ref for the surface bush env prop. One ref covers all 70 visual variants;
+/// the variant + harvested state ride `BushState` (and `EntityDelta.sub` on the wire).
+pub const BUSH_REF: &str = "bush";
+
+/// Number of bush visual variants the client ships (0..=BUSH_VARIANTS-1).
+pub const BUSH_VARIANTS: u8 = 70;
+
+/// Per-mille of surface grass tiles that carry a bush. Denser than the forest knob.
+pub const BUSH_DENSITY_PER_MILLE: i32 = 30;
+
+/// Deterministic surface bush field: a pure function of (seed, tile), built on the
+/// client-mirrorable `stream` so the client reproduces the identical scrub. Returns
+/// the visual variant for a tile that carries a bush, else `None`. A bush never
+/// overlaps a tree tile, so a `tree_at` hit pre-empts placement.
+pub fn bush_at(seed: u32, x: i32, y: i32) -> Option<u8> {
+    if tree_at(seed, x, y).is_some() {
+        return None;
+    }
+    let mut s = crate::rng::stream(seed, crate::rng::domain::BUSH, &[x as u32, y as u32]);
+    if (s.next_u32() % 1000) as i32 >= BUSH_DENSITY_PER_MILLE {
+        return None;
+    }
+    Some((s.next_u32() % BUSH_VARIANTS as u32) as u8)
+}
+
+/// Spawn a surface bush env entity carrying `BushState`. A bush is always walkable —
+/// it never gets a `Blocker` and the caller never blocks its tile. Returns `None`
+/// when `bush` isn't registered.
+pub fn spawn_bush(
+    commands: &mut Commands,
+    registry: &KindRegistry,
+    tile: Tile,
+    floor: i32,
+    state: BushState,
+) -> Option<Entity> {
+    let kind = registry.kind_of(BUSH_REF)?;
+    let mut e = commands.spawn((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        EnvObject {
+            def_ref: BUSH_REF.to_string(),
+        },
+        state,
+    ));
+    if floor != 0 {
+        e.insert(Floor(floor));
     }
     Some(e.id())
 }
@@ -1644,18 +1713,17 @@ fn apply_actions(
                 });
                 let impact = path.last().copied().unwrap_or(attacker_tile);
                 let los_clear = impact == target_tile;
-                let payload = json!({
-                    "attacker": player_entity.index_u32(),
-                    "from": { "x": attacker_tile.x, "y": attacker_tile.y },
-                    "to": { "x": impact.x, "y": impact.y },
-                    "kind": "arrow",
-                    "hit": los_clear,
-                })
-                .to_string()
-                .into_bytes();
+                let event = proto::ProjectileEvent {
+                    attacker: player_entity.index_u32(),
+                    from: attacker_tile,
+                    to: impact,
+                    kind: "arrow".into(),
+                    hit: los_clear,
+                };
+                let payload = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PROJECTILE,
-                    to: proto::PlayerSlot(slot.0),
+                    to: proto::PLAYER_SLOT_NONE,
                     payload,
                 });
                 if los_clear {
@@ -2046,8 +2114,10 @@ fn apply_pickups(
 
 /// Resolve queued tree fellings: a player adjacent (Chebyshev <= 1) to a standing
 /// tree on their floor fells it — collision clears, state flips to felled, and the
-/// felled instance is persisted so it survives a restart. Invalid, out-of-range, or
-/// duplicate requests are dropped silently.
+/// felled instance is persisted so it survives a restart. When no standing tree is
+/// found at the tile a standing bush is harvested instead — same adjacency rule, but
+/// the bush stays walkable so only its `harvested` flag flips and persists. Invalid,
+/// out-of-range, or duplicate requests are dropped silently.
 #[allow(clippy::type_complexity)]
 fn apply_fells(
     mut fells: ResMut<PendingFells>,
@@ -2055,6 +2125,7 @@ fn apply_fells(
     mut log: ResMut<PersistedEnvLog>,
     sink: Res<EnvPersistSink>,
     mut trees: Query<(Entity, &GridPos, Option<&Floor>, &mut TreeState)>,
+    mut bushes: Query<(Entity, &GridPos, Option<&Floor>, &mut BushState)>,
     mut commands: Commands,
 ) {
     let mut changed = false;
@@ -2062,19 +2133,37 @@ fn apply_fells(
         if from.chebyshev(tile) > 1 {
             continue;
         }
-        let Some((eid, _, _, mut state)) = trees.iter_mut().find(|(_, gp, fl, st)| {
+        if let Some((eid, _, _, mut state)) = trees.iter_mut().find(|(_, gp, fl, st)| {
             gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && !st.felled
+        }) {
+            state.felled = true;
+            let sub = state.sub();
+            map.unblock_tile_z(z, tile);
+            commands.entity(eid).remove::<Blocker>();
+            log.0.retain(|o| {
+                !(o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == z)
+            });
+            log.0.push(PersistedEnvObject {
+                env_ref: TREE_REF.to_string(),
+                x: tile.x,
+                y: tile.y,
+                floor: z,
+                sub,
+            });
+            changed = true;
+            continue;
+        }
+        let Some((_, _, _, mut bush)) = bushes.iter_mut().find(|(_, gp, fl, st)| {
+            gp.tile == tile && fl.map(|f| f.0).unwrap_or(0) == z && !st.harvested
         }) else {
             continue;
         };
-        state.felled = true;
-        let sub = state.sub();
-        map.unblock_tile_z(z, tile);
-        commands.entity(eid).remove::<Blocker>();
+        bush.harvested = true;
+        let sub = bush.sub();
         log.0
-            .retain(|o| !(o.env_ref == TREE_REF && o.x == tile.x && o.y == tile.y && o.floor == z));
+            .retain(|o| !(o.env_ref == BUSH_REF && o.x == tile.x && o.y == tile.y && o.floor == z));
         log.0.push(PersistedEnvObject {
-            env_ref: TREE_REF.to_string(),
+            env_ref: BUSH_REF.to_string(),
             x: tile.x,
             y: tile.y,
             floor: z,
@@ -2632,6 +2721,7 @@ fn advance_float(
 /// from the float tile so all grid systems (collision/streaming/aggro/targeting)
 /// stay authoritative. Runs in the Movement set alongside the grid mover, which
 /// is gated `Without<FloatSteer>` so nothing double-moves.
+#[allow(clippy::type_complexity)]
 fn advance_npc_float(
     map: Res<WalkableMap>,
     mut q: Query<
@@ -2824,6 +2914,7 @@ fn emit_snapshot(
         Option<&FloatMove>,
         Option<&PlacedBy>,
         Option<&TreeState>,
+        Option<&BushState>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2831,14 +2922,14 @@ fn emit_snapshot(
     }
 
     let now = clock.tick;
-    let snap_idx = now / SNAPSHOT_EVERY_N_TICKS;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree)| {
-                let sub = match tree {
-                    Some(t) => t.sub(),
-                    None => mv
+            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree, bush)| {
+                let sub = match (tree, bush) {
+                    (Some(t), _) => t.sub(),
+                    (_, Some(b)) => b.sub(),
+                    _ => mv
                         .filter(|m| m.target.is_some())
                         .map(|m| {
                             let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
@@ -2857,23 +2948,18 @@ fn emit_snapshot(
                             .collect()
                     })
                     .unwrap_or_default();
-                // Throttle: a non-player float NPC emits its sub-tile float only on
-                // every Nth snapshot; on skip snapshots it sends nothing (qx/qy zero
-                // -> omitted on the wire) and the client interp coasts on its last
-                // sample. Sending a tile-rounded pos instead would wobble, so we skip
-                // outright. The player always emits (prediction needs every frame).
-                let skip_float = fm.is_some()
-                    && slot.is_none()
-                    && !snap_idx.is_multiple_of(NPC_FLOAT_EMIT_EVERY);
+                // Float entities (players + steered NPCs) send their sub-tile pos +
+                // vel; everything else sends its tile quantized. Always emitted — a
+                // per-field skip can't survive the positional postcard wire, and a
+                // zero is a single varint byte there anyway.
                 let (qx, qy, qvx, qvy, input_ack) = match fm {
-                    Some(f) if !skip_float => (
+                    Some(f) => (
                         proto::quantize_pos(f.body.x),
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
                         f.last_seq,
                     ),
-                    Some(_) => (0, 0, 0, 0, 0),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
                         proto::quantize_pos(pos.tile.y as f32),

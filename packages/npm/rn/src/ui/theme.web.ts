@@ -5,6 +5,7 @@ export type { Tokens, ThemeOverride } from './theme';
 export const tokens = {
 	color: {
 		bg: 'var(--sl-color-bg, #121312)',
+		bgSubtle: 'var(--sl-color-gray-6, #1a1715)',
 		surface: 'var(--sl-color-bg-nav, #1b1814)',
 		surfaceAlt: 'var(--sl-color-gray-5, #26211a)',
 		border: 'var(--sl-color-hairline, #3a2f1f)',
@@ -35,9 +36,9 @@ export const tokens = {
 		display: 32,
 	},
 	weight: { regular: '400', medium: '600', bold: '700' },
-} as Tokens;
+} as const;
 
-export function mergeTheme(override?: ThemeOverride): Tokens {
+export function mergeTheme(override?: ThemeOverride): typeof tokens {
 	if (!override) return tokens;
 	return {
 		color: { ...tokens.color, ...override.color },
@@ -46,5 +47,5 @@ export function mergeTheme(override?: ThemeOverride): Tokens {
 		space: { ...tokens.space, ...override.space },
 		font: { ...tokens.font, ...override.font },
 		weight: tokens.weight,
-	} as Tokens;
+	} as typeof tokens;
 }

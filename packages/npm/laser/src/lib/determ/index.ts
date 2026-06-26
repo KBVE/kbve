@@ -29,6 +29,7 @@ export const Domain = {
 	WANDER: fourcc('WAND'),
 	LOOT: fourcc('LOOT'),
 	TREE: fourcc('TREE'),
+	BUSH: fourcc('BUSH'),
 } as const;
 
 /** Mulberry32 — mirrors Rust `Mulberry32`. Returns a u32-yielding generator. */

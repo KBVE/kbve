@@ -216,6 +216,56 @@ function spawnArrow(
 	});
 }
 
+/**
+ * Fly a purely-cosmetic arrow for a REMOTE shooter: the server already resolved
+ * the hit, so this only animates a shaft from the shooter's muzzle to the server-
+ * given impact tile (no local hit-test, no damage). Mirrors spawnArrow's muzzle
+ * lift + west-bow offset so a remote shot launches from the bow, not the feet.
+ */
+export function flyRemoteArrow(
+	scene: Phaser.Scene,
+	from: TileXY,
+	to: TileXY,
+): void {
+	const dx = to.x - from.x;
+	const dy = to.y - from.y;
+	const dist = Math.hypot(dx, dy) || 1;
+	const nx = dx / dist;
+	const ny = dy / dist;
+
+	const deg = facingDegFromDelta(dx, dy);
+	const westBoost = deg >= 247 && deg <= 315 ? BOW_MUZZLE_OFFSET_WEST : 0;
+	const muzzleOffset = BOW_MUZZLE_OFFSET + westBoost;
+	const muzzle = {
+		x: from.x + nx * muzzleOffset,
+		y: from.y + ny * muzzleOffset,
+	};
+
+	const a = worldToScreen(muzzle.x, muzzle.y);
+	a.y -= BOW_MUZZLE_HEIGHT;
+	const b = worldToScreen(to.x, to.y);
+	b.y -= BOW_MUZZLE_HEIGHT;
+
+	const range = Math.hypot(to.x - muzzle.x, to.y - muzzle.y);
+	const pools = projectilePools(scene);
+	const arrow = pools.arrows.acquire();
+	arrow.setPosition(a.x, a.y);
+	arrow.setRotation(Math.atan2(b.y - a.y, b.x - a.x));
+
+	const travelMs = (range / ARROW_SPEED) * 1000;
+	scene.tweens.add({
+		targets: arrow,
+		x: b.x,
+		y: b.y,
+		duration: travelMs,
+		ease: 'Linear',
+		onComplete: () => {
+			impact(scene, b.x, b.y);
+			pools.arrows.release(arrow);
+		},
+	});
+}
+
 /** Brief impact spark (pooled) where an arrow lands or hits. */
 function impact(scene: Phaser.Scene, x: number, y: number): void {
 	const spark = projectilePools(scene).sparks.acquire();

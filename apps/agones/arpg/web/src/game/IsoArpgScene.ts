@@ -9,6 +9,7 @@ import {
 	type Snapshot,
 	type Welcome,
 	type CombatEvent,
+	type ProjectileEvent,
 	type FloorChangeEvent,
 	type InventorySync,
 	type ItemPlacedEvent,
@@ -44,6 +45,7 @@ import {
 	setupInput as setupInputV,
 	type SceneInputDeps,
 } from './input/sceneInput';
+import { preloadCursors } from './input/cursor';
 import {
 	makeFogState,
 	buildFog,
@@ -192,6 +194,7 @@ import {
 	treeAt,
 	TREE_REF,
 } from './entities/trees';
+import { flyRemoteArrow } from './entities/projectiles/arrows/bow';
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
 
@@ -326,6 +329,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		preloadTrees(this);
 		preloadStairs(this);
 		preloadItemAtlas(this);
+		preloadCursors(this);
 	}
 
 	private applyBiomeFiltering(): void {
@@ -805,6 +809,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
+		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 		client.on('inventory', (inv: InventorySync) => {
 			setInventory(this.inv, inv.items);
@@ -1070,6 +1075,34 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private onCombat(c: CombatEvent) {
 		onCombatV(this.combat, this.combatDeps(), c);
+	}
+
+	/**
+	 * A server-broadcast projectile loosed by SOME shooter. The local player's own
+	 * arrow is already client-predicted in fireBowAt, so skip it here (else a
+	 * doubled shaft); for every remote shooter, fly the cosmetic arrow and snap
+	 * their bow pose, recovering it to Idle since remote one-shots have no
+	 * snapshot-driven settle of their own.
+	 */
+	private onProjectile(p: ProjectileEvent) {
+		if (p.attacker === this.myEid) return;
+		flyRemoteArrow(this, p.from, p.to);
+		const refs = this.store.refs(p.attacker);
+		if (!refs?.cls || !(refs.sprite instanceof Phaser.GameObjects.Sprite))
+			return;
+		const sprite = refs.sprite;
+		const cls = refs.cls;
+		setClassPose(sprite, cls, 'Attack', {
+			dx: p.to.x - p.from.x,
+			dy: p.to.y - p.from.y,
+		});
+		const atk = cls.def.anims.Attack;
+		const recoverMs = (atk.frames / atk.frameRate) * 1000 + 80;
+		this.time.delayedCall(recoverMs, () => {
+			if (!sprite.active || cls.state !== 'Attack') return;
+			if (this.tweens.isTweening(sprite)) return;
+			setClassPose(sprite, cls, 'Idle', undefined, this);
+		});
 	}
 
 	private combatDeps(): CombatDeps {

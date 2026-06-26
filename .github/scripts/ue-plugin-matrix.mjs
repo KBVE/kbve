@@ -1,7 +1,7 @@
 import { readFileSync, appendFileSync } from 'node:fs';
 
 const MANIFEST = '.github/ci-dispatch-manifest.json';
-const BUILD_PLATFORMS = ['Linux', 'Win64'];
+const BUILD_PLATFORMS = ['Linux', 'Win64', 'Mac'];
 
 const mode = (process.env.MODE || 'changed').trim();
 const ueImageTag = (process.env.UE_IMAGE_TAG || 'dev-5.8.0').trim();
@@ -75,6 +75,7 @@ const selectedPaths = mode === 'all' ? selectAll() : selectChanged();
 
 const linux = [];
 const win = [];
+const mac = [];
 for (const p of plugins) {
 	if (!selectedPaths.has(p.plugin_path)) continue;
 	const platforms = (p.supported_platforms || []).filter((pl) =>
@@ -91,6 +92,7 @@ for (const p of plugins) {
 		};
 		if (platform === 'Linux') linux.push(entry);
 		else if (platform === 'Win64') win.push(entry);
+		else if (platform === 'Mac') mac.push(entry);
 	}
 }
 
@@ -99,10 +101,12 @@ const write = (k, v) => appendFileSync(out, `${k}=${v}\n`);
 
 write('linux', JSON.stringify({ include: linux }));
 write('win', JSON.stringify({ include: win }));
+write('mac', JSON.stringify({ include: mac }));
 write('has_linux', String(linux.length > 0));
 write('has_win', String(win.length > 0));
+write('has_mac', String(mac.length > 0));
 
 const names = [...selectedPaths].sort().join(', ') || '(none)';
 console.log(`mode=${mode} selected=${selectedPaths.size}`);
-console.log(`linux=${linux.length} win=${win.length}`);
+console.log(`linux=${linux.length} win=${win.length} mac=${mac.length}`);
 console.log(`plugins: ${names}`);

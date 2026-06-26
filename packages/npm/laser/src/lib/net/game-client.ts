@@ -36,6 +36,11 @@ import {
 	inputFrame,
 	joinFrame,
 } from './protocol';
+import {
+	decodeProjectile,
+	decodeServerEvent,
+	encodeClientMessage,
+} from './postcard-wire';
 
 export type GameClientEventMap = {
 	open: void;
@@ -128,11 +133,11 @@ export class GameClient {
 	}
 
 	private handleMessage(ev: MessageEvent): void {
+		// Postcard-only wire: every frame is COBS-framed postcard (ArrayBuffer).
+		if (!(ev.data instanceof ArrayBuffer)) return;
 		let msg: ServerEvent;
 		try {
-			msg = JSON.parse(
-				typeof ev.data === 'string' ? ev.data : String(ev.data),
-			);
+			msg = decodeServerEvent(new Uint8Array(ev.data));
 		} catch {
 			return;
 		}
@@ -154,7 +159,7 @@ export class GameClient {
 			const data = decodeEphemeralPayload<CombatEvent>(evt.payload);
 			if (data) this.bus.emit('combat', data);
 		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
-			const data = decodeEphemeralPayload<ProjectileEvent>(evt.payload);
+			const data = decodeProjectile(evt.payload);
 			if (data) this.bus.emit('projectile', data);
 		} else if (evt.kind === EPHEMERAL_FLOOR) {
 			const data = decodeEphemeralPayload<FloorChangeEvent>(evt.payload);
@@ -186,7 +191,8 @@ export class GameClient {
 	}
 
 	private send(msg: ClientMessage): void {
-		this.socket.send(JSON.stringify(msg));
+		// Postcard-only: Binary frames; the server follows suit off the first one.
+		this.socket.send(encodeClientMessage(msg));
 	}
 
 	sendInputs(inputs: Input[]): void {

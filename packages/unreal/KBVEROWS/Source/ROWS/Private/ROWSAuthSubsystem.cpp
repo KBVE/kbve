@@ -1,5 +1,7 @@
 #include "ROWSAuthSubsystem.h"
 #include "ROWSSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Subsystems/SubsystemCollection.h"
 #include "JsonObjectConverter.h"
 #include "Serialization/JsonSerializer.h"
 

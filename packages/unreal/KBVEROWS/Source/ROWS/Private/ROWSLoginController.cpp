@@ -4,6 +4,7 @@
 #include "ROWSCharacterSubsystem.h"
 #include "ROWSLoginWidget.h"
 #include "ROWSLoadingWidget.h"
+#include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 AROWSLoginController::AROWSLoginController()

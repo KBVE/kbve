@@ -249,18 +249,6 @@ pub struct StatusView {
     pub remaining: u16,
 }
 
-fn is_zero_i32(v: &i32) -> bool {
-    *v == 0
-}
-
-fn is_zero_i16(v: &i16) -> bool {
-    *v == 0
-}
-
-fn is_zero_u32(v: &u32) -> bool {
-    *v == 0
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityDelta {
     pub eid: EntityId,
@@ -273,20 +261,22 @@ pub struct EntityDelta {
     pub qx: i32,
     #[serde(default)]
     pub qy: i32,
-    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    // No skip_serializing_if on any wire field: postcard is positional, so a
+    // conditionally-omitted field shifts every following byte and desyncs the
+    // decoder. serde(default) is kept so older/JSON encodings still decode.
+    #[serde(default)]
     pub qvx: i16,
-    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    #[serde(default)]
     pub qvy: i16,
-    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    #[serde(default)]
     pub input_ack: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub destroyed: bool,
-    /// Dungeon floor (z-axis). 0 = ground floor; omitted on the wire when 0, so
-    /// single-floor games (cryptothrone) are byte-identical to before.
-    #[serde(default, skip_serializing_if = "is_zero_i32")]
+    /// Dungeon floor (z-axis). 0 = ground floor.
+    #[serde(default)]
     pub z: i32,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub effects: Vec<StatusView>,
 }
 
@@ -306,6 +296,20 @@ pub struct KindEntry {
     #[serde(rename = "ref")]
     pub ref_id: String,
     pub cat: u8,
+}
+
+/// A loosed projectile (arrow/bolt/…) broadcast to every client so remote
+/// players see the shot, not just the shooter. Typed (not an ad-hoc `json!`)
+/// so the payload codec can move from JSON to postcard in lockstep with the TS
+/// `ProjectileEvent` — the same path PvP combat events will take. `attacker` is
+/// the entity index; `from`/`to` are the muzzle and impact tiles.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ProjectileEvent {
+    pub attacker: u32,
+    pub from: Tile,
+    pub to: Tile,
+    pub kind: String,
+    pub hit: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -339,8 +343,17 @@ pub fn encode_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error>
     serde_json::to_string(value)
 }
 
-pub fn decode_json<T: for<'de> Deserialize<'de>>(text: &str) -> Result<T, serde_json::Error> {
-    serde_json::from_str(text)
+/// Encode an Ephemeral payload as raw postcard (NOT COBS-framed): the outer
+/// ServerEvent already COBS-frames the whole message and length-prefixes the
+/// payload `Vec<u8>`, so the inner bytes need no delimiter. Pairs with the TS
+/// `PostcardReader` reading the payload directly. This is the typed-binary path
+/// JSON event payloads migrate onto, starting with ProjectileEvent.
+pub fn encode_inner<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {
+    postcard::to_allocvec(value)
+}
+
+pub fn decode_inner<T: for<'de> Deserialize<'de>>(buf: &[u8]) -> Result<T, postcard::Error> {
+    postcard::from_bytes(buf)
 }
 
 #[cfg(test)]
@@ -401,5 +414,194 @@ mod tests {
         );
         let back: StatusKind = serde_json::from_str("\"Burn\"").unwrap();
         assert_eq!(back, StatusKind::Burn);
+    }
+
+    // Cross-language wire fixture: the TS postcard encoder pins the SAME hex
+    // (laser postcard-wire.spec.ts). If this breaks after a proto change, update
+    // both sides in lockstep — postcard is positional, so they must match.
+    #[test]
+    fn client_message_fixture_is_stable() {
+        let msg = ClientMessage::Frame(ClientFrame {
+            client_tick: 7,
+            inputs: vec![
+                Input::Move {
+                    seq: 3,
+                    mx: 127,
+                    my: -1,
+                    run: true,
+                },
+                Input::Fell {
+                    tile: Tile::new(5, -3),
+                },
+                Input::Leave,
+            ],
+        });
+        let bytes = encode(&msg).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "0d01070301037fff01180a050d00");
+
+        // JoinMatch: leading 0x00 discriminant exercises COBS restuffing.
+        let join = ClientMessage::JoinMatch(JoinMatch {
+            protocol: 15,
+            jwt: "tok".into(),
+            kbve_username: "h0ly".into(),
+        });
+        let hex2: String = encode(&join)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex2, "010b0f03746f6b0468306c7900");
+    }
+
+    // Cross-language wire fixtures: the TS postcard decoder pins the SAME hex
+    // (laser postcard-wire.spec.ts) and asserts the decoded fields.
+    #[test]
+    fn server_event_fixtures() {
+        let welcome = ServerEvent::Welcome {
+            protocol: 15,
+            your_slot: PlayerSlot(3),
+            seed: 0xC0FFEE,
+            registry: vec![KindEntry {
+                kind: 1,
+                ref_id: "wyvern_fire".into(),
+                cat: 1,
+            }],
+        };
+        let snap = ServerEvent::Snapshot(Snapshot {
+            tick: 9,
+            server_time_ms: 100,
+            input_ack: 0,
+            players: vec![],
+            entities: vec![EntityDelta {
+                eid: EntityId(2),
+                kind: 7,
+                owner: PLAYER_SLOT_NONE,
+                tile: Tile::new(5, -3),
+                facing: Facing::Down,
+                sub: 0x81,
+                qx: 160,
+                qy: -96,
+                qvx: 12,
+                qvy: -7,
+                input_ack: 0,
+                hp: 30,
+                max_hp: 40,
+                destroyed: false,
+                z: -1,
+                effects: vec![StatusView {
+                    kind: StatusKind::Burn,
+                    remaining: 5,
+                }],
+            }],
+            keyframe: true,
+        });
+        let h = |e: &ServerEvent| -> String {
+            encode(e)
+                .unwrap()
+                .iter()
+                .map(|b| format!("{b:02x}"))
+                .collect()
+        };
+        assert_eq!(
+            h(&welcome),
+            "01160f03eeff830601010b77797665726e5f666972650100"
+        );
+        assert_eq!(
+            h(&snap),
+            "040109640109010207ffff030a050881c002bf01180d033c5006010103050100"
+        );
+    }
+
+    // Cross-language fixture for the raw-postcard Ephemeral payload path: the TS
+    // decodeProjectile pins the SAME hex (laser postcard-wire.spec.ts). encode_inner
+    // is plain postcard (no COBS), so no 0x00 framing byte appears here.
+    #[test]
+    fn projectile_event_fixture_is_stable() {
+        let ev = ProjectileEvent {
+            attacker: 2,
+            from: Tile::new(5, -3),
+            to: Tile::new(7, 2),
+            kind: "arrow".into(),
+            hit: true,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "020a050e04056172726f7701");
+        let back: ProjectileEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.attacker, 2);
+        assert_eq!(back.from, Tile::new(5, -3));
+        assert_eq!(back.to, Tile::new(7, 2));
+        assert_eq!(back.kind, "arrow");
+        assert!(back.hit);
+    }
+
+    #[test]
+    fn snapshot_with_zeroed_fields_round_trips_postcard() {
+        // Postcard is positional: a zero in a former skip_serializing_if field must
+        // still serialize, or the decoder desyncs on the following bytes. This pins
+        // that an all-zero entity and a populated one round-trip together.
+        let zero = EntityDelta {
+            eid: EntityId(1),
+            kind: 2,
+            owner: PlayerSlot(0),
+            tile: Tile::new(0, 0),
+            facing: Facing::Up,
+            sub: 0,
+            qx: 0,
+            qy: 0,
+            qvx: 0,
+            qvy: 0,
+            input_ack: 0,
+            hp: 0,
+            max_hp: 0,
+            destroyed: false,
+            z: 0,
+            effects: vec![],
+        };
+        let full = EntityDelta {
+            eid: EntityId(2),
+            kind: 3,
+            owner: PlayerSlot(1),
+            tile: Tile::new(5, -3),
+            facing: Facing::Down,
+            sub: 0x81,
+            qx: 160,
+            qy: -96,
+            qvx: 12,
+            qvy: -7,
+            input_ack: 42,
+            hp: 30,
+            max_hp: 40,
+            destroyed: false,
+            z: -1,
+            effects: vec![StatusView {
+                kind: StatusKind::Burn,
+                remaining: 5,
+            }],
+        };
+        let evt = ServerEvent::Snapshot(Snapshot {
+            tick: 9,
+            server_time_ms: 100,
+            input_ack: 0,
+            players: vec![],
+            entities: vec![zero, full],
+            keyframe: true,
+        });
+        let mut buf = encode(&evt).expect("encode");
+        let back: ServerEvent = decode(&mut buf).expect("decode");
+        match back {
+            ServerEvent::Snapshot(s) => {
+                assert_eq!(s.entities.len(), 2);
+                assert_eq!(s.entities[0].qx, 0);
+                assert_eq!(s.entities[0].qvx, 0);
+                assert_eq!(s.entities[0].z, 0);
+                assert_eq!(s.entities[1].qx, 160);
+                assert_eq!(s.entities[1].qvy, -7);
+                assert_eq!(s.entities[1].z, -1);
+                assert_eq!(s.entities[1].effects.len(), 1);
+            }
+            _ => panic!("wrong variant"),
+        }
     }
 }

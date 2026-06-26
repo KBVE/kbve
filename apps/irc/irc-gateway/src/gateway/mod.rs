@@ -1,4 +1,5 @@
 pub mod ergo;
+pub mod filter;
 pub mod history;
 pub mod irc;
 pub mod kv;

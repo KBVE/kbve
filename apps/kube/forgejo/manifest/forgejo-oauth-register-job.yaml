@@ -3,12 +3,18 @@ kind: ServiceAccount
 metadata:
     name: forgejo-oauth-register
     namespace: forgejo
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
     name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 rules:
     - apiGroups: ['']
       resources: ['secrets']
@@ -24,6 +30,9 @@ kind: RoleBinding
 metadata:
     name: forgejo-oauth-register-kilobase-access
     namespace: kilobase
+    annotations:
+        argocd.argoproj.io/hook: PreSync
+        argocd.argoproj.io/sync-wave: '-1'
 roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
@@ -62,7 +71,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: register-client
-                  image: curlimages/curl:8.11.1
+                  image: ghcr.io/kbve/kubectl:0.1.5
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       allowPrivilegeEscalation: false
@@ -88,7 +97,7 @@ spec:
                           SERVICE_KEY=$(kubectl get secret -n kilobase supabase-jwt -o jsonpath='{.data.service-key}' | base64 -d)
 
                           echo "==> Registering Forgejo OAuth client with Supabase..."
-                          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://auth.kilobase.svc.cluster.local:9999/auth/v1/admin/oauth/clients" \
+                          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://auth.kilobase.svc.cluster.local:9999/admin/oauth/clients" \
                             -H "Authorization: Bearer ${SERVICE_KEY}" \
                             -H "Content-Type: application/json" \
                             -d '{

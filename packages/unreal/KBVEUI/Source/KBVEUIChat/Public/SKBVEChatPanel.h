@@ -5,6 +5,11 @@
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Framework/SlateDelegates.h"
 #include "Input/Reply.h"
+#include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 
 class UKBVESupabaseSubsystem;
 class SEditableTextBox;
