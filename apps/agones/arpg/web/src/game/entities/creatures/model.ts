@@ -113,6 +113,12 @@ export interface CreatureDef {
 	hover?: number;
 	/** Added to the body's sort depth so flyers draw over ground props/trees. */
 	depthBias?: number;
+	/**
+	 * Re-aim the 8-way facing every frame (carrying the anim phase across the row
+	 * swap) instead of only at a stride boundary. Flyers/banking creatures want
+	 * this — they continuously face into the arc; ground walkers plant-then-pivot.
+	 */
+	continuousTurn?: boolean;
 	/** Facing -> in-half block index for this creature's sheet packing. */
 	dirBlocks: DirBlocks;
 	/**

@@ -45,6 +45,7 @@ function wyvernDef(id: string, sheet: string): CreatureDef {
 		// flying over the trees, not standing among them.
 		hover: 90,
 		depthBias: 40000,
+		continuousTurn: true,
 		sheetCols: 56,
 		dirBlocks: NAIVE_DIR_BLOCKS,
 		// Calibrated in-game: the 8 rows step by 45° starting at West, so each

@@ -64,9 +64,11 @@ pub const WYVERN_HP: i32 = 40;
 pub const WYVERN_DEFENSE: i32 = 1;
 pub const WYVERN_TICKS_PER_TILE: u8 = 4;
 pub const WYVERN_LEVEL: i32 = 2;
-pub const WYVERN_ROAM_RADIUS: i32 = 14;
-pub const WYVERN_DWELL_MIN_TICKS: u32 = SIM_TICK_HZ;
-pub const WYVERN_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ * 2;
+pub const WYVERN_ROAM_RADIUS: i32 = 18;
+// Flyers barely dwell — they pick the next waypoint almost immediately so they
+// keep soaring + banking instead of hovering between trips.
+pub const WYVERN_DWELL_MIN_TICKS: u32 = 0;
+pub const WYVERN_DWELL_MAX_TICKS: u32 = SIM_TICK_HZ / 2;
 pub const WYVERN_CLEARANCE: i32 = 0;
 pub const WYVERN_PER_PLAYER: usize = 2;
 pub const WYVERN_SPAWN_MIN: i32 = 14;
