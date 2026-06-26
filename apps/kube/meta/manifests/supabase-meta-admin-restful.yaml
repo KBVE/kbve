@@ -22,7 +22,7 @@ spec:
         spec:
             containers:
                 - name: postgres-meta
-                  image: supabase/postgres-meta:v0.91.0
+                  image: supabase/postgres-meta:v0.96.6
                   ports:
                       - containerPort: 8080
                         name: http
