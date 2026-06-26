@@ -49,15 +49,6 @@ spec:
                             matchExpressions:
                                 - key: cnpg.io/jobRole
                                   operator: Exists
-                  # keycloak-db-provision: ArgoCD Sync-hook Job that sets the
-                  # keycloak role password (from keycloak-db-password) + creates
-                  # the keycloak schema as superuser. Cannot use the dbmate
-                  # contract because it must inject two secrets the dbmate-runner
-                  # is forbidden to see. Scoped to its own SA + this exact label.
-                  - resources:
-                        selector:
-                            matchLabels:
-                                kbve.com/job: keycloak-db-provision
           validate:
               message: >-
                   Jobs in kilobase must use the dbmate-runner SA, drop ALL
@@ -109,10 +100,6 @@ spec:
                             matchExpressions:
                                 - key: cnpg.io/jobRole
                                   operator: Exists
-                  - resources:
-                        selector:
-                            matchLabels:
-                                kbve.com/job: keycloak-db-provision
           validate:
               message: >-
                   Job volumes must use only the dbmate-runner contract:
