@@ -500,12 +500,14 @@ export function setCreaturePose(
  * when it crosses into a new 8-way bucket, swap the looping sheet run WITHOUT
  * restarting (progress preserved) so a turn re-aims mid-stride. One-shots hold.
  */
-// Creatures turn slower than the player (0.15) so an 8-way body eases through a
-// heading change instead of snapping. The bucket only flips once the facing is
-// firmly past the 22.5° edge (+ deadband), so a heading hovering on a boundary
-// doesn't strobe between two adjacent directions.
-const CREATURE_TURN_LERP = 0.14;
-const DIR_SWITCH_DEADBAND = 12;
+// The server already banks the heading smoothly (turn-rate cap), so the client
+// should TRACK that heading tightly — not add its own lag, which makes the body
+// face behind its real path (crabbing) through an arc. A high lerp keeps the
+// displayed facing on the movement direction so it reads as facing into the
+// turn; the deadband (flip only once firmly past the 22.5° edge) is what stops
+// the 8-way bucket strobing on a boundary, so it can stay small.
+const CREATURE_TURN_LERP = 0.35;
+const DIR_SWITCH_DEADBAND = 7;
 const DIR_CENTER_DEG: Record<CreatureDir, number> = {
 	N: 0,
 	NE: 45,
@@ -526,27 +528,46 @@ export function tickCreatureFacing(
 	view: CreatureView,
 ): void {
 	if (!isCreatureLocomotion(view.state)) return;
-	// The heading still eases toward the target every frame, but the visible body
-	// only re-aims at a stride boundary (the walk loop wrapping back to ~0). A
-	// long-bodied creature thus finishes its step, plants, then pivots — instead of
-	// swivelling mid-stride.
+
+	if (view.def.continuousTurn) {
+		// Flyer: the server already banks the heading smoothly (turn-rate cap), so
+		// the body follows it 1:1 — no client lerp, which was a redundant second
+		// smoothing that made the facing lag behind the movement arrow. The 8-way
+		// sprite re-aims every frame, carrying the wing-flap phase across the row
+		// swap (no reset/stall); the deadband stops boundary strobe.
+		view.facingDeg = view.targetDeg;
+		const dir = dirFromDeg(view.facingDeg);
+		if (
+			dir !== view.dir &&
+			Math.abs(angleDiffDeg(view.facingDeg, DIR_CENTER_DEG[view.dir])) >=
+				22.5 + DIR_SWITCH_DEADBAND
+		) {
+			const progress = sprite.anims?.getProgress() ?? 0;
+			view.dir = dir;
+			safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
+			if (sprite.anims?.currentAnim) {
+				sprite.anims.setProgress(Phaser.Math.Clamp(progress, 0, 1));
+			}
+		}
+		return;
+	}
+
+	// Ground walker: smooth the body lerp, and only re-aim at a stride boundary
+	// (the walk loop wrapping back to ~0) so it finishes its step, plants, pivots.
 	view.facingDeg = lerpAngleDeg(
 		view.facingDeg,
 		view.targetDeg,
 		CREATURE_TURN_LERP,
 	);
+	const dir = dirFromDeg(view.facingDeg);
+	const wantFlip =
+		dir !== view.dir &&
+		Math.abs(angleDiffDeg(view.facingDeg, DIR_CENTER_DEG[view.dir])) >=
+			22.5 + DIR_SWITCH_DEADBAND;
 	const progress = sprite.anims?.getProgress() ?? 0;
 	const strideWrapped = progress + 1e-3 < (view.lastProgress ?? 0);
 	view.lastProgress = progress;
-	if (!strideWrapped) return;
-	const dir = dirFromDeg(view.facingDeg);
-	if (dir === view.dir) return;
-	if (
-		Math.abs(angleDiffDeg(view.facingDeg, DIR_CENTER_DEG[view.dir])) <
-		22.5 + DIR_SWITCH_DEADBAND
-	) {
-		return;
-	}
+	if (!strideWrapped || !wantFlip) return;
 	view.dir = dir;
 	safePlay(sprite, creatureAnimKey(view.def, view.state, dir), true);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, memo } from 'react';
 import { useTranslation } from '@kbve/laser';
 import { emitTooltip } from '../../systems/hud';
 
@@ -46,7 +46,7 @@ function fluidPath(level: number, phase: number, size: number): string {
 	return d;
 }
 
-export function StatOrb({
+const StatOrbInner = ({
 	stat,
 	phase,
 	size = 72,
@@ -54,7 +54,7 @@ export function StatOrb({
 	stat: OrbStat;
 	phase: number;
 	size?: number;
-}) {
+}) => {
 	const { t } = useTranslation();
 	const { key, cur, max, fluid } = stat;
 	const pct = max > 0 ? Math.max(0, Math.min(1, cur / max)) : 0;
@@ -181,4 +181,18 @@ export function StatOrb({
 			</text>
 		</svg>
 	);
-}
+};
+
+/**
+ * Memoized StatOrb — skips re-render if stat values + phase unchanged.
+ * Prevents 240 React renders/sec (4 orbs × 60fps RAF).
+ */
+export const StatOrb = memo(
+	StatOrbInner,
+	(prev, next) =>
+		prev.stat.cur === next.stat.cur &&
+		prev.stat.max === next.stat.max &&
+		prev.stat.key === next.stat.key &&
+		prev.phase === next.phase &&
+		prev.size === next.size,
+);

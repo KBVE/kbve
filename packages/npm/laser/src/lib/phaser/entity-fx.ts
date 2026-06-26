@@ -74,10 +74,14 @@ export function drawHealthBarCached(
 	lastHp: { hp: number; maxHp: number } | undefined,
 	width = 26,
 ): { drawn: boolean; cache: { hp: number; maxHp: number } } {
+	// Follow every frame via the Graphics transform (cheap) so the bar tracks a
+	// moving entity even when hp is unchanged; the hp-cache gates only the fill
+	// redraw, which is drawn at local origin so setPosition alone places it.
+	g.setPosition(centerX, topY);
 	if (lastHp && lastHp.hp === hp && lastHp.maxHp === maxHp) {
 		return { drawn: false, cache: lastHp };
 	}
-	drawHealthBar(g, centerX, topY, hp, maxHp, width);
+	drawHealthBar(g, 0, 0, hp, maxHp, width);
 	return { drawn: true, cache: { hp, maxHp } };
 }
 

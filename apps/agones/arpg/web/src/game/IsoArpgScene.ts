@@ -280,6 +280,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	private spells: SpellState = makeSpellState();
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
+	// Reusable scratch array for snapshot z-filter (reduces GC churn).
+	private floorFilterScratch: EntityDelta[] = [];
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -995,18 +997,22 @@ export class IsoArpgScene extends Phaser.Scene {
 		// is a single global broadcast (z rides each delta, default 0); the
 		// client renders its own floor and ignores the rest. Entities that left
 		// our floor fall out of the filtered set and despawn via applyEntitySync.
-		const onFloor = s.entities.filter(
-			(e) => (e.z ?? 0) === this.currentFloor,
-		);
+		// Reuse scratch array to reduce GC churn (10-20 snapshots/sec).
+		this.floorFilterScratch.length = 0;
+		for (const e of s.entities) {
+			if ((e.z ?? 0) === this.currentFloor) {
+				this.floorFilterScratch.push(e);
+			}
+		}
 		applyEntitySync(
-			onFloor,
+			this.floorFilterScratch,
 			this.store,
 			this.syncBridge,
 			this.syncResolvers,
 			state,
 			this.markEnvDirty,
 		);
-		this.reconcileTrees(onFloor);
+		this.reconcileTrees(this.floorFilterScratch);
 		this.myEid = state.myEid;
 		this.move.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
