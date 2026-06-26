@@ -173,6 +173,7 @@ pub fn config() -> SimConfig {
         ticks_per_tile: PLAYER_TICKS_PER_TILE,
         safe_radius: PLAYER_SAFE_RADIUS,
         starting_inventory: Vec::new(),
+        corpse_kind: None,
     }
 }
 

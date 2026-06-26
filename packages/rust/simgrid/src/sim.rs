@@ -1851,6 +1851,7 @@ fn apply_drops(
 pub struct ActionTargets<'w, 's> {
     items: Query<'w, 's, (&'static GridPos, &'static GroundItem)>,
     history: Query<'w, 's, &'static PosHistory>,
+    #[allow(clippy::type_complexity)]
     corpses: Query<
         'w,
         's,
@@ -2727,7 +2728,6 @@ fn regen_players(
 /// HP — dropping any dungeon `Floor` so they come back up top, not on the floor
 /// they died on. Corpses are disabled (items just clear) when no `corpse_kind` is
 /// configured.
-#[allow(clippy::type_complexity)]
 fn handle_death_and_respawn(
     config: Res<SimConfig>,
     mut commands: Commands,
@@ -2756,23 +2756,23 @@ fn handle_death_and_respawn(
         let death_floor = floor.map(|f| f.0).unwrap_or(0);
 
         // Drop everything into a corpse where they fell.
-        if let Some(corpse_kind) = config.corpse_kind {
-            if !inv.slots.is_empty() {
-                let items = std::mem::take(&mut inv.slots);
-                let mut e = commands.spawn((
-                    EntityKind(corpse_kind),
-                    GridPos::at(death_tile),
-                    MoveTarget::default(),
-                    Inventory { slots: items },
-                    Corpse,
-                    PlacedBy {
-                        owner: slot.0,
-                        kit_ref: String::new(),
-                    },
-                ));
-                if death_floor != 0 {
-                    e.insert(Floor(death_floor));
-                }
+        if let Some(corpse_kind) = config.corpse_kind
+            && !inv.slots.is_empty()
+        {
+            let items = std::mem::take(&mut inv.slots);
+            let mut e = commands.spawn((
+                EntityKind(corpse_kind),
+                GridPos::at(death_tile),
+                MoveTarget::default(),
+                Inventory { slots: items },
+                Corpse,
+                PlacedBy {
+                    owner: slot.0,
+                    kit_ref: String::new(),
+                },
+            ));
+            if death_floor != 0 {
+                e.insert(Floor(death_floor));
             }
         }
 
@@ -3947,10 +3947,10 @@ mod tests {
                 ServerEvent::Ephemeral { kind, .. } if kind == proto::EPHEMERAL_COMBAT => {
                     saw_combat = true;
                 }
-                ServerEvent::Snapshot(snap) => {
-                    if snap.entities.iter().any(|e| e.kind == potion_kind) {
-                        saw_potion_drop = true;
-                    }
+                ServerEvent::Snapshot(snap)
+                    if snap.entities.iter().any(|e| e.kind == potion_kind) =>
+                {
+                    saw_potion_drop = true;
                 }
                 _ => {}
             }
