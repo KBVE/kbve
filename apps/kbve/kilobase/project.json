@@ -157,6 +157,14 @@
 				"parallel": false
 			}
 		},
+		"image-e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash image_e2e.sh"],
+				"parallel": false
+			}
+		},
 		"debug": {
 			"executor": "nx:run-commands",
 			"options": {
