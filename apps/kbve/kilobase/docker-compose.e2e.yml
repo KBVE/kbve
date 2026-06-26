@@ -1,0 +1,16 @@
+services:
+    kilobase-e2e:
+        container_name: kilobase-e2e
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: kbve/kilobase:e2e
+        environment:
+            POSTGRES_PASSWORD: e2e
+        volumes:
+            - ./e2e/kilobase-preload.conf:/etc/postgresql-custom/conf.d/zz-kilobase.conf:ro
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+            interval: 3s
+            timeout: 5s
+            retries: 30

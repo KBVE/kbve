@@ -90,6 +90,7 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 		w.i8(m.mx);
 		w.i8(m.my);
 		w.bool(m.run);
+		w.u32(m.tick);
 	} else if ('MoveTo' in inp) {
 		w.variant(2);
 		writeTile(w, inp.MoveTo.tile);

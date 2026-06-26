@@ -187,13 +187,20 @@ CREATE TABLE IF NOT EXISTS profile.username_banlist (
     id          bigserial PRIMARY KEY,
     pattern     text NOT NULL UNIQUE,   -- regex or literal fragment (unique to prevent duplicates)
     description text,
+    category    text NOT NULL DEFAULT 'reserved',  -- 'profanity' | 'slur' | 'reserved'
     is_active   boolean NOT NULL DEFAULT TRUE
 );
 
+-- Idempotent add for databases created before the category column existed.
+ALTER TABLE profile.username_banlist
+    ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'reserved';
+
 COMMENT ON TABLE profile.username_banlist IS
-    'List of banned username patterns (regex or fragments), enforced in normalize_username().';
+    'List of banned username patterns (regex or fragments), enforced in normalize_username(). The profanity/slur rows are also mirrored into Valkey for the chat content filter.';
 COMMENT ON COLUMN profile.username_banlist.pattern IS
     'Regex or literal fragment checked against canonical username.';
+COMMENT ON COLUMN profile.username_banlist.category IS
+    'Why the pattern is banned: profanity/slur apply to chat too; reserved is username-only.';
 COMMENT ON COLUMN profile.username_banlist.is_active IS
     'Soft flag so ban rules can be disabled without deleting rows.';
 
@@ -212,21 +219,24 @@ CREATE POLICY "service_role_full_access"
 REVOKE ALL ON TABLE profile.username_banlist
     FROM PUBLIC, anon, authenticated;
 
--- Optional seed entries (tune this list as you like)
-INSERT INTO profile.username_banlist (pattern, description)
+-- Optional seed entries (tune this list as you like). ON CONFLICT updates the
+-- category so re-applying this file backfills rows seeded before the column.
+INSERT INTO profile.username_banlist (pattern, description, category)
 VALUES
-    ('fuck',         'Generic profanity'),
-    ('shit',         'Generic profanity'),
-    ('bitch',        'Generic profanity'),
-    ('cunt',         'Generic profanity'),
-    ('nigg',         'Racial slur fragment'),
-    ('admin',        'Reserved administrative term'),
-    ('administrator','Reserved administrative term'),
-    ('moderator',    'Reserved staff term'),
-    ('mod',          'Reserved staff term'),
-    ('support',      'Reserved support term'),
-    ('staff',        'Reserved staff term')
-ON CONFLICT DO NOTHING;  -- in case this is re-run in dev
+    ('fuck',         'Generic profanity',           'profanity'),
+    ('shit',         'Generic profanity',           'profanity'),
+    ('bitch',        'Generic profanity',           'profanity'),
+    ('cunt',         'Generic profanity',           'profanity'),
+    ('nigg',         'Racial slur fragment',        'slur'),
+    ('admin',        'Reserved administrative term','reserved'),
+    ('administrator','Reserved administrative term','reserved'),
+    ('moderator',    'Reserved staff term',         'reserved'),
+    ('mod',          'Reserved staff term',         'reserved'),
+    ('support',      'Reserved support term',       'reserved'),
+    ('staff',        'Reserved staff term',         'reserved')
+ON CONFLICT (pattern) DO UPDATE
+    SET description = EXCLUDED.description,
+        category    = EXCLUDED.category;
 
 
 -- ===========================================

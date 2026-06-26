@@ -1,0 +1,24 @@
+services:
+    db:
+        image: ${KILOBASE_IMAGE:-kbve/kilobase:17.6.1.136-local}
+        container_name: pgrst-e2e-db
+        environment:
+            POSTGRES_PASSWORD: e2e
+        healthcheck:
+            test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+            interval: 3s
+            timeout: 5s
+            retries: 40
+
+    rest:
+        image: postgrest/postgrest:${POSTGREST_VERSION:-v14.12}
+        container_name: pgrst-e2e-rest
+        environment:
+            PGRST_DB_URI: postgres://authenticator:e2e@db:5432/postgres
+            PGRST_DB_SCHEMAS: public
+            PGRST_DB_ANON_ROLE: anon
+            PGRST_DB_USE_LEGACY_GUCS: 'false'
+            PGRST_SERVER_PORT: '3000'
+            PGRST_JWT_SECRET: 'e2e-postgrest-kilobase-secret-32chars!!'
+        ports:
+            - '3001:3000'

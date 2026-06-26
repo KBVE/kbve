@@ -1,10 +1,10 @@
 ####################
-# Stage 0: Build kilobase extension
+# Stage 0: Build kilobase extension (pgrx) + pg_failover_slots, against pgdg dev-17
 ####################
 FROM rust:bookworm AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl gnupg2 lsb-release ca-certificates \
+    curl gnupg2 lsb-release ca-certificates git make \
     libclang-dev pkg-config libssl-dev && \
     echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg && \
@@ -19,71 +19,50 @@ WORKDIR /build
 COPY . .
 
 RUN cargo pgrx package --pg-config /usr/bin/pg_config --features pg17 && \
-    echo "=== Build passed ==="
+    echo "=== kilobase build passed ==="
+
+# pg_failover_slots: vanilla supabase does NOT ship it, but it is in our
+# shared_preload_libraries (HA logical-slot failover) so the image must carry
+# the .so. v1.1.0 matches the version the prod image bundles.
+RUN git clone --depth 1 --branch v1.1.0 \
+        https://github.com/EnterpriseDB/pg_failover_slots.git /pgfs && \
+    make -C /pgfs PG_CONFIG=/usr/bin/pg_config && \
+    make -C /pgfs install PG_CONFIG=/usr/bin/pg_config && \
+    mkdir -p /pgfs-dist && \
+    cp "$(/usr/bin/pg_config --pkglibdir)/pg_failover_slots.so" /pgfs-dist/ && \
+    (cp "$(/usr/bin/pg_config --sharedir)/extension/"pg_failover_slots* /pgfs-dist/ 2>/dev/null || true) && \
+    echo "=== pg_failover_slots build passed ===" && ls -la /pgfs-dist
 
 ####################
-# Stage 1: Build Supabase PostgreSQL via Nix
+# Stage 1: Final image = Supabase base (alpine+nix) with our extensions installed
 ####################
-FROM nixos/nix:latest AS supabase-nix-builder
+FROM supabase/postgres:17.6.1.136
 
-RUN echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+USER root
 
-WORKDIR /build
-RUN nix-shell -p git --run "git clone https://github.com/supabase/postgres.git supabase-postgres"
-WORKDIR /build/supabase-postgres
-
-RUN nix flake show . | head -20
-
-RUN echo "=== Building PostgreSQL 17 with Supabase's Nix system ===" && \
-    nix build .#psql_17/bin --out-link /supabase-postgresql && \
-    echo "=== Build completed ===" && \
-    /supabase-postgresql/bin/pg_config --version
-
-####################
-# Stage 2: Combine Supabase PostgreSQL + kilobase artifacts
-####################
-FROM nixos/nix:latest AS custom-postgresql-builder
-
-COPY --from=supabase-nix-builder /supabase-postgresql /supabase-postgresql
 COPY --from=builder /build/target/release/kilobase-pg17 /kilobase-dist
-COPY extend-supabase-postgresql.nix /extend-supabase-postgresql.nix
+COPY --from=builder /pgfs-dist /pgfs-dist
 
-RUN nix-build /extend-supabase-postgresql.nix --out-link /extended-postgresql && \
-    echo "=== Extended PostgreSQL built ===" && \
-    ls -la /extended-postgresql/lib/ | grep kilobase && \
-    ls -la /extended-postgresql/share/postgresql/extension/ | grep kilobase
-
-####################
-# Stage 3: Final image based on Supabase with kilobase
-####################
-FROM supabase/postgres:17.4.1.068
-
-COPY --from=custom-postgresql-builder /extended-postgresql /nix/store/extended-postgresql
-
-ENV PATH="/nix/store/extended-postgresql/bin:$PATH"
-
-RUN CURRENT_PG_STORE=$(readlink -f $(which pg_config) | sed 's|/bin/pg_config||') && \
-    echo "=== Integrating extended PostgreSQL ===" && \
-    echo "Current PostgreSQL: $CURRENT_PG_STORE" && \
-    echo "Extended PostgreSQL: /nix/store/extended-postgresql" && \
-    \
-    if [ -d "$CURRENT_PG_STORE/lib" ]; then \
-        cp /nix/store/extended-postgresql/lib/kilobase.so "$CURRENT_PG_STORE/lib/" 2>/dev/null || \
-        mkdir -p "$CURRENT_PG_STORE/lib" && cp /nix/store/extended-postgresql/lib/kilobase.so "$CURRENT_PG_STORE/lib/"; \
-    fi && \
-    \
-    if [ -d "$CURRENT_PG_STORE/share" ]; then \
-        cp /nix/store/extended-postgresql/share/postgresql/extension/kilobase* "$CURRENT_PG_STORE/share/postgresql/extension/" 2>/dev/null || \
-        mkdir -p "$CURRENT_PG_STORE/share/postgresql/extension" && cp /nix/store/extended-postgresql/share/postgresql/extension/kilobase* "$CURRENT_PG_STORE/share/postgresql/extension/"; \
-    fi && \
-    \
-    chown -R postgres:postgres "$CURRENT_PG_STORE/lib" "$CURRENT_PG_STORE/share" 2>/dev/null || true
-
-RUN echo "=== Final Verification ===" && \
-    pg_config --version && \
-    PG_LIBDIR=$(pg_config --pkglibdir) && \
-    PG_SHAREDIR=$(pg_config --sharedir) && \
-    ls -la "$PG_LIBDIR" | grep kilobase && \
-    ls -la "$PG_SHAREDIR/extension" | grep kilobase
+RUN set -eux; \
+    MERGED_LIB="$(dirname "$(dirname "$(readlink -f "$(command -v pg_config)")")")/lib"; \
+    PROFILE_LIB="$(readlink -f "$(dirname "$(dirname "$(pg_config --sharedir)")")/lib")"; \
+    EXTDIR="$(readlink -f "$(pg_config --sharedir)/extension")"; \
+    KILO_SO="$(find /kilobase-dist -name 'kilobase.so' | head -1)"; \
+    KILO_CTRL="$(find /kilobase-dist -name 'kilobase.control' | head -1)"; \
+    PGFS_SO="$(find /pgfs-dist -name 'pg_failover_slots.so' | head -1)"; \
+    for D in "$MERGED_LIB" "$PROFILE_LIB"; do \
+        test -e "$D/plpgsql.so" || continue; \
+        chmod u+w "$D"; \
+        cp "$KILO_SO" "$D/"; chmod 755 "$D/kilobase.so"; \
+        cp "$PGFS_SO" "$D/"; chmod 755 "$D/pg_failover_slots.so"; \
+    done; \
+    chmod u+w "$EXTDIR"; \
+    cp "$KILO_CTRL" "$EXTDIR/"; \
+    find /kilobase-dist -name 'kilobase*.sql' -exec cp {} "$EXTDIR/" \; ; \
+    find /pgfs-dist \( -name 'pg_failover_slots*.control' -o -name 'pg_failover_slots*.sql' \) -exec cp {} "$EXTDIR/" \; ; \
+    rm -rf /kilobase-dist /pgfs-dist; \
+    echo "=== Final verification ==="; \
+    pg_config --version; \
+    ls -la "$MERGED_LIB" | grep -E 'kilobase|failover'
 
 USER postgres

@@ -98,11 +98,11 @@ export function applyEntitySync<R>(
 			const cur = store.tile(e.eid);
 			const refs = store.refs(e.eid);
 			const moved = !!cur && (cur.x !== e.tile.x || cur.y !== e.tile.y);
-			// NPCs (interp-backed) get the server's sub-tile pos (qx/qy) fed into the
-			// interp every snapshot so float-steered ones curve with the server's
-			// steering; grid NPCs carry qx = their tile, so they're fed too. Non-NPCs
-			// (env/item) + remote players (no interp buffer) take the tile path.
-			if (refs && cat === CAT_NPC) {
+			// Interp-backed movers (NPCs + remote players) get the server's sub-tile
+			// pos (qx/qy) fed into the interp every snapshot so they curve with the
+			// server's float steering; grid NPCs carry qx = their tile, so they're fed
+			// too. Env/items (no interp buffer) take the integer-tile path.
+			if (refs && (cat === CAT_NPC || cat === CAT_PLAYER)) {
 				bridge.move(refs, {
 					x: (e.qx ?? 0) / POS_SCALE,
 					y: (e.qy ?? 0) / POS_SCALE,

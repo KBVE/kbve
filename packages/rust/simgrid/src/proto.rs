@@ -138,6 +138,10 @@ pub enum Input {
         mx: i8,
         my: i8,
         run: bool,
+        /// Client sim tick this intent was sampled at. The server consumes one
+        /// input per tick in client-tick order (FIFO jitter buffer), so the
+        /// release stops exactly when the client did — no held-intent over-travel.
+        tick: u32,
     },
     MoveTo {
         tile: Tile,
@@ -601,6 +605,7 @@ mod tests {
                     mx: 127,
                     my: -1,
                     run: true,
+                    tick: 9,
                 },
                 Input::Fell {
                     tile: Tile::new(5, -3),
@@ -610,7 +615,7 @@ mod tests {
         });
         let bytes = encode(&msg).expect("encode");
         let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
-        assert_eq!(hex, "0d01070301037fff01180a050d00");
+        assert_eq!(hex, "0e01070301037fff0109180a050d00");
 
         // JoinMatch: leading 0x00 discriminant exercises COBS restuffing.
         let join = ClientMessage::JoinMatch(JoinMatch {

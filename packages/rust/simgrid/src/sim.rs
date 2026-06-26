@@ -9,7 +9,6 @@ use bevy::prelude::{
     Added, Commands, Component, IntoScheduleConfigs, Query, RemovedComponents, Res, ResMut,
     Resource, Update, With, Without,
 };
-use serde_json::json;
 use tokio::sync::mpsc;
 use tokio::time;
 
@@ -1235,6 +1234,7 @@ fn sync_roster(
                 Equipped { weapon, armor },
                 StatusEffects::default(),
                 FloatMove::at(config.spawn),
+                IntentBuffer::default(),
             ))
             .id();
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
@@ -1287,6 +1287,56 @@ fn rebuild_index(
     }
 }
 
+/// Per-player movement intents, one per client sim tick, consumed FIFO one per
+/// server tick by `advance_float`. Decouples application from network arrival
+/// jitter so the server reproduces the client's motion tick-for-tick: the release
+/// (stop) is applied in order at the same tick the client stopped, instead of the
+/// old "hold last intent until the stop packet lands" model that over-traveled by
+/// ~RTT. A small jitter buffer primes before consumption; on starvation the last
+/// intent is held a short grace then zeroed so a dropped tail still comes to rest.
+#[derive(Component, Default)]
+pub struct IntentBuffer {
+    pending: std::collections::VecDeque<(i8, i8, bool)>,
+    last: (i8, i8, bool),
+    primed: bool,
+    starve_ticks: u32,
+}
+
+/// Inputs to buffer before consumption starts — absorbs network arrival variance
+/// so the queue doesn't starve on the first jittery packets.
+const INPUT_JITTER_BUFFER: usize = 2;
+/// Starved ticks to keep applying the last intent before forcing a stop, so a
+/// brief packet gap coasts naturally instead of stuttering to a halt.
+const INPUT_STARVE_GRACE: u32 = 2;
+
+impl IntentBuffer {
+    /// Queue one client-tick intent.
+    fn push(&mut self, mx: i8, my: i8, run: bool) {
+        self.pending.push_back((mx, my, run));
+    }
+
+    /// Advance one server tick: return the intent to apply. Primes on the jitter
+    /// buffer, then pops one per tick; holds (then zeroes) the last on starvation.
+    fn next(&mut self) -> (i8, i8, bool) {
+        if !self.primed && self.pending.len() >= INPUT_JITTER_BUFFER {
+            self.primed = true;
+        }
+        if self.primed {
+            if let Some(i) = self.pending.pop_front() {
+                self.last = i;
+                self.starve_ticks = 0;
+            } else {
+                self.starve_ticks += 1;
+                if self.starve_ticks > INPUT_STARVE_GRACE {
+                    self.last = (0, 0, self.last.2);
+                }
+                self.primed = false;
+            }
+        }
+        self.last
+    }
+}
+
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn drain_inputs(
     queue: Res<InputQueue>,
@@ -1317,6 +1367,7 @@ fn drain_inputs(
         &mut StatusEffects,
         Option<&Floor>,
         &mut FloatMove,
+        &mut IntentBuffer,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -1374,6 +1425,7 @@ fn drain_inputs(
         mut status,
         floor,
         mut fm,
+        mut intents,
     ) in q.iter_mut()
     {
         let Some(inputs) = pending.get(&slot.0.0) else {
@@ -1382,12 +1434,15 @@ fn drain_inputs(
         let z = floor.map(|f| f.0).unwrap_or(0);
         for input in inputs {
             match input {
-                Input::Move { seq, mx, my, run } => {
-                    if *seq >= fm.last_seq {
+                Input::Move {
+                    seq, mx, my, run, ..
+                } => {
+                    // Enqueue strictly-newer intents in client-tick order;
+                    // advance_float consumes one per server tick. The seq guard
+                    // dedupes retransmits/reorders.
+                    if *seq > fm.last_seq {
                         fm.last_seq = *seq;
-                        fm.intent_x = *mx;
-                        fm.intent_y = *my;
-                        fm.run = *run;
+                        intents.push(*mx, *my, *run);
                     }
                 }
                 Input::Face { facing } => {
@@ -2750,13 +2805,27 @@ fn facing_from_intent(mx: i8, my: i8) -> proto::Facing {
 
 fn advance_float(
     map: Res<WalkableMap>,
-    mut q: Query<(&mut GridPos, &mut FloatMove, Option<&Floor>), With<PlayerSlotTag>>,
+    mut q: Query<
+        (
+            &mut GridPos,
+            &mut FloatMove,
+            &mut IntentBuffer,
+            Option<&Floor>,
+        ),
+        With<PlayerSlotTag>,
+    >,
 ) {
     let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
-    for (mut pos, mut fm, floor) in q.iter_mut() {
+    for (mut pos, mut fm, mut intents, floor) in q.iter_mut() {
         let z = floor.map(|f| f.0).unwrap_or(0);
         let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
-        let (mx, my, run) = (fm.intent_x, fm.intent_y, fm.run);
+        // Consume exactly one buffered intent per server tick (FIFO), so the body
+        // reproduces the client's tick-by-tick motion — including stopping the
+        // same tick the client released, no held-intent over-travel.
+        let (mx, my, run) = intents.next();
+        fm.intent_x = mx;
+        fm.intent_y = my;
+        fm.run = run;
         let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
         let speed = if run {
             crate::float_move::RUN_SPEED
