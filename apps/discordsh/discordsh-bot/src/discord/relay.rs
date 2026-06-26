@@ -23,7 +23,7 @@ pub async fn handle_discord_message(message: &serenity::Message, app: &Arc<AppSt
         return;
     }
 
-    let resolved = resolve_user_mentions(&message.content, &message.mentions);
+    let resolved = resolve_user_mentions(&message.content, &message.mentions, app).await;
     let content = sanitize(&resolved);
     if content.is_empty() {
         return;
@@ -135,17 +135,33 @@ fn platform_tag(platform: &str) -> String {
     }
 }
 
-fn resolve_user_mentions(content: &str, mentions: &[serenity::User]) -> String {
-    resolve_mentions_inner(
-        content,
-        mentions.iter().map(|user| {
-            let display = user
-                .global_name
-                .clone()
-                .unwrap_or_else(|| user.name.clone());
-            (user.id.to_string(), display)
-        }),
-    )
+async fn resolve_user_mentions(
+    content: &str,
+    mentions: &[serenity::User],
+    app: &Arc<AppState>,
+) -> String {
+    if !content.contains("<@") {
+        return content.to_owned();
+    }
+    let mut pairs = Vec::with_capacity(mentions.len());
+    for user in mentions {
+        let discord_name = user
+            .global_name
+            .clone()
+            .unwrap_or_else(|| user.name.clone());
+        let id = user.id.to_string();
+        // Prefer the KBVE username linked to the Discord account; fall back to
+        // the Discord display name when unlinked / no username / no resolver.
+        let display = match app.mentions.as_ref() {
+            Some(resolver) => resolver
+                .kbve_username(&id)
+                .await
+                .unwrap_or(discord_name),
+            None => discord_name,
+        };
+        pairs.push((id, display));
+    }
+    resolve_mentions_inner(content, pairs)
 }
 
 fn resolve_mentions_inner<I>(content: &str, pairs: I) -> String
