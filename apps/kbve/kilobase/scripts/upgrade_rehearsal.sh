@@ -103,7 +103,10 @@ verify() {
     if [ "$uid" = "$img_uid" ] && [ "$gid" = "$img_gid" ]; then
         echo "  ok   uid/gid match"
     else
-        echo "  MISMATCH -> set postgresUID:$img_uid postgresGID:$img_gid in postgres-cluster.yaml AND chown the PGDATA volume $uid:$gid -> $img_uid:$img_gid at cutover"
+        echo "  MISMATCH -> postgresUID/GID are IMMUTABLE on an existing CNPG cluster (webhook"
+        echo "             rejects edits). Image needs $img_uid:$img_gid, cluster locked at $uid:$gid"
+        echo "             -> requires a NEW cluster (blue-green) + data migration + service flip,"
+        echo "             NOT an in-place edit."
     fi
 }
 
