@@ -1713,18 +1713,17 @@ fn apply_actions(
                 });
                 let impact = path.last().copied().unwrap_or(attacker_tile);
                 let los_clear = impact == target_tile;
-                let payload = json!({
-                    "attacker": player_entity.index_u32(),
-                    "from": { "x": attacker_tile.x, "y": attacker_tile.y },
-                    "to": { "x": impact.x, "y": impact.y },
-                    "kind": "arrow",
-                    "hit": los_clear,
-                })
-                .to_string()
-                .into_bytes();
+                let event = proto::ProjectileEvent {
+                    attacker: player_entity.index_u32(),
+                    from: attacker_tile,
+                    to: impact,
+                    kind: "arrow".into(),
+                    hit: los_clear,
+                };
+                let payload = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PROJECTILE,
-                    to: proto::PlayerSlot(slot.0),
+                    to: proto::PLAYER_SLOT_NONE,
                     payload,
                 });
                 if los_clear {
@@ -2722,6 +2721,7 @@ fn advance_float(
 /// from the float tile so all grid systems (collision/streaming/aggro/targeting)
 /// stay authoritative. Runs in the Movement set alongside the grid mover, which
 /// is gated `Without<FloatSteer>` so nothing double-moves.
+#[allow(clippy::type_complexity)]
 fn advance_npc_float(
     map: Res<WalkableMap>,
     mut q: Query<
