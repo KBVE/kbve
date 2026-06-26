@@ -122,6 +122,7 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 		w.variant(10);
 		w.string(inp.PlaceItem.item_ref);
 		writeTile(w, inp.PlaceItem.tile);
+		w.u8(inp.PlaceItem.rot & 0x03);
 	} else if ('PickupObject' in inp) {
 		w.variant(11);
 		writeTile(w, inp.PickupObject.tile);

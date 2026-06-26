@@ -7,7 +7,7 @@ use simgrid::arpg_dungeon;
 use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
     BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EnvOpts, HazardZone,
-    HealAura, KindRegistry, PersistedEnvLog, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
+    HealAura, KindRegistry, ManaAura, PersistedEnvLog, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
     ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
 };
 
@@ -46,6 +46,13 @@ pub const CAMPFIRE_REF: &str = "campfire";
 // The deployable inventory item that places a `campfire` env object. Carried in
 // the pack, consumed on placement. itemdb ref `campfire-kit` (key 77).
 pub const CAMPFIRE_KIT_REF: &str = "campfire-kit";
+
+// Candelabrum: a placed, ROTATABLE env furniture (4 facings, R cycles during
+// placement). Blocks its tile and restores mana in the adjacent ring — no burn.
+// Behavior from the `candelabrum` mapdb WorldObjectDef. The deployable item that
+// places it is `candelabrum-stand` (itemdb, key 563); the placed env is `candelabrum`.
+pub const CANDELABRUM_REF: &str = "candelabrum";
+pub const CANDELABRUM_KIT_REF: &str = "candelabrum-stand";
 
 // A few starter potions drop near spawn so the inventory + item-usage loop is
 // usable immediately: pick up -> 1-9 hotkey -> heal (itemdb says potion heals 15).
@@ -91,7 +98,9 @@ pub fn registry() -> KindRegistry {
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
     reg.register_item(CAMPFIRE_KIT_REF);
+    reg.register_item(CANDELABRUM_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
+    reg.register_env(CANDELABRUM_REF);
     reg.register_env(simgrid::TREE_REF);
     reg.register_env(simgrid::BUSH_REF);
     reg
@@ -109,11 +118,13 @@ static MAP_DB: LazyLock<bevy_mapdb::MapDb> = LazyLock::new(|| {
 });
 
 /// Build `EnvOpts` for a placed object from its mapdb `WorldObjectDef`. A
-/// `regen` placed-effect becomes the heal aura (`range >= 1`), a `burning` one
-/// the on-tile hazard (`range 0`). Returns `None` when the ref is absent.
+/// `regen` placed-effect becomes the heal aura (`range >= 1`), `mana_regen` the
+/// mana aura, and `burning` the on-tile hazard (`range 0`). Returns `None` when
+/// the ref is absent.
 fn env_opts_from_mapdb(ref_id: &str, floor: i32) -> Option<EnvOpts> {
     let def = MAP_DB.get_object_def_by_ref(ref_id)?;
     let mut heal_aura = None;
+    let mut mana_aura = None;
     let mut hazard = None;
     for e in &def.placed_effects {
         let magnitude = e.magnitude.unwrap_or(0);
@@ -121,6 +132,13 @@ fn env_opts_from_mapdb(ref_id: &str, floor: i32) -> Option<EnvOpts> {
         match e.status.as_str() {
             "regen" => {
                 heal_aura = Some(HealAura {
+                    range: e.range.unwrap_or(1),
+                    magnitude,
+                    period_ticks,
+                })
+            }
+            "mana_regen" => {
+                mana_aura = Some(ManaAura {
                     range: e.range.unwrap_or(1),
                     magnitude,
                     period_ticks,
@@ -138,9 +156,17 @@ fn env_opts_from_mapdb(ref_id: &str, floor: i32) -> Option<EnvOpts> {
     Some(EnvOpts {
         blocker: def.blocks_movement.unwrap_or(false),
         heal_aura,
+        mana_aura,
         hazard,
         floor,
     })
+}
+
+/// Behavior for a candelabrum env object: blocks its tile and restores mana in the
+/// adjacent ring (no burn). Traces to the `candelabrum` mapdb WorldObjectDef.
+pub fn candelabrum_env_opts(floor: i32) -> EnvOpts {
+    env_opts_from_mapdb(CANDELABRUM_REF, floor)
+        .expect("`candelabrum` WorldObjectDef present in mapdb-data.binpb")
 }
 
 /// Behavior for a campfire env object: blocks its tile, heals the adjacent ring,
@@ -162,6 +188,13 @@ pub fn deployables() -> Deployables {
         DeployableSpec {
             env_ref: CAMPFIRE_REF.to_string(),
             opts: campfire_env_opts(SPAWN_FLOOR),
+        },
+    );
+    map.insert(
+        CANDELABRUM_KIT_REF.to_string(),
+        DeployableSpec {
+            env_ref: CANDELABRUM_REF.to_string(),
+            opts: candelabrum_env_opts(SPAWN_FLOOR),
         },
     );
     Deployables(map)
@@ -353,6 +386,13 @@ pub fn spawn_world(
         commands.spawn(bundle);
     }
 
+    // A stack of candelabrum stands too, so the rotatable mana-furniture loop is
+    // testable from spawn (pick up -> place -> R rotates -> mana ring).
+    let cand_tile = floor_near(Tile::new(spawn.x - 2, spawn.y - 2));
+    if let Some(bundle) = ground_item_bundle(&registry, CANDELABRUM_KIT_REF, 25, cand_tile) {
+        commands.spawn(bundle);
+    }
+
     // A campfire near spawn: blocks its tile, heals the adjacent ring, burns
     // anything forced onto it. Snap to a floor tile distinct from the player
     // spawn so no one starts trapped on it.
@@ -405,8 +445,15 @@ pub fn spawn_world(
             continue;
         };
         let blocker = opts.blocker;
-        if spawn_env_object(&mut commands, &registry, &o.env_ref, tile, opts).is_some() && blocker {
-            walkable.block_tile_z(o.floor, tile);
+        if let Some(eid) = spawn_env_object(&mut commands, &registry, &o.env_ref, tile, opts) {
+            // Rotatable furniture persists its facing in `sub`; bring it back so the
+            // restored prop renders the same orientation it was placed at.
+            if o.env_ref == CANDELABRUM_REF {
+                commands.entity(eid).insert(simgrid::FurnitureRot(o.sub));
+            }
+            if blocker {
+                walkable.block_tile_z(o.floor, tile);
+            }
         }
     }
 }
@@ -435,6 +482,17 @@ mod tests {
         assert_eq!((aura.range, aura.magnitude, aura.period_ticks), (2, 3, 20));
         let hazard = opts.hazard.expect("burning placed-effect → hazard");
         assert_eq!((hazard.magnitude, hazard.period_ticks), (8, 20));
+    }
+
+    #[test]
+    fn candelabrum_env_opts_trace_to_mapdb() {
+        let opts = super::candelabrum_env_opts(super::SPAWN_FLOOR);
+        assert!(opts.blocker, "candelabrum blocks its tile");
+        let aura = opts
+            .mana_aura
+            .expect("mana_regen placed-effect → mana aura");
+        assert_eq!((aura.range, aura.magnitude, aura.period_ticks), (2, 2, 20));
+        assert!(opts.hazard.is_none(), "candelabrum has no burn hazard");
     }
 
     #[test]

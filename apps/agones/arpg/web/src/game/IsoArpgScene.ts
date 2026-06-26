@@ -84,6 +84,7 @@ import {
 	handleInventoryIntent as handleInventoryIntentV,
 	tryAutoPickup as tryAutoPickupV,
 	exitPlacement as exitPlacementV,
+	rotatePlacement as rotatePlacementV,
 	updatePlaceGhost as updatePlaceGhostV,
 	commitPlacement as commitPlacementV,
 	type InventoryState,
@@ -546,6 +547,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			useInventorySlot: (i) => this.useInventorySlot(i),
 			castSpellSlot: (i) => this.castSpellSlot(i),
 			exitPlacement: () => this.exitPlacement(),
+			rotatePlacement: () => rotatePlacementV(this.inv, this.invDeps()),
 			commitPlacement: (t) => this.commitPlacement(t),
 			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
 			fireBowAt: (a, t) => this.fireBowAt(a, t),
@@ -613,6 +615,7 @@ export class IsoArpgScene extends Phaser.Scene {
 						const envSprite = makeEnvSprite(
 							this,
 							this.kinds.ref(e.kind),
+							e.sub,
 						);
 						refs = {
 							sprite:

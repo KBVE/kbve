@@ -252,8 +252,8 @@ export class GameClient {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
 	}
 
-	placeItem(itemRef: string, tile: Tile): void {
-		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile } }]);
+	placeItem(itemRef: string, tile: Tile, rot = 0): void {
+		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile, rot } }]);
 	}
 
 	pickupObject(tile: Tile): void {

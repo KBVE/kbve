@@ -51,7 +51,7 @@ export type Input =
 	| { DropItem: { item_ref: string; qty: number } }
 	| { MoveItem: { from: number; to: number } }
 	| { EquipItem: { item_ref: string } }
-	| { PlaceItem: { item_ref: string; tile: Tile } }
+	| { PlaceItem: { item_ref: string; tile: Tile; rot: number } }
 	| { PickupObject: { tile: Tile } }
 	| { Heartbeat: { client_tick: number } }
 	| 'Leave'

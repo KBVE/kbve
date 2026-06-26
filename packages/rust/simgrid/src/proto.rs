@@ -170,6 +170,9 @@ pub enum Input {
     PlaceItem {
         item_ref: String,
         tile: Tile,
+        /// Furniture facing 0..=3 (R cycles it during placement). 0 for props with
+        /// no rotation (campfire). Rides the placed env's `EntityDelta.sub`.
+        rot: u8,
     },
     PickupObject {
         tile: Tile,

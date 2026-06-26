@@ -12,7 +12,7 @@ import { worldToScreen, type TileXY } from '../iso';
 import { DungeonField } from './dungeon';
 import type { KindResolvers } from './kindResolvers';
 import { makeSprite, type EntityRefs } from '../entities/sprites';
-import { makeEnvSprite } from '../entities/env';
+import { makeEnvSprite, envDirections, ENV_REGISTRY } from '../entities/env';
 import { placeSprite } from './entityView';
 import { emitInventory, emitInventoryOpen, type InventoryIntent } from './hud';
 
@@ -20,6 +20,7 @@ import { emitInventory, emitInventoryOpen, type InventoryIntent } from './hud';
 // game::deployables() table so online + offline placement render the same thing.
 const DEPLOYABLES: ReadonlyMap<string, string> = new Map([
 	['campfire-kit', 'campfire'],
+	['candelabrum-stand', 'candelabrum'],
 ]);
 // How far (Chebyshev) from the player a deployable may be placed. Mirrors the
 // server's PLACE_RANGE so the client ghost reads valid exactly when the server
@@ -43,6 +44,8 @@ export interface InventoryState {
 	pickupSuspendUntil: number;
 	placingRef: string | null;
 	placeGhost: Phaser.GameObjects.Sprite | null;
+	/** Facing the armed placement will be committed at (R cycles it, 0..dirs-1). */
+	placeRot: number;
 }
 
 export function makeInventoryState(): InventoryState {
@@ -53,6 +56,7 @@ export function makeInventoryState(): InventoryState {
 		pickupSuspendUntil: 0,
 		placingRef: null,
 		placeGhost: null,
+		placeRot: 0,
 	};
 }
 
@@ -193,7 +197,8 @@ export function enterPlacement(
 	if (!envRef) return;
 	exitPlacement(st);
 	st.placingRef = itemRef;
-	const ghost = makeEnvSprite(deps.scene, envRef);
+	st.placeRot = 0;
+	const ghost = makeEnvSprite(deps.scene, envRef, st.placeRot);
 	if (ghost) {
 		ghost.setAlpha(0.55);
 		ghost.setDepth(DEPTH_UI);
@@ -206,6 +211,33 @@ export function exitPlacement(st: InventoryState): void {
 	st.placingRef = null;
 	st.placeGhost?.destroy();
 	st.placeGhost = null;
+	st.placeRot = 0;
+}
+
+/**
+ * Rotate the armed placement to the next facing (R). No-op for a non-rotatable
+ * prop (campfire, 1 row). Rebuilds the ghost at the new direction; the next
+ * `updatePlaceGhost` re-seats it on the cursor tile.
+ */
+export function rotatePlacement(st: InventoryState, deps: InventoryDeps): void {
+	if (!st.placingRef || !st.placeGhost) return;
+	const envRef = DEPLOYABLES.get(st.placingRef);
+	if (!envRef) return;
+	const def = ENV_REGISTRY.get(envRef);
+	if (!def || envDirections(def) <= 1) return;
+	st.placeRot = (st.placeRot + 1) % envDirections(def);
+	const x = st.placeGhost.x;
+	const y = st.placeGhost.y;
+	st.placeGhost.destroy();
+	const ghost = makeEnvSprite(deps.scene, envRef, st.placeRot);
+	if (ghost) {
+		ghost.setAlpha(0.55);
+		ghost.setDepth(DEPTH_UI);
+		ghost.setPosition(x, y);
+		st.placeGhost = ghost;
+	} else {
+		st.placeGhost = null;
+	}
 }
 
 /**
@@ -254,6 +286,6 @@ export function commitPlacement(
 	const idx = st.items.findIndex((s) => s.ref === itemRef);
 	if (idx < 0) return;
 
-	deps.client()?.placeItem(itemRef, tile);
+	deps.client()?.placeItem(itemRef, tile, st.placeRot);
 	exitPlacement(st);
 }

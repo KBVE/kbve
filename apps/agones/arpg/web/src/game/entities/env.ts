@@ -21,11 +21,18 @@ export interface EnvDef {
 	sheet: string;
 	frameWidth: number;
 	frameHeight: number;
+	/** Animation frames PER direction (one row of the sheet). */
 	frames: number;
 	frameRate: number;
 	displayWidth: number;
 	displayHeight: number;
 	originY: number;
+	/**
+	 * Number of facing rows packed in the sheet (row-major: row = facing, col =
+	 * anim frame). Defaults to 1 (campfire — no rotation). A rotatable prop
+	 * (candelabrum, 4) is placed with `R` and renders the row its `sub` byte names.
+	 */
+	directions?: number;
 	light?: EnvLight;
 }
 
@@ -42,12 +49,34 @@ export const CAMPFIRE_ENV: EnvDef = {
 	light: { color: 0xff9a3c, radius: 96, intensity: 0.5 },
 };
 
+// Candelabrum Stand — a ROTATABLE mana-font prop. Sheet is 4 facing rows x 3
+// flame-flicker frames of 64x96; `sub` (0..3) picks the row. Warm candle glow.
+export const CANDELABRUM_ENV: EnvDef = {
+	ref: 'candelabrum',
+	sheet: '/assets/arcade/arpg/environment/lightsources/candelabrum-stand/Anim_Infernus_Lightsources_1.png',
+	frameWidth: 64,
+	frameHeight: 96,
+	frames: 3,
+	frameRate: 6,
+	displayWidth: 56,
+	displayHeight: 84,
+	originY: 0.86,
+	directions: 4,
+	light: { color: 0xffc46b, radius: 80, intensity: 0.42 },
+};
+
 export const ENV_REGISTRY: Map<string, EnvDef> = new Map([
 	[CAMPFIRE_ENV.ref, CAMPFIRE_ENV],
+	[CANDELABRUM_ENV.ref, CANDELABRUM_ENV],
 ]);
 
+/** Facing count for a def (rotatable props pack >1 row). */
+export const envDirections = (def: EnvDef): number =>
+	Math.max(1, def.directions ?? 1);
+
 const sheetKey = (def: EnvDef): string => `env:${def.ref}`;
-const animKey = (def: EnvDef): string => `anim:env:${def.ref}`;
+const animKey = (def: EnvDef, dir: number): string =>
+	`anim:env:${def.ref}:${dir}`;
 
 export function preloadEnv(scene: Phaser.Scene, def: EnvDef): void {
 	scene.load.spritesheet(sheetKey(def), arpgAsset(def.sheet), {
@@ -57,33 +86,40 @@ export function preloadEnv(scene: Phaser.Scene, def: EnvDef): void {
 }
 
 export function registerEnvAnims(scene: Phaser.Scene, def: EnvDef): void {
-	const key = animKey(def);
-	if (scene.anims.exists(key)) return;
-	scene.anims.create({
-		key,
-		frames: scene.anims.generateFrameNumbers(sheetKey(def), {
-			start: 0,
-			end: def.frames - 1,
-		}),
-		frameRate: def.frameRate,
-		repeat: -1,
-	});
+	// One looping anim per facing row; row-major frame index = dir * frames + f.
+	for (let dir = 0; dir < envDirections(def); dir++) {
+		const key = animKey(def, dir);
+		if (scene.anims.exists(key)) continue;
+		const start = dir * def.frames;
+		scene.anims.create({
+			key,
+			frames: scene.anims.generateFrameNumbers(sheetKey(def), {
+				start,
+				end: start + def.frames - 1,
+			}),
+			frameRate: def.frameRate,
+			repeat: -1,
+		});
+	}
 }
 
 /**
- * Build a looping prop sprite for an env `ref`. Returns null when the ref has no
- * registered def so the caller can fall back to the placeholder rectangle.
+ * Build a looping prop sprite for an env `ref`, facing `dir` (its `sub` byte;
+ * clamped to the def's row count). Returns null when the ref has no registered
+ * def so the caller can fall back to the placeholder rectangle.
  */
 export function makeEnvSprite(
 	scene: Phaser.Scene,
 	ref: string | null,
+	dir = 0,
 ): Phaser.GameObjects.Sprite | null {
 	const def = ref ? ENV_REGISTRY.get(ref) : undefined;
 	if (!def) return null;
-	const sprite = scene.add.sprite(0, 0, sheetKey(def), 0);
+	const d = Math.min(Math.max(dir, 0), envDirections(def) - 1);
+	const sprite = scene.add.sprite(0, 0, sheetKey(def), d * def.frames);
 	sprite.setOrigin(0.5, def.originY);
 	sprite.setDisplaySize(def.displayWidth, def.displayHeight);
-	sprite.play(animKey(def));
+	sprite.play(animKey(def, d));
 	return sprite;
 }
 

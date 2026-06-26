@@ -131,7 +131,7 @@ pub struct Deployables(pub HashMap<String, DeployableSpec>);
 /// the env object (item already removed from the inventory). `floor` pins it to
 /// the placer's dungeon level.
 #[derive(Resource, Default)]
-pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
+pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32, u8)>);
 
 /// A player's pickup request this tick, queued for `apply_pickups` to validate
 /// (owner + range) and resolve: `(slot, target_tile, floor, player_tile)`.
@@ -754,6 +754,22 @@ pub struct HealAura {
     pub period_ticks: u32,
 }
 
+/// Facing of a placed rotatable furniture (candelabrum): 0..=3, set from the
+/// `PlaceItem` rot byte and streamed verbatim on `EntityDelta.sub` so every client
+/// renders the same orientation. Props with no rotation simply never carry it.
+#[derive(Component, Clone, Copy)]
+pub struct FurnitureRot(pub u8);
+
+/// Periodic mana restore for players within `range` (Chebyshev) of this tile,
+/// excluding the unstandable center. The mana counterpart to `HealAura`
+/// (candelabrum stand). `range >= 1` keeps it disjoint from a `HazardZone`.
+#[derive(Component, Clone, Copy)]
+pub struct ManaAura {
+    pub range: i32,
+    pub magnitude: i32,
+    pub period_ticks: u32,
+}
+
 /// Periodic burn for any entity standing ON this tile (player or NPC — reached by
 /// knockback / forced move since the tile is usually a `Blocker`).
 #[derive(Component, Clone, Copy)]
@@ -768,6 +784,7 @@ pub struct HazardZone {
 pub struct EnvOpts {
     pub blocker: bool,
     pub heal_aura: Option<HealAura>,
+    pub mana_aura: Option<ManaAura>,
     pub hazard: Option<HazardZone>,
     pub floor: i32,
 }
@@ -798,6 +815,9 @@ pub fn spawn_env_object(
         e.insert(Blocker);
     }
     if let Some(a) = opts.heal_aura {
+        e.insert(a);
+    }
+    if let Some(a) = opts.mana_aura {
         e.insert(a);
     }
     if let Some(h) = opts.hazard {
@@ -927,6 +947,31 @@ fn env_heal_aura(
             let d = ppos.tile.chebyshev(apos.tile);
             if d >= 1 && d <= aura.range {
                 hp.hp = (hp.hp + aura.magnitude).min(hp.max_hp);
+            }
+        }
+    }
+}
+
+/// Restore mana to players standing in a candelabrum's aura ring (range >= 1,
+/// same floor). The mana counterpart to `env_heal_aura`.
+#[allow(clippy::type_complexity)]
+fn env_mana_aura(
+    clock: Res<SimClock>,
+    auras: Query<(&ManaAura, &GridPos, Option<&Floor>)>,
+    mut players: Query<(&mut Mana, &GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+) {
+    for (aura, apos, afloor) in auras.iter() {
+        if aura.period_ticks == 0 || !clock.tick.is_multiple_of(aura.period_ticks) {
+            continue;
+        }
+        let az = afloor.map(|f| f.0).unwrap_or(0);
+        for (mut mana, ppos, pfloor) in players.iter_mut() {
+            if pfloor.map(|f| f.0).unwrap_or(0) != az || mana.mp >= mana.max_mp {
+                continue;
+            }
+            let d = ppos.tile.chebyshev(apos.tile);
+            if d >= 1 && d <= aura.range {
+                mana.mp = (mana.mp + aura.magnitude).min(mana.max_mp);
             }
         }
     }
@@ -1063,6 +1108,7 @@ pub fn build_app(
                 stair_system,
                 env_hazard_burn,
                 env_heal_aura,
+                env_mana_aura,
                 tick_status_effects,
                 respawn_players,
                 regen_players,
@@ -1416,15 +1462,22 @@ fn drain_inputs(
                         defense.0,
                     );
                 }
-                Input::PlaceItem { item_ref, tile } => {
+                Input::PlaceItem {
+                    item_ref,
+                    tile,
+                    rot,
+                } => {
                     let placed =
                         place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
                     match placed {
                         Ok(()) => {
-                            deploy
-                                .placements
-                                .0
-                                .push((slot.0, item_ref.clone(), *tile, z));
+                            deploy.placements.0.push((
+                                slot.0,
+                                item_ref.clone(),
+                                *tile,
+                                z,
+                                *rot & 0x03,
+                            ));
                             send_inventory(&bcast, slot.0, &inv);
                             send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
                         }
@@ -2037,7 +2090,7 @@ fn apply_placements(
     mut commands: Commands,
 ) {
     let mut changed = false;
-    for (slot, item_ref, tile, z) in placements.0.drain(..) {
+    for (slot, item_ref, tile, z, rot) in placements.0.drain(..) {
         let Some(spec) = deployables.0.get(&item_ref) else {
             continue;
         };
@@ -2045,10 +2098,13 @@ fn apply_placements(
         opts.floor = z;
         let blocker = opts.blocker;
         if let Some(eid) = spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts) {
-            commands.entity(eid).insert(PlacedBy {
-                owner: slot,
-                kit_ref: item_ref.clone(),
-            });
+            commands.entity(eid).insert((
+                PlacedBy {
+                    owner: slot,
+                    kit_ref: item_ref.clone(),
+                },
+                FurnitureRot(rot),
+            ));
             if blocker {
                 map.block_tile_z(z, tile);
             }
@@ -2057,7 +2113,7 @@ fn apply_placements(
                 x: tile.x,
                 y: tile.y,
                 floor: z,
-                sub: 0,
+                sub: rot,
             });
             changed = true;
         }
@@ -2914,6 +2970,7 @@ fn emit_snapshot(
         Option<&PlacedBy>,
         Option<&TreeState>,
         Option<&BushState>,
+        Option<&FurnitureRot>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2924,10 +2981,26 @@ fn emit_snapshot(
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree, bush)| {
-                let sub = match (tree, bush) {
-                    (Some(t), _) => t.sub(),
-                    (_, Some(b)) => b.sub(),
+            |(
+                entity,
+                kind,
+                slot,
+                pos,
+                mv,
+                speed,
+                hp,
+                status,
+                floor,
+                fm,
+                placed,
+                tree,
+                bush,
+                furniture,
+            )| {
+                let sub = match (tree, bush, furniture) {
+                    (Some(t), _, _) => t.sub(),
+                    (_, Some(b), _) => b.sub(),
+                    (_, _, Some(f)) => f.0,
                     _ => mv
                         .filter(|m| m.target.is_some())
                         .map(|m| {
@@ -3306,6 +3379,7 @@ mod tests {
             "test-kit".to_string(),
             tile,
             0,
+            0,
         ));
         app.update();
         let placed = prx.try_recv().expect("placement snapshot sent");
@@ -3399,6 +3473,37 @@ mod tests {
         }
         let hp = app.world().get::<Health>(player).unwrap().hp;
         assert_eq!(hp, 10 + 3 * 5, "aura healed 3/tick for 5 ticks");
+    }
+
+    #[test]
+    fn env_mana_aura_restores_adjacent_player() {
+        let (mut app, _rx, _tx, _roster) = harness(0x333);
+        let center = Tile::new(10, 10);
+        let adj = Tile::new(11, 10); // Chebyshev distance 1 from center.
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(adj),
+                MoveTarget::default(),
+                MoveSpeed { ticks_per_tile: 4 },
+                Mana { mp: 5, max_mp: 100 },
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().spawn((
+            ManaAura {
+                range: 2,
+                magnitude: 2,
+                period_ticks: 1,
+            },
+            GridPos::at(center),
+        ));
+        for _ in 0..5 {
+            app.update();
+        }
+        let mp = app.world().get::<Mana>(player).unwrap().mp;
+        assert_eq!(mp, 5 + 2 * 5, "aura restored 2 MP/tick for 5 ticks");
     }
 
     #[test]
