@@ -89,10 +89,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/cryptothrone/astro-cryptothrone",
-				"commands": [
-					"nx exec -- vitest run --coverage --config vitest.config.ts"
-				],
-				"parallel": false
+				"command": "vitest run --coverage --config vitest.config.ts"
 			},
 			"cache": true
 		}
