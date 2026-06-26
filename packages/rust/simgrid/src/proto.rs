@@ -312,6 +312,28 @@ pub struct ProjectileEvent {
     pub hit: bool,
 }
 
+/// The local player took a stair: the client re-streams floor `z` and snaps to
+/// `tile`. Typed for the postcard payload path (mirrors TS `FloorChangeEvent`).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FloorChangeEvent {
+    pub z: i32,
+    pub tile: Tile,
+}
+
+/// A player picked up `count` of `item_ref`. Mirrors TS `PickupEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PickupEvent {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+/// A consumable was used, healing `heal`. Mirrors TS `ItemUsedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemUsedEvent {
+    pub item_ref: String,
+    pub heal: i32,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -534,6 +556,48 @@ mod tests {
         assert_eq!(back.to, Tile::new(7, 2));
         assert_eq!(back.kind, "arrow");
         assert!(back.hit);
+    }
+
+    #[test]
+    fn floor_change_event_fixture_is_stable() {
+        let ev = FloorChangeEvent {
+            z: 2,
+            tile: Tile::new(7, -3),
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "040e05");
+        let back: FloorChangeEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.z, 2);
+        assert_eq!(back.tile, Tile::new(7, -3));
+    }
+
+    #[test]
+    fn pickup_event_fixture_is_stable() {
+        let ev = PickupEvent {
+            item_ref: "arrow".into(),
+            count: 3,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "056172726f7703");
+        let back: PickupEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.item_ref, "arrow");
+        assert_eq!(back.count, 3);
+    }
+
+    #[test]
+    fn item_used_event_fixture_is_stable() {
+        let ev = ItemUsedEvent {
+            item_ref: "potion".into(),
+            heal: 12,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "06706f74696f6e18");
+        let back: ItemUsedEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.item_ref, "potion");
+        assert_eq!(back.heal, 12);
     }
 
     #[test]

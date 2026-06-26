@@ -1492,9 +1492,11 @@ fn use_item(
         status.apply(b.at(now));
         send_status(bcast, slot, b.kind, b.magnitude, b.duration_ticks);
     }
-    let payload = json!({ "item_ref": item_ref, "heal": heal_amt })
-        .to_string()
-        .into_bytes();
+    let event = proto::ItemUsedEvent {
+        item_ref: item_ref.to_string(),
+        heal: heal_amt,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_ITEM_USED,
         to: slot,
@@ -1763,12 +1765,11 @@ fn apply_actions(
                 }
                 inv.add(&item_ref, count);
                 commands.entity(target_entity).despawn();
-                let pickup = json!({
-                    "item_ref": item_ref,
-                    "count": count,
-                })
-                .to_string()
-                .into_bytes();
+                let event = proto::PickupEvent {
+                    item_ref: item_ref.to_string(),
+                    count,
+                };
+                let pickup = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PICKUP,
                     to: proto::PlayerSlot(slot.0),
@@ -2883,12 +2884,11 @@ fn stair_system(
         // the player must leave it before another transition can fire.
         commands.entity(entity).insert(StairGrace(link.dest_tile));
 
-        let payload = json!({
-            "z": link.dest_z,
-            "tile": { "x": link.dest_tile.x, "y": link.dest_tile.y },
-        })
-        .to_string()
-        .into_bytes();
+        let event = proto::FloorChangeEvent {
+            z: link.dest_z,
+            tile: link.dest_tile,
+        };
+        let payload = proto::encode_inner(&event).unwrap_or_default();
         let _ = bcast.tx.send(ServerEvent::Ephemeral {
             kind: proto::EPHEMERAL_FLOOR,
             to: slot.0,

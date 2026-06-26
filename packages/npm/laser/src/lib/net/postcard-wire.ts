@@ -8,8 +8,11 @@ import type {
 	Dir,
 	EntityDelta,
 	Facing,
+	FloorChangeEvent,
 	Input,
+	ItemUsedEvent,
 	KindEntry,
+	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
 	ServerEvent,
@@ -268,6 +271,39 @@ function readProjectile(r: PostcardReader): ProjectileEvent {
  */
 export function decodeProjectile(payload: number[]): ProjectileEvent {
 	return readProjectile(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readFloorChange(r: PostcardReader): FloorChangeEvent {
+	const z = r.i32();
+	const tile = readTile(r);
+	return { z, tile };
+}
+
+/** Decode an EPHEMERAL_FLOOR payload. Field order matches `proto::FloorChangeEvent`. */
+export function decodeFloorChange(payload: number[]): FloorChangeEvent {
+	return readFloorChange(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readPickup(r: PostcardReader): PickupEvent {
+	const item_ref = r.string();
+	const count = r.u32();
+	return { item_ref, count };
+}
+
+/** Decode an EPHEMERAL_PICKUP payload. Field order matches `proto::PickupEvent`. */
+export function decodePickup(payload: number[]): PickupEvent {
+	return readPickup(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readItemUsed(r: PostcardReader): ItemUsedEvent {
+	const item_ref = r.string();
+	const heal = r.i32();
+	return { item_ref, heal };
+}
+
+/** Decode an EPHEMERAL_ITEM_USED payload. Field order matches `proto::ItemUsedEvent`. */
+export function decodeItemUsed(payload: number[]): ItemUsedEvent {
+	return readItemUsed(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Encode a ClientMessage to a COBS-framed postcard buffer (sent as Binary). */

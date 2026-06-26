@@ -37,6 +37,9 @@ import {
 	joinFrame,
 } from './protocol';
 import {
+	decodeFloorChange,
+	decodeItemUsed,
+	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
 	encodeClientMessage,
@@ -162,13 +165,13 @@ export class GameClient {
 			const data = decodeProjectile(evt.payload);
 			if (data) this.bus.emit('projectile', data);
 		} else if (evt.kind === EPHEMERAL_FLOOR) {
-			const data = decodeEphemeralPayload<FloorChangeEvent>(evt.payload);
+			const data = decodeFloorChange(evt.payload);
 			if (data) this.bus.emit('floor', data);
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
-			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
+			const data = decodePickup(evt.payload);
 			if (data) this.bus.emit('pickup', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
-			const data = decodeEphemeralPayload<ItemUsedEvent>(evt.payload);
+			const data = decodeItemUsed(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_PLACED) {
 			const data = decodeEphemeralPayload<ItemPlacedEvent>(evt.payload);

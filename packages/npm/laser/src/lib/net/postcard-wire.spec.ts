@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
 import {
+	decodeFloorChange,
+	decodeItemUsed,
+	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
 	encodeClientMessage,
@@ -110,5 +113,28 @@ describe('postcard Ephemeral payload decoder', () => {
 			kind: 'arrow',
 			hit: true,
 		});
+	});
+
+	// proto.rs floor_change_event_fixture_is_stable
+	it('decodes the Rust FloorChangeEvent fixture', () => {
+		expect(decodeFloorChange(Array.from(fromHex('040e05')))).toEqual({
+			z: 2,
+			tile: { x: 7, y: -3 },
+		});
+	});
+
+	// proto.rs pickup_event_fixture_is_stable
+	it('decodes the Rust PickupEvent fixture', () => {
+		expect(decodePickup(Array.from(fromHex('056172726f7703')))).toEqual({
+			item_ref: 'arrow',
+			count: 3,
+		});
+	});
+
+	// proto.rs item_used_event_fixture_is_stable
+	it('decodes the Rust ItemUsedEvent fixture', () => {
+		expect(decodeItemUsed(Array.from(fromHex('06706f74696f6e18')))).toEqual(
+			{ item_ref: 'potion', heal: 12 },
+		);
 	});
 });
