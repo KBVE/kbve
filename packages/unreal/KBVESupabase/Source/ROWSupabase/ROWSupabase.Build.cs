@@ -4,9 +4,7 @@ public class ROWSupabase : ModuleRules
 {
 	public ROWSupabase(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
-		bUseUnity = false;
-		IWYUSupport = IWYUSupport.Full;
+		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{

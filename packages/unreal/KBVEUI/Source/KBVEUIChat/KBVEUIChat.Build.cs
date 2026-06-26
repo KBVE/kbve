@@ -4,9 +4,7 @@ public class KBVEUIChat : ModuleRules
 {
 	public KBVEUIChat(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.NoSharedPCHs;
-		bUseUnity = false;
-		IWYUSupport = IWYUSupport.Full;
+		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
