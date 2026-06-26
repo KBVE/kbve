@@ -452,6 +452,35 @@ pub struct BlackjackStateView {
     pub seed: Option<String>,
 }
 
+/// One side of a trade window. Mirrors TS `TradeSide`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TradeSide {
+    pub items: Vec<InventoryItem>,
+    pub accepted: bool,
+}
+
+/// Trade window state pushed to both participants. A closed trade sends `status`
+/// with empty sides. Mirrors TS `TradeStateView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TradeStateView {
+    pub status: String,
+    pub with: u16,
+    pub you: TradeSide,
+    pub them: TradeSide,
+}
+
+/// Result of a spell cast. `reason` set only on failure. Mirrors TS `SpellResult`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SpellResult {
+    pub caster: u32,
+    pub target: Option<u32>,
+    pub spell_ref: String,
+    pub effect: String,
+    pub amount: i32,
+    pub ok: bool,
+    pub reason: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -861,6 +890,46 @@ mod tests {
         assert_eq!(
             hex(&encode_inner(&ev).unwrap()),
             "037669700a506c617965725475726e010102616c0a0001020a070a11000000000000010901010101005a882702616200"
+        );
+    }
+
+    #[test]
+    fn trade_state_view_fixture_is_stable() {
+        let ev = TradeStateView {
+            status: "open".into(),
+            with: 2,
+            you: TradeSide {
+                items: vec![InventoryItem {
+                    item_ref: "arrow".into(),
+                    count: 3,
+                }],
+                accepted: false,
+            },
+            them: TradeSide {
+                items: vec![],
+                accepted: true,
+            },
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "046f70656e0201056172726f7703000001"
+        );
+    }
+
+    #[test]
+    fn spell_result_fixture_is_stable() {
+        let ev = SpellResult {
+            caster: 2,
+            target: Some(7),
+            spell_ref: "heal".into(),
+            effect: "heal".into(),
+            amount: 10,
+            ok: true,
+            reason: "".into(),
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "020107046865616c046865616c140100"
         );
     }
 

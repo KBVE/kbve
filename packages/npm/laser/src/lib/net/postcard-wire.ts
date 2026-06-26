@@ -27,9 +27,12 @@ import type {
 	Snapshot,
 	StatsEvent,
 	StatusEvent,
+	SpellResult,
 	StatusKind,
 	StatusView,
 	Tile,
+	TradeSide,
+	TradeStateView,
 } from './protocol';
 import {
 	PostcardReader,
@@ -276,8 +279,8 @@ function readProjectile(r: PostcardReader): ProjectileEvent {
 /**
  * Decode an EPHEMERAL_PROJECTILE payload (raw postcard, NOT COBS — the outer
  * ServerEvent frame was already COBS-decoded and the payload bytes handed over
- * verbatim). Field order MUST match `proto::ProjectileEvent`. This is the first
- * ephemeral on the binary path; the rest still ride JSON via decodeEphemeralPayload.
+ * verbatim). Field order MUST match `proto::ProjectileEvent`. Every ephemeral
+ * payload now rides postcard — see the decoders below for the rest.
  */
 export function decodeProjectile(payload: number[]): ProjectileEvent {
 	return readProjectile(new PostcardReader(Uint8Array.from(payload)));
@@ -477,6 +480,46 @@ function readBlackjack(r: PostcardReader): BlackjackStateView {
 /** Decode an EPHEMERAL_BLACKJACK payload. Field order matches `proto::BlackjackStateView`. */
 export function decodeBlackjack(payload: number[]): BlackjackStateView {
 	return readBlackjack(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readTradeSide(r: PostcardReader): TradeSide {
+	const items = [];
+	for (let n = r.seqLen(); n > 0; n--) {
+		const ref = r.string();
+		const count = r.u32();
+		items.push({ ref, count });
+	}
+	const accepted = r.bool();
+	return { items, accepted };
+}
+
+function readTrade(r: PostcardReader): TradeStateView {
+	const status = r.string();
+	const withSlot = r.u16();
+	const you = readTradeSide(r);
+	const them = readTradeSide(r);
+	return { status, with: withSlot, you, them };
+}
+
+/** Decode an EPHEMERAL_TRADE payload. Field order matches `proto::TradeStateView`. */
+export function decodeTrade(payload: number[]): TradeStateView {
+	return readTrade(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readSpell(r: PostcardReader): SpellResult {
+	const caster = r.u32();
+	const target = r.option() ? r.u32() : null;
+	const spell_ref = r.string();
+	const effect = r.string();
+	const amount = r.i32();
+	const ok = r.bool();
+	const reason = r.string();
+	return { caster, target, spell_ref, effect, amount, ok, reason };
+}
+
+/** Decode an EPHEMERAL_SPELL payload. Field order matches `proto::SpellResult`. */
+export function decodeSpell(payload: number[]): SpellResult {
+	return readSpell(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Encode a ClientMessage to a COBS-framed postcard buffer (sent as Binary). */

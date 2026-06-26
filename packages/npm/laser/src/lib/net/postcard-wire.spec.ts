@@ -12,8 +12,10 @@ import {
 	decodeProjectile,
 	decodeServerEvent,
 	decodeShop,
+	decodeSpell,
 	decodeStats,
 	decodeStatus,
+	decodeTrade,
 	encodeClientMessage,
 } from './postcard-wire';
 
@@ -279,6 +281,37 @@ describe('postcard Ephemeral payload decoder', () => {
 			deadline_ms: 5000,
 			commitment: 'ab',
 			seed: null,
+		});
+	});
+
+	// proto.rs trade_state_view_fixture_is_stable
+	it('decodes the Rust TradeStateView fixture', () => {
+		expect(
+			decodeTrade(
+				Array.from(fromHex('046f70656e0201056172726f7703000001')),
+			),
+		).toEqual({
+			status: 'open',
+			with: 2,
+			you: { items: [{ ref: 'arrow', count: 3 }], accepted: false },
+			them: { items: [], accepted: true },
+		});
+	});
+
+	// proto.rs spell_result_fixture_is_stable
+	it('decodes the Rust SpellResult fixture', () => {
+		expect(
+			decodeSpell(
+				Array.from(fromHex('020107046865616c046865616c140100')),
+			),
+		).toEqual({
+			caster: 2,
+			target: 7,
+			spell_ref: 'heal',
+			effect: 'heal',
+			amount: 10,
+			ok: true,
+			reason: '',
 		});
 	});
 });

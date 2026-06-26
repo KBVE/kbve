@@ -152,6 +152,30 @@ export interface InventorySync {
 	items: InventoryItem[];
 }
 
+export interface TradeSide {
+	items: InventoryItem[];
+	accepted: boolean;
+}
+
+/** Trade window state for both participants; a closed trade has empty sides. */
+export interface TradeStateView {
+	status: string;
+	with: number;
+	you: TradeSide;
+	them: TradeSide;
+}
+
+/** Result of a spell cast; `reason` set only on failure. */
+export interface SpellResult {
+	caster: number;
+	target: number | null;
+	spell_ref: string;
+	effect: string;
+	amount: number;
+	ok: boolean;
+	reason: string;
+}
+
 export interface ShopResult {
 	action: 'buy' | 'sell';
 	item_ref: string;
