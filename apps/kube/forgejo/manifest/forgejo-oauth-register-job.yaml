@@ -106,7 +106,7 @@ spec:
                             -d '{
                               "client_name": "Forgejo KBVE",
                               "client_type": "confidential",
-                              "redirect_uris": ["https://forgejo.kbve.com/user/oauth2/kbve/callback"],
+                              "redirect_uris": ["https://git.kbve.com/user/oauth2/kbve/callback", "https://forgejo.kbve.com/user/oauth2/kbve/callback"],
                               "token_endpoint_auth_method": "client_secret_post"
                             }')
 
