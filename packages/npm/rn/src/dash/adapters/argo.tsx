@@ -231,6 +231,28 @@ export function argoActions(opts: ArgoStreamOptions): StreamAction<ArgoItem>[] {
 	];
 }
 
+/** Rollback to a previous revision (requires DASHBOARD_MANAGE). */
+export async function rollbackApplication(
+	opts: ArgoStreamOptions,
+	appName: string,
+	id: number,
+): Promise<void> {
+	const token = await opts.getToken();
+	const res = await fetch(
+		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/rollback`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ id, prune: false, dryRun: false }),
+		},
+	);
+	if (res.status === 403) throw new Error('Manage permission required');
+	if (!res.ok) throw new Error(`Rollback failed: ${res.status}`);
+}
+
 // ---------------------------------------------------------------------------
 // Additional ArgoCD API types for detail panels
 // ---------------------------------------------------------------------------
@@ -572,6 +594,10 @@ function ArgoDetailPanel({
 }
 
 function SummaryTab({ item }: { item: ArgoItem }) {
+	const grafanaUrl = item.namespace
+		? `https://grafana.kbve.com/d/namespace-overview?var-namespace=${item.namespace}`
+		: null;
+
 	return (
 		<Stack gap="xs">
 			<Fact label="Repo" value={item.repo || '—'} />
@@ -588,11 +614,33 @@ function SummaryTab({ item }: { item: ArgoItem }) {
 				value={`${item.total} total · ${item.healthy} healthy · ${item.degraded} degraded · ${item.progressing} progressing`}
 			/>
 			<ResourceBar it={item} />
+
+			{grafanaUrl && (
+				<Pressable
+					onPress={() => {
+						if (typeof window !== 'undefined') {
+							window.open(grafanaUrl, '_blank');
+						}
+					}}
+					style={styles.grafanaLink}>
+					<Stack direction="row" align="center" gap="xs">
+						<Text
+							variant="caption"
+							style={{ color: tokens.color.primary }}>
+							View metrics in Grafana →
+						</Text>
+					</Stack>
+				</Pressable>
+			)}
 		</Stack>
 	);
 }
 
 function ResourcesTab({ resources }: { resources: ResourceNode[] }) {
+	const [expandedResource, setExpandedResource] = useState<string | null>(
+		null,
+	);
+
 	if (resources.length === 0) {
 		return (
 			<Text variant="caption" tone="muted">
@@ -614,43 +662,143 @@ function ResourcesTab({ resources }: { resources: ResourceNode[] }) {
 								? tokens.color.warning
 								: tokens.color.textFaint;
 
+				const resourceKey = `${r.kind}/${r.namespace}/${r.name}`;
+				const isExpanded = expandedResource === resourceKey;
+				const isPod = r.kind === 'Pod';
+				const hasDetails =
+					r.health?.message ||
+					r.images?.length ||
+					r.createdAt ||
+					r.networkingInfo?.ingress?.length;
+
 				return (
 					<Surface key={i} style={styles.resourceItem}>
-						<Stack gap="xs">
-							<Stack direction="row" align="center" gap="xs">
-								<View
-									style={[
-										styles.resourceDot,
-										{ backgroundColor: healthColor },
-									]}
-								/>
+						<Pressable
+							onPress={() =>
+								hasDetails &&
+								setExpandedResource(
+									isExpanded ? null : resourceKey,
+								)
+							}>
+							<Stack gap="xs">
+								<Stack direction="row" align="center" gap="xs">
+									<View
+										style={[
+											styles.resourceDot,
+											{ backgroundColor: healthColor },
+										]}
+									/>
+									<Text
+										variant="label"
+										numberOfLines={1}
+										style={{ flexShrink: 1 }}>
+										{r.kind}
+									</Text>
+									<Badge
+										label={healthStatus}
+										tone={
+											healthStatus === 'Healthy'
+												? 'success'
+												: healthStatus === 'Degraded'
+													? 'danger'
+													: healthStatus ===
+														  'Progressing'
+														? 'warning'
+														: 'neutral'
+										}
+									/>
+									{hasDetails && (
+										<Text variant="caption" tone="faint">
+											{isExpanded ? '▼' : '▶'}
+										</Text>
+									)}
+								</Stack>
 								<Text
-									variant="label"
-									numberOfLines={1}
-									style={{ flexShrink: 1 }}>
-									{r.kind}
+									variant="caption"
+									tone="muted"
+									numberOfLines={1}>
+									{r.namespace ? `${r.namespace}/` : ''}
+									{r.name}
 								</Text>
-								<Badge
-									label={healthStatus}
-									tone={
-										healthStatus === 'Healthy'
-											? 'success'
-											: healthStatus === 'Degraded'
-												? 'danger'
-												: healthStatus === 'Progressing'
-													? 'warning'
-													: 'neutral'
-									}
-								/>
+
+								{/* Expanded details */}
+								{isExpanded && (
+									<Stack
+										gap="xs"
+										style={{
+											marginTop: tokens.space.xs,
+											paddingLeft: tokens.space.md,
+										}}>
+										{r.health?.message && (
+											<Stack gap="xs">
+												<Text
+													variant="caption"
+													weight="medium"
+													tone="muted">
+													Status:
+												</Text>
+												<Text
+													variant="caption"
+													tone="faint">
+													{r.health.message}
+												</Text>
+											</Stack>
+										)}
+										{r.images && r.images.length > 0 && (
+											<Stack gap="xs">
+												<Text
+													variant="caption"
+													weight="medium"
+													tone="muted">
+													Images:
+												</Text>
+												{r.images.map((img, idx) => (
+													<Text
+														key={idx}
+														variant="caption"
+														tone="faint"
+														numberOfLines={2}>
+														• {img}
+													</Text>
+												))}
+											</Stack>
+										)}
+										{r.createdAt && (
+											<Text
+												variant="caption"
+												tone="faint">
+												Created:{' '}
+												{new Date(
+													r.createdAt,
+												).toLocaleString()}
+											</Text>
+										)}
+										{r.networkingInfo?.ingress &&
+											r.networkingInfo.ingress.length >
+												0 && (
+												<Stack gap="xs">
+													<Text
+														variant="caption"
+														weight="medium"
+														tone="muted">
+														Ingress:
+													</Text>
+													{r.networkingInfo.ingress.map(
+														(ing, idx) => (
+															<Text
+																key={idx}
+																variant="caption"
+																tone="faint">
+																• {ing.hostname}
+															</Text>
+														),
+													)}
+												</Stack>
+											)}
+									</Stack>
+								)}
 							</Stack>
-							<Text
-								variant="caption"
-								tone="muted"
-								numberOfLines={1}>
-								{r.namespace ? `${r.namespace}/` : ''}
-								{r.name}
-							</Text>
-						</Stack>
+						</Pressable>
 					</Surface>
 				);
 			})}
@@ -1134,9 +1282,10 @@ const styles = StyleSheet.create({
 	},
 	tab: {
 		paddingHorizontal: tokens.space.md,
-		paddingVertical: tokens.space.sm,
+		paddingVertical: tokens.space.md, // Increased for better mobile touch target
 		borderBottomWidth: 2,
 		borderBottomColor: 'transparent',
+		minHeight: 44, // iOS HIG minimum touch target
 	},
 	tabActive: {
 		borderBottomColor: tokens.color.primary,
@@ -1163,5 +1312,13 @@ const styles = StyleSheet.create({
 		padding: tokens.space.sm,
 		borderRadius: tokens.radius.md,
 		backgroundColor: tokens.color.surfaceAlt,
+	},
+	grafanaLink: {
+		paddingVertical: tokens.space.sm,
+		paddingHorizontal: tokens.space.md,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.primary,
+		marginTop: tokens.space.sm,
 	},
 });
