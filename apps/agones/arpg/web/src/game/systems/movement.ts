@@ -36,13 +36,21 @@ export interface MovementState {
 	movePath: TileXY[];
 	// Server-synced tile the local player occupies (drives streaming + targeting).
 	predicted: TileXY;
-	moveSendAccumMs: number;
 	wasMoving: boolean;
-	// Monotonic client move tick, stamped on each Move so the server applies inputs
-	// FIFO one-per-tick (the release stops in order, no held-intent over-travel).
+	// Monotonic client sim tick. Incremented once per FIXED step; stamped on each
+	// Move so the server applies inputs FIFO one-per-tick in lockstep.
 	tick: number;
-	// True while the player is actively feeding movement intent this frame (keys
-	// held or a click route running). Gates idle-only reconcile relaxation.
+	// Fixed-step accumulator (ms). tickLocalMotion drains it in SIM_DT_MS chunks so
+	// the local sim integrates at the SAME cadence as the server — making the
+	// reconcile replay reproduce it exactly (drift ~0, no deadzone needed).
+	accumMs: number;
+	// Float position BEFORE the most recent fixed step, for render interpolation
+	// between fixed states (smooth 60fps over the 20Hz sim).
+	prevPos: TileXY;
+	// Ticks with no intent since the last move, to send a short stop tail so the
+	// server's FIFO reliably receives the release before it starves.
+	idleTicks: number;
+	// True if the most recent fixed step had movement intent (drives pose).
 	intending: boolean;
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	lastSentFacing: Facing | null;
@@ -53,9 +61,11 @@ export function makeMovementState(start: TileXY): MovementState {
 		floatState: makeFloatState(start),
 		movePath: [],
 		predicted: { ...start },
-		moveSendAccumMs: 0,
 		wasMoving: false,
 		tick: 0,
+		accumMs: 0,
+		prevPos: { ...start },
+		idleTicks: 0,
 		intending: false,
 		lastSentFacing: null,
 	};
@@ -72,6 +82,13 @@ export interface MovementDeps {
 	combat: CombatState;
 	refreshDungeon(tile: TileXY): void;
 }
+
+// Cap fixed steps consumed in one frame so a long stall (tab refocus / GC) doesn't
+// spiral into a catch-up burst.
+const MAX_STEPS_PER_FRAME = 5;
+// Ticks to keep sending the stop intent after release, so the server FIFO gets the
+// (0,0) before it would starve.
+const MOVE_SEND_TAIL_TICKS = 4;
 
 /**
  * Collapse a 16-direction facing degree (screen-space, 0=N CW) into the four
@@ -109,24 +126,66 @@ export function tickLocalMotion(
 	refs: EntityRefs,
 	deltaMs: number,
 ): void {
-	const intent = readIntent(st, deps);
-	const prevTile = floatTile(st.floatState);
-
-	// Walk tier while Shift is held; run otherwise. Each tier's body speed is
-	// tuned to its anim's stride, so feet don't slide at either pace.
 	const walking = deps.cursors.shift?.isDown ?? false;
 	const speed = walking ? WALK_SPEED : RUN_SPEED;
-	stepFloat(st.floatState, intent, speed, deps.isBlocked, deltaMs);
 
-	// Locomotion anim follows ACTIVE INTENT, not residual velocity: the moment
-	// input stops the body flips to Idle, even though friction is still bleeding
-	// the leftover velocity to a slide-stop. Keying off velocity instead left a
-	// few frames of run-in-place during decel.
-	const intending = Math.hypot(intent.x, intent.y) > 0;
+	// Integrate the local sim at the SAME fixed cadence as the server (SIM_DT_MS),
+	// draining an accumulator. One intent sample + one stamped Move + one tick per
+	// step, so the server's FIFO and the reconcile replay reproduce this motion
+	// EXACTLY — drift is ~0 and the reconcile barely moves the body.
+	st.accumMs += deltaMs;
+	let steps = 0;
+	let intending = st.intending;
+	while (st.accumMs >= SIM_DT_MS && steps < MAX_STEPS_PER_FRAME) {
+		const intent = readIntent(st, deps);
+		intending = Math.hypot(intent.x, intent.y) > 0;
+
+		st.prevPos = { x: st.floatState.pos.x, y: st.floatState.pos.y };
+		const prevTile = floatTile(st.floatState);
+		stepFloat(st.floatState, intent, speed, deps.isBlocked, SIM_DT_MS);
+		st.tick += 1;
+
+		// One stamped intent per tick while moving, plus a short stop tail so the
+		// server's FIFO reliably receives the release (0,0) before it starves.
+		if (intending) st.idleTicks = 0;
+		else st.idleTicks += 1;
+		if (intending || st.idleTicks <= MOVE_SEND_TAIL_TICKS) {
+			const mag = Math.hypot(intent.x, intent.y);
+			const mx = intending ? Math.round((intent.x / mag) * 127) : 0;
+			const my = intending ? Math.round((intent.y / mag) * 127) : 0;
+			deps.client()?.move(mx, my, !walking, st.tick);
+			st.wasMoving = intending;
+		}
+
+		// Stream the surface when the body enters a new tile.
+		const tile = floatTile(st.floatState);
+		if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
+			st.predicted = tile;
+			deps.refreshDungeon(tile);
+		}
+
+		// Drop the click route once the FINAL tile is reached or overshot.
+		if (st.movePath.length === 1) {
+			const goal = st.movePath[0];
+			const gdx = goal.x - st.floatState.pos.x;
+			const gdy = goal.y - st.floatState.pos.y;
+			const gdist = Math.hypot(gdx, gdy);
+			const overshot =
+				gdx * st.floatState.vel.x + gdy * st.floatState.vel.y < 0;
+			if (gdist < ARRIVE_DIST || (overshot && gdist < 1))
+				st.movePath = [];
+		}
+
+		st.accumMs -= SIM_DT_MS;
+		steps++;
+	}
+	// A long frame (tab refocus / GC) would queue a spiral of catch-up steps;
+	// clamp and drop the backlog so it doesn't lurch.
+	if (steps >= MAX_STEPS_PER_FRAME) st.accumMs = 0;
 	st.intending = intending;
-	// Moving cancels an in-progress shot: switch straight to Run instead of
-	// sliding in the bow pose. If the cancel lands before the release frame the
-	// arrow is suppressed; if it already loosed, only the recover is cut.
+
+	// Locomotion anim follows ACTIVE INTENT (latest step), not residual velocity:
+	// the moment input stops the body flips to Idle while friction bleeds the slide.
 	if (intending && deps.combat.bowShot?.busy) {
 		deps.combat.bowShot.cancel();
 	}
@@ -152,9 +211,7 @@ export function tickLocalMotion(
 		}
 	}
 
-	// While standing still (not moving, not firing), track the cursor: turn the
-	// body toward where the player is aiming so she's pre-aimed before a shot.
-	// tickClassFacing lerps targetDeg, so this reads as a natural turn.
+	// Standing still: turn the body toward the cursor so she's pre-aimed for a shot.
 	if (!intending && !firing && refs.cls) {
 		const ptr = deps.scene.input.activePointer;
 		const aim = screenToWorldF(ptr.worldX, ptr.worldY);
@@ -167,52 +224,13 @@ export function tickLocalMotion(
 		}
 	}
 
-	renderFloat(st, refs);
-
-	// Keep the server roughly in sync: emit a cardinal step toward whatever new
-	// tile the float body has entered. The server stays authoritative;
-	// reconcileFloat soft-corrects any drift on the next snapshot.
-	const tile = floatTile(st.floatState);
-	if (tile.x !== prevTile.x || tile.y !== prevTile.y) {
-		st.predicted = tile;
-		deps.refreshDungeon(tile);
-	}
-
-	st.moveSendAccumMs += deltaMs;
-	// Flush a release (moving -> idle) immediately instead of waiting for the
-	// 50ms cadence, so the server stops powering the held intent a throttle
-	// window sooner — cuts the on-stop over-travel the client can't predict.
-	const idleNow = intent.x === 0 && intent.y === 0;
-	const releaseEdge = st.wasMoving && idleNow;
-	if (releaseEdge || st.moveSendAccumMs >= 50) {
-		st.moveSendAccumMs = 0;
-		const mag = Math.hypot(intent.x, intent.y);
-		const moving = mag > 0;
-		if (moving || st.wasMoving) {
-			const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
-			const my = moving ? Math.round((intent.y / mag) * 127) : 0;
-			st.tick += 1;
-			deps.client()?.move(mx, my, !walking, st.tick);
-		}
-		st.wasMoving = moving;
-	}
-
-	// Drop the click route once the FINAL tile is reached or overshot, so the
-	// float never orbits the goal stuck in Run (intermediate waypoints are
-	// consumed in readIntent).
-	if (st.movePath.length === 1) {
-		const goal = st.movePath[0];
-		const dx = goal.x - st.floatState.pos.x;
-		const dy = goal.y - st.floatState.pos.y;
-		const dist = Math.hypot(dx, dy);
-		const overshot =
-			dx * st.floatState.vel.x + dy * st.floatState.vel.y < 0;
-		if (dist < ARRIVE_DIST || (overshot && dist < 1)) {
-			st.movePath = [];
-		}
-	}
+	// Render BETWEEN the last two fixed states by the leftover accumulator, so the
+	// body glides smoothly at 60fps over the 20Hz sim (lags <= one step, ~50ms).
+	const alpha = SIM_DT_MS > 0 ? st.accumMs / SIM_DT_MS : 0;
+	const rx = st.prevPos.x + (st.floatState.pos.x - st.prevPos.x) * alpha;
+	const ry = st.prevPos.y + (st.floatState.pos.y - st.prevPos.y) * alpha;
+	renderFloat(refs, rx, ry);
 }
-
 /**
  * World-tile intent vector. Held keys win (and cancel any click route);
  * otherwise follow the A* path — steer toward the current waypoint, pop it on
@@ -254,13 +272,11 @@ function readIntent(st: MovementState, deps: MovementDeps): TileXY {
 	return { x: 0, y: 0 };
 }
 
-/** Draw the local sprite at its fractional float position. */
-function renderFloat(st: MovementState, refs: EntityRefs): void {
-	const p = worldToScreen(st.floatState.pos.x, st.floatState.pos.y);
+/** Draw the local sprite at a (render-interpolated) fractional float position. */
+function renderFloat(refs: EntityRefs, x: number, y: number): void {
+	const p = worldToScreen(x, y);
 	refs.sprite.setPosition(p.x, p.y + 8);
-	refs.sprite.setDepth(
-		DEPTH_ENTITY_BASE + tileDepth(st.floatState.pos.x, st.floatState.pos.y),
-	);
+	refs.sprite.setDepth(DEPTH_ENTITY_BASE + tileDepth(x, y));
 	syncShadow(refs);
 	placeNameplate(refs);
 }
@@ -291,7 +307,7 @@ export function reconcilePlayer(
 			SIM_DT_MS,
 		);
 	}
-	reconcileFloat(st.floatState, replay.pos, !st.intending);
+	reconcileFloat(st.floatState, replay.pos);
 }
 
 /**

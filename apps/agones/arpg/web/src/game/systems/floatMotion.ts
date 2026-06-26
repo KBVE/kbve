@@ -10,7 +10,6 @@ import {
 	CENTERLINE_PULL,
 	RECONCILE_LERP,
 	RECONCILE_SNAP_DIST,
-	RECONCILE_IDLE_DEADZONE,
 } from '../config';
 
 export type IsBlocked = (x: number, y: number) => boolean;
@@ -219,16 +218,15 @@ function applyCenterlinePull(
 }
 
 /**
- * Soft-correct the float position toward the server-authoritative tile. Small
- * drift is lerped away invisibly; a large divergence (teleport, desync, big
- * rubber-band) snaps to avoid a long visible slide. Keeps the client smooth
- * while the server stays the source of truth.
+ * Soft-correct the float position toward the server-authoritative position. With
+ * the client now stepping the SAME fixed-cadence sim the server runs and the
+ * server replaying inputs in order, the replayed authoritative position matches
+ * the local prediction tick-for-tick, so this normally nudges by ~nothing. A real
+ * divergence (packet loss → replay gap, teleport, desync) is lerped away; a large
+ * one snaps. No release deadzone is needed any more — there's no over-travel to
+ * hide, the server stops the same tick the client did.
  */
-export function reconcileFloat(
-	s: FloatState,
-	serverPos: TileXY,
-	idle: boolean,
-): void {
+export function reconcileFloat(s: FloatState, serverPos: TileXY): void {
 	const dx = serverPos.x - s.pos.x;
 	const dy = serverPos.y - s.pos.y;
 
@@ -241,18 +239,8 @@ export function reconcileFloat(
 		return;
 	}
 
-	// Player has RELEASED: keep the client's own (responsive) stop, ignoring a
-	// small gap to the server. The server over-travels the held input by ~RTT
-	// before the release packet lands, so its rest sits a fraction ahead of where
-	// you stopped — pulling to it is the "tug on stop". A drift past the deadzone
-	// still corrects, and the next move reconciles any leftover. This is gated on
-	// idle ONLY: a MOVING body reconciles fully below (direction changes, PvP).
-	if (idle && dist < RECONCILE_IDLE_DEADZONE) return;
-
-	// A full backward pull mid-run reads as rubber-banding, so while moving against
-	// the correction we used to skip it entirely — but that lets drift pile up and
-	// lurch the camera the instant you stop. Instead bleed it off gently and
-	// continuously, so there's nothing left to snap on release.
+	// Bleed a correction-against-velocity gently (anti rubber-band); otherwise pull
+	// at the normal rate. Both are near-no-ops in lockstep.
 	const movingAgainst =
 		floatSpeed(s) > 0.05 && dx * s.vel.x + dy * s.vel.y < 0;
 	const lerp = movingAgainst ? RECONCILE_LERP * 0.2 : RECONCILE_LERP;
