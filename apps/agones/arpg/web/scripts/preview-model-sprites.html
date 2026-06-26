@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>model parked-angle preview</title>
+<!--
+  Interactive angle finder for gen-model-sprites.py. Mirrors the baker's math
+  exactly (Z-up world, hull pitched flat, orthographic camera along -Y lifted by
+  elevation, yaw about Z) so the slider values map 1:1 to the render flags.
+
+  Serve from this dir (file:// blocks OBJ/texture fetch):
+      python3 -m http.server 8765
+  then open, picking a model+skin via query string (paths relative to this dir):
+      http://localhost:8765/preview-model-sprites.html?model=../../../../Downloads/fighter/fighter1.obj&skin=../../../../Downloads/fighter/idolknight.jpg
+
+  Dial the heading you want "parked", copy the command, paste into the baker.
+-->
+<style>
+  html,body{margin:0;height:100%;background:#10141c;color:#cdd6e4;font:13px/1.4 ui-monospace,Menlo,monospace;overflow:hidden}
+  #c{position:fixed;inset:0}
+  #panel{position:fixed;top:10px;left:10px;width:300px;background:#1a2030ee;border:1px solid #2c3650;border-radius:8px;padding:12px 14px;backdrop-filter:blur(4px)}
+  h1{font-size:13px;margin:0 0 8px;color:#8fb6ff}
+  label{display:block;margin:9px 0 2px;color:#9fb0cc}
+  .row{display:flex;align-items:center;gap:8px}
+  input[type=range]{flex:1}
+  .val{width:48px;text-align:right;color:#ffd479}
+  button{margin-top:12px;width:100%;padding:8px;background:#2b62d6;color:#fff;border:0;border-radius:6px;cursor:pointer;font:inherit}
+  button:hover{background:#3a73e8}
+  #out{margin-top:10px;white-space:pre-wrap;word-break:break-all;background:#0d1118;padding:8px;border-radius:6px;color:#7fe0a0;font-size:11px}
+  .hint{color:#5d6b85;font-size:11px;margin-top:8px}
+  .chk{margin-top:8px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="panel">
+  <h1>MODEL — parked angle</h1>
+
+  <label>Ship yaw (heading) <span class="val" id="vyaw">0°</span></label>
+  <div class="row"><input id="yaw" type="range" min="0" max="360" step="1" value="0"></div>
+
+  <label>Camera elevation (iso pitch) <span class="val" id="vel">35°</span></label>
+  <div class="row"><input id="el" type="range" min="5" max="90" step="1" value="35"></div>
+
+  <label>Lay-flat pitch <span class="val" id="vp">90°</span></label>
+  <div class="row"><input id="p" type="range" min="0" max="180" step="1" value="90"></div>
+
+  <label class="chk"><input id="grid" type="checkbox" checked> show iso tile</label>
+
+  <button id="copy">Copy Blender render command</button>
+  <div id="out">drag canvas to orbit (visual only)…</div>
+  <div class="hint">yaw / elevation / pitch map 1:1 to gen-model-sprites.py flags. Set the parked heading, copy — that bakes frame_00 to this angle.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const q = new URLSearchParams(location.search);
+const MODEL = q.get('model') || 'fighter1.obj';
+const SKIN  = q.get('skin')  || 'idolknight.jpg';
+
+THREE.Object3D.DEFAULT_UP.set(0,0,1); // Z-up, mirror Blender
+
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,alpha:true});
+renderer.setPixelRatio(devicePixelRatio);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x10141c);
+
+let aspect = innerWidth/innerHeight, FRUST = 0.18;
+const cam = new THREE.OrthographicCamera(-FRUST*aspect,FRUST*aspect,FRUST,-FRUST,0.001,100);
+cam.up.set(0,0,1);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.9));
+const sun = new THREE.DirectionalLight(0xffffff,1.6); sun.position.set(1,-1,2); scene.add(sun);
+
+const tile = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.16,0.16)),
+  new THREE.LineBasicMaterial({color:0x3a73e8}));
+scene.add(tile);
+
+const shipGroup = new THREE.Group(); scene.add(shipGroup);        // yaw (about Z)
+const pitchGroup = new THREE.Group(); shipGroup.add(pitchGroup);  // lay-flat pitch (about X)
+
+const tex = new THREE.TextureLoader().load(SKIN);
+tex.colorSpace = THREE.SRGBColorSpace;
+const mat = new THREE.MeshPhongMaterial({map:tex, emissive:0x222933, emissiveMap:tex, shininess:8});
+
+new OBJLoader().load(MODEL, (obj)=>{
+  obj.traverse(o=>{ if(o.isMesh) o.material = mat; });
+  const box = new THREE.Box3().setFromObject(obj);
+  obj.position.sub(box.getCenter(new THREE.Vector3()));
+  pitchGroup.add(obj);
+  apply();
+});
+
+const ctrls = new OrbitControls(cam, renderer.domElement);
+ctrls.enablePan = false;
+const $ = id => document.getElementById(id);
+const dist = 1.2;
+
+function apply(){
+  const yaw = +$('yaw').value, el = +$('el').value, pit = +$('p').value;
+  $('vyaw').textContent = yaw+'°'; $('vel').textContent = el+'°'; $('vp').textContent = pit+'°';
+  shipGroup.rotation.set(0,0, THREE.MathUtils.degToRad(yaw));
+  pitchGroup.rotation.set(THREE.MathUtils.degToRad(pit),0,0);
+  tile.visible = $('grid').checked;
+  const e = THREE.MathUtils.degToRad(el);
+  cam.position.set(0, -dist*Math.cos(e), dist*Math.sin(e));
+  cam.lookAt(0,0,0); ctrls.target.set(0,0,0);
+  $('out').textContent =
+`blender -b -P gen-model-sprites.py -- \\
+ --model ${MODEL} --skin ${SKIN} --out render_flat \\
+ --frames 16 --res 256 --elev ${el} --pitch ${pit} --yaw-offset ${yaw}
+# single parked frame: --frames 1 --yaw-offset ${yaw}`;
+}
+['yaw','el','p','grid'].forEach(id=>$(id).addEventListener('input',apply));
+$('copy').addEventListener('click',()=>{
+  navigator.clipboard.writeText($('out').textContent);
+  $('copy').textContent='copied ✓'; setTimeout(()=>$('copy').textContent='Copy Blender render command',1200);
+});
+addEventListener('resize',()=>{
+  aspect = innerWidth/innerHeight;
+  cam.left=-FRUST*aspect; cam.right=FRUST*aspect; cam.top=FRUST; cam.bottom=-FRUST; cam.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+renderer.setSize(innerWidth,innerHeight);
+(function loop(){ requestAnimationFrame(loop); renderer.render(scene,cam); })();
+</script>
+</body>
+</html>
