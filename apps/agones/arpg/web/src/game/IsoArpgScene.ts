@@ -275,6 +275,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// yet — so it's a dead end. Tracks the tile we've already flashed the
 	// "goes nowhere" notice for, so it fires once per step-on, not every frame.
 	private deadStairTile: string | null = null;
+	// Same one-shot guard for the surface down-stair: flash the PvP/danger notice
+	// once per step-on as the player is about to descend into the dungeon.
+	private downStairWarnTile: string | null = null;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -1296,6 +1299,35 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
+	/**
+	 * Entering the dungeon is a step into hostile, PvP-enabled territory. When the
+	 * player stands on the surface down-stair (z>=SURFACE_MIN_Z, about to descend),
+	 * flash a one-shot danger notice so the descent is never a surprise. Deeper
+	 * floors are already hostile, so the warning fires only at the surface gate.
+	 */
+	private checkDownStairWarning() {
+		if (!this.isSurface()) {
+			this.downStairWarnTile = null;
+			return;
+		}
+		const t = floatTile(this.move.floatState);
+		const down = stairTile(
+			floorSeed(DUNGEON_SEED, this.currentFloor),
+			StairKind.Down,
+		);
+		const key = `${down.x},${down.y}`;
+		if (t.x === down.x && t.y === down.y) {
+			if (this.downStairWarnTile !== key) {
+				this.downStairWarnTile = key;
+				this.flashMessage(
+					'Beware — the dungeon below is dangerous and PvP is enabled. Tread carefully.',
+				);
+			}
+		} else if (this.downStairWarnTile === key) {
+			this.downStairWarnTile = null; // stepped off — allow it to fire again
+		}
+	}
+
 	/** One-shot on-screen notice via laser's global `notification` event. */
 	private flashMessage(text: string) {
 		emitNotification({ title: '', message: text });
@@ -1333,6 +1365,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 
 		this.checkDeadStair();
+		this.checkDownStairWarning();
 		this.tryAutoPickup();
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.

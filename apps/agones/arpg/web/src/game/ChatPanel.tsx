@@ -8,9 +8,20 @@ import { ARPG_CHAT } from './config';
 import { getNetConfig } from './net-config';
 import { GOTHIC } from './ui/gothic/svg';
 import { GothicFrame } from './ui/gothic/GothicFrame';
-import { ChevronIcon, ChatIcon, NewsIcon } from './ui/gothic/icons';
+import { ChevronIcon, ChatIcon, NewsIcon, TipsIcon } from './ui/gothic/icons';
 
-type Tab = 'chat' | 'news';
+type Tab = 'chat' | 'news' | 'tips';
+
+// First-run flag: new players land on the Tips tab (opened) once, then default
+// to Chat on every later visit. Persisted so the onboarding nudge fires just once.
+const TIPS_SEEN_KEY = 'arpg-tips-seen';
+const isFirstVisit = (): boolean => {
+	try {
+		return !localStorage.getItem(TIPS_SEEN_KEY);
+	} catch {
+		return false;
+	}
+};
 
 interface ChatLine {
 	from: string;
@@ -33,8 +44,9 @@ export default function ChatPanel() {
 	const [draft, setDraft] = useState('');
 	const [hovered, setHovered] = useState(false);
 	const [inputFocused, setInputFocused] = useState(false);
-	const [pinned, setPinned] = useState(false);
-	const [tab, setTab] = useState<Tab>('chat');
+	const firstVisit = useRef(isFirstVisit());
+	const [pinned, setPinned] = useState(firstVisit.current);
+	const [tab, setTab] = useState<Tab>(firstVisit.current ? 'tips' : 'chat');
 	const [state, setState] = useState<RealmChatState>({
 		status: 'closed',
 		attempts: 0,
@@ -67,6 +79,16 @@ export default function ChatPanel() {
 			client.close();
 			clientRef.current = null;
 		};
+	}, []);
+
+	// Burn the first-visit flag once mounted, so the Tips auto-open is one-shot.
+	useEffect(() => {
+		if (!firstVisit.current) return;
+		try {
+			localStorage.setItem(TIPS_SEEN_KEY, '1');
+		} catch {
+			/* private mode — re-nudge next session is fine */
+		}
 	}, []);
 
 	useEffect(() => {
@@ -142,6 +164,19 @@ export default function ChatPanel() {
 					<NewsIcon size={13} />
 					News
 					{tab === 'news' && (
+						<ChevronIcon
+							size={13}
+							open={active}
+							style={{ marginLeft: 2 }}
+						/>
+					)}
+				</TabButton>
+				<TabButton
+					selected={tab === 'tips'}
+					onClick={() => selectTab('tips')}>
+					<TipsIcon size={13} />
+					Tips
+					{tab === 'tips' && (
 						<ChevronIcon
 							size={13}
 							open={active}
@@ -264,8 +299,10 @@ export default function ChatPanel() {
 							</button>
 						</div>
 					</>
-				) : (
+				) : tab === 'news' ? (
 					<NewsPanel active={active} />
+				) : (
+					<TipsPanel active={active} />
 				)}
 			</GothicFrame>
 		</div>
@@ -302,6 +339,48 @@ function NewsPanel({ active }: { active: boolean }) {
 			<div style={{ color: INK_MUTED, fontStyle: 'italic' }}>
 				No dispatches yet — the realm is quiet. Check back soon.
 			</div>
+		</div>
+	);
+}
+
+function TipsPanel({ active }: { active: boolean }) {
+	return (
+		<div
+			style={{
+				height: active ? 202 : 52,
+				overflowY: active ? 'auto' : 'hidden',
+				maskImage: active
+					? undefined
+					: 'linear-gradient(to bottom, transparent, #000 22px)',
+				WebkitMaskImage: active
+					? undefined
+					: 'linear-gradient(to bottom, transparent, #000 22px)',
+				fontSize: 12,
+				lineHeight: 1.5,
+				color: INK,
+				textShadow: '0 1px 1px rgba(0,0,0,0.6)',
+				transition: 'height 0.2s ease',
+			}}>
+			<div
+				style={{
+					color: INK_NAME,
+					fontWeight: 700,
+					letterSpacing: 0.5,
+					marginBottom: 8,
+				}}>
+				New Adventurer Tips
+			</div>
+			<ol style={{ margin: 0, paddingLeft: 18 }}>
+				<li style={{ marginBottom: 6 }}>
+					<span style={{ color: INK_NAME, fontWeight: 700 }}>
+						Shift&nbsp;+&nbsp;1…9
+					</span>{' '}
+					to use or place an item.
+				</li>
+				<li style={{ marginBottom: 6 }}>
+					The dungeon is dangerous — be careful. PvP is enabled below.
+				</li>
+			</ol>
 		</div>
 	);
 }

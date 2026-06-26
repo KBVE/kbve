@@ -67,6 +67,22 @@ export function ChatIcon({
 	);
 }
 
+export function TipsIcon({
+	size = 14,
+	style,
+}: {
+	size?: number;
+	style?: CSSProperties;
+}) {
+	return (
+		<Icon size={size} style={style}>
+			<path d="M15 14c.2-1 .7-1.7 1.5-2.5A5.5 5.5 0 1 0 8 8c0 1 .2 2.2 1.5 3.5.8.8 1.3 1.5 1.5 2.5" />
+			<path d="M9 18h6" />
+			<path d="M10 22h4" />
+		</Icon>
+	);
+}
+
 export function NewsIcon({
 	size = 14,
 	style,
