@@ -9,6 +9,7 @@
 #include "KBVESupabaseChat.h"
 #include "KBVESupabaseJWT.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "TimerManager.h"
 #include "HttpModule.h"
 #include "GenericPlatform/GenericPlatformHttp.h"

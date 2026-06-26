@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Containers/Queue.h"
+#include "Engine/TimerHandle.h"
+#include "GenericPlatform/GenericPlatformFile.h"
 #include "KBVESupabaseTypes.h"
 #include "KBVESupabaseChat.generated.h"
 
