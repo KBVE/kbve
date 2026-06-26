@@ -33,6 +33,8 @@ use std::net::SocketAddr;
 /// - `GATE_COOKIE_DOMAIN`   optional domain scope for the session cookie
 /// - `GATE_STAFF_TTL_SECS`  is_staff cache TTL (default 30)
 /// - `GATE_STAFF_SCHEMA`    PostgREST schema for the RPC (default `forum`)
+/// - `GATE_STAFF_RPC`       PostgREST RPC name (default `is_staff`); e.g.
+///   `is_superadmin` against the `authz` schema gates on the SUPERADMIN bit
 /// - `SUPABASE_JWT_SECRET`  required
 /// - `SUPABASE_URL`         required when authz=is_staff
 /// - `SUPABASE_ANON_KEY`    optional PostgREST apikey when authz=is_staff
@@ -81,6 +83,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
                 .ok()
                 .filter(|s| !s.is_empty());
             let schema = std::env::var("GATE_STAFF_SCHEMA").unwrap_or_else(|_| "forum".into());
+            let rpc = std::env::var("GATE_STAFF_RPC").unwrap_or_else(|_| "is_staff".into());
             let ttl = std::env::var("GATE_STAFF_TTL_SECS")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -90,6 +93,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
                 jwt_secret.clone(),
                 apikey,
                 schema,
+                &rpc,
                 ttl,
             ))
         }
