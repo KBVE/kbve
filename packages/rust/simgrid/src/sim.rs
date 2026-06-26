@@ -33,7 +33,7 @@ pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
 /// player always emits, for prediction). The client interp coasts between, so
 /// halving the rate halves their per-snapshot float bytes for ~free. 1 = no
 /// throttle. Raise if NPC motion looks stepped.
-pub const NPC_FLOAT_EMIT_EVERY: u32 = 2;
+pub const NPC_FLOAT_EMIT_EVERY: u32 = 1;
 
 pub const PLAYER_KIND: u16 = 0;
 pub const MAX_PATH_LEN: usize = 64;
