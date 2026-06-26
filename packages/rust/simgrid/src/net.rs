@@ -115,25 +115,19 @@ impl Roster {
 /// once per client. axum 0.7's `Message` owns its buffer, so each writer still
 /// pays one flat memcpy to hand the socket an owned copy — but the expensive
 /// serialization + the deep `ServerEvent` clone happen a single time.
-#[derive(Default)]
 struct EncodedFrame {
-    postcard: Option<Vec<u8>>,
-    json: Option<String>,
+    postcard: Vec<u8>,
 }
 
 impl EncodedFrame {
-    fn message(&self, format: WireFormat) -> Option<Message> {
-        match format {
-            WireFormat::Postcard => self.postcard.clone().map(Message::Binary),
-            WireFormat::Json => self.json.clone().map(Message::Text),
-        }
+    fn message(&self) -> Message {
+        Message::Binary(self.postcard.clone())
     }
 }
 
 struct ConnHandle {
     tx: mpsc::Sender<Arc<EncodedFrame>>,
     slot: proto::PlayerSlot,
-    format: WireFormat,
 }
 
 #[derive(Clone)]
@@ -217,7 +211,7 @@ fn route_event(
         if let Some(id) = slot2id.get(to).map(|e| *e.value())
             && let Some(h) = conns.get(&id)
         {
-            let frame = Arc::new(encode_frame(&evt, &[h.format]));
+            let frame = Arc::new(encode_frame(&evt));
             deliver(h.value(), frame);
         }
         return;
@@ -238,16 +232,10 @@ fn route_event(
     // Other broadcasts (roster-only, etc.): fill the roster + serialize once per
     // live format, then fan the shared `Arc` out to every connection.
     let evt = inject_roster(evt, roster);
-    let mut formats: Vec<WireFormat> = Vec::new();
-    for h in conns.iter() {
-        if !formats.contains(&h.format) {
-            formats.push(h.format);
-        }
-    }
-    if formats.is_empty() {
+    if conns.is_empty() {
         return;
     }
-    let frame = Arc::new(encode_frame(&evt, &formats));
+    let frame = Arc::new(encode_frame(&evt));
     for h in conns.iter() {
         deliver(h.value(), frame.clone());
     }
@@ -294,25 +282,15 @@ fn route_snapshot_aoi(
             entities,
             keyframe: snap.keyframe,
         };
-        let frame = Arc::new(encode_frame(&ServerEvent::Snapshot(view), &[h.format]));
+        let frame = Arc::new(encode_frame(&ServerEvent::Snapshot(view)));
         deliver(h.value(), frame);
     }
 }
 
-fn encode_frame(evt: &ServerEvent, formats: &[WireFormat]) -> EncodedFrame {
-    let mut frame = EncodedFrame::default();
-    for f in formats {
-        match f {
-            WireFormat::Postcard if frame.postcard.is_none() => {
-                frame.postcard = proto::encode(evt).ok();
-            }
-            WireFormat::Json if frame.json.is_none() => {
-                frame.json = proto::encode_json(evt).ok();
-            }
-            _ => {}
-        }
+fn encode_frame(evt: &ServerEvent) -> EncodedFrame {
+    EncodedFrame {
+        postcard: proto::encode(evt).unwrap_or_default(),
     }
-    frame
 }
 
 fn deliver(handle: &ConnHandle, frame: Arc<EncodedFrame>) {
@@ -346,39 +324,26 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
     h
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum WireFormat {
-    Postcard,
-    Json,
-}
-
 struct AdmittedPlayer {
     slot: proto::PlayerSlot,
     ulid: Ulid,
-    format: WireFormat,
     kick_rx: watch::Receiver<bool>,
 }
 
-fn decode_client(msg: &Message) -> Option<(ClientMessage, WireFormat)> {
+/// Postcard-only wire: client frames are COBS-framed postcard (Binary). Text and
+/// other frame kinds are not a valid client message.
+fn decode_client(msg: &Message) -> Option<ClientMessage> {
     match msg {
         Message::Binary(bytes) => {
             let mut buf = bytes.clone();
-            proto::decode::<ClientMessage>(&mut buf)
-                .ok()
-                .map(|m| (m, WireFormat::Postcard))
+            proto::decode::<ClientMessage>(&mut buf).ok()
         }
-        Message::Text(text) => proto::decode_json::<ClientMessage>(text.as_str())
-            .ok()
-            .map(|m| (m, WireFormat::Json)),
         _ => None,
     }
 }
 
-fn encode_event(evt: &ServerEvent, format: WireFormat) -> Option<Message> {
-    match format {
-        WireFormat::Postcard => proto::encode(evt).ok().map(Message::Binary),
-        WireFormat::Json => proto::encode_json(evt).ok().map(Message::Text),
-    }
+fn encode_event(evt: &ServerEvent) -> Option<Message> {
+    proto::encode(evt).ok().map(Message::Binary)
 }
 
 pub fn router(state: ServerState) -> Router {
@@ -402,7 +367,6 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     };
     let slot = admitted.slot;
     let ulid = admitted.ulid;
-    let format = admitted.format;
     let mut kick_rx = admitted.kick_rx;
 
     let welcome = ServerEvent::Welcome {
@@ -411,7 +375,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         seed: state.seed,
         registry: state.registry.clone(),
     };
-    if let Some(msg) = encode_event(&welcome, format)
+    if let Some(msg) = encode_event(&welcome)
         && socket.send(msg).await.is_err()
     {
         cleanup_join(&state, slot);
@@ -420,16 +384,9 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
 
     let (sink, mut stream) = socket.split();
     let (conn_tx, conn_rx) = mpsc::channel::<Arc<EncodedFrame>>(CONN_CHANNEL_CAPACITY);
-    state.conns.insert(
-        ulid,
-        ConnHandle {
-            tx: conn_tx,
-            slot,
-            format,
-        },
-    );
+    state.conns.insert(ulid, ConnHandle { tx: conn_tx, slot });
     state.slot2id.insert(slot, ulid);
-    let writer = tokio::spawn(run_writer(sink, conn_rx, format));
+    let writer = tokio::spawn(run_writer(sink, conn_rx));
 
     loop {
         tokio::select! {
@@ -443,7 +400,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 if matches!(msg, Message::Close(_)) {
                     break;
                 }
-                if let Some((ClientMessage::Frame(frame), _)) = decode_client(&msg)
+                if let Some(ClientMessage::Frame(frame)) = decode_client(&msg)
                     && let Some(tx) = state.input_tx.as_ref()
                 {
                     for input in frame.inputs {
@@ -463,13 +420,9 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
 async fn run_writer(
     mut sink: SplitSink<WebSocket, Message>,
     mut rx: mpsc::Receiver<Arc<EncodedFrame>>,
-    format: WireFormat,
 ) {
     while let Some(frame) = rx.recv().await {
-        let Some(msg) = frame.message(format) else {
-            continue;
-        };
-        if sink.send(msg).await.is_err() {
+        if sink.send(frame.message()).await.is_err() {
             break;
         }
     }
@@ -500,23 +453,17 @@ async fn await_join_match(
         if matches!(msg, Message::Ping(_) | Message::Pong(_)) {
             continue;
         }
-        let Some((client_msg, format)) = decode_client(&msg) else {
-            send_reject(
-                socket,
-                WireFormat::Json,
-                "expected JoinMatch as first frame",
-            )
-            .await;
+        let Some(client_msg) = decode_client(&msg) else {
+            send_reject(socket, "expected JoinMatch as first frame").await;
             return None;
         };
         let ClientMessage::JoinMatch(jm) = client_msg else {
-            send_reject(socket, format, "expected JoinMatch as first frame").await;
+            send_reject(socket, "expected JoinMatch as first frame").await;
             return None;
         };
         if jm.protocol != proto::PROTOCOL_VERSION {
             send_reject(
                 socket,
-                format,
                 &format!(
                     "protocol mismatch: client={}, server={} — refresh your browser to update the game client",
                     jm.protocol,
@@ -526,7 +473,7 @@ async fn await_join_match(
             .await;
             return None;
         }
-        return admit(state, socket, jm, format).await;
+        return admit(state, socket, jm).await;
     }
 }
 
@@ -535,7 +482,6 @@ async fn admit(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     jm: proto::JoinMatch,
-    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let (raw, sub) = if let Some(verifier) = &state.verifier {
         // External authority (Supabase GoTrue via the jedi cache): an empty or
@@ -543,7 +489,7 @@ async fn admit(
         match verifier.verify(&jm.jwt).await {
             Ok(user) => (user.kbve_username, user.sub),
             Err(e) => {
-                send_reject(socket, format, &format!("auth rejected: {e}")).await;
+                send_reject(socket, &format!("auth rejected: {e}")).await;
                 return None;
             }
         }
@@ -553,18 +499,13 @@ async fn admit(
         match crate::auth::verify_supabase_jwt(&jm.jwt, &state.jwt_secret) {
             Ok(claims) => (claims.kbve_username, claims.sub),
             Err(e) => {
-                send_reject(socket, format, &format!("auth rejected: {e}")).await;
+                send_reject(socket, &format!("auth rejected: {e}")).await;
                 return None;
             }
         }
     };
     let Some(username) = resolve_username(state.require_username, raw) else {
-        send_reject(
-            socket,
-            format,
-            "username required — set a KBVE username first",
-        )
-        .await;
+        send_reject(socket, "username required — set a KBVE username first").await;
         return None;
     };
     let identity = if sub.is_empty() {
@@ -572,7 +513,7 @@ async fn admit(
     } else {
         sub
     };
-    claim_slot(state, socket, username, identity, format).await
+    claim_slot(state, socket, username, identity).await
 }
 
 #[cfg(not(feature = "supabase-auth"))]
@@ -580,19 +521,13 @@ async fn admit(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     jm: proto::JoinMatch,
-    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let Some(username) = resolve_username(state.require_username, jm.kbve_username) else {
-        send_reject(
-            socket,
-            format,
-            "username required — set a KBVE username first",
-        )
-        .await;
+        send_reject(socket, "username required — set a KBVE username first").await;
         return None;
     };
     let identity = username.clone();
-    claim_slot(state, socket, username, identity, format).await
+    claim_slot(state, socket, username, identity).await
 }
 
 fn resolve_username(require_username: bool, name: String) -> Option<String> {
@@ -610,13 +545,11 @@ async fn claim_slot(
     socket: &mut WebSocket,
     kbve_username: String,
     identity: String,
-    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let ulid = ulid_from_identity(&identity);
     if state.conns.contains_key(&ulid) {
         send_reject(
             socket,
-            format,
             "already connected — close the other window or tab to play here",
         )
         .await;
@@ -636,7 +569,7 @@ async fn claim_slot(
             .read()
             .map(|r| r.capacity())
             .unwrap_or_default();
-        send_reject(socket, format, &format!("match full ({capacity} players)")).await;
+        send_reject(socket, &format!("match full ({capacity} players)")).await;
         return None;
     };
 
@@ -659,17 +592,16 @@ async fn claim_slot(
     Some(AdmittedPlayer {
         slot,
         ulid,
-        format,
         kick_rx,
     })
 }
 
-async fn send_reject(socket: &mut WebSocket, format: WireFormat, reason: &str) {
+async fn send_reject(socket: &mut WebSocket, reason: &str) {
     tracing::info!(reason, "join rejected");
     let evt = ServerEvent::Reject {
         reason: reason.to_string(),
     };
-    if let Some(msg) = encode_event(&evt, format) {
+    if let Some(msg) = encode_event(&evt) {
         let _ = socket.send(msg).await;
     }
     let _ = socket
@@ -744,7 +676,6 @@ mod tests {
             ConnHandle {
                 tx: atx,
                 slot: proto::PlayerSlot(0),
-                format: WireFormat::Postcard,
             },
         );
         conns.insert(
@@ -752,7 +683,6 @@ mod tests {
             ConnHandle {
                 tx: btx,
                 slot: proto::PlayerSlot(1),
-                format: WireFormat::Postcard,
             },
         );
         slot2id.insert(proto::PlayerSlot(0), aid);
@@ -787,7 +717,6 @@ mod tests {
             ConnHandle {
                 tx: atx,
                 slot: proto::PlayerSlot(0),
-                format: WireFormat::Postcard,
             },
         );
         conns.insert(
@@ -795,7 +724,6 @@ mod tests {
             ConnHandle {
                 tx: btx,
                 slot: proto::PlayerSlot(1),
-                format: WireFormat::Postcard,
             },
         );
         slot2id.insert(proto::PlayerSlot(0), aid);
