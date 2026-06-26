@@ -664,7 +664,6 @@ function ResourcesTab({ resources }: { resources: ResourceNode[] }) {
 
 				const resourceKey = `${r.kind}/${r.namespace}/${r.name}`;
 				const isExpanded = expandedResource === resourceKey;
-				const isPod = r.kind === 'Pod';
 				const hasDetails =
 					r.health?.message ||
 					r.images?.length ||

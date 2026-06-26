@@ -1,4 +1,4 @@
-import type { Tokens, ThemeOverride } from './theme';
+import type { ThemeOverride } from './theme';
 
 export type { Tokens, ThemeOverride } from './theme';
 

@@ -22,7 +22,7 @@ const PROVIDER_SCOPES: Record<OAuthProvider, string> = {
 
 export function createSupabaseAuthExecutor(
 	client: SupabaseClient,
-	_oauthUrl?: string,
+	_oauthUrl?: string, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): EffectExecutor<AuthEffect, AuthEvent> {
 	const redirectTo = makeRedirectUri({
 		scheme: 'kbve',

@@ -219,8 +219,9 @@ export function StreamView<TItem>({
 		let items = state.items;
 		if (filter) items = items.filter(filter.predicate);
 		if (q && lens.searchText) {
+			const searchFn = lens.searchText;
 			items = items.filter((it) =>
-				lens.searchText!(it).toLowerCase().includes(q),
+				searchFn(it).toLowerCase().includes(q),
 			);
 		}
 		return items;
