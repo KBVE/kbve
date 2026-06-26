@@ -29,11 +29,6 @@ use crate::trade::{PendingTrades, TradeInput};
 pub const SIM_TICK_HZ: u32 = 20;
 pub const SNAPSHOT_EVERY_N_TICKS: u32 = 2;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
-/// Float-steered NPCs emit their sub-tile pos/vel only every Nth snapshot (the
-/// player always emits, for prediction). The client interp coasts between, so
-/// halving the rate halves their per-snapshot float bytes for ~free. 1 = no
-/// throttle. Raise if NPC motion looks stepped.
-pub const NPC_FLOAT_EMIT_EVERY: u32 = 1;
 
 pub const PLAYER_KIND: u16 = 0;
 pub const MAX_PATH_LEN: usize = 64;
@@ -2831,7 +2826,6 @@ fn emit_snapshot(
     }
 
     let now = clock.tick;
-    let snap_idx = now / SNAPSHOT_EVERY_N_TICKS;
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
@@ -2857,23 +2851,18 @@ fn emit_snapshot(
                             .collect()
                     })
                     .unwrap_or_default();
-                // Throttle: a non-player float NPC emits its sub-tile float only on
-                // every Nth snapshot; on skip snapshots it sends nothing (qx/qy zero
-                // -> omitted on the wire) and the client interp coasts on its last
-                // sample. Sending a tile-rounded pos instead would wobble, so we skip
-                // outright. The player always emits (prediction needs every frame).
-                let skip_float = fm.is_some()
-                    && slot.is_none()
-                    && !snap_idx.is_multiple_of(NPC_FLOAT_EMIT_EVERY);
+                // Float entities (players + steered NPCs) send their sub-tile pos +
+                // vel; everything else sends its tile quantized. Always emitted — a
+                // per-field skip can't survive the positional postcard wire, and a
+                // zero is a single varint byte there anyway.
                 let (qx, qy, qvx, qvy, input_ack) = match fm {
-                    Some(f) if !skip_float => (
+                    Some(f) => (
                         proto::quantize_pos(f.body.x),
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
                         f.last_seq,
                     ),
-                    Some(_) => (0, 0, 0, 0, 0),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
                         proto::quantize_pos(pos.tile.y as f32),

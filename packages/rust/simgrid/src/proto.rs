@@ -249,18 +249,6 @@ pub struct StatusView {
     pub remaining: u16,
 }
 
-fn is_zero_i32(v: &i32) -> bool {
-    *v == 0
-}
-
-fn is_zero_i16(v: &i16) -> bool {
-    *v == 0
-}
-
-fn is_zero_u32(v: &u32) -> bool {
-    *v == 0
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityDelta {
     pub eid: EntityId,
@@ -273,20 +261,22 @@ pub struct EntityDelta {
     pub qx: i32,
     #[serde(default)]
     pub qy: i32,
-    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    // No skip_serializing_if on any wire field: postcard is positional, so a
+    // conditionally-omitted field shifts every following byte and desyncs the
+    // decoder. serde(default) is kept so older/JSON encodings still decode.
+    #[serde(default)]
     pub qvx: i16,
-    #[serde(default, skip_serializing_if = "is_zero_i16")]
+    #[serde(default)]
     pub qvy: i16,
-    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    #[serde(default)]
     pub input_ack: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub destroyed: bool,
-    /// Dungeon floor (z-axis). 0 = ground floor; omitted on the wire when 0, so
-    /// single-floor games (cryptothrone) are byte-identical to before.
-    #[serde(default, skip_serializing_if = "is_zero_i32")]
+    /// Dungeon floor (z-axis). 0 = ground floor.
+    #[serde(default)]
     pub z: i32,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub effects: Vec<StatusView>,
 }
 
@@ -401,5 +391,74 @@ mod tests {
         );
         let back: StatusKind = serde_json::from_str("\"Burn\"").unwrap();
         assert_eq!(back, StatusKind::Burn);
+    }
+
+    #[test]
+    fn snapshot_with_zeroed_fields_round_trips_postcard() {
+        // Postcard is positional: a zero in a former skip_serializing_if field must
+        // still serialize, or the decoder desyncs on the following bytes. This pins
+        // that an all-zero entity and a populated one round-trip together.
+        let zero = EntityDelta {
+            eid: EntityId(1),
+            kind: 2,
+            owner: PlayerSlot(0),
+            tile: Tile::new(0, 0),
+            facing: Facing::Up,
+            sub: 0,
+            qx: 0,
+            qy: 0,
+            qvx: 0,
+            qvy: 0,
+            input_ack: 0,
+            hp: 0,
+            max_hp: 0,
+            destroyed: false,
+            z: 0,
+            effects: vec![],
+        };
+        let full = EntityDelta {
+            eid: EntityId(2),
+            kind: 3,
+            owner: PlayerSlot(1),
+            tile: Tile::new(5, -3),
+            facing: Facing::Down,
+            sub: 0x81,
+            qx: 160,
+            qy: -96,
+            qvx: 12,
+            qvy: -7,
+            input_ack: 42,
+            hp: 30,
+            max_hp: 40,
+            destroyed: false,
+            z: -1,
+            effects: vec![StatusView {
+                kind: StatusKind::Burn,
+                remaining: 5,
+            }],
+        };
+        let evt = ServerEvent::Snapshot(Snapshot {
+            tick: 9,
+            server_time_ms: 100,
+            input_ack: 0,
+            players: vec![],
+            entities: vec![zero, full],
+            keyframe: true,
+        });
+        let mut buf = encode(&evt).expect("encode");
+        let back: ServerEvent = decode(&mut buf).expect("decode");
+        match back {
+            ServerEvent::Snapshot(s) => {
+                assert_eq!(s.entities.len(), 2);
+                assert_eq!(s.entities[0].qx, 0);
+                assert_eq!(s.entities[0].qvx, 0);
+                assert_eq!(s.entities[0].z, 0);
+                assert_eq!(s.entities[1].qx, 160);
+                assert_eq!(s.entities[1].qvy, -7);
+                assert_eq!(s.entities[1].z, -1);
+                assert_eq!(s.entities[1].effects.len(), 1);
+            }
+            _ => panic!("wrong variant"),
+        }
     }
 }
