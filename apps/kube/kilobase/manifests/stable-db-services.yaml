@@ -1,0 +1,58 @@
+# Stable DB service aliases — decouple consumers from CNPG-generated cluster
+# service names so a future blue-green cutover is a one-line selector flip
+# (cnpg.io/cluster: supabase-cluster -> supabase-cluster-v2) with zero consumer
+# changes. Selectors mirror the CNPG -rw/-ro/-r services exactly. Additive and
+# harmless: currently resolve to the same pods as supabase-cluster-{rw,ro,r}.
+apiVersion: v1
+kind: Service
+metadata:
+    name: kilobase-rw
+    namespace: kilobase
+    labels:
+        app: kilobase-db-alias
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        cnpg.io/cluster: supabase-cluster
+        cnpg.io/instanceRole: primary
+    ports:
+        - name: postgres
+          port: 5432
+          targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: kilobase-ro
+    namespace: kilobase
+    labels:
+        app: kilobase-db-alias
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        cnpg.io/cluster: supabase-cluster
+        cnpg.io/instanceRole: replica
+    ports:
+        - name: postgres
+          port: 5432
+          targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: kilobase-r
+    namespace: kilobase
+    labels:
+        app: kilobase-db-alias
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        cnpg.io/cluster: supabase-cluster
+        cnpg.io/podRole: instance
+    ports:
+        - name: postgres
+          port: 5432
+          targetPort: 5432
