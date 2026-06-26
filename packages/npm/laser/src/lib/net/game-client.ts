@@ -66,14 +66,6 @@ export interface GameClientOptions {
 	kbveUsername: string;
 	/** Max reconnect attempts before going terminal. Default 3. */
 	maxReconnects?: number;
-	/**
-	 * Send Binary postcard frames instead of JSON text. The server pins the wire
-	 * format off the first frame, so this also flips its replies to postcard. Opt
-	 * in per game — the server MUST be built with postcard-safe structs (no
-	 * skip_serializing_if). Receiving handles both formats regardless. Default
-	 * false (JSON).
-	 */
-	binaryWire?: boolean;
 }
 
 export interface MoveSample {
@@ -137,18 +129,11 @@ export class GameClient {
 	}
 
 	private handleMessage(ev: MessageEvent): void {
+		// Postcard-only wire: every frame is COBS-framed postcard (ArrayBuffer).
+		if (!(ev.data instanceof ArrayBuffer)) return;
 		let msg: ServerEvent;
 		try {
-			// Binary frames are COBS-framed postcard; text frames are JSON (kept as
-			// a fallback for a server still on the JSON wire).
-			msg =
-				ev.data instanceof ArrayBuffer
-					? decodeServerEvent(new Uint8Array(ev.data))
-					: JSON.parse(
-							typeof ev.data === 'string'
-								? ev.data
-								: String(ev.data),
-						);
+			msg = decodeServerEvent(new Uint8Array(ev.data));
 		} catch {
 			return;
 		}
@@ -202,13 +187,8 @@ export class GameClient {
 	}
 
 	private send(msg: ClientMessage): void {
-		// Binary postcard (opt-in): the first Binary frame pins the server to the
-		// postcard wire and it replies in kind. Else JSON text (the default).
-		this.socket.send(
-			this.opts.binaryWire
-				? encodeClientMessage(msg)
-				: JSON.stringify(msg),
-		);
+		// Postcard-only: Binary frames; the server follows suit off the first one.
+		this.socket.send(encodeClientMessage(msg));
 	}
 
 	sendInputs(inputs: Input[]): void {
