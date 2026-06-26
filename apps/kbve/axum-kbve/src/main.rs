@@ -121,6 +121,8 @@ async fn main() -> anyhow::Result<()> {
         warn!("KvCache init failed - read-through cache disabled");
     }
 
+    db::spawn_chat_blocklist_mirror();
+
     if db::init_wallet_client().await {
         info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
     } else {
