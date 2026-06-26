@@ -11,17 +11,13 @@ import {
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
 import type { SpellMeta } from '../entities/spellMeta';
-import { SpellBar } from './spells/SpellBar';
+import { HotBar } from './hotbar/HotBar';
 import { registerArpgI18n } from './i18n';
 import { StatOrb, useWavePhase, type OrbStat } from './orbs/StatOrb';
 import { GothicOrbRing, ORB_FRAME_HOLE } from './gothic/Gothic';
 import { Minimap } from './minimap/Minimap';
 import { Tooltip } from './Tooltip';
-import {
-	InventoryBar,
-	InventoryPanel,
-	useInventoryDnd,
-} from './inventory/Inventory';
+import { InventoryPanel, useInventoryDnd } from './inventory/Inventory';
 
 const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
@@ -139,8 +135,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 							headingDeg={hud.headingDeg}
 						/>
 					</div>
-					<SpellBar spells={spells} />
-					<InventoryBar items={inv} meta={meta} dnd={dnd} />
+					<HotBar spells={spells} items={inv} meta={meta} dnd={dnd} />
 					<InventoryPanel
 						open={open}
 						items={inv}

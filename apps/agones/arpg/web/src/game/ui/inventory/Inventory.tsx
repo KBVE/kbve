@@ -2,8 +2,7 @@ import { useState, type DragEvent, type ReactElement } from 'react';
 import { useTranslation } from '@kbve/laser';
 import type { InventoryItem } from '@kbve/laser';
 import { emitInventoryIntent, emitInventoryOpen } from '../../systems/hud';
-import { PixelPanel } from '../../PixelPanel';
-import { rarityColor, type ItemMeta } from '../../entities/itemMeta';
+import { type ItemMeta } from '../../entities/itemMeta';
 import {
 	ATLAS_URL,
 	ATLAS_SIZE,
@@ -100,7 +99,7 @@ export function useInventoryDnd(itemCount: number): InventoryDnd {
 	};
 }
 
-function ItemIcon({
+export function ItemIcon({
 	meta,
 	itemRef,
 	size,
@@ -148,101 +147,6 @@ function ItemIcon({
 			}}>
 			{itemRef.slice(0, 2).toUpperCase()}
 		</span>
-	);
-}
-
-export function InventoryBar({
-	items,
-	meta,
-	dnd,
-}: {
-	items: InventoryItem[];
-	meta: Map<string, ItemMeta>;
-	dnd: InventoryDnd;
-}): ReactElement | null {
-	const { t } = useTranslation();
-	if (items.length === 0) return null;
-	const slots = items.slice(0, 9);
-	return (
-		<div
-			onDragEnd={dnd.endDrag}
-			style={{
-				position: 'absolute',
-				bottom: 14,
-				left: '50%',
-				transform: 'translateX(-50%)',
-				display: 'flex',
-				gap: 6,
-			}}>
-			{slots.map((it, i) => {
-				const m = meta.get(it.ref);
-				const slot = dnd.slotProps(i, true);
-				return (
-					<PixelPanel
-						key={it.ref}
-						variant="slate"
-						scale={2}
-						onClick={() =>
-							emitInventoryIntent({ type: 'use', index: i })
-						}
-						title={t('arpg.inventory.useTitle', {
-							name: m?.name ?? it.ref,
-						})}
-						draggable={slot.draggable}
-						onDragStart={slot.onDragStart}
-						onDragOver={slot.onDragOver}
-						onDrop={slot.onDrop}
-						style={{
-							minWidth: 58,
-							padding: '5px 8px 7px',
-							textAlign: 'center',
-							pointerEvents: 'auto',
-							cursor: 'grab',
-							opacity: dnd.drag === i ? 0.4 : 1,
-						}}>
-						<div
-							style={{
-								fontSize: 9,
-								color: ACCENT,
-								textShadow: TEXT_SHADOW,
-								opacity: 0.85,
-							}}>
-							⇧{i + 1}
-						</div>
-						<div
-							style={{
-								height: 22,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-							}}>
-							<ItemIcon meta={m} itemRef={it.ref} size={20} />
-						</div>
-						<div
-							style={{
-								fontSize: 9,
-								color: rarityColor(m?.rarity),
-								textShadow: TEXT_SHADOW,
-								whiteSpace: 'nowrap',
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-								maxWidth: 58,
-							}}>
-							{m?.name ?? it.ref}
-						</div>
-						<div
-							style={{
-								fontSize: 11,
-								fontWeight: 700,
-								color: ACCENT,
-								textShadow: TEXT_SHADOW,
-							}}>
-							×{it.count}
-						</div>
-					</PixelPanel>
-				);
-			})}
-		</div>
 	);
 }
 
