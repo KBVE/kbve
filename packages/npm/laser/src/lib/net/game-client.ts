@@ -36,7 +36,11 @@ import {
 	inputFrame,
 	joinFrame,
 } from './protocol';
-import { decodeServerEvent, encodeClientMessage } from './postcard-wire';
+import {
+	decodeProjectile,
+	decodeServerEvent,
+	encodeClientMessage,
+} from './postcard-wire';
 
 export type GameClientEventMap = {
 	open: void;
@@ -155,7 +159,7 @@ export class GameClient {
 			const data = decodeEphemeralPayload<CombatEvent>(evt.payload);
 			if (data) this.bus.emit('combat', data);
 		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
-			const data = decodeEphemeralPayload<ProjectileEvent>(evt.payload);
+			const data = decodeProjectile(evt.payload);
 			if (data) this.bus.emit('projectile', data);
 		} else if (evt.kind === EPHEMERAL_FLOOR) {
 			const data = decodeEphemeralPayload<FloorChangeEvent>(evt.payload);

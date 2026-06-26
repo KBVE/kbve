@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
-import { decodeServerEvent, encodeClientMessage } from './postcard-wire';
+import {
+	decodeProjectile,
+	decodeServerEvent,
+	encodeClientMessage,
+} from './postcard-wire';
 
 const hex = (b: Uint8Array) =>
 	Array.from(b)
@@ -91,5 +95,20 @@ describe('postcard ServerEvent decoder', () => {
 				effects: [{ kind: 'Burn', remaining: 5 }],
 			});
 		}
+	});
+});
+
+describe('postcard Ephemeral payload decoder', () => {
+	// Same hex the Rust fixture (proto.rs projectile_event_fixture_is_stable)
+	// asserts — raw postcard, no COBS framing on the inner payload.
+	it('decodes the Rust ProjectileEvent fixture', () => {
+		const payload = Array.from(fromHex('020a050e04056172726f7701'));
+		expect(decodeProjectile(payload)).toEqual({
+			attacker: 2,
+			from: { x: 5, y: -3 },
+			to: { x: 7, y: 2 },
+			kind: 'arrow',
+			hit: true,
+		});
 	});
 });

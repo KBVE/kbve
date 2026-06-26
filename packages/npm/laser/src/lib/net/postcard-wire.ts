@@ -11,6 +11,7 @@ import type {
 	Input,
 	KindEntry,
 	PlayerView,
+	ProjectileEvent,
 	ServerEvent,
 	Snapshot,
 	StatusKind,
@@ -248,6 +249,25 @@ export function decodeServerEvent(frame: Uint8Array): ServerEvent {
 		default:
 			throw new Error(`postcard: unknown ServerEvent variant ${variant}`);
 	}
+}
+
+function readProjectile(r: PostcardReader): ProjectileEvent {
+	const attacker = r.u32();
+	const from = readTile(r);
+	const to = readTile(r);
+	const kind = r.string();
+	const hit = r.bool();
+	return { attacker, from, to, kind, hit };
+}
+
+/**
+ * Decode an EPHEMERAL_PROJECTILE payload (raw postcard, NOT COBS — the outer
+ * ServerEvent frame was already COBS-decoded and the payload bytes handed over
+ * verbatim). Field order MUST match `proto::ProjectileEvent`. This is the first
+ * ephemeral on the binary path; the rest still ride JSON via decodeEphemeralPayload.
+ */
+export function decodeProjectile(payload: number[]): ProjectileEvent {
+	return readProjectile(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Encode a ClientMessage to a COBS-framed postcard buffer (sent as Binary). */

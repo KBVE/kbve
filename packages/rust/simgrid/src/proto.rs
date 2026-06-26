@@ -343,6 +343,19 @@ pub fn encode_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error>
     serde_json::to_string(value)
 }
 
+/// Encode an Ephemeral payload as raw postcard (NOT COBS-framed): the outer
+/// ServerEvent already COBS-frames the whole message and length-prefixes the
+/// payload `Vec<u8>`, so the inner bytes need no delimiter. Pairs with the TS
+/// `PostcardReader` reading the payload directly. This is the typed-binary path
+/// JSON event payloads migrate onto, starting with ProjectileEvent.
+pub fn encode_inner<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {
+    postcard::to_allocvec(value)
+}
+
+pub fn decode_inner<T: for<'de> Deserialize<'de>>(buf: &[u8]) -> Result<T, postcard::Error> {
+    postcard::from_bytes(buf)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -498,6 +511,29 @@ mod tests {
             h(&snap),
             "040109640109010207ffff030a050881c002bf01180d033c5006010103050100"
         );
+    }
+
+    // Cross-language fixture for the raw-postcard Ephemeral payload path: the TS
+    // decodeProjectile pins the SAME hex (laser postcard-wire.spec.ts). encode_inner
+    // is plain postcard (no COBS), so no 0x00 framing byte appears here.
+    #[test]
+    fn projectile_event_fixture_is_stable() {
+        let ev = ProjectileEvent {
+            attacker: 2,
+            from: Tile::new(5, -3),
+            to: Tile::new(7, 2),
+            kind: "arrow".into(),
+            hit: true,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "020a050e04056172726f7701");
+        let back: ProjectileEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.attacker, 2);
+        assert_eq!(back.from, Tile::new(5, -3));
+        assert_eq!(back.to, Tile::new(7, 2));
+        assert_eq!(back.kind, "arrow");
+        assert!(back.hit);
     }
 
     #[test]

@@ -91,7 +91,7 @@ export function setupInput(
 
 	scene.input.mouse?.disableContextMenu();
 
-	const cursor = new CursorController(scene.game.canvas);
+	const cursor = new CursorController(scene);
 	cursor.set(Cursor.Pointer);
 
 	scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
