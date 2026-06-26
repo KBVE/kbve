@@ -187,9 +187,11 @@ impl StaffGate {
         jwt_secret: String,
         apikey: Option<String>,
         schema: String,
+        rpc: &str,
         ttl_secs: u64,
     ) -> Self {
         let base = supabase_url.trim_end_matches('/');
+        let rpc = rpc.trim_matches('/');
         let client = Client::builder()
             .connect_timeout(Duration::from_secs(5))
             .timeout(Duration::from_secs(8))
@@ -197,7 +199,7 @@ impl StaffGate {
             .unwrap_or_else(|_| Client::new());
         Self {
             client,
-            rpc_url: format!("{base}/rest/v1/rpc/is_staff"),
+            rpc_url: format!("{base}/rest/v1/rpc/{rpc}"),
             jwt_secret,
             apikey,
             schema,

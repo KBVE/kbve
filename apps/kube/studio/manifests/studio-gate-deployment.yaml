@@ -56,7 +56,9 @@ spec:
                       - name: GATE_AUTHZ
                         value: is_staff
                       - name: GATE_STAFF_SCHEMA
-                        value: forum
+                        value: authz
+                      - name: GATE_STAFF_RPC
+                        value: is_superadmin
                       - name: GATE_LOGIN_REDIRECT
                         value: https://kbve.com/login
                       - name: GATE_COOKIE_DOMAIN

@@ -366,7 +366,8 @@
 				"apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
 				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
 				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
-				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml"
+				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml",
+				"apps/kube/studio/manifests/studio-gate-deployment.yaml"
 			],
 			"has_test": false
 		},
