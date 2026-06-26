@@ -245,6 +245,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// changes to the in-game reconnect banner instead of the boot overlay.
 	private bootReady = false;
 	private static readonly MAX_RECONNECTS = 3;
+	// Tiles of single-snapshot movement past which an interp update is treated as a
+	// discontinuity (teleport/AOI re-entry) and snapped, not splined across.
+	private static readonly INTERP_SNAP_DIST = 4;
 	private mySlot = -1;
 	private myEid = -1;
 	private predictSeeded = false;
@@ -680,7 +683,19 @@ export class IsoArpgScene extends Phaser.Scene {
 			},
 			move: (refs, tile) => {
 				if (refs.interp) {
-					pushSample(refs.interp, this.time.now, tile.x, tile.y);
+					// A jump too large for one snapshot at NPC speed is a discontinuity
+					// (AOI re-entry, respawn, server snap), not motion — snap the buffer
+					// instead of letting the spline sweep the sprite across the screen.
+					const last = refs.interp.buf[refs.interp.buf.length - 1];
+					if (
+						last &&
+						Math.hypot(tile.x - last.x, tile.y - last.y) >
+							IsoArpgScene.INTERP_SNAP_DIST
+					) {
+						resetInterp(refs.interp, this.time.now, tile.x, tile.y);
+					} else {
+						pushSample(refs.interp, this.time.now, tile.x, tile.y);
+					}
 				} else {
 					this.tweenTo(refs, tile, true);
 				}
