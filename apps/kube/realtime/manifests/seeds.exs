@@ -10,7 +10,7 @@ tenant_name = System.get_env("TENANT_NAME", "realtime-prod")
 publication = "supabase_realtime"
 
 env = if :ets.whereis(Mix.State) != :undefined, do: Mix.env(), else: :prod
-default_db_host = if env in [:dev, :test], do: "localhost", else: "supabase-cluster-rw.kilobase.svc.cluster.local"
+default_db_host = if env in [:dev, :test], do: "localhost", else: "kilobase-rw.kilobase.svc.cluster.local"
 
 # =============================================================================
 # ACQUIRE ADVISORY LOCK FOR SEEDS

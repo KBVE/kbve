@@ -50,7 +50,7 @@ spec:
                       - name: PORT
                         value: '4000'
                       - name: DB_HOST
-                        value: supabase-cluster-rw.kilobase.svc.cluster.local
+                        value: kilobase-rw.kilobase.svc.cluster.local
                       - name: DB_PORT
                         value: '5432'
                       - name: DB_USER

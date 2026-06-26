@@ -61,7 +61,7 @@ spec:
                       - name: DB_TYPE
                         value: postgresdb
                       - name: DB_POSTGRESDB_HOST
-                        value: supabase-cluster-rw.kilobase.svc.cluster.local
+                        value: kilobase-rw.kilobase.svc.cluster.local
                       - name: DB_POSTGRESDB_PORT
                         value: '5432'
                       - name: DB_POSTGRESDB_DATABASE
