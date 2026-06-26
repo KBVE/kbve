@@ -1,5 +1,6 @@
 pub mod bot;
 pub mod branding;
+pub mod chat_blocklist;
 pub mod commands;
 pub mod components;
 pub mod embeds;
