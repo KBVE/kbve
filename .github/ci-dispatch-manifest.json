@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.214",
+			"version": "1.0.215",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -54,7 +54,7 @@
 		{
 			"key": "arc_runner",
 			"app_name": "arc-runner",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "packages/docker/arc-runner/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
 			"source_path": "packages/docker/arc-runner",
@@ -62,7 +62,8 @@
 			"image": "kbve/arc-runner",
 			"deployment_yamls": [
 				"apps/kube/github/runners/manifests/values-kbve.yaml",
-				"apps/kube/github/runners/manifests/values.yaml"
+				"apps/kube/github/runners/manifests/values.yaml",
+				"apps/kube/github/runners/manifests/values-ue.yaml"
 			],
 			"has_test": false
 		},
@@ -82,7 +83,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.11",
+			"version": "0.1.15",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -95,7 +96,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.11",
+			"version": "0.1.15",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"source_path": "apps/agones/arpg",
@@ -354,7 +355,7 @@
 		{
 			"key": "kbve_gate",
 			"app_name": "kbve-gate",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/kbve/kbve-gate/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
 			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
@@ -366,8 +367,7 @@
 				"apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
 				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
 				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
-				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml",
-				"apps/kube/studio/manifests/studio-gate-deployment.yaml"
+				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml"
 			],
 			"has_test": false
 		},
@@ -396,10 +396,13 @@
 				"apps/kube/kubevirt/autologon/job.yaml",
 				"apps/kube/kubevirt/autologon/scaled-job.yaml",
 				"apps/kube/kubevirt/runner/job.yaml",
+				"apps/kube/kubevirt/runner/scaled-job.yaml",
 				"apps/kube/kubevirt/keda/scaled-jobs.yaml",
-				"apps/kube/agones/factorio/manifests/rotation-cronjob.yaml",
+				"apps/kube/agones/factorio/manifests/rotation-deployment.yaml",
 				"apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
 				"apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
+				"apps/kube/github/runners/manifests/runner-reaper.yaml",
+				"apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml",
 				"apps/kube/kilobase/manifests/backup-restore-test.yaml",
 				"apps/kube/kilobase/manifests/backup-watchdog.yaml"
 			],
