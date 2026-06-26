@@ -23,7 +23,8 @@ pub async fn handle_discord_message(message: &serenity::Message, app: &Arc<AppSt
         return;
     }
 
-    let content = sanitize(&message.content);
+    let resolved = resolve_user_mentions(&message.content, &message.mentions);
+    let content = sanitize(&resolved);
     if content.is_empty() {
         return;
     }
@@ -134,6 +135,35 @@ fn platform_tag(platform: &str) -> String {
     }
 }
 
+fn resolve_user_mentions(content: &str, mentions: &[serenity::User]) -> String {
+    resolve_mentions_inner(
+        content,
+        mentions.iter().map(|user| {
+            let display = user
+                .global_name
+                .clone()
+                .unwrap_or_else(|| user.name.clone());
+            (user.id.to_string(), display)
+        }),
+    )
+}
+
+fn resolve_mentions_inner<I>(content: &str, pairs: I) -> String
+where
+    I: IntoIterator<Item = (String, String)>,
+{
+    if !content.contains("<@") {
+        return content.to_owned();
+    }
+    let mut out = content.to_owned();
+    for (id, display) in pairs {
+        out = out
+            .replace(&format!("<@{id}>"), &format!("@{display}"))
+            .replace(&format!("<@!{id}>"), &format!("@{display}"));
+    }
+    out
+}
+
 fn sanitize(input: &str) -> String {
     let stripped = input.trim();
     if stripped.is_empty() {
@@ -188,6 +218,34 @@ mod tests {
     fn forwarder_passes_chat_from_irc() {
         let msg = ChatMessage::chat("Bob", "irc", "#kbve", "hello there");
         assert!(should_forward_irc(&msg, "#kbve"));
+    }
+
+    fn pair(id: &str, name: &str) -> (String, String) {
+        (id.to_owned(), name.to_owned())
+    }
+
+    #[test]
+    fn resolves_user_mention_to_name() {
+        let out = resolve_mentions_inner(
+            "hey <@123> and <@!456> there",
+            [pair("123", "Alice"), pair("456", "Bob")],
+        );
+        assert_eq!(out, "hey @Alice and @Bob there");
+    }
+
+    #[test]
+    fn resolve_leaves_unknown_mentions_untouched() {
+        let out = resolve_mentions_inner("ping <@999>", [pair("123", "Alice")]);
+        assert_eq!(out, "ping <@999>");
+    }
+
+    #[test]
+    fn resolved_mention_is_neutralised_by_sanitize() {
+        let resolved = resolve_mentions_inner("yo <@123>", [pair("123", "Alice")]);
+        let out = sanitize(&resolved);
+        assert!(!out.contains('@'));
+        assert!(out.contains("Alice"));
+        assert!(!out.contains("<"));
     }
 
     #[test]
