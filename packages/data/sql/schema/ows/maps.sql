@@ -17,7 +17,11 @@ CREATE TABLE Maps
     HardPlayerCap               INT          DEFAULT 80 NOT NULL,
     MinutesToShutdownAfterEmpty INT          DEFAULT 1  NOT NULL,
     CONSTRAINT PK_Maps
-        PRIMARY KEY (CustomerGUID, MapID)
+        PRIMARY KEY (CustomerGUID, MapID),
+    -- Natural per-tenant key backing the `ON CONFLICT (customerguid, mapname)`
+    -- upsert in ZonesRepo::add_zone.
+    CONSTRAINT UQ_Maps_MapName
+        UNIQUE (CustomerGUID, MapName)
 );
 
 -- Security: Maps
