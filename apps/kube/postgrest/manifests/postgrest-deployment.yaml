@@ -23,7 +23,7 @@ spec:
             serviceAccountName: postgrest-sa
             containers:
                 - name: postgrest
-                  image: postgrest/postgrest:v13.0.4
+                  image: postgrest/postgrest:v14.12
                   command:
                       - postgrest
                   ports:
