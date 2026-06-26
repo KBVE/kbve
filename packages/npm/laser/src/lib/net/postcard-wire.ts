@@ -10,6 +10,7 @@ import type {
 	BlackjackSeatView,
 	BlackjackStateView,
 	CombatEvent,
+	CorpseContents,
 	EntityDelta,
 	EquippedEvent,
 	Facing,
@@ -163,6 +164,18 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('Fell' in inp) {
 		w.variant(24);
 		writeTile(w, inp.Fell.tile);
+	} else if ('EnterShip' in inp) {
+		w.variant(25);
+		w.u32(inp.EnterShip.ship);
+	} else if ('ExitShip' in inp) {
+		w.variant(26);
+	} else if ('OpenCorpse' in inp) {
+		w.variant(27);
+		w.u32(inp.OpenCorpse.corpse);
+	} else if ('TakeFromCorpse' in inp) {
+		w.variant(28);
+		w.u32(inp.TakeFromCorpse.corpse);
+		w.u32(inp.TakeFromCorpse.slot);
 	}
 }
 
@@ -207,6 +220,10 @@ function readEntityDelta(r: PostcardReader): EntityDelta {
 	const z = r.i32();
 	const effects: StatusView[] = [];
 	for (let n = r.seqLen(); n > 0; n--) effects.push(readStatusView(r));
+	// Appended trailing field (postcard positional). A player piloting a ship carries
+	// that ship's eid here; 0 = on foot. serde(default) on the server keeps old
+	// encodings decodable, but server+client ship together so the byte is present.
+	const piloting = r.u32();
 	return {
 		eid,
 		kind,
@@ -224,6 +241,7 @@ function readEntityDelta(r: PostcardReader): EntityDelta {
 		destroyed,
 		z,
 		effects,
+		piloting,
 	};
 }
 
@@ -308,6 +326,16 @@ function readPickup(r: PostcardReader): PickupEvent {
 /** Decode an EPHEMERAL_PICKUP payload. Field order matches `proto::PickupEvent`. */
 export function decodePickup(payload: number[]): PickupEvent {
 	return readPickup(new PostcardReader(Uint8Array.from(payload)));
+}
+
+/** Decode an EPHEMERAL_CORPSE payload (raw postcard). Field order matches
+ * `proto::CorpseContents`: corpse u32, then a seq of (item_ref, count). */
+export function decodeCorpse(payload: number[]): CorpseContents {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const corpse = r.u32();
+	const items: [string, number][] = [];
+	for (let n = r.seqLen(); n > 0; n--) items.push([r.string(), r.u32()]);
+	return { corpse, items };
 }
 
 function readItemUsed(r: PostcardReader): ItemUsedEvent {

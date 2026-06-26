@@ -3,6 +3,7 @@ import { ReconnectingSocket, type ConnectionState } from './connection';
 import {
 	EPHEMERAL_BLACKJACK,
 	EPHEMERAL_COMBAT,
+	EPHEMERAL_CORPSE,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_FLOOR,
 	EPHEMERAL_INVENTORY,
@@ -16,6 +17,7 @@ import {
 	type BlackjackStateView,
 	type ClientMessage,
 	type CombatEvent,
+	type CorpseContents,
 	type Ephemeral,
 	type EquippedEvent,
 	type Facing,
@@ -38,6 +40,7 @@ import {
 import {
 	decodeBlackjack,
 	decodeCombat,
+	decodeCorpse,
 	decodeEquipped,
 	decodeFloorChange,
 	decodeInventory,
@@ -61,6 +64,7 @@ export type GameClientEventMap = {
 	projectile: ProjectileEvent;
 	floor: FloorChangeEvent;
 	pickup: PickupEvent;
+	corpse: CorpseContents;
 	itemUsed: ItemUsedEvent;
 	itemPlaced: ItemPlacedEvent;
 	equipped: EquippedEvent;
@@ -176,6 +180,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
 			const data = decodePickup(evt.payload);
 			if (data) this.bus.emit('pickup', data);
+		} else if (evt.kind === EPHEMERAL_CORPSE) {
+			const data = decodeCorpse(evt.payload);
+			if (data) this.bus.emit('corpse', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
 			const data = decodeItemUsed(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
@@ -252,8 +259,28 @@ export class GameClient {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
 	}
 
+	/** Board `ship` (its server eid) and become its pilot. */
+	enterShip(ship: number): void {
+		this.sendInputs([{ EnterShip: { ship } }]);
+	}
+
+	/** Leave the ship currently being piloted. */
+	exitShip(): void {
+		this.sendInputs(['ExitShip']);
+	}
+
 	placeItem(itemRef: string, tile: Tile, rot = 0): void {
 		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile, rot } }]);
+	}
+
+	/** Open a corpse's loot panel — server replies with a `corpse` event. */
+	openCorpse(corpse: number): void {
+		this.sendInputs([{ OpenCorpse: { corpse } }]);
+	}
+
+	/** Take one slot from an open corpse — server re-sends the updated `corpse`. */
+	takeFromCorpse(corpse: number, slot: number): void {
+		this.sendInputs([{ TakeFromCorpse: { corpse, slot } }]);
 	}
 
 	pickupObject(tile: Tile): void {

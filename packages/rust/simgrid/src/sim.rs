@@ -147,6 +147,24 @@ pub struct PendingPickups(Vec<(proto::PlayerSlot, Tile, i32, Tile)>);
 #[derive(Resource, Default)]
 pub struct PendingFells(Vec<(Tile, i32, Tile)>);
 
+/// Corpse loot-panel ops this tick: `(looter, corpse, slot)` where `slot` is None
+/// for an OPEN (just send contents) and `Some(idx)` to TAKE that slot. Drained by
+/// `handle_corpse_ops`.
+#[derive(Resource, Default)]
+pub struct PendingCorpseOps(Vec<(proto::PlayerSlot, proto::EntityId, Option<u32>)>);
+
+/// A board/leave request this tick. Drained by the ARPG `apply_pilot_ops` system —
+/// the pilot logic needs the arpg ship-footprint table, so it lives in the game
+/// crate, not here. `Enter` carries the target ship eid; `Exit` leaves the current.
+#[derive(Clone, Copy, Debug)]
+pub enum PilotOp {
+    Enter(proto::EntityId),
+    Exit,
+}
+
+#[derive(Resource, Default)]
+pub struct PendingPilotOps(pub Vec<(proto::PlayerSlot, PilotOp)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -155,6 +173,8 @@ pub struct DeployQueues<'w> {
     pickups: ResMut<'w, PendingPickups>,
     fells: ResMut<'w, PendingFells>,
     spells: ResMut<'w, crate::spells::PendingSpells>,
+    corpse_ops: ResMut<'w, PendingCorpseOps>,
+    pilot_ops: ResMut<'w, PendingPilotOps>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -770,6 +790,14 @@ pub struct HealAura {
 #[derive(Component, Clone, Copy)]
 pub struct FurnitureRot(pub u8);
 
+/// Links a player to the ship entity it is piloting. While present, the player rides
+/// the ship (position bound server-side) and its snapshot delta carries the ship eid
+/// in `piloting`, so every client hides the body and floats the nameplate over the
+/// ship — that is how other players see who is flying it. Removed on exit. The
+/// counterpart `Piloted` (game.rs) marks the ship as occupied.
+#[derive(Component, Clone, Copy)]
+pub struct Piloting(pub Entity);
+
 /// Periodic mana restore for players within `range` (Chebyshev) of this tile,
 /// excluding the unstandable center. The mana counterpart to `HealAura`
 /// (candelabrum stand). `range >= 1` keeps it disjoint from a `HazardZone`.
@@ -1049,6 +1077,8 @@ pub fn build_app(
         .insert_resource(PendingPlacements::default())
         .insert_resource(PendingPickups::default())
         .insert_resource(PendingFells::default())
+        .insert_resource(PendingCorpseOps::default())
+        .insert_resource(PendingPilotOps::default())
         .insert_resource(PersistedEnvLog::default())
         .insert_resource(EnvPersistSink::default())
         .insert_resource(ShopStock::default())
@@ -1094,6 +1124,7 @@ pub fn build_app(
                 apply_pickups,
                 apply_fells,
                 apply_actions,
+                handle_corpse_ops,
                 crate::spells::apply_spells,
                 crate::trade::expire_trades,
                 crate::trade::apply_trades,
@@ -1607,6 +1638,18 @@ fn drain_inputs(
                 Input::Fell { tile } => {
                     deploy.fells.0.push((*tile, z, pos.tile));
                 }
+                Input::EnterShip { ship } => {
+                    deploy.pilot_ops.0.push((slot.0, PilotOp::Enter(*ship)));
+                }
+                Input::ExitShip => {
+                    deploy.pilot_ops.0.push((slot.0, PilotOp::Exit));
+                }
+                Input::OpenCorpse { corpse } => {
+                    deploy.corpse_ops.0.push((slot.0, *corpse, None));
+                }
+                Input::TakeFromCorpse { corpse, slot: idx } => {
+                    deploy.corpse_ops.0.push((slot.0, *corpse, Some(*idx)));
+                }
                 Input::Step { .. }
                 | Input::MoveTo { .. }
                 | Input::Action { .. }
@@ -2094,6 +2137,81 @@ fn apply_actions(
                 send_inventory(&bcast, slot, &inv);
             }
             _ => {}
+        }
+    }
+}
+
+/// Send a corpse's current loot to one player (the looter who has it open). Re-sent
+/// after each take so the open dual-inventory panel stays live.
+fn send_corpse_contents(
+    bcast: &Outbound,
+    slot: proto::PlayerSlot,
+    corpse: proto::EntityId,
+    inv: &Inventory,
+) {
+    let event = proto::CorpseContents {
+        corpse: corpse.0,
+        items: inv.slots.clone(),
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_CORPSE,
+        to: slot,
+        payload,
+    });
+}
+
+/// Drive the corpse loot panel: OPEN sends the corpse's contents to the looter;
+/// TAKE moves one slot to the looter, re-sends the contents + the looter's
+/// inventory, and despawns the corpse once empty. Adjacency-gated.
+#[allow(clippy::type_complexity)]
+fn handle_corpse_ops(
+    mut ops: ResMut<PendingCorpseOps>,
+    bcast: Res<Outbound>,
+    index: Res<EidIndex>,
+    mut commands: Commands,
+    mut q_corpses: Query<(&GridPos, &mut Inventory), (With<Corpse>, Without<PlayerSlotTag>)>,
+    mut q_players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
+) {
+    if ops.0.is_empty() {
+        return;
+    }
+    for (slot, corpse_id, take) in ops.0.drain(..) {
+        let Some(&corpse_e) = index.by_eid.get(&corpse_id.0) else {
+            continue;
+        };
+        let Ok((corpse_pos, mut corpse_inv)) = q_corpses.get_mut(corpse_e) else {
+            continue;
+        };
+        let corpse_tile = corpse_pos.tile;
+        let Some((player_e, player_tile)) = q_players
+            .iter()
+            .find(|(_, s, _, _)| s.0 == slot)
+            .map(|(e, _, gp, _)| (e, gp.tile))
+        else {
+            continue;
+        };
+        if player_tile.chebyshev(corpse_tile) > 1 {
+            continue;
+        }
+        match take {
+            None => send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv),
+            Some(idx) => {
+                let idx = idx as usize;
+                if idx >= corpse_inv.slots.len() {
+                    send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
+                    continue;
+                }
+                let (item_ref, count) = corpse_inv.slots.remove(idx);
+                if let Ok((_, _, _, mut p_inv)) = q_players.get_mut(player_e) {
+                    p_inv.add(&item_ref, count);
+                    send_inventory(&bcast, slot, &p_inv);
+                }
+                send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
+                if corpse_inv.slots.is_empty() {
+                    commands.entity(corpse_e).despawn();
+                }
+            }
         }
     }
 }
@@ -3298,6 +3416,7 @@ fn emit_snapshot(
         Option<&TreeState>,
         Option<&BushState>,
         Option<&FurnitureRot>,
+        Option<&Piloting>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3323,6 +3442,7 @@ fn emit_snapshot(
                 tree,
                 bush,
                 furniture,
+                piloting,
             )| {
                 let sub = match (tree, bush, furniture) {
                     (Some(t), _, _) => t.sub(),
@@ -3387,6 +3507,10 @@ fn emit_snapshot(
                     destroyed: false,
                     z: floor.map(|f| f.0).unwrap_or(0),
                     effects,
+                    // A player piloting a ship carries that ship's eid (so every client
+                    // hides its body + floats its nameplate over the ship). Sourced from
+                    // the `Piloting` link component.
+                    piloting: piloting.map(|p| p.0.index_u32()).unwrap_or(0),
                 }
             },
         )

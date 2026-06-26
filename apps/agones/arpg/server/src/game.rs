@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use bevy::prelude::{Commands, Local, Res, ResMut};
+use bevy::prelude::{Commands, Local, Query, Res, ResMut, With, Without};
 use bevy_items::{StatusEffectKind, UseEffect, UseEffectType};
 use simgrid::arpg_dungeon;
 use simgrid::proto::{StatusKind, Tile};
 use simgrid::{
-    BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EnvOpts, HazardZone,
-    HealAura, KindRegistry, ManaAura, PersistedEnvLog, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
+    BuffEffects, BuffSpec, ConsumableEffects, DeployableSpec, Deployables, EnvObject, EnvOpts,
+    FloatMove, Floor, FurnitureRot, GridPos, HazardZone, HealAura, KindRegistry, ManaAura,
+    PersistedEnvLog, PlayerSlotTag, SIM_TICK_HZ, SimConfig, Stairs, WalkableMap,
     ground_item_bundle, spawn_env_object, spawn_npc_from_spec,
 };
 
@@ -58,6 +59,168 @@ pub const CANDELABRUM_KIT_REF: &str = "candelabrum-stand";
 // the campfire and tree line. Purely a landmark — blocks only its base tile, no
 // auras or hazards (constructed inline, not driven from mapdb).
 pub const SHRINE_REF: &str = "shrine";
+
+// Ship: a parked starfighter landmark near spawn. A multi-tile vehicle — blocks a
+// small footprint (not just its base tile), no auras or hazards (constructed inline,
+// not driven from mapdb).
+pub const SHIP_REF: &str = "ship";
+
+// Which of the 16 baked facings the parked ship shows, streamed as `EntityDelta.sub`
+// (frame index into the 4x4 sheet). 0 reads as West in-game; each step is +22.5deg.
+// Bump this to re-aim the parked ship — no re-render, all 16 facings are baked.
+pub const SHIP_PARKED_FACING: u8 = 0;
+
+// --- Ship collision footprint ---------------------------------------------------
+// The hull is elongated and rotates through 16 facings, so a single symmetric radius
+// either over-blocks empty ground at the tips or under-blocks the body. Instead each
+// facing carries the exact tiles its sprite-hull covers, baked from the art alpha by
+// `kbve-ship-footprint` (kbve.sprite.ship_footprint) into `ship_footprint_gen.rs`
+// (and the byte-identical client `shipFootprint.generated.ts`). Facing == the sub /
+// FurnitureRot byte the server streams, so client prediction blocks the same tiles.
+
+/// Tiles the ship occupies, centered on `base`, for `facing` (sub 0..15). The
+/// per-facing offsets come from the baked `SHIP_FOOTPRINTS` table. Float movement
+/// (`float_move::step_float`) resolves smoothly against whichever tiles are blocked,
+/// so this set IS the collision shape. Reused for driving: unblock the old footprint,
+/// move, block the new one (recompute with the new facing).
+pub fn ship_footprint(base: Tile, facing: u8) -> Vec<Tile> {
+    let f = (facing as usize) % 16;
+    crate::ship_footprint_gen::SHIP_FOOTPRINTS[f]
+        .iter()
+        .map(|&(dx, dy)| Tile::new(base.x + dx, base.y + dy))
+        .collect()
+}
+
+/// Would the ship's footprint (centered on `base`, at `facing`) overlap any impassable
+/// tile? The multi-tile collision test for a DRIVEN ship: feed it as the `is_blocked`
+/// closure to `float_move::step_float` (testing the footprint, not a single point) so
+/// the whole hull stops at walls. Block the ship's own tiles only AFTER a move
+/// resolves, so it never collides with itself.
+#[allow(dead_code)] // wired in when driving lands; foundation only for now
+pub fn ship_blocked(map: &WalkableMap, z: i32, base: Tile, facing: u8) -> bool {
+    ship_footprint(base, facing)
+        .into_iter()
+        .any(|t| !map.is_walkable_z(z, t))
+}
+
+/// Player collision radius, in tiles. Mirrors the web `BODY_RADIUS` (config.ts) so
+/// the server and client push the player out of the hull to the exact same spot.
+const PLAYER_BODY_RADIUS: f32 = 0.34;
+
+/// Push a circle (px,py,r) out of a CCW convex polygon (world-tile verts). Returns the
+/// corrected position + world surface normal (to cancel inward velocity), or `None` if
+/// already clear. The hull is baked CCW (interior-left, outward = right-of-edge) by
+/// gen-ship-footprint.py. BYTE-FOR-BYTE mirror of the web `resolveShipHull`
+/// (entities/env.ts) — both must agree or prediction rubber-bands.
+fn resolve_circle_poly(
+    px: f32,
+    py: f32,
+    r: f32,
+    verts: &[(f32, f32)],
+) -> Option<(f32, f32, f32, f32)> {
+    let n = verts.len();
+    if n < 3 {
+        return None;
+    }
+    let mut inside = true;
+    let mut best_d2 = f32::INFINITY;
+    let (mut cx, mut cy, mut enx, mut eny) = (0.0f32, 0.0f32, 0.0f32, 0.0f32);
+    for i in 0..n {
+        let (ax, ay) = verts[i];
+        let (bx, by) = verts[(i + 1) % n];
+        let (ex, ey) = (bx - ax, by - ay);
+        let len2 = (ex * ex + ey * ey).max(1e-9);
+        let t = (((px - ax) * ex + (py - ay) * ey) / len2).clamp(0.0, 1.0);
+        let (qx, qy) = (ax + t * ex, ay + t * ey);
+        let (ddx, ddy) = (px - qx, py - qy);
+        let d2 = ddx * ddx + ddy * ddy;
+        // Interior is left of each directed edge (CCW); right of any → outside.
+        if ex * (py - ay) - ey * (px - ax) < 0.0 {
+            inside = false;
+        }
+        if d2 < best_d2 {
+            best_d2 = d2;
+            cx = qx;
+            cy = qy;
+            let el = len2.sqrt();
+            enx = ey / el; // right-of-edge = outward
+            eny = -ex / el;
+        }
+    }
+    let d = best_d2.sqrt();
+    if inside {
+        // Exit through the nearest edge, clearing the radius.
+        return Some((cx + r * enx, cy + r * eny, enx, eny));
+    }
+    if d < r {
+        let (nx, ny) = if d > 1e-6 {
+            ((px - cx) / d, (py - cy) / d)
+        } else {
+            (enx, eny)
+        };
+        return Some((cx + r * nx, cy + r * ny, nx, ny));
+    }
+    None
+}
+
+/// Smooth hull collision: after `advance_float` moves the players, push each player's
+/// float body out of every ship's convex hull polygon (the accurate collision shape;
+/// the tile footprint is only coarse NPC-pathing blocking). Runs before the snapshot so
+/// the corrected position is authoritative, and mirrors the client `resolveShipHull` so
+/// prediction agrees. Velocity into the hull is cancelled; tangential speed slides.
+#[allow(clippy::type_complexity)]
+pub fn resolve_ship_collision(
+    ships: Query<
+        (&GridPos, Option<&Floor>, Option<&FurnitureRot>, &EnvObject),
+        Without<PlayerSlotTag>,
+    >,
+    // `Without<Piloting>` exempts the pilot — it must not be pushed out of the ship it
+    // is currently flying (the pilot rides inside the hull by design).
+    mut players: Query<
+        (&mut FloatMove, &mut GridPos, Option<&Floor>),
+        (With<PlayerSlotTag>, Without<simgrid::Piloting>),
+    >,
+) {
+    // (z, base tile, world-space hull verts) per ship.
+    let hulls: Vec<(i32, Vec<(f32, f32)>)> = ships
+        .iter()
+        .filter(|(_, _, _, env)| env.def_ref == SHIP_REF)
+        .map(|(pos, floor, rot, _)| {
+            let z = floor.map(|f| f.0).unwrap_or(0);
+            let facing = (rot.map(|r| r.0).unwrap_or(0) as usize) % 16;
+            let (bx, by) = (pos.tile.x as f32, pos.tile.y as f32);
+            let verts = crate::ship_footprint_gen::SHIP_HULLS[facing]
+                .iter()
+                .map(|&(x, y)| (bx + x, by + y))
+                .collect();
+            (z, verts)
+        })
+        .collect();
+    if hulls.is_empty() {
+        return;
+    }
+    for (mut fm, mut pos, floor) in players.iter_mut() {
+        let pz = floor.map(|f| f.0).unwrap_or(0);
+        for (z, verts) in &hulls {
+            if *z != pz {
+                continue;
+            }
+            if let Some((nx, ny, wnx, wny)) =
+                resolve_circle_poly(fm.body.x, fm.body.y, PLAYER_BODY_RADIUS, verts)
+            {
+                fm.body.x = nx;
+                fm.body.y = ny;
+                let vn = fm.body.vx * wnx + fm.body.vy * wny;
+                if vn < 0.0 {
+                    fm.body.vx -= vn * wnx;
+                    fm.body.vy -= vn * wny;
+                }
+            }
+        }
+        let (tx, ty) = fm.body.tile();
+        pos.tile = Tile::new(tx, ty);
+    }
+}
 
 // Corpse: spawned where a player dies (PvE + PvP), holding their dropped
 // inventory. Walkable + lootable (ACTION_LOOT from an adjacent tile transfers
@@ -113,6 +276,7 @@ pub fn registry() -> KindRegistry {
     reg.register_env(CAMPFIRE_REF);
     reg.register_env(CANDELABRUM_REF);
     reg.register_env(SHRINE_REF);
+    reg.register_env(SHIP_REF);
     reg.register_env(CORPSE_REF);
     reg.register_env(simgrid::TREE_REF);
     reg.register_env(simgrid::BUSH_REF);
@@ -448,6 +612,36 @@ pub fn spawn_world(
         .is_some()
     {
         walkable.block_tile_z(SPAWN_FLOOR, shrine);
+    }
+
+    // A parked starfighter landmark, set off to the other side of spawn from the
+    // shrine. Blocks its per-facing hull footprint (baked from the art), not just the
+    // base tile. Carries an explicit `FurnitureRot` so it shows a chosen facing from
+    // the 16-frame sheet (SHIP_PARKED_FACING).
+    let ship = floor_near(Tile::new(spawn.x + 6, spawn.y + 4));
+    if ship != spawn && ship != fire && ship != shrine {
+        if let Some(eid) = spawn_env_object(
+            &mut commands,
+            &registry,
+            SHIP_REF,
+            ship,
+            EnvOpts {
+                blocker: true,
+                heal_aura: None,
+                mana_aura: None,
+                hazard: None,
+                floor: SPAWN_FLOOR,
+            },
+        ) {
+            commands
+                .entity(eid)
+                .insert(FurnitureRot(SHIP_PARKED_FACING));
+            // Block the hull footprint, not just the base tile, so collision matches
+            // the multi-tile sprite. (Driving later: unblock these, move, re-block.)
+            for t in ship_footprint(ship, SHIP_PARKED_FACING) {
+                walkable.block_tile_z(SPAWN_FLOOR, t);
+            }
+        }
     }
 
     // Restore player-placed objects persisted from a previous server lifetime.

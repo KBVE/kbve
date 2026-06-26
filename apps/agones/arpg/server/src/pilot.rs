@@ -1,0 +1,215 @@
+//! Server-authoritative ship piloting. A player boards a parked ship (`EnterShip`),
+//! becomes its pilot, and drives it; everyone sees the ship animate + move and the
+//! pilot's body vanish (the snapshot carries `piloting = ship_eid` on the player, and
+//! the ship's facing+phase in its `FurnitureRot`/`sub`). Mirrors the client
+//! `ShipController` state machine (entities/ship.ts).
+//!
+//! Collision: the ship blocks its per-facing footprint (re-blocked as it moves) so NPC
+//! pathing routes around the hull, and `resolve_ship_collision` pushes OTHER players out
+//! of the convex hull. The pilot is exempt (`Without<Piloting>`) so it isn't ejected
+//! from the ship it's flying.
+use bevy::prelude::*;
+use simgrid::proto::{self, Tile};
+use simgrid::{
+    EnvObject, FloatMove, Floor, FurnitureRot, GridPos, PendingPilotOps, PilotOp, Piloting,
+    PlayerSlotTag, WalkableMap,
+};
+
+use crate::game::{SHIP_PARKED_FACING, SHIP_REF, ship_footprint};
+
+// Phase in the high nibble of the ship's `FurnitureRot` byte; facing in the low nibble
+// (`sub = facing | phase << 4`). The client maps phase → ShipController state.
+pub const PHASE_OFF: u8 = 0; // parked
+pub const PHASE_LIFT: u8 = 1; // taking off
+pub const PHASE_FLY: u8 = 2; // hovering / driving
+pub const PHASE_LAND: u8 = 3; // landing
+
+/// Sim ticks the lift / land transitions hold before advancing (≈ the baked anim).
+const LIFT_TICKS: u32 = 18;
+const LAND_TICKS: u32 = 18;
+/// How close (tiles, Chebyshev) the player must stand to board.
+const ENTER_RANGE: i32 = 3;
+/// Speed² below which the ship keeps its last heading instead of re-deriving it.
+const FACING_VEL_EPS2: f32 = 0.02;
+
+/// On the ship entity while occupied: who flies it.
+#[derive(Component)]
+pub struct Piloted {
+    pub pilot: proto::PlayerSlot,
+}
+
+/// On the ship entity while occupied: the live drive state (mirrors the client rig).
+#[derive(Component)]
+pub struct ShipDrive {
+    pub phase: u8,
+    pub ticks: u32,
+    pub facing: u8,
+    /// Tiles currently blocked for this ship (re-blocked as it moves).
+    pub blocked: Vec<Tile>,
+    pub floor: i32,
+    pub tile: Tile,
+}
+
+/// 16-way heading from a world velocity. Facing 0 = West (matches the parked sheet);
+/// each step is +22.5°. Calibrate via `FACING_OFFSET` if the in-game heading reads off.
+const FACING_OFFSET: i32 = 0;
+fn facing16(vx: f32, vy: f32) -> u8 {
+    let a = vy.atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
+    let step = (a / (std::f32::consts::TAU) * 16.0).round() as i32;
+    (step + FACING_OFFSET).rem_euclid(16) as u8
+}
+
+/// Drain board/leave requests. Validates range + parked + unoccupied, then links the
+/// player to the ship and co-locates it onto the hull so driving binds cleanly.
+#[allow(clippy::type_complexity)]
+pub fn apply_pilot_ops(
+    mut commands: Commands,
+    mut ops: ResMut<PendingPilotOps>,
+    players: Query<(Entity, &PlayerSlotTag, &GridPos, Option<&Piloting>)>,
+    ships: Query<(
+        Entity,
+        &GridPos,
+        &EnvObject,
+        Option<&Floor>,
+        Option<&FurnitureRot>,
+        Option<&Piloted>,
+    )>,
+    mut bodies: Query<&mut FloatMove>,
+    mut drives: Query<&mut ShipDrive>,
+) {
+    for (slot, op) in ops.0.drain(..) {
+        match op {
+            PilotOp::Enter(ship_eid) => {
+                let Some((pent, _, ppos, piloting)) =
+                    players.iter().find(|(_, t, _, _)| t.0 == slot)
+                else {
+                    continue;
+                };
+                if piloting.is_some() {
+                    continue; // already flying something
+                }
+                let Some((sent, spos, _, floor, rot, piloted)) =
+                    ships.iter().find(|(e, _, env, _, _, _)| {
+                        e.index_u32() == ship_eid.0 && env.def_ref == SHIP_REF
+                    })
+                else {
+                    continue;
+                };
+                if piloted.is_some() {
+                    continue; // someone else is aboard
+                }
+                if ppos.tile.chebyshev(spos.tile) > ENTER_RANGE {
+                    continue; // out of reach
+                }
+                let z = floor.map(|f| f.0).unwrap_or(0);
+                let facing = rot.map(|r| r.0 & 0x0F).unwrap_or(SHIP_PARKED_FACING);
+                let blocked = ship_footprint(spos.tile, facing);
+                commands.entity(pent).insert(Piloting(sent));
+                commands.entity(sent).insert((
+                    Piloted { pilot: slot },
+                    ShipDrive {
+                        phase: PHASE_LIFT,
+                        ticks: 0,
+                        facing,
+                        blocked,
+                        floor: z,
+                        tile: spos.tile,
+                    },
+                ));
+                // Snap the pilot onto the ship so `ship.tile = pilot.tile` holds from
+                // the first drive tick (the body is hidden client-side).
+                if let Ok(mut b) = bodies.get_mut(pent) {
+                    b.body.x = spos.tile.x as f32;
+                    b.body.y = spos.tile.y as f32;
+                    b.body.vx = 0.0;
+                    b.body.vy = 0.0;
+                }
+            }
+            PilotOp::Exit => {
+                let Some((_, _, _, Some(piloting))) =
+                    players.iter().find(|(_, t, _, _)| t.0 == slot)
+                else {
+                    continue;
+                };
+                if let Ok(mut d) = drives.get_mut(piloting.0) {
+                    if d.phase == PHASE_FLY {
+                        d.phase = PHASE_LAND;
+                        d.ticks = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Per tick: bind each piloted ship to its pilot, re-block the moving footprint, derive
+/// heading from velocity, advance the lift/land phase, and pack facing+phase into
+/// `FurnitureRot` (streamed as the ship's `sub`). On land-complete the links drop; the
+/// now-non-pilot player is ejected from the hull next tick by `resolve_ship_collision`.
+#[allow(clippy::type_complexity)]
+pub fn drive_ships(
+    mut commands: Commands,
+    mut map: ResMut<WalkableMap>,
+    mut ships: Query<(
+        Entity,
+        &mut GridPos,
+        &mut FurnitureRot,
+        &Piloted,
+        &mut ShipDrive,
+    )>,
+    players: Query<(Entity, &PlayerSlotTag, &GridPos, &FloatMove)>,
+) {
+    for (sent, mut spos, mut rot, piloted, mut drive) in ships.iter_mut() {
+        let Some((pent, _, ppos, fm)) = players.iter().find(|(_, t, _, _)| t.0 == piloted.pilot)
+        else {
+            continue;
+        };
+
+        // Heading from the pilot's velocity (hold last when nearly stopped).
+        let (vx, vy) = (fm.body.vx, fm.body.vy);
+        if vx * vx + vy * vy > FACING_VEL_EPS2 {
+            drive.facing = facing16(vx, vy);
+        }
+
+        // Bind ship → pilot tile and re-block the hull footprint where it changed.
+        let new_tile = ppos.tile;
+        let new_blocked = ship_footprint(new_tile, drive.facing);
+        if new_tile != drive.tile || new_blocked != drive.blocked {
+            let old = std::mem::take(&mut drive.blocked);
+            for t in old {
+                map.unblock_tile_z(drive.floor, t);
+            }
+            for &t in &new_blocked {
+                map.block_tile_z(drive.floor, t);
+            }
+            drive.blocked = new_blocked;
+            drive.tile = new_tile;
+        }
+        spos.tile = new_tile;
+
+        // Phase machine.
+        match drive.phase {
+            PHASE_LIFT => {
+                drive.ticks += 1;
+                if drive.ticks >= LIFT_TICKS {
+                    drive.phase = PHASE_FLY;
+                }
+            }
+            PHASE_LAND => {
+                drive.ticks += 1;
+                if drive.ticks >= LAND_TICKS {
+                    drive.phase = PHASE_OFF;
+                    // Hand control back: drop the links. The footprint stays blocked at
+                    // the landed tile (the ship is parked there now); the ex-pilot gets
+                    // shoved clear of the hull next tick.
+                    commands.entity(pent).remove::<Piloting>();
+                    commands.entity(sent).remove::<Piloted>();
+                    commands.entity(sent).remove::<ShipDrive>();
+                }
+            }
+            _ => {}
+        }
+
+        rot.0 = (drive.facing & 0x0F) | (drive.phase << 4);
+    }
+}

@@ -23,6 +23,11 @@ export const en: LocaleMessages = {
 	'arpg.inventory.useTitle': 'Use {name} · drag to organize',
 	'arpg.inventory.dropFloor': 'Drag here to drop to the floor',
 
+	'arpg.loot.title': 'Loot Corpse',
+	'arpg.loot.corpse': 'Corpse',
+	'arpg.loot.you': 'You',
+	'arpg.loot.takeAll': 'Take All',
+
 	'arpg.spells.castTitle': 'Cast {name} · {mana} mana',
 	'arpg.spells.mana': '{mana} mana',
 

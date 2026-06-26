@@ -19,6 +19,7 @@ import { GothicOrbRing, ORB_FRAME_HOLE } from './gothic/Gothic';
 import { Minimap } from './minimap/Minimap';
 import { Tooltip } from './Tooltip';
 import { InventoryPanel, useInventoryDnd } from './inventory/Inventory';
+import { LootPanel } from './loot/LootPanel';
 
 const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
@@ -143,6 +144,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 						meta={meta}
 						dnd={dnd}
 					/>
+					<LootPanel items={inv} meta={meta} />
 					{debug && <DebugReadout fps={hud.fps} tile={hud.tile} />}
 				</>
 			)}

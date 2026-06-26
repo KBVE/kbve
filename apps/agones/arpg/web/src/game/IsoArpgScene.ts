@@ -13,6 +13,8 @@ import {
 	type FloorChangeEvent,
 	type InventorySync,
 	type ItemPlacedEvent,
+	type CorpseContents,
+	ACTION_LOOT,
 } from '@kbve/laser';
 import {
 	COLORS,
@@ -33,6 +35,7 @@ import {
 	SURFACE_MIN_Z,
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
+	BODY_RADIUS,
 } from './config';
 import {
 	worldToScreen,
@@ -157,6 +160,8 @@ import {
 	emitPlayers,
 	onInventoryIntent,
 	type InventoryIntent,
+	emitCorpseOpen,
+	onCorpseIntent,
 } from './systems/hud';
 import {
 	makeSprite,
@@ -197,7 +202,19 @@ import {
 	makeEnvSprite,
 	attachEnvLight,
 	ENV_REGISTRY,
+	SHIP_REF,
+	shipFootprint,
+	shipHull,
+	resolveShipHull,
 } from './entities/env';
+import {
+	preloadShip,
+	registerShipAnims,
+	ShipController,
+	SHIP_PHASE_TO_STATE,
+	shipFacingFromSub,
+	shipPhaseFromSub,
+} from './entities/ship';
 import {
 	preloadTrees,
 	makeTreeSprite,
@@ -210,6 +227,12 @@ import {
 import { flyRemoteArrow } from './entities/projectiles/arrows/bow';
 import { getNetConfig } from './net-config';
 import { resolvePlayerName } from './playerName';
+
+// Ship collision debug overlay: cyan = server-intended footprint diamond (the
+// shared `shipFootprint` shape from the ship's authoritative tile), red = the tiles
+// the client `envBlocked` set actually blocks. Aligned → red fills nest in cyan
+// outlines. Flip off to drop the overlay.
+const DEBUG_SHIP_COLLISION = true;
 
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
@@ -293,6 +316,28 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Same one-shot guard for the surface down-stair: flash the PvP/danger notice
 	// once per step-on as the player is about to descend into the dungeon.
 	private downStairWarnTile: string | null = null;
+	// Lazily-built graphics layer for the ship collision debug overlay.
+	private shipDbg?: Phaser.GameObjects.Graphics;
+	// Per-frame OBB overlay + whether the push-out is currently firing (debug).
+	private shipObbDbg?: Phaser.GameObjects.Graphics;
+	private shipPushing = false;
+	// Ship facing (sub/FurnitureRot 0..15) per server eid — drives the per-facing
+	// collision footprint. The store doesn't retain `sub`, so capture it on sync.
+	private shipFacing = new Map<number, number>();
+	// Stateful pilot rig per ship eid (replaces the static env sprite for SHIP_REF).
+	// Driven authoritatively from the snapshot (ship `sub` phase) by reconcileShips.
+	private shipCtl = new Map<number, ShipController>();
+	// Base tile per ship eid, for the proximity "enter" prompt.
+	private shipTile = new Map<number, { x: number; y: number }>();
+	// Player eid → ship eid they pilot (server-authoritative, from delta.piloting).
+	// Drives body-hide + nameplate-over-ship for EVERY client. Applied per frame.
+	private pilots = new Map<number, number>();
+	// Whether the LOCAL player is piloting (derived from `pilots`); gates the prompt.
+	private localPiloting = false;
+	// Lazy in-world "Enter Ship" prompt shown when the local player stands near a ship.
+	private shipPrompt?: Phaser.GameObjects.Container;
+	// How close (tiles, Chebyshev) the player must be to a ship to pilot it.
+	private static readonly SHIP_ENTER_RANGE = 3;
 
 	// Latest server-authoritative inventory (from EPHEMERAL_INVENTORY). Drives the
 	// HUD panel and the 1-9 hotkeys.
@@ -303,6 +348,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private spells: SpellState = makeSpellState();
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
+	private offCorpseIntent?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
 	private floorFilterScratch: EntityDelta[] = [];
 
@@ -346,6 +392,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		);
 		preloadClass(this, RANGER_CLASS);
 		for (const def of ENV_REGISTRY.values()) preloadEnv(this, def);
+		preloadShip(this);
 		preloadTrees(this);
 		preloadStairs(this);
 		preloadItemAtlas(this);
@@ -394,6 +441,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
 		for (const def of ENV_REGISTRY.values()) registerEnvAnims(this, def);
+		registerShipAnims(this);
 
 		this.drawGrid();
 		buildFog(this, this.fog);
@@ -418,6 +466,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offIntent = onInventoryIntent((intent) =>
 			this.handleInventoryIntent(intent),
 		);
+
+		// Loot panel intents from React -> the authoritative client.
+		this.offCorpseIntent = onCorpseIntent((intent) => {
+			if (intent.type === 'take')
+				this.client?.takeFromCorpse(intent.corpse, intent.slot);
+			else if (intent.type === 'all')
+				this.client?.action(ACTION_LOOT, intent.corpse);
+		});
 
 		this.initSpellLoadout();
 
@@ -502,6 +558,143 @@ export class IsoArpgScene extends Phaser.Scene {
 		const refs = setupInputV(this, this.inputDeps());
 		this.cursors = refs.cursors;
 		this.fireKey = refs.fireKey;
+		this.setupShipInput();
+	}
+
+	// The ship interaction key. Raw handler (like zoom) so it bypasses the input
+	// router. The ship is fully server-authoritative now — F just sends the board/leave
+	// intent; the snapshot's `piloting` + ship phase drive all visuals.
+	//   F = board the prompted ship, or leave if piloting.
+	private setupShipInput(): void {
+		const kb = this.input.keyboard;
+		if (!kb) return;
+		kb.on('keydown-F', () => {
+			if (this.localPiloting) this.exitShip();
+			else {
+				const eid = this.shipPrompt?.visible
+					? (this.shipPrompt.getData('eid') as number)
+					: null;
+				if (eid != null) this.enterShip(eid);
+			}
+		});
+	}
+
+	/** Per-frame: show the "Enter Ship" prompt when on foot near a parked ship. */
+	private updateShipPrompt(): void {
+		if (this.localPiloting) {
+			this.shipPrompt?.setVisible(false);
+			return;
+		}
+		const me = this.move.predicted;
+		let nearEid: number | null = null;
+		for (const [eid, t] of this.shipTile) {
+			const ctl = this.shipCtl.get(eid);
+			if (!ctl || ctl.currentState !== 'off') continue;
+			const d = Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y));
+			if (d <= IsoArpgScene.SHIP_ENTER_RANGE) {
+				nearEid = eid;
+				break;
+			}
+		}
+		if (nearEid === null) {
+			this.shipPrompt?.setVisible(false);
+			return;
+		}
+		const ctl = this.shipCtl.get(nearEid)!;
+		const prompt = this.ensureShipPrompt();
+		prompt.setData('eid', nearEid);
+		prompt.setPosition(
+			ctl.sprite.x,
+			ctl.sprite.y - ctl.sprite.displayHeight * 0.5 - 16,
+		);
+		prompt.setDepth(ctl.sprite.depth + 1000);
+		prompt.setVisible(true);
+	}
+
+	private ensureShipPrompt(): Phaser.GameObjects.Container {
+		if (this.shipPrompt) return this.shipPrompt;
+		const label = this.add.text(0, 0, '▶ Enter Ship  [F]', {
+			fontFamily: 'monospace',
+			fontSize: '14px',
+			color: '#cde4ff',
+			backgroundColor: '#10141cdd',
+			padding: { x: 10, y: 6 },
+		});
+		label.setOrigin(0.5, 0.5);
+		const c = this.add.container(0, 0, [label]);
+		c.setSize(label.width, label.height);
+		c.setInteractive(
+			new Phaser.Geom.Rectangle(
+				-label.width / 2,
+				-label.height / 2,
+				label.width,
+				label.height,
+			),
+			Phaser.Geom.Rectangle.Contains,
+		);
+		c.on('pointerdown', () => {
+			const eid = c.getData('eid') as number | undefined;
+			if (eid != null) this.enterShip(eid);
+		});
+		c.setScrollFactor(1);
+		this.shipPrompt = c;
+		return c;
+	}
+
+	/** Send the board intent. The server validates range/parked/unoccupied; on success
+	 * the next snapshot carries our `piloting` + the ship's lift phase, and the visuals
+	 * follow from there (no optimistic local state — keeps every client consistent). */
+	private enterShip(eid: number): void {
+		this.client?.enterShip(eid);
+		this.shipPrompt?.setVisible(false);
+	}
+
+	private exitShip(): void {
+		this.client?.exitShip();
+	}
+
+	/** Show/hide a player's body display objects (sprite, baked shadow, hp bar, status
+	 * fx) — but NOT the nameplate, which floats over the ship while piloting. */
+	private setPlayerBodyVisible(eid: number, visible: boolean): void {
+		const r = this.store.refs(eid);
+		if (!r) return;
+		r.sprite.setVisible(visible);
+		r.shadow?.setVisible(visible);
+		r.hpBar?.setVisible(visible);
+		r.statusFx?.setVisible(visible);
+	}
+
+	/** Per-snapshot: track which players are piloting from `delta.piloting` (the wire
+	 * flag). Body-hide + nameplate-follow are applied per FRAME in updatePilots (ships
+	 * interpolate between snapshots). Restores a body the tick it stops piloting. */
+	private reconcilePilots(entities: readonly EntityDelta[]): void {
+		for (const e of entities) {
+			if (!isPlayerKind(this.kinds, e.kind)) continue;
+			const ship = e.piloting ?? 0;
+			if (ship !== 0) {
+				this.pilots.set(e.eid, ship);
+			} else if (this.pilots.delete(e.eid)) {
+				this.setPlayerBodyVisible(e.eid, true); // just disembarked
+			}
+		}
+		this.localPiloting = this.pilots.has(this.myEid);
+	}
+
+	/** Per frame: hide every piloting player's body and float its nameplate over the
+	 * ship it flies, so ALL clients see who is aboard as the ship moves/interpolates. */
+	private updatePilots(): void {
+		for (const [peid, ship] of this.pilots) {
+			this.setPlayerBodyVisible(peid, false);
+			const sctl = this.shipCtl.get(ship);
+			const refs = this.store.refs(peid);
+			if (sctl && refs?.nameplate) {
+				refs.nameplate.setPosition(
+					sctl.sprite.x,
+					sctl.sprite.y - sctl.sprite.displayHeight * 0.5 - 8,
+				);
+				refs.nameplate.setDepth(sctl.sprite.depth + 1);
+			}
+		}
 	}
 
 	private setupZoom() {
@@ -651,12 +844,28 @@ export class IsoArpgScene extends Phaser.Scene {
 						refs = { sprite };
 					} else if (this.kinds.ref(e.kind) === CORPSE_REF) {
 						refs = { sprite: makeCorpseSprite(this) };
+					} else if (this.kinds.ref(e.kind) === SHIP_REF) {
+						// Ship uses the stateful pilot rig, not the static env sprite.
+						// `sub` packs facing (low nibble) + drive phase (high nibble);
+						// per-snapshot phase/facing is driven by reconcileShips().
+						const facing = shipFacingFromSub(e.sub);
+						this.shipFacing.set(e.eid, facing);
+						this.shipTile.set(e.eid, { x: e.tile.x, y: e.tile.y });
+						let ctl = this.shipCtl.get(e.eid);
+						if (!ctl) {
+							ctl = new ShipController(this, 0, 0);
+							ctl.autoAdvance = false; // server owns the phase
+							this.shipCtl.set(e.eid, ctl);
+							ctl.sprite.once(
+								Phaser.GameObjects.Events.DESTROY,
+								() => this.shipCtl.delete(e.eid),
+							);
+						}
+						ctl.setFacing(facing);
+						refs = { sprite: ctl.sprite };
 					} else {
-						const envSprite = makeEnvSprite(
-							this,
-							this.kinds.ref(e.kind),
-							e.sub,
-						);
+						const envRef = this.kinds.ref(e.kind);
+						const envSprite = makeEnvSprite(this, envRef, e.sub);
 						refs = {
 							sprite:
 								envSprite ??
@@ -868,6 +1077,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('inventory', (inv: InventorySync) => {
 			setInventory(this.inv, inv.items);
 		});
+		// Corpse loot panel: forward the server's contents to the React LootPanel.
+		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
@@ -1072,6 +1283,8 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.markEnvDirty,
 		);
 		this.reconcileTrees(this.floorFilterScratch);
+		this.reconcileShips(this.floorFilterScratch);
+		this.reconcilePilots(this.floorFilterScratch);
 		this.myEid = state.myEid;
 		this.move.predicted = state.predicted;
 		this.predictSeeded = state.predictSeeded;
@@ -1369,6 +1582,82 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
+	/**
+	 * Smooth hull collision for the local player: after the float predictor moves us,
+	 * push the body out of every ship's oriented hull box (the real collision shape,
+	 * vs the coarse tile footprint). Mirrors the server `resolve_ship_collision`, so
+	 * the predicted stop matches the authoritative one — no rubber-band. Velocity into
+	 * the hull is cancelled; tangential speed survives so the player slides along it.
+	 */
+	private resolveShipCollision(): void {
+		const s = this.move.floatState;
+		let pushed = false;
+		for (const sid of this.store.serverIdsWith(Cat.Env)) {
+			if (this.kinds.ref(this.store.kind(sid)) !== SHIP_REF) continue;
+			const t = this.store.tile(sid);
+			if (!t) continue;
+			const facing = this.shipFacing.get(sid) ?? 0;
+			const hit = resolveShipHull(
+				s.pos.x,
+				s.pos.y,
+				BODY_RADIUS,
+				t.x,
+				t.y,
+				facing,
+			);
+			if (!hit) continue;
+			pushed = true;
+			s.pos.x = hit.x;
+			s.pos.y = hit.y;
+			const vn = s.vel.x * hit.nx + s.vel.y * hit.ny;
+			if (vn < 0) {
+				s.vel.x -= vn * hit.nx;
+				s.vel.y -= vn * hit.ny;
+			}
+		}
+		this.shipPushing = pushed;
+		this.drawShipObbLive();
+	}
+
+	// TEMP DEBUG: redraw the ship OBB each frame, GREEN while the push-out is firing
+	// (player inside the inflated box) and YELLOW when clear, plus a dot at the float
+	// position. Walk each side: green = collision active, yellow = slipping through.
+	private drawShipObbLive(): void {
+		if (!DEBUG_SHIP_COLLISION) return;
+		if (!this.shipObbDbg)
+			this.shipObbDbg = this.add.graphics().setDepth(DEPTH_UI - 1);
+		const g = this.shipObbDbg;
+		g.clear();
+		let base: TileXY | null = null;
+		let facing = 0;
+		for (const sid of this.store.serverIdsWith(Cat.Env)) {
+			if (this.kinds.ref(this.store.kind(sid)) !== SHIP_REF) continue;
+			base = this.store.tile(sid) ?? null;
+			facing = this.shipFacing.get(sid) ?? 0;
+			break;
+		}
+		if (!base) return;
+		const verts = shipHull(base.x, base.y, facing);
+		if (verts.length < 2) return;
+		g.lineStyle(3, this.shipPushing ? 0x22ff44 : 0xffd400, 1);
+		g.beginPath();
+		const p0 = worldToScreen(verts[0][0], verts[0][1]);
+		g.moveTo(p0.x, p0.y);
+		for (let i = 1; i < verts.length; i++) {
+			const p = worldToScreen(verts[i][0], verts[i][1]);
+			g.lineTo(p.x, p.y);
+		}
+		g.closePath();
+		g.strokePath();
+		// Player float position dot.
+		const p = worldToScreen(
+			this.move.floatState.pos.x,
+			this.move.floatState.pos.y,
+		);
+		g.fillStyle(0xff00ff, 1);
+		g.fillCircle(p.x, p.y, 4);
+	}
+
 	/** One-shot on-screen notice via laser's global `notification` event. */
 	private flashMessage(text: string) {
 		emitNotification({ title: '', message: text });
@@ -1413,6 +1702,9 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		const myRefs = this.store.refs(this.myEid);
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
+		this.resolveShipCollision();
+		this.updateShipPrompt();
+		this.updatePilots();
 
 		this.checkDeadStair();
 		this.checkDownStairWarning();
@@ -1576,6 +1868,32 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.predictedTrees.clear();
 	}
 
+	/**
+	 * Per-snapshot ship driver. The store drops `sub`, so phase + facing are read from
+	 * the delta stream (like trees). For every ship: update the predicted-collision
+	 * facing, drive its ShipController to the server's coarse phase, and feed the
+	 * fly-state motion from the streamed velocity (idle vs move). Authoritative — the
+	 * local debug driver is overridden by whatever the server sends.
+	 */
+	private reconcileShips(entities: readonly EntityDelta[]): void {
+		for (const e of entities) {
+			if (this.kinds.cat(e.kind) !== Cat.Env) continue;
+			if (this.kinds.ref(e.kind) !== SHIP_REF) continue;
+			const facing = shipFacingFromSub(e.sub);
+			this.shipFacing.set(e.eid, facing);
+			this.shipTile.set(e.eid, { x: e.tile.x, y: e.tile.y });
+			const ctl = this.shipCtl.get(e.eid);
+			if (!ctl) continue;
+			ctl.autoAdvance = false;
+			ctl.setFacing(facing);
+			ctl.setState(SHIP_PHASE_TO_STATE[shipPhaseFromSub(e.sub)] ?? 'off');
+			// Fly sub-state from the streamed velocity (idle when ~stopped, else
+			// cruise). qvx/qvy are velocity quantized ×256 (proto VEL_SCALE).
+			const speed = Math.hypot(e.qvx ?? 0, e.qvy ?? 0) / 256;
+			ctl.setMotion({ speed, turnRate: 0 });
+		}
+	}
+
 	private reconcileTrees(entities: readonly EntityDelta[]): void {
 		const seen = new Set<number>();
 		for (const e of entities) {
@@ -1612,8 +1930,67 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const sid of this.store.serverIdsWith(Cat.Env)) {
 			if (this.treeState.get(sid)?.felled) continue;
 			const t = this.store.tile(sid);
-			if (t) this.envBlocked.add(packTile(t.x, t.y));
+			if (!t) continue;
+			// The ship blocks a multi-tile hull diamond, not just its base tile —
+			// mirror the server footprint so prediction collides identically.
+			if (this.kinds.ref(this.store.kind(sid)) === SHIP_REF) {
+				const facing = this.shipFacing.get(sid) ?? 0;
+				for (const [fx, fy] of shipFootprint(t.x, t.y, facing)) {
+					this.envBlocked.add(packTile(fx, fy));
+				}
+				continue;
+			}
+			this.envBlocked.add(packTile(t.x, t.y));
 		}
+		this.drawShipCollisionDebug();
+	}
+
+	// Debug overlay over the parked ship: cyan = the server-intended footprint
+	// diamond (shared `shipFootprint` shape from the ship's authoritative tile),
+	// red = the tiles the client `envBlocked` set actually blocks. Redrawn whenever
+	// collision is rebuilt; aligned footprints show red fills nested in cyan outlines.
+	private drawShipCollisionDebug(): void {
+		if (!DEBUG_SHIP_COLLISION) return;
+		if (!this.shipDbg)
+			this.shipDbg = this.add.graphics().setDepth(DEPTH_UI - 1);
+		const g = this.shipDbg;
+		g.clear();
+		let base: TileXY | null = null;
+		let facing = 0;
+		for (const sid of this.store.serverIdsWith(Cat.Env)) {
+			if (this.kinds.ref(this.store.kind(sid)) !== SHIP_REF) continue;
+			base = this.store.tile(sid) ?? null;
+			facing = this.shipFacing.get(sid) ?? 0;
+			break;
+		}
+		if (!base) return;
+		const hw = TILE_W / 2;
+		const hh = TILE_H / 2;
+		const diamond = (tx: number, ty: number, scale: number) => {
+			const c = worldToScreen(tx, ty);
+			g.beginPath();
+			g.moveTo(c.x, c.y - hh * scale);
+			g.lineTo(c.x + hw * scale, c.y);
+			g.lineTo(c.x, c.y + hh * scale);
+			g.lineTo(c.x - hw * scale, c.y);
+			g.closePath();
+		};
+		const tiles = shipFootprint(base.x, base.y, facing);
+		// CYAN: server-intended footprint shape (full tile outline).
+		g.lineStyle(2, 0x00ffff, 0.9);
+		for (const [fx, fy] of tiles) {
+			diamond(fx, fy, 1);
+			g.strokePath();
+		}
+		// RED: tiles the client collision set actually blocks (inset fill).
+		g.fillStyle(0xff0000, 0.35);
+		for (const [fx, fy] of tiles) {
+			if (!this.envBlocked.has(packTile(fx, fy))) continue;
+			diamond(fx, fy, 0.6);
+			g.fillPath();
+		}
+		// The oriented hull box is drawn live per-frame in drawShipObbLive() (green
+		// while pushing), so it isn't redrawn here.
 	}
 
 	// Scan the 8 tiles around the player for a standing tree and ask the server to
@@ -1830,6 +2207,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.ground = undefined;
 		this.offIntent?.();
 		this.offIntent = undefined;
+		this.offCorpseIntent?.();
+		this.offCorpseIntent = undefined;
 		this.client?.close();
 		this.client = null;
 		clearHud();

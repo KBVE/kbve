@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GameClient, EntityStore, Cat, ACTION_LOOT } from '@kbve/laser';
+import { GameClient, EntityStore, Cat } from '@kbve/laser';
 import {
 	worldToScreen,
 	screenToWorld,
@@ -138,7 +138,7 @@ export function setupInput(
 			return;
 		}
 
-		// A corpse: loot it from an adjacent tile (server transfers everything),
+		// A corpse: open its dual-inventory loot panel from an adjacent tile,
 		// else walk toward it so the next click lands in range.
 		const corpse = deps.store.at(tile.x, tile.y, deps.myEid());
 		if (corpse && deps.isCorpse(corpse.serverEid)) {
@@ -146,7 +146,7 @@ export function setupInput(
 				Math.abs(deps.move.predicted.x - tile.x),
 				Math.abs(deps.move.predicted.y - tile.y),
 			);
-			if (d <= 1) deps.client()?.action(ACTION_LOOT, corpse.serverEid);
+			if (d <= 1) deps.client()?.openCorpse(corpse.serverEid);
 			else deps.startMoveTo(tile);
 			return;
 		}

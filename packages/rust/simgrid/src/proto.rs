@@ -45,6 +45,7 @@ pub const EPHEMERAL_PROJECTILE: u16 = 12;
 pub const EPHEMERAL_FLOOR: u16 = 13;
 pub const EPHEMERAL_ITEM_PLACED: u16 = 14;
 pub const EPHEMERAL_SPELL: u16 = 15;
+pub const EPHEMERAL_CORPSE: u16 = 16;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -220,6 +221,27 @@ pub enum Input {
     Fell {
         tile: Tile,
     },
+    /// Board `ship` and become its pilot. Server validates the player is in range,
+    /// the ship is parked (phase Off) and unoccupied. Appended last so serde variant
+    /// indices of the existing inputs are unchanged.
+    EnterShip {
+        ship: EntityId,
+    },
+    /// Leave the ship the player is piloting (lands it, returns the player on foot).
+    ExitShip,
+    /// Open a corpse to inspect its loot: the server replies with `CorpseContents`
+    /// (its current items) if the player is adjacent. Appended last so serde
+    /// variant indices of the existing inputs are unchanged.
+    OpenCorpse {
+        corpse: EntityId,
+    },
+    /// Take ONE stack (slot index into the corpse's item list) from a corpse, if
+    /// adjacent. The server transfers it, re-sends the updated `CorpseContents`,
+    /// and despawns the corpse once empty.
+    TakeFromCorpse {
+        corpse: EntityId,
+        slot: u32,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -288,6 +310,11 @@ pub struct EntityDelta {
     pub z: i32,
     #[serde(default)]
     pub effects: Vec<StatusView>,
+    /// For a PLAYER entity: the eid of the ship it is piloting, or 0 when on foot.
+    /// Lets every client hide that player's body and float its nameplate over the
+    /// ship — so others see who is flying it. Appended last (postcard is positional).
+    #[serde(default)]
+    pub piloting: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -335,6 +362,15 @@ pub struct FloorChangeEvent {
 pub struct PickupEvent {
     pub item_ref: String,
     pub count: u32,
+}
+
+/// A corpse's current loot, sent to a player who opened it (and re-sent after each
+/// take so the open loot panel stays live). `items` are (item_ref, count) in slot
+/// order — the client takes a slot by its index. Mirrors TS `CorpseContents`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CorpseContents {
+    pub corpse: u32,
+    pub items: Vec<(String, u32)>,
 }
 
 /// A consumable was used, healing `heal`. Mirrors TS `ItemUsedEvent`.
@@ -673,6 +709,7 @@ mod tests {
                     kind: StatusKind::Burn,
                     remaining: 5,
                 }],
+                piloting: 0,
             }],
             keyframe: true,
         });
@@ -689,7 +726,7 @@ mod tests {
         );
         assert_eq!(
             h(&snap),
-            "040109640109010207ffff030a050881c002bf01180d033c5006010103050100"
+            "040109640109010207ffff030a050881c002bf01180d033c500501010305020100"
         );
     }
 
@@ -966,6 +1003,7 @@ mod tests {
             destroyed: false,
             z: 0,
             effects: vec![],
+            piloting: 0,
         };
         let full = EntityDelta {
             eid: EntityId(2),
@@ -987,6 +1025,7 @@ mod tests {
                 kind: StatusKind::Burn,
                 remaining: 5,
             }],
+            piloting: 7,
         };
         let evt = ServerEvent::Snapshot(Snapshot {
             tick: 9,
