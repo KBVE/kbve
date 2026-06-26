@@ -1,0 +1,41 @@
+{
+	"name": "rentearth-web",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/rentearth/axum-rentearth/web/src",
+	"tags": ["vite", "react", "rentearth"],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"command": "vite"
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"command": "vite build"
+			},
+			"cache": true
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"command": "tsc --noEmit"
+			},
+			"cache": true
+		},
+		"preview": {
+			"dependsOn": ["build"],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/axum-rentearth/web",
+				"command": "vite preview"
+			}
+		}
+	}
+}
