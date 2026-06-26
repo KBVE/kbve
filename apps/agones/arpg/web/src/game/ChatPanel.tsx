@@ -6,6 +6,11 @@ import {
 } from '@kbve/laser';
 import { ARPG_CHAT } from './config';
 import { getNetConfig } from './net-config';
+import { GOTHIC } from './ui/gothic/svg';
+import { GothicFrame } from './ui/gothic/GothicFrame';
+import { ChevronIcon, ChatIcon, NewsIcon } from './ui/gothic/icons';
+
+type Tab = 'chat' | 'news';
 
 interface ChatLine {
 	from: string;
@@ -13,6 +18,9 @@ interface ChatLine {
 }
 
 const MAX_LINES = 80;
+const INK = '#cabfa4';
+const INK_NAME = '#c7a866';
+const INK_MUTED = '#8a7d63';
 
 /**
  * arpg realm chat — its own minimal UI over the shared laser RealmChatClient.
@@ -23,13 +31,22 @@ const MAX_LINES = 80;
 export default function ChatPanel() {
 	const [lines, setLines] = useState<ChatLine[]>([]);
 	const [draft, setDraft] = useState('');
-	const [open, setOpen] = useState(true);
+	const [hovered, setHovered] = useState(false);
+	const [inputFocused, setInputFocused] = useState(false);
+	const [pinned, setPinned] = useState(false);
+	const [tab, setTab] = useState<Tab>('chat');
 	const [state, setState] = useState<RealmChatState>({
 		status: 'closed',
 		attempts: 0,
 	});
 	const clientRef = useRef<RealmChatClient | null>(null);
 	const logRef = useRef<HTMLDivElement | null>(null);
+	const inputRef = useRef<HTMLInputElement | null>(null);
+
+	// Expanded while the player is using it (hover, typing, or pinned open via
+	// the floating tab); otherwise it collapses to a faded peek of the last few
+	// lines so it doesn't hog screen.
+	const active = hovered || inputFocused || pinned;
 
 	useEffect(() => {
 		const client = createChatClient(ARPG_CHAT, getNetConfig()?.jwt);
@@ -55,7 +72,7 @@ export default function ChatPanel() {
 	useEffect(() => {
 		const el = logRef.current;
 		if (el) el.scrollTop = el.scrollHeight;
-	}, [lines]);
+	}, [lines, active]);
 
 	const send = () => {
 		const text = draft.trim();
@@ -66,133 +83,265 @@ export default function ChatPanel() {
 
 	const connected = state.status === 'connected';
 
+	// Clicking the current tab toggles collapse; clicking the other switches to
+	// it and expands (focusing chat input only when that's the chat tab).
+	const selectTab = (next: Tab) => {
+		if (tab === next) {
+			setPinned((p) => !p);
+			return;
+		}
+		setTab(next);
+		setPinned(true);
+		if (next === 'chat') inputRef.current?.focus();
+		else inputRef.current?.blur();
+	};
+
 	return (
 		<div
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}
 			style={{
 				position: 'absolute',
 				left: 12,
-				bottom: 108,
+				bottom: 132,
 				width: 320,
 				maxWidth: 'calc(100vw - 24px)',
 				fontFamily: 'monospace',
-				color: '#e6ebf5',
 				zIndex: 15,
 				pointerEvents: 'auto',
 			}}>
-			<button
-				type="button"
-				onClick={() => setOpen((o) => !o)}
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: 8,
-					width: '100%',
-					padding: '6px 10px',
-					fontSize: 12,
-					fontWeight: 700,
-					color: '#c7d6ff',
-					background: '#181c28',
-					border: '1px solid #3c465c',
-					borderRadius: open ? '8px 8px 0 0' : 8,
-					cursor: 'pointer',
-				}}>
-				<span
-					style={{
-						width: 8,
-						height: 8,
-						borderRadius: 9999,
-						background: connected ? '#34d399' : '#f87171',
-					}}
-				/>
-				Chat
-				<span style={{ marginLeft: 'auto', color: '#8a93a6' }}>
-					{open ? '▾' : '▸'}
-				</span>
-			</button>
-
-			{open && (
-				<div
-					style={{
-						background: 'rgba(16,19,28,0.92)',
-						border: '1px solid #3c465c',
-						borderTop: 'none',
-						borderRadius: '0 0 8px 8px',
-					}}>
-					<div
-						ref={logRef}
+			{/* Floating tab row — sits ABOVE the panel, controls never layered on it. */}
+			<div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+				<TabButton
+					selected={tab === 'chat'}
+					onClick={() => selectTab('chat')}>
+					<span
 						style={{
-							height: 160,
-							overflowY: 'auto',
-							padding: '8px 10px',
-							fontSize: 12,
-							lineHeight: 1.45,
-						}}>
-						{lines.length === 0 ? (
-							<div style={{ color: '#8a93a6' }}>
-								{connected
-									? 'Say hello to the realm…'
-									: 'Connecting…'}
-							</div>
-						) : (
-							lines.map((l, i) => (
-								<div key={i}>
-									<span style={{ color: '#6ea8ff' }}>
-										{l.from}
-									</span>
-									<span style={{ color: '#8a93a6' }}>: </span>
-									<span>{l.text}</span>
-								</div>
-							))
-						)}
-					</div>
-					<div
-						style={{
-							display: 'flex',
-							gap: 6,
-							padding: 8,
-							borderTop: '1px solid #2a3142',
-						}}>
-						<input
-							value={draft}
-							onChange={(e) => setDraft(e.target.value)}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') send();
-								e.stopPropagation();
-							}}
-							placeholder={connected ? 'Message…' : 'Offline'}
-							disabled={!connected}
-							maxLength={200}
-							style={{
-								flex: 1,
-								padding: '6px 8px',
-								fontSize: 12,
-								fontFamily: 'monospace',
-								color: '#e6ebf5',
-								background: '#10131c',
-								border: '1px solid #3c465c',
-								borderRadius: 6,
-								outline: 'none',
-							}}
+							width: 8,
+							height: 8,
+							borderRadius: 9999,
+							background: connected ? '#4caf50' : '#c0392b',
+							boxShadow: connected
+								? '0 0 6px rgba(74,175,80,0.7)'
+								: 'none',
+						}}
+					/>
+					<ChatIcon size={13} />
+					Chat
+					{tab === 'chat' && (
+						<ChevronIcon
+							size={13}
+							open={active}
+							style={{ marginLeft: 2 }}
 						/>
-						<button
-							type="button"
-							onClick={send}
-							disabled={!connected}
+					)}
+				</TabButton>
+				<TabButton
+					selected={tab === 'news'}
+					onClick={() => selectTab('news')}>
+					<NewsIcon size={13} />
+					News
+					{tab === 'news' && (
+						<ChevronIcon
+							size={13}
+							open={active}
+							style={{ marginLeft: 2 }}
+						/>
+					)}
+				</TabButton>
+			</div>
+
+			<GothicFrame
+				variant="bracket"
+				width={16}
+				padding="12px 14px"
+				style={{
+					opacity: active ? 1 : 0.9,
+					transition: 'opacity 0.2s ease',
+					filter: 'drop-shadow(0 8px 22px rgba(0,0,0,0.55))',
+				}}>
+				{tab === 'chat' ? (
+					<>
+						<div
+							ref={logRef}
 							style={{
-								padding: '6px 12px',
+								height: active ? 162 : 52,
+								overflowY: active ? 'auto' : 'hidden',
+								maskImage: active
+									? undefined
+									: 'linear-gradient(to bottom, transparent, #000 22px)',
+								WebkitMaskImage: active
+									? undefined
+									: 'linear-gradient(to bottom, transparent, #000 22px)',
 								fontSize: 12,
-								fontWeight: 700,
-								color: '#0b0e16',
-								background: connected ? '#6ea8ff' : '#3c465c',
-								border: 'none',
-								borderRadius: 6,
-								cursor: connected ? 'pointer' : 'default',
+								lineHeight: 1.5,
+								color: INK,
+								textShadow: '0 1px 1px rgba(0,0,0,0.6)',
+								transition: 'height 0.2s ease',
 							}}>
-							Send
-						</button>
-					</div>
-				</div>
-			)}
+							{lines.length === 0 ? (
+								<div
+									style={{
+										color: INK_MUTED,
+										fontStyle: 'italic',
+									}}>
+									{connected
+										? 'Say hello to the realm…'
+										: 'Connecting…'}
+								</div>
+							) : (
+								lines.map((l, i) => (
+									<div key={i} style={{ marginBottom: 2 }}>
+										<span
+											style={{
+												color: INK_NAME,
+												fontWeight: 700,
+											}}>
+											{l.from}
+										</span>
+										<span style={{ color: INK_MUTED }}>
+											:{' '}
+										</span>
+										<span>{l.text}</span>
+									</div>
+								))
+							)}
+						</div>
+
+						<div
+							style={{
+								display: 'flex',
+								gap: 6,
+								marginTop: active ? 10 : 0,
+								height: active ? 32 : 0,
+								overflow: 'hidden',
+								opacity: active ? 1 : 0,
+								transition:
+									'height 0.2s ease, opacity 0.2s ease, margin-top 0.2s ease',
+							}}>
+							<input
+								ref={inputRef}
+								value={draft}
+								onChange={(e) => setDraft(e.target.value)}
+								onFocus={() => setInputFocused(true)}
+								onBlur={() => setInputFocused(false)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') send();
+									e.stopPropagation();
+								}}
+								placeholder={connected ? 'Message…' : 'Offline'}
+								disabled={!connected}
+								maxLength={200}
+								style={{
+									flex: 1,
+									padding: '6px 8px',
+									fontSize: 12,
+									fontFamily: 'monospace',
+									color: '#e6ddc4',
+									background: 'rgba(8,7,5,0.7)',
+									border: '1px solid #4a3f2c',
+									borderRadius: 4,
+									outline: 'none',
+								}}
+							/>
+							<button
+								type="button"
+								onClick={send}
+								disabled={!connected}
+								style={{
+									padding: '6px 14px',
+									fontSize: 12,
+									fontWeight: 700,
+									color: '#1a140c',
+									background: connected
+										? '#c7a866'
+										: '#4a3f2c',
+									border: 'none',
+									borderRadius: 4,
+									cursor: connected ? 'pointer' : 'default',
+								}}>
+								Send
+							</button>
+						</div>
+					</>
+				) : (
+					<NewsPanel active={active} />
+				)}
+			</GothicFrame>
 		</div>
+	);
+}
+
+function NewsPanel({ active }: { active: boolean }) {
+	return (
+		<div
+			style={{
+				height: active ? 202 : 52,
+				overflowY: active ? 'auto' : 'hidden',
+				maskImage: active
+					? undefined
+					: 'linear-gradient(to bottom, transparent, #000 22px)',
+				WebkitMaskImage: active
+					? undefined
+					: 'linear-gradient(to bottom, transparent, #000 22px)',
+				fontSize: 12,
+				lineHeight: 1.5,
+				color: INK,
+				textShadow: '0 1px 1px rgba(0,0,0,0.6)',
+				transition: 'height 0.2s ease',
+			}}>
+			<div
+				style={{
+					color: INK_NAME,
+					fontWeight: 700,
+					letterSpacing: 0.5,
+					marginBottom: 8,
+				}}>
+				Latest News from Rent Earth
+			</div>
+			<div style={{ color: INK_MUTED, fontStyle: 'italic' }}>
+				No dispatches yet — the realm is quiet. Check back soon.
+			</div>
+		</div>
+	);
+}
+
+function TabButton({
+	selected,
+	onClick,
+	children,
+}: {
+	selected: boolean;
+	onClick: () => void;
+	children: React.ReactNode;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: 6,
+				padding: '5px 11px',
+				fontSize: 11,
+				fontWeight: 700,
+				letterSpacing: 1,
+				textTransform: 'uppercase',
+				color: selected ? INK_NAME : INK_MUTED,
+				textShadow: `0 1px 2px ${GOTHIC.shadow}`,
+				background: selected
+					? 'rgba(34,27,18,0.96)'
+					: 'rgba(16,13,9,0.82)',
+				border: `1px solid ${selected ? '#6b5a3e' : '#33291c'}`,
+				borderRadius: 6,
+				cursor: 'pointer',
+				opacity: selected ? 1 : 0.85,
+				filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.55))',
+				transition:
+					'color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease',
+			}}>
+			{children}
+		</button>
 	);
 }

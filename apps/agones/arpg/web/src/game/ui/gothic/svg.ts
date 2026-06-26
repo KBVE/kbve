@@ -66,6 +66,27 @@ export const STRIP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6
   <path d="M26 32h220M394 32h220" stroke="#4a3b29" stroke-width="2"/>
 </svg>`;
 
+export const TOOLTIP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240" preserveAspectRatio="none">
+  <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#201d19"/><stop offset="1" stop-color="#0d0c0b"/></linearGradient></defs>
+  <rect x="2" y="2" width="416" height="236" rx="10" fill="#060606" stroke="#0a0908" stroke-width="4"/>
+  <rect x="8" y="8" width="404" height="224" rx="8" fill="url(#fill)" stroke="#8d7550" stroke-width="3"/>
+  <rect x="15" y="15" width="390" height="210" rx="6" fill="none" stroke="#33281d" stroke-width="3"/>
+  <path d="M10 42h18V16M410 42h-18V16M10 198h18v26M410 198h-18v26" fill="none" stroke="#b49a69" stroke-width="3"/>
+  <path d="M24 24l12 12-12 12M396 24l-12 12 12 12M24 216l12-12-12-12M396 216l-12-12 12-12" fill="none" stroke="#5a4731" stroke-width="3"/>
+</svg>`;
+
+export const PARCHMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300" preserveAspectRatio="none">
+  <defs><linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#978b70"/><stop offset=".45" stop-color="#756b57"/><stop offset="1" stop-color="#4c463a"/></linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".35" numOctaves="3" seed="9"/>
+      <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .14"/></feComponentTransfer>
+      <feBlend in="SourceGraphic" mode="multiply"/></filter></defs>
+  <path d="M18 8h484l10 14-8 20 8 20-8 20 8 20-8 20 8 20-8 20 8 20-8 20 8 20-10 20H18L8 278l8-20-8-20 8-20-8-20 8-20-8-20 8-20-8-20 8-20-8-20z" fill="#191613" stroke="#090807" stroke-width="6"/>
+  <path d="M24 16h472l8 12-7 18 7 18-7 18 7 18-7 18 7 18-7 18 7 18-7 18 7 18-8 18H24l-8-18 7-18-7-18 7-18-7-18 7-18-7-18 7-18-7-18 7-18-7-18z" fill="url(#paper)" stroke="#9b8358" stroke-width="3" filter="url(#grain)"/>
+  <rect x="32" y="28" width="456" height="244" fill="none" stroke="#403629" stroke-width="3"/>
+</svg>`;
+
 export const CLOSE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0" stop-color="#3c3328"/><stop offset="1" stop-color="#11100f"/></linearGradient></defs>

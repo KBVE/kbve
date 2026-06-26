@@ -38,11 +38,48 @@ function ornamentSvg(): string {
 	return svgBg(svg);
 }
 
+// Lighter 9-slice frame: nested rounded brass rails + corner bracket nicks (the
+// tooltip-frame look), but border-image so corners stay fixed when the box
+// resizes. 160 tile, sliced at 40.
+function bracketSvg(): string {
+	const { ground, groundEdge } = GOTHIC;
+	const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <defs>
+    <linearGradient id="ff" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#201d19"/><stop offset="1" stop-color="#0d0c0b"/>
+    </linearGradient>
+    <g id="k">
+      <path d="M16 40V22Q16 16 22 16H40" fill="none" stroke="#b49a69" stroke-width="2.5"/>
+      <path d="M24 24l11 11-11 11" fill="none" stroke="#5a4731" stroke-width="3"/>
+    </g>
+  </defs>
+  <rect width="160" height="160" fill="${groundEdge}"/>
+  <rect x="40" y="40" width="80" height="80" fill="url(#ff)"/>
+  <rect x="5" y="5" width="150" height="150" rx="10" fill="none" stroke="#060606" stroke-width="6"/>
+  <rect x="10" y="10" width="140" height="140" rx="8" fill="none" stroke="#8d7550" stroke-width="3"/>
+  <rect x="15" y="15" width="130" height="130" rx="6" fill="none" stroke="#33281d" stroke-width="2"/>
+  <use href="#k"/>
+  <use href="#k" transform="translate(160,0) scale(-1,1)"/>
+  <use href="#k" transform="translate(0,160) scale(1,-1)"/>
+  <use href="#k" transform="translate(160,160) scale(-1,-1)"/>
+</svg>`.trim();
+	return svgBg(svg);
+}
+
 const ORNAMENT = ornamentSvg();
+const BRACKET = bracketSvg();
+
+const VARIANTS = {
+	ornament: { src: ORNAMENT, slice: 64, width: 30 },
+	bracket: { src: BRACKET, slice: 40, width: 18 },
+} as const;
 
 export interface GothicFrameProps {
 	children?: ReactNode;
-	/** Border thickness in px; the 64-unit slice projects onto this. */
+	/** Corner style: heavy metal ornament (default) or lighter bracket rail. */
+	variant?: keyof typeof VARIANTS;
+	/** Border thickness in px; overrides the variant default. */
 	width?: number;
 	padding?: number | string;
 	style?: CSSProperties;
@@ -51,19 +88,21 @@ export interface GothicFrameProps {
 
 export function GothicFrame({
 	children,
-	width = 30,
+	variant = 'ornament',
+	width,
 	padding = 14,
 	style,
 	className,
 }: GothicFrameProps) {
+	const v = VARIANTS[variant];
 	return (
 		<div
 			className={className}
 			style={{
 				borderStyle: 'solid',
-				borderWidth: width,
-				borderImageSource: ORNAMENT,
-				borderImageSlice: '64 fill',
+				borderWidth: width ?? v.width,
+				borderImageSource: v.src,
+				borderImageSlice: `${v.slice} fill`,
 				borderImageRepeat: 'stretch',
 				background: GOTHIC.ground,
 				color: GOTHIC.text,
