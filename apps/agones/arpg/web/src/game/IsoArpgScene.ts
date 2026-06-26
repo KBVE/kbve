@@ -45,6 +45,7 @@ import {
 	setupInput as setupInputV,
 	type SceneInputDeps,
 } from './input/sceneInput';
+import { preloadCursors } from './input/cursor';
 import {
 	makeFogState,
 	buildFog,
@@ -328,6 +329,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		preloadTrees(this);
 		preloadStairs(this);
 		preloadItemAtlas(this);
+		preloadCursors(this);
 	}
 
 	private applyBiomeFiltering(): void {
