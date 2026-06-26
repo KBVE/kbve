@@ -68,7 +68,7 @@ spec:
                       - name: FORGEJO__database__PASSWD
                         valueFrom:
                             secretKeyRef:
-                                name: forgejo-db-credentials
+                                name: forgejo-db
                                 key: password
                       - name: OAUTH_CLIENT_ID
                         valueFrom:
