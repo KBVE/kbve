@@ -105,6 +105,10 @@ export interface EntityRefs {
 	lastMoveAt?: number;
 	/** Pending Idle settle, cancelled if another step arrives first. */
 	settleTimer?: Phaser.Time.TimerEvent;
+	/** Last drawn HP/maxHP, skip redraw if unchanged. */
+	lastHp?: { hp: number; maxHp: number };
+	/** Last drawn status effect count, skip redraw if unchanged. */
+	lastStatusCount?: number;
 }
 
 /** Per-creature directional pose state, analogous to ClassView for NPCs. */
