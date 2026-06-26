@@ -1,0 +1,60 @@
+# Unreal Engine cleanroom .gitignore
+# Build artifacts and temporary files should not be version controlled
+
+# Unreal Engine Build/Intermediate files
+UnrealCleanroom/Intermediate/
+UnrealCleanroom/Saved/
+UnrealCleanroom/Build/
+UnrealCleanroom/Binaries/
+
+# Derived Data Cache
+UnrealCleanroom/DerivedDataCache/
+
+# User-specific files
+UnrealCleanroom/*.user
+UnrealCleanroom/*.suo
+UnrealCleanroom/*.opensdf
+UnrealCleanroom/*.sdf
+UnrealCleanroom/*.sln
+UnrealCleanroom/*.VC.db
+UnrealCleanroom/*.VC.opendb
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.swp
+*.swo
+
+# Mac
+.DS_Store
+*.DS_Store
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.ipa
+
+# Crash logs
+*.log
