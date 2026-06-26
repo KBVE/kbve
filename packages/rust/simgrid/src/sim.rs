@@ -1104,6 +1104,7 @@ pub fn build_app(
                 advance_float,
                 advance_npc_float,
                 advance_movement,
+                record_pos_history,
                 stair_system,
                 env_hazard_burn,
                 env_heal_aura,
@@ -1236,6 +1237,7 @@ fn sync_roster(
                 FloatMove::at(config.spawn),
                 IntentBuffer::default(),
             ))
+            .insert(PosHistory::default())
             .id();
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
     }
@@ -1300,6 +1302,53 @@ pub struct IntentBuffer {
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
+}
+
+/// Recent server-tick positions per player, for lag-compensated PvP hit checks:
+/// the shooter sees remote players ~INTERP_DELAY + RTT in the past, so on a hit we
+/// rewind the TARGET to where the shooter saw it instead of its live position.
+const POS_HISTORY_LEN: usize = 16;
+/// Ticks to rewind a player target on a hit check — covers the client interp
+/// delay (200ms = 4 ticks @ 20Hz) plus a nominal RTT. Fixed for now; per-client
+/// RTT precision is a refinement.
+const LAG_COMP_TICKS: usize = 5;
+
+#[derive(Component)]
+pub struct PosHistory {
+    ring: [Tile; POS_HISTORY_LEN],
+    head: usize,
+    len: usize,
+}
+
+impl Default for PosHistory {
+    fn default() -> Self {
+        Self {
+            ring: [Tile::new(0, 0); POS_HISTORY_LEN],
+            head: 0,
+            len: 0,
+        }
+    }
+}
+
+impl PosHistory {
+    /// Record this tick's tile in the most-recent slot.
+    fn record(&mut self, tile: Tile) {
+        if self.len == 0 {
+            self.ring = [tile; POS_HISTORY_LEN];
+            self.head = 0;
+            self.len = POS_HISTORY_LEN;
+            return;
+        }
+        self.head = (self.head + 1) % POS_HISTORY_LEN;
+        self.ring[self.head] = tile;
+    }
+
+    /// Tile `ticks` ago (0 = most recent), clamped to the recorded window.
+    fn ago(&self, ticks: usize) -> Tile {
+        let back = ticks.min(self.len.saturating_sub(1));
+        let idx = (self.head + POS_HISTORY_LEN - back) % POS_HISTORY_LEN;
+        self.ring[idx]
+    }
 }
 
 /// Inputs to buffer before consumption starts — absorbs network arrival variance
@@ -1801,6 +1850,7 @@ fn apply_actions(
     mut q_players: AttackPlayerQuery,
     mut q_mobs: AttackMobQuery,
     q_items: Query<(&GridPos, &GroundItem)>,
+    q_history: Query<&PosHistory>,
 ) {
     if actions.0.is_empty() {
         return;
@@ -1856,12 +1906,17 @@ fn apply_actions(
                             &mut q_mobs,
                         );
                     }
-                } else if let Some((target_tile, tz)) = match q_players.get(target_entity) {
+                } else if let Some((live_tile, tz)) = match q_players.get(target_entity) {
                     Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
                         Some((t_pos.tile, t_floor.map(|f| f.0).unwrap_or(0)))
                     }
                     Err(_) => None,
                 } {
+                    // Lag-comp: adjudicate against where the shooter SAW the target.
+                    let target_tile = q_history
+                        .get(target_entity)
+                        .map(|h| h.ago(LAG_COMP_TICKS))
+                        .unwrap_or(live_tile);
                     if pvp_allowed(az, tz)
                         && combat::in_range_adjacent(
                             attacker_tile,
@@ -1890,7 +1945,7 @@ fn apply_actions(
                 let (attacker_tile, attack) = (pos.tile, stats.attack);
                 let az = a_floor.map(|f| f.0).unwrap_or(0);
                 // Target tile + whether it's a PvP player (Some(z)) or a mob (None).
-                let Some((target_tile, target_z)) = (match q_mobs.get(target_entity) {
+                let Some((mut target_tile, target_z)) = (match q_mobs.get(target_entity) {
                     Ok((mob_pos, ..)) => Some((mob_pos.tile, None)),
                     Err(_) => match q_players.get(target_entity) {
                         Ok((_, _, t_pos, _, _, _, _, _, _, t_floor, _)) => {
@@ -1901,6 +1956,13 @@ fn apply_actions(
                 }) else {
                     continue;
                 };
+                // Lag-comp a PvP target: fly + adjudicate the arrow against where the
+                // shooter SAW the target (rewound), not its live position.
+                if target_z.is_some()
+                    && let Ok(h) = q_history.get(target_entity)
+                {
+                    target_tile = h.ago(LAG_COMP_TICKS);
+                }
                 let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
                     !map.is_walkable(t)
                 });
@@ -3025,6 +3087,15 @@ fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
     }
 }
 
+/// Snapshot each player's tile into its `PosHistory` ring every tick (after the
+/// float advance), so lag-compensated hit checks can rewind a target to where the
+/// shooter saw it.
+fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory), With<PlayerSlotTag>>) {
+    for (pos, mut h) in q.iter_mut() {
+        h.record(pos.tile);
+    }
+}
+
 fn advance_movement(
     mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed), Without<FloatSteer>>,
 ) {
@@ -3825,7 +3896,10 @@ mod tests {
         let eb = player_for_slot(&mut app, b);
         place_player(&mut app, ea, Tile::new(5, 5), Some(-1));
         place_player(&mut app, eb, Tile::new(6, 5), Some(-1));
-        app.update();
+        // Settle so the lag-comp history reflects the adjacent position.
+        for _ in 0..(LAG_COMP_TICKS + 2) {
+            app.update();
+        }
 
         let hp0 = app.world().get::<Health>(eb).unwrap().hp;
         input_tx
@@ -3874,6 +3948,46 @@ mod tests {
         }
         let hp1 = app.world().get::<Health>(eb).unwrap().hp;
         assert_eq!(hp1, hp0, "PvP wrongly allowed on the peaceful surface");
+    }
+
+    #[test]
+    fn lag_comp_hits_target_at_shooter_view_position() {
+        let (mut app, _rx, input_tx, roster) = harness(73);
+        let a = join(&roster, "shooter");
+        let b = join(&roster, "runner");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        let eb = player_for_slot(&mut app, b);
+        place_player(&mut app, ea, Tile::new(5, 5), Some(-1));
+        place_player(&mut app, eb, Tile::new(6, 5), Some(-1));
+        // Fill B's history at the adjacent tile the shooter sees it at.
+        for _ in 0..(LAG_COMP_TICKS + 4) {
+            app.update();
+        }
+        // B sprints far away THIS tick: its LIVE pos is now well out of melee range,
+        // but its rewound (shooter-view) pos is still adjacent — lag-comp must hit.
+        {
+            let mut fm = app.world_mut().get_mut::<FloatMove>(eb).unwrap();
+            fm.body = crate::float_move::FloatBody::at(25.0, 25.0);
+        }
+        app.world_mut().get_mut::<GridPos>(eb).unwrap().tile = Tile::new(25, 25);
+
+        let hp0 = app.world().get::<Health>(eb).unwrap().hp;
+        input_tx
+            .send((
+                a,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(eb.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+        let hp1 = app.world().get::<Health>(eb).unwrap().hp;
+        assert!(
+            hp1 < hp0,
+            "lag-comp did not rewind the target to the shooter's view (hp {hp0}->{hp1})"
+        );
     }
 
     fn spawn_bow_target(app: &mut App, kind: u16, tile: Tile) -> Entity {
