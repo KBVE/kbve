@@ -12,7 +12,7 @@ const HUD_MAP_SIZE = 33;
 /**
  * Throttle accumulator + cached compass heading and minimap window for the
  * React HUD emit. The minimap buffer is reused between tile crossings so the
- * 15 Hz emit stays cheap.
+ * 10 Hz emit stays cheap (was 15 Hz).
  */
 export interface HudState {
 	accum: number;
@@ -45,10 +45,10 @@ export interface HudEmitDeps {
 
 /**
  * Push player vitals + the movement-driven compass heading to the React HUD
- * over the laser event bus, throttled to ~15 Hz. The compass tracks the float
- * body's VELOCITY (where the character is actually walking), not the cursor —
- * heading holds its last value while standing still so the needle doesn't snap
- * back to north on every stop.
+ * over the laser event bus, throttled to 10 Hz (was 15 Hz). The compass tracks
+ * the float body's VELOCITY (where the character is actually walking), not the
+ * cursor — heading holds its last value while standing still so the needle
+ * doesn't snap back to north on every stop.
  */
 export function tickHud(
 	st: HudState,
@@ -56,7 +56,7 @@ export function tickHud(
 	deltaMs: number,
 ): void {
 	st.accum += deltaMs;
-	if (st.accum < 66) return;
+	if (st.accum < 100) return; // 10 Hz (was 66ms = 15 Hz)
 	st.accum = 0;
 
 	const vel = deps.floatState.vel;
