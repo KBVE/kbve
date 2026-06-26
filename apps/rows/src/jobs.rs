@@ -1,6 +1,6 @@
 use crate::repo::InstanceRepo;
 use crate::service::OWSService;
-use sqlx::Connection; // for PgConnection::close() on the detached advisory-lock connection (audit M1)
+use sqlx::Connection; // for PgConnection::close() on the detached advisory-lock connection
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -117,7 +117,7 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
 /// retries × backoff × 10s; serial teardown of a large batch would overrun the 60s cadence, so
 /// fan out with a bound (kept modest to avoid hammering the K8s API / Agones allocator).
 ///
-/// CONNECTION-POOL BUDGET (audit G1): each concurrent `reap_one` acquires one DB connection for its
+/// CONNECTION-POOL BUDGET: each concurrent `reap_one` acquires one DB connection for its
 /// `status=0` flip, and the cycle additionally holds `lock_conn` out of the pool for its whole
 /// duration. So the reaper's peak draw is `1 (lock) + MAX_CONCURRENT_REAPS`. `rows` connects
 /// *directly* to the CNPG RW primary (`supabase-cluster-rw:5432`) with a `DB_MAX_CONNECTIONS`-sized
@@ -184,7 +184,7 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         // Acquire a dedicated connection and try the advisory lock. Two int4 keys: a constant
         // namespace (`'rows-empty-reaper'`) + the tenant guid hash, so the lock is per-tenant.
         //
-        // POOLER CONSTRAINT (audit G1/G3): this is a SESSION-level advisory lock — taken here and
+        // POOLER CONSTRAINT: this is a SESSION-level advisory lock — taken here and
         // released by the `pg_advisory_unlock` below, across two separate statements on the SAME
         // pinned `lock_conn`. That is only sound on a session-pinned endpoint: today `DATABASE_URL`
         // points directly at `supabase-cluster-rw:5432` (correct). If `rows` is ever migrated onto
@@ -235,7 +235,7 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         .execute(&mut *lock_conn)
         .await
         {
-            // Audit M1: a failed unlock that nonetheless returns a HEALTHY connection to the pool
+            // A failed unlock that nonetheless returns a HEALTHY connection to the pool
             // leaves the session-level lock held on that pooled backend — every later cycle's
             // pg_try_advisory_lock (on a different conn) then returns false and reaping is wedged
             // for this tenant until that exact connection happens to be recycled. Detach the
@@ -309,7 +309,7 @@ async fn run_reap_cycle(
     // Phase 1: decide, then resolve GameServer names.
     let mut targets: Vec<ReapTarget> = Vec::new();
     let mut misses: Vec<(i32, crate::agones::reaper::ReapReason)> = Vec::new();
-    // Audit M2: count empty servers retained purely because their heartbeat is stale vs
+    // count empty servers retained purely because their heartbeat is stale vs
     // `empty_fresh_secs`. A persistent nonzero count means `empty_fresh_secs < heartbeat_interval`,
     // so the Empty reap silently never fires — surface it instead of looking like "nothing to reap".
     let mut retained_stale_empty: u32 = 0;
@@ -434,7 +434,7 @@ async fn reap_one(svc: Arc<OWSService>, guid: uuid::Uuid, target: ReapTarget) {
             if let Err(e) = repo.shut_down_server_instance(guid, instance_id).await {
                 warn!(error = %e, instance_id, "Reaper: deallocated but failed to set status=0");
             }
-            // Bound the worldservers leak (audit Q1): the Agones path mints a fresh worldserver row
+            // Bound the worldservers leak: the Agones path mints a fresh worldserver row
             // per GameServer, so a reaped instance otherwise leaves its launcher row stuck at
             // serverstatus=1 forever. Deactivate it — but only if no other active instance shares it
             // (safe for the 1:N launcher case). Best-effort: a failure just leaves the stale row, so

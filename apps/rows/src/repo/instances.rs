@@ -365,16 +365,15 @@ impl<'a> InstanceRepo<'a> {
     /// (possible under-reaping).
     ///
     /// Ordered by each row's *own* reap clock, oldest first: `COALESCE(lastserveremptydate,
-    /// createdate)` (audit G4). An Empty candidate's clock is its `lastserveremptydate`; a
-    /// never-reported candidate has a NULL empty-date and its clock is `createdate` (boot grace).
-    /// A plain `lastserveremptydate ASC NULLS LAST` buried every never-reported row *after* all
-    /// empty rows, so in a backlog > 500 the never-reported backstop was starved out of the cap
-    /// entirely. COALESCE interleaves both by reap-worthiness so the most reapable rows of *either*
-    /// kind stay inside the cap. The partial index `idx_mapinstances_active` still serves the
-    /// `customerguid = $1 AND status > 0` predicate; the ≤500-row sort is in-memory and cheap.
+    /// createdate)`. An Empty candidate's clock is its `lastserveremptydate`; a never-reported
+    /// candidate has a NULL empty-date and its clock is `createdate` (boot grace). A plain
+    /// `lastserveremptydate ASC NULLS LAST` would bury every never-reported row *after* all empty
+    /// rows, starving the never-reported backstop out of the cap in a backlog > 500; COALESCE
+    /// interleaves both by reap-worthiness. The partial index `idx_mapinstances_active` still serves
+    /// the `customerguid = $1 AND status > 0` predicate; the ≤500-row sort is in-memory and cheap.
     /// `mapinstanceid` breaks ties deterministically.
     ///
-    /// LEFT JOIN on `maps` (audit L2): an INNER JOIN silently dropped any active instance whose
+    /// LEFT (not INNER) JOIN on `maps`: an INNER JOIN would silently drop any active instance whose
     /// `maps` row was deleted (orphan), making it unreapable forever. With LEFT JOIN it stays a
     /// candidate; `COALESCE(m.minutestoshutdownafterempty, 1)` mirrors the column's own `DEFAULT 1`
     /// for the orphan (and the `min_empty_secs` floor still applies in `reap_decision`).
@@ -753,7 +752,7 @@ impl<'a> InstanceRepo<'a> {
     }
 
     /// Deactivate the `worldservers` row backing `instance_id`, but ONLY when no *other* active
-    /// (`status > 0`) instance still shares that worldserver (audit Q1). The Agones allocation path
+    /// (`status > 0`) instance still shares that worldserver. The Agones allocation path
     /// mints a fresh `worldservers` row per GameServer (`register_world_server` uses a new
     /// `Uuid::new_v4()` each time, so the `ON CONFLICT (customerguid, zoneserverguid)` never fires),
     /// i.e. 1:1 — and `reap_one` deletes the GameServer + flips the instance `status=0` but never

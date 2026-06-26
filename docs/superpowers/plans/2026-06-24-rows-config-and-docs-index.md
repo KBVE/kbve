@@ -50,7 +50,7 @@ Parsed in `RowsConfig::from_env` (`apps/rows/src/config.rs`); defaults live in
 | `ROWS_EMPTY_REAP_BUFFER_SECS` | i64 | `30` | Added to per-map empty timeout so UE `SDK.Shutdown()` wins first. | safe |
 | `ROWS_EMPTY_REAP_MIN_EMPTY_SECS` | i64 | `300` | Floor on the effective empty timeout (protects a freshly-allocated server under a still-loading player). | safe |
 | `ROWS_EMPTY_REAP_FRESH_SECS` | i64 | `180` | Empty marker is only honored if `lastupdatefromserver` is within this window (wedged-heartbeat guard). `0` = off. | safe; **must be ≫ UE heartbeat interval** or the Empty path is silently inert |
-| `ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION` | bool | `false` | Stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation (UE drain-contract obligation #3). While OFF the allocation hot path skips the per-map-timeout DB read and omits the annotation (audit 3.1). Env-only (no DB override column). | safe; flip ON to roll out UE self-shutdown — **must precede** enabling the reaper (validates obligation #3 first) |
+| `ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION` | bool | `false` | Stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation (UE drain-contract obligation #3). While OFF the allocation hot path skips the per-map-timeout DB read and omits the annotation. Env-only (no DB override column). | safe; flip ON to roll out UE self-shutdown — **must precede** enabling the reaper (validates obligation #3 first) |
 
 ## 2. Reaper per-tenant override (DB, no redeploy)
 

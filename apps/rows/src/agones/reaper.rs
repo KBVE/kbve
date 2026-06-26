@@ -90,12 +90,12 @@ pub fn reap_decision(
     None
 }
 
-/// Audit M2: true when an empty (0-player, empty-marker-set) instance is being RETAINED *purely*
-/// because its heartbeat is stale relative to `empty_fresh_secs` — i.e. the only thing blocking its
-/// Empty reap is the freshness gate. The caller sums this per cycle and logs it, so a misconfigured
-/// `empty_fresh_secs < heartbeat_interval` (which makes the Empty reap silently never fire) is
-/// visible in the logs instead of looking like "nothing to reap". Mirrors the freshness predicate in
-/// `reap_decision`'s Empty branch: a NULL `last_update` is the never-reported path, NOT this gate.
+/// True when an empty (0-player, empty-marker-set) instance is being RETAINED *purely* because its
+/// heartbeat is stale relative to `empty_fresh_secs` — i.e. the freshness gate is the only thing
+/// blocking its Empty reap. The caller sums this per cycle and logs it so a misconfigured
+/// `empty_fresh_secs < heartbeat_interval` (which makes the Empty reap silently never fire) shows up
+/// instead of looking like "nothing to reap". A NULL `last_update` is the never-reported path, not
+/// this gate.
 pub fn retained_due_to_stale_heartbeat(
     player_count: i32,
     last_update_from_server: Option<NaiveDateTime>,
@@ -208,7 +208,7 @@ mod tests {
         assert_eq!(d, None);
     }
 
-    // MEDIUM 4: still claims players but heartbeat is stale past stale_secs -> reap (Stale)
+    // still claims players but heartbeat is stale past stale_secs -> reap (Stale)
     #[test]
     fn stale_populated_is_reaped_when_enabled() {
         let now = ts("2026-06-23 12:00:00");
@@ -235,7 +235,7 @@ mod tests {
         assert_eq!(d, None);
     }
 
-    // MEDIUM 5: empty past its tiny per-map timeout but still within the min-empty floor -> keep
+    // empty past its tiny per-map timeout but still within the min-empty floor -> keep
     #[test]
     fn empty_within_floor_is_kept() {
         let now = ts("2026-06-23 12:00:00");
@@ -253,8 +253,8 @@ mod tests {
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
-    // BLOCKER fix: empty marker set but the heartbeat is STALE -> NOT reaped. The frozen `0` may be
-    // a lie (UE heartbeat wedged while players reconnected out-of-band); don't trust a stale marker.
+    // empty marker set but the heartbeat is STALE -> NOT reaped. The frozen `0` may be a lie (UE
+    // heartbeat wedged while players reconnected out-of-band); don't trust a stale marker.
     #[test]
     fn empty_with_stale_heartbeat_is_kept() {
         let now = ts("2026-06-23 12:00:00");
@@ -329,7 +329,7 @@ mod tests {
         );
     }
 
-    // Audit M2: empty + stale heartbeat -> flagged as "retained due to freshness gate".
+    // empty + stale heartbeat -> flagged as "retained due to freshness gate".
     #[test]
     fn retained_stale_empty_is_flagged() {
         let now = ts("2026-06-23 12:00:00");

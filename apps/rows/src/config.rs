@@ -87,12 +87,10 @@ pub struct ReaperKnobs {
     /// stale `0` while players may have reconnected out-of-band; without this gate the reaper would
     /// hard-deallocate a populated-but-silent server. `0` = disabled (no freshness check).
     pub empty_fresh_secs: i64,
-    /// Whether to stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation (the ROWS
-    /// side of UE drain-contract obligation #3 — see issue #13281). Default OFF: while off, the
-    /// allocation hot path skips the per-map timeout DB read AND the annotation is omitted, so we
-    /// pay nothing for a value no UE consumer reads yet (audit 3.1). Flip ON independently of
-    /// `enabled` when rolling out UE self-shutdown — it must precede enabling the reaper backstop,
-    /// since the annotation is how obligation #3 is validated in an env before the reaper is on.
+    /// Whether to stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation that tells
+    /// the UE server when to self-shutdown after going empty. Default OFF: while off the allocation
+    /// path skips the per-map-timeout DB read and omits the annotation (nothing consumes it yet).
+    /// Independent of `enabled` so UE self-shutdown can be rolled out before the reaper backstop.
     pub stamp_empty_shutdown_annotation: bool,
 }
 
@@ -154,19 +152,17 @@ impl ReaperKnobs {
         }
     }
 
-    /// Audit M3: minimum `empty-shutdown-minutes` annotation value, mirroring the reaper's own
-    /// `min_empty_secs` floor onto the UE self-shutdown path. The annotation tells the UE server
-    /// when to self-shutdown after going empty; the per-map `minutestoshutdownafterempty` defaults
-    /// to 1 minute, which can self-terminate a server during UE5 map travel / asset streaming
-    /// (a player mid-load). The reaper's `min_empty_secs` floor protects the ROWS-side teardown but
-    /// NOT the UE annotation, so the caller applies this same floor (`value.max(floor)`) before
-    /// stamping it. `min_empty_secs <= 0` (floor disabled) returns `0` — no minimum imposed.
+    /// Minimum value for the `empty-shutdown-minutes` annotation. The per-map
+    /// `minutestoshutdownafterempty` defaults to 1 minute, which can self-terminate a server during
+    /// UE5 map travel / asset streaming (a player mid-load); flooring the UE self-shutdown deadline
+    /// at the same `min_empty_secs` the reaper uses for its own teardown protects against that.
+    /// Returns `0` when the floor is disabled (`min_empty_secs <= 0`).
     pub fn empty_shutdown_minutes_floor(&self) -> i32 {
         if self.min_empty_secs <= 0 {
             return 0;
         }
-        // ceil(min_empty_secs / 60), at least 1 minute. saturating_add so an absurd operator value
-        // near i64::MAX can't overflow the `+ 59` (audit 5.2).
+        // ceil(min_empty_secs / 60), at least 1. saturating_add so an absurd value near i64::MAX
+        // can't overflow the `+ 59`.
         ((self.min_empty_secs.saturating_add(59) / 60) as i32).max(1)
     }
 }
@@ -342,7 +338,7 @@ mod tests {
         assert!(!base.merged_with(&ov).require_heartbeat);
     }
 
-    // Audit M3: the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
+    // the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
     #[test]
     fn empty_shutdown_minutes_floor_ceils_and_clamps() {
         let floor = |secs: i64| ReaperKnobs {

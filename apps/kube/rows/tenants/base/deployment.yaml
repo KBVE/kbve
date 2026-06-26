@@ -120,7 +120,7 @@ spec:
                       # Empty-reap freshness gate (default ON): the empty marker is only honored if
                       # a heartbeat arrived within this window, so a wedged heartbeat (frozen 0)
                       # can't hard-deallocate a populated-but-silent server. 0 disables the gate.
-                      # INVARIANT (audit M2): this MUST exceed the UE heartbeat interval. If UE
+                      # INVARIANT: this MUST exceed the UE heartbeat interval. If UE
                       # heartbeats less often than FRESH_SECS, every empty server's last heartbeat is
                       # always "stale" → the Empty reap can NEVER fire (it silently no-ops even when
                       # ROWS_EMPTY_REAPER_ENABLED=true). Before enabling the reaper, confirm
