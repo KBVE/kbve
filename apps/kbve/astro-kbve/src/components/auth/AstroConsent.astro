@@ -1,0 +1,78 @@
+---
+import ReactOAuthConsent from './ReactOAuthConsent';
+---
+
+<ReactOAuthConsent client:only="react" />
+
+<style is:global>
+	.auth-container {
+		text-align: center;
+		padding: 3rem 1rem;
+	}
+	.spinner {
+		width: 50px;
+		height: 50px;
+		margin: 0 auto 20px;
+		border: 4px solid var(--sl-color-accent-low);
+		border-top-color: var(--sl-color-accent);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.message {
+		font-size: 18px;
+		margin-bottom: 10px;
+		color: var(--sl-color-text);
+	}
+	.sub-message {
+		font-size: 14px;
+		opacity: 0.8;
+		color: var(--sl-color-text);
+	}
+	.consent-scopes {
+		list-style: none;
+		padding: 0;
+		margin: 16px auto;
+		max-width: 320px;
+		text-align: left;
+	}
+	.consent-scopes li {
+		font-size: 14px;
+		color: var(--sl-color-text);
+		padding: 6px 0 6px 24px;
+		position: relative;
+	}
+	.consent-scopes li::before {
+		content: '✓';
+		position: absolute;
+		left: 0;
+		color: var(--sl-color-accent);
+		font-weight: 700;
+	}
+	.consent-actions {
+		display: flex;
+		gap: 12px;
+		margin-top: 20px;
+	}
+	.consent-btn {
+		padding: 8px 20px;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		border: 1px solid var(--sl-color-gray-5);
+	}
+	.consent-approve {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		border-color: var(--sl-color-accent);
+	}
+	.consent-deny {
+		background: transparent;
+		color: var(--sl-color-text);
+	}
+</style>
