@@ -83,13 +83,26 @@ jobs:
                   fi
 
                   # Filter the patch down to changed lines that AREN'T `version`
-                  # fields. `git diff -U0` keeps only +/- lines (no context).
-                  # Strip file headers, then drop any line that is purely a
-                  # `"version": "..."` change. Anything left = real drift.
+                  # fields or `deployment_yamls` array entries. `git diff -U0`
+                  # keeps only +/- lines (no context). Strip file headers, then
+                  # drop:
+                  #   1. `"version": "..."` changes — post-publish auto-PR syncs.
+                  #   2. bare `"apps/.../*.yaml"` array elements — these are
+                  #      `deployment_yamls` entries, read only at publish time
+                  #      (ci-docker.yml resolves image-tag bump targets). The
+                  #      post-publish queue (utils-update-version-toml.yml)
+                  #      regenerates the FULL manifest, so a newly added deploy
+                  #      target self-heals on the next publish — at most a
+                  #      one-cycle tag-bump lag, never a wrong dispatch.
+                  # Key-value lines (`"deployment_yaml": "apps/..."`,
+                  # `"version_source": ...`, app entries) start with a quoted
+                  # KEY, so they don't match the bare-path pattern and STILL
+                  # hard-block: those break dispatch immediately.
                   STRUCTURAL_DIFF=$(git diff -U0 -- .github/ci-dispatch-manifest.json \
                       | grep -E '^[+-]' \
                       | grep -vE '^(\+\+\+|---) ' \
                       | grep -vE '^[+-][[:space:]]*"version":[[:space:]]*"[^"]*",?[[:space:]]*$' \
+                      | grep -vE '^[+-][[:space:]]*"apps/[^"]*\.ya?ml",?[[:space:]]*$' \
                       || true)
 
                   if [ -n "$STRUCTURAL_DIFF" ]; then
@@ -101,5 +114,5 @@ jobs:
                       exit 1
                   fi
 
-                  echo "::notice::Only version-field drift detected — allowed (post-publish auto-PR will sync)."
+                  echo "::notice::Only version-field or deployment_yamls drift detected — allowed (post-publish auto-PR will sync)."
                   git diff --stat -- .github/ci-dispatch-manifest.json
