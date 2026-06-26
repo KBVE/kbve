@@ -2200,7 +2200,6 @@ fn tick_status_effects(
 }
 
 #[allow(clippy::type_complexity)]
-#[allow(clippy::type_complexity)]
 fn regen_players(
     clock: Res<SimClock>,
     config: Res<SimConfig>,
@@ -2398,6 +2397,7 @@ fn wander_system(
 /// then dwell idle a random span before the next trip. One tile is queued per
 /// call (advance_movement walks it); the whole path plays out across ticks, so
 /// the mob reads as deliberately travelling rather than jittering in place.
+#[allow(clippy::type_complexity)]
 fn roam_system(
     clock: Res<SimClock>,
     seed: Res<SimSeed>,
