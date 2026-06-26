@@ -56,6 +56,9 @@ pub struct SimConfig {
     /// Items granted to a brand-new player (no saved state). Returning players
     /// keep their persisted inventory instead.
     pub starting_inventory: Vec<(String, u32)>,
+    /// Kind to spawn for a dead player's lootable corpse (game-registered, since
+    /// the sim is content-agnostic). `None` disables corpses — death just respawns.
+    pub corpse_kind: Option<u16>,
 }
 
 impl Default for SimConfig {
@@ -68,6 +71,7 @@ impl Default for SimConfig {
             spawn: Tile::new(0, 0),
             ticks_per_tile: 4,
             starting_inventory: Vec::new(),
+            corpse_kind: None,
         }
     }
 }
@@ -694,6 +698,13 @@ pub struct PlacedBy {
     pub kit_ref: String,
 }
 
+/// A dead player's lootable corpse. Holds the dropped inventory (an `Inventory`
+/// component) and carries `PlacedBy { owner }` so the client labels it
+/// "Graveyard of <name>". Walkable (no `Blocker`) — loot it from an adjacent
+/// tile via `ACTION_LOOT`, which transfers everything and despawns it.
+#[derive(Component)]
+pub struct Corpse;
+
 /// Occupies its tile — paired with `WalkableMap::block_tile_z` so movement and
 /// pathfinding route around it.
 #[derive(Component, Clone, Copy)]
@@ -1110,7 +1121,7 @@ pub fn build_app(
                 env_heal_aura,
                 env_mana_aura,
                 tick_status_effects,
-                respawn_players,
+                handle_death_and_respawn,
                 regen_players,
             )
                 .chain()
@@ -1833,6 +1844,21 @@ fn apply_drops(
     }
 }
 
+/// Read-only-ish target queries for `apply_actions`, grouped into one `SystemParam`
+/// so the system stays under Bevy's 16-param ceiling: ground items (pickup),
+/// position history (lag-comp), and corpses (loot).
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct ActionTargets<'w, 's> {
+    items: Query<'w, 's, (&'static GridPos, &'static GroundItem)>,
+    history: Query<'w, 's, &'static PosHistory>,
+    corpses: Query<
+        'w,
+        's,
+        (&'static GridPos, &'static mut Inventory),
+        (With<Corpse>, Without<PlayerSlotTag>),
+    >,
+}
+
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn apply_actions(
     mut actions: ResMut<PendingActions>,
@@ -1849,8 +1875,7 @@ fn apply_actions(
     mut commands: Commands,
     mut q_players: AttackPlayerQuery,
     mut q_mobs: AttackMobQuery,
-    q_items: Query<(&GridPos, &GroundItem)>,
-    q_history: Query<&PosHistory>,
+    mut targets: ActionTargets,
 ) {
     if actions.0.is_empty() {
         return;
@@ -1913,7 +1938,8 @@ fn apply_actions(
                     Err(_) => None,
                 } {
                     // Lag-comp: adjudicate against where the shooter SAW the target.
-                    let target_tile = q_history
+                    let target_tile = targets
+                        .history
                         .get(target_entity)
                         .map(|h| h.ago(LAG_COMP_TICKS))
                         .unwrap_or(live_tile);
@@ -1959,7 +1985,7 @@ fn apply_actions(
                 // Lag-comp a PvP target: fly + adjudicate the arrow against where the
                 // shooter SAW the target (rewound), not its live position.
                 if target_z.is_some()
-                    && let Ok(h) = q_history.get(target_entity)
+                    && let Ok(h) = targets.history.get(target_entity)
                 {
                     target_tile = h.ago(LAG_COMP_TICKS);
                 }
@@ -2014,7 +2040,7 @@ fn apply_actions(
                 }
             }
             proto::ACTION_PICKUP => {
-                let Ok((item_pos, item)) = q_items.get(target_entity) else {
+                let Ok((item_pos, item)) = targets.items.get(target_entity) else {
                     continue;
                 };
                 let (item_ref, count, item_tile) =
@@ -2040,6 +2066,30 @@ fn apply_actions(
                     to: proto::PlayerSlot(slot.0),
                     payload: pickup,
                 });
+                send_inventory(&bcast, slot, &inv);
+            }
+            proto::ACTION_LOOT => {
+                let Ok((corpse_pos, mut corpse_inv)) = targets.corpses.get_mut(target_entity)
+                else {
+                    continue;
+                };
+                let corpse_tile = corpse_pos.tile;
+                let Ok((_, _, pos, _, mut inv, ..)) = q_players.get_mut(player_entity) else {
+                    continue;
+                };
+                if pos.tile.chebyshev(corpse_tile) > 1 {
+                    continue;
+                }
+                // Transfer everything, then the empty corpse despawns.
+                let items = std::mem::take(&mut corpse_inv.slots);
+                if items.is_empty() {
+                    commands.entity(target_entity).despawn();
+                    continue;
+                }
+                for (item_ref, count) in items {
+                    inv.add(&item_ref, count);
+                }
+                commands.entity(target_entity).despawn();
                 send_inventory(&bcast, slot, &inv);
             }
             _ => {}
@@ -2672,22 +2722,63 @@ fn regen_players(
 }
 
 #[allow(clippy::type_complexity)]
-fn respawn_players(
+/// On death (hp <= 0): drop the player's entire inventory into a lootable corpse
+/// at the death spot (PvE + PvP), then respawn them at the SURFACE spawn with full
+/// HP — dropping any dungeon `Floor` so they come back up top, not on the floor
+/// they died on. Corpses are disabled (items just clear) when no `corpse_kind` is
+/// configured.
+#[allow(clippy::type_complexity)]
+fn handle_death_and_respawn(
     config: Res<SimConfig>,
+    mut commands: Commands,
     mut q: Query<
         (
+            Entity,
+            &PlayerSlotTag,
             &mut GridPos,
             &mut Health,
             &mut StatusEffects,
             &mut MoveSpeed,
             &mut FloatMove,
+            &mut Inventory,
+            Option<&Floor>,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
-    for (mut pos, mut hp, mut status, mut speed, mut fm) in q.iter_mut() {
+    for (entity, slot, mut pos, mut hp, mut status, mut speed, mut fm, mut inv, floor) in
+        q.iter_mut()
+    {
         if hp.hp > 0 {
             continue;
+        }
+        let death_tile = pos.tile;
+        let death_floor = floor.map(|f| f.0).unwrap_or(0);
+
+        // Drop everything into a corpse where they fell.
+        if let Some(corpse_kind) = config.corpse_kind {
+            if !inv.slots.is_empty() {
+                let items = std::mem::take(&mut inv.slots);
+                let mut e = commands.spawn((
+                    EntityKind(corpse_kind),
+                    GridPos::at(death_tile),
+                    MoveTarget::default(),
+                    Inventory { slots: items },
+                    Corpse,
+                    PlacedBy {
+                        owner: slot.0,
+                        kit_ref: String::new(),
+                    },
+                ));
+                if death_floor != 0 {
+                    e.insert(Floor(death_floor));
+                }
+            }
+        }
+
+        // Respawn topside.
+        if death_floor != 0 {
+            commands.entity(entity).remove::<Floor>();
         }
         pos.tile = config.spawn;
         fm.body = FloatBody::at(config.spawn.x as f32, config.spawn.y as f32);
@@ -3349,6 +3440,7 @@ pub(crate) mod test_support {
         let mut registry = KindRegistry::new();
         registry.register_npc("training-dummy");
         registry.register_item("potion");
+        let corpse_kind = registry.register_env("corpse");
         let app = build_app(
             tx,
             input_rx,
@@ -3356,6 +3448,7 @@ pub(crate) mod test_support {
             seed,
             SimConfig {
                 spawn: Tile::new(8, 8),
+                corpse_kind: Some(corpse_kind),
                 ..SimConfig::default()
             },
             map,
@@ -3987,6 +4080,70 @@ mod tests {
         assert!(
             hp1 < hp0,
             "lag-comp did not rewind the target to the shooter's view (hp {hp0}->{hp1})"
+        );
+    }
+
+    #[test]
+    fn death_drops_corpse_and_loot_transfers() {
+        let (mut app, _rx, input_tx, roster) = harness(81);
+        let a = join(&roster, "victim");
+        app.update();
+        let ea = player_for_slot(&mut app, a);
+        set_inventory(&mut app, ea, &[("potion", 3)]);
+        place_player(&mut app, ea, Tile::new(10, 10), Some(-1));
+        // Kill the player.
+        app.world_mut().get_mut::<Health>(ea).unwrap().hp = 0;
+        app.update();
+
+        // Respawned topside (spawn 8,8), dungeon Floor dropped, inventory emptied.
+        assert_eq!(
+            app.world().get::<GridPos>(ea).unwrap().tile,
+            Tile::new(8, 8)
+        );
+        assert!(app.world().get::<Floor>(ea).is_none(), "Floor dropped");
+        assert!(
+            app.world().get::<Inventory>(ea).unwrap().slots.is_empty(),
+            "inventory dropped on death"
+        );
+
+        // A corpse holds the dropped items at the death tile.
+        let corpse = {
+            let mut q = app
+                .world_mut()
+                .query_filtered::<(Entity, &GridPos, &Inventory), With<Corpse>>();
+            let (e, gp, inv) = q.iter(app.world()).next().expect("corpse spawned");
+            assert_eq!(gp.tile, Tile::new(10, 10));
+            assert_eq!(inv.slots, vec![("potion".to_string(), 3)]);
+            e
+        };
+
+        // An adjacent looter takes everything; the empty corpse despawns.
+        let b = join(&roster, "looter");
+        app.update();
+        let eb = player_for_slot(&mut app, b);
+        set_inventory(&mut app, eb, &[]);
+        place_player(&mut app, eb, Tile::new(11, 10), Some(-1));
+        app.update();
+        input_tx
+            .send((
+                b,
+                Input::Action {
+                    id: proto::ACTION_LOOT,
+                    target: Some(proto::EntityId(corpse.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+
+        assert_eq!(
+            app.world().get::<Inventory>(eb).unwrap().slots,
+            vec![("potion".to_string(), 3)],
+            "looter received the corpse's items"
+        );
+        let mut q = app.world_mut().query_filtered::<Entity, With<Corpse>>();
+        assert!(
+            q.iter(app.world()).next().is_none(),
+            "looted corpse despawned"
         );
     }
 

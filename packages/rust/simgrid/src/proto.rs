@@ -27,6 +27,9 @@ pub fn dequantize_vel(q: i16) -> f32 {
 pub const ACTION_ATTACK: u16 = 1;
 pub const ACTION_PICKUP: u16 = 2;
 pub const ACTION_SHOOT: u16 = 3;
+/// Loot a corpse (target = corpse entity): transfer all its held items to the
+/// looter if adjacent, then despawn it.
+pub const ACTION_LOOT: u16 = 4;
 
 pub const EPHEMERAL_INVENTORY: u16 = 1;
 pub const EPHEMERAL_COMBAT: u16 = 2;

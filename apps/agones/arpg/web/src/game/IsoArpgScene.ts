@@ -54,7 +54,7 @@ import {
 } from './input/input-context';
 import { KeyboardDevice, isTextInputFocused } from './input/devices/keyboard';
 import { Action } from './input/actions';
-import { emitChatToggle, onChatFocus } from './systems/hud';
+import { emitChatToggle, onChatFocus, emitDeath } from './systems/hud';
 import {
 	makeFogState,
 	buildFog,
@@ -161,6 +161,8 @@ import {
 import {
 	makeSprite,
 	makeClassSprite,
+	makeCorpseSprite,
+	CORPSE_REF,
 	makeCreatureSprite,
 	resetCreaturePose,
 	resetCreatureShadow,
@@ -573,6 +575,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			mySlot: () => this.mySlot,
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			isHostile: (e) => this.isHostileServer(e),
+			isCorpse: (e) => this.kinds.ref(this.store.kind(e)) === CORPSE_REF,
 			useInventorySlot: (i) => this.useInventorySlot(i),
 			castSpellSlot: (i) => this.castSpellSlot(i),
 			exitPlacement: () => this.exitPlacement(),
@@ -646,6 +649,8 @@ export class IsoArpgScene extends Phaser.Scene {
 							sprite = this.acquireTree(variant, felled);
 						}
 						refs = { sprite };
+					} else if (this.kinds.ref(e.kind) === CORPSE_REF) {
+						refs = { sprite: makeCorpseSprite(this) };
 					} else {
 						const envSprite = makeEnvSprite(
 							this,
@@ -813,6 +818,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			label: (e, cat) => {
 				if (cat === Cat.Player) return this.slotUsername.get(e.owner);
 				if (cat === Cat.Npc) return this.kinds.ref(e.kind) ?? undefined;
+				if (this.kinds.ref(e.kind) === CORPSE_REF) {
+					const name =
+						this.slotUsername.get(e.owner) ?? 'a fallen hero';
+					return `Graveyard of ${name}`;
+				}
 				return undefined;
 			},
 		};
@@ -1122,6 +1132,9 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private onCombat(c: CombatEvent) {
 		onCombatV(this.combat, this.combatDeps(), c);
+		// Local player died — surface the death overlay (server respawns instantly,
+		// so this is the reliable trigger, not a sustained hp=0).
+		if (c.died && c.target === this.myEid) emitDeath();
 	}
 
 	/**

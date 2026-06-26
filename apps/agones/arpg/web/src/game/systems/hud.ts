@@ -232,6 +232,19 @@ export function onChatFocus(handler: (focused: boolean) => void): () => void {
 	return laserEvents.on(CHAT_FOCUS_EVENT, handler as (data: unknown) => void);
 }
 
+// Local player death → a brief "You Died" overlay. Death is instant + the server
+// respawns next tick, so this fires off the broadcast combat event (died, target
+// == self), not a sustained hp=0.
+export const DEATH_EVENT = 'arpg:death';
+
+export function emitDeath(): void {
+	laserEvents.emit(DEATH_EVENT, undefined);
+}
+
+export function onDeath(handler: () => void): () => void {
+	return laserEvents.on(DEATH_EVENT, handler as (data: unknown) => void);
+}
+
 export const HUD_CLEAR_EVENT = 'arpg:hud:clear';
 
 export function clearHud(): void {
