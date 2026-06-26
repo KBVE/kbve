@@ -223,21 +223,29 @@ function applyCenterlinePull(
  * rubber-band) snaps to avoid a long visible slide. Keeps the client smooth
  * while the server stays the source of truth.
  */
-export function reconcileFloat(s: FloatState, serverTile: TileXY): void {
-	const cur = floatTile(s);
-	if (cur.x === serverTile.x && cur.y === serverTile.y) return;
-
-	const dx = serverTile.x - s.pos.x;
-	const dy = serverTile.y - s.pos.y;
+export function reconcileFloat(s: FloatState, serverPos: TileXY): void {
+	const dx = serverPos.x - s.pos.x;
+	const dy = serverPos.y - s.pos.y;
 
 	const dist = Math.hypot(dx, dy);
 	if (dist > RECONCILE_SNAP_DIST) {
-		s.pos.x = serverTile.x;
-		s.pos.y = serverTile.y;
+		s.pos.x = serverPos.x;
+		s.pos.y = serverPos.y;
 		s.vel.x = 0;
 		s.vel.y = 0;
 		return;
 	}
+
+	// A STOPPED body already on the server's own tile: hold position. The leftover
+	// gap is pure sub-tile (same tile = gameplay-identical), and continuously
+	// lerping it toward the server's resting sub-position visibly creeps the player
+	// AFTER they release — the "moves when I stop" artifact (the old same-tile
+	// guard here compared an int tile to a float pos, so it never fired). Movement
+	// still reconciles below, so real drift never accumulates.
+	const cur = floatTile(s);
+	const onServerTile =
+		cur.x === tileAt(serverPos.x) && cur.y === tileAt(serverPos.y);
+	if (onServerTile && floatSpeed(s) < STOP_SPEED) return;
 
 	// A full backward pull mid-run reads as rubber-banding, so while moving against
 	// the correction we used to skip it entirely — but that lets drift pile up and
