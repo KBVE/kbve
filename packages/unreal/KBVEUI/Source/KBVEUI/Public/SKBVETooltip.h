@@ -3,6 +3,10 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/SCanvas.h"
+#include "Widgets/Text/STextBlock.h"
 
 struct FKBVETooltipContent
 {
