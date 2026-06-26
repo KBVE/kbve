@@ -392,16 +392,15 @@ fn settled_round_reveals_a_seed_matching_its_commitment() {
         if let ServerEvent::Ephemeral { kind, payload, .. } = evt
             && kind == proto::EPHEMERAL_BLACKJACK
         {
-            let v: serde_json::Value = serde_json::from_slice(&payload).unwrap();
-            if v["commitment"].as_str().is_some_and(|s| !s.is_empty()) {
+            let v: proto::BlackjackStateView = proto::decode_inner(&payload).unwrap();
+            if !v.commitment.is_empty() {
                 commitment_seen = true;
             }
-            if let Some(seed_str) = v["seed"].as_str() {
+            if let Some(seed_str) = v.seed.as_deref() {
                 let seed: u64 = seed_str.parse().unwrap();
-                let commitment = v["commitment"].as_str().unwrap();
                 assert_eq!(
                     blackjack::commit_seed(seed),
-                    commitment,
+                    v.commitment,
                     "revealed seed does not match the published commitment"
                 );
                 verified = true;
@@ -441,8 +440,8 @@ fn nearby_spectator_receives_scoped_state() {
             && to == watcher
         {
             to_watcher += 1;
-            let txt = String::from_utf8(payload).unwrap();
-            if txt.contains("\"dealer_hidden\":true") {
+            let view: proto::BlackjackStateView = proto::decode_inner(&payload).unwrap();
+            if view.dealer_hidden {
                 saw_hidden = true;
             }
         }

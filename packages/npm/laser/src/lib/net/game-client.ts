@@ -32,13 +32,22 @@ import {
 	type StatsEvent,
 	type Tile,
 	type Welcome,
-	decodeEphemeralPayload,
 	inputFrame,
 	joinFrame,
 } from './protocol';
 import {
+	decodeBlackjack,
+	decodeCombat,
+	decodeEquipped,
+	decodeFloorChange,
+	decodeInventory,
+	decodeItemPlaced,
+	decodeItemUsed,
+	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
+	decodeShop,
+	decodeStats,
 	encodeClientMessage,
 } from './postcard-wire';
 
@@ -153,39 +162,37 @@ export class GameClient {
 	private handleEphemeral(evt: Ephemeral): void {
 		this.bus.emit('ephemeral', evt);
 		if (evt.kind === EPHEMERAL_INVENTORY) {
-			const data = decodeEphemeralPayload<InventorySync>(evt.payload);
+			const data = decodeInventory(evt.payload);
 			if (data) this.bus.emit('inventory', data);
 		} else if (evt.kind === EPHEMERAL_COMBAT) {
-			const data = decodeEphemeralPayload<CombatEvent>(evt.payload);
+			const data = decodeCombat(evt.payload);
 			if (data) this.bus.emit('combat', data);
 		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
 			const data = decodeProjectile(evt.payload);
 			if (data) this.bus.emit('projectile', data);
 		} else if (evt.kind === EPHEMERAL_FLOOR) {
-			const data = decodeEphemeralPayload<FloorChangeEvent>(evt.payload);
+			const data = decodeFloorChange(evt.payload);
 			if (data) this.bus.emit('floor', data);
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
-			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
+			const data = decodePickup(evt.payload);
 			if (data) this.bus.emit('pickup', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
-			const data = decodeEphemeralPayload<ItemUsedEvent>(evt.payload);
+			const data = decodeItemUsed(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_PLACED) {
-			const data = decodeEphemeralPayload<ItemPlacedEvent>(evt.payload);
+			const data = decodeItemPlaced(evt.payload);
 			if (data) this.bus.emit('itemPlaced', data);
 		} else if (evt.kind === EPHEMERAL_EQUIPPED) {
-			const data = decodeEphemeralPayload<EquippedEvent>(evt.payload);
+			const data = decodeEquipped(evt.payload);
 			if (data) this.bus.emit('equipped', data);
 		} else if (evt.kind === EPHEMERAL_STATS) {
-			const data = decodeEphemeralPayload<StatsEvent>(evt.payload);
+			const data = decodeStats(evt.payload);
 			if (data) this.bus.emit('stats', data);
 		} else if (evt.kind === EPHEMERAL_SHOP) {
-			const data = decodeEphemeralPayload<ShopResult>(evt.payload);
+			const data = decodeShop(evt.payload);
 			if (data) this.bus.emit('shop', data);
 		} else if (evt.kind === EPHEMERAL_BLACKJACK) {
-			const data = decodeEphemeralPayload<BlackjackStateView>(
-				evt.payload,
-			);
+			const data = decodeBlackjack(evt.payload);
 			if (data) this.bus.emit('blackjackState', data);
 		}
 	}
@@ -245,8 +252,8 @@ export class GameClient {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
 	}
 
-	placeItem(itemRef: string, tile: Tile): void {
-		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile } }]);
+	placeItem(itemRef: string, tile: Tile, rot = 0): void {
+		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile, rot } }]);
 	}
 
 	pickupObject(tile: Tile): void {

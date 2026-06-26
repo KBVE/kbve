@@ -26,4 +26,5 @@ export {
 export { dirFromDeg, nearestCreatureDir, CREATURE_SOUTH } from './direction';
 export { resolveCreature, CREATURES } from './registry';
 export { APEX_PREDATOR } from './data/apex-predator';
+export { GOBLIN } from './data/goblin';
 export { WYVERN_AIR, WYVERN_WATER, WYVERN_FIRE } from './data/wyvern';

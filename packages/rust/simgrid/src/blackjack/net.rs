@@ -1,5 +1,3 @@
-use serde_json::json;
-
 use crate::blackjack::engine as blackjack;
 use crate::blackjack::table::{BjPhase, TableSession};
 use crate::proto::{self, ServerEvent};
@@ -22,36 +20,36 @@ pub(crate) fn send_blackjack(
     } else {
         session.dealer.clone()
     };
-    let seats: Vec<_> = session
+    let seats: Vec<proto::BlackjackSeatView> = session
         .seats
         .iter()
         .filter_map(|s| s.as_ref())
         .map(|seat| {
-            let hands: Vec<_> = seat
+            let hands: Vec<proto::BlackjackHandView> = seat
                 .hands
                 .iter()
                 .map(|hand| {
                     let (value, soft) = blackjack::value_hand(&hand.cards);
-                    json!({
-                        "cards": hand.cards,
-                        "bet": hand.bet,
-                        "value": value,
-                        "soft": soft,
-                        "doubled": hand.doubled,
-                        "surrendered": hand.surrendered,
-                        "done": hand.done,
-                        "outcome": hand.outcome.map(|o| o.as_str()),
-                    })
+                    proto::BlackjackHandView {
+                        cards: hand.cards.clone(),
+                        bet: hand.bet,
+                        value,
+                        soft,
+                        doubled: hand.doubled,
+                        surrendered: hand.surrendered,
+                        done: hand.done,
+                        outcome: hand.outcome.map(|o| o.as_str().to_string()),
+                    }
                 })
                 .collect();
-            json!({
-                "slot": seat.slot,
-                "username": seat.username,
-                "bet": seat.bet,
-                "insurance": seat.insurance,
-                "hands": hands,
-                "disconnected": seat.disconnected_since.is_some(),
-            })
+            proto::BlackjackSeatView {
+                slot: seat.slot,
+                username: seat.username.clone(),
+                bet: seat.bet,
+                insurance: seat.insurance,
+                hands,
+                disconnected: seat.disconnected_since.is_some(),
+            }
         })
         .collect();
     let active = (session.phase == BjPhase::PlayerTurn)
@@ -67,21 +65,20 @@ pub(crate) fn send_blackjack(
     // commitment and verify it against the seed after settle.
     let revealed_seed = (session.phase == BjPhase::Settle && !session.commitment.is_empty())
         .then(|| session.round_seed.to_string());
-    let payload = json!({
-        "table_ref": table_ref,
-        "phase": session.phase.as_str(),
-        "seats": seats,
-        "dealer_hand": dealer_hand,
-        "dealer_hidden": dealer_hidden,
-        "active_slot": active_slot,
-        "active_hand": active_hand,
-        "your_balance": your_balance,
-        "deadline_ms": deadline_ms,
-        "commitment": session.commitment,
-        "seed": revealed_seed,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::BlackjackStateView {
+        table_ref: table_ref.to_string(),
+        phase: session.phase.as_str().to_string(),
+        seats,
+        dealer_hand,
+        dealer_hidden,
+        active_slot,
+        active_hand: active_hand.map(|hi| hi as u32),
+        your_balance,
+        deadline_ms,
+        commitment: session.commitment.clone(),
+        seed: revealed_seed,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_BLACKJACK,
         to: proto::PlayerSlot(slot),

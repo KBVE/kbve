@@ -18,7 +18,10 @@ metadata:
 rules:
     - apiGroups: ['']
       resources: ['secrets']
-      verbs: ['get', 'create', 'patch', 'update']
+      verbs: ['create']
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'patch', 'update']
       resourceNames: ['forgejo-oauth-credentials']
     - apiGroups: ['']
       resources: ['secrets']

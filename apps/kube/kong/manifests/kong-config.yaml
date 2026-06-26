@@ -24,13 +24,10 @@ data:
         \        - apikey\n        - DNT\n        - Cache-Control\n        - X-Mx-ReqToken\n\
         \        - Keep-Alive\n        - If-Modified-Since\n        - Range\n      exposed_headers:\n\
         \        - \"*\"\n      credentials: true\n      max_age: 86400\n      preflight_continue:\
-        \ false\n\n###\n### Consumers / Users\n###\nconsumers:\n  - username: DASHBOARD\n\
-        \  - username: anon\n    keyauth_credentials:\n      - key: ${anon_key}\n  - username:\
+        \ false\n\n###\n### Consumers / Users\n###\nconsumers:\n  - username: anon\n    keyauth_credentials:\n      - key: ${anon_key}\n  - username:\
         \ service_role\n    keyauth_credentials:\n      - key: ${service_key}\n\n###\n\
         ### Access Control List\n###\nacls:\n  - consumer: anon\n    group: anon\n  -\
-        \ consumer: service_role\n    group: admin\n\n###\n### Dashboard credentials \
-        \ \n###\nbasicauth_credentials:\n  - consumer: DASHBOARD\n    username: dashboard\n\
-        \    password: ${secret}\n\n###\n### API Routes\n###\nservices:\n  ## Open Auth\
+        \ consumer: service_role\n    group: admin\n\n###\n### API Routes\n###\nservices:\n  ## Open Auth\
         \ routes\n  - name: auth-v1-open\n    url: http://auth:9999/verify\n    routes:\n\
         \      - name: auth-v1-open\n        strip_path: true\n        paths:\n      \
         \    - /auth/v1/verify\n  - name: auth-v1-open-callback\n    url: http://auth:9999/callback\n\
@@ -88,7 +85,6 @@ data:
         \        config:\n          hide_credentials: false\n          run_on_preflight:\
         \ false\n      - name: acl\n        config:\n          hide_groups_header: true\n\
         \          allow:\n            - admin\n\n  ## Protected Dashboard - catch all\
-        \ remaining routes\n  - name: dashboard\n    _comment: 'Studio: /* -> http://studio:3000/*'\n\
-        \    url: http://studio:3000/\n    routes:\n      - name: dashboard-all\n    \
-        \    strip_path: true\n        paths:\n          - /\n    plugins:\n      - name:\
-        \ basic-auth\n        config:\n          hide_credentials: true\n"
+        \ remaining routes\n  - name: dashboard\n    _comment: 'Studio: /* -> studio-gate (kbve-gate JWT is_staff) -> http://studio:3000/*'\n\
+        \    url: http://studio-gate:5678/\n    routes:\n      - name: dashboard-all\n    \
+        \    strip_path: true\n        paths:\n          - /\n"

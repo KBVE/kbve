@@ -170,6 +170,9 @@ pub enum Input {
     PlaceItem {
         item_ref: String,
         tile: Tile,
+        /// Furniture facing 0..=3 (R cycles it during placement). 0 for props with
+        /// no rotation (campfire). Rides the placed env's `EntityDelta.sub`.
+        rot: u8,
     },
     PickupObject {
         tile: Tile,
@@ -310,6 +313,175 @@ pub struct ProjectileEvent {
     pub to: Tile,
     pub kind: String,
     pub hit: bool,
+}
+
+/// The local player took a stair: the client re-streams floor `z` and snaps to
+/// `tile`. Typed for the postcard payload path (mirrors TS `FloorChangeEvent`).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FloorChangeEvent {
+    pub z: i32,
+    pub tile: Tile,
+}
+
+/// A player picked up `count` of `item_ref`. Mirrors TS `PickupEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PickupEvent {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+/// A consumable was used, healing `heal`. Mirrors TS `ItemUsedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemUsedEvent {
+    pub item_ref: String,
+    pub heal: i32,
+}
+
+/// A resolved attack. `target_ref` is the victim's kind ref (None for players).
+/// Mirrors TS `CombatEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CombatEvent {
+    pub attacker: u32,
+    pub target: u32,
+    pub target_ref: Option<String>,
+    pub dmg: i32,
+    pub crit: bool,
+    pub died: bool,
+}
+
+/// An equip slot changed. `item_ref` None = slot cleared. Mirrors TS `EquippedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EquippedEvent {
+    pub item_ref: Option<String>,
+    pub slot: String,
+    pub attack: i32,
+    pub defense: i32,
+}
+
+/// Player stat block pushed to the HUD. Mirrors TS `StatsEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatsEvent {
+    pub level: i32,
+    pub xp: i32,
+    pub xp_next: i32,
+    pub max_hp: i32,
+    pub attack: i32,
+    pub kills: u32,
+    pub mp: i32,
+    pub max_mp: i32,
+}
+
+/// Result of a deploy/place attempt. `reason` set only on failure. Mirrors TS
+/// `ItemPlacedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemPlacedEvent {
+    pub item_ref: String,
+    pub tile: Tile,
+    pub ok: bool,
+    pub reason: Option<String>,
+}
+
+/// A status-effect change pushed to the HUD. `kind` is the `StatusKind` byte.
+/// Mirrors TS `StatusEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatusEvent {
+    pub kind: u8,
+    pub magnitude: i32,
+    pub remaining: u32,
+}
+
+/// One inventory line. Mirrors TS `InventoryItem`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InventoryItem {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+/// Full inventory snapshot. Mirrors TS `InventorySync`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InventorySync {
+    pub items: Vec<InventoryItem>,
+}
+
+/// Result of a shop buy/sell. Mirrors TS `ShopResult`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ShopResult {
+    pub action: String,
+    pub item_ref: String,
+    pub qty: u32,
+    pub ok: bool,
+    pub reason: String,
+    pub balance: u32,
+}
+
+/// One blackjack hand. Mirrors TS `BlackjackHandView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackHandView {
+    pub cards: Vec<u8>,
+    pub bet: u32,
+    pub value: u32,
+    pub soft: bool,
+    pub doubled: bool,
+    pub surrendered: bool,
+    pub done: bool,
+    pub outcome: Option<String>,
+}
+
+/// One seat at a blackjack table. Mirrors TS `BlackjackSeatView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackSeatView {
+    pub slot: u16,
+    pub username: String,
+    pub bet: u32,
+    pub insurance: u32,
+    pub hands: Vec<BlackjackHandView>,
+    pub disconnected: bool,
+}
+
+/// Full blackjack table state pushed to a seated player. Mirrors TS
+/// `BlackjackStateView`. `seed` is revealed only after the round settles.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackStateView {
+    pub table_ref: String,
+    pub phase: String,
+    pub seats: Vec<BlackjackSeatView>,
+    pub dealer_hand: Vec<u8>,
+    pub dealer_hidden: bool,
+    pub active_slot: Option<u16>,
+    pub active_hand: Option<u32>,
+    pub your_balance: u32,
+    pub deadline_ms: u32,
+    pub commitment: String,
+    pub seed: Option<String>,
+}
+
+/// One side of a trade window. Mirrors TS `TradeSide`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TradeSide {
+    pub items: Vec<InventoryItem>,
+    pub accepted: bool,
+}
+
+/// Trade window state pushed to both participants. A closed trade sends `status`
+/// with empty sides. Mirrors TS `TradeStateView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TradeStateView {
+    pub status: String,
+    pub with: u16,
+    pub you: TradeSide,
+    pub them: TradeSide,
+}
+
+/// Result of a spell cast. `reason` set only on failure. Mirrors TS `SpellResult`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SpellResult {
+    pub caster: u32,
+    pub target: Option<u32>,
+    pub spell_ref: String,
+    pub effect: String,
+    pub amount: i32,
+    pub ok: bool,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -534,6 +706,234 @@ mod tests {
         assert_eq!(back.to, Tile::new(7, 2));
         assert_eq!(back.kind, "arrow");
         assert!(back.hit);
+    }
+
+    #[test]
+    fn floor_change_event_fixture_is_stable() {
+        let ev = FloorChangeEvent {
+            z: 2,
+            tile: Tile::new(7, -3),
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "040e05");
+        let back: FloorChangeEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.z, 2);
+        assert_eq!(back.tile, Tile::new(7, -3));
+    }
+
+    #[test]
+    fn pickup_event_fixture_is_stable() {
+        let ev = PickupEvent {
+            item_ref: "arrow".into(),
+            count: 3,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "056172726f7703");
+        let back: PickupEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.item_ref, "arrow");
+        assert_eq!(back.count, 3);
+    }
+
+    #[test]
+    fn item_used_event_fixture_is_stable() {
+        let ev = ItemUsedEvent {
+            item_ref: "potion".into(),
+            heal: 12,
+        };
+        let bytes = encode_inner(&ev).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "06706f74696f6e18");
+        let back: ItemUsedEvent = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.item_ref, "potion");
+        assert_eq!(back.heal, 12);
+    }
+
+    fn hex(bytes: &[u8]) -> String {
+        bytes.iter().map(|b| format!("{b:02x}")).collect()
+    }
+
+    #[test]
+    fn combat_event_fixture_is_stable() {
+        let ev = CombatEvent {
+            attacker: 2,
+            target: 7,
+            target_ref: Some("goblin".into()),
+            dmg: 5,
+            crit: true,
+            died: false,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "02070106676f626c696e0a0100"
+        );
+    }
+
+    #[test]
+    fn equipped_event_fixture_is_stable() {
+        let ev = EquippedEvent {
+            item_ref: Some("sword".into()),
+            slot: "weapon".into(),
+            attack: 3,
+            defense: 1,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "010573776f726406776561706f6e0602"
+        );
+    }
+
+    #[test]
+    fn stats_event_fixture_is_stable() {
+        let ev = StatsEvent {
+            level: 2,
+            xp: 50,
+            xp_next: 100,
+            max_hp: 40,
+            attack: 7,
+            kills: 3,
+            mp: 10,
+            max_mp: 20,
+        };
+        assert_eq!(hex(&encode_inner(&ev).unwrap()), "0464c801500e031428");
+    }
+
+    #[test]
+    fn item_placed_event_fixture_is_stable() {
+        let ev = ItemPlacedEvent {
+            item_ref: "campfire".into(),
+            tile: Tile::new(7, -3),
+            ok: true,
+            reason: None,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "0863616d70666972650e050100"
+        );
+    }
+
+    #[test]
+    fn status_event_fixture_is_stable() {
+        let ev = StatusEvent {
+            kind: 3,
+            magnitude: -2,
+            remaining: 5,
+        };
+        assert_eq!(hex(&encode_inner(&ev).unwrap()), "030305");
+    }
+
+    #[test]
+    fn inventory_sync_fixture_is_stable() {
+        let ev = InventorySync {
+            items: vec![
+                InventoryItem {
+                    item_ref: "arrow".into(),
+                    count: 3,
+                },
+                InventoryItem {
+                    item_ref: "potion".into(),
+                    count: 1,
+                },
+            ],
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "02056172726f770306706f74696f6e01"
+        );
+    }
+
+    #[test]
+    fn shop_result_fixture_is_stable() {
+        let ev = ShopResult {
+            action: "buy".into(),
+            item_ref: "arrow".into(),
+            qty: 2,
+            ok: true,
+            reason: "".into(),
+            balance: 90,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "03627579056172726f770201005a"
+        );
+    }
+
+    #[test]
+    fn blackjack_state_view_fixture_is_stable() {
+        let ev = BlackjackStateView {
+            table_ref: "vip".into(),
+            phase: "PlayerTurn".into(),
+            seats: vec![BlackjackSeatView {
+                slot: 1,
+                username: "al".into(),
+                bet: 10,
+                insurance: 0,
+                hands: vec![BlackjackHandView {
+                    cards: vec![10, 7],
+                    bet: 10,
+                    value: 17,
+                    soft: false,
+                    doubled: false,
+                    surrendered: false,
+                    done: false,
+                    outcome: None,
+                }],
+                disconnected: false,
+            }],
+            dealer_hand: vec![9],
+            dealer_hidden: true,
+            active_slot: Some(1),
+            active_hand: Some(0),
+            your_balance: 90,
+            deadline_ms: 5000,
+            commitment: "ab".into(),
+            seed: None,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "037669700a506c617965725475726e010102616c0a0001020a070a11000000000000010901010101005a882702616200"
+        );
+    }
+
+    #[test]
+    fn trade_state_view_fixture_is_stable() {
+        let ev = TradeStateView {
+            status: "open".into(),
+            with: 2,
+            you: TradeSide {
+                items: vec![InventoryItem {
+                    item_ref: "arrow".into(),
+                    count: 3,
+                }],
+                accepted: false,
+            },
+            them: TradeSide {
+                items: vec![],
+                accepted: true,
+            },
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "046f70656e0201056172726f7703000001"
+        );
+    }
+
+    #[test]
+    fn spell_result_fixture_is_stable() {
+        let ev = SpellResult {
+            caster: 2,
+            target: Some(7),
+            spell_ref: "heal".into(),
+            effect: "heal".into(),
+            amount: 10,
+            ok: true,
+            reason: "".into(),
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "020107046865616c046865616c140100"
+        );
     }
 
     #[test]

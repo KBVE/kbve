@@ -1,8 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
 import {
+	decodeCombat,
+	decodeEquipped,
+	decodeFloorChange,
+	decodeInventory,
+	decodeItemPlaced,
+	decodeItemUsed,
+	decodePickup,
+	decodeBlackjack,
 	decodeProjectile,
 	decodeServerEvent,
+	decodeShop,
+	decodeSpell,
+	decodeStats,
+	decodeStatus,
+	decodeTrade,
 	encodeClientMessage,
 } from './postcard-wire';
 
@@ -109,6 +122,196 @@ describe('postcard Ephemeral payload decoder', () => {
 			to: { x: 7, y: 2 },
 			kind: 'arrow',
 			hit: true,
+		});
+	});
+
+	// proto.rs floor_change_event_fixture_is_stable
+	it('decodes the Rust FloorChangeEvent fixture', () => {
+		expect(decodeFloorChange(Array.from(fromHex('040e05')))).toEqual({
+			z: 2,
+			tile: { x: 7, y: -3 },
+		});
+	});
+
+	// proto.rs pickup_event_fixture_is_stable
+	it('decodes the Rust PickupEvent fixture', () => {
+		expect(decodePickup(Array.from(fromHex('056172726f7703')))).toEqual({
+			item_ref: 'arrow',
+			count: 3,
+		});
+	});
+
+	// proto.rs item_used_event_fixture_is_stable
+	it('decodes the Rust ItemUsedEvent fixture', () => {
+		expect(decodeItemUsed(Array.from(fromHex('06706f74696f6e18')))).toEqual(
+			{ item_ref: 'potion', heal: 12 },
+		);
+	});
+
+	// proto.rs combat_event_fixture_is_stable
+	it('decodes the Rust CombatEvent fixture', () => {
+		expect(
+			decodeCombat(Array.from(fromHex('02070106676f626c696e0a0100'))),
+		).toEqual({
+			attacker: 2,
+			target: 7,
+			target_ref: 'goblin',
+			dmg: 5,
+			crit: true,
+			died: false,
+		});
+	});
+
+	// proto.rs equipped_event_fixture_is_stable
+	it('decodes the Rust EquippedEvent fixture', () => {
+		expect(
+			decodeEquipped(
+				Array.from(fromHex('010573776f726406776561706f6e0602')),
+			),
+		).toEqual({
+			item_ref: 'sword',
+			slot: 'weapon',
+			attack: 3,
+			defense: 1,
+		});
+	});
+
+	// proto.rs stats_event_fixture_is_stable
+	it('decodes the Rust StatsEvent fixture', () => {
+		expect(decodeStats(Array.from(fromHex('0464c801500e031428')))).toEqual({
+			level: 2,
+			xp: 50,
+			xp_next: 100,
+			max_hp: 40,
+			attack: 7,
+			kills: 3,
+			mp: 10,
+			max_mp: 20,
+		});
+	});
+
+	// proto.rs item_placed_event_fixture_is_stable
+	it('decodes the Rust ItemPlacedEvent fixture', () => {
+		expect(
+			decodeItemPlaced(Array.from(fromHex('0863616d70666972650e050100'))),
+		).toEqual({
+			item_ref: 'campfire',
+			tile: { x: 7, y: -3 },
+			ok: true,
+			reason: undefined,
+		});
+	});
+
+	// proto.rs status_event_fixture_is_stable
+	it('decodes the Rust StatusEvent fixture', () => {
+		expect(decodeStatus(Array.from(fromHex('030305')))).toEqual({
+			kind: 3,
+			magnitude: -2,
+			remaining: 5,
+		});
+	});
+
+	// proto.rs inventory_sync_fixture_is_stable
+	it('decodes the Rust InventorySync fixture', () => {
+		expect(
+			decodeInventory(
+				Array.from(fromHex('02056172726f770306706f74696f6e01')),
+			),
+		).toEqual({
+			items: [
+				{ ref: 'arrow', count: 3 },
+				{ ref: 'potion', count: 1 },
+			],
+		});
+	});
+
+	// proto.rs shop_result_fixture_is_stable
+	it('decodes the Rust ShopResult fixture', () => {
+		expect(
+			decodeShop(Array.from(fromHex('03627579056172726f770201005a'))),
+		).toEqual({
+			action: 'buy',
+			item_ref: 'arrow',
+			qty: 2,
+			ok: true,
+			reason: '',
+			balance: 90,
+		});
+	});
+
+	// proto.rs blackjack_state_view_fixture_is_stable
+	it('decodes the Rust BlackjackStateView fixture', () => {
+		expect(
+			decodeBlackjack(
+				Array.from(
+					fromHex(
+						'037669700a506c617965725475726e010102616c0a0001020a070a11000000000000010901010101005a882702616200',
+					),
+				),
+			),
+		).toEqual({
+			table_ref: 'vip',
+			phase: 'PlayerTurn',
+			seats: [
+				{
+					slot: 1,
+					username: 'al',
+					bet: 10,
+					insurance: 0,
+					hands: [
+						{
+							cards: [10, 7],
+							bet: 10,
+							value: 17,
+							soft: false,
+							doubled: false,
+							surrendered: false,
+							done: false,
+							outcome: null,
+						},
+					],
+					disconnected: false,
+				},
+			],
+			dealer_hand: [9],
+			dealer_hidden: true,
+			active_slot: 1,
+			active_hand: 0,
+			your_balance: 90,
+			deadline_ms: 5000,
+			commitment: 'ab',
+			seed: null,
+		});
+	});
+
+	// proto.rs trade_state_view_fixture_is_stable
+	it('decodes the Rust TradeStateView fixture', () => {
+		expect(
+			decodeTrade(
+				Array.from(fromHex('046f70656e0201056172726f7703000001')),
+			),
+		).toEqual({
+			status: 'open',
+			with: 2,
+			you: { items: [{ ref: 'arrow', count: 3 }], accepted: false },
+			them: { items: [], accepted: true },
+		});
+	});
+
+	// proto.rs spell_result_fixture_is_stable
+	it('decodes the Rust SpellResult fixture', () => {
+		expect(
+			decodeSpell(
+				Array.from(fromHex('020107046865616c046865616c140100')),
+			),
+		).toEqual({
+			caster: 2,
+			target: 7,
+			spell_ref: 'heal',
+			effect: 'heal',
+			amount: 10,
+			ok: true,
+			reason: '',
 		});
 	});
 });

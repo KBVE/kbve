@@ -131,7 +131,7 @@ pub struct Deployables(pub HashMap<String, DeployableSpec>);
 /// the env object (item already removed from the inventory). `floor` pins it to
 /// the placer's dungeon level.
 #[derive(Resource, Default)]
-pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32)>);
+pub struct PendingPlacements(Vec<(proto::PlayerSlot, String, Tile, i32, u8)>);
 
 /// A player's pickup request this tick, queued for `apply_pickups` to validate
 /// (owner + range) and resolve: `(slot, target_tile, floor, player_tile)`.
@@ -754,6 +754,22 @@ pub struct HealAura {
     pub period_ticks: u32,
 }
 
+/// Facing of a placed rotatable furniture (candelabrum): 0..=3, set from the
+/// `PlaceItem` rot byte and streamed verbatim on `EntityDelta.sub` so every client
+/// renders the same orientation. Props with no rotation simply never carry it.
+#[derive(Component, Clone, Copy)]
+pub struct FurnitureRot(pub u8);
+
+/// Periodic mana restore for players within `range` (Chebyshev) of this tile,
+/// excluding the unstandable center. The mana counterpart to `HealAura`
+/// (candelabrum stand). `range >= 1` keeps it disjoint from a `HazardZone`.
+#[derive(Component, Clone, Copy)]
+pub struct ManaAura {
+    pub range: i32,
+    pub magnitude: i32,
+    pub period_ticks: u32,
+}
+
 /// Periodic burn for any entity standing ON this tile (player or NPC — reached by
 /// knockback / forced move since the tile is usually a `Blocker`).
 #[derive(Component, Clone, Copy)]
@@ -768,6 +784,7 @@ pub struct HazardZone {
 pub struct EnvOpts {
     pub blocker: bool,
     pub heal_aura: Option<HealAura>,
+    pub mana_aura: Option<ManaAura>,
     pub hazard: Option<HazardZone>,
     pub floor: i32,
 }
@@ -798,6 +815,9 @@ pub fn spawn_env_object(
         e.insert(Blocker);
     }
     if let Some(a) = opts.heal_aura {
+        e.insert(a);
+    }
+    if let Some(a) = opts.mana_aura {
         e.insert(a);
     }
     if let Some(h) = opts.hazard {
@@ -927,6 +947,31 @@ fn env_heal_aura(
             let d = ppos.tile.chebyshev(apos.tile);
             if d >= 1 && d <= aura.range {
                 hp.hp = (hp.hp + aura.magnitude).min(hp.max_hp);
+            }
+        }
+    }
+}
+
+/// Restore mana to players standing in a candelabrum's aura ring (range >= 1,
+/// same floor). The mana counterpart to `env_heal_aura`.
+#[allow(clippy::type_complexity)]
+fn env_mana_aura(
+    clock: Res<SimClock>,
+    auras: Query<(&ManaAura, &GridPos, Option<&Floor>)>,
+    mut players: Query<(&mut Mana, &GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+) {
+    for (aura, apos, afloor) in auras.iter() {
+        if aura.period_ticks == 0 || !clock.tick.is_multiple_of(aura.period_ticks) {
+            continue;
+        }
+        let az = afloor.map(|f| f.0).unwrap_or(0);
+        for (mut mana, ppos, pfloor) in players.iter_mut() {
+            if pfloor.map(|f| f.0).unwrap_or(0) != az || mana.mp >= mana.max_mp {
+                continue;
+            }
+            let d = ppos.tile.chebyshev(apos.tile);
+            if d >= 1 && d <= aura.range {
+                mana.mp = (mana.mp + aura.magnitude).min(mana.max_mp);
             }
         }
     }
@@ -1063,6 +1108,7 @@ pub fn build_app(
                 stair_system,
                 env_hazard_burn,
                 env_heal_aura,
+                env_mana_aura,
                 tick_status_effects,
                 respawn_players,
                 regen_players,
@@ -1416,15 +1462,22 @@ fn drain_inputs(
                         defense.0,
                     );
                 }
-                Input::PlaceItem { item_ref, tile } => {
+                Input::PlaceItem {
+                    item_ref,
+                    tile,
+                    rot,
+                } => {
                     let placed =
                         place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
                     match placed {
                         Ok(()) => {
-                            deploy
-                                .placements
-                                .0
-                                .push((slot.0, item_ref.clone(), *tile, z));
+                            deploy.placements.0.push((
+                                slot.0,
+                                item_ref.clone(),
+                                *tile,
+                                z,
+                                *rot & 0x03,
+                            ));
                             send_inventory(&bcast, slot.0, &inv);
                             send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
                         }
@@ -1492,9 +1545,11 @@ fn use_item(
         status.apply(b.at(now));
         send_status(bcast, slot, b.kind, b.magnitude, b.duration_ticks);
     }
-    let payload = json!({ "item_ref": item_ref, "heal": heal_amt })
-        .to_string()
-        .into_bytes();
+    let event = proto::ItemUsedEvent {
+        item_ref: item_ref.to_string(),
+        heal: heal_amt,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_ITEM_USED,
         to: slot,
@@ -1569,16 +1624,15 @@ pub(crate) fn resolve_attack_hit(
     hp.hp -= damage;
     let died = hp.hp <= 0;
     let drop_tile = mob_pos.tile;
-    let payload = json!({
-        "attacker": player_entity.index_u32(),
-        "target": target_entity.index_u32(),
-        "target_ref": registry.ref_of(kind.0),
-        "dmg": damage,
-        "crit": crit,
-        "died": died,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::CombatEvent {
+        attacker: player_entity.index_u32(),
+        target: target_entity.index_u32(),
+        target_ref: registry.ref_of(kind.0).map(|s| s.to_string()),
+        dmg: damage,
+        crit,
+        died,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_COMBAT,
         to: slot,
@@ -1763,12 +1817,11 @@ fn apply_actions(
                 }
                 inv.add(&item_ref, count);
                 commands.entity(target_entity).despawn();
-                let pickup = json!({
-                    "item_ref": item_ref,
-                    "count": count,
-                })
-                .to_string()
-                .into_bytes();
+                let event = proto::PickupEvent {
+                    item_ref: item_ref.to_string(),
+                    count,
+                };
+                let pickup = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PICKUP,
                     to: proto::PlayerSlot(slot.0),
@@ -1884,14 +1937,13 @@ fn send_equipped(
     attack: i32,
     defense: i32,
 ) {
-    let payload = json!({
-        "item_ref": item_ref,
-        "slot": equip_slot,
-        "attack": attack,
-        "defense": defense,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::EquippedEvent {
+        item_ref: item_ref.map(|s| s.to_string()),
+        slot: equip_slot.to_string(),
+        attack,
+        defense,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_EQUIPPED,
         to: slot,
@@ -1911,18 +1963,17 @@ fn send_stats(
     mp: i32,
     max_mp: i32,
 ) {
-    let payload = json!({
-        "level": level,
-        "xp": xp,
-        "xp_next": xp_to_next(level),
-        "max_hp": max_hp,
-        "attack": attack,
-        "kills": kills,
-        "mp": mp,
-        "max_mp": max_mp,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::StatsEvent {
+        level,
+        xp,
+        xp_next: xp_to_next(level),
+        max_hp,
+        attack,
+        kills,
+        mp,
+        max_mp,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_STATS,
         to: slot,
@@ -1954,12 +2005,16 @@ pub(crate) fn broadcast_player_stats(
 }
 
 pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
-    let items: Vec<_> = inv
+    let items = inv
         .slots
         .iter()
-        .map(|(r, c)| json!({ "ref": r, "count": c }))
+        .map(|(r, c)| proto::InventoryItem {
+            item_ref: r.clone(),
+            count: *c,
+        })
         .collect();
-    let payload = json!({ "items": items }).to_string().into_bytes();
+    let event = proto::InventorySync { items };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_INVENTORY,
         to: slot,
@@ -2008,14 +2063,13 @@ fn send_item_placed(
     ok: bool,
     reason: Option<&'static str>,
 ) {
-    let payload = json!({
-        "item_ref": item_ref,
-        "tile": { "x": tile.x, "y": tile.y },
-        "ok": ok,
-        "reason": reason,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::ItemPlacedEvent {
+        item_ref: item_ref.to_string(),
+        tile,
+        ok,
+        reason: reason.map(|s| s.to_string()),
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_ITEM_PLACED,
         to: slot,
@@ -2036,7 +2090,7 @@ fn apply_placements(
     mut commands: Commands,
 ) {
     let mut changed = false;
-    for (slot, item_ref, tile, z) in placements.0.drain(..) {
+    for (slot, item_ref, tile, z, rot) in placements.0.drain(..) {
         let Some(spec) = deployables.0.get(&item_ref) else {
             continue;
         };
@@ -2044,10 +2098,13 @@ fn apply_placements(
         opts.floor = z;
         let blocker = opts.blocker;
         if let Some(eid) = spawn_env_object(&mut commands, &registry, &spec.env_ref, tile, opts) {
-            commands.entity(eid).insert(PlacedBy {
-                owner: slot,
-                kit_ref: item_ref.clone(),
-            });
+            commands.entity(eid).insert((
+                PlacedBy {
+                    owner: slot,
+                    kit_ref: item_ref.clone(),
+                },
+                FurnitureRot(rot),
+            ));
             if blocker {
                 map.block_tile_z(z, tile);
             }
@@ -2056,7 +2113,7 @@ fn apply_placements(
                 x: tile.x,
                 y: tile.y,
                 floor: z,
-                sub: 0,
+                sub: rot,
             });
             changed = true;
         }
@@ -2259,15 +2316,15 @@ fn hostile_ai(
                 status.apply(p.at(clock.tick));
                 send_status(&bcast, slot.0, p.kind, p.magnitude, p.duration_ticks);
             }
-            let payload = json!({
-                "attacker": mob.index_u32(),
-                "target": player_entity.index_u32(),
-                "target_ref": "player",
-                "dmg": dmg,
-                "died": died,
-            })
-            .to_string()
-            .into_bytes();
+            let event = proto::CombatEvent {
+                attacker: mob.index_u32(),
+                target: player_entity.index_u32(),
+                target_ref: Some("player".to_string()),
+                dmg,
+                crit: false,
+                died,
+            };
+            let payload = proto::encode_inner(&event).unwrap_or_default();
             let _ = bcast.tx.send(ServerEvent::Ephemeral {
                 kind: proto::EPHEMERAL_COMBAT,
                 to: slot.0,
@@ -2302,13 +2359,12 @@ fn send_status(
     magnitude: i32,
     remaining: u32,
 ) {
-    let payload = json!({
-        "kind": kind as u8,
-        "magnitude": magnitude,
-        "remaining": remaining,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::StatusEvent {
+        kind: kind as u8,
+        magnitude,
+        remaining,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_STATUS,
         to: slot,
@@ -2883,12 +2939,11 @@ fn stair_system(
         // the player must leave it before another transition can fire.
         commands.entity(entity).insert(StairGrace(link.dest_tile));
 
-        let payload = json!({
-            "z": link.dest_z,
-            "tile": { "x": link.dest_tile.x, "y": link.dest_tile.y },
-        })
-        .to_string()
-        .into_bytes();
+        let event = proto::FloorChangeEvent {
+            z: link.dest_z,
+            tile: link.dest_tile,
+        };
+        let payload = proto::encode_inner(&event).unwrap_or_default();
         let _ = bcast.tx.send(ServerEvent::Ephemeral {
             kind: proto::EPHEMERAL_FLOOR,
             to: slot.0,
@@ -2915,6 +2970,7 @@ fn emit_snapshot(
         Option<&PlacedBy>,
         Option<&TreeState>,
         Option<&BushState>,
+        Option<&FurnitureRot>,
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -2925,10 +2981,26 @@ fn emit_snapshot(
     let entities: Vec<proto::EntityDelta> = q
         .iter()
         .map(
-            |(entity, kind, slot, pos, mv, speed, hp, status, floor, fm, placed, tree, bush)| {
-                let sub = match (tree, bush) {
-                    (Some(t), _) => t.sub(),
-                    (_, Some(b)) => b.sub(),
+            |(
+                entity,
+                kind,
+                slot,
+                pos,
+                mv,
+                speed,
+                hp,
+                status,
+                floor,
+                fm,
+                placed,
+                tree,
+                bush,
+                furniture,
+            )| {
+                let sub = match (tree, bush, furniture) {
+                    (Some(t), _, _) => t.sub(),
+                    (_, Some(b), _) => b.sub(),
+                    (_, _, Some(f)) => f.0,
                     _ => mv
                         .filter(|m| m.target.is_some())
                         .map(|m| {
@@ -3307,6 +3379,7 @@ mod tests {
             "test-kit".to_string(),
             tile,
             0,
+            0,
         ));
         app.update();
         let placed = prx.try_recv().expect("placement snapshot sent");
@@ -3400,6 +3473,37 @@ mod tests {
         }
         let hp = app.world().get::<Health>(player).unwrap().hp;
         assert_eq!(hp, 10 + 3 * 5, "aura healed 3/tick for 5 ticks");
+    }
+
+    #[test]
+    fn env_mana_aura_restores_adjacent_player() {
+        let (mut app, _rx, _tx, _roster) = harness(0x333);
+        let center = Tile::new(10, 10);
+        let adj = Tile::new(11, 10); // Chebyshev distance 1 from center.
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(adj),
+                MoveTarget::default(),
+                MoveSpeed { ticks_per_tile: 4 },
+                Mana { mp: 5, max_mp: 100 },
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut().spawn((
+            ManaAura {
+                range: 2,
+                magnitude: 2,
+                period_ticks: 1,
+            },
+            GridPos::at(center),
+        ));
+        for _ in 0..5 {
+            app.update();
+        }
+        let mp = app.world().get::<Mana>(player).unwrap().mp;
+        assert_eq!(mp, 5 + 2 * 5, "aura restored 2 MP/tick for 5 ticks");
     }
 
     #[test]
@@ -3686,8 +3790,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_COMBAT
             {
-                let t = String::from_utf8(payload).unwrap();
-                if t.contains("\"target_ref\":\"player\"") {
+                let ev: proto::CombatEvent = proto::decode_inner(&payload).unwrap();
+                if ev.target_ref.as_deref() == Some("player") {
                     hit = true;
                 }
             }
@@ -3720,8 +3824,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_COMBAT
             {
-                let text = String::from_utf8(payload).unwrap();
-                if text.contains("\"target_ref\":\"player\"") {
+                let ev: proto::CombatEvent = proto::decode_inner(&payload).unwrap();
+                if ev.target_ref.as_deref() == Some("player") {
                     saw_player_hit = true;
                 }
             }
@@ -3789,8 +3893,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_STATS
             {
-                let t = String::from_utf8(payload).unwrap();
-                if t.contains("\"kills\":1") {
+                let ev: proto::StatsEvent = proto::decode_inner(&payload).unwrap();
+                if ev.kills == 1 {
                     saw = true;
                 }
             }
@@ -4067,8 +4171,8 @@ mod tests {
                 && kind == proto::EPHEMERAL_STATS
             {
                 assert_eq!(to, slot);
-                let text = String::from_utf8(payload).unwrap();
-                if text.contains("\"level\":2") {
+                let ev: proto::StatsEvent = proto::decode_inner(&payload).unwrap();
+                if ev.level == 2 {
                     saw_stats = true;
                 }
             }
@@ -4123,18 +4227,22 @@ mod tests {
             app.update();
         }
 
-        let mut restored = None;
+        let mut restored: Option<proto::InventorySync> = None;
         while let Ok(evt) = rx.try_recv() {
             if let ServerEvent::Ephemeral { kind, to, payload } = evt
                 && kind == proto::EPHEMERAL_INVENTORY
             {
                 assert_eq!(to, slot2);
-                restored = Some(String::from_utf8(payload).unwrap());
+                restored = Some(proto::decode_inner(&payload).unwrap());
             }
         }
-        let payload = restored.expect("no inventory restore on rejoin");
-        assert!(payload.contains("potion"), "payload: {payload}");
-        assert!(payload.contains("3"), "payload: {payload}");
+        let inv = restored.expect("no inventory restore on rejoin");
+        let potion = inv
+            .items
+            .iter()
+            .find(|i| i.item_ref == "potion")
+            .expect("potion in inventory");
+        assert_eq!(potion.count, 3);
     }
 
     #[test]
@@ -4208,18 +4316,22 @@ mod tests {
             app.update();
         }
 
-        let mut inventory_payload = None;
+        let mut inventory_payload: Option<proto::InventorySync> = None;
         while let Ok(evt) = rx.try_recv() {
             if let ServerEvent::Ephemeral { kind, to, payload } = evt
                 && kind == proto::EPHEMERAL_INVENTORY
             {
                 assert_eq!(to, slot);
-                inventory_payload = Some(String::from_utf8(payload).unwrap());
+                inventory_payload = Some(proto::decode_inner(&payload).unwrap());
             }
         }
-        let payload = inventory_payload.expect("no inventory sync");
-        assert!(payload.contains("potion"), "payload: {payload}");
-        assert!(payload.contains("2"), "payload: {payload}");
+        let inv = inventory_payload.expect("no inventory sync");
+        let potion = inv
+            .items
+            .iter()
+            .find(|i| i.item_ref == "potion")
+            .expect("potion in inventory");
+        assert_eq!(potion.count, 2);
     }
 
     #[test]

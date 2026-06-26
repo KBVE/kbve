@@ -111,6 +111,15 @@ export interface CreatureDef {
 	originY: number;
 	/** Screen px the body floats above its ground tile (shadow stays grounded). */
 	hover?: number;
+	/**
+	 * Hop locomotion: peak screen-px lift of the per-tile jump arc. When set, a
+	 * MOVING creature is raised along a sine arc that completes once per tile
+	 * travelled (lands on tile centers), so it bounds tile-to-tile instead of
+	 * gliding flat — for creatures that jump rather than walk (goblin). A separate
+	 * `shadow` stays grounded under the arc; a baked-in shadow rides with the body,
+	 * so keep the height modest there.
+	 */
+	hopHeight?: number;
 	/** Added to the body's sort depth so flyers draw over ground props/trees. */
 	depthBias?: number;
 	/**

@@ -33,6 +33,7 @@ export interface SceneInputDeps {
 	useInventorySlot(idx: number): void;
 	castSpellSlot(idx: number): void;
 	exitPlacement(): void;
+	rotatePlacement(): void;
 	commitPlacement(tile: TileXY): void;
 	updatePlaceGhost(tile: TileXY): void;
 	fireBowAt(aim: TileXY, target?: number): void;
@@ -73,6 +74,11 @@ export function setupInput(
 		} else if (ev.key === 'i' || ev.key === 'I') {
 			deps.inv.open = !deps.inv.open;
 			emitInventoryOpen(deps.inv.open);
+		} else if (ev.key === 'r' || ev.key === 'R') {
+			if (deps.inv.placingRef) {
+				ev.preventDefault();
+				deps.rotatePlacement();
+			}
 		} else if (ev.key === 'Escape') {
 			if (deps.inv.placingRef) {
 				deps.exitPlacement();

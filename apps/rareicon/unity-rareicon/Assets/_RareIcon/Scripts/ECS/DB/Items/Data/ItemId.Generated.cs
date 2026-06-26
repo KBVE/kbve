@@ -187,5 +187,6 @@ namespace RareIcon
         GoldPlatedShield = 560,  // gold-plated-shield
         NeedleArrow = 561,  // needle-arrow
         StoneheadArrow = 562,  // stonehead-arrow
+        CandelabrumStand = 563,  // candelabrum-stand
     }
 }

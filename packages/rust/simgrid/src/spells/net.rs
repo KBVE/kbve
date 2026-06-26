@@ -1,5 +1,3 @@
-use serde_json::json;
-
 use crate::proto::{self, ServerEvent};
 use crate::sim::Outbound;
 
@@ -15,17 +13,16 @@ pub(crate) fn send_spell_result(
     ok: bool,
     reason: &str,
 ) {
-    let payload = json!({
-        "caster": caster,
-        "target": target,
-        "spell_ref": spell_ref,
-        "effect": effect,
-        "amount": amount,
-        "ok": ok,
-        "reason": reason,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::SpellResult {
+        caster,
+        target,
+        spell_ref: spell_ref.to_string(),
+        effect: effect.to_string(),
+        amount,
+        ok,
+        reason: reason.to_string(),
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_SPELL,
         to: slot,

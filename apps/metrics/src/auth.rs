@@ -19,6 +19,8 @@ impl StaffAuth {
                     .filter(|s| !s.is_empty());
                 let schema =
                     std::env::var("METRICS_STAFF_SCHEMA").unwrap_or_else(|_| "forum".into());
+                let rpc =
+                    std::env::var("METRICS_STAFF_RPC").unwrap_or_else(|_| "is_staff".into());
                 let ttl = std::env::var("METRICS_STAFF_TTL_SECS")
                     .ok()
                     .and_then(|v| v.parse().ok())
@@ -28,6 +30,7 @@ impl StaffAuth {
                     jwt_secret.clone(),
                     apikey,
                     schema,
+                    &rpc,
                     ttl,
                 ))
             }

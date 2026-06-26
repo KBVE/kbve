@@ -295,10 +295,7 @@
               "cache": true,
               "options": {
                 "cwd": "apps/cryptothrone/astro-cryptothrone",
-                "commands": [
-                  "nx exec -- vitest run --coverage --config vitest.config.ts"
-                ],
-                "parallel": false
+                "command": "vitest run --coverage --config vitest.config.ts"
               },
               "configurations": {},
               "parallelism": true
@@ -1205,6 +1202,195 @@
             "chisel"
           ],
           "implicitDependencies": []
+        }
+      },
+      "@kbve/rentearth-web": {
+        "name": "@kbve/rentearth-web",
+        "type": "lib",
+        "data": {
+          "root": "apps/rentearth/axum-rentearth/web",
+          "projectType": "library",
+          "metadata": {},
+          "targets": {
+            "build": {
+              "cache": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Run Vite build",
+                "help": {
+                  "command": "pnpm exec vite build --help",
+                  "example": {
+                    "options": {
+                      "sourcemap": true,
+                      "manifest": "manifest.json"
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "continuous": true,
+              "dependsOn": [
+                "build"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects @kbve/rentearth-web --includeDependencies -- pnpm exec nx build-deps @kbve/rentearth-web"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "@kbve/rentearth-web",
+          "implicitDependencies": [],
+          "tags": []
         }
       },
       "axum-discordsh-e2e": {
@@ -3869,6 +4055,97 @@
           "implicitDependencies": []
         }
       },
+      "axum-rentearth": {
+        "name": "axum-rentearth",
+        "type": "app",
+        "data": {
+          "root": "apps/rentearth/axum-rentearth",
+          "name": "axum-rentearth",
+          "release": {
+            "version": {
+              "versionActions": "@monodon/rust/src/release/version-actions"
+            }
+          },
+          "targets": {
+            "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build --release -p axum-rentearth"
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-build": {
+              "executor": "nx:run-commands",
+              "outputs": [
+                "{projectRoot}/web/dist"
+              ],
+              "options": {
+                "commands": [
+                  "npm run build"
+                ],
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "web-dev": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "npm run dev"
+                ],
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "STATIC_DIR=apps/rentearth/axum-rentearth/web/dist cargo run -p axum-rentearth"
+                ],
+                "cwd": "",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "docker buildx build --platform linux/amd64 -f apps/rentearth/axum-rentearth/Dockerfile -t kbve/axum-rentearth:latest --load ."
+                ],
+                "cwd": ""
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/rentearth/axum-rentearth/src",
+          "tags": [],
+          "implicitDependencies": []
+        }
+      },
       "bevy_items": {
         "name": "bevy_items",
         "type": "lib",
@@ -4859,6 +5136,242 @@
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_supa/src",
           "tags": [],
+          "implicitDependencies": []
+        }
+      },
+      "chuck-launcher": {
+        "name": "chuck-launcher",
+        "type": "app",
+        "data": {
+          "root": "apps/chuckrpg/chuck-launcher",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/chuck-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+                ],
+                "cwd": "apps/chuckrpg/chuck-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/chuck-launcher",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1422 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
+                ],
+                "cwd": "apps/chuckrpg/chuck-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "scriptContent": "vite preview",
+                "runCommand": "pnpm run preview"
+              },
+              "options": {
+                "script": "preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/chuckrpg/chuck-launcher",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects chuck-launcher --includeDependencies -- pnpm exec nx build-deps chuck-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/chuckrpg/chuck-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "tauri": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "tauri",
+                "runCommand": "pnpm run tauri"
+              },
+              "options": {
+                "script": "tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev:web": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "lsof -ti:1422 | xargs kill 2>/dev/null; pnpm dev"
+                ],
+                "cwd": "apps/chuckrpg/chuck-launcher"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:rust": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p chuck-launcher"
+                ],
+                "cwd": "apps/chuckrpg/chuck-launcher/src-tauri"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build:tauri": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+                ],
+                "cwd": "apps/chuckrpg/chuck-launcher"
+              },
+              "configurations": {
+                "production": {
+                  "commands": [
+                    "export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+                  ],
+                  "cwd": "apps/chuckrpg/chuck-launcher"
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "chuck-launcher",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/chuckrpg/chuck-launcher",
+          "tags": [
+            "npm:private"
+          ],
           "implicitDependencies": []
         }
       },
@@ -16798,6 +17311,7 @@
       ],
       "bevy_pathfinder": [],
       "chisel-ubuntu-axum": [],
+      "@kbve/rentearth-web": [],
       "axum-discordsh-e2e": [
         {
           "source": "axum-discordsh-e2e",
@@ -16909,6 +17423,13 @@
           "type": "static"
         }
       ],
+      "axum-rentearth": [
+        {
+          "source": "axum-rentearth",
+          "target": "jedi",
+          "type": "static"
+        }
+      ],
       "bevy_items": [
         {
           "source": "bevy_items",
@@ -17007,6 +17528,7 @@
       ],
       "bevy_chat": [],
       "bevy_supa": [],
+      "chuck-launcher": [],
       "discordsh-bot": [
         {
           "source": "discordsh-bot",

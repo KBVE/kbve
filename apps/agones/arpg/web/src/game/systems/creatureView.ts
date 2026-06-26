@@ -44,14 +44,35 @@ export function tickCreatureInterp<R extends EntityRefs>(
 		if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
 		const s = sampleAt(refs.interp, renderTime);
 		if (!s) continue;
+		const moving =
+			s.moving &&
+			(Math.abs(s.vx) > MOVE_EPS || Math.abs(s.vy) > MOVE_EPS);
 		const p = worldToScreen(s.x, s.y);
 		const def = refs.creature.def;
 		const groundY = p.y + 8;
 		const baseDepth =
 			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y));
+		// Hop locomotion: lift the body along a sine arc that completes once per
+		// tile travelled, so the creature bounds tile-to-tile (lands on centers)
+		// instead of gliding. Phase accrues from world-distance moved, so it's
+		// independent of the anim/tick rate. The shadow stays grounded (below).
+		let hopLift = 0;
+		if (def.hopHeight) {
+			if (refs.hopLastX !== undefined && refs.hopLastY !== undefined) {
+				refs.hopPhase =
+					(refs.hopPhase ?? 0) +
+					Math.hypot(s.x - refs.hopLastX, s.y - refs.hopLastY);
+			}
+			refs.hopLastX = s.x;
+			refs.hopLastY = s.y;
+			if (moving) {
+				const frac = refs.hopPhase! - Math.floor(refs.hopPhase!);
+				hopLift = Math.sin(Math.PI * frac) * def.hopHeight;
+			}
+		}
 		// Flyers hover above their ground tile (the shadow stays grounded) and sort
 		// into a sky band so they draw over trees/props instead of being occluded.
-		refs.sprite.setPosition(p.x, groundY - (def.hover ?? 0));
+		refs.sprite.setPosition(p.x, groundY - (def.hover ?? 0) - hopLift);
 		refs.sprite.setDepth(baseDepth + (def.depthBias ?? 0));
 		if (refs.shadow) {
 			refs.shadow.setPosition(p.x, groundY);
@@ -68,9 +89,6 @@ export function tickCreatureInterp<R extends EntityRefs>(
 		placeNameplate(refs);
 		const st = refs.creature.state;
 		if (st !== 'Idle' && st !== 'Walking' && st !== 'Running') continue;
-		const moving =
-			s.moving &&
-			(Math.abs(s.vx) > MOVE_EPS || Math.abs(s.vy) > MOVE_EPS);
 		if (moving) {
 			refs.lastMoveAt = scene.time.now;
 			setCreaturePose(refs.sprite, refs.creature, 'Walking', {

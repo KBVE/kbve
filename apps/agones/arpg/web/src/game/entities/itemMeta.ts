@@ -14,6 +14,9 @@ export interface ItemMeta {
 	img?: string;
 	rarity?: string;
 	consumable?: boolean;
+	/** True when the item has real atlas art (not the "?" placeholder slot). The
+	 * item codex shows only these. */
+	hasImg?: boolean;
 }
 
 const RARITY_COLOR: Record<string, string> = {
@@ -44,6 +47,7 @@ function buildItemMeta(): Map<string, ItemMeta> {
 			img: it.img,
 			rarity: it.rarity,
 			consumable: it.consumable,
+			hasImg: it.has_img === true,
 		});
 	}
 	return map;

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-06-25T09:13:51.298Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-06-26T09:14:23.778Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **65** items
+    **67** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **5** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **438** items
+    **457** items
   </Card>
 </CardGrid>
 
@@ -55,14 +55,14 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 65
+    "Theory" : 67
     "AI" : 1
     "Todo" : 15
     "Backlog" : 5
     "Error" : 28
     "Staging" : 3
     "Review" : 5
-    "Done" : 438
+    "Done" : 457
 ```
 
 ```mermaid
@@ -70,8 +70,8 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 23
     "Blocked (Error+Support)" : 28
-    "Done" : 438
-    "Planning (Theory+AI+Backlog)" : 71
+    "Done" : 457
+    "Planning (Theory+AI+Backlog)" : 73
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>65</strong>"]
+    Theory["Theory<br/><strong>67</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>5</strong>"]
     Review --> Done
-    Done["Done<br/><strong>438</strong>"]
+    Done["Done<br/><strong>457</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 403
-    "Issue" : 157
+    "Pull Request" : 422
+    "Issue" : 159
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 403 |
-| atomic | 202 |
-| dev→main | 179 |
-| enhancement | 102 |
+| auto-pr | 422 |
+| atomic | 214 |
+| dev→main | 186 |
+| enhancement | 104 |
 | bug | 36 |
 | todo | 33 |
 | 0 | 19 |
@@ -138,7 +138,7 @@ pie showData
   </TabItem>
 </Tabs>
 
-### Theory (65)
+### Theory (67)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -207,6 +207,8 @@ pie showData
 | [#13179](https://github.com/KBVE/kbve/issues/13179) | feat: Automate GitHub → Forgejo repository mirroring for kbve/kbve | — | — | enhancement |
 | [#13192](https://github.com/KBVE/kbve/issues/13192) | [Design / Future] ROWS multi-zone scaling — Agones-as-dispatcher, Option A (gene | — | — | enhancement |
 | [#13194](https://github.com/KBVE/kbve/issues/13194) | [ROWS] Fix player-count reporting + auto spin-down of empty zone servers | — | — | enhancement |
+| [#13350](https://github.com/KBVE/kbve/issues/13350) | ROWS deployment hardening: securityContext, KEDA decision, build-version cache,  | — | — | enhancement |
+| [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
 
 ### AI (1)
 
@@ -293,9 +295,9 @@ pie showData
 | [#13222](https://github.com/KBVE/kbve/pull/13222) | Atomic: chuck v0.3.36 post-publish sync | — | — | auto-pr, atomic |
 | [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
-| [#13322](https://github.com/KBVE/kbve/pull/13322) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#13382](https://github.com/KBVE/kbve/pull/13382) | Release: 7 features, 2 fixes, 3 refactors, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (438)
+### Done (457)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -314,19 +316,6 @@ pie showData
 | [#9230](https://github.com/KBVE/kbve/issues/9230) | [CHUCKRPG] [UNREAL] Version Control from Monorepo | — | h0lybyte | 1, ue |
 | [#10560](https://github.com/KBVE/kbve/issues/10560) | chore(redis): evaluate Bitnami chart bump 21.2.13 -&gt; 25.x | — | — | update |
 | [#11138](https://github.com/KBVE/kbve/issues/11138) | [Plan] Agones-managed Factorio dedicated server | — | — | enhancement |
-| [#12140](https://github.com/KBVE/kbve/pull/12140) | Release: 3 features, 1 fix, 3 perfs, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#12145](https://github.com/KBVE/kbve/pull/12145) | Release: 1 feature, 3 fixes, 1 perf, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#12146](https://github.com/KBVE/kbve/pull/12146) | Atomic: cryptothrone v0.1.8 post-publish sync | — | — | auto-pr, atomic |
-| [#12151](https://github.com/KBVE/kbve/pull/12151) | Release: 4 features, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#12158](https://github.com/KBVE/kbve/pull/12158) | Release: 2 features, 2 fixes, 1 perf, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#12159](https://github.com/KBVE/kbve/pull/12159) | Atomic: discordsh-bot v0.1.19 post-publish sync | — | — | auto-pr, atomic |
-| [#12160](https://github.com/KBVE/kbve/pull/12160) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
-| [#12161](https://github.com/KBVE/kbve/pull/12161) | Atomic: cryptothrone v0.1.9 post-publish sync | — | — | auto-pr, atomic |
-| [#12162](https://github.com/KBVE/kbve/pull/12162) | Release: 9 features, 2 fixes, 1 perf, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#12169](https://github.com/KBVE/kbve/pull/12169) | chore(dashboard): daily sync — 2026-06-11 | — | — | auto-pr |
-| [#12172](https://github.com/KBVE/kbve/pull/12172) | Release: 1 feature, 1 fix, 1 CI, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#12175](https://github.com/KBVE/kbve/pull/12175) | Atomic: rareicon v0.1.9 post-publish sync | — | — | auto-pr, atomic |
-| [#12179](https://github.com/KBVE/kbve/pull/12179) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
 | [#12180](https://github.com/KBVE/kbve/pull/12180) | Release: 3 features, 1 fix → Main | — | — | auto-pr, dev→main |
 | [#12184](https://github.com/KBVE/kbve/pull/12184) | Release: 10 features, 2 fixes, 1 doc, 2 CI, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#12193](https://github.com/KBVE/kbve/pull/12193) | chore(dashboard): daily sync — 2026-06-12 | — | — | auto-pr |
@@ -736,7 +725,39 @@ pie showData
 | [#13319](https://github.com/KBVE/kbve/pull/13319) | Atomic: chuck beta 0344 | — | — | auto-pr, atomic |
 | [#13320](https://github.com/KBVE/kbve/pull/13320) | Release: 3 features, 3 chores → Main | — | — | auto-pr, dev→main |
 | [#13321](https://github.com/KBVE/kbve/pull/13321) | Atomic: chuck v0.3.44 post-publish sync | — | — | auto-pr, atomic |
+| [#13322](https://github.com/KBVE/kbve/pull/13322) | Release: 1 fix, 4 chores → Main | — | — | auto-pr, dev→main |
 | [#13323](https://github.com/KBVE/kbve/pull/13323) | Atomic: arpg-server v0.1.9 post-publish sync | — | — | auto-pr, atomic |
+| [#13324](https://github.com/KBVE/kbve/pull/13324) | Atomic: rows v0.1.31 post-publish sync | — | — | auto-pr, atomic |
+| [#13325](https://github.com/KBVE/kbve/pull/13325) | chore(dashboard): daily sync — 2026-06-25 | — | — | auto-pr |
+| [#13326](https://github.com/KBVE/kbve/pull/13326) | Atomic: axum-chuckrpg v0.1.9 post-publish sync | — | — | auto-pr, atomic |
+| [#13327](https://github.com/KBVE/kbve/pull/13327) | Release: 2 features, 2 refactors, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13328](https://github.com/KBVE/kbve/pull/13328) | Atomic: arpg-web v0.1.9 post-publish sync | — | — | auto-pr, atomic |
+| [#13329](https://github.com/KBVE/kbve/pull/13329) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#13330](https://github.com/KBVE/kbve/pull/13330) | Release: 3 features, 3 fixes, 1 build, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#13333](https://github.com/KBVE/kbve/pull/13333) | Release: 4 features, 2 fixes, 2 refactors, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#13335](https://github.com/KBVE/kbve/pull/13335) | Atomic: arpg-server v0.1.10 post-publish sync | — | — | auto-pr, atomic |
+| [#13336](https://github.com/KBVE/kbve/pull/13336) | Atomic: arpg-web v0.1.10 post-publish sync | — | — | auto-pr, atomic |
+| [#13338](https://github.com/KBVE/kbve/pull/13338) | Atomic: axum-kbve v1.0.213 post-publish sync | — | — | auto-pr, atomic |
+| [#13339](https://github.com/KBVE/kbve/pull/13339) | Atomic: axum-kbve v1.0.214 post-publish sync | — | — | auto-pr, atomic |
+| [#13340](https://github.com/KBVE/kbve/pull/13340) | Release: 6 features, 3 fixes, 3 CI, 1 refactor, 4 chores → Main | — | — | auto-pr, dev→main |
+| [#13345](https://github.com/KBVE/kbve/pull/13345) | Atomic: arpg-server v0.1.11 post-publish sync | — | — | auto-pr, atomic |
+| [#13346](https://github.com/KBVE/kbve/pull/13346) | Release: 2 features, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#13347](https://github.com/KBVE/kbve/pull/13347) | Atomic: arpg-web v0.1.11 post-publish sync | — | — | auto-pr, atomic |
+| [#13349](https://github.com/KBVE/kbve/pull/13349) | Release: 14 features, 8 fixes, 4 perfs, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13357](https://github.com/KBVE/kbve/pull/13357) | Atomic: arpg-server v0.1.12 post-publish sync | — | — | auto-pr, atomic |
+| [#13358](https://github.com/KBVE/kbve/pull/13358) | Release: 2 features, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13361](https://github.com/KBVE/kbve/pull/13361) | Atomic: arpg-web v0.1.12 post-publish sync | — | — | auto-pr, atomic |
+| [#13362](https://github.com/KBVE/kbve/pull/13362) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13365](https://github.com/KBVE/kbve/pull/13365) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13366](https://github.com/KBVE/kbve/pull/13366) | Atomic: arpg-web v0.1.13 post-publish sync | — | — | auto-pr, atomic |
+| [#13367](https://github.com/KBVE/kbve/pull/13367) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#13368](https://github.com/KBVE/kbve/pull/13368) | Atomic: arpg-server v0.1.13 post-publish sync | — | — | auto-pr, atomic |
+| [#13370](https://github.com/KBVE/kbve/pull/13370) | Release: 1 feature, 1 perf → Main | — | — | auto-pr, dev→main |
+| [#13372](https://github.com/KBVE/kbve/pull/13372) | Release: 2 features, 2 fixes, 1 perf, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#13375](https://github.com/KBVE/kbve/pull/13375) | Atomic: arpg-web v0.1.14 post-publish sync | — | — | auto-pr, atomic |
+| [#13376](https://github.com/KBVE/kbve/pull/13376) | Atomic: arpg-server v0.1.14 post-publish sync | — | — | auto-pr, atomic |
+| [#13377](https://github.com/KBVE/kbve/pull/13377) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#13380](https://github.com/KBVE/kbve/pull/13380) | Atomic: axum-kbve v1.0.215 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

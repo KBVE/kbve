@@ -84,6 +84,7 @@ import {
 	handleInventoryIntent as handleInventoryIntentV,
 	tryAutoPickup as tryAutoPickupV,
 	exitPlacement as exitPlacementV,
+	rotatePlacement as rotatePlacementV,
 	updatePlaceGhost as updatePlaceGhostV,
 	commitPlacement as commitPlacementV,
 	type InventoryState,
@@ -546,6 +547,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			useInventorySlot: (i) => this.useInventorySlot(i),
 			castSpellSlot: (i) => this.castSpellSlot(i),
 			exitPlacement: () => this.exitPlacement(),
+			rotatePlacement: () => rotatePlacementV(this.inv, this.invDeps()),
 			commitPlacement: (t) => this.commitPlacement(t),
 			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
 			fireBowAt: (a, t) => this.fireBowAt(a, t),
@@ -613,6 +615,7 @@ export class IsoArpgScene extends Phaser.Scene {
 						const envSprite = makeEnvSprite(
 							this,
 							this.kinds.ref(e.kind),
+							e.sub,
 						);
 						refs = {
 							sprite:
@@ -754,6 +757,12 @@ export class IsoArpgScene extends Phaser.Scene {
 					if (t) this.serverTreeTiles.delete(packTile(t.x, t.y));
 					this.poolTree(refs.sprite);
 					this.treeState.delete(eid);
+					return;
+				}
+				if (
+					this.kinds.cat(this.store.kind(eid)) === Cat.Item &&
+					this.animateItemPickup(refs)
+				) {
 					return;
 				}
 				this.destroyRefs(refs);
@@ -1124,6 +1133,38 @@ export class IsoArpgScene extends Phaser.Scene {
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
 		destroyRefsV(refs);
+	}
+
+	// A removed ground item this close (screen px) to the local player reads as a
+	// pickup, not an AOI cull — only then do we fly it into the pack.
+	private static readonly PICKUP_ANIM_MAX_DIST = 140;
+
+	/**
+	 * Cosmetic pickup: float the ground-item sprite into the local player while it
+	 * shrinks + fades, then destroy it. Returns false (caller destroys immediately)
+	 * when there's no local player or the item is too far to be a real pickup.
+	 */
+	private animateItemPickup(refs: EntityRefs): boolean {
+		const sprite = refs.sprite;
+		if (!(sprite instanceof Phaser.GameObjects.Sprite)) return false;
+		const target =
+			this.myEid >= 0 ? this.store.refs(this.myEid)?.sprite : undefined;
+		if (!target) return false;
+		const dist = Math.hypot(sprite.x - target.x, sprite.y - target.y);
+		if (dist > IsoArpgScene.PICKUP_ANIM_MAX_DIST) return false;
+		this.tweens.killTweensOf(sprite);
+		sprite.setDepth(DEPTH_UI - 1);
+		this.tweens.add({
+			targets: sprite,
+			x: target.x,
+			y: target.y - 14,
+			scale: sprite.scale * 0.15,
+			alpha: 0,
+			duration: 260,
+			ease: 'Cubic.easeIn',
+			onComplete: () => this.destroyRefs(refs),
+		});
+		return true;
 	}
 
 	/** Cached lazy-residency descriptor for a creature def's packed sheets. */

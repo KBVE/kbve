@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authBridge } from '../../../lib/auth';
 import CreatureCodex from '../codex/CreatureCodex';
+import ItemCodex from '../codex/ItemCodex';
 import {
 	GothicPanel,
 	GothicTitleBar,
@@ -20,6 +21,7 @@ const MUTED = '#9fb3d8';
 export default function ArpgMenu() {
 	const [open, setOpen] = useState(false);
 	const [codex, setCodex] = useState(false);
+	const [itemCodex, setItemCodex] = useState(false);
 
 	const close = useCallback(() => setOpen(false), []);
 
@@ -52,6 +54,7 @@ export default function ArpgMenu() {
 	return (
 		<>
 			{codex && <CreatureCodex onClose={() => setCodex(false)} />}
+			{itemCodex && <ItemCodex onClose={() => setItemCodex(false)} />}
 			{mounted && (
 				<div
 					style={{
@@ -103,6 +106,13 @@ export default function ArpgMenu() {
 										setOpen(false);
 									}}>
 									Bestiary
+								</MenuButton>
+								<MenuButton
+									onClick={() => {
+										setItemCodex(true);
+										setOpen(false);
+									}}>
+									Item Codex
 								</MenuButton>
 								<MenuButton
 									onClick={() => {
