@@ -38,6 +38,9 @@ export interface MovementState {
 	predicted: TileXY;
 	moveSendAccumMs: number;
 	wasMoving: boolean;
+	// Monotonic client move tick, stamped on each Move so the server applies inputs
+	// FIFO one-per-tick (the release stops in order, no held-intent over-travel).
+	tick: number;
 	// True while the player is actively feeding movement intent this frame (keys
 	// held or a click route running). Gates idle-only reconcile relaxation.
 	intending: boolean;
@@ -52,6 +55,7 @@ export function makeMovementState(start: TileXY): MovementState {
 		predicted: { ...start },
 		moveSendAccumMs: 0,
 		wasMoving: false,
+		tick: 0,
 		intending: false,
 		lastSentFacing: null,
 	};
@@ -187,7 +191,8 @@ export function tickLocalMotion(
 		if (moving || st.wasMoving) {
 			const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
 			const my = moving ? Math.round((intent.y / mag) * 127) : 0;
-			deps.client()?.move(mx, my, !walking);
+			st.tick += 1;
+			deps.client()?.move(mx, my, !walking, st.tick);
 		}
 		st.wasMoving = moving;
 	}

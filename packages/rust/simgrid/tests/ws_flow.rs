@@ -164,17 +164,20 @@ async fn move_input_moves_player() {
     }
     let start_y = start_y.expect("player spawned");
 
-    // Steer the float body up (negative y); y should decrease.
-    let frame = ClientMessage::Frame(ClientFrame {
-        client_tick: 1,
-        inputs: vec![Input::Move {
-            seq: 1,
-            mx: 0,
-            my: -127,
-            run: true,
-        }],
-    });
-    for _ in 0..5 {
+    // Steer the float body up (negative y); y should decrease. One distinct
+    // per-tick intent each send (the server consumes one buffered input per tick,
+    // deduped by seq), enough to prime the jitter buffer and keep it moving.
+    for i in 1..=8u32 {
+        let frame = ClientMessage::Frame(ClientFrame {
+            client_tick: i,
+            inputs: vec![Input::Move {
+                seq: i,
+                mx: 0,
+                my: -127,
+                run: true,
+                tick: i,
+            }],
+        });
         ws.send(Message::Binary(proto::encode(&frame).unwrap()))
             .await
             .unwrap();

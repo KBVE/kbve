@@ -208,12 +208,12 @@ export class GameClient {
 		this.send(inputFrame(this.clientTick, inputs));
 	}
 
-	move(mx: number, my: number, run: boolean): number {
+	move(mx: number, my: number, run: boolean, tick: number): number {
 		this.moveSeq += 1;
 		const seq = this.moveSeq;
 		this.unackedMoves.push({ seq, mx, my, run });
 		if (this.unackedMoves.length > 256) this.unackedMoves.shift();
-		this.sendInputs([{ Move: { seq, mx, my, run } }]);
+		this.sendInputs([{ Move: { seq, mx, my, run, tick } }]);
 		return seq;
 	}
 

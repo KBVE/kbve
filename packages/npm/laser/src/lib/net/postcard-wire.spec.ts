@@ -35,14 +35,14 @@ describe('postcard ClientMessage encoder', () => {
 			Frame: {
 				client_tick: 7,
 				inputs: [
-					{ Move: { seq: 3, mx: 127, my: -1, run: true } },
+					{ Move: { seq: 3, mx: 127, my: -1, run: true, tick: 9 } },
 					{ Fell: { tile: { x: 5, y: -3 } } },
 					'Leave',
 				],
 			},
 		};
 		expect(hex(encodeClientMessage(msg))).toBe(
-			'0d01070301037fff01180a050d00',
+			'0e01070301037fff0109180a050d00',
 		);
 	});
 

@@ -42,7 +42,15 @@ export interface Tile {
 
 export type Input =
 	| { Step: { dir: Dir } }
-	| { Move: { seq: number; mx: number; my: number; run: boolean } }
+	| {
+			Move: {
+				seq: number;
+				mx: number;
+				my: number;
+				run: boolean;
+				tick: number;
+			};
+	  }
 	| { MoveTo: { tile: Tile } }
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
