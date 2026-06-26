@@ -41,6 +41,21 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        # direct.git.kbve.com — DNS-only (grey-cloud) host for Forgejo git/LFS,
+        # bypassing Cloudflare's request-body cap so large LFS pushes reach the
+        # gateway. Two labels under kbve.com, so the *.kbve.com wildcard cert
+        # doesn't cover it — own listener + cert-manager-issued cert.
+        - name: https-direct-git
+          protocol: HTTPS
+          port: 443
+          hostname: direct.git.kbve.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - name: direct-git-tls
+          allowedRoutes:
+              namespaces:
+                  from: All
         - name: https-memes
           protocol: HTTPS
           port: 443

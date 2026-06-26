@@ -16,6 +16,10 @@ spec:
         # at forgejo.kbve.com keeps working while new pushes can target
         # git.kbve.com directly.
         - git.kbve.com
+        # direct.git.kbve.com is DNS-only (grey-cloud, straight to the Cilium
+        # gateway) so large Git LFS pushes bypass Cloudflare's request-body cap.
+        # Same backend rules as git.kbve.com; git/LFS paths still bypass the gate.
+        - direct.git.kbve.com
     rules:
         # Forgejo REST API (token auth, CI, deploy keys) - bypass gate for API token auth
         - matches:
