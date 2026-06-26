@@ -3,7 +3,7 @@ title: KBVE Gate
 description: |
     Reusable auth reverse-proxy sidecar. Validates a Supabase JWT and an
     authz policy (jwt-only or is_staff), then proxies HTTP and WebSocket
-    traffic to an internal upstream. Fronts n8n, Grafana, Longhorn, ArgoCD, and Forgejo.
+    traffic to an internal upstream. Fronts n8n, Grafana, Longhorn, ArgoCD, Forgejo, and Supabase Studio.
 sidebar:
     label: KBVE Gate
     order: 52
@@ -26,6 +26,7 @@ deployment_yamls:
     - apps/kube/argocd/manifests/argocd-gate-deployment.yaml
     - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
     - apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml
+    - apps/kube/studio/manifests/studio-gate-deployment.yaml
 has_test: false
 author: h0lybyte
 license: KBVE

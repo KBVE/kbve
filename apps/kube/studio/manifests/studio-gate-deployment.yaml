@@ -42,7 +42,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: kbve-gate
-                  image: ghcr.io/kbve/kbve-gate:0.1.5
+                  image: ghcr.io/kbve/kbve-gate:0.1.6
                   imagePullPolicy: IfNotPresent
                   ports:
                       - name: gateway
