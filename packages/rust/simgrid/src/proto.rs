@@ -411,6 +411,47 @@ pub struct ShopResult {
     pub balance: u32,
 }
 
+/// One blackjack hand. Mirrors TS `BlackjackHandView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackHandView {
+    pub cards: Vec<u8>,
+    pub bet: u32,
+    pub value: u32,
+    pub soft: bool,
+    pub doubled: bool,
+    pub surrendered: bool,
+    pub done: bool,
+    pub outcome: Option<String>,
+}
+
+/// One seat at a blackjack table. Mirrors TS `BlackjackSeatView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackSeatView {
+    pub slot: u16,
+    pub username: String,
+    pub bet: u32,
+    pub insurance: u32,
+    pub hands: Vec<BlackjackHandView>,
+    pub disconnected: bool,
+}
+
+/// Full blackjack table state pushed to a seated player. Mirrors TS
+/// `BlackjackStateView`. `seed` is revealed only after the round settles.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BlackjackStateView {
+    pub table_ref: String,
+    pub phase: String,
+    pub seats: Vec<BlackjackSeatView>,
+    pub dealer_hand: Vec<u8>,
+    pub dealer_hidden: bool,
+    pub active_slot: Option<u16>,
+    pub active_hand: Option<u32>,
+    pub your_balance: u32,
+    pub deadline_ms: u32,
+    pub commitment: String,
+    pub seed: Option<String>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -783,6 +824,43 @@ mod tests {
         assert_eq!(
             hex(&encode_inner(&ev).unwrap()),
             "03627579056172726f770201005a"
+        );
+    }
+
+    #[test]
+    fn blackjack_state_view_fixture_is_stable() {
+        let ev = BlackjackStateView {
+            table_ref: "vip".into(),
+            phase: "PlayerTurn".into(),
+            seats: vec![BlackjackSeatView {
+                slot: 1,
+                username: "al".into(),
+                bet: 10,
+                insurance: 0,
+                hands: vec![BlackjackHandView {
+                    cards: vec![10, 7],
+                    bet: 10,
+                    value: 17,
+                    soft: false,
+                    doubled: false,
+                    surrendered: false,
+                    done: false,
+                    outcome: None,
+                }],
+                disconnected: false,
+            }],
+            dealer_hand: vec![9],
+            dealer_hidden: true,
+            active_slot: Some(1),
+            active_hand: Some(0),
+            your_balance: 90,
+            deadline_ms: 5000,
+            commitment: "ab".into(),
+            seed: None,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "037669700a506c617965725475726e010102616c0a0001020a070a11000000000000010901010101005a882702616200"
         );
     }
 

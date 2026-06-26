@@ -8,6 +8,7 @@ import {
 	decodeItemPlaced,
 	decodeItemUsed,
 	decodePickup,
+	decodeBlackjack,
 	decodeProjectile,
 	decodeServerEvent,
 	decodeShop,
@@ -233,6 +234,51 @@ describe('postcard Ephemeral payload decoder', () => {
 			ok: true,
 			reason: '',
 			balance: 90,
+		});
+	});
+
+	// proto.rs blackjack_state_view_fixture_is_stable
+	it('decodes the Rust BlackjackStateView fixture', () => {
+		expect(
+			decodeBlackjack(
+				Array.from(
+					fromHex(
+						'037669700a506c617965725475726e010102616c0a0001020a070a11000000000000010901010101005a882702616200',
+					),
+				),
+			),
+		).toEqual({
+			table_ref: 'vip',
+			phase: 'PlayerTurn',
+			seats: [
+				{
+					slot: 1,
+					username: 'al',
+					bet: 10,
+					insurance: 0,
+					hands: [
+						{
+							cards: [10, 7],
+							bet: 10,
+							value: 17,
+							soft: false,
+							doubled: false,
+							surrendered: false,
+							done: false,
+							outcome: null,
+						},
+					],
+					disconnected: false,
+				},
+			],
+			dealer_hand: [9],
+			dealer_hidden: true,
+			active_slot: 1,
+			active_hand: 0,
+			your_balance: 90,
+			deadline_ms: 5000,
+			commitment: 'ab',
+			seed: null,
 		});
 	});
 });

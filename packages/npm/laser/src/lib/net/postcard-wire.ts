@@ -6,6 +6,9 @@ import type {
 	BjActionKind,
 	ClientMessage,
 	Dir,
+	BlackjackHandView,
+	BlackjackSeatView,
+	BlackjackStateView,
 	CombatEvent,
 	EntityDelta,
 	EquippedEvent,
@@ -416,6 +419,64 @@ function readShop(r: PostcardReader): ShopResult {
 /** Decode an EPHEMERAL_SHOP payload. Field order matches `proto::ShopResult`. */
 export function decodeShop(payload: number[]): ShopResult {
 	return readShop(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readBlackjackHand(r: PostcardReader): BlackjackHandView {
+	const cards: number[] = [];
+	for (let n = r.seqLen(); n > 0; n--) cards.push(r.u8());
+	const bet = r.u32();
+	const value = r.u32();
+	const soft = r.bool();
+	const doubled = r.bool();
+	const surrendered = r.bool();
+	const done = r.bool();
+	const outcome = readOptString(r);
+	return { cards, bet, value, soft, doubled, surrendered, done, outcome };
+}
+
+function readBlackjackSeat(r: PostcardReader): BlackjackSeatView {
+	const slot = r.u16();
+	const username = r.string();
+	const bet = r.u32();
+	const insurance = r.u32();
+	const hands: BlackjackHandView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) hands.push(readBlackjackHand(r));
+	const disconnected = r.bool();
+	return { slot, username, bet, insurance, hands, disconnected };
+}
+
+function readBlackjack(r: PostcardReader): BlackjackStateView {
+	const table_ref = r.string();
+	const phase = r.string();
+	const seats: BlackjackSeatView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) seats.push(readBlackjackSeat(r));
+	const dealer_hand: number[] = [];
+	for (let n = r.seqLen(); n > 0; n--) dealer_hand.push(r.u8());
+	const dealer_hidden = r.bool();
+	const active_slot = r.option() ? r.u16() : null;
+	const active_hand = r.option() ? r.u32() : null;
+	const your_balance = r.u32();
+	const deadline_ms = r.u32();
+	const commitment = r.string();
+	const seed = readOptString(r);
+	return {
+		table_ref,
+		phase,
+		seats,
+		dealer_hand,
+		dealer_hidden,
+		active_slot,
+		active_hand,
+		your_balance,
+		deadline_ms,
+		commitment,
+		seed,
+	};
+}
+
+/** Decode an EPHEMERAL_BLACKJACK payload. Field order matches `proto::BlackjackStateView`. */
+export function decodeBlackjack(payload: number[]): BlackjackStateView {
+	return readBlackjack(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Encode a ClientMessage to a COBS-framed postcard buffer (sent as Binary). */

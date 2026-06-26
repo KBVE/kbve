@@ -32,11 +32,11 @@ import {
 	type StatsEvent,
 	type Tile,
 	type Welcome,
-	decodeEphemeralPayload,
 	inputFrame,
 	joinFrame,
 } from './protocol';
 import {
+	decodeBlackjack,
 	decodeCombat,
 	decodeEquipped,
 	decodeFloorChange,
@@ -192,9 +192,7 @@ export class GameClient {
 			const data = decodeShop(evt.payload);
 			if (data) this.bus.emit('shop', data);
 		} else if (evt.kind === EPHEMERAL_BLACKJACK) {
-			const data = decodeEphemeralPayload<BlackjackStateView>(
-				evt.payload,
-			);
+			const data = decodeBlackjack(evt.payload);
 			if (data) this.bus.emit('blackjackState', data);
 		}
 	}
