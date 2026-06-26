@@ -102,8 +102,8 @@ fn shop_buy_insufficient_coin_rejected() {
         if let ServerEvent::Ephemeral { kind, payload, .. } = evt
             && kind == proto::EPHEMERAL_SHOP
         {
-            let body = String::from_utf8(payload).unwrap();
-            if body.contains("\"ok\":false") && body.contains("insufficient") {
+            let ev: proto::ShopResult = proto::decode_inner(&payload).unwrap();
+            if !ev.ok && ev.reason.contains("insufficient") {
                 saw_fail = true;
             }
         }

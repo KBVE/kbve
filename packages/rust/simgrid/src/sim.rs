@@ -1571,16 +1571,15 @@ pub(crate) fn resolve_attack_hit(
     hp.hp -= damage;
     let died = hp.hp <= 0;
     let drop_tile = mob_pos.tile;
-    let payload = json!({
-        "attacker": player_entity.index_u32(),
-        "target": target_entity.index_u32(),
-        "target_ref": registry.ref_of(kind.0),
-        "dmg": damage,
-        "crit": crit,
-        "died": died,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::CombatEvent {
+        attacker: player_entity.index_u32(),
+        target: target_entity.index_u32(),
+        target_ref: registry.ref_of(kind.0).map(|s| s.to_string()),
+        dmg: damage,
+        crit,
+        died,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_COMBAT,
         to: slot,
@@ -1885,14 +1884,13 @@ fn send_equipped(
     attack: i32,
     defense: i32,
 ) {
-    let payload = json!({
-        "item_ref": item_ref,
-        "slot": equip_slot,
-        "attack": attack,
-        "defense": defense,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::EquippedEvent {
+        item_ref: item_ref.map(|s| s.to_string()),
+        slot: equip_slot.to_string(),
+        attack,
+        defense,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_EQUIPPED,
         to: slot,
@@ -1912,18 +1910,17 @@ fn send_stats(
     mp: i32,
     max_mp: i32,
 ) {
-    let payload = json!({
-        "level": level,
-        "xp": xp,
-        "xp_next": xp_to_next(level),
-        "max_hp": max_hp,
-        "attack": attack,
-        "kills": kills,
-        "mp": mp,
-        "max_mp": max_mp,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::StatsEvent {
+        level,
+        xp,
+        xp_next: xp_to_next(level),
+        max_hp,
+        attack,
+        kills,
+        mp,
+        max_mp,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_STATS,
         to: slot,
@@ -1955,12 +1952,16 @@ pub(crate) fn broadcast_player_stats(
 }
 
 pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
-    let items: Vec<_> = inv
+    let items = inv
         .slots
         .iter()
-        .map(|(r, c)| json!({ "ref": r, "count": c }))
+        .map(|(r, c)| proto::InventoryItem {
+            item_ref: r.clone(),
+            count: *c,
+        })
         .collect();
-    let payload = json!({ "items": items }).to_string().into_bytes();
+    let event = proto::InventorySync { items };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_INVENTORY,
         to: slot,
@@ -2009,14 +2010,13 @@ fn send_item_placed(
     ok: bool,
     reason: Option<&'static str>,
 ) {
-    let payload = json!({
-        "item_ref": item_ref,
-        "tile": { "x": tile.x, "y": tile.y },
-        "ok": ok,
-        "reason": reason,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::ItemPlacedEvent {
+        item_ref: item_ref.to_string(),
+        tile,
+        ok,
+        reason: reason.map(|s| s.to_string()),
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_ITEM_PLACED,
         to: slot,
@@ -2260,15 +2260,15 @@ fn hostile_ai(
                 status.apply(p.at(clock.tick));
                 send_status(&bcast, slot.0, p.kind, p.magnitude, p.duration_ticks);
             }
-            let payload = json!({
-                "attacker": mob.index_u32(),
-                "target": player_entity.index_u32(),
-                "target_ref": "player",
-                "dmg": dmg,
-                "died": died,
-            })
-            .to_string()
-            .into_bytes();
+            let event = proto::CombatEvent {
+                attacker: mob.index_u32(),
+                target: player_entity.index_u32(),
+                target_ref: Some("player".to_string()),
+                dmg,
+                crit: false,
+                died,
+            };
+            let payload = proto::encode_inner(&event).unwrap_or_default();
             let _ = bcast.tx.send(ServerEvent::Ephemeral {
                 kind: proto::EPHEMERAL_COMBAT,
                 to: slot.0,
@@ -2303,13 +2303,12 @@ fn send_status(
     magnitude: i32,
     remaining: u32,
 ) {
-    let payload = json!({
-        "kind": kind as u8,
-        "magnitude": magnitude,
-        "remaining": remaining,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::StatusEvent {
+        kind: kind as u8,
+        magnitude,
+        remaining,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_STATUS,
         to: slot,
@@ -3686,8 +3685,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_COMBAT
             {
-                let t = String::from_utf8(payload).unwrap();
-                if t.contains("\"target_ref\":\"player\"") {
+                let ev: proto::CombatEvent = proto::decode_inner(&payload).unwrap();
+                if ev.target_ref.as_deref() == Some("player") {
                     hit = true;
                 }
             }
@@ -3720,8 +3719,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_COMBAT
             {
-                let text = String::from_utf8(payload).unwrap();
-                if text.contains("\"target_ref\":\"player\"") {
+                let ev: proto::CombatEvent = proto::decode_inner(&payload).unwrap();
+                if ev.target_ref.as_deref() == Some("player") {
                     saw_player_hit = true;
                 }
             }
@@ -3789,8 +3788,8 @@ mod tests {
             if let ServerEvent::Ephemeral { kind, payload, .. } = evt
                 && kind == proto::EPHEMERAL_STATS
             {
-                let t = String::from_utf8(payload).unwrap();
-                if t.contains("\"kills\":1") {
+                let ev: proto::StatsEvent = proto::decode_inner(&payload).unwrap();
+                if ev.kills == 1 {
                     saw = true;
                 }
             }
@@ -4067,8 +4066,8 @@ mod tests {
                 && kind == proto::EPHEMERAL_STATS
             {
                 assert_eq!(to, slot);
-                let text = String::from_utf8(payload).unwrap();
-                if text.contains("\"level\":2") {
+                let ev: proto::StatsEvent = proto::decode_inner(&payload).unwrap();
+                if ev.level == 2 {
                     saw_stats = true;
                 }
             }
@@ -4123,18 +4122,22 @@ mod tests {
             app.update();
         }
 
-        let mut restored = None;
+        let mut restored: Option<proto::InventorySync> = None;
         while let Ok(evt) = rx.try_recv() {
             if let ServerEvent::Ephemeral { kind, to, payload } = evt
                 && kind == proto::EPHEMERAL_INVENTORY
             {
                 assert_eq!(to, slot2);
-                restored = Some(String::from_utf8(payload).unwrap());
+                restored = Some(proto::decode_inner(&payload).unwrap());
             }
         }
-        let payload = restored.expect("no inventory restore on rejoin");
-        assert!(payload.contains("potion"), "payload: {payload}");
-        assert!(payload.contains("3"), "payload: {payload}");
+        let inv = restored.expect("no inventory restore on rejoin");
+        let potion = inv
+            .items
+            .iter()
+            .find(|i| i.item_ref == "potion")
+            .expect("potion in inventory");
+        assert_eq!(potion.count, 3);
     }
 
     #[test]
@@ -4208,18 +4211,22 @@ mod tests {
             app.update();
         }
 
-        let mut inventory_payload = None;
+        let mut inventory_payload: Option<proto::InventorySync> = None;
         while let Ok(evt) = rx.try_recv() {
             if let ServerEvent::Ephemeral { kind, to, payload } = evt
                 && kind == proto::EPHEMERAL_INVENTORY
             {
                 assert_eq!(to, slot);
-                inventory_payload = Some(String::from_utf8(payload).unwrap());
+                inventory_payload = Some(proto::decode_inner(&payload).unwrap());
             }
         }
-        let payload = inventory_payload.expect("no inventory sync");
-        assert!(payload.contains("potion"), "payload: {payload}");
-        assert!(payload.contains("2"), "payload: {payload}");
+        let inv = inventory_payload.expect("no inventory sync");
+        let potion = inv
+            .items
+            .iter()
+            .find(|i| i.item_ref == "potion")
+            .expect("potion in inventory");
+        assert_eq!(potion.count, 2);
     }
 
     #[test]

@@ -37,11 +37,17 @@ import {
 	joinFrame,
 } from './protocol';
 import {
+	decodeCombat,
+	decodeEquipped,
 	decodeFloorChange,
+	decodeInventory,
+	decodeItemPlaced,
 	decodeItemUsed,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
+	decodeShop,
+	decodeStats,
 	encodeClientMessage,
 } from './postcard-wire';
 
@@ -156,10 +162,10 @@ export class GameClient {
 	private handleEphemeral(evt: Ephemeral): void {
 		this.bus.emit('ephemeral', evt);
 		if (evt.kind === EPHEMERAL_INVENTORY) {
-			const data = decodeEphemeralPayload<InventorySync>(evt.payload);
+			const data = decodeInventory(evt.payload);
 			if (data) this.bus.emit('inventory', data);
 		} else if (evt.kind === EPHEMERAL_COMBAT) {
-			const data = decodeEphemeralPayload<CombatEvent>(evt.payload);
+			const data = decodeCombat(evt.payload);
 			if (data) this.bus.emit('combat', data);
 		} else if (evt.kind === EPHEMERAL_PROJECTILE) {
 			const data = decodeProjectile(evt.payload);
@@ -174,16 +180,16 @@ export class GameClient {
 			const data = decodeItemUsed(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_PLACED) {
-			const data = decodeEphemeralPayload<ItemPlacedEvent>(evt.payload);
+			const data = decodeItemPlaced(evt.payload);
 			if (data) this.bus.emit('itemPlaced', data);
 		} else if (evt.kind === EPHEMERAL_EQUIPPED) {
-			const data = decodeEphemeralPayload<EquippedEvent>(evt.payload);
+			const data = decodeEquipped(evt.payload);
 			if (data) this.bus.emit('equipped', data);
 		} else if (evt.kind === EPHEMERAL_STATS) {
-			const data = decodeEphemeralPayload<StatsEvent>(evt.payload);
+			const data = decodeStats(evt.payload);
 			if (data) this.bus.emit('stats', data);
 		} else if (evt.kind === EPHEMERAL_SHOP) {
-			const data = decodeEphemeralPayload<ShopResult>(evt.payload);
+			const data = decodeShop(evt.payload);
 			if (data) this.bus.emit('shop', data);
 		} else if (evt.kind === EPHEMERAL_BLACKJACK) {
 			const data = decodeEphemeralPayload<BlackjackStateView>(

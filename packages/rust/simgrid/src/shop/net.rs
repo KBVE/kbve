@@ -1,5 +1,3 @@
-use serde_json::json;
-
 use crate::proto::{self, ServerEvent};
 use crate::sim::Outbound;
 
@@ -14,16 +12,15 @@ pub(crate) fn send_shop_result(
     reason: &str,
     balance: u32,
 ) {
-    let payload = json!({
-        "action": action,
-        "item_ref": item_ref,
-        "qty": qty,
-        "ok": ok,
-        "reason": reason,
-        "balance": balance,
-    })
-    .to_string()
-    .into_bytes();
+    let event = proto::ShopResult {
+        action: action.to_string(),
+        item_ref: item_ref.to_string(),
+        qty,
+        ok,
+        reason: reason.to_string(),
+        balance,
+    };
+    let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_SHOP,
         to: slot,

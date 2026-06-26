@@ -334,6 +334,83 @@ pub struct ItemUsedEvent {
     pub heal: i32,
 }
 
+/// A resolved attack. `target_ref` is the victim's kind ref (None for players).
+/// Mirrors TS `CombatEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CombatEvent {
+    pub attacker: u32,
+    pub target: u32,
+    pub target_ref: Option<String>,
+    pub dmg: i32,
+    pub crit: bool,
+    pub died: bool,
+}
+
+/// An equip slot changed. `item_ref` None = slot cleared. Mirrors TS `EquippedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EquippedEvent {
+    pub item_ref: Option<String>,
+    pub slot: String,
+    pub attack: i32,
+    pub defense: i32,
+}
+
+/// Player stat block pushed to the HUD. Mirrors TS `StatsEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatsEvent {
+    pub level: i32,
+    pub xp: i32,
+    pub xp_next: i32,
+    pub max_hp: i32,
+    pub attack: i32,
+    pub kills: u32,
+    pub mp: i32,
+    pub max_mp: i32,
+}
+
+/// Result of a deploy/place attempt. `reason` set only on failure. Mirrors TS
+/// `ItemPlacedEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemPlacedEvent {
+    pub item_ref: String,
+    pub tile: Tile,
+    pub ok: bool,
+    pub reason: Option<String>,
+}
+
+/// A status-effect change pushed to the HUD. `kind` is the `StatusKind` byte.
+/// Mirrors TS `StatusEvent`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct StatusEvent {
+    pub kind: u8,
+    pub magnitude: i32,
+    pub remaining: u32,
+}
+
+/// One inventory line. Mirrors TS `InventoryItem`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InventoryItem {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+/// Full inventory snapshot. Mirrors TS `InventorySync`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InventorySync {
+    pub items: Vec<InventoryItem>,
+}
+
+/// Result of a shop buy/sell. Mirrors TS `ShopResult`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ShopResult {
+    pub action: String,
+    pub item_ref: String,
+    pub qty: u32,
+    pub ok: bool,
+    pub reason: String,
+    pub balance: u32,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -598,6 +675,115 @@ mod tests {
         let back: ItemUsedEvent = decode_inner(&bytes).expect("decode");
         assert_eq!(back.item_ref, "potion");
         assert_eq!(back.heal, 12);
+    }
+
+    fn hex(bytes: &[u8]) -> String {
+        bytes.iter().map(|b| format!("{b:02x}")).collect()
+    }
+
+    #[test]
+    fn combat_event_fixture_is_stable() {
+        let ev = CombatEvent {
+            attacker: 2,
+            target: 7,
+            target_ref: Some("goblin".into()),
+            dmg: 5,
+            crit: true,
+            died: false,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "02070106676f626c696e0a0100"
+        );
+    }
+
+    #[test]
+    fn equipped_event_fixture_is_stable() {
+        let ev = EquippedEvent {
+            item_ref: Some("sword".into()),
+            slot: "weapon".into(),
+            attack: 3,
+            defense: 1,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "010573776f726406776561706f6e0602"
+        );
+    }
+
+    #[test]
+    fn stats_event_fixture_is_stable() {
+        let ev = StatsEvent {
+            level: 2,
+            xp: 50,
+            xp_next: 100,
+            max_hp: 40,
+            attack: 7,
+            kills: 3,
+            mp: 10,
+            max_mp: 20,
+        };
+        assert_eq!(hex(&encode_inner(&ev).unwrap()), "0464c801500e031428");
+    }
+
+    #[test]
+    fn item_placed_event_fixture_is_stable() {
+        let ev = ItemPlacedEvent {
+            item_ref: "campfire".into(),
+            tile: Tile::new(7, -3),
+            ok: true,
+            reason: None,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "0863616d70666972650e050100"
+        );
+    }
+
+    #[test]
+    fn status_event_fixture_is_stable() {
+        let ev = StatusEvent {
+            kind: 3,
+            magnitude: -2,
+            remaining: 5,
+        };
+        assert_eq!(hex(&encode_inner(&ev).unwrap()), "030305");
+    }
+
+    #[test]
+    fn inventory_sync_fixture_is_stable() {
+        let ev = InventorySync {
+            items: vec![
+                InventoryItem {
+                    item_ref: "arrow".into(),
+                    count: 3,
+                },
+                InventoryItem {
+                    item_ref: "potion".into(),
+                    count: 1,
+                },
+            ],
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "02056172726f770306706f74696f6e01"
+        );
+    }
+
+    #[test]
+    fn shop_result_fixture_is_stable() {
+        let ev = ShopResult {
+            action: "buy".into(),
+            item_ref: "arrow".into(),
+            qty: 2,
+            ok: true,
+            reason: "".into(),
+            balance: 90,
+        };
+        assert_eq!(
+            hex(&encode_inner(&ev).unwrap()),
+            "03627579056172726f770201005a"
+        );
     }
 
     #[test]

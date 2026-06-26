@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
 import {
+	decodeCombat,
+	decodeEquipped,
 	decodeFloorChange,
+	decodeInventory,
+	decodeItemPlaced,
 	decodeItemUsed,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
+	decodeShop,
+	decodeStats,
+	decodeStatus,
 	encodeClientMessage,
 } from './postcard-wire';
 
@@ -136,5 +143,96 @@ describe('postcard Ephemeral payload decoder', () => {
 		expect(decodeItemUsed(Array.from(fromHex('06706f74696f6e18')))).toEqual(
 			{ item_ref: 'potion', heal: 12 },
 		);
+	});
+
+	// proto.rs combat_event_fixture_is_stable
+	it('decodes the Rust CombatEvent fixture', () => {
+		expect(
+			decodeCombat(Array.from(fromHex('02070106676f626c696e0a0100'))),
+		).toEqual({
+			attacker: 2,
+			target: 7,
+			target_ref: 'goblin',
+			dmg: 5,
+			crit: true,
+			died: false,
+		});
+	});
+
+	// proto.rs equipped_event_fixture_is_stable
+	it('decodes the Rust EquippedEvent fixture', () => {
+		expect(
+			decodeEquipped(
+				Array.from(fromHex('010573776f726406776561706f6e0602')),
+			),
+		).toEqual({
+			item_ref: 'sword',
+			slot: 'weapon',
+			attack: 3,
+			defense: 1,
+		});
+	});
+
+	// proto.rs stats_event_fixture_is_stable
+	it('decodes the Rust StatsEvent fixture', () => {
+		expect(decodeStats(Array.from(fromHex('0464c801500e031428')))).toEqual({
+			level: 2,
+			xp: 50,
+			xp_next: 100,
+			max_hp: 40,
+			attack: 7,
+			kills: 3,
+			mp: 10,
+			max_mp: 20,
+		});
+	});
+
+	// proto.rs item_placed_event_fixture_is_stable
+	it('decodes the Rust ItemPlacedEvent fixture', () => {
+		expect(
+			decodeItemPlaced(Array.from(fromHex('0863616d70666972650e050100'))),
+		).toEqual({
+			item_ref: 'campfire',
+			tile: { x: 7, y: -3 },
+			ok: true,
+			reason: undefined,
+		});
+	});
+
+	// proto.rs status_event_fixture_is_stable
+	it('decodes the Rust StatusEvent fixture', () => {
+		expect(decodeStatus(Array.from(fromHex('030305')))).toEqual({
+			kind: 3,
+			magnitude: -2,
+			remaining: 5,
+		});
+	});
+
+	// proto.rs inventory_sync_fixture_is_stable
+	it('decodes the Rust InventorySync fixture', () => {
+		expect(
+			decodeInventory(
+				Array.from(fromHex('02056172726f770306706f74696f6e01')),
+			),
+		).toEqual({
+			items: [
+				{ ref: 'arrow', count: 3 },
+				{ ref: 'potion', count: 1 },
+			],
+		});
+	});
+
+	// proto.rs shop_result_fixture_is_stable
+	it('decodes the Rust ShopResult fixture', () => {
+		expect(
+			decodeShop(Array.from(fromHex('03627579056172726f770201005a'))),
+		).toEqual({
+			action: 'buy',
+			item_ref: 'arrow',
+			qty: 2,
+			ok: true,
+			reason: '',
+			balance: 90,
+		});
 	});
 });

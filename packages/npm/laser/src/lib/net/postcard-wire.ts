@@ -6,17 +6,24 @@ import type {
 	BjActionKind,
 	ClientMessage,
 	Dir,
+	CombatEvent,
 	EntityDelta,
+	EquippedEvent,
 	Facing,
 	FloorChangeEvent,
 	Input,
+	InventorySync,
+	ItemPlacedEvent,
 	ItemUsedEvent,
 	KindEntry,
 	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
 	ServerEvent,
+	ShopResult,
 	Snapshot,
+	StatsEvent,
+	StatusEvent,
 	StatusKind,
 	StatusView,
 	Tile,
@@ -304,6 +311,111 @@ function readItemUsed(r: PostcardReader): ItemUsedEvent {
 /** Decode an EPHEMERAL_ITEM_USED payload. Field order matches `proto::ItemUsedEvent`. */
 export function decodeItemUsed(payload: number[]): ItemUsedEvent {
 	return readItemUsed(new PostcardReader(Uint8Array.from(payload)));
+}
+
+/** Option<String> — present tag then the string. */
+function readOptString(r: PostcardReader): string | null {
+	return r.option() ? r.string() : null;
+}
+
+function readCombat(r: PostcardReader): CombatEvent {
+	const attacker = r.u32();
+	const target = r.u32();
+	const target_ref = readOptString(r);
+	const dmg = r.i32();
+	const crit = r.bool();
+	const died = r.bool();
+	return { attacker, target, target_ref, dmg, crit, died };
+}
+
+/** Decode an EPHEMERAL_COMBAT payload. Field order matches `proto::CombatEvent`. */
+export function decodeCombat(payload: number[]): CombatEvent {
+	return readCombat(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readEquipped(r: PostcardReader): EquippedEvent {
+	const item_ref = readOptString(r);
+	const slot = r.string() as EquippedEvent['slot'];
+	const attack = r.i32();
+	const defense = r.i32();
+	return { item_ref, slot, attack, defense };
+}
+
+/** Decode an EPHEMERAL_EQUIPPED payload. Field order matches `proto::EquippedEvent`. */
+export function decodeEquipped(payload: number[]): EquippedEvent {
+	return readEquipped(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readStats(r: PostcardReader): StatsEvent {
+	const level = r.i32();
+	const xp = r.i32();
+	const xp_next = r.i32();
+	const max_hp = r.i32();
+	const attack = r.i32();
+	const kills = r.u32();
+	const mp = r.i32();
+	const max_mp = r.i32();
+	return { level, xp, xp_next, max_hp, attack, kills, mp, max_mp };
+}
+
+/** Decode an EPHEMERAL_STATS payload. Field order matches `proto::StatsEvent`. */
+export function decodeStats(payload: number[]): StatsEvent {
+	return readStats(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readItemPlaced(r: PostcardReader): ItemPlacedEvent {
+	const item_ref = r.string();
+	const tile = readTile(r);
+	const ok = r.bool();
+	const reason = readOptString(r) ?? undefined;
+	return { item_ref, tile, ok, reason };
+}
+
+/** Decode an EPHEMERAL_ITEM_PLACED payload. Field order matches `proto::ItemPlacedEvent`. */
+export function decodeItemPlaced(payload: number[]): ItemPlacedEvent {
+	return readItemPlaced(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readStatus(r: PostcardReader): StatusEvent {
+	const kind = r.u8();
+	const magnitude = r.i32();
+	const remaining = r.u32();
+	return { kind, magnitude, remaining };
+}
+
+/** Decode an EPHEMERAL_STATUS payload. Field order matches `proto::StatusEvent`. */
+export function decodeStatus(payload: number[]): StatusEvent {
+	return readStatus(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readInventory(r: PostcardReader): InventorySync {
+	const items = [];
+	for (let n = r.seqLen(); n > 0; n--) {
+		const ref = r.string();
+		const count = r.u32();
+		items.push({ ref, count });
+	}
+	return { items };
+}
+
+/** Decode an EPHEMERAL_INVENTORY payload. Field order matches `proto::InventorySync`. */
+export function decodeInventory(payload: number[]): InventorySync {
+	return readInventory(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readShop(r: PostcardReader): ShopResult {
+	const action = r.string() as ShopResult['action'];
+	const item_ref = r.string();
+	const qty = r.u32();
+	const ok = r.bool();
+	const reason = r.string();
+	const balance = r.u32();
+	return { action, item_ref, qty, ok, reason, balance };
+}
+
+/** Decode an EPHEMERAL_SHOP payload. Field order matches `proto::ShopResult`. */
+export function decodeShop(payload: number[]): ShopResult {
+	return readShop(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Encode a ClientMessage to a COBS-framed postcard buffer (sent as Binary). */

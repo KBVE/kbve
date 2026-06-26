@@ -215,7 +215,9 @@ export interface StatsEvent {
 	xp_next: number;
 	max_hp: number;
 	attack: number;
-	kills?: number;
+	kills: number;
+	mp: number;
+	max_mp: number;
 }
 
 export interface StatusEvent {
