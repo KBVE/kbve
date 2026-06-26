@@ -10,7 +10,7 @@ FROM --platform=linux/amd64 mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-
 FROM --platform=linux/amd64 ghcr.io/actions/actions-runner:${ACTIONS_RUNNER_VERSION} AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/kbve/kbve"
-LABEL org.opencontainers.image.description="KBVE arc-runner-set image — actions-runner + git-lfs/unzip/jq/xz/gh + kubectl/dbmate/envsubst/postgresql-client + node/pnpm/playwright."
+LABEL org.opencontainers.image.description="KBVE arc-runner-set image — actions-runner + git-lfs/unzip/zip/jq/xz/gh + kubectl/dbmate/envsubst/postgresql-client + node/pnpm/playwright."
 LABEL org.opencontainers.image.licenses="MIT"
 
 USER root
@@ -22,6 +22,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         git-lfs \
         unzip \
+        zip \
         jq \
         xz-utils \
         ca-certificates \

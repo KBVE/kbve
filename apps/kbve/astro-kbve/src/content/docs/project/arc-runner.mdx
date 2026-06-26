@@ -1,7 +1,7 @@
 ---
 title: ARC Runner
 description: |
-    Custom GitHub Actions Runner image for the arc-runner-set scale set. Bakes git-lfs, unzip, jq, xz, and the GitHub CLI into the upstream actions/runner base so workflows stop installing them at job runtime.
+    Custom GitHub Actions Runner image for the arc-runner-set scale set. Bakes git-lfs, unzip, zip, jq, xz, and the GitHub CLI into the upstream actions/runner base so workflows stop installing them at job runtime.
 sidebar:
     label: ARC Runner
     order: 57
@@ -12,7 +12,7 @@ tags:
 key: arc_runner
 pipeline: docker
 app_name: arc-runner
-version: "0.1.5"
+version: "0.1.6"
 source_path: packages/docker/arc-runner
 version_toml: packages/docker/arc-runner/version.toml
 runner: ubuntu-latest
@@ -20,6 +20,7 @@ image: kbve/arc-runner
 deployment_yamls:
     - apps/kube/github/runners/manifests/values-kbve.yaml
     - apps/kube/github/runners/manifests/values.yaml
+    - apps/kube/github/runners/manifests/values-ue.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
