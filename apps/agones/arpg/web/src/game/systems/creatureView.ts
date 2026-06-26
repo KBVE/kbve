@@ -4,12 +4,13 @@ import { DEPTH_ENTITY_BASE } from '../config';
 import { worldToScreen, tileDepth } from '../iso';
 import { sampleAt, INTERP_DELAY_MS } from './interp';
 import {
+	setClassPose,
 	setCreaturePose,
 	tickClassFacing,
 	tickCreatureFacing,
 	type EntityRefs,
 } from '../entities/sprites';
-import { placeNameplate, drawCreatureDebug } from './entityView';
+import { placeNameplate, drawCreatureDebug, syncShadow } from './entityView';
 import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
 
 // Locomotion smoothing: ignore sub-pixel velocity noise, and hold Walking for a
@@ -100,6 +101,56 @@ export function tickCreatureInterp<R extends EntityRefs>(
 			scene.time.now - (refs.lastMoveAt ?? 0) > MOVE_IDLE_GRACE_MS
 		) {
 			setCreaturePose(refs.sprite, refs.creature, 'Idle');
+		}
+	}
+}
+
+/**
+ * Render-interpolate every REMOTE player off its interp buffer — the mirror of
+ * `tickCreatureInterp` for class entities. The local player is float-driven and
+ * skipped via `myEid` (its buffer is never fed). Samples the delayed render time,
+ * places the body + grounded shadow + nameplate, and drives Run/Idle off the
+ * sampled velocity, so remote players glide instead of snapshot-tweening.
+ */
+export function tickPlayerInterp<R extends EntityRefs>(
+	scene: Phaser.Scene,
+	store: EntityStore<R>,
+	myEid: number,
+): void {
+	const renderTime = scene.time.now - INTERP_DELAY_MS;
+	for (const [eid, , refs] of store.entries()) {
+		if (eid === myEid) continue;
+		if (!refs.interp || !refs.cls) continue;
+		if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
+		const s = sampleAt(refs.interp, renderTime);
+		if (!s) continue;
+		const p = worldToScreen(s.x, s.y);
+		refs.sprite.setPosition(p.x, p.y + 8);
+		refs.sprite.setDepth(
+			DEPTH_ENTITY_BASE + tileDepth(Math.round(s.x), Math.round(s.y)),
+		);
+		syncShadow(refs);
+		placeNameplate(refs);
+		const moving =
+			s.moving &&
+			(Math.abs(s.vx) > MOVE_EPS || Math.abs(s.vy) > MOVE_EPS);
+		if (moving) {
+			refs.lastMoveAt = scene.time.now;
+			setClassPose(
+				refs.sprite,
+				refs.cls,
+				'Run',
+				{
+					dx: s.vx,
+					dy: s.vy,
+				},
+				scene,
+			);
+		} else if (
+			refs.cls.state === 'Run' &&
+			scene.time.now - (refs.lastMoveAt ?? 0) > MOVE_IDLE_GRACE_MS
+		) {
+			setClassPose(refs.sprite, refs.cls, 'Idle', undefined, scene);
 		}
 	}
 }

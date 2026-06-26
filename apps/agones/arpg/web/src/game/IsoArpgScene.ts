@@ -118,6 +118,7 @@ import {
 } from './systems/spells';
 import {
 	tickCreatureInterp as tickCreatureInterpV,
+	tickPlayerInterp as tickPlayerInterpV,
 	tickFacing as tickFacingV,
 } from './systems/creatureView';
 import { preloadStairs } from './entities/stairs';
@@ -570,6 +571,12 @@ export class IsoArpgScene extends Phaser.Scene {
 					player || pooled ? null : makeCreatureSprite(this, cref);
 				if (player) {
 					refs = this.makePlayerRefs(e.kind);
+					// Remote players render-interpolate off the same sub-tile interp
+					// buffer NPCs use, fed the server's qx/qy each snapshot, so they
+					// glide instead of snapshot-tweening between tile centers. The
+					// local player ignores it (float-driven; its buffer is never fed
+					// and tickPlayerInterp skips myEid).
+					refs.interp = newInterp(this.time.now, e.tile.x, e.tile.y);
 				} else if (pooled) {
 					refs = this.wakeCreature(pooled, e);
 				} else if (creatureSprite) {
@@ -1296,6 +1303,7 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	update(_time: number, delta: number) {
 		tickCreatureInterpV(this, this.store);
+		tickPlayerInterpV(this, this.store, this.myEid);
 		tickFacingV(this, this.store);
 		this.tickZoom(delta);
 		syncFogToZoom(this, this.fog);
