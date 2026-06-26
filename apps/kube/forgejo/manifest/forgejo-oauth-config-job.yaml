@@ -56,7 +56,7 @@ spec:
                       - name: FORGEJO__database__DB_TYPE
                         value: postgres
                       - name: FORGEJO__database__HOST
-                        value: supabase-cluster-rw.kilobase.svc.cluster.local:5432
+                        value: kilobase-rw.kilobase.svc.cluster.local:5432
                       - name: FORGEJO__database__NAME
                         value: supabase
                       - name: FORGEJO__database__USER

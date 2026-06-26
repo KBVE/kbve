@@ -58,7 +58,7 @@ spec:
                               LFS_JWT_SECRET: ''
                           database:
                               DB_TYPE: postgres
-                              HOST: supabase-cluster-rw.kilobase.svc.cluster.local:5432
+                              HOST: kilobase-rw.kilobase.svc.cluster.local:5432
                               NAME: supabase
                               USER: forgejo
                               SSL_MODE: require
