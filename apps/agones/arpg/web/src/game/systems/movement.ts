@@ -38,6 +38,9 @@ export interface MovementState {
 	predicted: TileXY;
 	moveSendAccumMs: number;
 	wasMoving: boolean;
+	// True while the player is actively feeding movement intent this frame (keys
+	// held or a click route running). Gates idle-only reconcile relaxation.
+	intending: boolean;
 	// Last cardinal facing sent to the server, so face() only fires on change.
 	lastSentFacing: Facing | null;
 }
@@ -49,6 +52,7 @@ export function makeMovementState(start: TileXY): MovementState {
 		predicted: { ...start },
 		moveSendAccumMs: 0,
 		wasMoving: false,
+		intending: false,
 		lastSentFacing: null,
 	};
 }
@@ -115,6 +119,7 @@ export function tickLocalMotion(
 	// the leftover velocity to a slide-stop. Keying off velocity instead left a
 	// few frames of run-in-place during decel.
 	const intending = Math.hypot(intent.x, intent.y) > 0;
+	st.intending = intending;
 	// Moving cancels an in-progress shot: switch straight to Run instead of
 	// sliding in the bow pose. If the cancel lands before the release frame the
 	// arrow is suppressed; if it already loosed, only the recover is cut.
@@ -281,7 +286,7 @@ export function reconcilePlayer(
 			SIM_DT_MS,
 		);
 	}
-	reconcileFloat(st.floatState, replay.pos);
+	reconcileFloat(st.floatState, replay.pos, !st.intending);
 }
 
 /**

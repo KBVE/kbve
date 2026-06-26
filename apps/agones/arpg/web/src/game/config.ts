@@ -49,6 +49,12 @@ export const CENTERLINE_PULL = 0;
 // Soft reconciliation of the float toward the server-authoritative tile.
 export const RECONCILE_LERP = 0.25; // per-snapshot pull toward server pos
 export const RECONCILE_SNAP_DIST = 6; // tiles of drift before a hard snap
+// Once the player has RELEASED (no intent), tolerate this much gap to the server
+// pos without pulling: the server briefly over-travels the held input by ~RTT
+// before the release packet lands, so its rest sits a fraction ahead of where you
+// stopped — correcting it is the "tug on stop". Only applies while idle; a moving
+// body still reconciles fully (direction changes, PvP) at RECONCILE_LERP.
+export const RECONCILE_IDLE_DEADZONE = 0.5; // tiles
 export const ARRIVE_DIST = 0.15; // tiles from a click target counted as arrived
 export const WAYPOINT_REACH = 0.6; // looser reach for intermediate A* waypoints
 
