@@ -298,6 +298,20 @@ pub struct KindEntry {
     pub cat: u8,
 }
 
+/// A loosed projectile (arrow/bolt/…) broadcast to every client so remote
+/// players see the shot, not just the shooter. Typed (not an ad-hoc `json!`)
+/// so the payload codec can move from JSON to postcard in lockstep with the TS
+/// `ProjectileEvent` — the same path PvP combat events will take. `attacker` is
+/// the entity index; `from`/`to` are the muzzle and impact tiles.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ProjectileEvent {
+    pub attacker: u32,
+    pub from: Tile,
+    pub to: Tile,
+    pub kind: String,
+    pub hit: bool,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -391,6 +405,44 @@ mod tests {
         );
         let back: StatusKind = serde_json::from_str("\"Burn\"").unwrap();
         assert_eq!(back, StatusKind::Burn);
+    }
+
+    // Cross-language wire fixture: the TS postcard encoder pins the SAME hex
+    // (laser postcard-wire.spec.ts). If this breaks after a proto change, update
+    // both sides in lockstep — postcard is positional, so they must match.
+    #[test]
+    fn client_message_fixture_is_stable() {
+        let msg = ClientMessage::Frame(ClientFrame {
+            client_tick: 7,
+            inputs: vec![
+                Input::Move {
+                    seq: 3,
+                    mx: 127,
+                    my: -1,
+                    run: true,
+                },
+                Input::Fell {
+                    tile: Tile::new(5, -3),
+                },
+                Input::Leave,
+            ],
+        });
+        let bytes = encode(&msg).expect("encode");
+        let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, "0d01070301037fff01180a050d00");
+
+        // JoinMatch: leading 0x00 discriminant exercises COBS restuffing.
+        let join = ClientMessage::JoinMatch(JoinMatch {
+            protocol: 15,
+            jwt: "tok".into(),
+            kbve_username: "h0ly".into(),
+        });
+        let hex2: String = encode(&join)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex2, "010b0f03746f6b0468306c7900");
     }
 
     #[test]
