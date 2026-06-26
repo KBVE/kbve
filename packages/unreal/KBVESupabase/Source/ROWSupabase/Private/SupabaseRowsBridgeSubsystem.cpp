@@ -1,6 +1,8 @@
 #include "SupabaseRowsBridgeSubsystem.h"
 #include "KBVESupabaseSubsystem.h"
 #include "ROWSAuthSubsystem.h"
+#include "Engine/GameInstance.h"
+#include "Subsystems/SubsystemCollection.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSupabaseRowsBridge, Log, All);
 

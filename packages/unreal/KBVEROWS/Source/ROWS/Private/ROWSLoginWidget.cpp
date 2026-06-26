@@ -1,6 +1,7 @@
 #include "ROWSLoginWidget.h"
 #include "ROWSAuthSubsystem.h"
 #include "ROWSSubsystem.h"
+#include "Engine/GameInstance.h"
 #include "Components/EditableTextBox.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"

@@ -2,6 +2,7 @@
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
+#include "Widgets/Layout/SBox.h"
 
 void SKBVEHotbar::Construct(const FArguments& InArgs)
 {

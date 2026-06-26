@@ -5,6 +5,8 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Dom/JsonObject.h"
+#include "Engine/TimerHandle.h"
+#include "GenericPlatform/GenericPlatformFile.h"
 #include "KBVESupabaseTypes.h"
 #include "KBVESupabasePKCE.h"
 #include "KBVESupabaseSubsystem.generated.h"

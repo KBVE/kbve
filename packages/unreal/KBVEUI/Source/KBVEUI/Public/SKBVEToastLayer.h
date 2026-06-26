@@ -4,6 +4,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "SKBVEToast.h"
+#include "Widgets/SBoxPanel.h"
 
 class SVerticalBox;
 
