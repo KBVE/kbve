@@ -34,29 +34,36 @@ impl OWSService {
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
         // Per-map empty timeout drives the `empty-shutdown-minutes` allocation annotation.
-        // Read from `maps` directly: the first server of a zone is allocated before its
-        // `mapinstances` row exists, so a mapinstances-joined lookup would miss it.
-        // Distinguish a DB error from "map not found": Ok(_) (incl. the `1` not-found default) is
-        // used as-is; only a transient DB error falls back to the conservative value, so a blip
-        // can't stamp `empty-shutdown-minutes=1` and prematurely self-shutdown a populated server.
-        let empty_shutdown_minutes = match InstanceRepo(&self.state.db)
-            .get_map_minutes_to_shutdown_after_empty(customer_guid, &resolved_zone)
-            .await
-        {
-            Ok(m) => m,
-            Err(e) => {
-                tracing::warn!(
-                    error = %e,
-                    zone = %resolved_zone,
-                    "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
-                );
-                crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
-            }
+        // Gated (audit 3.1): only read it (and stamp the annotation) when annotation stamping is
+        // ON. While OFF — the default, since no UE consumer reads it yet (obligation #3) — pass 0
+        // so the allocation hot path skips this extra DB round-trip and omits the annotation.
+        // When ON: read from `maps` directly (the first server of a zone is allocated before its
+        // `mapinstances` row exists, so a mapinstances-joined lookup would miss it). Distinguish a
+        // DB error from "map not found": Ok(_) (incl. the `1` not-found default) is used as-is; only
+        // a transient DB error falls back to the conservative value, so a blip can't stamp
+        // `empty-shutdown-minutes=1` and prematurely self-shutdown a populated server.
+        let empty_shutdown_minutes = if self.state.config.reaper.stamp_empty_shutdown_annotation {
+            let m = match InstanceRepo(&self.state.db)
+                .get_map_minutes_to_shutdown_after_empty(customer_guid, &resolved_zone)
+                .await
+            {
+                Ok(m) => m,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        zone = %resolved_zone,
+                        "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
+                    );
+                    crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
+                }
+            };
+            // Audit M3: floor the annotation by the reaper's `min_empty_secs` so the UE
+            // self-shutdown path can't fire under a still-loading player when a map keeps the
+            // aggressive 1-min default.
+            m.max(self.state.config.reaper.empty_shutdown_minutes_floor())
+        } else {
+            0 // annotation stamping off: no DB read, no annotation (see allocate.rs)
         };
-        // Audit M3: floor the annotation by the reaper's `min_empty_secs` so the UE self-shutdown
-        // path can't fire under a still-loading player when a map keeps the aggressive 1-min default.
-        let empty_shutdown_minutes =
-            empty_shutdown_minutes.max(self.state.config.reaper.empty_shutdown_minutes_floor());
 
         let pipeline = AllocationPipeline::new(
             customer_guid,

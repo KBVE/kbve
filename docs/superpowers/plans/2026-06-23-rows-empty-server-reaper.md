@@ -1026,3 +1026,58 @@ the inert merge.
   `deactivate_world_server_by_instance` in `reap_one` (and ideally in the other deallocate paths)
   before the `mapinstances` row's `status` is flipped, while the instance→worldserver subquery still
   resolves — bounds the table growth.
+
+### 8. Independent re-audit (PR #13200, post-prior-audit pass)
+
+A fresh production-grade audit over the merged-tip state. The prior passes (H1/M1/M2/M3/L1/L2/G1–G4/Q1)
+held up; nothing new rises to blocker. Triage below — two code fixes landed, the rest documented with
+the technical reason they are *not* code-changed (the suggested fix would conflict with intended design
+or the risk of touching audited code exceeds the benefit).
+
+**Fixed in code (this pass):**
+
+- **3.1 — hot-path cost for an annotation no UE consumer reads yet (Medium → FIXED).** Every allocation
+  (join hot path + MQ spin-up) did an extra synchronous `get_map_minutes_to_shutdown_after_empty` DB
+  read to stamp `ows.kbve.com/empty-shutdown-minutes` — but UE obligation #3 (the consumer) isn't built
+  yet (#13281). Added a dedicated `ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION` knob (`ReaperKnobs`, default
+  OFF, env-only). While OFF the call sites pass `0` (no DB read) and `try_allocate` omits the annotation
+  for any `<= 0` value. Deliberately **separate from `enabled`**: per the #13281 contract, UE
+  self-shutdown must be validated *before* the reaper backstop is enabled, so annotation stamping has to
+  be flip-able ahead of the reaper, not coupled to it. Commented stanza added to `deployment.yaml`; knob
+  registered in the config index.
+- **5.2 — `empty_shutdown_minutes_floor` overflow on absurd config (Low → FIXED).** `(min_empty_secs +
+  59)` on an i64 could overflow for a pathological operator value; switched to `saturating_add(59)`.
+
+**Documented, not code-changed (with rationale):**
+
+- **2.1 — negative player-count is clamped to 0 but doesn't start the empty timer (Low, WONTFIX).** A
+  server persistently reporting a negative count stores `0` (via `GREATEST($3,0)`) without stamping
+  `lastserveremptydate`, so the Empty path never fires for it. This is the *author's explicit* choice
+  ("a negative is treated as a glitch and leaves it untouched") and re-touching the heartbeat write — on
+  the all-servers hot path — for a pathological UE bug is higher-risk than the edge it closes. Accept.
+- **3.2 — reaper reads `reaperconfig` every 60s even while shipped disabled (Low, by design).** The DB
+  override read happens before the `enabled` check *on purpose*: it's the no-redeploy enable path (a
+  tenant flips `enabled=true` in the DB). Short-circuiting on the env baseline would kill that feature.
+  The read is a single PK lookup per tenant per cycle; cost is negligible. Keep.
+- **4.1 — `hashtext` advisory-lock key can collide across tenants (Low, benign).** Two tenant GUIDs can
+  `hashtext` to the same int4, serializing their reap cycles. No safety impact (all queries are
+  `WHERE customerguid`; no cross-tenant deallocation) — a collided tenant just skips a cycle and retries
+  next tick. Changing the lock-key derivation is riskier than the benign throughput nit. Keep.
+- **4.2 — background jobs are detached with no supervision/restart (Low, pre-existing).** `spawn_all`
+  fires five un-tracked `tokio::spawn`s; a panic in a loop's *scaffolding* (outside the per-cycle
+  isolation) kills that job silently. Pre-existing pattern the reaper merely joins. Follow-up: a
+  supervising wrapper (log + restart) across all five jobs — out of scope for this PR's diff.
+- **10.1 — spin-up retry-once has no backoff (Low, acceptable).** First failure `requeue:true` is
+  redelivered immediately, so a deterministic failure burns both attempts back-to-back before
+  dead-lettering. Bounded (→ DLQ), no infinite loop. A delayed-retry queue is the real fix if transient
+  recovery matters; not warranted now.
+- **Index/ORDER BY mismatch (Low, already acknowledged in-code).** `idx_mapinstances_active` orders by
+  `LastServerEmptyDate` but the candidate query sorts by `COALESCE(lastserveremptydate, createdate)`; the
+  ≤500-row sort is in-memory. Fine at current scale (noted in `get_active_reap_candidates`).
+
+**Most-likely-incident (30d):** the reaper ships OFF, so the realistic risk is *not* mass deallocation
+(triple-gated: `enabled` + `never_reported` + `require_heartbeat` auto-gate). It's **silent
+under-reaping on first enable** if `heartbeat_interval ≥ ROWS_EMPTY_REAP_FRESH_SECS` — the Empty path
+no-ops even with `ENABLED=true`. Detectable via the per-cycle "empty servers retained: heartbeat stale
+vs empty_fresh_secs" log, *if* someone watches it. Make verifying `heartbeat_interval < FRESH_SECS` a
+hard precondition in the §2 enablement runbook.

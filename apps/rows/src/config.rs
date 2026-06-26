@@ -87,6 +87,13 @@ pub struct ReaperKnobs {
     /// stale `0` while players may have reconnected out-of-band; without this gate the reaper would
     /// hard-deallocate a populated-but-silent server. `0` = disabled (no freshness check).
     pub empty_fresh_secs: i64,
+    /// Whether to stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation (the ROWS
+    /// side of UE drain-contract obligation #3 — see issue #13281). Default OFF: while off, the
+    /// allocation hot path skips the per-map timeout DB read AND the annotation is omitted, so we
+    /// pay nothing for a value no UE consumer reads yet (audit 3.1). Flip ON independently of
+    /// `enabled` when rolling out UE self-shutdown — it must precede enabling the reaper backstop,
+    /// since the annotation is how obligation #3 is validated in an env before the reaper is on.
+    pub stamp_empty_shutdown_annotation: bool,
 }
 
 impl Default for ReaperKnobs {
@@ -100,6 +107,7 @@ impl Default for ReaperKnobs {
             stale_secs: 0,
             min_empty_secs: 300,
             empty_fresh_secs: 180,
+            stamp_empty_shutdown_annotation: false,
         }
     }
 }
@@ -141,6 +149,8 @@ impl ReaperKnobs {
             stale_secs: ov.stale_secs.unwrap_or(self.stale_secs),
             min_empty_secs: ov.min_empty_secs.unwrap_or(self.min_empty_secs),
             empty_fresh_secs: ov.empty_fresh_secs.unwrap_or(self.empty_fresh_secs),
+            // Env-only (no per-tenant DB override column): carried through from the baseline.
+            stamp_empty_shutdown_annotation: self.stamp_empty_shutdown_annotation,
         }
     }
 
@@ -155,8 +165,9 @@ impl ReaperKnobs {
         if self.min_empty_secs <= 0 {
             return 0;
         }
-        // ceil(min_empty_secs / 60), at least 1 minute.
-        (((self.min_empty_secs + 59) / 60) as i32).max(1)
+        // ceil(min_empty_secs / 60), at least 1 minute. saturating_add so an absurd operator value
+        // near i64::MAX can't overflow the `+ 59` (audit 5.2).
+        ((self.min_empty_secs.saturating_add(59) / 60) as i32).max(1)
     }
 }
 
@@ -256,6 +267,10 @@ impl RowsConfig {
             stale_secs: env_i64("ROWS_EMPTY_REAP_STALE_SECS", 0),
             min_empty_secs: env_i64("ROWS_EMPTY_REAP_MIN_EMPTY_SECS", 300),
             empty_fresh_secs: env_i64("ROWS_EMPTY_REAP_FRESH_SECS", 180),
+            stamp_empty_shutdown_annotation: env_bool(
+                "ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION",
+                false,
+            ),
         };
 
         Ok(Self {
