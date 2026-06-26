@@ -57,6 +57,12 @@ resources:
     - metrics/application.yaml
     - n8n/application.yaml
     - rabbitmq/application.yaml
+    # rows = shared ROWS infra (ns `rows`): ows-valkey, externalsecrets, servicemonitor,
+    # and the `rows-agones-allocator-binding` Kyverno ClusterPolicy that grants every
+    # tenant's rows-instancelauncher SA GameServerAllocation rights (without it tenants 403).
+    # Live in-cluster but was applied out-of-band; declare it here so app-of-apps owns it
+    # and a rebuild-from-git reproduces it. Tenant overlays below layer on top.
+    - rows/application.yaml
     - rows/tenants/overlays/chuckrpg-dev/application.yaml
     - rows/tenants/overlays/chuckrpg-beta/application.yaml
     - agones/application.yaml
