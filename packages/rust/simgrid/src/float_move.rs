@@ -7,13 +7,6 @@ pub const COLLISION_SKIN: f32 = 0.01;
 pub const STOP_SPEED: f32 = 1.5;
 pub const MAX_MOVE_STEP: f32 = 0.2;
 
-// Feel knobs for float-steered NPCs (wyverns). NPC_MAX_TURN_RATE caps how fast
-// the heading may rotate per second, so the body banks/curves toward a waypoint
-// instead of snapping. NPC_ARRIVE_RADIUS (tiles) is the slow-down radius the
-// `arrive` behavior eases to a stop within.
-pub const NPC_MAX_TURN_RATE: f32 = 3.5;
-pub const NPC_ARRIVE_RADIUS: f32 = 1.5;
-
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct FloatBody {
     pub x: f32,
@@ -98,7 +91,7 @@ pub fn step_float(
         let nx = ix / mag;
         let ny = iy / mag;
         let scale = mag.min(1.0);
-        accelerate(b, nx * speed * scale, ny * speed * scale, dt);
+        accelerate(b, nx * speed * scale, ny * speed * scale, MOVE_ACCEL, dt);
     } else {
         b.vx = 0.0;
         b.vy = 0.0;
@@ -108,9 +101,11 @@ pub fn step_float(
 }
 
 /// Velocity ease toward a target velocity, shared accel model used by both the
-/// player intent step and NPC steering.
-fn accelerate(b: &mut FloatBody, target_vx: f32, target_vy: f32, dt: f32) {
-    let response = 1.0 - exp_decay(MOVE_ACCEL, dt);
+/// player intent step and NPC steering. `rate` is the per-second response rate
+/// (higher = snappier); the player path passes `MOVE_ACCEL`, steered NPCs pass
+/// their `MoveProfile` accel/friction.
+fn accelerate(b: &mut FloatBody, target_vx: f32, target_vy: f32, rate: f32, dt: f32) {
+    let response = 1.0 - exp_decay(rate, dt);
     b.vx += (target_vx - b.vx) * response;
     b.vy += (target_vy - b.vy) * response;
 }
@@ -152,8 +147,9 @@ pub fn arrive(b: &FloatBody, tx: f32, ty: f32, slow_radius: f32) -> (f32, f32) {
 
 /// Steer toward (tx,ty) with a banking turn: rotate the velocity heading toward
 /// the arrive-intent heading by at most `max_turn_rate_rad_s * dt` radians, then
-/// integrate via the same accel/friction model as `step_float`. Collision
-/// handling is identical (shared `integrate`).
+/// integrate via the same accel/friction model as `step_float`. `accel` is the
+/// velocity steer rate, `friction` the decel rate when easing to a stop.
+/// Collision handling is identical (shared `integrate`).
 #[allow(clippy::too_many_arguments)]
 pub fn step_steer(
     b: &mut FloatBody,
@@ -161,6 +157,8 @@ pub fn step_steer(
     ty: f32,
     speed: f32,
     max_turn_rate_rad_s: f32,
+    accel: f32,
+    friction: f32,
     slow_radius: f32,
     is_blocked: &impl Fn(i32, i32) -> bool,
     dt_ms: f32,
@@ -170,8 +168,9 @@ pub fn step_steer(
     let mag = ix.hypot(iy);
 
     if mag <= 1e-4 {
-        b.vx = 0.0;
-        b.vy = 0.0;
+        // On target: bleed velocity toward zero at the friction rate, then
+        // integrate so any residual drift still resolves collisions.
+        accelerate(b, 0.0, 0.0, friction, dt);
         integrate(b, dt, is_blocked);
         return;
     }
@@ -190,7 +189,7 @@ pub fn step_steer(
     let scale = mag.min(1.0);
     let target_vx = heading.cos() * speed * scale;
     let target_vy = heading.sin() * speed * scale;
-    accelerate(b, target_vx, target_vy, dt);
+    accelerate(b, target_vx, target_vy, accel, dt);
     integrate(b, dt, is_blocked);
 }
 
@@ -333,7 +332,18 @@ mod tests {
         b.vy = 0.0;
         let dt_ms = 50.0;
         let rate = 3.5;
-        step_steer(&mut b, 0.0, 100.0, 6.0, rate, 1.5, &never_blocked, dt_ms);
+        step_steer(
+            &mut b,
+            0.0,
+            100.0,
+            6.0,
+            rate,
+            14.0,
+            30.0,
+            1.5,
+            &never_blocked,
+            dt_ms,
+        );
         let heading = b.vy.atan2(b.vx);
         let cap = rate * (dt_ms / 1000.0);
         // Heading should have rotated toward +Y but not past the per-tick cap.
@@ -345,7 +355,18 @@ mod tests {
     fn step_steer_moves_toward_target() {
         let mut b = FloatBody::at(0.0, 0.0);
         for _ in 0..40 {
-            step_steer(&mut b, 5.0, 0.0, 6.0, 3.5, 1.5, &never_blocked, 50.0);
+            step_steer(
+                &mut b,
+                5.0,
+                0.0,
+                6.0,
+                3.5,
+                14.0,
+                30.0,
+                1.5,
+                &never_blocked,
+                50.0,
+            );
         }
         assert!(b.x > 2.0);
     }

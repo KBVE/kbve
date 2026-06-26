@@ -3,8 +3,8 @@ use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::rng::hash3;
 use simgrid::{
-    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, NpcSpec, PersistedEnvLog, PlayerSlotTag,
-    SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState, WalkableMap, has_clearance,
+    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, MoveProfile, NpcSpec, PersistedEnvLog,
+    PlayerSlotTag, SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState, WalkableMap, has_clearance,
     spawn_npc_from_spec, spawn_tree, tree_at,
 };
 
@@ -103,6 +103,7 @@ pub fn goblin_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<
         loot: Some(GOBLIN_LOOT_REF.to_string()),
         respawn_ticks: NPC_RESPAWN_TICKS,
         float_steer: false,
+        move_profile: None,
     })
 }
 
@@ -135,6 +136,7 @@ fn predator_spec(registry: &KindRegistry, origin: Tile, floor: i32) -> Option<Np
         // Streamed predators are culled by distance, not respawned in place.
         respawn_ticks: 0,
         float_steer: false,
+        move_profile: None,
     })
 }
 
@@ -258,6 +260,8 @@ fn wyvern_spec(
         respawn_ticks: 0,
         // Float-steered: banks smoothly over the surface toward roam waypoints.
         float_steer: true,
+        // Flyer: soars over trees/walls, ignores biome speed.
+        move_profile: Some(MoveProfile::flying()),
     })
 }
 

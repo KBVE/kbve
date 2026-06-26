@@ -378,6 +378,10 @@ pub struct NpcSpec {
     /// Opt-in float steering: attaches `FloatMove` + `FloatSteer` so the NPC
     /// banks smoothly toward its Roam waypoints instead of grid-stepping.
     pub float_steer: bool,
+    /// Movement feel + locomotion mode for a float-steered NPC (flying vs
+    /// ground). Only read when `float_steer` is set; `None` falls back to the
+    /// flying preset.
+    pub move_profile: Option<MoveProfile>,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -518,6 +522,58 @@ pub struct Roam {
 #[derive(Component, Clone, Copy)]
 pub struct FloatSteer;
 
+/// Locomotion mode for a steered entity.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Terrain {
+    /// Ground unit: respects walls/trees and is slowed by dense biomes.
+    Collide,
+    /// Flyer: soars OVER obstacles (no collision) and ignores biome speed.
+    Fly,
+}
+
+/// Per-entity movement feel for float steering — replaces the old hardcoded NPC
+/// turn/arrive consts so locomotion is ECS DATA, not a code branch. The fields
+/// are tunable feel knobs (see presets below).
+#[derive(Component, Clone, Copy, Debug)]
+pub struct MoveProfile {
+    /// rad/s heading cap (banking) — how fast the body may turn.
+    pub max_turn_rate: f32,
+    /// Velocity steer rate toward the target velocity.
+    pub accel: f32,
+    /// Decel rate when easing in / coming to a stop.
+    pub friction: f32,
+    /// Slow-down radius (tiles) the arrive behavior eases to a stop within.
+    pub arrive_radius: f32,
+    /// Collision/biome mode.
+    pub terrain: Terrain,
+}
+
+impl MoveProfile {
+    /// Flyer preset (wyverns): loose banking, no collision, ignores biome.
+    /// Tunable feel knobs.
+    pub fn flying() -> Self {
+        MoveProfile {
+            max_turn_rate: 2.8,
+            accel: 14.0,
+            friction: 30.0,
+            arrive_radius: 2.5,
+            terrain: Terrain::Fly,
+        }
+    }
+
+    /// Ground preset: tighter turns, hard collision, biome-slowed.
+    /// Tunable feel knobs.
+    pub fn ground() -> Self {
+        MoveProfile {
+            max_turn_rate: 4.5,
+            accel: 22.0,
+            friction: 70.0,
+            arrive_radius: 1.0,
+            terrain: Terrain::Collide,
+        }
+    }
+}
+
 impl Roam {
     pub fn new(origin: Tile, radius: i32, dwell_min: u32, dwell_max: u32, clearance: i32) -> Self {
         let dwell_min = dwell_min.max(1);
@@ -608,7 +664,8 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
         e.insert(RespawnOnDeath { spec: spec.clone() });
     }
     if spec.float_steer {
-        e.insert((FloatMove::at(spec.origin), FloatSteer));
+        let profile = spec.move_profile.unwrap_or_else(MoveProfile::flying);
+        e.insert((FloatMove::at(spec.origin), FloatSteer, profile));
     }
     if spec.floor != 0 {
         e.insert(Floor(spec.floor));
@@ -2420,8 +2477,19 @@ fn roam_system(
             Some(dest) if dest != pos.tile => {
                 // Float-steered mobs (wyverns) follow the waypoint via
                 // `advance_npc_float`; roam only owns target selection for them,
-                // never the per-tile grid step.
+                // never the per-tile grid step. Their `arrive()` easing settles
+                // within the arrive radius, not on the exact target tile, so count
+                // being within a tile as arrival (registered while still moving) —
+                // else the body creeps at the waypoint forever, never dwelling.
                 if steer.is_some() {
+                    if (dest.x - pos.tile.x).abs() <= 1 && (dest.y - pos.tile.y).abs() <= 1 {
+                        let span = (roam.dwell_max - roam.dwell_min + 1).max(1) as u64;
+                        let dwell = roam.dwell_min
+                            + (hash3(seed.0, entity.index_u32() as u64, clock.tick as u64) % span)
+                                as u32;
+                        roam.target = None;
+                        roam.resume_tick = clock.tick.saturating_add(dwell);
+                    }
                     continue;
                 }
                 // 8-way stepping: prefer the diagonal toward the target, then
@@ -2516,27 +2584,63 @@ fn advance_float(
 /// is gated `Without<FloatSteer>` so nothing double-moves.
 fn advance_npc_float(
     map: Res<WalkableMap>,
-    mut q: Query<(&mut GridPos, &mut FloatMove, &Roam, Option<&Floor>), With<FloatSteer>>,
+    mut q: Query<
+        (
+            &mut GridPos,
+            &mut FloatMove,
+            &Roam,
+            &MoveProfile,
+            Option<&Floor>,
+        ),
+        With<FloatSteer>,
+    >,
 ) {
     let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
-    for (mut pos, mut fm, roam, floor) in q.iter_mut() {
+    for (mut pos, mut fm, roam, profile, floor) in q.iter_mut() {
         let z = floor.map(|f| f.0).unwrap_or(0);
-        let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
         // No waypoint (dwelling): ease to a stop in place.
         let dest = roam.target.unwrap_or_else(|| {
             let (tx, ty) = fm.body.tile();
             Tile::new(tx, ty)
         });
-        crate::float_move::step_steer(
-            &mut fm.body,
-            dest.x as f32,
-            dest.y as f32,
-            crate::float_move::WALK_SPEED,
-            crate::float_move::NPC_MAX_TURN_RATE,
-            crate::float_move::NPC_ARRIVE_RADIUS,
-            &is_blocked,
-            dt_ms,
-        );
+        // Speed: flyers always full; ground units are scaled by their biome.
+        let speed = match profile.terrain {
+            Terrain::Fly => crate::float_move::WALK_SPEED,
+            Terrain::Collide => {
+                let (tx, ty) = fm.body.tile();
+                let biome = crate::biome::biome_at_tile(tx, ty);
+                crate::float_move::WALK_SPEED * crate::biome::ground_speed_mult(biome)
+            }
+        };
+        // Flyers soar over everything (no-op blocker); ground units collide.
+        let real_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
+        let fly_blocked = |_x: i32, _y: i32| false;
+        match profile.terrain {
+            Terrain::Fly => crate::float_move::step_steer(
+                &mut fm.body,
+                dest.x as f32,
+                dest.y as f32,
+                speed,
+                profile.max_turn_rate,
+                profile.accel,
+                profile.friction,
+                profile.arrive_radius,
+                &fly_blocked,
+                dt_ms,
+            ),
+            Terrain::Collide => crate::float_move::step_steer(
+                &mut fm.body,
+                dest.x as f32,
+                dest.y as f32,
+                speed,
+                profile.max_turn_rate,
+                profile.accel,
+                profile.friction,
+                profile.arrive_radius,
+                &real_blocked,
+                dt_ms,
+            ),
+        }
         let (tx, ty) = fm.body.tile();
         pos.tile = Tile::new(tx, ty);
         if fm.body.speed() > 0.05 {
@@ -3387,6 +3491,7 @@ mod tests {
             loot: None,
             respawn_ticks: 4,
             float_steer: false,
+            move_profile: None,
         }
     }
 
