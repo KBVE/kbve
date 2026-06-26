@@ -36,6 +36,7 @@ import {
 	inputFrame,
 	joinFrame,
 } from './protocol';
+import { decodeServerEvent, encodeClientMessage } from './postcard-wire';
 
 export type GameClientEventMap = {
 	open: void;
@@ -65,6 +66,14 @@ export interface GameClientOptions {
 	kbveUsername: string;
 	/** Max reconnect attempts before going terminal. Default 3. */
 	maxReconnects?: number;
+	/**
+	 * Send Binary postcard frames instead of JSON text. The server pins the wire
+	 * format off the first frame, so this also flips its replies to postcard. Opt
+	 * in per game — the server MUST be built with postcard-safe structs (no
+	 * skip_serializing_if). Receiving handles both formats regardless. Default
+	 * false (JSON).
+	 */
+	binaryWire?: boolean;
 }
 
 export interface MoveSample {
@@ -130,9 +139,16 @@ export class GameClient {
 	private handleMessage(ev: MessageEvent): void {
 		let msg: ServerEvent;
 		try {
-			msg = JSON.parse(
-				typeof ev.data === 'string' ? ev.data : String(ev.data),
-			);
+			// Binary frames are COBS-framed postcard; text frames are JSON (kept as
+			// a fallback for a server still on the JSON wire).
+			msg =
+				ev.data instanceof ArrayBuffer
+					? decodeServerEvent(new Uint8Array(ev.data))
+					: JSON.parse(
+							typeof ev.data === 'string'
+								? ev.data
+								: String(ev.data),
+						);
 		} catch {
 			return;
 		}
@@ -186,7 +202,13 @@ export class GameClient {
 	}
 
 	private send(msg: ClientMessage): void {
-		this.socket.send(JSON.stringify(msg));
+		// Binary postcard (opt-in): the first Binary frame pins the server to the
+		// postcard wire and it replies in kind. Else JSON text (the default).
+		this.socket.send(
+			this.opts.binaryWire
+				? encodeClientMessage(msg)
+				: JSON.stringify(msg),
+		);
 	}
 
 	sendInputs(inputs: Input[]): void {
