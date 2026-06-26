@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { arpgAsset } from '../config';
+import { SHIP_FOOTPRINTS, SHIP_HULLS } from './shipFootprint.generated';
 
 /**
  * A static environment prop (campfire, …). Unlike player classes these have no
@@ -65,9 +66,170 @@ export const CANDELABRUM_ENV: EnvDef = {
 	light: { color: 0xffc46b, radius: 80, intensity: 0.42 },
 };
 
+// Stone shrine — a static landmark structure near spawn. One 128x128 frame, no
+// rotation, no animation (frames:1). Display larger than a tile so it reads as a
+// proper structure; it still blocks only its single base tile server-side.
+export const SHRINE_ENV: EnvDef = {
+	ref: 'shrine',
+	sheet: '/assets/arcade/arpg/environment/structures/shrine/shrine.png',
+	frameWidth: 128,
+	frameHeight: 128,
+	frames: 1,
+	frameRate: 1,
+	displayWidth: 104,
+	displayHeight: 104,
+	originY: 0.84,
+};
+
+// Parked starfighter — a rotatable landmark vehicle resting flat on the surface.
+// 4x4 sheet of 512x512 frames baked by `kbve-model-sprites` (idolknight
+// skin, hull laid flat, iso 30deg, 45deg yaw offset) so it reads as grounded, not
+// a standing billboard. 16 facings, one static frame each (frames:1, directions:16,
+// row-major: frame index = facing). The placed instance defaults to facing 0 —
+// frame_00, the 45deg parked pose. Anchored near center since it lies flat. Blocks
+// only its base tile server-side.
+//
+// Powered-DOWN variant: `ship.png` is baked from the `idolknight_off` skin (green
+// engine glow killed by `kbve-skin-variant`) so the parked ship reads as
+// OFF. The glowing twin sits beside it as `ship_on.png` — swap `sheet` to it for a
+// future hover/flight (engines-on) mode (same frame layout, drop-in).
+//
+// Pilot flow assets (all 16-facing, baked by gen-model-sprites.py; staged, NOT
+// registered yet — would preload several MB unused until the pilot state machine):
+//   ship.png       off / parked     (static, engines dark)
+//   ship_on.png    powered on        (static, engines lit, grounded)
+//   ship_lift.png  takeoff           (8 frames x 16 dir; --anim-mode lift, plays ONCE)
+//   ship_idle.png  hover idle        (8 frames x 16 dir; --anim-mode idle, seamless LOOP)
+//   ship_move.png  flying            (8 frames x 16 dir; --anim-mode move, bob + bank sway, LOOP)
+//   ship_bank.png  turn lean         (8 frames x 16 dir; --anim-mode bank, MONOTONIC roll
+//                                      L->R: index turn-rate -> frame to HOLD a lean, no loop)
+//   ship_leaving_atmosphere.png   ascent to space  (16 frames x 1 dir; --anim-mode launch, ONCE)
+//   ship_entering_atmosphere.png  descent from space (same 16 frames REVERSED)
+// Cycles shadow-catcher stays on the floor as the hull rises, so lift/idle/move/bank
+// bake the real hover gap per frame. Looping sheets are frames:8, directions:16
+// (row-major dir*8+f); atmosphere sheets are frames:16, directions:1, play once.
+// Reverse-playback reuse: LANDING = ship_lift backward, POWER-DOWN = ship_on -> ship,
+// ENTERING = leaving reversed — so no descent/shutdown/re-entry art is needed.
+//
+// Flow. Iso (this 2D renderer):
+//   Enter: ship -> ship_on -> ship_lift(fwd) -> ship_idle(loop).
+//   Drive: ship_idle (stationary) <-> ship_move (translating) ; turn -> ship_bank frame by turn-rate.
+//   Exit:  ship_idle -> ship_lift(rev) -> ship_on -> ship -> return player.
+// Leaving atmosphere hands off to a SEPARATE 3D Star Fox-style space mode (loads the
+// real fighter1.fbx/obj): ship_idle -> ship_leaving_atmosphere -> [3D space game] ->
+// ship_entering_atmosphere -> ship_idle. The 2D sprites here cover only the iso view.
+export const SHIP_ENV: EnvDef = {
+	ref: 'ship',
+	sheet: '/assets/arcade/arpg/environment/structures/ship/ship.png',
+	frameWidth: 512,
+	frameHeight: 512,
+	frames: 1,
+	frameRate: 1,
+	displayWidth: 384,
+	displayHeight: 384,
+	originY: 0.52,
+	directions: 16,
+};
+
+export const SHIP_REF = SHIP_ENV.ref;
+
+/**
+ * Tiles the ship occupies, centered on (bx,by) for `facing` (its sub byte, 0..15).
+ * Per-facing offsets are baked from the actual sprite-hull alpha — an elongated hull
+ * that rotates through 16 facings can't be matched by one symmetric radius, so each
+ * frame gets its own tile set (kbve-ship-footprint → SHIP_FOOTPRINTS).
+ * MUST mirror the server's `ship_footprint()` (game.rs), which reads the identical
+ * generated table, so client prediction blocks the exact tiles the server does.
+ */
+export function shipFootprint(
+	bx: number,
+	by: number,
+	facing: number,
+): Array<[number, number]> {
+	const f = ((Math.trunc(facing) % 16) + 16) % 16;
+	return SHIP_FOOTPRINTS[f].map(
+		([dx, dy]) => [bx + dx, by + dy] as [number, number],
+	);
+}
+
+/** The ship's convex hull polygon for `facing`, in world tiles (centered on base). */
+export function shipHull(
+	bx: number,
+	by: number,
+	facing: number,
+): Array<[number, number]> {
+	const f = ((Math.trunc(facing) % 16) + 16) % 16;
+	return SHIP_HULLS[f].map(([x, y]) => [bx + x, by + y] as [number, number]);
+}
+
+/**
+ * Push a circle (px,py,r) out of the ship's convex hull polygon at `facing`, centered
+ * on base (bx,by). Returns the corrected position + world surface normal (to cancel
+ * inward velocity), or null if already clear. The hull is baked CCW (interior-left,
+ * outward = right-of-edge) by gen-ship-footprint.py. BYTE-FOR-BYTE mirror of the server
+ * `resolve_circle_poly` (game.rs) so prediction and the sim push to the same spot —
+ * this is the real ship collision (the tile footprint is only coarse NPC blocking).
+ */
+export function resolveShipHull(
+	px: number,
+	py: number,
+	r: number,
+	bx: number,
+	by: number,
+	facing: number,
+): { x: number; y: number; nx: number; ny: number } | null {
+	const verts = shipHull(bx, by, facing);
+	const n = verts.length;
+	if (n < 3) return null;
+	let inside = true;
+	let bestD2 = Infinity;
+	let cx = 0;
+	let cy = 0;
+	let enx = 0; // nearest edge's outward normal
+	let eny = 0;
+	for (let i = 0; i < n; i++) {
+		const ax = verts[i][0];
+		const ay = verts[i][1];
+		const ex = verts[(i + 1) % n][0] - ax;
+		const ey = verts[(i + 1) % n][1] - ay;
+		const len2 = ex * ex + ey * ey || 1e-9;
+		let t = ((px - ax) * ex + (py - ay) * ey) / len2;
+		t = t < 0 ? 0 : t > 1 ? 1 : t;
+		const qx = ax + t * ex;
+		const qy = ay + t * ey;
+		const ddx = px - qx;
+		const ddy = py - qy;
+		const d2 = ddx * ddx + ddy * ddy;
+		// Interior is left of each directed edge (CCW). Right of any → outside.
+		if (ex * (py - ay) - ey * (px - ax) < 0) inside = false;
+		if (d2 < bestD2) {
+			bestD2 = d2;
+			cx = qx;
+			cy = qy;
+			const el = Math.sqrt(len2);
+			enx = ey / el; // right-of-edge = outward
+			eny = -ex / el;
+		}
+	}
+	const d = Math.sqrt(bestD2);
+	if (inside) {
+		// Exit through the nearest edge, clearing the radius.
+		return { x: cx + r * enx, y: cy + r * eny, nx: enx, ny: eny };
+	}
+	if (d < r) {
+		// Outside but overlapping: push straight out from the nearest boundary point.
+		const nx = d > 1e-6 ? (px - cx) / d : enx;
+		const ny = d > 1e-6 ? (py - cy) / d : eny;
+		return { x: cx + r * nx, y: cy + r * ny, nx, ny };
+	}
+	return null;
+}
+
 export const ENV_REGISTRY: Map<string, EnvDef> = new Map([
 	[CAMPFIRE_ENV.ref, CAMPFIRE_ENV],
 	[CANDELABRUM_ENV.ref, CANDELABRUM_ENV],
+	[SHRINE_ENV.ref, SHRINE_ENV],
+	[SHIP_ENV.ref, SHIP_ENV],
 ]);
 
 /** Facing count for a def (rotatable props pack >1 row). */

@@ -27,6 +27,7 @@ export const EPHEMERAL_BLACKJACK = 11;
 export const EPHEMERAL_PROJECTILE = 12;
 export const EPHEMERAL_FLOOR = 13;
 export const EPHEMERAL_ITEM_PLACED = 14;
+export const EPHEMERAL_CORPSE = 16;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -74,7 +75,11 @@ export type Input =
 	| { PlaceBet: { amount: number } }
 	| { BjAction: { kind: BjActionKind } }
 	| { Insure: { amount: number } }
-	| { Fell: { tile: Tile } };
+	| { Fell: { tile: Tile } }
+	| { EnterShip: { ship: number } }
+	| 'ExitShip'
+	| { OpenCorpse: { corpse: number } }
+	| { TakeFromCorpse: { corpse: number; slot: number } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
@@ -122,6 +127,9 @@ export interface EntityDelta {
 	/** Dungeon floor (z-axis). Absent/0 = ground floor (single-floor games). */
 	z?: number;
 	effects?: StatusView[];
+	/** For a PLAYER: the eid of the ship it is piloting, or 0 on foot. Clients hide
+	 * the body + float the nameplate over that ship so others see who is flying it. */
+	piloting?: number;
 }
 
 export interface Snapshot {
@@ -221,6 +229,13 @@ export interface FloorChangeEvent {
 export interface PickupEvent {
 	item_ref: string;
 	count: number;
+}
+
+/** A corpse's current loot, pushed to the player who has it open (and re-pushed
+ * after each take). `items` are [ref, count] in slot order; take a slot by index. */
+export interface CorpseContents {
+	corpse: number;
+	items: [string, number][];
 }
 
 export interface ItemUsedEvent {

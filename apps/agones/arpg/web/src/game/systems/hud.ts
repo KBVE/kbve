@@ -2,6 +2,7 @@ import {
 	laserEvents,
 	type InventoryItem,
 	type NotificationEventData,
+	type CorpseContents,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
@@ -243,6 +244,38 @@ export function emitDeath(): void {
 
 export function onDeath(handler: () => void): () => void {
 	return laserEvents.on(DEATH_EVENT, handler as (data: unknown) => void);
+}
+
+// Corpse loot panel bridge. The scene forwards the server's `corpse` event
+// (CorpseContents) as CORPSE_OPEN so the React LootPanel shows it; the panel
+// emits CORPSE_INTENT back (take a slot / take all / close) and the scene relays
+// it to the GameClient. A contents push with no items closes the panel.
+export const CORPSE_OPEN_EVENT = 'arpg:corpse:open';
+export const CORPSE_INTENT_EVENT = 'arpg:corpse:intent';
+
+export type CorpseIntent =
+	| { type: 'take'; corpse: number; slot: number }
+	| { type: 'all'; corpse: number }
+	| { type: 'close' };
+
+export function emitCorpseOpen(contents: CorpseContents): void {
+	laserEvents.emit(CORPSE_OPEN_EVENT, contents);
+}
+
+export function onCorpseOpen(
+	handler: (contents: CorpseContents) => void,
+): () => void {
+	return laserEvents.on(CORPSE_OPEN_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitCorpseIntent(intent: CorpseIntent): void {
+	laserEvents.emit(CORPSE_INTENT_EVENT, intent);
+}
+
+export function onCorpseIntent(
+	handler: (intent: CorpseIntent) => void,
+): () => void {
+	return laserEvents.on(CORPSE_INTENT_EVENT, handler as (d: unknown) => void);
 }
 
 export const HUD_CLEAR_EVENT = 'arpg:hud:clear';

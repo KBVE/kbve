@@ -170,6 +170,7 @@ export type {
 	Ephemeral,
 	InventoryItem,
 	InventorySync,
+	CorpseContents,
 	ShopResult,
 	CombatEvent,
 	ProjectileEvent,

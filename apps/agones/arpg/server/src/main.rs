@@ -3,6 +3,8 @@ mod auth;
 mod creatures;
 mod db;
 mod game;
+mod pilot;
+mod ship_footprint_gen;
 
 use std::net::SocketAddr;
 
@@ -121,6 +123,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 game::stream_trees,
             )
                 .in_set(simgrid::SimSet::Spawn),
+        );
+        // Ship piloting: `apply_pilot_ops` boards/leaves before movement (so the new
+        // footprint is set when players move); `drive_ships` binds each ship to its
+        // pilot + advances the lift/land phase after movement, before hull collision.
+        app.add_systems(
+            bevy::prelude::Update,
+            pilot::apply_pilot_ops.before(simgrid::SimSet::Movement),
+        );
+        app.add_systems(
+            bevy::prelude::Update,
+            pilot::drive_ships
+                .after(simgrid::SimSet::Movement)
+                .before(game::resolve_ship_collision),
+        );
+        // Smooth hull collision pushes players out of the ship's oriented box AFTER the
+        // float movement set resolves and BEFORE the snapshot streams the corrected pos.
+        // The pilot is exempt (`Without<Piloting>`) so it isn't ejected from its ship.
+        app.add_systems(
+            bevy::prelude::Update,
+            game::resolve_ship_collision
+                .after(simgrid::SimSet::Movement)
+                .before(simgrid::SimSet::Snapshot),
         );
         rt.block_on(run_sim_loop(app));
     });

@@ -78,7 +78,7 @@ describe('postcard ServerEvent decoder', () => {
 	it('decodes the Rust Snapshot fixture field-for-field', () => {
 		const ev = decodeServerEvent(
 			fromHex(
-				'040109640109010207ffff030a050881c002bf01180d033c5006010103050100',
+				'040109640109010207ffff030a050881c002bf01180d033c500501010305020100',
 			),
 		);
 		expect('Snapshot' in ev).toBe(true);
@@ -106,6 +106,7 @@ describe('postcard ServerEvent decoder', () => {
 				destroyed: false,
 				z: -1,
 				effects: [{ kind: 'Burn', remaining: 5 }],
+				piloting: 0,
 			});
 		}
 	});
