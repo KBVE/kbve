@@ -102,7 +102,7 @@ impl<'a> AbilitiesRepo<'a> {
                     cab.maxnumberofslots AS max_number_of_slots,
                     cab.numberofunlockedslots AS number_of_unlocked_slots,
                     cab.charabilitybarscustomjson AS custom_json
-             FROM charabilitybar cab
+             FROM charabilitybars cab
              JOIN characters c ON c.characterid = cab.characterid AND c.customerguid = cab.customerguid
              WHERE cab.customerguid = $1 AND c.charname = $2",
         )
@@ -125,8 +125,8 @@ impl<'a> AbilitiesRepo<'a> {
                     cha.abilitylevel AS ability_level,
                     caba.inslotnumber AS in_slot_number,
                     caba.charabilitybarabilitiescustomjson AS custom_json
-             FROM charabilitybarability caba
-             JOIN charabilitybar cab ON cab.charabilitybarid = caba.charabilitybarid AND cab.customerguid = caba.customerguid
+             FROM charabilitybarabilities caba
+             JOIN charabilitybars cab ON cab.charabilitybarid = caba.charabilitybarid AND cab.customerguid = caba.customerguid
              JOIN charhasabilities cha ON cha.charhasabilitiesid = caba.charhasabilitiesid AND cha.customerguid = caba.customerguid
              JOIN abilities a ON a.abilityid = cha.abilityid AND a.customerguid = cha.customerguid
              JOIN characters c ON c.characterid = cab.characterid AND c.customerguid = cab.customerguid
