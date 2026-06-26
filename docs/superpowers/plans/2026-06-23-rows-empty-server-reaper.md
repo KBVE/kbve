@@ -1036,15 +1036,15 @@ or the risk of touching audited code exceeds the benefit).
 
 **Fixed in code (this pass):**
 
-- **3.1 — hot-path cost for an annotation no UE consumer reads yet (Medium → FIXED).** Every allocation
-  (join hot path + MQ spin-up) did an extra synchronous `get_map_minutes_to_shutdown_after_empty` DB
-  read to stamp `ows.kbve.com/empty-shutdown-minutes` — but UE obligation #3 (the consumer) isn't built
-  yet (#13281). Added a dedicated `ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION` knob (`ReaperKnobs`, default
-  OFF, env-only). While OFF the call sites pass `0` (no DB read) and `try_allocate` omits the annotation
-  for any `<= 0` value. Deliberately **separate from `enabled`**: per the #13281 contract, UE
-  self-shutdown must be validated *before* the reaper backstop is enabled, so annotation stamping has to
-  be flip-able ahead of the reaper, not coupled to it. Commented stanza added to `deployment.yaml`; knob
-  registered in the config index.
+- **3.1 — hot-path cost for the empty-shutdown annotation (Medium → made opt-out).** Every allocation
+  (join hot path + MQ spin-up) does an extra synchronous `get_map_minutes_to_shutdown_after_empty` DB
+  read to stamp `ows.kbve.com/empty-shutdown-minutes`. Added a dedicated
+  `ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION` knob (`ReaperKnobs`, env-only) so that cost is now
+  opt-out: set `false` and the call sites pass `0` (no DB read) while `try_allocate` omits the
+  annotation for any `<= 0` value. **Default ON** by maintainer decision — the annotation is stamped
+  even before a UE consumer exists, so it's already present when one lands; the perf escape hatch is
+  there if the per-allocation read ever matters. Independent of `enabled`. Documented in
+  `deployment.yaml` and the config index.
 - **5.2 — `empty_shutdown_minutes_floor` overflow on absurd config (Low → FIXED).** `(min_empty_secs +
   59)` on an i64 could overflow for a pathological operator value; switched to `saturating_add(59)`.
 

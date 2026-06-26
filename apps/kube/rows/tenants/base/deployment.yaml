@@ -128,14 +128,12 @@ spec:
                       # "empty servers retained: heartbeat stale vs empty_fresh_secs" count to catch this.
                       - name: ROWS_EMPTY_REAP_FRESH_SECS
                         value: '180'
-                      # empty-shutdown-minutes annotation (UE drain-contract obligation #3, #13281).
-                      # Ships OFF: while off, ROWS skips the per-allocation per-map-timeout DB read
-                      # and omits the annotation entirely (no UE consumer reads it yet). Flip ON to
-                      # roll out UE self-shutdown — this must precede enabling the reaper, since the
-                      # annotation is how obligation #3 is validated in an env before the backstop is
-                      # turned on. Independent of ROWS_EMPTY_REAPER_ENABLED.
+                      # empty-shutdown-minutes annotation: tells the UE server when to self-shutdown
+                      # after going empty. Default ON (stamped even before a UE consumer reads it, so
+                      # it's already present when one lands). Set 'false' to skip the per-allocation
+                      # per-map-timeout DB read and omit it. Independent of ROWS_EMPTY_REAPER_ENABLED.
                       # - name: ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION
-                      #   value: 'true'
+                      #   value: 'false'
                   ports:
                       - name: http
                         containerPort: 4322

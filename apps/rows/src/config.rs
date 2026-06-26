@@ -88,9 +88,9 @@ pub struct ReaperKnobs {
     /// hard-deallocate a populated-but-silent server. `0` = disabled (no freshness check).
     pub empty_fresh_secs: i64,
     /// Whether to stamp the `ows.kbve.com/empty-shutdown-minutes` allocation annotation that tells
-    /// the UE server when to self-shutdown after going empty. Default OFF: while off the allocation
-    /// path skips the per-map-timeout DB read and omits the annotation (nothing consumes it yet).
-    /// Independent of `enabled` so UE self-shutdown can be rolled out before the reaper backstop.
+    /// the UE server when to self-shutdown after going empty. Default ON: stamped even before a UE
+    /// consumer reads it, so it's already present when one lands. Set `false` to skip the per-map
+    /// timeout DB read on the allocation path and omit the annotation. Independent of `enabled`.
     pub stamp_empty_shutdown_annotation: bool,
 }
 
@@ -105,7 +105,7 @@ impl Default for ReaperKnobs {
             stale_secs: 0,
             min_empty_secs: 300,
             empty_fresh_secs: 180,
-            stamp_empty_shutdown_annotation: false,
+            stamp_empty_shutdown_annotation: true,
         }
     }
 }
@@ -265,7 +265,7 @@ impl RowsConfig {
             empty_fresh_secs: env_i64("ROWS_EMPTY_REAP_FRESH_SECS", 180),
             stamp_empty_shutdown_annotation: env_bool(
                 "ROWS_STAMP_EMPTY_SHUTDOWN_ANNOTATION",
-                false,
+                true,
             ),
         };
 
