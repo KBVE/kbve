@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PixelPanel } from '../../PixelPanel';
 import { authBridge } from '../../../lib/auth';
 import CreatureCodex from '../codex/CreatureCodex';
+import {
+	GothicPanel,
+	GothicTitleBar,
+	GothicButton,
+	useMountTransition,
+} from '../gothic/Gothic';
 
-const ACCENT = '#fcd34d';
 const TEXT = '#e6ebf5';
 const MUTED = '#9fb3d8';
 
@@ -43,10 +47,12 @@ export default function ArpgMenu() {
 		return () => document.body.classList.remove('arpg-menu-open');
 	}, [open]);
 
+	const { mounted, shown } = useMountTransition(open, 200);
+
 	return (
 		<>
 			{codex && <CreatureCodex onClose={() => setCodex(false)} />}
-			{open && (
+			{mounted && (
 				<div
 					style={{
 						position: 'absolute',
@@ -55,38 +61,42 @@ export default function ArpgMenu() {
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
-						background: 'rgba(8,9,14,0.6)',
-						backdropFilter: 'blur(3px)',
+						background: shown
+							? 'rgba(8,9,14,0.6)'
+							: 'rgba(8,9,14,0)',
+						backdropFilter: shown ? 'blur(3px)' : 'blur(0px)',
+						pointerEvents: shown ? 'auto' : 'none',
+						transition:
+							'background 0.2s ease, backdrop-filter 0.2s ease',
 						fontFamily: 'monospace',
 						color: TEXT,
 					}}
 					onClick={close}>
-					<div onClick={(e) => e.stopPropagation()}>
-						<PixelPanel
-							variant="gold"
-							scale={3}
-							style={{ minWidth: 260, padding: '20px 22px' }}>
-							<div
-								style={{
-									fontSize: 18,
-									fontWeight: 700,
-									color: ACCENT,
-									textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-									textAlign: 'center',
-									letterSpacing: 1,
-									marginBottom: 16,
-								}}>
+					<div
+						onClick={(e) => e.stopPropagation()}
+						style={{
+							transformOrigin: 'center',
+							transform: shown ? 'scale(1)' : 'scale(0.9)',
+							opacity: shown ? 1 : 0,
+							transition:
+								'transform 0.2s cubic-bezier(0.2,0.8,0.3,1.1), opacity 0.2s ease',
+						}}>
+						<GothicPanel
+							padding={18}
+							style={{
+								width: 280,
+								filter: 'drop-shadow(0 14px 40px rgba(0,0,0,0.6))',
+							}}>
+							<GothicTitleBar style={{ marginBottom: 14 }}>
 								PAUSED
-							</div>
+							</GothicTitleBar>
 							<div
 								style={{
 									display: 'flex',
 									flexDirection: 'column',
-									gap: 10,
+									gap: 8,
 								}}>
-								<MenuButton primary onClick={close}>
-									Resume
-								</MenuButton>
+								<MenuButton onClick={close}>Resume</MenuButton>
 								<MenuButton
 									onClick={() => {
 										setCodex(true);
@@ -106,7 +116,7 @@ export default function ArpgMenu() {
 							</div>
 							<div
 								style={{
-									marginTop: 14,
+									marginTop: 12,
 									fontSize: 10,
 									color: MUTED,
 									textAlign: 'center',
@@ -114,7 +124,7 @@ export default function ArpgMenu() {
 								}}>
 								Esc to resume
 							</div>
-						</PixelPanel>
+						</GothicPanel>
 					</div>
 				</div>
 			)}
@@ -125,37 +135,25 @@ export default function ArpgMenu() {
 function MenuButton({
 	children,
 	onClick,
-	primary = false,
 }: {
 	children: React.ReactNode;
 	onClick: () => void;
-	primary?: boolean;
 }) {
 	return (
-		<button
+		<GothicButton
 			onClick={onClick}
 			style={{
-				padding: '11px 14px',
-				fontSize: 14,
-				fontFamily: 'monospace',
-				fontWeight: 700,
-				borderRadius: 6,
-				border: 'none',
-				cursor: 'pointer',
-				color: primary ? '#0b0e16' : TEXT,
-				background: primary ? ACCENT : 'rgba(76,90,120,0.35)',
-				boxShadow: primary
-					? '0 0 10px rgba(252,211,77,0.4)'
-					: 'inset 0 0 0 1px rgba(120,138,170,0.4)',
+				width: '100%',
+				minWidth: 0,
 				transition: 'filter 120ms',
 			}}
 			onMouseEnter={(e) => {
-				e.currentTarget.style.filter = 'brightness(1.15)';
+				e.currentTarget.style.filter = 'brightness(1.18)';
 			}}
 			onMouseLeave={(e) => {
 				e.currentTarget.style.filter = 'none';
 			}}>
 			{children}
-		</button>
+		</GothicButton>
 	);
 }

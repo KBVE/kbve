@@ -104,5 +104,6 @@ export const GOTHIC = {
 	text: '#e0cf9a',
 	textMuted: '#9c8f72',
 	ground: '#171615',
+	groundEdge: '#090909',
 	shadow: '#050505',
 } as const;
