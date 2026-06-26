@@ -33,7 +33,6 @@ resources:
     - valkey/application.yaml
     - storage/application.yaml
     - irc/application.yaml
-    - keycloak/application.yaml
     - kilobase/application.yaml
     - kong/application.yaml
     - auth/application.yaml
