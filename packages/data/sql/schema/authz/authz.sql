@@ -26,8 +26,11 @@ BEGIN;
 CREATE SCHEMA IF NOT EXISTS authz;
 ALTER SCHEMA authz OWNER TO postgres;
 
-GRANT USAGE ON SCHEMA authz TO authenticated, service_role;
-REVOKE ALL ON SCHEMA authz FROM PUBLIC, anon;
+-- Backend-only: service_role (kbve-gate / metrics) calls these explicit-UUID
+-- predicates. authenticated is intentionally excluded — browser self-checks
+-- use staff.proxy_has_permission() / public.is_staff() (auth.uid()-based).
+REVOKE ALL ON SCHEMA authz FROM PUBLIC, anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA authz TO service_role;
 
 CREATE OR REPLACE FUNCTION authz._perms(p_user_id UUID)
 RETURNS INTEGER
@@ -133,8 +136,8 @@ BEGIN
         'authz.has_any_permission(UUID, INTEGER)'
     ] LOOP
         EXECUTE format('ALTER FUNCTION %s OWNER TO postgres', fn);
-        EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon', fn);
-        EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated, service_role', fn);
+        EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon, authenticated', fn);
+        EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', fn);
     END LOOP;
 END $$;
 
