@@ -11,7 +11,11 @@ CREATE TABLE CustomCharacterData
     CONSTRAINT PK_CustomCharacterData
         PRIMARY KEY (CustomerGUID, CustomCharacterDataID),
     CONSTRAINT FK_CustomCharacterData_CharID
-        FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID)
+        FOREIGN KEY (CustomerGUID, CharacterID) REFERENCES Characters (CustomerGUID, CharacterID),
+    -- Natural key backing the `ON CONFLICT (customerguid, characterid, customfieldname)`
+    -- upsert in CharsRepo::add_or_update_custom_data.
+    CONSTRAINT UQ_CustomCharacterData_Field
+        UNIQUE (CustomerGUID, CharacterID, CustomFieldName)
 );
 
 -- Security: CustomCharacterData
