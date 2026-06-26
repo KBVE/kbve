@@ -93,6 +93,7 @@ pub fn registry() -> KindRegistry {
     reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
     reg.register_env(simgrid::TREE_REF);
+    reg.register_env(simgrid::BUSH_REF);
     reg
 }
 
@@ -384,6 +385,19 @@ pub fn spawn_world(
                 tile,
                 o.floor,
                 simgrid::TreeState::from_sub(o.sub),
+            );
+            continue;
+        }
+        // Harvested bushes persist as `bush` records carrying their variant|0x80 in
+        // `sub`. They come back already harvested (walkable, never blocking) so a
+        // re-streamed bush on that tile stays picked.
+        if o.env_ref == simgrid::BUSH_REF {
+            simgrid::spawn_bush(
+                &mut commands,
+                &registry,
+                tile,
+                o.floor,
+                simgrid::BushState::from_sub(o.sub),
             );
             continue;
         }

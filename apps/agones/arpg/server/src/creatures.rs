@@ -3,9 +3,9 @@ use simgrid::arpg_dungeon;
 use simgrid::proto::Tile;
 use simgrid::rng::hash3;
 use simgrid::{
-    AggroSpec, EntityKind, Floor, GridPos, KindRegistry, MoveProfile, NpcSpec, PersistedEnvLog,
-    PlayerSlotTag, SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState, WalkableMap, has_clearance,
-    spawn_npc_from_spec, spawn_tree, tree_at,
+    AggroSpec, BUSH_REF, BushState, EntityKind, Floor, GridPos, KindRegistry, MoveProfile, NpcSpec,
+    PersistedEnvLog, PlayerSlotTag, SIM_TICK_HZ, SimClock, SimSeed, TREE_REF, TreeState,
+    WalkableMap, bush_at, has_clearance, spawn_bush, spawn_npc_from_spec, spawn_tree, tree_at,
 };
 
 use crate::game::{DUNGEON_SEED, DUNGEON_TOP_Z, SPAWN_FLOOR, floor_near_z, player_spawn};
@@ -437,6 +437,91 @@ pub fn stream_trees(
                     if !felled {
                         map.block_tile_z(SPAWN_FLOOR, tile);
                     }
+                    alive.push(tile);
+                }
+            }
+        }
+    }
+}
+
+// Bushes — NEUTRAL static env props on the z=0 grass surface. Unlike trees they
+// never block their tile; a player adjacent to one harvests it (server-authoritative).
+// They realise the deterministic `bush_at` scrub around surface players and persist
+// harvested state via the env log.
+// Realise bushes out to the client's view radius (DUNGEON_RADIUS chunks) so every
+// visible bush is server-authoritative for harvested state, and despawn well beyond it
+// so a bush never disappears while its chunk is still rendered (the client adopts
+// each server entity onto its predicted sprite).
+pub const BUSH_SPAWN_MAX: i32 = 52;
+pub const BUSH_DESPAWN_RADIUS: i32 = 64;
+pub const BUSH_STREAM_PERIOD_TICKS: u32 = SIM_TICK_HZ / 2;
+
+/// Realise the deterministic surface scrub around z=0 players: walk the tiles in
+/// range and spawn the `bush_at(DUNGEON_SEED, tile)` bush (always walkable),
+/// despawning ones that fall out of range. Placement is a pure function of the world
+/// seed, so the client reproduces the identical scrub and streams it in with the
+/// ground. Skips the spawn tile and the surface stairs.
+#[allow(clippy::too_many_arguments, dead_code)]
+pub fn stream_bushes(
+    clock: Res<SimClock>,
+    registry: Res<KindRegistry>,
+    log: Res<PersistedEnvLog>,
+    players: Query<(&GridPos, Option<&Floor>), With<PlayerSlotTag>>,
+    bushes: Query<(Entity, &GridPos, Option<&Floor>), With<BushState>>,
+    mut commands: Commands,
+) {
+    if !clock.tick.is_multiple_of(BUSH_STREAM_PERIOD_TICKS) {
+        return;
+    }
+    if registry.kind_of(BUSH_REF).is_none() {
+        return;
+    }
+
+    let surface_players: Vec<Tile> = players
+        .iter()
+        .filter(|(_, f)| f.map(|f| f.0).unwrap_or(0) == SPAWN_FLOOR)
+        .map(|(p, _)| p.tile)
+        .collect();
+
+    let mut alive: Vec<Tile> = Vec::new();
+    for (entity, pos, pfloor) in bushes.iter() {
+        if pfloor.map(|f| f.0).unwrap_or(0) != SPAWN_FLOOR {
+            continue;
+        }
+        let near = surface_players
+            .iter()
+            .any(|pt| chebyshev(*pt, pos.tile) <= BUSH_DESPAWN_RADIUS);
+        if near {
+            alive.push(pos.tile);
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+
+    let spawn = player_spawn();
+    let (dx_t, dy_t) =
+        arpg_dungeon::stair_tile(DUNGEON_SEED, SPAWN_FLOOR, arpg_dungeon::StairKind::Down);
+    let down_stair = Tile::new(dx_t, dy_t);
+    let harvested_tiles: std::collections::HashSet<(i32, i32)> = log
+        .0
+        .iter()
+        .filter(|o| o.env_ref == BUSH_REF && o.floor == SPAWN_FLOOR)
+        .map(|o| (o.x, o.y))
+        .collect();
+
+    for ptile in &surface_players {
+        for dy in -BUSH_SPAWN_MAX..=BUSH_SPAWN_MAX {
+            for dx in -BUSH_SPAWN_MAX..=BUSH_SPAWN_MAX {
+                let tile = Tile::new(ptile.x + dx, ptile.y + dy);
+                if tile == spawn || tile == down_stair || alive.contains(&tile) {
+                    continue;
+                }
+                let Some(variant) = bush_at(DUNGEON_SEED, tile.x, tile.y) else {
+                    continue;
+                };
+                let harvested = harvested_tiles.contains(&(tile.x, tile.y));
+                let state = BushState { variant, harvested };
+                if spawn_bush(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
                     alive.push(tile);
                 }
             }
