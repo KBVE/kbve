@@ -17,18 +17,28 @@ import { DEBUG_CREATURE_DIRS } from '../entities/creatures';
 // tiles don't flap the pose back to Idle and restart the wing-flap.
 const MOVE_EPS = 2e-3;
 const MOVE_IDLE_GRACE_MS = 180;
+// Throttle interp/facing updates: skip frames when perf bottlenecked.
+const INTERP_THROTTLE_MS = 33; // Max ~30 Hz (every 2nd frame @ 60fps)
+
+let lastInterpTick = 0;
+let lastFacingTick = 0;
 
 /**
  * Render-interpolate every creature entity: sample its interp buffer at the
  * delayed render time, place the sprite/shadow/nameplate, and drive its
  * locomotion pose (Walking/Idle) off the sampled velocity. Remote-mover smoothing
  * — the local player is float-driven elsewhere.
+ * Throttled to max 20 Hz to reduce draw calls under load.
  */
 export function tickCreatureInterp<R extends EntityRefs>(
 	scene: Phaser.Scene,
 	store: EntityStore<R>,
 ): void {
-	const renderTime = scene.time.now - INTERP_DELAY_MS;
+	const now = scene.time.now;
+	if (now - lastInterpTick < INTERP_THROTTLE_MS) return;
+	lastInterpTick = now;
+
+	const renderTime = now - INTERP_DELAY_MS;
 	for (const [, , refs] of store.entries()) {
 		if (!refs.interp || !refs.creature) continue;
 		if (!(refs.sprite instanceof Phaser.GameObjects.Sprite)) continue;
@@ -76,8 +86,15 @@ export function tickCreatureInterp<R extends EntityRefs>(
 	}
 }
 
-/** Lerp every class + creature entity's facing toward its movement target. */
-export function tickFacing<R extends EntityRefs>(store: EntityStore<R>): void {
+/** Lerp every class + creature entity's facing toward its movement target. Throttled. */
+export function tickFacing<R extends EntityRefs>(
+	scene: Phaser.Scene,
+	store: EntityStore<R>,
+): void {
+	const now = scene.time.now;
+	if (now - lastFacingTick < INTERP_THROTTLE_MS) return;
+	lastFacingTick = now;
+
 	for (const [, , refs] of store.entries()) {
 		if (refs.cls && refs.sprite instanceof Phaser.GameObjects.Sprite) {
 			tickClassFacing(refs.sprite, refs.cls);

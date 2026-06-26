@@ -28,6 +28,7 @@ export {
 	flashEntity,
 	floatingText,
 	drawHealthBar,
+	drawHealthBarCached,
 	attachCameraZoom,
 } from './lib/phaser/entity-fx';
 export type { CameraZoomOptions } from './lib/phaser/entity-fx';

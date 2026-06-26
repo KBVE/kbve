@@ -61,6 +61,26 @@ export function drawHealthBar(
 	g.fillRect(centerX - width / 2 + 0.5, topY + 0.5, (width - 1) * pct, 3);
 }
 
+/**
+ * Draw a health bar only if hp/maxHp changed since last draw (cache on lastHp).
+ * Returns true if drawn, false if skipped.
+ */
+export function drawHealthBarCached(
+	g: Phaser.GameObjects.Graphics,
+	centerX: number,
+	topY: number,
+	hp: number,
+	maxHp: number,
+	lastHp: { hp: number; maxHp: number } | undefined,
+	width = 26,
+): { drawn: boolean; cache: { hp: number; maxHp: number } } {
+	if (lastHp && lastHp.hp === hp && lastHp.maxHp === maxHp) {
+		return { drawn: false, cache: lastHp };
+	}
+	drawHealthBar(g, centerX, topY, hp, maxHp, width);
+	return { drawn: true, cache: { hp, maxHp } };
+}
+
 export interface CameraZoomOptions {
 	min?: number;
 	max?: number;

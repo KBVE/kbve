@@ -84,6 +84,9 @@ export function drawStatusFx(
 ): void {
 	const g = refs.statusFx;
 	if (!g) return;
+	// Skip redraw if effect count unchanged (rough cache — full comparison would check kinds).
+	if (refs.lastStatusCount === effects.length && effects.length > 0) return;
+	refs.lastStatusCount = effects.length;
 	g.clear();
 	if (effects.length === 0) return;
 

@@ -27,7 +27,8 @@ import {
 export interface DungeonView {
 	// Packed chunk key (packTile(cx, cy)) -> world-anchored ground container.
 	chunkGrounds: Map<number, Phaser.GameObjects.Container>;
-	holeLayer: Phaser.GameObjects.Graphics;
+	// Pooled hole Graphics per chunk (reused across floor changes).
+	chunkHoles: Map<number, Phaser.GameObjects.Graphics>;
 	stairSprites: Phaser.GameObjects.Image[];
 	// Packed key of the chunk last streamed around; -1 = none yet (packed keys
 	// are always >= 0, so the sentinel never collides).
@@ -42,10 +43,7 @@ export interface DungeonView {
 export function makeDungeonView(scene: Phaser.Scene): DungeonView {
 	return {
 		chunkGrounds: new Map(),
-		// Black diamonds punched over every non-floor tile, above the ground but
-		// below entities — the dungeon's room/corridor shape reads as the holes
-		// in the tiled ground.
-		holeLayer: scene.add.graphics().setDepth(DEPTH_TILE + 1),
+		chunkHoles: new Map(),
 		stairSprites: [],
 		lastChunkKey: -1,
 		stairMaterial: 'grey_stone',
@@ -81,12 +79,64 @@ export function refreshDungeonView(
 	view.lastChunkKey = ckey;
 
 	const { added, removed } = dungeon.refresh(focus);
-	for (const c of added) buildChunkGround(scene, view, surface, c.cx, c.cy);
-	for (const c of removed) unloadChunkGround(view, c.cx, c.cy);
-	if (force || added.length || removed.length) {
-		paintHoles(scene, view, dungeon, surface, cx, cy);
+	for (const c of added) {
+		buildChunkGround(scene, view, surface, c.cx, c.cy);
+		buildChunkHoles(scene, view, dungeon, surface, c.cx, c.cy);
+	}
+	for (const c of removed) {
+		unloadChunkGround(view, c.cx, c.cy);
+		hideChunkHoles(view, c.cx, c.cy);
 	}
 	if (onChunks && (added.length || removed.length)) onChunks(added, removed);
+}
+
+/**
+ * Build or reuse a Graphics object for this chunk's holes (one Graphics per
+ * chunk = 576 tiles). Draw once, show/hide on stream. Reused across floors.
+ */
+function buildChunkHoles(
+	scene: Phaser.Scene,
+	view: DungeonView,
+	dungeon: DungeonField,
+	surface: boolean,
+	cx: number,
+	cy: number,
+): void {
+	const key = packTile(cx, cy);
+	let g = view.chunkHoles.get(key);
+	if (!g) {
+		g = scene.add.graphics().setDepth(DEPTH_TILE + 1);
+		view.chunkHoles.set(key, g);
+	}
+	g.clear();
+	g.setVisible(!surface);
+	if (surface) return;
+
+	g.fillStyle(0x05070d, 1);
+	const hw = TILE_W / 2;
+	const hh = TILE_H / 2;
+	const minX = cx * CHUNK_SIZE;
+	const minY = cy * CHUNK_SIZE;
+	const maxX = minX + CHUNK_SIZE;
+	const maxY = minY + CHUNK_SIZE;
+	for (let y = minY; y < maxY; y++) {
+		for (let x = minX; x < maxX; x++) {
+			if (dungeon.isFloor(x, y)) continue;
+			const p = worldToScreen(x, y);
+			g.beginPath();
+			g.moveTo(p.x, p.y - hh);
+			g.lineTo(p.x + hw, p.y);
+			g.lineTo(p.x, p.y + hh);
+			g.lineTo(p.x - hw, p.y);
+			g.closePath();
+			g.fillPath();
+		}
+	}
+}
+
+function hideChunkHoles(view: DungeonView, cx: number, cy: number): void {
+	const key = packTile(cx, cy);
+	view.chunkHoles.get(key)?.setVisible(false);
 }
 
 /**
@@ -104,6 +154,8 @@ export function rebuildDungeonView(
 ): void {
 	for (const plane of view.chunkGrounds.values()) plane.destroy();
 	view.chunkGrounds.clear();
+	// Hide all hole Graphics (reused across floors).
+	for (const g of view.chunkHoles.values()) g.setVisible(false);
 	view.lastChunkKey = -1;
 	refreshDungeonView(scene, view, dungeon, surface, focus, true, onChunks);
 }
@@ -196,44 +248,4 @@ function unloadChunkGround(view: DungeonView, cx: number, cy: number): void {
 	const key = packTile(cx, cy);
 	view.chunkGrounds.get(key)?.destroy();
 	view.chunkGrounds.delete(key);
-}
-
-/**
- * Repaint the hole layer: a black iso diamond on every non-floor tile in the
- * live chunk window. Painting holes (sparse walls) rather than floors keeps the
- * tiled ground texture intact underneath the walkable space.
- */
-function paintHoles(
-	scene: Phaser.Scene,
-	view: DungeonView,
-	dungeon: DungeonField,
-	surface: boolean,
-	cx: number,
-	cy: number,
-): void {
-	const g = view.holeLayer;
-	g.clear();
-	// Surface floors are open grass — no walls to punch holes for.
-	if (surface) return;
-	g.fillStyle(0x05070d, 1);
-	const hw = TILE_W / 2;
-	const hh = TILE_H / 2;
-	const r = DUNGEON_RADIUS;
-	const minX = (cx - r) * CHUNK_SIZE;
-	const minY = (cy - r) * CHUNK_SIZE;
-	const maxX = (cx + r + 1) * CHUNK_SIZE;
-	const maxY = (cy + r + 1) * CHUNK_SIZE;
-	for (let y = minY; y < maxY; y++) {
-		for (let x = minX; x < maxX; x++) {
-			if (dungeon.isFloor(x, y)) continue;
-			const p = worldToScreen(x, y);
-			g.beginPath();
-			g.moveTo(p.x, p.y - hh);
-			g.lineTo(p.x + hw, p.y);
-			g.lineTo(p.x, p.y + hh);
-			g.lineTo(p.x - hw, p.y);
-			g.closePath();
-			g.fillPath();
-		}
-	}
 }

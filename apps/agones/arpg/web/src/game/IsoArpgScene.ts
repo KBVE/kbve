@@ -3,6 +3,7 @@ import {
 	GameClient,
 	PROTOCOL_VERSION,
 	drawHealthBar,
+	drawHealthBarCached,
 	type EntityDelta,
 	type KindEntry,
 	type Snapshot,
@@ -1215,7 +1216,7 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	update(_time: number, delta: number) {
 		tickCreatureInterpV(this, this.store);
-		tickFacingV(this.store);
+		tickFacingV(this, this.store);
 		this.tickZoom(delta);
 		syncFogToZoom(this, this.fog);
 		this.ground?.update(this.cameras.main);
@@ -1629,15 +1630,18 @@ export class IsoArpgScene extends Phaser.Scene {
 			const hostile = this.isHostileServer(serverEid);
 			if (maxHp <= 0 || (!hostile && hp >= maxHp)) {
 				refs.hpBar.clear();
+				refs.lastHp = undefined; // Clear cache when hidden
 				continue;
 			}
-			drawHealthBar(
+			const result = drawHealthBarCached(
 				refs.hpBar,
 				refs.sprite.x,
 				refs.sprite.y - refs.sprite.displayHeight - 8,
 				hp,
 				maxHp,
+				refs.lastHp,
 			);
+			refs.lastHp = result.cache;
 		}
 	}
 
