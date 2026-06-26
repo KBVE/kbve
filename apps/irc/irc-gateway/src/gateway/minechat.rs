@@ -219,10 +219,12 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     }
 
     let (pulse_tx, mut pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
+    let (notice_tx, mut notice_rx) = tokio::sync::mpsc::unbounded_channel::<ChatMessage>();
 
     let nick_c2i = nick.clone();
     let ergo_w_c2i = Arc::clone(&ergo_w);
     let pulse_tx_c2i = pulse_tx.clone();
+    let notice_tx_c2i = notice_tx.clone();
     let c2i = async move {
         loop {
             let msg = match timeout(WS_READ_DEADLINE, client_rx.next()).await {
@@ -270,6 +272,27 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                 crate::gateway::ratelimit::Verdict::Kick => {
                     warn!(user = %nick_c2i, "flood detected; disconnecting session");
                     break;
+                }
+            }
+
+            // Content filter — drop links/blocked words/repeat-floods before
+            // they reach ergo (so they never broadcast or land in history) and
+            // tell the sender why.
+            if matches!(parsed.kind, MessageKind::Chat) {
+                if let crate::gateway::filter::Decision::Block(reason) =
+                    crate::gateway::filter::check(&nick_c2i, &parsed.content)
+                {
+                    debug!(user = %nick_c2i, reason, "message blocked by content filter");
+                    let notice = ChatMessage::event(
+                        MessageKind::Notice,
+                        "system",
+                        "gateway",
+                        &parsed.channel,
+                        &format!("message blocked: {reason}"),
+                        None,
+                    );
+                    let _ = notice_tx_c2i.send(notice);
+                    continue;
                 }
             }
 
@@ -353,6 +376,16 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                 }
                 _ = pulse_rx.recv() => {
                     ping_timer.reset();
+                }
+                notice = notice_rx.recv() => {
+                    match notice {
+                        Some(msg) => {
+                            if send_json(&mut client_tx, &msg).await.is_err() {
+                                break;
+                            }
+                        }
+                        None => break,
+                    }
                 }
             }
         }
