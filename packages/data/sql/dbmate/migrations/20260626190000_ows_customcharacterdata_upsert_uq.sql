@@ -22,6 +22,11 @@ ALTER TABLE CustomCharacterData
         UNIQUE (CustomerGUID, CharacterID, CustomFieldName);
 
 -- migrate:down
+--
+-- NOTE: this only restores the surrogate-key shape by dropping the constraint. The
+-- dedup DELETE above is NOT reversed — collapsed duplicate rows are gone for good
+-- (last-write-wins). Rollback is for the schema object, not the data; snapshot before
+-- applying if the duplicate rows matter.
 
 SET search_path TO ows;
 

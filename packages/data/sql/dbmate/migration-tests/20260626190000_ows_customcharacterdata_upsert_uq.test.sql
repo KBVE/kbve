@@ -1,5 +1,11 @@
 -- Companion test fixtures for 20260626190000_ows_customcharacterdata_upsert_uq.
 -- Run via: ./test-migration.sh 20260626190000_ows_customcharacterdata_upsert_uq
+--
+-- NOTE: test-migration.sh can only fully exercise the *newest* migration (dbmate
+-- `up` is all-or-nothing and the harness rolls back a single migration). Behavioral
+-- coverage for the customdata dedup/upsert therefore rides on the sibling maps
+-- fixture (20260626190100, currently the newest); this file keeps the constraint
+-- existence/rollback invariants only. See the maps test for the upsert assertions.
 
 -- SEED
 

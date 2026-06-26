@@ -14,6 +14,31 @@ SET search_path TO ows;
 -- inserts exactly one Map per name. A pre-existing duplicate (data error) should
 -- fail loudly here rather than be silently collapsed, since Maps is referenced by
 -- MapInstances.MapID.
+--
+-- Pre-flight: surface any such duplicate with an actionable message instead of the
+-- opaque "could not create unique index ... is duplicated" the bare ADD CONSTRAINT
+-- emits. We deliberately do NOT auto-dedup (unlike 20260626190000): collapsing a Map
+-- row could orphan MapInstances that FK its MapID, so a human must repoint and delete
+-- the stale row by hand before this migration can apply.
+DO $$
+DECLARE
+    dup RECORD;
+BEGIN
+    SELECT CustomerGUID, MapName, count(*) AS n
+      INTO dup
+      FROM Maps
+     GROUP BY CustomerGUID, MapName
+    HAVING count(*) > 1
+     LIMIT 1;
+
+    IF FOUND THEN
+        RAISE EXCEPTION
+            'UQ_Maps_MapName cannot be added: % rows share (CustomerGUID=%, MapName=%). Repoint MapInstances.MapID off the stale Map and delete it by hand before applying.',
+            dup.n, dup.CustomerGUID, dup.MapName;
+    END IF;
+END;
+$$;
+
 ALTER TABLE Maps
     ADD CONSTRAINT UQ_Maps_MapName
         UNIQUE (CustomerGUID, MapName);
