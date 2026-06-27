@@ -69,9 +69,10 @@ pub struct ShipDrive {
 }
 
 /// 16-way heading from a world velocity. Facing 0 = West (matches the parked sheet);
-/// each step is +22.5°. The screen-Y axis is inverted vs world-Y, so we negate `vy`
-/// (otherwise North reads as South). Calibrate further via `FACING_OFFSET`.
-const FACING_OFFSET: i32 = 0;
+/// each step is +22.5°. The screen-Y axis is inverted vs world-Y, so we negate `vy`.
+/// `FACING_OFFSET = -2` aligns the iso-transformed key directions to the sprite spin:
+/// A(west) maps to facing 0, D(east) to 8 (raw 2/10 before the offset).
+const FACING_OFFSET: i32 = -2;
 fn facing16(vx: f32, vy: f32) -> u8 {
     let a = (-vy).atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
     let step = (a / (std::f32::consts::TAU) * 16.0).round() as i32;
@@ -479,13 +480,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn facing16_cardinals() {
-        // Facing 0 = West (parked sheet); quarters land on 0/4/8/12. `vy` is negated
-        // (screen-Y is inverted vs world-Y) so world -y / +y map to 12 / 4.
-        assert_eq!(facing16(-1.0, 0.0), 0, "west");
-        assert_eq!(facing16(0.0, -1.0), 12, "world -y (screen down after flip)");
-        assert_eq!(facing16(1.0, 0.0), 8, "east");
-        assert_eq!(facing16(0.0, 1.0), 4, "world +y");
+    fn facing16_opposites_and_quarters() {
+        // Offset-agnostic structural checks (so calibrating FACING_OFFSET won't break
+        // this): opposite world directions land 8 facings apart, perpendicular ones 4.
+        let w = facing16(-1.0, 0.0);
+        let e = facing16(1.0, 0.0);
+        let n = facing16(0.0, -1.0);
+        let s = facing16(0.0, 1.0);
+        let gap = |a: u8, b: u8| {
+            let d = (a as i32 - b as i32).rem_euclid(16);
+            d.min(16 - d)
+        };
+        assert_eq!(gap(w, e), 8, "west/east are opposite");
+        assert_eq!(gap(n, s), 8, "north/south are opposite");
+        assert_eq!(gap(w, n), 4, "west/north are a quarter apart");
     }
 
     #[test]

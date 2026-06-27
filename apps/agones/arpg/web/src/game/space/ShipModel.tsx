@@ -28,6 +28,11 @@ const SHIP_LENGTH = 3.2; // target longest-axis size in scene units (the old fus
 const FLIP_FORWARD = false;
 const FLIP_UP = false;
 
+// Yaw correction (degrees, about +Y/up) applied AFTER the auto-align, baked into the
+// model. A bbox can mistake a wide wingspan for the nose axis, leaving the hull pointing
+// sideways (nose West instead of forward) — spin it level here. Try 0 / 90 / 180 / 270.
+const SHIP_YAW_DEG = 90;
+
 /** Rotation that lays the hull flat: longest bbox axis → +Z, thinnest → +Y, wing → X. */
 function alignMatrix(size: THREE.Vector3): THREE.Matrix4 {
 	const axes = [
@@ -53,16 +58,20 @@ export function ShipModel(): ReactElement {
 	const model = useMemo(() => {
 		skin.colorSpace = THREE.SRGBColorSpace;
 		const root = obj.clone(true);
-		// align principal axes (baked into geometry so center/scale stay rotation-free).
+		// align principal axes, then apply the yaw correction (baked into geometry so
+		// center/scale stay rotation-free).
 		const align = alignMatrix(
 			new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3()),
 		);
+		const orient = new THREE.Matrix4()
+			.makeRotationY(THREE.MathUtils.degToRad(SHIP_YAW_DEG))
+			.multiply(align);
 		root.traverse((c) => {
 			const m = c as THREE.Mesh;
 			if (!m.isMesh) return;
 			m.castShadow = true;
 			m.geometry = m.geometry.clone();
-			m.geometry.applyMatrix4(align);
+			m.geometry.applyMatrix4(orient);
 			// emissive-leaning so the hull reads bright like the baked sprites + the
 			// old primitive engine glow, while diffuse keeps the form shaded.
 			m.material = new THREE.MeshStandardMaterial({

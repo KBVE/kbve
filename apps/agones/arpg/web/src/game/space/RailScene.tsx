@@ -11,6 +11,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { ShipModel } from './ShipModel';
+import { SpaceHud, HudBar, HudStatus } from './SpaceHud';
+import { usePointer } from './usePointer';
 
 /**
  * Mission 1 — "Survive the Gauntlet". An on-rails (Star Fox) space run: the ship is
@@ -122,6 +124,7 @@ function RailFlight({
 }): ReactElement {
 	const ship = useRef<THREE.Group>(null);
 	const keys = useKeys();
+	const pointer = usePointer();
 	const { camera } = useThree();
 	const state = useRef({ u: 0, ox: 0, oy: 0, hp: 100, done: false });
 	const len = useMemo(() => curve.getLength(), [curve]);
@@ -139,23 +142,28 @@ function RailFlight({
 		// advance along the rail (arc-length param so speed is constant on curves).
 		s.u = Math.min(1, s.u + (SPEED / len) * dt);
 
-		// dodge within the bounded window.
-		const lat =
+		// dodge: the mouse reticle is an absolute target inside the window; keys nudge
+		// it. The hull eases toward the target so motion stays smooth + readable.
+		const pt = pointer.current;
+		const latKey =
 			(k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) -
 			(k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0);
-		const vert =
+		const vertKey =
 			(k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) -
 			(k.has('KeyS') || k.has('ArrowDown') ? 1 : 0);
-		s.ox = THREE.MathUtils.clamp(
-			s.ox + lat * LAT_SPEED * dt,
+		const tx = THREE.MathUtils.clamp(
+			(pt.active ? pt.nx * WINDOW : s.ox) + latKey * LAT_SPEED * dt,
 			-WINDOW,
 			WINDOW,
 		);
-		s.oy = THREE.MathUtils.clamp(
-			s.oy + vert * LAT_SPEED * dt,
+		const ty = THREE.MathUtils.clamp(
+			(pt.active ? -pt.ny * WINDOW : s.oy) + vertKey * LAT_SPEED * dt,
 			-WINDOW,
 			WINDOW,
 		);
+		const ease = 1 - Math.pow(0.0009, dt);
+		s.ox += (tx - s.ox) * ease;
+		s.oy += (ty - s.oy) * ease;
 
 		const { fwd, right, up } = railFrame(curve, s.u);
 		const base = curve.getPointAt(s.u, tmp);
@@ -164,11 +172,11 @@ function RailFlight({
 			.addScaledVector(right, s.ox)
 			.addScaledVector(up, s.oy);
 
-		// orient the hull down the rail, banking into the lateral input.
+		// orient the hull down the rail, banking into how hard it's steering sideways.
 		const look = g.position.clone().add(fwd);
 		g.up.copy(up);
 		g.lookAt(look);
-		g.rotateZ(-lat * 0.5);
+		g.rotateZ(-THREE.MathUtils.clamp((tx - s.ox) * 0.32, -0.7, 0.7));
 
 		// collisions: any un-hit rock within reach this frame clips the hull.
 		for (const rk of rocks) {
@@ -289,136 +297,33 @@ export function RailScene({ onExit }: { onExit: () => void }): ReactElement {
 				</Suspense>
 				<Rocks rocks={rocks} />
 			</Canvas>
-			<RailHud health={health} progress={progress} result={result} />
-		</div>
-	);
-}
-
-function RailHud({
-	health,
-	progress,
-	result,
-}: {
-	health: number;
-	progress: number;
-	result: Result;
-}): ReactElement {
-	return (
-		<>
-			{/* top: health + progress bars */}
-			<div
-				style={{
-					position: 'absolute',
-					top: 14,
-					left: 16,
-					right: 16,
-					display: 'flex',
-					gap: 16,
-					fontFamily: 'monospace',
-					fontSize: 12,
-					color: '#bcd0f5',
-					textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-					pointerEvents: 'none',
-				}}>
-				<Bar
-					label="HULL"
-					value={health / 100}
-					color="#54e08a"
-					warn={health <= 26}
-				/>
-				<Bar label="RAIL" value={progress} color="#69b7ff" />
-			</div>
-
-			{/* center status / result */}
-			<div
-				style={{
-					position: 'absolute',
-					inset: 0,
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					justifyContent: 'center',
-					fontFamily: 'monospace',
-					textAlign: 'center',
-					color: '#eaf2ff',
-					textShadow: '0 2px 6px rgba(0,0,0,0.95)',
-					pointerEvents: 'none',
-				}}>
-				{result === 'active' ? null : (
+			<SpaceHud
+				topLeft={
 					<>
-						<div
-							style={{
-								fontSize: 34,
-								fontWeight: 700,
-								letterSpacing: 2,
-							}}>
-							{result === 'success'
-								? 'GAUNTLET CLEARED'
-								: 'HULL DESTROYED'}
-						</div>
-						<div
-							style={{
-								fontSize: 13,
-								marginTop: 10,
-								color: '#9fb3d8',
-							}}>
-							Enter to return · Esc to leave space
-						</div>
+						<HudBar
+							label="HULL"
+							value={health / 100}
+							warn={health <= 26}
+						/>
+						<HudBar label="RAIL" value={progress} />
 					</>
-				)}
-			</div>
-
-			{/* bottom controls hint */}
-			<div
-				style={{
-					position: 'absolute',
-					bottom: 16,
-					left: 0,
-					right: 0,
-					textAlign: 'center',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					color: '#9fb3d8',
-					textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-					pointerEvents: 'none',
-				}}>
-				WASD / arrows to dodge · survive to the end of the rail · Esc to
-				abort
-			</div>
-		</>
-	);
-}
-
-function Bar({
-	label,
-	value,
-	color,
-	warn,
-}: {
-	label: string;
-	value: number;
-	color: string;
-	warn?: boolean;
-}): ReactElement {
-	return (
-		<div style={{ flex: 1 }}>
-			<div style={{ marginBottom: 3 }}>{label}</div>
-			<div
-				style={{
-					height: 8,
-					background: 'rgba(255,255,255,0.12)',
-					borderRadius: 4,
-					overflow: 'hidden',
-				}}>
-				<div
-					style={{
-						height: '100%',
-						width: `${Math.round(THREE.MathUtils.clamp(value, 0, 1) * 100)}%`,
-						background: warn ? '#e0544f' : color,
-						transition: 'width 120ms linear',
-					}}
-				/>
-			</div>
+				}
+				topRight={<div>MISSION 1 · GAUNTLET</div>}
+				centerStatus={
+					result === 'active' ? undefined : (
+						<HudStatus
+							title={
+								result === 'success'
+									? 'GAUNTLET CLEARED'
+									: 'HULL DESTROYED'
+							}
+							sub="Enter to return · Esc to leave space"
+							danger={result === 'fail'}
+						/>
+					)
+				}
+				hint="Mouse to steer · WASD to nudge · dodge to the end of the rail · Esc to abort"
+			/>
 		</div>
 	);
 }
