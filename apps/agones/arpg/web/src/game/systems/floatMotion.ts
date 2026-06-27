@@ -69,6 +69,8 @@ export function stepFloat(
 	speed: number,
 	isBlocked: IsBlocked,
 	dtMs: number,
+	accel: number = MOVE_ACCEL,
+	friction: number = MOVE_FRICTION,
 ): void {
 	const dt = Math.min(dtMs, 50) / 1000;
 	const ix = intent.x;
@@ -81,11 +83,11 @@ export function stepFloat(
 		const scale = Math.min(mag, 1);
 		const targetVx = nx * speed * scale;
 		const targetVy = ny * speed * scale;
-		const response = 1 - expDecay(MOVE_ACCEL, dt);
+		const response = 1 - expDecay(accel, dt);
 		s.vel.x += (targetVx - s.vel.x) * response;
 		s.vel.y += (targetVy - s.vel.y) * response;
 	} else {
-		const decay = expDecay(MOVE_FRICTION, dt);
+		const decay = expDecay(friction, dt);
 		s.vel.x *= decay;
 		s.vel.y *= decay;
 		if (floatSpeed(s) < STOP_SPEED) {

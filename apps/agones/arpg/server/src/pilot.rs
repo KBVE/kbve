@@ -11,8 +11,9 @@
 use bevy::prelude::*;
 use simgrid::proto::{self, Facing, Tile};
 use simgrid::{
-    EnvObject, FloatMove, Floor, FurnitureRot, GridPos, IntentBuffer, PendingPilotOps, PilotOp,
-    Piloting, PlayerSlotTag, WalkableMap,
+    EnvObject, EnvOpts, FloatMove, Floor, FurnitureRot, GridPos, InSpaceFlag, IntentBuffer,
+    KindRegistry, PendingPilotOps, PilotOp, Piloting, PlayerSlotTag, ReturnedFromInstance,
+    WalkableMap, spawn_env_object,
 };
 
 use std::collections::HashSet;
@@ -31,24 +32,15 @@ pub const PHASE_ENTERING: u8 = 5; // descending back from space into flight
 /// Sim ticks the lift / land transitions hold before advancing (≈ the baked anim).
 const LIFT_TICKS: u32 = 18;
 const LAND_TICKS: u32 = 18;
+/// Per-tick ease the landing ship glides toward its approved pad (≈ converges over
+/// LAND_TICKS). Higher = snappier approach, lower = a longer drift to the spot.
+const LAND_EASE: f32 = 0.28;
 /// Ticks the leaving / entering atmosphere cutscenes hold (≈ the baked 18-frame anim).
 const LEAVING_TICKS: u32 = 18;
 const ENTERING_TICKS: u32 = 18;
 
-/// On the pilot entity while in the solo 3D space instance — the ship + pilot are
-/// off-grid (no `GridPos`, so every snapshot drops them: they "left the planet").
-/// Holds what's needed to re-materialise both at the launch tile on return.
-#[derive(Component)]
-pub struct InSpace {
-    pub ship: Entity,
-    pub tile: Tile,
-    pub floor: i32,
-    pub facing: u8,
-}
 /// How close (tiles, Chebyshev) the player must stand to board.
 const ENTER_RANGE: i32 = 3;
-/// Speed² below which the ship keeps its last heading instead of re-deriving it.
-const FACING_VEL_EPS2: f32 = 0.02;
 
 /// On the ship entity while occupied: who flies it.
 #[derive(Component)]
@@ -66,17 +58,56 @@ pub struct ShipDrive {
     pub blocked: Vec<Tile>,
     pub floor: i32,
     pub tile: Tile,
+    /// Server-approved touchdown tile. While LANDING the ship glides here (a clear pad
+    /// where the whole footprint fits) and parks, so a cramped spot doesn't snap. Equal
+    /// to `tile` except during the land approach.
+    pub land_tile: Tile,
 }
 
-/// 16-way heading from a world velocity. Facing 0 = West (matches the parked sheet);
-/// each step is +22.5°. The screen-Y axis is inverted vs world-Y, so we negate `vy`.
-/// `FACING_OFFSET = -2` aligns the iso-transformed key directions to the sprite spin:
-/// A(west) maps to facing 0, D(east) to 8 (raw 2/10 before the offset).
-const FACING_OFFSET: i32 = -2;
+/// 16-way heading the ship SHOWS, from its world velocity. The iso grid is rotated 45°,
+/// so the world-tile direction isn't the on-screen direction the player navigates by
+/// (pressing W moves world-NW but screen-North). We project world → screen space first
+/// (`sx = vx - vy`, `sy = vx + vy`) so the sprite faces the way it moves on screen.
+/// `sy` negated for screen-down = +y. `FACING_OFFSET = 0` matches the uniform re-bake's
+/// frame map (verified in the Ship Codex): 0=W, 8=E, 4=S, 12=N. Flip `SY_SIGN` if N/S
+/// swap; nudge `FACING_OFFSET` (±1 = 22.5°) on a re-bake that shifts the spin.
+const FACING_OFFSET: i32 = 0;
+const SY_SIGN: f32 = -1.0;
 fn facing16(vx: f32, vy: f32) -> u8 {
-    let a = (-vy).atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
+    let (sx, sy) = (vx - vy, vx + vy); // world → iso screen velocity
+    let a = (SY_SIGN * sy).atan2(sx) + std::f32::consts::PI; // 0..2π, π(west)→0
     let step = (a / (std::f32::consts::TAU) * 16.0).round() as i32;
     (step + FACING_OFFSET).rem_euclid(16) as u8
+}
+
+/// The server-approved touchdown tile: the nearest tile to `from` (spiral, ≤6 rings)
+/// where the ship's WHOLE footprint is walkable — so landing never wedges the hull into
+/// rock or another blocker. Falls back to the terrain-snapped tile so it always returns
+/// a real floor. The pilot requests landing; the server picks the spot + the ship glides
+/// to it (in `drive_ships`) instead of snapping.
+fn clear_landing(map: &WalkableMap, z: i32, from: Tile, facing: u8) -> Tile {
+    let fits = |t: Tile| {
+        ship_footprint(t, facing)
+            .into_iter()
+            .all(|c| map.is_walkable_z(z, c))
+    };
+    if fits(from) {
+        return from;
+    }
+    for r in 1..=6i32 {
+        for dy in -r..=r {
+            for dx in -r..=r {
+                if dx.abs() != r && dy.abs() != r {
+                    continue; // walk the ring only (interior covered by smaller r)
+                }
+                let t = Tile::new(from.x + dx, from.y + dy);
+                if fits(t) {
+                    return t;
+                }
+            }
+        }
+    }
+    crate::game::floor_near_z(from, z)
 }
 
 /// Drain board/leave requests. Validates range + parked + unoccupied, then links the
@@ -86,7 +117,6 @@ pub fn apply_pilot_ops(
     mut commands: Commands,
     mut ops: ResMut<PendingPilotOps>,
     players: Query<(Entity, &PlayerSlotTag, &GridPos, Option<&Piloting>)>,
-    space_pilots: Query<(Entity, &PlayerSlotTag, &InSpace)>,
     ships: Query<(
         Entity,
         &GridPos,
@@ -142,6 +172,7 @@ pub fn apply_pilot_ops(
                         blocked: Vec::new(),
                         floor: z,
                         tile: spos.tile,
+                        land_tile: spos.tile,
                     },
                     // The ship is now a LOCOMOTION entity: its own float body (mirrored
                     // from the pilot in `drive_ships`) so it streams sub-tile pos/vel and
@@ -170,6 +201,9 @@ pub fn apply_pilot_ops(
                 };
                 if let Ok(mut d) = drives.get_mut(piloting.0) {
                     if d.phase == PHASE_FLY {
+                        // Server approves the touchdown spot; the ship glides there over
+                        // the LAND descent (drive_ships) so it never snaps into rock.
+                        d.land_tile = clear_landing(&map, d.floor, d.tile, d.facing);
                         d.phase = PHASE_LAND;
                         d.ticks = 0;
                     }
@@ -178,7 +212,7 @@ pub fn apply_pilot_ops(
             PilotOp::Launch => {
                 // Only a flying ship can launch to space; the leaving cutscene then
                 // runs in `drive_ships`, which takes both off-grid when it completes.
-                let Some((_, _, _, Some(piloting))) =
+                let Some((pent, _, _, Some(piloting))) =
                     players.iter().find(|(_, t, _, _)| t.0 == slot)
                 else {
                     continue;
@@ -187,60 +221,57 @@ pub fn apply_pilot_ops(
                     if d.phase == PHASE_FLY {
                         d.phase = PHASE_LEAVING;
                         d.ticks = 0;
+                        // Flag bound-for-space NOW (reliable, ahead of any disconnect race)
+                        // so the disconnect-save records `in_space` → auto-board on return.
+                        commands.entity(pent).insert(InSpaceFlag);
                     }
                 }
             }
             PilotOp::Return => {
-                // Re-materialise ship + pilot at the launch tile and play the entering
-                // cutscene back into flight. `blocked` starts empty so `drive_ships`
-                // re-blocks the footprint on its first tick.
-                let Some((pent, _, in_space)) = space_pilots.iter().find(|(_, t, _)| t.0 == slot)
-                else {
-                    continue;
-                };
-                let InSpace {
-                    ship,
-                    tile,
-                    floor,
-                    facing,
-                } = *in_space;
-                commands.entity(pent).insert((
-                    GridPos {
-                        tile,
-                        facing: Facing::Down,
-                    },
-                    Floor(floor),
-                    Piloting(ship),
-                ));
-                commands.entity(pent).remove::<InSpace>();
-                commands.entity(ship).insert((
-                    GridPos {
-                        tile,
-                        facing: Facing::Down,
-                    },
-                    Floor(floor),
-                    Piloted { pilot: slot },
-                    ShipDrive {
-                        phase: PHASE_ENTERING,
-                        ticks: 0,
-                        facing,
-                        blocked: Vec::new(),
-                        floor,
-                        tile,
-                    },
-                    FloatMove::at(tile),
-                ));
-                if let Ok(mut b) = bodies.get_mut(pent) {
-                    b.body.x = tile.x as f32;
-                    b.body.y = tile.y as f32;
-                    b.body.vx = 0.0;
-                    b.body.vy = 0.0;
-                }
-                if let Ok(mut ib) = intents.get_mut(pent) {
-                    ib.clear();
-                }
+                // Legacy no-op. Returning from space is now a DISCONNECT/RECONNECT: the
+                // client closes its WS on entering space and rejoins on return, and
+                // `return_from_space` re-materialises the player in their ship from the
+                // persisted `in_space` flag. Kept for wire/enum compatibility.
             }
         }
+    }
+}
+
+/// A player who just rejoined FROM the solo 3D space scene (the spawn system tagged them
+/// `ReturnedFromInstance` off their persisted `in_space` flag) re-materialises mid-flight:
+/// spawn their ship on their spawn tile, board it, and let `start_placed_ship_descent` +
+/// `drive_ships` play the ENTERING descent → FLY so they arrive piloting. One-shot.
+pub fn return_from_space(
+    mut commands: Commands,
+    registry: Res<KindRegistry>,
+    returned: Query<
+        (Entity, &PlayerSlotTag, &GridPos, Option<&Floor>),
+        Added<ReturnedFromInstance>,
+    >,
+) {
+    for (pent, tag, gpos, floor) in returned.iter() {
+        commands.entity(pent).remove::<ReturnedFromInstance>();
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        let tile = gpos.tile;
+        let Some(ship) = spawn_env_object(
+            &mut commands,
+            &registry,
+            SHIP_REF,
+            tile,
+            EnvOpts {
+                floor: z,
+                ..Default::default()
+            },
+        ) else {
+            continue; // ship kind not registered — leave them on foot
+        };
+        // Boarded + facing: `start_placed_ship_descent` (Added<EnvObject>) gives it the
+        // ENTERING descent + a float body next tick; with `Piloted` present, `drive_ships`
+        // routes ENTERING → FLY so the pilot arrives flying, not parked.
+        commands
+            .entity(ship)
+            .insert((FurnitureRot(SHIP_PARKED_FACING), Piloted { pilot: tag.0 }));
+        commands.entity(pent).insert(Piloting(ship));
     }
 }
 
@@ -266,7 +297,7 @@ pub fn drive_ships(
         ),
         Without<PlayerSlotTag>,
     >,
-    players: Query<(Entity, &PlayerSlotTag, &GridPos, &FloatMove)>,
+    mut players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut FloatMove)>,
 ) {
     for (sent, mut spos, mut rot, piloted, mut drive, mut ship_fm) in ships.iter_mut() {
         // A PILOTED ship mirrors its pilot's smooth float body (driving). A PILOTLESS
@@ -274,18 +305,34 @@ pub fn drive_ships(
         // its phase machine in place. `pilot` is set only when a live pilot is aboard.
         let mut pilot = None;
         if let Some(p) = piloted {
-            let Some((pe, _, _ppos, fm)) = players.iter().find(|(_, t, _, _)| t.0 == p.pilot)
+            let Some((pe, _, _ppos, mut fm)) =
+                players.iter_mut().find(|(_, t, _, _)| t.0 == p.pilot)
             else {
                 continue; // piloted but pilot missing this tick — recovery handles it
             };
             pilot = Some(pe);
+            // LANDING: the ship glides itself to the server-approved pad. Ease the pilot's
+            // body toward it (ignoring steer input) — the ship mirrors the body just below,
+            // so pilot + hull ride in together and the pilot ejects beside the parked hull,
+            // not where they hit F.
+            if drive.phase == PHASE_LAND {
+                let (lx, ly) = (drive.land_tile.x as f32, drive.land_tile.y as f32);
+                fm.body.x += (lx - fm.body.x) * LAND_EASE;
+                fm.body.y += (ly - fm.body.y) * LAND_EASE;
+                fm.body.vx = 0.0;
+                fm.body.vy = 0.0;
+            }
             // The ship is the streamed locomotion entity (its `FloatMove` → sub-tile
-            // qx/qy), so it moves exactly as the pilot drives, smoothly. Heading from
-            // velocity; the airborne hull tile-blocks nothing (re-blocked on landing).
+            // qx/qy), so it moves exactly as the pilot drives, smoothly. The airborne hull
+            // tile-blocks nothing (re-blocked on landing).
             ship_fm.body = fm.body;
-            let (vx, vy) = (fm.body.vx, fm.body.vy);
-            if vx * vx + vy * vy > FACING_VEL_EPS2 {
-                drive.facing = facing16(vx, vy);
+            // Heading from the pilot's INTENT (the steered direction) so the ship's nose
+            // LEADS the drift — but only while actually flyable, so a held key during the
+            // land approach doesn't spin the parked nose. Keep the last heading otherwise.
+            if matches!(drive.phase, PHASE_LIFT | PHASE_FLY)
+                && (fm.intent_x != 0 || fm.intent_y != 0)
+            {
+                drive.facing = facing16(fm.intent_x as f32, fm.intent_y as f32);
             }
             let (tx, ty) = ship_fm.body.tile();
             let new_tile = Tile::new(tx, ty);
@@ -304,6 +351,12 @@ pub fn drive_ships(
             PHASE_LAND => {
                 drive.ticks += 1;
                 if drive.ticks >= LAND_TICKS {
+                    // Settle exactly on the approved pad — the glide gets close; this
+                    // removes sub-tile drift before we park + block the footprint.
+                    drive.tile = drive.land_tile;
+                    spos.tile = drive.land_tile;
+                    ship_fm.body.x = drive.land_tile.x as f32;
+                    ship_fm.body.y = drive.land_tile.y as f32;
                     drive.phase = PHASE_OFF;
                     // Parked again: re-block the hull footprint at the landing tile so
                     // it blocks NPC pathing + on-foot collision like any parked ship.
@@ -328,37 +381,39 @@ pub fn drive_ships(
                         map.unblock_tile_z(drive.floor, t);
                     }
                     if let Some(pe) = pilot {
-                        // PILOTED launch → take ship + pilot off-grid into the solo space
-                        // instance. Removing `GridPos` drops both from every snapshot; the
-                        // pilot carries `InSpace` so `PilotOp::Return` re-materialises them.
-                        commands.entity(pe).insert(InSpace {
-                            ship: sent,
-                            tile: drive.tile,
-                            floor: drive.floor,
-                            facing: drive.facing,
-                        });
+                        // PILOTED launch → the pilot heads into the SOLO client-side space
+                        // scene, so the client closes its WS. Flag them `InSpaceFlag` (the
+                        // disconnect-save records `in_space` → `return_from_space` re-boards
+                        // them on rejoin) and DESPAWN the ship: a fresh one is dropped on
+                        // return. Drop GridPos so they vanish ("left the planet") in the
+                        // brief window before the socket closes.
+                        commands.entity(pe).insert(InSpaceFlag);
                         commands.entity(pe).remove::<Piloting>();
                         commands.entity(pe).remove::<GridPos>();
-                        commands.entity(sent).remove::<GridPos>();
-                        commands.entity(sent).remove::<Piloted>();
-                        commands.entity(sent).remove::<ShipDrive>();
-                        commands.entity(sent).remove::<FloatMove>();
+                        commands.entity(sent).despawn();
                     } else {
                         // PILOTLESS removal → the ship has risen to space; despawn it.
                         // (The kit was already returned to the remover's inventory when
                         // the reclaim was queued.)
                         commands.entity(sent).despawn();
                     }
-                    continue; // gone (off-grid or despawned) this tick
+                    continue; // gone (despawned / off-grid) this tick
                 }
             }
             PHASE_ENTERING => {
                 drive.ticks += 1;
                 if drive.ticks >= ENTERING_TICKS {
-                    // Descended from space back to hover height → keep landing all the
-                    // way to the ground (the player expects to touch down on return,
-                    // not hang in the air). LAND completes → parked + pilot returned.
-                    drive.phase = PHASE_LAND;
+                    // Two different arrivals share the ENTERING descent:
+                    //   PILOTED return-from-space → hand control straight back to the
+                    //     pilot (hovering, still aboard). They fly + land themselves.
+                    //     (A server LAND here desynced + dumped them on foot.)
+                    //   PILOTLESS kit-summon ("call my ship") → finish LANDING so it
+                    //     parks at the safe tile and can be boarded.
+                    drive.phase = if pilot.is_some() {
+                        PHASE_FLY
+                    } else {
+                        PHASE_LAND
+                    };
                     drive.ticks = 0;
                 }
             }
@@ -384,7 +439,6 @@ pub fn recover_orphaned_ships(
     mut commands: Commands,
     mut map: ResMut<WalkableMap>,
     players: Query<&PlayerSlotTag>,
-    space: Query<&InSpace>,
     ships: Query<(
         Entity,
         Option<&GridPos>,
@@ -393,20 +447,20 @@ pub fn recover_orphaned_ships(
         Option<&ShipDrive>,
     )>,
 ) {
-    // Build the live-pilot view once: slots with a connected player + ships a live
-    // space-pilot still holds. Plain local sets inside one ECS system — no shared
-    // state, no lock (the scheduler already gives this system exclusive access).
+    // Live-pilot view: slots with a connected player. Plain local set inside one ECS
+    // system — no shared state, no lock. A launch-to-space DESPAWNS the ship, so there
+    // are no off-grid held ships to track anymore; only a disconnect mid-flight orphans.
     let live_slots: HashSet<u16> = players.iter().map(|t| t.0.0).collect();
-    let held_ships: HashSet<u32> = space.iter().map(|s| s.ship.index_u32()).collect();
     for (sent, gpos, env, piloted, drive) in ships.iter() {
+        let _ = gpos;
         if env.def_ref != SHIP_REF {
             continue;
         }
         let orphaned = match piloted {
-            // Flying, but the pilot's slot no longer has a live player.
+            // Flying, but the pilot's slot no longer has a live player (disconnected).
             Some(p) => !live_slots.contains(&p.pilot.0),
-            // Off-grid (in space) and no live pilot's `InSpace` references it.
-            None => gpos.is_none() && !held_ships.contains(&sent.index_u32()),
+            // Pilotless ships are parked/descending env props — not orphans.
+            None => false,
         };
         if !orphaned {
             continue;
@@ -469,6 +523,7 @@ pub fn start_placed_ship_descent(
                 blocked: Vec::new(),
                 floor: floor.map(|f| f.0).unwrap_or(0),
                 tile: pos.tile,
+                land_tile: pos.tile,
             },
             FloatMove::at(pos.tile),
         ));

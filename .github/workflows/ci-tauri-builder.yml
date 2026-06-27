@@ -25,6 +25,11 @@ on:
                 required: false
                 type: boolean
                 default: false
+            platforms:
+                description: 'Comma list of targets to build: linux,macos,windows,wasm'
+                required: false
+                type: string
+                default: 'linux,macos,windows,wasm'
 
 jobs:
     # --- Fork guard for self-hosted runners ---
@@ -71,7 +76,7 @@ jobs:
     build-linux:
         name: Build Linux
         needs: guard
-        if: needs.guard.outputs.allowed == 'true'
+        if: needs.guard.outputs.allowed == 'true' && contains(inputs.platforms, 'linux')
         runs-on: ${{ inputs.linux_runner }}
         timeout-minutes: 120
         permissions:
@@ -194,6 +199,7 @@ jobs:
     # --- macOS build on GitHub-hosted runner ---
     build-macos:
         name: Build macOS
+        if: contains(inputs.platforms, 'macos')
         runs-on: macos-latest
         timeout-minutes: 120
         permissions:
@@ -298,6 +304,7 @@ jobs:
     # --- Windows build on GitHub-hosted runner ---
     build-windows:
         name: Build Windows
+        if: contains(inputs.platforms, 'windows')
         runs-on: windows-latest
         timeout-minutes: 120
         permissions:
@@ -396,6 +403,7 @@ jobs:
     # --- WASM build ---
     build-wasm:
         name: Build WASM
+        if: contains(inputs.platforms, 'wasm')
         runs-on: ubuntu-latest
         timeout-minutes: 120
         permissions:

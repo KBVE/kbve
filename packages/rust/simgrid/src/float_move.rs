@@ -1,5 +1,12 @@
 pub const WALK_SPEED: f32 = 3.4;
 pub const RUN_SPEED: f32 = 6.6;
+/// While piloting a ship the body cruises faster so flight covers ground (and feels
+/// like a vehicle, not a walk). Client mirror: `PILOT_SPEED_MULT` in web config.ts.
+pub const PILOT_SPEED_MULT: f32 = 2.3;
+/// Ship handling: low accel = it eases into heading changes (momentum, not snappy), low
+/// friction = it coasts on release instead of dead-stopping. Mirrors in web config.ts.
+pub const PILOT_ACCEL: f32 = 4.0;
+pub const PILOT_FRICTION: f32 = 2.5;
 pub const MOVE_ACCEL: f32 = 18.0;
 pub const MOVE_FRICTION: f32 = 60.0;
 pub const BODY_RADIUS: f32 = 0.34;
@@ -81,6 +88,8 @@ pub fn step_float(
     ix: f32,
     iy: f32,
     speed: f32,
+    accel: f32,
+    friction: f32,
     is_blocked: &impl Fn(i32, i32) -> bool,
     dt_ms: f32,
 ) {
@@ -91,10 +100,15 @@ pub fn step_float(
         let nx = ix / mag;
         let ny = iy / mag;
         let scale = mag.min(1.0);
-        accelerate(b, nx * speed * scale, ny * speed * scale, MOVE_ACCEL, dt);
+        accelerate(b, nx * speed * scale, ny * speed * scale, accel, dt);
     } else {
-        b.vx = 0.0;
-        b.vy = 0.0;
+        // Coast to rest at `friction` (was a hard stop) so ships keep momentum on
+        // release. Snap below STOP_SPEED so it actually settles (and matches client).
+        accelerate(b, 0.0, 0.0, friction, dt);
+        if b.vx.hypot(b.vy) < STOP_SPEED {
+            b.vx = 0.0;
+            b.vy = 0.0;
+        }
     }
 
     integrate(b, dt, is_blocked);

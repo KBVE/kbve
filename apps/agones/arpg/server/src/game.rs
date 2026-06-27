@@ -527,6 +527,10 @@ pub fn config() -> SimConfig {
         // the deterministic registry, so the kind matches build_app's).
         corpse_kind: registry().kind_of(CORPSE_REF),
         starting_inventory: vec![
+            // First slot: every player spawns with their own deployable ship (place
+            // it, board, fly, recall). Per-player here instead of a single shared
+            // ground drop so it works in multiplayer; max_stack 1 caps it at one.
+            (STARSHIP_KIT_REF.to_string(), 1),
             (CAMPFIRE_KIT_REF.to_string(), 5),
             (CANDELABRUM_KIT_REF.to_string(), 3),
             (POTION_REF.to_string(), 3),
@@ -644,16 +648,10 @@ pub fn spawn_world(
         walkable.block_tile_z(SPAWN_FLOOR, shrine);
     }
 
-    // The ship is no longer a boot fixture — it's a DEPLOYABLE item. Drop a starter
-    // `starship-kit` near spawn so a fresh player can place one (descends from orbit,
-    // lands), board it, fly, and recall it. `ship_home_tile()` survives as the tile the
-    // orphan-recovery system re-parks a stranded ship onto.
-    let kit_tile = ship_home_tile();
-    if kit_tile != spawn && kit_tile != fire && kit_tile != shrine {
-        if let Some(bundle) = ground_item_bundle(&registry, STARSHIP_KIT_REF, 1, kit_tile) {
-            commands.spawn(bundle);
-        }
-    }
+    // The ship is no longer a boot fixture — it's a DEPLOYABLE item every player now
+    // spawns with (see `config().starting_inventory`), so no shared ground drop is
+    // needed. `ship_home_tile()` survives as the tile the orphan-recovery system
+    // re-parks a stranded ship onto.
 
     // Restore player-placed objects persisted from a previous server lifetime.
     // They return as unowned world fixtures (no PlacedBy, behavior re-derived

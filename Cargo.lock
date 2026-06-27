@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "agones",
  "async-trait",
@@ -1670,7 +1670,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.216"
+version = "1.0.217"
 dependencies = [
  "anyhow",
  "askama 0.16.0",

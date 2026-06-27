@@ -215,6 +215,7 @@ import {
 	ShipController,
 	SHIP_PHASE_TO_STATE,
 	shipFacingFromSub,
+	shipFacing16,
 	shipPhaseFromSub,
 } from './entities/ship';
 import {
@@ -341,6 +342,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private flyingShips = new Set<number>();
 	// What the camera is following: the on-foot body, or the ship while piloting.
 	private camFollowing: 'player' | 'ship' = 'player';
+	// Latest streamed sub-tile pos per ship eid (qx/qy ÷ POS_SCALE), for smooth flight:
+	// the local pilot's ship rides the predicted body, remote ships lerp toward this.
+	private shipPos = new Map<number, { x: number; y: number }>();
 	// The exact game object handed to startFollow — tracked so we can detect when it
 	// gets destroyed (ship/body goes off-grid into space) and stop following a dead one.
 	private camFollowTarget?:
@@ -488,10 +492,10 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.client?.action(ACTION_LOOT, intent.corpse);
 		});
 
-		// Returning from the 3D space scene: ask the server to re-materialise the ship
-		// + pilot at the launch tile (entering cutscene -> fly). Fires even while the
-		// Phaser scene is paused — it's a plain event bus + WebSocket send.
-		this.offSpaceExit = onSpaceExit(() => this.client?.returnSpace());
+		// Returning from the solo 3D space scene is a RECONNECT, not a server round-trip:
+		// the WS was closed on entry, so reopen it. The server restores us from the
+		// persisted `in_space` flag (re-spawns + auto-boards a fresh ship on rejoin).
+		this.offSpaceExit = onSpaceExit(() => this.client?.connect());
 
 		this.initSpellLoadout();
 
@@ -677,30 +681,49 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.exitShip();
 	}
 
-	/** Show/hide a player's body display objects (sprite, baked shadow, hp bar, status
-	 * fx) — but NOT the nameplate, which floats over the ship while piloting. */
-	private setPlayerBodyVisible(eid: number, visible: boolean): void {
-		const r = this.store.refs(eid);
+	/** SOLE chokepoint for player-body visibility. The body (sprite, baked shadow, hp
+	 * bar, status fx) is visible IFF the player is NOT possessed — i.e. not piloting a
+	 * ship / riding a mount. EVERY spawn/wake/texture-load/reveal path must funnel here
+	 * instead of calling sprite.setVisible directly, so a possessed body can never flash.
+	 * The nameplate is excluded — it floats over the host while piloting. */
+	private refreshBodyVisibility(serverEid: number): void {
+		const r = this.store.refs(serverEid);
 		if (!r) return;
+		const visible = this.store.possessionKind(serverEid) === 0;
 		r.sprite.setVisible(visible);
 		r.shadow?.setVisible(visible);
 		r.hpBar?.setVisible(visible);
 		r.statusFx?.setVisible(visible);
 	}
 
-	/** Per-snapshot: track which players are piloting from `delta.piloting` (the wire
-	 * flag). Body-hide + nameplate-follow are applied per FRAME in updatePilots (ships
-	 * interpolate between snapshots). Restores a body the tick it stops piloting. */
+	/** The entity that currently REPRESENTS the local player: the host (ship/mount)
+	 * while possessed, else the on-foot body. Single source for camera follow + future
+	 * input targeting; `kind` lets callers resolve the right host sprite (1 = ship). */
+	private selfAvatar(): { kind: number; serverEid: number } | null {
+		if (this.myEid < 0) return null;
+		const host = this.store.possessionHost(this.myEid);
+		return host !== 0
+			? { kind: this.store.possessionKind(this.myEid), serverEid: host }
+			: { kind: 0, serverEid: this.myEid };
+	}
+
+	/** Per-snapshot: mirror each player's `delta.piloting` into the authoritative
+	 * Possession component (host = ship eid, kind 1 = ship) and keep `pilots` as a
+	 * derived cache for the per-frame nameplate loop. Re-gates body visibility on any
+	 * board/disembark transition; a final sweep hides bodies that spawn already aboard. */
 	private reconcilePilots(entities: readonly EntityDelta[]): void {
 		for (const e of entities) {
 			if (!isPlayerKind(this.kinds, e.kind)) continue;
 			const ship = e.piloting ?? 0;
-			if (ship !== 0) {
-				this.pilots.set(e.eid, ship);
-			} else if (this.pilots.delete(e.eid)) {
-				this.setPlayerBodyVisible(e.eid, true); // just disembarked
-			}
+			const was = this.store.possessionHost(e.eid);
+			this.store.setPossession(e.eid, ship, ship !== 0 ? 1 : 0);
+			if (ship !== 0) this.pilots.set(e.eid, ship);
+			else this.pilots.delete(e.eid);
+			if (ship !== was) this.refreshBodyVisibility(e.eid); // board OR disembark
 		}
+		// A remote player already piloting when they enter our AOI spawns its body the
+		// same snapshot — gate every current pilot now so it never shows for a frame.
+		for (const peid of this.pilots.keys()) this.refreshBodyVisibility(peid);
 		this.localPiloting = this.pilots.has(this.myEid);
 	}
 
@@ -714,10 +737,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.cameras.main.stopFollow();
 			this.camFollowTarget = undefined;
 		}
-		const ship = this.pilots.get(this.myEid);
+		const av = this.selfAvatar();
+		// kind 1 = ship: follow the hull sprite (future mount kinds resolve here too);
+		// else (on foot / kind 0) follow the body.
 		const shipSprite =
-			ship !== undefined ? this.shipCtl.get(ship)?.sprite : undefined;
-		// Follow the ship while piloting (and its sprite is live), else the body.
+			av?.kind === 1 ? this.shipCtl.get(av.serverEid)?.sprite : undefined;
 		const useShip = !!shipSprite && shipSprite.active;
 		const target = useShip
 			? shipSprite
@@ -730,11 +754,13 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.camFollowing = useShip ? 'ship' : 'player';
 	}
 
-	/** Per frame: hide every piloting player's body and float its nameplate over the
-	 * ship it flies, so ALL clients see who is aboard as the ship moves/interpolates. */
+	/** Per frame: float each pilot's nameplate over the ship it flies (ships interpolate
+	 * between snapshots, so the nameplate must track every frame). Body-hide is now a
+	 * pure function of possession (refreshBodyVisibility); the call here is an idempotent
+	 * backstop against any future reveal path that forgets to funnel through the gate. */
 	private updatePilots(): void {
 		for (const [peid, ship] of this.pilots) {
-			this.setPlayerBodyVisible(peid, false);
+			this.refreshBodyVisibility(peid);
 			const sctl = this.shipCtl.get(ship);
 			const refs = this.store.refs(peid);
 			if (sctl && refs?.nameplate) {
@@ -744,6 +770,76 @@ export class IsoArpgScene extends Phaser.Scene {
 				);
 				refs.nameplate.setDepth(sctl.sprite.depth + 1);
 			}
+		}
+	}
+
+	// Airborne ships float above their tile + sort over the trees. Lift in px; depth
+	// just under the UI layer so the hull clears env/players but stays below HUD.
+	private static readonly FLY_LIFT_PX = 36;
+	// Remote-ship position smoothing per frame (exponential lerp toward the streamed
+	// sub-tile pos). The local pilot's ship skips this — it rides the predicted body.
+	private static readonly SHIP_LERP = 0.3;
+
+	/**
+	 * Smooth-flight pass: each frame, place every airborne ship, raise it over the trees
+	 * (origin lift) and over-sort it. The env tile-snap is choppy, so we drive position
+	 * here — the LOCAL pilot's ship rides the client-predicted float body (zero latency),
+	 * remote ships lerp toward their streamed sub-tile pos so they glide, not teleport.
+	 */
+	private tickShipFlyVisual(dtMs: number): void {
+		const myShip = this.pilots.get(this.myEid);
+		for (const eid of this.flyingShips) {
+			const ctl = this.shipCtl.get(eid);
+			if (!ctl) continue;
+			// The generic env sync tweens the ship sprite toward its integer tile each
+			// snapshot (and re-places the nameplate in the tween's onUpdate). That fights
+			// our per-frame predicted/lerped positioning = jitter. Kill it so THIS pass
+			// solely owns the flying ship's transform.
+			this.tweens.killTweensOf(ctl.sprite);
+			if (eid === myShip) {
+				// Face the INTENT (where you're steering), not the velocity. Intent is
+				// immediate while momentum makes velocity lag — so the nose LEADS and the
+				// hull drifts behind = proper spaceship turn, not a backward crab. Screen
+				// axes → world via the same iso transform as movement (wx=ix+iy, wy=iy-ix).
+				const ix = this.inputRouter.axis(
+					Action.MoveLeft,
+					Action.MoveRight,
+				);
+				const iy = this.inputRouter.axis(
+					Action.MoveUp,
+					Action.MoveDown,
+				);
+				if (ix !== 0 || iy !== 0) {
+					ctl.setFacing(shipFacing16(ix + iy, iy - ix));
+				}
+			}
+			ctl.tickTurn(dtMs); // ease heading toward the target (spaceship turn)
+			ctl.tickFly(dtMs); // advance the loop on OUR clock (no row-swap restart)
+			if (eid === myShip) {
+				const p = worldToScreen(
+					this.move.floatState.pos.x,
+					this.move.floatState.pos.y,
+				);
+				ctl.sprite.setPosition(p.x, p.y);
+			} else {
+				const t = this.shipPos.get(eid);
+				if (t) {
+					const p = worldToScreen(t.x, t.y);
+					ctl.sprite.setPosition(
+						Phaser.Math.Linear(
+							ctl.sprite.x,
+							p.x,
+							IsoArpgScene.SHIP_LERP,
+						),
+						Phaser.Math.Linear(
+							ctl.sprite.y,
+							p.y,
+							IsoArpgScene.SHIP_LERP,
+						),
+					);
+				}
+			}
+			ctl.flyVisual(IsoArpgScene.FLY_LIFT_PX, DEPTH_UI - 5);
 		}
 	}
 
@@ -908,7 +1004,11 @@ export class IsoArpgScene extends Phaser.Scene {
 							this.shipCtl.set(e.eid, ctl);
 							ctl.sprite.once(
 								Phaser.GameObjects.Events.DESTROY,
-								() => this.shipCtl.delete(e.eid),
+								() => {
+									this.shipCtl.delete(e.eid);
+									this.shipPos.delete(e.eid);
+									this.flyingShips.delete(e.eid);
+								},
 							);
 						}
 						ctl.setFacing(facing);
@@ -955,12 +1055,16 @@ export class IsoArpgScene extends Phaser.Scene {
 							if (!sprite.scene) return;
 							resetCreaturePose(sprite, view);
 							if (shadow) resetCreatureShadow(shadow, view);
-							// Don't un-hide a piloting player's body — this async load
-							// callback fires after updatePilots() hid it, which would
-							// flash the body on the ground as the ship moves.
-							if (this.pilots.has(e.eid)) return;
-							sprite.setVisible(true);
-							shadow?.setVisible(true);
+							// Body visibility is a pure function of possession — route a
+							// player's body through the gate so this late sheet-load
+							// callback can't flash a piloting body on the ground. Plain
+							// creatures (never possessed) just reveal.
+							if (isPlayerKind(this.kinds, e.kind)) {
+								this.refreshBodyVisibility(e.eid);
+							} else {
+								sprite.setVisible(true);
+								shadow?.setVisible(true);
+							}
 						},
 					);
 					// Hide until the sheets are resident so Phaser's __MISSING box
@@ -1392,6 +1496,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			moveAxisY: () =>
 				this.inputRouter.axis(Action.MoveUp, Action.MoveDown),
 			walking: () => this.cursors.shift?.isDown ?? false,
+			pilotSteer: () => this.localPiloting,
 			combat: this.combat,
 			refreshDungeon: (tile) => this.refreshDungeon(tile),
 		};
@@ -1535,6 +1640,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * (nameplate/hpBar/statusFx) are rebuilt by the common create tail.
 	 */
 	private wakeCreature(refs: EntityRefs, e: EntityDelta): EntityRefs {
+		// Players never reach here — they get class sprites (makePlayerRefs) and bypass
+		// the creature pool — so this unconditional reveal can't un-hide a possessed
+		// body. Possessed-body visibility is gated in refreshBodyVisibility.
 		const sprite = refs.sprite as Phaser.GameObjects.Sprite;
 		sprite.setActive(true).setVisible(true);
 		refs.shadow?.setActive(true).setVisible(true);
@@ -1765,6 +1873,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 		this.resolveShipCollision();
 		this.updateShipPrompt();
+		// Position + lift the ship FIRST, then place pilot bodies/nameplates onto it, so
+		// the nameplate tracks the moved ship instead of lagging a frame behind it.
+		this.tickShipFlyVisual(delta);
 		this.updatePilots();
 		this.updateCameraFollow();
 
@@ -1962,6 +2073,10 @@ export class IsoArpgScene extends Phaser.Scene {
 						this.camFollowTarget = undefined;
 						this.camFollowing = 'player';
 						emitSpaceEnter({ heading: facing });
+						// Solo space is fully client-side — drop the multiplayer WS so the
+						// server cleans us up (saves state w/ the `in_space` flag set at
+						// launch). We reopen it on return (onSpaceExit). No off-grid juggling.
+						this.client?.close();
 					}
 				};
 			} else if (ctl.onTransition) {
@@ -1973,6 +2088,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			// local pilot isn't blocked by its own hull (matches the server).
 			if (phase === 0) this.flyingShips.delete(e.eid);
 			else this.flyingShips.add(e.eid);
+			// Streamed sub-tile position (qx/qy ÷ 32) for the smooth-flight pass.
+			if (e.qx !== undefined && e.qy !== undefined) {
+				this.shipPos.set(e.eid, { x: e.qx / 32, y: e.qy / 32 });
+			}
 			// Fly sub-state from the streamed velocity (idle when ~stopped, else
 			// cruise). qvx/qvy are velocity quantized ×256 (proto VEL_SCALE).
 			const speed = Math.hypot(e.qvx ?? 0, e.qvy ?? 0) / 256;

@@ -55,3 +55,31 @@ describe('EntityStore spatial index (at)', () => {
 		expect(s.at(-12, -34, -1)?.serverEid).toBe(8);
 	});
 });
+
+describe('EntityStore possession', () => {
+	it('defaults to none, sets/reads host+kind, resets on despawn+recycle', () => {
+		const s = new EntityStore<Ref>();
+		s.spawn(100, spawnData(0, 0), { id: 100 });
+		// Fresh entity is unpossessed.
+		expect(s.possessionHost(100)).toBe(0);
+		expect(s.possessionKind(100)).toBe(0);
+		// Attach to a ship (host eid 555, kind 1).
+		s.setPossession(100, 555, 1);
+		expect(s.possessionHost(100)).toBe(555);
+		expect(s.possessionKind(100)).toBe(1);
+		// Despawn then respawn the same server id: the recycled bitecs slot must
+		// NOT carry the stale possession (the off-grid space-handoff case).
+		s.despawn(100);
+		s.spawn(100, spawnData(0, 0), { id: 100 });
+		expect(s.possessionHost(100)).toBe(0);
+		expect(s.possessionKind(100)).toBe(0);
+	});
+
+	it('reads 0 for unknown entities and ignores set on them', () => {
+		const s = new EntityStore<Ref>();
+		expect(s.possessionHost(999)).toBe(0);
+		expect(s.possessionKind(999)).toBe(0);
+		s.setPossession(999, 1, 1); // no-op, must not throw
+		expect(s.possessionHost(999)).toBe(0);
+	});
+});

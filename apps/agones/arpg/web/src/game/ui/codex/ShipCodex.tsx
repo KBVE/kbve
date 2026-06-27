@@ -162,7 +162,7 @@ export default function ShipCodex({ onClose }: { onClose: () => void }) {
 						{dirs > 1 && (
 							<>
 								<label style={lbl}>
-									Facing (0 = West, +22.5°/step)
+									Facing (0=W 8=E 4=S 12=N, +22.5°/step)
 								</label>
 								<input
 									type="range"

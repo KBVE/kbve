@@ -33,6 +33,12 @@ export const SIM_DT_MS = 1000 / SIM_TICK_HZ;
 // (no foot-sliding): WALK (slower, WalkForward sheet) and RUN (faster, Run).
 export const WALK_SPEED = 3.4; // tiles/sec, matches WalkForward stride
 export const RUN_SPEED = 6.6; // tiles/sec, matches Run stride
+// Piloting cruise multiplier — MUST match PILOT_SPEED_MULT in simgrid float_move.rs
+// so client prediction and the server agree on ship travel.
+export const PILOT_SPEED_MULT = 2.3;
+// Ship handling (momentum feel) — MUST match PILOT_ACCEL/PILOT_FRICTION in float_move.rs.
+export const PILOT_ACCEL = 4.0;
+export const PILOT_FRICTION = 2.5;
 export const MOVE_ACCEL = 18; // velocity steer rate toward intent
 export const MOVE_FRICTION = 60; // velocity decay rate when no input
 export const STOP_SPEED = 1.5; // speed below which a released body snaps to rest

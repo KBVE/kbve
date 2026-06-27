@@ -3,6 +3,11 @@ import { GameClient, type Facing } from '@kbve/laser';
 import {
 	WALK_SPEED,
 	RUN_SPEED,
+	PILOT_SPEED_MULT,
+	PILOT_ACCEL,
+	PILOT_FRICTION,
+	MOVE_ACCEL,
+	MOVE_FRICTION,
 	SIM_DT_MS,
 	ARRIVE_DIST,
 	WAYPOINT_REACH,
@@ -82,9 +87,19 @@ export interface MovementDeps {
 	moveAxisY(): number;
 	// Walk tier (Shift held) vs run.
 	walking(): boolean;
+	// True while piloting a ship — steering is rotated 45° so the keys map to the
+	// screen cardinals (W = straight up) instead of the iso tile diagonals.
+	pilotSteer(): boolean;
 	combat: CombatState;
 	refreshDungeon(tile: TileXY): void;
 }
+
+// Ship steering rotates the keyboard intent by this (radians). 0 = the raw iso mapping
+// (debug baseline); tune once the debug overlay shows the real velocity vs facing.
+const PILOT_STEER_ROT = 0;
+// Permissive blocker for the flying pilot body — soars over everything (matches the
+// server's `flying` no-collision path); prevents dodging/stutter around trees.
+const FLY_NO_BLOCK = (): boolean => false;
 
 // Cap fixed steps consumed in one frame so a long stall (tab refocus / GC) doesn't
 // spiral into a catch-up burst.
@@ -130,7 +145,10 @@ export function tickLocalMotion(
 	deltaMs: number,
 ): void {
 	const walking = deps.walking();
-	const speed = walking ? WALK_SPEED : RUN_SPEED;
+	// Piloting cruises faster (must match the server's PILOT_SPEED_MULT or prediction drifts).
+	const speed =
+		(walking ? WALK_SPEED : RUN_SPEED) *
+		(deps.pilotSteer() ? PILOT_SPEED_MULT : 1);
 
 	// Integrate the local sim at the SAME fixed cadence as the server (SIM_DT_MS),
 	// draining an accumulator. One intent sample + one stamped Move + one tick per
@@ -145,7 +163,19 @@ export function tickLocalMotion(
 
 		st.prevPos = { x: st.floatState.pos.x, y: st.floatState.pos.y };
 		const prevTile = floatTile(st.floatState);
-		stepFloat(st.floatState, intent, speed, deps.isBlocked, SIM_DT_MS);
+		// Piloting eases into turns + coasts on release (momentum), and FLIES over ground
+		// obstacles (no collision) so it doesn't dodge/stutter — must match the server.
+		const pilot = deps.pilotSteer();
+		const blocked = pilot ? FLY_NO_BLOCK : deps.isBlocked;
+		stepFloat(
+			st.floatState,
+			intent,
+			speed,
+			blocked,
+			SIM_DT_MS,
+			pilot ? PILOT_ACCEL : MOVE_ACCEL,
+			pilot ? PILOT_FRICTION : MOVE_FRICTION,
+		);
 		st.tick += 1;
 
 		// One stamped intent per tick while moving, plus a short stop tail so the
@@ -247,8 +277,18 @@ function readIntent(st: MovementState, deps: MovementDeps): TileXY {
 	const iy = deps.moveAxisY();
 	if (ix !== 0 || iy !== 0) {
 		st.movePath = [];
-		const wx = ix + iy;
-		const wy = iy - ix;
+		let wx = ix + iy;
+		let wy = iy - ix;
+		// While piloting, rotate the intent 45° so the keys steer by screen cardinals
+		// (W = straight up) rather than the iso tile diagonals.
+		if (deps.pilotSteer()) {
+			const c = Math.cos(PILOT_STEER_ROT);
+			const s = Math.sin(PILOT_STEER_ROT);
+			const rx = wx * c - wy * s;
+			const ry = wx * s + wy * c;
+			wx = rx;
+			wy = ry;
+		}
 		const mag = Math.hypot(wx, wy) || 1;
 		return { x: wx / mag, y: wy / mag };
 	}

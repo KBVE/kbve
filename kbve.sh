@@ -186,10 +186,13 @@ atomic_function() {
         return 1
     fi
 
-    # Create worktree
+    # Create worktree. Skip LFS smudge: a single bad/oversized pointer (e.g. a
+    # chuckrpg .umap) 404s and aborts the whole `worktree add`, and most worktrees
+    # never touch the large binaries anyway — pull them on demand with `git lfs pull
+    # -I "<path>/**"`. Also keeps LFS bandwidth down.
     echo "Creating atomic worktree at: $worktree_dir"
     echo "Branch: $branch_name (based on dev)"
-    git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
 
     # Copy .env if it exists in the main repo
     if [ -f "$main_repo/.env" ]; then
@@ -284,10 +287,13 @@ create_worktree() {
     echo "Fetching latest from origin..."
     git fetch origin "$base_branch"
 
-    # Create worktree
+    # Create worktree. Skip LFS smudge: a single bad/oversized pointer (e.g. a
+    # chuckrpg .umap) 404s and aborts the whole `worktree add`, and most worktrees
+    # never touch the large binaries anyway — pull them on demand with `git lfs pull
+    # -I "<path>/**"`. Also keeps LFS bandwidth down.
     echo "Creating worktree at: $worktree_dir"
     echo "Branch: $branch_name (based on $base_branch)"
-    git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
 
     # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
     if [ -f "$main_repo/.env" ]; then
