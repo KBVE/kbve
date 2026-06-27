@@ -14,6 +14,7 @@ import {
 	Kind,
 	Owner,
 	Active,
+	Possession,
 	PlayerTag,
 	NpcTag,
 	ItemTag,
@@ -108,6 +109,7 @@ export class EntityStore<R> {
 		addComponent(this.world, eid, Kind);
 		addComponent(this.world, eid, Owner);
 		addComponent(this.world, eid, Active);
+		addComponent(this.world, eid, Possession);
 		addComponent(this.world, eid, this.tagFor(data.cat));
 		if (data.hostile) addComponent(this.world, eid, MonsterTag);
 		Position.x[eid] = data.tile.x;
@@ -117,6 +119,8 @@ export class EntityStore<R> {
 		Kind.value[eid] = data.kind;
 		Owner.slot[eid] = data.owner;
 		Active.value[eid] = 1;
+		Possession.host[eid] = 0;
+		Possession.kind[eid] = 0;
 		this.toEid.set(serverEid, eid);
 		this.toServer.set(eid, serverEid);
 		this.sideRefs.set(eid, refs);
@@ -152,6 +156,11 @@ export class EntityStore<R> {
 		if (eid === undefined) return undefined;
 		const refs = this.sideRefs.delete(eid);
 		this.indexRemove(eid, Position.x[eid], Position.y[eid]);
+		// Reset possession before the eid is recycled, so a future entity reusing
+		// this bitecs slot never inherits a stale host/kind (covers the space-mode
+		// off-grid handoff, where the piloting player despawns and later respawns).
+		Possession.host[eid] = 0;
+		Possession.kind[eid] = 0;
 		removeEntity(this.world, eid);
 		this.toEid.delete(serverEid);
 		this.toServer.delete(eid);
@@ -192,6 +201,28 @@ export class EntityStore<R> {
 	owner(serverEid: number): number {
 		const eid = this.toEid.get(serverEid);
 		return eid === undefined ? -1 : Owner.slot[eid];
+	}
+
+	/** Attach this entity to a host (ship/mount/object) that now represents it, or
+	 * clear it (host 0, kind 0). `kind` discriminates the host type so renderers
+	 * resolve the right sprite. The single source of truth for possession state. */
+	setPossession(serverEid: number, host: number, kind: number): void {
+		const eid = this.toEid.get(serverEid);
+		if (eid === undefined) return;
+		Possession.host[eid] = host;
+		Possession.kind[eid] = kind;
+	}
+
+	/** Server eid of the entity representing this one (ship/mount), or 0 = none. */
+	possessionHost(serverEid: number): number {
+		const eid = this.toEid.get(serverEid);
+		return eid === undefined ? 0 : Possession.host[eid];
+	}
+
+	/** Possession kind: 0 none, 1 ship (2 mount, 3 object — future). */
+	possessionKind(serverEid: number): number {
+		const eid = this.toEid.get(serverEid);
+		return eid === undefined ? 0 : Possession.kind[eid];
 	}
 
 	effects(serverEid: number): readonly StatusView[] {

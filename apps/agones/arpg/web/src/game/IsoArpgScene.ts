@@ -342,9 +342,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	private flyingShips = new Set<number>();
 	// What the camera is following: the on-foot body, or the ship while piloting.
 	private camFollowing: 'player' | 'ship' = 'player';
-	// Pilot-steering debug overlay (compass + live movement/facing arrows). Lazy.
-	private pilotDbgG?: Phaser.GameObjects.Graphics;
-	private pilotDbgText: Phaser.GameObjects.Text[] = [];
 	// Latest streamed sub-tile pos per ship eid (qx/qy ÷ POS_SCALE), for smooth flight:
 	// the local pilot's ship rides the predicted body, remote ships lerp toward this.
 	private shipPos = new Map<number, { x: number; y: number }>();
@@ -684,30 +681,49 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.client?.exitShip();
 	}
 
-	/** Show/hide a player's body display objects (sprite, baked shadow, hp bar, status
-	 * fx) — but NOT the nameplate, which floats over the ship while piloting. */
-	private setPlayerBodyVisible(eid: number, visible: boolean): void {
-		const r = this.store.refs(eid);
+	/** SOLE chokepoint for player-body visibility. The body (sprite, baked shadow, hp
+	 * bar, status fx) is visible IFF the player is NOT possessed — i.e. not piloting a
+	 * ship / riding a mount. EVERY spawn/wake/texture-load/reveal path must funnel here
+	 * instead of calling sprite.setVisible directly, so a possessed body can never flash.
+	 * The nameplate is excluded — it floats over the host while piloting. */
+	private refreshBodyVisibility(serverEid: number): void {
+		const r = this.store.refs(serverEid);
 		if (!r) return;
+		const visible = this.store.possessionKind(serverEid) === 0;
 		r.sprite.setVisible(visible);
 		r.shadow?.setVisible(visible);
 		r.hpBar?.setVisible(visible);
 		r.statusFx?.setVisible(visible);
 	}
 
-	/** Per-snapshot: track which players are piloting from `delta.piloting` (the wire
-	 * flag). Body-hide + nameplate-follow are applied per FRAME in updatePilots (ships
-	 * interpolate between snapshots). Restores a body the tick it stops piloting. */
+	/** The entity that currently REPRESENTS the local player: the host (ship/mount)
+	 * while possessed, else the on-foot body. Single source for camera follow + future
+	 * input targeting; `kind` lets callers resolve the right host sprite (1 = ship). */
+	private selfAvatar(): { kind: number; serverEid: number } | null {
+		if (this.myEid < 0) return null;
+		const host = this.store.possessionHost(this.myEid);
+		return host !== 0
+			? { kind: this.store.possessionKind(this.myEid), serverEid: host }
+			: { kind: 0, serverEid: this.myEid };
+	}
+
+	/** Per-snapshot: mirror each player's `delta.piloting` into the authoritative
+	 * Possession component (host = ship eid, kind 1 = ship) and keep `pilots` as a
+	 * derived cache for the per-frame nameplate loop. Re-gates body visibility on any
+	 * board/disembark transition; a final sweep hides bodies that spawn already aboard. */
 	private reconcilePilots(entities: readonly EntityDelta[]): void {
 		for (const e of entities) {
 			if (!isPlayerKind(this.kinds, e.kind)) continue;
 			const ship = e.piloting ?? 0;
-			if (ship !== 0) {
-				this.pilots.set(e.eid, ship);
-			} else if (this.pilots.delete(e.eid)) {
-				this.setPlayerBodyVisible(e.eid, true); // just disembarked
-			}
+			const was = this.store.possessionHost(e.eid);
+			this.store.setPossession(e.eid, ship, ship !== 0 ? 1 : 0);
+			if (ship !== 0) this.pilots.set(e.eid, ship);
+			else this.pilots.delete(e.eid);
+			if (ship !== was) this.refreshBodyVisibility(e.eid); // board OR disembark
 		}
+		// A remote player already piloting when they enter our AOI spawns its body the
+		// same snapshot — gate every current pilot now so it never shows for a frame.
+		for (const peid of this.pilots.keys()) this.refreshBodyVisibility(peid);
 		this.localPiloting = this.pilots.has(this.myEid);
 	}
 
@@ -721,10 +737,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.cameras.main.stopFollow();
 			this.camFollowTarget = undefined;
 		}
-		const ship = this.pilots.get(this.myEid);
+		const av = this.selfAvatar();
+		// kind 1 = ship: follow the hull sprite (future mount kinds resolve here too);
+		// else (on foot / kind 0) follow the body.
 		const shipSprite =
-			ship !== undefined ? this.shipCtl.get(ship)?.sprite : undefined;
-		// Follow the ship while piloting (and its sprite is live), else the body.
+			av?.kind === 1 ? this.shipCtl.get(av.serverEid)?.sprite : undefined;
 		const useShip = !!shipSprite && shipSprite.active;
 		const target = useShip
 			? shipSprite
@@ -737,11 +754,13 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.camFollowing = useShip ? 'ship' : 'player';
 	}
 
-	/** Per frame: hide every piloting player's body and float its nameplate over the
-	 * ship it flies, so ALL clients see who is aboard as the ship moves/interpolates. */
+	/** Per frame: float each pilot's nameplate over the ship it flies (ships interpolate
+	 * between snapshots, so the nameplate must track every frame). Body-hide is now a
+	 * pure function of possession (refreshBodyVisibility); the call here is an idempotent
+	 * backstop against any future reveal path that forgets to funnel through the gate. */
 	private updatePilots(): void {
 		for (const [peid, ship] of this.pilots) {
-			this.setPlayerBodyVisible(peid, false);
+			this.refreshBodyVisibility(peid);
 			const sctl = this.shipCtl.get(ship);
 			const refs = this.store.refs(peid);
 			if (sctl && refs?.nameplate) {
@@ -817,109 +836,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			}
 			ctl.flyVisual(IsoArpgScene.FLY_LIFT_PX, DEPTH_UI - 5);
 		}
-	}
-
-	/**
-	 * Pilot-steering debug overlay: a screen-cardinal compass (N/E/S/W, ground truth)
-	 * with a live YELLOW arrow showing the ship's ACTUAL screen-movement direction and a
-	 * readout of the facing index + heading. Press a key, read where the arrow points vs
-	 * the compass, and that's exactly what PILOT_STEER_ROT / the facing map must match.
-	 */
-	private drawPilotDebug(): void {
-		if (!this.pilotDbgG) {
-			this.pilotDbgG = this.add.graphics().setDepth(100000);
-			for (let i = 0; i < 5; i++) {
-				this.pilotDbgText.push(
-					this.add
-						.text(0, 0, '', {
-							fontFamily: 'ui-monospace, monospace',
-							fontSize: '14px',
-							color: '#ffffff',
-							stroke: '#000000',
-							strokeThickness: 3,
-						})
-						.setDepth(100001)
-						.setOrigin(0.5),
-				);
-			}
-		}
-		const g = this.pilotDbgG;
-		const texts = this.pilotDbgText;
-		const hide = () => {
-			g.clear();
-			for (const t of texts) t.setVisible(false);
-		};
-		if (!this.localPiloting) return hide();
-		const shipEid = this.pilots.get(this.myEid);
-		const ctl =
-			shipEid !== undefined ? this.shipCtl.get(shipEid) : undefined;
-		if (!ctl) return hide();
-
-		const ox = ctl.sprite.x;
-		const oy = ctl.sprite.y;
-		const R = 90;
-		g.clear();
-		// Compass cross — screen cardinals, the truth we calibrate against.
-		g.lineStyle(2, 0x66ccff, 0.5);
-		g.beginPath();
-		g.moveTo(ox, oy - R);
-		g.lineTo(ox, oy + R);
-		g.moveTo(ox - R, oy);
-		g.lineTo(ox + R, oy);
-		g.strokePath();
-		const place = (
-			i: number,
-			dx: number,
-			dy: number,
-			s: string,
-			c: string,
-		) =>
-			texts[i]
-				.setVisible(true)
-				.setColor(c)
-				.setText(s)
-				.setPosition(ox + dx, oy + dy);
-		place(0, 0, -R - 12, 'N', '#66ccff');
-		place(1, R + 12, 0, 'E', '#66ccff');
-		place(2, 0, R + 12, 'S', '#66ccff');
-		place(3, -R - 12, 0, 'W', '#66ccff');
-
-		// Yellow arrow = actual screen movement (world velocity → screen).
-		const v = this.move.floatState.vel;
-		const sx = (v.x - v.y) * 32;
-		const sy = (v.x + v.y) * 16;
-		const mag = Math.hypot(sx, sy);
-		let info = `facing ${ctl.facingIndex}`;
-		if (mag > 0.001) {
-			const ux = sx / mag;
-			const uy = sy / mag;
-			const ex = ox + ux * R;
-			const ey = oy + uy * R;
-			g.lineStyle(4, 0xffdd33, 1);
-			g.beginPath();
-			g.moveTo(ox, oy);
-			g.lineTo(ex, ey);
-			// arrowhead
-			const ah = 12;
-			const base = Math.atan2(uy, ux);
-			g.moveTo(ex, ey);
-			g.lineTo(
-				ex - ah * Math.cos(base - 0.4),
-				ey - ah * Math.sin(base - 0.4),
-			);
-			g.moveTo(ex, ey);
-			g.lineTo(
-				ex - ah * Math.cos(base + 0.4),
-				ey - ah * Math.sin(base + 0.4),
-			);
-			g.strokePath();
-			const names = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
-			const a = ((base * 180) / Math.PI + 360) % 360;
-			info += `  move ${names[Math.round(a / 45) % 8]} (${a.toFixed(0)}°)`;
-		} else {
-			info += '  move —';
-		}
-		place(4, 0, -R - 30, info, '#ffdd33');
 	}
 
 	private setupZoom() {
@@ -1134,12 +1050,16 @@ export class IsoArpgScene extends Phaser.Scene {
 							if (!sprite.scene) return;
 							resetCreaturePose(sprite, view);
 							if (shadow) resetCreatureShadow(shadow, view);
-							// Don't un-hide a piloting player's body — this async load
-							// callback fires after updatePilots() hid it, which would
-							// flash the body on the ground as the ship moves.
-							if (this.pilots.has(e.eid)) return;
-							sprite.setVisible(true);
-							shadow?.setVisible(true);
+							// Body visibility is a pure function of possession — route a
+							// player's body through the gate so this late sheet-load
+							// callback can't flash a piloting body on the ground. Plain
+							// creatures (never possessed) just reveal.
+							if (isPlayerKind(this.kinds, e.kind)) {
+								this.refreshBodyVisibility(e.eid);
+							} else {
+								sprite.setVisible(true);
+								shadow?.setVisible(true);
+							}
 						},
 					);
 					// Hide until the sheets are resident so Phaser's __MISSING box
@@ -1715,6 +1635,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * (nameplate/hpBar/statusFx) are rebuilt by the common create tail.
 	 */
 	private wakeCreature(refs: EntityRefs, e: EntityDelta): EntityRefs {
+		// Players never reach here — they get class sprites (makePlayerRefs) and bypass
+		// the creature pool — so this unconditional reveal can't un-hide a possessed
+		// body. Possessed-body visibility is gated in refreshBodyVisibility.
 		const sprite = refs.sprite as Phaser.GameObjects.Sprite;
 		sprite.setActive(true).setVisible(true);
 		refs.shadow?.setActive(true).setVisible(true);
@@ -1949,7 +1872,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		// the nameplate tracks the moved ship instead of lagging a frame behind it.
 		this.tickShipFlyVisual(delta);
 		this.updatePilots();
-		this.drawPilotDebug();
 		this.updateCameraFollow();
 
 		this.checkDeadStair();
