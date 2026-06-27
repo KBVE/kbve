@@ -46,7 +46,7 @@
 		},
 		"build:discord": {
 			"executor": "nx:run-commands",
-			"outputs": ["{projectRoot}/dist/discord/arpg/arpg.js"],
+			"outputs": ["{projectRoot}/dist/discord/arpg"],
 			"options": {
 				"cwd": "apps/agones/arpg/web",
 				"command": "vite build --mode discord"

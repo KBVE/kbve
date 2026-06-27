@@ -6,11 +6,15 @@ import {
 	type ReactElement,
 	type RefObject,
 } from 'react';
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { arpgAsset } from '../config';
+import { ShipModel } from './ShipModel';
+import { SpaceHud } from './SpaceHud';
+import { usePointer } from './usePointer';
+
+const MOUSE_TURN = 1.0; // how much the cursor's x adds to the yaw rate
+const VERT_THRUST = 11; // climb/dive accel from the cursor's y (units/sec²)
 
 /**
  * Solo client-side "Star Fox" space instance. The pilot leaves the multiplayer iso
@@ -47,61 +51,13 @@ function useKeys(): RefObject<Set<string>> {
 	return keys;
 }
 
-// The same starfighter the iso sprites bake from (fighter1 + idolknight skin),
-// served from public assets so the browser can fetch it. Source model lives in
-// apps/agones/arpg/web/scripts/ship-src (kbve-model-sprites bakes the iso sheets).
-const SHIP_MODEL_URL = arpgAsset('/assets/arcade/arpg/models/ship/fighter1.obj');
-const SHIP_SKIN_URL = arpgAsset('/assets/arcade/arpg/models/ship/idolknight.jpg');
-
-// Lay the hull flat with the nose toward +Z (forward), mirroring how the iso baker
-// orients it (--pitch 90). Tune if the model points the wrong way after a model swap.
-const SHIP_ORIENT: [number, number, number] = [Math.PI / 2, 0, 0];
-const SHIP_LENGTH = 3.2; // target longest-axis size in scene units (the old fuselage was 2.4)
-
-/** The baked starfighter model — replaces the slice-1 primitive ship. Points +Z (forward). */
-function ShipModel(): ReactElement {
-	const obj = useLoader(OBJLoader, SHIP_MODEL_URL);
-	const skin = useLoader(THREE.TextureLoader, SHIP_SKIN_URL);
-
-	const model = useMemo(() => {
-		skin.colorSpace = THREE.SRGBColorSpace;
-		const root = obj.clone(true);
-		root.traverse((c) => {
-			const m = c as THREE.Mesh;
-			if (!m.isMesh) return;
-			m.castShadow = true;
-			// emissive-leaning so the hull reads bright like the baked sprites + the
-			// old primitive engine glow, while diffuse keeps the form shaded.
-			m.material = new THREE.MeshStandardMaterial({
-				map: skin,
-				emissive: new THREE.Color('#2a3a52'),
-				emissiveIntensity: 0.45,
-				metalness: 0.45,
-				roughness: 0.5,
-			});
-		});
-		// center on origin + normalize the longest axis to SHIP_LENGTH so swapping the
-		// model never changes the flight scale.
-		const box = new THREE.Box3().setFromObject(root);
-		const size = box.getSize(new THREE.Vector3());
-		const center = box.getCenter(new THREE.Vector3());
-		const s = SHIP_LENGTH / (Math.max(size.x, size.y, size.z) || 1);
-		root.scale.setScalar(s);
-		root.position.copy(center).multiplyScalar(-s);
-		const wrap = new THREE.Group();
-		wrap.add(root);
-		return wrap;
-	}, [obj, skin]);
-
-	return <primitive object={model} rotation={SHIP_ORIENT} />;
-}
-
 /** Drives the ship transform from keys + trails the camera behind it each frame. */
 function Flight({ heading }: { heading: number }): ReactElement {
 	const ship = useRef<THREE.Group>(null);
 	const keys = useKeys();
+	const pointer = usePointer();
 	const { camera } = useThree();
-	// yaw (heading around Y), velocity on the XZ plane.
+	// yaw (heading around Y), velocity in 3D (XZ plane + gentle vertical).
 	const state = useRef({
 		yaw: -((heading / 16) * Math.PI * 2),
 		vel: new THREE.Vector3(),
@@ -111,6 +67,7 @@ function Flight({ heading }: { heading: number }): ReactElement {
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
 		const k = keys.current;
+		const pt = pointer.current;
 		const s = state.current;
 		const g = ship.current;
 		if (!g) return;
@@ -120,7 +77,13 @@ function Flight({ heading }: { heading: number }): ReactElement {
 		const fwd = k.has('KeyW') || k.has('ArrowUp');
 		const back = k.has('KeyS') || k.has('ArrowDown');
 
-		const turn = (left ? 1 : 0) - (right ? 1 : 0);
+		// steer with keys + the cursor's x (mouse right = bank right).
+		const mx = pt.active ? pt.nx : 0;
+		const turn = THREE.MathUtils.clamp(
+			(left ? 1 : 0) - (right ? 1 : 0) - mx * MOUSE_TURN,
+			-1,
+			1,
+		);
 		s.yaw += turn * TURN_RATE * dt;
 
 		// forward unit vector from yaw (ship nose = +Z, rotated by yaw around Y).
@@ -129,6 +92,9 @@ function Flight({ heading }: { heading: number }): ReactElement {
 		const thrust = (fwd ? 1 : 0) - (back ? 0.6 : 0);
 		s.vel.x += fx * thrust * THRUST * dt;
 		s.vel.z += fz * thrust * THRUST * dt;
+		// climb / dive from the cursor's y (mouse up = climb).
+		const my = pt.active ? -pt.ny : 0;
+		s.vel.y += my * VERT_THRUST * dt;
 
 		// damping + clamp.
 		const damp = Math.max(0, 1 - DAMP * dt);
@@ -136,7 +102,8 @@ function Flight({ heading }: { heading: number }): ReactElement {
 		if (s.vel.length() > MAX_SPEED) s.vel.setLength(MAX_SPEED);
 
 		g.position.addScaledVector(s.vel, dt);
-		g.rotation.set(0, s.yaw, turn * -BANK_MAX);
+		// nose follows yaw + pitches into the climb; banks into the turn.
+		g.rotation.set(-my * 0.35, s.yaw, turn * -BANK_MAX);
 
 		// chase camera: behind the nose, lifted, looking at the ship.
 		tmp.set(
@@ -210,28 +177,10 @@ export function SpaceScene({
 					<Flight heading={heading} />
 				</Suspense>
 			</Canvas>
-			<SpaceHud />
-		</div>
-	);
-}
-
-/** Minimal on-screen controls hint. */
-function SpaceHud(): ReactElement {
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				bottom: 16,
-				left: 0,
-				right: 0,
-				textAlign: 'center',
-				fontFamily: 'monospace',
-				fontSize: 12,
-				color: '#9fb3d8',
-				textShadow: '0 1px 2px rgba(0,0,0,0.9)',
-				pointerEvents: 'none',
-			}}>
-			W/S thrust · A/D turn · Esc to re-enter atmosphere
+			<SpaceHud
+				topRight={<div>FREE FLIGHT</div>}
+				hint="Mouse to steer · W/S thrust · Esc to re-enter atmosphere"
+			/>
 		</div>
 	);
 }

@@ -45,6 +45,60 @@ const ASSET_BASE = '/.proxy/arpg-assets';
 const KBVE_DISCORD_URL = 'https://discord.gg/kbve';
 const KBVE_FEEDBACK_URL = 'https://kbve.com/contact/';
 
+// Build version baked from version.toml (vite define). Compared at boot against
+// the no-cache version.json served beside this bundle to catch a stale (CF- or
+// webview-cached) build. Brand logo + version marker ship beside index.html, so
+// they load same-origin on the static boot screen (no proxy mapping needed yet).
+const ARPG_VERSION =
+	(import.meta.env.PUBLIC_ARPG_VERSION as string | undefined) ?? 'dev';
+const VERSION_ENDPOINT = './version.json';
+const BRAND_LOGO = './rentearthlogo.webp';
+const RELOAD_GUARD_KEY = 'arpg-stale-reload';
+
+// HTTP statuses worth one automatic retry (with a fresh OAuth code): the session
+// hop timed out or the service was briefly busy/unavailable, not a hard reject.
+const TRANSIENT_STATUS = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
+
+const delay = (ms: number): Promise<void> =>
+	new Promise((r) => setTimeout(r, ms));
+// Park forever — used after a reload is kicked off so the rest of boot can't run.
+const haltBoot = (): Promise<never> => new Promise<never>(() => {});
+
+/** Categorized session-exchange failure. `transient` ones get an auto-retry. */
+class SessionError extends Error {
+	constructor(
+		readonly status: number,
+		readonly stage: string | null,
+		readonly transient: boolean,
+		message: string,
+	) {
+		super(message);
+	}
+}
+
+/** User-facing reason for a session failure — names the stage, never internals. */
+function sessionMessage(status: number, stage: string | null): string {
+	const at = stage ? ` at the "${stage}" step` : '';
+	switch (status) {
+		case 0:
+			return 'Couldn’t reach the game session service — the connection timed out.';
+		case 408:
+		case 504:
+			return `The game session service timed out${at}. This is usually temporary.`;
+		case 502:
+		case 503:
+			return 'The game session service is briefly unavailable. Try again in a moment.';
+		case 401:
+			return 'Discord sign-in didn’t go through. Try authorizing again.';
+		case 429:
+			return 'Too many attempts right now — wait a moment and try again.';
+		default:
+			return status >= 500
+				? 'The game session service hit an error setting up your session.'
+				: `Couldn’t start your game session (status ${status}).`;
+	}
+}
+
 const AUTHORIZE_SCOPE: Types.OAuthScopes[] = [
 	'identify',
 	'email',
@@ -109,6 +163,11 @@ function communityCta(): HTMLElement {
 	return wrap;
 }
 
+// Rent Earth brand mark for the boot/sign-in/error screens. Self-hides if the
+// logo asset is missing so a bad path never leaves a broken-image icon.
+const BRAND_IMG = `<img class="arpg-brand" src="${BRAND_LOGO}" alt="Rent Earth" onerror="this.style.display='none'" />`;
+const VERSION_TAG = `<p class="arpg-ver">v${ARPG_VERSION}</p>`;
+
 function setStatus(status: string, sub?: string): void {
 	const el = root();
 	if (!el) return;
@@ -119,9 +178,11 @@ function setStatus(status: string, sub?: string): void {
 	} else {
 		el.innerHTML = `
 			<div class="arpg-boot">
+				${BRAND_IMG}
 				<span class="arpg-spinner" aria-hidden="true"></span>
 				<p class="arpg-boot-status">${status}</p>
 				<p class="arpg-boot-sub">${sub ?? ''}</p>
+				${VERSION_TAG}
 			</div>`;
 		return;
 	}
@@ -134,9 +195,11 @@ function fail(msg: string, ...extra: unknown[]): void {
 	if (!el) return;
 	el.innerHTML = `
 		<div class="arpg-boot">
+			${BRAND_IMG}
 			<p class="arpg-error-title">Could not start the Activity</p>
 			<p class="arpg-error-msg"></p>
 			<button type="button" class="arpg-retry">Try again</button>
+			${VERSION_TAG}
 		</div>`;
 	const msgEl = el.querySelector<HTMLElement>('.arpg-error-msg');
 	if (msgEl) msgEl.textContent = msg;
@@ -184,11 +247,138 @@ async function authorize(clientId: string, sdk: DiscordSDK): Promise<string> {
 	}
 }
 
+/**
+ * Detect a stale (cache-pinned) build and reload once into the fresh one.
+ *
+ * The hashed bundle + no-cache index.html should prevent stale serves, but a
+ * webview/proxy that ignores cache headers can still pin an old build. The
+ * served version.json is always fresh (nginx no-cache); if it's newer than what
+ * we were built with, this running copy is outdated — reload to pull the fresh
+ * index.html → new hashed bundle. Guarded so a colo that keeps serving stale
+ * can't loop. Fail-open on any network/parse error (never blocks a good boot).
+ */
+async function ensureFreshBuild(): Promise<void> {
+	let latest: string | undefined;
+	try {
+		const res = await fetch(VERSION_ENDPOINT, { cache: 'no-store' });
+		if (!res.ok) return;
+		latest = ((await res.json()) as { version?: string }).version;
+	} catch {
+		return;
+	}
+	if (!latest || latest === ARPG_VERSION) {
+		try {
+			sessionStorage.removeItem(RELOAD_GUARD_KEY);
+		} catch {
+			/* sessionStorage unavailable — nothing to clear */
+		}
+		return;
+	}
+
+	let triedFor: string | null = null;
+	try {
+		triedFor = sessionStorage.getItem(RELOAD_GUARD_KEY);
+	} catch {
+		/* ignore */
+	}
+	if (triedFor === latest) {
+		// Reload already attempted for this version and we're still stale.
+		fail(
+			`This Activity is running an outdated build (v${ARPG_VERSION}; latest is v${latest}) ` +
+				`and the cache won’t refresh. Fully close the Activity and reopen it.`,
+		);
+		return haltBoot();
+	}
+	try {
+		sessionStorage.setItem(RELOAD_GUARD_KEY, latest);
+	} catch {
+		/* ignore */
+	}
+	setStatus('Updating…', `Loading the latest version (v${latest}).`);
+	await delay(600);
+	window.location.reload();
+	return haltBoot();
+}
+
+/** One session exchange. Throws SessionError (transient flagged) on failure. */
+async function exchangeOnce(code: string): Promise<DiscordSession> {
+	let res: Response;
+	try {
+		res = await fetch(SESSION_ENDPOINT, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ code }),
+		});
+	} catch (err) {
+		// No HTTP response: the proxy hop to the session host timed out or was
+		// blocked. Transient — status 0 maps to the connection-timeout message.
+		console.warn(
+			'[ARPG/Discord] session request transport error',
+			errMsg(err),
+		);
+		throw new SessionError(0, null, true, sessionMessage(0, null));
+	}
+	if (res.ok) return (await res.json()) as DiscordSession;
+	// The bridge returns structured `{ error, stage }` JSON; a bare proxy/edge
+	// timeout returns text. Read the stage when present (names where it stalled).
+	const body = (await res.json().catch(() => null)) as {
+		error?: string;
+		stage?: string;
+	} | null;
+	const stage = body?.stage ?? null;
+	const transient = TRANSIENT_STATUS.has(res.status);
+	throw new SessionError(
+		res.status,
+		stage,
+		transient,
+		sessionMessage(res.status, stage),
+	);
+}
+
+/**
+ * Authorize + exchange, with one retry on a transient failure. Each attempt
+ * mints a FRESH OAuth code (codes are single-use, so we must re-authorize rather
+ * than replay the same code), and silent `prompt:'none'` keeps the retry
+ * invisible to an already-consented user.
+ */
+async function authorizeAndExchange(
+	clientId: string,
+	sdk: DiscordSDK,
+): Promise<DiscordSession> {
+	for (let attempt = 1; attempt <= 2; attempt++) {
+		setStatus('Entering the dungeon…', 'Authorizing your Discord account.');
+		const code = await authorize(clientId, sdk);
+		setStatus('Entering the dungeon…', 'Setting up your game session.');
+		try {
+			return await exchangeOnce(code);
+		} catch (err) {
+			if (err instanceof SessionError && err.transient && attempt === 1) {
+				console.warn(
+					`[ARPG/Discord] session attempt ${attempt} failed (${err.status}), retrying`,
+					err.message,
+				);
+				setStatus(
+					'Entering the dungeon…',
+					'Session service was busy — retrying…',
+				);
+				await delay(900);
+				continue;
+			}
+			throw err;
+		}
+	}
+	// Unreachable: the loop either returns or throws.
+	throw new SessionError(0, null, false, sessionMessage(0, null));
+}
+
 async function boot(): Promise<void> {
 	if (!CLIENT_ID) {
 		fail('Missing PUBLIC_DISCORD_CLIENT_ID at build time.');
 		return;
 	}
+
+	setStatus('Entering the dungeon…', 'Checking for updates.');
+	await ensureFreshBuild();
 
 	patchUrlMappings(URL_MAPPINGS);
 	// Route the game's site-root art through the /arpg-assets mapping so it loads
@@ -202,35 +392,7 @@ async function boot(): Promise<void> {
 
 	void sdk.commands.encourageHardwareAcceleration().catch(() => {});
 
-	setStatus('Entering the dungeon…', 'Authorizing your Discord account.');
-	const code = await authorize(CLIENT_ID, sdk);
-
-	setStatus('Entering the dungeon…', 'Setting up your game session.');
-	const res = await step('session request', () =>
-		fetch(SESSION_ENDPOINT, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ code }),
-		}),
-	);
-	if (!res.ok) {
-		// Surface the bridge's structured `{ error }` reason instead of a bare
-		// status. 502/503 are transient (Discord/DB upstream) — worth a retry;
-		// 401 is the user's Discord auth; 500 is a server misconfig they can't fix.
-		const reason = await res
-			.json()
-			.then((b: { error?: string }) => b?.error)
-			.catch(() => null);
-		const transient = res.status === 502 || res.status === 503;
-		fail(
-			`Session exchange failed (${res.status})${reason ? `: ${reason}` : ''}.` +
-				(transient ? ' This is usually temporary — try again.' : ''),
-		);
-		return;
-	}
-	const session = (await step('session parse', () =>
-		res.json(),
-	)) as DiscordSession;
+	const session = await authorizeAndExchange(CLIENT_ID, sdk);
 
 	setStatus('Entering the dungeon…', 'Loading the world.');
 	await step('Discord authenticate', () =>
@@ -250,4 +412,22 @@ async function boot(): Promise<void> {
 	});
 }
 
-void boot().catch((err) => fail(`Boot failed — ${errMsg(err)}`, err));
+void boot().catch((err) => {
+	// Categorized session failures already carry a player-facing message; show it
+	// as-is. Discord's "Authorization request not found" means the sign-in
+	// request expired mid-flow — tell the player to just retry. Everything else
+	// falls back to the generic boot-failure line.
+	if (err instanceof SessionError) {
+		fail(err.message, err);
+		return;
+	}
+	const msg = errMsg(err);
+	if (/authorization request not found|expired/i.test(msg)) {
+		fail(
+			'Discord sign-in expired before it finished. Tap “Try again” to restart sign-in.',
+			err,
+		);
+		return;
+	}
+	fail(`Boot failed — ${msg}`, err);
+});

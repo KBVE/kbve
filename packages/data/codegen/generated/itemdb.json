@@ -999,7 +999,8 @@
       "compress": {
         "target_ref": "gold-bar",
         "ratio": 100
-      }
+      },
+      "has_img": true
     },
     {
       "description": "A shovelful of dark, crumbly soil-matter rich with the smell of an autumn forest floor, pocked with the last stubborn fragments of what it used to be. Warm in the middle of the pile, cool at the edges, alive with the patient work of worms.\n",
@@ -4328,6 +4329,23 @@
           }
         }
       ],
+      "has_img": true
+    },
+    {
+      "description": "A folded single-seat starfighter that answers an orbital beacon. Set the beacon down and the hull drops from low orbit, flares its retros, and settles onto the marked tile. Recall it and the engines spool the ship back up through the atmosphere, leaving the beacon in your pack.\n",
+      "lore": "Every freelancer's first real asset and last thing they sell. The beacon is the cheap part — a transponder and a folded landing cradle — but it is keyed to a hull parked in a decaying orbit overhead, waiting on a call. Plant it where you mean to stay a while; the ship does not like being summoned twice in one breath.\n",
+      "ref": "starship-kit",
+      "key": 600,
+      "id": "01KWA1B2C3D4E5F6G7H8J9K0M1",
+      "name": "Starship",
+      "type_flags": 8704,
+      "consumable": true,
+      "stackable": true,
+      "max_stack": 1,
+      "rarity": "legendary",
+      "buy_price": 5000,
+      "emoji": "🚀",
+      "action": "consume",
       "has_img": true
     },
     {

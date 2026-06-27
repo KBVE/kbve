@@ -188,5 +188,6 @@ namespace RareIcon
         NeedleArrow = 561,  // needle-arrow
         StoneheadArrow = 562,  // stonehead-arrow
         CandelabrumStand = 563,  // candelabrum-stand
+        StarshipKit = 600,  // starship-kit
     }
 }

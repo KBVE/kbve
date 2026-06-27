@@ -55,6 +55,11 @@ pub const CAMPFIRE_KIT_REF: &str = "campfire-kit";
 pub const CANDELABRUM_REF: &str = "candelabrum";
 pub const CANDELABRUM_KIT_REF: &str = "candelabrum-stand";
 
+// Starship: a DEPLOYABLE vehicle. The `starship-kit` item (itemdb key 600) places a
+// `ship` env that drops from orbit (ENTERING phase, pilotless) and lands; reclaiming it
+// flies the ship back to space and returns the kit. Board a landed ship to pilot it.
+pub const STARSHIP_KIT_REF: &str = "starship-kit";
+
 // Shrine: a static decorative stone structure placed near spawn, set apart from
 // the campfire and tree line. Purely a landmark — blocks only its base tile, no
 // auras or hazards (constructed inline, not driven from mapdb).
@@ -89,6 +94,14 @@ pub fn ship_footprint(base: Tile, facing: u8) -> Vec<Tile> {
         .iter()
         .map(|&(dx, dy)| Tile::new(base.x + dx, base.y + dy))
         .collect()
+}
+
+/// The ship's starter parked tile — where it spawns, and where the orphan-recovery
+/// system (`pilot::recover_orphaned_ships`) returns a ship whose pilot vanished
+/// mid-flight or in the space instance. Single indestructible ship for now.
+pub fn ship_home_tile() -> Tile {
+    let spawn = player_spawn();
+    floor_near(Tile::new(spawn.x + 6, spawn.y + 4))
 }
 
 /// Would the ship's footprint (centered on `base`, at `facing`) overlap any impassable
@@ -273,6 +286,7 @@ pub fn registry() -> KindRegistry {
     reg.register_item(POTION_REF);
     reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_item(CANDELABRUM_KIT_REF);
+    reg.register_item(STARSHIP_KIT_REF);
     reg.register_env(CAMPFIRE_REF);
     reg.register_env(CANDELABRUM_REF);
     reg.register_env(SHRINE_REF);
@@ -372,6 +386,22 @@ pub fn deployables() -> Deployables {
         DeployableSpec {
             env_ref: CANDELABRUM_REF.to_string(),
             opts: candelabrum_env_opts(SPAWN_FLOOR),
+        },
+    );
+    // The starship places a `ship` env that is NOT a static blocker: it spawns airborne
+    // (the descent system gives it the ENTERING phase) and only blocks its hull footprint
+    // once it lands, managed by the ship phase machine (pilot::drive_ships).
+    map.insert(
+        STARSHIP_KIT_REF.to_string(),
+        DeployableSpec {
+            env_ref: SHIP_REF.to_string(),
+            opts: EnvOpts {
+                blocker: false,
+                heal_aura: None,
+                mana_aura: None,
+                hazard: None,
+                floor: SPAWN_FLOOR,
+            },
         },
     );
     Deployables(map)
@@ -614,33 +644,14 @@ pub fn spawn_world(
         walkable.block_tile_z(SPAWN_FLOOR, shrine);
     }
 
-    // A parked starfighter landmark, set off to the other side of spawn from the
-    // shrine. Blocks its per-facing hull footprint (baked from the art), not just the
-    // base tile. Carries an explicit `FurnitureRot` so it shows a chosen facing from
-    // the 16-frame sheet (SHIP_PARKED_FACING).
-    let ship = floor_near(Tile::new(spawn.x + 6, spawn.y + 4));
-    if ship != spawn && ship != fire && ship != shrine {
-        if let Some(eid) = spawn_env_object(
-            &mut commands,
-            &registry,
-            SHIP_REF,
-            ship,
-            EnvOpts {
-                blocker: true,
-                heal_aura: None,
-                mana_aura: None,
-                hazard: None,
-                floor: SPAWN_FLOOR,
-            },
-        ) {
-            commands
-                .entity(eid)
-                .insert(FurnitureRot(SHIP_PARKED_FACING));
-            // Block the hull footprint, not just the base tile, so collision matches
-            // the multi-tile sprite. (Driving later: unblock these, move, re-block.)
-            for t in ship_footprint(ship, SHIP_PARKED_FACING) {
-                walkable.block_tile_z(SPAWN_FLOOR, t);
-            }
+    // The ship is no longer a boot fixture — it's a DEPLOYABLE item. Drop a starter
+    // `starship-kit` near spawn so a fresh player can place one (descends from orbit,
+    // lands), board it, fly, and recall it. `ship_home_tile()` survives as the tile the
+    // orphan-recovery system re-parks a stranded ship onto.
+    let kit_tile = ship_home_tile();
+    if kit_tile != spawn && kit_tile != fire && kit_tile != shrine {
+        if let Some(bundle) = ground_item_bundle(&registry, STARSHIP_KIT_REF, 1, kit_tile) {
+            commands.spawn(bundle);
         }
     }
 

@@ -1,8 +1,93 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 const repoRoot = path.resolve(__dirname, '../../../..');
+
+// Single source of truth for the client build version: version.toml (the same
+// file the release/atom flow bumps). Baked into the bundle as PUBLIC_ARPG_VERSION
+// and written to a no-cache version.json the running client polls to detect when
+// it's serving a stale (CF/webview-cached) build and should reload.
+const ARPG_VERSION = (() => {
+	try {
+		const toml = readFileSync(path.join(__dirname, 'version.toml'), 'utf8');
+		return toml.match(/version\s*=\s*"([^"]+)"/)?.[1] ?? '0.0.0';
+	} catch {
+		return '0.0.0';
+	}
+})();
+
+// Rent Earth brand logo, shown on the Discord Activity boot/sign-in screens. The
+// discord build emits a copy beside index.html so the static boot page can load
+// it same-origin (no URL-mapping/proxy dependency before the SDK is ready).
+const BRAND_LOGO_SRC = path.join(
+	__dirname,
+	'public/assets/brand/logo/rentearthlogo.webp',
+);
+const BRAND_LOGO_NAME = 'rentearthlogo.webp';
+
+// Content-hash the Discord Activity bundle and rewrite its index.html to match.
+//
+// vite's `build.lib` mode emits a fixed filename (`arpg.js`) with no content
+// hash, so every release ships the SAME URL. The bundle has no nginx cache
+// header (it falls through to `location /`), but Cloudflare caches `.js` by
+// extension with a default ~4h edge TTL — and that cache is PER-COLO. So after a
+// deploy, the colo Discord's Activity proxy hits can keep serving a stale
+// `arpg.js` while another colo serves the fresh one. A content hash makes each
+// build a unique, immutable URL: index.html (never edge-cached) always points at
+// the newest hash, and no colo can pin an old bundle.
+function hashDiscordBundle(htmlTemplatePath: string) {
+	return {
+		name: 'hash-discord-bundle',
+		enforce: 'post' as const,
+		generateBundle(_opts: unknown, bundle: Record<string, any>) {
+			const chunk = Object.values(bundle).find(
+				(b) => b.type === 'chunk' && b.isEntry,
+			);
+			if (!chunk) return;
+			// Hash the FINAL (post-terser) code so the name tracks real content.
+			const hash = createHash('sha256')
+				.update(chunk.code)
+				.digest('hex')
+				.slice(0, 8);
+			const hashedName = `arpg.${hash}.js`;
+			delete bundle[chunk.fileName];
+			chunk.fileName = hashedName;
+			bundle[hashedName] = chunk;
+			// Regenerate index.html (the app build copied the template verbatim
+			// with `arpg.js`) so its <script> points at the hashed bundle.
+			const template = readFileSync(htmlTemplatePath, 'utf8');
+			const html = template.replace(
+				/<script\s+src="arpg\.js"([^>]*)><\/script>/,
+				`<script src="${hashedName}"$1></script>`,
+			);
+			(this as any).emitFile({
+				type: 'asset',
+				fileName: 'index.html',
+				source: html,
+			});
+			// Fresh version marker the client polls at boot (nginx serves it
+			// no-cache) — lets a stale-cached bundle detect it's outdated.
+			(this as any).emitFile({
+				type: 'asset',
+				fileName: 'version.json',
+				source: JSON.stringify({ version: ARPG_VERSION }),
+			});
+			// Brand logo beside index.html for the same-origin boot screen.
+			try {
+				(this as any).emitFile({
+					type: 'asset',
+					fileName: BRAND_LOGO_NAME,
+					source: readFileSync(BRAND_LOGO_SRC),
+				});
+			} catch {
+				/* logo missing — boot screen falls back to no image */
+			}
+		},
+	};
+}
 
 const GAME_WS = process.env.PUBLIC_ARPG_GAME_WS || 'ws://localhost:7979/ws';
 
@@ -95,6 +180,17 @@ export default defineConfig(({ mode }) => {
 		const discord = mode === 'discord';
 		return {
 			...base,
+			plugins: discord
+				? [
+						...base.plugins,
+						hashDiscordBundle(
+							path.join(
+								__dirname,
+								'public/discord/arpg/index.html',
+							),
+						),
+					]
+				: base.plugins,
 			base: './',
 			publicDir: false,
 			define: {
@@ -102,6 +198,8 @@ export default defineConfig(({ mode }) => {
 				'import.meta.env.PUBLIC_DISCORD_CLIENT_ID': JSON.stringify(
 					process.env.PUBLIC_DISCORD_CLIENT_ID ?? '',
 				),
+				'import.meta.env.PUBLIC_ARPG_VERSION':
+					JSON.stringify(ARPG_VERSION),
 			},
 			build: {
 				// Both bundles emit into this app's own dist so arpg.kbve.com
@@ -149,6 +247,7 @@ export default defineConfig(({ mode }) => {
 			'import.meta.env.PUBLIC_ARPG_CHAT_WS': JSON.stringify(
 				process.env.PUBLIC_ARPG_CHAT_WS ?? '',
 			),
+			'import.meta.env.PUBLIC_ARPG_VERSION': JSON.stringify(ARPG_VERSION),
 		},
 		publicDir: path.join(__dirname, 'public'),
 		build: { outDir: 'dist', emptyOutDir: true },

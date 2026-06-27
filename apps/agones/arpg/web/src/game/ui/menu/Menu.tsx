@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { authBridge } from '../../../lib/auth';
 import CreatureCodex from '../codex/CreatureCodex';
 import ItemCodex from '../codex/ItemCodex';
+import ShipCodex from '../codex/ShipCodex';
 import {
 	GothicPanel,
 	GothicTitleBar,
@@ -22,6 +23,7 @@ export default function ArpgMenu() {
 	const [open, setOpen] = useState(false);
 	const [codex, setCodex] = useState(false);
 	const [itemCodex, setItemCodex] = useState(false);
+	const [shipCodex, setShipCodex] = useState(false);
 
 	const close = useCallback(() => setOpen(false), []);
 
@@ -55,6 +57,7 @@ export default function ArpgMenu() {
 		<>
 			{codex && <CreatureCodex onClose={() => setCodex(false)} />}
 			{itemCodex && <ItemCodex onClose={() => setItemCodex(false)} />}
+			{shipCodex && <ShipCodex onClose={() => setShipCodex(false)} />}
 			{mounted && (
 				<div
 					style={{
@@ -116,6 +119,13 @@ export default function ArpgMenu() {
 										setOpen(false);
 									}}>
 									Item Codex
+								</MenuButton>
+								<MenuButton
+									onClick={() => {
+										setShipCodex(true);
+										setOpen(false);
+									}}>
+									Ships
 								</MenuButton>
 								<MenuButton
 									onClick={() => {

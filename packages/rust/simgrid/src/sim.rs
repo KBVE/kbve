@@ -1410,6 +1410,15 @@ impl IntentBuffer {
         self.pending.push_back((mx, my, run));
     }
 
+    /// Drop all buffered motion and come to rest. Used when control is taken over
+    /// (boarding a ship) so leftover walk intents don't keep driving the body.
+    pub fn clear(&mut self) {
+        self.pending.clear();
+        self.last = (0, 0, false);
+        self.primed = false;
+        self.starve_ticks = 0;
+    }
+
     /// Advance one server tick: return the intent to apply. Primes on the jitter
     /// buffer, then pops one per tick; holds (then zeroes) the last on starvation.
     fn next(&mut self) -> (i8, i8, bool) {
