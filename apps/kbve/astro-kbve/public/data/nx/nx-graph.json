@@ -1204,195 +1204,6 @@
           "implicitDependencies": []
         }
       },
-      "@kbve/rentearth-web": {
-        "name": "@kbve/rentearth-web",
-        "type": "lib",
-        "data": {
-          "root": "apps/rentearth/axum-rentearth/web",
-          "projectType": "library",
-          "metadata": {},
-          "targets": {
-            "build": {
-              "cache": true,
-              "dependsOn": [
-                "^build"
-              ],
-              "inputs": [
-                "production",
-                "^production"
-              ],
-              "outputs": [
-                "{projectRoot}/dist"
-              ],
-              "metadata": {
-                "technologies": [
-                  "vite"
-                ],
-                "description": "Run Vite build",
-                "help": {
-                  "command": "pnpm exec vite build --help",
-                  "example": {
-                    "options": {
-                      "sourcemap": true,
-                      "manifest": "manifest.json"
-                    }
-                  }
-                }
-              },
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/rentearth/axum-rentearth/web",
-                "command": "vite build"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "serve": {
-              "continuous": true,
-              "metadata": {
-                "technologies": [
-                  "vite"
-                ],
-                "description": "Starts Vite dev server",
-                "help": {
-                  "command": "pnpm exec vite --help",
-                  "example": {
-                    "options": {
-                      "port": 3000
-                    }
-                  }
-                },
-                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
-              },
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/rentearth/axum-rentearth/web",
-                "command": "vite"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "dev": {
-              "continuous": true,
-              "metadata": {
-                "technologies": [
-                  "vite"
-                ],
-                "description": "Starts Vite dev server",
-                "help": {
-                  "command": "pnpm exec vite --help",
-                  "example": {
-                    "options": {
-                      "port": 3000
-                    }
-                  }
-                }
-              },
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/rentearth/axum-rentearth/web",
-                "command": "vite"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "preview": {
-              "continuous": true,
-              "dependsOn": [
-                "build"
-              ],
-              "metadata": {
-                "technologies": [
-                  "vite"
-                ],
-                "description": "Locally preview Vite production build",
-                "help": {
-                  "command": "pnpm exec vite preview --help",
-                  "example": {
-                    "options": {
-                      "port": 3000
-                    }
-                  }
-                }
-              },
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/rentearth/axum-rentearth/web",
-                "command": "vite preview"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "serve-static": {
-              "continuous": true,
-              "executor": "@nx/web:file-server",
-              "options": {
-                "buildTarget": "build",
-                "spa": true
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "typecheck": {
-              "cache": true,
-              "inputs": [
-                "production",
-                "^production",
-                {
-                  "externalDependencies": [
-                    "typescript"
-                  ]
-                }
-              ],
-              "metadata": {
-                "description": "Runs type-checking for the project.",
-                "technologies": [
-                  "typescript"
-                ],
-                "help": {
-                  "command": "pnpm exec tsc -p tsconfig.json --help",
-                  "example": {
-                    "options": {
-                      "noEmit": true
-                    }
-                  }
-                }
-              },
-              "executor": "nx:run-commands",
-              "options": {
-                "cwd": "apps/rentearth/axum-rentearth/web",
-                "command": "tsc --noEmit -p tsconfig.json"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "build-deps": {
-              "dependsOn": [
-                "^build"
-              ],
-              "configurations": {},
-              "options": {},
-              "parallelism": true,
-              "executor": "nx:noop"
-            },
-            "watch-deps": {
-              "continuous": true,
-              "dependsOn": [
-                "build-deps"
-              ],
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "pnpm exec nx watch --projects @kbve/rentearth-web --includeDependencies -- pnpm exec nx build-deps @kbve/rentearth-web"
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "name": "@kbve/rentearth-web",
-          "implicitDependencies": [],
-          "tags": []
-        }
-      },
       "axum-discordsh-e2e": {
         "name": "axum-discordsh-e2e",
         "type": "e2e",
@@ -1682,6 +1493,186 @@
             "docker",
             "kasm",
             "workspace"
+          ],
+          "implicitDependencies": []
+        }
+      },
+      "rentearth-web": {
+        "name": "rentearth-web",
+        "type": "app",
+        "data": {
+          "root": "apps/rentearth/axum-rentearth/web",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@kbve/rentearth-web",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "cache": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Run Vite build",
+                "help": {
+                  "command": "pnpm exec vite build --help",
+                  "example": {
+                    "options": {
+                      "sourcemap": true,
+                      "manifest": "manifest.json"
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                },
+                "deprecated": "Use devTargetName instead. This option will be removed in Nx 22."
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dev": {
+              "continuous": true,
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Starts Vite dev server",
+                "help": {
+                  "command": "pnpm exec vite --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "preview": {
+              "continuous": true,
+              "dependsOn": [
+                "build"
+              ],
+              "metadata": {
+                "technologies": [
+                  "vite"
+                ],
+                "description": "Locally preview Vite production build",
+                "help": {
+                  "command": "pnpm exec vite preview --help",
+                  "example": {
+                    "options": {
+                      "port": 3000
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "vite preview"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "cache": true,
+              "options": {
+                "cwd": "apps/rentearth/axum-rentearth/web",
+                "command": "tsc --noEmit"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects rentearth-web --includeDependencies -- pnpm exec nx build-deps rentearth-web"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "rentearth-web",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/rentearth/axum-rentearth/web/src",
+          "tags": [
+            "npm:private",
+            "vite",
+            "react",
+            "rentearth"
           ],
           "implicitDependencies": []
         }
@@ -6690,6 +6681,7 @@
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'git-lfs --version' | grep -q 'git-lfs/' && echo 'PASS: git-lfs on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'jq --version' | grep -q 'jq-' && echo 'PASS: jq on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'unzip -v' | grep -q 'UnZip' && echo 'PASS: unzip on PATH'",
+                  "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'zip -v' | grep -q 'Zip ' && echo 'PASS: zip on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
                   "echo '=== arc-runner image OK ==='"
@@ -10153,7 +10145,7 @@
             "build:discord": {
               "executor": "nx:run-commands",
               "outputs": [
-                "{projectRoot}/dist/discord/arpg/arpg.js"
+                "{projectRoot}/dist/discord/arpg"
               ],
               "cache": true,
               "options": {
@@ -14150,6 +14142,18 @@
               "configurations": {},
               "parallelism": true
             },
+            "image-e2e": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/kilobase",
+                "commands": [
+                  "bash image_e2e.sh"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "debug": {
               "executor": "nx:run-commands",
               "options": {
@@ -17311,7 +17315,6 @@
       ],
       "bevy_pathfinder": [],
       "chisel-ubuntu-axum": [],
-      "@kbve/rentearth-web": [],
       "axum-discordsh-e2e": [
         {
           "source": "axum-discordsh-e2e",
@@ -17321,6 +17324,7 @@
       ],
       "bevy_inventory": [],
       "kasm-cloakbrowser": [],
+      "rentearth-web": [],
       "astro-rareicon-e2e": [
         {
           "source": "astro-rareicon-e2e",
