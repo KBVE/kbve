@@ -9,7 +9,7 @@
 //! of the convex hull. The pilot is exempt (`Without<Piloting>`) so it isn't ejected
 //! from the ship it's flying.
 use bevy::prelude::*;
-use simgrid::proto::{self, Tile};
+use simgrid::proto::{self, Facing, Tile};
 use simgrid::{
     EnvObject, FloatMove, Floor, FurnitureRot, GridPos, PendingPilotOps, PilotOp, Piloting,
     PlayerSlotTag, WalkableMap,
@@ -23,10 +23,26 @@ pub const PHASE_OFF: u8 = 0; // parked
 pub const PHASE_LIFT: u8 = 1; // taking off
 pub const PHASE_FLY: u8 = 2; // hovering / driving
 pub const PHASE_LAND: u8 = 3; // landing
+pub const PHASE_LEAVING: u8 = 4; // rising off-planet into space (then off-grid)
+pub const PHASE_ENTERING: u8 = 5; // descending back from space into flight
 
 /// Sim ticks the lift / land transitions hold before advancing (≈ the baked anim).
 const LIFT_TICKS: u32 = 18;
 const LAND_TICKS: u32 = 18;
+/// Ticks the leaving / entering atmosphere cutscenes hold (≈ the baked 18-frame anim).
+const LEAVING_TICKS: u32 = 18;
+const ENTERING_TICKS: u32 = 18;
+
+/// On the pilot entity while in the solo 3D space instance — the ship + pilot are
+/// off-grid (no `GridPos`, so every snapshot drops them: they "left the planet").
+/// Holds what's needed to re-materialise both at the launch tile on return.
+#[derive(Component)]
+pub struct InSpace {
+    pub ship: Entity,
+    pub tile: Tile,
+    pub floor: i32,
+    pub facing: u8,
+}
 /// How close (tiles, Chebyshev) the player must stand to board.
 const ENTER_RANGE: i32 = 3;
 /// Speed² below which the ship keeps its last heading instead of re-deriving it.
@@ -66,6 +82,7 @@ pub fn apply_pilot_ops(
     mut commands: Commands,
     mut ops: ResMut<PendingPilotOps>,
     players: Query<(Entity, &PlayerSlotTag, &GridPos, Option<&Piloting>)>,
+    space_pilots: Query<(Entity, &PlayerSlotTag, &InSpace)>,
     ships: Query<(
         Entity,
         &GridPos,
@@ -138,6 +155,67 @@ pub fn apply_pilot_ops(
                     }
                 }
             }
+            PilotOp::Launch => {
+                // Only a flying ship can launch to space; the leaving cutscene then
+                // runs in `drive_ships`, which takes both off-grid when it completes.
+                let Some((_, _, _, Some(piloting))) =
+                    players.iter().find(|(_, t, _, _)| t.0 == slot)
+                else {
+                    continue;
+                };
+                if let Ok(mut d) = drives.get_mut(piloting.0) {
+                    if d.phase == PHASE_FLY {
+                        d.phase = PHASE_LEAVING;
+                        d.ticks = 0;
+                    }
+                }
+            }
+            PilotOp::Return => {
+                // Re-materialise ship + pilot at the launch tile and play the entering
+                // cutscene back into flight. `blocked` starts empty so `drive_ships`
+                // re-blocks the footprint on its first tick.
+                let Some((pent, _, in_space)) = space_pilots.iter().find(|(_, t, _)| t.0 == slot)
+                else {
+                    continue;
+                };
+                let InSpace {
+                    ship,
+                    tile,
+                    floor,
+                    facing,
+                } = *in_space;
+                commands.entity(pent).insert((
+                    GridPos {
+                        tile,
+                        facing: Facing::Down,
+                    },
+                    Floor(floor),
+                    Piloting(ship),
+                ));
+                commands.entity(pent).remove::<InSpace>();
+                commands.entity(ship).insert((
+                    GridPos {
+                        tile,
+                        facing: Facing::Down,
+                    },
+                    Floor(floor),
+                    Piloted { pilot: slot },
+                    ShipDrive {
+                        phase: PHASE_ENTERING,
+                        ticks: 0,
+                        facing,
+                        blocked: Vec::new(),
+                        floor,
+                        tile,
+                    },
+                ));
+                if let Ok(mut b) = bodies.get_mut(pent) {
+                    b.body.x = tile.x as f32;
+                    b.body.y = tile.y as f32;
+                    b.body.vx = 0.0;
+                    b.body.vy = 0.0;
+                }
+            }
         }
     }
 }
@@ -150,13 +228,19 @@ pub fn apply_pilot_ops(
 pub fn drive_ships(
     mut commands: Commands,
     mut map: ResMut<WalkableMap>,
-    mut ships: Query<(
-        Entity,
-        &mut GridPos,
-        &mut FurnitureRot,
-        &Piloted,
-        &mut ShipDrive,
-    )>,
+    // `Without<PlayerSlotTag>` makes this &mut GridPos query provably disjoint from the
+    // players' &GridPos query below — otherwise Bevy aborts the sim with a B0001 access
+    // conflict at startup (panicked sim thread → no snapshots → client hangs forever).
+    mut ships: Query<
+        (
+            Entity,
+            &mut GridPos,
+            &mut FurnitureRot,
+            &Piloted,
+            &mut ShipDrive,
+        ),
+        Without<PlayerSlotTag>,
+    >,
     players: Query<(Entity, &PlayerSlotTag, &GridPos, &FloatMove)>,
 ) {
     for (sent, mut spos, mut rot, piloted, mut drive) in ships.iter_mut() {
@@ -207,9 +291,98 @@ pub fn drive_ships(
                     commands.entity(sent).remove::<ShipDrive>();
                 }
             }
+            PHASE_LEAVING => {
+                drive.ticks += 1;
+                if drive.ticks >= LEAVING_TICKS {
+                    // Cutscene done: free the footprint and take ship + pilot off-grid.
+                    // Removing `GridPos` drops both from every snapshot (`emit_snapshot`
+                    // requires it) — to other clients they rose and vanished. The pilot
+                    // carries `InSpace` so `PilotOp::Return` can re-materialise them.
+                    for t in std::mem::take(&mut drive.blocked) {
+                        map.unblock_tile_z(drive.floor, t);
+                    }
+                    commands.entity(pent).insert(InSpace {
+                        ship: sent,
+                        tile: drive.tile,
+                        floor: drive.floor,
+                        facing: drive.facing,
+                    });
+                    commands.entity(pent).remove::<Piloting>();
+                    commands.entity(pent).remove::<GridPos>();
+                    commands.entity(sent).remove::<GridPos>();
+                    commands.entity(sent).remove::<Piloted>();
+                    commands.entity(sent).remove::<ShipDrive>();
+                    continue; // off-grid now; nothing left to drive this tick
+                }
+            }
+            PHASE_ENTERING => {
+                drive.ticks += 1;
+                if drive.ticks >= ENTERING_TICKS {
+                    drive.phase = PHASE_FLY;
+                }
+            }
             _ => {}
         }
 
         rot.0 = (drive.facing & 0x0F) | (drive.phase << 4);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn facing16_cardinals() {
+        // Facing 0 = West (matches the parked sheet); quarters land on 0/4/8/12.
+        assert_eq!(facing16(-1.0, 0.0), 0, "west");
+        assert_eq!(facing16(0.0, -1.0), 4, "north (screen up)");
+        assert_eq!(facing16(1.0, 0.0), 8, "east");
+        assert_eq!(facing16(0.0, 1.0), 12, "south");
+    }
+
+    #[test]
+    fn facing16_always_in_range() {
+        // Any velocity maps into 0..=15, never out of the nibble.
+        for i in 0..360 {
+            let a = (i as f32).to_radians();
+            let f = facing16(a.cos(), a.sin());
+            assert!(f < 16, "facing {f} out of range at {i}deg");
+        }
+    }
+
+    #[test]
+    fn sub_packs_facing_and_phase_losslessly() {
+        // The wire byte is `facing | phase << 4`; the client decodes
+        // facing = sub & 0x0F, phase = sub >> 4. Round-trip every combo.
+        for facing in 0u8..16 {
+            for phase in [
+                PHASE_OFF,
+                PHASE_LIFT,
+                PHASE_FLY,
+                PHASE_LAND,
+                PHASE_LEAVING,
+                PHASE_ENTERING,
+            ] {
+                let sub = (facing & 0x0F) | (phase << 4);
+                assert_eq!(sub & 0x0F, facing, "facing survives pack");
+                assert_eq!(sub >> 4, phase, "phase survives pack");
+            }
+        }
+    }
+
+    #[test]
+    fn phases_fit_the_high_nibble() {
+        // All phases must fit in 4 bits so they never clobber the facing nibble.
+        for phase in [
+            PHASE_OFF,
+            PHASE_LIFT,
+            PHASE_FLY,
+            PHASE_LAND,
+            PHASE_LEAVING,
+            PHASE_ENTERING,
+        ] {
+            assert!(phase < 16, "phase {phase} exceeds the nibble");
+        }
     }
 }

@@ -14,6 +14,7 @@ import ArpgToasts from './ui/toasts/Toasts';
 import ArpgBootOverlay from './ArpgBootOverlay';
 import ArpgConnectionStatus from './ArpgConnectionStatus';
 import ArpgStairGuide from './ArpgStairGuide';
+import { SpaceMode } from './space/SpaceMode';
 import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import { authBridge } from '../lib/auth';
@@ -252,10 +253,13 @@ export default function ReactIsoArpgApp({
 				<ArpgStairGuide />
 				<ArpgConnectionStatus />
 				<ChatPanel />
+				<SpaceMode getGame={() => gameRef.current} />
 				{glState === 'lost' && <WebGLOverlay mode="lost" />}
 			</>
 		);
 	}
 
-	return null;
+	// 'loading': still resolving the session. Mount the menu anyway so Escape can
+	// open settings + Sign out even if the connect hangs here (stale-key escape hatch).
+	return <ArpgMenu />;
 }

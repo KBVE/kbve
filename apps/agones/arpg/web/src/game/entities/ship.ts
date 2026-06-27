@@ -161,7 +161,14 @@ const animKey = (s: ShipSheet, dir: number) => `anim:ship:${s.ref}:${dir}`;
 
 // Server packs the ship's drive state into its `sub` byte: low nibble = facing
 // (0..15), high nibble = phase. MUST match pilot.rs PHASE_* on the server.
-export const SHIP_PHASE_TO_STATE: ShipState[] = ['off', 'lift', 'fly', 'land'];
+export const SHIP_PHASE_TO_STATE: ShipState[] = [
+	'off',
+	'lift',
+	'fly',
+	'land',
+	'leaving',
+	'entering',
+];
 export const shipFacingFromSub = (sub: number): number => sub & 0x0f;
 export const shipPhaseFromSub = (sub: number): number => (sub >> 4) & 0x0f;
 
