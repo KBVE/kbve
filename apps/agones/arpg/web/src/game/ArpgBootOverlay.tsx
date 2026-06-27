@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { onBoot, type BootStatus } from './systems/hud';
 import { arpgAsset } from './config';
+import { authBridge } from '../lib/auth';
+
+// If no boot event arrives for this long while still loading, assume the connect
+// silently wedged (server sim dead, JWT stuck, etc.) and surface an actionable
+// stall instead of spinning forever.
+const STALL_MS = 12000;
 
 // Full-cover loading overlay shown while the scene preloads art, connects, and
 // streams the first map window — so the player gets staged feedback instead of a
@@ -30,11 +36,43 @@ export default function ArpgBootOverlay() {
 		message: 'Preparing your session',
 	});
 
+	const [stalled, setStalled] = useState(false);
+
 	useEffect(() => onBoot(setBoot), []);
+
+	// Watchdog: every boot event resets a timer; STALL_MS of silence while still
+	// loading flips us to an actionable stall (so a wedged connect doesn't loop).
+	useEffect(() => {
+		if (boot.phase === 'ready' || boot.phase === 'error') {
+			setStalled(false);
+			return;
+		}
+		setStalled(false);
+		const t = window.setTimeout(() => setStalled(true), STALL_MS);
+		return () => window.clearTimeout(t);
+	}, [boot]);
+
+	const retry = useCallback(() => window.location.reload(), []);
+	const signOut = useCallback(async () => {
+		try {
+			await authBridge.signOut();
+		} catch {
+			/* fall through to reload — clears the in-page session either way */
+		}
+		try {
+			for (const k of Object.keys(localStorage))
+				if (k.startsWith('sb-')) localStorage.removeItem(k);
+		} catch {
+			/* private mode */
+		}
+		window.location.reload();
+	}, []);
 
 	if (boot.phase === 'ready') return null;
 
 	const isError = boot.phase === 'error';
+	// Either a hard error or a silent stall — both get the same actionable UI.
+	const actionable = isError || stalled;
 	// The bar fills during assets (real %), then sits full for the later phases so
 	// it never visually "rewinds" between stages.
 	const stepIdx = STEPS.findIndex((s) => s.phase === boot.phase);
@@ -73,7 +111,7 @@ export default function ArpgBootOverlay() {
 				style={{
 					imageRendering: 'auto',
 					filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.55))',
-					animation: isError
+					animation: actionable
 						? undefined
 						: 'arpg-boot-pulse 2.2s ease-in-out infinite',
 				}}
@@ -83,7 +121,7 @@ export default function ArpgBootOverlay() {
 				}}
 			/>
 
-			{!isError && (
+			{!actionable && (
 				<span
 					style={{
 						width: '30px',
@@ -109,17 +147,62 @@ export default function ArpgBootOverlay() {
 						margin: 0,
 						fontSize: '15px',
 						fontWeight: 700,
-						color: isError ? '#f87171' : '#fcd34d',
+						color: actionable ? '#f87171' : '#fcd34d',
 					}}>
-					{boot.message}
+					{isError
+						? boot.message
+						: stalled
+							? 'This is taking longer than it should'
+							: boot.message}
 					{assetPct != null ? ` ${assetPct}%` : ''}
 				</p>
 				<p style={{ margin: 0, fontSize: '12px', color: '#9fb3d8' }}>
-					{boot.detail ?? SUBTITLE[boot.phase]}
+					{isError
+						? (boot.detail ?? SUBTITLE.error)
+						: stalled
+							? 'The server may be down or your session may be stale. Retry, or sign out and back in.'
+							: (boot.detail ?? SUBTITLE[boot.phase])}
 				</p>
 			</div>
 
-			{!isError && (
+			{actionable && (
+				<div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+					<button
+						type="button"
+						onClick={retry}
+						style={{
+							padding: '9px 18px',
+							fontSize: '13px',
+							fontWeight: 700,
+							fontFamily: 'monospace',
+							borderRadius: '6px',
+							border: 'none',
+							cursor: 'pointer',
+							background: '#6ea8ff',
+							color: '#0b0e16',
+						}}>
+						Retry
+					</button>
+					<button
+						type="button"
+						onClick={signOut}
+						style={{
+							padding: '9px 18px',
+							fontSize: '13px',
+							fontWeight: 700,
+							fontFamily: 'monospace',
+							borderRadius: '6px',
+							border: '1px solid #3c465c',
+							cursor: 'pointer',
+							background: 'transparent',
+							color: '#e6ebf5',
+						}}>
+						Sign out
+					</button>
+				</div>
+			)}
+
+			{!actionable && (
 				<div
 					style={{
 						width: '260px',
@@ -143,7 +226,7 @@ export default function ArpgBootOverlay() {
 				</div>
 			)}
 
-			{!isError && (
+			{!actionable && (
 				<div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
 					{STEPS.map((s, i) => {
 						const active = s.phase === boot.phase;
