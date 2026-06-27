@@ -68,13 +68,17 @@ pub struct ShipDrive {
     pub tile: Tile,
 }
 
-/// 16-way heading from a world velocity. Facing 0 = West (matches the parked sheet);
-/// each step is +22.5°. The screen-Y axis is inverted vs world-Y, so we negate `vy`.
-/// `FACING_OFFSET = -2` aligns the iso-transformed key directions to the sprite spin:
-/// A(west) maps to facing 0, D(east) to 8 (raw 2/10 before the offset).
-const FACING_OFFSET: i32 = -2;
+/// 16-way heading the ship SHOWS, from its world velocity. The iso grid is rotated 45°,
+/// so the world-tile direction isn't the on-screen direction the player navigates by
+/// (pressing W moves world-NW but screen-North). We project world → screen space first
+/// (`sx = vx - vy`, `sy = vx + vy`) so the sprite faces the way it moves on screen.
+/// Facing 0 = West (screen-left), +22.5°/step; `sy` negated for screen-down = +y. Flip
+/// `SY_SIGN` if North/South read swapped; nudge `FACING_OFFSET` (±1 = 22.5°) to rotate.
+const FACING_OFFSET: i32 = 0;
+const SY_SIGN: f32 = -1.0;
 fn facing16(vx: f32, vy: f32) -> u8 {
-    let a = (-vy).atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
+    let (sx, sy) = (vx - vy, vx + vy); // world → iso screen velocity
+    let a = (SY_SIGN * sy).atan2(sx) + std::f32::consts::PI; // 0..2π, π(west)→0
     let step = (a / (std::f32::consts::TAU) * 16.0).round() as i32;
     (step + FACING_OFFSET).rem_euclid(16) as u8
 }

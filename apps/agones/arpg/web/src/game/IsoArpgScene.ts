@@ -1392,6 +1392,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			moveAxisY: () =>
 				this.inputRouter.axis(Action.MoveUp, Action.MoveDown),
 			walking: () => this.cursors.shift?.isDown ?? false,
+			pilotSteer: () => this.localPiloting,
 			combat: this.combat,
 			refreshDungeon: (tile) => this.refreshDungeon(tile),
 		};

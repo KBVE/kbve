@@ -82,9 +82,16 @@ export interface MovementDeps {
 	moveAxisY(): number;
 	// Walk tier (Shift held) vs run.
 	walking(): boolean;
+	// True while piloting a ship — steering is rotated 45° so the keys map to the
+	// screen cardinals (W = straight up) instead of the iso tile diagonals.
+	pilotSteer(): boolean;
 	combat: CombatState;
 	refreshDungeon(tile: TileXY): void;
 }
+
+// Ship steering rotates the keyboard intent by this (radians) so W reads as screen-up.
+// -π/4 = 45° clockwise on screen; flip the sign for the other way.
+const PILOT_STEER_ROT = -Math.PI / 4;
 
 // Cap fixed steps consumed in one frame so a long stall (tab refocus / GC) doesn't
 // spiral into a catch-up burst.
@@ -247,8 +254,18 @@ function readIntent(st: MovementState, deps: MovementDeps): TileXY {
 	const iy = deps.moveAxisY();
 	if (ix !== 0 || iy !== 0) {
 		st.movePath = [];
-		const wx = ix + iy;
-		const wy = iy - ix;
+		let wx = ix + iy;
+		let wy = iy - ix;
+		// While piloting, rotate the intent 45° so the keys steer by screen cardinals
+		// (W = straight up) rather than the iso tile diagonals.
+		if (deps.pilotSteer()) {
+			const c = Math.cos(PILOT_STEER_ROT);
+			const s = Math.sin(PILOT_STEER_ROT);
+			const rx = wx * c - wy * s;
+			const ry = wx * s + wy * c;
+			wx = rx;
+			wy = ry;
+		}
 		const mag = Math.hypot(wx, wy) || 1;
 		return { x: wx / mag, y: wy / mag };
 	}
