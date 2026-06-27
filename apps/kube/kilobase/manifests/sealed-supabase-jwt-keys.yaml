@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: supabase-jwt-keys
+    namespace: kilobase
+spec:
+    encryptedData:
+        jwt-keys: AgBBaIgZfGKOzJWZyKo9uY5bG3ewGi9nr11mmflSErves75RO+nlVq/19y2aSRrgfAPVdBz6UbKaVXLZf2SkRDUM6d9fup4YDdj4LrWXtOKWXLy6TvEZTuDNLfyVE2CfZN9FSW5kbvUSLE3pyzTBM7eykHgocEtbWMAQvghCKAyTalnevqT0BlnAWTdwnysgrDmkBMIdJHXfe0QxCTnIcxJ4eSO1qHcP6OMGFxX2dWB3QALhmQ8LwYOIXVpBpivrx7rW5NZ9EtiGkPb+T8nH7ZOJYsNlb1aXZIu1mIIYdHasHKSeHnyRGoLpDquWKl9pGvr/8sOk46l+OAG9fGOJqk++FJQTkv1j9G8ymWX8uh94ksI6MlWrseQ1To9qJ6jxYyuYBOAFm9B4XSAVf99Zafk80k/lCdHifDZ3P6ryo7vQAPj4cMGOwcEL3DRIvQK1vdUU+gwrCBLUhhbsEK1JtxXB11J5a4nvbPQL7TACbV7aEb2Ptfh90+i3KMF2Vi4ip9acvnJ59m+XGNrOrLC+0e8HyXfnL7g4640yWUv/dKqcnFNSRjzc403FiGuo6L07KAMLxsXtyuKw3DJ7JDrkoA9TYT7dEpZuytK/N+Bk92ZYsEUbiULlgvUQkyeAdBh17R58YSKMvxpOWxUFwx1LEcDYpveHDT8GZzl/nVtesuBXgpBPj9sgktPdNavhDvaf+heCUMa2efxWxox3hkcP0FZ3pTtOsWz/Mi9OnhoK8fO4afBeSRF1+EGrR2IRTWmqmZD99hhocrxKlpugJ3trqStkHAuVe1aI0GsTAkU6aROE9gjiLhi2Ba/7ufofAmk7gyaGml7MEPshHw35irna6vn8gfTlCzkVMR9f6BF3FQ/Sa8TyRevssooUDkA1BcP+sJeQQpkLhqkIaBGERZs0/k20XggsN6QxjE1oozyPFqOodGbAGLPY9FAwlBOJ1Uy/CdxA9ubAhIMy23jPE4ioPko/a1CNUncLa/TvSwdPW+9Pr0efRxZy2DtopKFCJbd7cZpLWI3FZ1JZMHgwIlPvPQ1klVqKXfEP15nkcvS5gzGYzjTs15UrDPRxqXZFCH0KzHHPC1Y5InDVowlmX55QhwIM/NvAlLiQgsNRRApiGP+TZfLHm7qfwe+8+pJwwLFg0bY+DpyLB+y3YwP6W1MGMfdaOAuZD/RpJ7ynWXLlBJ1v/8tevezohTWLXN0C6OQwt9DD7nKwFwtw0gG+g/TLMZeoUhQdh9qkesf1pKlqLlN4SX7lgoe2
+    template:
+        metadata:
+            name: supabase-jwt-keys
+            namespace: kilobase

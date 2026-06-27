@@ -32,6 +32,13 @@ const CHASE_DIST = 9;
 const CHASE_HEIGHT = 3.4;
 const BANK_MAX = 0.5; // roll lean into a turn
 
+// --- Launch cinematic (Star Fox ship-out + Star Wars planet fall-away) ---
+const INTRO_DUR = 1.8; // seconds of locked-input launch sequence
+const LAUNCH_Y0 = -16; // ship starts just off the planet, then climbs to flight (y=0)
+const LAUNCH_CAM_DIST = 4; // camera starts close behind...
+const LAUNCH_CAM_LOW = -5; // ...and BELOW, looking up at the rising ship (planet fills view)
+const easeOutCubic = (p: number) => 1 - (1 - p) ** 3;
+
 /** Pressed-key set shared from the window into the R3F frame loop. */
 function useKeys(): RefObject<Set<string>> {
 	const keys = useRef<Set<string>>(new Set());
@@ -61,6 +68,7 @@ function Flight({ heading }: { heading: number }): ReactElement {
 	const state = useRef({
 		yaw: -((heading / 16) * Math.PI * 2),
 		vel: new THREE.Vector3(),
+		t: 0, // seconds since the scene mounted (drives the launch intro)
 	});
 	const tmp = useMemo(() => new THREE.Vector3(), []);
 
@@ -71,6 +79,34 @@ function Flight({ heading }: { heading: number }): ReactElement {
 		const s = state.current;
 		const g = ship.current;
 		if (!g) return;
+
+		// --- Launch cinematic: ship rises out of the planet (Star Fox) while the camera
+		// swings up + back, so the planet falls away beneath you (Star Wars). Input is
+		// locked until it finishes; a little forward momentum carries into free flight.
+		s.t += dt;
+		if (s.t < INTRO_DUR) {
+			const e = easeOutCubic(s.t / INTRO_DUR);
+			const fx0 = Math.sin(s.yaw);
+			const fz0 = Math.cos(s.yaw);
+			g.position.set(
+				fx0 * e * 4,
+				THREE.MathUtils.lerp(LAUNCH_Y0, 0, e),
+				fz0 * e * 8,
+			);
+			// nose pitched up on the climb, easing level as it reaches altitude.
+			g.rotation.set(-(1 - e) * 0.7, s.yaw, 0);
+			const cd = THREE.MathUtils.lerp(LAUNCH_CAM_DIST, CHASE_DIST, e);
+			const ch = THREE.MathUtils.lerp(LAUNCH_CAM_LOW, CHASE_HEIGHT, e);
+			tmp.set(
+				g.position.x - fx0 * cd,
+				g.position.y + ch,
+				g.position.z - fz0 * cd,
+			);
+			camera.position.lerp(tmp, 1 - Math.pow(0.0008, dt));
+			camera.lookAt(g.position);
+			s.vel.set(fx0 * 8 * e, 0, fz0 * 8 * e); // bleed launch speed into flight
+			return;
+		}
 
 		const left = k.has('KeyA') || k.has('ArrowLeft');
 		const right = k.has('KeyD') || k.has('ArrowRight');
