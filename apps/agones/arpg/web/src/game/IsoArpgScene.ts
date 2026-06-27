@@ -369,6 +369,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
 	private floorFilterScratch: EntityDelta[] = [];
 
+	// We close the WS ON PURPOSE when entering the solo 3D space scene. While this is
+	// set, the connection-health banner stays silent (it's not a real drop); it clears
+	// the moment the return reconnect lands ('connected').
+	private spaceDisconnect = false;
+
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
 	private hoverTile!: Phaser.GameObjects.Graphics;
@@ -1247,6 +1252,15 @@ export class IsoArpgScene extends Phaser.Scene {
 		// after, drive the in-game reconnect banner.
 		const max = IsoArpgScene.MAX_RECONNECTS;
 		client.on('state', (s) => {
+			// Intentional space disconnect: no banner. Clear the flag once the return
+			// reconnect succeeds (then fall through to the normal 'connected' emit).
+			if (this.spaceDisconnect) {
+				if (s.status === 'connected') {
+					this.spaceDisconnect = false;
+				} else {
+					return; // stay silent while deliberately offline in space
+				}
+			}
 			if (this.bootReady) {
 				if (s.status === 'connected') {
 					emitConnection({
@@ -2076,6 +2090,8 @@ export class IsoArpgScene extends Phaser.Scene {
 						// Solo space is fully client-side — drop the multiplayer WS so the
 						// server cleans us up (saves state w/ the `in_space` flag set at
 						// launch). We reopen it on return (onSpaceExit). No off-grid juggling.
+						// Mark it intentional so the disconnect banner stays silent.
+						this.spaceDisconnect = true;
 						this.client?.close();
 					}
 				};
