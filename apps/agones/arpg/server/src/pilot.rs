@@ -72,8 +72,9 @@ pub struct ShipDrive {
 /// so the world-tile direction isn't the on-screen direction the player navigates by
 /// (pressing W moves world-NW but screen-North). We project world → screen space first
 /// (`sx = vx - vy`, `sy = vx + vy`) so the sprite faces the way it moves on screen.
-/// Facing 0 = West (screen-left), +22.5°/step; `sy` negated for screen-down = +y. Flip
-/// `SY_SIGN` if North/South read swapped; nudge `FACING_OFFSET` (±1 = 22.5°) to rotate.
+/// `sy` negated for screen-down = +y. `FACING_OFFSET = 0` matches the uniform re-bake's
+/// frame map (verified in the Ship Codex): 0=W, 8=E, 4=S, 12=N. Flip `SY_SIGN` if N/S
+/// swap; nudge `FACING_OFFSET` (±1 = 22.5°) on a re-bake that shifts the spin.
 const FACING_OFFSET: i32 = 0;
 const SY_SIGN: f32 = -1.0;
 fn facing16(vx: f32, vy: f32) -> u8 {

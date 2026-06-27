@@ -37,6 +37,14 @@ interface ShipSheet {
 	 * off/on sheets, so off→lift doesn't visibly shrink.
 	 */
 	scale: number;
+	/**
+	 * Per-sheet facing-row correction (added to the server facing before picking the
+	 * row). Sheets re-baked at a different yaw land their West/etc on a different frame;
+	 * `move` is canonical (server `FACING_OFFSET` is calibrated to it = 0 here) and any
+	 * sheet baked off by N frames gets `dirOffset = -N mod 16` so all read the same
+	 * compass. `idle` was re-baked separately → its 0 = West vs move's 14 = West → +2.
+	 */
+	dirOffset: number;
 }
 
 // off/on are 512px 4x4 (frames:1, 16 dir); the loop/lift/bank rigs are 512px 8x16;
@@ -77,7 +85,7 @@ export const SHIP_SHEETS = {
 		512,
 		8,
 		16,
-		12,
+		4, // sway speed — vertical bob cancelled in flyVisual, so this is just roll cadence
 		'loop',
 		0.62,
 		ANIM_SCALE,
@@ -127,6 +135,7 @@ function f(
 	play: Play,
 	originY: number,
 	scale: number,
+	dirOffset = 0,
 ): ShipSheet {
 	return {
 		ref,
@@ -139,12 +148,22 @@ function f(
 		play,
 		originY,
 		scale,
+		dirOffset,
 	};
 }
 
 /** On-screen hull size (px). Every sheet scales to this so swaps don't pop. */
 const DISPLAY = 384;
 const DIRS = 16;
+
+// Move-sheet bob taming (cancelled per-frame in flyVisual). MOVE_BOB_PX ≈ the baked
+// vertical amplitude on screen; MOVE_BOB_DAMP = fraction of it to cancel (0 = full
+// wobble, 1 = flat). Tune DAMP up if it still wobbles too much, down if it over-corrects.
+const MOVE_BOB_PX = 12;
+const MOVE_BOB_DAMP = 1.0;
+// Heading lerp rate (per-sec ease toward the server facing). Lower = floatier, wider
+// spaceship turns; higher = snappier. Used by ShipController.tickTurn.
+const TURN_RATE = 6;
 
 export type ShipState =
 	| 'off'
@@ -170,6 +189,19 @@ export const SHIP_PHASE_TO_STATE: ShipState[] = [
 	'entering',
 ];
 export const shipFacingFromSub = (sub: number): number => sub & 0x0f;
+
+/**
+ * 16-way ship heading from a world velocity — the CLIENT mirror of the server's
+ * `facing16` (pilot.rs): project world → iso-screen (`sx=vx-vy, sy=vx+vy`), `sy` negated,
+ * `FACING_OFFSET=0`. Lets the local ship face its predicted velocity with no round-trip.
+ */
+export function shipFacing16(vx: number, vy: number): number {
+	const sx = vx - vy;
+	const sy = vx + vy;
+	const a = Math.atan2(-sy, sx) + Math.PI;
+	const step = Math.round((a / (2 * Math.PI)) * 16);
+	return ((step % 16) + 16) % 16;
+}
 export const shipPhaseFromSub = (sub: number): number => (sub >> 4) & 0x0f;
 
 export function preloadShip(scene: Phaser.Scene): void {
@@ -219,6 +251,17 @@ export class ShipController {
 	readonly sprite: Phaser.GameObjects.Sprite;
 	private state: ShipState = 'off';
 	private facing = 0;
+	// Heading easing: the server snaps `targetFacing`; the DISPLAYED `facing` lerps toward
+	// it through the in-between dirs (spaceship turn, not an instant snap). `facingF` is
+	// the continuous heading on the 16-ring; `facingInit` snaps the very first set.
+	private facingF = 0;
+	private targetFacing = 0;
+	private facingInit = false;
+	private lastMotion: ShipMotion = { speed: 0, turnRate: 0 };
+	/** Current 16-way facing index the sprite is showing (debug/codex readout). */
+	get facingIndex(): number {
+		return this.facing;
+	}
 	private onArrive: (() => void) | null = null;
 	/** fired when a transition state (lift/land/leaving/entering/powerOff) finishes. */
 	onTransition: ((from: ShipState) => void) | null = null;
@@ -273,18 +316,69 @@ export class ShipController {
 
 	setFacing(dir: number): void {
 		const d = ((Math.trunc(dir) % DIRS) + DIRS) % DIRS;
-		if (d === this.facing) return;
-		this.facing = d;
-		if (this.state === 'fly')
-			this.render(); // re-pick row; transitions finish first
-		else if (this.state === 'off' || this.state === 'powerOn')
+		this.targetFacing = d;
+		// First heading snaps (spawn/placement); afterwards `tickTurn` eases toward it.
+		if (!this.facingInit) {
+			this.facingInit = true;
+			this.facingF = d;
+			if (d !== this.facing) {
+				this.facing = d;
+				this.renderFacing();
+			}
+		}
+	}
+
+	/**
+	 * Per-frame heading lerp toward the server target along the shortest arc on the
+	 * 16-ring. `1 - e^(-rate·dt)` ease = fast when far, settling as it arrives → a smooth
+	 * spaceship turn instead of snapping. Re-renders the sprite when the dir index ticks.
+	 */
+	tickTurn(dtMs: number): void {
+		if (
+			this.facing === this.targetFacing &&
+			Math.abs(this.facingF - this.targetFacing) < 0.01
+		)
+			return;
+		const dt = Math.min(dtMs, 50) / 1000;
+		// shortest signed arc from facingF → target, in (-8, 8]
+		let delta =
+			((this.targetFacing - this.facingF + DIRS * 1.5) % DIRS) - DIRS / 2;
+		const response = 1 - Math.exp(-TURN_RATE * dt);
+		if (Math.abs(delta) < 0.02) {
+			this.facingF = this.targetFacing;
+		} else {
+			this.facingF = (this.facingF + delta * response + DIRS) % DIRS;
+		}
+		const nf = Math.round(this.facingF) % DIRS;
+		if (nf !== this.facing) {
+			this.facing = nf;
+			this.renderFacing();
+		}
+	}
+
+	/** Re-apply the current visual for a changed facing (re-picks the sheet row). */
+	private renderFacing(): void {
+		if (
+			this.state === 'fly' ||
+			this.state === 'off' ||
+			this.state === 'powerOn'
+		)
 			this.render();
 	}
 
 	/** Per-frame motion while flying — selects idle vs move vs bank + the bank lean. */
 	setMotion(m: ShipMotion): void {
+		this.lastMotion = m; // kept so a mid-flight facing re-render reuses it
 		if (this.state !== 'fly') return;
 		this.applyFly(m);
+	}
+
+	/** Effective sheet row for the current facing, with the sheet's bake correction. */
+	private row(s: ShipSheet): number {
+		return (
+			(((this.facing + s.dirOffset) % s.directions) + s.directions) %
+			s.directions
+		);
 	}
 
 	private render(): void {
@@ -309,7 +403,7 @@ export class ShipController {
 				this.playOnce(SHIP_SHEETS.entering, false);
 				break;
 			case 'fly':
-				this.applyFly({ speed: 0, turnRate: 0 });
+				this.applyFly(this.lastMotion);
 				break;
 		}
 	}
@@ -320,23 +414,62 @@ export class ShipController {
 			const bank = SHIP_SHEETS.bank;
 			const span = bank.frames - 1;
 			const t = Phaser.Math.Clamp((m.turnRate / TURN_EPS + 1) / 2, 0, 1);
-			const frame = this.facing * bank.frames + Math.round(t * span);
+			const frame = this.row(bank) * bank.frames + Math.round(t * span);
 			this.applySheet(bank);
 			this.sprite.anims.stop();
 			this.sprite.setFrame(frame);
 		} else {
+			// Cruise = move loop, hover = idle loop. The move sheet's baked vertical bob
+			// is too strong; `flyVisual` cancels a fraction of it per frame (synced to
+			// anim progress) so it wobbles a little, not a lot.
 			const sheet =
 				m.speed > STOP_EPS ? SHIP_SHEETS.move : SHIP_SHEETS.idle;
 			this.applySheet(sheet);
-			this.sprite.play(animKey(sheet, this.facing), true);
+			this.sprite.play(animKey(sheet, this.row(sheet)), true);
 		}
 	}
 
 	private playOnce(sheet: ShipSheet, reverse: boolean): void {
 		this.applySheet(sheet);
-		const key = animKey(sheet, sheet.directions === 1 ? 0 : this.facing);
+		const key = animKey(
+			sheet,
+			sheet.directions === 1 ? 0 : this.row(sheet),
+		);
 		if (reverse) this.sprite.playReverse(key);
 		else this.sprite.play(key);
+	}
+
+	/** Active sheet's base vertical anchor — for the fly-lift origin nudge. */
+	private activeOriginY = 0.52;
+
+	/**
+	 * Per-frame airborne visual: raise the hull `px` above its tile (via origin, so it
+	 * doesn't fight the tile positioner), sort it `depth` over the trees, and CANCEL part
+	 * of the move sheet's baked vertical bob so it wobbles a little, not a lot. Idempotent.
+	 *
+	 * The baker bobs the hull `bob*size*cos(phase)` across the 8 move frames (peak at
+	 * frame 0). We replay that cosine from the anim's progress and push the hull the
+	 * opposite way by `MOVE_BOB_DAMP` of the estimated on-screen amplitude → residual bob
+	 * = `(1 - damp)` of baked. Only on the move sheet; idle's hover bob is left alone.
+	 */
+	flyVisual(px: number, depth: number): void {
+		const dh = this.sprite.displayHeight || 1;
+		let counter = 0;
+		const move = SHIP_SHEETS.move;
+		if (this.sprite.texture.key === texKey(move)) {
+			// Exact bob phase from the displayed sheet frame: baked z = bob·cos(2π·f/8),
+			// so f = textureFrame mod 8 reproduces it per-frame (no getProgress drift).
+			const tf = Number(
+				this.sprite.anims.currentFrame?.textureFrame ?? 0,
+			);
+			const f = ((tf % move.frames) + move.frames) % move.frames;
+			counter =
+				MOVE_BOB_DAMP *
+				MOVE_BOB_PX *
+				Math.cos((2 * Math.PI * f) / move.frames);
+		}
+		this.sprite.setOrigin(0.5, this.activeOriginY + (px - counter) / dh);
+		this.sprite.setDepth(depth);
 	}
 
 	/** Swap texture + keep a consistent on-screen size and ground anchor. */
@@ -344,6 +477,7 @@ export class ShipController {
 		if (this.sprite.texture.key !== texKey(sheet)) {
 			this.sprite.setTexture(texKey(sheet));
 		}
+		this.activeOriginY = sheet.originY;
 		this.sprite.setOrigin(0.5, sheet.originY);
 		this.sprite.setDisplaySize(
 			DISPLAY * sheet.scale,
@@ -351,7 +485,7 @@ export class ShipController {
 		);
 		if (sheet.play === 'static') {
 			this.sprite.anims.stop();
-			this.sprite.setFrame(this.facing); // 4x4: frame == facing
+			this.sprite.setFrame(this.row(sheet)); // 4x4: frame == facing (+offset)
 		}
 	}
 

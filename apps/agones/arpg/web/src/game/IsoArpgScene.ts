@@ -215,6 +215,7 @@ import {
 	ShipController,
 	SHIP_PHASE_TO_STATE,
 	shipFacingFromSub,
+	shipFacing16,
 	shipPhaseFromSub,
 } from './entities/ship';
 import {
@@ -341,6 +342,12 @@ export class IsoArpgScene extends Phaser.Scene {
 	private flyingShips = new Set<number>();
 	// What the camera is following: the on-foot body, or the ship while piloting.
 	private camFollowing: 'player' | 'ship' = 'player';
+	// Pilot-steering debug overlay (compass + live movement/facing arrows). Lazy.
+	private pilotDbgG?: Phaser.GameObjects.Graphics;
+	private pilotDbgText: Phaser.GameObjects.Text[] = [];
+	// Latest streamed sub-tile pos per ship eid (qx/qy ÷ POS_SCALE), for smooth flight:
+	// the local pilot's ship rides the predicted body, remote ships lerp toward this.
+	private shipPos = new Map<number, { x: number; y: number }>();
 	// The exact game object handed to startFollow — tracked so we can detect when it
 	// gets destroyed (ship/body goes off-grid into space) and stop following a dead one.
 	private camFollowTarget?:
@@ -747,6 +754,164 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 	}
 
+	// Airborne ships float above their tile + sort over the trees. Lift in px; depth
+	// just under the UI layer so the hull clears env/players but stays below HUD.
+	private static readonly FLY_LIFT_PX = 36;
+	// Remote-ship position smoothing per frame (exponential lerp toward the streamed
+	// sub-tile pos). The local pilot's ship skips this — it rides the predicted body.
+	private static readonly SHIP_LERP = 0.3;
+
+	/**
+	 * Smooth-flight pass: each frame, place every airborne ship, raise it over the trees
+	 * (origin lift) and over-sort it. The env tile-snap is choppy, so we drive position
+	 * here — the LOCAL pilot's ship rides the client-predicted float body (zero latency),
+	 * remote ships lerp toward their streamed sub-tile pos so they glide, not teleport.
+	 */
+	private tickShipFlyVisual(dtMs: number): void {
+		const myShip = this.pilots.get(this.myEid);
+		for (const eid of this.flyingShips) {
+			const ctl = this.shipCtl.get(eid);
+			if (!ctl) continue;
+			if (eid === myShip) {
+				// Drive the LOCAL ship's heading off the PREDICTED velocity (immediate, no
+				// server round-trip) so the nose tracks the movement — no crab — then ease.
+				const v = this.move.floatState.vel;
+				if (Math.hypot(v.x, v.y) > 0.25) {
+					ctl.setFacing(shipFacing16(v.x, v.y));
+				}
+			}
+			ctl.tickTurn(dtMs); // ease heading toward the target (spaceship turn)
+			if (eid === myShip) {
+				const p = worldToScreen(
+					this.move.floatState.pos.x,
+					this.move.floatState.pos.y,
+				);
+				ctl.sprite.setPosition(p.x, p.y);
+			} else {
+				const t = this.shipPos.get(eid);
+				if (t) {
+					const p = worldToScreen(t.x, t.y);
+					ctl.sprite.setPosition(
+						Phaser.Math.Linear(
+							ctl.sprite.x,
+							p.x,
+							IsoArpgScene.SHIP_LERP,
+						),
+						Phaser.Math.Linear(
+							ctl.sprite.y,
+							p.y,
+							IsoArpgScene.SHIP_LERP,
+						),
+					);
+				}
+			}
+			ctl.flyVisual(IsoArpgScene.FLY_LIFT_PX, DEPTH_UI - 5);
+		}
+	}
+
+	/**
+	 * Pilot-steering debug overlay: a screen-cardinal compass (N/E/S/W, ground truth)
+	 * with a live YELLOW arrow showing the ship's ACTUAL screen-movement direction and a
+	 * readout of the facing index + heading. Press a key, read where the arrow points vs
+	 * the compass, and that's exactly what PILOT_STEER_ROT / the facing map must match.
+	 */
+	private drawPilotDebug(): void {
+		if (!this.pilotDbgG) {
+			this.pilotDbgG = this.add.graphics().setDepth(100000);
+			for (let i = 0; i < 5; i++) {
+				this.pilotDbgText.push(
+					this.add
+						.text(0, 0, '', {
+							fontFamily: 'ui-monospace, monospace',
+							fontSize: '14px',
+							color: '#ffffff',
+							stroke: '#000000',
+							strokeThickness: 3,
+						})
+						.setDepth(100001)
+						.setOrigin(0.5),
+				);
+			}
+		}
+		const g = this.pilotDbgG;
+		const texts = this.pilotDbgText;
+		const hide = () => {
+			g.clear();
+			for (const t of texts) t.setVisible(false);
+		};
+		if (!this.localPiloting) return hide();
+		const shipEid = this.pilots.get(this.myEid);
+		const ctl =
+			shipEid !== undefined ? this.shipCtl.get(shipEid) : undefined;
+		if (!ctl) return hide();
+
+		const ox = ctl.sprite.x;
+		const oy = ctl.sprite.y;
+		const R = 90;
+		g.clear();
+		// Compass cross — screen cardinals, the truth we calibrate against.
+		g.lineStyle(2, 0x66ccff, 0.5);
+		g.beginPath();
+		g.moveTo(ox, oy - R);
+		g.lineTo(ox, oy + R);
+		g.moveTo(ox - R, oy);
+		g.lineTo(ox + R, oy);
+		g.strokePath();
+		const place = (
+			i: number,
+			dx: number,
+			dy: number,
+			s: string,
+			c: string,
+		) =>
+			texts[i]
+				.setVisible(true)
+				.setColor(c)
+				.setText(s)
+				.setPosition(ox + dx, oy + dy);
+		place(0, 0, -R - 12, 'N', '#66ccff');
+		place(1, R + 12, 0, 'E', '#66ccff');
+		place(2, 0, R + 12, 'S', '#66ccff');
+		place(3, -R - 12, 0, 'W', '#66ccff');
+
+		// Yellow arrow = actual screen movement (world velocity → screen).
+		const v = this.move.floatState.vel;
+		const sx = (v.x - v.y) * 32;
+		const sy = (v.x + v.y) * 16;
+		const mag = Math.hypot(sx, sy);
+		let info = `facing ${ctl.facingIndex}`;
+		if (mag > 0.001) {
+			const ux = sx / mag;
+			const uy = sy / mag;
+			const ex = ox + ux * R;
+			const ey = oy + uy * R;
+			g.lineStyle(4, 0xffdd33, 1);
+			g.beginPath();
+			g.moveTo(ox, oy);
+			g.lineTo(ex, ey);
+			// arrowhead
+			const ah = 12;
+			const base = Math.atan2(uy, ux);
+			g.moveTo(ex, ey);
+			g.lineTo(
+				ex - ah * Math.cos(base - 0.4),
+				ey - ah * Math.sin(base - 0.4),
+			);
+			g.moveTo(ex, ey);
+			g.lineTo(
+				ex - ah * Math.cos(base + 0.4),
+				ey - ah * Math.sin(base + 0.4),
+			);
+			g.strokePath();
+			const names = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
+			const a = ((base * 180) / Math.PI + 360) % 360;
+			info += `  move ${names[Math.round(a / 45) % 8]} (${a.toFixed(0)}°)`;
+		} else {
+			info += '  move —';
+		}
+		place(4, 0, -R - 30, info, '#ffdd33');
+	}
+
 	private setupZoom() {
 		this.zoomTarget = this.cameras.main.zoom;
 		// Bound the target to a small lead past the CURRENT zoom so Safari/macOS
@@ -908,7 +1073,11 @@ export class IsoArpgScene extends Phaser.Scene {
 							this.shipCtl.set(e.eid, ctl);
 							ctl.sprite.once(
 								Phaser.GameObjects.Events.DESTROY,
-								() => this.shipCtl.delete(e.eid),
+								() => {
+									this.shipCtl.delete(e.eid);
+									this.shipPos.delete(e.eid);
+									this.flyingShips.delete(e.eid);
+								},
 							);
 						}
 						ctl.setFacing(facing);
@@ -1766,7 +1935,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		if (myRefs) this.tickLocalMotion(myRefs, delta);
 		this.resolveShipCollision();
 		this.updateShipPrompt();
+		// Position + lift the ship FIRST, then place pilot bodies/nameplates onto it, so
+		// the nameplate tracks the moved ship instead of lagging a frame behind it.
+		this.tickShipFlyVisual(delta);
 		this.updatePilots();
+		this.drawPilotDebug();
 		this.updateCameraFollow();
 
 		this.checkDeadStair();
@@ -1974,6 +2147,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			// local pilot isn't blocked by its own hull (matches the server).
 			if (phase === 0) this.flyingShips.delete(e.eid);
 			else this.flyingShips.add(e.eid);
+			// Streamed sub-tile position (qx/qy ÷ 32) for the smooth-flight pass.
+			if (e.qx !== undefined && e.qy !== undefined) {
+				this.shipPos.set(e.eid, { x: e.qx / 32, y: e.qy / 32 });
+			}
 			// Fly sub-state from the streamed velocity (idle when ~stopped, else
 			// cruise). qvx/qvy are velocity quantized ×256 (proto VEL_SCALE).
 			const speed = Math.hypot(e.qvx ?? 0, e.qvy ?? 0) / 256;

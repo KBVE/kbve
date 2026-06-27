@@ -3197,14 +3197,18 @@ fn advance_float(
             &mut FloatMove,
             &mut IntentBuffer,
             Option<&Floor>,
+            Option<&Piloting>,
         ),
         With<PlayerSlotTag>,
     >,
 ) {
     let dt_ms = 1000.0 / SIM_TICK_HZ as f32;
-    for (mut pos, mut fm, mut intents, floor) in q.iter_mut() {
+    for (mut pos, mut fm, mut intents, floor, piloting) in q.iter_mut() {
         let z = floor.map(|f| f.0).unwrap_or(0);
-        let is_blocked = |x: i32, y: i32| !map.is_walkable_z(z, Tile::new(x, y));
+        // A piloted ship FLIES — it soars over trees/props (no ground collision) so it
+        // doesn't dodge + stutter around them. Walking bodies collide normally.
+        let flying = piloting.is_some();
+        let is_blocked = |x: i32, y: i32| !flying && !map.is_walkable_z(z, Tile::new(x, y));
         // Consume exactly one buffered intent per server tick (FIFO), so the body
         // reproduces the client's tick-by-tick motion — including stopping the
         // same tick the client released, no held-intent over-travel.
@@ -3213,12 +3217,35 @@ fn advance_float(
         fm.intent_y = my;
         fm.run = run;
         let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
-        let speed = if run {
+        let mut speed = if run {
             crate::float_move::RUN_SPEED
         } else {
             crate::float_move::WALK_SPEED
         };
-        crate::float_move::step_float(&mut fm.body, ix, iy, speed, &is_blocked, dt_ms);
+        // Piloting a ship cruises faster, eases into turns (low accel) and coasts on
+        // release (low friction) — momentum, not a snappy walk.
+        let (accel, friction) = if piloting.is_some() {
+            speed *= crate::float_move::PILOT_SPEED_MULT;
+            (
+                crate::float_move::PILOT_ACCEL,
+                crate::float_move::PILOT_FRICTION,
+            )
+        } else {
+            (
+                crate::float_move::MOVE_ACCEL,
+                crate::float_move::MOVE_FRICTION,
+            )
+        };
+        crate::float_move::step_float(
+            &mut fm.body,
+            ix,
+            iy,
+            speed,
+            accel,
+            friction,
+            &is_blocked,
+            dt_ms,
+        );
         let (tx, ty) = fm.body.tile();
         pos.tile = Tile::new(tx, ty);
         if mx != 0 || my != 0 {
