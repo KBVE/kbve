@@ -129,7 +129,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // pilot + advances the lift/land phase after movement, before hull collision.
         app.add_systems(
             bevy::prelude::Update,
-            pilot::apply_pilot_ops.before(simgrid::SimSet::Movement),
+            (pilot::recover_orphaned_ships, pilot::apply_pilot_ops)
+                .chain()
+                .before(simgrid::SimSet::Movement),
         );
         app.add_systems(
             bevy::prelude::Update,

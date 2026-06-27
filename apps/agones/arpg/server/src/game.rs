@@ -91,6 +91,14 @@ pub fn ship_footprint(base: Tile, facing: u8) -> Vec<Tile> {
         .collect()
 }
 
+/// The ship's starter parked tile — where it spawns, and where the orphan-recovery
+/// system (`pilot::recover_orphaned_ships`) returns a ship whose pilot vanished
+/// mid-flight or in the space instance. Single indestructible ship for now.
+pub fn ship_home_tile() -> Tile {
+    let spawn = player_spawn();
+    floor_near(Tile::new(spawn.x + 6, spawn.y + 4))
+}
+
 /// Would the ship's footprint (centered on `base`, at `facing`) overlap any impassable
 /// tile? The multi-tile collision test for a DRIVEN ship: feed it as the `is_blocked`
 /// closure to `float_move::step_float` (testing the footprint, not a single point) so
@@ -618,7 +626,7 @@ pub fn spawn_world(
     // shrine. Blocks its per-facing hull footprint (baked from the art), not just the
     // base tile. Carries an explicit `FurnitureRot` so it shows a chosen facing from
     // the 16-frame sheet (SHIP_PARKED_FACING).
-    let ship = floor_near(Tile::new(spawn.x + 6, spawn.y + 4));
+    let ship = ship_home_tile();
     if ship != spawn && ship != fire && ship != shrine {
         if let Some(eid) = spawn_env_object(
             &mut commands,

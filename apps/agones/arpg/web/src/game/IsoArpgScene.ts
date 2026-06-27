@@ -341,6 +341,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private flyingShips = new Set<number>();
 	// What the camera is following: the on-foot body, or the ship while piloting.
 	private camFollowing: 'player' | 'ship' = 'player';
+	// The exact game object handed to startFollow — tracked so we can detect when it
+	// gets destroyed (ship/body goes off-grid into space) and stop following a dead one.
+	private camFollowTarget?:
+		| Phaser.GameObjects.Sprite
+		| Phaser.GameObjects.Rectangle;
 	// Lazy in-world "Enter Ship" prompt shown when the local player stands near a ship.
 	private shipPrompt?: Phaser.GameObjects.Container;
 	// How close (tiles, Chebyshev) the player must be to a ship to pilot it.
@@ -703,16 +708,26 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * (the on-foot body is hidden + bound to the hull) and snaps back on exit. Only
 	 * re-targets on a change so it doesn't restart the smooth-follow every frame. */
 	private updateCameraFollow(): void {
+		// If our follow target was destroyed (ship/body went off-grid into space),
+		// stop following it NOW — a camera tracking a dead sprite crashes on update.
+		if (this.camFollowTarget && !this.camFollowTarget.active) {
+			this.cameras.main.stopFollow();
+			this.camFollowTarget = undefined;
+		}
 		const ship = this.pilots.get(this.myEid);
-		const want: 'player' | 'ship' = ship !== undefined ? 'ship' : 'player';
-		if (want === this.camFollowing) return;
-		const target =
-			want === 'ship'
-				? this.shipCtl.get(ship!)?.sprite
-				: this.store.refs(this.myEid)?.sprite;
-		if (!target) return; // ship/body not ready yet — retry next frame
+		const shipSprite =
+			ship !== undefined ? this.shipCtl.get(ship)?.sprite : undefined;
+		// Follow the ship while piloting (and its sprite is live), else the body.
+		const useShip = !!shipSprite && shipSprite.active;
+		const target = useShip
+			? shipSprite
+			: this.store.refs(this.myEid)?.sprite;
+		// Nothing live to follow (both off-grid in space) — leave the camera put.
+		if (!target || !target.active || target === this.camFollowTarget)
+			return;
 		this.cameras.main.startFollow(target, true, 0.12, 0.12);
-		this.camFollowing = want;
+		this.camFollowTarget = target;
+		this.camFollowing = useShip ? 'ship' : 'player';
 	}
 
 	/** Per frame: hide every piloting player's body and float its nameplate over the

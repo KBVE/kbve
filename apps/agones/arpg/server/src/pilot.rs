@@ -11,9 +11,11 @@
 use bevy::prelude::*;
 use simgrid::proto::{self, Facing, Tile};
 use simgrid::{
-    EnvObject, FloatMove, Floor, FurnitureRot, GridPos, PendingPilotOps, PilotOp, Piloting,
-    PlayerSlotTag, WalkableMap,
+    EnvObject, FloatMove, Floor, FurnitureRot, GridPos, IntentBuffer, PendingPilotOps, PilotOp,
+    Piloting, PlayerSlotTag, WalkableMap,
 };
+
+use std::collections::HashSet;
 
 use crate::game::{SHIP_PARKED_FACING, SHIP_REF, ship_footprint};
 
@@ -93,6 +95,7 @@ pub fn apply_pilot_ops(
     )>,
     mut bodies: Query<&mut FloatMove>,
     mut drives: Query<&mut ShipDrive>,
+    mut intents: Query<&mut IntentBuffer>,
     mut map: ResMut<WalkableMap>,
 ) {
     for (slot, op) in ops.0.drain(..) {
@@ -140,12 +143,17 @@ pub fn apply_pilot_ops(
                     },
                 ));
                 // Snap the pilot onto the ship so `ship.tile = pilot.tile` holds from
-                // the first drive tick (the body is hidden client-side).
+                // the first drive tick (the body is hidden client-side). Clear any
+                // leftover walk intents so the ship doesn't auto-drive off the moment
+                // you board (you walked here holding a direction).
                 if let Ok(mut b) = bodies.get_mut(pent) {
                     b.body.x = spos.tile.x as f32;
                     b.body.y = spos.tile.y as f32;
                     b.body.vx = 0.0;
                     b.body.vy = 0.0;
+                }
+                if let Ok(mut ib) = intents.get_mut(pent) {
+                    ib.clear();
                 }
             }
             PilotOp::Exit => {
@@ -220,6 +228,9 @@ pub fn apply_pilot_ops(
                     b.body.y = tile.y as f32;
                     b.body.vx = 0.0;
                     b.body.vy = 0.0;
+                }
+                if let Ok(mut ib) = intents.get_mut(pent) {
+                    ib.clear();
                 }
             }
         }
@@ -320,13 +331,68 @@ pub fn drive_ships(
             PHASE_ENTERING => {
                 drive.ticks += 1;
                 if drive.ticks >= ENTERING_TICKS {
-                    drive.phase = PHASE_FLY;
+                    // Descended from space back to hover height → keep landing all the
+                    // way to the ground (the player expects to touch down on return,
+                    // not hang in the air). LAND completes → parked + pilot returned.
+                    drive.phase = PHASE_LAND;
+                    drive.ticks = 0;
                 }
             }
             _ => {}
         }
 
         rot.0 = (drive.facing & 0x0F) | (drive.phase << 4);
+    }
+}
+
+/// Self-heal for a pilot that vanished (disconnect / roster eviction) while flying or
+/// stranded in the space instance. Such a ship is orphaned — `Piloted` but its slot
+/// has no live player, or off-grid with no live `InSpace` holding it — and would
+/// otherwise hang around forever (or stay invisible) until a server restart. We just
+/// FLOAT IT AWAY: free any tiles it held and despawn it, so it stops cluttering the
+/// world. A fresh parked ship returns on the next boot.
+///
+/// Single indestructible ship for now. Per-player OWNED ships come next — that's an
+/// ECS `ShipOwner(slot)` component on the ship + a per-player spawn; recovery then
+/// re-parks an owner's ship at its home tile instead of despawning the shared one.
+#[allow(clippy::type_complexity)]
+pub fn recover_orphaned_ships(
+    mut commands: Commands,
+    mut map: ResMut<WalkableMap>,
+    players: Query<&PlayerSlotTag>,
+    space: Query<&InSpace>,
+    ships: Query<(
+        Entity,
+        Option<&GridPos>,
+        &EnvObject,
+        Option<&Piloted>,
+        Option<&ShipDrive>,
+    )>,
+) {
+    // Build the live-pilot view once: slots with a connected player + ships a live
+    // space-pilot still holds. Plain local sets inside one ECS system — no shared
+    // state, no lock (the scheduler already gives this system exclusive access).
+    let live_slots: HashSet<u16> = players.iter().map(|t| t.0.0).collect();
+    let held_ships: HashSet<u32> = space.iter().map(|s| s.ship.index_u32()).collect();
+    for (sent, gpos, env, piloted, drive) in ships.iter() {
+        if env.def_ref != SHIP_REF {
+            continue;
+        }
+        let orphaned = match piloted {
+            // Flying, but the pilot's slot no longer has a live player.
+            Some(p) => !live_slots.contains(&p.pilot.0),
+            // Off-grid (in space) and no live pilot's `InSpace` references it.
+            None => gpos.is_none() && !held_ships.contains(&sent.index_u32()),
+        };
+        if !orphaned {
+            continue;
+        }
+        if let Some(d) = drive {
+            for &t in &d.blocked {
+                map.unblock_tile_z(d.floor, t);
+            }
+        }
+        commands.entity(sent).despawn();
     }
 }
 
