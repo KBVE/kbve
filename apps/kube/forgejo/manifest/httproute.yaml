@@ -53,6 +53,21 @@ spec:
           backendRefs:
               - name: forgejo-http
                 port: 3000
+        # Forgejo's own auth handshake must bypass the SSO gate — you can't pass
+        # the gate to reach the login that gets you past the gate. /user/login +
+        # /user/oauth2/* (OAuth init + callback) go straight to forgejo so the
+        # "Sign in with KBVE" flow can complete and set the forgejo session.
+        # Gated content (repos, dashboard) still routes through the gate below.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /user/login
+              - path:
+                    type: PathPrefix
+                    value: /user/oauth2/
+          backendRefs:
+              - name: forgejo-http
+                port: 3000
         # Web UI - route through gate for SSO authentication
         - matches:
               - path:
