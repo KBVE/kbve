@@ -79,7 +79,12 @@ spec:
                               ENABLE_AUTO_REGISTRATION: true
                               ACCOUNT_LINKING: auto
                               UPDATE_AVATAR: true
-                              USERNAME: preferred_username
+                              # preferred_username needs gitea 1.23+; this build is
+                              # forgejo 12.0.4 (gitea 1.22), which rejects it and
+                              # falls back to `nickname` — a claim Supabase doesn't
+                              # send → auto-register fails. Use `email`, which
+                              # Supabase always provides.
+                              USERNAME: email
                           actions:
                               ENABLED: true
                           repository:
