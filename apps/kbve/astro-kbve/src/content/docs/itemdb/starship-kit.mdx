@@ -1,0 +1,43 @@
+---
+title: 'Starship'
+description: |
+    A folded single-seat starfighter that answers an orbital beacon. Set the beacon down and the hull drops from low orbit, flares its retros, and settles onto the marked tile. Recall it and the engines spool the ship back up through the atmosphere, leaving the beacon in your pack.
+lore: |
+    Every freelancer's first real asset and last thing they sell. The beacon is the cheap part — a transponder and a folded landing cradle — but it is keyed to a hull parked in a decaying orbit overhead, waiting on a call. Plant it where you mean to stay a while; the ship does not like being summoned twice in one breath.
+ref: 'starship-kit'
+key: 600
+id: '01KWA1B2C3D4E5F6G7H8J9K0M1'
+name: 'Starship'
+type_flags: 8704
+img: '/assets/items/furniture/starship-kit.png'
+pixel_density: 64
+sorting_layer: Ground
+sorting_order: 10
+consumable: true
+stackable: true
+max_stack: 1
+rarity: 'legendary'
+buy_price: 5000
+emoji: '🚀'
+action: 'consume'
+credits: |
+    Starship model "fighter1" by Psionic (3D Game Resources), freeware.
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+A deployable starship beacon. Plant it down and the ship descends from orbit and
+lands on the marked tile — press **R** while placing to set its heading. Recall it
+(pick it up) and the ship lifts off and climbs out of the atmosphere, folding back
+into the beacon in your pack. Board a landed ship to fly it.
