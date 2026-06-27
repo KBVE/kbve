@@ -45,7 +45,7 @@ spec:
                       - name: RUST_LOG
                         value: 'info'
                       - name: DB_MAX_CONNECTIONS
-                        value: '10'
+                        value: '20'
                       - name: OWS_API_KEY
                         valueFrom:
                             secretKeyRef:

@@ -2,6 +2,7 @@ use crate::repo::InstanceRepo;
 use crate::service::OWSService;
 use sqlx::Connection; // for PgConnection::close() on the detached advisory-lock connection
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, warn};
@@ -121,13 +122,78 @@ async fn stale_zone_cleanup(svc: Arc<OWSService>) {
 /// `status=0` flip, and the cycle additionally holds `lock_conn` out of the pool for its whole
 /// duration. So the reaper's peak draw is `1 (lock) + MAX_CONCURRENT_REAPS`. `rows` connects
 /// *directly* to the CNPG RW primary (`supabase-cluster-rw:5432`) with a `DB_MAX_CONNECTIONS`-sized
-/// sqlx pool (deployment: 10). Keep the invariant `1 + MAX_CONCURRENT_REAPS + hot-path headroom ≤
+/// sqlx pool (deployment: 20). Keep the invariant `1 + MAX_CONCURRENT_REAPS + hot-path headroom ≤
 /// DB_MAX_CONNECTIONS` so a reap batch never starves the player hot path (heartbeats / joins) on
-/// `acquire()`. With pool=10 and this value=4 the reaper draws ≤5, leaving ≥5 for the hot path.
-/// Raising the pool to scale teardown belongs to the pooler migration (KBVE #7593) — but see the
-/// advisory-lock note in `empty_server_reaper`: the lock MUST stay on a session-capable endpoint
+/// `acquire()`. With pool=20 and this value=2 the reaper draws ≤3, leaving ≥17 for the hot path —
+/// so even a concurrent join spike can't push total demand past the pool and stall `acquire()`.
+/// Raising the pool further to scale teardown belongs to the pooler migration (KBVE #7593) — but see
+/// the advisory-lock note in `empty_server_reaper`: the lock MUST stay on a session-capable endpoint
 /// (direct RW or the *session*-mode pooler), never the transaction-mode RW pooler.
-const MAX_CONCURRENT_REAPS: usize = 4;
+const MAX_CONCURRENT_REAPS: usize = 2;
+
+/// Rate-limit window (secs) for the stale-empty retention warn. The condition behind it
+/// (`empty_fresh_secs < heartbeat_interval`) is a static misconfiguration that persists every
+/// 60s cycle, so an unguarded warn would log once a minute indefinitely. Surface it at most
+/// hourly. Epoch-seconds of the last emit; `0` = never warned.
+const STALE_EMPTY_WARN_INTERVAL_SECS: i64 = 3600;
+static LAST_STALE_EMPTY_WARN: AtomicI64 = AtomicI64::new(0);
+
+/// RAII backstop for the session-level advisory lock held during a reap cycle.
+///
+/// The happy path releases the lock explicitly with `pg_advisory_unlock` and returns the pinned
+/// connection to the pool (`disarm`); the unlock-failure path detaches+closes it (`take`). This
+/// guard only fires when *neither* runs — e.g. a panic in the loop body between acquiring the lock
+/// and reaching the unlock. On drop while still armed it closes the connection on a detached task,
+/// ending the backend session so Postgres drops the session lock — instead of returning a
+/// still-locked connection to the pool, which would make every later cycle's `pg_try_advisory_lock`
+/// return false and silently wedge reaping for this tenant.
+struct AdvisoryLockGuard {
+    conn: Option<sqlx::pool::PoolConnection<sqlx::Postgres>>,
+}
+
+impl AdvisoryLockGuard {
+    fn new(conn: sqlx::pool::PoolConnection<sqlx::Postgres>) -> Self {
+        Self { conn: Some(conn) }
+    }
+
+    /// Borrow the held connection as a `&mut PgConnection` (what sqlx's `Executor` wants) for the
+    /// explicit unlock query — `PoolConnection` derefs to the inner `PgConnection`.
+    fn conn_mut(&mut self) -> &mut sqlx::PgConnection {
+        &mut **self
+            .conn
+            .as_mut()
+            .expect("advisory-lock connection already released")
+    }
+
+    /// Disarm after a successful explicit unlock: the lock is already released, so let the
+    /// connection return to the pool normally.
+    fn disarm(mut self) {
+        let _ = self.conn.take();
+    }
+
+    /// Disarm and hand back the connection so the caller can detach+close it (unlock-failed path).
+    fn take(mut self) -> sqlx::pool::PoolConnection<sqlx::Postgres> {
+        self.conn
+            .take()
+            .expect("advisory-lock connection already released")
+    }
+}
+
+impl Drop for AdvisoryLockGuard {
+    fn drop(&mut self) {
+        if let Some(conn) = self.conn.take() {
+            // Reached only when the cycle neither unlocked nor detached — i.e. a panic/early exit
+            // while still holding the lock. Close the connection on a detached task so the backend
+            // session ends and Postgres releases the session lock.
+            warn!("Reaper: advisory lock released via guard — closing connection (cycle did not unlock cleanly)");
+            tokio::spawn(async move {
+                if let Err(e) = conn.detach().close().await {
+                    warn!(error = %e, "Reaper: error closing advisory-lock connection in guard");
+                }
+            });
+        }
+    }
+}
 
 /// A candidate that `reap_decision` selected and whose GameServer name resolved — ready to tear down.
 struct ReapTarget {
@@ -215,8 +281,14 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
         };
         if !locked {
             // Another replica holds the reap lock this cycle; back off until the next tick.
+            // No lock held here, so `lock_conn` returns to the pool normally.
             continue;
         }
+
+        // We now hold the session lock. Arm the RAII guard immediately so the lock is released
+        // even if the loop body panics before the explicit unlock below runs (the guard closes
+        // the connection on drop, ending the backend session).
+        let mut lock_guard = AdvisoryLockGuard::new(lock_conn);
 
         // Run the cycle as a supervised task: a panic inside it is caught at the task boundary
         // (JoinError) instead of killing this loop — and, critically, the advisory unlock below
@@ -228,24 +300,28 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
 
         // Release explicitly: a session-level advisory lock outlives a pooled connection's return,
         // so it must be unlocked before the connection goes back to the pool or it would leak.
-        if let Err(e) = sqlx::query(
+        match sqlx::query(
             "SELECT pg_advisory_unlock(hashtext('rows-empty-reaper'), hashtext($1))",
         )
         .bind(guid.to_string())
-        .execute(&mut *lock_conn)
+        .execute(lock_guard.conn_mut())
         .await
         {
-            // A failed unlock that nonetheless returns a HEALTHY connection to the pool
-            // leaves the session-level lock held on that pooled backend — every later cycle's
-            // pg_try_advisory_lock (on a different conn) then returns false and reaping is wedged
-            // for this tenant until that exact connection happens to be recycled. Detach the
-            // connection from the pool and close it so the backend session ends and the lock is
-            // released by Postgres, instead of trusting the unlock that just failed.
-            warn!(error = %e, "Reaper: failed to release advisory lock — closing connection to drop the session lock");
-            if let Err(e) = lock_conn.detach().close().await {
-                warn!(error = %e, "Reaper: error closing detached lock connection (lock still released on session end)");
+            // Lock released cleanly — disarm the guard and let the connection return to the pool.
+            Ok(_) => lock_guard.disarm(),
+            Err(e) => {
+                // A failed unlock that nonetheless returns a HEALTHY connection to the pool
+                // leaves the session-level lock held on that pooled backend — every later cycle's
+                // pg_try_advisory_lock (on a different conn) then returns false and reaping is wedged
+                // for this tenant until that exact connection happens to be recycled. Detach the
+                // connection from the pool and close it so the backend session ends and the lock is
+                // released by Postgres, instead of trusting the unlock that just failed.
+                warn!(error = %e, "Reaper: failed to release advisory lock — closing connection to drop the session lock");
+                if let Err(e) = lock_guard.take().detach().close().await {
+                    warn!(error = %e, "Reaper: error closing detached lock connection (lock still released on session end)");
+                }
+                continue;
             }
-            continue;
         }
     }
 }
@@ -350,12 +426,19 @@ async fn run_reap_cycle(
         }
     }
     if retained_stale_empty > 0 {
-        warn!(
-            count = retained_stale_empty,
-            empty_fresh_secs = reaper.empty_fresh_secs,
-            "Reaper: empty servers retained — heartbeat stale vs empty_fresh_secs (Empty reap suppressed; \
-             confirm heartbeat_interval < empty_fresh_secs)"
-        );
+        // Rate-limited to once per STALE_EMPTY_WARN_INTERVAL_SECS: this reflects a static
+        // misconfiguration that recurs every cycle, so warn hourly instead of every 60s.
+        let now_secs = now.and_utc().timestamp();
+        let last = LAST_STALE_EMPTY_WARN.load(Ordering::Relaxed);
+        if now_secs - last >= STALE_EMPTY_WARN_INTERVAL_SECS {
+            LAST_STALE_EMPTY_WARN.store(now_secs, Ordering::Relaxed);
+            warn!(
+                count = retained_stale_empty,
+                empty_fresh_secs = reaper.empty_fresh_secs,
+                "Reaper: empty servers retained — heartbeat stale vs empty_fresh_secs (Empty reap suppressed; \
+                 confirm heartbeat_interval < empty_fresh_secs)"
+            );
+        }
     }
 
     if !misses.is_empty() {
