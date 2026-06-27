@@ -377,7 +377,7 @@ impl<'a> UsersRepo<'a> {
         let inserted = match sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
-             ON CONFLICT (customerguid, userguid) DO NOTHING",
+             ON CONFLICT (userguid) DO NOTHING",
         )
         .bind(customer_guid)
         .bind(supabase_uuid)
