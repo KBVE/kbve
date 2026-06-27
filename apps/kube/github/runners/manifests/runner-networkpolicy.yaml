@@ -79,3 +79,16 @@ spec:
           ports:
               - port: 5000
                 protocol: TCP
+        # Persistent remote buildkitd (buildkitd.arc-runners.svc:1234) — the warm
+        # .astro / cargo / sccache-local / layer cache shared across runs. Default-
+        # deny egress excepts the cluster service CIDR, so without this allow the
+        # remote buildx driver is unreachable and every build silently falls back
+        # to the cold docker-container builder. Pairs with the buildkitd-ingress
+        # policy in buildkitd.yaml (which already allows in from arc-runners).
+        - to:
+              - podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: buildkitd
+          ports:
+              - port: 1234
+                protocol: TCP
