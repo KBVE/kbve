@@ -78,6 +78,12 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 				return w.variant(16);
 			case 'LeaveTable':
 				return w.variant(20);
+			case 'ExitShip':
+				return w.variant(26);
+			case 'LaunchSpace':
+				return w.variant(29);
+			case 'ReturnSpace':
+				return w.variant(30);
 		}
 		return;
 	}

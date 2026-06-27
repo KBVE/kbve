@@ -269,6 +269,18 @@ export class GameClient {
 		this.sendInputs(['ExitShip']);
 	}
 
+	/** Launch the flying ship off-planet into the solo 3D space instance. The server
+	 * plays the leaving cutscene then takes the ship + pilot off-grid. */
+	launchSpace(): void {
+		this.sendInputs(['LaunchSpace']);
+	}
+
+	/** Return from the space instance — the server re-materialises the ship at the
+	 * launch tile and plays the entering cutscene back into flight. */
+	returnSpace(): void {
+		this.sendInputs(['ReturnSpace']);
+	}
+
 	placeItem(itemRef: string, tile: Tile, rot = 0): void {
 		this.sendInputs([{ PlaceItem: { item_ref: itemRef, tile, rot } }]);
 	}

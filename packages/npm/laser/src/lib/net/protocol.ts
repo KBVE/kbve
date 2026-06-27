@@ -79,7 +79,9 @@ export type Input =
 	| { EnterShip: { ship: number } }
 	| 'ExitShip'
 	| { OpenCorpse: { corpse: number } }
-	| { TakeFromCorpse: { corpse: number; slot: number } };
+	| { TakeFromCorpse: { corpse: number; slot: number } }
+	| 'LaunchSpace'
+	| 'ReturnSpace';
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

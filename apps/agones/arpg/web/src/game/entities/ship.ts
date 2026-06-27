@@ -39,8 +39,8 @@ interface ShipSheet {
 	scale: number;
 }
 
-// off/on are 512px 4x4 (frames:1, 16 dir); the loop/lift/bank rigs are 256px 8x16;
-// the atmosphere cutscenes are 256px 16x1 (single facing). originY differs because the
+// off/on are 512px 4x4 (frames:1, 16 dir); the loop/lift/bank rigs are 512px 8x16;
+// the atmosphere cutscenes are 512px 16x1 (single facing). originY differs because the
 // animated sheets carry lift headroom (ship sits higher in the frame).
 // Static sheets (off/on) fill the frame → scale 1. Animated sheets carry 0.6 lift
 // headroom → scale 1.6 so the hull matches. ANIM_SCALE = 1 + lift.
@@ -52,7 +52,7 @@ export const SHIP_SHEETS = {
 	lift: f(
 		'ship_lift',
 		'ship_lift.png',
-		256,
+		512,
 		8,
 		16,
 		14,
@@ -63,7 +63,7 @@ export const SHIP_SHEETS = {
 	idle: f(
 		'ship_idle',
 		'ship_idle.png',
-		256,
+		512,
 		8,
 		16,
 		10,
@@ -74,7 +74,7 @@ export const SHIP_SHEETS = {
 	move: f(
 		'ship_move',
 		'ship_move.png',
-		256,
+		512,
 		8,
 		16,
 		12,
@@ -85,7 +85,7 @@ export const SHIP_SHEETS = {
 	bank: f(
 		'ship_bank',
 		'ship_bank.png',
-		256,
+		512,
 		8,
 		16,
 		1,
@@ -96,7 +96,7 @@ export const SHIP_SHEETS = {
 	leaving: f(
 		'ship_leaving',
 		'ship_leaving_atmosphere.png',
-		256,
+		512,
 		16,
 		1,
 		18,
@@ -107,7 +107,7 @@ export const SHIP_SHEETS = {
 	entering: f(
 		'ship_entering',
 		'ship_entering_atmosphere.png',
-		256,
+		512,
 		16,
 		1,
 		18,
@@ -161,7 +161,14 @@ const animKey = (s: ShipSheet, dir: number) => `anim:ship:${s.ref}:${dir}`;
 
 // Server packs the ship's drive state into its `sub` byte: low nibble = facing
 // (0..15), high nibble = phase. MUST match pilot.rs PHASE_* on the server.
-export const SHIP_PHASE_TO_STATE: ShipState[] = ['off', 'lift', 'fly', 'land'];
+export const SHIP_PHASE_TO_STATE: ShipState[] = [
+	'off',
+	'lift',
+	'fly',
+	'land',
+	'leaving',
+	'entering',
+];
 export const shipFacingFromSub = (sub: number): number => sub & 0x0f;
 export const shipPhaseFromSub = (sub: number): number => (sub >> 4) & 0x0f;
 

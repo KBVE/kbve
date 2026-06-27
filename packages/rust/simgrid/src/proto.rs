@@ -242,6 +242,16 @@ pub enum Input {
         corpse: EntityId,
         slot: u32,
     },
+    /// Pilot launches the ship they're flying off the planet into the solo 3D
+    /// "space" instance. Valid only while the ship is flying (phase Fly); the
+    /// server plays the leaving cutscene then takes the ship + pilot off-grid so
+    /// every other client sees them rise and vanish. Appended last so serde
+    /// variant indices of the existing inputs are unchanged.
+    LaunchSpace,
+    /// Pilot returns from the 3D space instance: the server re-materialises the
+    /// ship + pilot at the launch tile and plays the entering cutscene back into
+    /// flight. Appended last so serde variant indices are unchanged.
+    ReturnSpace,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

@@ -278,6 +278,35 @@ export function onCorpseIntent(
 	return laserEvents.on(CORPSE_INTENT_EVENT, handler as (d: unknown) => void);
 }
 
+// Star Fox space-mode bridge. The pilot launches their flying ship off-planet; the
+// scene drives the `leaving` cutscene and, when it completes, emits SPACE_ENTER so the
+// React <SpaceMode> overlay mounts the 3D scene + pauses Phaser. The 3D scene emits
+// SPACE_EXIT (Esc) to come back — the scene relays it to the server (`returnSpace`) and
+// the overlay resumes Phaser. `heading` is the ship's 16-way facing at launch so the 3D
+// scene can orient the player consistently.
+export const SPACE_ENTER_EVENT = 'arpg:space:enter';
+export const SPACE_EXIT_EVENT = 'arpg:space:exit';
+
+export interface SpaceEnter {
+	heading: number;
+}
+
+export function emitSpaceEnter(data: SpaceEnter): void {
+	laserEvents.emit(SPACE_ENTER_EVENT, data);
+}
+
+export function onSpaceEnter(handler: (data: SpaceEnter) => void): () => void {
+	return laserEvents.on(SPACE_ENTER_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitSpaceExit(): void {
+	laserEvents.emit(SPACE_EXIT_EVENT, undefined);
+}
+
+export function onSpaceExit(handler: () => void): () => void {
+	return laserEvents.on(SPACE_EXIT_EVENT, handler as (d: unknown) => void);
+}
+
 export const HUD_CLEAR_EVENT = 'arpg:hud:clear';
 
 export function clearHud(): void {

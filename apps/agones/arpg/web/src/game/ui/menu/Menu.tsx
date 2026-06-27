@@ -60,7 +60,10 @@ export default function ArpgMenu() {
 					style={{
 						position: 'absolute',
 						inset: 0,
-						zIndex: 30,
+						// Above the boot overlay (z 30) so Escape -> settings (with Sign
+						// out) is reachable WHILE the "Entering the dungeon" loader is up,
+						// e.g. to drop a stale session when the connect hangs.
+						zIndex: 60,
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',

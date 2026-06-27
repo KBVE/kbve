@@ -162,6 +162,8 @@ import {
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
+	emitSpaceEnter,
+	onSpaceExit,
 } from './systems/hud';
 import {
 	makeSprite,
@@ -232,7 +234,7 @@ import { resolvePlayerName } from './playerName';
 // shared `shipFootprint` shape from the ship's authoritative tile), red = the tiles
 // the client `envBlocked` set actually blocks. Aligned → red fills nest in cyan
 // outlines. Flip off to drop the overlay.
-const DEBUG_SHIP_COLLISION = true;
+const DEBUG_SHIP_COLLISION = false;
 
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
@@ -349,6 +351,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
 	private offCorpseIntent?: () => void;
+	private offSpaceExit?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
 	private floorFilterScratch: EntityDelta[] = [];
 
@@ -475,6 +478,11 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.client?.action(ACTION_LOOT, intent.corpse);
 		});
 
+		// Returning from the 3D space scene: ask the server to re-materialise the ship
+		// + pilot at the launch tile (entering cutscene -> fly). Fires even while the
+		// Phaser scene is paused — it's a plain event bus + WebSocket send.
+		this.offSpaceExit = onSpaceExit(() => this.client?.returnSpace());
+
 		this.initSpellLoadout();
 
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
@@ -576,6 +584,12 @@ export class IsoArpgScene extends Phaser.Scene {
 					: null;
 				if (eid != null) this.enterShip(eid);
 			}
+		});
+		// G launches the flying ship off-planet into the solo 3D space instance. The
+		// server validates the ship is actually flying (phase Fly); the leaving
+		// cutscene + off-grid handoff follow from the snapshot stream.
+		kb.on('keydown-G', () => {
+			if (this.localPiloting) this.client?.launchSpace();
 		});
 	}
 
@@ -905,6 +919,10 @@ export class IsoArpgScene extends Phaser.Scene {
 							if (!sprite.scene) return;
 							resetCreaturePose(sprite, view);
 							if (shadow) resetCreatureShadow(shadow, view);
+							// Don't un-hide a piloting player's body — this async load
+							// callback fires after updatePilots() hid it, which would
+							// flash the body on the ground as the ship moves.
+							if (this.pilots.has(e.eid)) return;
 							sprite.setVisible(true);
 							shadow?.setVisible(true);
 						},
@@ -1590,6 +1608,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * the hull is cancelled; tangential speed survives so the player slides along it.
 	 */
 	private resolveShipCollision(): void {
+		// The pilot rides inside its hull — don't shove its (hidden) body out of any
+		// ship while flying (mirrors the server's `Without<Piloting>` exemption).
+		if (this.localPiloting) return;
 		const s = this.move.floatState;
 		let pushed = false;
 		for (const sid of this.store.serverIdsWith(Cat.Env)) {
@@ -1701,7 +1722,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 
 		const myRefs = this.store.refs(this.myEid);
-		if (myRefs) this.tickLocalMotion(myRefs, delta);
+		// While piloting, the ship owns movement — don't predict/reconcile the body
+		// (it stays hidden under the ship; driving it would drift + churn its sprite).
+		if (myRefs && !this.localPiloting) this.tickLocalMotion(myRefs, delta);
 		this.resolveShipCollision();
 		this.updateShipPrompt();
 		this.updatePilots();
@@ -1886,6 +1909,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (!ctl) continue;
 			ctl.autoAdvance = false;
 			ctl.setFacing(facing);
+			// On the LOCAL pilot's ship, hand off to the 3D space scene the moment the
+			// leaving cutscene finishes — by then the server has taken ship + pilot
+			// off-grid (they vanish from the next snapshot for everyone else).
+			if (e.eid === this.pilots.get(this.myEid)) {
+				ctl.onTransition = (from) => {
+					if (from === 'leaving') emitSpaceEnter({ heading: facing });
+				};
+			} else if (ctl.onTransition) {
+				ctl.onTransition = null;
+			}
 			ctl.setState(SHIP_PHASE_TO_STATE[shipPhaseFromSub(e.sub)] ?? 'off');
 			// Fly sub-state from the streamed velocity (idle when ~stopped, else
 			// cruise). qvx/qvy are velocity quantized ×256 (proto VEL_SCALE).
@@ -2209,6 +2242,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offIntent = undefined;
 		this.offCorpseIntent?.();
 		this.offCorpseIntent = undefined;
+		this.offSpaceExit?.();
+		this.offSpaceExit = undefined;
 		this.client?.close();
 		this.client = null;
 		clearHud();

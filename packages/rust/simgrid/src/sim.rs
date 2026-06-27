@@ -160,6 +160,10 @@ pub struct PendingCorpseOps(Vec<(proto::PlayerSlot, proto::EntityId, Option<u32>
 pub enum PilotOp {
     Enter(proto::EntityId),
     Exit,
+    /// Launch the flying ship off-planet into the solo space instance.
+    Launch,
+    /// Re-materialise the ship + pilot at the launch tile, back into flight.
+    Return,
 }
 
 #[derive(Resource, Default)]
@@ -1643,6 +1647,12 @@ fn drain_inputs(
                 }
                 Input::ExitShip => {
                     deploy.pilot_ops.0.push((slot.0, PilotOp::Exit));
+                }
+                Input::LaunchSpace => {
+                    deploy.pilot_ops.0.push((slot.0, PilotOp::Launch));
+                }
+                Input::ReturnSpace => {
+                    deploy.pilot_ops.0.push((slot.0, PilotOp::Return));
                 }
                 Input::OpenCorpse { corpse } => {
                     deploy.corpse_ops.0.push((slot.0, *corpse, None));
