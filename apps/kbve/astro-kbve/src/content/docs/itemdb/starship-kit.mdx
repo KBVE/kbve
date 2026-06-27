@@ -128,9 +128,9 @@ Two shadow modes (see Blender doc):
   frame's silhouette bottom (`bbox[3]`), which **rises with a vertical bob** → on the
   hover loop the shadow glues to the hull and floats. Looks wrong for any bobbing sheet.
 
-`--bob` is the Y-wobble amplitude (fraction of model size); `0.06` (default) was too much
-for **both** `idle` (hover) and `move` (flying) — they bobbed up/down too hard. **`0.03`**
-reads right; both are baked at it. `--lift 0.6` = resting hover height.
+`--bob` is the Y-wobble amplitude (fraction of model size); `0.06` (default) bobbed too
+hard. Current values: `idle` (hover) `0.03`, `move` (flying) **`0.02`** (calmer — the
+flying ship should barely undulate). `--lift 0.6` = resting hover height.
 
 The bob is **one full sine cycle over the anim loop**, so its *speed* is the sheet's
 playback fps in `ship.ts` `SHIP_SHEETS`, not a bake flag — drop `move`/`idle` fps there
@@ -149,8 +149,8 @@ uv run --project packages/python/kbve kbve-model-sprites -- \
 ```
 
 Move / lift / bank — same flags, swap `--anim-mode {move|lift|bank}` and `--out`. `move`
-also honours `--bob 0.03` (+ `--sway 8` roll); `lift`/`bank` ignore `--bob` (lift ramps
-to `--lift`, bank holds it).
+uses `--bob 0.02` (+ `--sway 8` roll); `lift`/`bank` ignore `--bob` (lift ramps to
+`--lift`, bank holds it).
 
 #### Ascension / descension (atmosphere cutscenes)
 
