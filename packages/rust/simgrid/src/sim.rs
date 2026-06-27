@@ -233,6 +233,11 @@ pub struct SavedPlayer {
     pub level: i32,
     pub xp: i32,
     pub kills: u32,
+    /// The player disconnected INTO a solo client-side instance (the 3D space scene),
+    /// not a real logout — on their next join the game layer should re-materialise them
+    /// mid-activity (e.g. drop their ship from orbit + auto-board) instead of a plain
+    /// on-foot spawn. Set by the game layer via [`InSpaceFlag`]; consumed on respawn.
+    pub in_space: bool,
 }
 
 impl Default for SavedPlayer {
@@ -245,9 +250,21 @@ impl Default for SavedPlayer {
             level: 1,
             xp: 0,
             kills: 0,
+            in_space: false,
         }
     }
 }
+
+/// Game-layer marker: this player left for a solo client-side instance, so the next
+/// disconnect-save records `in_space` (a re-materialise on return) rather than a logout.
+#[derive(Component, Default)]
+pub struct InSpaceFlag;
+
+/// Added by the spawn system to a player whose save had `in_space` set — the game layer
+/// reacts (e.g. spawns + boards their ship) then removes it. Generic so simgrid stays
+/// agnostic about ships.
+#[derive(Component, Default)]
+pub struct ReturnedFromInstance;
 
 #[derive(Resource, Default)]
 pub struct PlayerStore {
@@ -1184,7 +1201,13 @@ fn sync_roster(
     mut store: ResMut<PlayerStore>,
     mut kill_counts: ResMut<KillCounts>,
     equipment: Res<EquipmentEffects>,
-    q_saved: Query<(&Inventory, &Health, &Equipped, &XpState)>,
+    q_saved: Query<(
+        &Inventory,
+        &Health,
+        &Equipped,
+        &XpState,
+        Option<&InSpaceFlag>,
+    )>,
     mut commands: Commands,
 ) {
     let active: Vec<(proto::PlayerSlot, String)> = {
@@ -1205,6 +1228,12 @@ fn sync_roster(
             continue;
         }
         let saved = store.by_username.get(username).cloned();
+        // Returning from a solo instance (the 3D space scene) → the game layer should
+        // re-materialise them in-activity. Consume the one-shot flag now.
+        let was_in_space = saved.as_ref().map(|s| s.in_space).unwrap_or(false);
+        if was_in_space && let Some(s) = store.by_username.get_mut(username) {
+            s.in_space = false;
+        }
         let level = saved.as_ref().map(|s| s.level.max(1)).unwrap_or(1);
         let xp = saved.as_ref().map(|s| s.xp).unwrap_or(0);
         let kills = saved.as_ref().map(|s| s.kills).unwrap_or(0);
@@ -1285,6 +1314,9 @@ fn sync_roster(
             ))
             .insert(PosHistory::default())
             .id();
+        if was_in_space {
+            commands.entity(entity).insert(ReturnedFromInstance);
+        }
         spawned.by_slot.insert(slot.0, (entity, username.clone()));
     }
 
@@ -1298,7 +1330,7 @@ fn sync_roster(
         if let Some((entity, username)) = spawned.by_slot.remove(&k) {
             let kills = kill_counts.0.remove(&k).unwrap_or(0);
             if !username.is_empty()
-                && let Ok((inv, hp, equipped, xp)) = q_saved.get(entity)
+                && let Ok((inv, hp, equipped, xp, in_space)) = q_saved.get(entity)
             {
                 store.by_username.insert(
                     username,
@@ -1310,6 +1342,7 @@ fn sync_roster(
                         level: xp.level,
                         xp: xp.xp,
                         kills,
+                        in_space: in_space.is_some(),
                     },
                 );
             }

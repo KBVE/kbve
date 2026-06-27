@@ -134,10 +134,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .before(simgrid::SimSet::Movement),
         );
         // A placed/restored ship starts descending from orbit (ENTERING) before it's
-        // driven, so it lands instead of popping in parked.
+        // driven, so it lands instead of popping in parked. `return_from_space` spawns a
+        // boarded ship for a player who just rejoined from the solo space scene (runs
+        // first so the ship exists for `start_placed_ship_descent` to give it the descent).
         app.add_systems(
             bevy::prelude::Update,
-            pilot::start_placed_ship_descent.before(simgrid::SimSet::Movement),
+            (pilot::return_from_space, pilot::start_placed_ship_descent)
+                .chain()
+                .before(simgrid::SimSet::Movement),
         );
         app.add_systems(
             bevy::prelude::Update,

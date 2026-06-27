@@ -11,8 +11,9 @@
 use bevy::prelude::*;
 use simgrid::proto::{self, Facing, Tile};
 use simgrid::{
-    EnvObject, FloatMove, Floor, FurnitureRot, GridPos, IntentBuffer, PendingPilotOps, PilotOp,
-    Piloting, PlayerSlotTag, WalkableMap,
+    EnvObject, EnvOpts, FloatMove, Floor, FurnitureRot, GridPos, InSpaceFlag, IntentBuffer,
+    KindRegistry, PendingPilotOps, PilotOp, Piloting, PlayerSlotTag, ReturnedFromInstance,
+    WalkableMap, spawn_env_object,
 };
 
 use std::collections::HashSet;
@@ -38,16 +39,6 @@ const LAND_EASE: f32 = 0.28;
 const LEAVING_TICKS: u32 = 18;
 const ENTERING_TICKS: u32 = 18;
 
-/// On the pilot entity while in the solo 3D space instance — the ship + pilot are
-/// off-grid (no `GridPos`, so every snapshot drops them: they "left the planet").
-/// Holds what's needed to re-materialise both at the launch tile on return.
-#[derive(Component)]
-pub struct InSpace {
-    pub ship: Entity,
-    pub tile: Tile,
-    pub floor: i32,
-    pub facing: u8,
-}
 /// How close (tiles, Chebyshev) the player must stand to board.
 const ENTER_RANGE: i32 = 3;
 
@@ -126,7 +117,6 @@ pub fn apply_pilot_ops(
     mut commands: Commands,
     mut ops: ResMut<PendingPilotOps>,
     players: Query<(Entity, &PlayerSlotTag, &GridPos, Option<&Piloting>)>,
-    space_pilots: Query<(Entity, &PlayerSlotTag, &InSpace)>,
     ships: Query<(
         Entity,
         &GridPos,
@@ -222,7 +212,7 @@ pub fn apply_pilot_ops(
             PilotOp::Launch => {
                 // Only a flying ship can launch to space; the leaving cutscene then
                 // runs in `drive_ships`, which takes both off-grid when it completes.
-                let Some((_, _, _, Some(piloting))) =
+                let Some((pent, _, _, Some(piloting))) =
                     players.iter().find(|(_, t, _, _)| t.0 == slot)
                 else {
                     continue;
@@ -231,65 +221,57 @@ pub fn apply_pilot_ops(
                     if d.phase == PHASE_FLY {
                         d.phase = PHASE_LEAVING;
                         d.ticks = 0;
+                        // Flag bound-for-space NOW (reliable, ahead of any disconnect race)
+                        // so the disconnect-save records `in_space` → auto-board on return.
+                        commands.entity(pent).insert(InSpaceFlag);
                     }
                 }
             }
             PilotOp::Return => {
-                // Re-materialise ship + pilot at the launch tile and play the entering
-                // cutscene back into flight. `blocked` starts empty so `drive_ships`
-                // re-blocks the footprint on its first tick.
-                let Some((pent, _, in_space)) = space_pilots.iter().find(|(_, t, _)| t.0 == slot)
-                else {
-                    continue;
-                };
-                let InSpace {
-                    ship,
-                    tile,
-                    floor,
-                    facing,
-                } = *in_space;
-                // Land somewhere SAFE: snap the launch tile to the nearest real floor so
-                // a return never drops the ship + pilot into rock (the launch tile is
-                // normally clear, but env/terrain can change while you're in space).
-                let tile = crate::game::floor_near_z(tile, floor);
-                commands.entity(pent).insert((
-                    GridPos {
-                        tile,
-                        facing: Facing::Down,
-                    },
-                    Floor(floor),
-                    Piloting(ship),
-                ));
-                commands.entity(pent).remove::<InSpace>();
-                commands.entity(ship).insert((
-                    GridPos {
-                        tile,
-                        facing: Facing::Down,
-                    },
-                    Floor(floor),
-                    Piloted { pilot: slot },
-                    ShipDrive {
-                        phase: PHASE_ENTERING,
-                        ticks: 0,
-                        facing,
-                        blocked: Vec::new(),
-                        floor,
-                        tile,
-                        land_tile: tile,
-                    },
-                    FloatMove::at(tile),
-                ));
-                if let Ok(mut b) = bodies.get_mut(pent) {
-                    b.body.x = tile.x as f32;
-                    b.body.y = tile.y as f32;
-                    b.body.vx = 0.0;
-                    b.body.vy = 0.0;
-                }
-                if let Ok(mut ib) = intents.get_mut(pent) {
-                    ib.clear();
-                }
+                // Legacy no-op. Returning from space is now a DISCONNECT/RECONNECT: the
+                // client closes its WS on entering space and rejoins on return, and
+                // `return_from_space` re-materialises the player in their ship from the
+                // persisted `in_space` flag. Kept for wire/enum compatibility.
             }
         }
+    }
+}
+
+/// A player who just rejoined FROM the solo 3D space scene (the spawn system tagged them
+/// `ReturnedFromInstance` off their persisted `in_space` flag) re-materialises mid-flight:
+/// spawn their ship on their spawn tile, board it, and let `start_placed_ship_descent` +
+/// `drive_ships` play the ENTERING descent → FLY so they arrive piloting. One-shot.
+pub fn return_from_space(
+    mut commands: Commands,
+    registry: Res<KindRegistry>,
+    returned: Query<
+        (Entity, &PlayerSlotTag, &GridPos, Option<&Floor>),
+        Added<ReturnedFromInstance>,
+    >,
+) {
+    for (pent, tag, gpos, floor) in returned.iter() {
+        commands.entity(pent).remove::<ReturnedFromInstance>();
+        let z = floor.map(|f| f.0).unwrap_or(0);
+        let tile = gpos.tile;
+        let Some(ship) = spawn_env_object(
+            &mut commands,
+            &registry,
+            SHIP_REF,
+            tile,
+            EnvOpts {
+                floor: z,
+                ..Default::default()
+            },
+        ) else {
+            continue; // ship kind not registered — leave them on foot
+        };
+        // Boarded + facing: `start_placed_ship_descent` (Added<EnvObject>) gives it the
+        // ENTERING descent + a float body next tick; with `Piloted` present, `drive_ships`
+        // routes ENTERING → FLY so the pilot arrives flying, not parked.
+        commands
+            .entity(ship)
+            .insert((FurnitureRot(SHIP_PARKED_FACING), Piloted { pilot: tag.0 }));
+        commands.entity(pent).insert(Piloting(ship));
     }
 }
 
@@ -399,28 +381,23 @@ pub fn drive_ships(
                         map.unblock_tile_z(drive.floor, t);
                     }
                     if let Some(pe) = pilot {
-                        // PILOTED launch → take ship + pilot off-grid into the solo space
-                        // instance. Removing `GridPos` drops both from every snapshot; the
-                        // pilot carries `InSpace` so `PilotOp::Return` re-materialises them.
-                        commands.entity(pe).insert(InSpace {
-                            ship: sent,
-                            tile: drive.tile,
-                            floor: drive.floor,
-                            facing: drive.facing,
-                        });
+                        // PILOTED launch → the pilot heads into the SOLO client-side space
+                        // scene, so the client closes its WS. Flag them `InSpaceFlag` (the
+                        // disconnect-save records `in_space` → `return_from_space` re-boards
+                        // them on rejoin) and DESPAWN the ship: a fresh one is dropped on
+                        // return. Drop GridPos so they vanish ("left the planet") in the
+                        // brief window before the socket closes.
+                        commands.entity(pe).insert(InSpaceFlag);
                         commands.entity(pe).remove::<Piloting>();
                         commands.entity(pe).remove::<GridPos>();
-                        commands.entity(sent).remove::<GridPos>();
-                        commands.entity(sent).remove::<Piloted>();
-                        commands.entity(sent).remove::<ShipDrive>();
-                        commands.entity(sent).remove::<FloatMove>();
+                        commands.entity(sent).despawn();
                     } else {
                         // PILOTLESS removal → the ship has risen to space; despawn it.
                         // (The kit was already returned to the remover's inventory when
                         // the reclaim was queued.)
                         commands.entity(sent).despawn();
                     }
-                    continue; // gone (off-grid or despawned) this tick
+                    continue; // gone (despawned / off-grid) this tick
                 }
             }
             PHASE_ENTERING => {
@@ -462,7 +439,6 @@ pub fn recover_orphaned_ships(
     mut commands: Commands,
     mut map: ResMut<WalkableMap>,
     players: Query<&PlayerSlotTag>,
-    space: Query<&InSpace>,
     ships: Query<(
         Entity,
         Option<&GridPos>,
@@ -471,20 +447,20 @@ pub fn recover_orphaned_ships(
         Option<&ShipDrive>,
     )>,
 ) {
-    // Build the live-pilot view once: slots with a connected player + ships a live
-    // space-pilot still holds. Plain local sets inside one ECS system — no shared
-    // state, no lock (the scheduler already gives this system exclusive access).
+    // Live-pilot view: slots with a connected player. Plain local set inside one ECS
+    // system — no shared state, no lock. A launch-to-space DESPAWNS the ship, so there
+    // are no off-grid held ships to track anymore; only a disconnect mid-flight orphans.
     let live_slots: HashSet<u16> = players.iter().map(|t| t.0.0).collect();
-    let held_ships: HashSet<u32> = space.iter().map(|s| s.ship.index_u32()).collect();
     for (sent, gpos, env, piloted, drive) in ships.iter() {
+        let _ = gpos;
         if env.def_ref != SHIP_REF {
             continue;
         }
         let orphaned = match piloted {
-            // Flying, but the pilot's slot no longer has a live player.
+            // Flying, but the pilot's slot no longer has a live player (disconnected).
             Some(p) => !live_slots.contains(&p.pilot.0),
-            // Off-grid (in space) and no live pilot's `InSpace` references it.
-            None => gpos.is_none() && !held_ships.contains(&sent.index_u32()),
+            // Pilotless ships are parked/descending env props — not orphans.
+            None => false,
         };
         if !orphaned {
             continue;

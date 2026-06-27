@@ -101,7 +101,10 @@ export class ReconnectingSocket {
 	}
 
 	connect(): void {
-		if (this.ws || this.closed) return;
+		if (this.ws) return;
+		// An explicit connect() is an intent to (re)open — clear a prior deliberate
+		// close() so a reconnect after a clean shutdown actually reconnects.
+		this.closed = false;
 		this.everOpened = false;
 		this.setState({
 			status: this.attempts === 0 ? 'connecting' : 'reconnecting',

@@ -492,10 +492,10 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.client?.action(ACTION_LOOT, intent.corpse);
 		});
 
-		// Returning from the 3D space scene: ask the server to re-materialise the ship
-		// + pilot at the launch tile (entering cutscene -> fly). Fires even while the
-		// Phaser scene is paused — it's a plain event bus + WebSocket send.
-		this.offSpaceExit = onSpaceExit(() => this.client?.returnSpace());
+		// Returning from the solo 3D space scene is a RECONNECT, not a server round-trip:
+		// the WS was closed on entry, so reopen it. The server restores us from the
+		// persisted `in_space` flag (re-spawns + auto-boards a fresh ship on rejoin).
+		this.offSpaceExit = onSpaceExit(() => this.client?.connect());
 
 		this.initSpellLoadout();
 
@@ -2073,6 +2073,10 @@ export class IsoArpgScene extends Phaser.Scene {
 						this.camFollowTarget = undefined;
 						this.camFollowing = 'player';
 						emitSpaceEnter({ heading: facing });
+						// Solo space is fully client-side — drop the multiplayer WS so the
+						// server cleans us up (saves state w/ the `in_space` flag set at
+						// launch). We reopen it on return (onSpaceExit). No off-grid juggling.
+						this.client?.close();
 					}
 				};
 			} else if (ctl.onTransition) {
