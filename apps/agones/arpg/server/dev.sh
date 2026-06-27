@@ -20,6 +20,14 @@ ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 cd "$ROOT"
 COMPOSE="docker compose -f apps/agones/arpg/docker-compose.yml"
 
+# Kill any prior native server first — cargo-watch's child can outlive a tmux kill
+# and keep holding :7979 + the cargo lock (stale world, blocked rebuild). No swap,
+# no blue/green: just reap the old one so this start is clean.
+pkill -f 'cargo-watch.*arpg-server' 2>/dev/null || true
+pkill -f 'cargo run -p arpg-server' 2>/dev/null || true
+pkill -f 'target/debug/arpg-server' 2>/dev/null || true
+sleep 1
+
 # Valkey up (host-mapped :6379); free :7979 by stopping the docker server so the
 # native one can bind it (the two can't share the port).
 $COMPOSE up -d valkey

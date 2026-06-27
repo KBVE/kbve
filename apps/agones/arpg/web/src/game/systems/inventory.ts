@@ -21,6 +21,7 @@ import { emitInventory, emitInventoryOpen, type InventoryIntent } from './hud';
 const DEPLOYABLES: ReadonlyMap<string, string> = new Map([
 	['campfire-kit', 'campfire'],
 	['candelabrum-stand', 'candelabrum'],
+	['starship-kit', 'ship'],
 ]);
 // How far (Chebyshev) from the player a deployable may be placed. Mirrors the
 // server's PLACE_RANGE so the client ghost reads valid exactly when the server

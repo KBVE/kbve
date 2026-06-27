@@ -6,6 +6,28 @@ import { readFileSync } from 'node:fs';
 
 const repoRoot = path.resolve(__dirname, '../../../..');
 
+// Single source of truth for the client build version: version.toml (the same
+// file the release/atom flow bumps). Baked into the bundle as PUBLIC_ARPG_VERSION
+// and written to a no-cache version.json the running client polls to detect when
+// it's serving a stale (CF/webview-cached) build and should reload.
+const ARPG_VERSION = (() => {
+	try {
+		const toml = readFileSync(path.join(__dirname, 'version.toml'), 'utf8');
+		return toml.match(/version\s*=\s*"([^"]+)"/)?.[1] ?? '0.0.0';
+	} catch {
+		return '0.0.0';
+	}
+})();
+
+// Rent Earth brand logo, shown on the Discord Activity boot/sign-in screens. The
+// discord build emits a copy beside index.html so the static boot page can load
+// it same-origin (no URL-mapping/proxy dependency before the SDK is ready).
+const BRAND_LOGO_SRC = path.join(
+	__dirname,
+	'public/assets/brand/logo/rentearthlogo.webp',
+);
+const BRAND_LOGO_NAME = 'rentearthlogo.webp';
+
 // Content-hash the Discord Activity bundle and rewrite its index.html to match.
 //
 // vite's `build.lib` mode emits a fixed filename (`arpg.js`) with no content
@@ -46,6 +68,23 @@ function hashDiscordBundle(htmlTemplatePath: string) {
 				fileName: 'index.html',
 				source: html,
 			});
+			// Fresh version marker the client polls at boot (nginx serves it
+			// no-cache) — lets a stale-cached bundle detect it's outdated.
+			(this as any).emitFile({
+				type: 'asset',
+				fileName: 'version.json',
+				source: JSON.stringify({ version: ARPG_VERSION }),
+			});
+			// Brand logo beside index.html for the same-origin boot screen.
+			try {
+				(this as any).emitFile({
+					type: 'asset',
+					fileName: BRAND_LOGO_NAME,
+					source: readFileSync(BRAND_LOGO_SRC),
+				});
+			} catch {
+				/* logo missing — boot screen falls back to no image */
+			}
 		},
 	};
 }
@@ -159,6 +198,8 @@ export default defineConfig(({ mode }) => {
 				'import.meta.env.PUBLIC_DISCORD_CLIENT_ID': JSON.stringify(
 					process.env.PUBLIC_DISCORD_CLIENT_ID ?? '',
 				),
+				'import.meta.env.PUBLIC_ARPG_VERSION':
+					JSON.stringify(ARPG_VERSION),
 			},
 			build: {
 				// Both bundles emit into this app's own dist so arpg.kbve.com
@@ -206,6 +247,7 @@ export default defineConfig(({ mode }) => {
 			'import.meta.env.PUBLIC_ARPG_CHAT_WS': JSON.stringify(
 				process.env.PUBLIC_ARPG_CHAT_WS ?? '',
 			),
+			'import.meta.env.PUBLIC_ARPG_VERSION': JSON.stringify(ARPG_VERSION),
 		},
 		publicDir: path.join(__dirname, 'public'),
 		build: { outDir: 'dist', emptyOutDir: true },

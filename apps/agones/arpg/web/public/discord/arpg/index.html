@@ -31,6 +31,19 @@
 				text-align: center;
 				box-sizing: border-box;
 			}
+			.arpg-brand {
+				width: clamp(120px, 40vw, 220px);
+				height: auto;
+				margin-bottom: 0.5rem;
+				user-select: none;
+				-webkit-user-drag: none;
+			}
+			.arpg-ver {
+				margin: 0.75rem 0 0;
+				font-size: 0.65rem;
+				letter-spacing: 0.04em;
+				color: #5a6478;
+			}
 			.arpg-spinner {
 				width: 2rem;
 				height: 2rem;
@@ -94,6 +107,11 @@
 	<body>
 		<div id="app">
 			<div class="arpg-boot">
+				<img
+					class="arpg-brand"
+					src="./rentearthlogo.webp"
+					alt="Rent Earth"
+					onerror="this.style.display='none'" />
 				<span class="arpg-spinner" aria-hidden="true"></span>
 				<p class="arpg-boot-status">Entering the dungeon…</p>
 				<p class="arpg-boot-sub">Connecting to Discord.</p>

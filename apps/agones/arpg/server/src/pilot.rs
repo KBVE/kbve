@@ -17,7 +17,7 @@ use simgrid::{
 
 use std::collections::HashSet;
 
-use crate::game::{SHIP_PARKED_FACING, SHIP_REF, ship_footprint};
+use crate::game::{SHIP_PARKED_FACING, SHIP_REF, SPAWN_FLOOR, ship_footprint, ship_home_tile};
 
 // Phase in the high nibble of the ship's `FurnitureRot` byte; facing in the low nibble
 // (`sub = facing | phase << 4`). The client maps phase → ShipController state.
@@ -69,10 +69,11 @@ pub struct ShipDrive {
 }
 
 /// 16-way heading from a world velocity. Facing 0 = West (matches the parked sheet);
-/// each step is +22.5°. Calibrate via `FACING_OFFSET` if the in-game heading reads off.
+/// each step is +22.5°. The screen-Y axis is inverted vs world-Y, so we negate `vy`
+/// (otherwise North reads as South). Calibrate further via `FACING_OFFSET`.
 const FACING_OFFSET: i32 = 0;
 fn facing16(vx: f32, vy: f32) -> u8 {
-    let a = vy.atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
+    let a = (-vy).atan2(vx) + std::f32::consts::PI; // 0..2π, π(west)→0
     let step = (a / (std::f32::consts::TAU) * 16.0).round() as i32;
     (step + FACING_OFFSET).rem_euclid(16) as u8
 }
@@ -141,6 +142,10 @@ pub fn apply_pilot_ops(
                         floor: z,
                         tile: spos.tile,
                     },
+                    // The ship is now a LOCOMOTION entity: its own float body (mirrored
+                    // from the pilot in `drive_ships`) so it streams sub-tile pos/vel and
+                    // moves smoothly, like a player — not a tile-snapped env prop.
+                    FloatMove::at(spos.tile),
                 ));
                 // Snap the pilot onto the ship so `ship.tile = pilot.tile` holds from
                 // the first drive tick (the body is hidden client-side). Clear any
@@ -222,6 +227,7 @@ pub fn apply_pilot_ops(
                         floor,
                         tile,
                     },
+                    FloatMove::at(tile),
                 ));
                 if let Ok(mut b) = bodies.get_mut(pent) {
                     b.body.x = tile.x as f32;
@@ -253,34 +259,40 @@ pub fn drive_ships(
             Entity,
             &mut GridPos,
             &mut FurnitureRot,
-            &Piloted,
+            Option<&Piloted>,
             &mut ShipDrive,
+            &mut FloatMove,
         ),
         Without<PlayerSlotTag>,
     >,
     players: Query<(Entity, &PlayerSlotTag, &GridPos, &FloatMove)>,
 ) {
-    for (sent, mut spos, mut rot, piloted, mut drive) in ships.iter_mut() {
-        let Some((pent, _, ppos, fm)) = players.iter().find(|(_, t, _, _)| t.0 == piloted.pilot)
-        else {
-            continue;
-        };
-
-        // Heading from the pilot's velocity (hold last when nearly stopped).
-        let (vx, vy) = (fm.body.vx, fm.body.vy);
-        if vx * vx + vy * vy > FACING_VEL_EPS2 {
-            drive.facing = facing16(vx, vy);
+    for (sent, mut spos, mut rot, piloted, mut drive, mut ship_fm) in ships.iter_mut() {
+        // A PILOTED ship mirrors its pilot's smooth float body (driving). A PILOTLESS
+        // one is running a place-from-space / remove-to-space cutscene — it just plays
+        // its phase machine in place. `pilot` is set only when a live pilot is aboard.
+        let mut pilot = None;
+        if let Some(p) = piloted {
+            let Some((pe, _, _ppos, fm)) = players.iter().find(|(_, t, _, _)| t.0 == p.pilot)
+            else {
+                continue; // piloted but pilot missing this tick — recovery handles it
+            };
+            pilot = Some(pe);
+            // The ship is the streamed locomotion entity (its `FloatMove` → sub-tile
+            // qx/qy), so it moves exactly as the pilot drives, smoothly. Heading from
+            // velocity; the airborne hull tile-blocks nothing (re-blocked on landing).
+            ship_fm.body = fm.body;
+            let (vx, vy) = (fm.body.vx, fm.body.vy);
+            if vx * vx + vy * vy > FACING_VEL_EPS2 {
+                drive.facing = facing16(vx, vy);
+            }
+            let (tx, ty) = ship_fm.body.tile();
+            let new_tile = Tile::new(tx, ty);
+            drive.tile = new_tile;
+            spos.tile = new_tile;
         }
 
-        // The ship is AIRBORNE while flown — it does NOT tile-block (else the pilot
-        // would collide with its own hull and be unable to move). Other players are
-        // pushed out by the OBB collision instead; the footprint is re-blocked only
-        // when it lands. Just bind the ship to the pilot's tile + heading.
-        let new_tile = ppos.tile;
-        drive.tile = new_tile;
-        spos.tile = new_tile;
-
-        // Phase machine.
+        // Phase machine (runs for piloted + pilotless cutscenes alike).
         match drive.phase {
             PHASE_LIFT => {
                 drive.ticks += 1;
@@ -297,35 +309,46 @@ pub fn drive_ships(
                     for t in ship_footprint(drive.tile, drive.facing) {
                         map.block_tile_z(drive.floor, t);
                     }
-                    // Hand control back: drop the links. The ex-pilot is shoved clear of
-                    // the hull next tick (it no longer carries `Piloting`).
-                    commands.entity(pent).remove::<Piloting>();
+                    // Hand control back: drop the links. The ex-pilot (if any) is shoved
+                    // clear of the hull next tick (it no longer carries `Piloting`).
+                    if let Some(pe) = pilot {
+                        commands.entity(pe).remove::<Piloting>();
+                    }
                     commands.entity(sent).remove::<Piloted>();
                     commands.entity(sent).remove::<ShipDrive>();
+                    commands.entity(sent).remove::<FloatMove>(); // parked = not a mover
                 }
             }
             PHASE_LEAVING => {
                 drive.ticks += 1;
                 if drive.ticks >= LEAVING_TICKS {
-                    // Cutscene done: free the footprint and take ship + pilot off-grid.
-                    // Removing `GridPos` drops both from every snapshot (`emit_snapshot`
-                    // requires it) — to other clients they rose and vanished. The pilot
-                    // carries `InSpace` so `PilotOp::Return` can re-materialise them.
+                    // Cutscene done: free any footprint it held.
                     for t in std::mem::take(&mut drive.blocked) {
                         map.unblock_tile_z(drive.floor, t);
                     }
-                    commands.entity(pent).insert(InSpace {
-                        ship: sent,
-                        tile: drive.tile,
-                        floor: drive.floor,
-                        facing: drive.facing,
-                    });
-                    commands.entity(pent).remove::<Piloting>();
-                    commands.entity(pent).remove::<GridPos>();
-                    commands.entity(sent).remove::<GridPos>();
-                    commands.entity(sent).remove::<Piloted>();
-                    commands.entity(sent).remove::<ShipDrive>();
-                    continue; // off-grid now; nothing left to drive this tick
+                    if let Some(pe) = pilot {
+                        // PILOTED launch → take ship + pilot off-grid into the solo space
+                        // instance. Removing `GridPos` drops both from every snapshot; the
+                        // pilot carries `InSpace` so `PilotOp::Return` re-materialises them.
+                        commands.entity(pe).insert(InSpace {
+                            ship: sent,
+                            tile: drive.tile,
+                            floor: drive.floor,
+                            facing: drive.facing,
+                        });
+                        commands.entity(pe).remove::<Piloting>();
+                        commands.entity(pe).remove::<GridPos>();
+                        commands.entity(sent).remove::<GridPos>();
+                        commands.entity(sent).remove::<Piloted>();
+                        commands.entity(sent).remove::<ShipDrive>();
+                        commands.entity(sent).remove::<FloatMove>();
+                    } else {
+                        // PILOTLESS removal → the ship has risen to space; despawn it.
+                        // (The kit was already returned to the remover's inventory when
+                        // the reclaim was queued.)
+                        commands.entity(sent).despawn();
+                    }
+                    continue; // gone (off-grid or despawned) this tick
                 }
             }
             PHASE_ENTERING => {
@@ -387,12 +410,67 @@ pub fn recover_orphaned_ships(
         if !orphaned {
             continue;
         }
+        // Return the single indestructible ship HOME (parked + grounded) so it's always
+        // findable, instead of vanishing until a restart. Free whatever it held, re-block
+        // the home footprint, drop the drive links + any locomotion body.
         if let Some(d) = drive {
             for &t in &d.blocked {
                 map.unblock_tile_z(d.floor, t);
             }
         }
-        commands.entity(sent).despawn();
+        let home = ship_home_tile();
+        for t in ship_footprint(home, SHIP_PARKED_FACING) {
+            map.block_tile_z(SPAWN_FLOOR, t);
+        }
+        commands
+            .entity(sent)
+            .remove::<Piloted>()
+            .remove::<ShipDrive>()
+            .remove::<FloatMove>()
+            .insert((
+                GridPos {
+                    tile: home,
+                    facing: Facing::Down,
+                },
+                Floor(SPAWN_FLOOR),
+                FurnitureRot(SHIP_PARKED_FACING),
+            ));
+    }
+}
+
+/// A freshly-spawned ship env (the `starship-kit` deployable just placed it, or it
+/// restored from a prior session) gets the ENTERING phase + a float body so it DROPS
+/// FROM ORBIT and lands, instead of popping in parked. `drive_ships` advances pilotless
+/// ENTERING→LAND→OFF, and LAND re-blocks the hull footprint at the landing tile.
+pub fn start_placed_ship_descent(
+    mut commands: Commands,
+    placed: Query<
+        (
+            Entity,
+            &GridPos,
+            &EnvObject,
+            Option<&FurnitureRot>,
+            Option<&Floor>,
+        ),
+        Added<EnvObject>,
+    >,
+) {
+    for (e, pos, env, rot, floor) in placed.iter() {
+        if env.def_ref != SHIP_REF {
+            continue;
+        }
+        let facing = rot.map(|r| r.0 & 0x0F).unwrap_or(SHIP_PARKED_FACING);
+        commands.entity(e).insert((
+            ShipDrive {
+                phase: PHASE_ENTERING,
+                ticks: 0,
+                facing,
+                blocked: Vec::new(),
+                floor: floor.map(|f| f.0).unwrap_or(0),
+                tile: pos.tile,
+            },
+            FloatMove::at(pos.tile),
+        ));
     }
 }
 
@@ -402,11 +480,12 @@ mod tests {
 
     #[test]
     fn facing16_cardinals() {
-        // Facing 0 = West (matches the parked sheet); quarters land on 0/4/8/12.
+        // Facing 0 = West (parked sheet); quarters land on 0/4/8/12. `vy` is negated
+        // (screen-Y is inverted vs world-Y) so world -y / +y map to 12 / 4.
         assert_eq!(facing16(-1.0, 0.0), 0, "west");
-        assert_eq!(facing16(0.0, -1.0), 4, "north (screen up)");
+        assert_eq!(facing16(0.0, -1.0), 12, "world -y (screen down after flip)");
         assert_eq!(facing16(1.0, 0.0), 8, "east");
-        assert_eq!(facing16(0.0, 1.0), 12, "south");
+        assert_eq!(facing16(0.0, 1.0), 4, "world +y");
     }
 
     #[test]

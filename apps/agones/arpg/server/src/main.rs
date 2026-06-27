@@ -133,6 +133,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .chain()
                 .before(simgrid::SimSet::Movement),
         );
+        // A placed/restored ship starts descending from orbit (ENTERING) before it's
+        // driven, so it lands instead of popping in parked.
+        app.add_systems(
+            bevy::prelude::Update,
+            pilot::start_placed_ship_descent.before(simgrid::SimSet::Movement),
+        );
         app.add_systems(
             bevy::prelude::Update,
             pilot::drive_ships

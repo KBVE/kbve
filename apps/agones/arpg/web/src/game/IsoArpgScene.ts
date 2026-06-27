@@ -1758,9 +1758,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 
 		const myRefs = this.store.refs(this.myEid);
-		// While piloting, the ship owns movement — don't predict/reconcile the body
-		// (it stays hidden under the ship; driving it would drift + churn its sprite).
-		if (myRefs && !this.localPiloting) this.tickLocalMotion(myRefs, delta);
+		// Local motion runs even while piloting — the pilot's Move input IS the ship's
+		// control: it drives the (hidden) body, the server mirrors that body onto the
+		// ship, and the camera follows the ship. Gating this off would stop all input
+		// from reaching the server, so the ship couldn't move.
+		if (myRefs) this.tickLocalMotion(myRefs, delta);
 		this.resolveShipCollision();
 		this.updateShipPrompt();
 		this.updatePilots();
@@ -1951,7 +1953,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			// off-grid (they vanish from the next snapshot for everyone else).
 			if (e.eid === this.pilots.get(this.myEid)) {
 				ctl.onTransition = (from) => {
-					if (from === 'leaving') emitSpaceEnter({ heading: facing });
+					if (from === 'leaving') {
+						// Detach the camera BEFORE the scene pauses + the ship sprite is
+						// destroyed (off-grid). Otherwise, on resume Phaser's camera update
+						// reads the dead sprite and crashes — the per-frame guard can't run
+						// while paused.
+						this.cameras.main.stopFollow();
+						this.camFollowTarget = undefined;
+						this.camFollowing = 'player';
+						emitSpaceEnter({ heading: facing });
+					}
 				};
 			} else if (ctl.onTransition) {
 				ctl.onTransition = null;
