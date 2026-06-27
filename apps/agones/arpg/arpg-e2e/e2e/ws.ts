@@ -33,6 +33,10 @@ export interface EntityDelta {
 	hp: number;
 	max_hp: number;
 	destroyed: boolean;
+	/** Per-instance state byte. For a ship: facing (low nibble) | phase (high nibble). */
+	sub?: number;
+	/** For a PLAYER: the eid of the ship it pilots, or 0/absent on foot. */
+	piloting?: number;
 }
 
 export interface Snapshot {
@@ -188,6 +192,27 @@ export class GameSession {
 				inputs: [{ Heartbeat: { client_tick: clientTick } }],
 			},
 		});
+	}
+
+	/** Send arbitrary inputs in one frame (JSON wire mirror of `inputFrame`). */
+	inputs(inputs: unknown[], clientTick = 1): void {
+		this.send({ Frame: { client_tick: clientTick, inputs } });
+	}
+
+	/** Board a ship by its server eid. */
+	enterShip(ship: number, clientTick = 1): void {
+		this.inputs([{ EnterShip: { ship } }], clientTick);
+	}
+
+	/** Leave the ship currently piloted. */
+	exitShip(clientTick = 1): void {
+		this.inputs(['ExitShip'], clientTick);
+	}
+
+	/** The most recent local-player entity delta (owner === your slot), if any. */
+	myEntity(snap: Snapshot): EntityDelta | undefined {
+		const slot = this.welcome?.your_slot;
+		return snap.entities.find((e) => e.owner === slot);
 	}
 
 	/** Resolve on the next snapshot received after this call. */

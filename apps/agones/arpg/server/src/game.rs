@@ -763,4 +763,38 @@ mod tests {
             assert_eq!(itemdb_of(k).as_str_name(), name);
         }
     }
+
+    #[test]
+    fn ship_footprint_translates_baked_offsets() {
+        use super::Tile;
+        let base = Tile::new(10, 20);
+        for facing in 0u8..16 {
+            let tiles = super::ship_footprint(base, facing);
+            let baked = &crate::ship_footprint_gen::SHIP_FOOTPRINTS[facing as usize];
+            assert!(
+                !tiles.is_empty(),
+                "facing {facing} has a non-empty footprint"
+            );
+            assert_eq!(
+                tiles.len(),
+                baked.len(),
+                "facing {facing} tile count matches table"
+            );
+            // Each tile is the baked offset translated onto the base.
+            for (t, &(dx, dy)) in tiles.iter().zip(baked.iter()) {
+                assert_eq!(*t, Tile::new(base.x + dx, base.y + dy));
+            }
+        }
+    }
+
+    #[test]
+    fn ship_footprint_facing_wraps_mod_16() {
+        use super::Tile;
+        let base = Tile::new(0, 0);
+        // The sub byte can carry phase in its high bits; ship_footprint masks to 16.
+        assert_eq!(
+            super::ship_footprint(base, 3),
+            super::ship_footprint(base, 3 + 16)
+        );
+    }
 }
