@@ -128,9 +128,10 @@ Two shadow modes (see Blender doc):
   frame's silhouette bottom (`bbox[3]`), which **rises with a vertical bob** → on the
   hover loop the shadow glues to the hull and floats. Looks wrong for any bobbing sheet.
 
-`--bob` is the Y-wobble amplitude (fraction of model size); `0.06` (default) bobbed too
-hard. Current values: `idle` (hover) `0.03`, `move` (flying) **`0.02`** (calmer — the
-flying ship should barely undulate). `--lift 0.6` = resting hover height.
+`--bob` is the Y-wobble amplitude (fraction of model size) — **lower = less wobble**
+(`0.06` default bobbed too hard). Current values: `idle` (hover) `0.015`, `move` (flying)
+**`0.01`** (both deliberately tiny; the ship should barely undulate). `--lift 0.6` =
+resting hover height.
 
 The bob is **one full sine cycle over the anim loop**, so its *speed* is the sheet's
 playback fps in `ship.ts` `SHIP_SHEETS`, not a bake flag — drop `move`/`idle` fps there
@@ -145,11 +146,11 @@ uv run --project packages/python/kbve kbve-model-sprites -- \
   --model apps/agones/arpg/web/scripts/ship-src/fighter1.obj \
   --skin apps/agones/arpg/web/scripts/ship-src/idolknight.jpg \
   --out ship_idle --frames 16 --anim-frames 8 --anim-mode idle --res 512 \
-  --elev 35 --pitch 90 --yaw-offset 0 --lift 0.6 --bob 0.03 --real-shadow
+  --elev 35 --pitch 90 --yaw-offset 0 --lift 0.6 --bob 0.015 --real-shadow
 ```
 
 Move / lift / bank — same flags, swap `--anim-mode {move|lift|bank}` and `--out`. `move`
-uses `--bob 0.02` (+ `--sway 8` roll); `lift`/`bank` ignore `--bob` (lift ramps to
+uses `--bob 0.01` (+ `--sway 8` roll); `lift`/`bank` ignore `--bob` (lift ramps to
 `--lift`, bank holds it).
 
 #### Ascension / descension (atmosphere cutscenes)
