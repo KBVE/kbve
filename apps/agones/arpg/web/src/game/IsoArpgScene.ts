@@ -336,6 +336,11 @@ export class IsoArpgScene extends Phaser.Scene {
 	private pilots = new Map<number, number>();
 	// Whether the LOCAL player is piloting (derived from `pilots`); gates the prompt.
 	private localPiloting = false;
+	// Ships currently airborne (phase != off). An airborne ship tile-blocks nothing
+	// (mirrors the server) — its pilot would otherwise collide with its own hull.
+	private flyingShips = new Set<number>();
+	// What the camera is following: the on-foot body, or the ship while piloting.
+	private camFollowing: 'player' | 'ship' = 'player';
 	// Lazy in-world "Enter Ship" prompt shown when the local player stands near a ship.
 	private shipPrompt?: Phaser.GameObjects.Container;
 	// How close (tiles, Chebyshev) the player must be to a ship to pilot it.
@@ -692,6 +697,22 @@ export class IsoArpgScene extends Phaser.Scene {
 			}
 		}
 		this.localPiloting = this.pilots.has(this.myEid);
+	}
+
+	/** The local player drives the ship, so the camera follows the SHIP while piloting
+	 * (the on-foot body is hidden + bound to the hull) and snaps back on exit. Only
+	 * re-targets on a change so it doesn't restart the smooth-follow every frame. */
+	private updateCameraFollow(): void {
+		const ship = this.pilots.get(this.myEid);
+		const want: 'player' | 'ship' = ship !== undefined ? 'ship' : 'player';
+		if (want === this.camFollowing) return;
+		const target =
+			want === 'ship'
+				? this.shipCtl.get(ship!)?.sprite
+				: this.store.refs(this.myEid)?.sprite;
+		if (!target) return; // ship/body not ready yet — retry next frame
+		this.cameras.main.startFollow(target, true, 0.12, 0.12);
+		this.camFollowing = want;
 	}
 
 	/** Per frame: hide every piloting player's body and float its nameplate over the
@@ -1728,6 +1749,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.resolveShipCollision();
 		this.updateShipPrompt();
 		this.updatePilots();
+		this.updateCameraFollow();
 
 		this.checkDeadStair();
 		this.checkDownStairWarning();
@@ -1919,7 +1941,12 @@ export class IsoArpgScene extends Phaser.Scene {
 			} else if (ctl.onTransition) {
 				ctl.onTransition = null;
 			}
-			ctl.setState(SHIP_PHASE_TO_STATE[shipPhaseFromSub(e.sub)] ?? 'off');
+			const phase = shipPhaseFromSub(e.sub);
+			ctl.setState(SHIP_PHASE_TO_STATE[phase] ?? 'off');
+			// Airborne (any phase but OFF) → drop its footprint from prediction so the
+			// local pilot isn't blocked by its own hull (matches the server).
+			if (phase === 0) this.flyingShips.delete(e.eid);
+			else this.flyingShips.add(e.eid);
 			// Fly sub-state from the streamed velocity (idle when ~stopped, else
 			// cruise). qvx/qvy are velocity quantized ×256 (proto VEL_SCALE).
 			const speed = Math.hypot(e.qvx ?? 0, e.qvy ?? 0) / 256;
@@ -1967,6 +1994,8 @@ export class IsoArpgScene extends Phaser.Scene {
 			// The ship blocks a multi-tile hull diamond, not just its base tile —
 			// mirror the server footprint so prediction collides identically.
 			if (this.kinds.ref(this.store.kind(sid)) === SHIP_REF) {
+				// Airborne ships tile-block nothing (the pilot would hit its own hull).
+				if (this.flyingShips.has(sid)) continue;
 				const facing = this.shipFacing.get(sid) ?? 0;
 				for (const [fx, fy] of shipFootprint(t.x, t.y, facing)) {
 					this.envBlocked.add(packTile(fx, fy));

@@ -93,6 +93,7 @@ pub fn apply_pilot_ops(
     )>,
     mut bodies: Query<&mut FloatMove>,
     mut drives: Query<&mut ShipDrive>,
+    mut map: ResMut<WalkableMap>,
 ) {
     for (slot, op) in ops.0.drain(..) {
         match op {
@@ -120,7 +121,12 @@ pub fn apply_pilot_ops(
                 }
                 let z = floor.map(|f| f.0).unwrap_or(0);
                 let facing = rot.map(|r| r.0 & 0x0F).unwrap_or(SHIP_PARKED_FACING);
-                let blocked = ship_footprint(spos.tile, facing);
+                // Ship lifts off → clear its parked footprint so the pilot (and NPCs)
+                // aren't blocked by the now-airborne hull. While flown it tile-blocks
+                // nothing (other players collide via the OBB); re-blocked on landing.
+                for t in ship_footprint(spos.tile, facing) {
+                    map.unblock_tile_z(z, t);
+                }
                 commands.entity(pent).insert(Piloting(sent));
                 commands.entity(sent).insert((
                     Piloted { pilot: slot },
@@ -128,7 +134,7 @@ pub fn apply_pilot_ops(
                         phase: PHASE_LIFT,
                         ticks: 0,
                         facing,
-                        blocked,
+                        blocked: Vec::new(),
                         floor: z,
                         tile: spos.tile,
                     },
@@ -255,20 +261,12 @@ pub fn drive_ships(
             drive.facing = facing16(vx, vy);
         }
 
-        // Bind ship → pilot tile and re-block the hull footprint where it changed.
+        // The ship is AIRBORNE while flown — it does NOT tile-block (else the pilot
+        // would collide with its own hull and be unable to move). Other players are
+        // pushed out by the OBB collision instead; the footprint is re-blocked only
+        // when it lands. Just bind the ship to the pilot's tile + heading.
         let new_tile = ppos.tile;
-        let new_blocked = ship_footprint(new_tile, drive.facing);
-        if new_tile != drive.tile || new_blocked != drive.blocked {
-            let old = std::mem::take(&mut drive.blocked);
-            for t in old {
-                map.unblock_tile_z(drive.floor, t);
-            }
-            for &t in &new_blocked {
-                map.block_tile_z(drive.floor, t);
-            }
-            drive.blocked = new_blocked;
-            drive.tile = new_tile;
-        }
+        drive.tile = new_tile;
         spos.tile = new_tile;
 
         // Phase machine.
@@ -283,9 +281,13 @@ pub fn drive_ships(
                 drive.ticks += 1;
                 if drive.ticks >= LAND_TICKS {
                     drive.phase = PHASE_OFF;
-                    // Hand control back: drop the links. The footprint stays blocked at
-                    // the landed tile (the ship is parked there now); the ex-pilot gets
-                    // shoved clear of the hull next tick.
+                    // Parked again: re-block the hull footprint at the landing tile so
+                    // it blocks NPC pathing + on-foot collision like any parked ship.
+                    for t in ship_footprint(drive.tile, drive.facing) {
+                        map.block_tile_z(drive.floor, t);
+                    }
+                    // Hand control back: drop the links. The ex-pilot is shoved clear of
+                    // the hull next tick (it no longer carries `Piloting`).
                     commands.entity(pent).remove::<Piloting>();
                     commands.entity(sent).remove::<Piloted>();
                     commands.entity(sent).remove::<ShipDrive>();
