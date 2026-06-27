@@ -356,14 +356,13 @@ export class ShipController {
 		}
 	}
 
-	/** Re-apply the current visual for a changed facing (re-picks the sheet row). */
+	/**
+	 * Re-apply the visual for a changed facing — ONLY for the static states. While flying,
+	 * `tickFly` re-reads the row every frame, so a facing change needs no re-render here
+	 * (doing so would replay `applyFly` per micro-step = overdraw + sheet churn).
+	 */
 	private renderFacing(): void {
-		if (
-			this.state === 'fly' ||
-			this.state === 'off' ||
-			this.state === 'powerOn'
-		)
-			this.render();
+		if (this.state === 'off' || this.state === 'powerOn') this.render();
 	}
 
 	/** Per-frame motion while flying — selects idle vs move vs bank + the bank lean. */

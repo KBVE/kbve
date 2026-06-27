@@ -791,6 +791,11 @@ export class IsoArpgScene extends Phaser.Scene {
 		for (const eid of this.flyingShips) {
 			const ctl = this.shipCtl.get(eid);
 			if (!ctl) continue;
+			// The generic env sync tweens the ship sprite toward its integer tile each
+			// snapshot (and re-places the nameplate in the tween's onUpdate). That fights
+			// our per-frame predicted/lerped positioning = jitter. Kill it so THIS pass
+			// solely owns the flying ship's transform.
+			this.tweens.killTweensOf(ctl.sprite);
 			if (eid === myShip) {
 				// Face the INTENT (where you're steering), not the velocity. Intent is
 				// immediate while momentum makes velocity lag — so the nose LEADS and the
