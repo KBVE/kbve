@@ -1231,6 +1231,14 @@ export class IsoArpgScene extends Phaser.Scene {
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
 			}
+			// A Welcome AFTER we were already in-world = a reconnect (return from space).
+			// Forget our old eid so the next snapshot re-runs the fresh-spawn path
+			// (re-seed float, refresh dungeon, emit 'ready') — otherwise this 'entering'
+			// boot overlay would never clear (its 'ready' only fires on first eid).
+			if (this.bootReady) {
+				this.myEid = -1;
+				this.predictSeeded = false;
+			}
 			emitBoot({ phase: 'entering', message: 'Entering the dungeon' });
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
