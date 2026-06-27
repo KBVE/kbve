@@ -43,11 +43,20 @@ test.describe('arpg-web CDN (nginx container)', () => {
 	});
 
 	test('Discord Activity bundle is served', async ({ request, baseURL }) => {
-		const res = await request.get(`${baseURL}/discord/arpg/arpg.js`);
+		// The bundle is content-hashed (`arpg.<hash>.js`, per vite.config.ts
+		// hashDiscordBundle — Cloudflare per-colo cache-bust), and index.html points
+		// at the current hash. So derive the bundle name from the page rather than
+		// hard-coding `arpg.js`, which no longer exists.
+		const page = await request.get(`${baseURL}/discord/arpg/`);
+		expect(page.ok(), 'discord/arpg/index.html must exist').toBeTruthy();
+		const html = await page.text();
+		const m = html.match(/<script\s+src="(arpg\.[a-f0-9]+\.js)"/i);
 		expect(
-			res.ok(),
-			'discord/arpg/arpg.js must exist in the image',
+			m,
+			'index.html must reference a hashed arpg.<hash>.js bundle',
 		).toBeTruthy();
+		const res = await request.get(`${baseURL}/discord/arpg/${m![1]}`);
+		expect(res.ok(), `${m![1]} must exist in the image`).toBeTruthy();
 		expect(res.headers()['content-type'] ?? '').toMatch(/javascript/);
 	});
 
