@@ -773,14 +773,24 @@ export class IsoArpgScene extends Phaser.Scene {
 			const ctl = this.shipCtl.get(eid);
 			if (!ctl) continue;
 			if (eid === myShip) {
-				// Drive the LOCAL ship's heading off the PREDICTED velocity (immediate, no
-				// server round-trip) so the nose tracks the movement — no crab — then ease.
-				const v = this.move.floatState.vel;
-				if (Math.hypot(v.x, v.y) > 0.25) {
-					ctl.setFacing(shipFacing16(v.x, v.y));
+				// Face the INTENT (where you're steering), not the velocity. Intent is
+				// immediate while momentum makes velocity lag — so the nose LEADS and the
+				// hull drifts behind = proper spaceship turn, not a backward crab. Screen
+				// axes → world via the same iso transform as movement (wx=ix+iy, wy=iy-ix).
+				const ix = this.inputRouter.axis(
+					Action.MoveLeft,
+					Action.MoveRight,
+				);
+				const iy = this.inputRouter.axis(
+					Action.MoveUp,
+					Action.MoveDown,
+				);
+				if (ix !== 0 || iy !== 0) {
+					ctl.setFacing(shipFacing16(ix + iy, iy - ix));
 				}
 			}
 			ctl.tickTurn(dtMs); // ease heading toward the target (spaceship turn)
+			ctl.tickFly(dtMs); // advance the loop on OUR clock (no row-swap restart)
 			if (eid === myShip) {
 				const p = worldToScreen(
 					this.move.floatState.pos.x,

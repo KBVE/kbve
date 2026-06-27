@@ -409,24 +409,42 @@ export class ShipController {
 	}
 
 	private applyFly(m: ShipMotion): void {
+		// Texture only. The looping FRAME is advanced continuously in `tickFly` and a
+		// facing (row) change just shifts the row — it never restarts the anim, which is
+		// what made turns jank (every dir step replayed the loop from frame 0).
+		this.sprite.anims.stop();
+		if (Math.abs(m.turnRate) > TURN_EPS) this.applySheet(SHIP_SHEETS.bank);
+		else
+			this.applySheet(
+				m.speed > STOP_EPS ? SHIP_SHEETS.move : SHIP_SHEETS.idle,
+			);
+	}
+
+	/**
+	 * Per-frame fly animation, driven by OUR clock instead of `sprite.play` so changing
+	 * the facing row mid-turn doesn't restart the loop (the old jank). `flyFrame` advances
+	 * by `fps·dt` and only the row offset changes when the heading does → seamless.
+	 */
+	private flyFrame = 0;
+	tickFly(dtMs: number): void {
+		if (this.state !== 'fly') return;
+		const m = this.lastMotion;
 		if (Math.abs(m.turnRate) > TURN_EPS) {
-			// hold a bank frame by turn-rate: 0 = hard left .. frames-1 = hard right
 			const bank = SHIP_SHEETS.bank;
 			const span = bank.frames - 1;
 			const t = Phaser.Math.Clamp((m.turnRate / TURN_EPS + 1) / 2, 0, 1);
-			const frame = this.row(bank) * bank.frames + Math.round(t * span);
-			this.applySheet(bank);
-			this.sprite.anims.stop();
-			this.sprite.setFrame(frame);
-		} else {
-			// Cruise = move loop, hover = idle loop. The move sheet's baked vertical bob
-			// is too strong; `flyVisual` cancels a fraction of it per frame (synced to
-			// anim progress) so it wobbles a little, not a lot.
-			const sheet =
-				m.speed > STOP_EPS ? SHIP_SHEETS.move : SHIP_SHEETS.idle;
-			this.applySheet(sheet);
-			this.sprite.play(animKey(sheet, this.row(sheet)), true);
+			if (this.sprite.texture.key !== texKey(bank)) this.applySheet(bank);
+			this.sprite.setFrame(
+				this.row(bank) * bank.frames + Math.round(t * span),
+			);
+			return;
 		}
+		const sheet = m.speed > STOP_EPS ? SHIP_SHEETS.move : SHIP_SHEETS.idle;
+		if (this.sprite.texture.key !== texKey(sheet)) this.applySheet(sheet);
+		const dt = Math.min(dtMs, 50) / 1000;
+		this.flyFrame = (this.flyFrame + dt * sheet.fps) % sheet.frames;
+		const f = Math.floor(this.flyFrame) % sheet.frames;
+		this.sprite.setFrame(this.row(sheet) * sheet.frames + f);
 	}
 
 	private playOnce(sheet: ShipSheet, reverse: boolean): void {
@@ -457,12 +475,9 @@ export class ShipController {
 		let counter = 0;
 		const move = SHIP_SHEETS.move;
 		if (this.sprite.texture.key === texKey(move)) {
-			// Exact bob phase from the displayed sheet frame: baked z = bob·cos(2π·f/8),
-			// so f = textureFrame mod 8 reproduces it per-frame (no getProgress drift).
-			const tf = Number(
-				this.sprite.anims.currentFrame?.textureFrame ?? 0,
-			);
-			const f = ((tf % move.frames) + move.frames) % move.frames;
+			// Exact bob phase from OUR clock (tickFly drives the frame manually now): baked
+			// z = bob·cos(2π·f/8), so cancel using the same continuous f.
+			const f = this.flyFrame % move.frames;
 			counter =
 				MOVE_BOB_DAMP *
 				MOVE_BOB_PX *
