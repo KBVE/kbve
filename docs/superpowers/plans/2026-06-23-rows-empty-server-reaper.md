@@ -6,7 +6,7 @@
 > in the listings below — when auditing, read the source, not these snippets. Deltas vs the listings:
 > - `ReapReason` has a third variant **`Stale`** (crashed-while-populated) + `stale_secs` knob.
 > - `update_number_of_players` uses **`GREATEST($3,0)`** + a `WHEN $3 < 0` CASE (negative-count guard).
-> - **`ows.reaper_config`** per-tenant override table ships (migration `20260624120000` + `merged_with`).
+> - **`ows.reaper_config`** per-tenant override table ships (migration `20260627021802` + `merged_with`).
 > - **gameservername degrade** on SQLSTATE 42703 (`is_undefined_column`); reaper-config degrade on 42P01.
 > - **`pg_try_advisory_lock`** guards each reap cycle (multi-replica safe); 60s tick.
 > - **`require_heartbeat`** auto-gate (never-reported suppressed until a heartbeat is ever seen).
@@ -308,7 +308,7 @@ git commit -m "feat(rows): add empty-reaper boot-grace and buffer config knobs"
 
 - [ ] **Step 1: Write the migration**
 
-Use a timestamp after the latest existing migration (e.g. `20260623120000`). Create `packages/data/sql/dbmate/migrations/20260623120000_ows_mapinstance_gameservername.sql`:
+Use a timestamp after the latest existing migration (e.g. `20260627021758`). Create `packages/data/sql/dbmate/migrations/20260627021758_ows_mapinstance_gameservername.sql`:
 
 ```sql
 -- migrate:up
@@ -399,7 +399,7 @@ Expected: builds clean.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add packages/data/sql/dbmate/migrations/20260623120000_ows_mapinstance_gameservername.sql \
+git add packages/data/sql/dbmate/migrations/20260627021758_ows_mapinstance_gameservername.sql \
         packages/data/sql/schema/ows/map_instances.sql \
         apps/rows/src/models.rs apps/rows/src/repo/instances.rs apps/rows/src/agones/pipeline.rs
 git commit -m "feat(rows): persist gameservername on mapinstances for restart-safe teardown"
@@ -824,7 +824,7 @@ Folds in the merge-condition items from the PR #13200 production audit. The reap
 
 ### 1. Migration / image ordering (`gameservername` column)
 
-The `gameservername` migration (`20260623120000`) is applied by the **manually-triggered**
+The `gameservername` migration (`20260627021758`) is applied by the **manually-triggered**
 `ci-dbmate-deploy` workflow (`workflow_dispatch`, SHA-confirmed, gated by the `kilobase-prod`
 GitHub Environment), **not** automatically on merge or on the rows image rollout — the two are
 independent steps.
@@ -952,7 +952,7 @@ Notes:
 - The master `enabled` is itself overridable, so a tenant can be turned on via DB even when the env
   ships it off — apply the same step-1 heartbeat sign-off before doing so. The `require_heartbeat`
   auto-gate (section 2) still applies regardless of how `never_reported` was enabled.
-- The table is created by migration `20260624120000`. Until that migration runs, the reaper detects
+- The table is created by migration `20260627021802`. Until that migration runs, the reaper detects
   the missing table (SQLSTATE 42P01) and cleanly falls back to env config — no per-cycle errors.
 
 ### 6. Connection-pool budget (post-merge audit, G1 — FIXED in code)

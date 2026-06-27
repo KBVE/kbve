@@ -54,7 +54,7 @@ Parsed in `RowsConfig::from_env` (`apps/rows/src/config.rs`); defaults live in
 
 ## 2. Reaper per-tenant override (DB, no redeploy)
 
-Table `ows.reaper_config` (migration `20260624120000`). One row per tenant (PK `customerguid`),
+Table `ows.reaper_config` (migration `20260627021802`). One row per tenant (PK `customerguid`),
 every value column NULLable. The reaper reads it **every 60s cycle** and merges over the env
 baseline — **non-NULL DB value wins per field**; NULL = use env. Read path:
 `InstanceRepo::get_reaper_config_override` → `ReaperKnobs::merged_with`. A missing table (SQLSTATE
@@ -192,9 +192,9 @@ decoupled from the image rollout — code degrades on 42703 (column) / 42P01 (ta
 
 | Object | Migration | Notes |
 |---|---|---|
-| `mapinstances.gameservername VARCHAR(253) NULL` | `20260623120000` | label-independent teardown fallback; not backfilled (`ON CONFLICT DO NOTHING`) |
-| `idx_mapinstances_active` (partial, `WHERE status > 0`) | `20260623130000` | reaper candidate scan; built `CONCURRENTLY` — an interrupted build strands an INVALID index (see migration recovery note) |
-| `ows.reaper_config` | `20260624120000` | per-tenant override (table §2); RLS `USING (true)` → isolation is app-side via `customerguid` |
+| `mapinstances.gameservername VARCHAR(253) NULL` | `20260627021758` | label-independent teardown fallback; not backfilled (`ON CONFLICT DO NOTHING`) |
+| `idx_mapinstances_active` (partial, `WHERE status > 0`) | `20260627021800` | reaper candidate scan; built `CONCURRENTLY` — an interrupted build strands an INVALID index (see migration recovery note) |
+| `ows.reaper_config` | `20260627021802` | per-tenant override (table §2); RLS `USING (true)` → isolation is app-side via `customerguid` |
 
 Marker columns on `mapinstances` (maintained by `update_number_of_players`): `numberofreportedplayers`
 (`GREATEST($,0)`), `lastupdatefromserver` (`NOW()`), `lastserveremptydate` (stamped on 0, cleared on >0),
