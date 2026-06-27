@@ -35,6 +35,18 @@ spec:
                   env:
                       - name: STUDIO_PG_META_URL
                         value: http://meta:8080
+                      # Studio builds the per-request pg-meta connection string from
+                      # these POSTGRES_* vars (x-connection-encrypted). Without them it
+                      # defaults to host `db` / db `postgres` (docker-compose defaults),
+                      # so meta gets `getaddrinfo ENOTFOUND db` and every /query 500s.
+                      - name: POSTGRES_HOST
+                        value: supabase-cluster-rw
+                      - name: POSTGRES_PORT
+                        value: '5432'
+                      - name: POSTGRES_DB
+                        value: supabase
+                      - name: POSTGRES_USER_READ_WRITE
+                        value: supabase_admin
                       - name: DEFAULT_ORGANIZATION_NAME
                         value: KBVE
                       - name: DEFAULT_PROJECT_NAME
@@ -49,10 +61,12 @@ spec:
                         value: 'true'
                       - name: NEXT_ANALYTICS_BACKEND_PROVIDER
                         value: postgres
+                      # Must pair with POSTGRES_USER_READ_WRITE=supabase_admin — same
+                      # superuser secret meta authenticates with (known-good pair).
                       - name: POSTGRES_PASSWORD
                         valueFrom:
                             secretKeyRef:
-                                name: supabase-postgres
+                                name: supabase-superuser
                                 key: password
                       - name: SUPABASE_ANON_KEY
                         valueFrom:
