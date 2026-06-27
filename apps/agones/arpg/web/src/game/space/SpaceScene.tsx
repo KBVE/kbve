@@ -1,13 +1,16 @@
 import {
+	Suspense,
 	useEffect,
 	useMemo,
 	useRef,
 	type ReactElement,
 	type RefObject,
 } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
 import * as THREE from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { arpgAsset } from '../config';
 
 /**
  * Solo client-side "Star Fox" space instance. The pilot leaves the multiplayer iso
@@ -44,39 +47,53 @@ function useKeys(): RefObject<Set<string>> {
 	return keys;
 }
 
-/** A small starfighter built from primitives — points down +Z (forward). */
+// The same starfighter the iso sprites bake from (fighter1 + idolknight skin),
+// served from public assets so the browser can fetch it. Source model lives in
+// apps/agones/arpg/web/scripts/ship-src (kbve-model-sprites bakes the iso sheets).
+const SHIP_MODEL_URL = arpgAsset('/assets/arcade/arpg/models/ship/fighter1.obj');
+const SHIP_SKIN_URL = arpgAsset('/assets/arcade/arpg/models/ship/idolknight.jpg');
+
+// Lay the hull flat with the nose toward +Z (forward), mirroring how the iso baker
+// orients it (--pitch 90). Tune if the model points the wrong way after a model swap.
+const SHIP_ORIENT: [number, number, number] = [Math.PI / 2, 0, 0];
+const SHIP_LENGTH = 3.2; // target longest-axis size in scene units (the old fuselage was 2.4)
+
+/** The baked starfighter model — replaces the slice-1 primitive ship. Points +Z (forward). */
 function ShipModel(): ReactElement {
-	return (
-		<group rotation={[Math.PI / 2, 0, 0]}>
-			{/* fuselage */}
-			<mesh castShadow>
-				<coneGeometry args={[0.6, 2.4, 8]} />
-				<meshStandardMaterial
-					color="#cfd8e8"
-					metalness={0.6}
-					roughness={0.35}
-				/>
-			</mesh>
-			{/* wings */}
-			<mesh position={[0, -0.6, 0]}>
-				<boxGeometry args={[3.2, 0.12, 0.9]} />
-				<meshStandardMaterial
-					color="#8a93a8"
-					metalness={0.5}
-					roughness={0.4}
-				/>
-			</mesh>
-			{/* engine glow */}
-			<mesh position={[0, -1.3, 0]}>
-				<sphereGeometry args={[0.34, 12, 12]} />
-				<meshStandardMaterial
-					color="#69b7ff"
-					emissive="#3aa0ff"
-					emissiveIntensity={2.2}
-				/>
-			</mesh>
-		</group>
-	);
+	const obj = useLoader(OBJLoader, SHIP_MODEL_URL);
+	const skin = useLoader(THREE.TextureLoader, SHIP_SKIN_URL);
+
+	const model = useMemo(() => {
+		skin.colorSpace = THREE.SRGBColorSpace;
+		const root = obj.clone(true);
+		root.traverse((c) => {
+			const m = c as THREE.Mesh;
+			if (!m.isMesh) return;
+			m.castShadow = true;
+			// emissive-leaning so the hull reads bright like the baked sprites + the
+			// old primitive engine glow, while diffuse keeps the form shaded.
+			m.material = new THREE.MeshStandardMaterial({
+				map: skin,
+				emissive: new THREE.Color('#2a3a52'),
+				emissiveIntensity: 0.45,
+				metalness: 0.45,
+				roughness: 0.5,
+			});
+		});
+		// center on origin + normalize the longest axis to SHIP_LENGTH so swapping the
+		// model never changes the flight scale.
+		const box = new THREE.Box3().setFromObject(root);
+		const size = box.getSize(new THREE.Vector3());
+		const center = box.getCenter(new THREE.Vector3());
+		const s = SHIP_LENGTH / (Math.max(size.x, size.y, size.z) || 1);
+		root.scale.setScalar(s);
+		root.position.copy(center).multiplyScalar(-s);
+		const wrap = new THREE.Group();
+		wrap.add(root);
+		return wrap;
+	}, [obj, skin]);
+
+	return <primitive object={model} rotation={SHIP_ORIENT} />;
 }
 
 /** Drives the ship transform from keys + trails the camera behind it each frame. */
@@ -189,7 +206,9 @@ export function SpaceScene({
 						roughness={1}
 					/>
 				</mesh>
-				<Flight heading={heading} />
+				<Suspense fallback={null}>
+					<Flight heading={heading} />
+				</Suspense>
 			</Canvas>
 			<SpaceHud />
 		</div>
