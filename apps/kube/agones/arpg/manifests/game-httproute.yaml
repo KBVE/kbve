@@ -6,8 +6,14 @@ metadata:
     labels:
         app.kubernetes.io/part-of: arpg
 spec:
+    # parentRefs/backendRefs carry the API-server default group/kind (+ backendRef
+    # weight) EXPLICITLY — the Gateway API defaults them on the live object, so
+    # omitting them makes ArgoCD diff git-vs-live forever (perpetual OutOfSync).
+    # Mirrors the synced cryptothrone-game-route manifest.
     parentRefs:
-        - name: kbve-gateway
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: kbve-gateway
           namespace: kbve
     hostnames:
         - arpg.kbve.com
@@ -24,13 +30,19 @@ spec:
               # timeout so wss connections survive (matches kbve /ws rule).
               backendRequest: 3600s
           backendRefs:
-              - name: arpg-game
+              - group: ''
+                kind: Service
+                name: arpg-game
                 port: 7979
+                weight: 1
         # Everything else -> the standalone vite client (nginx static).
         - matches:
               - path:
                     type: PathPrefix
                     value: /
           backendRefs:
-              - name: arpg-web
+              - group: ''
+                kind: Service
+                name: arpg-web
                 port: 5402
+                weight: 1
