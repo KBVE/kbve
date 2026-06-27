@@ -47,8 +47,6 @@ pub struct InSpace {
 }
 /// How close (tiles, Chebyshev) the player must stand to board.
 const ENTER_RANGE: i32 = 3;
-/// Speed² below which the ship keeps its last heading instead of re-deriving it.
-const FACING_VEL_EPS2: f32 = 0.02;
 
 /// On the ship entity while occupied: who flies it.
 #[derive(Component)]
@@ -288,9 +286,12 @@ pub fn drive_ships(
             // qx/qy), so it moves exactly as the pilot drives, smoothly. Heading from
             // velocity; the airborne hull tile-blocks nothing (re-blocked on landing).
             ship_fm.body = fm.body;
-            let (vx, vy) = (fm.body.vx, fm.body.vy);
-            if vx * vx + vy * vy > FACING_VEL_EPS2 {
-                drive.facing = facing16(vx, vy);
+            // Heading from the pilot's INTENT (the steered direction), not the velocity,
+            // so the ship's nose LEADS the drift — matches the client's intent-driven
+            // facing exactly, so remote players see the same spaceship turn. Keep the last
+            // heading while coasting (intent 0).
+            if fm.intent_x != 0 || fm.intent_y != 0 {
+                drive.facing = facing16(fm.intent_x as f32, fm.intent_y as f32);
             }
             let (tx, ty) = ship_fm.body.tile();
             let new_tile = Tile::new(tx, ty);
