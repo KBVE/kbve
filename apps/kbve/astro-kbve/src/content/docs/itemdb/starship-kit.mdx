@@ -96,10 +96,15 @@ The original 256px sheets baked at **`--yaw-offset 45 --elev 30`**; the 512px re
 shift** that broke ship-pilot heading calibration (`PILOT_STEER_ROT` in
 `apps/agones/arpg/web/src/game/systems/movement.ts`).
 
-The whole animated set is now uniform at **`--yaw-offset 0`** — keep it there. Calibrate
+All 8 sheets are now uniform at **`--yaw-offset 0 --elev 35`** — keep it there. Calibrate
 `PILOT_STEER_ROT` empirically with the in-game debug overlay (compass + velocity arrow),
 **not** by re-deriving yaw. Note `--elev 35` is camera iso pitch (the 2:1 look), a
 different axis from `--yaw-offset` — it does **not** move facings.
+
+`9560dbb94` only re-baked the **6 animated** sheets to yaw 0 and **left `ship.png` /
+`ship_on.png` at the original yaw 45** — so the parked ship faced 45° off from the flying
+ship until they were re-baked to match. **Re-bake all 8 together** whenever yaw/elev
+changes, or the static and animated sheets desync again.
 </Aside>
 
 ### Common flags (all sheets)
