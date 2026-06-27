@@ -106,7 +106,8 @@
 			"deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
 			"has_test": true,
 			"target": "container-web",
-			"nx_project": "arpg"
+			"nx_project": "arpg",
+			"version_target": "apps/agones/arpg/web/version.toml"
 		},
 		{
 			"key": "axum_rentearth",

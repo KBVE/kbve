@@ -95,7 +95,8 @@
 				"context": ".",
 				"file": "apps/agones/arpg/web/Dockerfile",
 				"load": true,
-				"tags": ["kbve/arpg-web:latest"]
+				"tags": ["kbve/arpg-web:latest"],
+				"build-args": ["PUBLIC_ARPG_VERSION"]
 			},
 			"configurations": {
 				"local": {

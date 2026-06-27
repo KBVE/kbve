@@ -31,9 +31,15 @@ ARG PUBLIC_SUPABASE_URL=https://supabase.kbve.com
 # Discord Activity client id, baked into the discord bundle. Public value (the
 # OAuth client_secret stays server-side on axum-kbve); the arpg Discord app id.
 ARG PUBLIC_DISCORD_CLIENT_ID=1518418263535653016
+# Release version baked into the bundle (shown in-UI + the no-cache version.json
+# the client polls to self-reload off a stale build). CI passes the resolved
+# release version here so the bundle matches the image TAG even when version.toml
+# is mid-publish-sync stale; empty default falls back to version.toml (vite.config).
+ARG PUBLIC_ARPG_VERSION=
 ENV PUBLIC_ARPG_GAME_WS=$PUBLIC_ARPG_GAME_WS
 ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL
 ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
+ENV PUBLIC_ARPG_VERSION=$PUBLIC_ARPG_VERSION
 ENV PUBLIC_ARPG_LOCAL=false
 
 RUN cd apps/agones/arpg/web && npm run build

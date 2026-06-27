@@ -261,6 +261,11 @@ jobs:
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+                  # Resolved release version (the value the image is tagged with),
+                  # forwarded into builds that declare a value-less PUBLIC_ARPG_VERSION
+                  # build-arg (arpg-web) so the bundle's baked version matches the tag
+                  # instead of the lagging committed version.toml. Other images ignore it.
+                  PUBLIC_ARPG_VERSION: ${{ steps.version_check.outputs.local_version }}
               run: |
                   pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production --no-cloud
 
