@@ -24,6 +24,7 @@ jobs:
         outputs:
             project_path: ${{ steps.map.outputs.project_path }}
             notarize: ${{ steps.map.outputs.notarize }}
+            platforms: ${{ steps.map.outputs.platforms }}
         steps:
             - id: map
               shell: bash
@@ -31,13 +32,16 @@ jobs:
                   case "${{ inputs.app }}" in
                     chuck-launcher)
                       echo "project_path=apps/chuckrpg/chuck-launcher" >> "$GITHUB_OUTPUT"
-                      echo "notarize=true" >> "$GITHUB_OUTPUT" ;;
+                      echo "notarize=true" >> "$GITHUB_OUTPUT"
+                      echo "platforms=macos" >> "$GITHUB_OUTPUT" ;;
                     isometric)
                       echo "project_path=apps/kbve/isometric" >> "$GITHUB_OUTPUT"
-                      echo "notarize=false" >> "$GITHUB_OUTPUT" ;;
+                      echo "notarize=false" >> "$GITHUB_OUTPUT"
+                      echo "platforms=linux,macos,windows,wasm" >> "$GITHUB_OUTPUT" ;;
                     desktop-kbve)
                       echo "project_path=apps/kbve/desktop-kbve" >> "$GITHUB_OUTPUT"
-                      echo "notarize=false" >> "$GITHUB_OUTPUT" ;;
+                      echo "notarize=false" >> "$GITHUB_OUTPUT"
+                      echo "platforms=linux,macos,windows" >> "$GITHUB_OUTPUT" ;;
                     *)
                       echo "unknown app: ${{ inputs.app }}" >&2; exit 1 ;;
                   esac
@@ -51,4 +55,5 @@ jobs:
             project_path: ${{ needs.resolve.outputs.project_path }}
             app_name: ${{ inputs.app }}
             notarize: ${{ fromJSON(needs.resolve.outputs.notarize) }}
+            platforms: ${{ needs.resolve.outputs.platforms }}
         secrets: inherit
