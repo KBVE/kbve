@@ -527,6 +527,10 @@ pub fn config() -> SimConfig {
         // the deterministic registry, so the kind matches build_app's).
         corpse_kind: registry().kind_of(CORPSE_REF),
         starting_inventory: vec![
+            // First slot: every player spawns with their own deployable ship (place
+            // it, board, fly, recall). Per-player here instead of a single shared
+            // ground drop so it works in multiplayer; max_stack 1 caps it at one.
+            (STARSHIP_KIT_REF.to_string(), 1),
             (CAMPFIRE_KIT_REF.to_string(), 5),
             (CANDELABRUM_KIT_REF.to_string(), 3),
             (POTION_REF.to_string(), 3),
@@ -534,10 +538,6 @@ pub fn config() -> SimConfig {
             // player hasn't found yet. Held, not consumed (Stairs::at only checks
             // count > 0), so one lasts.
             (STAIR_KEY_REF.to_string(), 1),
-            // Every player spawns with their own deployable ship (place it, board,
-            // fly, recall). Per-player here instead of a single shared ground drop
-            // so it works in multiplayer; max_stack 1 caps it at one.
-            (STARSHIP_KIT_REF.to_string(), 1),
         ],
     }
 }
