@@ -1,1305 +1,1306 @@
 {
-	"docker": [
-		{
-			"key": "agones_factorio",
-			"app_name": "agones-factorio",
-			"version": "0.0.13",
-			"version_toml": "apps/agones/factorio/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
-			"source_path": "apps/agones/factorio",
-			"runner": "ubuntu-latest",
-			"image": "kbve/agones-factorio",
-			"e2e_name": "agones-factorio",
-			"deployment_yaml": "apps/kube/agones/factorio/manifests/gameserver.yaml",
-			"has_test": true,
-			"external_publish": {
-				"factorio_mods": [
-					{
-						"name": "kbve",
-						"source_path": "apps/agones/factorio/mods-local/kbve"
-					},
-					{
-						"name": "kbve-spider",
-						"source_path": "apps/factorio/mods/kbve-spider"
-					}
-				]
-			}
-		},
-		{
-			"key": "agones_factorio_relay",
-			"app_name": "agones-factorio-relay",
-			"version": "0.0.7",
-			"version_toml": "apps/agones/factorio/relay/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
-			"source_path": "apps/agones/factorio/relay",
-			"runner": "ubuntu-latest",
-			"image": "kbve/agones-factorio-relay",
-			"deployment_yaml": "apps/kube/agones/factorio/manifests/gameserver.yaml",
-			"has_test": false
-		},
-		{
-			"key": "astro_kbve",
-			"app_name": "axum-kbve",
-			"version": "1.0.215",
-			"version_toml": "apps/kbve/axum-kbve/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
-			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
-			"source_path": "apps/kbve/astro-kbve",
-			"runner": "arc-runner-set",
-			"image": "kbve/kbve",
-			"e2e_name": "axum-kbve-e2e",
-			"deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "arc_runner",
-			"app_name": "arc-runner",
-			"version": "0.1.6",
-			"version_toml": "packages/docker/arc-runner/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
-			"source_path": "packages/docker/arc-runner",
-			"runner": "ubuntu-latest",
-			"image": "kbve/arc-runner",
-			"deployment_yamls": [
-				"apps/kube/github/runners/manifests/values-kbve.yaml",
-				"apps/kube/github/runners/manifests/values.yaml",
-				"apps/kube/github/runners/manifests/values-ue.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "aria2_proxy",
-			"app_name": "aria2-proxy",
-			"version": "0.1.0",
-			"version_toml": "apps/vm/aria2-proxy/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/aria2-proxy.mdx",
-			"source_path": "apps/vm/aria2-proxy",
-			"runner": "arc-runner-set",
-			"image": "kbve/aria2-proxy",
-			"e2e_name": "aria2-proxy-e2e",
-			"deployment_yaml": "apps/kube/kubevirt/download-proxy/deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "arpg_server",
-			"app_name": "arpg-server",
-			"version": "0.1.15",
-			"version_toml": "apps/agones/arpg/server/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
-			"version_target": "apps/agones/arpg/server/Cargo.toml",
-			"source_path": "apps/agones/arpg/server",
-			"runner": "arc-runner-set",
-			"image": "kbve/arpg-server",
-			"deployment_yaml": "apps/kube/agones/arpg/manifests/fleet.yaml",
-			"has_test": false
-		},
-		{
-			"key": "arpg_web",
-			"app_name": "arpg-web",
-			"version": "0.1.15",
-			"version_toml": "apps/agones/arpg/web/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
-			"source_path": "apps/agones/arpg",
-			"runner": "arc-runner-set",
-			"image": "kbve/arpg-web",
-			"e2e_name": "arpg",
-			"deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
-			"has_test": true,
-			"target": "container-web",
-			"nx_project": "arpg"
-		},
-		{
-			"key": "axum_rentearth",
-			"app_name": "axum-rentearth",
-			"version": "0.1.0",
-			"version_toml": "apps/rentearth/axum-rentearth/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/axum-rentearth.mdx",
-			"version_target": "apps/rentearth/axum-rentearth/Cargo.toml",
-			"source_path": "apps/rentearth/axum-rentearth",
-			"runner": "ubuntu-latest",
-			"image": "kbve/axum-rentearth",
-			"deployment_yaml": "apps/kube/rentearth/manifest/axum-rentearth-deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "chisel_ubuntu_axum",
-			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.7",
-			"version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
-			"source_path": "packages/docker/chisel-ubuntu-axum",
-			"runner": "ubuntu-latest",
-			"image": "kbve/chisel-ubuntu-axum",
-			"has_test": false
-		},
-		{
-			"key": "chuckrpg",
-			"app_name": "axum-chuckrpg",
-			"version": "0.1.9",
-			"version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
-			"version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
-			"source_path": "apps/chuckrpg/axum-chuckrpg",
-			"runner": "ubuntu-latest",
-			"image": "kbve/chuckrpg",
-			"e2e_name": "axum-chuckrpg-e2e",
-			"deployment_yaml": "apps/kube/chuckrpg/manifest/deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "cryptothrone",
-			"app_name": "cryptothrone",
-			"version": "0.1.51",
-			"version_toml": "apps/cryptothrone/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
-			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
-			"source_path": "apps/cryptothrone",
-			"runner": "ubuntu-latest",
-			"image": "kbve/cryptothrone",
-			"e2e_name": "cryptothrone",
-			"deployment_yaml": "apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "cryptothrone_server",
-			"app_name": "cryptothrone-server",
-			"version": "0.0.26",
-			"version_toml": "apps/agones/cryptothrone/server/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
-			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
-			"source_path": "apps/agones/cryptothrone/server",
-			"runner": "arc-runner-set",
-			"image": "kbve/cryptothrone-server",
-			"deployment_yaml": "apps/kube/agones/cryptothrone/manifests/fleet.yaml",
-			"has_test": false
-		},
-		{
-			"key": "discordsh",
-			"app_name": "discordsh",
-			"version": "0.1.44",
-			"version_toml": "apps/discordsh/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
-			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
-			"source_path": "apps/discordsh",
-			"runner": "ubuntu-latest",
-			"image": "kbve/discordsh",
-			"e2e_name": "discordsh",
-			"deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "discordsh_bot",
-			"app_name": "discordsh-bot",
-			"version": "0.1.21",
-			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
-			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
-			"source_path": "apps/discordsh/discordsh-bot",
-			"runner": "ubuntu-latest",
-			"image": "kbve/discordsh-bot",
-			"e2e_name": "discordsh-bot-e2e",
-			"deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "edge",
-			"app_name": "edge",
-			"version": "0.1.45",
-			"version_toml": "apps/kbve/edge/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
-			"version_target": "apps/kbve/edge/deno.json",
-			"source_path": "apps/kbve/edge",
-			"runner": "ubuntu-latest",
-			"image": "kbve/edge",
-			"e2e_name": "edge",
-			"deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "factorio_ctl",
-			"app_name": "factorio-ctl",
-			"version": "0.0.1",
-			"version_toml": "apps/vm/factorio-ctl/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/factorio-ctl.mdx",
-			"version_target": "apps/vm/factorio-ctl/Cargo.toml",
-			"source_path": "apps/vm/factorio-ctl",
-			"runner": "ubuntu-latest",
-			"image": "kbve/factorio-ctl",
-			"deployment_yaml": "apps/kube/agones/factorio/manifests/factorio-ctl.yaml",
-			"has_test": false
-		},
-		{
-			"key": "firecracker_ctl",
-			"app_name": "firecracker-ctl",
-			"version": "0.1.41",
-			"version_toml": "apps/vm/firecracker-ctl/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
-			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",
-			"source_path": "apps/vm/firecracker-ctl",
-			"runner": "arc-runner-set",
-			"image": "kbve/firecracker-ctl",
-			"deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
-			"deployment_yamls": [
-				"apps/kube/firecracker/manifests/firecracker-net-deployment.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "firecracker_node_web",
-			"app_name": "firecracker-node-web",
-			"version": "0.1.0",
-			"version_toml": "packages/docker/firecracker/node/web/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-node-web.mdx",
-			"source_path": "packages/docker/firecracker/node/web",
-			"runner": "ubuntu-latest",
-			"image": "kbve/firecracker-node-web",
-			"deployment_yamls": [
-				"apps/kube/firecracker/manifests/firecracker-node-web-rootfs-stage.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "firecracker_python_net",
-			"app_name": "firecracker-python-net",
-			"version": "0.1.3",
-			"version_toml": "packages/docker/firecracker/python/net/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx",
-			"source_path": "packages/docker/firecracker/python/net",
-			"runner": "ubuntu-latest",
-			"image": "kbve/firecracker-python-net",
-			"deployment_yamls": [
-				"apps/kube/firecracker/manifests/firecracker-net-rootfs-stage.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "firecracker_python_web",
-			"app_name": "firecracker-python-web",
-			"version": "0.1.0",
-			"version_toml": "packages/docker/firecracker/python/web/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-web.mdx",
-			"source_path": "packages/docker/firecracker/python/web",
-			"runner": "ubuntu-latest",
-			"image": "kbve/firecracker-python-web",
-			"deployment_yamls": [
-				"apps/kube/firecracker/manifests/firecracker-web-rootfs-stage.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "herbmail",
-			"app_name": "herbmail",
-			"version": "0.1.1",
-			"version_toml": "apps/herbmail/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail.mdx",
-			"version_target": "apps/herbmail/axum-herbmail/Cargo.toml",
-			"source_path": "apps/herbmail",
-			"runner": "ubuntu-latest",
-			"image": "kbve/herbmail",
-			"e2e_name": "herbmail",
-			"deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "iot_edge_worker",
-			"app_name": "iot-edge-worker",
-			"version": "0.0.1",
-			"version_toml": "apps/vm/iot/edge-worker/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/iot-edge-worker.mdx",
-			"version_target": "apps/vm/iot/edge-worker/version.toml",
-			"source_path": "apps/vm/iot/edge-worker",
-			"runner": "arc-runner-set",
-			"image": "kbve/iot-edge-worker",
-			"has_test": false
-		},
-		{
-			"key": "irc_gateway",
-			"app_name": "irc-gateway",
-			"version": "0.1.27",
-			"version_toml": "apps/irc/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
-			"version_target": "apps/irc/irc-gateway/Cargo.toml",
-			"source_path": "apps/irc",
-			"runner": "ubuntu-latest",
-			"image": "kbve/irc-gateway",
-			"e2e_name": "irc",
-			"deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "jobboard",
-			"app_name": "jobboard",
-			"version": "0.1.9",
-			"version_toml": "apps/jobboard/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
-			"version_target": "apps/jobboard/Cargo.toml",
-			"source_path": "apps/jobboard",
-			"runner": "ubuntu-latest",
-			"image": "kbve/jobboard",
-			"e2e_name": "jobboard",
-			"deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "kasm_void",
-			"app_name": "kasm-void",
-			"version": "0.0.5",
-			"version_toml": "packages/docker/kasm-void/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kasm-void.mdx",
-			"source_path": "packages/docker/kasm-void",
-			"runner": "ubuntu-latest",
-			"image": "kbve/kasm-void",
-			"deployment_yaml": "apps/kube/kasm/manifest/deployment.yaml",
-			"has_test": false
-		},
-		{
-			"key": "kbve_gate",
-			"app_name": "kbve-gate",
-			"version": "0.1.6",
-			"version_toml": "apps/kbve/kbve-gate/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
-			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
-			"source_path": "apps/kbve/kbve-gate",
-			"runner": "ubuntu-latest",
-			"image": "kbve/kbve-gate",
-			"deployment_yamls": [
-				"apps/kube/n8n/manifest/n8n-deployment.yaml",
-				"apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
-				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
-				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
-				"apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml",
-				"apps/kube/studio/manifests/studio-gate-deployment.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "kilobase",
-			"app_name": "kilobase",
-			"version": "17.4.1",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kilobase.mdx",
-			"source_path": "apps/kbve/kilobase",
-			"runner": "ubuntu-latest",
-			"image": "kbve/kilobase",
-			"has_test": false
-		},
-		{
-			"key": "kubectl",
-			"app_name": "kbve-kubectl",
-			"version": "0.1.5",
-			"version_toml": "apps/vm/kubectl/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
-			"version_target": "apps/vm/kubectl/Cargo.toml",
-			"source_path": "apps/vm/kubectl",
-			"runner": "arc-runner-set",
-			"image": "kbve/kubectl",
-			"e2e_name": "kubectl-e2e",
-			"deployment_yamls": [
-				"apps/kube/kubevirt/autologon/job.yaml",
-				"apps/kube/kubevirt/autologon/scaled-job.yaml",
-				"apps/kube/kubevirt/runner/job.yaml",
-				"apps/kube/kubevirt/runner/scaled-job.yaml",
-				"apps/kube/kubevirt/keda/scaled-jobs.yaml",
-				"apps/kube/agones/factorio/manifests/rotation-deployment.yaml",
-				"apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
-				"apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
-				"apps/kube/github/runners/manifests/runner-reaper.yaml",
-				"apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml",
-				"apps/kube/kilobase/manifests/backup-restore-test.yaml",
-				"apps/kube/kilobase/manifests/backup-watchdog.yaml"
-			],
-			"has_test": true
-		},
-		{
-			"key": "mc",
-			"app_name": "mc",
-			"version": "1.0.58",
-			"version_toml": "apps/mc/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
-			"source_path": "apps/mc",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc",
-			"e2e_name": "mc",
-			"deployment_yaml": "apps/kube/agones/mc/manifests/fleet.yaml",
-			"has_test": true,
-			"external_publish": {
-				"modrinth_mod_id": "QoFCg0tO",
-				"modrinth_pack_id": "GktWTywL",
-				"modrinth_version_type": "release",
-				"modrinth_game_versions": "[\"1.21.11\"]",
-				"modrinth_loaders": "[\"fabric\"]"
-			}
-		},
-		{
-			"key": "mc_lobby",
-			"app_name": "mc-lobby",
-			"version": "1.0.10",
-			"version_toml": "apps/mc/lobby/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
-			"source_path": "apps/mc/lobby",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc-lobby",
-			"e2e_name": "mc-lobby",
-			"deployment_yaml": "apps/kube/agones/mc/manifests/lobby-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "mc_velocity",
-			"app_name": "mc-velocity",
-			"version": "1.1.10",
-			"version_toml": "apps/mc/velocity/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
-			"source_path": "apps/mc/velocity",
-			"runner": "ubuntu-latest",
-			"image": "kbve/mc-velocity",
-			"e2e_name": "mc-velocity",
-			"deployment_yaml": "apps/kube/agones/mc/manifests/velocity-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "memes",
-			"app_name": "memes",
-			"version": "0.1.8",
-			"version_toml": "apps/memes/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/memes.mdx",
-			"version_target": "apps/memes/axum-memes/Cargo.toml",
-			"source_path": "apps/memes",
-			"runner": "ubuntu-latest",
-			"image": "kbve/memes",
-			"e2e_name": "memes",
-			"deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "metrics",
-			"app_name": "metrics",
-			"version": "0.1.4",
-			"version_toml": "apps/metrics/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
-			"version_target": "apps/metrics/Cargo.toml",
-			"source_path": "apps/metrics",
-			"runner": "ubuntu-latest",
-			"image": "kbve/metrics",
-			"e2e_name": "metrics",
-			"deployment_yaml": "apps/kube/metrics/manifest/metrics-deployment.yaml",
-			"has_test": false,
-			"nx_project": "met"
-		},
-		{
-			"key": "rareicon",
-			"app_name": "axum-rareicon",
-			"version": "0.1.3",
-			"version_toml": "apps/rareicon/axum-rareicon/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx",
-			"version_target": "apps/rareicon/axum-rareicon/Cargo.toml",
-			"source_path": "apps/rareicon/axum-rareicon",
-			"runner": "ubuntu-latest",
-			"image": "kbve/rareicon",
-			"e2e_name": "axum-rareicon-e2e",
-			"deployment_yaml": "apps/kube/rareicon/manifest/deployment.yaml",
-			"has_test": true
-		},
-		{
-			"key": "rows",
-			"app_name": "rows",
-			"version": "0.1.31",
-			"version_toml": "apps/rows/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
-			"version_target": "apps/rows/Cargo.toml",
-			"source_path": "apps/rows",
-			"runner": "ubuntu-latest",
-			"image": "kbve/rows",
-			"deployment_yaml": "apps/kube/rows/manifest/rows-deployment.yaml",
-			"deployment_yamls": [
-				"apps/kube/rows/tenants/base/deployment.yaml"
-			],
-			"has_test": false
-		},
-		{
-			"key": "steamcmd_ubuntu",
-			"app_name": "steamcmd-ubuntu",
-			"version": "0.1.0",
-			"version_toml": "packages/docker/steamcmd-ubuntu/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/steamcmd-ubuntu.mdx",
-			"source_path": "packages/docker/steamcmd-ubuntu",
-			"runner": "ubuntu-latest",
-			"image": "kbve/steamcmd-ubuntu",
-			"has_test": true
-		}
-	],
-	"npm": [
-		{
-			"key": "devops",
-			"package_name": "devops",
-			"version": "0.0.19",
-			"version_toml": "packages/npm/devops/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
-			"version_target": "packages/npm/devops/package.json"
-		},
-		{
-			"key": "droid",
-			"package_name": "droid",
-			"version": "0.1.1",
-			"version_toml": "packages/npm/droid/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/droid.mdx",
-			"version_target": "packages/npm/droid/package.json"
-		},
-		{
-			"key": "khashvault",
-			"package_name": "khashvault",
-			"version": "1.0.12",
-			"version_toml": "packages/npm/khashvault/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/khashvault.mdx",
-			"version_target": "packages/npm/khashvault/package.json"
-		},
-		{
-			"key": "laser",
-			"package_name": "laser",
-			"version": "0.1.4",
-			"version_toml": "packages/npm/laser/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
-			"version_target": "packages/npm/laser/package.json"
-		}
-	],
-	"crates": [
-		{
-			"key": "bevy_battle_crate",
-			"package_name": "bevy_battle",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_battle/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-battle-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_battle/Cargo.toml"
-		},
-		{
-			"key": "bevy_behavior_crate",
-			"package_name": "bevy_behavior",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_behavior/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-behavior-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_behavior/Cargo.toml"
-		},
-		{
-			"key": "bevy_cam_crate",
-			"package_name": "bevy_cam",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_cam/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-cam-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_cam/Cargo.toml"
-		},
-		{
-			"key": "bevy_chat_crate",
-			"package_name": "bevy_chat",
-			"version": "0.0.0",
-			"version_toml": "packages/rust/bevy/bevy_chat/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-chat-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_chat/Cargo.toml"
-		},
-		{
-			"key": "bevy_db_crate",
-			"package_name": "bevy_db",
-			"version": "0.0.0",
-			"version_toml": "packages/rust/bevy/bevy_db/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-db-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_db/Cargo.toml"
-		},
-		{
-			"key": "bevy_inventory_crate",
-			"package_name": "bevy_inventory",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-inventory-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_inventory/Cargo.toml"
-		},
-		{
-			"key": "bevy_items_crate",
-			"package_name": "bevy_items",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-items-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_items/Cargo.toml"
-		},
-		{
-			"key": "bevy_kbve_net_crate",
-			"package_name": "bevy_kbve_net",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-kbve-net-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
-		},
-		{
-			"key": "bevy_mapdb_crate",
-			"package_name": "bevy_mapdb",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-mapdb-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
-		},
-		{
-			"key": "bevy_npc_crate",
-			"package_name": "bevy_npc",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_npc/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-npc-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_npc/Cargo.toml"
-		},
-		{
-			"key": "bevy_pathfinder_crate",
-			"package_name": "bevy_pathfinder",
-			"version": "0.1.1",
-			"version_toml": "packages/rust/bevy/bevy_pathfinder/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-pathfinder-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_pathfinder/Cargo.toml"
-		},
-		{
-			"key": "bevy_player_crate",
-			"package_name": "bevy_player",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_player/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-player-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_player/Cargo.toml"
-		},
-		{
-			"key": "bevy_quests_crate",
-			"package_name": "bevy_quests",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_quests/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-quests-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_quests/Cargo.toml"
-		},
-		{
-			"key": "bevy_skills_crate",
-			"package_name": "bevy_skills",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_skills/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-skills-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
-		},
-		{
-			"key": "bevy_statemachine_crate",
-			"package_name": "bevy_statemachine",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-statemachine-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
-		},
-		{
-			"key": "bevy_supa_crate",
-			"package_name": "bevy_supa",
-			"version": "0.0.0",
-			"version_toml": "packages/rust/bevy/bevy_supa/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-supa-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_supa/Cargo.toml"
-		},
-		{
-			"key": "bevy_tasker_crate",
-			"package_name": "bevy_tasker",
-			"version": "0.1.1",
-			"version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-tasker-crate.mdx",
-			"version_target": "packages/rust/bevy/bevy_tasker/Cargo.toml"
-		},
-		{
-			"key": "erust_crate",
-			"package_name": "erust",
-			"version": "0.1.7",
-			"version_toml": "packages/rust/erust/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/erust-crate.mdx",
-			"version_target": "packages/rust/erust/Cargo.toml"
-		},
-		{
-			"key": "holy_crate",
-			"package_name": "holy",
-			"version": "0.2.1",
-			"version_toml": "packages/rust/holy/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx",
-			"version_target": "packages/rust/holy/Cargo.toml"
-		},
-		{
-			"key": "jedi_crate",
-			"package_name": "jedi",
-			"version": "0.2.2",
-			"version_toml": "packages/rust/jedi/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/jedi-crate.mdx",
-			"version_target": "packages/rust/jedi/Cargo.toml"
-		},
-		{
-			"key": "kbve_crate",
-			"package_name": "kbve",
-			"version": "0.1.26",
-			"version_toml": "packages/rust/kbve/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-crate.mdx",
-			"version_target": "packages/rust/kbve/Cargo.toml"
-		},
-		{
-			"key": "q_crate",
-			"package_name": "q",
-			"version": "0.1.1",
-			"version_toml": "packages/rust/q/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/q-crate.mdx",
-			"version_target": "packages/rust/q/Cargo.toml"
-		},
-		{
-			"key": "soul_crate",
-			"package_name": "soul",
-			"version": "0.1.1",
-			"version_toml": "packages/rust/soul/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/soul-crate.mdx",
-			"version_target": "packages/rust/soul/Cargo.toml"
-		},
-		{
-			"key": "uniti_crate",
-			"package_name": "uniti",
-			"version": "0.1.0",
-			"version_toml": "packages/rust/bevy/uniti/version.toml",
-			"version_source": "packages/rust/bevy/uniti/Cargo.toml",
-			"version_target": "packages/rust/bevy/uniti/Cargo.toml"
-		}
-	],
-	"python": [
-		{
-			"key": "py_lib_fudster",
-			"package_name": "python-fudster",
-			"pypi_name": "fudster",
-			"version": "1.0.3",
-			"version_toml": "packages/python/fudster/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/fudster.mdx",
-			"version_target": "packages/python/fudster/pyproject.toml"
-		},
-		{
-			"key": "py_lib_kbve",
-			"package_name": "python-kbve",
-			"pypi_name": "kbve",
-			"version": "1.0.13",
-			"version_toml": "packages/python/kbve/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/python-kbve.mdx",
-			"version_target": "packages/python/kbve/pyproject.toml"
-		}
-	],
-	"unreal": [
-		{
-			"key": "ue_agones",
-			"plugin_name": "Agones",
-			"plugin_path": "packages/unreal/Agones",
-			"supported_platforms": [
-				"Linux"
-			],
-			"version": "0.0.1",
-			"version_toml": "packages/unreal/Agones/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones.mdx"
-		},
-		{
-			"key": "ue_kbveagones",
-			"plugin_name": "KBVEAgones",
-			"plugin_path": "packages/unreal/KBVEAgones",
-			"dependency_plugins": "packages/unreal/Agones packages/unreal/KBVEROWS",
-			"supported_platforms": [
-				"Linux"
-			],
-			"version": "0.0.1",
-			"version_toml": "packages/unreal/KBVEAgones/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveagones.mdx"
-		},
-		{
-			"key": "ue_kbvecombat",
-			"plugin_name": "KBVECombat",
-			"plugin_path": "packages/unreal/KBVECombat",
-			"dependency_plugins": "packages/unreal/KBVEGameplay",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVECombat/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvecombat.mdx"
-		},
-		{
-			"key": "ue_kbveevents",
-			"plugin_name": "KBVEEvents",
-			"plugin_path": "packages/unreal/KBVEEvents",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEEvents/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveevents.mdx"
-		},
-		{
-			"key": "ue_kbvegameplay",
-			"plugin_name": "KBVEGameplay",
-			"plugin_path": "packages/unreal/KBVEGameplay",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEGameplay/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvegameplay.mdx"
-		},
-		{
-			"key": "ue_kbvehexworld",
-			"plugin_name": "KBVEHexWorld",
-			"plugin_path": "packages/unreal/KBVEHexWorld",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEHexWorld/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvehexworld.mdx"
-		},
-		{
-			"key": "ue_kbveitemdb",
-			"plugin_name": "KBVEItemDB",
-			"plugin_path": "packages/unreal/KBVEItemDB",
-			"dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEYYJson",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEItemDB/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveitemdb.mdx"
-		},
-		{
-			"key": "ue_kbvelibgit",
-			"plugin_name": "KBVELibGit",
-			"plugin_path": "packages/unreal/KBVELibGit",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVELibGit/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvelibgit.mdx"
-		},
-		{
-			"key": "ue_kbvemapdb",
-			"plugin_name": "KBVEMapDB",
-			"plugin_path": "packages/unreal/KBVEMapDB",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEMapDB/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvemapdb.mdx"
-		},
-		{
-			"key": "ue_kbvemover",
-			"plugin_name": "KBVEMover",
-			"plugin_path": "packages/unreal/KBVEMover",
-			"dependency_plugins": "packages/unreal/KBVEGameplay",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEMover/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvemover.mdx"
-		},
-		{
-			"key": "ue_kbvenet",
-			"plugin_name": "KBVENet",
-			"plugin_path": "packages/unreal/KBVENet",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVENet/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvenet.mdx"
-		},
-		{
-			"key": "ue_kbvenpcdb",
-			"plugin_name": "KBVENPCDB",
-			"plugin_path": "packages/unreal/KBVENPCDB",
-			"dependency_plugins": "packages/unreal/KBVEYYJson",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVENPCDB/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvenpcdb.mdx"
-		},
-		{
-			"key": "ue_kbveperf",
-			"plugin_name": "KBVEPerf",
-			"plugin_path": "packages/unreal/KBVEPerf",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEPerf/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveperf.mdx"
-		},
-		{
-			"key": "ue_kbvepostshader",
-			"plugin_name": "KBVEPostShader",
-			"plugin_path": "packages/unreal/KBVEPostShader",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEPostShader/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvepostshader.mdx"
-		},
-		{
-			"key": "ue_kbvequestdb",
-			"plugin_name": "KBVEQuestDB",
-			"plugin_path": "packages/unreal/KBVEQuestDB",
-			"dependency_plugins": "packages/unreal/KBVEYYJson",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEQuestDB/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvequestdb.mdx"
-		},
-		{
-			"key": "ue_kbverows",
-			"plugin_name": "KBVEROWS",
-			"plugin_path": "packages/unreal/KBVEROWS",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "1.0.0",
-			"version_toml": "packages/unreal/KBVEROWS/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbverows.mdx"
-		},
-		{
-			"key": "ue_kbvesqlite",
-			"plugin_name": "KBVESQLite",
-			"plugin_path": "packages/unreal/KBVESQLite",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "3.51.3",
-			"version_toml": "packages/unreal/KBVESQLite/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvesqlite.mdx"
-		},
-		{
-			"key": "ue_kbvesupabase",
-			"plugin_name": "KBVESupabase",
-			"plugin_path": "packages/unreal/KBVESupabase",
-			"dependency_plugins": "packages/unreal/KBVEROWS",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVESupabase/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvesupabase.mdx"
-		},
-		{
-			"key": "ue_kbvetinybvh",
-			"plugin_name": "KBVETinyBVH",
-			"plugin_path": "packages/unreal/KBVETinyBVH",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "1.6.7",
-			"version_toml": "packages/unreal/KBVETinyBVH/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvetinybvh.mdx"
-		},
-		{
-			"key": "ue_kbveui",
-			"plugin_name": "KBVEUI",
-			"plugin_path": "packages/unreal/KBVEUI",
-			"dependency_plugins": "packages/unreal/KBVEROWS packages/unreal/KBVESupabase",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEUI/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveui.mdx"
-		},
-		{
-			"key": "ue_kbveulid",
-			"plugin_name": "KBVEULID",
-			"plugin_path": "packages/unreal/KBVEULID",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEULID/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveulid.mdx"
-		},
-		{
-			"key": "ue_kbvewasm",
-			"plugin_name": "KBVEWASM",
-			"plugin_path": "packages/unreal/KBVEWASM",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "2.2.0",
-			"version_toml": "packages/unreal/KBVEWASM/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvewasm.mdx"
-		},
-		{
-			"key": "ue_kbvewebsurface",
-			"plugin_name": "KBVEWebSurface",
-			"plugin_path": "packages/unreal/KBVEWebSurface",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.3.0",
-			"version_toml": "packages/unreal/KBVEWebSurface/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvewebsurface.mdx"
-		},
-		{
-			"key": "ue_kbveworld",
-			"plugin_name": "KBVEWorld",
-			"plugin_path": "packages/unreal/KBVEWorld",
-			"dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEPerf",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEWorld/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveworld.mdx"
-		},
-		{
-			"key": "ue_kbvexxhash",
-			"plugin_name": "KBVEXXHash",
-			"plugin_path": "packages/unreal/KBVEXXHash",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.8.3",
-			"version_toml": "packages/unreal/KBVEXXHash/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvexxhash.mdx"
-		},
-		{
-			"key": "ue_kbveyyjson",
-			"plugin_name": "KBVEYYJson",
-			"plugin_path": "packages/unreal/KBVEYYJson",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.12.0",
-			"version_toml": "packages/unreal/KBVEYYJson/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveyyjson.mdx"
-		},
-		{
-			"key": "ue_kbvezstd",
-			"plugin_name": "KBVEZstd",
-			"plugin_path": "packages/unreal/KBVEZstd",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "1.5.7",
-			"version_toml": "packages/unreal/KBVEZstd/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvezstd.mdx"
-		},
-		{
-			"key": "ue_devops",
-			"plugin_name": "UEDevOps",
-			"plugin_path": "packages/unreal/UEDevOps",
-			"dependency_plugins": "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd",
-			"itch_game_id": "uedevops",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/UEDevOps/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/uedevops.mdx"
-		}
-	],
-	"ue5_server": [
-		{
-			"key": "unreal_rareicon",
-			"app_name": "unreal-rareicon",
-			"shell_path": "apps/rareicon/unreal-rareicon",
-			"version": "0.0.1",
-			"version_toml": "apps/rareicon/unreal-rareicon/version.toml"
-		}
-	],
-	"unity": [
-		{
-			"key": "unity_rareicon",
-			"app_name": "rareicon",
-			"engine": {
-				"version": "6000.3.10f1",
-				"project_path": "apps/rareicon/unity-rareicon",
-				"build_targets": [
-					"StandaloneLinux64",
-					"StandaloneWindows64",
-					"StandaloneOSX",
-					"Android",
-					"iOS"
-				],
-				"license_method": "personal"
-			},
-			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.9",
-			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
-			"runner": "ubuntu-latest",
-			"external_publish": {
-				"itch_user": "kbve",
-				"itch_game": "rareicon",
-				"steam_apps": [
-					{
-						"app_id": "3791950",
-						"label": "demo",
-						"branch": "beta",
-						"promote_to_branch": "default"
-					},
-					{
-						"app_id": "2238370",
-						"label": "main",
-						"branch": "beta"
-					}
-				]
-			}
-		}
-	],
-	"godot": [],
-	"unreal_game": [
-		{
-			"key": "unreal_chuck_beta",
-			"app_name": "chuck",
-			"engine": {
-				"version": "5.8.0",
-				"project_path": "chuck",
-				"build_targets": [
-					"Win64",
-					"Linux",
-					"Mac"
-				],
-				"external_repo_url": "https://github.com/kbve/chuck",
-				"server_target": "chuckServer",
-				"server_config": "Shipping",
-				"client_config": "Shipping",
-				"maps": [
-					"/Game/Menus/L_MainMenu",
-					"/Game/Map/L_ChuckWorld"
-				],
-				"game_mode": "/Script/Chuck.ChuckGameMode",
-				"custom_config": "Beta",
-				"use_logging_in_shipping": "1"
-			},
-			"source_path": "apps/chuckrpg/unreal-chuck",
-			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.44",
-			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
-			"runner": "arc-runner-ue",
-			"external_publish": {
-				"itch_user": "kbve",
-				"itch_game": "chuckrpg"
-			}
-		},
-		{
-			"key": "unreal_chuck_dev",
-			"app_name": "chuck-dev",
-			"engine": {
-				"version": "5.8.0",
-				"project_path": "chuck",
-				"build_targets": [
-					"Win64",
-					"Linux",
-					"Mac"
-				],
-				"external_repo_url": "https://github.com/kbve/chuck",
-				"external_repo_ref": "dev",
-				"server_target": "chuckServerDev",
-				"server_config": "Development",
-				"client_config": "Development",
-				"maps": [
-					"/Game/Menus/L_MainMenu",
-					"/Game/Map/L_ChuckWorld"
-				],
-				"game_mode": "/Script/Chuck.ChuckGameMode"
-			},
-			"source_path": "apps/chuckrpg/unreal-chuck",
-			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.20",
-			"version_toml": "apps/chuckrpg/unreal-chuck/version-dev.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-dev.mdx",
-			"runner": "arc-runner-ue",
-			"external_publish": {
-				"itch_user": "kbve",
-				"itch_game": "chuckrpg",
-				"itch_channel": "dev"
-			}
-		},
-		{
-			"key": "unreal_rentearth",
-			"app_name": "rentearth",
-			"engine": {
-				"version": "5.8.0",
-				"project_path": "apps/rentearth/unreal-rentearth",
-				"build_targets": [
-					"Win64",
-					"Linux"
-				]
-			},
-			"source_path": "apps/rentearth/unreal-rentearth",
-			"version": "0.0.1",
-			"version_toml": "apps/rentearth/unreal-rentearth/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-rentearth.mdx",
-			"runner": "arc-runner-ue",
-			"external_publish": {
-				"itch_user": "kbve",
-				"itch_game": "rentearth"
-			}
-		}
-	],
-	"bevy_game": [],
-	"summary": {
-		"docker": 36,
-		"npm": 4,
-		"crates": 24,
-		"python": 2,
-		"unreal": 28,
-		"ue5_server": 1,
-		"unity": 1,
-		"godot": 0,
-		"unreal_game": 3,
-		"bevy_game": 0,
-		"total": 99
-	}
+  "docker": [
+    {
+      "key": "agones_factorio",
+      "app_name": "agones-factorio",
+      "version": "0.0.13",
+      "version_toml": "apps/agones/factorio/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
+      "source_path": "apps/agones/factorio",
+      "runner": "ubuntu-latest",
+      "image": "kbve/agones-factorio",
+      "e2e_name": "agones-factorio",
+      "deployment_yaml": "apps/kube/agones/factorio/manifests/gameserver.yaml",
+      "has_test": true,
+      "external_publish": {
+        "factorio_mods": [
+          {
+            "name": "kbve",
+            "source_path": "apps/agones/factorio/mods-local/kbve"
+          },
+          {
+            "name": "kbve-spider",
+            "source_path": "apps/factorio/mods/kbve-spider"
+          }
+        ]
+      }
+    },
+    {
+      "key": "agones_factorio_relay",
+      "app_name": "agones-factorio-relay",
+      "version": "0.0.7",
+      "version_toml": "apps/agones/factorio/relay/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
+      "source_path": "apps/agones/factorio/relay",
+      "runner": "ubuntu-latest",
+      "image": "kbve/agones-factorio-relay",
+      "deployment_yaml": "apps/kube/agones/factorio/manifests/gameserver.yaml",
+      "has_test": false
+    },
+    {
+      "key": "astro_kbve",
+      "app_name": "axum-kbve",
+      "version": "1.0.215",
+      "version_toml": "apps/kbve/axum-kbve/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
+      "version_target": "apps/kbve/axum-kbve/Cargo.toml",
+      "source_path": "apps/kbve/astro-kbve",
+      "runner": "arc-runner-set",
+      "image": "kbve/kbve",
+      "e2e_name": "axum-kbve-e2e",
+      "deployment_yaml": "apps/kube/kbve/manifest/kbve-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "arc_runner",
+      "app_name": "arc-runner",
+      "version": "0.1.6",
+      "version_toml": "packages/docker/arc-runner/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
+      "source_path": "packages/docker/arc-runner",
+      "runner": "ubuntu-latest",
+      "image": "kbve/arc-runner",
+      "deployment_yamls": [
+        "apps/kube/github/runners/manifests/values-kbve.yaml",
+        "apps/kube/github/runners/manifests/values.yaml",
+        "apps/kube/github/runners/manifests/values-ue.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "aria2_proxy",
+      "app_name": "aria2-proxy",
+      "version": "0.1.0",
+      "version_toml": "apps/vm/aria2-proxy/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/aria2-proxy.mdx",
+      "source_path": "apps/vm/aria2-proxy",
+      "runner": "arc-runner-set",
+      "image": "kbve/aria2-proxy",
+      "e2e_name": "aria2-proxy-e2e",
+      "deployment_yaml": "apps/kube/kubevirt/download-proxy/deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "arpg_server",
+      "app_name": "arpg-server",
+      "version": "0.1.15",
+      "version_toml": "apps/agones/arpg/server/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
+      "version_target": "apps/agones/arpg/server/Cargo.toml",
+      "source_path": "apps/agones/arpg/server",
+      "runner": "arc-runner-set",
+      "image": "kbve/arpg-server",
+      "deployment_yaml": "apps/kube/agones/arpg/manifests/fleet.yaml",
+      "has_test": false
+    },
+    {
+      "key": "arpg_web",
+      "app_name": "arpg-web",
+      "version": "0.1.15",
+      "version_toml": "apps/agones/arpg/web/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
+      "source_path": "apps/agones/arpg",
+      "runner": "arc-runner-set",
+      "image": "kbve/arpg-web",
+      "e2e_name": "arpg",
+      "deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
+      "has_test": true,
+      "target": "container-web",
+      "nx_project": "arpg",
+      "version_target": "apps/agones/arpg/web/version.toml"
+    },
+    {
+      "key": "axum_rentearth",
+      "app_name": "axum-rentearth",
+      "version": "0.1.0",
+      "version_toml": "apps/rentearth/axum-rentearth/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/axum-rentearth.mdx",
+      "version_target": "apps/rentearth/axum-rentearth/Cargo.toml",
+      "source_path": "apps/rentearth/axum-rentearth",
+      "runner": "ubuntu-latest",
+      "image": "kbve/axum-rentearth",
+      "deployment_yaml": "apps/kube/rentearth/manifest/axum-rentearth-deployment.yaml",
+      "has_test": false
+    },
+    {
+      "key": "chisel_ubuntu_axum",
+      "app_name": "chisel-ubuntu-axum",
+      "version": "24.04.7",
+      "version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
+      "source_path": "packages/docker/chisel-ubuntu-axum",
+      "runner": "ubuntu-latest",
+      "image": "kbve/chisel-ubuntu-axum",
+      "has_test": false
+    },
+    {
+      "key": "chuckrpg",
+      "app_name": "axum-chuckrpg",
+      "version": "0.1.9",
+      "version_toml": "apps/chuckrpg/axum-chuckrpg/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/chuckrpg.mdx",
+      "version_target": "apps/chuckrpg/axum-chuckrpg/Cargo.toml",
+      "source_path": "apps/chuckrpg/axum-chuckrpg",
+      "runner": "ubuntu-latest",
+      "image": "kbve/chuckrpg",
+      "e2e_name": "axum-chuckrpg-e2e",
+      "deployment_yaml": "apps/kube/chuckrpg/manifest/deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "cryptothrone",
+      "app_name": "cryptothrone",
+      "version": "0.1.51",
+      "version_toml": "apps/cryptothrone/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
+      "version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
+      "source_path": "apps/cryptothrone",
+      "runner": "ubuntu-latest",
+      "image": "kbve/cryptothrone",
+      "e2e_name": "cryptothrone",
+      "deployment_yaml": "apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "cryptothrone_server",
+      "app_name": "cryptothrone-server",
+      "version": "0.0.26",
+      "version_toml": "apps/agones/cryptothrone/server/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
+      "version_target": "apps/agones/cryptothrone/server/Cargo.toml",
+      "source_path": "apps/agones/cryptothrone/server",
+      "runner": "arc-runner-set",
+      "image": "kbve/cryptothrone-server",
+      "deployment_yaml": "apps/kube/agones/cryptothrone/manifests/fleet.yaml",
+      "has_test": false
+    },
+    {
+      "key": "discordsh",
+      "app_name": "discordsh",
+      "version": "0.1.44",
+      "version_toml": "apps/discordsh/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
+      "version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
+      "source_path": "apps/discordsh",
+      "runner": "ubuntu-latest",
+      "image": "kbve/discordsh",
+      "e2e_name": "discordsh",
+      "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "discordsh_bot",
+      "app_name": "discordsh-bot",
+      "version": "0.1.21",
+      "version_toml": "apps/discordsh/discordsh-bot/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
+      "version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
+      "source_path": "apps/discordsh/discordsh-bot",
+      "runner": "ubuntu-latest",
+      "image": "kbve/discordsh-bot",
+      "e2e_name": "discordsh-bot-e2e",
+      "deployment_yaml": "apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "edge",
+      "app_name": "edge",
+      "version": "0.1.45",
+      "version_toml": "apps/kbve/edge/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
+      "version_target": "apps/kbve/edge/deno.json",
+      "source_path": "apps/kbve/edge",
+      "runner": "ubuntu-latest",
+      "image": "kbve/edge",
+      "e2e_name": "edge",
+      "deployment_yaml": "apps/kube/functions/manifests/functions-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "factorio_ctl",
+      "app_name": "factorio-ctl",
+      "version": "0.0.1",
+      "version_toml": "apps/vm/factorio-ctl/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/factorio-ctl.mdx",
+      "version_target": "apps/vm/factorio-ctl/Cargo.toml",
+      "source_path": "apps/vm/factorio-ctl",
+      "runner": "ubuntu-latest",
+      "image": "kbve/factorio-ctl",
+      "deployment_yaml": "apps/kube/agones/factorio/manifests/factorio-ctl.yaml",
+      "has_test": false
+    },
+    {
+      "key": "firecracker_ctl",
+      "app_name": "firecracker-ctl",
+      "version": "0.1.41",
+      "version_toml": "apps/vm/firecracker-ctl/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
+      "version_target": "apps/vm/firecracker-ctl/Cargo.toml",
+      "source_path": "apps/vm/firecracker-ctl",
+      "runner": "arc-runner-set",
+      "image": "kbve/firecracker-ctl",
+      "deployment_yaml": "apps/kube/firecracker/manifests/firecracker-deployment.yaml",
+      "deployment_yamls": [
+        "apps/kube/firecracker/manifests/firecracker-net-deployment.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "firecracker_node_web",
+      "app_name": "firecracker-node-web",
+      "version": "0.1.0",
+      "version_toml": "packages/docker/firecracker/node/web/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-node-web.mdx",
+      "source_path": "packages/docker/firecracker/node/web",
+      "runner": "ubuntu-latest",
+      "image": "kbve/firecracker-node-web",
+      "deployment_yamls": [
+        "apps/kube/firecracker/manifests/firecracker-node-web-rootfs-stage.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "firecracker_python_net",
+      "app_name": "firecracker-python-net",
+      "version": "0.1.3",
+      "version_toml": "packages/docker/firecracker/python/net/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-net.mdx",
+      "source_path": "packages/docker/firecracker/python/net",
+      "runner": "ubuntu-latest",
+      "image": "kbve/firecracker-python-net",
+      "deployment_yamls": [
+        "apps/kube/firecracker/manifests/firecracker-net-rootfs-stage.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "firecracker_python_web",
+      "app_name": "firecracker-python-web",
+      "version": "0.1.0",
+      "version_toml": "packages/docker/firecracker/python/web/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-python-web.mdx",
+      "source_path": "packages/docker/firecracker/python/web",
+      "runner": "ubuntu-latest",
+      "image": "kbve/firecracker-python-web",
+      "deployment_yamls": [
+        "apps/kube/firecracker/manifests/firecracker-web-rootfs-stage.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "herbmail",
+      "app_name": "herbmail",
+      "version": "0.1.1",
+      "version_toml": "apps/herbmail/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail.mdx",
+      "version_target": "apps/herbmail/axum-herbmail/Cargo.toml",
+      "source_path": "apps/herbmail",
+      "runner": "ubuntu-latest",
+      "image": "kbve/herbmail",
+      "e2e_name": "herbmail",
+      "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "iot_edge_worker",
+      "app_name": "iot-edge-worker",
+      "version": "0.0.1",
+      "version_toml": "apps/vm/iot/edge-worker/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/iot-edge-worker.mdx",
+      "version_target": "apps/vm/iot/edge-worker/version.toml",
+      "source_path": "apps/vm/iot/edge-worker",
+      "runner": "arc-runner-set",
+      "image": "kbve/iot-edge-worker",
+      "has_test": false
+    },
+    {
+      "key": "irc_gateway",
+      "app_name": "irc-gateway",
+      "version": "0.1.27",
+      "version_toml": "apps/irc/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
+      "version_target": "apps/irc/irc-gateway/Cargo.toml",
+      "source_path": "apps/irc",
+      "runner": "ubuntu-latest",
+      "image": "kbve/irc-gateway",
+      "e2e_name": "irc",
+      "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "jobboard",
+      "app_name": "jobboard",
+      "version": "0.1.9",
+      "version_toml": "apps/jobboard/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx",
+      "version_target": "apps/jobboard/Cargo.toml",
+      "source_path": "apps/jobboard",
+      "runner": "ubuntu-latest",
+      "image": "kbve/jobboard",
+      "e2e_name": "jobboard",
+      "deployment_yaml": "apps/kube/jobboard/manifest/jobboard-deployment.yaml",
+      "has_test": false
+    },
+    {
+      "key": "kasm_void",
+      "app_name": "kasm-void",
+      "version": "0.0.5",
+      "version_toml": "packages/docker/kasm-void/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kasm-void.mdx",
+      "source_path": "packages/docker/kasm-void",
+      "runner": "ubuntu-latest",
+      "image": "kbve/kasm-void",
+      "deployment_yaml": "apps/kube/kasm/manifest/deployment.yaml",
+      "has_test": false
+    },
+    {
+      "key": "kbve_gate",
+      "app_name": "kbve-gate",
+      "version": "0.1.6",
+      "version_toml": "apps/kbve/kbve-gate/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
+      "version_target": "apps/kbve/kbve-gate/Cargo.toml",
+      "source_path": "apps/kbve/kbve-gate",
+      "runner": "ubuntu-latest",
+      "image": "kbve/kbve-gate",
+      "deployment_yamls": [
+        "apps/kube/n8n/manifest/n8n-deployment.yaml",
+        "apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
+        "apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
+        "apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
+        "apps/kube/forgejo/manifest/forgejo-gate-deployment.yaml",
+        "apps/kube/studio/manifests/studio-gate-deployment.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "kilobase",
+      "app_name": "kilobase",
+      "version": "17.4.1",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kilobase.mdx",
+      "source_path": "apps/kbve/kilobase",
+      "runner": "ubuntu-latest",
+      "image": "kbve/kilobase",
+      "has_test": false
+    },
+    {
+      "key": "kubectl",
+      "app_name": "kbve-kubectl",
+      "version": "0.1.5",
+      "version_toml": "apps/vm/kubectl/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
+      "version_target": "apps/vm/kubectl/Cargo.toml",
+      "source_path": "apps/vm/kubectl",
+      "runner": "arc-runner-set",
+      "image": "kbve/kubectl",
+      "e2e_name": "kubectl-e2e",
+      "deployment_yamls": [
+        "apps/kube/kubevirt/autologon/job.yaml",
+        "apps/kube/kubevirt/autologon/scaled-job.yaml",
+        "apps/kube/kubevirt/runner/job.yaml",
+        "apps/kube/kubevirt/runner/scaled-job.yaml",
+        "apps/kube/kubevirt/keda/scaled-jobs.yaml",
+        "apps/kube/agones/factorio/manifests/rotation-deployment.yaml",
+        "apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
+        "apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
+        "apps/kube/github/runners/manifests/runner-reaper.yaml",
+        "apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml",
+        "apps/kube/kilobase/manifests/backup-restore-test.yaml",
+        "apps/kube/kilobase/manifests/backup-watchdog.yaml"
+      ],
+      "has_test": true
+    },
+    {
+      "key": "mc",
+      "app_name": "mc",
+      "version": "1.0.58",
+      "version_toml": "apps/mc/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
+      "source_path": "apps/mc",
+      "runner": "ubuntu-latest",
+      "image": "kbve/mc",
+      "e2e_name": "mc",
+      "deployment_yaml": "apps/kube/agones/mc/manifests/fleet.yaml",
+      "has_test": true,
+      "external_publish": {
+        "modrinth_mod_id": "QoFCg0tO",
+        "modrinth_pack_id": "GktWTywL",
+        "modrinth_version_type": "release",
+        "modrinth_game_versions": "[\"1.21.11\"]",
+        "modrinth_loaders": "[\"fabric\"]"
+      }
+    },
+    {
+      "key": "mc_lobby",
+      "app_name": "mc-lobby",
+      "version": "1.0.10",
+      "version_toml": "apps/mc/lobby/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
+      "source_path": "apps/mc/lobby",
+      "runner": "ubuntu-latest",
+      "image": "kbve/mc-lobby",
+      "e2e_name": "mc-lobby",
+      "deployment_yaml": "apps/kube/agones/mc/manifests/lobby-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "mc_velocity",
+      "app_name": "mc-velocity",
+      "version": "1.1.10",
+      "version_toml": "apps/mc/velocity/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
+      "source_path": "apps/mc/velocity",
+      "runner": "ubuntu-latest",
+      "image": "kbve/mc-velocity",
+      "e2e_name": "mc-velocity",
+      "deployment_yaml": "apps/kube/agones/mc/manifests/velocity-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "memes",
+      "app_name": "memes",
+      "version": "0.1.8",
+      "version_toml": "apps/memes/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/memes.mdx",
+      "version_target": "apps/memes/axum-memes/Cargo.toml",
+      "source_path": "apps/memes",
+      "runner": "ubuntu-latest",
+      "image": "kbve/memes",
+      "e2e_name": "memes",
+      "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "metrics",
+      "app_name": "metrics",
+      "version": "0.1.4",
+      "version_toml": "apps/metrics/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
+      "version_target": "apps/metrics/Cargo.toml",
+      "source_path": "apps/metrics",
+      "runner": "ubuntu-latest",
+      "image": "kbve/metrics",
+      "e2e_name": "metrics",
+      "deployment_yaml": "apps/kube/metrics/manifest/metrics-deployment.yaml",
+      "has_test": false,
+      "nx_project": "met"
+    },
+    {
+      "key": "rareicon",
+      "app_name": "axum-rareicon",
+      "version": "0.1.3",
+      "version_toml": "apps/rareicon/axum-rareicon/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx",
+      "version_target": "apps/rareicon/axum-rareicon/Cargo.toml",
+      "source_path": "apps/rareicon/axum-rareicon",
+      "runner": "ubuntu-latest",
+      "image": "kbve/rareicon",
+      "e2e_name": "axum-rareicon-e2e",
+      "deployment_yaml": "apps/kube/rareicon/manifest/deployment.yaml",
+      "has_test": true
+    },
+    {
+      "key": "rows",
+      "app_name": "rows",
+      "version": "0.1.31",
+      "version_toml": "apps/rows/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
+      "version_target": "apps/rows/Cargo.toml",
+      "source_path": "apps/rows",
+      "runner": "ubuntu-latest",
+      "image": "kbve/rows",
+      "deployment_yaml": "apps/kube/rows/manifest/rows-deployment.yaml",
+      "deployment_yamls": [
+        "apps/kube/rows/tenants/base/deployment.yaml"
+      ],
+      "has_test": false
+    },
+    {
+      "key": "steamcmd_ubuntu",
+      "app_name": "steamcmd-ubuntu",
+      "version": "0.1.0",
+      "version_toml": "packages/docker/steamcmd-ubuntu/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/steamcmd-ubuntu.mdx",
+      "source_path": "packages/docker/steamcmd-ubuntu",
+      "runner": "ubuntu-latest",
+      "image": "kbve/steamcmd-ubuntu",
+      "has_test": true
+    }
+  ],
+  "npm": [
+    {
+      "key": "devops",
+      "package_name": "devops",
+      "version": "0.0.19",
+      "version_toml": "packages/npm/devops/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
+      "version_target": "packages/npm/devops/package.json"
+    },
+    {
+      "key": "droid",
+      "package_name": "droid",
+      "version": "0.1.1",
+      "version_toml": "packages/npm/droid/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/droid.mdx",
+      "version_target": "packages/npm/droid/package.json"
+    },
+    {
+      "key": "khashvault",
+      "package_name": "khashvault",
+      "version": "1.0.12",
+      "version_toml": "packages/npm/khashvault/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/khashvault.mdx",
+      "version_target": "packages/npm/khashvault/package.json"
+    },
+    {
+      "key": "laser",
+      "package_name": "laser",
+      "version": "0.1.4",
+      "version_toml": "packages/npm/laser/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
+      "version_target": "packages/npm/laser/package.json"
+    }
+  ],
+  "crates": [
+    {
+      "key": "bevy_battle_crate",
+      "package_name": "bevy_battle",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_battle/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-battle-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_battle/Cargo.toml"
+    },
+    {
+      "key": "bevy_behavior_crate",
+      "package_name": "bevy_behavior",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_behavior/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-behavior-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_behavior/Cargo.toml"
+    },
+    {
+      "key": "bevy_cam_crate",
+      "package_name": "bevy_cam",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_cam/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-cam-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_cam/Cargo.toml"
+    },
+    {
+      "key": "bevy_chat_crate",
+      "package_name": "bevy_chat",
+      "version": "0.0.0",
+      "version_toml": "packages/rust/bevy/bevy_chat/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-chat-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_chat/Cargo.toml"
+    },
+    {
+      "key": "bevy_db_crate",
+      "package_name": "bevy_db",
+      "version": "0.0.0",
+      "version_toml": "packages/rust/bevy/bevy_db/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-db-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_db/Cargo.toml"
+    },
+    {
+      "key": "bevy_inventory_crate",
+      "package_name": "bevy_inventory",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_inventory/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-inventory-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_inventory/Cargo.toml"
+    },
+    {
+      "key": "bevy_items_crate",
+      "package_name": "bevy_items",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_items/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-items-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_items/Cargo.toml"
+    },
+    {
+      "key": "bevy_kbve_net_crate",
+      "package_name": "bevy_kbve_net",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_kbve_net/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-kbve-net-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_kbve_net/Cargo.toml"
+    },
+    {
+      "key": "bevy_mapdb_crate",
+      "package_name": "bevy_mapdb",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_mapdb/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-mapdb-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_mapdb/Cargo.toml"
+    },
+    {
+      "key": "bevy_npc_crate",
+      "package_name": "bevy_npc",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_npc/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-npc-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_npc/Cargo.toml"
+    },
+    {
+      "key": "bevy_pathfinder_crate",
+      "package_name": "bevy_pathfinder",
+      "version": "0.1.1",
+      "version_toml": "packages/rust/bevy/bevy_pathfinder/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-pathfinder-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_pathfinder/Cargo.toml"
+    },
+    {
+      "key": "bevy_player_crate",
+      "package_name": "bevy_player",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_player/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-player-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_player/Cargo.toml"
+    },
+    {
+      "key": "bevy_quests_crate",
+      "package_name": "bevy_quests",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_quests/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-quests-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_quests/Cargo.toml"
+    },
+    {
+      "key": "bevy_skills_crate",
+      "package_name": "bevy_skills",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_skills/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-skills-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
+    },
+    {
+      "key": "bevy_statemachine_crate",
+      "package_name": "bevy_statemachine",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/bevy_statemachine/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-statemachine-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_statemachine/Cargo.toml"
+    },
+    {
+      "key": "bevy_supa_crate",
+      "package_name": "bevy_supa",
+      "version": "0.0.0",
+      "version_toml": "packages/rust/bevy/bevy_supa/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-supa-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_supa/Cargo.toml"
+    },
+    {
+      "key": "bevy_tasker_crate",
+      "package_name": "bevy_tasker",
+      "version": "0.1.1",
+      "version_toml": "packages/rust/bevy/bevy_tasker/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-tasker-crate.mdx",
+      "version_target": "packages/rust/bevy/bevy_tasker/Cargo.toml"
+    },
+    {
+      "key": "erust_crate",
+      "package_name": "erust",
+      "version": "0.1.7",
+      "version_toml": "packages/rust/erust/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/erust-crate.mdx",
+      "version_target": "packages/rust/erust/Cargo.toml"
+    },
+    {
+      "key": "holy_crate",
+      "package_name": "holy",
+      "version": "0.2.1",
+      "version_toml": "packages/rust/holy/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx",
+      "version_target": "packages/rust/holy/Cargo.toml"
+    },
+    {
+      "key": "jedi_crate",
+      "package_name": "jedi",
+      "version": "0.2.2",
+      "version_toml": "packages/rust/jedi/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/jedi-crate.mdx",
+      "version_target": "packages/rust/jedi/Cargo.toml"
+    },
+    {
+      "key": "kbve_crate",
+      "package_name": "kbve",
+      "version": "0.1.26",
+      "version_toml": "packages/rust/kbve/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-crate.mdx",
+      "version_target": "packages/rust/kbve/Cargo.toml"
+    },
+    {
+      "key": "q_crate",
+      "package_name": "q",
+      "version": "0.1.1",
+      "version_toml": "packages/rust/q/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/q-crate.mdx",
+      "version_target": "packages/rust/q/Cargo.toml"
+    },
+    {
+      "key": "soul_crate",
+      "package_name": "soul",
+      "version": "0.1.1",
+      "version_toml": "packages/rust/soul/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/soul-crate.mdx",
+      "version_target": "packages/rust/soul/Cargo.toml"
+    },
+    {
+      "key": "uniti_crate",
+      "package_name": "uniti",
+      "version": "0.1.0",
+      "version_toml": "packages/rust/bevy/uniti/version.toml",
+      "version_source": "packages/rust/bevy/uniti/Cargo.toml",
+      "version_target": "packages/rust/bevy/uniti/Cargo.toml"
+    }
+  ],
+  "python": [
+    {
+      "key": "py_lib_fudster",
+      "package_name": "python-fudster",
+      "pypi_name": "fudster",
+      "version": "1.0.3",
+      "version_toml": "packages/python/fudster/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/fudster.mdx",
+      "version_target": "packages/python/fudster/pyproject.toml"
+    },
+    {
+      "key": "py_lib_kbve",
+      "package_name": "python-kbve",
+      "pypi_name": "kbve",
+      "version": "1.0.13",
+      "version_toml": "packages/python/kbve/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/python-kbve.mdx",
+      "version_target": "packages/python/kbve/pyproject.toml"
+    }
+  ],
+  "unreal": [
+    {
+      "key": "ue_agones",
+      "plugin_name": "Agones",
+      "plugin_path": "packages/unreal/Agones",
+      "supported_platforms": [
+        "Linux"
+      ],
+      "version": "0.0.1",
+      "version_toml": "packages/unreal/Agones/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones.mdx"
+    },
+    {
+      "key": "ue_kbveagones",
+      "plugin_name": "KBVEAgones",
+      "plugin_path": "packages/unreal/KBVEAgones",
+      "dependency_plugins": "packages/unreal/Agones packages/unreal/KBVEROWS",
+      "supported_platforms": [
+        "Linux"
+      ],
+      "version": "0.0.1",
+      "version_toml": "packages/unreal/KBVEAgones/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveagones.mdx"
+    },
+    {
+      "key": "ue_kbvecombat",
+      "plugin_name": "KBVECombat",
+      "plugin_path": "packages/unreal/KBVECombat",
+      "dependency_plugins": "packages/unreal/KBVEGameplay",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVECombat/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvecombat.mdx"
+    },
+    {
+      "key": "ue_kbveevents",
+      "plugin_name": "KBVEEvents",
+      "plugin_path": "packages/unreal/KBVEEvents",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEEvents/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveevents.mdx"
+    },
+    {
+      "key": "ue_kbvegameplay",
+      "plugin_name": "KBVEGameplay",
+      "plugin_path": "packages/unreal/KBVEGameplay",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEGameplay/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvegameplay.mdx"
+    },
+    {
+      "key": "ue_kbvehexworld",
+      "plugin_name": "KBVEHexWorld",
+      "plugin_path": "packages/unreal/KBVEHexWorld",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEHexWorld/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvehexworld.mdx"
+    },
+    {
+      "key": "ue_kbveitemdb",
+      "plugin_name": "KBVEItemDB",
+      "plugin_path": "packages/unreal/KBVEItemDB",
+      "dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEYYJson",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEItemDB/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveitemdb.mdx"
+    },
+    {
+      "key": "ue_kbvelibgit",
+      "plugin_name": "KBVELibGit",
+      "plugin_path": "packages/unreal/KBVELibGit",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVELibGit/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvelibgit.mdx"
+    },
+    {
+      "key": "ue_kbvemapdb",
+      "plugin_name": "KBVEMapDB",
+      "plugin_path": "packages/unreal/KBVEMapDB",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEMapDB/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvemapdb.mdx"
+    },
+    {
+      "key": "ue_kbvemover",
+      "plugin_name": "KBVEMover",
+      "plugin_path": "packages/unreal/KBVEMover",
+      "dependency_plugins": "packages/unreal/KBVEGameplay",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEMover/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvemover.mdx"
+    },
+    {
+      "key": "ue_kbvenet",
+      "plugin_name": "KBVENet",
+      "plugin_path": "packages/unreal/KBVENet",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVENet/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvenet.mdx"
+    },
+    {
+      "key": "ue_kbvenpcdb",
+      "plugin_name": "KBVENPCDB",
+      "plugin_path": "packages/unreal/KBVENPCDB",
+      "dependency_plugins": "packages/unreal/KBVEYYJson",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVENPCDB/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvenpcdb.mdx"
+    },
+    {
+      "key": "ue_kbveperf",
+      "plugin_name": "KBVEPerf",
+      "plugin_path": "packages/unreal/KBVEPerf",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEPerf/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveperf.mdx"
+    },
+    {
+      "key": "ue_kbvepostshader",
+      "plugin_name": "KBVEPostShader",
+      "plugin_path": "packages/unreal/KBVEPostShader",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEPostShader/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvepostshader.mdx"
+    },
+    {
+      "key": "ue_kbvequestdb",
+      "plugin_name": "KBVEQuestDB",
+      "plugin_path": "packages/unreal/KBVEQuestDB",
+      "dependency_plugins": "packages/unreal/KBVEYYJson",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEQuestDB/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvequestdb.mdx"
+    },
+    {
+      "key": "ue_kbverows",
+      "plugin_name": "KBVEROWS",
+      "plugin_path": "packages/unreal/KBVEROWS",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "1.0.0",
+      "version_toml": "packages/unreal/KBVEROWS/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbverows.mdx"
+    },
+    {
+      "key": "ue_kbvesqlite",
+      "plugin_name": "KBVESQLite",
+      "plugin_path": "packages/unreal/KBVESQLite",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "3.51.3",
+      "version_toml": "packages/unreal/KBVESQLite/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvesqlite.mdx"
+    },
+    {
+      "key": "ue_kbvesupabase",
+      "plugin_name": "KBVESupabase",
+      "plugin_path": "packages/unreal/KBVESupabase",
+      "dependency_plugins": "packages/unreal/KBVEROWS",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVESupabase/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvesupabase.mdx"
+    },
+    {
+      "key": "ue_kbvetinybvh",
+      "plugin_name": "KBVETinyBVH",
+      "plugin_path": "packages/unreal/KBVETinyBVH",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "1.6.7",
+      "version_toml": "packages/unreal/KBVETinyBVH/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvetinybvh.mdx"
+    },
+    {
+      "key": "ue_kbveui",
+      "plugin_name": "KBVEUI",
+      "plugin_path": "packages/unreal/KBVEUI",
+      "dependency_plugins": "packages/unreal/KBVEROWS packages/unreal/KBVESupabase",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEUI/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveui.mdx"
+    },
+    {
+      "key": "ue_kbveulid",
+      "plugin_name": "KBVEULID",
+      "plugin_path": "packages/unreal/KBVEULID",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEULID/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveulid.mdx"
+    },
+    {
+      "key": "ue_kbvewasm",
+      "plugin_name": "KBVEWASM",
+      "plugin_path": "packages/unreal/KBVEWASM",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "2.2.0",
+      "version_toml": "packages/unreal/KBVEWASM/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvewasm.mdx"
+    },
+    {
+      "key": "ue_kbvewebsurface",
+      "plugin_name": "KBVEWebSurface",
+      "plugin_path": "packages/unreal/KBVEWebSurface",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.3.0",
+      "version_toml": "packages/unreal/KBVEWebSurface/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvewebsurface.mdx"
+    },
+    {
+      "key": "ue_kbveworld",
+      "plugin_name": "KBVEWorld",
+      "plugin_path": "packages/unreal/KBVEWorld",
+      "dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEPerf",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/KBVEWorld/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveworld.mdx"
+    },
+    {
+      "key": "ue_kbvexxhash",
+      "plugin_name": "KBVEXXHash",
+      "plugin_path": "packages/unreal/KBVEXXHash",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.8.3",
+      "version_toml": "packages/unreal/KBVEXXHash/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvexxhash.mdx"
+    },
+    {
+      "key": "ue_kbveyyjson",
+      "plugin_name": "KBVEYYJson",
+      "plugin_path": "packages/unreal/KBVEYYJson",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.12.0",
+      "version_toml": "packages/unreal/KBVEYYJson/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbveyyjson.mdx"
+    },
+    {
+      "key": "ue_kbvezstd",
+      "plugin_name": "KBVEZstd",
+      "plugin_path": "packages/unreal/KBVEZstd",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "1.5.7",
+      "version_toml": "packages/unreal/KBVEZstd/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvezstd.mdx"
+    },
+    {
+      "key": "ue_devops",
+      "plugin_name": "UEDevOps",
+      "plugin_path": "packages/unreal/UEDevOps",
+      "dependency_plugins": "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd",
+      "itch_game_id": "uedevops",
+      "supported_platforms": [
+        "Win64",
+        "Linux",
+        "Mac"
+      ],
+      "version": "0.1.0",
+      "version_toml": "packages/unreal/UEDevOps/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/uedevops.mdx"
+    }
+  ],
+  "ue5_server": [
+    {
+      "key": "unreal_rareicon",
+      "app_name": "unreal-rareicon",
+      "shell_path": "apps/rareicon/unreal-rareicon",
+      "version": "0.0.1",
+      "version_toml": "apps/rareicon/unreal-rareicon/version.toml"
+    }
+  ],
+  "unity": [
+    {
+      "key": "unity_rareicon",
+      "app_name": "rareicon",
+      "engine": {
+        "version": "6000.3.10f1",
+        "project_path": "apps/rareicon/unity-rareicon",
+        "build_targets": [
+          "StandaloneLinux64",
+          "StandaloneWindows64",
+          "StandaloneOSX",
+          "Android",
+          "iOS"
+        ],
+        "license_method": "personal"
+      },
+      "source_path": "apps/rareicon/unity-rareicon",
+      "version": "0.1.9",
+      "version_toml": "apps/rareicon/unity-rareicon/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
+      "runner": "ubuntu-latest",
+      "external_publish": {
+        "itch_user": "kbve",
+        "itch_game": "rareicon",
+        "steam_apps": [
+          {
+            "app_id": "3791950",
+            "label": "demo",
+            "branch": "beta",
+            "promote_to_branch": "default"
+          },
+          {
+            "app_id": "2238370",
+            "label": "main",
+            "branch": "beta"
+          }
+        ]
+      }
+    }
+  ],
+  "godot": [],
+  "unreal_game": [
+    {
+      "key": "unreal_chuck_beta",
+      "app_name": "chuck",
+      "engine": {
+        "version": "5.8.0",
+        "project_path": "chuck",
+        "build_targets": [
+          "Win64",
+          "Linux",
+          "Mac"
+        ],
+        "external_repo_url": "https://github.com/kbve/chuck",
+        "server_target": "chuckServer",
+        "server_config": "Shipping",
+        "client_config": "Shipping",
+        "maps": [
+          "/Game/Menus/L_MainMenu",
+          "/Game/Map/L_ChuckWorld"
+        ],
+        "game_mode": "/Script/Chuck.ChuckGameMode",
+        "custom_config": "Beta",
+        "use_logging_in_shipping": "1"
+      },
+      "source_path": "apps/chuckrpg/unreal-chuck",
+      "shell_path": "apps/chuckrpg/unreal-chuck",
+      "version": "0.3.44",
+      "version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
+      "runner": "arc-runner-ue",
+      "external_publish": {
+        "itch_user": "kbve",
+        "itch_game": "chuckrpg"
+      }
+    },
+    {
+      "key": "unreal_chuck_dev",
+      "app_name": "chuck-dev",
+      "engine": {
+        "version": "5.8.0",
+        "project_path": "chuck",
+        "build_targets": [
+          "Win64",
+          "Linux",
+          "Mac"
+        ],
+        "external_repo_url": "https://github.com/kbve/chuck",
+        "external_repo_ref": "dev",
+        "server_target": "chuckServerDev",
+        "server_config": "Development",
+        "client_config": "Development",
+        "maps": [
+          "/Game/Menus/L_MainMenu",
+          "/Game/Map/L_ChuckWorld"
+        ],
+        "game_mode": "/Script/Chuck.ChuckGameMode"
+      },
+      "source_path": "apps/chuckrpg/unreal-chuck",
+      "shell_path": "apps/chuckrpg/unreal-chuck",
+      "version": "0.3.20",
+      "version_toml": "apps/chuckrpg/unreal-chuck/version-dev.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-dev.mdx",
+      "runner": "arc-runner-ue",
+      "external_publish": {
+        "itch_user": "kbve",
+        "itch_game": "chuckrpg",
+        "itch_channel": "dev"
+      }
+    },
+    {
+      "key": "unreal_rentearth",
+      "app_name": "rentearth",
+      "engine": {
+        "version": "5.8.0",
+        "project_path": "apps/rentearth/unreal-rentearth",
+        "build_targets": [
+          "Win64",
+          "Linux"
+        ]
+      },
+      "source_path": "apps/rentearth/unreal-rentearth",
+      "version": "0.0.1",
+      "version_toml": "apps/rentearth/unreal-rentearth/version.toml",
+      "version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-rentearth.mdx",
+      "runner": "arc-runner-ue",
+      "external_publish": {
+        "itch_user": "kbve",
+        "itch_game": "rentearth"
+      }
+    }
+  ],
+  "bevy_game": [],
+  "summary": {
+    "docker": 36,
+    "npm": 4,
+    "crates": 24,
+    "python": 2,
+    "unreal": 28,
+    "ue5_server": 1,
+    "unity": 1,
+    "godot": 0,
+    "unreal_game": 3,
+    "bevy_game": 0,
+    "total": 99
+  }
 }

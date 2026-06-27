@@ -13,9 +13,13 @@ tags:
 key: arpg_server
 pipeline: docker
 app_name: arpg-server
-version: "0.1.18"
+version: "0.1.19"
 source_path: apps/agones/arpg/server
 version_toml: apps/agones/arpg/server/version.toml
+# Pre-build sync: CI writes this MDX `version` into version_target (Cargo.toml →
+# CARGO_PKG_VERSION) BEFORE the docker build so the server's reported version
+# matches the image tag instead of lagging a publish cycle.
+version_source: apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx
 version_target: apps/agones/arpg/server/Cargo.toml
 runner: arc-runner-set
 image: kbve/arpg-server

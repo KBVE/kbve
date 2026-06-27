@@ -11,6 +11,11 @@ const repoRoot = path.resolve(__dirname, '../../../..');
 // and written to a no-cache version.json the running client polls to detect when
 // it's serving a stale (CF/webview-cached) build and should reload.
 const ARPG_VERSION = (() => {
+	// Build-arg / env wins (CI passes the resolved release version so the bundle
+	// matches the image tag even when version.toml is mid-publish-sync stale).
+	// Falls back to version.toml for local builds where no env is set.
+	const fromEnv = process.env.PUBLIC_ARPG_VERSION?.trim();
+	if (fromEnv) return fromEnv;
 	try {
 		const toml = readFileSync(path.join(__dirname, 'version.toml'), 'utf8');
 		return toml.match(/version\s*=\s*"([^"]+)"/)?.[1] ?? '0.0.0';

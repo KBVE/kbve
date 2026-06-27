@@ -13,9 +13,14 @@ tags:
 key: arpg_web
 pipeline: docker
 app_name: arpg-web
-version: "0.1.18"
+version: "0.1.19"
 source_path: apps/agones/arpg
 version_toml: apps/agones/arpg/web/version.toml
+# Pre-build sync: CI writes this MDX `version` into version_target BEFORE the docker
+# build so the baked bundle (PUBLIC_ARPG_VERSION) matches the image tag instead of
+# lagging a publish cycle (version.toml is otherwise only bumped post-publish).
+version_source: apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx
+version_target: apps/agones/arpg/web/version.toml
 runner: arc-runner-set
 image: kbve/arpg-web
 nx_project: arpg
