@@ -7,8 +7,11 @@ CREATE TABLE Maps
     MapID                       SERIAL                  NOT NULL,
     MapName                     VARCHAR(50)             NOT NULL,
     MapData                     BYTEA                   NULL,
-    Width                       SMALLINT                NOT NULL,
-    Height                      SMALLINT                NOT NULL,
+    -- DEFAULT 0 so ZonesRepo::add_zone (which omits Width/Height) yields a valid
+    -- candidate tuple; NOT NULL is checked before ON CONFLICT arbitration. The
+    -- map-registration path sets real dimensions; DO UPDATE never touches these.
+    Width                       SMALLINT     DEFAULT 0  NOT NULL,
+    Height                      SMALLINT     DEFAULT 0  NOT NULL,
     ZoneName                    VARCHAR(50)             NOT NULL,
     WorldCompContainsFilter     VARCHAR(100) DEFAULT '' NOT NULL,
     WorldCompListFilter         VARCHAR(200) DEFAULT '' NOT NULL,

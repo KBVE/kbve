@@ -8,8 +8,14 @@
 -- SERIAL — so no constraint matched the conflict target. Add the natural-key UNIQUE.
 SET search_path TO ows;
 
--- Collapse any pre-existing duplicates (last write wins, mirroring the upsert) before
--- the constraint is enforced, otherwise the ADD CONSTRAINT would fail.
+-- Hold writers off for the gap between the dedup DELETE and ADD CONSTRAINT so a
+-- concurrent insert can't slip a duplicate in. Reads still proceed.
+LOCK TABLE CustomCharacterData IN SHARE ROW EXCLUSIVE MODE;
+
+-- Collapse any pre-existing duplicates before the constraint is enforced, otherwise
+-- the ADD CONSTRAINT would fail. Keeps the highest CustomCharacterDataID per key —
+-- "last write wins" only because the id is a monotonic SERIAL, so the newest insert
+-- always has the largest id (mirroring the upsert's intent).
 DELETE FROM CustomCharacterData c
 USING CustomCharacterData newer
 WHERE c.CustomerGUID = newer.CustomerGUID
