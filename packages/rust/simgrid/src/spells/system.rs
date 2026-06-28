@@ -2,16 +2,16 @@ use std::collections::HashMap;
 
 use bevy::ecs::entity::Entity;
 use bevy::ecs::system::SystemParam;
-use bevy::prelude::{Commands, Res, ResMut};
+use bevy::prelude::{Commands, Query, Res, ResMut, With, Without};
 use bevy_spells::{SpellDb, SpellEffect};
 
 use crate::combat;
 use crate::data::KindRegistry;
-use crate::grid::WalkableMap;
+use crate::grid::{GridPos, WalkableMap};
 use crate::sim::{
-    AttackMobQuery, AttackPlayerQuery, EidIndex, EquipmentEffects, KillCounts, Outbound,
-    RespawnQueue, SIM_TICK_HZ, SimClock, SimConfig, SimSeed, SpellCooldowns,
-    broadcast_player_stats, resolve_attack_hit,
+    AttackMobQuery, AttackPlayerQuery, EidIndex, EquipmentEffects, GroundItem, Health, KillCounts,
+    Outbound, PlayerSlotTag, RespawnQueue, SIM_TICK_HZ, SimClock, SimConfig, SimSeed,
+    SpellCooldowns, broadcast_player_stats, resolve_attack_hit,
 };
 use crate::spells::PendingSpells;
 use crate::spells::net::send_spell_result;
@@ -44,6 +44,12 @@ pub fn apply_spells(
     mut commands: Commands,
     mut q_players: AttackPlayerQuery,
     mut q_mobs: AttackMobQuery,
+    // Mob positions (same set as AttackMobQuery) for area spells — collect the entities in
+    // radius, then strike each via resolve_attack_hit.
+    mob_positions: Query<
+        (Entity, &GridPos),
+        (With<Health>, Without<PlayerSlotTag>, Without<GroundItem>),
+    >,
 ) {
     let db: &SpellDb = &ctx.db;
     let index: &EidIndex = &ctx.index;
@@ -85,6 +91,7 @@ pub fn apply_spells(
         let mana_cost = spell.mana_cost.unwrap_or(0) as i32;
         let power = spell.power.unwrap_or(0);
         let range = spell.range.unwrap_or(0) as i32;
+        let radius = spell.radius.unwrap_or(0) as i32;
         let cd_ms = spell.cooldown_ms.unwrap_or(0);
         let key = (slot.0, spell_ref.clone());
 
@@ -140,45 +147,93 @@ pub fn apply_spells(
                     cooldowns.0.insert(key, clock.tick + cooldown_ticks(cd_ms));
                 }
 
-                let reach = if range > 0 { range } else { combat::BOW_RANGE };
                 let caster_tile = q_players.get(player_entity).ok().map(|q| q.2.tile);
-                let mut hit: Option<Entity> = None;
-                if let (Some(ct), Some(te)) = (
-                    caster_tile,
-                    target_eid.and_then(|e| index.by_eid.get(&e).copied()),
-                ) && let Some(tt) = q_mobs.get(te).ok().map(|q| q.0.tile)
-                {
-                    let path = combat::line_cast(ct, tt, reach, |t| !map.is_walkable(t));
-                    if path.last().copied() == Some(tt) {
-                        hit = Some(te);
+                if radius > 0 {
+                    // Area storm: every mob within `radius` tiles of the caster is struck.
+                    let mut struck = 0;
+                    if let Some(ct) = caster_tile {
+                        let r2 = (radius as i64) * (radius as i64);
+                        let targets: Vec<Entity> = mob_positions
+                            .iter()
+                            .filter(|(_, gp)| {
+                                let dx = (gp.tile.x - ct.x) as i64;
+                                let dy = (gp.tile.y - ct.y) as i64;
+                                dx * dx + dy * dy <= r2
+                            })
+                            .map(|(e, _)| e)
+                            .collect();
+                        struck = targets.len();
+                        for te in targets {
+                            resolve_attack_hit(
+                                player_entity,
+                                te,
+                                slot,
+                                power,
+                                bcast,
+                                registry,
+                                clock,
+                                seed,
+                                config,
+                                equipment,
+                                &mut respawns,
+                                &mut kill_counts,
+                                &mut commands,
+                                &mut q_players,
+                                &mut q_mobs,
+                            );
+                        }
                     }
-                }
-
-                if let Some(te) = hit {
-                    resolve_attack_hit(
-                        player_entity,
-                        te,
-                        slot,
-                        power,
-                        bcast,
-                        registry,
-                        clock,
-                        seed,
-                        config,
-                        equipment,
-                        &mut respawns,
-                        &mut kill_counts,
-                        &mut commands,
-                        &mut q_players,
-                        &mut q_mobs,
-                    );
                     send_spell_result(
-                        bcast, slot, caster, target_eid, &spell_ref, "damage", power, true, "",
+                        bcast,
+                        slot,
+                        caster,
+                        None,
+                        &spell_ref,
+                        if struck > 0 { "damage" } else { "miss" },
+                        power,
+                        true,
+                        "",
                     );
                 } else {
-                    send_spell_result(
-                        bcast, slot, caster, target_eid, &spell_ref, "miss", 0, true, "",
-                    );
+                    let reach = if range > 0 { range } else { combat::BOW_RANGE };
+                    let mut hit: Option<Entity> = None;
+                    if let (Some(ct), Some(te)) = (
+                        caster_tile,
+                        target_eid.and_then(|e| index.by_eid.get(&e).copied()),
+                    ) && let Some(tt) = q_mobs.get(te).ok().map(|q| q.0.tile)
+                    {
+                        let path = combat::line_cast(ct, tt, reach, |t| !map.is_walkable(t));
+                        if path.last().copied() == Some(tt) {
+                            hit = Some(te);
+                        }
+                    }
+
+                    if let Some(te) = hit {
+                        resolve_attack_hit(
+                            player_entity,
+                            te,
+                            slot,
+                            power,
+                            bcast,
+                            registry,
+                            clock,
+                            seed,
+                            config,
+                            equipment,
+                            &mut respawns,
+                            &mut kill_counts,
+                            &mut commands,
+                            &mut q_players,
+                            &mut q_mobs,
+                        );
+                        send_spell_result(
+                            bcast, slot, caster, target_eid, &spell_ref, "damage", power, true, "",
+                        );
+                    } else {
+                        send_spell_result(
+                            bcast, slot, caster, target_eid, &spell_ref, "miss", 0, true, "",
+                        );
+                    }
                 }
 
                 if let Ok((_, _, _, stats, _, health, xp, _, mana, _, _)) =
