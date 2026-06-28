@@ -36,6 +36,12 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "hpRegen"))) Out.HpRegen = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 		if ((V = yyjson_obj_get(Obj, "mpRegen"))) Out.MpRegen = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 		if ((V = yyjson_obj_get(Obj, "epRegen"))) Out.EpRegen = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "specialAttack"))) Out.SpecialAttack = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "specialDefense"))) Out.SpecialDefense = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "accuracy"))) Out.Accuracy = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "evasion"))) Out.Evasion = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "critRate"))) Out.CritRate = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "critDamage"))) Out.CritDamage = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 	}
 
 	inline void Populate(FKBVEGenElementalAffinity& Out, yyjson_val* Obj)
@@ -101,6 +107,16 @@ namespace KBVENPCDBProto
 		}
 	}
 
+	inline void Populate(FKBVEGenStatChange& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "stat")) && yyjson_is_str(V)) Out.Stat = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "stages"))) Out.Stages = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "target")) && yyjson_is_str(V)) Out.Target = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "chance"))) Out.Chance = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+	}
+
 	inline void Populate(FKBVEGenNpcAbility& Out, yyjson_val* Obj)
 	{
 		if (!Obj || !yyjson_is_obj(Obj)) return;
@@ -118,6 +134,24 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "healAmount"))) Out.HealAmount = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "statusEffect"))) Out.StatusEffect = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "weight"))) Out.Weight = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "category")) && yyjson_is_str(V)) Out.Category = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "power"))) Out.Power = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "pp"))) Out.Pp = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "maxPp"))) Out.MaxPp = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "priority"))) Out.Priority = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "statusChance"))) Out.StatusChance = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "recoilFraction"))) Out.RecoilFraction = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "drainFraction"))) Out.DrainFraction = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "highCrit"))) Out.HighCrit = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
+		if ((V = yyjson_obj_get(Obj, "target")) && yyjson_is_str(V)) Out.Target = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "statChanges")) && yyjson_is_arr(V))
+		{
+			size_t Idx, Max; yyjson_val* Elem;
+			yyjson_arr_foreach(V, Idx, Max, Elem)
+			{
+				FKBVEGenStatChange ElemOut; Populate(ElemOut, Elem); Out.StatChanges.Add(MoveTemp(ElemOut));
+			}
+		}
 	}
 
 	inline void Populate(FKBVEGenIntentWeight& Out, yyjson_val* Obj)
@@ -392,6 +426,62 @@ namespace KBVENPCDBProto
 		}
 	}
 
+	inline void Populate(FKBVEGenPetMovepoolEntry& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "level"))) Out.Level = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "abilityId"))) Out.AbilityId = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+	}
+
+	inline void Populate(FKBVEGenPetEvolution& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "evolvesToRef"))) Out.EvolvesToRef = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+		if ((V = yyjson_obj_get(Obj, "level"))) Out.Level = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "itemRef"))) Out.ItemRef = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+		if ((V = yyjson_obj_get(Obj, "condition"))) Out.Condition = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+	}
+
+	inline void Populate(FKBVEGenPetInfo& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "catchable"))) Out.Catchable = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
+		if ((V = yyjson_obj_get(Obj, "captureRate"))) Out.CaptureRate = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "growthRate")) && yyjson_is_str(V)) Out.GrowthRate = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "baseXpYield"))) Out.BaseXpYield = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "baseFriendship"))) Out.BaseFriendship = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "genderRatio"))) Out.GenderRatio = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "movepool")) && yyjson_is_arr(V))
+		{
+			size_t Idx, Max; yyjson_val* Elem;
+			yyjson_arr_foreach(V, Idx, Max, Elem)
+			{
+				FKBVEGenPetMovepoolEntry ElemOut; Populate(ElemOut, Elem); Out.Movepool.Add(MoveTemp(ElemOut));
+			}
+		}
+		if ((V = yyjson_obj_get(Obj, "eggGroups")) && yyjson_is_arr(V))
+		{
+			size_t Idx, Max; yyjson_val* Elem;
+			yyjson_arr_foreach(V, Idx, Max, Elem)
+			{
+				Out.EggGroups.Add((yyjson_is_str(Elem) ? FString(UTF8_TO_TCHAR(yyjson_get_str(Elem))) : FString()));
+			}
+		}
+		if ((V = yyjson_obj_get(Obj, "evolutions")) && yyjson_is_arr(V))
+		{
+			size_t Idx, Max; yyjson_val* Elem;
+			yyjson_arr_foreach(V, Idx, Max, Elem)
+			{
+				FKBVEGenPetEvolution ElemOut; Populate(ElemOut, Elem); Out.Evolutions.Add(MoveTemp(ElemOut));
+			}
+		}
+		if ((V = yyjson_obj_get(Obj, "secondaryElement")) && yyjson_is_str(V)) Out.SecondaryElement = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "baseStatTotal"))) Out.BaseStatTotal = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+	}
+
 	inline void Populate(FKBVEGenNpcExtension& Out, yyjson_val* Obj)
 	{
 		if (!Obj || !yyjson_is_obj(Obj)) return;
@@ -546,6 +636,7 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "partyScaling"))) Populate(Out.PartyScaling, V);
 		if ((V = yyjson_obj_get(Obj, "spatial"))) Populate(Out.Spatial, V);
 		if ((V = yyjson_obj_get(Obj, "interaction"))) Populate(Out.Interaction, V);
+		if ((V = yyjson_obj_get(Obj, "pet"))) Populate(Out.Pet, V);
 		if ((V = yyjson_obj_get(Obj, "extensions")) && yyjson_is_arr(V))
 		{
 			size_t Idx, Max; yyjson_val* Elem;

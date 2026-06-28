@@ -28,6 +28,13 @@ export const EPHEMERAL_PROJECTILE = 12;
 export const EPHEMERAL_FLOOR = 13;
 export const EPHEMERAL_ITEM_PLACED = 14;
 export const EPHEMERAL_CORPSE = 16;
+export const EPHEMERAL_PET_BATTLE_LOG = 18;
+
+/** Result of a simulated debug pet battle: a turn log plus the outcome string. */
+export interface PetBattleLog {
+	lines: string[];
+	outcome: string;
+}
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -81,7 +88,8 @@ export type Input =
 	| { OpenCorpse: { corpse: number } }
 	| { TakeFromCorpse: { corpse: number; slot: number } }
 	| 'LaunchSpace'
-	| 'ReturnSpace';
+	| 'ReturnSpace'
+	| 'SimPetBattle';
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

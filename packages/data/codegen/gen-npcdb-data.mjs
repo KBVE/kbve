@@ -51,15 +51,20 @@ const outputJsonPath = resolve(generatedDir, 'npcdb-data.json');
 const outputBinPath = resolve(generatedDir, 'npcdb-data.binpb');
 
 const ENUM_PREFIX = {
-	personality:    'PERSONALITY_',
-	element:        'ELEMENT_',
-	rarity:         'NPC_RARITY_',
-	rank:           'NPC_RANK_',
-	creatureFamily: 'CREATURE_FAMILY_',
-	movementType:   'MOVEMENT_TYPE_',
-	difficulty:     'DIFFICULTY_',
-	slot:           'EQUIP_SLOT_',
-	anim:           'SPRITE_ANIM_',
+	personality:      'PERSONALITY_',
+	element:          'ELEMENT_',
+	secondaryElement: 'ELEMENT_',
+	rarity:           'NPC_RARITY_',
+	rank:             'NPC_RANK_',
+	creatureFamily:   'CREATURE_FAMILY_',
+	movementType:     'MOVEMENT_TYPE_',
+	difficulty:       'DIFFICULTY_',
+	slot:             'EQUIP_SLOT_',
+	anim:             'SPRITE_ANIM_',
+	growthRate:       'GROWTH_RATE_',
+	category:         'MOVE_CATEGORY_',
+	target:           'MOVE_TARGET_',
+	stat:             'STAT_KIND_',
 };
 
 const ASTRO_ONLY_FIELDS = new Set([

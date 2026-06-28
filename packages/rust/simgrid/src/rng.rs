@@ -17,6 +17,7 @@
 /// RNG domain tags. Frozen FourCC values — the client mirror must match.
 pub mod domain {
     pub const COMBAT: u32 = u32::from_be_bytes(*b"COMB");
+    pub const PETBATTLE: u32 = u32::from_be_bytes(*b"PBTL");
     pub const DUNGEON: u32 = u32::from_be_bytes(*b"DUNG");
     pub const WANDER: u32 = u32::from_be_bytes(*b"WAND");
     pub const LOOT: u32 = u32::from_be_bytes(*b"LOOT");

@@ -169,6 +169,11 @@ pub enum PilotOp {
 #[derive(Resource, Default)]
 pub struct PendingPilotOps(pub Vec<(proto::PlayerSlot, PilotOp)>);
 
+/// Slots that requested a debug pet-battle simulation this frame. Drained by the
+/// game-server `apply_pet_battles` system (which owns the npcdb species data).
+#[derive(Resource, Default)]
+pub struct PendingPetBattles(pub Vec<proto::PlayerSlot>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -179,6 +184,7 @@ pub struct DeployQueues<'w> {
     spells: ResMut<'w, crate::spells::PendingSpells>,
     corpse_ops: ResMut<'w, PendingCorpseOps>,
     pilot_ops: ResMut<'w, PendingPilotOps>,
+    pet_battles: ResMut<'w, PendingPetBattles>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1391,6 +1397,8 @@ pub fn build_app(
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
         .insert_resource(PendingItems::default())
+        .insert_resource(crate::pets::PendingPets::default())
+        .insert_resource(PendingPetBattles::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1481,6 +1489,7 @@ pub fn build_app(
     // Clear the per-frame just-spawned-item overlay after everything has run + the
     // commands that spawned them flush, so next frame those entities are real.
     app.add_systems(bevy::prelude::Last, clear_pending_items);
+    app.add_systems(bevy::prelude::Last, crate::pets::clear_pending_pets);
     blackjack::plugin(&mut app);
     crate::trade::plugin(&mut app);
     crate::shop::plugin(&mut app);
@@ -1911,6 +1920,7 @@ fn drain_inputs(
                 Input::Insure { amount } => {
                     blackjack_inputs.0.push((slot, BjInput::Insure { amount }))
                 }
+                Input::SimPetBattle => deploy.pet_battles.0.push(slot),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2125,7 +2135,8 @@ fn drain_inputs(
                 | Input::LeaveTable
                 | Input::PlaceBet { .. }
                 | Input::BjAction { .. }
-                | Input::Insure { .. } => {}
+                | Input::Insure { .. }
+                | Input::SimPetBattle => {}
             }
         }
     }
