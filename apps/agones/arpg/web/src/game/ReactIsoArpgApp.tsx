@@ -15,6 +15,7 @@ import ArpgBootOverlay from './ArpgBootOverlay';
 import ArpgConnectionStatus from './ArpgConnectionStatus';
 import ArpgStairGuide from './ArpgStairGuide';
 import { SpaceMode } from './space/SpaceMode';
+import { onSpaceEnter, onSpaceExit } from './systems/hud';
 import { COLORS, DEBUG_HUD, resolveWsUrl } from './config';
 import { buildNetConfig, getNetConfig, setNetConfig } from './net-config';
 import { authBridge } from '../lib/auth';
@@ -46,6 +47,14 @@ export default function ReactIsoArpgApp({
 		'loading',
 	);
 	const [glState, setGlState] = useState<'ok' | 'lost' | 'unsupported'>('ok');
+	// Phaser GPU lifecycle while space mode is active: its canvas is fully covered
+	// and its scene paused, so we release the WebGL context AND sleep the render
+	// loop to free the GPU/CPU for the R3F space scene (and, on Discord's
+	// context-limited webview, to free the one slot it can spare). `glSuspended`
+	// gates the context guard so this deliberate loss doesn't raise the lost overlay.
+	const glSuspended = useRef(false);
+	const phaserCanvasRef = useRef<HTMLCanvasElement | null>(null);
+	const loseExtRef = useRef<WEBGL_lose_context | null>(null);
 
 	const getDimensions = useCallback(() => {
 		const container = document.getElementById(CONTAINER_ID);
@@ -133,9 +142,19 @@ export default function ReactIsoArpgApp({
 		gameRef.current.events.once(Phaser.Core.Events.READY, () => {
 			const canvas = gameRef.current?.canvas;
 			if (!canvas) return;
+			phaserCanvasRef.current = canvas;
+			const gl = (canvas.getContext('webgl2') ||
+				canvas.getContext('webgl')) as WebGLRenderingContext | null;
+			loseExtRef.current = gl?.getExtension('WEBGL_lose_context') ?? null;
 			disposeGuard = installWebGLContextGuard(canvas, {
-				onLost: () => setGlState('lost'),
-				onRestored: () => setGlState('ok'),
+				// Ignore the loss/restore we trigger ourselves while space mode owns
+				// the GPU — only a real, unexpected context loss should raise the overlay.
+				onLost: () => {
+					if (!glSuspended.current) setGlState('lost');
+				},
+				onRestored: () => {
+					if (!glSuspended.current) setGlState('ok');
+				},
 			});
 		});
 
@@ -159,6 +178,34 @@ export default function ReactIsoArpgApp({
 			}
 		};
 	}, [phase, getDimensions]);
+
+	// Free the Phaser GPU/loop while the R3F space scene is up, restore on return.
+	useEffect(() => {
+		const suspend = () => {
+			const game = gameRef.current;
+			if (!game || glSuspended.current) return;
+			glSuspended.current = true;
+			if (phaserCanvasRef.current)
+				phaserCanvasRef.current.style.visibility = 'hidden';
+			game.loop.sleep();
+			loseExtRef.current?.loseContext();
+		};
+		const resume = () => {
+			const game = gameRef.current;
+			if (!game || !glSuspended.current) return;
+			loseExtRef.current?.restoreContext();
+			game.loop.wake();
+			if (phaserCanvasRef.current)
+				phaserCanvasRef.current.style.visibility = '';
+			glSuspended.current = false;
+		};
+		const offEnter = onSpaceEnter(suspend);
+		const offExit = onSpaceExit(resume);
+		return () => {
+			offEnter();
+			offExit();
+		};
+	}, []);
 
 	const signIn = useCallback(
 		async (provider: 'github' | 'discord' | 'twitch') => {

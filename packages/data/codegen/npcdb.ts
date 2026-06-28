@@ -31,6 +31,7 @@ export type {
 const ENUM_PREFIX: Record<string, string> = {
 	personality: 'PERSONALITY_',
 	element: 'ELEMENT_',
+	secondaryElement: 'ELEMENT_',
 	rarity: 'NPC_RARITY_',
 	rank: 'NPC_RANK_',
 	creatureFamily: 'CREATURE_FAMILY_',
@@ -38,6 +39,10 @@ const ENUM_PREFIX: Record<string, string> = {
 	difficulty: 'DIFFICULTY_',
 	slot: 'EQUIP_SLOT_',
 	anim: 'SPRITE_ANIM_',
+	growthRate: 'GROWTH_RATE_',
+	category: 'MOVE_CATEGORY_',
+	target: 'MOVE_TARGET_',
+	stat: 'STAT_KIND_',
 };
 
 function camelToSnake(key: string): string {
