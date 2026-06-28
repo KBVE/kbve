@@ -302,6 +302,7 @@ function PetBattleScene({
 
 	const v = viewAt(replay, step);
 	const done = step >= last;
+	const empty = replay.events.length === 0;
 	const pTeam = replay.player[v.pa];
 	const eTeam = replay.enemy[v.ea];
 
@@ -364,12 +365,14 @@ function PetBattleScene({
 					gap: 12,
 				}}>
 				<span style={{ fontSize: 14 }}>
-					{done
-						? `Battle over — ${outcomeLabel(replay.outcome)}`
-						: v.text}
+					{empty
+						? 'No battle data received — the server may be out of date.'
+						: done
+							? `Battle over — ${outcomeLabel(replay.outcome)}`
+							: v.text}
 				</span>
 				<span style={{ display: 'flex', gap: 8 }}>
-					{!done && (
+					{!done && !empty && (
 						<BattleButton
 							label="Skip ▶▶"
 							onClick={() => setStep(last)}
@@ -404,6 +407,7 @@ function Battler({
 	shake: boolean;
 	foe?: boolean;
 }) {
+	const [imgBroken, setImgBroken] = useState(false);
 	if (!battler) return null;
 	const pct = Math.max(
 		0,
@@ -424,18 +428,39 @@ function Battler({
 					display: 'inline-block',
 					animation: shake ? 'arpgHitShake 0.3s ease' : 'none',
 				}}>
-				<img
-					src={SPRITE_OF(battler.species_ref)}
-					alt={battler.nickname}
-					width={96}
-					height={96}
-					style={{
-						imageRendering: 'pixelated',
-						transform: foe ? 'scaleX(-1)' : 'none',
-						filter:
-							hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
-					}}
-				/>
+				{imgBroken ? (
+					<span
+						aria-label={battler.nickname}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							width: 96,
+							height: 96,
+							fontSize: 40,
+							borderRadius: 12,
+							background: 'rgba(110,168,255,0.12)',
+							border: '1px dashed #6ea8ff',
+							filter:
+								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
+						}}>
+						🐾
+					</span>
+				) : (
+					<img
+						src={SPRITE_OF(battler.species_ref)}
+						alt={battler.nickname}
+						width={96}
+						height={96}
+						onError={() => setImgBroken(true)}
+						style={{
+							imageRendering: 'pixelated',
+							transform: foe ? 'scaleX(-1)' : 'none',
+							filter:
+								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
+						}}
+					/>
+				)}
 			</span>
 			<div style={{ minWidth: 180 }}>
 				<div
