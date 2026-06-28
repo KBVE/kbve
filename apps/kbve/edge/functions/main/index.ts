@@ -14,6 +14,15 @@ const JWT_SECRET = VERIFY_JWT
   : Deno.env.get("JWT_SECRET");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+// Accept-both for the HS256 -> ES256 migration: ES256 tokens validate against
+// GoTrue's JWKS (SUPABASE_JWKS_URI, else derived from SUPABASE_URL); legacy
+// HS256 against the shared secret. JWKS absent -> HS256 only.
+const JWKS_URI =
+  Deno.env.get("SUPABASE_JWKS_URI") ||
+  (SUPABASE_URL
+    ? `${SUPABASE_URL.replace(/\/+$/, "")}/auth/v1/.well-known/jwks.json`
+    : "");
+const JWKS = JWKS_URI ? jose.createRemoteJWKSet(new URL(JWKS_URI)) : undefined;
 const PUBLIC_ROUTES = new Set(["health", "gh-webhook"]);
 const STAFF_ROUTES = new Set(["argo"]);
 
@@ -51,10 +60,15 @@ function getAuthToken(req: Request) {
 }
 
 async function verifyJWT(jwt: string): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const secretKey = encoder.encode(JWT_SECRET);
   try {
-    await jose.jwtVerify(jwt, secretKey);
+    const { alg } = jose.decodeProtectedHeader(jwt);
+    if (alg === "HS256") {
+      await jose.jwtVerify(jwt, new TextEncoder().encode(JWT_SECRET));
+    } else if (JWKS) {
+      await jose.jwtVerify(jwt, JWKS);
+    } else {
+      return false;
+    }
   } catch (err) {
     logError("main.verifyJWT", err);
     return false;
