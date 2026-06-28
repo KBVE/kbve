@@ -142,8 +142,22 @@ function castBolt(
 	trail.setDepth(DEPTH_PROJECTILE);
 	trail.startFollow(core);
 
+	// DEBUG: GREEN box follows the travelling bolt (its origin/travel animation);
+	// YELLOW box marks the destination (the impact/burst animation). Remove once the
+	// offset is diagnosed.
+	const dbgTravel = scene.add
+		.rectangle(a.x, a.y, 30, 30)
+		.setStrokeStyle(2, 0x22c55e)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
+	const dbgImpact = scene.add
+		.rectangle(b.x, b.y, 30, 30)
+		.setStrokeStyle(2, 0xeab308)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
+
 	scene.tweens.add({
-		targets: core,
+		targets: [core, dbgTravel],
 		x: b.x,
 		y: b.y,
 		duration,
@@ -153,6 +167,10 @@ function castBolt(
 			burst(scene, b.x, b.y, style.ramp);
 			core.destroy();
 			scene.time.delayedCall(400, () => trail.destroy());
+			scene.time.delayedCall(900, () => {
+				dbgTravel.destroy();
+				dbgImpact.destroy();
+			});
 		},
 	});
 }
