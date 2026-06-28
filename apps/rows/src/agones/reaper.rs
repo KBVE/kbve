@@ -13,25 +13,49 @@ pub enum ReapReason {
     Stale,
 }
 
+/// Inputs to [`reap_decision`]. A named struct rather than a 14-arg positional call: the original
+/// signature packed several adjacent `i64`/`bool`/`Option<NaiveDateTime>` params (`stale_secs`,
+/// `min_empty_secs`, `allow_never_reported`, `empty_fresh_secs`, `is_draining`, `drain_deadline`),
+/// any two of which could be silently transposed at a call site with no type error. All fields are
+/// `Copy`, so `reap_decision` destructures by value and the policy body is unchanged.
+#[derive(Debug, Clone, Copy)]
+pub struct ReapInputs {
+    pub player_count: i32,
+    pub last_update_from_server: Option<NaiveDateTime>,
+    pub last_server_empty_date: Option<NaiveDateTime>,
+    pub create_date: Option<NaiveDateTime>,
+    pub minutes_to_shutdown_after_empty: i32,
+    pub boot_grace_secs: i64,
+    pub empty_buffer_secs: i64,
+    pub stale_secs: i64,
+    pub min_empty_secs: i64,
+    pub allow_never_reported: bool,
+    pub empty_fresh_secs: i64,
+    pub is_draining: bool,
+    pub drain_deadline: Option<NaiveDateTime>,
+    pub now: NaiveDateTime,
+}
+
 /// Pure policy: should this instance be torn down, and why?
 /// `None` = keep. The server's own `SDK.Shutdown()` is the primary path; this is the backstop.
-#[allow(clippy::too_many_arguments)]
-pub fn reap_decision(
-    player_count: i32,
-    last_update_from_server: Option<NaiveDateTime>,
-    last_server_empty_date: Option<NaiveDateTime>,
-    create_date: Option<NaiveDateTime>,
-    minutes_to_shutdown_after_empty: i32,
-    boot_grace_secs: i64,
-    empty_buffer_secs: i64,
-    stale_secs: i64,
-    min_empty_secs: i64,
-    allow_never_reported: bool,
-    empty_fresh_secs: i64,
-    is_draining: bool,
-    drain_deadline: Option<NaiveDateTime>,
-    now: NaiveDateTime,
-) -> Option<ReapReason> {
+pub fn reap_decision(i: &ReapInputs) -> Option<ReapReason> {
+    let &ReapInputs {
+        player_count,
+        last_update_from_server,
+        last_server_empty_date,
+        create_date,
+        minutes_to_shutdown_after_empty,
+        boot_grace_secs,
+        empty_buffer_secs,
+        stale_secs,
+        min_empty_secs,
+        allow_never_reported,
+        empty_fresh_secs,
+        is_draining,
+        drain_deadline,
+        now,
+    } = i;
+
     if player_count > 0 {
         // Layer 5: crashed-while-populated. The instance still claims players, but its heartbeat
         // has gone silent past `stale_secs` — once heartbeats are reliably live (opt-in
@@ -59,13 +83,25 @@ pub fn reap_decision(
                 return Some(ReapReason::Stale);
             }
         }
-        // (b) Lost-liveness: when the freshness gate is active, a draining server whose heartbeat is
-        // stale OR never arrived has crashed — reap it. When the gate is off (empty_fresh_secs == 0)
-        // there is no trusted liveness signal, so exempt and let the deadline / v2 cross-check act.
+        // (b) Lost-liveness: when the freshness gate is active, a draining server whose heartbeat
+        // went stale has crashed — reap it. When the gate is off (empty_fresh_secs == 0) there is no
+        // trusted liveness signal, so exempt and let the deadline / v2 cross-check act.
         if empty_fresh_secs > 0 {
             match last_update_from_server {
-                Some(last) if (now - last).num_seconds() <= empty_fresh_secs => {} // alive + draining -> exempt
-                _ => return Some(ReapReason::Stale),
+                // alive + draining -> exempt
+                Some(last) if (now - last).num_seconds() <= empty_fresh_secs => {}
+                // had a heartbeat that then went stale -> crashed mid-drain
+                Some(_) => return Some(ReapReason::Stale),
+                // never reported: respect boot grace before declaring it crashed (mirrors the
+                // non-draining never-reported path). A server told to drain during boot may not have
+                // sent its first heartbeat yet; only past boot grace is a missing heartbeat a crash.
+                None => {
+                    if let Some(created) = create_date {
+                        if (now - created).num_seconds() > boot_grace_secs {
+                            return Some(ReapReason::Stale);
+                        }
+                    }
+                }
             }
         }
         return None;
@@ -172,27 +208,38 @@ mod tests {
         NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").unwrap()
     }
 
+    /// Neutral baseline: 0 players, no heartbeat/empty marker, gates off, not draining. Each test
+    /// overrides only the fields it exercises via `..base(now)`, so a test reads as the delta from
+    /// "nothing reapable" — and there are no positional args to transpose.
+    fn base(now: NaiveDateTime) -> ReapInputs {
+        ReapInputs {
+            player_count: 0,
+            last_update_from_server: None,
+            last_server_empty_date: None,
+            create_date: None,
+            minutes_to_shutdown_after_empty: 1,
+            boot_grace_secs: 600,
+            empty_buffer_secs: 30,
+            stale_secs: 0,
+            min_empty_secs: 0,
+            allow_never_reported: false,
+            empty_fresh_secs: 0,
+            is_draining: false,
+            drain_deadline: None,
+            now,
+        }
+    }
+
     // never-reported allowed: NULL last_update, created longer ago than boot grace -> reap
     #[test]
     fn never_reported_past_grace_is_reaped_when_allowed() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:40:00"); // 20 min ago
-        let d = reap_decision(
-            0,
-            None,
-            None,
-            Some(created),
-            1,
-            600,
-            30,
-            0,
-            0,
-            true,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            create_date: Some(created),
+            allow_never_reported: true,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::NeverReported));
     }
 
@@ -201,22 +248,10 @@ mod tests {
     fn never_reported_is_kept_when_gated_off() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:40:00"); // 20 min ago, well past grace
-        let d = reap_decision(
-            0,
-            None,
-            None,
-            Some(created),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            create_date: Some(created),
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -225,22 +260,12 @@ mod tests {
     fn never_reported_within_grace_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let created = ts("2026-06-23 11:55:00"); // 5 min ago, grace 10 min
-        let d = reap_decision(
-            0,
-            None,
-            Some(ts("2026-06-23 11:55:00")),
-            Some(created),
-            1,
-            600,
-            30,
-            0,
-            0,
-            true,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_server_empty_date: Some(ts("2026-06-23 11:55:00")),
+            create_date: Some(created),
+            allow_never_reported: true,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -249,22 +274,12 @@ mod tests {
     fn empty_past_timeout_is_reaped() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; 1 min(60s)+30s buffer = 90s
-        let d = reap_decision(
-            0,
-            Some(now),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
@@ -273,22 +288,12 @@ mod tests {
     fn empty_within_timeout_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:59:30"); // empty 30s < 90s
-        let d = reap_decision(
-            0,
-            Some(now),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -296,22 +301,13 @@ mod tests {
     #[test]
     fn populated_is_never_reaped() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(
-            5,
-            Some(now),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            true,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(now),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            allow_never_reported: true,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -319,22 +315,12 @@ mod tests {
     #[test]
     fn zero_players_without_empty_marker_is_kept() {
         let now = ts("2026-06-23 12:00:00");
-        let d = reap_decision(
-            0,
-            Some(now),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            true,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            allow_never_reported: true,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -343,22 +329,13 @@ mod tests {
     fn stale_populated_is_reaped_when_enabled() {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:56:40"); // 200s ago > stale_secs 120
-        let d = reap_decision(
-            5,
-            Some(last),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            120,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            stale_secs: 120,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Stale));
     }
 
@@ -367,22 +344,12 @@ mod tests {
     fn stale_populated_is_kept_when_disabled() {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:56:40"); // 200s ago, but stale_secs 0 = off
-        let d = reap_decision(
-            5,
-            Some(last),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -391,22 +358,13 @@ mod tests {
     fn populated_with_recent_heartbeat_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:59:00"); // 60s ago < stale_secs 120
-        let d = reap_decision(
-            5,
-            Some(last),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            120,
-            0,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            stale_secs: 120,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -415,22 +373,13 @@ mod tests {
     fn empty_within_floor_is_kept() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:58:00"); // empty 120s; limit max(90, 300) = 300
-        let d = reap_decision(
-            0,
-            Some(now),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            300,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            min_empty_secs: 300,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -439,22 +388,13 @@ mod tests {
     fn empty_past_floor_is_reaped() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:53:20"); // empty 400s > floor 300
-        let d = reap_decision(
-            0,
-            Some(now),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            300,
-            false,
-            0,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            min_empty_secs: 300,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
@@ -465,22 +405,13 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:55:00"); // 300s ago; empty_fresh_secs 120 -> stale
         let empty_since = ts("2026-06-23 11:50:00"); // empty 600s >> limit
-        let d = reap_decision(
-            0,
-            Some(last),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            120,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 120,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -490,22 +421,13 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:59:30"); // 30s ago; fresh within 120
         let empty_since = ts("2026-06-23 11:58:00"); // empty 120s > 90 limit
-        let d = reap_decision(
-            0,
-            Some(last),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            120,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 120,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Empty));
     }
 
@@ -517,22 +439,14 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:59:00"); // 60s ago, fresh (< 180)
         let empty_since = ts("2026-06-23 11:58:00");
-        let d = reap_decision(
-            0,
-            Some(last),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            180,
-            true,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 180,
+            is_draining: true,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -542,22 +456,14 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:55:00"); // 300s ago > empty_fresh 180
         let empty_since = ts("2026-06-23 11:58:00");
-        let d = reap_decision(
-            0,
-            Some(last),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            180,
-            true,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 180,
+            is_draining: true,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Stale));
     }
 
@@ -567,22 +473,14 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:59:30"); // fresh
         let deadline = ts("2026-06-23 11:59:00"); // already passed
-        let d = reap_decision(
-            0,
-            Some(last),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            180,
-            true,
-            Some(deadline),
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 180,
+            is_draining: true,
+            drain_deadline: Some(deadline),
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Stale));
     }
 
@@ -591,22 +489,13 @@ mod tests {
     fn draining_exempt_when_liveness_gate_off() {
         let now = ts("2026-06-23 12:00:00");
         let empty_since = ts("2026-06-23 11:58:00");
-        let d = reap_decision(
-            0,
-            Some(now),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            0,
-            true,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(now),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            is_draining: true,
+            ..base(now)
+        });
         assert_eq!(d, None);
     }
 
@@ -615,22 +504,43 @@ mod tests {
     fn draining_populated_stale_is_reaped() {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:56:40"); // 200s ago > stale_secs 120
-        let d = reap_decision(
-            5,
-            Some(last),
-            None,
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            120,
-            0,
-            false,
-            0,
-            true,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            stale_secs: 120,
+            is_draining: true,
+            ..base(now)
+        });
+        assert_eq!(d, Some(ReapReason::Stale));
+    }
+
+    // draining + never-reported + liveness gate ON, still inside boot grace -> KEEP. A server told to
+    // drain during boot may not have sent its first heartbeat yet; don't reap it as "lost liveness".
+    #[test]
+    fn draining_never_reported_within_boot_grace_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let created = ts("2026-06-23 11:58:00"); // 2 min ago, boot grace 10 min
+        let d = reap_decision(&ReapInputs {
+            create_date: Some(created),
+            empty_fresh_secs: 180,
+            is_draining: true,
+            ..base(now)
+        });
+        assert_eq!(d, None);
+    }
+
+    // draining + never-reported + liveness gate ON, past boot grace -> reaped (genuinely crashed)
+    #[test]
+    fn draining_never_reported_past_boot_grace_is_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let created = ts("2026-06-23 11:40:00"); // 20 min ago > boot grace 10 min
+        let d = reap_decision(&ReapInputs {
+            create_date: Some(created),
+            empty_fresh_secs: 180,
+            is_draining: true,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Stale));
     }
 
@@ -640,22 +550,13 @@ mod tests {
         let now = ts("2026-06-23 12:00:00");
         let last = ts("2026-06-23 11:59:30"); // fresh, so the empty path isn't freshness-gated
         let empty_since = ts("2026-06-23 11:58:00");
-        let d = reap_decision(
-            0,
-            Some(last),
-            Some(empty_since),
-            Some(ts("2026-06-23 10:00:00")),
-            1,
-            600,
-            30,
-            0,
-            0,
-            false,
-            180,
-            false,
-            None,
-            now,
-        );
+        let d = reap_decision(&ReapInputs {
+            last_update_from_server: Some(last),
+            last_server_empty_date: Some(empty_since),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            empty_fresh_secs: 180,
+            ..base(now)
+        });
         assert_eq!(d, Some(ReapReason::Empty));
     }
 

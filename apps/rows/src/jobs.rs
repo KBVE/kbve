@@ -395,22 +395,22 @@ async fn run_reap_cycle(
     // so the Empty reap silently never fires — surface it instead of looking like "nothing to reap".
     let mut retained_stale_empty: u32 = 0;
     for inst in &candidates {
-        let Some(reason) = reap_decision(
-            inst.number_of_reported_players,
-            inst.last_update_from_server,
-            inst.last_server_empty_date,
-            inst.create_date,
-            inst.minutes_to_shutdown_after_empty,
-            reaper.boot_grace_secs,
-            reaper.buffer_secs,
-            reaper.stale_secs,
-            reaper.min_empty_secs,
+        let Some(reason) = reap_decision(&crate::agones::reaper::ReapInputs {
+            player_count: inst.number_of_reported_players,
+            last_update_from_server: inst.last_update_from_server,
+            last_server_empty_date: inst.last_server_empty_date,
+            create_date: inst.create_date,
+            minutes_to_shutdown_after_empty: inst.minutes_to_shutdown_after_empty,
+            boot_grace_secs: reaper.boot_grace_secs,
+            empty_buffer_secs: reaper.buffer_secs,
+            stale_secs: reaper.stale_secs,
+            min_empty_secs: reaper.min_empty_secs,
             allow_never_reported,
-            reaper.empty_fresh_secs,
-            inst.drain_state.is_some(), // NULL = not draining; any stored value (1|2) = draining
-            inst.drain_deadline,
+            empty_fresh_secs: reaper.empty_fresh_secs,
+            is_draining: inst.drain_state.is_some(), // NULL = not draining; any stored value (1|2) = draining
+            drain_deadline: inst.drain_deadline,
             now,
-        ) else {
+        }) else {
             if crate::agones::reaper::retained_due_to_stale_heartbeat(
                 inst.number_of_reported_players,
                 inst.last_update_from_server,

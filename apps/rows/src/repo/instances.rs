@@ -54,6 +54,46 @@ pub fn join_candidate_key(
     }
 }
 
+/// Domain-validates a drain request before it reaches the DB. `state ∈ {1,2}` (1=draining,
+/// 2=saving) and `urgency ∈ {0,1}` (0=when_able, 1=asap) mirror the migration's
+/// `CHECK (DrainState IN (1,2))`. Without this, an out-of-domain `state` surfaces as a generic
+/// `Database` 500 from the CHECK violation; rejecting here gives the caller a clean `BadRequest`
+/// (and catches a bad `urgency`, which the DB has no constraint for at all).
+pub fn validate_drain_request(state: i16, urgency: i16) -> Result<(), RowsError> {
+    if !matches!(state, 1 | 2) {
+        return Err(RowsError::BadRequest(format!(
+            "invalid drain state {state} (expected 1=draining or 2=saving)"
+        )));
+    }
+    if !matches!(urgency, 0 | 1) {
+        return Err(RowsError::BadRequest(format!(
+            "invalid drain urgency {urgency} (expected 0=when_able or 1=asap)"
+        )));
+    }
+    Ok(())
+}
+
+/// Composite drain "severity" for the monotonic (escalate-only) guard in [`InstanceRepo::set_drain_state`].
+/// Higher = more aggressive drain. `state` dominates (2=saving outranks 1=draining), then `urgency`
+/// (asap > when_able), then `drop_players`. A not-draining row (`NULL` state) is the lowest. This
+/// closes the hole where guarding on `urgency` alone let an equal-urgency request *downgrade*
+/// `saving → draining` (re-admitting joins). The SQL guard recomputes the stored row's severity with
+/// the SAME weights inline — keep the two formulas in lockstep.
+pub fn drain_severity(
+    drain_state: Option<i16>,
+    drain_urgency: Option<i16>,
+    drain_drop_players: Option<bool>,
+) -> i32 {
+    match drain_state {
+        None => -1, // not draining -> lowest
+        Some(s) => {
+            (s as i32) * 100
+                + (drain_urgency.unwrap_or(0) as i32) * 10
+                + i32::from(drain_drop_players.unwrap_or(false))
+        }
+    }
+}
+
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
 impl<'a> InstanceRepo<'a> {
@@ -135,10 +175,14 @@ impl<'a> InstanceRepo<'a> {
         _char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        // Fetch ALL ready candidates for the zone (per-zone count is small) and pick the winner with
-        // the pure, unit-tested `join_candidate_key` — drain eligibility/ranking lives in Rust, not
-        // SQL, so it can't silently mis-rank. The explicit drain columns make this read
-        // migration-gated (see the drain migration); that ordering is the operator procedure.
+        // Fetch the ready candidates for the zone and pick the winner with the pure, unit-tested
+        // `join_candidate_key` — drain eligibility/ranking lives in Rust, not SQL, so it can't
+        // silently mis-rank. Bounded by `ORDER BY … LIMIT` so a pathological zone (a spin-up storm
+        // leaving hundreds of `status=2` rows) can't make this hot path transfer/allocate unbounded
+        // rows. The ORDER mirrors `join_candidate_key`'s tiers — healthy first (`drainstate IS NULL`
+        // sorts before NOT NULL), then fewest players — so truncation only ever drops rows Rust
+        // would also rank last. The explicit drain columns make this read migration-gated (see the
+        // drain migration); that ordering is the operator procedure.
         let candidates: Vec<JoinCandidateRow> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
@@ -161,7 +205,9 @@ impl<'a> InstanceRepo<'a> {
              JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
              JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
              JOIN customers c ON c.customerguid = m.customerguid
-             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2",
+             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
+             ORDER BY (mi.drainstate IS NOT NULL), mi.numberofreportedplayers ASC
+             LIMIT 128",
         )
         .bind(customer_guid)
         .bind(zone_name)
@@ -450,10 +496,14 @@ impl<'a> InstanceRepo<'a> {
     /// (ready) so existing players keep playing; routing (`join_candidate_key`) and the reaper
     /// (`reap_decision`) consult `drainstate`.
     ///
-    /// **Monotonic (escalate-only):** the WHERE guard refuses to *downgrade* an in-flight drain
-    /// (a late `when_able` can't relax an active `asap`). `rows_affected == 0` therefore means
-    /// either the instance is gone OR the guard rejected a downgrade — callers distinguish via a
-    /// prior read.
+    /// **Monotonic (escalate-only):** the WHERE guard refuses to *downgrade* an in-flight drain. It
+    /// compares the stored row's composite [`drain_severity`] (state ≫ urgency ≫ drop) against the
+    /// request's, so neither a late `when_able` can relax an active `asap` NOR an equal-urgency
+    /// request can walk `saving` back to `draining`. `rows_affected == 0` therefore means either the
+    /// instance is gone OR the guard rejected a downgrade — callers distinguish via a prior read.
+    ///
+    /// Rejects an out-of-domain `state`/`urgency` as `BadRequest` up front (see
+    /// [`validate_drain_request`]) instead of letting the DB CHECK surface a 500.
     ///
     /// **UTC contract:** `deadline` is a naive `TIMESTAMP` compared against `Utc::now().naive_utc()`
     /// in `reap_decision`, so callers MUST pass a UTC-naive value. A `NaiveDateTime` carries no
@@ -470,12 +520,18 @@ impl<'a> InstanceRepo<'a> {
         request_id: Uuid,
         deadline: Option<chrono::NaiveDateTime>,
     ) -> Result<u64, RowsError> {
+        validate_drain_request(state, urgency)?;
+        let new_severity = drain_severity(Some(state), Some(urgency), Some(drop_players));
         let result = sqlx::query(
             "UPDATE mapinstances
              SET drainstate = $3, drainurgency = $4, draindropplayers = $5,
                  drainreason = $6, drainrequestid = $7, draindeadline = $8
              WHERE customerguid = $1 AND mapinstanceid = $2
-               AND (drainstate IS NULL OR COALESCE(drainurgency, -1) <= $4)",
+               AND COALESCE(
+                     drainstate * 100 + COALESCE(drainurgency, 0) * 10
+                       + COALESCE(draindropplayers::int, 0),
+                     -1
+                   ) <= $9",
         )
         .bind(customer_guid)
         .bind(map_instance_id)
@@ -485,6 +541,7 @@ impl<'a> InstanceRepo<'a> {
         .bind(reason)
         .bind(request_id)
         .bind(deadline)
+        .bind(new_severity)
         .execute(self.0)
         .await?;
         Ok(result.rows_affected())
@@ -995,7 +1052,79 @@ impl<'a> InstanceRepo<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::join_candidate_key;
+    use super::{drain_severity, join_candidate_key, validate_drain_request};
+    use crate::error::RowsError;
+
+    #[test]
+    fn validate_drain_request_accepts_in_domain() {
+        for state in [1i16, 2] {
+            for urgency in [0i16, 1] {
+                assert!(
+                    validate_drain_request(state, urgency).is_ok(),
+                    "{state}/{urgency}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn validate_drain_request_rejects_out_of_domain() {
+        // state 0 (the dead semantic the migration CHECK forbids) and 3 -> BadRequest, not a DB 500
+        assert!(matches!(
+            validate_drain_request(0, 0),
+            Err(RowsError::BadRequest(_))
+        ));
+        assert!(matches!(
+            validate_drain_request(3, 0),
+            Err(RowsError::BadRequest(_))
+        ));
+        // urgency out of {0,1} -> BadRequest (the DB has no CHECK for urgency at all)
+        assert!(matches!(
+            validate_drain_request(1, 2),
+            Err(RowsError::BadRequest(_))
+        ));
+        assert!(matches!(
+            validate_drain_request(1, -1),
+            Err(RowsError::BadRequest(_))
+        ));
+    }
+
+    #[test]
+    fn drain_severity_state_dominates_urgency() {
+        // The regression that motivated this: saving(2) outranks draining(1) EVEN at higher urgency,
+        // so the monotonic guard rejects a saving -> draining walk-back at equal-or-any urgency.
+        let saving = drain_severity(Some(2), Some(0), Some(false));
+        let draining_asap = drain_severity(Some(1), Some(1), Some(true));
+        assert!(
+            saving > draining_asap,
+            "saving must outrank any draining tier"
+        );
+        // equal-urgency downgrade saving -> draining is a strict severity DROP (guard would reject)
+        assert!(
+            drain_severity(Some(2), Some(0), Some(false))
+                > drain_severity(Some(1), Some(0), Some(false))
+        );
+    }
+
+    #[test]
+    fn drain_severity_orders_within_state() {
+        // not draining is the floor
+        assert_eq!(drain_severity(None, None, None), -1);
+        // urgency escalates, then drop escalates
+        assert!(
+            drain_severity(Some(1), Some(0), Some(false))
+                < drain_severity(Some(1), Some(0), Some(true))
+        );
+        assert!(
+            drain_severity(Some(1), Some(0), Some(true))
+                < drain_severity(Some(1), Some(1), Some(false))
+        );
+        // NULL urgency/drop default to the lowest within the state (matches the SQL COALESCE weights)
+        assert_eq!(
+            drain_severity(Some(1), None, None),
+            drain_severity(Some(1), Some(0), Some(false))
+        );
+    }
 
     #[test]
     fn healthy_is_preferred_and_orders_by_players() {
