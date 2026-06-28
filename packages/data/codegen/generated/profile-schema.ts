@@ -44,6 +44,34 @@ export const ProviderInfoSchema = z.object({
 
 export type ProviderInfo = z.infer<typeof ProviderInfoSchema>;
 
+// ProfileLink
+export const ProfileLinkSchema = z.object({
+	kind: z.enum([
+		'github',
+		'linkedin',
+		'website',
+		'x',
+		'itch',
+		'artstation',
+		'other',
+	]),
+	url: z.string().url().max(2048).startsWith('https://'),
+});
+
+export type ProfileLink = z.infer<typeof ProfileLinkSchema>;
+
+// ExtendedProfile
+export const ExtendedProfileSchema = z.object({
+	user_id: z.string().uuid(),
+	bio: z.string().max(5000).optional(),
+	location: z.string().max(120).optional(),
+	avatar_url: z.string().url().max(2048).optional(),
+	links: z.array(ProfileLinkSchema).max(20).default([]),
+	updated_at: z.string().datetime().optional(),
+});
+
+export type ExtendedProfile = z.infer<typeof ExtendedProfileSchema>;
+
 // DiscordProfile
 export const DiscordProfileSchema = z.object({
 	id: z.string(),
@@ -86,6 +114,7 @@ export const UserProfileSchema = z.object({
 	updated_at: z.string().optional(),
 	is_public: z.boolean(),
 	show_providers: z.boolean(),
+	extended: ExtendedProfileSchema.optional(),
 });
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
