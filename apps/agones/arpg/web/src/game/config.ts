@@ -88,7 +88,7 @@ export const ARROW_SPEED = 18; // tiles/sec arrow travel
 // a line_cast bounded to BOW_RANGE, so a target past it is rejected — if the
 // arrow flew/acquired farther than that, shots that visually connected dealt no
 // damage. Bump both together to lengthen the bow.
-export const ARROW_MAX_RANGE = 8; // tiles (= server combat::BOW_RANGE)
+export const ARROW_MAX_RANGE = 15; // tiles (= server combat::BOW_RANGE)
 export const ARROW_DMG = 14; // placeholder local damage
 
 // Fake contact shadow: a flattened dark ellipse on the ground under each

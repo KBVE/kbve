@@ -25,7 +25,7 @@ pub enum AttackShape {
 pub const MELEE_RANGE: i32 = 1;
 
 /// Default bow reach, in tiles, along the line of sight.
-pub const BOW_RANGE: i32 = 8;
+pub const BOW_RANGE: i32 = 15;
 
 /// Whether `b` is within Chebyshev `range` of `a` (the melee gate).
 pub fn in_range_adjacent(a: Tile, b: Tile, range: i32) -> bool {

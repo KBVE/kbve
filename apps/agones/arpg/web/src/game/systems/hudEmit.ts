@@ -41,6 +41,9 @@ export interface HudEmitDeps {
 	myEid: number;
 	surface: boolean;
 	playerName: string;
+	// Latest server-authoritative mana (from the StatsEvent). maxMp <= 0 means no stats
+	// have arrived yet — fall back to the HP bar so the orb reads full instead of empty.
+	mana: { mp: number; maxMp: number };
 }
 
 /**
@@ -70,12 +73,15 @@ export function tickHud(
 		eid: deps.myEid,
 		hp,
 	});
+	const hasMana = deps.mana.maxMp > 0;
+	const mp = hasMana ? deps.mana.mp : maxHp;
+	const maxMp = hasMana ? deps.mana.maxMp : maxHp;
 	emitHud({
 		name: deps.playerName,
 		hp,
 		maxHp,
-		mp: maxHp,
-		maxMp: maxHp,
+		mp,
+		maxMp,
 		ep: maxHp,
 		maxEp: maxHp,
 		sp: maxHp,
