@@ -1,8 +1,15 @@
 mod launcher;
 
-use launcher::{ClientVersion, Installed, LauncherError};
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+
+use launcher::{ClientVersion, GameSession, Installed, LauncherError};
 use serde::Serialize;
 use tauri::{Emitter, Window};
+
+struct LaunchGuard(Mutex<Option<Instant>>);
+
+const LAUNCH_DEBOUNCE: Duration = Duration::from_secs(5);
 
 fn backend(arg: Option<String>) -> String {
     arg.filter(|s| !s.is_empty())
@@ -56,15 +63,38 @@ async fn install_update(
 }
 
 #[tauri::command]
-fn launch(url: Option<String>) -> Result<(), LauncherError> {
-    launcher::launch(url.as_deref())
+fn launch(
+    url: Option<String>,
+    session: Option<GameSession>,
+    guard: tauri::State<'_, LaunchGuard>,
+) -> Result<(), LauncherError> {
+    {
+        let mut last = guard.0.lock().unwrap();
+        if last.map(|t| t.elapsed() < LAUNCH_DEBOUNCE).unwrap_or(false) {
+            return Ok(());
+        }
+        *last = Some(Instant::now());
+    }
+    let res = launcher::launch(url.as_deref(), session.as_ref());
+    if res.is_err() {
+        *guard.0.lock().unwrap() = None;
+    }
+    res
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            use tauri::Manager;
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .manage(LaunchGuard(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             current_platform,
             fetch_clients,
