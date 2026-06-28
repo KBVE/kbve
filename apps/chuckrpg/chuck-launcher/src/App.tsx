@@ -17,6 +17,7 @@ export default function App() {
 	const latest = s.latest();
 	const installing = s.phase === 'installing';
 	const launching = s.phase === 'launching';
+	const running = s.phase === 'running';
 	const loading = s.phase === 'loading';
 	const busy = installing || launching || loading;
 	const action = !s.installed
@@ -93,7 +94,9 @@ export default function App() {
 					<button
 						onClick={onClick}
 						disabled={
-							busy || (action !== 'Play' && !latest?.live)
+							busy ||
+							running ||
+							(action !== 'Play' && !latest?.live)
 						}
 						className="ck-btn ck-btn--primary w-full px-4 py-3.5 text-xs">
 						<span className="ck-btn__fill" aria-hidden="true" />
@@ -101,21 +104,32 @@ export default function App() {
 							{(installing || launching) && (
 								<span className="ck-spin inline-block h-3.5 w-3.5 rounded-full border-2 border-[var(--ck-stone)] border-t-transparent" />
 							)}
+							{running && (
+								<span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[var(--ck-forest)] shadow-[0_0_8px_2px_rgba(74,122,90,0.7)]" />
+							)}
 							{installing
 								? 'Forging…'
 								: launching
 									? 'Entering…'
-									: action === 'Play'
-										? 'Enter the Realm'
-										: action === 'Update'
-											? 'Update Realm'
-											: 'Claim the Blade'}
+									: running
+										? 'Running'
+										: action === 'Play'
+											? 'Enter the Realm'
+											: action === 'Update'
+												? 'Update Realm'
+												: 'Claim the Blade'}
 						</span>
 					</button>
 
 					{launching && (
 						<p className="ck-label mt-3 text-center text-[0.55rem] text-[var(--ck-firelight-dim)]">
 							Awakening the realm — your window opens shortly
+						</p>
+					)}
+
+					{running && (
+						<p className="ck-label mt-3 text-center text-[0.55rem] text-[var(--ck-firelight-dim)]">
+							In the realm — close the game to return
 						</p>
 					)}
 

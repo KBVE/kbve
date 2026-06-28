@@ -17,7 +17,13 @@ import {
 	type Session,
 } from './lib/auth';
 
-type Phase = 'idle' | 'loading' | 'installing' | 'launching' | 'error';
+type Phase =
+	| 'idle'
+	| 'loading'
+	| 'installing'
+	| 'launching'
+	| 'running'
+	| 'error';
 type AuthPhase = 'anon' | 'authing' | 'authed';
 
 type LauncherState = {
@@ -92,11 +98,13 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 		const { phase } = get();
 		if (
 			phase === 'launching' ||
+			phase === 'running' ||
 			phase === 'installing' ||
 			phase === 'loading'
 		)
 			return;
 		set({ phase: 'launching', error: null });
+		let unlisten: (() => void) | undefined;
 		try {
 			let session = get().session;
 			if (session) {
@@ -107,11 +115,14 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 					set({ session: fresh });
 				}
 			}
+			unlisten = await launcherApi.onGameExited(() => {
+				unlisten?.();
+				if (get().phase === 'running') set({ phase: 'idle' });
+			});
 			await launcherApi.launch(session ?? undefined);
-			setTimeout(() => {
-				if (get().phase === 'launching') set({ phase: 'idle' });
-			}, 6000);
+			set({ phase: 'running' });
 		} catch (e) {
+			unlisten?.();
 			set({ phase: 'error', error: String(e) });
 		}
 	},

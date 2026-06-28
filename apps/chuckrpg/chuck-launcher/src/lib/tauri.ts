@@ -34,4 +34,6 @@ export const launcherApi = {
 		invoke<void>('launch', { url, session }),
 	onProgress: (cb: (p: Progress) => void): Promise<UnlistenFn> =>
 		listen<Progress>('install://progress', (e) => cb(e.payload)),
+	onGameExited: (cb: () => void): Promise<UnlistenFn> =>
+		listen('game://exited', () => cb()),
 };

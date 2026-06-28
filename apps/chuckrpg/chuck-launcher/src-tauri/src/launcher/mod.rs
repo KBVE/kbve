@@ -337,7 +337,10 @@ fn mac_inner_binary(app: &Path) -> Option<PathBuf> {
         .find(|p| p.is_file())
 }
 
-pub fn launch(url: Option<&str>, session: Option<&GameSession>) -> Result<(), LauncherError> {
+pub fn launch(
+    url: Option<&str>,
+    session: Option<&GameSession>,
+) -> Result<std::process::Child, LauncherError> {
     let state = read_state().ok_or(LauncherError::NotInstalled)?;
     let entrypoint = state.entrypoint.ok_or(LauncherError::NoEntrypoint)?;
     let path = PathBuf::from(&entrypoint);
@@ -347,7 +350,7 @@ pub fn launch(url: Option<&str>, session: Option<&GameSession>) -> Result<(), La
         None => None,
     };
 
-    if cfg!(target_os = "macos") && has_ext(&path, "app") {
+    let child = if cfg!(target_os = "macos") && has_ext(&path, "app") {
         let _ = std::process::Command::new("xattr")
             .args(["-d", "-r", "com.apple.quarantine"])
             .arg(&path)
@@ -362,7 +365,7 @@ pub fn launch(url: Option<&str>, session: Option<&GameSession>) -> Result<(), La
             cmd.env("CHUCKRPG_SESSION", f);
         }
         cmd.arg(format!("-execcmds={SAFE_CVARS}"));
-        cmd.spawn()?;
+        cmd.spawn()?
     } else {
         set_executable(&path);
         let mut cmd = std::process::Command::new(&path);
@@ -372,9 +375,9 @@ pub fn launch(url: Option<&str>, session: Option<&GameSession>) -> Result<(), La
         if let Some(f) = &session_file {
             cmd.env("CHUCKRPG_SESSION", f);
         }
-        cmd.spawn()?;
-    }
-    Ok(())
+        cmd.spawn()?
+    };
+    Ok(child)
 }
 
 #[cfg(test)]
