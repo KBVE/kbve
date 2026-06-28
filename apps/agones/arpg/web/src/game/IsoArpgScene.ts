@@ -59,12 +59,6 @@ import { KeyboardDevice, isTextInputFocused } from './input/devices/keyboard';
 import { Action } from './input/actions';
 import { emitChatToggle, onChatFocus, emitDeath } from './systems/hud';
 import {
-	makeFogState,
-	buildFog,
-	syncFogToZoom,
-	type FogState,
-} from './systems/fog';
-import {
 	makeGroundShader,
 	type GroundShaderHandle,
 } from './systems/groundShader';
@@ -273,7 +267,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			chunkPassageWidth(this.dungeon.worldSeed, acx, acy, bcx, bcy),
 	};
 	private dungeonView!: DungeonView;
-	private fog: FogState = makeFogState();
 	private ground?: GroundShaderHandle;
 	// Eased zoom: wheel/keys nudge zoomTarget, update() smooth-damps the camera
 	// toward it (critically-damped spring) so zoom accelerates then settles instead
@@ -475,7 +468,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		registerShipAnims(this);
 
 		this.drawGrid();
-		buildFog(this, this.fog);
 		if (USE_GROUND_SHADER) {
 			this.ground = makeGroundShader(this);
 			this.ground.update(this.cameras.main);
@@ -1898,7 +1890,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		tickPlayerInterpV(this, this.store, this.myEid);
 		tickFacingV(this, this.store);
 		this.tickZoom(delta);
-		syncFogToZoom(this, this.fog);
 		this.ground?.update(this.cameras.main);
 		this.residency.tick((id) => {
 			if (!id.startsWith('creature:')) return;
