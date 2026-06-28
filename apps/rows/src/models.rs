@@ -214,6 +214,28 @@ pub struct ZoneInstance {
     // if the rows image ships before the dbmate deploy runs.
     #[sqlx(rename = "gameservername", default)]
     pub game_server_name: Option<String>,
+    // Drain lifecycle (orthogonal to `status`). `default` so a `SELECT mi.*` against a DB that
+    // hasn't run the drain migration yet deserializes the absent columns to `None` rather than
+    // erroring `ColumnNotFound` (same posture as `gameservername`). `skip_serializing_if` keeps the
+    // UE REST/OpenAPI contract unchanged for un-drained instances (all-None → fields omitted).
+    #[sqlx(rename = "drainstate", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_state: Option<i16>,
+    #[sqlx(rename = "drainurgency", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_urgency: Option<i16>,
+    #[sqlx(rename = "draindropplayers", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_drop_players: Option<bool>,
+    #[sqlx(rename = "drainreason", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_reason: Option<String>,
+    #[sqlx(rename = "drainrequestid", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_request_id: Option<Uuid>,
+    #[sqlx(rename = "draindeadline", default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drain_deadline: Option<NaiveDateTime>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,
@@ -242,6 +264,13 @@ pub struct ReapRow {
     pub create_date: Option<NaiveDateTime>,
     #[sqlx(rename = "minutestoshutdownafterempty")]
     pub minutes_to_shutdown_after_empty: i32,
+    // Drain backstop inputs for `reap_decision`. `default` keeps deserialization safe if a row is
+    // ever mapped before the migration; note the reaper's candidate `SELECT` lists these columns
+    // explicitly, so the scan itself is migration-gated (see get_active_reap_candidates).
+    #[sqlx(rename = "drainstate", default)]
+    pub drain_state: Option<i16>,
+    #[sqlx(rename = "draindeadline", default)]
+    pub drain_deadline: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
