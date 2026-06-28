@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import {
 	I18nProvider,
 	useTranslation,
+	PB_USED,
 	PB_DAMAGE,
 	PB_FAINT,
 	PB_SWAP,
@@ -232,14 +233,45 @@ function PetBattleDebug() {
 const SPRITE_OF = (ref: string) => `/assets/npc/${ref}.png`;
 const STEP_MS = 650;
 
+// One-shot battle juice. Sprite shake/lunge (transform on the wrapper), white hit-flash
+// (filter on the img), and the floating damage/heal number. All retrigger by remounting
+// on a per-event nonce key, so each event replays its animation from the top.
+const BATTLE_FX_CSS = `
+@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes arpgHitShakeBig{0%,100%{transform:translate(0,0)}20%{transform:translate(-9px,3px)}50%{transform:translate(9px,-3px)}80%{transform:translate(-6px,2px)}}
+@keyframes arpgLungeP{0%,100%{transform:translate(0,0)}40%{transform:translate(12px,-10px)}}
+@keyframes arpgLungeE{0%,100%{transform:translate(0,0)}40%{transform:translate(-12px,10px)}}
+@keyframes arpgImgFlash{0%{filter:brightness(1)}30%{filter:brightness(2.6) saturate(0)}100%{filter:brightness(1)}}
+@keyframes arpgFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
+@keyframes arpgLowBlink{0%,100%{opacity:1}50%{opacity:.4}}
+`;
+
 interface BattleView {
 	pIdx: number;
 	eIdx: number;
 	pHp: number;
 	eHp: number;
 	text: string;
-	hitSide: number;
+	// Per-event juice, bumped each step so the CSS one-shots retrigger (keyed by nonce).
+	fxNonce: number;
+	hitSide: number; // side taking damage → flash + shake
+	attackSide: number; // side using a move → lunge
+	crit: boolean;
+	eff: number; // 0 normal / 1 super / 2 not-very / 3 immune
+	popSide: number; // side a floating number rises over
+	popVal: number;
+	popHeal: boolean;
 }
+
+const NO_FX = {
+	hitSide: -1,
+	attackSide: -1,
+	crit: false,
+	eff: 0,
+	popSide: -1,
+	popVal: 0,
+	popHeal: false,
+};
 
 function startView(s: PetBattleState): BattleView {
 	return {
@@ -248,11 +280,13 @@ function startView(s: PetBattleState): BattleView {
 		pHp: s.player[s.p_active]?.hp ?? 0,
 		eHp: s.enemy[s.e_active]?.hp ?? 0,
 		text: s.events[0]?.text ?? '',
-		hitSide: -1,
+		fxNonce: 0,
+		...NO_FX,
 	};
 }
 
-/** Fold one battle event into the running view (HP, active index, current line). */
+/** Fold one battle event into the running view: HP + active index + the line, plus the
+ * one-shot juice (flash/shake/lunge/floating number) for this event. */
 function applyEvent(
 	v: BattleView,
 	e: PetBattleWireEvent,
@@ -260,8 +294,9 @@ function applyEvent(
 ): BattleView {
 	const next: BattleView = {
 		...v,
+		...NO_FX,
 		text: e.text || v.text,
-		hitSide: e.kind === PB_DAMAGE ? e.side : -1,
+		fxNonce: v.fxNonce + 1,
 	};
 	if (e.kind === PB_SWAP) {
 		if (e.side === 0) {
@@ -271,18 +306,62 @@ function applyEvent(
 			next.eIdx = e.value;
 			next.eHp = s.enemy[e.value]?.hp ?? next.eHp;
 		}
-	} else if (
-		e.kind === PB_DAMAGE ||
-		e.kind === PB_STATUS_DMG ||
-		e.kind === PB_HEAL
-	) {
+	} else if (e.kind === PB_USED) {
+		next.attackSide = e.side;
+	} else if (e.kind === PB_DAMAGE) {
 		if (e.side === 0) next.pHp = e.hp;
 		else next.eHp = e.hp;
+		next.hitSide = e.side;
+		next.popSide = e.side;
+		next.popVal = e.value;
+		next.crit = (e.flag & 1) === 1;
+		next.eff = (e.flag >> 1) & 3;
+	} else if (e.kind === PB_STATUS_DMG) {
+		if (e.side === 0) next.pHp = e.hp;
+		else next.eHp = e.hp;
+		next.hitSide = e.side;
+		next.popSide = e.side;
+		next.popVal = e.value;
+	} else if (e.kind === PB_HEAL) {
+		if (e.side === 0) next.pHp = e.hp;
+		else next.eHp = e.hp;
+		next.popSide = e.side;
+		next.popVal = e.value;
+		next.popHeal = true;
 	} else if (e.kind === PB_FAINT) {
 		if (e.side === 0) next.pHp = 0;
 		else next.eHp = 0;
 	}
 	return next;
+}
+
+interface BattlerFx {
+	nonce: number;
+	flash: boolean;
+	big: boolean;
+	attack: boolean;
+	pop: { val: number; heal: boolean; crit: boolean; eff: number } | null;
+}
+
+function fxForSide(v: BattleView, side: number): BattlerFx {
+	return {
+		nonce: v.fxNonce,
+		flash: v.hitSide === side,
+		big: v.hitSide === side && v.crit,
+		attack: v.attackSide === side,
+		pop:
+			v.popSide === side
+				? { val: v.popVal, heal: v.popHeal, crit: v.crit, eff: v.eff }
+				: null,
+	};
+}
+
+function popColor(p: { heal: boolean; crit: boolean; eff: number }): string {
+	if (p.heal) return '#22c55e';
+	if (p.crit) return '#fbbf24';
+	if (p.eff === 1) return '#f97316';
+	if (p.eff === 2 || p.eff === 3) return '#94a3b8';
+	return '#ef4444';
 }
 
 function aliveCount(team: PetBattler[]): number {
@@ -358,11 +437,7 @@ function PetBattleScene({
 				background:
 					'radial-gradient(ellipse at center, rgba(20,28,48,0.92), rgba(4,6,12,0.97))',
 			}}>
-			<style>
-				{
-					'@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}'
-				}
-			</style>
+			<style>{BATTLE_FX_CSS}</style>
 			{/* Enemy: top-right */}
 			<div style={{ alignSelf: 'flex-end' }}>
 				<Battler
@@ -370,7 +445,7 @@ function PetBattleScene({
 					hp={view.eHp}
 					alive={aliveCount(state.enemy)}
 					total={state.enemy.length}
-					shake={view.hitSide === 1}
+					fx={fxForSide(view, 1)}
 					foe
 				/>
 			</div>
@@ -382,7 +457,7 @@ function PetBattleScene({
 					hp={view.pHp}
 					alive={aliveCount(state.player)}
 					total={state.player.length}
-					shake={view.hitSide === 0}
+					fx={fxForSide(view, 0)}
 				/>
 			</div>
 
@@ -519,14 +594,14 @@ function Battler({
 	hp,
 	alive,
 	total,
-	shake,
+	fx,
 	foe = false,
 }: {
 	battler: PetBattler | undefined;
 	hp: number;
 	alive: number;
 	total: number;
-	shake: boolean;
+	fx: BattlerFx;
 	foe?: boolean;
 }) {
 	const [imgBroken, setImgBroken] = useState(false);
@@ -536,6 +611,20 @@ function Battler({
 		Math.min(100, (hp / Math.max(1, battler.max_hp)) * 100),
 	);
 	const barColor = pct > 50 ? '#22c55e' : pct > 20 ? '#eab308' : '#ef4444';
+	const fainted = hp <= 0;
+	const lunge = fx.attack
+		? foe
+			? 'arpgLungeE 0.45s ease'
+			: 'arpgLungeP 0.45s ease'
+		: fx.big
+			? 'arpgHitShakeBig 0.4s ease'
+			: fx.flash
+				? 'arpgHitShake 0.3s ease'
+				: 'none';
+	// Remount the sprite wrapper only while an effect plays, so the animation restarts;
+	// idle keeps a stable key so the <img> (and its broken-state) doesn't churn.
+	const animKey = fx.flash || fx.attack ? `a${fx.nonce}` : 'idle';
+	const baseFilter = fainted ? 'grayscale(1) brightness(0.5)' : 'none';
 	return (
 		<div
 			style={{
@@ -544,46 +633,79 @@ function Battler({
 				alignItems: 'center',
 				gap: 14,
 			}}>
-			<span
-				key={shake ? `hit-${hp}` : `idle-${hp}`}
+			<div
 				style={{
-					display: 'inline-block',
-					animation: shake ? 'arpgHitShake 0.3s ease' : 'none',
+					position: 'relative',
+					width: 96,
+					height: 96,
+					transform: fainted ? 'translateY(10px)' : 'none',
+					opacity: fainted ? 0.7 : 1,
+					transition: 'transform 0.4s ease, opacity 0.4s ease',
 				}}>
-				{imgBroken ? (
+				<span
+					key={animKey}
+					style={{
+						display: 'block',
+						width: 96,
+						height: 96,
+						animation: lunge,
+					}}>
+					{imgBroken ? (
+						<span
+							aria-label={battler.nickname}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 96,
+								height: 96,
+								fontSize: 40,
+								borderRadius: 12,
+								background: 'rgba(110,168,255,0.12)',
+								border: '1px dashed #6ea8ff',
+								filter: baseFilter,
+							}}>
+							🐾
+						</span>
+					) : (
+						<img
+							src={SPRITE_OF(battler.species_ref)}
+							alt={battler.nickname}
+							width={96}
+							height={96}
+							onError={() => setImgBroken(true)}
+							style={{
+								imageRendering: 'pixelated',
+								transform: foe ? 'scaleX(-1)' : 'none',
+								filter: baseFilter,
+								animation: fx.flash
+									? 'arpgImgFlash 0.25s ease'
+									: 'none',
+							}}
+						/>
+					)}
+				</span>
+				{fx.pop && (
 					<span
-						aria-label={battler.nickname}
+						key={`pop${fx.nonce}`}
 						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							width: 96,
-							height: 96,
-							fontSize: 40,
-							borderRadius: 12,
-							background: 'rgba(110,168,255,0.12)',
-							border: '1px dashed #6ea8ff',
-							filter:
-								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
+							position: 'absolute',
+							top: 0,
+							left: '50%',
+							fontWeight: 700,
+							fontSize: fx.pop.crit ? 22 : 16,
+							color: popColor(fx.pop),
+							textShadow: '0 1px 2px #000',
+							animation: 'arpgFloatUp 0.9s ease forwards',
+							pointerEvents: 'none',
+							whiteSpace: 'nowrap',
 						}}>
-						🐾
+						{fx.pop.heal ? '+' : '−'}
+						{Math.abs(fx.pop.val)}
+						{fx.pop.crit ? '!' : ''}
 					</span>
-				) : (
-					<img
-						src={SPRITE_OF(battler.species_ref)}
-						alt={battler.nickname}
-						width={96}
-						height={96}
-						onError={() => setImgBroken(true)}
-						style={{
-							imageRendering: 'pixelated',
-							transform: foe ? 'scaleX(-1)' : 'none',
-							filter:
-								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
-						}}
-					/>
 				)}
-			</span>
+			</div>
 			<div style={{ minWidth: 180 }}>
 				<div
 					style={{
@@ -609,6 +731,10 @@ function Battler({
 							background: barColor,
 							transition:
 								'width 0.35s ease, background 0.35s ease',
+							animation:
+								pct > 0 && pct <= 20
+									? 'arpgLowBlink 0.7s ease infinite'
+									: 'none',
 						}}
 					/>
 				</div>
