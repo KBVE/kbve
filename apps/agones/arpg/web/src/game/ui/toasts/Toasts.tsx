@@ -1,5 +1,9 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
-import type { NotificationEventData } from '@kbve/laser';
+import {
+	laserEvents,
+	type NotificationEventData,
+	type InvariantViolation,
+} from '@kbve/laser';
 import { onNotification } from '../../systems/hud';
 
 const DISMISS_MS = 2600;
@@ -31,21 +35,46 @@ const TOAST_STYLE: Partial<CSSStyleDeclaration> = {
 	maxWidth: '70vw',
 };
 
+const INVARIANT_STYLE: Partial<CSSStyleDeclaration> = {
+	...TOAST_STYLE,
+	color: '#fecaca',
+	background: 'rgba(60, 12, 12, 0.92)',
+	border: '1px solid #b04a4a',
+};
+
 export default function Toasts() {
 	const hostRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const host = hostRef.current;
 		if (!host) return;
-		return onNotification((n) => spawnToast(host, n));
+		const offNote = onNotification((n) => spawnToast(host, n));
+		if (!import.meta.env.DEV) return offNote;
+		const offInv = laserEvents.on(
+			'laser:invariant',
+			(v: InvariantViolation) =>
+				spawnToast(
+					host,
+					{ title: 'invariant', message: v.msg },
+					INVARIANT_STYLE,
+				),
+		);
+		return () => {
+			offNote();
+			offInv();
+		};
 	}, []);
 
 	return <div ref={hostRef} style={STACK_STYLE} />;
 }
 
-function spawnToast(host: HTMLElement, n: NotificationEventData) {
+function spawnToast(
+	host: HTMLElement,
+	n: NotificationEventData,
+	style: Partial<CSSStyleDeclaration> = TOAST_STYLE,
+) {
 	const el = document.createElement('div');
-	Object.assign(el.style, TOAST_STYLE);
+	Object.assign(el.style, style);
 	if (n.title) {
 		const strong = document.createElement('strong');
 		strong.textContent = `${n.title} — `;
