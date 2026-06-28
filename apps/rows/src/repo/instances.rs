@@ -26,6 +26,34 @@ fn is_undefined_table(e: &sqlx::Error) -> bool {
 /// reaps at the real per-map timeout (it reads the column live at reap time, not the annotation).
 pub const FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR: i32 = 30;
 
+/// Pure new-join selection policy. Returns the ordering key for an existing `status=2` instance, or
+/// `None` if it must never receive a new join. Lower key is preferred:
+///   tier 0 = healthy (not draining); tier 1 = acceptable `when_able` drain (state=1, not asap, not
+///   drop). Within a tier, fewer players wins (matches the legacy `ORDER BY numberofreportedplayers`).
+/// Excluded (`None`): `asap` (urgency=1), `draindropplayers=true` (will disconnect after save), or
+/// `saving` (state=2, shutting down). NULL `drainstate` is the only "not draining" value (the
+/// migration `CHECK` forbids 0). Kept pure (no DB) so the player-path decision is unit-testable.
+pub fn join_candidate_key(
+    drain_state: Option<i16>,
+    drain_urgency: Option<i16>,
+    drain_drop_players: Option<bool>,
+    player_count: i32,
+) -> Option<(u8, i32)> {
+    match drain_state {
+        None => Some((0, player_count)), // healthy -> preferred tier
+        Some(2) => None,                 // saving -> excluded
+        Some(_) => {
+            let asap = drain_urgency.unwrap_or(0) == 1;
+            let will_drop = drain_drop_players.unwrap_or(false);
+            if asap || will_drop {
+                None // asap / drop -> excluded
+            } else {
+                Some((1, player_count)) // when_able, non-drop -> eligible but below healthy
+            }
+        }
+    }
+}
+
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
 impl<'a> InstanceRepo<'a> {
@@ -107,7 +135,11 @@ impl<'a> InstanceRepo<'a> {
         _char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        let existing: Option<JoinMapResult> = sqlx::query_as(
+        // Fetch ALL ready candidates for the zone (per-zone count is small) and pick the winner with
+        // the pure, unit-tested `join_candidate_key` — drain eligibility/ranking lives in Rust, not
+        // SQL, so it can't silently mis-rank. The explicit drain columns make this read
+        // migration-gated (see the drain migration); that ordering is the operator procedure.
+        let candidates: Vec<JoinCandidateRow> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
                     ws.port AS world_server_port,
@@ -120,19 +152,35 @@ impl<'a> InstanceRepo<'a> {
                     false AS enable_auto_loopback,
                     c.noportforwarding AS no_port_forwarding,
                     true AS success,
-                    '' AS error_message
+                    '' AS error_message,
+                    mi.drainstate AS drain_state,
+                    mi.drainurgency AS drain_urgency,
+                    mi.draindropplayers AS drain_drop_players,
+                    mi.numberofreportedplayers AS player_count
              FROM maps m
              JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
              JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
              JOIN customers c ON c.customerguid = m.customerguid
-             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
-             ORDER BY mi.numberofreportedplayers ASC
-             LIMIT 1",
+             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2",
         )
         .bind(customer_guid)
         .bind(zone_name)
-        .fetch_optional(self.0)
+        .fetch_all(self.0)
         .await?;
+
+        let existing = candidates
+            .into_iter()
+            .filter_map(|c| {
+                join_candidate_key(
+                    c.drain_state,
+                    c.drain_urgency,
+                    c.drain_drop_players,
+                    c.player_count,
+                )
+                .map(|key| (key, c))
+            })
+            .min_by_key(|(key, _)| *key)
+            .map(|(_, c)| c.into_result());
 
         if let Some(result) = existing {
             return Ok(result);
@@ -942,5 +990,47 @@ impl<'a> InstanceRepo<'a> {
         .await?;
 
         Ok(row.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::join_candidate_key;
+
+    #[test]
+    fn healthy_is_preferred_and_orders_by_players() {
+        assert_eq!(join_candidate_key(None, None, None, 5), Some((0, 5)));
+        // healthy always outranks any draining (tier 0 < tier 1) regardless of player count
+        assert!(
+            join_candidate_key(None, None, None, 99)
+                < join_candidate_key(Some(1), Some(0), Some(false), 0)
+        );
+    }
+
+    #[test]
+    fn when_able_nondrop_is_eligible_fallback() {
+        assert_eq!(
+            join_candidate_key(Some(1), Some(0), Some(false), 3),
+            Some((1, 3))
+        );
+        // among two when_able drains, fewer players wins
+        assert!(
+            join_candidate_key(Some(1), Some(0), Some(false), 2)
+                < join_candidate_key(Some(1), Some(0), Some(false), 8)
+        );
+    }
+
+    #[test]
+    fn asap_drop_saving_are_excluded() {
+        assert_eq!(join_candidate_key(Some(1), Some(1), Some(false), 0), None); // asap
+        assert_eq!(join_candidate_key(Some(1), Some(0), Some(true), 0), None); // drop_players
+        assert_eq!(join_candidate_key(Some(2), Some(0), Some(false), 0), None); // saving
+        assert_eq!(join_candidate_key(Some(2), Some(1), Some(true), 0), None); // saving + asap + drop
+    }
+
+    #[test]
+    fn null_urgency_and_drop_default_to_eligible_when_able() {
+        // a state=1 drain with NULL urgency/drop is treated as when_able, non-drop -> eligible fallback
+        assert_eq!(join_candidate_key(Some(1), None, None, 4), Some((1, 4)));
     }
 }

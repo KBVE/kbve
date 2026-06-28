@@ -298,6 +298,50 @@ pub struct JoinMapResult {
     pub error_message: String,
 }
 
+/// `join_map_by_char_name`'s candidate row: a full `JoinMapResult` plus the drain columns and player
+/// count that `join_candidate_key` ranks on. The reaper-style "fetch candidates, decide in Rust"
+/// shape keeps the routing policy in a unit-tested pure function instead of in SQL `ORDER BY`.
+#[derive(Debug, sqlx::FromRow)]
+pub struct JoinCandidateRow {
+    pub server_ip: String,
+    pub world_server_ip: String,
+    pub world_server_port: i32,
+    pub port: i32,
+    pub map_instance_id: i32,
+    pub map_name_to_start: String,
+    pub world_server_id: i32,
+    pub map_instance_status: i32,
+    pub need_to_startup_map: bool,
+    pub enable_auto_loopback: bool,
+    pub no_port_forwarding: bool,
+    pub success: bool,
+    pub error_message: String,
+    pub drain_state: Option<i16>,
+    pub drain_urgency: Option<i16>,
+    pub drain_drop_players: Option<bool>,
+    pub player_count: i32,
+}
+
+impl JoinCandidateRow {
+    pub fn into_result(self) -> JoinMapResult {
+        JoinMapResult {
+            server_ip: self.server_ip,
+            world_server_ip: self.world_server_ip,
+            world_server_port: self.world_server_port,
+            port: self.port,
+            map_instance_id: self.map_instance_id,
+            map_name_to_start: self.map_name_to_start,
+            world_server_id: self.world_server_id,
+            map_instance_status: self.map_instance_status,
+            need_to_startup_map: self.need_to_startup_map,
+            enable_auto_loopback: self.enable_auto_loopback,
+            no_port_forwarding: self.no_port_forwarding,
+            success: self.success,
+            error_message: self.error_message,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct GlobalData {
