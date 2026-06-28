@@ -17,7 +17,7 @@
 - Build/test the crate with `cargo` inside `apps/rows` (`cargo test -p rows`).
 - Migrations: new timestamped file under `packages/data/sql/dbmate/migrations/`; mirror the reference schema under `packages/data/sql/schema/ows/`. Never hand-edit generated artifacts.
 - Time type is `chrono::NaiveDateTime` (DB `TIMESTAMP`). "Now" = `chrono::Utc::now().naive_utc()`. **All `drain_deadline` writes MUST be UTC-naive** (assert at the write boundary — Task 4) so the naive comparison in `reap_decision` is correct. The column stays `TIMESTAMP` (not `TIMESTAMPTZ`) to match every other time column in `ows`; the UTC invariant is enforced in code, not the type.
-- **Migration-before-image is a HARD deploy gate, not a runbook note (see Task 6).** `join_map`'s `WHERE`/`ORDER BY` reference `drainstate`/`drainurgency`/`draindropplayers` **explicitly**; on a DB that hasn't run `20260624140000` those raise `ColumnNotFound` on the join hot path → **player-join outage, all tenants**. `SELECT mi.*` reads (reaper) degrade gracefully via `#[sqlx(default)]`, but the explicit-column join does not. The rows image is ArgoCD auto-synced; the migration is the manual `workflow_dispatch` `ci-dbmate-deploy` job — so the safe order is the _non-default_ order and MUST be enforced (Argo PreSync/sync-wave or a startup readiness probe that fails when the columns are absent), not left to an operator remembering a doc.
+- **Migration-before-merge is the operator procedure (see Task 6).** `join_map`'s `WHERE`/`ORDER BY` reference `drainstate`/`drainurgency`/`draindropplayers` **explicitly**; on a DB that hasn't run `20260624140000` those raise `ColumnNotFound` on the join hot path → **player-join outage, all tenants**. `SELECT mi.*` reads (reaper) degrade gracefully via `#[sqlx(default)]`, but the explicit-column join does not. The rows image is ArgoCD auto-synced, so the safe order is enforced **by the operator applying the migration (`ci-dbmate-deploy`) in each environment BEFORE merging** the implementation PR into that environment's branch. Because the columns then exist before the new image ever rolls, there is no window where new code meets an old schema. **Caveat — apply per environment** (dev, then prod) before that env's image rolls; **never run the down-migration in prod** while the drain-aware image is live (it re-opens the `ColumnNotFound` outage — roll the _image_ back first, the migration never).
 - **Inert posture:** ships with no automatic drain trigger. The only setter is service-authenticated and has **no caller in this phase** — the feature is deliberately dormant (same posture as the reaper). This means Phase 1 carries the schema/deploy risk for value that only lands in Phase 2; that tradeoff is accepted to de-risk the schema change ahead of the admission plane.
 
 ## drain\_\* encoding (used across all tasks)
@@ -51,7 +51,8 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 > - **C4 (MEDIUM)** — `set_drain_state` is monotonic (escalate-only) and returns `rows_affected`; `clear_drain_state`
 >   is request-scoped (or operator-forced) and returns `rows_affected` (Task 4).
 > - **C5 (LOW→raised)** — UTC write-boundary assertion (Task 4); idempotent `CHECK (drainstate IN (1,2))` (Task 1);
->   migration-before-image promoted to a hard deploy gate (Global Constraints + Task 6).
+>   migration-before-merge is the operator procedure — apply `20260624140000` per env before merging, so the
+>   columns exist before the auto-synced image rolls (Global Constraints + Task 6).
 > - **Routing (MEDIUM, new)** — `join_map` excludes `asap` **and** `drop_players` **and** `saving`, not just
 >   `urgency=1` (Task 5).
 
@@ -601,43 +602,44 @@ git commit -m "feat(rows): drain-aware join_map preference (exclude asap/drop/sa
 
 ---
 
-### Task 6: Hard migration-ordering gate + runbook
+### Task 6: Migration-before-merge procedure + runbook
 
 **Files:**
 
 - Modify: `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md` (runbook)
-- Enforce the gate in the deploy path (Argo/CI) — see Step 1.
 
-**Interfaces:** deploy-ordering enforcement + docs.
+**Interfaces:** deploy-ordering procedure + docs.
 
-- [ ] **Step 1: Enforce migration-before-image (NOT just a doc line)**
+- [ ] **Step 1: Apply the migration before merging (operator procedure)**
 
 The `join_map` change makes a missing migration a **total join outage** (all tenants), and the rows image is
-ArgoCD auto-synced while the migration is a manual `workflow_dispatch` (`ci-dbmate-deploy`) — so the safe order is
-the non-default order and must be enforced mechanically. Implement **one** of:
+ArgoCD auto-synced — so the new code rolls automatically on merge. **The chosen control is operator ordering: apply
+`20260624140000` via `ci-dbmate-deploy` in the target environment BEFORE merging the implementation PR into that
+environment's branch.** Because the columns then already exist when the image rolls, there is no window where new
+code meets an old schema. This is a deliberate manual procedure (not an Argo/CI gate); the discipline is "migration
+first, then merge," verified by the executor, not automated.
 
-- an Argo **PreSync** hook / **sync-wave** that runs (or verifies) the `20260624140000` migration before the rows
-  Deployment syncs; **or**
-- a rows **startup readiness probe** that fails (pod not Ready, no traffic) when `to_regclass`/`information_schema`
-  shows `mapinstances.drainstate` absent — so an image that races ahead of the migration simply never receives
-  join traffic instead of 500-ing it.
+Required, every time:
 
-Document whichever is chosen as the gate of record. Do not rely on an operator remembering to run the job first.
+1. Apply `20260624140000` to **dev**'s Postgres (`ci-dbmate-deploy`), confirm `mapinstances.drainstate` exists.
+2. Only then merge the implementation PR to `dev`.
+3. Repeat for **prod**: apply the migration to prod's Postgres **before** the change reaches prod's branch/image.
+4. **Never** run the down-migration in an environment whose `rows` image is already drain-aware — roll the image
+   back first; the migration is forward-only in prod.
 
 - [ ] **Step 2: Document the deploy ordering and inert posture in the runbook**
 
 Add a "Core drain plumbing (shipped, inert)" note to the lifecycle spec: the `drain_*` columns + reaper exemption
 (with deadline/liveness backstop) + `join_map` preference are live but **inert** (no automatic setter, no caller);
-the `20260624140000` migration must land **before** the rows image; the gate from Step 1 is what enforces it;
-prod rollback rolls the **image** back, never the migration (down-migration under a live drain-aware image
-re-creates the `ColumnNotFound` outage). Cross-reference this plan.
+the `20260624140000` migration must be applied (per env) **before** the implementation PR merges into that env, per
+the Step 1 procedure; prod rollback rolls the **image** back, never the migration (down-migration under a live
+drain-aware image re-creates the `ColumnNotFound` outage). Cross-reference this plan.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md \
-        # + whatever deploy/Argo/CI file implements the gate
-git commit -m "docs(rows): hard migration-before-image gate + core drain plumbing note in lifecycle spec"
+git add docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md
+git commit -m "docs(rows): migration-before-merge procedure + core drain plumbing note in lifecycle spec"
 ```
 
 ---
@@ -693,7 +695,7 @@ blocker clears:
 - Reaper exempts draining from empty/never-reported, keeps lost-liveness (Stale) AND adds a `drain_deadline` backstop → Tasks 2–3. ✅
 - Allocation preference order (healthy → when_able fallback → never asap/drop/saving) → Task 5. ✅
 - Setter/clearer so drain is drivable + testable, inert by default; monotonic + request-scoped → Task 4. ✅
-- Migration-before-image enforced as a hard gate (not a doc line) → Task 6. ✅
+- Migration-before-merge as an explicit operator procedure (apply per env before merging the impl PR) → Task 6. ✅
 - Admission gates / new-vs-travel / fleet-restart → deferred to follow-on plans (with blockers + the Phase-2 authz requirement called out). ✅ (explicitly out)
 
 **Placeholder scan:** every code step shows code; routing (Task 5) prefers a DB integration test and only falls
