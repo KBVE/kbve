@@ -4923,6 +4923,7 @@ name = "cryptothrone-server"
 version = "0.0.26"
 dependencies = [
  "agones",
+ "async-trait",
  "axum 0.7.9",
  "bevy",
  "jedi",
@@ -8796,6 +8797,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.9.0",
  "hyper-util",
+ "jsonwebtoken 10.3.0",
  "lru 0.18.0",
  "metrics",
  "once_cell",
