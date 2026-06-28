@@ -87,6 +87,12 @@ pub async fn jwks_verifier() -> Option<Arc<dyn TokenVerifier>> {
     let secret = std::env::var("SUPABASE_JWT_SECRET")
         .ok()
         .filter(|s| !s.is_empty());
+    if secret.is_none() {
+        tracing::warn!(
+            "SUPABASE_JWT_SECRET unset — JWKS verifier cannot check the HS256 tokens GoTrue still issues; deferring to the GoTrue-API verifier"
+        );
+        return None;
+    }
     let issuer = std::env::var("SUPABASE_JWT_ISSUER")
         .ok()
         .filter(|s| !s.trim().is_empty());
