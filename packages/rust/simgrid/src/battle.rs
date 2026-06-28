@@ -503,15 +503,20 @@ fn damage(
 }
 
 impl BattleState {
-    /// Open a wild battle: the player's `team` vs a single `wild` pet.
-    pub fn wild(root: u32, team: Vec<Combatant>, wild: Combatant) -> BattleState {
+    /// Open a battle between two full teams.
+    pub fn versus(root: u32, player: Vec<Combatant>, enemy: Vec<Combatant>) -> BattleState {
         BattleState {
-            player: BattleSide::new(team),
-            enemy: BattleSide::new(vec![wild]),
+            player: BattleSide::new(player),
+            enemy: BattleSide::new(enemy),
             turn: 0,
             root,
             outcome: BattleOutcome::Ongoing,
         }
+    }
+
+    /// Open a wild battle: the player's `team` vs a single `wild` pet.
+    pub fn wild(root: u32, team: Vec<Combatant>, wild: Combatant) -> BattleState {
+        BattleState::versus(root, team, vec![wild])
     }
 
     fn side(&self, s: Side) -> &BattleSide {

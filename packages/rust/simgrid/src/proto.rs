@@ -47,6 +47,7 @@ pub const EPHEMERAL_ITEM_PLACED: u16 = 14;
 pub const EPHEMERAL_SPELL: u16 = 15;
 pub const EPHEMERAL_CORPSE: u16 = 16;
 pub const EPHEMERAL_PET_ROSTER: u16 = 17;
+pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -253,6 +254,10 @@ pub enum Input {
     /// ship + pilot at the launch tile and plays the entering cutscene back into
     /// flight. Appended last so serde variant indices are unchanged.
     ReturnSpace,
+    /// Debug: run a simulated pet battle (mechamutt 5v5) for the requester and
+    /// stream back the result log. A throwaway trigger until real encounters land.
+    /// Appended last so serde variant indices are unchanged.
+    SimPetBattle,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -574,6 +579,14 @@ pub struct PetView {
 pub struct PetRosterSync {
     pub pets: Vec<PetView>,
     pub active: Option<u32>,
+}
+
+/// Result of a simulated debug battle: a human-readable turn log plus the outcome
+/// string (`"PlayerWon"` / `"PlayerLost"` / `"Fled"`). Mirrors TS `PetBattleLog`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PetBattleLogEvent {
+    pub lines: Vec<String>,
+    pub outcome: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
