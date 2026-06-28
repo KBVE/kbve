@@ -1,6 +1,6 @@
 use bevy::prelude::Resource;
 
-use crate::sim::{Inventory, ItemStack};
+use crate::sim::ItemStack;
 
 pub const TRADE_RANGE: i32 = 1;
 pub const TRADE_TIMEOUT_TICKS: u32 = crate::sim::SIM_TICK_HZ * 30;
@@ -84,9 +84,10 @@ pub(crate) fn normalize_items(items: Vec<(String, u32)>) -> Vec<(String, u32)> {
     out
 }
 
-pub(crate) fn inv_holds(inv: &Inventory, items: &[(String, u32)]) -> bool {
+/// Does a snapshot of stack DTOs hold at least the offered `items` (ref + qty)?
+pub(crate) fn inv_holds(snapshot: &[ItemStack], items: &[(String, u32)]) -> bool {
     items.iter().all(|(r, n)| {
-        inv.slots
+        snapshot
             .iter()
             .filter(|s| &s.item_ref == r)
             .map(|s| s.count)
@@ -95,25 +96,31 @@ pub(crate) fn inv_holds(inv: &Inventory, items: &[(String, u32)]) -> bool {
     })
 }
 
-/// Detach an `offer` (ref+qty) out of `inv` WITHOUT mutating it, returning the leftover
-/// slots and the moved instance stacks (ids preserved on a whole-stack move; a partial
-/// take splits a fresh id). None if the inventory can't fully cover the offer.
+/// Pure dry-run over a snapshot of stack DTOs: detach an `offer` (ref+qty), returning the
+/// leftover stacks and the moved stacks (ids preserved on a whole-stack move; a partial
+/// take splits a fresh id). None if the snapshot can't fully cover the offer. Used to
+/// VALIDATE a trade (incl. the cap check via [`merge_received`]) before the real move runs
+/// on the item entities.
 pub(crate) fn detach_offer(
-    inv: &Inventory,
+    snapshot: &[ItemStack],
     offer: &[(String, u32)],
 ) -> Option<(Vec<ItemStack>, Vec<ItemStack>)> {
-    let mut work = Inventory {
-        slots: inv.slots.clone(),
-    };
+    let mut slots = snapshot.to_vec();
     let mut moved = Vec::new();
     for (r, n) in offer {
-        let stack = work.detach(r, *n)?;
-        if stack.count < *n {
+        let idx = slots.iter().position(|s| &s.item_ref == r)?;
+        let avail = slots[idx].count;
+        if avail < *n {
             return None;
         }
-        moved.push(stack);
+        if avail == *n {
+            moved.push(slots.remove(idx));
+        } else {
+            slots[idx].count -= *n;
+            moved.push(ItemStack::mint(r, *n));
+        }
     }
-    Some((work.slots, moved))
+    Some((slots, moved))
 }
 
 /// Fold the moved-in stacks onto the leftover slots, preserving their ids. None if the
@@ -123,15 +130,15 @@ pub(crate) fn merge_received(
     received: Vec<ItemStack>,
     cap: usize,
 ) -> Option<Vec<ItemStack>> {
-    let mut inv = Inventory {
-        slots: std::mem::take(&mut slots),
-    };
     for stack in received {
-        let known = inv.slots.iter().any(|s| s.item_ref == stack.item_ref);
-        if !known && inv.slots.len() >= cap {
-            return None;
+        if let Some(existing) = slots.iter_mut().find(|s| s.item_ref == stack.item_ref) {
+            existing.count = existing.count.saturating_add(stack.count);
+        } else {
+            if slots.len() >= cap {
+                return None;
+            }
+            slots.push(stack);
         }
-        inv.add_stack(stack);
     }
-    Some(inv.slots)
+    Some(slots)
 }

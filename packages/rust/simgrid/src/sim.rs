@@ -228,8 +228,10 @@ pub struct ItemPrices(pub HashMap<String, (u32, u32)>);
 pub struct SavedPlayer {
     pub slots: Vec<ItemStack>,
     pub hp: i32,
-    pub weapon: Option<String>,
-    pub armor: Option<String>,
+    /// Equipped gear as detached stacks (id + ref preserved), re-materialised into item
+    /// entities on rejoin.
+    pub weapon: Option<ItemStack>,
+    pub armor: Option<ItemStack>,
     pub level: i32,
     pub xp: i32,
     pub kills: u32,
@@ -283,10 +285,16 @@ pub struct EquipBonus {
 #[derive(Resource, Default, Clone)]
 pub struct EquipmentEffects(pub HashMap<String, EquipBonus>);
 
+/// Worn gear: handles to the equipped item entities (not in the owner's [`Inventory`]
+/// while worn, no `GridPos`). `None` = slot empty. The item entity keeps its instance id
+/// + (later) durability/affix components while equipped. The per-slot bonus is cached so
+/// the combat hot path reads it without touching the item entities.
 #[derive(Component, Clone, Default)]
 pub struct Equipped {
-    pub weapon: Option<String>,
-    pub armor: Option<String>,
+    pub weapon: Option<Entity>,
+    pub armor: Option<Entity>,
+    pub weapon_bonus: EquipBonus,
+    pub armor_bonus: EquipBonus,
 }
 
 #[derive(Component, Clone, Copy, Default)]
@@ -497,42 +505,60 @@ impl ItemStack {
     }
 }
 
+// --- Item instances are ECS entities ---------------------------------------------
+// Every item is its own entity carrying [`Item`] + [`ItemId`] + [`ItemRef`] +
+// [`StackCount`] (and, later, `Durability`/`Affix`/`EnchantTimer` as plain components).
+// Location is expressed by which components it ALSO has:
+//   - held    : referenced by an owner's [`Inventory::slots`] (no `GridPos`, off-grid →
+//               never streamed, so inventories don't leak into the spatial snapshot)
+//   - ground  : has `GridPos` + [`GroundItem`] (streams + renders + is pickup-able)
+//   - equipped: referenced by an [`Equipped`] slot
+// All inventory mutation goes through [`ItemBank`], which spawns/merges/despawns the
+// backing entities. [`ItemStack`] is the detached DTO form for the wire + persistence.
+
+/// Marker: this entity is an item instance.
+#[derive(Component)]
+pub struct Item;
+
+/// Stable ULID instance identity (mint timestamp embedded). On an item entity.
+#[derive(Component, Clone)]
+pub struct ItemId(pub String);
+
+/// The item definition ref (`"potion"`, `"iron-sword"`). On an item entity.
+#[derive(Component, Clone)]
+pub struct ItemRef(pub String);
+
+/// How many fungible units this stack holds (`1` for a unique item). On an item entity.
+#[derive(Component, Clone, Copy)]
+pub struct StackCount(pub u32);
+
+/// Spawn a HELD item entity (no location component) from a stack DTO. `EntityKind` is
+/// attached only when the ref maps to a registered kind (needed to render once dropped to
+/// the ground); a held item doesn't otherwise need it, so this always produces an entity.
+/// Callers add `GridPos` + [`GroundItem`] to drop it, or push it into an [`Inventory`].
+pub fn spawn_item(commands: &mut Commands, registry: &KindRegistry, stack: ItemStack) -> Entity {
+    let mut e = commands.spawn((
+        Item,
+        ItemId(stack.id),
+        ItemRef(stack.item_ref.clone()),
+        StackCount(stack.count),
+    ));
+    if let Some(kind) = registry.kind_of(&stack.item_ref) {
+        e.insert(EntityKind(kind));
+    }
+    e.id()
+}
+
 #[derive(Component, Clone, Default)]
 pub struct Inventory {
-    pub slots: Vec<ItemStack>,
+    /// Ordered handles to the owner's item entities. Order is authoritative + persisted
+    /// so client reorders survive refreshes. Mutate via [`ItemBank`].
+    pub slots: Vec<Entity>,
 }
 
 impl Inventory {
-    /// Add `count` of a ref, MINTING a fresh stack id if no matching ref stack exists.
-    /// Use for true creation (loot, shop buy, coin grant). To move an existing instance
-    /// in (pickup / trade / corpse loot) use [`Inventory::add_stack`] so its id survives.
-    pub fn add(&mut self, item_ref: &str, count: u32) {
-        if count == 0 {
-            return;
-        }
-        if let Some(slot) = self.slots.iter_mut().find(|s| s.item_ref == item_ref) {
-            slot.count = slot.count.saturating_add(count);
-        } else {
-            self.slots.push(ItemStack::mint(item_ref, count));
-        }
-    }
-
-    /// Merge an existing instance stack in, PRESERVING its id when it lands in an empty
-    /// ref (a move). A merge into a matching ref folds the count and retires the incoming
-    /// id (fungible-stack lineage continues under the destination stack).
-    pub fn add_stack(&mut self, stack: ItemStack) {
-        if stack.count == 0 {
-            return;
-        }
-        if let Some(slot) = self.slots.iter_mut().find(|s| s.item_ref == stack.item_ref) {
-            slot.count = slot.count.saturating_add(stack.count);
-        } else {
-            self.slots.push(stack);
-        }
-    }
-
-    /// Move the stack at index `from` to index `to`, shifting the rest. Slot
-    /// order is authoritative + persisted, so client reorders survive refreshes.
+    /// Move the slot at `from` to `to`, shifting the rest (reorders entity handles only —
+    /// no entity access needed).
     pub fn reorder(&mut self, from: usize, to: usize) {
         let n = self.slots.len();
         if from >= n || to >= n || from == to {
@@ -541,49 +567,224 @@ impl Inventory {
         let item = self.slots.remove(from);
         self.slots.insert(to, item);
     }
+}
 
-    /// Remove up to `count` of `item_ref`, returning how many were actually
-    /// removed (0 if absent). Empties the slot when it hits zero. Burns the stack id
-    /// when the stack empties (true consumption — sell / use).
-    pub fn remove(&mut self, item_ref: &str, count: u32) -> u32 {
-        let Some(idx) = self.slots.iter().position(|s| s.item_ref == item_ref) else {
+/// Item entities spawned THIS frame whose components aren't queryable yet (Bevy applies
+/// `Commands` spawns at the next sync point). [`ItemBank`] reads + mutates this overlay so
+/// a spawn → read / spawn → re-stack within one frame stays consistent; a `StackCount`
+/// change on an overlay entry is also re-issued to the (deferred) real entity so it
+/// converges. Cleared each frame by [`clear_pending_items`].
+#[derive(Resource, Default)]
+pub struct PendingItems(pub HashMap<Entity, ItemStack>);
+
+/// Drop the per-frame just-spawned-item overlay; by the next frame those entities are real
+/// and queryable.
+fn clear_pending_items(mut pending: ResMut<PendingItems>) {
+    pending.0.clear();
+}
+
+/// The one chokepoint for item-instance mutation: bundles `Commands` + the item-entity
+/// query + the kind registry + the just-spawned overlay so inventory ops can spawn (mint),
+/// merge, split, and despawn (burn) the backing entities and read them back the same frame.
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct ItemBank<'w, 's> {
+    pub commands: Commands<'w, 's>,
+    registry: Res<'w, KindRegistry>,
+    items: Query<'w, 's, (&'static ItemRef, &'static mut StackCount, &'static ItemId)>,
+    pending: ResMut<'w, PendingItems>,
+}
+
+impl ItemBank<'_, '_> {
+    /// (ref, count) for an item entity — the real component if queryable, else the
+    /// just-spawned overlay.
+    fn read(&self, e: Entity) -> Option<(String, u32)> {
+        if let Ok((r, c, _)) = self.items.get(e) {
+            return Some((r.0.clone(), c.0));
+        }
+        self.pending
+            .0
+            .get(&e)
+            .map(|s| (s.item_ref.clone(), s.count))
+    }
+
+    /// Full stack DTO for an item entity (query or overlay).
+    fn read_stack(&self, e: Entity) -> Option<ItemStack> {
+        if let Ok((r, c, id)) = self.items.get(e) {
+            return Some(ItemStack {
+                id: id.0.clone(),
+                item_ref: r.0.clone(),
+                count: c.0,
+            });
+        }
+        self.pending.0.get(&e).cloned()
+    }
+
+    /// Set an item entity's stack count (real component, or overlay + a re-issued
+    /// `StackCount` so the deferred real entity converges).
+    fn set_count(&mut self, e: Entity, n: u32) {
+        if let Ok((_, mut c, _)) = self.items.get_mut(e) {
+            c.0 = n;
+        } else if let Some(s) = self.pending.0.get_mut(&e) {
+            s.count = n;
+            self.commands.entity(e).try_insert(StackCount(n));
+        }
+    }
+
+    /// Spawn a held item entity from a DTO, recording it in the per-frame overlay so it
+    /// reads back this frame. `EntityKind` is attached only for a registered ref (held
+    /// items like coins don't need a render kind), so this always yields an entity.
+    fn spawn_stack(&mut self, stack: ItemStack) -> Option<Entity> {
+        let e = spawn_item(&mut self.commands, &self.registry, stack.clone());
+        self.pending.0.insert(e, stack);
+        Some(e)
+    }
+
+    fn forget(&mut self, e: Entity) {
+        self.pending.0.remove(&e);
+        self.commands.entity(e).despawn();
+    }
+
+    /// Add `count` of a ref, MINTING a fresh stack (id + birth timestamp) when no matching
+    /// ref is already held. True creation: loot, shop buy, coin grant.
+    pub fn add(&mut self, inv: &mut Inventory, item_ref: &str, count: u32) {
+        self.add_stack(inv, ItemStack::mint(item_ref, count));
+    }
+
+    /// Merge a stack DTO in, preserving its id when it lands in a new ref (a move); a merge
+    /// into a held ref folds the count under the existing stack's id.
+    pub fn add_stack(&mut self, inv: &mut Inventory, stack: ItemStack) {
+        if stack.count == 0 {
+            return;
+        }
+        for i in 0..inv.slots.len() {
+            let e = inv.slots[i];
+            if let Some((r, c)) = self.read(e)
+                && r == stack.item_ref
+            {
+                self.set_count(e, c.saturating_add(stack.count));
+                return;
+            }
+        }
+        if let Some(e) = self.spawn_stack(stack) {
+            inv.slots.push(e);
+        }
+    }
+
+    /// Absorb an EXISTING item entity (e.g. one just picked up off the ground) into the
+    /// inventory, preserving its instance id: merge into a held stack of the same ref (and
+    /// despawn the absorbed entity), else strip its ground components and adopt it as a
+    /// held slot.
+    pub fn absorb(&mut self, inv: &mut Inventory, item_entity: Entity) {
+        let Some((item_ref, count)) = self.read(item_entity) else {
+            return;
+        };
+        for i in 0..inv.slots.len() {
+            let e = inv.slots[i];
+            if let Some((r, c)) = self.read(e)
+                && r == item_ref
+            {
+                self.set_count(e, c.saturating_add(count));
+                self.forget(item_entity);
+                return;
+            }
+        }
+        self.commands
+            .entity(item_entity)
+            .remove::<GroundItem>()
+            .remove::<GridPos>()
+            .remove::<Floor>()
+            .remove::<MoveTarget>();
+        inv.slots.push(item_entity);
+    }
+
+    /// Remove up to `count` of `item_ref` (true consumption — burns the stack entity when
+    /// it empties). Returns how many were actually removed.
+    pub fn remove(&mut self, inv: &mut Inventory, item_ref: &str, count: u32) -> u32 {
+        let mut hit = None;
+        for (i, &e) in inv.slots.iter().enumerate() {
+            if let Some((r, c)) = self.read(e)
+                && r == item_ref
+            {
+                hit = Some((i, e, c));
+                break;
+            }
+        }
+        let Some((i, e, avail)) = hit else {
             return 0;
         };
-        let taken = self.slots[idx].count.min(count);
-        self.slots[idx].count -= taken;
-        if self.slots[idx].count == 0 {
-            self.slots.remove(idx);
+        let taken = avail.min(count);
+        let remaining = avail - taken;
+        if remaining == 0 {
+            inv.slots.remove(i);
+            self.forget(e);
+        } else {
+            self.set_count(e, remaining);
         }
         taken
     }
 
-    /// Detach up to `count` of `item_ref` as a standalone stack that KEEPS its instance
-    /// id when the whole stack is taken (a pure move — e.g. a drop), or mints a fresh id
-    /// for a partial split. Returns None if the ref isn't held. Use when the removed
-    /// items live on as a ground entity / trade offer rather than being consumed.
-    pub fn detach(&mut self, item_ref: &str, count: u32) -> Option<ItemStack> {
-        let idx = self.slots.iter().position(|s| s.item_ref == item_ref)?;
-        let take = self.slots[idx].count.min(count);
+    /// Detach up to `count` of `item_ref` as a standalone item entity (no location) for
+    /// relocation — a drop, trade move, or equip. A whole-stack take hands back the
+    /// EXISTING entity (id preserved); a partial take mints a fresh split entity and
+    /// leaves the remainder. Returns the detached entity, or `None` if the ref isn't held.
+    pub fn detach(&mut self, inv: &mut Inventory, item_ref: &str, count: u32) -> Option<Entity> {
+        let mut hit = None;
+        for (i, &e) in inv.slots.iter().enumerate() {
+            if let Some((r, c)) = self.read(e)
+                && r == item_ref
+            {
+                hit = Some((i, e, c));
+                break;
+            }
+        }
+        let (idx, e, avail) = hit?;
+        let take = avail.min(count);
         if take == 0 {
             return None;
         }
-        if take == self.slots[idx].count {
-            Some(self.slots.remove(idx))
+        if take == avail {
+            inv.slots.remove(idx);
+            Some(e)
         } else {
-            self.slots[idx].count -= take;
-            Some(ItemStack::mint(item_ref, take))
+            self.set_count(e, avail - take);
+            self.spawn_stack(ItemStack::mint(item_ref, take))
         }
+    }
+
+    /// Despawn (burn) an item entity outright — for a consumed/destroyed item that isn't
+    /// going anywhere.
+    pub fn burn(&mut self, entity: Entity) {
+        self.forget(entity);
+    }
+
+    /// Total count of a ref across the inventory's stacks.
+    pub fn count(&self, inv: &Inventory, item_ref: &str) -> u32 {
+        inv.slots
+            .iter()
+            .filter_map(|&e| self.read(e))
+            .filter(|(r, _)| r == item_ref)
+            .map(|(_, c)| c)
+            .sum()
+    }
+
+    /// The detached DTO form of an inventory, in slot order — for the wire + persistence.
+    pub fn snapshot(&self, inv: &Inventory) -> Vec<ItemStack> {
+        inv.slots
+            .iter()
+            .filter_map(|&e| self.read_stack(e))
+            .collect()
+    }
+
+    /// Read one item entity's stack DTO (id/ref/count), if it's a live item.
+    pub fn stack_of(&self, entity: Entity) -> Option<ItemStack> {
+        self.read_stack(entity)
     }
 }
 
-#[derive(Component, Clone)]
-pub struct GroundItem {
-    /// The instance id carried from the inventory stack that was dropped (or minted for
-    /// loot/world drops), so a drop → pickup round-trip preserves the item's identity.
-    pub id: String,
-    pub item_ref: String,
-    pub count: u32,
-}
+/// Marker: this item entity is lying on the ground (paired with `GridPos`, so it streams,
+/// renders, and can be picked up). Removed when the item is absorbed into an inventory.
+#[derive(Component)]
+pub struct GroundItem;
 
 #[derive(Component, Clone, Default)]
 pub struct Loot {
@@ -725,32 +926,44 @@ pub fn has_clearance(map: &WalkableMap, z: i32, tile: Tile, radius: i32) -> bool
     true
 }
 
+type GroundItemBundle = (
+    Item,
+    ItemId,
+    ItemRef,
+    StackCount,
+    EntityKind,
+    GridPos,
+    MoveTarget,
+    GroundItem,
+);
+
 pub fn ground_item_bundle(
     registry: &KindRegistry,
     item_ref: &str,
     count: u32,
     tile: Tile,
-) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
+) -> Option<GroundItemBundle> {
     ground_item_bundle_stack(registry, ItemStack::mint(item_ref, count), tile)
 }
 
 /// As [`ground_item_bundle`] but for an EXISTING instance stack — preserves its id so a
-/// dropped item keeps its identity on the ground (and through a later pickup).
+/// dropped item keeps its identity on the ground (and through a later pickup). The spawned
+/// entity is a full item entity (Item/ItemId/ItemRef/StackCount) tagged on-ground.
 pub fn ground_item_bundle_stack(
     registry: &KindRegistry,
     stack: ItemStack,
     tile: Tile,
-) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
+) -> Option<GroundItemBundle> {
     let kind = registry.kind_of(&stack.item_ref)?;
     Some((
+        Item,
+        ItemId(stack.id),
+        ItemRef(stack.item_ref),
+        StackCount(stack.count),
         EntityKind(kind),
         GridPos::at(tile),
         MoveTarget::default(),
-        GroundItem {
-            id: stack.id,
-            item_ref: stack.item_ref,
-            count: stack.count,
-        },
+        GroundItem,
     ))
 }
 
@@ -1177,6 +1390,7 @@ pub fn build_app(
         .insert_resource(SpawnedSlots::default())
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
+        .insert_resource(PendingItems::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1264,6 +1478,9 @@ pub fn build_app(
                 .in_set(SimSet::Movement),
         )
         .add_systems(Update, emit_snapshot.in_set(SimSet::Snapshot));
+    // Clear the per-frame just-spawned-item overlay after everything has run + the
+    // commands that spawned them flush, so next frame those entities are real.
+    app.add_systems(bevy::prelude::Last, clear_pending_items);
     blackjack::plugin(&mut app);
     crate::trade::plugin(&mut app);
     crate::shop::plugin(&mut app);
@@ -1285,6 +1502,7 @@ fn sync_roster(
     mut store: ResMut<PlayerStore>,
     mut kill_counts: ResMut<KillCounts>,
     equipment: Res<EquipmentEffects>,
+    registry: Res<KindRegistry>,
     q_saved: Query<(
         &Inventory,
         &Health,
@@ -1292,8 +1510,17 @@ fn sync_roster(
         &XpState,
         Option<&InSpaceFlag>,
     )>,
+    item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
     mut commands: Commands,
 ) {
+    // Read one item entity into its detached stack DTO (for persistence on save).
+    let dto = |e: Entity| -> Option<ItemStack> {
+        item_q.get(e).ok().map(|(r, c, id)| ItemStack {
+            id: id.0.clone(),
+            item_ref: r.0.clone(),
+            count: c.0,
+        })
+    };
     let active: Vec<(proto::PlayerSlot, String)> = {
         let guard = match roster.0.read() {
             Ok(r) => r,
@@ -1350,26 +1577,52 @@ fn sync_roster(
                 slots.push(ItemStack::mint(item_ref, *count));
             }
         }
-        let inventory = Inventory { slots };
-        if !inventory.slots.is_empty() {
-            send_inventory(&bcast, *slot, &inventory);
+        if !slots.is_empty() {
+            send_inventory(&bcast, *slot, &slots);
         }
-        let weapon_bonus = weapon
+        let weapon_ref = weapon.as_ref().map(|s| s.item_ref.clone());
+        let armor_ref = armor.as_ref().map(|s| s.item_ref.clone());
+        let weapon_bonus = weapon_ref
             .as_deref()
             .and_then(|w| equipment.0.get(w).copied())
             .unwrap_or_default();
-        let armor_bonus = armor
+        let armor_bonus = armor_ref
             .as_deref()
             .and_then(|a| equipment.0.get(a).copied())
             .unwrap_or_default();
         let attack = level_attack(config.player_attack, level) + weapon_bonus.attack;
         let defense = weapon_bonus.defense + armor_bonus.defense;
-        if weapon.is_some() {
-            send_equipped(&bcast, *slot, "weapon", weapon.as_deref(), attack, defense);
+        if weapon_ref.is_some() {
+            send_equipped(
+                &bcast,
+                *slot,
+                "weapon",
+                weapon_ref.as_deref(),
+                attack,
+                defense,
+            );
         }
-        if armor.is_some() {
-            send_equipped(&bcast, *slot, "armor", armor.as_deref(), attack, defense);
+        if armor_ref.is_some() {
+            send_equipped(
+                &bcast,
+                *slot,
+                "armor",
+                armor_ref.as_deref(),
+                attack,
+                defense,
+            );
         }
+        // Materialise the stacks into held item entities, plus any worn gear, then build
+        // the inventory + equipped slots from the entity handles.
+        let item_entities: Vec<Entity> = slots
+            .into_iter()
+            .map(|st| spawn_item(&mut commands, &registry, st))
+            .collect();
+        let inventory = Inventory {
+            slots: item_entities,
+        };
+        let weapon = weapon.map(|st| spawn_item(&mut commands, &registry, st));
+        let armor = armor.map(|st| spawn_item(&mut commands, &registry, st));
         send_stats(
             &bcast,
             *slot,
@@ -1398,7 +1651,12 @@ fn sync_roster(
                 Defense(defense),
                 XpState { level, xp },
                 inventory,
-                Equipped { weapon, armor },
+                Equipped {
+                    weapon,
+                    armor,
+                    weapon_bonus,
+                    armor_bonus,
+                },
                 StatusEffects::default(),
                 FloatMove::at(config.spawn),
                 IntentBuffer::default(),
@@ -1423,19 +1681,33 @@ fn sync_roster(
             if !username.is_empty()
                 && let Ok((inv, hp, equipped, xp, in_space)) = q_saved.get(entity)
             {
+                // Dematerialise the held + worn item entities into stack DTOs for the save,
+                // then despawn them (they re-materialise on the next join).
+                let slots: Vec<ItemStack> = inv.slots.iter().filter_map(|&e| dto(e)).collect();
+                let weapon = equipped.weapon.and_then(dto);
+                let armor = equipped.armor.and_then(dto);
                 store.by_username.insert(
                     username,
                     SavedPlayer {
-                        slots: inv.slots.clone(),
+                        slots,
                         hp: hp.hp,
-                        weapon: equipped.weapon.clone(),
-                        armor: equipped.armor.clone(),
+                        weapon,
+                        armor,
                         level: xp.level,
                         xp: xp.xp,
                         kills,
                         in_space: in_space.is_some(),
                     },
                 );
+                for &e in &inv.slots {
+                    commands.entity(e).despawn();
+                }
+                if let Some(e) = equipped.weapon {
+                    commands.entity(e).despawn();
+                }
+                if let Some(e) = equipped.armor {
+                    commands.entity(e).despawn();
+                }
             }
             commands.entity(entity).despawn();
         }
@@ -1566,20 +1838,27 @@ impl IntentBuffer {
 }
 
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
+/// Item definition tables bundled into one `SystemParam` so big systems stay under Bevy's
+/// 16-param ceiling.
+#[derive(bevy::ecs::system::SystemParam)]
+pub struct ItemDefs<'w> {
+    pub effects: Res<'w, ConsumableEffects>,
+    pub buffs: Res<'w, BuffEffects>,
+    pub equipment: Res<'w, EquipmentEffects>,
+}
+
 fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
-    effects: Res<ConsumableEffects>,
-    buffs: Res<BuffEffects>,
-    equipment: Res<EquipmentEffects>,
+    defs: ItemDefs,
     config: Res<SimConfig>,
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
+    mut bank: ItemBank,
     mut actions: ResMut<PendingActions>,
     mut trades: ResMut<PendingTrades>,
     mut shop: ResMut<PendingShop>,
     mut blackjack_inputs: ResMut<PendingBlackjack>,
-    mut drops: ResMut<PendingDrops>,
     deployables: Res<Deployables>,
     mut deploy: DeployQueues,
     mut q: Query<(
@@ -1678,9 +1957,10 @@ fn drain_inputs(
                 }
                 Input::UseItem { item_ref } => {
                     use_item(
-                        &effects,
-                        &buffs,
+                        &defs.effects,
+                        &defs.buffs,
                         &bcast,
+                        &mut bank,
                         slot.0,
                         item_ref,
                         clock.tick,
@@ -1690,73 +1970,104 @@ fn drain_inputs(
                     );
                 }
                 Input::DropItem { item_ref, qty } => {
-                    // Detach the dropped stack so its instance id rides onto the ground
-                    // entity (a whole-stack drop keeps its id; a partial drop splits).
-                    if let Some(stack) = inv.detach(item_ref, *qty) {
-                        drops.0.push((pos.tile, stack));
-                        send_inventory(&bcast, slot.0, &inv);
+                    // Detach the stack as an item entity (id preserved on a whole drop,
+                    // split mints a fresh id) and drop it onto the tile by giving it
+                    // ground components — the SAME entity moves, no re-mint.
+                    if let Some(e) = bank.detach(&mut inv, item_ref, *qty) {
+                        bank.commands.entity(e).insert((
+                            GridPos::at(pos.tile),
+                            MoveTarget::default(),
+                            GroundItem,
+                        ));
+                        let items = bank.snapshot(&inv);
+                        send_inventory(&bcast, slot.0, &items);
                     }
                 }
                 Input::MoveItem { from, to } => {
                     inv.reorder(*from as usize, *to as usize);
-                    send_inventory(&bcast, slot.0, &inv);
+                    let items = bank.snapshot(&inv);
+                    send_inventory(&bcast, slot.0, &items);
                 }
                 Input::EquipItem { item_ref } => {
-                    let Some(&bonus) = equipment.0.get(item_ref.as_str()) else {
+                    let Some(&bonus) = defs.equipment.0.get(item_ref.as_str()) else {
                         continue;
                     };
                     let is_weapon = bonus.attack > 0;
-                    let slot_ref = if is_weapon {
-                        &mut equipped.weapon
+                    let cur = if is_weapon {
+                        equipped.weapon
                     } else {
-                        &mut equipped.armor
+                        equipped.armor
                     };
-                    if slot_ref.as_deref() == Some(item_ref.as_str()) {
-                        *slot_ref = None;
-                    } else {
-                        if !inv
-                            .slots
-                            .iter()
-                            .any(|s| &s.item_ref == item_ref && s.count > 0)
-                        {
-                            continue;
+                    let cur_ref = cur.and_then(|e| bank.stack_of(e)).map(|s| s.item_ref);
+                    if cur_ref.as_deref() == Some(item_ref.as_str()) {
+                        // Toggle off: the worn instance returns to the inventory.
+                        if let Some(e) = cur {
+                            bank.absorb(&mut inv, e);
                         }
-                        *slot_ref = Some(item_ref.clone());
+                        if is_weapon {
+                            equipped.weapon = None;
+                        } else {
+                            equipped.armor = None;
+                        }
+                    } else {
+                        // Equip one instance from the inventory; any item already in the
+                        // slot returns to the inventory.
+                        let Some(ne) = bank.detach(&mut inv, item_ref, 1) else {
+                            continue;
+                        };
+                        if let Some(old) = cur {
+                            bank.absorb(&mut inv, old);
+                        }
+                        if is_weapon {
+                            equipped.weapon = Some(ne);
+                        } else {
+                            equipped.armor = Some(ne);
+                        }
                     }
-                    let weapon_bonus = equipped
-                        .weapon
-                        .as_deref()
-                        .and_then(|w| equipment.0.get(w).copied())
-                        .unwrap_or_default();
-                    let armor_bonus = equipped
-                        .armor
-                        .as_deref()
-                        .and_then(|a| equipment.0.get(a).copied())
-                        .unwrap_or_default();
+                    let bonus_of = |slot: Option<Entity>, bank: &ItemBank| {
+                        slot.and_then(|e| bank.stack_of(e))
+                            .and_then(|s| defs.equipment.0.get(&s.item_ref).copied())
+                            .unwrap_or_default()
+                    };
+                    let weapon_bonus = bonus_of(equipped.weapon, &bank);
+                    let armor_bonus = bonus_of(equipped.armor, &bank);
+                    equipped.weapon_bonus = weapon_bonus;
+                    equipped.armor_bonus = armor_bonus;
                     stats.attack =
                         level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
                     defense.0 = weapon_bonus.defense + armor_bonus.defense;
                     let changed = if is_weapon {
-                        equipped.weapon.as_deref()
+                        equipped.weapon
                     } else {
-                        equipped.armor.as_deref()
+                        equipped.armor
                     };
+                    let changed_ref = changed.and_then(|e| bank.stack_of(e)).map(|s| s.item_ref);
                     send_equipped(
                         &bcast,
                         slot.0,
                         if is_weapon { "weapon" } else { "armor" },
-                        changed,
+                        changed_ref.as_deref(),
                         stats.attack,
                         defense.0,
                     );
+                    let items = bank.snapshot(&inv);
+                    send_inventory(&bcast, slot.0, &items);
                 }
                 Input::PlaceItem {
                     item_ref,
                     tile,
                     rot,
                 } => {
-                    let placed =
-                        place_item(&deployables, &map, z, pos.tile, *tile, item_ref, &mut inv);
+                    let placed = place_item(
+                        &deployables,
+                        &map,
+                        &mut bank,
+                        z,
+                        pos.tile,
+                        *tile,
+                        item_ref,
+                        &mut inv,
+                    );
                     match placed {
                         Ok(()) => {
                             deploy.placements.0.push((
@@ -1766,7 +2077,8 @@ fn drain_inputs(
                                 z,
                                 *rot & 0x03,
                             ));
-                            send_inventory(&bcast, slot.0, &inv);
+                            let items = bank.snapshot(&inv);
+                            send_inventory(&bcast, slot.0, &items);
                             send_item_placed(&bcast, slot.0, item_ref, *tile, true, None);
                         }
                         Err(reason) => {
@@ -1824,6 +2136,7 @@ fn use_item(
     effects: &ConsumableEffects,
     buffs: &BuffEffects,
     bcast: &Outbound,
+    bank: &mut ItemBank,
     slot: proto::PlayerSlot,
     item_ref: &str,
     now: u32,
@@ -1836,16 +2149,8 @@ fn use_item(
     if heal.is_none() && buff.is_none() {
         return;
     }
-    let Some(idx) = inv
-        .slots
-        .iter()
-        .position(|s| s.item_ref == item_ref && s.count > 0)
-    else {
-        return;
-    };
-    inv.slots[idx].count -= 1;
-    if inv.slots[idx].count == 0 {
-        inv.slots.remove(idx);
+    if bank.remove(inv, item_ref, 1) == 0 {
+        return; // none held
     }
     let heal_amt = heal.unwrap_or(0);
     if heal_amt != 0 {
@@ -1865,7 +2170,8 @@ fn use_item(
         to: slot,
         payload,
     });
-    send_inventory(bcast, slot, inv);
+    let items = bank.snapshot(inv);
+    send_inventory(bcast, slot, &items);
 }
 
 pub(crate) type AttackPlayerQuery<'w, 's> = Query<
@@ -2069,6 +2375,7 @@ fn apply_actions(
     mut respawns: ResMut<RespawnQueue>,
     mut kill_counts: ResMut<KillCounts>,
     mut commands: Commands,
+    mut bank: ItemBank,
     mut q_players: AttackPlayerQuery,
     mut q_mobs: AttackMobQuery,
     mut targets: ActionTargets,
@@ -2236,15 +2543,14 @@ fn apply_actions(
                 }
             }
             proto::ACTION_PICKUP => {
-                let Ok((item_pos, item)) = targets.items.get(target_entity) else {
+                // Target must be a ground item; confirm + read its tile for the range check.
+                let Ok((item_pos, _)) = targets.items.get(target_entity) else {
                     continue;
                 };
-                let stack = ItemStack {
-                    id: item.id.clone(),
-                    item_ref: item.item_ref.clone(),
-                    count: item.count,
-                };
                 let item_tile = item_pos.tile;
+                let Some(stack) = bank.stack_of(target_entity) else {
+                    continue;
+                };
                 let Ok((_, _, pos, _, mut inv, ..)) = q_players.get_mut(player_entity) else {
                     continue;
                 };
@@ -2258,16 +2564,17 @@ fn apply_actions(
                     item_ref: stack.item_ref.clone(),
                     count: stack.count,
                 };
-                // Preserve the ground item's instance id through the pickup (a move).
-                inv.add_stack(stack);
-                commands.entity(target_entity).despawn();
+                // Move the ground item ENTITY into the inventory (id preserved; merges +
+                // despawns into a held stack of the same ref).
+                bank.absorb(&mut inv, target_entity);
                 let pickup = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PICKUP,
                     to: proto::PlayerSlot(slot.0),
                     payload: pickup,
                 });
-                send_inventory(&bcast, slot, &inv);
+                let items = bank.snapshot(&inv);
+                send_inventory(&bcast, slot, &items);
             }
             proto::ACTION_LOOT => {
                 let Ok((corpse_pos, mut corpse_inv)) = targets.corpses.get_mut(target_entity)
@@ -2281,17 +2588,19 @@ fn apply_actions(
                 if pos.tile.chebyshev(corpse_tile) > 1 {
                     continue;
                 }
-                // Transfer everything, then the empty corpse despawns.
+                // Transfer every item ENTITY from the corpse to the player, then despawn
+                // the empty corpse.
                 let items = std::mem::take(&mut corpse_inv.slots);
                 if items.is_empty() {
                     commands.entity(target_entity).despawn();
                     continue;
                 }
-                for stack in items {
-                    inv.add_stack(stack);
+                for e in items {
+                    bank.absorb(&mut inv, e);
                 }
                 commands.entity(target_entity).despawn();
-                send_inventory(&bcast, slot, &inv);
+                let items = bank.snapshot(&inv);
+                send_inventory(&bcast, slot, &items);
             }
             _ => {}
         }
@@ -2304,12 +2613,11 @@ fn send_corpse_contents(
     bcast: &Outbound,
     slot: proto::PlayerSlot,
     corpse: proto::EntityId,
-    inv: &Inventory,
+    items: &[ItemStack],
 ) {
     let event = proto::CorpseContents {
         corpse: corpse.0,
-        items: inv
-            .slots
+        items: items
             .iter()
             .map(|s| (s.item_ref.clone(), s.count))
             .collect(),
@@ -2331,6 +2639,7 @@ fn handle_corpse_ops(
     bcast: Res<Outbound>,
     index: Res<EidIndex>,
     mut commands: Commands,
+    mut bank: ItemBank,
     mut q_corpses: Query<(&GridPos, &mut Inventory), (With<Corpse>, Without<PlayerSlotTag>)>,
     mut q_players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
 ) {
@@ -2356,19 +2665,26 @@ fn handle_corpse_ops(
             continue;
         }
         match take {
-            None => send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv),
+            None => {
+                let items = bank.snapshot(&corpse_inv);
+                send_corpse_contents(&bcast, slot, corpse_id, &items);
+            }
             Some(idx) => {
                 let idx = idx as usize;
                 if idx >= corpse_inv.slots.len() {
-                    send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
+                    let items = bank.snapshot(&corpse_inv);
+                    send_corpse_contents(&bcast, slot, corpse_id, &items);
                     continue;
                 }
-                let stack = corpse_inv.slots.remove(idx);
+                // Move the chosen item ENTITY from the corpse to the looter (id preserved).
+                let e = corpse_inv.slots.remove(idx);
                 if let Ok((_, _, _, mut p_inv)) = q_players.get_mut(player_e) {
-                    p_inv.add_stack(stack);
-                    send_inventory(&bcast, slot, &p_inv);
+                    bank.absorb(&mut p_inv, e);
+                    let items = bank.snapshot(&p_inv);
+                    send_inventory(&bcast, slot, &items);
                 }
-                send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
+                let items = bank.snapshot(&corpse_inv);
+                send_corpse_contents(&bcast, slot, corpse_id, &items);
                 if corpse_inv.slots.is_empty() {
                     commands.entity(corpse_e).despawn();
                 }
@@ -2377,54 +2693,37 @@ fn handle_corpse_ops(
     }
 }
 
-pub fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
-    inv.slots
-        .iter()
-        .find(|s| s.item_ref == item_ref)
-        .map(|s| s.count)
-        .unwrap_or(0)
+pub fn count_ref(bank: &ItemBank, inv: &Inventory, item_ref: &str) -> u32 {
+    bank.count(inv, item_ref)
 }
 
-pub fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
-    let Some(idx) = inv.slots.iter().position(|s| s.item_ref == item_ref) else {
-        return false;
-    };
-    if inv.slots[idx].count < qty {
+/// All-or-nothing removal of exactly `qty` of a ref. Returns false (untouched) if short.
+pub fn remove_ref(bank: &mut ItemBank, inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
+    if bank.count(inv, item_ref) < qty {
         return false;
     }
-    inv.slots[idx].count -= qty;
-    if inv.slots[idx].count == 0 {
-        inv.slots.remove(idx);
-    }
-    true
+    bank.remove(inv, item_ref, qty) == qty
 }
 
 /// Combined spendable coin: loose coins plus gold-bars at GOLD_BAR_VALUE each.
-pub fn coin_balance(inv: &Inventory) -> u32 {
-    inv.slots.iter().fold(0u32, |acc, s| {
-        if s.item_ref == COIN_REF {
-            acc.saturating_add(s.count)
-        } else if s.item_ref == GOLD_BAR_REF {
-            acc.saturating_add(s.count.saturating_mul(GOLD_BAR_VALUE))
-        } else {
-            acc
-        }
-    })
+pub fn coin_balance(bank: &ItemBank, inv: &Inventory) -> u32 {
+    bank.count(inv, COIN_REF)
+        .saturating_add(bank.count(inv, GOLD_BAR_REF).saturating_mul(GOLD_BAR_VALUE))
 }
 
 /// Spend `amount` coin-equivalent, breaking gold-bars into loose coins as needed.
 /// Returns false (and leaves the inventory untouched) if the balance is short.
-pub fn spend_coins(inv: &mut Inventory, amount: u32) -> bool {
-    if coin_balance(inv) < amount {
+pub fn spend_coins(bank: &mut ItemBank, inv: &mut Inventory, amount: u32) -> bool {
+    if coin_balance(bank, inv) < amount {
         return false;
     }
-    while count_ref(inv, COIN_REF) < amount {
-        if !remove_ref(inv, GOLD_BAR_REF, 1) {
+    while bank.count(inv, COIN_REF) < amount {
+        if !remove_ref(bank, inv, GOLD_BAR_REF, 1) {
             return false;
         }
-        inv.add(COIN_REF, GOLD_BAR_VALUE);
+        bank.add(inv, COIN_REF, GOLD_BAR_VALUE);
     }
-    remove_ref(inv, COIN_REF, amount)
+    remove_ref(bank, inv, COIN_REF, amount)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -2432,7 +2731,9 @@ fn award_xp(
     bcast: &Outbound,
     slot: proto::PlayerSlot,
     config: &SimConfig,
-    equipment: &EquipmentEffects,
+    // Equipped bonus is now read from the cached `Equipped` fields on level-up, not a
+    // ref lookup; kept in the signature so callers (which hold the table) stay unchanged.
+    _equipment: &EquipmentEffects,
     gained: i32,
     xp: &mut XpState,
     hp: &mut Health,
@@ -2450,14 +2751,9 @@ fn award_xp(
         leveled = true;
     }
     if leveled {
-        let weapon_bonus = equipped
-            .weapon
-            .as_deref()
-            .and_then(|w| equipment.0.get(w).copied())
-            .unwrap_or_default();
         hp.max_hp = level_max_hp(config.player_hp, xp.level);
         hp.hp = hp.max_hp;
-        stats.attack = level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
+        stats.attack = level_attack(config.player_attack, xp.level) + equipped.weapon_bonus.attack;
     }
     send_stats(
         bcast,
@@ -2547,9 +2843,11 @@ pub(crate) fn broadcast_player_stats(
     );
 }
 
-pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory) {
-    let items = inv
-        .slots
+/// Push an inventory snapshot to the client. Callers materialise the stack DTOs from the
+/// owner's item entities first (`bank.snapshot(&inv)`), since the live inventory is a list
+/// of entity handles.
+pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, items: &[ItemStack]) {
+    let items = items
         .iter()
         .map(|s| proto::InventoryItem {
             id: s.id.clone(),
@@ -2575,6 +2873,7 @@ pub const PLACE_RANGE: i32 = 4;
 fn place_item(
     deployables: &Deployables,
     map: &WalkableMap,
+    bank: &mut ItemBank,
     z: i32,
     from: Tile,
     tile: Tile,
@@ -2584,11 +2883,7 @@ fn place_item(
     if !deployables.0.contains_key(item_ref) {
         return Err("not_placeable");
     }
-    if !inv
-        .slots
-        .iter()
-        .any(|s| s.item_ref == item_ref && s.count > 0)
-    {
+    if bank.count(inv, item_ref) == 0 {
         return Err("not_held");
     }
     if from.chebyshev(tile) > PLACE_RANGE {
@@ -2597,7 +2892,7 @@ fn place_item(
     if !map.is_walkable_z(z, tile) {
         return Err("blocked");
     }
-    if inv.remove(item_ref, 1) == 0 {
+    if bank.remove(inv, item_ref, 1) == 0 {
         return Err("not_held");
     }
     Ok(())
@@ -2690,6 +2985,7 @@ fn apply_pickups(
     sink: Res<EnvPersistSink>,
     env_q: Query<(Entity, &GridPos, Option<&Floor>, &PlacedBy)>,
     mut players: Query<(&PlayerSlotTag, &mut Inventory)>,
+    mut bank: ItemBank,
     mut commands: Commands,
 ) {
     let mut changed = false;
@@ -2703,8 +2999,9 @@ fn apply_pickups(
             continue;
         };
         if let Some((_, mut inv)) = players.iter_mut().find(|(tag, _)| tag.0 == slot) {
-            inv.add(&placed.kit_ref, 1);
-            send_inventory(&bcast, slot, &inv);
+            bank.add(&mut inv, &placed.kit_ref, 1);
+            let items = bank.snapshot(&inv);
+            send_inventory(&bcast, slot, &items);
         }
         commands.entity(eid).despawn();
         map.unblock_tile_z(z, tile);
@@ -3540,6 +3837,7 @@ fn stair_system(
         ),
         With<PlayerSlotTag>,
     >,
+    item_refs: Query<&ItemRef>,
 ) {
     let Some(stairs) = stairs else {
         return;
@@ -3561,7 +3859,10 @@ fn stair_system(
         };
         // Locked stair: need the key item in inventory.
         if let Some(key) = &link.lock
-            && count_ref(inv, key) == 0
+            && !inv
+                .slots
+                .iter()
+                .any(|&e| item_refs.get(e).map(|r| &r.0 == key).unwrap_or(false))
         {
             continue;
         }
@@ -3791,31 +4092,82 @@ pub(crate) mod test_support {
             .expect("player for slot")
     }
 
-    pub(crate) fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
-        let mut inv = app.world_mut().get_mut::<Inventory>(entity).unwrap();
-        inv.slots = items.iter().map(|(r, c)| ItemStack::mint(r, *c)).collect();
+    /// Spawn a held item entity and return its handle (test-only mint).
+    pub(crate) fn spawn_test_item(app: &mut App, item_ref: &str, count: u32) -> Entity {
+        let kind = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of(item_ref)
+            .unwrap_or(0);
+        app.world_mut()
+            .spawn((
+                Item,
+                ItemId(mint_item_id()),
+                ItemRef(item_ref.to_string()),
+                StackCount(count),
+                EntityKind(kind),
+            ))
+            .id()
     }
 
-    pub(crate) fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
-        app.world()
-            .get::<Inventory>(entity)
-            .unwrap()
-            .slots
+    /// Replace an inventory with freshly-minted item entities (one stack per pair).
+    pub(crate) fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
+        let ents: Vec<Entity> = items
             .iter()
-            .find(|s| s.item_ref == item_ref)
-            .map(|s| s.count)
-            .unwrap_or(0)
+            .map(|(r, c)| spawn_test_item(app, r, *c))
+            .collect();
+        app.world_mut().get_mut::<Inventory>(entity).unwrap().slots = ents;
+    }
+
+    /// Add one freshly-minted stack to an existing inventory (merges by ref).
+    pub(crate) fn give_item(app: &mut App, entity: Entity, item_ref: &str, count: u32) {
+        // Merge into an existing stack of the same ref if present.
+        let existing: Option<Entity> = {
+            let inv = app.world().get::<Inventory>(entity).unwrap();
+            inv.slots.iter().copied().find(|&e| {
+                app.world()
+                    .get::<ItemRef>(e)
+                    .map(|r| r.0 == item_ref)
+                    .unwrap_or(false)
+            })
+        };
+        if let Some(e) = existing {
+            let mut c = app.world_mut().get_mut::<StackCount>(e).unwrap();
+            c.0 = c.0.saturating_add(count);
+        } else {
+            let e = spawn_test_item(app, item_ref, count);
+            app.world_mut()
+                .get_mut::<Inventory>(entity)
+                .unwrap()
+                .slots
+                .push(e);
+        }
+    }
+
+    /// Total count of a ref across an inventory's item entities.
+    pub(crate) fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
+        let inv = app.world().get::<Inventory>(entity).unwrap();
+        inv.slots
+            .iter()
+            .filter_map(|&e| {
+                let r = app.world().get::<ItemRef>(e)?;
+                let c = app.world().get::<StackCount>(e)?;
+                (r.0 == item_ref).then_some(c.0)
+            })
+            .sum()
     }
 
     /// (ref, count) pairs in slot order — for asserting inventory contents without
     /// pinning the random instance ids.
     pub(crate) fn slot_pairs(app: &App, entity: Entity) -> Vec<(String, u32)> {
-        app.world()
-            .get::<Inventory>(entity)
-            .unwrap()
-            .slots
+        let inv = app.world().get::<Inventory>(entity).unwrap();
+        inv.slots
             .iter()
-            .map(|s| (s.item_ref.clone(), s.count))
+            .filter_map(|&e| {
+                let r = app.world().get::<ItemRef>(e)?;
+                let c = app.world().get::<StackCount>(e)?;
+                Some((r.0.clone(), c.0))
+            })
             .collect()
     }
 }
@@ -3833,8 +4185,7 @@ mod tests {
         app.update();
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("potion", 3);
+            give_item(&mut app, player, "potion", 3);
         }
         input_tx
             .send((
@@ -3848,18 +4199,14 @@ mod tests {
         for _ in 0..3 {
             app.update();
         }
-        let inv = app.world().get::<Inventory>(player).unwrap();
-        let left = inv
-            .slots
-            .iter()
-            .find(|s| s.item_ref == "potion")
-            .map(|s| s.count)
-            .unwrap_or(0);
+        let left = inv_count(&app, player, "potion");
         assert_eq!(left, 1, "inventory not decremented to 1 (got {left})");
-        let mut q = app.world_mut().query::<&GroundItem>();
+        let mut q = app
+            .world_mut()
+            .query_filtered::<(&ItemRef, &StackCount), With<GroundItem>>();
         let dropped = q
             .iter(app.world())
-            .any(|g| g.item_ref == "potion" && g.count == 2);
+            .any(|(r, c)| r.0 == "potion" && c.0 == 2);
         assert!(dropped, "dropped potion did not spawn as ground loot");
     }
 
@@ -3870,10 +4217,9 @@ mod tests {
         app.update();
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("potion", 1);
-            inv.add("coin", 5);
-            inv.add("elixir", 2);
+            give_item(&mut app, player, "potion", 1);
+            give_item(&mut app, player, "coin", 5);
+            give_item(&mut app, player, "elixir", 2);
         }
         input_tx
             .send((slot, Input::MoveItem { from: 0, to: 2 }))
@@ -3881,8 +4227,10 @@ mod tests {
         for _ in 0..3 {
             app.update();
         }
-        let inv = app.world().get::<Inventory>(player).unwrap();
-        let order: Vec<&str> = inv.slots.iter().map(|s| s.item_ref.as_str()).collect();
+        let order: Vec<String> = slot_pairs(&app, player)
+            .into_iter()
+            .map(|(r, _)| r)
+            .collect();
         assert_eq!(
             order,
             vec!["coin", "elixir", "potion"],
@@ -3967,13 +4315,7 @@ mod tests {
             app.world().resource::<WalkableMap>().is_walkable_z(0, tile),
             "tile freed"
         );
-        let inv = app.world().get::<Inventory>(player).unwrap();
-        assert!(
-            inv.slots
-                .iter()
-                .any(|s| s.item_ref == "campfire-kit" && s.count >= 1),
-            "kit refunded"
-        );
+        assert!(inv_count(&app, player, "campfire-kit") >= 1, "kit refunded");
     }
 
     #[test]
@@ -4023,13 +4365,12 @@ mod tests {
         }
         let tile = Tile::new(5, 5);
         let from = Tile::new(5, 6);
+        let kit = spawn_test_item(&mut app, "test-kit", 1);
         app.world_mut().spawn((
             EntityKind(PLAYER_KIND),
             GridPos::at(from),
             MoveTarget::default(),
-            Inventory {
-                slots: vec![ItemStack::mint("test-kit", 1)],
-            },
+            Inventory { slots: vec![kit] },
             PlayerSlotTag(proto::PlayerSlot(0)),
         ));
 
@@ -4440,18 +4781,12 @@ mod tests {
         let corpse = {
             let mut q = app
                 .world_mut()
-                .query_filtered::<(Entity, &GridPos, &Inventory), With<Corpse>>();
-            let (e, gp, inv) = q.iter(app.world()).next().expect("corpse spawned");
+                .query_filtered::<(Entity, &GridPos), With<Corpse>>();
+            let (e, gp) = q.iter(app.world()).next().expect("corpse spawned");
             assert_eq!(gp.tile, Tile::new(10, 10));
-            assert_eq!(
-                inv.slots
-                    .iter()
-                    .map(|s| (s.item_ref.clone(), s.count))
-                    .collect::<Vec<_>>(),
-                vec![("potion".to_string(), 3)]
-            );
             e
         };
+        assert_eq!(slot_pairs(&app, corpse), vec![("potion".to_string(), 3)]);
 
         // An adjacent looter takes everything; the empty corpse despawns.
         let b = join(&roster, "looter");
@@ -4794,8 +5129,7 @@ mod tests {
 
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("potion", 2);
+            give_item(&mut app, player, "potion", 2);
         }
         {
             let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
@@ -4815,15 +5149,8 @@ mod tests {
         }
 
         let hp = app.world().get::<Health>(player).unwrap();
-        let inv = app.world().get::<Inventory>(player).unwrap();
         assert_eq!(hp.hp, 75, "potion did not heal");
-        assert_eq!(
-            inv.slots
-                .iter()
-                .map(|s| (s.item_ref.clone(), s.count))
-                .collect::<Vec<_>>(),
-            vec![("potion".to_string(), 1)]
-        );
+        assert_eq!(slot_pairs(&app, player), vec![("potion".to_string(), 1)]);
 
         let mut saw_used = false;
         while let Ok(evt) = rx.try_recv() {
@@ -4853,8 +5180,7 @@ mod tests {
 
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("iron-sword", 1);
+            give_item(&mut app, player, "iron-sword", 1);
         }
 
         input_tx
@@ -4925,8 +5251,7 @@ mod tests {
 
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("iron-shield", 1);
+            give_item(&mut app, player, "iron-shield", 1);
         }
         input_tx
             .send((
@@ -4940,8 +5265,12 @@ mod tests {
 
         let defense = app.world().get::<Defense>(player).unwrap();
         assert_eq!(defense.0, 3, "shield defense not applied");
-        let equipped = app.world().get::<Equipped>(player).unwrap();
-        assert_eq!(equipped.armor.as_deref(), Some("iron-shield"));
+        let equipped = app.world().get::<Equipped>(player).unwrap().clone();
+        let armor_ref = equipped
+            .armor
+            .and_then(|e| app.world().get::<ItemRef>(e))
+            .map(|r| r.0.as_str());
+        assert_eq!(armor_ref, Some("iron-shield"));
         assert!(equipped.weapon.is_none(), "shield must not occupy weapon");
 
         let registry = app.world().resource::<KindRegistry>().clone();
@@ -5073,8 +5402,7 @@ mod tests {
 
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("potion", 3);
+            give_item(&mut app, player, "potion", 3);
         }
 
         roster.write().unwrap().release(slot);
@@ -5194,57 +5522,6 @@ mod tests {
     }
 
     #[test]
-    fn inventory_add_mints_distinct_ids_and_merges_by_ref() {
-        let mut inv = Inventory::default();
-        inv.add("potion", 2);
-        inv.add("coin", 5);
-        inv.add("potion", 1); // same ref → merges into the existing stack
-        assert_eq!(
-            inv.slots.len(),
-            2,
-            "same ref merges, distinct ref is its own"
-        );
-        let potion = inv.slots.iter().find(|s| s.item_ref == "potion").unwrap();
-        let coin = inv.slots.iter().find(|s| s.item_ref == "coin").unwrap();
-        assert_eq!(potion.count, 3);
-        assert!(!potion.id.is_empty() && !coin.id.is_empty(), "ids minted");
-        assert_ne!(
-            potion.id, coin.id,
-            "distinct stacks get distinct instance ids"
-        );
-    }
-
-    #[test]
-    fn detach_whole_keeps_id_partial_mints_new() {
-        let mut inv = Inventory::default();
-        inv.add("arrow", 5);
-        let id = inv.slots[0].id.clone();
-        // Partial: the detached portion gets a fresh id; the remainder keeps the original.
-        let part = inv.detach("arrow", 2).unwrap();
-        assert_eq!(part.count, 2);
-        assert_ne!(part.id, id, "a split mints a new id for the moved portion");
-        assert_eq!(inv.slots[0].id, id, "remainder keeps the original id");
-        // Whole: the moved stack keeps its id, the slot empties.
-        let whole = inv.detach("arrow", 3).unwrap();
-        assert_eq!(whole.id, id, "a whole-stack detach preserves the id");
-        assert!(inv.slots.is_empty());
-    }
-
-    #[test]
-    fn add_stack_preserves_incoming_id_into_empty_ref() {
-        let mut inv = Inventory::default();
-        inv.add_stack(ItemStack {
-            id: "instance-xyz".into(),
-            item_ref: "gem".into(),
-            count: 1,
-        });
-        assert_eq!(
-            inv.slots[0].id, "instance-xyz",
-            "moved instance keeps its id"
-        );
-    }
-
-    #[test]
     fn pickup_preserves_ground_item_instance_id() {
         let (mut app, mut rx, input_tx, roster) = harness(0x1d);
         let slot = join(&roster, "id-keeper");
@@ -5346,8 +5623,7 @@ mod tests {
         )])));
         let player = player_entity(&mut app);
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("elixir", 1);
+            give_item(&mut app, player, "elixir", 1);
         }
         {
             let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
@@ -5405,8 +5681,7 @@ mod tests {
         let player = player_entity(&mut app);
         let base = app.world().get::<MoveSpeed>(player).unwrap().ticks_per_tile;
         {
-            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
-            inv.add("swift-tonic", 1);
+            give_item(&mut app, player, "swift-tonic", 1);
         }
         input_tx
             .send((

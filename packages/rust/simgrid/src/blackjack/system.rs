@@ -13,8 +13,8 @@ use crate::blackjack::table::{
 use crate::grid::GridPos;
 use crate::proto::{self, Tile};
 use crate::sim::{
-    COIN_REF, Inventory, Outbound, PlayerSlotTag, RosterHandle, SimClock, SimSeed, coin_balance,
-    send_inventory, spend_coins,
+    COIN_REF, Inventory, ItemBank, Outbound, PlayerSlotTag, RosterHandle, SimClock, SimSeed,
+    coin_balance, send_inventory, spend_coins,
 };
 
 fn table_salt(table_ref: &str) -> u64 {
@@ -40,6 +40,7 @@ type PlayerQuery<'w, 's> = Query<
 /// Credit coins back to a player's live inventory and resync it.
 fn credit_coins(
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity: Entity,
     bcast: &Outbound,
     slot: u16,
@@ -49,8 +50,9 @@ fn credit_coins(
         return;
     }
     if let Ok((_, _, _, mut inv)) = q.get_mut(entity) {
-        inv.add(COIN_REF, amount);
-        send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+        bank.add(&mut inv, COIN_REF, amount);
+        let items = bank.snapshot(&inv);
+        send_inventory(bcast, proto::PlayerSlot(slot), &items);
     }
 }
 
@@ -64,6 +66,7 @@ pub fn apply_blackjack(
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
     mut q: PlayerQuery<'_, '_>,
+    mut bank: ItemBank,
 ) {
     let tick = clock.tick;
 
@@ -118,7 +121,7 @@ pub fn apply_blackjack(
                 }
             }
             BjInput::Leave => {
-                leave_seat(&mut reg, &mut q, &entity_of, &bcast, slot);
+                leave_seat(&mut reg, &mut q, &mut bank, &entity_of, &bcast, slot);
             }
             BjInput::Bet { amount } => {
                 let Some(session) = reg
@@ -141,22 +144,25 @@ pub fn apply_blackjack(
                 let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
                     continue;
                 };
-                let held = coin_balance(&inv);
+                let held = coin_balance(&bank, &inv);
                 if held < BJ_MIN_BET {
                     continue;
                 }
                 let stake = amount.clamp(BJ_MIN_BET, held);
-                if !spend_coins(&mut inv, stake) {
+                if !spend_coins(&mut bank, &mut inv, stake) {
                     continue;
                 }
                 session.seats[i].as_mut().unwrap().bet = stake;
-                send_inventory(&bcast, pslot, &inv);
+                let items = bank.snapshot(&inv);
+                send_inventory(&bcast, pslot, &items);
             }
             BjInput::Act { kind } => {
-                handle_bj_action(&mut reg, &mut q, &entity_of, &bcast, slot, kind);
+                handle_bj_action(&mut reg, &mut q, &mut bank, &entity_of, &bcast, slot, kind);
             }
             BjInput::Insure { amount } => {
-                handle_bj_insurance(&mut reg, &mut q, &entity_of, &bcast, slot, amount);
+                handle_bj_insurance(
+                    &mut reg, &mut q, &mut bank, &entity_of, &bcast, slot, amount,
+                );
             }
         }
     }
@@ -211,7 +217,7 @@ pub fn apply_blackjack(
 
     // ---- Per-tick phase driver ----
     for session in reg.sessions.values_mut() {
-        advance_bj_phase(session, tick, &mut q, &entity_of, &bcast);
+        advance_bj_phase(session, tick, &mut q, &mut bank, &entity_of, &bcast);
     }
 
     // ---- Teardown empty tables ----
@@ -220,7 +226,7 @@ pub fn apply_blackjack(
     // ---- Scoped broadcast ----
     let mut balance_of: HashMap<u16, u32> = HashMap::new();
     for (_, slot, _, inv) in q.iter() {
-        balance_of.insert(slot.0.0, coin_balance(inv));
+        balance_of.insert(slot.0.0, coin_balance(&bank, inv));
     }
     for (table_ref, session) in reg.sessions.iter() {
         let mut recipients: Vec<u16> = session
@@ -243,6 +249,7 @@ pub fn apply_blackjack(
 fn leave_seat(
     reg: &mut TableRegistry,
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
     slot: u16,
@@ -263,13 +270,14 @@ fn leave_seat(
         && seat.bet > 0
         && let Some(&entity) = entity_of.get(&slot)
     {
-        credit_coins(q, entity, bcast, slot, seat.bet);
+        credit_coins(q, bank, entity, bcast, slot, seat.bet);
     }
 }
 
 fn handle_bj_insurance(
     reg: &mut TableRegistry,
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
     slot: u16,
@@ -301,17 +309,19 @@ fn handle_bj_insurance(
     let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
         return;
     };
-    let stake = amount.min(cap).min(coin_balance(&inv));
-    if stake == 0 || !spend_coins(&mut inv, stake) {
+    let stake = amount.min(cap).min(coin_balance(bank, &inv));
+    if stake == 0 || !spend_coins(bank, &mut inv, stake) {
         return;
     }
-    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+    let items = bank.snapshot(&inv);
+    send_inventory(bcast, proto::PlayerSlot(slot), &items);
     session.seats[i].as_mut().unwrap().insurance = stake;
 }
 
 fn handle_bj_action(
     reg: &mut TableRegistry,
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
     slot: u16,
@@ -354,7 +364,7 @@ fn handle_bj_action(
                 }
                 hand.bet
             };
-            if !try_debit(q, entity_of, bcast, slot, bet) {
+            if !try_debit(q, bank, entity_of, bcast, slot, bet) {
                 return;
             }
             let card = blackjack::draw(&mut session.shoe, &mut session.rng);
@@ -376,7 +386,7 @@ fn handle_bj_action(
                 }
                 hand.bet
             };
-            if !try_debit(q, entity_of, bcast, slot, bet) {
+            if !try_debit(q, bank, entity_of, bcast, slot, bet) {
                 return;
             }
             let moved = session.seats[si].as_mut().unwrap().hands[hi]
@@ -415,7 +425,7 @@ fn handle_bj_action(
             if refund > 0
                 && let Some(&entity) = entity_of.get(&slot)
             {
-                credit_coins(q, entity, bcast, slot, refund);
+                credit_coins(q, bank, entity, bcast, slot, refund);
             }
             let hand = &mut session.seats[si].as_mut().unwrap().hands[0];
             hand.surrendered = true;
@@ -430,6 +440,7 @@ fn handle_bj_action(
 /// success. Returns false (and changes nothing) if they can't cover it.
 fn try_debit(
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
     slot: u16,
@@ -441,10 +452,11 @@ fn try_debit(
     let Ok((_, _, _, mut inv)) = q.get_mut(entity) else {
         return false;
     };
-    if coin_balance(&inv) < amount || !spend_coins(&mut inv, amount) {
+    if coin_balance(bank, &inv) < amount || !spend_coins(bank, &mut inv, amount) {
         return false;
     }
-    send_inventory(bcast, proto::PlayerSlot(slot), &inv);
+    let items = bank.snapshot(&inv);
+    send_inventory(bcast, proto::PlayerSlot(slot), &items);
     true
 }
 
@@ -461,6 +473,7 @@ fn start_player_turn(session: &mut TableSession, tick: u32) {
 fn settle_bj_round(
     session: &mut TableSession,
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
 ) {
@@ -502,7 +515,7 @@ fn settle_bj_round(
         if credit > 0
             && let Some(&entity) = entity_of.get(&slot)
         {
-            credit_coins(q, entity, bcast, slot, credit);
+            credit_coins(q, bank, entity, bcast, slot, credit);
         }
     }
 }
@@ -511,6 +524,7 @@ fn advance_bj_phase(
     session: &mut TableSession,
     tick: u32,
     q: &mut PlayerQuery<'_, '_>,
+    bank: &mut ItemBank,
     entity_of: &HashMap<u16, Entity>,
     bcast: &Outbound,
 ) {
@@ -570,7 +584,7 @@ fn advance_bj_phase(
             // Window closed — peek the hole card. A dealer natural ends the round now;
             // insurance (and any player naturals) settle, everyone else loses.
             if blackjack::is_blackjack(&session.dealer) {
-                settle_bj_round(session, q, entity_of, bcast);
+                settle_bj_round(session, q, bank, entity_of, bcast);
                 session.phase = BjPhase::Settle;
                 session.deadline_tick = tick + BJ_SETTLE_TICKS;
             } else {
@@ -593,7 +607,7 @@ fn advance_bj_phase(
         },
         BjPhase::DealerTurn => {
             blackjack::play_dealer(&mut session.dealer, &mut session.shoe, &mut session.rng);
-            settle_bj_round(session, q, entity_of, bcast);
+            settle_bj_round(session, q, bank, entity_of, bcast);
             session.phase = BjPhase::Settle;
             session.deadline_tick = tick + BJ_SETTLE_TICKS;
         }

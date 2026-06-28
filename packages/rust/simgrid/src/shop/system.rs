@@ -8,8 +8,8 @@ use crate::grid::GridPos;
 use crate::shop::net::send_shop_result;
 use crate::shop::{PendingShop, ShopInput};
 use crate::sim::{
-    COIN_REF, EidIndex, EntityKind, Inventory, ItemPrices, Outbound, PlayerSlotTag, ShopStock,
-    coin_balance, count_ref, remove_ref, send_inventory, spend_coins,
+    COIN_REF, EidIndex, EntityKind, Inventory, ItemBank, ItemPrices, Outbound, PlayerSlotTag,
+    ShopStock, coin_balance, count_ref, remove_ref, send_inventory, spend_coins,
 };
 use crate::trade::TRADE_RANGE;
 
@@ -23,6 +23,7 @@ pub fn apply_shop(
     bcast: Res<Outbound>,
     mut q_players: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
     q_npcs: Query<(&GridPos, &EntityKind), Without<PlayerSlotTag>>,
+    mut bank: ItemBank,
 ) {
     if pending.0.is_empty() {
         return;
@@ -76,41 +77,42 @@ pub fn apply_shop(
             continue;
         };
         if pos.tile.chebyshev(npc_tile) > TRADE_RANGE {
-            reject(&bcast, "too_far", coin_balance(&inv));
+            reject(&bcast, "too_far", coin_balance(&bank, &inv));
             continue;
         }
 
         if is_buy {
             if !stocked.iter().any(|r| r == &item_ref) {
-                reject(&bcast, "out_of_stock", coin_balance(&inv));
+                reject(&bcast, "out_of_stock", coin_balance(&bank, &inv));
                 continue;
             }
             if buy_price == 0 {
-                reject(&bcast, "not_for_sale", coin_balance(&inv));
+                reject(&bcast, "not_for_sale", coin_balance(&bank, &inv));
                 continue;
             }
             let total = buy_price.saturating_mul(qty);
-            if coin_balance(&inv) < total {
-                reject(&bcast, "insufficient", coin_balance(&inv));
+            if coin_balance(&bank, &inv) < total {
+                reject(&bcast, "insufficient", coin_balance(&bank, &inv));
                 continue;
             }
-            spend_coins(&mut inv, total);
-            inv.add(&item_ref, qty);
+            spend_coins(&mut bank, &mut inv, total);
+            bank.add(&mut inv, &item_ref, qty);
         } else {
             if sell_price == 0 {
-                reject(&bcast, "not_sellable", coin_balance(&inv));
+                reject(&bcast, "not_sellable", coin_balance(&bank, &inv));
                 continue;
             }
-            if count_ref(&inv, &item_ref) < qty {
-                reject(&bcast, "no_item", coin_balance(&inv));
+            if count_ref(&bank, &inv, &item_ref) < qty {
+                reject(&bcast, "no_item", coin_balance(&bank, &inv));
                 continue;
             }
-            remove_ref(&mut inv, &item_ref, qty);
-            inv.add(COIN_REF, sell_price.saturating_mul(qty));
+            remove_ref(&mut bank, &mut inv, &item_ref, qty);
+            bank.add(&mut inv, COIN_REF, sell_price.saturating_mul(qty));
         }
 
-        let balance = coin_balance(&inv);
+        let balance = coin_balance(&bank, &inv);
         send_shop_result(&bcast, slot, action, &item_ref, qty, true, "", balance);
-        send_inventory(&bcast, slot, &inv);
+        let items = bank.snapshot(&inv);
+        send_inventory(&bcast, slot, &items);
     }
 }
