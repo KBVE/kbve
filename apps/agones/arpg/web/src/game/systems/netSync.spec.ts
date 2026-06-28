@@ -204,6 +204,31 @@ describe('applyEntitySync eid recycling (reconnect / space return)', () => {
 		applyEntitySync([delta(1, 1, 4, 4)], store, bridge(), resolvers, s);
 		expect(s.myEid).toBe(1);
 	});
+
+	it('claims only the player owned by my slot', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 7;
+		const other = { ...delta(2, 1, 3, 3), owner: 4 };
+		const mine = { ...delta(1, 1, 2, 2), owner: 7 };
+		applyEntitySync([other, mine], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+	});
+
+	it('drops myEid when its eid is recycled to a non-player kind', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 0;
+
+		applyEntitySync([delta(1, 1, 2, 2)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+
+		const tree = delta(1, 3, 2, 2);
+		const me = { ...delta(5, 1, 4, 4), owner: 0 };
+		applyEntitySync([tree, me], store, bridge(), resolvers, s);
+		expect(store.kind(1)).toBe(3);
+		expect(s.myEid).toBe(5);
+	});
 });
 
 describe('applyEntitySync effects passthrough', () => {
