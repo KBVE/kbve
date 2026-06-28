@@ -61,6 +61,14 @@ spec:
                             secretKeyRef:
                                 name: supabase-jwt
                                 key: secret
+                      # Accept-both: storage-api validates ES256 via JWT_JWKS
+                      # (EC public) in addition to the HS256 JWT_SECRET above —
+                      # native hybrid (config.jwtSecret + config.jwtJWKS).
+                      - name: JWT_JWKS
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt-vendor
+                                key: public-jwks
                       - name: FILE_SIZE_LIMIT
                         value: '52428800'
                       - name: STORAGE_BACKEND
