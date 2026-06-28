@@ -4,6 +4,9 @@ use kbve::gate::{AuthError, Claims, StaffGate, extract_token, validate_token};
 pub struct StaffAuth {
     jwt_secret: String,
     staff: Option<StaffGate>,
+    /// Accept-both verifier (HS256 + ES256/JWKS) for the asymmetric-signing
+    /// transition. `None` → HS256-only via `validate_token`.
+    verifier: Option<jedi::jwks::JwtVerifier>,
 }
 
 impl StaffAuth {
@@ -37,7 +40,37 @@ impl StaffAuth {
             None => None,
         };
 
-        Some(Self { jwt_secret, staff })
+        let verifier = std::env::var("SUPABASE_JWKS_URI")
+            .ok()
+            .filter(|s| !s.trim().is_empty())
+            .or_else(|| {
+                std::env::var("SUPABASE_URL").ok().and_then(|u| {
+                    let u = u.trim().trim_end_matches('/');
+                    (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+                })
+            })
+            .map(|jwks_uri| {
+                let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                    .ok()
+                    .filter(|s| !s.trim().is_empty());
+                let v = jedi::jwks::JwtVerifier::new(
+                    jwks_uri,
+                    Some(jwt_secret.as_bytes()),
+                    issuer,
+                    None,
+                );
+                let bg = v.clone();
+                tokio::spawn(async move {
+                    bg.start(std::time::Duration::from_secs(300)).await;
+                });
+                v
+            });
+
+        Some(Self {
+            jwt_secret,
+            staff,
+            verifier,
+        })
     }
 
     pub async fn require_staff(&self, headers: &HeaderMap) -> Result<Claims, AuthError> {
@@ -45,7 +78,13 @@ impl StaffAuth {
         let cookie = headers.get("cookie").and_then(|v| v.to_str().ok());
         let token = extract_token(auth, cookie, None).ok_or(AuthError::MissingToken)?;
 
-        let claims = validate_token(&token, &self.jwt_secret)?.claims;
+        let claims = match &self.verifier {
+            Some(v) => v.verify::<Claims>(&token).map_err(|e| match e {
+                jedi::jwks::VerifyError::Expired => AuthError::TokenExpired,
+                other => AuthError::InvalidToken(other.to_string()),
+            })?,
+            None => validate_token(&token, &self.jwt_secret)?.claims,
+        };
 
         if matches!(claims.role.as_str(), "service_role" | "supabase_admin") {
             return Ok(claims);
