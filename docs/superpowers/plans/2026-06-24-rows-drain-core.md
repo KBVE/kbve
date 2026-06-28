@@ -17,7 +17,7 @@
 - Build/test the crate with `cargo` inside `apps/rows` (`cargo test -p rows`).
 - Migrations: new timestamped file under `packages/data/sql/dbmate/migrations/`; mirror the reference schema under `packages/data/sql/schema/ows/`. Never hand-edit generated artifacts.
 - Time type is `chrono::NaiveDateTime` (DB `TIMESTAMP`). "Now" = `chrono::Utc::now().naive_utc()`. **All `drain_deadline` writes MUST be UTC-naive** (assert at the write boundary — Task 4) so the naive comparison in `reap_decision` is correct. The column stays `TIMESTAMP` (not `TIMESTAMPTZ`) to match every other time column in `ows`; the UTC invariant is enforced in code, not the type.
-- **Migration-before-merge is the operator procedure (see Task 6).** `join_map`'s `WHERE`/`ORDER BY` reference `drainstate`/`drainurgency`/`draindropplayers` **explicitly**; on a DB that hasn't run `20260624140000` those raise `ColumnNotFound` on the join hot path → **player-join outage, all tenants**. `SELECT mi.*` reads (reaper) degrade gracefully via `#[sqlx(default)]`, but the explicit-column join does not. The rows image is ArgoCD auto-synced, so the safe order is enforced **by the operator applying the migration (`ci-dbmate-deploy`) in each environment BEFORE merging** the implementation PR into that environment's branch. Because the columns then exist before the new image ever rolls, there is no window where new code meets an old schema. **Caveat — apply per environment** (dev, then prod) before that env's image rolls; **never run the down-migration in prod** while the drain-aware image is live (it re-opens the `ColumnNotFound` outage — roll the _image_ back first, the migration never).
+- **Migration-before-merge is the operator procedure (see Task 6).** `join_map`'s `WHERE`/`ORDER BY` reference `drainstate`/`drainurgency`/`draindropplayers` **explicitly**; on a DB that hasn't run `20260628212059` those raise `ColumnNotFound` on the join hot path → **player-join outage, all tenants**. `SELECT mi.*` reads (reaper) degrade gracefully via `#[sqlx(default)]`, but the explicit-column join does not. The rows image is ArgoCD auto-synced, so the safe order is enforced **by the operator applying the migration (`ci-dbmate-deploy`) in each environment BEFORE merging** the implementation PR into that environment's branch. Because the columns then exist before the new image ever rolls, there is no window where new code meets an old schema. **Caveat — apply per environment** (dev, then prod) before that env's image rolls; **never run the down-migration in prod** while the drain-aware image is live (it re-opens the `ColumnNotFound` outage — roll the _image_ back first, the migration never).
 - **Inert posture:** ships with no automatic drain trigger. The only setter is service-authenticated and has **no caller in this phase** — the feature is deliberately dormant (same posture as the reaper). This means Phase 1 carries the schema/deploy risk for value that only lands in Phase 2; that tradeoff is accepted to de-risk the schema change ahead of the admission plane.
 
 ## drain\_\* encoding (used across all tasks)
@@ -51,7 +51,7 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 > - **C4 (MEDIUM)** — `set_drain_state` is monotonic (escalate-only) and returns `rows_affected`; `clear_drain_state`
 >   is request-scoped (or operator-forced) and returns `rows_affected` (Task 4).
 > - **C5 (LOW→raised)** — UTC write-boundary assertion (Task 4); idempotent `CHECK (drainstate IN (1,2))` (Task 1);
->   migration-before-merge is the operator procedure — apply `20260624140000` per env before merging, so the
+>   migration-before-merge is the operator procedure — apply `20260628212059` per env before merging, so the
 >   columns exist before the auto-synced image rolls (Global Constraints + Task 6).
 > - **Routing (MEDIUM, new)** — `join_map` excludes `asap` **and** `drop_players` **and** `saving`, not just
 >   `urgency=1`; the decision is lifted into a pure, CI-unit-tested `join_candidate_key` (the `reap_decision`
@@ -65,7 +65,7 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 
 **Files:**
 
-- Create: `packages/data/sql/dbmate/migrations/20260624140000_ows_mapinstance_drain.sql`
+- Create: `packages/data/sql/dbmate/migrations/20260628212059_ows_mapinstance_drain.sql`
 - Modify: `packages/data/sql/schema/ows/map_instances.sql`
 - Modify: `apps/rows/src/models.rs` (`ZoneInstance`)
 
@@ -78,7 +78,7 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 
 - [ ] **Step 1: Write the migration**
 
-Create `packages/data/sql/dbmate/migrations/20260624140000_ows_mapinstance_drain.sql`. Column adds are
+Create `packages/data/sql/dbmate/migrations/20260628212059_ows_mapinstance_drain.sql`. Column adds are
 idempotent (`IF NOT EXISTS`); the CHECK is wrapped in a guard because Postgres `ADD CONSTRAINT` has no
 `IF NOT EXISTS` (a re-run would otherwise error):
 
@@ -174,7 +174,7 @@ Expected: builds clean.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/data/sql/dbmate/migrations/20260624140000_ows_mapinstance_drain.sql \
+git add packages/data/sql/dbmate/migrations/20260628212059_ows_mapinstance_drain.sql \
         packages/data/sql/schema/ows/map_instances.sql apps/rows/src/models.rs
 git commit -m "feat(rows): drain_* columns on mapinstances for the drain lifecycle"
 ```
@@ -692,14 +692,14 @@ git commit -m "feat(rows): drain-aware join_map via pure join_candidate_key poli
 
 The `join_map` change makes a missing migration a **total join outage** (all tenants), and the rows image is
 ArgoCD auto-synced — so the new code rolls automatically on merge. **The chosen control is operator ordering: apply
-`20260624140000` via `ci-dbmate-deploy` in the target environment BEFORE merging the implementation PR into that
+`20260628212059` via `ci-dbmate-deploy` in the target environment BEFORE merging the implementation PR into that
 environment's branch.** Because the columns then already exist when the image rolls, there is no window where new
 code meets an old schema. This is a deliberate manual procedure (not an Argo/CI gate); the discipline is "migration
 first, then merge," verified by the executor, not automated.
 
 Required, every time:
 
-1. Apply `20260624140000` to **dev**'s Postgres (`ci-dbmate-deploy`), confirm `mapinstances.drainstate` exists.
+1. Apply `20260628212059` to **dev**'s Postgres (`ci-dbmate-deploy`), confirm `mapinstances.drainstate` exists.
 2. Only then merge the implementation PR to `dev`.
 3. Repeat for **prod**: apply the migration to prod's Postgres **before** the change reaches prod's branch/image.
 4. **Never** run the down-migration in an environment whose `rows` image is already drain-aware — roll the image
@@ -709,7 +709,7 @@ Required, every time:
 
 Add a "Core drain plumbing (shipped, inert)" note to the lifecycle spec: the `drain_*` columns + reaper exemption
 (with deadline/liveness backstop) + `join_map` preference are live but **inert** (no automatic setter, no caller);
-the `20260624140000` migration must be applied (per env) **before** the implementation PR merges into that env, per
+the `20260628212059` migration must be applied (per env) **before** the implementation PR merges into that env, per
 the Step 1 procedure; prod rollback rolls the **image** back, never the migration (down-migration under a live
 drain-aware image re-creates the `ColumnNotFound` outage). Cross-reference this plan.
 
