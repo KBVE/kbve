@@ -1,6 +1,13 @@
 // Core
 export { LaserEventBus, laserEvents } from './lib/core/events';
 export type { LaserEventRecord } from './lib/core/events';
+export {
+	invariant,
+	resetInvariants,
+	setInvariantThrottle,
+	INVARIANT_EVENT,
+} from './lib/core/invariant';
+export type { InvariantViolation } from './lib/core/invariant';
 export type {
 	LaserGameConfig,
 	GameStatus,
