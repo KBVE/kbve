@@ -644,4 +644,107 @@ mod tests {
             assert!(phase < 16, "phase {phase} exceeds the nibble");
         }
     }
+
+    /// A returning player who already owns a hull (e.g. one orphan-recovery re-parked
+    /// after a disconnect mid-launch) ends up with exactly ONE ship: the stale hull is
+    /// despawned + its footprint freed before the fresh flight ship spawns.
+    #[test]
+    fn return_from_space_dedups_existing_owned_ship() {
+        let mut app = App::new();
+        let mut registry = KindRegistry::new();
+        registry.register_env(SHIP_REF);
+        app.insert_resource(registry);
+        app.insert_resource(WalkableMap::open(64, 64));
+        app.add_systems(Update, return_from_space);
+
+        let slot = proto::PlayerSlot(0);
+        // A hull this player already owns, parked at a fixed tile with its footprint
+        // blocked (stand-in for an orphan-recovery re-park).
+        let stale_tile = Tile::new(20, 20);
+        {
+            let mut map = app.world_mut().resource_mut::<WalkableMap>();
+            for t in ship_footprint(stale_tile, SHIP_PARKED_FACING) {
+                map.block_tile_z(SPAWN_FLOOR, t);
+            }
+        }
+        let stale = app
+            .world_mut()
+            .spawn((
+                GridPos::at(stale_tile),
+                Floor(SPAWN_FLOOR),
+                FurnitureRot(SHIP_PARKED_FACING),
+                ShipOwner(slot),
+            ))
+            .id();
+
+        let player = app
+            .world_mut()
+            .spawn((
+                PlayerSlotTag(slot),
+                GridPos::at(Tile::new(8, 8)),
+                Floor(SPAWN_FLOOR),
+                ReturnedFromInstance,
+            ))
+            .id();
+
+        app.update();
+
+        assert!(
+            !app.world().entities().contains(stale),
+            "pre-existing owned ship despawned"
+        );
+        {
+            let map = app.world().resource::<WalkableMap>();
+            for t in ship_footprint(stale_tile, SHIP_PARKED_FACING) {
+                assert!(
+                    map.is_walkable_z(SPAWN_FLOOR, t),
+                    "stale ship footprint freed"
+                );
+            }
+        }
+        let count = {
+            let mut q = app.world_mut().query::<&ShipOwner>();
+            q.iter(app.world()).filter(|o| o.0 == slot).count()
+        };
+        assert_eq!(count, 1, "exactly one ship per owner after return");
+        assert!(
+            app.world().get::<Piloting>(player).is_some(),
+            "returning player pilots the fresh ship"
+        );
+    }
+
+    /// A ship placed from a player's starship-kit (carrying `PlacedBy`) inherits a
+    /// matching `ShipOwner` from the descent system, so the dedup can later find it.
+    #[test]
+    fn placed_ship_inherits_owner_from_placedby() {
+        let mut app = App::new();
+        app.add_systems(Update, start_placed_ship_descent);
+
+        let slot = proto::PlayerSlot(3);
+        let ship = app
+            .world_mut()
+            .spawn((
+                EnvObject {
+                    def_ref: SHIP_REF.to_string(),
+                },
+                GridPos::at(Tile::new(10, 10)),
+                Floor(SPAWN_FLOOR),
+                FurnitureRot(SHIP_PARKED_FACING),
+                PlacedBy {
+                    owner: slot,
+                    kit_ref: "starship-kit".to_string(),
+                },
+            ))
+            .id();
+
+        app.update();
+
+        let owner = app.world().get::<ShipOwner>(ship);
+        assert!(owner.is_some(), "placed ship inherits an owner");
+        assert_eq!(owner.unwrap().0, slot, "owner matches the placer");
+        assert!(
+            app.world().get::<ShipDrive>(ship).is_some(),
+            "placed ship also got the ENTERING descent rig"
+        );
+    }
 }
