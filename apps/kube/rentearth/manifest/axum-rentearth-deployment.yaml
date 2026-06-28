@@ -37,7 +37,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: axum-rentearth
-                  image: ghcr.io/kbve/axum-rentearth:0.1.0
+                  image: ghcr.io/kbve/axum-rentearth:0.1.1
                   imagePullPolicy: Always
                   ports:
                       - name: http
