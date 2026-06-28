@@ -56,6 +56,19 @@ pub fn reap_decision(i: &ReapInputs) -> Option<ReapReason> {
         now,
     } = i;
 
+    // Drain deadline is a HARD cutoff and must win regardless of player count. A drain the server
+    // ignores — still holding players past its `drain_deadline` — is exactly the case the deadline
+    // exists for, so it is checked BEFORE the populated short-circuit below (which would otherwise
+    // `return None` for a fresh, populated server and let it outlive its deadline). The empty case is
+    // covered here too, so the in-`is_draining` block below no longer repeats this check.
+    if is_draining {
+        if let Some(deadline) = drain_deadline {
+            if now > deadline {
+                return Some(ReapReason::Stale);
+            }
+        }
+    }
+
     if player_count > 0 {
         // Layer 5: crashed-while-populated. The instance still claims players, but its heartbeat
         // has gone silent past `stale_secs` — once heartbeats are reliably live (opt-in
@@ -74,16 +87,11 @@ pub fn reap_decision(i: &ReapInputs) -> Option<ReapReason> {
 
     // Draining: going empty is the GOAL and UE owns SDK.Shutdown(), so the count-based Empty /
     // NeverReported paths below are suppressed. BUT a draining server can still die mid/post-drain,
-    // so two backstops keep here (closes the orphan-leak a blanket exemption would create — a
-    // crashed-while-empty draining server would otherwise stay exempt forever):
+    // so a lost-liveness backstop keeps here (the deadline backstop already fired above, before the
+    // populated short-circuit). This closes the orphan-leak a blanket exemption would create — a
+    // crashed-while-empty draining server would otherwise stay exempt forever:
     if is_draining {
-        // (a) Deadline backstop: a drain not complete by its infra deadline is force-reaped.
-        if let Some(deadline) = drain_deadline {
-            if now > deadline {
-                return Some(ReapReason::Stale);
-            }
-        }
-        // (b) Lost-liveness: when the freshness gate is active, a draining server whose heartbeat
+        // Lost-liveness: when the freshness gate is active, a draining server whose heartbeat
         // went stale has crashed — reap it. When the gate is off (empty_fresh_secs == 0) there is no
         // trusted liveness signal, so exempt and let the deadline / v2 cross-check act.
         if empty_fresh_secs > 0 {
@@ -482,6 +490,46 @@ mod tests {
             ..base(now)
         });
         assert_eq!(d, Some(ReapReason::Stale));
+    }
+
+    // draining + POPULATED (count>0) + fresh heartbeat + past drain_deadline -> STILL reaped. The
+    // deadline is a hard cutoff and must beat the populated short-circuit; a server ignoring a drop
+    // drain while still holding players past its deadline is exactly what the deadline guards.
+    #[test]
+    fn draining_populated_past_deadline_is_reaped() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:59:30"); // fresh — without the hoisted deadline this returns None
+        let deadline = ts("2026-06-23 11:59:00"); // already passed
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            stale_secs: 120, // not stale (30s < 120), so Layer 5 would NOT reap on its own
+            empty_fresh_secs: 180,
+            is_draining: true,
+            drain_deadline: Some(deadline),
+            ..base(now)
+        });
+        assert_eq!(d, Some(ReapReason::Stale));
+    }
+
+    // draining + POPULATED + fresh heartbeat + deadline NOT yet passed -> kept (still serving players)
+    #[test]
+    fn draining_populated_before_deadline_is_kept() {
+        let now = ts("2026-06-23 12:00:00");
+        let last = ts("2026-06-23 11:59:30"); // fresh
+        let deadline = ts("2026-06-23 12:05:00"); // 5 min out
+        let d = reap_decision(&ReapInputs {
+            player_count: 5,
+            last_update_from_server: Some(last),
+            create_date: Some(ts("2026-06-23 10:00:00")),
+            stale_secs: 120,
+            empty_fresh_secs: 180,
+            is_draining: true,
+            drain_deadline: Some(deadline),
+            ..base(now)
+        });
+        assert_eq!(d, None);
     }
 
     // draining + liveness gate OFF (empty_fresh=0) + count 0 -> exempt (no liveness signal to act on)

@@ -346,7 +346,10 @@ async fn run_reap_cycle(
     let candidates = match repo.get_active_reap_candidates(guid).await {
         Ok(c) => c,
         Err(e) => {
-            warn!(error = %e, "Reaper: failed to load active instances");
+            // error!, not warn!: the drain-column fallback in get_active_reap_candidates already
+            // absorbs the migration window, so reaching here means a genuine DB failure that stalls
+            // the reaper for this cycle — a multi-cycle outage leaks GameServers and must be loud.
+            error!(error = %e, "Reaper: failed to load active instances — reaper cycle skipped");
             return;
         }
     };

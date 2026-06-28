@@ -183,7 +183,7 @@ impl<'a> InstanceRepo<'a> {
         // sorts before NOT NULL), then fewest players — so truncation only ever drops rows Rust
         // would also rank last. The explicit drain columns make this read migration-gated (see the
         // drain migration); that ordering is the operator procedure.
-        let candidates: Vec<JoinCandidateRow> = sqlx::query_as(
+        let candidates: Result<Vec<JoinCandidateRow>, sqlx::Error> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
                     ws.port AS world_server_port,
@@ -212,21 +212,63 @@ impl<'a> InstanceRepo<'a> {
         .bind(customer_guid)
         .bind(zone_name)
         .fetch_all(self.0)
-        .await?;
+        .await;
 
-        let existing = candidates
-            .into_iter()
-            .filter_map(|c| {
-                join_candidate_key(
-                    c.drain_state,
-                    c.drain_urgency,
-                    c.drain_drop_players,
-                    c.player_count,
+        let existing: Option<JoinMapResult> = match candidates {
+            Ok(rows) => rows
+                .into_iter()
+                .filter_map(|c| {
+                    join_candidate_key(
+                        c.drain_state,
+                        c.drain_urgency,
+                        c.drain_drop_players,
+                        c.player_count,
+                    )
+                    .map(|key| (key, c))
+                })
+                .min_by_key(|(key, _)| *key)
+                .map(|(_, c)| c.into_result()),
+            // Migration-vs-image ordering guard (mirrors `spin_up_server_instance_ready`): the dbmate
+            // runner is decoupled from the rows image rollout, so a rows image can ship before the
+            // drain-column migration lands. The drain-aware SELECT above then fails with SQLSTATE
+            // 42703 (undefined_column) and EVERY join would error player-facing. Degrade to the
+            // pre-drain query (no drain columns; until the migration lands every instance is
+            // "healthy") so routing still reuses the least-loaded ready instance.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    zone = zone_name,
+                    "mapinstances drain columns missing (migration not yet applied) — routing via \
+                     pre-drain query; apply the dbmate migration to enable drain-aware join ranking"
+                );
+                sqlx::query_as(
+                    "SELECT ws.serverip AS server_ip,
+                            ws.internalserverip AS world_server_ip,
+                            ws.port AS world_server_port,
+                            mi.port,
+                            mi.mapinstanceid AS map_instance_id,
+                            m.mapname AS map_name_to_start,
+                            ws.worldserverid AS world_server_id,
+                            mi.status AS map_instance_status,
+                            false AS need_to_startup_map,
+                            false AS enable_auto_loopback,
+                            c.noportforwarding AS no_port_forwarding,
+                            true AS success,
+                            '' AS error_message
+                     FROM maps m
+                     JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
+                     JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
+                     JOIN customers c ON c.customerguid = m.customerguid
+                     WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
+                     ORDER BY mi.numberofreportedplayers ASC
+                     LIMIT 1",
                 )
-                .map(|key| (key, c))
-            })
-            .min_by_key(|(key, _)| *key)
-            .map(|(_, c)| c.into_result());
+                .bind(customer_guid)
+                .bind(zone_name)
+                .fetch_optional(self.0)
+                .await?
+            }
+            Err(e) => return Err(e.into()),
+        };
 
         if let Some(result) = existing {
             return Ok(result);
@@ -488,8 +530,37 @@ impl<'a> InstanceRepo<'a> {
         )
         .bind(customer_guid)
         .fetch_all(self.0)
-        .await?;
-        Ok(rows)
+        .await;
+        match rows {
+            Ok(rows) => Ok(rows),
+            // Migration-vs-image ordering guard (mirrors `spin_up_server_instance_ready`): if the
+            // rows image ships before the drain-column migration, this SELECT fails with SQLSTATE
+            // 42703 (undefined_column) and the reaper would stall EVERY cycle, leaking empty/stale
+            // GameServers. Degrade to the pre-drain SELECT; `ReapRow`'s drain fields are `#[sqlx(
+            // default)]` so they map to `None` -> `is_draining = false` -> the pre-drain reap policy
+            // runs unchanged until the migration lands.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    "mapinstances drain columns missing (migration not yet applied) — reaping via \
+                     pre-drain query; apply the dbmate migration to enable drain backstops"
+                );
+                let rows = sqlx::query_as::<_, ReapRow>(
+                    "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
+                            mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
+                            COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
+                     FROM mapinstances mi
+                     LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+                     WHERE mi.customerguid = $1 AND mi.status > 0
+                     ORDER BY COALESCE(mi.lastserveremptydate, mi.createdate) ASC, mi.mapinstanceid
+                     LIMIT 500",
+                )
+                .bind(customer_guid)
+                .fetch_all(self.0)
+                .await?;
+                Ok(rows)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     /// Marks an instance draining. Orthogonal to `status` — a draining instance stays `status=2`
