@@ -1,0 +1,67 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Runtime RAM/tmpfs pressure alerts for the UE shared ramdisk.
+#
+# STATUS: INERT. NOT listed in kustomization.yaml; add it during cutover.
+# Rationale: the design §4 pre-flight free-space check runs BEFORE the cook and
+# cannot see peak scratch. These alerts catch tmpfs/RAM pressure DURING a build
+# before it reaches etcd (the documented cluster-flap failure, #12987).
+#
+# Thresholds are ratio-based (>85% of tmpfs size) and an absolute MemAvailable
+# floor (<8 GB) — they self-scale to whatever tmpfs size= is set, so nothing
+# here needs substituting.
+# Metrics assume kube-prometheus node-exporter (node_* series) on the node.
+# IMPORTANT: the `prometheus: kube-prometheus` / `role: alert-rules` labels must
+# match this cluster's Prometheus `ruleSelector`, or the rule silently never
+# loads and this runtime safety net is absent. Verify it appears in Prometheus
+# (runbook cutover step 5) before relying on it.
+# ══════════════════════════════════════════════════════════════════════════
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: ue-ramdisk
+    namespace: arc-runners
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
+    annotations:
+        kbve.com/status: inert-pending-cutover
+spec:
+    groups:
+        - name: ue-ramdisk.pressure
+          rules:
+              - alert: UERamdiskNearFull
+                annotations:
+                    summary: 'UE ramdisk tmpfs >85% full on {{ $labels.instance }}'
+                    description: |
+                        /var/mnt/ramdisk is over 85% full. This is the SAME
+                        ENOSPC failure class as the original incident, relocated
+                        into RAM. A build will fail mid-cook and, worse, the lost
+                        page cache / memory pressure can stall etcd fdatasync and
+                        flap the control plane (#12987).
+                        ACTION: kill the running UE build and/or scale
+                        arc-runner-ue maxRunners back to 1. Do not wait.
+                expr: |
+                    (
+                      node_filesystem_size_bytes{mountpoint="/var/mnt/ramdisk"}
+                      - node_filesystem_avail_bytes{mountpoint="/var/mnt/ramdisk"}
+                    )
+                    / node_filesystem_size_bytes{mountpoint="/var/mnt/ramdisk"}
+                    > 0.85
+                for: 1m
+                labels:
+                    severity: critical
+
+              - alert: UENodeMemoryLow
+                annotations:
+                    summary: 'Node MemAvailable <8GB on {{ $labels.instance }} during UE build window'
+                    description: |
+                        Node available memory dropped below the page-cache margin.
+                        On this single control-plane node, sustained low MemAvailable
+                        risks etcd lease loss and cluster-wide Argo/Kyverno flapping.
+                        ACTION: identify and stop the UE build consuming RAM; revert
+                        maxRunners to 1 until the budget is re-proven.
+                expr: |
+                    node_memory_MemAvailable_bytes < 8 * 1024 * 1024 * 1024
+                for: 2m
+                labels:
+                    severity: critical
