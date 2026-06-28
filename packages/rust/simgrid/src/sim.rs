@@ -3336,6 +3336,7 @@ fn facing_from_intent(mx: i8, my: i8) -> proto::Facing {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn advance_float(
     map: Res<WalkableMap>,
     mut q: Query<

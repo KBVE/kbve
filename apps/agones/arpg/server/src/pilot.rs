@@ -120,7 +120,7 @@ fn clear_landing(map: &WalkableMap, z: i32, from: Tile, facing: u8) -> Tile {
 
 /// Drain board/leave requests. Validates range + parked + unoccupied, then links the
 /// player to the ship and co-locates it onto the hull so driving binds cleanly.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn apply_pilot_ops(
     mut commands: Commands,
     mut ops: ResMut<PendingPilotOps>,
@@ -207,14 +207,14 @@ pub fn apply_pilot_ops(
                 else {
                     continue;
                 };
-                if let Ok(mut d) = drives.get_mut(piloting.0) {
-                    if d.phase == PHASE_FLY {
-                        // Server approves the touchdown spot; the ship glides there over
-                        // the LAND descent (drive_ships) so it never snaps into rock.
-                        d.land_tile = clear_landing(&map, d.floor, d.tile, d.facing);
-                        d.phase = PHASE_LAND;
-                        d.ticks = 0;
-                    }
+                if let Ok(mut d) = drives.get_mut(piloting.0)
+                    && d.phase == PHASE_FLY
+                {
+                    // Server approves the touchdown spot; the ship glides there over
+                    // the LAND descent (drive_ships) so it never snaps into rock.
+                    d.land_tile = clear_landing(&map, d.floor, d.tile, d.facing);
+                    d.phase = PHASE_LAND;
+                    d.ticks = 0;
                 }
             }
             PilotOp::Launch => {
@@ -225,14 +225,14 @@ pub fn apply_pilot_ops(
                 else {
                     continue;
                 };
-                if let Ok(mut d) = drives.get_mut(piloting.0) {
-                    if d.phase == PHASE_FLY {
-                        d.phase = PHASE_LEAVING;
-                        d.ticks = 0;
-                        // Flag bound-for-space NOW (reliable, ahead of any disconnect race)
-                        // so the disconnect-save records `in_space` → auto-board on return.
-                        commands.entity(pent).insert(InSpaceFlag);
-                    }
+                if let Ok(mut d) = drives.get_mut(piloting.0)
+                    && d.phase == PHASE_FLY
+                {
+                    d.phase = PHASE_LEAVING;
+                    d.ticks = 0;
+                    // Flag bound-for-space NOW (reliable, ahead of any disconnect race)
+                    // so the disconnect-save records `in_space` → auto-board on return.
+                    commands.entity(pent).insert(InSpaceFlag);
                 }
             }
             PilotOp::Return => {
@@ -539,6 +539,7 @@ pub fn recover_orphaned_ships(
 /// restored from a prior session) gets the ENTERING phase + a float body so it DROPS
 /// FROM ORBIT and lands, instead of popping in parked. `drive_ships` advances pilotless
 /// ENTERING→LAND→OFF, and LAND re-blocks the hull footprint at the landing tile.
+#[allow(clippy::type_complexity)]
 pub fn start_placed_ship_descent(
     mut commands: Commands,
     placed: Query<
