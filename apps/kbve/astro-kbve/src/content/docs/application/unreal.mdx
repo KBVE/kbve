@@ -543,6 +543,49 @@ The following methods are registered but return `NOT_IMPLEMENTED`. Each is track
 
 **License:** Part of the KBVE monorepo (MIT)
 
+### Custom Editor Extensions
+
+Third-party plugins extending the Unreal Editor with specialized workflows:
+
+#### SelShader
+
+**[envieous/UnrealEngine-SelShader](https://github.com/envieous/UnrealEngine-SelShader)** — Editor shader selection and inspection toolkit.
+
+Provides advanced shader debugging and visualization tools for material artists and rendering engineers.
+Allows selecting shaders directly in the viewport, inspecting compiled shader bytecode, and visualizing pipeline state objects (PSOs).
+
+**Features:**
+- Viewport shader picker (click to select active shader stage)
+- PSO inspector with draw call metadata
+- HLSL bytecode viewer and disassembler integration
+- Material instance parameter override visualization
+- Shader complexity heatmaps per pass
+
+**Use Case:** Debugging performance hotspots, validating shader permutations, and profiling material complexity in large scenes.
+
+**License:** Check repository for licensing terms.
+
+#### Angelscript
+
+**[Hazelight/UnrealEngine-Angelscript](https://github.com/Hazelight/UnrealEngine-Angelscript)** — AngelScript scripting language integration for Unreal Engine.
+
+Alternative to Blueprints and C++ with text-based scripting, hot reload, and editor integration.
+Used in production by Hazelight Studios (*It Takes Two*, *A Way Out*) for rapid gameplay iteration without full C++ recompilation.
+
+**Features:**
+- Text-based scripting with syntax similar to C++/C#
+- Instant hot reload of script changes in PIE (Play In Editor)
+- Full access to UE reflection system (UCLASS, UPROPERTY, UFUNCTION)
+- Editor integration with syntax highlighting and autocomplete
+- Debugging support with breakpoints and watches
+- Lower compile times than C++ for iteration-heavy workflows
+
+**Use Case:** Gameplay scripting for teams needing faster iteration than C++ without Blueprint's visual overhead. Ideal for narrative-heavy or systems-driven games where designers write code.
+
+**Supported Versions:** UE5.1+ (check repo for latest compatibility)
+
+**License:** MIT
+
 ### Other KBVE Plugins
 
 | Plugin | Description | Third-Party License |
