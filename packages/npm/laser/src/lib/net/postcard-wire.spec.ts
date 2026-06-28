@@ -216,12 +216,12 @@ describe('postcard Ephemeral payload decoder', () => {
 	it('decodes the Rust InventorySync fixture', () => {
 		expect(
 			decodeInventory(
-				Array.from(fromHex('02056172726f770306706f74696f6e01')),
+				Array.from(fromHex('0200056172726f77030006706f74696f6e01')),
 			),
 		).toEqual({
 			items: [
-				{ ref: 'arrow', count: 3 },
-				{ ref: 'potion', count: 1 },
+				{ id: '', ref: 'arrow', count: 3 },
+				{ id: '', ref: 'potion', count: 1 },
 			],
 		});
 	});
@@ -289,12 +289,15 @@ describe('postcard Ephemeral payload decoder', () => {
 	it('decodes the Rust TradeStateView fixture', () => {
 		expect(
 			decodeTrade(
-				Array.from(fromHex('046f70656e0201056172726f7703000001')),
+				Array.from(fromHex('046f70656e020100056172726f7703000001')),
 			),
 		).toEqual({
 			status: 'open',
 			with: 2,
-			you: { items: [{ ref: 'arrow', count: 3 }], accepted: false },
+			you: {
+				items: [{ id: '', ref: 'arrow', count: 3 }],
+				accepted: false,
+			},
 			them: { items: [], accepted: true },
 		});
 	});

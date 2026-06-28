@@ -7,6 +7,9 @@ fn trade_side(items: &[(String, u32)], accepted: bool) -> proto::TradeSide {
         items: items
             .iter()
             .map(|(r, c)| proto::InventoryItem {
+                // Trade-offer lines are a ref+qty spec, not concrete instances — no
+                // stable id until the goods actually move on completion.
+                id: String::new(),
                 item_ref: r.clone(),
                 count: *c,
             })

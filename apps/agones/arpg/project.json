@@ -5,6 +5,18 @@
 	"sourceRoot": "apps/agones/arpg",
 	"tags": ["agones", "arpg", "game"],
 	"targets": {
+		"tmux": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "apps/agones/arpg/dev-tmux.sh"
+			}
+		},
+		"tmux-down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "apps/agones/arpg/dev-tmux.sh kill"
+			}
+		},
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {

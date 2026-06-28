@@ -26,6 +26,13 @@
 			"csp": null
 		}
 	},
+	"plugins": {
+		"deep-link": {
+			"desktop": {
+				"schemes": ["chuckrpg-launcher"]
+			}
+		}
+	},
 	"bundle": {
 		"active": true,
 		"targets": "all",

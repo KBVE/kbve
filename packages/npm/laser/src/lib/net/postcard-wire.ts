@@ -433,9 +433,10 @@ export function decodeStatus(payload: number[]): StatusEvent {
 function readInventory(r: PostcardReader): InventorySync {
 	const items = [];
 	for (let n = r.seqLen(); n > 0; n--) {
+		const id = r.string();
 		const ref = r.string();
 		const count = r.u32();
-		items.push({ ref, count });
+		items.push({ id, ref, count });
 	}
 	return { items };
 }
@@ -521,9 +522,10 @@ export function decodeBlackjack(payload: number[]): BlackjackStateView {
 function readTradeSide(r: PostcardReader): TradeSide {
 	const items = [];
 	for (let n = r.seqLen(); n > 0; n--) {
+		const id = r.string();
 		const ref = r.string();
 		const count = r.u32();
-		items.push({ ref, count });
+		items.push({ id, ref, count });
 	}
 	const accepted = r.bool();
 	return { items, accepted };

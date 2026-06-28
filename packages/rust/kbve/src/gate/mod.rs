@@ -100,6 +100,25 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         Authz::JwtOnly => None,
     };
 
+    // Accept-both JWT verifier (HS256 + ES256/JWKS) for the asymmetric-signing
+    // transition. JWKS URI is GATE_JWKS_URI, else derived from SUPABASE_URL. When
+    // neither is set the gate stays HS256-only (verifier None).
+    let verifier = std::env::var("GATE_JWKS_URI")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| {
+            std::env::var("SUPABASE_URL").ok().and_then(|u| {
+                let u = u.trim().trim_end_matches('/');
+                (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+            })
+        })
+        .map(|jwks_uri| {
+            let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+            jedi::jwks::JwtVerifier::new(jwks_uri, Some(jwt_secret.as_bytes()), issuer, None)
+        });
+
     Ok(GateConfig {
         upstream,
         upstream_prefix,
@@ -113,6 +132,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         upstream_bearer,
         forward_user_header,
         forward_user_value,
+        verifier,
     })
 }
 
@@ -126,6 +146,12 @@ pub async fn serve(cfg: GateConfig) -> Result<(), String> {
         .unwrap_or_else(|_| "0.0.0.0:5678".to_string())
         .parse()
         .map_err(|e| format!("invalid GATE_LISTEN: {e}"))?;
+
+    // Prime the JWKS cache + start background refresh (non-fatal — HS256 still
+    // verifies if GoTrue's JWKS isn't serving ES256 keys yet).
+    if let Some(verifier) = cfg.verifier.clone() {
+        verifier.start(std::time::Duration::from_secs(300)).await;
+    }
 
     let metrics_port: u16 = std::env::var("GATE_METRICS_PORT")
         .ok()

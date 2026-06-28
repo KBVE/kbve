@@ -114,7 +114,7 @@ pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>
 /// Items a player dropped this tick, queued for `apply_drops` to spawn as
 /// ground loot at the given tile (item already removed from the inventory).
 #[derive(Resource, Default)]
-pub struct PendingDrops(Vec<(Tile, String, u32)>);
+pub struct PendingDrops(Vec<(Tile, ItemStack)>);
 
 /// How a deployable item (e.g. `campfire-kit`) becomes a placed world object:
 /// which env ref to spawn and the behavior to give it. Game-supplied (the sim is
@@ -226,7 +226,7 @@ pub struct ItemPrices(pub HashMap<String, (u32, u32)>);
 
 #[derive(Clone)]
 pub struct SavedPlayer {
-    pub slots: Vec<(String, u32)>,
+    pub slots: Vec<ItemStack>,
     pub hp: i32,
     pub weapon: Option<String>,
     pub armor: Option<String>,
@@ -466,17 +466,68 @@ pub struct Mana {
 #[derive(Resource, Default)]
 pub struct SpellCooldowns(pub HashMap<(u16, String), u32>);
 
+/// A unique instance identity for an item stack. A ULID — globally unique without a
+/// counter and lexicographically sortable, with the mint timestamp embedded (the first
+/// 48 bits are the creation epoch-ms), so every item carries its own birth time for
+/// economy auditing. Minted only on TRUE creation (starting kit, loot, shop buy, coin
+/// grant); preserved across every move (drop → ground → pickup, equip, trade, corpse
+/// loot); a fungible-stack split mints a fresh id for the detached portion.
+pub fn mint_item_id() -> String {
+    ulid::Ulid::new().to_string()
+}
+
+/// One inventory stack: a stable instance `id`, the item `item_ref`, and how many of it.
+/// Fungible refs (no per-item state yet) merge by ref, so the `id` tracks the STACK
+/// lineage; a `count == 1` unique item is a 1:1 stable identity.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ItemStack {
+    pub id: String,
+    pub item_ref: String,
+    pub count: u32,
+}
+
+impl ItemStack {
+    /// A freshly-minted stack (new instance id + birth timestamp).
+    pub fn mint(item_ref: &str, count: u32) -> Self {
+        Self {
+            id: mint_item_id(),
+            item_ref: item_ref.to_string(),
+            count,
+        }
+    }
+}
+
 #[derive(Component, Clone, Default)]
 pub struct Inventory {
-    pub slots: Vec<(String, u32)>,
+    pub slots: Vec<ItemStack>,
 }
 
 impl Inventory {
+    /// Add `count` of a ref, MINTING a fresh stack id if no matching ref stack exists.
+    /// Use for true creation (loot, shop buy, coin grant). To move an existing instance
+    /// in (pickup / trade / corpse loot) use [`Inventory::add_stack`] so its id survives.
     pub fn add(&mut self, item_ref: &str, count: u32) {
-        if let Some(slot) = self.slots.iter_mut().find(|(r, _)| r == item_ref) {
-            slot.1 = slot.1.saturating_add(count);
+        if count == 0 {
+            return;
+        }
+        if let Some(slot) = self.slots.iter_mut().find(|s| s.item_ref == item_ref) {
+            slot.count = slot.count.saturating_add(count);
         } else {
-            self.slots.push((item_ref.to_string(), count));
+            self.slots.push(ItemStack::mint(item_ref, count));
+        }
+    }
+
+    /// Merge an existing instance stack in, PRESERVING its id when it lands in an empty
+    /// ref (a move). A merge into a matching ref folds the count and retires the incoming
+    /// id (fungible-stack lineage continues under the destination stack).
+    pub fn add_stack(&mut self, stack: ItemStack) {
+        if stack.count == 0 {
+            return;
+        }
+        if let Some(slot) = self.slots.iter_mut().find(|s| s.item_ref == stack.item_ref) {
+            slot.count = slot.count.saturating_add(stack.count);
+        } else {
+            self.slots.push(stack);
         }
     }
 
@@ -492,22 +543,44 @@ impl Inventory {
     }
 
     /// Remove up to `count` of `item_ref`, returning how many were actually
-    /// removed (0 if absent). Empties the slot when it hits zero.
+    /// removed (0 if absent). Empties the slot when it hits zero. Burns the stack id
+    /// when the stack empties (true consumption — sell / use).
     pub fn remove(&mut self, item_ref: &str, count: u32) -> u32 {
-        let Some(idx) = self.slots.iter().position(|(r, _)| r == item_ref) else {
+        let Some(idx) = self.slots.iter().position(|s| s.item_ref == item_ref) else {
             return 0;
         };
-        let taken = self.slots[idx].1.min(count);
-        self.slots[idx].1 -= taken;
-        if self.slots[idx].1 == 0 {
+        let taken = self.slots[idx].count.min(count);
+        self.slots[idx].count -= taken;
+        if self.slots[idx].count == 0 {
             self.slots.remove(idx);
         }
         taken
+    }
+
+    /// Detach up to `count` of `item_ref` as a standalone stack that KEEPS its instance
+    /// id when the whole stack is taken (a pure move — e.g. a drop), or mints a fresh id
+    /// for a partial split. Returns None if the ref isn't held. Use when the removed
+    /// items live on as a ground entity / trade offer rather than being consumed.
+    pub fn detach(&mut self, item_ref: &str, count: u32) -> Option<ItemStack> {
+        let idx = self.slots.iter().position(|s| s.item_ref == item_ref)?;
+        let take = self.slots[idx].count.min(count);
+        if take == 0 {
+            return None;
+        }
+        if take == self.slots[idx].count {
+            Some(self.slots.remove(idx))
+        } else {
+            self.slots[idx].count -= take;
+            Some(ItemStack::mint(item_ref, take))
+        }
     }
 }
 
 #[derive(Component, Clone)]
 pub struct GroundItem {
+    /// The instance id carried from the inventory stack that was dropped (or minted for
+    /// loot/world drops), so a drop → pickup round-trip preserves the item's identity.
+    pub id: String,
     pub item_ref: String,
     pub count: u32,
 }
@@ -658,14 +731,25 @@ pub fn ground_item_bundle(
     count: u32,
     tile: Tile,
 ) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
-    let kind = registry.kind_of(item_ref)?;
+    ground_item_bundle_stack(registry, ItemStack::mint(item_ref, count), tile)
+}
+
+/// As [`ground_item_bundle`] but for an EXISTING instance stack — preserves its id so a
+/// dropped item keeps its identity on the ground (and through a later pickup).
+pub fn ground_item_bundle_stack(
+    registry: &KindRegistry,
+    stack: ItemStack,
+    tile: Tile,
+) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
+    let kind = registry.kind_of(&stack.item_ref)?;
     Some((
         EntityKind(kind),
         GridPos::at(tile),
         MoveTarget::default(),
         GroundItem {
-            item_ref: item_ref.to_string(),
-            count,
+            id: stack.id,
+            item_ref: stack.item_ref,
+            count: stack.count,
         },
     ))
 }
@@ -1247,16 +1331,23 @@ fn sync_roster(
             .min(max_hp);
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let armor = saved.as_ref().and_then(|s| s.armor.clone());
-        let mut slots = saved
-            .map(|s| s.slots)
-            .unwrap_or_else(|| config.starting_inventory.clone());
+        // Restore the saved instance stacks (ids + birth timestamps intact), or mint a
+        // fresh starter kit on a first join.
+        let mut slots = saved.map(|s| s.slots).unwrap_or_else(|| {
+            config
+                .starting_inventory
+                .iter()
+                .map(|(r, c)| ItemStack::mint(r, *c))
+                .collect()
+        });
         // Top up any starter item the player is entirely missing, so essentials
         // added after a save was created (e.g. a dungeon-key) still reach
         // existing players — only granted when they hold zero of that ref, so a
-        // partially-used starter stack is left alone.
+        // partially-used starter stack is left alone. A topped-up stack is freshly
+        // minted (new instance id).
         for (item_ref, count) in &config.starting_inventory {
-            if !slots.iter().any(|(r, _)| r == item_ref) {
-                slots.push((item_ref.clone(), *count));
+            if !slots.iter().any(|s| &s.item_ref == item_ref) {
+                slots.push(ItemStack::mint(item_ref, *count));
             }
         }
         let inventory = Inventory { slots };
@@ -1599,9 +1690,10 @@ fn drain_inputs(
                     );
                 }
                 Input::DropItem { item_ref, qty } => {
-                    let removed = inv.remove(item_ref, *qty);
-                    if removed > 0 {
-                        drops.0.push((pos.tile, item_ref.clone(), removed));
+                    // Detach the dropped stack so its instance id rides onto the ground
+                    // entity (a whole-stack drop keeps its id; a partial drop splits).
+                    if let Some(stack) = inv.detach(item_ref, *qty) {
+                        drops.0.push((pos.tile, stack));
                         send_inventory(&bcast, slot.0, &inv);
                     }
                 }
@@ -1622,7 +1714,11 @@ fn drain_inputs(
                     if slot_ref.as_deref() == Some(item_ref.as_str()) {
                         *slot_ref = None;
                     } else {
-                        if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
+                        if !inv
+                            .slots
+                            .iter()
+                            .any(|s| &s.item_ref == item_ref && s.count > 0)
+                        {
                             continue;
                         }
                         *slot_ref = Some(item_ref.clone());
@@ -1740,11 +1836,15 @@ fn use_item(
     if heal.is_none() && buff.is_none() {
         return;
     }
-    let Some(idx) = inv.slots.iter().position(|(r, c)| r == item_ref && *c > 0) else {
+    let Some(idx) = inv
+        .slots
+        .iter()
+        .position(|s| s.item_ref == item_ref && s.count > 0)
+    else {
         return;
     };
-    inv.slots[idx].1 -= 1;
-    if inv.slots[idx].1 == 0 {
+    inv.slots[idx].count -= 1;
+    if inv.slots[idx].count == 0 {
         inv.slots.remove(idx);
     }
     let heal_amt = heal.unwrap_or(0);
@@ -1932,8 +2032,8 @@ fn apply_drops(
     registry: Res<KindRegistry>,
     mut commands: Commands,
 ) {
-    for (tile, item_ref, count) in drops.0.drain(..) {
-        if let Some(bundle) = ground_item_bundle(&registry, &item_ref, count, tile) {
+    for (tile, stack) in drops.0.drain(..) {
+        if let Some(bundle) = ground_item_bundle_stack(&registry, stack, tile) {
             commands.spawn(bundle);
         }
     }
@@ -2139,8 +2239,12 @@ fn apply_actions(
                 let Ok((item_pos, item)) = targets.items.get(target_entity) else {
                     continue;
                 };
-                let (item_ref, count, item_tile) =
-                    (item.item_ref.clone(), item.count, item_pos.tile);
+                let stack = ItemStack {
+                    id: item.id.clone(),
+                    item_ref: item.item_ref.clone(),
+                    count: item.count,
+                };
+                let item_tile = item_pos.tile;
                 let Ok((_, _, pos, _, mut inv, ..)) = q_players.get_mut(player_entity) else {
                     continue;
                 };
@@ -2150,12 +2254,13 @@ fn apply_actions(
                 if !claimed_items.insert(target_entity) {
                     continue;
                 }
-                inv.add(&item_ref, count);
-                commands.entity(target_entity).despawn();
                 let event = proto::PickupEvent {
-                    item_ref: item_ref.to_string(),
-                    count,
+                    item_ref: stack.item_ref.clone(),
+                    count: stack.count,
                 };
+                // Preserve the ground item's instance id through the pickup (a move).
+                inv.add_stack(stack);
+                commands.entity(target_entity).despawn();
                 let pickup = proto::encode_inner(&event).unwrap_or_default();
                 let _ = bcast.tx.send(ServerEvent::Ephemeral {
                     kind: proto::EPHEMERAL_PICKUP,
@@ -2182,8 +2287,8 @@ fn apply_actions(
                     commands.entity(target_entity).despawn();
                     continue;
                 }
-                for (item_ref, count) in items {
-                    inv.add(&item_ref, count);
+                for stack in items {
+                    inv.add_stack(stack);
                 }
                 commands.entity(target_entity).despawn();
                 send_inventory(&bcast, slot, &inv);
@@ -2203,7 +2308,11 @@ fn send_corpse_contents(
 ) {
     let event = proto::CorpseContents {
         corpse: corpse.0,
-        items: inv.slots.clone(),
+        items: inv
+            .slots
+            .iter()
+            .map(|s| (s.item_ref.clone(), s.count))
+            .collect(),
     };
     let payload = proto::encode_inner(&event).unwrap_or_default();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
@@ -2254,9 +2363,9 @@ fn handle_corpse_ops(
                     send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
                     continue;
                 }
-                let (item_ref, count) = corpse_inv.slots.remove(idx);
+                let stack = corpse_inv.slots.remove(idx);
                 if let Ok((_, _, _, mut p_inv)) = q_players.get_mut(player_e) {
-                    p_inv.add(&item_ref, count);
+                    p_inv.add_stack(stack);
                     send_inventory(&bcast, slot, &p_inv);
                 }
                 send_corpse_contents(&bcast, slot, corpse_id, &corpse_inv);
@@ -2271,20 +2380,20 @@ fn handle_corpse_ops(
 pub fn count_ref(inv: &Inventory, item_ref: &str) -> u32 {
     inv.slots
         .iter()
-        .find(|(r, _)| r == item_ref)
-        .map(|(_, c)| *c)
+        .find(|s| s.item_ref == item_ref)
+        .map(|s| s.count)
         .unwrap_or(0)
 }
 
 pub fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
-    let Some(idx) = inv.slots.iter().position(|(r, _)| r == item_ref) else {
+    let Some(idx) = inv.slots.iter().position(|s| s.item_ref == item_ref) else {
         return false;
     };
-    if inv.slots[idx].1 < qty {
+    if inv.slots[idx].count < qty {
         return false;
     }
-    inv.slots[idx].1 -= qty;
-    if inv.slots[idx].1 == 0 {
+    inv.slots[idx].count -= qty;
+    if inv.slots[idx].count == 0 {
         inv.slots.remove(idx);
     }
     true
@@ -2292,11 +2401,11 @@ pub fn remove_ref(inv: &mut Inventory, item_ref: &str, qty: u32) -> bool {
 
 /// Combined spendable coin: loose coins plus gold-bars at GOLD_BAR_VALUE each.
 pub fn coin_balance(inv: &Inventory) -> u32 {
-    inv.slots.iter().fold(0u32, |acc, (r, c)| {
-        if r == COIN_REF {
-            acc.saturating_add(*c)
-        } else if r == GOLD_BAR_REF {
-            acc.saturating_add(c.saturating_mul(GOLD_BAR_VALUE))
+    inv.slots.iter().fold(0u32, |acc, s| {
+        if s.item_ref == COIN_REF {
+            acc.saturating_add(s.count)
+        } else if s.item_ref == GOLD_BAR_REF {
+            acc.saturating_add(s.count.saturating_mul(GOLD_BAR_VALUE))
         } else {
             acc
         }
@@ -2442,9 +2551,10 @@ pub fn send_inventory(bcast: &Outbound, slot: proto::PlayerSlot, inv: &Inventory
     let items = inv
         .slots
         .iter()
-        .map(|(r, c)| proto::InventoryItem {
-            item_ref: r.clone(),
-            count: *c,
+        .map(|s| proto::InventoryItem {
+            id: s.id.clone(),
+            item_ref: s.item_ref.clone(),
+            count: s.count,
         })
         .collect();
     let event = proto::InventorySync { items };
@@ -2474,7 +2584,11 @@ fn place_item(
     if !deployables.0.contains_key(item_ref) {
         return Err("not_placeable");
     }
-    if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
+    if !inv
+        .slots
+        .iter()
+        .any(|s| s.item_ref == item_ref && s.count > 0)
+    {
         return Err("not_held");
     }
     if from.chebyshev(tile) > PLACE_RANGE {
@@ -3678,7 +3792,7 @@ pub(crate) mod test_support {
 
     pub(crate) fn set_inventory(app: &mut App, entity: Entity, items: &[(&str, u32)]) {
         let mut inv = app.world_mut().get_mut::<Inventory>(entity).unwrap();
-        inv.slots = items.iter().map(|(r, c)| (r.to_string(), *c)).collect();
+        inv.slots = items.iter().map(|(r, c)| ItemStack::mint(r, *c)).collect();
     }
 
     pub(crate) fn inv_count(app: &App, entity: Entity, item_ref: &str) -> u32 {
@@ -3687,9 +3801,21 @@ pub(crate) mod test_support {
             .unwrap()
             .slots
             .iter()
-            .find(|(r, _)| r == item_ref)
-            .map(|(_, c)| *c)
+            .find(|s| s.item_ref == item_ref)
+            .map(|s| s.count)
             .unwrap_or(0)
+    }
+
+    /// (ref, count) pairs in slot order — for asserting inventory contents without
+    /// pinning the random instance ids.
+    pub(crate) fn slot_pairs(app: &App, entity: Entity) -> Vec<(String, u32)> {
+        app.world()
+            .get::<Inventory>(entity)
+            .unwrap()
+            .slots
+            .iter()
+            .map(|s| (s.item_ref.clone(), s.count))
+            .collect()
     }
 }
 
@@ -3725,8 +3851,8 @@ mod tests {
         let left = inv
             .slots
             .iter()
-            .find(|(r, _)| r == "potion")
-            .map(|(_, c)| *c)
+            .find(|s| s.item_ref == "potion")
+            .map(|s| s.count)
             .unwrap_or(0);
         assert_eq!(left, 1, "inventory not decremented to 1 (got {left})");
         let mut q = app.world_mut().query::<&GroundItem>();
@@ -3755,7 +3881,7 @@ mod tests {
             app.update();
         }
         let inv = app.world().get::<Inventory>(player).unwrap();
-        let order: Vec<&str> = inv.slots.iter().map(|(r, _)| r.as_str()).collect();
+        let order: Vec<&str> = inv.slots.iter().map(|s| s.item_ref.as_str()).collect();
         assert_eq!(
             order,
             vec!["coin", "elixir", "potion"],
@@ -3844,7 +3970,7 @@ mod tests {
         assert!(
             inv.slots
                 .iter()
-                .any(|(r, c)| r == "campfire-kit" && *c >= 1),
+                .any(|s| s.item_ref == "campfire-kit" && s.count >= 1),
             "kit refunded"
         );
     }
@@ -3901,7 +4027,7 @@ mod tests {
             GridPos::at(from),
             MoveTarget::default(),
             Inventory {
-                slots: vec![("test-kit".to_string(), 1)],
+                slots: vec![ItemStack::mint("test-kit", 1)],
             },
             PlayerSlotTag(proto::PlayerSlot(0)),
         ));
@@ -4316,7 +4442,13 @@ mod tests {
                 .query_filtered::<(Entity, &GridPos, &Inventory), With<Corpse>>();
             let (e, gp, inv) = q.iter(app.world()).next().expect("corpse spawned");
             assert_eq!(gp.tile, Tile::new(10, 10));
-            assert_eq!(inv.slots, vec![("potion".to_string(), 3)]);
+            assert_eq!(
+                inv.slots
+                    .iter()
+                    .map(|s| (s.item_ref.clone(), s.count))
+                    .collect::<Vec<_>>(),
+                vec![("potion".to_string(), 3)]
+            );
             e
         };
 
@@ -4339,7 +4471,7 @@ mod tests {
         app.update();
 
         assert_eq!(
-            app.world().get::<Inventory>(eb).unwrap().slots,
+            slot_pairs(&app, eb),
             vec![("potion".to_string(), 3)],
             "looter received the corpse's items"
         );
@@ -4684,7 +4816,13 @@ mod tests {
         let hp = app.world().get::<Health>(player).unwrap();
         let inv = app.world().get::<Inventory>(player).unwrap();
         assert_eq!(hp.hp, 75, "potion did not heal");
-        assert_eq!(inv.slots, vec![("potion".to_string(), 1)]);
+        assert_eq!(
+            inv.slots
+                .iter()
+                .map(|s| (s.item_ref.clone(), s.count))
+                .collect::<Vec<_>>(),
+            vec![("potion".to_string(), 1)]
+        );
 
         let mut saw_used = false;
         while let Ok(evt) = rx.try_recv() {
@@ -5052,6 +5190,106 @@ mod tests {
             .find(|i| i.item_ref == "potion")
             .expect("potion in inventory");
         assert_eq!(potion.count, 2);
+    }
+
+    #[test]
+    fn inventory_add_mints_distinct_ids_and_merges_by_ref() {
+        let mut inv = Inventory::default();
+        inv.add("potion", 2);
+        inv.add("coin", 5);
+        inv.add("potion", 1); // same ref → merges into the existing stack
+        assert_eq!(
+            inv.slots.len(),
+            2,
+            "same ref merges, distinct ref is its own"
+        );
+        let potion = inv.slots.iter().find(|s| s.item_ref == "potion").unwrap();
+        let coin = inv.slots.iter().find(|s| s.item_ref == "coin").unwrap();
+        assert_eq!(potion.count, 3);
+        assert!(!potion.id.is_empty() && !coin.id.is_empty(), "ids minted");
+        assert_ne!(
+            potion.id, coin.id,
+            "distinct stacks get distinct instance ids"
+        );
+    }
+
+    #[test]
+    fn detach_whole_keeps_id_partial_mints_new() {
+        let mut inv = Inventory::default();
+        inv.add("arrow", 5);
+        let id = inv.slots[0].id.clone();
+        // Partial: the detached portion gets a fresh id; the remainder keeps the original.
+        let part = inv.detach("arrow", 2).unwrap();
+        assert_eq!(part.count, 2);
+        assert_ne!(part.id, id, "a split mints a new id for the moved portion");
+        assert_eq!(inv.slots[0].id, id, "remainder keeps the original id");
+        // Whole: the moved stack keeps its id, the slot empties.
+        let whole = inv.detach("arrow", 3).unwrap();
+        assert_eq!(whole.id, id, "a whole-stack detach preserves the id");
+        assert!(inv.slots.is_empty());
+    }
+
+    #[test]
+    fn add_stack_preserves_incoming_id_into_empty_ref() {
+        let mut inv = Inventory::default();
+        inv.add_stack(ItemStack {
+            id: "instance-xyz".into(),
+            item_ref: "gem".into(),
+            count: 1,
+        });
+        assert_eq!(
+            inv.slots[0].id, "instance-xyz",
+            "moved instance keeps its id"
+        );
+    }
+
+    #[test]
+    fn pickup_preserves_ground_item_instance_id() {
+        let (mut app, mut rx, input_tx, roster) = harness(0x1d);
+        let slot = join(&roster, "id-keeper");
+        let registry = app.world().resource::<KindRegistry>().clone();
+        // A ground item with a known instance id; picking it up must keep that id (a
+        // move, not a fresh mint) so the item's identity + birth time are preserved.
+        let stack = ItemStack {
+            id: "ground-instance-id".into(),
+            item_ref: "potion".into(),
+            count: 1,
+        };
+        let bundle = ground_item_bundle_stack(&registry, stack, Tile::new(9, 8)).unwrap();
+        let item = app.world_mut().spawn(bundle).id();
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_PICKUP,
+                    target: Some(proto::EntityId(item.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..6 {
+            app.update();
+        }
+
+        let mut last: Option<proto::InventorySync> = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_INVENTORY
+            {
+                last = Some(proto::decode_inner(&payload).unwrap());
+            }
+        }
+        let inv = last.expect("no inventory sync");
+        let potion = inv
+            .items
+            .iter()
+            .find(|i| i.item_ref == "potion")
+            .expect("potion in inventory");
+        assert_eq!(
+            potion.id, "ground-instance-id",
+            "ground item's instance id survived pickup"
+        );
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use crate::agones::AgonesClient;
-use crate::config::{Environment, TenantConfig};
+use crate::config::{Environment, ReaperKnobs, TenantConfig};
 use crate::db::DbPool;
 use crate::drain::{ShutdownNotifier, default_notifier};
 use crate::mq::MqProducer;
@@ -41,6 +41,8 @@ pub struct AppConfig {
     pub environment: Environment,
     pub agones_namespace: String,
     pub agones_fleet: String,
+    /// Empty-server reaper knobs (parsed in `RowsConfig`, threaded here for the jobs to read).
+    pub reaper: ReaperKnobs,
 }
 
 impl AppState {
@@ -59,6 +61,7 @@ pub struct AppStateBuilder {
     agones_fleet: Option<String>,
     mq: Option<MqProducer>,
     agones: Option<AgonesClient>,
+    reaper: Option<ReaperKnobs>,
 }
 
 impl AppStateBuilder {
@@ -98,6 +101,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn reaper_config(mut self, knobs: ReaperKnobs) -> Self {
+        self.reaper = Some(knobs);
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -117,6 +125,7 @@ impl AppStateBuilder {
                 environment: tenant.environment,
                 agones_namespace: self.agones_namespace.unwrap_or_else(|| "ows".into()),
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
+                reaper: self.reaper.unwrap_or_default(),
             },
             mq: self.mq,
             agones: self.agones,

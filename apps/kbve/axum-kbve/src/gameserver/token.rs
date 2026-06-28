@@ -151,9 +151,9 @@ pub async fn game_token_handler(
                 let cid = rand::random::<u64>().max(1);
                 (cid, [0u8; 256])
             } else {
-                let token_data = crate::auth::validate_token(jwt, &jwt_secret)
+                let claims = crate::auth::verify_token(jwt, &jwt_secret)
                     .map_err(|e| (StatusCode::UNAUTHORIZED, format!("JWT invalid: {e}")))?;
-                let user_id = &token_data.claims.sub;
+                let user_id = &claims.sub;
                 let cid = net_config::user_id_to_client_id(user_id);
                 let ud = net_config::pack_user_data(user_id);
                 (cid, ud)

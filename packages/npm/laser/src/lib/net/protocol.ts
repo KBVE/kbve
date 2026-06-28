@@ -163,6 +163,10 @@ export interface Ephemeral {
 }
 
 export interface InventoryItem {
+	/** ULID instance identity for the stack (stable across moves; mint timestamp
+	 * embedded). Present on a real inventory stack; omitted for ref+qty display lines
+	 * that aren't instances (corpse-loot rows, trade-offer lines). */
+	id?: string;
 	ref: string;
 	count: number;
 }

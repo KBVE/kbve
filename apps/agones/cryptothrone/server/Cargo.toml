@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 simgrid = { path = "../../../../packages/rust/simgrid" }
 jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey"] }
+async-trait = "0.1.88"
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 axum = { version = "0.7", default-features = false, features = ["ws", "json", "http1", "tokio"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }

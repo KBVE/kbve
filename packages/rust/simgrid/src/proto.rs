@@ -443,9 +443,11 @@ pub struct StatusEvent {
     pub remaining: u32,
 }
 
-/// One inventory line. Mirrors TS `InventoryItem`.
+/// One inventory line. Mirrors TS `InventoryItem`. `id` is the stack's ULID instance
+/// identity (stable across moves; the mint timestamp is embedded in the first 48 bits).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InventoryItem {
+    pub id: String,
     pub item_ref: String,
     pub count: u32,
 }
@@ -883,10 +885,12 @@ mod tests {
         let ev = InventorySync {
             items: vec![
                 InventoryItem {
+                    id: String::new(),
                     item_ref: "arrow".into(),
                     count: 3,
                 },
                 InventoryItem {
+                    id: String::new(),
                     item_ref: "potion".into(),
                     count: 1,
                 },
@@ -894,7 +898,7 @@ mod tests {
         };
         assert_eq!(
             hex(&encode_inner(&ev).unwrap()),
-            "02056172726f770306706f74696f6e01"
+            "0200056172726f77030006706f74696f6e01"
         );
     }
 
@@ -958,6 +962,7 @@ mod tests {
             with: 2,
             you: TradeSide {
                 items: vec![InventoryItem {
+                    id: String::new(),
                     item_ref: "arrow".into(),
                     count: 3,
                 }],
@@ -970,7 +975,7 @@ mod tests {
         };
         assert_eq!(
             hex(&encode_inner(&ev).unwrap()),
-            "046f70656e0201056172726f7703000001"
+            "046f70656e020100056172726f7703000001"
         );
     }
 

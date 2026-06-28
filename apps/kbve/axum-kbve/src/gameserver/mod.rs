@@ -1634,10 +1634,10 @@ fn process_auth_messages(
                 continue;
             }
 
-            match crate::auth::validate_token(&msg.jwt, &jwt_secret.0) {
-                Ok(token_data) => {
-                    let user_id = token_data.claims.sub.clone();
-                    let jwt_username = token_data.claims.kbve_username.clone();
+            match crate::auth::verify_token(&msg.jwt, &jwt_secret.0) {
+                Ok(claims) => {
+                    let user_id = claims.sub.clone();
+                    let jwt_username = claims.kbve_username.clone();
                     tracing::info!(
                         "client {entity:?} authenticated as user {user_id} (challenge={server_time}, jwt_username={jwt_username:?})"
                     );

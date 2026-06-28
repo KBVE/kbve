@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.215",
+			"version": "1.0.217",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -83,7 +83,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.15",
+			"version": "0.1.19",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -96,9 +96,10 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.15",
+			"version": "0.1.19",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
+			"version_target": "apps/agones/arpg/web/version.toml",
 			"source_path": "apps/agones/arpg",
 			"runner": "arc-runner-set",
 			"image": "kbve/arpg-web",
@@ -106,13 +107,12 @@
 			"deployment_yaml": "apps/kube/agones/arpg/manifests/web-deployment.yaml",
 			"has_test": true,
 			"target": "container-web",
-			"nx_project": "arpg",
-			"version_target": "apps/agones/arpg/web/version.toml"
+			"nx_project": "arpg"
 		},
 		{
 			"key": "axum_rentearth",
 			"app_name": "axum-rentearth",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/rentearth/axum-rentearth/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/axum-rentearth.mdx",
 			"version_target": "apps/rentearth/axum-rentearth/Cargo.toml",
@@ -376,7 +376,7 @@
 		{
 			"key": "kilobase",
 			"app_name": "kilobase",
-			"version": "17.4.1",
+			"version": "17.6.1",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kilobase.mdx",
 			"source_path": "apps/kbve/kilobase",
 			"runner": "ubuntu-latest",
@@ -502,7 +502,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.31",
+			"version": "0.1.32",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",

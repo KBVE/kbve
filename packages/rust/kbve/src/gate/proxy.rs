@@ -11,7 +11,7 @@ use reqwest::Client;
 use tracing::{debug, warn};
 
 use super::auth::{
-    Authz, GATE_SESSION_COOKIE, SB_ACCESS_TOKEN_COOKIE, StaffGate, access_token_in_query,
+    Authz, Claims, GATE_SESSION_COOKIE, SB_ACCESS_TOKEN_COOKIE, StaffGate, access_token_in_query,
     extract_token, validate_token,
 };
 
@@ -58,6 +58,10 @@ pub struct GateConfig {
     /// identity. Used to log every gated user in as one shared upstream account
     /// (e.g. a single elevated Grafana user) rather than provisioning per-user.
     pub forward_user_value: Option<String>,
+    /// Local JWT verifier accepting BOTH the legacy HS256 secret and ES256 keys
+    /// from GoTrue's JWKS (the HS256->ES256 transition). When `None` the gate
+    /// falls back to HS256-only via `validate_token`.
+    pub verifier: Option<jedi::jwks::JwtVerifier>,
 }
 
 pub struct GateState {
@@ -348,27 +352,32 @@ async fn authorize(
         }
     };
 
-    let data = match validate_token(&token, &state.cfg.jwt_secret) {
-        Ok(d) => d,
-        Err(e) => {
+    let claims = match state.cfg.verifier.as_ref() {
+        Some(v) => v.verify::<Claims>(&token).map_err(|e| e.to_string()),
+        None => validate_token(&token, &state.cfg.jwt_secret)
+            .map(|d| d.claims)
+            .map_err(|e| e.to_string()),
+    };
+    let claims = match claims {
+        Ok(c) => c,
+        Err(reason) => {
             return Err(deny(
                 state,
                 headers,
                 StatusCode::UNAUTHORIZED,
-                &e.to_string(),
+                &reason,
                 ext_url,
                 bounced,
             ));
         }
     };
-    let exp = data.claims.exp;
-    let user = data
-        .claims
+    let exp = claims.exp;
+    let user = claims
         .kbve_username
         .clone()
-        .or_else(|| data.claims.email.clone())
-        .unwrap_or_else(|| data.claims.sub.clone());
-    let sub = data.claims.sub;
+        .or_else(|| claims.email.clone())
+        .unwrap_or_else(|| claims.sub.clone());
+    let sub = claims.sub;
 
     match &state.cfg.authz {
         Authz::JwtOnly => Ok((exp, user)),

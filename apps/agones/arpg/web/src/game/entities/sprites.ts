@@ -313,6 +313,7 @@ export function setClassPose(
 
 	const blend =
 		!!scene &&
+		sprite.visible &&
 		!oneShot &&
 		state !== prevState &&
 		isLocomotion(prevState) &&

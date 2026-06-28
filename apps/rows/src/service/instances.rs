@@ -33,7 +33,39 @@ impl OWSService {
 
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
-        let pipeline = AllocationPipeline::new(customer_guid, &resolved_zone, &self.state.db);
+        // When annotation stamping is on, read the per-map empty timeout to stamp
+        // `empty-shutdown-minutes`. When off (default) pass 0 — the allocation path then skips this
+        // DB read and omits the annotation. Read `maps` directly: the first server of a zone is
+        // allocated before its `mapinstances` row exists. A DB error falls back to a conservative
+        // value (not the 1-min not-found default) so a blip can't trigger premature self-shutdown.
+        let empty_shutdown_minutes = if self.state.config.reaper.stamp_empty_shutdown_annotation {
+            let m = match InstanceRepo(&self.state.db)
+                .get_map_minutes_to_shutdown_after_empty(customer_guid, &resolved_zone)
+                .await
+            {
+                Ok(m) => m,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        zone = %resolved_zone,
+                        "Failed to read empty-shutdown-minutes; using conservative fallback to avoid premature UE self-shutdown"
+                    );
+                    crate::repo::FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR
+                }
+            };
+            // Floor by `min_empty_secs` so a map's aggressive 1-min default can't self-shutdown a
+            // server under a still-loading player.
+            m.max(self.state.config.reaper.empty_shutdown_minutes_floor())
+        } else {
+            0 // annotation stamping off: no DB read, no annotation (see allocate.rs)
+        };
+
+        let pipeline = AllocationPipeline::new(
+            customer_guid,
+            &resolved_zone,
+            &self.state.db,
+            empty_shutdown_minutes,
+        );
         match pipeline.find_existing(char_name).await {
             Err(crate::agones::pipeline::FindResult::Found(result)) => return Ok(result),
             Err(crate::agones::pipeline::FindResult::Error(e)) => return Err(e),
@@ -117,7 +149,9 @@ impl OWSService {
         let pipeline = match pipeline.acquire_lock(&self.state.zone_spinup_locks) {
             Ok(p) => p,
             Err(_) => {
-                return AllocationPipeline::new(customer_guid, zone, &self.state.db)
+                // Re-poll path only waits for an in-flight allocation to finish; it never
+                // allocates, so the annotation value is irrelevant here (0).
+                return AllocationPipeline::new(customer_guid, zone, &self.state.db, 0)
                     .poll_until_ready(char_name)
                     .await;
             }

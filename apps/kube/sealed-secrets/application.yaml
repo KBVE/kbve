@@ -14,7 +14,11 @@ metadata:
 spec:
     project: default
     source:
-        repoURL: https://bitnami-labs.github.io/sealed-secrets
+        # Repo moved: bitnami-labs.github.io Pages site removed → 404 broke Argo
+        # manifest generation (app stuck Unknown). Canonical host is now
+        # bitnami.github.io/sealed-secrets. Chart 2.17.3 = appVersion 0.30.0,
+        # identical to the running controller, so this is a diffing-only fix.
+        repoURL: https://bitnami.github.io/sealed-secrets
         chart: sealed-secrets
         targetRevision: 2.17.3
         helm:

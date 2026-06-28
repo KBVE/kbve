@@ -71,6 +71,12 @@ spec:
                         value: axum-cryptothrone
                       - name: GOTRUE_INTERNAL_URL
                         value: http://auth.kilobase.svc.cluster.local:9999
+                      # Discord Activity token exchange must send the redirect_uri
+                      # the OAuth code was bound to (a redirect IS registered on the
+                      # app), else Discord rejects with invalid_grant. Must match the
+                      # registered redirect for the CryptoThrone Activity.
+                      - name: DISCORD_REDIRECT_URI
+                        value: https://cryptothrone.com
                   envFrom:
                       - secretRef:
                             name: supabase-shared

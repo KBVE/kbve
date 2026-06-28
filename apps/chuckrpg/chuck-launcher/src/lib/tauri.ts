@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { Session } from './auth';
 
 export type ClientVersion = {
 	platform: string;
@@ -29,7 +30,10 @@ export const launcherApi = {
 	installState: () => invoke<Installed | null>('install_state'),
 	installUpdate: (backendUrl?: string) =>
 		invoke<Installed>('install_update', { backendUrl }),
-	launch: (url?: string) => invoke<void>('launch', { url }),
+	launch: (session?: Session, url?: string) =>
+		invoke<void>('launch', { url, session }),
 	onProgress: (cb: (p: Progress) => void): Promise<UnlistenFn> =>
 		listen<Progress>('install://progress', (e) => cb(e.payload)),
+	onGameExited: (cb: () => void): Promise<UnlistenFn> =>
+		listen('game://exited', () => cb()),
 };

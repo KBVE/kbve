@@ -57,6 +57,9 @@ pub struct AllocationPipeline<'a> {
     instance_id: i32,
     existing: Option<JoinMapResult>,
     lock_key: String,
+    /// Per-map empty timeout, stamped as the `empty-shutdown-minutes` allocation annotation
+    /// so the UE side can self-shutdown before the reaper backstop kicks in.
+    empty_shutdown_minutes: i32,
 }
 
 impl<'a> AllocationPipeline<'a> {
@@ -94,7 +97,12 @@ pub fn spinup_lock_key(customer_guid: Uuid, zone: &str) -> String {
 }
 
 impl<'a> AllocationPipeline<'a> {
-    pub fn new(customer_guid: Uuid, zone: &'a str, db: &'a DbPool) -> Self {
+    pub fn new(
+        customer_guid: Uuid,
+        zone: &'a str,
+        db: &'a DbPool,
+        empty_shutdown_minutes: i32,
+    ) -> Self {
         let lock_key = spinup_lock_key(customer_guid, zone);
         Self {
             customer_guid,
@@ -105,6 +113,7 @@ impl<'a> AllocationPipeline<'a> {
             instance_id: 0,
             existing: None,
             lock_key,
+            empty_shutdown_minutes,
         }
     }
 
@@ -160,7 +169,7 @@ impl<'a> AllocationPipeline<'a> {
     #[tracing::instrument(skip(self, agones), fields(zone = %self.zone))]
     pub async fn allocate_via_agones(mut self, agones: &AgonesClient) -> Result<Self, RowsError> {
         let alloc = agones
-            .allocate(self.zone, 0)
+            .allocate(self.zone, 0, self.empty_shutdown_minutes)
             .await
             .map_err(|e| RowsError::Internal(format!("Agones allocation failed: {e}")))?;
 
@@ -250,6 +259,7 @@ impl<'a> AllocationPipeline<'a> {
                 self.world_server_id,
                 self.zone,
                 alloc.port,
+                &alloc.game_server_name,
             )
             .await?;
 
