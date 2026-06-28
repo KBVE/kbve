@@ -102,7 +102,7 @@ import {
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore, packTile, Cat } from '@kbve/laser';
+import { EntityStore, packTile, Cat, laserEvents } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -462,6 +462,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	create() {
+		laserEvents.setDebug({
+			historySize: 400,
+			trace: import.meta.env.DEV,
+		});
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
@@ -1231,6 +1235,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			// real mismatch can reload again.
 			try {
 				sessionStorage.removeItem('arpg-version-reload');
+				sessionStorage.removeItem('arpg-session-reload');
 			} catch {
 				/* private mode */
 			}
@@ -1368,6 +1373,14 @@ export class IsoArpgScene extends Phaser.Scene {
 					if (!k.startsWith('sb-')) localStorage.removeItem(k);
 				}
 			} else {
+				if (sessionStorage.getItem('arpg-session-reload')) {
+					emitBoot({
+						phase: 'error',
+						message: 'Sign-in rejected — please sign in again',
+					});
+					return;
+				}
+				sessionStorage.setItem('arpg-session-reload', '1');
 				for (const k of Object.keys(localStorage)) {
 					if (k.startsWith('sb-')) localStorage.removeItem(k);
 				}

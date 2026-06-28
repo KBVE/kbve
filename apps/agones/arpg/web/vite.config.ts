@@ -257,7 +257,7 @@ export default defineConfig(({ mode }) => {
 		publicDir: path.join(__dirname, 'public'),
 		build: { outDir: 'dist', emptyOutDir: true },
 		server: {
-			host: '0.0.0.0',
+			host: 'localhost',
 			port: 5402,
 			strictPort: true,
 			proxy: {

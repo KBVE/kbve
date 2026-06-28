@@ -8,6 +8,7 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "MaterialDomain.h"
 #include "UObject/StrongObjectPtr.h"
 
 #if WITH_EDITOR
@@ -302,7 +303,7 @@ UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UK
 		{
 			if (Def->Atlas)
 			{
-				MID->SetTextureParameterValue(TEXT("Atlas"), Def->Atlas);
+				MID->SetTextureParameterValue(TEXT("Atlas"), Def->Atlas.Get());
 			}
 			MID->SetScalarParameterValue(TEXT("WorldSizeX"), Def->WorldSize.X);
 			MID->SetScalarParameterValue(TEXT("WorldSizeY"), Def->WorldSize.Y);
