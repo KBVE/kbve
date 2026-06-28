@@ -29,10 +29,20 @@ name = "isometric-game"
 path = "src/main.rs"
 
 [features]
-default = []
+default = ["desktop"]
 # Native mobile (iOS/Android) build: drops the Tauri desktop shell and exposes
 # `mobile::init_game` for hosting on an externally-provided wgpu surface.
+# Build with `--no-default-features --features mobile`.
 mobile = []
+# Tauri desktop shell. On the default build; mobile builds opt out via
+# --no-default-features. The deps are also target-gated to non-wasm.
+desktop = [
+    "dep:tauri",
+    "dep:tauri-plugin-opener",
+    "dep:tauri-plugin-deep-link",
+    "dep:tauri-plugin-window-state",
+    "dep:urlencoding",
+]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -101,13 +111,13 @@ ureq = { version = "3", features = ["json"] }
 # Dedicated runtime that hosts the chat IRC-WS connection (all native targets).
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
 
-# --- Tauri desktop shell — excluded from the `mobile` feature build ---
-[target.'cfg(all(not(target_arch = "wasm32"), not(feature = "mobile")))'.dependencies]
-tauri = { version = "2", features = ["macos-private-api"] }
-tauri-plugin-opener = "2"
-tauri-plugin-deep-link = "2"
-tauri-plugin-window-state = "2"
-urlencoding = "2"
+# Tauri desktop shell — gated by the `desktop` feature (on by default, off for
+# mobile builds via --no-default-features). Optional so mobile drops them.
+tauri = { version = "2", features = ["macos-private-api"], optional = true }
+tauri-plugin-opener = { version = "2", optional = true }
+tauri-plugin-deep-link = { version = "2", optional = true }
+tauri-plugin-window-state = { version = "2", optional = true }
+urlencoding = { version = "2", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"

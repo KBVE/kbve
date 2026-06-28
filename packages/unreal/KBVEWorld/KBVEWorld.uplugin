@@ -16,6 +16,11 @@
 	"EnabledByDefault": false,
 	"Modules": [
 		{
+			"Name": "KBVEWorldCore",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		},
+		{
 			"Name": "KBVEWorld",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"

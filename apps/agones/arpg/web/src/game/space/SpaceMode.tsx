@@ -9,6 +9,7 @@ import type Phaser from 'phaser';
 import { onSpaceEnter, emitSpaceExit } from '../systems/hud';
 import { SpaceScene } from './SpaceScene';
 import { RailScene } from './RailScene';
+import { SpaceErrorBoundary } from './SpaceErrorBoundary';
 
 const SCENE_KEY = 'IsoArpgScene';
 const FLASH_MS = 650;
@@ -69,10 +70,17 @@ export function SpaceMode({
 				/>
 			)}
 			{active && view === 'free' && (
-				<SpaceScene heading={heading} onExit={() => setView('menu')} />
+				<SpaceErrorBoundary onExit={exit}>
+					<SpaceScene
+						heading={heading}
+						onExit={() => setView('menu')}
+					/>
+				</SpaceErrorBoundary>
 			)}
 			{active && view === 'rail' && (
-				<RailScene onExit={() => setView('menu')} />
+				<SpaceErrorBoundary onExit={exit}>
+					<RailScene onExit={() => setView('menu')} />
+				</SpaceErrorBoundary>
 			)}
 			<div
 				style={{

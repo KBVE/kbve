@@ -14,9 +14,17 @@ CREATE TABLE MapInstances
     LastUpdateFromServer    TIMESTAMP               NULL,
     LastServerEmptyDate     TIMESTAMP               NULL,
     GameServerName          VARCHAR(253)            NULL,
+    DrainState              SMALLINT                NULL,
+    DrainUrgency            SMALLINT                NULL,
+    DrainDropPlayers        BOOLEAN                 NULL,
+    DrainReason             TEXT                    NULL,
+    DrainRequestID          UUID                    NULL,
+    DrainDeadline           TIMESTAMP               NULL,
     CreateDate              TIMESTAMP DEFAULT NOW() NOT NULL,
     CONSTRAINT PK_MapInstances
-        PRIMARY KEY (CustomerGUID, MapInstanceID)
+        PRIMARY KEY (CustomerGUID, MapInstanceID),
+    CONSTRAINT mapinstances_drainstate_check
+        CHECK (DrainState IN (1, 2))
 );
 
 -- Index: reaper candidate scan (active rows only, ordered by empty-date then id)

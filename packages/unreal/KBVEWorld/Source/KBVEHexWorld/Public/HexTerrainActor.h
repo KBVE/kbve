@@ -18,7 +18,7 @@ public:
 	AHexTerrainActor();
 
 	/** Generate terrain mesh for a hex at the given world center. */
-	void GenerateTerrain(const FVector& HexCenter, double HexSize, int64 RegionSeed, const FHexNoiseSettings& NoiseSettings);
+	void GenerateTerrain(const FVector& HexCenter, double HexSize, int64 RegionSeed, const FKBVENoiseSettings& NoiseSettings);
 
 	/**
 	 * Set LOD preset before calling GenerateTerrain.

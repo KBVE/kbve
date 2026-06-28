@@ -13,10 +13,8 @@ public class KBVEHexWorld : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"Projects",
-			"ProceduralMeshComponent"
+			"ProceduralMeshComponent",
+			"KBVEWorldCore"
 		});
-
-		// FastNoiseLite (header-only)
-		PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "ThirdParty"));
 	}
 }

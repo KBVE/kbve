@@ -114,7 +114,7 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
     git push -u origin atom-<MMDDHHMM>-<description>
     ```
 
-    For authorized users, the PR is auto-approved and squash-merged after lint + test pass.
+    `ci-atom.yml` runs lint + test, then leaves the PR open for a human to review and merge. Atomics do **not** auto-merge — the workflow only auto-creates the PR; merging into `dev` is a manual step.
 
 4. **Cleanup** after merge:
     ```bash
@@ -126,7 +126,7 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 - **Branch naming:** `atom-<MMDDHHMM>-<description>` — alphanumeric + hyphens only, max 50 chars
 - **Worktree path:** `../kbve-atom-<description>` (adjacent to main repo)
 - **Reserved names:** `atom-main`, `atom-dev`, `atom-master` are blocked
-- **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` get auto-merge
+- **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` may run the atomic workflow (push `atom-*` branches and get a PR auto-created). It does not grant auto-merge — a human still reviews and merges the PR.
 - **Tests:** `nx affected --target=lint` and `nx affected --target=test` run against `dev` before merge
 - PRs target `dev`, never `main`
 - No co-authoring lines in commits

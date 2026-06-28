@@ -183,6 +183,11 @@ export function SpaceScene({
 			}}>
 			<Canvas
 				shadows
+				gl={{
+					powerPreference: 'default',
+					failIfMajorPerformanceCaveat: false,
+					antialias: false,
+				}}
 				camera={{
 					position: [0, 4, -12],
 					fov: 60,

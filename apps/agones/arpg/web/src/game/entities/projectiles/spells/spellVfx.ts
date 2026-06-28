@@ -34,6 +34,10 @@ const NATURE: BoltStyle = {
 	ramp: [0xeaffd0, 0x86efac, 0x166534],
 	core: 0xcaffb0,
 };
+const LIGHTNING: BoltStyle = {
+	ramp: [0xfffec8, 0xfde047, 0xfacc15, 0xa16207],
+	core: 0xfdf6b2,
+};
 const DEFAULT: BoltStyle = {
 	ramp: [0xffffff, 0x9fb3d8, 0x4c5a78],
 	core: 0xcfe0ff,
@@ -52,6 +56,7 @@ const SCHOOL_STYLE: Record<string, BoltStyle> = {
 	void: SHADOW,
 	nature: NATURE,
 	earth: NATURE,
+	lightning: LIGHTNING,
 };
 
 const HEAL_RAMP = [0xeaffd0, 0x86efac, 0x34d399];
@@ -127,7 +132,9 @@ function castBolt(
 		.setScale(1.7)
 		.setDepth(DEPTH_PROJECTILE + 1);
 
-	const trail = scene.add.particles(a.x, a.y, SPARK_TEX, {
+	// Create the trail emitter at the ORIGIN (0,0) and follow the core — NOT at (a.x,a.y)
+	// then follow, which double-counts the launch point and renders the trail offset.
+	const trail = scene.add.particles(0, 0, SPARK_TEX, {
 		speed: { min: 8, max: 36 },
 		lifespan: 360,
 		frequency: 16,
@@ -142,45 +149,17 @@ function castBolt(
 	trail.setDepth(DEPTH_PROJECTILE);
 	trail.startFollow(core);
 
-	// DEBUG: GREEN box follows the travelling bolt core; YELLOW box marks the destination
-	// (impact/burst); CYAN box tracks the TRAIL particle emitter's live position each
-	// frame — if cyan diverges from green, the trail emitter isn't following the core.
-	// Remove once the offset is diagnosed.
-	const dbgTravel = scene.add
-		.rectangle(a.x, a.y, 30, 30)
-		.setStrokeStyle(2, 0x22c55e)
-		.setFillStyle(0, 0)
-		.setDepth(DEPTH_PROJECTILE + 5);
-	const dbgImpact = scene.add
-		.rectangle(b.x, b.y, 30, 30)
-		.setStrokeStyle(2, 0xeab308)
-		.setFillStyle(0, 0)
-		.setDepth(DEPTH_PROJECTILE + 5);
-	const dbgTrail = scene.add
-		.rectangle(trail.x, trail.y, 20, 20)
-		.setStrokeStyle(2, 0x22d3ee)
-		.setFillStyle(0, 0)
-		.setDepth(DEPTH_PROJECTILE + 5);
-
 	scene.tweens.add({
-		targets: [core, dbgTravel],
+		targets: core,
 		x: b.x,
 		y: b.y,
 		duration,
 		ease: 'Quad.easeIn',
-		onUpdate: () => {
-			dbgTrail.setPosition(trail.x, trail.y);
-		},
 		onComplete: () => {
 			trail.stop();
 			burst(scene, b.x, b.y, style.ramp);
 			core.destroy();
 			scene.time.delayedCall(400, () => trail.destroy());
-			scene.time.delayedCall(900, () => {
-				dbgTravel.destroy();
-				dbgImpact.destroy();
-				dbgTrail.destroy();
-			});
 		},
 	});
 }
@@ -229,4 +208,64 @@ export function playSpellVfx(
 	}
 	if (to.x === from.x && to.y === from.y) return;
 	castBolt(scene, from, to, SCHOOL_STYLE[school] ?? DEFAULT);
+}
+
+const STORM_STRIKE_MS = 240; // gap between strikes
+const STRIKE_HEIGHT = 150; // px the bolt drops from above the impact
+
+/** A single forked bolt dropping onto the ground point (sx,sy) + an impact burst. */
+function strikeBolt(
+	scene: Phaser.Scene,
+	sx: number,
+	sy: number,
+	style: BoltStyle,
+): void {
+	const g = scene.add
+		.graphics()
+		.setDepth(DEPTH_PROJECTILE + 2)
+		.setBlendMode(Phaser.BlendModes.ADD);
+	g.lineStyle(2, style.core, 0.95);
+	g.beginPath();
+	g.moveTo(sx, sy - STRIKE_HEIGHT);
+	const segs = 6;
+	for (let i = 1; i <= segs; i++) {
+		const y = sy - STRIKE_HEIGHT + (STRIKE_HEIGHT * i) / segs;
+		const x = sx + (i < segs ? (Math.random() - 0.5) * 18 : 0);
+		g.lineTo(x, y);
+	}
+	g.strokePath();
+	scene.tweens.add({
+		targets: g,
+		alpha: 0,
+		duration: 180,
+		ease: 'Quad.easeOut',
+		onComplete: () => g.destroy(),
+	});
+	burst(scene, sx, sy, style.ramp);
+}
+
+/** Lightning storm: a flurry of forked strikes landing on random ground within `radius`
+ * tiles of `at`, staggered across `durationMs`. Cosmetic — the server damages every foe in
+ * the area; these strikes just sell the storm. */
+export function castStormVfx(
+	scene: Phaser.Scene,
+	at: TileXY,
+	radius: number,
+	durationMs: number,
+	school: string,
+): void {
+	ensureSpellTextures(scene);
+	const style = SCHOOL_STYLE[school] ?? LIGHTNING;
+	const count = Math.max(4, Math.round(durationMs / STORM_STRIKE_MS));
+	for (let i = 0; i < count; i++) {
+		scene.time.delayedCall(i * STORM_STRIKE_MS, () => {
+			const ang = Math.random() * Math.PI * 2;
+			const r = Math.sqrt(Math.random()) * radius * 0.85;
+			const p = worldToScreen(
+				at.x + Math.cos(ang) * r,
+				at.y + Math.sin(ang) * r,
+			);
+			strikeBolt(scene, p.x, p.y, style);
+		});
+	}
 }

@@ -118,8 +118,8 @@ void AHexWorldTestActor::BeginPlay()
 	}
 
 	// -- Terrain: spawn procedural mesh for each hex --
-	const FHexNoiseSettings OriginNoise = UHexNoiseSubsystem::GetDefaultNoiseForBiome(Origin.BiomeType);
-	const FHexNoiseSettings ForestNoise = UHexNoiseSubsystem::GetDefaultNoiseForBiome(Forest.BiomeType);
+	const FKBVENoiseSettings OriginNoise = UHexNoiseSubsystem::GetDefaultNoiseForBiome(Origin.BiomeType);
+	const FKBVENoiseSettings ForestNoise = UHexNoiseSubsystem::GetDefaultNoiseForBiome(Forest.BiomeType);
 	const double CurrentHexSize = HexWorld->GetHexSize();
 
 	FActorSpawnParameters TerrainSpawn;

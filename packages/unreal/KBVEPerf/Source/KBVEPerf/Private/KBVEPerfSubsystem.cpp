@@ -4,6 +4,7 @@
 #include "CoreGlobals.h"
 #include "Engine/Engine.h"
 #include "RHI.h"
+#include "RenderCore.h"
 #include "RenderingThread.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTLS.h"

@@ -49,9 +49,6 @@ public:
 	FRandomStream CreateRegionStream(const FHexCoord& Coord) const;
 
 private:
-	/** Platform-stable hash combine. Uses explicit arithmetic, not GetTypeHash. */
-	static uint64 CombineHash(uint64 A, uint64 B);
-
 	UPROPERTY()
 	FWorldSeedKey SeedKey;
 };
