@@ -398,6 +398,75 @@ impl<'a> InstanceRepo<'a> {
         Ok(rows)
     }
 
+    /// Marks an instance draining. Orthogonal to `status` — a draining instance stays `status=2`
+    /// (ready) so existing players keep playing; routing (`join_candidate_key`) and the reaper
+    /// (`reap_decision`) consult `drainstate`.
+    ///
+    /// **Monotonic (escalate-only):** the WHERE guard refuses to *downgrade* an in-flight drain
+    /// (a late `when_able` can't relax an active `asap`). `rows_affected == 0` therefore means
+    /// either the instance is gone OR the guard rejected a downgrade — callers distinguish via a
+    /// prior read.
+    ///
+    /// **UTC contract:** `deadline` is a naive `TIMESTAMP` compared against `Utc::now().naive_utc()`
+    /// in `reap_decision`, so callers MUST pass a UTC-naive value. A `NaiveDateTime` carries no
+    /// offset, so this can't be asserted at runtime — it is an invariant of the call site.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn set_drain_state(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+        state: i16,
+        urgency: i16,
+        drop_players: bool,
+        reason: &str,
+        request_id: Uuid,
+        deadline: Option<chrono::NaiveDateTime>,
+    ) -> Result<u64, RowsError> {
+        let result = sqlx::query(
+            "UPDATE mapinstances
+             SET drainstate = $3, drainurgency = $4, draindropplayers = $5,
+                 drainreason = $6, drainrequestid = $7, draindeadline = $8
+             WHERE customerguid = $1 AND mapinstanceid = $2
+               AND (drainstate IS NULL OR COALESCE(drainurgency, -1) <= $4)",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .bind(state)
+        .bind(urgency)
+        .bind(drop_players)
+        .bind(reason)
+        .bind(request_id)
+        .bind(deadline)
+        .execute(self.0)
+        .await?;
+        Ok(result.rows_affected())
+    }
+
+    /// Clears the drain marker (drain aborted / never happened). Restores the instance to a plain
+    /// routable/reapable state. `request_id = Some(id)` clears ONLY that request's drain (so one
+    /// request can't wipe a stricter drain set by another); `None` is an explicit operator
+    /// force-clear. Returns `rows_affected`.
+    pub async fn clear_drain_state(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+        request_id: Option<Uuid>,
+    ) -> Result<u64, RowsError> {
+        let result = sqlx::query(
+            "UPDATE mapinstances
+             SET drainstate = NULL, drainurgency = NULL, draindropplayers = NULL,
+                 drainreason = NULL, drainrequestid = NULL, draindeadline = NULL
+             WHERE customerguid = $1 AND mapinstanceid = $2
+               AND ($3::uuid IS NULL OR drainrequestid = $3)",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .bind(request_id)
+        .execute(self.0)
+        .await?;
+        Ok(result.rows_affected())
+    }
+
     /// Per-tenant reaper overrides from `ows.reaperconfig`. Returns the all-`None` default when no
     /// row exists for the tenant (use env defaults) AND when the table doesn't exist yet (migration
     /// not applied) — so a rows image that ships ahead of the migration cleanly runs on env config
