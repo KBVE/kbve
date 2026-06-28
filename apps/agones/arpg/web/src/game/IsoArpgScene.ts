@@ -36,6 +36,7 @@ import {
 	DUNGEON_SEED,
 	DUNGEON_RADIUS,
 	BODY_RADIUS,
+	ARROW_MAX_RANGE,
 } from './config';
 import {
 	worldToScreen,
@@ -307,6 +308,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	private kbDevice?: KeyboardDevice;
 	// React HUD emit throttle + cached compass heading and minimap window.
 	private hud: HudState = makeHudState();
+	// Latest server-authoritative mana from the StatsEvent (spell casts deduct it). The
+	// HUD orb reads this; until the first stats arrive maxMp is 0 → hudEmit falls back.
+	private playerMana = { mp: 0, maxMp: 0 };
 	// Dungeon floor the local player is on (z). Server-authoritative via the
 	// `floor` event; snapshot entities on other floors are not rendered.
 	private currentFloor = 0;
@@ -1258,6 +1262,9 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		client.on('snapshot', (s: Snapshot) => this.applySnapshot(s));
 		client.on('combat', (c: CombatEvent) => this.onCombat(c));
+		client.on('stats', (s) => {
+			this.playerMana = { mp: s.mp, maxMp: s.max_mp };
+		});
 		client.on('projectile', (p: ProjectileEvent) => this.onProjectile(p));
 		client.on('floor', (f: FloorChangeEvent) => this.onFloorChange(f));
 		client.on('inventory', (inv: InventorySync) => {
@@ -1422,6 +1429,8 @@ export class IsoArpgScene extends Phaser.Scene {
 
 	private castSpellSlot(idx: number): void {
 		castSpellSlotV(this.spells, this.spellDeps(), idx);
+		const meta = this.spells.meta.get(this.spells.loadout[idx] ?? '');
+		this.flashRangeRing(meta?.range || ARROW_MAX_RANGE, 0xf97316); // orange — spells
 	}
 
 	private spellDeps(): SpellDeps {
@@ -1938,6 +1947,46 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.tickHud(delta);
 	}
 
+	// A brief range ring around the player, flashed when a shot/cast fires so the player
+	// reads its reach. Purple for arrows, orange for spells. Tile-circle plotted through
+	// worldToScreen so it reads as an iso ellipse on the floor, then fades out.
+	flashRangeRing(tiles: number, color: number) {
+		if (this.myEid < 0 || tiles <= 0) return;
+		const g = this.add
+			.graphics()
+			.setDepth(DEPTH_UI - 3)
+			.setAlpha(0.5);
+		this.strokeTileRing(g, this.move.floatState.pos, tiles, color);
+		this.tweens.add({
+			targets: g,
+			alpha: 0,
+			duration: 700,
+			ease: 'Quad.easeOut',
+			onComplete: () => g.destroy(),
+		});
+	}
+
+	private strokeTileRing(
+		g: Phaser.GameObjects.Graphics,
+		center: { x: number; y: number },
+		radius: number,
+		color: number,
+	) {
+		g.lineStyle(2, color, 0.85);
+		g.beginPath();
+		const steps = 64;
+		for (let i = 0; i <= steps; i++) {
+			const a = (i / steps) * Math.PI * 2;
+			const p = worldToScreen(
+				center.x + radius * Math.cos(a),
+				center.y + radius * Math.sin(a),
+			);
+			if (i === 0) g.moveTo(p.x, p.y);
+			else g.lineTo(p.x, p.y);
+		}
+		g.strokePath();
+	}
+
 	private tickHud(deltaMs: number) {
 		tickHud(this.hud, this.hudDeps(), deltaMs);
 	}
@@ -1951,6 +2000,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			myEid: this.myEid,
 			surface: this.isSurface(),
 			playerName: this.localPlayerName(),
+			mana: this.playerMana,
 		};
 	}
 
@@ -2336,6 +2386,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private fireBowAt(aim: TileXY, target?: number) {
 		fireBowAtV(this.combat, this.combatDeps(), aim, target);
+		this.flashRangeRing(ARROW_MAX_RANGE, 0xa855f7); // purple — arrows
 	}
 
 	private tweenTo(refs: EntityRefs, tile: TileXY, settle = false) {
