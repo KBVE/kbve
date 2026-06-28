@@ -887,6 +887,57 @@ mod tests {
         assert_eq!(back.count, 3);
     }
 
+    // Cross-language wire lock for the pet-battle replay: the TS decodePetBattleReplay
+    // pins this SAME hex (laser postcard-wire.spec.ts). If either side reorders a field
+    // of PetBattler / PetBattleWireEvent / PetBattleReplay, one of the two tests breaks —
+    // catching exactly the server/client proto skew that shows an empty "battle over".
+    #[test]
+    fn pet_battle_replay_fixture_is_stable() {
+        let replay = PetBattleReplay {
+            player: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Rex".into(),
+                level: 5,
+                hp: 40,
+                max_hp: 40,
+            }],
+            enemy: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Foe".into(),
+                level: 5,
+                hp: 40,
+                max_hp: 40,
+            }],
+            events: vec![
+                PetBattleWireEvent {
+                    kind: PB_TURN,
+                    side: 0,
+                    value: 1,
+                    hp: 0,
+                    flag: 0,
+                    text: "T1".into(),
+                },
+                PetBattleWireEvent {
+                    kind: PB_DAMAGE,
+                    side: 1,
+                    value: 12,
+                    hp: 28,
+                    flag: 1,
+                    text: "hit".into(),
+                },
+            ],
+            outcome: "PlayerWon".into(),
+        };
+        let bytes = encode_inner(&replay).expect("encode");
+        assert_eq!(
+            hex(&bytes),
+            "01016d0352657805505001016d03466f65055050020b00020000025431\
+             01011838010368697409506c61796572576f6e"
+        );
+        let back: PetBattleReplay = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, replay);
+    }
+
     #[test]
     fn item_used_event_fixture_is_stable() {
         let ev = ItemUsedEvent {
