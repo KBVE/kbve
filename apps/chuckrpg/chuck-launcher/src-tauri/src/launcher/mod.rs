@@ -59,13 +59,6 @@ pub struct Installed {
     pub install_dir: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct GameSession {
-    pub access_token: String,
-    pub refresh_token: String,
-    pub expires_at: i64,
-}
-
 pub fn current_platform() -> &'static str {
     if cfg!(target_os = "windows") {
         "windows"
@@ -93,18 +86,6 @@ fn state_path() -> Result<PathBuf, LauncherError> {
 
 fn session_path() -> Result<PathBuf, LauncherError> {
     Ok(chuck_dir()?.join("session.json"))
-}
-
-fn write_session(session: &GameSession) -> Result<PathBuf, LauncherError> {
-    let path = session_path()?;
-    let raw = serde_json::to_vec(session).map_err(|e| LauncherError::Io(e.to_string()))?;
-    fs::write(&path, raw)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
-    }
-    Ok(path)
 }
 
 pub fn read_state() -> Option<Installed> {
@@ -339,14 +320,17 @@ fn mac_inner_binary(app: &Path) -> Option<PathBuf> {
 
 pub fn launch(
     url: Option<&str>,
-    session: Option<&GameSession>,
+    session: Option<&erust::supabase::Session>,
 ) -> Result<std::process::Child, LauncherError> {
     let state = read_state().ok_or(LauncherError::NotInstalled)?;
     let entrypoint = state.entrypoint.ok_or(LauncherError::NoEntrypoint)?;
     let path = PathBuf::from(&entrypoint);
 
     let session_file = match session {
-        Some(s) => Some(write_session(s)?),
+        Some(s) => Some(
+            erust::tauri::write_session_file(&session_path()?, s)
+                .map_err(|e| LauncherError::Io(e.to_string()))?,
+        ),
         None => None,
     };
 

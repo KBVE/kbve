@@ -7,6 +7,7 @@ export const authApi = {
 		invoke<string>('auth_authorize_url', { provider, redirectTo }),
 	complete: (callbackUrl: string) =>
 		invoke<Session>('auth_complete', { callbackUrl }),
+	restore: (session: Session) => invoke<void>('auth_restore', { session }),
 	session: () => invoke<Session | null>('auth_session'),
 	refresh: () => invoke<Session | null>('auth_refresh'),
 	signOut: () => invoke<void>('auth_sign_out'),
