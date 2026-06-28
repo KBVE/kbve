@@ -138,6 +138,7 @@ function castBolt(
 		colorEase: 'quad.out',
 		gravityY: -24,
 		blendMode: 'ADD',
+		emitting: false, // DEBUG: trail particles OFF — does the offset trail vanish?
 	});
 	trail.setDepth(DEPTH_PROJECTILE);
 	trail.startFollow(core);
