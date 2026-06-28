@@ -54,6 +54,27 @@ export const PB_PARALYZED = 10;
 export const PB_TURN = 11;
 export const PB_INFO = 12;
 
+// On a PB_USED event the server packs the move's element index into `value` and the
+// move category into `flag` (bits 0-1: 0 physical/1 special/2 status) plus a ranged bit
+// (bit 2) — so the client can fire the right elemental projectile for either side.
+// ELEMENT_NAMES MUST match simgrid `Element::idx` order.
+export const ELEMENT_NAMES = [
+	'none',
+	'fire',
+	'ice',
+	'lightning',
+	'poison',
+	'shadow',
+	'holy',
+	'arcane',
+	'earth',
+	'wind',
+	'nature',
+	'light',
+] as const;
+export const PB_USED_CATEGORY_MASK = 0b11;
+export const PB_USED_RANGED = 0b100;
+
 /** One pet in a battle replay (active battler + reserves). */
 export interface PetBattler {
 	species_ref: string;

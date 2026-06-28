@@ -54,6 +54,25 @@ impl Element {
             _ => Element::None,
         }
     }
+
+    /// Stable wire index for the client effect palette. MUST match the `ELEMENT_NAMES`
+    /// array order in the laser protocol (and the enum declaration order).
+    pub fn idx(self) -> u8 {
+        match self {
+            Element::None => 0,
+            Element::Fire => 1,
+            Element::Ice => 2,
+            Element::Lightning => 3,
+            Element::Poison => 4,
+            Element::Shadow => 5,
+            Element::Holy => 6,
+            Element::Arcane => 7,
+            Element::Earth => 8,
+            Element::Wind => 9,
+            Element::Nature => 10,
+            Element::Light => 11,
+        }
+    }
 }
 
 /// Damage class — picks which attack/defense stat applies.
@@ -335,6 +354,9 @@ pub enum BattleEvent {
     Used {
         side: Side,
         move_id: String,
+        element: Element,
+        category: MoveCategory,
+        power: i32,
     },
     Damage {
         side: Side,
@@ -673,6 +695,9 @@ impl BattleState {
         events.push(BattleEvent::Used {
             side,
             move_id: mv.id.clone(),
+            element: mv.element,
+            category: mv.category,
+            power: mv.power,
         });
 
         // Accuracy.
