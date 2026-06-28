@@ -121,10 +121,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "KBVEHexWorld",
-			"Enabled": true
-		},
-		{
 			"Name": "KBVETinyBVH",
 			"Enabled": true
 		},
