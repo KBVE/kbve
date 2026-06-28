@@ -228,6 +228,38 @@ export function onPetBattleAction(
 	);
 }
 
+// Global battle-scene lifecycle. Fired the moment the player commits to a battle
+// (click → enter) so the overlay can open into a loading state immediately, before
+// the server's first PetBattleState lands — decoupling window-open from the round
+// trip. Other systems (audio, ambient dimming) can hook the same events. `exit`
+// fires when the overlay closes.
+export type BattleKind = 'pet';
+
+export interface BattleEnter {
+	kind: BattleKind;
+}
+
+export const BATTLE_ENTER_EVENT = 'arpg:battle:enter';
+export const BATTLE_EXIT_EVENT = 'arpg:battle:exit';
+
+export function emitBattleEnter(info: BattleEnter): void {
+	laserEvents.emit(BATTLE_ENTER_EVENT, info);
+}
+
+export function onBattleEnter(
+	handler: (info: BattleEnter) => void,
+): () => void {
+	return laserEvents.on(BATTLE_ENTER_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitBattleExit(): void {
+	laserEvents.emit(BATTLE_EXIT_EVENT, undefined);
+}
+
+export function onBattleExit(handler: () => void): () => void {
+	return laserEvents.on(BATTLE_EXIT_EVENT, handler as (d: unknown) => void);
+}
+
 /** A global HUD tooltip request. `null` hides it; otherwise anchor it at the
  * viewport point and render the lines. Driven by hover/touch on HUD widgets. */
 export interface TooltipState {

@@ -32,6 +32,13 @@
 			"options": {
 				"config": "apps/agones/arpg/arpg-e2e/playwright.cdn.config.ts"
 			}
+		},
+		"component": {
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
+			"options": {
+				"config": "apps/agones/arpg/arpg-e2e/playwright.ct.config.ts"
+			}
 		}
 	},
 	"tags": ["agones", "arpg", "e2e"]

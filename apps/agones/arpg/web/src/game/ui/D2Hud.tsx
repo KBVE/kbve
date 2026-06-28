@@ -30,6 +30,8 @@ import {
 	onPetBattleState,
 	emitPetBattleRequest,
 	emitPetBattleAction,
+	emitBattleEnter,
+	emitBattleExit,
 	type HudState,
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
@@ -184,22 +186,31 @@ function D2HudInner({ debug }: { debug: boolean }) {
  */
 function PetBattleDebug() {
 	const [state, setState] = useState<PetBattleState | null>(null);
-	const [pending, setPending] = useState(false);
+	const [entering, setEntering] = useState(false);
 	useEffect(() => {
-		const off = onPetBattleState((s) => {
-			setState(s);
-			setPending(false);
-		});
+		const off = onPetBattleState((s) => setState(s));
 		return () => off();
 	}, []);
+
+	const open = () => {
+		if (entering) return;
+		setState(null);
+		setEntering(true);
+		emitBattleEnter({ kind: 'pet' });
+		emitPetBattleRequest();
+	};
+
+	const close = () => {
+		setEntering(false);
+		setState(null);
+		emitBattleExit();
+	};
+
 	return (
 		<>
 			<button
 				type="button"
-				onClick={() => {
-					setPending(true);
-					emitPetBattleRequest();
-				}}
+				onClick={open}
 				style={{
 					position: 'absolute',
 					top: 64,
@@ -215,18 +226,82 @@ function PetBattleDebug() {
 					cursor: 'pointer',
 					textShadow: TEXT_SHADOW,
 				}}>
-				{pending ? '⚔ Starting…' : '⚔ Sim Battle (5v5)'}
+				{entering ? '⚔ In Battle…' : '⚔ Sim Battle (5v5)'}
 			</button>
-			{state && (
-				<PetBattleScene
-					state={state}
-					onAction={(action, arg) =>
-						emitPetBattleAction({ action, arg })
-					}
-					onClose={() => setState(null)}
-				/>
-			)}
+			{entering &&
+				(state ? (
+					<PetBattleScene
+						state={state}
+						onAction={(action, arg) =>
+							emitPetBattleAction({ action, arg })
+						}
+						onClose={close}
+					/>
+				) : (
+					<BattleEntering onCancel={close} />
+				))}
 		</>
+	);
+}
+
+const BATTLE_ENTER_CSS = `
+@keyframes arpgBattleFade{from{opacity:0}to{opacity:1}}
+@keyframes arpgVsPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.12);opacity:1}}
+@keyframes arpgSlideL{from{transform:translateX(-60px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes arpgSlideR{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes arpgDots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+`;
+
+/** Loading curtain shown from click until the server's first PetBattleState lands.
+ * Opening it on the global battle-enter event (not on state arrival) makes the action
+ * feel instant even while the round trip is in flight. */
+function BattleEntering({ onCancel }: { onCancel: () => void }) {
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				inset: 0,
+				pointerEvents: 'auto',
+				zIndex: 40,
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: 18,
+				fontFamily: 'monospace',
+				color: '#e6ebf5',
+				background:
+					'radial-gradient(ellipse at center, rgba(20,28,48,0.92), rgba(4,6,12,0.97))',
+				animation: 'arpgBattleFade 180ms ease-out',
+			}}>
+			<style>{BATTLE_ENTER_CSS}</style>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 22,
+					fontSize: 30,
+					fontWeight: 700,
+					letterSpacing: 2,
+					textShadow: TEXT_SHADOW,
+				}}>
+				<span style={{ animation: 'arpgSlideL 320ms ease-out' }}>
+					YOU
+				</span>
+				<span
+					style={{
+						color: '#fbbf24',
+						animation: 'arpgVsPulse 900ms ease-in-out infinite',
+					}}>
+					VS
+				</span>
+				<span style={{ animation: 'arpgSlideR 320ms ease-out' }}>
+					FOE
+				</span>
+			</div>
+			<span style={{ color: MUTED, fontSize: 13 }}>Entering battle…</span>
+			<BattleButton label="Cancel ✕" onClick={onCancel} />
+		</div>
 	);
 }
 
@@ -244,6 +319,7 @@ const BATTLE_FX_CSS = `
 @keyframes arpgImgFlash{0%{filter:brightness(1)}30%{filter:brightness(2.6) saturate(0)}100%{filter:brightness(1)}}
 @keyframes arpgFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
 @keyframes arpgLowBlink{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes arpgSceneFade{from{opacity:0}to{opacity:1}}
 `;
 
 interface BattleView {
@@ -374,7 +450,7 @@ function aliveCount(team: PetBattler[]): number {
  * menu (moves with PP cost, swap, potion, run). The player's pick is sent back as a
  * PetTurn; the next streamed state advances the fight.
  */
-function PetBattleScene({
+export function PetBattleScene({
 	state,
 	onAction,
 	onClose,
@@ -436,6 +512,7 @@ function PetBattleScene({
 				color: '#e6ebf5',
 				background:
 					'radial-gradient(ellipse at center, rgba(20,28,48,0.92), rgba(4,6,12,0.97))',
+				animation: 'arpgSceneFade 160ms ease-out',
 			}}>
 			<style>{BATTLE_FX_CSS}</style>
 			{/* Enemy: top-right */}
@@ -480,7 +557,8 @@ function PetBattleScene({
 						: view.text}
 				</span>
 				{over ? (
-					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+					<div
+						style={{ display: 'flex', justifyContent: 'flex-end' }}>
 						<BattleButton label="Close ✕" onClick={onClose} />
 					</div>
 				) : showMenu ? (
@@ -493,7 +571,8 @@ function PetBattleScene({
 						{swapOpen ? (
 							<>
 								{reserves.length === 0 && (
-									<span style={{ color: MUTED, fontSize: 12 }}>
+									<span
+										style={{ color: MUTED, fontSize: 12 }}>
 										No reserves left.
 									</span>
 								)}
@@ -501,7 +580,9 @@ function PetBattleScene({
 									<BattleButton
 										key={r.i}
 										label={`${r.b.nickname} (${r.b.hp}/${r.b.max_hp})`}
-										onClick={() => commit(PET_ACT_SWAP, r.i)}
+										onClick={() =>
+											commit(PET_ACT_SWAP, r.i)
+										}
 									/>
 								))}
 								<BattleButton
