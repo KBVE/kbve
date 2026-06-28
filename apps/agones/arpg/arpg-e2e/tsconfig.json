@@ -3,9 +3,15 @@
 		"target": "ES2022",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true
 	},
-	"include": ["e2e/**/*.ts", "*.config.ts"]
+	"include": [
+		"e2e/**/*.ts",
+		"ct/**/*.tsx",
+		"playwright/**/*.tsx",
+		"*.config.ts"
+	]
 }
