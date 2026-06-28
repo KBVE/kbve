@@ -2720,6 +2720,7 @@
       "ref": "mechamutt",
       "id": "01KME8R5PG7Z9QB3T6VX2H4N01",
       "name": "Mechamutt",
+      "img": "/assets/npc/mechamutt.png",
       "typeFlags": 16,
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CHEERFUL",
@@ -2944,7 +2945,7 @@
         "xpReward": 40
       },
       "lore": "Nobody built Mechamutt on purpose. It assembled itself out of a junkyard's worth of broken drones, decided a passing scavenger was its owner, and has followed the scent of fresh scrap ever since. Loyal to a fault, terrified of magnets.\n",
-      "credits": "KBVE original — first catchable pet for the ARPG JRPG battle system.\n"
+      "credits": "By Screen Smith\n"
     },
     {
       "description": "Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.\n",
