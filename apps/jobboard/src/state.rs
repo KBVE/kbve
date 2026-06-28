@@ -33,6 +33,9 @@ pub struct AppState {
     pub anon_key: String,
     pub auth_mode: AuthMode,
     pub jwt_secret: Vec<u8>,
+    /// Accept-both verifier (HS256 + ES256/JWKS) for the asymmetric-signing
+    /// transition, used by Local auth mode. `None` → HS256-only.
+    pub verifier: Option<jedi::jwks::JwtVerifier>,
     pub auth_cache: Mutex<LruCache<String, CachedAuth>>,
 }
 
@@ -48,6 +51,25 @@ impl AppState {
             Ok("local") => AuthMode::Local,
             _ => AuthMode::Remote,
         };
+        let verifier = std::env::var("SUPABASE_JWKS_URI")
+            .ok()
+            .filter(|s| !s.trim().is_empty())
+            .or_else(|| {
+                let u = supabase_url.trim().trim_end_matches('/');
+                (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+            })
+            .map(|jwks_uri| {
+                let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                    .ok()
+                    .filter(|s| !s.trim().is_empty());
+                let secret = (!jwt_secret.is_empty()).then_some(jwt_secret.as_slice());
+                let v = jedi::jwks::JwtVerifier::new(jwks_uri, secret, issuer, None);
+                let bg = v.clone();
+                tokio::spawn(async move {
+                    bg.start(std::time::Duration::from_secs(300)).await;
+                });
+                v
+            });
         Arc::new(Self {
             db,
             started_at: Instant::now(),
@@ -57,6 +79,7 @@ impl AppState {
             anon_key,
             auth_mode,
             jwt_secret,
+            verifier,
             auth_cache: Mutex::new(LruCache::new(NonZeroUsize::new(2048).unwrap())),
         })
     }

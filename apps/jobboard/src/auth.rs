@@ -133,7 +133,13 @@ pub async fn authenticate(app: &AppState, token: &str) -> Result<AuthUser, ApiEr
         .map_err(|_| ApiError::Unauthorized("invalid sub claim".into()))?;
 
     match app.auth_mode {
-        AuthMode::Local => verify_local(token, &app.jwt_secret)?,
+        AuthMode::Local => match &app.verifier {
+            Some(v) => {
+                v.verify::<SupabaseClaims>(token)
+                    .map_err(|e| ApiError::Unauthorized(format!("invalid token: {e}")))?;
+            }
+            None => verify_local(token, &app.jwt_secret)?,
+        },
         AuthMode::Remote => {
             remote_verify(app, token).await?;
             // Dev: prod-issued users have no row in the local auth.users, so

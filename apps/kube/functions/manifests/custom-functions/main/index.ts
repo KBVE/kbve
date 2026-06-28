@@ -6,6 +6,16 @@ console.log('main function started')
 const JWT_SECRET = Deno.env.get('JWT_SECRET')
 const VERIFY_JWT = Deno.env.get('VERIFY_JWT') === 'true'
 
+// Accept-both for the HS256 -> ES256 migration: ES256 tokens validate against
+// GoTrue's JWKS (SUPABASE_JWKS_URI, else derived from SUPABASE_URL); legacy
+// HS256 tokens against the shared secret. JWKS absent -> HS256 only.
+const JWKS_URI =
+  Deno.env.get('SUPABASE_JWKS_URI') ||
+  (Deno.env.get('SUPABASE_URL')
+    ? `${Deno.env.get('SUPABASE_URL')!.replace(/\/+$/, '')}/auth/v1/.well-known/jwks.json`
+    : undefined)
+const JWKS = JWKS_URI ? jose.createRemoteJWKSet(new URL(JWKS_URI)) : undefined
+
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get('authorization')
   if (!authHeader) {
@@ -19,10 +29,15 @@ function getAuthToken(req: Request) {
 }
 
 async function verifyJWT(jwt: string): Promise<boolean> {
-  const encoder = new TextEncoder()
-  const secretKey = encoder.encode(JWT_SECRET)
   try {
-    await jose.jwtVerify(jwt, secretKey)
+    const { alg } = jose.decodeProtectedHeader(jwt)
+    if (alg === 'HS256') {
+      await jose.jwtVerify(jwt, new TextEncoder().encode(JWT_SECRET))
+    } else if (JWKS) {
+      await jose.jwtVerify(jwt, JWKS)
+    } else {
+      return false
+    }
   } catch (err) {
     console.error(err)
     return false
