@@ -1,19 +1,31 @@
 #![warn(clippy::all)]
 
+#[cfg(feature = "egui")]
 pub mod ironatom;
+#[cfg(feature = "egui")]
 pub mod applicationstate;
+#[cfg(feature = "egui")]
 pub mod widgets;
 pub mod state;
 pub mod supabase;
 
+#[cfg(feature = "tauri")]
+pub mod tauri;
+
+#[cfg(feature = "egui")]
 pub use ironatom::*;
+#[cfg(feature = "egui")]
 pub use applicationstate::*;
+#[cfg(feature = "egui")]
 pub use widgets::*;
 pub use state::*;
 pub use supabase::*;
 
+#[cfg(feature = "tauri")]
+pub use tauri::*;
 
-#[cfg(test)]
+
+#[cfg(all(test, feature = "egui"))]
 mod tests {
     use super::*;
 
