@@ -8,6 +8,8 @@ spec:
         - name: kbve-gateway
           namespace: kbve
     hostnames:
+        - rentearth.com
+        - www.rentearth.com
         - play.rentearth.com
     rules:
         - matches:

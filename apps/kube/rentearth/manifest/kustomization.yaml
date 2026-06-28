@@ -5,7 +5,6 @@ namespace: rentearth
 resources:
     - rentearth-serviceaccount.yaml
     - rentearth-externalsecret.yaml
-    - rentearth-deployment.yaml
     - httproute.yaml
     - axum-rentearth-configmap.yaml
     - axum-rentearth-secrets-sealedsecret.yaml
