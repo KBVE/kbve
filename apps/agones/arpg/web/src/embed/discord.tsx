@@ -5,7 +5,11 @@ import {
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
 import { setArpgAssetBase } from '../game/config';
-import { setExternalOpener } from '../lib/external';
+import {
+	openExternal,
+	installDiscordExternal,
+	encourageHardwareAcceleration,
+} from '@kbve/laser';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
@@ -132,16 +136,6 @@ function errMsg(err: unknown): string {
 
 function root(): HTMLElement | null {
 	return document.getElementById('app');
-}
-
-let activeSdk: DiscordSDK | null = null;
-
-function openExternal(url: string): void {
-	if (activeSdk) {
-		void activeSdk.commands.openExternalLink({ url }).catch(() => {});
-		return;
-	}
-	window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function communityCta(): HTMLElement {
@@ -389,12 +383,11 @@ async function boot(): Promise<void> {
 	setStatus('Entering the dungeon…', 'Connecting to Discord.');
 	const sdk = new DiscordSDK(CLIENT_ID);
 	await step('Discord SDK ready', () => sdk.ready());
-	activeSdk = sdk;
 	// Let in-game UI (boot-screen ads, CTAs) open links through the Activity SDK
 	// instead of a sandbox-blocked new tab.
-	setExternalOpener(openExternal);
+	installDiscordExternal(sdk);
 
-	void sdk.commands.encourageHardwareAcceleration().catch(() => {});
+	encourageHardwareAcceleration(sdk);
 
 	const session = await authorizeAndExchange(CLIENT_ID, sdk);
 

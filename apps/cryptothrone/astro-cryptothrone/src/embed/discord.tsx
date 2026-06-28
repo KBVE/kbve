@@ -8,6 +8,11 @@ import { startPresence } from './discord-presence';
 import { startParticipants } from './discord-participants';
 import { startLayout } from './discord-layout';
 import { KBVE_DISCORD_URL, KBVE_FEEDBACK_URL } from '../lib/kbve-links';
+import {
+	openExternal,
+	installDiscordExternal,
+	encourageHardwareAcceleration,
+} from '@kbve/laser';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
@@ -54,16 +59,6 @@ function errMsg(err: unknown): string {
 
 function root(): HTMLElement | null {
 	return document.getElementById('app');
-}
-
-let activeSdk: DiscordSDK | null = null;
-
-function openExternal(url: string): void {
-	if (activeSdk) {
-		void activeSdk.commands.openExternalLink({ url }).catch(() => {});
-		return;
-	}
-	window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function communityCta(): HTMLElement {
@@ -179,12 +174,9 @@ async function boot(): Promise<void> {
 	setStatus('Linking to Cloud City…', 'Connecting to Discord.');
 	const sdk = new DiscordSDK(CLIENT_ID);
 	await step('Discord SDK ready', () => sdk.ready());
-	activeSdk = sdk;
-	(
-		window as unknown as { __ctOpenExternal?: (url: string) => void }
-	).__ctOpenExternal = openExternal;
+	installDiscordExternal(sdk);
 
-	void sdk.commands.encourageHardwareAcceleration().catch(() => {});
+	encourageHardwareAcceleration(sdk);
 
 	setStatus('Linking to Cloud City…', 'Authorizing your Discord account.');
 	const code = await authorize(CLIENT_ID, sdk);
