@@ -159,8 +159,7 @@ impl AdvisoryLockGuard {
     /// Borrow the held connection as a `&mut PgConnection` (what sqlx's `Executor` wants) for the
     /// explicit unlock query — `PoolConnection` derefs to the inner `PgConnection`.
     fn conn_mut(&mut self) -> &mut sqlx::PgConnection {
-        &mut **self
-            .conn
+        self.conn
             .as_mut()
             .expect("advisory-lock connection already released")
     }

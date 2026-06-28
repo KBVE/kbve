@@ -134,12 +134,3 @@ wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
-
-# -----------------------------------------------------------------------------
-# Profiles
-# -----------------------------------------------------------------------------
-[profile.release]
-opt-level = 'z'
-lto = "fat"
-codegen-units = 1
-debug = false

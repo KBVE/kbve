@@ -61,33 +61,9 @@ exclude = [
 [profile.dev]
 opt-level = 1
 
-[profile.dev.overrides.kilobase]
-panic = 'unwind'
-
-[profile.dev.overrides.isometric-game]
-panic = 'unwind'
-
 [profile.release]
 opt-level = 3
 lto = true
 strip = true
 codegen-units = 1
 panic = 'abort'
-
-[profile.release.overrides.kilobase]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1
-
-[profile.release.overrides.isometric-game]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1
-
-[profile.release.overrides.uniti]
-panic = 'unwind'
-opt-level = 3
-lto = 'fat'
-codegen-units = 1
