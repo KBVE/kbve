@@ -1,7 +1,30 @@
 use crate::db::DbPool;
 use crate::error::RowsError;
 use crate::models::*;
+use tracing::warn;
 use uuid::Uuid;
+
+/// True for Postgres SQLSTATE 42703 (undefined_column). Used to detect the deployment window where
+/// the rows image rolled out ahead of the `gameservername` column migration so the allocation
+/// INSERT can degrade gracefully instead of failing player-facing.
+fn is_undefined_column(e: &sqlx::Error) -> bool {
+    matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42703"))
+}
+
+/// True for Postgres SQLSTATE 42P01 (undefined_table). Lets the per-tenant `reaperconfig` read
+/// degrade to "no override" during the window where the rows image rolled out ahead of the
+/// `reaperconfig` migration, instead of erroring every reaper cycle.
+fn is_undefined_table(e: &sqlx::Error) -> bool {
+    matches!(e, sqlx::Error::Database(db) if db.code().as_deref() == Some("42P01"))
+}
+
+/// Conservative `empty-shutdown-minutes` annotation value used only when the per-map timeout
+/// lookup fails with a *DB error* (not "map not found"). The annotation is consumed UE-side to
+/// self-shutdown, and the reaper's `min_empty_secs` floor does NOT protect it — so collapsing a
+/// transient DB blip to the aggressive `1`-minute default would self-shutdown a populated server
+/// prematurely. A larger fallback only delays UE self-shutdown on a rare blip; the reaper still
+/// reaps at the real per-map timeout (it reads the column live at reap time, not the annotation).
+pub const FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR: i32 = 30;
 
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
@@ -54,8 +77,18 @@ impl<'a> InstanceRepo<'a> {
         number_of_players: i32,
     ) -> Result<(), RowsError> {
         sqlx::query(
+            // GREATEST($3, 0): a bogus negative count must not be stored, nor start the empty
+            // timer and make a live server look reap-eligible. Only an exact 0 (genuine empty)
+            // stamps the marker; a negative is treated as a glitch and leaves it untouched.
             "UPDATE mapinstances
-             SET numberofreportedplayers = $3, lastupdatefromserver = NOW()
+             SET numberofreportedplayers = GREATEST($3, 0),
+                 lastupdatefromserver = NOW(),
+                 lastserveremptydate = CASE
+                     WHEN $3 > 0 THEN NULL
+                     WHEN $3 < 0 THEN lastserveremptydate
+                     WHEN lastserveremptydate IS NULL THEN NOW()
+                     ELSE lastserveremptydate
+                 END
              WHERE customerguid = $1 AND mapinstanceid = $2",
         )
         .bind(customer_guid)
@@ -324,6 +357,109 @@ impl<'a> InstanceRepo<'a> {
         Ok(zones)
     }
 
+    /// Active (`status > 0`) instances — the reaper's candidate set. Returns the slim
+    /// [`ReapRow`] projection (only the columns `reap_decision` reads) rather than a full
+    /// `SELECT mi.*` into `ZoneInstance`, so the scan allocates no per-row `String`s
+    /// (`map_name`/`gameservername`) for up to 500 rows every cycle. Still joins `maps` for the
+    /// per-map `minutestoshutdownafterempty`. Capped at 500; the caller logs when the cap is hit
+    /// (possible under-reaping).
+    ///
+    /// Ordered by each row's *own* reap clock, oldest first: `COALESCE(lastserveremptydate,
+    /// createdate)`. An Empty candidate's clock is its `lastserveremptydate`; a never-reported
+    /// candidate has a NULL empty-date and its clock is `createdate` (boot grace). A plain
+    /// `lastserveremptydate ASC NULLS LAST` would bury every never-reported row *after* all empty
+    /// rows, starving the never-reported backstop out of the cap in a backlog > 500; COALESCE
+    /// interleaves both by reap-worthiness. The partial index `idx_mapinstances_active` still serves
+    /// the `customerguid = $1 AND status > 0` predicate; the ≤500-row sort is in-memory and cheap.
+    /// `mapinstanceid` breaks ties deterministically.
+    ///
+    /// LEFT (not INNER) JOIN on `maps`: an INNER JOIN would silently drop any active instance whose
+    /// `maps` row was deleted (orphan), making it unreapable forever. With LEFT JOIN it stays a
+    /// candidate; `COALESCE(m.minutestoshutdownafterempty, 1)` mirrors the column's own `DEFAULT 1`
+    /// for the orphan (and the `min_empty_secs` floor still applies in `reap_decision`).
+    pub async fn get_active_reap_candidates(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Vec<ReapRow>, RowsError> {
+        let rows = sqlx::query_as::<_, ReapRow>(
+            "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
+                    mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
+                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
+             FROM mapinstances mi
+             LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+             WHERE mi.customerguid = $1 AND mi.status > 0
+             ORDER BY COALESCE(mi.lastserveremptydate, mi.createdate) ASC, mi.mapinstanceid
+             LIMIT 500",
+        )
+        .bind(customer_guid)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows)
+    }
+
+    /// Per-tenant reaper overrides from `ows.reaperconfig`. Returns the all-`None` default when no
+    /// row exists for the tenant (use env defaults) AND when the table doesn't exist yet (migration
+    /// not applied) — so a rows image that ships ahead of the migration cleanly runs on env config
+    /// instead of erroring every cycle. Other DB errors propagate so the caller can fall back loudly.
+    pub async fn get_reaper_config_override(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<crate::config::ReaperConfigOverride, RowsError> {
+        let result = sqlx::query_as::<_, crate::config::ReaperConfigOverride>(
+            "SELECT enabled, neverreported, requireheartbeat,
+                    bootgracesecs, buffersecs, stalesecs, minemptysecs, emptyfreshsecs
+             FROM reaperconfig WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+
+        match result {
+            Ok(ov) => Ok(ov.unwrap_or_default()),
+            Err(e) if is_undefined_table(&e) => Ok(crate::config::ReaperConfigOverride::default()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Whether this tenant has *ever* received a heartbeat (any instance with a non-NULL
+    /// `lastupdatefromserver`). Drives the `require_heartbeat` auto-gate: if no heartbeat has ever
+    /// arrived, UE isn't configured to report, so the never-reported path must stay suppressed.
+    pub async fn tenant_has_observed_heartbeat(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<bool, RowsError> {
+        let seen: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM mapinstances
+             WHERE customerguid = $1 AND lastupdatefromserver IS NOT NULL)",
+        )
+        .bind(customer_guid)
+        .fetch_one(self.0)
+        .await?;
+        Ok(seen)
+    }
+
+    /// Label-independent teardown fallback: resolve the persisted `gameservername` for a batch of
+    /// instances the in-memory `zone_servers` map couldn't (e.g. `reconcile_allocations` couldn't
+    /// rehydrate them because the `zone-instance` label was `0`/missing). One `ANY($2)` query
+    /// instead of a per-instance round-trip, so a post-restart reap cycle doesn't fan out to
+    /// hundreds of sequential lookups. Rows with a NULL `gameservername` are still returned (with
+    /// `None`) so the caller can give them the no-name terminal treatment.
+    pub async fn get_gameserver_names(
+        &self,
+        customer_guid: Uuid,
+        map_instance_ids: &[i32],
+    ) -> Result<Vec<(i32, Option<String>)>, RowsError> {
+        let rows: Vec<(i32, Option<String>)> = sqlx::query_as(
+            "SELECT mapinstanceid, gameservername FROM mapinstances
+             WHERE customerguid = $1 AND mapinstanceid = ANY($2)",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_ids)
+        .fetch_all(self.0)
+        .await?;
+        Ok(rows)
+    }
+
     /// LEFT JOIN + GROUP BY instead of the previous correlated subquery (N+1 fix); returns
     /// `(world_server_id, server_ip, instance_count)` sorted least-loaded first.
     pub async fn get_active_world_servers_by_load(
@@ -393,10 +529,11 @@ impl<'a> InstanceRepo<'a> {
         world_server_id: i32,
         zone_name: &str,
         port: i32,
+        game_server_name: &str,
     ) -> Result<i32, RowsError> {
-        let row: Option<(i32,)> = sqlx::query_as(
-            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
-             SELECT $1, $2, m.mapid, $4, 2
+        let full = sqlx::query_as::<_, (i32,)>(
+            "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status, gameservername)
+             SELECT $1, $2, m.mapid, $4, 2, $5
              FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
              ON CONFLICT DO NOTHING
              RETURNING mapinstanceid",
@@ -405,10 +542,42 @@ impl<'a> InstanceRepo<'a> {
         .bind(world_server_id)
         .bind(zone_name)
         .bind(port)
+        .bind(game_server_name)
         .fetch_optional(self.0)
-        .await?;
+        .await;
 
-        Ok(row.map(|r| r.0).unwrap_or(0))
+        match full {
+            Ok(row) => Ok(row.map(|r| r.0).unwrap_or(0)),
+            // Migration-vs-image ordering guard: migrations apply via the dbmate runner job,
+            // decoupled from the rows image rollout. If a rows image ships before the
+            // `gameservername` column migration lands, the INSERT above fails with SQLSTATE 42703
+            // (undefined_column) and every scale-from-0 allocation would error player-facing.
+            // Degrade to a column-less INSERT so allocation still succeeds; the reaper's DB-name
+            // fallback that reads this column ships gated OFF, so a transiently-absent value is
+            // harmless until the migration runs and later allocations persist it again.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    zone = zone_name,
+                    "mapinstances.gameservername missing (migration not yet applied) — inserting \
+                     without it; apply the dbmate migration to restore restart-safe teardown"
+                );
+                let row: Option<(i32,)> = sqlx::query_as(
+                    "INSERT INTO mapinstances (customerguid, worldserverid, mapid, port, status)
+                     SELECT $1, $2, m.mapid, $4, 2
+                     FROM maps m WHERE m.customerguid = $1 AND m.zonename = $3
+                     ON CONFLICT DO NOTHING
+                     RETURNING mapinstanceid",
+                )
+                .bind(customer_guid)
+                .bind(world_server_id)
+                .bind(zone_name)
+                .bind(port)
+                .fetch_optional(self.0)
+                .await?;
+                Ok(row.map(|r| r.0).unwrap_or(0))
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn shut_down_server_instance(
@@ -424,6 +593,29 @@ impl<'a> InstanceRepo<'a> {
         .execute(self.0)
         .await?;
         Ok(())
+    }
+
+    /// Per-map empty timeout straight from `maps` (not via `mapinstances`). Used to stamp the
+    /// `empty-shutdown-minutes` annotation at allocation time — which is *before* the instance
+    /// row exists for the first (scale-from-0) server of a zone, so a `mapinstances`-joined
+    /// lookup would return nothing and fall back to the default. Returns `Ok(1)` when the zone
+    /// has no `maps` row (mirrors the column's own `DEFAULT 1`); a DB error propagates as `Err`
+    /// so callers can distinguish "map not found" (safe to use 1) from a transient blip (which
+    /// must use a conservative fallback — see `FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR`).
+    pub async fn get_map_minutes_to_shutdown_after_empty(
+        &self,
+        customer_guid: Uuid,
+        zone_name: &str,
+    ) -> Result<i32, RowsError> {
+        let row: Option<(i32,)> = sqlx::query_as(
+            "SELECT minutestoshutdownafterempty FROM maps
+             WHERE customerguid = $1 AND zonename = $2",
+        )
+        .bind(customer_guid)
+        .bind(zone_name)
+        .fetch_optional(self.0)
+        .await?;
+        Ok(row.map(|r| r.0).unwrap_or(1))
     }
 
     pub async fn get_zone_instances_for_zone(
@@ -557,6 +749,44 @@ impl<'a> InstanceRepo<'a> {
         .await?;
 
         Ok(())
+    }
+
+    /// Deactivate the `worldservers` row backing `instance_id`, but ONLY when no *other* active
+    /// (`status > 0`) instance still shares that worldserver. The Agones allocation path
+    /// mints a fresh `worldservers` row per GameServer (`register_world_server` uses a new
+    /// `Uuid::new_v4()` each time, so the `ON CONFLICT (customerguid, zoneserverguid)` never fires),
+    /// i.e. 1:1 — and `reap_one` deletes the GameServer + flips the instance `status=0` but never
+    /// cleared that row, leaking a `serverstatus=1` launcher row forever. This bounds that leak.
+    /// The `NOT EXISTS` guard makes it safe for the 1:N launcher case too (a shared launcher hosting
+    /// other live instances is left alone). Returns the count of worldserver rows deactivated —
+    /// either zero or one — so the caller can log. Call AFTER the instance's own `status=0` flip; the
+    /// `<> $2` guard excludes the just-reaped row regardless, so ordering is not load-bearing.
+    pub async fn deactivate_world_server_if_last_instance(
+        &self,
+        customer_guid: Uuid,
+        instance_id: i32,
+    ) -> Result<u64, RowsError> {
+        let result = sqlx::query(
+            "UPDATE worldservers ws SET serverstatus = 0
+             WHERE ws.customerguid = $1
+               AND ws.worldserverid = (
+                   SELECT worldserverid FROM mapinstances
+                   WHERE mapinstanceid = $2 AND customerguid = $1
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM mapinstances other
+                   WHERE other.customerguid = $1
+                     AND other.worldserverid = ws.worldserverid
+                     AND other.status > 0
+                     AND other.mapinstanceid <> $2
+               )",
+        )
+        .bind(customer_guid)
+        .bind(instance_id)
+        .execute(self.0)
+        .await?;
+
+        Ok(result.rows_affected())
     }
 
     pub async fn delete_all_map_instances(&self, customer_guid: Uuid) -> Result<(), RowsError> {

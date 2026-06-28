@@ -4,6 +4,7 @@ mod deallocate;
 mod error;
 pub mod fleet;
 pub mod pipeline;
+pub mod reaper;
 pub mod sdk;
 pub mod watcher;
 

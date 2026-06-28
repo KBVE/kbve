@@ -208,12 +208,39 @@ pub struct ZoneInstance {
     pub last_update_from_server: Option<NaiveDateTime>,
     #[sqlx(rename = "lastserveremptydate")]
     pub last_server_empty_date: Option<NaiveDateTime>,
+    // `default` so a `SELECT mi.*` against a DB that hasn't run the gameservername migration
+    // yet deserializes the absent column to `None` instead of erroring `ColumnNotFound` — which
+    // would otherwise break every ZoneInstance query (incl. the allocate/join routing hot path)
+    // if the rows image ships before the dbmate deploy runs.
+    #[sqlx(rename = "gameservername", default)]
+    pub game_server_name: Option<String>,
     #[sqlx(rename = "createdate")]
     pub create_date: Option<NaiveDateTime>,
     pub soft_player_cap: i32,
     pub hard_player_cap: i32,
     pub map_name: String,
     pub map_mode: i32,
+    pub minutes_to_shutdown_after_empty: i32,
+}
+
+/// Slim projection for the reaper's per-cycle candidate scan. `reap_decision` reads only these
+/// `Copy` fields, so a narrowed `SELECT` into this struct (vs `SELECT mi.*` into `ZoneInstance`)
+/// avoids the per-row `String` allocations (`map_name`, `game_server_name`) for up to 500 rows
+/// every 60s. GameServer-name resolution for an actual reap target is a separate query
+/// (`get_gameserver_names`), so the scan itself needs no text columns.
+#[derive(Debug, sqlx::FromRow)]
+pub struct ReapRow {
+    #[sqlx(rename = "mapinstanceid")]
+    pub map_instance_id: i32,
+    #[sqlx(rename = "numberofreportedplayers")]
+    pub number_of_reported_players: i32,
+    #[sqlx(rename = "lastupdatefromserver")]
+    pub last_update_from_server: Option<NaiveDateTime>,
+    #[sqlx(rename = "lastserveremptydate")]
+    pub last_server_empty_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "createdate")]
+    pub create_date: Option<NaiveDateTime>,
+    #[sqlx(rename = "minutestoshutdownafterempty")]
     pub minutes_to_shutdown_after_empty: i32,
 }
 
