@@ -102,7 +102,7 @@ import {
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore, packTile, Cat } from '@kbve/laser';
+import { EntityStore, packTile, Cat, laserEvents } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -462,6 +462,10 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	create() {
+		laserEvents.setDebug({
+			historySize: 400,
+			trace: import.meta.env.DEV,
+		});
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);

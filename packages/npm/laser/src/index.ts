@@ -1,5 +1,6 @@
 // Core
 export { LaserEventBus, laserEvents } from './lib/core/events';
+export type { LaserEventRecord } from './lib/core/events';
 export type {
 	LaserGameConfig,
 	GameStatus,
