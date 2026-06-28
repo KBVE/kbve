@@ -129,6 +129,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEWASM",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEWebSurface",
 			"Enabled": true
 		},
