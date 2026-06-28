@@ -3,13 +3,24 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
 > **Depends on:** Phase 1 (`2026-06-24-rows-drain-core.md`) — drain state + routing must exist first.
 > **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md).
-> **Hard build/deploy gate (L1):** Task 3 reuses `is_undefined_table` and the `reaper_config` control-plane pattern, both introduced by the reaper/Core work — **this plan does not compile until those have landed.** Also, a `migrate:down` (drop table) against running code that *lacks* the degrade path would 500 every new join, so the Core degrade must be present before this migration can ever be rolled back. Enforce Phase-1-first as a deploy gate, not just a note.
+> **Hard build/deploy gate (L1):** Task 3 reuses `is_undefined_table` and the `reaper_config` control-plane pattern, both introduced by the reaper/Core work — **this plan does not compile until those have landed.** Verified absent on `dev` at audit time (`grep is_undefined_table apps/rows/src` → 0 hits). Enforce Phase-1-first as a CI precondition, not just a note.
+> **F4 — rollback is code-only; never `migrate:down`.** The `admission_control` table is **inert when unused** (no reader → no effect), so a rollback never needs to drop it. Two hazards make `migrate:down` actively dangerous: (1) dropping the table against running code that *lacks* the Phase-1 degrade path 500s every new join (the L1 case); (2) `DROP TABLE` **silently destroys any active operator freeze** — if an operator set a game-wide freeze during an incident and someone then runs `migrate:down`, the safety control evaporates with no log mid-incident. **Canonical rollback = revert the ROWS image via Argo (code-only); leave the table in place.** Document this in the runbook (Task 6) and treat `migrate:down` as incident-only-with-sign-off.
 
 **Goal:** Add the admission gate hierarchy (global + tenant `accept_new_joins`) and the new-join-vs-travel distinction, so an operator can freeze new joins game-wide or per-tenant (incident/load) while letting existing players keep playing and traveling.
 
 **Architecture:** Reuses the `reaper_config` control-plane pattern (env baseline + per-row DB override; dashboard writes, ROWS reads). New joins honor the gate; **travel bypasses it** (a player already on an instance per `charonmapinstance`). Ships inert: env default `accept_new_joins = true`, no DB rows.
 
 **Tech Stack:** Rust, axum, sqlx (runtime), Postgres, tokio.
+
+> **Audit revision — 2026-06-28 (production audit, findings folded in):**
+> - **F6 (fail direction):** admission-read error on a new join now fails **OPEN**, not closed. Fail-closed against the stressed primary would turn a routine DB blip into a game-wide new-login outage even with no freeze set. A freeze is now best-effort under DB stress until the gate is valkey-cached. *(Operator-signed-off posture for the no-valkey phase.)*
+> - **F1 (travel query):** keys on the already-resolved `CharacterID` and drops the `characters`/`CharName` join — kills the unindexed scan, the name-ambiguity, and the B1 no-op risk in one move.
+> - **F2 (status code):** paused joins return `503 / gRPC unavailable` (retryable), not `409 / already_exists`.
+> - **F3 (migration stamp):** re-stamp ahead of HEAD (`20260628120000`+), not a back-dated `20260624…`.
+> - **F4 (rollback):** code-only via Argo; `migrate:down` destroys active freeze state — incident-only.
+> - **F5 (hot-path cost):** documented — every join pays travel detection, new joins pay a 2nd read.
+> - **L2 (nil-GUID guard):** now a **mandatory** startup assert, not optional.
+> - **Task-4 query test:** now **mandatory** (was "test or manual step").
 
 ## Global Constraints
 
@@ -29,15 +40,17 @@ New joins are blocked if **either** the global sentinel row **or** the tenant ro
 ### Task 1: `admission_control` table — migration, schema, model
 
 **Files:**
-- Create: `packages/data/sql/dbmate/migrations/20260624150000_ows_admission_control.sql`
+- Create: `packages/data/sql/dbmate/migrations/20260628120000_ows_admission_control.sql`
 - Modify: `packages/data/sql/schema/ows/admission_control.sql` (create reference file)
 - Modify: `apps/rows/src/config.rs` (override struct)
+
+> **F3 — migration must out-stamp HEAD.** dbmate applies any not-yet-recorded version regardless of timestamp, but an *out-of-order* stamp (older than already-applied migrations) yields a non-monotonic `schema.sql` mirror diff and breaks any CI that asserts ordering. At time of writing, the newest in-tree migration is `20260626120000`. **Re-stamp this file (and the Phase-1 reaper/Core migrations) to a timestamp newer than the newest migration on `dev` at merge time** — do not ship a back-dated `20260624…` stamp. Filename below uses `20260628120000` as a placeholder; bump it again if `dev` advances before merge.
 
 **Interfaces:**
 - Produces: table `ows.admission_control(customerguid uuid pk, acceptnewjoins boolean null)`;
   `AdmissionOverride { accept_new_joins: Option<bool> }` (sqlx::FromRow).
 
-- [ ] **Step 1: Migration** — `20260624150000_ows_admission_control.sql`:
+- [ ] **Step 1: Migration** — `20260628120000_ows_admission_control.sql` (re-stamp per F3 above):
 
 ```sql
 -- migrate:up
@@ -59,13 +72,16 @@ CREATE POLICY ows_access ON admission_control FOR ALL TO ows USING (true) WITH C
 CREATE POLICY service_role_access ON admission_control FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- migrate:down
+-- WARNING (F4): this DROP destroys any active operator freeze (incl. the global sentinel row).
+-- Rollbacks are code-only (revert the ROWS image); run this down-migration only deliberately,
+-- never as part of an incident rollback, and never against pre-Phase-1 code (would 500 every join).
 SET search_path TO ows;
 DROP TABLE IF EXISTS admission_control;
 ```
 
 > Note: the global sentinel row uses the all-zeros GUID; reads do not rely on RLS for tenant scoping (app-level `WHERE customerguid IN (tenant, sentinel)`), matching the ows convention.
 > 🕳️ **M2 — RLS is decorative here.** `USING (true) WITH CHECK (true)` provides **no row scoping**; isolation rests entirely on the app-level `WHERE customerguid`. `FORCE ROW LEVEL SECURITY` only blocks anon/authenticated/public (the ows convention) — it is *not* a tenant-isolation backstop, so a query bug = cross-tenant read with no DB-level guard.
-> 🕳️ **L2 — nil-GUID collision.** The global sentinel is `Uuid::nil()`. If a tenant were ever configured with the nil GUID, `WHERE customerguid = $1 OR = $2` collapses (tenant == global). Add a cheap assert at config load that the tenant `customer_guid != Uuid::nil()`.
+> ⚠️ **L2 — nil-GUID collision (assert is MANDATORY, not optional).** The global sentinel is `Uuid::nil()`. If a tenant were ever configured with the nil GUID, `WHERE customerguid = $1 OR = $2` collapses (tenant == global) and a tenant freeze silently becomes a global freeze (or vice-versa). This is the **only** guard preventing one tenant from poisoning the global sentinel. Implemented as a hard fail at config load — see Task 2, Step 5.
 
 - [ ] **Step 2: Reference schema** — create `packages/data/sql/schema/ows/admission_control.sql` mirroring the table + RLS block (same shape as `reaper_config.sql`).
 
@@ -126,7 +142,20 @@ pub fn effective_accept_new_joins(
 
 Add the env parse (`env_bool("ROWS_ACCEPT_NEW_JOINS", true)`) and thread `accept_new_joins` onto the config struct + `AppConfig` (mirror how `reaper` is threaded).
 
-- [ ] **Step 4: Run → pass.** **Step 5: Commit** — `feat(rows): accept_new_joins env baseline + gate resolution`.
+- [ ] **Step 4: Run → pass.**
+- [ ] **Step 5 (L2 — mandatory): nil-GUID guard at config load.** Where the tenant `customer_guid` is parsed/loaded, hard-fail if it equals `Uuid::nil()`:
+
+```rust
+assert!(
+    customer_guid != Uuid::nil(),
+    "ROWS customer_guid must not be the all-zeros GUID (collides with the global admission sentinel)"
+);
+// or, preferred for a config loader: return a RowsError/anyhow Err instead of panicking,
+// so a misconfigured deployment fails fast at startup with a clear message rather than mid-request.
+```
+
+  This is the only thing preventing a tenant from aliasing the global sentinel (see L2). It must run at startup, not per-request.
+- [ ] **Step 6: Commit** — `feat(rows): accept_new_joins env baseline + gate resolution + nil-guid guard`.
 
 ---
 
@@ -179,7 +208,12 @@ pub async fn get_admission_overrides(
 **Files:** Modify `apps/rows/src/repo/instances.rs`
 
 **Interfaces:**
-- Produces: `InstanceRepo::is_character_on_active_instance(tenant: Uuid, char_name: &str) -> Result<bool, RowsError>` — true if the character currently sits on a `status>0` instance (⇒ this join is a **travel**, not a new login).
+- Produces: `InstanceRepo::is_character_on_active_instance(tenant: Uuid, character_id: i32) -> Result<bool, RowsError>` — true if the character currently sits on a `status>0` instance (⇒ this join is a **travel**, not a new login).
+
+> **F1 — key on the already-known `CharacterID`, not `CharName`.** The join path has already resolved the full `Character` (via `get_by_name`, `service/instances.rs:24`) *before* this check runs, so `character.characterid` is in scope at the call site. Pass it directly and query `charonmapinstance` by `characterid` — its PK is `(CustomerGUID, CharacterID, MapInstanceID)`, so `(customerguid, characterid)` is an index-seekable PK prefix. This **drops the `characters` join entirely**, which buys three things:
+> 1. **No unindexed scan.** `CharName` has no index (verified — `characters.sql`); a `WHERE ch.charname = $2` join would scan per login on the hot path.
+> 2. **No name ambiguity.** `CharName` is *not* unique (PK is `(CustomerGUID, CharacterID)`); keying on `CharacterID` removes the wrong-row risk.
+> 3. **B1 is structurally gone.** The old `charname`-based query needed a `ch.characterid = com.characterid` correlation; omitting it made the EXISTS a tenant-wide no-op. Keying on `CharacterID` directly removes the correlation — and thus the failure mode — entirely.
 
 - [ ] **Step 1: Implement**:
 
@@ -187,27 +221,24 @@ pub async fn get_admission_overrides(
 pub async fn is_character_on_active_instance(
     &self,
     customer_guid: Uuid,
-    char_name: &str,
+    character_id: i32,
 ) -> Result<bool, RowsError> {
     let seen: bool = sqlx::query_scalar(
         "SELECT EXISTS(
             SELECT 1 FROM charonmapinstance com
-            JOIN characters ch
-              ON ch.customerguid = com.customerguid AND ch.characterid = com.characterid
             JOIN mapinstances mi
               ON mi.customerguid = com.customerguid AND mi.mapinstanceid = com.mapinstanceid
-            WHERE com.customerguid = $1 AND ch.charname = $2 AND mi.status > 0)",
+            WHERE com.customerguid = $1 AND com.characterid = $2 AND mi.status > 0)",
     )
     .bind(customer_guid)
-    .bind(char_name)
+    .bind(character_id)
     .fetch_one(self.0)
     .await?;
     Ok(seen)
 }
 ```
 
-> **CORRECTNESS — load-bearing (was BLOCKER B1).** `charonmapinstance` has **no name column**; it keys on `CharacterID` (PK `CustomerGUID, CharacterID, MapInstanceID`). `CharName` lives only on `characters`. The correlation **`ch.characterid = com.characterid`** is mandatory: without it the EXISTS degenerates to "*any* char is on an instance AND a char named $2 exists in this tenant" → `true` on every populated tenant → the gate silently no-ops (an operator-flipped freeze does nothing). Verified against `char_on_map_instance.sql` + `characters.sql`.
-> **Required query-level test (catches B1):** with character A on a `status>0` instance and a *fresh* character B on none, `is_character_on_active_instance(tenant, "B")` MUST return `false` and `(tenant, "A")` `true`. The pure-resolver test does **not** exercise this — add an sqlx integration test (or a documented manual step that explicitly requires another character online).
+> **Required query-level test (MANDATORY — not a manual-step substitute).** Add an sqlx integration test: character A on a `status>0` instance and a *fresh* character B on none ⇒ `is_character_on_active_instance(tenant, B.characterid)` MUST return `false` and `(tenant, A.characterid)` `true`. This proves the gate actually distinguishes a new join from a travel. The pure-resolver test (Task 2) does **not** exercise it. A manual dev check is *additional*, not a replacement — an automated regression guard is required because a future edit to this query is otherwise undetectable.
 > 🕳️ **Edge:** a player who disconnected but whose `charonmapinstance` row hasn't been swept yet is briefly mis-read as "travel" — bounded by `stale_zone_cleanup`; acceptable for an admission gate (errs toward letting a player in).
 
 - [ ] **Step 2: Build.** **Step 3: Commit** — `feat(rows): is_character_on_active_instance (travel detection)`.
@@ -221,24 +252,42 @@ pub async fn is_character_on_active_instance(
 **Interfaces:**
 - Consumes: `effective_accept_new_joins`, `get_admission_overrides`, `is_character_on_active_instance`.
 - Produces: a **new join** (character not on an active instance) is rejected with
-  `RowsError::Conflict("new joins are paused")` when the effective gate is closed; **travel** is
-  always allowed.
+  `RowsError::Unavailable("new joins are paused")` (HTTP 503 + `Retry-After`, gRPC `unavailable` —
+  a **retryable** code, see F2) when the effective gate is closed; **travel** is always allowed.
+- Requires (F2): add a `RowsError::Unavailable(String)` variant in `apps/rows/src/error.rs`,
+  mapping to `StatusCode::SERVICE_UNAVAILABLE` (with a `Retry-After` header) and
+  `tonic::Status::unavailable(m)`. Do **not** reuse `Conflict` (→ HTTP 409 / gRPC `already_exists`,
+  which clients treat as permanent/non-retryable — see F2).
 
-- [ ] **Step 1: Add the check** at the top of `get_server_to_connect_to`, after `resolve_zone`:
+- [ ] **Step 0 (F2): add the retryable error variant** in `error.rs` — `Unavailable(String)` →
+  `503` (+ `Retry-After: 5`) and `tonic::Status::unavailable`. This is what makes the UE client
+  back off and retry rather than surfacing a hard error.
+
+- [ ] **Step 1: Add the check** at the top of `get_server_to_connect_to`, after `resolve_zone`
+  (the `Character` is already resolved here, so its `characterid` is in scope — F1):
 
 ```rust
     let repo = InstanceRepo(&self.state.db);
-    // Travel detection FAILS OPEN: a read error → treat as travel, never strand a moving player.
-    let is_travel = repo
-        .is_character_on_active_instance(customer_guid, char_name)
-        .await
-        .unwrap_or(true);
+    // Travel detection FAILS OPEN: a read error (or no resolved character) → treat as travel,
+    // never strand a moving player. Key on the already-resolved CharacterID (F1).
+    let is_travel = match character.as_ref() {
+        Some(ch) => repo
+            .is_character_on_active_instance(customer_guid, ch.characterid)
+            .await
+            .unwrap_or(true),
+        None => false, // no character row → cannot be a travel → treat as a new join
+    };
     if !is_travel {
-        // Admission read FAILS CLOSED for a new join (H1): the gate exists to shed load, and load
-        // is exactly when Postgres is stressed and this read may time out — fail-OPEN here would
-        // make the control evaporate under its own use case. On error we reject the NEW join only
-        // (travel/existing players are unaffected). Proper fix: serve the gate from valkey so it
-        // doesn't depend on the stressed primary (deferred — see Holes).
+        // Admission read FAILS OPEN for a new join (F6 — operator sign-off: fail-open).
+        // Rationale: this read hits the PRIMARY, and the gate's whole purpose is to run under load
+        // — exactly when the primary is stressed and this read may time out. Fail-CLOSED here would
+        // make a transient DB blip reject *every* new login game-wide even with NO freeze set, while
+        // the gate's own extra query piles load onto the stressed primary — i.e. the control would
+        // manufacture the outage it exists to prevent. So on a read error we fail OPEN (allow the new
+        // join) and log. Accepted trade-off: during a *real* freeze, a read failure lets a new join
+        // slip through — acceptable because this is a soft load-shed, not a hard security gate. A
+        // hard-pause variant (block travel too) and a valkey-cached read that could safely fail
+        // CLOSED are both deferred (see Holes).
         let open = match repo.get_admission_overrides(customer_guid).await {
             Ok((tenant_ov, global_ov)) => crate::config::effective_accept_new_joins(
                 self.state.config.accept_new_joins,
@@ -246,27 +295,27 @@ pub async fn is_character_on_active_instance(
                 &global_ov,
             ),
             Err(e) => {
-                tracing::warn!(error = %e, "admission read failed — failing CLOSED for this new join");
-                false
+                tracing::warn!(error = %e, "admission read failed — failing OPEN for this new join (F6)");
+                true
             }
         };
         if !open {
-            return Err(crate::error::RowsError::Conflict(
+            return Err(crate::error::RowsError::Unavailable(
                 "new joins are paused (maintenance/load); please retry shortly".into(),
             ));
         }
     }
 ```
 
-> **Split fail-direction (H1):** travel-detection failure → fail-**OPEN** (treat as travel; don't strand a moving player). Admission-read failure on a new join → fail-**CLOSED** (reject), because a load-shed gate must not evaporate when the DB is stressed — the exact condition it's used in. Trade-off: a transient DB blip briefly rejects *new* logins even with no freeze set; that's the conservative choice for a safety control and is removed once the gate is valkey-cached (Holes). **Surface/sign-off this trade-off before shipping.**
+> **Split fail-direction (H1 / F6):** travel-detection failure → fail-**OPEN** (treat as travel; don't strand a moving player). Admission-read failure on a new join → **also fail-OPEN** (allow the join), per operator sign-off (F6). A load-shed gate that fails *closed* against the stressed primary it reads from would convert a partial DB degradation into a total game-wide new-login outage — even with no freeze configured — and add load while doing it. The freeze therefore only takes effect when the read **succeeds** and returns `false`. Revisit once the gate is valkey-cached: a cache that survives a primary blip *can* safely fail-closed (Holes). **This fail-open default is the signed-off posture for the no-valkey phase.**
 >
-> **On reusing `find_existing` (H2 — declined, with reason):** `join_map_by_char_name` is **zone-scoped, not character-scoped** — its `char_name` param is `_char_name` (*unused*, verified at `repo/instances.rs`); it returns *any* ready instance for the zone, not "is THIS character already on an instance." So `find_existing`'s `Found` can't be the travel signal — a brand-new player joining a zone that has a ready instance would read as `Found` and bypass the gate. The character-level `charonmapinstance` lookup is therefore required and distinct. Cost is one cheap `EXISTS` on the new-join path only (travel skips it); the TOCTOU window (a char either has a `charonmapinstance` row or not) is negligible.
+> **On reusing `find_existing` (H2 — declined, with reason):** `join_map_by_char_name` is **zone-scoped, not character-scoped** — its `char_name` param is `_char_name` (*unused*, verified at `repo/instances.rs`); it returns *any* ready instance for the zone, not "is THIS character already on an instance." So `find_existing`'s `Found` can't be the travel signal — a brand-new player joining a zone that has a ready instance would read as `Found` and bypass the gate. The character-level `charonmapinstance` lookup is therefore required and distinct. **Cost accounting (F5):** the travel-detection `EXISTS` runs on **every** join (you must classify the join before you can skip the gate) — a cheap PK-prefix lookup after F1. The admission read (`get_admission_overrides`) runs **only** on new joins (travel short-circuits before it). So: +1 query per travel, +2 per new join. The TOCTOU window (a char either has a `charonmapinstance` row or not) is negligible.
 >
 > **Trust boundary (M1):** the gate's bypass-resistance assumes a caller can't claim an arbitrary on-instance `char_name`. For `AuthIdentity::Player`, `verify_character_owner` runs first (player-only), so it holds. `AuthIdentity::Service` callers skip ownership and are trusted server-to-server. Document this; if untrusted non-player callers ever reach this path, verify ownership for them too.
 
-- [ ] **Step 2: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail -15` → clean/pass.
-- [ ] **Step 3: Manual verification** (dev) — **must have at least one OTHER character online** (else B1's missing correlation can't surface and an empty tenant falsely passes): set `admission_control` tenant row `acceptnewjoins=false`; a **fresh** character (not on any instance, with another character A online) gets the paused error; character A (already on an instance = travel) connects fine; clear the row → normal. If the fresh character is *not* rejected while others are online, the travel query is mis-correlated (B1).
-- [ ] **Step 4: Commit** — `feat(rows): enforce accept_new_joins gate on new joins, allow travel`.
+- [ ] **Step 2: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail -15` → clean/pass. The mandatory Task-4 query-level test must be green here.
+- [ ] **Step 3: Manual verification** (dev): set `admission_control` tenant row `acceptnewjoins=false`; a **fresh** character (not on any instance) gets the `503 / unavailable` paused error; a character already on a `status>0` instance (= travel) connects fine; clear the row → both normal. (Verifies the new-join-vs-travel split end-to-end; the automated Task-4 test is the actual regression guard.)
+- [ ] **Step 4: Commit** — `feat(rows): enforce accept_new_joins gate on new joins (fail-open), allow travel`.
 
 ---
 
@@ -274,7 +323,13 @@ pub async fn is_character_on_active_instance(
 
 **Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
 
-- [ ] Document: the global freeze (sentinel-GUID row), the tenant freeze, env baseline `ROWS_ACCEPT_NEW_JOINS`, the fail-open semantics, and the SQL to flip a gate:
+- [ ] Document, at minimum:
+  - The global freeze (sentinel-GUID row) and the tenant freeze, plus the SQL below to flip each.
+  - Env baseline `ROWS_ACCEPT_NEW_JOINS` (default `true`).
+  - **Fail-open semantics (F6):** both travel detection and the admission read fail OPEN on DB error — a set freeze is **best-effort during DB stress** and may let a new join through if the read fails. Operators must not treat the freeze as a hard guarantee; it is a load-shed/maintenance control.
+  - **Client behavior (F2):** a blocked new join returns `503 Service Unavailable` (HTTP) / `unavailable` (gRPC) with `Retry-After` — a retryable signal, not a hard error.
+  - **Rollback (F4): code-only — revert the ROWS image via Argo; never run `migrate:down`.** Dropping the table destroys any active freeze and (against pre-Phase-1 code) 500s every join. The table is inert when unused, so there is never a reason to drop it during a rollback.
+  - SQL to flip a gate:
 
 ```sql
 SET search_path TO ows;
@@ -294,9 +349,11 @@ DELETE FROM admission_control WHERE customerguid = '00000000-0000-0000-0000-0000
 
 - 🕳️ **Cluster/node scope** — no ROWS-side capacity signal; needs a controller marking clusters/nodes routing-ineligible. Only global + tenant enforced now.
 - 🕳️ **Hard pause (block travel too)** — current model blocks only new joins; a `pause_travel` flag for true emergencies is a one-column add later.
-- ✅ **Travel-detection query** — corrected (B1): correlate `com.characterid = ch.characterid`, filter `ch.charname`. No longer a hole; needs the query-level test.
-- 🕳️ **Valkey-cache the admission gate (H1 follow-up)** — once the gate is served from valkey, the admission read no longer depends on the stressed primary, so fail-CLOSED can relax (cache survives a DB blip). Until then, fail-closed-on-error is the signed-off conservative default.
-- 🕳️ **Hot-path cost** — gate read is a DB hit per *new* join (not travel). Fine at low scale; valkey-cache it with the occupancy layer (reaper v2 / valkey ticket).
+- ✅ **Travel-detection query** — corrected and simplified (F1): key directly on the already-resolved `CharacterID`, drop the `characters`/`CharName` join entirely. B1 (the missing-correlation no-op) is now structurally impossible. Still needs the mandatory query-level test (Task 4).
+- 🕳️ **Valkey-cache the admission gate (F6 follow-up)** — the current phase fails **OPEN** on admission-read error (signed off) precisely because the read hits the stressed primary; a DB blip must not reject all new logins. Once the gate is served from valkey (survives a primary blip), the fail direction *can* be revisited (a cache-backed read could safely fail-closed for a real freeze). Until then, **fail-open is the deliberate posture**, and a set freeze is best-effort during DB stress.
+- 🕳️ **Hard pause that survives DB stress** — because the gate fails open, a freeze is not guaranteed to hold while the primary is degraded. If a *hard* guarantee is ever needed (true emergency), pair the valkey-cached read with the `pause_travel` flag below.
+- 🕳️ **Hot-path cost (F5)** — every join pays one travel-detection `EXISTS`; new joins pay a second query (admission read). Both hit the primary. Cheap at low scale (PK-prefix lookups after F1); valkey-cache both with the occupancy layer (reaper v2 / valkey ticket) before high login concurrency (patch-day reconnect storms).
+- 🕳️ **Client retry contract (F2)** — paused joins now return `503 / gRPC unavailable` (retryable). Confirm the UE client actually backs off and retries on this code rather than surfacing a hard error to the player; if it does not, the runbook's "retry shortly" promise is hollow.
 - 🕳️ **M1 trust boundary** — if untrusted non-player identities ever reach the join path, verify character ownership for them too (today only `Player` is checked; `Service` is trusted).
 - 🕳️ **Dashboard write contract** — ROWS only reads the table; the dashboard UI that writes it is separate.
 
