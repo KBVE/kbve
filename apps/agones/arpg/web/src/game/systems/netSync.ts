@@ -49,6 +49,12 @@ export function applyEntitySync<R>(
 	for (const e of entities) {
 		seen.add(e.eid);
 		const cat = resolve.cat(e.kind);
+		if (store.has(e.eid) && store.kind(e.eid) !== e.kind) {
+			const stale = store.refs(e.eid);
+			if (stale !== undefined) bridge.remove(stale, e.eid);
+			store.despawn(e.eid);
+			if (e.eid === state.myEid) state.myEid = -1;
+		}
 		if (!store.has(e.eid)) {
 			const label = resolve.label(e, cat);
 			const refs = bridge.create(e, label);
@@ -117,6 +123,16 @@ export function applyEntitySync<R>(
 				maxHp: e.max_hp,
 				effects: e.effects,
 			});
+			if (
+				state.myEid < 0 &&
+				cat === CAT_PLAYER &&
+				e.owner === state.mySlot
+			) {
+				state.myEid = e.eid;
+				if (refs) bridge.follow(refs);
+				state.predicted = { x: e.tile.x, y: e.tile.y };
+				state.predictSeeded = true;
+			}
 		}
 	}
 

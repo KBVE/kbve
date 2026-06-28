@@ -169,6 +169,43 @@ describe('applyEntitySync env-change signal', () => {
 	});
 });
 
+describe('applyEntitySync eid recycling (reconnect / space return)', () => {
+	it('resprites an eid that returns as a different kind', () => {
+		const store = fakeStore();
+		const br = bridge();
+		const created: number[] = [];
+		const removed: number[] = [];
+		br.create = (e) => {
+			created.push(e.eid);
+			return { id: e.eid };
+		};
+		br.remove = (_r, id) => {
+			removed.push(id);
+		};
+
+		applyEntitySync([delta(8, 3, 5, 5)], store, br, resolvers, state());
+		expect(store.kind(8)).toBe(3);
+
+		applyEntitySync([delta(8, 1, 6, 6)], store, br, resolvers, state());
+		expect(removed).toContain(8);
+		expect(store.kind(8)).toBe(1);
+		expect(created.filter((e) => e === 8).length).toBe(2);
+	});
+
+	it('reclaims myEid for a pre-existing player entity on reconnect', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 0;
+
+		applyEntitySync([delta(1, 1, 4, 4)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+
+		s.myEid = -1;
+		applyEntitySync([delta(1, 1, 4, 4)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+	});
+});
+
 describe('applyEntitySync effects passthrough', () => {
 	it('stores effects on spawn and replaces them on update', () => {
 		const store = fakeStore();
