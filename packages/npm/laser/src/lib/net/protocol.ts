@@ -30,9 +30,47 @@ export const EPHEMERAL_ITEM_PLACED = 14;
 export const EPHEMERAL_CORPSE = 16;
 export const EPHEMERAL_PET_BATTLE_LOG = 18;
 
-/** Result of a simulated debug pet battle: a turn log plus the outcome string. */
-export interface PetBattleLog {
-	lines: string[];
+// Pet battle replay event kinds (the `kind` byte on PetBattleWireEvent). Must match
+// proto.rs PB_* constants.
+export const PB_USED = 0;
+export const PB_DAMAGE = 1;
+export const PB_MISS = 2;
+export const PB_FAINT = 3;
+export const PB_SWAP = 4;
+export const PB_STATUS = 5;
+export const PB_STATUS_DMG = 6;
+export const PB_HEAL = 7;
+export const PB_STAT = 8;
+export const PB_NOPP = 9;
+export const PB_PARALYZED = 10;
+export const PB_TURN = 11;
+export const PB_INFO = 12;
+
+/** One pet in a battle replay (active battler + reserves). */
+export interface PetBattler {
+	species_ref: string;
+	nickname: string;
+	level: number;
+	hp: number;
+	max_hp: number;
+}
+
+/** One flattened battle event. `side` is the affected pet (target for damage); `flag`
+ * packs bit0=crit, bits1-2=effectiveness; `hp` is the affected active's remaining HP. */
+export interface PetBattleWireEvent {
+	kind: number;
+	side: number;
+	value: number;
+	hp: number;
+	flag: number;
+	text: string;
+}
+
+/** A simulated battle replay: both teams + the ordered event stream to animate. */
+export interface PetBattleReplay {
+	player: PetBattler[];
+	enemy: PetBattler[];
+	events: PetBattleWireEvent[];
 	outcome: string;
 }
 

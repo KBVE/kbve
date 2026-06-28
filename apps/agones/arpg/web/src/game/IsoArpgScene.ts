@@ -160,7 +160,7 @@ import {
 	emitPlayers,
 	onInventoryIntent,
 	onPetBattleRequest,
-	emitPetBattleLog,
+	emitPetBattleReplay,
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
@@ -1258,8 +1258,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		// Corpse loot panel: forward the server's contents to the React LootPanel.
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
-		// Debug pet-battle simulation result -> the React log panel.
-		client.on('petBattleLog', (log) => emitPetBattleLog(log));
+		// Debug pet-battle simulation replay -> the React battle scene.
+		client.on('petBattleReplay', (replay) => emitPetBattleReplay(replay));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {

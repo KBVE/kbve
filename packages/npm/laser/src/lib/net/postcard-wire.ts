@@ -20,7 +20,9 @@ import type {
 	ItemPlacedEvent,
 	ItemUsedEvent,
 	KindEntry,
-	PetBattleLog,
+	PetBattler,
+	PetBattleReplay,
+	PetBattleWireEvent,
 	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
@@ -337,16 +339,38 @@ export function decodePickup(payload: number[]): PickupEvent {
 	return readPickup(new PostcardReader(Uint8Array.from(payload)));
 }
 
-function readPetBattleLog(r: PostcardReader): PetBattleLog {
-	const lines: string[] = [];
-	for (let n = r.seqLen(); n > 0; n--) lines.push(r.string());
-	const outcome = r.string();
-	return { lines, outcome };
+function readPetBattler(r: PostcardReader): PetBattler {
+	return {
+		species_ref: r.string(),
+		nickname: r.string(),
+		level: r.u32(),
+		hp: r.i32(),
+		max_hp: r.i32(),
+	};
 }
 
-/** Decode an EPHEMERAL_PET_BATTLE_LOG payload. Matches `proto::PetBattleLogEvent`. */
-export function decodePetBattleLog(payload: number[]): PetBattleLog {
-	return readPetBattleLog(new PostcardReader(Uint8Array.from(payload)));
+function readPetBattleEvent(r: PostcardReader): PetBattleWireEvent {
+	return {
+		kind: r.u8(),
+		side: r.u8(),
+		value: r.i32(),
+		hp: r.i32(),
+		flag: r.u8(),
+		text: r.string(),
+	};
+}
+
+/** Decode an EPHEMERAL_PET_BATTLE_LOG payload. Matches `proto::PetBattleReplay`. */
+export function decodePetBattleReplay(payload: number[]): PetBattleReplay {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const player: PetBattler[] = [];
+	for (let n = r.seqLen(); n > 0; n--) player.push(readPetBattler(r));
+	const enemy: PetBattler[] = [];
+	for (let n = r.seqLen(); n > 0; n--) enemy.push(readPetBattler(r));
+	const events: PetBattleWireEvent[] = [];
+	for (let n = r.seqLen(); n > 0; n--) events.push(readPetBattleEvent(r));
+	const outcome = r.string();
+	return { player, enemy, events, outcome };
 }
 
 /** Decode an EPHEMERAL_CORPSE payload (raw postcard). Field order matches
