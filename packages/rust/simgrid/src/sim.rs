@@ -174,6 +174,12 @@ pub struct PendingPilotOps(pub Vec<(proto::PlayerSlot, PilotOp)>);
 #[derive(Resource, Default)]
 pub struct PendingPetBattles(pub Vec<proto::PlayerSlot>);
 
+/// Player actions committed for an in-progress interactive pet battle this frame:
+/// `(slot, action, arg)` where `action` is a `proto::PET_ACT_*` code. Drained by the
+/// game-server `apply_pet_turns` system alongside the live `BattleState`.
+#[derive(Resource, Default)]
+pub struct PendingPetTurns(pub Vec<(proto::PlayerSlot, u8, u8)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -185,6 +191,7 @@ pub struct DeployQueues<'w> {
     corpse_ops: ResMut<'w, PendingCorpseOps>,
     pilot_ops: ResMut<'w, PendingPilotOps>,
     pet_battles: ResMut<'w, PendingPetBattles>,
+    pet_turns: ResMut<'w, PendingPetTurns>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1399,6 +1406,7 @@ pub fn build_app(
         .insert_resource(PendingItems::default())
         .insert_resource(crate::pets::PendingPets::default())
         .insert_resource(PendingPetBattles::default())
+        .insert_resource(PendingPetTurns::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1923,6 +1931,7 @@ fn drain_inputs(
                     blackjack_inputs.0.push((slot, BjInput::Insure { amount }))
                 }
                 Input::SimPetBattle => deploy.pet_battles.0.push(slot),
+                Input::PetTurn { action, arg } => deploy.pet_turns.0.push((slot, action, arg)),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2138,7 +2147,8 @@ fn drain_inputs(
                 | Input::PlaceBet { .. }
                 | Input::BjAction { .. }
                 | Input::Insure { .. }
-                | Input::SimPetBattle => {}
+                | Input::SimPetBattle
+                | Input::PetTurn { .. } => {}
             }
         }
     }
