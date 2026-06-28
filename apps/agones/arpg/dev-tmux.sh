@@ -28,8 +28,34 @@ if ! command -v tmux >/dev/null 2>&1; then
     exit 1
 fi
 
+free_port() {
+    local port="$1"
+    local pids
+    pids="$(lsof -ti "tcp:$port" 2>/dev/null || true)"
+    if [[ -n "$pids" ]]; then
+        echo "  freeing :$port ($pids)"
+        kill $pids 2>/dev/null || true
+        sleep 1
+        pids="$(lsof -ti "tcp:$port" 2>/dev/null || true)"
+        [[ -n "$pids" ]] && kill -9 $pids 2>/dev/null || true
+    fi
+}
+
 if [[ "${1:-}" == "kill" || "${1:-}" == "down" ]]; then
-    tmux kill-session -t "$SESSION" 2>/dev/null && echo "killed '$SESSION'." || echo "no '$SESSION' session."
+    if tmux has-session -t "$SESSION" 2>/dev/null; then
+        echo "stopping '$SESSION' panes..."
+        # Interrupt each watcher (cargo-watch, vite, tsc) so they clean up + free ports.
+        while read -r pane; do
+            [[ -n "$pane" ]] && tmux send-keys -t "$pane" C-c 2>/dev/null || true
+        done < <(tmux list-panes -s -t "$SESSION" -F '#{pane_id}' 2>/dev/null)
+        sleep 2
+        tmux kill-session -t "$SESSION" 2>/dev/null && echo "killed '$SESSION'." || echo "no '$SESSION' session."
+    else
+        echo "no '$SESSION' session."
+    fi
+    # Reap stragglers still holding the dev ports.
+    free_port 7979
+    free_port 5402
     exit 0
 fi
 
