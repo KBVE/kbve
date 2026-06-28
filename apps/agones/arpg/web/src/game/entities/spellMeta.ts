@@ -19,6 +19,9 @@ export interface SpellMeta {
 	manaCost: number;
 	cooldownMs: number;
 	range: number;
+	radius: number;
+	durationMs: number;
+	target: string;
 	power: number;
 	rarity: string;
 }
@@ -46,6 +49,9 @@ function buildSpellMeta(): Map<string, SpellMeta> {
 			manaCost: sp.manaCost ?? 0,
 			cooldownMs: sp.cooldownMs ?? 0,
 			range: sp.range ?? 0,
+			radius: sp.radius ?? 0,
+			durationMs: sp.durationMs ?? 0,
+			target: strip(sp.target, 'SPELL_TARGET_'),
 			power: sp.power ?? 0,
 			rarity: strip(sp.rarity, 'SPELL_RARITY_'),
 		});
