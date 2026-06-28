@@ -16,6 +16,7 @@ interface CursorSpec {
 }
 
 const ART = 72; // glove sheets are 72x72; hotspots are in that space.
+const CURSOR_SCALE = 0.4; // shrink 72px glove art to ~29px on-screen cursor size.
 
 // Hotspots are the click-point inside the 72x72 glove art; tune per asset.
 const CURSORS: Record<CursorState, CursorSpec> = {
@@ -81,7 +82,7 @@ export class CursorController {
 	private tick(): void {
 		const p = this.scene.input.activePointer;
 		this.sprite.setPosition(p.worldX, p.worldY);
-		this.sprite.setScale(1 / this.scene.cameras.main.zoom);
+		this.sprite.setScale(CURSOR_SCALE / this.scene.cameras.main.zoom);
 	}
 
 	set(state: CursorState): void {

@@ -581,11 +581,55 @@ pub struct PetRosterSync {
     pub active: Option<u32>,
 }
 
-/// Result of a simulated debug battle: a human-readable turn log plus the outcome
-/// string (`"PlayerWon"` / `"PlayerLost"` / `"Fled"`). Mirrors TS `PetBattleLog`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PetBattleLogEvent {
-    pub lines: Vec<String>,
+// Pet battle replay event kinds (the `kind` byte on PetBattleWireEvent). The TS
+// client mirror must match.
+pub const PB_USED: u8 = 0;
+pub const PB_DAMAGE: u8 = 1;
+pub const PB_MISS: u8 = 2;
+pub const PB_FAINT: u8 = 3;
+pub const PB_SWAP: u8 = 4;
+pub const PB_STATUS: u8 = 5;
+pub const PB_STATUS_DMG: u8 = 6;
+pub const PB_HEAL: u8 = 7;
+pub const PB_STAT: u8 = 8;
+pub const PB_NOPP: u8 = 9;
+pub const PB_PARALYZED: u8 = 10;
+pub const PB_TURN: u8 = 11;
+pub const PB_INFO: u8 = 12;
+
+/// One pet in a battle replay — the active battler and its reserves. Mirrors TS
+/// `PetBattler`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetBattler {
+    pub species_ref: String,
+    pub nickname: String,
+    pub level: u32,
+    pub hp: i32,
+    pub max_hp: i32,
+}
+
+/// One structured battle event, flattened for the wire. `kind` is a `PB_*` constant;
+/// `side` is the AFFECTED pet's side (0 player, 1 enemy — the target for damage);
+/// `value` carries dmg/heal/stages/swap-index; `hp` is the affected active's remaining
+/// HP (for damage/heal/status); `flag` packs bit0=crit, bits1-2=effectiveness; `text`
+/// is the pre-rendered log line. Mirrors TS `PetBattleWireEvent`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetBattleWireEvent {
+    pub kind: u8,
+    pub side: u8,
+    pub value: i32,
+    pub hp: i32,
+    pub flag: u8,
+    pub text: String,
+}
+
+/// A simulated battle replay: both teams and the ordered structured event stream the
+/// client steps through to animate the fight. Mirrors TS `PetBattleReplay`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetBattleReplay {
+    pub player: Vec<PetBattler>,
+    pub enemy: Vec<PetBattler>,
+    pub events: Vec<PetBattleWireEvent>,
     pub outcome: String,
 }
 
@@ -841,6 +885,57 @@ mod tests {
         let back: PickupEvent = decode_inner(&bytes).expect("decode");
         assert_eq!(back.item_ref, "arrow");
         assert_eq!(back.count, 3);
+    }
+
+    // Cross-language wire lock for the pet-battle replay: the TS decodePetBattleReplay
+    // pins this SAME hex (laser postcard-wire.spec.ts). If either side reorders a field
+    // of PetBattler / PetBattleWireEvent / PetBattleReplay, one of the two tests breaks —
+    // catching exactly the server/client proto skew that shows an empty "battle over".
+    #[test]
+    fn pet_battle_replay_fixture_is_stable() {
+        let replay = PetBattleReplay {
+            player: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Rex".into(),
+                level: 5,
+                hp: 40,
+                max_hp: 40,
+            }],
+            enemy: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Foe".into(),
+                level: 5,
+                hp: 40,
+                max_hp: 40,
+            }],
+            events: vec![
+                PetBattleWireEvent {
+                    kind: PB_TURN,
+                    side: 0,
+                    value: 1,
+                    hp: 0,
+                    flag: 0,
+                    text: "T1".into(),
+                },
+                PetBattleWireEvent {
+                    kind: PB_DAMAGE,
+                    side: 1,
+                    value: 12,
+                    hp: 28,
+                    flag: 1,
+                    text: "hit".into(),
+                },
+            ],
+            outcome: "PlayerWon".into(),
+        };
+        let bytes = encode_inner(&replay).expect("encode");
+        assert_eq!(
+            hex(&bytes),
+            "01016d0352657805505001016d03466f65055050020b00020000025431\
+             01011838010368697409506c61796572576f6e"
+        );
+        let back: PetBattleReplay = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, replay);
     }
 
     #[test]

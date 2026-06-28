@@ -102,7 +102,7 @@ import {
 	type InventoryState,
 	type InventoryDeps,
 } from './systems/inventory';
-import { EntityStore, packTile, Cat } from '@kbve/laser';
+import { EntityStore, packTile, Cat, laserEvents } from '@kbve/laser';
 import { makeKindResolvers, type KindResolvers } from './systems/kindResolvers';
 import {
 	applyEntitySync,
@@ -160,7 +160,7 @@ import {
 	emitPlayers,
 	onInventoryIntent,
 	onPetBattleRequest,
-	emitPetBattleLog,
+	emitPetBattleReplay,
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
@@ -216,6 +216,7 @@ import {
 	registerShipAnims,
 	ShipController,
 	SHIP_PHASE_TO_STATE,
+	SHIP_SHEETS,
 	shipFacingFromSub,
 	shipFacing16,
 	shipPhaseFromSub,
@@ -238,6 +239,10 @@ import { resolvePlayerName } from './playerName';
 // the client `envBlocked` set actually blocks. Aligned → red fills nest in cyan
 // outlines. Flip off to drop the overlay.
 const DEBUG_SHIP_COLLISION = false;
+
+const LEAVING_HANDOFF_MS =
+	Math.ceil((SHIP_SHEETS.leaving.frames / SHIP_SHEETS.leaving.fps) * 1000) +
+	60;
 
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
@@ -372,10 +377,9 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
 	private floorFilterScratch: EntityDelta[] = [];
 
-	// We close the WS ON PURPOSE when entering the solo 3D space scene. While this is
-	// set, the connection-health banner stays silent (it's not a real drop); it clears
-	// the moment the return reconnect lands ('connected').
 	private spaceDisconnect = false;
+	private spaceHandoffDone = false;
+	private spaceHandoffTimer?: Phaser.Time.TimerEvent;
 
 	private syncBridge!: SyncBridge<EntityRefs>;
 	private syncResolvers!: SyncResolvers;
@@ -462,6 +466,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	create() {
+		laserEvents.setDebug({ historySize: 400, trace: false });
 		this.cameras.main.setBackgroundColor(COLORS.background);
 		this.kinds = makeKindResolvers(this.kindRegistry);
 		registerClassAnims(this, RANGER_CLASS);
@@ -505,10 +510,12 @@ export class IsoArpgScene extends Phaser.Scene {
 				this.client?.action(ACTION_LOOT, intent.corpse);
 		});
 
-		// Returning from the solo 3D space scene is a RECONNECT, not a server round-trip:
-		// the WS was closed on entry, so reopen it. The server restores us from the
-		// persisted `in_space` flag (re-spawns + auto-boards a fresh ship on rejoin).
-		this.offSpaceExit = onSpaceExit(() => this.client?.connect());
+		this.offSpaceExit = onSpaceExit(() => {
+			this.spaceHandoffTimer?.remove();
+			this.spaceHandoffTimer = undefined;
+			this.spaceHandoffDone = false;
+			this.client?.connect();
+		});
 
 		this.initSpellLoadout();
 
@@ -1259,8 +1266,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		// Corpse loot panel: forward the server's contents to the React LootPanel.
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
-		// Debug pet-battle simulation result -> the React log panel.
-		client.on('petBattleLog', (log) => emitPetBattleLog(log));
+		// Debug pet-battle simulation replay -> the React battle scene.
+		client.on('petBattleReplay', (replay) => emitPetBattleReplay(replay));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
@@ -1425,6 +1432,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			store: this.store,
 			floatState: this.move.floatState,
 			predicted: () => this.move.predicted,
+			aim: () => {
+				const p = this.input.activePointer;
+				return screenToWorldF(p.worldX, p.worldY);
+			},
 			isHostile: (e) => this.isHostileServer(e),
 		};
 	}
@@ -2089,6 +2100,19 @@ export class IsoArpgScene extends Phaser.Scene {
 	 * fly-state motion from the streamed velocity (idle vs move). Authoritative — the
 	 * local debug driver is overridden by whatever the server sends.
 	 */
+	private enterSpaceHandoff(heading: number): void {
+		if (this.spaceHandoffDone) return;
+		this.spaceHandoffDone = true;
+		this.spaceHandoffTimer?.remove();
+		this.spaceHandoffTimer = undefined;
+		this.cameras.main.stopFollow();
+		this.camFollowTarget = undefined;
+		this.camFollowing = 'player';
+		emitSpaceEnter({ heading });
+		this.spaceDisconnect = true;
+		this.client?.close();
+	}
+
 	private reconcileShips(entities: readonly EntityDelta[]): void {
 		for (const e of entities) {
 			if (this.kinds.cat(e.kind) !== Cat.Env) continue;
@@ -2100,32 +2124,24 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (!ctl) continue;
 			ctl.autoAdvance = false;
 			ctl.setFacing(facing);
-			// On the LOCAL pilot's ship, hand off to the 3D space scene the moment the
-			// leaving cutscene finishes — by then the server has taken ship + pilot
-			// off-grid (they vanish from the next snapshot for everyone else).
+			const phase = shipPhaseFromSub(e.sub);
 			if (e.eid === this.pilots.get(this.myEid)) {
 				ctl.onTransition = (from) => {
-					if (from === 'leaving') {
-						// Detach the camera BEFORE the scene pauses + the ship sprite is
-						// destroyed (off-grid). Otherwise, on resume Phaser's camera update
-						// reads the dead sprite and crashes — the per-frame guard can't run
-						// while paused.
-						this.cameras.main.stopFollow();
-						this.camFollowTarget = undefined;
-						this.camFollowing = 'player';
-						emitSpaceEnter({ heading: facing });
-						// Solo space is fully client-side — drop the multiplayer WS so the
-						// server cleans us up (saves state w/ the `in_space` flag set at
-						// launch). We reopen it on return (onSpaceExit). No off-grid juggling.
-						// Mark it intentional so the disconnect banner stays silent.
-						this.spaceDisconnect = true;
-						this.client?.close();
-					}
+					if (from === 'leaving') this.enterSpaceHandoff(facing);
 				};
+				if (
+					SHIP_PHASE_TO_STATE[phase] === 'leaving' &&
+					!this.spaceHandoffDone &&
+					!this.spaceHandoffTimer
+				) {
+					this.spaceHandoffTimer = this.time.delayedCall(
+						LEAVING_HANDOFF_MS,
+						() => this.enterSpaceHandoff(facing),
+					);
+				}
 			} else if (ctl.onTransition) {
 				ctl.onTransition = null;
 			}
-			const phase = shipPhaseFromSub(e.sub);
 			ctl.setState(SHIP_PHASE_TO_STATE[phase] ?? 'off');
 			// Airborne (any phase but OFF) → drop its footprint from prediction so the
 			// local pilot isn't blocked by its own hull (matches the server).

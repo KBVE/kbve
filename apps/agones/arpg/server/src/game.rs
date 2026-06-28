@@ -457,10 +457,10 @@ fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
 /// the strongest damaging move that still has PP (falling back to any PP move).
 fn ai_action(side: &simgrid::BattleSide) -> simgrid::BattleAction {
     let active = side.active();
-    if !active.is_alive() {
-        if let Some(i) = side.team.iter().position(simgrid::Combatant::is_alive) {
-            return simgrid::BattleAction::Swap { to: i };
-        }
+    if !active.is_alive()
+        && let Some(i) = side.team.iter().position(simgrid::Combatant::is_alive)
+    {
+        return simgrid::BattleAction::Swap { to: i };
     }
     let slot = active
         .moves
@@ -515,6 +515,7 @@ fn describe(ev: &simgrid::BattleEvent) -> Option<String> {
             dmg,
             crit,
             effect,
+            ..
         } => format!(
             "{} takes {} damage{}.{}",
             who(foe(*side)),
@@ -528,7 +529,9 @@ fn describe(ev: &simgrid::BattleEvent) -> Option<String> {
         E::StatusApplied { side, status } => {
             format!("{} is afflicted ({:?}).", who(*side), status)
         }
-        E::StatusDamage { side, status, dmg } => {
+        E::StatusDamage {
+            side, status, dmg, ..
+        } => {
             format!("{} is hurt by {:?} for {}.", who(*side), status, dmg)
         }
         E::StatStage { side, stat, stages } => format!(
@@ -539,14 +542,132 @@ fn describe(ev: &simgrid::BattleEvent) -> Option<String> {
             stages.abs(),
         ),
         E::SwapIn { side, to } => format!("{} sends out reserve #{}.", who(*side), to + 1),
-        E::Healed { side, heal } => format!("{} recovers {} HP.", who(*side), heal),
+        E::Healed { side, heal, .. } => format!("{} recovers {} HP.", who(*side), heal),
         E::Faint { side } => format!("{} fainted!", who(*side)),
         E::Outcome(_) => return None,
     })
 }
 
-/// Run the deterministic 5v5 mechamutt mirror battle and format its turn log.
-fn simulate_battle(root: u32) -> simgrid::proto::PetBattleLogEvent {
+fn side_byte(s: simgrid::Side) -> u8 {
+    match s {
+        simgrid::Side::Player => 0,
+        simgrid::Side::Enemy => 1,
+    }
+}
+
+fn effect_bits(e: simgrid::Effectiveness) -> u8 {
+    match e {
+        simgrid::Effectiveness::Normal => 0,
+        simgrid::Effectiveness::Super => 1,
+        simgrid::Effectiveness::NotVery => 2,
+        simgrid::Effectiveness::Immune => 3,
+    }
+}
+
+fn info_event(text: String) -> simgrid::proto::PetBattleWireEvent {
+    simgrid::proto::PetBattleWireEvent {
+        kind: simgrid::proto::PB_INFO,
+        side: 0,
+        value: 0,
+        hp: 0,
+        flag: 0,
+        text,
+    }
+}
+
+/// Map an engine battle event onto the flat wire event the client animates.
+fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattleWireEvent {
+    use simgrid::BattleEvent as E;
+    use simgrid::proto as p;
+    let text = describe(ev).unwrap_or_default();
+    let mut w = p::PetBattleWireEvent {
+        kind: p::PB_INFO,
+        side: 0,
+        value: 0,
+        hp: 0,
+        flag: 0,
+        text,
+    };
+    match ev {
+        E::Used { side, .. } => {
+            w.kind = p::PB_USED;
+            w.side = side_byte(*side);
+        }
+        E::Damage {
+            side,
+            dmg,
+            crit,
+            effect,
+            target_hp,
+        } => {
+            w.kind = p::PB_DAMAGE;
+            w.side = side_byte(foe(*side));
+            w.value = *dmg;
+            w.hp = *target_hp;
+            w.flag = u8::from(*crit) | (effect_bits(*effect) << 1);
+        }
+        E::Miss { side } => {
+            w.kind = p::PB_MISS;
+            w.side = side_byte(*side);
+        }
+        E::NoPp { side } => {
+            w.kind = p::PB_NOPP;
+            w.side = side_byte(*side);
+        }
+        E::Paralyzed { side } => {
+            w.kind = p::PB_PARALYZED;
+            w.side = side_byte(*side);
+        }
+        E::StatusApplied { side, .. } => {
+            w.kind = p::PB_STATUS;
+            w.side = side_byte(*side);
+        }
+        E::StatusDamage { side, dmg, hp, .. } => {
+            w.kind = p::PB_STATUS_DMG;
+            w.side = side_byte(*side);
+            w.value = *dmg;
+            w.hp = *hp;
+        }
+        E::StatStage { side, stages, .. } => {
+            w.kind = p::PB_STAT;
+            w.side = side_byte(*side);
+            w.value = *stages;
+        }
+        E::SwapIn { side, to } => {
+            w.kind = p::PB_SWAP;
+            w.side = side_byte(*side);
+            w.value = *to as i32;
+        }
+        E::Healed { side, heal, hp } => {
+            w.kind = p::PB_HEAL;
+            w.side = side_byte(*side);
+            w.value = *heal;
+            w.hp = *hp;
+        }
+        E::Faint { side } => {
+            w.kind = p::PB_FAINT;
+            w.side = side_byte(*side);
+        }
+        E::Outcome(_) => {}
+    }
+    w
+}
+
+fn battlers(team: &[simgrid::Combatant]) -> Vec<simgrid::proto::PetBattler> {
+    team.iter()
+        .map(|c| simgrid::proto::PetBattler {
+            species_ref: c.species_ref.clone(),
+            nickname: c.nickname.clone(),
+            level: c.level,
+            hp: c.hp,
+            max_hp: c.max_hp,
+        })
+        .collect()
+}
+
+/// Run the deterministic 5v5 mechamutt mirror battle and build a structured replay the
+/// client steps through to animate the fight (teams + flat ordered event stream).
+fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
     let outcome_str = |o: simgrid::BattleOutcome| match o {
         simgrid::BattleOutcome::PlayerWon => "PlayerWon",
         simgrid::BattleOutcome::PlayerLost => "PlayerLost",
@@ -554,26 +675,39 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleLogEvent {
         simgrid::BattleOutcome::Ongoing => "Ongoing",
     };
     let Some(species) = NPC_DB.get(MECHAMUTT_REF) else {
-        return simgrid::proto::PetBattleLogEvent {
-            lines: vec!["mechamutt species missing from npcdb".into()],
+        return simgrid::proto::PetBattleReplay {
+            player: vec![],
+            enemy: vec![],
+            events: vec![info_event("mechamutt species missing from npcdb".into())],
             outcome: "PlayerLost".into(),
         };
     };
     let player = mechamutt_team(species);
     let enemy = mechamutt_team(species);
+    let player_b = battlers(&player);
+    let enemy_b = battlers(&enemy);
     let mut state = simgrid::BattleState::versus(root, player, enemy);
-    let mut lines = vec![format!(
+    let mut events = vec![info_event(format!(
         "A team of {} Mechamutt faces {} Mechamutt (Lv {}) — battle start!",
         PET_TEAM_SIZE, PET_TEAM_SIZE, PET_TEAM_LEVEL
-    )];
+    ))];
     while state.outcome == simgrid::BattleOutcome::Ongoing && state.turn < BATTLE_TURN_CAP {
         let pa = ai_action(&state.player);
         let ea = ai_action(&state.enemy);
-        lines.push(format!("— Turn {} —", state.turn + 1));
+        let turn = state.turn + 1;
+        events.push(simgrid::proto::PetBattleWireEvent {
+            kind: simgrid::proto::PB_TURN,
+            side: 0,
+            value: turn as i32,
+            hp: 0,
+            flag: 0,
+            text: format!("— Turn {turn} —"),
+        });
         for ev in state.resolve_turn(pa, ea) {
-            if let Some(line) = describe(&ev) {
-                lines.push(line);
+            if matches!(ev, simgrid::BattleEvent::Outcome(_)) {
+                continue;
             }
+            events.push(wire_event(&ev));
         }
     }
     // Resolve a winner even if the turn cap is hit (a stalemated mirror) — by pets
@@ -583,16 +717,24 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleLogEvent {
     } else {
         let (ps, es) = (standing(&state.player), standing(&state.enemy));
         let win = ps > es || (ps == es && total_hp(&state.player) >= total_hp(&state.enemy));
-        lines.push(format!("Turn cap reached after {} turns.", state.turn));
+        events.push(info_event(format!(
+            "Turn cap reached after {} turns.",
+            state.turn
+        )));
         if win { "PlayerWon" } else { "PlayerLost" }.to_string()
     };
-    lines.push(format!(
+    events.push(info_event(format!(
         "Result: {} (you have {} pets standing, enemy {}).",
         outcome,
         standing(&state.player),
         standing(&state.enemy),
-    ));
-    simgrid::proto::PetBattleLogEvent { lines, outcome }
+    )));
+    simgrid::proto::PetBattleReplay {
+        player: player_b,
+        enemy: enemy_b,
+        events,
+        outcome,
+    }
 }
 
 /// Drain debug pet-battle requests: simulate a 5v5 mechamutt mirror per requester and
@@ -924,13 +1066,18 @@ mod tests {
     fn pet_battle_sim_is_deterministic_and_decides() {
         let a = super::simulate_battle(0xABCD);
         let b = super::simulate_battle(0xABCD);
-        assert_eq!(a.lines, b.lines, "same seed → identical log");
+        assert_eq!(a, b, "same seed → identical replay");
         assert!(
             a.outcome == "PlayerWon" || a.outcome == "PlayerLost",
             "5v5 mirror resolves to a winner, got {}",
             a.outcome
         );
-        assert!(a.lines.len() > 3, "log has real turns");
+        assert_eq!(a.player.len(), super::PET_TEAM_SIZE);
+        assert!(a.events.len() > 3, "replay has real events");
+        assert!(
+            a.events.iter().any(|e| e.kind == simgrid::proto::PB_DAMAGE),
+            "replay carries damage events for HP animation"
+        );
     }
 
     #[test]

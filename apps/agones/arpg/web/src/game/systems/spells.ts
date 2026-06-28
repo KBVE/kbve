@@ -9,9 +9,10 @@ import type { TileXY } from '../iso';
 
 /**
  * Spell loadout + casting. Loadout is the first 9 spells from spelldb (keys 1-9,
- * bound to the bare number keys); casting auto-acquires the nearest hostile for
- * targeted schools and fires the local VFX. The server is authoritative on
- * whether a cast actually lands.
+ * bound to the bare number keys); targeted schools fire along the cursor aim ray
+ * (the bow projectile model — first hostile in the line, else a clean miss) and
+ * play the local VFX. The server is authoritative on whether a cast lands, and a
+ * fired cast always spends mana even on a miss.
  */
 export interface SpellState {
 	meta: Map<string, SpellMeta>;
@@ -28,8 +29,11 @@ export interface SpellDeps {
 	store: EntityStore<EntityRefs>;
 	floatState: FloatState;
 	predicted(): TileXY;
+	aim(): TileXY;
 	isHostile(serverEid: number): boolean;
 }
+
+const AIM_PERP = 0.75;
 
 /** Load spelldb meta + publish the first-9 loadout to the HUD spell bar. */
 export function initSpellLoadout(st: SpellState): void {
@@ -50,43 +54,63 @@ export function castSpellSlot(
 	if (!ref) return;
 	const meta = st.meta.get(ref);
 	const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
-	const target = targeted ? nearestHostile(deps, meta?.range ?? 0) : null;
+	const from = deps.predicted();
+	const aim = deps.aim();
+	const target = targeted
+		? aimHostile(deps, from, aim, meta?.range ?? 0)
+		: null;
 	deps.client()?.castSpell(ref, target);
-	playSpellVfxAt(st, deps, meta, target);
+	playSpellVfxAt(deps, meta, target, aim);
 }
 
 function playSpellVfxAt(
-	_st: SpellState,
 	deps: SpellDeps,
 	meta: SpellMeta | undefined,
 	target: number | null,
+	aim: TileXY,
 ): void {
 	if (!meta) return;
 	const from = deps.predicted();
-	const to =
-		(target != null ? deps.store.tile(target) : null) ??
-		floatTile(deps.floatState);
+	const targeted = meta.effect === 'damage' || meta.effect === 'status';
+	const to = targeted
+		? ((target != null ? deps.store.tile(target) : null) ?? aim)
+		: floatTile(deps.floatState);
 	playSpellVfx(deps.scene, meta.school, meta.effect, from, to);
 }
 
 /**
- * Nearest hostile NPC to the player, within `range` tiles (0 = unbounded).
- * Returns the server eid or null when none is in range. v1 spell targeting is
- * auto-acquire (no aim ray) — an honest nearest-in-range pick, not a fake hit;
- * the server is authoritative on whether the cast lands.
+ * First hostile NPC along the aim ray from `from` toward `aim`, within `range`
+ * tiles (0 = unbounded). Marches the direction and returns the nearest hostile
+ * whose center sits within AIM_PERP of the centerline — the projectile model
+ * shared with the bow: the spell flies where aimed and hits the first thing in
+ * its path, or null (clean miss). The server is authoritative on the landing.
  */
-export function nearestHostile(deps: SpellDeps, range: number): number | null {
-	const me = deps.predicted();
+export function aimHostile(
+	deps: SpellDeps,
+	from: TileXY,
+	aim: TileXY,
+	range: number,
+): number | null {
+	const adx = aim.x - from.x;
+	const ady = aim.y - from.y;
+	const amag = Math.hypot(adx, ady);
+	if (amag < 1e-3) return null;
+	const nx = adx / amag;
+	const ny = ady / amag;
+	const cap = range > 0 ? range : Infinity;
 	let best: number | null = null;
-	let bestD = Infinity;
+	let bestAlong = Infinity;
 	for (const sid of deps.store.serverIdsWith(Cat.Npc)) {
 		if (!deps.isHostile(sid)) continue;
 		const t = deps.store.tile(sid);
 		if (!t) continue;
-		const d = Math.max(Math.abs(t.x - me.x), Math.abs(t.y - me.y));
-		if (range > 0 && d > range) continue;
-		if (d < bestD) {
-			bestD = d;
+		const dx = t.x - from.x;
+		const dy = t.y - from.y;
+		const along = dx * nx + dy * ny;
+		if (along <= 0 || along > cap) continue;
+		if (Math.abs(dx * ny - dy * nx) > AIM_PERP) continue;
+		if (along < bestAlong) {
+			bestAlong = along;
 			best = sid;
 		}
 	}

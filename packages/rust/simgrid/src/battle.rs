@@ -341,6 +341,8 @@ pub enum BattleEvent {
         dmg: i32,
         crit: bool,
         effect: Effectiveness,
+        /// Target (foe of `side`) remaining HP after the hit — for HP-bar replay.
+        target_hp: i32,
     },
     Miss {
         side: Side,
@@ -359,6 +361,8 @@ pub enum BattleEvent {
         side: Side,
         status: PetStatus,
         dmg: i32,
+        /// `side`'s active remaining HP after the residual tick.
+        hp: i32,
     },
     StatStage {
         side: Side,
@@ -372,6 +376,8 @@ pub enum BattleEvent {
     Healed {
         side: Side,
         heal: i32,
+        /// `side`'s active remaining HP after the heal.
+        hp: i32,
     },
     Faint {
         side: Side,
@@ -619,6 +625,7 @@ impl BattleState {
                 events.push(BattleEvent::Healed {
                     side,
                     heal: c.hp - before,
+                    hp: c.hp,
                 });
             }
             BattleAction::Swap { to } => {
@@ -694,11 +701,13 @@ impl BattleState {
             let def = self.side_mut(foe).active_mut();
             def.hp = (def.hp - dmg).max(0);
             let fainted = def.hp == 0;
+            let target_hp = def.hp;
             events.push(BattleEvent::Damage {
                 side,
                 dmg,
                 crit,
                 effect: effectiveness_bucket(typ),
+                target_hp,
             });
             // Recoil / drain.
             if mv.recoil > 0.0 && dmg > 0 {
@@ -768,7 +777,12 @@ impl BattleState {
             let status = c.status;
             let c = self.side_mut(side).active_mut();
             c.hp = (c.hp - dmg).max(0);
-            events.push(BattleEvent::StatusDamage { side, status, dmg });
+            events.push(BattleEvent::StatusDamage {
+                side,
+                status,
+                dmg,
+                hp: c.hp,
+            });
             if c.hp == 0 {
                 events.push(BattleEvent::Faint { side });
             }

@@ -5,7 +5,9 @@
 
 #include "wasm_runtime_common.h"
 #include "../interpreter/wasm_runtime.h"
+#if WASM_ENABLE_AOT != 0
 #include "../aot/aot_runtime.h"
+#endif
 #include "mem_alloc.h"
 #include "wasm_memory.h"
 

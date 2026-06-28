@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { EntityStore } from '@kbve/laser';
+import { EntityStore, invariant } from '@kbve/laser';
 import { facingDegFromDelta } from '../entities/classes';
 import { floatTile, type FloatState } from './floatMotion';
 import { DungeonField, StairKind } from './dungeon';
@@ -65,9 +65,14 @@ export function tickHud(
 
 	const tile = floatTile(deps.floatState);
 	const maxHp = deps.store.maxHp(deps.myEid);
+	const hp = deps.store.hp(deps.myEid);
+	invariant(!moving || hp > 0, 'player moving with 0 HP — should be dead', {
+		eid: deps.myEid,
+		hp,
+	});
 	emitHud({
 		name: deps.playerName,
-		hp: deps.store.hp(deps.myEid),
+		hp,
 		maxHp,
 		mp: maxHp,
 		maxMp: maxHp,

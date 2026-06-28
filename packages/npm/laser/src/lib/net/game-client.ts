@@ -27,7 +27,7 @@ import {
 	type InventorySync,
 	type ItemPlacedEvent,
 	type ItemUsedEvent,
-	type PetBattleLog,
+	type PetBattleReplay,
 	type PickupEvent,
 	type ProjectileEvent,
 	type ServerEvent,
@@ -48,7 +48,7 @@ import {
 	decodeInventory,
 	decodeItemPlaced,
 	decodeItemUsed,
-	decodePetBattleLog,
+	decodePetBattleReplay,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
@@ -74,7 +74,7 @@ export type GameClientEventMap = {
 	stats: StatsEvent;
 	shop: ShopResult;
 	blackjackState: BlackjackStateView;
-	petBattleLog: PetBattleLog;
+	petBattleReplay: PetBattleReplay;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -206,8 +206,8 @@ export class GameClient {
 			const data = decodeBlackjack(evt.payload);
 			if (data) this.bus.emit('blackjackState', data);
 		} else if (evt.kind === EPHEMERAL_PET_BATTLE_LOG) {
-			const data = decodePetBattleLog(evt.payload);
-			if (data) this.bus.emit('petBattleLog', data);
+			const data = decodePetBattleReplay(evt.payload);
+			if (data) this.bus.emit('petBattleReplay', data);
 		}
 	}
 

@@ -113,6 +113,26 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEQuestDB",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEMapDB",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEHexWorld",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVETinyBVH",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWASM",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEWebSurface",
 			"Enabled": true
 		},

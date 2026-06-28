@@ -169,6 +169,68 @@ describe('applyEntitySync env-change signal', () => {
 	});
 });
 
+describe('applyEntitySync eid recycling (reconnect / space return)', () => {
+	it('resprites an eid that returns as a different kind', () => {
+		const store = fakeStore();
+		const br = bridge();
+		const created: number[] = [];
+		const removed: number[] = [];
+		br.create = (e) => {
+			created.push(e.eid);
+			return { id: e.eid };
+		};
+		br.remove = (_r, id) => {
+			removed.push(id);
+		};
+
+		applyEntitySync([delta(8, 3, 5, 5)], store, br, resolvers, state());
+		expect(store.kind(8)).toBe(3);
+
+		applyEntitySync([delta(8, 1, 6, 6)], store, br, resolvers, state());
+		expect(removed).toContain(8);
+		expect(store.kind(8)).toBe(1);
+		expect(created.filter((e) => e === 8).length).toBe(2);
+	});
+
+	it('reclaims myEid for a pre-existing player entity on reconnect', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 0;
+
+		applyEntitySync([delta(1, 1, 4, 4)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+
+		s.myEid = -1;
+		applyEntitySync([delta(1, 1, 4, 4)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+	});
+
+	it('claims only the player owned by my slot', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 7;
+		const other = { ...delta(2, 1, 3, 3), owner: 4 };
+		const mine = { ...delta(1, 1, 2, 2), owner: 7 };
+		applyEntitySync([other, mine], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+	});
+
+	it('drops myEid when its eid is recycled to a non-player kind', () => {
+		const store = fakeStore();
+		const s = state();
+		s.mySlot = 0;
+
+		applyEntitySync([delta(1, 1, 2, 2)], store, bridge(), resolvers, s);
+		expect(s.myEid).toBe(1);
+
+		const tree = delta(1, 3, 2, 2);
+		const me = { ...delta(5, 1, 4, 4), owner: 0 };
+		applyEntitySync([tree, me], store, bridge(), resolvers, s);
+		expect(store.kind(1)).toBe(3);
+		expect(s.myEid).toBe(5);
+	});
+});
+
 describe('applyEntitySync effects passthrough', () => {
 	it('stores effects on spawn and replaces them on update', () => {
 		const store = fakeStore();

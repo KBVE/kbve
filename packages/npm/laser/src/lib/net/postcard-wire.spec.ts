@@ -7,7 +7,7 @@ import {
 	decodeInventory,
 	decodeItemPlaced,
 	decodeItemUsed,
-	decodePetBattleLog,
+	decodePetBattleReplay,
 	decodePickup,
 	decodeBlackjack,
 	decodeProjectile,
@@ -135,12 +135,36 @@ describe('postcard Ephemeral payload decoder', () => {
 		});
 	});
 
-	// proto.rs pickup_event_fixture_is_stable
-	it('decodes a PetBattleLogEvent (lines seq + outcome string)', () => {
-		// 02(seq) 02"hi" 03"won" 09"PlayerWon"
-		const payload = '0202686903776f6e09506c61796572576f6e';
-		expect(decodePetBattleLog(Array.from(fromHex(payload)))).toEqual({
-			lines: ['hi', 'won'],
+	// Same hex the Rust fixture (proto.rs pet_battle_replay_fixture_is_stable) asserts.
+	// Player+enemy teams, a PB_TURN then a PB_DAMAGE event, outcome PlayerWon. If either
+	// language reorders a field this breaks — the cross-lock that catches proto skew.
+	it('decodes the Rust PetBattleReplay fixture', () => {
+		const payload =
+			'01016d0352657805505001016d03466f6505505002' + // player[1] enemy[1] events seq 2
+			'0b0002000002543101011838010368697409506c61796572576f6e';
+		expect(decodePetBattleReplay(Array.from(fromHex(payload)))).toEqual({
+			player: [
+				{
+					species_ref: 'm',
+					nickname: 'Rex',
+					level: 5,
+					hp: 40,
+					max_hp: 40,
+				},
+			],
+			enemy: [
+				{
+					species_ref: 'm',
+					nickname: 'Foe',
+					level: 5,
+					hp: 40,
+					max_hp: 40,
+				},
+			],
+			events: [
+				{ kind: 11, side: 0, value: 1, hp: 0, flag: 0, text: 'T1' },
+				{ kind: 1, side: 1, value: 12, hp: 28, flag: 1, text: 'hit' },
+			],
 			outcome: 'PlayerWon',
 		});
 	});

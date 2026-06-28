@@ -11,21 +11,10 @@ import { SpaceScene } from './SpaceScene';
 import { RailScene } from './RailScene';
 
 const SCENE_KEY = 'IsoArpgScene';
-// Atmosphere-crossing fade that masks the iso ↔ 3D swap. A slow ease through deep
-// space-dark (not a harsh white cut) reads as punching through the atmosphere.
 const FLASH_MS = 650;
 
-/** Which 3D view is up while in space: pick-a-mode menu, free roam, or the rail mission. */
 type SpaceView = 'menu' | 'free' | 'rail';
 
-/**
- * Owns the iso ↔ 3D handoff. Mounts as a sibling of the Phaser canvas + HUD and stays
- * inert until the scene fires SPACE_ENTER (the leaving cutscene finished). Then it
- * pauses the Phaser scene, flashes white over the seam, and mounts the solo 3D
- * <SpaceScene> on top. Esc in space emits SPACE_EXIT — the scene relays it to the
- * server (`returnSpace`) — and this resumes Phaser + tears the 3D scene down. Keeping
- * the swap here (not in ReactIsoArpgApp) means the parent only adds a one-line mount.
- */
 export function SpaceMode({
 	getGame,
 }: {
@@ -35,8 +24,6 @@ export function SpaceMode({
 	const [view, setView] = useState<SpaceView>('menu');
 	const [heading, setHeading] = useState(0);
 	const [flash, setFlash] = useState(false);
-	// On LAUNCH we overlay a hyperspace warp (the 2D→3D punch); the calm return just
-	// dissolves. `warp` keys the streak/burst overlay on top of the dark fade.
 	const [warp, setWarp] = useState(false);
 	const flashTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
 		undefined,
@@ -52,9 +39,7 @@ export function SpaceMode({
 	useEffect(() => {
 		const off = onSpaceEnter((data) => {
 			setHeading(data.heading);
-			pulseFlash(true); // launching → hyperspace warp
-			// Halt the iso scene's update/render while we're in space; the WebSocket
-			// keeps running on its own callbacks so the connection stays warm.
+			pulseFlash(true);
 			getGame()?.scene.pause(SCENE_KEY);
 			setView('menu');
 			setActive(true);
@@ -66,8 +51,6 @@ export function SpaceMode({
 	}, [getGame]);
 
 	const exit = () => {
-		// Tell the scene to ask the server to re-materialise us (returnSpace), flash
-		// over the seam, resume Phaser, and drop the 3D scene.
 		emitSpaceExit();
 		pulseFlash();
 		getGame()?.scene.resume(SCENE_KEY);
@@ -95,8 +78,6 @@ export function SpaceMode({
 				style={{
 					position: 'absolute',
 					inset: 0,
-					// Deep space-dark gradient (blends into the space scene bg), not a
-					// bright white flash — a soft eased dissolve over the seam.
 					background:
 						'radial-gradient(ellipse at 50% 45%, #1a2550 0%, #070a18 60%, #000 100%)',
 					opacity: flash ? 1 : 0,
@@ -109,11 +90,6 @@ export function SpaceMode({
 	);
 }
 
-/**
- * The 2D→3D launch flourish: a radial light burst + hyperspace speed-lines that rush
- * outward and fade, layered over the dark dissolve. Plays once (mounted only during the
- * launch flash). Cyan/blue to match the space HUD; pure CSS, no per-frame JS.
- */
 function WarpOverlay(): ReactElement {
 	return (
 		<div
@@ -126,7 +102,6 @@ function WarpOverlay(): ReactElement {
 				placeItems: 'center',
 			}}>
 			<style>{WARP_KEYFRAMES}</style>
-			{/* hyperspace speed-lines streaking outward from center */}
 			<div
 				style={{
 					width: '140vmax',
@@ -141,7 +116,6 @@ function WarpOverlay(): ReactElement {
 					animation: `warpStreak ${FLASH_MS}ms cubic-bezier(0.3, 0, 0.2, 1) forwards`,
 				}}
 			/>
-			{/* central light burst — the punch through into space */}
 			<div
 				style={{
 					position: 'absolute',
@@ -170,7 +144,6 @@ const WARP_KEYFRAMES = `
 }
 `;
 
-/** Mode picker shown on entering space: free roam, the rail mission, or back to the planet. */
 function SpaceMenu({
 	onFree,
 	onMission,

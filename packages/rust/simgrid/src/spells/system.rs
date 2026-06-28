@@ -131,29 +131,6 @@ pub fn apply_spells(
                 broadcast_player_stats(bcast, slot, xp, health, stats, mana, kills);
             }
             SpellEffect::Damage => {
-                let Some(target_entity) = target_eid.and_then(|e| index.by_eid.get(&e).copied())
-                else {
-                    reject(bcast, "rejected", "no_target");
-                    continue;
-                };
-                let Ok((_, _, caster_pos, ..)) = q_players.get(player_entity) else {
-                    continue;
-                };
-                let caster_tile = caster_pos.tile;
-                let Ok((mob_pos, ..)) = q_mobs.get(target_entity) else {
-                    reject(bcast, "rejected", "no_target");
-                    continue;
-                };
-                let target_tile = mob_pos.tile;
-                let reach = if range > 0 { range } else { combat::BOW_RANGE };
-                let path =
-                    combat::line_cast(caster_tile, target_tile, reach, |t| !map.is_walkable(t));
-                let impact = path.last().copied().unwrap_or(caster_tile);
-                if impact != target_tile {
-                    reject(bcast, "rejected", "no_los");
-                    continue;
-                }
-
                 if let Ok((_, _, _, _, _, _, _, _, mut mana, _, _)) =
                     q_players.get_mut(player_entity)
                 {
@@ -163,27 +140,47 @@ pub fn apply_spells(
                     cooldowns.0.insert(key, clock.tick + cooldown_ticks(cd_ms));
                 }
 
-                resolve_attack_hit(
-                    player_entity,
-                    target_entity,
-                    slot,
-                    power,
-                    bcast,
-                    registry,
-                    clock,
-                    seed,
-                    config,
-                    equipment,
-                    &mut respawns,
-                    &mut kill_counts,
-                    &mut commands,
-                    &mut q_players,
-                    &mut q_mobs,
-                );
+                let reach = if range > 0 { range } else { combat::BOW_RANGE };
+                let caster_tile = q_players.get(player_entity).ok().map(|q| q.2.tile);
+                let mut hit: Option<Entity> = None;
+                if let (Some(ct), Some(te)) = (
+                    caster_tile,
+                    target_eid.and_then(|e| index.by_eid.get(&e).copied()),
+                ) && let Some(tt) = q_mobs.get(te).ok().map(|q| q.0.tile)
+                {
+                    let path = combat::line_cast(ct, tt, reach, |t| !map.is_walkable(t));
+                    if path.last().copied() == Some(tt) {
+                        hit = Some(te);
+                    }
+                }
 
-                send_spell_result(
-                    bcast, slot, caster, target_eid, &spell_ref, "damage", power, true, "",
-                );
+                if let Some(te) = hit {
+                    resolve_attack_hit(
+                        player_entity,
+                        te,
+                        slot,
+                        power,
+                        bcast,
+                        registry,
+                        clock,
+                        seed,
+                        config,
+                        equipment,
+                        &mut respawns,
+                        &mut kill_counts,
+                        &mut commands,
+                        &mut q_players,
+                        &mut q_mobs,
+                    );
+                    send_spell_result(
+                        bcast, slot, caster, target_eid, &spell_ref, "damage", power, true, "",
+                    );
+                } else {
+                    send_spell_result(
+                        bcast, slot, caster, target_eid, &spell_ref, "miss", 0, true, "",
+                    );
+                }
+
                 if let Ok((_, _, _, stats, _, health, xp, _, mana, _, _)) =
                     q_players.get(player_entity)
                 {

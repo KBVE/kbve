@@ -1,5 +1,13 @@
 // Core
 export { LaserEventBus, laserEvents } from './lib/core/events';
+export type { LaserEventRecord } from './lib/core/events';
+export {
+	invariant,
+	resetInvariants,
+	setInvariantThrottle,
+	INVARIANT_EVENT,
+} from './lib/core/invariant';
+export type { InvariantViolation } from './lib/core/invariant';
 export type {
 	LaserGameConfig,
 	GameStatus,
@@ -141,6 +149,19 @@ export {
 	EPHEMERAL_TRADE,
 	EPHEMERAL_SHOP,
 	EPHEMERAL_BLACKJACK,
+	PB_USED,
+	PB_DAMAGE,
+	PB_MISS,
+	PB_FAINT,
+	PB_SWAP,
+	PB_STATUS,
+	PB_STATUS_DMG,
+	PB_HEAL,
+	PB_STAT,
+	PB_NOPP,
+	PB_PARALYZED,
+	PB_TURN,
+	PB_INFO,
 	KIND_CAT_PLAYER,
 	KIND_CAT_NPC,
 	KIND_CAT_ITEM,
@@ -171,7 +192,9 @@ export type {
 	InventoryItem,
 	InventorySync,
 	CorpseContents,
-	PetBattleLog,
+	PetBattler,
+	PetBattleWireEvent,
+	PetBattleReplay,
 	ShopResult,
 	CombatEvent,
 	ProjectileEvent,
