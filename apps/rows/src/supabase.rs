@@ -173,6 +173,7 @@ mod tests {
             jwt_secret: Some(secret.to_string()),
             url: None,
             service_key_hash: None,
+            verifier: None,
         }
     }
 
