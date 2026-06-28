@@ -384,7 +384,8 @@ impl<'a> InstanceRepo<'a> {
         let rows = sqlx::query_as::<_, ReapRow>(
             "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
                     mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
-                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
+                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty,
+                    mi.drainstate, mi.draindeadline
              FROM mapinstances mi
              LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0

@@ -2,8 +2,8 @@ use crate::repo::InstanceRepo;
 use crate::service::OWSService;
 use sqlx::Connection; // for PgConnection::close() on the detached advisory-lock connection
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::time::Duration;
 use tracing::{error, info, warn};
 
@@ -185,7 +185,9 @@ impl Drop for AdvisoryLockGuard {
             // Reached only when the cycle neither unlocked nor detached — i.e. a panic/early exit
             // while still holding the lock. Close the connection on a detached task so the backend
             // session ends and Postgres releases the session lock.
-            warn!("Reaper: advisory lock released via guard — closing connection (cycle did not unlock cleanly)");
+            warn!(
+                "Reaper: advisory lock released via guard — closing connection (cycle did not unlock cleanly)"
+            );
             tokio::spawn(async move {
                 if let Err(e) = conn.detach().close().await {
                     warn!(error = %e, "Reaper: error closing advisory-lock connection in guard");
@@ -300,12 +302,10 @@ async fn empty_server_reaper(svc: Arc<OWSService>) {
 
         // Release explicitly: a session-level advisory lock outlives a pooled connection's return,
         // so it must be unlocked before the connection goes back to the pool or it would leak.
-        match sqlx::query(
-            "SELECT pg_advisory_unlock(hashtext('rows-empty-reaper'), hashtext($1))",
-        )
-        .bind(guid.to_string())
-        .execute(lock_guard.conn_mut())
-        .await
+        match sqlx::query("SELECT pg_advisory_unlock(hashtext('rows-empty-reaper'), hashtext($1))")
+            .bind(guid.to_string())
+            .execute(lock_guard.conn_mut())
+            .await
         {
             // Lock released cleanly — disarm the guard and let the connection return to the pool.
             Ok(_) => lock_guard.disarm(),
@@ -351,7 +351,10 @@ async fn run_reap_cycle(
         }
     };
     if candidates.len() >= 500 {
-        warn!(count = candidates.len(), "Reaper: candidate query hit the 500-row cap — possible under-reaping");
+        warn!(
+            count = candidates.len(),
+            "Reaper: candidate query hit the 500-row cap — possible under-reaping"
+        );
     }
 
     if svc.state().agones.is_none() {
@@ -367,7 +370,9 @@ async fn run_reap_cycle(
             match repo.tenant_has_observed_heartbeat(guid).await {
                 Ok(true) => true,
                 Ok(false) => {
-                    warn!("Reaper: never_reported suppressed — no heartbeat ever observed for this tenant (UE heartbeat not configured?)");
+                    warn!(
+                        "Reaper: never_reported suppressed — no heartbeat ever observed for this tenant (UE heartbeat not configured?)"
+                    );
                     false
                 }
                 Err(e) => {
@@ -402,6 +407,8 @@ async fn run_reap_cycle(
             reaper.min_empty_secs,
             allow_never_reported,
             reaper.empty_fresh_secs,
+            inst.drain_state.is_some(), // NULL = not draining; any stored value (1|2) = draining
+            inst.drain_deadline,
             now,
         ) else {
             if crate::agones::reaper::retained_due_to_stale_heartbeat(
@@ -467,14 +474,22 @@ async fn run_reap_cycle(
                     // deallocate-first: in practice these are legacy rows whose pod is already gone;
                     // a still-live one is flagged for `kubectl` cleanup.
                     match repo.shut_down_server_instance(guid, id).await {
-                        Ok(()) => warn!(instance_id = id, ?reason, "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"),
-                        Err(e) => warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance"),
+                        Ok(()) => warn!(
+                            instance_id = id,
+                            ?reason,
+                            "Reaper: no resolvable GameServer name — marked status=0; verify no orphaned pod (manual cleanup)"
+                        ),
+                        Err(e) => {
+                            warn!(error = %e, instance_id = id, "Reaper: failed to set status=0 for unresolvable instance")
+                        }
                     }
                 }
             }
             // A transient DB error must NOT mass-flip the misses to status=0; leave them for
             // the next cycle (still tracked, still status>0).
-            Err(e) => warn!(error = %e, "Reaper: failed to batch-resolve GameServer names — retrying next cycle"),
+            Err(e) => {
+                warn!(error = %e, "Reaper: failed to batch-resolve GameServer names — retrying next cycle")
+            }
         }
     }
 
@@ -528,7 +543,9 @@ async fn reap_one(svc: Arc<OWSService>, guid: uuid::Uuid, target: ReapTarget) {
             {
                 Ok(n) if n > 0 => info!(instance_id, "Reaper: deactivated now-empty worldserver"),
                 Ok(_) => {}
-                Err(e) => warn!(error = %e, instance_id, "Reaper: failed to deactivate worldserver (non-fatal)"),
+                Err(e) => {
+                    warn!(error = %e, instance_id, "Reaper: failed to deactivate worldserver (non-fatal)")
+                }
             }
         }
         Err(e) => {
