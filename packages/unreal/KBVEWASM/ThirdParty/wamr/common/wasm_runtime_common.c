@@ -38,7 +38,7 @@
 #include "../compilation/aot_llvm.h"
 #endif
 #include "../common/wasm_c_api_internal.h"
-#include "../../version.h"
+#include "../version.h"
 
 /**
  * For runtime build, BH_MALLOC/BH_FREE should be defined as
