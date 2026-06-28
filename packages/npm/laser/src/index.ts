@@ -207,6 +207,12 @@ export type {
 	ChatConfig,
 } from './lib/auth/game-auth';
 
+// Ads — framework-agnostic cross-promo model + boot-screen card + rotation pool
+export { AdCard } from './lib/ads/AdCard';
+export type { AdCardProps } from './lib/ads/AdCard';
+export { pickAd, AdRegistry, laserAds } from './lib/ads/registry';
+export type { AdCreative } from './lib/ads/types';
+
 // i18n — framework-agnostic translation store + React provider/hook
 export {
 	I18nStore,

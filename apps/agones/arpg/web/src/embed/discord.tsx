@@ -5,6 +5,7 @@ import {
 } from '@discord/embedded-app-sdk';
 import { mount } from './index';
 import { setArpgAssetBase } from '../game/config';
+import { setExternalOpener } from '../lib/external';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
@@ -389,6 +390,9 @@ async function boot(): Promise<void> {
 	const sdk = new DiscordSDK(CLIENT_ID);
 	await step('Discord SDK ready', () => sdk.ready());
 	activeSdk = sdk;
+	// Let in-game UI (boot-screen ads, CTAs) open links through the Activity SDK
+	// instead of a sandbox-blocked new tab.
+	setExternalOpener(openExternal);
 
 	void sdk.commands.encourageHardwareAcceleration().catch(() => {});
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { onBoot, type BootStatus } from './systems/hud';
 import { arpgAsset } from './config';
 import { authBridge } from '../lib/auth';
+import ArpgChuckAd from './ArpgChuckAd';
 
 // If no boot event arrives for this long while still loading, assume the connect
 // silently wedged (server sim dead, JWT stuck, etc.) and surface an actionable
@@ -264,6 +265,8 @@ export default function ArpgBootOverlay() {
 					})}
 				</div>
 			)}
+
+			{!actionable && <ArpgChuckAd />}
 		</div>
 	);
 }
