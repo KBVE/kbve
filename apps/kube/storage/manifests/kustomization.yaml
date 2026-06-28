@@ -7,6 +7,11 @@ resources:
     - longhorn-gate-deployment.yaml
     - longhorn-gate-service.yaml
     - longhorn-gate-httproute.yaml
+    - snapshot/crd-volumesnapshotclasses.yaml
+    - snapshot/crd-volumesnapshotcontents.yaml
+    - snapshot/crd-volumesnapshots.yaml
+    - snapshot/rbac-snapshot-controller.yaml
+    - snapshot/setup-snapshot-controller.yaml
 
 configMapGenerator:
     - name: longhorn-values
