@@ -58,6 +58,24 @@ struct KBVENPCDB_API FKBVEGenNpcStats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	float EpRegen = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 SpecialAttack = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 SpecialDefense = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Accuracy = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Evasion = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 CritRate = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float CritDamage = 0;
+
 };
 
 USTRUCT(BlueprintType)
@@ -153,6 +171,25 @@ struct KBVENPCDB_API FKBVEGenEquipmentLoadout
 };
 
 USTRUCT(BlueprintType)
+struct KBVENPCDB_API FKBVEGenStatChange
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Stat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Stages = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Target;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float Chance = 0;
+
+};
+
+USTRUCT(BlueprintType)
 struct KBVENPCDB_API FKBVEGenNpcAbility
 {
 	GENERATED_BODY()
@@ -195,6 +232,39 @@ struct KBVENPCDB_API FKBVEGenNpcAbility
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	float Weight = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Category;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Power = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Pp = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 MaxPp = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Priority = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float StatusChance = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float RecoilFraction = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float DrainFraction = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	bool HighCrit = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Target;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	TArray<FKBVEGenStatChange> StatChanges;
 
 };
 
@@ -629,6 +699,78 @@ struct KBVENPCDB_API FKBVEGenSpriteAtlas
 };
 
 USTRUCT(BlueprintType)
+struct KBVENPCDB_API FKBVEGenPetMovepoolEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Level = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString AbilityId;
+
+};
+
+USTRUCT(BlueprintType)
+struct KBVENPCDB_API FKBVEGenPetEvolution
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString EvolvesToRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Level = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString ItemRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Condition;
+
+};
+
+USTRUCT(BlueprintType)
+struct KBVENPCDB_API FKBVEGenPetInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	bool Catchable = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 CaptureRate = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString GrowthRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 BaseXpYield = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 BaseFriendship = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float GenderRatio = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	TArray<FKBVEGenPetMovepoolEntry> Movepool;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	TArray<FString> EggGroups;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	TArray<FKBVEGenPetEvolution> Evolutions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString SecondaryElement;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 BaseStatTotal = 0;
+
+};
+
+USTRUCT(BlueprintType)
 struct KBVENPCDB_API FKBVEGenNpcExtension
 {
 	GENERATED_BODY()
@@ -798,6 +940,9 @@ struct KBVENPCDB_API FKBVEGenNpc
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	FKBVEGenInteractionFlags Interaction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FKBVEGenPetInfo Pet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	TArray<FKBVEGenNpcExtension> Extensions;

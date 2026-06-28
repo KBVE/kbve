@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-06-22T21:31:58.897Z
+ * Generated: 2026-06-28T10:41:44.005Z
  */
 
 import { z } from 'zod';
@@ -145,6 +145,61 @@ export type EquipSlotValue = (typeof EquipSlots)[number];
 
 export const EquipSlotSchema = z.enum(EquipSlots);
 
+export const GrowthRates = [
+	'unspecified',
+	'erratic',
+	'fast',
+	'medium_fast',
+	'medium_slow',
+	'slow',
+	'fluctuating',
+] as const;
+
+export type GrowthRateValue = (typeof GrowthRates)[number];
+
+export const GrowthRateSchema = z.enum(GrowthRates);
+
+export const MoveCategories = [
+	'unspecified',
+	'physical',
+	'special',
+	'status',
+] as const;
+
+export type MoveCategoryValue = (typeof MoveCategories)[number];
+
+export const MoveCategorySchema = z.enum(MoveCategories);
+
+export const MoveTargets = [
+	'unspecified',
+	'enemy',
+	'all_enemies',
+	'self',
+	'ally',
+	'all_allies',
+	'field',
+] as const;
+
+export type MoveTargetValue = (typeof MoveTargets)[number];
+
+export const MoveTargetSchema = z.enum(MoveTargets);
+
+export const StatKinds = [
+	'unspecified',
+	'attack',
+	'defense',
+	'special_attack',
+	'special_defense',
+	'speed',
+	'accuracy',
+	'evasion',
+	'crit_rate',
+] as const;
+
+export type StatKindValue = (typeof StatKinds)[number];
+
+export const StatKindSchema = z.enum(StatKinds);
+
 // SpriteClip
 export const SpriteClipSchema = z.object({
 	anim: z.string(),
@@ -195,10 +250,26 @@ export const NpcStatsSchema = z
 		hp_regen: z.number().nullable().optional(),
 		mp_regen: z.number().nullable().optional(),
 		ep_regen: z.number().nullable().optional(),
+		special_attack: z.number().nullable().optional(),
+		special_defense: z.number().nullable().optional(),
+		accuracy: z.number().nullable().optional(),
+		evasion: z.number().nullable().optional(),
+		crit_rate: z.number().nullable().optional(),
+		crit_damage: z.number().nullable().optional(),
 	})
 	.passthrough();
 
 export type NpcStats = z.infer<typeof NpcStatsSchema>;
+
+// StatChange
+export const StatChangeSchema = z.object({
+	stat: StatKindSchema,
+	stages: z.number(),
+	target: MoveTargetSchema.optional(),
+	chance: z.number().optional(),
+});
+
+export type StatChange = z.infer<typeof StatChangeSchema>;
 
 // NpcAbility
 export const NpcAbilitySchema = z.object({
@@ -215,6 +286,17 @@ export const NpcAbilitySchema = z.object({
 	heal_amount: z.number().optional(),
 	status_effect: z.string().optional(),
 	weight: z.number().optional(),
+	category: MoveCategorySchema.optional(),
+	power: z.number().optional(),
+	pp: z.number().optional(),
+	max_pp: z.number().optional(),
+	priority: z.number().optional(),
+	status_chance: z.number().optional(),
+	recoil_fraction: z.number().optional(),
+	drain_fraction: z.number().optional(),
+	high_crit: z.boolean().optional(),
+	target: MoveTargetSchema.optional(),
+	stat_changes: z.array(StatChangeSchema).optional(),
 });
 
 export type NpcAbility = z.infer<typeof NpcAbilitySchema>;
@@ -445,6 +527,41 @@ export const InteractionFlagsSchema = z
 
 export type InteractionFlags = z.infer<typeof InteractionFlagsSchema>;
 
+// PetMovepoolEntry
+export const PetMovepoolEntrySchema = z.object({
+	level: z.number(),
+	ability_id: z.string(),
+});
+
+export type PetMovepoolEntry = z.infer<typeof PetMovepoolEntrySchema>;
+
+// PetEvolution
+export const PetEvolutionSchema = z.object({
+	evolves_to_ref: z.string(),
+	level: z.number().optional(),
+	item_ref: z.string().optional(),
+	condition: z.string().optional(),
+});
+
+export type PetEvolution = z.infer<typeof PetEvolutionSchema>;
+
+// PetInfo
+export const PetInfoSchema = z.object({
+	catchable: z.boolean(),
+	capture_rate: z.number().optional(),
+	growth_rate: GrowthRateSchema.optional(),
+	base_xp_yield: z.number().optional(),
+	base_friendship: z.number().optional(),
+	gender_ratio: z.number().optional(),
+	movepool: z.array(PetMovepoolEntrySchema).optional(),
+	egg_groups: z.array(z.string()).optional(),
+	evolutions: z.array(PetEvolutionSchema).optional(),
+	secondary_element: ElementSchema.optional(),
+	base_stat_total: z.number().optional(),
+});
+
+export type PetInfo = z.infer<typeof PetInfoSchema>;
+
 // NpcExtension
 export const NpcExtensionSchema = z.object({
 	key: z.string(),
@@ -510,6 +627,7 @@ export const NpcSchema = z.object({
 	party_scaling: PartyScalingSchema.optional(),
 	spatial: SpatialPropertiesSchema.optional(),
 	interaction: InteractionFlagsSchema.optional(),
+	pet: PetInfoSchema.optional(),
 	extensions: z.array(NpcExtensionSchema).optional(),
 	credits: z.string().optional(),
 	drafted: z.boolean().optional(),

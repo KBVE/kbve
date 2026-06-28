@@ -2716,6 +2716,237 @@
       "credits": "KBVE Isometric ambient creature system.\n"
     },
     {
+      "description": "A scrappy salvage-built robot dog with a wagging antenna tail and a bark that crackles with static.\n",
+      "ref": "mechamutt",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N01",
+      "name": "Mechamutt",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "mechanical",
+      "element": "ELEMENT_LIGHTNING",
+      "level": 5,
+      "stats": {
+        "hp": 45,
+        "maxHp": 45,
+        "attack": 9,
+        "defense": 7,
+        "speed": 11,
+        "mp": 20,
+        "maxMp": 20,
+        "specialAttack": 12,
+        "specialDefense": 8,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 5,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "static-bite",
+          "name": "Static Bite",
+          "description": "Chomps down with electrified jaws; may paralyze.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 15,
+          "damage": 15,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true,
+          "statusEffect": "paralyze",
+          "statusChance": 0.2
+        },
+        {
+          "id": "spark-bark",
+          "name": "Spark Bark",
+          "description": "A cone of crackling sound and sparks.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 18,
+          "pp": 20,
+          "maxPp": 20,
+          "mpCost": 5,
+          "hitChance": 1,
+          "statusEffect": "paralyze",
+          "statusChance": 0.3
+        },
+        {
+          "id": "overclock",
+          "name": "Overclock",
+          "description": "Floods the servos with current, spiking speed.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 10,
+          "maxPp": 10,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_SPEED",
+              "stages": 2,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "plate-up",
+          "name": "Plate Up",
+          "description": "Clamps scavenged plating over vital servos.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 15,
+          "maxPp": 15,
+          "healAmount": 8,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_DEFENSE",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_DEFENSE",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 120,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 64,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "baseStatTotal": 92,
+        "eggGroups": [
+          "mineral",
+          "field"
+        ],
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "spark-bark"
+          },
+          {
+            "level": 8,
+            "abilityId": "static-bite"
+          },
+          {
+            "level": 12,
+            "abilityId": "plate-up"
+          },
+          {
+            "level": 16,
+            "abilityId": "overclock"
+          }
+        ],
+        "evolutions": [
+          {
+            "evolvesToRef": "cyber-hound",
+            "level": 18
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Mechamutt lunges with a joyful electric yip — {target} takes {dmg} damage!",
+            "Servos whir as Mechamutt slams into {target} for {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Mechamutt's antenna droops, and it skitters off on clattering paws!"
+          ]
+        },
+        {
+          "action": "wounded",
+          "messages": [
+            "*Sparks leak from Mechamutt's seams, but its tail keeps wagging.*"
+          ]
+        },
+        {
+          "action": "near_death",
+          "messages": [
+            "*Mechamutt's optics flicker red. One more hit and the lights go out.*"
+          ]
+        },
+        {
+          "action": "caught",
+          "messages": [
+            "Mechamutt powers down with a contented chirp — caught!"
+          ]
+        }
+      ],
+      "spatial": {
+        "walkSpeed": 3.2,
+        "runSpeed": 5,
+        "canFly": false,
+        "canSwim": false
+      },
+      "interaction": {
+        "isInteractable": true,
+        "isAttackable": true,
+        "isTargetable": true
+      },
+      "loot": {
+        "entries": [
+          {
+            "itemRef": "scrap-metal",
+            "dropRate": 0.4,
+            "minQuantity": 1,
+            "maxQuantity": 3
+          },
+          {
+            "itemRef": "spare-battery",
+            "dropRate": 0.15,
+            "minQuantity": 1,
+            "maxQuantity": 1
+          }
+        ],
+        "maxDrops": 2,
+        "goldMin": 3,
+        "goldMax": 9,
+        "xpReward": 40
+      },
+      "lore": "Nobody built Mechamutt on purpose. It assembled itself out of a junkyard's worth of broken drones, decided a passing scavenger was its owner, and has followed the scent of fresh scrap ever since. Loyal to a fault, terrified of magnets.\n",
+      "credits": "KBVE original — first catchable pet for the ARPG JRPG battle system.\n"
+    },
+    {
       "description": "Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.\n",
       "ref": "merchant",
       "id": "01KSAVZ000000000000000MRCH",

@@ -133,6 +133,49 @@ enum SpriteFacing {
   SPRITE_FACING_BACK = 3;
 }
 
+// XP curve governing how much experience a pet needs per level
+enum GrowthRate {
+  GROWTH_RATE_UNSPECIFIED = 0;
+  GROWTH_RATE_ERRATIC = 1;
+  GROWTH_RATE_FAST = 2;
+  GROWTH_RATE_MEDIUM_FAST = 3;
+  GROWTH_RATE_MEDIUM_SLOW = 4;
+  GROWTH_RATE_SLOW = 5;
+  GROWTH_RATE_FLUCTUATING = 6;
+}
+
+// JRPG move damage class — drives which attack/defense stat applies
+enum MoveCategory {
+  MOVE_CATEGORY_UNSPECIFIED = 0;
+  MOVE_CATEGORY_PHYSICAL = 1;   // Uses attack vs defense
+  MOVE_CATEGORY_SPECIAL = 2;    // Uses special_attack vs special_defense
+  MOVE_CATEGORY_STATUS = 3;     // No direct damage; status / stat changes only
+}
+
+// Who a move resolves against in a turn-based battle
+enum MoveTarget {
+  MOVE_TARGET_UNSPECIFIED = 0;
+  MOVE_TARGET_ENEMY = 1;
+  MOVE_TARGET_ALL_ENEMIES = 2;
+  MOVE_TARGET_SELF = 3;
+  MOVE_TARGET_ALLY = 4;
+  MOVE_TARGET_ALL_ALLIES = 5;
+  MOVE_TARGET_FIELD = 6;
+}
+
+// Stat a battle modifier targets (buff / debuff stages, -6..+6)
+enum StatKind {
+  STAT_KIND_UNSPECIFIED = 0;
+  STAT_KIND_ATTACK = 1;
+  STAT_KIND_DEFENSE = 2;
+  STAT_KIND_SPECIAL_ATTACK = 3;
+  STAT_KIND_SPECIAL_DEFENSE = 4;
+  STAT_KIND_SPEED = 5;
+  STAT_KIND_ACCURACY = 6;
+  STAT_KIND_EVASION = 7;
+  STAT_KIND_CRIT_RATE = 8;
+}
+
 // =============================================================================
 // Sub-messages
 // =============================================================================
@@ -155,6 +198,13 @@ message NpcStats {
   optional float hp_regen = 14;       // Per-turn or per-second regen
   optional float mp_regen = 15;
   optional float ep_regen = 16;
+  // JRPG split — special attack/defense distinct from physical (Pokemon-style)
+  optional int32 special_attack = 17;
+  optional int32 special_defense = 18;
+  optional int32 accuracy = 19;        // Base hit modifier (100 = neutral)
+  optional int32 evasion = 20;         // Base dodge modifier (100 = neutral)
+  optional int32 crit_rate = 21;       // Base crit chance, in basis points or %
+  optional float crit_damage = 22;     // Crit multiplier (e.g. 1.5 = +50%)
 }
 
 // Elemental affinity with magnitude (for multi-element resistance/weakness)
@@ -226,6 +276,18 @@ message NpcAbility {
   optional int32 heal_amount = 11;
   optional string status_effect = 12; // e.g. "poison", "stun"
   optional float weight = 13;        // Selection probability weight
+  // JRPG turn-based move fields
+  optional MoveCategory category = 14;  // physical / special / status
+  optional int32 power = 15;            // Move base power (preferred over damage for JRPG)
+  optional int32 pp = 16;               // Current power points (uses per battle)
+  optional int32 max_pp = 17;           // Maximum power points
+  optional int32 priority = 18;         // Turn-order bump (-7..+7, higher acts first)
+  optional float status_chance = 19;    // 0.0–1.0 chance to apply status_effect
+  optional float recoil_fraction = 20;  // Self-damage as fraction of dealt damage
+  optional float drain_fraction = 21;   // Heal self as fraction of dealt damage
+  optional bool high_crit = 22;         // Elevated crit stage
+  optional MoveTarget target = 23;      // Resolution target
+  repeated StatChange stat_changes = 24; // Buff/debuff applied on hit
 }
 
 // Intent weight — probability of choosing an ability by tier
@@ -399,6 +461,44 @@ message SpriteAtlas {
   repeated SpriteClip clips = 13;
 }
 
+// A single stat buff/debuff a move applies on hit
+message StatChange {
+  StatKind stat = 1;
+  int32 stages = 2;                  // -6..+6 stage delta
+  optional MoveTarget target = 3;    // Defaults to the move's target
+  optional float chance = 4;         // 0.0–1.0 chance to apply (default 1.0)
+}
+
+// One level-up move a pet learns naturally
+message PetMovepoolEntry {
+  int32 level = 1;                   // Level at which the move is learned
+  string ability_id = 2;             // References an NpcAbility.id on this species
+}
+
+// Evolution branch for a pet species
+message PetEvolution {
+  string evolves_to_ref = 1;         // Target species ref
+  optional int32 level = 2;          // Level-up trigger
+  optional string item_ref = 3;      // Item-use trigger
+  optional string condition = 4;     // Free-form gate (time, friendship, location)
+}
+
+// Catchable-pet metadata — present only on species that can be caught & trained.
+// Absent on regular NPCs; the JRPG battle/capture systems gate on `catchable`.
+message PetInfo {
+  bool catchable = 1;
+  optional int32 capture_rate = 2;       // 0–255, higher = easier to catch
+  optional GrowthRate growth_rate = 3;
+  optional int32 base_xp_yield = 4;      // XP granted to victor on defeat
+  optional int32 base_friendship = 5;    // Starting friendship/loyalty
+  optional float gender_ratio = 6;       // Male fraction 0.0–1.0; <0 = genderless
+  repeated PetMovepoolEntry movepool = 7;
+  repeated string egg_groups = 8;        // Breeding compatibility groups
+  repeated PetEvolution evolutions = 9;
+  optional Element secondary_element = 10; // Dual-typing for matchups
+  optional int32 base_stat_total = 11;   // Sum of base stats (tiering aid)
+}
+
 // Generic extension slot — arbitrary key-value pairs for game-specific data
 message NpcExtension {
   string key = 1;                          // Namespace, e.g. "discordsh.encounter_weight"
@@ -498,6 +598,9 @@ message Npc {
 
   // Interaction flags
   optional InteractionFlags interaction = 48;
+
+  // Pet — catchable/trainable creature metadata for JRPG-style capture & battles
+  optional PetInfo pet = 53;
 
   // Extensions — game-specific key-value pairs for future needs
   repeated NpcExtension extensions = 49;
