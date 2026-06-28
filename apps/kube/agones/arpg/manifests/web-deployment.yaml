@@ -22,7 +22,7 @@ spec:
         spec:
             containers:
                 - name: arpg-web
-                  image: ghcr.io/kbve/arpg-web:0.1.20
+                  image: ghcr.io/kbve/arpg-web:0.1.21
                   imagePullPolicy: IfNotPresent
                   ports:
                       - name: http
