@@ -114,7 +114,7 @@ function castBolt(
 ): void {
 	ensureSpellTextures(scene);
 	const a = worldToScreen(from.x, from.y);
-	a.y -= 24;
+	a.y -= 32; // launch near the caster's body/hands, not the ground tile
 	const b = worldToScreen(to.x, to.y);
 	b.y -= 16;
 	const dist = Math.hypot(b.x - a.x, b.y - a.y);
