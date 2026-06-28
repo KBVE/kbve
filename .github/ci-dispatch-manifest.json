@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.217",
+			"version": "1.0.218",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -83,7 +83,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.19",
+			"version": "0.1.20",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -96,7 +96,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.19",
+			"version": "0.1.20",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",
@@ -841,19 +841,6 @@
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvegameplay.mdx"
 		},
 		{
-			"key": "ue_kbvehexworld",
-			"plugin_name": "KBVEHexWorld",
-			"plugin_path": "packages/unreal/KBVEHexWorld",
-			"supported_platforms": [
-				"Win64",
-				"Linux",
-				"Mac"
-			],
-			"version": "0.1.0",
-			"version_toml": "packages/unreal/KBVEHexWorld/version.toml",
-			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbvehexworld.mdx"
-		},
-		{
 			"key": "ue_kbveitemdb",
 			"plugin_name": "KBVEItemDB",
 			"plugin_path": "packages/unreal/KBVEItemDB",
@@ -1296,12 +1283,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 28,
+		"unreal": 27,
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 0,
 		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 99
+		"total": 98
 	}
 }

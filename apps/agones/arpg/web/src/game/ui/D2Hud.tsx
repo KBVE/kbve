@@ -1,4 +1,10 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import {
+	useEffect,
+	useRef,
+	useState,
+	type ReactElement,
+	type Ref,
+} from 'react';
 import {
 	I18nProvider,
 	useTranslation,
@@ -8,6 +14,9 @@ import {
 	PB_SWAP,
 	PB_HEAL,
 	PB_STATUS_DMG,
+	ELEMENT_NAMES,
+	PB_USED_RANGED,
+	PB_USED_CATEGORY_MASK,
 	PET_ACT_MOVE,
 	PET_ACT_SWAP,
 	PET_ACT_ITEM,
@@ -36,6 +45,7 @@ import {
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
 import type { SpellMeta } from '../entities/spellMeta';
+import { BattleFx, elementStyle } from './battleFx';
 import { HotBar } from './hotbar/HotBar';
 import { registerArpgI18n } from './i18n';
 import { StatOrb, useWavePhase, type OrbStat } from './orbs/StatOrb';
@@ -464,21 +474,87 @@ export function PetBattleScene({
 	const [waiting, setWaiting] = useState(false);
 	const [swapOpen, setSwapOpen] = useState(false);
 
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const fxRef = useRef<BattleFx | null>(null);
+	const pSpriteRef = useRef<HTMLDivElement | null>(null);
+	const eSpriteRef = useRef<HTMLDivElement | null>(null);
+	// A melee/physical move bursts on impact (the damage event), not on cast — stash its
+	// element style here when the "uses move" event fires.
+	const pendingMelee = useRef<{ side: number; style: ReturnType<typeof elementStyle> } | null>(null);
+
+	// Spin up the canvas effects layer for the life of the scene.
+	useEffect(() => {
+		if (!canvasRef.current) return;
+		const fx = new BattleFx(canvasRef.current);
+		fxRef.current = fx;
+		const onResize = () => fx.resize();
+		window.addEventListener('resize', onResize);
+		return () => {
+			window.removeEventListener('resize', onResize);
+			fx.dispose();
+			fxRef.current = null;
+		};
+	}, []);
+
+	// Centre of a side's sprite, in canvas px (for spawning effects there).
+	const sideCenter = (side: number): { x: number; y: number } | null => {
+		const el = side === 0 ? pSpriteRef.current : eSpriteRef.current;
+		const c = canvasRef.current;
+		if (!el || !c) return null;
+		const r = el.getBoundingClientRect();
+		const cr = c.getBoundingClientRect();
+		return { x: r.left + r.width / 2 - cr.left, y: r.top + r.height / 2 - cr.top };
+	};
+
+	// Spawn the elemental VFX for one event: a travelling bolt for ranged moves, a burst on
+	// self for status moves, and an impact burst on the damage of a melee hit.
+	const fireFx = (e: PetBattleWireEvent): void => {
+		const fx = fxRef.current;
+		if (!fx) return;
+		if (e.kind === PB_USED) {
+			const style = elementStyle(ELEMENT_NAMES[e.value] ?? 'none');
+			const target = 1 - e.side;
+			const from = sideCenter(e.side);
+			const to = sideCenter(target);
+			if (!from || !to) return;
+			if ((e.flag & PB_USED_RANGED) !== 0) {
+				fx.bolt(from.x, from.y, to.x, to.y, style, () =>
+					fx.burst(to.x, to.y, style),
+				);
+			} else if ((e.flag & PB_USED_CATEGORY_MASK) === 2) {
+				fx.burst(from.x, from.y, style); // status/buff on self
+			} else {
+				pendingMelee.current = { side: target, style };
+			}
+		} else if (e.kind === PB_DAMAGE) {
+			const pm = pendingMelee.current;
+			if (pm) {
+				const c = sideCenter(pm.side);
+				if (c) fx.burst(c.x, c.y, pm.style, 18);
+				pendingMelee.current = null;
+			}
+		}
+	};
+
 	// A new turn arrived: replay its events from the top (the view's HP carries over from
 	// the previous turn, so bars tween continuously).
 	useEffect(() => {
 		setStep(0);
 		setWaiting(false);
 		setSwapOpen(false);
+		pendingMelee.current = null;
 	}, [state]);
 
-	// Step through the current turn's events on a timer, folding each into the view.
+	// Step through the current turn's events on a timer, folding each into the view and
+	// spawning its canvas effects.
 	useEffect(() => {
 		if (step >= state.events.length) return;
 		const e = state.events[step];
 		setView((v) => applyEvent(v, e, state));
+		fireFx(e);
 		const t = setTimeout(() => setStep((n) => n + 1), STEP_MS);
 		return () => clearTimeout(t);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [step, state]);
 
 	const animating = step < state.events.length;
@@ -515,6 +591,18 @@ export function PetBattleScene({
 				animation: 'arpgSceneFade 160ms ease-out',
 			}}>
 			<style>{BATTLE_FX_CSS}</style>
+			{/* Element VFX layer — bolts + bursts, above the sprites, click-through. */}
+			<canvas
+				ref={canvasRef}
+				style={{
+					position: 'absolute',
+					inset: 0,
+					width: '100%',
+					height: '100%',
+					pointerEvents: 'none',
+					zIndex: 5,
+				}}
+			/>
 			{/* Enemy: top-right */}
 			<div style={{ alignSelf: 'flex-end' }}>
 				<Battler
@@ -523,6 +611,7 @@ export function PetBattleScene({
 					alive={aliveCount(state.enemy)}
 					total={state.enemy.length}
 					fx={fxForSide(view, 1)}
+					spriteRef={eSpriteRef}
 					foe
 				/>
 			</div>
@@ -535,12 +624,15 @@ export function PetBattleScene({
 					alive={aliveCount(state.player)}
 					total={state.player.length}
 					fx={fxForSide(view, 0)}
+					spriteRef={pSpriteRef}
 				/>
 			</div>
 
 			{/* Text box + action menu */}
 			<div
 				style={{
+					position: 'relative',
+					zIndex: 6,
 					pointerEvents: 'auto',
 					border: '2px solid #6ea8ff',
 					borderRadius: 10,
@@ -676,6 +768,7 @@ function Battler({
 	alive,
 	total,
 	fx,
+	spriteRef,
 	foe = false,
 }: {
 	battler: PetBattler | undefined;
@@ -683,6 +776,7 @@ function Battler({
 	alive: number;
 	total: number;
 	fx: BattlerFx;
+	spriteRef?: Ref<HTMLDivElement>;
 	foe?: boolean;
 }) {
 	const [imgBroken, setImgBroken] = useState(false);
@@ -715,6 +809,7 @@ function Battler({
 				gap: 14,
 			}}>
 			<div
+				ref={spriteRef}
 				style={{
 					position: 'relative',
 					width: 96,

@@ -511,7 +511,7 @@ fn effect_tag(e: simgrid::Effectiveness) -> &'static str {
 fn describe(ev: &simgrid::BattleEvent) -> Option<String> {
     use simgrid::BattleEvent as E;
     Some(match ev {
-        E::Used { side, move_id } => format!("{} uses {}.", who(*side), move_id),
+        E::Used { side, move_id, .. } => format!("{} uses {}.", who(*side), move_id),
         E::Damage {
             side,
             dmg,
@@ -591,9 +591,21 @@ fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattleWireEvent {
         text,
     };
     match ev {
-        E::Used { side, .. } => {
+        E::Used {
+            side,
+            element,
+            category,
+            power,
+            ..
+        } => {
+            // Pack the move's element index into `value` and category (+ a ranged bit)
+            // into `flag`, so the client can fire the right elemental projectile for
+            // EITHER side without a struct change. bit0-1 = category, bit2 = ranged.
+            let ranged = *category != simgrid::MoveCategory::Status && *power > 0;
             w.kind = p::PB_USED;
             w.side = side_byte(*side);
+            w.value = element.idx() as i32;
+            w.flag = category_byte(*category) | (u8::from(ranged) << 2);
         }
         E::Damage {
             side,

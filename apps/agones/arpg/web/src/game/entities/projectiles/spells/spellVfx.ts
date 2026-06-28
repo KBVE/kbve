@@ -114,7 +114,7 @@ function castBolt(
 ): void {
 	ensureSpellTextures(scene);
 	const a = worldToScreen(from.x, from.y);
-	a.y -= 24;
+	a.y -= 32; // launch near the caster's body/hands, not the ground tile
 	const b = worldToScreen(to.x, to.y);
 	b.y -= 16;
 	const dist = Math.hypot(b.x - a.x, b.y - a.y);
@@ -142,17 +142,45 @@ function castBolt(
 	trail.setDepth(DEPTH_PROJECTILE);
 	trail.startFollow(core);
 
+	// DEBUG: GREEN box follows the travelling bolt core; YELLOW box marks the destination
+	// (impact/burst); CYAN box tracks the TRAIL particle emitter's live position each
+	// frame — if cyan diverges from green, the trail emitter isn't following the core.
+	// Remove once the offset is diagnosed.
+	const dbgTravel = scene.add
+		.rectangle(a.x, a.y, 30, 30)
+		.setStrokeStyle(2, 0x22c55e)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
+	const dbgImpact = scene.add
+		.rectangle(b.x, b.y, 30, 30)
+		.setStrokeStyle(2, 0xeab308)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
+	const dbgTrail = scene.add
+		.rectangle(trail.x, trail.y, 20, 20)
+		.setStrokeStyle(2, 0x22d3ee)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
+
 	scene.tweens.add({
-		targets: core,
+		targets: [core, dbgTravel],
 		x: b.x,
 		y: b.y,
 		duration,
 		ease: 'Quad.easeIn',
+		onUpdate: () => {
+			dbgTrail.setPosition(trail.x, trail.y);
+		},
 		onComplete: () => {
 			trail.stop();
 			burst(scene, b.x, b.y, style.ramp);
 			core.destroy();
 			scene.time.delayedCall(400, () => trail.destroy());
+			scene.time.delayedCall(900, () => {
+				dbgTravel.destroy();
+				dbgImpact.destroy();
+				dbgTrail.destroy();
+			});
 		},
 	});
 }
