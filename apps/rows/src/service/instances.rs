@@ -57,11 +57,33 @@ impl OWSService {
             // security gate). A hard-pause variant and a valkey-cached read that could safely fail
             // CLOSED are both deferred (see plan Holes).
             let open = match repo.get_admission_overrides(customer_guid).await {
-                Ok((tenant_ov, global_ov)) => crate::config::effective_accept_new_joins(
-                    self.state.config.accept_new_joins,
-                    &tenant_ov,
-                    &global_ov,
-                ),
+                Ok((tenant_ov, global_ov)) => {
+                    let allow = crate::config::effective_accept_new_joins(
+                        self.state.config.accept_new_joins,
+                        &tenant_ov,
+                        &global_ov,
+                    );
+                    if !allow {
+                        // An active freeze drops new logins silently otherwise — there is no metric
+                        // yet. Emit a server-side signal per blocked join (greppable/alertable) so an
+                        // operator can see the gate is doing work, and catch a freeze that was left
+                        // set after an incident. `scope` names what closed it: an explicit tenant or
+                        // global `false`, or the env baseline (`ROWS_ACCEPT_NEW_JOINS=false`).
+                        let scope = if tenant_ov.accept_new_joins == Some(false) {
+                            "tenant"
+                        } else if global_ov.accept_new_joins == Some(false) {
+                            "global"
+                        } else {
+                            "env-baseline"
+                        };
+                        tracing::warn!(
+                            %customer_guid,
+                            scope,
+                            "admission gate CLOSED — blocking a new join (operator freeze active)"
+                        );
+                    }
+                    allow
+                }
                 Err(e) => {
                     tracing::warn!(error = %e, "admission read failed — failing OPEN for this new join (F6)");
                     true
