@@ -43,11 +43,15 @@ spec:
                         value: 'false'
                       - name: PGRST_SERVER_PORT
                         value: '3000'
+                      # Accept-both JWKS (oct HS256 + EC ES256 public) for the
+                      # signing-key transition. PostgREST validates either alg;
+                      # PGRST_APP_SETTINGS_JWT_SECRET stays the raw HS256 secret
+                      # (exposed to DB functions, not a verification key).
                       - name: PGRST_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
-                                name: supabase-jwt
-                                key: secret
+                                name: supabase-jwt-vendor
+                                key: postgrest-jwks
                       - name: PGRST_APP_SETTINGS_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
