@@ -457,10 +457,10 @@ fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
 /// the strongest damaging move that still has PP (falling back to any PP move).
 fn ai_action(side: &simgrid::BattleSide) -> simgrid::BattleAction {
     let active = side.active();
-    if !active.is_alive() {
-        if let Some(i) = side.team.iter().position(simgrid::Combatant::is_alive) {
-            return simgrid::BattleAction::Swap { to: i };
-        }
+    if !active.is_alive()
+        && let Some(i) = side.team.iter().position(simgrid::Combatant::is_alive)
+    {
+        return simgrid::BattleAction::Swap { to: i };
     }
     let slot = active
         .moves
