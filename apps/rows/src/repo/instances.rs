@@ -26,6 +26,74 @@ fn is_undefined_table(e: &sqlx::Error) -> bool {
 /// reaps at the real per-map timeout (it reads the column live at reap time, not the annotation).
 pub const FALLBACK_EMPTY_SHUTDOWN_MINUTES_ON_DB_ERROR: i32 = 30;
 
+/// Pure new-join selection policy. Returns the ordering key for an existing `status=2` instance, or
+/// `None` if it must never receive a new join. Lower key is preferred:
+///   tier 0 = healthy (not draining); tier 1 = acceptable `when_able` drain (state=1, not asap, not
+///   drop). Within a tier, fewer players wins (matches the legacy `ORDER BY numberofreportedplayers`).
+/// Excluded (`None`): `asap` (urgency=1), `draindropplayers=true` (will disconnect after save), or
+/// `saving` (state=2, shutting down). NULL `drainstate` is the only "not draining" value (the
+/// migration `CHECK` forbids 0). Kept pure (no DB) so the player-path decision is unit-testable.
+pub fn join_candidate_key(
+    drain_state: Option<i16>,
+    drain_urgency: Option<i16>,
+    drain_drop_players: Option<bool>,
+    player_count: i32,
+) -> Option<(u8, i32)> {
+    match drain_state {
+        None => Some((0, player_count)), // healthy -> preferred tier
+        Some(2) => None,                 // saving -> excluded
+        Some(_) => {
+            let asap = drain_urgency.unwrap_or(0) == 1;
+            let will_drop = drain_drop_players.unwrap_or(false);
+            if asap || will_drop {
+                None // asap / drop -> excluded
+            } else {
+                Some((1, player_count)) // when_able, non-drop -> eligible but below healthy
+            }
+        }
+    }
+}
+
+/// Domain-validates a drain request before it reaches the DB. `state ∈ {1,2}` (1=draining,
+/// 2=saving) and `urgency ∈ {0,1}` (0=when_able, 1=asap) mirror the migration's
+/// `CHECK (DrainState IN (1,2))`. Without this, an out-of-domain `state` surfaces as a generic
+/// `Database` 500 from the CHECK violation; rejecting here gives the caller a clean `BadRequest`
+/// (and catches a bad `urgency`, which the DB has no constraint for at all).
+pub fn validate_drain_request(state: i16, urgency: i16) -> Result<(), RowsError> {
+    if !matches!(state, 1 | 2) {
+        return Err(RowsError::BadRequest(format!(
+            "invalid drain state {state} (expected 1=draining or 2=saving)"
+        )));
+    }
+    if !matches!(urgency, 0 | 1) {
+        return Err(RowsError::BadRequest(format!(
+            "invalid drain urgency {urgency} (expected 0=when_able or 1=asap)"
+        )));
+    }
+    Ok(())
+}
+
+/// Composite drain "severity" for the monotonic (escalate-only) guard in [`InstanceRepo::set_drain_state`].
+/// Higher = more aggressive drain. `state` dominates (2=saving outranks 1=draining), then `urgency`
+/// (asap > when_able), then `drop_players`. A not-draining row (`NULL` state) is the lowest. This
+/// closes the hole where guarding on `urgency` alone let an equal-urgency request *downgrade*
+/// `saving → draining` (re-admitting joins). The SQL guard recomputes the stored row's severity with
+/// the SAME weights inline — keep the two formulas in lockstep.
+pub fn drain_severity(
+    drain_state: Option<i16>,
+    drain_urgency: Option<i16>,
+    drain_drop_players: Option<bool>,
+) -> i32 {
+    match drain_state {
+        None => -1, // not draining -> lowest
+        Some(s) => {
+            (s as i32) * 100
+                + (drain_urgency.unwrap_or(0) as i32) * 10
+                + i32::from(drain_drop_players.unwrap_or(false))
+        }
+    }
+}
+
 pub struct InstanceRepo<'a>(pub &'a DbPool);
 
 impl<'a> InstanceRepo<'a> {
@@ -107,7 +175,15 @@ impl<'a> InstanceRepo<'a> {
         _char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        let existing: Option<JoinMapResult> = sqlx::query_as(
+        // Fetch the ready candidates for the zone and pick the winner with the pure, unit-tested
+        // `join_candidate_key` — drain eligibility/ranking lives in Rust, not SQL, so it can't
+        // silently mis-rank. Bounded by `ORDER BY … LIMIT` so a pathological zone (a spin-up storm
+        // leaving hundreds of `status=2` rows) can't make this hot path transfer/allocate unbounded
+        // rows. The ORDER mirrors `join_candidate_key`'s tiers — healthy first (`drainstate IS NULL`
+        // sorts before NOT NULL), then fewest players — so truncation only ever drops rows Rust
+        // would also rank last. The explicit drain columns make this read migration-gated (see the
+        // drain migration); that ordering is the operator procedure.
+        let candidates: Result<Vec<JoinCandidateRow>, sqlx::Error> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
                     ws.port AS world_server_port,
@@ -120,19 +196,79 @@ impl<'a> InstanceRepo<'a> {
                     false AS enable_auto_loopback,
                     c.noportforwarding AS no_port_forwarding,
                     true AS success,
-                    '' AS error_message
+                    '' AS error_message,
+                    mi.drainstate AS drain_state,
+                    mi.drainurgency AS drain_urgency,
+                    mi.draindropplayers AS drain_drop_players,
+                    mi.numberofreportedplayers AS player_count
              FROM maps m
              JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
              JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
              JOIN customers c ON c.customerguid = m.customerguid
              WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
-             ORDER BY mi.numberofreportedplayers ASC
-             LIMIT 1",
+             ORDER BY (mi.drainstate IS NOT NULL), mi.numberofreportedplayers ASC
+             LIMIT 128",
         )
         .bind(customer_guid)
         .bind(zone_name)
-        .fetch_optional(self.0)
-        .await?;
+        .fetch_all(self.0)
+        .await;
+
+        let existing: Option<JoinMapResult> = match candidates {
+            Ok(rows) => rows
+                .into_iter()
+                .filter_map(|c| {
+                    join_candidate_key(
+                        c.drain_state,
+                        c.drain_urgency,
+                        c.drain_drop_players,
+                        c.player_count,
+                    )
+                    .map(|key| (key, c))
+                })
+                .min_by_key(|(key, _)| *key)
+                .map(|(_, c)| c.into_result()),
+            // Migration-vs-image ordering guard (mirrors `spin_up_server_instance_ready`): the dbmate
+            // runner is decoupled from the rows image rollout, so a rows image can ship before the
+            // drain-column migration lands. The drain-aware SELECT above then fails with SQLSTATE
+            // 42703 (undefined_column) and EVERY join would error player-facing. Degrade to the
+            // pre-drain query (no drain columns; until the migration lands every instance is
+            // "healthy") so routing still reuses the least-loaded ready instance.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    zone = zone_name,
+                    "mapinstances drain columns missing (migration not yet applied) — routing via \
+                     pre-drain query; apply the dbmate migration to enable drain-aware join ranking"
+                );
+                sqlx::query_as(
+                    "SELECT ws.serverip AS server_ip,
+                            ws.internalserverip AS world_server_ip,
+                            ws.port AS world_server_port,
+                            mi.port,
+                            mi.mapinstanceid AS map_instance_id,
+                            m.mapname AS map_name_to_start,
+                            ws.worldserverid AS world_server_id,
+                            mi.status AS map_instance_status,
+                            false AS need_to_startup_map,
+                            false AS enable_auto_loopback,
+                            c.noportforwarding AS no_port_forwarding,
+                            true AS success,
+                            '' AS error_message
+                     FROM maps m
+                     JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
+                     JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
+                     JOIN customers c ON c.customerguid = m.customerguid
+                     WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
+                     ORDER BY mi.numberofreportedplayers ASC
+                     LIMIT 1",
+                )
+                .bind(customer_guid)
+                .bind(zone_name)
+                .fetch_optional(self.0)
+                .await?
+            }
+            Err(e) => return Err(e.into()),
+        };
 
         if let Some(result) = existing {
             return Ok(result);
@@ -384,7 +520,8 @@ impl<'a> InstanceRepo<'a> {
         let rows = sqlx::query_as::<_, ReapRow>(
             "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
                     mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
-                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
+                    COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty,
+                    mi.drainstate, mi.draindeadline
              FROM mapinstances mi
              LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
              WHERE mi.customerguid = $1 AND mi.status > 0
@@ -393,8 +530,117 @@ impl<'a> InstanceRepo<'a> {
         )
         .bind(customer_guid)
         .fetch_all(self.0)
+        .await;
+        match rows {
+            Ok(rows) => Ok(rows),
+            // Migration-vs-image ordering guard (mirrors `spin_up_server_instance_ready`): if the
+            // rows image ships before the drain-column migration, this SELECT fails with SQLSTATE
+            // 42703 (undefined_column) and the reaper would stall EVERY cycle, leaking empty/stale
+            // GameServers. Degrade to the pre-drain SELECT; `ReapRow`'s drain fields are `#[sqlx(
+            // default)]` so they map to `None` -> `is_draining = false` -> the pre-drain reap policy
+            // runs unchanged until the migration lands.
+            Err(e) if is_undefined_column(&e) => {
+                warn!(
+                    "mapinstances drain columns missing (migration not yet applied) — reaping via \
+                     pre-drain query; apply the dbmate migration to enable drain backstops"
+                );
+                let rows = sqlx::query_as::<_, ReapRow>(
+                    "SELECT mi.mapinstanceid, mi.numberofreportedplayers,
+                            mi.lastupdatefromserver, mi.lastserveremptydate, mi.createdate,
+                            COALESCE(m.minutestoshutdownafterempty, 1) AS minutestoshutdownafterempty
+                     FROM mapinstances mi
+                     LEFT JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
+                     WHERE mi.customerguid = $1 AND mi.status > 0
+                     ORDER BY COALESCE(mi.lastserveremptydate, mi.createdate) ASC, mi.mapinstanceid
+                     LIMIT 500",
+                )
+                .bind(customer_guid)
+                .fetch_all(self.0)
+                .await?;
+                Ok(rows)
+            }
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Marks an instance draining. Orthogonal to `status` — a draining instance stays `status=2`
+    /// (ready) so existing players keep playing; routing (`join_candidate_key`) and the reaper
+    /// (`reap_decision`) consult `drainstate`.
+    ///
+    /// **Monotonic (escalate-only):** the WHERE guard refuses to *downgrade* an in-flight drain. It
+    /// compares the stored row's composite [`drain_severity`] (state ≫ urgency ≫ drop) against the
+    /// request's, so neither a late `when_able` can relax an active `asap` NOR an equal-urgency
+    /// request can walk `saving` back to `draining`. `rows_affected == 0` therefore means either the
+    /// instance is gone OR the guard rejected a downgrade — callers distinguish via a prior read.
+    ///
+    /// Rejects an out-of-domain `state`/`urgency` as `BadRequest` up front (see
+    /// [`validate_drain_request`]) instead of letting the DB CHECK surface a 500.
+    ///
+    /// **UTC contract:** `deadline` is a naive `TIMESTAMP` compared against `Utc::now().naive_utc()`
+    /// in `reap_decision`, so callers MUST pass a UTC-naive value. A `NaiveDateTime` carries no
+    /// offset, so this can't be asserted at runtime — it is an invariant of the call site.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn set_drain_state(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+        state: i16,
+        urgency: i16,
+        drop_players: bool,
+        reason: &str,
+        request_id: Uuid,
+        deadline: Option<chrono::NaiveDateTime>,
+    ) -> Result<u64, RowsError> {
+        validate_drain_request(state, urgency)?;
+        let new_severity = drain_severity(Some(state), Some(urgency), Some(drop_players));
+        let result = sqlx::query(
+            "UPDATE mapinstances
+             SET drainstate = $3, drainurgency = $4, draindropplayers = $5,
+                 drainreason = $6, drainrequestid = $7, draindeadline = $8
+             WHERE customerguid = $1 AND mapinstanceid = $2
+               AND COALESCE(
+                     drainstate * 100 + COALESCE(drainurgency, 0) * 10
+                       + COALESCE(draindropplayers::int, 0),
+                     -1
+                   ) <= $9",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .bind(state)
+        .bind(urgency)
+        .bind(drop_players)
+        .bind(reason)
+        .bind(request_id)
+        .bind(deadline)
+        .bind(new_severity)
+        .execute(self.0)
         .await?;
-        Ok(rows)
+        Ok(result.rows_affected())
+    }
+
+    /// Clears the drain marker (drain aborted / never happened). Restores the instance to a plain
+    /// routable/reapable state. `request_id = Some(id)` clears ONLY that request's drain (so one
+    /// request can't wipe a stricter drain set by another); `None` is an explicit operator
+    /// force-clear. Returns `rows_affected`.
+    pub async fn clear_drain_state(
+        &self,
+        customer_guid: Uuid,
+        map_instance_id: i32,
+        request_id: Option<Uuid>,
+    ) -> Result<u64, RowsError> {
+        let result = sqlx::query(
+            "UPDATE mapinstances
+             SET drainstate = NULL, drainurgency = NULL, draindropplayers = NULL,
+                 drainreason = NULL, drainrequestid = NULL, draindeadline = NULL
+             WHERE customerguid = $1 AND mapinstanceid = $2
+               AND ($3::uuid IS NULL OR drainrequestid = $3)",
+        )
+        .bind(customer_guid)
+        .bind(map_instance_id)
+        .bind(request_id)
+        .execute(self.0)
+        .await?;
+        Ok(result.rows_affected())
     }
 
     /// Per-tenant reaper overrides from `ows.reaperconfig`. Returns the all-`None` default when no
@@ -872,5 +1118,119 @@ impl<'a> InstanceRepo<'a> {
         .await?;
 
         Ok(row.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{drain_severity, join_candidate_key, validate_drain_request};
+    use crate::error::RowsError;
+
+    #[test]
+    fn validate_drain_request_accepts_in_domain() {
+        for state in [1i16, 2] {
+            for urgency in [0i16, 1] {
+                assert!(
+                    validate_drain_request(state, urgency).is_ok(),
+                    "{state}/{urgency}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn validate_drain_request_rejects_out_of_domain() {
+        // state 0 (the dead semantic the migration CHECK forbids) and 3 -> BadRequest, not a DB 500
+        assert!(matches!(
+            validate_drain_request(0, 0),
+            Err(RowsError::BadRequest(_))
+        ));
+        assert!(matches!(
+            validate_drain_request(3, 0),
+            Err(RowsError::BadRequest(_))
+        ));
+        // urgency out of {0,1} -> BadRequest (the DB has no CHECK for urgency at all)
+        assert!(matches!(
+            validate_drain_request(1, 2),
+            Err(RowsError::BadRequest(_))
+        ));
+        assert!(matches!(
+            validate_drain_request(1, -1),
+            Err(RowsError::BadRequest(_))
+        ));
+    }
+
+    #[test]
+    fn drain_severity_state_dominates_urgency() {
+        // The regression that motivated this: saving(2) outranks draining(1) EVEN at higher urgency,
+        // so the monotonic guard rejects a saving -> draining walk-back at equal-or-any urgency.
+        let saving = drain_severity(Some(2), Some(0), Some(false));
+        let draining_asap = drain_severity(Some(1), Some(1), Some(true));
+        assert!(
+            saving > draining_asap,
+            "saving must outrank any draining tier"
+        );
+        // equal-urgency downgrade saving -> draining is a strict severity DROP (guard would reject)
+        assert!(
+            drain_severity(Some(2), Some(0), Some(false))
+                > drain_severity(Some(1), Some(0), Some(false))
+        );
+    }
+
+    #[test]
+    fn drain_severity_orders_within_state() {
+        // not draining is the floor
+        assert_eq!(drain_severity(None, None, None), -1);
+        // urgency escalates, then drop escalates
+        assert!(
+            drain_severity(Some(1), Some(0), Some(false))
+                < drain_severity(Some(1), Some(0), Some(true))
+        );
+        assert!(
+            drain_severity(Some(1), Some(0), Some(true))
+                < drain_severity(Some(1), Some(1), Some(false))
+        );
+        // NULL urgency/drop default to the lowest within the state (matches the SQL COALESCE weights)
+        assert_eq!(
+            drain_severity(Some(1), None, None),
+            drain_severity(Some(1), Some(0), Some(false))
+        );
+    }
+
+    #[test]
+    fn healthy_is_preferred_and_orders_by_players() {
+        assert_eq!(join_candidate_key(None, None, None, 5), Some((0, 5)));
+        // healthy always outranks any draining (tier 0 < tier 1) regardless of player count
+        assert!(
+            join_candidate_key(None, None, None, 99)
+                < join_candidate_key(Some(1), Some(0), Some(false), 0)
+        );
+    }
+
+    #[test]
+    fn when_able_nondrop_is_eligible_fallback() {
+        assert_eq!(
+            join_candidate_key(Some(1), Some(0), Some(false), 3),
+            Some((1, 3))
+        );
+        // among two when_able drains, fewer players wins
+        assert!(
+            join_candidate_key(Some(1), Some(0), Some(false), 2)
+                < join_candidate_key(Some(1), Some(0), Some(false), 8)
+        );
+    }
+
+    #[test]
+    fn asap_drop_saving_are_excluded() {
+        assert_eq!(join_candidate_key(Some(1), Some(1), Some(false), 0), None); // asap
+        assert_eq!(join_candidate_key(Some(1), Some(0), Some(true), 0), None); // drop_players
+        assert_eq!(join_candidate_key(Some(2), Some(0), Some(false), 0), None); // saving
+        assert_eq!(join_candidate_key(Some(2), Some(1), Some(true), 0), None); // saving + asap + drop
+    }
+
+    #[test]
+    fn null_urgency_and_drop_default_to_eligible_when_able() {
+        // a state=1 drain with NULL urgency/drop is treated as when_able, non-drop -> eligible fallback
+        assert_eq!(join_candidate_key(Some(1), None, None, 4), Some((1, 4)));
     }
 }
