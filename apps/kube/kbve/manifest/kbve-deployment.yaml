@@ -231,6 +231,12 @@ spec:
                                 name: arpg-discord
                                 key: DISCORD_CLIENT_SECRET
                                 optional: true
+                      # Discord Activity token exchange must send the redirect_uri
+                      # the OAuth code was bound to (a redirect IS registered on the
+                      # app), else Discord rejects with invalid_grant. Must match the
+                      # portal's registered redirect for the arpg Activity.
+                      - name: DISCORD_REDIRECT_URI
+                        value: https://arpg.kbve.com
                       - name: SUPABASE_JWT_SECRET
                         valueFrom:
                             secretKeyRef:
