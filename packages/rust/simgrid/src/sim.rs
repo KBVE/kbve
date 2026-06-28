@@ -293,7 +293,7 @@ pub struct EquipmentEffects(pub HashMap<String, EquipBonus>);
 
 /// Worn gear: handles to the equipped item entities (not in the owner's [`Inventory`]
 /// while worn, no `GridPos`). `None` = slot empty. The item entity keeps its instance id
-/// + (later) durability/affix components while equipped. The per-slot bonus is cached so
+/// plus (later) durability/affix components while equipped. The per-slot bonus is cached so
 /// the combat hot path reads it without touching the item entities.
 #[derive(Component, Clone, Default)]
 pub struct Equipped {
@@ -1856,6 +1856,8 @@ pub struct ItemDefs<'w> {
     pub equipment: Res<'w, EquipmentEffects>,
 }
 
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
@@ -2881,6 +2883,7 @@ pub const PLACE_RANGE: i32 = 4;
 /// Validate and consume one deployable item for placement. On success the item is
 /// already removed from `inv` and the caller queues the env spawn. Failure leaves
 /// the inventory untouched and returns a short reason for the client.
+#[allow(clippy::too_many_arguments)]
 fn place_item(
     deployables: &Deployables,
     map: &WalkableMap,
