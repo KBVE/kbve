@@ -14,8 +14,6 @@ resources:
     - namespace/application.yaml
     - cnpg/application.yaml
     - cnpg/plugins-application.yaml
-    # MetalLB removed — Cilium LB IPAM handles IP allocation + L2 announcements
-    # ingress-nginx removed — Cilium Gateway API handles ingress + ACME HTTP-01 challenges
     - cert-manager/application.yaml
     - sealed-secrets/application.yaml
     # Stakater Reloader — auto-restart deployments when configmaps/secrets change

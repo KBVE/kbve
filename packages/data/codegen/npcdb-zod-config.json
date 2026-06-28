@@ -53,6 +53,30 @@
 			"stripPrefix": "EQUIP_SLOT_",
 			"caseTransform": "lowercase",
 			"skipUnspecified": false
+		},
+		"npc.GrowthRate": {
+			"mode": "const_array",
+			"stripPrefix": "GROWTH_RATE_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"npc.MoveCategory": {
+			"mode": "const_array",
+			"stripPrefix": "MOVE_CATEGORY_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"npc.MoveTarget": {
+			"mode": "const_array",
+			"stripPrefix": "MOVE_TARGET_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"npc.StatKind": {
+			"mode": "const_array",
+			"stripPrefix": "STAT_KIND_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		}
 	},
 
@@ -110,6 +134,30 @@
 			"sourceEnum": "npc.EquipSlot",
 			"typeName": "EquipSlotValue",
 			"zodSchemaName": "EquipSlotSchema"
+		},
+		{
+			"name": "GrowthRates",
+			"sourceEnum": "npc.GrowthRate",
+			"typeName": "GrowthRateValue",
+			"zodSchemaName": "GrowthRateSchema"
+		},
+		{
+			"name": "MoveCategories",
+			"sourceEnum": "npc.MoveCategory",
+			"typeName": "MoveCategoryValue",
+			"zodSchemaName": "MoveCategorySchema"
+		},
+		{
+			"name": "MoveTargets",
+			"sourceEnum": "npc.MoveTarget",
+			"typeName": "MoveTargetValue",
+			"zodSchemaName": "MoveTargetSchema"
+		},
+		{
+			"name": "StatKinds",
+			"sourceEnum": "npc.StatKind",
+			"typeName": "StatKindValue",
+			"zodSchemaName": "StatKindSchema"
 		}
 	],
 

@@ -41,7 +41,8 @@
 			"@kbve/rn-astro": ["packages/npm/rn-astro/src/index.ts"],
 			"@kbve/rn-astro/integration": [
 				"packages/npm/rn-astro/src/integration.ts"
-			]
+			],
+			"@kbve/tauri": ["packages/npm/tauri/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

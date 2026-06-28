@@ -126,6 +126,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
                 .in_set(simgrid::SimSet::Spawn),
         );
+        // Debug pet-battle: drains SimPetBattle requests after inputs are routed and
+        // streams the simulated 5v5 mechamutt log back to the requester.
+        app.add_systems(
+            bevy::prelude::Update,
+            game::apply_pet_battles.after(simgrid::SimSet::Input),
+        );
         // Ship piloting: `apply_pilot_ops` boards/leaves before movement (so the new
         // footprint is set when players move); `drive_ships` binds each ship to its
         // pilot + advances the lift/land phase after movement, before hull collision.

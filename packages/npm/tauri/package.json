@@ -1,0 +1,45 @@
+{
+	"name": "@kbve/tauri",
+	"version": "0.0.1",
+	"description": "Shared Tauri desktop surface for KBVE launchers — typed invoke wrappers + types for Supabase OAuth (erust-backed) and game install/launch.",
+	"keywords": [
+		"kbve",
+		"tauri",
+		"launcher",
+		"supabase",
+		"oauth"
+	],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./src/index.ts",
+	"module": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		}
+	},
+	"files": [
+		"src/",
+		"*.md",
+		"LICENSE"
+	],
+	"dependencies": {},
+	"peerDependencies": {
+		"@tauri-apps/api": "^2.0.0",
+		"@tauri-apps/plugin-deep-link": "^2.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

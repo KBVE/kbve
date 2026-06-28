@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@kbve/tauri':
+        specifier: workspace:*
+        version: link:../../../packages/npm/tauri
       '@tauri-apps/api':
         specifier: ^2.0.0
         version: 2.11.1
@@ -54,6 +57,15 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.3(jiti@2.7.0)(lightningcss@1.32.0)
+
+  ../../../packages/npm/tauri:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.11.1
+      '@tauri-apps/plugin-deep-link':
+        specifier: ^2.0.0
+        version: 2.4.9
 
 packages:
 

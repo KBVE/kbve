@@ -240,6 +240,59 @@ body {
 	background: rgba(212, 164, 76, 0.08);
 }
 
+/* ── Secondary: weathered iron slab ── */
+.ck-btn--secondary {
+	gap: 0.5rem;
+	background: linear-gradient(
+		180deg,
+		rgba(61, 46, 30, 0.45) 0%,
+		rgba(26, 26, 31, 0.7) 100%
+	);
+	border: 1px solid var(--ck-leather);
+	color: var(--ck-parchment);
+	box-shadow: inset 0 1px 0 rgba(232, 220, 200, 0.04);
+}
+
+.ck-btn--secondary:not(:disabled):hover {
+	border-color: var(--ck-firelight-dim);
+	color: var(--ck-firelight-bright);
+	transform: translateY(-1px);
+}
+
+.ck-btn--secondary:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.ck-btn__icon {
+	width: 0.95rem;
+	height: 0.95rem;
+	flex-shrink: 0;
+}
+
+/* Provider brand accents on hover */
+.ck-btn--github:not(:disabled):hover {
+	border-color: #6e7681;
+	color: #fff;
+	background: linear-gradient(
+		180deg,
+		rgba(48, 54, 61, 0.65) 0%,
+		rgba(26, 26, 31, 0.8) 100%
+	);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.ck-btn--discord:not(:disabled):hover {
+	border-color: #5865f2;
+	color: #fff;
+	background: linear-gradient(
+		180deg,
+		rgba(88, 101, 242, 0.28) 0%,
+		rgba(26, 26, 31, 0.8) 100%
+	);
+	box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35);
+}
+
 /* ── Progress: molten firelight ── */
 .ck-progress-track {
 	background: var(--ck-stone-deep);

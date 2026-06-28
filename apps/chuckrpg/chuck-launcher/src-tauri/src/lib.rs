@@ -3,13 +3,19 @@ mod launcher;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use launcher::{ClientVersion, GameSession, Installed, LauncherError};
+use erust::supabase::Session;
+use erust::tauri as ebridge;
+use erust::SupabaseClient;
+use launcher::{ClientVersion, Installed, LauncherError};
 use serde::Serialize;
 use tauri::{Emitter, Window};
 
 struct LaunchGuard(Arc<Mutex<Option<Instant>>>);
+struct Auth(SupabaseClient);
 
 const LAUNCH_DEBOUNCE: Duration = Duration::from_secs(5);
+const SUPABASE_URL: &str = "https://supabase.kbve.com";
+const SUPABASE_ANON_KEY: &str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg";
 
 fn backend(arg: Option<String>) -> String {
     arg.filter(|s| !s.is_empty())
@@ -44,6 +50,65 @@ fn install_state() -> Option<Installed> {
     launcher::read_state()
 }
 
+#[tauri::command]
+fn auth_authorize_url(provider: String, redirect_to: String, auth: tauri::State<'_, Auth>) -> String {
+    auth.0.authorize_url(&provider, &redirect_to)
+}
+
+#[tauri::command]
+async fn auth_complete(
+    callback_url: String,
+    auth: tauri::State<'_, Auth>,
+) -> Result<Session, String> {
+    let client = auth.0.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        match ebridge::complete_oauth_blocking(&client.config, &callback_url) {
+            Ok(session) => {
+                client.set_session(session.clone());
+                Ok(session)
+            }
+            Err(e) => Err(e.to_string()),
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn auth_session(auth: tauri::State<'_, Auth>) -> Option<Session> {
+    auth.0.get_session()
+}
+
+#[tauri::command]
+fn auth_restore(session: Session, auth: tauri::State<'_, Auth>) {
+    auth.0.set_session(session);
+}
+
+#[tauri::command]
+async fn auth_refresh(auth: tauri::State<'_, Auth>) -> Result<Option<Session>, String> {
+    let client = auth.0.clone();
+    let refresh = match client.get_session() {
+        Some(s) => s.refresh_token,
+        None => return Ok(None),
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        match ebridge::refresh_blocking(&client.config, &refresh) {
+            Ok(session) => {
+                client.set_session(session.clone());
+                Ok(Some(session))
+            }
+            Err(e) => Err(e.to_string()),
+        }
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn auth_sign_out(auth: tauri::State<'_, Auth>) {
+    auth.0.clear_session();
+}
+
 #[derive(Clone, Serialize)]
 struct Progress {
     received: u64,
@@ -66,7 +131,7 @@ async fn install_update(
 fn launch(
     window: Window,
     url: Option<String>,
-    session: Option<GameSession>,
+    session: Option<Session>,
     guard: tauri::State<'_, LaunchGuard>,
 ) -> Result<(), LauncherError> {
     {
@@ -107,12 +172,19 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(LaunchGuard(Arc::new(Mutex::new(None))))
+        .manage(Auth(SupabaseClient::new(SUPABASE_URL, SUPABASE_ANON_KEY)))
         .invoke_handler(tauri::generate_handler![
             current_platform,
             fetch_clients,
             install_state,
             install_update,
             launch,
+            auth_authorize_url,
+            auth_complete,
+            auth_session,
+            auth_restore,
+            auth_refresh,
+            auth_sign_out,
         ])
         .run(tauri::generate_context!())
         .expect("error while running chuck-launcher");

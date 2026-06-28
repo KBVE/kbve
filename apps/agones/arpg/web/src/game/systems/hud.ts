@@ -3,6 +3,7 @@ import {
 	type InventoryItem,
 	type NotificationEventData,
 	type CorpseContents,
+	type PetBattleLog,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
@@ -172,6 +173,35 @@ export function onInventoryIntent(
 ): () => void {
 	return laserEvents.on(
 		INVENTORY_INTENT_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+// Debug pet-battle: the HUD button requests a simulation; the scene forwards it to
+// the client, and streams the resulting log back here for the panel to render.
+export const PET_BATTLE_REQUEST_EVENT = 'arpg:petBattle:request';
+export const PET_BATTLE_LOG_EVENT = 'arpg:petBattle:log';
+
+export function emitPetBattleRequest(): void {
+	laserEvents.emit(PET_BATTLE_REQUEST_EVENT, undefined);
+}
+
+export function onPetBattleRequest(handler: () => void): () => void {
+	return laserEvents.on(
+		PET_BATTLE_REQUEST_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+export function emitPetBattleLog(log: PetBattleLog): void {
+	laserEvents.emit(PET_BATTLE_LOG_EVENT, log);
+}
+
+export function onPetBattleLog(
+	handler: (log: PetBattleLog) => void,
+): () => void {
+	return laserEvents.on(
+		PET_BATTLE_LOG_EVENT,
 		handler as (data: unknown) => void,
 	);
 }

@@ -1,29 +1,26 @@
-/*
- * sqlite3_prefix.h — GENERATED. Do not edit by hand.
- *
- * Renames KBVESQLite's bundled SQLite C API (sqlite3_*) to a kbve_sqlite3_*
- * symbol prefix so this plugin's amalgamation (3.51.3, SQLITE_THREADSAFE=1,
- * off-thread async access) can coexist in a single monolithic binary with the
- * engine's SQLiteCore (SQLITE_OS_OTHER / game-thread-serialized) without
- * LNK2005 duplicate-symbol errors.
- *
- * Force-included in two places (both required — the amalgamation comments out
- * its own `#include "sqlite3.h"`, so prefixing one file is not enough):
- *   1. KBVESQLiteThirdParty.c, before #include "sqlite3.c"  (prefixes definitions)
- *   2. top of sqlite3.h                                     (prefixes consumer decls)
- *
- * Regenerate when SQLite is updated:
- *   grep -hoE 'sqlite3_[A-Za-z0-9_]+' sqlite3.h sqlite3ext.h | sort -u \
- *     | grep -vE '^(sqlite3_XXX|sqlite3_xxx|sqlite3_X_init|sqlite3_bind_)$' \
- *     | awk '{printf "#define %s kbve_%s\n", $0, $0}'
- */
+// GENERATED — do not hand-edit. Regenerate from the bundled amalgamation:
+//   cd ThirdParty/sqlite
+//   { grep -hoE 'sqlite3_[A-Za-z0-9_]+' sqlite3.h; grep -E 'SQLITE_API' sqlite3.c \
+//       | grep -oE 'sqlite3_[A-Za-z0-9_]+'; } | sort -u \
+//       | grep -vE '^(sqlite3_XXX|sqlite3_xxx|sqlite3_X_init|sqlite3_bind_|sqlite3_prefix)$'
+//
+// Renames KBVESQLite's bundled SQLite (SQLITE_THREADSAFE=1, off-thread) exported C
+// API to a kbve_ prefix so it coexists in a MONOLITHIC client/server binary with the
+// engine's game-thread SQLiteCore (pulled in transitively via MassGameplay) without
+// LNK2005 duplicate-symbol errors. The editor build is modular so it never collided.
+//
+// Sourced from BOTH sqlite3.h and sqlite3.c SQLITE_API exports: the .c carries
+// extension-init symbols (fts3/fts5/rtree/icu _init) that are NOT declared in
+// sqlite3.h; omitting them lets them collide with SQLiteCore's copies. Over-inclusion
+// is a harmless no-op (whole-token #define); under-inclusion is a link error.
+//
+// Force-included from KBVESQLiteThirdParty.c (prefixes definitions) and the top of
+// sqlite3.h (prefixes consumer declarations, e.g. KBVEWorld).
 #ifndef KBVE_SQLITE3_PREFIX_H
 #define KBVE_SQLITE3_PREFIX_H
-
 #define sqlite3_activate_cerod kbve_sqlite3_activate_cerod
 #define sqlite3_aggregate_context kbve_sqlite3_aggregate_context
 #define sqlite3_aggregate_count kbve_sqlite3_aggregate_count
-#define sqlite3_api kbve_sqlite3_api
 #define sqlite3_api_routines kbve_sqlite3_api_routines
 #define sqlite3_authorizer kbve_sqlite3_authorizer
 #define sqlite3_auto_extension kbve_sqlite3_auto_extension
@@ -64,6 +61,7 @@
 #define sqlite3_callback kbve_sqlite3_callback
 #define sqlite3_cancel_auto_extension kbve_sqlite3_cancel_auto_extension
 #define sqlite3_carray_bind kbve_sqlite3_carray_bind
+#define sqlite3_carray_bind_v2 kbve_sqlite3_carray_bind_v2
 #define sqlite3_changegroup kbve_sqlite3_changegroup
 #define sqlite3_changegroup_new kbve_sqlite3_changegroup_new
 #define sqlite3_changegroup_schema kbve_sqlite3_changegroup_schema
@@ -108,15 +106,16 @@
 #define sqlite3_context kbve_sqlite3_context
 #define sqlite3_context_db_handle kbve_sqlite3_context_db_handle
 #define sqlite3_create_collation kbve_sqlite3_create_collation
-#define sqlite3_create_collation16 kbve_sqlite3_create_collation16
 #define sqlite3_create_collation_v2 kbve_sqlite3_create_collation_v2
+#define sqlite3_create_collation16 kbve_sqlite3_create_collation16
 #define sqlite3_create_filename kbve_sqlite3_create_filename
 #define sqlite3_create_function kbve_sqlite3_create_function
-#define sqlite3_create_function16 kbve_sqlite3_create_function16
 #define sqlite3_create_function_v2 kbve_sqlite3_create_function_v2
+#define sqlite3_create_function16 kbve_sqlite3_create_function16
 #define sqlite3_create_module kbve_sqlite3_create_module
 #define sqlite3_create_module_v2 kbve_sqlite3_create_module_v2
 #define sqlite3_create_window_function kbve_sqlite3_create_window_function
+#define sqlite3_current_time kbve_sqlite3_current_time
 #define sqlite3_data_count kbve_sqlite3_data_count
 #define sqlite3_data_directory kbve_sqlite3_data_directory
 #define sqlite3_database_file_object kbve_sqlite3_database_file_object
@@ -133,6 +132,8 @@
 #define sqlite3_declare_vtab kbve_sqlite3_declare_vtab
 #define sqlite3_deserialize kbve_sqlite3_deserialize
 #define sqlite3_destructor_type kbve_sqlite3_destructor_type
+#define sqlite3_diskfull kbve_sqlite3_diskfull
+#define sqlite3_diskfull_pending kbve_sqlite3_diskfull_pending
 #define sqlite3_drop_modules kbve_sqlite3_drop_modules
 #define sqlite3_enable_load_extension kbve_sqlite3_enable_load_extension
 #define sqlite3_enable_shared_cache kbve_sqlite3_enable_shared_cache
@@ -155,9 +156,17 @@
 #define sqlite3_filename_journal kbve_sqlite3_filename_journal
 #define sqlite3_filename_wal kbve_sqlite3_filename_wal
 #define sqlite3_finalize kbve_sqlite3_finalize
+#define sqlite3_found_count kbve_sqlite3_found_count
 #define sqlite3_free kbve_sqlite3_free
 #define sqlite3_free_filename kbve_sqlite3_free_filename
 #define sqlite3_free_table kbve_sqlite3_free_table
+#define sqlite3_fts_init kbve_sqlite3_fts_init
+#define sqlite3_fts3_enable_parentheses kbve_sqlite3_fts3_enable_parentheses
+#define sqlite3_fts3_init kbve_sqlite3_fts3_init
+#define sqlite3_fts3_may_be_corrupt kbve_sqlite3_fts3_may_be_corrupt
+#define sqlite3_fts5_init kbve_sqlite3_fts5_init
+#define sqlite3_fts5_may_be_corrupt kbve_sqlite3_fts5_may_be_corrupt
+#define sqlite3_fullsync_count kbve_sqlite3_fullsync_count
 #define sqlite3_get_autocommit kbve_sqlite3_get_autocommit
 #define sqlite3_get_auxdata kbve_sqlite3_get_auxdata
 #define sqlite3_get_clientdata kbve_sqlite3_get_clientdata
@@ -165,6 +174,8 @@
 #define sqlite3_global_recover kbve_sqlite3_global_recover
 #define sqlite3_hard_heap_limit kbve_sqlite3_hard_heap_limit
 #define sqlite3_hard_heap_limit64 kbve_sqlite3_hard_heap_limit64
+#define sqlite3_hostid_num kbve_sqlite3_hostid_num
+#define sqlite3_icu_init kbve_sqlite3_icu_init
 #define sqlite3_index_constraint kbve_sqlite3_index_constraint
 #define sqlite3_index_constraint_usage kbve_sqlite3_index_constraint_usage
 #define sqlite3_index_info kbve_sqlite3_index_info
@@ -172,6 +183,12 @@
 #define sqlite3_initialize kbve_sqlite3_initialize
 #define sqlite3_int64 kbve_sqlite3_int64
 #define sqlite3_interrupt kbve_sqlite3_interrupt
+#define sqlite3_interrupt_count kbve_sqlite3_interrupt_count
+#define sqlite3_io_error_benign kbve_sqlite3_io_error_benign
+#define sqlite3_io_error_hardhit kbve_sqlite3_io_error_hardhit
+#define sqlite3_io_error_hit kbve_sqlite3_io_error_hit
+#define sqlite3_io_error_pending kbve_sqlite3_io_error_pending
+#define sqlite3_io_error_persist kbve_sqlite3_io_error_persist
 #define sqlite3_io_methods kbve_sqlite3_io_methods
 #define sqlite3_is_interrupted kbve_sqlite3_is_interrupted
 #define sqlite3_keyword_check kbve_sqlite3_keyword_check
@@ -180,13 +197,15 @@
 #define sqlite3_last_insert_rowid kbve_sqlite3_last_insert_rowid
 #define sqlite3_libversion kbve_sqlite3_libversion
 #define sqlite3_libversion_number kbve_sqlite3_libversion_number
+#define sqlite3_like_count kbve_sqlite3_like_count
 #define sqlite3_limit kbve_sqlite3_limit
 #define sqlite3_load_extension kbve_sqlite3_load_extension
-#define sqlite3_loadext_entry kbve_sqlite3_loadext_entry
 #define sqlite3_log kbve_sqlite3_log
 #define sqlite3_malloc kbve_sqlite3_malloc
 #define sqlite3_malloc64 kbve_sqlite3_malloc64
+#define sqlite3_max_blobsize kbve_sqlite3_max_blobsize
 #define sqlite3_mem_methods kbve_sqlite3_mem_methods
+#define sqlite3_memdebug_vfs_oom_test kbve_sqlite3_memdebug_vfs_oom_test
 #define sqlite3_memory_alarm kbve_sqlite3_memory_alarm
 #define sqlite3_memory_highwater kbve_sqlite3_memory_highwater
 #define sqlite3_memory_used kbve_sqlite3_memory_used
@@ -205,21 +224,27 @@
 #define sqlite3_next_stmt kbve_sqlite3_next_stmt
 #define sqlite3_normalized_sql kbve_sqlite3_normalized_sql
 #define sqlite3_open kbve_sqlite3_open
-#define sqlite3_open16 kbve_sqlite3_open16
+#define sqlite3_open_file_count kbve_sqlite3_open_file_count
 #define sqlite3_open_v2 kbve_sqlite3_open_v2
+#define sqlite3_open16 kbve_sqlite3_open16
+#define sqlite3_opentemp_count kbve_sqlite3_opentemp_count
 #define sqlite3_os_end kbve_sqlite3_os_end
 #define sqlite3_os_init kbve_sqlite3_os_init
+#define sqlite3_os_type kbve_sqlite3_os_type
 #define sqlite3_overload_function kbve_sqlite3_overload_function
+#define sqlite3_pager_readdb_count kbve_sqlite3_pager_readdb_count
+#define sqlite3_pager_writedb_count kbve_sqlite3_pager_writedb_count
+#define sqlite3_pager_writej_count kbve_sqlite3_pager_writej_count
 #define sqlite3_pcache kbve_sqlite3_pcache
 #define sqlite3_pcache_methods kbve_sqlite3_pcache_methods
 #define sqlite3_pcache_methods2 kbve_sqlite3_pcache_methods2
 #define sqlite3_pcache_page kbve_sqlite3_pcache_page
 #define sqlite3_prepare kbve_sqlite3_prepare
+#define sqlite3_prepare_v2 kbve_sqlite3_prepare_v2
+#define sqlite3_prepare_v3 kbve_sqlite3_prepare_v3
 #define sqlite3_prepare16 kbve_sqlite3_prepare16
 #define sqlite3_prepare16_v2 kbve_sqlite3_prepare16_v2
 #define sqlite3_prepare16_v3 kbve_sqlite3_prepare16_v3
-#define sqlite3_prepare_v2 kbve_sqlite3_prepare_v2
-#define sqlite3_prepare_v3 kbve_sqlite3_prepare_v3
 #define sqlite3_preupdate_blobwrite kbve_sqlite3_preupdate_blobwrite
 #define sqlite3_preupdate_count kbve_sqlite3_preupdate_count
 #define sqlite3_preupdate_depth kbve_sqlite3_preupdate_depth
@@ -240,10 +265,10 @@
 #define sqlite3_result_blob64 kbve_sqlite3_result_blob64
 #define sqlite3_result_double kbve_sqlite3_result_double
 #define sqlite3_result_error kbve_sqlite3_result_error
-#define sqlite3_result_error16 kbve_sqlite3_result_error16
 #define sqlite3_result_error_code kbve_sqlite3_result_error_code
 #define sqlite3_result_error_nomem kbve_sqlite3_result_error_nomem
 #define sqlite3_result_error_toobig kbve_sqlite3_result_error_toobig
+#define sqlite3_result_error16 kbve_sqlite3_result_error16
 #define sqlite3_result_int kbve_sqlite3_result_int
 #define sqlite3_result_int64 kbve_sqlite3_result_int64
 #define sqlite3_result_null kbve_sqlite3_result_null
@@ -263,9 +288,11 @@
 #define sqlite3_rtree_dbl kbve_sqlite3_rtree_dbl
 #define sqlite3_rtree_geometry kbve_sqlite3_rtree_geometry
 #define sqlite3_rtree_geometry_callback kbve_sqlite3_rtree_geometry_callback
+#define sqlite3_rtree_init kbve_sqlite3_rtree_init
 #define sqlite3_rtree_query kbve_sqlite3_rtree_query
 #define sqlite3_rtree_query_callback kbve_sqlite3_rtree_query_callback
 #define sqlite3_rtree_query_info kbve_sqlite3_rtree_query_info
+#define sqlite3_search_count kbve_sqlite3_search_count
 #define sqlite3_serialize kbve_sqlite3_serialize
 #define sqlite3_session kbve_sqlite3_session
 #define sqlite3_set_authorizer kbve_sqlite3_set_authorizer
@@ -285,6 +312,7 @@
 #define sqlite3_snprintf kbve_sqlite3_snprintf
 #define sqlite3_soft_heap_limit kbve_sqlite3_soft_heap_limit
 #define sqlite3_soft_heap_limit64 kbve_sqlite3_soft_heap_limit64
+#define sqlite3_sort_count kbve_sqlite3_sort_count
 #define sqlite3_sourceid kbve_sqlite3_sourceid
 #define sqlite3_sql kbve_sqlite3_sql
 #define sqlite3_status kbve_sqlite3_status
@@ -293,6 +321,7 @@
 #define sqlite3_stmt kbve_sqlite3_stmt
 #define sqlite3_stmt_busy kbve_sqlite3_stmt_busy
 #define sqlite3_stmt_explain kbve_sqlite3_stmt_explain
+#define sqlite3_stmt_init kbve_sqlite3_stmt_init
 #define sqlite3_stmt_isexplain kbve_sqlite3_stmt_isexplain
 #define sqlite3_stmt_readonly kbve_sqlite3_stmt_readonly
 #define sqlite3_stmt_scanstatus kbve_sqlite3_stmt_scanstatus
@@ -306,15 +335,18 @@
 #define sqlite3_str_appendf kbve_sqlite3_str_appendf
 #define sqlite3_str_errcode kbve_sqlite3_str_errcode
 #define sqlite3_str_finish kbve_sqlite3_str_finish
+#define sqlite3_str_free kbve_sqlite3_str_free
 #define sqlite3_str_length kbve_sqlite3_str_length
 #define sqlite3_str_new kbve_sqlite3_str_new
 #define sqlite3_str_reset kbve_sqlite3_str_reset
+#define sqlite3_str_truncate kbve_sqlite3_str_truncate
 #define sqlite3_str_value kbve_sqlite3_str_value
 #define sqlite3_str_vappendf kbve_sqlite3_str_vappendf
 #define sqlite3_strglob kbve_sqlite3_strglob
 #define sqlite3_stricmp kbve_sqlite3_stricmp
 #define sqlite3_strlike kbve_sqlite3_strlike
 #define sqlite3_strnicmp kbve_sqlite3_strnicmp
+#define sqlite3_sync_count kbve_sqlite3_sync_count
 #define sqlite3_syscall_ptr kbve_sqlite3_syscall_ptr
 #define sqlite3_system_errno kbve_sqlite3_system_errno
 #define sqlite3_table_column_metadata kbve_sqlite3_table_column_metadata
@@ -335,7 +367,6 @@
 #define sqlite3_uri_int64 kbve_sqlite3_uri_int64
 #define sqlite3_uri_key kbve_sqlite3_uri_key
 #define sqlite3_uri_parameter kbve_sqlite3_uri_parameter
-#define sqlite3_uri_vsnprintf kbve_sqlite3_uri_vsnprintf
 #define sqlite3_user_data kbve_sqlite3_user_data
 #define sqlite3_value kbve_sqlite3_value
 #define sqlite3_value_blob kbve_sqlite3_value_blob
@@ -379,8 +410,22 @@
 #define sqlite3_wal_checkpoint kbve_sqlite3_wal_checkpoint
 #define sqlite3_wal_checkpoint_v2 kbve_sqlite3_wal_checkpoint_v2
 #define sqlite3_wal_hook kbve_sqlite3_wal_hook
+#define sqlite3_win_test_unc_locking kbve_sqlite3_win_test_unc_locking
+#define sqlite3_win32_compact_heap kbve_sqlite3_win32_compact_heap
+#define sqlite3_win32_is_nt kbve_sqlite3_win32_is_nt
+#define sqlite3_win32_mbcs_to_utf8 kbve_sqlite3_win32_mbcs_to_utf8
+#define sqlite3_win32_mbcs_to_utf8_v2 kbve_sqlite3_win32_mbcs_to_utf8_v2
+#define sqlite3_win32_reset_heap kbve_sqlite3_win32_reset_heap
 #define sqlite3_win32_set_directory kbve_sqlite3_win32_set_directory
 #define sqlite3_win32_set_directory16 kbve_sqlite3_win32_set_directory16
 #define sqlite3_win32_set_directory8 kbve_sqlite3_win32_set_directory8
-
-#endif /* KBVE_SQLITE3_PREFIX_H */
+#define sqlite3_win32_sleep kbve_sqlite3_win32_sleep
+#define sqlite3_win32_unicode_to_utf8 kbve_sqlite3_win32_unicode_to_utf8
+#define sqlite3_win32_utf8_to_mbcs kbve_sqlite3_win32_utf8_to_mbcs
+#define sqlite3_win32_utf8_to_mbcs_v2 kbve_sqlite3_win32_utf8_to_mbcs_v2
+#define sqlite3_win32_utf8_to_unicode kbve_sqlite3_win32_utf8_to_unicode
+#define sqlite3_win32_write_debug kbve_sqlite3_win32_write_debug
+#define sqlite3_wsd_find kbve_sqlite3_wsd_find
+#define sqlite3_wsd_init kbve_sqlite3_wsd_init
+#define sqlite3_xferopt_count kbve_sqlite3_xferopt_count
+#endif // KBVE_SQLITE3_PREFIX_H

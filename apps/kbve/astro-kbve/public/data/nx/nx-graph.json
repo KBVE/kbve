@@ -5135,21 +5135,26 @@
         "type": "app",
         "data": {
           "root": "apps/chuckrpg/chuck-launcher",
-          "projectType": "application",
-          "metadata": {
-            "targetGroups": {
-              "NPM Scripts": [
-                "preview",
-                "tauri"
-              ]
-            },
-            "js": {
-              "packageName": "@kbve/chuck-launcher",
-              "packageVersion": "0.1.0",
-              "isInPackageManagerWorkspaces": false
-            }
-          },
           "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/chuckrpg/chuck-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "executor": "nx:run-commands",
               "options": {
@@ -5285,25 +5290,6 @@
               "configurations": {},
               "parallelism": true
             },
-            "lint": {
-              "inputs": [
-                "default",
-                "^default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js",
-                "{workspaceRoot}/tools/eslint-rules/**/*"
-              ],
-              "cache": true,
-              "executor": "@nx/eslint:lint",
-              "options": {
-                "lintFilePatterns": [
-                  "apps/chuckrpg/chuck-launcher/src/**/*.{ts,tsx}"
-                ]
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "tauri": {
               "executor": "nx:run-script",
               "metadata": {
@@ -5355,6 +5341,20 @@
                 }
               },
               "parallelism": true
+            }
+          },
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/chuck-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
             }
           },
           "name": "chuck-launcher",
@@ -14972,6 +14972,22 @@
               "configurations": {},
               "parallelism": true
             },
+            "tmux": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "apps/agones/arpg/dev-tmux.sh"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "tmux-down": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "apps/agones/arpg/dev-tmux.sh kill"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "dev": {
               "executor": "nx:run-commands",
               "options": {
@@ -15082,6 +15098,9 @@
                 "load": true,
                 "tags": [
                   "kbve/arpg-web:latest"
+                ],
+                "build-args": [
+                  "PUBLIC_ARPG_VERSION"
                 ]
               },
               "configurations": {
@@ -15704,6 +15723,47 @@
               "configurations": {},
               "parallelism": true
             },
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "vitest run",
+                "runCommand": "pnpm run test"
+              },
+              "options": {
+                "script": "test"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:watch": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "vitest",
+                "runCommand": "pnpm run test:watch"
+              },
+              "options": {
+                "script": "test:watch"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:coverage": {
+              "executor": "nx:run-script",
+              "metadata": {
+                "scriptContent": "vitest run --coverage",
+                "runCommand": "pnpm run test:coverage"
+              },
+              "options": {
+                "script": "test:coverage"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "nx-release-publish": {
               "executor": "@nx/js:release-publish",
               "dependsOn": [
@@ -15722,21 +15782,15 @@
               "parallelism": true
             }
           },
-          "name": "rn",
           "projectType": "library",
-          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-          "sourceRoot": "packages/npm/rn/src",
-          "tags": [
-            "npm:public",
-            "npm:react-native",
-            "npm:expo",
-            "npm:kbve",
-            "npm:agent",
-            "scope:mobile",
-            "type:lib"
-          ],
           "metadata": {
-            "targetGroups": {},
+            "targetGroups": {
+              "NPM Scripts": [
+                "test",
+                "test:watch",
+                "test:coverage"
+              ]
+            },
             "description": "React Native shared layer for KBVE mobile apps — agent-control protocol types, hooks, and UI primitives.",
             "js": {
               "packageName": "@kbve/rn",
@@ -15771,6 +15825,18 @@
               "isInPackageManagerWorkspaces": false
             }
           },
+          "name": "rn",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/rn/src",
+          "tags": [
+            "npm:public",
+            "npm:react-native",
+            "npm:expo",
+            "npm:kbve",
+            "npm:agent",
+            "scope:mobile",
+            "type:lib"
+          ],
           "implicitDependencies": []
         }
       },

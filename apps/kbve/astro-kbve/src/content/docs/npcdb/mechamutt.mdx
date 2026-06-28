@@ -1,0 +1,178 @@
+---
+title: 'Mechamutt'
+description: |
+    A scrappy salvage-built robot dog with a wagging antenna tail and a bark that crackles with static.
+ref: 'mechamutt'
+id: '01KME8R5PG7Z9QB3T6VX2H4N01'
+name: 'Mechamutt'
+img: '/assets/npc/mechamutt.png'
+type_flags: 16
+rarity: 'uncommon'
+personality: 'cheerful'
+rank: 'normal'
+family: 'mechanical'
+element: 'lightning'
+level: 5
+stats:
+    hp: 45
+    max_hp: 45
+    attack: 9
+    defense: 7
+    speed: 11
+    mp: 20
+    max_mp: 20
+    special_attack: 12
+    special_defense: 8
+    accuracy: 100
+    evasion: 100
+    crit_rate: 5
+    crit_damage: 1.5
+abilities:
+    - id: 'tackle'
+      name: 'Tackle'
+      description: 'A reckless full-body charge.'
+      category: 'physical'
+      target: 'enemy'
+      power: 12
+      damage: 12
+      pp: 35
+      max_pp: 35
+      hit_chance: 1.0
+      priority: 0
+    - id: 'static-bite'
+      name: 'Static Bite'
+      description: 'Chomps down with electrified jaws; may paralyze.'
+      element: 'lightning'
+      category: 'physical'
+      target: 'enemy'
+      power: 15
+      damage: 15
+      pp: 25
+      max_pp: 25
+      hit_chance: 0.95
+      high_crit: true
+      status_effect: 'paralyze'
+      status_chance: 0.2
+    - id: 'spark-bark'
+      name: 'Spark Bark'
+      description: 'A cone of crackling sound and sparks.'
+      element: 'lightning'
+      category: 'special'
+      target: 'enemy'
+      power: 18
+      pp: 20
+      max_pp: 20
+      mp_cost: 5
+      hit_chance: 1.0
+      status_effect: 'paralyze'
+      status_chance: 0.3
+    - id: 'overclock'
+      name: 'Overclock'
+      description: 'Floods the servos with current, spiking speed.'
+      category: 'status'
+      target: 'self'
+      pp: 10
+      max_pp: 10
+      stat_changes:
+        - stat: 'speed'
+          stages: 2
+          target: 'self'
+        - stat: 'attack'
+          stages: 1
+          target: 'self'
+    - id: 'plate-up'
+      name: 'Plate Up'
+      description: 'Clamps scavenged plating over vital servos.'
+      category: 'status'
+      target: 'self'
+      pp: 15
+      max_pp: 15
+      heal_amount: 8
+      stat_changes:
+        - stat: 'defense'
+          stages: 1
+          target: 'self'
+        - stat: 'special_defense'
+          stages: 1
+          target: 'self'
+pet:
+    catchable: true
+    capture_rate: 120
+    growth_rate: 'medium_fast'
+    base_xp_yield: 64
+    base_friendship: 70
+    gender_ratio: 0.5
+    base_stat_total: 92
+    egg_groups:
+        - 'mineral'
+        - 'field'
+    movepool:
+        - level: 1
+          ability_id: 'tackle'
+        - level: 1
+          ability_id: 'spark-bark'
+        - level: 8
+          ability_id: 'static-bite'
+        - level: 12
+          ability_id: 'plate-up'
+        - level: 16
+          ability_id: 'overclock'
+    evolutions:
+        - evolves_to_ref: 'cyber-hound'
+          level: 18
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+    wander_radius: 6.0
+    aggro_range: 0.0
+    can_flee: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "Mechamutt lunges with a joyful electric yip — {target} takes {dmg} damage!"
+        - "Servos whir as Mechamutt slams into {target} for {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "Mechamutt's antenna droops, and it skitters off on clattering paws!"
+    - action: 'wounded'
+      messages:
+        - "*Sparks leak from Mechamutt's seams, but its tail keeps wagging.*"
+    - action: 'near_death'
+      messages:
+        - "*Mechamutt's optics flicker red. One more hit and the lights go out.*"
+    - action: 'caught'
+      messages:
+        - "Mechamutt powers down with a contented chirp — caught!"
+spatial:
+    walk_speed: 3.2
+    run_speed: 5.0
+    can_fly: false
+    can_swim: false
+interaction:
+    is_interactable: true
+    is_attackable: true
+    is_targetable: true
+loot:
+    entries:
+        - item_ref: 'scrap-metal'
+          drop_rate: 0.4
+          min_quantity: 1
+          max_quantity: 3
+        - item_ref: 'spare-battery'
+          drop_rate: 0.15
+          min_quantity: 1
+          max_quantity: 1
+    max_drops: 2
+    gold_min: 3
+    gold_max: 9
+    xp_reward: 40
+lore: |
+    Nobody built Mechamutt on purpose. It assembled itself out of a junkyard's worth of broken drones, decided a passing scavenger was its owner, and has followed the scent of fresh scrap ever since. Loyal to a fault, terrified of magnets.
+credits: |
+    By Screen Smith
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+A scrappy salvage-built robot dog with a wagging antenna tail and a bark that crackles with static.

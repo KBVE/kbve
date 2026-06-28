@@ -7,6 +7,7 @@ import {
 	decodeInventory,
 	decodeItemPlaced,
 	decodeItemUsed,
+	decodePetBattleLog,
 	decodePickup,
 	decodeBlackjack,
 	decodeProjectile,
@@ -135,6 +136,15 @@ describe('postcard Ephemeral payload decoder', () => {
 	});
 
 	// proto.rs pickup_event_fixture_is_stable
+	it('decodes a PetBattleLogEvent (lines seq + outcome string)', () => {
+		// 02(seq) 02"hi" 03"won" 09"PlayerWon"
+		const payload = '0202686903776f6e09506c61796572576f6e';
+		expect(decodePetBattleLog(Array.from(fromHex(payload)))).toEqual({
+			lines: ['hi', 'won'],
+			outcome: 'PlayerWon',
+		});
+	});
+
 	it('decodes the Rust PickupEvent fixture', () => {
 		expect(decodePickup(Array.from(fromHex('056172726f7703')))).toEqual({
 			item_ref: 'arrow',

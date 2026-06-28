@@ -20,6 +20,7 @@ import type {
 	ItemPlacedEvent,
 	ItemUsedEvent,
 	KindEntry,
+	PetBattleLog,
 	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
@@ -84,6 +85,8 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 				return w.variant(29);
 			case 'ReturnSpace':
 				return w.variant(30);
+			case 'SimPetBattle':
+				return w.variant(31);
 		}
 		return;
 	}
@@ -332,6 +335,18 @@ function readPickup(r: PostcardReader): PickupEvent {
 /** Decode an EPHEMERAL_PICKUP payload. Field order matches `proto::PickupEvent`. */
 export function decodePickup(payload: number[]): PickupEvent {
 	return readPickup(new PostcardReader(Uint8Array.from(payload)));
+}
+
+function readPetBattleLog(r: PostcardReader): PetBattleLog {
+	const lines: string[] = [];
+	for (let n = r.seqLen(); n > 0; n--) lines.push(r.string());
+	const outcome = r.string();
+	return { lines, outcome };
+}
+
+/** Decode an EPHEMERAL_PET_BATTLE_LOG payload. Matches `proto::PetBattleLogEvent`. */
+export function decodePetBattleLog(payload: number[]): PetBattleLog {
+	return readPetBattleLog(new PostcardReader(Uint8Array.from(payload)));
 }
 
 /** Decode an EPHEMERAL_CORPSE payload (raw postcard). Field order matches

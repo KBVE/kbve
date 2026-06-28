@@ -8,7 +8,7 @@
 
 namespace
 {
-	FString NormalizePath(const FString& In)
+	FString NormalizeRawCallbackPath(const FString& In)
 	{
 		FString Out = In.TrimStartAndEnd();
 		if (Out.IsEmpty()) { Out = TEXT("/auth/callback"); }
@@ -76,7 +76,7 @@ TSharedPtr<FKBVESupabaseRawLoopback> FKBVESupabaseRawLoopback::Start(
 	}
 
 	TSharedPtr<FKBVESupabaseRawLoopback> Self = MakeShared<FKBVESupabaseRawLoopback>();
-	Self->CallbackPath = NormalizePath(InCallbackPath);
+	Self->CallbackPath = NormalizeRawCallbackPath(InCallbackPath);
 	Self->ErrorHtml = InErrorHtml;
 	Self->OnComplete = InOnComplete;
 

@@ -148,6 +148,7 @@
 		"@tanstack/react-query-persist-client": "^5.101.0",
 		"@tanstack/react-router": "^1.95.0",
 		"@tauri-apps/api": "^2.0.0",
+		"@tauri-apps/plugin-deep-link": "^2.4.0",
 		"@tauri-apps/plugin-opener": "^2.5.4",
 		"@tauri-apps/plugin-store": "^2.4.3",
 		"@types/d3-force": "^3.0.10",

@@ -11,10 +11,15 @@ readme = "README.md"
 rust-version = "1.88"
 
 
+[features]
+default = ["egui"]
+egui = ["dep:egui", "dep:eframe", "dep:image"]
+tauri = []
+
 [dependencies]
 base64 = "0.22.1"
-egui = "0.34.1"
-eframe = { version = "0.34.1", default-features = false, features = [
+egui = { version = "0.34.1", optional = true }
+eframe = { version = "0.34.1", default-features = false, optional = true, features = [
     "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
@@ -24,7 +29,7 @@ eframe = { version = "0.34.1", default-features = false, features = [
 ] }
 log = "0.4"
 ehttp = "0.6.0"
-image = { version = "0.25.9", default-features = false, features = ["png", "jpeg", "webp"] }
+image = { version = "0.25.9", optional = true, default-features = false, features = ["png", "jpeg", "webp"] }
 holy = { path = "../holy" }
 
 chrono = { version = "0.4.43", features = ["serde"] }

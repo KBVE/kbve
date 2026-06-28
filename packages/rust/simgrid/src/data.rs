@@ -20,6 +20,8 @@ pub struct NpcDef {
     #[serde(default)]
     pub level: i32,
     #[serde(default)]
+    pub element: String,
+    #[serde(default)]
     pub stats: NpcStats,
     #[serde(default)]
     pub equipment: Option<NpcEquipment>,
@@ -27,6 +29,97 @@ pub struct NpcDef {
     pub faction: Option<NpcFaction>,
     #[serde(default)]
     pub shop_items: Vec<String>,
+    #[serde(default)]
+    pub abilities: Vec<NpcAbility>,
+    #[serde(default)]
+    pub pet: Option<NpcPet>,
+}
+
+/// One ability/move on a species. The JRPG fields (`power`, `pp`, `category`,
+/// `element`) feed the pet battle system; only the subset the server needs is
+/// deserialized — extra npcdb fields are ignored.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcAbility {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub power: i32,
+    #[serde(default)]
+    pub pp: i32,
+    #[serde(default)]
+    pub max_pp: i32,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub element: String,
+    #[serde(default)]
+    pub hit_chance: f32,
+    #[serde(default)]
+    pub priority: i32,
+    #[serde(default)]
+    pub status_effect: String,
+    #[serde(default)]
+    pub status_chance: f32,
+    #[serde(default)]
+    pub high_crit: bool,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub recoil_fraction: f32,
+    #[serde(default)]
+    pub drain_fraction: f32,
+    #[serde(default)]
+    pub stat_changes: Vec<NpcStatChange>,
+}
+
+/// One stat buff/debuff a move applies on hit.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcStatChange {
+    #[serde(default)]
+    pub stat: String,
+    #[serde(default)]
+    pub stages: i32,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub chance: f32,
+}
+
+/// One level-up move a pet learns naturally.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcMovepoolEntry {
+    #[serde(default)]
+    pub level: u32,
+    #[serde(default)]
+    pub ability_id: String,
+}
+
+/// Catchable-pet metadata on a species — present only on pets. Drives capture and the
+/// mint of a pet instance from this template.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcPet {
+    #[serde(default)]
+    pub catchable: bool,
+    #[serde(default)]
+    pub capture_rate: i32,
+    #[serde(default)]
+    pub growth_rate: String,
+    #[serde(default)]
+    pub base_xp_yield: i32,
+    #[serde(default)]
+    pub base_friendship: i32,
+    #[serde(default)]
+    pub base_stat_total: i32,
+    #[serde(default)]
+    pub movepool: Vec<NpcMovepoolEntry>,
+    #[serde(default)]
+    pub egg_groups: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -49,6 +142,10 @@ pub struct NpcStats {
     pub defense: i32,
     #[serde(default)]
     pub speed: i32,
+    #[serde(default)]
+    pub special_attack: i32,
+    #[serde(default)]
+    pub special_defense: i32,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -69,6 +166,10 @@ impl NpcDef {
         self.faction
             .as_ref()
             .is_some_and(|f| f.faction_id == "hostile")
+    }
+
+    pub fn is_catchable(&self) -> bool {
+        self.pet.as_ref().is_some_and(|p| p.catchable)
     }
 }
 
@@ -180,6 +281,24 @@ mod tests {
         assert_eq!(npc.name, "Cleric");
         assert_eq!(npc.stats.max_hp, 40);
         assert_eq!(npc.equipment.as_ref().unwrap().equipped[0].item_ref, "robe");
+    }
+
+    #[test]
+    fn npcdb_parses_pet_block() {
+        let json = r#"{"npcs":[{"ref":"mechamutt","name":"Mechamutt","level":5,
+            "stats":{"hp":45,"maxHp":45,"attack":9,"defense":7,"speed":11,
+                "specialAttack":12,"specialDefense":8},
+            "abilities":[{"id":"tackle","maxPp":35,"category":"MOVE_CATEGORY_PHYSICAL"}],
+            "pet":{"catchable":true,"captureRate":120,"growthRate":"GROWTH_RATE_MEDIUM_FAST",
+                "movepool":[{"level":1,"abilityId":"tackle"}],"eggGroups":["mineral"]}}]}"#;
+        let db = NpcDb::from_json(json.as_bytes()).expect("parse");
+        let npc = db.get("mechamutt").expect("mechamutt");
+        assert!(npc.is_catchable());
+        assert_eq!(npc.stats.special_attack, 12);
+        let pet = npc.pet.as_ref().unwrap();
+        assert_eq!(pet.capture_rate, 120);
+        assert_eq!(pet.movepool[0].ability_id, "tackle");
+        assert_eq!(npc.abilities[0].max_pp, 35);
     }
 
     #[test]

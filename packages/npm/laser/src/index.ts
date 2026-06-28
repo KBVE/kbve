@@ -171,6 +171,7 @@ export type {
 	InventoryItem,
 	InventorySync,
 	CorpseContents,
+	PetBattleLog,
 	ShopResult,
 	CombatEvent,
 	ProjectileEvent,
@@ -206,6 +207,28 @@ export type {
 	GameNetConfigStore,
 	ChatConfig,
 } from './lib/auth/game-auth';
+
+// Embed — Discord Activity / embedded-SDK helpers shared across game clients:
+// an external-link opener registry (sandbox-safe outbound links) + the boot-time
+// hardware-acceleration prompt.
+export {
+	setExternalOpener,
+	getExternalOpener,
+	openExternal,
+	onExternalClick,
+} from './lib/embed/external';
+export type { ExternalOpener } from './lib/embed/external';
+export {
+	installDiscordExternal,
+	encourageHardwareAcceleration,
+} from './lib/embed/discord-external';
+export type { DiscordExternalSdk } from './lib/embed/discord-external';
+
+// Ads — framework-agnostic cross-promo model + boot-screen card + rotation pool
+export { AdCard } from './lib/ads/AdCard';
+export type { AdCardProps } from './lib/ads/AdCard';
+export { pickAd, AdRegistry, laserAds } from './lib/ads/registry';
+export type { AdCreative } from './lib/ads/types';
 
 // i18n — framework-agnostic translation store + React provider/hook
 export {

@@ -83,6 +83,7 @@ fn exp_decay(rate: f32, dt: f32) -> f32 {
     (-rate * dt).exp()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn step_float(
     b: &mut FloatBody,
     ix: f32,

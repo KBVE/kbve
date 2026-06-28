@@ -1,21 +1,31 @@
 import { create } from 'zustand';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import {
+	authApi,
 	launcherApi,
+	onAuthCallback,
+	toAuthUser,
+	type AuthUser,
 	type ClientVersion,
 	type Installed,
 	type Progress,
-} from './lib/tauri';
-import {
-	ensureFresh,
-	fetchUser,
-	loadSession,
-	onCallback,
-	persist,
-	signIn,
-	type AuthUser,
 	type Provider,
 	type Session,
-} from './lib/auth';
+} from '@kbve/tauri';
+import { loadSession, saveSession } from './lib/persist';
+
+const REDIRECT = 'chuckrpg-launcher://auth/callback';
+
+function nowSecs(): number {
+	return Math.floor(Date.now() / 1000);
+}
+
+async function freshSession(session: Session): Promise<Session> {
+	if (session.expires_at && session.expires_at - 300 > nowSecs())
+		return session;
+	const refreshed = await authApi.refresh();
+	return refreshed ?? session;
+}
 
 type Phase =
 	| 'idle'
@@ -36,6 +46,7 @@ type LauncherState = {
 	session: Session | null;
 	user: AuthUser | null;
 	authPhase: AuthPhase;
+	refreshCooldown: boolean;
 	refresh: () => Promise<void>;
 	installOrUpdate: () => Promise<void>;
 	play: () => Promise<void>;
@@ -56,6 +67,7 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 	session: null,
 	user: null,
 	authPhase: 'anon',
+	refreshCooldown: false,
 
 	latest: () => get().clients.find((c) => c.platform === get().platform),
 	needsUpdate: () => {
@@ -66,7 +78,9 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 	},
 
 	refresh: async () => {
-		set({ phase: 'loading', error: null });
+		if (get().refreshCooldown) return;
+		set({ phase: 'loading', error: null, refreshCooldown: true });
+		setTimeout(() => set({ refreshCooldown: false }), 5000);
 		try {
 			const platform = await launcherApi.currentPlatform();
 			const [clients, installed] = await Promise.all([
@@ -108,10 +122,10 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 		try {
 			let session = get().session;
 			if (session) {
-				const fresh = await ensureFresh(session);
-				if (fresh && fresh !== session) {
+				const fresh = await freshSession(session);
+				if (fresh !== session) {
 					session = fresh;
-					await persist(fresh);
+					await saveSession(fresh);
 					set({ session: fresh });
 				}
 			}
@@ -128,39 +142,50 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 	},
 
 	initAuth: async () => {
-		await onCallback(async (s) => {
+		await onAuthCallback(async (url) => {
 			set({ authPhase: 'authing' });
-			await persist(s);
-			const user = await fetchUser(s);
-			set({ session: s, user, authPhase: user ? 'authed' : 'anon' });
+			try {
+				const session = await authApi.complete(url);
+				await saveSession(session);
+				set({
+					session,
+					user: toAuthUser(session),
+					authPhase: 'authed',
+				});
+			} catch (e) {
+				set({ authPhase: 'anon', error: String(e) });
+			}
 		});
+
 		const stored = await loadSession();
 		if (!stored) return;
-		const fresh = await ensureFresh(stored);
-		if (!fresh) {
-			await persist(null);
-			return;
+		try {
+			await authApi.restore(stored);
+			const fresh = await freshSession(stored);
+			if (fresh !== stored) await saveSession(fresh);
+			set({
+				session: fresh,
+				user: toAuthUser(fresh),
+				authPhase: 'authed',
+			});
+		} catch {
+			await saveSession(null);
 		}
-		if (fresh !== stored) await persist(fresh);
-		const user = await fetchUser(fresh);
-		set({
-			session: fresh,
-			user,
-			authPhase: user ? 'authed' : 'anon',
-		});
 	},
 
 	signInWith: async (provider) => {
 		set({ authPhase: 'authing', error: null });
 		try {
-			await signIn(provider);
+			const url = await authApi.authorizeUrl(provider, REDIRECT);
+			await openUrl(url);
 		} catch (e) {
 			set({ authPhase: 'anon', error: String(e) });
 		}
 	},
 
 	signOut: async () => {
-		await persist(null);
+		await authApi.signOut();
+		await saveSession(null);
 		set({ session: null, user: null, authPhase: 'anon' });
 	},
 }));

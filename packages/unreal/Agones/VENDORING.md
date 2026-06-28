@@ -22,3 +22,10 @@ git clone --depth 1 --branch release-1.58.0 --filter=blob:none --sparse https://
 cd agones && git sparse-checkout set sdks/unreal
 # diff sdks/unreal/Agones against packages/unreal/Agones, re-apply the TargetAllowList line
 ```
+
+## CI
+
+Linux-only, server target. Covered by the per-plugin verify pipeline
+(`ci-unreal-plugins.yml`). A change here selects `Agones` plus its dependent
+`KBVEAgones` via the changed-plugin cascade; the Linux verify stage runs on
+release PRs into `main` or any PR labeled `ci-full-plugins`.

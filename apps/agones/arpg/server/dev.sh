@@ -33,6 +33,15 @@ sleep 1
 $COMPOSE up -d valkey
 $COMPOSE rm -sf arpg-server 2>/dev/null || true
 
+# Local secret overrides (gitignored). Sourced before the exports so values like
+# SUPABASE_JWT_SECRET flow into the ${VAR:-default} fallbacks below.
+ENV_FILE="$(cd "$(dirname "$0")" && pwd)/.env"
+if [[ -f "$ENV_FILE" ]]; then
+    set -a
+    . "$ENV_FILE"
+    set +a
+fi
+
 # Env mirrors docker-compose.yml, except KV points at the host-mapped Valkey
 # (localhost, not the in-network `valkey` hostname).
 export ARPG_SERVER_ADDR="${ARPG_SERVER_ADDR:-0.0.0.0:7979}"
@@ -40,6 +49,7 @@ export ARPG_SERVER_SEED="${ARPG_SERVER_SEED:-12648430}"
 export RUST_LOG="${RUST_LOG:-info,arpg_server=debug,simgrid=debug}"
 export SUPABASE_URL="${SUPABASE_URL:-https://supabase.kbve.com}"
 export SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg}"
+export SUPABASE_JWT_SECRET="${SUPABASE_JWT_SECRET:-}"
 export KBVE_KV_URL="${KBVE_KV_URL:-redis://localhost:6379}"
 
 # Debug profile (fast compile). Add --release only if you need to profile perf.
