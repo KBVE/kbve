@@ -159,6 +159,8 @@ import {
 	emitConnection,
 	emitPlayers,
 	onInventoryIntent,
+	onPetBattleRequest,
+	emitPetBattleLog,
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
@@ -364,6 +366,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private spells: SpellState = makeSpellState();
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
+	private offPetBattle?: () => void;
 	private offCorpseIntent?: () => void;
 	private offSpaceExit?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
@@ -487,6 +490,11 @@ export class IsoArpgScene extends Phaser.Scene {
 
 		this.offIntent = onInventoryIntent((intent) =>
 			this.handleInventoryIntent(intent),
+		);
+
+		// Debug HUD button -> ask the server to simulate a pet battle.
+		this.offPetBattle = onPetBattleRequest(() =>
+			this.client?.simPetBattle(),
 		);
 
 		// Loot panel intents from React -> the authoritative client.
@@ -1250,6 +1258,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		// Corpse loot panel: forward the server's contents to the React LootPanel.
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
+		// Debug pet-battle simulation result -> the React log panel.
+		client.on('petBattleLog', (log) => emitPetBattleLog(log));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
@@ -2438,6 +2448,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.ground = undefined;
 		this.offIntent?.();
 		this.offIntent = undefined;
+		this.offPetBattle?.();
+		this.offPetBattle = undefined;
 		this.offCorpseIntent?.();
 		this.offCorpseIntent = undefined;
 		this.offSpaceExit?.();

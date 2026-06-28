@@ -9,6 +9,7 @@ import {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_PLACED,
 	EPHEMERAL_ITEM_USED,
+	EPHEMERAL_PET_BATTLE_LOG,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_PROJECTILE,
 	EPHEMERAL_SHOP,
@@ -26,6 +27,7 @@ import {
 	type InventorySync,
 	type ItemPlacedEvent,
 	type ItemUsedEvent,
+	type PetBattleLog,
 	type PickupEvent,
 	type ProjectileEvent,
 	type ServerEvent,
@@ -46,6 +48,7 @@ import {
 	decodeInventory,
 	decodeItemPlaced,
 	decodeItemUsed,
+	decodePetBattleLog,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
@@ -71,6 +74,7 @@ export type GameClientEventMap = {
 	stats: StatsEvent;
 	shop: ShopResult;
 	blackjackState: BlackjackStateView;
+	petBattleLog: PetBattleLog;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -201,6 +205,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_BLACKJACK) {
 			const data = decodeBlackjack(evt.payload);
 			if (data) this.bus.emit('blackjackState', data);
+		} else if (evt.kind === EPHEMERAL_PET_BATTLE_LOG) {
+			const data = decodePetBattleLog(evt.payload);
+			if (data) this.bus.emit('petBattleLog', data);
 		}
 	}
 
@@ -241,6 +248,11 @@ export class GameClient {
 
 	useItem(itemRef: string): void {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
+	}
+
+	/** Debug: ask the server to run a simulated 5v5 mechamutt battle and stream the log. */
+	simPetBattle(): void {
+		this.sendInputs(['SimPetBattle']);
 	}
 
 	castSpell(spellRef: string, target: number | null): void {

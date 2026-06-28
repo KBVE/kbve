@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { I18nProvider, useTranslation } from '@kbve/laser';
-import type { InventoryItem } from '@kbve/laser';
+import type { InventoryItem, PetBattleLog } from '@kbve/laser';
 import {
 	onHud,
 	onHudClear,
@@ -8,6 +8,8 @@ import {
 	onInventoryOpen,
 	onSpellLoadout,
 	onDeath,
+	onPetBattleLog,
+	emitPetBattleRequest,
 	type HudState,
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
@@ -150,6 +152,91 @@ function D2HudInner({ debug }: { debug: boolean }) {
 			)}
 			<Tooltip />
 			<DeathScreen />
+			{debug && <PetBattleDebug />}
+		</div>
+	);
+}
+
+/**
+ * Debug-only: a button that asks the server to simulate a 5v5 mechamutt battle, plus
+ * a scrollable panel that renders the streamed turn log. Temporary placement (top-left);
+ * the real encounter UI replaces it later.
+ */
+function PetBattleDebug() {
+	const [log, setLog] = useState<PetBattleLog | null>(null);
+	const [pending, setPending] = useState(false);
+	useEffect(() => {
+		const off = onPetBattleLog((l) => {
+			setLog(l);
+			setPending(false);
+		});
+		return () => off();
+	}, []);
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				top: 64,
+				left: 14,
+				pointerEvents: 'auto',
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 6,
+				maxWidth: 320,
+			}}>
+			<button
+				type="button"
+				onClick={() => {
+					setPending(true);
+					emitPetBattleRequest();
+				}}
+				style={{
+					alignSelf: 'flex-start',
+					padding: '6px 12px',
+					fontFamily: 'monospace',
+					fontSize: 12,
+					color: '#e6ebf5',
+					background: 'rgba(40,20,60,0.85)',
+					border: '1px solid #6ea8ff',
+					borderRadius: 6,
+					cursor: 'pointer',
+					textShadow: TEXT_SHADOW,
+				}}>
+				{pending ? '⚔ Simulating…' : '⚔ Sim Battle (5v5)'}
+			</button>
+			{log && (
+				<div
+					style={{
+						maxHeight: 280,
+						overflowY: 'auto',
+						padding: '8px 10px',
+						fontFamily: 'monospace',
+						fontSize: 11,
+						lineHeight: 1.5,
+						color: '#c7f9cc',
+						background: 'rgba(8,10,16,0.9)',
+						border: '1px solid #2b3a55',
+						borderRadius: 6,
+					}}>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							marginBottom: 4,
+							color: MUTED,
+						}}>
+						<span>Battle log</span>
+						<span
+							onClick={() => setLog(null)}
+							style={{ cursor: 'pointer' }}>
+							✕
+						</span>
+					</div>
+					{log.lines.map((line, i) => (
+						<div key={i}>{line}</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }

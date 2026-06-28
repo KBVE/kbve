@@ -171,6 +171,7 @@ export type {
 	InventoryItem,
 	InventorySync,
 	CorpseContents,
+	PetBattleLog,
 	ShopResult,
 	CombatEvent,
 	ProjectileEvent,
