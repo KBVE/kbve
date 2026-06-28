@@ -71,6 +71,15 @@ spec:
                             secretKeyRef:
                                 name: realtime-jwt-secret
                                 key: API_JWT_SECRET
+                      # Accept-both: seeds.exs sets the tenant's jwt_jwks from
+                      # API_JWT_JWKS so realtime validates ES256 alongside the
+                      # HS256 API_JWT_SECRET. EC-public set, kid matches the
+                      # GoTrue signer. Needs the supabase-jwt-vendor secret.
+                      - name: API_JWT_JWKS
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt-vendor
+                                key: public-jwks
                       - name: JWT_SECRET
                         valueFrom:
                             secretKeyRef:
