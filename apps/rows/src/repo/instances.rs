@@ -667,6 +667,45 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
+    /// Per-scope admission overrides from `ows.admission_control`, read in one query: the tenant row
+    /// and the global sentinel row (all-zeros GUID). Returns `(tenant, global)`; a scope with no row
+    /// stays the all-`None` default ("fall back to env baseline"). Degrades to `(default, default)`
+    /// when the table doesn't exist yet (SQLSTATE 42P01) so a rows image shipping ahead of the
+    /// migration runs on the env baseline instead of erroring every join. Other DB errors propagate
+    /// so the caller can fail-open loudly (see the join path's F6 handling).
+    pub async fn get_admission_overrides(
+        &self,
+        tenant: Uuid,
+    ) -> Result<(crate::config::AdmissionOverride, crate::config::AdmissionOverride), RowsError>
+    {
+        const GLOBAL: Uuid = Uuid::nil();
+        let result = sqlx::query_as::<_, (Uuid, Option<bool>)>(
+            "SELECT customerguid, acceptnewjoins FROM admission_control
+             WHERE customerguid = $1 OR customerguid = $2",
+        )
+        .bind(tenant)
+        .bind(GLOBAL)
+        .fetch_all(self.0)
+        .await;
+
+        match result {
+            Ok(rows) => {
+                let mut t = crate::config::AdmissionOverride::default();
+                let mut g = crate::config::AdmissionOverride::default();
+                for (guid, accept) in rows {
+                    if guid == GLOBAL {
+                        g.accept_new_joins = accept;
+                    } else {
+                        t.accept_new_joins = accept;
+                    }
+                }
+                Ok((t, g))
+            }
+            Err(e) if is_undefined_table(&e) => Ok((Default::default(), Default::default())),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     /// Whether this tenant has *ever* received a heartbeat (any instance with a non-NULL
     /// `lastupdatefromserver`). Drives the `require_heartbeat` auto-gate: if no heartbeat has ever
     /// arrived, UE isn't configured to report, so the never-reported path must stay suppressed.
