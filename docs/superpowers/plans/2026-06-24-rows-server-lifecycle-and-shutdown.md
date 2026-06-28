@@ -324,6 +324,64 @@ pattern already shipped for `reaper_config`:
 
 The `reaper_config` table (this PR) is the first slice of this control plane.
 
+### Admission gate — operator runbook (Phase 2, SHIPPED)
+
+The `accept_new_joins` gate is live in ROWS as of Phase 2 (`admission_control` table + join-path
+enforcement). It freezes **new joins** at two enforceable scopes — **global** (game-wide) and
+**tenant** — while existing players keep playing and **traveling** (travel bypasses the gate). It
+ships **inert**: no DB rows + env default `ROWS_ACCEPT_NEW_JOINS=true` ⇒ no effect.
+
+**Scopes & precedence.** New joins are blocked if **either** the global sentinel row (`customerguid
+= 00000000-0000-0000-0000-000000000000`) **or** this tenant's row has `acceptnewjoins = false`.
+Absent row / absent table ⇒ fall back to the env baseline. (Cluster/node scope is NOT enforced yet —
+needs a capacity controller ROWS doesn't have; see Holes in the admission plan.)
+
+**Env baseline.** `ROWS_ACCEPT_NEW_JOINS` (default `true`). This is only the fallback when no DB row
+overrides it. A tenant configured with the all-zeros `OWS_API_KEY` is rejected at startup (it would
+alias the global sentinel).
+
+**⚠️ Fail-open semantics (F6) — the freeze is best-effort under DB stress.** Both travel detection
+and the admission read **fail OPEN** on a DB error: the gate's read hits the primary, and failing
+closed there would turn a routine DB blip into a game-wide new-login outage even with no freeze set.
+So a set freeze only takes effect when the read **succeeds** and returns `false`; during real DB
+stress a new join may slip through. **Do not treat the freeze as a hard guarantee** — it is a
+load-shed / maintenance lever, not a security gate. (A valkey-cached read that could safely fail
+closed is deferred — see Holes.)
+
+**Client behavior (F2).** A blocked new join returns **`503 Service Unavailable`** (HTTP, with
+`Retry-After: 5`) / gRPC **`unavailable`** — a **retryable** signal. Clients are expected to back off
+and retry, not surface a hard error. (Confirm the UE client honors this; otherwise the "retry
+shortly" message is hollow — tracked in Holes.)
+
+**🚫 Rollback (F4) — code-only; never `migrate:down`.** To roll back, **revert the ROWS image via
+Argo.** The `admission_control` table is inert when unused, so there is never a reason to drop it.
+`DROP TABLE` (a) **silently destroys any active operator freeze** mid-incident and (b) against
+pre-Phase-1 code 500s every join. Run the down-migration only deliberately, with sign-off, never as
+part of an incident rollback.
+
+**SQL to flip a gate** (psql against the ows DB):
+
+```sql
+SET search_path TO ows;
+
+-- Game-wide freeze (all tenants): pause every new join.
+INSERT INTO admission_control (customerguid, acceptnewjoins)
+VALUES ('00000000-0000-0000-0000-000000000000', false)
+ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoins;
+-- Lift the game-wide freeze:
+DELETE FROM admission_control WHERE customerguid = '00000000-0000-0000-0000-000000000000';
+
+-- Per-tenant freeze: pause new joins for one tenant only (replace the GUID).
+INSERT INTO admission_control (customerguid, acceptnewjoins)
+VALUES ('<tenant-customerguid>', false)
+ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoins;
+-- Lift the per-tenant freeze:
+DELETE FROM admission_control WHERE customerguid = '<tenant-customerguid>';
+```
+
+(ROWS only **reads** this table; the dashboard UI that writes it is a separate, still-future
+deliverable. Until then, operators flip the gate with the SQL above.)
+
 ## Party affinity (routing) vs admission (UE)
 
 | Concern                                              | Owner                    |
