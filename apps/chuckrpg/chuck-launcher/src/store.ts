@@ -46,6 +46,7 @@ type LauncherState = {
 	session: Session | null;
 	user: AuthUser | null;
 	authPhase: AuthPhase;
+	refreshCooldown: boolean;
 	refresh: () => Promise<void>;
 	installOrUpdate: () => Promise<void>;
 	play: () => Promise<void>;
@@ -66,6 +67,7 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 	session: null,
 	user: null,
 	authPhase: 'anon',
+	refreshCooldown: false,
 
 	latest: () => get().clients.find((c) => c.platform === get().platform),
 	needsUpdate: () => {
@@ -76,7 +78,9 @@ export const useLauncher = create<LauncherState>((set, get) => ({
 	},
 
 	refresh: async () => {
-		set({ phase: 'loading', error: null });
+		if (get().refreshCooldown) return;
+		set({ phase: 'loading', error: null, refreshCooldown: true });
+		setTimeout(() => set({ refreshCooldown: false }), 5000);
 		try {
 			const platform = await launcherApi.currentPlatform();
 			const [clients, installed] = await Promise.all([

@@ -135,10 +135,12 @@ export default function App() {
 
 					<button
 						onClick={() => void s.refresh()}
-						disabled={busy}
+						disabled={busy || s.refreshCooldown}
 						className="ck-btn ck-btn--secondary mt-2.5 w-full px-4 py-2 text-[0.6rem]">
 						<RefreshIcon />
-						<span className="ck-btn__text">Refresh</span>
+						<span className="ck-btn__text">
+							{s.refreshCooldown ? 'Refreshed' : 'Refresh'}
+						</span>
 					</button>
 				</div>
 			</div>
