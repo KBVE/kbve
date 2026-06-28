@@ -48,6 +48,14 @@ pub const EPHEMERAL_SPELL: u16 = 15;
 pub const EPHEMERAL_CORPSE: u16 = 16;
 pub const EPHEMERAL_PET_ROSTER: u16 = 17;
 pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
+pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
+
+// `Input::PetTurn.action` — what the player commits for an interactive battle turn.
+// `arg` is the move slot (PET_ACT_MOVE) or the reserve index to send out (PET_ACT_SWAP).
+pub const PET_ACT_MOVE: u8 = 0;
+pub const PET_ACT_SWAP: u8 = 1;
+pub const PET_ACT_ITEM: u8 = 2;
+pub const PET_ACT_RUN: u8 = 3;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -258,6 +266,13 @@ pub enum Input {
     /// stream back the result log. A throwaway trigger until real encounters land.
     /// Appended last so serde variant indices are unchanged.
     SimPetBattle,
+    /// Commit one action for the active interactive pet battle. `action` is a
+    /// `PET_ACT_*` constant; `arg` is the move slot or swap-target index. Appended
+    /// last so serde variant indices are unchanged.
+    PetTurn {
+        action: u8,
+        arg: u8,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -633,6 +648,37 @@ pub struct PetBattleReplay {
     pub outcome: String,
 }
 
+/// One selectable move on the active pet, for the interactive battle menu. `category`
+/// is 0 physical / 1 special / 2 status; `accuracy` is a percent (101 = never-miss).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetMoveOption {
+    pub slot: u8,
+    pub name: String,
+    pub element: String,
+    pub category: u8,
+    pub power: i32,
+    pub accuracy: u32,
+    pub pp: u16,
+    pub max_pp: u16,
+}
+
+/// A turn-by-turn snapshot of an interactive pet battle: both teams' current vitals, the
+/// active indices, the move menu for the player's active pet, the events of the turn just
+/// resolved (for the client to animate), and whether the server is now `awaiting` the
+/// player's next action. Mirrors TS `PetBattleState`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetBattleState {
+    pub player: Vec<PetBattler>,
+    pub enemy: Vec<PetBattler>,
+    pub p_active: u8,
+    pub e_active: u8,
+    pub moves: Vec<PetMoveOption>,
+    pub events: Vec<PetBattleWireEvent>,
+    pub outcome: String,
+    pub awaiting: bool,
+    pub can_run: bool,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
@@ -955,6 +1001,57 @@ mod tests {
     fn hex(bytes: &[u8]) -> String {
         bytes.iter().map(|b| format!("{b:02x}")).collect()
     }
+
+    // Cross-language wire lock for the interactive battle snapshot: the TS
+    // decodePetBattleState pins this SAME hex (laser postcard-wire.spec.ts).
+    #[test]
+    fn pet_battle_state_fixture_is_stable() {
+        let state = PetBattleState {
+            player: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Rex".into(),
+                level: 5,
+                hp: 30,
+                max_hp: 40,
+            }],
+            enemy: vec![PetBattler {
+                species_ref: "m".into(),
+                nickname: "Foe".into(),
+                level: 5,
+                hp: 40,
+                max_hp: 40,
+            }],
+            p_active: 0,
+            e_active: 0,
+            moves: vec![PetMoveOption {
+                slot: 0,
+                name: "spark".into(),
+                element: "Lightning".into(),
+                category: 1,
+                power: 40,
+                accuracy: 100,
+                pp: 15,
+                max_pp: 15,
+            }],
+            events: vec![PetBattleWireEvent {
+                kind: PB_DAMAGE,
+                side: 1,
+                value: 10,
+                hp: 30,
+                flag: 0,
+                text: "hit".into(),
+            }],
+            outcome: "Ongoing".into(),
+            awaiting: true,
+            can_run: true,
+        };
+        let bytes = encode_inner(&state).expect("encode");
+        assert_eq!(hex(&bytes), PET_STATE_HEX);
+        let back: PetBattleState = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, state);
+    }
+
+    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e670101";
 
     #[test]
     fn combat_event_fixture_is_stable() {

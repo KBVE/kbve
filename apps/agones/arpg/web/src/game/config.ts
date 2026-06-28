@@ -10,13 +10,7 @@ export const GRID_SIZE = 24;
 // server-matchable); DUNGEON_RADIUS is how many chunks out from the player's
 // chunk stay generated/rendered.
 export const DUNGEON_SEED = 0x5eed1;
-export const DUNGEON_RADIUS = 2;
-
-// Distance fog is keyed to zoom: full when zoomed out (the streamed void edge is
-// visible) and gone when zoomed in (tight view, no boundary to hide).
-export const FOG_ZOOM_OUT = 0.7; // at/below this zoom, fog is at full strength
-export const FOG_ZOOM_IN = 1.1; // at/above this zoom, no fog
-export const FOG_MAX_STRENGTH = 0.6; // vignette strength when fully fogged
+export const DUNGEON_RADIUS = 3;
 
 export const MOVE_TWEEN_MS = 140;
 export const HEARTBEAT_MS = 20000;

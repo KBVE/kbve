@@ -2,13 +2,24 @@ import { useEffect, useState, type ReactElement } from 'react';
 import {
 	I18nProvider,
 	useTranslation,
+	PB_USED,
 	PB_DAMAGE,
 	PB_FAINT,
 	PB_SWAP,
 	PB_HEAL,
 	PB_STATUS_DMG,
+	PET_ACT_MOVE,
+	PET_ACT_SWAP,
+	PET_ACT_ITEM,
+	PET_ACT_RUN,
 } from '@kbve/laser';
-import type { InventoryItem, PetBattleReplay, PetBattler } from '@kbve/laser';
+import type {
+	InventoryItem,
+	PetBattler,
+	PetBattleState,
+	PetBattleWireEvent,
+	PetMoveOption,
+} from '@kbve/laser';
 import {
 	onHud,
 	onHudClear,
@@ -16,8 +27,9 @@ import {
 	onInventoryOpen,
 	onSpellLoadout,
 	onDeath,
-	onPetBattleReplay,
+	onPetBattleState,
 	emitPetBattleRequest,
+	emitPetBattleAction,
 	type HudState,
 } from '../systems/hud';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
@@ -166,16 +178,16 @@ function D2HudInner({ debug }: { debug: boolean }) {
 }
 
 /**
- * Debug-only trigger: a button that asks the server to simulate a 5v5 mechamutt battle;
- * when the replay streams back it opens the animated <PetBattleScene>. Temporary
- * placement (top-left) — the real encounter flow replaces it later.
+ * Debug-only trigger: a button that starts an interactive 5v5 mechamutt battle. The server
+ * streams a PetBattleState each turn; the <PetBattleScene> plays it out and collects the
+ * player's choices. Temporary placement — the real encounter flow replaces it later.
  */
 function PetBattleDebug() {
-	const [replay, setReplay] = useState<PetBattleReplay | null>(null);
+	const [state, setState] = useState<PetBattleState | null>(null);
 	const [pending, setPending] = useState(false);
 	useEffect(() => {
-		const off = onPetBattleReplay((r) => {
-			setReplay(r);
+		const off = onPetBattleState((s) => {
+			setState(s);
 			setPending(false);
 		});
 		return () => off();
@@ -203,12 +215,15 @@ function PetBattleDebug() {
 					cursor: 'pointer',
 					textShadow: TEXT_SHADOW,
 				}}>
-				{pending ? '⚔ Simulating…' : '⚔ Sim Battle (5v5)'}
+				{pending ? '⚔ Starting…' : '⚔ Sim Battle (5v5)'}
 			</button>
-			{replay && (
+			{state && (
 				<PetBattleScene
-					replay={replay}
-					onClose={() => setReplay(null)}
+					state={state}
+					onAction={(action, arg) =>
+						emitPetBattleAction({ action, arg })
+					}
+					onClose={() => setState(null)}
 				/>
 			)}
 		</>
@@ -218,93 +233,193 @@ function PetBattleDebug() {
 const SPRITE_OF = (ref: string) => `/assets/npc/${ref}.png`;
 const STEP_MS = 650;
 
+// One-shot battle juice. Sprite shake/lunge (transform on the wrapper), white hit-flash
+// (filter on the img), and the floating damage/heal number. All retrigger by remounting
+// on a per-event nonce key, so each event replays its animation from the top.
+const BATTLE_FX_CSS = `
+@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes arpgHitShakeBig{0%,100%{transform:translate(0,0)}20%{transform:translate(-9px,3px)}50%{transform:translate(9px,-3px)}80%{transform:translate(-6px,2px)}}
+@keyframes arpgLungeP{0%,100%{transform:translate(0,0)}40%{transform:translate(12px,-10px)}}
+@keyframes arpgLungeE{0%,100%{transform:translate(0,0)}40%{transform:translate(-12px,10px)}}
+@keyframes arpgImgFlash{0%{filter:brightness(1)}30%{filter:brightness(2.6) saturate(0)}100%{filter:brightness(1)}}
+@keyframes arpgFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.7)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
+@keyframes arpgLowBlink{0%,100%{opacity:1}50%{opacity:.4}}
+`;
+
 interface BattleView {
-	pa: number;
-	ea: number;
+	pIdx: number;
+	eIdx: number;
 	pHp: number;
 	eHp: number;
-	pFaint: number;
-	eFaint: number;
 	text: string;
-	hitSide: number;
+	// Per-event juice, bumped each step so the CSS one-shots retrigger (keyed by nonce).
+	fxNonce: number;
+	hitSide: number; // side taking damage → flash + shake
+	attackSide: number; // side using a move → lunge
+	crit: boolean;
+	eff: number; // 0 normal / 1 super / 2 not-very / 3 immune
+	popSide: number; // side a floating number rises over
+	popVal: number;
+	popHeal: boolean;
 }
 
-/** Fold the replay events up to `upto` into the visible battle state. */
-function viewAt(replay: PetBattleReplay, upto: number): BattleView {
-	let pa = 0;
-	let ea = 0;
-	let pHp = replay.player[0]?.hp ?? 0;
-	let eHp = replay.enemy[0]?.hp ?? 0;
-	let pFaint = 0;
-	let eFaint = 0;
-	for (let i = 0; i <= upto && i < replay.events.length; i++) {
-		const e = replay.events[i];
-		if (e.kind === PB_SWAP) {
-			if (e.side === 0) {
-				pa = e.value;
-				pHp = replay.player[pa]?.max_hp ?? pHp;
-			} else {
-				ea = e.value;
-				eHp = replay.enemy[ea]?.max_hp ?? eHp;
-			}
-		} else if (
-			e.kind === PB_DAMAGE ||
-			e.kind === PB_STATUS_DMG ||
-			e.kind === PB_HEAL
-		) {
-			if (e.side === 0) pHp = e.hp;
-			else eHp = e.hp;
-		} else if (e.kind === PB_FAINT) {
-			if (e.side === 0) {
-				pHp = 0;
-				pFaint += 1;
-			} else {
-				eHp = 0;
-				eFaint += 1;
-			}
-		}
-	}
-	const last = replay.events[Math.min(upto, replay.events.length - 1)];
+const NO_FX = {
+	hitSide: -1,
+	attackSide: -1,
+	crit: false,
+	eff: 0,
+	popSide: -1,
+	popVal: 0,
+	popHeal: false,
+};
+
+function startView(s: PetBattleState): BattleView {
 	return {
-		pa,
-		ea,
-		pHp,
-		eHp,
-		pFaint,
-		eFaint,
-		text: last?.text ?? '',
-		hitSide: last?.kind === PB_DAMAGE ? last.side : -1,
+		pIdx: s.p_active,
+		eIdx: s.e_active,
+		pHp: s.player[s.p_active]?.hp ?? 0,
+		eHp: s.enemy[s.e_active]?.hp ?? 0,
+		text: s.events[0]?.text ?? '',
+		fxNonce: 0,
+		...NO_FX,
 	};
 }
 
+/** Fold one battle event into the running view: HP + active index + the line, plus the
+ * one-shot juice (flash/shake/lunge/floating number) for this event. */
+function applyEvent(
+	v: BattleView,
+	e: PetBattleWireEvent,
+	s: PetBattleState,
+): BattleView {
+	const next: BattleView = {
+		...v,
+		...NO_FX,
+		text: e.text || v.text,
+		fxNonce: v.fxNonce + 1,
+	};
+	if (e.kind === PB_SWAP) {
+		if (e.side === 0) {
+			next.pIdx = e.value;
+			next.pHp = s.player[e.value]?.hp ?? next.pHp;
+		} else {
+			next.eIdx = e.value;
+			next.eHp = s.enemy[e.value]?.hp ?? next.eHp;
+		}
+	} else if (e.kind === PB_USED) {
+		next.attackSide = e.side;
+	} else if (e.kind === PB_DAMAGE) {
+		if (e.side === 0) next.pHp = e.hp;
+		else next.eHp = e.hp;
+		next.hitSide = e.side;
+		next.popSide = e.side;
+		next.popVal = e.value;
+		next.crit = (e.flag & 1) === 1;
+		next.eff = (e.flag >> 1) & 3;
+	} else if (e.kind === PB_STATUS_DMG) {
+		if (e.side === 0) next.pHp = e.hp;
+		else next.eHp = e.hp;
+		next.hitSide = e.side;
+		next.popSide = e.side;
+		next.popVal = e.value;
+	} else if (e.kind === PB_HEAL) {
+		if (e.side === 0) next.pHp = e.hp;
+		else next.eHp = e.hp;
+		next.popSide = e.side;
+		next.popVal = e.value;
+		next.popHeal = true;
+	} else if (e.kind === PB_FAINT) {
+		if (e.side === 0) next.pHp = 0;
+		else next.eHp = 0;
+	}
+	return next;
+}
+
+interface BattlerFx {
+	nonce: number;
+	flash: boolean;
+	big: boolean;
+	attack: boolean;
+	pop: { val: number; heal: boolean; crit: boolean; eff: number } | null;
+}
+
+function fxForSide(v: BattleView, side: number): BattlerFx {
+	return {
+		nonce: v.fxNonce,
+		flash: v.hitSide === side,
+		big: v.hitSide === side && v.crit,
+		attack: v.attackSide === side,
+		pop:
+			v.popSide === side
+				? { val: v.popVal, heal: v.popHeal, crit: v.crit, eff: v.eff }
+				: null,
+	};
+}
+
+function popColor(p: { heal: boolean; crit: boolean; eff: number }): string {
+	if (p.heal) return '#22c55e';
+	if (p.crit) return '#fbbf24';
+	if (p.eff === 1) return '#f97316';
+	if (p.eff === 2 || p.eff === 3) return '#94a3b8';
+	return '#ef4444';
+}
+
+function aliveCount(team: PetBattler[]): number {
+	return team.filter((b) => b.hp > 0).length;
+}
+
 /**
- * Animated Pokémon-style battle overlay: steps through the streamed replay event by
- * event, tweening HP bars, shaking the struck pet, and dimming fainted reserves. A
- * stand-in scene — the visuals can grow, but the data path is the real one.
+ * Interactive Pokémon-style battle overlay. Plays the events of each streamed turn (HP
+ * tweens, hit shake, faint dim), then — once the server is awaiting — shows the action
+ * menu (moves with PP cost, swap, potion, run). The player's pick is sent back as a
+ * PetTurn; the next streamed state advances the fight.
  */
 function PetBattleScene({
-	replay,
+	state,
+	onAction,
 	onClose,
 }: {
-	replay: PetBattleReplay;
+	state: PetBattleState;
+	onAction: (action: number, arg: number) => void;
 	onClose: () => void;
 }) {
+	const [view, setView] = useState<BattleView>(() => startView(state));
 	const [step, setStep] = useState(0);
-	const last = replay.events.length - 1;
-	useEffect(() => {
-		if (step >= last) return;
-		const t = setTimeout(
-			() => setStep((s) => Math.min(s + 1, last)),
-			STEP_MS,
-		);
-		return () => clearTimeout(t);
-	}, [step, last]);
+	const [waiting, setWaiting] = useState(false);
+	const [swapOpen, setSwapOpen] = useState(false);
 
-	const v = viewAt(replay, step);
-	const done = step >= last;
-	const empty = replay.events.length === 0;
-	const pTeam = replay.player[v.pa];
-	const eTeam = replay.enemy[v.ea];
+	// A new turn arrived: replay its events from the top (the view's HP carries over from
+	// the previous turn, so bars tween continuously).
+	useEffect(() => {
+		setStep(0);
+		setWaiting(false);
+		setSwapOpen(false);
+	}, [state]);
+
+	// Step through the current turn's events on a timer, folding each into the view.
+	useEffect(() => {
+		if (step >= state.events.length) return;
+		const e = state.events[step];
+		setView((v) => applyEvent(v, e, state));
+		const t = setTimeout(() => setStep((n) => n + 1), STEP_MS);
+		return () => clearTimeout(t);
+	}, [step, state]);
+
+	const animating = step < state.events.length;
+	const over = state.outcome !== 'Ongoing';
+	const showMenu = !animating && state.awaiting && !waiting && !over;
+
+	const commit = (action: number, arg: number) => {
+		setWaiting(true);
+		setSwapOpen(false);
+		onAction(action, arg);
+	};
+
+	const pTeam = state.player[view.pIdx];
+	const eTeam = state.enemy[view.eIdx];
+	const reserves = state.player
+		.map((b, i) => ({ b, i }))
+		.filter((r) => r.i !== view.pIdx && r.b.hp > 0);
 
 	return (
 		<div
@@ -322,19 +437,15 @@ function PetBattleScene({
 				background:
 					'radial-gradient(ellipse at center, rgba(20,28,48,0.92), rgba(4,6,12,0.97))',
 			}}>
-			<style>
-				{
-					'@keyframes arpgHitShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}'
-				}
-			</style>
+			<style>{BATTLE_FX_CSS}</style>
 			{/* Enemy: top-right */}
 			<div style={{ alignSelf: 'flex-end' }}>
 				<Battler
 					battler={eTeam}
-					hp={v.eHp}
-					alive={replay.enemy.length - v.eFaint}
-					total={replay.enemy.length}
-					shake={v.hitSide === 1}
+					hp={view.eHp}
+					alive={aliveCount(state.enemy)}
+					total={state.enemy.length}
+					fx={fxForSide(view, 1)}
 					foe
 				/>
 			</div>
@@ -343,14 +454,14 @@ function PetBattleScene({
 			<div style={{ alignSelf: 'flex-start' }}>
 				<Battler
 					battler={pTeam}
-					hp={v.pHp}
-					alive={replay.player.length - v.pFaint}
-					total={replay.player.length}
-					shake={v.hitSide === 0}
+					hp={view.pHp}
+					alive={aliveCount(state.player)}
+					total={state.player.length}
+					fx={fxForSide(view, 0)}
 				/>
 			</div>
 
-			{/* Text box + controls */}
+			{/* Text box + action menu */}
 			<div
 				style={{
 					pointerEvents: 'auto',
@@ -360,28 +471,114 @@ function PetBattleScene({
 					padding: '12px 16px',
 					minHeight: 56,
 					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					gap: 12,
+					flexDirection: 'column',
+					gap: 10,
 				}}>
-				<span style={{ fontSize: 14 }}>
-					{empty
-						? 'No battle data received — the server may be out of date.'
-						: done
-							? `Battle over — ${outcomeLabel(replay.outcome)}`
-							: v.text}
+				<span style={{ fontSize: 14, minHeight: 20 }}>
+					{over
+						? `Battle over — ${outcomeLabel(state.outcome)}`
+						: view.text}
 				</span>
-				<span style={{ display: 'flex', gap: 8 }}>
-					{!done && !empty && (
-						<BattleButton
-							label="Skip ▶▶"
-							onClick={() => setStep(last)}
-						/>
-					)}
-					{done && <BattleButton label="Close ✕" onClick={onClose} />}
-				</span>
+				{over ? (
+					<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+						<BattleButton label="Close ✕" onClick={onClose} />
+					</div>
+				) : showMenu ? (
+					<div
+						style={{
+							display: 'flex',
+							flexWrap: 'wrap',
+							gap: 8,
+						}}>
+						{swapOpen ? (
+							<>
+								{reserves.length === 0 && (
+									<span style={{ color: MUTED, fontSize: 12 }}>
+										No reserves left.
+									</span>
+								)}
+								{reserves.map((r) => (
+									<BattleButton
+										key={r.i}
+										label={`${r.b.nickname} (${r.b.hp}/${r.b.max_hp})`}
+										onClick={() => commit(PET_ACT_SWAP, r.i)}
+									/>
+								))}
+								<BattleButton
+									label="↩ Back"
+									onClick={() => setSwapOpen(false)}
+								/>
+							</>
+						) : (
+							<>
+								{state.moves.map((m) => (
+									<MoveButton
+										key={m.slot}
+										move={m}
+										onClick={() =>
+											commit(PET_ACT_MOVE, m.slot)
+										}
+									/>
+								))}
+								<BattleButton
+									label="⇄ Swap"
+									onClick={() => setSwapOpen(true)}
+								/>
+								<BattleButton
+									label="🧪 Potion"
+									onClick={() => commit(PET_ACT_ITEM, 0)}
+								/>
+								{state.can_run && (
+									<BattleButton
+										label="🏃 Run"
+										onClick={() => commit(PET_ACT_RUN, 0)}
+									/>
+								)}
+							</>
+						)}
+					</div>
+				) : (
+					<span style={{ color: MUTED, fontSize: 12 }}>
+						{waiting ? 'Resolving…' : '…'}
+					</span>
+				)}
 			</div>
 		</div>
+	);
+}
+
+/** A move choice button: name + remaining PP (the cost), with element/power/accuracy in
+ * the tooltip. Disabled when the move is out of PP. */
+function MoveButton({
+	move,
+	onClick,
+}: {
+	move: PetMoveOption;
+	onClick: () => void;
+}) {
+	const dead = move.pp <= 0;
+	return (
+		<button
+			type="button"
+			disabled={dead}
+			onClick={onClick}
+			title={`${move.element} · power ${move.power} · acc ${move.accuracy > 100 ? '∞' : `${move.accuracy}%`}`}
+			style={{
+				padding: '6px 12px',
+				fontFamily: 'monospace',
+				fontSize: 12,
+				color: '#e6ebf5',
+				background: 'rgba(40,20,60,0.85)',
+				border: '1px solid #6ea8ff',
+				borderRadius: 6,
+				opacity: dead ? 0.4 : 1,
+				cursor: dead ? 'not-allowed' : 'pointer',
+			}}>
+			<span>{move.name}</span>
+			<span style={{ color: MUTED, marginLeft: 8 }}>
+				PP {move.pp}/{move.max_pp}
+			</span>
+		</button>
 	);
 }
 
@@ -397,14 +594,14 @@ function Battler({
 	hp,
 	alive,
 	total,
-	shake,
+	fx,
 	foe = false,
 }: {
 	battler: PetBattler | undefined;
 	hp: number;
 	alive: number;
 	total: number;
-	shake: boolean;
+	fx: BattlerFx;
 	foe?: boolean;
 }) {
 	const [imgBroken, setImgBroken] = useState(false);
@@ -414,6 +611,20 @@ function Battler({
 		Math.min(100, (hp / Math.max(1, battler.max_hp)) * 100),
 	);
 	const barColor = pct > 50 ? '#22c55e' : pct > 20 ? '#eab308' : '#ef4444';
+	const fainted = hp <= 0;
+	const lunge = fx.attack
+		? foe
+			? 'arpgLungeE 0.45s ease'
+			: 'arpgLungeP 0.45s ease'
+		: fx.big
+			? 'arpgHitShakeBig 0.4s ease'
+			: fx.flash
+				? 'arpgHitShake 0.3s ease'
+				: 'none';
+	// Remount the sprite wrapper only while an effect plays, so the animation restarts;
+	// idle keeps a stable key so the <img> (and its broken-state) doesn't churn.
+	const animKey = fx.flash || fx.attack ? `a${fx.nonce}` : 'idle';
+	const baseFilter = fainted ? 'grayscale(1) brightness(0.5)' : 'none';
 	return (
 		<div
 			style={{
@@ -422,46 +633,79 @@ function Battler({
 				alignItems: 'center',
 				gap: 14,
 			}}>
-			<span
-				key={shake ? `hit-${hp}` : `idle-${hp}`}
+			<div
 				style={{
-					display: 'inline-block',
-					animation: shake ? 'arpgHitShake 0.3s ease' : 'none',
+					position: 'relative',
+					width: 96,
+					height: 96,
+					transform: fainted ? 'translateY(10px)' : 'none',
+					opacity: fainted ? 0.7 : 1,
+					transition: 'transform 0.4s ease, opacity 0.4s ease',
 				}}>
-				{imgBroken ? (
+				<span
+					key={animKey}
+					style={{
+						display: 'block',
+						width: 96,
+						height: 96,
+						animation: lunge,
+					}}>
+					{imgBroken ? (
+						<span
+							aria-label={battler.nickname}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 96,
+								height: 96,
+								fontSize: 40,
+								borderRadius: 12,
+								background: 'rgba(110,168,255,0.12)',
+								border: '1px dashed #6ea8ff',
+								filter: baseFilter,
+							}}>
+							🐾
+						</span>
+					) : (
+						<img
+							src={SPRITE_OF(battler.species_ref)}
+							alt={battler.nickname}
+							width={96}
+							height={96}
+							onError={() => setImgBroken(true)}
+							style={{
+								imageRendering: 'pixelated',
+								transform: foe ? 'scaleX(-1)' : 'none',
+								filter: baseFilter,
+								animation: fx.flash
+									? 'arpgImgFlash 0.25s ease'
+									: 'none',
+							}}
+						/>
+					)}
+				</span>
+				{fx.pop && (
 					<span
-						aria-label={battler.nickname}
+						key={`pop${fx.nonce}`}
 						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							width: 96,
-							height: 96,
-							fontSize: 40,
-							borderRadius: 12,
-							background: 'rgba(110,168,255,0.12)',
-							border: '1px dashed #6ea8ff',
-							filter:
-								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
+							position: 'absolute',
+							top: 0,
+							left: '50%',
+							fontWeight: 700,
+							fontSize: fx.pop.crit ? 22 : 16,
+							color: popColor(fx.pop),
+							textShadow: '0 1px 2px #000',
+							animation: 'arpgFloatUp 0.9s ease forwards',
+							pointerEvents: 'none',
+							whiteSpace: 'nowrap',
 						}}>
-						🐾
+						{fx.pop.heal ? '+' : '−'}
+						{Math.abs(fx.pop.val)}
+						{fx.pop.crit ? '!' : ''}
 					</span>
-				) : (
-					<img
-						src={SPRITE_OF(battler.species_ref)}
-						alt={battler.nickname}
-						width={96}
-						height={96}
-						onError={() => setImgBroken(true)}
-						style={{
-							imageRendering: 'pixelated',
-							transform: foe ? 'scaleX(-1)' : 'none',
-							filter:
-								hp <= 0 ? 'grayscale(1) brightness(0.5)' : 'none',
-						}}
-					/>
 				)}
-			</span>
+			</div>
 			<div style={{ minWidth: 180 }}>
 				<div
 					style={{
@@ -487,6 +731,10 @@ function Battler({
 							background: barColor,
 							transition:
 								'width 0.35s ease, background 0.35s ease',
+							animation:
+								pct > 0 && pct <= 20
+									? 'arpgLowBlink 0.7s ease infinite'
+									: 'none',
 						}}
 					/>
 				</div>

@@ -10,6 +10,7 @@ import {
 	EPHEMERAL_ITEM_PLACED,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PET_BATTLE_LOG,
+	EPHEMERAL_PET_BATTLE_STATE,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_PROJECTILE,
 	EPHEMERAL_SHOP,
@@ -28,6 +29,7 @@ import {
 	type ItemPlacedEvent,
 	type ItemUsedEvent,
 	type PetBattleReplay,
+	type PetBattleState,
 	type PickupEvent,
 	type ProjectileEvent,
 	type ServerEvent,
@@ -49,6 +51,7 @@ import {
 	decodeItemPlaced,
 	decodeItemUsed,
 	decodePetBattleReplay,
+	decodePetBattleState,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
@@ -75,6 +78,7 @@ export type GameClientEventMap = {
 	shop: ShopResult;
 	blackjackState: BlackjackStateView;
 	petBattleReplay: PetBattleReplay;
+	petBattleState: PetBattleState;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -208,6 +212,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PET_BATTLE_LOG) {
 			const data = decodePetBattleReplay(evt.payload);
 			if (data) this.bus.emit('petBattleReplay', data);
+		} else if (evt.kind === EPHEMERAL_PET_BATTLE_STATE) {
+			const data = decodePetBattleState(evt.payload);
+			if (data) this.bus.emit('petBattleState', data);
 		}
 	}
 
@@ -250,9 +257,16 @@ export class GameClient {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
 	}
 
-	/** Debug: ask the server to run a simulated 5v5 mechamutt battle and stream the log. */
+	/** Debug: ask the server to START an interactive 5v5 mechamutt battle. The server
+	 * replies with a `petBattleState` (awaiting the player's first action). */
 	simPetBattle(): void {
 		this.sendInputs(['SimPetBattle']);
+	}
+
+	/** Commit one action for the active interactive pet battle: `action` is a
+	 * PET_ACT_* code, `arg` the move slot (MOVE) or reserve index (SWAP). */
+	petTurn(action: number, arg: number): void {
+		this.sendInputs([{ PetTurn: { action, arg } }]);
 	}
 
 	castSpell(spellRef: string, target: number | null): void {

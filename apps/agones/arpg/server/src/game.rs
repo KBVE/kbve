@@ -474,10 +474,12 @@ fn ai_action(side: &simgrid::BattleSide) -> simgrid::BattleAction {
     simgrid::BattleAction::Move { slot }
 }
 
+#[allow(dead_code)]
 fn standing(side: &simgrid::BattleSide) -> usize {
     side.team.iter().filter(|c| c.is_alive()).count()
 }
 
+#[allow(dead_code)]
 fn total_hp(side: &simgrid::BattleSide) -> i32 {
     side.team.iter().map(|c| c.hp).sum()
 }
@@ -666,7 +668,10 @@ fn battlers(team: &[simgrid::Combatant]) -> Vec<simgrid::proto::PetBattler> {
 }
 
 /// Run the deterministic 5v5 mechamutt mirror battle and build a structured replay the
-/// client steps through to animate the fight (teams + flat ordered event stream).
+/// client steps through to animate the fight (teams + flat ordered event stream). Retained
+/// as a deterministic engine harness (and its golden wire fixture) now that the live button
+/// drives an interactive battle.
+#[allow(dead_code)]
 fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
     let outcome_str = |o: simgrid::BattleOutcome| match o {
         simgrid::BattleOutcome::PlayerWon => "PlayerWon",
@@ -737,26 +742,166 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
     }
 }
 
-/// Drain debug pet-battle requests: simulate a 5v5 mechamutt mirror per requester and
-/// stream the log back to that player's client. Seeded per (slot, tick) so repeated
-/// clicks vary while staying deterministic for a given press.
+/// Live interactive pet battles, keyed by player slot. A battle is created when the
+/// player starts one (debug button → `SimPetBattle`) and removed when it resolves or the
+/// player flees. The engine [`simgrid::BattleState`] is fully self-contained, so this is
+/// the only server-held battle state.
+#[derive(bevy::prelude::Resource, Default)]
+pub struct ActivePetBattles(pub HashMap<u16, simgrid::BattleState>);
+
+/// HP restored by the in-battle "Potion" action. A fixed heal until pet battles read
+/// from the player's real inventory.
+const POTION_HEAL: i32 = 40;
+
+fn outcome_name(o: simgrid::BattleOutcome) -> &'static str {
+    match o {
+        simgrid::BattleOutcome::PlayerWon => "PlayerWon",
+        simgrid::BattleOutcome::PlayerLost => "PlayerLost",
+        simgrid::BattleOutcome::Fled => "Fled",
+        simgrid::BattleOutcome::Ongoing => "Ongoing",
+    }
+}
+
+fn category_byte(c: simgrid::MoveCategory) -> u8 {
+    match c {
+        simgrid::MoveCategory::Physical => 0,
+        simgrid::MoveCategory::Special => 1,
+        simgrid::MoveCategory::Status => 2,
+    }
+}
+
+/// The selectable moves on a combatant, for the client's battle menu (name, element,
+/// category, power, accuracy %, and remaining PP — the per-move cost).
+fn move_options(c: &simgrid::Combatant) -> Vec<simgrid::proto::PetMoveOption> {
+    c.moves
+        .iter()
+        .enumerate()
+        .map(|(i, m)| simgrid::proto::PetMoveOption {
+            slot: i as u8,
+            name: m.data.id.clone(),
+            element: format!("{:?}", m.data.element),
+            category: category_byte(m.data.category),
+            power: m.data.power,
+            accuracy: if m.data.accuracy <= 0.0 {
+                101
+            } else {
+                (m.data.accuracy * 100.0).round() as u32
+            },
+            pp: m.pp,
+            max_pp: m.max_pp,
+        })
+        .collect()
+}
+
+/// Build the wire snapshot of a battle after a turn: both teams' vitals, active indices,
+/// the player's current move menu (empty once the fight is over), and the events of the
+/// turn just resolved for the client to animate.
+fn battle_view(
+    state: &simgrid::BattleState,
+    events: Vec<simgrid::proto::PetBattleWireEvent>,
+) -> simgrid::proto::PetBattleState {
+    let ongoing = state.outcome == simgrid::BattleOutcome::Ongoing;
+    simgrid::proto::PetBattleState {
+        player: battlers(&state.player.team),
+        enemy: battlers(&state.enemy.team),
+        p_active: state.player.active as u8,
+        e_active: state.enemy.active as u8,
+        moves: if ongoing {
+            move_options(state.player.active())
+        } else {
+            vec![]
+        },
+        events,
+        outcome: outcome_name(state.outcome).to_string(),
+        awaiting: ongoing,
+        can_run: ongoing,
+    }
+}
+
+fn send_battle_view(
+    bcast: &simgrid::Outbound,
+    slot: simgrid::proto::PlayerSlot,
+    view: &simgrid::proto::PetBattleState,
+) {
+    let payload = simgrid::proto::encode_inner(view).unwrap_or_default();
+    let _ = bcast.tx.send(simgrid::proto::ServerEvent::Ephemeral {
+        kind: simgrid::proto::EPHEMERAL_PET_BATTLE_STATE,
+        to: slot,
+        payload,
+    });
+}
+
+/// Map a client `PetTurn` (action code + arg) onto an engine [`simgrid::BattleAction`].
+fn player_action(action: u8, arg: u8) -> Option<simgrid::BattleAction> {
+    use simgrid::proto as p;
+    Some(match action {
+        p::PET_ACT_MOVE => simgrid::BattleAction::Move { slot: arg as usize },
+        p::PET_ACT_SWAP => simgrid::BattleAction::Swap { to: arg as usize },
+        p::PET_ACT_ITEM => simgrid::BattleAction::UseItem { heal: POTION_HEAL },
+        p::PET_ACT_RUN => simgrid::BattleAction::Run,
+        _ => return None,
+    })
+}
+
+/// Start an interactive pet battle for each requester: build a fresh 5v5 mechamutt mirror,
+/// store the live `BattleState`, and stream the opening snapshot (awaiting the player's
+/// first action). Seeded per (slot, tick) so each press plays out deterministically.
 pub fn apply_pet_battles(
     bcast: Res<simgrid::Outbound>,
     clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetBattles>,
+    mut battles: ResMut<ActivePetBattles>,
 ) {
     if pending.0.is_empty() {
         return;
     }
     for slot in std::mem::take(&mut pending.0) {
         let root = simgrid::rng::mix32(&[0x5E7B_A77E, slot.0 as u32, clock.tick]);
-        let log = simulate_battle(root);
-        let payload = simgrid::proto::encode_inner(&log).unwrap_or_default();
-        let _ = bcast.tx.send(simgrid::proto::ServerEvent::Ephemeral {
-            kind: simgrid::proto::EPHEMERAL_PET_BATTLE_LOG,
-            to: slot,
-            payload,
-        });
+        let Some(species) = NPC_DB.get(MECHAMUTT_REF) else {
+            continue;
+        };
+        let state =
+            simgrid::BattleState::versus(root, mechamutt_team(species), mechamutt_team(species));
+        let opening = vec![info_event(format!(
+            "A team of {PET_TEAM_SIZE} Mechamutt faces {PET_TEAM_SIZE} Mechamutt (Lv {PET_TEAM_LEVEL}) — choose your move!"
+        ))];
+        let view = battle_view(&state, opening);
+        battles.0.insert(slot.0, state);
+        send_battle_view(&bcast, slot, &view);
+    }
+}
+
+/// Advance each in-progress battle by the action its player committed: the player's chosen
+/// action resolves against the AI's enemy action for one turn, then the new snapshot (with
+/// the turn's events to animate) streams back. The battle is dropped once it resolves.
+pub fn apply_pet_turns(
+    bcast: Res<simgrid::Outbound>,
+    mut pending: ResMut<simgrid::PendingPetTurns>,
+    mut battles: ResMut<ActivePetBattles>,
+) {
+    if pending.0.is_empty() {
+        return;
+    }
+    for (slot, action, arg) in std::mem::take(&mut pending.0) {
+        let Some(state) = battles.0.get_mut(&slot.0) else {
+            continue;
+        };
+        let Some(pa) = player_action(action, arg) else {
+            continue;
+        };
+        let ea = ai_action(&state.enemy);
+        let events: Vec<_> = state
+            .resolve_turn(pa, ea)
+            .iter()
+            .filter(|e| !matches!(e, simgrid::BattleEvent::Outcome(_)))
+            .map(wire_event)
+            .collect();
+        let resolved = state.outcome != simgrid::BattleOutcome::Ongoing;
+        let view = battle_view(state, events);
+        if resolved {
+            battles.0.remove(&slot.0);
+        }
+        send_battle_view(&bcast, slot, &view);
     }
 }
 
