@@ -163,7 +163,7 @@ keeps the UE REST/OpenAPI contract byte-identical for un-drained instances (all-
     pub drain_deadline: Option<chrono::NaiveDateTime>,
 ```
 
-> `default` so a `SELECT mi.*` against a DB that hasn't run the migration deserializes absent columns to `None` instead of `ColumnNotFound` (mirrors `gameservername`). `get_active_reap_candidates`/`get_all_inactive_map_instances` use `SELECT mi.*`, so they map automatically. The explicit-column `join_map` query (Task 5) does **not** get this tolerance — hence the hard deploy gate.
+> `default` so a `SELECT mi.*` against a DB that hasn't run the migration deserializes absent columns to `None` instead of `ColumnNotFound` (mirrors `gameservername`). `get_active_reap_candidates`/`get_all_inactive_map_instances` use `SELECT mi.*`, so they map automatically. The explicit-column `join_map` query (Task 5) does **not** get this tolerance — hence the migration-before-merge procedure (Task 6).
 
 - [ ] **Step 4: Verify it compiles**
 
