@@ -142,9 +142,10 @@ function castBolt(
 	trail.setDepth(DEPTH_PROJECTILE);
 	trail.startFollow(core);
 
-	// DEBUG: GREEN box follows the travelling bolt (its origin/travel animation);
-	// YELLOW box marks the destination (the impact/burst animation). Remove once the
-	// offset is diagnosed.
+	// DEBUG: GREEN box follows the travelling bolt core; YELLOW box marks the destination
+	// (impact/burst); CYAN box tracks the TRAIL particle emitter's live position each
+	// frame — if cyan diverges from green, the trail emitter isn't following the core.
+	// Remove once the offset is diagnosed.
 	const dbgTravel = scene.add
 		.rectangle(a.x, a.y, 30, 30)
 		.setStrokeStyle(2, 0x22c55e)
@@ -155,6 +156,11 @@ function castBolt(
 		.setStrokeStyle(2, 0xeab308)
 		.setFillStyle(0, 0)
 		.setDepth(DEPTH_PROJECTILE + 5);
+	const dbgTrail = scene.add
+		.rectangle(trail.x, trail.y, 20, 20)
+		.setStrokeStyle(2, 0x22d3ee)
+		.setFillStyle(0, 0)
+		.setDepth(DEPTH_PROJECTILE + 5);
 
 	scene.tweens.add({
 		targets: [core, dbgTravel],
@@ -162,6 +168,9 @@ function castBolt(
 		y: b.y,
 		duration,
 		ease: 'Quad.easeIn',
+		onUpdate: () => {
+			dbgTrail.setPosition(trail.x, trail.y);
+		},
 		onComplete: () => {
 			trail.stop();
 			burst(scene, b.x, b.y, style.ramp);
@@ -170,6 +179,7 @@ function castBolt(
 			scene.time.delayedCall(900, () => {
 				dbgTravel.destroy();
 				dbgImpact.destroy();
+				dbgTrail.destroy();
 			});
 		},
 	});
