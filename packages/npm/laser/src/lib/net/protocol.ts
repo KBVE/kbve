@@ -29,6 +29,14 @@ export const EPHEMERAL_FLOOR = 13;
 export const EPHEMERAL_ITEM_PLACED = 14;
 export const EPHEMERAL_CORPSE = 16;
 export const EPHEMERAL_PET_BATTLE_LOG = 18;
+export const EPHEMERAL_PET_BATTLE_STATE = 19;
+
+// PetTurn action codes — must match proto.rs PET_ACT_* constants. `arg` is the move
+// slot (MOVE) or the reserve index to send out (SWAP).
+export const PET_ACT_MOVE = 0;
+export const PET_ACT_SWAP = 1;
+export const PET_ACT_ITEM = 2;
+export const PET_ACT_RUN = 3;
 
 // Pet battle replay event kinds (the `kind` byte on PetBattleWireEvent). Must match
 // proto.rs PB_* constants.
@@ -72,6 +80,34 @@ export interface PetBattleReplay {
 	enemy: PetBattler[];
 	events: PetBattleWireEvent[];
 	outcome: string;
+}
+
+/** One selectable move on the active pet. `category` 0 physical/1 special/2 status;
+ * `accuracy` is a percent (101 = never-miss); `pp`/`max_pp` are the per-move cost. */
+export interface PetMoveOption {
+	slot: number;
+	name: string;
+	element: string;
+	category: number;
+	power: number;
+	accuracy: number;
+	pp: number;
+	max_pp: number;
+}
+
+/** A turn-by-turn snapshot of an interactive pet battle: teams, active indices, the
+ * player's move menu, the events of the turn just resolved (to animate), the outcome,
+ * and whether the server is `awaiting` the player's next action. */
+export interface PetBattleState {
+	player: PetBattler[];
+	enemy: PetBattler[];
+	p_active: number;
+	e_active: number;
+	moves: PetMoveOption[];
+	events: PetBattleWireEvent[];
+	outcome: string;
+	awaiting: boolean;
+	can_run: boolean;
 }
 
 export const KIND_CAT_PLAYER = 0;
@@ -127,7 +163,8 @@ export type Input =
 	| { TakeFromCorpse: { corpse: number; slot: number } }
 	| 'LaunchSpace'
 	| 'ReturnSpace'
-	| 'SimPetBattle';
+	| 'SimPetBattle'
+	| { PetTurn: { action: number; arg: number } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

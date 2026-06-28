@@ -3,7 +3,7 @@ import {
 	type InventoryItem,
 	type NotificationEventData,
 	type CorpseContents,
-	type PetBattleReplay,
+	type PetBattleState,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
@@ -177,10 +177,19 @@ export function onInventoryIntent(
 	);
 }
 
-// Debug pet-battle: the HUD button requests a simulation; the scene forwards it to
-// the client, and streams the structured replay back here for the scene to animate.
+// Interactive pet-battle bridge. The HUD button requests a battle start; the scene
+// forwards it to the client. The server streams each turn's PetBattleState back here for
+// the scene UI; the player's chosen action is forwarded scene→client as a PetTurn.
 export const PET_BATTLE_REQUEST_EVENT = 'arpg:petBattle:request';
-export const PET_BATTLE_REPLAY_EVENT = 'arpg:petBattle:replay';
+export const PET_BATTLE_STATE_EVENT = 'arpg:petBattle:state';
+export const PET_BATTLE_ACTION_EVENT = 'arpg:petBattle:action';
+
+/** One action the player commits for a battle turn: `action` is a PET_ACT_* code,
+ * `arg` the move slot (MOVE) or reserve index (SWAP). */
+export interface PetBattleActionRequest {
+	action: number;
+	arg: number;
+}
 
 export function emitPetBattleRequest(): void {
 	laserEvents.emit(PET_BATTLE_REQUEST_EVENT, undefined);
@@ -193,15 +202,28 @@ export function onPetBattleRequest(handler: () => void): () => void {
 	);
 }
 
-export function emitPetBattleReplay(replay: PetBattleReplay): void {
-	laserEvents.emit(PET_BATTLE_REPLAY_EVENT, replay);
+export function emitPetBattleState(state: PetBattleState): void {
+	laserEvents.emit(PET_BATTLE_STATE_EVENT, state);
 }
 
-export function onPetBattleReplay(
-	handler: (replay: PetBattleReplay) => void,
+export function onPetBattleState(
+	handler: (state: PetBattleState) => void,
 ): () => void {
 	return laserEvents.on(
-		PET_BATTLE_REPLAY_EVENT,
+		PET_BATTLE_STATE_EVENT,
+		handler as (data: unknown) => void,
+	);
+}
+
+export function emitPetBattleAction(req: PetBattleActionRequest): void {
+	laserEvents.emit(PET_BATTLE_ACTION_EVENT, req);
+}
+
+export function onPetBattleAction(
+	handler: (req: PetBattleActionRequest) => void,
+): () => void {
+	return laserEvents.on(
+		PET_BATTLE_ACTION_EVENT,
 		handler as (data: unknown) => void,
 	);
 }

@@ -8,6 +8,7 @@ import {
 	decodeItemPlaced,
 	decodeItemUsed,
 	decodePetBattleReplay,
+	decodePetBattleState,
 	decodePickup,
 	decodeBlackjack,
 	decodeProjectile,
@@ -166,6 +167,56 @@ describe('postcard Ephemeral payload decoder', () => {
 				{ kind: 1, side: 1, value: 12, hp: 28, flag: 1, text: 'hit' },
 			],
 			outcome: 'PlayerWon',
+		});
+	});
+
+	// Same hex the Rust fixture (proto.rs pet_battle_state_fixture_is_stable) asserts —
+	// the interactive battle snapshot: teams, active indices, a move with PP, the turn's
+	// event, outcome, and awaiting/can_run flags. Cross-lock against proto skew.
+	it('decodes the Rust PetBattleState fixture', () => {
+		const payload =
+			'01016d03526578053c5001016d03466f6505505000000100' +
+			'05737061726b094c696768746e696e670150640f0f0101' +
+			'01143c0003686974074f6e676f696e670101';
+		expect(decodePetBattleState(Array.from(fromHex(payload)))).toEqual({
+			player: [
+				{
+					species_ref: 'm',
+					nickname: 'Rex',
+					level: 5,
+					hp: 30,
+					max_hp: 40,
+				},
+			],
+			enemy: [
+				{
+					species_ref: 'm',
+					nickname: 'Foe',
+					level: 5,
+					hp: 40,
+					max_hp: 40,
+				},
+			],
+			p_active: 0,
+			e_active: 0,
+			moves: [
+				{
+					slot: 0,
+					name: 'spark',
+					element: 'Lightning',
+					category: 1,
+					power: 40,
+					accuracy: 100,
+					pp: 15,
+					max_pp: 15,
+				},
+			],
+			events: [
+				{ kind: 1, side: 1, value: 10, hp: 30, flag: 0, text: 'hit' },
+			],
+			outcome: 'Ongoing',
+			awaiting: true,
+			can_run: true,
 		});
 	});
 

@@ -160,7 +160,8 @@ import {
 	emitPlayers,
 	onInventoryIntent,
 	onPetBattleRequest,
-	emitPetBattleReplay,
+	onPetBattleAction,
+	emitPetBattleState,
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
@@ -497,10 +498,16 @@ export class IsoArpgScene extends Phaser.Scene {
 			this.handleInventoryIntent(intent),
 		);
 
-		// Debug HUD button -> ask the server to simulate a pet battle.
-		this.offPetBattle = onPetBattleRequest(() =>
-			this.client?.simPetBattle(),
+		// Debug HUD button -> start an interactive pet battle; battle-scene action
+		// picks -> forward to the server as a PetTurn.
+		const offReq = onPetBattleRequest(() => this.client?.simPetBattle());
+		const offAct = onPetBattleAction((req) =>
+			this.client?.petTurn(req.action, req.arg),
 		);
+		this.offPetBattle = () => {
+			offReq();
+			offAct();
+		};
 
 		// Loot panel intents from React -> the authoritative client.
 		this.offCorpseIntent = onCorpseIntent((intent) => {
@@ -1266,8 +1273,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		// Corpse loot panel: forward the server's contents to the React LootPanel.
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
-		// Debug pet-battle simulation replay -> the React battle scene.
-		client.on('petBattleReplay', (replay) => emitPetBattleReplay(replay));
+		// Interactive pet-battle: each turn's state -> the React battle scene.
+		client.on('petBattleState', (state) => emitPetBattleState(state));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {

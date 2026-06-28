@@ -22,7 +22,9 @@ import type {
 	KindEntry,
 	PetBattler,
 	PetBattleReplay,
+	PetBattleState,
 	PetBattleWireEvent,
+	PetMoveOption,
 	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
@@ -187,6 +189,10 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 		w.variant(28);
 		w.u32(inp.TakeFromCorpse.corpse);
 		w.u32(inp.TakeFromCorpse.slot);
+	} else if ('PetTurn' in inp) {
+		w.variant(32);
+		w.u8(inp.PetTurn.action);
+		w.u8(inp.PetTurn.arg);
 	}
 }
 
@@ -371,6 +377,48 @@ export function decodePetBattleReplay(payload: number[]): PetBattleReplay {
 	for (let n = r.seqLen(); n > 0; n--) events.push(readPetBattleEvent(r));
 	const outcome = r.string();
 	return { player, enemy, events, outcome };
+}
+
+function readPetMoveOption(r: PostcardReader): PetMoveOption {
+	return {
+		slot: r.u8(),
+		name: r.string(),
+		element: r.string(),
+		category: r.u8(),
+		power: r.i32(),
+		accuracy: r.u32(),
+		pp: r.u32(),
+		max_pp: r.u32(),
+	};
+}
+
+/** Decode an EPHEMERAL_PET_BATTLE_STATE payload. Matches `proto::PetBattleState`. */
+export function decodePetBattleState(payload: number[]): PetBattleState {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const player: PetBattler[] = [];
+	for (let n = r.seqLen(); n > 0; n--) player.push(readPetBattler(r));
+	const enemy: PetBattler[] = [];
+	for (let n = r.seqLen(); n > 0; n--) enemy.push(readPetBattler(r));
+	const p_active = r.u8();
+	const e_active = r.u8();
+	const moves: PetMoveOption[] = [];
+	for (let n = r.seqLen(); n > 0; n--) moves.push(readPetMoveOption(r));
+	const events: PetBattleWireEvent[] = [];
+	for (let n = r.seqLen(); n > 0; n--) events.push(readPetBattleEvent(r));
+	const outcome = r.string();
+	const awaiting = r.bool();
+	const can_run = r.bool();
+	return {
+		player,
+		enemy,
+		p_active,
+		e_active,
+		moves,
+		events,
+		outcome,
+		awaiting,
+		can_run,
+	};
 }
 
 /** Decode an EPHEMERAL_CORPSE payload (raw postcard). Field order matches
