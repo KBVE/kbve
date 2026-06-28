@@ -34,7 +34,7 @@ void AHexTerrainActor::GenerateTerrain(
 	const FVector& HexCenter,
 	double HexSize,
 	int64 RegionSeed,
-	const FHexNoiseSettings& NoiseSettings)
+	const FKBVENoiseSettings& NoiseSettings)
 {
 	const float TerrainExtent = static_cast<float>(HexSize);
 	const float CellSize = (TerrainExtent * 2.0f) / (GridResolution - 1);

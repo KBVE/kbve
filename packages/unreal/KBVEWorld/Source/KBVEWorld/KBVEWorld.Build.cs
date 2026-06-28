@@ -19,7 +19,8 @@ public class KBVEWorld : ModuleRules
 			"PhysicsCore",
 			"MassCore",
 			"MassEntity",
-			"MassCommon"
+			"MassCommon",
+			"KBVEWorldCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
