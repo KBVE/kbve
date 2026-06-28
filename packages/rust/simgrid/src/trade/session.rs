@@ -1,6 +1,6 @@
 use bevy::prelude::Resource;
 
-use crate::sim::Inventory;
+use crate::sim::{Inventory, ItemStack};
 
 pub const TRADE_RANGE: i32 = 1;
 pub const TRADE_TIMEOUT_TICKS: u32 = crate::sim::SIM_TICK_HZ * 30;
@@ -85,37 +85,53 @@ pub(crate) fn normalize_items(items: Vec<(String, u32)>) -> Vec<(String, u32)> {
 }
 
 pub(crate) fn inv_holds(inv: &Inventory, items: &[(String, u32)]) -> bool {
-    items
-        .iter()
-        .all(|(r, n)| inv.slots.iter().any(|(ir, ic)| ir == r && ic >= n))
+    items.iter().all(|(r, n)| {
+        inv.slots
+            .iter()
+            .filter(|s| &s.item_ref == r)
+            .map(|s| s.count)
+            .sum::<u32>()
+            >= *n
+    })
 }
 
-pub(crate) fn settle(
+/// Detach an `offer` (ref+qty) out of `inv` WITHOUT mutating it, returning the leftover
+/// slots and the moved instance stacks (ids preserved on a whole-stack move; a partial
+/// take splits a fresh id). None if the inventory can't fully cover the offer.
+pub(crate) fn detach_offer(
     inv: &Inventory,
-    give: &[(String, u32)],
-    recv: &[(String, u32)],
-    cap: usize,
-) -> Option<Vec<(String, u32)>> {
-    let mut slots = inv.slots.clone();
-    for (r, n) in give {
-        let idx = slots.iter().position(|(ir, _)| ir == r)?;
-        if slots[idx].1 < *n {
+    offer: &[(String, u32)],
+) -> Option<(Vec<ItemStack>, Vec<ItemStack>)> {
+    let mut work = Inventory {
+        slots: inv.slots.clone(),
+    };
+    let mut moved = Vec::new();
+    for (r, n) in offer {
+        let stack = work.detach(r, *n)?;
+        if stack.count < *n {
             return None;
         }
-        slots[idx].1 -= *n;
-        if slots[idx].1 == 0 {
-            slots.remove(idx);
-        }
+        moved.push(stack);
     }
-    for (r, n) in recv {
-        if let Some(slot) = slots.iter_mut().find(|(ir, _)| ir == r) {
-            slot.1 = slot.1.saturating_add(*n);
-        } else {
-            if slots.len() >= cap {
-                return None;
-            }
-            slots.push((r.clone(), *n));
+    Some((work.slots, moved))
+}
+
+/// Fold the moved-in stacks onto the leftover slots, preserving their ids. None if the
+/// result would exceed `cap` distinct slots (no room).
+pub(crate) fn merge_received(
+    mut slots: Vec<ItemStack>,
+    received: Vec<ItemStack>,
+    cap: usize,
+) -> Option<Vec<ItemStack>> {
+    let mut inv = Inventory {
+        slots: std::mem::take(&mut slots),
+    };
+    for stack in received {
+        let known = inv.slots.iter().any(|s| s.item_ref == stack.item_ref);
+        if !known && inv.slots.len() >= cap {
+            return None;
         }
+        inv.add_stack(stack);
     }
-    Some(slots)
+    Some(inv.slots)
 }

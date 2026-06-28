@@ -9,7 +9,7 @@ use crate::sim::{Inventory, Outbound, PlayerSlotTag, SimClock, SpawnedSlots, sen
 use crate::trade::net::{send_trade, send_trade_closed};
 use crate::trade::session::{
     ActiveTrades, MAX_INVENTORY_SLOTS, PendingTrades, TRADE_RANGE, TRADE_TIMEOUT_TICKS, TradeInput,
-    TradeSession, TradeSide, inv_holds, normalize_items, settle,
+    TradeSession, TradeSide, detach_offer, inv_holds, merge_received, normalize_items,
 };
 
 pub fn expire_trades(
@@ -150,8 +150,19 @@ pub fn apply_trades(
                 let (Some(inv_a), Some(inv_b)) = (inv_a, inv_b) else {
                     continue;
                 };
-                let new_a = settle(&inv_a, &a_items, &b_items, MAX_INVENTORY_SLOTS);
-                let new_b = settle(&inv_b, &b_items, &a_items, MAX_INVENTORY_SLOTS);
+                // Detach each side's offered stacks (ids preserved), then cross them so a
+                // traded item carries its instance identity to the recipient instead of
+                // being destroyed + re-minted.
+                let detached_a = detach_offer(&inv_a, &a_items);
+                let detached_b = detach_offer(&inv_b, &b_items);
+                let (Some((rem_a, moved_a)), Some((rem_b, moved_b))) = (detached_a, detached_b)
+                else {
+                    let session = trades.sessions.remove(idx);
+                    send_trade(&bcast, &session, "cancelled");
+                    continue;
+                };
+                let new_a = merge_received(rem_a, moved_b, MAX_INVENTORY_SLOTS);
+                let new_b = merge_received(rem_b, moved_a, MAX_INVENTORY_SLOTS);
                 let (Some(new_a), Some(new_b)) = (new_a, new_b) else {
                     let session = trades.sessions.remove(idx);
                     send_trade(&bcast, &session, "cancelled");
