@@ -29,7 +29,7 @@ pub use sim::{
     EntityKind, EnvObject, EnvOpts, EnvPersistSink, EquipBonus, EquipmentEffects, Equipped,
     FurnitureRot, HazardZone, HealAura, Health, InSpaceFlag, IntentBuffer, Inventory, ItemPrices,
     Loot, ManaAura, MoveProfile, NpcLevel, NpcSpec, PendingPilotOps, PersistedEnvLog,
-    PersistedEnvObject, PilotOp, Piloting, PlayerSlotTag, PlayerStore, RespawnOnDeath,
+    PersistedEnvObject, PilotOp, Piloting, PlacedBy, PlayerSlotTag, PlayerStore, RespawnOnDeath,
     ReturnedFromInstance, SIM_TICK_HZ, ShopStock, SimClock, SimConfig, SimSeed, SimSet,
     StatusEffect, StatusEffects, TREE_DENSITY_PER_MILLE, TREE_REF, TREE_VARIANTS, Terrain,
     TreeState, Wander, XpState, build_app, bush_at, ground_item_bundle, has_clearance,

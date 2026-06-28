@@ -12,8 +12,8 @@ use bevy::prelude::*;
 use simgrid::proto::{self, Facing, Tile};
 use simgrid::{
     EnvObject, EnvOpts, FloatMove, Floor, FurnitureRot, GridPos, InSpaceFlag, IntentBuffer,
-    KindRegistry, PendingPilotOps, PilotOp, Piloting, PlayerSlotTag, ReturnedFromInstance,
-    WalkableMap, spawn_env_object,
+    KindRegistry, PendingPilotOps, PilotOp, Piloting, PlacedBy, PlayerSlotTag,
+    ReturnedFromInstance, WalkableMap, spawn_env_object,
 };
 
 use std::collections::HashSet;
@@ -47,6 +47,14 @@ const ENTER_RANGE: i32 = 3;
 pub struct Piloted {
     pub pilot: proto::PlayerSlot,
 }
+
+/// Stable per-player ownership of a ship entity. Set when a ship is placed (from the
+/// owner's `PlacedBy`) and when one is re-materialised on a space return. The invariant
+/// is AT MOST ONE ship per owner: `return_from_space` despawns any pre-existing ship the
+/// returning player owns before spawning their fresh flight ship, so a disconnect mid
+/// launch (which leaves an orphan-reparked hull) can't leave a second ship behind.
+#[derive(Component, Clone, Copy)]
+pub struct ShipOwner(pub proto::PlayerSlot);
 
 /// On the ship entity while occupied: the live drive state (mirrors the client rig).
 #[derive(Component)]
@@ -241,16 +249,45 @@ pub fn apply_pilot_ops(
 /// `ReturnedFromInstance` off their persisted `in_space` flag) re-materialises mid-flight:
 /// spawn their ship on their spawn tile, board it, and let `start_placed_ship_descent` +
 /// `drive_ships` play the ENTERING descent → FLY so they arrive piloting. One-shot.
+#[allow(clippy::type_complexity)]
 pub fn return_from_space(
     mut commands: Commands,
     registry: Res<KindRegistry>,
+    mut map: ResMut<WalkableMap>,
     returned: Query<
         (Entity, &PlayerSlotTag, &GridPos, Option<&Floor>),
         Added<ReturnedFromInstance>,
     >,
+    owned: Query<(
+        Entity,
+        &ShipOwner,
+        Option<&GridPos>,
+        Option<&FurnitureRot>,
+        Option<&ShipDrive>,
+    )>,
 ) {
     for (pent, tag, gpos, floor) in returned.iter() {
         commands.entity(pent).remove::<ReturnedFromInstance>();
+        // One ship per owner: clear any hull this player already owns (e.g. one the
+        // orphan-recovery system re-parked after a disconnect mid-launch) before
+        // spawning the fresh flight ship — otherwise the re-parked hull + the new one
+        // would both exist. Free whatever tiles it held so its footprint isn't left
+        // permanently blocked.
+        for (sent, _, sgp, srot, sdrive) in owned.iter().filter(|(_, o, ..)| o.0 == tag.0) {
+            if let Some(d) = sdrive {
+                for &t in &d.blocked {
+                    map.unblock_tile_z(d.floor, t);
+                }
+            }
+            if let Some(gp) = sgp {
+                let facing = srot.map(|r| r.0 & 0x0F).unwrap_or(SHIP_PARKED_FACING);
+                let fz = sdrive.map(|d| d.floor).unwrap_or(SPAWN_FLOOR);
+                for t in ship_footprint(gp.tile, facing) {
+                    map.unblock_tile_z(fz, t);
+                }
+            }
+            commands.entity(sent).despawn();
+        }
         let z = floor.map(|f| f.0).unwrap_or(0);
         let tile = gpos.tile;
         let Some(ship) = spawn_env_object(
@@ -268,9 +305,11 @@ pub fn return_from_space(
         // Boarded + facing: `start_placed_ship_descent` (Added<EnvObject>) gives it the
         // ENTERING descent + a float body next tick; with `Piloted` present, `drive_ships`
         // routes ENTERING → FLY so the pilot arrives flying, not parked.
-        commands
-            .entity(ship)
-            .insert((FurnitureRot(SHIP_PARKED_FACING), Piloted { pilot: tag.0 }));
+        commands.entity(ship).insert((
+            FurnitureRot(SHIP_PARKED_FACING),
+            Piloted { pilot: tag.0 },
+            ShipOwner(tag.0),
+        ));
         commands.entity(pent).insert(Piloting(ship));
     }
 }
@@ -431,9 +470,11 @@ pub fn drive_ships(
 /// FLOAT IT AWAY: free any tiles it held and despawn it, so it stops cluttering the
 /// world. A fresh parked ship returns on the next boot.
 ///
-/// Single indestructible ship for now. Per-player OWNED ships come next — that's an
-/// ECS `ShipOwner(slot)` component on the ship + a per-player spawn; recovery then
-/// re-parks an owner's ship at its home tile instead of despawning the shared one.
+/// Ships are per-player (`ShipOwner`), so recovery re-parks the orphan at a CLEAR pad
+/// near the shared home tile (spiralling out of any hull already parked there) rather
+/// than stacking every orphan on one tile. The one-ship-per-owner invariant is enforced
+/// at the return funnel: `return_from_space` despawns a player's pre-existing ship before
+/// spawning their fresh one, so a re-parked orphan can't survive into a duplicate.
 #[allow(clippy::type_complexity)]
 pub fn recover_orphaned_ships(
     mut commands: Commands,
@@ -465,15 +506,16 @@ pub fn recover_orphaned_ships(
         if !orphaned {
             continue;
         }
-        // Return the single indestructible ship HOME (parked + grounded) so it's always
-        // findable, instead of vanishing until a restart. Free whatever it held, re-block
-        // the home footprint, drop the drive links + any locomotion body.
+        // Return the owner's ship HOME (parked + grounded) so it's always findable,
+        // instead of vanishing until a restart. Free whatever it held, then pick a clear
+        // pad near home (so a second orphan doesn't stack on the first) + re-block its
+        // footprint, and drop the drive links + any locomotion body.
         if let Some(d) = drive {
             for &t in &d.blocked {
                 map.unblock_tile_z(d.floor, t);
             }
         }
-        let home = ship_home_tile();
+        let home = clear_landing(&map, SPAWN_FLOOR, ship_home_tile(), SHIP_PARKED_FACING);
         for t in ship_footprint(home, SHIP_PARKED_FACING) {
             map.block_tile_z(SPAWN_FLOOR, t);
         }
@@ -506,11 +548,12 @@ pub fn start_placed_ship_descent(
             &EnvObject,
             Option<&FurnitureRot>,
             Option<&Floor>,
+            Option<&PlacedBy>,
         ),
         Added<EnvObject>,
     >,
 ) {
-    for (e, pos, env, rot, floor) in placed.iter() {
+    for (e, pos, env, rot, floor, placed_by) in placed.iter() {
         if env.def_ref != SHIP_REF {
             continue;
         }
@@ -527,6 +570,12 @@ pub fn start_placed_ship_descent(
             },
             FloatMove::at(pos.tile),
         ));
+        // A ship placed from a player's starship-kit carries `PlacedBy`; record its
+        // owner so the one-ship-per-owner invariant (return_from_space dedup +
+        // orphan recovery) can find and reclaim it later.
+        if let Some(pb) = placed_by {
+            commands.entity(e).insert(ShipOwner(pb.owner));
+        }
     }
 }
 
