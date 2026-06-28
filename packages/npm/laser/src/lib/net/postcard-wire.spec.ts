@@ -7,7 +7,7 @@ import {
 	decodeInventory,
 	decodeItemPlaced,
 	decodeItemUsed,
-	decodePetBattleLog,
+	decodePetBattleReplay,
 	decodePickup,
 	decodeBlackjack,
 	decodeProjectile,
@@ -136,11 +136,27 @@ describe('postcard Ephemeral payload decoder', () => {
 	});
 
 	// proto.rs pickup_event_fixture_is_stable
-	it('decodes a PetBattleLogEvent (lines seq + outcome string)', () => {
-		// 02(seq) 02"hi" 03"won" 09"PlayerWon"
-		const payload = '0202686903776f6e09506c61796572576f6e';
-		expect(decodePetBattleLog(Array.from(fromHex(payload)))).toEqual({
-			lines: ['hi', 'won'],
+	it('decodes a PetBattleReplay (teams + flat event stream)', () => {
+		// player[1]={"m","m",lvl 2,hp 3,max 3}  enemy[0]  events[1]={DAMAGE,side1,
+		// val 3,hp 3,flag 0,"x"}  outcome "PlayerWon". i32 fields are zigzag varint.
+		const payload =
+			'01016d016d020606' + // player seq + battler{m,m,2,3,3}
+			'00' + // enemy seq 0
+			'01' + // events seq 1
+			'01010606000178' + // event: kind1 side1 val3 hp3 flag0 "x"
+			'09506c61796572576f6e'; // outcome "PlayerWon"
+		expect(decodePetBattleReplay(Array.from(fromHex(payload)))).toEqual({
+			player: [
+				{
+					species_ref: 'm',
+					nickname: 'm',
+					level: 2,
+					hp: 3,
+					max_hp: 3,
+				},
+			],
+			enemy: [],
+			events: [{ kind: 1, side: 1, value: 3, hp: 3, flag: 0, text: 'x' }],
 			outcome: 'PlayerWon',
 		});
 	});

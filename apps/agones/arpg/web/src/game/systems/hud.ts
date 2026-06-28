@@ -3,7 +3,7 @@ import {
 	type InventoryItem,
 	type NotificationEventData,
 	type CorpseContents,
-	type PetBattleLog,
+	type PetBattleReplay,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
 
@@ -178,9 +178,9 @@ export function onInventoryIntent(
 }
 
 // Debug pet-battle: the HUD button requests a simulation; the scene forwards it to
-// the client, and streams the resulting log back here for the panel to render.
+// the client, and streams the structured replay back here for the scene to animate.
 export const PET_BATTLE_REQUEST_EVENT = 'arpg:petBattle:request';
-export const PET_BATTLE_LOG_EVENT = 'arpg:petBattle:log';
+export const PET_BATTLE_REPLAY_EVENT = 'arpg:petBattle:replay';
 
 export function emitPetBattleRequest(): void {
 	laserEvents.emit(PET_BATTLE_REQUEST_EVENT, undefined);
@@ -193,15 +193,15 @@ export function onPetBattleRequest(handler: () => void): () => void {
 	);
 }
 
-export function emitPetBattleLog(log: PetBattleLog): void {
-	laserEvents.emit(PET_BATTLE_LOG_EVENT, log);
+export function emitPetBattleReplay(replay: PetBattleReplay): void {
+	laserEvents.emit(PET_BATTLE_REPLAY_EVENT, replay);
 }
 
-export function onPetBattleLog(
-	handler: (log: PetBattleLog) => void,
+export function onPetBattleReplay(
+	handler: (replay: PetBattleReplay) => void,
 ): () => void {
 	return laserEvents.on(
-		PET_BATTLE_LOG_EVENT,
+		PET_BATTLE_REPLAY_EVENT,
 		handler as (data: unknown) => void,
 	);
 }
