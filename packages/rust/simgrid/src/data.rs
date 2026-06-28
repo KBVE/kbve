@@ -20,6 +20,8 @@ pub struct NpcDef {
     #[serde(default)]
     pub level: i32,
     #[serde(default)]
+    pub element: String,
+    #[serde(default)]
     pub stats: NpcStats,
     #[serde(default)]
     pub equipment: Option<NpcEquipment>,
@@ -53,6 +55,38 @@ pub struct NpcAbility {
     pub category: String,
     #[serde(default)]
     pub element: String,
+    #[serde(default)]
+    pub hit_chance: f32,
+    #[serde(default)]
+    pub priority: i32,
+    #[serde(default)]
+    pub status_effect: String,
+    #[serde(default)]
+    pub status_chance: f32,
+    #[serde(default)]
+    pub high_crit: bool,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub recoil_fraction: f32,
+    #[serde(default)]
+    pub drain_fraction: f32,
+    #[serde(default)]
+    pub stat_changes: Vec<NpcStatChange>,
+}
+
+/// One stat buff/debuff a move applies on hit.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcStatChange {
+    #[serde(default)]
+    pub stat: String,
+    #[serde(default)]
+    pub stages: i32,
+    #[serde(default)]
+    pub target: String,
+    #[serde(default)]
+    pub chance: f32,
 }
 
 /// One level-up move a pet learns naturally.

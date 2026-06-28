@@ -341,6 +341,7 @@ mod tests {
             ref_id: "mechamutt".into(),
             name: "Mechamutt".into(),
             level: 5,
+            element: "ELEMENT_LIGHTNING".into(),
             stats: NpcStats {
                 hp: 45,
                 max_hp: 45,

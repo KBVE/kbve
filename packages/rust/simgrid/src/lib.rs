@@ -1,4 +1,5 @@
 pub mod arpg_dungeon;
+pub mod battle;
 pub mod biome;
 pub mod blackjack;
 pub mod combat;
@@ -18,6 +19,10 @@ pub mod trade;
 #[cfg(feature = "supabase-auth")]
 pub mod auth;
 
+pub use battle::{
+    BattleAction, BattleEvent, BattleOutcome, BattleSide, BattleState, Combatant, Effectiveness,
+    Element, MoveCategory, MoveData, PetStatus, Side, StatId, type_multiplier,
+};
 pub use blackjack::{TableDef, Tables};
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
 pub use grid::{
