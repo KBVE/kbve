@@ -134,6 +134,16 @@ pub struct ReaperConfigOverride {
     pub empty_fresh_secs: Option<i64>,
 }
 
+/// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`
+/// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
+/// One of these is read per scope (tenant + global sentinel) and combined by
+/// `effective_accept_new_joins` (either scope `Some(false)` closes the gate).
+#[derive(Debug, Clone, Default, sqlx::FromRow)]
+pub struct AdmissionOverride {
+    #[sqlx(rename = "acceptnewjoins")]
+    pub accept_new_joins: Option<bool>,
+}
+
 impl ReaperKnobs {
     /// Returns the effective knobs: the env-derived baseline (`self`) with any non-`None`
     /// per-tenant override applied. Env sets the floor; the DB row wins per field when present.
