@@ -61,6 +61,7 @@
 #define sqlite3_callback kbve_sqlite3_callback
 #define sqlite3_cancel_auto_extension kbve_sqlite3_cancel_auto_extension
 #define sqlite3_carray_bind kbve_sqlite3_carray_bind
+#define sqlite3_carray_bind_v2 kbve_sqlite3_carray_bind_v2
 #define sqlite3_changegroup kbve_sqlite3_changegroup
 #define sqlite3_changegroup_new kbve_sqlite3_changegroup_new
 #define sqlite3_changegroup_schema kbve_sqlite3_changegroup_schema
@@ -334,9 +335,11 @@
 #define sqlite3_str_appendf kbve_sqlite3_str_appendf
 #define sqlite3_str_errcode kbve_sqlite3_str_errcode
 #define sqlite3_str_finish kbve_sqlite3_str_finish
+#define sqlite3_str_free kbve_sqlite3_str_free
 #define sqlite3_str_length kbve_sqlite3_str_length
 #define sqlite3_str_new kbve_sqlite3_str_new
 #define sqlite3_str_reset kbve_sqlite3_str_reset
+#define sqlite3_str_truncate kbve_sqlite3_str_truncate
 #define sqlite3_str_value kbve_sqlite3_str_value
 #define sqlite3_str_vappendf kbve_sqlite3_str_vappendf
 #define sqlite3_strglob kbve_sqlite3_strglob

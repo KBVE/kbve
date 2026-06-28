@@ -1,5 +1,5 @@
 /**
- * Compilation unit for SQLite 3.51.3 (Public Domain).
+ * Compilation unit for SQLite 3.53.3 (Public Domain).
  * https://sqlite.org
  *
  * This file MUST remain .c (not .cpp) because sqlite3.c uses "new" as a
