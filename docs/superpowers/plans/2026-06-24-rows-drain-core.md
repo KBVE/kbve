@@ -54,7 +54,8 @@ DDL identifiers fold to concatenated lowercase (Postgres): `drainstate`, `drainu
 >   migration-before-merge is the operator procedure — apply `20260624140000` per env before merging, so the
 >   columns exist before the auto-synced image rolls (Global Constraints + Task 6).
 > - **Routing (MEDIUM, new)** — `join_map` excludes `asap` **and** `drop_players` **and** `saving`, not just
->   `urgency=1` (Task 5).
+>   `urgency=1`; the decision is lifted into a pure, CI-unit-tested `join_candidate_key` (the `reap_decision`
+>   pattern) so the player-path logic has real coverage, not manual verification (Task 5).
 
 ---
 
@@ -510,27 +511,109 @@ git commit -m "feat(rows): monotonic set_drain_state / request-scoped clear_drai
 
 ---
 
-### Task 5: Drain-aware `join_map` preference order
+### Task 5: Drain-aware `join_map` preference — pure policy + selection
+
+**Why this shape:** routing new players is the **player-facing** path, and the crate has **no DB test harness**
+(no `tests/` dir, no `sqlx::test`, no `[dev-dependencies]`; every test today is pure-logic, like `reap_decision`).
+Burying the eligibility/ranking rules in SQL `WHERE`/`ORDER BY` would leave the most important logic in the plan
+**untested in CI** and reachable only by manual verification — not acceptable for a player path. So we lift the
+decision into a **pure function** that production actually calls (fetch the small per-zone `status=2` candidate set,
+rank in Rust), exactly the `reap_decision` pattern. The pure function gets exhaustive CI unit tests; the SQL is
+demoted to "fetch candidates," which can't silently mis-rank.
 
 **Files:**
 
-- Modify: `apps/rows/src/repo/instances.rs` (`join_map_by_char_name`)
+- Modify: `apps/rows/src/repo/instances.rs` (`join_map_by_char_name` + new pure `join_candidate_key`)
 
 **Interfaces:**
 
-- Consumes: `drainstate`/`drainurgency`/`draindropplayers` columns (Task 1).
-- Produces: the "existing ready instance" selection in `join_map_by_char_name` **excludes** any draining instance
-  that is `asap` (`drainurgency=1`) **or** will drop players (`draindropplayers=true`) **or** is `saving`
-  (`drainstate=2`), and **de-prioritizes** an acceptable `when_able` drain (`drainstate=1`, not asap, not drop)
-  below healthy instances.
+- Produces: `pub fn join_candidate_key(drain_state, drain_urgency, drain_drop_players, player_count) -> Option<(u8, i32)>`
+  — `None` = ineligible as a new-join target (`asap` / `drop_players` / `saving`); `Some((tier, players))` where
+  `tier=0` healthy, `tier=1` acceptable `when_able` drain; lower key wins (healthy first, then fewest players).
+  `join_map_by_char_name` fetches all `status=2` candidates for the zone and picks `min_by_key`.
 
-- [ ] **Step 1: Update the existing-instance query**
+- [ ] **Step 1: Add the pure selection policy + failing unit tests**
 
-In `join_map_by_char_name`, the first query selects an existing `status = 2` instance ordered by
-`numberofreportedplayers ASC`. Change its `WHERE` and `ORDER BY`:
+In `apps/rows/src/repo/instances.rs`, add the pure function and a `mod tests` (no DB — pure, runs in normal
+`cargo test`). Write the tests first; they fail to compile until the function exists (TDD):
 
 ```rust
-        let existing: Option<JoinMapResult> = sqlx::query_as(
+/// Pure new-join selection policy. Returns the ordering key for an existing `status=2` instance, or
+/// `None` if it must never receive a new join. Lower key is preferred:
+///   tier 0 = healthy (not draining); tier 1 = acceptable `when_able` drain (state=1, not asap, not drop).
+/// Excluded (`None`): `asap` (urgency=1), `draindropplayers=true` (will disconnect after save), or
+/// `saving` (state=2, shutting down). Within a tier, fewer players wins (same as the old ORDER BY).
+/// NULL `drainstate` is the only "not draining" value (the migration CHECK forbids 0).
+pub fn join_candidate_key(
+    drain_state: Option<i16>,
+    drain_urgency: Option<i16>,
+    drain_drop_players: Option<bool>,
+    player_count: i32,
+) -> Option<(u8, i32)> {
+    match drain_state {
+        None => Some((0, player_count)), // healthy -> preferred tier
+        Some(2) => None,                 // saving -> excluded
+        Some(_) => {
+            let asap = drain_urgency.unwrap_or(0) == 1;
+            let will_drop = drain_drop_players.unwrap_or(false);
+            if asap || will_drop {
+                None // asap / drop -> excluded
+            } else {
+                Some((1, player_count)) // when_able, non-drop -> eligible but below healthy
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::join_candidate_key;
+
+    #[test]
+    fn healthy_is_preferred_and_orders_by_players() {
+        assert_eq!(join_candidate_key(None, None, None, 5), Some((0, 5)));
+        // healthy always outranks any draining (tier 0 < tier 1) regardless of player count
+        assert!(join_candidate_key(None, None, None, 99) < join_candidate_key(Some(1), Some(0), Some(false), 0));
+    }
+
+    #[test]
+    fn when_able_nondrop_is_eligible_fallback() {
+        assert_eq!(join_candidate_key(Some(1), Some(0), Some(false), 3), Some((1, 3)));
+        // among two when_able drains, fewer players wins
+        assert!(join_candidate_key(Some(1), Some(0), Some(false), 2) < join_candidate_key(Some(1), Some(0), Some(false), 8));
+    }
+
+    #[test]
+    fn asap_drop_saving_are_excluded() {
+        assert_eq!(join_candidate_key(Some(1), Some(1), Some(false), 0), None); // asap
+        assert_eq!(join_candidate_key(Some(1), Some(0), Some(true), 0), None);  // drop_players
+        assert_eq!(join_candidate_key(Some(2), Some(0), Some(false), 0), None); // saving
+        assert_eq!(join_candidate_key(Some(2), Some(1), Some(true), 0), None);  // saving + asap + drop
+    }
+
+    #[test]
+    fn null_urgency_and_drop_default_to_eligible_when_able() {
+        // a state=1 drain with NULL urgency/drop is treated as when_able, non-drop -> eligible fallback
+        assert_eq!(join_candidate_key(Some(1), None, None, 4), Some((1, 4)));
+    }
+}
+```
+
+- [ ] **Step 2: Run the unit tests — verify they pass**
+
+Run: `cd apps/rows && cargo test join_candidate 2>&1 | tail -20`
+Expected: PASS — the 4 policy tests. This is the **coverage of record** for the routing decision (replaces manual verification as the final word).
+
+- [ ] **Step 3: Wire the pure policy into `join_map_by_char_name`**
+
+Replace the first (`existing`) query so it (a) selects the full `JoinMapResult` columns **plus** the three drain
+columns and the player count, for **all** `status=2` candidates (per-zone count is small — a handful), and (b) picks
+the winner with `join_candidate_key`. Define a small `#[derive(sqlx::FromRow)]` row that flattens `JoinMapResult`'s
+fields plus `drain_state: Option<i16>`, `drain_urgency: Option<i16>`, `drain_drop_players: Option<bool>`,
+`player_count: i32`, and a `fn into_result(self) -> JoinMapResult`. Then:
+
+```rust
+        let candidates: Vec<JoinCandidateRow> = sqlx::query_as(
             "SELECT ws.serverip AS server_ip,
                     ws.internalserverip AS world_server_ip,
                     ws.port AS world_server_port,
@@ -543,61 +626,56 @@ In `join_map_by_char_name`, the first query selects an existing `status = 2` ins
                     false AS enable_auto_loopback,
                     c.noportforwarding AS no_port_forwarding,
                     true AS success,
-                    '' AS error_message
+                    '' AS error_message,
+                    mi.drainstate        AS drain_state,
+                    mi.drainurgency      AS drain_urgency,
+                    mi.draindropplayers  AS drain_drop_players,
+                    mi.numberofreportedplayers AS player_count
              FROM maps m
              JOIN mapinstances mi ON mi.mapid = m.mapid AND mi.customerguid = m.customerguid
              JOIN worldservers ws ON ws.worldserverid = mi.worldserverid AND ws.customerguid = mi.customerguid
              JOIN customers c ON c.customerguid = m.customerguid
-             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2
-               AND NOT (
-                     mi.drainstate IS NOT NULL
-                     AND (
-                          COALESCE(mi.drainurgency, 0) = 1          -- asap: never accept new joins
-                          OR COALESCE(mi.draindropplayers, false)   -- will disconnect after save
-                          OR mi.drainstate = 2                      -- saving: shutting down
-                     )
-               )
-             ORDER BY (mi.drainstate IS NOT NULL) ASC,            -- healthy first, when_able-draining as fallback
-                      mi.numberofreportedplayers ASC
-             LIMIT 1",
+             WHERE m.customerguid = $1 AND m.zonename = $2 AND mi.status = 2",
         )
         .bind(customer_guid)
         .bind(zone_name)
-        .fetch_optional(self.0)
+        .fetch_all(self.0)
         .await?;
+
+        let existing = candidates
+            .into_iter()
+            .filter_map(|c| {
+                join_candidate_key(c.drain_state, c.drain_urgency, c.drain_drop_players, c.player_count)
+                    .map(|key| (key, c))
+            })
+            .min_by_key(|(key, _)| *key)
+            .map(|(_, c)| c.into_result());
+
+        if let Some(result) = existing {
+            return Ok(result);
+        }
 ```
 
-> Hard-excludes `asap`, `drop_players`, and `saving` drains. The only draining instance that remains eligible is a
-> `when_able`, non-drop, `drainstate=1` one — and `ORDER BY (drainstate IS NOT NULL) ASC` keeps it strictly below
-> any healthy instance, so it is used only when no healthy instance exists. The `pending` placeholder query
-> (spin-up path) is unchanged — a fresh instance is never draining.
+> The `pending`/spin-up fallback below is unchanged. The SELECT still names `drainstate`/`drainurgency`/`draindropplayers`
+> explicitly, so the **migration-before-merge** constraint (Task 6) still applies. Ranking now lives in
+> `join_candidate_key` (CI-tested), not in SQL — the query can't silently mis-rank.
 
-- [ ] **Step 2: Verify build + tests**
+- [ ] **Step 4: Verify build + full test run**
 
 Run: `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail -15`
-Expected: builds clean; tests pass.
+Expected: builds clean; all tests pass (including the new policy tests).
 
-- [ ] **Step 3: Verification — DB integration (preferred) + manual fallback**
+- [ ] **Step 5: Optional end-to-end smoke (not the coverage of record)**
 
-There is no SQL unit harness for this query, and this is the **player-facing** path, so it is the highest-value
-thing to regression-protect. Prefer an `#[ignore]`-gated integration test (run against a dev Postgres via
-`DATABASE_URL`, executed in the PR's verification, not in unit CI) that seeds two `status=2` instances and asserts
-each routing case. If that harness can't be stood up this phase, document the **manual** dev-env verification in
-the PR and file the follow-up to add the integration test (see "Required follow-up").
+If a dev Postgres is handy, smoke the wired path: seed two `status=2` instances, drain one `asap` → joins go to the
+other; flip it to `when_able` → healthy still preferred; remove the healthy one → `when_able` used; `clear_drain_state`
+restores. This is a confidence check on the SQL→struct mapping only; the routing **logic** is already proven by Step 2.
 
-Cases to assert either way:
-
-1. one healthy + one `asap` → joins route only to the healthy one.
-2. one healthy + one `when_able` (no drop) → joins prefer the healthy one.
-3. only a `when_able` (no drop, `drainstate=1`) remains → it is used as fallback.
-4. only a `drop_players=true` (or `saving`) drain remains → **no existing instance selected** (falls through to spin-up), never routed onto a dropping/saving server.
-5. `clear_drain_state` restores normal routing.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add apps/rows/src/repo/instances.rs
-git commit -m "feat(rows): drain-aware join_map preference (exclude asap/drop/saving, when_able fallback)"
+git commit -m "feat(rows): drain-aware join_map via pure join_candidate_key policy (asap/drop/saving excluded)"
 ```
 
 ---
@@ -698,9 +776,9 @@ blocker clears:
 - Migration-before-merge as an explicit operator procedure (apply per env before merging the impl PR) → Task 6. ✅
 - Admission gates / new-vs-travel / fleet-restart → deferred to follow-on plans (with blockers + the Phase-2 authz requirement called out). ✅ (explicitly out)
 
-**Placeholder scan:** every code step shows code; routing (Task 5) prefers a DB integration test and only falls
-back to manual verification with an explicit follow-up to add the harness — it is no longer a silent substitute
-for coverage on the player-facing path.
+**Placeholder scan:** every code step shows code; routing (Task 5) is covered by exhaustive **pure-function unit
+tests** on `join_candidate_key` that run in normal CI (the `reap_decision` pattern) — manual/DB smoke is an optional
+confidence check on the SQL→struct mapping, no longer the coverage of record for the player-path decision.
 
 **Type consistency:** `reap_decision` gains `is_draining: bool` and `drain_deadline: Option<NaiveDateTime>` before
 `now` → **14-arg** signature, applied in Task 2 (def + enumerated existing-call updates) and Task 3 (cycle call,
