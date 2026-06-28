@@ -32,8 +32,13 @@
 */
 #ifndef SQLITE3_H
 #define SQLITE3_H
-#include "sqlite3_prefix.h"
 #include <stdarg.h>     /* Needed for the definition of va_list */
+
+/* KBVESQLite: rename the public API to kbve_sqlite3_* so consumers (e.g.
+** KBVEWorld) link against this threadsafe copy and never collide with the
+** engine's SQLiteCore in a monolithic build. Mirror of the force-include in
+** KBVESQLiteThirdParty.c. Added during the UE 5.8 upgrade. */
+#include "sqlite3_prefix.h"
 
 /*
 ** Make sure we can call this stuff from C++.
