@@ -5,7 +5,9 @@ use bevy::prelude::{Query, Res, ResMut};
 
 use crate::grid::GridPos;
 use crate::proto::{self, Tile};
-use crate::sim::{Inventory, Outbound, PlayerSlotTag, SimClock, SpawnedSlots, send_inventory};
+use crate::sim::{
+    Inventory, ItemBank, Outbound, PlayerSlotTag, SimClock, SpawnedSlots, send_inventory,
+};
 use crate::trade::net::{send_trade, send_trade_closed};
 use crate::trade::session::{
     ActiveTrades, MAX_INVENTORY_SLOTS, PendingTrades, TRADE_RANGE, TRADE_TIMEOUT_TICKS, TradeInput,
@@ -45,6 +47,7 @@ pub fn apply_trades(
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
     mut q: Query<(Entity, &PlayerSlotTag, &GridPos, &mut Inventory)>,
+    mut bank: ItemBank,
 ) {
     if pending.0.is_empty() {
         return;
@@ -82,7 +85,7 @@ pub fn apply_trades(
                 let me_holds = entity_of_slot
                     .get(&me)
                     .and_then(|e| q.get(*e).ok())
-                    .map(|(_, _, _, inv)| inv_holds(inv, &items))
+                    .map(|(_, _, _, inv)| inv_holds(&bank.snapshot(inv), &items))
                     .unwrap_or(false);
                 if !adjacent(me, partner) || !me_holds {
                     send_trade_closed(&bcast, me, "cancelled");
@@ -125,14 +128,16 @@ pub fn apply_trades(
                     let s = &trades.sessions[idx];
                     (s.a, s.b, s.a_side.items.clone(), s.b_side.items.clone())
                 };
-                let a_holds = q
-                    .get(entity_of_slot[&a])
-                    .map(|(_, _, _, inv)| inv_holds(inv, &a_items))
-                    .unwrap_or(false);
-                let b_holds = q
-                    .get(entity_of_slot[&b])
-                    .map(|(_, _, _, inv)| inv_holds(inv, &b_items))
-                    .unwrap_or(false);
+                let (ea, eb) = (entity_of_slot[&a], entity_of_slot[&b]);
+                // Snapshot both inventories to stack DTOs, then validate holds + the
+                // post-trade slot cap with a pure dry-run before touching any entities.
+                let snap_a = q.get(ea).ok().map(|(.., inv)| bank.snapshot(inv));
+                let snap_b = q.get(eb).ok().map(|(.., inv)| bank.snapshot(inv));
+                let (Some(snap_a), Some(snap_b)) = (snap_a, snap_b) else {
+                    continue;
+                };
+                let a_holds = inv_holds(&snap_a, &a_items);
+                let b_holds = inv_holds(&snap_b, &b_items);
                 if !adjacent(a, b) || !a_holds || !b_holds {
                     let session = trades.sessions.remove(idx);
                     send_trade(&bcast, &session, "cancelled");
@@ -144,43 +149,58 @@ pub fn apply_trades(
                     send_trade(&bcast, session, "update");
                     continue;
                 }
-                let (ea, eb) = (entity_of_slot[&a], entity_of_slot[&b]);
-                let inv_a = q.get(ea).map(|(.., inv)| inv.clone()).ok();
-                let inv_b = q.get(eb).map(|(.., inv)| inv.clone()).ok();
-                let (Some(inv_a), Some(inv_b)) = (inv_a, inv_b) else {
-                    continue;
-                };
-                // Detach each side's offered stacks (ids preserved), then cross them so a
-                // traded item carries its instance identity to the recipient instead of
-                // being destroyed + re-minted.
-                let detached_a = detach_offer(&inv_a, &a_items);
-                let detached_b = detach_offer(&inv_b, &b_items);
-                let (Some((rem_a, moved_a)), Some((rem_b, moved_b))) = (detached_a, detached_b)
-                else {
+                // Dry-run the cap: each side ends with its leftovers + the goods received.
+                let dry = detach_offer(&snap_a, &a_items).zip(detach_offer(&snap_b, &b_items));
+                let Some(((rem_a, moved_a_dto), (rem_b, moved_b_dto))) = dry else {
                     let session = trades.sessions.remove(idx);
                     send_trade(&bcast, &session, "cancelled");
                     continue;
                 };
-                let new_a = merge_received(rem_a, moved_b, MAX_INVENTORY_SLOTS);
-                let new_b = merge_received(rem_b, moved_a, MAX_INVENTORY_SLOTS);
-                let (Some(new_a), Some(new_b)) = (new_a, new_b) else {
+                if merge_received(rem_a, moved_b_dto, MAX_INVENTORY_SLOTS).is_none()
+                    || merge_received(rem_b, moved_a_dto, MAX_INVENTORY_SLOTS).is_none()
+                {
                     let session = trades.sessions.remove(idx);
                     send_trade(&bcast, &session, "cancelled");
                     continue;
-                };
+                }
+                // Execute on the real item entities: detach each side's offered stacks
+                // (the entities keep their ids), then absorb them into the other side.
+                // get_mut one player at a time to avoid two &mut Inventory borrows at once.
+                let mut moved_a: Vec<Entity> = Vec::new();
                 if let Ok((.., mut inv)) = q.get_mut(ea) {
-                    inv.slots = new_a;
+                    for (r, n) in &a_items {
+                        if let Some(e) = bank.detach(&mut inv, r, *n) {
+                            moved_a.push(e);
+                        }
+                    }
+                }
+                let mut moved_b: Vec<Entity> = Vec::new();
+                if let Ok((.., mut inv)) = q.get_mut(eb) {
+                    for (r, n) in &b_items {
+                        if let Some(e) = bank.detach(&mut inv, r, *n) {
+                            moved_b.push(e);
+                        }
+                    }
+                }
+                if let Ok((.., mut inv)) = q.get_mut(ea) {
+                    for e in moved_b {
+                        bank.absorb(&mut inv, e);
+                    }
                 }
                 if let Ok((.., mut inv)) = q.get_mut(eb) {
-                    inv.slots = new_b;
+                    for e in moved_a {
+                        bank.absorb(&mut inv, e);
+                    }
                 }
                 let session = trades.sessions.remove(idx);
                 send_trade(&bcast, &session, "completed");
                 if let Ok((.., inv)) = q.get(ea) {
-                    send_inventory(&bcast, proto::PlayerSlot(a), inv);
+                    let items = bank.snapshot(inv);
+                    send_inventory(&bcast, proto::PlayerSlot(a), &items);
                 }
                 if let Ok((.., inv)) = q.get(eb) {
-                    send_inventory(&bcast, proto::PlayerSlot(b), inv);
+                    let items = bank.snapshot(inv);
+                    send_inventory(&bcast, proto::PlayerSlot(b), &items);
                 }
             }
             TradeInput::Cancel => {

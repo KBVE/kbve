@@ -178,13 +178,11 @@ fn trade_full_inventory_rejected() {
     let ea = player_for_slot(&mut app, a);
     let eb = player_for_slot(&mut app, b);
     set_inventory(&mut app, ea, &[("coin", 5)]);
-    let full: Vec<crate::sim::ItemStack> = (0..MAX_INVENTORY_SLOTS)
-        .map(|i| crate::sim::ItemStack::mint(&format!("item{i}"), 1))
+    let names: Vec<String> = (0..MAX_INVENTORY_SLOTS)
+        .map(|i| format!("item{i}"))
         .collect();
-    {
-        let mut inv = app.world_mut().get_mut::<Inventory>(eb).unwrap();
-        inv.slots = full;
-    }
+    let full: Vec<(&str, u32)> = names.iter().map(|s| (s.as_str(), 1)).collect();
+    set_inventory(&mut app, eb, &full);
     let b_eid = eid_of(&mut app, b);
 
     input_tx
