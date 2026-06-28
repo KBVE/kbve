@@ -6,13 +6,14 @@
 # logs. Juggling three terminals is friction; this lays them out in one window
 # and tears them all down together on detach-kill.
 #
-# WHAT (layout):
+# WHAT (2x2 layout):
 #   ┌────────────────┬────────────────┐
 #   │ server (cargo- │ web (vite       │
 #   │ watch, :7979)  │ :5402)          │
-#   ├────────────────┴────────────────┤
-#   │ scratch shell (git / nx / logs) │
-#   └─────────────────────────────────┘
+#   ├────────────────┼────────────────┤
+#   │ scratch shell  │ typecheck       │
+#   │ (git / nx)     │ (tsc --watch)   │
+#   └────────────────┴────────────────┘
 #
 #   ./apps/agones/arpg/dev-tmux.sh          # attach (creates if missing)
 #   ./apps/agones/arpg/dev-tmux.sh kill      # tear the session down
@@ -38,20 +39,26 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
 fi
 
 cd "$ROOT"
+WEB="$ROOT/apps/agones/arpg/web"
 
-# Window 0: server (top-left). cargo-watch native, frees :7979 from docker.
+# Build a 2x2 grid by pane-id (robust to tmux's pane renumbering): top row splits
+# server|web, bottom row splits scratch|typecheck.
 tmux new-session -d -s "$SESSION" -n stack -c "$ROOT"
-tmux send-keys -t "$SESSION:stack" "./apps/agones/arpg/server/dev.sh" C-m
+TOP="$(tmux display-message -p -t "$SESSION:stack" '#{pane_id}')"
+BOT="$(tmux split-window -v -P -F '#{pane_id}' -t "$TOP" -c "$ROOT")"
+WEBP="$(tmux split-window -h -P -F '#{pane_id}' -t "$TOP" -c "$WEB")"
+TCP="$(tmux split-window -h -P -F '#{pane_id}' -t "$BOT" -c "$WEB")"
 
+# Top-left: server (cargo-watch native, frees :7979 from docker).
+tmux send-keys -t "$TOP" "./apps/agones/arpg/server/dev.sh" C-m
 # Top-right: web client (vite :5402).
-tmux split-window -h -t "$SESSION:stack" -c "$ROOT/apps/agones/arpg/web"
-tmux send-keys -t "$SESSION:stack" "npm run dev" C-m
+tmux send-keys -t "$WEBP" "npm run dev" C-m
+# Bottom-left: scratch shell (git / nx / logs).
+tmux send-keys -t "$BOT" "git -C \"$ROOT\" status -sb" C-m
+# Bottom-right: live typecheck (mirrors the arpg-web:typecheck target, --watch).
+tmux send-keys -t "$TCP" "npx tsc --noEmit --watch" C-m
 
-# Bottom: scratch shell across the full width (git / nx / logs).
-tmux select-pane -t "$SESSION:stack.0"
-tmux split-window -v -t "$SESSION:stack.0" -c "$ROOT"
-tmux resize-pane -t "$SESSION:stack" -y 8
-tmux send-keys -t "$SESSION:stack" "git -C \"$ROOT\" status -sb" C-m
-
-tmux select-pane -t "$SESSION:stack.0"
+# Keep the bottom row compact; land on the server pane.
+tmux resize-pane -t "$BOT" -y 12
+tmux select-pane -t "$TOP"
 exec tmux attach -t "$SESSION"
