@@ -46,6 +46,7 @@ pub const EPHEMERAL_FLOOR: u16 = 13;
 pub const EPHEMERAL_ITEM_PLACED: u16 = 14;
 pub const EPHEMERAL_SPELL: u16 = 15;
 pub const EPHEMERAL_CORPSE: u16 = 16;
+pub const EPHEMERAL_PET_ROSTER: u16 = 17;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -537,6 +538,42 @@ pub struct SpellResult {
     pub amount: i32,
     pub ok: bool,
     pub reason: String,
+}
+
+/// One known move on a pet, for the roster wire form. Mirrors TS `PetMoveView`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PetMoveView {
+    pub ability_id: String,
+    pub pp: u16,
+    pub max_pp: u16,
+}
+
+/// One pet instance in the owner's roster, flattened for the wire. Mirrors TS
+/// `PetView`. Pets never appear in the spatial snapshot — they sync only through this
+/// roster event and the battle events.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PetView {
+    pub id: String,
+    pub species_ref: String,
+    pub nickname: String,
+    pub level: u32,
+    pub xp: u32,
+    pub hp: i32,
+    pub max_hp: i32,
+    pub attack: i32,
+    pub defense: i32,
+    pub sp_attack: i32,
+    pub sp_defense: i32,
+    pub speed: i32,
+    pub moves: Vec<PetMoveView>,
+}
+
+/// Full pet-roster snapshot pushed to an owner after a catch/release/trade/level-up.
+/// `active` is the index of the lead pet. Mirrors TS `PetRosterSync`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PetRosterSync {
+    pub pets: Vec<PetView>,
+    pub active: Option<u32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

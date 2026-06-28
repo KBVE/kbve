@@ -7,6 +7,7 @@ pub mod dungeon;
 pub mod float_move;
 pub mod grid;
 pub mod net;
+pub mod pets;
 pub mod proto;
 pub mod rng;
 pub mod shop;
@@ -23,6 +24,11 @@ pub use grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
 };
 pub use net::{Roster, ServerState, SlotInput, router};
+pub use pets::{
+    PendingPets, Pet, PetBank, PetId, PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef,
+    PetRoster, PetSnapshot, PetVitals, clear_pending_pets, mint_pet_from_species, mint_pet_id,
+    to_roster_sync,
+};
 pub use sim::{
     Aggro, AggroSpec, BUSH_DENSITY_PER_MILLE, BUSH_REF, BUSH_VARIANTS, Blocker, BuffEffects,
     BuffSpec, BushState, CombatStats, ConsumableEffects, Defense, DeployableSpec, Deployables,

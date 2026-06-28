@@ -1391,6 +1391,7 @@ pub fn build_app(
         .insert_resource(EidIndex::default())
         .insert_resource(PendingActions::default())
         .insert_resource(PendingItems::default())
+        .insert_resource(crate::pets::PendingPets::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1481,6 +1482,7 @@ pub fn build_app(
     // Clear the per-frame just-spawned-item overlay after everything has run + the
     // commands that spawned them flush, so next frame those entities are real.
     app.add_systems(bevy::prelude::Last, clear_pending_items);
+    app.add_systems(bevy::prelude::Last, crate::pets::clear_pending_pets);
     blackjack::plugin(&mut app);
     crate::trade::plugin(&mut app);
     crate::shop::plugin(&mut app);
