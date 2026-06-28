@@ -1,4 +1,5 @@
 mod agones;
+mod auth;
 mod db;
 mod game;
 
@@ -47,16 +48,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jwt_secret = std::env::var("SUPABASE_JWT_SECRET")
         .unwrap_or_default()
         .into_bytes();
-    let auth_mode = if jwt_secret.is_empty() {
+    // Prefer the local accept-both verifier (HS256 + ES256/JWKS) when a JWKS URI
+    // is configured; else fall back to the in-sim HS256 secret or dev-accept.
+    let verifier = auth::jwks_verifier().await;
+    let auth_mode = if verifier.is_some() {
+        "supabase accept-both (HS256 + ES256/JWKS)"
+    } else if jwt_secret.is_empty() {
         "dev-accept (SUPABASE_JWT_SECRET unset)"
     } else {
-        "supabase HS256"
+        "supabase HS256 (in-sim local secret)"
     };
 
     let registry = game::registry();
 
     let state = ServerState::new(input_tx, seed, jwt_secret, true, game::MAX_PLAYERS)
         .with_registry(registry.entries());
+    let state = match verifier {
+        Some(v) => state.with_verifier(v),
+        None => state,
+    };
     let roster = state.roster.clone();
     state.spawn_event_router(out_rx);
 

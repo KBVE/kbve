@@ -56,15 +56,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // which rejects validly-signed tokens when its verifying secret drifts. Else
     // fall back to a GoTrue verifier (SUPABASE_URL + SUPABASE_ANON_KEY), else
     // dev-accept (no auth) when neither is set.
-    let verifier = if jwt_secret.is_empty() {
-        auth::gotrue_verifier()
-    } else {
-        None
+    // Prefer the local accept-both verifier (HS256 + ES256/JWKS, one jedi path)
+    // when a JWKS URI is available; else the GoTrue-API verifier; else fall back
+    // to the in-sim HS256 secret (ServerState) or dev-accept.
+    let verifier = match auth::jwks_verifier().await {
+        Some(v) => Some(v),
+        None => auth::gotrue_verifier(),
     };
-    let auth_mode = if !jwt_secret.is_empty() {
-        "supabase HS256 (local secret)"
-    } else if verifier.is_some() {
-        "supabase GoTrue (verify + cache)"
+    let auth_mode = if verifier.is_some() {
+        "supabase accept-both (HS256 + ES256/JWKS) / GoTrue"
+    } else if !jwt_secret.is_empty() {
+        "supabase HS256 (in-sim local secret)"
     } else {
         "dev-accept (no auth configured)"
     };
