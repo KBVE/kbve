@@ -70,7 +70,11 @@ function playSpellVfxAt(
 	aim: TileXY,
 ): void {
 	if (!meta) return;
-	const from = deps.predicted();
+	// Launch the VFX from the player's actual sub-tile float position (where the sprite
+	// is drawn), NOT the rounded predicted tile — otherwise the bolt starts offset from
+	// the caster whenever they're between tiles. Mirrors the bow muzzle origin.
+	const pos = deps.floatState.pos;
+	const from: TileXY = { x: pos.x, y: pos.y };
 	const targeted = meta.effect === 'damage' || meta.effect === 'status';
 	const to = targeted
 		? ((target != null ? deps.store.tile(target) : null) ?? aim)
