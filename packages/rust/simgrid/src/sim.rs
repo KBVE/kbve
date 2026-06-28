@@ -4518,6 +4518,49 @@ mod tests {
     }
 
     #[test]
+    fn damage_spell_drains_mana_even_on_a_miss() {
+        let (mut app, _rx, _tx, _roster) = harness(0x5EE);
+        app.world_mut()
+            .resource_mut::<bevy_spells::SpellDb>()
+            .insert(bevy_spells::Spell {
+                r#ref: "test-bolt".to_string(),
+                effect: bevy_spells::SpellEffect::Damage as i32,
+                mana_cost: Some(10),
+                power: Some(5),
+                range: Some(8),
+                ..Default::default()
+            });
+        let player = app
+            .world_mut()
+            .spawn((
+                EntityKind(PLAYER_KIND),
+                GridPos::at(Tile::new(10, 10)),
+                CombatStats { attack: 1 },
+                Inventory::default(),
+                Health {
+                    hp: 100,
+                    max_hp: 100,
+                },
+                XpState::default(),
+                Equipped::default(),
+                Mana { mp: 50, max_mp: 50 },
+                Defense::default(),
+                PlayerSlotTag(proto::PlayerSlot(0)),
+            ))
+            .id();
+        app.world_mut()
+            .resource_mut::<crate::spells::PendingSpells>()
+            .0
+            .push((proto::PlayerSlot(0), "test-bolt".to_string(), None));
+        app.update();
+        let mp = app.world().get::<Mana>(player).unwrap().mp;
+        assert_eq!(
+            mp, 40,
+            "a fired damage spell spends mana even with no target"
+        );
+    }
+
+    #[test]
     fn wanderer_relocates_and_emits_snapshots() {
         let (mut app, mut rx, _tx, _roster) = harness(0xABCDEF);
         let origin = Tile::new(16, 16);

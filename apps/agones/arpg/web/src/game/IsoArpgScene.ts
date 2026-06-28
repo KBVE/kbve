@@ -1432,6 +1432,10 @@ export class IsoArpgScene extends Phaser.Scene {
 			store: this.store,
 			floatState: this.move.floatState,
 			predicted: () => this.move.predicted,
+			aim: () => {
+				const p = this.input.activePointer;
+				return screenToWorldF(p.worldX, p.worldY);
+			},
 			isHostile: (e) => this.isHostileServer(e),
 		};
 	}
