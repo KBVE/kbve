@@ -499,28 +499,53 @@ pub async fn set_admission(
 
 **Interfaces:**
 
-- Produces: `GET /fleet-restart/status` → JSON `{ active: bool, draining: i64, all_drained: bool }`
-  where `draining` = `count_active_instances`, `all_drained = active && draining == 0`. The deploy
-  orchestrator polls this before running `dbmate` / launching the new image.
+- Produces: `GET /fleet-restart/status` → JSON
+  `{ active: bool, draining: i64, gameservers: i64, all_drained: bool, safe_to_roll: bool }`.
+    - `draining` = `count_active_instances` (DB rows `status>0`).
+    - `gameservers` = **Agones GameServer count** for this tenant's Fleet (label
+      `app.kubernetes.io/instance=<tenant>`), the pod-level "old servers still alive" count.
+    - `all_drained = active && draining == 0` (DB proxy — necessary, optimistic).
+    - **`safe_to_roll = active && draining == 0 && gameservers == 0`** — the **hard two-level
+      barrier**: no DB rows active **and** no GameServer pods left. The orchestrator (R3/Task 9) gates
+      the image swap on `safe_to_roll`, NOT `all_drained` — see W1-slow-saver below.
 
-- [ ] **Step 1: Add the handler** (follow the existing `system.rs` route patterns; reads
-      `get_fleet_restart` + `count_active_instances`):
+> **Why two levels (W1 slow-saver gap):** `count_active_instances` is a DB-row count. A UE pod can
+> have its row at `status=0` while the **process is still alive** — flushing a final save, mid-SIGTERM,
+> grace period not elapsed. Rolling on `all_drained` alone can surface a mixed-version window. The
+> Agones GameServer count hitting 0 is the _sufficient_ "all old gone" gate; the DB count is the
+> _necessary_ trigger to begin the cutover.
+
+- [ ] **Step 1: Add the handler.** Reads `get_fleet_restart` + `count_active_instances`, and a new
+      `count_gameservers(tenant)` (Agones list via the in-cluster API the existing fleet-scale code
+      already uses — reuse the client behind `restart_fleet`'s scale calls). Follow the existing
+      `system.rs` handler/registration style:
 
 ```rust
 // pseudo-shape; match the file's actual axum handler/registration style
-async fn fleet_restart_status(State(svc): State<Arc<OWSService>>) -> ApiResult<FleetRestartStatus> {
-    let guid = svc.state().config.customer_guid;
-    let repo = InstanceRepo(&svc.state().db);
+async fn fleet_restart_status(State(hs): State<HandlerState>) -> ApiResult<FleetRestartStatus> {
+    let guid = hs.app.config.customer_guid;
+    let repo = InstanceRepo(&hs.app.db);
     let active = matches!(repo.get_fleet_restart(guid).await?, Some(fr) if fr.active);
     let draining = repo.count_active_instances(guid).await?;
-    Ok(axum::Json(FleetRestartStatus { active, draining, all_drained: active && draining == 0 }))
+    let gameservers = hs.app.count_gameservers(guid).await?; // Agones GS list, label-filtered
+    let all_drained = active && draining == 0;
+    let safe_to_roll = all_drained && gameservers == 0;
+    Ok(axum::Json(FleetRestartStatus { active, draining, gameservers, all_drained, safe_to_roll }))
 }
 ```
 
-> 🕳️ **F2:** this endpoint is the contract surface; the orchestrator that consumes it (Argo Workflow / gated sync-wave / operator) is out of scope. Document the expected consumer in the runbook.
-> 🕳️ Confirm `system.rs`'s router registration + auth posture (this should be service-authenticated or cluster-internal only, not public).
+> **🔒 Auth posture (M-2 — REQUIRED, not advisory): this route is NOT public.** It is reachable only
+> from inside the cluster; a separate front service owns auth/permissions. Concretely:
+>
+> - ROWS exposes it on the existing cluster-internal port (`rows.<ns>.svc.cluster.local:4322`), the
+>   same Service the GameServers already call — there is **no Ingress/Gateway route** to it.
+> - Add a **NetworkPolicy** in the `rows` namespace allowing ingress to the fleet-restart paths only
+>   from the orchestrator/dashboard-gateway pod(s), default-deny otherwise.
+> - ROWS does **not** implement user auth on these routes — it trusts the cluster-internal caller. The
+>   dashboard's auth/RBAC is enforced upstream by that gateway service, which holds the cluster
+>   credential. (Same trust model as the GameServer→ROWS calls today.)
 
-- [ ] **Step 2: Build + tests.** **Step 3: Commit** — `feat(rows): /fleet-restart/status all-drained signal`.
+- [ ] **Step 2: Build + tests.** **Step 3: Commit** — `feat(rows): /fleet-restart/status two-level (DB+Agones) safe-to-roll signal`.
 
 ---
 
@@ -554,13 +579,217 @@ UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
 
 ---
 
+## Phase 4 — End-to-end version rollout (the 5 requirements)
+
+> **Status: DESIGN + tasks. Hard-depends on Phase 3 (Tasks 1–6) and the binary-delivery rework R0.**
+> This section closes the gap between "ROWS can drain + signal" and "bumping the beta version safely
+> ships a new server with zero mixed-version coexistence." It supersedes the imperative `restart_fleet`
+> and the manual _delete-the-pod_ flow.
+
+### ‼️ Architecture correction — the UE server version is NOT a container image tag
+
+Verified against `apps/kube/agones/rows-tenants/chuckrpg-*/manifests/fleet.yaml`:
+
+- The `ue5-server` container image is a **fixed `ubuntu:24.04` base**. It never changes per release.
+- The actual cooked server is delivered via the **`ows-server-build` PVC**, mounted at `/server`, and
+  the pod runs **`/server/latest/LinuxServer/chuckServer.sh`** (a _mutable_ `latest/` path).
+- Therefore: **bumping a deployment `image:` tag (what `utils-post-publish.yml` does, and what the V1
+  section assumed) does NOT roll the UE server.** It only rolls the `ghcr.io/kbve/kubectl` sidecar.
+- **Latent bug (root cause of "can't guarantee all-old-gone"):** because the path is `latest/`, any
+  pod restart for _any_ reason (crash, eviction, node drain, autoscale) silently loads whatever build
+  currently sits in `latest/` → an **accidental mixed-version fleet with no deploy action**. Version
+  coexistence is currently _unpreventable_, so no barrier downstream can be trusted until R0 lands.
+
+---
+
+### R0 (BLOCKER / prerequisite) — version-pinned binary delivery + gated pull
+
+**Goal:** make the running server version an explicit, immutable selector so (a) a pod restart never
+changes version, and (b) a rollout is a deliberate template change the orchestrator can gate.
+
+**Files:**
+
+- Modify: `apps/kube/agones/rows-tenants/chuckrpg-{beta,prod,dev}/manifests/fleet.yaml`
+- Modify: the build-publish step that writes the PVC (the job that populates `ows-server-build` —
+  trace from `ows-build-reporter` / the CI that cooks `chuckServer.sh`; pin exact path during R0).
+
+- [ ] **Step 1: Stage builds into versioned, immutable paths.** The publish writes
+      `/server/<version>/LinuxServer/chuckServer.sh` (e.g. `/server/0.3.46/...`) and **stops
+      overwriting `latest/`** (or keeps `latest/` only as a human convenience symlink that the Fleet
+      never references).
+- [ ] **Step 2: Pin the Fleet to an explicit version**, not `latest`. Drive it by env so the template
+      diff is the rollout trigger:
+
+```yaml
+# fleet.yaml — ue5-server container
+env:
+    - name: OWS_SERVER_VERSION
+      value: '0.3.46' # bumped by the gated post-publish PR; the ONLY rollout trigger
+    - name: OWS_SERVER_BIN
+      value: /server/$(OWS_SERVER_VERSION)/LinuxServer/chuckServer.sh
+# add a pod/template label so Agones treats a version change as a new GameServer template:
+template:
+    metadata:
+        labels:
+            ows.kbve.com/server-version: '0.3.46'
+```
+
+- [ ] **Step 3: Remove the `find … | tail -1` "auto-detect newest" fallback** in the container command
+      (fleet.yaml lines ~77–80) — auto-picking the newest dir on disk re-introduces the silent-upgrade
+      bug R0 exists to kill. Fail closed if the pinned version is absent.
+- [ ] **Step 4:** Confirm the PVC access mode supports concurrent versioned dirs (it's `ows-server-build`,
+      shared RWX/ROX); old pods keep reading their `<old-version>/` dir while the new build lands in
+      `<new-version>/`. No mutation of in-use files.
+- [ ] **Step 5: Commit** — `fix(chuck): pin UE server to versioned build path, drop mutable latest/`.
+
+> 🕳️ **Where the binary is written** (which CI job populates the PVC) must be pinned in R0 Step 1; the
+> parity gate (R1) and versioned staging both live there. Not yet traced in this plan.
+
+---
+
+### R1+R2 (BLOCKER) — server roll waits for the Windows client build (version-parity gate)
+
+**Requirement:** bumping beta builds _both_ game and server; the **server must not roll until the
+client (Windows minimum) for that version is published.** A server speaking a new protocol with no
+client to speak it = every player bounced, none can reconnect.
+
+**Files:**
+
+- Modify: `.github/workflows/utils-post-publish.yml` (the auto-PR) **and/or** the rows publish workflow.
+
+- [ ] **Step 1: Define the client-published signal.** Pick the source of truth (decision, V1 hole):
+      launcher manifest entry / itch|Steam channel API / a `client_versions` DB row. Recommended: a
+      `client_versions(version, platform, published_at)` row written by the **client** build job, so
+      the check is a cheap DB/HTTP lookup with no third-party coupling.
+- [ ] **Step 2: Make the rows post-publish PR carry a required status check** `version-parity/windows`
+      that is **red until** the matching client `windows` build for that version is published. The PR
+      **cannot merge** while red. Merge is the deliberate, reviewable roll trigger (no out-of-band Argo
+      drift), and it bumps `OWS_SERVER_VERSION` (R0), not a meaningless `image:` tag.
+- [ ] **Step 3: Scope to beta first** (prod not live). The automated sync fires only once **both** the
+      server build _and_ the Windows client build for the version exist.
+- [ ] **Step 4: Commit** — `feat(ci): version-parity gate (windows client) on rows server roll`.
+
+---
+
+### R3 (BLOCKER / B4) — non-aggressive orchestrated roll: drain → all-old-gone barrier → cutover
+
+**Requirement:** on merge of the gated PR, do a **non-aggressive** roll — drain to natural-empty, and
+**only roll the new build once ALL old UE servers are gone** (no mixed versions, no forced drops).
+
+This is the named **B4 orchestrator**. ROWS only signals (`safe_to_roll`); the orchestrator sequences
+the cutover. Because chuck's Fleet is `RollingUpdate, maxSurge:25%` under Argo `automated.prune:true`,
+a bare template apply would surge new pods alongside draining old ones — so the cutover **must scale to
+0 first**.
+
+**Files:**
+
+- Create: Argo Workflow (or Argo Rollouts/PreSync hook) under `apps/kube/.../chuckrpg-*/` —
+  `rollout-orchestrator.yaml`.
+- Modify: `fleet.yaml` strategy for the cutover window (`maxSurge: 0`).
+
+- [ ] **Step 1: On merge, open a non-aggressive `fleet_restart`** (the post-publish PR's post-merge
+      hook, or the Workflow's first step) — `urgency=0, dropplayers=false, lockout=true` (safe defaults
+      from Task 1). ROWS reconcile (Task 3) drains to natural-empty.
+- [ ] **Step 2: Poll `GET /fleet-restart/status` for `safe_to_roll == true`** — i.e. DB
+      `draining==0` **and** Agones `gameservers==0`. This is the hard "all old gone" barrier (Task 5).
+      No timeout on the non-aggressive path (it waits for players to leave); the aggressive path (R4)
+      supplies the deadline.
+- [ ] **Step 3: Scale the Fleet to 0 and confirm 0 GameServers** (belt-and-suspenders; pods reaped,
+      grace period elapsed). Set `strategy.rollingUpdate.maxSurge: 0` for the cutover so no new-version
+      pod can co-exist with an old one.
+- [ ] **Step 4: Apply the version bump** (`OWS_SERVER_VERSION` from R0) **and** run the `dbmate`
+      migration Job — _now_, at the barrier, with zero old binaries running (B-2 expand-contract still
+      applies: the migration must be additive so a rollback of the binary doesn't strand schema).
+- [ ] **Step 5: Scale the Fleet back up**, restore `maxSurge:25%`, then **clear the `fleet_restart`
+      row** (`active=false`) — ROWS reconcile auto-lifts the admission lockout (H-2). The barrier's
+      terminal state is "row cleared after a confirmed successful scale-up," so a post-clear status
+      poll reading `all_drained=false` is expected, not an error.
+- [ ] **Step 6: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover gated on safe_to_roll)`.
+
+> 🕳️ **Precondition:** the Agones barrier (`gameservers==0`) can only be exercised once chuck servers
+> actually reach `Ready()` — today the fleet sits at `replicas:0` and servers hang at login
+> (lifecycle/`project_chuckrpg_ready_hang`). R3 is untestable end-to-end until that game-side bug clears.
+
+---
+
+### R4 — aggressive "N minutes to restart" trigger endpoint (cluster-internal only)
+
+**Requirement:** a dashboard button triggers an **aggressive** roll — "5 minutes till server restart,"
+save-then-disconnect at the deadline — via an API route. The route is **not public**; it's reachable
+only inside the cluster, and a separate gateway service handles dashboard auth/permissions.
+
+**Files:** Modify `apps/rows/src/rest/system.rs`
+
+**Interfaces:**
+
+- Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }`
+  → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `drain_deadline = now()
+    - grace_secs`(default **300s = 5 min**),`lockout=true`. Returns `409 Conflict`if a restart is
+already`active`; returns **`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
+
+- [ ] **Step 1: Implement the handler** — validates `mode`, computes the deadline, upserts via a new
+      `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo fn (mirrors `set_admission`'s upsert).
+      The 5-min countdown deadline is written to the `fleet_restart` row; ROWS reconcile passes it to
+      `set_drain_state(... deadline ...)`, and the H-3 deadline enforcement force-deallocates at expiry.
+- [ ] **Step 2: Player countdown.** The `drain_deadline` is surfaced to UE so it renders "restarting in
+      X." **Today `ShutdownNotifier` is logging-only** — wiring the real broadcast is a UE-side
+      obligation (cross-repo hole; ROWS only supplies the deadline).
+- [ ] **Step 3: Auth posture — identical to Task 5: NOT public.** No Ingress/Gateway route; cluster-
+      internal Service only; NetworkPolicy allows the dashboard-gateway pod(s); ROWS trusts the
+      in-cluster caller and does not implement user auth (the gateway enforces dashboard RBAC).
+- [ ] **Step 4: Commit** — `feat(rows): POST /fleet-restart/trigger (aggressive deadline, cluster-internal)`.
+
+---
+
+### R5 — the trigger route is gated on an actual pending update
+
+**Requirement:** the aggressive route (and the dashboard button) is **only available if there is
+actually an update pending** — you can't "restart to deploy" when there's nothing to deploy.
+
+**Files:** Modify `apps/rows/src/rest/system.rs`, `apps/rows/src/repo/instances.rs`
+
+**Interfaces:**
+
+- Produces: `GET /fleet-restart/pending` → `{ pending: bool, target_version: string|null }`.
+  `pending = (a gated parity-passed version bump is merged-but-not-yet-rolled)`. Source: compare the
+  **merged target `OWS_SERVER_VERSION`** (R0/R1) against the **currently-serving** version
+  (`ows.kbve.com/server-version` label on live GameServers, or a `deploy_state` row the post-publish
+  PR writes on merge).
+
+- [ ] **Step 1: Implement `get_pending_update(tenant)`** — reads the `deploy_state(tenant,
+    target_version, rolled)` row (written `rolled=false` by the R1 post-merge hook, set `rolled=true`
+      by the R3 orchestrator on successful scale-up). `pending = row exists && !rolled`. Degrade on
+      42P01 (inert) like `get_fleet_restart`.
+- [ ] **Step 2: `POST /fleet-restart/trigger` (mode=aggressive) returns `404` when `!pending`.** The
+      dashboard greys out the button off the same `GET /fleet-restart/pending`. Non-aggressive
+      auto-path doesn't need this gate (it _is_ the merge that creates the pending state).
+- [ ] **Step 3: Commit** — `feat(rows): pending-update gate for fleet-restart trigger (R5)`.
+
+---
+
+### Requirement → task traceability
+
+| #   | Your requirement                                                 | Task(s)                             | Notes                                                            |
+| --- | ---------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
+| 0   | Don't pull mutable `latest`; pin the version                     | **R0**                              | Prereq for everything; kills accidental mixed-version            |
+| 1   | Bump beta builds game + server                                   | R1 (gate) + existing build CI       | Build itself is existing pipeline; gate is new                   |
+| 2   | Server waits for Windows client build                            | **R1/R2**                           | Required merge status check; signal source = open decision       |
+| 3   | Merge → non-aggressive, roll only when no players / all old gone | **R3 (B4)** + Task 5 `safe_to_roll` | Two-level barrier (DB + Agones), scale-to-0 `maxSurge:0` cutover |
+| 4   | Aggressive "5-min restart" via dashboard API                     | **R4**                              | `POST /fleet-restart/trigger`, deadline=300s, cluster-internal   |
+| 5   | Route only if update pending                                     | **R5**                              | `GET /fleet-restart/pending`; 404 otherwise; button greyed       |
+| +   | Endpoints not public                                             | Task 5 + R4 Step 3                  | ClusterIP + NetworkPolicy; gateway service owns auth             |
+| +   | No roll until ALL old gone                                       | R3 Step 2–3                         | `safe_to_roll` = `draining==0 && gameservers==0`                 |
+
+---
+
 ## Holes (revisit)
 
 - 🕳️ **W1 drain-complete ack** — batch convergence + barrier precision use the `status=0` proxy until UE advertises a drain-complete signal (capability handshake).
-- 🕳️ **F2 orchestrator** — ROWS emits `/fleet-restart/status`; a named component must run `dbmate` (migration type) + roll the image after `all_drained`. Not ROWS.
-- 🕳️ **Version targeting** — MVP drains all active; `target_version`-selective drain (rolling) deferred until the running version is surfaced to ROWS.
-- 🕳️ **B1 save budget** — the chuck Fleet `terminationGracePeriodSeconds` must exceed the save budget, else SIGKILL eats saves mid-restart (chuck/agones repo, not ROWS).
-- 🕳️ **Player broadcast / countdown** — "restarting in X" messaging is UE-rendered; ROWS supplies `drain_deadline`. The notify seam (`ShutdownNotifier`) is logging-only today.
+- ✅ **F2 orchestrator** — now specified as **R3 (B4)**: scale-to-0 cutover gated on `safe_to_roll`. (Was a hole; promoted to a task. Still requires building the Argo Workflow.)
+- ✅ **Image-tag premise corrected** — the UE server version is a **PVC path (`/server/<version>/`)**, not a container `image:` tag; the post-publish image bump does NOT roll the server. Fixed by **R0** (version-pinned binary delivery). The V1 section's "post-publish PR bumps the deployment image: tag" line applies to image-tagged services (e.g. axum-kbve), NOT the chuck Fleet — for chuck, R1 bumps `OWS_SERVER_VERSION`.
+- 🕳️ **Version targeting** — MVP drains all active; `target_version`-selective drain (rolling) deferred until the running version is surfaced to ROWS. (R0's `ows.kbve.com/server-version` label is the surface when this lands.)
+- 🕳️ **B1 save budget** — the chuck Fleet `terminationGracePeriodSeconds` must exceed the save budget, else SIGKILL eats saves mid-restart (chuck/agones repo, not ROWS). Set it in the same R0 fleet.yaml edit.
+- 🕳️ **Player broadcast / countdown** — "restarting in X" messaging is UE-rendered; ROWS supplies `drain_deadline` (R4 writes the 5-min deadline). The notify seam (`ShutdownNotifier`) is logging-only today — real broadcast is a UE-side obligation.
 - 🕳️ **Stagger by zone vs by server** — this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
 
 ---
