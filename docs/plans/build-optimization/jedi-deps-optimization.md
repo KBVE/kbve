@@ -83,6 +83,21 @@ valkey      = ["dep:lru"]
 - crates.io consumers: feature changes are semver-additive if `default = []` stays empty, but trimming what a _named_ feature pulls can break external users — bump minor and document.
 - Coordinate with [proto-distribution.md](./proto-distribution.md): the `grpc` feature and `src/proto` codegen are coupled.
 
+## Execution Status (2026-06-29)
+
+| Step                | Status      | PR     | Notes                                                                                          |
+| ------------------- | ----------- | ------ | ---------------------------------------------------------------------------------------------- |
+| Remove `askama`     | ✅ done     | #13587 | Dead dep dropped.                                                                               |
+| Gate `twitch`       | ✅ done     | #13587 | `twitch = ["dep:twitch-irc"]`; gated `wrapper/twitch_wrapper` + `proto/twitch`.                 |
+| Gate `fred` (redis) | ✅ done     | #13593 | Folded into `valkey = ["dep:lru", "dep:fred"]` — fred is internal-only, no consumer touches it. |
+| Gate `grpc`         | ✅ done     | (this) | `tonic*` optional behind `grpc`; gated 4 proto service submods + `error.rs` Status impls.       |
+| `reqwest` / `axum`  | ⬜ deferred | —      | Kept core (auth-core + response contract). See findings below.                                  |
+| `tokio = "full"`    | ⬜ deferred | —      | Narrow feature set in separate PR.                                                              |
+| CI feature matrix   | ⬜ todo     | —      | `cargo hack --feature-powerset` smoke build.                                                    |
+| Measure build win   | ⬜ todo     | —      | Wall-time before/after for a trimmed consumer.                                                  |
+
+**grpc finding (verified):** jedi's tonic transport is internal/unused — no consumer references jedi's grpc service mods or `From<JediError> for tonic::Status`. jobboard + rows carry their **own** `tonic` dep + proto, not jedi's. `prost` message types stay **core** (every proto struct derives `prost::Message`); only `tonic`/`tonic-prost`/`tonic-health`/`tonic-reflection` go optional. tonic-health + tonic-reflection had **0 src usages** but are kept under `grpc` for the server-bootstrap story. Service codegen lives in 4 vendored submods (`{click_house,redis}_service_{client,server}`) gated with `#[cfg(feature = "grpc")]`; `build.rs` codegen is manual (`BUILD_PROTO`) so the gates are hand-maintained.
+
 ## Investigation Findings (2026-06-29, verified against code)
 
 ### Confirmed

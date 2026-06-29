@@ -99,6 +99,7 @@ impl From<tokio_postgres::Error> for JediError {
     }
 }
 
+#[cfg(feature = "grpc")]
 impl From<JediError> for tonic::Status {
     fn from(err: JediError) -> tonic::Status {
         match err {
@@ -118,6 +119,7 @@ impl From<JediError> for tonic::Status {
     }
 }
 
+#[cfg(feature = "grpc")]
 impl From<tonic::Status> for JediError {
     fn from(status: tonic::Status) -> Self {
         JediError::Grpc(status.to_string())
