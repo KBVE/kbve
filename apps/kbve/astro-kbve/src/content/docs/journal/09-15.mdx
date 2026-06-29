@@ -91,7 +91,7 @@ On the side, I wanted to get back around test casing the rust api deployment wit
 After looking through some of the examples, there are some ways that I could rewrite the api profile to be extremely clean and limit the clones.
 I am updating the Dockerfile for the chisel to include these configurations:
 
-```Dockerfile
+```dockerfile
 
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
 

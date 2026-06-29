@@ -43,13 +43,6 @@ export default defineConfig({
 			},
 		}),
   ],
-  experimental: {
-		queuedRendering: {
-			enabled: true,
-			poolSize: 3000,
-			contentCache: true,
-		},
-	},
   vite: {
     plugins: [tailwindcss()],
   },

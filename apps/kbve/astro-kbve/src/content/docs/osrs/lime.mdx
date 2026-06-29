@@ -1,6 +1,6 @@
 ---
 title: Lime | OSRS Price Data
-description: "Lime: A fresh lime.. High alch: 1 GP, GE limit: 13,000."
+description: "Lime: a Gnome Cooking fruit sliced or diced for cocktails, used in Fairytale I for the magic secateurs. Cannot be farmed. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2120
   name: Lime
@@ -12,7 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: Lime is a fresh fruit used in Gnome Cuisine recipes and obtainable from groceries, fruit stalls, and gnome drops.
+  about:
+    text: "Lime is a citrus fruit used mainly in Gnome Cooking, where it is sliced or diced and added to gnome cocktails. It is also required during Fairytale I - Growing Pains to obtain the magic secateurs. Unlike most fruit, limes cannot be grown with Farming and must be bought, stolen from fruit stalls, or collected as gnome drops."
+    sections:
+      - heading: What lime is used for
+        anchor: usage
+        body: "Limes are a Gnome Cooking ingredient for cocktails such as the Short green guy and Wizard blizzard, prepared in the Gnome Restaurant minigame. Sliced with a knife into lime slices or diced into lime chunks, each processed piece heals 2 Hitpoints. A lime is also one of the items needed in Fairytale I - Growing Pains to receive the magic secateurs."
+      - heading: How to get limes
+        anchor: obtaining
+        body: "Limes cannot be farmed. Buy them from Funch's Fine Groceries and Grand Tree Groceries at the Grand Tree, or from the Pollnivneach general store. They also drop from gnomes in the Tree Gnome Stronghold and can be stolen from the fruit stalls in Hosidius and Kourend Castle courtyard with 25 Thieving."
+  food:
+    heals: 2
+    type: fruit
+  related_items:
+    - item_name: Lime slices
+      slug: lime-slices
+      relationship: product
+      description: Lime sliced with a knife for cocktails; heals 2
+    - item_name: Lime chunks
+      slug: lime-chunks
+      relationship: product
+      description: Lime diced with a knife for cocktails; heals 2
+    - item_name: Magic secateurs
+      slug: magic-secateurs
+      relationship: alternative
+      description: Fairytale I reward that requires a lime to obtain
+  trading_tips:
+    - "Cannot be farmed — supply comes from shops, fruit stalls, and gnome drops"
+    - "Demand is niche: Gnome Restaurant cooks and Fairytale I questers"
+  trivia:
+    - "Limes are one of the few fruits in the game that cannot be grown with Farming."
+    - "A lime is required during Fairytale I - Growing Pains to obtain the magic secateurs."
+    - "Sliced or diced lime pieces each heal 2 Hitpoints."
+  faq:
+    - question: What is lime used for in OSRS?
+      answer: "Lime is a Gnome Cooking ingredient for cocktails like the Short green guy, and it is required in Fairytale I - Growing Pains to obtain the magic secateurs."
+    - question: Can you grow limes with Farming?
+      answer: "No. Limes cannot be farmed and must instead be bought from groceries, stolen from fruit stalls at 25 Thieving, or collected as gnome drops."
+    - question: How do you prepare a lime for cocktails?
+      answer: "Use a knife on the lime to slice it into lime slices or dice it into lime chunks; each processed piece heals 2 Hitpoints and is used in gnome drinks."
+    - question: Is lime members-only?
+      answer: "Yes. Lime and the Gnome Cooking content it is used in are members-only."
   properties:
     release_date: "2002-12-12"
     update: Agility skill online
@@ -20,6 +60,7 @@ osrs:
     stackable: false
     noteable: true
     equipable: false
+    edible: true
     members: true
     quest_item: false
     weight: 0.1
@@ -28,8 +69,13 @@ osrs:
       - Drop
     alchable: true
     destroy: Drop
-  mdx_version: 3
-  mdx_updated: "2026-06-02"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Lime"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/lime/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

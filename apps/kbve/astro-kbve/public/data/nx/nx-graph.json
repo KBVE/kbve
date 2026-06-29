@@ -6990,6 +6990,15 @@
               },
               "configurations": {},
               "parallelism": true
+            },
+            "component": {
+              "executor": "@nx/playwright:playwright",
+              "cache": false,
+              "options": {
+                "config": "apps/agones/arpg/arpg-e2e/playwright.ct.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "name": "arpg-e2e",
@@ -13893,6 +13902,78 @@
           "implicitDependencies": []
         }
       },
+      "kbve-tauri": {
+        "name": "kbve-tauri",
+        "type": "lib",
+        "data": {
+          "root": "packages/npm/tauri",
+          "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": [
+                "^nx-release-publish"
+              ],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "tsc --noEmit -p packages/npm/tauri/tsconfig.lib.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "kbve-tauri",
+          "projectType": "library",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/npm/tauri/src",
+          "tags": [
+            "npm:public",
+            "npm:kbve",
+            "npm:tauri",
+            "npm:launcher",
+            "npm:supabase",
+            "npm:oauth",
+            "scope:shared",
+            "type:lib"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Shared Tauri desktop surface for KBVE launchers — typed invoke wrappers + types for Supabase OAuth (erust-backed) and game install/launch.",
+            "js": {
+              "packageName": "@kbve/tauri",
+              "packageVersion": "0.0.1",
+              "packageExports": {
+                ".": {
+                  "types": "./src/index.ts",
+                  "import": "./src/index.ts"
+                }
+              },
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "kilobase": {
         "name": "kilobase",
         "type": "app",
@@ -14173,41 +14254,33 @@
                 "engine": "docker",
                 "context": "apps/kbve/kilobase",
                 "file": "apps/kbve/kilobase/Dockerfile",
-                "metadata": {
-                  "images": [
-                    "kbve/kilobase"
-                  ],
+                "load": true,
+                "tags": [
+                  "kbve/kilobase:latest"
+                ]
+              },
+              "configurations": {
+                "local": {
                   "load": true,
+                  "push": false,
                   "tags": [
-                    "17.4.15",
-                    "17.4"
+                    "kbve/kilobase:latest"
                   ]
                 },
-                "configurations": {
-                  "local": {
-                    "tags": [
-                      "17.4.15",
-                      "17.4"
-                    ],
-                    "push": false
-                  },
-                  "production": {
-                    "tags": [
-                      "17.4.15",
-                      "17.4"
-                    ],
-                    "push": true,
-                    "customBuildOptions": "--push",
-                    "cache-from": [
-                      "type=registry,ref=kbve/kilobase:buildcache"
-                    ],
-                    "cache-to": [
-                      "type=registry,ref=kbve/kilobase:buildcache,mode=max"
-                    ]
-                  }
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/kilobase:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/kilobase:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/kilobase:buildcache,mode=max"
+                  ]
                 }
               },
-              "configurations": {},
               "parallelism": true
             }
           },
@@ -17598,7 +17671,13 @@
       ],
       "bevy_chat": [],
       "bevy_supa": [],
-      "chuck-launcher": [],
+      "chuck-launcher": [
+        {
+          "source": "chuck-launcher",
+          "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
       "discordsh-bot": [
         {
           "source": "discordsh-bot",
@@ -17802,6 +17881,16 @@
           "source": "arpg-e2e",
           "target": "arpg",
           "type": "implicit"
+        },
+        {
+          "source": "arpg-e2e",
+          "target": "laser",
+          "type": "static"
+        },
+        {
+          "source": "arpg-e2e",
+          "target": "arpg-web",
+          "type": "static"
         }
       ],
       "kasm-void": [],
@@ -18186,6 +18275,7 @@
           "type": "static"
         }
       ],
+      "kbve-tauri": [],
       "kilobase": [],
       "laser": [],
       "chat": [],

@@ -1,52 +1,52 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 
-pub static SANITIZATION_URL_REGEX: Lazy<Regex> = Lazy::new(|| {
+pub static SANITIZATION_URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)^https:\/\/[A-Z0-9._%+-]{1,63}\.[A-Z]{2,}(\/[A-Z0-9._%+-]*){0,64}$").unwrap()
 });
 
-pub static SANITIZATION_EMAIL_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap());
+pub static SANITIZATION_EMAIL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap());
 
-pub static SANITIZATION_GITHUB_USERNAME_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"github\.com/([a-zA-Z0-9_-]+)").unwrap());
+pub static SANITIZATION_GITHUB_USERNAME_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"github\.com/([a-zA-Z0-9_-]+)").unwrap());
 
-pub static SANITIZATION_INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+pub static SANITIZATION_INSTAGRAM_USERNAME_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)",
     )
     .unwrap()
 });
 
-pub static SANITIZATION_UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap());
+pub static SANITIZATION_UNSPLASH_PHOTO_ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap());
 
-pub static SANITIZATION_DISCORD_SERVER_EMBED_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"discord\.com/widget\?id=(\d+)").unwrap());
+pub static SANITIZATION_DISCORD_SERVER_EMBED_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"discord\.com/widget\?id=(\d+)").unwrap());
 
-pub static SANITIZATION_ULID_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$").unwrap());
+pub static SANITIZATION_ULID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$").unwrap());
 
-pub static SANITIZATION_USERNAME_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9]{8,255}$").unwrap());
+pub static SANITIZATION_USERNAME_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9]{8,255}$").unwrap());
 
-pub static SANITIZATION_HEX_CODE_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^#([a-fA-F0-9]{6})$").unwrap());
+pub static SANITIZATION_HEX_CODE_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^#([a-fA-F0-9]{6})$").unwrap());
 
-pub static SANITIZATION_MARKDOWN_STANDALONE_LINK_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap());
+pub static SANITIZATION_MARKDOWN_STANDALONE_LINK_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap());
 
-pub static SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\[\!\[([^\]]+)\]\(([^)]+)\)\]\(([^)]+)\)").unwrap());
+pub static SANITIZATION_MARKDOWN_IMAGE_LINK_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\[\!\[([^\]]+)\]\(([^)]+)\)\]\(([^)]+)\)").unwrap());
 
-pub static SANITIZATION_GENERAL_INPUT_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9 !.?]{1,255}$").unwrap());
+pub static SANITIZATION_GENERAL_INPUT_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9 !.?]{1,255}$").unwrap());
 
-pub static SANITIZATION_SERVICE_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[a-zA-Z0-9]{3,32}$").unwrap());
+pub static SANITIZATION_SERVICE_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9]{3,32}$").unwrap());
 
-pub static SANITIZATION_CAPTCHA_TOKEN_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$").unwrap());
+pub static SANITIZATION_CAPTCHA_TOKEN_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$").unwrap());
 
 // Zero Copy &str
 

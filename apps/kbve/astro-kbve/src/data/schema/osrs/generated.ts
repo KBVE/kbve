@@ -658,11 +658,59 @@ export type OSRSPrice = z.infer<typeof OSRSPriceSchema>;
 // About / Content Text — proto: OSRSAbout
 // ============================================================================
 
+export const OSRSContentSectionSchema = z.object({
+	heading: z.string(),
+	body: z.string(),
+	anchor: z.string().optional(),
+});
+
+export type OSRSContentSection = z.infer<typeof OSRSContentSectionSchema>;
+
 export const OSRSAboutSchema = z.object({
 	text: z.string(),
+	sections: z.array(OSRSContentSectionSchema).optional(),
 });
 
 export type OSRSAbout = z.infer<typeof OSRSAboutSchema>;
+
+export const OSRSFaqEntrySchema = z.object({
+	question: z.string(),
+	answer: z.string(),
+});
+
+export type OSRSFaqEntry = z.infer<typeof OSRSFaqEntrySchema>;
+
+export const OSRSFamilyMemberSchema = z.object({
+	id: z.number(),
+	slug: z.string(),
+	name: z.string(),
+	icon: z.string().optional(),
+	role: z.string(), // "base" | "poison" | "dose" | "charged"
+	dose: z.number().nullable().optional(),
+	value: z.number().nullable().optional(),
+	lowalch: z.number().nullable().optional(),
+	highalch: z.number().nullable().optional(),
+});
+
+export type OSRSFamilyMember = z.infer<typeof OSRSFamilyMemberSchema>;
+
+export const OSRSFamilySchema = z.object({
+	slug: z.string(),
+	name: z.string(),
+	type: z.string(), // "poison" | "dose" | "mixed"
+	canonical_id: z.number().nullable().optional(),
+	members: z.array(OSRSFamilyMemberSchema),
+});
+
+export type OSRSFamily = z.infer<typeof OSRSFamilySchema>;
+
+export const OSRSFamilyRefSchema = z.object({
+	family_slug: z.string(),
+	role: z.string(),
+	dose: z.number().nullable().optional(),
+});
+
+export type OSRSFamilyRef = z.infer<typeof OSRSFamilyRefSchema>;
 
 // ============================================================================
 // Market Strategy — proto: OSRSMarketStrategy, OSRSMarketStep
@@ -1040,6 +1088,16 @@ export const OSRSExtendedSchema = z.object({
 	// Ammunition — proto: ammunition (39)
 	ammunition: OSRSAmmunitionSchema.optional(),
 
+	// Canonical absolute page URL — MDX-only (v4). Derivable from slug
+	// (https://kbve.com/osrs/<slug>/) but stored explicitly for the record.
+	url: z.string().url().optional(),
+
+	// Canonical override — MDX-only (v4). When set, the page emits
+	// <link rel="canonical" href="..."> to THIS target instead of itself.
+	// Use for cosmetic/state variants (-> base item) and dose pages
+	// (-> potion family page). Leave unset for self-canonical pages.
+	canonical: z.string().url().optional(),
+
 	// MDX content versioning — proto: mdx_version (40), mdx_updated (41)
 	mdx_version: z.number().optional(), // 1 = original, 2 = data-driven
 	mdx_updated: z.string().optional(), // ISO date YYYY-MM-DD
@@ -1049,6 +1107,20 @@ export const OSRSExtendedSchema = z.object({
 
 	// Game-update history — MDX-only, not in proto
 	history: z.array(OSRSItemHistoryEntrySchema).optional(),
+
+	// FAQ — MDX-only (v4); powers the FAQPage JSON-LD and FAQ card
+	faq: z.array(OSRSFaqEntrySchema).optional(),
+
+	// Trivia / lore facts — MDX-only (v4)
+	trivia: z.array(z.string()).optional(),
+
+	// Family membership back-ref — on every member item (v4). Records which
+	// consolidation family the item belongs to and its role.
+	family_ref: OSRSFamilyRefSchema.optional(),
+
+	// Family roster — on the canonical family page (v4). Lists every member
+	// (icon/id/role/dose) so the page can render all member graphs + icons.
+	family: OSRSFamilySchema.optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
@@ -1127,6 +1199,24 @@ export function hasHistory(
 	item: OSRSExtended,
 ): item is OSRSExtended & { history: OSRSItemHistoryEntry[] } {
 	return (item.history?.length ?? 0) > 0;
+}
+
+export function hasFaq(
+	item: OSRSExtended,
+): item is OSRSExtended & { faq: OSRSFaqEntry[] } {
+	return (item.faq?.length ?? 0) > 0;
+}
+
+export function hasLore(
+	item: OSRSExtended,
+): item is OSRSExtended & { trivia: string[] } {
+	return (item.trivia?.length ?? 0) > 0;
+}
+
+export function hasFamily(
+	item: OSRSExtended,
+): item is OSRSExtended & { family: OSRSFamily } {
+	return (item.family?.members?.length ?? 0) > 0;
 }
 
 export function hasItemTrivia(item: OSRSExtended): boolean {

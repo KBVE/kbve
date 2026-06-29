@@ -1,6 +1,6 @@
 ---
 title: Divine super defence potion(1) | OSRS Price Data
-description: "Divine super defence potion(1): 1 dose of divine super defence potion.. High alch: 24 GP, GE limit: 2,000."
+description: "Divine super defence potion(1): sustains a +5 +15% Defence boost for 5 minutes for 10 HP, made at 70 Herblore. High alch: 24 GP, GE limit: 2,000."
 osrs:
   id: 23730
   name: Divine super defence potion(1)
@@ -12,8 +12,20 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
+  about:
+    text: "Divine super defence potion(1) is a single-dose potion that raises Defence by 5 plus 15% of your Defence level and holds that boost for five minutes, draining 10 Hitpoints on drink. The 'divine' line trades a small HP cost for a sustained boost that never decays over its duration, making it valuable for tanking and defensive bossing setups."
+    sections:
+      - heading: How the divine boost works
+        anchor: effect
+        body: "On drink it costs 10 Hitpoints (you need at least 11 HP) and boosts Defence by 5 + 15% of your Defence level. Unlike an ordinary super defence potion, the boost will not drift back down for the full five minutes — your Defence stays at the boosted maximum. Other potions and spells can still alter stats, the effect cannot be shared with Boost Potion Share, and Preserve does not extend it."
+      - heading: How to make it
+        anchor: making
+        body: "At 70 Herblore, add crystal dust to a super defence potion, one crystal dust per dose, for 0.5 Herblore experience per dose. Crystal dust is made by grinding crystal shards with a pestle and mortar, tying production to Prifddinas and Song of the Elves content."
   potion:
     doses: 1
+    herblore_level: 70
+    herblore_xp: 0.5
+    effect: Sustains Defence at +5 +15% for 5 minutes; costs 10 Hitpoints to drink
     effects:
       - skill: defence
         boost: "+5 +15% of Defence level"
@@ -23,7 +35,50 @@ osrs:
         boost: "-10"
         duration: 0
         description: Drinking deals 10 Hitpoint damage; player must have more than 10 HP to consume.
-  about: "Divine super defence potion(1) sustains a super defence boost for 5 minutes at the cost of 10 HP, popular for sustained tank training and bossing."
+  recipes:
+    - skill: herblore
+      level: 70
+      xp: 0.5
+      product: Divine super defence potion
+      materials:
+        - item_name: Super defence potion
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+  related_items:
+    - item_name: Super defence(4)
+      slug: super-defence-4
+      relationship: component
+      description: Base potion upgraded with crystal dust
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Ground crystal shards; one per dose
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: alternative
+      description: Sustained all-melee-stat boost from the same divine line
+  market_strategy:
+    notes:
+      - "4-dose is the profitable form to flip; 2- and 3-dose often run at a loss"
+      - "Crystal dust cost from crystal shards sets the production floor"
+      - "Demand tied to high-end PvM and defensive training meta"
+  trading_tips:
+    - "Mix to 4-dose for the best margin after Grand Exchange tax"
+    - "Watch crystal shard prices — they drive crystal dust and the potion cost"
+  trivia:
+    - "Released on 25 July 2019 with the Song of the Elves update."
+    - "The boost cannot be shared with Boost Potion Share, and Preserve does not extend it."
+    - "Its inventory icon was graphically updated on 2 July 2020 to match standard potions."
+  faq:
+    - question: What does the divine super defence potion do?
+      answer: "It boosts Defence by 5 plus 15% of your Defence level and sustains that boost for five minutes so it does not decay, at the cost of 10 Hitpoints when drunk."
+    - question: How do you make a divine super defence potion?
+      answer: "At 70 Herblore, add crystal dust to a super defence potion (one crystal dust per dose) for 0.5 Herblore experience per dose."
+    - question: Why does the divine super defence potion damage you?
+      answer: "Every divine potion costs 10 Hitpoints on drink in exchange for the sustained, non-decaying boost, so you must have more than 10 HP to use it."
+    - question: Is the divine super defence potion members-only?
+      answer: "Yes. It requires Prifddinas-sourced crystal dust and is a members-only item from the Song of the Elves update."
   history:
     - date: "2020-07-02"
       description: Inventory icon graphically updated to match the standard potion appearance.
@@ -42,8 +97,13 @@ osrs:
       - Empty
       - Drop
     alchable: true
-  mdx_version: 3
-  mdx_updated: "2026-06-02"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Divine_super_defence_potion"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/divine-super-defence-potion-1/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

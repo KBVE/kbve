@@ -12,9 +12,54 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Skull piece is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "The skull piece is a members-only item obtained as an uncommon drop from Wallasalkis in the Waterbirth Island Dungeon and on Grimstone. It is used to make a skeletal helm through Peer the Seer and can also be exchanged with Askeladden on Waterbirth Island for cooked fish."
+    sections:
+      - heading: How do you get a skull piece?
+        anchor: obtaining
+        body: "Skull pieces are obtained as an uncommon drop from Wallasalkis, which are found in the Waterbirth Island Dungeon and on Grimstone. A Wallasalki has a combat level of 98 and drops a single skull piece at a rate of 2/128. Because they only drop from this one creature in a members-only dungeon, supply is limited, which is reflected in the item being thinly traded. Players farming skeletal helms or simply collecting the drop will spend time killing Wallasalkis on Waterbirth Island. The skull piece can also be bought from other players through the Grand Exchange within an 11,000 buy limit per four hours, though daily trade volume is very low."
+      - heading: What is a skull piece used for?
+        anchor: uses
+        body: "The skull piece is used to make a skeletal helm by giving Peer the Seer one dagannoth hide, 5,000 coins, and one skull piece. Creating the skeletal helm requires completion of The Fremennik Trials quest. Before you have done the quest, the skull piece can instead be exchanged with Askeladden on Waterbirth Island for cooked tuna, and after completing The Fremennik Trials the same exchange gives cooked lobster instead. This dual purpose makes the skull piece both a crafting component for the skeletal helm and a minor source of food, depending on your quest progress and whether you would rather build the helm or trade the piece away on Waterbirth Island."
+  drop_table:
+    sources:
+      - { source: Wallasalki, combat_level: 98, quantity: "1", rarity: "2/128", drop_rate: "2/128" }
+  recipes:
+    - skill: crafting
+      product: Skeletal helm
+      facility: Peer the Seer
+      materials:
+        - { item_name: Dagannoth hide, quantity: 1 }
+        - { item_name: Skull piece, quantity: 1 }
+        - { item_name: Coins, quantity: 5000 }
+  related_items:
+    - item_name: Skeletal helm
+      slug: skeletal-helm
+      relationship: product
+      description: Helmet made from a skull piece, dagannoth hide and 5,000 coins via Peer the Seer
+    - item_name: Dagannoth hide
+      slug: dagannoth-hide
+      relationship: component
+      description: Combined with a skull piece and coins to craft the skeletal helm
+  trivia:
+    - "The skull piece was released on 1 August 2005 in the Waterbirth Island update."
+    - "Building the skeletal helm from a skull piece requires completion of The Fremennik Trials quest."
+    - "Skull pieces can be exchanged with Askeladden for cooked tuna before The Fremennik Trials, or cooked lobster after the quest."
+  faq:
+    - question: Is the skull piece members-only?
+      answer: "Yes. The skull piece is a members-only item. It drops only from Wallasalkis in the members-only Waterbirth Island Dungeon and on Grimstone, and its main use, building the skeletal helm via Peer the Seer, is members content."
+    - question: How do you get a skull piece in OSRS?
+      answer: "Skull pieces are an uncommon drop from Wallasalkis in the Waterbirth Island Dungeon and on Grimstone. A Wallasalki is combat level 98 and drops one skull piece at a rate of 2/128. You can also buy them from other players on the Grand Exchange."
+    - question: What is a skull piece used for?
+      answer: "A skull piece is used to make a skeletal helm by giving Peer the Seer one dagannoth hide, 5,000 coins, and one skull piece, after completing The Fremennik Trials. It can also be exchanged with Askeladden on Waterbirth Island for cooked fish."
+    - question: Do you need a quest to use the skull piece?
+      answer: "You need The Fremennik Trials completed to turn a skull piece into a skeletal helm via Peer the Seer. Without the quest you can still trade the skull piece to Askeladden on Waterbirth Island for cooked tuna instead of building the helm."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Skull_piece"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

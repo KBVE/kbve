@@ -12,9 +12,37 @@ osrs:
   lowalch: 1
   highalch: 1
   limit:
-  about: "Ball of cotton is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "Ball of cotton is an unobtainable item in Old School RuneScape, known only from the game's cache and APIs. It is listed on the Grand Exchange but cannot currently be obtained in normal gameplay, and may be reserved for a future update. It was added alongside the Sailing release on 19 November 2025."
+    sections:
+      - heading: What is the ball of cotton?
+        anchor: overview
+        body: "Ball of cotton is a free-to-play item that exists only in the game APIs or cache, meaning it is not known to be accessible through normal play. The Wiki notes it as unobtainable, though it is listed on the Grand Exchange. It is tradeable and noteable but not stackable, and is examined as 'A neatly wrapped ball of cotton.' Because no obtaining method is currently known, it is likely placeholder content reserved for a possible future update rather than an item players can interact with today."
+  related_items:
+    - item_name: Cotton boll
+      slug: cotton-boll
+      relationship: alternative
+      description: The product harvested from a cotton plant
+    - item_name: Cotton yarn
+      slug: cotton-yarn
+      relationship: alternative
+      description: The processed, spun form of cotton
+  trivia:
+    - "Ball of cotton was added to the game cache on 19 November 2025 alongside the Sailing release, but is not known to be accessible in game."
+    - "Although unobtainable, the item is listed on the Grand Exchange."
+  faq:
+    - question: Is the ball of cotton members-only?
+      answer: "No. Ball of cotton is a free-to-play item. However, it is currently unobtainable through normal gameplay and exists only in the game's cache or APIs, so members status has little practical effect."
+    - question: How do you get a ball of cotton?
+      answer: "You cannot currently obtain a ball of cotton. The OSRS Wiki lists it as an unobtainable item known only from the game cache or APIs, possibly reserved for a future update, though it does appear on the Grand Exchange listings."
+    - question: What is the ball of cotton used for?
+      answer: "Ball of cotton has no known in-game use. It is unobtainable cache content with no documented function, examined simply as 'A neatly wrapped ball of cotton.' Any use it may gain would come with a future update."
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Ball_of_cotton"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

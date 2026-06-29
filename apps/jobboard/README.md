@@ -1,28 +1,58 @@
+---
+title: jobboard
+description: Decoupled freelance job board — one Axum binary serves an embedded React/Vite SPA plus a REST /api.
+domains:
+    - host: jobs.kbve.com
+      role: This SPA (app-focused, no SEO).
+    - host: kbve.com/jobs/$N
+      role: Astro SEO pages (future), same /api backend.
+layout:
+    - path: src/
+      role: Axum service — REST + rust-embed SPA serve + Supabase-JWT auth.
+    - path: web/
+      role: React + Vite SPA; consumes @kbve/rn/auth + @kbve/rn/ui.
+    - path: docker-compose.yml
+      role: Local stack — kilobase Postgres → dbmate → seed → jobboard.
+    - path: Dockerfile
+      role: Multi-stage — node (SPA) → cargo-chef (Rust) → chisel runtime.
+ports:
+    - port: 5400
+      role: Axum (SPA + /api) — the deployable.
+    - port: 5401
+      role: Vite dev server (web-dev), proxies /api → :5400.
+    - port: 54322
+      role: Local Postgres (kilobase).
+sources:
+    auth: supabase.kbve.com (Supabase JWT)
+    shared_npm: '@kbve/rn'
+    db: kilobase Postgres
+---
+
 # jobboard
 
 Decoupled freelance job board. Rust/Axum REST API on `:5400` that also serves
 an embedded React + Vite SPA (the same `@kbve/rn` components the mobile app
-uses, via react-native-web). One binary serves UI + `/api`.
+uses, via react-native-web). One binary serves UI + `/api`. Layout, ports, and
+domains live in the frontmatter above.
 
-- **`jobs.kbve.com`** → this SPA (app-focused, no SEO).
-- **`kbve.com/jobs/$N`** → Astro SEO pages (future), same `/api` backend.
+## Data Flow
 
-## Layout
+```mermaid
+flowchart LR
+    User([Browser])
+    Dev([Vite dev :5401])
 
-| Path                 | What                                                           |
-| -------------------- | -------------------------------------------------------------- |
-| `src/`               | Axum service (REST + rust-embed SPA serve + Supabase-JWT auth) |
-| `web/`               | React + Vite SPA; consumes `@kbve/rn/auth` + `@kbve/rn/ui`     |
-| `docker-compose.yml` | Local stack: kilobase Postgres → dbmate → seed → jobboard      |
-| `Dockerfile`         | Multi-stage: node (SPA) → cargo-chef (Rust) → chisel runtime   |
+    User --> Axum[axum jobboard :5400<br/>SPA + /api]
+    Dev -. proxies /api .-> Axum
 
-## Ports
+    Axum --> Embed[rust-embed web/dist<br/>or JOBBOARD_WEB_DIR]
+    Axum --> API{/api/*, /health, /ready}
+    API --> PG[(kilobase<br/>Postgres)]
+    Axum -. verify JWT .-> Supa[(supabase.kbve.com)]
 
-| Port    | Service                                             |
-| ------- | --------------------------------------------------- |
-| `5400`  | Axum (SPA + `/api`) — the deployable                |
-| `5401`  | Vite dev server (web-dev), proxies `/api` → `:5400` |
-| `54322` | Local Postgres (kilobase)                           |
+    SPA[React SPA] -. sign-in .-> Supa
+    Embed --> SPA
+```
 
 ## Commands
 

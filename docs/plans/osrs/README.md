@@ -1,0 +1,20 @@
+# OSRS Item Data — Planning
+
+| File                                           | What                                              |
+| ---------------------------------------------- | ------------------------------------------------- |
+| [v4-thin-content.md](v4-thin-content.md)       | v4 schema spec + thin-content remediation plan    |
+| [enrichment-runbook.md](enrichment-runbook.md) | Turnkey subagent spec to enrich an item to v4     |
+| [audit.json](audit.json)                       | Latest STUB + BASIC sparse audit snapshot         |
+| [families.json](families.json)                 | Item families (poison/dose clusters) + id 301 map |
+
+## Regenerating the data
+
+The survey/audit tooling lives in the `kbve` Python package under the `osrs`
+extra (`packages/python/kbve/kbve/osrs/`). From `packages/python/kbve`:
+
+```sh
+uv run --extra osrs kbve-osrs-survey --root <repo-root>
+uv run --extra osrs kbve-osrs-audit  --root <repo-root> --json <repo>/docs/plans/osrs/audit.json
+```
+
+`--root` is optional; the tools walk up to find the OSRS content dir if omitted.

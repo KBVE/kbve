@@ -216,6 +216,7 @@ pub struct Field {
     pub value: ::prost::alloc::vec::Vec<u8>,
 }
 /// Generated client implementations.
+#[cfg(feature = "grpc")]
 pub mod redis_service_client {
     #![allow(
         unused_variables,
@@ -322,6 +323,7 @@ pub mod redis_service_client {
     }
 }
 /// Generated server implementations.
+#[cfg(feature = "grpc")]
 pub mod redis_service_server {
     #![allow(
         unused_variables,

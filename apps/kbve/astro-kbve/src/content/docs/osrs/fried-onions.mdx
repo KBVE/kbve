@@ -12,9 +12,68 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 13000
-  about: "Fried onions is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "Fried onions are a members-only food made by cooking a chopped onion on a fire or range, requiring 42 Cooking and granting 60 experience. When eaten they heal 5 hitpoints, but they are more commonly used as an ingredient to make mushroom & onion topping for mushroom potatoes."
+    sections:
+      - heading: How to cook fried onions
+        anchor: cooking
+        body: "Fried onions are cooked from a chopped onion on a fire or cooking range, requiring 42 Cooking and granting 60 experience per successful cook. The action takes 1 tick the first time, then 3 and 4 ticks for subsequent Make-X cooks. You can burn onions while cooking, producing a burnt onion, but the burn rate falls as your Cooking level rises and stops entirely at level 77 on both fires and ranges. Cooking one is a slight loss at Grand Exchange prices since a chopped onion costs more than the fried onions sells for, so they are made mainly for Cooking experience or as a recipe ingredient."
+      - heading: Healing and cooking uses
+        anchor: uses
+        body: "When eaten, fried onions heal 5 hitpoints. Their more common role is as an ingredient: combine fried onions with fried mushrooms at 57 Cooking to make a mushroom & onion topping. This step grants no Cooking experience, but the topping can then be used at level 64 with a potato with butter to create a mushroom potato for 55 experience. A handy trick is that a sack of onions holds up to 10 onions, so with a knife, a bowl, and a range or fire, a single inventory slot can be turned into 50 hitpoints of healing."
+  food:
+    heals: 5
+    type: bowl
+    cooking_level: 42
+    cooking_xp: 60
+    burn_level: 77
+  recipes:
+    - skill: cooking
+      level: 42
+      xp: 60
+      facility: Cooking range
+      ticks: 1
+      product: Fried onions
+      materials:
+        - { item_name: Chopped onion, quantity: 1 }
+    - skill: cooking
+      level: 57
+      xp: 0
+      product: Mushroom & onion
+      materials:
+        - { item_name: Fried mushrooms, quantity: 1 }
+        - { item_name: Fried onions, quantity: 1 }
+  related_items:
+    - item_name: Chopped onion
+      slug: chopped-onion
+      relationship: component
+      description: Cooked on a fire or range to make fried onions
+    - item_name: Mushroom & onion
+      slug: mushroom-onion
+      relationship: product
+      description: Made by combining fried onions with fried mushrooms at 57 Cooking
+    - item_name: Burnt onion
+      slug: burnt-onion
+      relationship: alternative
+      description: The failed result of burning an onion while cooking
+  trivia:
+    - "Onions are the only ingredient needed to make fried onions, and because a sack holds up to 10 onions, one inventory space can heal 50 hitpoints with a knife, bowl, and access to a range or fire."
+    - "Fried onions were added on 30 January 2006 in the 'Runesquares, Harpie Bugs and new potato recipes!' update."
+  faq:
+    - question: Are fried onions members-only?
+      answer: "Yes. Fried onions are a members-only food. They can only be cooked, traded, and eaten on members worlds, and the recipes they feed into, such as mushroom potatoes, are also members content."
+    - question: How much do fried onions heal?
+      answer: "Fried onions heal 5 hitpoints when eaten. They are a low-tier healing food, so most players use them as an ingredient for mushroom & onion topping rather than as combat food."
+    - question: What level do you need to cook fried onions?
+      answer: "You need 42 Cooking to make fried onions by cooking a chopped onion on a fire or range, gaining 60 experience per cook. The chance to burn one decreases with level and reaches zero at Cooking level 77."
+    - question: What are fried onions used for?
+      answer: "Fried onions are mainly used to make mushroom & onion topping at 57 Cooking by combining them with fried mushrooms. That topping is then used at level 64 with a potato with butter to make a mushroom potato for 55 experience."
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Fried_onions"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

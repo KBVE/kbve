@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.218",
+			"version": "1.0.219",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -83,7 +83,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.20",
+			"version": "0.1.22",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -96,7 +96,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.20",
+			"version": "0.1.22",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",
@@ -205,7 +205,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.45",
+			"version": "0.1.46",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -503,7 +503,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.32",
+			"version": "0.1.36",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -532,7 +532,7 @@
 		{
 			"key": "devops",
 			"package_name": "devops",
-			"version": "0.0.19",
+			"version": "0.0.20",
 			"version_toml": "packages/npm/devops/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
 			"version_target": "packages/npm/devops/package.json"
@@ -1212,7 +1212,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.44",
+			"version": "0.3.45",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",

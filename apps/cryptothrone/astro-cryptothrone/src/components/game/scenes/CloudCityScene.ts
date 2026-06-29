@@ -3,10 +3,14 @@ import {
 	GameClient,
 	laserEvents,
 	createBirdAnimation,
+	createDustMoteLayer,
 	flashEntity,
 	floatingText,
-	drawHealthBar,
+	drawHealthBarCached,
 	attachCameraZoom,
+	setupKeyboardMap,
+	createArrowPool,
+	animateArrowProjectile,
 	findTilePath,
 	lineCast,
 	BOW_RANGE,
@@ -24,6 +28,8 @@ import type {
 	ConnectionState,
 	BjActionKind,
 	ProjectileEvent,
+	GpuSpriteLayerHandle,
+	ArrowPool,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
@@ -80,6 +86,9 @@ interface EntityRefs {
 	charId: string;
 	nameplate?: Phaser.GameObjects.Text;
 	hpBar?: Phaser.GameObjects.Graphics;
+	lastHp?: { hp: number; maxHp: number };
+	lastX?: number;
+	lastY?: number;
 }
 
 const MAP_SCALE = 3;
@@ -98,6 +107,8 @@ interface PendingAction {
 export class CloudCityScene extends Scene {
 	private gridEngine: any;
 	private client: GameClient | null = null;
+	private dustLayer: GpuSpriteLayerHandle | null = null;
+	private arrowPool: ArrowPool | null = null;
 
 	private mySlot = SLOT_NONE;
 	private slotUsername = new Map<number, string>();
@@ -215,30 +226,47 @@ export class CloudCityScene extends Scene {
 		}
 		this.entityDepth = tilemap.layers.length + 1;
 		this.placeProps();
-		this.cameras.main.setBounds(
-			0,
-			0,
-			tilemap.widthInPixels * MAP_SCALE,
-			tilemap.heightInPixels * MAP_SCALE,
-		);
+		const worldW = tilemap.widthInPixels * MAP_SCALE;
+		const worldH = tilemap.heightInPixels * MAP_SCALE;
+		this.cameras.main.setBounds(0, 0, worldW, worldH);
+
+		this.dustLayer = createDustMoteLayer(this, {
+			count: 600,
+			width: worldW,
+			height: worldH,
+			depth: this.entityDepth - 0.5,
+			color: 0xfdf6e3,
+			radius: 2,
+			alpha: 0.5,
+		});
 
 		createBirdAnimation(this);
 		this.makeGroundItemTexture();
+		this.arrowPool = createArrowPool(this, { depth: UI_DEPTH });
 		this.gridEngine.create(tilemap, {
 			characters: [],
 			numberOfDirections: 8,
 		});
-		this.cursors = this.input.keyboard!.createCursorKeys();
 		const Codes = Phaser.Input.Keyboard.KeyCodes;
+		const km = setupKeyboardMap(this, {
+			up: Codes.W,
+			down: Codes.S,
+			left: Codes.A,
+			right: Codes.D,
+			attack: Codes.SPACE,
+			shoot: Codes.F,
+			interact: Codes.E,
+		})!;
+		this.cursors = km.cursors;
 		this.wasd = {
-			up: this.input.keyboard!.addKey(Codes.W, false),
-			down: this.input.keyboard!.addKey(Codes.S, false),
-			left: this.input.keyboard!.addKey(Codes.A, false),
-			right: this.input.keyboard!.addKey(Codes.D, false),
+			up: km.keys.up,
+			down: km.keys.down,
+			left: km.keys.left,
+			right: km.keys.right,
 		};
-		this.attackKey = this.input.keyboard!.addKey(Codes.SPACE, false);
-		this.shootKey = this.input.keyboard!.addKey(Codes.F, false);
-		this.interactKey = this.input.keyboard!.addKey(Codes.E, false);
+		this.attackKey = km.keys.attack;
+		this.shootKey = km.keys.shoot;
+		this.interactKey = km.keys.interact;
 		this.interactables = getZoneInteractables(this.zone.key);
 		this.initSyncSystems();
 
@@ -319,6 +347,9 @@ export class CloudCityScene extends Scene {
 			this.laserUnsubs = [];
 			this.netTerminal = true;
 			this.client?.close();
+			this.dustLayer?.dispose();
+			this.dustLayer = null;
+			this.arrowPool = null;
 		});
 	}
 
@@ -730,6 +761,7 @@ export class CloudCityScene extends Scene {
 				if (refs.hpBar) {
 					refs.hpBar.destroy();
 					refs.hpBar = undefined;
+					refs.lastHp = undefined;
 				}
 				continue;
 			}
@@ -737,7 +769,15 @@ export class CloudCityScene extends Scene {
 				refs.hpBar = this.add.graphics().setDepth(UI_DEPTH);
 			}
 			const center = refs.sprite.getTopCenter();
-			drawHealthBar(refs.hpBar, center.x, refs.sprite.y - 22, hp, maxHp);
+			const result = drawHealthBarCached(
+				refs.hpBar,
+				center.x,
+				refs.sprite.y - 22,
+				hp,
+				maxHp,
+				refs.lastHp,
+			);
+			refs.lastHp = result.cache;
 		}
 	}
 
@@ -932,28 +972,16 @@ export class CloudCityScene extends Scene {
 
 	private animateProjectile(ev: ProjectileEvent) {
 		const refs = this.store.refs(ev.attacker);
-		if (!refs) return;
+		if (!refs || !this.arrowPool) return;
 		const px = this.tilePixels;
 		const offX = refs.sprite.x - ev.from.x * px;
 		const offY = refs.sprite.y - ev.from.y * px;
-		const toX = ev.to.x * px + offX;
-		const toY = ev.to.y * px + offY;
-		const color = ev.hit ? 0xfcd34d : 0x9ca3af;
-		const shot = this.add.rectangle(
-			refs.sprite.x,
-			refs.sprite.y,
-			7,
-			2,
-			color,
-		);
-		shot.setDepth(UI_DEPTH);
-		shot.setRotation(Math.atan2(toY - refs.sprite.y, toX - refs.sprite.x));
-		this.tweens.add({
-			targets: shot,
-			x: toX,
-			y: toY,
-			duration: 140,
-			onComplete: () => shot.destroy(),
+		animateArrowProjectile(this, this.arrowPool, {
+			fromX: refs.sprite.x,
+			fromY: refs.sprite.y,
+			toX: ev.to.x * px + offX,
+			toY: ev.to.y * px + offY,
+			color: ev.hit ? 0xfcd34d : 0x9ca3af,
 		});
 	}
 
@@ -983,15 +1011,21 @@ export class CloudCityScene extends Scene {
 
 	private updateOverlays(time: number) {
 		for (const [, , refs] of this.store.entries()) {
-			refs.sprite.setDepth(
-				this.entityDepth +
-					refs.sprite.y +
-					refs.sprite.displayHeight / 2,
-			);
-			if (refs.nameplate) {
+			const sx = refs.sprite.x;
+			const sy = refs.sprite.y;
+			// Idle entities hold their pixel position frame to frame; skip the
+			// depth re-sort + nameplate reposition unless they actually moved.
+			if (sy !== refs.lastY) {
+				refs.sprite.setDepth(
+					this.entityDepth + sy + refs.sprite.displayHeight / 2,
+				);
+			}
+			if (refs.nameplate && (sx !== refs.lastX || sy !== refs.lastY)) {
 				const top = refs.sprite.getTopCenter();
 				refs.nameplate.setPosition(top.x, top.y + 2);
 			}
+			refs.lastX = sx;
+			refs.lastY = sy;
 		}
 		// FPS — emit roughly once per second.
 		this.fpsFrames += 1;

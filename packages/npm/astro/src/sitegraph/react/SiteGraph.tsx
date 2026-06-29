@@ -7,35 +7,24 @@ import {
 	useDeferredValue,
 	type CSSProperties,
 } from 'react';
-import {
-	forceSimulation,
-	forceLink,
-	forceManyBody,
-	forceCenter,
-	forceCollide,
-	forceX,
-	forceY,
-	type Simulation,
-	type SimulationNodeDatum,
-	type SimulationLinkDatum,
-} from 'd3-force';
 import { openTooltip, closeTooltip } from '@kbve/droid';
-import { fetchSiteGraph } from './cache';
-import type { SiteGraphData } from '../types';
-
-interface GraphNode extends SimulationNodeDatum {
-	id: string;
-	title: string;
-	isCurrent: boolean;
-	tag: string | null;
-	degree: number;
-}
-
-interface GraphLink extends SimulationLinkDatum<GraphNode> {
-	source: GraphNode;
-	target: GraphNode;
-	relationship?: string;
-}
+import {
+	type GraphNode,
+	prefersReducedMotion,
+	loadStoredDepth,
+	persistDepth,
+	readUrlState,
+	writeUrlState,
+	radiusForDegree,
+} from './graph-core';
+import { usePanZoom } from './usePanZoom';
+import { useGraphSimulation } from './useGraphSimulation';
+import { useNeighborhood } from './useNeighborhood';
+import { useHoverPaint } from './useHoverPaint';
+import { GraphControls } from './GraphControls';
+import { GraphLegend } from './GraphLegend';
+import { GraphTooltip } from './GraphTooltip';
+import { GraphZoomBar } from './GraphZoomBar';
 
 export interface SiteGraphProps {
 	currentSlug: string;
@@ -90,178 +79,6 @@ export interface SiteGraphProps {
 	onFullscreenChange?: (next: boolean) => void;
 }
 
-const MIN_ZOOM = 0.3;
-const MAX_ZOOM = 3;
-const ZOOM_SENSITIVITY = 0.002;
-
-/** d3-force tick budget — caps long-running simulations on dense neighborhoods. */
-const ALPHA_MIN = 0.05;
-const ALPHA_DECAY = 0.05;
-
-/** localStorage key for the user's preferred neighborhood depth. */
-const DEPTH_STORAGE_KEY = 'kbve-sitegraph-depth';
-
-/** Reads the user's reduced-motion preference. SSR-safe. */
-function prefersReducedMotion(): boolean {
-	if (typeof window === 'undefined') return false;
-	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-}
-
-/** Reads + writes the depth selection to localStorage. */
-function loadStoredDepth(fallback: number, min: number, max: number): number {
-	if (typeof localStorage === 'undefined') return fallback;
-	const raw = localStorage.getItem(DEPTH_STORAGE_KEY);
-	if (!raw) return fallback;
-	const n = Number(raw);
-	return Number.isFinite(n) && n >= min && n <= max ? n : fallback;
-}
-
-function persistDepth(depth: number): void {
-	if (typeof localStorage === 'undefined') return;
-	try {
-		localStorage.setItem(DEPTH_STORAGE_KEY, String(depth));
-	} catch {
-		// quota / disabled — ignore
-	}
-}
-
-/** Reads sg-prefixed query params for shareable graph state. */
-function readUrlState(): { depth: number | null; q: string | null } {
-	if (typeof window === 'undefined') return { depth: null, q: null };
-	const params = new URLSearchParams(window.location.search);
-	const depthRaw = params.get('sg-depth');
-	const depth = depthRaw ? Number(depthRaw) : null;
-	return {
-		depth: depth !== null && Number.isFinite(depth) ? depth : null,
-		q: params.get('sg-q'),
-	};
-}
-
-function writeUrlState(state: { depth: number; q: string }): void {
-	if (typeof window === 'undefined') return;
-	const params = new URLSearchParams(window.location.search);
-	params.set('sg-depth', String(state.depth));
-	if (state.q) params.set('sg-q', state.q);
-	else params.delete('sg-q');
-	const next = `${window.location.pathname}${
-		params.toString() ? '?' + params.toString() : ''
-	}${window.location.hash}`;
-	window.history.replaceState(null, '', next);
-}
-
-function getNeighborhood(
-	graph: SiteGraphData,
-	startSlug: string,
-	maxDepth: number,
-	tagOf: (slug: string) => string | null,
-): { nodes: GraphNode[]; links: GraphLink[] } {
-	const visited = new Set<string>();
-	const queue: Array<{ slug: string; depth: number }> = [
-		{ slug: startSlug, depth: 0 },
-	];
-	visited.add(startSlug);
-
-	while (queue.length > 0) {
-		const { slug, depth } = queue.shift()!;
-		if (depth >= maxDepth) continue;
-
-		const node = graph[slug];
-		if (!node) continue;
-
-		const neighbors = [...node.links, ...node.backlinks];
-		for (const neighbor of neighbors) {
-			if (!visited.has(neighbor) && graph[neighbor]) {
-				visited.add(neighbor);
-				queue.push({ slug: neighbor, depth: depth + 1 });
-			}
-		}
-	}
-
-	const nodeMap = new Map<string, GraphNode>();
-	for (const slug of visited) {
-		const entry = graph[slug];
-		if (!entry) continue;
-		const degree =
-			(entry.links?.length ?? 0) + (entry.backlinks?.length ?? 0);
-		nodeMap.set(slug, {
-			id: slug,
-			title: entry.title,
-			isCurrent: slug === startSlug,
-			tag: tagOf(slug),
-			degree,
-		});
-	}
-
-	const links: GraphLink[] = [];
-	for (const slug of visited) {
-		const entry = graph[slug];
-		if (!entry) continue;
-		for (const target of entry.links) {
-			if (visited.has(target)) {
-				links.push({
-					source: nodeMap.get(slug)!,
-					target: nodeMap.get(target)!,
-					relationship: entry.edges?.[target],
-				});
-			}
-		}
-	}
-
-	return { nodes: [...nodeMap.values()], links };
-}
-
-/**
- * Maps degree (links + backlinks) to a node radius. sqrt-scaled so a 100-link
- * hub doesn't dwarf the rest of the neighborhood.
- */
-function radiusForDegree(degree: number, base: number): number {
-	const extra = Math.min(6, Math.sqrt(Math.max(degree - 1, 0)) * 1.2);
-	return base + extra;
-}
-
-/**
- * Builds the neighbor lookup used for hover-dim. Lets us fade everything
- * except the hovered node + its immediate neighbors without re-running
- * BFS on every mouse-enter.
- */
-/**
- * Returns an SVG path for a quadratic bezier from `s` to `t`. The control
- * point is offset perpendicular to the segment by ~15% of its length so
- * dense graphs read as a fan of curves instead of overlapping lines.
- */
-function curvedEdgePath(
-	s: { x?: number; y?: number },
-	t: { x?: number; y?: number },
-): string {
-	const sx = s.x ?? 0;
-	const sy = s.y ?? 0;
-	const tx = t.x ?? 0;
-	const ty = t.y ?? 0;
-	const dx = tx - sx;
-	const dy = ty - sy;
-	const dist = Math.hypot(dx, dy) || 1;
-	const offset = dist * 0.15;
-	const mx = (sx + tx) / 2;
-	const my = (sy + ty) / 2;
-	// Perpendicular unit vector → control point.
-	const cx = mx + (-dy / dist) * offset;
-	const cy = my + (dx / dist) * offset;
-	return `M${sx} ${sy} Q${cx} ${cy} ${tx} ${ty}`;
-}
-
-function buildAdjacency(links: GraphLink[]): Map<string, Set<string>> {
-	const adj = new Map<string, Set<string>>();
-	for (const l of links) {
-		const a = l.source.id;
-		const b = l.target.id;
-		if (!adj.has(a)) adj.set(a, new Set());
-		if (!adj.has(b)) adj.set(b, new Set());
-		adj.get(a)!.add(b);
-		adj.get(b)!.add(a);
-	}
-	return adj;
-}
-
 export function SiteGraph({
 	currentSlug,
 	depth: depthProp = 2,
@@ -285,12 +102,7 @@ export function SiteGraph({
 	const svgRef = useRef<SVGSVGElement>(null);
 	const tooltipRef = useRef<HTMLDivElement>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-	const [graphData, setGraphData] = useState<SiteGraphData | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [retryNonce, setRetryNonce] = useState(0);
-	const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
 
-	const [hoveredId, setHoveredId] = useState<string | null>(null);
 	const [pinnedId, setPinnedId] = useState<string | null>(null);
 	// Depth seeds from (in order): URL `sg-depth` → localStorage → prop default.
 	const [depth, setDepth] = useState(() => {
@@ -336,34 +148,39 @@ export function SiteGraph({
 	const width = size.width;
 	const height = size.height;
 
-	const [zoom, setZoom] = useState(1);
-	const [panX, setPanX] = useState(0);
-	const [panY, setPanY] = useState(0);
+	// Graph fetch + memoized neighborhood/adjacency/distinct sets for the
+	// current slug + depth. Recomputes only on data/slug/depth change.
+	const {
+		graphData,
+		error,
+		retry,
+		nodes,
+		links,
+		adjacency,
+		distinctTags,
+		distinctRelationships,
+	} = useNeighborhood(currentSlug, depth, tagOf, endpoint);
 
-	const isPointerOverSvg = useRef(false);
+	// The SVG only renders once there's a neighborhood (loading/empty/error
+	// states return earlier), so gesture listeners must (re)attach when this
+	// flips true — otherwise they bind to a not-yet-mounted svg and never fire.
+	const graphReady = nodes.length > 0;
 
-	// Live mirrors of pan/zoom so the once-bound pointer listeners read
-	// current values without re-subscribing on every interaction frame.
-	const panXRef = useRef(panX);
-	panXRef.current = panX;
-	const panYRef = useRef(panY);
-	panYRef.current = panY;
-	const zoomRef = useRef(zoom);
-	zoomRef.current = zoom;
+	// Pan + pinch/wheel zoom, driven through refs + an imperative transform
+	// writer so gestures never re-render the node/link tree. Zoom is broadcast
+	// via `subscribeZoom` (no React state) so only the zoom bar + imperative
+	// label-reveal follow it — the node/link tree never reconciles on zoom.
+	const {
+		groupRef,
+		zoomRef,
+		panXRef,
+		panYRef,
+		isPointerOverSvg,
+		subscribeZoom,
+		handleSliderChange,
+		handleResetZoom,
+	} = usePanZoom(svgRef, width, height, graphReady);
 
-	// Active pointers on the SVG background, keyed by pointerId.
-	// 1 pointer → pan, 2 pointers → pinch-zoom.
-	const bgPointers = useRef(new Map<number, { x: number; y: number }>());
-	const panStart = useRef<{
-		startX: number;
-		startY: number;
-		startPanX: number;
-		startPanY: number;
-	} | null>(null);
-	const pinchStart = useRef<{
-		startDist: number;
-		startZoom: number;
-	} | null>(null);
 	// Set true once a node pointer-drag passes the move threshold, so the
 	// trailing click doesn't navigate.
 	const draggedRef = useRef(false);
@@ -408,21 +225,21 @@ export function SiteGraph({
 		tip.style.visibility = 'hidden';
 	}, []);
 
-	useEffect(() => {
-		let cancelled = false;
-		setError(null);
-		fetchSiteGraph(endpoint)
-			.then((data) => {
-				if (!cancelled) setGraphData(data);
-			})
-			.catch((err) => {
-				if (!cancelled)
-					setError(err instanceof Error ? err.message : String(err));
-			});
-		return () => {
-			cancelled = true;
-		};
-	}, [endpoint, retryNonce]);
+	// Hover-dim painted imperatively from the base styling the render writes to
+	// `data-*` attrs — hovering a node re-renders nothing. The painter also owns
+	// zoom-driven label decluttering (reads `zoomRef`).
+	const { hoveredIdRef, applyHover } = useHoverPaint(
+		svgRef,
+		adjacency,
+		zoomRef,
+	);
+
+	// Zoom no longer lives in React state, so repaint labels imperatively when
+	// the committed zoom crosses the reveal threshold during a gesture.
+	useEffect(
+		() => subscribeZoom(() => applyHover(hoveredIdRef.current)),
+		[subscribeZoom, applyHover, hoveredIdRef],
+	);
 
 	// Persist depth to localStorage and reflect depth + search in the URL so
 	// users can share/refresh into the same view.
@@ -431,310 +248,18 @@ export function SiteGraph({
 		writeUrlState({ depth, q: search });
 	}, [depth, search]);
 
-	// Memoize neighborhood so adjacency + render don't recompute every keystroke.
-	const { nodes, links, adjacency } = useMemo(() => {
-		if (!graphData)
-			return {
-				nodes: [],
-				links: [],
-				adjacency: new Map<string, Set<string>>(),
-			};
-		const result = getNeighborhood(graphData, currentSlug, depth, tagOf);
-		return {
-			...result,
-			adjacency: buildAdjacency(result.links),
-		};
-	}, [graphData, currentSlug, depth, tagOf]);
-
-	// Distinct tags / relationships drive the cluster legend below the SVG.
-	const distinctTags = useMemo(
-		() => [
-			...new Set(nodes.map((n) => n.tag).filter((t): t is string => !!t)),
-		],
-		[nodes],
+	// d3-force layout — ticks straight to the DOM, gated on visibility +
+	// on-screen, hard-stopped on SPA swap. Returns the live sim for dragging.
+	const simulationRef = useGraphSimulation(
+		svgRef,
+		containerRef,
+		!!graphData,
+		nodes,
+		links,
+		width,
+		height,
+		reducedMotion,
 	);
-	const distinctRelationships = useMemo(
-		() => [
-			...new Set(
-				links
-					.map((l) => l.relationship)
-					.filter((r): r is string => !!r),
-			),
-		],
-		[links],
-	);
-
-	useEffect(() => {
-		if (!graphData || !svgRef.current || nodes.length === 0) return;
-
-		const svg = svgRef.current;
-
-		// Group nodes by tag for cluster forces — pulls same-tag nodes toward
-		// the same anchor so users can spot domain clusters at a glance.
-		const tagAnchors = new Map<string, { x: number; y: number }>();
-		const distinctTags = [
-			...new Set(nodes.map((n) => n.tag).filter((t): t is string => !!t)),
-		];
-		distinctTags.forEach((tag, i) => {
-			const angle = (i / Math.max(distinctTags.length, 1)) * Math.PI * 2;
-			const radius = Math.min(width, height) * 0.25;
-			tagAnchors.set(tag, {
-				x: width / 2 + Math.cos(angle) * radius,
-				y: height / 2 + Math.sin(angle) * radius,
-			});
-		});
-
-		const simulation = forceSimulation<GraphNode>(nodes)
-			.alphaMin(reducedMotion ? 0.5 : ALPHA_MIN)
-			.alphaDecay(reducedMotion ? 0.4 : ALPHA_DECAY)
-			.force(
-				'link',
-				forceLink<GraphNode, GraphLink>(links)
-					.id((d) => d.id)
-					.distance(50),
-			)
-			.force('charge', forceManyBody().strength(-120))
-			.force('center', forceCenter(width / 2, height / 2))
-			.force('collide', forceCollide(24));
-
-		if (distinctTags.length >= 2) {
-			simulation
-				.force(
-					'cluster-x',
-					forceX<GraphNode>((d) =>
-						d.tag
-							? (tagAnchors.get(d.tag)?.x ?? width / 2)
-							: width / 2,
-					).strength(0.06),
-				)
-				.force(
-					'cluster-y',
-					forceY<GraphNode>((d) =>
-						d.tag
-							? (tagAnchors.get(d.tag)?.y ?? height / 2)
-							: height / 2,
-					).strength(0.06),
-				);
-		}
-
-		simulationRef.current = simulation;
-
-		// Cache the element lists once. React rendered the nodes/links before
-		// this effect runs, and the effect re-runs whenever nodes/links change,
-		// so a per-tick querySelectorAll (hundreds of nodes × 60fps on a phone)
-		// is pure waste. Snapshot here, index into it on tick.
-		const linkEls = svg.querySelectorAll<SVGPathElement>('.sg-link');
-		const nodeEls = svg.querySelectorAll<SVGGElement>('.sg-node');
-
-		simulation.on('tick', () => {
-			for (let i = 0; i < links.length; i++) {
-				const el = linkEls[i];
-				if (el) {
-					el.setAttribute(
-						'd',
-						curvedEdgePath(links[i].source, links[i].target),
-					);
-				}
-			}
-			for (let i = 0; i < nodes.length; i++) {
-				const el = nodeEls[i];
-				if (el) {
-					el.setAttribute(
-						'transform',
-						`translate(${nodes[i].x ?? 0},${nodes[i].y ?? 0})`,
-					);
-				}
-			}
-		});
-
-		// Battery/CPU: only let the layout tick when the tab is visible AND the
-		// graph is actually on screen. The sidebar graph is frequently scrolled
-		// out of view or backgrounded on mobile — no reason to keep simulating.
-		let docVisible =
-			typeof document === 'undefined' ? true : !document.hidden;
-		let inView = true;
-		const applyRunState = () => {
-			if (docVisible && inView) simulation.restart();
-			else simulation.stop();
-		};
-		const onVisibility = () => {
-			docVisible = !document.hidden;
-			applyRunState();
-		};
-		document.addEventListener('visibilitychange', onVisibility);
-
-		let io: IntersectionObserver | null = null;
-		const container = containerRef.current;
-		if (container && typeof IntersectionObserver !== 'undefined') {
-			io = new IntersectionObserver(
-				(entries) => {
-					inView = entries.some((e) => e.isIntersecting);
-					applyRunState();
-				},
-				{ threshold: 0 },
-			);
-			io.observe(container);
-		}
-
-		// Belt-and-suspenders: if a future Astro/React change ever fails to fire
-		// the island's unmount (which runs this cleanup), still halt the
-		// simulation on SPA swap / page hide so a stale rAF loop can't survive.
-		const killOnSwap = () => simulation.stop();
-		document.addEventListener('astro:before-swap', killOnSwap, {
-			once: true,
-		});
-		window.addEventListener('pagehide', killOnSwap, { once: true });
-
-		return () => {
-			simulation.stop();
-			simulationRef.current = null;
-			document.removeEventListener('visibilitychange', onVisibility);
-			document.removeEventListener('astro:before-swap', killOnSwap);
-			window.removeEventListener('pagehide', killOnSwap);
-			io?.disconnect();
-		};
-	}, [graphData, nodes, links, width, height, reducedMotion]);
-
-	useEffect(() => {
-		const svg = svgRef.current;
-		if (!svg) return;
-
-		const handleWheel = (e: WheelEvent) => {
-			if (!isPointerOverSvg.current) return;
-			e.preventDefault();
-
-			const delta = e.ctrlKey
-				? -e.deltaY * 0.01
-				: -e.deltaY * ZOOM_SENSITIVITY;
-
-			setZoom((prev) => {
-				const next = Math.min(
-					MAX_ZOOM,
-					Math.max(MIN_ZOOM, prev + delta),
-				);
-
-				const rect = svg.getBoundingClientRect();
-				const cursorX = e.clientX - rect.left;
-				const cursorY = e.clientY - rect.top;
-				const svgX = (cursorX - rect.width / 2) / prev;
-				const svgY = (cursorY - rect.height / 2) / prev;
-
-				setPanX((px) => px - svgX * (next - prev));
-				setPanY((py) => py - svgY * (next - prev));
-
-				return next;
-			});
-		};
-
-		const handleEnter = () => {
-			isPointerOverSvg.current = true;
-		};
-		const handleLeave = () => {
-			isPointerOverSvg.current = false;
-		};
-
-		svg.addEventListener('mouseenter', handleEnter);
-		svg.addEventListener('mouseleave', handleLeave);
-		window.addEventListener('wheel', handleWheel, { passive: false });
-		return () => {
-			svg.removeEventListener('mouseenter', handleEnter);
-			svg.removeEventListener('mouseleave', handleLeave);
-			window.removeEventListener('wheel', handleWheel);
-		};
-	}, []);
-
-	// Unified Pointer Events for background pan + pinch-zoom. One code path
-	// for mouse, touch, and pen — iOS Safari (13+) ships Pointer Events, so
-	// this is what makes pan/zoom work on mobile. 1 active pointer pans,
-	// 2 pinch-zoom. Pointers that start inside a node are claimed by
-	// `dragNode` (it stops propagation), so this only sees empty-space drags.
-	useEffect(() => {
-		const svg = svgRef.current;
-		if (!svg) return;
-
-		const pinchDist = (): number => {
-			const pts = [...bgPointers.current.values()];
-			return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-		};
-
-		const beginPan = (x: number, y: number) => {
-			panStart.current = {
-				startX: x,
-				startY: y,
-				startPanX: panXRef.current,
-				startPanY: panYRef.current,
-			};
-		};
-
-		const onDown = (e: PointerEvent) => {
-			const target = e.target as Element | null;
-			if (target?.closest('.sg-node')) return;
-			if (e.pointerType === 'mouse' && e.button !== 0) return;
-			try {
-				svg.setPointerCapture(e.pointerId);
-			} catch {
-				// Safari can throw if the element is detaching; ignore.
-			}
-			bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-			if (bgPointers.current.size === 1) {
-				beginPan(e.clientX, e.clientY);
-				svg.style.cursor = 'grabbing';
-			} else if (bgPointers.current.size === 2) {
-				panStart.current = null;
-				pinchStart.current = {
-					startDist: pinchDist(),
-					startZoom: zoomRef.current,
-				};
-			}
-		};
-
-		const onMove = (e: PointerEvent) => {
-			if (!bgPointers.current.has(e.pointerId)) return;
-			bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-			if (bgPointers.current.size >= 2 && pinchStart.current) {
-				e.preventDefault();
-				const scale = pinchDist() / pinchStart.current.startDist;
-				const next = Math.min(
-					MAX_ZOOM,
-					Math.max(MIN_ZOOM, pinchStart.current.startZoom * scale),
-				);
-				setZoom(next);
-			} else if (panStart.current) {
-				const p = panStart.current;
-				setPanX(p.startPanX + (e.clientX - p.startX));
-				setPanY(p.startPanY + (e.clientY - p.startY));
-			}
-		};
-
-		const onUp = (e: PointerEvent) => {
-			if (!bgPointers.current.has(e.pointerId)) return;
-			bgPointers.current.delete(e.pointerId);
-			try {
-				svg.releasePointerCapture(e.pointerId);
-			} catch {
-				// Capture may already be gone; ignore.
-			}
-			if (bgPointers.current.size < 2) pinchStart.current = null;
-			if (bgPointers.current.size === 1) {
-				const [only] = [...bgPointers.current.values()];
-				beginPan(only.x, only.y);
-			} else if (bgPointers.current.size === 0) {
-				panStart.current = null;
-				svg.style.cursor = 'grab';
-			}
-		};
-
-		svg.addEventListener('pointerdown', onDown);
-		svg.addEventListener('pointermove', onMove);
-		svg.addEventListener('pointerup', onUp);
-		svg.addEventListener('pointercancel', onUp);
-		return () => {
-			svg.removeEventListener('pointerdown', onDown);
-			svg.removeEventListener('pointermove', onMove);
-			svg.removeEventListener('pointerup', onUp);
-			svg.removeEventListener('pointercancel', onUp);
-		};
-	}, []);
 
 	// Node drag — pin the node's simulation position while dragging by
 	// setting fx/fy, and release with `simulation.alphaTarget` ramping back
@@ -756,11 +281,13 @@ export function SiteGraph({
 
 			const rect = svg.getBoundingClientRect();
 			const toSvg = (clientX: number, clientY: number) => {
-				const relX = clientX - rect.left - rect.width / 2 - panX;
-				const relY = clientY - rect.top - rect.height / 2 - panY;
+				const relX =
+					clientX - rect.left - rect.width / 2 - panXRef.current;
+				const relY =
+					clientY - rect.top - rect.height / 2 - panYRef.current;
 				return {
-					x: relX / zoom + width / 2,
-					y: relY / zoom + height / 2,
+					x: relX / zoomRef.current + width / 2,
+					y: relY / zoomRef.current + height / 2,
 				};
 			};
 
@@ -800,7 +327,7 @@ export function SiteGraph({
 			el.addEventListener('pointerup', onUp);
 			el.addEventListener('pointercancel', onUp);
 		},
-		[panX, panY, zoom, width, height],
+		[width, height],
 	);
 
 	const handleNodeClick = useCallback(
@@ -822,19 +349,6 @@ export function SiteGraph({
 		},
 		[currentSlug],
 	);
-
-	const handleSliderChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			setZoom(parseFloat(e.target.value));
-		},
-		[],
-	);
-
-	const handleResetZoom = useCallback(() => {
-		setZoom(1);
-		setPanX(0);
-		setPanY(0);
-	}, []);
 
 	// Keyboard shortcuts (only fire when the pointer is over the graph or it's
 	// in fullscreen, so we don't hijack typing in unrelated parts of the page).
@@ -865,7 +379,8 @@ export function SiteGraph({
 				}
 				if (pinnedId) {
 					setPinnedId(null);
-					setHoveredId(null);
+					hoveredIdRef.current = null;
+					applyHover(null);
 					hideTooltip();
 					return;
 				}
@@ -876,7 +391,15 @@ export function SiteGraph({
 		};
 		window.addEventListener('keydown', handler);
 		return () => window.removeEventListener('keydown', handler);
-	}, [isFullscreen, onFullscreenChange, search, pinnedId, hideTooltip]);
+	}, [
+		isFullscreen,
+		onFullscreenChange,
+		search,
+		pinnedId,
+		hideTooltip,
+		applyHover,
+		hoveredIdRef,
+	]);
 
 	// Background tap on the SVG dismisses any pinned tooltip (touch only).
 	useEffect(() => {
@@ -886,12 +409,13 @@ export function SiteGraph({
 			const target = e.target as SVGElement | null;
 			if (target?.closest('.sg-node')) return;
 			setPinnedId(null);
-			setHoveredId(null);
+			hoveredIdRef.current = null;
+			applyHover(null);
 			hideTooltip();
 		};
 		svg.addEventListener('touchstart', onTouch, { passive: true });
 		return () => svg.removeEventListener('touchstart', onTouch);
-	}, [hideTooltip]);
+	}, [hideTooltip, applyHover, hoveredIdRef]);
 
 	if (error) {
 		return (
@@ -921,7 +445,7 @@ export function SiteGraph({
 					{error}
 				</code>
 				<button
-					onClick={() => setRetryNonce((n) => n + 1)}
+					onClick={retry}
 					style={{
 						background: 'var(--sl-color-bg-nav)',
 						color: 'inherit',
@@ -979,14 +503,6 @@ export function SiteGraph({
 		);
 	};
 
-	// Hover-dim adjacency: nodes/links touching the hovered node stay full
-	// opacity; everything else fades. Search-filter dimming layers on top.
-	const isAdjacent = (id: string): boolean => {
-		if (!hoveredId) return true;
-		if (id === hoveredId) return true;
-		return adjacency.get(hoveredId)?.has(id) ?? false;
-	};
-
 	const containerStyle: CSSProperties = isFullscreen
 		? {
 				position: 'fixed',
@@ -1002,83 +518,17 @@ export function SiteGraph({
 	return (
 		<div ref={containerRef} style={containerStyle}>
 			{!hideControls && (
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '6px',
-						padding: '0 8px 6px',
-						fontSize: '11px',
-						color: 'var(--sl-color-gray-3, #8b949e)',
-					}}>
-					<label
-						style={{
-							display: 'inline-flex',
-							alignItems: 'center',
-							gap: '4px',
-						}}>
-						Depth
-						<select
-							value={depth}
-							onChange={(e) => setDepth(Number(e.target.value))}
-							style={{
-								background: 'var(--sl-color-bg-nav)',
-								color: 'inherit',
-								border: '1px solid var(--sl-color-gray-5, #262626)',
-								borderRadius: 4,
-								padding: '1px 4px',
-								fontSize: '11px',
-							}}>
-							{Array.from(
-								{ length: maxDepth - minDepth + 1 },
-								(_, i) => minDepth + i,
-							).map((d) => (
-								<option key={d} value={d}>
-									{d}
-								</option>
-							))}
-						</select>
-					</label>
-					<input
-						ref={searchInputRef}
-						type="search"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						placeholder="Filter…  (/)"
-						aria-label="Filter nodes by title (press / to focus)"
-						style={{
-							flex: 1,
-							minWidth: 0,
-							background: 'var(--sl-color-bg-nav)',
-							color: 'inherit',
-							border: '1px solid var(--sl-color-gray-5, #262626)',
-							borderRadius: 4,
-							padding: '2px 6px',
-							fontSize: '11px',
-						}}
-					/>
-					{onFullscreenChange && (
-						<button
-							onClick={() => onFullscreenChange(!isFullscreen)}
-							title={
-								isFullscreen ? 'Exit fullscreen' : 'Fullscreen'
-							}
-							aria-label={
-								isFullscreen ? 'Exit fullscreen' : 'Fullscreen'
-							}
-							style={{
-								background: 'none',
-								border: '1px solid var(--sl-color-gray-5, #262626)',
-								color: 'inherit',
-								borderRadius: 4,
-								padding: '1px 6px',
-								fontSize: '11px',
-								cursor: 'pointer',
-							}}>
-							{isFullscreen ? '×' : '⤢'}
-						</button>
-					)}
-				</div>
+				<GraphControls
+					depth={depth}
+					onDepthChange={setDepth}
+					minDepth={minDepth}
+					maxDepth={maxDepth}
+					search={search}
+					onSearchChange={setSearch}
+					searchInputRef={searchInputRef}
+					isFullscreen={isFullscreen}
+					onFullscreenChange={onFullscreenChange}
+				/>
 			)}
 			<svg
 				ref={svgRef}
@@ -1095,16 +545,11 @@ export function SiteGraph({
 					touchAction: 'none',
 					overflow: 'hidden',
 				}}>
-				<g
-					transform={`translate(${width / 2 + panX},${height / 2 + panY}) scale(${zoom}) translate(${-width / 2},${-height / 2})`}>
+				<g ref={groupRef}>
 					{links.map((l, i) => {
-						const adj =
-							isAdjacent(l.source.id) && isAdjacent(l.target.id);
-						const opacity = adj
-							? l.relationship
-								? 0.6
-								: 0.4
-							: 0.08;
+						// Base stroke-opacity (no hover); the hover overlay
+						// dims non-incident edges imperatively via `data-*`.
+						const opacity = l.relationship ? 0.6 : 0.4;
 						const dash = l.relationship
 							? edgeDashes?.[l.relationship]
 							: undefined;
@@ -1112,6 +557,9 @@ export function SiteGraph({
 							<path
 								key={`link-${i}`}
 								className="sg-link"
+								data-rel={l.relationship ? '1' : '0'}
+								data-source={l.source.id}
+								data-target={l.target.id}
 								fill="none"
 								stroke={
 									l.relationship
@@ -1119,9 +567,8 @@ export function SiteGraph({
 											'var(--sl-color-gray-4)'
 										: 'var(--sl-color-gray-5)'
 								}
-								strokeWidth={
-									l.relationship ? 1.5 / zoom : 1 / zoom
-								}
+								strokeWidth={l.relationship ? 1.5 : 1}
+								vectorEffect="non-scaling-stroke"
 								strokeOpacity={opacity}
 								strokeDasharray={dash}
 								style={{ transition: 'stroke-opacity 0.12s' }}
@@ -1137,38 +584,39 @@ export function SiteGraph({
 						const radius = node.isCurrent
 							? baseRadius
 							: radiusForDegree(node.degree, baseRadius);
-						const fill = node.isCurrent
+						// Base (no-hover) visuals. The hover overlay swaps these
+						// imperatively via the `data-*` attrs below — see
+						// useHoverPaint — so hovering re-renders nothing.
+						const baseFill = node.isCurrent
 							? 'var(--sl-color-accent)'
-							: hoveredId === node.id
-								? 'var(--sl-color-accent)'
-								: (tagStyle?.fill ?? 'var(--sl-color-white)');
-						const stroke = node.isCurrent
+							: (tagStyle?.fill ?? 'var(--sl-color-white)');
+						const baseStroke = node.isCurrent
 							? 'var(--sl-color-accent-high)'
-							: hoveredId === node.id
-								? 'var(--sl-color-accent-high)'
-								: (tagStyle?.stroke ??
-									'var(--sl-color-gray-4)');
+							: (tagStyle?.stroke ?? 'var(--sl-color-gray-4)');
+						const baseTextFill = node.isCurrent
+							? 'var(--sl-color-white)'
+							: 'var(--sl-color-gray-3)';
 
 						const filterPass = matchesSearch(node);
-						const adjPass = isAdjacent(node.id);
-						const visible = filterPass && adjPass;
-						const opacity = visible ? 1 : filterPass ? 0.18 : 0.05;
+						const opacity = filterPass ? 1 : 0.05;
 
-						// Label-visibility heuristic: always show labels for the
-						// current node, hovered/pinned, search matches; show
-						// degree-≥5 hubs by default; hide other low-signal labels
-						// at low zoom to declutter dense neighborhoods.
-						const labelVisible =
+						// Static label-visibility base: current node, search
+						// matches, and degree-≥5 hubs always show. The zoom
+						// threshold + hovered-node reveals are layered on
+						// imperatively (useHoverPaint) so zoom never re-renders.
+						const labelBase =
 							node.isCurrent ||
-							hoveredId === node.id ||
-							(deferredSearch && filterPass) ||
-							node.degree >= 5 ||
-							zoom >= 1.2;
+							(!!deferredSearch && filterPass) ||
+							node.degree >= 5;
 
 						return (
 							<g
 								key={node.id}
 								className="sg-node"
+								data-id={node.id}
+								data-current={node.isCurrent ? '1' : '0'}
+								data-filter={filterPass ? '1' : '0'}
+								data-label-base={labelBase ? '1' : '0'}
 								style={{
 									cursor: 'pointer',
 									opacity,
@@ -1177,20 +625,23 @@ export function SiteGraph({
 								onClick={(e) => handleNodeClick(node.id, e)}
 								onPointerDown={dragNode(node)}
 								onMouseEnter={(e) => {
-									setHoveredId(node.id);
+									hoveredIdRef.current = node.id;
+									applyHover(node.id);
 									showTooltip(node.title, node.id, e);
 									openTooltip(`sg-node-${node.id}`);
 								}}
 								onMouseMove={moveTooltip}
 								onMouseLeave={() => {
 									if (pinnedId === node.id) return;
-									setHoveredId(null);
+									hoveredIdRef.current = null;
+									applyHover(null);
 									hideTooltip();
 									closeTooltip(`sg-node-${node.id}`);
 								}}
 								onTouchStart={(e) => {
 									setPinnedId(node.id);
-									setHoveredId(node.id);
+									hoveredIdRef.current = node.id;
+									applyHover(node.id);
 									const touch = e.touches[0];
 									if (!touch) return;
 									showTooltip(node.title, node.id, {
@@ -1199,31 +650,27 @@ export function SiteGraph({
 									} as React.MouseEvent);
 								}}>
 								<circle
+									className="sg-node-circle"
+									data-fill={baseFill}
+									data-stroke={baseStroke}
 									r={radius}
-									fill={fill}
-									stroke={stroke}
+									fill={baseFill}
+									stroke={baseStroke}
 									strokeWidth={node.isCurrent ? 2 : 1}
+									vectorEffect="non-scaling-stroke"
 									style={{
 										transition: 'fill 0.15s, stroke 0.15s',
 									}}
 								/>
 								<text
+									className="sg-node-label"
+									data-fill={baseTextFill}
 									dy={node.isCurrent ? -10 : -8}
 									textAnchor="middle"
-									fill={
-										node.isCurrent
-											? 'var(--sl-color-white)'
-											: hoveredId === node.id
-												? 'var(--sl-color-white)'
-												: 'var(--sl-color-gray-3)'
-									}
+									fill={baseTextFill}
 									fontSize={node.isCurrent ? 10 : 8}
-									fontWeight={
-										node.isCurrent || hoveredId === node.id
-											? 600
-											: 400
-									}
-									opacity={labelVisible ? 1 : 0}
+									fontWeight={node.isCurrent ? 600 : 400}
+									opacity={labelBase ? 1 : 0}
 									style={{
 										pointerEvents: 'none',
 										transition: 'fill 0.15s, opacity 0.15s',
@@ -1238,165 +685,24 @@ export function SiteGraph({
 				</g>
 			</svg>
 
-			{(distinctTags.length >= 2 || distinctRelationships.length > 0) && (
-				<ul
-					className="sg-legend"
-					aria-label="Graph legend"
-					style={{
-						listStyle: 'none',
-						margin: '6px 0 0',
-						padding: '0 8px',
-						display: 'flex',
-						flexWrap: 'wrap',
-						gap: '4px 10px',
-						fontSize: '10px',
-						color: 'var(--sl-color-gray-3, #8b949e)',
-					}}>
-					{distinctTags.length >= 2 &&
-						distinctTags.map((tag) => {
-							const style = tagStyles?.[tag];
-							return (
-								<li
-									key={`tag-${tag}`}
-									style={{
-										display: 'inline-flex',
-										alignItems: 'center',
-										gap: '4px',
-									}}>
-									<span
-										style={{
-											width: 8,
-											height: 8,
-											borderRadius: '50%',
-											background:
-												style?.fill ??
-												'var(--sl-color-white)',
-											border: `1px solid ${style?.stroke ?? 'var(--sl-color-gray-4)'}`,
-											display: 'inline-block',
-										}}
-										aria-hidden="true"
-									/>
-									{tagLabels?.[tag] ?? tag}
-								</li>
-							);
-						})}
-					{distinctRelationships.map((rel) => {
-						const dash = edgeDashes?.[rel];
-						const stroke =
-							edgeColors?.[rel] ?? 'var(--sl-color-gray-4)';
-						return (
-							<li
-								key={`rel-${rel}`}
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: '4px',
-								}}>
-								<svg width={16} height={6} aria-hidden="true">
-									<line
-										x1={0}
-										y1={3}
-										x2={16}
-										y2={3}
-										stroke={stroke}
-										strokeWidth={1.5}
-										strokeDasharray={dash}
-									/>
-								</svg>
-								{edgeLabels?.[rel] ?? rel}
-							</li>
-						);
-					})}
-				</ul>
-			)}
+			<GraphLegend
+				distinctTags={distinctTags}
+				distinctRelationships={distinctRelationships}
+				tagStyles={tagStyles}
+				tagLabels={tagLabels}
+				edgeColors={edgeColors}
+				edgeDashes={edgeDashes}
+				edgeLabels={edgeLabels}
+			/>
 
-			<div
-				ref={tooltipRef}
-				role="tooltip"
-				aria-hidden="true"
-				style={{
-					position: 'absolute',
-					transform: 'translate(-50%, -100%) translateY(-12px)',
-					pointerEvents: 'none',
-					zIndex: 10,
-					background: 'var(--sl-color-gray-6, #1a1a1a)',
-					border: '1px solid var(--sl-color-gray-5, #262626)',
-					borderRadius: 6,
-					padding: '5px 8px',
-					whiteSpace: 'nowrap',
-					boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-					opacity: 0,
-					visibility: 'hidden',
-					transition: 'opacity 0.1s ease',
-					top: 0,
-					left: 0,
-				}}>
-				<div
-					data-sg-tip-title
-					style={{
-						fontSize: '10px',
-						fontWeight: 600,
-						color: 'var(--sl-color-white, #e6edf3)',
-						lineHeight: 1.3,
-					}}
-				/>
-				<div
-					data-sg-tip-path
-					style={{
-						fontSize: '8.5px',
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						lineHeight: 1.3,
-					}}
-				/>
-			</div>
+			<GraphTooltip tooltipRef={tooltipRef} />
 
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '6px',
-					padding: '6px 8px 0',
-				}}>
-				<button
-					onClick={handleResetZoom}
-					title="Reset zoom"
-					style={{
-						background: 'none',
-						border: 'none',
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						fontSize: '10px',
-						fontWeight: 600,
-						cursor: 'pointer',
-						padding: '2px 4px',
-						borderRadius: 4,
-						lineHeight: 1,
-						fontVariantNumeric: 'tabular-nums',
-						minWidth: '32px',
-						textAlign: 'center',
-					}}>
-					{Math.round(zoom * 100)}%
-				</button>
-				<input
-					type="range"
-					min={MIN_ZOOM}
-					max={MAX_ZOOM}
-					step={0.05}
-					value={zoom}
-					onChange={handleSliderChange}
-					title={`Zoom: ${Math.round(zoom * 100)}%`}
-					aria-label="Zoom level"
-					aria-valuetext={`${Math.round(zoom * 100)}%`}
-					style={{
-						flex: 1,
-						height: '3px',
-						appearance: 'none',
-						WebkitAppearance: 'none',
-						background: `linear-gradient(to right, var(--sl-color-accent, #06b6d4) 0%, var(--sl-color-accent, #06b6d4) ${((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%, var(--sl-color-gray-5, #262626) ${((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%, var(--sl-color-gray-5, #262626) 100%)`,
-						borderRadius: '2px',
-						cursor: 'pointer',
-					}}
-				/>
-			</div>
+			<GraphZoomBar
+				zoomRef={zoomRef}
+				subscribeZoom={subscribeZoom}
+				onReset={handleResetZoom}
+				onSliderChange={handleSliderChange}
+			/>
 		</div>
 	);
 }

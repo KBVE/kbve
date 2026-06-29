@@ -19,6 +19,14 @@ const route = Astro.locals.starlightRoute;
 const head = route.head;
 const data = route.entry.data as Record<string, unknown>;
 
+const osrsData = (data.osrs ?? {}) as Record<string, unknown>;
+const canonicalOverride =
+	typeof osrsData.canonical === 'string'
+		? osrsData.canonical
+		: typeof data.canonical === 'string'
+			? (data.canonical as string)
+			: undefined;
+
 const ogTitle = typeof data.ogTitle === 'string' ? data.ogTitle : undefined;
 const ogDescription =
 	typeof data.ogDescription === 'string' ? data.ogDescription : undefined;
@@ -68,10 +76,20 @@ function tagKey(t: HeadTag): string | undefined {
 	return undefined;
 }
 
-const filteredHead = head.filter((t) => {
+const filteredHeadBase = head.filter((t) => {
 	const key = tagKey(t);
 	return !key || (!(key in owned) && key !== 'robots');
 });
+
+// Override the self-referencing canonical with an explicit target when set
+// (variant -> base item, or dose page -> potion family page).
+const filteredHead = canonicalOverride
+	? filteredHeadBase.map((t) =>
+			t.tag === 'link' && t.attrs?.rel === 'canonical'
+				? { ...t, attrs: { ...t.attrs, href: canonicalOverride } }
+				: t,
+		)
+	: filteredHeadBase;
 
 const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 	const isTwitter = key.startsWith('twitter:');

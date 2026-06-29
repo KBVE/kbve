@@ -1,6 +1,6 @@
 ---
 title: Extended super antifire(2) | OSRS Price Data
-description: "Extended super antifire(2): 2 doses of extended super anti-firebreath potion.. High alch: 432 GP, GE limit: 2,000."
+description: "Extended super antifire(2): 6 minutes of full dragonfire immunity per dose, made at 98 Herblore after Dragon Slayer II. High alch: 432 GP, GE limit: 2,000."
 osrs:
   id: 22215
   name: Extended super antifire(2)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 288
   highalch: 432
   limit: 2000
-  about: "Extended super antifire(2) is a members-only item in Old School RuneScape. High alchemy value: 432 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "Extended super antifire(2) is a two-dose potion granting full immunity to standard dragonfire for six minutes per dose, with no shield required. It is the longest-lasting dragonfire defence in the game and the staple antifire for extended trips against dragons. Brewing it requires 98 Herblore and completion of Dragon Slayer II, making it one of the most demanding consumables to produce."
+    sections:
+      - heading: What extended super antifire does
+        anchor: effect
+        body: "Each dose gives six minutes of complete immunity to ordinary dragonfire (24 minutes from a 4-dose), letting you ignore an anti-dragon or dragonfire shield entirely and free the shield slot for a defender or book. It does not fully block every source: Vorkath, the King Black Dragon's special breaths, and Galvek still deal partial damage. The game warns 'Your super antifire potion is about to expire' roughly 15 seconds before it ends."
+      - heading: How to make it
+        anchor: making
+        body: "At 98 Herblore, add a lava scale shard to each dose of a super antifire potion for 40 Herblore experience per dose (160 for a full 4-dose). Dragon Slayer II must be complete. Alternatively, a 4-dose extended antifire combined with crushed superior dragon bones produces it for 180 experience."
+  potion:
+    doses: 2
+    herblore_level: 98
+    herblore_xp: 40
+    effect: Full immunity to ordinary dragonfire for 6 minutes per dose
+  recipes:
+    - skill: herblore
+      level: 98
+      xp: 40
+      quest_required: Dragon Slayer II
+      product: Extended super antifire
+      materials:
+        - item_name: Super antifire potion
+          quantity: 1
+        - item_name: Lava scale shard
+          quantity: 1
+  related_items:
+    - item_name: Super antifire potion(4)
+      slug: super-antifire-potion-4
+      relationship: component
+      description: Base potion extended with lava scale shards
+    - item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: downgrade
+      description: Cheaper extension that still needs an antifire shield
+    - item_name: Lava scale shard
+      slug: lava-scale-shard
+      relationship: component
+      description: Crushed from lava scales; one per dose
+  trading_tips:
+    - "Demand is driven by dragon bossing — Vorkath, metal dragons, and slayer dragon tasks"
+    - "Lava scale shard supply from Konar/Cerberus drops sets the production floor"
+  trivia:
+    - "It is the only antifire that gives full dragonfire immunity with no shield equipped."
+    - "Brewing it needs 98 Herblore and Dragon Slayer II — among the highest requirements for a potion."
+    - "It still does not fully protect against Vorkath, Galvek, or the King Black Dragon's special attacks."
+  faq:
+    - question: How long does extended super antifire last?
+      answer: "Six minutes of full dragonfire immunity per dose, or 24 minutes from a 4-dose potion, with no antifire shield needed."
+    - question: What Herblore level do you need to make extended super antifire?
+      answer: "Level 98 Herblore, plus completion of Dragon Slayer II. You add a lava scale shard to a super antifire potion for 40 experience per dose."
+    - question: Does extended super antifire protect against Vorkath?
+      answer: "No. It only partially reduces Vorkath's dragonfire — and likewise the King Black Dragon's special breaths and Galvek's attacks — so extra care is still required at those bosses."
+    - question: Do you need a shield with extended super antifire?
+      answer: "No. Unlike antifire and extended antifire, the super variants grant full immunity to ordinary dragonfire on their own, freeing the shield slot."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Extended_super_antifire"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  url: https://kbve.com/osrs/extended-super-antifire-2/
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -220,7 +220,7 @@ on:
                 value: ${{ jobs.plugin_check.outputs.should_release }}
 
 concurrency:
-    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}${{ github.ref }}
+    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}-${{ inputs.target_platforms }}-${{ github.ref }}
     cancel-in-progress: false
 
 permissions: {}

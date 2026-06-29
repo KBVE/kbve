@@ -12,7 +12,43 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: null
-  about: "Fish crate (giant krill) is a members-only Sailing-era container holding giant krill fish, used to transport hauls back to port for processing."
+  about:
+    text: "Fish crate (giant krill) is a members-only fish crate containing 10 raw giant krill. It is obtained by emptying a trawling net holding at least 10 raw giant krill while an empty fish crate sits in the cargo hold, letting players store 10 deep-sea fish per cargo space. It can also be made by using the krill on the crate."
+    sections:
+      - heading: How to obtain and fill the crate
+        anchor: obtaining
+        body: "A fish crate (giant krill) is created by emptying a trawling net that holds at least 10 raw giant krill while an empty fish crate is stored in the ship's cargo hold. This effectively compresses 10 deep-sea fish into a single cargo space, making it the standard way to haul large quantities of krill back from a fishing trip. You can also make one manually by using raw giant krill directly on a fish crate. Each filled crate represents 10 raw giant krill plus the empty crate it was packed into."
+      - heading: Emptying the crate safely
+        anchor: emptying
+        body: "Filled fish crates can only be emptied while standing inside a bank, which returns a camphor crate (an empty fish crate without the ice cooler) along with the 10 raw giant krill. To do this safely you must right-click the 'Empty' option while a banking interface is open. Critically, if you empty the fish crate anywhere else, the crate itself will be lost, so always bank before unpacking. Filling one crate costs an empty crate plus 10 raw krill but the packed crate trades for far more, giving a healthy margin."
+  related_items:
+    - item_name: Raw giant krill
+      slug: raw-giant-krill
+      relationship: component
+      description: Ten of these fill one fish crate (giant krill)
+    - item_name: Fish crate (empty)
+      slug: fish-crate-empty
+      relationship: component
+      description: The empty container packed with krill to make this crate
+  recipes:
+    - skill: sailing
+      ticks: 1
+      product: Fish crate (giant krill)
+      materials:
+        - { item_name: Fish crate (empty), quantity: 1 }
+        - { item_name: Raw giant krill, quantity: 10 }
+  trading_tips:
+    - "Packing costs ~1,264 coins (empty crate + 10 krill) but the filled crate trades for ~3,803, a profit of roughly 2,539 before GE tax"
+  trivia:
+    - "Fish crate (giant krill) was released on 19 November 2025 as part of the Sailing update."
+    - "Each crate stores 10 raw giant krill in a single cargo space, and emptying it outside a bank destroys the crate."
+  faq:
+    - question: Is the fish crate (giant krill) members-only?
+      answer: "Yes. Fish crate (giant krill) is a members-only item tied to the Sailing skill. It can only be filled, traded, and emptied on members worlds using a trawling net and a ship's cargo hold."
+    - question: How do you make a fish crate (giant krill)?
+      answer: "Empty a trawling net containing at least 10 raw giant krill while an empty fish crate is in your cargo hold, or use raw giant krill directly on a fish crate. Each crate packs 10 raw giant krill into one cargo space."
+    - question: How do you empty a fish crate (giant krill)?
+      answer: "Right-click the 'Empty' option while standing inside a bank with a banking interface open. This returns a camphor crate plus the 10 raw giant krill. Emptying it anywhere else destroys the crate, so always bank first."
   properties:
     release_date: "2025-11-19"
     update: "Sailing is OUT TODAY!"
@@ -27,8 +63,12 @@ osrs:
       - Empty
       - Drop
     alchable: true
-  mdx_version: 3
-  mdx_updated: "2026-06-02"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Fish_crate_(giant_krill)"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
