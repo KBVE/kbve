@@ -40,6 +40,16 @@ export {
 	attachCameraZoom,
 } from './lib/phaser/entity-fx';
 export type { CameraZoomOptions } from './lib/phaser/entity-fx';
+export {
+	createGpuSpriteLayer,
+	populateGpuSpriteLayer,
+} from './lib/phaser/gpu-sprite-layer';
+export type {
+	GpuSpriteLayerOptions,
+	GpuSpriteLayerHandle,
+} from './lib/phaser/gpu-sprite-layer';
+export { createDustMoteLayer, dustMemberAt } from './lib/phaser/ambient-dust';
+export type { DustMoteOptions } from './lib/phaser/ambient-dust';
 
 // Tile prediction — BFS pathing that mirrors the server grid
 export { findTilePath } from './lib/tile/path';
