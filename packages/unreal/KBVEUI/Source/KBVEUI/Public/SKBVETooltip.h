@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEUITheme.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/Images/SImage.h"
@@ -14,7 +15,7 @@ struct FKBVETooltipContent
 	FText        Subtitle;
 	FText        Body;
 	FLinearColor TitleColor  = FLinearColor::White;
-	FLinearColor BorderColor = FLinearColor(0.55f, 0.62f, 0.78f, 0.85f);
+	FLinearColor BorderColor = KBVEUI::Theme::Color::PanelBorder;
 };
 
 class KBVEUI_API SKBVETooltip : public SCompoundWidget
@@ -41,7 +42,7 @@ private:
 	FVector2D    ContentSize = FVector2D(180.f, 28.f);
 	bool         bShown = false;
 	uint32       CachedContentHash = 0;
-	FLinearColor BorderColor = FLinearColor(0.55f, 0.62f, 0.78f, 0.85f);
+	FLinearColor BorderColor = KBVEUI::Theme::Color::PanelBorder;
 
 	TSharedPtr<class SCanvas>     Canvas;
 	TSharedPtr<class SBox>        ContentBox;

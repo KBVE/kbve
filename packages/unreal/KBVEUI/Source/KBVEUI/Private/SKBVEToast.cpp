@@ -1,5 +1,6 @@
 #include "SKBVEToast.h"
 
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
@@ -13,8 +14,8 @@ FLinearColor SKBVEToast::LevelColor(EKBVEToastLevel Level)
 	switch (Level)
 	{
 		case EKBVEToastLevel::Success: return FLinearColor(0.25f, 0.78f, 0.38f, 1.f);
-		case EKBVEToastLevel::Warning: return FLinearColor(0.95f, 0.72f, 0.20f, 1.f);
-		case EKBVEToastLevel::Error:   return FLinearColor(0.90f, 0.30f, 0.30f, 1.f);
+		case EKBVEToastLevel::Warning: return KBVEUI::Theme::Color::AccentStrong;
+		case EKBVEToastLevel::Error:   return KBVEUI::Theme::Color::Danger;
 		default:                       return FLinearColor(0.30f, 0.62f, 0.95f, 1.f);
 	}
 }
@@ -54,7 +55,7 @@ void SKBVEToast::Construct(const FArguments& InArgs)
 			SNew(STextBlock)
 			.Text(InArgs._Title)
 			.Font(TitleFont)
-			.ColorAndOpacity(FLinearColor(0.95f, 0.95f, 0.97f, 1.f))
+			.ColorAndOpacity(KBVEUI::Theme::Color::TextBright)
 			.AutoWrapText(true)
 		]
 
@@ -65,7 +66,7 @@ void SKBVEToast::Construct(const FArguments& InArgs)
 			SNew(STextBlock)
 			.Text(InArgs._Message)
 			.Font(MsgFont)
-			.ColorAndOpacity(FLinearColor(0.82f, 0.82f, 0.86f, 0.95f))
+			.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary.CopyWithNewOpacity(0.95f))
 			.AutoWrapText(true)
 		]
 	];
@@ -98,7 +99,7 @@ void SKBVEToast::Construct(const FArguments& InArgs)
 			[
 				SNew(SImage)
 				.Image(WhiteBrush)
-				.ColorAndOpacity(FLinearColor(0.05f, 0.06f, 0.08f, 0.95f))
+				.ColorAndOpacity(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.95f))
 			]
 
 			+ SOverlay::Slot()

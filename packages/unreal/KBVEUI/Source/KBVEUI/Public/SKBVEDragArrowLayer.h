@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEUITheme.h"
 #include "Widgets/SLeafWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
@@ -8,7 +9,7 @@ class KBVEUI_API SKBVEDragArrowLayer : public SLeafWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SKBVEDragArrowLayer)
-		: _Color(FLinearColor(1.f, 0.95f, 0.40f, 0.90f))
+		: _Color(KBVEUI::Theme::Color::AccentStrong.CopyWithNewOpacity(0.90f))
 		, _DashLength(7.f)
 		, _GapLength(5.f)
 		, _Thickness(2.f)

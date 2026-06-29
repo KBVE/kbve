@@ -14,6 +14,7 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
+#include "KBVEUITheme.h"
 
 #define LOCTEXT_NAMESPACE "SKBVEAccountPanel"
 
@@ -27,7 +28,7 @@ void SKBVEAccountPanel::Construct(const FArguments& InArgs)
 
 	AvatarBrush.DrawAs = ESlateBrushDrawType::Image;
 	AvatarBrush.ImageSize = FVector2D(36.f, 36.f);
-	AvatarBrush.TintColor = FSlateColor(FLinearColor(0.15f, 0.18f, 0.24f, 1.f));
+	AvatarBrush.TintColor = FSlateColor(KBVEUI::Theme::Color::PanelBg.CopyWithNewOpacity(1.f));
 
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 
@@ -38,7 +39,7 @@ void SKBVEAccountPanel::Construct(const FArguments& InArgs)
 	[
 		SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.85f)))
+		.BorderBackgroundColor(FSlateColor(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.85f)))
 		.Padding(FMargin(10.f, 6.f))
 		[
 			SNew(SHorizontalBox)

@@ -6,6 +6,7 @@
 #include "Widgets/Notifications/SProgressBar.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
+#include "KBVEUITheme.h"
 
 void SKBVELoadingPanel::Construct(const FArguments& InArgs)
 {
@@ -21,7 +22,7 @@ void SKBVELoadingPanel::Construct(const FArguments& InArgs)
 	[
 		SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 1.f))
+		.BorderBackgroundColor(KBVEUI::Theme::Color::Black)
 		.Padding(0)
 		[
 			SNew(SVerticalBox)
@@ -57,7 +58,7 @@ void SKBVELoadingPanel::Construct(const FArguments& InArgs)
 					[
 						SAssignNew(CountText, STextBlock)
 						.Text(FText::FromString(InitialCount))
-						.ColorAndOpacity(FLinearColor(0.8f, 0.8f, 0.8f, 1.f))
+						.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary)
 						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 12))
 					]
 				]

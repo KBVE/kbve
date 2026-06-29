@@ -1,5 +1,6 @@
 #include "SKBVETopBar.h"
 
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
@@ -10,7 +11,7 @@ void SKBVETopBar::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
-	const FSlateColor BgColor = InArgs._BackgroundColor.Get(FSlateColor(FLinearColor(0.04f, 0.05f, 0.07f, 0.95f)));
+	const FSlateColor BgColor = InArgs._BackgroundColor.Get(FSlateColor(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.95f)));
 
 	ChildSlot
 	[
