@@ -43,6 +43,9 @@ pub struct AppConfig {
     pub agones_fleet: String,
     /// Empty-server reaper knobs (parsed in `RowsConfig`, threaded here for the jobs to read).
     pub reaper: ReaperKnobs,
+    /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). The
+    /// join path combines this with the per-scope `admission_control` overrides.
+    pub accept_new_joins: bool,
 }
 
 impl AppState {
@@ -62,6 +65,7 @@ pub struct AppStateBuilder {
     mq: Option<MqProducer>,
     agones: Option<AgonesClient>,
     reaper: Option<ReaperKnobs>,
+    accept_new_joins: Option<bool>,
 }
 
 impl AppStateBuilder {
@@ -106,6 +110,11 @@ impl AppStateBuilder {
         self
     }
 
+    pub fn accept_new_joins(mut self, accept: bool) -> Self {
+        self.accept_new_joins = Some(accept);
+        self
+    }
+
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
         let tenant = self
             .tenant
@@ -126,6 +135,7 @@ impl AppStateBuilder {
                 agones_namespace: self.agones_namespace.unwrap_or_else(|| "ows".into()),
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
                 reaper: self.reaper.unwrap_or_default(),
+                accept_new_joins: self.accept_new_joins.unwrap_or(true),
             },
             mq: self.mq,
             agones: self.agones,

@@ -15,6 +15,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/CoreStyle.h"
+#include "KBVEUITheme.h"
 
 #define LOCTEXT_NAMESPACE "SKBVEChatPanel"
 
@@ -25,10 +26,10 @@ namespace
 
 	FLinearColor PickKindColor(const FString& Kind, bool bIsEvent)
 	{
-		if (bIsEvent) return FLinearColor(0.95f, 0.78f, 0.32f);
+		if (bIsEvent) return KBVEUI::Theme::Color::Accent;
 		if (Kind.Equals(TEXT("CHAT"), ESearchCase::IgnoreCase)) return FLinearColor(0.78f, 0.88f, 0.98f);
 		if (Kind.Equals(TEXT("ME"), ESearchCase::IgnoreCase)) return FLinearColor(0.82f, 0.74f, 0.98f);
-		return FLinearColor(0.7f, 0.7f, 0.78f);
+		return KBVEUI::Theme::Color::TextMuted;
 	}
 
 	FString FormatTimestampLocal()
@@ -110,7 +111,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor_Lambda([this]() { return IsDocked() ? FSlateColor(FLinearColor::Transparent) : FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)); })
+			.BorderBackgroundColor_Lambda([this]() { return IsDocked() ? FSlateColor(FLinearColor::Transparent) : FSlateColor(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.55f)); })
 			.Padding(FMargin(2.f))
 			[
 				SNew(SVerticalBox)
@@ -284,14 +285,14 @@ void SKBVEChatPanel::RebuildTabs()
 			.Text(FText::FromString(TabName))
 			.Font(TabFont)
 			.ColorAndOpacity(FSlateColor(bUnread
-				? FLinearColor(0.98f, 0.84f, 0.42f)
-				: (bActive ? FLinearColor::White : FLinearColor(0.7f, 0.74f, 0.82f))));
+				? KBVEUI::Theme::Color::Accent
+				: (bActive ? FLinearColor::White : KBVEUI::Theme::Color::TextMuted)));
 
 		TSharedRef<SBorder> Border = SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 			.BorderBackgroundColor(FSlateColor(bActive
-				? FLinearColor(0.18f, 0.22f, 0.30f, 0.95f)
-				: FLinearColor(0.08f, 0.10f, 0.14f, 0.75f)))
+				? KBVEUI::Theme::Color::PanelBg
+				: KBVEUI::Theme::Color::PanelDeep))
 			.Padding(FMargin(8.f, 4.f))
 			.OnMouseButtonDown_Lambda([this, TabName](const FGeometry&, const FPointerEvent&) -> FReply
 			{
@@ -320,14 +321,14 @@ void SKBVEChatPanel::RefreshTabStyles()
 		if (Tab.TabBorder.IsValid())
 		{
 			Tab.TabBorder->SetBorderBackgroundColor(FSlateColor(bActive
-				? FLinearColor(0.18f, 0.22f, 0.30f, 0.95f)
-				: FLinearColor(0.08f, 0.10f, 0.14f, 0.75f)));
+				? KBVEUI::Theme::Color::PanelBg
+				: KBVEUI::Theme::Color::PanelDeep));
 		}
 		if (Tab.TabLabel.IsValid())
 		{
 			Tab.TabLabel->SetColorAndOpacity(FSlateColor(Tab.bUnread
-				? FLinearColor(0.98f, 0.84f, 0.42f)
-				: (bActive ? FLinearColor::White : FLinearColor(0.7f, 0.74f, 0.82f))));
+				? KBVEUI::Theme::Color::Accent
+				: (bActive ? FLinearColor::White : KBVEUI::Theme::Color::TextMuted)));
 		}
 	}
 }
@@ -353,7 +354,7 @@ void SKBVEChatPanel::AppendLine(const FString& /*Channel*/, const FString& Sende
 			SNew(STextBlock)
 			.Text(FText::FromString(TimeStr))
 			.Font(TimeFont)
-			.ColorAndOpacity(FSlateColor(FLinearColor(0.55f, 0.6f, 0.72f)))
+			.ColorAndOpacity(FSlateColor(KBVEUI::Theme::Color::TextMuted))
 		]
 		+ SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
 		[
@@ -368,7 +369,7 @@ void SKBVEChatPanel::AppendLine(const FString& /*Channel*/, const FString& Sende
 			.Text(FText::FromString(Body))
 			.Font(BodyFont)
 			.AutoWrapText(true)
-			.ColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.95f, 0.96f)))
+			.ColorAndOpacity(FSlateColor(KBVEUI::Theme::Color::TextBright))
 		]
 	];
 
@@ -388,7 +389,7 @@ void SKBVEChatPanel::AppendSystem(const FString& Text)
 		SNew(STextBlock)
 		.Text(FText::FromString(Text))
 		.Font(SystemFont)
-		.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.66f, 0.78f)))
+		.ColorAndOpacity(FSlateColor(KBVEUI::Theme::Color::TextDisabled))
 	];
 	while (Scrollback->GetChildren()->Num() > MaxScrollbackLines)
 	{

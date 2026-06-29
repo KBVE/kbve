@@ -55,6 +55,21 @@ export class SpaceErrorBoundary extends Component<Props, State> {
 					The flight view failed to start (graphics context or
 					assets).
 				</div>
+				<pre
+					style={{
+						fontSize: 11,
+						color: '#ff9a9a',
+						maxWidth: 420,
+						maxHeight: 160,
+						overflow: 'auto',
+						whiteSpace: 'pre-wrap',
+						margin: 0,
+						padding: 8,
+						background: 'rgba(0,0,0,0.4)',
+						borderRadius: 6,
+					}}>
+					{this.state.error.message}
+				</pre>
 				<button
 					onClick={this.props.onExit}
 					style={{

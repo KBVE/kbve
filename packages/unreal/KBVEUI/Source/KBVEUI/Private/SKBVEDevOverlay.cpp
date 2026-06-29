@@ -1,6 +1,7 @@
 #include "SKBVEDevOverlay.h"
 
 #include "KBVEUIRenderer.h"
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 
 void SKBVEDevOverlay::Construct(const FArguments& InArgs)
@@ -54,9 +55,9 @@ int32 SKBVEDevOverlay::OnPaint(
 		AllottedGeometry.ToPaintGeometry(PanelSize, FSlateLayoutTransform(PanelPos)),
 		FCoreStyle::Get().GetBrush("WhiteBrush"),
 		ESlateDrawEffect::None,
-		FLinearColor(0.f, 0.f, 0.f, 0.55f));
+		KBVEUI::Theme::Color::Shadow.CopyWithNewOpacity(0.55f));
 
-	const FLinearColor TextColor(0.95f, 0.95f, 0.95f, 1.f);
+	const FLinearColor TextColor = KBVEUI::Theme::Color::TextBright;
 	const float LineH = Font.Size + 4.f;
 	const FVector2D TextOrigin = PanelPos + FVector2D(10.f, 6.f);
 

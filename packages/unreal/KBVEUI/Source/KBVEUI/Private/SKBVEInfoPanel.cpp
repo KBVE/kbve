@@ -1,5 +1,6 @@
 #include "SKBVEInfoPanel.h"
 
+#include "KBVEUITheme.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
@@ -32,7 +33,7 @@ void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 		[
 			SNew(SImage)
 			.Image(WhiteBrush)
-			.ColorAndOpacity(FLinearColor(0.03f, 0.04f, 0.06f, 0.90f))
+			.ColorAndOpacity(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.90f))
 		]
 
 		+ SOverlay::Slot()
@@ -47,7 +48,7 @@ void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 				.Visibility(this, &SKBVEInfoPanel::HintVisibility)
 				.Text(InArgs._EmptyHint)
 				.Font(HintFont)
-				.ColorAndOpacity(FLinearColor(0.6f, 0.6f, 0.65f, 0.95f))
+				.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.95f))
 			]
 
 			+ SVerticalBox::Slot()
@@ -90,7 +91,7 @@ void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 							SNew(STextBlock)
 							.Text(InArgs._Subtitle)
 							.Font(MetaFont)
-							.ColorAndOpacity(FLinearColor(0.75f, 0.75f, 0.78f, 0.95f))
+							.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.95f))
 							.AutoWrapText(true)
 						]
 
@@ -100,7 +101,7 @@ void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 							SNew(STextBlock)
 							.Text(InArgs._Detail)
 							.Font(MetaFont)
-							.ColorAndOpacity(FLinearColor(0.75f, 0.75f, 0.78f, 0.95f))
+							.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.95f))
 							.AutoWrapText(true)
 						]
 					]
@@ -113,7 +114,7 @@ void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 					SNew(STextBlock)
 					.Text(InArgs._Body)
 					.Font(BodyFont)
-					.ColorAndOpacity(FLinearColor(0.88f, 0.88f, 0.90f, 0.95f))
+					.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary.CopyWithNewOpacity(0.95f))
 					.AutoWrapText(true)
 					.Justification(ETextJustify::Left)
 				]

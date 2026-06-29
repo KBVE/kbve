@@ -1,5 +1,6 @@
 #include "SKBVESettingsRow.h"
 
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBox.h"
@@ -41,7 +42,7 @@ void SKBVESettingsRow::Construct(const FArguments& InArgs)
 					SNew(STextBlock)
 					.Text(InArgs._Hint)
 					.Font(HintFont)
-					.ColorAndOpacity(FLinearColor(0.6f, 0.6f, 0.65f, 0.9f))
+					.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.9f))
 					.AutoWrapText(true)
 					.Visibility(EVisibility::SelfHitTestInvisible)
 				]

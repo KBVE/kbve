@@ -6,6 +6,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 #include "SKBVESlotWidget.h"
+#include "KBVEUITheme.h"
 
 namespace
 {
@@ -19,7 +20,7 @@ namespace
 			case EKBVEEquipSlot::Feet:     return FLinearColor(0.55f, 0.95f, 0.65f, 1.f);
 			case EKBVEEquipSlot::Hands:    return FLinearColor(0.95f, 0.85f, 0.55f, 1.f);
 			case EKBVEEquipSlot::MainHand: return FLinearColor(0.95f, 0.45f, 0.20f, 1.f);
-			case EKBVEEquipSlot::OffHand:  return FLinearColor(0.85f, 0.45f, 0.95f, 1.f);
+			case EKBVEEquipSlot::OffHand:  return KBVEUI::Theme::Color::Highlight;
 			case EKBVEEquipSlot::Back:     return FLinearColor(0.55f, 0.85f, 0.95f, 1.f);
 			case EKBVEEquipSlot::Neck:     return FLinearColor(0.95f, 0.95f, 0.55f, 1.f);
 			case EKBVEEquipSlot::Ring:     return FLinearColor(0.85f, 0.85f, 0.95f, 1.f);
@@ -98,7 +99,7 @@ void SKBVEEquipmentPanel::Construct(const FArguments& InArgs)
 				SNew(STextBlock)
 				.Text(FText::FromString(SlotLabel(SlotEnum)))
 				.Font(LabelFont)
-				.ColorAndOpacity(FLinearColor(0.85f, 0.85f, 0.88f, 0.85f))
+				.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary.CopyWithNewOpacity(0.85f))
 			]
 		];
 	}

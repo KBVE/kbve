@@ -11,6 +11,7 @@
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
+#include "KBVEUITheme.h"
 
 #define LOCTEXT_NAMESPACE "SKBVELoginWidget"
 
@@ -72,7 +73,7 @@ void SKBVELoginWidget::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(FSlateColor(FLinearColor(0.06f, 0.08f, 0.11f, 0.96f)))
+			.BorderBackgroundColor(FSlateColor(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.96f)))
 			.Padding(FMargin(24.f))
 			[
 				SNew(SBox).WidthOverride(420.f)
@@ -117,7 +118,7 @@ void SKBVELoginWidget::Construct(const FArguments& InArgs)
 						SNew(STextBlock)
 						.Text(LOCTEXT("OAuth", "or continue with"))
 						.Font(LabelFont)
-						.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.66f, 0.78f)))
+						.ColorAndOpacity(FSlateColor(KBVEUI::Theme::Color::TextDisabled))
 						.Justification(ETextJustify::Center)
 					]
 					+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
@@ -138,7 +139,7 @@ void SKBVELoginWidget::Construct(const FArguments& InArgs)
 						SAssignNew(StatusText, STextBlock)
 						.Text(FText::GetEmpty())
 						.Font(StatusFont)
-						.ColorAndOpacity(FSlateColor(FLinearColor(0.85f, 0.85f, 0.85f)))
+						.ColorAndOpacity(FSlateColor(KBVEUI::Theme::Color::TextPrimary))
 					]
 				]
 			]
@@ -170,10 +171,10 @@ FReply SKBVELoginWidget::HandleSignIn()
 	const FString Password = PasswordBox->GetText().ToString();
 	if (Email.IsEmpty() || Password.IsEmpty())
 	{
-		SetStatusText(LOCTEXT("MissingFields", "Email and password required"), FLinearColor(1.f, 0.4f, 0.3f));
+		SetStatusText(LOCTEXT("MissingFields", "Email and password required"), KBVEUI::Theme::Color::Warning);
 		return FReply::Handled();
 	}
-	SetStatusText(LOCTEXT("SigningIn", "Signing in..."), FLinearColor(0.85f, 0.85f, 0.85f));
+	SetStatusText(LOCTEXT("SigningIn", "Signing in..."), KBVEUI::Theme::Color::TextPrimary);
 	Sub->SignInWithPassword(Email, Password);
 	return FReply::Handled();
 }
@@ -187,10 +188,10 @@ FReply SKBVELoginWidget::HandleSignUp()
 	const FString Password = PasswordBox->GetText().ToString();
 	if (Email.IsEmpty() || Password.IsEmpty())
 	{
-		SetStatusText(LOCTEXT("MissingFields", "Email and password required"), FLinearColor(1.f, 0.4f, 0.3f));
+		SetStatusText(LOCTEXT("MissingFields", "Email and password required"), KBVEUI::Theme::Color::Warning);
 		return FReply::Handled();
 	}
-	SetStatusText(LOCTEXT("SigningUp", "Creating account..."), FLinearColor(0.85f, 0.85f, 0.85f));
+	SetStatusText(LOCTEXT("SigningUp", "Creating account..."), KBVEUI::Theme::Color::TextPrimary);
 	Sub->SignUpWithPassword(Email, Password);
 	return FReply::Handled();
 }
@@ -204,7 +205,7 @@ FReply SKBVELoginWidget::HandleOAuth(int32 ProviderIndex)
 	{
 		return FReply::Handled();
 	}
-	SetStatusText(LOCTEXT("OpeningBrowser", "Opening browser..."), FLinearColor(0.85f, 0.85f, 0.85f));
+	SetStatusText(LOCTEXT("OpeningBrowser", "Opening browser..."), KBVEUI::Theme::Color::TextPrimary);
 	Sub->StartOAuthSignIn(OAuthProviders[ProviderIndex], FString());
 	return FReply::Handled();
 }
@@ -214,7 +215,7 @@ FReply SKBVELoginWidget::HandleAnonymous()
 	if (bBusy) return FReply::Handled();
 	UKBVESupabaseSubsystem* Sub = Subsystem.Get();
 	if (!Sub) return FReply::Handled();
-	SetStatusText(LOCTEXT("Anonymous", "Creating guest session..."), FLinearColor(0.85f, 0.85f, 0.85f));
+	SetStatusText(LOCTEXT("Anonymous", "Creating guest session..."), KBVEUI::Theme::Color::TextPrimary);
 	Sub->SignInAnonymously();
 	return FReply::Handled();
 }

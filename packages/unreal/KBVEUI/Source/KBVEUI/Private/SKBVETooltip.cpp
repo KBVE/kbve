@@ -1,6 +1,7 @@
 #include "SKBVETooltip.h"
 
 #include "Framework/Application/SlateApplication.h"
+#include "KBVEUITheme.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
@@ -38,7 +39,7 @@ void SKBVETooltip::Construct(const FArguments& InArgs)
 				[
 					SNew(SImage)
 					.Image(WhiteBrush)
-					.ColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.65f))
+					.ColorAndOpacity(KBVEUI::Theme::Color::Shadow)
 				]
 
 				+ SOverlay::Slot()
@@ -53,7 +54,7 @@ void SKBVETooltip::Construct(const FArguments& InArgs)
 				[
 					SNew(SImage)
 					.Image(WhiteBrush)
-					.ColorAndOpacity(FLinearColor(0.04f, 0.05f, 0.07f, 0.96f))
+					.ColorAndOpacity(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.96f))
 				]
 
 				+ SOverlay::Slot()
@@ -77,7 +78,7 @@ void SKBVETooltip::Construct(const FArguments& InArgs)
 					[
 						SAssignNew(SubtitleWidget, STextBlock)
 						.TextStyle(&Normal)
-						.ColorAndOpacity(FLinearColor(0.70f, 0.74f, 0.82f, 1.f))
+						.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted)
 						.AutoWrapText(false)
 						.Visibility(EVisibility::Collapsed)
 					]
@@ -98,7 +99,7 @@ void SKBVETooltip::Construct(const FArguments& InArgs)
 					[
 						SAssignNew(BodyWidget, STextBlock)
 						.TextStyle(&Normal)
-						.ColorAndOpacity(FLinearColor(0.84f, 0.86f, 0.92f, 1.f))
+						.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary)
 						.AutoWrapText(false)
 						.Visibility(EVisibility::Collapsed)
 					]

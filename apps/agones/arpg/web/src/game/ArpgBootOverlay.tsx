@@ -29,7 +29,7 @@ const STEPS: { phase: BootStatus['phase']; label: string }[] = [
 	{ phase: 'entering', label: 'World' },
 ];
 
-const LOGO = arpgAsset('/assets/brand/logo/rentearthlogo.webp');
+const LOGO_PATH = '/assets/brand/logo/rentearthlogo.webp';
 
 export default function ArpgBootOverlay() {
 	const [boot, setBoot] = useState<BootStatus>({
@@ -106,7 +106,7 @@ export default function ArpgBootOverlay() {
 			</style>
 
 			<img
-				src={LOGO}
+				src={arpgAsset(LOGO_PATH)}
 				alt="Rent Earth"
 				width={132}
 				style={{

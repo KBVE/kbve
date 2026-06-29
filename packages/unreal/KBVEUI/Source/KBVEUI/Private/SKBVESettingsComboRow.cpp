@@ -1,6 +1,7 @@
 #include "SKBVESettingsComboRow.h"
 
 #include "SKBVESettingsRow.h"
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/Input/SComboBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -43,7 +44,7 @@ void SKBVESettingsComboRow::Construct(const FArguments& InArgs)
 				SNew(STextBlock)
 				.Text(this, &SKBVESettingsComboRow::SelectedText)
 				.Font(Font)
-				.ColorAndOpacity(FLinearColor(0.85f, 0.85f, 0.88f, 0.95f))
+				.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary)
 			]
 		]
 	];

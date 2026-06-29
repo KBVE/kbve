@@ -1,6 +1,7 @@
 #include "SKBVESettingsSliderRow.h"
 
 #include "SKBVESettingsRow.h"
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Input/SSlider.h"
@@ -48,7 +49,7 @@ void SKBVESettingsSliderRow::Construct(const FArguments& InArgs)
 					SNew(STextBlock)
 					.Text(this, &SKBVESettingsSliderRow::ValueText)
 					.Font(ValueFont)
-					.ColorAndOpacity(FLinearColor(0.85f, 0.85f, 0.88f, 0.95f))
+					.ColorAndOpacity(KBVEUI::Theme::Color::TextPrimary)
 					.Justification(ETextJustify::Right)
 				]
 			]

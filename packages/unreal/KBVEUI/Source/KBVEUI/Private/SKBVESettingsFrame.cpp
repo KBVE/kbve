@@ -1,6 +1,7 @@
 #include "SKBVESettingsFrame.h"
 
 #include "SKBVEMovableFrame.h"
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SNullWidget.h"
@@ -70,7 +71,7 @@ void SKBVESettingsFrame::Construct(const FArguments& InArgs)
 			[
 				SNew(SImage)
 				.Image(WhiteBrush)
-				.ColorAndOpacity(FLinearColor(0.03f, 0.04f, 0.06f, 0.85f))
+				.ColorAndOpacity(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.85f))
 			]
 
 			+ SOverlay::Slot()

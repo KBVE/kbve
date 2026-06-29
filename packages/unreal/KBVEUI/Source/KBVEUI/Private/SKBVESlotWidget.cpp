@@ -3,6 +3,7 @@
 #include "FKBVEDragOp.h"
 #include "Framework/Application/SlateApplication.h"
 #include "KBVEUIRenderer.h"
+#include "KBVEUITheme.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
@@ -217,8 +218,8 @@ int32 SKBVESlotWidget::OnPaint(
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
 
-	const FLinearColor BgEmpty  = BgEmptyColor.IsSet()  ? BgEmptyColor.Get()  : FLinearColor(0.08f, 0.10f, 0.13f, 0.18f);
-	const FLinearColor BgFilled = BgFilledColor.IsSet() ? BgFilledColor.Get() : FLinearColor(0.10f, 0.10f, 0.12f, 0.92f);
+	const FLinearColor BgEmpty  = BgEmptyColor.IsSet()  ? BgEmptyColor.Get()  : KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.18f);
+	const FLinearColor BgFilled = BgFilledColor.IsSet() ? BgFilledColor.Get() : KBVEUI::Theme::Color::PanelDeep;
 	const FLinearColor BorderEmpty(0.85f, 0.90f, 1.00f, 0.22f);
 	const FLinearColor HighlightEmpty(1.00f, 1.00f, 1.00f, 0.06f);
 
@@ -269,11 +270,11 @@ int32 SKBVESlotWidget::OnPaint(
 			FSlateFontInfo KeyFont = FAppStyle::Get().GetFontStyle("NormalText");
 			KeyFont.Size = 9;
 			KeyFont.OutlineSettings.OutlineSize = 1;
-			KeyFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+			KeyFont.OutlineSettings.OutlineColor = KBVEUI::Theme::Color::Black;
 			KBVEUI::DrawText(
 				OutDrawElements, AllottedGeometry, LayerId + 3,
 				FVector2D(3.f, 1.f),
-				EmptyKeyText, KeyFont, FLinearColor(0.85f, 0.85f, 0.85f, 0.85f));
+				EmptyKeyText, KeyFont, KBVEUI::Theme::Color::TextPrimary.CopyWithNewOpacity(0.85f));
 		}
 		return LayerId + 4;
 	}
@@ -289,7 +290,7 @@ int32 SKBVESlotWidget::OnPaint(
 		FSlateFontInfo CountFont = FAppStyle::Get().GetFontStyle("NormalText");
 		CountFont.Size = 12;
 		CountFont.OutlineSettings.OutlineSize = 1;
-		CountFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+		CountFont.OutlineSettings.OutlineColor = KBVEUI::Theme::Color::Black;
 		const FString CountText = FString::Printf(TEXT("%d"), Count);
 		KBVEUI::DrawText(
 			OutDrawElements, AllottedGeometry, LayerId + 4,
@@ -303,11 +304,11 @@ int32 SKBVESlotWidget::OnPaint(
 		FSlateFontInfo KeyFont = FAppStyle::Get().GetFontStyle("NormalText");
 		KeyFont.Size = 9;
 		KeyFont.OutlineSettings.OutlineSize = 1;
-		KeyFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+		KeyFont.OutlineSettings.OutlineColor = KBVEUI::Theme::Color::Black;
 		KBVEUI::DrawText(
 			OutDrawElements, AllottedGeometry, LayerId + 5,
 			FVector2D(3.f, 1.f),
-			KeyText, KeyFont, FLinearColor(0.95f, 0.95f, 0.95f, 0.95f));
+			KeyText, KeyFont, KBVEUI::Theme::Color::TextBright.CopyWithNewOpacity(0.95f));
 	}
 
 	return LayerId + 6;

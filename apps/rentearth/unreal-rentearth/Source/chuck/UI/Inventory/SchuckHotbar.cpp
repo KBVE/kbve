@@ -2,6 +2,7 @@
 
 #include "SchuckInventorySlot.h"
 #include "SKBVEHotbar.h"
+#include "KBVEUITheme.h"
 #include "Widgets/SOverlay.h"
 
 namespace
@@ -57,8 +58,8 @@ void SchuckHotbar::Tick(const FGeometry& AllottedGeometry, const double InCurren
 
 void SchuckHotbar::Build()
 {
-	const FLinearColor BgFilled(0.22f, 0.24f, 0.30f, 0.92f);
-	const FLinearColor BgEmpty (0.18f, 0.21f, 0.27f, 0.55f);
+	const FLinearColor BgFilled = KBVEUI::Theme::Color::PanelBg.CopyWithNewOpacity(0.92f);
+	const FLinearColor BgEmpty  = KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.55f);
 
 	TWeakPtr<SchuckHotbar> WeakSelf = SharedThis(this);
 	TAttribute<float> SizeAttr = TAttribute<float>::CreateLambda([WeakSelf]()

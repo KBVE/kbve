@@ -1,5 +1,6 @@
 #include "SKBVEMovableFrame.h"
 
+#include "KBVEUITheme.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SCanvas.h"
 #include "Widgets/SOverlay.h"
@@ -88,9 +89,9 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 	SetCanTick(bDocked);
 
 	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 18);
-	const FLinearColor TitleBarColor(0.10f, 0.10f, 0.13f, 0.95f);
-	const FLinearColor BodyColor(0.06f, 0.06f, 0.08f, 0.94f);
-	const FLinearColor BorderColor(0.20f, 0.22f, 0.28f, 1.0f);
+	const FLinearColor TitleBarColor = KBVEUI::Theme::Color::PanelBg;
+	const FLinearColor BodyColor = KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.94f);
+	const FLinearColor BorderColor = KBVEUI::Theme::Color::PanelBorder;
 
 	ChildSlot
 	[
@@ -130,7 +131,7 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 							[
 								SNew(SImage)
 								.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-								.ColorAndOpacity(FLinearColor(0.55f, 0.60f, 0.70f, 0.85f))
+								.ColorAndOpacity(KBVEUI::Theme::Color::TextMuted.CopyWithNewOpacity(0.85f))
 							]
 						])
 					: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)

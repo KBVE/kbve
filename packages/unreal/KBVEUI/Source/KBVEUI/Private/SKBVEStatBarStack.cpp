@@ -1,6 +1,7 @@
 #include "SKBVEStatBarStack.h"
 
 #include "KBVEUIRenderer.h"
+#include "KBVEUITheme.h"
 #include "Styling/CoreStyle.h"
 
 void SKBVEStatBarStack::Construct(const FArguments& InArgs)
@@ -17,7 +18,7 @@ void SKBVEStatBarStack::Construct(const FArguments& InArgs)
 	{
 		LabelFont = FCoreStyle::GetDefaultFontStyle("Bold", 14);
 		LabelFont.OutlineSettings.OutlineSize = 1;
-		LabelFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+		LabelFont.OutlineSettings.OutlineColor = KBVEUI::Theme::Color::Black;
 	}
 
 	SetCanTick(false);
@@ -47,7 +48,7 @@ int32 SKBVEStatBarStack::OnPaint(
 	const float LabelX = Slant + 8.f;
 	const float ValueX = LabelX + 32.f;
 
-	const FLinearColor TextColor(1.f, 1.f, 1.f, 0.95f);
+	const FLinearColor TextColor = KBVEUI::Theme::Color::TextBright.CopyWithNewOpacity(0.95f);
 
 	int32 Layer = LayerId;
 	for (int32 i = 0; i < N; ++i)
@@ -56,7 +57,7 @@ int32 SKBVEStatBarStack::OnPaint(
 
 		const float Alpha = B.RowAlpha.IsBound() ? B.RowAlpha.Get() : 1.f;
 		FLinearColor Fill = B.FillColor.Get(FLinearColor::White);
-		FLinearColor Bg   = B.BackgroundColor.Get(FLinearColor(0.06f, 0.06f, 0.06f, 0.85f));
+		FLinearColor Bg   = B.BackgroundColor.Get(KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.85f));
 		Fill.A *= Alpha;
 		Bg.A   *= Alpha;
 

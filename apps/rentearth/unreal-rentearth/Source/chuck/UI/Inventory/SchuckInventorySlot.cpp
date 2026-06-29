@@ -10,6 +10,7 @@
 #include "Engine/Texture2D.h"
 #include "Rendering/DrawElements.h"
 #include "SKBVESlotWidget.h"
+#include "KBVEUITheme.h"
 #include "Styling/SlateBrush.h"
 #include "Widgets/SLeafWidget.h"
 
@@ -105,8 +106,8 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 		SNew(SKBVESlotWidget)
 		.SlotSize(SlotSize)
 		.KeyLabel(KeyLabelAttr.IsSet() ? KeyLabelAttr : TAttribute<FString>(KeyLabel))
-		.BgFilledColor(bHasBgOverride ? BgFilledOverride : FLinearColor(0.10f, 0.10f, 0.12f, 0.92f))
-		.BgEmptyColor (bHasBgOverride ? BgEmptyOverride  : FLinearColor(0.08f, 0.10f, 0.13f, 0.18f))
+		.BgFilledColor(bHasBgOverride ? BgFilledOverride : KBVEUI::Theme::Color::PanelDeep)
+		.BgEmptyColor (bHasBgOverride ? BgEmptyOverride  : KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.18f))
 		.OnIsFilled(FOnKBVESlotIsFilled::CreateSP(this, &SchuckInventorySlot::OnIsFilled))
 		.OnGetBorderColor(FOnKBVESlotBorderColor::CreateSP(this, &SchuckInventorySlot::OnGetBorderColor))
 		.OnGetCount(FOnKBVESlotCount::CreateSP(this, &SchuckInventorySlot::OnGetCount))
