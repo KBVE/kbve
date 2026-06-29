@@ -43,6 +43,7 @@ import {
 	emitBattleExit,
 	type HudState,
 } from '../systems/hud';
+import { arpgAsset } from '../config';
 import { loadItemMeta, type ItemMeta } from '../entities/itemMeta';
 import type { SpellMeta } from '../entities/spellMeta';
 import { BattleFx, elementStyle } from './battleFx';
@@ -315,7 +316,7 @@ function BattleEntering({ onCancel }: { onCancel: () => void }) {
 	);
 }
 
-const SPRITE_OF = (ref: string) => `/assets/npc/${ref}.png`;
+const SPRITE_OF = (ref: string) => arpgAsset(`/assets/npc/${ref}.png`);
 const STEP_MS = 650;
 
 // One-shot battle juice. Sprite shake/lunge (transform on the wrapper), white hit-flash
@@ -480,7 +481,10 @@ export function PetBattleScene({
 	const eSpriteRef = useRef<HTMLDivElement | null>(null);
 	// A melee/physical move bursts on impact (the damage event), not on cast — stash its
 	// element style here when the "uses move" event fires.
-	const pendingMelee = useRef<{ side: number; style: ReturnType<typeof elementStyle> } | null>(null);
+	const pendingMelee = useRef<{
+		side: number;
+		style: ReturnType<typeof elementStyle>;
+	} | null>(null);
 
 	// Spin up the canvas effects layer for the life of the scene.
 	useEffect(() => {
@@ -503,7 +507,10 @@ export function PetBattleScene({
 		if (!el || !c) return null;
 		const r = el.getBoundingClientRect();
 		const cr = c.getBoundingClientRect();
-		return { x: r.left + r.width / 2 - cr.left, y: r.top + r.height / 2 - cr.top };
+		return {
+			x: r.left + r.width / 2 - cr.left,
+			y: r.top + r.height / 2 - cr.top,
+		};
 	};
 
 	// Spawn the elemental VFX for one event: a travelling bolt for ranged moves, a burst on
@@ -852,7 +859,7 @@ function Battler({
 							onError={() => setImgBroken(true)}
 							style={{
 								imageRendering: 'pixelated',
-								transform: foe ? 'scaleX(-1)' : 'none',
+								transform: foe ? 'none' : 'scaleX(-1)',
 								filter: baseFilter,
 								animation: fx.flash
 									? 'arpgImgFlash 0.25s ease'
