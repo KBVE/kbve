@@ -96,6 +96,10 @@ pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
+        version: env!("CARGO_PKG_VERSION"),
+        uptime_seconds: hs.app.started_at.elapsed().as_secs(),
+        active_sessions: hs.app.sessions.len(),
+        active_instances: hs.app.zone_servers.len(),
         unreal_version: hs.app.server_build_version.read().unwrap().clone(),
     })
 }

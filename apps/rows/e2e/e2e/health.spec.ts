@@ -12,6 +12,15 @@ describe('ROWS Health', () => {
 		const body = await res.json();
 		expect(body).toHaveProperty('status', 'healthy');
 		expect(body).toHaveProperty('service', 'rows');
+		expect(body).toHaveProperty('version');
+		expect(typeof body.version).toBe('string');
+		expect(body.version.length).toBeGreaterThan(0);
+		expect(body).toHaveProperty('uptime_seconds');
+		expect(typeof body.uptime_seconds).toBe('number');
+		expect(body).toHaveProperty('active_sessions');
+		expect(typeof body.active_sessions).toBe('number');
+		expect(body).toHaveProperty('active_instances');
+		expect(typeof body.active_instances).toBe('number');
 		if ('unreal_version' in body) {
 			expect(typeof body.unreal_version).toBe('string');
 			expect(body.unreal_version.length).toBeGreaterThan(0);
