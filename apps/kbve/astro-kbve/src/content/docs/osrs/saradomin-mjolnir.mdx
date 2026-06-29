@@ -12,9 +12,51 @@ osrs:
   lowalch: 250
   highalch: 375
   limit: 8
-  about: "Saradomin mjolnir is a members-only item in Old School RuneScape. High alchemy value: 375 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "The Saradomin mjolnir is a members-only two-handed crush weapon with no level requirements to wield. It is obtained during The Enchanted Key miniquest or traded from other players, can only be found once per account, and can be equipped for protection against Saradomin followers in the God Wars Dungeon."
+    sections:
+      - heading: How is the Saradomin mjolnir used in combat?
+        anchor: combat
+        body: "The Saradomin mjolnir is a two-handed crush weapon with a +11 crush attack bonus and a +14 strength bonus, attacking at 6 ticks (3.6 seconds) per swing. It has no other attack or defence bonuses. It offers three combat styles: an accurate Bash style training Attack, an aggressive Pound style training Strength, and a defensive Block style training Defence, each also granting Hitpoints experience. Because the mjolnir is aligned with the god Saradomin and tipped with a Saradomin symbol, it can be equipped to count as a Saradomin item, granting protection from Saradomin followers in the God Wars Dungeon. There are no level requirements to wield it, so any member can equip the weapon."
+      - heading: How do you get the Saradomin mjolnir?
+        anchor: obtaining
+        body: "The Saradomin mjolnir is obtained during The Enchanted Key miniquest, where it can be found as one of the treasures, or by trading another player for it. Each mjolnir can only be obtained once per account: once a player has dug up all of the treasure during the miniquest, the Enchanted key disintegrates and cannot be re-obtained, so you cannot dig for a second mjolnir yourself. Because supply is limited to those who complete the miniquest and choose to sell, the weapon trades on the Grand Exchange within a small buy limit of 8 per four hours. Its main value comes from its niche use as a Saradomin-aligned item for God Wars Dungeon access rather than as a combat weapon."
+  equipment:
+    slot: weapon
+    weapon_type: bludgeon
+    attack_speed: 6
+    attack_bonus: { stab: 0, slash: 0, crush: 11, magic: 0, ranged: 0 }
+    defence_bonus: { stab: 0, slash: 0, crush: 0, magic: 0, ranged: 0 }
+    other_bonus: { melee_strength: 14, ranged_strength: 0, magic_damage: 0, prayer: 0 }
+    weight: 2.267
+  related_items:
+    - item_name: Enchanted key
+      slug: enchanted-key
+      relationship: component
+      description: Miniquest key used to dig up treasure, including the Saradomin mjolnir
+    - item_name: Zamorak mjolnir
+      slug: zamorak-mjolnir
+      relationship: alternative
+      description: God-aligned mjolnir variant tied to Zamorak with identical mechanics
+  trivia:
+    - "The Saradomin mjolnir was released on 22 November 2005 in the Making History and minor changes update."
+    - "As its name implies, the mjolnir is affiliated with the god Saradomin and is tipped with a symbol associated with him."
+    - "It can be equipped as a Saradomin item for protection against Saradomin followers in the God Wars Dungeon."
+  faq:
+    - question: Is the Saradomin mjolnir members-only?
+      answer: "Yes. The Saradomin mjolnir is a members-only two-handed weapon, so it can only be wielded and traded on members worlds. It is tied to the members-only Enchanted Key miniquest and the God Wars Dungeon, both of which are members content."
+    - question: How do you get the Saradomin mjolnir in OSRS?
+      answer: "The Saradomin mjolnir is found during The Enchanted Key miniquest or bought from another player. It can only be obtained once per account, because the Enchanted key disintegrates after all treasure is dug up and cannot be re-obtained, so trading is the only way to get a second one."
+    - question: What level do you need to wield the Saradomin mjolnir?
+      answer: "There are no level requirements to wield the Saradomin mjolnir. Any member can equip it. As a two-handed crush weapon it has a +11 crush attack bonus and +14 strength bonus, attacking once every 6 ticks (3.6 seconds)."
+    - question: Why would you use the Saradomin mjolnir?
+      answer: "The Saradomin mjolnir's main use is as a Saradomin-aligned item that grants protection against Saradomin followers in the God Wars Dungeon. It is not a strong combat weapon, but equipping it lets players safely pass Saradomin's followers in the dungeon."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Saradomin_mjolnir"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
