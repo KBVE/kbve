@@ -303,7 +303,7 @@ Regular testing is crucial to avoid unexpected failures during critical moments.
 We want the barman to be installed directly into our postgres image and thus we will add a stage called `Barman`.
 Here is a brief example of us setting up the barman cloud cli inside of our `kilobase` image that is based upon the supabase image.
 
-```Dockerfile
+```dockerfile
 
 # Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
 RUN apt-get update && apt-get install -y --no-install-recommends \
