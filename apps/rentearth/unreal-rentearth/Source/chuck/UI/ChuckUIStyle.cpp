@@ -3,6 +3,7 @@
 #include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateStyleRegistry.h"
+#include "KBVEUITheme.h"
 
 TSharedPtr<FSlateStyleSet> FChuckUIStyle::StyleInstance = nullptr;
 
@@ -85,8 +86,8 @@ TSharedRef<FSlateStyleSet> FChuckUIStyle::Create()
 	}
 	Style->Set(FKeys::HUD_Health_Color,       FLinearColor(0.85f, 0.18f, 0.20f, 1.f));
 	Style->Set(FKeys::HUD_Mana_Color,         FLinearColor(0.20f, 0.40f, 0.95f, 1.f));
-	Style->Set(FKeys::HUD_Stamina_Color,      FLinearColor(0.90f, 0.78f, 0.18f, 1.f));
-	Style->Set(FKeys::HUD_Bar_Background_Color, FLinearColor(0.06f, 0.06f, 0.06f, 0.85f));
+	Style->Set(FKeys::HUD_Stamina_Color,      KBVEUI::Theme::Color::Accent);
+	Style->Set(FKeys::HUD_Bar_Background_Color, KBVEUI::Theme::Color::PanelDeep.CopyWithNewOpacity(0.85f));
 
 	return Style;
 }
