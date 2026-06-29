@@ -8777,7 +8777,6 @@ name = "jedi"
 version = "0.2.2"
 dependencies = [
  "ammonia",
- "askama 0.15.6",
  "async-trait",
  "axum 0.8.9",
  "axum-extra",
