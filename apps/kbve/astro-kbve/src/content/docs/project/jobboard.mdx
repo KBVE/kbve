@@ -90,6 +90,14 @@ kube:
     criticality: medium
 ---
 
+import AstroGithubReadme from '@kbve/astro/components/social/github/Readme/AstroGithubReadme.astro';
+
+## README
+
+<AstroGithubReadme url="https://raw.githubusercontent.com/KBVE/kbve/refs/heads/main/apps/jobboard/README.md" />
+
+* * *
+
 ## Job Board
 
 > Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, `jobboard.proto` wired into the build. **Auth = Supabase** (JWT `sub` = `auth.users.id`); the Phase-0 first-party auth/sessions in the Rust code is a dead end to be removed. **Schema migration shipped** (`20260615120000_jobboard_tables.sql`): 23 tables, ULID-as-uuid PKs, junction tables (no array refs), state/money/lifecycle CHECK constraints, RLS lockdown, `updated_at` triggers; all user refs → `auth.users(id)`. No seed yet. Phases 1–10 below remain spec.
