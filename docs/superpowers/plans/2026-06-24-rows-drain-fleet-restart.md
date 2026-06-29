@@ -1,197 +1,42 @@
-# ROWS Drain — Fleet-Restart Orchestration Implementation Plan (Phase 3)
+# ROWS Drain — Fleet-Restart Orchestration & End-to-End Rollout (Phase 3)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax.
-> **Depends on:** Phase 1 (`2026-06-24-rows-drain-core.md`, drain state + setter) and Phase 2 (`2026-06-24-rows-drain-admission.md`, the `accept_new_joins` lockout).
-> **Config & docs index:** [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) — pin the drain request annotation schema there once Phase 3 emits it.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Do the tasks in order; each ends in a build + commit.
 
-**Goal:** Give ROWS the orchestration to drive a coordinated fleet-wide restart — mark every active instance draining, run the new-join lockout, optionally stagger in batches, and emit an "all drained" signal a deploy orchestrator waits on before launching the new binary.
+**Goal:** Give ROWS a DB-backed, coordinated fleet restart and a safe end-to-end version rollout: mark every active instance draining, lock out new joins, emit a hard "all old servers gone" barrier, and let a deploy orchestrator roll the new server build only once the fleet is empty — with the new build gated on the matching client build.
 
-**Architecture:** A DB-backed `fleet_restart` control (env-less; operator/dashboard-written, like `admission_control`) that a background job reconciles: it fans `set_drain_state` across active instances (whole-fleet or in batches), flips the admission lockout near the end, and exposes a `/fleet-restart/status` (active-instance count → "all drained") signal. The actual `dbmate` run + new-image launch stay in the deploy/Argo layer (ROWS only signals). Ships inert: no control row ⇒ the job no-ops.
+**Architecture:** A DB-backed `fleet_restart` control row (operator/dashboard-written, like `admission_control`) drives a background reconcile job: it fans `set_drain_state` across active instances (whole-fleet or in batches), holds the admission lockout while active and lifts it when done, and exposes `GET /fleet-restart/status` with a two-level `safe_to_roll` signal (no DB rows active **and** no Agones GameServer pods left). A named deploy orchestrator consumes that signal to run a scale-to-0 cutover. The server binary is delivered as a version-pinned path on a shared PVC, not a container image tag.
 
-> **⚠️ Shipping posture — SIGNAL-ONLY until B-1/B4 land.** What this PR delivers is the drain
-> orchestration **+ an advisory signal**, not a fleet restart. The `/fleet-restart/status` barrier
-> does **not** block an Argo image roll — the chuck Fleet is `RollingUpdate, maxSurge:25%` under
-> `automated.prune:true`, so a bare image bump surges new-version pods alongside draining old ones
-> (the mixed-version coexistence this plan forbids). A real fleet restart requires the named
-> orchestrator (B-1: scale-to-0 cutover with `maxSurge:0`, or Argo PreSync gated on `all_drained`).
-> Until that ships, the goal is **"cooperative drain + signal + manual runbook,"** an improvement on
-> the imperative `restart_fleet` but NOT an automated all-down barrier.
-
-**Tech Stack:** Rust, axum, sqlx (runtime), Postgres, tokio.
+**Tech Stack:** Rust, axum, sqlx (runtime), Postgres, tokio, Agones, ArgoCD.
 
 ## Global Constraints
 
-(Same as Core/Admission — worktree/PR #13200, conventional commits no co-author, runtime sqlx, dbmate migration + schema mirror, degrade-on-missing-table, inert posture.)
+- Worktree workflow (PR #13200 lineage); conventional commits, **no co-author lines**.
+- Runtime sqlx (no compile-time `query!`); every new table ships a `dbmate` migration **and** a mirrored `packages/data/sql/schema/ows/*.sql`.
+- **Degrade-on-missing-table:** every read of a new table returns the inert/safe default on Postgres `42P01` (undefined_table), using the `is_undefined_table` helper (`apps/rows/src/repo/instances.rs:17`).
+- **Inert posture:** no control row ⇒ the reconcile job no-ops; the feature ships dark.
+- **Safe-by-default:** the automated path must never force-disconnect players. Aggressive behaviour (`urgency=1, drop_players=true`) is an explicit opt-in, never a default.
+- **No mixed-version coexistence:** a new server build must never run alongside an old one. The roll waits until every old server is gone.
+- **Version parity:** never roll a server ahead of its client. A server build only rolls once the matching client (Windows minimum) build is published.
+- **Restart modes** — the `fleet_restart` row carries `urgency` + `drop_players`; pin them to the trigger:
 
-## Decision-blocked holes up front (read first)
-
-- 🕳️ **W1 — drain-complete ack.** Precise batch convergence ("this batch is fully drained, start the next") needs UE's per-instance drain-complete signal, which doesn't exist in the heartbeat yet. **Fill used here:** ROWS uses an _observable proxy_ — an instance counts as "drained" when its row reaches `status = 0` (the reaper/lifecycle sets it on teardown) or the GameServer is gone. Less precise than an ack (a slow saver looks not-yet-drained), but safe (it waits rather than races). Swap to the ack when W1 lands.
-- 🕳️ **F2 → BLOCKER B4 — who launches the new binary.** ROWS emits "all old drained"; a _named orchestrator_ (Argo Workflows / a sync-wave gated on the signal / an operator) must consume it, run `dbmate` (migration type), and roll the image. ROWS does not self-launch. **Promoted to a blocker** per the lifecycle-spec audit: the chuck Fleet is `strategy: RollingUpdate, maxSurge: 25%`, which structurally surges new while old run — a vanilla GitOps roll _cannot_ honor the all-down barrier, so **no fleet-restart rung is implementable until the orchestrator is named/built.**
-- 🕳️ **B5/B6 — ROWS is `replicas: 1` with a self-deadlocking PDB.** The reconcile job here (Task 3) is the orchestrator, running on a single non-HA pod; a reschedule mid-restart loses in-flight progress (B5), and `rows-pdb minAvailable: 1` on one replica hangs node drains (B6). Before this job is trusted: either run ROWS HA (≥2 + leader election) or prove the reconcile is fully resumable from `mapinstances` on cold-start (it is _designed_ to be — it re-derives the batch each tick from `drainstate IS NULL` — but this must be tested with a "kill ROWS mid-restart" case), and fix the PDB.
-- 🕳️ **Version targeting.** "drain everything ≠ target_version" needs the running image/version surfaced to ROWS. **Fill used here:** MVP drains **all** active instances (`target_version` column reserved but unused); version-selective drain is deferred.
-
----
-
-## ⚠️ Audit corrections (2026-06-24 Phase-3 audit — these OVERRIDE the tasks below)
-
-Highest-blast-radius plan; apply all. **Dependency reality:** this hard-depends on Phase 1
-(`drainstate`, `set_drain_state`) and Phase 2 (`admission_control`, `set_admission`) — **neither is
-built yet**, so merge-readiness is gated on Core + Admission landing first. There is also an EXISTING
-imperative `restart_fleet` (`apps/rows/src/rest/system.rs` — scale-to-0 → `delete_all_map_instances`
-→ scale-up); this cooperative flow must **supersede** it, not silently duplicate it.
-
-### B-1 / B-3 (BLOCKER) — enforce the barrier at the DEPLOY layer + name the orchestrator
-
-`/fleet-restart/status` is advisory only; the chuck Fleet is `RollingUpdate, maxSurge:25%` under Argo
-(`automated.prune:true`, `ignoreDifferences` only on `/spec/replicas`), so committing a new image
-surges 25% new pods _immediately_, parallel with draining old ones — the mixed-version coexistence
-this plan forbids. ROWS emitting a signal does **not** block the roll. **Required — pick one and
-specify the manifest change:**
-
-- (a) **Scale-to-0 cutover** (recommended; mirrors the existing `restart_fleet`): the orchestrator
-  scales the Fleet to 0 _gated on `all_drained=true`_, THEN bumps the image, THEN scales up, with
-  Fleet `maxSurge:0` during cutover so no new-version pod starts before old are gone.
-- (b) **Argo Workflow / PreSync hook** that polls `/fleet-restart/status` and only proceeds to the
-  image bump + `dbmate` Job after `all_drained`.
-
-The orchestrator is a **REQUIRED deliverable (B4)**, not "out of scope." Until built, this PR is
-**signal + manual runbook only** = the existing imperative `restart_fleet` with extra steps; the
-plan framing must say "signal-only" if the orchestrator isn't shipped here.
-
-### B-2 (BLOCKER) — migration rollback / enforce expand-contract
-
-dbmate is up-only and runs at the barrier _before_ new-binary launch; a bad new binary rolled back
-leaves the OLD binary on the NEW schema. Required: (1) **CI guard rejecting non-additive DDL** in a
-migration shipping with a binary roll; (2) **pre-deploy compat test** (binary N-1 vs schema N);
-(3) documented **forward-fix recovery** (no `dbmate down`).
-
-### H-2 (HIGH) — the reconciler MUST own the lockout lifecycle
-
-Task 3 sets `acceptnewjoins=false` while active but never lifts it. Fix: the reconcile loop sets the
-lockout on `active=true` AND **clears it on `active=false`/absent row**. **Remove** the manual
-`DELETE FROM admission_control` from the runbook — a two-statement manual teardown silently locks
-players out after a "successful" restart.
-
-### H-1 (HIGH) — ROWS `replicas:1` orchestrator SPOF
-
-The reconcile loop runs on one pod (lifecycle B5/B6). Required: fully resume-safe — re-derives the
-batch from `drainstate IS NULL` each tick (already so) AND idempotently re-applies/lifts the lockout
-on resume (H-2). Document the manual unlock SQL as break-glass. Prod should run ROWS HA
-(leader-elected) or at minimum fix the PDB (lifecycle B6).
-
-### H-3 (HIGH) — stuck instances block convergence forever
-
-"drained" = row leaves `status>0`, and `list_drainable_instances` skips already-draining, so a hung
-instance pins `all_drained=false` forever (lockout stays on). Required: a per-restart **deadline**
-after which the reconciler **force-deallocates** overdue instances (Agones) and/or `count_active`
-excludes them. Define the "stuck" SLA. (Reuses the Core `drain_deadline` enforcement, C2.)
-
-### MEDIUM / LOW
-
-- **M-1:** set explicit `terminationGracePeriodSeconds` > save budget on the chuck Fleet (unset →
-  30s; SIGKILL eats saves). Same as lifecycle B1.
-- **M-2:** `/fleet-restart/status` MUST be service-authenticated / cluster-internal, not public.
-- **M-3:** `batch_size` has no inter-batch completion gate (drains the next batch each tick
-  regardless of the prior finishing) — don't promise wave-by-wave isolation; document real cadence.
-- **M-4:** whole-fleet-only (`target_version` unused) = guaranteed full-tenant downtime — state it.
-- **L-1:** `urgency smallint` (1=asap) is unintuitive; add `CHECK (urgency IN (0,1))` + document the
-  scale. **L-2:** name the whole-fleet cap (the `4096` magic). **L-3:** the lifecycle spec the runbook
-  edits does exist.
-
-### Missed tests
-
-F2-no-surge-while-draining; rollback drill (N-1 binary vs schema N); stuck-instance convergence;
-lockout auto-lift on `active=false`; ROWS-crash-mid-drain resume; degrade-on-missing-table (42P01)
-for `get_fleet_restart`/`set_admission`; TGPS vs save budget; **two-replica reconcile race (advisory
-lock single-flights — verify only one replica fans set_drain_state per tick); spawn-during-drain
-convergence (a new instance mid-drain must not pin `all_drained=false` forever); safe-default control
-row (urgency=0/dropplayers=false never force-disconnects).**
-
-### Confirmed against `dev` (2026-06-28 re-audit) — applied + still-open
-
-**Applied in this revision (self-contained plan edits):**
-
-- ✅ NEW-HIGH-1: Task 1 + runbook flipped to safe defaults (`urgency=0, dropplayers=false`) + `chk_urgency`.
-- ✅ NEW-HIGH-2 / H-2: reconcile lifts the lockout via `set_admission(guid, None)` on absent/`active=false`; manual `DELETE FROM admission_control` removed from the runbook.
-- ✅ NEW-HIGH-3 / H-1: reconcile wrapped in the reaper's `pg_try_advisory_lock` single-flight; HA scale-up no longer double-fans.
-- ✅ Migration re-timestamped `20260629120000` (after Phase 1/2 deps on dev); `FLEET_DRAIN_CAP` const for the `4096` magic.
-- ✅ Posture relabelled **signal-only** until B-1/B4.
-
-**Verified facts (dev):** `set_drain_state` 8-arg signature matches the Task 3 call site; `validate_drain_request` accepts `urgency IN (0,1)` (so the `0` default is safe); `DrainState SMALLINT NULL CHECK (1,2)`; `AcceptNewJoins BOOLEAN NULL` (NULL ⇒ env baseline). Phase 1/2 are on `dev`, **not** `main`.
-
-**Still open (require work beyond plan edits — do NOT mark done):**
-
-- 🚧 **B-1/B4 orchestrator** — the actual deploy-layer barrier (scale-to-0 `maxSurge:0` / Argo PreSync). Signal alone does not block the roll.
-- 🚧 **B-2 rollback** — CI non-additive-DDL guard + N-1-binary-vs-schema-N compat test + forward-fix runbook (no `dbmate down`).
-- 🚧 **Supersede imperative `restart_fleet`** (`apps/rows/src/rest/system.rs`, still registered): guard it to refuse while a `fleet_restart` row is `active`, else an operator double-trigger deletes instances under an in-flight cooperative drain.
-- 🚧 **Barrier terminal state** — `all_drained = active && draining==0` flips back to false once the operator clears `active`; add a terminal/`completed` state or have the orchestrator latch so a post-clear poll doesn't read "not drained."
-- 🚧 **H-3 deadline + reaper dependency** — `draining` only reaches 0 via the reaper (only it writes `status=0`); require a per-restart deadline (Core C2) that force-deallocates overdue instances, and make reaper-enabled a precondition.
+    | Mode                        | Trigger                                 | `urgency`       | `drop_players` | Behaviour                                                                                                                                    |
+    | --------------------------- | --------------------------------------- | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+    | **Non-aggressive (update)** | post-publish GitOps merge, parity-gated | `0` = when_able | `false`        | Drain-to-natural-empty: an instance restarts only once all its players leave on their own. No forced disconnects. Default for routine rolls. |
+    | **Aggressive (expedite)**   | dashboard operator, deadline-bounded    | `1` = asap      | `true`         | Save-then-disconnect remaining players at the deadline. For urgent/security rolls.                                                           |
 
 ---
 
-## Restart triggers, modes & version-parity gate (2026-06-24 design addition)
+## Preconditions & ground truth (read before Task 1)
 
-The MVP above models _how_ a fleet drains but not **who triggers it / how aggressively**, nor the
-hard precondition that the **client build exists before a server restart-to-deploy is arranged**.
+These are verified facts about the current codebase the tasks below depend on. They are not optional context — getting them wrong breaks the build.
 
-### V1 (BLOCKER-class hole 🕳️) — version-parity gate: never roll the server ahead of the client
-
-A new server binary that drains the fleet and comes up speaking a protocol the _shipped client_
-can't speak is a self-inflicted outage: every player is bounced and **none can reconnect**. So the
-_arrangement_ of a restart-for-update is gated on client⟷server version parity.
-
-- **Primary enforcement — the post-publish / dispatch layer, NOT ROWS. The post-publish "sync" is
-  the existing `utils-post-publish.yml` auto-PR.** That workflow already opens an atomic GitOps PR
-  per publish — e.g. **PR #13262** (axum-kbve v1.0.211): bumps `Cargo.toml` / `version.toml` /
-  `Cargo.lock` **and the deployment `image:` tag** in one commit. (Per repo rule, the publish is
-  driven by bumping the project's `*.mdx` `version:`; CI's post-publish PR owns `version.toml` + the
-  deployment image tag — never hand-edited.) For **rows**, extend that same auto-PR with two things:
-    1. **A required version-parity status check / merge gate** — the PR cannot merge until the matching
-       **client** build for that version published. No client build ⇒ check stays red ⇒ the image bump
-       waits. Merge is what triggers the roll (reviewable diff, same posture as the reaper switches; no
-       out-of-band Argo drift).
-    2. **Arrange the non-aggressive `fleet_restart` instead of a bare image-tag swap.** A plain tag bump
-       under the chuck Fleet's `RollingUpdate, maxSurge:25%` surges new-version pods alongside draining
-       old ones — the mixed-version coexistence **B-1** forbids. The rows post-publish PR must instead
-       gate the roll on `all_drained` (scale-to-0 cutover / Argo PreSync per B-1), i.e. it **is** the
-       F2/B4 orchestrator surface: post-merge **+** `all_drained` ⇒ run `dbmate` + roll the image.
-- **Defense in depth — runtime.** The existing `ows.kbve.com/version` label + UE-contract obligation
-  #12 (client-version gate): a connecting client below the required version gets an "update required"
-  signal, not a raw disconnect.
-- **Scope:** wire this in **beta first** (prod is not live yet); the automated sync fires only once
-  **both** the server image and the client build for the version are published.
-
-### Two restart modes — the trigger source decides aggression
-
-The `fleet_restart` control already carries `urgency` + `drop_players`; pin their values to the
-trigger:
-
-| Mode                        | Trigger                                                               | `urgency`         | `drop_players` | Behavior                                                                                                                                                                                                |
-| --------------------------- | --------------------------------------------------------------------- | ----------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Non-aggressive (update)** | **post-publish GitOps PR** (beta/prod), merge-gated on version parity | `0` = `when_able` | `false`        | Drain-to-natural-empty: an instance restarts only once **all its players have left on their own** — no forced disconnects. Slow, zero player interruption. The default path for a routine version roll. |
-| **Aggressive (expedite)**   | **dashboard** (operator), deadline-bounded                            | `1` = `asap`      | `true`         | Save-then-disconnect remaining players at the deadline; forces convergence (reuses H-3 stuck-instance deadline). For urgent / security rolls.                                                           |
-
-### Correction to Task 1 defaults (apply with the migration)
-
-Task 1's table defaults `Urgency=1 (asap)`, `DropPlayers=true` — the **aggressive** values. **Flip the
-column defaults to the safe/non-aggressive values** so the automated path is safe-by-default and
-aggression is an explicit dashboard opt-in:
-
-```sql
-    Urgency       SMALLINT NOT NULL DEFAULT 0,     -- 0 = when_able (non-aggressive); 1 = asap
-    DropPlayers   BOOLEAN  NOT NULL DEFAULT false,  -- aggressive paths set true explicitly
-    ...
-    CONSTRAINT chk_urgency CHECK (Urgency IN (0,1))  -- (also L-1)
-```
-
-A stray or automated control row must **never** default to bouncing live players; the dashboard
-writes `urgency=1, dropplayers=true` to opt into the aggressive path.
-
-> 🕳️ **V1 open decision:** the exact signal the post-publish layer checks for "client build
-> published" (launcher manifest? itch/Steam channel? a `client_versions` row?) is pinned when the
-> dispatch step is built — tracked with the F2/B4 orchestrator (same component). This supersedes the
-> "Version targeting" hole below for the _gate_; version-**selective** drain (drain only
-> `≠ target_version`) remains separately deferred.
+- **Phase 1 + Phase 2 live on `dev`, not `main`.** Branch this work from `dev`. Already present there:
+    - `mapinstances.DrainState SMALLINT NULL CHECK (DrainState IN (1,2))` and `set_drain_state` (`apps/rows/src/repo/instances.rs:583`). Signature (after `&self`): `(customer_guid: Uuid, map_instance_id: i32, state: i16, urgency: i16, drop_players: bool, reason: &str, request_id: Uuid, deadline: Option<chrono::NaiveDateTime>) -> Result<u64, RowsError>`.
+    - `validate_drain_request(state, urgency)` accepts `state IN (1,2)` and `urgency IN (0,1)` — so an `urgency=0` default is valid.
+    - `admission_control.AcceptNewJoins BOOLEAN NULL` (migration `20260629000000_ows_admission_control.sql`). `NULL` ⇒ fall back to the env baseline `ROWS_ACCEPT_NEW_JOINS` (default `true`) ⇒ joins allowed. So **writing `NULL` is how you lift the lockout.**
+    - `count_active_instances(tenant) -> i64` already exists (counts `status > 0`).
+- **The chuck UE server version is a PVC path, NOT a container image tag.** In `apps/kube/agones/rows-tenants/chuckrpg-*/manifests/fleet.yaml` the `ue5-server` container image is a fixed `ubuntu:24.04`; the cooked server is delivered via the `ows-server-build` PVC mounted at `/server`, and the pod runs `/server/latest/LinuxServer/chuckServer.sh`. Bumping a deployment `image:` tag does **not** roll the UE server — it only rolls the `ghcr.io/kbve/kubectl` sidecar. Because the path is the mutable `latest/`, any pod restart (crash, eviction, node drain, autoscale) silently loads whatever build currently sits in `latest/` — an accidental mixed-version fleet with no deploy action. **R0 fixes this and is a hard prerequisite for the barrier to mean anything.**
+- **End-to-end (Agones barrier + soak) is untestable until chuck servers reach `Ready()`.** Today the beta fleet sits at `replicas:0` and servers hang at login. Tasks 1–5 (DB + signal) are testable now; R3 (the live cutover) is not until the game-side crash clears.
 
 ---
 
@@ -203,21 +48,13 @@ writes `urgency=1, dropplayers=true` to opt into the aggressive path.
 - Create: `packages/data/sql/schema/ows/fleet_restart.sql`
 - Modify: `apps/rows/src/config.rs` (control struct)
 
-> ⚠️ **Migration ordering:** timestamp **must** be after the Phase 1/2 deps already on `dev`
-> (`20260628212059_ows_mapinstance_drain.sql`, `20260629000000_ows_admission_control.sql`). The
-> original `20260624160000` was _earlier_ than the tables this phase builds on — dbmate would apply
-> it out-of-order. Use `20260629120000` (or later).
+The migration timestamp must be **after** the Phase 1/2 deps already on `dev` (`20260628212059_ows_mapinstance_drain.sql`, `20260629000000_ows_admission_control.sql`); an earlier timestamp applies out-of-order under dbmate. Column defaults are the non-aggressive values so a stray or automated row never bounces live players; `chk_urgency` matches the runtime `validate_drain_request` domain.
 
 **Interfaces:**
 
 - Produces: table `ows.fleet_restart(customerguid uuid pk, active boolean, reason text, urgency smallint, dropplayers boolean, stagger boolean, batchsize int, lockout boolean, targetversion text null, requestid uuid)`; `FleetRestart` (sqlx::FromRow) with snake_case fields via `#[sqlx(rename)]`.
 
-- [ ] **Step 1: Migration** `20260629120000_ows_fleet_restart.sql` (up):
-
-> **Safe-by-default (audit V1 / NEW-HIGH-1):** column defaults are the _non-aggressive_ values so a
-> stray or automated control row never bounces live players. The aggressive path (`urgency=1,
-dropplayers=true`) is an explicit dashboard opt-in. `chk_urgency` matches the runtime
-> `validate_drain_request` domain (0|1, verified against `dev`).
+- [ ] **Step 1: Migration** `20260629120000_ows_fleet_restart.sql`:
 
 ```sql
 -- migrate:up
@@ -232,7 +69,7 @@ CREATE TABLE IF NOT EXISTS fleet_restart
     Stagger       BOOLEAN NOT NULL DEFAULT false,
     BatchSize     INT     NOT NULL DEFAULT 1,
     Lockout       BOOLEAN NOT NULL DEFAULT true, -- block new joins while active
-    TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; hole)
+    TargetVersion TEXT    NULL,                  -- reserved (version-selective drain; deferred)
     RequestID     UUID    NOT NULL,
     CONSTRAINT PK_FleetRestart PRIMARY KEY (CustomerGUID),
     CONSTRAINT chk_urgency CHECK (Urgency IN (0,1))
@@ -275,16 +112,17 @@ pub struct FleetRestart {
 
 ---
 
-### Task 2: Repo — read control, list/drain active instances, all-drained signal
+### Task 2: Repo — read control, list drainable instances
 
 **Files:** Modify `apps/rows/src/repo/instances.rs`
+
+`list_drainable_instances` excludes instances already draining (`drainstate IS NULL`), so the reconcile job never re-drains. An instance counts as "drained" when its row leaves `status>0` (the reaper/lifecycle sets `status=0` on teardown); `count_active_instances == 0` is the DB-level all-drained signal.
 
 **Interfaces:**
 
 - Produces:
-    - `get_fleet_restart(tenant) -> Result<Option<FleetRestart>, RowsError>` (None on row-absent OR 42P01).
-    - `list_drainable_instances(tenant, limit: i64) -> Result<Vec<i32>, RowsError>` — `status>0` instances **not already draining** (`drainstate IS NULL`), oldest first, capped (the batch source).
-    - `count_active_instances(tenant)` already exists (the all-drained signal = `== 0`).
+    - `get_fleet_restart(tenant) -> Result<Option<FleetRestart>, RowsError>` (`None` on row-absent OR 42P01).
+    - `list_drainable_instances(tenant, limit: i64) -> Result<Vec<i32>, RowsError>` — `status>0` instances not already draining, oldest first, capped (the batch source).
 
 - [ ] **Step 1: Implement `get_fleet_restart`** (degrade on 42P01 like `get_reaper_config_override`):
 
@@ -331,23 +169,56 @@ pub async fn list_drainable_instances(
 }
 ```
 
-> 🕳️ **W1 proxy:** "drainable" excludes already-draining (`drainstate IS NULL`); "drained" is observed as `status>0 → status=0` over time. Without a UE ack, a batch's completion is approximated by those rows leaving `status>0`. `count_active_instances == 0` is the all-drained signal.
-
-- [ ] **Step 3: Build.** **Step 4: Commit** — `feat(rows): fleet-restart repo reads (control, drainable list)`.
+- [ ] **Step 3:** Add an index to back the per-tick scan (in the Task 1 migration or a follow-up migration): `CREATE INDEX IF NOT EXISTS idx_mapinstances_drainable ON mapinstances (customerguid, status, drainstate);`
+- [ ] **Step 4: Build.** **Step 5: Commit** — `feat(rows): fleet-restart repo reads (control, drainable list)`.
 
 ---
 
-### Task 3: Fleet-restart reconcile job
+### Task 3: Admission setter (lockout write)
 
-**Files:** Modify `apps/rows/src/jobs.rs`
+**Files:** Modify `apps/rows/src/repo/instances.rs`
+
+Reuses Phase 2's `admission_control` table. `Some(false)` sets the lockout; `None` writes SQL `NULL`, which makes admission fall back to the env baseline — i.e. `None` lifts the lockout.
 
 **Interfaces:**
 
-- Consumes: `get_fleet_restart`, `list_drainable_instances`, `set_drain_state` (Core Task 4),
-  `count_active_instances`, the admission lockout write (Task 4 below).
-- Produces: a `fleet_restart_reconcile` task in `spawn_all` that, while a control row is `active`,
-  marks instances draining (whole-fleet or `batch_size` at a time when `stagger`) and applies the
-  lockout.
+- Produces: `set_admission(tenant, accept_new_joins: Option<bool>) -> Result<(), RowsError>`.
+
+- [ ] **Step 1: Implement**:
+
+```rust
+pub async fn set_admission(
+    &self,
+    customer_guid: Uuid,
+    accept_new_joins: Option<bool>,
+) -> Result<(), RowsError> {
+    sqlx::query(
+        "INSERT INTO admission_control (customerguid, acceptnewjoins)
+         VALUES ($1, $2)
+         ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoins",
+    )
+    .bind(customer_guid)
+    .bind(accept_new_joins)
+    .execute(self.0)
+    .await?;
+    Ok(())
+}
+```
+
+- [ ] **Step 2: Build.** **Step 3: Commit** — `feat(rows): set_admission upsert (fleet-restart lockout)`.
+
+---
+
+### Task 4: Fleet-restart reconcile job
+
+**Files:** Modify `apps/rows/src/jobs.rs`
+
+The job runs single-flight per tenant via a Postgres advisory lock (mirrors `empty_server_reaper`) so running ROWS with >1 replica does not double-fan `set_drain_state`. It owns the full lockout lifecycle: set it while active, lift it (write `NULL`) when the row is absent or `active=false`. The whole-fleet batch cap is a named constant, not a magic number.
+
+**Interfaces:**
+
+- Consumes: `get_fleet_restart`, `list_drainable_instances`, `set_admission` (Task 3), `set_drain_state` (Phase 1), `count_active_instances`.
+- Produces: a `fleet_restart_reconcile` task in `spawn_all`; a `const FLEET_DRAIN_CAP: i64 = 4096;`; an `unlock_fleet_restart` helper.
 
 - [ ] **Step 1: Add the task to `spawn_all`** alongside the others:
 
@@ -355,9 +226,11 @@ pub async fn list_drainable_instances(
     tokio::spawn(fleet_restart_reconcile(svc.clone()));
 ```
 
-- [ ] **Step 2: Implement** (30s cadence, mirrors the reaper loop's structure):
+- [ ] **Step 2: Implement** (30s cadence, mirrors the reaper loop):
 
 ```rust
+const FLEET_DRAIN_CAP: i64 = 4096; // whole-fleet (!stagger) batch cap
+
 async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
     let mut interval = tokio::time::interval(Duration::from_secs(30));
     interval.tick().await;
@@ -366,8 +239,7 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
         let guid = svc.state().config.customer_guid;
         let repo = InstanceRepo(&svc.state().db);
 
-        // HA-safe (H-1/NEW-HIGH-3): single-flight per tenant, mirrors empty_server_reaper.
-        // Without this, scaling ROWS to >1 (the SPOF remediation) double-fans set_drain_state.
+        // Single-flight per tenant so a multi-replica ROWS does not double-fan set_drain_state.
         let locked = sqlx::query_scalar::<_, bool>(
             "SELECT pg_try_advisory_lock(hashtext('rows-fleet-restart'), hashtext($1))",
         )
@@ -382,10 +254,9 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
 
         let fr = match repo.get_fleet_restart(guid).await {
             Ok(Some(fr)) if fr.active => fr,
-            // No active restart (absent row OR active=false) — lift the lockout and go inert.
-            // H-2/NEW-HIGH-2: the reconciler OWNS the lockout lifecycle. set_admission(None)
-            // writes NULL → admission falls back to the env baseline (ROWS_ACCEPT_NEW_JOINS,
-            // default true). Idempotent: safe to run every tick, safe on cold-start resume.
+            // No active restart (absent row OR active=false): the reconciler owns the lockout
+            // lifecycle, so lift it. set_admission(None) writes NULL -> admission falls back to the
+            // env baseline (joins allowed). Idempotent: safe every tick and on cold-start resume.
             Ok(_) => {
                 if let Err(e) = repo.set_admission(guid, None).await {
                     warn!(error = %e, "fleet-restart: failed to lift lockout");
@@ -400,7 +271,7 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
             }
         };
 
-        // Lockout: stop NEW joins while the restart runs (travel still allowed — see Phase 2).
+        // Hold the lockout while the restart runs (travel still allowed — see Phase 2).
         if fr.lockout {
             if let Err(e) = repo.set_admission(guid, Some(false)).await {
                 warn!(error = %e, "fleet-restart: failed to set lockout");
@@ -431,10 +302,9 @@ async fn fleet_restart_reconcile(svc: Arc<OWSService>) {
         let remaining = repo.count_active_instances(guid).await.unwrap_or(-1);
         info!(active = remaining, staggered = fr.stagger, batch = batch.len(),
               "fleet-restart: reconcile tick");
-        // remaining == 0  ⇒ all-drained signal (exposed via REST in Task 5).
-        // NOTE (H-3): `remaining` only reaches 0 once instances hit status=0, which ONLY the
-        // empty_server_reaper writes (set_drain_state rejects state=0). The barrier is therefore
-        // gated on reaper health + a per-restart deadline (C2) — see the deadline note below.
+        // remaining == 0 is the DB all-drained signal (exposed via REST in Task 5). It only reaches
+        // 0 once instances hit status=0, which ONLY empty_server_reaper writes (set_drain_state
+        // rejects state=0). So convergence depends on the reaper running and on the deadline below.
 
         unlock_fleet_restart(&svc, guid).await;
     }
@@ -449,79 +319,27 @@ async fn unlock_fleet_restart(svc: &Arc<OWSService>, guid: Uuid) {
 }
 ```
 
-> **`FLEET_DRAIN_CAP`** (L-2): name the whole-fleet batch cap as a `const FLEET_DRAIN_CAP: i64 = 4096;`
-> instead of the bare `4096` magic number.
+When `stagger`, each tick drains the next `batch_size` instances not yet draining; as earlier instances finish (rows leave `status>0`), later ticks pick up the rest. Without a UE drain-complete ack, a batch is gated on instances still being `drainstate IS NULL`, not on the previous batch fully completing — good enough to avoid re-draining, but it is not strict wave-by-wave isolation; do not document it as such.
 
-> When `stagger`, each tick drains the next `batch_size` instances that aren't yet draining; as earlier batches finish (rows leave `status>0`), later ticks pick up the rest — the loop converges as instances drain (W1-proxy). When `!stagger`, one tick drains everything.
-> 🕳️ **W1:** without an ack, a batch isn't gated on the _previous_ batch fully completing — it's gated on instances still being `drainstate IS NULL`. Good enough to avoid re-draining; precise wave-by-wave gating needs the ack.
-
-- [ ] **Step 3: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail`. **Step 4: Commit** — `feat(rows): fleet-restart reconcile job (drain fan-out + lockout)`.
+- [ ] **Step 3: Enforce a per-restart deadline so a stuck instance can't pin the fleet forever.** A hung instance never leaves `status>0`, so `count_active` never reaches 0 and the lockout would stay on indefinitely. When `fr` carries a deadline (aggressive path, R4) and it has passed, force-deallocate overdue instances via Agones (reuse the deallocate path behind `restart_fleet`'s scale logic) and/or exclude them from the active count. Define the "stuck" SLA in the runbook (Task 6).
+- [ ] **Step 4: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail`. **Step 5: Commit** — `feat(rows): fleet-restart reconcile job (drain fan-out + lockout lifecycle + deadline)`.
 
 ---
 
-### Task 4: Admission setter (lockout write)
-
-**Files:** Modify `apps/rows/src/repo/instances.rs`
-
-**Interfaces:**
-
-- Produces: `set_admission(tenant, accept_new_joins: Option<bool>) -> Result<(), RowsError>` —
-  upserts the tenant `admission_control` row (used by the lockout; reuses Phase 2's table).
-
-- [ ] **Step 1: Implement**:
-
-```rust
-pub async fn set_admission(
-    &self,
-    customer_guid: Uuid,
-    accept_new_joins: Option<bool>,
-) -> Result<(), RowsError> {
-    sqlx::query(
-        "INSERT INTO admission_control (customerguid, acceptnewjoins)
-         VALUES ($1, $2)
-         ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoins",
-    )
-    .bind(customer_guid)
-    .bind(accept_new_joins)
-    .execute(self.0)
-    .await?;
-    Ok(())
-}
-```
-
-- [ ] **Step 2: Build.** **Step 3: Commit** — `feat(rows): set_admission upsert (fleet-restart lockout)`.
-
----
-
-### Task 5: All-drained status endpoint (the F2 handoff signal)
+### Task 5: Two-level all-drained status endpoint
 
 **Files:** Modify `apps/rows/src/rest/system.rs`
 
+`count_active_instances` is a DB-row count: an instance can be at `status=0` while its pod is still alive (flushing a save, mid-SIGTERM, grace period not elapsed). Rolling on that alone risks a mixed-version window. So the barrier is two-level — the DB count is the _necessary_ trigger to begin the cutover; the Agones GameServer count hitting 0 is the _sufficient_ "all old gone" gate.
+
 **Interfaces:**
 
-- Produces: `GET /fleet-restart/status` → JSON
-  `{ active: bool, draining: i64, gameservers: i64, all_drained: bool, safe_to_roll: bool }`.
-    - `draining` = `count_active_instances` (DB rows `status>0`).
-    - `gameservers` = **Agones GameServer count** for this tenant's Fleet (label
-      `app.kubernetes.io/instance=<tenant>`), the pod-level "old servers still alive" count.
-    - `all_drained = active && draining == 0` (DB proxy — necessary, optimistic).
-    - **`safe_to_roll = active && draining == 0 && gameservers == 0`** — the **hard two-level
-      barrier**: no DB rows active **and** no GameServer pods left. The orchestrator (R3/Task 9) gates
-      the image swap on `safe_to_roll`, NOT `all_drained` — see W1-slow-saver below.
+- Consumes: `get_fleet_restart`, `count_active_instances`, a new `count_gameservers(tenant)` (Agones list, label `app.kubernetes.io/instance=<tenant>`, reusing the in-cluster client behind `restart_fleet`'s scale calls).
+- Produces: `GET /fleet-restart/status` → `{ active: bool, draining: i64, gameservers: i64, all_drained: bool, safe_to_roll: bool }` where `all_drained = active && draining == 0` and `safe_to_roll = all_drained && gameservers == 0`.
 
-> **Why two levels (W1 slow-saver gap):** `count_active_instances` is a DB-row count. A UE pod can
-> have its row at `status=0` while the **process is still alive** — flushing a final save, mid-SIGTERM,
-> grace period not elapsed. Rolling on `all_drained` alone can surface a mixed-version window. The
-> Agones GameServer count hitting 0 is the _sufficient_ "all old gone" gate; the DB count is the
-> _necessary_ trigger to begin the cutover.
-
-- [ ] **Step 1: Add the handler.** Reads `get_fleet_restart` + `count_active_instances`, and a new
-      `count_gameservers(tenant)` (Agones list via the in-cluster API the existing fleet-scale code
-      already uses — reuse the client behind `restart_fleet`'s scale calls). Follow the existing
-      `system.rs` handler/registration style:
+- [ ] **Step 1: Add the handler** (match the file's actual axum handler/registration style):
 
 ```rust
-// pseudo-shape; match the file's actual axum handler/registration style
 async fn fleet_restart_status(State(hs): State<HandlerState>) -> ApiResult<FleetRestartStatus> {
     let guid = hs.app.config.customer_guid;
     let repo = InstanceRepo(&hs.app.db);
@@ -534,95 +352,69 @@ async fn fleet_restart_status(State(hs): State<HandlerState>) -> ApiResult<Fleet
 }
 ```
 
-> **🔒 Auth posture (M-2 — REQUIRED, not advisory): this route is NOT public.** It is reachable only
-> from inside the cluster; a separate front service owns auth/permissions. Concretely:
->
-> - ROWS exposes it on the existing cluster-internal port (`rows.<ns>.svc.cluster.local:4322`), the
->   same Service the GameServers already call — there is **no Ingress/Gateway route** to it.
-> - Add a **NetworkPolicy** in the `rows` namespace allowing ingress to the fleet-restart paths only
->   from the orchestrator/dashboard-gateway pod(s), default-deny otherwise.
-> - ROWS does **not** implement user auth on these routes — it trusts the cluster-internal caller. The
->   dashboard's auth/RBAC is enforced upstream by that gateway service, which holds the cluster
->   credential. (Same trust model as the GameServer→ROWS calls today.)
-
-- [ ] **Step 2: Build + tests.** **Step 3: Commit** — `feat(rows): /fleet-restart/status two-level (DB+Agones) safe-to-roll signal`.
+- [ ] **Step 2: Keep this route NOT public.** Expose it only on the cluster-internal Service (`rows.<ns>.svc.cluster.local:4322`, the same one GameServers already call) — no Ingress/Gateway route. Add a NetworkPolicy in the `rows` namespace allowing ingress to the fleet-restart paths only from the orchestrator/dashboard-gateway pod(s), default-deny otherwise. ROWS does not implement user auth on these routes; it trusts the in-cluster caller, and the dashboard gateway enforces RBAC upstream (same trust model as GameServer→ROWS calls today).
+- [ ] **Step 3: Build + tests.** **Step 4: Commit** — `feat(rows): /fleet-restart/status two-level (DB+Agones) safe-to-roll signal`.
 
 ---
 
-### Task 5b: Authoritative version + deploy health on `/health` (launcher + no-auto-rollback surface)
+### Task 5b: Authoritative version + deploy health on `/health`
 
-> **Current behaviour (verified, must change):** `HealthResponse.unreal_version` (`models.rs:382`,
-> `Option<String>`) is populated **in-memory only** (`state.rs:35` `RwLock<Option<String>>`, init
-> `None`) from GameServers POSTing their loaded build version on boot (`system.rs:320,338`). So today
-> `https://api-beta.chuckrpg.com/health` returns **`unreal_version: null`** — the beta fleet is at
-> `replicas:0` / servers never reach Ready, so nothing ever POSTs, and the value is lost on every ROWS
-> restart anyway. This is **reactive** (version comes _from_ a running server) — useless to a launcher,
-> which needs the authoritative target _before_ any server/client connects. **Fix: source the served
-> version from the DB-backed `deploy_state` (the pinned PVC version), not the GameServer report.**
+**Files:** Modify `apps/rows/src/rest/mod.rs` (`health` handler), `apps/rows/src/models.rs` (`HealthResponse`), `apps/rows/src/repo/instances.rs`, plus the `deploy_state` table (Task 8).
 
-**Files:** Modify `apps/rows/src/rest/mod.rs` (`health` handler), `apps/rows/src/models.rs`
-(`HealthResponse`), `apps/rows/src/repo/instances.rs`, plus the R5 `deploy_state` table.
+Today `HealthResponse.unreal_version` (`models.rs:382`) is populated in-memory only (`state.rs:35`, `RwLock<Option<String>>`, init `None`) from GameServers POSTing their loaded build version on boot (`system.rs:320,338`). So `https://api-beta.chuckrpg.com/health` currently returns `unreal_version: null` — the fleet is at `replicas:0`, nothing POSTs, and the value is lost on every ROWS restart. That is reactive and useless to a launcher, which needs the authoritative target before any server/client connects. Source the served version from the DB-backed `deploy_state` instead.
 
 **Interfaces:**
 
-- Consumes: `deploy_state(tenant, target_version, rolled, health text)` (R5 table).
-- Produces: public `GET /health` (`HealthResponse`) — read-only, reachable at
-  `https://api-beta.chuckrpg.com/health` (chuckrpg-beta ROWS tenant):
-    - **`unreal_version`** = the **authoritative served PVC version** = the `deploy_state.target_version`
-      where `rolled=true` (the version live GameServers run after R0 pinning). **This is the launcher
-      download target** — the launcher reads it and fetches the matching client build. Falls back to the
-      GameServer-reported in-memory value only if `deploy_state` is absent (42P01), so it degrades to
-      today's behaviour rather than breaking.
-    - **`pending_version`: `Option<String>`** = the `deploy_state.target_version` where `rolled=false`
-      (a parity-gated build merged but not yet rolled), or null. Lets the launcher/dashboard show
-      "update incoming."
-    - **`deploy_healthy`: `bool`** + **`failing_version`: `Option<String>`** — on a failed soak (R3
-      Step 7) the cluster-internal orchestrator sets `deploy_state.health='unhealthy'`; `/health` then
-      reports `deploy_healthy:false` + the failing version. The write is orchestrator-only (not a public
-      route); `/health` only reads.
+- Consumes: `deploy_state(tenant, target_version, rolled, health text)` (Task 8).
+- Produces: public `GET /health` (`HealthResponse`) — read-only, at `https://api-beta.chuckrpg.com/health`:
+    - `unreal_version` = the served PVC version = `deploy_state.target_version` where `rolled=true`. **This is the launcher's download target.** Falls back to the in-memory value if `deploy_state` is absent (42P01).
+    - `pending_version: Option<String>` = `deploy_state.target_version` where `rolled=false` (merged but not yet rolled), else null.
+    - `deploy_healthy: bool` + `failing_version: Option<String>` — set from `deploy_state.health`.
 
-- [ ] **Step 1:** Extend the R5 `deploy_state` migration with `health TEXT NOT NULL DEFAULT 'healthy'`;
-      add repo reads `get_served_version(tenant) -> Option<String>` (`rolled=true` row),
-      `get_pending_version(tenant) -> Option<String>` (`rolled=false` row), and an upsert
-      `set_deploy_health(tenant, healthy: bool, failing_version: Option<&str>)`.
-- [ ] **Step 2:** Change the `health` handler to fill `unreal_version` from `get_served_version`
-      (fallback to `hs.app.server_build_version` on 42P01/None), and add `pending_version`,
-      `deploy_healthy`, `failing_version`. Degrade-on-42P01 ⇒ `deploy_healthy:true` (never fail the
-      probe because the rollout table is missing).
-- [ ] **Step 3 (launcher contract):** Document that the launcher polls `/health.unreal_version` as the
-      **required client version** and downloads the matching build; `pending_version` is informational.
-      This is the runtime half of the V1 version-parity gate (the CI half is R1/R2).
-- [ ] **Step 4:** Decide whether `deploy_healthy:false` should also fail **`/ready`** (k8s readiness).
-      Recommendation: **NO** — keep `/ready` purely DB/pod liveness so a bad _game_ build doesn't
-      deregister the ROWS API pod (which the dashboard + launcher + orchestrator still need).
-      `deploy_healthy` is an _advisory_ deploy signal on `/health`, not a pod-readiness gate.
+- [ ] **Step 1:** Add repo reads `get_served_version(tenant) -> Option<String>` (`rolled=true`), `get_pending_version(tenant) -> Option<String>` (`rolled=false`), and an upsert `set_deploy_health(tenant, healthy: bool, failing_version: Option<&str>)`.
+- [ ] **Step 2:** Extend `HealthResponse` with `pending_version`, `deploy_healthy`, `failing_version`; fill `unreal_version` from `get_served_version` (fallback to `hs.app.server_build_version` on 42P01/None). Degrade-on-42P01 ⇒ `deploy_healthy:true` (never fail the probe because the rollout table is missing).
+- [ ] **Step 3 (launcher contract):** Document that the launcher polls `/health.unreal_version` as the required client version and downloads the matching build; `pending_version` is informational. This is the runtime half of the version-parity gate (the CI half is R1).
+- [ ] **Step 4:** Do **not** fail `/ready` on `deploy_healthy:false` — keep `/ready` purely DB/pod liveness so a bad game build doesn't deregister the ROWS API pod the dashboard, launcher, and orchestrator depend on. `deploy_healthy` is advisory on `/health` only.
 - [ ] **Step 5: Commit** — `feat(rows): /health reports authoritative PVC version + deploy_healthy (launcher + rollback surface)`.
 
 ---
 
-### Task 6: Runbook + spec cross-reference
+### Task 6: Supersede the legacy `restart_fleet` + give the barrier a terminal state
+
+**Files:** Modify `apps/rows/src/rest/system.rs`
+
+The imperative `POST /api/System/RestartFleet` (scale-to-0 → `delete_all_map_instances` → scale-up) still exists and force-drops every player. If an operator fires it during an in-flight cooperative drain, it deletes instances out from under the reconcile. The cooperative flow must supersede it.
+
+Separately, `all_drained`/`safe_to_roll` flip back to `false` the moment the operator clears `active`, so an orchestrator that re-polls after clearing reads "not drained." Give the rollout a terminal state so completion is unambiguous.
+
+- [ ] **Step 1:** Guard `restart_fleet` to refuse (HTTP 409) while a `fleet_restart` row is `active`, directing the caller to the cooperative flow. Keep it as a break-glass for when ROWS itself is the problem.
+- [ ] **Step 2:** Treat the completion of a roll as "operator/orchestrator sets `active=false` after a confirmed scale-up," not as a `safe_to_roll` reading. Document that a post-clear `/fleet-restart/status` returning `all_drained=false` is expected. The durable terminal record is `deploy_state.rolled=true` (Task 8), which the orchestrator sets after the soak (R3).
+- [ ] **Step 3: Build.** **Step 4: Commit** — `feat(rows): guard legacy restart_fleet against cooperative drain`.
+
+---
+
+### Task 7: Runbook + spec cross-reference
 
 **Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
 
-- [ ] Document the operator flow + the SQL to trigger/clear a restart, the lockout behavior, the
-      all-drained polling contract, and the named-orchestrator requirement (F2). Trigger SQL:
+- [ ] Document the operator flow: the SQL to trigger/clear a restart, the lockout behaviour (lifted automatically by the reconcile — never delete `admission_control` by hand), the `safe_to_roll` polling contract, the stuck-instance deadline, and the named-orchestrator handoff. Trigger SQL:
 
 ```sql
 SET search_path TO ows;
 
 -- Routine version roll (NON-AGGRESSIVE, safe-by-default): drain-to-natural-empty, no forced
--- disconnects. urgency=0, dropplayers=false. This is the default path.
+-- disconnects. urgency=0, dropplayers=false. The default path.
 INSERT INTO fleet_restart (customerguid, active, reason, urgency, dropplayers, stagger, batchsize, lockout, requestid)
 VALUES ('<tenant-guid>', true, 'fleet-restart', 0, false, false, 1, true, gen_random_uuid())
 ON CONFLICT (customerguid) DO UPDATE SET active = true, urgency = 0, dropplayers = false, requestid = gen_random_uuid();
 
--- Urgent / security roll (AGGRESSIVE, dashboard opt-in ONLY): save-then-disconnect at the deadline.
+-- Urgent / security roll (AGGRESSIVE, dashboard opt-in only): save-then-disconnect at the deadline.
 -- urgency=1, dropplayers=true. Never the automated default.
 -- ... DO UPDATE SET active = true, urgency = 1, dropplayers = true, requestid = gen_random_uuid();
 
--- After all_drained + deploy: clear it. The reconcile loop lifts the admission lockout itself
--- (set_admission(None)) on the next tick — do NOT manually DELETE admission_control (H-2: a manual
--- two-statement teardown silently locks players out if the second statement is missed).
+-- After safe_to_roll + deploy: clear it. The reconcile loop lifts the admission lockout itself
+-- (set_admission writes NULL) on the next tick. Do NOT manually DELETE admission_control — a manual
+-- two-statement teardown silently locks players out if the second statement is missed.
 UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
 ```
 
@@ -630,46 +422,21 @@ UPDATE fleet_restart SET active = false WHERE customerguid = '<tenant-guid>';
 
 ---
 
-## Phase 4 — End-to-end version rollout (the 5 requirements)
+## Phase 4 — End-to-end version rollout
 
-> **Status: DESIGN + tasks. Hard-depends on Phase 3 (Tasks 1–6) and the binary-delivery rework R0.**
-> This section closes the gap between "ROWS can drain + signal" and "bumping the beta version safely
-> ships a new server with zero mixed-version coexistence." It supersedes the imperative `restart_fleet`
-> and the manual _delete-the-pod_ flow.
+Phase 3 gives ROWS the drain mechanism and the `safe_to_roll` signal. Phase 4 turns "bump the beta version" into a safe ship with zero mixed-version coexistence. It supersedes the manual delete-the-pod flow. R0 is a hard prerequisite — until the server version is pinned, the barrier downstream cannot be trusted (see Preconditions).
 
-### ‼️ Architecture correction — the UE server version is NOT a container image tag
+### R0 (BLOCKER / prerequisite) — version-pinned binary delivery
 
-Verified against `apps/kube/agones/rows-tenants/chuckrpg-*/manifests/fleet.yaml`:
-
-- The `ue5-server` container image is a **fixed `ubuntu:24.04` base**. It never changes per release.
-- The actual cooked server is delivered via the **`ows-server-build` PVC**, mounted at `/server`, and
-  the pod runs **`/server/latest/LinuxServer/chuckServer.sh`** (a _mutable_ `latest/` path).
-- Therefore: **bumping a deployment `image:` tag (what `utils-post-publish.yml` does, and what the V1
-  section assumed) does NOT roll the UE server.** It only rolls the `ghcr.io/kbve/kubectl` sidecar.
-- **Latent bug (root cause of "can't guarantee all-old-gone"):** because the path is `latest/`, any
-  pod restart for _any_ reason (crash, eviction, node drain, autoscale) silently loads whatever build
-  currently sits in `latest/` → an **accidental mixed-version fleet with no deploy action**. Version
-  coexistence is currently _unpreventable_, so no barrier downstream can be trusted until R0 lands.
-
----
-
-### R0 (BLOCKER / prerequisite) — version-pinned binary delivery + gated pull
-
-**Goal:** make the running server version an explicit, immutable selector so (a) a pod restart never
-changes version, and (b) a rollout is a deliberate template change the orchestrator can gate.
+Make the running server version an explicit, immutable selector so a pod restart never changes version and a rollout is a deliberate template change the orchestrator can gate. The publish never deletes the old version: it adds the new path and keeps at least N-1, so a rollback is a re-pin, not a re-cook.
 
 **Files:**
 
 - Modify: `apps/kube/agones/rows-tenants/chuckrpg-{beta,prod,dev}/manifests/fleet.yaml`
-- Modify: the build-publish step that writes the PVC (the job that populates `ows-server-build` —
-  trace from `ows-build-reporter` / the CI that cooks `chuckServer.sh`; pin exact path during R0).
+- Modify: the CI job that populates the `ows-server-build` PVC (trace from `ows-build-reporter` / the job that cooks `chuckServer.sh`; pin the exact job here).
 
-- [ ] **Step 1: Stage builds into versioned, immutable paths.** The publish writes
-      `/server/<version>/LinuxServer/chuckServer.sh` (e.g. `/server/0.3.46/...`) and **stops
-      overwriting `latest/`** (or keeps `latest/` only as a human convenience symlink that the Fleet
-      never references).
-- [ ] **Step 2: Pin the Fleet to an explicit version**, not `latest`. Drive it by env so the template
-      diff is the rollout trigger:
+- [ ] **Step 1: Stage builds into versioned, immutable paths.** Publish writes `/server/<version>/LinuxServer/chuckServer.sh` (e.g. `/server/0.3.46/...`) and stops overwriting `latest/` (keep `latest/` only as a human convenience symlink the Fleet never references).
+- [ ] **Step 2: Pin the Fleet to an explicit version** via env so the template diff is the rollout trigger:
 
 ```yaml
 # fleet.yaml — ue5-server container
@@ -678,203 +445,175 @@ env:
       value: '0.3.46' # bumped by the gated post-publish PR; the ONLY rollout trigger
     - name: OWS_SERVER_BIN
       value: /server/$(OWS_SERVER_VERSION)/LinuxServer/chuckServer.sh
-# add a pod/template label so Agones treats a version change as a new GameServer template:
 template:
     metadata:
         labels:
-            ows.kbve.com/server-version: '0.3.46'
+            ows.kbve.com/server-version: '0.3.46' # so Agones treats a version change as a new template
 ```
 
-- [ ] **Step 3: Remove the `find … | tail -1` "auto-detect newest" fallback** in the container command
-      (fleet.yaml lines ~77–80) — auto-picking the newest dir on disk re-introduces the silent-upgrade
-      bug R0 exists to kill. Fail closed if the pinned version is absent.
-- [ ] **Step 4:** Confirm the PVC access mode supports concurrent versioned dirs (it's `ows-server-build`,
-      shared RWX/ROX); old pods keep reading their `<old-version>/` dir while the new build lands in
-      `<new-version>/`. No mutation of in-use files.
-- [ ] **Step 5: Retention — never delete the old version at publish time.** The publish job _adds_
-      `/server/<new-version>/` and **must not remove any prior version dir**. Pruning is a _separate,
-      later_ GC step gated on the new version being **confirmed rolled out** (R3 Step 6), and it always
-      **keeps at least N-1** so a binary rollback is a re-pin, not a re-cook. Concretely: a
-      `prune-old-server-builds` job deletes `<version>/` only when `deploy_state.rolled=true` for a
-      _newer_ version AND `<version>` is older than the retained window (keep current + N-1). It runs
-      **after** R3 confirmation, never during the cutover.
-- [ ] **Step 6: Commit** — `fix(chuck): pin UE server to versioned build path, drop mutable latest/, retain N-1`.
-
-> 🕳️ **Where the binary is written** (which CI job populates the PVC) must be pinned in R0 Step 1; the
-> parity gate (R1) and versioned staging both live there. Not yet traced in this plan.
+- [ ] **Step 3: Remove the `find … | tail -1` "auto-detect newest" fallback** in the container command (fleet.yaml lines ~77–80) — auto-picking the newest dir re-introduces the silent-upgrade bug. Fail closed if the pinned version is absent.
+- [ ] **Step 4:** Confirm the `ows-server-build` PVC access mode supports concurrent versioned dirs (shared RWX/ROX); old pods keep reading their `<old-version>/` dir while the new build lands in `<new-version>/`, with no mutation of in-use files.
+- [ ] **Step 5: Set `terminationGracePeriodSeconds` on the Fleet pod spec to exceed the save budget** (unset ⇒ 30s ⇒ SIGKILL can eat saves mid-drain). Same fleet.yaml edit.
+- [ ] **Step 6: Retention GC, never delete at publish time.** Add a `prune-old-server-builds` job that deletes `<version>/` only when `deploy_state.rolled=true` for a newer version AND `<version>` is older than the retained window (keep current + N-1). It runs after R3's soak confirmation, never during a cutover.
+- [ ] **Step 7: Commit** — `fix(chuck): pin UE server to versioned build path, drop mutable latest/, retain N-1, set TGPS`.
 
 ---
 
-### R1+R2 (BLOCKER) — server roll waits for the Windows client build (version-parity gate)
+### R1 (BLOCKER) — version-parity gate: server roll waits for the Windows client build
 
-**Requirement:** bumping beta builds _both_ game and server; the **server must not roll until the
-client (Windows minimum) for that version is published.** A server speaking a new protocol with no
-client to speak it = every player bounced, none can reconnect.
+A server speaking a new protocol with no client to speak it bounces every player and none can reconnect. Gate the roll on client⟷server parity at the post-publish / dispatch layer (not ROWS). For image-tagged services the existing `utils-post-publish.yml` auto-PR bumps `version.toml` + the deployment `image:` tag; for chuck the same PR instead bumps `OWS_SERVER_VERSION` (R0).
 
-**Files:**
+**Files:** Modify `.github/workflows/utils-post-publish.yml` (the auto-PR) and/or the rows publish workflow.
 
-- Modify: `.github/workflows/utils-post-publish.yml` (the auto-PR) **and/or** the rows publish workflow.
-
-- [ ] **Step 1: Define the client-published signal.** Pick the source of truth (decision, V1 hole):
-      launcher manifest entry / itch|Steam channel API / a `client_versions` DB row. Recommended: a
-      `client_versions(version, platform, published_at)` row written by the **client** build job, so
-      the check is a cheap DB/HTTP lookup with no third-party coupling.
-- [ ] **Step 2: Make the rows post-publish PR carry a required status check** `version-parity/windows`
-      that is **red until** the matching client `windows` build for that version is published. The PR
-      **cannot merge** while red. Merge is the deliberate, reviewable roll trigger (no out-of-band Argo
-      drift), and it bumps `OWS_SERVER_VERSION` (R0), not a meaningless `image:` tag.
-- [ ] **Step 3: Scope to beta first** (prod not live). The automated sync fires only once **both** the
-      server build _and_ the Windows client build for the version exist.
+- [ ] **Step 1: Define the client-published signal.** Recommended: a `client_versions(version, platform, published_at)` row written by the client build job, so the check is a cheap DB/HTTP lookup with no third-party coupling. (Alternatives: launcher manifest entry, itch/Steam channel API.)
+- [ ] **Step 2: Add a required status check** `version-parity/windows` on the rows post-publish PR that is red until the matching Windows client build for that version is published. The PR cannot merge while red. Merge is the deliberate, reviewable roll trigger; it bumps `OWS_SERVER_VERSION`.
+- [ ] **Step 3: Scope to beta first** (prod not live). The automated sync fires only once both the server build and the Windows client build for the version exist.
 - [ ] **Step 4: Commit** — `feat(ci): version-parity gate (windows client) on rows server roll`.
 
 ---
 
-### R3 (BLOCKER / B4) — non-aggressive orchestrated roll: drain → all-old-gone barrier → cutover
+### R2 (BLOCKER) — migration safety (expand-contract)
 
-**Requirement:** on merge of the gated PR, do a **non-aggressive** roll — drain to natural-empty, and
-**only roll the new build once ALL old UE servers are gone** (no mixed versions, no forced drops).
+The `dbmate` migration runs at the barrier before the new binary launches. If the new binary is bad and you roll back, the old binary runs on the new schema — so every migration shipped with a binary roll must be additive, and rollback is forward-fix only (no `dbmate down`).
 
-This is the named **B4 orchestrator**. ROWS only signals (`safe_to_roll`); the orchestrator sequences
-the cutover. Because chuck's Fleet is `RollingUpdate, maxSurge:25%` under Argo `automated.prune:true`,
-a bare template apply would surge new pods alongside draining old ones — so the cutover **must scale to
-0 first**.
+**Files:** Modify CI (a migration-lint step) + the runbook.
+
+- [ ] **Step 1:** Add a CI guard that rejects non-additive DDL (DROP COLUMN/TABLE, NOT NULL without default, type narrowing) in a migration shipping alongside a server-version bump.
+- [ ] **Step 2:** Add a pre-deploy compat test: run the N-1 binary against schema N and assert it boots + serves.
+- [ ] **Step 3:** Document forward-fix recovery in the runbook: rollback is a re-pin of `OWS_SERVER_VERSION` to the retained old build; never `dbmate down`.
+- [ ] **Step 4: Commit** — `feat(ci): expand-contract migration guard + N-1 compat test`.
+
+---
+
+### R3 (BLOCKER) — the deploy orchestrator: drain → all-old-gone barrier → cutover
+
+On merge of the gated PR, do a non-aggressive roll and only roll the new build once every old server is gone. ROWS only signals (`safe_to_roll`); this named orchestrator sequences the cutover. Because chuck's Fleet is `RollingUpdate, maxSurge:25%` under Argo `automated.prune:true`, a bare template apply would surge new pods alongside draining old ones — so the cutover must scale to 0 first.
 
 **Files:**
 
-- Create: Argo Workflow (or Argo Rollouts/PreSync hook) under `apps/kube/.../chuckrpg-*/` —
-  `rollout-orchestrator.yaml`.
+- Create: an Argo Workflow (or Argo Rollouts / PreSync hook) under `apps/kube/.../chuckrpg-*/` — `rollout-orchestrator.yaml`.
 - Modify: `fleet.yaml` strategy for the cutover window (`maxSurge: 0`).
 
-- [ ] **Step 1: On merge, open a non-aggressive `fleet_restart`** (the post-publish PR's post-merge
-      hook, or the Workflow's first step) — `urgency=0, dropplayers=false, lockout=true` (safe defaults
-      from Task 1). ROWS reconcile (Task 3) drains to natural-empty.
-- [ ] **Step 2: Poll `GET /fleet-restart/status` for `safe_to_roll == true`** — i.e. DB
-      `draining==0` **and** Agones `gameservers==0`. This is the hard "all old gone" barrier (Task 5).
-      No timeout on the non-aggressive path (it waits for players to leave); the aggressive path (R4)
-      supplies the deadline.
-- [ ] **Step 3: Scale the Fleet to 0 and confirm 0 GameServers** (belt-and-suspenders; pods reaped,
-      grace period elapsed). Set `strategy.rollingUpdate.maxSurge: 0` for the cutover so no new-version
-      pod can co-exist with an old one.
-- [ ] **Step 4: Apply the version bump** (`OWS_SERVER_VERSION` from R0) **and** run the `dbmate`
-      migration Job — _now_, at the barrier, with zero old binaries running (B-2 expand-contract still
-      applies: the migration must be additive so a rollback of the binary doesn't strand schema).
-- [ ] **Step 5: Scale the Fleet back up** (new version), restore `maxSurge:25%`, then **clear the
-      `fleet_restart` row** (`active=false`) — ROWS reconcile auto-lifts the admission lockout (H-2). A
-      post-clear status poll reading `all_drained=false` is expected, not an error.
-- [ ] **Step 6: Confirm the new version is healthy BEFORE marking the roll done or deleting the old
-      build.** Wait until the Fleet has `readyReplicas >= desired` with **GameServers carrying the new
-      `ows.kbve.com/server-version` label** Ready for a soak window (e.g. ≥5 min, no crash-loop — this
-      is the live guard against the known login-crash class). On success: set `deploy_state.rolled=true`
-      for the new version. **The old `/server/<old-version>/` dir is NOT pruned here** — it stays for
-      rollback; the R0 Step-5 GC removes it later, keeping N-1.
-- [ ] **Step 7: On a FAILED soak — no auto-rollback. Mark the tenant unhealthy and stop.** The
-      orchestrator does **not** automatically re-pin. Instead it sets `deploy_state.health='unhealthy'`
-      so **`GET https://api-beta.chuckrpg.com/health`** reports `deploy_healthy:false` + `failing_version`
-      (Task 5b) — externally visible and alertable. `deploy_state.rolled` stays `false` (update still
-      "pending", R5). A human then decides; the orchestrator halts.
-- [ ] **Step 8: Manual rollback is a fast re-pin, not a re-cook (operator-initiated).** Because the old
-      build was retained (R0 Step 5), an operator rolls back by setting `OWS_SERVER_VERSION` back to
-      `<old-version>` and re-running the scale-to-0 cutover (Steps 1–5) — typically via the aggressive
-      R4 trigger. No `dbmate down` (B-2 forward-fix; the migration was additive, so the old binary runs
-      fine on the new schema). Document the exact re-pin SQL/commit in the runbook.
+- [ ] **Step 1:** On merge, open a non-aggressive `fleet_restart` (`urgency=0, dropplayers=false, lockout=true`). ROWS drains to natural-empty.
+- [ ] **Step 2:** Poll `GET /fleet-restart/status` for `safe_to_roll == true` (DB `draining==0` and Agones `gameservers==0`). No timeout on the non-aggressive path; the aggressive path (R4) supplies the deadline.
+- [ ] **Step 3:** Scale the Fleet to 0 and confirm 0 GameServers (pods reaped, grace period elapsed). Set `strategy.rollingUpdate.maxSurge: 0` for the cutover so no new-version pod co-exists with an old one.
+- [ ] **Step 4:** Apply the version bump (`OWS_SERVER_VERSION`) and run the `dbmate` migration Job — now, at the barrier, with zero old binaries running (migration must be additive, R2).
+- [ ] **Step 5:** Scale the Fleet back up (new version), restore `maxSurge:25%`, then clear the `fleet_restart` row (`active=false`); ROWS auto-lifts the lockout.
+- [ ] **Step 6:** Confirm the new version is healthy before marking the roll done or deleting the old build: wait until `readyReplicas >= desired` with GameServers carrying the new `ows.kbve.com/server-version` label Ready for a soak window (≥5 min, no crash-loop — the live guard against the known login-crash class). On success, set `deploy_state.rolled=true`. The old `/server/<old-version>/` dir is not pruned here; the R0 GC removes it later, keeping N-1.
+- [ ] **Step 7:** On a FAILED soak, no auto-rollback: set `deploy_state.health='unhealthy'` so `https://api-beta.chuckrpg.com/health` reports `deploy_healthy:false` + `failing_version` (Task 5b), externally visible and alertable. `deploy_state.rolled` stays `false` (update still pending). The orchestrator halts; a human decides.
+- [ ] **Step 8:** Document manual rollback as a fast re-pin (operator-initiated): set `OWS_SERVER_VERSION` back to `<old-version>` and re-run the cutover (Steps 1–5), typically via the R4 trigger. No `dbmate down`.
 - [ ] **Step 9: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover, confirm-then-mark, unhealthy-on-fail)`.
-
-> 🕳️ **Precondition:** the Agones barrier (`gameservers==0`) can only be exercised once chuck servers
-> actually reach `Ready()` — today the fleet sits at `replicas:0` and servers hang at login
-> (lifecycle/`project_chuckrpg_ready_hang`). R3 is untestable end-to-end until that game-side bug clears.
 
 ---
 
 ### R4 — aggressive "N minutes to restart" trigger endpoint (cluster-internal only)
 
-**Requirement:** a dashboard button triggers an **aggressive** roll — "5 minutes till server restart,"
-save-then-disconnect at the deadline — via an API route. The route is **not public**; it's reachable
-only inside the cluster, and a separate gateway service handles dashboard auth/permissions.
-
-**Files:** Modify `apps/rows/src/rest/system.rs`
-
-**Interfaces:**
-
-- Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }`
-  → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `drain_deadline = now()
-    - grace_secs`(default **300s = 5 min**),`lockout=true`. Returns `409 Conflict`if a restart is
-  already`active`; returns \*\*`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
-
-- [ ] **Step 1: Implement the handler** — validates `mode`, computes the deadline, upserts via a new
-      `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo fn (mirrors `set_admission`'s upsert).
-      The 5-min countdown deadline is written to the `fleet_restart` row; ROWS reconcile passes it to
-      `set_drain_state(... deadline ...)`, and the H-3 deadline enforcement force-deallocates at expiry.
-- [ ] **Step 2: Player countdown.** The `drain_deadline` is surfaced to UE so it renders "restarting in
-      X." **Today `ShutdownNotifier` is logging-only** — wiring the real broadcast is a UE-side
-      obligation (cross-repo hole; ROWS only supplies the deadline).
-- [ ] **Step 3: Auth posture — identical to Task 5: NOT public.** No Ingress/Gateway route; cluster-
-      internal Service only; NetworkPolicy allows the dashboard-gateway pod(s); ROWS trusts the
-      in-cluster caller and does not implement user auth (the gateway enforces dashboard RBAC).
-- [ ] **Step 4: Commit** — `feat(rows): POST /fleet-restart/trigger (aggressive deadline, cluster-internal)`.
-
----
-
-### R5 — the trigger route is gated on an actual pending update
-
-**Requirement:** the aggressive route (and the dashboard button) is **only available if there is
-actually an update pending** — you can't "restart to deploy" when there's nothing to deploy.
+A dashboard button triggers an aggressive roll — "5 minutes till restart," save-then-disconnect at the deadline — via an API route. The route is not public; a separate gateway service handles dashboard auth.
 
 **Files:** Modify `apps/rows/src/rest/system.rs`, `apps/rows/src/repo/instances.rs`
 
 **Interfaces:**
 
-- Produces: `GET /fleet-restart/pending` → `{ pending: bool, target_version: string|null }`.
-  `pending = (a gated parity-passed version bump is merged-but-not-yet-rolled)`. Source: compare the
-  **merged target `OWS_SERVER_VERSION`** (R0/R1) against the **currently-serving** version
-  (`ows.kbve.com/server-version` label on live GameServers, or a `deploy_state` row the post-publish
-  PR writes on merge).
+- Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }` → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `drain_deadline = now() + grace_secs` (default 300s), `lockout=true`. Returns `409 Conflict` if a restart is already `active`; returns `404 Not Found` for aggressive mode unless an update is pending (R5). Backed by a new `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo upsert (mirrors `set_admission`).
 
-- [ ] **Step 1: Implement `get_pending_update(tenant)`** — reads the `deploy_state(tenant,
-target_version, rolled, health)` row (written `rolled=false, health='healthy'` by the R1 post-merge
-      hook; `rolled` set `true` by the R3 orchestrator **only after the new-version soak confirms
-      healthy — R3 Step 6**, not at scale-up; `health='unhealthy'` on failed soak — R3 Step 7 / Task
-      5b). `pending = row exists && !rolled`. Degrade on 42P01 (inert) like `get_fleet_restart`.
-- [ ] **Step 2: `POST /fleet-restart/trigger` (mode=aggressive) returns `404` when `!pending`.** The
-      dashboard greys out the button off the same `GET /fleet-restart/pending`. Non-aggressive
-      auto-path doesn't need this gate (it _is_ the merge that creates the pending state).
-- [ ] **Step 3: Commit** — `feat(rows): pending-update gate for fleet-restart trigger (R5)`.
+- [ ] **Step 1: Implement the handler** — validate `mode`, compute the deadline, upsert. The deadline is written to the `fleet_restart` row; the reconcile passes it to `set_drain_state(... deadline ...)` and enforces it (Task 4 Step 3).
+- [ ] **Step 2: Player countdown.** ROWS supplies `drain_deadline`; the "restarting in X" message is UE-rendered. Today `ShutdownNotifier` is logging-only — wiring the real broadcast is a UE-side obligation (cross-repo).
+- [ ] **Step 3: Keep it NOT public** — same posture as Task 5 Step 2: cluster-internal Service only, NetworkPolicy allows the dashboard-gateway pod(s), no user auth in ROWS.
+- [ ] **Step 4: Commit** — `feat(rows): POST /fleet-restart/trigger (aggressive deadline, cluster-internal)`.
+
+---
+
+### R5 — gate the trigger on an actual pending update
+
+The aggressive route (and the dashboard button) is only available when an update is actually pending — you can't restart-to-deploy with nothing to deploy.
+
+**Files:** Modify `apps/rows/src/rest/system.rs`, `apps/rows/src/repo/instances.rs`. Depends on the `deploy_state` table (Task 8 — build it first).
+
+**Interfaces:**
+
+- Produces: `GET /fleet-restart/pending` → `{ pending: bool, target_version: string|null }`.
+
+- [ ] **Step 1: Implement `get_pending_update(tenant)`** — reads `deploy_state(tenant, target_version, rolled, health)`: written `rolled=false, health='healthy'` by the R1 post-merge hook; `rolled` set `true` by the R3 orchestrator only after the soak confirms healthy (R3 Step 6); `health='unhealthy'` on failed soak (R3 Step 7). `pending = row exists && !rolled`. Degrade on 42P01 (inert).
+- [ ] **Step 2:** `POST /fleet-restart/trigger` (aggressive) returns `404` when `!pending`; the dashboard greys out the button off the same `GET /fleet-restart/pending`. The non-aggressive auto-path doesn't need this gate (the merge is what creates the pending state).
+- [ ] **Step 3: Commit** — `feat(rows): pending-update gate for fleet-restart trigger`.
+
+---
+
+### Task 8: `deploy_state` table (backs R5 + Task 5b)
+
+**Files:** Create `packages/data/sql/dbmate/migrations/20260629130000_ows_deploy_state.sql` + `packages/data/sql/schema/ows/deploy_state.sql`.
+
+- [ ] **Step 1: Migration** (timestamp after Task 1's `20260629120000`):
+
+```sql
+-- migrate:up
+SET search_path TO ows;
+CREATE TABLE IF NOT EXISTS deploy_state
+(
+    CustomerGUID  UUID    NOT NULL,
+    TargetVersion TEXT    NOT NULL,
+    Rolled        BOOLEAN NOT NULL DEFAULT false,
+    Health        TEXT    NOT NULL DEFAULT 'healthy',
+    UpdatedAt     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT PK_DeployState PRIMARY KEY (CustomerGUID),
+    CONSTRAINT chk_health CHECK (Health IN ('healthy','unhealthy'))
+);
+ALTER TABLE deploy_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE deploy_state FORCE ROW LEVEL SECURITY;
+REVOKE ALL ON deploy_state FROM anon, authenticated, PUBLIC;
+GRANT SELECT, INSERT, UPDATE, DELETE ON deploy_state TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON deploy_state TO ows;
+CREATE POLICY ows_access ON deploy_state FOR ALL TO ows USING (true) WITH CHECK (true);
+CREATE POLICY service_role_access ON deploy_state FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- migrate:down
+SET search_path TO ows;
+DROP TABLE IF EXISTS deploy_state;
+```
+
+- [ ] **Step 2: Reference schema** mirroring the above. **Step 3: Commit** — `feat(rows): deploy_state table (rollout target + health)`.
 
 ---
 
 ### Requirement → task traceability
 
-| #   | Your requirement                                                 | Task(s)                             | Notes                                                                                                  |
-| --- | ---------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 0   | Don't pull mutable `latest`; pin the version                     | **R0**                              | Prereq for everything; kills accidental mixed-version                                                  |
-| 1   | Bump beta builds game + server                                   | R1 (gate) + existing build CI       | Build itself is existing pipeline; gate is new                                                         |
-| 2   | Server waits for Windows client build                            | **R1/R2**                           | Required merge status check; signal source = open decision                                             |
-| 3   | Merge → non-aggressive, roll only when no players / all old gone | **R3 (B4)** + Task 5 `safe_to_roll` | Two-level barrier (DB + Agones), scale-to-0 `maxSurge:0` cutover                                       |
-| 4   | Aggressive "5-min restart" via dashboard API                     | **R4**                              | `POST /fleet-restart/trigger`, deadline=300s, cluster-internal                                         |
-| 5   | Route only if update pending                                     | **R5**                              | `GET /fleet-restart/pending`; 404 otherwise; button greyed                                             |
-| +   | Endpoints not public                                             | Task 5 + R4 Step 3                  | ClusterIP + NetworkPolicy; gateway service owns auth                                                   |
-| +   | No roll until ALL old gone                                       | R3 Step 2–3                         | `safe_to_roll` = `draining==0 && gameservers==0`                                                       |
-| +   | Delete old version only after new confirmed                      | R0 Step 5 + R3 Step 6               | Retain N-1; prune is a post-soak GC                                                                    |
-| +   | No auto-rollback; failed build ⇒ mark unhealthy + manual re-pin  | R3 Step 7–8 + Task 5b               | Failed soak flips `/health` `deploy_healthy:false`; re-pin is operator-initiated                       |
-| +   | `/health` reports authoritative PVC version for the launcher     | Task 5b Step 2–3                    | `unreal_version` from DB `deploy_state` (currently null/in-memory); launcher downloads matching client |
+| #   | Requirement                                                | Task(s)                    | Notes                                                                          |
+| --- | ---------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ |
+| 0   | Don't pull mutable `latest`; pin the version               | R0                         | Prereq for everything; kills accidental mixed-version                          |
+| 1   | Bump beta builds game + server                             | R1 + existing build CI     | Build is the existing pipeline; the gate is new                                |
+| 2   | Server waits for Windows client build                      | R1                         | Required merge status check; signal source = `client_versions` (open decision) |
+| 3   | Merge → non-aggressive, roll only when all old gone        | R3 + Task 5 `safe_to_roll` | Two-level barrier (DB + Agones), scale-to-0 `maxSurge:0` cutover               |
+| 4   | Aggressive "5-min restart" via dashboard API               | R4                         | `POST /fleet-restart/trigger`, deadline 300s, cluster-internal                 |
+| 5   | Route only if update pending                               | R5                         | `GET /fleet-restart/pending`; 404 otherwise; button greyed                     |
+| +   | Endpoints not public                                       | Task 5 Step 2 + R4 Step 3  | ClusterIP + NetworkPolicy; gateway service owns auth                           |
+| +   | No roll until ALL old gone                                 | R3 Step 2–3                | `safe_to_roll = draining==0 && gameservers==0`                                 |
+| +   | Delete old version only after new confirmed                | R0 Step 6 + R3 Step 6      | Retain N-1; prune is a post-soak GC                                            |
+| +   | No auto-rollback; failed build ⇒ unhealthy + manual re-pin | R3 Step 7–8 + Task 5b      | Failed soak flips `/health` `deploy_healthy:false`                             |
+| +   | `/health` reports authoritative PVC version                | Task 5b                    | `unreal_version` from `deploy_state`; launcher downloads matching client       |
 
 ---
 
-## Holes (revisit)
+## Tests to write
 
-- 🕳️ **W1 drain-complete ack** — batch convergence + barrier precision use the `status=0` proxy until UE advertises a drain-complete signal (capability handshake).
-- ✅ **F2 orchestrator** — now specified as **R3 (B4)**: scale-to-0 cutover gated on `safe_to_roll`. (Was a hole; promoted to a task. Still requires building the Argo Workflow.)
-- ✅ **Image-tag premise corrected** — the UE server version is a **PVC path (`/server/<version>/`)**, not a container `image:` tag; the post-publish image bump does NOT roll the server. Fixed by **R0** (version-pinned binary delivery). The V1 section's "post-publish PR bumps the deployment image: tag" line applies to image-tagged services (e.g. axum-kbve), NOT the chuck Fleet — for chuck, R1 bumps `OWS_SERVER_VERSION`.
-- 🕳️ **Version targeting** — MVP drains all active; `target_version`-selective drain (rolling) deferred until the running version is surfaced to ROWS. (R0's `ows.kbve.com/server-version` label is the surface when this lands.)
-- 🕳️ **B1 save budget** — the chuck Fleet `terminationGracePeriodSeconds` must exceed the save budget, else SIGKILL eats saves mid-restart (chuck/agones repo, not ROWS). Set it in the same R0 fleet.yaml edit.
-- 🕳️ **Player broadcast / countdown** — "restarting in X" messaging is UE-rendered; ROWS supplies `drain_deadline` (R4 writes the 5-min deadline). The notify seam (`ShutdownNotifier`) is logging-only today — real broadcast is a UE-side obligation.
-- 🕳️ **Stagger by zone vs by server** — this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
+- Reconcile lifts the lockout on `active=false` (write `Some(false)`, set inactive, assert next tick writes `NULL`).
+- Two-replica reconcile race: the advisory lock single-flights — only one replica fans `set_drain_state` per tick.
+- Spawn-during-drain: a new instance appearing mid-drain must not pin `safe_to_roll=false` forever once the deadline fires.
+- Safe-default control row: a row with unspecified columns never force-disconnects (`urgency=0, dropplayers=false`).
+- Degrade-on-missing-table (42P01) for `get_fleet_restart`, `get_pending_update`, `get_served_version`.
+- ROWS-crash-mid-drain resume: kill ROWS mid-restart; on restart it re-derives the batch from `drainstate IS NULL` and re-applies/lifts the lockout idempotently.
+- No-surge-while-draining: assert the orchestrator never applies the new version while `gameservers > 0`.
+- Rollback drill: N-1 binary boots on schema N (R2 compat test).
+- TGPS vs save budget: a drained pod completes its save before SIGKILL.
 
----
+## Deferred / out of scope (tracked, not built here)
+
+- **UE drain-complete ack (W1):** batch convergence + barrier precision use the `status=0` proxy until UE advertises a drain-complete signal. Swap when it lands.
+- **Version-selective drain:** the MVP drains all active instances (`target_version` reserved but unused); draining only `≠ target_version` (true rolling) is deferred until the running version is surfaced per-instance.
+- **Stagger by zone:** this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
+- **Client-published signal source:** R1 Step 1 recommends `client_versions`, but the final choice (manifest / Steam-itch / DB row) is pinned when the dispatch step is built.
+- **UE player-countdown broadcast:** ROWS supplies the deadline; the in-game "restarting in X" render and the `ShutdownNotifier` wiring are UE-side (`docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md`).
 
 ## Next up
 
-**Phase 4 — Reaper v2 (valkey-backed occupancy) + UE drain contract** → tracked in the lifecycle spec `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md` ("Out of scope" / "Reaper v2"). These are the cross-repo / decision-blocked items (W1 UE ack, B4 orchestrator, valkey occupancy) — no executable ROWS plan yet; each gets its own once its blocker clears.
+**Reaper v2 (valkey-backed occupancy) + UE drain contract** — tracked in the lifecycle spec `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`. Cross-repo / decision-blocked (UE ack, valkey occupancy); each gets its own plan once its blocker clears.
 
-**Cross-repo (chuck/UE):** the UE-side obligations are spec'd in `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md` (living doc — update it after each ROWS phase).
-
-(Previous: Phase 2 Admission → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`. This is the last ROWS-side buildable phase.)
+(Previous: Phase 2 Admission → `docs/superpowers/plans/2026-06-24-rows-drain-admission.md`.)
