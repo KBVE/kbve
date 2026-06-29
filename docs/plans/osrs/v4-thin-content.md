@@ -322,6 +322,13 @@ Blog posts can also reuse the `faq[]` + `about.sections[]` content model from §
 \* degraded undercounted — Barrows charge states need a tighter regex. Full
 enumeration + per-class final decisions land in Phase 4.
 
+**Dose variants are NOT in this table — they are distinct items.** Potion dose
+suffixes `(1)/(2)/(3)/(4)` and `(m)` mixes are separately tradeable in OSRS, each
+with its own GE price, value, and alch, so they are **not** canonical-collapsed like
+the cosmetic/state variants above. Enrich every dose as its own v4 page (shared
+mechanics, differentiated by dose/price/value/alch, dose siblings cross-linked). The
+audit's `classify_variant` deliberately does **not** flag dose suffixes for this reason.
+
 ---
 
 ## 8. Per-Archetype Content Contract (v4)

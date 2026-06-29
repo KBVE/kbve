@@ -39,12 +39,19 @@ LFS smudge can 404 in fresh worktrees — prefix git ops with `GIT_LFS_SKIP_SMUD
 4. **Attribution.** Add the `source` block (Wiki URL + `CC BY-NC-SA 3.0` + fetch date).
 5. **Bump** `mdx_version: 4` and set `mdx_updated` to the run date (ISO `YYYY-MM-DD`).
 6. **Skip / canonical, do not enrich:**
-    - **Variants** (poison `(p)`, ornament `(g)/(t)/(or)`, trimmed `(h1..5)`, degraded
-      `100/75/50/25/0`, charged): these canonical → base; leave minimal.
+    - **Cosmetic/state variants** (poison `(p)`, ornament `(g)/(t)/(or)`, trimmed
+      `(h1..5)`, degraded `100/75/50/25/0`, charged): these canonical → base; leave minimal.
     - **No Wiki page** (speculative/future content — e.g. Sailing-era sigils, Ironwood,
       Raging Echoes, Golovanova): cannot Wiki-source. Flag and skip; do not invent.
     - The one **blank-name** STUB: skip; flag as a broken file for manual fix.
-7. **Validate before commit** (§4). A page that fails `astro sync` is not done.
+7. **Dose variants are NOT skipped — they are distinct items.** Potion dose suffixes
+   `(1)/(2)/(3)/(4)` and `(m)` mixes are separate tradeable items in OSRS with their
+   own GE price, value, and alch. Enrich EACH dose as its own v4 page — do **not**
+   canonical-collapse them. They share mechanics (effect, recipe, requirements) but
+   differ on dose count, price, value, and alch; lead the `about` with the dose, and
+   cross-link the sibling doses via `related_items`. Most efficient to enrich a whole
+   dose family `(1)..(4)` + mixes in one pass.
+8. **Validate before commit** (§4). A page that fails `astro sync` is not done.
 
 ---
 
