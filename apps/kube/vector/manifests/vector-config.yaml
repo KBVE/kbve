@@ -4,8 +4,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-05-19T00:00:00Z'
-        kbve.sh/config-version: v7-lua-inline-hooks
+        kbve.sh/last-updated: '2026-06-29T00:00:00Z'
+        kbve.sh/config-version: v8-structured-metadata
     labels:
         kbve.com/category: observability
         kbve.com/stack: core
@@ -74,7 +74,7 @@ data:
         \ .appname == \"postgres\"'\n      analytics: '.appname == \"logflare\" || .appname\
         \ == \"supabase-analytics\"'\n      meta: '.appname == \"postgres-meta\" || .appname\
         \ == \"supabase-meta\"'\n      studio: '.appname == \"studio\" || .appname ==\
-        \ \"supabase-studio\"'\n      firecracker: '.appname == \"firecracker-ctl\"'\n\
+        \ \"supabase-studio\"'\n      firecracker: '.appname == \"firecracker-ctl\"'\n      ingress: '.pod_namespace == \"ingress-nginx\"'\n      certmanager: '.pod_namespace == \"cert-manager\"'\n      externalsecrets: '.pod_namespace == \"external-secrets-system\"'\n      cnpg: '.pod_namespace == \"cnpg-system\"'\n\
         \  kong_logs:\n    type: remap\n    inputs:\n      - router.kong\n    source:\
         \ |-\n      req, err = parse_nginx_log(.event_message, \"combined\")\n      if\
         \ err == null {\n          .timestamp = req.timestamp\n          .metadata.request.headers.referer\
@@ -126,10 +126,10 @@ data:
         \      if err == null {\n          .metadata = merge!(.metadata, parsed)\n   \
         \   }\n\n  studio_logs:\n    type: remap\n    inputs:\n      - router.studio\n\
         \    source: |-\n      .metadata.service = \"studio\"\n      .metadata.host =\
-        \ .project\n\n  # Normalize all service logs into the ClickHouse schema\n  ch_normalize:\n\
+        \ .project\n\n  ingress_logs:\n    type: remap\n    inputs:\n      - router.ingress\n    source: |-\n      .metadata.service = \"ingress-nginx\"\n      parsed, err = parse_json(.event_message)\n      if err == null {\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }\n          if exists(parsed.level) { .severity = string(parsed.level) ?? \"\" }\n          .metadata = merge!(.metadata, parsed)\n      }\n  certmanager_logs:\n    type: remap\n    inputs:\n      - router.certmanager\n    source: |-\n      .metadata.service = \"cert-manager\"\n      parsed, err = parse_json(.event_message)\n      if err == null {\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }\n          if exists(parsed.level) { .severity = string(parsed.level) ?? \"\" }\n          .metadata = merge!(.metadata, parsed)\n      }\n  externalsecrets_logs:\n    type: remap\n    inputs:\n      - router.externalsecrets\n    source: |-\n      .metadata.service = \"external-secrets\"\n      parsed, err = parse_json(.event_message)\n      if err == null {\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }\n          if exists(parsed.level) { .severity = string(parsed.level) ?? \"\" }\n          .metadata = merge!(.metadata, parsed)\n      }\n  cnpg_logs:\n    type: remap\n    inputs:\n      - router.cnpg\n    source: |-\n      .metadata.service = \"cnpg\"\n      parsed, err = parse_json(.event_message)\n      if err == null {\n          if exists(parsed.msg) { .event_message = string(parsed.msg) ?? .event_message }\n          if exists(parsed.level) { .severity = string(parsed.level) ?? \"\" }\n          .metadata = merge!(.metadata, parsed)\n      }\n  # Normalize all service logs into the ClickHouse schema\n  ch_normalize:\n\
         \    type: remap\n    inputs:\n      - kong_logs\n      - kong_err\n      - auth_logs\n\
         \      - rest_logs\n      - realtime_logs\n      - storage_logs\n      - db_logs\n\
-        \      - analytics_logs\n      - meta_logs\n      - studio_logs\n      - router.functions\n\
+        \      - analytics_logs\n      - meta_logs\n      - studio_logs\n      - ingress_logs\n      - certmanager_logs\n      - externalsecrets_logs\n      - cnpg_logs\n      - router.functions\n\
         \      - router.firecracker\n      - router._unmatched\n      - namespace_heartbeat\n\
         \    source: |-\n      # Extract level from metadata fields first\n      .level\
         \ = string(.severity) ??\n               string(.metadata.level) ??\n        \
