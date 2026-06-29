@@ -33,6 +33,75 @@ impl OWSService {
 
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
+        // Admission gate (Phase 2): pause *new* joins game-wide or per-tenant. Travel (a character
+        // already on an active instance) is meant to bypass the gate; only a genuinely new join is
+        // subject to it.
+        //
+        // NOTE (Phase 2 reality): nothing populates `charonmapinstance` on join yet (#13555), so
+        // `is_character_on_active_instance` is currently always false and the travel-bypass is inert
+        // — today a freeze blocks ALL new joins. That is safe for now because in-world zone-to-zone
+        // travel is not a live client flow yet (#13556); a freeze just means "no new logins". The
+        // bypass below is forward-compatible scaffolding that starts working once #13555 lands.
+        let repo = InstanceRepo(&self.state.db);
+        // Travel detection FAILS OPEN: a read error (or no resolved character) must never strand a
+        // moving player. Key on the already-resolved CharacterID (F1).
+        let is_travel = match character.as_ref() {
+            Some(ch) => repo
+                .is_character_on_active_instance(customer_guid, ch.character_id)
+                .await
+                .unwrap_or(true),
+            None => false, // no character row → cannot be a travel → treat as a new join
+        };
+        if !is_travel {
+            // Admission read FAILS OPEN for a new join (F6 — operator sign-off). This read hits the
+            // PRIMARY, and the gate exists to run under load — exactly when the primary is stressed
+            // and the read may time out. Failing CLOSED here would reject *every* new login game-wide
+            // on a transient DB blip even with NO freeze set, while piling the gate's own extra query
+            // onto the stressed primary — manufacturing the outage it exists to prevent. So on a read
+            // error we fail OPEN (allow the join) and log. Trade-off: during a real freeze a read
+            // failure lets a new join slip through — acceptable for a soft load-shed (not a hard
+            // security gate). A hard-pause variant and a valkey-cached read that could safely fail
+            // CLOSED are both deferred (see plan Holes).
+            let open = match repo.get_admission_overrides(customer_guid).await {
+                Ok((tenant_ov, global_ov)) => {
+                    let allow = crate::config::effective_accept_new_joins(
+                        self.state.config.accept_new_joins,
+                        &tenant_ov,
+                        &global_ov,
+                    );
+                    if !allow {
+                        // An active freeze drops new logins silently otherwise — there is no metric
+                        // yet. Emit a server-side signal per blocked join (greppable/alertable) so an
+                        // operator can see the gate is doing work, and catch a freeze that was left
+                        // set after an incident. `scope` names what closed it: an explicit tenant or
+                        // global `false`, or the env baseline (`ROWS_ACCEPT_NEW_JOINS=false`).
+                        let scope = if tenant_ov.accept_new_joins == Some(false) {
+                            "tenant"
+                        } else if global_ov.accept_new_joins == Some(false) {
+                            "global"
+                        } else {
+                            "env-baseline"
+                        };
+                        tracing::warn!(
+                            %customer_guid,
+                            scope,
+                            "admission gate CLOSED — blocking a new join (operator freeze active)"
+                        );
+                    }
+                    allow
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "admission read failed — failing OPEN for this new join (F6)");
+                    true
+                }
+            };
+            if !open {
+                return Err(crate::error::RowsError::Unavailable(
+                    "new joins are paused (maintenance/load); please retry shortly".into(),
+                ));
+            }
+        }
+
         // When annotation stamping is on, read the per-map empty timeout to stamp
         // `empty-shutdown-minutes`. When off (default) pass 0 — the allocation path then skips this
         // DB read and omits the annotation. Read `maps` directly: the first server of a zone is

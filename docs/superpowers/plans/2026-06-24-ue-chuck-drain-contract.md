@@ -100,6 +100,23 @@ gated-off + `require_heartbeat`.
 
 ---
 
+## Admission-gate obligations (gate: ROWS Phase 2 admission gate — #13543)
+
+13. **Back off on a retryable admission rejection (client-side).** When ROWS pauses *new* joins
+    (operator freeze / soft load-shed admission gate, PR #13543), it rejects the join with a
+    **retryable** signal — `HTTP 503` + `Retry-After: 5` (REST) / gRPC `unavailable`, code
+    `UNAVAILABLE` — deliberately **not** `409 / already_exists` (which clients treat as permanent;
+    ROWS-side contract F2). The chuck client MUST treat this as "try again shortly": honor
+    `Retry-After` (or a bounded default backoff), show a "servers busy — retrying…" state, and
+    retry, rather than surfacing a hard "connection failed" / kicking the player to an error screen.
+    A client that treats 503/`unavailable` as terminal makes the retryable contract useless — the
+    freeze degrades into a hard bounce. **Status: unverified** — needs a UE-side check of how the
+    login/connect path handles 503 + `Retry-After` and gRPC `unavailable`. (Distinct from
+    obligation #5, which is UE-owned admission *during drain*; this is the client honoring
+    ROWS-owned admission *gating*.)
+
+---
+
 ## Operational constraints chuck MUST honor
 
 - **Save budget ≤ Fleet TGPS (🕳️ B1).** The binding limit on save time is the GameServer pod's
@@ -130,6 +147,7 @@ gated-off + `require_heartbeat`.
 | 10 | `drop_players` save-then-disconnect | Phase 3 fleet-restart | when Phase 3 lands |
 | 11 | Transfer on `transfer_target` | Phase 3 (rebalance) | later refinement |
 | 12 | Client-version gate | Phase 3 (client-break updates) | later |
+| 13 | Client backoff on retryable admission (503 + `Retry-After` / gRPC `unavailable`) | Phase 2 admission gate (#13543) | **unverified — needs UE check** |
 
 ---
 
@@ -155,3 +173,5 @@ gated-off + `require_heartbeat`.
 ## Changelog
 
 - 2026-06-24 — initial draft from the lifecycle spec + Core/admission/fleet-restart plans.
+- 2026-06-28 — added obligation #13 (client backoff on retryable admission rejection) from the
+  #13543 admission-gate audit; client behavior on 503/`unavailable` is unverified.

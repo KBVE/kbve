@@ -667,6 +667,73 @@ impl<'a> InstanceRepo<'a> {
         }
     }
 
+    /// Per-scope admission overrides from `ows.admission_control`, read in one query: the tenant row
+    /// and the global sentinel row (all-zeros GUID). Returns `(tenant, global)`; a scope with no row
+    /// stays the all-`None` default ("fall back to env baseline"). Degrades to `(default, default)`
+    /// when the table doesn't exist yet (SQLSTATE 42P01) so a rows image shipping ahead of the
+    /// migration runs on the env baseline instead of erroring every join. Other DB errors propagate
+    /// so the caller can fail-open loudly (see the join path's F6 handling).
+    pub async fn get_admission_overrides(
+        &self,
+        tenant: Uuid,
+    ) -> Result<(crate::config::AdmissionOverride, crate::config::AdmissionOverride), RowsError>
+    {
+        const GLOBAL: Uuid = Uuid::nil();
+        let result = sqlx::query_as::<_, (Uuid, Option<bool>)>(
+            "SELECT customerguid, acceptnewjoins FROM admission_control
+             WHERE customerguid = $1 OR customerguid = $2",
+        )
+        .bind(tenant)
+        .bind(GLOBAL)
+        .fetch_all(self.0)
+        .await;
+
+        match result {
+            Ok(rows) => {
+                let mut t = crate::config::AdmissionOverride::default();
+                let mut g = crate::config::AdmissionOverride::default();
+                for (guid, accept) in rows {
+                    if guid == GLOBAL {
+                        g.accept_new_joins = accept;
+                    } else {
+                        t.accept_new_joins = accept;
+                    }
+                }
+                Ok((t, g))
+            }
+            Err(e) if is_undefined_table(&e) => Ok((Default::default(), Default::default())),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Travel detection: is this character currently sitting on an active (`status > 0`) instance?
+    /// `true` ⇒ the join is a **travel** (already in-world, moving between zones) and bypasses the
+    /// admission gate; `false` ⇒ a **new** join, subject to the gate. Keys directly on the
+    /// already-resolved `CharacterID` (F1): `charonmapinstance`'s PK is
+    /// `(CustomerGUID, CharacterID, MapInstanceID)`, so `(customerguid, characterid)` is an
+    /// index-seekable PK prefix — no `characters`/`CharName` join, no unindexed scan, no name
+    /// ambiguity. Edge: a disconnected player whose `charonmapinstance` row hasn't been swept yet
+    /// reads as "travel" briefly (bounded by `stale_zone_cleanup`); acceptable — errs toward letting
+    /// a player in.
+    pub async fn is_character_on_active_instance(
+        &self,
+        customer_guid: Uuid,
+        character_id: i32,
+    ) -> Result<bool, RowsError> {
+        let seen: bool = sqlx::query_scalar(
+            "SELECT EXISTS(
+                SELECT 1 FROM charonmapinstance com
+                JOIN mapinstances mi
+                  ON mi.customerguid = com.customerguid AND mi.mapinstanceid = com.mapinstanceid
+                WHERE com.customerguid = $1 AND com.characterid = $2 AND mi.status > 0)",
+        )
+        .bind(customer_guid)
+        .bind(character_id)
+        .fetch_one(self.0)
+        .await?;
+        Ok(seen)
+    }
+
     /// Whether this tenant has *ever* received a heartbeat (any instance with a non-NULL
     /// `lastupdatefromserver`). Drives the `require_heartbeat` auto-gate: if no heartbeat has ever
     /// arrived, UE isn't configured to report, so the never-reported path must stay suppressed.
@@ -1125,6 +1192,93 @@ impl<'a> InstanceRepo<'a> {
 mod tests {
     use super::{drain_severity, join_candidate_key, validate_drain_request};
     use crate::error::RowsError;
+    use crate::repo::InstanceRepo;
+    use uuid::Uuid;
+
+    /// MANDATORY query-level guard for travel detection (Task 4): a character on a `status > 0`
+    /// instance must read as travel (`true`) via `InstanceRepo::is_character_on_active_instance`, a
+    /// fresh character on none must read as a new join (`false`). Calls the **real** method (not a
+    /// copy of the SQL) so a future edit to the query is caught — the whole point of the guard. The
+    /// pure resolver test (`config::admission_gate_…`) does NOT exercise this SQL.
+    ///
+    /// Needs a live ows-schema Postgres. The rows crate has no DB-test harness and CI runs
+    /// `cargo test` with no Postgres, so this is gated on `TEST_DATABASE_URL`/`DATABASE_URL`: it
+    /// RUNS (and must pass) when one is set — local dev, or a future CI with a Postgres service —
+    /// and SKIPS (not fails) when absent, keeping `cargo test` green where no DB exists. Seeds only
+    /// `mapinstances` + `charonmapinstance` (the two tables the query touches) under a synthetic
+    /// random tenant, then deletes that seed before asserting, so it never leaves rows behind even
+    /// if an assertion fails. The heavy `characters` table is intentionally untouched — keying on
+    /// `CharacterID` (F1) means the query never joins it.
+    #[tokio::test]
+    async fn is_character_on_active_instance_distinguishes_travel_from_new_join() {
+        let Some(url) = std::env::var("TEST_DATABASE_URL")
+            .or_else(|_| std::env::var("DATABASE_URL"))
+            .ok()
+            .filter(|s| !s.is_empty())
+        else {
+            eprintln!(
+                "SKIP is_character_on_active_instance_…: set TEST_DATABASE_URL (or DATABASE_URL) \
+                 to a live ows-schema Postgres to run the mandatory travel-detection guard"
+            );
+            return;
+        };
+
+        let pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(1)
+            .connect(&url)
+            .await
+            .expect("connect to TEST_DATABASE_URL");
+
+        let tenant = Uuid::new_v4(); // isolated synthetic tenant
+        let char_on_instance: i32 = 100_001;
+        let char_fresh: i32 = 100_002;
+
+        // Seed (committed so the method, which reads via the pool, sees the rows).
+        let map_instance_id: i32 = sqlx::query_scalar(
+            "INSERT INTO ows.mapinstances (customerguid, worldserverid, mapid, port, status)
+             VALUES ($1, 1, 1, 7777, 2) RETURNING mapinstanceid",
+        )
+        .bind(tenant)
+        .fetch_one(&pool)
+        .await
+        .expect("insert active mapinstance");
+        sqlx::query(
+            "INSERT INTO ows.charonmapinstance (customerguid, characterid, mapinstanceid)
+             VALUES ($1, $2, $3)",
+        )
+        .bind(tenant)
+        .bind(char_on_instance)
+        .bind(map_instance_id)
+        .execute(&pool)
+        .await
+        .expect("insert charonmapinstance");
+
+        // Exercise the real method.
+        let repo = InstanceRepo(&pool);
+        let on_active = repo
+            .is_character_on_active_instance(tenant, char_on_instance)
+            .await;
+        let fresh = repo.is_character_on_active_instance(tenant, char_fresh).await;
+
+        // Clean up the synthetic tenant's seed BEFORE asserting, so a failed assert can't leak rows.
+        let _ = sqlx::query("DELETE FROM ows.charonmapinstance WHERE customerguid = $1")
+            .bind(tenant)
+            .execute(&pool)
+            .await;
+        let _ = sqlx::query("DELETE FROM ows.mapinstances WHERE customerguid = $1")
+            .bind(tenant)
+            .execute(&pool)
+            .await;
+
+        assert!(
+            on_active.expect("query char on active"),
+            "character on a status>0 instance must read as travel"
+        );
+        assert!(
+            !fresh.expect("query fresh char"),
+            "fresh character on no instance must read as a new join"
+        );
+    }
 
     #[test]
     fn validate_drain_request_accepts_in_domain() {

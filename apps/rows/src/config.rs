@@ -134,6 +134,36 @@ pub struct ReaperConfigOverride {
     pub empty_fresh_secs: Option<i64>,
 }
 
+/// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`
+/// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
+/// One of these is read per scope (tenant + global sentinel) and combined by
+/// `effective_accept_new_joins` (either scope `Some(false)` closes the gate).
+/// Built manually from the `get_admission_overrides` tuple query, not via `query_as`, so no
+/// `sqlx::FromRow` derive is needed (the row→struct mapping lives in the repo).
+#[derive(Debug, Clone, Default)]
+pub struct AdmissionOverride {
+    pub accept_new_joins: Option<bool>,
+}
+
+/// Pure admission-gate resolution. New joins are accepted unless EITHER scope explicitly closes the
+/// gate: if the tenant row or the global sentinel row has `accept_new_joins = Some(false)`, return
+/// `false`. Otherwise the most-specific present override wins (tenant before global), falling back
+/// to the env baseline when neither scope has a row. Kept pure (no DB) so the join-path decision is
+/// unit-testable.
+pub fn effective_accept_new_joins(
+    env: bool,
+    tenant: &AdmissionOverride,
+    global: &AdmissionOverride,
+) -> bool {
+    if tenant.accept_new_joins == Some(false) || global.accept_new_joins == Some(false) {
+        return false;
+    }
+    tenant
+        .accept_new_joins
+        .or(global.accept_new_joins)
+        .unwrap_or(env)
+}
+
 impl ReaperKnobs {
     /// Returns the effective knobs: the env-derived baseline (`self`) with any non-`None`
     /// per-tenant override applied. Env sets the floor; the DB row wins per field when present.
@@ -191,6 +221,9 @@ pub struct RowsConfig {
     pub metrics_port: u16,
     pub docs_port: u16,
     pub reaper: ReaperKnobs,
+    /// Env baseline for the new-join admission gate (`ROWS_ACCEPT_NEW_JOINS`, default `true`). Used
+    /// when neither the tenant nor the global `admission_control` row overrides it.
+    pub accept_new_joins: bool,
 }
 
 impl RowsConfig {
@@ -218,6 +251,18 @@ impl RowsConfig {
                 ephemeral
             }
         };
+
+        // L2 (mandatory): the global admission sentinel is the all-zeros GUID. A tenant configured
+        // with the nil GUID would alias the sentinel — `WHERE customerguid = tenant OR = global`
+        // collapses and a tenant freeze silently becomes a game-wide freeze (or vice-versa). Fail
+        // fast at startup with a clear message rather than mid-request. (Uuid::new_v4 above can never
+        // produce nil, so this only guards an explicitly-set OWS_API_KEY.)
+        if customer_guid == Uuid::nil() {
+            return Err(anyhow!(
+                "OWS_API_KEY (tenant customer_guid) must not be the all-zeros GUID \
+                 (collides with the global admission sentinel)"
+            ));
+        }
 
         let slug = std::env::var("OWS_TENANT_SLUG").unwrap_or_else(|_| "default".into());
 
@@ -269,6 +314,10 @@ impl RowsConfig {
             ),
         };
 
+        // Admission gate env baseline. Defaults `true` (accept new joins) so the gate ships inert —
+        // a freeze requires either an env override or an `admission_control` DB row.
+        let accept_new_joins = env_bool("ROWS_ACCEPT_NEW_JOINS", true);
+
         Ok(Self {
             tenant: TenantConfig {
                 customer_guid,
@@ -283,6 +332,7 @@ impl RowsConfig {
             metrics_port,
             docs_port,
             reaper,
+            accept_new_joins,
         })
     }
 }
@@ -336,6 +386,28 @@ mod tests {
             ..Default::default()
         };
         assert!(!base.merged_with(&ov).require_heartbeat);
+    }
+
+    // Admission gate closes if EITHER scope (tenant or global) is explicitly false; otherwise the
+    // present scope wins, falling back to the env baseline when both are absent.
+    #[test]
+    fn admission_gate_closed_if_either_scope_false() {
+        let off = AdmissionOverride {
+            accept_new_joins: Some(false),
+        };
+        let on = AdmissionOverride {
+            accept_new_joins: Some(true),
+        };
+        let none = AdmissionOverride::default();
+        assert!(!effective_accept_new_joins(true, &off, &none)); // tenant closed
+        assert!(!effective_accept_new_joins(true, &none, &off)); // global closed
+        assert!(effective_accept_new_joins(true, &on, &none)); // open
+        assert!(effective_accept_new_joins(true, &none, &none)); // env baseline
+        assert!(!effective_accept_new_joins(false, &none, &none)); // env off
+        // A `false` in either scope wins over a `true` in the other: a tenant cannot reopen a global
+        // freeze, and a global `true` cannot override a tenant freeze.
+        assert!(!effective_accept_new_joins(true, &on, &off)); // tenant true, global frozen
+        assert!(!effective_accept_new_joins(true, &off, &on)); // tenant frozen, global true
     }
 
     // the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.

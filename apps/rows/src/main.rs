@@ -129,6 +129,7 @@ async fn main() -> anyhow::Result<()> {
         .tenant(cfg.tenant.clone())
         .agones_config(&cfg.agones_namespace, &cfg.agones_fleet)
         .reaper_config(cfg.reaper.clone())
+        .accept_new_joins(cfg.accept_new_joins)
         .mq(mq_producer)
         .agones(agones_client)
         .build()?;
