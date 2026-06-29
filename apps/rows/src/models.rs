@@ -452,6 +452,9 @@ pub struct HealthResponse {
     pub status: &'static str,
     pub service: &'static str,
     pub version: &'static str,
+    pub uptime_seconds: u64,
+    pub active_sessions: usize,
+    pub active_instances: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unreal_version: Option<String>,
 }
