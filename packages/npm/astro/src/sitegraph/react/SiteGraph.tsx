@@ -167,15 +167,16 @@ export function SiteGraph({
 	const graphReady = nodes.length > 0;
 
 	// Pan + pinch/wheel zoom, driven through refs + an imperative transform
-	// writer so gestures never re-render the node/link tree. `zoom` is the only
-	// value committed to state (rAF-throttled) for zoom-dependent attributes.
+	// writer so gestures never re-render the node/link tree. Zoom is broadcast
+	// via `subscribeZoom` (no React state) so only the zoom bar + imperative
+	// label-reveal follow it — the node/link tree never reconciles on zoom.
 	const {
 		groupRef,
-		zoom,
 		zoomRef,
 		panXRef,
 		panYRef,
 		isPointerOverSvg,
+		subscribeZoom,
 		handleSliderChange,
 		handleResetZoom,
 	} = usePanZoom(svgRef, width, height, graphReady);
@@ -225,8 +226,20 @@ export function SiteGraph({
 	}, []);
 
 	// Hover-dim painted imperatively from the base styling the render writes to
-	// `data-*` attrs — hovering a node re-renders nothing.
-	const { hoveredIdRef, applyHover } = useHoverPaint(svgRef, adjacency);
+	// `data-*` attrs — hovering a node re-renders nothing. The painter also owns
+	// zoom-driven label decluttering (reads `zoomRef`).
+	const { hoveredIdRef, applyHover } = useHoverPaint(
+		svgRef,
+		adjacency,
+		zoomRef,
+	);
+
+	// Zoom no longer lives in React state, so repaint labels imperatively when
+	// the committed zoom crosses the reveal threshold during a gesture.
+	useEffect(
+		() => subscribeZoom(() => applyHover(hoveredIdRef.current)),
+		[subscribeZoom, applyHover, hoveredIdRef],
+	);
 
 	// Persist depth to localStorage and reflect depth + search in the URL so
 	// users can share/refresh into the same view.
@@ -554,9 +567,8 @@ export function SiteGraph({
 											'var(--sl-color-gray-4)'
 										: 'var(--sl-color-gray-5)'
 								}
-								strokeWidth={
-									l.relationship ? 1.5 / zoom : 1 / zoom
-								}
+								strokeWidth={l.relationship ? 1.5 : 1}
+								vectorEffect="non-scaling-stroke"
 								strokeOpacity={opacity}
 								strokeDasharray={dash}
 								style={{ transition: 'stroke-opacity 0.12s' }}
@@ -588,15 +600,14 @@ export function SiteGraph({
 						const filterPass = matchesSearch(node);
 						const opacity = filterPass ? 1 : 0.05;
 
-						// Label-visibility heuristic (no-hover base): current
-						// node, search matches, degree-≥5 hubs always; others
-						// hidden at low zoom to declutter. Hover reveals the
-						// hovered node's label imperatively.
+						// Static label-visibility base: current node, search
+						// matches, and degree-≥5 hubs always show. The zoom
+						// threshold + hovered-node reveals are layered on
+						// imperatively (useHoverPaint) so zoom never re-renders.
 						const labelBase =
 							node.isCurrent ||
 							(!!deferredSearch && filterPass) ||
-							node.degree >= 5 ||
-							zoom >= 1.2;
+							node.degree >= 5;
 
 						return (
 							<g
@@ -646,6 +657,7 @@ export function SiteGraph({
 									fill={baseFill}
 									stroke={baseStroke}
 									strokeWidth={node.isCurrent ? 2 : 1}
+									vectorEffect="non-scaling-stroke"
 									style={{
 										transition: 'fill 0.15s, stroke 0.15s',
 									}}
@@ -686,7 +698,8 @@ export function SiteGraph({
 			<GraphTooltip tooltipRef={tooltipRef} />
 
 			<GraphZoomBar
-				zoom={zoom}
+				zoomRef={zoomRef}
+				subscribeZoom={subscribeZoom}
 				onReset={handleResetZoom}
 				onSliderChange={handleSliderChange}
 			/>

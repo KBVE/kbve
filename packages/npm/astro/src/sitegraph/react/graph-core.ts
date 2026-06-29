@@ -1,7 +1,4 @@
-import type {
-	SimulationNodeDatum,
-	SimulationLinkDatum,
-} from 'd3-force';
+import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3-force';
 import type { SiteGraphData } from '../types';
 
 export interface GraphNode extends SimulationNodeDatum {
@@ -21,6 +18,9 @@ export interface GraphLink extends SimulationLinkDatum<GraphNode> {
 export const MIN_ZOOM = 0.3;
 export const MAX_ZOOM = 3;
 export const ZOOM_SENSITIVITY = 0.002;
+
+/** Zoom at/above which every node label reveals (declutter threshold). */
+export const ZOOM_LABEL_THRESHOLD = 1.2;
 
 /** d3-force tick budget — caps long-running simulations on dense neighborhoods. */
 export const ALPHA_MIN = 0.05;
