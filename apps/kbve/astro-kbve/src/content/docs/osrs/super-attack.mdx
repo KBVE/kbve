@@ -1,0 +1,130 @@
+---
+title: Super attack | OSRS Price Data
+description: "Super attack(4) is a 3-dose members potion. High alch: 135 GP, GE limit: 2,000."
+osrs:
+  id: 2436
+  name: Super attack
+  slug: super-attack
+  examine: 4 doses of super Attack potion.
+  members: true
+  icon: Super attack(4).png
+  value: 225
+  lowalch: 90
+  highalch: 135
+  limit: 2000
+  about: "Super attack(4) is a 4-dose Attack-boosting potion brewed at Herblore 45. It is a core ingredient for Super combat potion(4) and a staple melee boost for bossing and Slayer."
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 4
+    type: boost
+    skill: attack
+    boost_min: 5
+    boost_max: 19
+    boost_formula: 15% + 5
+    duration: 60
+  herblore:
+    level: 45
+    xp: 100
+  recipes:
+    - skill: herblore
+      level: 45
+      xp: 100
+      materials:
+        - item_name: Irit potion (unf)
+          item_id: 101
+          quantity: 1
+        - item_name: Eye of newt
+          item_id: 221
+          quantity: 1
+      output_item: Super attack(4)
+      output_id: 2436
+      output_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 259
+      item_name: Irit leaf
+      slug: irit-leaf
+      relationship: component
+      description: Primary herb
+    - item_id: 221
+      item_name: Eye of newt
+      slug: eye-of-newt
+      relationship: component
+      description: Secondary ingredient
+    - item_id: 12695
+      item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: product
+      description: Combined potion
+    - item_id: 2428
+      item_name: Attack potion(3)
+      slug: attack-potion-3
+      relationship: alternative
+      description: Lower tier
+  market_strategy:
+    notes:
+      - "Core ingredient for Super combat potion(4): drives steady demand"
+      - Standalone Attack boost used in melee PvM and Slayer
+      - "Low buy limit (2,000): caps high-volume flipping"
+      - Tied to Irit leaf supply
+  trading_tips:
+    - Track Irit leaf and Eye of newt prices to estimate brew margin
+    - Watch Super combat potion(4) demand for downstream price pressure
+  family_ref:
+    family_slug: super-attack
+    role: base
+  family:
+    slug: super-attack
+    name: Super attack
+    type: dose
+    canonical_id: 2436
+    members:
+    - id: 2436
+      slug: super-attack
+      name: Super attack
+      icon: Super attack(4).png
+      role: base
+      dose: null
+      value: 225
+      lowalch: 90
+      highalch: 135
+    - id: 149
+      slug: super-attack-1
+      name: Super attack(1)
+      icon: Super attack(1).png
+      role: dose
+      dose: 1
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 147
+      slug: super-attack-2
+      name: Super attack(2)
+      icon: Super attack(2).png
+      role: dose
+      dose: 2
+      value: 135
+      lowalch: 54
+      highalch: 81
+    - id: 145
+      slug: super-attack-3
+      name: Super attack(3)
+      icon: Super attack(3).png
+      role: dose
+      dose: 3
+      value: 180
+      lowalch: 72
+      highalch: 108
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

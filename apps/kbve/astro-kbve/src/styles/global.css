@@ -1007,3 +1007,177 @@ body:has(.kbve-dashboard-page) {
 	border-color: rgba(248, 113, 113, 0.4);
 	background: rgba(248, 113, 113, 0.05);
 }
+
+@layer my-overrides {
+	[data-kbve-sidebar-root] {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-height: 0;
+		--kbve-sidebar-width: var(--sl-sidebar-width, 18rem);
+		--kbve-rail-width: 3.25rem;
+	}
+
+	[data-kbve-sidebar-chrome] {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid
+			var(--sl-color-hairline, var(--color-gold-dark));
+	}
+
+	[data-kbve-rail-toggle] {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.4rem;
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--sl-color-gray-2, var(--color-parchment));
+		cursor: pointer;
+		transition:
+			background-color 0.15s ease,
+			color 0.15s ease,
+			transform 0.2s ease;
+	}
+	[data-kbve-rail-toggle]:hover {
+		background: var(--sl-color-gray-6, var(--color-bg-raised));
+		color: var(--sl-color-accent, var(--color-gold));
+	}
+	[data-kbve-rail-icon] {
+		transition: transform 0.2s ease;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-rail-icon] {
+		transform: rotate(180deg);
+	}
+
+	[data-kbve-filter-field] {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	[data-kbve-filter] {
+		width: 100%;
+		padding: 0.35rem 0.6rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-white, var(--color-parchment));
+		background: var(--sl-color-bg, var(--color-bg-sunken));
+		border: 1px solid var(--sl-color-gray-5, var(--color-gold-dark));
+		border-radius: 0.4rem;
+		outline: none;
+	}
+	[data-kbve-filter]:focus {
+		border-color: var(--sl-color-accent, var(--color-gold));
+	}
+
+	[data-kbve-sidebar-scroll] {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		padding: 0.5rem 0.5rem 2rem;
+	}
+
+	[data-kbve-sublist] {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	[data-kbve-sublist] [data-kbve-sublist] {
+		margin-inline-start: 0.6rem;
+		padding-inline-start: 0.4rem;
+		border-inline-start: 1px solid
+			var(--sl-color-hairline, var(--color-gold-dark));
+	}
+	[data-kbve-item] {
+		margin: 0.05rem 0;
+	}
+
+	[data-kbve-link],
+	[data-kbve-summary] {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.3rem 0.5rem;
+		border-radius: 0.4rem;
+		font-size: 0.9rem;
+		line-height: 1.3;
+		color: var(--sl-color-gray-2, var(--color-parchment));
+		text-decoration: none;
+		cursor: pointer;
+	}
+	[data-kbve-link]:hover,
+	[data-kbve-summary]:hover {
+		background: var(--sl-color-gray-6, var(--color-bg-raised));
+		color: var(--sl-color-white, var(--color-parchment));
+	}
+	[data-kbve-link][aria-current='page'] {
+		color: var(--sl-color-text-accent, var(--color-gold));
+		background: var(--sl-color-accent-low, rgba(166, 125, 67, 0.18));
+		font-weight: 600;
+	}
+	[data-kbve-label] {
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	[data-kbve-summary] {
+		list-style: none;
+		font-weight: 600;
+	}
+	[data-kbve-summary]::-webkit-details-marker {
+		display: none;
+	}
+	[data-kbve-caret] {
+		flex: none;
+		transition: transform 0.2s ease;
+		opacity: 0.7;
+	}
+	[data-kbve-group][open] > [data-kbve-summary] [data-kbve-caret] {
+		transform: rotate(90deg);
+	}
+
+	[data-kbve-badge] {
+		flex: none;
+		padding: 0.05rem 0.4rem;
+		font-size: 0.65rem;
+		font-weight: 600;
+		line-height: 1.4;
+		border-radius: 0.6rem;
+		color: var(--sl-color-white, var(--color-parchment));
+		background: var(--sl-color-accent, var(--color-gold-dark));
+	}
+
+	[data-kbve-filtered] {
+		display: none !important;
+	}
+
+	[data-kbve-rail='collapsed'] {
+		width: var(--kbve-rail-width);
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-filter-field],
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-scroll] {
+		display: none;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-chrome] {
+		justify-content: center;
+		padding: 0.5rem 0;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+}

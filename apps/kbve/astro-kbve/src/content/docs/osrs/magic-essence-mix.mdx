@@ -1,0 +1,112 @@
+---
+title: Magic essence mix | OSRS Price Data
+description: "Magic essence mix(2): Two doses of fishy Magic essence. High alch: 108 GP, GE limit: 2,000."
+osrs:
+  id: 11489
+  name: Magic essence mix
+  slug: magic-essence-mix
+  examine: "Two doses of fishy Magic essence."
+  members: true
+  icon: Magic essence mix(2).png
+  value: 180
+  lowalch: 72
+  highalch: 108
+  limit: 2000
+  family_ref:
+    family_slug: magic-essence-mix
+    role: base
+  family:
+    slug: magic-essence-mix
+    name: Magic essence mix
+    type: dose
+    canonical_id: 11489
+    members:
+    - id: 11489
+      slug: magic-essence-mix
+      name: Magic essence mix
+      icon: Magic essence mix(2).png
+      role: base
+      dose: null
+      value: 180
+      lowalch: 72
+      highalch: 108
+    - id: 11491
+      slug: magic-essence-mix-1
+      name: Magic essence mix(1)
+      icon: Magic essence mix(1).png
+      role: dose
+      dose: 1
+      value: 130
+      lowalch: 52
+      highalch: 78
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2005-09-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily boosts Magic level by 3."
+        duration: 0
+      - description: "Heals 3 Hitpoints on consumption."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 57
+      xp: 35
+      materials:
+        - item_name: Magic essence(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Magic essence(2)
+      slug: magic-essence-2
+      relationship: component
+      description: "Base potion mixed with caviar to create the fishy variant."
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Barbarian Herblore secondary used to create mixes."
+    - item_name: Magic essence mix(1)
+      slug: magic-essence-mix-1
+      relationship: variant
+      description: "One-dose version of the same Barbarian potion."
+  about: "Magic essence mix(2) is the two-dose Barbarian Herblore variant of the Magic essence potion, providing a +3 Magic level boost and healing 3 Hitpoints on each drink. It is crafted by combining a Magic essence(2) with caviar at 57 Herblore for 35 experience, and is favoured by Barbarian Assault healers and Mage Training Arena visitors."
+  market_strategy:
+    notes:
+      - "Niche potion - demand is thin and driven by minigame players."
+      - "Caviar supply caps profitability of mixing margins."
+      - "High alch profit is below GE price; do not alch."
+  trading_tips:
+    - "Watch caviar GE swings - they drive mix margins inversely."
+    - "Buy bulk on weekday lulls; offload during MTA seasonal pushes."
+  history:
+    - date: "2005-09-12"
+      description: "Added with Barbarian Training's Herblore subset."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

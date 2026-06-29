@@ -1,0 +1,151 @@
+---
+title: Ancient brew | OSRS Price Data
+description: "Ancient brew(4) is a 4-dose members potion that boosts magic by 2, restores prayer, drains attack/strength/defence. High alch: 120 GP, GE limit: 2,000."
+osrs:
+  id: 26340
+  name: Ancient brew
+  slug: ancient-brew
+  examine: 4 doses of ancient brew.
+  members: true
+  icon: Ancient brew(4).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 2000
+  family_ref:
+    family_slug: ancient-brew
+    role: base
+  family:
+    slug: ancient-brew
+    name: Ancient brew
+    type: dose
+    canonical_id: 26340
+    members:
+    - id: 26340
+      slug: ancient-brew
+      name: Ancient brew
+      icon: Ancient brew(4).png
+      role: base
+      dose: null
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 26346
+      slug: ancient-brew-1
+      name: Ancient brew(1)
+      icon: Ancient brew(1).png
+      role: dose
+      dose: 1
+      value: 125
+      lowalch: 50
+      highalch: 75
+    - id: 26344
+      slug: ancient-brew-2
+      name: Ancient brew(2)
+      icon: Ancient brew(2).png
+      role: dose
+      dose: 2
+      value: 150
+      lowalch: 60
+      highalch: 90
+    - id: 26342
+      slug: ancient-brew-3
+      name: Ancient brew(3)
+      icon: Ancient brew(3).png
+      role: dose
+      dose: 3
+      value: 175
+      lowalch: 70
+      highalch: 105
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2022-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Magic by 2 to 6 levels depending on base level, decaying 1 level per minute"
+        duration: 60
+      - description: "Restores Prayer points (2 + 11 at higher levels), similar to super restore"
+        duration: 0
+      - description: "Drains Attack, Strength, and Defence by 10% + 2 levels"
+        duration: 60
+  recipes:
+    - skill: herblore
+      level: 85
+      xp: 190
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          quantity: 1
+        - item_name: Nihil dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Dwarf weed
+      slug: dwarf-weed
+      relationship: component
+      description: "Primary herb used in the unfinished potion"
+    - item_name: Nihil dust
+      slug: nihil-dust
+      relationship: component
+      description: "Secondary ingredient obtained from grinding nihil shards"
+    - item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: alternative
+      description: "Pure prayer restore without magic boost"
+    - item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: "Restores all stats including prayer"
+    - item_name: Ancient brew(3)
+      slug: ancient-brew-3
+      relationship: variant
+      description: "3-dose version of the same potion"
+  about: |-
+    Ancient brew is a unique potion that combines magic boosting with prayer restoration, at the cost of melee stats. The +2 Magic boost is useful for activities like Tombs of Amascut where magic attacks dominate, and the prayer restore lets one flask act as both a boost and a restore.
+
+    Common use cases:
+    - Magic-focused PvM (ToA, Zulrah)
+    - Boosting for quest requirements
+    - Situations where melee stats are not used
+  market_strategy:
+    notes:
+      - "Profit equation: Ancient brew - Dwarf weed potion (unf) - Nihil dust"
+      - "ToA released raised baseline demand for magic-focused supplies"
+      - "Compare price against super restore for value-per-dose"
+      - "85 Herblore requirement gates supply"
+      - "Nihil dust supply tied to Nex farming pace"
+  trading_tips:
+    - "Watch Nex drop rate updates: nihil dust availability drives ingredient cost"
+    - "Buy unfinished potions in bulk during quiet hours and craft on weekends"
+    - "Stockpile ahead of ToA league or event resets"
+  history:
+    - date: "2021-12-16"
+      description: "Item added to game files but unobtainable"
+    - date: "2022-01-05"
+      description: "Released obtainable with Nex: The Fifth General update"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

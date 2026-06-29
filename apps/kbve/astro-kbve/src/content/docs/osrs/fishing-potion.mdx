@@ -1,0 +1,132 @@
+---
+title: Fishing potion | OSRS Price Data
+description: "Fishing potion(4): 4 doses of Fishing potion.. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 2438
+  name: Fishing potion
+  slug: fishing-potion
+  examine: 4 doses of Fishing potion.
+  members: true
+  icon: Fishing potion(4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+  family_ref:
+    family_slug: fishing-potion
+    role: base
+  family:
+    slug: fishing-potion
+    name: Fishing potion
+    type: dose
+    canonical_id: 2438
+    members:
+    - id: 2438
+      slug: fishing-potion
+      name: Fishing potion
+      icon: Fishing potion(4).png
+      role: base
+      dose: null
+      value: 250
+      lowalch: 100
+      highalch: 150
+    - id: 155
+      slug: fishing-potion-1
+      name: Fishing potion(1)
+      icon: Fishing potion(1).png
+      role: dose
+      dose: 1
+      value: 100
+      lowalch: 40
+      highalch: 60
+    - id: 153
+      slug: fishing-potion-2
+      name: Fishing potion(2)
+      icon: Fishing potion(2).png
+      role: dose
+      dose: 2
+      value: 150
+      lowalch: 60
+      highalch: 90
+    - id: 151
+      slug: fishing-potion-3
+      name: Fishing potion(3)
+      icon: Fishing potion(3).png
+      role: dose
+      dose: 3
+      value: 200
+      lowalch: 80
+      highalch: 120
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: herblore
+      level: 50
+      xp: 112.5
+      materials:
+        - item_name: Avantoe potion (unf)
+          quantity: 1
+        - item_name: Snape grass
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Fishing level by 3."
+        duration: 60
+  related_items:
+    - item_name: Fishing potion(3)
+      slug: fishing-potion-3
+      relationship: variant
+      description: 3-dose form yielded by Herblore.
+    - item_name: Fishing potion(2)
+      slug: fishing-potion-2
+      relationship: variant
+      description: 2-dose form.
+    - item_name: Fishing potion(1)
+      slug: fishing-potion-1
+      relationship: variant
+      description: 1-dose form.
+    - item_name: Fish potion
+      slug: fish-potion
+      relationship: upgrade
+      description: Barbarian Herblore mix variant.
+  about: |-
+    The Fishing potion(4) is a 4-dose Herblore potion that temporarily boosts the Fishing skill by 3 levels. Each sip increases the boost timer, making it useful for crossing skill thresholds at karambwan, monkfish, and other level-gated catches.
+
+    The base 3-dose potion is brewed at 50 Herblore from an Avantoe potion (unf) and a snape grass for 112.5 XP. Decanting into 4-dose form is the most common GE listing because it minimizes inventory slot usage when fishing in long sessions.
+  market_strategy:
+    notes:
+      - "Demand follows Fishing skilling spikes (Tempoross, fishing contracts)."
+      - "Snape grass supply is the main cost driver."
+      - "Stable, low-margin flip item."
+      - "Buy limit 2,000 supports moderate bulk plays."
+  trading_tips:
+    - Decant 3-dose vials into 4-dose for arbitrage at the GE.
+    - Watch for fishing-skill-of-the-week events.
+  history:
+    - date: "2002-02-27"
+      description: "Added with the original Herblore release."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

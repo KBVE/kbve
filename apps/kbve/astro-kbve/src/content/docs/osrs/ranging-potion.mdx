@@ -1,0 +1,121 @@
+---
+title: Ranging potion | OSRS Price Data
+description: "Ranging potion(4) is a 3-dose members potion. High alch: 216 GP, GE limit: 2,000."
+osrs:
+  id: 2444
+  name: Ranging potion
+  slug: ranging-potion
+  examine: 4 doses of ranging potion.
+  members: true
+  icon: Ranging potion(4).png
+  value: 360
+  lowalch: 144
+  highalch: 216
+  limit: 2000
+  potion:
+    doses: 4
+    herblore_level: 72
+    herblore_xp: 162.5
+    effect: "Boosts Ranged level by 4 + 10% of base level for 5 minutes"
+    effects:
+      - stat: ranged
+        boost_type: formula
+        boost_formula: "4 + floor(level * 0.10)"
+        duration: 500
+  recipes:
+    - skill: herblore
+      level: 72
+      xp: 162.5
+      members_only: true
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          item_id: 105
+          quantity: 1
+        - item_name: Wine of zamorak
+          item_id: 245
+          quantity: 1
+  related_items:
+    - item_name: Dwarf weed
+      item_id: 267
+      slug: dwarf-weed
+      relationship: component
+    - item_name: Dwarf weed potion (unf)
+      item_id: 105
+      slug: dwarf-weed-potion-unf
+      relationship: component
+    - item_name: Wine of zamorak
+      item_id: 245
+      slug: wine-of-zamorak
+      relationship: component
+    - item_name: Ranging potion(3)
+      slug: ranging-potion-3
+      relationship: variant
+    - item_name: Ranging potion(2)
+      slug: ranging-potion-2
+      relationship: variant
+    - item_name: Ranging potion(1)
+      slug: ranging-potion-1
+      relationship: variant
+    - item_name: Divine ranging potion(4)
+      slug: divine-ranging-potion-4
+      relationship: upgrade
+    - item_name: Bastion potion(4)
+      slug: bastion-potion-4
+      relationship: alternative
+  about: |-
+    Ranging potion(4) is a 4-dose members potion that temporarily boosts the Ranged level for ranged combat and skilling, made via Herblore at level 72 from a dwarf weed potion (unf) and wine of zamorak for 162.5 XP. The boost is calculated as 4 + 10% of the base Ranged level, lasting roughly 5 minutes before decaying one level per minute. It is commonly used for Slayer ranging tasks, Nightmare Zone training, and PvM bossing where squeezing extra Ranged accuracy and damage matters.
+  family_ref:
+    family_slug: ranging-potion
+    role: base
+  family:
+    slug: ranging-potion
+    name: Ranging potion
+    type: dose
+    canonical_id: 2444
+    members:
+    - id: 2444
+      slug: ranging-potion
+      name: Ranging potion
+      icon: Ranging potion(4).png
+      role: base
+      dose: null
+      value: 360
+      lowalch: 144
+      highalch: 216
+    - id: 173
+      slug: ranging-potion-1
+      name: Ranging potion(1)
+      icon: Ranging potion(1).png
+      role: dose
+      dose: 1
+      value: 144
+      lowalch: 57
+      highalch: 86
+    - id: 171
+      slug: ranging-potion-2
+      name: Ranging potion(2)
+      icon: Ranging potion(2).png
+      role: dose
+      dose: 2
+      value: 216
+      lowalch: 86
+      highalch: 129
+    - id: 169
+      slug: ranging-potion-3
+      name: Ranging potion(3)
+      icon: Ranging potion(3).png
+      role: dose
+      dose: 3
+      value: 288
+      lowalch: 115
+      highalch: 172
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

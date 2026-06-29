@@ -1,0 +1,160 @@
+---
+title: Antifire potion | OSRS Price Data
+description: "Antifire potion(4): 4 doses of anti-firebreath potion. High alch: 198 GP, GE limit: 2,000."
+osrs:
+  id: 2452
+  name: Antifire potion
+  slug: antifire-potion
+  examine: 4 doses of anti-firebreath potion.
+  members: true
+  icon: Antifire potion(4).png
+  value: 330
+  lowalch: 132
+  highalch: 198
+  limit: 2000
+  family_ref:
+    family_slug: antifire-potion
+    role: base
+  family:
+    slug: antifire-potion
+    name: Antifire potion
+    type: dose
+    canonical_id: 2452
+    members:
+    - id: 2452
+      slug: antifire-potion
+      name: Antifire potion
+      icon: Antifire potion(4).png
+      role: base
+      dose: null
+      value: 330
+      lowalch: 132
+      highalch: 198
+    - id: 2458
+      slug: antifire-potion-1
+      name: Antifire potion(1)
+      icon: Antifire potion(1).png
+      role: dose
+      dose: 1
+      value: 132
+      lowalch: 52
+      highalch: 79
+    - id: 2456
+      slug: antifire-potion-2
+      name: Antifire potion(2)
+      icon: Antifire potion(2).png
+      role: dose
+      dose: 2
+      value: 198
+      lowalch: 79
+      highalch: 118
+    - id: 2454
+      slug: antifire-potion-3
+      name: Antifire potion(3)
+      icon: Antifire potion(3).png
+      role: dose
+      dose: 3
+      value: 264
+      lowalch: 105
+      highalch: 158
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 4
+    herblore_level: 69
+    herblore_xp: 157.5
+    effects:
+      - description: "Provides partial dragonfire protection per dose, reducing dragon breath damage by approximately 90%."
+        duration: 360
+      - description: "Grants complete dragonfire immunity when paired with an anti-dragon shield or dragonfire shield."
+        duration: 360
+  recipes:
+    - skill: herblore
+      level: 69
+      xp: 157.5
+      materials:
+        - item_name: Lantadyme potion (unf)
+          item_id: 2483
+          quantity: 1
+        - item_name: Dragon scale dust
+          item_id: 241
+          quantity: 1
+      tools: []
+      product: Antifire potion(3)
+      product_id: 2452
+      output_quantity: 1
+      notes: "Mix Lantadyme potion (unf) with Dragon scale dust at 69 Herblore."
+  related_items:
+    - item_id: 2454
+      item_name: Antifire potion(3)
+      slug: antifire-potion-3
+      relationship: variant
+      description: "3-dose variant for decanting."
+    - item_id: 2456
+      item_name: Antifire potion(2)
+      slug: antifire-potion-2
+      relationship: variant
+      description: "2-dose variant for decanting."
+    - item_id: 2458
+      item_name: Antifire potion(1)
+      slug: antifire-potion-1
+      relationship: variant
+      description: "1-dose variant for decanting."
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: component
+      description: "Primary herb cleaned into lantadyme potion (unf)."
+    - item_id: 241
+      item_name: Dragon scale dust
+      slug: dragon-scale-dust
+      relationship: component
+      description: "Secondary ingredient ground from blue dragon scales."
+    - item_id: 11951
+      item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: upgrade
+      description: "Longer-duration upgrade made by adding lava scale shards."
+    - item_id: 1540
+      item_name: Anti-dragon shield
+      slug: anti-dragon-shield
+      relationship: alternative
+      description: "Pairs with the potion for full dragonfire immunity."
+  about: "Antifire potion(4) is a 4-dose Herblore potion that grants partial dragonfire protection for 6 minutes per dose, and full immunity when paired with an anti-dragon shield or dragonfire shield. Made at 69 Herblore by combining lantadyme potion (unf) with dragon scale dust for 157.5 XP per batch, it is a staple supply for Dragon Slayer tasks, Vorkath farming, and brutal black dragon Slayer trips."
+  market_strategy:
+    notes:
+      - "Demand peaks during Slayer dragon task surges and Vorkath farm metas."
+      - "Lantadyme + dragon scale dust spread sets a hard input floor; arbitrage when raw potions dump."
+      - "Buy limit 2,000 per 4 hours caps high-volume flipping."
+      - "Decant ratio matters: 4-dose price tracks the 3-dose tightly on a per-dose basis."
+  trading_tips:
+    - "Stock lantadyme and dragon scale dust during dragon-task metas to lock in margin on conversions."
+    - "Watch Extended antifire(4) price as the upgrade ceiling that caps base antifire highs."
+    - "Sell into Slayer reset events and Vorkath supply pushes."
+  history:
+    - date: "2004-03-29"
+      description: "Antifire potion released with the RS2 launch as the original dragonfire protection consumable."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />
