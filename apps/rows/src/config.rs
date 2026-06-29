@@ -138,9 +138,10 @@ pub struct ReaperConfigOverride {
 /// is `Option`: `None` (or no row) means "fall back to the env baseline" (`ROWS_ACCEPT_NEW_JOINS`).
 /// One of these is read per scope (tenant + global sentinel) and combined by
 /// `effective_accept_new_joins` (either scope `Some(false)` closes the gate).
-#[derive(Debug, Clone, Default, sqlx::FromRow)]
+/// Built manually from the `get_admission_overrides` tuple query, not via `query_as`, so no
+/// `sqlx::FromRow` derive is needed (the row→struct mapping lives in the repo).
+#[derive(Debug, Clone, Default)]
 pub struct AdmissionOverride {
-    #[sqlx(rename = "acceptnewjoins")]
     pub accept_new_joins: Option<bool>,
 }
 
