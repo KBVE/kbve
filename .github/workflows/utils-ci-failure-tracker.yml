@@ -30,216 +30,131 @@ jobs:
         timeout-minutes: 5
         permissions:
             issues: write
+            actions: read
 
         steps:
-            - name: Search for existing failure issue
-              id: search
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  WORKFLOW_NAME: ${{ inputs.workflow_name }}
-                  JOB_NAME: ${{ inputs.job_name }}
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install @kbve/devops
               run: |
                   set -euo pipefail
-                  TITLE="[CI] ${WORKFLOW_NAME} / ${JOB_NAME} — Failed"
-                  ISSUE=$(gh issue list --repo "${{ github.repository }}" \
-                    --search "\"$TITLE\" in:title" \
-                    --state open --json number,title \
-                    --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
-                  echo "issue_number=${ISSUE:-}" >> "$GITHUB_OUTPUT"
-                  echo "title=$TITLE" >> "$GITHUB_OUTPUT"
-                  if [ -n "${ISSUE:-}" ]; then
-                    echo "Found open issue #$ISSUE"
-                  else
-                    echo "No open issue found"
-                  fi
+                  mkdir -p /tmp/devops
+                  cd /tmp/devops
+                  npm init -y >/dev/null 2>&1
+                  npm install --silent @kbve/devops@latest
 
-            - name: Extract failed step logs
-              if: inputs.status == 'failure'
-              id: logs
+            - name: Track CI failure
+              uses: actions/github-script@v9
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  JOB_NAME: ${{ inputs.job_name }}
-                  RUN_ID: ${{ inputs.run_id }}
-              run: |
-                  set -euo pipefail
-                  # Find the job ID by name
-                  JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
-                    --jq ".jobs[] | select(.name | contains(\"${JOB_NAME}\")) | .id" \
-                    2>/dev/null | head -1 || echo "")
-
-                  FAILED_STEP=""
-                  if [ -n "$JOB_ID" ]; then
-                    FAILED_STEP=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
-                      --jq ".jobs[] | select(.id == ${JOB_ID}) | .steps[] | select(.conclusion == \"failure\") | .name" \
-                      2>/dev/null | head -1 || echo "")
-                  fi
-
-                  # Try to get log snippet — logs may not be available yet
-                  RAW_LOG=""
-                  LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
-                  if [ -n "$JOB_ID" ]; then
-                    RAW_LOG=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
-                      2>/dev/null || echo "")
-                    if [ -n "$RAW_LOG" ]; then
-                      LOG_SNIPPET=$(echo "$RAW_LOG" | tail -50 | head -50)
-                    fi
-                  fi
-
-                  # Classify a likely cause from the logs so the issue states WHY, not just where.
-                  REASON=""
-                  if printf '%s' "${RAW_LOG}${LOG_SNIPPET}" | grep -qiE 'Forgejo LFS auth failed|Authentication required|Authorization error|info/lfs/objects/batch'; then
-                    REASON="🔑 Forgejo LFS authentication failed — FORGEJO_TOKEN is likely invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
-                  fi
-
-                  # Write to file to avoid delimiter issues
-                  echo "$LOG_SNIPPET" > /tmp/log_snippet.txt
-                  echo "failed_step=${FAILED_STEP:-unknown}" >> "$GITHUB_OUTPUT"
-                  echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
-
-            - name: Create new failure issue
-              if: inputs.status == 'failure' && steps.search.outputs.issue_number == ''
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  TITLE: ${{ steps.search.outputs.title }}
+                  STATUS: ${{ inputs.status }}
                   WORKFLOW_NAME: ${{ inputs.workflow_name }}
                   JOB_NAME: ${{ inputs.job_name }}
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
-                  FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
-                  REASON: ${{ steps.logs.outputs.reason }}
                   VERSION: ${{ inputs.version }}
-              run: |
-                  set -euo pipefail
-                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-                  LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
-                  VERSION_LINE=""
-                  VERSION_MARKER=""
-                  if [ -n "${VERSION:-}" ]; then
-                    VERSION_LINE="**Version:** ${VERSION}"
-                    VERSION_MARKER="<!-- ci-tracker:version=${VERSION} -->"
-                  fi
-                  REASON_LINE=""
-                  if [ -n "${REASON:-}" ]; then
-                    REASON_LINE="**Likely cause:** ${REASON}"
-                  fi
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const devops = await import('/tmp/devops/node_modules/@kbve/devops/devops.es.js');
+                      const {
+                        _$gha_failureIssueTitle,
+                        _$gha_parseFailureLog,
+                        _$gha_classifyCIFailure,
+                        _$gha_buildFailureIssueBody,
+                        _$gha_buildFailureComment,
+                        _$gha_buildResolveComment,
+                        _$gha_incrementFailureHistory,
+                      } = devops;
 
-                  cat > /tmp/issue-body.md << ISSUEEOF
-                  ## ${TITLE}
-                  ${VERSION_MARKER}
+                      const { owner, repo } = context.repo;
+                      const status = process.env.STATUS;
+                      const workflowName = process.env.WORKFLOW_NAME;
+                      const jobName = process.env.JOB_NAME;
+                      const runId = process.env.RUN_ID;
+                      const runUrl = process.env.RUN_URL;
+                      const version = process.env.VERSION || '';
+                      const ref = context.ref;
+                      const eventName = context.eventName;
+                      const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 
-                  **Workflow:** ${WORKFLOW_NAME}
-                  **Job:** ${JOB_NAME}
-                  ${VERSION_LINE}
-                  **Failed step:** ${FAILED_STEP}
-                  ${REASON_LINE}
-                  **Status:** Failing since ${TIMESTAMP}
-                  **Consecutive failures:** 1
+                      const title = _$gha_failureIssueTitle(workflowName, jobName);
 
-                  ### Latest Failure
+                      const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                        owner, repo, state: 'open', labels: 'ci', per_page: 100,
+                      });
+                      const existing = openIssues.find((i) => i.title === title);
 
-                  - **Run:** [#${RUN_ID}](${RUN_URL})
-                  - **Trigger:** ${{ github.event_name }}
-                  - **Ref:** ${{ github.ref }}
+                      if (status === 'failure') {
+                        let failedStep = 'unknown';
+                        let snippet = `See [run logs](${runUrl}) for details.`;
+                        let nxTargets = '';
+                        let reason = null;
 
-                  ### Error Summary
+                        try {
+                          const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                            owner, repo, run_id: Number(runId), per_page: 100,
+                          });
+                          const job = jobs.find((j) => j.name.includes(jobName));
+                          if (job) {
+                            const failed = (job.steps || []).find((s) => s.conclusion === 'failure');
+                            if (failed) failedStep = failed.name;
+                            try {
+                              const log = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                                owner, repo, job_id: job.id,
+                              });
+                              const raw = typeof log.data === 'string'
+                                ? log.data
+                                : Buffer.from(log.data).toString('utf8');
+                              const parsed = _$gha_parseFailureLog(raw);
+                              if (parsed.snippet) snippet = parsed.snippet;
+                              nxTargets = parsed.nxTargets;
+                              reason = _$gha_classifyCIFailure(raw);
+                            } catch (e) {
+                              core.info(`Logs unavailable: ${e.message}`);
+                            }
+                          }
+                        } catch (e) {
+                          core.warning(`Job lookup failed: ${e.message}`);
+                        }
 
-                  \`\`\`
-                  ${LOG_SNIPPET}
-                  \`\`\`
-
-                  ### Failure History
-
-                  | # | Date | Run | Ref | Trigger |
-                  |---|------|-----|-----|---------|
-                  | 1 | ${TIMESTAMP} | [#${RUN_ID}](${RUN_URL}) | ${{ github.ref }} | ${{ github.event_name }} |
-
-                  ---
-                  *Auto-generated by ci-failure-tracker*
-                  ISSUEEOF
-
-                  sed 's/^                  //' /tmp/issue-body.md > /tmp/issue-body-clean.md
-
-                  gh issue create --repo "${{ github.repository }}" \
-                    --title "$TITLE" \
-                    --label "bug,ci,6" \
-                    --body-file /tmp/issue-body-clean.md
-
-            - name: Comment on existing failure issue
-              if: inputs.status == 'failure' && steps.search.outputs.issue_number != ''
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
-                  RUN_ID: ${{ inputs.run_id }}
-                  RUN_URL: ${{ inputs.run_url }}
-                  FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
-                  REASON: ${{ steps.logs.outputs.reason }}
-                  VERSION: ${{ inputs.version }}
-              run: |
-                  set -euo pipefail
-                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-                  LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
-                  VERSION_LINE=""
-                  if [ -n "${VERSION:-}" ]; then
-                    VERSION_LINE="- **Version:** ${VERSION}"
-                  fi
-                  REASON_LINE=""
-                  if [ -n "${REASON:-}" ]; then
-                    REASON_LINE="- **Likely cause:** ${REASON}"
-                  fi
-
-                  cat > /tmp/comment-body.md << COMMENTEOF
-                  ## Failure — ${TIMESTAMP}
-
-                  - **Run:** [#${RUN_ID}](${RUN_URL})
-                  - **Failed step:** ${FAILED_STEP}
-                  ${REASON_LINE}
-                  ${VERSION_LINE}
-                  - **Ref:** ${{ github.ref }}
-                  - **Trigger:** ${{ github.event_name }}
-
-                  \`\`\`
-                  ${LOG_SNIPPET}
-                  \`\`\`
-                  COMMENTEOF
-
-                  sed 's/^                  //' /tmp/comment-body.md > /tmp/comment-body-clean.md
-
-                  gh issue comment "$ISSUE_NUMBER" \
-                    --repo "${{ github.repository }}" \
-                    --body-file /tmp/comment-body-clean.md
-
-            - name: Close resolved issue
-              if: inputs.status == 'success' && steps.search.outputs.issue_number != ''
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
-                  RUN_ID: ${{ inputs.run_id }}
-                  RUN_URL: ${{ inputs.run_url }}
-                  VERSION: ${{ inputs.version }}
-              run: |
-                  set -euo pipefail
-                  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-                  RESOLVE_TITLE="## Resolved — ${TIMESTAMP}"
-                  if [ -n "${VERSION:-}" ]; then
-                    RESOLVE_TITLE="## Resolved — shipped v${VERSION} — ${TIMESTAMP}"
-                  fi
-
-                  cat > /tmp/resolve-body.md << RESOLVEEOF
-                  ${RESOLVE_TITLE}
-
-                  - **Run:** [#${RUN_ID}](${RUN_URL})
-                  - **Ref:** ${{ github.ref }}
-                  - **Trigger:** ${{ github.event_name }}
-
-                  Auto-closing this issue.
-                  RESOLVEEOF
-
-                  sed 's/^                  //' /tmp/resolve-body.md > /tmp/resolve-body-clean.md
-
-                  gh issue comment "$ISSUE_NUMBER" \
-                    --repo "${{ github.repository }}" \
-                    --body-file /tmp/resolve-body-clean.md
-
-                  gh issue close "$ISSUE_NUMBER" \
-                    --repo "${{ github.repository }}" \
-                    --reason completed
+                        if (existing) {
+                          const comment = _$gha_buildFailureComment({
+                            failedStep, runId, runUrl, ref, eventName, timestamp,
+                            logSnippet: snippet, version, reason, nxTargets,
+                          });
+                          await github.rest.issues.createComment({
+                            owner, repo, issue_number: existing.number, body: comment,
+                          });
+                          const newBody = _$gha_incrementFailureHistory(existing.body || '', {
+                            runId, runUrl, ref, eventName, timestamp,
+                          });
+                          await github.rest.issues.update({
+                            owner, repo, issue_number: existing.number, body: newBody,
+                          });
+                          core.info(`Updated issue #${existing.number}`);
+                        } else {
+                          const body = _$gha_buildFailureIssueBody({
+                            title, workflowName, jobName, failedStep, runId, runUrl,
+                            ref, eventName, timestamp, logSnippet: snippet, version, reason, nxTargets,
+                          });
+                          const created = await github.rest.issues.create({
+                            owner, repo, title, labels: ['bug', 'ci', '6'], body,
+                          });
+                          core.info(`Created issue #${created.data.number}`);
+                        }
+                      } else if (status === 'success' && existing) {
+                        const comment = _$gha_buildResolveComment({
+                          runId, runUrl, ref, eventName, timestamp, version,
+                        });
+                        await github.rest.issues.createComment({
+                          owner, repo, issue_number: existing.number, body: comment,
+                        });
+                        await github.rest.issues.update({
+                          owner, repo, issue_number: existing.number,
+                          state: 'closed', state_reason: 'completed',
+                        });
+                        core.info(`Closed issue #${existing.number}`);
+                      }
