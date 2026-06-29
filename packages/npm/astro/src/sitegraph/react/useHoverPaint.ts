@@ -1,9 +1,5 @@
-import {
-	useCallback,
-	useLayoutEffect,
-	useRef,
-	type RefObject,
-} from 'react';
+import { useCallback, useLayoutEffect, useRef, type RefObject } from 'react';
+import { ZOOM_LABEL_THRESHOLD } from './graph-core';
 
 const HL_FILL = 'var(--sl-color-accent)';
 const HL_STROKE = 'var(--sl-color-accent-high)';
@@ -28,6 +24,7 @@ export interface HoverPaint {
 export function useHoverPaint(
 	svgRef: RefObject<SVGSVGElement | null>,
 	adjacency: Map<string, Set<string>>,
+	zoomRef: RefObject<number>,
 ): HoverPaint {
 	const hoveredIdRef = useRef<string | null>(null);
 
@@ -35,6 +32,11 @@ export function useHoverPaint(
 		(hoverId: string | null) => {
 			const svg = svgRef.current;
 			if (!svg) return;
+
+			// Zoom drives label decluttering imperatively (the render no longer
+			// depends on zoom), so reveal every label once zoomed past the
+			// threshold even when it isn't part of the static label-base set.
+			const zoomReveal = (zoomRef.current ?? 1) >= ZOOM_LABEL_THRESHOLD;
 
 			let set: Set<string> | null = null;
 			if (hoverId) {
@@ -51,11 +53,7 @@ export function useHoverPaint(
 				const labelBase = g.dataset.labelBase === '1';
 				const inSet = set ? set.has(id) : true;
 				const visible = filterPass && inSet;
-				g.style.opacity = visible
-					? '1'
-					: filterPass
-						? '0.18'
-						: '0.05';
+				g.style.opacity = visible ? '1' : filterPass ? '0.18' : '0.05';
 
 				const isHovered = hoverId != null && id === hoverId;
 				const circle =
@@ -78,7 +76,7 @@ export function useHoverPaint(
 					);
 					text.setAttribute(
 						'opacity',
-						labelBase || isHovered ? '1' : '0',
+						labelBase || isHovered || zoomReveal ? '1' : '0',
 					);
 					text.style.fontWeight =
 						isCurrent || isHovered ? '600' : '400';
@@ -98,7 +96,7 @@ export function useHoverPaint(
 				p.setAttribute('stroke-opacity', String(op));
 			}
 		},
-		[svgRef, adjacency],
+		[svgRef, adjacency, zoomRef],
 	);
 
 	// Re-apply hover after every render so a base repaint can't drop the overlay.

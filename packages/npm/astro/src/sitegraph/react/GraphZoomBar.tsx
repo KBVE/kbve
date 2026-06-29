@@ -1,18 +1,26 @@
-import { memo } from 'react';
+import { memo, useEffect, useState, type RefObject } from 'react';
 import { MIN_ZOOM, MAX_ZOOM } from './graph-core';
 
 interface GraphZoomBarProps {
-	zoom: number;
+	zoomRef: RefObject<number>;
+	subscribeZoom: (cb: (zoom: number) => void) => () => void;
 	onReset: () => void;
 	onSliderChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-/** Bottom zoom bar: reset-to-100% button + zoom slider. */
+/**
+ * Bottom zoom bar: reset-to-100% button + zoom slider. Subscribes to zoom
+ * itself so a gesture re-renders only this bar — never the node/link tree.
+ */
 export const GraphZoomBar = memo(function GraphZoomBar({
-	zoom,
+	zoomRef,
+	subscribeZoom,
 	onReset,
 	onSliderChange,
 }: GraphZoomBarProps) {
+	const [zoom, setZoom] = useState(() => zoomRef.current ?? 1);
+	useEffect(() => subscribeZoom(setZoom), [subscribeZoom]);
+
 	const pct = ((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
 	return (
 		<div

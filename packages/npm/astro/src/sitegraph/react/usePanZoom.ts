@@ -3,7 +3,6 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useRef,
-	useState,
 	type RefObject,
 } from 'react';
 import { MIN_ZOOM, MAX_ZOOM, ZOOM_SENSITIVITY } from './graph-core';
@@ -11,14 +10,18 @@ import { MIN_ZOOM, MAX_ZOOM, ZOOM_SENSITIVITY } from './graph-core';
 export interface PanZoom {
 	/** Attach to the `<g>` wrapping all nodes/links. */
 	groupRef: RefObject<SVGGElement | null>;
-	/** Committed zoom — drives zoom-dependent rendered attrs + the slider. */
-	zoom: number;
 	/** Live pan/zoom (imperative source of truth, no re-render on change). */
 	zoomRef: RefObject<number>;
 	panXRef: RefObject<number>;
 	panYRef: RefObject<number>;
 	/** True while a pointer is over the SVG — gates keyboard shortcuts. */
 	isPointerOverSvg: RefObject<boolean>;
+	/**
+	 * Subscribe to committed-zoom changes (rAF-throttled during gestures). Lets
+	 * the slider + imperative label-reveal follow zoom WITHOUT re-rendering the
+	 * node/link tree. Returns an unsubscribe fn.
+	 */
+	subscribeZoom: (cb: (zoom: number) => void) => () => void;
 	handleSliderChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	handleResetZoom: () => void;
 }
@@ -26,9 +29,9 @@ export interface PanZoom {
 /**
  * Pan + pinch/wheel zoom for the SiteGraph SVG, driven entirely through refs
  * and a single imperative transform writer — high-frequency gestures never
- * re-render the node/link tree. Only `zoom` is committed to state (rAF-
- * throttled) so zoom-dependent attributes (stroke width, label decluttering,
- * the slider) can follow along.
+ * re-render the node/link tree. Zoom is never committed to React state: it
+ * lives in `zoomRef` and is broadcast through `subscribeZoom` (rAF-throttled),
+ * so only the tiny zoom bar + imperative label-reveal react to it.
  */
 export function usePanZoom(
 	svgRef: RefObject<SVGSVGElement | null>,
@@ -36,14 +39,25 @@ export function usePanZoom(
 	height: number,
 	ready: boolean,
 ): PanZoom {
-	const [zoom, setZoom] = useState(1);
-
 	const groupRef = useRef<SVGGElement>(null);
 	const panXRef = useRef(0);
 	const panYRef = useRef(0);
 	const zoomRef = useRef(1);
 	const zoomCommitRaf = useRef(0);
 	const isPointerOverSvg = useRef(false);
+	const zoomSubscribers = useRef(new Set<(zoom: number) => void>());
+
+	const notifyZoom = useCallback(() => {
+		const z = zoomRef.current;
+		for (const cb of zoomSubscribers.current) cb(z);
+	}, []);
+
+	const subscribeZoom = useCallback((cb: (zoom: number) => void) => {
+		zoomSubscribers.current.add(cb);
+		return () => {
+			zoomSubscribers.current.delete(cb);
+		};
+	}, []);
 
 	// Active background pointers, keyed by pointerId. 1 → pan, 2 → pinch-zoom.
 	const bgPointers = useRef(new Map<number, { x: number; y: number }>());
@@ -76,9 +90,9 @@ export function usePanZoom(
 		if (zoomCommitRaf.current) return;
 		zoomCommitRaf.current = requestAnimationFrame(() => {
 			zoomCommitRaf.current = 0;
-			setZoom(zoomRef.current);
+			notifyZoom();
 		});
-	}, []);
+	}, [notifyZoom]);
 
 	useEffect(
 		() => () => {
@@ -233,9 +247,9 @@ export function usePanZoom(
 			const next = parseFloat(e.target.value);
 			zoomRef.current = next;
 			writeTransform();
-			setZoom(next);
+			notifyZoom();
 		},
-		[writeTransform],
+		[writeTransform, notifyZoom],
 	);
 
 	const handleResetZoom = useCallback(() => {
@@ -243,16 +257,16 @@ export function usePanZoom(
 		panXRef.current = 0;
 		panYRef.current = 0;
 		writeTransform();
-		setZoom(1);
-	}, [writeTransform]);
+		notifyZoom();
+	}, [writeTransform, notifyZoom]);
 
 	return {
 		groupRef,
-		zoom,
 		zoomRef,
 		panXRef,
 		panYRef,
 		isPointerOverSvg,
+		subscribeZoom,
 		handleSliderChange,
 		handleResetZoom,
 	};

@@ -82,18 +82,49 @@ await page.mouse.up();
 await page.waitForTimeout(80);
 const afterPan = await groupTransform();
 
-// Wheel zoom over the center.
+// Label decluttering is now zoom-driven imperatively (no React re-render):
+// 'd' (degree 1, not current) is label-hidden at base zoom; zooming past the
+// reveal threshold must paint its label visible.
+const labelOpacity = (id) =>
+	page.evaluate(
+		(id) =>
+			document
+				.querySelector(`.sg-node[data-id="${id}"] .sg-node-label`)
+				?.getAttribute('opacity') ?? null,
+		id,
+	);
+const zoomPct = () =>
+	page.evaluate(
+		() =>
+			document.querySelector('button[title="Reset zoom"]')?.textContent ??
+			null,
+	);
+const dLabelBase = await labelOpacity('d');
+const zoomPctBase = await zoomPct();
+
+// Wheel zoom over the center (delta ~ +0.48 → ~1.48, past the 1.2 threshold).
 await page.mouse.move(svg.x + svg.width / 2, svg.y + svg.height / 2);
 await page.mouse.wheel(0, -240);
 await page.waitForTimeout(120);
 const afterWheel = await groupTransform();
+const dLabelZoomed = await labelOpacity('d');
+const zoomPctZoomed = await zoomPct();
 
 out({
 	nodeCount,
 	hover,
 	afterLeave,
 	pan: { before, afterPan, panned: before !== afterPan },
-	wheel: { afterWheel, zoomed: afterPan !== afterWheel },
+	wheel: {
+		afterWheel,
+		zoomed: afterPan !== afterWheel,
+		dLabelBase,
+		dLabelZoomed,
+		labelRevealed: dLabelBase === '0' && dLabelZoomed === '1',
+		zoomPctBase,
+		zoomPctZoomed,
+		zoomBarUpdated: zoomPctBase !== zoomPctZoomed,
+	},
 	consoleErrors,
 });
 
