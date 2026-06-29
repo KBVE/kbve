@@ -1213,6 +1213,12 @@ export function hasLore(
 	return (item.trivia?.length ?? 0) > 0;
 }
 
+export function hasFamily(
+	item: OSRSExtended,
+): item is OSRSExtended & { family: OSRSFamily } {
+	return (item.family?.members?.length ?? 0) > 0;
+}
+
 export function hasItemTrivia(item: OSRSExtended): boolean {
 	const p = item.properties;
 	if (!p) return false;

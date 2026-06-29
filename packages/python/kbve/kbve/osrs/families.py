@@ -10,10 +10,15 @@ canonical member, and emits a families.json that drives both the family pages
 """
 import argparse
 import json
+import os
 import re
 from collections import defaultdict
 
+import yaml
+
 from kbve.osrs._corpus import find_content_dir, iter_items
+
+SITE = "https://kbve.com"
 
 # Suffix patterns stripped to compute the family base name. Order matters.
 _POISON = re.compile(r"\s*\(p\+{0,2}\)\s*$", re.I)
@@ -113,19 +118,111 @@ def resolve(content_dir, min_members=2):
     }
 
 
+def _indent_yaml(block, indent="  "):
+    dumped = yaml.dump(block, default_flow_style=False, sort_keys=False,
+                       allow_unicode=True).rstrip("\n")
+    return "\n".join(indent + ln for ln in dumped.split("\n"))
+
+
+def write_families(content_dir, result, min_members):
+    """Stamp family_ref (+ canonical / family roster) into each member MDX."""
+    fam_by_key = {f["family_name"].lower(): f for f in result["families"]}
+    stamped = 0
+    skipped_existing = 0
+    dose_pages_needed = []
+    for fname, osrs, raw in iter_items(content_dir):
+        name = str(osrs.get("name", "")).strip()
+        if not name:
+            continue
+        base, role, dose = family_of(name)
+        fam = fam_by_key.get(base.lower())
+        if not fam:
+            continue
+        m = re.match(r"^---\n(.*?)\n---", raw, re.S)
+        if not m or re.search(r"^\s+family_ref:\s*$", m.group(1), re.M):
+            skipped_existing += 1
+            continue
+        item_id = osrs.get("id")
+        is_canonical = (
+            fam["canonical_id"] is not None and item_id == fam["canonical_id"]
+        )
+        family_url = "%s/osrs/%s/" % (SITE, fam["family_slug"])
+        ref = {"family_slug": fam["family_slug"], "role": role}
+        if dose is not None:
+            ref["dose"] = dose
+        block = {"family_ref": ref}
+        if is_canonical:
+            roster = [
+                {
+                    "id": mem["id"],
+                    "slug": mem["slug"],
+                    "name": mem["name"],
+                    "icon": mem.get("icon"),
+                    "role": mem["kind"],
+                    "dose": mem.get("dose"),
+                    "value": mem.get("value"),
+                    "lowalch": mem.get("lowalch"),
+                    "highalch": mem.get("highalch"),
+                }
+                for mem in fam["members"]
+            ]
+            block["family"] = {
+                "slug": fam["family_slug"],
+                "name": fam["family_name"],
+                "type": fam["type"],
+                "canonical_id": fam["canonical_id"],
+                "members": roster,
+            }
+        else:
+            block["canonical"] = family_url
+        mv = re.search(r"\n(\s*)mdx_version:", raw)
+        if not mv:
+            continue
+        indent = mv.group(1)
+        snippet = "\n" + _indent_yaml(block, indent)
+        raw2 = raw[:mv.start()] + snippet + raw[mv.start():]
+        with open(os.path.join(content_dir, fname), "w", encoding="utf-8") as fh:
+            fh.write(raw2)
+        stamped += 1
+        if not fam["has_base_item"]:
+            dose_pages_needed.append(fam["family_slug"])
+    return {
+        "stamped": stamped,
+        "skipped_existing": skipped_existing,
+        "dose_family_pages_needed": sorted(set(dose_pages_needed)),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Resolve OSRS item families.")
     parser.add_argument("--root", default=None, help="Repo root path")
     parser.add_argument("--json", default=None, help="Write JSON to this path")
     parser.add_argument("--min-members", type=int, default=2,
                         help="Minimum members for a family (default 2)")
+    parser.add_argument("--write", action="store_true",
+                        help="Stamp family_ref/canonical/roster into member MDX")
+    parser.add_argument("--only", default=None,
+                        help="Restrict --write to one family slug (pilot)")
     args = parser.parse_args()
 
-    result = resolve(find_content_dir(args.root), args.min_members)
+    content_dir = find_content_dir(args.root)
+    result = resolve(content_dir, args.min_members)
+    if args.only:
+        result["families"] = [
+            f for f in result["families"] if f["family_slug"] == args.only
+        ]
     text = json.dumps(result, indent=2)
-    if args.json:
+    if args.json and not args.write:
         with open(args.json, "w", encoding="utf-8") as fh:
             fh.write(text)
+    if args.write:
+        w = write_families(content_dir, result, args.min_members)
+        print("stamped: %d  skipped(existing): %d" % (
+            w["stamped"], w["skipped_existing"]))
+        if w["dose_family_pages_needed"]:
+            print("dose families needing a new page: %d" % (
+                len(w["dose_family_pages_needed"])))
+        return
     print("families: %d  redirects: %d" % (
         result["family_count"], result["redirect_count"]))
     print("\nlargest families:")

@@ -17,6 +17,7 @@ import OSRSTradingTips from './OSRSTradingTips.astro';
 import OSRSItemTrivia from './OSRSItemTrivia.astro';
 import OSRSFaq from './OSRSFaq.astro';
 import OSRSLore from './OSRSLore.astro';
+import OSRSItemFamily from './OSRSItemFamily.astro';
 import OSRSShops from './OSRSShops.astro';
 import OSRSUsedIn from './OSRSUsedIn.astro';
 import OSRSHistory from './OSRSHistory.astro';
@@ -49,6 +50,7 @@ import {
 	hasItemTrivia,
 	hasFaq,
 	hasLore,
+	hasFamily,
 } from '@/data/schema';
 
 type OSRSItemData = OSRSExtended;
@@ -92,6 +94,7 @@ const showHistory = hasHistory(item);
 const showTrivia = hasItemTrivia(item);
 const showFaq = hasFaq(item);
 const showLore = hasLore(item);
+const showFamily = hasFamily(item);
 const aboutData = typeof item.about === 'object' ? item.about : undefined;
 
 let usedInEntries: OSRSUsedInEntry[] | undefined;
@@ -240,6 +243,15 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 							examine={item.examine}
 							sections={aboutData?.sections}
 						/>
+					</div>
+				)
+			}
+
+			<!-- Family variants (consolidated graphs) -->
+			{
+				showFamily && item.family && (
+					<div class="osrs-bento__item osrs-bento__item--wide">
+						<OSRSItemFamily family={item.family} />
 					</div>
 				)
 			}
