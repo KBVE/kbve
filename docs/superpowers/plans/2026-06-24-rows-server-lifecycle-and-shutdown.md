@@ -328,8 +328,16 @@ The `reaper_config` table (this PR) is the first slice of this control plane.
 
 The `accept_new_joins` gate is live in ROWS as of Phase 2 (`admission_control` table + join-path
 enforcement). It freezes **new joins** at two enforceable scopes — **global** (game-wide) and
-**tenant** — while existing players keep playing and **traveling** (travel bypasses the gate). It
-ships **inert**: no DB rows + env default `ROWS_ACCEPT_NEW_JOINS=true` ⇒ no effect.
+**tenant**. It ships **inert**: no DB rows + env default `ROWS_ACCEPT_NEW_JOINS=true` ⇒ no effect.
+
+> **⚠️ Current behavior (Phase 2): a freeze blocks ALL new joins.** The travel-bypass ("existing
+> players keep playing and traveling") is **not active yet** — it reads `charonmapinstance`, which
+> nothing populates on join today, so `is_character_on_active_instance` is always `false` and every
+> request is treated as a new join. This is safe for now because in-world zone-to-zone travel is not
+> a live client flow yet; a freeze today simply means "no new logins," which is the intended
+> maintenance/load-shed behavior. The travel-bypass activates once presence tracking lands
+> (**#13555**), and the join-vs-travel/anti-teleport model is tracked in **#13556**. Until then, do
+> not tell operators that travelers pass — they don't.
 
 **Scopes & precedence.** New joins are blocked if **either** the global sentinel row (`customerguid
 = 00000000-0000-0000-0000-000000000000`) **or** this tenant's row has `acceptnewjoins = false`.

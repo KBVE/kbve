@@ -33,9 +33,15 @@ impl OWSService {
 
         let resolved_zone = self.resolve_zone(char_name, zone_name, character.as_ref())?;
 
-        // Admission gate (Phase 2): pause *new* joins game-wide or per-tenant while letting existing
-        // players keep playing and traveling. Travel (a character already on an active instance)
-        // bypasses the gate; only a genuinely new join is subject to it.
+        // Admission gate (Phase 2): pause *new* joins game-wide or per-tenant. Travel (a character
+        // already on an active instance) is meant to bypass the gate; only a genuinely new join is
+        // subject to it.
+        //
+        // NOTE (Phase 2 reality): nothing populates `charonmapinstance` on join yet (#13555), so
+        // `is_character_on_active_instance` is currently always false and the travel-bypass is inert
+        // — today a freeze blocks ALL new joins. That is safe for now because in-world zone-to-zone
+        // travel is not a live client flow yet (#13556); a freeze just means "no new logins". The
+        // bypass below is forward-compatible scaffolding that starts working once #13555 lands.
         let repo = InstanceRepo(&self.state.db);
         // Travel detection FAILS OPEN: a read error (or no resolved character) must never strand a
         // moving player. Key on the already-resolved CharacterID (F1).
