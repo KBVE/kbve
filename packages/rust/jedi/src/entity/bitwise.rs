@@ -1,5 +1,5 @@
 use crate::proto::jedi::MessageKind;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use std::collections::HashMap;
 
 impl MessageKind {
@@ -63,7 +63,7 @@ macro_rules! define_multi_flag_checks {
             )*
         }
 
-        pub static MESSAGE_KIND_MULTI_MAP: Lazy<HashMap<i32, &'static [MessageKind]>> = Lazy::new(|| {
+        pub static MESSAGE_KIND_MULTI_MAP: LazyLock<HashMap<i32, &'static [MessageKind]>> = LazyLock::new(|| {
             let mut map = HashMap::new();
             $(
                 const $const_name: &[MessageKind] = &[ $( MessageKind::$variant ),+ ];
