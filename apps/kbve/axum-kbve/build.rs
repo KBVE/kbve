@@ -84,5 +84,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("cargo:rerun-if-changed={}", proto.display());
     }
 
+    check_family_redirects_freshness();
+
     Ok(())
+}
+
+/// Warn (don't fail) if the committed OSRS family-redirect table is older than
+/// families.json — the resolver (kbve-osrs-families --rust-out) is the single
+/// generator; this is the B-side staleness guard. Skipped when the data file is
+/// absent (e.g. docker build context), where the committed .rs is used as-is.
+fn check_family_redirects_freshness() {
+    let families = Path::new("../../../docs/plans/osrs/families.json");
+    let generated = Path::new("src/transport/osrs_family_redirects.rs");
+    if !families.exists() {
+        return;
+    }
+    println!("cargo:rerun-if-changed={}", families.display());
+    let newer = |a: &Path, b: &Path| -> bool {
+        match (
+            a.metadata().and_then(|m| m.modified()),
+            b.metadata().and_then(|m| m.modified()),
+        ) {
+            (Ok(ta), Ok(tb)) => ta > tb,
+            _ => false,
+        }
+    };
+    if !generated.exists() || newer(families, generated) {
+        println!(
+            "cargo:warning=osrs_family_redirects.rs may be stale vs families.json; \
+             regenerate: uv run --extra osrs kbve-osrs-families --root <repo> \
+             --rust-out apps/kbve/axum-kbve/src/transport/osrs_family_redirects.rs"
+        );
+    }
 }
