@@ -1,6 +1,6 @@
 ---
 title: Yellow bead | OSRS Price Data
-description: "Yellow bead: A small round yellow bead.. High alch: 2 GP, GE limit: 11,000."
+description: "Yellow bead: one of four beads needed for the Imp Catcher quest, dropped by imps. F2P. High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 1472
   name: Yellow bead
@@ -12,9 +12,54 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Yellow bead is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about: "Yellow bead is a free-to-play quest item and one of the four coloured beads — alongside the red, black, and white beads — required to complete Imp Catcher. The beads are dropped by imps and must be handed to Wizard Mizgog at the Wizards' Tower to finish the quest. Outside of the quest the bead has no combat or skilling use, though it can be used as bait when hunting imps. It is tradeable and noteable, so players short on a colour can simply buy the missing bead from the Grand Exchange instead of farming imp drops."
+  quest_data:
+    quests:
+      - quest_name: Imp Catcher
+        role: required
+        quantity: 1
+        notes: One of four beads returned to Wizard Mizgog at the Wizards' Tower
+  drop_table:
+    sources:
+      - source: Imp
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: "5/128"
+  related_items:
+    - item_name: Red bead
+      slug: red-bead
+      relationship: set-piece
+      description: Another Imp Catcher bead
+    - item_name: Black bead
+      slug: black-bead
+      relationship: set-piece
+      description: Another Imp Catcher bead
+    - item_name: White bead
+      slug: white-bead
+      relationship: set-piece
+      description: Another Imp Catcher bead
+  trading_tips:
+    - "Cheaper to buy a missing bead on the GE than to farm imp drops at 5/128"
+    - "Demand spikes are negligible — almost entirely Imp Catcher questers"
+  trivia:
+    - "The yellow bead is one of four coloured beads — red, yellow, black, and white — needed to finish Imp Catcher."
+    - "Imps drop the yellow bead at a rate of 5/128."
+    - "Outside the quest, the bead can be used as bait when hunting imps."
+  faq:
+    - question: What quest is the yellow bead used for?
+      answer: "The yellow bead is required for Imp Catcher. All four coloured beads must be handed to Wizard Mizgog at the Wizards' Tower to complete the quest."
+    - question: How do you get a yellow bead?
+      answer: "Yellow beads are dropped by imps at a rate of 5/128, or they can simply be bought from the Grand Exchange."
+    - question: Is the yellow bead members-only?
+      answer: "No. The yellow bead and the Imp Catcher quest are both free-to-play."
+    - question: Does the yellow bead have any use after Imp Catcher?
+      answer: "It has no combat or skilling use, but it can be used as bait while hunting imps."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Yellow_bead"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

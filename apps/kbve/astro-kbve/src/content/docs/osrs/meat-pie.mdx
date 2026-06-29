@@ -1,6 +1,6 @@
 ---
 title: Meat pie | OSRS Price Data
-description: "Meat pie: Not for vegetarians.. High alch: 9 GP, GE limit: 10,000."
+description: "Meat pie heals 12 Hitpoints over 2 bites, cooked at level 20 Cooking for 110 XP. F2P. High alch: 9 GP, GE limit: 10,000."
 osrs:
   id: 2327
   name: Meat pie
@@ -12,9 +12,57 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 10000
-  about: "Meat pie is a free-to-play item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about: "Meat pie is a free-to-play food that heals 12 Hitpoints in total, eaten in two bites of 6 each. It is cooked from an uncooked meat pie on a cooking range at level 20 Cooking, granting 110 Cooking experience, and stops burning at level 54 (or level 49 on the Lumbridge Castle range after completing Cook's Assistant). Because each pie is eaten in two separate bites, it is useful for spreading healing across several attacks, and three meat pies are handed to players when starting the Nature Spirit quest."
+  food:
+    heals: 12
+    type: pie
+    cooking_level: 20
+    cooking_xp: 110
+    burn_level: 54
+  recipes:
+    - skill: cooking
+      level: 20
+      xp: 110
+      facility: Range
+      product: Meat pie
+      materials:
+        - item_name: Uncooked meat pie
+          quantity: 1
+  related_items:
+    - item_name: Uncooked meat pie
+      slug: uncooked-meat-pie
+      relationship: component
+      description: Baked on a range to create the meat pie
+    - item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: Pastry-dough base filled with cooked meat
+    - item_name: Redberry pie
+      slug: redberry-pie
+      relationship: alternative
+      description: Lower-level F2P pie that heals 10
+  trading_tips:
+    - "High buy limit (10,000) supports bulk supply from Cooking trainers"
+    - "Exempted from Grand Exchange convenience fees as of 29 May 2025"
+  trivia:
+    - "Three meat pies are handed to players when they start the Nature Spirit quest."
+    - "As of 29 May 2025 the meat pie is exempt from Grand Exchange convenience fees."
+    - "On the Lumbridge Castle range (after Cook's Assistant) meat pies stop burning at level 49 instead of 54."
+  faq:
+    - question: How much does a meat pie heal?
+      answer: "A meat pie heals 12 Hitpoints total, eaten in two separate bites of 6 each."
+    - question: What Cooking level do you need to make a meat pie?
+      answer: "Level 20 Cooking, baking an uncooked meat pie on a range for 110 Cooking experience."
+    - question: At what level do meat pies stop burning?
+      answer: "Burning stops at level 54 Cooking on a normal range, or level 49 on the Lumbridge Castle range after completing Cook's Assistant. The Bake Pie lunar spell never burns."
+    - question: Is the meat pie members-only?
+      answer: "No. The meat pie is free-to-play and can be cooked and eaten on any world."
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Meat_pie"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
