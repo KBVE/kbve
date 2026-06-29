@@ -549,6 +549,34 @@ async fn fleet_restart_status(State(hs): State<HandlerState>) -> ApiResult<Fleet
 
 ---
 
+### Task 5b: Deploy health on `/health` (the no-auto-rollback surface)
+
+**Files:** Modify `apps/rows/src/rest/mod.rs` (the existing `health` handler + `HealthResponse`),
+`apps/rows/src/repo/instances.rs`, plus the R5 `deploy_state` table (add a `health` column).
+
+**Interfaces:**
+
+- Consumes: `deploy_state(tenant, target_version, rolled, health text)` (R5 table, extended).
+- Produces: the public `GET /health` (`HealthResponse`, already surfaces `unreal_version`) gains
+  `deploy_healthy: bool` + `failing_version: Option<String>`. On a failed soak (R3 Step 7) the
+  orchestrator sets `deploy_state.health = 'unhealthy'`; `/health` then reports `deploy_healthy:false`
+  and the overall body reflects unhealthy. Reachable publicly at `https://api-beta.chuckrpg.com/health`
+  (this is the chuckrpg-beta ROWS tenant) for alerting/observation — **read-only; the write that flips
+  it is the cluster-internal orchestrator, not a public route.**
+
+- [ ] **Step 1:** Add `health` (text, default `'healthy'`) to the R5 `deploy_state` migration; add a
+      `set_deploy_health(tenant, healthy: bool, failing_version: Option<&str>)` repo upsert.
+- [ ] **Step 2:** Extend `HealthResponse` with `deploy_healthy` + `failing_version`, read from
+      `deploy_state` (degrade-on-42P01 ⇒ `deploy_healthy: true`, i.e. inert/healthy when the table is
+      absent — never fail the probe because of a missing rollout table).
+- [ ] **Step 3:** Decide whether `deploy_healthy:false` should also fail **`/ready`** (k8s readiness).
+      Recommendation: **NO** — keep `/ready` purely DB/pod liveness so a bad _game_ build doesn't
+      deregister the ROWS API pod (which the dashboard + orchestrator still need). `deploy_healthy` is
+      an _advisory_ deploy signal on `/health`, not a pod-readiness gate.
+- [ ] **Step 4: Commit** — `feat(rows): deploy_healthy on /health (no-auto-rollback surface)`.
+
+---
+
 ### Task 6: Runbook + spec cross-reference
 
 **Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
@@ -713,14 +741,21 @@ a bare template apply would surge new pods alongside draining old ones — so th
 - [ ] **Step 6: Confirm the new version is healthy BEFORE marking the roll done or deleting the old
       build.** Wait until the Fleet has `readyReplicas >= desired` with **GameServers carrying the new
       `ows.kbve.com/server-version` label** Ready for a soak window (e.g. ≥5 min, no crash-loop — this
-      is the live guard against the known login-crash class). Only then set `deploy_state.rolled=true`
+      is the live guard against the known login-crash class). On success: set `deploy_state.rolled=true`
       for the new version. **The old `/server/<old-version>/` dir is NOT pruned here** — it stays for
       rollback; the R0 Step-5 GC removes it later, keeping N-1.
-- [ ] **Step 7 (rollback path): a bad new version is a re-pin, not a re-cook.** Because the old build
-      was retained (R0 Step 5), rollback = set `OWS_SERVER_VERSION` back to `<old-version>` and re-run
-      the same scale-to-0 cutover (Steps 3–5). No `dbmate down` (B-2 forward-fix; the migration was
-      additive, so the old binary runs fine on the new schema). Document this in the runbook.
-- [ ] **Step 8: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover gated on safe_to_roll, confirm-then-prune)`.
+- [ ] **Step 7: On a FAILED soak — no auto-rollback. Mark the tenant unhealthy and stop.** The
+      orchestrator does **not** automatically re-pin. Instead it flips the ROWS health surface to
+      unhealthy so the bad deploy is externally visible and alertable: write a `deploy_state.health`
+      column (or reuse the existing `/health` `HealthResponse`) so **`GET https://api-beta.chuckrpg.com/health`
+      reports unhealthy** (the route already surfaces `unreal_version` — add a `deploy_healthy: false` + the failing version). `deploy_state.rolled` stays `false` (update still "pending", R5). A human
+      then decides; the orchestrator halts. (See Task 5b for the `/health` wiring.)
+- [ ] **Step 8: Manual rollback is a fast re-pin, not a re-cook (operator-initiated).** Because the old
+      build was retained (R0 Step 5), an operator rolls back by setting `OWS_SERVER_VERSION` back to
+      `<old-version>` and re-running the scale-to-0 cutover (Steps 1–5) — typically via the aggressive
+      R4 trigger. No `dbmate down` (B-2 forward-fix; the migration was additive, so the old binary runs
+      fine on the new schema). Document the exact re-pin SQL/commit in the runbook.
+- [ ] **Step 9: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover, confirm-then-mark, unhealthy-on-fail)`.
 
 > 🕳️ **Precondition:** the Agones barrier (`gameservers==0`) can only be exercised once chuck servers
 > actually reach `Ready()` — today the fleet sits at `replicas:0` and servers hang at login
@@ -741,7 +776,7 @@ only inside the cluster, and a separate gateway service handles dashboard auth/p
 - Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }`
   → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `drain_deadline = now()
     - grace_secs`(default **300s = 5 min**),`lockout=true`. Returns `409 Conflict`if a restart is
-  already`active`; returns \*\*`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
+already`active`; returns \*\*`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
 
 - [ ] **Step 1: Implement the handler** — validates `mode`, computes the deadline, upserts via a new
       `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo fn (mirrors `set_admission`'s upsert).
@@ -773,9 +808,10 @@ actually an update pending** — you can't "restart to deploy" when there's noth
   PR writes on merge).
 
 - [ ] **Step 1: Implement `get_pending_update(tenant)`** — reads the `deploy_state(tenant,
-  target_version, rolled)` row (written `rolled=false` by the R1 post-merge hook, set `rolled=true`
-      by the R3 orchestrator **only after the new-version soak confirms healthy — R3 Step 6**, not at
-      scale-up). `pending = row exists && !rolled`. Degrade on 42P01 (inert) like `get_fleet_restart`.
+target_version, rolled, health)` row (written `rolled=false, health='healthy'` by the R1 post-merge
+      hook; `rolled` set `true` by the R3 orchestrator **only after the new-version soak confirms
+      healthy — R3 Step 6**, not at scale-up; `health='unhealthy'` on failed soak — R3 Step 7 / Task
+      5b). `pending = row exists && !rolled`. Degrade on 42P01 (inert) like `get_fleet_restart`.
 - [ ] **Step 2: `POST /fleet-restart/trigger` (mode=aggressive) returns `404` when `!pending`.** The
       dashboard greys out the button off the same `GET /fleet-restart/pending`. Non-aggressive
       auto-path doesn't need this gate (it _is_ the merge that creates the pending state).
@@ -785,17 +821,18 @@ actually an update pending** — you can't "restart to deploy" when there's noth
 
 ### Requirement → task traceability
 
-| #   | Your requirement                                                 | Task(s)                             | Notes                                                            |
-| --- | ---------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
-| 0   | Don't pull mutable `latest`; pin the version                     | **R0**                              | Prereq for everything; kills accidental mixed-version            |
-| 1   | Bump beta builds game + server                                   | R1 (gate) + existing build CI       | Build itself is existing pipeline; gate is new                   |
-| 2   | Server waits for Windows client build                            | **R1/R2**                           | Required merge status check; signal source = open decision       |
-| 3   | Merge → non-aggressive, roll only when no players / all old gone | **R3 (B4)** + Task 5 `safe_to_roll` | Two-level barrier (DB + Agones), scale-to-0 `maxSurge:0` cutover |
-| 4   | Aggressive "5-min restart" via dashboard API                     | **R4**                              | `POST /fleet-restart/trigger`, deadline=300s, cluster-internal   |
-| 5   | Route only if update pending                                     | **R5**                              | `GET /fleet-restart/pending`; 404 otherwise; button greyed       |
-| +   | Endpoints not public                                             | Task 5 + R4 Step 3                  | ClusterIP + NetworkPolicy; gateway service owns auth             |
-| +   | No roll until ALL old gone                                       | R3 Step 2–3                         | `safe_to_roll` = `draining==0 && gameservers==0`                 |
-| +   | Delete old version only after new confirmed                      | R0 Step 5 + R3 Step 6–7             | Retain N-1; prune is a post-soak GC; rollback = re-pin           |
+| #   | Your requirement                                                 | Task(s)                             | Notes                                                                            |
+| --- | ---------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| 0   | Don't pull mutable `latest`; pin the version                     | **R0**                              | Prereq for everything; kills accidental mixed-version                            |
+| 1   | Bump beta builds game + server                                   | R1 (gate) + existing build CI       | Build itself is existing pipeline; gate is new                                   |
+| 2   | Server waits for Windows client build                            | **R1/R2**                           | Required merge status check; signal source = open decision                       |
+| 3   | Merge → non-aggressive, roll only when no players / all old gone | **R3 (B4)** + Task 5 `safe_to_roll` | Two-level barrier (DB + Agones), scale-to-0 `maxSurge:0` cutover                 |
+| 4   | Aggressive "5-min restart" via dashboard API                     | **R4**                              | `POST /fleet-restart/trigger`, deadline=300s, cluster-internal                   |
+| 5   | Route only if update pending                                     | **R5**                              | `GET /fleet-restart/pending`; 404 otherwise; button greyed                       |
+| +   | Endpoints not public                                             | Task 5 + R4 Step 3                  | ClusterIP + NetworkPolicy; gateway service owns auth                             |
+| +   | No roll until ALL old gone                                       | R3 Step 2–3                         | `safe_to_roll` = `draining==0 && gameservers==0`                                 |
+| +   | Delete old version only after new confirmed                      | R0 Step 5 + R3 Step 6               | Retain N-1; prune is a post-soak GC                                              |
+| +   | No auto-rollback; failed build ⇒ mark unhealthy + manual re-pin  | R3 Step 7–8 + Task 5b               | Failed soak flips `/health` `deploy_healthy:false`; re-pin is operator-initiated |
 
 ---
 
