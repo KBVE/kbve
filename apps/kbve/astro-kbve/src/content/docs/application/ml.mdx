@@ -464,4 +464,91 @@ The combination of the initial task and the follow up advice, will help generate
 
 ---
 
+## Data Processing Subagents
+
+A _data-processing subagent_ is an LLM agent pointed at a narrow, repeatable job:
+take messy source data, turn it into clean structured output, and do it the same
+way every time. The mistake most people make is handing the model a raw web page
+and a vague instruction — that burns tokens, invites hallucination, and produces
+inconsistent results. A powerful subagent is built by moving everything
+_deterministic_ out of the model and leaving only _judgement_ inside it.
+
+### Pre-process with mdream
+
+The single biggest win is to never make the agent fetch and parse HTML. We use
+[mdream](https://github.com/harlan-zw/mdream) — the fastest HTML-to-Markdown
+converter, optimized for LLMs — to pre-fetch source pages and cache them as clean,
+token-optimized Markdown _before_ any agent runs.
+
+<Aside>
+  mdream produces up to 2x fewer tokens than tools like Turndown, strips
+  navigation/boilerplate, and isolates the main content. A 70k-character wiki page
+  becomes ~6k characters of pure prose — the agent reads a small local file instead
+  of a live `WebFetch`, so research is deterministic, full-fidelity, and nearly
+  free.
+</Aside>
+
+A minimal fetch-and-convert step looks like this:
+
+```javascript
+import { htmlToMarkdown } from 'mdream';
+
+const html = await fetch(pageUrl, { headers: { 'User-Agent': UA } }).then((r) =>
+  r.text(),
+);
+
+const markdown = htmlToMarkdown(html, {
+  origin: new URL(pageUrl).origin,
+  clean: true, // strip tracking params, empty/redundant links
+});
+// cache markdown to disk, keyed by item id — read it from the agent later
+```
+
+### Anatomy of a powerful subagent
+
+The goal is that an agent can do the job from **one spec file plus one cached input**
+— without re-reading the schema, the source code, or the original HTML.
+
+<Steps>
+
+1. **Deterministic pre-processing (no model).** Fetch, clean, and convert source
+   data with code (mdream, an API client, a parser). Cache the result. The model
+   never touches raw HTML.
+
+2. **A turnkey runbook.** Write a single self-contained spec: the goal, the exact
+   output shape (copy the schema/field definitions inline), the per-item algorithm,
+   and one worked example. The agent should never have to go discover these.
+
+3. **Hard rules and skip conditions.** State what is the source of truth, what must
+   be preserved verbatim, and when _not_ to act (missing data, ambiguous input).
+   Forbid fabrication explicitly: every fact traces back to the cached source.
+
+4. **A validation gate.** Give the agent a command that proves its output is valid
+   (a schema validator, a type-check, a test). "It isn't done until the validator
+   passes" removes a whole class of silent errors.
+
+5. **Isolation.** Run the work in a throwaway workspace (a git worktree) and land it
+   via review (a pull request) — never directly on a shared branch. Parallel agents
+   then can't collide.
+
+</Steps>
+
+<Aside type="tip">
+  This is exactly how the KBVE OSRS item pipeline works: `mdream` caches each wiki
+  page to Markdown, a per-item enrichment runbook defines the exact frontmatter
+  shape and rules, an `astro sync` step validates the output, and each batch lands
+  through a worktree and PR. The result is thousands of pages enriched cheaply,
+  consistently, and without hallucinated data.
+</Aside>
+
+### Why this beats a "smart prompt"
+
+A clever prompt against raw input scales badly — every run re-pays the parsing
+tokens, and quality drifts. Front-loading the determinism (clean input + exact
+output contract + a validator) shrinks the model's job to the part it is actually
+good at: reading prose and writing structured content. Cost drops, accuracy rises,
+and the same spec can be handed to many agents in parallel.
+
+---
+
 <Giscus />
