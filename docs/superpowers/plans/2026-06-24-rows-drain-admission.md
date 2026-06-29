@@ -323,7 +323,7 @@ pub async fn is_character_on_active_instance(
 
 **Files:** Modify `docs/superpowers/plans/2026-06-24-rows-server-lifecycle-and-shutdown.md`
 
-- [ ] Document, at minimum:
+- [x] Document, at minimum:
   - The global freeze (sentinel-GUID row) and the tenant freeze, plus the SQL below to flip each.
   - Env baseline `ROWS_ACCEPT_NEW_JOINS` (default `true`).
   - **Fail-open semantics (F6):** both travel detection and the admission read fail OPEN on DB error — a set freeze is **best-effort during DB stress** and may let a new join through if the read fails. Operators must not treat the freeze as a hard guarantee; it is a load-shed/maintenance control.
@@ -341,7 +341,7 @@ ON CONFLICT (customerguid) DO UPDATE SET acceptnewjoins = EXCLUDED.acceptnewjoin
 DELETE FROM admission_control WHERE customerguid = '00000000-0000-0000-0000-000000000000';
 ```
 
-- [ ] Commit — `docs(rows): admission-gate runbook`.
+- [x] Commit — folded into this PR's admission-audit branch (not a standalone `docs(rows)` commit).
 
 ---
 
