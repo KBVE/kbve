@@ -1,9 +1,10 @@
 # OSRS Item Data — Planning
 
-| File                                     | What                                           |
-| ---------------------------------------- | ---------------------------------------------- |
-| [v4-thin-content.md](v4-thin-content.md) | v4 schema spec + thin-content remediation plan |
-| [audit.json](audit.json)                 | Latest STUB + BASIC sparse audit snapshot      |
+| File                                           | What                                           |
+| ---------------------------------------------- | ---------------------------------------------- |
+| [v4-thin-content.md](v4-thin-content.md)       | v4 schema spec + thin-content remediation plan |
+| [enrichment-runbook.md](enrichment-runbook.md) | Turnkey subagent spec to enrich an item to v4  |
+| [audit.json](audit.json)                       | Latest STUB + BASIC sparse audit snapshot      |
 
 ## Regenerating the data
 
