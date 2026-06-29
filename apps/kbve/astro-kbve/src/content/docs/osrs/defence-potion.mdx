@@ -1,0 +1,137 @@
+---
+title: Defence potion | OSRS Price Data
+description: "Defence potion(4): 4 doses of Defence potion.. High alch: 90 GP, GE limit: 2,000."
+osrs:
+  id: 2432
+  name: Defence potion
+  slug: defence-potion
+  examine: 4 doses of Defence potion.
+  members: true
+  icon: Defence potion(4).png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 2000
+  potion:
+    doses: 4
+    effects:
+      - description: "Boosts Defence by 3 + 10% of current Defence level (rounded down)."
+      - description: "Boost decays at 1 point per minute, or 90 seconds with the Preserve prayer."
+  recipes:
+    - skill: Herblore
+      level: 30
+      xp: 75
+      materials:
+        - item_name: Ranarr potion (unf)
+          quantity: 1
+        - item_name: White berries
+          quantity: 1
+      tools: []
+  drop_table:
+    sources:
+      - source: Abyssal demon
+        quantity: "1"
+        rarity: 1/128
+      - source: Black demon
+        quantity: "1"
+        rarity: 1/128
+      - source: Young impling jar
+        quantity: "1"
+        rarity: 1/100
+  related_items:
+    - item_name: Defence potion(3)
+      slug: defence-potion-3
+      relationship: variant
+      description: Three-dose variant
+    - item_name: Defence potion(2)
+      slug: defence-potion-2
+      relationship: variant
+      description: Two-dose variant
+    - item_name: Defence potion(1)
+      slug: defence-potion-1
+      relationship: variant
+      description: Single-dose variant
+  about: "Defence potion(4) holds four doses that each boost Defence by 3 + 10% of the current level. Brewed at 30 Herblore from a ranarr potion (unf) and white berries for 75 XP."
+  market_strategy:
+    notes:
+      - Cheap Herblore training product
+      - Limited combat use vs Super defence
+      - Drops from demons and young impling jars
+  history:
+    - date: "2004-10-26"
+      description: An "Empty" option was added.
+    - date: "2004-03-29"
+      description: The 4-dose potion became permanently available with the RuneScape 2 launch.
+    - date: "2002-02-27"
+      description: Released with Herblore-era potion content.
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  family_ref:
+    family_slug: defence-potion
+    role: base
+  family:
+    slug: defence-potion
+    name: Defence potion
+    type: dose
+    canonical_id: 2432
+    members:
+    - id: 2432
+      slug: defence-potion
+      name: Defence potion
+      icon: Defence potion(4).png
+      role: base
+      dose: null
+      value: 150
+      lowalch: 60
+      highalch: 90
+    - id: 137
+      slug: defence-potion-1
+      name: Defence potion(1)
+      icon: Defence potion(1).png
+      role: dose
+      dose: 1
+      value: 60
+      lowalch: 24
+      highalch: 36
+    - id: 135
+      slug: defence-potion-2
+      name: Defence potion(2)
+      icon: Defence potion(2).png
+      role: dose
+      dose: 2
+      value: 90
+      lowalch: 36
+      highalch: 54
+    - id: 133
+      slug: defence-potion-3
+      name: Defence potion(3)
+      icon: Defence potion(3).png
+      role: dose
+      dose: 3
+      value: 120
+      lowalch: 48
+      highalch: 72
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

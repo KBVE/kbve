@@ -1,0 +1,115 @@
+---
+title: Super energy mix | OSRS Price Data
+description: "Super energy mix(2): Two doses of fishy super energy potion. High alch: 96 GP, GE limit: 2,000."
+osrs:
+  id: 11481
+  name: Super energy mix
+  slug: super-energy-mix
+  examine: Two doses of fishy super energy potion.
+  members: true
+  icon: Super energy mix(2).png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 2000
+  family_ref:
+    family_slug: super-energy-mix
+    role: base
+  family:
+    slug: super-energy-mix
+    name: Super energy mix
+    type: dose
+    canonical_id: 11481
+    members:
+    - id: 11481
+      slug: super-energy-mix
+      name: Super energy mix
+      icon: Super energy mix(2).png
+      role: base
+      dose: null
+      value: 160
+      lowalch: 64
+      highalch: 96
+    - id: 11483
+      slug: super-energy-mix-1
+      name: Super energy mix(1)
+      icon: Super energy mix(1).png
+      role: dose
+      dose: 1
+      value: 90
+      lowalch: 36
+      highalch: 54
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 20% of total run energy per dose."
+        duration: 0
+      - description: "Heals 6 Hitpoints per dose."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 56
+      xp: 39
+      materials:
+        - item_name: Super energy(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super energy mix(1)
+      slug: super-energy-mix-1
+      relationship: variant
+      description: "Single-dose version of the same Barbarian Herblore mix"
+    - item_name: Super energy(4)
+      slug: super-energy-4
+      relationship: alternative
+      description: "Standard four-dose super energy potion"
+    - item_name: Super energy(2)
+      slug: super-energy-2
+      relationship: component
+      description: "Two-dose super energy used as the base of the mix"
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Secondary ingredient added to the super energy(2) base"
+  about: "Super energy mix(2) is a two-dose Barbarian Herblore potion created from Super energy(2) and Caviar at 56 Herblore for 39 experience. Each dose restores 20% run energy and heals 6 Hitpoints, combining stamina recovery with light healing for resource-tight trips."
+  market_strategy:
+    notes:
+      - "Caviar supply caps daily output and underpins the long-run floor price"
+      - "Barbarian Training miniquest gate keeps the production base small relative to standard super energy"
+      - "Heal-plus-energy combo is niche but valuable for ironmen running mid-tier content"
+  trading_tips:
+    - "Watch caviar costs: the mix only profits when caviar dips below the price spread"
+    - "Bulk supply spikes when Herblore competitions reward 56+ training"
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Herblore additions from Barbarian Training."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

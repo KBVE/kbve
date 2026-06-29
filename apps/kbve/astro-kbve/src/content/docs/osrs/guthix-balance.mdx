@@ -1,0 +1,132 @@
+---
+title: Guthix balance | OSRS Price Data
+description: "Guthix balance(4): A potion of harralander, red spiders eggs, garlic and silver dust.. High alch: 120 GP, GE limit: 2,000."
+osrs:
+  id: 7660
+  name: Guthix balance
+  slug: guthix-balance
+  examine: A potion of harralander, red spiders eggs, garlic and silver dust.
+  members: true
+  icon: Guthix balance(4).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 2000
+  family_ref:
+    family_slug: guthix-balance
+    role: base
+  family:
+    slug: guthix-balance
+    name: Guthix balance
+    type: dose
+    canonical_id: 7660
+    members:
+    - id: 7660
+      slug: guthix-balance
+      name: Guthix balance
+      icon: Guthix balance(4).png
+      role: base
+      dose: null
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 7666
+      slug: guthix-balance-1
+      name: Guthix balance(1)
+      icon: Guthix balance(1).png
+      role: dose
+      dose: 1
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 7664
+      slug: guthix-balance-2
+      name: Guthix balance(2)
+      icon: Guthix balance(2).png
+      role: dose
+      dose: 2
+      value: 200
+      lowalch: 80
+      highalch: 120
+    - id: 7662
+      slug: guthix-balance-3
+      name: Guthix balance(3)
+      icon: Guthix balance(3).png
+      role: dose
+      dose: 3
+      value: 200
+      lowalch: 80
+      highalch: 120
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "22 March 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Used on frozen vampyre juveniles and juvinates: 16% destroy, 68% revert to human, 16% transform into a feral vampyre."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 22
+      xp: 100
+      materials:
+        - item_name: Guthix balance (unf)
+          quantity: 1
+        - item_name: Silver dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Guthix balance(1)
+      slug: guthix-balance-1
+      relationship: variant
+      description: "1-dose variant"
+    - item_name: Guthix balance(2)
+      slug: guthix-balance-2
+      relationship: variant
+      description: "2-dose variant"
+    - item_name: Guthix balance(3)
+      slug: guthix-balance-3
+      relationship: variant
+      description: "3-dose variant"
+    - item_name: Guthix balance (unf)
+      slug: guthix-balance-unf
+      relationship: component
+      description: "Unfinished potion used to craft Guthix balance"
+  about: "Guthix balance(4) is a members-only Herblore potion thrown at frozen vampyre juveniles and juvinates during the Myreque quest line, with a chance to destroy them outright, restore them to human form, or transform them into feral vampyres."
+  market_strategy:
+    notes:
+      - "Niche demand, mostly for In Aid of the Myreque and follow-up quests."
+      - "Volume spikes briefly when new Myreque content drops."
+      - "Spread per dose is wide; bulk flips clear slowly."
+  trading_tips:
+    - "Crafted en-masse for Sins of the Father/Myreque progression weeks."
+    - "Decant between doses when the per-dose price gap opens."
+    - "Silver dust supply gates production cost."
+  history:
+    - date: "22 March 2006"
+      description: "Introduced alongside the In Aid of the Myreque quest."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

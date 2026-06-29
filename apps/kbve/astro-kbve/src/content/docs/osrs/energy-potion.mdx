@@ -1,0 +1,137 @@
+---
+title: Energy potion | OSRS Price Data
+description: "Energy potion(4) is a 4-dose F2P potion that restores 10% of run energy. High alch: 87 GP, GE limit: 2,000."
+osrs:
+  id: 3008
+  name: Energy potion
+  slug: energy-potion
+  examine: 4 doses of energy potion.
+  members: false
+  icon: Energy potion(4).png
+  value: 146
+  lowalch: 58
+  highalch: 87
+  limit: 2000
+  family_ref:
+    family_slug: energy-potion
+    role: base
+  family:
+    slug: energy-potion
+    name: Energy potion
+    type: dose
+    canonical_id: 3008
+    members:
+    - id: 3008
+      slug: energy-potion
+      name: Energy potion
+      icon: Energy potion(4).png
+      role: base
+      dose: null
+      value: 146
+      lowalch: 58
+      highalch: 87
+    - id: 3014
+      slug: energy-potion-1
+      name: Energy potion(1)
+      icon: Energy potion(1).png
+      role: dose
+      dose: 1
+      value: 36
+      lowalch: 14
+      highalch: 21
+    - id: 3012
+      slug: energy-potion-2
+      name: Energy potion(2)
+      icon: Energy potion(2).png
+      role: dose
+      dose: 2
+      value: 72
+      lowalch: 28
+      highalch: 43
+    - id: 3010
+      slug: energy-potion-3
+      name: Energy potion(3)
+      icon: Energy potion(3).png
+      role: dose
+      dose: 3
+      value: 110
+      lowalch: 44
+      highalch: 66
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2004-09-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Restores 10% of run energy per dose
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 26
+      xp: 67
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Chocolate dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Limpwurt root
+      slug: limpwurt-root
+      relationship: component
+      description: Required ingredient at the Apothecary recipe
+    - item_name: Chocolate dust
+      slug: chocolate-dust
+      relationship: component
+      description: Required ingredient for both Apothecary and Herblore recipes
+    - item_name: Super energy(4)
+      slug: super-energy-4
+      relationship: upgrade
+      description: Restores 20% run energy per dose
+    - item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: upgrade
+      description: Restores energy and reduces drain rate
+  about: |-
+    Energy potion(4) is a free-to-play potion that restores 10% run energy per dose. Useful for:
+    - F2P players with no access to stamina potions
+    - Early-game ironmen building Herblore
+    - Budget option for walking-heavy content
+  market_strategy:
+    notes:
+      - "Only run-energy restoration available in F2P"
+      - "Low volume market with thin spreads"
+      - "Crafting at the Varrock Apothecary can yield profit"
+      - "Outclassed by Super energy(4) and Stamina potion(4) for members"
+  trading_tips:
+    - Bulk Apothecary crafting beats GE flipping for F2P arbitrage
+    - Watch limpwurt root and chocolate bar supply for cost shifts
+  history:
+    - date: "2004-09-01"
+      description: "Released as one of the original Herblore potions in RuneScape 2."
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />

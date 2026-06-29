@@ -1,0 +1,73 @@
+---
+title: Extended anti-venom+ | OSRS Price Data
+description: "Extended anti-venom+(4): 4 doses of extended super antivenom potion.. High alch: 266 GP, GE limit: 2,000."
+osrs:
+  id: 29824
+  name: Extended anti-venom+
+  slug: extended-anti-venom
+  examine: 4 doses of extended super antivenom potion.
+  members: true
+  icon: Extended anti-venom+(4).png
+  value: 444
+  lowalch: 177
+  highalch: 266
+  limit: 2000
+  material:
+    type: potion
+    tier: high
+  about: "Extended anti-venom+(4) is a members-only item in Old School RuneScape. High alchemy value: 266 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  family_ref:
+    family_slug: extended-anti-venom
+    role: base
+  family:
+    slug: extended-anti-venom
+    name: Extended anti-venom+
+    type: dose
+    canonical_id: 29824
+    members:
+    - id: 29824
+      slug: extended-anti-venom
+      name: Extended anti-venom+
+      icon: Extended anti-venom+(4).png
+      role: base
+      dose: null
+      value: 444
+      lowalch: 177
+      highalch: 266
+    - id: 29833
+      slug: extended-anti-venom-1
+      name: Extended anti-venom+(1)
+      icon: Extended anti-venom+(1).png
+      role: dose
+      dose: 1
+      value: 111
+      lowalch: 44
+      highalch: 66
+    - id: 29830
+      slug: extended-anti-venom-2
+      name: Extended anti-venom+(2)
+      icon: Extended anti-venom+(2).png
+      role: dose
+      dose: 2
+      value: 222
+      lowalch: 88
+      highalch: 133
+    - id: 29827
+      slug: extended-anti-venom-3
+      name: Extended anti-venom+(3)
+      icon: Extended anti-venom+(3).png
+      role: dose
+      dose: 3
+      value: 333
+      lowalch: 133
+      highalch: 199
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+<OSRSAdsenseCard />
