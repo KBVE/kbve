@@ -1,6 +1,8 @@
 # ROWS Drain — Fleet-Restart Orchestration & End-to-End Rollout (Phase 3)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Do the tasks in order; each ends in a build + commit.
+>
+> **Config & docs index:** [`2026-06-24-rows-config-and-docs-index.md`](./2026-06-24-rows-config-and-docs-index.md) — once Phase 3 emits the drain-request annotation schema (Task 1) and the rollout endpoints (Tasks 5/5b, R4/R5), register them there.
 
 **Goal:** Give ROWS a DB-backed, coordinated fleet restart and a safe end-to-end version rollout: mark every active instance draining, lock out new joins, emit a hard "all old servers gone" barrier, and let a deploy orchestrator roll the new server build only once the fleet is empty — with the new build gated on the matching client build.
 
@@ -36,7 +38,7 @@ These are verified facts about the current codebase the tasks below depend on. T
     - `admission_control.AcceptNewJoins BOOLEAN NULL` (migration `20260629000000_ows_admission_control.sql`). `NULL` ⇒ fall back to the env baseline `ROWS_ACCEPT_NEW_JOINS` (default `true`) ⇒ joins allowed. So **writing `NULL` is how you lift the lockout.**
     - `count_active_instances(tenant) -> i64` already exists (counts `status > 0`).
 - **The chuck UE server version is a PVC path, NOT a container image tag.** In `apps/kube/agones/rows-tenants/chuckrpg-*/manifests/fleet.yaml` the `ue5-server` container image is a fixed `ubuntu:24.04`; the cooked server is delivered via the `ows-server-build` PVC mounted at `/server`, and the pod runs `/server/latest/LinuxServer/chuckServer.sh`. Bumping a deployment `image:` tag does **not** roll the UE server — it only rolls the `ghcr.io/kbve/kubectl` sidecar. Because the path is the mutable `latest/`, any pod restart (crash, eviction, node drain, autoscale) silently loads whatever build currently sits in `latest/` — an accidental mixed-version fleet with no deploy action. **R0 fixes this and is a hard prerequisite for the barrier to mean anything.**
-- **End-to-end (Agones barrier + soak) is untestable until chuck servers reach `Ready()`.** Today the beta fleet sits at `replicas:0` and servers hang at login. Tasks 1–5 (DB + signal) are testable now; R3 (the live cutover) is not until the game-side crash clears.
+- **End-to-end (Agones barrier + soak) is untestable until chuck servers reach `Ready()`.** Today the beta fleet sits at `replicas:0` and servers hang at login (tracked: `project_chuckrpg_ready_hang` — UE hangs after SessionSubsystem init, never calls Agones `Ready()`). Tasks 1–5 (DB + signal) are testable now; R3 (the live cutover) is not until that game-side crash clears.
 
 ---
 
@@ -322,7 +324,8 @@ async fn unlock_fleet_restart(svc: &Arc<OWSService>, guid: Uuid) {
 When `stagger`, each tick drains the next `batch_size` instances not yet draining; as earlier instances finish (rows leave `status>0`), later ticks pick up the rest. Without a UE drain-complete ack, a batch is gated on instances still being `drainstate IS NULL`, not on the previous batch fully completing — good enough to avoid re-draining, but it is not strict wave-by-wave isolation; do not document it as such.
 
 - [ ] **Step 3: Enforce a per-restart deadline so a stuck instance can't pin the fleet forever.** A hung instance never leaves `status>0`, so `count_active` never reaches 0 and the lockout would stay on indefinitely. When `fr` carries a deadline (aggressive path, R4) and it has passed, force-deallocate overdue instances via Agones (reuse the deallocate path behind `restart_fleet`'s scale logic) and/or exclude them from the active count. Define the "stuck" SLA in the runbook (Task 6).
-- [ ] **Step 4: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail`. **Step 5: Commit** — `feat(rows): fleet-restart reconcile job (drain fan-out + lockout lifecycle + deadline)`.
+- [ ] **Step 4: Fix the SPOF/PDB hazard before trusting this job in prod.** This reconcile is the orchestrator and runs on ROWS, which deploys `replicas: 1` with `rows-pdb minAvailable: 1` (`apps/kube/rows/manifest/rows-deployment.yaml`) — that PDB on a single replica hangs node drains, and a reschedule mid-restart drops in-flight progress. The advisory lock (Step 2) already makes >1 replica correct, so: run ROWS HA in prod (`replicas: ≥2`, leader-elected by the per-tenant lock) and set `rows-pdb minAvailable` so it never blocks a node drain (e.g. `maxUnavailable: 1` instead). Note `selfHeal: true` on the rows Argo app reverts manual `kubectl scale` — change the manifest in git, not by hand. The job is designed to be resume-safe (re-derives the batch from `drainstate IS NULL` each tick, re-applies/lifts the lockout idempotently); verify with a "kill ROWS mid-restart" test.
+- [ ] **Step 5: Build + tests** — `cd apps/rows && cargo build 2>&1 | tail -20 && cargo test 2>&1 | tail`. **Step 6: Commit** — `feat(rows): fleet-restart reconcile job (drain fan-out + lockout lifecycle + deadline)`.
 
 ---
 
@@ -461,14 +464,15 @@ template:
 
 ### R1 (BLOCKER) — version-parity gate: server roll waits for the Windows client build
 
-A server speaking a new protocol with no client to speak it bounces every player and none can reconnect. Gate the roll on client⟷server parity at the post-publish / dispatch layer (not ROWS). For image-tagged services the existing `utils-post-publish.yml` auto-PR bumps `version.toml` + the deployment `image:` tag; for chuck the same PR instead bumps `OWS_SERVER_VERSION` (R0).
+A server speaking a new protocol with no client to speak it bounces every player and none can reconnect. Gate the roll on client⟷server parity at the post-publish / dispatch layer (not ROWS). For image-tagged services the existing `utils-post-publish.yml` auto-PR bumps `version.toml` + the deployment `image:` tag in one commit (e.g. PR #13262, axum-kbve v1.0.211); for chuck the same PR instead bumps `OWS_SERVER_VERSION` (R0) since the UE server version is a PVC path, not an image tag.
 
 **Files:** Modify `.github/workflows/utils-post-publish.yml` (the auto-PR) and/or the rows publish workflow.
 
 - [ ] **Step 1: Define the client-published signal.** Recommended: a `client_versions(version, platform, published_at)` row written by the client build job, so the check is a cheap DB/HTTP lookup with no third-party coupling. (Alternatives: launcher manifest entry, itch/Steam channel API.)
 - [ ] **Step 2: Add a required status check** `version-parity/windows` on the rows post-publish PR that is red until the matching Windows client build for that version is published. The PR cannot merge while red. Merge is the deliberate, reviewable roll trigger; it bumps `OWS_SERVER_VERSION`.
 - [ ] **Step 3: Scope to beta first** (prod not live). The automated sync fires only once both the server build and the Windows client build for the version exist.
-- [ ] **Step 4: Commit** — `feat(ci): version-parity gate (windows client) on rows server roll`.
+- [ ] **Step 4: Defense-in-depth at runtime (cross-repo, UE side).** The CI gate prevents the _bad ordering_; back it with a runtime check so a stale client that does connect is handled gracefully. The existing `ows.kbve.com/version` label + UE-contract obligation #12 (client-version gate): a connecting client below the required version gets an "update required" signal, not a raw disconnect. ROWS publishes the required version via `/health.unreal_version` (Task 5b); the UE server enforces the floor on connect. Spec'd in `docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md`.
+- [ ] **Step 5: Commit** — `feat(ci): version-parity gate (windows client) on rows server roll`.
 
 ---
 
@@ -607,7 +611,7 @@ DROP TABLE IF EXISTS deploy_state;
 ## Deferred / out of scope (tracked, not built here)
 
 - **UE drain-complete ack (W1):** batch convergence + barrier precision use the `status=0` proxy until UE advertises a drain-complete signal. Swap when it lands.
-- **Version-selective drain:** the MVP drains all active instances (`target_version` reserved but unused); draining only `≠ target_version` (true rolling) is deferred until the running version is surfaced per-instance.
+- **Version-selective drain:** the MVP drains all active instances (`target_version` reserved but unused); draining only `≠ target_version` (true rolling) is deferred until the running version is surfaced per-instance. **State plainly in the runbook: whole-fleet-only means every routine roll is a guaranteed full-tenant downtime window** (the scale-to-0 cutover takes the whole fleet down), not a rolling upgrade.
 - **Stagger by zone:** this plan staggers by instance (`batch_size`); zone-grouped waves (for per-zone messaging) are a later refinement.
 - **Client-published signal source:** R1 Step 1 recommends `client_versions`, but the final choice (manifest / Steam-itch / DB row) is pinned when the dispatch step is built.
 - **UE player-countdown broadcast:** ROWS supplies the deadline; the in-game "restarting in X" render and the `ShutdownNotifier` wiring are UE-side (`docs/superpowers/plans/2026-06-24-ue-chuck-drain-contract.md`).
