@@ -36,6 +36,7 @@ kbve-ship-footprint = "kbve.sprite.ship_footprint:main"
 kbve-model-sprites = "kbve.sprite.model_sprites_cli:main"
 kbve-osrs-survey = "kbve.osrs.survey:main"
 kbve-osrs-audit = "kbve.osrs.audit:main"
+kbve-osrs-families = "kbve.osrs.families:main"
 
 [dependency-groups]
 dev = [
