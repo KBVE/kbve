@@ -133,6 +133,18 @@ spec:
                             secretKeyRef:
                                 name: supabase-jwt
                                 key: secret
+                      # ES256 signer (HS256->ES256 migration Phase 2). Required
+                      # for the OAuth2 server to sign OIDC id_tokens — GoTrue
+                      # rejects HS256 for id_token signing, so without this the
+                      # Forgejo "Sign in with KBVE" /oauth/token call 500s with
+                      # "Error generating ID token". JWKS = ES256 signer + HS256
+                      # verify-only; downstream (postgrest/realtime/storage/gate)
+                      # already accept both via supabase-jwt-vendor.
+                      - name: GOTRUE_JWT_KEYS
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt-keys
+                                key: jwt-keys
                       - name: POSTGRES_PASSWORD
                         valueFrom:
                             secretKeyRef:
