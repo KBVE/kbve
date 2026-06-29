@@ -640,7 +640,14 @@ template:
 - [ ] **Step 4:** Confirm the PVC access mode supports concurrent versioned dirs (it's `ows-server-build`,
       shared RWX/ROX); old pods keep reading their `<old-version>/` dir while the new build lands in
       `<new-version>/`. No mutation of in-use files.
-- [ ] **Step 5: Commit** — `fix(chuck): pin UE server to versioned build path, drop mutable latest/`.
+- [ ] **Step 5: Retention — never delete the old version at publish time.** The publish job _adds_
+      `/server/<new-version>/` and **must not remove any prior version dir**. Pruning is a _separate,
+      later_ GC step gated on the new version being **confirmed rolled out** (R3 Step 6), and it always
+      **keeps at least N-1** so a binary rollback is a re-pin, not a re-cook. Concretely: a
+      `prune-old-server-builds` job deletes `<version>/` only when `deploy_state.rolled=true` for a
+      _newer_ version AND `<version>` is older than the retained window (keep current + N-1). It runs
+      **after** R3 confirmation, never during the cutover.
+- [ ] **Step 6: Commit** — `fix(chuck): pin UE server to versioned build path, drop mutable latest/, retain N-1`.
 
 > 🕳️ **Where the binary is written** (which CI job populates the PVC) must be pinned in R0 Step 1; the
 > parity gate (R1) and versioned staging both live there. Not yet traced in this plan.
@@ -700,11 +707,20 @@ a bare template apply would surge new pods alongside draining old ones — so th
 - [ ] **Step 4: Apply the version bump** (`OWS_SERVER_VERSION` from R0) **and** run the `dbmate`
       migration Job — _now_, at the barrier, with zero old binaries running (B-2 expand-contract still
       applies: the migration must be additive so a rollback of the binary doesn't strand schema).
-- [ ] **Step 5: Scale the Fleet back up**, restore `maxSurge:25%`, then **clear the `fleet_restart`
-      row** (`active=false`) — ROWS reconcile auto-lifts the admission lockout (H-2). The barrier's
-      terminal state is "row cleared after a confirmed successful scale-up," so a post-clear status
-      poll reading `all_drained=false` is expected, not an error.
-- [ ] **Step 6: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover gated on safe_to_roll)`.
+- [ ] **Step 5: Scale the Fleet back up** (new version), restore `maxSurge:25%`, then **clear the
+      `fleet_restart` row** (`active=false`) — ROWS reconcile auto-lifts the admission lockout (H-2). A
+      post-clear status poll reading `all_drained=false` is expected, not an error.
+- [ ] **Step 6: Confirm the new version is healthy BEFORE marking the roll done or deleting the old
+      build.** Wait until the Fleet has `readyReplicas >= desired` with **GameServers carrying the new
+      `ows.kbve.com/server-version` label** Ready for a soak window (e.g. ≥5 min, no crash-loop — this
+      is the live guard against the known login-crash class). Only then set `deploy_state.rolled=true`
+      for the new version. **The old `/server/<old-version>/` dir is NOT pruned here** — it stays for
+      rollback; the R0 Step-5 GC removes it later, keeping N-1.
+- [ ] **Step 7 (rollback path): a bad new version is a re-pin, not a re-cook.** Because the old build
+      was retained (R0 Step 5), rollback = set `OWS_SERVER_VERSION` back to `<old-version>` and re-run
+      the same scale-to-0 cutover (Steps 3–5). No `dbmate down` (B-2 forward-fix; the migration was
+      additive, so the old binary runs fine on the new schema). Document this in the runbook.
+- [ ] **Step 8: Commit** — `feat(kube): chuck rollout orchestrator (scale-to-0 cutover gated on safe_to_roll, confirm-then-prune)`.
 
 > 🕳️ **Precondition:** the Agones barrier (`gameservers==0`) can only be exercised once chuck servers
 > actually reach `Ready()` — today the fleet sits at `replicas:0` and servers hang at login
@@ -725,7 +741,7 @@ only inside the cluster, and a separate gateway service handles dashboard auth/p
 - Produces: `POST /fleet-restart/trigger` body `{ mode: "aggressive"|"non_aggressive", grace_secs?: i64 }`
   → upserts the `fleet_restart` row. Aggressive ⇒ `urgency=1, dropplayers=true`, `drain_deadline = now()
     - grace_secs`(default **300s = 5 min**),`lockout=true`. Returns `409 Conflict`if a restart is
-already`active`; returns **`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
+  already`active`; returns \*\*`404 Not Found` unless an update is pending (R5)\*\* for the aggressive mode.
 
 - [ ] **Step 1: Implement the handler** — validates `mode`, computes the deadline, upserts via a new
       `set_fleet_restart(tenant, mode, grace_secs, deadline)` repo fn (mirrors `set_admission`'s upsert).
@@ -757,9 +773,9 @@ actually an update pending** — you can't "restart to deploy" when there's noth
   PR writes on merge).
 
 - [ ] **Step 1: Implement `get_pending_update(tenant)`** — reads the `deploy_state(tenant,
-    target_version, rolled)` row (written `rolled=false` by the R1 post-merge hook, set `rolled=true`
-      by the R3 orchestrator on successful scale-up). `pending = row exists && !rolled`. Degrade on
-      42P01 (inert) like `get_fleet_restart`.
+  target_version, rolled)` row (written `rolled=false` by the R1 post-merge hook, set `rolled=true`
+      by the R3 orchestrator **only after the new-version soak confirms healthy — R3 Step 6**, not at
+      scale-up). `pending = row exists && !rolled`. Degrade on 42P01 (inert) like `get_fleet_restart`.
 - [ ] **Step 2: `POST /fleet-restart/trigger` (mode=aggressive) returns `404` when `!pending`.** The
       dashboard greys out the button off the same `GET /fleet-restart/pending`. Non-aggressive
       auto-path doesn't need this gate (it _is_ the merge that creates the pending state).
@@ -779,6 +795,7 @@ actually an update pending** — you can't "restart to deploy" when there's noth
 | 5   | Route only if update pending                                     | **R5**                              | `GET /fleet-restart/pending`; 404 otherwise; button greyed       |
 | +   | Endpoints not public                                             | Task 5 + R4 Step 3                  | ClusterIP + NetworkPolicy; gateway service owns auth             |
 | +   | No roll until ALL old gone                                       | R3 Step 2–3                         | `safe_to_roll` = `draining==0 && gameservers==0`                 |
+| +   | Delete old version only after new confirmed                      | R0 Step 5 + R3 Step 6–7             | Retain N-1; prune is a post-soak GC; rollback = re-pin           |
 
 ---
 
