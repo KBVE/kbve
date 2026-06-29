@@ -50,10 +50,16 @@ LFS smudge can 404 in fresh worktrees — prefix git ops with `GIT_LFS_SKIP_SMUD
 
 ## 2. Per-item algorithm
 
+0. **Pre-fetch the Wiki prose** (do this once for the whole batch, before any
+   per-item work) — see §6. This caches clean Markdown to
+   `scripts/.cache/osrs-wiki/<slug>.md` so you read a local file instead of doing
+   a live `WebFetch` per item (deterministic, full-fidelity, near-zero tokens).
 1. Read the current `<slug>.mdx`; keep base fields.
-2. `WebFetch https://oldschool.runescape.wiki/w/<Name_With_Underscores>` — ask for:
-   mechanics/stats, how obtained/made (levels, XP, materials), notable uses, update
-   history dates, trivia, and 3–5 common player questions with factual answers.
+2. Read the pre-fetched `scripts/.cache/osrs-wiki/<slug>.md` for mechanics/stats,
+   how obtained/made (levels, XP, materials), notable uses, update history, and
+   trivia. (Fall back to a live `WebFetch` of the Wiki page only if the cache is
+   missing.) Exact infobox NUMBERS may already be populated by
+   `enrich-v3-wiki-stats.mjs` — trust existing curated fields; do not overwrite.
 3. Pick the archetype (§8 matrix) and fill its **required blocks** (§3 shapes).
 4. Write `about` as an **object**: `text` (answer-first lead, 40–60 words) +
    `sections[]` (the archetype's section set; each 80–160 words, answer-first).
@@ -211,3 +217,32 @@ roast-bird-meat, lime.
 Done examples (mirror these): `tinderbox` (tool, sections+faq+trivia), `meat-pie`
 (food), `adamant-boots` (armor+drops), `yellow-bead` (quest), `chaos-tiara` (skilling),
 `west-ardougne-teleport-tablet` (teleport).
+
+---
+
+## 6. Wiki prose pre-fetch (token saver)
+
+Two complementary Wiki tools live in `apps/kbve/astro-kbve/scripts/`:
+
+- **`enrich-v3-wiki-stats.mjs`** — pulls exact infobox NUMBERS (equipment bonuses,
+  requirements, weight) into frontmatter. Never overwrites curated fields.
+- **`fetch-osrs-wiki-md.mjs`** — fetches the rendered article via the MediaWiki
+  parse API and converts it to clean, token-optimized Markdown with
+  [mdream](https://github.com/harlan-zw/mdream), caching one file per item. This
+  is the PROSE source for `about` / `sections` / `faq` / `trivia`.
+
+Run the prefetch before enriching (from `apps/kbve/astro-kbve`):
+
+```sh
+# specific items
+node scripts/fetch-osrs-wiki-md.mjs earmuffs ogre-coffin-key strength-mix-2
+# whole STUB queue (skips variants/no-name automatically)
+node scripts/fetch-osrs-wiki-md.mjs --from-audit --limit 20
+```
+
+Output: `scripts/.cache/osrs-wiki/<slug>.md` (gitignored), each with a `source`
+header (Wiki URL + CC BY-NC-SA 3.0 + fetch date). If a fetch is skipped with
+"no Wiki page", that item is speculative/future content (§1.6) — flag, do not invent.
+
+`mdream` is a root devDependency. The fetch uses `clean: true` plus a navbox/reference
+filter, so output keeps the infobox + prose and drops site chrome.
