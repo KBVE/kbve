@@ -404,6 +404,10 @@ mod tests {
         assert!(effective_accept_new_joins(true, &on, &none)); // open
         assert!(effective_accept_new_joins(true, &none, &none)); // env baseline
         assert!(!effective_accept_new_joins(false, &none, &none)); // env off
+        // A `false` in either scope wins over a `true` in the other: a tenant cannot reopen a global
+        // freeze, and a global `true` cannot override a tenant freeze.
+        assert!(!effective_accept_new_joins(true, &on, &off)); // tenant true, global frozen
+        assert!(!effective_accept_new_joins(true, &off, &on)); // tenant frozen, global true
     }
 
     // the annotation floor is ceil(min_empty_secs / 60), at least 1; 0 disables it.
