@@ -12,9 +12,72 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 64
-  about: "Dragon metal sheet is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 64 per 4 hours."
-  mdx_version: 3
-  mdx_updated: "2026-06-05"
+  about:
+    text: "Dragon metal sheets are a members-only item used in high-level shipbuilding, where the best boat facilities require multiple sheets to build. With the dragon forge unlocked after Dragon Slayer II, players turn sheets into dragon keel parts and dragon nails (15 per sheet) for outfitting skiffs and sloops."
+    sections:
+      - heading: What dragon metal sheets are used for
+        anchor: uses
+        body: "Dragon metal sheets are a core component in high-level shipbuilding. Completion of Dragon Slayer II grants access to the dragon forge, where sheets become dragon keel parts and dragon nails (15 nails per sheet). Two sheets make one keel part, and two keel parts make a set of large dragon keel parts, so a full dragon keel needs 20 sheets on a skiff and 64 sheets on a sloop. Completing the Pandemonium quest is also required to use sheets at the forge; without it you are told 'You probably shouldn't just go messing around with the dragon sheets without knowing what you're doing.' Sheets also feed Sailing builds like the dragon cannon and dragon helm."
+      - heading: How to obtain dragon metal sheets
+        anchor: obtaining
+        body: "The best sources are killing Lava Strykewyrms or frost dragons on a Slayer task, which boosts the drop rate, though both can be tedious and may need Slayer points to skip onto. A slower but more consistent route is completing Sailing bounties for great white sharks, orcas, and high-level krakens such as armoured krakens, since one bounty for each is guaranteed at notice boards across Gielinor. Lost ironwood crates also drop them at 1/8. Since 21 January 2026, receiving a sheet from a lost ironwood crate adds it to the collection log."
+  related_items:
+    - item_name: Dragon nails
+      slug: dragon-nails
+      relationship: product
+      description: Smithed 15 at a time from one dragon metal sheet at 92 Smithing
+    - item_name: Dragon keel parts
+      slug: dragon-keel-parts
+      relationship: product
+      description: Made from 2 dragon metal sheets at 94 Smithing
+    - item_name: Dragon cannon
+      slug: dragon-cannon
+      relationship: product
+      description: A boat facility built using 8 dragon metal sheets
+  recipes:
+    - skill: smithing
+      level: 92
+      xp: 350
+      facility: Dragon forge
+      product: Dragon nails
+      materials:
+        - { item_name: Dragon metal sheet, quantity: 1 }
+    - skill: smithing
+      level: 94
+      xp: 700
+      facility: Dragon forge
+      product: Dragon keel parts
+      materials:
+        - { item_name: Dragon metal sheet, quantity: 2 }
+  drop_table:
+    sources:
+      - { source: Frost dragon, combat_level: 202, quantity: "1", rarity: "1/100", drop_rate: "1/100;1/40" }
+      - { source: Lava Strykewyrm, combat_level: 116, quantity: "1", rarity: "1/115", drop_rate: "1/115;1/45" }
+      - { source: Magma strykewyrm, combat_level: 249, quantity: "1", rarity: "3 × 1/45", drop_rate: "3 × 1/45" }
+      - { source: Great white shark, combat_level: 175, quantity: "1-2", rarity: "1/200", drop_rate: "1/200;1/100" }
+      - { source: Orca, combat_level: 205, quantity: "1-2", rarity: "1/100", drop_rate: "Unknown;1/100" }
+      - { source: Armoured kraken, combat_level: 180, quantity: "1-2", rarity: "1/140", drop_rate: "1/140;1/70" }
+      - { source: Vampyre kraken, combat_level: 211, quantity: "1-2", rarity: "1/150", drop_rate: "1/150;1/75" }
+      - { source: Veiled kraken, combat_level: 210, quantity: "1-2", rarity: "4/500", drop_rate: "4/500;4/350" }
+      - { source: Lost ironwood crate, quantity: "1", rarity: "1/8", drop_rate: "1/8" }
+  trivia:
+    - "Dragon metal sheets were released on 19 November 2025 with the Sailing update, after being added but unobtainable during the 5 November 2025 Sailing Technical Pre-Release."
+    - "Since 21 January 2026, receiving a dragon metal sheet from a lost ironwood crate adds it to the collection log."
+  faq:
+    - question: Are dragon metal sheets members-only?
+      answer: "Yes. Dragon metal sheets are a members-only item used in high-level shipbuilding. They can only be obtained, traded, and forged on members worlds, and require the Sailing skill and related quests to put to use."
+    - question: How do you get dragon metal sheets?
+      answer: "Dragon metal sheets drop from frost dragons and Lava Strykewyrms on Slayer task at boosted rates, from Sailing bounty kills on great white sharks, orcas and krakens, and from lost ironwood crates at 1/8. They can also be bought on the Grand Exchange."
+    - question: What do you need to use dragon metal sheets?
+      answer: "You need access to the dragon forge from completing Dragon Slayer II, plus completion of the Pandemonium quest to forge with the sheets. Without Pandemonium, attempting to use them shows a warning message and fails."
+    - question: How many dragon metal sheets does a dragon keel need?
+      answer: "A dragon keel requires 20 sheets on a skiff and 64 sheets on a sloop. Two sheets make one keel part, two keel parts make a large dragon keel parts set, so four sheets are needed per large keel part."
+  mdx_version: 4
+  mdx_updated: "2026-06-29"
+  source:
+    wiki_url: "https://oldschool.runescape.wiki/w/Dragon_metal_sheet"
+    license: "CC BY-NC-SA 3.0"
+    wiki_fetched_at: "2026-06-29"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
