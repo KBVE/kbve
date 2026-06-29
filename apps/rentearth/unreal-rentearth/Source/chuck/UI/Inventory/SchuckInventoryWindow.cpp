@@ -7,12 +7,12 @@
 #include "SKBVEEquipmentPanel.h"
 #include "SchuckInventorySlot.h"
 #include "SchuckItemInfo.h"
+#include "SKBVEItemGrid.h"
 #include "SKBVEMovableFrame.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
-#include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 
@@ -29,25 +29,6 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 	constexpr int32 Rows     = 6;
 	constexpr float SlotSize = 72.f;
 	constexpr float SlotPad  = 6.f;
-
-	TSharedRef<SGridPanel> Grid = SNew(SGridPanel);
-	for (int32 R = 0; R < Rows; ++R)
-	{
-		for (int32 C = 0; C < Cols; ++C)
-		{
-			const int32 Idx = R * Cols + C;
-			Grid->AddSlot(C, R)
-			.Padding(SlotPad)
-			[
-				SNew(SchuckInventorySlot)
-				.OwningCharacter(Character)
-				.SlotIndex(Idx)
-				.SlotSize(SlotSize)
-				.bIsHotbar(false)
-				.SelectedKey(SelectedKey)
-			];
-		}
-	}
 
 	const float BagWidth  = Cols * (SlotSize + SlotPad * 2.f) + 24.f;
 	const float InfoWidth = 360.f;
@@ -117,7 +98,19 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 				SNew(SBox)
 				.WidthOverride(BagWidth)
 				[
-					Grid
+					SNew(SKBVEItemGrid)
+					.Columns(Cols)
+					.Rows(Rows)
+					.SlotPadding(FMargin(SlotPad))
+					.OnBuildSlot_Lambda([this, SlotSize](int32 Idx) -> TSharedRef<SWidget>
+					{
+						return SNew(SchuckInventorySlot)
+							.OwningCharacter(Character)
+							.SlotIndex(Idx)
+							.SlotSize(SlotSize)
+							.bIsHotbar(false)
+							.SelectedKey(SelectedKey);
+					})
 				]
 			]
 
