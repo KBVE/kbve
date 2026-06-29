@@ -92,7 +92,7 @@ valkey      = ["dep:lru"]
 | Gate `fred` (redis) | ✅ done     | #13593 | Folded into `valkey = ["dep:lru", "dep:fred"]` — fred is internal-only, no consumer touches it. |
 | Gate `grpc`         | ✅ done     | (this) | `tonic*` optional behind `grpc`; gated 4 proto service submods + `error.rs` Status impls.       |
 | `reqwest` / `axum`  | ⬜ deferred | —      | Kept core (auth-core + response contract). See findings below.                                  |
-| `tokio = "full"`    | ⬜ deferred | —      | Narrow feature set in separate PR.                                                              |
+| `tokio = "full"`    | ✅ done     | (this) | `full` → `["rt-multi-thread","macros","sync","time","net","fs","io-util"]`. Audited src: no process/signal/io-std/spawn_blocking. |
 | CI feature matrix   | ⬜ todo     | —      | `cargo hack --feature-powerset` smoke build.                                                    |
 | Measure build win   | ⬜ todo     | —      | Wall-time before/after for a trimmed consumer.                                                  |
 
