@@ -50,6 +50,18 @@ export type {
 } from './lib/phaser/gpu-sprite-layer';
 export { createDustMoteLayer, dustMemberAt } from './lib/phaser/ambient-dust';
 export type { DustMoteOptions } from './lib/phaser/ambient-dust';
+export { GameObjectPool } from './lib/phaser/object-pool';
+export { setupKeyboardMap } from './lib/phaser/keyboard-map';
+export type { KeyboardMap } from './lib/phaser/keyboard-map';
+export {
+	createArrowPool,
+	animateArrowProjectile,
+} from './lib/phaser/arrow-projectile';
+export type {
+	ArrowPool,
+	ArrowPoolOptions,
+	ArrowShot,
+} from './lib/phaser/arrow-projectile';
 
 // Tile prediction — BFS pathing that mirrors the server grid
 export { findTilePath } from './lib/tile/path';
