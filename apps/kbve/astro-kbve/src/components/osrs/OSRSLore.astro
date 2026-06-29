@@ -1,0 +1,67 @@
+---
+interface Props {
+	trivia: string[];
+	name: string;
+}
+
+const { trivia, name } = Astro.props;
+---
+
+<div class="osrs-lore">
+	<div class="osrs-lore__header">
+		<span class="osrs-lore__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-lore__title">{name} Trivia</h4>
+	</div>
+	<ul class="osrs-lore__list">
+		{trivia.map((fact) => <li class="osrs-lore__item">{fact}</li>)}
+	</ul>
+</div>
+
+<style>
+	.osrs-lore {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-lore__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-lore__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-lore__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-lore__list {
+		margin: 0;
+		padding: 0.625rem 0.75rem 0.625rem 1.75rem;
+		list-style: disc;
+	}
+
+	.osrs-lore__item {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.6;
+		margin: 0.25rem 0;
+	}
+</style>

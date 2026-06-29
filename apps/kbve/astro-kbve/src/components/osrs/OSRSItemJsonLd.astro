@@ -274,6 +274,23 @@ function buildHowToLd(h: HowToInput) {
 }
 
 const howtoLd = howtos.map(buildHowToLd);
+
+const faqLd =
+	item.faq && item.faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				'@id': `${ITEM_URL}#faq`,
+				mainEntity: item.faq.map((f) => ({
+					'@type': 'Question',
+					name: f.question,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: f.answer,
+					},
+				})),
+			}
+		: null;
 ---
 
 <script
@@ -294,4 +311,13 @@ const howtoLd = howtos.map(buildHowToLd);
 			set:html={JSON.stringify(ld)}
 		/>
 	))
+}
+{
+	faqLd && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(faqLd)}
+		/>
+	)
 }

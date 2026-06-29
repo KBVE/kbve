@@ -658,11 +658,27 @@ export type OSRSPrice = z.infer<typeof OSRSPriceSchema>;
 // About / Content Text — proto: OSRSAbout
 // ============================================================================
 
+export const OSRSContentSectionSchema = z.object({
+	heading: z.string(),
+	body: z.string(),
+	anchor: z.string().optional(),
+});
+
+export type OSRSContentSection = z.infer<typeof OSRSContentSectionSchema>;
+
 export const OSRSAboutSchema = z.object({
 	text: z.string(),
+	sections: z.array(OSRSContentSectionSchema).optional(),
 });
 
 export type OSRSAbout = z.infer<typeof OSRSAboutSchema>;
+
+export const OSRSFaqEntrySchema = z.object({
+	question: z.string(),
+	answer: z.string(),
+});
+
+export type OSRSFaqEntry = z.infer<typeof OSRSFaqEntrySchema>;
 
 // ============================================================================
 // Market Strategy — proto: OSRSMarketStrategy, OSRSMarketStep
@@ -1049,6 +1065,12 @@ export const OSRSExtendedSchema = z.object({
 
 	// Game-update history — MDX-only, not in proto
 	history: z.array(OSRSItemHistoryEntrySchema).optional(),
+
+	// FAQ — MDX-only (v4); powers the FAQPage JSON-LD and FAQ card
+	faq: z.array(OSRSFaqEntrySchema).optional(),
+
+	// Trivia / lore facts — MDX-only (v4)
+	trivia: z.array(z.string()).optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
@@ -1127,6 +1149,18 @@ export function hasHistory(
 	item: OSRSExtended,
 ): item is OSRSExtended & { history: OSRSItemHistoryEntry[] } {
 	return (item.history?.length ?? 0) > 0;
+}
+
+export function hasFaq(
+	item: OSRSExtended,
+): item is OSRSExtended & { faq: OSRSFaqEntry[] } {
+	return (item.faq?.length ?? 0) > 0;
+}
+
+export function hasLore(
+	item: OSRSExtended,
+): item is OSRSExtended & { trivia: string[] } {
+	return (item.trivia?.length ?? 0) > 0;
 }
 
 export function hasItemTrivia(item: OSRSExtended): boolean {

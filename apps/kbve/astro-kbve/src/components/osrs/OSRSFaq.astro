@@ -1,0 +1,107 @@
+---
+import type { OSRSFaqEntry } from '@/data/schema';
+
+interface Props {
+	faq: OSRSFaqEntry[];
+	name: string;
+}
+
+const { faq, name } = Astro.props;
+---
+
+<div class="osrs-faq">
+	<div class="osrs-faq__header">
+		<span class="osrs-faq__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-faq__title">{name} FAQ</h4>
+	</div>
+	<div class="osrs-faq__content">
+		{
+			faq.map((entry) => (
+				<details class="osrs-faq__item">
+					<summary class="osrs-faq__question">
+						{entry.question}
+					</summary>
+					<p class="osrs-faq__answer">{entry.answer}</p>
+				</details>
+			))
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-faq {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-faq__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-faq__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-faq__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-faq__content {
+		padding: 0.375rem 0.75rem 0.625rem;
+	}
+
+	.osrs-faq__item {
+		border-bottom: 1px solid var(--sl-color-gray-6);
+		padding: 0.5rem 0;
+	}
+
+	.osrs-faq__item:last-child {
+		border-bottom: none;
+	}
+
+	.osrs-faq__question {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		cursor: pointer;
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.osrs-faq__question::before {
+		content: '+';
+		color: var(--sl-color-accent);
+		font-weight: 700;
+	}
+
+	.osrs-faq__item[open] .osrs-faq__question::before {
+		content: '−';
+	}
+
+	.osrs-faq__answer {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.6;
+		margin: 0.5rem 0 0;
+		padding-left: 1rem;
+	}
+</style>
