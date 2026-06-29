@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod bitwise;
+#[cfg(feature = "valkey")]
 pub mod envelope;
 pub mod error;
 pub mod flex;
@@ -14,6 +15,7 @@ pub mod pipe;
 pub mod pipe_clickhouse;
 #[cfg(feature = "prometheus")]
 pub mod pipe_prometheus;
+#[cfg(feature = "valkey")]
 pub mod pipe_redis;
 pub mod regex;
 pub mod serde_arc_str;

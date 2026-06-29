@@ -59,7 +59,7 @@ webpki-roots = { version = "0.26", optional = true }
 url = { version = "2", optional = true }
 uuid = { version = "1", optional = true, features = ["serde", "v4"] }
 rustls-pemfile = { version = "2", optional = true }
-fred = { version = "10", features = [
+fred = { version = "10", optional = true, features = [
   "i-keys", "i-lists", "i-pubsub", "i-std", "subscriber-client",
   "serde-json", "i-server", "i-scripts", "i-streams",
   "metrics", "enable-rustls", "i-tracking"
@@ -111,7 +111,7 @@ postgres = [
     "dep:url",
     "dep:uuid",
 ]
-valkey = ["dep:lru"]
+valkey = ["dep:lru", "dep:fred"]
 
 [dev-dependencies]
 serial_test = "3"
