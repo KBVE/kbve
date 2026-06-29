@@ -1060,6 +1060,12 @@ export const OSRSExtendedSchema = z.object({
 	// (https://kbve.com/osrs/<slug>/) but stored explicitly for the record.
 	url: z.string().url().optional(),
 
+	// Canonical override — MDX-only (v4). When set, the page emits
+	// <link rel="canonical" href="..."> to THIS target instead of itself.
+	// Use for cosmetic/state variants (-> base item) and dose pages
+	// (-> potion family page). Leave unset for self-canonical pages.
+	canonical: z.string().url().optional(),
+
 	// MDX content versioning — proto: mdx_version (40), mdx_updated (41)
 	mdx_version: z.number().optional(), // 1 = original, 2 = data-driven
 	mdx_updated: z.string().optional(), // ISO date YYYY-MM-DD
