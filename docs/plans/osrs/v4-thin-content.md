@@ -318,3 +318,60 @@ Blog posts can also reuse the `faq[]` + `about.sections[]` content model from §
 
 \* degraded undercounted — Barrows charge states need a tighter regex. Full
 enumeration + per-class final decisions land in Phase 4.
+
+---
+
+## 8. Per-Archetype Content Contract (v4)
+
+The contract that makes v4 enrichment repeatable: given an item's archetype, this
+defines the minimum blocks, prose sections, FAQ themes, and trivia each page must
+carry. Ingest/agents fill against this so every page hits the same depth bar.
+
+### 8.0 Universal baseline (every item)
+
+Required on all 4,525 pages regardless of type:
+
+- **Identity:** `id`, `name`, `slug`, `examine`, `members`, `icon`, `value`,
+  `lowalch`/`highalch`, `limit`.
+- **`about.text`** — answer-first lead, 40–60 words, unique (no boilerplate template).
+- **`about.sections[]`** — ≥1 archetype section (see below).
+- **`faq[]`** — ≥3 entries; always include "Is it members-only?" + one obtain/use Q.
+- **`trivia[]`** — ≥2 sourced lore/history facts.
+- **`source`** — Wiki URL + `CC BY-NC-SA 3.0` + fetched date.
+- **`related_items[]`** — ≥2 (upgrade/downgrade/component/alternative/set-piece).
+- **`mdx_version: 4`**, `mdx_updated` ISO date.
+
+> Variants (per §6) are exempt: they canonical → base and may stay minimal/noindex.
+
+### 8.1 Archetype matrix
+
+| Archetype                                     | Detector                              | Required blocks                                  | `about.sections`                           | FAQ themes                                       | JSON-LD         |
+| --------------------------------------------- | ------------------------------------- | ------------------------------------------------ | ------------------------------------------ | ------------------------------------------------ | --------------- |
+| **Weapon**                                    | `equipment.slot` ∈ weapon/2h          | equipment, special_attack?, requirements         | Combat use, Obtaining, vs alternatives     | level req, dps/speed, where to get, spec         | Product         |
+| **Armor**                                     | `equipment.slot` ∈ head/body/legs/…   | equipment (defence), set_bonus?                  | Defence role, Obtaining, Progression       | level req, set bonus, vs next tier               | Product         |
+| **Ammunition**                                | `ammunition`                          | ammunition, equipment?                           | Usage, Enchant effect?, Obtaining          | which weapons, enchant proc, fletch level        | Product         |
+| **Food**                                      | `food`                                | food, recipes?                                   | Healing & combo-eat, Cooking, Obtaining    | heal amount, cook level, burn level, members     | Product + HowTo |
+| **Potion**                                    | `consumable`/`potion`                 | consumable, recipes                              | Effect & doses, Herblore, Obtaining        | effect, doses, herblore level, decant            | Product + HowTo |
+| **Skilling resource** (log/ore/bar/hide/herb) | `material` + gathering/recipes        | gathering?, recipes, skilling_sources?, material | Gathering, Processing/uses, Market role    | level, xp/hr, what it makes, members             | Product + HowTo |
+| **Seed / farming**                            | `farming`                             | farming, related_items (produce)                 | Growing, Yield & protection, Market        | farm level, grow time, payment, profit           | Product + HowTo |
+| **Teleport**                                  | `teleport`                            | teleport, recipes?                               | Destination & use, Making it, Requirements | quest req, how to make, where it goes, charges   | Product + HowTo |
+| **Quest item**                                | `quest_data`                          | quest_data, drop_table?                          | Quest role, Obtaining                      | which quest, how to get, members, post-quest use | Product         |
+| **Tool**                                      | properties only, Firemaking/skill use | (about-heavy), related_items                     | Usage, Where to buy                        | members, consumed?, cheapest source, weapon?     | Product         |
+| **Jewellery / charges**                       | `charges`/`teleport`+`equipment`      | charges, teleport?, equipment                    | Effect, Charging/degrade, Obtaining        | charges, recharge, degrade, members              | Product         |
+| **Currency / misc**                           | none of the above                     | related_items, market_strategy?                  | What it is, Where used                     | what is it, where to get/spend, members          | Product         |
+
+### 8.2 FAQ authoring rules (SEO/GEO)
+
+- Phrase each `question` as a real search query ("How much does X heal?",
+  "What level to make X?"). One concept per Q.
+- `answer` is answer-first: lead with the fact in the first sentence, then context.
+  40–60 words. No marketing voice.
+- 3–5 FAQs per page. These render the `FAQPage` JSON-LD (§3.4b) → rich results.
+- Never fabricate — every answer traces to the Wiki `source`.
+
+### 8.3 Quality bar ("amazing v4")
+
+A page passes v4 review only if: lead is unique & answer-first; every archetype
+section present; ≥3 query-shaped FAQs; ≥2 trivia; all numbers Wiki-verified; ≥2
+related items; renders all cards without empty/`—` blocks; FAQPage + Product (+ HowTo
+where applicable) JSON-LD validate.
