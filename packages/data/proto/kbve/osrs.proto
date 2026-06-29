@@ -362,9 +362,56 @@ message OSRSRelatedItem {
 // Content / Description
 // =============================================================================
 
+// A self-contained prose section (passage-indexable) under About
+message OSRSContentSection {
+  string heading                      = 1;
+  string body                         = 2;
+  optional string anchor              = 3;
+}
+
 // About/description text for item pages
 message OSRSAbout {
   string text                         = 1;   // Primary description paragraph(s)
+  repeated OSRSContentSection sections = 2;  // v4: H2/H3 passages
+}
+
+// FAQ entry — powers FAQPage JSON-LD + accordion (v4)
+message OSRSFaqEntry {
+  string question                     = 1;
+  string answer                       = 2;
+}
+
+// =============================================================================
+// Item Families (consolidation: poison / dose clusters)
+// =============================================================================
+
+// Family membership back-reference carried by every member item (v4).
+message OSRSFamilyRef {
+  string family_slug                  = 1;   // canonical family page slug
+  string role                         = 2;   // "base" | "poison" | "dose" | "charged"
+  optional int32 dose                 = 3;   // dose number when role = "dose"
+}
+
+// One member in a family roster (rendered on the family/base page).
+message OSRSFamilyMember {
+  int64 id                            = 1;
+  string slug                         = 2;
+  string name                         = 3;
+  optional string icon                = 4;
+  string role                         = 5;
+  optional int32 dose                 = 6;
+  optional int32 value                = 7;
+  optional int32 lowalch              = 8;
+  optional int32 highalch             = 9;
+}
+
+// Family roster — present on the canonical family page (v4).
+message OSRSFamily {
+  string slug                         = 1;   // family page slug
+  string name                         = 2;   // family display name
+  string type                         = 3;   // "poison" | "dose" | "mixed"
+  optional int64 canonical_id         = 4;
+  repeated OSRSFamilyMember members   = 5;
 }
 
 // =============================================================================
@@ -703,6 +750,16 @@ message OSRSItem {
   // MDX content versioning
   optional int32 mdx_version          = 40;  // Schema version (1 = original, 2 = data-driven)
   optional string mdx_updated         = 41;  // ISO date of last content update (YYYY-MM-DD)
+
+  // v4 content + SEO
+  repeated OSRSFaqEntry faq           = 42;  // FAQPage JSON-LD + accordion
+  repeated string trivia              = 43;  // Lore/history facts
+  optional string url                 = 44;  // Canonical absolute page URL (self)
+  optional string canonical           = 45;  // Canonical override target (variant/dose -> family)
+
+  // v4 family consolidation
+  optional OSRSFamilyRef family_ref   = 46;  // Membership back-ref (on every member)
+  optional OSRSFamily family          = 47;  // Roster (on the canonical family page)
 }
 
 // =============================================================================

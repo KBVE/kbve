@@ -680,6 +680,38 @@ export const OSRSFaqEntrySchema = z.object({
 
 export type OSRSFaqEntry = z.infer<typeof OSRSFaqEntrySchema>;
 
+export const OSRSFamilyMemberSchema = z.object({
+	id: z.number(),
+	slug: z.string(),
+	name: z.string(),
+	icon: z.string().optional(),
+	role: z.string(), // "base" | "poison" | "dose" | "charged"
+	dose: z.number().nullable().optional(),
+	value: z.number().nullable().optional(),
+	lowalch: z.number().nullable().optional(),
+	highalch: z.number().nullable().optional(),
+});
+
+export type OSRSFamilyMember = z.infer<typeof OSRSFamilyMemberSchema>;
+
+export const OSRSFamilySchema = z.object({
+	slug: z.string(),
+	name: z.string(),
+	type: z.string(), // "poison" | "dose" | "mixed"
+	canonical_id: z.number().nullable().optional(),
+	members: z.array(OSRSFamilyMemberSchema),
+});
+
+export type OSRSFamily = z.infer<typeof OSRSFamilySchema>;
+
+export const OSRSFamilyRefSchema = z.object({
+	family_slug: z.string(),
+	role: z.string(),
+	dose: z.number().nullable().optional(),
+});
+
+export type OSRSFamilyRef = z.infer<typeof OSRSFamilyRefSchema>;
+
 // ============================================================================
 // Market Strategy — proto: OSRSMarketStrategy, OSRSMarketStep
 // ============================================================================
@@ -1081,6 +1113,14 @@ export const OSRSExtendedSchema = z.object({
 
 	// Trivia / lore facts — MDX-only (v4)
 	trivia: z.array(z.string()).optional(),
+
+	// Family membership back-ref — on every member item (v4). Records which
+	// consolidation family the item belongs to and its role.
+	family_ref: OSRSFamilyRefSchema.optional(),
+
+	// Family roster — on the canonical family page (v4). Lists every member
+	// (icon/id/role/dose) so the page can render all member graphs + icons.
+	family: OSRSFamilySchema.optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
