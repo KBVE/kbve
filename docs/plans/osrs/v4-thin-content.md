@@ -181,6 +181,9 @@ Shipped end-to-end on `tinderbox` as the v4 exemplar (schema + components + JSON
 - **`faq[]`** — `{ question, answer }`; new `OSRSFaq.astro` (accordion) **and `FAQPage`
   JSON-LD** added to `OSRSItemJsonLd.astro` → eligible for FAQ rich results + AI citation.
 - **`trivia[]`** — string lore facts; new `OSRSLore.astro` card ("<Item> Trivia").
+- **`url`** — canonical absolute page URL (`https://kbve.com/osrs/<slug>/`),
+  `z.string().url()`. Derivable from slug but stored explicitly for the record;
+  backfilled across existing v4 items.
 
 Zod (`generated.ts`): added `OSRSContentSectionSchema`, `OSRSFaqEntrySchema`,
 `about.sections`, top-level `faq` + `trivia`, and `hasFaq` / `hasLore` guards.

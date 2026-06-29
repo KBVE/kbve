@@ -64,7 +64,8 @@ LFS smudge can 404 in fresh worktrees — prefix git ops with `GIT_LFS_SKIP_SMUD
 4. Write `about` as an **object**: `text` (answer-first lead, 40–60 words) +
    `sections[]` (the archetype's section set; each 80–160 words, answer-first).
 5. Add `faq[]` (3–5, query-shaped questions; always "Is it members-only?" + an
-   obtain/use Q), `trivia[]` (≥2 sourced facts), `related_items[]` (≥2), `source`.
+   obtain/use Q), `trivia[]` (≥2 sourced facts), `related_items[]` (≥2), `source`,
+   and `url: https://kbve.com/osrs/<slug>/` (canonical absolute page URL).
 6. Keep the body unchanged:
 
     ```mdx
@@ -171,6 +172,7 @@ source:
     license: 'CC BY-NC-SA 3.0'
     wiki_fetched_at: 'YYYY-MM-DD'
 
+url: 'https://kbve.com/osrs/<slug>/' # canonical absolute page URL (must be a valid URL)
 mdx_version: 4
 mdx_updated: 'YYYY-MM-DD'
 ```
