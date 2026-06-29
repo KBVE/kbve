@@ -12,12 +12,11 @@ import { arpgAsset } from '../config';
  * Source model lives in apps/agones/arpg/web/scripts/ship-src (kbve-model-sprites
  * bakes the iso sheets from it).
  */
-const SHIP_MODEL_URL = arpgAsset(
-	'/assets/arcade/arpg/models/ship/fighter1.obj',
-);
-const SHIP_SKIN_URL = arpgAsset(
-	'/assets/arcade/arpg/models/ship/idolknight.jpg',
-);
+// Resolved through arpgAsset() at RENDER time, not module-load: the Discord embed
+// calls setArpgAssetBase() during boot, after this module is imported, so capturing
+// the base in a top-level const would freeze the empty (web) base and 404 in-Activity.
+const SHIP_MODEL_PATH = '/assets/arcade/arpg/models/ship/fighter1.obj';
+const SHIP_SKIN_PATH = '/assets/arcade/arpg/models/ship/idolknight.jpg';
 
 const SHIP_LENGTH = 3.2; // target longest-axis size in scene units (the old fuselage was 2.4)
 
@@ -52,8 +51,8 @@ function alignMatrix(size: THREE.Vector3): THREE.Matrix4 {
 
 /** Loads + axis-aligns + normalizes the fighter model. Nose +Z, deck +Y, centered. */
 export function ShipModel(): ReactElement {
-	const obj = useLoader(OBJLoader, SHIP_MODEL_URL);
-	const skin = useLoader(THREE.TextureLoader, SHIP_SKIN_URL);
+	const obj = useLoader(OBJLoader, arpgAsset(SHIP_MODEL_PATH));
+	const skin = useLoader(THREE.TextureLoader, arpgAsset(SHIP_SKIN_PATH));
 
 	const model = useMemo(() => {
 		skin.colorSpace = THREE.SRGBColorSpace;
