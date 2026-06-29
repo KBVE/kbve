@@ -30,11 +30,6 @@
 		padding: 1.5rem 1.25rem 4rem;
 		color: var(--sl-color-text, #fafafa);
 	}
-	:global(.sl-markdown-content):has(.forum-shell) {
-		max-width: none;
-		margin: 0;
-	}
-
 	.forum-shell__breadcrumb {
 		display: flex;
 		gap: 0.4rem;
@@ -117,5 +112,12 @@
 		color: var(--sl-color-gray-2, #a1a1aa);
 		border: 1px dashed var(--sl-color-gray-5, #2a2a33);
 		border-radius: 12px;
+	}
+</style>
+
+<style is:global>
+	.sl-markdown-content:has(.forum-shell) {
+		max-width: none;
+		margin: 0;
 	}
 </style>
