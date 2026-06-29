@@ -1,25 +1,124 @@
 ---
-import Default from '@astrojs/starlight/components/Sidebar.astro';
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import KbveSidebarSublist from './KbveSidebarSublist.astro';
+
+const { sidebar } = Astro.locals.starlightRoute;
 ---
 
-<div transition:persist="kbve-sidebar" data-kbve-sidebar-root>
-	<Default />
-</div>
+<nav
+	aria-label="Main"
+	data-kbve-sidebar-root
+	data-kbve-rail="expanded"
+	transition:persist="kbve-sidebar">
+	<div data-kbve-sidebar-chrome>
+		<button
+			type="button"
+			data-kbve-rail-toggle
+			aria-expanded="true"
+			aria-label="Collapse sidebar">
+			<svg
+				data-kbve-rail-icon
+				aria-hidden="true"
+				viewBox="0 0 16 16"
+				width="16"
+				height="16">
+				<path
+					fill="currentColor"
+					d="M10.78 3.22a.75.75 0 0 1 0 1.06L7.06 8l3.72 3.72a.75.75 0 1 1-1.06 1.06L5.47 8.53a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z">
+				</path>
+			</svg>
+		</button>
+		<label data-kbve-filter-field>
+			<span class="sr-only">Filter navigation</span>
+			<input
+				type="search"
+				data-kbve-filter
+				placeholder="Filter…"
+				autocomplete="off"
+				spellcheck="false"
+			/>
+		</label>
+	</div>
+
+	<div data-kbve-sidebar-scroll>
+		<KbveSidebarSublist entries={sidebar} />
+	</div>
+
+	<div class="md:sl-hidden" data-kbve-mobile-footer>
+		<MobileMenuFooter />
+	</div>
+</nav>
 
 <script is:inline data-astro-rerun>
 	(function () {
-		const ROOT_SELECTOR = '[data-kbve-sidebar-root]';
+		const ROOT = '[data-kbve-sidebar-root]';
+		const RAIL_KEY = 'kbve:sidebar:rail';
+		const GROUPS_KEY = 'kbve:sidebar:groups';
+
+		const store = {
+			get(key) {
+				try {
+					return window.localStorage.getItem(key);
+				} catch {
+					return null;
+				}
+			},
+			set(key, val) {
+				try {
+					window.localStorage.setItem(key, val);
+				} catch {}
+			},
+		};
+
+		const readGroups = () => {
+			const raw = store.get(GROUPS_KEY);
+			if (!raw) return {};
+			try {
+				const parsed = JSON.parse(raw);
+				return parsed && typeof parsed === 'object' ? parsed : {};
+			} catch {
+				return {};
+			}
+		};
+
 		const normalize = (p) => {
 			if (!p) return '/';
 			let v = p.split('#')[0].split('?')[0];
 			if (v.length > 1 && v.endsWith('/')) v = v.slice(0, -1);
 			return v || '/';
 		};
-		const update = () => {
-			const root = document.querySelector(ROOT_SELECTOR);
-			if (!root) return;
+
+		let suppressSave = false;
+
+		const applyRail = (root) => {
+			const collapsed = store.get(RAIL_KEY) === 'collapsed';
+			root.setAttribute(
+				'data-kbve-rail',
+				collapsed ? 'collapsed' : 'expanded',
+			);
+			const btn = root.querySelector('[data-kbve-rail-toggle]');
+			if (btn) {
+				btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+				btn.setAttribute(
+					'aria-label',
+					collapsed ? 'Expand sidebar' : 'Collapse sidebar',
+				);
+			}
+		};
+
+		const applySavedGroups = (root) => {
+			const saved = readGroups();
+			suppressSave = true;
+			root.querySelectorAll('[data-kbve-group]').forEach((d) => {
+				const id = d.getAttribute('data-kbve-group-id');
+				if (id && id in saved) d.open = !!saved[id];
+			});
+			suppressSave = false;
+		};
+
+		const updateActive = (root) => {
 			const current = normalize(window.location.pathname);
-			const links = root.querySelectorAll('a[href]');
+			const links = root.querySelectorAll('a[data-kbve-link]');
 			let match = null;
 			for (const link of links) {
 				const href = link.getAttribute('href') || '';
@@ -39,18 +138,109 @@ import Default from '@astrojs/starlight/components/Sidebar.astro';
 				}
 			}
 			if (match) {
+				suppressSave = true;
 				let parent = match.parentElement;
 				while (parent && parent !== root) {
 					if (parent.tagName === 'DETAILS') parent.open = true;
 					parent = parent.parentElement;
 				}
+				suppressSave = false;
 			}
 		};
-		update();
+
+		const clearFilter = (root) => {
+			root.querySelectorAll('[data-kbve-filtered]').forEach((el) =>
+				el.removeAttribute('data-kbve-filtered'),
+			);
+			applySavedGroups(root);
+			updateActive(root);
+		};
+
+		const runFilter = (root, raw) => {
+			const q = raw.trim().toLowerCase();
+			if (!q) {
+				clearFilter(root);
+				return;
+			}
+			const groups = root.querySelectorAll('[data-kbve-group]');
+			groups.forEach((g) => g.removeAttribute('data-kbve-filtered'));
+			root.querySelectorAll('li[data-kbve-item]').forEach((li) => {
+				const link = li.querySelector(':scope > a[data-kbve-link]');
+				if (!link) return;
+				const label = (link.textContent || '').trim().toLowerCase();
+				if (label.includes(q)) li.removeAttribute('data-kbve-filtered');
+				else li.setAttribute('data-kbve-filtered', '');
+			});
+			suppressSave = true;
+			groups.forEach((g) => {
+				const visible = g.querySelector(
+					'li[data-kbve-item]:not([data-kbve-filtered]) > a[data-kbve-link]',
+				);
+				const wrapper = g.closest('li[data-kbve-item]');
+				if (visible) {
+					g.open = true;
+					wrapper?.removeAttribute('data-kbve-filtered');
+				} else {
+					wrapper?.setAttribute('data-kbve-filtered', '');
+				}
+			});
+			suppressSave = false;
+		};
+
+		const init = () => {
+			const root = document.querySelector(ROOT);
+			if (!root) return;
+			applyRail(root);
+			applySavedGroups(root);
+			updateActive(root);
+
+			if (root.dataset.kbveBound === 'true') return;
+			root.dataset.kbveBound = 'true';
+
+			const toggle = root.querySelector('[data-kbve-rail-toggle]');
+			toggle?.addEventListener('click', () => {
+				const collapsed =
+					root.getAttribute('data-kbve-rail') === 'collapsed';
+				store.set(RAIL_KEY, collapsed ? 'expanded' : 'collapsed');
+				applyRail(root);
+			});
+
+			const filter = root.querySelector('[data-kbve-filter]');
+			filter?.addEventListener('input', (e) =>
+				runFilter(root, e.target.value),
+			);
+			filter?.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') {
+					e.target.value = '';
+					clearFilter(root);
+				}
+			});
+
+			root.addEventListener(
+				'toggle',
+				(e) => {
+					const d = e.target;
+					if (
+						suppressSave ||
+						!d.matches ||
+						!d.matches('[data-kbve-group]')
+					)
+						return;
+					const id = d.getAttribute('data-kbve-group-id');
+					if (!id) return;
+					const groups = readGroups();
+					groups[id] = d.open;
+					store.set(GROUPS_KEY, JSON.stringify(groups));
+				},
+				true,
+			);
+		};
+
+		init();
 		if (!window.__kbveSidebarBound) {
 			window.__kbveSidebarBound = true;
-			document.addEventListener('astro:after-swap', update);
-			document.addEventListener('astro:page-load', update);
+			document.addEventListener('astro:after-swap', init);
+			document.addEventListener('astro:page-load', init);
 		}
 	})();
 </script>
