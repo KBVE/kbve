@@ -5,6 +5,7 @@ use axum::{
 };
 #[cfg(feature = "postgres")]
 use bb8::ErrorSink;
+#[cfg(feature = "valkey")]
 use fred::error::Error as RedisError;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -168,6 +169,7 @@ impl From<flexbuffers::ReaderError> for JediError {
     }
 }
 
+#[cfg(feature = "valkey")]
 impl From<RedisError> for JediError {
     fn from(err: RedisError) -> Self {
         JediError::Database(Cow::Owned(format!("Redis error: {}", err)))
