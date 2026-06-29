@@ -3,6 +3,7 @@ import {
 	GameClient,
 	laserEvents,
 	createBirdAnimation,
+	createDustMoteLayer,
 	flashEntity,
 	floatingText,
 	drawHealthBar,
@@ -24,6 +25,7 @@ import type {
 	ConnectionState,
 	BjActionKind,
 	ProjectileEvent,
+	GpuSpriteLayerHandle,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
@@ -98,6 +100,7 @@ interface PendingAction {
 export class CloudCityScene extends Scene {
 	private gridEngine: any;
 	private client: GameClient | null = null;
+	private dustLayer: GpuSpriteLayerHandle | null = null;
 
 	private mySlot = SLOT_NONE;
 	private slotUsername = new Map<number, string>();
@@ -215,12 +218,19 @@ export class CloudCityScene extends Scene {
 		}
 		this.entityDepth = tilemap.layers.length + 1;
 		this.placeProps();
-		this.cameras.main.setBounds(
-			0,
-			0,
-			tilemap.widthInPixels * MAP_SCALE,
-			tilemap.heightInPixels * MAP_SCALE,
-		);
+		const worldW = tilemap.widthInPixels * MAP_SCALE;
+		const worldH = tilemap.heightInPixels * MAP_SCALE;
+		this.cameras.main.setBounds(0, 0, worldW, worldH);
+
+		this.dustLayer = createDustMoteLayer(this, {
+			count: 600,
+			width: worldW,
+			height: worldH,
+			depth: this.entityDepth - 0.5,
+			color: 0xfdf6e3,
+			radius: 2,
+			alpha: 0.5,
+		});
 
 		createBirdAnimation(this);
 		this.makeGroundItemTexture();
@@ -319,6 +329,8 @@ export class CloudCityScene extends Scene {
 			this.laserUnsubs = [];
 			this.netTerminal = true;
 			this.client?.close();
+			this.dustLayer?.dispose();
+			this.dustLayer = null;
 		});
 	}
 

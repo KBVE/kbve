@@ -48,6 +48,8 @@ export type {
 	GpuSpriteLayerOptions,
 	GpuSpriteLayerHandle,
 } from './lib/phaser/gpu-sprite-layer';
+export { createDustMoteLayer, dustMemberAt } from './lib/phaser/ambient-dust';
+export type { DustMoteOptions } from './lib/phaser/ambient-dust';
 
 // Tile prediction — BFS pathing that mirrors the server grid
 export { findTilePath } from './lib/tile/path';
