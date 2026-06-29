@@ -66,10 +66,10 @@ fred = { version = "10", optional = true, features = [
 ] }
 prost = { version = "0.14", features = ["derive"] }
 papaya = "0.2.1"
-tonic = "0.14.5"
-tonic-health = "0.14.5"
-tonic-prost = "0.14.5"
-tonic-reflection = "0.14.5"
+tonic = { version = "0.14.5", optional = true }
+tonic-health = { version = "0.14.5", optional = true }
+tonic-prost = { version = "0.14.5", optional = true }
+tonic-reflection = { version = "0.14.5", optional = true }
 http-body-util = "0.1"
 ulid = { version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
@@ -100,6 +100,7 @@ prometheus = ["dep:axum-prometheus", "dep:metrics"]
 forgejo = []
 itch = []
 twitch = ["dep:twitch-irc"]
+grpc = ["dep:tonic", "dep:tonic-prost", "dep:tonic-health", "dep:tonic-reflection"]
 postgres = [
     "dep:tokio-postgres",
     "dep:bb8",

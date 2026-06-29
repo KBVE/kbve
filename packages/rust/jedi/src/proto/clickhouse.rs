@@ -212,6 +212,7 @@ impl SeverityLevel {
     }
 }
 /// Generated client implementations.
+#[cfg(feature = "grpc")]
 pub mod click_house_service_client {
     #![allow(
         unused_variables,
@@ -406,6 +407,7 @@ pub mod click_house_service_client {
     }
 }
 /// Generated server implementations.
+#[cfg(feature = "grpc")]
 pub mod click_house_service_server {
     #![allow(
         unused_variables,
