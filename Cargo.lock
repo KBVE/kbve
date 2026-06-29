@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.1.21"
+version = "0.1.22"
 dependencies = [
  "agones",
  "async-trait",
@@ -14155,7 +14155,7 @@ dependencies = [
 
 [[package]]
 name = "rows"
-version = "0.1.35"
+version = "0.1.36"
 dependencies = [
  "anyhow",
  "argon2",
