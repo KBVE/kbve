@@ -7,6 +7,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import worker from '@astropub/worker';
 import mermaid from 'astro-mermaid';
+import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -37,7 +38,7 @@ export default defineConfig({
 		defaultStrategy: 'hover',
 	},
 	markdown: {
-		rehypePlugins: [rehypeLinkAttrs],
+		processor: unified({ rehypePlugins: [rehypeLinkAttrs] }),
 	},
 	integrations: [
 		worker(),
@@ -52,17 +53,11 @@ export default defineConfig({
 			iconPacks: [
 				{
 					name: 'logos',
-					loader: () =>
-						fetch(
-							'https://unpkg.com/@iconify-json/logos@1/icons.json',
-						).then((res) => res.json()),
+					url: 'https://unpkg.com/@iconify-json/logos@1/icons.json',
 				},
 				{
 					name: 'iconoir',
-					loader: () =>
-						fetch(
-							'https://unpkg.com/@iconify-json/iconoir@1/icons.json',
-						).then((res) => res.json()),
+					url: 'https://unpkg.com/@iconify-json/iconoir@1/icons.json',
 				},
 			],
 		}),
@@ -376,13 +371,6 @@ export default defineConfig({
 			},
 		}),
 	],
-	experimental: {
-		queuedRendering: {
-			enabled: true,
-			poolSize: 3000,
-			contentCache: true,
-		},
-	},
 	vite: {
 		plugins: [tailwindcss()],
 		define: {
@@ -421,25 +409,28 @@ export default defineConfig({
 				'react-native-gesture-handler',
 			],
 			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
-			esbuildOptions: {
-				supported: { 'top-level-await': true },
-				define: {
-					'process.env.JEST_WORKER_ID': 'undefined',
-					__DEV__: 'false',
-					global: 'globalThis',
+			rolldownOptions: {
+				transform: {
+					define: {
+						'process.env.JEST_WORKER_ID': 'undefined',
+						__DEV__: 'false',
+						global: 'globalThis',
+					},
 				},
-				loader: { '.js': 'jsx' },
-				resolveExtensions: [
-					'.web.tsx',
-					'.web.ts',
-					'.web.jsx',
-					'.web.js',
-					'.tsx',
-					'.ts',
-					'.jsx',
-					'.js',
-					'.json',
-				],
+				moduleTypes: { '.js': 'jsx' },
+				resolve: {
+					extensions: [
+						'.web.tsx',
+						'.web.ts',
+						'.web.jsx',
+						'.web.js',
+						'.tsx',
+						'.ts',
+						'.jsx',
+						'.js',
+						'.json',
+					],
+				},
 			},
 		},
 		ssr: {
