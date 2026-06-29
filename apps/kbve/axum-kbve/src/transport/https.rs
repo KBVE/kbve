@@ -3895,4 +3895,27 @@ mod tests {
             );
         }
     }
+
+    #[tokio::test]
+    async fn osrs_family_redirect_fires_to_base() {
+        use crate::transport::osrs_family_redirects::OSRS_FAMILY_REDIRECTS;
+        let app = mount_permanent_redirects(Router::<()>::new(), OSRS_FAMILY_REDIRECTS);
+        for uri in [
+            "/osrs/dragon-dagger-p",
+            "/osrs/dragon-dagger-p/",
+            "/osrs/dragon-dagger-p-5698",
+            "/osrs/dragon-dagger-p-5698/",
+        ] {
+            let response = app
+                .clone()
+                .oneshot(Request::builder().uri(uri).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::PERMANENT_REDIRECT);
+            assert_eq!(
+                response.headers().get(header::LOCATION).unwrap(),
+                "/osrs/dragon-dagger/"
+            );
+        }
+    }
 }

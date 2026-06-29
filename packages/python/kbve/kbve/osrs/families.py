@@ -45,13 +45,15 @@ def family_of(name):
 
 def resolve(content_dir, min_members=2):
     groups = defaultdict(list)
-    for _fname, osrs, _raw in iter_items(content_dir):
+    for fname, osrs, _raw in iter_items(content_dir):
         name = str(osrs.get("name", "")).strip()
         if not name:
             continue
         base, kind, dose = family_of(name)
+        # The page URL is derived from the FILENAME, not the frontmatter
+        # osrs.slug (which collides across poison variants). Use the filename.
         groups[base.lower()].append({
-            "slug": str(osrs.get("slug", "")),
+            "slug": fname[:-4] if fname.endswith(".mdx") else fname,
             "name": name,
             "id": osrs.get("id"),
             "icon": osrs.get("icon"),
@@ -124,6 +126,16 @@ def _indent_yaml(block, indent="  "):
     return "\n".join(indent + ln for ln in dumped.split("\n"))
 
 
+# Strip previously-stamped family blocks (2-space top-level keys + their nested
+# lines) so --write is idempotent / re-runnable.
+_STRIP_FAMILY = re.compile(
+    r"\n  (?:family_ref|family|canonical):.*?(?=\n  \S|\n---)", re.S)
+
+
+def _strip_family_blocks(raw):
+    return _STRIP_FAMILY.sub("", raw)
+
+
 def write_families(content_dir, result, min_members):
     """Stamp family_ref (+ canonical / family roster) into each member MDX."""
     fam_by_key = {f["family_name"].lower(): f for f in result["families"]}
@@ -138,10 +150,7 @@ def write_families(content_dir, result, min_members):
         fam = fam_by_key.get(base.lower())
         if not fam:
             continue
-        m = re.match(r"^---\n(.*?)\n---", raw, re.S)
-        if not m or re.search(r"^\s+family_ref:\s*$", m.group(1), re.M):
-            skipped_existing += 1
-            continue
+        raw = _strip_family_blocks(raw)  # idempotent: drop any prior stamp
         item_id = osrs.get("id")
         is_canonical = (
             fam["canonical_id"] is not None and item_id == fam["canonical_id"]
