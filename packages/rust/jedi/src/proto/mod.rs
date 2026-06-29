@@ -5,4 +5,5 @@ pub mod github;
 pub mod groq;
 pub mod jedi;
 pub mod redis;
+#[cfg(feature = "twitch")]
 pub mod twitch;

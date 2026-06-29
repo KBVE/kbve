@@ -79,7 +79,7 @@ hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1"] }
 rustc-hash = "2.1.1"
 flexbuffers = "25.2.10"
 # Twitch
-twitch-irc = { version = "5.0.1", default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
+twitch-irc = { version = "5.0.1", optional = true, default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
 # Replaceable
 crossbeam = "0.8.4"
 regex = "1.10.3"
@@ -99,6 +99,7 @@ clickhouse = ["dep:clickhouse"]
 prometheus = ["dep:axum-prometheus", "dep:metrics"]
 forgejo = []
 itch = []
+twitch = ["dep:twitch-irc"]
 postgres = [
     "dep:tokio-postgres",
     "dep:bb8",
