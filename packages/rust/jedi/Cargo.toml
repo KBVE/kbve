@@ -60,7 +60,6 @@ twitch-irc = { version = "5.0.1", optional = true, default-features = false, fea
 # Replaceable
 crossbeam = "0.8.4"
 regex = "1.10.3"
-once_cell = "1.21.1"
 # Local Supabase JWT verification (HS256 + ES256/JWKS) — rust_crypto for ES256.
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 # ClickHouse (optional)
