@@ -1,5 +1,5 @@
 {
-	"stub_count": 68,
+	"stub_count": 58,
 	"basic_count": 617,
 	"stub_variant_breakdown": {
 		"charged": 1,
@@ -7,7 +7,7 @@
 		"poison": 16,
 		"trimmed_heraldic": 1,
 		"unfinished": 2,
-		"null": 47
+		"null": 37
 	},
 	"basic_variant_breakdown": {
 		"null": 500,
@@ -272,47 +272,11 @@
 			"sections": []
 		},
 		{
-			"slug": "divine-super-defence-potion-1",
-			"name": "Divine super defence potion(1)",
-			"members": true,
-			"variant": null,
-			"about_len": 146,
-			"nsections": 0,
-			"sections": []
-		},
-		{
 			"slug": "dragon-metal-sheet",
 			"name": "Dragon metal sheet",
 			"members": true,
 			"variant": null,
 			"about_len": 142,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "earmuffs",
-			"name": "Earmuffs",
-			"members": true,
-			"variant": null,
-			"about_len": 129,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "extended-antifire-2",
-			"name": "Extended antifire(2)",
-			"members": true,
-			"variant": null,
-			"about_len": 144,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "extended-super-antifire-2",
-			"name": "Extended super antifire(2)",
-			"members": true,
-			"variant": null,
-			"about_len": 150,
 			"nsections": 0,
 			"sections": []
 		},
@@ -398,15 +362,6 @@
 			"sections": []
 		},
 		{
-			"slug": "lime",
-			"name": "Lime",
-			"members": true,
-			"variant": null,
-			"about_len": 113,
-			"nsections": 0,
-			"sections": []
-		},
-		{
 			"slug": "mahogany-magic-wardrobe-flatpack",
 			"name": "Mahogany magic wardrobe (flatpack)",
 			"members": true,
@@ -434,33 +389,6 @@
 			"sections": []
 		},
 		{
-			"slug": "mystic-robe-bottom-light",
-			"name": "Mystic robe bottom (light)",
-			"members": true,
-			"variant": null,
-			"about_len": 150,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "ogre-coffin-key",
-			"name": "Ogre coffin key",
-			"members": true,
-			"variant": null,
-			"about_len": 138,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "olive-oil-3",
-			"name": "Olive oil(3)",
-			"members": true,
-			"variant": null,
-			"about_len": 136,
-			"nsections": 0,
-			"sections": []
-		},
-		{
 			"slug": "potato-with-cheese",
 			"name": "Potato with cheese",
 			"members": true,
@@ -484,15 +412,6 @@
 			"members": true,
 			"variant": null,
 			"about_len": 104,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "roast-bird-meat",
-			"name": "Roast bird meat",
-			"members": true,
-			"variant": null,
-			"about_len": 138,
 			"nsections": 0,
 			"sections": []
 		},
@@ -547,15 +466,6 @@
 			"members": true,
 			"variant": null,
 			"about_len": 141,
-			"nsections": 0,
-			"sections": []
-		},
-		{
-			"slug": "strength-mix-2",
-			"name": "Strength mix(2)",
-			"members": true,
-			"variant": null,
-			"about_len": 137,
 			"nsections": 0,
 			"sections": []
 		},
