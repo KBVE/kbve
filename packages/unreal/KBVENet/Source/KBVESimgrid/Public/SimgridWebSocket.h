@@ -21,6 +21,7 @@ public:
 	void SendBinary(const TArray<uint8>& Bytes);
 	void Close();
 	bool IsConnected() const;
+	~FSimgridWebSocket();
 
 private:
 	void HandleRaw(const void* Data, SIZE_T Size, SIZE_T BytesRemaining);

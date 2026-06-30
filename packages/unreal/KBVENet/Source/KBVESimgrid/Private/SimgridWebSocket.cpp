@@ -65,6 +65,10 @@ void FSimgridWebSocket::Close()
 {
 	if (Socket.IsValid())
 	{
+		Socket->OnConnected().Clear();
+		Socket->OnConnectionError().Clear();
+		Socket->OnClosed().Clear();
+		Socket->OnRawMessage().Clear();
 		Socket->Close();
 		Socket.Reset();
 	}
@@ -73,4 +77,9 @@ void FSimgridWebSocket::Close()
 bool FSimgridWebSocket::IsConnected() const
 {
 	return Socket.IsValid() && Socket->IsConnected();
+}
+
+FSimgridWebSocket::~FSimgridWebSocket()
+{
+	Close();
 }
