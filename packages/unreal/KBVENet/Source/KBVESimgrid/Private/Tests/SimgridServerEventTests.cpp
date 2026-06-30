@@ -51,6 +51,31 @@ bool FSimgridSnapshotDecodeTest::RunTest(const FString& Parameters)
 	TestEqual("input_ack", D.Snapshot.InputAck, (uint32)0);
 	TestEqual("entity count", D.Snapshot.Entities.Num(), 1);
 	TestTrue("keyframe", D.Snapshot.bKeyframe);
+	if (D.Snapshot.Entities.Num() > 0)
+	{
+		const FSimgridEntityDelta& E = D.Snapshot.Entities[0];
+		TestEqual("eid", E.Eid, (uint32)2);
+		TestEqual("kind", (uint32)E.Kind, (uint32)7);
+		TestEqual("owner", (uint32)E.Owner, (uint32)65535);
+		TestEqual("tile x", E.Tile.X, (int32)5);
+		TestEqual("tile y", E.Tile.Y, (int32)-3);
+		TestEqual("sub", (uint32)E.Sub, (uint32)0x81);
+		TestEqual("qx", E.Qx, (int32)160);
+		TestEqual("qy", E.Qy, (int32)-96);
+		TestEqual("qvx", (int32)E.Qvx, (int32)12);
+		TestEqual("qvy", (int32)E.Qvy, (int32)-7);
+		TestEqual("input_ack entity", E.InputAck, (uint32)0);
+		TestEqual("hp", E.Hp, (int32)30);
+		TestEqual("max_hp", E.MaxHp, (int32)40);
+		TestFalse("destroyed", E.bDestroyed);
+		TestEqual("z", E.Z, (int32)-1);
+		TestEqual("piloting", E.Piloting, (uint32)0);
+		TestEqual("effects num", E.Effects.Num(), 1);
+		if (E.Effects.Num() > 0)
+		{
+			TestEqual("effects[0].remaining", (uint32)E.Effects[0].Remaining, (uint32)5);
+		}
+	}
 	return true;
 }
 

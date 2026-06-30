@@ -91,9 +91,8 @@ static FSimgridEntityDelta ReadEntityDelta(FPostcardReader& R)
 	for (int32 i = 0; i < EffCount; ++i)
 	{
 		FSimgridStatusView S;
-		S.Kind = R.U8();
-		S.Magnitude = R.VarI32();
-		S.Remaining = R.VarU32();
+		S.Kind = (uint8)R.Variant();
+		S.Remaining = R.U16();
 		E.Effects.Add(S);
 	}
 	E.Piloting = R.VarU32();

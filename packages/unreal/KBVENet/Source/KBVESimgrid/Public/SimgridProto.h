@@ -29,8 +29,7 @@ struct FSimgridKindEntry
 struct FSimgridStatusView
 {
 	uint8 Kind = 0;
-	int32 Magnitude = 0;
-	uint32 Remaining = 0;
+	uint16 Remaining = 0;
 };
 
 struct FSimgridEntityDelta

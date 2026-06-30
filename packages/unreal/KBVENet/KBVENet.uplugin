@@ -23,5 +23,11 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVESupabase",
+			"Enabled": true
+		}
 	]
 }
