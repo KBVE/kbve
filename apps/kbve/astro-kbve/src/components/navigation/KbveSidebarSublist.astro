@@ -1,5 +1,6 @@
 ---
 import KbveSidebarSublist from './KbveSidebarSublist.astro';
+import { sidebarIconForLabel } from './sidebarIcons';
 
 interface Props {
 	entries: any[];
@@ -7,12 +8,22 @@ interface Props {
 }
 
 const { entries, groupPath = '' } = Astro.props;
+const isTop = groupPath === '';
 
 const slugify = (label: string) =>
 	label
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
+
+const firstHref = (entry: any): string | null => {
+	if (entry?.type === 'link') return entry.href ?? null;
+	for (const child of entry?.entries ?? []) {
+		const href = firstHref(child);
+		if (href) return href;
+	}
+	return null;
+};
 ---
 
 <ul data-kbve-sublist>
@@ -42,14 +53,37 @@ const slugify = (label: string) =>
 			const id = groupPath
 				? `${groupPath}/${slugify(entry.label)}`
 				: slugify(entry.label);
+			const iconHref = isTop ? firstHref(entry) : null;
 			return (
 				<li data-kbve-item>
 					<details
 						data-kbve-group
 						data-kbve-group-id={id}
+						data-kbve-top={isTop ? 'true' : undefined}
+						data-kbve-default-open={
+							!entry.collapsed ? 'true' : 'false'
+						}
 						open={!entry.collapsed}
 						{...(entry.attrs ?? {})}>
 						<summary data-kbve-summary>
+							{isTop &&
+								(iconHref ? (
+									<a
+										data-kbve-group-icon
+										href={iconHref}
+										aria-label={`${entry.label} home`}
+										set:html={sidebarIconForLabel(
+											entry.label,
+										)}
+									/>
+								) : (
+									<span
+										data-kbve-group-icon
+										set:html={sidebarIconForLabel(
+											entry.label,
+										)}
+									/>
+								))}
 							<span data-kbve-label>{entry.label}</span>
 							{entry.badge && (
 								<span
