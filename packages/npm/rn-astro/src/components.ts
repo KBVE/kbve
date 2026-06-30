@@ -18,6 +18,12 @@ export {
 	ErrorState,
 	Footer,
 	NavBar,
+	Hero,
+	SectionHeading,
+	FeatureCard,
+	StatStrip,
+	ProjectCard,
+	CtaSection,
 	useTheme,
 	tokens,
 } from '@kbve/rn/ui';
@@ -38,4 +44,10 @@ export type {
 	FooterLink,
 	FooterGroup,
 	FooterProps,
+	HeroProps,
+	HeroAction,
+	SectionHeadingProps,
+	FeatureCardProps,
+	StatItem,
+	ProjectItem,
 } from '@kbve/rn/ui';

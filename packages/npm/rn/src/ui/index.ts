@@ -4,6 +4,7 @@ export * from './models';
 export * from './useShake';
 
 export * from './nav';
+export * from './marketing';
 
 export * from './primitives/Text';
 export * from './primitives/Screen';

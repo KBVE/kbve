@@ -4,6 +4,7 @@
 // individually.
 export * from './nav/Footer';
 export * from './nav/NavBar';
+export * from './marketing';
 export * from './theme';
 export * from './ThemeProvider';
 export * from './models';

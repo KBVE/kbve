@@ -1,0 +1,421 @@
+import { memo, useState } from 'react';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import type { ReactNode } from 'react';
+import { tokens } from '../theme';
+import { Text } from '../primitives/Text';
+import { Button, type ButtonVariant } from '../primitives/Button';
+import { openExternal } from '../../platform/openExternal';
+
+const CONTENT_MAX = 1120;
+
+const container = (extra?: object) => ({
+	width: '100%' as const,
+	maxWidth: CONTENT_MAX,
+	alignSelf: 'center' as const,
+	...extra,
+});
+
+/* ─────────────────────────── Hero ─────────────────────────── */
+
+export interface HeroAction {
+	label: string;
+	href: string;
+	variant?: ButtonVariant;
+	external?: boolean;
+}
+
+export interface HeroProps {
+	eyebrow?: string;
+	lead: string;
+	accent?: string;
+	tail?: string;
+	subtitle?: string;
+	actions?: HeroAction[];
+	onNavigate?: (href: string) => void;
+}
+
+export const Hero = memo(function Hero({
+	eyebrow,
+	lead,
+	accent,
+	tail,
+	subtitle,
+	actions = [],
+	onNavigate,
+}: HeroProps) {
+	const { width } = useWindowDimensions();
+	const titleSize = width < 600 ? 38 : width < 960 ? 52 : 64;
+
+	const fire = (a: HeroAction) =>
+		a.external ? openExternal(a.href) : onNavigate?.(a.href);
+
+	return (
+		<View style={styles.heroWrap}>
+			<View style={[container(), styles.heroInner]}>
+				{eyebrow ? (
+					<View style={styles.eyebrow}>
+						<Text style={styles.eyebrowText}>{eyebrow}</Text>
+					</View>
+				) : null}
+				<Text
+					style={[
+						styles.heroTitle,
+						{ fontSize: titleSize, lineHeight: titleSize * 1.06 },
+					]}>
+					{lead}
+					{accent ? (
+						<Text style={[styles.heroTitle, styles.heroAccent]}>
+							{accent}
+						</Text>
+					) : null}
+					{tail}
+				</Text>
+				{subtitle ? (
+					<Text style={styles.heroSub}>{subtitle}</Text>
+				) : null}
+				{actions.length > 0 ? (
+					<View style={styles.heroActions}>
+						{actions.map((a) => (
+							<Button
+								key={a.href}
+								title={a.label}
+								variant={a.variant ?? 'primary'}
+								onPress={() => fire(a)}
+							/>
+						))}
+					</View>
+				) : null}
+			</View>
+		</View>
+	);
+});
+
+/* ─────────────────────── Section heading ───────────────────── */
+
+export interface SectionHeadingProps {
+	title: string;
+	subtitle?: string;
+}
+
+export const SectionHeading = memo(function SectionHeading({
+	title,
+	subtitle,
+}: SectionHeadingProps) {
+	return (
+		<View style={styles.headingWrap}>
+			<Text style={styles.headingTitle}>{title}</Text>
+			{subtitle ? (
+				<Text style={styles.headingSub}>{subtitle}</Text>
+			) : null}
+		</View>
+	);
+});
+
+/* ───────────────────────── Feature card ────────────────────── */
+
+export interface FeatureCardProps {
+	title: string;
+	body: string;
+	icon?: ReactNode;
+}
+
+export const FeatureCard = memo(function FeatureCard({
+	title,
+	body,
+	icon,
+}: FeatureCardProps) {
+	return (
+		<View style={styles.card}>
+			{icon ? <View style={styles.cardIcon}>{icon}</View> : null}
+			<Text style={styles.cardTitle}>{title}</Text>
+			<Text style={styles.cardBody}>{body}</Text>
+		</View>
+	);
+});
+
+/* ───────────────────────── Stat strip ──────────────────────── */
+
+export interface StatItem {
+	value: string;
+	label: string;
+}
+
+export const StatStrip = memo(function StatStrip({
+	stats,
+}: {
+	stats: StatItem[];
+}) {
+	return (
+		<View style={styles.statBand}>
+			<View style={[container(), styles.statRow]}>
+				{stats.map((s) => (
+					<View key={s.label} style={styles.stat}>
+						<Text style={styles.statValue}>{s.value}</Text>
+						<Text style={styles.statLabel}>{s.label}</Text>
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ──────────────────────── Project card ─────────────────────── */
+
+export interface ProjectItem {
+	name: string;
+	tag: string;
+	body: string;
+	href: string;
+}
+
+export const ProjectCard = memo(function ProjectCard({
+	project,
+	onNavigate,
+}: {
+	project: ProjectItem;
+	onNavigate?: (href: string) => void;
+}) {
+	const [hover, setHover] = useState(false);
+	return (
+		<Pressable
+			accessibilityRole="link"
+			onPress={() => onNavigate?.(project.href)}
+			onHoverIn={() => setHover(true)}
+			onHoverOut={() => setHover(false)}
+			style={[
+				styles.project,
+				hover && styles.projectHover,
+				{ cursor: 'pointer' } as never,
+			]}>
+			<View style={styles.projectTag}>
+				<Text style={styles.projectTagText}>{project.tag}</Text>
+			</View>
+			<Text style={styles.projectName}>{project.name}</Text>
+			<Text style={styles.projectBody}>{project.body}</Text>
+			<Text
+				style={[styles.projectLink, hover && styles.projectLinkHover]}>
+				Learn more →
+			</Text>
+		</Pressable>
+	);
+});
+
+/* ───────────────────────── CTA section ─────────────────────── */
+
+export const CtaSection = memo(function CtaSection({
+	title,
+	subtitle,
+	actions = [],
+	onNavigate,
+}: {
+	title: string;
+	subtitle?: string;
+	actions?: HeroAction[];
+	onNavigate?: (href: string) => void;
+}) {
+	const fire = (a: HeroAction) =>
+		a.external ? openExternal(a.href) : onNavigate?.(a.href);
+	return (
+		<View style={styles.ctaWrap}>
+			<View style={styles.ctaInner}>
+				<Text style={styles.ctaTitle}>{title}</Text>
+				{subtitle ? (
+					<Text style={styles.ctaSub}>{subtitle}</Text>
+				) : null}
+				{actions.length > 0 ? (
+					<View style={styles.heroActions}>
+						{actions.map((a) => (
+							<Button
+								key={a.href}
+								title={a.label}
+								variant={a.variant ?? 'primary'}
+								onPress={() => fire(a)}
+							/>
+						))}
+					</View>
+				) : null}
+			</View>
+		</View>
+	);
+});
+
+/* ─────────────────────────── Styles ────────────────────────── */
+
+const styles = StyleSheet.create({
+	heroWrap: {
+		paddingHorizontal: tokens.space.lg,
+		paddingTop: 96,
+		paddingBottom: 72,
+		alignItems: 'center',
+	},
+	heroInner: { alignItems: 'center', gap: tokens.space.lg, maxWidth: 760 },
+	eyebrow: {
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 6,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
+	},
+	eyebrowText: {
+		fontSize: 12,
+		fontWeight: '700',
+		letterSpacing: 2,
+		textTransform: 'uppercase',
+		color: tokens.color.primary,
+	},
+	heroTitle: {
+		fontWeight: '800',
+		letterSpacing: -1,
+		color: tokens.color.text,
+		textAlign: 'center',
+	},
+	heroAccent: { color: tokens.color.primary },
+	heroSub: {
+		fontSize: 18,
+		lineHeight: 28,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+		maxWidth: 620,
+	},
+	heroActions: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: tokens.space.sm,
+		justifyContent: 'center',
+		marginTop: tokens.space.sm,
+	},
+
+	headingWrap: {
+		alignItems: 'center',
+		gap: tokens.space.xs,
+		maxWidth: 640,
+		alignSelf: 'center',
+		marginBottom: tokens.space.xxl,
+	},
+	headingTitle: {
+		fontSize: 34,
+		fontWeight: '800',
+		letterSpacing: -0.5,
+		color: tokens.color.text,
+		textAlign: 'center',
+	},
+	headingSub: {
+		fontSize: 16,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+	},
+
+	card: {
+		flex: 1,
+		minWidth: 220,
+		gap: tokens.space.sm,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	cardIcon: {
+		width: 44,
+		height: 44,
+		borderRadius: tokens.radius.md,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: tokens.color.surfaceAlt,
+		marginBottom: tokens.space.xs,
+	},
+	cardTitle: {
+		fontSize: 18,
+		fontWeight: '700',
+		color: tokens.color.primary,
+	},
+	cardBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
+
+	statBand: {
+		borderTopWidth: 1,
+		borderBottomWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.bgSubtle,
+		paddingHorizontal: tokens.space.lg,
+	},
+	statRow: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'space-around',
+		paddingVertical: tokens.space.xl,
+		gap: tokens.space.lg,
+	},
+	stat: { alignItems: 'center', gap: 4, minWidth: 120 },
+	statValue: {
+		fontSize: 36,
+		fontWeight: '800',
+		color: tokens.color.primary,
+	},
+	statLabel: {
+		fontSize: 12,
+		letterSpacing: 1,
+		textTransform: 'uppercase',
+		color: tokens.color.textMuted,
+	},
+
+	project: {
+		flex: 1,
+		minWidth: 260,
+		gap: tokens.space.sm,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	projectHover: { borderColor: tokens.color.primary },
+	projectTag: {
+		alignSelf: 'flex-start',
+		paddingHorizontal: tokens.space.sm,
+		paddingVertical: 3,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	projectTagText: {
+		fontSize: 11,
+		fontWeight: '700',
+		letterSpacing: 1,
+		textTransform: 'uppercase',
+		color: tokens.color.primary,
+	},
+	projectName: { fontSize: 22, fontWeight: '800', color: tokens.color.text },
+	projectBody: {
+		fontSize: 14,
+		lineHeight: 21,
+		color: tokens.color.textMuted,
+	},
+	projectLink: {
+		fontSize: 14,
+		fontWeight: '700',
+		color: tokens.color.primary,
+		marginTop: tokens.space.xs,
+	},
+	projectLinkHover: { color: tokens.color.primaryDeep },
+
+	ctaWrap: {
+		paddingVertical: 88,
+		paddingHorizontal: tokens.space.lg,
+		alignItems: 'center',
+		backgroundColor: tokens.color.bg,
+	},
+	ctaInner: { alignItems: 'center', gap: tokens.space.md, maxWidth: 640 },
+	ctaTitle: {
+		fontSize: 40,
+		fontWeight: '800',
+		letterSpacing: -0.5,
+		color: tokens.color.text,
+		textAlign: 'center',
+	},
+	ctaSub: {
+		fontSize: 18,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+	},
+});
