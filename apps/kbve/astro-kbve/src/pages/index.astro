@@ -57,6 +57,18 @@ const stats = [
 	{ value: '1', label: 'Monorepo' },
 	{ value: '∞', label: 'Side quests' },
 ];
+
+const techs = [
+	'Rust',
+	'Bevy',
+	'Astro',
+	'TypeScript',
+	'Unreal',
+	'Unity',
+	'Kubernetes',
+	'Supabase',
+	'ClickHouse',
+];
 ---
 
 <BaseLayout
@@ -89,6 +101,13 @@ const stats = [
 				</a>
 			</div>
 		</div>
+	</section>
+
+	<section data-tech>
+		<span data-tech-label>Powering every layer</span>
+		<ul data-tech-list>
+			{techs.map((t) => <li>{t}</li>)}
+		</ul>
 	</section>
 
 	<section data-section>
@@ -177,6 +196,35 @@ const stats = [
 		overflow: hidden;
 		padding: 7rem 1.5rem 6rem;
 		text-align: center;
+	}
+	[data-hero]::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image:
+			linear-gradient(
+				to right,
+				rgba(166, 125, 67, 0.08) 1px,
+				transparent 1px
+			),
+			linear-gradient(
+				to bottom,
+				rgba(166, 125, 67, 0.08) 1px,
+				transparent 1px
+			);
+		background-size: 3.5rem 3.5rem;
+		mask-image: radial-gradient(
+			ellipse 60% 70% at 50% 30%,
+			#000 30%,
+			transparent 75%
+		);
+		-webkit-mask-image: radial-gradient(
+			ellipse 60% 70% at 50% 30%,
+			#000 30%,
+			transparent 75%
+		);
+		pointer-events: none;
+		z-index: 0;
 	}
 	[data-hero-glow] {
 		position: absolute;
@@ -276,6 +324,48 @@ const stats = [
 		border-color: var(--color-gold);
 		color: var(--color-gold);
 		transform: translateY(-2px);
+	}
+
+	/* ── Tech strip ── */
+	[data-tech] {
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 1rem 1.5rem 2rem;
+		text-align: center;
+	}
+	[data-tech-label] {
+		display: block;
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: var(--color-parchment);
+		opacity: 0.5;
+		margin-bottom: 1rem;
+	}
+	[data-tech-list] {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.6rem 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	[data-tech-list] li {
+		font-family: var(--sl-font);
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: var(--color-parchment);
+		opacity: 0.55;
+		transition:
+			opacity 0.15s ease,
+			color 0.15s ease;
+	}
+	[data-tech-list] li:hover {
+		opacity: 1;
+		color: var(--color-gold);
 	}
 
 	/* ── Sections ── */
@@ -388,6 +478,7 @@ const stats = [
 
 	/* ── Project cards ── */
 	[data-project] {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		padding: 1.75rem;
@@ -395,15 +486,35 @@ const stats = [
 		background: var(--color-bg-raised);
 		border: 1px solid var(--color-gold-dark);
 		text-decoration: none;
+		overflow: hidden;
 		transition:
 			transform 0.18s ease,
 			border-color 0.18s ease,
 			box-shadow 0.18s ease;
 	}
+	[data-project]::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: 2px;
+		background: linear-gradient(90deg, var(--color-red), var(--color-gold));
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform 0.25s ease;
+	}
 	[data-project]:hover {
 		transform: translateY(-4px);
 		border-color: var(--color-gold);
 		box-shadow: 0 18px 40px -24px rgba(166, 125, 67, 0.6);
+	}
+	[data-project]:hover::before {
+		transform: scaleX(1);
+	}
+	[data-project-link] {
+		transition: transform 0.18s ease;
+	}
+	[data-project]:hover [data-project-link] {
+		transform: translateX(4px);
 	}
 	[data-project-tag] {
 		align-self: flex-start;

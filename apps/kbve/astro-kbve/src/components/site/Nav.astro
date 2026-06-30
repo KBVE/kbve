@@ -12,7 +12,7 @@ const links: Link[] = [
 ];
 ---
 
-<nav data-site-nav aria-label="Primary">
+<nav id="top" data-site-nav aria-label="Primary">
 	<div data-site-nav-inner>
 		<a data-site-brand href="/" aria-label="KBVE home">
 			<img
@@ -37,11 +37,16 @@ const links: Link[] = [
 
 <style>
 	[data-site-nav] {
+		position: sticky;
+		top: 0;
+		z-index: 50;
 		width: 100%;
 		min-height: 60px;
 		display: flex;
 		align-items: center;
-		background: var(--color-bg-raised);
+		background: color-mix(in srgb, var(--color-bg-raised) 82%, transparent);
+		backdrop-filter: blur(12px) saturate(1.2);
+		-webkit-backdrop-filter: blur(12px) saturate(1.2);
 		border-bottom: 1px solid var(--color-gold-dark);
 	}
 	[data-site-nav-inner] {
