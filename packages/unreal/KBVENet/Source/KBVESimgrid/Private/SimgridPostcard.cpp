@@ -28,7 +28,7 @@ void FPostcardWriter::VarU64(uint64 V)
 
 void FPostcardWriter::VarI32(int32 V)
 {
-	const uint32 ZZ = ((uint32)(V << 1)) ^ ((uint32)(V >> 31));
+	const uint32 ZZ = ((uint32)V << 1) ^ ((uint32)(V >> 31));
 	VarU32(ZZ);
 }
 
