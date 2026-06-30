@@ -85,10 +85,11 @@ void USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 	{
 		return;
 	}
+	++ClientTick;
 	FSimgridMove Tx = Move;
 	Tx.Seq = ++MoveSeq;
 	Tx.Tick = ClientTick;
-	const TArray<uint8> Frame = FProtoCodec::EncodeMoveFrame(++ClientTick, Tx);
+	const TArray<uint8> Frame = FProtoCodec::EncodeMoveFrame(ClientTick, Tx);
 	Ws->SendBinary(Frame);
 }
 
