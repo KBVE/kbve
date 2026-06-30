@@ -1,0 +1,96 @@
+---
+interface Link {
+	label: string;
+	href: string;
+}
+
+const links: Link[] = [
+	{ label: 'Docs', href: '/docs/' },
+	{ label: 'Project', href: '/project/' },
+	{ label: 'Gaming', href: '/gaming/' },
+	{ label: 'Blog', href: '/blog/' },
+];
+---
+
+<nav data-site-nav aria-label="Primary">
+	<div data-site-nav-inner>
+		<a data-site-brand href="/" aria-label="KBVE home">
+			<img
+				src="/assets/images/brand/letter_logo.webp"
+				alt="KBVE"
+				width="90"
+				height="30"
+				decoding="async"
+			/>
+		</a>
+		<ul data-site-nav-links>
+			{
+				links.map((link) => (
+					<li>
+						<a href={link.href}>{link.label}</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</nav>
+
+<style>
+	[data-site-nav] {
+		width: 100%;
+		min-height: 60px;
+		display: flex;
+		align-items: center;
+		background: var(--color-bg-raised);
+		border-bottom: 1px solid var(--color-gold-dark);
+	}
+	[data-site-nav-inner] {
+		width: 100%;
+		max-width: 1120px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.5rem 1.5rem;
+	}
+	[data-site-brand] {
+		display: inline-flex;
+		align-items: center;
+	}
+	[data-site-brand] img {
+		display: block;
+		height: 30px;
+		width: auto;
+	}
+	[data-site-nav-links] {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		flex-wrap: wrap;
+	}
+	[data-site-nav-links] a {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--color-parchment);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+	[data-site-nav-links] a:hover {
+		color: var(--color-gold);
+	}
+	@media (max-width: 30rem) {
+		[data-site-nav-inner] {
+			padding: 0.5rem 1rem;
+		}
+		[data-site-nav-links] {
+			gap: 1rem;
+		}
+		[data-site-brand] img {
+			height: 26px;
+		}
+	}
+</style>

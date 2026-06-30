@@ -1,0 +1,130 @@
+---
+const year = 2026;
+
+const groups = [
+	{
+		heading: 'Explore',
+		links: [
+			{ label: 'Docs', href: '/docs/' },
+			{ label: 'Project', href: '/project/' },
+			{ label: 'Gaming', href: '/gaming/' },
+			{ label: 'Blog', href: '/blog/' },
+		],
+	},
+	{
+		heading: 'Community',
+		links: [
+			{ label: 'Discord', href: '/discord/' },
+			{ label: 'GitHub', href: 'https://github.com/kbve/kbve' },
+		],
+	},
+	{
+		heading: 'Legal',
+		links: [{ label: 'Legal', href: '/legal/' }],
+	},
+];
+---
+
+<footer data-site-footer>
+	<div data-site-footer-inner>
+		<div data-site-footer-brand>
+			<img
+				data-site-footer-logo
+				src="/assets/images/brand/letter_logo.webp"
+				alt="KBVE"
+				width="105"
+				height="35"
+				decoding="async"
+			/>
+			<p>Open-source games, tools, and cloud infrastructure.</p>
+		</div>
+		<nav data-site-footer-cols aria-label="Footer">
+			{
+				groups.map((group) => (
+					<div>
+						<h2>{group.heading}</h2>
+						<ul>
+							{group.links.map((link) => (
+								<li>
+									<a href={link.href}>{link.label}</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+		</nav>
+	</div>
+	<div data-site-footer-base>
+		<span>© {year} KBVE</span>
+	</div>
+</footer>
+
+<style>
+	[data-site-footer] {
+		width: 100%;
+		background: var(--color-bg-sunken);
+		border-top: 1px solid var(--color-gold-dark);
+		color: var(--color-parchment);
+	}
+	[data-site-footer-inner] {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2rem;
+		justify-content: space-between;
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 2.5rem 1.5rem;
+	}
+	[data-site-footer-brand] {
+		max-width: 18rem;
+	}
+	[data-site-footer-logo] {
+		display: block;
+		height: 35px;
+		width: auto;
+	}
+	[data-site-footer-brand] p {
+		margin: 0.5rem 0 0;
+		font-size: 0.9rem;
+		line-height: 1.5;
+		opacity: 0.8;
+	}
+	[data-site-footer-cols] {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2.5rem;
+	}
+	[data-site-footer-cols] h2 {
+		margin: 0 0 0.6rem;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-gold-light);
+	}
+	[data-site-footer-cols] ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	[data-site-footer-cols] a {
+		font-size: 0.9rem;
+		color: var(--color-parchment);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+	[data-site-footer-cols] a:hover {
+		color: var(--color-gold);
+	}
+	[data-site-footer-base] {
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 1rem 1.5rem;
+		border-top: 1px solid var(--color-gold-dark);
+		font-size: 0.8rem;
+		opacity: 0.7;
+	}
+</style>

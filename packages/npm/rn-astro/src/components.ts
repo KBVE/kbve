@@ -17,6 +17,7 @@ export {
 	LoadingState,
 	ErrorState,
 	Footer,
+	NavBar,
 	useTheme,
 	tokens,
 } from '@kbve/rn/ui';
@@ -32,4 +33,9 @@ export type {
 	TextVariant,
 	TextTone,
 	ButtonVariant,
+	NavLink,
+	NavBarProps,
+	FooterLink,
+	FooterGroup,
+	FooterProps,
 } from '@kbve/rn/ui';
