@@ -12737,6 +12737,7 @@
                 "./components/social/github/Activity/AstroGithubActivity.astro": "./components/social/github/Activity/AstroGithubActivity.astro",
                 "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro": "./components/social/github/ProjectBoard/AstroGithubProjectBoard.astro",
                 "./components/social/github/Contribute/AstroGithubContribute.astro": "./components/social/github/Contribute/AstroGithubContribute.astro",
+                "./components/social/github/Readme/AstroGithubReadme.astro": "./components/social/github/Readme/AstroGithubReadme.astro",
                 "./components/utility/DeferredSection.astro": "./components/utility/DeferredSection.astro",
                 "./components/social/icons/SocialIcon.astro": "./components/social/icons/SocialIcon.astro",
                 "./components/social/comic/KBVEComicSocials.astro": "./components/social/comic/KBVEComicSocials.astro",
@@ -18115,12 +18116,12 @@
         },
         {
           "source": "astro-kbve",
-          "target": "rn",
+          "target": "rn-astro",
           "type": "static"
         },
         {
           "source": "astro-kbve",
-          "target": "rn-astro",
+          "target": "rn",
           "type": "static"
         }
       ],

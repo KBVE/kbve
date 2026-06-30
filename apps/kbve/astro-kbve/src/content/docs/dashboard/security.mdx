@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-29T09:47:45Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-30T09:18:32Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**31** critical/high severity findings across the monorepo.
+**30** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-06-29T09:47:45Z** — updated daily by `ci-dashboard`.
   <Card title="5 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="26 High" icon="error">
+  <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="48 Medium" icon="information">
@@ -41,10 +41,10 @@ Last generated: **2026-06-29T09:47:45Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **65** advisories
+    **64** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **51** advisories
+    **53** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-06-29T09:47:45Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 5
-    "High" : 26
+    "High" : 25
     "Medium" : 48
     "Low" : 8
 ```
@@ -73,8 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 65
-    "Cargo" : 51
+    "npm" : 64
+    "Cargo" : 53
     "CodeQL" : 3
 ```
 
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 26 | 29 | 8 | 65 |
-| **Cargo** | 0 | 0 | 19 | 0 | 51 |
+| **npm** | 2 | 25 | 29 | 8 | 64 |
+| **Cargo** | 0 | 0 | 19 | 0 | 53 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 0 | 0 | 3 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 26 | 48 | 8 | 119 |
+| **Total** | 5 | 25 | 48 | 8 | 120 |
 
   </TabItem>
   <TabItem label="npm">
@@ -112,7 +112,6 @@ pie showData
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
-| High | `tmp` | tmp: Type-confusion bypass of _assertPath allows path tra... | [Details](https://github.com/advisories/GHSA-7c78-jf6q-g5cm) |
 | High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
 | High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
@@ -131,7 +130,6 @@ pie showData
 | Medium | `qs` | qs's arrayLimit bypass in its bracket notation allows DoS... | [Details](https://github.com/advisories/GHSA-6rw7-vpxm-498p) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
-| Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
@@ -146,12 +144,13 @@ pie showData
 | Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
 | Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
 | Medium | `launch-editor` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
-| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
 | Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
 | Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
 | Medium | `http-proxy-middleware` | http-proxy-middleware `router` host+path substring matchi... | [Details](https://github.com/advisories/GHSA-64mm-vxmg-q3vj) |
 | Medium | `http-proxy-middleware` | http-proxy-middleware `router` host+path substring matchi... | [Details](https://github.com/advisories/GHSA-64mm-vxmg-q3vj) |
 | Medium | `undici` | undici vulnerable to cross-user information disclosure vi... | [Details](https://github.com/advisories/GHSA-pr7r-676h-xcf6) |
+| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
+| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `esbuild` | esbuild allows arbitrary file read when running the devel... | [Details](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr) |
@@ -204,11 +203,13 @@ pie showData
 | Info | `rustls-pemfile` | rustls-pemfile is unmaintained | [Details](https://github.com/rustls/pemfile/issues/61) |
 | Info | `rustls-pemfile` | rustls-pemfile is unmaintained | [Details](https://github.com/rustls/pemfile/issues/61) |
 | Info | `serde_cbor` | serde_cbor is unmaintained | [Details](https://github.com/pyfisch/cbor) |
+| Info | `ttf-parser` | `ttf-parser` is unmaintained | [Details](https://github.com/harfbuzz/ttf-parser/issues/217) |
 | Info | `unic-char-property` | `unic-char-property` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-char-range` | `unic-char-range` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
+| Info | `anyhow` | Unsoundness in `Error::downcast_mut()` | [Details](https://github.com/dtolnay/anyhow/issues/451) |
 | Info | `diesel` | Possible use after free when deserializing a SQLite datab... | [Details](https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `lru` | `IterMut` violates Stacked Borrows by invalidating intern... | [Details](https://github.com/jeromefroe/lru-rs/pull/224) |

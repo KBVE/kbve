@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-06-29T09:47:45Z",
+  "generated_at": "2026-06-30T09:18:32Z",
   "summary": {
     "critical": 5,
-    "high": 26,
+    "high": 25,
     "medium": 48,
     "low": 8,
-    "info": 32
+    "info": 34
   },
   "ecosystems": {
     "npm": {
-      "total": 65,
+      "total": 64,
       "severities": {
         "critical": 2,
-        "high": 26,
+        "high": 25,
         "medium": 29,
         "low": 8,
         "info": 0
@@ -152,13 +152,6 @@
           "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
         },
         {
-          "id": "1115541",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
           "id": "1115543",
           "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
           "severity": "medium",
@@ -292,13 +285,6 @@
           "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
         },
         {
-          "id": "1120729",
-          "title": "tmp: Type-confusion bypass of _assertPath allows path traversal via non-string prefix/postfix/template",
-          "severity": "high",
-          "package": "tmp",
-          "url": "https://github.com/advisories/GHSA-7c78-jf6q-g5cm"
-        },
-        {
           "id": "1120730",
           "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
           "severity": "high",
@@ -353,13 +339,6 @@
           "severity": "high",
           "package": "vite",
           "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
-        },
-        {
-          "id": "1120792",
-          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
-          "severity": "medium",
-          "package": "js-yaml",
-          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
         },
         {
           "id": "1120793",
@@ -472,17 +451,31 @@
           "severity": "medium",
           "package": "undici",
           "url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
+        },
+        {
+          "id": "1121859",
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "severity": "medium",
+          "package": "js-yaml",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+        },
+        {
+          "id": "1121860",
+          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "severity": "medium",
+          "package": "js-yaml",
+          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
         }
       ]
     },
     "cargo": {
-      "total": 51,
+      "total": 53,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 19,
         "low": 0,
-        "info": 32
+        "info": 34
       },
       "advisories": [
         {
@@ -752,6 +745,13 @@
           "url": "https://github.com/pyfisch/cbor"
         },
         {
+          "id": "RUSTSEC-2026-0192",
+          "title": "`ttf-parser` is unmaintained",
+          "severity": "info",
+          "package": "ttf-parser",
+          "url": "https://github.com/harfbuzz/ttf-parser/issues/217"
+        },
+        {
           "id": "RUSTSEC-2025-0081",
           "title": "`unic-char-property` is unmaintained",
           "severity": "info",
@@ -785,6 +785,13 @@
           "severity": "info",
           "package": "unic-ucd-version",
           "url": "https://github.com/rustsec/advisory-db/issues/2414"
+        },
+        {
+          "id": "RUSTSEC-2026-0190",
+          "title": "Unsoundness in `Error::downcast_mut()`",
+          "severity": "info",
+          "package": "anyhow",
+          "url": "https://github.com/dtolnay/anyhow/issues/451"
         },
         {
           "id": "RUSTSEC-2026-0172",
