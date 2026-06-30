@@ -171,7 +171,6 @@ bool FSimgridCobsRoundtripTest::RunTest(const FString& Parameters)
 	TArray<uint8> Payload = { 0x11, 0x00, 0x00, 0x22, 0x33 };
 	TArray<uint8> Encoded = FSimgridCobs::Encode(Payload);
 	TestEqual("delimiter terminated", Encoded.Last(), (uint8)0x00);
-	TestFalse("no interior zero before delimiter", Encoded.Num() > 1 && Encoded[Encoded.Num() - 2] == 0x00 && Payload.Last() != 0x00 ? false : false);
 
 	TArray<uint8> Decoded;
 	const bool bOk = FSimgridCobs::Decode(Encoded, Decoded);
