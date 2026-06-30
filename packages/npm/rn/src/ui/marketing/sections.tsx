@@ -133,6 +133,52 @@ export const FeatureCard = memo(function FeatureCard({
 	);
 });
 
+export const FeatureGrid = memo(function FeatureGrid({
+	title,
+	subtitle,
+	features,
+}: {
+	title?: string;
+	subtitle?: string;
+	features: FeatureCardProps[];
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{features.map((f) => (
+					<FeatureCard key={f.title} title={f.title} body={f.body} />
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ─────────────────────────── Section ───────────────────────── */
+
+export interface SectionProps {
+	title?: string;
+	subtitle?: string;
+	children?: ReactNode;
+}
+
+export const Section = memo(function Section({
+	title,
+	subtitle,
+	children,
+}: SectionProps) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			{children}
+		</View>
+	);
+});
+
 /* ───────────────────────── Stat strip ──────────────────────── */
 
 export interface StatItem {
@@ -197,6 +243,35 @@ export const ProjectCard = memo(function ProjectCard({
 				Learn more →
 			</Text>
 		</Pressable>
+	);
+});
+
+export const ProjectGrid = memo(function ProjectGrid({
+	title,
+	subtitle,
+	projects,
+	onNavigate,
+}: {
+	title?: string;
+	subtitle?: string;
+	projects: ProjectItem[];
+	onNavigate?: (href: string) => void;
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{projects.map((p) => (
+					<ProjectCard
+						key={p.name}
+						project={p}
+						onNavigate={onNavigate}
+					/>
+				))}
+			</View>
+		</View>
 	);
 });
 
@@ -285,6 +360,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		marginTop: tokens.space.sm,
 	},
+
+	section: {
+		width: '100%',
+		maxWidth: CONTENT_MAX,
+		alignSelf: 'center',
+		paddingHorizontal: tokens.space.lg,
+		paddingVertical: 80,
+	},
+	grid: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.space.lg },
 
 	headingWrap: {
 		alignItems: 'center',

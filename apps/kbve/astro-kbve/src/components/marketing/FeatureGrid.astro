@@ -1,0 +1,6 @@
+---
+import { FeatureGrid } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<FeatureGrid client:only="react" {...props} />

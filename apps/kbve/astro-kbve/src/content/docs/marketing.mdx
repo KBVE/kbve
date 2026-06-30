@@ -1,0 +1,63 @@
+---
+title: RN Marketing Components
+description: Marketing sections rendered from @kbve/rn-astro components as MDX islands.
+template: splash
+---
+
+import Hero from '@/components/marketing/Hero.astro';
+import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
+import StatStrip from '@/components/marketing/StatStrip.astro';
+import ProjectGrid from '@/components/marketing/ProjectGrid.astro';
+import Cta from '@/components/marketing/Cta.astro';
+
+<Hero
+	eyebrow="open-source collective"
+	lead="We build "
+	accent="games, tools, "
+	tail="and the cloud they run on."
+	subtitle="KBVE is a public monorepo of multiplayer games, engine plugins, Rust services, and the Kubernetes infrastructure that ships them — all out in the open."
+	actions={[
+		{ label: 'Explore the Docs', href: '/docs/' },
+		{ label: 'Star on GitHub', href: 'https://github.com/kbve/kbve', variant: 'outline', external: true },
+	]}
+/>
+
+<FeatureGrid
+	title="One stack, every layer"
+	subtitle="From pixels to pods — we own the whole pipeline."
+	features={[
+		{ title: 'Games', body: 'Multiplayer worlds, ARPGs, and isometric sims — shipped across web, desktop, and native engines.' },
+		{ title: 'Engines & Tools', body: 'Unreal & Unity plugins, Bevy/Rust crates, and a shared component kit that powers every project.' },
+		{ title: 'Cloud Infrastructure', body: 'Kubernetes, ArgoCD, ClickHouse, Supabase — production infra, all declarative, all in the open.' },
+		{ title: 'Open Source', body: 'One monorepo, thousands of docs pages, and every line of it public on GitHub.' },
+	]}
+/>
+
+<StatStrip
+	stats={[
+		{ value: '7.8k+', label: 'Docs pages' },
+		{ value: '100%', label: 'Open source' },
+		{ value: '1', label: 'Monorepo' },
+		{ value: '∞', label: 'Side quests' },
+	]}
+/>
+
+<ProjectGrid
+	title="Built in the open"
+	subtitle="A few of the worlds and systems we're shipping."
+	projects={[
+		{ name: 'CryptoThrone', tag: 'Isometric MMO', body: 'A seeded, server-authoritative isometric world with a real in-game economy.', href: '/gaming/' },
+		{ name: 'RareIcon', tag: 'Unity DOTS', body: 'A 2D sci-fi action-RPG bullet-hell roguelite built on Burst-compiled ECS.', href: '/gaming/' },
+		{ name: 'Kilobase', tag: 'Postgres Platform', body: 'Supabase-on-CNPG with migrations, auth, and vault — self-hosted and battle-tested.', href: '/docs/' },
+		{ name: 'Chuck', tag: 'Unreal Engine', body: 'An Unreal multiplayer RPG with a Rust-backed dedicated server stack.', href: '/gaming/' },
+	]}
+/>
+
+<Cta
+	title="Come build with us."
+	subtitle="Jump into the docs or hang out in the community."
+	actions={[
+		{ label: 'Read the Docs', href: '/docs/' },
+		{ label: 'Join the Discord', href: '/discord/', variant: 'outline' },
+	]}
+/>
