@@ -53,5 +53,5 @@ bool FSimgridCobs::Decode(const TArray<uint8>& In, TArray<uint8>& Out)
 			Out.Add(0);
 		}
 	}
-	return true;
+	return false;
 }

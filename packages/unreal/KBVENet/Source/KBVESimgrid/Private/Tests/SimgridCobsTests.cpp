@@ -25,4 +25,18 @@ bool FSimgridCobsRoundtripTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FSimgridCobsTruncatedTest,
+	"KBVE.Simgrid.Cobs.Truncated",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FSimgridCobsTruncatedTest::RunTest(const FString& Parameters)
+{
+	TArray<uint8> Truncated = { 0x03, 0x11, 0x22 };
+	TArray<uint8> Decoded;
+	const bool bOk = FSimgridCobs::Decode(Truncated, Decoded);
+	TestFalse("decode fails on unterminated frame", bOk);
+	return true;
+}
+
 #endif
