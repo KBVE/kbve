@@ -17,6 +17,11 @@
 			"Name": "KBVENet",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "KBVESimgrid",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	]
 }
