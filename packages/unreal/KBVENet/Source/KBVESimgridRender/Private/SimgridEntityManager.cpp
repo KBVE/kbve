@@ -137,6 +137,19 @@ void USimgridEntityManager::Tick(double NowMs)
 	}
 }
 
+bool USimgridEntityManager::WorldPosOf(uint32 Eid, FVector& OutPos) const
+{
+	if (const TObjectPtr<ASimgridEntityActor>* Found = Actors.Find(Eid))
+	{
+		if (const ASimgridEntityActor* Actor = Found->Get())
+		{
+			OutPos = Actor->GetActorLocation();
+			return true;
+		}
+	}
+	return false;
+}
+
 bool USimgridEntityManager::IsLocalWorldPos(FVector& OutPos) const
 {
 	OutPos = LocalWorldPos;
