@@ -373,6 +373,7 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
+		esbuild: { keepNames: true },
 		define: {
 			'process.env.JEST_WORKER_ID': 'undefined',
 			__DEV__: 'false',

@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => ({
 		}),
 		tailwindcss(),
 	],
+	esbuild: { keepNames: true },
 	base: '/',
 	resolve: {
 		// @kbve/rn source resolves react from the repo-root node_modules while the

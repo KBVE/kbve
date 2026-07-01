@@ -157,6 +157,9 @@ const itemdbSchemaAlias = {
 export default defineConfig(({ mode }) => {
 	const base = {
 		plugins: [stubLaserR3F(), react()],
+		// Keep function/class names through esbuild minification so telemetry
+		// stack traces show real frames (not `t.a.b`) even without a source map.
+		esbuild: { keepNames: true },
 		resolve: {
 			// dedupe bitecs: laser declares it an optional peer, so aliasing
 			// @kbve/laser to source otherwise lets vite resolve laser's `bitecs`
@@ -224,6 +227,7 @@ export default defineConfig(({ mode }) => {
 					: path.join(__dirname, 'dist'),
 				emptyOutDir: false,
 				minify: 'terser',
+				terserOptions: { keep_fnames: true, keep_classnames: true },
 				sourcemap: false,
 				target: 'es2020',
 				lib: {
