@@ -63,6 +63,15 @@ spec:
                                     secretKeyRef:
                                         name: supabase-shared
                                         key: SUPABASE_JWT_SECRET
+                              # Enables the jedi JWKS verifier (accept-both
+                              # HS256 + ES256). Without it the server falls back
+                              # to HS256-only and rejects ES256 tokens GoTrue
+                              # now issues.
+                              - name: SUPABASE_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_URL
                               # jedi PgCluster (pooled Postgres) + KvCache
                               # (Valkey). All optional so a GameServer still
                               # starts before the ExternalSecrets render; jedi
