@@ -1,7 +1,9 @@
 ---
 title: SQL
 description: |
-    SQL is the standard language for managing data in relational databases like MySQL and PostgreSQL, enabling robust and scalable operations.
+    SQL is the standard language for managing data in relational databases like MySQL, MariaDB, and PostgreSQL.
+    This guide covers the MySQL/MariaDB cheatsheet, PostgreSQL with PSQL and extensions, CloudNativePG (CNPG)
+    and Barman on Kubernetes, plus Supabase schemas and backups.
 sidebar:
     label: SQL
     order: 409
@@ -9,6 +11,28 @@ unsplash: 1567604713218-36a0f5841046
 img: https://images.unsplash.com/photo-1567604713218-36a0f5841046?fit=crop&w=1400&h=700&q=75
 tags:
     - database
+    - sql
+    - postgresql
+sem: 1
+ogTitle: SQL Guide — MySQL/MariaDB, PostgreSQL, CNPG & Supabase
+ogDescription: A practical SQL reference — MySQL and MariaDB command cheatsheet, PostgreSQL with PSQL and extensions, CloudNativePG and Barman on Kubernetes, and Supabase schemas and backups.
+jsonld:
+    type: Article
+    keywords:
+        - sql
+        - mysql
+        - postgresql
+        - cloudnativepg
+        - supabase
+    faq:
+        - question: What is the difference between SQL and MySQL?
+          answer: SQL is the standard query language for relational databases. MySQL is a specific database system that implements SQL. PostgreSQL, MariaDB, and SQLite are other systems that also speak SQL with their own extensions.
+        - question: What is the difference between MySQL and PostgreSQL?
+          answer: Both are open-source relational databases. MySQL is known for simplicity and read-heavy speed, while PostgreSQL offers richer SQL compliance, advanced types (JSONB, arrays), and extensions. PostgreSQL is often preferred for complex, write-heavy, or analytical workloads.
+        - question: What is CloudNativePG (CNPG)?
+          answer: CloudNativePG is a Kubernetes operator that runs PostgreSQL clusters as native resources. It handles provisioning, failover, rolling updates, and backups (often via Barman), managing high-availability Postgres declaratively inside a cluster.
+        - question: How do I reset a MySQL root password?
+          answer: Log into the MySQL shell and run ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'. On a fresh Ubuntu install that never prompted for a password, you may first need to authenticate through the auth_socket plugin.
 ---
 
 import {
@@ -27,6 +51,8 @@ import { Giscus, Adsense } from '@/components/astropad';
 SQL (Structured Query Language) is the standard programming language used for managing relational databases and performing various operations on the data they contain.
 The SQL ecosystem includes a wide array of database systems such as MySQL and PostgreSQL, which are known for their robustness, scalability, and support for complex queries.
 These systems are integral to many applications, providing transactional support, ACID compliance, and advanced data management capabilities to ensure data integrity and performance across numerous industries.
+
+This page collects working references across engines: the [MySQL/MariaDB cheatsheet](#cheatsheet), [PostgreSQL](#postgresql) with PSQL and extensions, [CloudNativePG](#cnpg) and [Barman](#barman) for Postgres on Kubernetes, and [Supabase schemas](#supabase-schemas) and [backups](#backup).
 
 ---
 
@@ -395,3 +421,21 @@ More information on [AWX](/application/ansible/#awx) and [Docker](/application/d
 -   #### What to do if you've never used this foreign and vaguely antiquated technology before and you wish you had a time machine that would let you go back in time so you could sit with the pioneers of this dying technology and learn from them what drugs they were smoking when they decided on the syntax?
 
     -   [Well here's a cool link](https://devhints.io/mysql) that will help in your journey to understand the aforementioned topics.
+
+---
+
+## FAQ
+
+**What is the difference between SQL and MySQL?**
+SQL is the standard query language for relational databases. MySQL is a specific database system that implements SQL. PostgreSQL, MariaDB, and SQLite are other systems that also speak SQL with their own extensions.
+
+**What is the difference between MySQL and PostgreSQL?**
+Both are open-source relational databases. MySQL is known for simplicity and read-heavy speed, while PostgreSQL offers richer SQL compliance, advanced types (JSONB, arrays), and extensions. PostgreSQL is often preferred for complex, write-heavy, or analytical workloads.
+
+**What is CloudNativePG (CNPG)?**
+CloudNativePG is a Kubernetes operator that runs PostgreSQL clusters as native resources. It handles provisioning, failover, rolling updates, and backups (often via Barman), managing high-availability Postgres declaratively inside a cluster.
+
+**How do I reset a MySQL root password?**
+Log into the MySQL shell and run `ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'`. On a fresh Ubuntu install that never prompted for a password, you may first need to authenticate through the `auth_socket` plugin.
+
+<Adsense />

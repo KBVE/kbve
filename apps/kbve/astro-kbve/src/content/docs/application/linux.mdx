@@ -12,6 +12,28 @@ unsplash: 1695820716792-bb317bc02822
 img: https://images.unsplash.com/photo-1695820716792-bb317bc02822?fit=crop&w=1400&h=700&q=75
 tags:
     - os
+    - linux
+    - sysadmin
+sem: 1
+ogTitle: Linux Guide — LVM Storage, ZSH Setup & Essential Commands
+ogDescription: Practical Linux administration — extend storage with LVM, set up ZSH with Oh My Zsh and Powerlevel10k, and reference the essential command-line toolkit for servers and desktops.
+jsonld:
+    type: Article
+    keywords:
+        - linux
+        - lvm
+        - zsh
+        - command line
+        - system administration
+    faq:
+        - question: How do I extend a disk partition on Linux with LVM?
+          answer: Grow the partition with growpart, update the physical volume with pvresize, extend the logical volume using lvextend -l +100%FREE, then resize the filesystem with resize2fs (EXT4) or xfs_growfs (XFS). Verify with df -h.
+        - question: What is LVM in Linux?
+          answer: Logical Volume Management is a storage abstraction layer that lets you resize, extend, or move volumes without repartitioning. It is especially useful in virtualized environments like Proxmox where disk size can grow dynamically.
+        - question: How do I change my default shell to ZSH?
+          answer: Install ZSH with your package manager, then run chsh -s $(which zsh) and log out and back in. Many users add Oh My Zsh and a theme like Powerlevel10k for autocompletion, history, and prompt customization.
+        - question: What is the difference between ext4 and XFS when resizing?
+          answer: Both are Linux filesystems, but they grow with different tools. Use resize2fs to expand an ext4 filesystem and xfs_growfs to expand XFS. XFS can only grow, never shrink, so plan capacity accordingly.
 ---
 
 import {
@@ -32,7 +54,30 @@ From the servers that power your favorite websites to the Kubernetes clusters or
 Its open-source roots have created a culture of collaboration and curiosity, where anyone can peek under the hood, make changes, and share improvements with the world.
 Whether you're deploying containers, managing infrastructure, or just exploring the command line, understanding Linux means understanding the language of modern computing.
 
+This page focuses on two everyday sysadmin skills — extending storage with [LVM](#lvm) and setting up a productive [ZSH](#zsh) shell — plus an [essential command reference](#essential-commands) for navigating any Linux system.
+
 <Adsense />
+
+## Essential Commands
+
+A quick reference for the commands you reach for constantly on any Linux box:
+
+| Command | Purpose |
+| ------- | ------- |
+| `ls -lah` | List files with sizes, permissions, and hidden entries |
+| `cd` / `pwd` | Change directory / print working directory |
+| `cp` / `mv` / `rm` | Copy, move, remove files |
+| `chmod` / `chown` | Change file permissions / ownership |
+| `sudo` | Run a command as root |
+| `ps aux` / `top` | List / monitor running processes |
+| `systemctl status <svc>` | Inspect a systemd service |
+| `journalctl -u <svc> -f` | Follow a service's logs |
+| `df -h` / `du -sh *` | Disk free / directory sizes |
+| `grep -r "text" .` | Recursively search file contents |
+
+<Aside type="tip">
+Permissions are the most common source of "it works for root but not the app" bugs. `ls -l` shows the owner and mode; fix access with `chown user:group file` and `chmod` rather than running everything as root.
+</Aside>
 
 ## LVM
 
@@ -225,3 +270,21 @@ If you're using VS Code's integrated terminal or Windows Terminal, make sure you
 -   [Oh My Zsh Official Page](https://ohmyz.sh/)
 -   [Powerlevel10K Repository](https://github.com/romkatv/powerlevel10k)
 -   [One of the Best Tutorials by dev.to (Dec 2020)](https://dev.to/abdfnx/oh-my-zsh-powerlevel10k-cool-terminal-1no0)
+
+---
+
+## FAQ
+
+**How do I extend a disk partition on Linux with LVM?**
+Grow the partition with `growpart`, update the physical volume with `pvresize`, extend the logical volume using `lvextend -l +100%FREE`, then resize the filesystem with `resize2fs` (EXT4) or `xfs_growfs` (XFS). Verify with `df -h`.
+
+**What is LVM in Linux?**
+Logical Volume Management is a storage abstraction layer that lets you resize, extend, or move volumes without repartitioning. It is especially useful in virtualized environments like [Proxmox](/application/proxmox/) where disk size can grow dynamically.
+
+**How do I change my default shell to ZSH?**
+Install ZSH with your package manager, then run `chsh -s $(which zsh)` and log out and back in. Many users add Oh My Zsh and a theme like Powerlevel10k for autocompletion, history, and prompt customization.
+
+**What is the difference between ext4 and XFS when resizing?**
+Both are Linux filesystems, but they grow with different tools. Use `resize2fs` to expand an ext4 filesystem and `xfs_growfs` to expand XFS. XFS can only grow, never shrink, so plan capacity accordingly.
+
+<Adsense />

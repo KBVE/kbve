@@ -1,14 +1,38 @@
 ---
 title: Proxmox
 description: |
-    A complete open source software platform for virtualization management.
+    Proxmox VE is an open-source virtualization platform built on Debian that runs KVM virtual machines and LXC
+    containers with a web UI, CLI, and REST API. This guide covers the qm and pct command cheatsheet, container
+    networking with netplan, Windows VM setup with VirtIO drivers, and theming.
 sidebar:
     label: Proxmox
     order: 110
 unsplash: 1558494949-ef010cbdcc31
 img: https://images.unsplash.com/photo-1558494949-ef010cbdcc31?fit=crop&w=1400&h=700&q=75
 tags:
-    - technology
+    - virtualization
+    - homelab
+    - linux
+sem: 1
+ogTitle: Proxmox VE Guide — qm & pct CLI, Networking & Windows VMs
+ogDescription: Manage Proxmox VE virtual machines and containers — the qm and pct command cheatsheet, container networking with netplan, Windows KVM setup with VirtIO drivers, and dark-mode theming.
+jsonld:
+    type: Article
+    keywords:
+        - proxmox
+        - kvm
+        - lxc
+        - virtualization
+        - homelab
+    faq:
+        - question: What is Proxmox VE?
+          answer: Proxmox Virtual Environment is an open-source server virtualization platform based on Debian Linux. It runs KVM/QEMU virtual machines and LXC containers under one web interface, with clustering, high availability, Ceph storage, and backups built in.
+        - question: What is the difference between qm and pct in Proxmox?
+          answer: qm manages KVM/QEMU virtual machines (full hardware virtualization), while pct manages LXC containers (lightweight OS-level virtualization). For example qm start <id> boots a VM and pct start <id> starts a container.
+        - question: What port is the Proxmox web interface on?
+          answer: The Proxmox web panel listens on port 8006 over HTTPS, and the PVEDaemon uses port 85. You log in with PAM or Proxmox PVE authentication. Confirm the open ports with nmap 127.0.0.1 -p- or netstat.
+        - question: How do I install VirtIO drivers on a Windows VM in Proxmox?
+          answer: Download the VirtIO ISO into /var/lib/vz/template/iso with wget, attach it to the Windows KVM as a second CD drive, reboot, and run the installer from the ISO so Windows recognizes the paravirtualized disk and network devices.
 ---
 
 import {
@@ -31,6 +55,8 @@ Proxmox offers a web interface for easy administration, as well as command-line 
 The objective of this software is provide a base-line to build your own paradigm style hybrid cloud through HA (High Avalibity), CEPH and load balancing built-in.
 
 > Hint: Utilize the PAM/PVE settings within Proxmox to secure and abstract the system authentication.
+
+This page is a working reference: the [command cheatsheet](#cheatsheet) for `qm` (VMs) and `pct` (containers), [container networking](#network) with netplan, [Windows VM setup](#windows) including VirtIO drivers, and [theming](#style).
 
 <Adsense />
 
@@ -237,3 +263,21 @@ Dock Swarm
 #In case you aren't in the know like cool guy Jones, Rick Deckard is from Bladerunner and he hunts stray replicants, the premise here don't let replicants go stray.
 ### 4.d. Creating Reverse Proxies for your Nodes
 ```
+
+---
+
+## FAQ
+
+**What is Proxmox VE?**
+Proxmox Virtual Environment is an open-source server virtualization platform based on Debian Linux. It runs KVM/QEMU virtual machines and LXC containers under one web interface, with clustering, high availability, Ceph storage, and backups built in.
+
+**What is the difference between `qm` and `pct` in Proxmox?**
+`qm` manages KVM/QEMU virtual machines (full hardware virtualization), while `pct` manages LXC containers (lightweight OS-level virtualization). For example `qm start <id>` boots a VM and `pct start <id>` starts a container.
+
+**What port is the Proxmox web interface on?**
+The Proxmox web panel listens on port `8006` over HTTPS, and the PVEDaemon uses port `85`. You log in with PAM or Proxmox PVE authentication. Confirm the open ports with `nmap 127.0.0.1 -p-` or `netstat`.
+
+**How do I install VirtIO drivers on a Windows VM in Proxmox?**
+Download the VirtIO ISO into `/var/lib/vz/template/iso` with `wget`, attach it to the Windows KVM as a second CD drive, reboot, and run the installer from the ISO so Windows recognizes the paravirtualized disk and network devices.
+
+<Adsense />
