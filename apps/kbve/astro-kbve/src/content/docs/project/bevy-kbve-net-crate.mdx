@@ -1,13 +1,15 @@
 ---
-title: uevy kuve net
-description: |
-    uevy kuve net — Bevy game crate for the KBVE isometric engine.
+title: "bevy_kbve_net — Shared Lightyear Multiplayer Protocol Crate"
+description: bevy_kbve_net is a Bevy 0.18 + lightyear 0.26 networking crate defining KBVE's shared multiplayer protocol — replicated components, inputs, and channels.
+sem: 1
 sidebar:
-    label: uevy kuve net
+    label: bevy_kbve_net
 tags:
     - crates
     - rust
     - bevy
+    - networking
+    - multiplayer
 key: bevy_kbve_net_crate
 pipeline: crates
 package_name: bevy_kbve_net
@@ -19,8 +21,68 @@ version_toml: packages/rust/bevy/bevy_kbve_net/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_kbve_net crate do?
+          answer: It defines KBVE's shared lightyear multiplayer protocol for Bevy 0.18 — the replicated components, player inputs, message types, and channels used by both the client and the server so both halves speak the same wire format.
+        - question: Which networking backend does bevy_kbve_net use?
+          answer: It builds on lightyear 0.26 with replication, prediction, interpolation, native input, and netcode. The optional client feature adds WebSocket, WebTransport, and UDP transports, including a wasm32 WebSocket path for browser builds.
+        - question: What optional features does the crate expose?
+          answer: The npcdb feature pulls creature types from bevy_npc, the creatures feature adds capture and sync systems via bevy_tasker and dashmap, and the client feature enables transport selection and connection lifecycle for the client half.
 ---
 
 ## Overview
 
-uevy kuve net Bevy crate.
+`bevy_kbve_net` is the shared networking crate for KBVE's [Bevy](https://bevyengine.org/)
+multiplayer games. It defines the **lightyear protocol** — replicated components,
+player input types, message payloads, and channels — that both the client and the
+server compile against, so both halves agree on the wire format. It targets Bevy
+0.18 and lightyear 0.26.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `bevy_kbve_net` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (Bevy 0.18, lightyear 0.26) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_kbve_net`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_kbve_net) |
+| **Categories** | game-development, network-programming |
+
+## Features
+
+- **Shared protocol plugin** — `ProtocolPlugin` registers the replicated
+  components, inputs, messages, and channels once for both sides.
+- **Rich message surface** — position and vitals sync, inventory and equipment
+  updates, crafting requests/results, creature capture and state events, skill XP
+  grants, and username set flows.
+- **lightyear backend** — replication, prediction, interpolation, native input,
+  and netcode; the `client` feature adds WebSocket, WebTransport, and UDP
+  transports (plus a wasm32 WebSocket path for browser builds).
+- **Optional feature set** — `npcdb` pulls creature types from `bevy_npc`,
+  `creatures` adds capture/sync systems via `bevy_tasker` and `dashmap`.
+- **Worldgen helpers** — deterministic tile hashing and loot rolls
+  (`hash2d`, `object_at_tile`, `roll_loot_at`) shared across client and server.
+
+## FAQ
+
+**What does the bevy_kbve_net crate do?**
+It defines KBVE's shared lightyear multiplayer protocol for Bevy 0.18 — the
+replicated components, player inputs, message types, and channels used by both the
+client and the server so both halves speak the same wire format.
+
+**Which networking backend does bevy_kbve_net use?**
+It builds on lightyear 0.26 with replication, prediction, interpolation, native
+input, and netcode. The optional `client` feature adds WebSocket, WebTransport, and
+UDP transports, including a wasm32 WebSocket path for browser builds.
+
+**What optional features does the crate expose?**
+The `npcdb` feature pulls creature types from `bevy_npc`, the `creatures` feature
+adds capture and sync systems via `bevy_tasker` and `dashmap`, and the `client`
+feature enables transport selection and connection lifecycle for the client half.
+
+## Related
+
+- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — the isometric camera crate for the same KBVE Bevy engine.
+- [Bevy NPC Crate](/docs/project/bevy-npc-crate) — creature source behind the `npcdb` feature.

@@ -1,13 +1,15 @@
 ---
-title: uevy cam
-description: |
-    uevy cam — Bevy game crate for the KBVE isometric engine.
+title: Bevy Cam — Isometric Camera Crate
+description: Bevy isometric camera crate with pixel snapping, multiplicative zoom, and a two-stage render-to-texture pipeline for crisp pixel-art rendering.
+sem: 1
 sidebar:
-    label: uevy cam
+    label: Bevy Cam
 tags:
     - crates
     - rust
     - bevy
+    - camera
+    - gamedev
 key: bevy_cam_crate
 pipeline: crates
 package_name: bevy_cam
@@ -19,8 +21,83 @@ version_toml: packages/rust/bevy/bevy_cam/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_cam crate do?
+          answer: It provides an isometric camera plugin for Bevy 0.18 that renders the 3D scene to a low-resolution texture at a fixed pixel density, then upscales it with nearest-neighbor sampling for crisp pixel-art output.
+        - question: How does the camera follow a target?
+          answer: Attach the CameraFollowTarget component to any entity. The scene camera tracks it and snaps to the pixel grid on all three camera-space axes to eliminate sub-pixel jitter.
+        - question: Is scroll-wheel zoom supported?
+          answer: Yes, behind the optional "zoom" feature flag. Zoom is multiplicative — each notch scales by a fixed percentage and interpolates smoothly toward the target — and is off by default to avoid wasted system dispatch on fixed-camera games.
 ---
 
 ## Overview
 
-uevy cam Bevy crate.
+`bevy_cam` is an isometric camera plugin for [Bevy](https://bevyengine.org/) 0.18,
+built for the KBVE isometric engine. It renders the 3D world through a
+**two-stage render-to-texture pipeline** so pixel art stays crisp at any window
+size, follows a target entity with **pixel-grid snapping**, and offers optional
+**multiplicative scroll-wheel zoom**.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `bevy_cam` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (Bevy 0.18) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_cam`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_cam) |
+| **Categories** | game-development, rendering |
+
+## Features
+
+- **Two-stage pixel pipeline** — a scene camera renders the 3D world to a
+  low-resolution texture at `pixel_density` pixels per world unit
+  (nearest-neighbor), and a display camera upscales it to the window via a
+  fullscreen sprite, avoiding a full 3D material pass.
+- **Pixel-snapped follow** — the scene camera tracks entities marked
+  `CameraFollowTarget`, snapping on all three camera-space axes to kill
+  sub-pixel jitter.
+- **Multiplicative zoom** *(optional `zoom` feature)* — uniform-feeling zoom
+  that scales by a fixed percentage per notch and interpolates smoothly.
+- **Display-camera hooks** — the display camera carries a `DisplayCamera`
+  marker so games can attach post-processing after startup.
+
+## Usage
+
+```rust
+use bevy_cam::{IsometricCameraPlugin, CameraConfig, CameraFollowTarget};
+
+app.add_plugins(IsometricCameraPlugin::new(CameraConfig {
+    offset: Vec3::new(15.0, 20.0, 15.0),
+    viewport_height: 20.0,
+    pixel_density: 32,
+    ..default()
+}));
+
+// Attach CameraFollowTarget to whatever entity the camera should track:
+commands.spawn((Transform::default(), CameraFollowTarget));
+```
+
+## FAQ
+
+**What does the bevy_cam crate do?**
+It provides an isometric camera plugin for Bevy 0.18 that renders the 3D scene
+to a low-resolution texture at a fixed pixel density, then upscales it with
+nearest-neighbor sampling for crisp pixel-art output.
+
+**How does the camera follow a target?**
+Attach the `CameraFollowTarget` component to any entity. The scene camera tracks
+it and snaps to the pixel grid on all three camera-space axes to eliminate
+sub-pixel jitter.
+
+**Is scroll-wheel zoom supported?**
+Yes, behind the optional `zoom` feature flag. Zoom is multiplicative — each
+notch scales by a fixed percentage and interpolates smoothly toward the target —
+and is off by default to avoid wasted system dispatch on fixed-camera games.
+
+## Related
+
+- [Bevy Player Crate](/docs/project/bevy-player-crate) — player controller that pairs with the camera follow target.
+- [Isometric](/docs/project/isometric) — the KBVE isometric engine this camera powers.

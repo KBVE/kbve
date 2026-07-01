@@ -1,7 +1,7 @@
 ---
-title: KBVENet
-description: |
-    Shared Iris-ready networking layer for KBVE games — a delta-compressed entity-snapshot replicator for streaming server-authoritative sims to clients.
+title: "KBVENet — Iris-Ready Entity Replication Plugin for Unreal 5"
+description: KBVENet is a shared Unreal Engine 5 networking plugin — a delta-compressed entity-snapshot replicator streaming server-authoritative Mass ECS sims to clients.
+sem: 1
 sidebar:
     label: KBVENet
     order: 91
@@ -24,11 +24,31 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does the KBVENet plugin do?
+          answer: KBVENet is a shared Unreal Engine 5 networking layer that streams a server-authoritative simulation, such as a Mass ECS swarm, to clients using a delta-compressed entity-snapshot replicator so clients render the sim locally.
+        - question: How does KBVENet replicate entities?
+          answer: UKBVENetEntityReplicator holds a delta-compressed FFastArraySerializer of lean per-entity snapshots — Id, quantized Location, packed yaw, animation Frame, and a StateByte. FastArrays ride Iris when the ReplicationSystem is on and the classic NetDriver otherwise, so consumers write no Iris-specific code.
+        - question: How do you enable Iris replication with KBVENet?
+          answer: Per game, set bUseIris = true in each Target.cs and add Net.Iris.UseIrisReplication=1 under the ConsoleVariables section of Config/DefaultEngine.ini. KBVENet supplies the replication primitives; turning Iris on stays a per-target configuration choice.
 ---
 
 ## Overview
 
 `KBVENet` is the shared networking layer for KBVE games. It provides Iris-ready replication primitives for streaming a server-authoritative simulation (Mass ECS swarms, etc.) to clients that render it locally.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVENet` |
+| **Version** | 0.1.0 |
+| **Engine** | Unreal Engine 5.7+ |
+| **License** | KBVE |
+| **Platforms** | Win64, Linux, Mac |
+| **Depends on** | KBVESupabase, KBVEWorld, KBVEGameplay |
+| **Source** | [`packages/unreal/KBVENet`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVENet) |
 
 ## Entity-snapshot replicator
 
@@ -54,3 +74,27 @@ Per game: `bUseIris = true;` in each `*.Target.cs`, and `Net.Iris.UseIrisReplica
 - Push-model dirty tracking on the replicated array.
 - Per-entity Iris NetObjects (replacing the single-actor FastArray) for very large swarms.
 - Relevancy / spatial culling so clients only receive nearby entities.
+
+## FAQ
+
+**What does the KBVENet plugin do?**
+KBVENet is a shared Unreal Engine 5 networking layer that streams a
+server-authoritative simulation, such as a Mass ECS swarm, to clients using a
+delta-compressed entity-snapshot replicator so clients render the sim locally.
+
+**How does KBVENet replicate entities?**
+`UKBVENetEntityReplicator` holds a delta-compressed `FFastArraySerializer` of lean
+per-entity snapshots — `Id`, quantized `Location`, packed yaw, animation `Frame`,
+and a `StateByte`. FastArrays ride Iris when the ReplicationSystem is on and the
+classic NetDriver otherwise, so consumers write no Iris-specific code.
+
+**How do you enable Iris replication with KBVENet?**
+Per game, set `bUseIris = true;` in each `*.Target.cs` and add
+`Net.Iris.UseIrisReplication=1` under `[ConsoleVariables]` in
+`Config/DefaultEngine.ini`. KBVENet supplies the replication primitives; turning
+Iris on stays a per-target configuration choice.
+
+## Related
+
+- [KBVEULID](/docs/project/kbveulid) — ULID generator that supplies stable IDs for replicated events.
+- [Unreal RentEarth](/docs/project/unreal-rentearth) — a KBVE UE5 game client that consumes shared plugins like KBVENet.

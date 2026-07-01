@@ -1,7 +1,7 @@
 ---
-title: KBVE Kubectl
-description: |
-    Alpine + musl kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management.
+title: KBVE Kubectl — Alpine musl kubectl Image with Rust CLI
+description: Alpine + musl kubectl container image with Rust CLI extensions for KubeVirt VM lifecycle management and Agones GameServer rotation.
+sem: 1
 sidebar:
     label: Kubectl
     order: 55
@@ -11,6 +11,14 @@ tags:
     - kubernetes
     - kubevirt
 key: kubectl
+jsonld:
+    faq:
+        - question: What is the KBVE kubectl image?
+          answer: It is an Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM management. It replaces the distroless registry.k8s.io/kubectl image, which lacks /bin/sh and breaks Kubernetes Job scripts.
+        - question: What can the kbve-kubectl CLI do?
+          answer: The Rust CLI offers info to print versions and check tools, run to execute shell scripts, guest-exec to run commands inside a KubeVirt VM via the QEMU Guest Agent, and rotate-gameserver to roll an Agones GameServer when its desired image drifts from the running pod.
+        - question: How is the kubectl image kept in sync across manifests?
+          answer: The image tag is pinned across every manifest listed in the deployment_yamls frontmatter field, and all of them auto-bump on each publish via the post-publish version sync.
 pipeline: docker
 app_name: kbve-kubectl
 version: "0.1.5"
@@ -114,3 +122,25 @@ containers:
           - --container=factorio
           - --delete-timeout=180
 ```
+
+## FAQ
+
+**What is the KBVE kubectl image?**
+It is an Alpine-based kubectl image with a static musl Rust CLI wrapper for
+KubeVirt VM management. It replaces the distroless `registry.k8s.io/kubectl`
+image, which lacks `/bin/sh` and breaks Kubernetes Job scripts.
+
+**What can the kbve-kubectl CLI do?**
+The Rust CLI offers `info` to print versions and check tools, `run` to execute
+shell scripts, `guest-exec` to run commands inside a KubeVirt VM via the QEMU
+Guest Agent, and `rotate-gameserver` to roll an Agones GameServer when its
+desired image drifts from the running pod.
+
+**How is the kubectl image kept in sync across manifests?**
+The image tag is pinned across every manifest listed in the `deployment_yamls`
+frontmatter field, and all of them auto-bump on each publish via the
+post-publish version sync.
+
+## Related
+
+- [Aria2 Proxy](/docs/project/aria2-proxy) — download-proxy image used alongside kubectl in KubeVirt provisioning.

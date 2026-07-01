@@ -1,7 +1,7 @@
 ---
-title: Unity RareIcon
-description: |
-    RareIcon Unity client — DOTS hex world, Burst-driven sim, ships to itch.io as Win/Linux/macOS standalone and to Steam (AppID 2238370) as a demo.
+title: Unity RareIcon — DOTS Hex-World Game Client
+description: RareIcon is a Unity DOTS hex-world game client with a Burst-driven simulation, shipping to itch.io as Win/Linux/macOS standalone and to Steam as a demo.
+sem: 1
 sidebar:
     label: Unity RareIcon
     order: 96
@@ -20,6 +20,14 @@ author: h0lybyte
 license: KBVE
 status: beta
 homepage_url: https://kbve.itch.io/rareicon
+jsonld:
+    faq:
+        - question: What is Unity RareIcon?
+          answer: RareIcon is a KBVE game client built in Unity using the DOTS ECS. It runs a Burst-driven hex-world simulation covering hex tiles, items, logistics, buildings, units, combat, professions, and quests.
+        - question: Where does RareIcon ship?
+          answer: RareIcon ships to itch.io as a Windows, Linux, and macOS standalone build, and to Steam, where it has a demo app (AppID 3791950) and a main app (AppID 2238370).
+        - question: How is RareIcon built in CI?
+          answer: It uses the unity pipeline; ci-main.yml dispatches to ci-unity.yml whenever the MDX version outpaces version.toml. The engine build targets are StandaloneLinux64, StandaloneWindows64, StandaloneOSX, Android, and iOS.
 engine:
     version: "6000.3.10f1"
     project_path: apps/rareicon/unity-rareicon
@@ -95,3 +103,24 @@ The same `ci-unity.yml` run can target either route — the workflow reads `exte
 ## Trigger
 
 Tag-driven via the standard manifest dispatch. Bump `version` here, run `npx nx run astro-kbve:sync:ci-manifest`, commit, the next push fans `ci-main.yml` → `ci-unity.yml` for this entry.
+
+## FAQ
+
+**What is Unity RareIcon?**
+RareIcon is a KBVE game client built in Unity using the DOTS ECS. It runs a
+Burst-driven hex-world simulation covering hex tiles, items, logistics, buildings,
+units, combat, professions, and quests.
+
+**Where does RareIcon ship?**
+RareIcon ships to itch.io as a Windows, Linux, and macOS standalone build, and to
+Steam, where it has a demo app (AppID 3791950) and a main app (AppID 2238370).
+
+**How is RareIcon built in CI?**
+It uses the `unity` pipeline; `ci-main.yml` dispatches to `ci-unity.yml` whenever
+the MDX `version` outpaces `version.toml`. The engine build targets are
+StandaloneLinux64, StandaloneWindows64, StandaloneOSX, Android, and iOS.
+
+## Related
+
+- [CryptoThrone.com](/docs/project/cryptothrone) — another KBVE game client.
+- [Metrics](/docs/project/metrics) — observability pipeline that ingests telemetry from Unity clients.

@@ -1,7 +1,7 @@
 ---
-title: Minecraft Lobby
-description: |
-    PaperMC 1.21.11 lobby server — the default landing target and fallback for the KBVE MC Velocity proxy. Superflat peaceful world with minimal plugin set.
+title: Minecraft Lobby — PaperMC Landing and Fallback Server
+description: PaperMC 1.21.11 lobby server — default landing target and fallback for the KBVE MC Velocity proxy, running a superflat peaceful world with minimal plugins.
+sem: 1
 sidebar:
     label: MC Lobby
     order: 451
@@ -27,6 +27,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is the MC Lobby server?
+          answer: It is a PaperMC 1.21.11 lobby server in the KBVE Minecraft stack. It is the first server new players land on and the fallback when the Fabric survival backend disconnects, so players are moved here instead of being kicked until Fabric returns.
+        - question: What kind of world does the lobby run?
+          answer: A vanilla superflat preset (bedrock plus two dirt and grass, plains biome, no structures, no mob spawning) with DIFFICULTY=peaceful for zero combat. The Nether and End are disabled, keeping all activity on the overworld.
+        - question: How does the lobby integrate with the Velocity proxy?
+          answer: The Velocity proxy lists the lobby as its default try target and uses failover-on-unexpected-server-disconnect, so players disconnected from the mc backend are automatically routed back to the lobby rather than kicked to the disconnect screen.
 ---
 
 ## Overview
@@ -71,7 +79,26 @@ try = ["lobby", "mc"]
 
 Combined with `failover-on-unexpected-server-disconnect = true` in the Velocity advanced section, this means players on `mc` who get disconnected (fleet restart, pod recycle, Fabric crash) are automatically sent back to the lobby instead of getting kicked to their client disconnect screen.
 
-### Related
+## FAQ
+
+**What is the MC Lobby server?**
+It is a PaperMC 1.21.11 lobby server in the KBVE Minecraft stack. It is the first
+server new players land on and the fallback when the Fabric survival backend
+disconnects, so players are moved here instead of being kicked until Fabric
+returns.
+
+**What kind of world does the lobby run?**
+A vanilla superflat preset (bedrock plus two dirt and grass, plains biome, no
+structures, no mob spawning) with `DIFFICULTY=peaceful` for zero combat. The
+Nether and End are disabled, keeping all activity on the overworld.
+
+**How does the lobby integrate with the Velocity proxy?**
+The Velocity proxy lists the lobby as its default `try` target and uses
+`failover-on-unexpected-server-disconnect`, so players disconnected from the `mc`
+backend are automatically routed back to the lobby rather than kicked to the
+disconnect screen.
+
+## Related
 
 - [mc (Fabric survival backend)](/project/mc/)
 - [mc-velocity (custom Velocity proxy + command plugin)](/project/mc-velocity/)

@@ -1,7 +1,7 @@
 ---
-title: ARC Runner
-description: |
-    Custom GitHub Actions Runner image for the arc-runner-set scale set. Bakes git-lfs, unzip, zip, jq, xz, and the GitHub CLI into the upstream actions/runner base so workflows stop installing them at job runtime.
+title: ARC Runner — Custom GitHub Actions Runner Image
+description: Custom GitHub Actions Runner image for the arc-runner-set scale set, baking git-lfs, unzip, jq, gh, kubectl, and dbmate into the actions/runner base.
+sem: 1
 sidebar:
     label: ARC Runner
     order: 57
@@ -31,6 +31,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: critical
+jsonld:
+    faq:
+        - question: What is the arc-runner image?
+          answer: It is a custom Actions Runner Controller image consumed by the arc-runner-set scale set in the arc-runners namespace. It layers build tooling on top of the upstream ghcr.io/actions/actions-runner base so CI jobs do not apt-get install the same packages on every cold start.
+        - question: Why bake tools into the runner instead of installing them per job?
+          answer: Baking removes cold-start apt-get calls, stays air-gap-safe under apt mirror outages, and gives a single source of truth so bumping a tool happens once in the Dockerfile instead of in every workflow.
+        - question: Which build args control the arc-runner image?
+          answer: ACTIONS_RUNNER_VERSION pins the upstream runner tag, KUBECTL_VERSION pins the kubectl release (SHA-verified at build), and DBMATE_VERSION pins the dbmate migrator to match the in-cluster ci-dbmate-deploy Job.
 ---
 
 ## Overview
@@ -93,3 +101,20 @@ This page tracks the image artefact only. The full migration runs across three P
 
 - Track upstream `actions/runner` minor releases in `ACTIONS_RUNNER_VERSION`. Patch bumps can ride along on dependabot.
 - Every image publish bumps both `version.toml` (rebuild trigger via the dispatch manifest) and the `kbve.com/restart-trigger` annotation in values.yaml (forces a runner pod roll).
+
+## FAQ
+
+**What is the arc-runner image?**
+It is a custom Actions Runner Controller image consumed by the `arc-runner-set` scale set in the `arc-runners` namespace. It layers build tooling on top of the upstream `ghcr.io/actions/actions-runner` base so CI jobs do not `apt-get install` the same packages on every cold start.
+
+**Why bake tools into the runner instead of installing them per job?**
+Baking removes cold-start `apt-get` calls, stays air-gap-safe under apt mirror outages, and gives a single source of truth so bumping a tool happens once in the Dockerfile instead of in every workflow.
+
+**Which build args control the arc-runner image?**
+`ACTIONS_RUNNER_VERSION` pins the upstream runner tag, `KUBECTL_VERSION` pins the `kubectl` release (SHA-verified at build), and `DBMATE_VERSION` pins the `dbmate` migrator to match the in-cluster `ci-dbmate-deploy` Job.
+
+## Related
+
+- [Kilobase](/project/kilobase) — the Postgres image migrated by the `dbmate` tooling baked into this runner.
+- [DiscordSH Bot](/project/discordsh-bot) — one of the workflows that runs on the `arc-runner-set` scale set.
+

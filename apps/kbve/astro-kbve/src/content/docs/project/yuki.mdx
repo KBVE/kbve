@@ -1,9 +1,7 @@
 ---
-title: Yuki
-description: |
-    Persistent virtual concierge that lives in the lower-right corner of
-    every kbve.com page — chat panel, optional VRM avatar, audio-driven
-    lipsync, SSE-streamed replies.
+title: Yuki — Persistent VRM Concierge for kbve.com
+description: Yuki is a persistent kbve.com concierge in the corner dock — chat panel, optional VRM avatar, audio-driven lipsync, and SSE-streamed replies.
+sem: 1
 tableOfContents: true
 graph:
     visible: true
@@ -15,6 +13,14 @@ tags:
     - astro-kbve
     - axum-kbve
     - vrm
+jsonld:
+    faq:
+        - question: What is Yuki on kbve.com?
+          answer: Yuki is an always-available concierge that ships inside the right-side dock on every kbve.com page. She is persistent across ClientRouter navigation, deferred until the user opens her, and architected so the heavy parts (VRM model, Three.js scene, AudioContext) only load in the browser when the user opts in.
+        - question: How does Yuki stream chat replies?
+          answer: The panel submits to GET /api/v1/yuki/chat?q=… on axum-kbve, which returns a text/event-stream. SSE chunks stream token fragments into the chat bubble, and on the done event the assembled text is handed to speak() for lipsync.
+        - question: Why does Yuki avoid React and webcam access?
+          answer: The chat panel is vanilla DOM because it lives inside a transition:persist node that Astro's ClientRouter swap-mutates, which breaks React's reconciliation, and it saves the React payload on first open. Yuki also never requests camera access — pose is canned or audio-derived from lipsync.
 ---
 
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
@@ -149,3 +155,27 @@ All six are localStorage-only, never sent to the server.
 
 If you have feedback, drop it in the [forum](/forum/) — the link is
 literally what the Phase C stub tells you to do.
+
+## FAQ
+
+**What is Yuki on kbve.com?**
+Yuki is an always-available concierge that ships inside the right-side dock on
+every kbve.com page. She is persistent across `<ClientRouter />` navigation,
+deferred until the user opens her, and architected so the heavy parts (VRM model,
+Three.js scene, AudioContext) only load in the browser when the user opts in.
+
+**How does Yuki stream chat replies?**
+The panel submits to `GET /api/v1/yuki/chat?q=…` on axum-kbve, which returns a
+`text/event-stream`. SSE chunks stream token fragments into the chat bubble, and
+on the `done` event the assembled text is handed to `speak()` for lipsync.
+
+**Why does Yuki avoid React and webcam access?**
+The chat panel is vanilla DOM because it lives inside a `transition:persist` node
+that Astro's ClientRouter swap-mutates, which breaks React's reconciliation, and
+it saves the React payload on first open. Yuki also never requests camera access
+— pose is canned or audio-derived from lipsync.
+
+## Related
+
+- [API](/docs/project/api) — the axum-kbve service that hosts Yuki's chat endpoint.
+- [KBVE.com](/docs/project/index) — the site Yuki's concierge dock ships on.

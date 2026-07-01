@@ -1,7 +1,7 @@
 ---
-title: Atlas
-description: |
-    Atlas
+title: Atlas — Autonomous Machine Learning Agent Concepts
+description: Atlas is the KBVE machine learning agent project and glossary covering autonomous agents, model training, layered neural networks, and ML systems.
+sem: 1
 sidebar:
     label: Atlas
     order: 20
@@ -9,6 +9,16 @@ unsplash: 1602089266537-57cb22e5235b
 img: https://images.unsplash.com/photo-1602089266537-57cb22e5235b?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+    - machine-learning
+    - agents
+jsonld:
+    faq:
+        - question: What is an autonomous machine learning agent?
+          answer: In machine learning, autonomous means an agent can make decisions, take actions, and perform tasks without explicit human instruction. It relies on its training, data inputs, and algorithms, learning and adapting from its environment and self-correcting over time, though autonomy is a spectrum rather than absolute.
+        - question: What does training mean in machine learning?
+          answer: Training is the process where a model learns from a dataset of inputs and correct outputs. A learning algorithm iteratively adjusts the model's parameters to minimize a loss function, with validation on a separate dataset guarding against overfitting until the model converges.
+        - question: How do you run the Atlas image?
+          answer: You can launch the Atlas image with docker run -d -p 3000:3000 kbve/atlas.
 ---
 
 
@@ -21,6 +31,16 @@ import {
 	FileTree,
 } from '@astrojs/starlight/components';
 
+
+## Overview
+
+Atlas is the KBVE machine learning agent project and a concept glossary for the
+building blocks of autonomous ML systems. It walks through what it means for an
+agent to be **autonomous**, how models are **trained**, how **layered** neural
+networks are structured, what defines an **agent**, and how the pieces compose
+into a full machine learning **system** — from data collection through
+deployment and monitoring. Atlas ships as a container image so the project can be
+launched locally with a single Docker command.
 
 ## Information
 
@@ -86,3 +106,25 @@ To quickly launch the Atlas image, you can use **docker run -d -p 3000:3000 kbve
 -   -   `Testing` : Once the model is trained and tuned, its performance is evaluated on a test set, which consists of data it has never seen before.
 -   -   `Deployment` : If the model performs satisfactorily on the test set, it can be deployed in a real-world setting, whether it's for predicting stock prices, diagnosing diseases, or any other application.
 -   -   `Maintenance and Monitoring` : Once deployed, the performance of the model needs to be continuously monitored. It may require periodic retraining or fine-tuning based on new data or changing conditions.
+
+## FAQ
+
+**What is an autonomous machine learning agent?**
+In machine learning, autonomous means an agent can make decisions, take actions,
+and perform tasks without explicit human instruction. It relies on its training,
+data inputs, and algorithms, learning and adapting from its environment and
+self-correcting over time, though autonomy is a spectrum rather than absolute.
+
+**What does training mean in machine learning?**
+Training is the process where a model learns from a dataset of inputs and correct
+outputs. A learning algorithm iteratively adjusts the model's parameters to
+minimize a loss function, with validation on a separate dataset guarding against
+overfitting until the model converges.
+
+**How do you run the Atlas image?**
+You can launch the Atlas image with `docker run -d -p 3000:3000 kbve/atlas`.
+
+## Related
+
+- [Graph](/docs/project/graph) — related KBVE data and knowledge-graph tooling.
+- [Python KBVE](/docs/project/python-kbve) — the Python toolkit behind KBVE ML and automation work.

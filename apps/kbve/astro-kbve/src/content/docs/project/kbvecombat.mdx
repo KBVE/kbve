@@ -1,7 +1,7 @@
 ---
-title: KBVECombat
-description: |
-    Shared combat domain for KBVE games — server-authoritative damage, teams, and death built on KBVEGameplay primitives.
+title: KBVECombat — Server-Authoritative Combat Plugin for Unreal
+description: KBVECombat is a shared Unreal Engine combat domain with server-authoritative damage, teams, and death built on KBVEGameplay stat and effect primitives.
+sem: 1
 sidebar:
     label: KBVECombat
     order: 93
@@ -24,6 +24,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVECombat plugin?
+          answer: KBVECombat is the shared combat domain for KBVE Unreal Engine games — server-authoritative damage, teams and factions, and death — built on KBVEGameplay stat and effect primitives. It depends on KBVEGameplay and never the reverse.
+        - question: Which movement backends does KBVECombat support?
+          answer: It is backend-agnostic. Mover pawns, CMC characters, and Mass NPC proxies all fight through the same IKBVECombatant interface, so combat participation is uniform regardless of the movement backend.
+        - question: How is damage applied in KBVECombat?
+          answer: Damage is authority-only. UKBVECombatStatics::ApplyDamage resolves a combatant on any actor and applies an FKBVEDamageEvent against the owner's Health stat via IKBVEStatTarget, composing with KBVEGameplay effects and replicating through the owner's transport.
 ---
 
 ## Overview
@@ -52,3 +60,27 @@ Add `UKBVECombatComponent` to any actor implementing `IKBVEStatTarget` with a `H
 ## Roadmap
 
 - Element resist/weakness scaling, attack/ability driver (windups/cooldowns/hitboxes), threat/aggro + death loot hooks, combat-event feed for UI.
+
+## FAQ
+
+**What is the KBVECombat plugin?**
+KBVECombat is the shared combat domain for KBVE Unreal Engine games —
+server-authoritative damage, teams and factions, and death — built on
+KBVEGameplay stat and effect primitives. It depends on KBVEGameplay and never
+the reverse.
+
+**Which movement backends does KBVECombat support?**
+It is backend-agnostic. Mover pawns, CMC characters, and Mass NPC proxies all
+fight through the same `IKBVECombatant` interface, so combat participation is
+uniform regardless of the movement backend.
+
+**How is damage applied in KBVECombat?**
+Damage is authority-only. `UKBVECombatStatics::ApplyDamage` resolves a combatant
+on any actor and applies an `FKBVEDamageEvent` against the owner's Health stat
+via `IKBVEStatTarget`, composing with KBVEGameplay effects and replicating
+through the owner's transport.
+
+## Related
+
+- [KBVEGameplay](/docs/project/kbvegameplay) — the stats and effects primitives KBVECombat builds on.
+- [KBVEMover](/docs/project/kbvemover) — one of the movement backends whose pawns fight through KBVECombat.

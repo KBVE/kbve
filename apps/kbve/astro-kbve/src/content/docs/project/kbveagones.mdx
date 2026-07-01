@@ -1,7 +1,7 @@
 ---
-title: KBVEAgones
-description: |
-    Server-only bridge between the Agones SDK and KBVE ROWS — registers the dedicated-server instance with ROWS once Agones reports its GameServer identity.
+title: KBVEAgones — Unreal Agones-to-ROWS Server Bridge Plugin
+description: Server-only Unreal plugin bridging the Agones SDK and KBVE ROWS, registering a dedicated-server instance with ROWS once Agones reports its GameServer identity.
+sem: 1
 sidebar:
     label: KBVEAgones
     order: 95
@@ -24,17 +24,52 @@ status: active
 min_engine_version: "5.4"
 supported_platforms:
     - Linux
+jsonld:
+    faq:
+        - question: What does the KBVEAgones plugin do?
+          answer: It is a server-only glue plugin. UKBVEAgonesBridgeSubsystem listens for the Agones ConnectedDelegate and registers the dedicated-server instance with KBVE ROWS via RegisterLauncher, using the address and port Agones reports.
+        - question: Does KBVEAgones run in client or editor builds?
+          answer: No. The module is TargetAllowList Server and the subsystem gates on IsRunningDedicatedServer, so it stays out of client and editor builds.
+        - question: What does KBVEAgones depend on?
+          answer: It depends on the Agones plugin for the GameServer lifecycle and KBVEROWS for the ROWS REST client. KBVEROWS itself remains a pure REST plugin.
 ---
 
 ## Overview
 
-Server-only glue plugin. Agones owns the GameServer lifecycle (Ready / Health);
-`UKBVEAgonesBridgeSubsystem` listens for the Agones `ConnectedDelegate` and
-registers the instance with ROWS via
-`UROWSInstanceSubsystem::RegisterLauncher(Address, Port, MaxInstances)` using the
-address/port Agones reports.
+KBVEAgones is a server-only glue plugin for Unreal Engine dedicated servers. Agones owns the GameServer lifecycle (Ready / Health); `UKBVEAgonesBridgeSubsystem` listens for the Agones `ConnectedDelegate` and registers the instance with KBVE ROWS via `UROWSInstanceSubsystem::RegisterLauncher(Address, Port, MaxInstances)` using the address and port Agones reports. This wires an Agones-fleeted UE dedicated server into the ROWS backend without leaking any of it into client or editor builds.
 
-Depends on [Agones](./agones) and [KBVEROWS](./kbverows). The module is
-`TargetAllowList: ["Server"]` and the subsystem gates on
-`IsRunningDedicatedServer()`, so it stays out of client/editor builds. KBVEROWS
-remains a pure REST plugin.
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | KBVEAgones |
+| **Version** | 0.0.1 |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | KBVE |
+| **Platforms** | Linux |
+| **Depends on** | [Agones](./agones), [KBVEROWS](./kbverows) |
+| **Source** | [`packages/unreal/KBVEAgones`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEAgones) |
+
+## Features
+
+- **Agones → ROWS bridge** — `UKBVEAgonesBridgeSubsystem` reacts to the Agones `ConnectedDelegate` and registers the instance with ROWS.
+- **Launcher registration** — calls `UROWSInstanceSubsystem::RegisterLauncher(Address, Port, MaxInstances)` with the Agones-reported endpoint.
+- **Server-only** — module is `TargetAllowList: ["Server"]` and the subsystem gates on `IsRunningDedicatedServer()`, keeping it out of client/editor builds.
+- **Clean separation** — depends on Agones for lifecycle and KBVEROWS for REST; KBVEROWS stays a pure REST plugin.
+
+## FAQ
+
+**What does the KBVEAgones plugin do?**
+It is a server-only glue plugin. `UKBVEAgonesBridgeSubsystem` listens for the Agones `ConnectedDelegate` and registers the dedicated-server instance with KBVE ROWS via `RegisterLauncher`, using the address and port Agones reports.
+
+**Does KBVEAgones run in client or editor builds?**
+No. The module is `TargetAllowList: ["Server"]` and the subsystem gates on `IsRunningDedicatedServer()`, so it stays out of client and editor builds.
+
+**What does KBVEAgones depend on?**
+It depends on the Agones plugin for the GameServer lifecycle and KBVEROWS for the ROWS REST client. KBVEROWS itself remains a pure REST plugin.
+
+## Related
+
+- [ROWS](./rows) — the Rust game backend the instance registers with.
+- [KBVEROWS](./kbverows) — the Unreal REST client plugin KBVEAgones depends on.
+- [Agones](./agones) — the GameServer fleet manager driving the lifecycle.

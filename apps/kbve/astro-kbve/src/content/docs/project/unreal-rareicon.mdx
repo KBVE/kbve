@@ -1,7 +1,7 @@
 ---
-title: Unreal RareIcon
-description: |
-    RareIcon UE5 Linux dedicated server build — uses stock Epic Docker image for CI.
+title: Unreal RareIcon — UE5 Linux Dedicated Server Build
+description: RareIcon UE5 Linux dedicated server build — uses the stock Epic Games Unreal Engine Docker image on the arc-runner-ue Kubernetes runner for CI.
+sem: 1
 sidebar:
     label: Unreal RareIcon
     order: 97
@@ -20,6 +20,14 @@ runner: arc-runner-ue
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is the Unreal RareIcon build?
+          answer: It is the RareIcon UE5 Linux dedicated server build, managed via the ci-unreal.yml workflow with task server and run on the arc-runner-ue Kubernetes runner.
+        - question: Which Unreal Engine image does RareIcon use?
+          answer: It uses the cached ghcr.io/epicgames/unreal-engine:dev-5.7.4 stock Epic Games Docker image, so no custom engine build is required for CI.
+        - question: How is a RareIcon server build triggered?
+          answer: Trigger the CI - Unreal Engine workflow in GitHub Actions, select the dedicated-server task, and set shell_path to apps/rareicon/unreal-rareicon. Build config lives in build.toml and version.toml under that path.
 ---
 
 ## Overview
@@ -42,3 +50,24 @@ Trigger via GitHub Actions:
 1. Go to **CI - Unreal Engine** workflow
 2. Select task: `dedicated-server`
 3. Set `shell_path`: `apps/rareicon/unreal-rareicon`
+
+## FAQ
+
+**What is the Unreal RareIcon build?**
+It is the RareIcon UE5 Linux dedicated server build, managed via the
+`ci-unreal.yml` workflow with `task: server` and run on the `arc-runner-ue`
+Kubernetes runner.
+
+**Which Unreal Engine image does RareIcon use?**
+It uses the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` stock Epic Games
+Docker image, so no custom engine build is required for CI.
+
+**How is a RareIcon server build triggered?**
+Trigger the **CI - Unreal Engine** workflow in GitHub Actions, select the
+`dedicated-server` task, and set `shell_path` to `apps/rareicon/unreal-rareicon`.
+Build config lives in `build.toml` and `version.toml` under that path.
+
+## Related
+
+- [Unity RareIcon](/docs/project/unity-rareicon) — the RareIcon game's Unity DOTS project.
+- [RareIcon](/docs/project/rareicon) — the RareIcon project overview.

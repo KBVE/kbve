@@ -1,7 +1,7 @@
 ---
-title: Fudster
-description: |
-    Fudster Python library for KBVE.
+title: Fudster — Composable ML Library and CLI for KBVE
+description: Fudster is a composable Python ML library and CLI for haystack-ai and pgvector integrations, with async HTTP/WebSocket API clients and optional tooling extras.
+sem: 1
 sidebar:
     label: Fudster
     order: 80
@@ -17,8 +17,61 @@ version_toml: packages/python/fudster/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is Fudster?
+          answer: Fudster is a composable Python ML library and CLI built around the kbve core, focused on haystack-ai and pgvector integrations. It ships API models, async HTTP/WebSocket clients, and a fudster command-line entry point.
+        - question: How do I install Fudster?
+          answer: Install it from PyPI with pip install fudster. It requires Python 3.12 or newer and pulls in kbve, pydantic, fastapi, aiohttp, and related async and parsing dependencies.
+        - question: What optional extras does Fudster provide?
+          answer: Fudster offers opt-in extras kept off the core install — automation (opencv, pyautogui, humancursor), browser (seleniumbase), ocr (pytesseract), and vnc (websockify, websockets) — plus an all extra that bundles them together.
 ---
 
 ## Overview
 
-Fudster Python library.
+Fudster is a composable Python ML library and CLI for haystack-ai and pgvector integrations, built as a thin layer around the KBVE core. It bundles broadcast and API models, async HTTP and WebSocket clients, and application clients (RuneLite, Chrome, Discord, screen, noVNC), all exposed through the `fudster` command-line entry point.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `python-fudster` (PyPI `fudster`) |
+| **Version** | 1.0.3 |
+| **Language** | Python (>=3.12,<3.14) |
+| **License** | MIT |
+| **Source** | [`packages/python/fudster`](https://github.com/KBVE/kbve/tree/main/packages/python/fudster) |
+| **CLI** | `fudster` |
+
+## Features
+
+- **Composable ML core** — designed for haystack-ai and pgvector integrations, layered on top of the `kbve` package.
+- **API surface** — `Routes`, `CORS`, `WS`, and `APIConnector` for building FastAPI-backed async HTTP and WebSocket services.
+- **Built-in clients** — `CoinDeskClient`, `PoetryDBClient`, `GroqClient`, and `WebsocketEchoClient`, plus app clients like `RuneLiteClient`, `ChromeClient`, and `DiscordClient`.
+- **Broadcast + data models** — `BroadcastModel`, `CommandModel`, `HandshakeModel`, RSS, poem, and game-event models.
+- **Optional extras** — `automation`, `browser`, `ocr`, and `vnc` extras keep heavy dependencies (opencv, seleniumbase, pytesseract, websockify) off the core install.
+
+## Usage
+
+```bash
+pip install fudster
+
+# development inside the KBVE monorepo
+pnpm nx test python-fudster
+pnpm nx lint python-fudster
+pnpm nx build python-fudster
+```
+
+## FAQ
+
+**What is Fudster?**
+Fudster is a composable Python ML library and CLI built around the `kbve` core, focused on haystack-ai and pgvector integrations. It ships API models, async HTTP/WebSocket clients, and a `fudster` command-line entry point.
+
+**How do I install Fudster?**
+Install it from PyPI with `pip install fudster`. It requires Python 3.12 or newer and pulls in `kbve`, `pydantic`, `fastapi`, `aiohttp`, and related async and parsing dependencies.
+
+**What optional extras does Fudster provide?**
+Fudster offers opt-in extras kept off the core install — `automation` (opencv, pyautogui, humancursor), `browser` (seleniumbase), `ocr` (pytesseract), and `vnc` (websockify, websockets) — plus an `all` extra that bundles them together.
+
+## Related
+
+- [Python KBVE](/project/python-kbve) — the core `kbve` package Fudster is built on.

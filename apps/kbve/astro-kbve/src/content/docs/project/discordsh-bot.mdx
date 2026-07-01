@@ -1,7 +1,7 @@
 ---
-title: DiscordSH Bot
-description: |
-    Standalone Discord gateway bot for DiscordSH — slash commands, embed dungeon game, GitHub integration.
+title: DiscordSH Bot — Standalone Discord Gateway Bot
+description: DiscordSH Bot is a standalone poise/serenity Discord gateway bot with slash commands, an embed dungeon game, GitHub integration, and an n8n forwarder.
+sem: 1
 sidebar:
     label: DiscordSH Bot
     order: 421
@@ -26,6 +26,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is the DiscordSH Bot?
+          answer: discordsh-bot is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
+        - question: What can the DiscordSH Bot do?
+          answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /admin, /skills, /n8n), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and forwards HMAC-signed requests into in-cluster n8n.
+        - question: How does the /n8n command stay secure?
+          answer: Every /n8n payload is signed with X-KBVE-Signature sha256 HMAC over the timestamp and body so n8n workflows verify origin and reject replays. Requests are also filtered by a globset allowlist, and all three required env vars must be present or the command unregisters itself.
 ---
 
 ## Overview
@@ -92,6 +100,18 @@ N8N_RATE_WINDOW=5
 
 In production the same secret lives once as a SealedSecret in the `n8n` namespace and is mirrored into `discordsh` via ExternalSecret — see `apps/kube/discordsh/seal-n8n-hmac.sh`.
 
-### Related
+## FAQ
 
-- [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API)
+**What is the DiscordSH Bot?**
+`discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
+
+**What can the DiscordSH Bot do?**
+It serves slash commands (`/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`, `/skills`, `/n8n`), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and forwards HMAC-signed requests into in-cluster n8n.
+
+**How does the `/n8n` command stay secure?**
+Every `/n8n` payload is signed with `X-KBVE-Signature: sha256=HMAC` over the timestamp and body so n8n workflows verify origin and reject replays. Requests are also filtered by a globset allowlist, and all three required env vars must be present or the command unregisters itself.
+
+## Related
+
+- [DiscordSH](/project/discordsh/) — HTTP server (Astro site, REST API).
+- [bevy_inventory](/project/bevy-inventory-crate) — the inventory crate powering the embed dungeon game.

@@ -1,7 +1,7 @@
 ---
-title: Python KBVE
-description: |
-    KBVE Python library.
+title: Python KBVE — Async API Layer for HTTP, WebSocket, and gRPC
+description: The kbve Python library is an API layer for async HTTP, WebSocket, gRPC, and broadcasting, with optional sprite, OSRS, and SEO tooling extras.
+sem: 1
 sidebar:
     label: Python KBVE
     order: 81
@@ -17,8 +17,60 @@ version_toml: packages/python/kbve/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the kbve Python library?
+          answer: kbve is an API layer and complexity handler for async HTTP, WebSocket, gRPC, and broadcasting. It provides the core modules that packages like fudster build on, spanning api, grpc, proto, server, and health.
+        - question: How do I install the kbve Python package?
+          answer: Install it from PyPI with pip install kbve. It requires Python 3.12 or newer and depends on pydantic, aiohttp, fastapi, uvicorn, grpcio, and protobuf.
+        - question: What optional extras does kbve provide?
+          answer: kbve ships opt-in extras kept off the core install — sprite for the ARPG sprite-baking toolchain (Pillow, numpy), osrs for OSRS item-corpus analysis, and seo for the whole-site SEO/SEM auditor — each enabled with uv sync --extra.
 ---
 
 ## Overview
 
-KBVE Python library.
+The `kbve` Python library is an API layer and complexity handler for async HTTP, WebSocket, gRPC, and broadcasting. It provides the shared core that other KBVE Python packages (such as Fudster) build on, plus opt-in tooling for ARPG sprite baking, OSRS item-corpus analysis, and whole-site SEO/SEM auditing.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `python-kbve` (PyPI `kbve`) |
+| **Version** | 1.0.13 |
+| **Language** | Python (>=3.12,<3.14) |
+| **License** | MIT |
+| **Source** | [`packages/python/kbve`](https://github.com/KBVE/kbve/tree/main/packages/python/kbve) |
+| **Core deps** | pydantic, aiohttp, fastapi, uvicorn, grpcio, protobuf |
+
+## Features
+
+- **Async API core** — modules spanning `api`, `grpc`, `proto`, `server`, and `health` for HTTP, WebSocket, gRPC, and broadcasting.
+- **Sprite toolchain** *(extra `sprite`)* — `kbve.sprite.*` scripts (skin-variant, sprite-postprocess, ship-footprint) for ARPG sprite baking; adds Pillow and numpy.
+- **OSRS corpus tooling** *(extra `osrs`)* — `kbve.osrs.*` survey/audit/family scripts for the OSRS item pages, including canonical-page collapse and the axum-kbve 301 table.
+- **SEO/SEM auditor** *(extra `seo`)* — `kbve.seo.*` static frontmatter and MDX analysis for the whole site.
+
+## Usage
+
+```bash
+pip install kbve
+
+# development inside the KBVE monorepo
+pnpm nx test python-kbve
+pnpm nx lint python-kbve
+pnpm nx build python-kbve
+```
+
+## FAQ
+
+**What is the kbve Python library?**
+`kbve` is an API layer and complexity handler for async HTTP, WebSocket, gRPC, and broadcasting. It provides the core modules that packages like Fudster build on, spanning `api`, `grpc`, `proto`, `server`, and `health`.
+
+**How do I install the kbve Python package?**
+Install it from PyPI with `pip install kbve`. It requires Python 3.12 or newer and depends on pydantic, aiohttp, fastapi, uvicorn, grpcio, and protobuf.
+
+**What optional extras does kbve provide?**
+`kbve` ships opt-in extras kept off the core install — `sprite` for the ARPG sprite-baking toolchain (Pillow, numpy), `osrs` for OSRS item-corpus analysis, and `seo` for the whole-site SEO/SEM auditor — each enabled with `uv sync --extra`.
+
+## Related
+
+- [Fudster](/project/fudster) — composable ML library built on top of this `kbve` core.

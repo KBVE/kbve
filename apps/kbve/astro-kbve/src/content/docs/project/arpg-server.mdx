@@ -1,7 +1,7 @@
 ---
-title: ARPG Server
-description: |
-    ARPG authoritative grid game server — axum + tokio + simgrid headless bevy sim, hosted from a chiseled Ubuntu runtime.
+title: "ARPG Server — Authoritative Grid Game Host on Axum"
+description: ARPG Server is an authoritative grid game host — axum + tokio + simgrid headless Bevy sim on Agones, serving the ARPG isometric action RPG over WebSocket.
+sem: 1
 sidebar:
     label: ARPG Server
     order: 59
@@ -34,11 +34,32 @@ kube:
     tier: server
     owner: h0lybyte
     criticality: low
+jsonld:
+    faq:
+        - question: What is the ARPG Server?
+          answer: ARPG Server is the authoritative shared-world host for KBVE's ARPG, a Diablo-style isometric action RPG. It pairs an axum WebSocket router with the simgrid headless Bevy grid simulation, keeping movement validation, occupancy, and snapshot framing server-owned.
+        - question: How does the ARPG Server stay authoritative?
+          answer: The server keeps everything in orthogonal tile (x, y) space with integer grid math; collision is tile occupancy. It validates each move against occupancy, drives the sim tick on a tokio multi-thread runtime, and fans out authoritative snapshots. Isometric projection is a client-side render transform only.
+        - question: Which wire protocol does the ARPG Server speak?
+          answer: It speaks the shared simgrid JSON protocol (PROTOCOL_VERSION 14), handling Join, Step, MoveTo, Action, Face, Heartbeat, and Leave frames and emitting Welcome, Snapshot, and Ephemeral events for combat, projectiles, floor changes, and stats.
 ---
 
 ## Overview
 
 `arpg-server` is the authoritative shared-world host for the **ARPG** (Diablo-style isometric action RPG client under `astro-kbve` arcade). It pairs an `axum` WebSocket router with the `simgrid` headless bevy grid simulation, so movement validation, occupancy, and snapshot framing stay server-owned. Like `cryptothrone-server` it is grid-authoritative — collision is tile occupancy and "physics" is integer grid math — but runs an isolated world (its own seed, registry, and spawn tables) on its own Agones Fleet.
+
+## Key facts
+
+| | |
+|---|---|
+| **App** | `arpg-server` |
+| **Version** | 0.1.22 |
+| **Stack** | Rust (axum + tokio + Bevy headless via simgrid) |
+| **Deploy** | Agones Fleet (`apps/kube/agones/arpg/manifests/fleet.yaml`) |
+| **Image** | `kbve/arpg-server` |
+| **Protocol** | simgrid JSON, `PROTOCOL_VERSION` 14 |
+| **Default listen** | `0.0.0.0:7979` (`ARPG_SERVER_ADDR`) |
+| **Source** | [`apps/agones/arpg/server`](https://github.com/KBVE/kbve/tree/main/apps/agones/arpg/server) |
 
 ### Responsibilities
 
@@ -166,3 +187,28 @@ Everything the Activity loads is proxied through `*.discordsays.com`, so each ex
 ### Status
 
 Alpha — endless seeded multi-floor dungeon (stairs + key-locked descent) with one hostile kind, proving end-to-end multiplayer; Discord Activity embed + session backend in place (point a Discord app at it once the image is baked). World content (npcdb/itemdb, zones, loot tables) is a follow-up.
+
+## FAQ
+
+**What is the ARPG Server?**
+ARPG Server is the authoritative shared-world host for KBVE's ARPG, a Diablo-style
+isometric action RPG. It pairs an `axum` WebSocket router with the `simgrid`
+headless Bevy grid simulation, keeping movement validation, occupancy, and snapshot
+framing server-owned.
+
+**How does the ARPG Server stay authoritative?**
+The server keeps everything in orthogonal tile `(x, y)` space with integer grid
+math; collision is tile occupancy. It validates each move against occupancy, drives
+the sim tick on a tokio multi-thread runtime, and fans out authoritative snapshots.
+Isometric projection is a client-side render transform only.
+
+**Which wire protocol does the ARPG Server speak?**
+It speaks the shared simgrid JSON protocol (`PROTOCOL_VERSION` 14), handling `Join`,
+`Step`, `MoveTo`, `Action`, `Face`, `Heartbeat`, and `Leave` frames and emitting
+`Welcome`, `Snapshot`, and `Ephemeral` events for combat, projectiles, floor
+changes, and stats.
+
+## Related
+
+- [ARPG Web](/docs/project/arpg-web) — the browser client that connects to this server over `/ws`.
+- [Cryptothrone Server](/docs/project/cryptothrone-server) — the sibling grid-authoritative host sharing the simgrid crate.

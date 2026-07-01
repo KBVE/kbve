@@ -1,7 +1,7 @@
 ---
-title: RentEarth API
-description: |
-    RentEarth - itch.io download backend + Vite web for the RentEarth game.
+title: RentEarth API — itch.io Download Backend
+description: Rust Axum backend for the RentEarth game — resolves signed itch.io desktop downloads and serves the Vite + TanStack web frontend at the root.
+sem: 1
 sidebar:
     label: RentEarth API
     order: 31
@@ -28,11 +28,72 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: low
+jsonld:
+    faq:
+        - question: What does axum-rentearth do?
+          answer: It resolves RentEarth desktop downloads from itch.io through the shared jedi itch client and serves the RentEarth Vite + TanStack web frontend at the root path.
+        - question: How does a platform download work?
+          answer: A request to /downloads/{platform} redirects to the signed itch.io URL for that platform, while /api/downloads exposes the live per-platform build state the web consumes.
+        - question: How does it relate to axum-chuckrpg?
+          answer: It mirrors axum-chuckrpg's route shape and shares the jedi itch client, but serves the RentEarth game instead of ChuckRPG.
 ---
 
-The `axum-rentearth` service resolves RentEarth desktop downloads from itch.io
-(via the shared `jedi` itch client) and serves the Vite + TanStack web at `/`.
+## Overview
 
-It mirrors `axum-chuckrpg`: `/downloads/{platform}` redirects to the signed itch
-URL, `/downloads` renders an askama page, and `/api/downloads` exposes the live
-per-platform build state the web consumes.
+`axum-rentearth` is the Rust [Axum](https://github.com/tokio-rs/axum) backend
+for the RentEarth game. It resolves RentEarth desktop downloads from itch.io via
+the shared `jedi` itch client and serves the Vite + TanStack single-page web at
+`/`. It mirrors `axum-chuckrpg`, sharing the same route shape and itch client.
+
+## Key facts
+
+| | |
+|---|---|
+| **App** | `axum-rentearth` |
+| **Version** | 0.1.1 |
+| **Language** | Rust (Axum, askama, tokio) |
+| **License** | KBVE |
+| **Source** | [`apps/rentearth/axum-rentearth`](https://github.com/KBVE/kbve/tree/main/apps/rentearth/axum-rentearth) |
+| **Image** | `kbve/axum-rentearth` |
+| **Status** | beta |
+
+## Features
+
+- **Signed itch.io downloads** — `/downloads/{platform}` redirects to the signed
+  itch URL for the requested platform via the shared `jedi` itch client.
+- **Downloads page** — `/downloads` renders an askama page listing the available
+  builds.
+- **Live build state API** — `/api/downloads` exposes the current per-platform
+  build state that the web frontend consumes.
+- **Bundled web** — serves the RentEarth Vite + TanStack SPA at `/`, with an SPA
+  fallback so client-routed paths resolve after explicit API and download routes.
+- **Health checks** — `/health` and `/api/health` for liveness probes.
+
+## Usage
+
+```
+GET /downloads/{platform}   -> 302 redirect to signed itch.io URL
+GET /downloads              -> HTML downloads page (askama)
+GET /api/downloads          -> JSON per-platform build state
+GET /health                 -> liveness
+```
+
+## FAQ
+
+**What does axum-rentearth do?**
+It resolves RentEarth desktop downloads from itch.io through the shared `jedi`
+itch client and serves the RentEarth Vite + TanStack web frontend at the root
+path.
+
+**How does a platform download work?**
+A request to `/downloads/{platform}` redirects to the signed itch.io URL for
+that platform, while `/api/downloads` exposes the live per-platform build state
+the web consumes.
+
+**How does it relate to axum-chuckrpg?**
+It mirrors `axum-chuckrpg`'s route shape and shares the `jedi` itch client, but
+serves the RentEarth game instead of ChuckRPG.
+
+## Related
+
+- [ChuckRPG](/docs/project/chuckrpg) — sibling Axum download backend this service mirrors.

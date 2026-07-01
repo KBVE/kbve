@@ -1,13 +1,14 @@
 ---
-title: KBVESupabase
-description: |
-    Supabase integration for UE5 — GoTrue auth, JWT storage with auto-refresh, PostgREST helpers.
+title: KBVESupabase — Supabase Auth and Data Plugin for UE5
+description: KBVESupabase is an Unreal Engine 5 plugin for Supabase — GoTrue auth, JWT storage with auto-refresh, PostgREST, storage, edge functions, and realtime chat.
+sem: 1
 sidebar:
     label: KBVESupabase
     order: 85
 tags:
     - unreal
     - backend
+    - supabase
 key: ue_kbvesupabase
 pipeline: unreal
 plugin_name: KBVESupabase
@@ -24,8 +25,83 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does the KBVESupabase plugin do?
+          answer: KBVESupabase is a drop-in Supabase account layer for Unreal Engine 5 games, providing GoTrue authentication, JWT storage with automatic refresh, PostgREST database helpers, storage, edge function invocation, and a realtime chat client.
+        - question: What authentication methods does KBVESupabase support?
+          answer: It supports email and password sign-in and sign-up, anonymous sign-in, magic-link OTP over email and SMS, password recovery, and full OAuth for Google, GitHub, Discord, Twitch, Apple, and Azure via PKCE with an RFC 8252 loopback flow.
+        - question: Is KBVESupabase usable from Blueprints?
+          answer: Yes. Every public method is a BlueprintCallable UFUNCTION and delegates are BlueprintAssignable, so auth, database, storage, and chat can be wired up entirely in Blueprints as well as C++.
 ---
 
 ## Overview
 
-Supabase integration for UE5 — GoTrue auth, JWT storage with auto-refresh, PostgREST helpers.
+`KBVESupabase` is a Supabase integration plugin for Unreal Engine 5 — a **drop-in
+account layer for KBVE games**. It provides GoTrue authentication, JWT storage with
+auto-refresh, PostgREST database helpers, storage, edge functions, and a realtime
+chat client, all Blueprint-friendly. It depends on the `KBVEROWS` plugin.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVESupabase` |
+| **Version** | 0.1.0 |
+| **Depends on** | `KBVEROWS` |
+| **Engine** | UE 5.4+ |
+| **Platforms** | Win64, Linux, Mac |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVESupabase`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVESupabase) |
+
+## Features
+
+- **Auth** — email/password, anonymous sign-in, magic-link OTP (email + SMS), password
+  recovery, and full OAuth (Google/GitHub/Discord/Twitch/Apple/Azure) via PKCE and an
+  RFC 8252 loopback flow.
+- **Session management** — refresh-token timer (`RefreshLeadSeconds` before expiry),
+  persistent per-project disk session, and automatic refresh + retry on HTTP 401.
+- **JWT** — client-side claims decode with `kbve_username` hoisted from user/app
+  metadata to match the `kbve.com` GoTrue Custom Access Token hook.
+- **Storage** — `UKBVESupabaseStorage` for upload, download, list, sign URL, remove,
+  move, copy, and public URL helpers.
+- **Database (PostgREST)** — `DbSelect` / `DbInsert` / `DbUpdate` / `DbDelete` /
+  `DbUpsert` / `DbRpc` plus raw `RestRequest`.
+- **Edge Functions** — `InvokeFunction(name, body)` against `/functions/v1/<name>`.
+- **Chat** — `UKBVESupabaseChat` WebSocket client for the KBVE irc-gateway
+  (`chat.kbve.com/ws`) with JWT-on-upgrade and backoff reconnect.
+- **Blueprint-friendly** — all public methods are `BlueprintCallable`, delegates
+  `BlueprintAssignable`, configured via Project Settings.
+
+## Usage
+
+```cpp
+#include "KBVESupabaseSubsystem.h"
+
+UKBVESupabaseSubsystem* Sb = GetGameInstance()->GetSubsystem<UKBVESupabaseSubsystem>();
+Sb->OnSignedIn.AddDynamic(this, &UMyClass::HandleSignedIn);
+Sb->OnAuthError.AddDynamic(this, &UMyClass::HandleAuthError);
+
+Sb->SignInWithPassword(TEXT("user@example.com"), TEXT("hunter2"));
+```
+
+## FAQ
+
+**What does the KBVESupabase plugin do?**
+KBVESupabase is a drop-in Supabase account layer for Unreal Engine 5 games, providing
+GoTrue authentication, JWT storage with automatic refresh, PostgREST database helpers,
+storage, edge function invocation, and a realtime chat client.
+
+**What authentication methods does KBVESupabase support?**
+It supports email and password sign-in and sign-up, anonymous sign-in, magic-link OTP
+over email and SMS, password recovery, and full OAuth for Google, GitHub, Discord,
+Twitch, Apple, and Azure via PKCE with an RFC 8252 loopback flow.
+
+**Is KBVESupabase usable from Blueprints?**
+Yes. Every public method is a `BlueprintCallable` `UFUNCTION` and delegates are
+`BlueprintAssignable`, so auth, database, storage, and chat can be wired up entirely
+in Blueprints as well as C++.
+
+## Related
+
+- [KBVELibGit](/project/kbvelibgit/) — an editor-only KBVE Unreal plugin for installing Git-hosted plugins.

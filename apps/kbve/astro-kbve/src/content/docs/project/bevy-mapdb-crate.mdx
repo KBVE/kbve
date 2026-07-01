@@ -1,7 +1,7 @@
 ---
-title: uevy mapdb
-description: |
-    uevy mapdb — Bevy game crate for the KBVE isometric engine.
+title: bevy_mapdb — Proto-Driven Map Registry Crate for Bevy
+description: Game-agnostic Bevy crate that compiles mapdb.proto into typed Rust structs and wraps them in a searchable MapDb resource for zones, regions, and world objects.
+sem: 1
 sidebar:
     label: uevy mapdb
 tags:
@@ -19,8 +19,63 @@ version_toml: packages/rust/bevy/bevy_mapdb/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_mapdb crate do?
+          answer: It compiles mapdb.proto into typed Rust structs via prost and wraps them in a searchable MapDb Bevy resource, so any game can query zones, regions, and world object definitions by slug, ULID, biome, or type.
+        - question: How do you load map data into bevy_mapdb?
+          answer: MapDb parses from three sources — MapDb::from_json for the mapdb JSON artifact, MapDb::from_bytes for a proto binary, and MapDb::from_proto for an in-memory MapRegistry. Insert the result as a Bevy resource during startup.
+        - question: Is bevy_mapdb tied to a specific game?
+          answer: No. It is game-agnostic. Any Bevy game can load the same shared proto map registry; BevyMapDbPlugin registers an empty MapDb that the game populates at startup.
 ---
 
 ## Overview
 
-uevy mapdb Bevy crate.
+`bevy_mapdb` provides proto-driven map definitions for [Bevy](https://bevyengine.org/) 0.18 games in the KBVE isometric engine. It compiles `mapdb.proto` into typed Rust structs via `prost` and wraps them in a searchable `MapDb` resource, so any game can load the same shared map registry and query zones, regions, and world object definitions by slug, ULID, biome, or type.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `bevy_mapdb` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (Bevy 0.18) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_mapdb`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_mapdb) |
+| **Categories** | game-development, game-engines |
+
+## Features
+
+- **Proto-driven schema** — `mapdb.proto` compiles into typed Rust structs at build time via `prost` / `prost-build`.
+- **Searchable registry** — `MapDb` looks up zones, regions, and world object defs by `ProtoMapId`, `ref`, or ULID, and filters zones by biome or type.
+- **Multiple load paths** — `MapDb::from_json`, `MapDb::from_bytes` (proto binary), and `MapDb::from_proto` (in-memory `MapRegistry`).
+- **Game-agnostic** — `BevyMapDbPlugin` registers an empty `MapDb`; games populate it at startup and insert it as a resource.
+
+## Usage
+
+```rust
+use bevy::prelude::*;
+use bevy_mapdb::{BevyMapDbPlugin, MapDb};
+
+fn load_maps(mut commands: Commands) {
+    let json = include_str!("path/to/mapdb.json");
+    let db = MapDb::from_json(json).expect("Failed to parse map JSON");
+    commands.insert_resource(db);
+}
+```
+
+## FAQ
+
+**What does the bevy_mapdb crate do?**
+It compiles `mapdb.proto` into typed Rust structs via `prost` and wraps them in a searchable `MapDb` Bevy resource, so any game can query zones, regions, and world object definitions by slug, ULID, biome, or type.
+
+**How do you load map data into bevy_mapdb?**
+`MapDb` parses from three sources — `MapDb::from_json` for the mapdb JSON artifact, `MapDb::from_bytes` for a proto binary, and `MapDb::from_proto` for an in-memory `MapRegistry`. Insert the result as a Bevy resource during startup.
+
+**Is bevy_mapdb tied to a specific game?**
+No. It is game-agnostic. Any Bevy game can load the same shared proto map registry; `BevyMapDbPlugin` registers an empty `MapDb` that the game populates at startup.
+
+## Related
+
+- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — isometric camera plugin for the same engine.
+- [Isometric](/docs/project/isometric) — the KBVE isometric engine these crates power.

@@ -1,7 +1,7 @@
 ---
-title: KBVEMover
-description: |
-    Shared UE5 Mover control character — a networked, data-driven pawn (client-predicted, server-authoritative) for KBVE games.
+title: KBVEMover — Networked UE5 Mover Control Character
+description: Shared UE5 Mover control character for KBVE games — a networked, data-driven pawn that is client-predicted and server-authoritative.
+sem: 1
 sidebar:
     label: KBVEMover
     order: 92
@@ -24,6 +24,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is KBVEMover?
+          answer: KBVEMover is the shared control-character layer for KBVE games, built on UE5's Mover plugin. It is a networked, data-driven pawn that replaces the legacy CharacterMovementComponent, working standalone, on a listen-server, and on a dedicated server.
+        - question: What is AKBVEMoverPawn?
+          answer: AKBVEMoverPawn is an APawn with a capsule root, skeletal mesh, third-person camera, and a UCharacterMoverComponent (Walking, Falling, Flying modes). It implements IMoverInputProducerInterface and translates Enhanced Input into the Mover sim's FCharacterDefaultInputs.
+        - question: How do I use KBVEMover in a game?
+          answer: Enable the plugin (it pulls in Mover and EnhancedInput), derive a Blueprint from AKBVEMoverPawn, assign the mesh and input assets, and set it as the DefaultPawnClass. Networking is automatic and it runs parallel to the legacy CMC character, so games opt in per game.
 ---
 
 ## Overview
@@ -43,3 +51,28 @@ Enable the plugin (pulls in `Mover` + `EnhancedInput`), derive a BP from `AKBVEM
 - Locomotion animation layer.
 - Custom movement modes (sprint / dash / swim).
 - Port stats/inventory onto the Mover pawn.
+
+## FAQ
+
+**What is KBVEMover?**
+KBVEMover is the shared control-character layer for KBVE games, built on UE5's
+Mover plugin. It is a networked, data-driven pawn that replaces the legacy
+`CharacterMovementComponent`, working standalone, on a listen-server, and on a
+dedicated server.
+
+**What is AKBVEMoverPawn?**
+`AKBVEMoverPawn` is an `APawn` with a capsule root, skeletal mesh, third-person
+camera, and a `UCharacterMoverComponent` (Walking, Falling, Flying modes). It
+implements `IMoverInputProducerInterface` and translates Enhanced Input into the
+Mover sim's `FCharacterDefaultInputs`.
+
+**How do I use KBVEMover in a game?**
+Enable the plugin (it pulls in `Mover` and `EnhancedInput`), derive a Blueprint
+from `AKBVEMoverPawn`, assign the mesh and input assets, and set it as the
+`DefaultPawnClass`. Networking is automatic and it runs parallel to the legacy
+CMC character, so games opt in per game.
+
+## Related
+
+- [KBVEGameplay](/docs/project/kbvegameplay) — the gameplay plugin KBVEMover depends on.
+- [KBVEUI](/docs/project/kbveui) — the shared Slate UI component library for KBVE Unreal games.

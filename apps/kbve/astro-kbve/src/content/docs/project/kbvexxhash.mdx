@@ -1,7 +1,7 @@
 ---
-title: KBVEXXHash
-description: |
-    XXHash fast hashing plugin for Unreal Engine.
+title: KBVEXXHash — Fast Hashing Plugin for Unreal
+description: KBVEXXHash is an Unreal Engine plugin wrapping xxHash 0.8.3, an extremely fast non-cryptographic hash algorithm, for high-throughput hashing in UE 5.4+ games.
+sem: 1
 sidebar:
     label: KBVEXXHash
     order: 90
@@ -23,8 +23,64 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does KBVEXXHash provide?
+          answer: It wraps the xxHash 0.8.3 library as an Unreal Engine runtime module, giving UE games an extremely fast non-cryptographic hash for checksums and lookups.
+        - question: Is xxHash suitable for cryptographic use?
+          answer: No. xxHash is a non-cryptographic hash optimized for speed, meant for checksums, hash tables, and change detection — not for security.
+        - question: Which engine versions and platforms are supported?
+          answer: KBVEXXHash targets Unreal Engine 5.4 and later on Win64, Linux, and Mac as a runtime module.
 ---
 
 ## Overview
 
-KBVEXXHash wraps the XXHash fast hashing library for Unreal Engine.
+`KBVEXXHash` is an Unreal Engine plugin that wraps
+[xxHash](https://github.com/Cyan4973/xxHash) 0.8.3, an **extremely fast
+non-cryptographic hash algorithm**. It ships as a runtime module for UE 5.4+ on
+Win64, Linux, and Mac, giving KBVE Unreal games a high-throughput hash for
+checksums, hash-table keys, and change detection.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEXXHash` |
+| **Version** | 0.8.3 |
+| **Engine** | Unreal Engine 5.4+ |
+| **Platforms** | Win64, Linux, Mac |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVEXXHash`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEXXHash) |
+| **Upstream** | [Cyan4973/xxHash](https://github.com/Cyan4973/xxHash) |
+
+## Features
+
+- **xxHash 0.8.3 wrapper** — bundles the upstream library as a UE third-party dependency.
+- **Runtime module** — loads in the Default phase for use during gameplay.
+- **Non-cryptographic speed** — optimized for throughput on checksums and lookups.
+- **Cross-platform** — builds for Win64, Linux, and Mac.
+
+## Usage
+
+Enable the `KBVEXXHash` plugin in your `.uproject` and add the `KBVEXXHash`
+module to your build dependencies to call into the wrapped hashing API from C++.
+
+## FAQ
+
+**What does KBVEXXHash provide?**
+It wraps the xxHash 0.8.3 library as an Unreal Engine runtime module, giving UE
+games an extremely fast non-cryptographic hash for checksums and lookups.
+
+**Is xxHash suitable for cryptographic use?**
+No. xxHash is a non-cryptographic hash optimized for speed, meant for checksums,
+hash tables, and change detection — not for security.
+
+**Which engine versions and platforms are supported?**
+KBVEXXHash targets Unreal Engine 5.4 and later on Win64, Linux, and Mac as a
+runtime module.
+
+## Related
+
+- [KBVEZstd](/docs/project/kbvezstd) — Zstandard compression plugin for Unreal.
+- [KBVEYYJson](/docs/project/kbveyyjson) — fast JSON parsing plugin for Unreal.
+- [UEDevOps](/docs/project/uedevops) — DevOps toolkit that depends on KBVEXXHash.

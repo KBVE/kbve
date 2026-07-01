@@ -1,7 +1,7 @@
 ---
-title: CryptoThrone Server
-description: |
-    CryptoThrone authoritative grid game server — axum + tokio + simgrid headless bevy sim, hosted from a chiseled Ubuntu runtime.
+title: CryptoThrone Server — Authoritative Axum + Bevy Grid Host
+description: CryptoThrone authoritative grid game server pairs an axum WebSocket router with the simgrid headless Bevy sim on tokio, on a chiseled Ubuntu Agones runtime.
+sem: 1
 sidebar:
     label: CryptoThrone Server
     order: 58
@@ -30,6 +30,14 @@ kube:
     tier: server
     owner: h0lybyte
     criticality: low
+jsonld:
+    faq:
+        - question: What is the CryptoThrone server?
+          answer: cryptothrone-server is the authoritative shared-world host for CryptoThrone. It pairs an axum WebSocket router with the simgrid headless Bevy grid simulation on a tokio multi-thread runtime, keeping movement validation, occupancy, and snapshot framing server-owned.
+        - question: How does CryptoThrone differ from a physics-based server?
+          answer: CryptoThrone is grid-authoritative rather than physics-based. Collision is tile occupancy and movement is integer grid math, so unlike nd-server's rapier2d match sim, the runtime stays light. The sim ticks at 20 Hz and fans out 10 Hz snapshots.
+        - question: How is the CryptoThrone server deployed?
+          answer: An Agones Fleet runs the GameServer pods, and the web tier (axum-cryptothrone) allocates one via POST /api/join. The image must land on ghcr.io/kbve/cryptothrone-server before the Fleet can scale up. The server also runs the Agones SDK lifecycle (Ready, Health, Shutdown).
 ---
 
 ## Overview
@@ -92,3 +100,28 @@ An Agones `Fleet` (`apps/kube/agones/cryptothrone/`) runs the GameServer pods; t
 ## Status
 
 Beta. Shared-world sim with wandering NPCs/monsters; browser client + WSS edge for allocated dynamic ports still in progress.
+
+## FAQ
+
+**What is the CryptoThrone server?**
+`cryptothrone-server` is the authoritative shared-world host for CryptoThrone. It
+pairs an `axum` WebSocket router with the `simgrid` headless Bevy grid simulation
+on a tokio multi-thread runtime, keeping movement validation, occupancy, and
+snapshot framing server-owned.
+
+**How does CryptoThrone differ from a physics-based server?**
+CryptoThrone is grid-authoritative rather than physics-based. Collision is tile
+occupancy and movement is integer grid math, so unlike `nd-server`'s rapier2d
+match sim, the runtime stays light. The sim ticks at 20 Hz and fans out 10 Hz
+snapshots.
+
+**How is the CryptoThrone server deployed?**
+An Agones `Fleet` runs the GameServer pods, and the web tier (`axum-cryptothrone`)
+allocates one via `POST /api/join`. The image must land on
+`ghcr.io/kbve/cryptothrone-server` before the Fleet can scale up. The server also
+runs the Agones SDK lifecycle (`Ready`, `Health`, `Shutdown`).
+
+## Related
+
+- [Isometric](/docs/project/isometric) — sibling Bevy multiplayer game in the KBVE stack.
+- [Agones](/docs/project/agones) — the GameServer lifecycle SDK used to manage these Fleet pods.

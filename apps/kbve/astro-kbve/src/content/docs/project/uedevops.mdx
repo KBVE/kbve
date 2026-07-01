@@ -1,7 +1,7 @@
 ---
-title: UEDevOps
-description: |
-    DevOps toolkit plugin for Unreal Engine providing build automation and CI/CD utilities.
+title: UEDevOps — Telemetry & DevOps Plugin for Unreal
+description: UEDevOps is an Unreal Engine telemetry and DevOps plugin — capturing player errors and gameplay events with GitHub integration via Blueprint nodes.
+sem: 1
 sidebar:
     label: UEDevOps
     order: 95
@@ -25,8 +25,69 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does the UEDevOps plugin do?
+          answer: It provides a telemetry pipeline for Unreal games — capturing player errors, gameplay events, and editor diagnostics and shipping them to a backend, git, or analytics stack via Blueprint nodes and editor tools.
+        - question: Can telemetry be used from Blueprints?
+          answer: Yes. UEDevOps exposes Blueprint-powered telemetry so you can capture errors and gameplay events and send structured POST logs without writing C++.
+        - question: What plugins does UEDevOps depend on?
+          answer: It depends on KBVEYYJson, KBVEXXHash, and KBVEZstd, plus Unreal's EditorScriptingUtilities, and ships both Runtime and Editor modules.
 ---
 
 ## Overview
 
-UEDevOps is a DevOps toolkit plugin for Unreal Engine, providing build automation and CI/CD utilities. It depends on KBVEYYJson, KBVEXXHash, and KBVEZstd.
+`UEDevOps` is a DevOps toolkit plugin for Unreal Engine that streamlines
+**debugging, observability, and telemetry** directly inside a project. It captures
+**player errors, runtime gameplay events, and editor diagnostics**, then ships
+them to a backend, git, or analytics stack — sending structured POST logs and
+auto-creating GitHub issues. Telemetry is exposed as **Blueprint nodes** and
+**editor utilities** across runtime and editor.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `UEDevOps` |
+| **Version** | 0.1.0 |
+| **Engine** | Unreal Engine 5.4+ |
+| **Platforms** | Win64, Linux, Mac |
+| **License** | KBVE |
+| **Modules** | Runtime (`UEDevOps`) + Editor (`UEDevOpsEditor`) |
+| **Depends on** | KBVEYYJson, KBVEXXHash, KBVEZstd, EditorScriptingUtilities |
+| **Source** | [`packages/unreal/UEDevOps`](https://github.com/KBVE/kbve/tree/main/packages/unreal/UEDevOps) |
+
+## Features
+
+- **Unified telemetry pipeline** — capture player errors, runtime events, and editor diagnostics.
+- **Structured log shipping** — send POST logs to a backend or analytics stack.
+- **GitHub integration** — auto-create issues from captured diagnostics.
+- **Blueprint-powered** — capture and ship telemetry without writing C++.
+- **Runtime + Editor modules** — works both in-game and inside the editor.
+
+## Usage
+
+Enable the `UEDevOps` plugin (and its KBVEYYJson / KBVEXXHash / KBVEZstd
+dependencies) in your `.uproject`, then use the Blueprint telemetry nodes to
+capture errors and gameplay events and forward them to your backend.
+
+## FAQ
+
+**What does the UEDevOps plugin do?**
+It provides a telemetry pipeline for Unreal games — capturing player errors,
+gameplay events, and editor diagnostics and shipping them to a backend, git, or
+analytics stack via Blueprint nodes and editor tools.
+
+**Can telemetry be used from Blueprints?**
+Yes. UEDevOps exposes Blueprint-powered telemetry so you can capture errors and
+gameplay events and send structured POST logs without writing C++.
+
+**What plugins does UEDevOps depend on?**
+It depends on KBVEYYJson, KBVEXXHash, and KBVEZstd, plus Unreal's
+EditorScriptingUtilities, and ships both Runtime and Editor modules.
+
+## Related
+
+- [KBVEYYJson](/docs/project/kbveyyjson) — fast JSON parsing dependency.
+- [KBVEXXHash](/docs/project/kbvexxhash) — fast hashing dependency.
+- [KBVEZstd](/docs/project/kbvezstd) — Zstandard compression dependency.

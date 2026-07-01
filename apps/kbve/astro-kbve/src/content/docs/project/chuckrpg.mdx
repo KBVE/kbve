@@ -1,7 +1,7 @@
 ---
-title: ChuckRPG
-description: |
-    ChuckRPG - Open world multiplayer RPG backend API.
+title: ChuckRPG — Open World RPG Backend API
+description: Rust Axum backend for ChuckRPG, an Unreal open-world multiplayer RPG — serves the website, game API, and signed itch.io desktop downloads.
+sem: 1
 sidebar:
     label: ChuckRPG
     order: 30
@@ -29,8 +29,69 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: low
+jsonld:
+    faq:
+        - question: What is ChuckRPG?
+          answer: ChuckRPG is an open-world multiplayer RPG powered by Unreal Engine with OWS (Open World Server) as its game backend.
+        - question: What does the axum-chuckrpg service do?
+          answer: It is the Rust Axum API service that serves the ChuckRPG website, game API, and resolves signed itch.io desktop downloads via the shared jedi itch client.
+        - question: How do desktop downloads work?
+          answer: A request to /downloads/{platform} redirects to the signed itch.io URL, while /api/downloads exposes the live per-platform build state the web consumes.
 ---
 
-ChuckRPG is an open world multiplayer RPG powered by Unreal Engine with OWS (Open World Server) as the game backend.
+## Overview
 
-This project page tracks the `axum-chuckrpg` API service — the Rust-based backend that serves the ChuckRPG website and game API.
+ChuckRPG is an open-world multiplayer RPG powered by Unreal Engine with OWS
+(Open World Server) as its game backend. This project page tracks
+`axum-chuckrpg` — the Rust [Axum](https://github.com/tokio-rs/axum) backend that
+serves the ChuckRPG website, game API, and signed itch.io desktop downloads via
+the shared `jedi` itch client.
+
+## Key facts
+
+| | |
+|---|---|
+| **App** | `axum-chuckrpg` |
+| **Version** | 0.1.9 |
+| **Language** | Rust (Axum, askama, tokio) |
+| **License** | KBVE |
+| **Source** | [`apps/chuckrpg/axum-chuckrpg`](https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/axum-chuckrpg) |
+| **Image** | `kbve/chuckrpg` |
+| **Status** | beta |
+
+## Features
+
+- **Website + game API** — serves the ChuckRPG web frontend and backend API.
+- **Signed itch.io downloads** — `/downloads/{platform}` redirects to the signed
+  itch URL for the requested platform via the shared `jedi` itch client.
+- **Downloads page** — `/downloads` renders an askama page of available builds.
+- **Live build state API** — `/api/downloads` returns the current per-platform
+  build state.
+- **Health checks** — `/health` and `/api/health` for liveness probes.
+
+## Usage
+
+```
+GET /downloads/{platform}   -> 302 redirect to signed itch.io URL
+GET /downloads              -> HTML downloads page (askama)
+GET /api/downloads          -> JSON per-platform build state
+GET /health                 -> liveness
+```
+
+## FAQ
+
+**What is ChuckRPG?**
+ChuckRPG is an open-world multiplayer RPG powered by Unreal Engine with OWS
+(Open World Server) as its game backend.
+
+**What does the axum-chuckrpg service do?**
+It is the Rust Axum API service that serves the ChuckRPG website, game API, and
+resolves signed itch.io desktop downloads via the shared `jedi` itch client.
+
+**How do desktop downloads work?**
+A request to `/downloads/{platform}` redirects to the signed itch.io URL, while
+`/api/downloads` exposes the live per-platform build state the web consumes.
+
+## Related
+
+- [RentEarth API](/docs/project/axum-rentearth) — sibling Axum download backend with the same route shape.

@@ -1,7 +1,7 @@
 ---
-title: uevy statemachine
-description: |
-    uevy statemachine — Bevy game crate for the KBVE isometric engine.
+title: bevy_statemachine — State Snapshot Bridge for Bevy
+description: bevy_statemachine is a thread-safe state snapshot bridge for Bevy, exposing ECS resources to Tauri IPC, WASM JS, and lightyear via JSON and bincode.
+sem: 1
 sidebar:
     label: uevy statemachine
 tags:
@@ -19,8 +19,76 @@ version_toml: packages/rust/bevy/bevy_statemachine/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_statemachine crate do?
+          answer: It is a thread-safe state snapshot bridge for Bevy that exposes ECS resources to external consumers such as Tauri IPC, WASM JavaScript, and lightyear networking, with both JSON and bincode serialization.
+        - question: How do you read a state snapshot from bevy_statemachine?
+          answer: Add StateSnapshotPlugin generic over your state type, then call get_snapshot to retrieve the latest snapshot, get_snapshot_json for a JSON string, or snapshot_version for the monotonic version counter.
+        - question: What serialization formats does bevy_statemachine support?
+          answer: The default serde feature provides JSON serialization via serde_json, and the optional bincode feature adds binary serialization for compact transport.
 ---
 
 ## Overview
 
-uevy statemachine Bevy crate.
+`bevy_statemachine` is a thread-safe state snapshot bridge for
+[Bevy](https://bevyengine.org/). It exposes ECS resources to external consumers —
+Tauri IPC, WASM JavaScript, and lightyear networking — so a running game's state
+can be read from outside the ECS world without racing the schedule. Snapshots are
+available as JSON or bincode.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `bevy_statemachine` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (Bevy) |
+| **Serialization** | JSON (`serde`, default) + bincode (optional) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_statemachine`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_statemachine) |
+
+## Features
+
+- **Thread-safe snapshot bridge** — exposes ECS state to external threads and
+  consumers without blocking the Bevy schedule.
+- **Multiple consumers** — designed for Tauri IPC, WASM JavaScript, and lightyear
+  networking off the same snapshot.
+- **Monotonic versioning** — `snapshot_version::<T>()` returns a monotonic counter
+  so consumers can detect fresh state cheaply.
+- **Dual serialization** — JSON via `serde_json` (default `serde` feature) and
+  compact binary via the optional `bincode` feature.
+
+## Usage
+
+```rust
+use bevy::prelude::*;
+use bevy_statemachine::{StateSnapshotPlugin, get_snapshot, get_snapshot_json};
+
+fn main() {
+    App::new()
+        .add_plugins(StateSnapshotPlugin::<MyState>::new())
+        .run();
+}
+```
+
+## FAQ
+
+**What does the bevy_statemachine crate do?**
+It is a thread-safe state snapshot bridge for Bevy that exposes ECS resources to
+external consumers such as Tauri IPC, WASM JavaScript, and lightyear networking,
+with both JSON and bincode serialization.
+
+**How do you read a state snapshot from bevy_statemachine?**
+Add `StateSnapshotPlugin` generic over your state type, then call
+`get_snapshot::<T>()` for the latest snapshot, `get_snapshot_json::<T>()` for a
+JSON string, or `snapshot_version::<T>()` for the monotonic version counter.
+
+**What serialization formats does bevy_statemachine support?**
+The default `serde` feature provides JSON serialization via `serde_json`, and the
+optional `bincode` feature adds binary serialization for compact transport.
+
+## Related
+
+- [bevy_db](/project/bevy-db-crate/) — cross-platform async persistence for Bevy state.
+- [bevy_supa](/project/bevy-supa-crate/) — Supabase-backed state sync for Bevy games.

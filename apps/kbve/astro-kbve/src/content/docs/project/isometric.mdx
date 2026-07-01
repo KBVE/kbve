@@ -1,7 +1,7 @@
 ---
-title: Isometric
-description: |
-    KBVE Isometric — multiplayer browser game built with Bevy, lightyear, and avian3d. Runs as WASM (WebGPU) and Tauri desktop.
+title: Isometric — Bevy Multiplayer Browser Game (WASM + Tauri)
+description: KBVE Isometric is a multiplayer isometric browser game built in Rust with Bevy 0.18, lightyear networking, and avian3d physics, running as WASM and Tauri.
+sem: 1
 sidebar:
     label: Isometric
     order: 10
@@ -15,6 +15,14 @@ source_path: apps/kbve/isometric
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is the KBVE Isometric game?
+          answer: Isometric is KBVE's flagship multiplayer browser game — an isometric 3D world built entirely in Rust with Bevy 0.18, networked via lightyear, and rendered through WebGPU in the browser. It also ships as a Tauri 2 native desktop app.
+        - question: How does Isometric handle networking?
+          answer: The game runs as a client that connects to an authoritative headless Bevy server hosted inside axum-kbve. Transport is WebTransport (QUIC/UDP) when available, falling back to WebSocket (TCP/TLS at wss://kbve.com/ws) on Safari and older browsers.
+        - question: How are items defined in Isometric?
+          answer: Items are authored as MDX files in the itemdb collection and baked into the game binary at compile time. Run the sync-itemdb script to regenerate after adding items; the build currently ships 117+ proto-driven item definitions.
 ---
 
 import {
@@ -108,3 +116,27 @@ Items are defined as MDX files in the [itemdb collection](/itemdb/) and baked in
 ```sh
 node apps/kbve/isometric/scripts/sync-itemdb.mjs
 ```
+
+## FAQ
+
+**What is the KBVE Isometric game?**
+Isometric is KBVE's flagship multiplayer browser game — an isometric 3D world
+built entirely in Rust with Bevy 0.18, networked via lightyear, and rendered
+through WebGPU in the browser. It also ships as a Tauri 2 native desktop app.
+
+**How does Isometric handle networking?**
+The game runs as a client that connects to an authoritative headless Bevy server
+hosted inside `axum-kbve`. Transport is WebTransport (QUIC/UDP) when available,
+falling back to WebSocket (TCP/TLS at `wss://kbve.com/ws`) on Safari and older
+browsers.
+
+**How are items defined in Isometric?**
+Items are authored as MDX files in the itemdb collection and baked into the game
+binary at compile time. Run the `sync-itemdb` script to regenerate after adding
+items; the build currently ships 117+ proto-driven item definitions.
+
+## Related
+
+- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — the isometric camera controller powering this game.
+- [bevy_behavior](/docs/project/bevy-behavior-crate) — behavior tree engine driving the creature AI.
+- [CryptoThrone Server](/docs/project/cryptothrone-server) — sibling Bevy multiplayer server in the KBVE stack.

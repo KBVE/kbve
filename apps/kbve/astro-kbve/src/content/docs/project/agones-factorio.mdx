@@ -1,7 +1,7 @@
 ---
-title: Agones Factorio
-description: |
-    Agones-managed Factorio dedicated server. Custom OCI image that layers our KBVE scenario + an Agones lifecycle shim (Ready/Health + SIGTERM-driven save flush) on top of the official factoriotools/factorio rootless base.
+title: Agones Factorio — Managed Dedicated Server
+description: Agones-managed Factorio dedicated server with the KBVE scenario plus a lifecycle shim (Ready/Health, SIGTERM save flush) on the factoriotools rootless base.
+sem: 1
 sidebar:
     label: Agones Factorio
     order: 460
@@ -37,6 +37,14 @@ kube:
     tier: server
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is the Agones Factorio image?
+          answer: A KBVE-baked Factorio dedicated-server OCI image built to run as an Agones GameServer on the production Kubernetes cluster, layered on the factoriotools rootless base.
+        - question: How does the Agones lifecycle shim work?
+          answer: The shim execs the Factorio binary, seeds config defaults when no ConfigMap is mounted, drives Ready() plus a periodic Health() heartbeat, and traps SIGTERM so shutdowns get a clean autosave.
+        - question: Can the image run locally without Agones?
+          answer: Yes. When AGONES_SDK_HTTP is unset the SDK calls are skipped, so a plain docker run works without an Agones controller.
 ---
 
 ## Overview
@@ -49,6 +57,24 @@ The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
 - **KBVE scenario** — `scenarios/kbve/` is our own Lua scenario, redmew-inspired but written fresh so we can grow the soft-mod layer in-tree (join/leave broadcasts, donor perks, chat commands).
 - **RCON + console-log plumbing** — when `FACTORIO_RCON_PASSWORD` is set the shim opens RCON bound to `127.0.0.1:27015` (loopback-only by default) and passes `--console-log` so the planned chat-relay sidecar can stream `[CHAT]/[JOIN]/[LEAVE]/[COMMAND]` markers off a shared `emptyDir` volume.
 - **Rootless** — UID 845 `factorio`, so the eventual `GameServer` PodSpec can require `runAsNonRoot: true` without a SecurityContext fight.
+
+## Key facts
+
+| | |
+|---|---|
+| **Image** | `kbve/agones-factorio` |
+| **Base** | `factoriotools/factorio:2.0.76-rootless` |
+| **Orchestration** | Agones `GameServer` on Kubernetes |
+| **License** | KBVE |
+| **Source** | [`apps/agones/factorio`](https://github.com/KBVE/kbve/tree/main/apps/agones/factorio) |
+| **Tracking** | Issue #11138 |
+
+## Features
+
+- **Agones lifecycle shim** — `Ready()` / periodic `Health()` and SIGTERM-driven autosave.
+- **KBVE scenario** — an in-tree Lua soft-mod layer (joins, donor perks, chat commands).
+- **RCON + console-log plumbing** — loopback RCON and `--console-log` for the relay sidecar.
+- **Rootless** — runs as non-root UID 845.
 
 ## Phasing
 
@@ -83,6 +109,28 @@ The image is a thin layer on top of `factoriotools/factorio:2.0.76-rootless`:
 | `AGONES_SDK_HTTP` | _(unset)_ | When unset, SDK calls are skipped — local `docker run` works without Agones |
 | `AGONES_READY_DELAY` | `30` | Seconds before `Ready()` |
 | `AGONES_HEALTH_INTERVAL` | `5` | `Health()` cadence |
+
+## FAQ
+
+**What is the Agones Factorio image?**
+A KBVE-baked Factorio dedicated-server OCI image built to run as an Agones
+`GameServer` on the production Kubernetes cluster, layered on the factoriotools
+rootless base.
+
+**How does the Agones lifecycle shim work?**
+The shim execs the Factorio binary, seeds config defaults when no ConfigMap is
+mounted, drives `Ready()` plus a periodic `Health()` heartbeat, and traps
+`SIGTERM` so shutdowns get a clean autosave.
+
+**Can the image run locally without Agones?**
+Yes. When `AGONES_SDK_HTTP` is unset the SDK calls are skipped, so a plain
+`docker run` works without an Agones controller.
+
+## Related
+
+- [Agones Factorio Relay](/docs/project/agones-factorio-relay) — chat-relay sidecar bridging RCON, IRC, and Discord.
+- [Agones](/docs/project/agones) — the game-server orchestration platform.
+- [Minecraft Server](/docs/project/mc) — sibling Agones game server.
 
 ## References
 
