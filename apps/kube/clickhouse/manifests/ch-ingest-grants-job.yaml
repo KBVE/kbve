@@ -19,8 +19,7 @@ data:
         # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).\ngrant\
         \ \"GRANT CLUSTER ON *.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\n# Data access for\
         \ each direct-write pipeline. Creating a table does not\n# grant the creator data\
-        \ rights in CH RBAC.\ngrant \"GRANT ALL ON logflare.* TO kbve_ingest ON CLUSTER 'cluster'\"\
-        \ngrant \"GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"\
+        \ rights in CH RBAC.\ngrant \"GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"\
         GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"GRANT\
         \ ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\necho \"\"\necho \"Ingest-user\
         \ grants applied.\"\n"
