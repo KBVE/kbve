@@ -1,7 +1,7 @@
 ---
-title: SteamCMD Ubuntu
-description: |
-    Ubuntu 24.04 base image with steamcmd preinstalled. Used for local config.vdf capture + CI Steam upload step.
+title: SteamCMD Ubuntu — Steam Upload Base Image
+description: Ubuntu 24.04 Docker base image with steamcmd preinstalled, used for local config.vdf capture and the CI Steam build upload step. No credentials baked in.
+sem: 1
 sidebar:
     label: SteamCMD Base
     order: 901
@@ -21,6 +21,14 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is the steamcmd-ubuntu image for?
+          answer: It is an Ubuntu 24.04 base image with steamcmd preinstalled, used for local config.vdf capture and the CI Steam build upload step in ci-unity.yml.
+        - question: Are Steam credentials baked into the image?
+          answer: No. Each consumer brings its own config.vdf — a volume mount locally, or the STEAM_CONFIG_VDF secret restored in CI.
+        - question: Why is lib32gcc-s1 installed?
+          answer: steamcmd is a 32-bit Linux binary, so lib32gcc-s1 is the one non-obvious runtime dependency the image needs.
 ---
 
 ## Overview
@@ -57,3 +65,17 @@ rm -rf /tmp/steam_config.b64 ~/steam-export
 ## Pipeline
 
 `pipeline: docker` → manifest fan-out builds + pushes to `ghcr.io/kbve/steamcmd-ubuntu:24.04` whenever `version` here outpaces `version.toml`.
+
+## FAQ
+
+**What is the steamcmd-ubuntu image for?**
+It is an Ubuntu 24.04 base image with `steamcmd` preinstalled, used for local
+`config.vdf` capture and the CI Steam build upload step in `ci-unity.yml`.
+
+**Are Steam credentials baked into the image?**
+No. Each consumer brings its own `config.vdf` — a volume mount locally, or the
+`STEAM_CONFIG_VDF` secret restored in CI.
+
+**Why is lib32gcc-s1 installed?**
+`steamcmd` is a 32-bit Linux binary, so `lib32gcc-s1` is the one non-obvious
+runtime dependency the image needs.

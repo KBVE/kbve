@@ -10,3 +10,5 @@ resources:
     - axum-rentearth-secrets-sealedsecret.yaml
     - axum-rentearth-deployment.yaml
     - axum-rentearth-httproute.yaml
+    - rentearth-reference-grant.yaml
+    - rentearth-certificate.yaml

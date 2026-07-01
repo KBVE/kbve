@@ -1,7 +1,7 @@
 ---
-title: KBVEPerf
-description: |
-    Runtime-toggleable performance instrumentation for UE5 — scoped timers, counters, log + overlay sinks, and a live HTTP /perf JSON readout.
+title: KBVEPerf — Runtime Performance Instrumentation for UE5
+description: KBVEPerf is runtime-toggleable UE5 performance instrumentation with scoped timers, counters, log and overlay sinks, and a live HTTP /perf JSON readout.
+sem: 1
 sidebar:
     label: KBVEPerf
     order: 89
@@ -23,6 +23,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVEPerf plugin?
+          answer: KBVEPerf is a lightweight, runtime-toggleable performance instrumentation layer for UE5. Scoped timers and counters feed per-name aggregates that drain to three sinks — the log, an on-screen overlay, and a live HTTP /perf JSON readout — so any KBVE plugin can be profiled by flipping a CVar.
+        - question: What is the runtime cost of KBVEPerf?
+          answer: It compiles out of Shipping builds via KBVEPERF_ENABLED=0. When compiled in but disabled at runtime it costs a single atomic load plus a branch per scope, and it can be toggled live with the kbve.perf CVar.
+        - question: How do you read KBVEPerf results externally?
+          answer: Set kbve.perf 1 to enable collection and the HTTP endpoint, then curl http://localhost:8099/perf for a JSON readout of per-op timings (count, last, max, avg, p95) and counter gauges, instead of relaying stat unit numbers by hand.
 ---
 
 ## Overview
@@ -80,3 +88,27 @@ curl http://localhost:8099/perf
 ## Integration
 
 `KBVEWorld` (terrain chunks + grass render subsystem) is the first consumer: the bespoke `FKBVEHitchLog` scoped timers were replaced with `KBVEPERF_SCOPE`, and the grass subsystem publishes `KBVEPERF_COUNT` gauges for resident chunks, registered chunks, HISM count, and total instances.
+
+## FAQ
+
+**What is the KBVEPerf plugin?**
+KBVEPerf is a lightweight, runtime-toggleable performance instrumentation layer
+for UE5. Scoped timers and counters feed per-name aggregates that drain to three
+sinks — the log, an on-screen overlay, and a live HTTP `/perf` JSON readout — so
+any KBVE plugin can be profiled by flipping a CVar.
+
+**What is the runtime cost of KBVEPerf?**
+It compiles out of Shipping builds via `KBVEPERF_ENABLED=0`. When compiled in but
+disabled at runtime it costs a single atomic load plus a branch per scope, and it
+can be toggled live with the `kbve.perf` CVar.
+
+**How do you read KBVEPerf results externally?**
+Set `kbve.perf 1` to enable collection and the HTTP endpoint, then `curl
+http://localhost:8099/perf` for a JSON readout of per-op timings (count, last,
+max, avg, p95) and counter gauges, instead of relaying `stat unit` numbers by
+hand.
+
+## Related
+
+- [KBVEWorld](/docs/project/kbveworld) — the terrain and grass subsystem that is KBVEPerf's first consumer.
+- [KBVEPostShader](/docs/project/kbvepostshader) — sibling UE5 rendering plugin in the KBVE stack.

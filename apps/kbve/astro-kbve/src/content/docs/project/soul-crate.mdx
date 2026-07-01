@@ -1,7 +1,7 @@
 ---
-title: Soul
-description: |
-    Soul crate for KBVE.
+title: Soul — KBVE Rust Utility Crate
+description: Soul is a Rust utility crate in the KBVE monorepo, published as part of the shared crates pipeline for reuse across KBVE Rust projects and services.
+sem: 1
 sidebar:
     label: Soul Crate
     order: 72
@@ -17,8 +17,57 @@ version_toml: packages/rust/soul/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the Soul crate?
+          answer: Soul is a Rust utility crate maintained in the KBVE monorepo and shipped through the shared crates pipeline for reuse across KBVE Rust projects.
+        - question: How is the Soul crate versioned and published?
+          answer: Soul follows the KBVE crates pipeline, with its version tracked in version.toml under packages/rust/soul and released alongside the other workspace crates.
+        - question: What license does Soul use?
+          answer: Soul is released under the MIT license, like the other open Rust crates in the KBVE workspace.
 ---
 
 ## Overview
 
-Soul crate.
+`Soul` is a Rust utility crate in the KBVE monorepo. It is maintained under
+`packages/rust/soul` and published through the shared **crates** pipeline so it
+can be reused across KBVE Rust projects and services. Versioning is tracked in
+`version.toml` and released alongside the other workspace crates.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `soul` |
+| **Version** | 0.1.1 |
+| **Language** | Rust |
+| **License** | MIT |
+| **Pipeline** | crates |
+| **Source** | `packages/rust/soul` |
+
+## Features
+
+- **Workspace crate** — part of the KBVE Rust crates collection, versioned and
+  released through the shared crates pipeline.
+- **Reusable** — intended for reuse across KBVE Rust projects rather than a
+  single application.
+- **MIT licensed** — open for use alongside the other KBVE workspace crates.
+
+## FAQ
+
+**What is the Soul crate?**
+Soul is a Rust utility crate maintained in the KBVE monorepo and shipped through
+the shared crates pipeline for reuse across KBVE Rust projects.
+
+**How is the Soul crate versioned and published?**
+Soul follows the KBVE crates pipeline, with its version tracked in `version.toml`
+under `packages/rust/soul` and released alongside the other workspace crates.
+
+**What license does Soul use?**
+Soul is released under the MIT license, like the other open Rust crates in the
+KBVE workspace.
+
+## Related
+
+- [ERust Crate](/docs/project/erust-crate) — egui/eframe component crate in the same workspace.
+- [KBVE Crate](/docs/project/kbve-crate) — core shared Rust crate.

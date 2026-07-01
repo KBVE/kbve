@@ -11,7 +11,31 @@ unsplash: 1605347086577-706b21474ed7
 img: https://images.unsplash.com/photo-1605347086577-706b21474ed7?fit=crop&w=1400&h=700&q=75
 tags:
     - game-engine
+    - gamedev
     - software
+sem: 1
+ogTitle: Godot Guide — Open-Source 2D/3D Game Engine, Animation & Shaders
+ogDescription: Learn the Godot game engine — the node and scene system, GDScript vs C#, 2D sprite animation with AnimationPlayer, GDShader basics, and exporting to HTML5/Web with Supabase integration.
+jsonld:
+    type: Article
+    keywords:
+        - godot
+        - game engine
+        - gdscript
+        - gdshader
+        - godot animation
+        - 2d 3d games
+    faq:
+        - question: What is Godot?
+          answer: Godot is a free, open-source game engine for building 2D and 3D games across desktop, mobile, and web. It uses a node and scene system as its core building blocks, supports GDScript, C#, and C++, and ships under the permissive MIT license with no fees or royalties.
+        - question: What languages does Godot support?
+          answer: Godot's primary language is GDScript, a lightweight, Python-inspired language tightly integrated with the engine. It also supports C# (via .NET), and C++ or Rust through GDExtension for performance-critical code. Most gameplay logic is written in GDScript.
+        - question: What is the difference between nodes and scenes in Godot?
+          answer: A node is the smallest building block — it handles one job like a sprite, a collision shape, or a sound. A scene is a tree of nodes saved together and reused as a unit; scenes can be instanced inside other scenes, giving Godot its modular, LEGO-like structure.
+        - question: How do I animate 2D sprites in Godot?
+          answer: Use AnimatedSprite2D for frame-by-frame sprite-sheet animation with adjustable speed, looping, and finished signals, or drive any node property with an AnimationPlayer. Import a sprite sheet, slice it into frames, and play the sequence — no external rigging required.
+        - question: Can Godot export to the web?
+          answer: Yes. Godot exports games to HTML5/WebAssembly so they run in a browser. You need the matching export templates installed, and platforms like itch.io host the build. Web builds can integrate services such as Supabase via a CDN client for auth and data.
 ---
 
 import {
@@ -25,6 +49,12 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
+
+**Godot** is a free, open-source game engine for building **2D and 3D games** across desktop, mobile, and web — under the permissive MIT license with no fees or royalties. Its **node and scene** system gives a modular, LEGO-like workflow, and it supports GDScript, C#, and C++/Rust.
+
+This guide covers [animation](#animations), [shaders](#shaders), and [building/exporting](#build) including Web and Supabase.
+
 ## Information
 
 Godot is a free, open-source game engine for creating 2D and 3D games across desktop, mobile, and web platforms—without fees or restrictive licenses.
@@ -32,7 +62,7 @@ At its core, Godot's node and scene system provides a modular, LEGO-like approac
 This flexibility is paired with support for multiple programming languages, including its own lightweight GDScript (a Python-inspired concept), C#, and even C++ for performance junkies, letting developers pick their comfort zone.
 
 What truly sets Godot apart is its community-driven development model, shout-out to the amazing discord community servers too!
-Built and evolved by a passionate global user base, it continues to grow through open collaboration, thus free from corporate gate-keeping, karls wet dream.
+Built and evolved by a passionate global user base, it continues to grow through open collaboration, free from corporate gate-keeping.
 With built-in editors for animation, shaders, and tilemaps, plus a permissive MIT license, Godot provides a complete toolbox for crafting anything from pixel-art platformers to expansive 3D experiences, all while remaining lightweight enough for modest hardware.
 
 
@@ -178,3 +208,22 @@ Inside of your supabase instance, make sure to allow both your main itch, in our
 Godot is a free and open-source game engine that offers a unique and innovative way to create 2D and 3D games for a wide array of platforms, from Windows and macOS to Android, iOS, and even the web, all without costing a dime or tying you to proprietary licenses.
 
 </Aside>
+
+## FAQ
+
+**What is Godot?**
+Godot is a free, open-source game engine for building 2D and 3D games across desktop, mobile, and web. It uses a node and scene system as its core building blocks, supports GDScript, C#, and C++, and ships under the permissive MIT license with no fees or royalties.
+
+**What languages does Godot support?**
+Godot's primary language is GDScript, a lightweight, Python-inspired language tightly integrated with the engine. It also supports C# (via .NET), and C++ or Rust through GDExtension for performance-critical code.
+
+**What is the difference between nodes and scenes in Godot?**
+A node is the smallest building block — it handles one job like a sprite, collision shape, or sound. A scene is a tree of nodes saved together and reused as a unit; scenes can be instanced inside other scenes, giving Godot its modular structure.
+
+**How do I animate 2D sprites in Godot?**
+Use `AnimatedSprite2D` for frame-by-frame sprite-sheet animation with adjustable speed, looping, and finished signals, or drive any node property with an `AnimationPlayer`. Import a sprite sheet, slice it into frames, and play the sequence.
+
+**Can Godot export to the web?**
+Yes. Godot exports games to HTML5/WebAssembly to run in a browser. You need the matching export templates installed, and platforms like itch.io host the build. Web builds can integrate services such as [Supabase](/application/supabase/) via a CDN client.
+
+<Adsense />

@@ -1,7 +1,7 @@
 ---
-title: Brackeys GameJam
-description: |
-    Brackeys Game Jam 13
+title: "Brackeys Game Jam — KBVE Godot + Rust Idle Space Shooter"
+description: KBVE's Brackeys Game Jam entry — an idle Asteroids-style space shooter built in Godot with Rust (GDExtension) around the theme Nothing Can Go Wrong.
+sem: 1
 sidebar:
     label: Barckeys Game Jam
     order: 1000
@@ -13,6 +13,16 @@ unsplash: 1604657843102-388d8541ef04
 img: https://images.unsplash.com/photo-1604657843102-388d8541ef04?fit=crop&w=1400&h=700&q=75
 tags:
     - gaming
+    - godot
+    - rust
+jsonld:
+    faq:
+        - question: What is KBVE's Brackeys Game Jam entry?
+          answer: It is KBVE's submission to Brackeys Game Jam 2025.1, built in Godot with Rust via GDExtension. The game is an idle Asteroids-style space shooter where you pilot a mining ship, harvest scraps from asteroids, and upgrade your ship — themed around Nothing Can Go Wrong.
+        - question: What is the game's theme and premise?
+          answer: The jam theme is Nothing Can Go Wrong. You wake alone on a mining spaceship as sparks appear across the ship, and you hope nothing goes wrong while piloting it. The ship is not automatically destroyed, so it plays as a low-pressure idle space game with optional challenges and bonuses.
+        - question: Which engine and assets does the entry use?
+          answer: The game uses Godot with Rust (GDExtension) and third-party assets including Kenney Space Shooter Redux (CC0), audioknobs from OpenGameArt (CC-BY-3.0), Foozlecc Void Fleet packs, Galaxy Pixel Art, and Norma 2D's Pixel Space background.
 ---
 
 
@@ -25,6 +35,26 @@ import {
 	FileTree,
 } from '@astrojs/starlight/components';
 import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
+
+## Overview
+
+This page documents KBVE's entry for the **Brackeys Game Jam 2025.1**, an idle
+Asteroids-style space shooter built in [Godot](/application/godot/) with
+[Rust](/application/rust/) via GDExtension. The jam theme is **Nothing Can Go
+Wrong** — you pilot a lone mining ship, harvest resources from asteroids, and
+upgrade your vessel while anomalies keep things interesting. The notes below cover
+the design flowchart, gameplay loop, resource system, layers, and asset credits.
+
+## Key facts
+
+| | |
+|---|---|
+| **Event** | Brackeys Game Jam 2025.1 |
+| **Engine** | Godot + Rust (GDExtension) |
+| **Genre** | Idle Asteroids-style space shooter |
+| **Theme** | Nothing Can Go Wrong |
+| **Core loop** | Mine asteroids, earn resources, upgrade the ship |
+| **Key assets** | Kenney Space Shooter Redux (CC0), Foozlecc Void Fleet, OpenGameArt audioknobs |
 
 ## Barckeys Game Jam 
 
@@ -367,3 +397,27 @@ As for the heat release, we will have a couple keys to help the exhausting of th
 The Earth planet will be on layer 5 with collision mask being for layer 6 aka the spaceship.
 Once the player is within the collision circle of the planet, a display will come up that says "Press X to Interact with the Planet!".
 After the player presses the X, it should open up the shop UI and let the player purchase upgrades.
+
+## FAQ
+
+**What is KBVE's Brackeys Game Jam entry?**
+It is KBVE's submission to Brackeys Game Jam 2025.1, built in Godot with Rust via
+GDExtension. The game is an idle Asteroids-style space shooter where you pilot a
+mining ship, harvest scraps from asteroids, and upgrade your ship — themed around
+Nothing Can Go Wrong.
+
+**What is the game's theme and premise?**
+The jam theme is Nothing Can Go Wrong. You wake alone on a mining spaceship as
+sparks appear across the ship, and you hope nothing goes wrong while piloting it.
+The ship is not automatically destroyed, so it plays as a low-pressure idle space
+game with optional challenges and bonuses.
+
+**Which engine and assets does the entry use?**
+The game uses Godot with Rust (GDExtension) and third-party assets including Kenney
+Space Shooter Redux (CC0), audioknobs from OpenGameArt (CC-BY-3.0), Foozlecc Void
+Fleet packs, Galaxy Pixel Art, and Norma 2D's Pixel Space background.
+
+## Related
+
+- [Godot](/application/godot/) — the engine powering this jam entry.
+- [Rust](/application/rust/) — the language used via GDExtension for the game logic.

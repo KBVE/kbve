@@ -1,8 +1,7 @@
 ---
-title: Graph
-description: |
-    Explore our Graph Project, a dynamic 3D visual representation of interconnected MDX notes.
-    Navigate through a visually engaging graph of nodes, each representing unique notes within our extensive collection, making data exploration intuitive and insightful.
+title: Graph — 3D Visualization of Interconnected MDX Notes
+description: KBVE Graph is a 3D visualization of interconnected MDX notes, inspired by the Obsidian Graph View, for exploring relationships between notes.
+sem: 1
 sidebar:
     label: Graph
     order: 420
@@ -10,6 +9,14 @@ unsplash: 1477959858617-67f85cf4f1df
 img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+jsonld:
+    faq:
+        - question: What is the KBVE Graph?
+          answer: The KBVE Graph is a 3D visualization of interconnected MDX notes, inspired by the Obsidian Graph View, where each node represents a note and edges represent connections between related notes.
+        - question: What is the KBVE Graph inspired by?
+          answer: It is inspired by the Obsidian Graph View, extending the traditional 2D graph into a dynamic three-dimensional space for a more immersive way to explore note relationships.
+        - question: How will the KBVE Graph be built?
+          answer: The roadmap outlines selecting a 3D rendering library such as Three.js or Babylon.js, parsing MDX notes into a node-and-edge schema, adding interactivity like zoom, pan, rotation, search, and filtering, then optimizing performance for large graphs.
 ---
 
 import {
@@ -122,6 +129,24 @@ The general roadmap outlining the key steps to create and deploy the KBVE 3D Gra
     - Continuously improve the user experience based on feedback and technological advancements.
 
 </Steps>
+
+## FAQ
+
+**What is the KBVE Graph?**
+The KBVE Graph is a 3D visualization of interconnected MDX notes, inspired by
+the Obsidian Graph View, where each node represents a note and edges represent
+connections between related notes.
+
+**What is the KBVE Graph inspired by?**
+It is inspired by the Obsidian Graph View, extending the traditional 2D graph
+into a dynamic three-dimensional space for a more immersive way to explore note
+relationships.
+
+**How will the KBVE Graph be built?**
+The roadmap outlines selecting a 3D rendering library such as Three.js or
+Babylon.js, parsing MDX notes into a node-and-edge schema, adding interactivity
+like zoom, pan, rotation, search, and filtering, then optimizing performance for
+large graphs.
 
 
 <Adsense />

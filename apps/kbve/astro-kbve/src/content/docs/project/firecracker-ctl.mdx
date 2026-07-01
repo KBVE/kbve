@@ -1,7 +1,7 @@
 ---
-title: Firecracker CTL
-description: |
-    REST API service for managing Firecracker microVMs.
+title: Firecracker CTL — MicroVM Control API
+description: Rust Axum REST API for managing Firecracker microVMs — VM lifecycle, ephemeral code execution, and persistent HTTP endpoints with per-VM TAP networking.
+sem: 1
 sidebar:
     label: Firecracker CTL
     order: 54
@@ -31,11 +31,38 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+jsonld:
+    faq:
+        - question: What does Firecracker CTL do?
+          answer: It is a Rust Axum REST API that manages Firecracker microVMs — creating, polling, and destroying them — with per-VM timeout enforcement and in-memory state tracking via DashMap.
+        - question: How is user code executed inside a VM?
+          answer: Code arrives via env.CODE, is written to a padded raw block attached as a second drive (/dev/vdb), and the VM init reads it, writes /tmp/code, and execs the entrypoint passed through boot_args.
+        - question: What are persistent endpoints?
+          answer: Long-lived VMs in the networked -net deployment that expose HTTP servers over per-VM TAP networking, routed by name from the public edge and living until explicitly deleted.
 ---
 
 ## Overview
 
 Rust Axum REST API for managing Firecracker microVMs. Provides VM lifecycle management (create, poll, destroy) with per-VM timeout enforcement and in-memory state tracking via DashMap.
+
+## Key facts
+
+| | |
+|---|---|
+| **Image** | `kbve/firecracker-ctl` |
+| **Language** | Rust (Axum) |
+| **Service** | ClusterIP :9001 |
+| **License** | KBVE |
+| **Source** | [`apps/vm/firecracker-ctl`](https://github.com/KBVE/kbve/tree/main/apps/vm/firecracker-ctl) |
+| **Requires** | `/dev/kvm`, `kvm=true` node selector |
+
+## Features
+
+- **VM lifecycle API** — create, poll status, fetch results, and destroy microVMs.
+- **Ephemeral code execution** — user code booted into a VM via a raw block drive.
+- **Persistent endpoints** — named long-lived VMs exposing HTTP servers (`-net` only).
+- **Two ecosystems** — untrusted MMDS-only VMs and VPN-tunneled networked VMs.
+- **Pre-built rootfs** — Alpine minimal/python/node ext4 images built in-cluster.
 
 ### API Endpoints
 
@@ -163,3 +190,26 @@ New rootfs image planned: `alpine-python-web` (Alpine + Python + uvicorn + a tin
 - **Phase 4** — dashboard UI: deploy form, endpoint list, health badges, logs viewer
 - **Phase 5** — on-disk state + auto-redeploy on pod restart
 - **Phase 6** — per-endpoint quotas + metrics dashboard
+
+## FAQ
+
+**What does Firecracker CTL do?**
+It is a Rust Axum REST API that manages Firecracker microVMs — creating, polling,
+and destroying them — with per-VM timeout enforcement and in-memory state tracking
+via DashMap.
+
+**How is user code executed inside a VM?**
+Code arrives via `env.CODE`, is written to a padded raw block attached as a second
+drive (`/dev/vdb`), and the VM init reads it, writes `/tmp/code`, and execs the
+entrypoint passed through `boot_args`.
+
+**What are persistent endpoints?**
+Long-lived VMs in the networked `-net` deployment that expose HTTP servers over
+per-VM TAP networking, routed by name from the public edge and living until
+explicitly deleted.
+
+## Related
+
+- [Firecracker Python Web](/docs/project/firecracker-python-web) — Python web rootfs image.
+- [Firecracker Node Web](/docs/project/firecracker-node-web) — Node.js web rootfs image.
+- [Firecracker Python Net](/docs/project/firecracker-python-net) — networked Python endpoint image.

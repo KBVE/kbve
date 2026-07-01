@@ -1,7 +1,7 @@
 ---
-title: Agones
-description: |
-    Vendored Agones Unreal SDK (server-only) — drives GameServer lifecycle (Ready / Health / Shutdown) through the Agones sidecar REST API.
+title: Agones Unreal SDK — Server-Only GameServer Lifecycle Plugin
+description: Vendored Agones Unreal SDK plugin (server-only) drives GameServer lifecycle Ready, Health, and Shutdown through the Agones sidecar REST API on dedicated builds.
+sem: 1
 sidebar:
     label: Agones
     order: 94
@@ -22,17 +22,66 @@ status: active
 min_engine_version: "5.4"
 supported_platforms:
     - Linux
+jsonld:
+    faq:
+        - question: What is the Agones Unreal SDK plugin?
+          answer: It is a pristine vendored mirror of the upstream googleforgames/agones Unreal SDK (release-1.58.0, Apache-2.0), pinned for the KBVE dedicated-server stack. It wraps the Agones sidecar REST API so an Unreal dedicated server can register itself with an Agones Fleet.
+        - question: How does the plugin manage the GameServer lifecycle?
+          answer: The UAgonesSubsystem auto-connects on dedicated-server builds. It polls /gameserver, calls /ready, and pings /health against the Agones sidecar so the server binary becomes allocatable and stays healthy under a Fleet.
+        - question: Is the Agones plugin compiled into client or editor builds?
+          answer: No. The module declares TargetAllowList ["Server"], so it is only built into dedicated-server targets and never into client or editor builds.
 ---
 
 ## Overview
 
-Pristine mirror of the upstream Agones Unreal SDK (googleforgames/agones,
-`release-1.58.0`, Apache-2.0), pinned for the KBVE dedicated-server stack. The
-`UAgonesSubsystem` auto-connects on dedicated-server builds — polls
-`/gameserver`, calls `/ready`, and pings `/health` — so a server binary becomes
-allocatable under an Agones Fleet.
+`Agones` is a pristine mirror of the upstream Agones Unreal SDK
+(googleforgames/agones, `release-1.58.0`, Apache-2.0), pinned for the KBVE
+dedicated-server stack. It wraps the [Agones](https://agones.dev/) sidecar REST
+API so an Unreal dedicated server can register with and be managed by an Agones
+`Fleet`. The `UAgonesSubsystem` auto-connects on dedicated-server builds —
+polling `/gameserver`, calling `/ready`, and pinging `/health` — so a server
+binary becomes allocatable under a Fleet.
 
-Server-only: the module is `TargetAllowList: ["Server"]`, so it is never
-compiled into client/editor builds. The KBVE-specific ROWS wiring lives in the
-separate [KBVEAgones](./kbveagones) plugin. See `VENDORING.md` in the plugin for
-the upstream pin and resync steps.
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `Agones` |
+| **Version** | 2.0.0 (upstream `release-1.58.0`) |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | Apache-2.0 |
+| **Source** | [`packages/unreal/Agones`](https://github.com/KBVE/kbve/tree/main/packages/unreal/Agones) |
+| **Platforms** | Linux (dedicated server) |
+
+## Features
+
+- **Auto-connecting subsystem** — `UAgonesSubsystem` connects to the Agones
+  sidecar on dedicated-server startup with no manual wiring.
+- **Lifecycle over REST** — polls `/gameserver`, calls `/ready`, and pings
+  `/health` to keep the pod allocatable and healthy.
+- **Server-only module** — `TargetAllowList: ["Server"]` keeps the plugin out
+  of client and editor builds.
+- **Vendored + pinned** — an unmodified upstream mirror; see `VENDORING.md` for
+  the upstream pin and resync steps.
+
+## FAQ
+
+**What is the Agones Unreal SDK plugin?**
+It is a pristine vendored mirror of the upstream googleforgames/agones Unreal SDK
+(`release-1.58.0`, Apache-2.0), pinned for the KBVE dedicated-server stack. It
+wraps the Agones sidecar REST API so an Unreal dedicated server can register
+itself with an Agones Fleet.
+
+**How does the plugin manage the GameServer lifecycle?**
+The `UAgonesSubsystem` auto-connects on dedicated-server builds. It polls
+`/gameserver`, calls `/ready`, and pings `/health` against the Agones sidecar so
+the server binary becomes allocatable and stays healthy under a Fleet.
+
+**Is the Agones plugin compiled into client or editor builds?**
+No. The module declares `TargetAllowList: ["Server"]`, so it is only built into
+dedicated-server targets and never into client or editor builds.
+
+## Related
+
+- [KBVEAgones](/docs/project/kbveagones) — the KBVE-specific ROWS wiring layered on top of this vendored SDK.
+- [KBVEROWS](/docs/project/kbverows) — Rust Open World Server backend integration for UE5.

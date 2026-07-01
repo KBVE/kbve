@@ -1,7 +1,7 @@
 ---
-title: Memes
-description: |
-    Memes application for KBVE.
+title: Memes — meme.sh Axum + Astro Web Service on Kubernetes
+description: Memes is the KBVE web service behind meme.sh, built from an axum + Askama Rust backend and an Astro static frontend, packaged as kbve/memes on a Cilium gateway.
+sem: 1
 sidebar:
     label: Memes
     order: 50
@@ -29,6 +29,14 @@ kube:
     tier: web
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is the Memes application?
+          answer: Memes is the KBVE web service serving meme.sh and www.meme.sh. It is built from apps/memes/axum-memes (a Rust backend with Askama templates) plus the apps/memes/astro-memes static frontend, packaged into the kbve/memes image.
+        - question: How does traffic reach the Memes service?
+          answer: Public traffic enters via Cloudflare, CNAMEs to gateway.kbve.com, hits the Cilium gateway LB, then the kbve-gateway https-memes listener (cert memes-tls covering meme.sh and www.meme.sh), routes through memes-route, and lands on memes-service:4321.
+        - question: Why should apex and www not be split across gateway listeners?
+          answer: Cilium derives the Envoy filter chain SNI list from the cert SAN, not the listener hostname. Two listeners sharing one multi-SAN cert emit duplicate filter chain matches, which Envoy rejects, causing a fall-through 404. Use one listener with the apex hostname and let the HTTPRoute enumerate every hostname.
 ---
 
 ## Overview
@@ -61,3 +69,26 @@ A second-order victim was ACME HTTP-01 — `cm-acme-http-solver-*` HTTPRoutes sh
 4. Collapse to one listener (this PR's fix), reapply via ArgoCD, and `kubectl rollout restart -n kube-system ds/cilium-envoy` to flush the stale filter chains.
 5. The stuck `cm-acme-http-solver-*` HTTPRoutes drain automatically once the cert can validate; if they don't, `kubectl delete httproute -l acme.cert-manager.io/http01-solver -n memes` to force cert-manager to recreate fresh ones.
 6. Re-curl `meme.sh` — should return 200.
+
+## FAQ
+
+**What is the Memes application?**
+Memes is the KBVE web service serving meme.sh and www.meme.sh. It is built from
+`apps/memes/axum-memes` (a Rust backend with Askama templates) plus the
+`apps/memes/astro-memes` static frontend, packaged into the `kbve/memes` image.
+
+**How does traffic reach the Memes service?**
+Public traffic enters via Cloudflare, CNAMEs to `gateway.kbve.com`, hits the
+Cilium gateway LB, then the `kbve-gateway` `https-memes` listener (cert
+`memes-tls` covering meme.sh and www.meme.sh), routes through `memes-route`, and
+lands on `memes-service:4321`.
+
+**Why should apex and www not be split across gateway listeners?**
+Cilium derives the Envoy filter chain SNI list from the cert SAN, not the
+listener hostname. Two listeners sharing one multi-SAN cert emit duplicate filter
+chain matches, which Envoy rejects, causing a fall-through 404. Use one listener
+with the apex hostname and let the HTTPRoute enumerate every hostname.
+
+## Related
+
+- [Firecracker Node Web](/docs/project/firecracker-node-web) — sibling Docker-pipeline service in the KBVE stack.

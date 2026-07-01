@@ -1,7 +1,7 @@
 ---
-title: Chisel Ubuntu Axum
-description: |
-    Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services. Includes jemalloc, libpq, and CA certificates.
+title: Chisel Ubuntu Axum — Minimal Runtime Base Image
+description: Shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services, bundling jemalloc, libpq5, and CA certificates in a scratch-based image.
+sem: 1
 sidebar:
     label: Chisel Base
     order: 900
@@ -23,6 +23,14 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is the chisel-ubuntu-axum base image?
+          answer: It is a shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum services, built with Canonical's chisel so it contains only the runtime libraries — jemalloc, libpq5, and CA certificates — on a scratch-based, shell-less rootfs.
+        - question: Why use a chiseled image instead of full Ubuntu?
+          answer: Chisel slices Ubuntu packages into minimal filesystem layers, extracting only the exact files needed. This yields a much smaller image than the ~80MB+ full Ubuntu base and removes the shell and package manager, shrinking the attack surface.
+        - question: How does it simplify service Dockerfiles?
+          answer: Services reference it as their runtime base with FROM ghcr.io/kbve/chisel-ubuntu-axum, which eliminates about three build stages (chisel, jemalloc, libpq) per service and saves build time and disk space in CI.
 ---
 
 ## Chisel Ubuntu Axum
@@ -67,3 +75,27 @@ This eliminates ~3 Docker stages (chisel + jemalloc + libpq) from each service D
 | `axum-herbmail` | planned |
 | `axum-chuckrpg` | planned |
 | `axum-cryptothrone` | planned |
+
+## FAQ
+
+**What is the chisel-ubuntu-axum base image?**
+It is a shared chiseled Ubuntu 24.04 runtime base image for all KBVE Axum
+services, built with Canonical's chisel so it contains only the runtime
+libraries — jemalloc, libpq5, and CA certificates — on a scratch-based,
+shell-less rootfs.
+
+**Why use a chiseled image instead of full Ubuntu?**
+Chisel slices Ubuntu packages into minimal filesystem layers, extracting only
+the exact files needed. This yields a much smaller image than the ~80MB+ full
+Ubuntu base and removes the shell and package manager, shrinking the attack
+surface.
+
+**How does it simplify service Dockerfiles?**
+Services reference it as their runtime base with `FROM
+ghcr.io/kbve/chisel-ubuntu-axum`, which eliminates about three build stages
+(chisel, jemalloc, libpq) per service and saves build time and disk space in CI.
+
+## Related
+
+- [API](/docs/project/api) — Axum service that runs on this runtime base.
+- [Herbmail](/docs/project/herbmail) — another KBVE Axum service targeting this image.

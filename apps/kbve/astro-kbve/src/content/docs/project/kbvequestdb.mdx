@@ -1,7 +1,7 @@
 ---
-title: KBVEQuestDB
-description: |
-    Game-agnostic quest database loader — loads the shared questdb artifact into runtime quest defs (objectives, rewards, prerequisites, chain) with ref lookup.
+title: KBVEQuestDB — Quest Database Loader for Unreal
+description: Game-agnostic Unreal quest database loader reading the shared questdb artifact into runtime quest defs — objectives, rewards, prerequisites, and chains.
+sem: 1
 sidebar:
     label: KBVEQuestDB
     order: 77
@@ -24,11 +24,66 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does KBVEQuestDB do?
+          answer: It is a game-agnostic quest catalog loader that reads the shared questdb-data.json artifact into FKBVEQuestDef records — objectives, rewards, category, and chain — with ref lookup.
+        - question: Does KBVEQuestDB track quest progress?
+          answer: No. It loads static quest definitions only; quest progress and state stay game-side. It mirrors the itemdb and npcdb loader pattern.
+        - question: What are its dependencies and requirements?
+          answer: It depends on KBVEYYJson for JSON parsing and targets Unreal Engine 5.4+ on Win64, Linux, and Mac.
 ---
 
 ## Overview
 
-Game-agnostic quest catalog. `UKBVEQuestDatabase` (GameInstance subsystem) loads
+Game-agnostic quest catalog. `UKBVEQuestDatabase` (a GameInstance subsystem) loads
 `Content/Data/questdb-data.json` into `FKBVEQuestDef` records (objectives, rewards,
-category, chain), ref lookup. Quest progress/state is game-side. Mirrors the
-itemdb/npcdb loader pattern.
+category, chain) with ref lookup. Quest progress and state stay game-side. It
+mirrors the itemdb/npcdb loader pattern and depends on **KBVEYYJson** for parsing.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEQuestDB` |
+| **Version** | 0.1.0 (beta) |
+| **Engine** | Unreal Engine 5.4+ |
+| **Platforms** | Win64, Linux, Mac |
+| **License** | KBVE |
+| **Depends on** | KBVEYYJson |
+| **Source** | [`packages/unreal/KBVEQuestDB`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEQuestDB) |
+
+## Features
+
+- **GameInstance subsystem** — `UKBVEQuestDatabase` loads at game-instance scope.
+- **Data-driven defs** — parses `questdb-data.json` into `FKBVEQuestDef` records.
+- **Rich quest shape** — objectives, rewards, category, and chain per quest.
+- **Ref lookup** — resolve quest definitions by reference.
+- **Consistent pattern** — mirrors the itemdb / npcdb loaders.
+
+## Usage
+
+Enable `KBVEQuestDB` (and its KBVEYYJson dependency) in your `.uproject`, ship the
+questdb artifact to `Content/Data/questdb-data.json`, then query the
+`UKBVEQuestDatabase` subsystem for quest defs by ref. Progress is tracked by the game.
+
+## FAQ
+
+**What does KBVEQuestDB do?**
+It is a game-agnostic quest catalog loader that reads the shared
+`questdb-data.json` artifact into `FKBVEQuestDef` records — objectives, rewards,
+category, and chain — with ref lookup.
+
+**Does KBVEQuestDB track quest progress?**
+No. It loads static quest definitions only; quest progress and state stay
+game-side. It mirrors the itemdb and npcdb loader pattern.
+
+**What are its dependencies and requirements?**
+It depends on KBVEYYJson for JSON parsing and targets Unreal Engine 5.4+ on
+Win64, Linux, and Mac.
+
+## Related
+
+- [KBVEYYJson](/docs/project/kbveyyjson) — JSON parsing dependency.
+- [KBVENpcDB](/docs/project/kbvenpcdb) — sibling NPC database loader.
+- [KBVEItemDB](/docs/project/kbveitemdb) — sibling item database loader.

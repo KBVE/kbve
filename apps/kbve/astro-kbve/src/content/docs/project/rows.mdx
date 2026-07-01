@@ -1,7 +1,7 @@
 ---
-title: ROWS
-description: |
-    ROWS (Rust OWS) — single-binary game backend combining REST + gRPC in one service. Replaces the multi-service .NET OWS stack with a unified Rust implementation.
+title: ROWS — Single-Binary Rust Open World Server (REST + gRPC)
+description: ROWS (Rust OWS) is a single-binary Rust game backend combining REST and gRPC, replacing the multi-service .NET OWS stack with one multi-tenant service.
+sem: 1
 sidebar:
     label: ROWS
     order: 66
@@ -25,6 +25,14 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: beta
+jsonld:
+    faq:
+        - question: What is ROWS?
+          answer: ROWS (Rust Open World Server) is a single-binary Rust reimplementation of the OWS game backend. It consolidates the five .NET microservices (PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, Management) into one service exposing both REST (Axum) and gRPC (Tonic) on a single multiplexed port.
+        - question: How is ROWS multi-tenant?
+          answer: ROWS is multi-tenant by deployment but single-tenant by process — one process per game plus environment, pinning its customer_guid from OWS_API_KEY at boot. A shared Postgres DB is isolated by the customerguid column, and middleware rejects requests whose X-CustomerGUID differs from the process tenant.
+        - question: How does authentication work in ROWS?
+          answer: ROWS has three identities — tenant (customer_guid from OWS_API_KEY), player (Supabase UUID via a validated HS256 JWT), and trusted server (a service key argon2-verified against SUPABASE_SERVICE_KEY_HASH). Server-write endpoints require the service key; world-IP requests require a confirmed player login.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -242,3 +250,19 @@ GET /api/System/SeedRegistry
 | **Phase 5** | Zone portals — client-side travel between seed-based zones | OWS travel flow |
 | **Phase 6** | Dynamic instances — player-triggered dungeons with random seeds | Instance lifecycle |
 | **Phase 7** | Seed registry API — admin tools for zone management | Dashboard integration |
+
+## FAQ
+
+**What is ROWS?**
+ROWS (Rust Open World Server) is a single-binary Rust reimplementation of the OWS game backend. It consolidates the five .NET microservices (PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, Management) into one service exposing both REST (Axum) and gRPC (Tonic) on a single multiplexed port.
+
+**How is ROWS multi-tenant?**
+ROWS is multi-tenant by deployment but single-tenant by process — one process per game plus environment, pinning its `customer_guid` from `OWS_API_KEY` at boot. A shared Postgres DB is isolated by the `customerguid` column, and middleware rejects requests whose `X-CustomerGUID` differs from the process tenant.
+
+**How does authentication work in ROWS?**
+ROWS has three identities — tenant (`customer_guid` from `OWS_API_KEY`), player (Supabase UUID via a validated HS256 JWT), and trusted server (a service key argon2-verified against `SUPABASE_SERVICE_KEY_HASH`). Server-write endpoints require the service key; world-IP requests require a confirmed player login.
+
+## Related
+
+- [KBVEROWS](/docs/project/kbverows) — the Unreal Engine REST client plugin for ROWS.
+- [KBVEAgones](/docs/project/kbveagones) — registers UE dedicated-server instances with ROWS.

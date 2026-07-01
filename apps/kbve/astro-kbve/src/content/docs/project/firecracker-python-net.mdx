@@ -1,7 +1,7 @@
 ---
-title: Firecracker Python Net
-description: |
-    Network-capable Alpine + Python rootfs for the staff-side firecracker-ctl-net deployment. Bakes requests, httpx, urllib3, certifi, ca-certificates, and a resolv.conf with public DNS.
+title: Firecracker Python Net — Network Alpine Python Rootfs
+description: Network-capable Alpine + Python rootfs image for the staff-side firecracker-ctl-net deployment, baking requests, httpx, certifi, CA bundle, and public DNS.
+sem: 1
 sidebar:
     label: FC Python Net
     order: 55
@@ -30,6 +30,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+jsonld:
+    faq:
+        - question: What is the Firecracker Python Net image?
+          answer: It is a network-capable Alpine 3.21 plus Python 3.12 rootfs image for the staff-side firecracker-ctl-net deployment. It bakes in requests, httpx, urllib3, certifi, the CA-certificates bundle, and a resolv.conf pointing at public DNS.
+        - question: How is Firecracker Python Net different from alpine-python?
+          answer: The alpine-python rootfs used by the public quick-mode firecracker-ctl VMs ships with no network, no DNS, and no requests, keeping sandboxes egress-free. Firecracker Python Net is the opposite, with TAP networking via Gluetun/WireGuard, DNS, and HTTP libraries baked in for the staff persistent deployment.
+        - question: How is the Firecracker Python Net rootfs built and delivered?
+          answer: It is a multi-stage Docker image whose final Alpine layer ships a cp entrypoint, so an in-cluster stage Job runs the image directly and copies /rootfs.ext4 onto the firecracker rootfs PVC.
 ---
 
 ## Overview
@@ -69,3 +77,25 @@ npx nx run firecracker-python-net:container:production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-net:latest` and `:<version>`.
+
+## FAQ
+
+**What is the Firecracker Python Net image?**
+It is a network-capable Alpine 3.21 plus Python 3.12 rootfs image for the
+staff-side `firecracker-ctl-net` deployment. It bakes in requests, httpx, urllib3,
+certifi, the CA-certificates bundle, and a `resolv.conf` pointing at public DNS.
+
+**How is Firecracker Python Net different from alpine-python?**
+The `alpine-python` rootfs used by the public quick-mode `firecracker-ctl` VMs
+ships with no network, no DNS, and no requests, keeping sandboxes egress-free.
+Firecracker Python Net is the opposite, with TAP networking via Gluetun/WireGuard,
+DNS, and HTTP libraries baked in for the staff persistent deployment.
+
+**How is the Firecracker Python Net rootfs built and delivered?**
+It is a multi-stage Docker image whose final Alpine layer ships a `cp` entrypoint,
+so an in-cluster stage Job runs the image directly and copies `/rootfs.ext4` onto
+the firecracker rootfs PVC.
+
+## Related
+
+- [Metrics](/docs/project/metrics) — Dockerized Rust service in the same infrastructure family.

@@ -1,7 +1,7 @@
 ---
-title: Edge Functions
-description: |
-    Supabase edge functions for KBVE services.
+title: Edge Functions — Supabase Deno Workers and Firecracker
+description: KBVE Supabase edge functions running as isolated Deno V8 workers, with a two-tier isolation model that dispatches heavier workloads to Firecracker microVMs.
+sem: 1
 sidebar:
     label: Edge
     order: 53
@@ -23,6 +23,14 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What are KBVE edge functions?
+          answer: They are Supabase edge functions built on supabase/edge-runtime, where each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout. The main router handles JWT verification, per-function env allowlisting, and worker dispatch.
+        - question: What is the two-tier isolation model?
+          answer: Tier 1 is Deno V8 isolates (~10ms boot) for standard TypeScript edge functions. Tier 2 is Firecracker microVMs (~125ms boot) for arbitrary binaries, untrusted code, or long-running processes needing OS-level isolation. A VM crash never affects edge function availability.
+        - question: How do edge functions dispatch a Firecracker microVM?
+          answer: Functions call the shared firecracker.ts client's runVM helper, which dispatches to the Firecracker service over an internal REST API with a rootfs image, vCPU/memory limits, timeout, entrypoint, and env, then returns stdout, stderr, exit code, and duration.
 ---
 
 ## Overview
@@ -150,3 +158,19 @@ All manifests live in `apps/kube/firecracker/manifests/`:
 - **Phase 2** (current) — Environment wiring, documentation, deployment integration
 - **Phase 3** — E2E tests, ClickHouse monitoring, KEDA autoscaling
 - **Phase 4** — TAP networking, warm VM pool, multi-node scheduling
+
+## FAQ
+
+**What are KBVE edge functions?**
+They are Supabase edge functions built on `supabase/edge-runtime`, where each function runs as an isolated Deno V8 worker with 150 MB memory and a 60-second timeout. The main router handles JWT verification, per-function env allowlisting, and worker dispatch.
+
+**What is the two-tier isolation model?**
+Tier 1 is Deno V8 isolates (~10ms boot) for standard TypeScript edge functions. Tier 2 is Firecracker microVMs (~125ms boot) for arbitrary binaries, untrusted code, or long-running processes needing OS-level isolation. A VM crash never affects edge function availability.
+
+**How do edge functions dispatch a Firecracker microVM?**
+Functions call the shared `firecracker.ts` client's `runVM` helper, which dispatches to the Firecracker service over an internal REST API with a rootfs image, vCPU/memory limits, timeout, entrypoint, and env, then returns stdout, stderr, exit code, and duration.
+
+## Related
+
+- [ROWS](/docs/project/rows) — a KBVE game backend that also runs on the cluster.
+- [Kilobase](/docs/project/kilobase) — the Supabase/Postgres data layer behind these functions.

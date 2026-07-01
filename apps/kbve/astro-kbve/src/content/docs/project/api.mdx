@@ -1,7 +1,7 @@
 ---
-title: API
-description: |
-    KBVE API - Central API for KBVE Projects.
+title: KBVE API — Central Multi-Tenant API Service
+description: KBVE API is the central multi-tenant API for KBVE projects, a Rust/axum service (axum-kbve) with Supabase-backed auth and a SQL database.
+sem: 1
 sidebar:
     label: API
     order: 2
@@ -24,6 +24,14 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is the KBVE API?
+          answer: The KBVE API is the central multi-tenant API for KBVE projects, implemented as the axum-kbve Rust service. It exposes shared endpoints for auth and data and is built on Supabase, with reference documentation aimed at onboarding new developers.
+        - question: What technologies power the KBVE API?
+          answer: The API is written in Rust (axum-kbve) with Python tooling and a SQL database, and it builds on Supabase, Strapi, and Appwrite as reference frameworks for the multi-tenant surface.
+        - question: How is the KBVE API deployed?
+          answer: It runs in production in the kbve namespace as the kbve/kbve image, deployed via apps/kube/kbve/manifest/kbve-deployment.yaml, with an axum-kbve-e2e test suite gating releases.
 kube:
     stack: application
     environment: prod
@@ -161,3 +169,25 @@ The API is an unique construct that extends outside of the normal universe, the 
 ## Discord.sh
 
 Starting this project next, leaving a basic note.
+
+## FAQ
+
+**What is the KBVE API?**
+The KBVE API is the central multi-tenant API for KBVE projects, implemented as the
+axum-kbve Rust service. It exposes shared endpoints for auth and data and is built
+on Supabase, with reference documentation aimed at onboarding new developers.
+
+**What technologies power the KBVE API?**
+The API is written in Rust (axum-kbve) with Python tooling and a SQL database, and
+it builds on Supabase, Strapi, and Appwrite as reference frameworks for the
+multi-tenant surface.
+
+**How is the KBVE API deployed?**
+It runs in production in the `kbve` namespace as the `kbve/kbve` image, deployed
+via `apps/kube/kbve/manifest/kbve-deployment.yaml`, with an `axum-kbve-e2e` test
+suite gating releases.
+
+## Related
+
+- [Metrics](/docs/project/metrics) — observability service that captures telemetry across KBVE apps.
+- [CryptoThrone.com](/docs/project/cryptothrone) — game backend built on the same axum stack.

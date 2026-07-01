@@ -1,7 +1,7 @@
 ---
-title: KBVEMapDB
-description: |
-    Game-agnostic world/map database loader + Mass integration — loads the shared mapdb artifact into runtime world-object defs (resource nodes, stations) with ref lookup and a world-object Mass fragment.
+title: KBVEMapDB — Unreal World/Map Database + Mass Plugin
+description: KBVEMapDB is a game-agnostic Unreal plugin that loads the shared mapdb artifact into runtime world-object defs with ref lookup and a Mass fragment bridge.
+sem: 1
 sidebar:
     label: KBVEMapDB
     order: 76
@@ -23,12 +23,51 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVEMapDB plugin?
+          answer: KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. The UKBVEMapDatabase GameInstance subsystem loads the shared mapdb-data.json artifact into FKBVEWorldObjectDef records and exposes ref lookup.
+        - question: What world-object data does KBVEMapDB load?
+          answer: It loads FKBVEWorldObjectDef records for resource nodes, containers, and stations, including harvest yield, amount, and time plus spawn weights, from Content/Data/mapdb-data.json.
+        - question: How does KBVEMapDB integrate with Mass?
+          answer: FKBVEWorldObjectFragment and FKBVEWorldObjectTag carry a placed object's identity and harvest state into Mass, so harvestable world entities are driven by the same shared definitions.
 ---
 
 ## Overview
 
-Game-agnostic world/map data + Mass bridge. `UKBVEMapDatabase` (GameInstance
-subsystem) loads `Content/Data/mapdb-data.json` into `FKBVEWorldObjectDef` records
-(resource nodes, containers, stations — harvest yield/amount/time, spawn weights),
-ref lookup. `FKBVEWorldObjectFragment` + `FKBVEWorldObjectTag` carry a placed
-object's identity + harvest state into Mass for harvestable world entities.
+KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. `UKBVEMapDatabase` (a GameInstance subsystem) loads `Content/Data/mapdb-data.json` into `FKBVEWorldObjectDef` records — resource nodes, containers, and stations with harvest yield/amount/time and spawn weights — and exposes ref lookup. `FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry a placed object's identity and harvest state into Mass for harvestable world entities.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEMapDB` |
+| **Version** | 0.1.0 |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | KBVE |
+| **Status** | beta |
+| **Platforms** | Win64, Linux, Mac |
+| **Source** | [`packages/unreal/KBVEMapDB`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEMapDB) |
+
+## Features
+
+- **Game-agnostic loader** — `UKBVEMapDatabase` GameInstance subsystem reads the shared `mapdb-data.json` artifact at runtime.
+- **World-object defs** — `FKBVEWorldObjectDef` records model resource nodes, containers, and stations with harvest yield, amount, time, and spawn weights.
+- **Ref lookup** — resolve placed objects back to their canonical definition by reference.
+- **Mass bridge** — `FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry object identity and harvest state into Mass for harvestable entities.
+
+## FAQ
+
+**What is the KBVEMapDB plugin?**
+KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. The `UKBVEMapDatabase` GameInstance subsystem loads the shared `mapdb-data.json` artifact into `FKBVEWorldObjectDef` records and exposes ref lookup.
+
+**What world-object data does KBVEMapDB load?**
+It loads `FKBVEWorldObjectDef` records for resource nodes, containers, and stations, including harvest yield, amount, and time plus spawn weights, from `Content/Data/mapdb-data.json`.
+
+**How does KBVEMapDB integrate with Mass?**
+`FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry a placed object's identity and harvest state into Mass, so harvestable world entities are driven by the same shared definitions.
+
+## Related
+
+- [KBVETinyBVH](/project/kbvetinybvh) — sibling Unreal plugin from the KBVE package group.
+- [Unreal Chuck Dev](/project/unreal-chuck-dev) — UE5 game client that consumes KBVE Unreal plugins.

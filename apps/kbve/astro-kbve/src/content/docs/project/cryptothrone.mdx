@@ -1,10 +1,7 @@
 ---
-title: CryptoThrone.com
-description: |
-    Join the battle for supremacy in CryptoThrone.com, the ultimate King of the Hill game.
-    Defend the throne against waves of NPCs, build your settlement, and challenge other players to become the ruler.
-    Inspired by epic fantasy and tower defense games, CryptoThrone.com offers a dynamic, strategy-packed gaming experience.
-    Are you ready to claim the throne?
+title: CryptoThrone.com — King of the Hill Strategy Game
+description: CryptoThrone.com is a King of the Hill strategy game where you defend the throne against waves of NPCs, build your settlement, and battle other players.
+sem: 1
 sidebar:
     label: CryptoThrone
     order: 40
@@ -33,6 +30,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is CryptoThrone.com?
+          answer: CryptoThrone.com is a King of the Hill strategy game where players defend the throne against waves of NPCs, build a settlement, and challenge other players to become the ruler. It is inspired by epic fantasy and tower-defense games.
+        - question: How is CryptoThrone.com built and hosted?
+          answer: It is a KBVE game app (apps/cryptothrone) with a Rust axum-cryptothrone backend, deployed to production on the Agones game-server stack via apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml.
+        - question: What genre is CryptoThrone.com?
+          answer: It is a King of the Hill strategy game blending settlement building, tower-defense-style NPC waves, and competitive player-versus-player battles for control of the throne.
 ---
 
 import {
@@ -318,6 +323,28 @@ Future economy work (shops, casino, crafting, fees) must operate on `coin` / `go
 #### Consumers
 
 - **Blackjack table** (`CASINO_TABLE_REF = "cloud-city:casino:6,8"`) settles bets in `coin` only via `spend_coins()` / `coin_balance()` — `packages/rust/simgrid/src/blackjack/system.rs`. No ledger touch.
+
+## FAQ
+
+**What is CryptoThrone.com?**
+CryptoThrone.com is a King of the Hill strategy game where players defend the
+throne against waves of NPCs, build a settlement, and challenge other players to
+become the ruler. It is inspired by epic fantasy and tower-defense games.
+
+**How is CryptoThrone.com built and hosted?**
+It is a KBVE game app (`apps/cryptothrone`) with a Rust `axum-cryptothrone`
+backend, deployed to production on the Agones game-server stack via
+`apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml`.
+
+**What genre is CryptoThrone.com?**
+It is a King of the Hill strategy game blending settlement building,
+tower-defense-style NPC waves, and competitive player-versus-player battles for
+control of the throne.
+
+## Related
+
+- [Unity RareIcon](/docs/project/unity-rareicon) — another KBVE game client.
+- [API](/docs/project/api) — the shared axum API stack that game backends build on.
 
 
 <Giscus />

@@ -1,11 +1,7 @@
 ---
-title: Job Board
-description: |
-    Job Board — a curated, both-sides-vetted freelance platform. Launching in the game-dev
-    vertical, but architected so additional service verticals can be added without schema
-    changes. Sanctioned members post gigs, other sanctioned members take them up. Decoupled
-    Rust/Axum API with first-party auth, served to a separate frontend. Includes the protobuf
-    collection that reuses the existing KBVE protos and adds a new `jobboard` package.
+title: Job Board — Curated Vetted Freelance Platform (Rust/Axum)
+description: Job Board is a curated, both-sides-vetted freelance platform for game dev, with a decoupled Rust/Axum API, Supabase auth, and a vertical-agnostic data model.
+sem: 1
 sidebar:
     label: Job Board
     order: 50
@@ -88,6 +84,14 @@ kube:
     tier: web
     owner: h0lybyte
     criticality: medium
+jsonld:
+    faq:
+        - question: What is the KBVE Job Board?
+          answer: It is a curated, both-sides-vetted freelance platform where sanctioned members post gigs and other sanctioned members take them up. It launches in the game-dev vertical but is architected so additional service verticals can be added as data, without schema or code changes.
+        - question: What is the Job Board's technical architecture?
+          answer: It is a decoupled Rust/Axum REST API served to a separate frontend client. Auth is Supabase (verifying the JWT sub as auth.users.id), DB access is via jedi PgCluster over Postgres, migrations use dbmate, and the wire format is protobuf over the jedi envelope.
+        - question: How does the Job Board add new verticals without schema changes?
+          answer: Disciplines, tools, and skills all live in a taxonomy table scoped by vertical_id rather than a hardcoded enum, and gigs and profiles reference taxonomy ids. Launching a new vertical is a seed-data operation, not a schema or code change.
 ---
 
 import AstroGithubReadme from '@kbve/astro/components/social/github/Readme/AstroGithubReadme.astro';
@@ -437,3 +441,30 @@ Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jo
 - Eventual monetization model (subscription / featured / credits).
 - cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
 - Proto include-path strategy (shared root vs vendor).
+
+* * *
+
+## FAQ
+
+**What is the KBVE Job Board?**
+It is a curated, both-sides-vetted freelance platform where sanctioned members post
+gigs and other sanctioned members take them up. It launches in the game-dev vertical
+but is architected so additional service verticals can be added as data, without
+schema or code changes.
+
+**What is the Job Board's technical architecture?**
+It is a decoupled Rust/Axum REST API served to a separate frontend client. Auth is
+Supabase (verifying the JWT `sub` as `auth.users.id`), DB access is via jedi
+`PgCluster` over Postgres, migrations use dbmate, and the wire format is protobuf
+over the jedi envelope.
+
+**How does the Job Board add new verticals without schema changes?**
+Disciplines, tools, and skills all live in a taxonomy table scoped by `vertical_id`
+rather than a hardcoded enum, and gigs and profiles reference taxonomy ids. Launching
+a new vertical is a seed-data operation, not a schema or code change.
+
+* * *
+
+## Related
+
+- [rows](/project/rows/) — the KBVE multi-tenant Rust/Axum service whose auth and PgCluster patterns the Job Board reuses.

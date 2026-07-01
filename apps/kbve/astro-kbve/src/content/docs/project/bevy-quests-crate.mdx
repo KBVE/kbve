@@ -1,13 +1,14 @@
 ---
-title: uevy quests
-description: |
-    uevy quests — Bevy game crate for the KBVE isometric engine.
+title: bevy_quests — Proto-Driven Quest Registry for Bevy Games
+description: bevy_quests compiles questdb.proto into typed Rust structs and wraps them in a searchable QuestDb Bevy resource queryable by slug, ULID, category, or tags.
+sem: 1
 sidebar:
-    label: uevy quests
+    label: bevy_quests
 tags:
     - crates
     - rust
     - bevy
+    - quests
 key: bevy_quests_crate
 pipeline: crates
 package_name: bevy_quests
@@ -19,8 +20,78 @@ version_toml: packages/rust/bevy/bevy_quests/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_quests crate do?
+          answer: bevy_quests provides proto-driven quest definitions for Bevy games. It compiles questdb.proto into typed Rust structs via prost and wraps them in a searchable QuestDb Bevy resource, so any game can load the same quest registry and query it by slug, ULID, category, or tags.
+        - question: How are quests loaded into a Bevy game?
+          answer: Load from Astro JSON with QuestDb::from_json, from a proto binary with QuestDb::from_bytes, or from decoded proto with QuestDb::from_proto, then insert the resulting QuestDb as a Bevy resource. BevyQuestsPlugin registers an empty QuestDb that games populate during startup.
+        - question: Is bevy_quests tied to a specific game?
+          answer: No. It is game-agnostic. Any game can load the same proto quest registry, since quest content lives in the shared questdb proto rather than in the crate.
 ---
 
 ## Overview
 
-uevy quests Bevy crate.
+`bevy_quests` provides proto-driven quest definitions for [Bevy](https://bevyengine.org/)
+games. It compiles `questdb.proto` into typed Rust structs via `prost` and wraps
+them in a searchable `QuestDb` resource. The crate is game-agnostic — any game
+can load the same proto quest registry and query it by slug, ULID, category, or
+tags. It backs the KBVE isometric engine's quest data.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `bevy_quests` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (edition 2024, Bevy 0.18) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_quests`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_quests) |
+| **Categories** | game-development, game-engines |
+
+## Features
+
+- **Proto-driven** — `build.rs` compiles `questdb.proto` into typed Rust structs
+  with `prost` and `prost-build`.
+- **Searchable registry** — `QuestDb` indexes quests for lookup by slug, ULID,
+  category, or tags.
+- **Multiple loaders** — populate from Astro JSON (`from_json`), a proto binary
+  (`from_bytes`), or decoded proto (`from_proto`).
+- **Bevy plugin** — `BevyQuestsPlugin` registers an empty `QuestDb` resource for
+  games to fill at startup.
+
+## Usage
+
+```rust
+use bevy::prelude::*;
+use bevy_quests::{BevyQuestsPlugin, QuestDb};
+
+fn load_quests(mut commands: Commands) {
+    let json = include_str!("path/to/questdb.json");
+    let db = QuestDb::from_json(json).expect("Failed to parse quest JSON");
+    commands.insert_resource(db);
+}
+```
+
+## FAQ
+
+**What does the bevy_quests crate do?**
+`bevy_quests` provides proto-driven quest definitions for Bevy games. It compiles
+`questdb.proto` into typed Rust structs via `prost` and wraps them in a
+searchable `QuestDb` Bevy resource, so any game can load the same quest registry
+and query it by slug, ULID, category, or tags.
+
+**How are quests loaded into a Bevy game?**
+Load from Astro JSON with `QuestDb::from_json`, from a proto binary with
+`QuestDb::from_bytes`, or from decoded proto with `QuestDb::from_proto`, then
+insert the resulting `QuestDb` as a Bevy resource. `BevyQuestsPlugin` registers
+an empty `QuestDb` that games populate during startup.
+
+**Is bevy_quests tied to a specific game?**
+No. It is game-agnostic. Any game can load the same proto quest registry, since
+quest content lives in the shared questdb proto rather than in the crate.
+
+## Related
+
+- [Isometric](/docs/project/isometric) — the KBVE isometric engine that consumes this quest registry.
+- [bevy_behavior](/docs/project/bevy-behavior-crate) — sibling game-agnostic Bevy crate for NPC behavior trees.

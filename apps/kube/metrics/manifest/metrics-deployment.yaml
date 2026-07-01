@@ -39,7 +39,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: metrics
-                  image: ghcr.io/kbve/metrics:0.1.4
+                  image: ghcr.io/kbve/metrics:0.1.5
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 5500
@@ -49,7 +49,7 @@ spec:
                         protocol: TCP
                   env:
                       - name: APP_VERSION
-                        value: 0.1.4
+                        value: '0.1.5'
                       - name: METRICS_PROMETHEUS_PORT
                         value: '9090'
                       - name: HTTP_HOST

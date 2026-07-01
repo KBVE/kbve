@@ -1,7 +1,7 @@
 ---
-title: KBVESQLite
-description: |
-    SQLite embedded database plugin for Unreal Engine.
+title: KBVESQLite — Embedded SQLite Database Plugin for Unreal
+description: KBVESQLite is an embedded SQLite database plugin for Unreal Engine, vendoring the sqlite3 amalgamation with an RAII connection, statement, and key/value store.
+sem: 1
 sidebar:
     label: KBVESQLite
     order: 93
@@ -23,6 +23,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVESQLite plugin?
+          answer: KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine, bundling a vendored sqlite3 amalgamation with a thin RAII wrapper so consumers never touch raw sqlite3 calls. It exposes FKBVESQLiteConnection, FKBVESQLiteStatement, and a scoped key/value FKBVESettingsStore.
+        - question: Why must KBVESQLite be the single SQLite provider?
+          answer: Consumers must never also link the engine's SQLiteCore in the same module, because duplicate sqlite3 symbols crash the build and run. KBVESQLite is the one sqlite provider for KBVE code.
+        - question: How should KBVESQLite be used in a Mass game loop?
+          answer: It is a persistence boundary, not a Mass hot-loop datasource. A single connection is not thread-safe; WAL allows many readers and one writer across separate connections, so you load at boundaries, keep the working set in memory or Mass fragments, and flush asynchronously.
 ---
 
 ## Overview
@@ -56,3 +64,27 @@ CI plugin build stages it.
 Consumers: `FKBVEWorldChunkCache` (KBVEWorld), `FKBVEInventoryStore` +
 `FKBVEItemCatalogStore` (KBVEItemDB), `FKBVESettingsStore` (chuck `UchuckSettings`
 window geometry, `Saved/KBVE/settings.db`).
+
+## FAQ
+
+**What is the KBVESQLite plugin?**
+KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine, bundling
+a vendored `sqlite3` amalgamation with a thin RAII wrapper so consumers never touch
+raw `sqlite3_*` calls. It exposes `FKBVESQLiteConnection`, `FKBVESQLiteStatement`,
+and a scoped key/value `FKBVESettingsStore`.
+
+**Why must KBVESQLite be the single SQLite provider?**
+Consumers must never also link the engine's `SQLiteCore` in the same module,
+because duplicate `sqlite3_*` symbols crash the build and run. KBVESQLite is the
+one sqlite provider for KBVE code.
+
+**How should KBVESQLite be used in a Mass game loop?**
+It is a persistence boundary, not a Mass hot-loop datasource. A single connection
+is not thread-safe; WAL allows many readers and one writer across separate
+connections, so you load at boundaries, keep the working set in memory or Mass
+fragments, and flush asynchronously.
+
+## Related
+
+- [KBVEItemDB](/docs/project/kbveitemdb) — item database and inventory plugin that persists through KBVESQLite.
+- [KBVEZstd](/docs/project/kbvezstd) — compression plugin in the same Unreal plugin family.

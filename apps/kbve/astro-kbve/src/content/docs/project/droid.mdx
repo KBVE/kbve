@@ -1,12 +1,14 @@
 ---
-title: Droid
-description: |
-    Core utility package for KBVE automation.
+title: "Droid — Web, Shared & Service Worker Manager for JavaScript"
+description: Droid is a lightweight TypeScript library that manages service, shared, and web workers behind a unified API to offload heavy work and background tasks.
+sem: 1
 sidebar:
     label: Droid
     order: 60
 tags:
     - npm
+    - typescript
+    - workers
 key: droid
 pipeline: npm
 package_name: droid
@@ -16,8 +18,72 @@ version_toml: packages/npm/droid/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the Droid package?
+          answer: Droid is a lightweight, framework-agnostic TypeScript library that manages service workers, shared workers, and web workers behind a unified API, simplifying setup, communication, and lifecycle management so apps can offload heavy work off the main thread.
+        - question: Which worker types does Droid support?
+          answer: Droid handles service workers for offline support, shared workers for cross-tab communication, and web workers for parallel processing. It ships prebuilt workers including canvas, IndexedDB, WebSocket, and Supabase shared and DB workers.
+        - question: Does Droid work with React, Vue, or Angular?
+          answer: Yes. Droid is framework-agnostic and works in vanilla JavaScript as well as with React, Vue, or Angular. It uses comlink for worker messaging and dependencies such as dexie, zod, and nanostores under the hood.
 ---
 
 ## Overview
 
-Core utility package for KBVE automation and workflows.
+`@kbve/droid` is a lightweight manager for **service workers, shared workers, and
+web workers** in modern JavaScript and TypeScript apps. It abstracts away the
+boilerplate and browser inconsistencies of worker setup, messaging, and lifecycle
+so developers can offload heavy computation, enable background tasks, and keep the
+main thread responsive. Droid is framework-agnostic — usable from vanilla JS or
+alongside React, Vue, and Angular.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `@kbve/droid` |
+| **Version** | 0.1.1 |
+| **Language** | TypeScript |
+| **License** | MIT |
+| **Source** | [`packages/npm/droid`](https://github.com/KBVE/kbve/tree/main/packages/npm/droid) |
+| **Registry** | npm |
+
+## Features
+
+- **Unified worker API** — register, manage, and message service, shared, and web
+  workers through one consistent interface.
+- **Prebuilt workers** — canvas, IndexedDB (DB), WebSocket, and Supabase shared /
+  DB workers ship as ready exports.
+- **comlink-backed messaging** — ergonomic RPC-style calls into workers instead of
+  raw `postMessage` plumbing.
+- **Framework-agnostic** — works in vanilla JS or with React, Vue, and Angular.
+- **Robust dependency stack** — `dexie` for IndexedDB, `zod` for schema validation,
+  `@nanostores/persistent` for state, and `flatbuffers` for compact payloads.
+
+## Usage
+
+```bash
+npm install @kbve/droid
+```
+
+## FAQ
+
+**What is the Droid package?**
+Droid is a lightweight, framework-agnostic TypeScript library that manages service
+workers, shared workers, and web workers behind a unified API, simplifying setup,
+communication, and lifecycle management so apps can offload heavy work off the main
+thread.
+
+**Which worker types does Droid support?**
+Droid handles service workers for offline support, shared workers for cross-tab
+communication, and web workers for parallel processing. It ships prebuilt workers
+including canvas, IndexedDB, WebSocket, and Supabase shared and DB workers.
+
+**Does Droid work with React, Vue, or Angular?**
+Yes. Droid is framework-agnostic and works in vanilla JavaScript as well as with
+React, Vue, or Angular. It uses comlink for worker messaging and dependencies such
+as dexie, zod, and nanostores under the hood.
+
+## Related
+
+- [Laser](/docs/project/laser) — sibling KBVE npm package for Phaser + React Three Fiber game UIs.

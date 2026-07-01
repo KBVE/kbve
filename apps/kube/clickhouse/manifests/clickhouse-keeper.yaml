@@ -16,6 +16,9 @@ spec:
     templates:
         podTemplates:
             - name: clickhouse-keeper-pod
+              metadata:
+                  annotations:
+                      kbve.com/reconcile-nonce: "2026-07-01"
               spec:
                   containers:
                       - name: clickhouse-keeper

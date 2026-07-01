@@ -1,7 +1,7 @@
 ---
-title: KBVEWorld
-description: |
-    Procedural world toolkit — noise terrain chunks, SQLite chunk cache, async foliage, sky.
+title: KBVEWorld — Procedural World UE Plugin
+description: Unreal Engine procedural world toolkit — noise-driven terrain chunks, SQLite chunk cache, async grass and foliage placement, plus hex-world subsystems.
+sem: 1
 sidebar:
     label: KBVEWorld
     order: 81
@@ -24,8 +24,64 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is KBVEWorld?
+          answer: It is a game-agnostic procedural world toolkit for Unreal Engine — noise-driven terrain chunks, an SQLite chunk cache, async grass and foliage placement, and sky plus post-process defaults.
+        - question: What are the KBVEWorld modules?
+          answer: It ships three runtime modules — KBVEWorldCore (noise and seed), KBVEWorld (terrain, grass, foliage, chunk cache), and KBVEHexWorld (hex-grid world subsystems).
+        - question: What plugins does KBVEWorld depend on?
+          answer: It depends on MassGameplay, ProceduralMeshComponent, and the in-repo KBVESQLite and KBVEPerf plugins.
 ---
 
 ## Overview
 
-Procedural world toolkit — noise terrain chunks, SQLite chunk cache, async foliage, sky.
+`KBVEWorld` is a game-agnostic procedural world toolkit for Unreal Engine. It
+generates noise-driven terrain chunks, caches them in SQLite, places grass and
+foliage asynchronously, and supplies sky plus post-process defaults. It also
+ships a hex-world module for hex-grid worlds.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEWorld` |
+| **Version** | 0.1.0 |
+| **Language** | C++ (Unreal Engine) |
+| **Min engine** | UE 5.4 |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVEWorld`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWorld) |
+| **Depends on** | KBVESQLite, KBVEPerf, MassGameplay, ProceduralMeshComponent |
+| **Platforms** | Win64, Linux, Mac |
+
+## Features
+
+- **Noise-driven terrain** — `KBVEWorldCore` provides seeds and noise; terrain
+  chunk actors build meshes from the sampled heightfield.
+- **SQLite chunk cache** — generated chunks are persisted and rehydrated through
+  the KBVESQLite-backed chunk cache and blob format.
+- **Async grass and foliage** — HISM-based grass and foliage placement with GPU
+  compute-shader placement and render subsystems, kept off the game thread.
+- **Hex world** — `KBVEHexWorld` adds hex-grid noise, seed, terrain, and
+  environment subsystems for hex-tile worlds.
+
+## FAQ
+
+**What is KBVEWorld?**
+It is a game-agnostic procedural world toolkit for Unreal Engine — noise-driven
+terrain chunks, an SQLite chunk cache, async grass and foliage placement, and
+sky plus post-process defaults.
+
+**What are the KBVEWorld modules?**
+It ships three runtime modules — `KBVEWorldCore` (noise and seed), `KBVEWorld`
+(terrain, grass, foliage, chunk cache), and `KBVEHexWorld` (hex-grid world
+subsystems).
+
+**What plugins does KBVEWorld depend on?**
+It depends on `MassGameplay`, `ProceduralMeshComponent`, and the in-repo
+`KBVESQLite` and `KBVEPerf` plugins.
+
+## Related
+
+- [KBVEPostShader](/docs/project/kbvepostshader) — stylized post-process that complements the world sky defaults.
+- [KBVEEvents](/docs/project/kbveevents) — typed event bus used across KBVE Unreal plugins.

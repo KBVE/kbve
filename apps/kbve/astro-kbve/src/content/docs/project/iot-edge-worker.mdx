@@ -1,7 +1,7 @@
 ---
-title: KBVE IoT Edge Worker
-description: |
-    Cloud-init template + bootstrap helper for joining a local dev machine (OrbStack, Lima, UTM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+title: KBVE IoT Edge Worker — WireGuard k8s Node
+description: Cloud-init template and bootstrap helper to join a local dev VM (OrbStack, Lima, UTM) to the KBVE Talos cluster as a remote worker over WireGuard.
+sem: 1
 sidebar:
     label: IoT Edge Worker
     order: 56
@@ -24,6 +24,14 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: beta
+jsonld:
+    faq:
+        - question: What is iot-edge-worker?
+          answer: A cloud-init template plus shell helper that joins a local dev machine (OrbStack, Lima, or UTM VM) to the main KBVE Talos cluster as a remote worker over WireGuard.
+        - question: Does it ship as a binary or Docker image?
+          answer: No. The artifact is the cloud-init template itself, rendered per-laptop and consumed by the VM host at first boot — there is no runtime binary.
+        - question: How are edge workloads kept off normal nodes?
+          answer: The worker is tainted edge=true:NoSchedule and labeled role=edge, so only pods that explicitly tolerate the taint and target the label schedule onto it.
 ---
 
 ## Overview
@@ -147,3 +155,18 @@ spec:
 - Rust CLI (`kbve-edge-bootstrap`) that pulls credentials from Vault/ESO and handles the whole workflow
 - Reconciler on the Talos side that auto-removes stale edge nodes + revokes their wireguard peers
 - Nested-virt Firecracker support (separate project, M3+ only)
+
+## FAQ
+
+**What is iot-edge-worker?**
+A cloud-init template plus shell helper that joins a local dev machine (OrbStack,
+Lima, or UTM VM) to the main KBVE Talos cluster as a remote worker over
+WireGuard.
+
+**Does it ship as a binary or Docker image?**
+No. The artifact is the cloud-init template itself, rendered per-laptop and
+consumed by the VM host at first boot — there is no runtime binary.
+
+**How are edge workloads kept off normal nodes?**
+The worker is tainted `edge=true:NoSchedule` and labeled `role=edge`, so only
+pods that explicitly tolerate the taint and target the label schedule onto it.

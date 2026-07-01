@@ -1,7 +1,7 @@
 ---
-title: Jedi
-description: |
-    Jedi crate for KBVE.
+title: Jedi — Juggernaut Electronic Data Interchange Crate
+description: Jedi is the Juggernaut Electronic Data Interchange (EDI) Rust crate — a data-exchange layer with entity models, JWT/JWKS, RCON, and a shared ClickHouse client.
+sem: 1
 sidebar:
     label: Jedi Crate
     order: 71
@@ -17,8 +17,67 @@ version_toml: packages/rust/jedi/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the Jedi crate?
+          answer: Jedi is the Juggernaut Electronic Data Interchange (EDI) package for KBVE. It provides a robust, scalable data-exchange layer in Rust, with entity models, builders, JWT/JWKS verification, an RCON module, and prost-generated proto types shared across KBVE services.
+        - question: What does the Jedi crate include?
+          answer: Its modules include builder, entity, jwks, jwt_cache, proto, rcon, state, and wrapper. It bundles axum, tokio, reqwest with rustls, dashmap, and optional Postgres and ClickHouse plumbing behind feature flags.
+        - question: Where is the Jedi crate used?
+          answer: Jedi is a shared KBVE crate reused across services — for example the metrics ingest service uses its ClickHouse client to batch telemetry inserts, and auth paths use its JWKS and JWT cache for token verification.
 ---
 
 ## Overview
 
-Jedi crate.
+`jedi` is the **Juggernaut Electronic Data Interchange (EDI)** package for KBVE.
+It provides a robust, scalable data-exchange layer written in Rust, extended
+through the holy crate, and is reused across KBVE services for entity modeling,
+token verification, RCON, and database access. Dry-run for devs:
+`./kbve.sh -nx jedi:dry --no-cloud`.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `jedi` |
+| **Version** | 0.2.2 |
+| **Language** | Rust (edition 2024) |
+| **License** | MIT |
+| **Source** | [`packages/rust/jedi`](https://github.com/KBVE/kbve/tree/main/packages/rust/jedi) |
+| **Homepage** | [kbve.com/application/rust/#jedi](https://kbve.com/application/rust/#jedi) |
+
+## Features
+
+- **Entity + builder models** — `entity`, `builder`, and `state` modules for
+  structured data exchange.
+- **Auth primitives** — `jwks` and `jwt_cache` modules for JWKS-based JWT
+  verification with caching.
+- **RCON** — an `rcon` module for remote console command exchange.
+- **Proto types** — prost / tonic-generated `proto` module shared across
+  services.
+- **Optional database plumbing** — Postgres (`tokio-postgres`, `bb8`) and a
+  ClickHouse client behind feature flags, using `rustls` TLS throughout.
+- **Sanitization** — `ammonia` for HTML/PII cleaning in the exchange path.
+
+## FAQ
+
+**What is the Jedi crate?**
+Jedi is the Juggernaut Electronic Data Interchange (EDI) package for KBVE. It
+provides a robust, scalable data-exchange layer in Rust, with entity models,
+builders, JWT/JWKS verification, an RCON module, and prost-generated proto types
+shared across KBVE services.
+
+**What does the Jedi crate include?**
+Its modules include `builder`, `entity`, `jwks`, `jwt_cache`, `proto`, `rcon`,
+`state`, and `wrapper`. It bundles axum, tokio, reqwest with rustls, dashmap, and
+optional Postgres and ClickHouse plumbing behind feature flags.
+
+**Where is the Jedi crate used?**
+Jedi is a shared KBVE crate reused across services — for example the metrics
+ingest service uses its ClickHouse client to batch telemetry inserts, and auth
+paths use its JWKS and JWT cache for token verification.
+
+## Related
+
+- [Metrics](/docs/project/metrics) — observability service that reuses the Jedi ClickHouse client.
+- [API](/docs/project/api) — the axum-kbve API that builds on shared Rust crates.

@@ -79,6 +79,7 @@ void AchuckSimgridController::BeginPlay()
 	Sub->OnDisconnected.AddDynamic(this, &AchuckSimgridController::HandleDisconnected);
 	Sub->OnEphemeral.AddDynamic(this, &AchuckSimgridController::HandleEphemeral);
 
+	UE_LOG(LogTemp, Warning, TEXT("[SimgridDiag] Controller BeginPlay - connecting to %s"), *ServerUrl);
 	Sub->ConnectToServer(ServerUrl);
 }
 

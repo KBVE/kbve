@@ -1,7 +1,7 @@
 ---
-title: Firecracker Node Web
-description: |
-    Fastify-ready Alpine + Node 22 rootfs for long-lived persistent endpoints deployed through the dashboard IDE. Bakes fastify, undici, zod, pino, and the @fastify ecosystem so VMs boot with the server libraries already on disk.
+title: Firecracker Node Web — Fastify-Ready Alpine Node 22 Rootfs
+description: Fastify-ready Alpine 3.21 + Node 22 Firecracker rootfs for long-lived dashboard IDE endpoints, baking fastify, undici, zod, and pino so VMs boot ready.
+sem: 1
 sidebar:
     label: FC Node Web
     order: 57
@@ -31,6 +31,14 @@ kube:
     tier: web
     owner: h0lybyte
     criticality: medium
+jsonld:
+    faq:
+        - question: What is the Firecracker Node Web rootfs?
+          answer: It is a Fastify-ready Alpine 3.21 + Node.js 22 LTS rootfs used by the staff-side Firecracker deployment (firecracker-ctl-net). It is built as a multi-stage Docker image whose final layer ships a cp entrypoint so an in-cluster stage Job copies /rootfs.ext4 onto the firecracker rootfs PVC.
+        - question: Why bake npm dependencies into the image?
+          answer: This is the long-lived deploy rootfs for Node endpoints submitted through the dashboard IDE, running week-to-month TTL VMs. Paying a build-time npm install is the right tradeoff for instant boot, so fastify, undici, zod, pino, and the @fastify ecosystem ship already resolved into /usr/lib/node_modules.
+        - question: When should I use alpine-node instead?
+          answer: Quick one-shot Node VMs use the smaller alpine-node rootfs plus the shared npm-cache.ext4 drive. Use firecracker-node-web only for long-lived staff endpoints that benefit from pre-baked server libraries.
 ---
 
 ## Overview
@@ -73,3 +81,26 @@ npx nx run firecracker-node-web:container:production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-node-web:latest` and `:<version>`.
+
+## FAQ
+
+**What is the Firecracker Node Web rootfs?**
+It is a Fastify-ready Alpine 3.21 + Node.js 22 LTS rootfs used by the staff-side
+Firecracker deployment (`firecracker-ctl-net`). It is built as a multi-stage
+Docker image whose final layer ships a `cp` entrypoint so an in-cluster stage Job
+copies `/rootfs.ext4` onto the firecracker rootfs PVC.
+
+**Why bake npm dependencies into the image?**
+This is the long-lived deploy rootfs for Node endpoints submitted through the
+dashboard IDE, running week-to-month TTL VMs. Paying a build-time `npm install`
+is the right tradeoff for instant boot, so fastify, undici, zod, pino, and the
+`@fastify` ecosystem ship already resolved into `/usr/lib/node_modules`.
+
+**When should I use alpine-node instead?**
+Quick one-shot Node VMs use the smaller `alpine-node` rootfs plus the shared
+`npm-cache.ext4` drive. Use `firecracker-node-web` only for long-lived staff
+endpoints that benefit from pre-baked server libraries.
+
+## Related
+
+- [Memes](/docs/project/memes) — sibling Docker-pipeline application in the KBVE stack.
