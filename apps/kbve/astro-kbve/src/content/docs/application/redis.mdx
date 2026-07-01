@@ -1,8 +1,10 @@
 ---
 title: Redis
 description: |
-    Redis is an open-source, in-memory data structure store, used as a database, cache, and message broker.
-    Known for its speed and efficiency, Redis supports data structures such as strings, hashes, lists, sets, sorted sets with range queries, bitmaps, hyperloglogs, geospatial indexes, and streams.
+    Redis is an open-source, in-memory data structure store used as a database, cache, and message broker.
+    This guide covers running Redis with Docker Compose, deploying it on Kubernetes as a StatefulSet, and
+    connecting with the redis-cli. Redis supports strings, hashes, lists, sets, sorted sets, bitmaps,
+    hyperloglogs, geospatial indexes, and streams.
 sidebar:
     label: Redis
     order: 1420
@@ -10,6 +12,28 @@ unsplash: 1553413077-190dd305871c
 img: https://images.unsplash.com/photo-1553413077-190dd305871c?fit=crop&w=1400&h=700&q=75
 tags:
     - database
+    - cache
+    - in-memory
+sem: 1
+ogTitle: Redis Guide — Docker Compose, Kubernetes & redis-cli
+ogDescription: Run Redis with Docker Compose, deploy it on Kubernetes as a StatefulSet, and connect using redis-cli. Practical, copy-paste configuration for the in-memory data store.
+jsonld:
+    type: Article
+    keywords:
+        - redis
+        - in-memory database
+        - cache
+        - docker compose
+        - kubernetes statefulset
+    faq:
+        - question: Is Redis a database or a cache?
+          answer: Both. Redis is an in-memory data structure store that can act as a primary database, a cache in front of a slower store, or a message broker. Persistence options (RDB snapshots and AOF logs) let it survive restarts when used as a database.
+        - question: How do I run Redis with Docker Compose?
+          answer: Define a redis service using the official redis image, expose port 6379, pass a password with --requirepass, and mount a named volume at /data for persistence. Then run docker compose up -d.
+        - question: Why deploy Redis as a StatefulSet on Kubernetes?
+          answer: A StatefulSet gives each Redis pod a stable network identity and persistent volume that survive rescheduling. This is required for data durability and for replication, where replicas must reliably find the primary.
+        - question: How do I connect to a Redis instance from the command line?
+          answer: Use redis-cli -h <host> -p <port> -a <password>. Inside Docker, exec into the container first, for example docker exec -it kilobase-redis redis-cli -a redispassword.
 ---
 
 import {
@@ -22,6 +46,10 @@ import {
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+
+## Overview
+
+Redis is an in-memory data structure store used as a cache, database, and message broker. It keeps data in RAM for microsecond reads and writes, with optional disk persistence (RDB snapshots and AOF logs) so data survives restarts. This guide runs Redis three ways — with Docker Compose for local development, on Kubernetes as a StatefulSet for production, and directly through the `redis-cli` for testing and debugging.
 
 ## Information
 
@@ -43,6 +71,26 @@ The real transformation comes in how this integration redefines development work
 With Docker Compose, developers can simulate production-like conditions on their local machines, eliminating the common discrepancies between development and production environments.
 This approach not only improves efficiency and precision during the development phase but also significantly boosts developers' confidence.
 By testing and iterating in an environment that closely mirrors the final production setting, developers can ensure higher quality and reliability in their deployments.
+
+A minimal `docker-compose.yml` runs a password-protected Redis with a persistent volume:
+
+```yaml
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: kilobase-redis
+    command: ["redis-server", "--requirepass", "redispassword", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+```
+
+Bring it up with `docker compose up -d`. The `--appendonly yes` flag enables AOF persistence so data survives container restarts, and the named `redis-data` volume keeps it across `docker compose down`.
 
 ## Redis on Kubernetes
 
@@ -91,3 +139,19 @@ To access the kilobase redis or any docker instance:
 `docker exec -it kilobase-redis redis-cli -a redispassword`
 
 </Aside>
+
+## FAQ
+
+**Is Redis a database or a cache?**
+Both. Redis is an in-memory data structure store that can act as a primary database, a cache in front of a slower store, or a message broker. Persistence options (RDB snapshots and AOF logs) let it survive restarts when used as a database.
+
+**How do I run Redis with Docker Compose?**
+Define a `redis` service using the official `redis` image, expose port `6379`, pass a password with `--requirepass`, and mount a named volume at `/data` for persistence. Then run `docker compose up -d`.
+
+**Why deploy Redis as a StatefulSet on Kubernetes?**
+A StatefulSet gives each Redis pod a stable network identity and persistent volume that survive rescheduling. This is required for data durability and for replication, where replicas must reliably find the primary.
+
+**How do I connect to a Redis instance from the command line?**
+Use `redis-cli -h <host> -p <port> -a <password>`. Inside Docker, exec into the container first, for example `docker exec -it kilobase-redis redis-cli -a redispassword`.
+
+<Adsense />

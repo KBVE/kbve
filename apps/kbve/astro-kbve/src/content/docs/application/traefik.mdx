@@ -1,12 +1,38 @@
 ---
 title: Traefik
 description: |
-    A cloud native application proxy that utilizes a modern HTTP reverse-proxy and load balancer.
+    Traefik is a cloud-native reverse proxy and load balancer with automatic service discovery and Let's Encrypt TLS.
+    This guide covers running Traefik with Docker Compose, patching and installing it on a Kubernetes (k3s) cluster,
+    wiring BasicAuth middleware, and automating Cloudflare DNS challenges for ACME certificates.
 sidebar:
     label: Traefik
     order: 1040
 unsplash: 1524419986249-348e8fa6ad4a
 img: https://images.unsplash.com/photo-1524419986249-348e8fa6ad4a?fit=crop&w=1400&h=700&q=75
+tags:
+    - network
+    - reverse-proxy
+    - kubernetes
+sem: 1
+ogTitle: Traefik Guide — Docker, Kubernetes CRDs, Middleware & Cloudflare TLS
+ogDescription: Configure Traefik as a cloud-native reverse proxy — Docker Compose setup, k3s patching, Custom Resource Definitions, BasicAuth middleware, and automated Cloudflare ACME certificates.
+jsonld:
+    type: Article
+    keywords:
+        - traefik
+        - reverse proxy
+        - kubernetes ingress
+        - middleware
+        - cloudflare acme
+    faq:
+        - question: What is Traefik?
+          answer: Traefik is a cloud-native reverse proxy and load balancer that automatically discovers services from providers like Docker and Kubernetes, and provisions Let's Encrypt TLS certificates without manual configuration.
+        - question: How is Traefik different from Nginx?
+          answer: Traefik discovers routes dynamically from labels and CRDs, so it reconfigures itself as containers start and stop. Nginx uses static config files that require a reload. Traefik also ships automatic ACME TLS, whereas Nginx needs an external tool like certbot.
+        - question: What is a Traefik middleware?
+          answer: Middleware modifies requests or responses as they pass through a router — for example BasicAuth, rate limiting, or header rewrites. On Kubernetes it is a Middleware CRD referenced from an Ingress or IngressRoute by namespace-qualified name.
+        - question: How does Traefik get TLS certificates from Cloudflare?
+          answer: Traefik uses the ACME DNS-01 challenge with Cloudflare's API. You supply a scoped API token (DNS:Edit and Zone:Read) via environment variables, and Traefik creates the required DNS TXT record automatically to prove domain ownership.
 ---
 
 import {
@@ -20,9 +46,23 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-## Information
+## Overview
 
-Traefik is a cloud-hybrid reverse proxy and load balancer that makes deploying, configuring and integrating infrastructure components easy and automatic.
+Traefik is a cloud-native reverse proxy and load balancer that makes deploying, configuring, and integrating infrastructure components easy and automatic. Unlike a static proxy, Traefik discovers services dynamically from providers — Docker labels, Kubernetes CRDs, or file config — and reconfigures its routes as containers start and stop. It also provisions Let's Encrypt TLS certificates automatically.
+
+This guide moves from local to production: run Traefik with Docker Compose, patch and install it on a k3s Kubernetes cluster, attach BasicAuth middleware, and automate Cloudflare DNS challenges for ACME certificates.
+
+<Steps>
+
+1. **Docker** — Stand up Traefik locally with Compose and an `acme.json` for certificates.
+
+2. **Kubernetes** — Install the CRDs and RBAC, then patch the service and add Helm.
+
+3. **Middleware** — Isolate concerns like auth into `Middleware` resources referenced by Ingress.
+
+4. **Cloudflare** — Wire scoped API tokens so Traefik solves the ACME DNS-01 challenge automatically.
+
+</Steps>
 
 ---
 
@@ -40,7 +80,7 @@ Docker Compose - There should be an acme.json file that you create and pass thro
     -   Patch
 
         -   ```shell
-            sudo kubectl patch svc traefik -n kube-system -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'`
+            sudo kubectl patch svc traefik -n kube-system -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'
             ```
 
     -   std output should be `service/traefik patched`
@@ -126,8 +166,38 @@ Docker Compose - There should be an acme.json file that you create and pass thro
 
 ## Config
 
-TODO: Need to migrate the Github Embeds.
+Traefik reads two kinds of configuration: **static** (`traefik.yml`, entrypoints and providers, loaded once at startup) and **dynamic** (routers, services, middleware, hot-reloaded at runtime). For Docker deployments, create the ACME store first so Traefik can persist issued certificates:
 
+```shell
+touch acme.json
+chmod 600 acme.json
+```
+
+<Aside type="caution">
+`acme.json` must be `chmod 600`. Traefik refuses to start if the permissions are too open, since the file holds private keys.
+</Aside>
+
+A minimal static `traefik.yml` enabling the Docker provider and a Let's Encrypt resolver:
+
+```yaml
+entryPoints:
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@kbve.com
+      storage: acme.json
+      dnsChallenge:
+        provider: cloudflare
+```
+
+Mount `acme.json` and `traefik.yml` into the container and pass the Cloudflare token (see [Cloudflare](#cloudflare) below) so the `dnsChallenge` resolver can complete.
 
 ---
 
@@ -182,3 +252,25 @@ Common environmental variable names and their purpose:
 -   `CF_API_KEY` - The Cloudflare API key.
 -   `CF_DNS_API_TOKEN` - The API token with `DNS:Edit` permission.
 -   `CF_ZONE_API_TOKEN` - The API token with `Zone:Read` permission.
+
+<Aside type="tip">
+Prefer the scoped `CF_DNS_API_TOKEN` + `CF_ZONE_API_TOKEN` pair over the legacy global `CF_API_KEY`. A scoped token limits blast radius if leaked, and Cloudflare recommends it for ACME DNS challenges.
+</Aside>
+
+---
+
+## FAQ
+
+**What is Traefik?**
+Traefik is a cloud-native reverse proxy and load balancer that automatically discovers services from providers like Docker and Kubernetes, and provisions Let's Encrypt TLS certificates without manual configuration.
+
+**How is Traefik different from Nginx?**
+Traefik discovers routes dynamically from labels and CRDs, so it reconfigures itself as containers start and stop. [Nginx](/application/nginx/) uses static config files that require a reload. Traefik also ships automatic ACME TLS, whereas Nginx needs an external tool like certbot.
+
+**What is a Traefik middleware?**
+Middleware modifies requests or responses as they pass through a router — for example BasicAuth, rate limiting, or header rewrites. On Kubernetes it is a `Middleware` CRD referenced from an Ingress or IngressRoute by namespace-qualified name.
+
+**How does Traefik get TLS certificates from Cloudflare?**
+Traefik uses the ACME DNS-01 challenge with Cloudflare's API. You supply a scoped API token (`DNS:Edit` and `Zone:Read`) via environment variables, and Traefik creates the required DNS TXT record automatically to prove domain ownership.
+
+<Adsense />

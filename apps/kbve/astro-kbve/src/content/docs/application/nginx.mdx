@@ -1,7 +1,9 @@
 ---
 title: Nginx
 description: |
-    Linux. Da Penguin.
+    Nginx is a high-performance web server, reverse proxy, and load balancer used to serve static content,
+    terminate TLS, and route traffic to upstream applications. This guide covers a minimal server block,
+    a wildcard virtual host, and the KBVE reverse-proxy configuration.
 sidebar:
     label: Nginx
     order: 1041
@@ -10,6 +12,27 @@ img: https://images.unsplash.com/photo-1551609189-eba71b3a8566?fit=crop&w=1400&h
 tags:
     - network
     - webserver
+    - reverse-proxy
+sem: 1
+ogTitle: Nginx Configuration Guide — Reverse Proxy, TLS & Virtual Hosts
+ogDescription: Practical Nginx configuration examples — a minimal server block, wildcard virtual hosts, and a reverse proxy that terminates TLS and forwards to upstream apps.
+jsonld:
+    type: Article
+    keywords:
+        - nginx
+        - reverse proxy
+        - web server
+        - load balancer
+        - tls termination
+    faq:
+        - question: What is Nginx used for?
+          answer: Nginx is a web server that also works as a reverse proxy, load balancer, and TLS terminator. It serves static files directly and forwards dynamic requests to upstream application servers.
+        - question: Where is the main Nginx configuration file?
+          answer: The primary file is /etc/nginx/nginx.conf. Site-specific server blocks usually live in /etc/nginx/conf.d/ or /etc/nginx/sites-available/ and are enabled by symlinking into sites-enabled.
+        - question: How do I reload Nginx without dropping connections?
+          answer: Run nginx -t to validate the configuration, then nginx -s reload (or systemctl reload nginx). A reload applies new config with a graceful worker restart and no dropped connections, unlike a full restart.
+        - question: What is a reverse proxy in Nginx?
+          answer: A reverse proxy accepts client requests and forwards them to one or more backend servers using proxy_pass. Nginx handles TLS, caching, and load balancing in front of the application, which never faces the client directly.
 ---
 
 import {
@@ -23,12 +46,127 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
+
+Nginx is a high-performance web server and reverse proxy. It serves static assets directly from disk, terminates TLS, and forwards dynamic requests to upstream application servers over HTTP or a Unix socket. A single Nginx instance can front dozens of virtual hosts, each defined by a `server` block that matches on `server_name` and port.
+
+This guide walks through three configurations in order of complexity: a minimal single-site block, a wildcard virtual host that serves many subdomains, and the KBVE reverse-proxy pattern that terminates TLS and load-balances upstream containers.
+
+<Aside type="note">
+Nginx loads `/etc/nginx/nginx.conf` at startup. Site blocks are conventionally split into `/etc/nginx/conf.d/*.conf` or `sites-available/` (symlinked into `sites-enabled/`). Always validate with `nginx -t` before reloading.
+</Aside>
+
+<Adsense />
+
+## Configuration Flow
+
+<Steps>
+
+1. **Write a server block** — Define `listen`, `server_name`, and either a `root` (static) or `proxy_pass` (reverse proxy).
+
+2. **Validate the syntax** — Run `nginx -t`. Nginx checks every included file and reports the exact line on error.
+
+3. **Reload gracefully** — Run `nginx -s reload` or `systemctl reload nginx`. Workers restart without dropping active connections.
+
+4. **Verify** — `curl -I https://your-host` confirms the status code, TLS, and upstream headers.
+
+</Steps>
+
 ## Nginx Configuration
 
-This is a default example of a Nginx configuration file.
+This is a default example of an Nginx configuration file. Each `server` block is self-contained; drop it in `conf.d/` and reload.
+
+### Minimal Static Server Block
+
+The simplest useful config: serve static files from a document root over port 80.
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/example;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+`try_files` attempts the exact URI, then the URI as a directory, then returns `404` — this is the correct pattern for a static site and avoids exposing the filesystem.
 
 ### Example WildCard Nginx Configuration
 
+A wildcard `server_name` matches every subdomain, letting one block serve `*.example.com`. The captured subdomain maps to a per-tenant document root.
+
+```nginx
+server {
+    listen 80;
+    server_name ~^(?<sub>.+)\.example\.com$;
+
+    root /var/www/tenants/$sub;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
+
+The named capture `(?<sub>.+)` is reused in `root`, so a request to `alice.example.com` serves `/var/www/tenants/alice`. Pair this with a wildcard TLS certificate (`*.example.com`) to terminate HTTPS for every tenant from one block.
+
 ### Example KBVE Nginx Configuration
+
+The KBVE pattern terminates TLS and reverse-proxies to an upstream application (for example a container listening on `127.0.0.1:8000`). It forwards the original host and client IP so the backend sees real request metadata.
+
+```nginx
+upstream kbve_app {
+    server 127.0.0.1:8000;
+    keepalive 32;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name kbve.com;
+
+    ssl_certificate     /etc/nginx/ssl/kbve.crt;
+    ssl_certificate_key /etc/nginx/ssl/kbve.key;
+
+    location / {
+        proxy_pass http://kbve_app;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+server {
+    listen 80;
+    server_name kbve.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+The second `server` block issues a `301` redirect from HTTP to HTTPS so no plaintext traffic reaches the app. The `upstream` block with `keepalive` reuses backend connections, cutting latency under load.
+
+<Aside type="tip">
+After editing, always run `nginx -t` first. It validates every included file and prints the offending line number on error, so you never reload a broken config into production.
+</Aside>
+
+## FAQ
+
+**What is Nginx used for?**
+Nginx is a web server that also works as a reverse proxy, load balancer, and TLS terminator. It serves static files directly and forwards dynamic requests to upstream application servers.
+
+**Where is the main Nginx configuration file?**
+The primary file is `/etc/nginx/nginx.conf`. Site-specific server blocks usually live in `/etc/nginx/conf.d/` or `/etc/nginx/sites-available/` and are enabled by symlinking into `sites-enabled/`.
+
+**How do I reload Nginx without dropping connections?**
+Run `nginx -t` to validate the configuration, then `nginx -s reload` (or `systemctl reload nginx`). A reload applies new config with a graceful worker restart and no dropped connections, unlike a full restart.
+
+**What is a reverse proxy in Nginx?**
+A reverse proxy accepts client requests and forwards them to one or more backend servers using `proxy_pass`. Nginx handles TLS, caching, and load balancing in front of the application, which never faces the client directly.
 
 <Adsense />

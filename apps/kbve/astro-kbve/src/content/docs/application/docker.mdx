@@ -1,12 +1,38 @@
 ---
 title: Docker
 description: |
-    A hybrid-source application designed to deploy nested-virtual machines that are containerized applications.
+    Docker packages applications and their dependencies into portable containers that run identically across
+    machines. This reference covers the Docker CLI cheatsheet, every Dockerfile instruction (FROM, RUN, CMD,
+    ENTRYPOINT, and more), GPU passthrough, BuildX, WatchTower, and container management scripts.
 sidebar:
     label: Docker
     order: 100
 unsplash: 1605745341112-85968b19335b
 img: https://images.unsplash.com/photo-1605745341112-85968b19335b?fit=crop&w=1400&h=700&q=75
+tags:
+    - containers
+    - devops
+    - virtualization
+sem: 1
+ogTitle: Docker Reference — CLI Cheatsheet, Dockerfile Instructions & BuildX
+ogDescription: A practical Docker reference — the CLI cheatsheet, every Dockerfile instruction explained, GPU passthrough, BuildX multi-arch builds, WatchTower auto-updates, and management scripts.
+jsonld:
+    type: Article
+    keywords:
+        - docker
+        - dockerfile
+        - containers
+        - buildx
+        - docker cli
+    faq:
+        - question: What is the difference between CMD and ENTRYPOINT in a Dockerfile?
+          answer: ENTRYPOINT sets the executable that always runs and is not overridden by arguments passed to docker run. CMD provides default arguments that are easily overridden. Use ENTRYPOINT for the fixed command and CMD for its default flags.
+        - question: What is the difference between ADD and COPY?
+          answer: COPY only copies local files and directories into the image. ADD does the same but also unpacks local tar archives and can fetch remote URLs. Prefer COPY unless you specifically need ADD's extraction behavior.
+        - question: How do I reduce Docker image size?
+          answer: Use a small base image like alpine, combine RUN steps to reduce layers, leverage multi-stage builds to drop build-time dependencies, and add a .dockerignore to keep unneeded files out of the build context.
+        - question: What is Docker BuildX used for?
+          answer: BuildX is Docker's extended build engine built on BuildKit. It enables multi-platform (multi-arch) images, better caching, and building for architectures other than the host, such as arm64 images from an amd64 machine.
 ---
 
 import {
@@ -20,6 +46,11 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
+
+Docker packages an application and its dependencies into a **container** — an isolated, portable unit that runs identically on any machine with a Docker engine. Unlike a full virtual machine, containers share the host kernel, so they start in seconds and use far less memory. A `Dockerfile` describes how to build the image; `docker run` launches a container from it.
+
+This page is a working reference: the [CLI cheatsheet](#cheatsheet) for day-to-day commands, every [Dockerfile instruction](#dockerfile) explained, plus [GPU passthrough](#gpu), [BuildX](#buildx) multi-arch builds, [WatchTower](#watchtower) auto-updates, and management [scripts](#scripts).
 
 ## Tools
 
@@ -801,6 +832,24 @@ This script includes the following enhancements:
 
 Save this script to a file, for example, `docker_manage.sh`, make it executable with `chmod +x docker_manage.sh`, and then run it with `./docker_manage.sh`.
 
+
+---
+
+## FAQ
+
+**What is the difference between CMD and ENTRYPOINT in a Dockerfile?**
+`ENTRYPOINT` sets the executable that always runs and is not overridden by arguments passed to `docker run`. `CMD` provides default arguments that are easily overridden. Use `ENTRYPOINT` for the fixed command and `CMD` for its default flags.
+
+**What is the difference between ADD and COPY?**
+`COPY` only copies local files and directories into the image. `ADD` does the same but also unpacks local tar archives and can fetch remote URLs. Prefer `COPY` unless you specifically need `ADD`'s extraction behavior.
+
+**How do I reduce Docker image size?**
+Use a small base image like `alpine`, combine `RUN` steps to reduce layers, leverage multi-stage builds to drop build-time dependencies, and add a `.dockerignore` to keep unneeded files out of the build context.
+
+**What is Docker BuildX used for?**
+BuildX is Docker's extended build engine built on BuildKit. It enables multi-platform (multi-arch) images, better caching, and building for architectures other than the host, such as `arm64` images from an `amd64` machine.
+
+<Adsense />
 
 ---
 
