@@ -13,13 +13,17 @@ import Hero from '@/components/marketing/Hero.astro';
 import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
 import StatStrip from '@/components/marketing/StatStrip.astro';
 import ProcessSteps from '@/components/marketing/ProcessSteps.astro';
+import TabbedFeatures from '@/components/marketing/TabbedFeatures.astro';
 import LiveFeed from '@/components/marketing/LiveFeed.astro';
 import BentoGrid from '@/components/marketing/BentoGrid.astro';
+import Timeline from '@/components/marketing/Timeline.astro';
 import ProjectGrid from '@/components/marketing/ProjectGrid.astro';
 import LogoCloud from '@/components/marketing/LogoCloud.astro';
+import TeamGrid from '@/components/marketing/TeamGrid.astro';
 import Testimonials from '@/components/marketing/Testimonials.astro';
 import PricingTiers from '@/components/marketing/PricingTiers.astro';
 import FaqAccordion from '@/components/marketing/FaqAccordion.astro';
+import NewsletterCapture from '@/components/marketing/NewsletterCapture.astro';
 import Cta from '@/components/marketing/Cta.astro';
 
 <Hero
@@ -36,7 +40,7 @@ import Cta from '@/components/marketing/Cta.astro';
 
 <StatStrip
 	stats={[
-		{ value: '15', label: 'Marketing sections' },
+		{ value: '19', label: 'Marketing sections' },
 		{ value: '1', label: 'Shared RN core' },
 		{ value: '2', label: 'Targets: web + native' },
 		{ value: '0', label: 'Duplicated styles' },
@@ -69,7 +73,11 @@ import Cta from '@/components/marketing/Cta.astro';
 		{ title: 'BentoGrid', body: 'Mixed-size feature tiles — wide and standard from one flex grid.' },
 		{ title: 'LogoCloud', body: 'A bordered trust strip of tech and brand names.' },
 		{ title: 'PricingTiers', body: 'Plan cards with a highlighted tier and feature checklists.' },
-		{ title: 'FaqAccordion', body: 'Interactive expand/collapse Q&A — the only stateful section.' },
+		{ title: 'FaqAccordion', body: 'Interactive expand/collapse Q&A.' },
+		{ title: 'TabbedFeatures', body: 'Tabbed panel switcher — stateful, one panel at a time.' },
+		{ title: 'Timeline', body: 'Vertical roadmap with a connecting rail and done markers.' },
+		{ title: 'TeamGrid', body: 'Member cards with avatar initials, role, and bio.' },
+		{ title: 'NewsletterCapture', body: 'Email input band with inline thank-you state.' },
 	]}
 />
 
@@ -95,6 +103,16 @@ import Cta from '@/components/marketing/Cta.astro';
 	]}
 />
 
+<TabbedFeatures
+	title="Explore the stack"
+	subtitle="Tap a tab to switch panels — the active panel is client-side state."
+	tabs={[
+		{ label: 'Games', title: 'Multiplayer worlds', body: 'ARPGs, isometric sims, and engine-native titles shipped across web, desktop, and native.', points: ['Server-authoritative sims', 'Agones multiplayer', 'Shared ECS patterns'] },
+		{ label: 'Engines', title: 'Plugins & crates', body: 'Unreal and Unity plugins plus Bevy/Rust crates and a shared component kit.', points: ['KBVE* Unreal plugins', 'Unity DOTS + Burst', 'Reusable RN kit'] },
+		{ label: 'Cloud', title: 'Declarative infra', body: 'Kubernetes, ArgoCD, ClickHouse, and Supabase — production infra, all in the open.', points: ['GitOps via ArgoCD', 'ClickHouse telemetry', 'Postgres-on-CNPG'] },
+	]}
+/>
+
 <LiveFeed
 	title="Signature showpiece"
 	label="kbve — live feed"
@@ -105,6 +123,17 @@ import Cta from '@/components/marketing/Cta.astro';
 		{ label: 'agones · cryptothrone', value: 'ready', status: 'ok' },
 	]}
 	footer="12M events/day · 99.9% uptime"
+/>
+
+<Timeline
+	title="Roadmap"
+	subtitle="A placeholder changelog — the rail connects each milestone."
+	items={[
+		{ when: '2024 · Q1', title: 'Monorepo goes public', body: 'Games, engine plugins, and infra land in one open repo.', done: true },
+		{ when: '2024 · Q3', title: 'Shared RN kit', body: 'One React Native core drives both native and web surfaces.', done: true },
+		{ when: '2025 · Q2', title: 'Marketing section library', body: 'Theme-parity sections shipped through @kbve/rn-astro.', done: true },
+		{ when: 'Next', title: 'Landing assembly', body: 'Compose the sections into the primary marketing page.' },
+	]}
 />
 
 <ProjectGrid
@@ -127,6 +156,17 @@ import Cta from '@/components/marketing/Cta.astro';
 	]}
 />
 
+<TeamGrid
+	title="The collective"
+	subtitle="Placeholder members — swap in real contributors anytime."
+	members={[
+		{ name: 'Maintainer One', role: 'Infra', bio: 'Kubernetes, ArgoCD, and the pipelines that ship it all.', initials: 'M1', href: '/docs/' },
+		{ name: 'Maintainer Two', role: 'Engines', bio: 'Unreal, Unity, and the shared component kit.', initials: 'M2', href: '/gaming/' },
+		{ name: 'Maintainer Three', role: 'Games', bio: 'Server-authoritative worlds and in-game economies.', initials: 'M3', href: '/gaming/' },
+		{ name: 'You', role: 'Contributor', bio: 'Every issue and PR is open — jump in.', initials: '++', href: 'https://github.com/kbve/kbve' },
+	]}
+/>
+
 <PricingTiers
 	title="Sponsor the work"
 	subtitle="Placeholder tiers — the code stays free and open regardless."
@@ -146,6 +186,14 @@ import Cta from '@/components/marketing/Cta.astro';
 		{ q: 'Why client:only for every section?', a: 'RN-Web uses CommonJS require at module load. client:load or client:visible trigger build-time prerender that runs require before the browser is ready, so client:only is required.' },
 		{ q: 'Can I use these components in my own project?', a: 'The kit lives in the public monorepo. Read the docs to see how the barrels split web-safe and native exports.' },
 	]}
+/>
+
+<NewsletterCapture
+	title="Stay in the loop"
+	subtitle="Placeholder capture — wires to a real list later."
+	placeholder="you@example.com"
+	cta="Subscribe"
+	note="No spam. Unsubscribe anytime."
 />
 
 <Cta

@@ -1,0 +1,6 @@
+---
+import { NewsletterCapture } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<NewsletterCapture client:only="react" {...props} />
