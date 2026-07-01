@@ -125,7 +125,7 @@ In `packages/unreal/KBVENet/KBVENet.uplugin`, add to the `Modules` array (after 
 
 Run:
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/apps/rentearth/unreal-rentearth/chuck.uproject" -WaitMutex
+"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/.claude/worktrees/rentearth-arpg-net-phase1/apps/rentearth/unreal-rentearth/rentearth.uproject" -WaitMutex
 ```
 Expected: `Result: Succeeded`; `libUnrealEditor-KBVESimgridRender.dylib` linked.
 
@@ -208,7 +208,7 @@ bool FSimgridCoordsFacingTest::RunTest(const FString& Parameters)
 
 Run:
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/apps/rentearth/unreal-rentearth/chuck.uproject" -WaitMutex
+"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/.claude/worktrees/rentearth-arpg-net-phase1/apps/rentearth/unreal-rentearth/rentearth.uproject" -WaitMutex
 ```
 Expected: FAIL — `SimgridCoords.h` not found / `FSimgridCoords` undefined.
 
@@ -277,7 +277,7 @@ float FSimgridCoords::FacingToYaw(uint8 Facing)
 
 Run:
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" "/Users/alappatel/Documents/GitHub/kbve/apps/rentearth/unreal-rentearth/chuck.uproject" -nullrhi -unattended -nopause -ExecCmds="Automation RunTests KBVE.SimgridRender.Coords; Quit" -TestExit="Automation Test Queue Empty"
+"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" "/Users/alappatel/Documents/GitHub/kbve/.claude/worktrees/rentearth-arpg-net-phase1/apps/rentearth/unreal-rentearth/rentearth.uproject" -nullrhi -unattended -nopause -ExecCmds="Automation RunTests KBVE.SimgridRender.Coords; Quit" -TestExit="Automation Test Queue Empty"
 ```
 Expected: `KBVE.SimgridRender.Coords.Map` and `.Facing` both `Success`.
 
@@ -1499,7 +1499,7 @@ void AchuckSimgridController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 Run:
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/apps/rentearth/unreal-rentearth/chuck.uproject" -WaitMutex
+"/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development -Project="/Users/alappatel/Documents/GitHub/kbve/.claude/worktrees/rentearth-arpg-net-phase1/apps/rentearth/unreal-rentearth/rentearth.uproject" -WaitMutex
 ```
 Expected: `Result: Succeeded`; `libUnrealEditor-KBVESimgridRender.dylib` and the chuck module both link.
 
@@ -1507,7 +1507,7 @@ Expected: `Result: Succeeded`; `libUnrealEditor-KBVESimgridRender.dylib` and the
 
 Run:
 ```bash
-"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" "/Users/alappatel/Documents/GitHub/kbve/apps/rentearth/unreal-rentearth/chuck.uproject" -nullrhi -unattended -nopause -ExecCmds="Automation RunTests KBVE.SimgridRender; Quit" -TestExit="Automation Test Queue Empty"
+"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor-Cmd" "/Users/alappatel/Documents/GitHub/kbve/.claude/worktrees/rentearth-arpg-net-phase1/apps/rentearth/unreal-rentearth/rentearth.uproject" -nullrhi -unattended -nopause -ExecCmds="Automation RunTests KBVE.SimgridRender; Quit" -TestExit="Automation Test Queue Empty"
 ```
 Expected: all `KBVE.SimgridRender.*` tests `Success` (Coords ×2, Interp ×3, World ×1, Reconcile ×2 = 8 pass).
 
