@@ -1,5 +1,4 @@
 using UnrealBuildTool;
-using System.IO;
 
 public class KBVESimgridRender : ModuleRules
 {
@@ -18,10 +17,7 @@ public class KBVESimgridRender : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"KBVEWorldCore",
-			"KBVEWorld",
 			"KBVEGameplay"
 		});
-
-		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "..", "..", "..", "KBVEWorld", "Source", "KBVEWorldCore", "Public"));
 	}
 }
