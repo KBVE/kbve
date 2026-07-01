@@ -1,7 +1,15 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { initObserv } from '@kbve/observ';
 import ReactIsoArpgApp from './game/ReactIsoArpgApp';
 import { setArpgAssetBase } from './game/config';
+
+initObserv({
+	endpoint: 'https://metrics.kbve.com/api/v1/ingest/errors',
+	project: 'arpg',
+	platform: 'web',
+	environment: import.meta.env.MODE,
+});
 
 // Assets (sprites, tilesets) are served from this app's public dir at the site
 // root, the same `/assets/arcade/arpg/...` layout the astro build uses.

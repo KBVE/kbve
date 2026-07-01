@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { KbveUsernameSetup } from '@kbve/astro';
+import { initObserv } from '@kbve/observ';
 import { authBridge, initSupa } from '@/lib/supa';
 import { setCtNetConfig, resolveWsUrl } from '@/lib/net-config';
 import ReactLoginButtons from '../auth/ReactLoginButtons';
 import GameWindowLoader from './GameWindowLoader';
 
 const KBVE_API_BASE = 'https://kbve.com';
+
+initObserv({
+	endpoint: 'https://metrics.kbve.com/api/v1/ingest/errors',
+	project: 'cryptothrone',
+	platform: 'web',
+	environment: import.meta.env.MODE,
+});
 
 type Phase = 'loading' | 'login' | 'username' | 'ready';
 

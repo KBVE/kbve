@@ -22,5 +22,9 @@ export interface ObservConfig {
 	maxBatch?: number;
 	flushIntervalMs?: number;
 	sampleRate?: number;
+	maxBreadcrumbs?: number;
+	captureConsole?: boolean;
+	captureClicks?: boolean;
+	captureFetch?: boolean;
 	beforeSend?: (event: ErrorEvent) => ErrorEvent | null;
 }

@@ -117,6 +117,11 @@ const laserAlias = {
 	replacement: path.join(repoRoot, 'packages/npm/laser/src/index.ts'),
 };
 
+const observAlias = {
+	find: /^@kbve\/observ$/,
+	replacement: path.join(repoRoot, 'packages/npm/observ/src/index.ts'),
+};
+
 const itemdbDataAlias = {
 	find: /^@kbve\/itemdb-data$/,
 	replacement: path.join(
@@ -173,6 +178,7 @@ export default defineConfig(({ mode }) => {
 			],
 			alias: [
 				laserAlias,
+				observAlias,
 				itemdbDataAlias,
 				spelldbDataAlias,
 				itemdbSchemaAlias,
