@@ -58,6 +58,7 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss(), ...coveragePlugins],
+		esbuild: { keepNames: true },
 		resolve: {
 			dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
 		},
