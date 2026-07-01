@@ -27,6 +27,12 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: high
 ---
 
 import {
@@ -268,13 +274,50 @@ Seasonal events and updates are planned, and a long-term roadmap is developed ba
 
 </Steps>
 
-kube:
-    stack: agones
-    environment: prod
-    tier: api
-    owner: h0lybyte
-    criticality: high
----
+### Coin Economy
+
+CryptoThrone runs an **internal coin economy** — the in-world currency players earn and spend inside the game. It is **fully isolated** from the KBVE account ledger (Khash / Credits). These two must never cross.
+
+#### The currency
+
+Money is inventory items, defined in itemdb (MDX is source of truth):
+
+| Item | ref | key | Stack | buy_price | Notes |
+|------|-----|-----|-------|-----------|-------|
+| Coin | `coin` | 533 | stackable, max 50 | 1 | copper base unit, spendable |
+| Gold Bar | `gold-bar` | 538 | not stackable (max 1) | 150 | high denomination, store of value |
+
+- **Source of truth:** `apps/kbve/astro-kbve/src/content/docs/itemdb/coin.mdx` and `gold-bar.mdx`. Edit MDX, then `nx run astro-kbve:sync:itemdb` — never hand-edit generated JSON/binpb.
+- **Denomination:** `coin` carries `compress: { target_ref: 'gold-bar', ratio: 100 }`. 100 coins = 1 gold bar. Matched server-side by `GOLD_BAR_VALUE = 100` (`packages/rust/simgrid/src/sim.rs`).
+
+#### How it's earned
+
+In `apps/agones/cryptothrone/server/src/game.rs`:
+
+- `GOBLIN_LOOT_REF = "coin"`, `WOLF_LOOT_REF = "coin"` — common mobs drop coins.
+- `BOSS_LOOT_REF = "gold-bar"` — the goblin-general boss drops a gold bar.
+- Ground spawns seed loose coins (e.g. 5× coin at plaza tile `(12, 9)`).
+
+Coins live in the player's **server-side inventory** (simgrid authority), synced to the client via the `InventorySync` ephemeral.
+
+#### Spending & compression
+
+`spend_coins()` (`packages/rust/simgrid/src/sim.rs`) is the single spend path. `coin_balance()` sums coins + gold bars at 100:1 for total spendable value. On shortfall, `spend_coins()` auto-breaks a gold bar into coins — a bet larger than a 50-coin stack transparently consumes multiple stacks or a bar. Compression is opaque to the player: no manual "convert" action.
+
+#### Isolation boundary (enforced)
+
+- **CryptoThrone coins** = in-world inventory items (`coin` / `gold-bar`), authoritative in simgrid, scoped to the game world.
+- **KBVE Khash / Credits** = real account-level balances in the jedi `wallet:*` ledger (`packages/rust/jedi/src/state/`).
+
+No game-side code path reads or writes the jedi wallet, and vice versa. Gambling, drops, and shops touch **only** the coin/gold-bar items. Rationale: keep game-economy inflation and gambling RNG contained to the world; never expose the real account ledger to in-game exploits.
+
+<Aside type="danger" title="Do not cross the boundary">
+Future economy work (shops, casino, crafting, fees) must operate on `coin` / `gold-bar` items only, go through simgrid inventory mutations + `InventorySync`, and respect the 100:1 denomination. Never reach for the jedi `wallet:*` ledger from game code.
+</Aside>
+
+#### Consumers
+
+- **Blackjack table** (`CASINO_TABLE_REF = "cloud-city:casino:6,8"`) settles bets in `coin` only via `spend_coins()` / `coin_balance()` — `packages/rust/simgrid/src/blackjack/system.rs`. No ledger touch.
 
 
 <Giscus />
