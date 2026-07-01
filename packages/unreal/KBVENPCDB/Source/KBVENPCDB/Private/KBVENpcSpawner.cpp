@@ -1,5 +1,6 @@
 #include "KBVENpcSpawner.h"
 
+#include "Engine/World.h"
 #include "MassEntityManager.h"
 #include "MassEntitySubsystem.h"
 
