@@ -13,5 +13,11 @@
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"EnabledByDefault": false,
-	"Modules": [ { "Name": "KBVEQuestDB", "Type": "Runtime", "LoadingPhase": "Default" } ]
+	"Modules": [ { "Name": "KBVEQuestDB", "Type": "Runtime", "LoadingPhase": "Default" } ],
+	"Plugins": [
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		}
+	]
 }
