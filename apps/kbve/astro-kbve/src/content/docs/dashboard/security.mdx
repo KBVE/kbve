@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-30T09:18:32Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-01T09:19:45Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-06-30T09:18:32Z** — updated daily by `ci-dashboard`.
   <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="48 Medium" icon="information">
+  <Card title="49 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="8 Low" icon="approve-check-circle">
@@ -44,7 +44,7 @@ Last generated: **2026-06-30T09:18:32Z** — updated daily by `ci-dashboard`.
     **64** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **53** advisories
+    **54** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 5
     "High" : 25
-    "Medium" : 48
+    "Medium" : 49
     "Low" : 8
 ```
 
@@ -74,7 +74,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 64
-    "Cargo" : 53
+    "Cargo" : 54
     "CodeQL" : 3
 ```
 
@@ -84,11 +84,11 @@ pie showData
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 2 | 25 | 29 | 8 | 64 |
-| **Cargo** | 0 | 0 | 19 | 0 | 53 |
+| **Cargo** | 0 | 0 | 20 | 0 | 54 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 0 | 0 | 3 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 25 | 48 | 8 | 120 |
+| **Total** | 5 | 25 | 49 | 8 | 121 |
 
   </TabItem>
   <TabItem label="npm">
@@ -165,6 +165,7 @@ pie showData
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
+| Medium | `ammonia` | mXSS in ammonia via MathML `annotation-xml` encoding strip |  |
 | Medium | `hickory-proto` | CPU exhaustion during message encoding due to O(n²) name ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp) |
 | Medium | `hickory-proto` | NSEC3 closest-encloser proof validation enters unbounded ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465) |
 | Medium | `postgres-protocol` | Unbounded SCRAM iteration count allows a malicious server... | [Details](https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0) |

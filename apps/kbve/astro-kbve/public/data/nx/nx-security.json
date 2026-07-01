@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-30T09:18:32Z",
+  "generated_at": "2026-07-01T09:19:45Z",
   "summary": {
     "critical": 5,
     "high": 25,
-    "medium": 48,
+    "medium": 49,
     "low": 8,
     "info": 34
   },
@@ -469,15 +469,22 @@
       ]
     },
     "cargo": {
-      "total": 53,
+      "total": 54,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 19,
+        "medium": 20,
         "low": 0,
         "info": 34
       },
       "advisories": [
+        {
+          "id": "RUSTSEC-2026-0193",
+          "title": "mXSS in ammonia via MathML `annotation-xml` encoding strip",
+          "severity": "medium",
+          "package": "ammonia",
+          "url": null
+        },
         {
           "id": "RUSTSEC-2026-0119",
           "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",

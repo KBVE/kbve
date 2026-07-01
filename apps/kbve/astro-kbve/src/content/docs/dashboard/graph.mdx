@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-06-30T09:16:46Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-01T09:17:56Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -26,7 +26,7 @@ Last generated: **2026-06-30T09:16:46Z** — updated daily by `ci-dashboard`.
   <Card title="55 Libs" icon="puzzle">
     arc-runner, aria2-proxy, astro, behavior_statetree, bevy_battle, bevy_behavior + 49 more
   </Card>
-  <Card title="146 Dependencies" icon="random">
+  <Card title="150 Dependencies" icon="random">
     Across 134 projects in the monorepo.
   </Card>
 </CardGrid>
@@ -95,11 +95,13 @@ graph LR
     arpg_server["arpg-server"] --> jedi["jedi"]
     arpg_server["arpg-server"] --> simgrid["simgrid"]
     arpg_web["arpg-web"] --> laser["laser"]
+    arpg_web["arpg-web"] --> observ["observ"]
     astro["astro"] --> droid["droid"]
     astro_chuckrpg["astro-chuckrpg"] --> astro["astro"]
     astro_chuckrpg["astro-chuckrpg"] --> droid["droid"]
     astro_cryptothrone["astro-cryptothrone"] --> astro["astro"]
     astro_cryptothrone["astro-cryptothrone"] --> laser["laser"]
+    astro_cryptothrone["astro-cryptothrone"] --> observ["observ"]
     astro_cryptothrone_e2e["astro-cryptothrone-e2e"] --> astro_cryptothrone["astro-cryptothrone"]
     astro_discordsh["astro-discordsh"] --> astro["astro"]
     astro_discordsh["astro-discordsh"] --> droid["droid"]
@@ -153,6 +155,7 @@ graph LR
     bevy_kbve_net["bevy_kbve_net"] --> bevy_npc["bevy_npc"]
     bevy_kbve_net["bevy_kbve_net"] --> bevy_tasker["bevy_tasker"]
     chuck_launcher["chuck-launcher"] --> kbve_tauri["kbve-tauri"]
+    chuck_launcher["chuck-launcher"] --> observ["observ"]
     cryptothrone_server["cryptothrone-server"] --> jedi["jedi"]
     cryptothrone_server["cryptothrone-server"] --> simgrid["simgrid"]
     devops_e2e["devops-e2e"] --> devops["devops"]
@@ -204,6 +207,7 @@ graph LR
     kbve["kbve"] --> jedi["jedi"]
     kbve_gate["kbve-gate"] --> kbve["kbve"]
     kbve_react_native["kbve-react-native"] --> fx["fx"]
+    kbve_react_native["kbve-react-native"] --> observ["observ"]
     kbve_react_native["kbve-react-native"] --> rn["rn"]
     kbve_wgpu["kbve_wgpu"] --> isometric_game["isometric-game"]
     khashvault["khashvault"] --> droid["droid"]
@@ -252,10 +256,10 @@ graph LR
 | **arpg** | app | `apps/agones/arpg` | 0 | 1 |
 | **arpg-e2e** | e2e | `apps/agones/arpg/arpg-e2e` | 4 | 0 |
 | **arpg-server** | app | `apps/agones/arpg/server` | 5 | 1 |
-| **arpg-web** | app | `apps/agones/arpg/web` | 1 | 1 |
+| **arpg-web** | app | `apps/agones/arpg/web` | 2 | 1 |
 | **astro** | lib | `packages/npm/astro` | 2 | 11 |
 | **astro-chuckrpg** | app | `apps/chuckrpg/astro-chuckrpg` | 2 | 0 |
-| **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 3 | 1 |
+| **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 4 | 1 |
 | **astro-cryptothrone-e2e** | e2e | `apps/cryptothrone/astro-cryptothrone-e2e` | 1 | 0 |
 | **astro-discordsh** | app | `apps/discordsh/astro-discordsh` | 2 | 1 |
 | **astro-e2e** | e2e | `packages/npm/astro-e2e` | 3 | 0 |
@@ -299,7 +303,7 @@ graph LR
 | **bevy_tasker** | lib | `packages/rust/bevy/bevy_tasker` | 0 | 3 |
 | **chat** | lib | `packages/npm/chat` | 0 | 1 |
 | **chisel-ubuntu-axum** | lib | `packages/docker/chisel-ubuntu-axum` | 0 | 0 |
-| **chuck-launcher** | app | `apps/chuckrpg/chuck-launcher` | 1 | 0 |
+| **chuck-launcher** | app | `apps/chuckrpg/chuck-launcher` | 2 | 0 |
 | **core** | lib | `packages/npm/core` | 0 | 2 |
 | **cryptothrone** | app | `apps/cryptothrone` | 0 | 0 |
 | **cryptothrone-server** | app | `apps/agones/cryptothrone/server` | 2 | 0 |
@@ -341,7 +345,7 @@ graph LR
 | **kbve-desktop** | lib | `apps/kbve/desktop-kbve/src-tauri` | 0 | 0 |
 | **kbve-gate** | app | `apps/kbve/kbve-gate` | 1 | 0 |
 | **kbve-kubectl** | app | `apps/vm/kubectl` | 0 | 1 |
-| **kbve-react-native** | app | `apps/kbve/kbve-react-native` | 3 | 0 |
+| **kbve-react-native** | app | `apps/kbve/kbve-react-native` | 4 | 0 |
 | **kbve-spider** | app | `apps/factorio/mods/kbve-spider` | 0 | 0 |
 | **kbve-tauri** | lib | `packages/npm/tauri` | 0 | 1 |
 | **kbve_wgpu** | lib | `packages/rust/kbve_wgpu` | 1 | 0 |
@@ -360,7 +364,7 @@ graph LR
 | **met** | app | `apps/metrics` | 2 | 1 |
 | **metrics-e2e** | e2e | `apps/metrics/e2e` | 1 | 0 |
 | **notification-bot** | app | `apps/discordsh/notification-bot` | 0 | 0 |
-| **observ** | lib | `packages/npm/observ` | 0 | 1 |
+| **observ** | lib | `packages/npm/observ` | 0 | 5 |
 | **pydesk** | app | `apps/pydesk` | 0 | 0 |
 | **python-fudster** | lib | `packages/python/fudster` | 0 | 0 |
 | **python-kbve** | lib | `packages/python/kbve` | 0 | 0 |
@@ -413,11 +417,12 @@ graph LR
 </details>
 
 <details>
-<summary><strong>arpg-web</strong> (1 dep)</summary>
+<summary><strong>arpg-web</strong> (2 deps)</summary>
 
 | Target | Type |
 |--------|------|
 | laser | static |
+| observ | static |
 
 </details>
 
@@ -432,13 +437,14 @@ graph LR
 </details>
 
 <details>
-<summary><strong>astro-cryptothrone</strong> (3 deps)</summary>
+<summary><strong>astro-cryptothrone</strong> (4 deps)</summary>
 
 | Target | Type |
 |--------|------|
 | astro | static |
 | laser | static |
 | laser | dynamic |
+| observ | static |
 
 </details>
 
@@ -590,11 +596,12 @@ graph LR
 </details>
 
 <details>
-<summary><strong>chuck-launcher</strong> (1 dep)</summary>
+<summary><strong>chuck-launcher</strong> (2 deps)</summary>
 
 | Target | Type |
 |--------|------|
 | kbve-tauri | static |
+| observ | static |
 
 </details>
 
@@ -681,11 +688,12 @@ graph LR
 </details>
 
 <details>
-<summary><strong>kbve-react-native</strong> (3 deps)</summary>
+<summary><strong>kbve-react-native</strong> (4 deps)</summary>
 
 | Target | Type |
 |--------|------|
 | fx | static |
+| observ | static |
 | rn | implicit |
 | rn | static |
 
