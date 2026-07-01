@@ -1,5 +1,6 @@
 #include "KBVEEffectComponent.h"
 
+#include "GameFramework/Actor.h"
 #include "KBVEStatTarget.h"
 
 UKBVEEffectComponent::UKBVEEffectComponent()

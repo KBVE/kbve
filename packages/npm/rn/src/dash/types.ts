@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BadgeTone } from '../ui';
+import type { BadgeTone } from './_ui';
 
 /**
  * The generic dashboard contract: `<T> of <t> of <n>`.
@@ -56,6 +56,8 @@ export interface StreamStore<TItem> {
 	subscribe: (listener: () => void) => () => void;
 	/** Current immutable snapshot. */
 	get: () => StreamState<TItem>;
+	/** Cache key prefix this store was created with. */
+	key: string;
 	/** Stable identity for an item — the view keys rows off this. */
 	id: (item: TItem) => string;
 	/** Force a fetch now (bypasses poll cadence; keeps cache write). */

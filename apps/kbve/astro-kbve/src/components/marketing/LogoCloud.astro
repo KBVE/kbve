@@ -1,0 +1,8 @@
+---
+import { LogoCloud } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<LogoCloud client:only="react" {...props} />
+</div>

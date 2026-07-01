@@ -254,6 +254,7 @@ export const collections = {
 				img: z.string().optional(),
 				category: z.string().optional(),
 				tags: z.array(z.string()).optional(),
+				sem: z.number().int().optional(),
 				// Per-page social-meta overrides consumed by
 				// src/components/navigation/Head.astro. Astro silently strips
 				// nested z.object fields imported across zod-package boundaries

@@ -5,13 +5,36 @@ description: |
     Think of it as a backend panel that helps design and manage container infrastructure within Docker and Kubernetes.
     It simplifies the deployment, monitoring, and scaling of containers, making it easier to manage complex infrastructure.
     Thus, with Portainer, teams can streamline their workflows and gain full control over their containerized ecosystem.
+    This guide covers deploying Portainer on Docker, Docker Swarm, and Kubernetes, plus Edge agents and upgrades.
 sidebar:
     label: Portainer
     order: 105
 unsplash: 1544256718-3bcf237f3974
 img: https://images.unsplash.com/photo-1544256718-3bcf237f3974?fit=crop&w=1400&h=700&q=75
 tags:
-    - emulation
+    - containers
+    - devops
+    - kubernetes
+sem: 1
+ogTitle: Portainer Guide — Docker, Swarm & Kubernetes Container Management
+ogDescription: Deploy and manage Portainer across Docker, Docker Swarm, and Kubernetes — CLI and Compose install, Community vs Business Edition, Edge agents, and upgrade strategies.
+jsonld:
+    type: Article
+    keywords:
+        - portainer
+        - docker management
+        - kubernetes dashboard
+        - container management
+        - docker swarm
+    faq:
+        - question: What is Portainer used for?
+          answer: Portainer is a web-based management UI for containers. It gives a visual dashboard to deploy, monitor, and manage Docker, Docker Swarm, and Kubernetes environments without memorizing CLI commands, with role-based access control for teams.
+        - question: What is the difference between Portainer CE and Business Edition?
+          answer: Community Edition (CE) is free and open-source with core container management. Business Edition (BE/EE) is the commercial version that adds RBAC, registry management, and support. BE requires a license key, though a free tier covers up to a small number of nodes.
+        - question: How do I install Portainer on Docker?
+          answer: Create a portainer_data volume, then run the portainer/portainer-ce image with the Docker socket mounted at /var/run/docker.sock and ports 8000 and 9443 published. Portainer's UI is then reachable over HTTPS on port 9443.
+        - question: What is a Portainer Edge agent?
+          answer: The Edge agent connects remote or air-gapped Docker/Kubernetes hosts back to a central Portainer instance using an EDGE_ID and EDGE_KEY over an outbound tunnel. It lets one Portainer manage many distributed environments without exposing each host's API.
 ---
 
 import {
@@ -48,6 +71,35 @@ Whether you're managing a small development environment or a large-scale product
 <Adsense />
 
 ## Docker
+
+Portainer needs two things on Docker: a persistent volume for its own data, and access to the Docker socket so it can manage the engine. You can deploy it with Compose or the raw CLI.
+
+### Compose
+
+The declarative option — save as `docker-compose.yml` and run `docker compose up -d`:
+
+```yaml
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+volumes:
+  portainer_data:
+```
+
+Port `9443` serves the HTTPS UI; `8000` is the tunnel port used by Edge agents. The Docker socket mount is what lets Portainer see and control containers on the host.
+
+<Aside type="caution">
+Mounting `/var/run/docker.sock` grants Portainer root-equivalent control of the host. Restrict who can reach port `9443`, and set a strong admin password on first login — the setup screen locks after a few minutes for security.
+</Aside>
 
 -   For Docker [Compose](/application/portainer#compose)
 
@@ -155,3 +207,21 @@ However these notes are for Portainer Agent 2.16.1 / 11/18/2022. We will update 
 Upgrading Portainer ensures access to the latest features, security patches, and performance improvements.
 Before upgrading, always back up your Portainer data to prevent any potential loss.
 Depending on your environment (Docker, Swarm, or Kubernetes), different upgrade strategies may apply, such as using Docker Compose or Helm charts. It’s recommended to test upgrades in a staging environment before applying them to production. For detailed steps and best practices, refer to the [Official Docs](https://docs.portainer.io/start/upgrade/) on upgrading Portainer.
+
+---
+
+## FAQ
+
+**What is Portainer used for?**
+Portainer is a web-based management UI for containers. It gives a visual dashboard to deploy, monitor, and manage [Docker](/application/docker/), Docker Swarm, and [Kubernetes](/application/kubernetes/) environments without memorizing CLI commands, with role-based access control for teams.
+
+**What is the difference between Portainer CE and Business Edition?**
+Community Edition (CE) is free and open-source with core container management. Business Edition (BE/EE) is the commercial version that adds RBAC, registry management, and support. BE requires a license key, though a free tier covers up to a small number of nodes.
+
+**How do I install Portainer on Docker?**
+Create a `portainer_data` volume, then run the `portainer/portainer-ce` image with the Docker socket mounted at `/var/run/docker.sock` and ports `8000` and `9443` published. Portainer's UI is then reachable over HTTPS on port `9443`.
+
+**What is a Portainer Edge agent?**
+The Edge agent connects remote or air-gapped Docker/Kubernetes hosts back to a central Portainer instance using an `EDGE_ID` and `EDGE_KEY` over an outbound tunnel. It lets one Portainer manage many distributed environments without exposing each host's API.
+
+<Adsense />

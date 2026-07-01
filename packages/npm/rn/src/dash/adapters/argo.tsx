@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
-import { Badge, Stack, Surface, Text, tokens } from '../../ui';
-import type { BadgeTone } from '../../ui';
+import { Badge, Stack, Surface, Text, tokens } from '../_ui';
+import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
 import type { StreamAction, StreamLens, StreamStore } from '../types';
 

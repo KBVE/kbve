@@ -1,12 +1,40 @@
 ---
 title: WireGuard
 description: |
-    A open source communication protocol that implements encrypted virtual private networks.
+    WireGuard is a fast, modern, open-source VPN protocol that builds encrypted point-to-point tunnels with
+    state-of-the-art cryptography and a tiny codebase. This guide covers the core concepts, a basic peer-to-peer
+    setup, a full Kubernetes DaemonSet deployment, Docker, and Netmaker automation.
 sidebar:
     label: WireGuard
     order: 100
 unsplash: 1649429398909-db7ae841c386
 img: https://images.unsplash.com/photo-1649429398909-db7ae841c386?fit=crop&w=1400&h=700&q=75
+tags:
+    - network
+    - vpn
+    - security
+sem: 1
+ogTitle: WireGuard VPN Guide — Peer-to-Peer, Kubernetes & Netmaker
+ogDescription: Set up WireGuard, the fast modern VPN — understand keys and peers, build a basic point-to-point tunnel, deploy it on Kubernetes as a DaemonSet, and automate meshes with Netmaker.
+jsonld:
+    type: Article
+    keywords:
+        - wireguard
+        - vpn
+        - encrypted tunnel
+        - kubernetes networking
+        - netmaker
+    faq:
+        - question: What is WireGuard?
+          answer: WireGuard is an open-source VPN protocol that creates fast, encrypted point-to-point tunnels. It uses modern cryptography, runs in the Linux kernel for high performance, and has a very small codebase — a few thousand lines — which reduces its attack surface.
+        - question: How does WireGuard differ from OpenVPN?
+          answer: WireGuard is far smaller and faster. It runs in the kernel with modern fixed cryptography and connects almost instantly, whereas OpenVPN runs in userspace with configurable ciphers and higher overhead. WireGuard configs are also much simpler.
+        - question: What are AllowedIPs in a WireGuard config?
+          answer: AllowedIPs serves two roles — it defines which source IPs are accepted from a peer (a cryptographic access control list) and which destination IPs are routed through that peer. Setting 0.0.0.0/0 routes all traffic through the tunnel.
+        - question: What is PersistentKeepalive in WireGuard?
+          answer: PersistentKeepalive sends a small packet every N seconds to keep a NAT or firewall mapping open. It is needed when a peer sits behind NAT and must remain reachable; a value of 25 seconds is the common default.
+        - question: What port does WireGuard use?
+          answer: WireGuard uses a single UDP port, 51820 by default, set with ListenPort. Because it is UDP-only, you must allow that port through firewalls like ufw, iptables, or nftables on the server side.
 ---
 
 import {
@@ -29,6 +57,57 @@ Unlike traditional VPN solutions, WireGuard is lightweight, with a minimal codeb
 It is cross-platform, supporting major operating systems like Linux, Windows, macOS, iOS, and Android, and is known for its ease of configuration and seamless integration into existing network infrastructures.
 WireGuard's efficiency and robust security make it an ideal choice for both personal and enterprise use.
 
+## How WireGuard Works
+
+WireGuard connects **peers**, not clients and servers — the model is symmetric. Each peer has a **key pair**: a private key it keeps secret and a public key it shares. A peer accepts an encrypted packet only if it is signed by a known public key listed in its config, so the public keys themselves form the access control list.
+
+Three fields do most of the work in every config:
+
+| Field | Meaning |
+| ----- | ------- |
+| `PrivateKey` | This peer's secret key (from `wg genkey`) |
+| `PublicKey` | The remote peer's public key, under `[Peer]` |
+| `AllowedIPs` | Which IPs are accepted from and routed to that peer |
+| `Endpoint` | The remote peer's reachable `IP:port` |
+| `PersistentKeepalive` | Seconds between keepalives to hold a NAT mapping open |
+
+## Basic Peer-to-Peer Tunnel
+
+Before the Kubernetes deployment, here is the smallest useful setup — two machines linked over a single UDP port. Generate a key pair on **each** peer:
+
+```bash
+umask 077
+wg genkey | tee privatekey | wg pubkey > publickey
+```
+
+Server (`/etc/wireguard/wg0.conf`):
+
+```ini
+[Interface]
+PrivateKey = <Server_Private_Key>
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+PublicKey = <Client_Public_Key>
+AllowedIPs = 10.0.0.2/32
+```
+
+Client (`/etc/wireguard/wg0.conf`):
+
+```ini
+[Interface]
+PrivateKey = <Client_Private_Key>
+Address = 10.0.0.2/24
+
+[Peer]
+PublicKey = <Server_Public_Key>
+Endpoint = server.example.com:51820
+AllowedIPs = 10.0.0.0/24
+PersistentKeepalive = 25
+```
+
+Bring the tunnel up on both ends with `wg-quick up wg0` (and down with `wg-quick down wg0`). Check live status and handshake times with `sudo wg`. Setting the client's `AllowedIPs` to `0.0.0.0/0` instead would route **all** its traffic through the server — a full VPN.
 
 <Steps>
 
@@ -307,3 +386,22 @@ Installing WireGuard on Docker!
     -   `RWX` - `Read Write Many` - Storage instance where many nodes can concurrently read and write to the storage volume.
 
 ---
+
+## FAQ
+
+**What is WireGuard?**
+WireGuard is an open-source VPN protocol that creates fast, encrypted point-to-point tunnels. It uses modern cryptography, runs in the Linux kernel for high performance, and has a very small codebase — a few thousand lines — which reduces its attack surface.
+
+**How does WireGuard differ from OpenVPN?**
+WireGuard is far smaller and faster. It runs in the kernel with modern fixed cryptography and connects almost instantly, whereas OpenVPN runs in userspace with configurable ciphers and higher overhead. WireGuard configs are also much simpler.
+
+**What are `AllowedIPs` in a WireGuard config?**
+`AllowedIPs` serves two roles — it defines which source IPs are accepted from a peer (a cryptographic access control list) and which destination IPs are routed through that peer. Setting `0.0.0.0/0` routes all traffic through the tunnel.
+
+**What is `PersistentKeepalive` in WireGuard?**
+It sends a small packet every N seconds to keep a NAT or firewall mapping open. It is needed when a peer sits behind NAT and must stay reachable; a value of `25` seconds is the common default.
+
+**What port does WireGuard use?**
+WireGuard uses a single UDP port, `51820` by default, set with `ListenPort`. Because it is UDP-only, you must allow that port through firewalls like `ufw`, `iptables`, or `nftables` on the server side.
+
+<Adsense />

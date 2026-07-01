@@ -1,15 +1,41 @@
 ---
 title: Nomad
 description: |
-    Nomad by HashiCorp is an orchestration swiss army knife that makes container management extremely flexible and easy.
+    Nomad by HashiCorp is a lightweight, flexible workload orchestrator that deploys and manages containers,
+    binaries, and batch jobs across a cluster from a single binary. This guide covers the architecture,
+    installation, job specification, and the essential CLI compared to Kubernetes.
 sidebar:
     label: Nomad
     order: 103
 unsplash: 1572511443032-a3cfe6823872
 img: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?fit=crop&w=1400&h=700&q=75
 tags:
-    - network
+    - orchestration
     - cloud
+    - nomad
+sem: 1
+ogTitle: Nomad Guide — HashiCorp Workload Orchestrator, Jobs & CLI
+ogDescription: Learn Nomad, HashiCorp's lightweight workload orchestrator — how it compares to Kubernetes, the client/server architecture, writing a job specification, and the essential nomad CLI commands.
+jsonld:
+    type: Article
+    keywords:
+        - nomad
+        - hashicorp nomad
+        - workload orchestration
+        - container orchestration
+        - nomad vs kubernetes
+        - job scheduler
+    faq:
+        - question: What is HashiCorp Nomad?
+          answer: Nomad is a lightweight, single-binary workload orchestrator from HashiCorp that schedules and manages containers, standalone binaries, Java apps, and batch jobs across a cluster. It pairs naturally with Consul for service discovery and Vault for secrets.
+        - question: How is Nomad different from Kubernetes?
+          answer: Nomad is a single ~100MB binary that orchestrates more than just containers (raw executables, Java, QEMU VMs), with far less operational overhead than Kubernetes. Kubernetes is a larger, container-focused platform with a bigger built-in ecosystem. Nomad favors simplicity and flexible workload types; Kubernetes favors breadth and a rich API surface.
+        - question: What is an allocation in Nomad?
+          answer: An allocation (alloc) is a set of tasks from a job placed and running on a single client node — the rough equivalent of a Pod in Kubernetes. Each allocation gets a unique ID you use to inspect status and stream logs with nomad alloc logs.
+        - question: How many servers does a Nomad cluster need for high availability?
+          answer: A production HA control plane needs an odd number of server nodes to hold quorum, typically 3 or 5. A full HashiCorp stack with Vault and Consul also at HA means 3 instances of each, for 9 total, though Nomad itself can run standalone.
+        - question: What is a Nomad job specification?
+          answer: A job spec is an HCL (or JSON) file that declares what to run — the job, its groups, tasks, driver (docker, exec, java), resources, and count. You submit it with nomad job run, and the scheduler places allocations onto healthy clients that meet the constraints.
 ---
 
 import {
@@ -23,29 +49,144 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
 
-## Information
+**Nomad** is HashiCorp's easy, flexible, and powerful workload orchestrator. It ships as a **single binary** that can schedule and scale containers, plain executables, Java applications, and batch jobs across a cluster — often with a fraction of the operational overhead of Kubernetes.
 
--   Nomad is an easy, flexible and powerful orchestration software that can operate and scale various applications, micro-services and complex architectures.
--   It should be noted that the quorum for HA is 3 separated instances of each: `Vault` , `Consul` and `Nomad`, thus requiring a total of 9 instances.
+Nomad slots into the HashiCorp stack: **Consul** for service discovery, **Vault** for secrets. A production high-availability control plane holds quorum with an odd number of server nodes (3 or 5); a full HA stack of Vault, Consul, and Nomad means 3 instances of each — 9 total — though Nomad runs standalone too.
+
+This guide covers the [architecture](#architecture), [installation](#install), [job specs](#jobs), and the [CLI cheatsheet](#cheatsheet).
 
 <Adsense />
 
+## Architecture
+
+Nomad has two node roles running from the same binary:
+
+| Role | Responsibility |
+| ---- | -------------- |
+| **Server** | Holds cluster state, runs the scheduler, elects a leader via Raft. Run 3 or 5 for HA. |
+| **Client** | Registers with servers, runs allocations, reports health and resource usage. |
+
+Key terms:
+
+- **Job** — your declarative desired state (what to run, how many).
+- **Task** — a single unit of work run by a driver (`docker`, `exec`, `java`, `qemu`).
+- **Group** — a set of tasks scheduled together on one node.
+- **Allocation (alloc)** — a group's tasks placed on a specific client. The rough equivalent of a **Pod** in Kubernetes.
+
 ## Install
 
+Nomad is a single binary — download it or use a package manager.
 
-## Terms
+<Steps>
 
+1. **Install the binary**
 
--   Allocations / alloc - A collection of tasks that run on a node.
-    -   Alias of `Pod` in k8s.
+   ```bash
+   # macOS
+   brew tap hashicorp/tap && brew install hashicorp/tap/nomad
 
+   # Linux (Debian/Ubuntu)
+   wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+   echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+   sudo apt update && sudo apt install nomad
+   ```
+
+2. **Verify the install**
+
+   ```bash
+   nomad version
+   ```
+
+3. **Start a dev agent**
+   A single node acting as both server and client — perfect for local testing.
+
+   ```bash
+   sudo nomad agent -dev
+   ```
+
+   Open the UI at `http://localhost:4646`.
+
+</Steps>
+
+## Jobs
+
+Nomad workloads are declared in an **HCL job specification**. A minimal Docker service:
+
+```hcl
+job "web" {
+  datacenters = ["dc1"]
+  type        = "service"
+
+  group "app" {
+    count = 3
+
+    network {
+      port "http" { to = 8080 }
+    }
+
+    task "server" {
+      driver = "docker"
+
+      config {
+        image = "nginx:alpine"
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+      }
+    }
+  }
+}
+```
+
+Submit and inspect it:
+
+```bash
+nomad job run web.nomad.hcl
+nomad job status web
+```
+
+<Aside type="tip">
+`type = "service"` keeps a job running and reschedules it on failure. Use `type = "batch"` for run-to-completion tasks and `type = "system"` to run one alloc on every client (like a Kubernetes DaemonSet).
+</Aside>
 
 ## Cheatsheet
 
--   `nomad alloc logs {$allocation}`
+| Command | Purpose |
+| ------- | ------- |
+| `nomad agent -dev` | Start a local single-node agent |
+| `nomad job run <file>` | Submit or update a job |
+| `nomad job status <job>` | Show job, group, and allocation state |
+| `nomad alloc logs <alloc>` | Stream logs from an allocation |
+| `nomad alloc logs -f <alloc>` | Follow logs live |
+| `nomad status <id>` | Look up any object by its 8-char ID |
+| `nomad node status` | List client nodes and health |
+| `nomad job stop <job>` | Stop and garbage-collect a job |
+| `nomad server members` | List server peers and the Raft leader |
 
-    -   `{$allocation}` - unique id that is the default reference to a group of tasks within a specific node.
+<Aside type="note">
+The `{$allocation}` ID is a unique reference to a group of tasks on a node; the `{$identifier}` used by `nomad status` is an 8-character alphanumeric prefix — you only need enough characters to be unambiguous.
+</Aside>
 
--   `nomad status {$identifier}`
-    -   `{$identifier}` - The id is an 8 digit alphanumeric reference.
+## FAQ
+
+**What is HashiCorp Nomad?**
+Nomad is a lightweight, single-binary workload orchestrator that schedules and manages containers, standalone binaries, Java apps, and batch jobs across a cluster. It pairs naturally with Consul for service discovery and Vault for secrets.
+
+**How is Nomad different from Kubernetes?**
+Nomad is a single ~100MB binary that orchestrates more than just containers, with far less operational overhead than Kubernetes. Kubernetes is a larger, container-focused platform with a bigger built-in ecosystem. Nomad favors simplicity and flexible workload types; Kubernetes favors breadth.
+
+**What is an allocation in Nomad?**
+An allocation (alloc) is a set of tasks from a job placed and running on a single client node — the rough equivalent of a Pod in Kubernetes. Each allocation gets a unique ID you use to inspect status and stream logs.
+
+**How many servers does a Nomad cluster need for high availability?**
+A production HA control plane needs an odd number of server nodes to hold quorum, typically 3 or 5. A full HashiCorp stack with Vault and Consul also at HA means 3 instances of each, for 9 total.
+
+**What is a Nomad job specification?**
+A job spec is an HCL (or JSON) file that declares what to run — the job, its groups, tasks, driver, resources, and count. You submit it with `nomad job run`, and the scheduler places allocations onto healthy clients that meet the constraints.
+
+<Adsense />

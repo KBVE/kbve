@@ -1,20 +1,53 @@
 ---
 title: React Native on the Web
 description: |
-  Proof of concept rendering @kbve/rn (React Native) components on the web via
-  react-native-web as a Starlight-themed Astro island.
+    A proof of concept rendering @kbve/rn (React Native) components on the web via react-native-web as a
+    Starlight-themed Astro island — sharing one component codebase between the native app and the docs site.
 sidebar:
   label: RN on Web
 tags:
   - react-native
   - web
+  - astro
+sem: 1
+ogTitle: React Native on the Web — react-native-web in an Astro Island
+ogDescription: Proof of concept rendering @kbve/rn React Native components on the web with react-native-web, hydrated as a Starlight-themed Astro client island that tracks light/dark theme tokens.
+jsonld:
+    type: Article
+    keywords:
+        - react native web
+        - react-native-web
+        - astro island
+        - starlight
+        - cross-platform ui
+    faq:
+        - question: What is react-native-web?
+          answer: react-native-web is a library that maps React Native primitives — View, Text, Pressable, StyleSheet — to their DOM equivalents, so the same React Native component code renders in a browser. It is how frameworks like Expo ship a web target from one codebase.
+        - question: How does the @kbve/rn component render inside Astro?
+          answer: The React Native component is aliased to react-native-web and mounted as a client:only Astro island, so it hydrates in the browser rather than at build time. Its colors are wired to Starlight's theme tokens, so it follows the docs site's light and dark modes.
+        - question: Why share one component between native and web?
+          answer: A single @kbve/rn component codebase renders in the native app and in the docs via react-native-web, so a UI primitive is written and styled once, then reused across platforms — reducing drift between the app and its documentation.
 ---
 
 import RnWebDemo from '@/components/rnweb/AstroRnWebDemo.astro';
 
-The block below is the same `@kbve/rn` component the native app renders —
-`View` / `Text` / `Pressable` / `StyleSheet` primitives aliased to
+## Overview
+
+This page is a **proof of concept**: the exact same `@kbve/rn` (React Native) component the native app renders is displayed here on the web via **react-native-web**, hydrated as a Starlight-themed Astro island.
+
+The block below uses `View` / `Text` / `Pressable` / `StyleSheet` primitives aliased to
 `react-native-web` and hydrated as a `client:only` island. Its colors are wired
 to Starlight's theme tokens, so it tracks light/dark with the rest of the docs.
 
 <RnWebDemo />
+
+## FAQ
+
+**What is react-native-web?**
+react-native-web maps React Native primitives — `View`, `Text`, `Pressable`, `StyleSheet` — to their DOM equivalents, so the same React Native component code renders in a browser. It is how frameworks like Expo ship a web target from one codebase.
+
+**How does the `@kbve/rn` component render inside Astro?**
+The component is aliased to react-native-web and mounted as a `client:only` Astro island, so it hydrates in the browser. Its colors are wired to Starlight's theme tokens, so it follows the docs site's light and dark modes.
+
+**Why share one component between native and web?**
+A single `@kbve/rn` component codebase renders in the native app and in the docs via react-native-web, so a UI primitive is written and styled once, then reused across platforms — reducing drift between the app and its documentation.

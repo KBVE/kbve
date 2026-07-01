@@ -1,0 +1,8 @@
+---
+import { PricingTiers } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<PricingTiers client:only="react" {...props} />
+</div>

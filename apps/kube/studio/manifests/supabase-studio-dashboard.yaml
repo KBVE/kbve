@@ -55,12 +55,8 @@ spec:
                         value: http://kong-kong-proxy:80
                       - name: SUPABASE_PUBLIC_URL
                         value: https://supabase.kbve.com
-                      - name: LOGFLARE_URL
-                        value: http://analytics:4000
                       - name: NEXT_PUBLIC_ENABLE_LOGS
-                        value: 'true'
-                      - name: NEXT_ANALYTICS_BACKEND_PROVIDER
-                        value: postgres
+                        value: 'false'
                       # Must pair with POSTGRES_USER_READ_WRITE=supabase_admin — same
                       # superuser secret meta authenticates with (known-good pair).
                       - name: POSTGRES_PASSWORD
@@ -83,11 +79,6 @@ spec:
                             secretKeyRef:
                                 name: supabase-jwt
                                 key: secret
-                      - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
-                        valueFrom:
-                            secretKeyRef:
-                                name: logflare-config
-                                key: private-access-token
                   livenessProbe:
                       httpGet:
                           path: /api/platform/profile

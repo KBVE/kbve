@@ -1,0 +1,8 @@
+---
+import { Timeline } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<Timeline client:only="react" {...props} />
+</div>

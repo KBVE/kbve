@@ -28,6 +28,11 @@ sprite = [
 osrs = [
     "pyyaml>=6.0,<7.0",
 ]
+# Whole-site SEO/SEM auditor (kbve.seo.*). Static frontmatter+MDX analysis;
+# only needs PyYAML. Enable with: uv sync --extra seo
+seo = [
+    "pyyaml>=6.0,<7.0",
+]
 
 [project.scripts]
 kbve-skin-variant = "kbve.sprite.skin_variant:main"
@@ -37,6 +42,8 @@ kbve-model-sprites = "kbve.sprite.model_sprites_cli:main"
 kbve-osrs-survey = "kbve.osrs.survey:main"
 kbve-osrs-audit = "kbve.osrs.audit:main"
 kbve-osrs-families = "kbve.osrs.families:main"
+kbve-seo-audit = "kbve.seo.audit:main"
+kbve-seo-report = "kbve.seo.report:main"
 
 [dependency-groups]
 dev = [

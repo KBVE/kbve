@@ -4,12 +4,20 @@ use std::time::Duration;
 use axum::Json;
 use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
+use axum::response::{Html, IntoResponse};
 use serde_json::json;
 
 use crate::state::AppState;
 
 const READINESS_TIMEOUT: Duration = Duration::from_secs(2);
+
+pub async fn index() -> Html<&'static str> {
+    Html(include_str!("index.html"))
+}
+
+pub async fn dashboard() -> Html<&'static str> {
+    Html(include_str!("dashboard.html"))
+}
 
 pub async fn health() -> Json<serde_json::Value> {
     Json(json!({

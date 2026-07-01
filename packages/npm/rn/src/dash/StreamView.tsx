@@ -1,14 +1,10 @@
 import { memo, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import {
-	ErrorState,
-	LoadingState,
-	Stack,
-	Text,
-	VirtualList,
-	tokens,
-} from '../ui';
+import { Stack, Text, tokens } from './_ui';
+import { ErrorState } from '../ui/feedback/ErrorState';
+import { LoadingState } from '../ui/feedback/LoadingState';
+import { VirtualList } from '../ui/lists/VirtualList';
 import { StatGrid } from './StatGrid';
 import { useStream, useStreamLifecycle, useStreamSelector } from './useStream';
 import type {

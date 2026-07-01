@@ -22,7 +22,7 @@ void UKBVEStatRegenProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 
 	const float DeltaSeconds = Context.GetDeltaTimeSeconds();
 
-	EntityQuery.ParallelForEachEntityChunk(EntityManager, Context,
+	EntityQuery.ParallelForEachEntityChunk(Context,
 		[DeltaSeconds](FMassExecutionContext& Chunk)
 		{
 			const TArrayView<FKBVEStatFragment> Stats = Chunk.GetMutableFragmentView<FKBVEStatFragment>();

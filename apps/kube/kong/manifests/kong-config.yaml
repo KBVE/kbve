@@ -75,10 +75,7 @@ data:
         \  - /storage/v1/\n\n  ## Edge Functions routes\n  - name: functions-v1\n    _comment:\
         \ 'Edge Functions: /functions/v1/* -> http://functions:9000/*'\n    url: http://functions:9000/\n\
         \    routes:\n      - name: functions-v1-all\n        strip_path: true\n     \
-        \   paths:\n          - /functions/v1/\n\n  ## Analytics routes\n  - name: analytics-v1\n\
-        \    _comment: 'Analytics: /analytics/v1/* -> http://analytics:4000/*'\n    url:\
-        \ http://analytics:4000/\n    routes:\n      - name: analytics-v1-all\n      \
-        \  strip_path: true\n        paths:\n          - /analytics/v1/\n\n  ## Secure\
+        \   paths:\n          - /functions/v1/\n\n  ## Secure\
         \ Database routes\n  - name: meta\n    _comment: 'pg-meta: /pg/* -> http://meta:8080/*'\n\
         \    url: http://meta:8080/\n    routes:\n      - name: meta-all\n        strip_path:\
         \ true\n        paths:\n          - /pg/\n    plugins:\n      - name: key-auth\n\

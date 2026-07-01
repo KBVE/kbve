@@ -1,0 +1,8 @@
+---
+import ProjectGridIsland from './ProjectGridIsland';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<ProjectGridIsland client:only="react" {...props} />
+</div>

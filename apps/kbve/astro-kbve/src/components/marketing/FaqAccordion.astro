@@ -1,0 +1,8 @@
+---
+import { FaqAccordion } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<FaqAccordion client:only="react" {...props} />
+</div>

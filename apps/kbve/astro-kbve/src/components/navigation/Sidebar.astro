@@ -92,10 +92,9 @@ const { sidebar } = Astro.locals.starlightRoute;
 
 		const applyRail = (root) => {
 			const collapsed = store.get(RAIL_KEY) === 'collapsed';
-			root.setAttribute(
-				'data-kbve-rail',
-				collapsed ? 'collapsed' : 'expanded',
-			);
+			const state = collapsed ? 'collapsed' : 'expanded';
+			root.setAttribute('data-kbve-rail', state);
+			document.documentElement.setAttribute('data-kbve-rail', state);
 			const btn = root.querySelector('[data-kbve-rail-toggle]');
 			if (btn) {
 				btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
@@ -111,7 +110,12 @@ const { sidebar } = Astro.locals.starlightRoute;
 			suppressSave = true;
 			root.querySelectorAll('[data-kbve-group]').forEach((d) => {
 				const id = d.getAttribute('data-kbve-group-id');
-				if (id && id in saved) d.open = !!saved[id];
+				if (id && id in saved) {
+					d.open = !!saved[id];
+				} else {
+					d.open =
+						d.getAttribute('data-kbve-default-open') !== 'false';
+				}
 			});
 			suppressSave = false;
 		};
@@ -203,6 +207,16 @@ const { sidebar } = Astro.locals.starlightRoute;
 					root.getAttribute('data-kbve-rail') === 'collapsed';
 				store.set(RAIL_KEY, collapsed ? 'expanded' : 'collapsed');
 				applyRail(root);
+			});
+
+			root.addEventListener('click', (e) => {
+				const icon = e.target.closest?.('a[data-kbve-group-icon]');
+				if (!icon) return;
+				const href = icon.getAttribute('href');
+				if (!href) return;
+				e.preventDefault();
+				e.stopPropagation();
+				window.location.assign(href);
 			});
 
 			const filter = root.querySelector('[data-kbve-filter]');

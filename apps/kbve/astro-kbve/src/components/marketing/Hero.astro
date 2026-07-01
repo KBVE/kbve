@@ -1,0 +1,8 @@
+---
+import HeroIsland from './HeroIsland';
+const props = Astro.props;
+---
+
+<div class="not-content">
+	<HeroIsland client:only="react" {...props} />
+</div>

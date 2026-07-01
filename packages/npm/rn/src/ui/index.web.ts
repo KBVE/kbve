@@ -1,7 +1,10 @@
 // Web-safe UI barrel: identical to index.ts minus the ./nav barrel, whose
 // AppBar/TabBar pull @expo/vector-icons (ships untranspiled JSX, breaks web
-// bundlers). Footer is web-safe (no icons) so it's re-exported individually.
+// bundlers). Footer and NavBar are web-safe (no icons) so they're re-exported
+// individually.
 export * from './nav/Footer';
+export * from './nav/NavBar';
+export * from './marketing';
 export * from './theme';
 export * from './ThemeProvider';
 export * from './models';
