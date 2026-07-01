@@ -1,0 +1,6 @@
+---
+import { TabbedFeatures } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<TabbedFeatures client:only="react" {...props} />

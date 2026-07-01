@@ -1,5 +1,11 @@
 import { memo, useState } from 'react';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import {
+	Pressable,
+	StyleSheet,
+	TextInput,
+	View,
+	useWindowDimensions,
+} from 'react-native';
 import type { ReactNode } from 'react';
 import { tokens } from '../theme';
 import { Text } from '../primitives/Text';
@@ -661,6 +667,229 @@ export const BentoGrid = memo(function BentoGrid({
 	);
 });
 
+/* ───────────────────────── Timeline ────────────────────────── */
+
+export interface TimelineItem {
+	when: string;
+	title: string;
+	body: string;
+	done?: boolean;
+}
+
+export const Timeline = memo(function Timeline({
+	title,
+	subtitle,
+	items,
+}: {
+	title?: string;
+	subtitle?: string;
+	items: TimelineItem[];
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.timeline}>
+				{items.map((it, i) => (
+					<View key={it.title} style={styles.tlRow}>
+						<View style={styles.tlRail}>
+							<View
+								style={[styles.tlDot, it.done && styles.tlDotDone]}
+							/>
+							{i < items.length - 1 ? (
+								<View style={styles.tlLine} />
+							) : null}
+						</View>
+						<View style={styles.tlContent}>
+							<Text style={styles.tlWhen}>{it.when}</Text>
+							<Text style={styles.tlTitle}>{it.title}</Text>
+							<Text style={styles.tlBody}>{it.body}</Text>
+						</View>
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ─────────────────────── Tabbed features ───────────────────── */
+
+export interface FeatureTab {
+	label: string;
+	title: string;
+	body: string;
+	points?: string[];
+}
+
+export const TabbedFeatures = memo(function TabbedFeatures({
+	title,
+	subtitle,
+	tabs,
+}: {
+	title?: string;
+	subtitle?: string;
+	tabs: FeatureTab[];
+}) {
+	const [active, setActive] = useState(0);
+	const tab = tabs[active] ?? tabs[0];
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.tabBar}>
+				{tabs.map((t, i) => {
+					const on = i === active;
+					return (
+						<Pressable
+							key={t.label}
+							accessibilityRole="button"
+							onPress={() => setActive(i)}
+							style={[
+								styles.tab,
+								on && styles.tabActive,
+								{ cursor: 'pointer' } as never,
+							]}>
+							<Text
+								style={[
+									styles.tabText,
+									on && styles.tabTextActive,
+								]}>
+								{t.label}
+							</Text>
+						</Pressable>
+					);
+				})}
+			</View>
+			{tab ? (
+				<View style={styles.tabPanel}>
+					<Text style={styles.tabPanelTitle}>{tab.title}</Text>
+					<Text style={styles.tabPanelBody}>{tab.body}</Text>
+					{tab.points && tab.points.length > 0 ? (
+						<View style={styles.tabPoints}>
+							{tab.points.map((p) => (
+								<View key={p} style={styles.tabPoint}>
+									<Text style={styles.tabCheck}>✓</Text>
+									<Text style={styles.tabPointText}>{p}</Text>
+								</View>
+							))}
+						</View>
+					) : null}
+				</View>
+			) : null}
+		</View>
+	);
+});
+
+/* ───────────────────────── Team grid ───────────────────────── */
+
+export interface TeamMember {
+	name: string;
+	role: string;
+	bio?: string;
+	initials?: string;
+	href?: string;
+}
+
+export const TeamGrid = memo(function TeamGrid({
+	title,
+	subtitle,
+	members,
+	onNavigate,
+}: {
+	title?: string;
+	subtitle?: string;
+	members: TeamMember[];
+	onNavigate?: (href: string) => void;
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{members.map((m) => (
+					<Pressable
+						key={m.name}
+						accessibilityRole={m.href ? 'link' : undefined}
+						onPress={() => m.href && onNavigate?.(m.href)}
+						style={[
+							styles.member,
+							m.href ? ({ cursor: 'pointer' } as never) : null,
+						]}>
+						<View style={styles.memberAvatar}>
+							<Text style={styles.memberInitials}>
+								{m.initials ?? m.name.slice(0, 2).toUpperCase()}
+							</Text>
+						</View>
+						<Text style={styles.memberName}>{m.name}</Text>
+						<Text style={styles.memberRole}>{m.role}</Text>
+						{m.bio ? (
+							<Text style={styles.memberBio}>{m.bio}</Text>
+						) : null}
+					</Pressable>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ─────────────────────── Newsletter capture ────────────────── */
+
+export const NewsletterCapture = memo(function NewsletterCapture({
+	title,
+	subtitle,
+	placeholder = 'you@example.com',
+	cta = 'Subscribe',
+	note,
+	onSubmit,
+}: {
+	title: string;
+	subtitle?: string;
+	placeholder?: string;
+	cta?: string;
+	note?: string;
+	onSubmit?: (email: string) => void;
+}) {
+	const [email, setEmail] = useState('');
+	const [sent, setSent] = useState(false);
+	const submit = () => {
+		if (!email.trim()) return;
+		onSubmit?.(email.trim());
+		setSent(true);
+	};
+	return (
+		<View style={styles.newsWrap}>
+			<View style={styles.newsInner}>
+				<Text style={styles.newsTitle}>{title}</Text>
+				{subtitle ? (
+					<Text style={styles.newsSub}>{subtitle}</Text>
+				) : null}
+				{sent ? (
+					<Text style={styles.newsThanks}>
+						Thanks — you're on the list.
+					</Text>
+				) : (
+					<View style={styles.newsForm}>
+						<TextInput
+							value={email}
+							onChangeText={setEmail}
+							placeholder={placeholder}
+							placeholderTextColor={tokens.color.textMuted}
+							keyboardType="email-address"
+							autoCapitalize="none"
+							style={styles.newsInput}
+						/>
+						<Button title={cta} variant="primary" onPress={submit} />
+					</View>
+				)}
+				{note ? <Text style={styles.newsNote}>{note}</Text> : null}
+			</View>
+		</View>
+	);
+});
+
 /* ─────────────────────────── Styles ────────────────────────── */
 
 const styles = StyleSheet.create({
@@ -1099,4 +1328,186 @@ const styles = StyleSheet.create({
 	bentoWide: { minWidth: 520, flexBasis: '100%' },
 	bentoTitle: { fontSize: 18, fontWeight: '700', color: tokens.color.primary },
 	bentoBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
+
+	timeline: {
+		width: '100%',
+		maxWidth: 760,
+		alignSelf: 'center',
+	},
+	tlRow: { flexDirection: 'row', gap: tokens.space.lg },
+	tlRail: { alignItems: 'center', width: 24 },
+	tlDot: {
+		width: 16,
+		height: 16,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 2,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
+		marginTop: 4,
+	},
+	tlDotDone: {
+		borderColor: tokens.color.primary,
+		backgroundColor: tokens.color.primary,
+	},
+	tlLine: {
+		flex: 1,
+		width: 2,
+		backgroundColor: tokens.color.border,
+		marginVertical: 4,
+	},
+	tlContent: { flex: 1, gap: 4, paddingBottom: tokens.space.xl },
+	tlWhen: {
+		fontSize: 12,
+		fontWeight: '700',
+		letterSpacing: 1,
+		textTransform: 'uppercase',
+		color: tokens.color.primary,
+	},
+	tlTitle: { fontSize: 18, fontWeight: '700', color: tokens.color.text },
+	tlBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
+
+	tabBar: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+		gap: tokens.space.sm,
+		marginBottom: tokens.space.xl,
+	},
+	tab: {
+		paddingHorizontal: tokens.space.lg,
+		paddingVertical: tokens.space.sm,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
+	},
+	tabActive: {
+		borderColor: tokens.color.primary,
+		backgroundColor: tokens.color.surfaceAlt,
+	},
+	tabText: { fontSize: 14, fontWeight: '700', color: tokens.color.textMuted },
+	tabTextActive: { color: tokens.color.primary },
+	tabPanel: {
+		width: '100%',
+		maxWidth: 760,
+		alignSelf: 'center',
+		gap: tokens.space.md,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	tabPanelTitle: {
+		fontSize: 22,
+		fontWeight: '800',
+		color: tokens.color.text,
+	},
+	tabPanelBody: {
+		fontSize: 15,
+		lineHeight: 23,
+		color: tokens.color.textMuted,
+	},
+	tabPoints: { gap: tokens.space.sm, marginTop: tokens.space.xs },
+	tabPoint: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.sm,
+	},
+	tabCheck: { fontSize: 14, fontWeight: '800', color: tokens.color.primary },
+	tabPointText: { flex: 1, fontSize: 14, color: tokens.color.text },
+
+	member: {
+		flex: 1,
+		minWidth: 220,
+		alignItems: 'center',
+		gap: tokens.space.xs,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	memberAvatar: {
+		width: 64,
+		height: 64,
+		borderRadius: tokens.radius.pill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: tokens.color.surfaceAlt,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		marginBottom: tokens.space.xs,
+	},
+	memberInitials: {
+		fontSize: 20,
+		fontWeight: '800',
+		color: tokens.color.primary,
+	},
+	memberName: { fontSize: 16, fontWeight: '700', color: tokens.color.text },
+	memberRole: {
+		fontSize: 12,
+		letterSpacing: 1,
+		textTransform: 'uppercase',
+		color: tokens.color.primary,
+	},
+	memberBio: {
+		fontSize: 13,
+		lineHeight: 20,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+	},
+
+	newsWrap: {
+		paddingVertical: 72,
+		paddingHorizontal: tokens.space.lg,
+		alignItems: 'center',
+		backgroundColor: tokens.color.bgSubtle,
+		borderTopWidth: 1,
+		borderBottomWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	newsInner: { alignItems: 'center', gap: tokens.space.md, maxWidth: 560 },
+	newsTitle: {
+		fontSize: 30,
+		fontWeight: '800',
+		letterSpacing: -0.5,
+		color: tokens.color.text,
+		textAlign: 'center',
+	},
+	newsSub: {
+		fontSize: 16,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+	},
+	newsForm: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+		gap: tokens.space.sm,
+		marginTop: tokens.space.xs,
+	},
+	newsInput: {
+		minWidth: 240,
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: tokens.space.sm,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
+		color: tokens.color.text,
+		fontSize: 15,
+	},
+	newsThanks: {
+		fontSize: 16,
+		fontWeight: '700',
+		color: tokens.color.primary,
+		marginTop: tokens.space.xs,
+	},
+	newsNote: {
+		fontSize: 12,
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+		marginTop: tokens.space.xs,
+	},
 });

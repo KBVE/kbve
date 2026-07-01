@@ -1,0 +1,6 @@
+---
+import { TeamGrid } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<TeamGrid client:only="react" {...props} />

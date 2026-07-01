@@ -34,6 +34,10 @@ export {
 	FaqAccordion,
 	LogoCloud,
 	BentoGrid,
+	Timeline,
+	TabbedFeatures,
+	TeamGrid,
+	NewsletterCapture,
 	useTheme,
 	tokens,
 } from '@kbve/rn/ui';
@@ -68,4 +72,7 @@ export type {
 	FaqItem,
 	LogoItem,
 	BentoItem,
+	TimelineItem,
+	FeatureTab,
+	TeamMember,
 } from '@kbve/rn/ui';
