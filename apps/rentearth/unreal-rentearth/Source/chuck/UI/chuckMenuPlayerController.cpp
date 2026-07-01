@@ -54,7 +54,7 @@ void AchuckMenuPlayerController::BeginPlay()
 	UsernameWidget = SNew(SchuckUsernameSetup)
 		.Subsystem(SupabaseSubsystem)
 		.ApiClient(ApiClient)
-		.OnUsernameSet(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandleUsernameSet))
+		.OnUsernameSet(FchuckOnUsernameSet::CreateUObject(this, &AchuckMenuPlayerController::HandleUsernameSet))
 		.OnSessionExpired(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandleUsernameSessionExpired));
 	UsernameWidget->SetVisibility(EVisibility::Collapsed);
 	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
@@ -339,6 +339,7 @@ void AchuckMenuPlayerController::ApplyAccountFromSession(const FKBVESupabaseSess
 
 void AchuckMenuPlayerController::HandleSupabaseSignedOut()
 {
+	LocalUsername.Reset();
 	RefreshAuthVisibility(false);
 	if (UGameInstance* GI = GetGameInstance())
 	{
@@ -349,14 +350,16 @@ void AchuckMenuPlayerController::HandleSupabaseSignedOut()
 	}
 }
 
-void AchuckMenuPlayerController::HandleUsernameSet()
+void AchuckMenuPlayerController::HandleUsernameSet(const FString& Canonical)
 {
+	LocalUsername = Canonical;
 	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
 	RefreshAuthVisibility(Sub && Sub->IsSignedIn());
 }
 
 void AchuckMenuPlayerController::HandleUsernameSessionExpired()
 {
+	LocalUsername.Reset();
 	if (UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get())
 	{
 		Sub->SignOut();
@@ -367,7 +370,7 @@ void AchuckMenuPlayerController::HandleUsernameSessionExpired()
 void AchuckMenuPlayerController::RefreshAuthVisibility(bool bSignedIn)
 {
 	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
-	const bool bHasUsername = Sub && !Sub->GetUser().KbveUsername.IsEmpty();
+	const bool bHasUsername = (Sub && !Sub->GetUser().KbveUsername.IsEmpty()) || !LocalUsername.IsEmpty();
 	const bool bNeedUsername = bSignedIn && !bHasUsername;
 
 	if (LoginWidget.IsValid())

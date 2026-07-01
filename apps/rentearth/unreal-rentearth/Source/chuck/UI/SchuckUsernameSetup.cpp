@@ -83,7 +83,7 @@ FReply SchuckUsernameSetup::HandleConfirm()
 		return FReply::Handled();
 	}
 
-	const FString Name = NameBox.IsValid() ? NameBox->GetText().ToString() : FString();
+	const FString Name = NameBox.IsValid() ? NameBox->GetText().ToString().TrimStartAndEnd() : FString();
 	if (Name.IsEmpty())
 	{
 		SetStatus(LOCTEXT("Empty", "Enter a username"));
@@ -115,7 +115,7 @@ FReply SchuckUsernameSetup::HandleConfirm()
 			{
 				Sub->RefreshSession();
 			}
-			Self->OnUsernameSet.ExecuteIfBound();
+			Self->OnUsernameSet.ExecuteIfBound(Canonical);
 			break;
 		case EchuckSetUsernameResult::Taken:
 			Self->SetStatus(LOCTEXT("Taken", "Username taken - try another"));
@@ -126,6 +126,7 @@ FReply SchuckUsernameSetup::HandleConfirm()
 			Self->SetBusy(false);
 			break;
 		case EchuckSetUsernameResult::Unauthorized:
+			Self->SetBusy(false);
 			Self->OnSessionExpired.ExecuteIfBound();
 			break;
 		default:

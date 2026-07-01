@@ -9,13 +9,15 @@ class SEditableTextBox;
 class STextBlock;
 class SButton;
 
+DECLARE_DELEGATE_OneParam(FchuckOnUsernameSet, const FString&);
+
 class SchuckUsernameSetup : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SchuckUsernameSetup) {}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
 		SLATE_ARGUMENT(TWeakObjectPtr<UchuckKbveApiClient>, ApiClient)
-		SLATE_EVENT(FSimpleDelegate, OnUsernameSet)
+		SLATE_EVENT(FchuckOnUsernameSet, OnUsernameSet)
 		SLATE_EVENT(FSimpleDelegate, OnSessionExpired)
 	SLATE_END_ARGS()
 
@@ -28,7 +30,7 @@ private:
 
 	TWeakObjectPtr<UKBVESupabaseSubsystem> Subsystem;
 	TWeakObjectPtr<UchuckKbveApiClient> ApiClient;
-	FSimpleDelegate OnUsernameSet;
+	FchuckOnUsernameSet OnUsernameSet;
 	FSimpleDelegate OnSessionExpired;
 	TSharedPtr<SEditableTextBox> NameBox;
 	TSharedPtr<STextBlock> StatusText;

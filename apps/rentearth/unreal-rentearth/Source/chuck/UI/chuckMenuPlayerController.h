@@ -43,7 +43,7 @@ private:
 	void TickLoadingTransition(float DeltaSeconds);
 
 	void RefreshAuthVisibility(bool bSignedIn);
-	void HandleUsernameSet();
+	void HandleUsernameSet(const FString& Canonical);
 	void HandleUsernameSessionExpired();
 
 	UFUNCTION()
@@ -76,6 +76,7 @@ private:
 	TSharedPtr<SKBVEAccountPanel> AccountWidget;
 	TSharedPtr<SKBVELoadingPanel> LoadingWidget;
 	TWeakObjectPtr<UchuckKbveApiClient> ApiClient;
+	FString LocalUsername;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
