@@ -10,6 +10,13 @@ class USimgridWorldBridge;
 class ASimgridIsoCameraPawn;
 class UStaticMesh;
 
+struct FchuckMoveIntent
+{
+	int8 Mx = 0;
+	int8 My = 0;
+	bool bRun = false;
+};
+
 UCLASS()
 class AchuckSimgridController : public AchuckPlayerController
 {
@@ -28,6 +35,8 @@ public:
 
 	UFUNCTION()
 	void HandleEphemeral();
+
+	static FchuckMoveIntent BuildMoveIntent(const FVector2D& ScreenAxis, bool bRun);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")

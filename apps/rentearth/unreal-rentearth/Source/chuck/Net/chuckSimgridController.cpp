@@ -15,6 +15,26 @@ static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 #include "Events/chuckUIEvents.h"
 #include "KBVEGameplayEvents.h"
 
+FchuckMoveIntent AchuckSimgridController::BuildMoveIntent(const FVector2D& ScreenAxis, bool bRun)
+{
+	FchuckMoveIntent Out;
+	Out.bRun = bRun;
+	if (ScreenAxis.SizeSquared() < KINDA_SMALL_NUMBER)
+	{
+		return Out;
+	}
+	const double Wx = ScreenAxis.X + ScreenAxis.Y;
+	const double Wy = ScreenAxis.Y - ScreenAxis.X;
+	const double Mag = FMath::Sqrt(Wx * Wx + Wy * Wy);
+	if (Mag < KINDA_SMALL_NUMBER)
+	{
+		return Out;
+	}
+	Out.Mx = (int8)FMath::Clamp(FMath::RoundToInt((Wx / Mag) * 127.0), -127, 127);
+	Out.My = (int8)FMath::Clamp(FMath::RoundToInt((Wy / Mag) * 127.0), -127, 127);
+	return Out;
+}
+
 USimgridClientSubsystem* AchuckSimgridController::GetSubsystem() const
 {
 	if (const UGameInstance* GI = GetGameInstance())
