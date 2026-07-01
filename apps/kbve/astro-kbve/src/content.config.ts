@@ -255,6 +255,14 @@ export const collections = {
 				category: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				sem: z.number().int().optional(),
+				// Project-page software metadata consumed by Head.astro to
+				// derive SoftwareSourceCode JSON-LD. Without these the docs
+				// schema strips them from entry.data and no node is emitted.
+				source_path: z.string().optional(),
+				app_name: z.string().optional(),
+				version: z.string().optional(),
+				license: z.string().optional(),
+				author: z.string().optional(),
 				// Per-page social-meta overrides consumed by
 				// src/components/navigation/Head.astro. Astro silently strips
 				// nested z.object fields imported across zod-package boundaries
