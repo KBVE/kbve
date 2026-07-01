@@ -15798,42 +15798,10 @@
               "parallelism": true
             },
             "test": {
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true,
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest run",
-                "runCommand": "pnpm run test"
-              },
+              "executor": "nx:run-commands",
               "options": {
-                "script": "test"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test:watch": {
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest",
-                "runCommand": "pnpm run test:watch"
-              },
-              "options": {
-                "script": "test:watch"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "test:coverage": {
-              "executor": "nx:run-script",
-              "metadata": {
-                "scriptContent": "vitest run --coverage",
-                "runCommand": "pnpm run test:coverage"
-              },
-              "options": {
-                "script": "test:coverage"
+                "cwd": "packages/npm/rn",
+                "command": "vitest run"
               },
               "configurations": {},
               "parallelism": true
@@ -15858,13 +15826,7 @@
           },
           "projectType": "library",
           "metadata": {
-            "targetGroups": {
-              "NPM Scripts": [
-                "test",
-                "test:watch",
-                "test:coverage"
-              ]
-            },
+            "targetGroups": {},
             "description": "React Native shared layer for KBVE mobile apps — agent-control protocol types, hooks, and UI primitives.",
             "js": {
               "packageName": "@kbve/rn",
@@ -17437,6 +17399,11 @@
           "source": "astro-cryptothrone",
           "target": "laser",
           "type": "dynamic"
+        },
+        {
+          "source": "astro-cryptothrone",
+          "target": "observ",
+          "type": "static"
         }
       ],
       "bevy_statemachine": [],
@@ -17675,6 +17642,11 @@
       "chuck-launcher": [
         {
           "source": "chuck-launcher",
+          "target": "observ",
+          "type": "static"
+        },
+        {
+          "source": "chuck-launcher",
           "target": "kbve-tauri",
           "type": "static"
         }
@@ -17799,6 +17771,11 @@
           "source": "kbve-react-native",
           "target": "rn",
           "type": "implicit"
+        },
+        {
+          "source": "kbve-react-native",
+          "target": "observ",
+          "type": "static"
         },
         {
           "source": "kbve-react-native",
@@ -18090,6 +18067,11 @@
         {
           "source": "arpg-web",
           "target": "laser",
+          "type": "static"
+        },
+        {
+          "source": "arpg-web",
+          "target": "observ",
           "type": "static"
         }
       ],

@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-06-30T09:15:11.029Z",
+	"generated_at": "2026-07-01T09:16:16.987Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 546
+		"total_items": 521
 	},
 	"summary": {
 		"Theory": 69,
@@ -14,7 +14,7 @@
 		"Support": 0,
 		"Staging": 3,
 		"Review": 6,
-		"Done": 416
+		"Done": 391
 	},
 	"columns": {
 		"Theory": [
@@ -1955,7 +1955,7 @@
 			{
 				"type": "PULL_REQUEST",
 				"number": 13624,
-				"title": "Release: 5 features, 4 docs, 1 chore → Main",
+				"title": "Release: 13 features, 4 fixes, 8 docs, 3 chores → Main",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/pull/13624",
 				"assignees": [],
@@ -2003,45 +2003,6 @@
 				],
 				"matrix": null,
 				"date": "2026-03-17",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 9334,
-				"title": "[ROWS] v0.4/v0.5 — Complete migration from C# OWS to Rust ROWS",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/9334",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"6",
-					"enhancement",
-					"todo",
-					"rust",
-					"docker"
-				],
-				"matrix": null,
-				"date": "2026-03-30",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 9805,
-				"title": "[ROWS] v0.5 — Remove legacy C# OWS microservices",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/9805",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"dependencies",
-					"ci",
-					"ue"
-				],
-				"matrix": null,
-				"date": "2026-04-08",
 				"milestone": null
 			},
 			{
@@ -2104,21 +2065,6 @@
 				"milestone": null
 			},
 			{
-				"type": "PULL_REQUEST",
-				"number": 12550,
-				"title": "Release: 11 features, 2 fixes, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12550",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
 				"type": "ISSUE",
 				"number": 12555,
 				"title": "cryptothrone: fast-register Discord users (link-by-email, else create)",
@@ -2130,350 +2076,6 @@
 				],
 				"matrix": null,
 				"date": "2026-06-15",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12557,
-				"title": "Release: 1 feature, 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12557",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12558,
-				"title": "Atomic: jobboard v0.1.0 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12558",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12561,
-				"title": "Release: 3 features, 1 fix → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12561",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12569,
-				"title": "Atomic: jobboard v0.1.1 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12569",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12571,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12571",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12572,
-				"title": "Atomic: cryptothrone v0.1.37 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12572",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12573,
-				"title": "Release: 1 fix, 1 refactor, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12573",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12577,
-				"title": "Release: 1 fix, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12577",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12578,
-				"title": "Atomic: jobboard v0.1.2 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12578",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12580,
-				"title": "Release: 3 features, 4 fixes, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12580",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12584,
-				"title": "Atomic: jobboard v0.1.3 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12584",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12585,
-				"title": "Release: 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12585",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12586,
-				"title": "Atomic: cryptothrone v0.1.38 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12586",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12588,
-				"title": "chore(dashboard): daily sync — 2026-06-16",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12588",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12589,
-				"title": "Release: 7 features, 2 fixes, 1 refactor, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12589",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12593,
-				"title": "Release: 1 feature, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12593",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12594,
-				"title": "Atomic: jobboard v0.1.4 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12594",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12596,
-				"title": "Release: 3 features, 3 fixes, 1 refactor, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12596",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12602,
-				"title": "Atomic: jobboard v0.1.5 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12602",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12603,
-				"title": "Release: 5 features, 2 fixes, 1 CI, 4 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12603",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12606,
-				"title": "Atomic: cryptothrone v0.1.39 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12606",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12607,
-				"title": "Atomic: axum-kbve v1.0.202 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12607",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 12615,
-				"title": "Atomic: cryptothrone v0.1.41 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/12615",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
 				"milestone": null
 			},
 			{
@@ -8201,6 +7803,20 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 13628,
+				"title": "chore(dashboard): daily sync — 2026-06-30",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/13628",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
 				],
 				"matrix": null,
 				"date": null,
