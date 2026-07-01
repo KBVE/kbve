@@ -28,6 +28,7 @@ public:
 	void Clear();
 
 	bool IsLocalWorldPos(FVector& OutPos) const;
+	bool WorldPosOf(uint32 Eid, FVector& OutPos) const;
 
 private:
 	FVector ResolveWorldPos(const FSimgridInterpState& S) const;

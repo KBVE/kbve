@@ -32,6 +32,7 @@ public:
 	TKBVEChannel<FchuckCrosshairPayload>       Crosshair;
 	TKBVEChannel<FchuckTooltipPayload>         Tooltip;
 	TKBVEChannel<FchuckItemConsumedPayload>    ItemConsumed;
+	TKBVEChannel<FchuckToastPayload>           Toast;
 
 	TKBVEChannel<FchuckAuthStatusPayload>      AuthStatus;
 	TKBVEChannel<FchuckAuthErrorPayload>       AuthError;

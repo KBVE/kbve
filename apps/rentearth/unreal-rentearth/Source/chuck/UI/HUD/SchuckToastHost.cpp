@@ -35,6 +35,7 @@ SchuckToastHost::~SchuckToastHost()
 		Bus->ItemConsumed.Unsubscribe(ItemConsumedHandle);
 		Bus->AuthStatus.Unsubscribe(AuthStatusHandle);
 		Bus->AuthError.Unsubscribe(AuthErrorHandle);
+		Bus->Toast.Unsubscribe(ToastHandle);
 	}
 }
 
@@ -102,6 +103,15 @@ void SchuckToastHost::BindToEventBus()
 			? FName(TEXT("auth.error"))
 			: *FString::Printf(TEXT("auth.error.%s"), *P.Code);
 		ToastLayer->PushToastUnique(Key, LOCTEXT("AuthErrTitle", "Auth error"), FText::FromString(P.Message), EKBVEToastLevel::Error);
+	});
+
+	ToastHandle = Bus->Toast.Subscribe(C, [this](const FchuckToastPayload& P)
+	{
+		if (!ToastLayer.IsValid())
+		{
+			return;
+		}
+		ToastLayer->PushToast(P.Title, P.Message, (EKBVEToastLevel)P.Level);
 	});
 }
 

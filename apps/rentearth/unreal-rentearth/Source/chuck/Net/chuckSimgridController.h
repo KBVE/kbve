@@ -26,6 +26,9 @@ public:
 	UFUNCTION()
 	void HandleDisconnected();
 
+	UFUNCTION()
+	void HandleEphemeral();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
 	FString ServerUrl = TEXT("ws://localhost:7979/ws");
@@ -44,4 +47,6 @@ private:
 	TObjectPtr<ASimgridIsoCameraPawn> CameraPawn;
 
 	USimgridClientSubsystem* GetSubsystem() const;
+
+	int32 LocalSlot = -1;
 };

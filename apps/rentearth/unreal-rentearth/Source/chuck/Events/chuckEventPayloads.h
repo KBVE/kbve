@@ -37,6 +37,13 @@ struct FchuckItemConsumedPayload
 	float RestoreEP = 0.f;
 };
 
+struct FchuckToastPayload
+{
+	FText  Title;
+	FText  Message;
+	uint8  Level = 0;
+};
+
 // Sim-domain payloads: enqueued from Mass workers, drained on the game thread.
 struct FchuckPickupRequestPayload
 {
