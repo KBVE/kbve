@@ -7,6 +7,33 @@ sidebar:
     order: 150
 unsplash: 1518834107796-18cc03584b9a
 img: https://images.unsplash.com/photo-1518834107796-18cc03584b9a?fit=crop&w=1400&h=700&q=75
+tags:
+    - kubernetes
+    - talos
+    - homelab
+sem: 1
+ogTitle: Intel NUC Talos Worker Nodes — Add Bare-Metal Workers to Kubernetes
+ogDescription: Step-by-step guide to add Intel NUC devices as Talos Linux worker nodes on an existing Kubernetes cluster over WireGuard — hardware prep, Talos install, key generation, joining, and troubleshooting.
+jsonld:
+    type: Article
+    keywords:
+        - talos linux
+        - intel nuc
+        - kubernetes worker node
+        - bare metal kubernetes
+        - wireguard
+        - homelab cluster
+    faq:
+        - question: What is Talos Linux?
+          answer: Talos Linux is a minimal, immutable, API-driven operating system purpose-built for Kubernetes. It has no shell or SSH — every node is managed declaratively through talosctl and a machine config — which makes bare-metal nodes like Intel NUCs reproducible and secure.
+        - question: Can I add bare-metal Intel NUCs to a cloud Kubernetes cluster?
+          answer: Yes. This guide joins Intel NUC workers to an existing Talos control plane running on Hetzner by tunneling cluster traffic over WireGuard. Each NUC gets a unique WireGuard key and IP, applies a worker machine config, and registers as a standard worker node.
+        - question: Why use WireGuard to join remote worker nodes?
+          answer: WireGuard creates an encrypted overlay network so home-based NUCs and cloud control-plane nodes communicate securely across the public internet as if on one private subnet. It is lightweight, fast, and integrates directly into the Talos machine network config.
+        - question: What are the minimum hardware requirements for a Talos NUC worker?
+          answer: An Intel NUC 11th gen or newer with at least 8GB RAM (16GB recommended), a 256GB+ SSD (NVMe preferred), and gigabit Ethernet. Enable UEFI boot, disable Secure Boot, and turn on Intel VT-x/VT-d in the BIOS before installing Talos.
+        - question: How do I troubleshoot a NUC that will not join the cluster?
+          answer: Check WireGuard connectivity with wg show and ping the control-plane endpoint, inspect kubelet logs via talosctl logs --nodes, and confirm the cluster secrets and keys match. Most join failures trace back to an incorrect WireGuard key or an unreachable endpoint.
 ---
 
 import {
@@ -23,6 +50,8 @@ import { Giscus, Adsense } from '@/components/astropad';
 ## Overview
 
 This guide covers adding Intel NUC devices as worker nodes to the existing Talos Linux cluster running on Hetzner with WireGuard networking.
+
+Flow: [hardware prep](#phase-1-hardware-preparation) → [Talos install](#phase-2-talos-linux-installation) → [cluster config](#phase-3-cluster-configuration) → [join](#phase-4-join-nucs-to-cluster) → [troubleshooting](#troubleshooting).
 
 ## Hardware Requirements
 
@@ -275,6 +304,23 @@ To add additional Intel NUC worker nodes:
 - Monitor cluster access logs
 
 <Adsense />
+
+## FAQ
+
+**What is Talos Linux?**
+Talos Linux is a minimal, immutable, API-driven operating system purpose-built for Kubernetes. It has no shell or SSH — every node is managed declaratively through `talosctl` and a machine config — which makes bare-metal nodes like Intel NUCs reproducible and secure.
+
+**Can I add bare-metal Intel NUCs to a cloud Kubernetes cluster?**
+Yes. This guide joins Intel NUC workers to an existing Talos control plane running on Hetzner by tunneling cluster traffic over [WireGuard](/application/wireguard/). Each NUC gets a unique WireGuard key and IP, applies a worker machine config, and registers as a standard worker node.
+
+**Why use WireGuard to join remote worker nodes?**
+WireGuard creates an encrypted overlay network so home-based NUCs and cloud control-plane nodes communicate securely across the public internet as if on one private subnet. It is lightweight, fast, and integrates directly into the Talos machine network config.
+
+**What are the minimum hardware requirements for a Talos NUC worker?**
+An Intel NUC 11th gen or newer with at least 8GB RAM (16GB recommended), a 256GB+ SSD (NVMe preferred), and gigabit Ethernet. Enable UEFI boot, disable Secure Boot, and turn on Intel VT-x/VT-d in the BIOS before installing Talos.
+
+**How do I troubleshoot a NUC that will not join the cluster?**
+Check WireGuard connectivity with `wg show` and ping the control-plane endpoint, inspect kubelet logs via `talosctl logs --nodes`, and confirm the cluster secrets and keys match. Most join failures trace back to an incorrect WireGuard key or an unreachable endpoint.
 
 ## References
 

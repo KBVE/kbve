@@ -15,6 +15,30 @@ img: https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?fit=crop&w=140
 tags:
     - os
     - mobile
+    - ios
+sem: 1
+ogTitle: iOS Development Guide — Code Signing, Provisioning & CI/CD
+ogDescription: Build and ship iOS apps at KBVE — Apple code signing, certificates and provisioning profiles, GitHub Actions CI/CD with macOS runners, exportOptions.plist, and UE5 iOS builds.
+jsonld:
+    type: Article
+    keywords:
+        - ios development
+        - code signing
+        - provisioning profile
+        - apple developer
+        - ios ci cd
+        - react native ios
+    faq:
+        - question: What do I need to develop and distribute iOS apps?
+          answer: A macOS machine with Xcode, and enrollment in the Apple Developer Program at $99/year. Membership is required to test on physical devices and distribute through the App Store. You also need a signing certificate, a provisioning profile, and a unique bundle identifier such as com.kbve.app.
+        - question: What is the difference between a certificate and a provisioning profile?
+          answer: A signing certificate proves your identity to Apple and signs the app binary. A provisioning profile links that certificate, the app ID, and (for development/ad-hoc) allowed device UDIDs, authorizing where the app can run. App Store profiles do not need device registration.
+        - question: How do I sign an iOS build in CI/CD?
+          answer: Store the .p12 certificate and .mobileprovision profile as base64 GitHub secrets, then in the workflow create a temporary keychain, import the decoded certificate, install the profile, and build with xcodebuild archive plus exportArchive using an exportOptions.plist. Never commit certificates to the repo.
+        - question: Can I build an unsigned iOS app for testing?
+          answer: Yes. A simulator build for the iphonesimulator SDK does not require signing, so CI can produce an unsigned x86_64 build for testing. Signing is only required for device installs, TestFlight, and App Store submission using the iphoneos SDK.
+        - question: Do Unreal Engine 5 iOS builds use the same Apple setup?
+          answer: Yes. UE5 iOS builds reuse the same Apple Developer certificates, provisioning profiles, and Team ID as React Native builds. The difference is the build system — UE5 uses UnrealBuildTool and RunUAT instead of xcodebuild directly, and produces larger binaries with precompiled Metal shaders.
 ---
 
 import {
@@ -34,6 +58,8 @@ import { Giscus, Adsense } from '@/components/astropad';
 
 iOS development requires a macOS environment and enrollment in the Apple Developer Program ($99/year) to deploy applications to physical devices and distribute through the App Store.
 This guide covers code signing, provisioning profiles, CI/CD setup, and best practices for building iOS applications at KBVE.
+
+Jump to [code signing](#code-signing-setup), [GitHub secrets](#github-secrets-configuration), the [CI/CD workflow](#cicd-workflow), [troubleshooting](#troubleshooting), or [UE5 iOS builds](#unreal-engine-5-ios-builds).
 
 Our React Native iOS applications use Expo for streamlined development and deployment workflows, with custom native modules when needed for advanced features.
 
@@ -491,6 +517,23 @@ UE5 iOS builds require significant disk space (30GB+ for engine + project) and b
 </Steps>
 
 <Adsense />
+
+## FAQ
+
+**What do I need to develop and distribute iOS apps?**
+A macOS machine with Xcode, and enrollment in the Apple Developer Program at $99/year. Membership is required to test on physical devices and distribute through the App Store. You also need a signing certificate, a provisioning profile, and a unique bundle identifier such as `com.kbve.app`.
+
+**What is the difference between a certificate and a provisioning profile?**
+A signing certificate proves your identity to Apple and signs the app binary. A provisioning profile links that certificate, the app ID, and (for development/ad-hoc) allowed device UDIDs, authorizing where the app can run. App Store profiles do not need device registration.
+
+**How do I sign an iOS build in CI/CD?**
+Store the `.p12` certificate and `.mobileprovision` profile as base64 GitHub secrets, then in the workflow create a temporary keychain, import the decoded certificate, install the profile, and build with `xcodebuild archive` plus `exportArchive` using an `exportOptions.plist`. Never commit certificates to the repo.
+
+**Can I build an unsigned iOS app for testing?**
+Yes. A simulator build for the `iphonesimulator` SDK does not require signing, so CI can produce an unsigned x86_64 build for testing. Signing is only required for device installs, TestFlight, and App Store submission using the `iphoneos` SDK.
+
+**Do Unreal Engine 5 iOS builds use the same Apple setup?**
+Yes. UE5 iOS builds reuse the same Apple Developer certificates, provisioning profiles, and Team ID as React Native builds. The difference is the build system — UE5 uses UnrealBuildTool and RunUAT instead of `xcodebuild` directly, and produces larger binaries with precompiled Metal shaders.
 
 ---
 
