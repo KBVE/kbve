@@ -3,4 +3,6 @@ import { FeatureGrid } from '@kbve/rn-astro';
 const props = Astro.props;
 ---
 
-<FeatureGrid client:only="react" {...props} />
+<div class="not-content">
+	<FeatureGrid client:only="react" {...props} />
+</div>

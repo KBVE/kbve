@@ -14,6 +14,17 @@ import { openExternal } from '../../platform/openExternal';
 
 const CONTENT_MAX = 1120;
 
+function useHover() {
+	const [hover, setHover] = useState(false);
+	return {
+		hover,
+		bind: {
+			onHoverIn: () => setHover(true),
+			onHoverOut: () => setHover(false),
+		},
+	};
+}
+
 const container = (extra?: object) => ({
 	width: '100%' as const,
 	maxWidth: CONTENT_MAX,
@@ -51,6 +62,7 @@ export const Hero = memo(function Hero({
 }: HeroProps) {
 	const { width } = useWindowDimensions();
 	const titleSize = width < 600 ? 38 : width < 960 ? 52 : 64;
+	const titleSize2 = { fontSize: titleSize, lineHeight: titleSize * 1.06 };
 
 	const fire = (a: HeroAction) =>
 		a.external ? openExternal(a.href) : onNavigate?.(a.href);
@@ -63,14 +75,15 @@ export const Hero = memo(function Hero({
 						<Text style={styles.eyebrowText}>{eyebrow}</Text>
 					</View>
 				) : null}
-				<Text
-					style={[
-						styles.heroTitle,
-						{ fontSize: titleSize, lineHeight: titleSize * 1.06 },
-					]}>
+				<Text style={[styles.heroTitle, titleSize2]}>
 					{lead}
 					{accent ? (
-						<Text style={[styles.heroTitle, styles.heroAccent]}>
+						<Text
+							style={[
+								styles.heroTitle,
+								styles.heroAccent,
+								titleSize2,
+							]}>
 							{accent}
 						</Text>
 					) : null}
@@ -130,12 +143,13 @@ export const FeatureCard = memo(function FeatureCard({
 	body,
 	icon,
 }: FeatureCardProps) {
+	const { hover, bind } = useHover();
 	return (
-		<View style={styles.card}>
+		<Pressable {...bind} style={[styles.card, hover && styles.hoverLift]}>
 			{icon ? <View style={styles.cardIcon}>{icon}</View> : null}
 			<Text style={styles.cardTitle}>{title}</Text>
 			<Text style={styles.cardBody}>{body}</Text>
-		</View>
+		</Pressable>
 	);
 });
 
@@ -327,6 +341,27 @@ export interface StepItem {
 	body: string;
 }
 
+const StepCard = memo(function StepCard({
+	index,
+	step,
+}: {
+	index: number;
+	step: StepItem;
+}) {
+	const { hover, bind } = useHover();
+	return (
+		<Pressable {...bind} style={[styles.step, hover && styles.hoverLift]}>
+			<View style={styles.stepNum}>
+				<Text style={styles.stepNumText}>
+					{String(index + 1).padStart(2, '0')}
+				</Text>
+			</View>
+			<Text style={styles.stepTitle}>{step.title}</Text>
+			<Text style={styles.stepBody}>{step.body}</Text>
+		</Pressable>
+	);
+});
+
 export const ProcessSteps = memo(function ProcessSteps({
 	title,
 	subtitle,
@@ -343,15 +378,7 @@ export const ProcessSteps = memo(function ProcessSteps({
 			) : null}
 			<View style={styles.grid}>
 				{steps.map((s, i) => (
-					<View key={s.title} style={styles.step}>
-						<View style={styles.stepNum}>
-							<Text style={styles.stepNumText}>
-								{String(i + 1).padStart(2, '0')}
-							</Text>
-						</View>
-						<Text style={styles.stepTitle}>{s.title}</Text>
-						<Text style={styles.stepBody}>{s.body}</Text>
-					</View>
+					<StepCard key={s.title} index={i} step={s} />
 				))}
 			</View>
 		</View>
@@ -366,6 +393,34 @@ export interface TestimonialItem {
 	role?: string;
 	initials?: string;
 }
+
+const QuoteCard = memo(function QuoteCard({
+	item,
+}: {
+	item: TestimonialItem;
+}) {
+	const { hover, bind } = useHover();
+	return (
+		<Pressable
+			{...bind}
+			style={[styles.quoteCard, hover && styles.hoverLift]}>
+			<Text style={styles.quoteText}>“{item.quote}”</Text>
+			<View style={styles.quoteFoot}>
+				<View style={styles.avatar}>
+					<Text style={styles.avatarText}>
+						{item.initials ?? item.name.slice(0, 2).toUpperCase()}
+					</Text>
+				</View>
+				<View style={styles.quoteMeta}>
+					<Text style={styles.quoteName}>{item.name}</Text>
+					{item.role ? (
+						<Text style={styles.quoteRole}>{item.role}</Text>
+					) : null}
+				</View>
+			</View>
+		</Pressable>
+	);
+});
 
 export const Testimonials = memo(function Testimonials({
 	title,
@@ -383,25 +438,7 @@ export const Testimonials = memo(function Testimonials({
 			) : null}
 			<View style={styles.grid}>
 				{items.map((t) => (
-					<View key={t.name} style={styles.quoteCard}>
-						<Text style={styles.quoteText}>“{t.quote}”</Text>
-						<View style={styles.quoteFoot}>
-							<View style={styles.avatar}>
-								<Text style={styles.avatarText}>
-									{t.initials ??
-										t.name.slice(0, 2).toUpperCase()}
-								</Text>
-							</View>
-							<View style={styles.quoteMeta}>
-								<Text style={styles.quoteName}>{t.name}</Text>
-								{t.role ? (
-									<Text style={styles.quoteRole}>
-										{t.role}
-									</Text>
-								) : null}
-							</View>
-						</View>
-					</View>
+					<QuoteCard key={t.name} item={t} />
 				))}
 			</View>
 		</View>
@@ -489,6 +526,59 @@ export interface PricingTier {
 	featured?: boolean;
 }
 
+const TierCard = memo(function TierCard({
+	tier,
+	onAction,
+}: {
+	tier: PricingTier;
+	onAction: (a: HeroAction) => void;
+}) {
+	const { hover, bind } = useHover();
+	return (
+		<Pressable
+			{...bind}
+			style={[
+				styles.tier,
+				tier.featured && styles.tierFeatured,
+				hover && styles.hoverLift,
+			]}>
+			{tier.featured ? (
+				<View style={styles.tierBadge}>
+					<Text style={styles.tierBadgeText}>Popular</Text>
+				</View>
+			) : null}
+			<Text style={styles.tierName}>{tier.name}</Text>
+			<View style={styles.tierPriceRow}>
+				<Text style={styles.tierPrice}>{tier.price}</Text>
+				{tier.period ? (
+					<Text style={styles.tierPeriod}>/{tier.period}</Text>
+				) : null}
+			</View>
+			{tier.body ? (
+				<Text style={styles.tierBody}>{tier.body}</Text>
+			) : null}
+			<View style={styles.tierFeatures}>
+				{tier.features.map((f) => (
+					<View key={f} style={styles.tierFeature}>
+						<Text style={styles.tierCheck}>✓</Text>
+						<Text style={styles.tierFeatureText}>{f}</Text>
+					</View>
+				))}
+			</View>
+			{tier.action ? (
+				<Button
+					title={tier.action.label}
+					variant={
+						tier.action.variant ??
+						(tier.featured ? 'primary' : 'outline')
+					}
+					onPress={() => onAction(tier.action as HeroAction)}
+				/>
+			) : null}
+		</Pressable>
+	);
+});
+
 export const PricingTiers = memo(function PricingTiers({
 	title,
 	subtitle,
@@ -509,43 +599,7 @@ export const PricingTiers = memo(function PricingTiers({
 			) : null}
 			<View style={styles.grid}>
 				{tiers.map((t) => (
-					<View
-						key={t.name}
-						style={[styles.tier, t.featured && styles.tierFeatured]}>
-						{t.featured ? (
-							<View style={styles.tierBadge}>
-								<Text style={styles.tierBadgeText}>Popular</Text>
-							</View>
-						) : null}
-						<Text style={styles.tierName}>{t.name}</Text>
-						<View style={styles.tierPriceRow}>
-							<Text style={styles.tierPrice}>{t.price}</Text>
-							{t.period ? (
-								<Text style={styles.tierPeriod}>/{t.period}</Text>
-							) : null}
-						</View>
-						{t.body ? (
-							<Text style={styles.tierBody}>{t.body}</Text>
-						) : null}
-						<View style={styles.tierFeatures}>
-							{t.features.map((f) => (
-								<View key={f} style={styles.tierFeature}>
-									<Text style={styles.tierCheck}>✓</Text>
-									<Text style={styles.tierFeatureText}>{f}</Text>
-								</View>
-							))}
-						</View>
-						{t.action ? (
-							<Button
-								title={t.action.label}
-								variant={
-									t.action.variant ??
-									(t.featured ? 'primary' : 'outline')
-								}
-								onPress={() => fire(t.action as HeroAction)}
-							/>
-						) : null}
-					</View>
+					<TierCard key={t.name} tier={t} onAction={fire} />
 				))}
 			</View>
 		</View>
@@ -639,6 +693,22 @@ export interface BentoItem {
 	wide?: boolean;
 }
 
+const BentoTile = memo(function BentoTile({ item }: { item: BentoItem }) {
+	const { hover, bind } = useHover();
+	return (
+		<Pressable
+			{...bind}
+			style={[
+				styles.bento,
+				item.wide && styles.bentoWide,
+				hover && styles.hoverLift,
+			]}>
+			<Text style={styles.bentoTitle}>{item.title}</Text>
+			<Text style={styles.bentoBody}>{item.body}</Text>
+		</Pressable>
+	);
+});
+
 export const BentoGrid = memo(function BentoGrid({
 	title,
 	subtitle,
@@ -655,12 +725,7 @@ export const BentoGrid = memo(function BentoGrid({
 			) : null}
 			<View style={styles.grid}>
 				{items.map((b) => (
-					<View
-						key={b.title}
-						style={[styles.bento, b.wide && styles.bentoWide]}>
-						<Text style={styles.bentoTitle}>{b.title}</Text>
-						<Text style={styles.bentoBody}>{b.body}</Text>
-					</View>
+					<BentoTile key={b.title} item={b} />
 				))}
 			</View>
 		</View>
@@ -792,6 +857,38 @@ export interface TeamMember {
 	href?: string;
 }
 
+const MemberCard = memo(function MemberCard({
+	member,
+	onNavigate,
+}: {
+	member: TeamMember;
+	onNavigate?: (href: string) => void;
+}) {
+	const { hover, bind } = useHover();
+	return (
+		<Pressable
+			{...bind}
+			accessibilityRole={member.href ? 'link' : undefined}
+			onPress={() => member.href && onNavigate?.(member.href)}
+			style={[
+				styles.member,
+				hover && styles.hoverLift,
+				member.href ? ({ cursor: 'pointer' } as never) : null,
+			]}>
+			<View style={styles.memberAvatar}>
+				<Text style={styles.memberInitials}>
+					{member.initials ?? member.name.slice(0, 2).toUpperCase()}
+				</Text>
+			</View>
+			<Text style={styles.memberName}>{member.name}</Text>
+			<Text style={styles.memberRole}>{member.role}</Text>
+			{member.bio ? (
+				<Text style={styles.memberBio}>{member.bio}</Text>
+			) : null}
+		</Pressable>
+	);
+});
+
 export const TeamGrid = memo(function TeamGrid({
 	title,
 	subtitle,
@@ -810,25 +907,11 @@ export const TeamGrid = memo(function TeamGrid({
 			) : null}
 			<View style={styles.grid}>
 				{members.map((m) => (
-					<Pressable
+					<MemberCard
 						key={m.name}
-						accessibilityRole={m.href ? 'link' : undefined}
-						onPress={() => m.href && onNavigate?.(m.href)}
-						style={[
-							styles.member,
-							m.href ? ({ cursor: 'pointer' } as never) : null,
-						]}>
-						<View style={styles.memberAvatar}>
-							<Text style={styles.memberInitials}>
-								{m.initials ?? m.name.slice(0, 2).toUpperCase()}
-							</Text>
-						</View>
-						<Text style={styles.memberName}>{m.name}</Text>
-						<Text style={styles.memberRole}>{m.role}</Text>
-						{m.bio ? (
-							<Text style={styles.memberBio}>{m.bio}</Text>
-						) : null}
-					</Pressable>
+						member={m}
+						onNavigate={onNavigate}
+					/>
 				))}
 			</View>
 		</View>
@@ -899,7 +982,7 @@ const styles = StyleSheet.create({
 		paddingBottom: 72,
 		alignItems: 'center',
 	},
-	heroInner: { alignItems: 'center', gap: tokens.space.lg, maxWidth: 760 },
+	heroInner: { alignItems: 'center', gap: tokens.space.lg, maxWidth: 920 },
 	eyebrow: {
 		paddingHorizontal: tokens.space.md,
 		paddingVertical: 6,
@@ -945,6 +1028,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 80,
 	},
 	grid: { flexDirection: 'row', flexWrap: 'wrap', gap: tokens.space.lg },
+	hoverLift: {
+		borderColor: tokens.color.primary,
+		transform: [{ translateY: -3 }],
+	},
 
 	headingWrap: {
 		alignItems: 'center',

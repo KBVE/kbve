@@ -3,4 +3,6 @@ import HeroIsland from './HeroIsland';
 const props = Astro.props;
 ---
 
-<HeroIsland client:only="react" {...props} />
+<div class="not-content">
+	<HeroIsland client:only="react" {...props} />
+</div>

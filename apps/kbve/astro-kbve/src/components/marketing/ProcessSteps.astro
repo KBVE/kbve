@@ -3,4 +3,6 @@ import { ProcessSteps } from '@kbve/rn-astro';
 const props = Astro.props;
 ---
 
-<ProcessSteps client:only="react" {...props} />
+<div class="not-content">
+	<ProcessSteps client:only="react" {...props} />
+</div>
