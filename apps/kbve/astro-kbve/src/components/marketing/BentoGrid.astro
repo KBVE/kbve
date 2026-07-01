@@ -1,0 +1,6 @@
+---
+import { BentoGrid } from '@kbve/rn-astro';
+const props = Astro.props;
+---
+
+<BentoGrid client:only="react" {...props} />
