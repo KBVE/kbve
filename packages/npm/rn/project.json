@@ -13,6 +13,13 @@
 			"options": {
 				"command": "tsc --noEmit -p packages/npm/rn/tsconfig.lib.json"
 			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/rn",
+				"command": "vitest run"
+			}
 		}
 	}
 }
