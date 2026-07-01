@@ -13,6 +13,7 @@ struct KBVESIMGRIDRENDER_API FSimgridInterpState
 	uint8 Facing = 0;
 	uint16 Kind = 0;
 	uint16 Owner = 0;
+	int32 MaxHp = 0;
 };
 
 class KBVESIMGRIDRENDER_API FSimgridInterpolator

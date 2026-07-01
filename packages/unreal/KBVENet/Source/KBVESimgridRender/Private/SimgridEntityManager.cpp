@@ -87,7 +87,7 @@ void USimgridEntityManager::Tick(double NowMs)
 		const FVector WorldPos = ResolveWorldPos(S);
 		const float Yaw = FSimgridCoords::FacingToYaw(S.Facing);
 
-		const bool bIsLocal = (LocalSlot >= 0) && ((int32)S.Owner == LocalSlot);
+		const bool bIsLocal = (LocalSlot >= 0) && ((int32)S.Owner == LocalSlot) && (S.MaxHp > 0);
 		if (bIsLocal)
 		{
 			bHasLocalPos = true;
