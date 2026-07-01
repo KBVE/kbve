@@ -24,7 +24,7 @@ public:
 	AchuckMenuPlayerController();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
-	FName PlayLevelName = TEXT("L_ChuckWorld");
+	FName PlayLevelName = TEXT("L_ArpgWorld");
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
 	bool bUseOnlineTravel = false;
