@@ -30,6 +30,10 @@ export {
 	ProcessSteps,
 	Testimonials,
 	LiveFeed,
+	PricingTiers,
+	FaqAccordion,
+	LogoCloud,
+	BentoGrid,
 	useTheme,
 	tokens,
 } from '@kbve/rn/ui';
@@ -60,4 +64,8 @@ export type {
 	StepItem,
 	TestimonialItem,
 	FeedRow,
+	PricingTier,
+	FaqItem,
+	LogoItem,
+	BentoItem,
 } from '@kbve/rn/ui';

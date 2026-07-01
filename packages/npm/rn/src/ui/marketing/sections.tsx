@@ -471,6 +471,196 @@ export const LiveFeed = memo(function LiveFeed({
 	);
 });
 
+/* ──────────────────────── Pricing tiers ────────────────────── */
+
+export interface PricingTier {
+	name: string;
+	price: string;
+	period?: string;
+	body?: string;
+	features: string[];
+	action?: HeroAction;
+	featured?: boolean;
+}
+
+export const PricingTiers = memo(function PricingTiers({
+	title,
+	subtitle,
+	tiers,
+	onNavigate,
+}: {
+	title?: string;
+	subtitle?: string;
+	tiers: PricingTier[];
+	onNavigate?: (href: string) => void;
+}) {
+	const fire = (a: HeroAction) =>
+		a.external ? openExternal(a.href) : onNavigate?.(a.href);
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{tiers.map((t) => (
+					<View
+						key={t.name}
+						style={[styles.tier, t.featured && styles.tierFeatured]}>
+						{t.featured ? (
+							<View style={styles.tierBadge}>
+								<Text style={styles.tierBadgeText}>Popular</Text>
+							</View>
+						) : null}
+						<Text style={styles.tierName}>{t.name}</Text>
+						<View style={styles.tierPriceRow}>
+							<Text style={styles.tierPrice}>{t.price}</Text>
+							{t.period ? (
+								<Text style={styles.tierPeriod}>/{t.period}</Text>
+							) : null}
+						</View>
+						{t.body ? (
+							<Text style={styles.tierBody}>{t.body}</Text>
+						) : null}
+						<View style={styles.tierFeatures}>
+							{t.features.map((f) => (
+								<View key={f} style={styles.tierFeature}>
+									<Text style={styles.tierCheck}>✓</Text>
+									<Text style={styles.tierFeatureText}>{f}</Text>
+								</View>
+							))}
+						</View>
+						{t.action ? (
+							<Button
+								title={t.action.label}
+								variant={
+									t.action.variant ??
+									(t.featured ? 'primary' : 'outline')
+								}
+								onPress={() => fire(t.action as HeroAction)}
+							/>
+						) : null}
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ───────────────────────── FAQ accordion ───────────────────── */
+
+export interface FaqItem {
+	q: string;
+	a: string;
+}
+
+export const FaqAccordion = memo(function FaqAccordion({
+	title,
+	subtitle,
+	items,
+}: {
+	title?: string;
+	subtitle?: string;
+	items: FaqItem[];
+}) {
+	const [open, setOpen] = useState<number | null>(null);
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.faqList}>
+				{items.map((f, i) => {
+					const isOpen = open === i;
+					return (
+						<Pressable
+							key={f.q}
+							accessibilityRole="button"
+							onPress={() => setOpen(isOpen ? null : i)}
+							style={[
+								styles.faqItem,
+								isOpen && styles.faqItemOpen,
+								{ cursor: 'pointer' } as never,
+							]}>
+							<View style={styles.faqHead}>
+								<Text style={styles.faqQ}>{f.q}</Text>
+								<Text style={styles.faqSign}>
+									{isOpen ? '−' : '+'}
+								</Text>
+							</View>
+							{isOpen ? (
+								<Text style={styles.faqA}>{f.a}</Text>
+							) : null}
+						</Pressable>
+					);
+				})}
+			</View>
+		</View>
+	);
+});
+
+/* ───────────────────────── Logo cloud ──────────────────────── */
+
+export interface LogoItem {
+	name: string;
+}
+
+export const LogoCloud = memo(function LogoCloud({
+	title,
+	logos,
+}: {
+	title?: string;
+	logos: LogoItem[];
+}) {
+	return (
+		<View style={styles.logoBand}>
+			{title ? <Text style={styles.logoTitle}>{title}</Text> : null}
+			<View style={[container(), styles.logoRow]}>
+				{logos.map((l) => (
+					<Text key={l.name} style={styles.logoItem}>
+						{l.name}
+					</Text>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ───────────────────────── Bento grid ──────────────────────── */
+
+export interface BentoItem {
+	title: string;
+	body: string;
+	wide?: boolean;
+}
+
+export const BentoGrid = memo(function BentoGrid({
+	title,
+	subtitle,
+	items,
+}: {
+	title?: string;
+	subtitle?: string;
+	items: BentoItem[];
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{items.map((b) => (
+					<View
+						key={b.title}
+						style={[styles.bento, b.wide && styles.bentoWide]}>
+						<Text style={styles.bentoTitle}>{b.title}</Text>
+						<Text style={styles.bentoBody}>{b.body}</Text>
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
 /* ─────────────────────────── Styles ────────────────────────── */
 
 const styles = StyleSheet.create({
@@ -781,4 +971,132 @@ const styles = StyleSheet.create({
 		letterSpacing: 1,
 		color: tokens.color.textMuted,
 	},
+
+	tier: {
+		flex: 1,
+		minWidth: 240,
+		gap: tokens.space.md,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	tierFeatured: { borderColor: tokens.color.primary },
+	tierBadge: {
+		alignSelf: 'flex-start',
+		paddingHorizontal: tokens.space.sm,
+		paddingVertical: 3,
+		borderRadius: tokens.radius.pill,
+		backgroundColor: tokens.color.surfaceAlt,
+		borderWidth: 1,
+		borderColor: tokens.color.primary,
+	},
+	tierBadgeText: {
+		fontSize: 11,
+		fontWeight: '700',
+		letterSpacing: 1,
+		textTransform: 'uppercase',
+		color: tokens.color.primary,
+	},
+	tierName: { fontSize: 18, fontWeight: '700', color: tokens.color.text },
+	tierPriceRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+	tierPrice: {
+		fontSize: 40,
+		fontWeight: '800',
+		letterSpacing: -1,
+		color: tokens.color.primary,
+	},
+	tierPeriod: {
+		fontSize: 14,
+		color: tokens.color.textMuted,
+		marginBottom: 6,
+	},
+	tierBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
+	tierFeatures: { gap: tokens.space.sm, marginVertical: tokens.space.sm },
+	tierFeature: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.sm,
+	},
+	tierCheck: { fontSize: 14, fontWeight: '800', color: tokens.color.primary },
+	tierFeatureText: { flex: 1, fontSize: 14, color: tokens.color.text },
+
+	faqList: {
+		width: '100%',
+		maxWidth: 760,
+		alignSelf: 'center',
+		gap: tokens.space.sm,
+	},
+	faqItem: {
+		padding: tokens.space.lg,
+		borderRadius: tokens.radius.lg,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	faqItemOpen: { borderColor: tokens.color.primary },
+	faqHead: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: tokens.space.md,
+	},
+	faqQ: { flex: 1, fontSize: 16, fontWeight: '700', color: tokens.color.text },
+	faqSign: {
+		fontSize: 22,
+		fontWeight: '800',
+		color: tokens.color.primary,
+	},
+	faqA: {
+		marginTop: tokens.space.sm,
+		fontSize: 14,
+		lineHeight: 22,
+		color: tokens.color.textMuted,
+	},
+
+	logoBand: {
+		borderTopWidth: 1,
+		borderBottomWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.bgSubtle,
+		paddingVertical: tokens.space.xl,
+		paddingHorizontal: tokens.space.lg,
+		gap: tokens.space.lg,
+		alignItems: 'center',
+	},
+	logoTitle: {
+		fontSize: 12,
+		letterSpacing: 2,
+		textTransform: 'uppercase',
+		color: tokens.color.textMuted,
+		textAlign: 'center',
+	},
+	logoRow: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+		alignItems: 'center',
+		gap: tokens.space.xl,
+	},
+	logoItem: {
+		fontSize: 20,
+		fontWeight: '800',
+		letterSpacing: -0.5,
+		color: tokens.color.textMuted,
+	},
+
+	bento: {
+		flex: 1,
+		minWidth: 240,
+		gap: tokens.space.sm,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	bentoWide: { minWidth: 520, flexBasis: '100%' },
+	bentoTitle: { fontSize: 18, fontWeight: '700', color: tokens.color.primary },
+	bentoBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
 });
