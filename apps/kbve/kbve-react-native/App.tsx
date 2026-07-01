@@ -1,5 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { initObservNative } from '@kbve/observ';
 import {
 	AgentStore,
 	AuthGate,
@@ -14,6 +16,13 @@ import {
 	tsCore,
 } from '@kbve/rn';
 import './WgpuHost';
+
+initObservNative({
+	endpoint: 'https://metrics.kbve.com/api/v1/ingest/errors',
+	project: 'kbve-react-native',
+	platform: Platform.OS === 'ios' ? 'ios' : 'android',
+	environment: __DEV__ ? 'development' : 'production',
+});
 
 const store = new AgentStore(tsCore, createWebSocketExecutor());
 

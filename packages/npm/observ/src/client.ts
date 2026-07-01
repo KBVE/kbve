@@ -1,3 +1,9 @@
+import {
+	BreadcrumbTrail,
+	instrumentConsole,
+	instrumentDom,
+	instrumentFetch,
+} from './breadcrumbs';
 import type { CaptureInput, ErrorEvent, ObservConfig } from './types';
 
 const NOISE = [
@@ -36,6 +42,7 @@ export class Observer {
 	private timer: ReturnType<typeof setInterval> | null = null;
 	private session: string;
 	private installed = false;
+	private trail: BreadcrumbTrail;
 
 	constructor(config: ObservConfig) {
 		this.cfg = {
@@ -45,11 +52,59 @@ export class Observer {
 			...config,
 		};
 		this.session = config.sessionId ?? randomId();
+		this.trail = new BreadcrumbTrail(config.maxBreadcrumbs ?? 20);
+	}
+
+	/// Record a manual breadcrumb; surfaces in `extra.breadcrumbs` on the next capture.
+	breadcrumb(message: string, data?: Record<string, unknown>): void {
+		this.trail.add('custom', message, data);
+	}
+
+	private startTimer(): void {
+		this.timer = setInterval(
+			() => this.flush(false),
+			this.cfg.flushIntervalMs,
+		);
+	}
+
+	/// React Native / non-DOM install: global handlers + flush timer, no window.
+	installNative(): this {
+		if (this.installed) return this;
+		this.installed = true;
+		if (this.cfg.captureConsole) instrumentConsole(this.trail);
+		if (this.cfg.captureFetch ?? true) instrumentFetch(this.trail);
+
+		const g = globalThis as {
+			ErrorUtils?: {
+				getGlobalHandler?: () => ((e: unknown, fatal?: boolean) => void) | undefined;
+				setGlobalHandler?: (h: (e: unknown, fatal?: boolean) => void) => void;
+			};
+		};
+		const eu = g.ErrorUtils;
+		if (eu?.setGlobalHandler) {
+			const prev = eu.getGlobalHandler?.();
+			eu.setGlobalHandler((err: unknown, fatal?: boolean) => {
+				this.capture({
+					message: err instanceof Error ? err.message : String(err),
+					stack: err instanceof Error ? err.stack : undefined,
+					error_type: errorType(err),
+					handled: false,
+					extra: { fatal: fatal ?? false },
+				});
+				this.flush(true);
+				prev?.(err, fatal);
+			});
+		}
+		this.startTimer();
+		return this;
 	}
 
 	install(): this {
 		if (this.installed || typeof window === 'undefined') return this;
 		this.installed = true;
+		if (this.cfg.captureConsole) instrumentConsole(this.trail);
+		if (this.cfg.captureClicks ?? true) instrumentDom(this.trail);
+		if (this.cfg.captureFetch ?? true) instrumentFetch(this.trail);
 
 		window.addEventListener('error', (e: ErrorEvent_) => {
 			const err = e.error;
@@ -92,10 +147,7 @@ export class Observer {
 		});
 		window.addEventListener('pagehide', flushNow);
 
-		this.timer = setInterval(
-			() => this.flush(false),
-			this.cfg.flushIntervalMs,
-		);
+		this.startTimer();
 		return this;
 	}
 
@@ -123,6 +175,12 @@ export class Observer {
 			return;
 		if (!input.message || isNoise(input.message)) return;
 
+		const crumbs = this.trail.snapshot();
+		const extra =
+			crumbs.length > 0
+				? { ...input.extra, breadcrumbs: crumbs }
+				: input.extra;
+
 		let event: ErrorEvent = {
 			project: this.cfg.project,
 			platform: this.cfg.platform ?? 'web',
@@ -135,7 +193,7 @@ export class Observer {
 			user_id: this.cfg.getUserId?.() ?? '',
 			session_id: this.session,
 			handled: input.handled ?? false,
-			extra: input.extra,
+			extra,
 		};
 
 		if (this.cfg.beforeSend) {

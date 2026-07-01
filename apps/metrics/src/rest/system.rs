@@ -15,6 +15,10 @@ pub async fn index() -> Html<&'static str> {
     Html(include_str!("index.html"))
 }
 
+pub async fn dashboard() -> Html<&'static str> {
+    Html(include_str!("dashboard.html"))
+}
+
 pub async fn health() -> Json<serde_json::Value> {
     Json(json!({
         "status": "healthy",

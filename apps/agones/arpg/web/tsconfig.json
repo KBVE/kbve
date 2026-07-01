@@ -16,6 +16,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@kbve/laser": ["../../../../packages/npm/laser/src/index.ts"],
+			"@kbve/observ": ["../../../../packages/npm/observ/src/index.ts"],
 			"@kbve/itemdb-data": [
 				"../../../../packages/data/codegen/generated/itemdb.json"
 			],
