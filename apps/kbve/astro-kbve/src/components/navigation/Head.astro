@@ -105,6 +105,38 @@ const pageTitle = typeof data.title === 'string' ? data.title : undefined;
 const pageDescription =
 	typeof data.description === 'string' ? data.description : undefined;
 
+// Software project pages (project collection) carry source_path / app_name /
+// version / license in frontmatter. Derive a SoftwareSourceCode node from
+// those so every project page ships structured data without per-page jsonld.
+const str = (v: unknown): string | undefined =>
+	typeof v === 'string' && v.trim() ? v.trim() : undefined;
+const srcPath = str(data.source_path);
+const appName = str(data.app_name);
+const fmTags = Array.isArray(data.tags)
+	? (data.tags.filter((t) => typeof t === 'string') as string[])
+	: [];
+const LANG_TAGS = new Set([
+	'rust', 'python', 'typescript', 'javascript', 'go', 'cpp', 'c++',
+	'csharp', 'c#', 'astro', 'svelte', 'react', 'lua', 'zig', 'java',
+]);
+const langs = fmTags.filter((t) => LANG_TAGS.has(t.toLowerCase()));
+const software =
+	(srcPath || appName) && pageTitle
+		? {
+				name: appName ?? pageTitle,
+				description: pageDescription,
+				codeRepository: srcPath
+					? `https://github.com/KBVE/kbve/tree/main/${srcPath}`
+					: undefined,
+				version: str(data.version),
+				license: str(data.license),
+				author: str(data.author),
+				programmingLanguage: langs.length ? langs : undefined,
+				keywords: fmTags.length ? fmTags : undefined,
+				dateModified: jl.dateModified,
+			}
+		: undefined;
+
 const jsonLdGraph =
 	jl.disable || !pageTitle
 		? null
@@ -117,11 +149,12 @@ const jsonLdGraph =
 					image: jl.image ?? ogImage,
 					datePublished: jl.datePublished,
 					dateModified: jl.dateModified,
-					keywords: jl.keywords,
+					keywords: jl.keywords ?? (fmTags.length ? fmTags : undefined),
 					breadcrumb: jl.breadcrumb?.map(
 						(c) => [c.name, c.path] as [string, string],
 					),
 					faq: jl.faq,
+					software,
 				}),
 			);
 

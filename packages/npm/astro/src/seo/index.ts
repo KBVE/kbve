@@ -6,11 +6,13 @@ import {
 	breadcrumbs,
 	itemList,
 	faqPage,
+	softwareSourceCode,
 	type SchemaNode,
 	type WebPageInput,
 	type Crumb,
 	type ListEntry,
 	type FaqEntry,
+	type SoftwareSourceCodeInput,
 } from './schema.js';
 
 export * from './schema.js';
@@ -42,6 +44,7 @@ export interface PageInput {
 	keywords?: string[];
 	breadcrumb?: Crumb[];
 	faq?: FaqEntry[];
+	software?: Omit<SoftwareSourceCodeInput, 'url'>;
 	extra?: SchemaNode[];
 }
 
@@ -155,6 +158,11 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 						});
 			const nodes: SchemaNode[] = [orgNode, siteNode, primary, crumb];
 			if (i.faq?.length) nodes.push(faqPage(i.faq, `${pageUrl}#faq`));
+			if (i.software) {
+				nodes.push(
+					softwareSourceCode({ url: pageUrl, ...i.software }),
+				);
+			}
 			if (i.extra?.length) nodes.push(...i.extra);
 			return nodes;
 		},

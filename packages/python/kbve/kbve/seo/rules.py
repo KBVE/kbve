@@ -83,6 +83,27 @@ def rule_sem_tracked(page, ctx, profile):
     return []
 
 
+def rule_jsonld_present(page, ctx, profile):
+    # Software JSON-LD is derived from source_path / app_name; a page missing
+    # both ships no SoftwareSourceCode node.
+    if not profile["expect_software"]:
+        return []
+    fm = page.frontmatter
+    if not (fm.get("source_path") or fm.get("app_name")):
+        return [Finding("jsonld-present", WARN,
+                        "no source_path/app_name -> no SoftwareSourceCode JSON-LD")]
+    return []
+
+
+def rule_body_thin(page, ctx, profile):
+    floor = profile["body_min_chars"]
+    body = page.body.strip()
+    if floor and len(body) < floor:
+        return [Finding("body-thin", WARN,
+                        "body %d chars < %d" % (len(body), floor))]
+    return []
+
+
 RULES = [
     rule_title_length,
     rule_desc_length,
@@ -90,6 +111,8 @@ RULES = [
     rule_desc_duplicate,
     rule_tags_present,
     rule_sem_tracked,
+    rule_jsonld_present,
+    rule_body_thin,
 ]
 
 

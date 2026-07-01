@@ -223,6 +223,40 @@ export const softwareApplication = (i: SoftwareAppInput): SchemaNode => ({
 		: {}),
 });
 
+export interface SoftwareSourceCodeInput {
+	url: string;
+	name: string;
+	description?: string;
+	codeRepository?: string;
+	programmingLanguage?: string | string[];
+	runtimePlatform?: string;
+	version?: string;
+	license?: string;
+	author?: SchemaNode | string;
+	image?: string;
+	keywords?: string[];
+	dateModified?: string;
+}
+
+export const softwareSourceCode = (i: SoftwareSourceCodeInput): SchemaNode => ({
+	'@type': 'SoftwareSourceCode',
+	'@id': `${i.url}#software`,
+	name: i.name,
+	url: i.url,
+	...(i.description ? { description: i.description } : {}),
+	...(i.codeRepository ? { codeRepository: i.codeRepository } : {}),
+	...(i.programmingLanguage
+		? { programmingLanguage: i.programmingLanguage }
+		: {}),
+	...(i.runtimePlatform ? { runtimePlatform: i.runtimePlatform } : {}),
+	...(i.version ? { version: i.version } : {}),
+	...(i.license ? { license: i.license } : {}),
+	...(i.author ? { author: i.author } : {}),
+	...(i.image ? { image: i.image } : {}),
+	...(i.keywords?.length ? { keywords: i.keywords.join(', ') } : {}),
+	...(i.dateModified ? { dateModified: i.dateModified } : {}),
+});
+
 export interface VideoGameInput {
 	url: string;
 	name: string;
