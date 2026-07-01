@@ -1,7 +1,9 @@
 ---
-title: OBS
+title: OBS Studio
 description: |
-    Open Broadcast System - an open source screencasting and streaming application.
+    OBS Studio (Open Broadcaster Software) is a free, open-source application for screen recording and live
+    streaming to Twitch, YouTube, and beyond. This guide covers scenes and sources, encoder settings, streaming
+    setup, and extending OBS with plugins.
 sidebar:
     label: OBS
     order: 1100
@@ -9,6 +11,31 @@ unsplash: 1572511443032-a3cfe6823872
 img: https://images.unsplash.com/photo-1572511443032-a3cfe6823872?fit=crop&w=1400&h=700&q=75
 tags:
     - media
+    - streaming
+    - video
+sem: 1
+ogTitle: OBS Studio Guide — Screen Recording, Live Streaming & Plugins
+ogDescription: Get started with OBS Studio, the free open-source broadcaster — understand scenes and sources, configure encoder and bitrate settings, stream to Twitch or YouTube, and extend OBS with plugins.
+jsonld:
+    type: Article
+    keywords:
+        - obs studio
+        - open broadcaster software
+        - screen recording
+        - live streaming
+        - twitch streaming
+        - obs plugins
+    faq:
+        - question: What is OBS Studio?
+          answer: OBS Studio (Open Broadcaster Software) is a free, open-source application for screen recording and live streaming. It composites multiple sources — screen captures, webcams, images, and audio — into scenes and encodes them for local recording or streaming to platforms like Twitch and YouTube.
+        - question: Is OBS Studio free?
+          answer: Yes. OBS Studio is completely free and open source under the GPLv2 license, with no watermarks, time limits, or paid tiers. It runs on Windows, macOS, and Linux.
+        - question: What is the difference between a scene and a source in OBS?
+          answer: A source is a single input such as a display capture, webcam, image, or audio device. A scene is a named arrangement of one or more sources with their positions and sizes. You switch between scenes live to change your layout during a stream or recording.
+        - question: What bitrate should I use for streaming in OBS?
+          answer: For 1080p60 streaming, 6000 kbps with the x264 or NVENC encoder is a common baseline for Twitch, and higher for YouTube. Match your bitrate to your upload bandwidth — leave headroom so network spikes do not drop frames. Use CBR for streaming and a quality-based rate control for local recording.
+        - question: How do I add plugins to OBS?
+          answer: Download a plugin compatible with your OBS version and operating system, then place its files in the OBS plugins directory (or run its installer). Restart OBS, and the plugin's filters, sources, or docks appear in the relevant menus.
 ---
 
 import {
@@ -22,16 +49,77 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
 
-## Information
+**OBS Studio** (Open Broadcaster Software) is a free, open-source tool for **screen recording** and **live streaming**. It composites multiple inputs — display captures, webcams, images, browser sources, and audio — into **scenes**, encodes them in real time, and either records locally or streams to Twitch, YouTube, and any RTMP endpoint.
 
+It runs on Windows, macOS, and Linux under the GPLv2 license — no watermarks, no time limits.
+
+This guide covers [core concepts](#concepts), [streaming setup](#streaming), and [plugins](#plugins).
 
 <Adsense />
 
+## Concepts
+
+| Term | Meaning |
+| ---- | ------- |
+| **Source** | A single input — display capture, webcam, image, browser, audio device |
+| **Scene** | A named arrangement of sources with their positions and sizes |
+| **Scene collection** | A saved set of scenes you can switch between |
+| **Filter** | A per-source effect — chroma key, noise gate, color correction |
+| **Profile** | A saved bundle of encoder and streaming settings |
+
+You build scenes for each layout you need (Starting Soon, Gameplay, Just Chatting) and switch between them live.
+
+<Aside type="tip">
+Right-click any source to add **filters** — a Chroma Key filter removes a green-screen background, and a Noise Suppression filter on your mic cleans up background hum.
+</Aside>
+
+## Streaming
+
+<Steps>
+
+1. **Set your stream key**
+   In **Settings → Stream**, pick your service (Twitch, YouTube, Custom) and paste the stream key from that platform's dashboard.
+
+2. **Configure the encoder**
+   In **Settings → Output**, choose an encoder — `NVENC` (NVIDIA GPU) or `x264` (CPU). Set rate control to **CBR** and a bitrate matched to your upload speed (≈6000 kbps for 1080p60 on Twitch).
+
+3. **Set resolution and FPS**
+   In **Settings → Video**, set the base (canvas) and output (scaled) resolution and a frame rate of 30 or 60.
+
+4. **Build a scene and go live**
+   Add your sources, arrange them, then click **Start Streaming** (or **Start Recording** for local capture).
+
+</Steps>
+
+<Aside type="caution">
+Streaming bitrate is capped by your **upload** bandwidth, not download. Run a speed test and stay well under your upload ceiling — sustained over-subscription drops frames and stutters the stream.
+</Aside>
+
 ## Plugins
 
-Information and guides on additional plugins for OBS.
+Plugins extend OBS with extra sources, filters, and docks. Install by dropping the plugin files into the OBS plugins directory (or running its installer), then restart OBS. Popular examples:
 
-#### Banana
+- **StreamFX** — advanced filters, shaders, and 3D transforms.
+- **Move Transition** — animate sources between scenes.
+- **obs-websocket** — remote-control OBS over WebSocket for automation and stream decks.
 
-#### Potato
+## FAQ
+
+**What is OBS Studio?**
+OBS Studio is a free, open-source application for screen recording and live streaming. It composites multiple sources into scenes and encodes them for local recording or streaming to platforms like Twitch and YouTube.
+
+**Is OBS Studio free?**
+Yes. It is completely free and open source under GPLv2, with no watermarks, time limits, or paid tiers, on Windows, macOS, and Linux.
+
+**What is the difference between a scene and a source?**
+A source is a single input such as a display capture, webcam, or audio device. A scene is a named arrangement of one or more sources with their positions and sizes. You switch between scenes live.
+
+**What bitrate should I use for streaming?**
+For 1080p60 on Twitch, 6000 kbps with x264 or NVENC is a common baseline. Match your bitrate to your upload bandwidth and use CBR for streaming.
+
+**How do I add plugins to OBS?**
+Download a plugin compatible with your OBS version and OS, place its files in the OBS plugins directory (or run its installer), and restart OBS. Its filters, sources, or docks then appear in the menus.
+
+<Adsense />

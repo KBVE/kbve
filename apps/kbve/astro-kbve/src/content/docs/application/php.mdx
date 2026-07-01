@@ -1,13 +1,41 @@
 ---
 title: PHP
 description: |
-    Dat PHP
+    PHP (Hypertext Preprocessor) is a widely-used, dynamic, server-side scripting language for web development
+    that embeds directly into HTML and powers the classic LAMP stack. This guide covers install, syntax basics,
+    and reusable functions.
 sidebar:
     label: PHP
     order: 409
 unsplash: 1599507593499-a3f7d7d97667
 img: https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?fit=crop&w=1400&h=700&q=75
-
+tags:
+    - programming
+    - php
+    - backend
+sem: 1
+ogTitle: PHP Guide — Server-Side Scripting, LAMP Stack & Syntax Basics
+ogDescription: Learn PHP, the server-side scripting language behind the LAMP stack — install with a package manager, understand variables and functions, embed PHP in HTML, and reuse practical string helpers.
+jsonld:
+    type: Article
+    keywords:
+        - php
+        - hypertext preprocessor
+        - server-side scripting
+        - lamp stack
+        - web development
+        - php functions
+    faq:
+        - question: What is PHP used for?
+          answer: PHP is a server-side scripting language used mainly for web development. It runs on the server, generates HTML sent to the browser, and powers dynamic, data-driven applications and content management systems like WordPress, Drupal, and Laravel apps. It is the P in the classic LAMP stack.
+        - question: What does PHP stand for?
+          answer: PHP is a recursive acronym for PHP Hypertext Preprocessor. It originally stood for Personal Home Page, reflecting its origins, but was renamed as it grew into a general-purpose web scripting language.
+        - question: Is PHP still relevant in modern web development?
+          answer: Yes. PHP powers a large share of the web, including WordPress. Modern PHP 8.x brings the JIT compiler, strong typing, attributes, enums, and major performance gains, and frameworks like Laravel and Symfony keep it a productive, well-supported choice for backends.
+        - question: How do I embed PHP in HTML?
+          answer: Wrap PHP code in <?php ... ?> tags anywhere inside an .php file. The server executes the code between the tags and replaces it with its output, while everything outside the tags is sent to the browser as plain HTML.
+        - question: What is the LAMP stack?
+          answer: LAMP is a classic web hosting stack of Linux (OS), Apache (web server), MySQL (database), and PHP (scripting language). It is a fully open-source foundation that has powered countless websites and web applications for decades.
 ---
 
 import {
@@ -21,6 +49,13 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
+
+**PHP** (Hypertext Preprocessor) is a dynamic, server-side scripting language famed for embedding directly into HTML and powering the classic **LAMP** stack. It runs on the server, generates HTML for the browser, and drives a huge share of the web — including WordPress, Laravel, and Symfony applications.
+
+This guide covers the [background](#information), [install](#install), [syntax basics](#syntax), and reusable [functions](#functions).
+
+<Adsense />
 
 ## Information
 
@@ -32,13 +67,57 @@ PHP supports a wide range of databases, has rich built-in functions, and can int
 It's also part of the classic LAMP ([Linux](/application/linux/), Apache, [MySQL](/application/sql/), PHP) stack which powers countless servers across the globe.
 PHP continues to evolve with regular updates that improve its performance, security features, and modern language capabilities.
 
-<Adsense />
+## Install
+
+PHP is packaged for every major OS. Install the CLI and verify the version:
+
+```bash
+# Debian / Ubuntu
+sudo apt install php-cli -y
+
+# macOS (Homebrew)
+brew install php
+
+# Check the version
+php -v
+```
+
+Run a script or start the built-in dev server (never for production):
+
+```bash
+php script.php
+php -S localhost:8000
+```
+
+## Syntax
+
+PHP code lives between `<?php ... ?>` tags; everything outside is sent to the browser as plain HTML:
+
+```php
+<?php
+$name = "KBVE";
+$count = 3;
+
+function greet(string $who): string {
+    return "Hello, {$who}!";
+}
+
+echo greet($name);
+
+for ($i = 0; $i < $count; $i++) {
+    echo "Row {$i}\n";
+}
+```
+
+<Aside type="tip">
+Variables start with `$` and are loosely typed, but modern PHP (8.x) supports type declarations, enums, and the JIT compiler. Declare `declare(strict_types=1);` at the top of a file to enforce strict typing.
+</Aside>
 
 ## Functions
 
 ### SS_BETWEEN
 
-    - This is an exmaple of the `ss_between` function written in `php`.
+    - This is an example of the `ss_between` function written in `php`.
 
         ```php
 
@@ -66,3 +145,22 @@ PHP continues to evolve with regular updates that improve its performance, secur
             echo $u;
             // return username
         ```
+
+## FAQ
+
+**What is PHP used for?**
+PHP is a server-side scripting language used mainly for web development. It runs on the server, generates HTML sent to the browser, and powers dynamic, data-driven applications and content management systems like WordPress, Drupal, and Laravel apps. It is the P in the classic LAMP stack.
+
+**What does PHP stand for?**
+PHP is a recursive acronym for PHP Hypertext Preprocessor. It originally stood for Personal Home Page, but was renamed as it grew into a general-purpose web scripting language.
+
+**Is PHP still relevant in modern web development?**
+Yes. PHP powers a large share of the web, including WordPress. Modern PHP 8.x brings the JIT compiler, strong typing, attributes, enums, and major performance gains, and frameworks like Laravel and Symfony keep it productive and well-supported.
+
+**How do I embed PHP in HTML?**
+Wrap PHP code in `<?php ... ?>` tags anywhere inside a `.php` file. The server executes the code between the tags and replaces it with its output, while everything outside the tags is sent to the browser as plain HTML.
+
+**What is the LAMP stack?**
+LAMP is a classic web hosting stack of [Linux](/application/linux/) (OS), Apache (web server), [MySQL](/application/sql/) (database), and PHP (scripting language) — a fully open-source foundation that has powered countless web applications for decades.
+
+<Adsense />
