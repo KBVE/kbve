@@ -31,7 +31,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
-	FString ServerUrl = TEXT("ws://localhost:7979/ws");
+	FString ServerUrl = TEXT("wss://arpg.kbve.com/ws");
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
 	TObjectPtr<UStaticMesh> DefaultEntityMesh;

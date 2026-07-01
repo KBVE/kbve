@@ -10,6 +10,8 @@ class SKBVELoginWidget;
 class SKBVEAccountPanel;
 class SKBVELoadingPanel;
 class UKBVESupabaseSubsystem;
+class SchuckUsernameSetup;
+class UchuckKbveApiClient;
 struct FKBVESupabaseSession;
 struct FROWSUserCharacter;
 
@@ -41,6 +43,8 @@ private:
 	void TickLoadingTransition(float DeltaSeconds);
 
 	void RefreshAuthVisibility(bool bSignedIn);
+	void HandleUsernameSet(const FString& Canonical);
+	void HandleUsernameSessionExpired();
 
 	UFUNCTION()
 	void HandleSupabaseSignedIn(const FKBVESupabaseSession& Session);
@@ -68,8 +72,11 @@ private:
 	TSharedPtr<SchuckMainMenu>     MenuWidget;
 	TSharedPtr<SchuckCharacterSelect> CharSelectWidget;
 	TSharedPtr<SKBVELoginWidget>  LoginWidget;
+	TSharedPtr<SchuckUsernameSetup> UsernameWidget;
 	TSharedPtr<SKBVEAccountPanel> AccountWidget;
 	TSharedPtr<SKBVELoadingPanel> LoadingWidget;
+	TWeakObjectPtr<UchuckKbveApiClient> ApiClient;
+	FString LocalUsername;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
