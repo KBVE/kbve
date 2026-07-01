@@ -32,12 +32,14 @@ void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 	Ws->OnError.AddLambda([this](const FString& Err) { HandleError(Err); });
 
 	State = ESimgridState::Connecting;
+	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] Connecting url=%s jwtLen=%d user=%s"), *Url, PendingJwt.Len(), *PendingUsername);
 	Ws->Connect(Url);
 }
 
 void USimgridClientSubsystem::HandleOpen()
 {
 	State = ESimgridState::Joining;
+	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] WS open - sending JoinMatch proto=%u jwtLen=%d"), GSimgridProtocolVersion, PendingJwt.Len());
 	const TArray<uint8> Frame = FProtoCodec::EncodeJoinMatch(GSimgridProtocolVersion, PendingJwt, PendingUsername);
 	Ws->SendBinary(Frame);
 }
@@ -61,6 +63,7 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 			return;
 		}
 		State = ESimgridState::Live;
+		UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] Welcome slot=%d seed=%lld - LIVE"), (int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		OnWelcome.Broadcast((int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		break;
 	case EServerEventType::Snapshot:
@@ -68,6 +71,7 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 		OnSnapshot.Broadcast();
 		break;
 	case EServerEventType::Reject:
+		UE_LOG(LogKBVESimgrid, Error, TEXT("[SimgridDiag] Server REJECT reason=%s"), *D.Reject.Reason);
 		OnRejected.Broadcast(D.Reject.Reason);
 		Disconnect();
 		break;
@@ -98,6 +102,7 @@ void USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 
 void USimgridClientSubsystem::HandleClose(int32 Code, const FString& Reason, bool bClean)
 {
+	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] WS closed code=%d clean=%d reason=%s (state was %d)"), Code, bClean ? 1 : 0, *Reason, (int32)State);
 	State = ESimgridState::Disconnected;
 	OnDisconnected.Broadcast();
 }
