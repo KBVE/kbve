@@ -1,7 +1,7 @@
 ---
-title: Factorio CTL
-description: |
-    REST API service for the Agones-managed Factorio server — GameServer status, telemetry, saves, and map rotation.
+title: Factorio CTL — Agones Control REST API
+description: Rust Axum REST API for the Agones-managed Factorio server — reads GameServer status via kube-rs and ClickHouse-backed player telemetry for the staff dashboard.
+sem: 1
 sidebar:
     label: Factorio CTL
     order: 462
@@ -30,6 +30,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is factorio-ctl?
+          answer: A Rust Axum plus utoipa REST API for the Agones-managed Factorio dedicated server, exposing GameServer status and telemetry to the staff dashboard through a same-origin proxy.
+        - question: Where does the player count come from?
+          answer: From ClickHouse (gameops.factorio_snapshots), not RCON — RCON binds loopback-only on the gameserver pod and is unreachable cross-pod, so the relay sidecar produces telemetry and factorio-ctl reads the latest snapshot.
+        - question: How does it read GameServer status without breaking on Agones upgrades?
+          answer: It uses kube-rs with a raw request to the Agones API rather than vendoring the CRD, so an Agones schema bump cannot break the build.
 ---
 
 ## Overview
@@ -75,6 +83,26 @@ In `apps/kube/agones/factorio/manifests/factorio-ctl.yaml`:
 
 - Mutating endpoints: `/factorio/server/restart` · `/factorio/server/save` · `/factorio/saves/*` · `/factorio/rotation/*` · `/factorio/rcon/exec` · `/factorio/players`.
 - Dashboard "control" tab consuming factorio-ctl.
+
+## FAQ
+
+**What is factorio-ctl?**
+A Rust Axum + utoipa REST API for the Agones-managed Factorio dedicated server,
+exposing GameServer status and telemetry to the staff dashboard through a
+same-origin proxy.
+
+**Where does the player count come from?**
+From ClickHouse (`gameops.factorio_snapshots`), not RCON — RCON binds
+loopback-only on the gameserver pod and is unreachable cross-pod, so the relay
+sidecar produces telemetry and factorio-ctl reads the latest snapshot.
+
+**How does it read GameServer status without breaking on Agones upgrades?**
+It uses `kube-rs` with a raw request to the Agones API rather than vendoring the
+CRD, so an Agones schema bump cannot break the build.
+
+## Related
+
+- [Agones Factorio Relay](/docs/project/agones-factorio-relay) — sidecar that produces the telemetry factorio-ctl reads.
 
 ## Refs
 

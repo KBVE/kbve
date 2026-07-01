@@ -1,7 +1,7 @@
 ---
-title: KBVEWebSurface
-description: |
-    Game-agnostic Unreal Engine plugin for rendering interactive web content onto 3D surfaces — billboards, terminals, kiosks, holograms, in-world dashboards.
+title: KBVEWebSurface — Web Content on 3D Surfaces for Unreal
+description: KBVEWebSurface is a game-agnostic Unreal Engine plugin that renders interactive web content onto 3D surfaces — billboards, terminals, kiosks, and holograms.
+sem: 1
 sidebar:
     label: KBVEWebSurface
     order: 95
@@ -24,6 +24,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVEWebSurface plugin?
+          answer: KBVEWebSurface is a game-agnostic Unreal Engine plugin that renders interactive web content onto world surfaces — flat panels, curved or holographic meshes, and drop-in terminal or kiosk actors — for reuse across chuckrpg, future KBVE titles, and external Fab distribution.
+        - question: How does input work on a web surface?
+          answer: UKBVEWebInputRouter maps player line traces to widget-pixel coordinates. Hit UVs come from FindCollisionUV, so the project must have Support UV From Hit Results enabled.
+        - question: When should you not use KBVEWebSurface?
+          answer: Avoid it for combat HUDs, health bars, and minimaps — use Slate or UMG instead — and for per-NPC labels, shop signs, or hundreds of world objects, where a CEF surface per object is too expensive.
 ---
 
 ## Overview
@@ -64,3 +72,26 @@ The default backend wraps Unreal's stock `UWebBrowser` (CEF). Alternate backends
 
 - Combat HUD, health bars, minimap — use Slate/UMG.
 - Per-NPC labels, shop signs, hundreds of world objects — too expensive per surface.
+
+## FAQ
+
+**What is the KBVEWebSurface plugin?**
+KBVEWebSurface is a game-agnostic Unreal Engine plugin that renders interactive
+web content onto world surfaces — flat panels, curved or holographic meshes, and
+drop-in terminal or kiosk actors — for reuse across `chuckrpg`, future KBVE
+titles, and external Fab distribution.
+
+**How does input work on a web surface?**
+`UKBVEWebInputRouter` maps player line traces to widget-pixel coordinates. Hit
+UVs come from `FindCollisionUV`, so the project must have `Support UV From Hit
+Results` enabled.
+
+**When should you not use KBVEWebSurface?**
+Avoid it for combat HUDs, health bars, and minimaps — use Slate or UMG instead —
+and for per-NPC labels, shop signs, or hundreds of world objects, where a CEF
+surface per object is too expensive.
+
+## Related
+
+- [KBVEUI](/docs/project/kbveui) — the Slate/UMG component library for HUD and in-game UI.
+- [Marketplace](/docs/project/marketplace) — an auction-house surface KBVEWebSurface can render.

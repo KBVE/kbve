@@ -1,7 +1,7 @@
 ---
-title: Aria2 Proxy
-description: |
-    Alpine-based download proxy image for KubeVirt VM provisioning. Bundles aria2 + python3 HTTP server with a tini PID 1 reaper.
+title: Aria2 Proxy — KubeVirt Download Proxy Image
+description: Alpine-based download proxy image for KubeVirt VM provisioning — bundles aria2 and a python3 HTTP file server with a tini PID 1 reaper.
+sem: 1
 sidebar:
     label: Aria2 Proxy
     order: 56
@@ -10,6 +10,14 @@ tags:
     - kubevirt
     - infrastructure
 key: aria2_proxy
+jsonld:
+    faq:
+        - question: What is the aria2-proxy image for?
+          answer: It is a purpose-built Alpine image for the KubeVirt download-proxy Deployment in the angelscript namespace, pulling large build artefacts (UE5, Visual Studio Build Tools, Xcode) with resume and multi-connection support and serving them back to builder VMs over plain HTTP.
+        - question: Why use a custom image instead of apk add aria2?
+          answer: Baking aria2 and python into the image removes a 30-plus second cold-start apk add on every pod restart, makes provisioning air-gap-safe against Alpine mirror outages, and runs tini as PID 1 so SIGTERM propagates cleanly to stop in-flight downloads.
+        - question: What ports and user does aria2-proxy use?
+          answer: It runs as uid/gid 1000 (appuser) with workdir /downloads, exposing port 6800 for the aria2 RPC and 8080 for the python file server; the Deployment shares one pod network namespace across both containers.
 pipeline: docker
 app_name: aria2-proxy
 version: "0.1.0"
@@ -54,3 +62,26 @@ Runs as uid/gid `1000` (`appuser`). Workdir is `/downloads`. Ports `6800` (aria2
 ### Used by
 
 - `apps/kube/kubevirt/download-proxy/deployment.yaml` — both containers (`aria2` + `file-server`) use this image; the Deployment provides the `command:` per container.
+
+## FAQ
+
+**What is the aria2-proxy image for?**
+It is a purpose-built Alpine image for the KubeVirt download-proxy Deployment in
+the `angelscript` namespace, pulling large build artefacts (UE5, Visual Studio
+Build Tools, Xcode) with resume and multi-connection support and serving them
+back to builder VMs over plain HTTP.
+
+**Why use a custom image instead of `apk add aria2`?**
+Baking aria2 and python into the image removes a 30-plus second cold-start
+`apk add` on every pod restart, makes provisioning air-gap-safe against Alpine
+mirror outages, and runs tini as PID 1 so `SIGTERM` propagates cleanly to stop
+in-flight downloads.
+
+**What ports and user does aria2-proxy use?**
+It runs as uid/gid `1000` (`appuser`) with workdir `/downloads`, exposing port
+`6800` for the aria2 RPC and `8080` for the python file server; the Deployment
+shares one pod network namespace across both containers.
+
+## Related
+
+- [KBVE Kubectl](/docs/project/kubectl) — kubectl image used across the same KubeVirt jobs.

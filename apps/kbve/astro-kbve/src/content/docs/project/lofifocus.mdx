@@ -1,7 +1,7 @@
 ---
-title: LofiFocus
-description: |
-    Lofi Focus is a chrome extension that automatically generates lo-fi music when browsing the internet!
+title: LofiFocus — AI Lo-Fi Music Generator Chrome Extension
+description: LofiFocus is a Chrome extension that auto-generates AI lo-fi music from the page you are reading, using a MusicGen model, an N8N workflow, and a Flask API.
+sem: 1
 sidebar:
     label: LofiFocus
     order: 15
@@ -9,6 +9,14 @@ unsplash: 1602089266537-57cb22e5235b
 img: https://images.unsplash.com/photo-1602089266537-57cb22e5235b?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+jsonld:
+    faq:
+        - question: What is LofiFocus?
+          answer: LofiFocus is a Chrome extension that automatically generates lo-fi music while you browse articles, blogs, and other sites, creating an ambient atmosphere to help you focus while reading.
+        - question: How does LofiFocus generate music?
+          answer: The extension sends the current URL to an N8N workflow that extracts page metadata, uses ChatGPT to build music prompts, then calls a custom AudioCraft MusicGen model via a Python Flask API on an RTX 4090 GPU; the resulting track is stored in S3 and played back in the browser.
+        - question: Does LofiFocus use a custom model?
+          answer: Yes. The team fine-tuned Facebook's MusicGen small model on a dataset of non-copyright lo-fi clips paired with descriptive text prompts, training for 100 epochs to specialize it for generating lo-fi hip-hop from text.
 ---
 
 import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
@@ -279,3 +287,18 @@ https://ojs.stanford.edu/ojs/index.php/theword/article/view/1705/1326
       journal={arXiv preprint arXiv:2306.05284},
 }
 ```
+
+## FAQ
+
+**What is LofiFocus?**
+LofiFocus is a Chrome extension that automatically generates lo-fi music while you browse articles, blogs, and other sites, creating an ambient atmosphere to help you focus while reading.
+
+**How does LofiFocus generate music?**
+The extension sends the current URL to an N8N workflow that extracts page metadata, uses ChatGPT to build music prompts, then calls a custom AudioCraft MusicGen model via a Python Flask API on an RTX 4090 GPU; the resulting track is stored in S3 and played back in the browser.
+
+**Does LofiFocus use a custom model?**
+Yes. The team fine-tuned Facebook's MusicGen small model on a dataset of non-copyright lo-fi clips paired with descriptive text prompts, training for 100 epochs to specialize it for generating lo-fi hip-hop from text.
+
+## Related
+
+- [Charles](/docs/project/charles) — the KBVE GPU machine-learning build behind model training.

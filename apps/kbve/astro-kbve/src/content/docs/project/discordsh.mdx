@@ -1,7 +1,7 @@
 ---
-title: DiscordSH
-description: |
-    DiscordSH Docs - Official notes and documentation for DiscordSH, a topsite for Discord servers featuring a voting and bump system.
+title: DiscordSH — Discord Server Topsite with Voting and Bump
+description: DiscordSH is a topsite for Discord servers featuring a voting and bump system, built on Rust/Axum, Supabase, Redis, and an Astro frontend.
+sem: 1
 sidebar:
     label: DiscordSH
     order: 420
@@ -31,6 +31,14 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What is DiscordSH?
+          answer: DiscordSH is a topsite for Discord servers that promotes them through two mechanics — a voting system and a bump system — helping server owners increase visibility and attract new members.
+        - question: How does DiscordSH voting differ from bumping?
+          answer: Voting is cumulative — users vote once every 12 hours, servers rank by total votes, and votes reset monthly for long-term visibility. Bumping is a real-time stream of recently promoted servers with no reset, aimed at short-term exposure.
+        - question: What is the DiscordSH tech stack?
+          answer: These unofficial notes describe an Astro frontend with Alpine.js and React, a Rust and Axum backend as a thin layer over Supabase and Postgres with Redis for ephemeral data, and Kubernetes for deployment, with real-time features over WebSockets.
 ---
 
 ## DiscordSH
@@ -228,3 +236,25 @@ Thin Watch
 
 
 ```
+
+## FAQ
+
+**What is DiscordSH?**
+DiscordSH is a topsite for Discord servers that promotes them through two
+mechanics — a voting system and a bump system — helping server owners increase
+visibility and attract new members.
+
+**How does DiscordSH voting differ from bumping?**
+Voting is cumulative — users vote once every 12 hours, servers rank by total
+votes, and votes reset monthly for long-term visibility. Bumping is a real-time
+stream of recently promoted servers with no reset, aimed at short-term exposure.
+
+**What is the DiscordSH tech stack?**
+These unofficial notes describe an Astro frontend with Alpine.js and React, a
+Rust and Axum backend as a thin layer over Supabase and Postgres with Redis for
+ephemeral data, and Kubernetes for deployment, with real-time features over
+WebSockets.
+
+## Related
+
+- [DiscordSH Bot](/docs/project/discordsh-bot) — the companion Discord bot for the topsite.

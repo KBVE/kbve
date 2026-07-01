@@ -1,7 +1,7 @@
 ---
 title: Agones Factorio Relay
-description: |
-    Sidecar binary deployed alongside the Agones-managed Factorio dedicated server. Tails the Factorio console log, speaks RCON to the game container, bridges chat to the kbve IRC #general channel (which already relays to Discord), and writes telemetry into the gameops ClickHouse database.
+description: Rust sidecar for the Agones-managed Factorio server — tails the console log, speaks RCON, bridges chat to kbve IRC, and writes telemetry to ClickHouse.
+sem: 1
 sidebar:
     label: Agones Factorio Relay
     order: 461
@@ -31,6 +31,14 @@ kube:
     tier: database
     owner: h0lybyte
     criticality: high
+jsonld:
+    faq:
+        - question: What does the Agones Factorio relay do?
+          answer: It runs as a sidecar in the Factorio GameServer pod, tailing the console log, speaking RCON to the game container, bridging chat to the kbve IRC #general channel, and writing telemetry to the gameops ClickHouse database.
+        - question: Why is chat and telemetry logic in a sidecar instead of the Factorio image?
+          answer: Keeping it out-of-process lets the Factorio container stay vanilla and lets the relay be iterated and redeployed without rebuilding the 1+ GB Factorio image.
+        - question: How does chat reach Discord?
+          answer: The relay forwards chat and join/leave events to the kbve IRC network, and the existing irc-gateway service already relays IRC to Discord, so IRC is the single integration point the game needs.
 ---
 
 ## Overview
@@ -260,6 +268,26 @@ sim_actions (
 - Rule source: TOML file on a `ConfigMap` volume vs. a `sim_rules` ClickHouse table. File-on-volume is simpler and ArgoCD-friendly; CH-backed enables web UI editing later.
 - Cron parser: `cron` crate vs. an ad-hoc interval struct. Probably `cron` once we have more than two time-based rules.
 - Lua-mod ↔ relay event contract: keep the current `[CHAT] / [JOIN] / [STATS]` console markers (relay tails them) or add a structured `[SIM]` channel for richer per-tick events the director wants. Lean toward extending the marker set rather than introducing a second transport.
+
+## FAQ
+
+**What does the Agones Factorio relay do?**
+It runs as a sidecar in the Factorio GameServer pod, tailing the console log,
+speaking RCON to the game container, bridging chat to the kbve IRC `#general`
+channel, and writing telemetry to the gameops ClickHouse database.
+
+**Why is chat and telemetry logic in a sidecar instead of the Factorio image?**
+Keeping it out-of-process lets the Factorio container stay vanilla and lets the
+relay be iterated and redeployed without rebuilding the 1+ GB Factorio image.
+
+**How does chat reach Discord?**
+The relay forwards chat and join/leave events to the kbve IRC network, and the
+existing `irc-gateway` service already relays IRC to Discord, so IRC is the
+single integration point the game needs.
+
+## Related
+
+- [Factorio CTL](/docs/project/factorio-ctl) — REST control API that reads the telemetry this relay produces.
 
 ## Refs
 

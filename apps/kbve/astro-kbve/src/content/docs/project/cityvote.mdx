@@ -1,7 +1,7 @@
 ---
-title: CityVote
-description: |
-    Open source collection of software for private projects.
+title: CityVote — Deckbuilder Civ Strategy Game
+description: CityVote is a KBVE game concept blending Civ-style empire building with Balatro-like deckbuilding — card suits drive Gold, Food, Labor, and Faith resources.
+sem: 1
 sidebar:
     label: CityVote
     order: 10
@@ -9,7 +9,40 @@ unsplash: 1477959858617-67f85cf4f1df
 img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
 tags:
     - design
+jsonld:
+    faq:
+        - question: What is CityVote?
+          answer: CityVote is a KBVE game concept that mixes Civilization-style empire building with a Balatro-inspired deckbuilder, using card suits to drive four core resources.
+        - question: What resources does CityVote use?
+          answer: Four resources — Gold, Food, Labor, and Faith — mapped to Diamonds, Hearts, Spades, and Clubs, forming an economic loop where each resource feeds the next.
+        - question: Is CityVote turn-based or real-time?
+          answer: Both. The design keeps a turn-based combat and economy system while adding some real-time movement and combat, with turn-based state used to interpolate the real-time layer.
 ---
+
+## Overview
+
+CityVote is a KBVE game concept blending **Civilization-style empire building** with
+a **Balatro-inspired deckbuilder**. Card suits map to four core resources — Gold,
+Food, Labor, and Faith — that feed one another in an economic loop. The design
+keeps a **turn-based** economy and combat system while layering in some
+**real-time** movement, using turn state to interpolate the real-time play.
+
+## Key facts
+
+| | |
+|---|---|
+| **Project** | CityVote |
+| **Type** | Deckbuilder civ strategy game (design) |
+| **Inspiration** | Civilization 1/2, Balatro |
+| **Resources** | Gold, Food, Labor, Faith |
+| **Status** | Concept / design notes |
+
+## Features
+
+- **Deckbuilder core** — card suits produce and consume empire resources.
+- **Four-resource economy** — Diamonds (Gold), Hearts (Food), Spades (Labor), Clubs (Faith).
+- **Economic loop** — each resource funds the production of the next.
+- **Hybrid pacing** — turn-based system with a real-time movement and combat layer.
 
 ## Information
 
@@ -92,6 +125,26 @@ These are just a few examples of how city data mining and city information softw
 ## Notes
 
 The notes for cityvote.com are still a bit out-dated, but I will get back to updating them soon!
+
+## FAQ
+
+**What is CityVote?**
+CityVote is a KBVE game concept that mixes Civilization-style empire building with
+a Balatro-inspired deckbuilder, using card suits to drive four core resources.
+
+**What resources does CityVote use?**
+Four resources — Gold, Food, Labor, and Faith — mapped to Diamonds, Hearts,
+Spades, and Clubs, forming an economic loop where each resource feeds the next.
+
+**Is CityVote turn-based or real-time?**
+Both. The design keeps a turn-based combat and economy system while adding some
+real-time movement and combat, with turn-based state used to interpolate the
+real-time layer.
+
+## Related
+
+- [Unreal Rareicon](/docs/project/unreal-rareicon) — another KBVE strategy game project.
+- [KBVEGameplay](/docs/project/kbvegameplay) — shared gameplay effect framework.
 
 ## REF
 

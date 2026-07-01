@@ -1,7 +1,7 @@
 ---
-title: Charles
-description: |
-    Charles The Cyber Monkey that holds the wire within the fabric of the matrix.
+title: Charles — KBVE Internal Machine Learning GPU Cluster
+description: Charles is KBVE's internal machine-learning build — a multi-GPU deep-learning workstation with NVIDIA RTX 4090 cards and DDR5 memory on Proxmox.
+sem: 1
 sidebar:
     label: Charles
     order: 8
@@ -9,7 +9,30 @@ unsplash: 1516563988150-3e50726d365c
 img: https://images.unsplash.com/photo-1516563988150-3e50726d365c?fit=crop&w=1400&h=700&q=75
 tags:
     - ai
+jsonld:
+    faq:
+        - question: What is Charles?
+          answer: Charles is KBVE's internal machine-learning build and project — a multi-GPU deep-learning workstation designed to cluster NVIDIA RTX 4090 cards for training and serving machine-learning models.
+        - question: What GPUs and memory does Charles use?
+          answer: Charles runs NVIDIA RTX 4090 GPUs (currently the MSI Suprim Liquid X, chosen for liquid cooling to enable clustering) with DDR5 RAM, scaling from 32-64GB entry-level up to 256GB or more per node for large datasets.
+        - question: How is Charles managed?
+          answer: Charles is set up through KBVE's Proxmox environment, with Docker and Kubernetes used to distribute deep-learning workloads across nodes so RAM can be allocated per node role.
 ---
+
+## Overview
+
+Charles is KBVE's internal machine-learning build and project: a multi-GPU deep-learning workstation intended to cluster NVIDIA RTX 4090 cards for training and serving models. This page captures the hardware notes and software stack behind the build.
+
+## Key facts
+
+| | |
+|---|---|
+| **Name** | `charles` |
+| **Role** | Internal machine-learning build/project |
+| **GPU** | NVIDIA RTX 4090 (MSI Suprim Liquid X) |
+| **RAM** | DDR5, 32GB up to 256GB+ per node |
+| **Virtualization** | Proxmox |
+| **Orchestration** | Docker + Kubernetes |
 
 ## Information
 
@@ -82,3 +105,18 @@ This section will be for the machine learning and ai eco-system + notes.
 ### Gaming
 
 This section will be for our gaming section.
+
+## FAQ
+
+**What is Charles?**
+Charles is KBVE's internal machine-learning build and project — a multi-GPU deep-learning workstation designed to cluster NVIDIA RTX 4090 cards for training and serving machine-learning models.
+
+**What GPUs and memory does Charles use?**
+Charles runs NVIDIA RTX 4090 GPUs (currently the MSI Suprim Liquid X, chosen for liquid cooling to enable clustering) with DDR5 RAM, scaling from 32-64GB entry-level up to 256GB or more per node for large datasets.
+
+**How is Charles managed?**
+Charles is set up through KBVE's Proxmox environment, with Docker and Kubernetes used to distribute deep-learning workloads across nodes so RAM can be allocated per node role.
+
+## Related
+
+- [LofiFocus](/docs/project/lofifocus) — a KBVE AI project that trains and serves generative audio models.

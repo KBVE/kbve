@@ -1,7 +1,7 @@
 ---
-title: bevy_behavior
-description: |
-    bevy_behavior — Game-agnostic behavior tree engine for Bevy. Composable nodes, cooldown tracking, observation traits.
+title: bevy_behavior — Game-Agnostic Behavior Tree Engine for Bevy
+description: bevy_behavior is a game-agnostic behavior tree engine for Bevy with composable Selector/Sequence nodes, cooldown tracking, and observation traits for NPC AI.
+sem: 1
 sidebar:
     label: bevy_behavior
 tags:
@@ -20,17 +20,68 @@ version_toml: packages/rust/bevy/bevy_behavior/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the bevy_behavior crate?
+          answer: bevy_behavior is a game-agnostic behavior tree engine for Bevy. It provides the core BehaviorNode trait, Selector and Sequence composite nodes, a tick-based cooldown system, and observation traits so the same tree logic can drive NPCs across Minecraft, Bevy Isometric, Discord MUD, and Unity.
+        - question: How is a behavior tree parameterized?
+          answer: The tree is generic over an Observation type (an immutable snapshot the NPC can see, implementing Positioned, Healthed, Aware, and Ticked) and an Action type (a game-defined command enum). A mutable BehaviorContext carries the current tick and cooldown handles per evaluation.
+        - question: Does bevy_behavior require Bevy?
+          answer: No. The core crate is pure Rust with zero framework dependency. Enabling the optional bevy feature adds Bevy Resource and Component derives for in-ECS tree evaluation.
 ---
 
 ## Overview
 
-Game-agnostic behavior tree engine that drives NPCs across Minecraft, Bevy Isometric, Discord MUD, and Unity. Pure Rust core with optional Bevy integration.
+`bevy_behavior` is a game-agnostic behavior tree engine for [Bevy](https://bevyengine.org/).
+It provides the core `BehaviorNode` trait, `Selector` / `Sequence` composite
+nodes, a tick-based cooldown system, and observation traits that let the same
+tree logic drive NPCs across Minecraft, Bevy Isometric, Discord MUD, and Unity
+without game-specific coupling. The core is pure Rust; the optional `bevy`
+feature adds ECS integration.
 
-## Surface
+## Key facts
 
-- `BehaviorNode<O, A, C>` generic node trait
-- `Selector` / `Sequence` composites
-- `BehaviorContext` / `CooldownState` / `TickCooldown`
-- `Positioned` / `Healthed` / `Aware` / `Ticked` observation traits
+| | |
+|---|---|
+| **Package** | `bevy_behavior` |
+| **Version** | 0.1.0 |
+| **Language** | Rust (edition 2024, optional Bevy 0.18) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_behavior`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_behavior) |
+| **Categories** | game-development, game-engines |
 
-Enable the `bevy` feature for `Resource`/`Component` derives.
+## Features
+
+- **Generic tree** — `BehaviorNode` is generic over an Observation type and an
+  Action type, so each game supplies its own snapshot and command enum.
+- **Composite nodes** — `Selector` and `Sequence` compose leaves into trees.
+- **Cooldown tracking** — `BehaviorContext`, `CooldownState`, and `TickCooldown`
+  gate actions by tick, per-NPC and globally.
+- **Observation traits** — `Positioned`, `Healthed`, `Aware`, and `Ticked` let
+  built-in leaves query an NPC's world without knowing the concrete struct.
+- **Zero-dep core** — pure Rust by default; the optional `bevy` feature adds
+  `Resource` / `Component` derives for in-ECS evaluation.
+
+## FAQ
+
+**What is the bevy_behavior crate?**
+`bevy_behavior` is a game-agnostic behavior tree engine for Bevy. It provides the
+core `BehaviorNode` trait, `Selector` and `Sequence` composite nodes, a
+tick-based cooldown system, and observation traits so the same tree logic can
+drive NPCs across Minecraft, Bevy Isometric, Discord MUD, and Unity.
+
+**How is a behavior tree parameterized?**
+The tree is generic over an Observation type (an immutable snapshot the NPC can
+see, implementing `Positioned`, `Healthed`, `Aware`, and `Ticked`) and an Action
+type (a game-defined command enum). A mutable `BehaviorContext` carries the
+current tick and cooldown handles per evaluation.
+
+**Does bevy_behavior require Bevy?**
+No. The core crate is pure Rust with zero framework dependency. Enabling the
+optional `bevy` feature adds Bevy `Resource` and `Component` derives for in-ECS
+tree evaluation.
+
+## Related
+
+- [Isometric](/docs/project/isometric) — the KBVE isometric engine whose NPC AI uses this behavior engine.
+- [bevy_quests](/docs/project/bevy-quests-crate) — sibling game-agnostic Bevy crate for quest data.

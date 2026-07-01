@@ -1,7 +1,7 @@
 ---
-title: KBVEItemDB
-description: |
-    Game-agnostic item database loader + inventory model + dropped-item Mass fragment. Loads the shared itemdb artifact into runtime item defs (incl. consumable/food effect fields aligned to KBVEGameplay), with key/ref lookup and a generic inventory slot/stack/bag model.
+title: KBVEItemDB — Item Database & Inventory Plugin for Unreal
+description: KBVEItemDB is a game-agnostic Unreal Engine item database, inventory model, and dropped-item Mass fragment that loads the shared itemdb artifact.
+sem: 1
 sidebar:
     label: KBVEItemDB
     order: 78
@@ -24,6 +24,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVEItemDB plugin?
+          answer: KBVEItemDB is a game-agnostic Unreal Engine plugin providing an item database loader, a generic inventory model, and a dropped-item Mass fragment. It loads the shared itemdb artifact into runtime item defs and looks them up by key or ref.
+        - question: How does KBVEItemDB relate to KBVEGameplay?
+          answer: KBVEItemDB is the data and inventory half; KBVEGameplay is the effect half. Item defs carry consumable/food fields aligned to FKBVEEffectSpec, so a consumer builds an effect spec from an item and applies it through KBVEGameplay's UKBVEEffectComponent.
+        - question: How are consumables modeled in KBVEItemDB?
+          answer: type_flags classify items as FOOD, DRINK, or POTION, and a food block carries the numbers such as heals, restore_mana, restore_energy, regen_per_second, regen_duration, and cooldown. An item with a food block or a food/drink/potion type bit is consumable without an explicit consumable flag.
 ---
 
 ## Overview
@@ -135,3 +143,28 @@ WAL), save/load/count/clear by player id, opened at `Saved/KBVE/inventory.db`.
    KBVE code (its own vendored `sqlite3`). Do not also link the engine's
    `SQLiteCore` in the same module — duplicate `sqlite3_*` symbols crash the build/run.
    Plugins depending on KBVESQLite declare `dependency_plugins: packages/unreal/KBVESQLite`.
+
+## FAQ
+
+**What is the KBVEItemDB plugin?**
+KBVEItemDB is a game-agnostic Unreal Engine plugin providing an item database
+loader, a generic inventory model, and a dropped-item Mass fragment. It loads the
+shared itemdb artifact into runtime item defs and looks them up by key or ref.
+
+**How does KBVEItemDB relate to KBVEGameplay?**
+KBVEItemDB is the data and inventory half; KBVEGameplay is the effect half. Item
+defs carry consumable/food fields aligned to `FKBVEEffectSpec`, so a consumer
+builds an effect spec from an item and applies it through KBVEGameplay's
+`UKBVEEffectComponent`.
+
+**How are consumables modeled in KBVEItemDB?**
+`type_flags` classify items as FOOD, DRINK, or POTION, and a `food` block carries
+the numbers such as `heals`, `restore_mana`, `restore_energy`,
+`regen_per_second`, `regen_duration`, and `cooldown`. An item with a `food` block
+or a food/drink/potion type bit is consumable without an explicit `consumable`
+flag.
+
+## Related
+
+- [KBVESQLite](/docs/project/kbvesqlite) — the SQLite provider KBVEItemDB uses for durable inventory persistence.
+- [KBVEZstd](/docs/project/kbvezstd) — compression plugin in the same Unreal plugin family.

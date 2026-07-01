@@ -1,7 +1,7 @@
 ---
-title: bevy_pathfinder
-description: |
-    bevy_pathfinder — Grid-based flow field pathfinding and chokepoint detection. Pure Rust core with optional Bevy integration.
+title: Bevy Pathfinder — Flow Field Crate
+description: Bevy flow-field pathfinding crate with grid walkability, shared-goal BFS direction fields, and chokepoint detection. Pure Rust core, optional Bevy feature.
+sem: 1
 sidebar:
     label: bevy_pathfinder
 tags:
@@ -21,14 +21,63 @@ version_toml: packages/rust/bevy/bevy_pathfinder/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What does the bevy_pathfinder crate do?
+          answer: It provides grid-based flow-field pathfinding for tile worlds — a walkability grid, BFS-computed direction fields toward shared goals, and a narrow-passage (chokepoint) detector.
+        - question: Why flow fields instead of per-agent A*?
+          answer: When many agents share the same goal, a single BFS builds a direction field once and every agent looks up its next move in O(1), avoiding a separate A* search per agent.
+        - question: Is Bevy required to use it?
+          answer: No. The crate is pure Rust by default; enabling the optional bevy feature adds Resource derives for ECS integration.
 ---
 
 ## Overview
 
-Three layers stacked on a tile-based world:
+`bevy_pathfinder` is a grid-based flow-field pathfinding crate for
+[Bevy](https://bevyengine.org/) tile worlds. It stacks three layers on a
+tile-based map: a walkability grid, BFS-computed direction fields toward one or
+more shared goals, and a narrow-passage detector. The core is pure Rust; the
+optional `bevy` feature adds ECS integration.
 
-1. **`BlockGrid`** — 2D walkability grid with per-cell height + terrain cost.
-2. **`FlowField`** — BFS-computed direction vectors pointing every walkable cell at one or more goals. Agents share a goal and look up their next move in O(1) instead of running per-agent A*.
-3. **`FlowGate`** — narrow-passage detector. Useful for ambush AI, territory control, and patrol route generation.
+## Key facts
 
-The crate is pure Rust by default. Enable the `bevy` feature to get `Resource` derives for ECS integration.
+| | |
+|---|---|
+| **Package** | `bevy_pathfinder` |
+| **Version** | 0.1.1 |
+| **Language** | Rust (optional Bevy feature) |
+| **License** | MIT |
+| **Source** | [`packages/rust/bevy/bevy_pathfinder`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_pathfinder) |
+| **Categories** | game-development, pathfinding, ai |
+
+## Features
+
+- **`BlockGrid`** — 2D walkability grid with per-cell height and terrain cost.
+- **`FlowField`** — BFS-computed direction vectors pointing every walkable cell
+  at one or more goals. Agents share a goal and look up their next move in O(1)
+  instead of running per-agent A*.
+- **`FlowGate`** — narrow-passage detector, useful for ambush AI, territory
+  control, and patrol route generation.
+- **Pure-Rust core** — no engine dependency by default; enable the `bevy`
+  feature for `Resource` derives and ECS integration.
+
+## FAQ
+
+**What does the bevy_pathfinder crate do?**
+It provides grid-based flow-field pathfinding for tile worlds — a walkability
+grid, BFS-computed direction fields toward shared goals, and a narrow-passage
+(chokepoint) detector.
+
+**Why flow fields instead of per-agent A*?**
+When many agents share the same goal, a single BFS builds a direction field once
+and every agent looks up its next move in O(1), avoiding a separate A* search
+per agent.
+
+**Is Bevy required to use it?**
+No. The crate is pure Rust by default; enabling the optional `bevy` feature adds
+`Resource` derives for ECS integration.
+
+## Related
+
+- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — isometric camera crate for the same Bevy engine.
+- [Bevy Player Crate](/docs/project/bevy-player-crate) — player controller that consumes movement targets.

@@ -1,7 +1,7 @@
 ---
-title: Uniti
-description: |
-    Uniti — C FFI bridge from KBVE Bevy game logic crates to Unity via csbindgen.
+title: Uniti — C FFI Bridge from KBVE Bevy Crates to Unity
+description: Uniti is a Rust cdylib exposing KBVE Bevy game-logic crates (pathfinder, inventory, battle, skills) to the Unity runtime for RareIcon via csbindgen C# bindings.
+sem: 1
 sidebar:
     label: Uniti
 tags:
@@ -21,6 +21,14 @@ version_toml: packages/rust/bevy/uniti/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the uniti crate?
+          answer: uniti is the C FFI bridge that exposes the KBVE Bevy game-logic crates to the Unity runtime used by RareIcon. It compiles as a cdylib and is loaded by Unity as a native plugin, bundling bevy_pathfinder, bevy_inventory, bevy_battle, and bevy_skills.
+        - question: How are the C# bindings generated?
+          answer: build.rs invokes csbindgen at build time to generate a C# wrapper (Uniti.g.cs) that is committed into the Unity project under Assets/_RareIcon/Scripts/Native. Hand-written wrapper classes such as NativeWorld live alongside it under Native/Wrappers.
+        - question: Does uniti need system libraries on the host?
+          answer: No. It statically bundles rusqlite with the bundled feature (so no system libsqlite3 is required) and zstd with default features disabled for pure-Rust save-blob compression, so Unity can load the dylib without host dependencies.
 ---
 
 ## Overview
@@ -74,6 +82,30 @@ Tracked in the dispatch manifest under the `crates` pipeline. The standard test 
 npx nx run uniti:test
 npx nx run uniti:lint
 ```
+
+## FAQ
+
+**What is the uniti crate?**
+`uniti` is the C FFI bridge that exposes the KBVE Bevy game-logic crates to the
+Unity runtime used by RareIcon. It compiles as a `cdylib` and is loaded by Unity
+as a native plugin, bundling `bevy_pathfinder`, `bevy_inventory`, `bevy_battle`,
+and `bevy_skills`.
+
+**How are the C# bindings generated?**
+`build.rs` invokes `csbindgen` at build time to generate a C# wrapper
+(`Uniti.g.cs`) that is committed into the Unity project under
+`Assets/_RareIcon/Scripts/Native`. Hand-written wrapper classes such as
+`NativeWorld` live alongside it under `Native/Wrappers`.
+
+**Does uniti need system libraries on the host?**
+No. It statically bundles `rusqlite` with the `bundled` feature (so no system
+`libsqlite3` is required) and `zstd` with default features disabled for pure-Rust
+save-blob compression, so Unity can load the dylib without host dependencies.
+
+## Related
+
+- [Isometric](/docs/project/isometric) — sibling KBVE Bevy game consuming the same shared crates.
+- [bevy_behavior](/docs/project/bevy-behavior-crate) — game-agnostic Bevy behavior engine in the same crate family.
 
 ## License
 

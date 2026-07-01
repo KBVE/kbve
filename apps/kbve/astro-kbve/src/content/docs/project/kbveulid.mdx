@@ -1,13 +1,14 @@
 ---
-title: KBVEULID
-description: |
-    ULID generator for Unreal — 128-bit lexicographically sortable identifiers.
+title: "KBVEULID — ULID Generator Plugin for Unreal Engine 5"
+description: KBVEULID is an Unreal Engine 5 plugin that generates 128-bit ULIDs — lexicographically sortable Crockford Base32 identifiers for DB, save, and event IDs.
+sem: 1
 sidebar:
     label: KBVEULID
     order: 83
 tags:
     - unreal
     - utility
+    - ulid
 key: ue_kbveulid
 pipeline: unreal
 plugin_name: KBVEULID
@@ -23,8 +24,73 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does the KBVEULID plugin do?
+          answer: KBVEULID is an Unreal Engine 5 runtime plugin that generates ULIDs — 128-bit Universally Lexicographically Sortable Identifiers encoded as 26-character Crockford Base32 strings, suitable for database IDs, replicated event IDs, save records, and marketplace lots.
+        - question: How is a KBVEULID identifier structured?
+          answer: Each ULID is 128 bits — a 48-bit millisecond timestamp plus 80 bits of FGuid-derived entropy — stored as 16 bytes in FKBVEUlid and encoded to a 26-character Crockford Base32 string. The timestamp prefix keeps IDs lexicographically sortable by creation time.
+        - question: Which engine versions and platforms does KBVEULID support?
+          answer: KBVEULID targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac. It ships as a Runtime module loaded in the Default phase.
 ---
 
 ## Overview
 
-ULID generator for Unreal — 128-bit lexicographically sortable identifiers.
+`KBVEULID` is an Unreal Engine 5 runtime plugin that generates **ULIDs** —
+Universally Lexicographically Sortable Identifiers. Each ID is 128 bits (a 48-bit
+millisecond timestamp plus 80 bits of `FGuid`-derived entropy) encoded as a
+26-character Crockford Base32 string. Because the timestamp leads, ULIDs sort by
+creation time, which makes them well suited to database IDs, replicated event IDs,
+save records, and marketplace lots.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEULID` |
+| **Version** | 0.1.0 |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | KBVE |
+| **Platforms** | Win64, Linux, Mac |
+| **Source** | [`packages/unreal/KBVEULID`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEULID) |
+
+## Features
+
+- **128-bit ULIDs** — 48-bit millisecond timestamp + 80-bit `FGuid` entropy.
+- **Crockford Base32** — 26-character string encoding via `FKBVEUlid::ToString()`.
+- **Lexicographic sortability** — the timestamp prefix orders IDs by creation time.
+- **Lean runtime module** — a single `FKBVEUlid` struct plus `KBVEULID::Generate()`,
+  loaded in the Default phase with no content dependencies.
+
+## Usage
+
+```cpp
+#include "KBVEULID.h"
+
+FKBVEUlid Id = FKBVEUlid::New();
+FString IdStr = Id.ToString();
+
+FString Quick = KBVEULID::Generate();
+```
+
+## FAQ
+
+**What does the KBVEULID plugin do?**
+KBVEULID is an Unreal Engine 5 runtime plugin that generates ULIDs — 128-bit
+Universally Lexicographically Sortable Identifiers encoded as 26-character Crockford
+Base32 strings, suitable for database IDs, replicated event IDs, save records, and
+marketplace lots.
+
+**How is a KBVEULID identifier structured?**
+Each ULID is 128 bits — a 48-bit millisecond timestamp plus 80 bits of
+`FGuid`-derived entropy — stored as 16 bytes in `FKBVEUlid` and encoded to a
+26-character Crockford Base32 string. The timestamp prefix keeps IDs
+lexicographically sortable by creation time.
+
+**Which engine versions and platforms does KBVEULID support?**
+KBVEULID targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac.
+It ships as a Runtime module loaded in the Default phase.
+
+## Related
+
+- [KBVENet](/docs/project/kbvenet) — KBVE's Unreal networking plugin, which can carry ULID-keyed event IDs.

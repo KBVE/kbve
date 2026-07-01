@@ -1,7 +1,7 @@
 ---
-title: KBVETinyBVH
-description: |
-    Unreal wrapper for TinyBVH — single-header BVH construction and traversal for ray tracing.
+title: KBVETinyBVH — Unreal TinyBVH Ray Tracing Plugin
+description: KBVETinyBVH is an Unreal Engine wrapper for TinyBVH 1.6.7, the single-header BVH construction and traversal library for ray tracing, as a runtime plugin.
+sem: 1
 sidebar:
     label: KBVETinyBVH
     order: 84
@@ -23,8 +23,51 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What is the KBVETinyBVH plugin?
+          answer: KBVETinyBVH is an Unreal Engine wrapper for TinyBVH 1.6.7, a single-header BVH (bounding volume hierarchy) construction and traversal library used for ray tracing. It ships as a runtime third-party plugin.
+        - question: What version of TinyBVH does it wrap?
+          answer: The plugin wraps TinyBVH 1.6.7, matching the plugin VersionName, and bundles the tiny_bvh.h single-header library along with OpenCL and compute traversal kernels.
+        - question: Which Unreal versions and platforms are supported?
+          answer: KBVETinyBVH targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac. It is a runtime module and is not enabled by default.
 ---
 
 ## Overview
 
-Unreal wrapper for TinyBVH — single-header BVH construction and traversal for ray tracing.
+KBVETinyBVH is an Unreal Engine wrapper for [TinyBVH](https://github.com/jbikker/tinybvh) 1.6.7 — a single-header BVH (bounding volume hierarchy) construction and traversal library for ray tracing. It packages the upstream `tiny_bvh.h` header, along with OpenCL and compute traversal kernels, as a runtime third-party plugin for the KBVE Unreal stack.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVETinyBVH` |
+| **Version** | 1.6.7 |
+| **Wraps** | TinyBVH 1.6.7 |
+| **Engine** | Unreal Engine 5.4+ |
+| **License** | KBVE |
+| **Platforms** | Win64, Linux, Mac |
+| **Source** | [`packages/unreal/KBVETinyBVH`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVETinyBVH) |
+
+## Features
+
+- **Single-header BVH** — wraps the upstream `tiny_bvh.h` library for compact BVH construction and traversal.
+- **Ray-tracing ready** — bundles OpenCL (`.cl`) and compute (`.comp`) traversal kernels for BVH2, BVH4, CWBVH, TLAS, and wavefront paths.
+- **Runtime third-party module** — categorized as a Third Party plugin, loaded at the Default phase and not enabled by default.
+- **Cross-platform** — builds for Win64, Linux, and Mac on Unreal Engine 5.4 and newer.
+
+## FAQ
+
+**What is the KBVETinyBVH plugin?**
+KBVETinyBVH is an Unreal Engine wrapper for TinyBVH 1.6.7, a single-header BVH (bounding volume hierarchy) construction and traversal library used for ray tracing. It ships as a runtime third-party plugin.
+
+**What version of TinyBVH does it wrap?**
+The plugin wraps TinyBVH 1.6.7, matching the plugin `VersionName`, and bundles the `tiny_bvh.h` single-header library along with OpenCL and compute traversal kernels.
+
+**Which Unreal versions and platforms are supported?**
+KBVETinyBVH targets Unreal Engine 5.4 and newer and builds for Win64, Linux, and Mac. It is a runtime module and is not enabled by default.
+
+## Related
+
+- [KBVEMapDB](/project/kbvemapdb) — sibling Unreal plugin from the KBVE package group.
+- [Unreal Chuck Dev](/project/unreal-chuck-dev) — UE5 game client that consumes KBVE Unreal plugins.

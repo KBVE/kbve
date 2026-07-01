@@ -1,7 +1,7 @@
 ---
-title: Unreal Chuck Dev
-description: |
-    Chuck RPG UE5 dev client built from the external KBVE/chuck repo (default branch) and shipped to itch.io as kbve/chuckrpg on the demo channel, alongside the Unreal Chuck Beta.
+title: Unreal Chuck Dev — Chuck RPG UE5 Dev Client Build
+description: Unreal Chuck Dev is the Chuck RPG UE5 dev client built from the external KBVE/chuck repo and shipped to itch.io as kbve/chuckrpg beside Unreal Chuck Beta.
+sem: 1
 sidebar:
     label: Unreal Chuck Dev
     order: 96
@@ -42,6 +42,14 @@ external_publish:
     itch_game: chuckrpg
     itch_channel: dev
 shell_path: apps/chuckrpg/unreal-chuck
+jsonld:
+    faq:
+        - question: What is Unreal Chuck Dev?
+          answer: Unreal Chuck Dev is the Chuck RPG UE5 dev client. Like the Unreal Chuck Beta, it builds from the external KBVE/chuck repo with Content pulled from the chuck Forgejo LFS endpoint, and ships to itch.io under kbve/chuckrpg.
+        - question: How is the Unreal Chuck Dev build triggered?
+          answer: The unreal_game pipeline has ci-main.yml dispatch ci-unreal.yml whenever the MDX version here outpaces version.toml or source_path files change. One bump fans out to the Win64 and Linux clients plus the Linux dedicated server.
+        - question: What platforms does Unreal Chuck Dev build for?
+          answer: It builds Win64 natively on the UE5-Win KubeVirt VM, Linux in the Epic Unreal Engine Docker image on arc-runner-ue, and Mac on a self-hosted macOS ARM64 runner, plus a bundled Linux dedicated server.
 ---
 
 ## Overview
@@ -86,3 +94,19 @@ Plus the bundled Linux dedicated server (`shell_path`, same version).
 Client shipped to itch.io as `kbve/chuckrpg` (channel `demo`) when `deploy_to_itch` is set.
 Dedicated server staged to the OWS InstanceLauncher PVC for rows integration. Client,
 server, and the shared `version.toml` all advance together (1:1).
+
+## FAQ
+
+**What is Unreal Chuck Dev?**
+Unreal Chuck Dev is the Chuck RPG UE5 dev client. Like the Unreal Chuck Beta, it builds from the external KBVE/chuck repo with Content pulled from the chuck Forgejo LFS endpoint, and ships to itch.io under `kbve/chuckrpg`.
+
+**How is the Unreal Chuck Dev build triggered?**
+The `unreal_game` pipeline has `ci-main.yml` dispatch `ci-unreal.yml` whenever the MDX `version:` here outpaces `version.toml` or `source_path` files change. One bump fans out to the Win64 and Linux clients plus the Linux dedicated server.
+
+**What platforms does Unreal Chuck Dev build for?**
+It builds Win64 natively on the `UE5-Win` KubeVirt VM, Linux in the Epic Unreal Engine Docker image on `arc-runner-ue`, and Mac on a self-hosted macOS ARM64 runner, plus a bundled Linux dedicated server.
+
+## Related
+
+- [KBVEMapDB](/project/kbvemapdb) — Unreal world/map plugin from the KBVE package group.
+- [KBVETinyBVH](/project/kbvetinybvh) — Unreal ray-tracing plugin from the KBVE package group.

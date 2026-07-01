@@ -1,7 +1,7 @@
 ---
-title: KBVEPostShader
-description: |
-    Stylized post-process for UE5 — anisotropic Kuwahara oil-paint, cel banding, and depth-driven ink outlines for a BotW / Ghibli look.
+title: KBVEPostShader — Stylized UE5 Post-Process
+description: Stylized Unreal Engine 5 post-process — anisotropic Kuwahara oil-paint smear, cel banding, and depth-driven ink outlines for a Breath of the Wild / Ghibli look.
+sem: 1
 sidebar:
     label: KBVEPostShader
     order: 90
@@ -23,6 +23,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What look does KBVEPostShader produce?
+          answer: A painterly Breath of the Wild / Studio Ghibli style — anisotropic Kuwahara oil-paint smear, cel luminance banding, and depth-driven ink outlines.
+        - question: How is the effect rendered?
+          answer: It runs as chained RDG passes from an FSceneViewExtension inserted after the tonemapper, gated by CVars and off by default.
+        - question: How do I enable and tune it?
+          answer: Set r.KBVEPost.Enable to 1 and adjust CVars like r.KBVEPost.Radius and r.KBVEPost.OilStrength; the same defaults are exposed under Project Settings, KBVE, KBVE Post Shader.
 ---
 
 ## Overview
@@ -57,3 +65,23 @@ r.KBVEPost.Radius 8
 ## Status
 
 P1: the core trio (structure tensor + anisotropic Kuwahara + cel/ink composite), BotW-tuned defaults, desktop SM5+. P2 will add GBuffer-normal outlines, a warm palette LUT, canvas overlay, flow warp, and Ghibli/BotW presets.
+
+## FAQ
+
+**What look does KBVEPostShader produce?**
+A painterly Breath of the Wild / Studio Ghibli style — anisotropic Kuwahara
+oil-paint smear, cel luminance banding, and depth-driven ink outlines.
+
+**How is the effect rendered?**
+It runs as chained RDG passes from an `FSceneViewExtension` inserted after the
+tonemapper, gated by CVars and off by default.
+
+**How do I enable and tune it?**
+Set `r.KBVEPost.Enable` to `1` and adjust CVars like `r.KBVEPost.Radius` and
+`r.KBVEPost.OilStrength`; the same defaults are exposed under **Project Settings
+→ KBVE → KBVE Post Shader**.
+
+## Related
+
+- [KBVEWorld](/docs/project/kbveworld) — procedural world toolkit whose scenes this post-process styles.
+- [KBVEEvents](/docs/project/kbveevents) — typed event bus used across KBVE Unreal plugins.

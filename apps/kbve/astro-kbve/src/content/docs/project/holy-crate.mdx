@@ -1,7 +1,7 @@
 ---
-title: Holy
-description: |
-    Holy crate for KBVE.
+title: holy — Rust Proc-Macro Derives for Structs
+description: holy is a Rust proc-macro crate with derive macros for getters, setters, observers, fuzz constructors, and input sanitization to end struct boilerplate.
+sem: 1
 sidebar:
     label: Holy Crate
     order: 75
@@ -17,8 +17,44 @@ version_toml: packages/rust/holy/version.toml
 author: h0lybyte
 license: MIT
 status: active
+jsonld:
+    faq:
+        - question: What is the holy crate?
+          answer: holy is a Rust proc-macro library shipping derive macros for everyday struct chores — getters, setters, observers, fuzz constructors, and input sanitization — so consumers avoid hand-rolled boilerplate.
+        - question: Which derive macros does holy provide?
+          answer: Getters, Setters, Observer (change events), Fuzz (random constructors for tests), and Sanitize (.sanitize() plus per-field methods driven by #[holy(sanitize = ...)] rules).
+        - question: What sanitization rules does the Sanitize derive support?
+          answer: String rules like trim, lowercase, uppercase, alphanumeric, escape_html, nul_strip, control_strip, slug, and truncate(N), plus clamp(min, max) for numeric fields; rules run in the order written and Option String fields run only when Some.
 ---
 
 import { Content as HolyReadme } from '../../../../../../../packages/rust/holy/README.md';
+
+## Overview
+
+`holy` is a Rust proc-macro library that ships derive macros for everyday struct chores: getters, setters, observers, fuzz constructors, and input sanitization. Pulling it as a path or crates.io dependency keeps each consumer free of hand-rolled boilerplate and centralizes policy changes — new sanitize rules, observer hooks, and the like — in one crate.
+
+## Key facts
+
+| | |
+|---|---|
+| **Package** | `holy` |
+| **Version** | 0.2.1 |
+| **Language** | Rust (proc-macro) |
+| **License** | MIT |
+| **Derives** | Getters, Setters, Observer, Fuzz, Sanitize |
+| **Source** | [`packages/rust/holy`](https://github.com/KBVE/kbve/tree/main/packages/rust/holy) |
+
+## FAQ
+
+**What is the holy crate?**
+`holy` is a Rust proc-macro library shipping derive macros for everyday struct chores — getters, setters, observers, fuzz constructors, and input sanitization — so consumers avoid hand-rolled boilerplate.
+
+**Which derive macros does holy provide?**
+`Getters`, `Setters`, `Observer` (change events), `Fuzz` (random constructors for tests), and `Sanitize` (`.sanitize()` plus per-field methods driven by `#[holy(sanitize = ...)]` rules).
+
+**What sanitization rules does the Sanitize derive support?**
+String rules like `trim`, `lowercase`, `uppercase`, `alphanumeric`, `escape_html`, `nul_strip`, `control_strip`, `slug`, and `truncate(N)`, plus `clamp(min, max)` for numeric fields; rules run in the order written and `Option<String>` fields run only when `Some`.
+
+## Reference
 
 <HolyReadme />

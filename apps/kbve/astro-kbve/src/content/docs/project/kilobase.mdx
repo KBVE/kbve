@@ -1,7 +1,7 @@
 ---
-title: Kilobase
-description: |
-    Kilobase database service for KBVE.
+title: Kilobase — Custom Supabase Postgres Image with pgrx
+description: Kilobase is KBVE's custom Supabase-based Postgres image built with a pgrx Rust extension and pg_failover_slots, extending PostgreSQL 17 with jedi regex helpers.
+sem: 1
 sidebar:
     label: Kilobase
     order: 54
@@ -20,8 +20,51 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+jsonld:
+    faq:
+        - question: What is Kilobase?
+          answer: Kilobase is KBVE's custom Supabase-based PostgreSQL image. It builds a pgrx Rust extension plus pg_failover_slots against PostgreSQL 17 and bakes them into a Supabase-compatible Postgres container.
+        - question: What does the Kilobase pgrx extension add?
+          answer: The kilobase extension exposes pgrx functions such as pgrx_extract_email and pgrx_extract_github_username that reuse jedi library zero-copy regex helpers as immutable, parallel-safe SQL functions.
+        - question: What Postgres version does Kilobase target?
+          answer: Kilobase builds against PostgreSQL 17 (pgdg dev-17) with the pg17 feature by default, using cargo-pgrx 0.16.1, and tags its image after the underlying supabase/postgres version.
 ---
 
 ## Overview
 
-Kilobase database service.
+Kilobase is KBVE's custom Supabase-based PostgreSQL image. It builds a pgrx Rust extension plus `pg_failover_slots` against PostgreSQL 17 and bakes them into a Supabase-compatible Postgres container, letting KBVE ship extra SQL functions (backed by the jedi library) without maintaining a fork of the upstream database.
+
+## Key facts
+
+| | |
+|---|---|
+| **App** | `kilobase` |
+| **Version** | 17.6.1 |
+| **Image** | `ghcr.io/kbve/kilobase` |
+| **Base** | Supabase Postgres (PostgreSQL 17) |
+| **Extension toolchain** | `cargo-pgrx` 0.16.1 |
+| **License** | KBVE |
+| **Source** | [`apps/kbve/kilobase`](https://github.com/KBVE/kbve/tree/main/apps/kbve/kilobase) |
+
+## Features
+
+- **Custom pgrx extension** — the `kilobase` extension compiles Rust into a Postgres `cdylib`, exposing immutable, parallel-safe functions like `pgrx_extract_email` and `pgrx_extract_github_username`.
+- **jedi integration** — the extension reuses zero-copy regex helpers from the jedi library so extraction runs directly inside Postgres.
+- **Failover slots** — `pg_failover_slots` is built and layered in for replication slot failover.
+- **Supabase-compatible** — extends the upstream Supabase Postgres image rather than forking it, tagged after the base version.
+
+## FAQ
+
+**What is Kilobase?**
+Kilobase is KBVE's custom Supabase-based PostgreSQL image. It builds a pgrx Rust extension plus `pg_failover_slots` against PostgreSQL 17 and bakes them into a Supabase-compatible Postgres container.
+
+**What does the Kilobase pgrx extension add?**
+The `kilobase` extension exposes pgrx functions such as `pgrx_extract_email` and `pgrx_extract_github_username` that reuse jedi library zero-copy regex helpers as immutable, parallel-safe SQL functions.
+
+**What Postgres version does Kilobase target?**
+Kilobase builds against PostgreSQL 17 (pgdg dev-17) with the `pg17` feature by default, using `cargo-pgrx` 0.16.1, and tags its image after the underlying supabase/postgres version.
+
+## Related
+
+- [bevy_supa](/project/bevy-supa-crate) — Supabase/PostgREST client crate that can target this database.
+- [ARC Runner](/project/arc-runner) — CI runner that bakes the `dbmate` migrator used against Kilobase.

@@ -1,7 +1,7 @@
 ---
-title: KBVEGameplay
-description: |
-    Game-agnostic consumable + effect framework for KBVE Unreal games — data-driven effect specs (instant restores, over-time regen/DoT, temporary stat buffs, status conditions) applied via IKBVEStatTarget, with cooldown tracking and an animation hook.
+title: KBVEGameplay — Consumable & Effect Framework
+description: KBVEGameplay is a game-agnostic Unreal consumable and effect framework — restores, over-time regen/DoT, stat buffs, statuses, cooldowns, and melee combat.
+sem: 1
 sidebar:
     label: KBVEGameplay
     order: 80
@@ -23,6 +23,14 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+jsonld:
+    faq:
+        - question: What does KBVEGameplay provide?
+          answer: A game-agnostic consumable and effect framework for Unreal — data-driven restores, over-time regen/DoT, stat buffs, status conditions, and cooldowns applied through the IKBVEStatTarget interface.
+        - question: How does a game integrate KBVEGameplay?
+          answer: A game implements IKBVEStatTarget to map its stats to FName ids and attaches UKBVEEffectComponent; the plugin then owns the effect lifecycle from a data-driven FKBVEEffectSpec.
+        - question: Does KBVEGameplay include combat?
+          answer: Yes. It ships an agnostic stat block, a Mass parallel regen processor, combat damageable/attacker interfaces, and a generic UKBVEMeleeComponent sweep with knockback and per-swing dedupe.
 ---
 
 ## Overview
@@ -40,6 +48,23 @@ the effect lifecycle from a data-driven `FKBVEEffectSpec`:
 
 Tick auto-disables when no effects or cooldowns are active. Effect DATA lives in
 the shared itemdb; the game builds an `FKBVEEffectSpec` from its item definition.
+
+## Key facts
+
+| | |
+|---|---|
+| **Plugin** | `KBVEGameplay` |
+| **Version** | 0.1.0 (beta) |
+| **Engine** | Unreal Engine 5.4+ |
+| **Platforms** | Win64, Linux, Mac |
+| **License** | KBVE |
+| **Source** | [`packages/unreal/KBVEGameplay`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEGameplay) |
+
+## Features
+
+- **Data-driven effects** — restores, regens/DoT, buffs, and statuses from `FKBVEEffectSpec`.
+- **Cooldown gating** — per-`SourceKey` gate rejects re-application while hot.
+- **Auto-disabling tick** — the component stops ticking when no effects or cooldowns are live.
 
 ## Stats + combat
 
@@ -71,3 +96,26 @@ and reusable UI agree on: `FKBVEHealthChangedPayload` / `FKBVEManaChangedPayload
 stays the game's — these are only the contract; chuck pipes them through its own
 `TKBVEChannel` hubs. Game-specific payloads (inventory-dirty, tooltip,
 item-consumed, pickup, auth, chat, ui-flags) stay in the game.
+
+## FAQ
+
+**What does KBVEGameplay provide?**
+A game-agnostic consumable and effect framework for Unreal — data-driven restores,
+over-time regen/DoT, stat buffs, status conditions, and cooldowns applied through
+the `IKBVEStatTarget` interface.
+
+**How does a game integrate KBVEGameplay?**
+A game implements `IKBVEStatTarget` to map its stats to FName ids and attaches
+`UKBVEEffectComponent`; the plugin then owns the effect lifecycle from a
+data-driven `FKBVEEffectSpec`.
+
+**Does KBVEGameplay include combat?**
+Yes. It ships an agnostic stat block, a Mass parallel regen processor, combat
+damageable/attacker interfaces, and a generic `UKBVEMeleeComponent` sweep with
+knockback and per-swing dedupe.
+
+## Related
+
+- [KBVECombat](/docs/project/kbvecombat) — combat systems that pair with these stats.
+- [KBVEItemDB](/docs/project/kbveitemdb) — item database that supplies effect data.
+- [KBVEMover](/docs/project/kbvemover) — movement layer that reads movement state.

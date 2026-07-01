@@ -1,7 +1,7 @@
 ---
-title: Unreal Chuck Beta
-description: |
-    Chuck RPG UE5 standalone beta client — Win64 + Linux builds shipped to itch.io as kbve/chuckrpg via the manifest-driven ci-unreal game pipeline.
+title: Unreal Chuck Beta — Chuck RPG UE5 Standalone Shipping Client
+description: Unreal Chuck Beta is the Chuck RPG UE5 standalone Shipping client — Win64, Linux, and Mac builds shipped to itch.io as kbve/chuckrpg via the ci-unreal pipeline.
+sem: 1
 sidebar:
     label: Unreal Chuck Beta
     order: 95
@@ -43,6 +43,14 @@ external_publish:
     itch_user: kbve
     itch_game: chuckrpg
 shell_path: apps/chuckrpg/unreal-chuck
+jsonld:
+    faq:
+        - question: What is Unreal Chuck Beta?
+          answer: It is the cooked, non-editor Shipping release of the Chuck RPG UE5 client, compiled from the external KBVE/chuck game repo and shipped to itch.io under kbve/chuckrpg. The editor/Development counterpart is Unreal Chuck Dev.
+        - question: Which platforms does Unreal Chuck Beta build for?
+          answer: It builds Win64 natively on the UE5-Win KubeVirt VM, Linux via BuildCookRun in the Epic UE Docker image on arc-runner-ue, and Mac natively on a self-hosted macOS ARM64 runner, plus a bundled Linux dedicated server for the chuckrpg-beta Agones fleet.
+        - question: How is a new Unreal Chuck Beta release triggered?
+          answer: Bump the MDX version above version.toml, run the astro-kbve sync:ci-manifest target, and commit. The next ci-main run fans out the game build and itch.io upload through the manifest-driven ci-unreal game pipeline.
 ---
 
 ## Overview
@@ -104,3 +112,24 @@ route at build time.
 When `engine.external_repo_url` is empty the builder falls back to the monorepo
 shell `apps/chuckrpg/unreal-chuck` (the lightweight plugin build/test loop in
 `packages/unreal/`). Closes [#11828](https://github.com/KBVE/kbve/issues/11828).
+
+## FAQ
+
+**What is Unreal Chuck Beta?**
+It is the cooked, non-editor Shipping release of the Chuck RPG UE5 client, compiled
+from the external KBVE/chuck game repo and shipped to itch.io under `kbve/chuckrpg`.
+The editor/Development counterpart is [Unreal Chuck Dev](/project/unreal-chuck-dev).
+
+**Which platforms does Unreal Chuck Beta build for?**
+It builds Win64 natively on the UE5-Win KubeVirt VM, Linux via `BuildCookRun` in the
+Epic UE Docker image on `arc-runner-ue`, and Mac natively on a self-hosted macOS
+ARM64 runner, plus a bundled Linux dedicated server for the chuckrpg-beta Agones fleet.
+
+**How is a new Unreal Chuck Beta release triggered?**
+Bump the MDX `version:` above `version.toml`, run the `astro-kbve:sync:ci-manifest`
+target, and commit. The next `ci-main` run fans out the game build and itch.io upload
+through the manifest-driven ci-unreal game pipeline.
+
+## Related
+
+- [Unreal Chuck Dev](/project/unreal-chuck-dev) — the editor/Development counterpart build of the Chuck RPG UE5 client.
