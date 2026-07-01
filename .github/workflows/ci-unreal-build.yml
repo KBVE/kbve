@@ -1048,12 +1048,15 @@ jobs:
                   }
                   request_start() {
                     echo "Requesting start..."
-                    curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    if ! curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       -X PUT -H "Content-Type: application/json" -d '{}' \
-                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" || true
+                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"; then
+                      echo "::warning::start request failed (already running, RBAC, or API error) — will retry on next poll"
+                    fi
                   }
                   S=$(status); echo "::notice::$VM status: $S"
                   [ "$S" != "Running" ] && request_start
+                  unknown_streak=0
                   for i in $(seq 1 48); do
                     S=$(status)
                     if [ "$S" = "Running" ]; then
@@ -1064,6 +1067,16 @@ jobs:
                     if [ "$S" = "Stopped" ]; then
                       echo "$VM is Stopped (idle-shutdown race or lost start) — re-requesting start"
                       request_start
+                      unknown_streak=0
+                    elif [ "$S" = "Unknown" ]; then
+                      unknown_streak=$((unknown_streak + 1))
+                      if [ "$unknown_streak" -ge 4 ]; then
+                        echo "::warning::$VM status Unknown for $unknown_streak checks — re-requesting start defensively"
+                        request_start
+                        unknown_streak=0
+                      fi
+                    else
+                      unknown_streak=0
                     fi
                     echo "waiting for $VM to reach Running ($i/48): $S"
                     sleep 15

@@ -49,13 +49,19 @@ data:
 
         # ── Check 3: Is a runner carrying RUNNER_LABEL currently busy? ──
         if [ -n "${GITHUB_TOKEN}" ]; then
-            RUNNERS_JSON=$(curl -sf \
+            if ! RUNNERS_JSON=$(curl -sf \
                 -H "Authorization: token ${GITHUB_TOKEN}" \
                 -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100" 2>/dev/null || echo '{}')
+                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100"); then
+                echo "KEEP: GitHub API unreachable — fail closed"
+                exit 0
+            fi
 
-            BUSY_LABELED=$(printf '%s' "${RUNNERS_JSON}" | jq -r --arg L "${RUNNER_LABEL}" \
-                '[.runners[]? | select(.busy == true) | select(any(.labels[]?; .name == $L))] | length' 2>/dev/null || echo "0")
+            if ! BUSY_LABELED=$(printf '%s' "${RUNNERS_JSON}" | jq -e -r --arg L "${RUNNER_LABEL}" \
+                '[.runners[] | select(.busy == true) | select(any(.labels[]?; .name == $L))] | length'); then
+                echo "KEEP: runners payload missing/unparseable — fail closed"
+                exit 0
+            fi
 
             echo "GitHub: busy runners with label ${RUNNER_LABEL} = ${BUSY_LABELED}"
 
@@ -68,12 +74,18 @@ data:
         fi
 
         # ── Check 4: Any active VNC/RDP connections? ──
-        POD_NAME=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        if ! POD_NAME=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); then
+            echo "KEEP: pod lookup failed — fail closed"
+            exit 0
+        fi
         if [ -n "${POD_NAME}" ]; then
-            VNC_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
-                sh -c "ss -tn state established 2>/dev/null | grep -c ':5900' || echo 0" 2>/dev/null || echo "0")
-            RDP_CONNS=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
-                sh -c "ss -tn state established 2>/dev/null | grep -c ':3389' || echo 0" 2>/dev/null || echo "0")
+            if ! SS_OUT=$(kubectl exec "${POD_NAME}" -n "${NAMESPACE}" -c compute -- \
+                ss -tn state established 2>/dev/null); then
+                echo "KEEP: VNC/RDP session probe failed — fail closed"
+                exit 0
+            fi
+            VNC_CONNS=$(printf '%s' "${SS_OUT}" | grep -c ':5900' || true)
+            RDP_CONNS=$(printf '%s' "${SS_OUT}" | grep -c ':3389' || true)
 
             echo "Sessions: VNC=${VNC_CONNS}, RDP=${RDP_CONNS}"
 
