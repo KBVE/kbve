@@ -3,4 +3,6 @@ import CtaIsland from './CtaIsland';
 const props = Astro.props;
 ---
 
-<CtaIsland client:only="react" {...props} />
+<div class="not-content">
+	<CtaIsland client:only="react" {...props} />
+</div>

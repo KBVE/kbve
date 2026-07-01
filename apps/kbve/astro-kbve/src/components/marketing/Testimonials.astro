@@ -3,4 +3,6 @@ import { Testimonials } from '@kbve/rn-astro';
 const props = Astro.props;
 ---
 
-<Testimonials client:only="react" {...props} />
+<div class="not-content">
+	<Testimonials client:only="react" {...props} />
+</div>

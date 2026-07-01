@@ -3,4 +3,6 @@ import { LiveFeed } from '@kbve/rn-astro';
 const props = Astro.props;
 ---
 
-<LiveFeed client:only="react" {...props} />
+<div class="not-content">
+	<LiveFeed client:only="react" {...props} />
+</div>

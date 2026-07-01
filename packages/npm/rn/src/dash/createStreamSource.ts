@@ -124,6 +124,7 @@ export function createStreamSource<TRaw, TItem>(
 	return {
 		subscribe: signal.subscribe,
 		get: signal.get,
+		key,
 		id,
 		refresh: runFetch,
 		start: () => {
