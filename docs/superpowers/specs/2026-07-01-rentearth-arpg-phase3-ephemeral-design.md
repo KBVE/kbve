@@ -118,10 +118,11 @@ UchuckEphemeralRouter::OnEphemeralReceived():
 - Spell (15), FloorChange (13), ItemPlaced (14).
 - Damage-text object pooling, status-icon widget polish, audio/SFX.
 - MoveTo, offline mode, client prediction (other deferred Phase 2 items).
+- **HP bar + level from Stats:** `StatsEvent` carries `max_hp`, `level`, `xp` but not current HP (current HP arrives on the snapshot `EntityDelta.hp`). Phase 3 publishes only Mana from Stats; wiring the HP bar (snapshot `hp` → `Health` channel) and a level indicator is deferred to Phase 4. Multi-floor projectile Z (ProjectileEvent carries no `z`) is likewise deferred.
 
 ## Definition of Done
 
 - KBVESimgrid decodes all 8 events; `OnEphemeral` + `GetLastEphemeral*` exposed; decoder automation tests pass against pinned fixtures.
 - KBVESimgridRender ships `ASimgridDamageText` + `ASimgridProjectileTracer` (compile-verified).
-- chuck router maps all 8 kinds to HUD/toast/worldspace via `UchuckUIEvents`; `to`-filtering correct for state events.
+- chuck router maps all 8 kinds to HUD/toast/worldspace via `UchuckUIEvents`; `to`-filtering correct for state events. Stats drives the Mana bar (HP bar + level deferred to Phase 4 — see Out of Scope).
 - Module compiles in `chuckEditor`; decoder tests green.
