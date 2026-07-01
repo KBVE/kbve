@@ -17,8 +17,18 @@ void USimgridEntityManager::Setup(UWorld* World, USimgridClientSubsystem* Subsys
 
 	if (Sub)
 	{
+		Sub->OnSnapshot.RemoveDynamic(this, &USimgridEntityManager::OnSnapshotReceived);
 		Sub->OnSnapshot.AddDynamic(this, &USimgridEntityManager::OnSnapshotReceived);
 	}
+}
+
+void USimgridEntityManager::BeginDestroy()
+{
+	if (Sub)
+	{
+		Sub->OnSnapshot.RemoveDynamic(this, &USimgridEntityManager::OnSnapshotReceived);
+	}
+	Super::BeginDestroy();
 }
 
 void USimgridEntityManager::OnSnapshotReceived()

@@ -19,6 +19,7 @@ public:
 	void Setup(UWorld* World, USimgridClientSubsystem* Subsystem, USimgridWorldBridge* Bridge, UStaticMesh* DefaultMesh);
 	void SetLocalSlot(int32 Slot) { LocalSlot = Slot; }
 	void SetLocalPawn(AActor* Pawn) { LocalPawn = Pawn; }
+	virtual void BeginDestroy() override;
 
 	UFUNCTION()
 	void OnSnapshotReceived();
