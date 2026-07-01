@@ -33,6 +33,14 @@ jsonld:
           answer: Use a small base image like alpine, combine RUN steps to reduce layers, leverage multi-stage builds to drop build-time dependencies, and add a .dockerignore to keep unneeded files out of the build context.
         - question: What is Docker BuildX used for?
           answer: BuildX is Docker's extended build engine built on BuildKit. It enables multi-platform (multi-arch) images, better caching, and building for architectures other than the host, such as arm64 images from an amd64 machine.
+        - question: What is the difference between a Docker image and a container?
+          answer: An image is an immutable, layered template built from a Dockerfile. A container is a running (or stopped) instance of an image with its own writable layer. One image can spawn many containers.
+        - question: How do I persist data in Docker?
+          answer: Use a named volume (docker volume create, mounted with -v name:/path) for durable storage managed by Docker, or a bind mount to map a host directory into the container. Data written to the container's own writable layer is lost when the container is removed.
+        - question: What is Docker Compose used for?
+          answer: Compose defines a multi-container application in one docker-compose.yml file. A single docker compose up -d starts every service, creates a shared network so they resolve each other by name, and provisions named volumes for persistence.
+        - question: How do multi-stage builds reduce image size?
+          answer: A multi-stage build compiles the application in a heavy build stage with all toolchains, then copies only the final artifact into a minimal runtime stage. The build dependencies never ship in the final image, shrinking it significantly.
 ---
 
 import {
@@ -832,6 +840,75 @@ This script includes the following enhancements:
 
 Save this script to a file, for example, `docker_manage.sh`, make it executable with `chmod +x docker_manage.sh`, and then run it with `./docker_manage.sh`.
 
+
+---
+
+## Docker Compose
+
+Compose defines a multi-container app in a single declarative `docker-compose.yml`, replacing long `docker run` invocations. One `docker compose up -d` starts the whole stack; `docker compose down` tears it down.
+
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - db
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+```
+
+`depends_on` controls start order, `environment` injects config, and the named `db-data` volume persists the database across restarts. Compose also creates a default bridge network so services reach each other by name (`web` can connect to `db:5432`).
+
+| Command | Action |
+| ------- | ------ |
+| `docker compose up -d` | Start the stack in the background |
+| `docker compose down` | Stop and remove containers + network |
+| `docker compose logs -f web` | Follow logs for one service |
+| `docker compose ps` | List running services |
+| `docker compose exec web sh` | Open a shell in a running service |
+
+## Volumes and Networks
+
+Containers are ephemeral — anything written to the container's writable layer is lost when it is removed. **Volumes** provide durable storage; **networks** provide isolated communication.
+
+- **Named volume** — `docker volume create data` then mount with `-v data:/path`. Managed by Docker, ideal for databases.
+- **Bind mount** — `-v $(pwd):/app` maps a host directory into the container, ideal for live-reloading source during development.
+- **Bridge network** — `docker network create appnet` lets containers on the same network resolve each other by name, isolated from other stacks.
+
+```bash
+docker network create appnet
+docker run -d --name db --network appnet postgres:16-alpine
+docker run -d --name web --network appnet -p 8080:80 myapp
+```
+
+## Best Practices
+
+<Steps>
+
+1. **Use small base images** — `alpine` or `-slim` variants cut image size and attack surface dramatically.
+
+2. **Leverage multi-stage builds** — Compile in a heavy build stage, then `COPY` only the artifact into a minimal runtime stage.
+
+3. **Add a `.dockerignore`** — Keep `node_modules`, `.git`, and secrets out of the build context for faster, safer builds.
+
+4. **Order layers by change frequency** — Copy dependency manifests and install before copying source, so the dependency layer stays cached across code edits.
+
+5. **Run as a non-root user** — Add a `USER` instruction so a container breakout doesn't grant host root.
+
+6. **One process per container** — Keep containers single-purpose; use Compose to orchestrate multiple services.
+
+</Steps>
 
 ---
 

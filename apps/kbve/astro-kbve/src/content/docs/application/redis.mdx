@@ -34,6 +34,14 @@ jsonld:
           answer: A StatefulSet gives each Redis pod a stable network identity and persistent volume that survive rescheduling. This is required for data durability and for replication, where replicas must reliably find the primary.
         - question: How do I connect to a Redis instance from the command line?
           answer: Use redis-cli -h <host> -p <port> -a <password>. Inside Docker, exec into the container first, for example docker exec -it kilobase-redis redis-cli -a redispassword.
+        - question: What is the difference between RDB and AOF persistence in Redis?
+          answer: RDB writes periodic point-in-time snapshots — compact and fast to restore, but you can lose data since the last snapshot. AOF logs every write command and replays it on restart, giving far better durability at the cost of larger files. They can be enabled together.
+        - question: Which Redis data structure should I use for a leaderboard?
+          answer: A sorted set (ZSET). Members are ranked by a score, so ZADD updates a player's score and ZREVRANGE returns the top N in O(log N) time — far more efficient than sorting a list on every read.
+        - question: Why should I avoid KEYS in production Redis?
+          answer: KEYS scans the entire keyspace and blocks the single-threaded server until it finishes, stalling all other clients. Use SCAN instead, which returns keys in small cursor-based batches without blocking.
+        - question: Does Redis lose data when it restarts?
+          answer: Only if persistence is disabled. With RDB snapshots or AOF enabled (and a mounted volume in Docker or Kubernetes), Redis reloads its dataset on startup. A pure in-memory cache with no persistence starts empty after a restart.
 ---
 
 import {
@@ -59,6 +67,34 @@ This allows applications to swiftly locate and access objects based on attribute
 When used in this capacity, Redis enhances storage architectures by providing rapid, real-time insights into vast data landscapes without compromising on efficiency or performance.
 
 <Adsense />
+
+## Core Data Structures
+
+Redis is more than a key-value cache — each value can be one of several native data structures, each with commands optimized for a specific access pattern.
+
+| Structure | Description | Common Use |
+| --------- | ----------- | ---------- |
+| **String** | Binary-safe value up to 512 MB | Cache, counters (`INCR`), flags |
+| **Hash** | Field-value map under one key | Store an object (user profile) compactly |
+| **List** | Ordered, linked list | Queues, activity feeds (`LPUSH`/`BRPOP`) |
+| **Set** | Unordered unique members | Tags, unique visitors, membership tests |
+| **Sorted Set** | Members ranked by score | Leaderboards, rate limiting, priority queues |
+| **Stream** | Append-only log with consumer groups | Event sourcing, message queues |
+| **Bitmap / HyperLogLog** | Space-efficient counting | Daily active users, cardinality estimates |
+
+Choosing the right structure is the single biggest Redis performance decision — a sorted set leaderboard answers "top 10" in `O(log N)` where a naive list would be `O(N log N)`.
+
+## Persistence: RDB vs AOF
+
+By default Redis holds data in RAM, but it offers two persistence modes so data survives restarts. They can run together.
+
+- **RDB (snapshots)** — Periodically forks and writes a compact point-in-time dump (`dump.rdb`). Fast restarts and small files, but you can lose everything since the last snapshot on a crash.
+- **AOF (append-only file)** — Logs every write command and replays it on restart. Far more durable (`appendfsync everysec` loses at most one second), at the cost of larger files and slightly slower writes.
+
+<Aside type="tip">
+For a cache, RDB alone is fine — losing a few seconds of cache is harmless. For Redis as a primary datastore, enable AOF (`--appendonly yes`) for durability, optionally alongside RDB for fast restarts.
+</Aside>
+
 ## Redis Docker Integration
 
 ### Using Docker Compose
@@ -112,6 +148,56 @@ Deploying Redis on Kubernetes offers scalable and resilient solutions for managi
 
 Deploying Redis with Kubernetes not only improves operational efficiency but also leverages cutting-edge technology to support dynamic, large-scale applications.
 
+A minimal StatefulSet with a headless Service and a per-pod persistent volume:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  clusterIP: None
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+```
+
+The `clusterIP: None` headless Service gives each pod a stable DNS name (`redis-0.redis`), and `volumeClaimTemplates` provisions a dedicated PVC per replica so data survives rescheduling.
+
 * * *
 
 ### Redis CLI
@@ -138,6 +224,32 @@ To access the kilobase redis or any docker instance:
 
 `docker exec -it kilobase-redis redis-cli -a redispassword`
 
+</Aside>
+
+### Essential Commands
+
+Once connected, these cover most day-to-day operations:
+
+```shell
+SET user:1 "alice"        # store a string
+GET user:1                # read it back
+EXPIRE user:1 3600        # auto-delete after 1 hour
+TTL user:1                # seconds remaining
+
+HSET user:2 name bob age 30   # store a hash
+HGETALL user:2                # read the whole hash
+
+INCR page:views           # atomic counter
+ZADD board 100 alice      # sorted set for leaderboards
+ZREVRANGE board 0 9 WITHSCORES  # top 10
+
+KEYS *                    # list keys (avoid in production)
+SCAN 0 MATCH user:*       # cursor-based, production-safe
+INFO memory               # memory + stats
+```
+
+<Aside type="caution">
+Never run `KEYS *` on a busy production instance — it blocks the single-threaded server while it scans every key. Use `SCAN`, which iterates in small cursor-based batches.
 </Aside>
 
 ## FAQ
