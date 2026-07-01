@@ -221,6 +221,48 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-rentearth
+          protocol: HTTPS
+          port: 443
+          hostname: rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth-www
+          protocol: HTTPS
+          port: 443
+          hostname: www.rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-rentearth-play
+          protocol: HTTPS
+          port: 443
+          hostname: play.rentearth.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rentearth-tls
+                    namespace: rentearth
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
