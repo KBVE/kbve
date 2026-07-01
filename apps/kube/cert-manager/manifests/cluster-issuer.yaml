@@ -112,6 +112,16 @@ spec:
                             namespace: kbve
                             kind: Gateway
                             group: gateway.networking.k8s.io
+            - selector:
+                  dnsZones:
+                      - rentearth.com
+              http01:
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
