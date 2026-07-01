@@ -24,6 +24,9 @@ export default defineConfig({
 	output: 'static',
 	trailingSlash: 'always',
 	outDir: '../../../dist/apps/astro-kbve',
+	redirects: {
+		'/application/rn-web/': '/application/rn/',
+	},
 	image: {
 		domains: ['images.unsplash.com'],
 	},
