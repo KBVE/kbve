@@ -1,6 +1,12 @@
 #include "chuckKbveApiClient.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonWriter.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
+#include "Engine/GameInstance.h"
+#include "KBVESupabaseSubsystem.h"
 
 EchuckSetUsernameResult UchuckKbveApiClient::ParseSetUsernameResult(int32 HttpCode, const FString& Body, const FString& Requested, FString& OutCanonical)
 {
@@ -37,8 +43,41 @@ EchuckSetUsernameResult UchuckKbveApiClient::ParseSetUsernameResult(int32 HttpCo
 
 void UchuckKbveApiClient::SetUsername(const FString& Name, TFunction<void(EchuckSetUsernameResult, const FString&)> OnResult)
 {
-	if (OnResult)
-	{
-		OnResult(EchuckSetUsernameResult::NetworkError, Name);
-	}
+	UGameInstance* GI = GetGameInstance();
+	UKBVESupabaseSubsystem* Supa = GI ? GI->GetSubsystem<UKBVESupabaseSubsystem>() : nullptr;
+	const FString Token = Supa ? Supa->GetAccessToken() : FString();
+
+	TSharedRef<FJsonObject> BodyJson = MakeShared<FJsonObject>();
+	BodyJson->SetStringField(TEXT("username"), Name);
+	FString BodyStr;
+	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&BodyStr);
+	FJsonSerializer::Serialize(BodyJson, Writer);
+
+	const FString Requested = Name;
+
+	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = FHttpModule::Get().CreateRequest();
+	Req->SetVerb(TEXT("POST"));
+	Req->SetURL(BaseUrl + TEXT("/api/v1/profile/username"));
+	Req->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	Req->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *Token));
+	Req->SetContentAsString(BodyStr);
+	Req->OnProcessRequestComplete().BindLambda(
+		[OnResult, Requested](FHttpRequestPtr, FHttpResponsePtr Resp, bool bConnected)
+		{
+			FString Canonical = Requested;
+			EchuckSetUsernameResult Result;
+			if (!bConnected || !Resp.IsValid())
+			{
+				Result = EchuckSetUsernameResult::NetworkError;
+			}
+			else
+			{
+				Result = ParseSetUsernameResult(Resp->GetResponseCode(), Resp->GetContentAsString(), Requested, Canonical);
+			}
+			if (OnResult)
+			{
+				OnResult(Result, Canonical);
+			}
+		});
+	Req->ProcessRequest();
 }
