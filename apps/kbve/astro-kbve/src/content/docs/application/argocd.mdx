@@ -1,12 +1,41 @@
 ---
 title: ArgoCD
 description: |
-    ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes.
+    ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes that syncs the desired state in Git
+    with the live cluster. This guide covers the architecture, CLI, sync policies, the KBVE annotation standard,
+    and troubleshooting.
 sidebar:
     label: ArgoCD
     order: 12
 unsplash: 1667372459726-a8fb4f5e4a5b
 img: https://images.unsplash.com/photo-1667372459726-a8fb4f5e4a5b?fit=crop&w=1400&h=700&q=75
+tags:
+    - kubernetes
+    - gitops
+    - ci-cd
+sem: 1
+ogTitle: ArgoCD Guide — GitOps Continuous Delivery for Kubernetes
+ogDescription: Learn ArgoCD, the declarative GitOps CD tool for Kubernetes — architecture, the argocd CLI, automated sync with self-heal and prune, ignoreDifferences, finalizers, and troubleshooting stuck syncs.
+jsonld:
+    type: Article
+    keywords:
+        - argocd
+        - gitops
+        - continuous delivery
+        - kubernetes deployment
+        - argo cd sync
+        - declarative cd
+    faq:
+        - question: What is ArgoCD?
+          answer: ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It treats a Git repository as the source of truth for the desired application state and continuously syncs the live cluster to match, automating deployments and detecting drift.
+        - question: What is GitOps?
+          answer: GitOps is an operational model where the desired state of infrastructure and applications is declared in Git, and an automated agent reconciles the running system to match. Git becomes the single source of truth, so every change is version-controlled, reviewable, and auditable.
+        - question: What is the difference between prune and self-heal in ArgoCD?
+          answer: prune deletes cluster resources that were removed from Git, keeping the cluster from accumulating orphans. selfHeal reverts manual kubectl changes back to the Git-defined state. Together they enforce that the live cluster always matches the repository.
+        - question: How do I fix an ArgoCD application stuck in Progressing?
+          answer: Check the operation with argocd app get, terminate a stuck sync using argocd app terminate-op, then force a fresh sync with argocd app sync --force. A hard refresh (--hard-refresh) bypasses the cache when an app shows out of sync despite matching Git.
+        - question: What are ignoreDifferences used for in ArgoCD?
+          answer: ignoreDifferences tells ArgoCD to skip specific resource fields when comparing live and desired state, so it does not fight controllers that own those fields — for example an autoscaler managing an Agones Fleet's spec.replicas would otherwise be reverted on every sync.
 ---
 
 import {
@@ -25,6 +54,8 @@ import { Giscus, Adsense } from '@/components/astropad';
 ## Information
 
 ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It automates the deployment of applications by synchronizing the desired state defined in Git repositories with the actual state in Kubernetes clusters.
+
+Jump to the [architecture](#architecture), [CLI commands](#cli-commands), [sync policies](#application-management), or [troubleshooting](#troubleshooting).
 
 <Adsense />
 
@@ -458,5 +489,22 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-repo-server -f
 - [GitHub Actions](/application/git/) - CI/CD integration with ArgoCD
 
 ---
+
+## FAQ
+
+**What is ArgoCD?**
+ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes. It treats a Git repository as the source of truth for the desired application state and continuously syncs the live cluster to match, automating deployments and detecting drift.
+
+**What is GitOps?**
+GitOps is an operational model where the desired state of infrastructure and applications is declared in Git, and an automated agent reconciles the running system to match. Git becomes the single source of truth, so every change is version-controlled, reviewable, and auditable.
+
+**What is the difference between prune and self-heal in ArgoCD?**
+`prune` deletes cluster resources that were removed from Git, keeping the cluster from accumulating orphans. `selfHeal` reverts manual `kubectl` changes back to the Git-defined state. Together they enforce that the live cluster always matches the repository.
+
+**How do I fix an ArgoCD application stuck in Progressing?**
+Check the operation with `argocd app get`, terminate a stuck sync using `argocd app terminate-op`, then force a fresh sync with `argocd app sync --force`. A hard refresh (`--hard-refresh`) bypasses the cache when an app shows out of sync despite matching Git.
+
+**What are `ignoreDifferences` used for in ArgoCD?**
+`ignoreDifferences` tells ArgoCD to skip specific resource fields when comparing live and desired state, so it does not fight controllers that own those fields — for example an autoscaler managing an Agones Fleet's `spec.replicas` would otherwise be reverted on every sync.
 
 <Giscus />

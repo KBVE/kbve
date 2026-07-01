@@ -7,7 +7,32 @@ sidebar:
 unsplash: 1549605659-32d82da3a059
 img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h=700&q=75
 tags:
-    - auth
+    - backend
+    - baas
+    - serverless
+sem: 1
+ogTitle: Appwrite Guide — Open-Source Backend, Cloud Functions & SDKs
+ogDescription: Learn Appwrite, the open-source, self-hosted backend server (BaaS) — core APIs for auth, databases, and storage, writing serverless Cloud Functions, and using the JavaScript and Python SDKs.
+jsonld:
+    type: Article
+    keywords:
+        - appwrite
+        - backend as a service
+        - baas
+        - cloud functions
+        - self-hosted backend
+        - appwrite sdk
+    faq:
+        - question: What is Appwrite?
+          answer: Appwrite is an open-source, self-hosted backend server (a Backend-as-a-Service) that gives developers a set of core APIs — authentication, databases, storage, messaging, and serverless functions — plus a management console. It runs on any OS via Docker and removes the need to build common backend plumbing from scratch.
+        - question: What is an Appwrite Cloud Function?
+          answer: A Cloud Function is a piece of code that runs in response to an event (Function-as-a-Service). In Appwrite, functions run inside Docker containers, support runtimes like Node.js, Python, and Deno, and can be triggered by events such as user registration or document creation, or executed manually.
+        - question: Which SDKs does Appwrite provide?
+          answer: Appwrite ships official SDKs for many platforms including JavaScript/TypeScript, Python, Flutter/Dart, Android, Apple, and more. Each SDK wraps the REST API so you configure a Client with an endpoint, project ID, and key, then call typed service methods instead of raw HTTP.
+        - question: Is Appwrite self-hosted or cloud?
+          answer: Both. Appwrite is open source and can be self-hosted on your own infrastructure with Docker, and there is also Appwrite Cloud, a managed offering. Self-hosting gives you full data control; the cloud removes operational overhead.
+        - question: How do I connect the Appwrite Python SDK?
+          answer: Install it with pip install appwrite, then create a Client and chain set_endpoint (your API endpoint), set_project (project ID), and set_key (a secret API key). From there you instantiate services like Users or Databases with that client and call their methods.
 ---
 
 import {
@@ -20,6 +45,12 @@ import {
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+
+## Overview
+
+**Appwrite** is an open-source, self-hosted **backend server** (Backend-as-a-Service) that hands developers a ready-made set of core APIs — **auth, databases, storage, messaging, and serverless functions** — behind a clean management console. It runs on any OS via Docker, so you skip building common backend plumbing yourself.
+
+This guide covers [Cloud Functions](#javascript) (Init/Core/Extra) and the [Python SDK](#python).
 
 ## Information
 
@@ -176,7 +207,7 @@ Step aside traditional backends, the Appwrite Python SDK is in town, rolling out
 This snazzy toolkit doesn't just connect Python applications to the Appwrite server; it's a golden ticket to a carnival of backend delights.
 From the tantalizing whirlwind of user authentication to the magic show of database operations and the high-flying trapeze of storage management, the SDK transforms mundane backend tasks into a spectacle.
 No more wrestling with manual API requests – just harness the SDK's sleek methods and watch as Appwrite's vast services dance harmoniously with your Python code.
-Whether you're orchestrating a symphony of user data or choreographing a ballet of notifications, the Appwrite Python SDK ensures every act is a showstopper or a stormtrooper muhahaha.
+Whether you're orchestrating user data or wiring up notifications, the Appwrite Python SDK keeps backend integration clean and readable.
 
 ### Appwrite Python SDK Install
 
@@ -229,3 +260,22 @@ user = users.create(
 )
 
 ```
+
+## FAQ
+
+**What is Appwrite?**
+Appwrite is an open-source, self-hosted backend server (a Backend-as-a-Service) that gives developers core APIs — authentication, databases, storage, messaging, and serverless functions — plus a management console. It runs on any OS via Docker and removes the need to build common backend plumbing from scratch.
+
+**What is an Appwrite Cloud Function?**
+A Cloud Function is a piece of code that runs in response to an event (Function-as-a-Service). In Appwrite, functions run inside Docker containers, support runtimes like Node.js, Python, and Deno, and can be triggered by events such as user registration or document creation, or executed manually.
+
+**Which SDKs does Appwrite provide?**
+Appwrite ships official SDKs for many platforms including JavaScript/TypeScript, Python, [Flutter](/application/flutter/)/Dart, Android, Apple, and more. Each SDK wraps the REST API so you configure a `Client` with an endpoint, project ID, and key, then call typed service methods instead of raw HTTP.
+
+**Is Appwrite self-hosted or cloud?**
+Both. Appwrite is open source and can be self-hosted on your own infrastructure with Docker, and there is also Appwrite Cloud, a managed offering. Self-hosting gives you full data control; the cloud removes operational overhead.
+
+**How do I connect the Appwrite Python SDK?**
+Install it with `pip install appwrite`, then create a `Client` and chain `set_endpoint`, `set_project`, and `set_key`. From there you instantiate services like `Users` or `Databases` with that client and call their methods.
+
+<Adsense />
