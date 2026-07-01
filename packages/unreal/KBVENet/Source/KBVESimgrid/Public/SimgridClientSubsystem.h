@@ -20,6 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSimgridOnWelcome, int32, YourSlot,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimgridOnSnapshot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSimgridOnRejected, const FString&, Reason);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimgridOnDisconnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimgridOnEphemeral);
 
 UCLASS()
 class KBVESIMGRID_API USimgridClientSubsystem : public UGameInstanceSubsystem
@@ -54,6 +55,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "KBVE|Simgrid")
 	FSimgridOnDisconnected OnDisconnected;
 
+	UPROPERTY(BlueprintAssignable, Category = "KBVE|Simgrid")
+	FSimgridOnEphemeral OnEphemeral;
+
+	int32 GetLastEphemeralKind() const { return LastEphemeralKind; }
+	int32 GetLastEphemeralTo() const { return LastEphemeralTo; }
+	const TArray<uint8>& GetLastEphemeralPayload() const { return LastEphemeralPayload; }
+
 private:
 	void HandleOpen();
 	void HandleBinary(const TArray<uint8>& Frame);
@@ -67,4 +75,7 @@ private:
 	uint32 ClientTick = 0;
 	uint32 MoveSeq = 0;
 	FSimgridSnapshot LastSnapshot;
+	int32 LastEphemeralKind = 0;
+	int32 LastEphemeralTo = 0;
+	TArray<uint8> LastEphemeralPayload;
 };

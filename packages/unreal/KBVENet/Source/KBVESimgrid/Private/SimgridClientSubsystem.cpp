@@ -72,7 +72,10 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 		Disconnect();
 		break;
 	case EServerEventType::Ephemeral:
-		UE_LOG(LogKBVESimgrid, Verbose, TEXT("Ephemeral kind=%u (%d bytes)"), D.EphemeralKind, D.EphemeralPayload.Num());
+		LastEphemeralKind = (int32)D.EphemeralKind;
+		LastEphemeralTo = (int32)D.EphemeralTo;
+		LastEphemeralPayload = D.EphemeralPayload;
+		OnEphemeral.Broadcast();
 		break;
 	default:
 		break;
