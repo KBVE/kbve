@@ -136,6 +136,7 @@ bool FSimgridEphemeralInventoryTest::RunTest(const FString& Parameters)
 	TestEqual("i0 id", Inv.Items[0].Id, FString(TEXT("")));
 	TestEqual("i0 ref", Inv.Items[0].ItemRef, FString(TEXT("arrow")));
 	TestEqual("i0 count", Inv.Items[0].Count, (uint32)3);
+	TestEqual("i1 id", Inv.Items[1].Id, FString(TEXT("")));
 	TestEqual("i1 ref", Inv.Items[1].ItemRef, FString(TEXT("potion")));
 	TestEqual("i1 count", Inv.Items[1].Count, (uint32)1);
 	return true;

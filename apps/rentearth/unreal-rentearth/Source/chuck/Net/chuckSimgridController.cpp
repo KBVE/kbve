@@ -1,3 +1,5 @@
+static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
+
 #include "chuckSimgridController.h"
 #include "SimgridClientSubsystem.h"
 #include "SimgridEntityManager.h"
@@ -153,8 +155,8 @@ void AchuckSimgridController::HandleEphemeral()
 		const FVector2D ToXY = FSimgridCoords::TileToWorldXY(P.To.X, P.To.Y);
 		const float FromZ = Bridge ? Bridge->SampleHeight((float)FromXY.X, (float)FromXY.Y) : 0.0f;
 		const float ToZ = Bridge ? Bridge->SampleHeight((float)ToXY.X, (float)ToXY.Y) : 0.0f;
-		const FVector FromPos(FromXY.X, FromXY.Y, FromZ + FSimgridCoords::FLOOR_HEIGHT);
-		const FVector ToPos(ToXY.X, ToXY.Y, ToZ + FSimgridCoords::FLOOR_HEIGHT);
+		const FVector FromPos(FromXY.X, FromXY.Y, FromZ + PROJECTILE_MUZZLE_Z);
+		const FVector ToPos(ToXY.X, ToXY.Y, ToZ + PROJECTILE_MUZZLE_Z);
 		if (ASimgridProjectileTracer* Tracer = GetWorld()->SpawnActor<ASimgridProjectileTracer>(ASimgridProjectileTracer::StaticClass(), FTransform(FromPos)))
 		{
 			Tracer->Init(FromPos, ToPos);
