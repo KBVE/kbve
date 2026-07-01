@@ -1,7 +1,9 @@
 ---
 title: GCloud
 description: |
-    GCloud is a Command Line Interface that designs, builds and scales Google Cloud resources.
+    gcloud is the Google Cloud CLI for creating, configuring, and scaling Google Cloud resources — Compute
+    Engine VMs, load balancers, networking, and more. This guide covers the CLI structure, Compute Engine,
+    and building an HTTP load balancer with managed instance groups.
 sidebar:
     label: GCloud
     order: 205
@@ -9,6 +11,31 @@ unsplash: 1498354136128-58f790194fa7
 img: https://images.unsplash.com/photo-1498354136128-58f790194fa7?fit=crop&w=1400&h=700&q=75
 tags:
     - cloud
+    - gcp
+    - devops
+sem: 1
+ogTitle: gcloud CLI Guide — Compute Engine & HTTP Load Balancers
+ogDescription: Learn the gcloud CLI for Google Cloud — the GROUP/COMMAND structure, creating Compute Engine VMs, managed instance groups (MIGs), and wiring up an external HTTP load balancer with health checks.
+jsonld:
+    type: Article
+    keywords:
+        - gcloud
+        - google cloud cli
+        - compute engine
+        - load balancer
+        - managed instance group
+        - gcp
+    faq:
+        - question: What is the gcloud CLI?
+          answer: gcloud is the command-line interface for Google Cloud Platform. It lets you create, configure, and scale resources — Compute Engine VMs, networks, load balancers, storage, and more — from a terminal or scripts. Commands follow a gcloud GROUP COMMAND structure, for example gcloud compute instances create.
+        - question: How do I create a VM with gcloud?
+          answer: Use gcloud compute instances create NAME with flags for zone, machine type, and image, e.g. gcloud compute instances create www-1 --zone=us-west1-b --machine-type=e2-medium --image-family=debian-11 --image-project=debian-cloud. A startup-script metadata flag can install software like Nginx on first boot.
+        - question: What is a managed instance group (MIG)?
+          answer: A managed instance group runs multiple identical VMs from a single instance template. MIGs provide autoscaling, autohealing, multi-zone (regional) deployment, and automatic rolling updates, making them the backend for scalable, highly available load-balanced applications.
+        - question: How does an HTTP load balancer work on Google Cloud?
+          answer: An external HTTP load balancer chains a global forwarding rule and IP to a target HTTP proxy, which uses a URL map to route requests to backend services. Each backend service points at one or more instance groups and a health check, so traffic only reaches healthy VMs.
+        - question: What is a forwarding rule in Google Cloud?
+          answer: A forwarding rule and its IP address form the frontend of a Google Cloud load balancer. It matches incoming traffic on a protocol and port and forwards it to a target proxy or backend, tying the public entry point to the load balancing configuration behind it.
 ---
 
 import {
@@ -21,6 +48,12 @@ import {
 } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+
+## Overview
+
+**gcloud** is the command-line interface for **Google Cloud Platform (GCP)** — it creates, configures, and scales resources like Compute Engine VMs, networks, and load balancers from a terminal or script. Every command follows a `gcloud GROUP COMMAND` structure (e.g. `gcloud compute instances create`).
+
+This guide covers [Compute Engine](#gcloud-compute) and building an [HTTP load balancer](#load-balancer) with managed instance groups.
 
 ## Information
 
@@ -172,3 +205,22 @@ Note: A forwarding rule and its corresponding IP address represent the frontend 
 
 [Using Forwarding Rules](https://cloud.google.com/load-balancing/docs/using-forwarding-rules)
 [Rule Concepts](https://cloud.google.com/load-balancing/docs/forwarding-rule-concepts)
+
+## FAQ
+
+**What is the gcloud CLI?**
+gcloud is the command-line interface for Google Cloud Platform. It lets you create, configure, and scale resources — Compute Engine VMs, networks, load balancers, storage, and more — from a terminal or scripts. Commands follow a `gcloud GROUP COMMAND` structure.
+
+**How do I create a VM with gcloud?**
+Use `gcloud compute instances create NAME` with flags for zone, machine type, and image, e.g. `--zone=us-west1-b --machine-type=e2-medium --image-family=debian-11 --image-project=debian-cloud`. A `startup-script` metadata flag can install software like Nginx on first boot.
+
+**What is a managed instance group (MIG)?**
+A MIG runs multiple identical VMs from a single instance template. It provides autoscaling, autohealing, multi-zone deployment, and automatic rolling updates — the backend for scalable, highly available load-balanced applications.
+
+**How does an HTTP load balancer work on Google Cloud?**
+An external HTTP load balancer chains a global forwarding rule and IP to a target HTTP proxy, which uses a URL map to route requests to backend services. Each backend service points at instance groups and a health check, so traffic only reaches healthy VMs.
+
+**What is a forwarding rule in Google Cloud?**
+A forwarding rule and its IP address form the frontend of a load balancer. It matches incoming traffic on a protocol and port and forwards it to a target proxy or backend, tying the public entry point to the load balancing configuration behind it.
+
+<Adsense />

@@ -1,7 +1,9 @@
 ---
 title: Longhorn
 description: |
-    Longhorn is a cloud-native distributed storage application that allows easy and persistent storage across the eco-system.
+    Longhorn is a cloud-native, distributed block storage system for Kubernetes that delivers persistent,
+    replicated volumes with snapshots and backups. This guide covers the architecture, installation,
+    StorageClass configuration, and NFS setup.
 sidebar:
     label: Longhorn
     order: 1009
@@ -9,6 +11,31 @@ unsplash: 1575405380157-1fc4e4b3f227
 img: https://images.unsplash.com/photo-1575405380157-1fc4e4b3f227?fit=crop&w=1400&h=700&q=75
 tags:
     - storage
+    - kubernetes
+    - cloud-native
+sem: 1
+ogTitle: Longhorn Guide — Distributed Block Storage for Kubernetes
+ogDescription: Learn Longhorn, the cloud-native distributed block storage system for Kubernetes — how replication and snapshots work, install via Helm, configure a StorageClass, and set up NFS-backed backups.
+jsonld:
+    type: Article
+    keywords:
+        - longhorn
+        - kubernetes storage
+        - distributed block storage
+        - persistent volume
+        - storageclass
+        - volume replication
+    faq:
+        - question: What is Longhorn?
+          answer: Longhorn is a cloud-native, distributed block storage system for Kubernetes, originally by Rancher and now a CNCF project. It provides persistent volumes with synchronous replication across nodes, snapshots, and backups to external targets like NFS or S3, all managed through a Kubernetes-native UI and CRDs.
+        - question: How does Longhorn replicate data?
+          answer: Longhorn creates a replica of each volume on multiple nodes and writes to them synchronously, so the volume survives a node failure. The number of copies is set by the numberOfReplicas parameter on the StorageClass — for example 3 for high availability, or 1 for single-node or non-critical data.
+        - question: How do I install Longhorn on Kubernetes?
+          answer: The recommended path is Helm — add the longhorn repo, then helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace. Every node needs open-iscsi installed and a compatible kernel. You can also apply the official YAML manifest directly with kubectl.
+        - question: Does Longhorn support backups?
+          answer: Yes. Longhorn takes in-cluster snapshots of a volume and can back them up to an external backup target such as an NFS share or an S3-compatible bucket. Backups are incremental after the first full copy and can be restored to a new volume in the same or another cluster.
+        - question: What is a Longhorn StorageClass?
+          answer: A StorageClass tells Kubernetes to provision volumes with Longhorn's CSI driver (driver.longhorn.io) and carries parameters like numberOfReplicas, staleReplicaTimeout, fsType, and dataLocality. Marking it the default class lets PersistentVolumeClaims use Longhorn automatically without naming it.
 ---
 
 import {
@@ -22,6 +49,14 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
+## Overview
+
+**Longhorn** is a cloud-native, **distributed block storage** system for Kubernetes (originally by Rancher, now a CNCF project). It turns the local disks across your nodes into replicated, persistent volumes — with **snapshots** and **backups** to NFS or S3 — all managed through Kubernetes CRDs and a built-in UI.
+
+Every volume is **synchronously replicated** across nodes, so a single node failure doesn't lose data.
+
+This guide covers [install](#install), [NFS setup](#nfs), the [namespace](#namespace), and the [StorageClass](#longhorn-uno).
+
 ## Information
 
 <Adsense />
@@ -32,6 +67,23 @@ import { Giscus, Adsense } from '@/components/astropad';
 -   Before installing, look over the requirements for storage.
 
 -   Requirements for 1.3v Longhorn
+
+The recommended install path is **Helm**. Every node needs `open-iscsi` and a compatible kernel first:
+
+```shell
+# On each node (Debian/Ubuntu)
+sudo apt-get install open-iscsi -y
+
+# Install Longhorn via Helm
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+helm install longhorn longhorn/longhorn \
+  --namespace longhorn-system --create-namespace
+```
+
+<Aside type="caution">
+Longhorn needs `open-iscsi` running on **every** node that will host a replica. A missing iSCSI daemon is the most common cause of volumes stuck in `Attaching`.
+</Aside>
 
 ---
 
@@ -100,3 +152,24 @@ Under storage class, we will be creating the longhorn uno and then deploying it 
     storageclass.beta.kubernetes.io/is-default-class: 'false'
     storageclass.kubernetes.io/is-default-class: 'false'
 ```
+
+The key parameters: `numberOfReplicas` controls how many synchronous copies of the volume exist (raise to `3` for HA), `dataLocality: best-effort` keeps a replica on the same node as the workload to cut latency, and `reclaimPolicy: Delete` removes the underlying volume when its PVC is deleted.
+
+## FAQ
+
+**What is Longhorn?**
+Longhorn is a cloud-native, distributed block storage system for Kubernetes, originally by Rancher and now a CNCF project. It provides persistent volumes with synchronous replication across nodes, snapshots, and backups to external targets like NFS or S3, managed through a Kubernetes-native UI and CRDs.
+
+**How does Longhorn replicate data?**
+Longhorn creates a replica of each volume on multiple nodes and writes to them synchronously, so the volume survives a node failure. The number of copies is set by the `numberOfReplicas` parameter — for example `3` for high availability, or `1` for non-critical data.
+
+**How do I install Longhorn on Kubernetes?**
+The recommended path is Helm — add the `longhorn` repo, then `helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace`. Every node needs `open-iscsi` installed. You can also apply the official YAML manifest with `kubectl`.
+
+**Does Longhorn support backups?**
+Yes. Longhorn takes in-cluster snapshots and can back them up to an external target such as an NFS share or S3-compatible bucket. Backups are incremental after the first full copy and can be restored to a new volume in the same or another cluster.
+
+**What is a Longhorn StorageClass?**
+A StorageClass tells Kubernetes to provision volumes with Longhorn's CSI driver (`driver.longhorn.io`) and carries parameters like `numberOfReplicas`, `staleReplicaTimeout`, `fsType`, and `dataLocality`. Marking it the default class lets PVCs use Longhorn automatically.
+
+<Adsense />
