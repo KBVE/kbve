@@ -1,0 +1,47 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "chuckPlayerController.h"
+#include "chuckSimgridController.generated.h"
+
+class USimgridClientSubsystem;
+class USimgridEntityManager;
+class USimgridWorldBridge;
+class ASimgridIsoCameraPawn;
+class UStaticMesh;
+
+UCLASS()
+class AchuckSimgridController : public AchuckPlayerController
+{
+	GENERATED_BODY()
+
+public:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	UFUNCTION()
+	void HandleWelcome(int32 YourSlot, int64 Seed);
+
+	UFUNCTION()
+	void HandleDisconnected();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
+	FString ServerUrl = TEXT("ws://localhost:7979/ws");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
+	TObjectPtr<UStaticMesh> DefaultEntityMesh;
+
+private:
+	UPROPERTY()
+	TObjectPtr<USimgridEntityManager> Manager;
+
+	UPROPERTY()
+	TObjectPtr<USimgridWorldBridge> Bridge;
+
+	UPROPERTY()
+	TObjectPtr<ASimgridIsoCameraPawn> CameraPawn;
+
+	USimgridClientSubsystem* GetSubsystem() const;
+};
