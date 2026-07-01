@@ -6,6 +6,12 @@
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
+#include "SimgridEphemeral.h"
+#include "SimgridCoords.h"
+#include "SimgridDamageText.h"
+#include "SimgridProjectileTracer.h"
+#include "Events/chuckUIEvents.h"
+#include "KBVEGameplayEvents.h"
 
 USimgridClientSubsystem* AchuckSimgridController::GetSubsystem() const
 {
@@ -33,6 +39,7 @@ void AchuckSimgridController::BeginPlay()
 
 	Sub->OnWelcome.AddDynamic(this, &AchuckSimgridController::HandleWelcome);
 	Sub->OnDisconnected.AddDynamic(this, &AchuckSimgridController::HandleDisconnected);
+	Sub->OnEphemeral.AddDynamic(this, &AchuckSimgridController::HandleEphemeral);
 
 	Sub->ConnectToServer(ServerUrl);
 }
@@ -48,6 +55,7 @@ void AchuckSimgridController::HandleWelcome(int32 YourSlot, int64 Seed)
 		Manager->SetLocalSlot(YourSlot);
 		Manager->SetLocalPawn(GetPawn());
 	}
+	LocalSlot = YourSlot;
 
 	if (!CameraPawn)
 	{
@@ -94,6 +102,7 @@ void AchuckSimgridController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		Sub->OnWelcome.RemoveDynamic(this, &AchuckSimgridController::HandleWelcome);
 		Sub->OnDisconnected.RemoveDynamic(this, &AchuckSimgridController::HandleDisconnected);
+		Sub->OnEphemeral.RemoveDynamic(this, &AchuckSimgridController::HandleEphemeral);
 		Sub->Disconnect();
 	}
 	if (Manager)
@@ -101,4 +110,115 @@ void AchuckSimgridController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Manager->Clear();
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+void AchuckSimgridController::HandleEphemeral()
+{
+	USimgridClientSubsystem* Sub = GetSubsystem();
+	if (!Sub)
+	{
+		return;
+	}
+
+	const int32 Kind = Sub->GetLastEphemeralKind();
+	const int32 To = Sub->GetLastEphemeralTo();
+	const TArray<uint8>& Payload = Sub->GetLastEphemeralPayload();
+	const bool bForMe = (To == LocalSlot);
+
+	UchuckUIEvents* Events = UchuckUIEvents::Get(this);
+
+	switch (Kind)
+	{
+	case 2:
+	{
+		const FSimgridCombat C = FEphemeralCodec::DecodeCombat(Payload);
+		FVector Pos;
+		if (Manager && Manager->WorldPosOf(C.Target, Pos))
+		{
+			if (ASimgridDamageText* Text = GetWorld()->SpawnActor<ASimgridDamageText>(ASimgridDamageText::StaticClass(), FTransform(Pos)))
+			{
+				Text->Init(C.Dmg, C.bCrit);
+			}
+		}
+		if (Events && C.bDied)
+		{
+			Events->Toast.Publish(FchuckToastPayload{ FText::FromString(TEXT("Defeated")), FText::FromString(C.TargetRef), 1 });
+		}
+		break;
+	}
+	case 12:
+	{
+		const FSimgridProjectile P = FEphemeralCodec::DecodeProjectile(Payload);
+		const FVector2D FromXY = FSimgridCoords::TileToWorldXY(P.From.X, P.From.Y);
+		const FVector2D ToXY = FSimgridCoords::TileToWorldXY(P.To.X, P.To.Y);
+		const float FromZ = Bridge ? Bridge->SampleHeight((float)FromXY.X, (float)FromXY.Y) : 0.0f;
+		const float ToZ = Bridge ? Bridge->SampleHeight((float)ToXY.X, (float)ToXY.Y) : 0.0f;
+		const FVector FromPos(FromXY.X, FromXY.Y, FromZ + FSimgridCoords::FLOOR_HEIGHT);
+		const FVector ToPos(ToXY.X, ToXY.Y, ToZ + FSimgridCoords::FLOOR_HEIGHT);
+		if (ASimgridProjectileTracer* Tracer = GetWorld()->SpawnActor<ASimgridProjectileTracer>(ASimgridProjectileTracer::StaticClass(), FTransform(FromPos)))
+		{
+			Tracer->Init(FromPos, ToPos);
+		}
+		break;
+	}
+	case 3:
+	{
+		const FSimgridPickup P = FEphemeralCodec::DecodePickup(Payload);
+		if (Events)
+		{
+			Events->Toast.Publish(FchuckToastPayload{ FText::FromString(TEXT("Picked up")), FText::FromString(FString::Printf(TEXT("%u x %s"), P.Count, *P.ItemRef)), 0 });
+		}
+		break;
+	}
+	case 5:
+	{
+		const FSimgridItemUsed U = FEphemeralCodec::DecodeItemUsed(Payload);
+		if (Events)
+		{
+			Events->Toast.Publish(FchuckToastPayload{ FText::FromString(TEXT("Used")), FText::FromString(U.ItemRef), 0 });
+		}
+		break;
+	}
+	case 7:
+	{
+		if (!bForMe) { break; }
+		const FSimgridStats S = FEphemeralCodec::DecodeStats(Payload);
+		if (Events)
+		{
+			Events->Mana.Publish(FKBVEManaChangedPayload{ (float)S.Mp, (float)S.MaxMp });
+		}
+		break;
+	}
+	case 8:
+	{
+		if (!bForMe) { break; }
+		const FSimgridStatus S = FEphemeralCodec::DecodeStatus(Payload);
+		if (Events)
+		{
+			Events->Toast.Publish(FchuckToastPayload{ FText::FromString(TEXT("Status")), FText::FromString(FString::Printf(TEXT("kind %d (%u)"), (int32)S.Kind, S.Remaining)), 0 });
+		}
+		break;
+	}
+	case 1:
+	{
+		if (!bForMe) { break; }
+		if (Events)
+		{
+			Events->InventoryDirty.Publish(FchuckInventoryDirtyPayload{ 0 });
+		}
+		break;
+	}
+	case 6:
+	{
+		if (!bForMe) { break; }
+		const FSimgridEquipped E = FEphemeralCodec::DecodeEquipped(Payload);
+		if (Events)
+		{
+			Events->Toast.Publish(FchuckToastPayload{ FText::FromString(TEXT("Equipped")), FText::FromString(FString::Printf(TEXT("%s -> %s"), *E.ItemRef, *E.Slot)), 0 });
+		}
+		break;
+	}
+	default:
+		break;
+	}
 }
