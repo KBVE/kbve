@@ -6,6 +6,7 @@
 #include "RHI.h"
 #include "RenderCore.h"
 #include "RenderingThread.h"
+#include "RenderTimer.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTLS.h"
 #include "HttpPath.h"
