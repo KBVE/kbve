@@ -23,9 +23,13 @@ class AchuckSimgridController : public AchuckPlayerController
 	GENERATED_BODY()
 
 public:
+	AchuckSimgridController();
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	virtual void OnPossess(APawn* InPawn) override;
 
 	UFUNCTION()
 	void HandleWelcome(int32 YourSlot, int64 Seed);

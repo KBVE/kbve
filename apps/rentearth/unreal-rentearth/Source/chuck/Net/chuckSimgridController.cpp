@@ -1,6 +1,8 @@
 static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 
 #include "chuckSimgridController.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Engine/StaticMesh.h"
 #include "SimgridClientSubsystem.h"
 #include "SimgridEntityManager.h"
 #include "SimgridWorldBridge.h"
@@ -16,6 +18,18 @@ static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 #include "SimgridProjectileTracer.h"
 #include "Events/chuckUIEvents.h"
 #include "KBVEGameplayEvents.h"
+
+AchuckSimgridController::AchuckSimgridController()
+{
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshFinder(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMeshFinder.Succeeded() && !DefaultEntityMesh)
+	{
+		DefaultEntityMesh = CubeMeshFinder.Object;
+	}
+}
 
 FchuckMoveIntent AchuckSimgridController::BuildMoveIntent(const FVector2D& ScreenAxis, bool bRun)
 {
@@ -146,6 +160,20 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 		}
 	}
 	bWasMoving = bMoving;
+}
+
+void AchuckSimgridController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (Manager)
+	{
+		Manager->SetLocalPawn(InPawn);
+	}
+	if (AchuckArpgPawn* ArpgPawn = Cast<AchuckArpgPawn>(InPawn))
+	{
+		ArpgPawn->SetVisualMesh(DefaultEntityMesh);
+	}
 }
 
 void AchuckSimgridController::EndPlay(const EEndPlayReason::Type EndPlayReason)
