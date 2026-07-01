@@ -8,6 +8,8 @@ static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
+#include "chuckArpgPawn.h"
+#include "SimgridProto.h"
 #include "SimgridEphemeral.h"
 #include "SimgridCoords.h"
 #include "SimgridDamageText.h"
@@ -77,6 +79,10 @@ void AchuckSimgridController::HandleWelcome(int32 YourSlot, int64 Seed)
 		Manager->SetLocalSlot(YourSlot);
 		Manager->SetLocalPawn(GetPawn());
 	}
+	if (AchuckArpgPawn* ArpgPawn = Cast<AchuckArpgPawn>(GetPawn()))
+	{
+		ArpgPawn->SetVisualMesh(DefaultEntityMesh);
+	}
 	LocalSlot = YourSlot;
 
 	if (!CameraPawn)
@@ -97,6 +103,7 @@ void AchuckSimgridController::HandleDisconnected()
 	{
 		Manager->Clear();
 	}
+	ClientTravel(MenuLevelName.ToString(), TRAVEL_Absolute);
 }
 
 void AchuckSimgridController::Tick(float DeltaSeconds)
@@ -116,6 +123,29 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 	{
 		CameraPawn->SetFollowTarget(LocalPos);
 	}
+
+	FVector2D ScreenAxis(0.0, 0.0);
+	if (IsInputKeyDown(EKeys::D)) { ScreenAxis.X += 1.0; }
+	if (IsInputKeyDown(EKeys::A)) { ScreenAxis.X -= 1.0; }
+	if (IsInputKeyDown(EKeys::S)) { ScreenAxis.Y += 1.0; }
+	if (IsInputKeyDown(EKeys::W)) { ScreenAxis.Y -= 1.0; }
+
+	const bool bRun = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
+	const bool bMoving = !ScreenAxis.IsNearlyZero();
+
+	if (bMoving || bWasMoving)
+	{
+		const FchuckMoveIntent Intent = BuildMoveIntent(ScreenAxis, bRun);
+		if (USimgridClientSubsystem* Sub = GetSubsystem())
+		{
+			FSimgridMove Move;
+			Move.Mx = Intent.Mx;
+			Move.My = Intent.My;
+			Move.bRun = Intent.bRun;
+			Sub->SendMove(Move);
+		}
+	}
+	bWasMoving = bMoving;
 }
 
 void AchuckSimgridController::EndPlay(const EEndPlayReason::Type EndPlayReason)

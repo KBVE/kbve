@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
 	TObjectPtr<UStaticMesh> DefaultEntityMesh;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Simgrid")
+	FName MenuLevelName = TEXT("L_MainMenu");
+
 private:
 	UPROPERTY()
 	TObjectPtr<USimgridEntityManager> Manager;
@@ -58,4 +61,5 @@ private:
 	USimgridClientSubsystem* GetSubsystem() const;
 
 	int32 LocalSlot = -1;
+	bool bWasMoving = false;
 };
