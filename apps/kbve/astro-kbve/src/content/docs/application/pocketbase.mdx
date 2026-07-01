@@ -1,7 +1,9 @@
 ---
 title: Pocketbase
 description: |
-    Pocketbase Database
+    PocketBase is an open-source backend in a single file — an embedded SQLite database with a realtime REST API,
+    authentication, file storage, and an admin dashboard. This guide covers installing it with Docker Compose,
+    the CLI, and Coolify, plus collections, auth, and the realtime API.
 sidebar:
     label: Pocketbase
     order: 1010
@@ -9,6 +11,28 @@ unsplash: 1599507593499-a3f7d7d97667
 img: https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?fit=crop&w=1400&h=700&q=75
 tags:
     - database
+    - backend
+    - self-hosted
+sem: 1
+ogTitle: PocketBase Guide — Self-Hosted Backend with Docker, Auth & Realtime API
+ogDescription: Run PocketBase, the open-source single-file backend — install via Docker Compose, CLI, or Coolify, then use its SQLite database, REST API, authentication, and realtime subscriptions.
+jsonld:
+    type: Article
+    keywords:
+        - pocketbase
+        - self-hosted backend
+        - sqlite
+        - baas
+        - realtime api
+    faq:
+        - question: What is PocketBase?
+          answer: PocketBase is an open-source backend packaged as a single executable. It bundles an embedded SQLite database, a realtime REST API, user authentication, file storage, and an admin dashboard, making it a lightweight self-hosted alternative to Firebase or Supabase.
+        - question: How do I run PocketBase with Docker?
+          answer: Use a docker-compose.yml with a PocketBase image such as ghcr.io/muchobien/pocketbase, expose port 8090, and mount volumes for /pb_data (database) and optionally /pb_public (static files). Then run docker compose up -d and open the admin UI at /_/.
+        - question: Where is the PocketBase admin dashboard?
+          answer: The admin dashboard is served at /_/ on the PocketBase host, for example http://localhost:8090/_/. On first launch you create the initial admin account there, then manage collections, records, users, and settings.
+        - question: Is PocketBase a good alternative to Firebase?
+          answer: For small to medium self-hosted projects, yes. PocketBase offers realtime subscriptions, auth, and file storage with no vendor lock-in and a single-file deployment. It runs on SQLite, so it suits single-node workloads rather than horizontally sharded, massive-scale apps.
 ---
 
 import {
@@ -23,7 +47,15 @@ import {
 import { Giscus, Adsense } from '@/components/astropad';
 
 
-## Information
+## Overview
+
+PocketBase is an open-source backend that ships as a **single executable file**. Inside that one binary you get an embedded SQLite database, a realtime REST API, user authentication (email/password and OAuth2), file storage, and a full admin dashboard. There is nothing else to install — no separate database server, no message broker, no dependency stack.
+
+That makes PocketBase a lightweight, self-hosted alternative to Firebase or Supabase for small and medium projects. You define **collections** (the equivalent of tables) in the admin UI, and PocketBase instantly exposes CRUD endpoints and realtime subscriptions for them. This guide installs PocketBase three ways — Docker Compose, the Docker CLI, and Coolify — then points you at the admin panel to build.
+
+<Aside type="note">
+PocketBase stores everything under `/pb_data` (the SQLite database, uploaded files, and logs). Always mount that directory to a persistent volume so your data survives container restarts and upgrades.
+</Aside>
 
 <Adsense />
 
@@ -86,3 +118,67 @@ Installing Pocketbase through Coolify is extremely easy!
 2. Click `Service`
 3. Select `Pocketbase`
 4. Done! Fill in the URL and then head over the admin panel, `domain.com/_/`.
+
+## First Run
+
+Once the container is up, open the admin dashboard and create your first admin account:
+
+<Steps>
+
+1. **Open the admin UI** — Navigate to `http://your-host:8090/_/`. On first launch PocketBase prompts you to create the initial admin (superuser) account.
+
+2. **Create a collection** — Collections are PocketBase's tables. Click **New collection**, name it (for example `posts`), and add fields (text, number, relation, file, etc.).
+
+3. **Set API rules** — Each collection has list/view/create/update/delete rules written as filter expressions. Leave them empty for public access, or use `@request.auth.id != ""` to require a logged-in user.
+
+4. **Use the API** — PocketBase instantly exposes REST endpoints for the collection.
+
+</Steps>
+
+## REST and Realtime API
+
+Every collection is served under `/api/collections/{name}/records`. Fetching records is a plain HTTP call:
+
+```bash
+# List records
+curl http://localhost:8090/api/collections/posts/records
+
+# Create a record (authenticated)
+curl -X POST http://localhost:8090/api/collections/posts/records \
+  -H "Authorization: TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Hello","body":"First post"}'
+```
+
+The official JavaScript SDK wraps auth and adds **realtime subscriptions** over server-sent events, so clients receive live updates when records change:
+
+```js
+import PocketBase from 'pocketbase';
+
+const pb = new PocketBase('http://localhost:8090');
+await pb.collection('users').authWithPassword('user@example.com', 'password');
+
+pb.collection('posts').subscribe('*', (e) => {
+  console.log(e.action, e.record);
+});
+```
+
+<Aside type="tip">
+PocketBase can also be extended in Go (as a framework) or with JavaScript hooks in the `pb_hooks` directory — useful for custom endpoints, validation, and scheduled jobs without a separate service.
+</Aside>
+
+## FAQ
+
+**What is PocketBase?**
+PocketBase is an open-source backend packaged as a single executable. It bundles an embedded SQLite database, a realtime REST API, user authentication, file storage, and an admin dashboard, making it a lightweight self-hosted alternative to Firebase or Supabase.
+
+**How do I run PocketBase with Docker?**
+Use a `docker-compose.yml` with a PocketBase image such as `ghcr.io/muchobien/pocketbase`, expose port `8090`, and mount volumes for `/pb_data` (database) and optionally `/pb_public` (static files). Then run `docker compose up -d` and open the admin UI at `/_/`.
+
+**Where is the PocketBase admin dashboard?**
+The admin dashboard is served at `/_/` on the PocketBase host, for example `http://localhost:8090/_/`. On first launch you create the initial admin account there, then manage collections, records, users, and settings.
+
+**Is PocketBase a good alternative to Firebase?**
+For small to medium self-hosted projects, yes. PocketBase offers realtime subscriptions, auth, and file storage with no vendor lock-in and a single-file deployment. It runs on SQLite, so it suits single-node workloads rather than horizontally sharded, massive-scale apps.
+
+<Adsense />
