@@ -10,6 +10,31 @@ unsplash: 1549605659-32d82da3a059
 img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h=700&q=75
 tags:
     - iac
+    - devops
+    - ansible
+sem: 1
+ogTitle: Ansible Guide — Agentless Automation, Playbooks & Modules
+ogDescription: Learn Ansible, the agentless IT automation tool — how it uses SSH and Python modules, writing YAML playbooks, the inventory, common modules, AWX, and a command cheatsheet.
+jsonld:
+    type: Article
+    keywords:
+        - ansible
+        - configuration management
+        - infrastructure as code
+        - ansible playbook
+        - ansible modules
+        - awx
+    faq:
+        - question: What is Ansible?
+          answer: Ansible is an open-source IT automation tool for configuration management, application deployment, and orchestration. It is agentless — it connects to hosts over SSH and pushes small programs called modules to do work, then removes them — so managed machines need no special software beyond Python and SSH.
+        - question: What is an Ansible playbook?
+          answer: A playbook is a YAML file that describes a set of plays, each mapping a group of hosts to an ordered list of tasks. Playbooks are declarative and idempotent — running one repeatedly converges hosts to the same desired state without repeating changes that are already applied.
+        - question: Why is Ansible agentless?
+          answer: Ansible does not install a daemon on managed nodes. It uses existing SSH access and Python to run modules on demand, which lowers setup overhead, reduces attack surface, and means any reachable host can be managed without provisioning an agent first.
+        - question: What is an Ansible module?
+          answer: A module is a self-contained unit of work — like apt, copy, service, or template — that Ansible ships to a host to perform one task idempotently. Tasks in a playbook call modules with parameters, and Ansible reports whether each run changed the system.
+        - question: What is AWX?
+          answer: AWX is the open-source upstream of Ansible Tower (Red Hat Ansible Automation Platform). It adds a web UI, REST API, role-based access control, job scheduling, and centralized credential management on top of core Ansible for team-scale automation.
 ---
 
 import {
@@ -37,6 +62,8 @@ It simplifies system management, application deployment, and workflow orchestrat
 Powered by open source, Python, and SSH, Ansible connects seamlessly to your devices—no agents required.
 It sends lightweight programs called **modules** to perform tasks precisely where they are needed, then removes them once finished.
 From provisioning servers to configuring networks and deploying applications, Ansible turns manual, error-prone processes into consistent, repeatable automation.
+
+Jump to [install](#install), [playbooks](#playbook), [modules](#modules), [AWX](#awx), or the [cheatsheet](#cheatsheet).
 
 <Adsense />
 
@@ -560,3 +587,22 @@ Video -> https://www.youtube.com/watch?v=EcnqJbxBcM0
 ## Notes
 
 Notes for Ansible
+
+## FAQ
+
+**What is Ansible?**
+Ansible is an open-source IT automation tool for configuration management, application deployment, and orchestration. It is agentless — it connects to hosts over SSH and pushes small programs called modules to do work, then removes them — so managed machines need no special software beyond Python and SSH.
+
+**What is an Ansible playbook?**
+A playbook is a YAML file that describes a set of plays, each mapping a group of hosts to an ordered list of tasks. Playbooks are declarative and idempotent — running one repeatedly converges hosts to the same desired state without repeating changes that are already applied.
+
+**Why is Ansible agentless?**
+Ansible does not install a daemon on managed nodes. It uses existing SSH access and Python to run modules on demand, which lowers setup overhead, reduces attack surface, and means any reachable host can be managed without provisioning an agent first.
+
+**What is an Ansible module?**
+A module is a self-contained unit of work — like `apt`, `copy`, `service`, or `template` — that Ansible ships to a host to perform one task idempotently. Tasks in a playbook call modules with parameters, and Ansible reports whether each run changed the system.
+
+**What is AWX?**
+AWX is the open-source upstream of Ansible Tower (Red Hat Ansible Automation Platform). It adds a web UI, REST API, role-based access control, job scheduling, and centralized credential management on top of core Ansible for team-scale automation.
+
+<Adsense />
