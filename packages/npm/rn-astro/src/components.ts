@@ -27,6 +27,9 @@ export {
 	ProjectCard,
 	ProjectGrid,
 	CtaSection,
+	ProcessSteps,
+	Testimonials,
+	LiveFeed,
 	useTheme,
 	tokens,
 } from '@kbve/rn/ui';
@@ -54,4 +57,7 @@ export type {
 	FeatureCardProps,
 	StatItem,
 	ProjectItem,
+	StepItem,
+	TestimonialItem,
+	FeedRow,
 } from '@kbve/rn/ui';

@@ -1,0 +1,104 @@
+---
+title: RN-Astro Showcase
+description: Every @kbve/rn-astro marketing section rendered as an MDX island — mobile and web from one RN core.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+---
+
+import Hero from '@/components/marketing/Hero.astro';
+import FeatureGrid from '@/components/marketing/FeatureGrid.astro';
+import StatStrip from '@/components/marketing/StatStrip.astro';
+import ProcessSteps from '@/components/marketing/ProcessSteps.astro';
+import LiveFeed from '@/components/marketing/LiveFeed.astro';
+import ProjectGrid from '@/components/marketing/ProjectGrid.astro';
+import Testimonials from '@/components/marketing/Testimonials.astro';
+import Cta from '@/components/marketing/Cta.astro';
+
+<Hero
+	eyebrow="component showcase"
+	lead="One RN core, "
+	accent="every surface. "
+	tail="Mobile and web."
+	subtitle="These sections are React Native components from @kbve/rn, re-exported through @kbve/rn-astro and mounted here as client:only islands — the same code that ships in the native app."
+	actions={[
+		{ label: 'Browse the Docs', href: '/docs/' },
+		{ label: 'Star on GitHub', href: 'https://github.com/kbve/kbve', variant: 'outline', external: true },
+	]}
+/>
+
+<StatStrip
+	stats={[
+		{ value: '11', label: 'Marketing sections' },
+		{ value: '1', label: 'Shared RN core' },
+		{ value: '2', label: 'Targets: web + native' },
+		{ value: '0', label: 'Duplicated styles' },
+	]}
+/>
+
+<FeatureGrid
+	title="Section library"
+	subtitle="Composable, token-driven, and identical across platforms."
+	features={[
+		{ title: 'Hero', body: 'Responsive headline with accent span, eyebrow, subtitle, and action buttons.' },
+		{ title: 'FeatureGrid', body: 'Self-contained card grid for capabilities, wrapping fluidly on mobile.' },
+		{ title: 'StatStrip', body: 'A bordered band of social-proof numbers that reflows on narrow screens.' },
+		{ title: 'ProcessSteps', body: 'Numbered how-it-works flow — Connect, Build, Ship.' },
+		{ title: 'LiveFeed', body: 'A terminal-style dashboard mockup — the signature showpiece.' },
+		{ title: 'Testimonials', body: 'Quote cards with avatar initials, name, and role.' },
+	]}
+/>
+
+<ProcessSteps
+	title="How it works"
+	subtitle="Author once in RN, render anywhere."
+	steps={[
+		{ title: 'Author in @kbve/rn', body: 'Build the section with React Native primitives and shared design tokens.' },
+		{ title: 'Re-export via rn-astro', body: 'The web-safe barrel exposes each component for Astro to consume.' },
+		{ title: 'Mount as an island', body: 'Drop it into any MDX file with client:only — no browser-breaking prerender.' },
+	]}
+/>
+
+<LiveFeed
+	title="Signature showpiece"
+	label="kbve — live feed"
+	rows={[
+		{ label: 'deploy · axum-kbve', value: '2.1s', status: 'ok' },
+		{ label: 'build · chuck', value: 'passing', status: 'ok' },
+		{ label: 'sync · ci-manifest', value: 'queued', status: 'warn' },
+		{ label: 'agones · cryptothrone', value: 'ready', status: 'ok' },
+	]}
+	footer="12M events/day · 99.9% uptime"
+/>
+
+<ProjectGrid
+	title="Built in the open"
+	subtitle="A few of the worlds and systems we're shipping."
+	projects={[
+		{ name: 'CryptoThrone', tag: 'Isometric MMO', body: 'A seeded, server-authoritative isometric world with a real in-game economy.', href: '/gaming/' },
+		{ name: 'RareIcon', tag: 'Unity DOTS', body: 'A 2D sci-fi action-RPG bullet-hell roguelite built on Burst-compiled ECS.', href: '/gaming/' },
+		{ name: 'Kilobase', tag: 'Postgres Platform', body: 'Supabase-on-CNPG with migrations, auth, and vault — self-hosted and battle-tested.', href: '/docs/' },
+	]}
+/>
+
+<Testimonials
+	title="What people say"
+	subtitle="Placeholder voices — swap in real quotes anytime."
+	items={[
+		{ quote: 'The whole stack is public and it actually runs. Rare to see infra this honest.', name: 'Dev in Residence', role: 'Contributor' },
+		{ quote: 'One component kit across native and web saved us a rewrite. This is the way.', name: 'Platform Lead', role: 'Community' },
+		{ quote: 'Docs, games, and Kubernetes in one monorepo — chaotic in the best way.', name: 'Open Source Fan', role: 'Discord' },
+	]}
+/>
+
+<Cta
+	title="Come build with us."
+	subtitle="Jump into the docs or hang out in the community."
+	actions={[
+		{ label: 'Read the Docs', href: '/docs/' },
+		{ label: 'Join the Discord', href: '/discord/', variant: 'outline' },
+	]}
+/>

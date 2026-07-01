@@ -314,6 +314,163 @@ export const CtaSection = memo(function CtaSection({
 	);
 });
 
+/* ──────────────────────── Process steps ────────────────────── */
+
+export interface StepItem {
+	title: string;
+	body: string;
+}
+
+export const ProcessSteps = memo(function ProcessSteps({
+	title,
+	subtitle,
+	steps,
+}: {
+	title?: string;
+	subtitle?: string;
+	steps: StepItem[];
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{steps.map((s, i) => (
+					<View key={s.title} style={styles.step}>
+						<View style={styles.stepNum}>
+							<Text style={styles.stepNumText}>
+								{String(i + 1).padStart(2, '0')}
+							</Text>
+						</View>
+						<Text style={styles.stepTitle}>{s.title}</Text>
+						<Text style={styles.stepBody}>{s.body}</Text>
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ──────────────────────── Testimonials ─────────────────────── */
+
+export interface TestimonialItem {
+	quote: string;
+	name: string;
+	role?: string;
+	initials?: string;
+}
+
+export const Testimonials = memo(function Testimonials({
+	title,
+	subtitle,
+	items,
+}: {
+	title?: string;
+	subtitle?: string;
+	items: TestimonialItem[];
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? (
+				<SectionHeading title={title} subtitle={subtitle} />
+			) : null}
+			<View style={styles.grid}>
+				{items.map((t) => (
+					<View key={t.name} style={styles.quoteCard}>
+						<Text style={styles.quoteText}>“{t.quote}”</Text>
+						<View style={styles.quoteFoot}>
+							<View style={styles.avatar}>
+								<Text style={styles.avatarText}>
+									{t.initials ??
+										t.name.slice(0, 2).toUpperCase()}
+								</Text>
+							</View>
+							<View style={styles.quoteMeta}>
+								<Text style={styles.quoteName}>{t.name}</Text>
+								{t.role ? (
+									<Text style={styles.quoteRole}>
+										{t.role}
+									</Text>
+								) : null}
+							</View>
+						</View>
+					</View>
+				))}
+			</View>
+		</View>
+	);
+});
+
+/* ───────────────────────── Live feed ───────────────────────── */
+
+export interface FeedRow {
+	label: string;
+	value: string;
+	status?: 'ok' | 'warn' | 'error';
+}
+
+const statusColor = {
+	ok: tokens.color.success,
+	warn: tokens.color.warning,
+	error: tokens.color.danger,
+} as const;
+
+export const LiveFeed = memo(function LiveFeed({
+	title,
+	label = 'live feed',
+	rows,
+	footer,
+}: {
+	title?: string;
+	label?: string;
+	rows: FeedRow[];
+	footer?: string;
+}) {
+	return (
+		<View style={styles.section}>
+			{title ? <SectionHeading title={title} /> : null}
+			<View style={styles.feed}>
+				<View style={styles.feedBar}>
+					<View style={styles.feedDots}>
+						<View
+							style={[styles.dot, { backgroundColor: '#ef4444' }]}
+						/>
+						<View
+							style={[styles.dot, { backgroundColor: '#f59e0b' }]}
+						/>
+						<View
+							style={[styles.dot, { backgroundColor: '#22c55e' }]}
+						/>
+					</View>
+					<Text style={styles.feedLabel}>{label}</Text>
+					<View style={styles.feedDots} />
+				</View>
+				<View style={styles.feedBody}>
+					{rows.map((r) => (
+						<View key={r.label} style={styles.feedRow}>
+							<View
+								style={[
+									styles.feedStatus,
+									{
+										backgroundColor:
+											statusColor[r.status ?? 'ok'],
+									},
+								]}
+							/>
+							<Text style={styles.feedRowLabel}>{r.label}</Text>
+							<Text style={styles.feedRowValue}>{r.value}</Text>
+						</View>
+					))}
+					{footer ? (
+						<Text style={styles.feedFooter}>{footer}</Text>
+					) : null}
+				</View>
+			</View>
+		</View>
+	);
+});
+
 /* ─────────────────────────── Styles ────────────────────────── */
 
 const styles = StyleSheet.create({
@@ -501,5 +658,127 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		color: tokens.color.textMuted,
 		textAlign: 'center',
+	},
+
+	step: {
+		flex: 1,
+		minWidth: 220,
+		gap: tokens.space.sm,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	stepNum: {
+		width: 44,
+		height: 44,
+		borderRadius: tokens.radius.pill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: tokens.color.surfaceAlt,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		marginBottom: tokens.space.xs,
+	},
+	stepNumText: {
+		fontSize: 16,
+		fontWeight: '800',
+		color: tokens.color.primary,
+	},
+	stepTitle: { fontSize: 18, fontWeight: '700', color: tokens.color.text },
+	stepBody: { fontSize: 14, lineHeight: 21, color: tokens.color.textMuted },
+
+	quoteCard: {
+		flex: 1,
+		minWidth: 280,
+		gap: tokens.space.lg,
+		padding: tokens.space.xl,
+		borderRadius: tokens.radius.xl,
+		backgroundColor: tokens.color.surface,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	quoteText: {
+		fontSize: 16,
+		lineHeight: 25,
+		color: tokens.color.text,
+	},
+	quoteFoot: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.md,
+	},
+	avatar: {
+		width: 42,
+		height: 42,
+		borderRadius: tokens.radius.pill,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: tokens.color.surfaceAlt,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	avatarText: {
+		fontSize: 13,
+		fontWeight: '800',
+		color: tokens.color.primary,
+	},
+	quoteMeta: { gap: 2 },
+	quoteName: { fontSize: 14, fontWeight: '700', color: tokens.color.text },
+	quoteRole: { fontSize: 12, color: tokens.color.textMuted },
+
+	feed: {
+		width: '100%',
+		maxWidth: 640,
+		alignSelf: 'center',
+		borderRadius: tokens.radius.xl,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+		backgroundColor: tokens.color.bg,
+		overflow: 'hidden',
+	},
+	feedBar: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: tokens.space.sm,
+		borderBottomWidth: 1,
+		borderBottomColor: tokens.color.border,
+		backgroundColor: tokens.color.surface,
+	},
+	feedDots: { flexDirection: 'row', gap: 6, width: 52 },
+	dot: { width: 11, height: 11, borderRadius: tokens.radius.pill },
+	feedLabel: {
+		fontSize: 12,
+		letterSpacing: 1,
+		color: tokens.color.textMuted,
+	},
+	feedBody: { padding: tokens.space.lg, gap: tokens.space.sm },
+	feedRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: tokens.space.sm,
+	},
+	feedStatus: { width: 8, height: 8, borderRadius: tokens.radius.pill },
+	feedRowLabel: {
+		flex: 1,
+		fontSize: 13,
+		color: tokens.color.text,
+	},
+	feedRowValue: {
+		fontSize: 13,
+		fontWeight: '700',
+		color: tokens.color.primary,
+	},
+	feedFooter: {
+		marginTop: tokens.space.xs,
+		paddingTop: tokens.space.sm,
+		borderTopWidth: 1,
+		borderTopColor: tokens.color.border,
+		fontSize: 12,
+		letterSpacing: 1,
+		color: tokens.color.textMuted,
 	},
 });
