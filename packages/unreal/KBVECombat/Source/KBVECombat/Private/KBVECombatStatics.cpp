@@ -167,7 +167,7 @@ int32 UKBVECombatStatics::DamageMassStatTargetsInSphere(const UObject* WorldCont
 
 	int32 Hits = 0;
 	FMassExecutionContext Context(EM);
-	Query.ForEachEntityChunk(EM, Context, [&Hits, Center, RadiusSq, Amount](FMassExecutionContext& Chunk)
+	Query.ForEachEntityChunk(Context, [&Hits, Center, RadiusSq, Amount](FMassExecutionContext& Chunk)
 	{
 		const TConstArrayView<FTransformFragment> Xforms = Chunk.GetFragmentView<FTransformFragment>();
 		const TArrayView<FKBVEStatFragment> Stats = Chunk.GetMutableFragmentView<FKBVEStatFragment>();
