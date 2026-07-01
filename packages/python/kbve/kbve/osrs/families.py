@@ -1,12 +1,36 @@
 """Resolve OSRS item families: cluster near-identical items for consolidation.
 
 A *family* is a base item plus its near-identical members — poison variants
-(p)/(p+)/(p++), potion doses (1)/(2)/(3)/(4), and (un)charged forms — that should
-collapse onto one page. The resolver groups every item by its base name, picks a
-canonical member, and emits a families.json that drives both the family pages
-(array-based graphs) and the axum-kbve 301 routes.
+(p)/(p+)/(p++), potion doses (1)/(2)/(3)/(4), (un)charged forms, and Barrows
+degrade tiers ("Dharok's helm 0/25/50/75/100") — that collapse onto ONE
+canonical base page. Member MDX pages are DELETED and their URLs 301 (HTTP 308)
+to the base at the axum-kbve layer. Poison collapse spans arrows/bolts/darts/
+javelins too, not just weapons. The resolver keys on the MDX FILENAME (not
+osrs.slug, which collides across variants), groups by base name,
+picks/synthesizes a canonical, and emits families.json + the id->slug 301 map.
 
-    uv run kbve-osrs-families --root <repo> [--json out.json] [--min-members 2]
+Pipeline (from packages/python/kbve; --root optional, walks up to find content):
+
+    # 1. inspect families -> docs/plans/osrs/families.json
+    uv run --extra osrs kbve-osrs-families --root <repo> --json <repo>/docs/plans/osrs/families.json
+    # 2. synthesize base pages for dose families lacking an unsuffixed item
+    uv run --extra osrs kbve-osrs-families --scaffold-base-pages --today YYYY-MM-DD
+    # 3. stamp the family roster into each base page's frontmatter
+    uv run --extra osrs kbve-osrs-families --write
+    # 4. union new 301s into the committed table -- --merge is MANDATORY
+    uv run --extra osrs kbve-osrs-families \\
+        --redirect-json <repo>/apps/kbve/axum-kbve/src/transport/osrs_family_redirects.json --merge
+    # 5. delete redundant member MDX (one-way; run LAST, after committing the JSON)
+    uv run --extra osrs kbve-osrs-families --prune-members
+
+⚠️  PRUNING IS ONE-WAY. Once member pages are deleted the resolver can no longer
+regenerate the full route set, so a plain --redirect-json would emit only the
+still-resolvable families and DROP every committed route. main() therefore
+REFUSES to overwrite an existing redirect file unless --merge is passed. The
+committed osrs_family_redirects.json + each base page's `family` frontmatter are
+the source of truth; axum-kbve build.rs codegens the static 308 table from that
+JSON. To add a new item to an existing family: create only the member MDX, then
+run steps 3-4 (with --merge) and step 5. See docs/plans/osrs/README.md.
 """
 import argparse
 import json
