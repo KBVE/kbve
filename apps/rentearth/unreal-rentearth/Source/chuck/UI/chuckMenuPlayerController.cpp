@@ -231,7 +231,7 @@ void AchuckMenuPlayerController::TickLoadingTransition(float DeltaSeconds)
 		bLoadingActive = false;
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
-		UGameplayStatics::OpenLevel(this, PlayLevelName);
+		UGameplayStatics::OpenLevel(this, PlayLevelName, true, TEXT("game=/Script/chuck.chuckSimgridGameMode"));
 	}
 }
 
