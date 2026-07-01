@@ -15,6 +15,31 @@ unsplash: 1607252650355-f7fd0460ccdb
 img: https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?fit=crop&w=1400&h=700&q=75
 tags:
     - os
+    - android
+    - mobile
+sem: 1
+ogTitle: Android Guide — ADB Cheatsheet, Data Storage & React Native
+ogDescription: A practical Android reference — the ADB (Android Debug Bridge) command cheatsheet for device control and debugging, on-device data storage, and Android-specific React Native notes.
+jsonld:
+    type: Article
+    keywords:
+        - android
+        - adb
+        - android debug bridge
+        - android development
+        - android data storage
+        - react native android
+    faq:
+        - question: What is ADB (Android Debug Bridge)?
+          answer: ADB is a command-line tool that lets a computer control an Android device over USB or Wi-Fi. It is used to install and uninstall apps, push and pull files, read device logs with logcat, open a device shell, and debug applications during development.
+        - question: How do I connect a device with ADB?
+          answer: Enable Developer Options and USB debugging on the device, connect it over USB, and run adb devices to confirm it is listed. Some commands need root access, and certain Android versions may require slightly different command syntax.
+        - question: What languages are used for Android development?
+          answer: Native Android apps are written in Kotlin (now preferred) or Java against the Android SDK. Cross-platform options include React Native and Flutter. KBVE's Android apps use React Native with Expo, with native modules added when a feature needs platform-specific code.
+        - question: Is Android open source?
+          answer: Yes. Android is built on the open-source Android Open Source Project (AOSP) on top of a modified Linux kernel. Vendors customize drivers and UI layers on top, while Project Treble and mainline modules allow more consistent updates and faster security patches.
+        - question: What is Android used for beyond phones?
+          answer: Android extends well past phones and tablets into specialized distributions — Android TV for televisions, Android Auto for vehicles, and Wear OS for smartwatches — plus growing use in embedded, desktop, and server-adjacent devices thanks to its modular architecture.
 ---
 
 import {
@@ -35,6 +60,8 @@ Unleash your creativity and make your smartphone, tablet, or smartwatch truly yo
 Our job at KBVE will be to provide you with everything you need to deploy your own Android application on almost any device!
 
 This one page guide is meant to serve as your resource manual moving forward, we will start with the cheat sheet below, that makes it easy to reference back in the future.
+
+Jump to the [ADB cheatsheet](#cheatsheet), [data storage](#android-data-storage), or [React Native](#react-native) notes.
 
 <Adsense />
 
@@ -453,6 +480,23 @@ cursor.close();
 ## React Native
 
 This part of the guide goes into the specific parts of React Native and Android, we do try to keep all our react native notes into one area.
-We recommend going to the rn section as well, but there might be double notes in this section.
+We recommend going to the React Native section as well, but there might be double notes in this section.
+
+## FAQ
+
+**What is ADB (Android Debug Bridge)?**
+ADB is a command-line tool that lets a computer control an Android device over USB or Wi-Fi. It is used to install and uninstall apps, push and pull files, read device logs with `logcat`, open a device shell, and debug applications during development.
+
+**How do I connect a device with ADB?**
+Enable Developer Options and USB debugging on the device, connect it over USB, and run `adb devices` to confirm it is listed. Some commands need root access, and certain Android versions may require slightly different command syntax.
+
+**What languages are used for Android development?**
+Native Android apps are written in Kotlin (now preferred) or Java against the Android SDK. Cross-platform options include React Native and [Flutter](/application/flutter/). KBVE's Android apps use React Native with Expo, with native modules added when a feature needs platform-specific code.
+
+**Is Android open source?**
+Yes. Android is built on the open-source Android Open Source Project (AOSP) on top of a modified Linux kernel. Vendors customize drivers and UI layers on top, while Project Treble and mainline modules allow more consistent updates and faster security patches.
+
+**What is Android used for beyond phones?**
+Android extends well past phones and tablets into specialized distributions — Android TV for televisions, Android Auto for vehicles, and Wear OS for smartwatches — plus growing use in embedded, desktop, and server-adjacent devices thanks to its modular architecture.
 
 <Giscus />

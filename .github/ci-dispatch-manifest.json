@@ -356,7 +356,7 @@
 		{
 			"key": "kbve_gate",
 			"app_name": "kbve-gate",
-			"version": "0.1.6",
+			"version": "0.1.7",
 			"version_toml": "apps/kbve/kbve-gate/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
 			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
@@ -474,7 +474,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",
@@ -503,7 +503,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.36",
+			"version": "0.1.37",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -532,7 +532,7 @@
 		{
 			"key": "devops",
 			"package_name": "devops",
-			"version": "0.0.20",
+			"version": "0.0.19",
 			"version_toml": "packages/npm/devops/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
 			"version_target": "packages/npm/devops/package.json"
@@ -556,7 +556,7 @@
 		{
 			"key": "laser",
 			"package_name": "laser",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "packages/npm/laser/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
 			"version_target": "packages/npm/laser/package.json"
