@@ -38,7 +38,6 @@ resources:
     - realtime/application.yaml
     - storage-api/application.yaml
     - meta/application.yaml
-    - analytics/application.yaml
     - studio/application.yaml
     - vector/application.yaml
     - discordsh/application.yaml
