@@ -353,6 +353,10 @@ pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
 pub const PLAYER_MAX_MP: i32 = 100;
 pub const MANA_REGEN_AMOUNT: i32 = 5;
+pub const PLAYER_MAX_ENERGY: i32 = 100;
+pub const ENERGY_REGEN_AMOUNT: i32 = 4;
+pub const PLAYER_MAX_STAMINA: i32 = 100;
+pub const STAMINA_REGEN_AMOUNT: i32 = 6;
 
 #[derive(Clone, Copy)]
 pub struct StatusEffect {
@@ -482,6 +486,18 @@ pub struct CombatStats {
 pub struct Mana {
     pub mp: i32,
     pub max_mp: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Energy {
+    pub ep: i32,
+    pub max_ep: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Stamina {
+    pub sp: i32,
+    pub max_sp: i32,
 }
 
 #[derive(Resource, Default)]
@@ -1679,6 +1695,16 @@ fn sync_roster(
                 IntentBuffer::default(),
             ))
             .insert(PosHistory::default())
+            .insert((
+                Energy {
+                    ep: PLAYER_MAX_ENERGY,
+                    max_ep: PLAYER_MAX_ENERGY,
+                },
+                Stamina {
+                    sp: PLAYER_MAX_STAMINA,
+                    max_sp: PLAYER_MAX_STAMINA,
+                },
+            ))
             .id();
         if was_in_space {
             commands.entity(entity).insert(ReturnedFromInstance);
@@ -3322,6 +3348,8 @@ fn regen_players(
         &PlayerSlotTag,
         &mut Health,
         &mut Mana,
+        Option<&mut Energy>,
+        Option<&mut Stamina>,
         &GridPos,
         &XpState,
         &CombatStats,
@@ -3330,7 +3358,15 @@ fn regen_players(
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for (slot, mut hp, mut mana, pos, xp, stats) in q.iter_mut() {
+    for (slot, mut hp, mut mana, energy, stamina, pos, xp, stats) in q.iter_mut() {
+        if hp.hp > 0 {
+            if let Some(mut e) = energy {
+                e.ep = (e.ep + ENERGY_REGEN_AMOUNT).min(e.max_ep);
+            }
+            if let Some(mut s) = stamina {
+                s.sp = (s.sp + STAMINA_REGEN_AMOUNT).min(s.max_sp);
+            }
+        }
         if hp.hp > 0 && hp.hp < hp.max_hp {
             // The town fountain mends faster — return to the plaza to recover.
             let in_town =
@@ -3954,21 +3990,28 @@ fn emit_snapshot(
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
     q: Query<(
-        Entity,
-        &EntityKind,
-        Option<&PlayerSlotTag>,
-        &GridPos,
-        Option<&MoveTarget>,
-        Option<&MoveSpeed>,
-        Option<&Health>,
-        Option<&StatusEffects>,
-        Option<&Floor>,
-        Option<&FloatMove>,
-        Option<&PlacedBy>,
-        Option<&TreeState>,
-        Option<&BushState>,
-        Option<&FurnitureRot>,
-        Option<&Piloting>,
+        (
+            Entity,
+            &EntityKind,
+            Option<&PlayerSlotTag>,
+            &GridPos,
+            Option<&MoveTarget>,
+            Option<&MoveSpeed>,
+            Option<&Health>,
+            Option<&StatusEffects>,
+            Option<&Floor>,
+            Option<&FloatMove>,
+        ),
+        (
+            Option<&PlacedBy>,
+            Option<&TreeState>,
+            Option<&BushState>,
+            Option<&FurnitureRot>,
+            Option<&Piloting>,
+            Option<&Mana>,
+            Option<&Energy>,
+            Option<&Stamina>,
+        ),
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3980,21 +4023,8 @@ fn emit_snapshot(
         .iter()
         .map(
             |(
-                entity,
-                kind,
-                slot,
-                pos,
-                mv,
-                speed,
-                hp,
-                status,
-                floor,
-                fm,
-                placed,
-                tree,
-                bush,
-                furniture,
-                piloting,
+                (entity, kind, slot, pos, mv, speed, hp, status, floor, fm),
+                (placed, tree, bush, furniture, piloting, mana, energy, stamina),
             )| {
                 let sub = match (tree, bush, furniture) {
                     (Some(t), _, _) => t.sub(),
@@ -4063,6 +4093,12 @@ fn emit_snapshot(
                     // hides its body + floats its nameplate over the ship). Sourced from
                     // the `Piloting` link component.
                     piloting: piloting.map(|p| p.0.index_u32()).unwrap_or(0),
+                    mp: mana.map(|m| m.mp).unwrap_or(0),
+                    max_mp: mana.map(|m| m.max_mp).unwrap_or(0),
+                    energy: energy.map(|e| e.ep).unwrap_or(0),
+                    max_energy: energy.map(|e| e.max_ep).unwrap_or(0),
+                    stamina: stamina.map(|s| s.sp).unwrap_or(0),
+                    max_stamina: stamina.map(|s| s.max_sp).unwrap_or(0),
                 }
             },
         )
