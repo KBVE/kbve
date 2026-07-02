@@ -26,8 +26,10 @@ pub struct UdpLane {
 }
 
 impl UdpLane {
+    /// Awaits initial writability so `try_send_to` has cached readiness before first use.
     pub async fn bind(addr: SocketAddr) -> std::io::Result<Arc<Self>> {
         let socket = UdpSocket::bind(addr).await?;
+        socket.writable().await?;
         let port = socket.local_addr()?.port();
         Ok(Arc::new(Self {
             socket: Arc::new(socket),
@@ -88,8 +90,13 @@ impl UdpLane {
         tokio::spawn(async move {
             let mut buf = vec![0u8; 2048];
             loop {
-                let Ok((n, from)) = lane.socket.recv_from(&mut buf).await else {
-                    continue;
+                let (n, from) = match lane.socket.recv_from(&mut buf).await {
+                    Ok(v) => v,
+                    Err(e) => {
+                        tracing::warn!(error = %e, "udp recv_from failed; backing off");
+                        tokio::time::sleep(Duration::from_millis(50)).await;
+                        continue;
+                    }
                 };
                 let Ok(pkt) = proto::decode_inner::<UdpPacket>(&buf[..n]) else {
                     continue;
@@ -124,6 +131,11 @@ impl UdpLane {
     }
 
     fn bind_slot(&self, slot: proto::PlayerSlot, addr: SocketAddr) {
+        if let Some(existing) = self.addr2slot.get(&addr).map(|e| *e.value())
+            && existing != slot
+        {
+            self.bindings.remove(&existing);
+        }
         if let Some(prev) = self.bindings.insert(
             slot,
             Binding {
@@ -256,8 +268,47 @@ mod tests {
         assert!(lane.issue_token(slot) != token);
     }
 
-    #[test]
-    fn oversize_snapshot_reports_false() {
+    #[tokio::test]
+    async fn same_addr_rebound_to_new_slot_evicts_old_slot() {
+        let lane = UdpLane::bind("127.0.0.1:0".parse().unwrap()).await.unwrap();
+        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+        lane.spawn_recv_loop(tx_sender(&tx));
+        let server_addr = format!("127.0.0.1:{}", lane.port());
+
+        let slot_a = proto::PlayerSlot(1);
+        let slot_b = proto::PlayerSlot(2);
+        let token_a = lane.issue_token(slot_a);
+
+        let x = tokio::net::UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        let hello_a = proto::encode_inner(&proto::UdpPacket::Hello {
+            protocol: proto::PROTOCOL_VERSION,
+            token: token_a,
+        })
+        .unwrap();
+        x.send_to(&hello_a, &server_addr).await.unwrap();
+        let mut buf = [0u8; 8];
+        x.recv(&mut buf).await.unwrap();
+        assert_eq!(lane.bound_addr(slot_a).unwrap(), x.local_addr().unwrap());
+
+        let token_b = lane.issue_token(slot_b);
+        let hello_b = proto::encode_inner(&proto::UdpPacket::Hello {
+            protocol: proto::PROTOCOL_VERSION,
+            token: token_b,
+        })
+        .unwrap();
+        x.send_to(&hello_b, &server_addr).await.unwrap();
+        x.recv(&mut buf).await.unwrap();
+
+        assert!(lane.bound_addr(slot_a).is_none());
+        assert_eq!(lane.bound_addr(slot_b).unwrap(), x.local_addr().unwrap());
+    }
+
+    #[tokio::test]
+    async fn oversize_snapshot_reports_false() {
+        let lane = UdpLane::bind("127.0.0.1:0".parse().unwrap()).await.unwrap();
+        let peer = tokio::net::UdpSocket::bind("127.0.0.1:0").await.unwrap();
+        let peer_addr = peer.local_addr().unwrap();
+
         let big = proto::Snapshot {
             tick: 1,
             server_time_ms: 0,
@@ -292,8 +343,7 @@ mod tests {
                 .collect(),
             keyframe: true,
         };
-        let encoded = proto::encode_inner(&proto::UdpPacket::Snapshot(big.clone())).unwrap();
-        assert!(encoded.len() > proto::UDP_MAX_DATAGRAM);
+        assert!(!lane.try_send_snapshot(peer_addr, &big));
 
         let small = proto::Snapshot {
             tick: 1,
@@ -303,8 +353,17 @@ mod tests {
             entities: Vec::new(),
             keyframe: false,
         };
-        let encoded = proto::encode_inner(&proto::UdpPacket::Snapshot(small.clone())).unwrap();
-        assert!(encoded.len() <= proto::UDP_MAX_DATAGRAM);
+        assert!(lane.try_send_snapshot(peer_addr, &small));
+
+        let mut buf = [0u8; 2048];
+        let n = tokio::time::timeout(std::time::Duration::from_secs(1), peer.recv(&mut buf))
+            .await
+            .expect("snapshot timeout")
+            .unwrap();
+        assert!(matches!(
+            proto::decode_inner::<proto::UdpPacket>(&buf[..n]).unwrap(),
+            proto::UdpPacket::Snapshot(s) if s.tick == 1 && s.entities.is_empty()
+        ));
     }
 
     fn tx_sender(
