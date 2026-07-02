@@ -4,9 +4,15 @@
 #include "KBVESimgridModule.h"
 #include "KBVESupabaseSubsystem.h"
 #include "Engine/GameInstance.h"
+#include "HAL/IConsoleManager.h"
 
 static const uint32 GSimgridProtocolVersion = 16;
 static const uint16 GSimgridUdpOfferKind = 20;
+
+static TAutoConsoleVariable<FString>* CVarSimgridUdpHost = new TAutoConsoleVariable<FString>(
+	TEXT("simgrid.UdpHost"), TEXT(""),
+	TEXT("Overrides the UDP fast-lane host instead of deriving it from the WS URL. Empty = use the WS host."),
+	ECVF_Default);
 
 void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 {
@@ -165,7 +171,8 @@ void USimgridClientSubsystem::HandleUdpOffer(const TArray<uint8>& Payload)
 		return;
 	}
 
-	const FString Host = ExtractHostFromUrl(ConnectedUrl);
+	const FString OverrideHost = CVarSimgridUdpHost->GetValueOnGameThread();
+	const FString Host = OverrideHost.IsEmpty() ? ExtractHostFromUrl(ConnectedUrl) : OverrideHost;
 	if (Host.IsEmpty())
 	{
 		UE_LOG(LogKBVESimgrid, Warning, TEXT("HandleUdpOffer: could not extract host from %s"), *ConnectedUrl);
