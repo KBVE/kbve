@@ -152,9 +152,7 @@ jobs:
             - run: pnpm install --frozen-lockfile
 
             - name: Regenerate ci-dispatch-manifest
-              run: |
-                  npx nx run astro-kbve:build
-                  npx nx run astro-kbve:sync:ci-manifest
+              run: npx nx run astro-kbve:gen:ci-manifest
 
             - name: Create PR
               id: pr
