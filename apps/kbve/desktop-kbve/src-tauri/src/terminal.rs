@@ -8,10 +8,6 @@ use tokio::sync::mpsc;
 
 use crate::pty::{PtyError, PtyEvent, PtyManager, PtySpawnConfig};
 
-pub struct TerminalState {
-    pub manager: Arc<PtyManager>,
-}
-
 #[derive(Serialize, Clone)]
 struct ExitPayload {
     code: Option<i32>,

@@ -4,7 +4,7 @@ mod views;
 
 use std::sync::Arc;
 use tauri::{Manager, State};
-use terminal::{TerminalState, terminal_close, terminal_open, terminal_resize, terminal_write};
+use terminal::{terminal_close, terminal_open, terminal_resize, terminal_write};
 use tokio::sync::mpsc;
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
 
@@ -73,10 +73,7 @@ pub fn run() {
 
             let (tx, rx) = mpsc::channel(256);
             let pty_manager = Arc::new(pty::PtyManager::new(tx));
-            app.manage(pty_manager.clone());
-            app.manage(TerminalState {
-                manager: pty_manager,
-            });
+            app.manage(pty_manager);
             terminal::spawn_event_pump(app.handle().clone(), rx);
 
             Ok(())

@@ -55,23 +55,11 @@ export function TerminalView() {
 				});
 				term.loadAddon(webglAddon);
 			} catch {
-				/* noop */
+				void 0;
 			}
 
 			term.open(container);
 			fitAddon.fit();
-
-			try {
-				await invoke('terminal_open', {
-					paneId: id,
-					cols: term.cols,
-					rows: term.rows,
-				});
-				useTerminalStore.getState().setPaneStatus(id, 'running', null);
-			} catch (err) {
-				useTerminalStore.getState().setPaneStatus(id, 'error', null);
-				term.write(`\r\n${String(err)}\r\n`);
-			}
 
 			unlistenData = await listen<string>(
 				`terminal://data/${id}`,
@@ -94,19 +82,43 @@ export function TerminalView() {
 				},
 			);
 
-			term.onData((data) => {
-				invoke('terminal_write', { paneId: id, data }).catch(() => {
-					/* noop */
+			if (disposed) {
+				unlistenData();
+				unlistenExit();
+				term.dispose();
+				useTerminalStore.getState().removePane(id);
+				return;
+			}
+
+			let openCompleted = false;
+			try {
+				await invoke('terminal_open', {
+					paneId: id,
+					cols: term.cols,
+					rows: term.rows,
 				});
+				openCompleted = true;
+				useTerminalStore.getState().setPaneStatus(id, 'running', null);
+			} catch (err) {
+				useTerminalStore.getState().setPaneStatus(id, 'error', null);
+				term.write(`\r\n${String(err)}\r\n`);
+			}
+
+			term.onData((data) => {
+				invoke('terminal_write', { paneId: id, data }).catch(
+					() => undefined,
+				);
 			});
 
 			if (disposed) {
 				unlistenData();
 				unlistenExit();
 				term.dispose();
-				invoke('terminal_close', { paneId: id }).catch(() => {
-					/* noop */
-				});
+				if (openCompleted) {
+					invoke('terminal_close', { paneId: id }).catch(
+						() => undefined,
+					);
+				}
 				useTerminalStore.getState().removePane(id);
 			} else {
 				initCompleted = true;
@@ -136,7 +148,7 @@ export function TerminalView() {
 						paneId: id,
 						rows: term.rows,
 						cols: term.cols,
-					});
+					}).catch(() => undefined);
 				}
 			}, 50);
 		});
@@ -151,9 +163,7 @@ export function TerminalView() {
 			unlistenExit?.();
 			term?.dispose();
 			if (initCompleted && paneId) {
-				invoke('terminal_close', { paneId }).catch(() => {
-					/* noop */
-				});
+				invoke('terminal_close', { paneId }).catch(() => undefined);
 				useTerminalStore.getState().removePane(paneId);
 			}
 		};
