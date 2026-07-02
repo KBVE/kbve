@@ -17,7 +17,8 @@ public class KBVESimgridRender : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"KBVEWorldCore",
-			"KBVEGameplay"
+			"KBVEGameplay",
+			"KBVENPCSprite"
 		});
 	}
 }

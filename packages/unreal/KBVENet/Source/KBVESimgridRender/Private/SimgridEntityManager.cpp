@@ -6,7 +6,26 @@
 #include "SimgridCoords.h"
 #include "KBVEMovementDriver.h"
 #include "KBVESimgridRenderModule.h"
+#include "KBVENpcSpriteRenderSubsystem.h"
+#include "KBVENpcSpriteDef.h"
 #include "Engine/World.h"
+#include "Engine/Texture2D.h"
+
+static constexpr uint8 KBVE_CAT_ENV = 3;
+
+static bool ResolveKindCat(const TArray<FSimgridKindEntry>& Reg, uint16 Kind, uint8& OutCat, FString& OutRef)
+{
+	for (const FSimgridKindEntry& K : Reg)
+	{
+		if (K.Kind == Kind)
+		{
+			OutCat = K.Cat;
+			OutRef = K.RefId;
+			return true;
+		}
+	}
+	return false;
+}
 
 void USimgridEntityManager::Setup(UWorld* World, USimgridClientSubsystem* Subsystem, USimgridWorldBridge* Bridge, UStaticMesh* DefaultMesh)
 {
@@ -64,6 +83,34 @@ ASimgridEntityActor* USimgridEntityManager::SpawnActor(uint16 Kind)
 	return Actor;
 }
 
+UKBVENpcSpriteRenderSubsystem* USimgridEntityManager::GetSpriteRenderer() const
+{
+	UWorld* World = WorldPtr.Get();
+	return World ? World->GetSubsystem<UKBVENpcSpriteRenderSubsystem>() : nullptr;
+}
+
+void USimgridEntityManager::EnsureEnvDef()
+{
+	if (EnvDef)
+	{
+		return;
+	}
+	EnvDef = NewObject<UKBVENpcSpriteDef>(this);
+	EnvDef->Ref = FName(TEXT("env-placeholder"));
+	EnvDef->Atlas = LoadObject<UTexture2D>(nullptr, TEXT("/Game/NPC/Slime/T_SlimeCrawl.T_SlimeCrawl"));
+	EnvDef->Columns = 5;
+	EnvDef->Rows = 3;
+	EnvDef->RowFront = 0;
+	EnvDef->RowSide = 1;
+	EnvDef->RowBack = 2;
+	EnvDef->bSwapSide = true;
+	EnvDef->FramesPerAnim = 5;
+	EnvDef->Fps = 8.0f;
+	EnvDef->WorldSize = FVector2f(220.0f, 320.0f);
+	EnvDef->PivotZ = 0.0f;
+	EnvDef->CullDistance = 12000.0f;
+}
+
 void USimgridEntityManager::Tick(double NowMs)
 {
 	if (!Interp.HasData())
@@ -114,6 +161,29 @@ void USimgridEntityManager::Tick(double NowMs)
 			continue;
 		}
 
+		uint8 Cat = 0xFF;
+		FString Ref;
+		const bool bResolved = Sub && ResolveKindCat(Sub->GetRegistry(), S.Kind, Cat, Ref);
+		if (bResolved && Cat == KBVE_CAT_ENV)
+		{
+			if (UKBVENpcSpriteRenderSubsystem* R = GetSpriteRenderer())
+			{
+				EnsureEnvDef();
+				if (int32* Id = SpriteHandleIds.Find(E.Eid))
+				{
+					FKBVENpcSpriteHandle H;
+					H.Id = *Id;
+					R->UpdateSprite(H, WorldPos, Yaw);
+				}
+				else
+				{
+					const FKBVENpcSpriteHandle H = R->SpawnSprite(EnvDef, WorldPos, Yaw);
+					SpriteHandleIds.Add(E.Eid, H.Id);
+				}
+				continue;
+			}
+		}
+
 		TObjectPtr<ASimgridEntityActor>* Found = Actors.Find(E.Eid);
 		ASimgridEntityActor* Actor = Found ? Found->Get() : nullptr;
 		if (!Actor)
@@ -130,10 +200,19 @@ void USimgridEntityManager::Tick(double NowMs)
 
 	TSet<uint32> Live;
 	Actors.GetKeys(Live);
+	{
+		TArray<uint32> SpriteKeys;
+		SpriteHandleIds.GetKeys(SpriteKeys);
+		for (const uint32 K : SpriteKeys)
+		{
+			Live.Add(K);
+		}
+	}
 
 	TSet<uint32> Gone = FSimgridReconcile::DespawnSet(Live, Keyframe);
 	Gone.Append(FSimgridReconcile::DestroyedIds(Keyframe));
 
+	UKBVENpcSpriteRenderSubsystem* Renderer = GetSpriteRenderer();
 	for (const uint32 Eid : Gone)
 	{
 		if (TObjectPtr<ASimgridEntityActor>* Found = Actors.Find(Eid))
@@ -143,6 +222,16 @@ void USimgridEntityManager::Tick(double NowMs)
 				Actor->Destroy();
 			}
 			Actors.Remove(Eid);
+		}
+		if (int32* Id = SpriteHandleIds.Find(Eid))
+		{
+			if (Renderer)
+			{
+				FKBVENpcSpriteHandle H;
+				H.Id = *Id;
+				Renderer->DespawnSprite(H);
+			}
+			SpriteHandleIds.Remove(Eid);
 		}
 	}
 }
@@ -176,5 +265,17 @@ void USimgridEntityManager::Clear()
 		}
 	}
 	Actors.Empty();
+
+	if (UKBVENpcSpriteRenderSubsystem* Renderer = GetSpriteRenderer())
+	{
+		for (const TPair<uint32, int32>& P : SpriteHandleIds)
+		{
+			FKBVENpcSpriteHandle H;
+			H.Id = P.Value;
+			Renderer->DespawnSprite(H);
+		}
+	}
+	SpriteHandleIds.Empty();
+
 	bHasLocalPos = false;
 }
