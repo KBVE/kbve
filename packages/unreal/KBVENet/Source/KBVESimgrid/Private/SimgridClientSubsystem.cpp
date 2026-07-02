@@ -70,6 +70,8 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 		}
 		State = ESimgridState::Live;
 		Registry = D.Welcome.Registry;
+		LastAppliedTick = 0;
+		bHasAppliedTick = false;
 		OnWelcome.Broadcast((int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		break;
 	case EServerEventType::Snapshot:
@@ -121,6 +123,12 @@ uint32 USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 
 void USimgridClientSubsystem::ApplySnapshot(const FSimgridSnapshot& Snapshot)
 {
+	if (bHasAppliedTick && Snapshot.Tick <= LastAppliedTick)
+	{
+		return;
+	}
+	LastAppliedTick = Snapshot.Tick;
+	bHasAppliedTick = true;
 	LastSnapshot = Snapshot;
 	OnSnapshot.Broadcast();
 }

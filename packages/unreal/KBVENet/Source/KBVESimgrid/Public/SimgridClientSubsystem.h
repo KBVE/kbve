@@ -83,6 +83,8 @@ private:
 	FString PendingUsername;
 	uint32 ClientTick = 0;
 	uint32 MoveSeq = 0;
+	uint32 LastAppliedTick = 0;
+	bool bHasAppliedTick = false;
 	FSimgridSnapshot LastSnapshot;
 	int32 LastEphemeralKind = 0;
 	int32 LastEphemeralTo = 0;
