@@ -196,6 +196,7 @@ void USimgridClientSubsystem::HandleUdpSnapshot(const FSimgridSnapshot& Snapshot
 void USimgridClientSubsystem::HandleClose(int32 Code, const FString& Reason, bool bClean)
 {
 	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] WS closed code=%d clean=%d reason=%s (state was %d)"), Code, bClean ? 1 : 0, *Reason, (int32)State);
+	TeardownUdpLink();
 	State = ESimgridState::Disconnected;
 	OnDisconnected.Broadcast();
 }
@@ -207,6 +208,15 @@ void USimgridClientSubsystem::HandleError(const FString& Err)
 	OnDisconnected.Broadcast();
 }
 
+void USimgridClientSubsystem::TeardownUdpLink()
+{
+	if (UdpLink.IsValid())
+	{
+		UdpLink->Stop();
+		UdpLink.Reset();
+	}
+}
+
 void USimgridClientSubsystem::Disconnect()
 {
 	if (Ws.IsValid())
@@ -214,11 +224,7 @@ void USimgridClientSubsystem::Disconnect()
 		Ws->Close();
 		Ws.Reset();
 	}
-	if (UdpLink.IsValid())
-	{
-		UdpLink->Stop();
-		UdpLink.Reset();
-	}
+	TeardownUdpLink();
 	State = ESimgridState::Disconnected;
 }
 

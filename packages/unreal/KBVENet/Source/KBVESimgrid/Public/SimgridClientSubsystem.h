@@ -73,6 +73,7 @@ private:
 	void ApplySnapshot(const FSimgridSnapshot& Snapshot);
 	void HandleUdpOffer(const TArray<uint8>& Payload);
 	void HandleUdpSnapshot(const FSimgridSnapshot& Snapshot);
+	void TeardownUdpLink();
 	FString ExtractHostFromUrl(const FString& Url) const;
 
 	TSharedPtr<FSimgridWebSocket> Ws;
