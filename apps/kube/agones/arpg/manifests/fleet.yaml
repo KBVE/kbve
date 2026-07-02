@@ -58,6 +58,12 @@ spec:
                                 value: '0'
                               - name: RUST_LOG
                                 value: 'info,arpg_server=debug,simgrid=info'
+                              - name: OBSERV_ENDPOINT
+                                value: 'http://metrics-service.kbve.svc.cluster.local:5500/api/v1/ingest/errors'
+                              - name: OBSERV_PROJECT
+                                value: 'arpg'
+                              - name: OBSERV_ENVIRONMENT
+                                value: 'production'
                               - name: SUPABASE_JWT_SECRET
                                 valueFrom:
                                     secretKeyRef:
