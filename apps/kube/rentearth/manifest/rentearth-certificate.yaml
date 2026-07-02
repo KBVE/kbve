@@ -8,7 +8,6 @@ spec:
     dnsNames:
         - rentearth.com
         - www.rentearth.com
-        - play.rentearth.com
     issuerRef:
         name: letsencrypt-http
         kind: ClusterIssuer
