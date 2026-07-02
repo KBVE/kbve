@@ -58,8 +58,8 @@ public class KBVELibGit : ModuleRules
 		{
 			LibDir = Path.Combine(ThirdPartyDir, "lib", "Linux");
 			PublicAdditionalLibraries.Add(Path.Combine(LibDir, "libgit2.a"));
-			// HTTPS via OpenSSL — link system ssl/crypto
-			PublicSystemLibraries.AddRange(new string[] { "ssl", "crypto" });
+			// HTTPS via OpenSSL — link the engine's bundled OpenSSL built against the UE toolchain sysroot
+			AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
 		}
 
 		// Suppress warnings in third-party code
