@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/devops",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"description": "A DevOps helper library, providing better functions and extensions.",
 	"keywords": [
 		"github",
