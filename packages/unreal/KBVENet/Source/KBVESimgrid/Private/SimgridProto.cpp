@@ -130,10 +130,11 @@ FServerDecoded FProtoCodec::DecodeServerEventRaw(const TArray<uint8>& Body)
 		D.Snapshot.ServerTimeMs = R.VarU32();
 		D.Snapshot.InputAck = R.VarU32();
 		const int32 PlayerCount = R.SeqLen();
-		if (PlayerCount != 0)
+		for (int32 i = 0; i < PlayerCount; ++i)
 		{
-			D.bOk = false;
-			return D;
+			R.U16();
+			R.String();
+			R.Bool();
 		}
 		const int32 EntityCount = R.SeqLen();
 		for (int32 i = 0; i < EntityCount; ++i)

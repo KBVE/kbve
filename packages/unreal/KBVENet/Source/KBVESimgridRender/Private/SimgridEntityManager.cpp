@@ -94,12 +94,22 @@ void USimgridEntityManager::Tick(double NowMs)
 			LocalWorldPos = WorldPos;
 
 			AActor* Pawn = LocalPawn.Get();
-			if (Pawn)
+			if (!Pawn)
 			{
-				if (IKBVEMovementDriver* Driver = Cast<IKBVEMovementDriver>(Pawn))
+				if (!bWarnedNoLocalPawn)
 				{
-					Driver->ApplyServerCorrection(WorldPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
+					bWarnedNoLocalPawn = true;
+					UE_LOG(LogKBVESimgridRender, Error, TEXT("Local entity eid=%u slot=%d present in snapshot but LocalPawn is null — pawn unpositioned/invisible. SetLocalPawn never ran or possession failed."), E.Eid, LocalSlot);
 				}
+			}
+			else if (IKBVEMovementDriver* Driver = Cast<IKBVEMovementDriver>(Pawn))
+			{
+				Driver->ApplyServerCorrection(WorldPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
+			}
+			else if (!bWarnedLocalNotDriver)
+			{
+				bWarnedLocalNotDriver = true;
+				UE_LOG(LogKBVESimgridRender, Error, TEXT("LocalPawn %s does not implement IKBVEMovementDriver — cannot apply server correction; pawn stays at spawn."), *Pawn->GetName());
 			}
 			continue;
 		}

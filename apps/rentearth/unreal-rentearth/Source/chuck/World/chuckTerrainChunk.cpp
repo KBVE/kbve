@@ -1,6 +1,7 @@
 #include "chuckTerrainChunk.h"
 
 #include "chuckNoise.h"
+#include "Engine/World.h"
 
 AchuckTerrainChunk::AchuckTerrainChunk()
 {
@@ -29,5 +30,12 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 
 float AchuckTerrainChunk::SampleHeight(float Wx, float Wy, uint32 InSeed) const
 {
+	if (const UWorld* W = GetWorld())
+	{
+		if (W->GetName().Contains(TEXT("ArpgWorld")))
+		{
+			return 0.0f;
+		}
+	}
 	return chuckNoise::Heightmap(Wx, Wy, InSeed);
 }

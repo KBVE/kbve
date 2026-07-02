@@ -892,7 +892,7 @@ void AchuckCorePlayerController::OnInteractPressed(const FInputActionValue& /*Va
 	}
 }
 
-static FAutoConsoleCommand GchuckSpawnArcadeCmd(
+static FAutoConsoleCommand* GchuckSpawnArcadeCmd = new FAutoConsoleCommand(
 	TEXT("chuck.SpawnArcade"),
 	TEXT("Spawn an arcade cabinet 4m in front of the local player."),
 	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)

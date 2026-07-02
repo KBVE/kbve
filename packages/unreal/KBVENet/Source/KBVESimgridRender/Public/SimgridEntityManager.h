@@ -57,4 +57,7 @@ private:
 	int32 LocalSlot = -1;
 	bool bHasLocalPos = false;
 	FVector LocalWorldPos = FVector::ZeroVector;
+
+	bool bWarnedNoLocalPawn = false;
+	bool bWarnedLocalNotDriver = false;
 };

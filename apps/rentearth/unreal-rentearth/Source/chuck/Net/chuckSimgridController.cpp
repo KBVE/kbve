@@ -79,7 +79,6 @@ void AchuckSimgridController::BeginPlay()
 	Sub->OnDisconnected.AddDynamic(this, &AchuckSimgridController::HandleDisconnected);
 	Sub->OnEphemeral.AddDynamic(this, &AchuckSimgridController::HandleEphemeral);
 
-	UE_LOG(LogTemp, Warning, TEXT("[SimgridDiag] Controller BeginPlay - connecting to %s"), *ServerUrl);
 	Sub->ConnectToServer(ServerUrl);
 }
 
@@ -99,6 +98,9 @@ void AchuckSimgridController::HandleWelcome(int32 YourSlot, int64 Seed)
 		ArpgPawn->SetVisualMesh(DefaultEntityMesh);
 	}
 	LocalSlot = YourSlot;
+	TimeSinceWelcome = 0.0f;
+	bLocalEverSeen = false;
+	bWarnedNoLocal = false;
 
 	if (!CameraPawn)
 	{
@@ -134,16 +136,34 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 	Manager->Tick(NowMs);
 
 	FVector LocalPos;
-	if (CameraPawn && Manager->IsLocalWorldPos(LocalPos))
+	const bool bHasLocal = Manager->IsLocalWorldPos(LocalPos);
+	if (CameraPawn && bHasLocal)
 	{
 		CameraPawn->SetFollowTarget(LocalPos);
 	}
 
+	if (TimeSinceWelcome >= 0.0f && !bLocalEverSeen)
+	{
+		if (bHasLocal)
+		{
+			bLocalEverSeen = true;
+		}
+		else
+		{
+			TimeSinceWelcome += DeltaSeconds;
+			if (TimeSinceWelcome > 5.0f && !bWarnedNoLocal)
+			{
+				bWarnedNoLocal = true;
+				UE_LOG(LogTemp, Error, TEXT("[Simgrid] No local entity for slot=%d 5s after Welcome — pawn will not render. Snapshots decoding but no entity matches (owner==slot && MaxHp>0), or SetLocalPawn never ran."), LocalSlot);
+			}
+		}
+	}
+
 	FVector2D ScreenAxis(0.0, 0.0);
-	if (IsInputKeyDown(EKeys::D)) { ScreenAxis.X += 1.0; }
-	if (IsInputKeyDown(EKeys::A)) { ScreenAxis.X -= 1.0; }
-	if (IsInputKeyDown(EKeys::S)) { ScreenAxis.Y += 1.0; }
-	if (IsInputKeyDown(EKeys::W)) { ScreenAxis.Y -= 1.0; }
+	if (IsInputKeyDown(EKeys::D)) { ScreenAxis.X -= 1.0; }
+	if (IsInputKeyDown(EKeys::A)) { ScreenAxis.X += 1.0; }
+	if (IsInputKeyDown(EKeys::S)) { ScreenAxis.Y -= 1.0; }
+	if (IsInputKeyDown(EKeys::W)) { ScreenAxis.Y += 1.0; }
 
 	const bool bRun = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
 	const bool bMoving = !ScreenAxis.IsNearlyZero();

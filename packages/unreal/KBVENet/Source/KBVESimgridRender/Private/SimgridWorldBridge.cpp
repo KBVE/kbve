@@ -9,5 +9,5 @@ void USimgridWorldBridge::Init(int64 InSeed)
 
 float USimgridWorldBridge::SampleHeight(float Wx, float Wy) const
 {
-	return FKBVEWorldNoise::Sample2D(Wx, Wy, Seed, Settings);
+	return 0.0f;
 }
