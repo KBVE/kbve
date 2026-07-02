@@ -1,0 +1,161 @@
+import { useEffect, useRef } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { SearchAddon } from '@xterm/addon-search';
+import { WebglAddon } from '@xterm/addon-webgl';
+import '@xterm/xterm/css/xterm.css';
+import { useTerminalStore } from '../stores/terminal';
+import { base64ToBytes } from './terminal-codec';
+
+const TERMINAL_BG = '#1a1d23';
+
+export function TerminalView() {
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const container = containerRef.current;
+		if (!container) return;
+
+		let paneId: string | null = null;
+		let term: Terminal | null = null;
+		let fitAddon: FitAddon | null = null;
+		let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+		let unlistenData: (() => void) | null = null;
+		let unlistenExit: (() => void) | null = null;
+		let disposed = false;
+
+		const initTerminal = async () => {
+			paneId = useTerminalStore.getState().addPane();
+			const id = paneId;
+
+			term = new Terminal({
+				fontFamily:
+					'Menlo, Monaco, "Cascadia Code", "Courier New", monospace',
+				fontSize: 13,
+				cursorBlink: true,
+				scrollback: 5000,
+				theme: {
+					background: TERMINAL_BG,
+				},
+			});
+
+			fitAddon = new FitAddon();
+			term.loadAddon(fitAddon);
+			term.loadAddon(new WebLinksAddon());
+			term.loadAddon(new SearchAddon());
+
+			try {
+				const webglAddon = new WebglAddon();
+				webglAddon.onContextLoss(() => {
+					webglAddon.dispose();
+				});
+				term.loadAddon(webglAddon);
+			} catch {
+				/* noop */
+			}
+
+			term.open(container);
+			fitAddon.fit();
+
+			try {
+				await invoke('terminal_open', {
+					paneId: id,
+					cols: term.cols,
+					rows: term.rows,
+				});
+				useTerminalStore.getState().setPaneStatus(id, 'running', null);
+			} catch (err) {
+				useTerminalStore.getState().setPaneStatus(id, 'error', null);
+				term.write(`\r\n${String(err)}\r\n`);
+			}
+
+			unlistenData = await listen<string>(
+				`terminal://data/${id}`,
+				(event) => {
+					term?.write(base64ToBytes(event.payload));
+				},
+			);
+
+			unlistenExit = await listen<{ code: number | null }>(
+				`terminal://exit/${id}`,
+				(event) => {
+					useTerminalStore
+						.getState()
+						.setPaneStatus(
+							id,
+							'exited',
+							event.payload.code ?? null,
+						);
+					term?.write('\r\n\x1b[2m[process exited]\x1b[0m\r\n');
+				},
+			);
+
+			term.onData((data) => {
+				invoke('terminal_write', { paneId: id, data });
+			});
+
+			if (disposed) {
+				unlistenData();
+				unlistenExit();
+				term.dispose();
+			}
+		};
+
+		let initialized = false;
+		const observer = new ResizeObserver((entries) => {
+			const entry = entries[0];
+			if (!entry) return;
+			const { width, height } = entry.contentRect;
+			if (width === 0 || height === 0) return;
+
+			if (!initialized) {
+				initialized = true;
+				void initTerminal();
+				return;
+			}
+
+			if (!fitAddon || !term || !paneId) return;
+			const id = paneId;
+			if (resizeTimer) clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(() => {
+				fitAddon?.fit();
+				if (term) {
+					invoke('terminal_resize', {
+						paneId: id,
+						rows: term.rows,
+						cols: term.cols,
+					});
+				}
+			}, 50);
+		});
+
+		observer.observe(container);
+
+		return () => {
+			disposed = true;
+			observer.disconnect();
+			if (resizeTimer) clearTimeout(resizeTimer);
+			unlistenData?.();
+			unlistenExit?.();
+			term?.dispose();
+			if (paneId) {
+				invoke('terminal_close', { paneId });
+			}
+		};
+	}, []);
+
+	return (
+		<div
+			ref={containerRef}
+			className="-mx-10 -my-8"
+			style={{
+				width: 'calc(100% + 5rem)',
+				height: 'calc(100% + 4rem)',
+				backgroundColor: TERMINAL_BG,
+			}}
+		/>
+	);
+}
