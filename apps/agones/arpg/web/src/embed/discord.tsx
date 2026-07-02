@@ -10,6 +10,7 @@ import {
 	installDiscordExternal,
 	encourageHardwareAcceleration,
 } from '@kbve/laser';
+import { initObserv } from '@kbve/observ';
 
 const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 	| string
@@ -26,15 +27,24 @@ const CLIENT_ID = import.meta.env.PUBLIC_DISCORD_CLIENT_ID as
 //                                         on kbve.com, now a cross-origin host)
 //   /arpg-chat     -> chat.kbve.com     (realm chat WS, irc-gateway /gamechat)
 //   /arpg-supabase -> supabase.kbve.com (Supabase auth/REST, if the client runs)
+//   /arpg-metrics  -> metrics.kbve.com  (error telemetry ingest)
 const URL_MAPPINGS: { prefix: string; target: string }[] = [
 	{ prefix: '/arpg-game', target: 'arpg.kbve.com' },
 	{ prefix: '/arpg-assets', target: 'arpg.kbve.com' },
 	{ prefix: '/arpg-session', target: 'kbve.com' },
 	{ prefix: '/arpg-chat', target: 'chat.kbve.com' },
 	{ prefix: '/arpg-supabase', target: 'supabase.kbve.com' },
+	{ prefix: '/arpg-metrics', target: 'metrics.kbve.com' },
 ];
 const PROXY_WS = `wss://${location.host}`;
 const PROXY_HTTP = `https://${location.host}`;
+
+initObserv({
+	endpoint: `${PROXY_HTTP}/.proxy/arpg-metrics/api/v1/ingest/errors`,
+	project: 'arpg',
+	platform: 'web',
+	environment: import.meta.env.MODE,
+});
 const SESSION_ENDPOINT = '/.proxy/arpg-session/api/v1/discord/session';
 const GAME_WS = `${PROXY_WS}/.proxy/arpg-game/ws`;
 const CHAT_WS = `${PROXY_WS}/.proxy/arpg-chat/gamechat`;
