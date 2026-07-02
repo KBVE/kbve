@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Framework/Text/TextLayout.h"
 
 class KBVEUI_API SKBVELabel : public SCompoundWidget
 {
