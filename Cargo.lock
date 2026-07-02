@@ -9099,7 +9099,6 @@ dependencies = [
  "lru 0.16.3",
  "metrics",
  "num-bigint",
- "once_cell",
  "pulldown-cmark 0.13.3",
  "r2d2",
  "rand_core 0.6.4",
