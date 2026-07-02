@@ -32,7 +32,7 @@ serde = { version = "1", features = ["derive"] }
 base64 = "0.22"
 hex = "0.4"
 bevy_npc = { version = "0.1", path = "../bevy_npc", optional = true }
-aeronet_webtransport = { version = "0.19", optional = true }
+aeronet_webtransport = { version = "0.20", optional = true }
 lightyear_aeronet = { version = "0.26", optional = true }
 bevy_tasker = { version = "0.1", path = "../bevy_tasker", optional = true }
 crossbeam-channel = { version = "0.5", optional = true }
