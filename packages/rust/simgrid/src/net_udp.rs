@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use dashmap::DashMap;
@@ -23,6 +24,7 @@ pub struct UdpLane {
     slot_tokens: DashMap<proto::PlayerSlot, [u8; 16]>,
     bindings: DashMap<proto::PlayerSlot, Binding>,
     addr2slot: DashMap<SocketAddr, proto::PlayerSlot>,
+    oversize_count: AtomicU64,
 }
 
 impl UdpLane {
@@ -38,6 +40,7 @@ impl UdpLane {
             slot_tokens: DashMap::new(),
             bindings: DashMap::new(),
             addr2slot: DashMap::new(),
+            oversize_count: AtomicU64::new(0),
         }))
     }
 
@@ -76,10 +79,20 @@ impl UdpLane {
             return false;
         };
         if bytes.len() > proto::UDP_MAX_DATAGRAM {
-            tracing::debug!(
-                len = bytes.len(),
-                "udp snapshot oversize; falling back to ws"
-            );
+            let count = self.oversize_count.fetch_add(1, Ordering::Relaxed) + 1;
+            if count == 1 || count % 100 == 0 {
+                tracing::warn!(
+                    len = bytes.len(),
+                    count,
+                    "udp snapshot oversize; falling back to ws"
+                );
+            } else {
+                tracing::debug!(
+                    len = bytes.len(),
+                    count,
+                    "udp snapshot oversize; falling back to ws"
+                );
+            }
             return false;
         }
         self.socket.try_send_to(&bytes, addr).is_ok()
