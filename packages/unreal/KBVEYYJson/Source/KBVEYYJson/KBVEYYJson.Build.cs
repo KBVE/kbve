@@ -12,7 +12,7 @@ public class KBVEYYJson : ModuleRules
 			"Core"
 		});
 
-		string ThirdPartyDir = Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "yyjson");
+		string ThirdPartyDir = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "yyjson"));
 
 		PublicIncludePaths.Add(ThirdPartyDir);
 
@@ -21,7 +21,6 @@ public class KBVEYYJson : ModuleRules
 			PrivateDefinitions.Add("YYJSON_EXPORTS=1");
 		}
 
-		// Suppress warnings in third-party code
 		CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 	}
 }
