@@ -1,6 +1,11 @@
 #include "chuckArpgPawn.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Animation/AnimationAsset.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "UObject/ConstructorHelpers.h"
 
 AchuckArpgPawn::AchuckArpgPawn()
@@ -18,6 +23,65 @@ AchuckArpgPawn::AchuckArpgPawn()
 	{
 		Body->SetSkeletalMesh(MannyFinder.Object);
 	}
+
+	NameText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("NameText"));
+	NameText->SetupAttachment(Body);
+	NameText->SetRelativeLocation(FVector(0.0f, 0.0f, 220.0f));
+	NameText->SetUsingAbsoluteRotation(true);
+	NameText->SetHorizontalAlignment(EHTA_Center);
+	NameText->SetWorldSize(32.0f);
+	NameText->SetTextRenderColor(FColor::White);
+	NameText->SetVisibility(false);
+
+	static ConstructorHelpers::FObjectFinder<UAnimationAsset> IdleFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle"));
+	static ConstructorHelpers::FObjectFinder<UAnimationAsset> WalkFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd"));
+	static ConstructorHelpers::FObjectFinder<UAnimationAsset> JogFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd"));
+	if (IdleFinder.Succeeded())
+	{
+		IdleAnim = IdleFinder.Object;
+	}
+	if (WalkFinder.Succeeded())
+	{
+		WalkAnim = WalkFinder.Object;
+	}
+	if (JogFinder.Succeeded())
+	{
+		JogAnim = JogFinder.Object;
+	}
+}
+
+void AchuckArpgPawn::UpdateLocomotion()
+{
+	if (!Body)
+	{
+		return;
+	}
+	const float Speed = (float)FVector2D(Velocity.X, Velocity.Y).Size();
+	UAnimationAsset* Anim = IdleAnim;
+	if (Speed >= 500.0f)
+	{
+		Anim = JogAnim ? JogAnim : WalkAnim;
+	}
+	else if (Speed >= 40.0f)
+	{
+		Anim = WalkAnim ? WalkAnim : JogAnim;
+	}
+	if (Anim && Anim != CurrentAnim)
+	{
+		CurrentAnim = Anim;
+		Body->PlayAnimation(Anim, true);
+	}
+}
+
+void AchuckArpgPawn::SetDisplayName(const FString& Name)
+{
+	if (!NameText || DisplayName == Name)
+	{
+		return;
+	}
+	DisplayName = Name;
+	NameText->SetText(FText::FromString(Name));
+	NameText->SetVisibility(!Name.IsEmpty());
 }
 
 void AchuckArpgPawn::SetVisualMesh(UStaticMesh* Mesh)
@@ -70,6 +134,8 @@ void AchuckArpgPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	UpdateLocomotion();
+
 	if (!bHasServerPos)
 	{
 		return;
@@ -84,6 +150,24 @@ void AchuckArpgPawn::Tick(float DeltaSeconds)
 	RenderPos.Z = PredictedPos.Z;
 
 	SetActorLocation(RenderPos);
+
+	const FVector2D Vel2(Velocity.X, Velocity.Y);
+	if (Vel2.Size() >= 40.0f)
+	{
+		const float MoveYaw = FMath::RadiansToDegrees(FMath::Atan2(Vel2.Y, Vel2.X));
+		SetActorRotation(FRotator(0.0f, MoveYaw - 90.0f, 0.0f));
+	}
+
+	if (NameText && NameText->IsVisible())
+	{
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			if (PC->PlayerCameraManager)
+			{
+				NameText->SetWorldRotation(FRotator(0.0f, PC->PlayerCameraManager->GetCameraRotation().Yaw + 180.0f, 0.0f));
+			}
+		}
+	}
 }
 
 void AchuckArpgPawn::ApplyServerCorrection(const FVector& Position, const FVector& Velocity_)

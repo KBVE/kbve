@@ -7,6 +7,8 @@
 
 class USkeletalMeshComponent;
 class UStaticMesh;
+class UTextRenderComponent;
+class UAnimationAsset;
 
 struct FchuckPredIntent
 {
@@ -24,6 +26,7 @@ public:
 	AchuckArpgPawn();
 
 	void SetVisualMesh(UStaticMesh* Mesh);
+	void SetDisplayName(const FString& Name);
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -36,10 +39,27 @@ public:
 
 private:
 	static void StepBody(FVector& Pos, FVector& Vel, const FVector2D& Dir, bool bInRun, float Dt);
+	void UpdateLocomotion();
 
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> Body;
 
+	UPROPERTY()
+	TObjectPtr<UTextRenderComponent> NameText;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> IdleAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> WalkAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> JogAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> CurrentAnim;
+
+	FString DisplayName;
 	FVector PredictedPos = FVector::ZeroVector;
 	FVector RenderPos = FVector::ZeroVector;
 	FVector Velocity = FVector::ZeroVector;
