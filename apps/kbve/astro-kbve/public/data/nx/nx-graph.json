@@ -10376,6 +10376,36 @@
               "configurations": {},
               "parallelism": true
             },
+            "gen:ci-manifest": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/project/*.mdx",
+                "{projectRoot}/src/data/ci/manifest-builder.ts",
+                "{projectRoot}/src/data/ci/project-schema.ts",
+                "{projectRoot}/src/data/schema/ICiProjectSchema.ts",
+                "{projectRoot}/scripts/gen-ci-manifest.mts",
+                "{workspaceRoot}/packages/data/codegen/generated/ci_registry-schema.ts"
+              ],
+              "outputs": [
+                "{workspaceRoot}/.github/ci-dispatch-manifest.json"
+              ],
+              "cache": true,
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "npx tsx scripts/gen-ci-manifest.mts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "gen:ci-manifest:check": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/kbve/astro-kbve",
+                "command": "npx tsx scripts/gen-ci-manifest.mts --check"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "sync:unreal": {
               "executor": "nx:run-commands",
               "options": {
@@ -12026,7 +12056,7 @@
             "description": "A DevOps helper library, providing better functions and extensions.",
             "js": {
               "packageName": "@kbve/devops",
-              "packageVersion": "0.0.19",
+              "packageVersion": "0.0.20",
               "packageExports": {
                 ".": {
                   "import": "./devops.es.js",
@@ -14570,7 +14600,7 @@
             "description": "Phaser + React Three Fiber integration layer for React 19",
             "js": {
               "packageName": "@kbve/laser",
-              "packageVersion": "0.1.4",
+              "packageVersion": "0.1.5",
               "packageExports": {
                 ".": {
                   "import": "./laser.es.js",
