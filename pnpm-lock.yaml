@@ -549,8 +549,8 @@ importers:
         specifier: 6.10.2
         version: 6.10.2(eslint@8.57.0)
       eslint-plugin-playwright:
-        specifier: ^0.15.3
-        version: 0.15.3(eslint@8.57.0)
+        specifier: ^2.10.4
+        version: 2.10.4(eslint@8.57.0)
       eslint-plugin-react:
         specifier: 7.37.5
         version: 7.37.5(eslint@8.57.0)
@@ -9238,14 +9238,11 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9
 
-  eslint-plugin-playwright@0.15.3:
-    resolution: {integrity: sha512-LQMW5y0DLK5Fnpya7JR1oAYL2/7Y9wDiYw6VZqlKqcRGSgjbVKNqxraphk7ra1U3Bb5EK444xMgUlQPbMg2M1g==}
+  eslint-plugin-playwright@2.10.4:
+    resolution: {integrity: sha512-l0V/VxyqfFbtqCTxj5AdRn3Q6S/hIW4nKBnKZVleVbZ24N2My6Usj//ytX3dKKqAoSbvKck9YtSytfdZ5qjLuA==}
+    engines: {node: '>=16.9.0'}
     peerDependencies:
-      eslint: '>=7'
-      eslint-plugin-jest: '>=25'
-    peerDependenciesMeta:
-      eslint-plugin-jest:
-        optional: true
+      eslint: '>=8.40.0'
 
   eslint-plugin-react-hooks@7.1.1:
     resolution: {integrity: sha512-f2I7Gw6JbvCexzIInuSbZpfdQ44D7iqdWX01FKLvrPgqxoE7oMj8clOfto8U6vYiz4yd5oKu39rRSVOe1zRu0g==}
@@ -10032,6 +10029,10 @@ packages:
 
   globals@17.6.0:
     resolution: {integrity: sha512-sepffkT8stwnIYbsMBpoCHJuJM5l98FUF2AnE07hfvE0m/qp3R586hw4jF4uadbhvg1ooIdzuu7CsfD2jzCaNA==}
+    engines: {node: '>=18'}
+
+  globals@17.7.0:
+    resolution: {integrity: sha512-Czmyns5dUsq4seFBR/Kdydhmo8y9kC79hiSkPn0YcGtNnYWnrgt0vjrSjx9tspoDGWm2CMarffRuLjM4xUz8xg==}
     engines: {node: '>=18'}
 
   globalthis@1.0.4:
@@ -27714,9 +27715,10 @@ snapshots:
       safe-regex-test: 1.1.0
       string.prototype.includes: 2.0.1
 
-  eslint-plugin-playwright@0.15.3(eslint@8.57.0):
+  eslint-plugin-playwright@2.10.4(eslint@8.57.0):
     dependencies:
       eslint: 8.57.0
+      globals: 17.7.0
 
   eslint-plugin-react-hooks@7.1.1(eslint@8.57.0):
     dependencies:
@@ -28700,6 +28702,8 @@ snapshots:
   globals@15.15.0: {}
 
   globals@17.6.0: {}
+
+  globals@17.7.0: {}
 
   globalthis@1.0.4:
     dependencies:
