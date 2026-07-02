@@ -26,6 +26,7 @@ export function TerminalView() {
 		let unlistenData: (() => void) | null = null;
 		let unlistenExit: (() => void) | null = null;
 		let disposed = false;
+		let initCompleted = false;
 
 		const initTerminal = async () => {
 			paneId = useTerminalStore.getState().addPane();
@@ -94,13 +95,21 @@ export function TerminalView() {
 			);
 
 			term.onData((data) => {
-				invoke('terminal_write', { paneId: id, data });
+				invoke('terminal_write', { paneId: id, data }).catch(() => {
+					/* noop */
+				});
 			});
 
 			if (disposed) {
 				unlistenData();
 				unlistenExit();
 				term.dispose();
+				invoke('terminal_close', { paneId: id }).catch(() => {
+					/* noop */
+				});
+				useTerminalStore.getState().removePane(id);
+			} else {
+				initCompleted = true;
 			}
 		};
 
@@ -141,8 +150,11 @@ export function TerminalView() {
 			unlistenData?.();
 			unlistenExit?.();
 			term?.dispose();
-			if (paneId) {
-				invoke('terminal_close', { paneId });
+			if (initCompleted && paneId) {
+				invoke('terminal_close', { paneId }).catch(() => {
+					/* noop */
+				});
+				useTerminalStore.getState().removePane(paneId);
 			}
 		};
 	}, []);
