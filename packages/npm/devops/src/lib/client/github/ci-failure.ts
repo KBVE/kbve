@@ -91,6 +91,12 @@ export interface HistoryEntry {
 	timestamp: string;
 }
 
+export interface IncrementHistoryOptions {
+	maxRows?: number;
+}
+
+const DEFAULT_MAX_HISTORY_ROWS = 20;
+
 function issueTitle(workflowName: string, jobName: string): string {
 	return `[CI] ${workflowName} / ${jobName} — Failed`;
 }
@@ -265,12 +271,17 @@ function buildResolveComment(meta: ResolveMeta): string {
 	return lines.join('\n');
 }
 
-function incrementHistory(oldBody: string, entry: HistoryEntry): string {
+function incrementHistory(
+	oldBody: string,
+	entry: HistoryEntry,
+	opts: IncrementHistoryOptions = {},
+): string {
+	const maxRows = opts.maxRows ?? DEFAULT_MAX_HISTORY_ROWS;
 	const countRe = /(\*\*Consecutive failures:\*\* )(\d+)/;
 	const match = oldBody.match(countRe);
 	const count = match ? parseInt(match[2], 10) + 1 : 1;
 
-	let body = match ? oldBody.replace(countRe, `$1${count}`) : oldBody;
+	const body = match ? oldBody.replace(countRe, `$1${count}`) : oldBody;
 
 	const row = `| ${count} | ${entry.timestamp} | [#${entry.runId}](${entry.runUrl}) | ${entry.ref} | ${entry.eventName} |`;
 
@@ -283,10 +294,20 @@ function incrementHistory(oldBody: string, entry: HistoryEntry): string {
 	}
 	if (lastRow >= 0) {
 		lines.splice(lastRow + 1, 0, row);
-		body = lines.join('\n');
 	}
 
-	return body;
+	const dataRowIdx: number[] = [];
+	for (let i = 0; i < lines.length; i++) {
+		if (/^\|\s*\d+\s*\|/.test(lines[i])) {
+			dataRowIdx.push(i);
+		}
+	}
+	if (dataRowIdx.length > maxRows) {
+		const drop = new Set(dataRowIdx.slice(0, dataRowIdx.length - maxRows));
+		return lines.filter((_, i) => !drop.has(i)).join('\n');
+	}
+
+	return lines.join('\n');
 }
 
 export const ci = {

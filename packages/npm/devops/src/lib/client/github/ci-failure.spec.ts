@@ -309,3 +309,53 @@ describe('parseFailureLog snippet cap (v0.0.21)', () => {
 		expect(snippet).not.toContain('[snipped');
 	});
 });
+
+describe('incrementHistory row cap (v0.0.21)', () => {
+	function seedBody(rows: number): string {
+		const meta = {
+			title: 't',
+			workflowName: 'wf',
+			jobName: 'job',
+			failedStep: 'step',
+			runId: '1',
+			runUrl: 'u',
+			ref: 'r',
+			eventName: 'push',
+			timestamp: 'T',
+			logSnippet: 'x',
+		};
+		let body = ci.buildIssueBody(meta);
+		for (let i = 2; i <= rows; i++) {
+			body = ci.incrementHistory(body, {
+				runId: String(i),
+				runUrl: 'u',
+				ref: 'r',
+				eventName: 'push',
+				timestamp: `T${i}`,
+			});
+		}
+		return body;
+	}
+
+	it('keeps at most maxRows data rows but still increments the counter', () => {
+		const body = seedBody(25);
+		const capped = ci.incrementHistory(
+			body,
+			{
+				runId: '26',
+				runUrl: 'u',
+				ref: 'r',
+				eventName: 'push',
+				timestamp: 'T26',
+			},
+			{ maxRows: 5 },
+		);
+		const dataRows = capped
+			.split('\n')
+			.filter((l) => /^\|\s*\d+\s*\|/.test(l));
+		expect(dataRows.length).toBe(5);
+		expect(capped).toContain('**Consecutive failures:** 26');
+		expect(capped).toContain('| 26 |');
+		expect(capped).not.toContain('| 1 |');
+	});
+});
