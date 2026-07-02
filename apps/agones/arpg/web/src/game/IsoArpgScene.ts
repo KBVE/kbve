@@ -2,10 +2,10 @@ import Phaser from 'phaser';
 import {
 	GameClient,
 	PROTOCOL_VERSION,
-	createDustMoteLayer,
+	createWorldDustLayer,
 	drawHealthBar,
 	drawHealthBarCached,
-	type GpuSpriteLayerHandle,
+	type WorldDustHandle,
 	type EntityDelta,
 	type KindEntry,
 	type Snapshot,
@@ -244,7 +244,7 @@ const LEAVING_HANDOFF_MS =
 
 export class IsoArpgScene extends Phaser.Scene {
 	private client: GameClient | null = null;
-	private dustLayer: GpuSpriteLayerHandle | null = null;
+	private dustLayer: WorldDustHandle | null = null;
 	private store = new EntityStore<EntityRefs>();
 	private kindRegistry = new Map<number, KindEntry>();
 	private kinds!: KindResolvers;
@@ -475,15 +475,18 @@ export class IsoArpgScene extends Phaser.Scene {
 		registerShipAnims(this);
 
 		this.drawGrid();
-		this.dustLayer = createDustMoteLayer(this, {
-			count: 500,
-			width: this.cameras.main.width,
-			height: this.cameras.main.height,
+		this.dustLayer = createWorldDustLayer(this, {
+			count: 2000,
+			tileWidth: Math.ceil(
+				this.cameras.main.width / IsoArpgScene.ZOOM_MIN,
+			),
+			tileHeight: Math.ceil(
+				this.cameras.main.height / IsoArpgScene.ZOOM_MIN,
+			),
 			depth: DEPTH_ENTITY_BASE - 1,
 			color: 0xbfcad6,
 			radius: 2,
 			alpha: 0.4,
-			scrollFactor: 0,
 		});
 		if (USE_GROUND_SHADER) {
 			this.ground = makeGroundShader(this);
@@ -1912,6 +1915,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		tickPlayerInterpV(this, this.store, this.myEid);
 		tickFacingV(this, this.store);
 		this.tickZoom(delta);
+		this.dustLayer?.update(this.cameras.main);
 		this.ground?.update(this.cameras.main);
 		this.residency.tick((id) => {
 			if (!id.startsWith('creature:')) return;

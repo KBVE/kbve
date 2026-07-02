@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { dustMemberAt, createDustMoteLayer } from './ambient-dust';
+import {
+	dustMemberAt,
+	createDustMoteLayer,
+	createWorldDustLayer,
+} from './ambient-dust';
 
 vi.mock('phaser', () => ({
 	default: { WEBGL: 2, CANVAS: 1 },
@@ -59,6 +63,7 @@ describe('dustMemberAt', () => {
 function makeScene(rendererType: number) {
 	const layer = {
 		setDepth: vi.fn().mockReturnThis(),
+		editMember: vi.fn().mockReturnThis(),
 		setAlpha: vi.fn().mockReturnThis(),
 		setBlendMode: vi.fn().mockReturnThis(),
 		setVisible: vi.fn().mockReturnThis(),
@@ -110,5 +115,60 @@ describe('createDustMoteLayer', () => {
 		expect(gfx.destroy).toHaveBeenCalledTimes(1);
 		expect(layer.addMember).toHaveBeenCalledTimes(50);
 		expect(layer.setDepth).toHaveBeenCalledWith(-5);
+	});
+});
+
+describe('createWorldDustLayer', () => {
+	it('returns null on Canvas', () => {
+		const { scene } = makeScene(1);
+		const handle = createWorldDustLayer(scene as never, {
+			count: 10,
+			tileWidth: 200,
+			tileHeight: 100,
+		});
+		expect(handle).toBeNull();
+	});
+
+	it('duplicates each mote across a 2x2 tile grid', () => {
+		const { scene, layer } = makeScene(2);
+		const handle = createWorldDustLayer(
+			scene as never,
+			{ count: 3, tileWidth: 200, tileHeight: 100 },
+			() => 0.5,
+		);
+		expect(handle).not.toBeNull();
+		expect(layer.addMember).toHaveBeenCalledTimes(12);
+		const xs = layer.addMember.mock.calls.map(
+			(c) => (c[0] as { x: number }).x,
+		);
+		expect(xs).toContain(100);
+		expect(xs).toContain(300);
+		const ys = layer.addMember.mock.calls.map(
+			(c) => (c[0] as { y: { base: number } }).y.base,
+		);
+		expect(ys).toContain(50);
+		expect(ys).toContain(150);
+	});
+
+	it('re-bases members only when the camera crosses a tile boundary', () => {
+		const { scene, layer } = makeScene(2);
+		const handle = createWorldDustLayer(
+			scene as never,
+			{ count: 2, tileWidth: 200, tileHeight: 100 },
+			() => 0.5,
+		);
+		const cam = (x: number, y: number) =>
+			({ worldView: { x, y } }) as never;
+		handle?.update(cam(50, 20));
+		expect(layer.editMember).not.toHaveBeenCalled();
+		handle?.update(cam(250, 20));
+		expect(layer.editMember).toHaveBeenCalledTimes(8);
+		const edited = layer.editMember.mock.calls.map(
+			(c) => (c[1] as { x: number }).x,
+		);
+		expect(Math.min(...edited)).toBe(300);
+		layer.editMember.mockClear();
+		handle?.update(cam(260, 30));
+		expect(layer.editMember).not.toHaveBeenCalled();
 	});
 });

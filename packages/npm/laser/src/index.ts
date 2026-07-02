@@ -48,8 +48,16 @@ export type {
 	GpuSpriteLayerOptions,
 	GpuSpriteLayerHandle,
 } from './lib/phaser/gpu-sprite-layer';
-export { createDustMoteLayer, dustMemberAt } from './lib/phaser/ambient-dust';
-export type { DustMoteOptions } from './lib/phaser/ambient-dust';
+export {
+	createDustMoteLayer,
+	createWorldDustLayer,
+	dustMemberAt,
+} from './lib/phaser/ambient-dust';
+export type {
+	DustMoteOptions,
+	WorldDustHandle,
+	WorldDustOptions,
+} from './lib/phaser/ambient-dust';
 export { GameObjectPool } from './lib/phaser/object-pool';
 export { setupKeyboardMap } from './lib/phaser/keyboard-map';
 export type { KeyboardMap } from './lib/phaser/keyboard-map';
