@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { withGitHubRetry } from './retry';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noSleep = async (): Promise<void> => {};
+const noSleep = () => Promise.resolve();
 
 describe('withGitHubRetry (v0.0.21)', () => {
 	it('returns immediately on success', async () => {
@@ -76,5 +75,30 @@ describe('withGitHubRetry (v0.0.21)', () => {
 		);
 		expect(out).toBe('ok');
 		expect(calls).toBe(2);
+	});
+
+	it('honors Retry-After header over exponential backoff', async () => {
+		let calls = 0;
+		const delays: number[] = [];
+		const recordingSleep = (ms: number): Promise<void> => {
+			delays.push(ms);
+			return Promise.resolve();
+		};
+		const out = await withGitHubRetry(
+			async () => {
+				calls++;
+				if (calls < 2)
+					throw {
+						status: 403,
+						message: 'secondary rate limit',
+						response: { headers: { 'retry-after': '2' } },
+					};
+				return 'ok';
+			},
+			{ sleep: recordingSleep },
+		);
+		expect(out).toBe('ok');
+		expect(calls).toBe(2);
+		expect(delays).toEqual([2000]);
 	});
 });

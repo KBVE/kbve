@@ -24,6 +24,9 @@ export type {
 
 export {
 	buildDispatchManifest,
+	buildDispatchManifestSafe,
+	type SafeManifestResult,
+	type ManifestError,
 	type DispatchManifest,
 	type DockerEntry,
 	type NpmEntry,

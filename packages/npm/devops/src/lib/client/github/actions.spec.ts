@@ -1,4 +1,8 @@
-import { _$gha_findActionInTitle, _$gha_kbve_ActionProcess } from './actions';
+import {
+	_$gha_findActionInTitle,
+	_$gha_kbve_ActionProcess,
+	findActionInTitleSafe,
+} from './actions';
 import { GithubActionReferenceMap } from './types';
 
 describe('_$gha_findActionInTitle', () => {
@@ -55,8 +59,6 @@ describe('_$gha_kbve_ActionProcess', () => {
 		);
 	});
 });
-
-import { findActionInTitleSafe } from './actions';
 
 describe('findActionInTitleSafe (v0.0.21)', () => {
 	const map = [{ keyword: 'atlas', action: 'atlas_action' }];

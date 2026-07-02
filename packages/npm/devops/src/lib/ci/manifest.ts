@@ -170,7 +170,9 @@ export interface SafeManifestResult {
 	errors: ManifestError[];
 }
 
-export function buildDispatchManifestSafe(): SafeManifestResult {
+export function buildDispatchManifestSafe(
+	projects: CiProject[] = CI_PROJECTS,
+): SafeManifestResult {
 	const manifest: DispatchManifest = {
 		docker: [],
 		npm: [],
@@ -181,7 +183,7 @@ export function buildDispatchManifestSafe(): SafeManifestResult {
 	};
 	const errors: ManifestError[] = [];
 
-	for (const project of CI_PROJECTS) {
+	for (const project of projects) {
 		const mapper = mappers[project.pipeline];
 		if (!mapper) {
 			errors.push({
