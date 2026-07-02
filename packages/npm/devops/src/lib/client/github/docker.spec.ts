@@ -3,7 +3,7 @@ import { GitHubClient, GitHubContext } from './types';
 const mockExecAsync = vi.hoisted(() => vi.fn());
 
 vi.mock('child_process', () => ({
-	exec: vi.fn(),
+	execFile: vi.fn(),
 }));
 
 vi.mock('util', () => ({
@@ -121,6 +121,15 @@ describe('_$gha_runDockerContainer', () => {
 				body: expect.stringContaining('started successfully'),
 			}),
 		);
+		expect(mockExecAsync).toHaveBeenCalledWith('docker', [
+			'run',
+			'-d',
+			'-p',
+			'8080:8080',
+			'--name',
+			'mycontainer',
+			'nginx:latest',
+		]);
 	});
 
 	it('should report error and throw when exec fails', async () => {
@@ -167,8 +176,15 @@ describe('_$gha_stopDockerContainer', () => {
 
 		await _$gha_stopDockerContainer(github, context, 'mycontainer');
 
-		// Should have been called for both stop and remove success comments
 		expect(github.rest.issues.createComment).toHaveBeenCalledTimes(2);
+		expect(mockExecAsync).toHaveBeenCalledWith('docker', [
+			'stop',
+			'mycontainer',
+		]);
+		expect(mockExecAsync).toHaveBeenCalledWith('docker', [
+			'rm',
+			'mycontainer',
+		]);
 	});
 
 	it('should throw when stop command fails', async () => {

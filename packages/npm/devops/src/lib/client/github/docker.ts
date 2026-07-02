@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import {
 	sanitizePort,
 	sanitizeContainerName,
@@ -8,7 +8,7 @@ import {
 import { GitHubClient, GitHubContext } from './types';
 import { issues } from './issues';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 async function runContainer(
 	github: GitHubClient,
@@ -30,10 +30,16 @@ async function runContainer(
 		throw error;
 	}
 
-	const command = `docker run -d -p ${sanitizedPort}:${sanitizedPort} --name ${sanitizedName} ${sanitizedImage}`;
-
 	try {
-		const { stdout } = await execAsync(command);
+		const { stdout } = await execFileAsync('docker', [
+			'run',
+			'-d',
+			'-p',
+			`${sanitizedPort}:${sanitizedPort}`,
+			'--name',
+			sanitizedName,
+			sanitizedImage,
+		]);
 		console.log('Docker container started successfully:', stdout);
 		await issues.createComment(
 			github,
@@ -68,9 +74,10 @@ async function stopContainer(
 	}
 
 	try {
-		const { stdout: stopStdout } = await execAsync(
-			`docker stop ${sanitizedName}`,
-		);
+		const { stdout: stopStdout } = await execFileAsync('docker', [
+			'stop',
+			sanitizedName,
+		]);
 		console.log('Docker container stopped successfully:', stopStdout);
 		await issues.createComment(
 			github,
@@ -90,9 +97,10 @@ async function stopContainer(
 	}
 
 	try {
-		const { stdout: removeStdout } = await execAsync(
-			`docker rm ${sanitizedName}`,
-		);
+		const { stdout: removeStdout } = await execFileAsync('docker', [
+			'rm',
+			sanitizedName,
+		]);
 		console.log('Docker container removed successfully:', removeStdout);
 		await issues.createComment(
 			github,
