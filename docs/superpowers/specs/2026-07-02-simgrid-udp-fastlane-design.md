@@ -35,9 +35,11 @@ it off.
 Session flow:
 
 1. Client joins over WS exactly as today (JoinMatch → JWT verify → Welcome).
-2. `Welcome` gains appended fields (postcard append rule keeps old decoders
-   working): `udp_token: Option<[u8; 16]>`, `udp_port: u16`. Token is random
-   per-session, bound to the slot, generated at admit time when UDP is enabled.
+2. Right after Welcome, the net layer sends an
+   `Ephemeral { kind: EPHEMERAL_UDP_OFFER (20), to: slot, payload }` where
+   payload = `encode_inner(UdpOffer { token: [u8; 16], port: u16 })`. Welcome's
+   shape is untouched — no cross-language fixture churn; web clients ignore the
+   unknown ephemeral kind. Token is random per-session, bound to the slot.
 3. Client sends `UdpPacket::Hello { protocol, token }` datagrams (~4 Hz) until
    it receives `HelloAck`. Server validates the token, maps
    `SocketAddr → slot`, replies `HelloAck`.
@@ -72,10 +74,9 @@ Session flow:
 
 ### Protocol version
 
-`PROTOCOL_VERSION` 16 → 17. Welcome fields are appended; verify against the
-cross-language decoder fixtures (`proto.rs` fixture tests) that the TS web
-client tolerates the appended fields, since web ships from the same protocol
-constant.
+`PROTOCOL_VERSION` stays 16: no existing wire shape changes. `UdpPacket::Hello`
+carries its own protocol field, checked server-side. The UDP offer rides a new
+Ephemeral kind, which existing clients discard.
 
 ### Unreal client: `KBVESimgrid`
 
