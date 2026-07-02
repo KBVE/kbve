@@ -90,3 +90,13 @@ export function IconInfo(p: IconProps) {
 		</I>
 	);
 }
+
+export function IconTerminal(p: IconProps) {
+	return (
+		<I {...p}>
+			<rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+			<polyline points="6 9 10 12 6 15" />
+			<line x1="12" y1="15" x2="16" y2="15" />
+		</I>
+	);
+}
