@@ -26,7 +26,7 @@ private:
 	bool bHasTarget = false;
 
 	static constexpr float ISO_PITCH = -30.0f;
-	static constexpr float ISO_YAW = 45.0f;
+	static constexpr float ISO_YAW = 225.0f;
 	static constexpr float ORTHO_WIDTH = 2048.0f;
 	static constexpr float FOLLOW_LERP = 10.0f;
 	static constexpr float BOOM_DISTANCE = 3000.0f;

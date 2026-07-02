@@ -9,6 +9,7 @@ class USimgridClientSubsystem;
 class USimgridWorldBridge;
 class ASimgridEntityActor;
 class UStaticMesh;
+class USkeletalMesh;
 class UKBVENpcSpriteRenderSubsystem;
 class UKBVENpcSpriteDef;
 
@@ -37,6 +38,7 @@ private:
 	ASimgridEntityActor* SpawnActor(uint16 Kind);
 	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
 	void EnsureEnvDef();
+	USkeletalMesh* EnsureMannyMesh();
 
 	FSimgridInterpolator Interp;
 
@@ -57,6 +59,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UKBVENpcSpriteDef> EnvDef;
+
+	UPROPERTY()
+	TObjectPtr<USkeletalMesh> MannyMesh;
 
 	TMap<uint32, int32> SpriteHandleIds;
 

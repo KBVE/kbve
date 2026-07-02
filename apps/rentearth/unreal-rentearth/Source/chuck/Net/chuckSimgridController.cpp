@@ -79,6 +79,9 @@ void AchuckSimgridController::BeginPlay()
 	Sub->OnDisconnected.AddDynamic(this, &AchuckSimgridController::HandleDisconnected);
 	Sub->OnEphemeral.AddDynamic(this, &AchuckSimgridController::HandleEphemeral);
 
+	bShowMouseCursor = true;
+	SetInputMode(FInputModeGameAndUI());
+
 	Sub->ConnectToServer(ServerUrl);
 }
 
@@ -135,13 +138,14 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 	const double NowMs = GetWorld() ? (double)GetWorld()->GetTimeSeconds() * 1000.0 : 0.0;
 	Manager->Tick(NowMs);
 
-	FVector LocalPos;
-	const bool bHasLocal = Manager->IsLocalWorldPos(LocalPos);
-	if (CameraPawn && bHasLocal)
+	AchuckArpgPawn* ArpgPawn = Cast<AchuckArpgPawn>(GetPawn());
+	if (CameraPawn && ArpgPawn)
 	{
-		CameraPawn->SetFollowTarget(LocalPos);
+		CameraPawn->SetFollowTarget(ArpgPawn->GetActorLocation());
 	}
 
+	FVector LocalPos;
+	const bool bHasLocal = Manager->IsLocalWorldPos(LocalPos);
 	if (TimeSinceWelcome >= 0.0f && !bLocalEverSeen)
 	{
 		if (bHasLocal)
@@ -159,28 +163,101 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 		}
 	}
 
-	FVector2D ScreenAxis(0.0, 0.0);
-	if (IsInputKeyDown(EKeys::D)) { ScreenAxis.X -= 1.0; }
-	if (IsInputKeyDown(EKeys::A)) { ScreenAxis.X += 1.0; }
-	if (IsInputKeyDown(EKeys::S)) { ScreenAxis.Y -= 1.0; }
-	if (IsInputKeyDown(EKeys::W)) { ScreenAxis.Y += 1.0; }
+	float AxisRight = 0.0f;
+	float AxisFwd = 0.0f;
+	if (IsInputKeyDown(EKeys::D)) { AxisRight += 1.0f; }
+	if (IsInputKeyDown(EKeys::A)) { AxisRight -= 1.0f; }
+	if (IsInputKeyDown(EKeys::W)) { AxisFwd += 1.0f; }
+	if (IsInputKeyDown(EKeys::S)) { AxisFwd -= 1.0f; }
 
-	const bool bRun = IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift);
-	const bool bMoving = !ScreenAxis.IsNearlyZero();
+	const bool bRun = !(IsInputKeyDown(EKeys::LeftShift) || IsInputKeyDown(EKeys::RightShift));
+	const bool bKeyMoving = (AxisRight != 0.0f) || (AxisFwd != 0.0f);
 
-	if (bMoving || bWasMoving)
+	if (bKeyMoving)
 	{
-		const FchuckMoveIntent Intent = BuildMoveIntent(ScreenAxis, bRun);
-		if (USimgridClientSubsystem* Sub = GetSubsystem())
+		bHasMoveTarget = false;
+	}
+	else if (WasInputKeyJustPressed(EKeys::LeftMouseButton) && ArpgPawn)
+	{
+		FVector WorldLoc, WorldDir3;
+		if (DeprojectMousePositionToWorld(WorldLoc, WorldDir3) && FMath::Abs(WorldDir3.Z) > KINDA_SMALL_NUMBER)
 		{
-			FSimgridMove Move;
-			Move.Mx = Intent.Mx;
-			Move.My = Intent.My;
-			Move.bRun = Intent.bRun;
-			Sub->SendMove(Move);
+			const float PlaneZ = ArpgPawn->GetActorLocation().Z;
+			const float T = (PlaneZ - WorldLoc.Z) / WorldDir3.Z;
+			if (T > 0.0f)
+			{
+				MoveTarget = WorldLoc + WorldDir3 * T;
+				bHasMoveTarget = true;
+			}
 		}
 	}
-	bWasMoving = bMoving;
+
+	FVector2D WorldDir(0.0, 0.0);
+	if (bKeyMoving)
+	{
+		const FRotator YawRot(0.0f, ISO_CAM_YAW, 0.0f);
+		const FVector Fwd = YawRot.RotateVector(FVector::ForwardVector);
+		const FVector Rgt = YawRot.RotateVector(FVector::RightVector);
+		WorldDir = FVector2D(Rgt.X, Rgt.Y) * AxisRight + FVector2D(Fwd.X, Fwd.Y) * AxisFwd;
+		const double M = WorldDir.Size();
+		if (M > 0.0) { WorldDir /= M; }
+	}
+	else if (bHasMoveTarget && ArpgPawn)
+	{
+		const FVector Delta = MoveTarget - ArpgPawn->GetActorLocation();
+		const FVector2D Delta2(Delta.X, Delta.Y);
+		const double Dist = Delta2.Size();
+		if (Dist < ARRIVE_UU)
+		{
+			bHasMoveTarget = false;
+		}
+		else
+		{
+			WorldDir = Delta2 / Dist;
+			const double SlowRadius = 200.0;
+			if (Dist < SlowRadius)
+			{
+				WorldDir *= (Dist / SlowRadius);
+			}
+		}
+	}
+
+	const bool bMoving = !WorldDir.IsNearlyZero();
+
+	if (ArpgPawn)
+	{
+		ArpgPawn->SetMoveIntent(WorldDir, bRun);
+	}
+
+	USimgridClientSubsystem* Sub = GetSubsystem();
+	auto SendIntent = [&](const FVector2D& Dir)
+	{
+		if (!Sub)
+		{
+			return;
+		}
+		FSimgridMove Move;
+		Move.Mx = (int8)FMath::Clamp(FMath::RoundToInt(Dir.X * 127.0), -127, 127);
+		Move.My = (int8)FMath::Clamp(FMath::RoundToInt(Dir.Y * 127.0), -127, 127);
+		Move.bRun = bRun;
+		Sub->SendMove(Move);
+	};
+
+	SendAccum += DeltaSeconds;
+	while (SendAccum >= MOVE_SEND_INTERVAL)
+	{
+		SendAccum -= MOVE_SEND_INTERVAL;
+		if (bMoving)
+		{
+			IdleSendTicks = 0;
+			SendIntent(WorldDir);
+		}
+		else if (IdleSendTicks < MOVE_SEND_TAIL_TICKS)
+		{
+			++IdleSendTicks;
+			SendIntent(FVector2D::ZeroVector);
+		}
+	}
 }
 
 void AchuckSimgridController::OnPossess(APawn* InPawn)

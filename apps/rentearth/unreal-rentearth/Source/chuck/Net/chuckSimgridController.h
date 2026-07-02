@@ -65,9 +65,18 @@ private:
 	USimgridClientSubsystem* GetSubsystem() const;
 
 	int32 LocalSlot = -1;
-	bool bWasMoving = false;
+
+	FVector MoveTarget = FVector::ZeroVector;
+	bool bHasMoveTarget = false;
+	float SendAccum = 0.0f;
+	int32 IdleSendTicks = MOVE_SEND_TAIL_TICKS;
 
 	float TimeSinceWelcome = -1.0f;
 	bool bLocalEverSeen = false;
 	bool bWarnedNoLocal = false;
+
+	static constexpr float ARRIVE_UU = 40.0f;
+	static constexpr float ISO_CAM_YAW = 225.0f;
+	static constexpr float MOVE_SEND_INTERVAL = 0.05f;
+	static constexpr int32 MOVE_SEND_TAIL_TICKS = 4;
 };

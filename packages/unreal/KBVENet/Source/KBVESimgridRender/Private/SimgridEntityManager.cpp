@@ -10,7 +10,9 @@
 #include "KBVENpcSpriteDef.h"
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
+#include "Engine/SkeletalMesh.h"
 
+static constexpr uint8 KBVE_CAT_PLAYER = 0;
 static constexpr uint8 KBVE_CAT_ENV = 3;
 
 static bool ResolveKindCat(const TArray<FSimgridKindEntry>& Reg, uint16 Kind, uint8& OutCat, FString& OutRef)
@@ -111,6 +113,15 @@ void USimgridEntityManager::EnsureEnvDef()
 	EnvDef->CullDistance = 12000.0f;
 }
 
+USkeletalMesh* USimgridEntityManager::EnsureMannyMesh()
+{
+	if (!MannyMesh)
+	{
+		MannyMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	}
+	return MannyMesh;
+}
+
 void USimgridEntityManager::Tick(double NowMs)
 {
 	if (!Interp.HasData())
@@ -151,7 +162,10 @@ void USimgridEntityManager::Tick(double NowMs)
 			}
 			else if (IKBVEMovementDriver* Driver = Cast<IKBVEMovementDriver>(Pawn))
 			{
-				Driver->ApplyServerCorrection(WorldPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
+				const FVector2D LatestXY = FSimgridCoords::QuantToWorldXY(E.Qx, E.Qy);
+				const float LatestH = WorldBridge ? WorldBridge->SampleHeight((float)LatestXY.X, (float)LatestXY.Y) : 0.0f;
+				const FVector LatestPos((float)LatestXY.X, (float)LatestXY.Y, LatestH + (float)E.Z * FSimgridCoords::FLOOR_HEIGHT);
+				Driver->ApplyServerCorrection(LatestPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
 			}
 			else if (!bWarnedLocalNotDriver)
 			{
@@ -194,6 +208,10 @@ void USimgridEntityManager::Tick(double NowMs)
 				continue;
 			}
 			Actors.Add(E.Eid, Actor);
+			if (bResolved && Cat == KBVE_CAT_PLAYER)
+			{
+				Actor->SetSkeletalMesh(EnsureMannyMesh());
+			}
 		}
 		Actor->ApplyState(WorldPos, Yaw, S.Kind);
 	}
