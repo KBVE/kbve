@@ -18,27 +18,27 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEPerf, Log, All);
 
-static TAutoConsoleVariable<int32> CVarPerf(
+static TAutoConsoleVariable<int32>* CVarPerf = new TAutoConsoleVariable<int32>(
 	TEXT("kbve.perf"), 0,
 	TEXT("Master switch for KBVEPerf collection. 0 = off (zero overhead), 1 = on."),
 	ECVF_Default);
 
-static TAutoConsoleVariable<FString> CVarPerfCategories(
+static TAutoConsoleVariable<FString>* CVarPerfCategories = new TAutoConsoleVariable<FString>(
 	TEXT("kbve.perf.categories"), TEXT(""),
 	TEXT("Comma-separated category allow-list (e.g. \"Grass,Terrain\"). Empty = all categories."),
 	ECVF_Default);
 
-static TAutoConsoleVariable<int32> CVarPerfPort(
+static TAutoConsoleVariable<int32>* CVarPerfPort = new TAutoConsoleVariable<int32>(
 	TEXT("kbve.perf.port"), 8099,
 	TEXT("Port for the KBVEPerf HTTP /perf JSON readout."),
 	ECVF_Default);
 
-static TAutoConsoleVariable<int32> CVarPerfOverlay(
+static TAutoConsoleVariable<int32>* CVarPerfOverlay = new TAutoConsoleVariable<int32>(
 	TEXT("kbve.perf.overlay"), 0,
 	TEXT("Draw the KBVEPerf on-screen overlay of the worst ops. 0 = off, 1 = on."),
 	ECVF_Default);
 
-static TAutoConsoleVariable<float> CVarPerfThreshold(
+static TAutoConsoleVariable<float>* CVarPerfThreshold = new TAutoConsoleVariable<float>(
 	TEXT("kbve.perf.threshold"), 3.0f,
 	TEXT("Log sink threshold in milliseconds; scopes slower than this emit a [KBVEPerf] warning."),
 	ECVF_RenderThreadSafe);
@@ -56,10 +56,10 @@ void UKBVEPerfSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	FKBVEPerf::SetSubsystem(this);
 
-	MasterCVar = CVarPerf.AsVariable();
+	MasterCVar = CVarPerf->AsVariable();
 	MasterCVar->SetOnChangedCallback(
 		FConsoleVariableDelegate::CreateWeakLambda(this, [this](IConsoleVariable*) { ApplyEnabledState(); }));
-	CVarPerfCategories.AsVariable()->SetOnChangedCallback(
+	CVarPerfCategories->AsVariable()->SetOnChangedCallback(
 		FConsoleVariableDelegate::CreateWeakLambda(this, [this](IConsoleVariable*) { RebuildCategoryFilter(); }));
 
 	RebuildCategoryFilter();
@@ -82,7 +82,7 @@ void UKBVEPerfSubsystem::Deinitialize()
 		MasterCVar->SetOnChangedCallback(FConsoleVariableDelegate());
 		MasterCVar = nullptr;
 	}
-	CVarPerfCategories.AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate());
+	CVarPerfCategories->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate());
 
 	StopHttp();
 	FKBVEPerf::SetMasterEnabled(false);
@@ -93,7 +93,7 @@ void UKBVEPerfSubsystem::Deinitialize()
 
 void UKBVEPerfSubsystem::ApplyEnabledState()
 {
-	const bool bOn = CVarPerf.GetValueOnGameThread() != 0;
+	const bool bOn = CVarPerf->GetValueOnGameThread() != 0;
 	FKBVEPerf::SetMasterEnabled(bOn);
 	if (bOn)
 	{
@@ -107,7 +107,7 @@ void UKBVEPerfSubsystem::ApplyEnabledState()
 
 void UKBVEPerfSubsystem::RebuildCategoryFilter()
 {
-	const FString Raw = CVarPerfCategories.GetValueOnGameThread();
+	const FString Raw = CVarPerfCategories->GetValueOnGameThread();
 	TSet<FName> Set;
 	bool bAll = Raw.IsEmpty();
 	if (!bAll)
@@ -170,7 +170,7 @@ void UKBVEPerfSubsystem::SubmitScope(FName Name, FName Category, double Ms)
 		}
 	}
 
-	const float Threshold = CVarPerfThreshold.GetValueOnAnyThread();
+	const float Threshold = CVarPerfThreshold->GetValueOnAnyThread();
 	if (Ms > Threshold)
 	{
 		UE_LOG(LogKBVEPerf, Warning, TEXT("[KBVEPerf] %s %.1fms"), *Name.ToString(), Ms);
@@ -237,7 +237,7 @@ void UKBVEPerfSubsystem::StartHttp()
 		return;
 	}
 
-	const int32 Port = CVarPerfPort.GetValueOnGameThread();
+	const int32 Port = CVarPerfPort->GetValueOnGameThread();
 	FHttpServerModule& Server = FHttpServerModule::Get();
 	Router = Server.GetHttpRouter(Port);
 	if (!Router.IsValid())
@@ -293,7 +293,7 @@ bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 	CachedGpuMs = FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());
 	CachedRhiMs = FPlatformTime::ToMilliseconds(GRHIThreadTime);
 
-	if (CVarPerfOverlay.GetValueOnGameThread() != 0 && FKBVEPerf::IsEnabled() && GEngine)
+	if (CVarPerfOverlay->GetValueOnGameThread() != 0 && FKBVEPerf::IsEnabled() && GEngine)
 	{
 		TArray<TPair<FName, double>> Worst;
 		{

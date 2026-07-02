@@ -9,62 +9,62 @@
 #include "RHIStaticStates.h"
 #include "ScreenPass.h"
 
-static TAutoConsoleVariable<int32> CVarKBVEPostEnable(
+static TAutoConsoleVariable<int32>* CVarKBVEPostEnable = new TAutoConsoleVariable<int32>(
 	TEXT("r.KBVEPost.Enable"), 0,
 	TEXT("Enable the KBVE stylized post-process (oil + cel + ink). 0 = off, 1 = on."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<int32> CVarKBVEPostRadius(
+static TAutoConsoleVariable<int32>* CVarKBVEPostRadius = new TAutoConsoleVariable<int32>(
 	TEXT("r.KBVEPost.Radius"), 3,
 	TEXT("Anisotropic Kuwahara sample radius (wash spread)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostWatercolorStrength(
+static TAutoConsoleVariable<float>* CVarKBVEPostWatercolorStrength = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.WatercolorStrength"), 0.3f,
 	TEXT("Pre-smoothing flatten toward the cel-ready result (0 = original)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostBands(
+static TAutoConsoleVariable<float>* CVarKBVEPostBands = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.Bands"), 4.0f,
 	TEXT("Number of cel luminance bands (anime flat shading)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostEdgeStrength(
+static TAutoConsoleVariable<float>* CVarKBVEPostEdgeStrength = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.EdgeStrength"), 3.0f,
 	TEXT("Ink outline darkening strength (Sobel gain)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostEdgeThreshold(
+static TAutoConsoleVariable<float>* CVarKBVEPostEdgeThreshold = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.EdgeThreshold"), 0.4f,
 	TEXT("Sobel luma-gradient threshold — higher = silhouettes only, fewer texture lines."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostSaturation(
+static TAutoConsoleVariable<float>* CVarKBVEPostSaturation = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.Saturation"), 1.25f,
 	TEXT("Output saturation multiplier (anime color pop)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostBrightness(
+static TAutoConsoleVariable<float>* CVarKBVEPostBrightness = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.Brightness"), 1.05f,
 	TEXT("Output brightness lift (Ghibli bright look)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostBandSoftness(
+static TAutoConsoleVariable<float>* CVarKBVEPostBandSoftness = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.BandSoftness"), 0.3f,
 	TEXT("Softness of cel band transitions (0 = hard toon step)."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<float> CVarKBVEPostDetailRecover(
+static TAutoConsoleVariable<float>* CVarKBVEPostDetailRecover = new TAutoConsoleVariable<float>(
 	TEXT("r.KBVEPost.DetailRecover"), 6.0f,
 	TEXT("Sobel-driven un-banding — higher keeps more fine detail (grass) out of the cel bands."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<int32> CVarKBVEPostMask(
+static TAutoConsoleVariable<int32>* CVarKBVEPostMask = new TAutoConsoleVariable<int32>(
 	TEXT("r.KBVEPost.Mask"), 1,
 	TEXT("Restrict the toon pass to Custom-Depth-Stencil tagged meshes. 0 = whole screen, 1 = tagged objects only."),
 	ECVF_RenderThreadSafe);
 
-static TAutoConsoleVariable<int32> CVarKBVEPostDebug(
+static TAutoConsoleVariable<int32>* CVarKBVEPostDebug = new TAutoConsoleVariable<int32>(
 	TEXT("r.KBVEPost.Debug"), 0,
 	TEXT("Tint stencil-tagged pixels red to verify masking. 0 = off, 1 = on."),
 	ECVF_RenderThreadSafe);
@@ -76,7 +76,7 @@ FKBVEPostViewExtension::FKBVEPostViewExtension(const FAutoRegister& AutoRegister
 
 void FKBVEPostViewExtension::SubscribeToPostProcessingPass(EPostProcessingPass Pass, const FSceneView& InView, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)
 {
-	if (Pass == EPostProcessingPass::Tonemap && CVarKBVEPostEnable.GetValueOnAnyThread() != 0)
+	if (Pass == EPostProcessingPass::Tonemap && CVarKBVEPostEnable->GetValueOnAnyThread() != 0)
 	{
 		InOutPassCallbacks.Add(FAfterPassCallbackDelegate::CreateRaw(this, &FKBVEPostViewExtension::AfterTonemap_RenderThread));
 	}
@@ -85,7 +85,7 @@ void FKBVEPostViewExtension::SubscribeToPostProcessingPass(EPostProcessingPass P
 FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessMaterialInputs& Inputs)
 {
 	const FScreenPassTexture SceneColor = FScreenPassTexture::CopyFromSlice(GraphBuilder, Inputs.GetInput(EPostProcessMaterialInput::SceneColor));
-	if (CVarKBVEPostEnable.GetValueOnRenderThread() == 0 || !SceneColor.IsValid())
+	if (CVarKBVEPostEnable->GetValueOnRenderThread() == 0 || !SceneColor.IsValid())
 	{
 		return SceneColor;
 	}
@@ -100,7 +100,7 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 	{
 		CustomStencilSRV = Inputs.SceneTextures.SceneTextures->GetParameters()->CustomStencilTexture;
 	}
-	const int32 MaskEnable = (CustomStencilSRV != nullptr && CVarKBVEPostMask.GetValueOnRenderThread() != 0) ? 1 : 0;
+	const int32 MaskEnable = (CustomStencilSRV != nullptr && CVarKBVEPostMask->GetValueOnRenderThread() != 0) ? 1 : 0;
 	{
 		static bool bLoggedMask = false;
 		if (!bLoggedMask)
@@ -141,15 +141,15 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 		PassParameters->CustomStencilTexture = CustomStencilSRV;
 		PassParameters->EdgeTexelSize = TexelSize;
 		PassParameters->TexelSize = TexelSize;
-		PassParameters->Bands = FMath::Max(2.0f, CVarKBVEPostBands.GetValueOnRenderThread());
-		PassParameters->EdgeStrength = CVarKBVEPostEdgeStrength.GetValueOnRenderThread();
-		PassParameters->EdgeThreshold = CVarKBVEPostEdgeThreshold.GetValueOnRenderThread();
-		PassParameters->Saturation = CVarKBVEPostSaturation.GetValueOnRenderThread();
-		PassParameters->Brightness = CVarKBVEPostBrightness.GetValueOnRenderThread();
-		PassParameters->BandSoftness = FMath::Clamp(CVarKBVEPostBandSoftness.GetValueOnRenderThread(), 0.01f, 0.49f);
-		PassParameters->DetailRecover = FMath::Max(0.0f, CVarKBVEPostDetailRecover.GetValueOnRenderThread());
+		PassParameters->Bands = FMath::Max(2.0f, CVarKBVEPostBands->GetValueOnRenderThread());
+		PassParameters->EdgeStrength = CVarKBVEPostEdgeStrength->GetValueOnRenderThread();
+		PassParameters->EdgeThreshold = CVarKBVEPostEdgeThreshold->GetValueOnRenderThread();
+		PassParameters->Saturation = CVarKBVEPostSaturation->GetValueOnRenderThread();
+		PassParameters->Brightness = CVarKBVEPostBrightness->GetValueOnRenderThread();
+		PassParameters->BandSoftness = FMath::Clamp(CVarKBVEPostBandSoftness->GetValueOnRenderThread(), 0.01f, 0.49f);
+		PassParameters->DetailRecover = FMath::Max(0.0f, CVarKBVEPostDetailRecover->GetValueOnRenderThread());
 		PassParameters->MaskEnable = MaskEnable;
-		PassParameters->DebugMask = CVarKBVEPostDebug.GetValueOnRenderThread();
+		PassParameters->DebugMask = CVarKBVEPostDebug->GetValueOnRenderThread();
 		PassParameters->RenderTargets[0] = Output.GetRenderTargetBinding();
 
 		TShaderMapRef<FKBVEPostCompositePS> PixelShader(ShaderMap);

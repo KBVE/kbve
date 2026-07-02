@@ -1757,11 +1757,12 @@ fn rebuild_index(
 /// intent is held a short grace then zeroed so a dropped tail still comes to rest.
 #[derive(Component, Default)]
 pub struct IntentBuffer {
-    pending: std::collections::VecDeque<(i8, i8, bool)>,
+    pending: std::collections::VecDeque<(u32, i8, i8, bool)>,
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
     debt: u32,
+    consumed_seq: u32,
 }
 
 /// Recent server-tick positions per player, for lag-compensated PvP hit checks:
@@ -1823,13 +1824,20 @@ impl IntentBuffer {
     /// outstanding were already played via the hold, so they retroactively become
     /// the held intent instead of queueing — displacement is conserved and a late
     /// stop takes effect on the next tick instead of replaying the burst.
-    fn push(&mut self, mx: i8, my: i8, run: bool) {
+    fn push(&mut self, seq: u32, mx: i8, my: i8, run: bool) {
         if self.debt > 0 {
             self.debt -= 1;
             self.last = (mx, my, run);
+            self.consumed_seq = seq;
             return;
         }
-        self.pending.push_back((mx, my, run));
+        self.pending.push_back((seq, mx, my, run));
+    }
+
+    /// Seq of the last intent actually applied to the body — the ack clients
+    /// replay their unacked inputs against.
+    pub fn consumed_seq(&self) -> u32 {
+        self.consumed_seq
     }
 
     /// Drop all buffered motion and come to rest. Used when control is taken over
@@ -1856,8 +1864,9 @@ impl IntentBuffer {
             None
         };
         match popped {
-            Some(i) => {
-                self.last = i;
+            Some((seq, mx, my, run)) => {
+                self.last = (mx, my, run);
+                self.consumed_seq = seq;
                 self.starve_ticks = 0;
             }
             None => {
@@ -1993,7 +2002,7 @@ fn drain_inputs(
                     // dedupes retransmits/reorders.
                     if *seq > fm.last_seq {
                         fm.last_seq = *seq;
-                        intents.push(*mx, *my, *run);
+                        intents.push(*seq, *mx, *my, *run);
                     }
                 }
                 Input::Face { facing } => {
@@ -3708,6 +3717,7 @@ fn advance_float(
         fm.intent_x = mx;
         fm.intent_y = my;
         fm.run = run;
+        fm.acked_seq = intents.consumed_seq();
         let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
         let mut speed = if run {
             crate::float_move::RUN_SPEED
@@ -4019,7 +4029,7 @@ fn emit_snapshot(
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
-                        f.last_seq,
+                        f.acked_seq,
                     ),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
@@ -4228,8 +4238,8 @@ mod tests {
     #[test]
     fn intent_buffer_starve_hold_does_not_replay_late_burst() {
         let mut b = IntentBuffer::default();
-        b.push(100, 0, true);
-        b.push(100, 0, true);
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
         let mut moving_ticks = 0;
         for _ in 0..2 {
             if b.next().0 != 0 {
@@ -4241,10 +4251,10 @@ mod tests {
                 moving_ticks += 1;
             }
         }
-        b.push(100, 0, true);
-        b.push(100, 0, true);
-        b.push(0, 0, true);
-        b.push(0, 0, true);
+        b.push(3, 100, 0, true);
+        b.push(4, 100, 0, true);
+        b.push(5, 0, 0, true);
+        b.push(6, 0, 0, true);
         for _ in 0..8 {
             if b.next().0 != 0 {
                 moving_ticks += 1;
@@ -4254,13 +4264,18 @@ mod tests {
             moving_ticks, 4,
             "held starve ticks must repay the late burst, not double-play it"
         );
+        assert_eq!(
+            b.consumed_seq(),
+            6,
+            "ack must cover every intent applied, including debt-adopted ones"
+        );
     }
 
     #[test]
     fn intent_buffer_unprimed_hold_stops_after_grace() {
         let mut b = IntentBuffer::default();
-        b.push(100, 0, true);
-        b.push(100, 0, true);
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
         b.next();
         b.next();
         let mut moving_ticks = 0;
