@@ -8,10 +8,7 @@ import type {
 	ApiCommit,
 	CategorizedResult,
 } from './types';
-import {
-	_$gha_extractRepoContext as extractRepoContext,
-	COMMIT_CATEGORY_LABELS,
-} from './types';
+import { context as ghaContext, COMMIT_CATEGORY_LABELS } from './types';
 
 const execAsync = promisify(exec);
 
@@ -20,7 +17,7 @@ export async function getPullRequestNumber(
 	context: GitHubContext,
 ): Promise<number> {
 	try {
-		const { owner, repo } = extractRepoContext(context);
+		const { owner, repo } = ghaContext.extractRepo(context);
 		let branch: string;
 
 		if (context.ref.startsWith('refs/pull/')) {
@@ -53,7 +50,7 @@ export async function updatePullRequestBody(
 	prBody: string,
 ): Promise<void> {
 	try {
-		const { owner, repo } = extractRepoContext(context);
+		const { owner, repo } = ghaContext.extractRepo(context);
 		const prNumber = await getPullRequestNumber(github, context);
 		await github.rest.pulls.update({
 			owner,
@@ -201,7 +198,7 @@ export async function createOrUpdatePR(
 	targetBranch: string,
 ): Promise<void> {
 	try {
-		const { owner, repo } = extractRepoContext(context);
+		const { owner, repo } = ghaContext.extractRepo(context);
 
 		let referenceBranch: string | null = null;
 

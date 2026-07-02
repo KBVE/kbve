@@ -1,8 +1,4 @@
-import {
-	GitHubClient,
-	GitHubContext,
-	_$gha_extractIssueContext,
-} from './types';
+import { GitHubClient, GitHubContext, context as ghaContext } from './types';
 
 async function createComment(
 	github: GitHubClient,
@@ -10,8 +6,7 @@ async function createComment(
 	body: string,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.createComment({
 			owner,
@@ -52,8 +47,7 @@ async function removeLabel(
 	labelName: string,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		const { data: labels } = await github.rest.issues.listLabelsOnIssue({
 			owner,
@@ -81,8 +75,7 @@ async function addLabel(
 	labelName: string,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		const { data: labels } = await github.rest.issues.listLabelsOnIssue({
 			owner,
@@ -109,8 +102,7 @@ async function verifyMatrixLabel(
 	context: GitHubContext,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		const { data: labels } = await github.rest.issues.listLabelsOnIssue({
 			owner,
@@ -150,8 +142,7 @@ async function addAssignees(
 	assignees: string[],
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.addAssignees({
 			owner,
@@ -171,8 +162,7 @@ async function removeAssignees(
 	assignees: string[],
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.removeAssignees({
 			owner,
@@ -193,8 +183,7 @@ async function closeIssue(
 	context: GitHubContext,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.update({
 			owner,
@@ -213,8 +202,7 @@ async function reopenIssue(
 	context: GitHubContext,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.update({
 			owner,
@@ -234,8 +222,7 @@ async function lockIssue(
 	lockReason?: string,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.lock({
 			owner,
@@ -254,8 +241,7 @@ async function unlockIssue(
 	context: GitHubContext,
 ): Promise<void> {
 	try {
-		const { owner, repo, issue_number } =
-			_$gha_extractIssueContext(context);
+		const { owner, repo, issue_number } = ghaContext.extractIssue(context);
 
 		await github.rest.issues.unlock({
 			owner,

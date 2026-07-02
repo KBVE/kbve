@@ -6,7 +6,7 @@ import {
 	sanitizeContainerImage,
 } from '../../sanitization';
 import { GitHubClient, GitHubContext } from './types';
-import { _$gha_createIssueComment } from './issues';
+import { issues } from './issues';
 
 const execAsync = promisify(exec);
 
@@ -35,7 +35,7 @@ async function runContainer(
 	try {
 		const { stdout } = await execAsync(command);
 		console.log('Docker container started successfully:', stdout);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Docker container started successfully: ${stdout}`,
@@ -44,7 +44,7 @@ async function runContainer(
 		const errMessage =
 			error instanceof Error ? error.message : String(error);
 		console.error('Error running Docker container:', error);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Error running Docker container: ${errMessage}`,
@@ -72,7 +72,7 @@ async function stopContainer(
 			`docker stop ${sanitizedName}`,
 		);
 		console.log('Docker container stopped successfully:', stopStdout);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Docker container stopped successfully: ${stopStdout}`,
@@ -81,7 +81,7 @@ async function stopContainer(
 		const errMessage =
 			error instanceof Error ? error.message : String(error);
 		console.error('Error stopping Docker container:', error);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Error stopping Docker container: ${errMessage}`,
@@ -94,7 +94,7 @@ async function stopContainer(
 			`docker rm ${sanitizedName}`,
 		);
 		console.log('Docker container removed successfully:', removeStdout);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Docker container removed successfully: ${removeStdout}`,
@@ -103,7 +103,7 @@ async function stopContainer(
 		const errMessage =
 			error instanceof Error ? error.message : String(error);
 		console.error('Error removing Docker container:', error);
-		await _$gha_createIssueComment(
+		await issues.createComment(
 			github,
 			context,
 			`Error removing Docker container: ${errMessage}`,
