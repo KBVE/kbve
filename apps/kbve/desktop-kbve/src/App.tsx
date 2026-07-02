@@ -19,7 +19,7 @@ export default function App() {
 function Header() {
 	return (
 		<header
-			className="flex items-center border-b px-8 py-6"
+			className="flex items-center border-b px-10 py-6"
 			style={{
 				backgroundColor: 'var(--color-surface)',
 				borderColor: 'var(--color-border)',
