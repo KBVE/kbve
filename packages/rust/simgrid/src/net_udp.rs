@@ -149,19 +149,26 @@ impl UdpLane {
         {
             self.bindings.remove(&existing);
         }
-        if let Some(prev) = self.bindings.insert(
+        let prev = self.bindings.insert(
             slot,
             Binding {
                 addr,
                 last_seen: Instant::now(),
             },
-        ) {
-            if prev.addr != addr {
-                self.addr2slot.remove(&prev.addr);
-            }
+        );
+        let rebound = match &prev {
+            Some(p) => p.addr != addr,
+            None => true,
+        };
+        if let Some(p) = prev
+            && p.addr != addr
+        {
+            self.addr2slot.remove(&p.addr);
         }
         self.addr2slot.insert(addr, slot);
-        tracing::info!(slot = slot.0, %addr, "udp lane bound");
+        if rebound {
+            tracing::info!(slot = slot.0, %addr, "udp lane bound");
+        }
     }
 
     fn touch(&self, slot: proto::PlayerSlot) {
