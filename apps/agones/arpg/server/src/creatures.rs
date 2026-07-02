@@ -387,7 +387,7 @@ pub fn stream_trees(
         .map(|(p, _)| p.tile)
         .collect();
 
-    let mut alive: Vec<Tile> = Vec::new();
+    let mut alive: std::collections::HashSet<Tile> = std::collections::HashSet::new();
     for (entity, pos, pfloor) in trees.iter() {
         if pfloor.map(|f| f.0).unwrap_or(0) != SPAWN_FLOOR {
             continue;
@@ -396,7 +396,7 @@ pub fn stream_trees(
             .iter()
             .any(|pt| chebyshev(*pt, pos.tile) <= TREE_DESPAWN_RADIUS);
         if near {
-            alive.push(pos.tile);
+            alive.insert(pos.tile);
         } else {
             commands.entity(entity).despawn();
             map.unblock_tile_z(SPAWN_FLOOR, pos.tile);
@@ -437,7 +437,7 @@ pub fn stream_trees(
                     if !felled {
                         map.block_tile_z(SPAWN_FLOOR, tile);
                     }
-                    alive.push(tile);
+                    alive.insert(tile);
                 }
             }
         }
@@ -483,7 +483,7 @@ pub fn stream_bushes(
         .map(|(p, _)| p.tile)
         .collect();
 
-    let mut alive: Vec<Tile> = Vec::new();
+    let mut alive: std::collections::HashSet<Tile> = std::collections::HashSet::new();
     for (entity, pos, pfloor) in bushes.iter() {
         if pfloor.map(|f| f.0).unwrap_or(0) != SPAWN_FLOOR {
             continue;
@@ -492,7 +492,7 @@ pub fn stream_bushes(
             .iter()
             .any(|pt| chebyshev(*pt, pos.tile) <= BUSH_DESPAWN_RADIUS);
         if near {
-            alive.push(pos.tile);
+            alive.insert(pos.tile);
         } else {
             commands.entity(entity).despawn();
         }
@@ -522,7 +522,7 @@ pub fn stream_bushes(
                 let harvested = harvested_tiles.contains(&(tile.x, tile.y));
                 let state = BushState { variant, harvested };
                 if spawn_bush(&mut commands, &registry, tile, SPAWN_FLOOR, state).is_some() {
-                    alive.push(tile);
+                    alive.insert(tile);
                 }
             }
         }

@@ -275,20 +275,19 @@ fn route_snapshot_aoi(
             .entities
             .iter()
             .find(|e| e.owner == h.slot && e.max_hp > 0);
-        let entities: Vec<proto::EntityDelta> = match me {
+        let entities: Vec<&proto::EntityDelta> = match me {
             Some(me) => snap
                 .entities
                 .iter()
                 .filter(|e| e.z == me.z && aoi_chebyshev(e.tile, me.tile) <= AOI_RADIUS)
-                .cloned()
                 .collect(),
-            None => snap.entities.clone(),
+            None => snap.entities.iter().collect(),
         };
-        let view = proto::Snapshot {
+        let view = proto::SnapshotRef {
             tick: snap.tick,
             server_time_ms: snap.server_time_ms,
             input_ack: snap.input_ack,
-            players: players.clone(),
+            players: &players,
             entities,
             keyframe: snap.keyframe,
         };
@@ -298,12 +297,12 @@ fn route_snapshot_aoi(
         {
             continue;
         }
-        let frame = Arc::new(encode_frame(&ServerEvent::Snapshot(view)));
+        let frame = Arc::new(encode_frame(&proto::ServerEventRef::Snapshot(view)));
         deliver(h.value(), frame);
     }
 }
 
-fn encode_frame(evt: &ServerEvent) -> EncodedFrame {
+fn encode_frame<T: serde::Serialize>(evt: &T) -> EncodedFrame {
     EncodedFrame {
         postcard: proto::encode(evt).unwrap_or_default(),
     }

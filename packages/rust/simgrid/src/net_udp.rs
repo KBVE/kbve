@@ -8,9 +8,14 @@ use tokio::net::UdpSocket;
 use tokio::sync::mpsc;
 
 use crate::net::SlotInput;
-use crate::proto::{self, UdpPacket};
+use crate::proto::{self, UdpPacket, UdpPacketRef};
 
 const UDP_STALE_SECS: u64 = 10;
+
+thread_local! {
+    static SEND_SCRATCH: std::cell::RefCell<[u8; proto::UDP_MAX_DATAGRAM]> =
+        const { std::cell::RefCell::new([0u8; proto::UDP_MAX_DATAGRAM]) };
+}
 
 struct Binding {
     addr: SocketAddr,
@@ -74,28 +79,23 @@ impl UdpLane {
         Some(b.addr)
     }
 
-    pub fn try_send_snapshot(&self, addr: SocketAddr, snap: &proto::Snapshot) -> bool {
-        let Ok(bytes) = proto::encode_inner(&UdpPacket::Snapshot(snap.clone())) else {
-            return false;
-        };
-        if bytes.len() > proto::UDP_MAX_DATAGRAM {
-            let count = self.oversize_count.fetch_add(1, Ordering::Relaxed) + 1;
-            if count == 1 || count.is_multiple_of(100) {
-                tracing::warn!(
-                    len = bytes.len(),
-                    count,
-                    "udp snapshot oversize; falling back to ws"
-                );
-            } else {
-                tracing::debug!(
-                    len = bytes.len(),
-                    count,
-                    "udp snapshot oversize; falling back to ws"
-                );
+    pub fn try_send_snapshot(&self, addr: SocketAddr, snap: &proto::SnapshotRef<'_>) -> bool {
+        SEND_SCRATCH.with(|scratch| {
+            let mut scratch = scratch.borrow_mut();
+            let pkt = UdpPacketRef::Snapshot(snap);
+            match postcard::to_slice(&pkt, scratch.as_mut_slice()) {
+                Ok(bytes) => self.socket.try_send_to(bytes, addr).is_ok(),
+                Err(_) => {
+                    let count = self.oversize_count.fetch_add(1, Ordering::Relaxed) + 1;
+                    if count == 1 || count.is_multiple_of(100) {
+                        tracing::warn!(count, "udp snapshot oversize; falling back to ws");
+                    } else {
+                        tracing::debug!(count, "udp snapshot oversize; falling back to ws");
+                    }
+                    false
+                }
             }
-            return false;
-        }
-        self.socket.try_send_to(&bytes, addr).is_ok()
+        })
     }
 
     pub fn spawn_recv_loop(self: &Arc<Self>, input_tx: mpsc::UnboundedSender<SlotInput>) {
@@ -363,7 +363,7 @@ mod tests {
                 .collect(),
             keyframe: true,
         };
-        assert!(!lane.try_send_snapshot(peer_addr, &big));
+        assert!(!lane.try_send_snapshot(peer_addr, &snapshot_ref(&big)));
 
         let small = proto::Snapshot {
             tick: 1,
@@ -373,7 +373,7 @@ mod tests {
             entities: Vec::new(),
             keyframe: false,
         };
-        assert!(lane.try_send_snapshot(peer_addr, &small));
+        assert!(lane.try_send_snapshot(peer_addr, &snapshot_ref(&small)));
 
         let mut buf = [0u8; 2048];
         let n = tokio::time::timeout(std::time::Duration::from_secs(1), peer.recv(&mut buf))
@@ -384,6 +384,17 @@ mod tests {
             proto::decode_inner::<proto::UdpPacket>(&buf[..n]).unwrap(),
             proto::UdpPacket::Snapshot(s) if s.tick == 1 && s.entities.is_empty()
         ));
+    }
+
+    fn snapshot_ref(snap: &proto::Snapshot) -> proto::SnapshotRef<'_> {
+        proto::SnapshotRef {
+            tick: snap.tick,
+            server_time_ms: snap.server_time_ms,
+            input_ack: snap.input_ack,
+            players: &snap.players,
+            entities: snap.entities.iter().collect(),
+            keyframe: snap.keyframe,
+        }
     }
 
     fn tx_sender(

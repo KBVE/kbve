@@ -88,12 +88,11 @@ pub const SHIP_PARKED_FACING: u8 = 0;
 /// (`float_move::step_float`) resolves smoothly against whichever tiles are blocked,
 /// so this set IS the collision shape. Reused for driving: unblock the old footprint,
 /// move, block the new one (recompute with the new facing).
-pub fn ship_footprint(base: Tile, facing: u8) -> Vec<Tile> {
+pub fn ship_footprint(base: Tile, facing: u8) -> impl Iterator<Item = Tile> {
     let f = (facing as usize) % 16;
     crate::ship_footprint_gen::SHIP_FOOTPRINTS[f]
         .iter()
-        .map(|&(dx, dy)| Tile::new(base.x + dx, base.y + dy))
-        .collect()
+        .map(move |&(dx, dy)| Tile::new(base.x + dx, base.y + dy))
 }
 
 /// The ship's starter parked tile — where it spawns, and where the orphan-recovery
@@ -111,9 +110,7 @@ pub fn ship_home_tile() -> Tile {
 /// resolves, so it never collides with itself.
 #[allow(dead_code)] // wired in when driving lands; foundation only for now
 pub fn ship_blocked(map: &WalkableMap, z: i32, base: Tile, facing: u8) -> bool {
-    ship_footprint(base, facing)
-        .into_iter()
-        .any(|t| !map.is_walkable_z(z, t))
+    ship_footprint(base, facing).any(|t| !map.is_walkable_z(z, t))
 }
 
 /// Player collision radius, in tiles. Mirrors the web `BODY_RADIUS` (config.ts) so
@@ -194,32 +191,33 @@ pub fn resolve_ship_collision(
         (With<PlayerSlotTag>, Without<simgrid::Piloting>),
     >,
 ) {
-    // (z, base tile, world-space hull verts) per ship.
-    let hulls: Vec<(i32, Vec<(f32, f32)>)> = ships
-        .iter()
-        .filter(|(_, _, _, env)| env.def_ref == SHIP_REF)
-        .map(|(pos, floor, rot, _)| {
-            let z = floor.map(|f| f.0).unwrap_or(0);
-            let facing = (rot.map(|r| r.0).unwrap_or(0) as usize) % 16;
-            let (bx, by) = (pos.tile.x as f32, pos.tile.y as f32);
-            let verts = crate::ship_footprint_gen::SHIP_HULLS[facing]
-                .iter()
-                .map(|&(x, y)| (bx + x, by + y))
-                .collect();
-            (z, verts)
-        })
-        .collect();
-    if hulls.is_empty() {
+    if players.is_empty() {
         return;
     }
+    // World-space hull verts translated per (player, ship) into a reused scratch
+    // buffer — `SHIP_HULLS[facing]` is `&'static`, so translation is the only work
+    // and no per-tick Vec-of-Vecs is allocated.
+    let mut verts: Vec<(f32, f32)> = Vec::new();
     for (mut fm, mut pos, floor) in players.iter_mut() {
         let pz = floor.map(|f| f.0).unwrap_or(0);
-        for (z, verts) in &hulls {
-            if *z != pz {
+        for (spos, sfloor, rot, env) in ships.iter() {
+            if env.def_ref != SHIP_REF {
                 continue;
             }
+            let z = sfloor.map(|f| f.0).unwrap_or(0);
+            if z != pz {
+                continue;
+            }
+            let facing = (rot.map(|r| r.0).unwrap_or(0) as usize) % 16;
+            let (bx, by) = (spos.tile.x as f32, spos.tile.y as f32);
+            verts.clear();
+            verts.extend(
+                crate::ship_footprint_gen::SHIP_HULLS[facing]
+                    .iter()
+                    .map(|&(x, y)| (bx + x, by + y)),
+            );
             if let Some((nx, ny, wnx, wny)) =
-                resolve_circle_poly(fm.body.x, fm.body.y, PLAYER_BODY_RADIUS, verts)
+                resolve_circle_poly(fm.body.x, fm.body.y, PLAYER_BODY_RADIUS, &verts)
             {
                 fm.body.x = nx;
                 fm.body.y = ny;
@@ -1298,7 +1296,7 @@ mod tests {
         use super::Tile;
         let base = Tile::new(10, 20);
         for facing in 0u8..16 {
-            let tiles = super::ship_footprint(base, facing);
+            let tiles: Vec<Tile> = super::ship_footprint(base, facing).collect();
             let baked = &crate::ship_footprint_gen::SHIP_FOOTPRINTS[facing as usize];
             assert!(
                 !tiles.is_empty(),
@@ -1322,8 +1320,8 @@ mod tests {
         let base = Tile::new(0, 0);
         // The sub byte can carry phase in its high bits; ship_footprint masks to 16.
         assert_eq!(
-            super::ship_footprint(base, 3),
-            super::ship_footprint(base, 3 + 16)
+            super::ship_footprint(base, 3).collect::<Vec<_>>(),
+            super::ship_footprint(base, 3 + 16).collect::<Vec<_>>()
         );
     }
 }
