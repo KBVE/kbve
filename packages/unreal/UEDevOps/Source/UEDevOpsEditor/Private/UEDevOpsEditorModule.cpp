@@ -26,7 +26,7 @@ static TSharedRef<SDockTab> SpawnUEDevOpsPanelTab(const FSpawnTabArgs& Args)
 		];
 }
 
-static FAutoConsoleCommand GUEDevOpsImportRawCmd(
+static FAutoConsoleCommand* GUEDevOpsImportRawCmd = new FAutoConsoleCommand(
 	TEXT("UEDevOps.ImportRaw"),
 	TEXT("UEDevOps.ImportRaw <SourceFolder> <DestContentPath> [MaterialName]\n"
 	     "Runs the Python raw asset importer on a filesystem folder."),
@@ -42,7 +42,7 @@ static FAutoConsoleCommand GUEDevOpsImportRawCmd(
 	})
 );
 
-static FAutoConsoleCommand GUEDevOpsImportPickCmd(
+static FAutoConsoleCommand* GUEDevOpsImportPickCmd = new FAutoConsoleCommand(
 	TEXT("UEDevOps.ImportPick"),
 	TEXT("Open a directory picker and import the chosen Raw folder into /Game/Imported/<name>."),
 	FConsoleCommandDelegate::CreateLambda([]()
@@ -51,7 +51,7 @@ static FAutoConsoleCommand GUEDevOpsImportPickCmd(
 	})
 );
 
-static FAutoConsoleCommand GUEDevOpsPanelCmd(
+static FAutoConsoleCommand* GUEDevOpsPanelCmd = new FAutoConsoleCommand(
 	TEXT("UEDevOps.Panel"),
 	TEXT("Open the UEDevOps panel tab."),
 	FConsoleCommandDelegate::CreateLambda([]()
@@ -60,7 +60,7 @@ static FAutoConsoleCommand GUEDevOpsPanelCmd(
 	})
 );
 
-static FAutoConsoleCommand GUEDevOpsImportArcadeCmd(
+static FAutoConsoleCommand* GUEDevOpsImportArcadeCmd = new FAutoConsoleCommand(
 	TEXT("UEDevOps.ImportArcade"),
 	TEXT("One-shot: import an arcade cabinet prop from Raw/Props/Arcade with all canonical paths."),
 	FConsoleCommandDelegate::CreateLambda([]()

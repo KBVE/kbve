@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 15;
+pub const PROTOCOL_VERSION: u32 = 16;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
 
 pub const POS_SCALE: i32 = 32;
@@ -346,6 +346,20 @@ pub struct EntityDelta {
     /// ship — so others see who is flying it. Appended last (postcard is positional).
     #[serde(default)]
     pub piloting: u32,
+    /// Nameplate pools. All-zero when the entity has no such pool. Appended after
+    /// `piloting` for the same positional-wire reason.
+    #[serde(default)]
+    pub mp: i32,
+    #[serde(default)]
+    pub max_mp: i32,
+    #[serde(default)]
+    pub energy: i32,
+    #[serde(default)]
+    pub max_energy: i32,
+    #[serde(default)]
+    pub stamina: i32,
+    #[serde(default)]
+    pub max_stamina: i32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -862,6 +876,12 @@ mod tests {
                     remaining: 5,
                 }],
                 piloting: 0,
+                mp: 20,
+                max_mp: 100,
+                energy: 0,
+                max_energy: 0,
+                stamina: 0,
+                max_stamina: 0,
             }],
             keyframe: true,
         });
@@ -878,7 +898,7 @@ mod tests {
         );
         assert_eq!(
             h(&snap),
-            "040109640109010207ffff030a050881c002bf01180d033c500501010305020100"
+            "040109640109010207ffff030a050881c002bf01180d033c5005010103050428c801010101020100"
         );
     }
 
@@ -1261,6 +1281,12 @@ mod tests {
             z: 0,
             effects: vec![],
             piloting: 0,
+            mp: 0,
+            max_mp: 0,
+            energy: 0,
+            max_energy: 0,
+            stamina: 0,
+            max_stamina: 0,
         };
         let full = EntityDelta {
             eid: EntityId(2),
@@ -1283,6 +1309,12 @@ mod tests {
                 remaining: 5,
             }],
             piloting: 7,
+            mp: 55,
+            max_mp: 100,
+            energy: 80,
+            max_energy: 100,
+            stamina: 25,
+            max_stamina: 100,
         };
         let evt = ServerEvent::Snapshot(Snapshot {
             tick: 9,

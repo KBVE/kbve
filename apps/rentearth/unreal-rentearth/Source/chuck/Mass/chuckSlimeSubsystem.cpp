@@ -23,15 +23,15 @@
 #include "NavigationData.h"
 #include "DrawDebugHelpers.h"
 
-static TAutoConsoleVariable<int32> CVarSlimeFaceDbg(
+static TAutoConsoleVariable<int32>* CVarSlimeFaceDbg = new TAutoConsoleVariable<int32>(
 	TEXT("chuck.slime.facedbg"), 0,
 	TEXT("Draw slime movement-direction arrows (1) to compare against billboard facing."),
 	ECVF_Default);
 
-static TAutoConsoleVariable<int32> CVarSlimeRowFront(TEXT("chuck.slime.rowfront"), -1, TEXT("Override slime atlas front row (-1=def)."), ECVF_Default);
-static TAutoConsoleVariable<int32> CVarSlimeRowSide (TEXT("chuck.slime.rowside"),  -1, TEXT("Override slime atlas side row (-1=def)."),  ECVF_Default);
-static TAutoConsoleVariable<int32> CVarSlimeRowBack (TEXT("chuck.slime.rowback"),  -1, TEXT("Override slime atlas back row (-1=def)."),  ECVF_Default);
-static TAutoConsoleVariable<int32> CVarSlimeSwapSide(TEXT("chuck.slime.swapside"), -1, TEXT("Override slime side flip 0/1 (-1=def)."),    ECVF_Default);
+static TAutoConsoleVariable<int32>* CVarSlimeRowFront = new TAutoConsoleVariable<int32>(TEXT("chuck.slime.rowfront"), -1, TEXT("Override slime atlas front row (-1=def)."), ECVF_Default);
+static TAutoConsoleVariable<int32>* CVarSlimeRowSide  = new TAutoConsoleVariable<int32>(TEXT("chuck.slime.rowside"),  -1, TEXT("Override slime atlas side row (-1=def)."),  ECVF_Default);
+static TAutoConsoleVariable<int32>* CVarSlimeRowBack  = new TAutoConsoleVariable<int32>(TEXT("chuck.slime.rowback"),  -1, TEXT("Override slime atlas back row (-1=def)."),  ECVF_Default);
+static TAutoConsoleVariable<int32>* CVarSlimeSwapSide = new TAutoConsoleVariable<int32>(TEXT("chuck.slime.swapside"), -1, TEXT("Override slime side flip 0/1 (-1=def)."),    ECVF_Default);
 
 namespace
 {
@@ -341,10 +341,10 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 
 	if (Renderer && SlimeDef)
 	{
-		const int32 RF = CVarSlimeRowFront.GetValueOnGameThread();
-		const int32 RS = CVarSlimeRowSide.GetValueOnGameThread();
-		const int32 RB = CVarSlimeRowBack.GetValueOnGameThread();
-		const int32 SW = CVarSlimeSwapSide.GetValueOnGameThread();
+		const int32 RF = CVarSlimeRowFront->GetValueOnGameThread();
+		const int32 RS = CVarSlimeRowSide->GetValueOnGameThread();
+		const int32 RB = CVarSlimeRowBack->GetValueOnGameThread();
+		const int32 SW = CVarSlimeSwapSide->GetValueOnGameThread();
 		if (RF >= 0 || RS >= 0 || RB >= 0 || SW >= 0)
 		{
 			Renderer->DebugSetCellParams(SlimeDef,
@@ -487,7 +487,7 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 			Renderer->UpdateSprite(SlimeSprites[i], Pos, MoveYaw);
 		}
 
-		if (bRelevant && CVarSlimeFaceDbg.GetValueOnGameThread() != 0)
+		if (bRelevant && CVarSlimeFaceDbg->GetValueOnGameThread() != 0)
 		{
 			if (UWorld* W = GetWorld())
 			{

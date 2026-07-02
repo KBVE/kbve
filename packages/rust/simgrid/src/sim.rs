@@ -353,6 +353,10 @@ pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
 pub const PLAYER_MAX_MP: i32 = 100;
 pub const MANA_REGEN_AMOUNT: i32 = 5;
+pub const PLAYER_MAX_ENERGY: i32 = 100;
+pub const ENERGY_REGEN_AMOUNT: i32 = 4;
+pub const PLAYER_MAX_STAMINA: i32 = 100;
+pub const STAMINA_REGEN_AMOUNT: i32 = 6;
 
 #[derive(Clone, Copy)]
 pub struct StatusEffect {
@@ -482,6 +486,18 @@ pub struct CombatStats {
 pub struct Mana {
     pub mp: i32,
     pub max_mp: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Energy {
+    pub ep: i32,
+    pub max_ep: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Stamina {
+    pub sp: i32,
+    pub max_sp: i32,
 }
 
 #[derive(Resource, Default)]
@@ -1679,6 +1695,16 @@ fn sync_roster(
                 IntentBuffer::default(),
             ))
             .insert(PosHistory::default())
+            .insert((
+                Energy {
+                    ep: PLAYER_MAX_ENERGY,
+                    max_ep: PLAYER_MAX_ENERGY,
+                },
+                Stamina {
+                    sp: PLAYER_MAX_STAMINA,
+                    max_sp: PLAYER_MAX_STAMINA,
+                },
+            ))
             .id();
         if was_in_space {
             commands.entity(entity).insert(ReturnedFromInstance);
@@ -1757,10 +1783,12 @@ fn rebuild_index(
 /// intent is held a short grace then zeroed so a dropped tail still comes to rest.
 #[derive(Component, Default)]
 pub struct IntentBuffer {
-    pending: std::collections::VecDeque<(i8, i8, bool)>,
+    pending: std::collections::VecDeque<(u32, i8, i8, bool)>,
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
+    debt: u32,
+    consumed_seq: u32,
 }
 
 /// Recent server-tick positions per player, for lag-compensated PvP hit checks:
@@ -1818,9 +1846,24 @@ const INPUT_JITTER_BUFFER: usize = 2;
 const INPUT_STARVE_GRACE: u32 = 2;
 
 impl IntentBuffer {
-    /// Queue one client-tick intent.
-    fn push(&mut self, mx: i8, my: i8, run: bool) {
-        self.pending.push_back((mx, my, run));
+    /// Queue one client-tick intent. Intents arriving while starve-hold debt is
+    /// outstanding were already played via the hold, so they retroactively become
+    /// the held intent instead of queueing — displacement is conserved and a late
+    /// stop takes effect on the next tick instead of replaying the burst.
+    fn push(&mut self, seq: u32, mx: i8, my: i8, run: bool) {
+        if self.debt > 0 {
+            self.debt -= 1;
+            self.last = (mx, my, run);
+            self.consumed_seq = seq;
+            return;
+        }
+        self.pending.push_back((seq, mx, my, run));
+    }
+
+    /// Seq of the last intent actually applied to the body — the ack clients
+    /// replay their unacked inputs against.
+    pub fn consumed_seq(&self) -> u32 {
+        self.consumed_seq
     }
 
     /// Drop all buffered motion and come to rest. Used when control is taken over
@@ -1830,22 +1873,37 @@ impl IntentBuffer {
         self.last = (0, 0, false);
         self.primed = false;
         self.starve_ticks = 0;
+        self.debt = 0;
     }
 
     /// Advance one server tick: return the intent to apply. Primes on the jitter
-    /// buffer, then pops one per tick; holds (then zeroes) the last on starvation.
+    /// buffer, then pops one per tick. On starvation the last moving intent is
+    /// held for a short grace (counted as debt repaid by `push`), then zeroed so
+    /// a dropped tail still comes to rest without over-travelling.
     fn next(&mut self) -> (i8, i8, bool) {
         if !self.primed && self.pending.len() >= INPUT_JITTER_BUFFER {
             self.primed = true;
         }
-        if self.primed {
-            if let Some(i) = self.pending.pop_front() {
-                self.last = i;
+        let popped = if self.primed {
+            self.pending.pop_front()
+        } else {
+            None
+        };
+        match popped {
+            Some((seq, mx, my, run)) => {
+                self.last = (mx, my, run);
+                self.consumed_seq = seq;
                 self.starve_ticks = 0;
-            } else {
-                self.starve_ticks += 1;
-                if self.starve_ticks > INPUT_STARVE_GRACE {
-                    self.last = (0, 0, self.last.2);
+            }
+            None => {
+                if self.last.0 != 0 || self.last.1 != 0 {
+                    self.starve_ticks += 1;
+                    if self.starve_ticks > INPUT_STARVE_GRACE {
+                        self.last = (0, 0, self.last.2);
+                        self.debt = 0;
+                    } else {
+                        self.debt += 1;
+                    }
                 }
                 self.primed = false;
             }
@@ -1970,7 +2028,7 @@ fn drain_inputs(
                     // dedupes retransmits/reorders.
                     if *seq > fm.last_seq {
                         fm.last_seq = *seq;
-                        intents.push(*mx, *my, *run);
+                        intents.push(*seq, *mx, *my, *run);
                     }
                 }
                 Input::Face { facing } => {
@@ -3290,6 +3348,8 @@ fn regen_players(
         &PlayerSlotTag,
         &mut Health,
         &mut Mana,
+        Option<&mut Energy>,
+        Option<&mut Stamina>,
         &GridPos,
         &XpState,
         &CombatStats,
@@ -3298,7 +3358,15 @@ fn regen_players(
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for (slot, mut hp, mut mana, pos, xp, stats) in q.iter_mut() {
+    for (slot, mut hp, mut mana, energy, stamina, pos, xp, stats) in q.iter_mut() {
+        if hp.hp > 0 {
+            if let Some(mut e) = energy {
+                e.ep = (e.ep + ENERGY_REGEN_AMOUNT).min(e.max_ep);
+            }
+            if let Some(mut s) = stamina {
+                s.sp = (s.sp + STAMINA_REGEN_AMOUNT).min(s.max_sp);
+            }
+        }
         if hp.hp > 0 && hp.hp < hp.max_hp {
             // The town fountain mends faster — return to the plaza to recover.
             let in_town =
@@ -3685,6 +3753,7 @@ fn advance_float(
         fm.intent_x = mx;
         fm.intent_y = my;
         fm.run = run;
+        fm.acked_seq = intents.consumed_seq();
         let (ix, iy) = crate::float_move::intent_from_axes(mx, my);
         let mut speed = if run {
             crate::float_move::RUN_SPEED
@@ -3921,21 +3990,28 @@ fn emit_snapshot(
     clock: Res<SimClock>,
     bcast: Res<Outbound>,
     q: Query<(
-        Entity,
-        &EntityKind,
-        Option<&PlayerSlotTag>,
-        &GridPos,
-        Option<&MoveTarget>,
-        Option<&MoveSpeed>,
-        Option<&Health>,
-        Option<&StatusEffects>,
-        Option<&Floor>,
-        Option<&FloatMove>,
-        Option<&PlacedBy>,
-        Option<&TreeState>,
-        Option<&BushState>,
-        Option<&FurnitureRot>,
-        Option<&Piloting>,
+        (
+            Entity,
+            &EntityKind,
+            Option<&PlayerSlotTag>,
+            &GridPos,
+            Option<&MoveTarget>,
+            Option<&MoveSpeed>,
+            Option<&Health>,
+            Option<&StatusEffects>,
+            Option<&Floor>,
+            Option<&FloatMove>,
+        ),
+        (
+            Option<&PlacedBy>,
+            Option<&TreeState>,
+            Option<&BushState>,
+            Option<&FurnitureRot>,
+            Option<&Piloting>,
+            Option<&Mana>,
+            Option<&Energy>,
+            Option<&Stamina>,
+        ),
     )>,
 ) {
     if !clock.tick.is_multiple_of(SNAPSHOT_EVERY_N_TICKS) {
@@ -3947,21 +4023,8 @@ fn emit_snapshot(
         .iter()
         .map(
             |(
-                entity,
-                kind,
-                slot,
-                pos,
-                mv,
-                speed,
-                hp,
-                status,
-                floor,
-                fm,
-                placed,
-                tree,
-                bush,
-                furniture,
-                piloting,
+                (entity, kind, slot, pos, mv, speed, hp, status, floor, fm),
+                (placed, tree, bush, furniture, piloting, mana, energy, stamina),
             )| {
                 let sub = match (tree, bush, furniture) {
                     (Some(t), _, _) => t.sub(),
@@ -3996,7 +4059,7 @@ fn emit_snapshot(
                         proto::quantize_pos(f.body.y),
                         proto::quantize_vel(f.body.vx),
                         proto::quantize_vel(f.body.vy),
-                        f.last_seq,
+                        f.acked_seq,
                     ),
                     None => (
                         proto::quantize_pos(pos.tile.x as f32),
@@ -4030,6 +4093,12 @@ fn emit_snapshot(
                     // hides its body + floats its nameplate over the ship). Sourced from
                     // the `Piloting` link component.
                     piloting: piloting.map(|p| p.0.index_u32()).unwrap_or(0),
+                    mp: mana.map(|m| m.mp).unwrap_or(0),
+                    max_mp: mana.map(|m| m.max_mp).unwrap_or(0),
+                    energy: energy.map(|e| e.ep).unwrap_or(0),
+                    max_energy: energy.map(|e| e.max_ep).unwrap_or(0),
+                    stamina: stamina.map(|s| s.sp).unwrap_or(0),
+                    max_stamina: stamina.map(|s| s.max_sp).unwrap_or(0),
                 }
             },
         )
@@ -4201,6 +4270,61 @@ mod tests {
     use super::test_support::*;
     use super::*;
     use std::collections::HashSet;
+
+    #[test]
+    fn intent_buffer_starve_hold_does_not_replay_late_burst() {
+        let mut b = IntentBuffer::default();
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
+        let mut moving_ticks = 0;
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        b.push(3, 100, 0, true);
+        b.push(4, 100, 0, true);
+        b.push(5, 0, 0, true);
+        b.push(6, 0, 0, true);
+        for _ in 0..8 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert_eq!(
+            moving_ticks, 4,
+            "held starve ticks must repay the late burst, not double-play it"
+        );
+        assert_eq!(
+            b.consumed_seq(),
+            6,
+            "ack must cover every intent applied, including debt-adopted ones"
+        );
+    }
+
+    #[test]
+    fn intent_buffer_unprimed_hold_stops_after_grace() {
+        let mut b = IntentBuffer::default();
+        b.push(1, 100, 0, true);
+        b.push(2, 100, 0, true);
+        b.next();
+        b.next();
+        let mut moving_ticks = 0;
+        for _ in 0..10 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert!(
+            moving_ticks <= INPUT_STARVE_GRACE as i32,
+            "dead stream must come to rest within grace, kept moving {moving_ticks} ticks"
+        );
+    }
 
     #[test]
     fn drop_item_spawns_ground_loot_and_decrements_inventory() {

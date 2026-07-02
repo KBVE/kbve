@@ -51,6 +51,12 @@ struct FSimgridEntityDelta
 	int32 Z = 0;
 	TArray<FSimgridStatusView> Effects;
 	uint32 Piloting = 0;
+	int32 Mp = 0;
+	int32 MaxMp = 0;
+	int32 Energy = 0;
+	int32 MaxEnergy = 0;
+	int32 Stamina = 0;
+	int32 MaxStamina = 0;
 };
 
 struct FSimgridWelcome
@@ -61,11 +67,19 @@ struct FSimgridWelcome
 	TArray<FSimgridKindEntry> Registry;
 };
 
+struct FSimgridPlayerView
+{
+	uint16 Slot = 0;
+	FString Username;
+	bool bConnected = false;
+};
+
 struct FSimgridSnapshot
 {
 	uint32 Tick = 0;
 	uint32 ServerTimeMs = 0;
 	uint32 InputAck = 0;
+	TArray<FSimgridPlayerView> Players;
 	TArray<FSimgridEntityDelta> Entities;
 	bool bKeyframe = false;
 };

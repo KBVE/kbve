@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-01T09:19:45Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-02T09:14:09Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-07-01T09:19:45Z** — updated daily by `ci-dashboard`.
   <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="49 Medium" icon="information">
+  <Card title="53 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="8 Low" icon="approve-check-circle">
@@ -44,7 +44,7 @@ Last generated: **2026-07-01T09:19:45Z** — updated daily by `ci-dashboard`.
     **64** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **54** advisories
+    **58** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 5
     "High" : 25
-    "Medium" : 49
+    "Medium" : 53
     "Low" : 8
 ```
 
@@ -74,7 +74,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 64
-    "Cargo" : 54
+    "Cargo" : 58
     "CodeQL" : 3
 ```
 
@@ -84,11 +84,11 @@ pie showData
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 2 | 25 | 29 | 8 | 64 |
-| **Cargo** | 0 | 0 | 20 | 0 | 54 |
+| **Cargo** | 0 | 0 | 24 | 0 | 58 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 0 | 0 | 3 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 25 | 49 | 8 | 121 |
+| **Total** | 5 | 25 | 53 | 8 | 125 |
 
   </TabItem>
   <TabItem label="npm">
@@ -170,6 +170,10 @@ pie showData
 | Medium | `hickory-proto` | NSEC3 closest-encloser proof validation enters unbounded ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465) |
 | Medium | `postgres-protocol` | Unbounded SCRAM iteration count allows a malicious server... | [Details](https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0) |
 | Medium | `postgres-protocol` | Panic decoding a malformed `hstore` value allows denial o... | [Details](https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d) |
+| Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
+| Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
+| Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
+| Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quinn-proto` |  Remote memory exhaustion in quinn-proto from unbounded o... | [Details](https://github.com/quinn-rs/quinn/pull/2694) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |

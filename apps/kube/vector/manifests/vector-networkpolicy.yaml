@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+    name: vector-alertmanager-webhook
+    namespace: vector
+    labels:
+        app: supabase-vector
+        component: vector
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    podSelector:
+        matchLabels:
+            app: supabase-vector
+    policyTypes:
+        - Ingress
+    ingress:
+        - from:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: monitoring
+          ports:
+              - port: 9002
+                protocol: TCP

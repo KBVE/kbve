@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-01T09:19:45Z",
+  "generated_at": "2026-07-02T09:14:09Z",
   "summary": {
     "critical": 5,
     "high": 25,
-    "medium": 49,
+    "medium": 53,
     "low": 8,
     "info": 34
   },
@@ -469,11 +469,11 @@
       ]
     },
     "cargo": {
-      "total": 54,
+      "total": 58,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 20,
+        "medium": 24,
         "low": 0,
         "info": 34
       },
@@ -512,6 +512,34 @@
           "severity": "medium",
           "package": "postgres-protocol",
           "url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
+        },
+        {
+          "id": "RUSTSEC-2026-0194",
+          "title": "Quadratic run time when checking a start tag for duplicate attribute names",
+          "severity": "medium",
+          "package": "quick-xml",
+          "url": "https://github.com/tafia/quick-xml/issues/969"
+        },
+        {
+          "id": "RUSTSEC-2026-0195",
+          "title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
+          "severity": "medium",
+          "package": "quick-xml",
+          "url": "https://github.com/tafia/quick-xml/issues/970"
+        },
+        {
+          "id": "RUSTSEC-2026-0194",
+          "title": "Quadratic run time when checking a start tag for duplicate attribute names",
+          "severity": "medium",
+          "package": "quick-xml",
+          "url": "https://github.com/tafia/quick-xml/issues/969"
+        },
+        {
+          "id": "RUSTSEC-2026-0195",
+          "title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
+          "severity": "medium",
+          "package": "quick-xml",
+          "url": "https://github.com/tafia/quick-xml/issues/970"
         },
         {
           "id": "RUSTSEC-2026-0185",

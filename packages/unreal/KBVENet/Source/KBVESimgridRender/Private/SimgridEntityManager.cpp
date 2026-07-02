@@ -10,7 +10,10 @@
 #include "KBVENpcSpriteDef.h"
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimationAsset.h"
 
+static constexpr uint8 KBVE_CAT_PLAYER = 0;
 static constexpr uint8 KBVE_CAT_ENV = 3;
 
 static bool ResolveKindCat(const TArray<FSimgridKindEntry>& Reg, uint16 Kind, uint8& OutCat, FString& OutRef)
@@ -54,8 +57,22 @@ void USimgridEntityManager::OnSnapshotReceived()
 {
 	if (Sub)
 	{
-		Interp.Push(Sub->GetLastSnapshot());
+		const FSimgridSnapshot& Snap = Sub->GetLastSnapshot();
+		for (const FSimgridPlayerView& P : Snap.Players)
+		{
+			if (P.bConnected && !P.Username.IsEmpty())
+			{
+				SlotNames.Add(P.Slot, P.Username);
+			}
+		}
+		Interp.Push(Snap);
 	}
+}
+
+FString USimgridEntityManager::NameForSlot(uint16 Slot) const
+{
+	const FString* Found = SlotNames.Find(Slot);
+	return Found ? *Found : FString();
 }
 
 FVector USimgridEntityManager::ResolveWorldPos(const FSimgridInterpState& S) const
@@ -111,6 +128,41 @@ void USimgridEntityManager::EnsureEnvDef()
 	EnvDef->CullDistance = 12000.0f;
 }
 
+USkeletalMesh* USimgridEntityManager::EnsureMannyMesh()
+{
+	if (!MannyMesh)
+	{
+		MannyMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	}
+	return MannyMesh;
+}
+
+void USimgridEntityManager::EnsureLocomotionAnims()
+{
+	if (bAnimsLoaded)
+	{
+		return;
+	}
+	bAnimsLoaded = true;
+	IdleAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle"));
+	WalkAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd"));
+	JogAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd"));
+}
+
+UAnimationAsset* USimgridEntityManager::PickLocomotionAnim(float Speed)
+{
+	EnsureLocomotionAnims();
+	if (Speed < 40.0f)
+	{
+		return IdleAnim;
+	}
+	if (Speed < 500.0f)
+	{
+		return WalkAnim ? WalkAnim : JogAnim;
+	}
+	return JogAnim ? JogAnim : WalkAnim;
+}
+
 void USimgridEntityManager::Tick(double NowMs)
 {
 	if (!Interp.HasData())
@@ -139,6 +191,14 @@ void USimgridEntityManager::Tick(double NowMs)
 		{
 			bHasLocalPos = true;
 			LocalWorldPos = WorldPos;
+			LocalPools.Hp = E.Hp;
+			LocalPools.MaxHp = E.MaxHp;
+			LocalPools.Mp = E.Mp;
+			LocalPools.MaxMp = E.MaxMp;
+			LocalPools.Energy = E.Energy;
+			LocalPools.MaxEnergy = E.MaxEnergy;
+			LocalPools.Stamina = E.Stamina;
+			LocalPools.MaxStamina = E.MaxStamina;
 
 			AActor* Pawn = LocalPawn.Get();
 			if (!Pawn)
@@ -151,7 +211,11 @@ void USimgridEntityManager::Tick(double NowMs)
 			}
 			else if (IKBVEMovementDriver* Driver = Cast<IKBVEMovementDriver>(Pawn))
 			{
-				Driver->ApplyServerCorrection(WorldPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
+				const FVector2D LatestXY = FSimgridCoords::QuantToWorldXY(E.Qx, E.Qy);
+				const float LatestH = WorldBridge ? WorldBridge->SampleHeight((float)LatestXY.X, (float)LatestXY.Y) : 0.0f;
+				const FVector LatestPos((float)LatestXY.X, (float)LatestXY.Y, LatestH + (float)E.Z * FSimgridCoords::FLOOR_HEIGHT);
+				const FVector2D LatestVel = FSimgridCoords::QuantVelToWorldXY(E.Qvx, E.Qvy);
+				Driver->ApplyServerCorrection(LatestPos, FVector(LatestVel.X, LatestVel.Y, 0.0f), E.InputAck);
 			}
 			else if (!bWarnedLocalNotDriver)
 			{
@@ -194,8 +258,21 @@ void USimgridEntityManager::Tick(double NowMs)
 				continue;
 			}
 			Actors.Add(E.Eid, Actor);
+			if (bResolved && Cat == KBVE_CAT_PLAYER)
+			{
+				Actor->SetSkeletalMesh(EnsureMannyMesh());
+			}
 		}
 		Actor->ApplyState(WorldPos, Yaw, S.Kind);
+		if (bResolved && Cat == KBVE_CAT_PLAYER)
+		{
+			Actor->SetDisplayName(NameForSlot(S.Owner));
+			Actor->SetBar(ESimgridNameplateBar::Health, (float)S.Hp, (float)S.MaxHp);
+			Actor->SetBar(ESimgridNameplateBar::Mana, (float)S.Mp, (float)S.MaxMp);
+			Actor->SetBar(ESimgridNameplateBar::Energy, (float)S.Energy, (float)S.MaxEnergy);
+			Actor->SetBar(ESimgridNameplateBar::Stamina, (float)S.Stamina, (float)S.MaxStamina);
+			Actor->SetLocomotionAnim(PickLocomotionAnim((float)S.VelXY.Size()));
+		}
 	}
 
 	TSet<uint32> Live;
@@ -276,6 +353,7 @@ void USimgridEntityManager::Clear()
 		}
 	}
 	SpriteHandleIds.Empty();
+	SlotNames.Empty();
 
 	bHasLocalPos = false;
 }

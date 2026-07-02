@@ -462,6 +462,7 @@ pub struct FloatMove {
     pub intent_y: i8,
     pub run: bool,
     pub last_seq: u32,
+    pub acked_seq: u32,
 }
 
 impl FloatMove {
@@ -472,6 +473,7 @@ impl FloatMove {
             intent_y: 0,
             run: false,
             last_seq: 0,
+            acked_seq: 0,
         }
     }
 }

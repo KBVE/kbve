@@ -3,7 +3,7 @@
 #include "KBVESimgridModule.h"
 #include "KBVESupabaseSubsystem.h"
 
-static const uint32 GSimgridProtocolVersion = 15;
+static const uint32 GSimgridProtocolVersion = 16;
 
 void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 {
@@ -88,11 +88,11 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 	}
 }
 
-void USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
+uint32 USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 {
 	if (State != ESimgridState::Live || !Ws.IsValid())
 	{
-		return;
+		return 0;
 	}
 	++ClientTick;
 	FSimgridMove Tx = Move;
@@ -100,6 +100,7 @@ void USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 	Tx.Tick = ClientTick;
 	const TArray<uint8> Frame = FProtoCodec::EncodeMoveFrame(ClientTick, Tx);
 	Ws->SendBinary(Frame);
+	return Tx.Seq;
 }
 
 void USimgridClientSubsystem::HandleClose(int32 Code, const FString& Reason, bool bClean)

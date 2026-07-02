@@ -241,6 +241,12 @@ function readEntityDelta(r: PostcardReader): EntityDelta {
 	// that ship's eid here; 0 = on foot. serde(default) on the server keeps old
 	// encodings decodable, but server+client ship together so the byte is present.
 	const piloting = r.u32();
+	const mp = r.i32();
+	const max_mp = r.i32();
+	const energy = r.i32();
+	const max_energy = r.i32();
+	const stamina = r.i32();
+	const max_stamina = r.i32();
 	return {
 		eid,
 		kind,
@@ -259,6 +265,12 @@ function readEntityDelta(r: PostcardReader): EntityDelta {
 		z,
 		effects,
 		piloting,
+		mp,
+		max_mp,
+		energy,
+		max_energy,
+		stamina,
+		max_stamina,
 	};
 }
 

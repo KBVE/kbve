@@ -12,7 +12,7 @@ use axum::{
 };
 use tower_http::cors::CorsLayer;
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 
 use dashmap::DashMap;
@@ -40,21 +40,21 @@ use crate::schema::globals;
 
 //*         [REGEX]
 
-pub static EMAIL_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap());
+pub static EMAIL_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$").unwrap());
 
-pub static GITHUB_USERNAME_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"github\.com/([a-zA-Z0-9_-]+)").unwrap());
+pub static GITHUB_USERNAME_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"github\.com/([a-zA-Z0-9_-]+)").unwrap());
 
-pub static INSTAGRAM_USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+pub static INSTAGRAM_USERNAME_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?:@|(?:www\.)?instagram\.com/)?(?:@)?([a-zA-Z0-9_](?:[a-zA-Z0-9_.]*[a-zA-Z0-9_])?)",
     )
     .unwrap()
 });
 
-pub static UNSPLASH_PHOTO_ID_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap());
+pub static UNSPLASH_PHOTO_ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"photo-([a-zA-Z0-9]+-[a-zA-Z0-9]+)").unwrap());
 
 //*         [VALIDATION]
 

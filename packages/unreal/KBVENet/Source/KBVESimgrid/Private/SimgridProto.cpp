@@ -96,6 +96,12 @@ static FSimgridEntityDelta ReadEntityDelta(FPostcardReader& R)
 		E.Effects.Add(S);
 	}
 	E.Piloting = R.VarU32();
+	E.Mp = R.VarI32();
+	E.MaxMp = R.VarI32();
+	E.Energy = R.VarI32();
+	E.MaxEnergy = R.VarI32();
+	E.Stamina = R.VarI32();
+	E.MaxStamina = R.VarI32();
 	return E;
 }
 
@@ -132,9 +138,11 @@ FServerDecoded FProtoCodec::DecodeServerEventRaw(const TArray<uint8>& Body)
 		const int32 PlayerCount = R.SeqLen();
 		for (int32 i = 0; i < PlayerCount; ++i)
 		{
-			R.U16();
-			R.String();
-			R.Bool();
+			FSimgridPlayerView P;
+			P.Slot = R.U16();
+			P.Username = R.String();
+			P.bConnected = R.Bool();
+			D.Snapshot.Players.Add(P);
 		}
 		const int32 EntityCount = R.SeqLen();
 		for (int32 i = 0; i < EntityCount; ++i)

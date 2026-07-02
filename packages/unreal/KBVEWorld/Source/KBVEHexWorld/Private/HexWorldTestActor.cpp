@@ -4,6 +4,8 @@
 #include "HexEnvironmentSubsystem.h"
 #include "HexNoiseSubsystem.h"
 #include "HexTerrainActor.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEHexWorldTest, Log, All);
 
