@@ -18,6 +18,8 @@ static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 #include "SimgridProjectileTracer.h"
 #include "Events/chuckUIEvents.h"
 #include "KBVEGameplayEvents.h"
+#include "chuckNoise.h"
+#include "chuckTerrainStreamer.h"
 
 AchuckSimgridController::AchuckSimgridController()
 {
@@ -71,6 +73,15 @@ void AchuckSimgridController::BeginPlay()
 	}
 
 	Bridge = NewObject<USimgridWorldBridge>(this);
+	{
+		TWeakObjectPtr<UWorld> WeakWorld = GetWorld();
+		Bridge->SetHeightSampler([WeakWorld](float X, float Y)
+		{
+			const UWorld* World = WeakWorld.Get();
+			const UchuckTerrainStreamer* Streamer = World ? World->GetSubsystem<UchuckTerrainStreamer>() : nullptr;
+			return chuckNoise::Heightmap(X, Y, Streamer ? Streamer->GetSeed() : 0xC1A55E5Au);
+		});
+	}
 	Manager = NewObject<USimgridEntityManager>(this);
 	Manager->Setup(GetWorld(), Sub, Bridge, DefaultEntityMesh);
 	Manager->SetLocalPawn(GetPawn());

@@ -151,7 +151,7 @@ UKBVENpcSpriteDef* USimgridEntityManager::EnsureTreeDef()
 	TreeDef->Columns = 10;
 	TreeDef->Rows = 14;
 	TreeDef->WorldSize = FVector2f(300.0f, 600.0f);
-	TreeDef->PivotZ = 0.08f;
+	TreeDef->PivotZ = 0.0f;
 	TreeDef->CullDistance = 12000.0f;
 	return TreeDef;
 }
