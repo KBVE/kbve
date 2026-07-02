@@ -57,6 +57,7 @@ private:
 	ASimgridEntityActor* SpawnActor(uint16 Kind);
 	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
 	void EnsureEnvDef();
+	UKBVENpcSpriteDef* EnsureTreeDef();
 	USkeletalMesh* EnsureMannyMesh();
 	void EnsureLocomotionAnims();
 	UAnimationAsset* PickLocomotionAnim(float Speed);
@@ -82,6 +83,11 @@ private:
 	TObjectPtr<UKBVENpcSpriteDef> EnvDef;
 
 	UPROPERTY()
+	TObjectPtr<UKBVENpcSpriteDef> TreeDef;
+
+	bool bTreeAtlasWarned = false;
+
+	UPROPERTY()
 	TObjectPtr<USkeletalMesh> MannyMesh;
 
 	UPROPERTY()
@@ -96,6 +102,7 @@ private:
 	bool bAnimsLoaded = false;
 
 	TMap<uint32, int32> SpriteHandleIds;
+	TMap<uint32, uint8> EnvSubApplied;
 	TMap<uint16, FString> SlotNames;
 
 	UPROPERTY()

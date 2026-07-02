@@ -48,8 +48,16 @@ export type {
 	GpuSpriteLayerOptions,
 	GpuSpriteLayerHandle,
 } from './lib/phaser/gpu-sprite-layer';
-export { createDustMoteLayer, dustMemberAt } from './lib/phaser/ambient-dust';
-export type { DustMoteOptions } from './lib/phaser/ambient-dust';
+export {
+	createDustMoteLayer,
+	createWorldDustLayer,
+	dustMemberAt,
+} from './lib/phaser/ambient-dust';
+export type {
+	DustMoteOptions,
+	WorldDustHandle,
+	WorldDustOptions,
+} from './lib/phaser/ambient-dust';
 export { GameObjectPool } from './lib/phaser/object-pool';
 export { setupKeyboardMap } from './lib/phaser/keyboard-map';
 export type { KeyboardMap } from './lib/phaser/keyboard-map';
@@ -118,6 +126,11 @@ export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
 // Determinism — RNG primitives mirrored byte-for-byte by simgrid rng.rs
 export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
+export {
+	heightAt,
+	seedFromWorld,
+	HEIGHT_AMPLITUDE,
+} from './lib/determ/heightfield';
 
 // Combat — attack geometry mirrored byte-for-byte by simgrid combat.rs
 export {

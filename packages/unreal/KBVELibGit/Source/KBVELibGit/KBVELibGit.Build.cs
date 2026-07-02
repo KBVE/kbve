@@ -34,6 +34,16 @@ public class KBVELibGit : ModuleRules
 		{
 			LibDir = Path.Combine(ThirdPartyDir, "lib", "Win64");
 			PublicAdditionalLibraries.Add(Path.Combine(LibDir, "git2.lib"));
+			PublicSystemLibraries.AddRange(new string[]
+			{
+				"Ws2_32.lib",
+				"Secur32.lib",
+				"Winhttp.lib",
+				"Crypt32.lib",
+				"Rpcrt4.lib",
+				"Ole32.lib",
+				"Advapi32.lib"
+			});
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Mac)
 		{

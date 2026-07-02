@@ -20,19 +20,24 @@ caller workflow (status: failure|success)
   → utils-ci-failure-tracker.yml (workflow_call)
     → setup-node 22 + npm i @kbve/devops@latest
     → github-script:
-        failure + no open issue  → ci.buildIssueBody    → issues.create
-        failure + open issue     → ci.buildComment       → comment
-                                   ci.incrementHistory   → issue.update (count++ , history row)
-        success + open issue     → ci.buildResolveComment → comment + close
+        failure + no open issue  → gha.ci.buildIssueBody     → issues.create
+        failure + open issue     → gha.ci.buildComment        → comment
+                                   gha.ci.incrementHistory    → issue.update (count++ , history row)
+        success + open issue     → gha.ci.buildResolveComment → comment + close
 ```
 
-Issue dedup: title `[CI] <workflow> / <job> — Failed` (`ci.issueTitle`), matched
-against open issues labelled `ci`.
+Issue dedup: title `[CI] <workflow> / <job> — Failed` (`gha.ci.issueTitle`),
+matched against open issues labelled `ci`.
 
-## API (`ci` namespace — canonical)
+## API (`gha.ci` namespace — canonical)
+
+As of v0.0.22 the whole GitHub-helper surface is one grouped namespace, `gha`.
+The tracker uses `gha.ci.*`. The same object is still exported top-level as `ci`
+(`gha.ci === ci`), so either import works.
 
 ```ts
-import { ci } from '@kbve/devops';
+import { gha } from '@kbve/devops';
+const { ci } = gha;
 
 ci.issueTitle(workflowName, jobName); // dedup title
 ci.parseFailureLog(rawLog, opts?); // { snippet, nxTargets } — opts caps snippet chars + context window
@@ -77,45 +82,46 @@ git auth.
 
 ## Naming + deprecation
 
-Canonical API is the `ci` namespace (clean camelCase). The legacy
-`_$gha_*` exports remain as `@deprecated` pointers to the same functions so the
-published-package consumers (the workflow on `@latest`) keep working. New code
-imports `ci.*`. Remove the aliases once no consumer references them.
+Canonical API is the `gha` grouped namespace (`gha.ci.*`, `gha.issues.*`,
+`gha.actions.*`, `gha.pulls.*`, `gha.docker.*`, `gha.context.*`, `gha.withRetry`).
+The legacy `_$gha_*` exports remain as `@deprecated` aliases so published-package
+consumers keep working; internal code no longer references them. New code imports
+`gha.*`. Removing the aliases is a breaking change tracked in a follow-up issue.
 
 ```ts
-/** @deprecated Use `ci.parseFailureLog`. */
-export const _$gha_parseFailureLog = parseFailureLog;
+import { gha } from '@kbve/devops';
+gha.issues.createComment(github, context, body);
+
+/** @deprecated Use `gha.issues.createComment`. */
+export const _$gha_createIssueComment = createComment;
 ```
 
-**v0.0.22 (planned):** collapse the whole `_$gha_*` prefix into grouped
-namespace objects mirroring `ci.*` — `gha.issues.*`, `gha.actions.*`,
-`gha.ci.*` (and `gha.pulls.*`, `gha.docker.*`), one import, autocomplete-friendly.
-Old `_$gha_*` names stay as `@deprecated` aliases through a migration window.
-Spec/plan: `docs/superpowers/specs/2026-07-02-devops-hardening-design.md`,
-`docs/superpowers/plans/2026-07-02-devops-hardening-0021.md`.
+Spec/plan: `docs/superpowers/specs/2026-07-02-devops-0022-gha-namespace-design.md`,
+`docs/superpowers/plans/2026-07-02-devops-0022-gha-namespace.md`.
 
 ## Publish dependency
 
 The workflow runs `npm i @kbve/devops@latest`, so any library change only takes
 effect in CI **after `@kbve/devops` is published**. Version bumps follow the
 monorepo release flow (MDX-driven), not manual edits. Until the version carrying
-`ci-failure.ts` ships, `@latest` lacks these exports.
+a change ships, `@latest` lacks it.
 
 ## Status
 
 - **v0.0.20** — `ci-failure.ts` re-landed and published (the `ci` namespace +
   `_$gha_*` aliases).
-- **v0.0.21** — library hardening (additive, non-breaking): snippet + issue-body
-  caps, bounded history table, `classifyAll` + 5 new failure patterns, plus
-  robustness beyond the tracker — `buildDispatchManifestSafe` (collect-errors
-  manifest build), `findActionInTitleSafe` (null vs throw), and `withGitHubRetry`
-  (429/5xx/secondary-403/network backoff, honors `Retry-After`). All new helpers
-  are wired into the package entrypoint and covered by a root-import smoke test.
-- **Pending — workflow re-wire:** `utils-ci-failure-tracker.yml` still runs the
-  earlier inline shell/`gh` implementation. Switching it to the thin
-  `npm i @kbve/devops@latest` + `github-script` caller (the Flow above) is
-  deferred until 0.0.21 is confirmed on npm and the 0.0.22 naming lands, so the
-  workflow pins a stable API surface.
+- **v0.0.21** — library hardening (additive): snippet + issue-body caps, bounded
+  history table, `classifyAll` + 5 new failure patterns, plus robustness beyond
+  the tracker — `buildDispatchManifestSafe`, `findActionInTitleSafe`, and
+  `withGitHubRetry` (backoff, honors `Retry-After`). All wired into the entrypoint
+  with a root-import smoke test.
+- **v0.0.22** — `gha` grouped namespace retires the `_$gha_*` prefix (additive;
+  aliases kept). Internal callers migrated onto `gha.*`.
+- **Pending — publish confirm + workflow re-wire:** verify 0.0.21 + 0.0.22 on
+  npm, then switch `utils-ci-failure-tracker.yml` from its inline shell/`gh`
+  implementation to the thin `npm i @kbve/devops@latest` + `github-script` caller
+  driving `gha.ci.*` (the Flow above), adding `permissions: actions: read` to
+  callers. Tracked in the gitops epic.
 
 ## Gotchas
 

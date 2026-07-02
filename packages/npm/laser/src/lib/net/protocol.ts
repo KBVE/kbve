@@ -236,6 +236,13 @@ export interface EntityDelta {
 	/** For a PLAYER: the eid of the ship it is piloting, or 0 on foot. Clients hide
 	 * the body + float the nameplate over that ship so others see who is flying it. */
 	piloting?: number;
+	/** Nameplate pools — appended after `piloting` (positional postcard wire). */
+	mp?: number;
+	max_mp?: number;
+	energy?: number;
+	max_energy?: number;
+	stamina?: number;
+	max_stamina?: number;
 }
 
 export interface Snapshot {

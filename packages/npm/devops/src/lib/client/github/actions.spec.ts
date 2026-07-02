@@ -2,6 +2,7 @@ import {
 	_$gha_findActionInTitle,
 	_$gha_kbve_ActionProcess,
 	findActionInTitleSafe,
+	actions,
 } from './actions';
 import { GithubActionReferenceMap } from './types';
 
@@ -69,5 +70,15 @@ describe('findActionInTitleSafe (v0.0.21)', () => {
 	});
 	it('returns null on no match instead of throwing', () => {
 		expect(findActionInTitleSafe('nothing here', map)).toBeNull();
+	});
+});
+
+describe('gha.actions group (v0.0.22)', () => {
+	it('group members match their _$gha_ aliases', () => {
+		expect(actions.findActionInTitle).toBe(_$gha_findActionInTitle);
+		expect(actions.kbveActionProcess).toBe(_$gha_kbve_ActionProcess);
+	});
+	it('includes findActionInTitleSafe', () => {
+		expect(typeof actions.findActionInTitleSafe).toBe('function');
 	});
 });

@@ -45,6 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atlas")
 	bool bSwapSide = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atlas")
+	bool bStaticCell = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation", meta = (ClampMin = "1"))
 	int32 FramesPerAnim = 5;
 

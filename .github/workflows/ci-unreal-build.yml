@@ -1775,11 +1775,15 @@ jobs:
                   mkdir -p "${{ github.workspace }}/output"
                   DOCKER_VOLS="-v ${{ github.workspace }}/${{ inputs.plugin_path }}:/plugin"
                   DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/output:/output"
+                  DEP_ORDER=""
                   if [ -d "${{ github.workspace }}/_deps" ] && [ "$(ls -A "${{ github.workspace }}/_deps")" ]; then
                     DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/_deps:/deps:ro"
+                    for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                      DEP_ORDER="${DEP_ORDER}$(basename "$dep_path") "
+                    done
                   fi
 
-                  docker run --rm ${DOCKER_VOLS} \
+                  docker run --rm ${DOCKER_VOLS} -e DEP_ORDER="${DEP_ORDER}" \
                     "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
                     /bin/bash -c '
                       set -euo pipefail
@@ -1797,9 +1801,8 @@ jobs:
                         DEP_SRC=/tmp/dep_src
                         DEP_OUT=/tmp/dep_out
                         mkdir -p "$DEP_SRC" "$DEP_OUT"
-                        for dep in /deps/*/; do
-                          dep_name=$(basename "$dep")
-                          cp -r "$dep" "$DEP_SRC/$dep_name"
+                        for dep_name in ${DEP_ORDER}; do
+                          cp -r "/deps/$dep_name" "$DEP_SRC/$dep_name"
                           dep_uplugin=$(find "$DEP_SRC/$dep_name" -maxdepth 1 -name "*.uplugin" | head -1)
                           if [ -z "$dep_uplugin" ]; then echo "::error::No .uplugin in dependency $dep_name"; exit 1; fi
                           echo "::group::Build dependency plugin $dep_name"

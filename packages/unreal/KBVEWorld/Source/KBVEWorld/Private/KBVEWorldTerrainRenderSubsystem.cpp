@@ -5,7 +5,6 @@
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
-#include "NavigationSystem.h"
 
 namespace KBVETerrainCfg
 {
@@ -118,7 +117,8 @@ UProceduralMeshComponent* UKBVEWorldTerrainRenderSubsystem::EnsureRegionSection(
 	UProceduralMeshComponent* PMC = NewObject<UProceduralMeshComponent>(HostActor, NAME_None, RF_Transient);
 	PMC->SetMobility(EComponentMobility::Movable);
 	PMC->SetupAttachment(HostActor->GetRootComponent());
-	PMC->SetCanEverAffectNavigation(true);
+	PMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PMC->SetCanEverAffectNavigation(false);
 	PMC->RegisterComponent();
 	R.Section = PMC;
 	return PMC;
@@ -196,8 +196,6 @@ void UKBVEWorldTerrainRenderSubsystem::RebuildRegion(FIntPoint RegionKey)
 	Colors.Init(FColor::White, Verts.Num());
 
 	PMC->ClearAllMeshSections();
-	PMC->CreateMeshSection(0, Verts, Tris, Normals, UVs, Colors, Tangents, true);
+	PMC->CreateMeshSection(0, Verts, Tris, Normals, UVs, Colors, Tangents, false);
 	if (GroundMaterial) PMC->SetMaterial(0, GroundMaterial);
-
-	FNavigationSystem::UpdateComponentData(*PMC);
 }

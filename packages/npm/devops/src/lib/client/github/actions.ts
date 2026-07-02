@@ -1,7 +1,7 @@
 import { _title } from '../../sanitization';
 import { GithubActionReferenceMap } from './types';
 
-export function _$gha_findActionInTitle(
+function findActionInTitle(
 	title: string,
 	referenceMap: GithubActionReferenceMap[],
 ): string {
@@ -20,8 +20,8 @@ const defaultReferenceMap: GithubActionReferenceMap[] = [
 	{ keyword: 'music', action: 'music_action' },
 ];
 
-export function _$gha_kbve_ActionProcess(title: string): string {
-	return _$gha_findActionInTitle(title.toLowerCase(), defaultReferenceMap);
+function kbveActionProcess(title: string): string {
+	return findActionInTitle(title.toLowerCase(), defaultReferenceMap);
 }
 
 export function findActionInTitleSafe(
@@ -36,3 +36,14 @@ export function findActionInTitleSafe(
 	}
 	return null;
 }
+
+export const actions = {
+	findActionInTitle,
+	kbveActionProcess,
+	findActionInTitleSafe,
+};
+
+/** @deprecated Use `gha.actions.findActionInTitle`. */
+export const _$gha_findActionInTitle = findActionInTitle;
+/** @deprecated Use `gha.actions.kbveActionProcess`. */
+export const _$gha_kbve_ActionProcess = kbveActionProcess;

@@ -2,6 +2,7 @@
 #include "SimgridWebSocket.h"
 #include "KBVESimgridModule.h"
 #include "KBVESupabaseSubsystem.h"
+#include "Engine/GameInstance.h"
 
 static const uint32 GSimgridProtocolVersion = 16;
 

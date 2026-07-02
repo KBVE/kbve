@@ -9,5 +9,5 @@ void USimgridWorldBridge::Init(int64 InSeed)
 
 float USimgridWorldBridge::SampleHeight(float Wx, float Wy) const
 {
-	return 0.0f;
+	return HeightSampler ? HeightSampler(Wx, Wy) : 0.0f;
 }

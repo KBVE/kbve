@@ -164,7 +164,7 @@ async fn flush(client: &reqwest::Client, endpoint: &str, buffer: &mut Vec<Observ
     if buffer.is_empty() {
         return;
     }
-    let events: Vec<ObservEvent> = buffer.drain(..).collect();
+    let events: Vec<ObservEvent> = std::mem::take(buffer);
     let body = serde_json::json!({ "events": events });
     if let Err(e) = client.post(endpoint).json(&body).send().await {
         tracing::debug!(target: "jedi::observ", error = %e, "telemetry flush failed");

@@ -128,6 +128,40 @@ void USimgridEntityManager::EnsureEnvDef()
 	EnvDef->CullDistance = 12000.0f;
 }
 
+UKBVENpcSpriteDef* USimgridEntityManager::EnsureTreeDef()
+{
+	if (TreeDef)
+	{
+		return TreeDef;
+	}
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Art/Foliage/T_Trees01.T_Trees01"));
+	if (!Atlas)
+	{
+		if (!bTreeAtlasWarned)
+		{
+			bTreeAtlasWarned = true;
+			UE_LOG(LogKBVESimgridRender, Warning, TEXT("Tree atlas /Game/Art/Foliage/T_Trees01 missing — trees fall back to env placeholder sprite."));
+		}
+		return nullptr;
+	}
+	TreeDef = NewObject<UKBVENpcSpriteDef>(this);
+	TreeDef->Ref = FName(TEXT("tree"));
+	TreeDef->Atlas = Atlas;
+	TreeDef->bStaticCell = true;
+	TreeDef->Columns = 10;
+	TreeDef->Rows = 14;
+	TreeDef->WorldSize = FVector2f(300.0f, 600.0f);
+	TreeDef->PivotZ = 0.0f;
+	TreeDef->CullDistance = 12000.0f;
+	return TreeDef;
+}
+
+static int32 TreeCellFromSub(uint8 SubByte)
+{
+	const int32 Variant = (SubByte & 0x7F) % 70;
+	return (SubByte & 0x80) ? Variant + 70 : Variant;
+}
+
 USkeletalMesh* USimgridEntityManager::EnsureMannyMesh()
 {
 	if (!MannyMesh)
@@ -232,17 +266,41 @@ void USimgridEntityManager::Tick(double NowMs)
 		{
 			if (UKBVENpcSpriteRenderSubsystem* R = GetSpriteRenderer())
 			{
-				EnsureEnvDef();
+				UKBVENpcSpriteDef* Def = nullptr;
+				int32 Cell = 0;
+				if (Ref == TEXT("tree"))
+				{
+					Def = EnsureTreeDef();
+					Cell = TreeCellFromSub(E.Sub);
+				}
+				if (!Def)
+				{
+					EnsureEnvDef();
+					Def = EnvDef;
+				}
 				if (int32* Id = SpriteHandleIds.Find(E.Eid))
 				{
 					FKBVENpcSpriteHandle H;
 					H.Id = *Id;
 					R->UpdateSprite(H, WorldPos, Yaw);
+					if (Def->bStaticCell)
+					{
+						uint8* Applied = EnvSubApplied.Find(E.Eid);
+						if (!Applied || *Applied != E.Sub)
+						{
+							R->SetSpriteCell(H, Cell);
+							EnvSubApplied.Add(E.Eid, E.Sub);
+						}
+					}
 				}
 				else
 				{
-					const FKBVENpcSpriteHandle H = R->SpawnSprite(EnvDef, WorldPos, Yaw);
+					const FKBVENpcSpriteHandle H = R->SpawnSprite(Def, WorldPos, Yaw, Cell);
 					SpriteHandleIds.Add(E.Eid, H.Id);
+					if (Def->bStaticCell)
+					{
+						EnvSubApplied.Add(E.Eid, E.Sub);
+					}
 				}
 				continue;
 			}
@@ -309,6 +367,7 @@ void USimgridEntityManager::Tick(double NowMs)
 				Renderer->DespawnSprite(H);
 			}
 			SpriteHandleIds.Remove(Eid);
+			EnvSubApplied.Remove(Eid);
 		}
 	}
 }
@@ -353,6 +412,7 @@ void USimgridEntityManager::Clear()
 		}
 	}
 	SpriteHandleIds.Empty();
+	EnvSubApplied.Empty();
 	SlotNames.Empty();
 
 	bHasLocalPos = false;

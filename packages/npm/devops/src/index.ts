@@ -4,6 +4,7 @@ export * from './lib/client/kbve';
 export * from './lib/client/github/ci-failure';
 export * from './lib/client/github/actions';
 export * from './lib/client/github/retry';
+export { gha } from './lib/client/github/gha';
 export * from './lib/ci';
 export * from './lib/forum';
 export * as telemetry from './lib/telemetry';
