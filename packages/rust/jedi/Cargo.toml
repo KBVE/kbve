@@ -89,6 +89,13 @@ postgres = [
     "dep:uuid",
 ]
 valkey = ["dep:lru", "dep:fred"]
+observ = ["dep:tracing-subscriber"]
+
+[dependencies.tracing-subscriber]
+version = "0.3"
+optional = true
+default-features = false
+features = ["registry", "std"]
 
 [dev-dependencies]
 serial_test = "3"

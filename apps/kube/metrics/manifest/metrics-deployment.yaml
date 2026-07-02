@@ -63,7 +63,7 @@ spec:
                       - name: METRICS_ERRORS_TABLE
                         value: errors_distributed
                       - name: METRICS_ALLOWED_ORIGINS
-                        value: https://kbve.com,https://www.kbve.com,https://jobs.kbve.com
+                        value: https://kbve.com,https://www.kbve.com,https://jobs.kbve.com,https://arpg.kbve.com,https://*.discordsays.com
                       - name: METRICS_RATE_LIMIT_PER_MIN
                         value: '120'
                       - name: CLICKHOUSE_ENDPOINT
