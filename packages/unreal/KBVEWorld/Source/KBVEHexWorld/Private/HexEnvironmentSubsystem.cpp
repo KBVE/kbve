@@ -37,7 +37,7 @@ void UHexEnvironmentSubsystem::SpawnEnvironment(UWorld* World)
 	Sun = World->SpawnActor<ADirectionalLight>(FVector::ZeroVector, CurrentSettings.SunRotation, SpawnParams);
 	if (Sun)
 	{
-		UDirectionalLightComponent* LightComp = Sun->GetComponent();
+		UDirectionalLightComponent* LightComp = CastChecked<UDirectionalLightComponent>(Sun->GetLightComponent());
 		LightComp->SetIntensity(CurrentSettings.SunIntensity);
 		LightComp->SetLightColor(CurrentSettings.SunColor);
 		LightComp->SetAtmosphereSunLight(true);
@@ -86,7 +86,7 @@ void UHexEnvironmentSubsystem::ApplySettings(const FHexEnvironmentSettings& Sett
 	if (Sun)
 	{
 		Sun->SetActorRotation(Settings.SunRotation);
-		UDirectionalLightComponent* LightComp = Sun->GetComponent();
+		UDirectionalLightComponent* LightComp = CastChecked<UDirectionalLightComponent>(Sun->GetLightComponent());
 		LightComp->SetIntensity(Settings.SunIntensity);
 		LightComp->SetLightColor(Settings.SunColor);
 	}
