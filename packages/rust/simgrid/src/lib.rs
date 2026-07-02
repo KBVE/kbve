@@ -9,6 +9,7 @@ pub mod float_move;
 pub mod grid;
 pub mod heightfield;
 pub mod net;
+pub mod net_udp;
 pub mod pets;
 pub mod proto;
 pub mod rng;
@@ -30,6 +31,7 @@ pub use grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
 };
 pub use net::{Roster, ServerState, SlotInput, router};
+pub use net_udp::UdpLane;
 pub use pets::{
     PendingPets, Pet, PetBank, PetId, PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef,
     PetRoster, PetSnapshot, PetVitals, clear_pending_pets, mint_pet_from_species, mint_pet_id,
