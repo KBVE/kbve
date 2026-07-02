@@ -1013,6 +1013,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
         Loot {
             item_ref: spec.loot.clone(),
         },
+        PosHistory::at(spec.origin),
     ));
     if let Some((radius, period)) = spec.wander {
         e.insert(Wander::new(spec.origin, radius, period));
@@ -1818,6 +1819,14 @@ impl Default for PosHistory {
 }
 
 impl PosHistory {
+    /// History pre-filled at `tile`, so rewinds before the first recorded tick
+    /// resolve to the spawn position instead of a zeroed ring.
+    fn at(tile: Tile) -> Self {
+        let mut h = Self::default();
+        h.record(tile);
+        h
+    }
+
     /// Record this tick's tile in the most-recent slot.
     fn record(&mut self, tile: Tile) {
         if self.len == 0 {
@@ -2433,6 +2442,7 @@ fn apply_drops(
 pub struct ActionTargets<'w, 's> {
     items: Query<'w, 's, (&'static GridPos, &'static GroundItem)>,
     history: Query<'w, 's, &'static PosHistory>,
+    profiles: Query<'w, 's, &'static MoveProfile>,
     #[allow(clippy::type_complexity)]
     corpses: Query<
         'w,
@@ -2496,7 +2506,13 @@ fn apply_actions(
                 let az = a_floor.map(|f| f.0).unwrap_or(0);
                 // Mob target first; else a PvP player target (dungeon-floor only).
                 if let Ok((mob_pos, ..)) = q_mobs.get(target_entity) {
-                    if combat::in_range_adjacent(attacker_tile, mob_pos.tile, combat::MELEE_RANGE) {
+                    // Lag-comp: adjudicate against where the attacker SAW the mob.
+                    let target_tile = targets
+                        .history
+                        .get(target_entity)
+                        .map(|h| h.ago(LAG_COMP_TICKS))
+                        .unwrap_or(mob_pos.tile);
+                    if combat::in_range_adjacent(attacker_tile, target_tile, combat::MELEE_RANGE) {
                         resolve_attack_hit(
                             player_entity,
                             target_entity,
@@ -2566,15 +2582,20 @@ fn apply_actions(
                 }) else {
                     continue;
                 };
-                // Lag-comp a PvP target: fly + adjudicate the arrow against where the
-                // shooter SAW the target (rewound), not its live position.
-                if target_z.is_some()
-                    && let Ok(h) = targets.history.get(target_entity)
-                {
+                // Lag-comp any target with history (players and mobs): adjudicate the
+                // arrow against where the shooter SAW it, not its live position.
+                if let Ok(h) = targets.history.get(target_entity) {
                     target_tile = h.ago(LAG_COMP_TICKS);
                 }
+                // A flyer soars over ground obstacles, so ground walkability must
+                // not occlude the shot — only range gates it.
+                let target_flies = targets
+                    .profiles
+                    .get(target_entity)
+                    .map(|p| p.terrain == Terrain::Fly)
+                    .unwrap_or(false);
                 let path = combat::line_cast(attacker_tile, target_tile, combat::BOW_RANGE, |t| {
-                    !map.is_walkable(t)
+                    !target_flies && !map.is_walkable(t)
                 });
                 let impact = path.last().copied().unwrap_or(attacker_tile);
                 let los_clear = impact == target_tile;
@@ -3880,10 +3901,10 @@ fn facing_from_vel(vx: f32, vy: f32) -> proto::Facing {
     }
 }
 
-/// Snapshot each player's tile into its `PosHistory` ring every tick (after the
-/// float advance), so lag-compensated hit checks can rewind a target to where the
-/// shooter saw it.
-fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory), With<PlayerSlotTag>>) {
+/// Snapshot each combatant's tile (players and mobs) into its `PosHistory` ring
+/// every tick (after the float advance), so lag-compensated hit checks can rewind
+/// a target to where the shooter saw it.
+fn record_pos_history(mut q: Query<(&GridPos, &mut PosHistory)>) {
     for (pos, mut h) in q.iter_mut() {
         h.record(pos.tile);
     }
@@ -5088,6 +5109,61 @@ mod tests {
         let (proj, combat) = drain_shot(&mut rx);
         assert!(proj, "no projectile emitted");
         assert!(!combat, "wall did not block the shot");
+    }
+
+    #[test]
+    fn bow_hits_flying_target_over_blocking_terrain() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        app.world_mut()
+            .entity_mut(mob)
+            .insert(MoveProfile::flying());
+        app.world_mut()
+            .resource_mut::<WalkableMap>()
+            .set_blocked(Tile::new(8, 10), true);
+        run_shoot(&mut app, &input_tx, slot, mob);
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(combat, "ground terrain wrongly occluded a flying target");
+    }
+
+    #[test]
+    fn bow_lag_comp_rewinds_moving_mob() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "archer");
+        let dummy = app
+            .world()
+            .resource::<KindRegistry>()
+            .kind_of("training-dummy")
+            .unwrap();
+        let mob = spawn_bow_target(&mut app, dummy, Tile::new(8, 13));
+        app.world_mut()
+            .entity_mut(mob)
+            .insert(PosHistory::at(Tile::new(8, 13)));
+        for _ in 0..(LAG_COMP_TICKS + 4) {
+            app.update();
+        }
+        // Mob darts out of range THIS tick: live pos misses, rewound pos hits.
+        app.world_mut().get_mut::<GridPos>(mob).unwrap().tile = Tile::new(25, 25);
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_SHOOT,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        app.update();
+        let (proj, combat) = drain_shot(&mut rx);
+        assert!(proj, "no projectile emitted");
+        assert!(combat, "lag-comp did not rewind the mob to the shooter's view");
     }
 
     fn hostile_spec(kind: u16, origin: Tile) -> NpcSpec {
