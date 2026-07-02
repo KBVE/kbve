@@ -124,7 +124,8 @@ export interface GroundShaderHandle {
 
 export function makeGroundShader(scene: Phaser.Scene): GroundShaderHandle {
 	const cam = scene.cameras.main;
-	const textures = BIOMES.map((b) => biomeTextureKey(b));
+	const biomeKeys = BIOMES.map((b) => biomeTextureKey(b));
+	const textures = biomeKeys;
 	const heightState = {
 		rect: [0, 0, 1, 1] as [number, number, number, number],
 		ampPx: 0,
@@ -184,7 +185,7 @@ export function makeGroundShader(scene: Phaser.Scene): GroundShaderHandle {
 				heightState.on = 1;
 				if (boundHeightKey !== heightTex.key) {
 					boundHeightKey = heightTex.key;
-					shader.setSampler2D('uHeight', heightTex.key, 4);
+					shader.setTextures([...biomeKeys, heightTex.key]);
 				}
 			} else {
 				heightState.on = 0;

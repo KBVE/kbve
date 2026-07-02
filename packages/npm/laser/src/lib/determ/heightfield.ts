@@ -9,6 +9,8 @@
  * heightfield.spec.ts assert agreement within a small epsilon. Use it for
  * rendering offsets, not for server-verified predictions.
  */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- ambient declaration must travel with this file into consumers that alias @kbve/laser to source
+/// <reference path="../../types/fastnoise-lite.d.ts" />
 import FastNoiseLite from 'fastnoise-lite';
 
 export const CONTINENT_FREQ = 0.01;
