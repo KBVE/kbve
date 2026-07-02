@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@kbve/tauri':
+        specifier: workspace:*
+        version: link:../../../packages/npm/tauri
       '@tauri-apps/api':
         specifier: ^2.0.0
         version: 2.10.1
+      '@tauri-apps/plugin-deep-link':
+        specifier: ^2.0.0
+        version: 2.4.9
       '@tauri-apps/plugin-opener':
         specifier: ^2.0.0
         version: 2.5.3
@@ -63,6 +69,15 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.1(jiti@2.6.1)(lightningcss@1.32.0)
+
+  ../../../packages/npm/tauri:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.10.1
+      '@tauri-apps/plugin-deep-link':
+        specifier: ^2.0.0
+        version: 2.4.9
 
 packages:
 
@@ -541,6 +556,12 @@ packages:
 
   '@tauri-apps/api@2.10.1':
     resolution: {integrity: sha512-hKL/jWf293UDSUN09rR69hrToyIXBb8CjGaWC7gfinvnQrBVvnLr08FeFi38gxtugAVyVcTa5/FD/Xnkb1siBw==}
+
+  '@tauri-apps/api@2.11.1':
+    resolution: {integrity: sha512-M2FPuYND2m+wh5hfW9ZpSdxMPdEJovPBWwoHJmwUpysTYNHaOkVFN419m/K0LIgjb/7KU2vBgsUepJWugQCvAA==}
+
+  '@tauri-apps/plugin-deep-link@2.4.9':
+    resolution: {integrity: sha512-u0SKOUHnJ1wqeqXsDFq2+kASCBj9xxbG0g9XZWPy9SOmU4wXtp6b/wiYpm6oH6/5fBTQsLqnLhIvqLBRpgHJlA==}
 
   '@tauri-apps/plugin-opener@2.5.3':
     resolution: {integrity: sha512-CCcUltXMOfUEArbf3db3kCE7Ggy1ExBEBl51Ko2ODJ6GDYHRp1nSNlQm5uNCFY5k7/ufaK5Ib3Du/Zir19IYQQ==}
@@ -1253,6 +1274,12 @@ snapshots:
       vite: 6.4.1(jiti@2.6.1)(lightningcss@1.32.0)
 
   '@tauri-apps/api@2.10.1': {}
+
+  '@tauri-apps/api@2.11.1': {}
+
+  '@tauri-apps/plugin-deep-link@2.4.9':
+    dependencies:
+      '@tauri-apps/api': 2.11.1
 
   '@tauri-apps/plugin-opener@2.5.3':
     dependencies:

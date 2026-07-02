@@ -1,10 +1,16 @@
+import { useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ViewHost } from './engine';
 import { Slot } from './engine';
 import { useAppStore } from './stores/app';
 import { getView } from './engine';
+import { useAuthStore } from './stores/auth';
 
 export default function App() {
+	useEffect(() => {
+		void useAuthStore.getState().init();
+	}, []);
+
 	return (
 		<div className="flex h-screen w-screen">
 			<Sidebar />
