@@ -41,13 +41,18 @@ TArray<uint8> FProtoCodec::RawFrameMoveFellLeave(uint32 ClientTick, const FSimgr
 	return W.Bytes();
 }
 
+static void WriteFrameMoveBody(FPostcardWriter& W, uint32 ClientTick, const FSimgridMove& Move)
+{
+	W.VarU32(ClientTick);
+	W.SeqLen(1);
+	WriteMove(W, Move);
+}
+
 TArray<uint8> FProtoCodec::RawFrameMove(uint32 ClientTick, const FSimgridMove& Move)
 {
 	FPostcardWriter W;
 	W.Variant(1);
-	W.VarU32(ClientTick);
-	W.SeqLen(1);
-	WriteMove(W, Move);
+	WriteFrameMoveBody(W, ClientTick, Move);
 	return W.Bytes();
 }
 
@@ -217,10 +222,10 @@ TArray<uint8> FProtoCodec::EncodeUdpHello(uint32 Protocol, const uint8 (&Token)[
 
 TArray<uint8> FProtoCodec::EncodeUdpFrameMove(uint32 ClientTick, const FSimgridMove& Move)
 {
-	TArray<uint8> Out;
-	Out.Add(2);
-	Out.Append(RawFrameMove(ClientTick, Move));
-	return Out;
+	FPostcardWriter W;
+	W.Variant(2);
+	WriteFrameMoveBody(W, ClientTick, Move);
+	return W.Bytes();
 }
 
 FUdpDecoded FProtoCodec::DecodeUdpPacket(const TArray<uint8>& Datagram)

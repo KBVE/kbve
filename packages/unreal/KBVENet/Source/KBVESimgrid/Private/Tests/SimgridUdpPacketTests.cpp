@@ -64,19 +64,12 @@ bool FSimgridUdpFrameMoveTest::RunTest(const FString& Parameters)
 	Move.bRun = true;
 	Move.Tick = 42;
 	const TArray<uint8> Frame = FProtoCodec::EncodeUdpFrameMove(42, Move);
-	const TArray<uint8> Raw = FProtoCodec::RawFrameMove(42, Move);
-	TestEqual(TEXT("discriminant"), Frame[0], (uint8)0x02);
-	TestEqual(TEXT("body length"), Frame.Num() - 1, Raw.Num());
-	bool bBodyMatches = true;
-	for (int32 i = 0; i < Raw.Num(); ++i)
+	FString Hex;
+	for (uint8 B : Frame)
 	{
-		if (Frame[i + 1] != Raw[i])
-		{
-			bBodyMatches = false;
-			break;
-		}
+		Hex += FString::Printf(TEXT("%02x"), B);
 	}
-	TestTrue(TEXT("body matches RawFrameMove"), bBodyMatches);
+	TestEqual(TEXT("rust-pinned fixture"), Hex, FString(TEXT("022a01010501ff012a")));
 	const FUdpDecoded Decoded = FProtoCodec::DecodeUdpPacket(Frame);
 	TestTrue(TEXT("ok"), Decoded.bOk);
 	TestTrue(TEXT("type"), Decoded.Type == EUdpPacketType::Frame);
