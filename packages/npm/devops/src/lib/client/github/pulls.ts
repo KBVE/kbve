@@ -8,16 +8,19 @@ import type {
 	ApiCommit,
 	CategorizedResult,
 } from './types';
-import { _$gha_extractRepoContext, COMMIT_CATEGORY_LABELS } from './types';
+import {
+	_$gha_extractRepoContext as extractRepoContext,
+	COMMIT_CATEGORY_LABELS,
+} from './types';
 
 const execAsync = promisify(exec);
 
-export async function _$gha_getPullRequestNumber(
+export async function getPullRequestNumber(
 	github: GitHubClient,
 	context: GitHubContext,
 ): Promise<number> {
 	try {
-		const { owner, repo } = _$gha_extractRepoContext(context);
+		const { owner, repo } = extractRepoContext(context);
 		let branch: string;
 
 		if (context.ref.startsWith('refs/pull/')) {
@@ -44,14 +47,14 @@ export async function _$gha_getPullRequestNumber(
 	}
 }
 
-export async function _$gha_updatePullRequestBody(
+export async function updatePullRequestBody(
 	github: GitHubClient,
 	context: GitHubContext,
 	prBody: string,
 ): Promise<void> {
 	try {
-		const { owner, repo } = _$gha_extractRepoContext(context);
-		const prNumber = await _$gha_getPullRequestNumber(github, context);
+		const { owner, repo } = extractRepoContext(context);
+		const prNumber = await getPullRequestNumber(github, context);
 		await github.rest.pulls.update({
 			owner,
 			repo,
@@ -65,7 +68,7 @@ export async function _$gha_updatePullRequestBody(
 	}
 }
 
-export async function _$gha_fetchAndCleanCommits(
+export async function fetchAndCleanCommits(
 	branchToCompare: string,
 ): Promise<CleanedCommit> {
 	await execAsync(`git fetch origin ${branchToCompare}`);
@@ -125,7 +128,7 @@ export async function _$gha_fetchAndCleanCommits(
 	};
 }
 
-export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
+export function formatCommits(cleanedCommit: CleanedCommit): string {
 	const { branch, categorizedCommits } = cleanedCommit;
 
 	const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
@@ -177,28 +180,28 @@ export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
 	return commitSummary;
 }
 
-export async function _$gha_processAndUpdatePR(
+export async function processAndUpdatePR(
 	branchToCompare: string,
 	github: GitHubClient,
 	context: GitHubContext,
 ): Promise<void> {
 	try {
-		const cleanedCommit = await _$gha_fetchAndCleanCommits(branchToCompare);
-		const commitSummary = _$gha_formatCommits(cleanedCommit);
-		await _$gha_updatePullRequestBody(github, context, commitSummary);
+		const cleanedCommit = await fetchAndCleanCommits(branchToCompare);
+		const commitSummary = formatCommits(cleanedCommit);
+		await updatePullRequestBody(github, context, commitSummary);
 	} catch (error) {
 		console.error('Error processing and updating PR:', error);
 		throw error;
 	}
 }
 
-export async function _$gha_createOrUpdatePR(
+export async function createOrUpdatePR(
 	github: GitHubClient,
 	context: GitHubContext,
 	targetBranch: string,
 ): Promise<void> {
 	try {
-		const { owner, repo } = _$gha_extractRepoContext(context);
+		const { owner, repo } = extractRepoContext(context);
 
 		let referenceBranch: string | null = null;
 
@@ -280,9 +283,7 @@ export async function _$gha_createOrUpdatePR(
  * Categorize an array of commits from the GitHub API by conventional
  * commit type. Scope is optional — matches both `fix(scope):` and `fix:`.
  */
-export function _$gha_categorizeApiCommits(
-	commits: ApiCommit[],
-): CategorizedResult {
+export function categorizeApiCommits(commits: ApiCommit[]): CategorizedResult {
 	const keys = Object.keys(
 		COMMIT_CATEGORY_LABELS,
 	) as (keyof CommitCategory)[];
@@ -320,7 +321,7 @@ export function _$gha_categorizeApiCommits(
  * Generate a descriptive PR title summarizing what changed.
  * e.g. "Release: 3 features, 1 fix, 2 CI → Staging"
  */
-export function _$gha_generatePRTitle(
+export function generatePRTitle(
 	categories: CommitCategory,
 	target: string,
 ): string {
@@ -363,7 +364,7 @@ export function _$gha_generatePRTitle(
 /**
  * Format a PR body for dev→main promotions.
  */
-export function _$gha_formatDevBody(
+export function formatDevBody(
 	categories: CommitCategory,
 	totalCommits: number,
 ): string {
@@ -381,3 +382,34 @@ export function _$gha_formatDevBody(
 	body += `---\n*This PR is automatically maintained by CI — [KBVE Studio](https://kbve.com)*`;
 	return body;
 }
+
+export const pulls = {
+	formatCommits,
+	categorizeApiCommits,
+	generatePRTitle,
+	formatDevBody,
+	getPullRequestNumber,
+	updatePullRequestBody,
+	fetchAndCleanCommits,
+	processAndUpdatePR,
+	createOrUpdatePR,
+};
+
+/** @deprecated Use `gha.pulls.formatCommits`. */
+export const _$gha_formatCommits = formatCommits;
+/** @deprecated Use `gha.pulls.categorizeApiCommits`. */
+export const _$gha_categorizeApiCommits = categorizeApiCommits;
+/** @deprecated Use `gha.pulls.generatePRTitle`. */
+export const _$gha_generatePRTitle = generatePRTitle;
+/** @deprecated Use `gha.pulls.formatDevBody`. */
+export const _$gha_formatDevBody = formatDevBody;
+/** @deprecated Use `gha.pulls.getPullRequestNumber`. */
+export const _$gha_getPullRequestNumber = getPullRequestNumber;
+/** @deprecated Use `gha.pulls.updatePullRequestBody`. */
+export const _$gha_updatePullRequestBody = updatePullRequestBody;
+/** @deprecated Use `gha.pulls.fetchAndCleanCommits`. */
+export const _$gha_fetchAndCleanCommits = fetchAndCleanCommits;
+/** @deprecated Use `gha.pulls.processAndUpdatePR`. */
+export const _$gha_processAndUpdatePR = processAndUpdatePR;
+/** @deprecated Use `gha.pulls.createOrUpdatePR`. */
+export const _$gha_createOrUpdatePR = createOrUpdatePR;
