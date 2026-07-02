@@ -1,10 +1,12 @@
 #include "SimgridClientSubsystem.h"
 #include "SimgridWebSocket.h"
+#include "SimgridUdpLink.h"
 #include "KBVESimgridModule.h"
 #include "KBVESupabaseSubsystem.h"
 #include "Engine/GameInstance.h"
 
 static const uint32 GSimgridProtocolVersion = 16;
+static const uint16 GSimgridUdpOfferKind = 20;
 
 void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 {
@@ -16,6 +18,7 @@ void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 
 	PendingJwt.Reset();
 	PendingUsername.Reset();
+	ConnectedUrl = Url;
 
 	if (UGameInstance* GI = GetGameInstance())
 	{
@@ -70,8 +73,7 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 		OnWelcome.Broadcast((int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		break;
 	case EServerEventType::Snapshot:
-		LastSnapshot = D.Snapshot;
-		OnSnapshot.Broadcast();
+		ApplySnapshot(D.Snapshot);
 		break;
 	case EServerEventType::Reject:
 		UE_LOG(LogKBVESimgrid, Error, TEXT("[SimgridDiag] Server REJECT reason=%s"), *D.Reject.Reason);
@@ -82,6 +84,10 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 		LastEphemeralKind = (int32)D.EphemeralKind;
 		LastEphemeralTo = (int32)D.EphemeralTo;
 		LastEphemeralPayload = D.EphemeralPayload;
+		if (D.EphemeralKind == GSimgridUdpOfferKind)
+		{
+			HandleUdpOffer(D.EphemeralPayload);
+		}
 		OnEphemeral.Broadcast();
 		break;
 	default:
@@ -99,9 +105,84 @@ uint32 USimgridClientSubsystem::SendMove(const FSimgridMove& Move)
 	FSimgridMove Tx = Move;
 	Tx.Seq = ++MoveSeq;
 	Tx.Tick = ClientTick;
-	const TArray<uint8> Frame = FProtoCodec::EncodeMoveFrame(ClientTick, Tx);
-	Ws->SendBinary(Frame);
+
+	if (UdpLink.IsValid() && UdpLink->IsActive())
+	{
+		const TArray<uint8> UdpFrame = FProtoCodec::EncodeUdpFrameMove(ClientTick, Tx);
+		UdpLink->SendFrame(UdpFrame);
+	}
+	else
+	{
+		const TArray<uint8> Frame = FProtoCodec::EncodeMoveFrame(ClientTick, Tx);
+		Ws->SendBinary(Frame);
+	}
 	return Tx.Seq;
+}
+
+void USimgridClientSubsystem::ApplySnapshot(const FSimgridSnapshot& Snapshot)
+{
+	LastSnapshot = Snapshot;
+	OnSnapshot.Broadcast();
+}
+
+FString USimgridClientSubsystem::ExtractHostFromUrl(const FString& Url) const
+{
+	FString Remainder = Url;
+	FString Scheme;
+	Remainder.Split(TEXT("://"), &Scheme, &Remainder);
+
+	FString HostPort = Remainder;
+	int32 SlashIndex = INDEX_NONE;
+	if (Remainder.FindChar(TCHAR('/'), SlashIndex))
+	{
+		HostPort = Remainder.Left(SlashIndex);
+	}
+
+	FString Host = HostPort;
+	int32 ColonIndex = INDEX_NONE;
+	if (HostPort.FindChar(TCHAR(':'), ColonIndex))
+	{
+		Host = HostPort.Left(ColonIndex);
+	}
+
+	return Host;
+}
+
+void USimgridClientSubsystem::HandleUdpOffer(const TArray<uint8>& Payload)
+{
+	const FSimgridUdpOffer Offer = FProtoCodec::DecodeUdpOffer(Payload);
+	if (!Offer.bOk)
+	{
+		UE_LOG(LogKBVESimgrid, Warning, TEXT("HandleUdpOffer: undecodable UdpOffer payload"));
+		return;
+	}
+
+	const FString Host = ExtractHostFromUrl(ConnectedUrl);
+	if (Host.IsEmpty())
+	{
+		UE_LOG(LogKBVESimgrid, Warning, TEXT("HandleUdpOffer: could not extract host from %s"), *ConnectedUrl);
+		return;
+	}
+
+	UdpLink = MakeShared<FSimgridUdpLink>();
+	TWeakObjectPtr<USimgridClientSubsystem> WeakThis(this);
+	UdpLink->OnSnapshot.BindLambda([WeakThis](const FSimgridSnapshot& Snapshot)
+	{
+		if (USimgridClientSubsystem* Strong = WeakThis.Get())
+		{
+			Strong->HandleUdpSnapshot(Snapshot);
+		}
+	});
+	if (!UdpLink->Start(Host, Offer.Port, GSimgridProtocolVersion, Offer.Token))
+	{
+		UE_LOG(LogKBVESimgrid, Warning, TEXT("HandleUdpOffer: failed to start UDP link to %s:%u"), *Host, Offer.Port);
+		UdpLink.Reset();
+	}
+}
+
+void USimgridClientSubsystem::HandleUdpSnapshot(const FSimgridSnapshot& Snapshot)
+{
+	ApplySnapshot(Snapshot);
 }
 
 void USimgridClientSubsystem::HandleClose(int32 Code, const FString& Reason, bool bClean)
@@ -124,6 +205,11 @@ void USimgridClientSubsystem::Disconnect()
 	{
 		Ws->Close();
 		Ws.Reset();
+	}
+	if (UdpLink.IsValid())
+	{
+		UdpLink->Stop();
+		UdpLink.Reset();
 	}
 	State = ESimgridState::Disconnected;
 }
