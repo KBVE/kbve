@@ -60,6 +60,10 @@
 		"plpgsql"
 	],
 	"godotTools.editorPath.godot4": "/Applications/Godot.app",
+	"C_Cpp.intelliSenseEngine": "disabled",
+	"C_Cpp.autocomplete": "disabled",
+	"C_Cpp.errorSquiggles": "disabled",
+	"C_Cpp.codeAnalysis.runAutomatically": false,
 	"rust-analyzer.initializeStopped": true,
 	"git.autoRepositoryDetection": false,
 	"git.ignoreLimitWarning": true
