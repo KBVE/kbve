@@ -21,7 +21,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetSeed(uint32 InSeed) { Seed = InSeed; }
+	void SetSeed(uint32 InSeed);
 	uint32 GetSeed() const { return Seed; }
 
 	void EnsureBuiltAround(const FVector2D& WorldXY);

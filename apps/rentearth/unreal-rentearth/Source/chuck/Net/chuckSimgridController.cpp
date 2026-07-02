@@ -20,6 +20,7 @@ static constexpr float PROJECTILE_MUZZLE_Z = 90.0f;
 #include "KBVEGameplayEvents.h"
 #include "chuckNoise.h"
 #include "chuckTerrainStreamer.h"
+#include "KBVEWorldHeightfield.h"
 
 AchuckSimgridController::AchuckSimgridController()
 {
@@ -101,6 +102,13 @@ void AchuckSimgridController::HandleWelcome(int32 YourSlot, int64 Seed)
 	if (Bridge)
 	{
 		Bridge->Init(Seed);
+	}
+	if (UWorld* W = GetWorld())
+	{
+		if (UchuckTerrainStreamer* Streamer = W->GetSubsystem<UchuckTerrainStreamer>())
+		{
+			Streamer->SetSeed(static_cast<uint32>(FKBVEWorldHeightfield::SeedFromWorld(Seed)));
+		}
 	}
 	if (Manager)
 	{
