@@ -28,7 +28,7 @@ struct FStateTreeCharacterGroundedConditionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Condition")
 	bool bMustBeOnAir = false;
 };
-STATETREE_POD_INSTANCEDATA(FStateTreeCharacterGroundedConditionInstanceData);
+UE_STATETREE_ZEROED_TRIVIALLY_COPIED_NO_DESTRUCTOR_INSTANCEDATA(FStateTreeCharacterGroundedConditionInstanceData);
 
 /**
  *  StateTree condition to check if the character is grounded
@@ -82,7 +82,7 @@ struct FStateTreeIsInDangerConditionInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (Units = "degrees"))
 	float DangerSightConeAngle = 120.0f;
 };
-STATETREE_POD_INSTANCEDATA(FStateTreeIsInDangerConditionInstanceData);
+UE_STATETREE_ZEROED_TRIVIALLY_COPIED_NO_DESTRUCTOR_INSTANCEDATA(FStateTreeIsInDangerConditionInstanceData);
 
 /**
  *  StateTree condition to check if the character is about to be hit by an attack
