@@ -1424,4 +1424,24 @@ mod tests {
             .collect();
         assert_eq!(hex, "0010000102030405060708090a0b0c0d0e0f");
     }
+
+    #[test]
+    fn udp_frame_fixture_is_stable() {
+        let frame = UdpPacket::Frame(ClientFrame {
+            client_tick: 42,
+            inputs: vec![Input::Move {
+                seq: 5,
+                mx: 1,
+                my: -1,
+                run: true,
+                tick: 42,
+            }],
+        });
+        let hex: String = encode_inner(&frame)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex, "022a01010501ff012a");
+    }
 }
