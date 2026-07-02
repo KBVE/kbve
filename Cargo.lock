@@ -15356,6 +15356,7 @@ dependencies = [
  "dashmap 6.1.0",
  "fastnoise-lite",
  "futures-util",
+ "getrandom 0.2.17",
  "hex",
  "jsonwebtoken 9.3.1",
  "postcard",

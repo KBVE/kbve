@@ -101,6 +101,22 @@ struct FServerDecoded
 	bool bOk = false;
 };
 
+struct FSimgridUdpOffer
+{
+	uint8 Token[16] = {};
+	uint16 Port = 0;
+	bool bOk = false;
+};
+
+enum class EUdpPacketType : uint8 { Hello, HelloAck, Frame, Snapshot, Unknown };
+
+struct FUdpDecoded
+{
+	EUdpPacketType Type = EUdpPacketType::Unknown;
+	FSimgridSnapshot Snapshot;
+	bool bOk = false;
+};
+
 class KBVESIMGRID_API FProtoCodec
 {
 public:
@@ -113,4 +129,9 @@ public:
 
 	static FServerDecoded DecodeServerEvent(const TArray<uint8>& Frame);
 	static FServerDecoded DecodeServerEventRaw(const TArray<uint8>& Body);
+
+	static FSimgridUdpOffer DecodeUdpOffer(const TArray<uint8>& Payload);
+	static TArray<uint8> EncodeUdpHello(uint32 Protocol, const uint8 (&Token)[16]);
+	static TArray<uint8> EncodeUdpFrameMove(uint32 ClientTick, const FSimgridMove& Move);
+	static FUdpDecoded DecodeUdpPacket(const TArray<uint8>& Datagram);
 };

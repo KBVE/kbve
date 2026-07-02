@@ -6,6 +6,7 @@
 #include "SimgridClientSubsystem.generated.h"
 
 class FSimgridWebSocket;
+class FSimgridUdpLink;
 
 UENUM(BlueprintType)
 enum class ESimgridState : uint8
@@ -69,13 +70,22 @@ private:
 	void HandleBinary(const TArray<uint8>& Frame);
 	void HandleClose(int32 Code, const FString& Reason, bool bClean);
 	void HandleError(const FString& Err);
+	void ApplySnapshot(const FSimgridSnapshot& Snapshot);
+	void HandleUdpOffer(const TArray<uint8>& Payload);
+	void HandleUdpSnapshot(const FSimgridSnapshot& Snapshot);
+	void TeardownUdpLink();
+	FString ExtractHostFromUrl(const FString& Url) const;
 
 	TSharedPtr<FSimgridWebSocket> Ws;
+	TSharedPtr<FSimgridUdpLink> UdpLink;
+	FString ConnectedUrl;
 	ESimgridState State = ESimgridState::Disconnected;
 	FString PendingJwt;
 	FString PendingUsername;
 	uint32 ClientTick = 0;
 	uint32 MoveSeq = 0;
+	uint32 LastAppliedTick = 0;
+	bool bHasAppliedTick = false;
 	FSimgridSnapshot LastSnapshot;
 	int32 LastEphemeralKind = 0;
 	int32 LastEphemeralTo = 0;
