@@ -898,7 +898,7 @@
 			"key": "ue_kbvenet",
 			"plugin_name": "KBVENet",
 			"plugin_path": "packages/unreal/KBVENet",
-			"dependency_plugins": "packages/unreal/KBVESupabase packages/unreal/KBVEWorld packages/unreal/KBVEGameplay",
+			"dependency_plugins": "packages/unreal/KBVESupabase packages/unreal/KBVEWorld packages/unreal/KBVEGameplay packages/unreal/KBVEYYJson packages/unreal/KBVENPCDB",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
