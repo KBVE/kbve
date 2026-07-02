@@ -14,6 +14,7 @@ tags:
     - developers
 ogTitle: KBVE API Hub — OpenAPI Specs, JSON Data Endpoints & Feeds
 ogDescription: Explore the KBVE public REST API, staff services, and prebuilt JSON endpoints for the shared game databases — all documented and served from one open monorepo.
+ogImage: https://images.unsplash.com/photo-1558494949-ef010cbdcc31?fit=crop&w=1400&h=700&q=75
 jsonld:
     type: WebPage
     breadcrumb:
@@ -21,6 +22,15 @@ jsonld:
           path: /
         - name: API
           path: /api/
+    faq:
+        - question: Where is the interactive API explorer?
+          answer: The dashboard at /dashboard/api/ renders live OpenAPI 3.1 specs for the KBVE public API, the staff-only Firecracker control service, and the ROWS game-services API.
+        - question: How fresh are the JSON data endpoints?
+          answer: They are regenerated from the MDX content collections on every deploy, so they always match the published docs pages.
+        - question: Do I need an API key?
+          answer: The static JSON endpoints and feeds are fully public. The REST API uses Supabase JWT auth for authenticated routes — see the API project docs for details.
+        - question: Can I use this data in my own project?
+          answer: Yes — everything is generated from the public monorepo. Attribution is appreciated but the data endpoints are free to consume.
 ---
 
 import Hero from '@/components/marketing/Hero.astro';
@@ -28,6 +38,8 @@ import StatStrip from '@/components/marketing/StatStrip.astro';
 import FaqAccordion from '@/components/marketing/FaqAccordion.astro';
 import Cta from '@/components/marketing/Cta.astro';
 import ApiDirectory from '@/components/api/ApiDirectory.astro';
+
+<h1 class="sr-only">KBVE API Hub</h1>
 
 <Hero
 	eyebrow="kbve api"
