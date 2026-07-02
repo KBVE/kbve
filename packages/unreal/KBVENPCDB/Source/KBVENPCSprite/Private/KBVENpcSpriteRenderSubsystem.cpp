@@ -4,6 +4,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
