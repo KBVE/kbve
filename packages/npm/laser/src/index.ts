@@ -128,8 +128,10 @@ export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
 export {
 	heightAt,
+	makeHeightSampler,
 	seedFromWorld,
 	HEIGHT_AMPLITUDE,
+	type HeightSampler,
 } from './lib/determ/heightfield';
 
 // Combat — attack geometry mirrored byte-for-byte by simgrid combat.rs
