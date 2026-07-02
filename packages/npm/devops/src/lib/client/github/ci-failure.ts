@@ -29,6 +29,17 @@ const GH_TIMESTAMP = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z\s?/;
 const ERROR_MARKER =
 	/error|failed tasks|process completed with exit code|panic|✖|assertion/i;
 
+const DEFAULT_CONTEXT_BEFORE = 30;
+const DEFAULT_CONTEXT_AFTER = 4;
+const DEFAULT_MAX_SNIPPET_CHARS = 12000;
+const NX_TARGET_SCAN_LINES = 20;
+
+export interface ParseFailureLogOptions {
+	maxSnippetChars?: number;
+	contextBefore?: number;
+	contextAfter?: number;
+}
+
 export interface ParsedFailureLog {
 	snippet: string;
 	nxTargets: string;
@@ -93,13 +104,31 @@ function classifyFailure(log: string): string | null {
 	return null;
 }
 
+function clampSnippet(snippet: string, max: number): string {
+	if (snippet.length <= max) {
+		return snippet;
+	}
+	const head = Math.floor(max / 2);
+	const tail = max - head;
+	const removed = snippet.length - max;
+	return (
+		snippet.slice(0, head) +
+		`\n… [snipped ${removed} chars] …\n` +
+		snippet.slice(snippet.length - tail)
+	);
+}
+
 function extractNxTargets(lines: string[]): string {
 	const idx = lines.findIndex((l) => /Failed tasks:/i.test(l));
 	if (idx < 0) {
 		return '';
 	}
 	const targets: string[] = [];
-	for (let i = idx + 1; i < Math.min(lines.length, idx + 21); i++) {
+	for (
+		let i = idx + 1;
+		i < Math.min(lines.length, idx + 1 + NX_TARGET_SCAN_LINES);
+		i++
+	) {
 		const match = lines[i].match(/^\s*-\s+(\S+:\S+)/);
 		if (match) {
 			targets.push(match[1]);
@@ -108,7 +137,14 @@ function extractNxTargets(lines: string[]): string {
 	return targets.join(' ');
 }
 
-function parseFailureLog(rawLog: string): ParsedFailureLog {
+function parseFailureLog(
+	rawLog: string,
+	opts: ParseFailureLogOptions = {},
+): ParsedFailureLog {
+	const maxSnippetChars = opts.maxSnippetChars ?? DEFAULT_MAX_SNIPPET_CHARS;
+	const contextBefore = opts.contextBefore ?? DEFAULT_CONTEXT_BEFORE;
+	const contextAfter = opts.contextAfter ?? DEFAULT_CONTEXT_AFTER;
+
 	if (!rawLog) {
 		return { snippet: '', nxTargets: '' };
 	}
@@ -129,12 +165,16 @@ function parseFailureLog(rawLog: string): ParsedFailureLog {
 
 	let snippet: string;
 	if (lastErr >= 0) {
-		const start = Math.max(0, lastErr - 30);
-		const end = Math.min(clean.length, lastErr + 4);
+		const start = Math.max(0, lastErr - contextBefore);
+		const end = Math.min(clean.length, lastErr + contextAfter);
 		snippet = clean.slice(start, end).join('\n');
 	} else {
-		snippet = clean.slice(Math.max(0, clean.length - 30)).join('\n');
+		snippet = clean
+			.slice(Math.max(0, clean.length - contextBefore))
+			.join('\n');
 	}
+
+	snippet = clampSnippet(snippet, maxSnippetChars);
 
 	return { snippet, nxTargets: extractNxTargets(clean) };
 }

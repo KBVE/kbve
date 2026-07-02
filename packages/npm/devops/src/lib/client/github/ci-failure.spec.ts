@@ -288,3 +288,24 @@ describe('_$gha_incrementFailureHistory', () => {
 		).toBe(1);
 	});
 });
+
+describe('parseFailureLog snippet cap (v0.0.21)', () => {
+	it('clamps an oversized snippet and inserts a snip marker', () => {
+		const huge = Array.from(
+			{ length: 5000 },
+			(_, i) => `error line ${i}`,
+		).join('\n');
+		const { snippet } = ci.parseFailureLog(huge, {
+			maxSnippetChars: 500,
+			contextBefore: 100,
+			contextAfter: 20,
+		});
+		expect(snippet.length).toBeLessThanOrEqual(600);
+		expect(snippet).toContain('[snipped');
+	});
+
+	it('leaves a small snippet untouched (no marker)', () => {
+		const { snippet } = ci.parseFailureLog('error: boom\ndetail line');
+		expect(snippet).not.toContain('[snipped');
+	});
+});
