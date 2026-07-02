@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 15;
+export const PROTOCOL_VERSION = 16;
 
 export const POS_SCALE = 32;
 export const VEL_SCALE = 256;
