@@ -28,6 +28,10 @@ spec:
                   portPolicy: None
                   containerPort: 7979
                   protocol: TCP
+                - name: udp
+                  portPolicy: None
+                  containerPort: 7977
+                  protocol: UDP
             health:
                 initialDelaySeconds: 10
                 periodSeconds: 10
@@ -56,6 +60,8 @@ spec:
                                 value: '0.0.0.0:7979'
                               - name: ARPG_SERVER_SEED
                                 value: '0'
+                              - name: ARPG_UDP_ADDR
+                                value: '0.0.0.0:7977'
                               - name: RUST_LOG
                                 value: 'info,arpg_server=debug,simgrid=info'
                               - name: OBSERV_ENDPOINT
@@ -106,6 +112,9 @@ spec:
                               - name: ws
                                 containerPort: 7979
                                 protocol: TCP
+                              - name: udp
+                                containerPort: 7977
+                                protocol: UDP
                           readinessProbe:
                               httpGet:
                                   path: /healthz

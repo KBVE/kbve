@@ -42,7 +42,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FSimgridSnapshotDecodeTest::RunTest(const FString& Parameters)
 {
-	const TArray<uint8> Frame = HexToBytes2(TEXT("040109640109010207ffff030a050881c002bf01180d033c500501010305020100"));
+	const TArray<uint8> Frame = HexToBytes2(TEXT("040109640109010207ffff030a050881c002bf01180d033c5005010103050818280e1264780100"));
 	const FServerDecoded D = FProtoCodec::DecodeServerEvent(Frame);
 	TestTrue("decoded ok", D.bOk);
 	TestTrue("is snapshot", D.Type == EServerEventType::Snapshot);
@@ -70,6 +70,12 @@ bool FSimgridSnapshotDecodeTest::RunTest(const FString& Parameters)
 		TestFalse("destroyed", E.bDestroyed);
 		TestEqual("z", E.Z, (int32)-1);
 		TestEqual("piloting", E.Piloting, (uint32)0);
+		TestEqual("mp", E.Mp, (int32)12);
+		TestEqual("max_mp", E.MaxMp, (int32)20);
+		TestEqual("energy", E.Energy, (int32)7);
+		TestEqual("max_energy", E.MaxEnergy, (int32)9);
+		TestEqual("stamina", E.Stamina, (int32)50);
+		TestEqual("max_stamina", E.MaxStamina, (int32)60);
 		TestEqual("effects num", E.Effects.Num(), 1);
 		if (E.Effects.Num() > 0)
 		{

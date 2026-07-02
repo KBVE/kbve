@@ -41,13 +41,18 @@ TArray<uint8> FProtoCodec::RawFrameMoveFellLeave(uint32 ClientTick, const FSimgr
 	return W.Bytes();
 }
 
+static void WriteFrameMoveBody(FPostcardWriter& W, uint32 ClientTick, const FSimgridMove& Move)
+{
+	W.VarU32(ClientTick);
+	W.SeqLen(1);
+	WriteMove(W, Move);
+}
+
 TArray<uint8> FProtoCodec::RawFrameMove(uint32 ClientTick, const FSimgridMove& Move)
 {
 	FPostcardWriter W;
 	W.Variant(1);
-	W.VarU32(ClientTick);
-	W.SeqLen(1);
-	WriteMove(W, Move);
+	WriteFrameMoveBody(W, ClientTick, Move);
 	return W.Bytes();
 }
 
@@ -105,6 +110,28 @@ static FSimgridEntityDelta ReadEntityDelta(FPostcardReader& R)
 	return E;
 }
 
+static void ReadSnapshotBody(FPostcardReader& R, FSimgridSnapshot& Out)
+{
+	Out.Tick = R.VarU32();
+	Out.ServerTimeMs = R.VarU32();
+	Out.InputAck = R.VarU32();
+	const int32 PlayerCount = R.SeqLen();
+	for (int32 i = 0; i < PlayerCount; ++i)
+	{
+		FSimgridPlayerView P;
+		P.Slot = R.U16();
+		P.Username = R.String();
+		P.bConnected = R.Bool();
+		Out.Players.Add(P);
+	}
+	const int32 EntityCount = R.SeqLen();
+	for (int32 i = 0; i < EntityCount; ++i)
+	{
+		Out.Entities.Add(ReadEntityDelta(R));
+	}
+	Out.bKeyframe = R.Bool();
+}
+
 FServerDecoded FProtoCodec::DecodeServerEventRaw(const TArray<uint8>& Body)
 {
 	FServerDecoded D;
@@ -132,24 +159,7 @@ FServerDecoded FProtoCodec::DecodeServerEventRaw(const TArray<uint8>& Body)
 	case 1:
 	{
 		D.Type = EServerEventType::Snapshot;
-		D.Snapshot.Tick = R.VarU32();
-		D.Snapshot.ServerTimeMs = R.VarU32();
-		D.Snapshot.InputAck = R.VarU32();
-		const int32 PlayerCount = R.SeqLen();
-		for (int32 i = 0; i < PlayerCount; ++i)
-		{
-			FSimgridPlayerView P;
-			P.Slot = R.U16();
-			P.Username = R.String();
-			P.bConnected = R.Bool();
-			D.Snapshot.Players.Add(P);
-		}
-		const int32 EntityCount = R.SeqLen();
-		for (int32 i = 0; i < EntityCount; ++i)
-		{
-			D.Snapshot.Entities.Add(ReadEntityDelta(R));
-		}
-		D.Snapshot.bKeyframe = R.Bool();
+		ReadSnapshotBody(R, D.Snapshot);
 		break;
 	}
 	case 2:
@@ -183,4 +193,65 @@ FServerDecoded FProtoCodec::DecodeServerEvent(const TArray<uint8>& Frame)
 	TArray<uint8> Body;
 	FSimgridCobs::Decode(Frame, Body);
 	return DecodeServerEventRaw(Body);
+}
+
+FSimgridUdpOffer FProtoCodec::DecodeUdpOffer(const TArray<uint8>& Payload)
+{
+	FSimgridUdpOffer Offer;
+	FPostcardReader R(Payload);
+	for (int32 i = 0; i < 16; ++i)
+	{
+		Offer.Token[i] = R.U8();
+	}
+	Offer.Port = R.U16();
+	Offer.bOk = !R.HasError();
+	return Offer;
+}
+
+TArray<uint8> FProtoCodec::EncodeUdpHello(uint32 Protocol, const uint8 (&Token)[16])
+{
+	FPostcardWriter W;
+	W.Variant(0);
+	W.VarU32(Protocol);
+	for (int32 i = 0; i < 16; ++i)
+	{
+		W.U8(Token[i]);
+	}
+	return W.Bytes();
+}
+
+TArray<uint8> FProtoCodec::EncodeUdpFrameMove(uint32 ClientTick, const FSimgridMove& Move)
+{
+	FPostcardWriter W;
+	W.Variant(2);
+	WriteFrameMoveBody(W, ClientTick, Move);
+	return W.Bytes();
+}
+
+FUdpDecoded FProtoCodec::DecodeUdpPacket(const TArray<uint8>& Datagram)
+{
+	FUdpDecoded D;
+	FPostcardReader R(Datagram);
+	const uint32 Variant = R.Variant();
+	switch (Variant)
+	{
+	case 0:
+		D.Type = EUdpPacketType::Hello;
+		break;
+	case 1:
+		D.Type = EUdpPacketType::HelloAck;
+		break;
+	case 2:
+		D.Type = EUdpPacketType::Frame;
+		break;
+	case 3:
+		D.Type = EUdpPacketType::Snapshot;
+		ReadSnapshotBody(R, D.Snapshot);
+		break;
+	default:
+		D.Type = EUdpPacketType::Unknown;
+		break;
+	}
+	D.bOk = !R.HasError() && D.Type != EUdpPacketType::Unknown;
+	return D;
 }

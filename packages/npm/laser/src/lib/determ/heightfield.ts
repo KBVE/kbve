@@ -9,6 +9,8 @@
  * heightfield.spec.ts assert agreement within a small epsilon. Use it for
  * rendering offsets, not for server-verified predictions.
  */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- ambient declaration must travel with this file into consumers that alias @kbve/laser to source
+/// <reference path="../../types/fastnoise-lite.d.ts" />
 import FastNoiseLite from 'fastnoise-lite';
 
 export const CONTINENT_FREQ = 0.01;
@@ -49,8 +51,13 @@ function buildFbm(
 	return noise;
 }
 
-/** Height in Unreal uu for a tile-space position. */
-export function heightAt(seed: number, tileX: number, tileY: number): number {
+export type HeightSampler = (tileX: number, tileY: number) => number;
+
+/**
+ * Cached sampler for hot paths (per-frame projection, ground textures) — one
+ * FastNoiseLite pair per seed instead of two allocations per sample.
+ */
+export function makeHeightSampler(seed: number): HeightSampler {
 	const continent = buildFbm(
 		seed,
 		CONTINENT_FREQ,
@@ -65,8 +72,15 @@ export function heightAt(seed: number, tileX: number, tileY: number): number {
 		DETAIL_GAIN,
 		DETAIL_LACUNARITY,
 	);
-	const mix =
-		CONTINENT_WEIGHT * continent.GetNoise(tileX, tileY) +
-		DETAIL_WEIGHT * detail.GetNoise(tileX, tileY);
-	return Math.min(1, Math.max(-1, mix)) * HEIGHT_AMPLITUDE;
+	return (tileX, tileY) => {
+		const mix =
+			CONTINENT_WEIGHT * continent.GetNoise(tileX, tileY) +
+			DETAIL_WEIGHT * detail.GetNoise(tileX, tileY);
+		return Math.min(1, Math.max(-1, mix)) * HEIGHT_AMPLITUDE;
+	};
+}
+
+/** Height in Unreal uu for a tile-space position. */
+export function heightAt(seed: number, tileX: number, tileY: number): number {
+	return makeHeightSampler(seed)(tileX, tileY);
 }

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Builds libgit2 static libs with native TLS per platform:
 #   Mac    -> SecureTransport (Security.framework, no OpenSSL)
-#   Linux  -> OpenSSL (system)
+#   Linux  -> OpenSSL (linked via engine ThirdParty at plugin build time)
 #   Win64  -> WinHTTP / SChannel (build on Windows, see notes)
 # Output: lib/<Platform>/(libgit2.a|git2.lib)
 # Usage:  ./build-libgit2.sh [mac|linux]

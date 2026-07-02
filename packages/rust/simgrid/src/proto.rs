@@ -49,6 +49,9 @@ pub const EPHEMERAL_CORPSE: u16 = 16;
 pub const EPHEMERAL_PET_ROSTER: u16 = 17;
 pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
 pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
+pub const EPHEMERAL_UDP_OFFER: u16 = 20;
+
+pub const UDP_MAX_DATAGRAM: usize = 1200;
 
 // `Input::PetTurn.action` — what the player commits for an interactive battle turn.
 // `arg` is the move slot (PET_ACT_MOVE) or the reserve index to send out (PET_ACT_SWAP).
@@ -712,6 +715,57 @@ pub enum ServerEvent {
     },
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum UdpPacket {
+    Hello { protocol: u32, token: [u8; 16] },
+    HelloAck,
+    Frame(ClientFrame),
+    Snapshot(Snapshot),
+}
+
+#[derive(Serialize)]
+pub struct SnapshotRef<'a> {
+    pub tick: u32,
+    pub server_time_ms: u32,
+    pub input_ack: u32,
+    pub players: &'a [PlayerView],
+    pub entities: Vec<&'a EntityDelta>,
+    pub keyframe: bool,
+}
+
+#[derive(Serialize)]
+pub enum ServerEventRef<'a> {
+    Welcome {
+        protocol: u32,
+        your_slot: PlayerSlot,
+        seed: u64,
+        registry: Vec<KindEntry>,
+    },
+    Snapshot(SnapshotRef<'a>),
+    Ephemeral {
+        kind: u16,
+        to: PlayerSlot,
+        payload: Vec<u8>,
+    },
+    Reject {
+        reason: String,
+    },
+}
+
+#[derive(Serialize)]
+pub enum UdpPacketRef<'a> {
+    Hello { protocol: u32, token: [u8; 16] },
+    HelloAck,
+    Frame(ClientFrame),
+    Snapshot(&'a SnapshotRef<'a>),
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct UdpOffer {
+    pub token: [u8; 16],
+    pub port: u16,
+}
+
 pub fn encode<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {
     postcard::to_allocvec_cobs(value)
 }
@@ -756,6 +810,67 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn snapshot_ref_matches_owned_wire() {
+        let snap = Snapshot {
+            tick: 42,
+            server_time_ms: 1000,
+            input_ack: 7,
+            players: vec![PlayerView {
+                slot: PlayerSlot(1),
+                kbve_username: "hero".into(),
+                connected: true,
+            }],
+            entities: vec![EntityDelta {
+                eid: EntityId(9),
+                kind: 3,
+                owner: PlayerSlot(1),
+                tile: Tile::new(5, 6),
+                facing: Facing::Up,
+                sub: 0,
+                qx: 1,
+                qy: 2,
+                qvx: 0,
+                qvy: 0,
+                input_ack: 7,
+                hp: 80,
+                max_hp: 100,
+                destroyed: false,
+                z: -2,
+                effects: vec![StatusView {
+                    kind: StatusKind::Burn,
+                    remaining: 30,
+                }],
+                piloting: 0,
+                mp: 0,
+                max_mp: 0,
+                energy: 0,
+                max_energy: 0,
+                stamina: 0,
+                max_stamina: 0,
+            }],
+            keyframe: true,
+        };
+        let view = SnapshotRef {
+            tick: snap.tick,
+            server_time_ms: snap.server_time_ms,
+            input_ack: snap.input_ack,
+            players: &snap.players,
+            entities: snap.entities.iter().collect(),
+            keyframe: snap.keyframe,
+        };
+        assert_eq!(
+            encode_inner(&UdpPacket::Snapshot(snap.clone())).unwrap(),
+            encode_inner(&UdpPacketRef::Snapshot(&view)).unwrap(),
+            "UdpPacketRef must be byte-identical to owned UdpPacket"
+        );
+        assert_eq!(
+            encode(&ServerEvent::Snapshot(snap.clone())).unwrap(),
+            encode(&ServerEventRef::Snapshot(view)).unwrap(),
+            "ServerEventRef must be byte-identical to owned ServerEvent"
+        );
     }
 
     #[test]
@@ -1339,5 +1454,92 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn udp_packet_round_trips() {
+        let hello = UdpPacket::Hello {
+            protocol: PROTOCOL_VERSION,
+            token: [7u8; 16],
+        };
+        let bytes = encode_inner(&hello).expect("encode");
+        match decode_inner::<UdpPacket>(&bytes).expect("decode") {
+            UdpPacket::Hello { protocol, token } => {
+                assert_eq!(protocol, PROTOCOL_VERSION);
+                assert_eq!(token, [7u8; 16]);
+            }
+            _ => panic!("wrong variant"),
+        }
+
+        let frame = UdpPacket::Frame(ClientFrame {
+            client_tick: 9,
+            inputs: vec![Input::Move {
+                seq: 3,
+                mx: 1,
+                my: -1,
+                run: false,
+                tick: 9,
+            }],
+        });
+        let bytes = encode_inner(&frame).expect("encode");
+        assert!(matches!(
+            decode_inner::<UdpPacket>(&bytes).expect("decode"),
+            UdpPacket::Frame(f) if f.client_tick == 9
+        ));
+
+        let ack = encode_inner(&UdpPacket::HelloAck).expect("encode");
+        assert!(matches!(
+            decode_inner::<UdpPacket>(&ack).expect("decode"),
+            UdpPacket::HelloAck
+        ));
+    }
+
+    #[test]
+    fn udp_offer_round_trips() {
+        let offer = UdpOffer {
+            token: [0xAB; 16],
+            port: 7977,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        let back: UdpOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back.token, [0xAB; 16]);
+        assert_eq!(back.port, 7977);
+    }
+
+    #[test]
+    fn udp_hello_fixture_is_stable() {
+        let hello = UdpPacket::Hello {
+            protocol: 16,
+            token: [
+                0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
+                0x0e, 0x0f,
+            ],
+        };
+        let hex: String = encode_inner(&hello)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex, "0010000102030405060708090a0b0c0d0e0f");
+    }
+
+    #[test]
+    fn udp_frame_fixture_is_stable() {
+        let frame = UdpPacket::Frame(ClientFrame {
+            client_tick: 42,
+            inputs: vec![Input::Move {
+                seq: 5,
+                mx: 1,
+                my: -1,
+                run: true,
+                tick: 42,
+            }],
+        });
+        let hex: String = encode_inner(&frame)
+            .expect("encode")
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        assert_eq!(hex, "022a01010501ff012a");
     }
 }

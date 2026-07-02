@@ -81,6 +81,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(v) = verifier {
         state = state.with_verifier(v);
     }
+    if let Ok(raw) = std::env::var("ARPG_UDP_ADDR") {
+        let udp_addr: SocketAddr = raw.parse()?;
+        let lane = simgrid::UdpLane::bind(udp_addr).await?;
+        lane.spawn_recv_loop(state.input_tx.as_ref().expect("input_tx set").clone());
+        tracing::info!(port = lane.port(), "udp fast lane enabled");
+        state = state.with_udp(lane);
+    }
     let roster = state.roster.clone();
     state.spawn_event_router(out_rx);
 
