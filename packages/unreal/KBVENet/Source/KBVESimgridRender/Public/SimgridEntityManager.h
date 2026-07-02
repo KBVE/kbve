@@ -12,6 +12,7 @@ class UStaticMesh;
 class USkeletalMesh;
 class UKBVENpcSpriteRenderSubsystem;
 class UKBVENpcSpriteDef;
+class UAnimationAsset;
 
 UCLASS()
 class KBVESIMGRIDRENDER_API USimgridEntityManager : public UObject
@@ -32,6 +33,7 @@ public:
 
 	bool IsLocalWorldPos(FVector& OutPos) const;
 	bool WorldPosOf(uint32 Eid, FVector& OutPos) const;
+	FString NameForSlot(uint16 Slot) const;
 
 private:
 	FVector ResolveWorldPos(const FSimgridInterpState& S) const;
@@ -39,6 +41,8 @@ private:
 	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
 	void EnsureEnvDef();
 	USkeletalMesh* EnsureMannyMesh();
+	void EnsureLocomotionAnims();
+	UAnimationAsset* PickLocomotionAnim(float Speed);
 
 	FSimgridInterpolator Interp;
 
@@ -63,7 +67,19 @@ private:
 	UPROPERTY()
 	TObjectPtr<USkeletalMesh> MannyMesh;
 
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> IdleAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> WalkAnim;
+
+	UPROPERTY()
+	TObjectPtr<UAnimationAsset> JogAnim;
+
+	bool bAnimsLoaded = false;
+
 	TMap<uint32, int32> SpriteHandleIds;
+	TMap<uint16, FString> SlotNames;
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> LocalPawn;

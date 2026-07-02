@@ -61,11 +61,19 @@ struct FSimgridWelcome
 	TArray<FSimgridKindEntry> Registry;
 };
 
+struct FSimgridPlayerView
+{
+	uint16 Slot = 0;
+	FString Username;
+	bool bConnected = false;
+};
+
 struct FSimgridSnapshot
 {
 	uint32 Tick = 0;
 	uint32 ServerTimeMs = 0;
 	uint32 InputAck = 0;
+	TArray<FSimgridPlayerView> Players;
 	TArray<FSimgridEntityDelta> Entities;
 	bool bKeyframe = false;
 };

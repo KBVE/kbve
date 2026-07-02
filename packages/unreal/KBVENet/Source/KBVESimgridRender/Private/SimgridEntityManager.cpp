@@ -11,6 +11,9 @@
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
 #include "Engine/SkeletalMesh.h"
+#include "Animation/AnimationAsset.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 
 static constexpr uint8 KBVE_CAT_PLAYER = 0;
 static constexpr uint8 KBVE_CAT_ENV = 3;
@@ -56,8 +59,22 @@ void USimgridEntityManager::OnSnapshotReceived()
 {
 	if (Sub)
 	{
-		Interp.Push(Sub->GetLastSnapshot());
+		const FSimgridSnapshot& Snap = Sub->GetLastSnapshot();
+		for (const FSimgridPlayerView& P : Snap.Players)
+		{
+			if (P.bConnected && !P.Username.IsEmpty())
+			{
+				SlotNames.Add(P.Slot, P.Username);
+			}
+		}
+		Interp.Push(Snap);
 	}
+}
+
+FString USimgridEntityManager::NameForSlot(uint16 Slot) const
+{
+	const FString* Found = SlotNames.Find(Slot);
+	return Found ? *Found : FString();
 }
 
 FVector USimgridEntityManager::ResolveWorldPos(const FSimgridInterpState& S) const
@@ -122,6 +139,32 @@ USkeletalMesh* USimgridEntityManager::EnsureMannyMesh()
 	return MannyMesh;
 }
 
+void USimgridEntityManager::EnsureLocomotionAnims()
+{
+	if (bAnimsLoaded)
+	{
+		return;
+	}
+	bAnimsLoaded = true;
+	IdleAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle"));
+	WalkAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd"));
+	JogAnim = LoadObject<UAnimationAsset>(nullptr, TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Jog/MF_Unarmed_Jog_Fwd.MF_Unarmed_Jog_Fwd"));
+}
+
+UAnimationAsset* USimgridEntityManager::PickLocomotionAnim(float Speed)
+{
+	EnsureLocomotionAnims();
+	if (Speed < 40.0f)
+	{
+		return IdleAnim;
+	}
+	if (Speed < 500.0f)
+	{
+		return WalkAnim ? WalkAnim : JogAnim;
+	}
+	return JogAnim ? JogAnim : WalkAnim;
+}
+
 void USimgridEntityManager::Tick(double NowMs)
 {
 	if (!Interp.HasData())
@@ -131,6 +174,18 @@ void USimgridEntityManager::Tick(double NowMs)
 
 	const double RenderTime = NowMs - FSimgridInterpolator::INTERP_DELAY_MS;
 	const TArray<FSimgridEntityDelta>& Keyframe = Interp.LatestEntities();
+
+	FRotator PlateRot = FRotator::ZeroRotator;
+	if (UWorld* World = WorldPtr.Get())
+	{
+		if (APlayerController* PC = World->GetFirstPlayerController())
+		{
+			if (PC->PlayerCameraManager)
+			{
+				PlateRot = FRotator(0.0f, PC->PlayerCameraManager->GetCameraRotation().Yaw + 180.0f, 0.0f);
+			}
+		}
+	}
 
 	bHasLocalPos = false;
 
@@ -215,6 +270,12 @@ void USimgridEntityManager::Tick(double NowMs)
 			}
 		}
 		Actor->ApplyState(WorldPos, Yaw, S.Kind);
+		if (bResolved && Cat == KBVE_CAT_PLAYER)
+		{
+			Actor->SetDisplayName(NameForSlot(S.Owner));
+			Actor->SetNameplateFacing(PlateRot);
+			Actor->SetLocomotionAnim(PickLocomotionAnim((float)S.VelXY.Size()));
+		}
 	}
 
 	TSet<uint32> Live;
@@ -295,6 +356,7 @@ void USimgridEntityManager::Clear()
 		}
 	}
 	SpriteHandleIds.Empty();
+	SlotNames.Empty();
 
 	bHasLocalPos = false;
 }

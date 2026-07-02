@@ -143,6 +143,10 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 	{
 		CameraPawn->SetFollowTarget(ArpgPawn->GetActorLocation());
 	}
+	if (ArpgPawn && LocalSlot >= 0)
+	{
+		ArpgPawn->SetDisplayName(Manager->NameForSlot((uint16)LocalSlot));
+	}
 
 	FVector LocalPos;
 	const bool bHasLocal = Manager->IsLocalWorldPos(LocalPos);
