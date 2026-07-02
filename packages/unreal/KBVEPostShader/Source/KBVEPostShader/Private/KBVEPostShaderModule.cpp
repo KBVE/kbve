@@ -18,7 +18,7 @@ void FKBVEPostShaderModule::StartupModule()
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/KBVEPostShader"), ShaderDir);
 	}
 
-	PostEngineInitHandle = FCoreDelegates::OnPostEngineInit.AddLambda([this]()
+	PostEngineInitHandle = FCoreDelegates::GetOnPostEngineInit().AddLambda([this]()
 	{
 		ViewExtension = FSceneViewExtensions::NewExtension<FKBVEPostViewExtension>();
 	});
@@ -26,7 +26,7 @@ void FKBVEPostShaderModule::StartupModule()
 
 void FKBVEPostShaderModule::ShutdownModule()
 {
-	FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitHandle);
+	FCoreDelegates::GetOnPostEngineInit().Remove(PostEngineInitHandle);
 	ViewExtension.Reset();
 }
 

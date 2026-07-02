@@ -7,6 +7,7 @@
 #include "RenderGraphBuilder.h"
 #include "RenderGraphUtils.h"
 #include "RHIStaticStates.h"
+#include "SceneView.h"
 #include "ScreenPass.h"
 
 static TAutoConsoleVariable<int32>* CVarKBVEPostEnable = new TAutoConsoleVariable<int32>(
