@@ -1808,7 +1808,6 @@ name = "axum-rentearth"
 version = "0.1.1"
 dependencies = [
  "anyhow",
- "askama 0.15.6",
  "axum 0.8.9",
  "jedi",
  "serde",
