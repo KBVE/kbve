@@ -723,6 +723,43 @@ pub enum UdpPacket {
     Snapshot(Snapshot),
 }
 
+#[derive(Serialize)]
+pub struct SnapshotRef<'a> {
+    pub tick: u32,
+    pub server_time_ms: u32,
+    pub input_ack: u32,
+    pub players: &'a [PlayerView],
+    pub entities: Vec<&'a EntityDelta>,
+    pub keyframe: bool,
+}
+
+#[derive(Serialize)]
+pub enum ServerEventRef<'a> {
+    Welcome {
+        protocol: u32,
+        your_slot: PlayerSlot,
+        seed: u64,
+        registry: Vec<KindEntry>,
+    },
+    Snapshot(SnapshotRef<'a>),
+    Ephemeral {
+        kind: u16,
+        to: PlayerSlot,
+        payload: Vec<u8>,
+    },
+    Reject {
+        reason: String,
+    },
+}
+
+#[derive(Serialize)]
+pub enum UdpPacketRef<'a> {
+    Hello { protocol: u32, token: [u8; 16] },
+    HelloAck,
+    Frame(ClientFrame),
+    Snapshot(&'a SnapshotRef<'a>),
+}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct UdpOffer {
     pub token: [u8; 16],
@@ -773,6 +810,67 @@ mod tests {
             }
             _ => panic!("wrong variant"),
         }
+    }
+
+    #[test]
+    fn snapshot_ref_matches_owned_wire() {
+        let snap = Snapshot {
+            tick: 42,
+            server_time_ms: 1000,
+            input_ack: 7,
+            players: vec![PlayerView {
+                slot: PlayerSlot(1),
+                kbve_username: "hero".into(),
+                connected: true,
+            }],
+            entities: vec![EntityDelta {
+                eid: EntityId(9),
+                kind: 3,
+                owner: PlayerSlot(1),
+                tile: Tile::new(5, 6),
+                facing: Facing::Up,
+                sub: 0,
+                qx: 1,
+                qy: 2,
+                qvx: 0,
+                qvy: 0,
+                input_ack: 7,
+                hp: 80,
+                max_hp: 100,
+                destroyed: false,
+                z: -2,
+                effects: vec![StatusView {
+                    kind: StatusKind::Burn,
+                    remaining: 30,
+                }],
+                piloting: 0,
+                mp: 0,
+                max_mp: 0,
+                energy: 0,
+                max_energy: 0,
+                stamina: 0,
+                max_stamina: 0,
+            }],
+            keyframe: true,
+        };
+        let view = SnapshotRef {
+            tick: snap.tick,
+            server_time_ms: snap.server_time_ms,
+            input_ack: snap.input_ack,
+            players: &snap.players,
+            entities: snap.entities.iter().collect(),
+            keyframe: snap.keyframe,
+        };
+        assert_eq!(
+            encode_inner(&UdpPacket::Snapshot(snap.clone())).unwrap(),
+            encode_inner(&UdpPacketRef::Snapshot(&view)).unwrap(),
+            "UdpPacketRef must be byte-identical to owned UdpPacket"
+        );
+        assert_eq!(
+            encode(&ServerEvent::Snapshot(snap.clone())).unwrap(),
+            encode(&ServerEventRef::Snapshot(view)).unwrap(),
+            "ServerEventRef must be byte-identical to owned ServerEvent"
+        );
     }
 
     #[test]
