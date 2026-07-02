@@ -44,6 +44,8 @@ kbve-osrs-audit = "kbve.osrs.audit:main"
 kbve-osrs-families = "kbve.osrs.families:main"
 kbve-seo-audit = "kbve.seo.audit:main"
 kbve-seo-report = "kbve.seo.report:main"
+kbve-unreal-clangd = "kbve.unreal.clangd:main"
+kbve-unreal-check = "kbve.unreal.check:main"
 
 [dependency-groups]
 dev = [

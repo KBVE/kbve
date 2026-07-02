@@ -40,3 +40,6 @@ Content/Developers/*
 
 # macOS junk
 .DS_Store
+
+# clangd compile database (kbve-unreal-clangd)
+compile_commands.json
