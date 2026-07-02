@@ -1,3 +1,4 @@
+pub mod pty;
 mod views;
 
 use std::sync::Arc;
