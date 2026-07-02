@@ -66,4 +66,8 @@ private:
 
 	int32 LocalSlot = -1;
 	bool bWasMoving = false;
+
+	float TimeSinceWelcome = -1.0f;
+	bool bLocalEverSeen = false;
+	bool bWarnedNoLocal = false;
 };

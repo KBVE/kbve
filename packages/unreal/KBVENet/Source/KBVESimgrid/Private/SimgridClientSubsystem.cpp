@@ -31,15 +31,17 @@ void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 	Ws->OnClose.AddLambda([this](int32 Code, const FString& Reason, bool bClean) { HandleClose(Code, Reason, bClean); });
 	Ws->OnError.AddLambda([this](const FString& Err) { HandleError(Err); });
 
+	if (PendingJwt.IsEmpty())
+	{
+		UE_LOG(LogKBVESimgrid, Error, TEXT("Connecting with empty JWT — server will reject. Supabase session missing/expired (check auth/v1/user)."));
+	}
 	State = ESimgridState::Connecting;
-	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] Connecting url=%s jwtLen=%d user=%s"), *Url, PendingJwt.Len(), *PendingUsername);
 	Ws->Connect(Url);
 }
 
 void USimgridClientSubsystem::HandleOpen()
 {
 	State = ESimgridState::Joining;
-	UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] WS open - sending JoinMatch proto=%u jwtLen=%d"), GSimgridProtocolVersion, PendingJwt.Len());
 	const TArray<uint8> Frame = FProtoCodec::EncodeJoinMatch(GSimgridProtocolVersion, PendingJwt, PendingUsername);
 	Ws->SendBinary(Frame);
 }
@@ -49,7 +51,7 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 	const FServerDecoded D = FProtoCodec::DecodeServerEvent(Frame);
 	if (!D.bOk)
 	{
-		UE_LOG(LogKBVESimgrid, Warning, TEXT("Dropped undecodable frame (%d bytes)"), Frame.Num());
+		UE_LOG(LogKBVESimgrid, Error, TEXT("Undecodable frame (%d bytes) — codec out of sync with server wire format; snapshots dropped, nothing renders."), Frame.Num());
 		return;
 	}
 
@@ -63,7 +65,6 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 			return;
 		}
 		State = ESimgridState::Live;
-		UE_LOG(LogKBVESimgrid, Warning, TEXT("[SimgridDiag] Welcome slot=%d seed=%lld - LIVE"), (int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		OnWelcome.Broadcast((int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		break;
 	case EServerEventType::Snapshot:

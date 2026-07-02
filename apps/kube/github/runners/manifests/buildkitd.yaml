@@ -43,15 +43,16 @@ data:
           # Self-prune below the PVC size so the cache never wedges a build with
           # ENOSPC. Working set = astro .astro + cargo registry + sccache-local +
           # pnpm store + layer cache across every app.
-          gckeepstorage = "110GB"
+          gckeepstorage = "90GB"
           [[worker.oci.gcpolicy]]
-            keepBytes = "80GB"
-            keepDuration = "336h"
+            keepBytes = "60GB"
+            keepDuration = "168h"
           # Final tier has no keepDuration: a hard ceiling that evicts oldest
-          # regardless of age. Without it, a burst of builds inside the 336h
-          # window protects every entry and the cache fills to the PVC (ENOSPC).
+          # regardless of age. Set well below the 146GiB usable PVC so a burst
+          # of concurrent mode=max exports (each multi-GB) cannot outrun the
+          # async LRU GC and hit ENOSPC on containerdmeta.db before it reclaims.
           [[worker.oci.gcpolicy]]
-            keepBytes = "120GB"
+            keepBytes = "90GB"
 
         [worker.containerd]
           enabled = false
@@ -59,6 +60,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+    annotations:
+        reloader.stakater.com/auto: 'true'
     name: buildkitd
     namespace: arc-runners
     labels:

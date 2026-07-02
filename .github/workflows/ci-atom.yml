@@ -272,8 +272,33 @@ jobs:
                         core.setOutput('number', pr.data.number.toString());
                         core.setOutput('url', pr.data.html_url);
                       } catch (error) {
-                        console.error(`Failed to create PR: ${error.message}`);
-                        core.setFailed(`Failed to create PR: ${error.message}`);
+                        const status = error.status ?? error.response?.status;
+                        const alreadyExists = status === 422 && /already exists/i.test(error.message);
+                        if (!alreadyExists) {
+                          console.error(`Failed to create PR: ${error.message}`);
+                          core.setFailed(`Failed to create PR: ${error.message}`);
+                          return;
+                        }
+
+                        console.log('PR already exists (race with a concurrent creator); recovering it.');
+                        const existing = await github.rest.pulls.list({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          head: `${context.repo.owner}:${branchName}`,
+                          base: 'dev',
+                          state: 'open'
+                        });
+
+                        if (existing.data.length === 0) {
+                          core.setFailed('PR reported as already existing but none found open.');
+                          return;
+                        }
+
+                        const pr = existing.data[0];
+                        console.log(`Recovered existing PR #${pr.number}: ${pr.html_url}`);
+                        core.setOutput('created', 'true');
+                        core.setOutput('number', pr.number.toString());
+                        core.setOutput('url', pr.html_url);
                       }
 
     # Job 5: Run lint + test on affected projects

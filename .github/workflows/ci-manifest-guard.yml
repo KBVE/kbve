@@ -9,6 +9,9 @@ on:
             - 'apps/kbve/astro-kbve/src/content/**'
             - 'apps/kbve/astro-kbve/src/content.config.ts'
             - 'apps/kbve/astro-kbve/src/pages/api/ci-registry.json.ts'
+            - 'apps/kbve/astro-kbve/src/data/ci/**'
+            - 'apps/kbve/astro-kbve/src/data/schema/ICiProjectSchema.ts'
+            - 'apps/kbve/astro-kbve/scripts/gen-ci-manifest.mts'
             - '.github/ci-dispatch-manifest.json'
             - '.github/workflows/ci-manifest-guard.yml'
             - 'packages/data/proto/kbve/ci_registry.proto'
@@ -51,24 +54,11 @@ jobs:
 
             - run: pnpm install --frozen-lockfile
 
-            # Nx occasionally hits a flaky "Failed to process project graph" race
-            # on the first cold attempt. Retry with verbose logging and reset before
-            # surfacing as a real failure.
-            - name: Build astro-kbve (retry on flaky graph)
-              run: |
-                  for attempt in 1 2 3; do
-                      if npx nx run astro-kbve:build --verbose; then
-                          echo "Build succeeded on attempt $attempt"
-                          exit 0
-                      fi
-                      echo "::warning::astro-kbve:build attempt $attempt failed, retrying..."
-                      npx nx reset || true
-                      sleep 5
-                  done
-                  echo "::error::astro-kbve:build failed after 3 attempts"
-                  exit 1
-
-            - run: npx nx run astro-kbve:sync:ci-manifest
+            # Regenerate the manifest straight from the project MDX via the
+            # standalone tsx generator — byte-identical to the Astro build path
+            # (shared buildManifest + ProjectSchemaWithEngine) without paying
+            # for a full Astro build.
+            - run: npx nx run astro-kbve:gen:ci-manifest
 
             - name: Diff manifest
               run: |
@@ -107,7 +97,7 @@ jobs:
 
                   if [ -n "$STRUCTURAL_DIFF" ]; then
                       echo "::error::ci-dispatch-manifest.json has structural drift from the MDX sources."
-                      echo "::error::Run 'npx nx run astro-kbve:build && npx nx run astro-kbve:sync:ci-manifest' locally and commit the regenerated manifest."
+                      echo "::error::Run 'npx nx run astro-kbve:gen:ci-manifest' locally and commit the regenerated manifest."
                       echo "Structural diff:"
                       echo "$STRUCTURAL_DIFF"
                       git diff --stat -- .github/ci-dispatch-manifest.json

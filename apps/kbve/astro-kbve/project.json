@@ -140,6 +140,30 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"gen:ci-manifest": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/project/*.mdx",
+				"{projectRoot}/src/data/ci/manifest-builder.ts",
+				"{projectRoot}/src/data/ci/project-schema.ts",
+				"{projectRoot}/src/data/schema/ICiProjectSchema.ts",
+				"{projectRoot}/scripts/gen-ci-manifest.mts",
+				"{workspaceRoot}/packages/data/codegen/generated/ci_registry-schema.ts"
+			],
+			"outputs": ["{workspaceRoot}/.github/ci-dispatch-manifest.json"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts"
+			},
+			"cache": true
+		},
+		"gen:ci-manifest:check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
+			}
+		},
 		"sync:unreal": {
 			"executor": "nx:run-commands",
 			"options": {
