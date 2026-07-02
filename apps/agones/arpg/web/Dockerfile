@@ -3,9 +3,9 @@
 # A third play surface alongside kbve.com/arcade/arpg and the Discord embed.
 #
 # Build context = repo root. The game source + LFS-tracked sprite art live under
-# apps/agones/arpg/web; the one cross-repo dep is @kbve/laser (aliased to source
-# in web/vite.config.ts). So this build mirrors those two subtrees under /app and
-# installs only the app's own (npm, non-workspace) deps.
+# apps/agones/arpg/web; the cross-repo deps are @kbve/laser and @kbve/observ
+# (aliased to source in web/vite.config.ts). So this build mirrors those subtrees
+# under /app and installs only the app's own (npm, non-workspace) deps.
 # NOTE: the LFS art must be smudged (real PNGs, not pointer stubs) in the build
 # context — CI runs `./kbve.sh -lfs arpg pull` before the docker build.
 # ============================================================================
@@ -18,9 +18,10 @@ COPY apps/agones/arpg/web/package.json apps/agones/arpg/web/
 RUN cd apps/agones/arpg/web && npm install --no-save
 
 # The game source + sprite art now live entirely under apps/agones/arpg/web.
-# @kbve/laser is the one cross-repo dep the vite config aliases to source.
+# @kbve/laser and @kbve/observ are the cross-repo deps the vite config aliases to source.
 COPY tsconfig.base.json tsconfig.base.json
 COPY packages/npm/laser packages/npm/laser
+COPY packages/npm/observ packages/npm/observ
 COPY packages/data/codegen/generated packages/data/codegen/generated
 COPY apps/agones/arpg/web apps/agones/arpg/web
 
