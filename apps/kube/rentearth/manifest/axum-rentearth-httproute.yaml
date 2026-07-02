@@ -10,7 +10,6 @@ spec:
     hostnames:
         - rentearth.com
         - www.rentearth.com
-        - play.rentearth.com
     rules:
         - matches:
               - path:
