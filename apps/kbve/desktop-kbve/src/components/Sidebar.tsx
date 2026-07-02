@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { getViews } from '../engine';
 import { useAppStore } from '../stores/app';
 import { ThemeSwitch } from './ThemeSwitch';
+import { Account } from './Account';
 
 export function Sidebar() {
 	const views = getViews();
@@ -132,6 +133,8 @@ export function Sidebar() {
 					</button>
 				))}
 			</nav>
+
+			<Account />
 
 			{/* Footer */}
 			<div

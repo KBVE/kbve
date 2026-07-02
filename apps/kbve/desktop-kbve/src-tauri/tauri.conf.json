@@ -26,6 +26,13 @@
 			"csp": null
 		}
 	},
+	"plugins": {
+		"deep-link": {
+			"desktop": {
+				"schemes": ["kbve-desktop"]
+			}
+		}
+	},
 	"bundle": {
 		"active": true,
 		"targets": "all",
