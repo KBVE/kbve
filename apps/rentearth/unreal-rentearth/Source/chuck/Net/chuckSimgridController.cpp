@@ -240,7 +240,12 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 		Move.Mx = (int8)FMath::Clamp(FMath::RoundToInt(Dir.X * 127.0), -127, 127);
 		Move.My = (int8)FMath::Clamp(FMath::RoundToInt(Dir.Y * 127.0), -127, 127);
 		Move.bRun = bRun;
-		Sub->SendMove(Move);
+		const uint32 Seq = Sub->SendMove(Move);
+		if (Seq != 0 && ArpgPawn)
+		{
+			const FVector2D SentDir(Move.Mx / 127.0f, Move.My / 127.0f);
+			ArpgPawn->RecordIntent(Seq, SentDir, bRun);
+		}
 	};
 
 	SendAccum += DeltaSeconds;

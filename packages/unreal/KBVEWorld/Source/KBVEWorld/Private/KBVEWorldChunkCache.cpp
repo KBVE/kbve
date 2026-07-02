@@ -1,6 +1,7 @@
 #include "KBVEWorldChunkCache.h"
 
 #include "HAL/PlatformFileManager.h"
+#include "GenericPlatform/GenericPlatformFile.h"
 #include "Misc/Paths.h"
 
 THIRD_PARTY_INCLUDES_START

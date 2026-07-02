@@ -165,7 +165,8 @@ void USimgridEntityManager::Tick(double NowMs)
 				const FVector2D LatestXY = FSimgridCoords::QuantToWorldXY(E.Qx, E.Qy);
 				const float LatestH = WorldBridge ? WorldBridge->SampleHeight((float)LatestXY.X, (float)LatestXY.Y) : 0.0f;
 				const FVector LatestPos((float)LatestXY.X, (float)LatestXY.Y, LatestH + (float)E.Z * FSimgridCoords::FLOOR_HEIGHT);
-				Driver->ApplyServerCorrection(LatestPos, FVector(S.VelXY.X, S.VelXY.Y, 0.0f));
+				const FVector2D LatestVel = FSimgridCoords::QuantVelToWorldXY(E.Qvx, E.Qvy);
+				Driver->ApplyServerCorrection(LatestPos, FVector(LatestVel.X, LatestVel.Y, 0.0f), E.InputAck);
 			}
 			else if (!bWarnedLocalNotDriver)
 			{

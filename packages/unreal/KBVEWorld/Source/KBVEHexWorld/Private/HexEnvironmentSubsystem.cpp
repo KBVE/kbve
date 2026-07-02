@@ -1,5 +1,7 @@
 #include "HexEnvironmentSubsystem.h"
+#include "Engine/World.h"
 #include "Engine/DirectionalLight.h"
+#include "Engine/SkyAtmosphere.h"
 #include "Engine/SkyLight.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"

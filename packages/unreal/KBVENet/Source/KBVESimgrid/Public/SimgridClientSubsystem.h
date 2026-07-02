@@ -36,7 +36,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Simgrid")
 	void Disconnect();
 
-	void SendMove(const FSimgridMove& Move);
+	uint32 SendMove(const FSimgridMove& Move);
 
 	UFUNCTION(BlueprintPure, Category = "KBVE|Simgrid")
 	ESimgridState GetState() const { return State; }

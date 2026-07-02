@@ -1761,6 +1761,7 @@ pub struct IntentBuffer {
     last: (i8, i8, bool),
     primed: bool,
     starve_ticks: u32,
+    debt: u32,
 }
 
 /// Recent server-tick positions per player, for lag-compensated PvP hit checks:
@@ -1818,8 +1819,16 @@ const INPUT_JITTER_BUFFER: usize = 2;
 const INPUT_STARVE_GRACE: u32 = 2;
 
 impl IntentBuffer {
-    /// Queue one client-tick intent.
+    /// Queue one client-tick intent. Intents arriving while starve-hold debt is
+    /// outstanding were already played via the hold, so they retroactively become
+    /// the held intent instead of queueing — displacement is conserved and a late
+    /// stop takes effect on the next tick instead of replaying the burst.
     fn push(&mut self, mx: i8, my: i8, run: bool) {
+        if self.debt > 0 {
+            self.debt -= 1;
+            self.last = (mx, my, run);
+            return;
+        }
         self.pending.push_back((mx, my, run));
     }
 
@@ -1830,22 +1839,36 @@ impl IntentBuffer {
         self.last = (0, 0, false);
         self.primed = false;
         self.starve_ticks = 0;
+        self.debt = 0;
     }
 
     /// Advance one server tick: return the intent to apply. Primes on the jitter
-    /// buffer, then pops one per tick; holds (then zeroes) the last on starvation.
+    /// buffer, then pops one per tick. On starvation the last moving intent is
+    /// held for a short grace (counted as debt repaid by `push`), then zeroed so
+    /// a dropped tail still comes to rest without over-travelling.
     fn next(&mut self) -> (i8, i8, bool) {
         if !self.primed && self.pending.len() >= INPUT_JITTER_BUFFER {
             self.primed = true;
         }
-        if self.primed {
-            if let Some(i) = self.pending.pop_front() {
+        let popped = if self.primed {
+            self.pending.pop_front()
+        } else {
+            None
+        };
+        match popped {
+            Some(i) => {
                 self.last = i;
                 self.starve_ticks = 0;
-            } else {
-                self.starve_ticks += 1;
-                if self.starve_ticks > INPUT_STARVE_GRACE {
-                    self.last = (0, 0, self.last.2);
+            }
+            None => {
+                if self.last.0 != 0 || self.last.1 != 0 {
+                    self.starve_ticks += 1;
+                    if self.starve_ticks > INPUT_STARVE_GRACE {
+                        self.last = (0, 0, self.last.2);
+                        self.debt = 0;
+                    } else {
+                        self.debt += 1;
+                    }
                 }
                 self.primed = false;
             }
@@ -4201,6 +4224,56 @@ mod tests {
     use super::test_support::*;
     use super::*;
     use std::collections::HashSet;
+
+    #[test]
+    fn intent_buffer_starve_hold_does_not_replay_late_burst() {
+        let mut b = IntentBuffer::default();
+        b.push(100, 0, true);
+        b.push(100, 0, true);
+        let mut moving_ticks = 0;
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        for _ in 0..2 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        b.push(100, 0, true);
+        b.push(100, 0, true);
+        b.push(0, 0, true);
+        b.push(0, 0, true);
+        for _ in 0..8 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert_eq!(
+            moving_ticks, 4,
+            "held starve ticks must repay the late burst, not double-play it"
+        );
+    }
+
+    #[test]
+    fn intent_buffer_unprimed_hold_stops_after_grace() {
+        let mut b = IntentBuffer::default();
+        b.push(100, 0, true);
+        b.push(100, 0, true);
+        b.next();
+        b.next();
+        let mut moving_ticks = 0;
+        for _ in 0..10 {
+            if b.next().0 != 0 {
+                moving_ticks += 1;
+            }
+        }
+        assert!(
+            moving_ticks <= INPUT_STARVE_GRACE as i32,
+            "dead stream must come to rest within grace, kept moving {moving_ticks} ticks"
+        );
+    }
 
     #[test]
     fn drop_item_spawns_ground_loot_and_decrements_inventory() {
