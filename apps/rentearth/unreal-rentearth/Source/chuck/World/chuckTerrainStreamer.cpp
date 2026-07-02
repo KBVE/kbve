@@ -87,9 +87,9 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 
 	const FIntPoint AnchorChunk = WorldToChunk(SpawnLoc);
 	int32 BuiltCount = 0;
-	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
+	for (int32 Dy = -PrewarmRadius; Dy <= PrewarmRadius; ++Dy)
 	{
-		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
+		for (int32 Dx = -PrewarmRadius; Dx <= PrewarmRadius; ++Dx)
 		{
 			EnsureChunk(FIntPoint(AnchorChunk.X + Dx, AnchorChunk.Y + Dy));
 			++BuiltCount;
@@ -231,9 +231,9 @@ void UchuckTerrainStreamer::EnsureBuiltAround(const FVector2D& WorldXY)
 	const FVector AnchorWorld(WorldXY.X, WorldXY.Y, 0.f);
 	const FIntPoint AnchorChunk = WorldToChunk(AnchorWorld);
 	int32 Built = 0;
-	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
+	for (int32 Dy = -PrewarmRadius; Dy <= PrewarmRadius; ++Dy)
 	{
-		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
+		for (int32 Dx = -PrewarmRadius; Dx <= PrewarmRadius; ++Dx)
 		{
 			EnsureChunk(FIntPoint(AnchorChunk.X + Dx, AnchorChunk.Y + Dy));
 			++Built;
