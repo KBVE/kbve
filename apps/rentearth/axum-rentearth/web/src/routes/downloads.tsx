@@ -13,8 +13,8 @@ export function DownloadsPage() {
 	);
 
 	return (
-		<div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center p-6">
-			<h1 className="mb-1 text-3xl font-bold text-violet-300">RentEarth</h1>
+		<div className="mx-auto flex max-w-2xl flex-col p-6">
+			<h1 className="mb-1 text-3xl font-bold text-violet-300">Downloads</h1>
 			<p className="mb-8 text-sm text-neutral-400">
 				Download the desktop client for your platform.
 			</p>

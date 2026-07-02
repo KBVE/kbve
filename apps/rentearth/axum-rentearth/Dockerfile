@@ -119,7 +119,6 @@ COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
 COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache).
-# Includes templates/askama, which askama compiles into the binary.
 COPY apps/rentearth/axum-rentearth apps/rentearth/axum-rentearth
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
@@ -136,7 +135,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-rentearth /app/axum-rentearth
 
-# Vite web build -> served as static at / (axum keeps /downloads + /api/downloads)
+# Vite SPA build -> served as static; axum keeps /api/downloads + /downloads/{platform}
 COPY --from=web-builder --chown=10001:10001 /web/dist /app/templates/dist
 
 ENV HTTP_HOST=0.0.0.0
