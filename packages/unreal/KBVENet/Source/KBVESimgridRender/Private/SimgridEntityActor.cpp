@@ -1,7 +1,7 @@
 #include "SimgridEntityActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/TextRenderComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
 #include "Animation/AnimationAsset.h"
@@ -22,32 +22,39 @@ ASimgridEntityActor::ASimgridEntityActor()
 	SkelComp->SetMobility(EComponentMobility::Movable);
 	SkelComp->SetVisibility(false);
 
-	NameText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("NameText"));
-	NameText->SetupAttachment(MeshComp);
-	NameText->SetRelativeLocation(FVector(0.0f, 0.0f, 220.0f));
-	NameText->SetUsingAbsoluteRotation(true);
-	NameText->SetHorizontalAlignment(EHTA_Center);
-	NameText->SetWorldSize(32.0f);
-	NameText->SetTextRenderColor(FColor::White);
-	NameText->SetVisibility(false);
+	PlateComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlateComp"));
+	PlateComp->SetupAttachment(MeshComp);
+	PlateComp->SetRelativeLocation(FVector(0.0f, 0.0f, 230.0f));
+	PlateComp->SetWidgetSpace(EWidgetSpace::Screen);
+	PlateComp->SetDrawAtDesiredSize(true);
+	PlateComp->SetWidgetClass(USimgridNameplateWidget::StaticClass());
+	PlateComp->SetVisibility(false);
+}
+
+USimgridNameplateWidget* ASimgridEntityActor::GetNameplate() const
+{
+	return PlateComp ? Cast<USimgridNameplateWidget>(PlateComp->GetUserWidgetObject()) : nullptr;
 }
 
 void ASimgridEntityActor::SetDisplayName(const FString& Name)
 {
-	if (!NameText || DisplayName == Name)
+	if (DisplayName == Name)
 	{
 		return;
 	}
-	DisplayName = Name;
-	NameText->SetText(FText::FromString(Name));
-	NameText->SetVisibility(!Name.IsEmpty());
+	if (USimgridNameplateWidget* Plate = GetNameplate())
+	{
+		DisplayName = Name;
+		Plate->SetDisplayName(Name);
+		PlateComp->SetVisibility(!Name.IsEmpty());
+	}
 }
 
-void ASimgridEntityActor::SetNameplateFacing(const FRotator& Rot)
+void ASimgridEntityActor::SetBar(ESimgridNameplateBar Bar, float Current, float Max)
 {
-	if (NameText && NameText->IsVisible())
+	if (USimgridNameplateWidget* Plate = GetNameplate())
 	{
-		NameText->SetWorldRotation(Rot);
+		Plate->SetBar(Bar, Current, Max);
 	}
 }
 

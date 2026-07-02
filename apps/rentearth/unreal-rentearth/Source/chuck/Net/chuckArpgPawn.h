@@ -3,11 +3,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "KBVEMovementDriver.h"
+#include "SimgridNameplateWidget.h"
 #include "chuckArpgPawn.generated.h"
 
 class USkeletalMeshComponent;
 class UStaticMesh;
-class UTextRenderComponent;
+class UWidgetComponent;
 class UAnimationAsset;
 
 struct FchuckPredIntent
@@ -27,6 +28,7 @@ public:
 
 	void SetVisualMesh(UStaticMesh* Mesh);
 	void SetDisplayName(const FString& Name);
+	void SetBar(ESimgridNameplateBar Bar, float Current, float Max);
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -40,12 +42,13 @@ public:
 private:
 	static void StepBody(FVector& Pos, FVector& Vel, const FVector2D& Dir, bool bInRun, float Dt);
 	void UpdateLocomotion();
+	USimgridNameplateWidget* GetNameplate() const;
 
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> Body;
 
 	UPROPERTY()
-	TObjectPtr<UTextRenderComponent> NameText;
+	TObjectPtr<UWidgetComponent> PlateComp;
 
 	UPROPERTY()
 	TObjectPtr<UAnimationAsset> IdleAnim;

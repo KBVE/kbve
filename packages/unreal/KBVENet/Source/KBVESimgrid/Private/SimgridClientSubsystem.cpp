@@ -3,7 +3,7 @@
 #include "KBVESimgridModule.h"
 #include "KBVESupabaseSubsystem.h"
 
-static const uint32 GSimgridProtocolVersion = 15;
+static const uint32 GSimgridProtocolVersion = 16;
 
 void USimgridClientSubsystem::ConnectToServer(const FString& Url)
 {

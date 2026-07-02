@@ -12,8 +12,6 @@
 #include "Engine/Texture2D.h"
 #include "Engine/SkeletalMesh.h"
 #include "Animation/AnimationAsset.h"
-#include "GameFramework/PlayerController.h"
-#include "Camera/PlayerCameraManager.h"
 
 static constexpr uint8 KBVE_CAT_PLAYER = 0;
 static constexpr uint8 KBVE_CAT_ENV = 3;
@@ -175,18 +173,6 @@ void USimgridEntityManager::Tick(double NowMs)
 	const double RenderTime = NowMs - FSimgridInterpolator::INTERP_DELAY_MS;
 	const TArray<FSimgridEntityDelta>& Keyframe = Interp.LatestEntities();
 
-	FRotator PlateRot = FRotator::ZeroRotator;
-	if (UWorld* World = WorldPtr.Get())
-	{
-		if (APlayerController* PC = World->GetFirstPlayerController())
-		{
-			if (PC->PlayerCameraManager)
-			{
-				PlateRot = FRotator(0.0f, PC->PlayerCameraManager->GetCameraRotation().Yaw + 180.0f, 0.0f);
-			}
-		}
-	}
-
 	bHasLocalPos = false;
 
 	for (const FSimgridEntityDelta& E : Keyframe)
@@ -205,6 +191,14 @@ void USimgridEntityManager::Tick(double NowMs)
 		{
 			bHasLocalPos = true;
 			LocalWorldPos = WorldPos;
+			LocalPools.Hp = E.Hp;
+			LocalPools.MaxHp = E.MaxHp;
+			LocalPools.Mp = E.Mp;
+			LocalPools.MaxMp = E.MaxMp;
+			LocalPools.Energy = E.Energy;
+			LocalPools.MaxEnergy = E.MaxEnergy;
+			LocalPools.Stamina = E.Stamina;
+			LocalPools.MaxStamina = E.MaxStamina;
 
 			AActor* Pawn = LocalPawn.Get();
 			if (!Pawn)
@@ -273,7 +267,10 @@ void USimgridEntityManager::Tick(double NowMs)
 		if (bResolved && Cat == KBVE_CAT_PLAYER)
 		{
 			Actor->SetDisplayName(NameForSlot(S.Owner));
-			Actor->SetNameplateFacing(PlateRot);
+			Actor->SetBar(ESimgridNameplateBar::Health, (float)S.Hp, (float)S.MaxHp);
+			Actor->SetBar(ESimgridNameplateBar::Mana, (float)S.Mp, (float)S.MaxMp);
+			Actor->SetBar(ESimgridNameplateBar::Energy, (float)S.Energy, (float)S.MaxEnergy);
+			Actor->SetBar(ESimgridNameplateBar::Stamina, (float)S.Stamina, (float)S.MaxStamina);
 			Actor->SetLocomotionAnim(PickLocomotionAnim((float)S.VelXY.Size()));
 		}
 	}

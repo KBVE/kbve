@@ -2,13 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SimgridNameplateWidget.h"
 #include "SimgridEntityActor.generated.h"
 
 class UStaticMeshComponent;
 class UStaticMesh;
 class USkeletalMeshComponent;
 class USkeletalMesh;
-class UTextRenderComponent;
+class UWidgetComponent;
 class UAnimationAsset;
 
 UCLASS()
@@ -23,11 +24,13 @@ public:
 	void SetMesh(UStaticMesh* Mesh);
 	void SetSkeletalMesh(USkeletalMesh* Mesh);
 	void SetDisplayName(const FString& Name);
-	void SetNameplateFacing(const FRotator& Rot);
+	void SetBar(ESimgridNameplateBar Bar, float Current, float Max);
 	void SetLocomotionAnim(UAnimationAsset* Anim);
 	uint16 GetKind() const { return CurrentKind; }
 
 private:
+	USimgridNameplateWidget* GetNameplate() const;
+
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> MeshComp;
 
@@ -35,7 +38,7 @@ private:
 	TObjectPtr<USkeletalMeshComponent> SkelComp;
 
 	UPROPERTY()
-	TObjectPtr<UTextRenderComponent> NameText;
+	TObjectPtr<UWidgetComponent> PlateComp;
 
 	UPROPERTY()
 	TObjectPtr<UAnimationAsset> CurrentAnim;

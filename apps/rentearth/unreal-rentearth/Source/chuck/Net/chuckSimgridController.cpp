@@ -146,6 +146,14 @@ void AchuckSimgridController::Tick(float DeltaSeconds)
 	if (ArpgPawn && LocalSlot >= 0)
 	{
 		ArpgPawn->SetDisplayName(Manager->NameForSlot((uint16)LocalSlot));
+		FSimgridLocalPools Pools;
+		if (Manager->GetLocalPools(Pools))
+		{
+			ArpgPawn->SetBar(ESimgridNameplateBar::Health, (float)Pools.Hp, (float)Pools.MaxHp);
+			ArpgPawn->SetBar(ESimgridNameplateBar::Mana, (float)Pools.Mp, (float)Pools.MaxMp);
+			ArpgPawn->SetBar(ESimgridNameplateBar::Energy, (float)Pools.Energy, (float)Pools.MaxEnergy);
+			ArpgPawn->SetBar(ESimgridNameplateBar::Stamina, (float)Pools.Stamina, (float)Pools.MaxStamina);
+		}
 	}
 
 	FVector LocalPos;

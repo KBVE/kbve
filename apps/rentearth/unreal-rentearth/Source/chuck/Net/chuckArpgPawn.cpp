@@ -1,11 +1,8 @@
 #include "chuckArpgPawn.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/TextRenderComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Animation/AnimationAsset.h"
-#include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
-#include "Camera/PlayerCameraManager.h"
 #include "UObject/ConstructorHelpers.h"
 
 AchuckArpgPawn::AchuckArpgPawn()
@@ -24,14 +21,13 @@ AchuckArpgPawn::AchuckArpgPawn()
 		Body->SetSkeletalMesh(MannyFinder.Object);
 	}
 
-	NameText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("NameText"));
-	NameText->SetupAttachment(Body);
-	NameText->SetRelativeLocation(FVector(0.0f, 0.0f, 220.0f));
-	NameText->SetUsingAbsoluteRotation(true);
-	NameText->SetHorizontalAlignment(EHTA_Center);
-	NameText->SetWorldSize(32.0f);
-	NameText->SetTextRenderColor(FColor::White);
-	NameText->SetVisibility(false);
+	PlateComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("PlateComp"));
+	PlateComp->SetupAttachment(Body);
+	PlateComp->SetRelativeLocation(FVector(0.0f, 0.0f, 230.0f));
+	PlateComp->SetWidgetSpace(EWidgetSpace::Screen);
+	PlateComp->SetDrawAtDesiredSize(true);
+	PlateComp->SetWidgetClass(USimgridNameplateWidget::StaticClass());
+	PlateComp->SetVisibility(false);
 
 	static ConstructorHelpers::FObjectFinder<UAnimationAsset> IdleFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle.MM_Idle"));
 	static ConstructorHelpers::FObjectFinder<UAnimationAsset> WalkFinder(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd"));
@@ -73,15 +69,31 @@ void AchuckArpgPawn::UpdateLocomotion()
 	}
 }
 
+USimgridNameplateWidget* AchuckArpgPawn::GetNameplate() const
+{
+	return PlateComp ? Cast<USimgridNameplateWidget>(PlateComp->GetUserWidgetObject()) : nullptr;
+}
+
 void AchuckArpgPawn::SetDisplayName(const FString& Name)
 {
-	if (!NameText || DisplayName == Name)
+	if (DisplayName == Name)
 	{
 		return;
 	}
-	DisplayName = Name;
-	NameText->SetText(FText::FromString(Name));
-	NameText->SetVisibility(!Name.IsEmpty());
+	if (USimgridNameplateWidget* Plate = GetNameplate())
+	{
+		DisplayName = Name;
+		Plate->SetDisplayName(Name);
+		PlateComp->SetVisibility(!Name.IsEmpty());
+	}
+}
+
+void AchuckArpgPawn::SetBar(ESimgridNameplateBar Bar, float Current, float Max)
+{
+	if (USimgridNameplateWidget* Plate = GetNameplate())
+	{
+		Plate->SetBar(Bar, Current, Max);
+	}
 }
 
 void AchuckArpgPawn::SetVisualMesh(UStaticMesh* Mesh)
@@ -158,16 +170,6 @@ void AchuckArpgPawn::Tick(float DeltaSeconds)
 		SetActorRotation(FRotator(0.0f, MoveYaw - 90.0f, 0.0f));
 	}
 
-	if (NameText && NameText->IsVisible())
-	{
-		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
-		{
-			if (PC->PlayerCameraManager)
-			{
-				NameText->SetWorldRotation(FRotator(0.0f, PC->PlayerCameraManager->GetCameraRotation().Yaw + 180.0f, 0.0f));
-			}
-		}
-	}
 }
 
 void AchuckArpgPawn::ApplyServerCorrection(const FVector& Position, const FVector& Velocity_)

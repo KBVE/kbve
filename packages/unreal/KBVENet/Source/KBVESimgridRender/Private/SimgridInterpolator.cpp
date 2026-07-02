@@ -30,7 +30,14 @@ void FSimgridInterpolator::Fill(FSimgridInterpState& Out, const FSimgridEntityDe
 	Out.Facing = E.Facing;
 	Out.Kind = E.Kind;
 	Out.Owner = E.Owner;
+	Out.Hp = E.Hp;
 	Out.MaxHp = E.MaxHp;
+	Out.Mp = E.Mp;
+	Out.MaxMp = E.MaxMp;
+	Out.Energy = E.Energy;
+	Out.MaxEnergy = E.MaxEnergy;
+	Out.Stamina = E.Stamina;
+	Out.MaxStamina = E.MaxStamina;
 }
 
 const TArray<FSimgridEntityDelta>& FSimgridInterpolator::LatestEntities() const
@@ -110,6 +117,13 @@ bool FSimgridInterpolator::SampleEntity(uint32 Eid, double RenderTimeMs, FSimgri
 	Out.Facing = Eb->Facing;
 	Out.Kind = Eb->Kind;
 	Out.Owner = Eb->Owner;
+	Out.Hp = Eb->Hp;
 	Out.MaxHp = Eb->MaxHp;
+	Out.Mp = Eb->Mp;
+	Out.MaxMp = Eb->MaxMp;
+	Out.Energy = Eb->Energy;
+	Out.MaxEnergy = Eb->MaxEnergy;
+	Out.Stamina = Eb->Stamina;
+	Out.MaxStamina = Eb->MaxStamina;
 	return true;
 }

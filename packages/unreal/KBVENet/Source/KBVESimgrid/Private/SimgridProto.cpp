@@ -96,6 +96,12 @@ static FSimgridEntityDelta ReadEntityDelta(FPostcardReader& R)
 		E.Effects.Add(S);
 	}
 	E.Piloting = R.VarU32();
+	E.Mp = R.VarI32();
+	E.MaxMp = R.VarI32();
+	E.Energy = R.VarI32();
+	E.MaxEnergy = R.VarI32();
+	E.Stamina = R.VarI32();
+	E.MaxStamina = R.VarI32();
 	return E;
 }
 

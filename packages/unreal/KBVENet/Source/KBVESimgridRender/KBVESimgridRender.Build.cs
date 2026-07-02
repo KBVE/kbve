@@ -11,6 +11,9 @@ public class KBVESimgridRender : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"UMG",
+			"Slate",
+			"SlateCore",
 			"KBVESimgrid"
 		});
 

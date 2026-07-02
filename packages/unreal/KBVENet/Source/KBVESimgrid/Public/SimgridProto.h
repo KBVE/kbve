@@ -51,6 +51,12 @@ struct FSimgridEntityDelta
 	int32 Z = 0;
 	TArray<FSimgridStatusView> Effects;
 	uint32 Piloting = 0;
+	int32 Mp = 0;
+	int32 MaxMp = 0;
+	int32 Energy = 0;
+	int32 MaxEnergy = 0;
+	int32 Stamina = 0;
+	int32 MaxStamina = 0;
 };
 
 struct FSimgridWelcome
