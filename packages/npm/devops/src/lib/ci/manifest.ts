@@ -158,3 +158,53 @@ export function buildDispatchManifest(): DispatchManifest {
 
 	return manifest;
 }
+
+export interface ManifestError {
+	key: string;
+	pipeline: string;
+	message: string;
+}
+
+export interface SafeManifestResult {
+	manifest: DispatchManifest;
+	errors: ManifestError[];
+}
+
+export function buildDispatchManifestSafe(): SafeManifestResult {
+	const manifest: DispatchManifest = {
+		docker: [],
+		npm: [],
+		crates: [],
+		python: [],
+		unreal: [],
+		ue5_server: [],
+	};
+	const errors: ManifestError[] = [];
+
+	for (const project of CI_PROJECTS) {
+		const mapper = mappers[project.pipeline];
+		if (!mapper) {
+			errors.push({
+				key: project.key,
+				pipeline: project.pipeline,
+				message: `Unknown pipeline "${project.pipeline}"`,
+			});
+			continue;
+		}
+		try {
+			(
+				manifest[
+					project.pipeline as keyof DispatchManifest
+				] as unknown[]
+			).push(mapper(project));
+		} catch (err) {
+			errors.push({
+				key: project.key,
+				pipeline: project.pipeline,
+				message: (err as Error).message,
+			});
+		}
+	}
+
+	return { manifest, errors };
+}
