@@ -382,3 +382,22 @@ describe('classifyAll + new patterns (v0.0.21)', () => {
 		expect(ci.classifyAll('everything is fine')).toEqual([]);
 	});
 });
+
+describe('buildIssueBody GitHub limit (v0.0.21)', () => {
+	it('never returns a body over 65536 chars', () => {
+		const body = ci.buildIssueBody({
+			title: 't',
+			workflowName: 'wf',
+			jobName: 'job',
+			failedStep: 'step',
+			runId: '1',
+			runUrl: 'u',
+			ref: 'r',
+			eventName: 'push',
+			timestamp: 'T',
+			logSnippet: 'x'.repeat(100000),
+		});
+		expect(body.length).toBeLessThanOrEqual(65536);
+		expect(body).toContain('Body truncated');
+	});
+});
