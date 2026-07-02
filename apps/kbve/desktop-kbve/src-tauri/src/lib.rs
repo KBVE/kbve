@@ -1,8 +1,11 @@
 pub mod pty;
+pub mod terminal;
 mod views;
 
 use std::sync::Arc;
 use tauri::{Manager, State};
+use terminal::{TerminalState, terminal_close, terminal_open, terminal_resize, terminal_write};
+use tokio::sync::mpsc;
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
 
 #[tauri::command]
@@ -68,6 +71,14 @@ pub fn run() {
                 views::register_all(&manager);
             });
 
+            let (tx, rx) = mpsc::channel(256);
+            let pty_manager = Arc::new(pty::PtyManager::new(tx));
+            app.manage(pty_manager.clone());
+            app.manage(TerminalState {
+                manager: pty_manager,
+            });
+            terminal::spawn_event_pump(app.handle().clone(), rx);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -78,6 +89,10 @@ pub fn run() {
             view_snapshot,
             view_update_config,
             view_list,
+            terminal_open,
+            terminal_write,
+            terminal_resize,
+            terminal_close,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
