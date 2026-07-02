@@ -172,10 +172,9 @@ export function TerminalView() {
 	return (
 		<div
 			ref={containerRef}
-			className="-mx-10 -my-8"
+			className="h-full w-full rounded-lg"
 			style={{
-				width: 'calc(100% + 5rem)',
-				height: 'calc(100% + 4rem)',
+				padding: '10px',
 				backgroundColor: TERMINAL_BG,
 			}}
 		/>

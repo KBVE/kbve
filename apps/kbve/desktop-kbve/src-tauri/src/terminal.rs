@@ -71,7 +71,7 @@ pub fn spawn_event_pump(app: AppHandle, mut rx: mpsc::Receiver<PtyEvent>) {
 }
 
 #[tauri::command]
-pub fn terminal_open(
+pub async fn terminal_open(
     pane_id: String,
     cols: u16,
     rows: u16,

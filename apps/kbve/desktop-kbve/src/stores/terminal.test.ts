@@ -19,26 +19,33 @@ describe('Terminal Store', () => {
 	describe('addPane', () => {
 		it('returns the new pane id and adds it as starting and active', () => {
 			const id = useTerminalStore.getState().addPane();
-			expect(id).toBe('pane-1');
+			expect(id).toMatch(/^pane-[0-9a-f-]{36}$/);
 			const state = useTerminalStore.getState();
 			expect(state.panes).toHaveLength(1);
 			expect(state.panes[0]).toEqual({
-				id: 'pane-1',
+				id,
 				title: 'Terminal 1',
 				status: 'starting',
 				exitCode: undefined,
 			});
-			expect(state.activePaneId).toBe('pane-1');
+			expect(state.activePaneId).toBe(id);
 		});
 
-		it('increments the sequence across adds and never reuses ids after removal', () => {
+		it('increments the title sequence across adds and never reuses ids after removal', () => {
 			const id1 = useTerminalStore.getState().addPane();
 			const id2 = useTerminalStore.getState().addPane();
-			expect(id1).toBe('pane-1');
-			expect(id2).toBe('pane-2');
+			expect(id1).not.toBe(id2);
+			const panes = useTerminalStore.getState().panes;
+			expect(panes[0].title).toBe('Terminal 1');
+			expect(panes[1].title).toBe('Terminal 2');
 			useTerminalStore.getState().removePane(id2);
 			const id3 = useTerminalStore.getState().addPane();
-			expect(id3).toBe('pane-3');
+			expect(id3).not.toBe(id1);
+			expect(id3).not.toBe(id2);
+			expect(
+				useTerminalStore.getState().panes.find((p) => p.id === id3)
+					?.title,
+			).toBe('Terminal 3');
 		});
 
 		it('makes the newly added pane active', () => {

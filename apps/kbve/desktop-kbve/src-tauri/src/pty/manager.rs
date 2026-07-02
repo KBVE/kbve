@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 
 use dashmap::DashMap;
-use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use portable_pty::{CommandBuilder, PtySize, native_pty_system};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 

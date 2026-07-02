@@ -28,7 +28,7 @@ export const useTerminalStore = create<TerminalState>()((set, get) => ({
 	nextPaneSeq: 1,
 	addPane: () => {
 		const seq = get().nextPaneSeq;
-		const id = `pane-${seq}`;
+		const id = `pane-${crypto.randomUUID()}`;
 		set((s) => ({
 			panes: [
 				...s.panes,
