@@ -41,6 +41,10 @@
 		{
 			"Name": "KBVEGameplay",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVENPCDB",
+			"Enabled": true
 		}
 	]
 }

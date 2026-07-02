@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.1.22"
+version = "0.1.23"
 dependencies = [
  "agones",
  "async-trait",
@@ -1661,7 +1661,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.219"
+version = "1.0.220"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -8784,6 +8784,7 @@ dependencies = [
  "tonic-reflection",
  "tower 0.5.3",
  "tracing",
+ "tracing-subscriber",
  "twitch-irc",
  "ulid",
  "url",

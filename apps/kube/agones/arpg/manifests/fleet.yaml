@@ -49,7 +49,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: arpg-server
-                          image: ghcr.io/kbve/arpg-server:0.1.22
+                          image: ghcr.io/kbve/arpg-server:0.1.23
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: ARPG_SERVER_ADDR
@@ -58,6 +58,12 @@ spec:
                                 value: '0'
                               - name: RUST_LOG
                                 value: 'info,arpg_server=debug,simgrid=info'
+                              - name: OBSERV_ENDPOINT
+                                value: 'http://metrics-service.kbve.svc.cluster.local:5500/api/v1/ingest/errors'
+                              - name: OBSERV_PROJECT
+                                value: 'arpg'
+                              - name: OBSERV_ENVIRONMENT
+                                value: 'production'
                               - name: SUPABASE_JWT_SECRET
                                 valueFrom:
                                     secretKeyRef:

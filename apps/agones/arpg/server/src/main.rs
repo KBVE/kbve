@@ -15,14 +15,17 @@ use simgrid::{build_app, run_sim_loop};
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info,arpg_server=debug,simgrid=debug".into()),
-        )
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "info,arpg_server=debug,simgrid=debug".into());
+    let observ = jedi::observ::init(jedi::observ::ObservConfig::from_env());
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(tracing_subscriber::fmt::layer())
+        .with(observ)
         .init();
 
     if db::init_pg_cluster().await {
