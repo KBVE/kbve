@@ -12,7 +12,7 @@ import { context as ghaContext, COMMIT_CATEGORY_LABELS } from './types';
 
 const execAsync = promisify(exec);
 
-export async function getPullRequestNumber(
+async function getPullRequestNumber(
 	github: GitHubClient,
 	context: GitHubContext,
 ): Promise<number> {
@@ -44,7 +44,7 @@ export async function getPullRequestNumber(
 	}
 }
 
-export async function updatePullRequestBody(
+async function updatePullRequestBody(
 	github: GitHubClient,
 	context: GitHubContext,
 	prBody: string,
@@ -65,7 +65,7 @@ export async function updatePullRequestBody(
 	}
 }
 
-export async function fetchAndCleanCommits(
+async function fetchAndCleanCommits(
 	branchToCompare: string,
 ): Promise<CleanedCommit> {
 	await execAsync(`git fetch origin ${branchToCompare}`);
@@ -125,7 +125,7 @@ export async function fetchAndCleanCommits(
 	};
 }
 
-export function formatCommits(cleanedCommit: CleanedCommit): string {
+function formatCommits(cleanedCommit: CleanedCommit): string {
 	const { branch, categorizedCommits } = cleanedCommit;
 
 	const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)\
@@ -177,7 +177,7 @@ export function formatCommits(cleanedCommit: CleanedCommit): string {
 	return commitSummary;
 }
 
-export async function processAndUpdatePR(
+async function processAndUpdatePR(
 	branchToCompare: string,
 	github: GitHubClient,
 	context: GitHubContext,
@@ -192,7 +192,7 @@ export async function processAndUpdatePR(
 	}
 }
 
-export async function createOrUpdatePR(
+async function createOrUpdatePR(
 	github: GitHubClient,
 	context: GitHubContext,
 	targetBranch: string,
@@ -280,7 +280,7 @@ export async function createOrUpdatePR(
  * Categorize an array of commits from the GitHub API by conventional
  * commit type. Scope is optional — matches both `fix(scope):` and `fix:`.
  */
-export function categorizeApiCommits(commits: ApiCommit[]): CategorizedResult {
+function categorizeApiCommits(commits: ApiCommit[]): CategorizedResult {
 	const keys = Object.keys(
 		COMMIT_CATEGORY_LABELS,
 	) as (keyof CommitCategory)[];
@@ -318,10 +318,7 @@ export function categorizeApiCommits(commits: ApiCommit[]): CategorizedResult {
  * Generate a descriptive PR title summarizing what changed.
  * e.g. "Release: 3 features, 1 fix, 2 CI → Staging"
  */
-export function generatePRTitle(
-	categories: CommitCategory,
-	target: string,
-): string {
+function generatePRTitle(categories: CommitCategory, target: string): string {
 	const titleLabels: Partial<Record<keyof CommitCategory, string>> = {
 		feat: 'feature',
 		fix: 'fix',
@@ -361,7 +358,7 @@ export function generatePRTitle(
 /**
  * Format a PR body for dev→main promotions.
  */
-export function formatDevBody(
+function formatDevBody(
 	categories: CommitCategory,
 	totalCommits: number,
 ): string {
