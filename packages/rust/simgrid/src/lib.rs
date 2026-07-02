@@ -7,6 +7,7 @@ pub mod data;
 pub mod dungeon;
 pub mod float_move;
 pub mod grid;
+pub mod heightfield;
 pub mod net;
 pub mod pets;
 pub mod proto;

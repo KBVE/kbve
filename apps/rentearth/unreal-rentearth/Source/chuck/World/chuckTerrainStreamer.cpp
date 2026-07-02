@@ -343,3 +343,18 @@ void UchuckTerrainStreamer::ReleaseChunk(AchuckTerrainChunk* Chunk)
 	Chunk->Release();
 	FreeChunks.Add(Chunk);
 }
+
+void UchuckTerrainStreamer::SetSeed(uint32 InSeed)
+{
+	if (Seed == InSeed)
+	{
+		return;
+	}
+	Seed = InSeed;
+	for (auto& Pair : ActiveChunks)
+	{
+		ReleaseChunk(Pair.Value);
+	}
+	ActiveChunks.Reset();
+	UE_LOG(LogTemp, Display, TEXT("[chuck] TerrainStreamer reseeded to 0x%08x — active chunks flushed for rebuild"), Seed);
+}
