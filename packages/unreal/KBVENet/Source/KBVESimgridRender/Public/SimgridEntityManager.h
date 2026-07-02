@@ -9,6 +9,8 @@ class USimgridClientSubsystem;
 class USimgridWorldBridge;
 class ASimgridEntityActor;
 class UStaticMesh;
+class UKBVENpcSpriteRenderSubsystem;
+class UKBVENpcSpriteDef;
 
 UCLASS()
 class KBVESIMGRIDRENDER_API USimgridEntityManager : public UObject
@@ -33,6 +35,8 @@ public:
 private:
 	FVector ResolveWorldPos(const FSimgridInterpState& S) const;
 	ASimgridEntityActor* SpawnActor(uint16 Kind);
+	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
+	void EnsureEnvDef();
 
 	FSimgridInterpolator Interp;
 
@@ -50,6 +54,11 @@ private:
 
 	UPROPERTY()
 	TMap<uint32, TObjectPtr<ASimgridEntityActor>> Actors;
+
+	UPROPERTY()
+	TObjectPtr<UKBVENpcSpriteDef> EnvDef;
+
+	TMap<uint32, int32> SpriteHandleIds;
 
 	UPROPERTY()
 	TWeakObjectPtr<AActor> LocalPawn;

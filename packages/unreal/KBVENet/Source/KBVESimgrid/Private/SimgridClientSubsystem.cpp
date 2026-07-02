@@ -65,6 +65,7 @@ void USimgridClientSubsystem::HandleBinary(const TArray<uint8>& Frame)
 			return;
 		}
 		State = ESimgridState::Live;
+		Registry = D.Welcome.Registry;
 		OnWelcome.Broadcast((int32)D.Welcome.YourSlot, (int64)D.Welcome.Seed);
 		break;
 	case EServerEventType::Snapshot:

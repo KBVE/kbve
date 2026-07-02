@@ -43,6 +43,8 @@ public:
 
 	const FSimgridSnapshot& GetLastSnapshot() const { return LastSnapshot; }
 
+	const TArray<FSimgridKindEntry>& GetRegistry() const { return Registry; }
+
 	UPROPERTY(BlueprintAssignable, Category = "KBVE|Simgrid")
 	FSimgridOnWelcome OnWelcome;
 
@@ -78,4 +80,5 @@ private:
 	int32 LastEphemeralKind = 0;
 	int32 LastEphemeralTo = 0;
 	TArray<uint8> LastEphemeralPayload;
+	TArray<FSimgridKindEntry> Registry;
 };
