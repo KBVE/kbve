@@ -359,3 +359,26 @@ describe('incrementHistory row cap (v0.0.21)', () => {
 		expect(capped).not.toContain('| 1 |');
 	});
 });
+
+describe('classifyAll + new patterns (v0.0.21)', () => {
+	it('returns all matching reasons for a multi-cause log', () => {
+		const log =
+			'getaddrinfo ENOTFOUND registry.npmjs.org\nENOSPC no space left on device';
+		const reasons = ci.classifyAll(log);
+		expect(reasons.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('classifies an LFS smudge 404', () => {
+		expect(ci.classifyFailure('smudge filter lfs failed')).not.toBeNull();
+	});
+
+	it('classifies a frozen-lockfile mismatch', () => {
+		expect(
+			ci.classifyFailure('ERR_PNPM_OUTDATED_LOCKFILE frozen-lockfile'),
+		).not.toBeNull();
+	});
+
+	it('returns empty array when nothing matches', () => {
+		expect(ci.classifyAll('everything is fine')).toEqual([]);
+	});
+});

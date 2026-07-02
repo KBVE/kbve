@@ -16,6 +16,26 @@ export const CI_FAILURE_PATTERNS: CIFailurePattern[] = [
 		test: /The job running on runner .* has exceeded the maximum execution time|timed out after|cancel.*timeout/i,
 		reason: '⏱️ Job exceeded its timeout — a step hung or ran long. Inspect the slowest step and raise timeout-minutes or fix the hang.',
 	},
+	{
+		test: /ETIMEDOUT|ENOTFOUND|getaddrinfo|ECONNRESET|connection reset|network is unreachable/i,
+		reason: '🌐 Network/DNS failure reaching a remote host — a registry or Git endpoint was unreachable. Usually transient; re-run, and check runner egress if it persists.',
+	},
+	{
+		test: /ERR_PNPM_[A-Z_]*LOCKFILE|frozen-lockfile|lockfile.*(mismatch|outdated)|npm ci.*can only install/i,
+		reason: '🔒 Lockfile out of sync — the frozen lockfile does not match package manifests. Run the package manager install locally, commit the updated lockfile.',
+	},
+	{
+		test: /ENOSPC|no space left on device|disk quota exceeded/i,
+		reason: '💾 Runner ran out of disk — no space left on device. Prune caches/artifacts or use a larger runner.',
+	},
+	{
+		test: /smudge filter lfs failed|error downloading object.*\(404\)|batch response:.*404/i,
+		reason: '📦 Git LFS smudge 404 — an LFS object could not be fetched. Set GIT_LFS_SKIP_SMUDGE=1 for the checkout or verify the object exists on the LFS server.',
+	},
+	{
+		test: /fatal: could not read Username|Permission denied \(publickey\)|remote: (Invalid username or password|Unauthorized)/i,
+		reason: '🔐 Git authentication failed — credentials for the remote were rejected. Rotate/verify the deploy token or SSH key.',
+	},
 ];
 
 const NOISE_PREFIXES =
@@ -108,6 +128,16 @@ function classifyFailure(log: string): string | null {
 		}
 	}
 	return null;
+}
+
+function classifyAll(log: string): string[] {
+	const reasons: string[] = [];
+	for (const pattern of CI_FAILURE_PATTERNS) {
+		if (pattern.test.test(log)) {
+			reasons.push(pattern.reason);
+		}
+	}
+	return reasons;
 }
 
 function clampSnippet(snippet: string, max: number): string {
@@ -314,6 +344,7 @@ export const ci = {
 	failurePatterns: CI_FAILURE_PATTERNS,
 	issueTitle,
 	classifyFailure,
+	classifyAll,
 	parseFailureLog,
 	buildIssueBody,
 	buildComment,
