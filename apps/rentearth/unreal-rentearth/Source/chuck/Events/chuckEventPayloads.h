@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityHandle.h"
+#include "Mass/EntityHandle.h"
 #include "KBVEGameplayEvents.h"
 
 // Generic stat/combat payloads (Health / Mana / Stamina / DamageReceived /
