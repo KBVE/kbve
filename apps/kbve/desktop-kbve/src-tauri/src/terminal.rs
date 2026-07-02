@@ -46,23 +46,27 @@ pub fn coalesce(events: Vec<PtyEvent>) -> Vec<PtyEvent> {
 
 pub fn spawn_event_pump(app: AppHandle, mut rx: mpsc::Receiver<PtyEvent>) {
     tauri::async_runtime::spawn(async move {
+        let mut buf = Vec::with_capacity(64);
         loop {
-            let mut buf = Vec::with_capacity(64);
             let count = rx.recv_many(&mut buf, 64).await;
             if count == 0 {
                 break;
             }
 
-            for event in coalesce(buf) {
+            for event in coalesce(std::mem::take(&mut buf)) {
                 match event {
                     PtyEvent::Data { pane_id, bytes } => {
                         let event_name = format!("terminal://data/{}", pane_id);
                         let encoded = STANDARD.encode(bytes);
-                        let _ = app.emit(&event_name, encoded);
+                        if let Err(e) = app.emit(&event_name, encoded) {
+                            eprintln!("terminal event emit failed: {e}");
+                        }
                     }
                     PtyEvent::Exit { pane_id, code } => {
                         let event_name = format!("terminal://exit/{}", pane_id);
-                        let _ = app.emit(&event_name, ExitPayload { code });
+                        if let Err(e) = app.emit(&event_name, ExitPayload { code }) {
+                            eprintln!("terminal event emit failed: {e}");
+                        }
                     }
                 }
             }
