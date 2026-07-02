@@ -42,4 +42,5 @@ private:
 	int32 HelloAttempts = 0;
 	bool bActive = false;
 	double LastDatagramTime = 0.0;
+	double LastSentTime = 0.0;
 };

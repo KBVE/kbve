@@ -16,6 +16,7 @@ namespace
 	constexpr float HelloIntervalSeconds = 0.25f;
 	constexpr int32 HelloMaxAttempts = 20;
 	constexpr double WatchdogTimeoutSeconds = 3.0;
+	constexpr double KeepaliveIntervalSeconds = 2.0;
 }
 
 FSimgridUdpLink::~FSimgridUdpLink()
@@ -107,12 +108,17 @@ bool FSimgridUdpLink::TickHello(float DeltaTime)
 {
 	if (bActive)
 	{
-		return false;
+		if ((FPlatformTime::Seconds() - LastSentTime) > KeepaliveIntervalSeconds)
+		{
+			SendHello();
+		}
+		return true;
 	}
 
 	if (HelloAttempts >= HelloMaxAttempts)
 	{
 		UE_LOG(LogKBVESimgrid, Warning, TEXT("FSimgridUdpLink: Hello attempts exhausted, staying WS-only"));
+		HelloTickerHandle.Reset();
 		return false;
 	}
 
@@ -127,6 +133,20 @@ bool FSimgridUdpLink::TickWatchdog(float DeltaTime)
 	{
 		UE_LOG(LogKBVESimgrid, Warning, TEXT("FSimgridUdpLink: watchdog timeout, reverting to WS"));
 		bActive = false;
+		HelloAttempts = 0;
+		if (!HelloTickerHandle.IsValid())
+		{
+			TWeakPtr<FSimgridUdpLink> WeakSelf = AsShared();
+			HelloTickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda(
+				[WeakSelf](float InDeltaTime) -> bool
+				{
+					if (TSharedPtr<FSimgridUdpLink> Pinned = WeakSelf.Pin())
+					{
+						return Pinned->TickHello(InDeltaTime);
+					}
+					return false;
+				}), HelloIntervalSeconds);
+		}
 	}
 	return true;
 }
@@ -180,6 +200,7 @@ bool FSimgridUdpLink::SendFrame(const TArray<uint8>& FrameDatagram)
 		return false;
 	}
 
+	LastSentTime = FPlatformTime::Seconds();
 	int32 BytesSent = 0;
 	return Socket->SendTo(FrameDatagram.GetData(), FrameDatagram.Num(), BytesSent, *RemoteAddr);
 }
@@ -221,4 +242,5 @@ void FSimgridUdpLink::Stop()
 	RemoteAddr.Reset();
 	bActive = false;
 	HelloAttempts = 0;
+	LastSentTime = 0.0;
 }
