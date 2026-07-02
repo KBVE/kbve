@@ -1,0 +1,73 @@
+---
+title: KBVE API Hub
+description: Every KBVE API in one place — live OpenAPI 3.1 specs for the public REST API, static JSON data endpoints for the item, NPC, map, and quest databases, plus RSS and LLM feeds.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+tags:
+    - api
+    - openapi
+    - json
+    - developers
+ogTitle: KBVE API Hub — OpenAPI Specs, JSON Data Endpoints & Feeds
+ogDescription: Explore the KBVE public REST API, staff services, and prebuilt JSON endpoints for the shared game databases — all documented and served from one open monorepo.
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: API
+          path: /api/
+---
+
+import Hero from '@/components/marketing/Hero.astro';
+import StatStrip from '@/components/marketing/StatStrip.astro';
+import FaqAccordion from '@/components/marketing/FaqAccordion.astro';
+import Cta from '@/components/marketing/Cta.astro';
+import ApiDirectory from '@/components/api/ApiDirectory.astro';
+
+<Hero
+	eyebrow="kbve api"
+	lead="One hub, "
+	accent="every endpoint. "
+	tail="Specs, data, feeds."
+	subtitle="Live OpenAPI 3.1 explorers for the REST services, prebuilt JSON snapshots of the shared game databases, and machine-readable feeds — all generated from the open monorepo."
+	actions={[
+		{ label: 'Open the API Dashboard', href: '/dashboard/api/#kbve' },
+		{ label: 'API Project Docs', href: '/project/api/', variant: 'outline' },
+	]}
+/>
+
+<StatStrip
+	stats={[
+		{ value: '3', label: 'Live OpenAPI specs' },
+		{ value: '15+', label: 'JSON data endpoints' },
+		{ value: '3.1', label: 'OpenAPI version' },
+		{ value: '100%', label: 'Open source' },
+	]}
+/>
+
+<ApiDirectory />
+
+<FaqAccordion
+	title="API questions"
+	subtitle="Tap a question to expand."
+	items={[
+		{ q: 'Where is the interactive API explorer?', a: 'The dashboard at /dashboard/api/ renders live OpenAPI 3.1 specs for the KBVE public API, the staff-only Firecracker control service, and the ROWS game-services API.' },
+		{ q: 'How fresh are the JSON data endpoints?', a: 'They are regenerated from the MDX content collections on every deploy, so they always match the published docs pages.' },
+		{ q: 'Do I need an API key?', a: 'The static JSON endpoints and feeds are fully public. The REST API uses Supabase JWT auth for authenticated routes — see the API project docs for details.' },
+		{ q: 'Can I use this data in my own project?', a: 'Yes — everything is generated from the public monorepo. Attribution is appreciated but the data endpoints are free to consume.' },
+	]}
+/>
+
+<Cta
+	title="Build against the API."
+	subtitle="Read the service docs or explore the live specs in the dashboard."
+	actions={[
+		{ label: 'API Dashboard', href: '/dashboard/api/' },
+		{ label: 'Browse the Docs', href: '/docs/', variant: 'outline' },
+	]}
+/>
