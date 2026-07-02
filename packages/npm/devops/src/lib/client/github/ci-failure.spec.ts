@@ -288,3 +288,116 @@ describe('_$gha_incrementFailureHistory', () => {
 		).toBe(1);
 	});
 });
+
+describe('parseFailureLog snippet cap (v0.0.21)', () => {
+	it('clamps an oversized snippet and inserts a snip marker', () => {
+		const huge = Array.from(
+			{ length: 5000 },
+			(_, i) => `error line ${i}`,
+		).join('\n');
+		const { snippet } = ci.parseFailureLog(huge, {
+			maxSnippetChars: 500,
+			contextBefore: 100,
+			contextAfter: 20,
+		});
+		expect(snippet.length).toBeLessThanOrEqual(600);
+		expect(snippet).toContain('[snipped');
+	});
+
+	it('leaves a small snippet untouched (no marker)', () => {
+		const { snippet } = ci.parseFailureLog('error: boom\ndetail line');
+		expect(snippet).not.toContain('[snipped');
+	});
+});
+
+describe('incrementHistory row cap (v0.0.21)', () => {
+	function seedBody(rows: number): string {
+		const meta = {
+			title: 't',
+			workflowName: 'wf',
+			jobName: 'job',
+			failedStep: 'step',
+			runId: '1',
+			runUrl: 'u',
+			ref: 'r',
+			eventName: 'push',
+			timestamp: 'T',
+			logSnippet: 'x',
+		};
+		let body = ci.buildIssueBody(meta);
+		for (let i = 2; i <= rows; i++) {
+			body = ci.incrementHistory(body, {
+				runId: String(i),
+				runUrl: 'u',
+				ref: 'r',
+				eventName: 'push',
+				timestamp: `T${i}`,
+			});
+		}
+		return body;
+	}
+
+	it('keeps at most maxRows data rows but still increments the counter', () => {
+		const body = seedBody(25);
+		const capped = ci.incrementHistory(
+			body,
+			{
+				runId: '26',
+				runUrl: 'u',
+				ref: 'r',
+				eventName: 'push',
+				timestamp: 'T26',
+			},
+			{ maxRows: 5 },
+		);
+		const dataRows = capped
+			.split('\n')
+			.filter((l) => /^\|\s*\d+\s*\|/.test(l));
+		expect(dataRows.length).toBe(5);
+		expect(capped).toContain('**Consecutive failures:** 26');
+		expect(capped).toContain('| 26 |');
+		expect(capped).not.toContain('| 1 |');
+	});
+});
+
+describe('classifyAll + new patterns (v0.0.21)', () => {
+	it('returns all matching reasons for a multi-cause log', () => {
+		const log =
+			'getaddrinfo ENOTFOUND registry.npmjs.org\nENOSPC no space left on device';
+		const reasons = ci.classifyAll(log);
+		expect(reasons.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('classifies an LFS smudge 404', () => {
+		expect(ci.classifyFailure('smudge filter lfs failed')).not.toBeNull();
+	});
+
+	it('classifies a frozen-lockfile mismatch', () => {
+		expect(
+			ci.classifyFailure('ERR_PNPM_OUTDATED_LOCKFILE frozen-lockfile'),
+		).not.toBeNull();
+	});
+
+	it('returns empty array when nothing matches', () => {
+		expect(ci.classifyAll('everything is fine')).toEqual([]);
+	});
+});
+
+describe('buildIssueBody GitHub limit (v0.0.21)', () => {
+	it('never returns a body over 65536 chars', () => {
+		const body = ci.buildIssueBody({
+			title: 't',
+			workflowName: 'wf',
+			jobName: 'job',
+			failedStep: 'step',
+			runId: '1',
+			runUrl: 'u',
+			ref: 'r',
+			eventName: 'push',
+			timestamp: 'T',
+			logSnippet: 'x'.repeat(100000),
+		});
+		expect(body.length).toBeLessThanOrEqual(65536);
+		expect(body).toContain('Body truncated');
+	});
+});

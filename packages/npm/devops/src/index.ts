@@ -2,6 +2,8 @@ export * from './lib/sanitization';
 export * from './lib/api';
 export * from './lib/client/kbve';
 export * from './lib/client/github/ci-failure';
+export * from './lib/client/github/actions';
+export * from './lib/client/github/retry';
 export * from './lib/ci';
 export * from './lib/forum';
 export * as telemetry from './lib/telemetry';
