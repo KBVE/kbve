@@ -29,8 +29,26 @@ pub struct SupabaseClaims {
     pub kbve_username: String,
     #[serde(default)]
     pub role: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "aud_string_or_seq")]
     pub aud: String,
+}
+
+/// GoTrue emits `aud` as either a string or an array of strings; accept both.
+fn aud_string_or_seq<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Aud {
+        One(String),
+        Many(Vec<String>),
+    }
+    Ok(match Option::<Aud>::deserialize(deserializer)? {
+        Some(Aud::One(s)) => s,
+        Some(Aud::Many(v)) => v.into_iter().next().unwrap_or_default(),
+        None => String::new(),
+    })
 }
 
 #[derive(Debug)]

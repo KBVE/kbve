@@ -116,7 +116,8 @@ void AchuckMenuPlayerController::BeginPlay()
 	const float ChunkExtent    = CellsPerEdge * CellSize;
 	const FIntPoint AnchorChunk(0, 0);
 	const int32 PrewarmRadius  = 9;
-	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize);
+	const bool bFlatWorld      = PlayLevelName.ToString().Contains(TEXT("ArpgWorld"));
+	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize, bFlatWorld);
 
 	if (UMaterialInterface* Master = FKBVEWorldGrassShader::GetOrCreateMasterMaterial(this))
 	{

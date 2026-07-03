@@ -10,8 +10,11 @@ spec:
     infrastructure:
         labels:
             node.kbve.com/type: dedicated-server
+            kbve.com/lb-pool: public
         annotations:
             io.cilium/lb-ipam-ips: '142.132.206.71'
+            lbipam.cilium.io/sharing-key: public-71
+            lbipam.cilium.io/sharing-cross-namespace: arpg
     listeners:
         - name: http
           protocol: HTTP

@@ -7,7 +7,7 @@ spec:
         - cidr: 142.132.206.71/32
     serviceSelector:
         matchLabels:
-            io.cilium.gateway/owning-gateway: kbve-gateway
+            kbve.com/lb-pool: public
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy

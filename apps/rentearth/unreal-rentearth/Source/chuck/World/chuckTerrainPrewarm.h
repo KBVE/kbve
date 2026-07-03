@@ -12,7 +12,7 @@ class FchuckTerrainPrewarm
 public:
 	static FchuckTerrainPrewarm& Get();
 
-	void Kick(uint32 Seed, FIntPoint Anchor, int32 Radius, int32 CellsPerEdge, float CellSize);
+	void Kick(uint32 Seed, FIntPoint Anchor, int32 Radius, int32 CellsPerEdge, float CellSize, bool bFlatWorld);
 
 	int32 GetCompletedChunks() const { return CompletedChunks.Load(); }
 	int32 GetTotalChunks()     const { return TotalChunks.Load(); }
@@ -22,7 +22,7 @@ public:
 
 private:
 	FchuckTerrainPrewarm();
-	void GenerateOne(uint32 Seed, FIntPoint Coord, int32 CellsPerEdge, float CellSize);
+	void GenerateOne(uint32 Seed, FIntPoint Coord, int32 CellsPerEdge, float CellSize, bool bFlatWorld);
 
 	FKBVEWorldChunkCache Cache;
 	FCriticalSection   CacheMutex;
