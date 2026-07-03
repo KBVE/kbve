@@ -22,10 +22,10 @@
 
 # ╔═══════════════════════════════════════════════════════════════════╗
 # ║  BUILDER TARGET                                                    ║
-# ║  Rust 1.94 + cargo-chef + sccache + mold + brotli/gzip + Node 24 ║
+# ║  Rust 1.96 + cargo-chef + sccache + mold + brotli/gzip + Node 24 ║
 # ╚═══════════════════════════════════════════════════════════════════╝
 
-FROM --platform=linux/amd64 rust:1.94-slim AS builder
+FROM --platform=linux/amd64 rust:1.96-slim AS builder
 
 # ── System build dependencies ────────────────────────────────────────
 RUN apt-get update && \
