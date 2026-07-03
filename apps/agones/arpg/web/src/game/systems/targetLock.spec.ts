@@ -107,6 +107,17 @@ describe('targetLock', () => {
 		expect(st.lockedEid).toBe(2);
 	});
 
+	it('nearest fallback ignores a hostile beyond range (no lock-then-instant-break)', () => {
+		const deps = fakeDeps(
+			{ 1: { tile: { x: 50, y: 0 }, kind: CAT_NPC } },
+			{ x: 0, y: 0 },
+			5,
+		);
+		const st = makeTargetLockState();
+		expect(lockUnderCursor(st, deps, { x: 9, y: 9 })).toBeNull();
+		expect(st.lockedEid).toBeNull();
+	});
+
 	it('validity: unlocks on death when no other hostile in range', () => {
 		const ents: Record<number, FakeEntity> = {
 			1: { tile: { x: 1, y: 0 }, kind: CAT_NPC },

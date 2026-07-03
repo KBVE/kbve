@@ -2628,6 +2628,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private teardown() {
 		this.ground?.shader.destroy();
 		this.ground = undefined;
+		this.lockReticle?.destroy();
 		this.offIntent?.();
 		this.offIntent = undefined;
 		this.offPetBattle?.();

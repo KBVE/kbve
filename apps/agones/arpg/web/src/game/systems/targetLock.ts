@@ -61,7 +61,8 @@ export function lockUnderCursor(
 		st.lockedEid = under.serverEid;
 		return st.lockedEid;
 	}
-	const nearest = hostilesByDistance(deps)[0];
+	const range = deps.maxRange();
+	const nearest = hostilesByDistance(deps).find((h) => h.dist <= range);
 	st.lockedEid = nearest ? nearest.sid : null;
 	return st.lockedEid;
 }
