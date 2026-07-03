@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-07-02T09:12:21Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-03T10:40:48Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -26,7 +26,7 @@ Last generated: **2026-07-02T09:12:21Z** — updated daily by `ci-dashboard`.
   <Card title="55 Libs" icon="puzzle">
     arc-runner, aria2-proxy, astro, behavior_statetree, bevy_battle, bevy_behavior + 49 more
   </Card>
-  <Card title="150 Dependencies" icon="random">
+  <Card title="152 Dependencies" icon="random">
     Across 134 projects in the monorepo.
   </Card>
 </CardGrid>
@@ -158,6 +158,7 @@ graph LR
     chuck_launcher["chuck-launcher"] --> observ["observ"]
     cryptothrone_server["cryptothrone-server"] --> jedi["jedi"]
     cryptothrone_server["cryptothrone-server"] --> simgrid["simgrid"]
+    desktop_kbve["desktop-kbve"] --> kbve_tauri["kbve-tauri"]
     devops_e2e["devops-e2e"] --> devops["devops"]
     discordsh_bot["discordsh-bot"] --> bevy_battle["bevy_battle"]
     discordsh_bot["discordsh-bot"] --> bevy_behavior["bevy_behavior"]
@@ -205,6 +206,7 @@ graph LR
     jobboard["jobboard"] --> rn["rn"]
     kbve["kbve"] --> holy["holy"]
     kbve["kbve"] --> jedi["jedi"]
+    kbve_desktop["kbve-desktop"] --> erust["erust"]
     kbve_gate["kbve-gate"] --> kbve["kbve"]
     kbve_react_native["kbve-react-native"] --> fx["fx"]
     kbve_react_native["kbve-react-native"] --> observ["observ"]
@@ -309,7 +311,7 @@ graph LR
 | **cryptothrone-server** | app | `apps/agones/cryptothrone/server` | 2 | 0 |
 | **data-proto** | lib | `packages/data/proto` | 0 | 0 |
 | **data-sql** | lib | `packages/data/sql` | 0 | 0 |
-| **desktop-kbve** | app | `apps/kbve/desktop-kbve` | 0 | 0 |
+| **desktop-kbve** | app | `apps/kbve/desktop-kbve` | 1 | 0 |
 | **devops** | lib | `packages/npm/devops` | 0 | 5 |
 | **devops-e2e** | e2e | `packages/npm/devops-e2e` | 3 | 0 |
 | **discordsh** | app | `apps/discordsh` | 0 | 0 |
@@ -320,7 +322,7 @@ graph LR
 | **droid-e2e** | e2e | `packages/npm/droid-e2e` | 2 | 0 |
 | **edge** | app | `apps/kbve/edge` | 0 | 1 |
 | **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
-| **erust** | lib | `packages/rust/erust` | 1 | 0 |
+| **erust** | lib | `packages/rust/erust` | 1 | 1 |
 | **factorio-ctl** | app | `apps/vm/factorio-ctl` | 1 | 0 |
 | **firecracker-ctl** | app | `apps/vm/firecracker-ctl` | 1 | 1 |
 | **firecracker-ctl-e2e** | e2e | `apps/vm/firecracker-ctl-e2e` | 1 | 0 |
@@ -342,12 +344,12 @@ graph LR
 | **kasm-cloakbrowser** | lib | `packages/docker/kasm-cloakbrowser` | 0 | 0 |
 | **kasm-void** | lib | `packages/docker/kasm-void` | 0 | 0 |
 | **kbve** | lib | `packages/rust/kbve` | 2 | 12 |
-| **kbve-desktop** | lib | `apps/kbve/desktop-kbve/src-tauri` | 0 | 0 |
+| **kbve-desktop** | lib | `apps/kbve/desktop-kbve/src-tauri` | 1 | 0 |
 | **kbve-gate** | app | `apps/kbve/kbve-gate` | 1 | 0 |
 | **kbve-kubectl** | app | `apps/vm/kubectl` | 0 | 1 |
 | **kbve-react-native** | app | `apps/kbve/kbve-react-native` | 4 | 0 |
 | **kbve-spider** | app | `apps/factorio/mods/kbve-spider` | 0 | 0 |
-| **kbve-tauri** | lib | `packages/npm/tauri` | 0 | 1 |
+| **kbve-tauri** | lib | `packages/npm/tauri` | 0 | 2 |
 | **kbve_wgpu** | lib | `packages/rust/kbve_wgpu` | 1 | 0 |
 | **khashvault** | lib | `packages/npm/khashvault` | 1 | 2 |
 | **khashvault-e2e** | e2e | `packages/npm/khashvault-e2e` | 2 | 0 |
@@ -612,6 +614,15 @@ graph LR
 |--------|------|
 | jedi | static |
 | simgrid | static |
+
+</details>
+
+<details>
+<summary><strong>desktop-kbve</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| kbve-tauri | static |
 
 </details>
 
@@ -1046,6 +1057,15 @@ graph LR
 |--------|------|
 | holy | static |
 | jedi | static |
+
+</details>
+
+<details>
+<summary><strong>kbve-desktop</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| erust | static |
 
 </details>
 
