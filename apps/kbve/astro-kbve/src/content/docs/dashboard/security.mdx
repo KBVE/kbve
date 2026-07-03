@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-02T09:14:09Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-03T10:42:36Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
@@ -29,7 +29,7 @@ Last generated: **2026-07-02T09:14:09Z** — updated daily by `ci-dashboard`.
   <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="53 Medium" icon="information">
+  <Card title="55 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="8 Low" icon="approve-check-circle">
@@ -50,7 +50,7 @@ Last generated: **2026-07-02T09:14:09Z** — updated daily by `ci-dashboard`.
     **0** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
-    **3** alerts
+    **5** alerts
   </Card>
   <Card title="Dependabot" icon="github">
     **0** alerts
@@ -64,7 +64,7 @@ pie showData
     title Findings by Severity
     "Critical" : 5
     "High" : 25
-    "Medium" : 53
+    "Medium" : 55
     "Low" : 8
 ```
 
@@ -75,7 +75,7 @@ pie showData
     title Findings by Ecosystem
     "npm" : 64
     "Cargo" : 58
-    "CodeQL" : 3
+    "CodeQL" : 5
 ```
 
 <Tabs>
@@ -86,9 +86,9 @@ pie showData
 | **npm** | 2 | 25 | 29 | 8 | 64 |
 | **Cargo** | 0 | 0 | 24 | 0 | 58 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
-| **CodeQL** | 3 | 0 | 0 | 0 | 3 |
+| **CodeQL** | 3 | 0 | 2 | 0 | 5 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 25 | 53 | 8 | 125 |
+| **Total** | 5 | 25 | 55 | 8 | 127 |
 
   </TabItem>
   <TabItem label="npm">
@@ -239,6 +239,8 @@ No python advisories found.
 | Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/512) |
 | Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/511) |
 | Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/510) |
+| Medium | `js/shell-command-constructed-from-input` | `packages/npm/devops/src/lib/client/github/pulls.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/517) |
+| Medium | `js/shell-command-constructed-from-input` | `packages/npm/devops/src/lib/client/github/pulls.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/516) |
 
   </TabItem>
   <TabItem label="Dependabot">
