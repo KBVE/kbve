@@ -128,6 +128,7 @@ protected:
 	float   WaterZ       = -120.f;
 	bool    bActive      = false;
 	bool    bMeshBuilt   = false;
+	bool    bVisualsRegistered = false;
 	uint64  LastUsedTick = 0;
 
 	FKBVEWorldChunkMesh CachedMesh;
