@@ -116,7 +116,7 @@
 					"RUNTIME_BYTES=$(docker image inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04 --format '{{.Size}}') && echo \"Runtime size: $((RUNTIME_BYTES / 1024 / 1024)) MiB\" && [ $RUNTIME_BYTES -lt 41943040 ] && echo 'PASS: runtime under 40 MiB'",
 					"rm -f /tmp/chisel-runtime.tar",
 					"echo '=== Builder image — toolchain tests ==='",
-					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustc --version | grep -q \"rustc 1.94\"' && echo 'PASS: rustc 1.94 pinned'",
+					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'rustc --version | grep -q \"rustc 1.96\"' && echo 'PASS: rustc 1.96 pinned'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo --version' && echo 'PASS: cargo present'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'cargo chef --version' && echo 'PASS: cargo-chef present'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder bash -c 'sccache --version' && echo 'PASS: sccache present'",
@@ -135,7 +135,7 @@
 					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
 					"echo '=== All chisel base image tests passed ==='",
 					"echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
-					"echo 'Builder: rustc 1.94, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
+					"echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
 				],
 				"parallel": false
 			}
