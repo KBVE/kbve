@@ -88,6 +88,7 @@ export function fireBow(
 	hitTest: ArrowHitTest,
 	onHit: (serverEid: number, dmg: number) => void,
 	onLoose?: () => void,
+	screenTarget?: { x: number; y: number },
 ): BowShot {
 	const facing = { dx: target.x - from.x, dy: target.y - from.y };
 
@@ -105,7 +106,7 @@ export function fireBow(
 		// fire time made the authoritative arrow appear mid-draw. A shot cancelled
 		// before release removes this timer, so no server shot fires either.
 		onLoose?.();
-		spawnArrow(scene, from, target, hitTest, onHit);
+		spawnArrow(scene, from, target, hitTest, onHit, screenTarget);
 	});
 
 	const recoverTimer = scene.time.delayedCall(
@@ -144,6 +145,7 @@ function spawnArrow(
 	target: TileXY,
 	hitTest: ArrowHitTest,
 	onHit: (serverEid: number, dmg: number) => void,
+	screenTarget?: { x: number; y: number },
 ): void {
 	const dx = target.x - from.x;
 	const dy = target.y - from.y;
@@ -172,8 +174,17 @@ function spawnArrow(
 
 	const a = worldToScreen(muzzle.x, muzzle.y);
 	a.y -= BOW_MUZZLE_HEIGHT;
-	const b = worldToScreen(endTile.x, endTile.y);
-	b.y -= BOW_MUZZLE_HEIGHT;
+	// Visual endpoint: land on the target's on-screen sprite when given (a hovering
+	// flyer draws above its ground tile), else the projected end tile. The tile
+	// hit-test below marches independently on muzzle/nx/ny/range, so retargeting
+	// the shaft doesn't move where the hit resolves.
+	const b = screenTarget
+		? { x: screenTarget.x, y: screenTarget.y }
+		: (() => {
+				const p = worldToScreen(endTile.x, endTile.y);
+				p.y -= BOW_MUZZLE_HEIGHT;
+				return p;
+			})();
 
 	// Small bright shaft (pooled); rotate to face the screen-space travel dir.
 	const pools = projectilePools(scene);

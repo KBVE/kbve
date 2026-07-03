@@ -89,6 +89,7 @@ import {
 	makeCombatState,
 	fireBowAt as fireBowAtV,
 	onCombat as onCombatV,
+	beginInflightSpell as beginInflightSpellV,
 	type CombatState,
 	type CombatDeps,
 } from './systems/combat';
@@ -462,6 +463,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				gl.LINEAR_MIPMAP_LINEAR,
 			);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 			if (aniso) {
 				gl.texParameterf(
 					gl.TEXTURE_2D,
@@ -1455,7 +1458,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private castSpellSlot(idx: number): void {
-		castSpellSlotV(this.spells, this.spellDeps(), idx);
+		const cast = castSpellSlotV(this.spells, this.spellDeps(), idx);
+		if (cast.target != null) {
+			beginInflightSpellV(
+				this.combat,
+				this.combatDeps(),
+				cast.target,
+				cast.travelMs,
+			);
+		}
 		const meta = this.spells.meta.get(this.spells.loadout[idx] ?? '');
 		this.flashRangeRing(meta?.range || ARROW_MAX_RANGE, 0xf97316); // orange — spells
 	}

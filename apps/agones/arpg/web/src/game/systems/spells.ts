@@ -54,13 +54,23 @@ export function initSpellLoadout(st: SpellState): void {
 	});
 }
 
+/**
+ * Result of a cast: the acquired target and the bolt's travel time (ms), so the
+ * caller can defer the server-authoritative damage number until the bolt lands.
+ * Null target / 0 travel for untargeted or area casts (no single-target defer).
+ */
+export interface CastResult {
+	target: number | null;
+	travelMs: number;
+}
+
 export function castSpellSlot(
 	st: SpellState,
 	deps: SpellDeps,
 	idx: number,
-): void {
+): CastResult {
 	const ref = st.loadout[idx];
-	if (!ref) return;
+	if (!ref) return { target: null, travelMs: 0 };
 	const meta = st.meta.get(ref);
 	const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
 	const from = deps.predicted();
@@ -70,6 +80,27 @@ export function castSpellSlot(
 		: null;
 	deps.client()?.castSpell(ref, target);
 	playSpellVfxAt(deps, meta, target, aim);
+	// Single-target bolt (not an area storm): report its travel time so combat
+	// feedback settles on impact. Area/nova casts hit instantly across the field.
+	const isArea =
+		(meta?.radius ?? 0) > 0 &&
+		(meta?.target === 'nova' || meta?.effect === 'damage');
+	if (target == null || !meta || isArea) return { target: null, travelMs: 0 };
+	return { target, travelMs: boltTravelMs(deps, target) };
+}
+
+/** Bolt travel time (ms) to a target's on-screen sprite — mirrors castBolt's
+ * duration = max(140, screenDist / BOLT_SPEED_PX_MS). */
+function boltTravelMs(deps: SpellDeps, target: number): number {
+	const pos = deps.floatState.pos;
+	const a = worldToScreen(pos.x, pos.y);
+	a.y -= 32;
+	const sprite = deps.store.refs(target)?.sprite;
+	if (!sprite) return 140;
+	return Math.max(
+		140,
+		Math.hypot(sprite.x - a.x, sprite.y - a.y) / BOLT_SPEED_PX_MS,
+	);
 }
 
 function playSpellVfxAt(

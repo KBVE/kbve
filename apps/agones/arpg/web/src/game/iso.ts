@@ -23,7 +23,8 @@ export interface PixelXY {
  * in Unreal uu (100 uu per tile); one tile of height = one tile of screen
  * lift, so uu -> px is TILE_H / 100. Surface floors only — dungeons stay flat.
  */
-export const HEIGHT_PX_PER_UU = TILE_H / 100;
+export const HEIGHT_RENDER_SCALE = 0.35;
+export const HEIGHT_PX_PER_UU = (TILE_H / 100) * HEIGHT_RENDER_SCALE;
 const HEIGHT_AMPLITUDE_PX = HEIGHT_AMPLITUDE * HEIGHT_PX_PER_UU;
 
 let heightSampler: HeightSampler | null = null;
