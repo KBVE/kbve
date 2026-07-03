@@ -40,6 +40,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -70,6 +79,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly (asan)
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -101,6 +119,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly + miri
               uses: dtolnay/rust-toolchain@nightly
               with:
@@ -128,6 +155,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
             - name: Setup Rust nightly (fuzz)
               uses: dtolnay/rust-toolchain@nightly
             - name: Install cargo-fuzz
@@ -154,6 +190,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
@@ -186,6 +231,15 @@ jobs:
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends build-essential pkg-config protobuf-compiler
+            - name: Bootstrap rustup (serialized)
+              run: |
+                  mkdir -p "$CARGO_HOME/bin"
+                  exec 9>/home/runner/_cache/cargo/.rustup-bootstrap.lock
+                  flock 9
+                  if [ ! -x "$CARGO_HOME/bin/rustup" ]; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+                  fi
+                  echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
 
             - name: Setup Rust stable
               uses: dtolnay/rust-toolchain@stable
