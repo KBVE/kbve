@@ -3,6 +3,8 @@ kind: Service
 metadata:
     name: arpg-game-udp
     namespace: arpg
+    annotations:
+        lbipam.cilium.io/ignore: 'true'
     labels:
         app: arpg-server
         app.kubernetes.io/part-of: arpg

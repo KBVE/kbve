@@ -818,6 +818,7 @@ fn poll_go_online_request(
 
     #[cfg(target_arch = "wasm32")]
     {
+        let mut pending_token = pending_token;
         pending_token.in_flight = true;
 
         let jwt_for_fetch = jwt.unwrap_or_default();
