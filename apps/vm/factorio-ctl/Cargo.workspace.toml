@@ -5,6 +5,9 @@ members = [
     "packages/rust/jedi",
 ]
 
+[workspace.package]
+rust-version = "1.96"
+
 [profile.release]
 opt-level = 3
 lto = true

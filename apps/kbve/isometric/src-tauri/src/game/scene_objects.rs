@@ -13,6 +13,9 @@ use super::tilemap::TileCoord;
 #[cfg(not(target_arch = "wasm32"))]
 use super::input_bridge::BridgedCursorPosition;
 
+#[cfg(target_arch = "wasm32")]
+use super::virtual_joystick::VirtualJoystickState;
+
 // Re-export EntityEvent so event_target() is available
 use bevy::ecs::event::EntityEvent;
 
