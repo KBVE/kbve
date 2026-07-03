@@ -5,6 +5,8 @@
 
 struct KBVEWORLD_API FKBVEWorldChunkMesh
 {
+	static constexpr int32 BlobVersion = 2;
+
 	int32 CellsPerEdge = 32;
 	float CellSize     = 200.f;
 	TArray<FVector>          Vertices;
@@ -23,8 +25,14 @@ struct KBVEWORLD_API FKBVEWorldChunkMesh
 
 	void Serialize(FArchive& Ar)
 	{
-		int32 Version = 1;
+		int32 Version = BlobVersion;
 		Ar << Version;
+		if (Ar.IsLoading() && Version != BlobVersion)
+		{
+			Vertices.Reset();
+			Triangles.Reset();
+			return;
+		}
 		Ar << CellsPerEdge;
 		Ar << CellSize;
 		Ar << Vertices;
