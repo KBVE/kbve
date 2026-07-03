@@ -19,19 +19,19 @@ enum FuzzTypeKind {
 }
 
 fn classify_fuzz_type(ty: &Type) -> FuzzTypeKind {
-    if let Type::Path(type_path) = ty {
-        if let Some(segment) = type_path.path.segments.last() {
-            let ident = segment.ident.to_string();
-            return match ident.as_str() {
-                "String" => FuzzTypeKind::String,
-                "bool" => FuzzTypeKind::Bool,
-                "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "isize" | "usize" => {
-                    FuzzTypeKind::Integer
-                }
-                "f32" | "f64" => FuzzTypeKind::Float,
-                other => FuzzTypeKind::Other(other.to_string()),
-            };
-        }
+    if let Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        let ident = segment.ident.to_string();
+        return match ident.as_str() {
+            "String" => FuzzTypeKind::String,
+            "bool" => FuzzTypeKind::Bool,
+            "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "isize" | "usize" => {
+                FuzzTypeKind::Integer
+            }
+            "f32" | "f64" => FuzzTypeKind::Float,
+            other => FuzzTypeKind::Other(other.to_string()),
+        };
     }
     FuzzTypeKind::Other("unknown".to_string())
 }

@@ -369,7 +369,7 @@ mod tests {
             inner: Inner {
                 values: vec![1, 2, 3],
             },
-            optional: Some(3.14),
+            optional: Some(2.5),
         };
 
         store::write_snapshot::<Outer>(
@@ -634,6 +634,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::clone_on_copy)]
     fn schedule_is_copy_and_clone() {
         let s = SnapshotSchedule::FixedUpdate;
         let copy = s;
@@ -761,7 +762,7 @@ mod tests {
             Some(
                 serde_json::to_string(&JsonValidState {
                     name: "test".into(),
-                    value: 3.14,
+                    value: 2.5,
                 })
                 .unwrap(),
             ),

@@ -187,10 +187,10 @@ fn read_url_env(keys: &[&str]) -> Option<String> {
 }
 
 fn apply_pool_env(pool: &mut PgPoolConfig, prefix: &str) {
-    if let Some(v) = parse_env::<u32>(&format!("{prefix}_MAX_SIZE")) {
-        if v >= 1 {
-            pool.max_size = v;
-        }
+    if let Some(v) = parse_env::<u32>(&format!("{prefix}_MAX_SIZE"))
+        && v >= 1
+    {
+        pool.max_size = v;
     }
     if let Some(v) = parse_env::<u64>(&format!("{prefix}_CONNECT_TIMEOUT_MS")) {
         pool.connect_timeout = Duration::from_millis(v);

@@ -3,6 +3,7 @@ name = "discordsh-bot"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.21"
 edition = "2024"
+rust-version.workspace = true
 publish = false
 
 [dependencies]

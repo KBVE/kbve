@@ -8,7 +8,6 @@ use super::camera::IsometricCamera;
 use super::phase::GamePhase;
 use super::player::Player;
 use super::tilemap::TileCoord;
-use super::virtual_joystick::VirtualJoystickState;
 
 // Desktop: bridged cursor for BVH raycast hover detection
 #[cfg(not(target_arch = "wasm32"))]

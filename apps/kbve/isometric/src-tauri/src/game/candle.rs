@@ -44,7 +44,7 @@ fn setup_candles(
         ..default()
     });
 
-    for (i, &(wx, wz)) in CANDLE_POSITIONS.iter().enumerate() {
+    for &(wx, wz) in CANDLE_POSITIONS.iter() {
         let ground_y = terrain.height_at_world(wx, wz);
         let candle_top = ground_y + 0.45;
 

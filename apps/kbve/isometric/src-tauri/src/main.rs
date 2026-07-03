@@ -59,7 +59,6 @@ fn main() {
 
     app.add_plugins(
         TauriPlugin::new(|builder| {
-            use tauri::Manager;
             builder
                 .plugin(tauri_plugin_opener::init())
                 .plugin(tauri_plugin_deep_link::init())

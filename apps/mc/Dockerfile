@@ -27,7 +27,7 @@ ARG MODS_CACHE_IMAGE=ghcr.io/kbve/mc:mods
 FROM ${MODS_CACHE_IMAGE} AS mods-cache
 
 # ── Stage 1: Build Rust native libraries (.so) ────────────────────────
-FROM rust:1.94-bookworm AS rust-builder
+FROM rust:1.96-bookworm AS rust-builder
 WORKDIR /build
 
 # protoc + well-known types — required by the agones crate's build.rs.

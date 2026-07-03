@@ -2,22 +2,15 @@ use crate::applicationstate::AppState;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
+#[derive(Default)]
 pub struct TemplateApp {
     state: AppState,
-}
-
-impl Default for TemplateApp {
-    fn default() -> Self {
-        Self {
-            state: AppState::default(),
-        }
-    }
 }
 
 impl TemplateApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let app = Self {
-            state: AppState::load(cc.storage).unwrap_or_else(AppState::new),
+            state: AppState::load(cc.storage).unwrap_or_default(),
         };
 
         if app.state.is_dark_mode {
@@ -38,7 +31,7 @@ impl eframe::App for TemplateApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
 
-        egui::TopBottomPanel::top("top_panel").show_inside(ui, |ui| {
+        egui::Panel::top("top_panel").show_inside(ui, |ui| {
             egui::MenuBar::new().ui(ui, |ui| {
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
@@ -54,7 +47,7 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        egui::SidePanel::left("side_panel").show_inside(ui, |ui| {
+        egui::Panel::left("side_panel").show_inside(ui, |ui| {
             ui.heading("Side Panel");
             ui.horizontal(|ui| {
                 ui.label("Adjust value: ");

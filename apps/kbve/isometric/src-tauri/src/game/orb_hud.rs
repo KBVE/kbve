@@ -32,18 +32,10 @@ impl Default for OrbUniforms {
     }
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Clone, Default)]
 pub struct OrbMaterial {
     #[uniform(0)]
     pub uniforms: OrbUniforms,
-}
-
-impl Default for OrbMaterial {
-    fn default() -> Self {
-        Self {
-            uniforms: OrbUniforms::default(),
-        }
-    }
 }
 
 impl UiMaterial for OrbMaterial {
