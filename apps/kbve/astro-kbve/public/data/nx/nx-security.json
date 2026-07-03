@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-02T09:14:09Z",
+  "generated_at": "2026-07-03T10:42:36Z",
   "summary": {
     "critical": 5,
     "high": 25,
-    "medium": 53,
+    "medium": 55,
     "low": 8,
     "info": 34
   },
@@ -898,15 +898,29 @@
       "advisories": []
     },
     "codeql": {
-      "total": 3,
+      "total": 5,
       "severities": {
         "critical": 3,
         "high": 0,
-        "medium": 0,
+        "medium": 2,
         "low": 0,
         "info": 0
       },
       "alerts": [
+        {
+          "rule_id": "js/shell-command-constructed-from-input",
+          "description": "Unsafe shell command constructed from library input",
+          "severity": "medium",
+          "path": "packages/npm/devops/src/lib/client/github/pulls.ts",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/517"
+        },
+        {
+          "rule_id": "js/shell-command-constructed-from-input",
+          "description": "Unsafe shell command constructed from library input",
+          "severity": "medium",
+          "path": "packages/npm/devops/src/lib/client/github/pulls.ts",
+          "url": "https://github.com/KBVE/kbve/security/code-scanning/516"
+        },
         {
           "rule_id": "rust/hard-coded-cryptographic-value",
           "description": "Hard-coded cryptographic value",
