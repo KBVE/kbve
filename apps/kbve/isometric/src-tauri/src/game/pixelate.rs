@@ -86,7 +86,7 @@ fn sync_scale_factor(windows: Query<&Window>, mut settings: Query<&mut PixelateS
     let Ok(mut s) = settings.single_mut() else {
         return;
     };
-    s.scale_factor = window.scale_factor() as f32;
+    s.scale_factor = window.scale_factor();
 }
 
 pub struct PixelatePlugin;

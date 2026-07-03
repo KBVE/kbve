@@ -58,6 +58,9 @@ exclude = [
 	'packages/rust/bevy/uniti/fuzz',
 ]
 
+[workspace.package]
+rust-version = "1.96"
+
 [profile.dev]
 opt-level = 1
 

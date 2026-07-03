@@ -60,7 +60,7 @@ const NIGHT_BAND: f32 = 1.5;
 
 /// Daytime visibility factor: 0.0 at night, 1.0 during full day.
 pub fn day_factor(hour: f32) -> f32 {
-    if hour >= DAY_START && hour <= DAY_END {
+    if (DAY_START..=DAY_END).contains(&hour) {
         let fade_in = ((hour - DAY_START) / DAY_BAND).clamp(0.0, 1.0);
         let fade_out = ((DAY_END - hour) / DAY_BAND).clamp(0.0, 1.0);
         fade_in.min(fade_out)

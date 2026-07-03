@@ -94,10 +94,7 @@ pub extern "system" fn Java_com_kbve_mcauth_NativeRuntime_verifyLink<'local>(
     };
 
     let response = match RUNTIME.get() {
-        Some(rt) => rt.submit(AuthJob::VerifyLink {
-            player_uuid,
-            code: code as i32,
-        }),
+        Some(rt) => rt.submit(AuthJob::VerifyLink { player_uuid, code }),
         None => AuthResponse::error("runtime not initialized"),
     };
 

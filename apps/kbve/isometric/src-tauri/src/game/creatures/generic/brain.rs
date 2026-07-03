@@ -25,6 +25,12 @@ pub struct CreatureBrain {
     pending: bool,
 }
 
+impl Default for CreatureBrain {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CreatureBrain {
     pub fn new() -> Self {
         Self {
@@ -80,7 +86,7 @@ pub fn dispatch_behavior_trees(
 
         // On Low tier, stagger dispatches: each creature fires every 4th
         // frame, offset by slot_seed so they don't all fire on the same frame.
-        if is_low && (frame + cr.slot_seed) % 4 != 0 {
+        if is_low && !(frame + cr.slot_seed).is_multiple_of(4) {
             continue;
         }
 

@@ -25,7 +25,7 @@ pub fn spawn_sprite_creatures(
     mut atlas_materials: ResMut<Assets<SpriteAtlasMaterial>>,
     mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
     asset_server: Res<AssetServer>,
-    pool: Res<CreaturePool>,
+    _pool: Res<CreaturePool>,
     registry: Res<CreatureRegistry>,
     types: Res<SpriteCreatureTypes>,
     mut atlas_pool: ResMut<SpriteAtlasPool>,
@@ -71,7 +71,7 @@ pub fn spawn_sprite_creatures(
         });
 
         // Store in atlas pool
-        let entry_idx = atlas_pool.entries.len();
+        let _entry_idx = atlas_pool.entries.len();
         atlas_pool.entries.push(SpriteAtlasEntry {
             type_key: creature_type.npc_ref,
             material: material.clone(),
@@ -110,27 +110,22 @@ pub fn spawn_sprite_creatures(
             };
 
             // Spawn blob shadow
-            let shadow_entity = if let Some(ref bs) = blob_shadow {
-                Some(
-                    commands
-                        .spawn((
-                            Mesh3d(bs.mesh.clone()),
-                            MeshMaterial3d(bs.material.clone()),
-                            Transform::from_xyz(0.0, -100.0, 0.0),
-                            Visibility::Hidden,
-                            crate::game::weather::BlobShadow {
-                                anchor: Vec3::new(0.0, -100.0, 0.0),
-                                radius: creature_type.sprite_size
-                                    * creature_type.shadow_radius_factor,
-                                object_height: creature_type.sprite_size
-                                    * creature_type.shadow_height_factor,
-                            },
-                        ))
-                        .id(),
-                )
-            } else {
-                None
-            };
+            let shadow_entity = blob_shadow.as_ref().map(|bs| {
+                commands
+                    .spawn((
+                        Mesh3d(bs.mesh.clone()),
+                        MeshMaterial3d(bs.material.clone()),
+                        Transform::from_xyz(0.0, -100.0, 0.0),
+                        Visibility::Hidden,
+                        crate::game::weather::BlobShadow {
+                            anchor: Vec3::new(0.0, -100.0, 0.0),
+                            radius: creature_type.sprite_size * creature_type.shadow_radius_factor,
+                            object_height: creature_type.sprite_size
+                                * creature_type.shadow_height_factor,
+                        },
+                    ))
+                    .id()
+            });
 
             let mut entity = commands.spawn((
                 Mesh3d(quad_mesh.clone()),

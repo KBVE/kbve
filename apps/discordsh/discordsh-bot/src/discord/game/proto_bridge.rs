@@ -8,8 +8,8 @@
 use std::sync::LazyLock;
 
 use bevy_items::{
-    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, ProtoItemId, StatusEffectKind,
-    UseEffectType, inventory_adapter::ProtoItemKind,
+    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, StatusEffectKind, UseEffectType,
+    inventory_adapter::ProtoItemKind,
 };
 use bevy_mapdb::{MapDb, WorldObjectType};
 use bevy_npc::NpcDb;
@@ -26,10 +26,8 @@ const ITEMDB_JSON: &str = include_str!("../../../data/itemdb.json");
 
 /// The global proto item database, loaded once from the embedded JSON.
 /// Also initializes the [`ProtoItemKind`] adapter so inventory lookups work.
-static ITEM_DB: LazyLock<ItemDb> = LazyLock::new(|| {
-    let db = ItemDb::from_json(ITEMDB_JSON).expect("embedded itemdb.json must be valid");
-    db
-});
+static ITEM_DB: LazyLock<ItemDb> =
+    LazyLock::new(|| ItemDb::from_json(ITEMDB_JSON).expect("embedded itemdb.json must be valid"));
 
 /// Ensure the `ProtoItemKind` adapter is initialized with our global `ItemDb`.
 /// Called lazily on first use of any inventory-related function.
@@ -517,7 +515,7 @@ fn loot_table_for_level(level: u8) -> &'static str {
 /// If the NPC has no proto loot entries, returns an empty Vec (caller should
 /// fall back to legacy `content::roll_loot`).
 pub fn roll_npc_loot(npc_ref: &str) -> Vec<(&'static str, u32)> {
-    use rand::{Rng, RngExt};
+    use rand::RngExt;
 
     let npc = match find_npc_by_ref(npc_ref) {
         Some(n) => n,
@@ -556,7 +554,7 @@ pub fn roll_npc_loot(npc_ref: &str) -> Vec<(&'static str, u32)> {
 
 /// Roll gold from an NPC's proto loot table. Returns 0 if no proto gold defined.
 pub fn roll_npc_gold(npc_ref: &str) -> i32 {
-    use rand::{Rng, RngExt};
+    use rand::RngExt;
 
     let npc = match find_npc_by_ref(npc_ref) {
         Some(n) => n,
@@ -790,10 +788,10 @@ pub fn execute_craft(
 /// falls back to the hardcoded table for NPCs that haven't been migrated yet.
 fn proto_initial_intent(npc: &bevy_npc::Npc, attack: i32) -> Intent {
     // Try proto abilities: use the first ability (highest priority opener).
-    if let Some(ability) = npc.abilities.first() {
-        if let Some(intent) = ability_to_intent(ability, attack) {
-            return intent;
-        }
+    if let Some(ability) = npc.abilities.first()
+        && let Some(intent) = ability_to_intent(ability, attack)
+    {
+        return intent;
     }
     // Fallback: hardcoded table keyed by NPC ref slug.
     legacy_initial_intent(&npc.r#ref, attack)
@@ -957,10 +955,10 @@ pub fn meets_prerequisites(
     journal: &QuestJournal,
 ) -> bool {
     if let Some(prereq) = &quest.prerequisites {
-        if let Some(req_level) = prereq.level_requirement {
-            if (player_level as i32) < req_level {
-                return false;
-            }
+        if let Some(req_level) = prereq.level_requirement
+            && (player_level as i32) < req_level
+        {
+            return false;
         }
         for req_ref in &prereq.quest_refs {
             if !journal.is_completed(req_ref) {

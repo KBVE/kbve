@@ -8,7 +8,7 @@ description = "Q is a Rust crate powering KBVE games. Default build is a Godot G
 homepage = "https://kbve.com/application/rust/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/q"
 readme = "README.md"
-rust-version = "1.88"
+rust-version.workspace = true
 exclude = [
     "release/*",
     "docs/*",

@@ -84,7 +84,7 @@ fn push_dome_cap(
             let mut vc = band_col;
             if let Some(sc) = spot_color {
                 if ri >= 1 {
-                    let spot_hash = ((angle * 3.7 + seed * 5.3).sin() * 43758.5453).fract();
+                    let spot_hash = ((angle * 3.7 + seed * 5.3).sin() * 43_758.547).fract();
                     if spot_hash > 0.65 {
                         vc = sc;
                     }

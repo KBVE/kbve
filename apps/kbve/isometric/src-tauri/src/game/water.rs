@@ -29,18 +29,10 @@ impl Default for WaterUniforms {
     }
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Clone, Default)]
 pub struct WaterMaterial {
     #[uniform(0)]
     pub uniforms: WaterUniforms,
-}
-
-impl Default for WaterMaterial {
-    fn default() -> Self {
-        Self {
-            uniforms: WaterUniforms::default(),
-        }
-    }
 }
 
 impl Material for WaterMaterial {

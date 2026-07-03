@@ -91,18 +91,10 @@ impl Default for SmokeUniforms {
     }
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Clone, Default)]
 pub struct SmokeMaterial {
     #[uniform(0)]
     pub uniforms: SmokeUniforms,
-}
-
-impl Default for SmokeMaterial {
-    fn default() -> Self {
-        Self {
-            uniforms: SmokeUniforms::default(),
-        }
-    }
 }
 
 impl Material for SmokeMaterial {

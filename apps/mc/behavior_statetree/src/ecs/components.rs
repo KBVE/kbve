@@ -169,7 +169,7 @@ pub struct AiEpoch {
 }
 
 impl AiEpoch {
-    pub fn next(&mut self) -> u64 {
+    pub fn advance(&mut self) -> u64 {
         self.value += 1;
         self.value
     }

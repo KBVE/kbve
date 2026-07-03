@@ -46,7 +46,7 @@ pub fn ingest_observations(
                 pos.y = obs.position[1];
                 pos.z = obs.position[2];
                 health.current = obs.health;
-                epoch.next();
+                epoch.advance();
                 nearby.entities = obs
                     .nearby_entities
                     .iter()

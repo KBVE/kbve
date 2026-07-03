@@ -11,6 +11,8 @@
 //! All message passing uses bounded channels with immutable snapshots.
 //! Per-NPC epochs prevent stale decisions from being applied.
 
+#![allow(clippy::type_complexity, clippy::too_many_arguments)]
+
 pub mod ecs;
 pub mod runtime;
 pub mod ship_db;

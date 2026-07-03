@@ -3,6 +3,7 @@ name = "axum-discordsh"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.44"
 edition = "2024"
+rust-version.workspace = true
 publish = false
 
 [dependencies]

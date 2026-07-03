@@ -3,6 +3,7 @@ name = "kbve-kubectl"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.5"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "KBVE kubectl wrapper — chiseled Ubuntu kubectl with Rust CLI extensions for KubeVirt VM lifecycle management"
 

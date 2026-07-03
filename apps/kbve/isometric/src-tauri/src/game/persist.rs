@@ -580,7 +580,7 @@ fn creature_state_key(type_key: &str, slot_seed: u32) -> String {
 
 /// Periodically save active creature positions (runs on the same 5s timer).
 fn save_creature_states(
-    time: Res<Time>,
+    _time: Res<Time>,
     timer: Res<PersistTimer>,
     db: Res<Db>,
     query: Query<(&Creature, &SpriteCreatureMarker, &SpriteData)>,

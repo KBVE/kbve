@@ -2,6 +2,7 @@
 name = "kbve-desktop"
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 description = "KBVE cross-platform desktop application — Tauri 2 + React"
 repository = "https://github.com/KBVE/kbve"
 license = "MIT"
