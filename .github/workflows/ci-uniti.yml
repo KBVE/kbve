@@ -254,7 +254,9 @@ jobs:
                   add-to-path: true
 
             - name: Install cargo-ndk
-              run: cargo install cargo-ndk --locked
+              env:
+                  CARGO_NET_RETRY: '10'
+              run: command -v cargo-ndk >/dev/null || cargo install cargo-ndk --locked
 
             - name: cargo ndk build
               env:
