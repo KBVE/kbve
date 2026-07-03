@@ -120,6 +120,8 @@ export interface CombatDeps {
 	myEid(): number;
 	floatPos(): { x: number; y: number };
 	isHostile(serverEid: number): boolean;
+	lockedTarget(): number | null;
+	lockedAim(): TileXY | null;
 	clearMovePath(): void;
 	refreshHud(): void;
 	destroyRefs(refs: EntityRefs): void;
@@ -144,12 +146,14 @@ export function fireBowAt(
 	deps.clearMovePath();
 	const fp = deps.floatPos();
 	const from = { x: fp.x, y: fp.y };
-	const shotTarget = target ?? acquireBowTarget(deps, from, aim);
-	// Fly the arrow AT the acquired enemy (not the raw cursor point) so the
-	// visual shot connects with whatever the server resolves — a near-path
-	// target snaps the arrow onto it instead of sailing past.
+	const locked = target == null ? deps.lockedTarget() : null;
+	const shotTarget = target ?? locked ?? acquireBowTarget(deps, from, aim);
+	// A lock supplies both the target and the aim (auto-face); else the arrow
+	// flies at the acquired enemy's tile, else the raw cursor aim.
+	const lockedAim = locked != null ? deps.lockedAim() : null;
 	const shotTile =
-		shotTarget != null ? (deps.store.tile(shotTarget) ?? aim) : aim;
+		lockedAim ??
+		(shotTarget != null ? (deps.store.tile(shotTarget) ?? aim) : aim);
 	// Land the arrow on the target's on-screen SPRITE (hovering flyers are drawn
 	// above their ground tile), so a hit connects with the wyvern the player sees
 	// instead of the empty ground beneath it. Tile drives the hit-test; this only

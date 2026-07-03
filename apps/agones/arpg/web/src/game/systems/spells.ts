@@ -40,6 +40,8 @@ export interface SpellDeps {
 	predicted(): TileXY;
 	aim(): TileXY;
 	isHostile(serverEid: number): boolean;
+	lockedTarget(): number | null;
+	lockedAim(): TileXY | null;
 }
 
 const AIM_PERP = 0.75;
@@ -74,9 +76,11 @@ export function castSpellSlot(
 	const meta = st.meta.get(ref);
 	const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
 	const from = deps.predicted();
-	const aim = deps.aim();
+	const locked = deps.lockedTarget();
+	const lockedAim = locked != null ? deps.lockedAim() : null;
+	const aim = lockedAim ?? deps.aim();
 	const target = targeted
-		? acquireSpellTarget(deps, from, aim, meta?.range ?? 0)
+		? (locked ?? acquireSpellTarget(deps, from, aim, meta?.range ?? 0))
 		: null;
 	deps.client()?.castSpell(ref, target);
 	playSpellVfxAt(deps, meta, target, aim);
