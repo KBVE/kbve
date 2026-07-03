@@ -40,6 +40,11 @@ export interface SceneInputDeps {
 	updatePlaceGhost(tile: TileXY): void;
 	fireBowAt(aim: TileXY, target?: number): void;
 	startMoveTo(tile: TileXY): void;
+	toggleLockTarget(cursorTile: TileXY): void;
+	cycleLockTarget(): void;
+	clearLockTarget(): void;
+	lockedTarget(): number | null;
+	lockTargetEid(serverEid: number): void;
 }
 
 export interface SceneInputRefs {
@@ -84,12 +89,22 @@ export function setupInput(
 				deps.rotatePlacement();
 			}
 		} else if (ev.key === 'Escape') {
-			if (deps.inv.placingRef) {
+			if (deps.lockedTarget() != null) {
+				deps.clearLockTarget();
+			} else if (deps.inv.placingRef) {
 				deps.exitPlacement();
 			} else if (deps.inv.open) {
 				deps.inv.open = false;
 				emitInventoryOpen(false);
 			}
+		} else if (ev.key === 'Tab') {
+			ev.preventDefault();
+			const p = scene.input.activePointer;
+			const aim = screenToWorldF(p.worldX, p.worldY);
+			deps.toggleLockTarget({
+				x: Math.round(aim.x),
+				y: Math.round(aim.y),
+			});
 		}
 	});
 
@@ -157,6 +172,7 @@ export function setupInput(
 			// Fire at the clicked enemy. fireBowAt sends the single authoritative
 			// attack (targeting THIS enemy) — no separate action() call, or the
 			// server would see a double-fire.
+			deps.lockTargetEid(hit.serverEid);
 			deps.move.movePath = [];
 			deps.fireBowAt(aim, hit.serverEid);
 			return;

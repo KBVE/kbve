@@ -147,6 +147,7 @@ import {
 	type TargetLockState,
 	type TargetLockDeps,
 } from './systems/targetLock';
+import { makeLockReticle, type LockReticleHandle } from './systems/lockReticle';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -321,6 +322,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
 	private targetLock: TargetLockState = makeTargetLockState();
+	private lockReticle!: LockReticleHandle;
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// Central input: a keyboard device feeds the router (movement, ToggleChat, …);
 	// the context stack gates actions per mode (Gameplay / Chat). Polled + cleared
@@ -518,6 +520,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.setupInput();
 		this.buildBridge();
 		this.setupZoom();
+		this.lockReticle = makeLockReticle(this, this.store);
 
 		this.prewarmTreePool();
 		this.connectClient();
@@ -984,6 +987,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
 			fireBowAt: (a, t) => this.fireBowAt(a, t),
 			startMoveTo: (t) => this.startMoveTo(t),
+			toggleLockTarget: (t) => this.toggleLockTarget(t),
+			cycleLockTarget: () => this.cycleLockTarget(),
+			clearLockTarget: () => this.clearLockTarget(),
+			lockedTarget: () => this.lockedTargetEid(),
+			lockTargetEid: (e) => this.lockTargetEid(e),
 		};
 	}
 
@@ -1703,6 +1711,10 @@ export class IsoArpgScene extends Phaser.Scene {
 		clearLockV(this.targetLock);
 	}
 
+	private lockTargetEid(serverEid: number): void {
+		this.targetLock.lockedEid = serverEid;
+	}
+
 	/** Tear down an entity's display objects. */
 	private destroyRefs(refs: EntityRefs) {
 		destroyRefsV(refs);
@@ -2039,6 +2051,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.
 		this.refreshHud();
+		this.lockReticle.update(this.targetLock.lockedEid);
 		this.tickHud(delta);
 	}
 
