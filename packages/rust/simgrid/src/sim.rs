@@ -306,6 +306,25 @@ pub struct PlayerStore {
     by_username: HashMap<String, SavedPlayer>,
 }
 
+impl PlayerStore {
+    /// Pre-fill a player's save before their slot activates (the admit-time DB load).
+    /// A no-op when an entry already exists — live in-memory state is always fresher
+    /// than whatever the durable store returned.
+    pub fn seed(&mut self, username: impl Into<String>, saved: SavedPlayer) {
+        self.by_username.entry(username.into()).or_insert(saved);
+    }
+
+    pub fn contains(&self, username: &str) -> bool {
+        self.by_username.contains_key(username)
+    }
+}
+
+/// Optional sink the game wires to a durable store. Every save harvest (disconnect +
+/// periodic autosave) sends the username + detached snapshot; absent in tests /
+/// no-DB runs. Bounded: a full channel drops the send — the next autosave retries.
+#[derive(Resource, Default)]
+pub struct PlayerPersistSink(pub Option<mpsc::Sender<(String, SavedPlayer)>>);
+
 #[derive(Resource, Default, Clone)]
 pub struct ConsumableEffects(pub HashMap<String, i32>);
 
@@ -1457,6 +1476,7 @@ pub fn build_app(
         .insert_resource(ItemPrices::default())
         .insert_resource(Tables::default())
         .insert_resource(PlayerStore::default())
+        .insert_resource(PlayerPersistSink::default())
         .insert_resource(ConsumableEffects::default())
         .insert_resource(BuffEffects::default())
         .insert_resource(EquipmentEffects::default())
@@ -1563,6 +1583,7 @@ fn sync_roster(
     equipment: Res<EquipmentEffects>,
     registry: Res<KindRegistry>,
     map: Res<WalkableMap>,
+    persist: Res<PlayerPersistSink>,
     q_saved: Query<SavedQuery>,
     item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
     mut pet_bank: PetBank,
@@ -1788,15 +1809,16 @@ fn sync_roster(
             {
                 // Dematerialise the held + worn item entities into stack DTOs for the save,
                 // then despawn them (they re-materialise on the next join).
-                store.by_username.insert(
-                    username,
-                    harvest_saved(
-                        (inv, hp, equipped, xp, in_space, vitals, pos, roster),
-                        kills,
-                        &dto,
-                        &pet_bank,
-                    ),
+                let saved = harvest_saved(
+                    (inv, hp, equipped, xp, in_space, vitals, pos, roster),
+                    kills,
+                    &dto,
+                    &pet_bank,
                 );
+                if let Some(tx) = &persist.0 {
+                    let _ = tx.try_send((username.clone(), saved.clone()));
+                }
+                store.by_username.insert(username, saved);
                 for &e in &inv.slots {
                     commands.entity(e).despawn();
                 }
@@ -1870,11 +1892,13 @@ pub const AUTOSAVE_PERIOD_TICKS: u32 = SIM_TICK_HZ * 60;
 /// Periodic harvest of every online player into [`PlayerStore`], so a crash loses at
 /// most one period of progress instead of everything since the last clean disconnect.
 /// The future DB write-behind taps the store after this runs.
+#[allow(clippy::too_many_arguments)]
 fn autosave_players(
     clock: Res<SimClock>,
     spawned: Res<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
     kill_counts: Res<KillCounts>,
+    persist: Res<PlayerPersistSink>,
     q_saved: Query<SavedQuery>,
     item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
     pet_bank: PetBank,
@@ -1895,9 +1919,11 @@ fn autosave_players(
         }
         if let Ok(row) = q_saved.get(*entity) {
             let kills = kill_counts.0.get(slot).copied().unwrap_or(0);
-            store
-                .by_username
-                .insert(username.clone(), harvest_saved(row, kills, &dto, &pet_bank));
+            let saved = harvest_saved(row, kills, &dto, &pet_bank);
+            if let Some(tx) = &persist.0 {
+                let _ = tx.try_send((username.clone(), saved.clone()));
+            }
+            store.by_username.insert(username.clone(), saved);
         }
     }
 }
@@ -6001,6 +6027,62 @@ mod tests {
             .expect("autosave should harvest online players");
         assert_eq!(saved.pos, Some((Tile::new(5, 6), proto::Facing::Down)));
         assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 2));
+    }
+
+    #[test]
+    fn persist_sink_receives_disconnect_and_autosave() {
+        let (mut app, _rx, _tx, roster) = harness(56);
+        let (persist_tx, mut persist_rx) = mpsc::channel(8);
+        app.insert_resource(PlayerPersistSink(Some(persist_tx)));
+        let slot = join(&roster, "saver");
+        app.update();
+        let player = player_entity(&mut app);
+        give_item(&mut app, player, "potion", 4);
+
+        app.world_mut().resource_mut::<SimClock>().tick = AUTOSAVE_PERIOD_TICKS - 1;
+        app.update();
+        let (name, saved) = persist_rx.try_recv().expect("autosave should hit the sink");
+        assert_eq!(name, "saver");
+        assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 4));
+
+        roster.write().unwrap().release(slot);
+        app.update();
+        let (name, saved) = persist_rx
+            .try_recv()
+            .expect("disconnect save should hit the sink");
+        assert_eq!(name, "saver");
+        assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 4));
+    }
+
+    #[test]
+    fn seed_prefills_store_without_clobbering() {
+        let (mut app, _rx, _tx, roster) = harness(57);
+        let seeded = SavedPlayer {
+            level: 5,
+            xp: 30,
+            ..SavedPlayer::default()
+        };
+        app.world_mut()
+            .resource_mut::<PlayerStore>()
+            .seed("loaded", seeded);
+        let _slot = join(&roster, "loaded");
+        app.update();
+        let player = player_entity(&mut app);
+        let xp = app.world().get::<XpState>(player).unwrap();
+        assert_eq!((xp.level, xp.xp), (5, 30), "seeded save not applied on join");
+
+        let stale = SavedPlayer {
+            level: 1,
+            ..SavedPlayer::default()
+        };
+        let mut store = app.world_mut().resource_mut::<PlayerStore>();
+        store.seed("loaded", stale);
+        assert!(store.contains("loaded"));
+        assert_eq!(
+            store.by_username.get("loaded").unwrap().level,
+            5,
+            "seed must not overwrite an existing entry"
+        );
     }
 
     #[test]
