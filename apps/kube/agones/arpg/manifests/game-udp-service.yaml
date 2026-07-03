@@ -4,9 +4,12 @@ metadata:
     name: arpg-game-udp
     namespace: arpg
     annotations:
-        lbipam.cilium.io/ignore: 'true'
+        lbipam.cilium.io/ips: '142.132.206.71'
+        lbipam.cilium.io/sharing-key: public-71
+        lbipam.cilium.io/sharing-cross-namespace: kbve
     labels:
         app: arpg-server
+        kbve.com/lb-pool: public
         app.kubernetes.io/part-of: arpg
         kbve.com/category: game-server
         kbve.com/stack: agones
