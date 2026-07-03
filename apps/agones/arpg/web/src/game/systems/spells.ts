@@ -8,7 +8,12 @@ import {
 	castStormVfx,
 } from '../entities/projectiles/spells/spellVfx';
 import type { EntityRefs } from '../entities/sprites';
-import { worldToScreen, screenToWorldF, type TileXY } from '../iso';
+import {
+	worldToScreen,
+	worldToScreenFlat,
+	screenToWorldF,
+	type TileXY,
+} from '../iso';
 import type { InterpBuffer } from './interp';
 
 /**
@@ -35,6 +40,8 @@ export interface SpellDeps {
 	predicted(): TileXY;
 	aim(): TileXY;
 	isHostile(serverEid: number): boolean;
+	lockedTarget(): number | null;
+	lockedAim(): TileXY | null;
 }
 
 const AIM_PERP = 0.75;
@@ -49,22 +56,55 @@ export function initSpellLoadout(st: SpellState): void {
 	});
 }
 
+/**
+ * Result of a cast: the acquired target and the bolt's travel time (ms), so the
+ * caller can defer the server-authoritative damage number until the bolt lands.
+ * Null target / 0 travel for untargeted or area casts (no single-target defer).
+ */
+export interface CastResult {
+	target: number | null;
+	travelMs: number;
+}
+
 export function castSpellSlot(
 	st: SpellState,
 	deps: SpellDeps,
 	idx: number,
-): void {
+): CastResult {
 	const ref = st.loadout[idx];
-	if (!ref) return;
+	if (!ref) return { target: null, travelMs: 0 };
 	const meta = st.meta.get(ref);
 	const targeted = meta?.effect === 'damage' || meta?.effect === 'status';
 	const from = deps.predicted();
-	const aim = deps.aim();
+	const locked = deps.lockedTarget();
+	const lockedAim = locked != null ? deps.lockedAim() : null;
+	const aim = lockedAim ?? deps.aim();
 	const target = targeted
-		? acquireSpellTarget(deps, from, aim, meta?.range ?? 0)
+		? (locked ?? acquireSpellTarget(deps, from, aim, meta?.range ?? 0))
 		: null;
 	deps.client()?.castSpell(ref, target);
 	playSpellVfxAt(deps, meta, target, aim);
+	// Single-target bolt (not an area storm): report its travel time so combat
+	// feedback settles on impact. Area/nova casts hit instantly across the field.
+	const isArea =
+		(meta?.radius ?? 0) > 0 &&
+		(meta?.target === 'nova' || meta?.effect === 'damage');
+	if (target == null || !meta || isArea) return { target: null, travelMs: 0 };
+	return { target, travelMs: boltTravelMs(deps, target) };
+}
+
+/** Bolt travel time (ms) to a target's on-screen sprite — mirrors castBolt's
+ * duration = max(140, screenDist / BOLT_SPEED_PX_MS). */
+function boltTravelMs(deps: SpellDeps, target: number): number {
+	const pos = deps.floatState.pos;
+	const a = worldToScreen(pos.x, pos.y);
+	a.y -= 32;
+	const sprite = deps.store.refs(target)?.sprite;
+	if (!sprite) return 140;
+	return Math.max(
+		140,
+		Math.hypot(sprite.x - a.x, sprite.y - a.y) / BOLT_SPEED_PX_MS,
+	);
 }
 
 function playSpellVfxAt(
@@ -138,9 +178,10 @@ function leadTarget(
 		Math.hypot(sprite.x - aPx.x, sprite.y - aPx.y) / BOLT_SPEED_PX_MS,
 	);
 	const vel = velTilesPerMs(interp);
-	// worldToScreen is linear (no translation), so it maps the tile-space velocity straight
-	// to a screen-space velocity vector.
-	const sv = worldToScreen(vel.vx, vel.vy);
+	// The FLAT projection is linear (no translation), so it maps the tile-space
+	// velocity straight to a screen-space velocity vector. The height-aware
+	// projection would sample terrain at (vx, vy) as if it were a position.
+	const sv = worldToScreenFlat(vel.vx, vel.vy);
 	let leadX = sv.x * flightMs;
 	let leadY = sv.y * flightMs;
 	const leadMag = Math.hypot(leadX, leadY);

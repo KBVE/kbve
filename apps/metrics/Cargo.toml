@@ -3,6 +3,7 @@ name = "met"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.5"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "Metrics — in-house client telemetry ingest (errors/perf/events) to ClickHouse"
 

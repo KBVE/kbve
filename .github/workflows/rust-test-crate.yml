@@ -29,7 +29,7 @@ jobs:
             - name: Rust ToolChain (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
-                  toolchain: '1.94'
+                  toolchain: '1.96'
                   components: clippy
 
             - name: Rust ToolChain (nightly + wasm)

@@ -3,6 +3,7 @@ name = "bevy_cam"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 license = "MIT"
 description = "Bevy isometric camera plugin with pixel snapping, multiplicative zoom, and two-stage render-to-texture pipeline for crisp pixel-art rendering."
 homepage = "https://kbve.com/"

@@ -3,6 +3,7 @@ name = "axum-memes"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.8"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 
 [dependencies]

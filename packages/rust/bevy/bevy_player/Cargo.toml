@@ -3,6 +3,7 @@ name = "bevy_player"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 license = "MIT"
 description = "Bevy kinematic character controller with Avian3D physics — gravity, jump, collision-aware movement, and fall damage."
 homepage = "https://kbve.com/"

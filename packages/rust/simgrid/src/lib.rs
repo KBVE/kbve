@@ -9,6 +9,7 @@ pub mod float_move;
 pub mod grid;
 pub mod heightfield;
 pub mod net;
+pub mod net_udp;
 pub mod pets;
 pub mod proto;
 pub mod rng;
@@ -30,6 +31,7 @@ pub use grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
 };
 pub use net::{Roster, ServerState, SlotInput, router};
+pub use net_udp::UdpLane;
 pub use pets::{
     PendingPets, Pet, PetBank, PetId, PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef,
     PetRoster, PetSnapshot, PetVitals, clear_pending_pets, mint_pet_from_species, mint_pet_id,
@@ -42,7 +44,8 @@ pub use sim::{
     FurnitureRot, HazardZone, HealAura, Health, InSpaceFlag, IntentBuffer, Inventory, ItemPrices,
     ItemStack, Loot, ManaAura, MoveProfile, NpcLevel, NpcSpec, Outbound, PendingPetBattles,
     PendingPetTurns, PendingPilotOps, PersistedEnvLog, PersistedEnvObject, PilotOp, Piloting,
-    PlacedBy, PlayerSlotTag, PlayerStore, RespawnOnDeath, ReturnedFromInstance, SIM_TICK_HZ,
+    PlacedBy, PlayerPersistSink, PlayerSlotTag, PlayerStore, RespawnOnDeath, ReturnedFromInstance,
+    SIM_TICK_HZ, SavedPlayer,
     ShopStock, SimClock, SimConfig, SimSeed, SimSet, StatusEffect, StatusEffects,
     TREE_DENSITY_PER_MILLE, TREE_REF, TREE_VARIANTS, Terrain, TreeState, Wander, XpState,
     build_app, bush_at, ground_item_bundle, ground_item_bundle_stack, has_clearance, level_attack,

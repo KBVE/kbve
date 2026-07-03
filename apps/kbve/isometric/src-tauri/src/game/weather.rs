@@ -66,7 +66,7 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
 
     // sun_height: 0.0 at horizon/night, 1.0 at zenith.
     // This is the natural blend factor — everything follows the sun's position.
-    let sun_height = if hour >= 5.0 && hour <= 19.0 {
+    let sun_height = if (5.0..=19.0).contains(&hour) {
         elevation / (std::f32::consts::FRAC_PI_2 - 0.05)
     } else {
         0.0

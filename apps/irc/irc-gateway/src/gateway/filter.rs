@@ -21,7 +21,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock, RwLock};
 use std::time::{Duration, Instant};
 
-use tokio::time::{interval, sleep};
+use tokio::time::interval;
 use tracing::{info, warn};
 
 use crate::gateway::kv;

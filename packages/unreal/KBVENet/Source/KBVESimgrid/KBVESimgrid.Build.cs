@@ -16,7 +16,9 @@ public class KBVESimgrid : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"WebSockets",
-			"KBVESupabase"
+			"KBVESupabase",
+			"Sockets",
+			"Networking"
 		});
 	}
 }

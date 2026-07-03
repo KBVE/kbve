@@ -100,10 +100,10 @@ jobs:
               with:
                   github-token: ${{ github.token }}
 
-            - name: Setup Rust 1.94
+            - name: Setup Rust 1.96
               uses: dtolnay/rust-toolchain@stable
               with:
-                  toolchain: '1.94'
+                  toolchain: '1.96'
                   components: clippy
 
             - name: Install system libraries for wry/webkit2gtk + protoc

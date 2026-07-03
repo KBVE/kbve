@@ -3,7 +3,7 @@ name = "simgrid"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.1"
 edition = "2024"
-rust-version = "1.88"
+rust-version.workspace = true
 license = "MIT"
 description = "Headless grid-authoritative multiplayer sim core for KBVE games — bevy ECS + axum WS + postcard wire + Supabase JWT. No godot, no rapier, no lightyear."
 homepage = "https://kbve.com/"
@@ -25,7 +25,7 @@ postcard = { version = "1.0", default-features = false, features = ["use-std"] }
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 bevy_spells = { path = "../bevy/bevy_spells" }
 axum = { version = "0.7", default-features = false, features = ["ws"] }
-tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "sync", "time"] }
+tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "sync", "time", "net"] }
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
 dashmap = "6.1.0"
 ulid = "1.2.1"
@@ -35,6 +35,7 @@ tracing = "0.1"
 sha2 = "0.10"
 hex = "0.4"
 fastnoise-lite = "=1.1.1"
+getrandom = "0.2"
 
 [dev-dependencies]
 # Integration tests spin the real axum WS router + sim loop and drive a client.

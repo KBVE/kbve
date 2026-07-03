@@ -3,6 +3,7 @@ name = "rows"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.37"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "Rust OWS — single-binary game backend (REST + gRPC)"
 

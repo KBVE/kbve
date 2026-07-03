@@ -10,7 +10,6 @@ use std::collections::HashSet;
 use crossbeam_channel::{Receiver, Sender};
 use dashmap::DashSet;
 
-use super::camera::IsometricCamera;
 use super::mushrooms;
 use super::player::Player;
 use super::rocks;
@@ -387,7 +386,7 @@ fn push_terrain_body(
             [cx - hx, cy + hy, cz + hz],
         ]);
         nor.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
-        col.extend(std::iter::repeat(color).take(4));
+        col.extend(std::iter::repeat_n(color, 4));
         idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
     }
 
@@ -401,7 +400,7 @@ fn push_terrain_body(
             [cx + hx, cy + hy, cz - hz],
         ]);
         nor.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
-        col.extend(std::iter::repeat(color).take(4));
+        col.extend(std::iter::repeat_n(color, 4));
         idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
     }
 
@@ -415,7 +414,7 @@ fn push_terrain_body(
             [cx - hx, cy + hy, cz + hz],
         ]);
         nor.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
-        col.extend(std::iter::repeat(color).take(4));
+        col.extend(std::iter::repeat_n(color, 4));
         idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
     }
 
@@ -429,7 +428,7 @@ fn push_terrain_body(
             [cx + hx, cy + hy, cz + hz],
         ]);
         nor.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
-        col.extend(std::iter::repeat(color).take(4));
+        col.extend(std::iter::repeat_n(color, 4));
         idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
     }
 
@@ -443,7 +442,7 @@ fn push_terrain_body(
             [cx - hx, cy + hy, cz - hz],
         ]);
         nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
-        col.extend(std::iter::repeat(color).take(4));
+        col.extend(std::iter::repeat_n(color, 4));
         idx.extend_from_slice(&[base, base + 2, base + 1, base, base + 3, base + 2]);
     }
 }
@@ -516,7 +515,7 @@ fn push_cuboid(
     ]);
     nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
 
-    col.extend(std::iter::repeat(color).take(24));
+    col.extend(std::iter::repeat_n(color, 24));
 
     // 6 faces × 2 triangles (CCW winding for Bevy front-faces)
     for face in 0..6u32 {
@@ -599,7 +598,7 @@ fn push_cuboid_blended_top(
     nor.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
 
     // Side/bottom faces get uniform color (5 faces × 4 verts = 20)
-    col.extend(std::iter::repeat(side_color).take(20));
+    col.extend(std::iter::repeat_n(side_color, 20));
 
     for face in 0..6u32 {
         let f = base + face * 4;
@@ -652,7 +651,7 @@ fn build_grass_blade_mesh(variant_idx: usize) -> Mesh {
 
     // Snap vertex positions to pixel grid to prevent pixel swim
     let snap = |v: f32| -> f32 { (v / VEG_SNAP).round() * VEG_SNAP };
-    let hw_s = snap(hw);
+    let _hw_s = snap(hw);
     let h_s = snap(h);
 
     // Quad oriented to face the isometric camera (offset 15,20,15 → view dir normalized).
@@ -1639,43 +1638,39 @@ fn compute_chunk_geometry(
                 // Mushrooms — merge vertices into per-chunk mesh
                 if !tile_occupied {
                     let mush_noise = hash2d(tx + 23017, tz + 17293);
-                    if mush_noise < 0.04 {
-                        if !collected.contains(&(tx, tz)) {
-                            let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP)
-                                .round()
-                                * VEG_SNAP;
-                            let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP)
-                                .round()
-                                * VEG_SNAP;
-                            let world_x = tx as f32 * TILE_SIZE + jx;
-                            let world_z = tz as f32 * TILE_SIZE + jz;
-                            let mush_y = column_h + 0.002;
-                            let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
-                            let rot_y =
-                                hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
-                            let params = mushrooms::MushroomParams { tx, tz, kind };
-                            let (max_hw, total_h) = mushrooms::push_mushroom_vertices(
-                                &params,
-                                world_x,
-                                world_z,
-                                mush_y,
-                                rot_y,
-                                &mut mushroom_body.positions,
-                                &mut mushroom_body.normals,
-                                &mut mushroom_body.colors,
-                                &mut mushroom_body.indices,
-                            );
-                            mushroom_metas.push(MushroomMeta {
-                                tx,
-                                tz,
-                                world_x,
-                                world_z,
-                                mush_y,
-                                kind,
-                                max_hw,
-                                total_h,
-                            });
-                        }
+                    if mush_noise < 0.04 && !collected.contains(&(tx, tz)) {
+                        let jx = ((hash2d(tx + 23117, tz + 17293) - 0.5) * 0.5 / VEG_SNAP).round()
+                            * VEG_SNAP;
+                        let jz = ((hash2d(tx + 23017, tz + 17393) - 0.5) * 0.5 / VEG_SNAP).round()
+                            * VEG_SNAP;
+                        let world_x = tx as f32 * TILE_SIZE + jx;
+                        let world_z = tz as f32 * TILE_SIZE + jz;
+                        let mush_y = column_h + 0.002;
+                        let kind = mushrooms::mushroom_kind_from_hash(tx, tz);
+                        let rot_y =
+                            hash2d(tx * 9311 + 3477, tz * 8193 + 4319) * std::f32::consts::TAU;
+                        let params = mushrooms::MushroomParams { tx, tz, kind };
+                        let (max_hw, total_h) = mushrooms::push_mushroom_vertices(
+                            &params,
+                            world_x,
+                            world_z,
+                            mush_y,
+                            rot_y,
+                            &mut mushroom_body.positions,
+                            &mut mushroom_body.normals,
+                            &mut mushroom_body.colors,
+                            &mut mushroom_body.indices,
+                        );
+                        mushroom_metas.push(MushroomMeta {
+                            tx,
+                            tz,
+                            world_x,
+                            world_z,
+                            mush_y,
+                            kind,
+                            max_hw,
+                            total_h,
+                        });
                     }
                 }
             }

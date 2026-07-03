@@ -45,8 +45,14 @@ import {
 	screenToWorld,
 	screenToWorldF,
 	tileDepth,
+	setIsoHeightSeed,
+	setIsoHeightEnabled,
 	type TileXY,
 } from './iso';
+import {
+	makeHeightTexture,
+	type HeightTextureHandle,
+} from './systems/heightTexture';
 import {
 	setupInput as setupInputV,
 	type SceneInputDeps,
@@ -83,6 +89,7 @@ import {
 	makeCombatState,
 	fireBowAt as fireBowAtV,
 	onCombat as onCombatV,
+	beginInflightSpell as beginInflightSpellV,
 	type CombatState,
 	type CombatDeps,
 } from './systems/combat';
@@ -130,6 +137,17 @@ import {
 	tickPlayerInterp as tickPlayerInterpV,
 	tickFacing as tickFacingV,
 } from './systems/creatureView';
+import {
+	makeTargetLockState,
+	lockUnderCursor as lockUnderCursorV,
+	cycleLock as cycleLockV,
+	clearLock as clearLockV,
+	tickLockValidity as tickLockValidityV,
+	lockedAimPoint as lockedAimPointV,
+	type TargetLockState,
+	type TargetLockDeps,
+} from './systems/targetLock';
+import { makeLockReticle, type LockReticleHandle } from './systems/lockReticle';
 import { preloadStairs } from './entities/stairs';
 import { preloadItemAtlas, makeItemSprite } from './entities/itemSprite';
 import { itemKey } from './entities/itemMeta';
@@ -272,6 +290,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	};
 	private dungeonView!: DungeonView;
 	private ground?: GroundShaderHandle;
+	private heightTex?: HeightTextureHandle;
 	// Eased zoom: wheel/keys nudge zoomTarget, update() smooth-damps the camera
 	// toward it (critically-damped spring) so zoom accelerates then settles instead
 	// of snapping. SMOOTH_TIME ~ time to converge; MAX_SPEED caps the glide rate.
@@ -302,6 +321,8 @@ export class IsoArpgScene extends Phaser.Scene {
 	private move: MovementState = makeMovementState({ x: 0, y: 0 });
 	// Bow-shot bookkeeping: in-flight arrow, deferred server hits, corpses.
 	private combat: CombatState = makeCombatState();
+	private targetLock: TargetLockState = makeTargetLockState();
+	private lockReticle!: LockReticleHandle;
 	private fireKey!: Phaser.Input.Keyboard.Key;
 	// Central input: a keyboard device feeds the router (movement, ToggleChat, …);
 	// the context stack gates actions per mode (Gameplay / Chat). Polled + cleared
@@ -455,6 +476,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				gl.LINEAR_MIPMAP_LINEAR,
 			);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 			if (aniso) {
 				gl.texParameterf(
 					gl.TEXTURE_2D,
@@ -490,12 +513,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		if (USE_GROUND_SHADER) {
 			this.ground = makeGroundShader(this);
+			this.heightTex = makeHeightTexture(this);
 			this.ground.update(this.cameras.main);
 			this.ground.shader.setVisible(this.isSurface());
 		}
 		this.setupInput();
 		this.buildBridge();
 		this.setupZoom();
+		this.lockReticle = makeLockReticle(this, this.store);
 
 		this.prewarmTreePool();
 		this.connectClient();
@@ -962,6 +987,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			updatePlaceGhost: (t) => this.updatePlaceGhost(t),
 			fireBowAt: (a, t) => this.fireBowAt(a, t),
 			startMoveTo: (t) => this.startMoveTo(t),
+			toggleLockTarget: (t) => this.toggleLockTarget(t),
+			cycleLockTarget: () => this.cycleLockTarget(),
+			clearLockTarget: () => this.clearLockTarget(),
+			lockedTarget: () => this.lockedTargetEid(),
+			lockTargetEid: (e) => this.lockTargetEid(e),
 		};
 	}
 
@@ -1262,6 +1292,9 @@ export class IsoArpgScene extends Phaser.Scene {
 				/* private mode */
 			}
 			this.mySlot = w.your_slot;
+			setIsoHeightSeed(w.seed);
+			setIsoHeightEnabled(this.isSurface());
+			this.heightTex?.reset();
 			this.kindRegistry.clear();
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
@@ -1444,7 +1477,15 @@ export class IsoArpgScene extends Phaser.Scene {
 	}
 
 	private castSpellSlot(idx: number): void {
-		castSpellSlotV(this.spells, this.spellDeps(), idx);
+		const cast = castSpellSlotV(this.spells, this.spellDeps(), idx);
+		if (cast.target != null) {
+			beginInflightSpellV(
+				this.combat,
+				this.combatDeps(),
+				cast.target,
+				cast.travelMs,
+			);
+		}
 		const meta = this.spells.meta.get(this.spells.loadout[idx] ?? '');
 		this.flashRangeRing(meta?.range || ARROW_MAX_RANGE, 0xf97316); // orange — spells
 	}
@@ -1461,6 +1502,9 @@ export class IsoArpgScene extends Phaser.Scene {
 				return screenToWorldF(p.worldX, p.worldY);
 			},
 			isHostile: (e) => this.isHostileServer(e),
+			lockedTarget: () => this.targetLock.lockedEid,
+			lockedAim: () =>
+				lockedAimPointV(this.targetLock, this.targetLockDeps()),
 		};
 	}
 
@@ -1621,12 +1665,54 @@ export class IsoArpgScene extends Phaser.Scene {
 			myEid: () => this.myEid,
 			floatPos: () => this.move.floatState.pos,
 			isHostile: (eid) => this.isHostileServer(eid),
+			lockedTarget: () => this.targetLock.lockedEid,
+			lockedAim: () =>
+				lockedAimPointV(this.targetLock, this.targetLockDeps()),
 			clearMovePath: () => {
 				this.move.movePath = [];
 			},
 			refreshHud: () => this.refreshHud(),
 			destroyRefs: (refs) => this.destroyRefs(refs),
 		};
+	}
+
+	private targetLockDeps(): TargetLockDeps {
+		return {
+			store: this.store,
+			myEid: () => this.myEid,
+			isHostile: (e) => this.isHostileServer(e),
+			isCorpse: (e) => this.kinds.ref(this.store.kind(e)) === CORPSE_REF,
+			playerTile: () => this.move.predicted,
+			maxRange: () => ARROW_MAX_RANGE,
+		};
+	}
+
+	private lockedTargetEid(): number | null {
+		return this.targetLock.lockedEid;
+	}
+
+	private toggleLockTarget(cursorTile: TileXY): void {
+		if (this.targetLock.lockedEid == null) {
+			lockUnderCursorV(
+				this.targetLock,
+				this.targetLockDeps(),
+				cursorTile,
+			);
+		} else {
+			cycleLockV(this.targetLock, this.targetLockDeps());
+		}
+	}
+
+	private cycleLockTarget(): void {
+		cycleLockV(this.targetLock, this.targetLockDeps());
+	}
+
+	private clearLockTarget(): void {
+		clearLockV(this.targetLock);
+	}
+
+	private lockTargetEid(serverEid: number): void {
+		this.targetLock.lockedEid = serverEid;
 	}
 
 	/** Tear down an entity's display objects. */
@@ -1748,6 +1834,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
+		setIsoHeightEnabled(this.isSurface());
 		this.ground?.shader.setVisible(this.isSurface());
 		if (!this.isSurface()) {
 			this.clearPredictedTrees();
@@ -1916,7 +2003,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		tickFacingV(this, this.store);
 		this.tickZoom(delta);
 		this.dustLayer?.update(this.cameras.main);
-		this.ground?.update(this.cameras.main);
+		this.heightTex?.update(this.cameras.main);
+		this.ground?.update(this.cameras.main, this.heightTex);
 		this.residency.tick((id) => {
 			if (!id.startsWith('creature:')) return;
 			for (const r of this.creaturePool.drain(id.slice(9)))
@@ -1928,6 +2016,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		}
 
 		if (!this.client || !this.predictSeeded) return;
+
+		tickLockValidityV(this.targetLock, this.targetLockDeps());
 
 		// Space fells an adjacent standing tree if there is one, else fires the bow
 		// toward the cursor. Suppressed while the chat input owns the keyboard.
@@ -1961,6 +2051,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		// Redraw health bars every frame so they track the smoothly interpolated
 		// sprite instead of lagging behind it at snapshot cadence.
 		this.refreshHud();
+		this.lockReticle.update(this.targetLock.lockedEid);
 		this.tickHud(delta);
 	}
 
@@ -2537,6 +2628,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private teardown() {
 		this.ground?.shader.destroy();
 		this.ground = undefined;
+		this.lockReticle?.destroy();
 		this.offIntent?.();
 		this.offIntent = undefined;
 		this.offPetBattle?.();

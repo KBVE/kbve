@@ -1,0 +1,66 @@
+---
+title: KBVE Blog & Dev Journal
+description: The KBVE blog — a daily dev journal covering game development, Rust services, Kubernetes infrastructure, and everything shipped in the open monorepo.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Blog Home
+    order: 0
+tags:
+    - blog
+    - journal
+    - devlog
+ogTitle: KBVE Blog — Daily Dev Journal from an Open Monorepo
+ogDescription: Daily entries on game development, Rust, Unreal, Unity, and Kubernetes — the full dev log behind kbve.com, written in the open.
+ogImage: https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Blog
+          path: /blog/
+---
+
+import Hero from '@/components/marketing/Hero.astro';
+import StatStrip from '@/components/marketing/StatStrip.astro';
+import Cta from '@/components/marketing/Cta.astro';
+import BlogArchive from '@/components/blog/BlogArchive.astro';
+
+<h1 class="sr-only">KBVE Blog & Dev Journal</h1>
+
+<Hero
+	eyebrow="kbve blog"
+	lead="Shipped daily, "
+	accent="written in the open. "
+	tail="The dev journal."
+	subtitle="Every day of building games, Rust services, and Kubernetes infrastructure gets an entry — raw notes, fixes, and design decisions straight from the monorepo."
+	actions={[
+		{ label: 'Journal Navigator', href: '/journal/' },
+		{ label: 'Subscribe via RSS', href: '/rss.xml', variant: 'outline' },
+	]}
+/>
+
+<StatStrip
+	stats={[
+		{ value: '365+', label: 'Journal entries' },
+		{ value: '1', label: 'Open monorepo' },
+		{ value: 'Daily', label: 'Publishing cadence' },
+		{ value: '0', label: 'Paywalls' },
+	]}
+/>
+
+<BlogArchive />
+
+<Cta
+	title="Want the code behind the posts?"
+	subtitle="Every entry references real commits in the public monorepo — browse the docs or the source."
+	actions={[
+		{ label: 'Browse the Docs', href: '/docs/' },
+		{ label: 'View on GitHub', href: 'https://github.com/kbve/kbve', variant: 'outline' },
+	]}
+/>

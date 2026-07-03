@@ -3,6 +3,7 @@ name = "kbve_wgpu"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 license = "MIT"
 description = "Reusable native wgpu render-surface bridge for KBVE mobile (Metal/Vulkan via raw-window-handle). Mounts as a React Native Fabric view; hosts the Bevy isometric game behind a feature flag."
 homepage = "https://kbve.com/application/rust/"

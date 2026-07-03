@@ -3,6 +3,7 @@ name = "arpg-server"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.23"
 edition = "2024"
+rust-version.workspace = true
 license = "MIT"
 description = "ARPG game server — axum + tokio host for the simgrid grid-authoritative bevy sim (Diablo-style isometric)."
 

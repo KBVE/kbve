@@ -67,17 +67,16 @@ fn resolve_equipped_gear(player: &PlayerState) -> EquippedGear {
         .armor_gear
         .as_ref()
         .and_then(|id| content::find_gear(id))
+        && let Some(ref special) = armor_def.special
     {
-        if let Some(ref special) = armor_def.special {
-            match special {
-                GearSpecial::DamageReduction { percent } => {
-                    gear.armor_damage_reduction = *percent as f32 / 100.0;
-                }
-                GearSpecial::Thorns { damage } => {
-                    gear.armor_thorns = *damage;
-                }
-                _ => {}
+        match special {
+            GearSpecial::DamageReduction { percent } => {
+                gear.armor_damage_reduction = *percent as f32 / 100.0;
             }
+            GearSpecial::Thorns { damage } => {
+                gear.armor_thorns = *damage;
+            }
+            _ => {}
         }
     }
 
@@ -380,8 +379,8 @@ impl CombatWorld {
         let Some(kind) = pb::game_id_to_proto_item_kind(game_id) else {
             return qty;
         };
-        let overflow = inv.add(kind, qty);
-        overflow
+
+        inv.add(kind, qty)
     }
 
     /// Check how many of an item a player has in their bridge-level inventory.
@@ -414,10 +413,10 @@ impl CombatWorld {
     /// and syncs the first-strike flag.
     pub fn sync_out(&self, session: &mut SessionState) {
         // Sync first-strike flag
-        if let Some(flag) = self.app.world().get_resource::<FirstStrikeFired>() {
-            if flag.0 {
-                session.enemies_had_first_strike = true;
-            }
+        if let Some(flag) = self.app.world().get_resource::<FirstStrikeFired>()
+            && flag.0
+        {
+            session.enemies_had_first_strike = true;
         }
 
         // Sync players
@@ -759,7 +758,7 @@ pub fn run_flee_turn(
     actor: serenity::UserId,
     skip_enemy_turns: bool,
 ) -> (Vec<String>, bool) {
-    let depth = session.room.index as u32;
+    let depth = session.room.index;
     let mut combat = CombatWorld::from_session(session);
     combat.run_turn(
         &[(actor, PlayerAction::Flee { depth })],

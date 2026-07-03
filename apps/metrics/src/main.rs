@@ -53,38 +53,6 @@ fn cors_layer(cfg: &Config) -> CorsLayer {
         .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
 }
 
-#[cfg(test)]
-mod tests {
-    use super::origin_allowed;
-
-    #[test]
-    fn exact_match() {
-        let allowed = vec!["https://arpg.kbve.com".to_string()];
-        assert!(origin_allowed(&allowed, "https://arpg.kbve.com"));
-        assert!(!origin_allowed(&allowed, "https://evil.kbve.com"));
-    }
-
-    #[test]
-    fn wildcard_subdomain() {
-        let allowed = vec!["https://*.discordsays.com".to_string()];
-        assert!(origin_allowed(&allowed, "https://12345.discordsays.com"));
-        assert!(!origin_allowed(&allowed, "https://evildiscordsays.com"));
-        assert!(!origin_allowed(&allowed, "http://12345.discordsays.com"));
-        assert!(!origin_allowed(&allowed, "https://discordsays.com"));
-    }
-
-    #[test]
-    fn mixed_list() {
-        let allowed = vec![
-            "https://kbve.com".to_string(),
-            "https://*.discordsays.com".to_string(),
-        ];
-        assert!(origin_allowed(&allowed, "https://kbve.com"));
-        assert!(origin_allowed(&allowed, "https://x.discordsays.com"));
-        assert!(!origin_allowed(&allowed, "https://jobs.kbve.com"));
-    }
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
@@ -162,5 +130,37 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {}
         _ = terminate => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::origin_allowed;
+
+    #[test]
+    fn exact_match() {
+        let allowed = vec!["https://arpg.kbve.com".to_string()];
+        assert!(origin_allowed(&allowed, "https://arpg.kbve.com"));
+        assert!(!origin_allowed(&allowed, "https://evil.kbve.com"));
+    }
+
+    #[test]
+    fn wildcard_subdomain() {
+        let allowed = vec!["https://*.discordsays.com".to_string()];
+        assert!(origin_allowed(&allowed, "https://12345.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://evildiscordsays.com"));
+        assert!(!origin_allowed(&allowed, "http://12345.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://discordsays.com"));
+    }
+
+    #[test]
+    fn mixed_list() {
+        let allowed = vec![
+            "https://kbve.com".to_string(),
+            "https://*.discordsays.com".to_string(),
+        ];
+        assert!(origin_allowed(&allowed, "https://kbve.com"));
+        assert!(origin_allowed(&allowed, "https://x.discordsays.com"));
+        assert!(!origin_allowed(&allowed, "https://jobs.kbve.com"));
     }
 }

@@ -174,7 +174,7 @@ fn persist_settings_on_change(db: Res<Db>, settings: Res<GameSettings>) {
 
 fn toggle_settings_modal(
     mut commands: Commands,
-    mut state: ResMut<SettingsModalState>,
+    state: ResMut<SettingsModalState>,
     settings: Res<GameSettings>,
     existing: Query<Entity, With<SettingsModalRoot>>,
 ) {

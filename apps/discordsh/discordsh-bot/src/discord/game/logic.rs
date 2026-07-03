@@ -1569,7 +1569,7 @@ fn single_enemy_turn(
             let effect_name = format!("{:?}", effect);
             let msg = content::flavor_debuff(personality, &enemy.name, &target_name, &effect_name);
             EnemyAction::DebuffPlayer {
-                effect: effect.clone(),
+                effect: *effect,
                 stacks: *stacks,
                 turns: *turns,
                 msg,
@@ -1887,7 +1887,7 @@ fn apply_item(
             turns,
         }) => {
             session.player_mut(actor).effects.push(EffectInstance {
-                kind: kind.clone(),
+                kind: *kind,
                 stacks: *stacks,
                 turns_left: *turns,
             });
@@ -2000,7 +2000,7 @@ fn apply_item(
                 let enemy_name = enemy.name.clone();
                 // Apply effect to the enemy
                 enemy.effects.push(EffectInstance {
-                    kind: kind.clone(),
+                    kind: *kind,
                     stacks: *stacks,
                     turns_left: *turns,
                 });
@@ -2263,7 +2263,7 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
                     turns,
                 } => {
                     session.player_mut(uid).effects.push(EffectInstance {
-                        kind: effect.clone(),
+                        kind: *effect,
                         stacks: *stacks,
                         turns_left: *turns,
                     });
@@ -2734,12 +2734,12 @@ fn apply_story_choice(
         return Err("Invalid choice.".to_owned());
     }
 
-    let class = session.player(actor).class.clone();
+    let class = session.player(actor).class;
     let outcome = content::resolve_story_choice(&event.prompt, idx, &class);
 
     // Check if player can afford the gold cost
     if outcome.gold_change < 0 {
-        let cost = (-outcome.gold_change) as i32;
+        let cost = (-outcome.gold_change);
         if session.player(actor).gold < cost {
             session.phase = GamePhase::Exploring;
             return Ok(vec!["You don't have enough gold.".to_owned()]);
@@ -2947,7 +2947,7 @@ fn apply_treasure_choice(
             add_item_to_inventory(&mut player.inventory, item_id);
             skills::grant_foraging_xp(&mut player.skills, 1);
             let emoji = super::content::find_item(item_id)
-                .map(|d| d.emoji.as_ref())
+                .map(|d| d.emoji)
                 .unwrap_or("📦");
             logs.push(format!("You also found {emoji} **{}**!", item_id));
         }
@@ -2961,7 +2961,7 @@ fn apply_treasure_choice(
             add_item_to_inventory(&mut player.inventory, gear_id);
             skills::grant_foraging_xp(&mut player.skills, 1);
             let emoji = super::content::find_gear(gear_id)
-                .map(|d| d.emoji.as_ref())
+                .map(|d| d.emoji)
                 .unwrap_or("⚔️");
             logs.push(format!("You found {emoji} **{}** in the chest!", gear_id));
         }
@@ -3067,7 +3067,7 @@ fn apply_rest_choice(
                 let player = session.player_mut(uid);
                 player.hp = (player.hp + heal).min(player.max_hp);
                 player.effects.push(EffectInstance {
-                    kind: buff.clone(),
+                    kind: buff,
                     stacks: 1,
                     turns_left: 3,
                 });

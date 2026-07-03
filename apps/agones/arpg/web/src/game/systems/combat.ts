@@ -14,11 +14,17 @@ import {
 	type BowShot,
 } from '../entities/projectiles/arrows/bow';
 import { setCreaturePose, type EntityRefs } from '../entities/sprites';
-import type { TileXY } from '../iso';
+import { worldToScreen, type TileXY } from '../iso';
 
-// How far (tiles) a hostile's center may sit off the aim line and still be hit
-// by the arrow — the thick-ray half-width. Bigger = more forgiving aim.
-const BOW_ACQUIRE_PERP = 0.85;
+// Aim-assist cone half-width (screen px) for bow targeting: a hostile whose
+// on-screen SPRITE sits within this of the player→aim screen line is a hit.
+// Sprite-space (not tile-space) so a shot aimed at a hovering flyer connects —
+// a flyer is drawn above its ground tile, so a tile-space ray sails over it.
+// Tighter than the spell cone: the arrow reads as a thin shaft, so a fat cone
+// makes clean-looking misses count as hits. ~1.7 tiles of screen slack — enough
+// to forgive a hovering flyer, not enough to grab an enemy the shot visibly
+// sails past.
+const BOW_AIM_HALF_PX = 55;
 // How long a corpse (a monster the arrow just killed) plays its death before it
 // is torn down.
 const CORPSE_FADE_MS = 900;
@@ -34,6 +40,11 @@ export interface CombatState {
 	// In-flight bow shot (online): the server-authoritative hit for `target` is
 	// buffered until the local arrow lands so feedback syncs to impact.
 	inflightArrow: { target: number; arrived: boolean } | null;
+	// In-flight spell bolts (online): the server resolves a targeted spell the
+	// tick it's cast, but the local bolt VFX is still travelling — the hit for
+	// each target is buffered until its bolt lands so the number syncs to impact
+	// (mirrors inflightArrow). Keyed by target serverEid.
+	inflightSpells: Map<number, { arrived: boolean }>;
 	bufferedHits: Map<number, CombatEvent>;
 	// Monsters despawned server-side by an in-flight arrow, held as corpses until
 	// the arrow lands (keyed by server eid).
@@ -44,9 +55,62 @@ export function makeCombatState(): CombatState {
 	return {
 		bowShot: null,
 		inflightArrow: null,
+		inflightSpells: new Map(),
 		bufferedHits: new Map(),
 		dyingSprites: new Map(),
 	};
+}
+
+/**
+ * Register an in-flight targeted spell bolt: the server-authoritative hit for
+ * `target` is buffered (see onCombat) until the bolt visually lands `travelMs`
+ * from now, so the damage number pops on impact instead of at cast. Mirrors the
+ * bow's inflightArrow + travel-time settle.
+ */
+export function beginInflightSpell(
+	st: CombatState,
+	deps: CombatDeps,
+	target: number,
+	travelMs: number,
+): void {
+	st.inflightSpells.set(target, { arrived: false });
+	deps.scene.time.delayedCall(travelMs + 30, () =>
+		onSpellArrive(st, deps, target),
+	);
+}
+
+/**
+ * A local spell bolt reached its target: mark arrived and flush the deferred
+ * server hit (number, flash, death/corpse) — same settle as onArrowArrive.
+ */
+export function onSpellArrive(
+	st: CombatState,
+	deps: CombatDeps,
+	target: number,
+): void {
+	const inflight = st.inflightSpells.get(target);
+	if (inflight) inflight.arrived = true;
+	const c = st.bufferedHits.get(target);
+	if (c) {
+		st.bufferedHits.delete(target);
+		showCombat(st, deps, c);
+	}
+	const corpse = st.dyingSprites.get(target);
+	if (corpse) {
+		st.dyingSprites.delete(target);
+		if (
+			corpse.creature &&
+			corpse.sprite instanceof Phaser.GameObjects.Sprite
+		) {
+			setCreaturePose(corpse.sprite, corpse.creature, 'Dead');
+			deps.scene.time.delayedCall(CORPSE_FADE_MS, () =>
+				deps.destroyRefs(corpse),
+			);
+		} else {
+			deps.destroyRefs(corpse);
+		}
+	}
+	st.inflightSpells.delete(target);
 }
 
 export interface CombatDeps {
@@ -56,6 +120,8 @@ export interface CombatDeps {
 	myEid(): number;
 	floatPos(): { x: number; y: number };
 	isHostile(serverEid: number): boolean;
+	lockedTarget(): number | null;
+	lockedAim(): TileXY | null;
 	clearMovePath(): void;
 	refreshHud(): void;
 	destroyRefs(refs: EntityRefs): void;
@@ -80,12 +146,23 @@ export function fireBowAt(
 	deps.clearMovePath();
 	const fp = deps.floatPos();
 	const from = { x: fp.x, y: fp.y };
-	const shotTarget = target ?? acquireBowTarget(deps, from, aim);
-	// Fly the arrow AT the acquired enemy (not the raw cursor point) so the
-	// visual shot connects with whatever the server resolves — a near-path
-	// target snaps the arrow onto it instead of sailing past.
+	const locked = target == null ? deps.lockedTarget() : null;
+	const shotTarget = target ?? locked ?? acquireBowTarget(deps, from, aim);
+	// A lock supplies both the target and the aim (auto-face); else the arrow
+	// flies at the acquired enemy's tile, else the raw cursor aim.
+	const lockedAim = locked != null ? deps.lockedAim() : null;
 	const shotTile =
-		shotTarget != null ? (deps.store.tile(shotTarget) ?? aim) : aim;
+		lockedAim ??
+		(shotTarget != null ? (deps.store.tile(shotTarget) ?? aim) : aim);
+	// Land the arrow on the target's on-screen SPRITE (hovering flyers are drawn
+	// above their ground tile), so a hit connects with the wyvern the player sees
+	// instead of the empty ground beneath it. Tile drives the hit-test; this only
+	// steers the visual endpoint.
+	const shotSprite =
+		shotTarget != null ? deps.store.refs(shotTarget)?.sprite : undefined;
+	const screenTarget = shotSprite
+		? { x: shotSprite.x, y: shotSprite.y }
+		: undefined;
 	st.bowShot = fireBow(
 		deps.scene,
 		refs.sprite,
@@ -113,46 +190,46 @@ export function fireBowAt(
 				onArrowArrive(st, deps, shotTarget),
 			);
 		},
+		screenTarget,
 	);
 }
 
 /**
- * Acquire the hostile the arrow will actually hit by marching the aim ray in
- * tile steps and returning the first hostile tile crossed — the SAME rounded
- * `store.at` model the flying arrow's `arrowHitTest` uses. Keeping acquisition
- * and the visual arrow on one hit model is what makes the server register the
- * shot the player sees connect (a perpendicular-distance test diverged from the
- * arrow and dropped grazing hits).
+ * Acquire the hostile the arrow will hit with sprite-space aim-assist: among
+ * hostiles in FRONT of the shot (along the player→aim SCREEN line), in range,
+ * and within BOW_AIM_HALF_PX of that line, pick the one CLOSEST to the line.
+ * Matches the on-screen sprite to the on-screen aim line, so a shot aimed at a
+ * hovering flyer (drawn above its ground tile) connects — a tile-space ray
+ * misses it. Mirrors acquireSpellTarget; falls back to null (clean miss).
  */
 export function acquireBowTarget(
 	deps: CombatDeps,
 	from: TileXY,
 	aim: TileXY,
 ): number | undefined {
-	const adx = aim.x - from.x;
-	const ady = aim.y - from.y;
-	const amag = Math.hypot(adx, ady);
-	if (amag < 1e-3) return undefined;
-	const nx = adx / amag;
-	const ny = ady / amag;
-	// Thick-ray: the arrow flies a direction, so it hits the FIRST hostile along
-	// that line — the nearest one whose center sits within BOW_ACQUIRE_PERP tiles
-	// of the centerline, in range. Forgiving so a roughly-aimed shot still
-	// connects, while staying first-in-path.
+	const a = worldToScreen(from.x, from.y);
+	const b = worldToScreen(aim.x, aim.y);
+	const dx = b.x - a.x;
+	const dy = b.y - a.y;
+	const len = Math.hypot(dx, dy);
+	if (len < 1e-3) return undefined;
+	const nx = dx / len;
+	const ny = dy / len;
 	let best: number | undefined;
-	let bestAlong = Infinity;
-	for (const [serverEid] of deps.store.entries()) {
+	let bestPerp = BOW_AIM_HALF_PX;
+	for (const [serverEid, , refs] of deps.store.entries()) {
 		if (!deps.isHostile(serverEid)) continue;
 		const t = deps.store.tile(serverEid);
 		if (!t) continue;
-		const dx = t.x - from.x;
-		const dy = t.y - from.y;
-		const along = dx * nx + dy * ny;
-		if (along <= 0 || along > ARROW_MAX_RANGE) continue;
-		const perp = Math.abs(dx * ny - dy * nx);
-		if (perp > BOW_ACQUIRE_PERP) continue;
-		if (along < bestAlong) {
-			bestAlong = along;
+		if (Math.hypot(t.x - from.x, t.y - from.y) > ARROW_MAX_RANGE) continue;
+		const sprite = refs.sprite;
+		if (!sprite) continue;
+		const rx = sprite.x - a.x;
+		const ry = sprite.y - a.y;
+		if (rx * nx + ry * ny <= 0) continue; // behind the shooter
+		const perp = Math.abs(rx * ny - ry * nx);
+		if (perp < bestPerp) {
+			bestPerp = perp;
 			best = serverEid;
 		}
 	}
@@ -194,6 +271,13 @@ export function onCombat(
 		st.inflightArrow.target === c.target &&
 		!st.inflightArrow.arrived
 	) {
+		st.bufferedHits.set(c.target, c);
+		return;
+	}
+	// Same deferral for a targeted spell bolt still travelling to this target.
+	const spell =
+		c.attacker === deps.myEid() && st.inflightSpells.get(c.target);
+	if (spell && !spell.arrived) {
 		st.bufferedHits.set(c.target, c);
 		return;
 	}

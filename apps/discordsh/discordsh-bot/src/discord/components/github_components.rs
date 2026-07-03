@@ -192,18 +192,18 @@ async fn handle_priority_change(
     // Add new priority label (if not "none")
     if new_level > 0 {
         let new_label = github_cards::priority_level_label(new_level);
-        if !new_label.is_empty() {
-            if let Err(e) = gh.add_labels(owner, repo_name, number, &[new_label]).await {
-                warn!(error = %e, "Failed to add priority label");
-                let _ = component
-                    .edit_response(
-                        ctx,
-                        serenity::EditInteractionResponse::new()
-                            .content(format!("Failed to set priority: {e}")),
-                    )
-                    .await;
-                return;
-            }
+        if !new_label.is_empty()
+            && let Err(e) = gh.add_labels(owner, repo_name, number, &[new_label]).await
+        {
+            warn!(error = %e, "Failed to add priority label");
+            let _ = component
+                .edit_response(
+                    ctx,
+                    serenity::EditInteractionResponse::new()
+                        .content(format!("Failed to set priority: {e}")),
+                )
+                .await;
+            return;
         }
     }
 

@@ -1862,14 +1862,12 @@ fn generate_hazards(index: u32, room_type: &RoomType, rng: &mut impl Rng) -> Vec
                 });
             }
         }
-        RoomType::Combat if index >= 5 => {
-            if rng.random_range(0.0f32..1.0) < 0.20 {
-                hazards.push(Hazard::Gas {
-                    effect: EffectKind::Burning,
-                    stacks: 1,
-                    turns: 2,
-                });
-            }
+        RoomType::Combat if index >= 5 && rng.random_range(0.0f32..1.0) < 0.20 => {
+            hazards.push(Hazard::Gas {
+                effect: EffectKind::Burning,
+                stacks: 1,
+                turns: 2,
+            });
         }
         _ => {}
     }

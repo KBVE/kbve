@@ -3,6 +3,7 @@ name = "factorio-ctl"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.1"
 edition = "2021"
+rust-version.workspace = true
 publish = false
 description = "REST API service for the Agones-managed Factorio server (status, saves, rotation)"
 

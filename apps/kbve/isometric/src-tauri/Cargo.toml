@@ -9,6 +9,7 @@
 name = "isometric-game"
 version = "0.1.0"
 edition = "2021"
+rust-version.workspace = true
 description = "KBVE isometric multiplayer game — Bevy 0.18 + lightyear + avian3d, builds to WASM and Tauri desktop"
 repository = "https://github.com/KBVE/kbve"
 license = "SEE https://kbve.com/legal/"

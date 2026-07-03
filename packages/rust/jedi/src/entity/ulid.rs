@@ -186,12 +186,11 @@ pub fn extract_connection_id_bytes(metadata: &Bytes) -> Option<[u8; 16]> {
 }
 
 pub fn extract_connection_id_json(metadata: &Bytes) -> Option<[u8; 16]> {
-    if let Ok(v) = serde_json::from_slice::<Value>(metadata) {
-        if let Some(s) = v.get("connection_id")?.as_str() {
-            if let Ok(ulid) = ulid::Ulid::from_str(s) {
-                return Some(ulid.to_bytes());
-            }
-        }
+    if let Ok(v) = serde_json::from_slice::<Value>(metadata)
+        && let Some(s) = v.get("connection_id")?.as_str()
+        && let Ok(ulid) = ulid::Ulid::from_str(s)
+    {
+        return Some(ulid.to_bytes());
     }
     None
 }
