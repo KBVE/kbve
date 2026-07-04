@@ -803,6 +803,64 @@ const dock = [
 		}
 	}
 
+	@media (max-width: 639.98px) {
+		.bento-hero__frame {
+			max-width: 24rem;
+			margin-inline: auto;
+			padding: 0.75rem;
+			padding-top: 3rem;
+			padding-bottom: 3.5rem;
+			border: 7px solid #17171a;
+			border-radius: 3rem;
+			box-shadow:
+				0 0 0 1px var(--bento-hairline-strong),
+				0 24px 48px rgba(0, 0, 0, 0.45);
+		}
+
+		.bento-hero__frame::before {
+			content: '';
+			position: absolute;
+			top: 0.75rem;
+			left: 50%;
+			z-index: 12;
+			width: 6rem;
+			height: 1.5rem;
+			border-radius: 9999px;
+			transform: translateX(-50%);
+			background-color: #0b0b0d;
+			box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+		}
+
+		.bento-hero__menubar {
+			top: 0.875rem;
+			right: 0.625rem;
+			gap: 0.5rem;
+			padding: 0.25rem 0.5rem;
+			border-color: transparent;
+			background: transparent;
+			backdrop-filter: none;
+		}
+
+		.bento-hero__menubar-icon:not(.bento-hero__menubar-help) {
+			display: none;
+		}
+
+		.bento-hero__credit {
+			top: 2.75rem;
+			right: 0.625rem;
+			left: 0.625rem;
+			max-width: none;
+		}
+
+		.bento-hero__window {
+			border-radius: 1.25rem;
+		}
+
+		.bento-hero__dock {
+			bottom: 0.5rem;
+		}
+	}
+
 	.bento-hero__window {
 		position: relative;
 		z-index: 2;
