@@ -37,7 +37,7 @@
 		"@nx/web": "23.0.1",
 		"@nx/webpack": "23.0.1",
 		"@nx/workspace": "23.0.1",
-		"@nxlv/python": "22.0.5",
+		"@nxlv/python": "22.2.1",
 		"@playform/compress": "^0.2.3",
 		"@playwright/experimental-ct-react": "1.61.1",
 		"@playwright/test": "^1.61.1",
