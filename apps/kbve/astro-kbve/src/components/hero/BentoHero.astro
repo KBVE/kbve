@@ -10,6 +10,13 @@ interface Props {
 	secondaryCta?: { label: string; href: string };
 	trustLine?: string;
 	metaLine?: string;
+	wallpaper?: string;
+	wallpaperCredit?: {
+		title: string;
+		artist?: string;
+		meta?: string;
+		href?: string;
+	};
 }
 
 const {
@@ -24,7 +31,44 @@ const {
 	secondaryCta = { label: 'Browse Projects', href: '/projects/' },
 	trustLine = 'Open source · Est. 2019',
 	metaLine = 'Free forever · MIT licensed · Community driven',
+	wallpaper = '1781099270897-ca214439f99e',
+	wallpaperCredit = {
+		title: 'Under the Wave off Kanagawa — The Great Wave',
+		artist: 'Katsushika Hokusai (1760–1849)',
+		meta: 'Edo period · Thirty-six Views of Mount Fuji · via Unsplash',
+		href: 'https://unsplash.com',
+	},
 } = Astro.props;
+
+const wallpaperUrl = `https://images.unsplash.com/photo-${wallpaper}?q=80&w=1600&auto=format&fit=crop`;
+
+const dock = [
+	{
+		key: 'default',
+		label: 'Home',
+		icon: 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
+	},
+	{
+		key: 'community',
+		label: 'Members',
+		icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+	},
+	{
+		key: 'opensource',
+		label: 'Monorepo',
+		icon: 'M16 18 22 12 16 6M8 6 2 12 8 18',
+	},
+	{
+		key: 'servers',
+		label: 'Servers',
+		icon: 'M6 12h4m-2-2v4m7-3h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z',
+	},
+	{
+		key: 'uptime',
+		label: 'Status',
+		icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+	},
+];
 ---
 
 <div class="bento-hero not-content">
@@ -102,8 +146,112 @@ const {
 
 				<div class="bento-hero__showcase">
 					<div class="bento-hero__frame">
-						<div class="bento-hero__window">
-							<div class="bento-hero__window-header">
+						<img
+							class="bento-hero__wallpaper"
+							src={wallpaperUrl}
+							alt=""
+							loading="lazy"
+							decoding="async"
+							draggable="false"
+							aria-hidden="true"
+						/>
+						<div class="bento-hero__menubar">
+							<span
+								class="bento-hero__menubar-icon"
+								aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01">
+									</path>
+								</svg>
+							</span>
+							<span
+								class="bento-hero__menubar-icon"
+								aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6">
+									</path>
+								</svg>
+							</span>
+							<button
+								type="button"
+								class="bento-hero__menubar-icon bento-hero__menubar-help"
+								data-wallpaper-help
+								aria-label="About this wallpaper"
+								aria-expanded="false"
+								title="About this wallpaper">
+								<svg
+									viewBox="0 0 24 24"
+									width="13"
+									height="13"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path
+										d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01">
+									</path>
+								</svg>
+							</button>
+							<span class="bento-hero__clock" data-bento-clock>
+								00:00 AM
+							</span>
+						</div>
+						<div
+							class="bento-hero__credit"
+							data-wallpaper-credit
+							hidden>
+							<span class="bento-hero__credit-title">
+								{wallpaperCredit.title}
+							</span>
+							{
+								wallpaperCredit.artist && (
+									<span class="bento-hero__credit-artist">
+										{wallpaperCredit.artist}
+									</span>
+								)
+							}
+							{
+								wallpaperCredit.meta && (
+									<span class="bento-hero__credit-meta">
+										{wallpaperCredit.meta}
+									</span>
+								)
+							}
+							{
+								wallpaperCredit.href && (
+									<a
+										class="bento-hero__credit-link"
+										href={wallpaperCredit.href}
+										target="_blank"
+										rel="noopener noreferrer">
+										View source →
+									</a>
+								)
+							}
+						</div>
+						<div class="bento-hero__window" data-bento-window>
+							<div
+								class="bento-hero__window-header"
+								data-bento-drag>
 								<div class="bento-hero__traffic">
 									<span
 										class="bento-hero__light bento-hero__light--close">
@@ -122,7 +270,9 @@ const {
 									<span class="bento-hero__window-sep">
 										/
 									</span>
-									<span class="bento-hero__window-crumb">
+									<span
+										class="bento-hero__window-crumb"
+										data-bento-crumb>
 										Preview
 									</span>
 								</div>
@@ -135,6 +285,39 @@ const {
 								</slot>
 							</div>
 						</div>
+						<nav
+							class="bento-hero__dock"
+							aria-label="Showcase pages">
+							{
+								dock.map((item) => (
+									<button
+										type="button"
+										class="bento-hero__dock-item"
+										data-dock-key={item.key}
+										data-dock-label={item.label}
+										data-active={
+											item.key === 'default'
+												? ''
+												: undefined
+										}
+										title={item.label}
+										aria-label={item.label}>
+										<svg
+											viewBox="0 0 24 24"
+											width="18"
+											height="18"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.75"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											aria-hidden="true">
+											<path d={item.icon} />
+										</svg>
+									</button>
+								))
+							}
+						</nav>
 					</div>
 				</div>
 			</div>
@@ -380,11 +563,249 @@ const {
 		isolation: isolate;
 		overflow: hidden;
 		padding: 1.25rem;
+		padding-bottom: 4.5rem;
 		background-color: var(--sl-color-black);
 		border: 1px solid var(--bento-hairline);
 	}
 
+	.bento-hero__wallpaper {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0.9;
+		pointer-events: none;
+		user-select: none;
+		-webkit-user-drag: none;
+	}
+
+	.bento-hero__frame::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background: linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--sl-color-black) 30%, transparent) 0%,
+			color-mix(in srgb, var(--sl-color-black) 55%, transparent) 100%
+		);
+		pointer-events: none;
+	}
+
+	.bento-hero__menubar {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.875rem;
+		z-index: 10;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.3125rem 0.625rem;
+		border-radius: 9999px;
+		background: color-mix(in srgb, var(--sl-color-black) 62%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__menubar-icon {
+		display: inline-flex;
+		align-items: center;
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+	}
+
+	button.bento-hero__menubar-icon {
+		cursor: pointer;
+		transition: color 160ms ease;
+	}
+
+	button.bento-hero__menubar-icon:hover,
+	button.bento-hero__menubar-icon:focus-visible {
+		color: var(--sl-color-accent-high);
+		outline: none;
+	}
+
+	.bento-hero__clock {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__clock :global(.bento-hero__clock-digit) {
+		display: inline-block;
+		transition:
+			transform 320ms cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 320ms ease;
+	}
+
+	.bento-hero__clock :global(.bento-hero__clock-digit--pre) {
+		transform: translateY(-0.6em);
+		opacity: 0;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__clock :global(.bento-hero__clock-digit) {
+			transition: none;
+		}
+	}
+
+	.bento-hero__credit[hidden] {
+		display: none;
+	}
+
+	.bento-hero__credit {
+		position: absolute;
+		top: 2.875rem;
+		right: 0.875rem;
+		z-index: 11;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		max-width: 18rem;
+		padding: 0.875rem 1rem;
+		border-radius: 0.75rem;
+		background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__credit-title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.35;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__credit-artist {
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.bento-hero__credit-meta {
+		font-size: 0.625rem;
+		line-height: 1.4;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__credit-link {
+		margin-top: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	.bento-hero__dock {
+		position: absolute;
+		bottom: 0.875rem;
+		left: 50%;
+		z-index: 10;
+		display: inline-flex;
+		align-items: flex-end;
+		gap: 0.375rem;
+		padding: 0.375rem 0.5rem;
+		border-radius: 0.875rem;
+		transform: translateX(-50%);
+		background: color-mix(in srgb, var(--sl-color-black) 62%, transparent);
+		border: 1px solid var(--bento-hairline-strong);
+		box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__dock-item {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		padding: 0;
+		border: none;
+		border-radius: 0.5rem;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		cursor: pointer;
+		transform-origin: bottom center;
+		transition:
+			transform 200ms cubic-bezier(0.25, 1, 0.5, 1),
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	@media (hover: hover) {
+		.bento-hero__dock-item:hover,
+		.bento-hero__dock-item:focus-visible {
+			transform: scale(1.3) translateY(-3px);
+			color: var(--sl-color-accent-high);
+			outline: none;
+		}
+	}
+
+	.bento-hero__dock-item:active {
+		transform: scale(0.92);
+	}
+
+	.bento-hero__dock-item[data-active] {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+	}
+
+	.bento-hero__dock-item[data-active]::after {
+		content: '';
+		position: absolute;
+		bottom: -0.3rem;
+		left: 50%;
+		width: 3px;
+		height: 3px;
+		border-radius: 9999px;
+		transform: translateX(-50%);
+		background-color: var(--sl-color-accent-high);
+	}
+
+	@media (max-width: 1023.98px) {
+		.bento-hero__dock {
+			bottom: 0.625rem;
+			left: 0.75rem;
+			right: 0.75rem;
+			justify-content: space-around;
+			gap: 0;
+			padding: 0.5rem 0.625rem;
+			border-radius: 1.375rem;
+			transform: none;
+		}
+
+		.bento-hero__dock-item {
+			width: 42px;
+			height: 42px;
+			border-radius: 0.75rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__dock-item,
+		.bento-hero__dock-item:hover {
+			transform: none;
+			transition:
+				color 160ms ease,
+				background-color 160ms ease;
+		}
+	}
+
 	.bento-hero__window {
+		position: relative;
+		z-index: 2;
 		display: flex;
 		flex-direction: column;
 		height: 620px;
@@ -540,11 +961,204 @@ const {
 		}
 	};
 
+	const setupWindow = (teardowns: Array<() => void>) => {
+		const win = document.querySelector<HTMLElement>('[data-bento-window]');
+		if (!win) return;
+
+		const handle = win.querySelector<HTMLElement>('[data-bento-drag]');
+		const crumb = win.querySelector<HTMLElement>('[data-bento-crumb]');
+		const frame = win.parentElement;
+
+		if (handle && frame) {
+			let startX = 0;
+			let startY = 0;
+			let baseX = 0;
+			let baseY = 0;
+			let x = 0;
+			let y = 0;
+			let dragging = false;
+
+			const onMove = (e: PointerEvent) => {
+				if (!dragging) return;
+				const pad = 12;
+				const maxX = frame.clientWidth - win.offsetWidth + pad;
+				const maxY = frame.clientHeight - win.offsetHeight + pad;
+				x = Math.min(
+					Math.max(baseX + e.clientX - startX, -pad - win.offsetLeft),
+					Math.max(maxX, 0),
+				);
+				y = Math.min(
+					Math.max(baseY + e.clientY - startY, -pad - win.offsetTop),
+					Math.max(maxY, 0),
+				);
+				win.style.transform = `translate(${x}px, ${y}px)`;
+			};
+
+			const onUp = () => {
+				dragging = false;
+				handle.style.cursor = 'grab';
+			};
+
+			const onDown = (e: PointerEvent) => {
+				if ((e.target as HTMLElement).closest('button')) return;
+				dragging = true;
+				startX = e.clientX;
+				startY = e.clientY;
+				baseX = x;
+				baseY = y;
+				handle.style.cursor = 'grabbing';
+				e.preventDefault();
+			};
+
+			handle.style.cursor = 'grab';
+			handle.style.touchAction = 'none';
+			handle.addEventListener('pointerdown', onDown);
+			window.addEventListener('pointermove', onMove);
+			window.addEventListener('pointerup', onUp);
+			teardowns.push(() => {
+				handle.removeEventListener('pointerdown', onDown);
+				window.removeEventListener('pointermove', onMove);
+				window.removeEventListener('pointerup', onUp);
+			});
+		}
+
+		const dockItems =
+			document.querySelectorAll<HTMLButtonElement>('[data-dock-key]');
+
+		dockItems.forEach((item) => {
+			const onClick = () => {
+				window.dispatchEvent(
+					new CustomEvent('bento:showcase', {
+						detail: {
+							key: item.dataset.dockKey,
+							label:
+								item.dataset.dockKey === 'default'
+									? 'Preview'
+									: item.dataset.dockLabel,
+						},
+					}),
+				);
+			};
+			item.addEventListener('click', onClick);
+			teardowns.push(() => item.removeEventListener('click', onClick));
+		});
+
+		const onShowcase = (e: Event) => {
+			const { key, label } = (e as CustomEvent).detail ?? {};
+			if (!key) return;
+			const panels = document.querySelectorAll<HTMLElement>(
+				'[data-showcase-panel]',
+			);
+			let matched = false;
+			panels.forEach((p) => {
+				const active = p.dataset.showcasePanel === key;
+				p.toggleAttribute('data-active', active);
+				if (active) matched = true;
+			});
+			if (!matched) {
+				panels.forEach((p) =>
+					p.toggleAttribute(
+						'data-active',
+						p.dataset.showcasePanel === 'default',
+					),
+				);
+			}
+			dockItems.forEach((item) =>
+				item.toggleAttribute(
+					'data-active',
+					item.dataset.dockKey === (matched ? key : 'default'),
+				),
+			);
+			if (crumb) crumb.textContent = matched ? (label ?? key) : 'Preview';
+		};
+
+		window.addEventListener('bento:showcase', onShowcase);
+		teardowns.push(() =>
+			window.removeEventListener('bento:showcase', onShowcase),
+		);
+
+		const clock = document.querySelector<HTMLElement>('[data-bento-clock]');
+		if (clock) {
+			let current = '';
+			const timeNow = () =>
+				new Date().toLocaleTimeString('en-US', {
+					hour: '2-digit',
+					minute: '2-digit',
+					hour12: true,
+				});
+
+			const spinTo = (next: string) => {
+				if (next === current) return;
+				current = next;
+				clock.textContent = '';
+				for (let i = 0; i < next.length; i++) {
+					const span = document.createElement('span');
+					span.className =
+						'bento-hero__clock-digit bento-hero__clock-digit--pre';
+					span.style.transitionDelay = `${i * 40}ms`;
+					span.textContent = next[i] === ' ' ? ' ' : next[i];
+					clock.appendChild(span);
+				}
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => {
+						clock
+							.querySelectorAll('.bento-hero__clock-digit--pre')
+							.forEach((el) =>
+								el.classList.remove(
+									'bento-hero__clock-digit--pre',
+								),
+							);
+					}),
+				);
+			};
+
+			spinTo(timeNow());
+			const id = setInterval(() => spinTo(timeNow()), 15_000);
+			teardowns.push(() => clearInterval(id));
+		}
+
+		const helpBtn = document.querySelector<HTMLButtonElement>(
+			'[data-wallpaper-help]',
+		);
+		const credit = document.querySelector<HTMLElement>(
+			'[data-wallpaper-credit]',
+		);
+		if (helpBtn && credit) {
+			const setOpen = (open: boolean) => {
+				credit.hidden = !open;
+				helpBtn.setAttribute('aria-expanded', String(open));
+			};
+			const onToggle = (e: MouseEvent) => {
+				e.stopPropagation();
+				setOpen(credit.hidden);
+			};
+			const onOutside = (e: MouseEvent) => {
+				if (credit.hidden) return;
+				const t = e.target as HTMLElement;
+				if (!credit.contains(t) && !helpBtn.contains(t)) setOpen(false);
+			};
+			const onEsc = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') setOpen(false);
+			};
+			helpBtn.addEventListener('click', onToggle);
+			document.addEventListener('click', onOutside);
+			document.addEventListener('keydown', onEsc);
+			teardowns.push(() => {
+				helpBtn.removeEventListener('click', onToggle);
+				document.removeEventListener('click', onOutside);
+				document.removeEventListener('keydown', onEsc);
+			});
+		}
+	};
+
 	onMount(() => {
 		const reduced = window.matchMedia(
 			'(prefers-reduced-motion: reduce)',
 		).matches;
 		const timers: ReturnType<typeof setInterval | typeof setTimeout>[] = [];
+		const teardowns: Array<() => void> = [];
+
+		setupWindow(teardowns);
 
 		document
 			.querySelectorAll<HTMLElement>('.bento-hero__slot[data-rotate]')
@@ -597,6 +1211,9 @@ const {
 				);
 			});
 
-		return () => timers.forEach((t) => clearInterval(t as number));
+		return () => {
+			timers.forEach((t) => clearInterval(t as number));
+			teardowns.forEach((fn) => fn());
+		};
 	});
 </script>

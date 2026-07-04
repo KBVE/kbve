@@ -1,0 +1,280 @@
+---
+import DeferredAstroGithubHero from '@kbve/astro/components/social/github/GithubHero/DeferredAstroGithubHero.astro';
+
+const servers = [
+	{
+		name: 'rentearth-arpg',
+		region: 'us-east',
+		status: 'online',
+		players: '—',
+	},
+	{
+		name: 'cryptothrone-sim',
+		region: 'us-east',
+		status: 'online',
+		players: '—',
+	},
+	{
+		name: 'chuck-persistent',
+		region: 'us-east',
+		status: 'online',
+		players: '—',
+	},
+];
+
+const pipelines = [
+	{ name: 'ci-main', detail: 'build + publish', status: 'passing' },
+	{ name: 'argocd-sync', detail: 'cluster reconcile', status: 'healthy' },
+	{ name: 'dev-streams', detail: 'twitch + discord', status: 'live' },
+];
+---
+
+<div class="bento-showcase" data-showcase-root>
+	<section
+		class="bento-showcase__panel"
+		data-showcase-panel="default"
+		data-active>
+		<div class="bento-showcase__hint">
+			<span class="bento-showcase__hint-title">KBVE OS</span>
+			<span class="bento-showcase__hint-sub">
+				Hover a card above to open its page — drag this window around by
+				the title bar.
+			</span>
+		</div>
+	</section>
+
+	<section class="bento-showcase__panel" data-showcase-panel="community">
+		<DeferredAstroGithubHero
+			title="Top Contributors"
+			subtitle="The people building KBVE."
+			commitsLabel="commits"
+			viewAllLabel="View all contributors"
+			issuesLabel="Issues"
+			projectLabel="Project Board"
+			errorMessage="Unable to load contributors right now."
+			rank1Label="1st Place"
+			rank2Label="2nd Place"
+			rank3Label="3rd Place"
+			newTabLabel="(opens in new tab)"
+		/>
+	</section>
+
+	<section class="bento-showcase__panel" data-showcase-panel="opensource">
+		<div class="bento-showcase__page">
+			<h3 class="bento-showcase__page-title">Monorepo</h3>
+			<p class="bento-showcase__page-sub">
+				One repo, everything in it — apps, packages, infra, and games.
+			</p>
+			<div class="bento-showcase__rows">
+				<a
+					class="bento-showcase__row"
+					href="https://github.com/KBVE/kbve">
+					<span>KBVE/kbve</span>
+					<span class="bento-showcase__row-meta">
+						monorepo · Nx + pnpm
+					</span>
+				</a>
+				<a class="bento-showcase__row" href="/projects/">
+					<span>Projects index</span>
+					<span class="bento-showcase__row-meta">
+						apps · packages · crates
+					</span>
+				</a>
+				<a class="bento-showcase__row" href="/github/">
+					<span>Repo catalog</span>
+					<span class="bento-showcase__row-meta">
+						browse all repositories
+					</span>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="bento-showcase__panel" data-showcase-panel="servers">
+		<div class="bento-showcase__page">
+			<h3 class="bento-showcase__page-title">Game Servers</h3>
+			<p class="bento-showcase__page-sub">
+				Agones fleets on Kubernetes, always warm.
+			</p>
+			<div class="bento-showcase__rows">
+				{
+					servers.map((s) => (
+						<div class="bento-showcase__row">
+							<span>
+								<span
+									class="bento-showcase__dot"
+									data-status={s.status}
+								/>
+								{s.name}
+							</span>
+							<span class="bento-showcase__row-meta">
+								{s.region} · {s.status}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</section>
+
+	<section class="bento-showcase__panel" data-showcase-panel="uptime">
+		<div class="bento-showcase__page">
+			<h3 class="bento-showcase__page-title">Always On</h3>
+			<p class="bento-showcase__page-sub">
+				Pipelines, telemetry, and streams that never sleep.
+			</p>
+			<div class="bento-showcase__rows">
+				{
+					pipelines.map((p) => (
+						<div class="bento-showcase__row">
+							<span>
+								<span
+									class="bento-showcase__dot"
+									data-status="online"
+								/>
+								{p.name}
+							</span>
+							<span class="bento-showcase__row-meta">
+								{p.detail} · {p.status}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</section>
+</div>
+
+<style>
+	.bento-showcase {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.bento-showcase__panel {
+		position: absolute;
+		inset: 0;
+		display: none;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: none;
+		padding: 1.25rem;
+	}
+
+	.bento-showcase__panel::-webkit-scrollbar {
+		display: none;
+	}
+
+	.bento-showcase__panel[data-active] {
+		display: block;
+		animation: showcase-in 260ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@keyframes showcase-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-showcase__panel[data-active] {
+			animation: none;
+		}
+	}
+
+	.bento-showcase__hint {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		height: 100%;
+		padding: 2rem;
+		text-align: center;
+	}
+
+	.bento-showcase__hint-title {
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-showcase__hint-sub {
+		max-width: 24rem;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-showcase__page {
+		padding: 0.25rem;
+	}
+
+	.bento-showcase__page-title {
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-showcase__page-sub {
+		margin-top: 0.25rem;
+		margin-bottom: 1rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-showcase__rows {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		background-color: var(--bento-hairline, rgba(255, 255, 255, 0.05));
+	}
+
+	.bento-showcase__row {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 0.875rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-white);
+		background-color: var(--sl-color-black);
+		text-decoration: none;
+	}
+
+	a.bento-showcase__row:hover {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-low) 18%,
+			var(--sl-color-black)
+		);
+	}
+
+	.bento-showcase__row-meta {
+		font-size: 0.6875rem;
+		color: var(--sl-color-gray-4);
+		white-space: nowrap;
+	}
+
+	.bento-showcase__dot {
+		display: inline-block;
+		width: 7px;
+		height: 7px;
+		margin-right: 0.5rem;
+		border-radius: 9999px;
+		background-color: #28c840;
+		box-shadow: 0 0 6px rgba(40, 200, 64, 0.5);
+	}
+
+	.bento-showcase__panel {
+		padding-bottom: 1.25rem;
+	}
+</style>

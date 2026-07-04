@@ -20,9 +20,12 @@ import BentoHero from '@/components/hero/BentoHero.astro';
 import BentoBoard from '@/components/hero/BentoBoard.astro';
 import BentoGallery from '@/components/hero/BentoGallery.astro';
 import BentoSponsor from '@/components/hero/BentoSponsor.astro';
+import BentoShowcase from '@/components/hero/BentoShowcase.astro';
 
 
-<BentoHero />
+<BentoHero>
+	<BentoShowcase slot="showcase" />
+</BentoHero>
 
 <BentoBoard />
 
