@@ -1,0 +1,116 @@
+---
+import BentoShell from './BentoShell.astro';
+import BentoFlowIsland from './flow/BentoFlowIsland';
+
+interface Props {
+	eyebrow?: string;
+	heading?: string;
+}
+
+const {
+	eyebrow = 'How it ships',
+	heading = 'From commit to production, automatically.',
+} = Astro.props;
+---
+
+<BentoShell {eyebrow} {heading}>
+	<div class="bento-flow">
+		<BentoFlowIsland client:visible />
+	</div>
+</BentoShell>
+
+<style>
+	.bento-flow {
+		height: clamp(280px, 38vw, 420px);
+		border-top: 1px solid var(--bento-hairline);
+		background-color: var(--bento-cell-bg);
+	}
+
+	.bento-flow :global(.react-flow__node) {
+		cursor: grab;
+	}
+
+	.bento-flow :global(.react-flow__node:active) {
+		cursor: grabbing;
+	}
+
+	.bento-flow :global(.react-flow__handle) {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.bento-flow :global(.bento-flow-node) {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		background-color: var(--sl-color-black);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+		transition:
+			border-color 300ms ease,
+			box-shadow 300ms ease;
+	}
+
+	.bento-flow :global(.bento-flow-node__icon) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+		transition: color 300ms ease;
+	}
+
+	.bento-flow :global(.bento-flow-node__text) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.0625rem;
+	}
+
+	.bento-flow :global(.bento-flow-node__label) {
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+		color: var(--sl-color-white);
+	}
+
+	.bento-flow :global(.bento-flow-node__meta) {
+		font-size: 0.625rem;
+		line-height: 1.2;
+		color: var(--sl-color-gray-4);
+	}
+
+	.bento-flow :global(.bento-flow-node[data-accent]) {
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 45%,
+			transparent
+		);
+	}
+
+	.bento-flow :global(.bento-flow-node[data-accent] .bento-flow-node__icon) {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-flow :global(.bento-flow-node--active .bento-flow-node) {
+		border-color: var(--sl-color-accent-high);
+		box-shadow:
+			0 8px 20px rgba(0, 0, 0, 0.3),
+			0 0 16px
+				color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
+	}
+
+	.bento-flow :global(.bento-flow-node--active .bento-flow-node__icon) {
+		color: var(--sl-color-accent-high);
+	}
+</style>

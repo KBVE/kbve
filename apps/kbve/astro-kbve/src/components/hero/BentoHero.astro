@@ -327,6 +327,7 @@ const dock = [
 
 <style>
 	.bento-hero {
+		margin-block-start: 0 !important;
 		--bento-hairline: color-mix(
 			in srgb,
 			var(--sl-color-white) 5%,
@@ -1171,7 +1172,9 @@ const dock = [
 			};
 
 			spinTo(timeNow());
-			const id = setInterval(() => spinTo(timeNow()), 15_000);
+			const id = setInterval(() => {
+				if (osVisible) spinTo(timeNow());
+			}, 15_000);
 			teardowns.push(() => clearInterval(id));
 		}
 
@@ -1209,12 +1212,26 @@ const dock = [
 		}
 	};
 
+	let osVisible = true;
+
 	onMount(() => {
 		const reduced = window.matchMedia(
 			'(prefers-reduced-motion: reduce)',
 		).matches;
 		const timers: ReturnType<typeof setInterval | typeof setTimeout>[] = [];
 		const teardowns: Array<() => void> = [];
+
+		const frame = document.querySelector('.bento-hero__section');
+		if (frame) {
+			const io = new IntersectionObserver(
+				([entry]) => {
+					osVisible = entry.isIntersecting;
+				},
+				{ threshold: 0.05 },
+			);
+			io.observe(frame);
+			teardowns.push(() => io.disconnect());
+		}
 
 		setupWindow(teardowns);
 
@@ -1234,6 +1251,7 @@ const dock = [
 
 				timers.push(
 					setInterval(() => {
+						if (!osVisible) return;
 						index = (index + 1) % words.length;
 						const next = words[index];
 						if (reduced) {
