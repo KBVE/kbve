@@ -1,0 +1,101 @@
+---
+import BentoShell from './BentoShell.astro';
+import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+
+interface Props {
+	label?: string;
+}
+
+const { label = 'Sponsored' } = Astro.props;
+---
+
+<BentoShell>
+	<div class="bento-sponsor">
+		<div class="bento-sponsor__cell bento-sponsor__cell--ad">
+			<DeferredAdsense {label} />
+		</div>
+		<a class="bento-sponsor__cell bento-sponsor__cell--cta" href="/donate/">
+			<div class="bento-sponsor__glow" aria-hidden="true"></div>
+			<h3 class="bento-sponsor__title">Support KBVE</h3>
+			<p class="bento-sponsor__body">
+				Donations fund the game servers, CI runners, and cluster that
+				keep every project online.
+			</p>
+			<span class="bento-sponsor__link">Become a sponsor →</span>
+		</a>
+	</div>
+</BentoShell>
+
+<style>
+	.bento-sponsor {
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.bento-sponsor__cell {
+		position: relative;
+		overflow: hidden;
+		padding: 1.5rem;
+		background-color: var(--bento-cell-bg);
+		text-decoration: none;
+	}
+
+	.bento-sponsor__cell--cta {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		justify-content: center;
+		text-align: center;
+		padding-block: 2rem;
+	}
+
+	.bento-sponsor__glow {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		background: radial-gradient(
+			circle at top left,
+			var(--sl-color-accent-low) 0%,
+			transparent 55%
+		);
+		transition: opacity 300ms ease;
+		pointer-events: none;
+	}
+
+	a.bento-sponsor__cell:hover .bento-sponsor__glow,
+	a.bento-sponsor__cell:focus-visible .bento-sponsor__glow {
+		opacity: 0.5;
+	}
+
+	a.bento-sponsor__cell:focus-visible {
+		outline: none;
+		box-shadow: inset 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	.bento-sponsor__title {
+		position: relative;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-sponsor__body {
+		position: relative;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+		max-width: 24rem;
+	}
+
+	.bento-sponsor__link {
+		position: relative;
+		margin-top: 0.25rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+	}
+</style>

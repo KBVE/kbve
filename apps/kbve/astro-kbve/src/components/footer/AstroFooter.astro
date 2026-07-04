@@ -1,5 +1,4 @@
 ---
-import FooterQuickLinks from './FooterQuickLinks.astro';
 import AstroDroidFooter from './AstroDroidFooter.astro';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 import SocialIcon from '@kbve/astro/components/social/icons/SocialIcon.astro';
@@ -59,23 +58,16 @@ const currentYear = new Date().getFullYear();
 				<h6 id="kf-quicklinks-heading" class="kf-nav-title">
 					Quick Links
 				</h6>
-				<div
-					id="footer-quicklinks-skeleton"
-					data-skeleton="footer-quicklinks"
-					class="kf-skeleton">
-					{
-						quickLinks.map((link) => (
-							<a
-								href={link.href}
-								class="kf-nav-link"
-								data-astro-prefetch>
-								{link.label}
-							</a>
-						))
-					}
-				</div>
-				<div id="footer-quicklinks-content" class="kf-dynamic-content">
-				</div>
+				{
+					quickLinks.map((link) => (
+						<a
+							href={link.href}
+							class="kf-nav-link"
+							data-astro-prefetch>
+							{link.label}
+						</a>
+					))
+				}
 			</nav>
 
 			<nav class="kf-nav" aria-labelledby="kf-resources-heading">
@@ -111,8 +103,7 @@ const currentYear = new Date().getFullYear();
 
 		<div class="kf-bottom">
 			<span class="kf-copyright">
-				© {currentYear}
-				<a href="/">KBVE</a>. All rights reserved.
+				© {currentYear}{' '}<a href="/">KBVE</a>. All rights reserved.
 			</span>
 			<div class="kf-social" aria-label="Social links">
 				{
@@ -148,7 +139,6 @@ const currentYear = new Date().getFullYear();
 		</div>
 	</div>
 
-	<FooterQuickLinks />
 	<AstroDroidFooter />
 </footer>
 
@@ -156,24 +146,40 @@ const currentYear = new Date().getFullYear();
 
 <style>
 	.kf-footer {
-		margin-top: 2.5rem;
-		padding-top: 2.5rem;
-		border-top: 1px solid var(--sl-color-hairline, #242120);
-		background-color: var(--sl-color-bg);
+		--bento-hairline: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
+		--bento-hairline-strong: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+		--bento-cell-bg: var(--sl-color-black);
+		margin-top: 0;
+		background-color: var(--sl-color-black);
+		border-top: 1px solid var(--bento-hairline);
 	}
 
 	.kf-container {
-		max-width: 72rem;
+		max-width: 80rem;
 		margin: 0 auto;
-		padding: 0 1.5rem;
+		padding: 0;
+		border-inline: 1px solid var(--bento-hairline);
 	}
 
-	/* Main grid: brand (1.5fr) + 3 link columns (1fr each) */
+	/* Main grid: bento seams — 1px hairline gaps between cells */
 	.kf-grid {
 		display: grid;
 		grid-template-columns: 1.5fr repeat(3, 1fr);
-		gap: 2.5rem;
-		padding-bottom: 2rem;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.kf-grid > * {
+		background-color: var(--bento-cell-bg);
+		padding: 2rem 1.5rem;
 	}
 
 	/* Brand */
@@ -244,28 +250,14 @@ const currentYear = new Date().getFullYear();
 		color: var(--sl-color-text-accent);
 	}
 
-	/* Skeleton + dynamic content share the same slot — React overlays the skeleton */
-	.kf-skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		transition: opacity 0.3s ease;
-	}
-
-	.kf-dynamic-content {
-		position: absolute;
-		inset: auto 0 0 0;
-		top: calc(0.75rem + 0.25rem + 1em);
-	}
-
 	/* Bottom bar: copyright left, socials right */
 	.kf-bottom {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 1.25rem 0;
-		border-top: 1px solid var(--sl-color-hairline, #242120);
+		padding: 1.25rem 1.5rem;
+		border-top: 1px solid var(--bento-hairline);
 	}
 
 	.kf-copyright {
@@ -297,7 +289,6 @@ const currentYear = new Date().getFullYear();
 	@media (max-width: 768px) {
 		.kf-grid {
 			grid-template-columns: 1fr 1fr;
-			gap: 2rem;
 		}
 
 		.kf-brand {
@@ -322,7 +313,6 @@ const currentYear = new Date().getFullYear();
 	@media (max-width: 480px) {
 		.kf-grid {
 			grid-template-columns: 1fr;
-			gap: 1.5rem;
 		}
 
 		.kf-bottom {
