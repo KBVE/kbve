@@ -46,6 +46,10 @@ const {
 		},
 	],
 } = Astro.props;
+
+const unitsLg = items.reduce((n, i) => n + (i.span === 'wide' ? 2 : 1), 0);
+const fillLg = (3 - (unitsLg % 3)) % 3;
+const fillMd = (2 - (items.length % 2)) % 2;
 ---
 
 <BentoShell {eyebrow} {heading}>
@@ -90,6 +94,30 @@ const {
 				);
 			})
 		}
+		{
+			Array.from({ length: fillLg }).map(() => (
+				<div
+					class="bento-gallery__tile bento-gallery__tile--filler bento-gallery__tile--filler-lg"
+					aria-hidden="true">
+					<div class="bento-gallery__placeholder" />
+					<span class="bento-gallery__filler-label">
+						More in the works
+					</span>
+				</div>
+			))
+		}
+		{
+			Array.from({ length: fillMd }).map(() => (
+				<div
+					class="bento-gallery__tile bento-gallery__tile--filler bento-gallery__tile--filler-md"
+					aria-hidden="true">
+					<div class="bento-gallery__placeholder" />
+					<span class="bento-gallery__filler-label">
+						More in the works
+					</span>
+				</div>
+			))
+		}
 	</div>
 </BentoShell>
 
@@ -97,16 +125,43 @@ const {
 	.bento-gallery {
 		display: grid;
 		grid-template-columns: repeat(1, minmax(0, 1fr));
+		grid-auto-flow: dense;
+		grid-auto-rows: clamp(200px, 26vw, 300px);
 		gap: 1px;
 		background-color: var(--bento-hairline);
 		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.bento-gallery__tile--filler {
+		display: none;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.bento-gallery__filler-label {
+		position: relative;
+		font-size: 0.75rem;
+		letter-spacing: 0.04em;
+		color: var(--sl-color-gray-4);
+	}
+
+	@media (min-width: 640px) and (max-width: 1023.98px) {
+		.bento-gallery__tile--filler-md {
+			display: flex;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.bento-gallery__tile--filler-lg {
+			display: flex;
+		}
 	}
 
 	.bento-gallery__tile {
 		position: relative;
 		display: block;
 		overflow: hidden;
-		aspect-ratio: 16 / 9;
+		height: 100%;
 		background-color: var(--bento-cell-bg);
 		text-decoration: none;
 	}
@@ -181,12 +236,18 @@ const {
 		font-weight: 600;
 		letter-spacing: -0.01em;
 		color: var(--sl-color-white);
+		text-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.6),
+			0 2px 8px rgba(0, 0, 0, 0.45);
 	}
 
 	.bento-gallery__sub {
 		font-size: 0.75rem;
 		line-height: 1.4;
 		color: var(--sl-color-gray-2);
+		text-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.6),
+			0 2px 6px rgba(0, 0, 0, 0.4);
 	}
 
 	a.bento-gallery__tile:focus-visible {
@@ -211,7 +272,6 @@ const {
 
 		.bento-gallery__tile--tall {
 			grid-row: span 2;
-			aspect-ratio: auto;
 		}
 	}
 
