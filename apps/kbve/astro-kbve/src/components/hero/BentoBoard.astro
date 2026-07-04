@@ -11,6 +11,8 @@ interface Cell {
 	icon?: string;
 	showcase?: string;
 	showcaseLabel?: string;
+	badgeSrc?: string;
+	badgeAlt?: string;
 }
 
 interface Props {
@@ -33,6 +35,9 @@ const {
 			icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
 			showcase: 'community',
 			showcaseLabel: 'Members',
+			badgeSrc:
+				'https://img.shields.io/discord/342732838598082562?logo=discord&style=flat-square&label=discord',
+			badgeAlt: 'Discord members online',
 		},
 		{
 			title: 'Open Source',
@@ -129,6 +134,15 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 						<h3 class="bento-board__cell-title">{cell.title}</h3>
 						{cell.body && (
 							<p class="bento-board__cell-body">{cell.body}</p>
+						)}
+						{cell.badgeSrc && (
+							<img
+								class="bento-board__cell-badge"
+								src={cell.badgeSrc}
+								alt={cell.badgeAlt ?? ''}
+								loading="lazy"
+								decoding="async"
+							/>
 						)}
 					</Tag>
 				);
@@ -259,9 +273,9 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		inset: 0;
 		opacity: 0;
 		background: radial-gradient(
-			circle at top left,
+			circle 220px at var(--glow-x, 30%) var(--glow-y, 20%),
 			var(--sl-color-accent-low) 0%,
-			transparent 55%
+			transparent 70%
 		);
 		transition: opacity 300ms ease;
 		pointer-events: none;
@@ -313,6 +327,24 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		color: var(--sl-color-gray-3);
 		max-width: 28rem;
 	}
+
+	.bento-board__cell-badge {
+		position: relative;
+		align-self: flex-start;
+		margin-top: 0.625rem;
+		height: 20px;
+		filter: grayscale(0.85) brightness(0.75);
+		opacity: 0.7;
+		transition:
+			filter 220ms ease,
+			opacity 220ms ease;
+	}
+
+	a.bento-board__cell:hover .bento-board__cell-badge,
+	a.bento-board__cell:focus-visible .bento-board__cell-badge {
+		filter: none;
+		opacity: 1;
+	}
 </style>
 
 <script>
@@ -340,6 +372,26 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 					cell.removeEventListener('pointerenter', fire);
 					cell.removeEventListener('focus', fire);
 				});
+			});
+
+		document
+			.querySelectorAll<HTMLElement>('.bento-board__cell')
+			.forEach((cell) => {
+				const onMove = (e: PointerEvent) => {
+					const rect = cell.getBoundingClientRect();
+					cell.style.setProperty(
+						'--glow-x',
+						`${e.clientX - rect.left}px`,
+					);
+					cell.style.setProperty(
+						'--glow-y',
+						`${e.clientY - rect.top}px`,
+					);
+				};
+				cell.addEventListener('pointermove', onMove);
+				teardowns.push(() =>
+					cell.removeEventListener('pointermove', onMove),
+				);
 			});
 
 		return () => teardowns.forEach((fn) => fn());
