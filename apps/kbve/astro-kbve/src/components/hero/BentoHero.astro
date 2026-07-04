@@ -291,9 +291,11 @@ const {
 	}
 
 	.bento-hero__cta {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		overflow: hidden;
 		min-height: 2.5rem;
 		padding: 0.5rem 1rem;
 		border-radius: 0.5rem;
@@ -305,6 +307,30 @@ const {
 		transition:
 			background-color 140ms ease,
 			color 140ms ease;
+	}
+
+	.bento-hero__cta::after {
+		content: '';
+		position: absolute;
+		top: -150%;
+		right: 0;
+		width: 2rem;
+		height: 400%;
+		background-color: var(--sl-color-white);
+		opacity: 0.1;
+		transform: translateX(3rem) rotate(12deg);
+		transition: transform 1000ms ease;
+		pointer-events: none;
+	}
+
+	.bento-hero__cta:hover::after {
+		transform: translateX(-14rem) rotate(12deg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__cta::after {
+			display: none;
+		}
 	}
 
 	.bento-hero__cta--primary {
