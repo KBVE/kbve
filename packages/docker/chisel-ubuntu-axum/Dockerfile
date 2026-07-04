@@ -64,11 +64,12 @@ ENV CARGO_INCREMENTAL=0
 
 # ── Node.js + pnpm (for Astro frontend builds) ──────────────────────
 ARG NODE_VERSION=24
+ARG PNPM_VERSION=10.33.0
 RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/* && \
     corepack enable && \
-    corepack prepare pnpm@latest --activate
+    corepack prepare pnpm@${PNPM_VERSION} --activate
 
 # Prevent Playwright from downloading browsers during pnpm install
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
