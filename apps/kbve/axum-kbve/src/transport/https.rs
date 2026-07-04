@@ -656,6 +656,18 @@ fn router(state: AppState) -> Router {
             any(super::proxy::factorio_proxy_handler),
         )
         .route(
+            "/dashboard/vibeshine/proxy/{*path}",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/dashboard/vibeshine/proxy",
+            any(super::proxy::vibeshine_proxy_handler),
+        )
+        .route(
+            "/api/v1/vibeshine/status",
+            axum::routing::get(super::proxy::vibeshine_status_handler),
+        )
+        .route(
             "/dashboard/firecracker-net/proxy/{*path}",
             any(super::proxy::firecracker_net_proxy_handler),
         )
