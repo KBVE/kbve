@@ -75,8 +75,6 @@ jobs:
 
             - name: Install uv
               uses: astral-sh/setup-uv@v7
-              with:
-                  version: '0.11.26'
 
             - name: Sync version from source to pyproject.toml
               if: ${{ inputs.version_source != '' && inputs.version_target != '' }}
