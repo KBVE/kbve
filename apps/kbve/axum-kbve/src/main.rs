@@ -223,6 +223,16 @@ async fn main() -> anyhow::Result<()> {
         info!("Factorio proxy not configured (using default cluster URL)");
     }
 
+    // Initialize Vibeshine proxy (optional - DASHBOARD_MANAGE gated, routes to the
+    // Windows game-stream host over the wg0 tunnel)
+    if transport::proxy::init_vibeshine_proxy() {
+        info!(
+            "Vibeshine proxy initialized - /dashboard/vibeshine/proxy enabled (DASHBOARD_MANAGE required)"
+        );
+    } else {
+        info!("Vibeshine proxy not configured (using default wg tunnel URL)");
+    }
+
     // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated, routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
     if transport::proxy::init_firecracker_net_proxy() {
         info!(
