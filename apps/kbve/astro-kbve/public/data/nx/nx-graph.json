@@ -1133,11 +1133,6 @@
                     "ghcr.io/kbve/chisel-ubuntu-axum:latest"
                   ],
                   "push": true,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/chisel-ubuntu-axum"
-                    ]
-                  },
                   "cache-from": [
                     "type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-runtime"
                   ],
@@ -1176,11 +1171,6 @@
                     "ghcr.io/kbve/chisel-ubuntu-axum:builder"
                   ],
                   "push": true,
-                  "metadata": {
-                    "images": [
-                      "ghcr.io/kbve/chisel-ubuntu-axum"
-                    ]
-                  },
                   "cache-from": [
                     "type=registry,ref=ghcr.io/kbve/chisel-ubuntu-axum:buildcache-builder"
                   ],
