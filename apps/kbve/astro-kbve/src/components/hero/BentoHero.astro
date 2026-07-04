@@ -144,18 +144,27 @@ const {
 
 <style>
 	.bento-hero {
+		--bento-hairline: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
+		--bento-hairline-strong: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
 		position: relative;
 		width: 100%;
 		background-color: var(--sl-color-black);
-		border-block: 1px solid var(--sl-color-hairline-shade);
-		border-top: 0;
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	.bento-hero__shell {
 		margin-inline: auto;
 		width: 100%;
 		max-width: 80rem;
-		border-inline: 1px solid var(--sl-color-hairline-shade);
+		border-inline: 1px solid var(--bento-hairline);
 	}
 
 	.bento-hero__section {
@@ -256,12 +265,6 @@ const {
 		flex-wrap: nowrap;
 		align-items: center;
 		gap: 1.5rem;
-		overflow-x: auto;
-		scrollbar-width: none;
-	}
-
-	.bento-hero__stack-logos::-webkit-scrollbar {
-		display: none;
 	}
 
 	.bento-hero__side {
@@ -283,7 +286,7 @@ const {
 		margin-top: 1.5rem;
 		padding: 0.625rem;
 		border-radius: 1rem;
-		box-shadow: 0 0 0 1px var(--sl-color-hairline-light);
+		box-shadow: 0 0 0 1px var(--bento-hairline-strong);
 		backdrop-filter: blur(12px);
 	}
 
@@ -317,7 +320,7 @@ const {
 	.bento-hero__cta--ghost {
 		background-color: transparent;
 		color: var(--sl-color-gray-2);
-		border: 1px solid var(--sl-color-hairline-light);
+		border: 1px solid var(--bento-hairline-strong);
 	}
 
 	.bento-hero__cta--ghost:hover {
@@ -352,7 +355,7 @@ const {
 		overflow: hidden;
 		padding: 1.25rem;
 		background-color: var(--sl-color-black);
-		border: 1px solid var(--sl-color-hairline-shade);
+		border: 1px solid var(--bento-hairline);
 	}
 
 	.bento-hero__window {
@@ -361,7 +364,7 @@ const {
 		height: 620px;
 		overflow: hidden;
 		border-radius: 10px;
-		outline: 1px solid var(--sl-color-hairline-light);
+		outline: 1px solid var(--bento-hairline-strong);
 		outline-offset: -1px;
 		background: linear-gradient(
 			var(--sl-color-gray-6) 0%,
@@ -378,7 +381,7 @@ const {
 		min-height: 2.5rem;
 		padding: 0.25rem 0.625rem;
 		background-color: var(--sl-color-gray-6);
-		border-bottom: 1px solid var(--sl-color-hairline-shade);
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	.bento-hero__traffic {
@@ -446,8 +449,8 @@ const {
 			45deg,
 			transparent,
 			transparent 24px,
-			var(--sl-color-hairline-shade) 24px,
-			var(--sl-color-hairline-shade) 25px
+			var(--bento-hairline) 24px,
+			var(--bento-hairline) 25px
 		);
 	}
 

@@ -66,6 +66,8 @@ const icons = stack.map((key) => ({ key, ...STACK_ICONS[key] }));
 			<a
 				class="stack-logos__item"
 				href={icon.href}
+				id={`stack-logo-${icon.key}`}
+				data-stack-tooltip
 				aria-label={`Open ${icon.label} docs`}
 				style={`--logo-color: ${icon.color}`}>
 				<svg
@@ -77,7 +79,11 @@ const icons = stack.map((key) => ({ key, ...STACK_ICONS[key] }));
 					aria-hidden="true">
 					<path d={icon.path} />
 				</svg>
-				<span class="stack-logos__tip">{icon.label}</span>
+				<span class="stack-logos__tip" role="tooltip">
+					<span class="stack-logos__tip-arrow" aria-hidden="true" />
+					<span class="stack-logos__tip-label">{icon.label}</span>
+					<span class="stack-logos__tip-meta">View docs →</span>
+				</span>
 			</a>
 		))
 	}
@@ -89,9 +95,14 @@ const icons = stack.map((key) => ({ key, ...STACK_ICONS[key] }));
 		flex-wrap: nowrap;
 		align-items: center;
 		gap: 1.25rem;
-		overflow-x: auto;
-		scrollbar-width: none;
 		padding-block: 0.25rem;
+	}
+
+	@media (max-width: 640px) {
+		.stack-logos {
+			overflow-x: auto;
+			scrollbar-width: none;
+		}
 	}
 
 	.stack-logos::-webkit-scrollbar {
@@ -123,24 +134,155 @@ const icons = stack.map((key) => ({ key, ...STACK_ICONS[key] }));
 
 	.stack-logos__tip {
 		position: absolute;
-		top: calc(100% + 0.375rem);
+		top: calc(100% + 0.625rem);
 		left: 50%;
-		transform: translateX(-50%);
-		padding: 0.125rem 0.375rem;
-		border-radius: 0.25rem;
-		font-size: 0.625rem;
-		line-height: 1.4;
+		z-index: 60;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.125rem;
+		padding: 0.4375rem 0.75rem 0.5rem;
+		border-radius: 0.625rem;
 		white-space: nowrap;
-		color: var(--sl-color-white);
-		background-color: var(--sl-color-gray-6);
-		border: 1px solid var(--sl-color-hairline-shade);
+		background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		border: 1px solid
+			color-mix(
+				in srgb,
+				var(--logo-color) 30%,
+				var(--bento-hairline-strong, transparent)
+			);
+		box-shadow:
+			0 18px 36px -6px
+				color-mix(in srgb, var(--sl-color-black) 75%, transparent),
+			0 6px 14px
+				color-mix(in srgb, var(--sl-color-black) 45%, transparent),
+			0 0 14px color-mix(in srgb, var(--logo-color) 12%, transparent),
+			inset 0 1px 0
+				color-mix(in srgb, var(--sl-color-white) 8%, transparent);
+		backdrop-filter: blur(10px);
 		opacity: 0;
+		transform: translateX(-50%) translateY(4px) scale(0.96);
+		transform-origin: top center;
 		pointer-events: none;
-		transition: opacity 180ms ease;
+		transition:
+			opacity 200ms ease,
+			transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
 	}
 
-	.stack-logos__item:hover .stack-logos__tip,
-	.stack-logos__item:focus-visible .stack-logos__tip {
+	.stack-logos__tip-arrow {
+		position: absolute;
+		top: -4.5px;
+		left: 50%;
+		width: 8px;
+		height: 8px;
+		transform: translateX(-50%) rotate(45deg);
+		background: color-mix(in srgb, var(--sl-color-black) 92%, transparent);
+		border-top: 1px solid
+			color-mix(in srgb, var(--logo-color) 35%, transparent);
+		border-left: 1px solid
+			color-mix(in srgb, var(--logo-color) 35%, transparent);
+	}
+
+	.stack-logos__tip-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.stack-logos__tip-meta {
+		font-size: 0.625rem;
+		line-height: 1.2;
+		color: color-mix(
+			in srgb,
+			var(--logo-color) 75%,
+			var(--sl-color-gray-3)
+		);
+	}
+
+	.stack-logos__item.is-tip-open {
+		z-index: 50;
+	}
+
+	.stack-logos__item.is-tip-open .stack-logos__tip {
 		opacity: 1;
+		transform: translateX(-50%) translateY(0) scale(1);
+	}
+
+	.stack-logos__item:first-child .stack-logos__tip {
+		left: 0;
+		align-items: flex-start;
+		transform: translateX(0) translateY(4px) scale(0.96);
+	}
+
+	.stack-logos__item:first-child.is-tip-open .stack-logos__tip {
+		transform: translateX(0) translateY(0) scale(1);
+	}
+
+	.stack-logos__item:first-child .stack-logos__tip-arrow {
+		left: 11px;
+		transform: rotate(45deg);
+	}
+
+	.stack-logos__item:last-child .stack-logos__tip {
+		left: auto;
+		right: 0;
+		align-items: flex-end;
+		transform: translateX(0) translateY(4px) scale(0.96);
+	}
+
+	.stack-logos__item:last-child.is-tip-open .stack-logos__tip {
+		transform: translateX(0) translateY(0) scale(1);
+	}
+
+	.stack-logos__item:last-child .stack-logos__tip-arrow {
+		left: auto;
+		right: 7px;
+		transform: rotate(45deg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.stack-logos__tip {
+			transition: opacity 1ms linear;
+		}
 	}
 </style>
+
+<script>
+	import { $activeTooltip, openTooltip, closeTooltip } from '@kbve/droid';
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const teardowns: Array<() => void> = [];
+
+		document
+			.querySelectorAll<HTMLElement>('[data-stack-tooltip]')
+			.forEach((item) => {
+				const id = item.id;
+				if (!id) return;
+
+				const open = () => openTooltip(id);
+				const close = () => closeTooltip(id);
+
+				item.addEventListener('pointerenter', open);
+				item.addEventListener('pointerleave', close);
+				item.addEventListener('focus', open);
+				item.addEventListener('blur', close);
+
+				const unsub = $activeTooltip.subscribe((activeId) => {
+					item.classList.toggle('is-tip-open', activeId === id);
+				});
+
+				teardowns.push(() => {
+					item.removeEventListener('pointerenter', open);
+					item.removeEventListener('pointerleave', close);
+					item.removeEventListener('focus', open);
+					item.removeEventListener('blur', close);
+					unsub();
+				});
+			});
+
+		return () => teardowns.forEach((fn) => fn());
+	});
+</script>
