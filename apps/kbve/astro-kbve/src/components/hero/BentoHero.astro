@@ -1,0 +1,573 @@
+---
+import StackLogos from './StackLogos.astro';
+
+interface Props {
+	titleLines?: string[];
+	rotatingWord?: string;
+	rotatingWords?: string[];
+	description?: string;
+	primaryCta?: { label: string; href: string };
+	secondaryCta?: { label: string; href: string };
+	trustLine?: string;
+	metaLine?: string;
+}
+
+const {
+	titleLines = ['KBVE is the best', 'way to build', 'games.'],
+	rotatingWord = 'games',
+	rotatingWords = ['games', 'apps', 'software', 'servers', 'worlds'],
+	description = 'KBVE gives you an open-source studio for games, automation, and community infrastructure. All in one place.',
+	primaryCta = {
+		label: 'Join the Discord',
+		href: 'https://kbve.com/discord/',
+	},
+	secondaryCta = { label: 'Browse Projects', href: '/projects/' },
+	trustLine = 'Open source · Est. 2019',
+	metaLine = 'Free forever · MIT licensed · Community driven',
+} = Astro.props;
+---
+
+<div class="bento-hero not-content">
+	<div class="bento-hero__shell">
+		<section class="bento-hero__section">
+			<div class="bento-hero__glow" aria-hidden="true"></div>
+
+			<div class="bento-hero__inner">
+				<div class="bento-hero__grid">
+					<div class="bento-hero__headline">
+						<h1 class="bento-hero__title">
+							{
+								titleLines.map((line) => (
+									<span class="bento-hero__title-line">
+										{line.includes(rotatingWord) ? (
+											<>
+												{line.split(rotatingWord)[0]}
+												<span
+													class="bento-hero__slot"
+													data-rotate={JSON.stringify(
+														rotatingWords,
+													)}>
+													{rotatingWord}
+												</span>
+												{line.split(rotatingWord)[1]}
+											</>
+										) : (
+											line
+										)}
+									</span>
+								))
+							}
+						</h1>
+
+						<div class="bento-hero__stack">
+							<p class="bento-hero__stack-label">
+								Built with our stack
+							</p>
+							<div class="bento-hero__stack-logos">
+								<slot name="logos">
+									<StackLogos />
+								</slot>
+							</div>
+						</div>
+					</div>
+
+					<div class="bento-hero__side">
+						<p class="bento-hero__description">
+							<slot name="description">{description}</slot>
+						</p>
+
+						<div class="bento-hero__cta-tray">
+							<a
+								class="bento-hero__cta bento-hero__cta--primary"
+								href={primaryCta.href}>
+								{primaryCta.label}
+							</a>
+							<a
+								class="bento-hero__cta bento-hero__cta--ghost"
+								href={secondaryCta.href}>
+								{secondaryCta.label}
+							</a>
+						</div>
+
+						<div class="bento-hero__trust">
+							<span class="bento-hero__trust-line">
+								{trustLine}
+							</span>
+							<span class="bento-hero__meta-line">
+								{metaLine}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="bento-hero__showcase">
+					<div class="bento-hero__frame">
+						<div class="bento-hero__window">
+							<div class="bento-hero__window-header">
+								<div class="bento-hero__traffic">
+									<span
+										class="bento-hero__light bento-hero__light--close">
+									</span>
+									<span
+										class="bento-hero__light bento-hero__light--min">
+									</span>
+									<span
+										class="bento-hero__light bento-hero__light--max">
+									</span>
+								</div>
+								<div class="bento-hero__window-title">
+									<span class="bento-hero__window-name">
+										KBVE
+									</span>
+									<span class="bento-hero__window-sep">
+										/
+									</span>
+									<span class="bento-hero__window-crumb">
+										Preview
+									</span>
+								</div>
+							</div>
+							<div class="bento-hero__window-body">
+								<slot name="showcase">
+									<div class="bento-hero__placeholder">
+										<span>showcase slot</span>
+									</div>
+								</slot>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+
+<style>
+	.bento-hero {
+		position: relative;
+		width: 100%;
+		background-color: var(--sl-color-black);
+		border-block: 1px solid var(--sl-color-hairline-shade);
+		border-top: 0;
+	}
+
+	.bento-hero__shell {
+		margin-inline: auto;
+		width: 100%;
+		max-width: 80rem;
+		border-inline: 1px solid var(--sl-color-hairline-shade);
+	}
+
+	.bento-hero__section {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.bento-hero__glow {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		opacity: 0.4;
+		background: radial-gradient(
+			circle at center top,
+			var(--sl-color-accent-low) 0%,
+			transparent 62%
+		);
+		pointer-events: none;
+	}
+
+	.bento-hero__inner {
+		position: relative;
+		z-index: 1;
+		margin-inline: auto;
+		max-width: 80rem;
+		padding: 4rem 1rem 0;
+	}
+
+	.bento-hero__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1.5rem;
+		align-items: start;
+	}
+
+	.bento-hero__headline {
+		min-width: 0;
+	}
+
+	.bento-hero__title {
+		font-size: clamp(2rem, 6vw, 4.2rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.02;
+		color: var(--sl-color-white);
+		max-width: 40rem;
+	}
+
+	.bento-hero__title-line {
+		display: block;
+		white-space: nowrap;
+	}
+
+	.bento-hero__slot {
+		display: inline-block;
+		white-space: nowrap;
+		color: var(--sl-color-accent-high);
+		transition: width 320ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.bento-hero__slot :global(.bento-hero__char) {
+		display: inline-block;
+		transition:
+			transform 320ms cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 320ms ease;
+	}
+
+	.bento-hero__slot :global(.bento-hero__char--out) {
+		transform: translateY(-0.55em);
+		opacity: 0;
+	}
+
+	.bento-hero__slot :global(.bento-hero__char--pre) {
+		transform: translateY(0.55em);
+		opacity: 0;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-hero__slot :global(.bento-hero__char) {
+			transition: none;
+		}
+	}
+
+	.bento-hero__stack {
+		margin-top: 1.5rem;
+		max-width: 40rem;
+	}
+
+	.bento-hero__stack-label {
+		margin-bottom: 0.75rem;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__stack-logos {
+		display: flex;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 1.5rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.bento-hero__stack-logos::-webkit-scrollbar {
+		display: none;
+	}
+
+	.bento-hero__side {
+		min-width: 0;
+		max-width: 30rem;
+	}
+
+	.bento-hero__description {
+		font-size: 0.9375rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+	}
+
+	.bento-hero__cta-tray {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.625rem;
+		margin-top: 1.5rem;
+		padding: 0.625rem;
+		border-radius: 1rem;
+		box-shadow: 0 0 0 1px var(--sl-color-hairline-light);
+		backdrop-filter: blur(12px);
+	}
+
+	.bento-hero__cta {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		text-decoration: none;
+		white-space: nowrap;
+		transition:
+			background-color 140ms ease,
+			color 140ms ease;
+	}
+
+	.bento-hero__cta--primary {
+		background-color: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		border: 1px solid var(--sl-color-accent-high);
+	}
+
+	.bento-hero__cta--primary:hover {
+		background-color: var(--sl-color-accent-high);
+	}
+
+	.bento-hero__cta--ghost {
+		background-color: transparent;
+		color: var(--sl-color-gray-2);
+		border: 1px solid var(--sl-color-hairline-light);
+	}
+
+	.bento-hero__cta--ghost:hover {
+		background-color: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__trust {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 1.25rem;
+	}
+
+	.bento-hero__trust-line {
+		font-size: 0.75rem;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__meta-line {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__showcase {
+		margin-top: 2rem;
+	}
+
+	.bento-hero__frame {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		padding: 1.25rem;
+		background-color: var(--sl-color-black);
+		border: 1px solid var(--sl-color-hairline-shade);
+	}
+
+	.bento-hero__window {
+		display: flex;
+		flex-direction: column;
+		height: 620px;
+		overflow: hidden;
+		border-radius: 10px;
+		outline: 1px solid var(--sl-color-hairline-light);
+		outline-offset: -1px;
+		background: linear-gradient(
+			var(--sl-color-gray-6) 0%,
+			var(--sl-color-black) 100%
+		);
+		box-shadow: var(--sl-shadow-lg);
+	}
+
+	.bento-hero__window-header {
+		display: flex;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.25rem 0.625rem;
+		background-color: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-hairline-shade);
+	}
+
+	.bento-hero__traffic {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding-right: 0.25rem;
+	}
+
+	.bento-hero__light {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 9999px;
+		opacity: 0.5;
+	}
+
+	.bento-hero__light--close {
+		background-color: #ff5f57;
+	}
+
+	.bento-hero__light--min {
+		background-color: #febc2e;
+	}
+
+	.bento-hero__light--max {
+		background-color: #28c840;
+	}
+
+	.bento-hero__window-title {
+		display: flex;
+		min-width: 0;
+		align-items: baseline;
+		gap: 0.375rem;
+		white-space: nowrap;
+	}
+
+	.bento-hero__window-name {
+		font-size: 12px;
+		line-height: 1;
+		color: var(--sl-color-white);
+	}
+
+	.bento-hero__window-sep,
+	.bento-hero__window-crumb {
+		font-size: 10px;
+		line-height: 1;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-hero__window-body {
+		position: relative;
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.bento-hero__placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-4);
+		background-image: repeating-linear-gradient(
+			45deg,
+			transparent,
+			transparent 24px,
+			var(--sl-color-hairline-shade) 24px,
+			var(--sl-color-hairline-shade) 25px
+		);
+	}
+
+	@media (min-width: 640px) {
+		.bento-hero__inner {
+			padding-inline: 1.5rem;
+		}
+
+		.bento-hero__frame {
+			padding: 2rem;
+		}
+
+		.bento-hero__window {
+			height: 680px;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.bento-hero__inner {
+			padding-top: 6rem;
+		}
+
+		.bento-hero__frame {
+			padding: 2.5rem;
+		}
+
+		.bento-hero__window {
+			height: 576px;
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.bento-hero__grid {
+			grid-template-columns: minmax(0, 0.95fr) minmax(320px, 420px);
+			gap: 2rem;
+		}
+
+		.bento-hero__window {
+			height: 712px;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	const STAGGER_MS = 24;
+	const SWAP_MS = 340;
+	const HOLD_MS = 2600;
+
+	const renderChars = (slot: HTMLElement, word: string, pre: boolean) => {
+		slot.textContent = '';
+		for (let i = 0; i < word.length; i++) {
+			const span = document.createElement('span');
+			span.className = pre
+				? 'bento-hero__char bento-hero__char--pre'
+				: 'bento-hero__char';
+			span.style.transitionDelay = `${i * STAGGER_MS}ms`;
+			span.textContent = word[i];
+			slot.appendChild(span);
+		}
+	};
+
+	onMount(() => {
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+		const timers: ReturnType<typeof setInterval | typeof setTimeout>[] = [];
+
+		document
+			.querySelectorAll<HTMLElement>('.bento-hero__slot[data-rotate]')
+			.forEach((slot) => {
+				let words: string[] = [];
+				try {
+					words = JSON.parse(slot.dataset.rotate ?? '[]');
+				} catch {
+					return;
+				}
+				if (words.length < 2) return;
+
+				let index = 0;
+				renderChars(slot, words[0], false);
+
+				timers.push(
+					setInterval(() => {
+						index = (index + 1) % words.length;
+						const next = words[index];
+						if (reduced) {
+							slot.textContent = next;
+							return;
+						}
+						slot.querySelectorAll('.bento-hero__char').forEach(
+							(el) => el.classList.add('bento-hero__char--out'),
+						);
+						timers.push(
+							setTimeout(() => {
+								const prevWidth = slot.offsetWidth;
+								renderChars(slot, next, true);
+								slot.style.width = 'auto';
+								const nextWidth = slot.offsetWidth;
+								slot.style.width = `${prevWidth}px`;
+								void slot.offsetWidth;
+								slot.style.width = `${nextWidth}px`;
+								requestAnimationFrame(() =>
+									requestAnimationFrame(() => {
+										slot.querySelectorAll(
+											'.bento-hero__char--pre',
+										).forEach((el) =>
+											el.classList.remove(
+												'bento-hero__char--pre',
+											),
+										);
+									}),
+								);
+							}, SWAP_MS),
+						);
+					}, HOLD_MS),
+				);
+			});
+
+		return () => timers.forEach((t) => clearInterval(t as number));
+	});
+</script>
