@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.220",
+			"version": "1.0.221",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -125,7 +125,7 @@
 		{
 			"key": "chisel_ubuntu_axum",
 			"app_name": "chisel-ubuntu-axum",
-			"version": "24.04.9",
+			"version": "24.04.10",
 			"version_toml": "packages/docker/chisel-ubuntu-axum/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/chisel.mdx",
 			"source_path": "packages/docker/chisel-ubuntu-axum",
@@ -316,7 +316,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.27",
+			"version": "0.1.28",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
