@@ -156,6 +156,7 @@
 		"@tauri-apps/plugin-opener": "^2.5.4",
 		"@tauri-apps/plugin-store": "^2.4.3",
 		"@types/d3-force": "^3.0.10",
+		"@xyflow/react": "^12.11.1",
 		"astro-mermaid": "^2.1.0",
 		"babel-preset-expo": "~56.0.15",
 		"bitecs": "^0.4.0",
