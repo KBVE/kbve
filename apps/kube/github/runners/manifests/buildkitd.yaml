@@ -40,19 +40,21 @@ data:
           # hit on Talos kernel 6.18). Drop to "native" if EINVAL ever surfaces.
           snapshotter = "overlayfs"
           gc = true
-          # Self-prune below the PVC size so the cache never wedges a build with
+          # Self-prune well below PVC size so the cache never wedges a build with
           # ENOSPC. Working set = astro .astro + cargo registry + sccache-local +
           # pnpm store + layer cache across every app.
-          gckeepstorage = "90GB"
+          gckeepstorage = "60GB"
           [[worker.oci.gcpolicy]]
-            keepBytes = "60GB"
+            keepBytes = "40GB"
             keepDuration = "168h"
           # Final tier has no keepDuration: a hard ceiling that evicts oldest
-          # regardless of age. Set well below the 146GiB usable PVC so a burst
-          # of concurrent mode=max exports (each multi-GB) cannot outrun the
-          # async LRU GC and hit ENOSPC on containerdmeta.db before it reclaims.
+          # regardless of age. Kept far below the 146GiB usable PVC so a burst
+          # of concurrent mode=max exports (each multi-GB) has ~90GB of headroom
+          # before the async LRU GC must reclaim, so it cannot outrun GC and hit
+          # ENOSPC on containerdmeta.db. A nightly buildkitd-prune CronJob is the
+          # proactive backstop the reactive async GC alone kept failing to hold.
           [[worker.oci.gcpolicy]]
-            keepBytes = "90GB"
+            keepBytes = "50GB"
 
         [worker.containerd]
           enabled = false
@@ -121,10 +123,45 @@ spec:
                       initialDelaySeconds: 5
                       periodSeconds: 10
                   livenessProbe:
-                      tcpSocket:
-                          port: grpc
+                      exec:
+                          command:
+                              - buildctl
+                              - debug
+                              - workers
                       initialDelaySeconds: 30
-                      periodSeconds: 30
+                      periodSeconds: 60
+                      timeoutSeconds: 20
+                      failureThreshold: 5
+                - name: cache-watchdog
+                  image: moby/buildkit:v0.24.0
+                  imagePullPolicy: IfNotPresent
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          set -u
+                          THRESHOLD=75
+                          KEEP=50000000000
+                          ADDR=tcp://127.0.0.1:1234
+                          while true; do
+                            USE=$(df /var/lib/buildkit | awk 'NR==2 {gsub("%","",$5); print $5}')
+                            if [ -n "$USE" ] && [ "$USE" -ge "$THRESHOLD" ]; then
+                              echo "watchdog: cache at ${USE}% (>=${THRESHOLD}%), pruning to keep $((KEEP/1000000000))GB"
+                              buildctl --addr "$ADDR" prune --keep-storage "$KEEP" --all || echo "watchdog: prune failed, retrying next cycle"
+                            fi
+                            sleep 120
+                          done
+                  volumeMounts:
+                      - name: cache
+                        mountPath: /var/lib/buildkit
+                        readOnly: true
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 256Mi
+                      requests:
+                          cpu: '50m'
+                          memory: 64Mi
             volumes:
                 - name: config
                   configMap:

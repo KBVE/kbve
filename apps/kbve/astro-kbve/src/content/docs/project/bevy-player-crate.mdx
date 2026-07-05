@@ -21,6 +21,12 @@ version_toml: packages/rust/bevy/bevy_player/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the bevy_player crate do?
@@ -29,63 +35,81 @@ jsonld:
           answer: Pass a PlayerConfig to PlayerPlugin::new — it tunes speed, gravity, and jump velocity, and spawn_player_entity spawns a fully configured player.
         - question: How is fall damage handled?
           answer: The controller emits a FallDamageEvent on hard landings so the game can apply damage or feedback in its own systems.
+bento:
+    badge: crates · rust · bevy
+    title: Character controller for
+    accent: bevy_player
+    lede: >-
+        A kinematic character controller for Bevy 0.18 built on Avian3D physics
+        — gravity, jumping, collision-aware movement, direction mapping, and
+        fall-damage events behind a single PlayerPlugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_player
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: gears
+        title: A working character out of the box
+        body: >-
+            A single PlayerPlugin, configured with a PlayerConfig, handles
+            gravity, jumping, collision-aware movement, input-to-direction
+            mapping, and fall-damage events.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Physics, value: Avian3D, icon: bolt }
+        - { label: Engine, value: "Bevy 0.18", icon: gears }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Avian3D physics
+          icon: bolt
+          body: 3D f32 kinematic body with collision-aware movement.
+        - title: Configurable tuning
+          icon: settings
+          body: PlayerConfig sets speed, gravity, and jump velocity.
+        - title: ECS components
+          icon: box
+          body: Player and PlayerPhysics mark and drive the controller.
+        - title: Direction mapping
+          icon: arrow
+          body: DirectionMap converts keyboard input into movement.
+        - title: Fall damage
+          icon: alert
+          body: FallDamageEvent fires on hard landings for the game to react.
+        - title: Spawn helper
+          icon: check
+          body: spawn_player_entity() spawns a fully configured player.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_player::{PlayerPlugin, PlayerConfig};
+
+            App::new()
+                .add_plugins(PlayerPlugin::new(PlayerConfig::default()))
+                .run();
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera that follows the player.
+          icon: video
+        - title: Bevy Battle Crate
+          href: /project/bevy-battle-crate
+          copy: Turn-based combat for the same engine.
+          icon: shield
+        - title: Bevy Pathfinder Crate
+          href: /project/bevy-pathfinder-crate
+          copy: Navigation for entities.
+          icon: arrow
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_player` is a kinematic character controller for [Bevy](https://bevyengine.org/) 0.18,
-built on **Avian3D** physics. It handles **gravity, jumping, collision-aware
-movement**, input-to-direction mapping, and **fall-damage events**, exposing a
-single `PlayerPlugin` configured with a `PlayerConfig` so games get a working
-character out of the box.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_player` |
-| **Version** | 0.1.0 |
-| **Language** | Rust (Bevy 0.18, Avian3D 0.5) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_player`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_player) |
-| **Categories** | game-development, simulation |
-
-## Features
-
-- **Avian3D physics** — 3D f32 kinematic body with collision-aware movement.
-- **Configurable tuning** — `PlayerConfig` sets speed, gravity, and jump velocity.
-- **ECS components** — `Player` and `PlayerPhysics` mark and drive the controller.
-- **Direction mapping** — `DirectionMap` converts keyboard input into movement.
-- **Fall damage** — `FallDamageEvent` fires on hard landings for the game to react.
-- **Spawn helper** — `spawn_player_entity()` spawns a fully configured player.
-
-## Usage
-
-```rust
-use bevy::prelude::*;
-use bevy_player::{PlayerPlugin, PlayerConfig};
-
-App::new()
-    .add_plugins(PlayerPlugin::new(PlayerConfig::default()))
-    .run();
-```
-
-## FAQ
-
-**What does the bevy_player crate do?**
-It is a kinematic character controller for Bevy 0.18 built on Avian3D physics,
-providing gravity, jumping, collision-aware movement, and fall damage.
-
-**How do I configure movement speed and jump?**
-Pass a `PlayerConfig` to `PlayerPlugin::new` — it tunes speed, gravity, and jump
-velocity, and `spawn_player_entity` spawns a fully configured player.
-
-**How is fall damage handled?**
-The controller emits a `FallDamageEvent` on hard landings so the game can apply
-damage or feedback in its own systems.
-
-## Related
-
-- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — isometric camera that follows the player.
-- [Bevy Battle Crate](/docs/project/bevy-battle-crate) — turn-based combat for the same engine.
-- [Bevy Pathfinder Crate](/docs/project/bevy-pathfinder-crate) — navigation for entities.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

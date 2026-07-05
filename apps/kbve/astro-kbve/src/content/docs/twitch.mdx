@@ -81,46 +81,42 @@ export const related = [
 	},
 ];
 
-<div class="tw" style={`--tw-backdrop: url('${backdrop}')`} data-twitch-page>
+<div class="tw" style={`--bento-hero-bg: url('${backdrop}')`} data-twitch-page>
 
-<section class="tw-hero bento-section not-content" aria-label="Watch KBVE on Twitch">
-	<div class="tw-hero__bg" aria-hidden="true"></div>
-	<div class="tw-hero__frame bento-frame">
-		<div class="tw-grid tw-grid--hero">
-			<div class="tw-cell tw-cell--copy bento-card bento-card--glass">
-				<span class="tw-badge bento-chip">
+<section class="bento-hero bento-section not-content" aria-label="Watch KBVE on Twitch">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
 					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 						<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
 					</svg>
 					<span>KBVE Live · since 2017</span>
 				</span>
-				<h1 class="tw-title">
+				<h1 class="bento-title">
 					Tune in live on
-					<span class="tw-title__accent">KBVE Twitch</span>
+					<span class="bento-title__accent">KBVE Twitch</span>
 				</h1>
-				<p class="tw-lede">
+				<p class="bento-lede">
 					Saturday-night dev streams, live coding, indie game playtests,
 					and Q&A. Watch the build happen and jump in the chat.
 				</p>
-				<div class="tw-cta">
-					<a
-						class="tw-btn tw-btn--primary"
-						href="https://twitch.tv/kbve"
-						target="_blank"
-						rel="noopener noreferrer">
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="https://twitch.tv/kbve" target="_blank" rel="noopener noreferrer">
 						Watch on Twitch
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" />
 						</svg>
 					</a>
-					<a class="tw-btn tw-btn--ghost" href="#chat">Open chat</a>
-					<a class="tw-btn tw-btn--ghost" href="#rules">Chat rules</a>
+					<a class="bento-btn bento-btn--ghost" href="#chat">Open chat</a>
+					<a class="bento-btn bento-btn--ghost" href="#rules">Chat rules</a>
 				</div>
 			</div>
 
-			<div class="tw-cell tw-cell--live bento-card bento-card--glass">
-				<div class="tw-cell__eyebrow">
-					<span class="tw-live-dot" aria-hidden="true"></span>
+			<div class="bento-cell bento-hero-aside bento-card bento-card--glass">
+				<div class="bento-cell-eyebrow">
+					<span class="bento-live-dot" aria-hidden="true"></span>
 					Live · right now
 				</div>
 				<TwitchEmbed
@@ -136,19 +132,17 @@ export const related = [
 			</div>
 
 			{stats.map((s) => (
-				<div class="tw-cell tw-cell--stat bento-card bento-card--glass bento-card--interactive">
-					<span class="tw-stat__icon bento-icon-tile">
-						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<path d={s.icon} />
-						</svg>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
 					</span>
-					<span class="tw-stat__value">{s.value}</span>
-					<span class="tw-stat__label">{s.label}</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
 				</div>
 			))}
 		</div>
 
-		<nav class="tw-jump" aria-label="On this page">
+		<nav class="bento-jump" aria-label="On this page">
 			<a class="bento-chip" href="#chat">Chat</a>
 			<a class="bento-chip" href="#events">Events</a>
 			<a class="bento-chip" href="#rules">Rules</a>
@@ -157,23 +151,22 @@ export const related = [
 	</div>
 </section>
 
-<div id="chat">
-	<BentoShell eyebrow="Say hi" heading="Join the chat">
-		<div class="tw-grid tw-grid--chat">
-			<div class="tw-cell tw-cell--chatcopy bento-card bento-card--glass">
-				<span class="tw-chat__icon bento-icon-tile">
+<BentoShell id="chat" eyebrow="Say hi" heading="Join the chat">
+	<div class="bento-board tw-chat">
+			<div class="bento-cell bento-card bento-card--glass tw-chat__copy">
+				<span class="bento-icon-tile tw-chat__icon">
 					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 						<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
 					</svg>
 				</span>
 				<h3 class="tw-chat__title">Live in chat</h3>
-				<p class="tw-chat__desc">
+				<p class="bento-lede">
 					Ask questions, drop feedback, or just lurk. Log in with your
 					Twitch account to send a message — no download required.
 				</p>
-				<a class="tw-btn tw-btn--ghost" href="#rules">Read the chat rules →</a>
+				<a class="bento-btn bento-btn--ghost" href="#rules">Read the chat rules →</a>
 			</div>
-			<div class="tw-cell tw-cell--chat bento-card bento-card--glass">
+			<div class="bento-cell bento-card bento-card--glass tw-chat__embed">
 				<TwitchChat
 					channel="kbve"
 					theme="auto"
@@ -183,74 +176,68 @@ export const related = [
 			</div>
 		</div>
 	</BentoShell>
-</div>
 
-<div id="events">
-	<BentoShell eyebrow="Save the date" heading="Upcoming streams">
-		<div class="tw-grid tw-grid--events">
+<BentoShell id="events" eyebrow="Save the date" heading="Upcoming streams">
+		<div class="bento-board bento-board--auto">
 			{events.map((e) => (
-				<div class="tw-cell tw-cell--event bento-card bento-card--glass bento-card--interactive">
-					<div class="tw-event__head">
-						<span class="tw-event__date">
-							<span class="tw-event__day">{e.day}</span>
-							<span class="tw-event__mon">{e.month}</span>
+				<div class="bento-cell bento-eventcard bento-card bento-card--glass bento-card--interactive">
+					<div class="bento-eventcard__head">
+						<span class="bento-eventcard__date">
+							<span class="bento-eventcard__day">{e.day}</span>
+							<span class="bento-eventcard__mon">{e.month}</span>
 						</span>
-						<span class="tw-event__type bento-chip">
-							<span class="tw-live-dot" aria-hidden="true"></span>
+						<span class="bento-chip">
+							<span class="bento-live-dot" aria-hidden="true"></span>
 							Stream
 						</span>
 					</div>
-					<h3 class="tw-event__title">{e.title}</h3>
-					<p class="tw-event__desc">{e.desc}</p>
-					<div class="tw-event__meta">
-						<span class="tw-event__time">
+					<h3 class="bento-eventcard__title">{e.title}</h3>
+					<p class="bento-eventcard__desc">{e.desc}</p>
+					<div class="bento-eventcard__meta">
+						<span class="bento-eventcard__time">
 							<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg>
 							{e.weekday} · {e.time}
 						</span>
-						<span class="tw-event__chan">{e.channel}</span>
+						<span class="bento-eventcard__chan">{e.channel}</span>
 					</div>
 				</div>
 			))}
 		</div>
 	</BentoShell>
-</div>
 
-<div id="rules">
-	<BentoShell eyebrow="House rules" heading="Chat guidelines">
-		<div class="tw-grid tw-grid--rules">
+<BentoShell id="rules" eyebrow="House rules" heading="Chat guidelines">
+		<div class="bento-board bento-board--auto-wide">
 			{rules.map((r) => (
-				<div class="tw-cell tw-cell--rule bento-card bento-card--glass bento-card--interactive">
-					<div class="tw-rule__top">
-						<span class="tw-rule__icon bento-icon-tile">
+				<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+					<div class="bento-rulecard__top">
+						<span class="bento-icon-tile">
 							<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
 						</span>
-						<span class="tw-rule__num">{r.n}</span>
+						<span class="bento-rulecard__num">{r.n}</span>
 					</div>
-					<h3 class="tw-rule__title">{r.title}</h3>
-					<p class="tw-rule__desc">{r.desc}</p>
+					<h3 class="bento-rulecard__title">{r.title}</h3>
+					<p class="bento-rulecard__desc">{r.desc}</p>
 				</div>
 			))}
 		</div>
 	</BentoShell>
-</div>
 
-<div id="related">
-	<BentoShell eyebrow="Elsewhere" heading="While you're here">
-		<div class="tw-grid tw-grid--related">
+<BentoShell id="related" eyebrow="Elsewhere" heading="While you're here">
+		<div class="bento-board bento-board--cols-3">
 			{related.map((r) => (
 				<a
-					class="tw-cell tw-cell--link bento-card bento-card--glass bento-card--interactive"
+					class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive"
 					href={r.href}
 					target={r.external ? '_blank' : undefined}
 					rel={r.external ? 'noopener noreferrer' : undefined}>
-					<span class="tw-link__icon bento-icon-tile">
+					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 							<path d={r.icon} />
 						</svg>
 					</span>
-					<span class="tw-link__title">{r.title}</span>
-					<span class="tw-link__copy">{r.copy}</span>
-					<span class="tw-link__go" aria-hidden="true">
+					<span class="bento-linkcard__title">{r.title}</span>
+					<span class="bento-linkcard__copy">{r.copy}</span>
+					<span class="bento-linkcard__go" aria-hidden="true">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<path d="M5 12h14M13 6l6 6-6 6" />
 						</svg>
@@ -259,242 +246,28 @@ export const related = [
 			))}
 		</div>
 	</BentoShell>
-</div>
 
-<div class="tw-band tw-band--ad">
-	<Adsense />
-</div>
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
 </div>
 
 <style is:global>{`
 	.tw {
-		--tw-purple: #9146ff;
-		color: var(--sl-color-text);
+		--bento-accent: #9146ff;
+		--bento-accent-2: #c084fc;
+		--bento-btn-fg: #fff;
+		--bento-live: #ef4444;
 	}
-
-	/* ── Hero: glass cards float over a backdrop that breathes through ─ */
-	.tw .tw-hero {
-		position: relative;
-		overflow: hidden;
-	}
-	.tw .tw-hero__bg {
-		position: absolute;
-		inset: 0;
-		z-index: 0;
-		background-image: var(--tw-backdrop);
-		background-size: cover;
-		background-position: center;
-		opacity: 0.22;
-		filter: saturate(0.8) brightness(0.7);
-		pointer-events: none;
-		-webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 100%);
-		mask-image: radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 100%);
-	}
-	.tw .tw-hero__frame {
-		position: relative;
-		z-index: 1;
-		padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
-	}
-
-	.tw .tw-grid {
-		display: grid;
-		gap: 1rem;
-	}
-	.tw .tw-grid--hero {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
-	.tw .tw-grid--chat {
+	.tw .tw-chat {
 		grid-template-columns: 1fr 1.4fr;
-		align-items: stretch;
 	}
-	.tw .tw-grid--related {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-	.tw .tw-grid--events {
-		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-	}
-	.tw .tw-grid--rules {
-		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-	}
-
-	.tw .tw-cell {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: clamp(1.25rem, 2.5vw, 1.75rem);
-	}
-
-	/* Hero placement */
-	.tw .tw-cell--copy {
-		grid-column: 1 / 3;
-		grid-row: 1;
-		gap: 1rem;
+	.tw .tw-chat__copy {
 		justify-content: center;
-		padding: clamp(1.75rem, 3.5vw, 2.75rem);
-	}
-	.tw .tw-cell--live {
-		grid-column: 3 / 5;
-		grid-row: 1;
 		gap: 0.75rem;
-	}
-	.tw .tw-cell--stat {
-		grid-row: 2;
-		gap: 0.35rem;
-		min-height: 8rem;
-		justify-content: flex-end;
-	}
-
-	/* Copy cell */
-	.tw .tw-badge {
-		width: fit-content;
-		padding: 0.4rem 0.8rem;
-		font-size: 0.6875rem;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-badge svg {
-		width: 14px;
-		height: 14px;
-		color: var(--tw-purple);
-	}
-	.tw .tw-title {
-		font-size: clamp(1.9rem, 4vw, 3rem);
-		font-weight: 800;
-		line-height: 1.05;
-		letter-spacing: -0.02em;
-		margin: 0;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-title__accent {
-		display: block;
-		background: linear-gradient(135deg, var(--tw-purple), #c084fc);
-		-webkit-background-clip: text;
-		background-clip: text;
-		-webkit-text-fill-color: transparent;
-		color: transparent;
-	}
-	.tw .tw-lede {
-		font-size: 1.0625rem;
-		line-height: 1.55;
-		color: var(--sl-color-gray-2);
-		margin: 0;
-		max-width: 46ch;
-	}
-	.tw .tw-cta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.6rem;
-		margin-top: 0.25rem;
-	}
-	.tw .tw-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		padding: 0.7rem 1.2rem;
-		border-radius: var(--bento-radius);
-		font-size: 0.9375rem;
-		font-weight: 600;
-		text-decoration: none;
-		transition:
-			transform 0.12s ease,
-			background 0.12s ease,
-			border-color 0.12s ease,
-			box-shadow 0.12s ease;
-	}
-	.tw .tw-btn svg {
-		width: 18px;
-		height: 18px;
-	}
-	.tw .tw-btn--primary {
-		background: var(--tw-purple);
-		color: #fff;
-		box-shadow: 0 6px 20px color-mix(in srgb, var(--tw-purple) 35%, transparent);
-	}
-	.tw .tw-btn--primary:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 10px 28px color-mix(in srgb, var(--tw-purple) 45%, transparent);
-	}
-	.tw .tw-btn--ghost {
-		color: var(--sl-color-white);
-		background: var(--bento-glass-bg);
-		border: 1px solid var(--bento-hairline-strong);
-	}
-	.tw .tw-btn--ghost:hover {
-		border-color: var(--sl-color-accent-high);
-	}
-
-	/* Live cell */
-	.tw .tw-cell__eyebrow {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--sl-color-gray-3);
-	}
-	.tw .tw-live-dot {
-		width: 0.5rem;
-		height: 0.5rem;
-		border-radius: 9999px;
-		background: #ef4444;
-		animation: tw-pulse 2s ease-out infinite;
-	}
-	@keyframes tw-pulse {
-		0% { box-shadow: 0 0 0 0 color-mix(in srgb, #ef4444 55%, transparent); }
-		100% { box-shadow: 0 0 0 0.6rem transparent; }
-	}
-
-	/* Stat cells */
-	.tw .tw-stat__icon {
-		width: 2rem;
-		height: 2rem;
-		margin-bottom: auto;
-	}
-	.tw .tw-cell--stat:hover .tw-stat__icon {
-		color: var(--sl-color-accent-high);
-	}
-	.tw .tw-stat__value {
-		font-size: 1.5rem;
-		font-weight: 700;
-		line-height: 1;
-		letter-spacing: -0.01em;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-stat__label {
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--sl-color-gray-3);
-	}
-
-	/* Jump nav */
-	.tw .tw-jump {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem;
-		margin-top: 1rem;
-	}
-	.tw .tw-jump a {
-		padding: 0.4rem 0.85rem;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		text-decoration: none;
-		cursor: pointer;
-	}
-	.tw .tw-jump a:hover {
-		color: var(--sl-color-white);
-		border-color: var(--sl-color-accent-high);
-	}
-
-	/* Chat section */
-	.tw .tw-cell--chatcopy {
-		gap: 0.75rem;
-		justify-content: center;
 	}
 	.tw .tw-chat__icon {
 		width: 2.5rem;
@@ -506,209 +279,19 @@ export const related = [
 		margin: 0;
 		color: var(--sl-color-white);
 	}
-	.tw .tw-chat__desc {
-		font-size: 0.9375rem;
-		line-height: 1.55;
-		color: var(--sl-color-gray-2);
-		margin: 0;
-	}
-	.tw .tw-cell--chatcopy .tw-btn {
+	.tw .tw-chat__copy .bento-btn {
 		width: fit-content;
-		margin-top: 0.25rem;
 	}
-	.tw .tw-cell--chat {
+	.tw .tw-chat__embed {
 		padding: 0.75rem;
-		gap: 0;
 	}
-
-	/* Related link cells */
-	.tw .tw-cell--link {
-		min-height: 11rem;
-		gap: 0.6rem;
-		text-decoration: none;
-		color: var(--sl-color-text);
-	}
-	.tw .tw-link__icon {
-		width: 2.25rem;
-		height: 2.25rem;
-		transition: color 220ms ease;
-	}
-	.tw .tw-cell--link:hover .tw-link__icon {
-		color: var(--sl-color-accent-high);
-	}
-	.tw .tw-link__title {
-		font-size: 1.0625rem;
-		font-weight: 600;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-link__copy {
-		font-size: 0.875rem;
-		line-height: 1.5;
-		color: var(--sl-color-gray-2);
-	}
-	.tw .tw-link__go {
-		margin-top: auto;
-		color: var(--sl-color-gray-4);
-		transition:
-			color 220ms ease,
-			transform 220ms ease;
-	}
-	.tw .tw-cell--link:hover .tw-link__go {
-		color: var(--sl-color-accent-high);
-		transform: translateX(3px);
-	}
-
-	/* Event cells */
-	.tw .tw-cell--event {
-		min-height: 11rem;
-		gap: 0.6rem;
-	}
-	.tw .tw-event__head {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-	.tw .tw-event__date {
-		display: flex;
-		flex-direction: column;
-		line-height: 1;
-	}
-	.tw .tw-event__day {
-		font-size: 1.75rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-event__mon {
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		color: var(--sl-color-accent-high);
-	}
-	.tw .tw-event__type {
-		gap: 0.35rem;
-		padding: 0.25rem 0.6rem;
-		font-size: 0.625rem;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--sl-color-gray-2);
-	}
-	.tw .tw-event__title {
-		font-size: 1.0625rem;
-		font-weight: 600;
-		margin: 0;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-event__desc {
-		font-size: 0.875rem;
-		line-height: 1.5;
-		color: var(--sl-color-gray-2);
-		margin: 0;
-	}
-	.tw .tw-event__meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 0.85rem;
-		margin-top: auto;
-		font-size: 0.75rem;
-		color: var(--sl-color-gray-3);
-	}
-	.tw .tw-event__time {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-	}
-	.tw .tw-event__chan {
-		color: var(--sl-color-accent-high);
-		font-variant-numeric: tabular-nums;
-	}
-
-	/* Rule cells */
-	.tw .tw-cell--rule {
-		min-height: 10rem;
-		gap: 0.6rem;
-	}
-	.tw .tw-rule__top {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-	.tw .tw-rule__icon {
-		width: 2.25rem;
-		height: 2.25rem;
-		transition: color 220ms ease;
-	}
-	.tw .tw-cell--rule:hover .tw-rule__icon {
-		color: var(--sl-color-accent-high);
-	}
-	.tw .tw-rule__num {
-		font-size: 0.75rem;
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-		letter-spacing: 0.04em;
-		color: var(--sl-color-gray-4);
-	}
-	.tw .tw-rule__title {
-		font-size: 1rem;
-		font-weight: 600;
-		margin: 0;
-		color: var(--sl-color-white);
-	}
-	.tw .tw-rule__desc {
-		font-size: 0.8125rem;
-		line-height: 1.55;
-		color: var(--sl-color-gray-2);
-		margin: 0;
-	}
-
-	/* Ad band */
-	.tw .tw-band--ad {
-		max-width: 80rem;
-		margin-inline: auto;
-		padding: 1.5rem 1rem 3rem;
-	}
-
-	/* ── Responsive ───────────────────────────────────────────── */
 	@media (max-width: 60rem) {
-		.tw .tw-grid--hero {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-		.tw .tw-cell--copy,
-		.tw .tw-cell--live {
-			grid-column: 1 / 3;
-			grid-row: auto;
-		}
-		.tw .tw-cell--stat {
-			grid-row: auto;
-			min-height: 7rem;
-		}
-		.tw .tw-grid--chat {
-			grid-template-columns: 1fr;
-		}
-		.tw .tw-grid--related {
+		.tw .tw-chat {
 			grid-template-columns: 1fr;
 		}
 	}
-
 	@media (max-width: 34rem) {
-		.tw .tw-grid--hero {
-			grid-template-columns: 1fr;
-		}
-		.tw .tw-cell--copy,
-		.tw .tw-cell--live {
-			grid-column: 1;
-		}
-		.tw .tw-cta {
-			flex-direction: column;
-			align-items: stretch;
-		}
-		.tw .tw-btn {
-			justify-content: center;
-		}
-		.tw .tw-cell--chatcopy .tw-btn {
+		.tw .tw-chat__copy .bento-btn {
 			width: auto;
 		}
 	}

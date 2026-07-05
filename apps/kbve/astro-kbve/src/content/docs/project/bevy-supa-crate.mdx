@@ -21,6 +21,12 @@ version_toml: packages/rust/bevy/bevy_supa/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the bevy_supa crate?
@@ -29,66 +35,86 @@ jsonld:
           answer: Yes. The same SupaClient is used from JNI MC plugins with no Bevy and from Bevy games as a Resource when the bevy feature is enabled, so lean consumers like JNI cdylibs and CLIs stay slim.
         - question: How does bevy_supa target non-default PostgREST schemas?
           answer: SupaClient::rpc_schema sets the Content-Profile and Accept-Profile headers so PostgREST routes RPC calls to non-default schemas such as mc or tracker, and with_jwt swaps just the Authorization header so service-role and per-user JWTs coexist on one client.
+bento:
+    badge: crates · rust · bevy
+    title: Supabase client for
+    accent: bevy_supa
+    lede: >-
+        A transport-agnostic Supabase / PostgREST client crate — native
+        reqwest + rustls HTTP by default, a WASM fetch stub, and opt-in Bevy ECS
+        integration, so JNI plugins, CLIs, and games share one client.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_supa
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: package
+        title: One client, extracted to share
+        body: >-
+            Originally <code>entity::client::supabase</code> inside the
+            <code>kbve</code> crate, extracted so JNI plugins, CLIs, and Bevy
+            games can <strong>share one client</strong> without dragging diesel,
+            axum, or tower along.
+        points:
+            - <strong>native</strong> (default) — reqwest + rustls HTTP transport.
+            - <strong>wasm</strong> — browser fetch transport (stub, not yet implemented).
+            - <strong>bevy</strong> — BevySupaPlugin + SupaClient Bevy Resource.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Default transport, value: native, icon: server }
+        - { label: Categories, value: http-client, icon: gears }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Lean by default
+          icon: box
+          body: No diesel, no tower, no Bevy in the default feature set; disable default features when only the type surface is needed (build scripts, codegen).
+        - title: One client, two callers
+          icon: expand
+          body: The same <code>SupaClient</code> serves JNI MC plugins (no Bevy) and Bevy games (<code>Resource</code>) with no newtype wrapper.
+        - title: Schema-aware RPC
+          icon: database
+          body: <code>rpc_schema</code> sets <code>Content-Profile</code> / <code>Accept-Profile</code> headers to reach non-default PostgREST schemas.
+        - title: JWT layering
+          icon: key
+          body: <code>with_jwt</code> swaps just the <code>Authorization</code> header so service-role and per-user JWTs coexist.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy_supa::SupaClient;
+
+            let client = SupaClient::from_env()
+                .ok_or("SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY missing")?;
+
+            let resp = client
+                .rpc_schema(
+                    "service_verify_link",
+                    serde_json::json!({ "p_mc_uuid": "0123", "p_code": 123456 }),
+                    "mc",
+                )
+                .await?;
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Camera crate from the same Bevy package group.
+          icon: video
+        - title: bevy_inventory
+          href: /project/bevy-inventory-crate
+          copy: Sibling slot-based inventory crate.
+          icon: box
+        - title: Kilobase
+          href: /project/kilobase
+          copy: The custom Supabase-based Postgres image this client can target.
+          icon: database
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_supa` is a transport-agnostic Supabase / PostgREST client. The default feature set ships the `native` HTTP transport (`reqwest` + rustls). Bevy integration is opt-in so lean consumers (JNI cdylibs, CLIs) stay slim. It originally lived inside the `kbve` crate as `entity::client::supabase` and was extracted so JNI plugins, CLIs, and Bevy games can share one client without dragging diesel, axum, or tower along.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_supa` |
-| **Language** | Rust (edition 2024) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_supa`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_supa) |
-| **Categories** | game-development, web-programming::http-client |
-| **Default transport** | `native` (`reqwest` + rustls) |
-
-## Features
-
-| Feature | Description |
-| --- | --- |
-| `native` (default) | `reqwest` + rustls native HTTP transport |
-| `wasm` | Browser `fetch` transport (stub — not yet implemented) |
-| `bevy` | `BevySupaPlugin` + `SupaClient` Bevy `Resource` |
-
-- **Lean by default** — no diesel, no tower, no Bevy in the default feature set; disable default features when only the type surface is needed (build scripts, codegen).
-- **One client, two callers** — the same `SupaClient` serves JNI MC plugins (no Bevy) and Bevy games (`Resource`) with no newtype wrapper.
-- **Schema-aware RPC** — `rpc_schema` sets `Content-Profile` / `Accept-Profile` headers to reach non-default PostgREST schemas.
-- **JWT layering** — `with_jwt` swaps just the `Authorization` header so service-role and per-user JWTs coexist.
-
-## Usage
-
-```rust
-use bevy_supa::SupaClient;
-
-let client = SupaClient::from_env()
-    .ok_or("SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY missing")?;
-
-let resp = client
-    .rpc_schema(
-        "service_verify_link",
-        serde_json::json!({ "p_mc_uuid": "0123", "p_code": 123456 }),
-        "mc",
-    )
-    .await?;
-```
-
-## FAQ
-
-**What is the bevy_supa crate?**
-`bevy_supa` is a transport-agnostic Supabase / PostgREST client. The default feature set ships the native HTTP transport (`reqwest` + rustls), Bevy integration is opt-in, and a WASM browser `fetch` transport is stubbed for later.
-
-**Can bevy_supa be used without Bevy?**
-Yes. The same `SupaClient` is used from JNI MC plugins with no Bevy and from Bevy games as a `Resource` when the `bevy` feature is enabled, so lean consumers like JNI cdylibs and CLIs stay slim.
-
-**How does bevy_supa target non-default PostgREST schemas?**
-`SupaClient::rpc_schema` sets the `Content-Profile` and `Accept-Profile` headers so PostgREST routes RPC calls to non-default schemas such as `mc` or `tracker`, and `with_jwt` swaps just the `Authorization` header so service-role and per-user JWTs coexist on one client.
-
-## Related
-
-- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — camera crate from the same Bevy package group.
-- [bevy_inventory](/project/bevy-inventory-crate) — sibling slot-based inventory crate.
-- [Kilobase](/project/kilobase) — the custom Supabase-based Postgres image this client can target.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

@@ -10,6 +10,46 @@ import mermaid from 'astro-mermaid';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import { readFileSync } from 'node:fs';
+import https from 'node:https';
+
+const DASH_PROXY_PREFIX = '/__dashproxy';
+
+function dashProxyDevIntegration() {
+	const attach = (server) => {
+		console.log('[dash-proxy] dev proxy registered →', DASH_PROXY_PREFIX);
+		server.middlewares.use((req, res, next) => {
+			if (!req.url || !req.url.startsWith(DASH_PROXY_PREFIX + '/')) {
+				return next();
+			}
+			const path = req.url.slice(DASH_PROXY_PREFIX.length);
+			const upstream = https.request(
+				{
+					hostname: 'kbve.com',
+					port: 443,
+					path,
+					method: req.method,
+					headers: { ...req.headers, host: 'kbve.com' },
+				},
+				(upRes) => {
+					res.writeHead(upRes.statusCode || 502, upRes.headers);
+					upRes.pipe(res);
+				},
+			);
+			upstream.on('error', (err) => {
+				console.error('[dash-proxy] error', err.message);
+				res.statusCode = 502;
+				res.end('dash proxy error');
+			});
+			req.pipe(upstream);
+		});
+	};
+	return {
+		name: 'kbve-dash-proxy-dev',
+		hooks: {
+			'astro:server:setup': ({ server }) => attach(server),
+		},
+	};
+}
 import { fileURLToPath } from 'node:url';
 
 // Inlined into <head> so it runs before the (edge-injected, async) ad script.
@@ -46,6 +86,7 @@ export default defineConfig({
 		processor: unified({ rehypePlugins: [rehypeLinkAttrs] }),
 	},
 	integrations: [
+		dashProxyDevIntegration(),
 		worker(),
 		mermaid({
 			theme: 'forest',
@@ -413,6 +454,7 @@ export default defineConfig({
 				'react-native-worklets',
 				'react-native-svg',
 				'react-native-gesture-handler',
+					'@scalar/api-reference',
 			],
 			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			rolldownOptions: {

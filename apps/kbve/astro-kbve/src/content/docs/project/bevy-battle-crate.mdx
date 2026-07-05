@@ -21,6 +21,12 @@ version_toml: packages/rust/bevy/bevy_battle/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the bevy_battle crate do?
@@ -29,69 +35,83 @@ jsonld:
           answer: Yes. The default "bevy" feature adds the BevyBattlePlugin and ECS derives, but disabling default features leaves a plain Rust type surface suitable for FFI cdylibs and headless serializers.
         - question: Are battles deterministic?
           answer: Yes. A seeded BattleRng resource drives combat rolls, so the same seed and inputs reproduce the same outcome for testing and replay.
+bento:
+    badge: crates · rust · bevy
+    title: Turn-based combat for
+    accent: bevy_battle
+    lede: >-
+        A generic turn-based battle plugin for Bevy — damage resolution, effects,
+        class procs, and enemy AI as a pure Rust core with an optional Bevy ECS
+        layer, driven by a seeded RNG for deterministic results.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_battle
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: box
+        title: Pure core, optional ECS
+        body: >-
+            The same combat logic runs inside a full game or a headless FFI build —
+            combat math lives in <strong>types.rs</strong> with zero Bevy dependency.
+        points:
+            - <strong>Default</strong> — the bevy feature adds the BevyBattlePlugin and ECS derives.
+            - <strong>Headless</strong> — disable default features for a plain Rust type surface for FFI cdylibs and headless serializers.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Engine, value: "Bevy 0.18", icon: gears }
+        - { label: Combat RNG, value: Seeded, icon: bolt }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Pure Rust core
+          icon: rust
+          body: Types, enums, and combat math in types.rs with zero Bevy dependency, usable from FFI cdylibs and mobile crates.
+        - title: Optional Bevy ECS plugin
+          icon: gears
+          body: >-
+            The <strong>bevy</strong> feature (default) adds Component / Event /
+            Resource / Message derives, the BevyBattlePlugin, snapshot/world
+            helpers, and the full combat system pipeline.
+        - title: Deterministic RNG
+          icon: bolt
+          body: BattleRng seeds every roll so battles reproduce exactly.
+        - title: Global tuning
+          icon: settings
+          body: A CombatModifiers resource adjusts combat behavior in one place.
+        - title: Enemy AI hook
+          icon: branch
+          body: Integrates bevy_behavior behavior trees for enemy turn logic.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_battle::BevyBattlePlugin;
+
+            App::new()
+                .add_plugins(BevyBattlePlugin)
+                .run();
+    related:
+        - title: Bevy Behavior Crate
+          href: /project/bevy-behavior-crate
+          copy: Behavior-tree engine that powers enemy turn AI.
+          icon: branch
+        - title: Bevy Skills Crate
+          href: /project/bevy-skills-crate
+          copy: Skill definitions that feed combat.
+          icon: bolt
+        - title: Bevy Player Crate
+          href: /project/bevy-player-crate
+          copy: Character controller for the same engine.
+          icon: box
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_battle` is a generic turn-based battle plugin for [Bevy](https://bevyengine.org/) 0.18.
-It packages **damage resolution, effects, class procs, and enemy AI** as a pure Rust
-core with an **optional Bevy ECS layer**, so the same combat logic can run inside a
-full game or inside a headless FFI build. Battles are driven by a **seeded RNG**
-for deterministic, reproducible results.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_battle` |
-| **Version** | 0.1.0 |
-| **Language** | Rust (Bevy 0.18) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_battle`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_battle) |
-| **Categories** | game-development, game-engines |
-
-## Features
-
-- **Pure Rust core** — types, enums, and combat math in `types.rs` with zero Bevy
-  dependency, usable from FFI cdylibs and mobile crates.
-- **Optional Bevy ECS plugin** — the `bevy` feature (default) adds `Component` /
-  `Event` / `Resource` / `Message` derives, the `BevyBattlePlugin`, snapshot/world
-  helpers, and the full combat system pipeline.
-- **Deterministic RNG** — `BattleRng` seeds every roll so battles reproduce exactly.
-- **Global tuning** — `CombatModifiers` resource adjusts combat behavior in one place.
-- **Enemy AI hook** — integrates `bevy_behavior` behavior trees for enemy turn logic.
-
-## Usage
-
-```rust
-use bevy::prelude::*;
-use bevy_battle::BevyBattlePlugin;
-
-App::new()
-    .add_plugins(BevyBattlePlugin)
-    .run();
-```
-
-Disable the default `bevy` feature (`default-features = false`) to consume only the
-pure type surface from FFI or headless crates.
-
-## FAQ
-
-**What does the bevy_battle crate do?**
-It provides generic turn-based battle types — damage resolution, effects, class
-procs, and enemy AI — as a pure Rust core plus an optional Bevy ECS plugin.
-
-**Can bevy_battle be used without Bevy?**
-Yes. The default `bevy` feature adds the `BevyBattlePlugin` and ECS derives, but
-disabling default features leaves a plain Rust type surface suitable for FFI
-cdylibs and headless serializers.
-
-**Are battles deterministic?**
-Yes. A seeded `BattleRng` resource drives combat rolls, so the same seed and
-inputs reproduce the same outcome for testing and replay.
-
-## Related
-
-- [Bevy Behavior Crate](/docs/project/bevy-behavior-crate) — behavior-tree engine that powers enemy turn AI.
-- [Bevy Skills Crate](/docs/project/bevy-skills-crate) — skill definitions that feed combat.
-- [Bevy Player Crate](/docs/project/bevy-player-crate) — character controller for the same engine.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

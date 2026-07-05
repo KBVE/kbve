@@ -1,57 +1,32 @@
 ---
-import ReactEdgeHeader from './ReactEdgeHeader';
-import ReactEdgeSummary from './ReactEdgeSummary';
-import ReactEdgeStatusGrid from './ReactEdgeStatusGrid';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactEdgeDashRN from '@/components/rnweb/ReactEdgeDashRN';
 ---
 
-<section
+<BentoShell
 	id="edge-dashboard-wrapper"
-	class="edge-dashboard-wrapper kbve-dashboard-page"
-	aria-label="Edge function health dashboard">
-	<div id="dashboard-content" class="dashboard-content">
-		<div class="not-content edge-dashboard">
-			<!-- Island: Header (title, cache badge, refresh button) -->
-			<div id="edge-header">
-				<ReactEdgeHeader client:only="react" />
-			</div>
-
-			<!-- Island: Summary bar + error banner -->
-			<div id="edge-summary">
-				<ReactEdgeSummary client:only="react" />
-			</div>
-
-			<!-- Island: Status card grid -->
-			<div id="edge-status-grid">
-				<ReactEdgeStatusGrid client:only="react" />
-			</div>
+	eyebrow="Edge Functions"
+	heading="Supabase serverless health.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactEdgeDashRN client:only="react" />
 		</div>
 	</div>
-</section>
+</BentoShell>
 
 <style>
-	.edge-dashboard-wrapper {
-		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100%;
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
 	}
 
-	.dashboard-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-content {
-			padding: 2rem 1.5rem;
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
 		}
 	}
 
-	.edge-dashboard {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
+	.svc-dash__stream {
+		min-height: 60vh;
 	}
 
 	:global(@keyframes spin) {

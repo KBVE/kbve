@@ -19,6 +19,12 @@ version_toml: packages/rust/bevy/bevy_items/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the bevy_items crate do?
@@ -27,66 +33,72 @@ jsonld:
           answer: The itemdb.proto file is the source of truth. Human-authored content lives in Astro MDX files at kbve.com/itemdb, is served as /api/itemdb.json at build time, and ItemDb::from_json parses that JSON into proto structs with automatic string-to-enum conversion.
         - question: Is bevy_items tied to a specific game?
           answer: No. It is game-agnostic — Isometric, DiscordSH, and other Bevy games load the same proto item registry, keeping item data consistent across the KBVE ecosystem.
+bento:
+    badge: crates · rust · bevy
+    title: Proto-driven item registry for
+    accent: bevy_items
+    lede: >-
+        Proto-driven item definitions for Bevy games — compiles itemdb.proto into
+        typed Rust structs with a searchable ItemDb registry any game can load and
+        query.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_items
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: database
+        title: One proto, every game
+        body: >-
+            itemdb.proto is the single source of truth — prost-build generates the
+            Rust structs at build time, the same proto feeds a Zod schema, and
+            human-authored Astro MDX content served as
+            <strong>/api/itemdb.json</strong> loads at runtime via
+            ItemDb::from_json().
+    stats:
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Version, value: "0.1.0", icon: package }
+        - { label: Schema, value: proto, icon: database }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-driven schema
+          icon: database
+          body: "itemdb.proto is the single source of truth; prost-build generates the Rust item structs at build time."
+        - title: Searchable ItemDb resource
+          icon: book
+          body: Query items by slug, ULID, type flags, or rarity.
+        - title: JSON loading
+          icon: code
+          body: "ItemDb::from_json() parses /api/itemdb.json, handling string-to-enum conversion automatically."
+        - title: Game-agnostic
+          icon: box
+          body: The same registry serves Isometric, DiscordSH, and other Bevy games.
+        - title: Optional inventory adapter
+          icon: package
+          body: The inventory feature wires in bevy_inventory.
+    usage:
+        label: Cargo.toml
+        lang: toml
+        code: |
+            [dependencies]
+            bevy_items = { path = "packages/rust/bevy/bevy_items" }
+    related:
+        - title: Bevy Inventory Crate
+          href: /project/bevy-inventory-crate
+          copy: Inventory layer that pairs with the item registry.
+          icon: box
+        - title: KBVE ItemDB
+          href: /project/kbveitemdb
+          copy: The shared item database and MDX content source.
+          icon: database
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_items` provides proto-driven item definitions for [Bevy](https://bevyengine.org/)
-games in the KBVE isometric engine. It compiles the shared `itemdb.proto`
-schema into typed Rust structs via `prost` and wraps them in a searchable
-`ItemDb` resource, so any game can load the same item registry and query it
-consistently.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_items` |
-| **Version** | 0.1.0 |
-| **Language** | Rust (Bevy 0.18) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_items`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_items) |
-| **Categories** | game-development, game-engines |
-
-## Features
-
-- **Proto-driven schema** — `itemdb.proto` is the single source of truth; `prost-build` generates the Rust item structs at build time.
-- **Searchable `ItemDb` resource** — query items by slug, ULID, type flags, or rarity.
-- **JSON loading** — `ItemDb::from_json()` parses `/api/itemdb.json`, handling string-to-enum conversion automatically.
-- **Game-agnostic** — the same registry serves Isometric, DiscordSH, and other Bevy games.
-- **Optional inventory adapter** — the `inventory` feature wires in `bevy_inventory`.
-
-## Usage
-
-```toml
-[dependencies]
-bevy_items = { path = "packages/rust/bevy/bevy_items" }
-```
-
-The item pipeline flows from `itemdb.proto` through `prost-build` into Rust
-structs, while the same proto feeds a Zod schema and human-authored Astro MDX
-content served as `/api/itemdb.json`, which `ItemDb::from_json()` loads at
-runtime.
-
-## FAQ
-
-**What does the bevy_items crate do?**
-It compiles the shared `itemdb.proto` schema into typed Rust structs via `prost`
-and wraps them in a searchable `ItemDb` Bevy resource, so any game can load the
-same item registry and query it by slug, ULID, type flags, or rarity.
-
-**Where do bevy_items item definitions come from?**
-The `itemdb.proto` file is the source of truth. Human-authored content lives in
-Astro MDX files at `kbve.com/itemdb`, is served as `/api/itemdb.json` at build
-time, and `ItemDb::from_json()` parses that JSON into proto structs with
-automatic string-to-enum conversion.
-
-**Is bevy_items tied to a specific game?**
-No. It is game-agnostic — Isometric, DiscordSH, and other Bevy games load the
-same proto item registry, keeping item data consistent across the KBVE
-ecosystem.
-
-## Related
-
-- [Bevy Inventory Crate](/docs/project/bevy-inventory-crate) — inventory layer that pairs with the item registry.
-- [KBVE ItemDB](/docs/project/kbveitemdb) — the shared item database and MDX content source.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

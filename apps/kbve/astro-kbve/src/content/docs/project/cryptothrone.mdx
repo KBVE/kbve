@@ -31,6 +31,12 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is CryptoThrone.com?
@@ -39,39 +45,76 @@ jsonld:
           answer: It is a KBVE game app (apps/cryptothrone) with a Rust axum-cryptothrone backend, deployed to production on the Agones game-server stack via apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml.
         - question: What genre is CryptoThrone.com?
           answer: It is a King of the Hill strategy game blending settlement building, tower-defense-style NPC waves, and competitive player-versus-player battles for control of the throne.
+bento:
+    badge: game · strategy · agones
+    title: King of the Hill
+    accent: CryptoThrone
+    lede: >-
+        A King of the Hill strategy game — defend the throne against waves of
+        NPCs, build your settlement, and battle other players to become the ruler.
+        Inspired by epic fantasy and tower-defense games.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/cryptothrone
+          primary: true
+          external: true
+        - label: Roadmap
+          href: "#roadmap"
+        - label: Coin economy
+          href: "#economy"
+    aside:
+        icon: crown
+        title: Isolated in-world economy
+        body: >-
+            CryptoThrone runs an internal coin economy — the currency players earn
+            and spend in-world — <strong>fully isolated</strong> from the KBVE
+            account ledger (Khash / Credits). The two never cross.
+        points:
+            - <strong>Currency</strong> — coin and gold-bar inventory items, 100:1.
+            - <strong>Authority</strong> — simgrid server-side, synced via InventorySync.
+    stats:
+        - { label: App, value: cryptothrone, icon: crown }
+        - { label: Backend, value: Rust axum, icon: rust }
+        - { label: Deploy, value: Agones, icon: activity }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Defend the throne
+          icon: shield
+          body: Hold the hill against tower-defense-style waves of NPCs closing on the throne room.
+        - title: Build a settlement
+          icon: box
+          body: Grow your holdings with settlement-building mechanics and resource management.
+        - title: Battle other players
+          icon: sword
+          body: Competitive player-versus-player fights for control of the throne.
+        - title: In-world coin economy
+          icon: crown
+          body: Earn and spend coins and gold bars — an isolated economy that never touches the real account ledger.
+    related:
+        - title: CryptoThrone Server
+          href: /project/cryptothrone-server/
+          copy: The Agones-hosted game backend for CryptoThrone.
+          icon: server
+        - title: RareIcon
+          href: /project/rareicon/
+          copy: A sibling KBVE game project.
+          icon: zap
+    related_heading: Related
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Steps, Aside } from '@astrojs/starlight/components';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
+<BentoProse id="roadmap" eyebrow="100 bullet points, 10 phases" heading="Roadmap">
 
-## CryptoThrone
-
-We do not want to disclose too much information on the plot of the game, but we do have a gambit or two or a few.
-When there are updates to fix around the core.
-
-
-<Adsense />
-
-
-### Roadmap
-
-The core of the roadmap is broken into 10 phases that have 10 bullet points in them.
-These 100 total bullet points give us a rough concept to build and foreplay around the game, the engine and the initial hurdles that we will face.
+The core of the roadmap is broken into 10 phases that have 10 bullet points in them. These 100 total bullet points give us a rough concept to build and foreplay around the game, the engine and the initial hurdles that we will face.
 
 #### Phase 1: Concept and Planning
 
-In this phase, the core idea of CryptoThrone.com is defined, market research is conducted, the target audience is identified, and the project timeline is created.
-A development team is assembled, and initial documents for game design and marketing strategy are drafted.
-Budget and funding plans, along with legal considerations, are also established.
+In this phase, the core idea of CryptoThrone.com is defined, market research is conducted, the target audience is identified, and the project timeline is created. A development team is assembled, and initial documents for game design and marketing strategy are drafted. Budget and funding plans, along with legal considerations, are also established.
 
 <Steps>
 
@@ -90,9 +133,7 @@ Budget and funding plans, along with legal considerations, are also established.
 
 #### Phase 2: Branding and Design
 
-This phase focuses on creating the visual identity of CryptoThrone.com.
-It includes designing the logo, developing brand guidelines, creating concept art, designing the UI/UX, and developing website mockups.
-Branding materials and promotional video concepts are also created.
+This phase focuses on creating the visual identity of CryptoThrone.com. It includes designing the logo, developing brand guidelines, creating concept art, designing the UI/UX, and developing website mockups. Branding materials and promotional video concepts are also created.
 
 <Steps>
 
@@ -111,9 +152,7 @@ Branding materials and promotional video concepts are also created.
 
 #### Phase 3: Technical Setup
 
-The technical foundation for the game is established in this phase.
-This includes choosing the game engine, setting up the development environment, creating the initial game repository, setting up project management tools, and developing initial API specifications.
-Security protocols and cloud infrastructure are also implemented.
+The technical foundation for the game is established in this phase. This includes choosing the game engine, setting up the development environment, creating the initial game repository, setting up project management tools, and developing initial API specifications. Security protocols and cloud infrastructure are also implemented.
 
 <Steps>
 
@@ -132,9 +171,7 @@ Security protocols and cloud infrastructure are also implemented.
 
 #### Phase 4: Game Development
 
-The core game mechanics and assets are developed in this phase.
-This includes creating character models, designing environments, implementing combat and resource management systems, and developing multiplayer mechanics.
-AI behavior for NPCs and the leaderboard system are also created.
+The core game mechanics and assets are developed in this phase. This includes creating character models, designing environments, implementing combat and resource management systems, and developing multiplayer mechanics. AI behavior for NPCs and the leaderboard system are also created.
 
 <Steps>
 
@@ -153,9 +190,7 @@ AI behavior for NPCs and the leaderboard system are also created.
 
 #### Phase 5: Audio and Visuals
 
-This phase focuses on the audio and visual components of the game.
-The game soundtrack is designed, sound effects are recorded, animations and special effects are created, and all audio components are integrated.
-Graphics are optimized for performance.
+This phase focuses on the audio and visual components of the game. The game soundtrack is designed, sound effects are recorded, animations and special effects are created, and all audio components are integrated. Graphics are optimized for performance.
 
 <Steps>
 
@@ -174,10 +209,7 @@ Graphics are optimized for performance.
 
 #### Phase 6: Website and Marketing
 
-The official website and marketing materials are developed in this phase.
-This includes building the website's backend and frontend, integrating cryptocurrency wallets, implementing SEO best practices, creating initial blog content, and setting up social media profiles.
-Email marketing campaigns are also developed.
-
+The official website and marketing materials are developed in this phase. This includes building the website's backend and frontend, integrating cryptocurrency wallets, implementing SEO best practices, creating initial blog content, and setting up social media profiles. Email marketing campaigns are also developed.
 
 <Steps>
 
@@ -196,9 +228,7 @@ Email marketing campaigns are also developed.
 
 #### Phase 7: Testing and QA
 
-A comprehensive testing plan is developed and executed in this phase.
-Test cases are created, unit and integration testing are performed, and a bug tracking system is implemented.
-Alpha and beta testing are conducted with internal and external users, respectively, to gather feedback and fix identified bugs.
+A comprehensive testing plan is developed and executed in this phase. Test cases are created, unit and integration testing are performed, and a bug tracking system is implemented. Alpha and beta testing are conducted with internal and external users, respectively, to gather feedback and fix identified bugs.
 
 <Steps>
 
@@ -217,10 +247,7 @@ Alpha and beta testing are conducted with internal and external users, respectiv
 
 #### Phase 8: Pre-Launch
 
-In this phase, the game mechanics are finalized, and the game is optimized for performance.
-Final marketing materials are created, press releases are prepared, and promotional events are planned.
-Early access options are set up, and customer support channels are prepared for the official launch.
-
+In this phase, the game mechanics are finalized, and the game is optimized for performance. Final marketing materials are created, press releases are prepared, and promotional events are planned. Early access options are set up, and customer support channels are prepared for the official launch.
 
 <Steps>
 
@@ -239,9 +266,7 @@ Early access options are set up, and customer support channels are prepared for 
 
 #### Phase 9: Launch
 
-CryptoThrone.com is officially launched in this phase. Server performance is monitored, immediate issues are addressed, and the community is engaged through social media.
-Launch metrics and KPIs are tracked, and promotional events are conducted to boost visibility and engagement.
-
+CryptoThrone.com is officially launched in this phase. Server performance is monitored, immediate issues are addressed, and the community is engaged through social media. Launch metrics and KPIs are tracked, and promotional events are conducted to boost visibility and engagement.
 
 <Steps>
 
@@ -258,12 +283,9 @@ Launch metrics and KPIs are tracked, and promotional events are conducted to boo
 
 </Steps>
 
-
 #### Phase 10: Post-Launch
 
-Post-launch activities focus on gathering player feedback, releasing patches and updates, and developing new content.
-Marketing efforts are expanded, monetization strategies are optimized, and the community is engaged for suggestions.
-Seasonal events and updates are planned, and a long-term roadmap is developed based on post-launch metrics.
+Post-launch activities focus on gathering player feedback, releasing patches and updates, and developing new content. Marketing efforts are expanded, monetization strategies are optimized, and the community is engaged for suggestions. Seasonal events and updates are planned, and a long-term roadmap is developed based on post-launch metrics.
 
 <Steps>
 
@@ -280,7 +302,9 @@ Seasonal events and updates are planned, and a long-term roadmap is developed ba
 
 </Steps>
 
-### Coin Economy
+</BentoProse>
+
+<BentoProse id="economy" eyebrow="In-world currency" heading="Coin economy">
 
 CryptoThrone runs an **internal coin economy** — the in-world currency players earn and spend inside the game. It is **fully isolated** from the KBVE account ledger (Khash / Credits). These two must never cross.
 
@@ -325,27 +349,6 @@ Future economy work (shops, casino, crafting, fees) must operate on `coin` / `go
 
 - **Blackjack table** (`CASINO_TABLE_REF = "cloud-city:casino:6,8"`) settles bets in `coin` only via `spend_coins()` / `coin_balance()` — `packages/rust/simgrid/src/blackjack/system.rs`. No ledger touch.
 
-## FAQ
+</BentoProse>
 
-**What is CryptoThrone.com?**
-CryptoThrone.com is a King of the Hill strategy game where players defend the
-throne against waves of NPCs, build a settlement, and challenge other players to
-become the ruler. It is inspired by epic fantasy and tower-defense games.
-
-**How is CryptoThrone.com built and hosted?**
-It is a KBVE game app (`apps/cryptothrone`) with a Rust `axum-cryptothrone`
-backend, deployed to production on the Agones game-server stack via
-`apps/kube/cryptothrone/manifest/cryptothrone-deployment.yaml`.
-
-**What genre is CryptoThrone.com?**
-It is a King of the Hill strategy game blending settlement building,
-tower-defense-style NPC waves, and competitive player-versus-player battles for
-control of the throne.
-
-## Related
-
-- [Unity RareIcon](/docs/project/unity-rareicon) — another KBVE game client.
-- [API](/docs/project/api) — the shared axum API stack that game backends build on.
-
-
-<Giscus />
+</BentoDoc>
