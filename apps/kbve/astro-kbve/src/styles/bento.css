@@ -282,6 +282,16 @@
 		animation: bento-wire-dots 900ms linear infinite;
 	}
 
+	/* Highway connector: blue, for timelines/roads — distinct from gold
+	   workflow wires and red live events */
+	.bento-wire--highway {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-blue, #4c88ef) 70%,
+			transparent
+		);
+	}
+
 	/* Live-event connector: brand red, stands apart from the gold rails */
 	.bento-wire--live {
 		stroke: color-mix(

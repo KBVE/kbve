@@ -185,6 +185,9 @@ export default function BentoFlowIsland() {
 	const [nodes, setNodes] = useState(initialNodes);
 	const [activeIds, setActiveIds] = useState<string[]>([]);
 	const [cargo, setCargo] = useState<string | null>(null);
+	const [tabs, setTabs] = useState<
+		Array<{ id: number; word: string; running: boolean }>
+	>([]);
 	const wrapRef = useRef<HTMLDivElement>(null);
 
 	const onNodesChange = useCallback(
@@ -199,28 +202,34 @@ export default function BentoFlowIsland() {
 		).matches;
 		if (reduced) return;
 
-		let visible = true;
 		let step = -1;
 		let running: { id: number; word: string } | null = null;
 		const pending: Array<{ id: number; word: string }> = [];
 		let lastRun = performance.now();
 
-		const io = new IntersectionObserver(([entry]) => {
-			visible = entry.isIntersecting;
-		});
-		if (wrapRef.current) io.observe(wrapRef.current);
+		const syncTabs = () =>
+			setTabs([
+				...(running
+					? [{ id: running.id, word: running.word, running: true }]
+					: []),
+				...pending.map((p) => ({
+					id: p.id,
+					word: p.word,
+					running: false,
+				})),
+			]);
 
 		const unsubShipments = $bentoShipment.listen((shipment) => {
 			if (shipment?.stage !== 'arrived') return;
 			if (pending.length < 3) {
 				pending.push({ id: shipment.id, word: shipment.word });
+				syncTabs();
 			} else {
 				advanceBentoShipment(shipment.id, 'dropped');
 			}
 		});
 
 		const id = setInterval(() => {
-			if (!visible) return;
 			if (step === -1) {
 				const idleFor = performance.now() - lastRun;
 				const nextShipment = pending.shift();
@@ -228,6 +237,7 @@ export default function BentoFlowIsland() {
 					running = nextShipment;
 					setCargo(nextShipment.word);
 					step = 0;
+					syncTabs();
 				} else if (idleFor > 12_000) {
 					running = null;
 					setCargo(null);
@@ -244,6 +254,7 @@ export default function BentoFlowIsland() {
 				if (running) {
 					advanceBentoShipment(running.id, 'delivered');
 					running = null;
+					syncTabs();
 				}
 				setCargo(null);
 			}
@@ -251,7 +262,6 @@ export default function BentoFlowIsland() {
 
 		return () => {
 			clearInterval(id);
-			io.disconnect();
 			unsubShipments();
 		};
 	}, []);
@@ -270,9 +280,22 @@ export default function BentoFlowIsland() {
 
 	return (
 		<div ref={wrapRef} style={{ width: '100%', height: '100%' }}>
-			{cargo && (
-				<div className="bento-flow__ticker bento-chip">
-					shipping <strong>{cargo}</strong>
+			{tabs.length > 0 && (
+				<div className="bento-flow__tabs" aria-label="Workflow queue">
+					{tabs.map((t) => (
+						<span
+							key={t.id}
+							className={
+								'bento-flow__tab bento-chip' +
+								(t.running ? ' is-running' : '')
+							}>
+							<span
+								className="bento-flow__tab-dot"
+								aria-hidden="true"
+							/>
+							WF #{t.id} · <strong>{t.word}</strong>
+						</span>
+					))}
 				</div>
 			)}
 			<ReactFlow
