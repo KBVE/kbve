@@ -75,7 +75,54 @@
 	.facet-panel {
 		display: flex;
 		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.facet-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 0.625rem 0.85rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 8px;
+		cursor: pointer;
+	}
+
+	.facet-toggle__chevron {
+		transition: transform 200ms ease;
+	}
+
+	.facet-toggle__chevron--open {
+		transform: rotate(180deg);
+	}
+
+	.facet-groups {
+		display: none;
+		flex-direction: column;
 		gap: 1.5rem;
+	}
+
+	.facet-groups--open {
+		display: flex;
+	}
+
+	@media (min-width: 1024px) {
+		.facet-toggle {
+			display: none;
+		}
+
+		.facet-groups {
+			display: flex;
+		}
 	}
 
 	.facet-search__input {
@@ -121,8 +168,9 @@
 		justify-content: space-between;
 		gap: 0.5rem;
 		width: 100%;
-		padding: 0.35rem 0.5rem;
-		font-size: 0.8125rem;
+		min-height: 2.5rem;
+		padding: 0.5rem;
+		font-size: 0.875rem;
 		text-align: left;
 		color: var(--sl-color-gray-2);
 		background: transparent;
@@ -156,6 +204,14 @@
 		font-size: 0.6875rem;
 		font-variant-numeric: tabular-nums;
 		color: var(--sl-color-gray-4);
+	}
+
+	@media (min-width: 1024px) {
+		.facet-row {
+			min-height: 0;
+			padding: 0.35rem 0.5rem;
+			font-size: 0.8125rem;
+		}
 	}
 
 	/* Full-width section band: black surface + bottom hairline seam */
@@ -292,11 +348,13 @@
 		);
 	}
 
-	/* Live-event connector: brand red, stands apart from the gold rails */
+	/* Live-event connector: brand red, stands apart from the gold rails.
+	   Raw brand token on purpose — dark theme remaps --sl-color-text-accent
+	   to gold, which would collapse the wire color grammar. */
 	.bento-wire--live {
 		stroke: color-mix(
 			in srgb,
-			var(--sl-color-text-accent) 85%,
+			color-mix(in srgb, var(--color-red, #ad0013) 65%, white) 85%,
 			transparent
 		);
 	}

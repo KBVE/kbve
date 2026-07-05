@@ -3,7 +3,7 @@ import AstroDroidFooter from './AstroDroidFooter.astro';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 import SocialIcon from '@kbve/astro/components/social/icons/SocialIcon.astro';
 import { SOCIALS, withUtm } from '@kbve/astro/data/socials';
-import AstroYukiDock from '@/components/jay/dock/AstroYukiDock.astro';
+// import AstroYukiDock from '@/components/jay/dock/AstroYukiDock.astro';
 
 const legalLinks = [
 	{ href: '/legal/privacy', label: 'Privacy' },
@@ -213,13 +213,14 @@ const currentYear = new Date().getFullYear();
 	<AstroDroidFooter />
 </footer>
 
-<AstroYukiDock />
+{/* <AstroYukiDock /> */}
 
 <style>
 	.kf-footer {
 		margin-top: 0;
 		background-color: var(--sl-color-black);
 		border-top: 1px solid var(--bento-hairline);
+		overflow-x: clip;
 	}
 
 	.kf-container {
