@@ -530,6 +530,16 @@ fn damage(
     (dmg, typ)
 }
 
+pub fn expected_damage(att: &Combatant, def: &Combatant, mv: &MoveData) -> i32 {
+    let (dmg, _) = damage(att, def, mv, false, 92);
+    let acc = if mv.accuracy <= 0.0 {
+        1.0
+    } else {
+        mv.accuracy.clamp(0.0, 1.0)
+    };
+    (dmg as f32 * acc) as i32
+}
+
 impl BattleState {
     /// Open a battle between two full teams.
     pub fn versus(root: u32, player: Vec<Combatant>, enemy: Vec<Combatant>) -> BattleState {
@@ -1084,5 +1094,20 @@ mod tests {
         b.check_outcome(&mut Vec::new());
         assert_eq!(b.outcome, BattleOutcome::PlayerWon);
         assert!(!b.needs_replacement(Side::Enemy));
+    }
+
+    #[test]
+    fn expected_damage_scores_moves_for_ai() {
+        let att = combatant(20);
+        let def = combatant(20);
+        let tackle = MoveData::from_ability(&mechamutt().abilities[0]);
+        let spark = MoveData::from_ability(&mechamutt().abilities[1]);
+        assert!(expected_damage(&att, &def, &spark) > expected_damage(&att, &def, &tackle));
+        let mut wild = tackle.clone();
+        wild.accuracy = 0.5;
+        assert!(expected_damage(&att, &def, &wild) < expected_damage(&att, &def, &tackle));
+        let mut status = tackle.clone();
+        status.power = 0;
+        assert_eq!(expected_damage(&att, &def, &status), 0);
     }
 }
