@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-04T10:17:00Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-05T10:21:28Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**30** critical/high severity findings across the monorepo.
+**29** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-07-04T10:17:00Z** — updated daily by `ci-dashboard`.
   <Card title="5 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="25 High" icon="error">
+  <Card title="24 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="55 Medium" icon="information">
+  <Card title="53 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="8 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-07-04T10:17:00Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **64** advisories
+    **61** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **58** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-07-04T10:17:00Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 5
-    "High" : 25
-    "Medium" : 55
+    "High" : 24
+    "Medium" : 53
     "Low" : 8
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 64
+    "npm" : 61
     "Cargo" : 58
     "CodeQL" : 5
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 25 | 29 | 8 | 64 |
+| **npm** | 2 | 24 | 27 | 8 | 61 |
 | **Cargo** | 0 | 0 | 24 | 0 | 58 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 2 | 0 | 5 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 25 | 55 | 8 | 127 |
+| **Total** | 5 | 24 | 53 | 8 | 124 |
 
   </TabItem>
   <TabItem label="npm">
@@ -97,7 +97,6 @@ pie showData
 |----------|---------|----------|------|
 | Critical | `vitest` | When Vitest UI server is listening, arbitrary file can be... | [Details](https://github.com/advisories/GHSA-5xrq-8626-4rwp) |
 | Critical | `shell-quote` | shell-quote quote() does not escape newlines in object .o... | [Details](https://github.com/advisories/GHSA-w7jw-789q-3m8p) |
-| High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
 | High | `serialize-javascript` | Serialize JavaScript is Vulnerable to RCE via RegExp.flag... | [Details](https://github.com/advisories/GHSA-5c6j-r48x-rmvq) |
@@ -129,7 +128,6 @@ pie showData
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
 | Medium | `qs` | qs's arrayLimit bypass in its bracket notation allows DoS... | [Details](https://github.com/advisories/GHSA-6rw7-vpxm-498p) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
-| Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
@@ -138,7 +136,6 @@ pie showData
 | Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `qs` | qs has a remotely triggerable DoS: qs.stringify crashes w... | [Details](https://github.com/advisories/GHSA-q8mj-m7cp-5q26) |
-| Medium | `brace-expansion` | brace-expansion: Large numeric range defeats documented `... | [Details](https://github.com/advisories/GHSA-jxxr-4gwj-5jf2) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `tar` | node-tar applies PAX size override to intermediary GNU lo... | [Details](https://github.com/advisories/GHSA-vmf3-w455-68vh) |
 | Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
