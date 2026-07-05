@@ -18,6 +18,12 @@ version_toml: packages/npm/droid/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the Droid package?
@@ -26,64 +32,68 @@ jsonld:
           answer: Droid handles service workers for offline support, shared workers for cross-tab communication, and web workers for parallel processing. It ships prebuilt workers including canvas, IndexedDB, WebSocket, and Supabase shared and DB workers.
         - question: Does Droid work with React, Vue, or Angular?
           answer: Yes. Droid is framework-agnostic and works in vanilla JavaScript as well as with React, Vue, or Angular. It uses comlink for worker messaging and dependencies such as dexie, zod, and nanostores under the hood.
+bento:
+    badge: npm · typescript · workers
+    title: Unified worker manager —
+    accent: Droid
+    lede: >-
+        A lightweight manager for service workers, shared workers, and web
+        workers in modern JavaScript and TypeScript apps. It abstracts away the
+        boilerplate and browser inconsistencies of worker setup, messaging, and
+        lifecycle so you can offload heavy computation and keep the main thread
+        responsive.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/npm/droid
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: expand
+        title: Framework-agnostic
+        body: >-
+            Usable from vanilla JS or alongside React, Vue, and Angular. comlink
+            gives ergonomic RPC-style calls into workers instead of raw
+            postMessage plumbing.
+        points:
+            - <strong>Prebuilt workers</strong> — canvas, IndexedDB, WebSocket, Supabase shared/DB.
+            - <strong>Deps</strong> — dexie, zod, nanostores, flatbuffers.
+    stats:
+        - { label: Language, value: TypeScript, icon: code }
+        - { label: Registry, value: npm, icon: package }
+        - { label: Messaging, value: comlink, icon: network }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Unified worker API
+          icon: expand
+          body: Register, manage, and message service, shared, and web workers through one consistent interface.
+        - title: Prebuilt workers
+          icon: box
+          body: Canvas, IndexedDB (DB), WebSocket, and Supabase shared / DB workers ship as ready exports.
+        - title: comlink-backed messaging
+          icon: network
+          body: Ergonomic RPC-style calls into workers instead of raw postMessage plumbing.
+        - title: Robust dependency stack
+          icon: database
+          body: dexie for IndexedDB, zod for schema validation, nanostores for state, and flatbuffers for compact payloads.
+    usage:
+        label: install
+        lang: bash
+        code: |
+            npm install @kbve/droid
+    related:
+        - title: Laser
+          href: /project/laser/
+          copy: Sibling KBVE npm package for Phaser + React Three Fiber game UIs.
+          icon: zap
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`@kbve/droid` is a lightweight manager for **service workers, shared workers, and
-web workers** in modern JavaScript and TypeScript apps. It abstracts away the
-boilerplate and browser inconsistencies of worker setup, messaging, and lifecycle
-so developers can offload heavy computation, enable background tasks, and keep the
-main thread responsive. Droid is framework-agnostic — usable from vanilla JS or
-alongside React, Vue, and Angular.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `@kbve/droid` |
-| **Version** | 0.1.1 |
-| **Language** | TypeScript |
-| **License** | MIT |
-| **Source** | [`packages/npm/droid`](https://github.com/KBVE/kbve/tree/main/packages/npm/droid) |
-| **Registry** | npm |
-
-## Features
-
-- **Unified worker API** — register, manage, and message service, shared, and web
-  workers through one consistent interface.
-- **Prebuilt workers** — canvas, IndexedDB (DB), WebSocket, and Supabase shared /
-  DB workers ship as ready exports.
-- **comlink-backed messaging** — ergonomic RPC-style calls into workers instead of
-  raw `postMessage` plumbing.
-- **Framework-agnostic** — works in vanilla JS or with React, Vue, and Angular.
-- **Robust dependency stack** — `dexie` for IndexedDB, `zod` for schema validation,
-  `@nanostores/persistent` for state, and `flatbuffers` for compact payloads.
-
-## Usage
-
-```bash
-npm install @kbve/droid
-```
-
-## FAQ
-
-**What is the Droid package?**
-Droid is a lightweight, framework-agnostic TypeScript library that manages service
-workers, shared workers, and web workers behind a unified API, simplifying setup,
-communication, and lifecycle management so apps can offload heavy work off the main
-thread.
-
-**Which worker types does Droid support?**
-Droid handles service workers for offline support, shared workers for cross-tab
-communication, and web workers for parallel processing. It ships prebuilt workers
-including canvas, IndexedDB, WebSocket, and Supabase shared and DB workers.
-
-**Does Droid work with React, Vue, or Angular?**
-Yes. Droid is framework-agnostic and works in vanilla JavaScript as well as with
-React, Vue, or Angular. It uses comlink for worker messaging and dependencies such
-as dexie, zod, and nanostores under the hood.
-
-## Related
-
-- [Laser](/docs/project/laser) — sibling KBVE npm package for Phaser + React Three Fiber game UIs.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

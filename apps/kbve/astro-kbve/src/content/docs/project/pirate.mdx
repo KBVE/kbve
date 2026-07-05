@@ -13,16 +13,50 @@ unsplash: 1590880449155-b54f958ce314
 img: https://images.unsplash.com/photo-1590880449155-b54f958ce314?fit=crop&w=1400&h=700&q=75
 tags:
     - gaming
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the KBVE Pirate Game Jam project?
           answer: It is the planning and devlog page for KBVE's Pirate game jams, covering team structure, the GDD format, asset sourcing, and development logs. Pirate Jam 17 is in preparation and Pirate Jam 16 was an entry themed "You Are The Weapon".
         - question: Which engine did the Pirate Jam 16 entry use?
           answer: Pirate Jam 16 switched from Unity to Godot mid-jam, so most of the earlier Unity-based planning for that jam went unused.
+bento:
+    badge: gaming
+    title: Pirate Game Jam
+    accent: devlog
+    lede: >-
+        Planning and devlog notes across KBVE's Pirate game jams — team structure,
+        GDD format, and asset sourcing for Jam 17, plus the Jam 16 entry that
+        switched from Unity to Godot mid-jam under the theme "You Are The Weapon".
+    ctas:
+        - label: Pirate 17
+          href: "#pirate-17"
+        - label: Pirate 16
+          href: "#pirate-16"
+    stats:
+        - { label: Pirate Jam 17, value: Planning, icon: calendar }
+        - { label: Pirate Jam 16, value: Godot, icon: gears }
+        - { label: Theme (16), value: 'You Are The Weapon', icon: sword }
+        - { label: Squad, value: 5-person, icon: forum }
+    related:
+        - title: AR
+          href: /project/ar/
+          copy: Another KBVE interactive-media research project.
+          icon: box
+    related_heading: Related
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Pirate 17
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="pirate-17" eyebrow="Next jam" heading="Pirate 17">
 
 ### Preamble
 
@@ -46,8 +80,9 @@ jsonld:
 
     The Pirate 17 devlog, oh boi.
 
+</BentoProse>
 
-## Pirate 16
+<BentoProse id="pirate-16" eyebrow="You Are The Weapon" heading="Pirate 16">
 
 ### Preamble 16
 
@@ -91,17 +126,6 @@ jsonld:
     01/18/2025 - 06:08AM - Updating the build configurations.
     01/18/2025 - 07:35AM - Still need to figure out the joysticks.
 
-## FAQ
+</BentoProse>
 
-**What is the KBVE Pirate Game Jam project?**
-It is the planning and devlog page for KBVE's Pirate game jams, covering team
-structure, the GDD format, asset sourcing, and development logs. Pirate Jam 17 is in
-preparation and Pirate Jam 16 was an entry themed "You Are The Weapon".
-
-**Which engine did the Pirate Jam 16 entry use?**
-Pirate Jam 16 switched from Unity to Godot mid-jam, so most of the earlier
-Unity-based planning for that jam went unused.
-
-## Related
-
-- [AR](/project/ar/) — another KBVE interactive-media research project.
+</BentoDoc>

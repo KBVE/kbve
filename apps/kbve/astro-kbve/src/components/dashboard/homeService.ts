@@ -1,6 +1,7 @@
 import { atom, computed } from 'nanostores';
 import { initSupa, getSupa } from '@/lib/supa';
 import { $auth, AuthFlags, hasAuthFlag, addToast } from '@kbve/droid';
+import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,12 +103,12 @@ export interface ForgejoSummary {
 
 const SUPABASE_URL = 'https://supabase.kbve.com';
 const CACHE_TTL_MS = 2 * 60 * 1000;
-const PROXY_BASE = '/dashboard/grafana/proxy';
+const PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/grafana/proxy`;
 const DS_CACHE_KEY = 'cache:grafana:ds-id';
-const CH_PROXY_BASE = '/dashboard/clickhouse/proxy';
-const VM_PROXY_BASE = '/dashboard/vm/proxy';
+const CH_PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/clickhouse/proxy`;
+const VM_PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/vm/proxy`;
 const VM_NAMESPACE = 'angelscript';
-const FORGEJO_PROXY_BASE = '/dashboard/forgejo/proxy';
+const FORGEJO_PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/forgejo/proxy`;
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -263,10 +264,13 @@ async function fetchArgoSummary(token: string): Promise<ArgoSummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/dashboard/argo/proxy/api/v1/applications', {
-			headers: { Authorization: `Bearer ${token}` },
-			signal: AbortSignal.timeout(8000),
-		});
+		const resp = await fetch(
+			`${DASH_PROXY_BASE}/dashboard/argo/proxy/api/v1/applications`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(8000),
+			},
+		);
 		if (!resp.ok) return null;
 		const json = await resp.json();
 		const items = json?.items ?? [];
@@ -506,7 +510,7 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 	}
 }
 
-const ROWS_PROXY_BASE = '/dashboard/chuckrpg/proxy';
+const ROWS_PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/chuckrpg/proxy`;
 
 async function fetchRowsSummary(token: string): Promise<RowsSummary | null> {
 	const cached = getCache<RowsSummary>('cache:dashboard:rows-summary');

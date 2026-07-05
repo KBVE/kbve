@@ -9,6 +9,12 @@ unsplash: 1516563988150-3e50726d365c
 img: https://images.unsplash.com/photo-1516563988150-3e50726d365c?fit=crop&w=1400&h=700&q=75
 tags:
     - ai
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is Charles?
@@ -17,22 +23,54 @@ jsonld:
           answer: Charles runs NVIDIA RTX 4090 GPUs (currently the MSI Suprim Liquid X, chosen for liquid cooling to enable clustering) with DDR5 RAM, scaling from 32-64GB entry-level up to 256GB or more per node for large datasets.
         - question: How is Charles managed?
           answer: Charles is set up through KBVE's Proxmox environment, with Docker and Kubernetes used to distribute deep-learning workloads across nodes so RAM can be allocated per node role.
+bento:
+    badge: ai
+    title: Multi-GPU ML workstation
+    accent: Charles
+    lede: >-
+        KBVE's internal machine-learning build — a multi-GPU deep-learning
+        workstation intended to cluster NVIDIA RTX 4090 cards for training and
+        serving models. This page captures the hardware notes and software stack
+        behind the build.
+    ctas:
+        - label: Hardware
+          href: '#hardware'
+        - label: Software
+          href: '#software'
+    stats:
+        - { label: Name, value: charles, icon: server }
+        - { label: GPU, value: 'RTX 4090', icon: zap }
+        - { label: RAM, value: 'DDR5 up to 256GB+', icon: database }
+        - { label: Orchestration, value: 'Docker + K8s', icon: gears }
+    features:
+        - title: Clustered RTX 4090s
+          icon: zap
+          body: Liquid-cooled MSI Suprim Liquid X cards, chosen so multiple 4090s can cluster together.
+        - title: DDR5 memory
+          icon: database
+          body: Scales from 32-64GB entry-level up to 256GB+ per node for large datasets.
+        - title: Proxmox virtualized
+          icon: server
+          body: The build runs on KBVE Proxmox with Docker and Kubernetes distributing workloads.
+        - title: Per-node scaling
+          icon: expand
+          body: RAM is allocated by each node's role rather than uniformly, enhancing the scaling strategy.
+    features_eyebrow: The build
+    features_heading: Highlights
+    related:
+        - title: LofiFocus
+          href: /project/lofifocus/
+          copy: A KBVE AI project that trains and serves generative audio models.
+          icon: activity
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-Charles is KBVE's internal machine-learning build and project: a multi-GPU deep-learning workstation intended to cluster NVIDIA RTX 4090 cards for training and serving models. This page captures the hardware notes and software stack behind the build.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Key facts
-
-| | |
-|---|---|
-| **Name** | `charles` |
-| **Role** | Internal machine-learning build/project |
-| **GPU** | NVIDIA RTX 4090 (MSI Suprim Liquid X) |
-| **RAM** | DDR5, 32GB up to 256GB+ per node |
-| **Virtualization** | Proxmox |
-| **Orchestration** | Docker + Kubernetes |
+<BentoProse id="hardware" eyebrow="Build notes" heading="Hardware">
 
 ## Information
 
@@ -90,9 +128,9 @@ Instead, RAM can be allocated according to the specific role and demand of each 
 Remember to always tailor your cluster's configuration to your specific needs.
 Monitoring tools can help gauge memory usage in real-time and assist in making informed decisions about future upgrades.
 
----
+</BentoProse>
 
-## Software
+<BentoProse id="software" eyebrow="Stack" heading="Software">
 
 ### Proxmox
 
@@ -106,17 +144,6 @@ This section will be for the machine learning and ai eco-system + notes.
 
 This section will be for our gaming section.
 
-## FAQ
+</BentoProse>
 
-**What is Charles?**
-Charles is KBVE's internal machine-learning build and project — a multi-GPU deep-learning workstation designed to cluster NVIDIA RTX 4090 cards for training and serving machine-learning models.
-
-**What GPUs and memory does Charles use?**
-Charles runs NVIDIA RTX 4090 GPUs (currently the MSI Suprim Liquid X, chosen for liquid cooling to enable clustering) with DDR5 RAM, scaling from 32-64GB entry-level up to 256GB or more per node for large datasets.
-
-**How is Charles managed?**
-Charles is set up through KBVE's Proxmox environment, with Docker and Kubernetes used to distribute deep-learning workloads across nodes so RAM can be allocated per node role.
-
-## Related
-
-- [LofiFocus](/docs/project/lofifocus) — a KBVE AI project that trains and serves generative audio models.
+</BentoDoc>

@@ -233,6 +233,16 @@ async fn main() -> anyhow::Result<()> {
         info!("Vibeshine proxy not configured (using default wg tunnel URL)");
     }
 
+    // Initialize Vibeshine WebRTC signaling relay (optional - DASHBOARD_VIEW gated,
+    // separate webrtc-scoped upstream token via VIBESHINE_WEBRTC_TOKEN)
+    if transport::proxy::init_vibeshine_webrtc_proxy() {
+        info!(
+            "Vibeshine WebRTC relay initialized - /api/v1/vibeshine/webrtc/* enabled (DASHBOARD_VIEW required)"
+        );
+    } else {
+        info!("Vibeshine WebRTC relay not configured (using default wg tunnel URL)");
+    }
+
     // Initialize Firecracker-Net proxy (optional - DASHBOARD_MANAGE gated, routes to firecracker-ctl-net with Gluetun/WireGuard sidecar)
     if transport::proxy::init_firecracker_net_proxy() {
         info!(

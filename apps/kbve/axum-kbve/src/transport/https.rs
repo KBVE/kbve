@@ -668,6 +668,10 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::vibeshine_status_handler),
         )
         .route(
+            "/api/v1/vibeshine/webrtc/{*rest}",
+            any(super::proxy::vibeshine_webrtc_handler),
+        )
+        .route(
             "/dashboard/firecracker-net/proxy/{*path}",
             any(super::proxy::firecracker_net_proxy_handler),
         )

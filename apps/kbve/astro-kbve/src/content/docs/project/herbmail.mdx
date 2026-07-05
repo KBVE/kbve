@@ -30,6 +30,12 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is HerbMail?
@@ -38,7 +44,59 @@ jsonld:
           answer: HerbMail offers monthly spice-box subscriptions tailored to your tastes, an AI-driven Spice Sommelier that pairs herbs and spices to your ingredients, live online workshops with chefs, and a loyalty rewards program.
         - question: How is HerbMail built and hosted?
           answer: HerbMail runs on an axum (Rust) backend shipped as the kbve/herbmail Docker image and deployed on the KBVE application Kubernetes stack in production.
+bento:
+    badge: design
+    title: Gourmet herbs & spices from
+    accent: HerbMail
+    lede: >-
+        A global online herbs and spices platform — regional kits, seasonal
+        specials, rare finds, subscription boxes, and an AI Spice Sommelier,
+        served by a Rust axum backend on the KBVE application stack.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/herbmail
+          primary: true
+          external: true
+        - label: Products
+          href: "#products"
+        - label: Brand
+          href: "#brand"
+    stats:
+        - { label: App, value: herbmail, icon: box }
+        - { label: Backend, value: 'Rust (axum)', icon: rust }
+        - { label: Image, value: kbve/herbmail, icon: package }
+        - { label: Deploy, value: prod, icon: deploy }
+    features:
+        - title: Regional herb kits
+          icon: map
+          body: Curated selections from specific regions like Provence, Tuscany, Kerala, and Sichuan.
+        - title: Subscription boxes
+          icon: calendar
+          body: A monthly spice box tailored to your culinary preferences, with recipes, usage tips, and the stories behind each spice.
+        - title: Spice Sommelier
+          icon: sensor
+          body: An AI-driven tool that pairs the perfect herbs and spices with your meals — just enter your ingredients.
+        - title: Community & workshops
+          icon: forum
+          body: Live online workshops hosted by seasoned chefs and spice experts, plus a loyalty rewards program.
+    related:
+        - title: API
+          href: /project/api/
+          copy: The KBVE core API service.
+          icon: server
+        - title: Edge
+          href: /project/edge/
+          copy: KBVE edge application services.
+          icon: network
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="products" eyebrow="Platform & products" heading="Explore & innovations">
 
 ## Introduction
 
@@ -81,6 +139,10 @@ Just enter your ingredients, and our AI-driven tool will suggest the best spices
 
 Join live online workshops hosted by seasoned chefs and spice experts.
 Learn new recipes, get tips on herb and spice pairings, and connect with fellow culinary enthusiasts.
+
+</BentoProse>
+
+<BentoProse id="brand" eyebrow="Growth & values" heading="Marketing & sustainability">
 
 ## Marketing Magic
 
@@ -139,23 +201,6 @@ Visit us at HerbMail.com and discover how easy and enjoyable it is to bring the 
 Sign up today and receive 10% off your first order.
 Let’s spice up your mealtime adventures together!
 
-## FAQ
+</BentoProse>
 
-**What is HerbMail?**
-HerbMail.com is a global online platform for gourmet herbs and spices, offering
-regional herb kits, seasonal specials, and rare hard-to-find finds delivered to
-your kitchen.
-
-**What services does HerbMail offer?**
-HerbMail offers monthly spice-box subscriptions tailored to your tastes, an
-AI-driven Spice Sommelier that pairs herbs and spices to your ingredients, live
-online workshops with chefs, and a loyalty rewards program.
-
-**How is HerbMail built and hosted?**
-HerbMail runs on an axum (Rust) backend shipped as the `kbve/herbmail` Docker image
-and deployed on the KBVE application Kubernetes stack in production.
-
-## Related
-
-- [API](/docs/project/api) — the KBVE core API service.
-- [Edge](/docs/project/edge) — KBVE edge application services.
+</BentoDoc>

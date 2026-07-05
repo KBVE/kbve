@@ -2,6 +2,12 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import {
+	clusterHealthStats,
+	fetchClusterHealth,
+	namespaceStats,
+} from '../clusterHealth';
+import type { ClusterHealth } from '../clusterHealth';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -39,6 +45,15 @@ export interface GrafanaStreamOptions {
 	/** Origin for the proxy. '' (relative) on web, absolute URL on mobile. */
 	baseUrl?: string;
 	pollMs?: number;
+}
+
+// The live store, captured so stat tiles can toggle the matching filter
+// (one grafana stream is mounted at a time on a page).
+let activeStore: StreamStore<AlertItem> | null = null;
+
+function toggleFilter(id: string): void {
+	const cur = activeStore?.get().filterId ?? null;
+	activeStore?.setFilter(cur === id ? null : id);
 }
 
 // ---------------------------------------------------------------------------
@@ -97,13 +112,17 @@ export function createGrafanaStream(
 ): StreamStore<AlertItem> {
 	const { getToken, baseUrl = '', pollMs = 30_000 } = opts;
 
-	return createStreamSource<RawAlert, AlertItem>({
+	const store = createStreamSource<RawAlert, AlertItem>({
 		key: 'grafana:alerts',
 		pollMs,
 		cacheTtlMs: 60_000,
 		id: (it) => it.id,
 		signature: (it) => `${it.state}|${it.activeAt}|${it.value}`,
 		normalize,
+		fetchMeta: ({ signal }) =>
+			getToken().then((token) =>
+				fetchClusterHealth(baseUrl, token, signal),
+			),
 		fetch: async ({ signal }) => {
 			const token = await getToken();
 			const res = await fetch(
@@ -135,6 +154,8 @@ export function createGrafanaStream(
 			});
 		},
 	});
+	activeStore = store;
+	return store;
 }
 
 // ---------------------------------------------------------------------------
@@ -188,29 +209,37 @@ export const grafanaLens: StreamLens<AlertItem> = {
 				it.severity === 'critical' || it.severity === 'high',
 		},
 	],
-	stats: (items) => [
-		{ id: 'total', label: 'Total Alerts', value: items.length },
-		{
-			id: 'firing',
-			label: 'Firing',
-			tone: 'danger',
-			value: items.filter((i) => i.state === 'firing').length,
-		},
-		{
-			id: 'pending',
-			label: 'Pending',
-			tone: 'warning',
-			value: items.filter((i) => i.state === 'pending').length,
-		},
-		{
-			id: 'critical',
-			label: 'Critical',
-			tone: 'danger',
-			value: items.filter(
-				(i) => i.severity === 'critical' || i.severity === 'high',
-			).length,
-		},
-	],
+	stats: (items, meta) => {
+		const h = meta as ClusterHealth | null;
+		return [
+			...clusterHealthStats(h),
+			...namespaceStats(h),
+			{ id: 'total', label: 'Total Alerts', value: items.length },
+			{
+				id: 'firing',
+				label: 'Firing',
+				tone: 'danger',
+				value: items.filter((i) => i.state === 'firing').length,
+				onPress: () => toggleFilter('firing'),
+			},
+			{
+				id: 'pending',
+				label: 'Pending',
+				tone: 'warning',
+				value: items.filter((i) => i.state === 'pending').length,
+				onPress: () => toggleFilter('pending'),
+			},
+			{
+				id: 'critical',
+				label: 'Critical',
+				tone: 'danger',
+				value: items.filter(
+					(i) => i.severity === 'critical' || i.severity === 'high',
+				).length,
+				onPress: () => toggleFilter('critical'),
+			},
+		];
+	},
 	row: (it) => (
 		<Surface padded={false} style={styles.row}>
 			<View

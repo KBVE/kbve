@@ -31,6 +31,12 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does Firecracker CTL do?
@@ -39,7 +45,76 @@ jsonld:
           answer: Code arrives via env.CODE, is written to a padded raw block attached as a second drive (/dev/vdb), and the VM init reads it, writes /tmp/code, and execs the entrypoint passed through boot_args.
         - question: What are persistent endpoints?
           answer: Long-lived VMs in the networked -net deployment that expose HTTP servers over per-VM TAP networking, routed by name from the public edge and living until explicitly deleted.
+bento:
+    badge: docker · firecracker · rust
+    title: MicroVM control API for
+    accent: Firecracker
+    lede: >-
+        A Rust Axum REST API for managing Firecracker microVMs — VM lifecycle,
+        ephemeral untrusted code execution, and persistent HTTP endpoints with
+        per-VM TAP networking across two trust-scoped deployments.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/vm/firecracker-ctl
+          primary: true
+          external: true
+        - label: Overview
+          href: "#overview"
+        - label: Two ecosystems
+          href: "#ecosystems"
+        - label: Persistent endpoints
+          href: "#persistent"
+    aside:
+        icon: shield
+        title: Two ecosystems by trust level
+        body: >-
+            Firecracker runs in two parallel deployments in the same namespace,
+            chosen by trust level — <code>firecracker-ctl</code> for ephemeral
+            untrusted code (MMDS only) and <code>firecracker-ctl-net</code> for
+            VPN-tunneled persistent endpoints (staff only).
+        points:
+            - <strong>Untrusted</strong> — MMDS-only, edge + dashboard, ephemeral.
+            - <strong>Networked</strong> — Gluetun/WireGuard VPN, persistent, staff.
+    stats:
+        - { label: App, value: firecracker-ctl, icon: server }
+        - { label: Language, value: 'Rust (Axum)', icon: rust }
+        - { label: Service, value: 'ClusterIP :9001', icon: activity }
+        - { label: Requires, value: /dev/kvm, icon: lock }
+    features:
+        - title: VM lifecycle API
+          icon: box
+          body: Create, poll status, fetch results, and destroy microVMs with per-VM timeout enforcement and in-memory state via DashMap.
+        - title: Ephemeral code execution
+          icon: code
+          body: User code booted into a VM via a raw block drive (/dev/vdb) — written, padded, attached, and exec'd by the VM init.
+        - title: Persistent endpoints
+          icon: server
+          body: Named long-lived VMs exposing HTTP servers routed by name from the public edge, on the -net deployment only.
+        - title: Pre-built rootfs
+          icon: package
+          body: Alpine minimal / python / node ext4 images built in-cluster via an ArgoCD PostSync hook.
+    related:
+        - title: Firecracker Python Web
+          href: /project/firecracker-python-web/
+          copy: Python FastAPI web rootfs image for long-lived endpoints.
+          icon: package
+        - title: Firecracker Node Web
+          href: /project/firecracker-node-web/
+          copy: Node.js Fastify web rootfs image for long-lived endpoints.
+          icon: package
+        - title: Firecracker Python Net
+          href: /project/firecracker-python-net/
+          copy: Networked Python endpoint rootfs image.
+          icon: network
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Lifecycle & rootfs" heading="Overview">
 
 ## Overview
 
@@ -104,6 +179,10 @@ All manifests in `apps/kube/firecracker/manifests/`:
 - **KEDA ScaledObject** — minReplicas=1, cron scales to 2 during peak hours
 - **Rootfs Init Job** — ArgoCD PostSync hook, builds ext4 images in-cluster
 
+</BentoProse>
+
+<BentoProse id="ecosystems" eyebrow="Trust levels" heading="Two ecosystems">
+
 ## Two Ecosystems
 
 Firecracker runs in two parallel deployments in the same namespace, chosen by trust level:
@@ -114,6 +193,10 @@ Firecracker runs in two parallel deployments in the same namespace, chosen by tr
 | `firecracker-ctl-net` | Gluetun/WireGuard VPN | Dashboard only (staff) | Persistent endpoints with outbound internet |
 
 `firecracker-ctl-net` shares its network namespace with a Gluetun sidecar — all VM traffic exits through a WireGuard tunnel, so user code in VMs never sees the raw host network. This is the only ecosystem that hosts persistent endpoints.
+
+</BentoProse>
+
+<BentoProse id="persistent" eyebrow="Named long-lived VMs" heading="Persistent endpoints (/fc/*)">
 
 ## Persistent Endpoints (`/fc/*`)
 
@@ -191,25 +274,6 @@ New rootfs image planned: `alpine-python-web` (Alpine + Python + uvicorn + a tin
 - **Phase 5** — on-disk state + auto-redeploy on pod restart
 - **Phase 6** — per-endpoint quotas + metrics dashboard
 
-## FAQ
+</BentoProse>
 
-**What does Firecracker CTL do?**
-It is a Rust Axum REST API that manages Firecracker microVMs — creating, polling,
-and destroying them — with per-VM timeout enforcement and in-memory state tracking
-via DashMap.
-
-**How is user code executed inside a VM?**
-Code arrives via `env.CODE`, is written to a padded raw block attached as a second
-drive (`/dev/vdb`), and the VM init reads it, writes `/tmp/code`, and execs the
-entrypoint passed through `boot_args`.
-
-**What are persistent endpoints?**
-Long-lived VMs in the networked `-net` deployment that expose HTTP servers over
-per-VM TAP networking, routed by name from the public edge and living until
-explicitly deleted.
-
-## Related
-
-- [Firecracker Python Web](/docs/project/firecracker-python-web) — Python web rootfs image.
-- [Firecracker Node Web](/docs/project/firecracker-node-web) — Node.js web rootfs image.
-- [Firecracker Python Net](/docs/project/firecracker-python-net) — networked Python endpoint image.
+</BentoDoc>

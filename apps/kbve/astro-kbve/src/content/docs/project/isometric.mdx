@@ -15,6 +15,12 @@ source_path: apps/kbve/isometric
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the KBVE Isometric game?
@@ -23,6 +29,79 @@ jsonld:
           answer: The game runs as a client that connects to an authoritative headless Bevy server hosted inside axum-kbve. Transport is WebTransport (QUIC/UDP) when available, falling back to WebSocket (TCP/TLS at wss://kbve.com/ws) on Safari and older browsers.
         - question: How are items defined in Isometric?
           answer: Items are authored as MDX files in the itemdb collection and baked into the game binary at compile time. Run the sync-itemdb script to regenerate after adding items; the build currently ships 117+ proto-driven item definitions.
+bento:
+    badge: game · bevy · rust · wasm
+    title: Multiplayer isometric world in
+    accent: Rust + Bevy
+    lede: >-
+        KBVE's flagship multiplayer browser experience — an isometric 3D world
+        built entirely in Rust with Bevy 0.18, networked via lightyear, rendered
+        through WebGPU in the browser, and shipped as a Tauri 2 native desktop app.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/kbve/isometric
+          primary: true
+          external: true
+        - label: Architecture
+          href: "#architecture"
+        - label: Running locally
+          href: "#running"
+    aside:
+        icon: network
+        title: Client + authoritative server
+        body: >-
+            The game runs as a client connecting to an authoritative headless
+            Bevy server inside axum-kbve — WebTransport (QUIC/UDP) when
+            available, falling back to WebSocket (TCP/TLS) automatically.
+        points:
+            - <strong>Primary</strong> — WebSocket at wss://kbve.com/ws, all browsers.
+            - <strong>Low-latency</strong> — WebTransport on Chrome/Edge.
+    stats:
+        - { label: Engine, value: Bevy 0.18, icon: gears }
+        - { label: Networking, value: lightyear, icon: network }
+        - { label: Physics, value: avian3d, icon: box }
+        - { label: Items, value: 117+, icon: inventory }
+    features:
+        - title: Procedural terrain
+          icon: map
+          body: Procedural isometric terrain with tile-based collision.
+        - title: Day/night cycle
+          icon: render
+          body: Dynamic lighting and fireflies driving a full day/night cycle.
+        - title: Resource gathering
+          icon: bag
+          body: Harvest trees, rocks, ores, flowers, and mushrooms across the world.
+        - title: Proto-driven inventory
+          icon: inventory
+          body: A 16-slot inventory backed by 117+ proto-driven item definitions.
+        - title: Creature AI
+          icon: eye
+          body: A creature system (frogs, fireflies) driven by behavioral AI.
+        - title: Server-authoritative
+          icon: server
+          body: Server-authoritative physics and entity replication.
+        - title: Supabase auth
+          icon: lock
+          body: JWT authentication with Supabase.
+        - title: Pixel-art shader
+          icon: render
+          body: A pixel-art post-processing shader over the 3D scene.
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate/
+          copy: The isometric camera controller powering this game.
+          icon: eye
+        - title: bevy_behavior
+          href: /project/bevy-behavior-crate/
+          copy: Behavior tree engine driving the creature AI.
+          icon: gears
+        - title: CryptoThrone Server
+          href: /project/cryptothrone-server/
+          copy: Sibling Bevy multiplayer server in the KBVE stack.
+          icon: server
+    features_eyebrow: What it ships
+    features_heading: Features
+    related_heading: Related
 ---
 
 import {
@@ -31,8 +110,12 @@ import {
     Card,
     CardGrid,
 } from '@astrojs/starlight/components';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Overview
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it is" heading="Overview">
 
 The **Isometric** game is KBVE's flagship multiplayer browser experience — an isometric 3D world built entirely in Rust with Bevy 0.18, networked via lightyear, and rendered through WebGPU in the browser.
 
@@ -51,7 +134,9 @@ The **Isometric** game is KBVE's flagship multiplayer browser experience — an 
     </Card>
 </CardGrid>
 
-## Architecture
+</BentoProse>
+
+<BentoProse id="architecture" eyebrow="Client / server" heading="Architecture">
 
 The game runs as a **client** that connects to an **authoritative server** hosted inside `axum-kbve`. The server runs a headless Bevy app with lightyear server plugins and avian3d physics.
 
@@ -74,18 +159,9 @@ WebTransport is preferred when available. Safari and older browsers fall back to
 | `bevy_kbve_net`  | Protocol types shared between client and server      |
 | `bevy_tasker`    | Async task bridge for WASM/native                    |
 
-## Features
+</BentoProse>
 
-- Procedural isometric terrain with tile-based collision
-- Day/night cycle with dynamic lighting and fireflies
-- Resource gathering (trees, rocks, ores, flowers, mushrooms)
-- 16-slot inventory backed by 117+ proto-driven item definitions
-- Creature system (frogs, fireflies) with behavioral AI
-- Server-authoritative physics and entity replication
-- JWT authentication with Supabase
-- Pixel-art post-processing shader
-
-## Running Locally
+<BentoProse id="running" eyebrow="Local dev" heading="Running Locally">
 
 <Steps>
 1. **Full local stack** (game + server):
@@ -117,26 +193,6 @@ Items are defined as MDX files in the [itemdb collection](/itemdb/) and baked in
 node apps/kbve/isometric/scripts/sync-itemdb.mjs
 ```
 
-## FAQ
+</BentoProse>
 
-**What is the KBVE Isometric game?**
-Isometric is KBVE's flagship multiplayer browser game — an isometric 3D world
-built entirely in Rust with Bevy 0.18, networked via lightyear, and rendered
-through WebGPU in the browser. It also ships as a Tauri 2 native desktop app.
-
-**How does Isometric handle networking?**
-The game runs as a client that connects to an authoritative headless Bevy server
-hosted inside `axum-kbve`. Transport is WebTransport (QUIC/UDP) when available,
-falling back to WebSocket (TCP/TLS at `wss://kbve.com/ws`) on Safari and older
-browsers.
-
-**How are items defined in Isometric?**
-Items are authored as MDX files in the itemdb collection and baked into the game
-binary at compile time. Run the `sync-itemdb` script to regenerate after adding
-items; the build currently ships 117+ proto-driven item definitions.
-
-## Related
-
-- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — the isometric camera controller powering this game.
-- [bevy_behavior](/docs/project/bevy-behavior-crate) — behavior tree engine driving the creature AI.
-- [CryptoThrone Server](/docs/project/cryptothrone-server) — sibling Bevy multiplayer server in the KBVE stack.
+</BentoDoc>

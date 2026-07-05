@@ -158,6 +158,7 @@
 	import { initSupa, getSupa } from '@/lib/supa';
 	import { fetchAndCacheProfile, getProfileFromCache } from '@kbve/droid';
 	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
 	onMount(() => {
 		const shell = document.querySelector<HTMLElement>(
@@ -401,7 +402,7 @@
 			url: string,
 			init: RequestInit,
 		): Promise<T> => {
-			const res = await fetch(url, init);
+			const res = await fetch(`${DASH_PROXY_BASE}${url}`, init);
 			if (!res.ok) {
 				const body = await res.text().catch(() => '');
 				let detail = res.statusText;

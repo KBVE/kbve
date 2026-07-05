@@ -240,7 +240,7 @@ export function StreamView<TItem>({
 		);
 	}
 
-	const stats = lens.stats?.(state.items) ?? [];
+	const stats = lens.stats?.(state.items, state.meta) ?? [];
 	const lensU = lens as unknown as StreamLens<unknown>;
 	const storeU = store as unknown as StreamStore<unknown>;
 

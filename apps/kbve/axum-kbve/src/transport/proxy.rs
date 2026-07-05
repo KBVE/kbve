@@ -2120,6 +2120,59 @@ pub async fn vibeshine_status_handler(req: Request<Body>) -> Response {
     }
 }
 
+static VIBESHINE_WEBRTC: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_vibeshine_webrtc_proxy() -> bool {
+    let upstream = std::env::var("VIBESHINE_UPSTREAM_URL")
+        .unwrap_or_else(|_| "https://10.10.0.3:47990".into());
+    let token = std::env::var("VIBESHINE_WEBRTC_TOKEN").ok();
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(5))
+        // No overall timeout — /api/webrtc/.../ice/stream is long-lived SSE.
+        .danger_accept_invalid_certs(true)
+        .http1_only()
+        .build()
+        .expect("failed to build reqwest client for vibeshine webrtc proxy");
+
+    VIBESHINE_WEBRTC
+        .set(ServiceProxy {
+            name: "Vibeshine-WebRTC",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: token,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: true,
+        })
+        .is_ok()
+}
+
+pub async fn vibeshine_webrtc_handler(Path(rest): Path<String>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(str::to_owned);
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "Vibeshine-WebRTC").await
+    {
+        return resp;
+    }
+
+    match VIBESHINE_WEBRTC.get() {
+        Some(proxy) => {
+            let upstream_path = format!("api/webrtc/{rest}");
+            proxy
+                .handle_preauthorized(Some(Path(upstream_path)), req)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Vibeshine WebRTC proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 static FIRECRACKER_NET: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_firecracker_net_proxy() -> bool {

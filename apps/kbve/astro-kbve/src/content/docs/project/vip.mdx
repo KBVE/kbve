@@ -9,6 +9,12 @@ unsplash: 1590840960672-db24958eef9a
 img: https://images.unsplash.com/photo-1590840960672-db24958eef9a?fit=crop&w=1400&h=700&q=75
 tags:
     - twitch
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KBVE VIP?
@@ -17,7 +23,63 @@ jsonld:
           answer: VIP members get priority support, exclusive community and networking access, a resource library of guides and tutorials, regular updates, and early access to beta tests of upcoming features.
         - question: How do you become a KBVE VIP member?
           answer: You visit the KBVE VIP signup page, choose a membership tier, and complete registration. The VIP rank is planned as a monthly or yearly membership purchasable via services such as Patreon and Twitch.
+bento:
+    badge: twitch
+    title: Premium membership —
+    accent: KBVE VIP
+    lede: >-
+        A prestigious membership tier for the KBVE community — exclusive tools,
+        advanced features, premium plugins, priority support, and early access to
+        beta tests of what ships next.
+    ctas:
+        - label: Membership benefits
+          href: "#benefits"
+        - label: How to join
+          href: "#join"
+    aside:
+        icon: key
+        title: Early access & beta tests
+        body: >-
+            VIP members participate in beta tests of upcoming features and tools,
+            and their feedback shapes what ships — meeting the high standards of
+            discerning members.
+        points:
+            - <strong>Billing</strong> — monthly or yearly membership.
+            - <strong>Platforms</strong> — purchasable via Patreon, Twitch, etc.
+    stats:
+        - { label: Billing, value: Monthly / yearly, icon: calendar }
+        - { label: Platforms, value: Patreon · Twitch, icon: twitch }
+        - { label: Access, value: Early beta, icon: key }
+        - { label: Support, value: Priority, icon: shield }
+    features:
+        - title: Exclusive tools
+          icon: key
+          body: A suite of premium tools and features unavailable to the regular user base, for enhanced functionality and performance.
+        - title: Cutting-edge plugins
+          icon: package
+          body: A treasure trove of plugins that transform projects with new functionality and optimizations, integrated seamlessly.
+        - title: Early releases & beta tests
+          icon: zap
+          body: Participate in beta tests of upcoming features and tools; your feedback shapes their development.
+        - title: Priority support
+          icon: shield
+          body: Top-tier customer service that prioritizes VIP inquiries for swift, effective assistance.
+    related:
+        - title: LofiFocus
+          href: /project/lofifocus/
+          copy: A KBVE community project available to members.
+          icon: box
+    features_eyebrow: What you get
+    features_heading: Why join KBVE VIP
+    related_heading: Related
 ---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="benefits" eyebrow="Why join" heading="Membership benefits">
 
 ## Welcome to KBVE VIP
 
@@ -44,6 +106,10 @@ Participate in beta tests of upcoming features and tools. Your feedback will not
 -   **Resource Library**: Unlock a comprehensive digital library filled with guides, tutorials, and case studies designed to help you maximize the use of our tools and features.
 -   **Regular Updates**: Receive monthly updates about new tools, features, and exclusive content directly to your inbox.
 
+</BentoProse>
+
+<BentoProse id="join" eyebrow="Getting started" heading="How to join">
+
 ## How to Join?
 
 Joining KBVE VIP is straightforward:
@@ -63,17 +129,6 @@ _Elevate your experience with KBVE VIP—because you deserve the best._
 The VIP rank will be for very important people of KBVE, I will try to extend out custom services that would normally not be for the public userbase.
 Part of the VIP will include a monthly/yearly membership that they can buy via Pateron, Twitch, ect..
 
-## FAQ
+</BentoProse>
 
-**What is KBVE VIP?**
-KBVE VIP is a premium membership program that offers exclusive tools, advanced features, and premium plugins on top of the KBVE software repository, aimed at very important members of the KBVE community.
-
-**What benefits does KBVE VIP include?**
-VIP members get priority support, exclusive community and networking access, a resource library of guides and tutorials, regular updates, and early access to beta tests of upcoming features.
-
-**How do you become a KBVE VIP member?**
-You visit the KBVE VIP signup page, choose a membership tier, and complete registration. The VIP rank is planned as a monthly or yearly membership purchasable via services such as Patreon and Twitch.
-
-## Related
-
-- [LofiFocus](/docs/project/lofifocus) — a KBVE community project available to members.
+</BentoDoc>

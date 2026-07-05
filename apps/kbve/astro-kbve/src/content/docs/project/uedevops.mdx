@@ -25,6 +25,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the UEDevOps plugin do?
@@ -33,18 +39,76 @@ jsonld:
           answer: Yes. UEDevOps exposes Blueprint-powered telemetry so you can capture errors and gameplay events and send structured POST logs without writing C++.
         - question: What plugins does UEDevOps depend on?
           answer: It depends on KBVEYYJson, KBVEXXHash, and KBVEZstd, plus Unreal's EditorScriptingUtilities, and ships both Runtime and Editor modules.
+bento:
+    badge: unreal · devops
+    title: Telemetry & DevOps toolkit
+    accent: UEDevOps
+    lede: >-
+        A DevOps toolkit plugin for Unreal Engine that streamlines debugging,
+        observability, and telemetry inside a project. It captures player
+        errors, runtime gameplay events, and editor diagnostics, then ships
+        them to a backend, git, or analytics stack — exposed as Blueprint nodes
+        and editor utilities.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/UEDevOps
+          primary: true
+          external: true
+        - label: Key facts
+          href: "#facts"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: chart
+        title: Blueprint-powered telemetry
+        body: >-
+            Telemetry is exposed as Blueprint nodes and editor utilities across
+            runtime and editor — capture errors and gameplay events, send
+            structured POST logs, and auto-create GitHub issues without writing
+            C++.
+        points:
+            - <strong>Runtime</strong> — <code>UEDevOps</code> module.
+            - <strong>Editor</strong> — <code>UEDevOpsEditor</code> module.
+    stats:
+        - { label: Plugin, value: UEDevOps, icon: chart }
+        - { label: Modules, value: Runtime + Editor, icon: package }
+        - { label: Min engine, value: UE 5.4, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Unified telemetry pipeline
+          icon: activity
+          body: Capture player errors, runtime events, and editor diagnostics through one pipeline.
+        - title: Structured log shipping
+          icon: deploy
+          body: Send structured POST logs to a backend or analytics stack.
+        - title: GitHub integration
+          icon: github
+          body: Auto-create issues from captured diagnostics.
+        - title: Runtime + Editor modules
+          icon: settings
+          body: Works both in-game and inside the editor, with Blueprint nodes for both.
+    related:
+        - title: KBVEYYJson
+          href: /project/kbveyyjson/
+          copy: Fast JSON parsing dependency.
+          icon: code
+        - title: KBVEXXHash
+          href: /project/kbvexxhash/
+          copy: Fast hashing dependency.
+          icon: zap
+        - title: KBVEZstd
+          href: /project/kbvezstd/
+          copy: Zstandard compression dependency.
+          icon: package
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`UEDevOps` is a DevOps toolkit plugin for Unreal Engine that streamlines
-**debugging, observability, and telemetry** directly inside a project. It captures
-**player errors, runtime gameplay events, and editor diagnostics**, then ships
-them to a backend, git, or analytics stack — sending structured POST logs and
-auto-creating GitHub issues. Telemetry is exposed as **Blueprint nodes** and
-**editor utilities** across runtime and editor.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Key facts
+<BentoProse id="facts" eyebrow="At a glance" heading="Key facts">
 
 | | |
 |---|---|
@@ -57,37 +121,14 @@ auto-creating GitHub issues. Telemetry is exposed as **Blueprint nodes** and
 | **Depends on** | KBVEYYJson, KBVEXXHash, KBVEZstd, EditorScriptingUtilities |
 | **Source** | [`packages/unreal/UEDevOps`](https://github.com/KBVE/kbve/tree/main/packages/unreal/UEDevOps) |
 
-## Features
+</BentoProse>
 
-- **Unified telemetry pipeline** — capture player errors, runtime events, and editor diagnostics.
-- **Structured log shipping** — send POST logs to a backend or analytics stack.
-- **GitHub integration** — auto-create issues from captured diagnostics.
-- **Blueprint-powered** — capture and ship telemetry without writing C++.
-- **Runtime + Editor modules** — works both in-game and inside the editor.
-
-## Usage
+<BentoProse id="usage" eyebrow="Getting started" heading="Usage">
 
 Enable the `UEDevOps` plugin (and its KBVEYYJson / KBVEXXHash / KBVEZstd
 dependencies) in your `.uproject`, then use the Blueprint telemetry nodes to
 capture errors and gameplay events and forward them to your backend.
 
-## FAQ
+</BentoProse>
 
-**What does the UEDevOps plugin do?**
-It provides a telemetry pipeline for Unreal games — capturing player errors,
-gameplay events, and editor diagnostics and shipping them to a backend, git, or
-analytics stack via Blueprint nodes and editor tools.
-
-**Can telemetry be used from Blueprints?**
-Yes. UEDevOps exposes Blueprint-powered telemetry so you can capture errors and
-gameplay events and send structured POST logs without writing C++.
-
-**What plugins does UEDevOps depend on?**
-It depends on KBVEYYJson, KBVEXXHash, and KBVEZstd, plus Unreal's
-EditorScriptingUtilities, and ships both Runtime and Editor modules.
-
-## Related
-
-- [KBVEYYJson](/docs/project/kbveyyjson) — fast JSON parsing dependency.
-- [KBVEXXHash](/docs/project/kbvexxhash) — fast hashing dependency.
-- [KBVEZstd](/docs/project/kbvezstd) — Zstandard compression dependency.
+</BentoDoc>

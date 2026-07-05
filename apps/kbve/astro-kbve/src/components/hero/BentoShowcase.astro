@@ -156,20 +156,8 @@ const pipelines = [
 		position: absolute;
 		inset: 0;
 		display: none;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		scrollbar-width: none;
+		overflow: hidden;
 		padding: 1.25rem;
-	}
-
-	.bento-showcase__panel::-webkit-scrollbar {
-		display: none;
-	}
-
-	@media (max-width: 639.98px) {
-		.bento-showcase__panel {
-			overscroll-behavior: auto;
-		}
 	}
 
 	.bento-showcase__panel[data-active] {

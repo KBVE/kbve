@@ -23,6 +23,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KBVEROWS?
@@ -31,55 +37,63 @@ jsonld:
           answer: The ROWS module ships subsystems including ROWSSubsystem, ROWSAuthSubsystem, ROWSCharacterSubsystem, and ROWSInstanceSubsystem, plus login UI widgets and a controller. Transport is pluggable via ROWSTransport with HTTP and gRPC implementations.
         - question: Which platforms and engine versions does KBVEROWS support?
           answer: KBVEROWS targets Unreal Engine 5.4 and later on Win64, Linux, and Mac. It is enabled by default and is currently a beta plugin.
+bento:
+    badge: unreal · server
+    title: Rust Open World Server backend
+    accent: KBVEROWS
+    lede: >-
+        A unified Unreal Engine 5 backend integration plugin for the Rust Open
+        World Server — auth, instance management, character persistence, and
+        global data subsystems that talk to the ROWS REST API through a single
+        plugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEROWS
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: server
+        title: One plugin, whole backend
+        body: >-
+            An Unreal client signs in, manages character data, and joins server
+            instances through <code>KBVEROWS</code> (module <code>ROWS</code>).
+            Transport is pluggable.
+        points:
+            - <strong>HTTP</strong> — ROWSHttpTransport for REST.
+            - <strong>gRPC</strong> — ROWSGrpcTransport backend.
+    stats:
+        - { label: Plugin, value: KBVEROWS, icon: server }
+        - { label: Version, value: "1.0", icon: package }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+    features:
+        - title: Auth
+          icon: key
+          body: ROWSAuthSubsystem with login widgets (ROWSLoginWidget, ROWSLoadingWidget) and a ROWSLoginController.
+        - title: Character persistence
+          icon: database
+          body: ROWSCharacterSubsystem for character data.
+        - title: Instance management
+          icon: server
+          body: ROWSInstanceSubsystem to allocate and join server instances.
+        - title: Pluggable transport
+          icon: network
+          body: ROWSTransport with ROWSHttpTransport and ROWSGrpcTransport backends.
+    features_heading: Features
+    related:
+        - title: Agones
+          href: /project/agones/
+          copy: Server lifecycle SDK used alongside ROWS-backed dedicated servers.
+          icon: server
+        - title: KBVEYYJson
+          href: /project/kbveyyjson/
+          copy: Fast JSON plugin used across the KBVE Unreal stack.
+          icon: code
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`KBVEROWS` is a unified Unreal Engine 5 backend integration plugin for the **Rust
-Open World Server (ROWS)**. It provides auth, instance management, character
-persistence, and global data subsystems that communicate with the ROWS REST API,
-so an Unreal client can sign in, manage character data, and join server
-instances through a single plugin.
-
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVEROWS` (module `ROWS`) |
-| **Version** | 1.0 (beta) |
-| **Engine** | Unreal Engine 5.4+ |
-| **License** | KBVE |
-| **Source** | [`packages/unreal/KBVEROWS`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEROWS) |
-| **Platforms** | Win64, Linux, Mac |
-
-## Features
-
-- **Auth** — `ROWSAuthSubsystem` with login widgets (`ROWSLoginWidget`,
-  `ROWSLoadingWidget`) and a `ROWSLoginController`.
-- **Character persistence** — `ROWSCharacterSubsystem` for character data.
-- **Instance management** — `ROWSInstanceSubsystem` to allocate and join server
-  instances.
-- **Pluggable transport** — `ROWSTransport` with `ROWSHttpTransport` and
-  `ROWSGrpcTransport` backends.
-
-## FAQ
-
-**What is KBVEROWS?**
-`KBVEROWS` is a unified Unreal Engine 5 backend integration plugin for the Rust
-Open World Server (ROWS). It provides auth, instance management, character
-persistence, and global data subsystems that talk to the ROWS REST API.
-
-**What subsystems does KBVEROWS provide?**
-The `ROWS` module ships subsystems including `ROWSSubsystem`, `ROWSAuthSubsystem`,
-`ROWSCharacterSubsystem`, and `ROWSInstanceSubsystem`, plus login UI widgets and
-a controller. Transport is pluggable via `ROWSTransport` with HTTP and gRPC
-implementations.
-
-**Which platforms and engine versions does KBVEROWS support?**
-KBVEROWS targets Unreal Engine 5.4 and later on Win64, Linux, and Mac. It is
-enabled by default and is currently a beta plugin.
-
-## Related
-
-- [Agones](/docs/project/agones) — server lifecycle SDK used alongside ROWS-backed dedicated servers.
-- [KBVEYYJson](/docs/project/kbveyyjson) — fast JSON plugin used across the KBVE Unreal stack.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

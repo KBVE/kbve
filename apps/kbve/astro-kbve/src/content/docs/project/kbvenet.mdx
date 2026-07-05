@@ -24,6 +24,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the KBVENet plugin do?
@@ -32,25 +38,69 @@ jsonld:
           answer: UKBVENetEntityReplicator holds a delta-compressed FFastArraySerializer of lean per-entity snapshots — Id, quantized Location, packed yaw, animation Frame, and a StateByte. FastArrays ride Iris when the ReplicationSystem is on and the classic NetDriver otherwise, so consumers write no Iris-specific code.
         - question: How do you enable Iris replication with KBVENet?
           answer: Per game, set bUseIris = true in each Target.cs and add Net.Iris.UseIrisReplication=1 under the ConsoleVariables section of Config/DefaultEngine.ini. KBVENet supplies the replication primitives; turning Iris on stays a per-target configuration choice.
+bento:
+    badge: unreal · networking
+    title: Iris-ready entity replication
+    accent: KBVENet
+    lede: >-
+        The shared networking layer for KBVE games. It provides Iris-ready
+        replication primitives for streaming a server-authoritative simulation
+        (Mass ECS swarms, etc.) to clients that render it locally.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVENet
+          primary: true
+          external: true
+        - label: Replicator
+          href: "#replicator"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: network
+        title: Iris-ready, transport-agnostic
+        body: >-
+            <code>UKBVENetEntityReplicator</code> holds a delta-compressed
+            <code>FFastArraySerializer</code> of lean per-entity snapshots.
+            FastArrays ride Iris when the ReplicationSystem is on, the classic
+            NetDriver otherwise — the consumer writes no Iris-specific code.
+        points:
+            - <strong>Depends on</strong> — KBVESupabase, KBVEWorld, KBVEGameplay.
+            - <strong>Snapshot</strong> — Id, quantized Location, packed yaw, Frame, StateByte.
+    stats:
+        - { label: Version, value: '0.1.0', icon: info }
+        - { label: Engine, value: UE 5.7+, icon: settings }
+        - { label: Platforms, value: Win64 · Linux · Mac, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Delta-compressed snapshots
+          icon: package
+          body: An FFastArraySerializer of lean per-entity snapshots — Id, quantized Location, packed YawQ, Frame, and a StateByte.
+        - title: Transport-agnostic
+          icon: network
+          body: FastArrays ride Iris when the ReplicationSystem is on, the classic NetDriver otherwise — consumers write no Iris-specific code.
+        - title: Server-authoritative streaming
+          icon: server
+          body: Streams a server-authoritative sim (Mass ECS swarms, etc.) to clients that render it locally.
+    related:
+        - title: KBVEULID
+          href: /project/kbveulid/
+          copy: ULID generator that supplies stable IDs for replicated events.
+          icon: key
+        - title: Unreal RentEarth
+          href: /project/unreal-rentearth/
+          copy: A KBVE UE5 game client that consumes shared plugins like KBVENet.
+          icon: box
+    features_eyebrow: Replication primitives
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`KBVENet` is the shared networking layer for KBVE games. It provides Iris-ready replication primitives for streaming a server-authoritative simulation (Mass ECS swarms, etc.) to clients that render it locally.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVENet` |
-| **Version** | 0.1.0 |
-| **Engine** | Unreal Engine 5.7+ |
-| **License** | KBVE |
-| **Platforms** | Win64, Linux, Mac |
-| **Depends on** | KBVESupabase, KBVEWorld, KBVEGameplay |
-| **Source** | [`packages/unreal/KBVENet`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVENet) |
-
-## Entity-snapshot replicator
+<BentoProse id="replicator" eyebrow="Wire format" heading="Entity-snapshot replicator">
 
 `UKBVENetEntityReplicator` holds a delta-compressed `FFastArraySerializer` of lean per-entity snapshots — `Id`, quantized `Location`, packed `YawQ`, `Frame`, and a `StateByte`. FastArrays are transported by **Iris** when the ReplicationSystem is on, by the classic NetDriver otherwise — the consumer writes no Iris-specific code.
 
@@ -61,40 +111,24 @@ Rep->ServerUpsert(EntityId, WorldPos, MoveYawDeg, Frame, bMoving ? 1 : 0);
 for (const FKBVENetEntitySnapshot& S : Rep->GetSnapshots()) { /* render */ }
 ```
 
-## Enabling Iris
+### Enabling Iris
 
 Per game: `bUseIris = true;` in each `*.Target.cs`, and `Net.Iris.UseIrisReplication=1` under `[ConsoleVariables]` in `Config/DefaultEngine.ini`.
 
-## Consumers
+</BentoProse>
+
+<BentoProse id="consumers" eyebrow="Users & plans" heading="Consumers & roadmap">
+
+**Consumers**
 
 - **chuck slime swarm** — server runs the Mass sim and pushes each slime's position/yaw/frame; clients render the swarm from snapshots into a local ISM. Direction row + billboard are computed per-client from the local camera so facing stays view-correct.
 
-## Roadmap
+**Roadmap**
 
 - Push-model dirty tracking on the replicated array.
 - Per-entity Iris NetObjects (replacing the single-actor FastArray) for very large swarms.
 - Relevancy / spatial culling so clients only receive nearby entities.
 
-## FAQ
+</BentoProse>
 
-**What does the KBVENet plugin do?**
-KBVENet is a shared Unreal Engine 5 networking layer that streams a
-server-authoritative simulation, such as a Mass ECS swarm, to clients using a
-delta-compressed entity-snapshot replicator so clients render the sim locally.
-
-**How does KBVENet replicate entities?**
-`UKBVENetEntityReplicator` holds a delta-compressed `FFastArraySerializer` of lean
-per-entity snapshots — `Id`, quantized `Location`, packed yaw, animation `Frame`,
-and a `StateByte`. FastArrays ride Iris when the ReplicationSystem is on and the
-classic NetDriver otherwise, so consumers write no Iris-specific code.
-
-**How do you enable Iris replication with KBVENet?**
-Per game, set `bUseIris = true;` in each `*.Target.cs` and add
-`Net.Iris.UseIrisReplication=1` under `[ConsoleVariables]` in
-`Config/DefaultEngine.ini`. KBVENet supplies the replication primitives; turning
-Iris on stays a per-target configuration choice.
-
-## Related
-
-- [KBVEULID](/docs/project/kbveulid) — ULID generator that supplies stable IDs for replicated events.
-- [Unreal RentEarth](/docs/project/unreal-rentearth) — a KBVE UE5 game client that consumes shared plugins like KBVENet.
+</BentoDoc>

@@ -23,6 +23,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the KBVEWASM plugin do?
@@ -31,42 +37,59 @@ jsonld:
           answer: It uses WAMR (WebAssembly Micro Runtime) version 2.2.0, a lightweight embeddable WebAssembly runtime, matching the plugin version.
         - question: Which platforms and engine versions does KBVEWASM support?
           answer: KBVEWASM targets Unreal Engine 5.4 and later on Win64, Linux, and Mac.
+bento:
+    badge: unreal · wasm
+    title: WebAssembly runtime for
+    accent: KBVEWASM
+    lede: >-
+        An Unreal Engine plugin wrapping the WebAssembly Micro Runtime (WAMR)
+        2.2.0, letting UE projects load and execute sandboxed WebAssembly
+        modules from inside the engine — so logic authored in any Wasm-targeting
+        language can run within UE across Win64, Linux, and Mac.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWASM
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: lock
+        title: Sandboxed execution
+        body: >-
+            Runs WebAssembly modules in an isolated runtime rather than native UE
+            code, so game and tooling logic authored in <strong>any</strong>
+            Wasm-targeting language executes safely in-engine.
+        points:
+            - <strong>Runtime</strong> — WAMR, lightweight and embeddable.
+            - <strong>Platforms</strong> — Win64, Linux, Mac.
+    stats:
+        - { label: WAMR, value: "2.2.0", icon: package }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: Platforms, value: Win · Linux · Mac, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: WAMR-backed runtime
+          icon: package
+          body: Embeds WebAssembly Micro Runtime 2.2.0 for executing Wasm modules in-engine.
+        - title: Sandboxed execution
+          icon: lock
+          body: Runs WebAssembly modules in an isolated runtime rather than native UE code.
+        - title: Cross-platform
+          icon: expand
+          body: Supported on Win64, Linux, and Mac under Unreal Engine 5.4+.
+    related:
+        - title: KBVENPCDB
+          href: /project/kbvenpcdb/
+          copy: Another KBVE Unreal Engine plugin in the same collection.
+          icon: database
+        - title: KBVEAgones
+          href: /project/kbveagones/
+          copy: Server-side KBVE Unreal plugin bridging Agones and ROWS.
+          icon: server
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-KBVEWASM wraps the WebAssembly Micro Runtime (WAMR) 2.2.0 for Unreal Engine, letting UE projects load and execute sandboxed WebAssembly modules from inside the engine. It embeds WAMR — a lightweight, portable WebAssembly runtime — so game and tooling logic authored in any Wasm-targeting language can run within UE across Win64, Linux, and Mac.
-
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | KBVEWASM |
-| **Runtime** | WAMR (WebAssembly Micro Runtime) 2.2.0 |
-| **Version** | 2.2.0 |
-| **Engine** | Unreal Engine 5.4+ |
-| **License** | KBVE |
-| **Platforms** | Win64, Linux, Mac |
-| **Source** | [`packages/unreal/KBVEWASM`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEWASM) |
-
-## Features
-
-- **WAMR-backed runtime** — embeds WebAssembly Micro Runtime 2.2.0 for executing Wasm modules in-engine.
-- **Sandboxed execution** — runs WebAssembly modules in an isolated runtime rather than native UE code.
-- **Cross-platform** — supported on Win64, Linux, and Mac under Unreal Engine 5.4+.
-
-## FAQ
-
-**What does the KBVEWASM plugin do?**
-KBVEWASM wraps the WebAssembly Micro Runtime (WAMR) 2.2.0 for Unreal Engine, letting UE projects load and run sandboxed WebAssembly modules from inside the engine.
-
-**Which runtime does KBVEWASM use?**
-It uses WAMR (WebAssembly Micro Runtime) version 2.2.0, a lightweight embeddable WebAssembly runtime, matching the plugin version.
-
-**Which platforms and engine versions does KBVEWASM support?**
-KBVEWASM targets Unreal Engine 5.4 and later on Win64, Linux, and Mac.
-
-## Related
-
-- [KBVENPCDB](./kbvenpcdb) — another KBVE Unreal Engine plugin in the same collection.
-- [KBVEAgones](./kbveagones) — server-side KBVE Unreal plugin bridging Agones and ROWS.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

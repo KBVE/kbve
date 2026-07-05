@@ -23,6 +23,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KBVEEvents?
@@ -31,42 +37,74 @@ jsonld:
           answer: Use UE's GameplayMessageRouter for Blueprint-friendly tag-based messaging; reach for KBVEEvents when performance or compile-time typing matters.
         - question: Is it safe to publish from a worker thread?
           answer: Publish invokes callbacks synchronously on the calling thread, so it is game-thread by default. For cross-thread events, a worker enqueues a POD payload on the MPSC queue and a game-thread bridge drains it and publishes safely.
+bento:
+    badge: unreal · events
+    title: Typed event bus
+    accent: KBVEEvents
+    lede: >-
+        A lightweight typed publish/subscribe event bus for KBVE Unreal Engine
+        games — compile-time-typed channels, pooled payloads, and a lock-free
+        SPSC handoff for moving Mass worker-thread events onto the game thread. A
+        companion to UE's GameplayMessageRouter: use GMR for Blueprint-friendly
+        tag-based messaging, and KBVEEvents when performance or compile-time
+        typing matters.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEEvents
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: zap
+        title: Typed & lock-free
+        body: >-
+            Compile-time-typed channels (<code>TKBVEChannel&lt;TPayload&gt;</code>)
+            dispatch strongly typed payloads with no tag lookups or boxing, while
+            an MPSC queue hands worker-thread events to the game thread.
+        points:
+            - <strong>Companion to</strong> — UE's GameplayMessageRouter for tag-based Blueprint messaging.
+            - <strong>Cross-thread</strong> — a lock-free MPSC queue drains onto the game thread safely.
+    stats:
+        - { label: Version, value: '0.1.0', icon: info }
+        - { label: Engine, value: UE 5.4+, icon: settings }
+        - { label: Platforms, value: Win64 · Linux · Mac, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Compile-time-typed channels
+          icon: code
+          body: Strongly typed payloads dispatched through TKBVEChannel with no tag lookups or boxing.
+        - title: Handle-based subscriptions
+          icon: key
+          body: Subscribe returns an FKBVEEventHandle; cancel via Unsubscribe or let the owning UObject GC, since channels prune stale weak refs before each dispatch.
+        - title: Synchronous game-thread dispatch
+          icon: clock
+          body: Publish invokes callbacks on the calling thread under an FCriticalSection so the channel itself never tears.
+        - title: Lock-free cross-thread path
+          icon: zap
+          body: An MPSC queue lets a worker enqueue POD payloads that a game-thread bridge drains and publishes safely.
+    related:
+        - title: KBVEWorld
+          href: /project/kbveworld/
+          copy: Procedural world toolkit that pairs with the event bus.
+          icon: map
+        - title: KBVEPostShader
+          href: /project/kbvepostshader/
+          copy: Sibling KBVE Unreal plugin.
+          icon: render
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`KBVEEvents` is a lightweight typed publish/subscribe event bus for KBVE Unreal
-Engine games. It provides compile-time-typed channels (`TKBVEChannel<TPayload>`),
-pooled payloads, and a lock-free SPSC handoff for moving Mass worker-thread
-events onto the game thread. It is a companion to UE's `GameplayMessageRouter` —
-use GMR for Blueprint-friendly tag-based messaging, and KBVEEvents when
-performance or compile-time typing matters.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVEEvents` |
-| **Version** | 0.1.0 |
-| **Language** | C++ (Unreal Engine) |
-| **Min engine** | UE 5.4 |
-| **License** | KBVE |
-| **Source** | [`packages/unreal/KBVEEvents`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEEvents) |
-| **Platforms** | Win64, Linux, Mac |
-
-## Features
-
-- **Compile-time-typed channels** — `TKBVEChannel<TPayload>` dispatches strongly
-  typed payloads with no tag lookups or boxing.
-- **Handle-based subscriptions** — `Subscribe` returns an `FKBVEEventHandle`;
-  cancel via `Unsubscribe` or let the owning `UObject` GC, since channels prune
-  stale weak refs before each dispatch.
-- **Synchronous game-thread dispatch** — `Publish` invokes callbacks on the
-  calling thread under an `FCriticalSection` so the channel itself never tears.
-- **Lock-free cross-thread path** — an MPSC queue lets a worker enqueue POD
-  payloads that a game-thread bridge drains and publishes safely.
-
-## Usage
+<BentoProse id="usage" eyebrow="Integration" heading="Usage">
 
 ```cpp
 TKBVEChannel<FMyPayload> Channel;
@@ -78,23 +116,6 @@ Channel.Publish(FMyPayload{ /* ... */ });
 Channel.Unsubscribe(Handle);
 ```
 
-## FAQ
+</BentoProse>
 
-**What is KBVEEvents?**
-It is a lightweight typed publish/subscribe event bus for Unreal Engine games,
-using compile-time-typed channels (`FKBVEChannel`), pooled payloads, and a
-lock-free SPSC queue for worker-to-game-thread events.
-
-**When should I use KBVEEvents instead of GameplayMessageRouter?**
-Use UE's `GameplayMessageRouter` for Blueprint-friendly tag-based messaging;
-reach for KBVEEvents when performance or compile-time typing matters.
-
-**Is it safe to publish from a worker thread?**
-`Publish` invokes callbacks synchronously on the calling thread, so it is
-game-thread by default. For cross-thread events, a worker enqueues a POD payload
-on the MPSC queue and a game-thread bridge drains it and publishes safely.
-
-## Related
-
-- [KBVEWorld](/docs/project/kbveworld) — procedural world toolkit that pairs with the event bus.
-- [KBVEPostShader](/docs/project/kbvepostshader) — sibling KBVE Unreal plugin.
+</BentoDoc>
