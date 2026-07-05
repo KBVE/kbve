@@ -123,10 +123,45 @@ spec:
                       initialDelaySeconds: 5
                       periodSeconds: 10
                   livenessProbe:
-                      tcpSocket:
-                          port: grpc
+                      exec:
+                          command:
+                              - buildctl
+                              - debug
+                              - workers
                       initialDelaySeconds: 30
-                      periodSeconds: 30
+                      periodSeconds: 60
+                      timeoutSeconds: 20
+                      failureThreshold: 5
+                - name: cache-watchdog
+                  image: moby/buildkit:v0.24.0
+                  imagePullPolicy: IfNotPresent
+                  command:
+                      - sh
+                      - -c
+                      - |
+                          set -u
+                          THRESHOLD=75
+                          KEEP=50000000000
+                          ADDR=tcp://127.0.0.1:1234
+                          while true; do
+                            USE=$(df /var/lib/buildkit | awk 'NR==2 {gsub("%","",$5); print $5}')
+                            if [ -n "$USE" ] && [ "$USE" -ge "$THRESHOLD" ]; then
+                              echo "watchdog: cache at ${USE}% (>=${THRESHOLD}%), pruning to keep $((KEEP/1000000000))GB"
+                              buildctl --addr "$ADDR" prune --keep-storage "$KEEP" --all || echo "watchdog: prune failed, retrying next cycle"
+                            fi
+                            sleep 120
+                          done
+                  volumeMounts:
+                      - name: cache
+                        mountPath: /var/lib/buildkit
+                        readOnly: true
+                  resources:
+                      limits:
+                          cpu: '1'
+                          memory: 256Mi
+                      requests:
+                          cpu: '50m'
+                          memory: 64Mi
             volumes:
                 - name: config
                   configMap:
@@ -181,49 +216,3 @@ spec:
           ports:
               - port: grpc
                 protocol: TCP
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-    name: buildkitd-prune
-    namespace: arc-runners
-    labels:
-        app.kubernetes.io/name: buildkitd
-        app.kubernetes.io/part-of: arc-runner-set
-        kbve.com/category: ci-cd
-        kbve.com/stack: github-actions
-        kbve.com/managed-by: argocd
-spec:
-    schedule: '0 8 * * *'
-    concurrencyPolicy: Forbid
-    successfulJobsHistoryLimit: 1
-    failedJobsHistoryLimit: 3
-    jobTemplate:
-        spec:
-            backoffLimit: 1
-            activeDeadlineSeconds: 1800
-            template:
-                metadata:
-                    labels:
-                        app.kubernetes.io/name: buildkitd
-                        app.kubernetes.io/part-of: arc-runner-set
-                spec:
-                    restartPolicy: Never
-                    containers:
-                        - name: prune
-                          image: moby/buildkit:v0.24.0
-                          command:
-                              - buildctl
-                              - --addr
-                              - tcp://buildkitd.arc-runners.svc:1234
-                              - prune
-                              - --keep-storage
-                              - '60000000000'
-                              - --all
-                          resources:
-                              limits:
-                                  cpu: '1'
-                                  memory: 512Mi
-                              requests:
-                                  cpu: '100m'
-                                  memory: 128Mi
