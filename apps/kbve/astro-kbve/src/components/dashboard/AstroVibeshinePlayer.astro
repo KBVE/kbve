@@ -1,0 +1,89 @@
+---
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactVibeshinePlayer from '@/components/dashboard/ReactVibeshinePlayer';
+---
+
+<BentoShell
+	id="vibeshine-player-wrapper"
+	eyebrow="GameOps"
+	heading="Vibeshine remote play.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactVibeshinePlayer client:only="react" />
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.svc-dash__stream {
+		min-height: 60vh;
+	}
+
+	:global(.vibeshine-player__stage) {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		background: #000;
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+
+	:global(.vibeshine-player__video) {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	:global(.vibeshine-player__overlay) {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		color: #e5e7eb;
+		text-align: center;
+		padding: 1rem;
+	}
+
+	:global(.vibeshine-player__error) {
+		color: #f87171;
+		font-size: 0.875rem;
+	}
+
+	:global(.vibeshine-player__meta) {
+		color: #9ca3af;
+		font-size: 0.8125rem;
+	}
+
+	:global(.vibeshine-player__controls) {
+		display: flex;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+
+	:global(.vibeshine-player__controls button) {
+		padding: 0.5rem 1.25rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		cursor: pointer;
+	}
+
+	:global(.vibeshine-player__controls button:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>
