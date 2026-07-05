@@ -1,0 +1,256 @@
+---
+interface Props {
+	backdrop?: string;
+}
+
+const {
+	backdrop = 'https://images.unsplash.com/photo-1779364218620-175e00234334?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+} = Astro.props;
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import AstroWalletCard from '@/components/wallet/AstroWalletCard.astro';
+import AccountSignInFallback from '@/components/wallet/AccountSignInFallback.astro';
+import AstroMarketAccountSummary from '@/components/market/AstroMarketAccountSummary.astro';
+import AstroReferralCard from '@/components/referral/AstroReferralCard.astro';
+import AstroProfileShell from '@/components/user/AstroProfileShell.astro';
+import SettingsCard from '@/components/dashboard/SettingsCard.astro';
+import ReactSettingsStorage from '@/components/dashboard/ReactSettingsStorage';
+import ReactSettingsHealth from '@/components/dashboard/ReactSettingsHealth';
+import ReactSettingsDevice from '@/components/dashboard/ReactSettingsDevice';
+---
+
+<BentoShell eyebrow="Dashboard" heading="Account">
+	<p class="bento-account__sub">
+		Your identity, wallet, referrals, and device settings — one place.
+	</p>
+	<div class="bento-account" style={`--account-backdrop: url('${backdrop}')`}>
+		<AstroProfileShell />
+
+		<div
+			class="bento-account__cell bento-account__cell--wallet bento-card bento-card--glass bento-card--interactive">
+			<AstroWalletCard />
+		</div>
+		<div
+			class="bento-account__cell bento-account__cell--market bento-card bento-card--glass bento-card--interactive">
+			<AstroMarketAccountSummary />
+		</div>
+		<div
+			class="bento-account__cell bento-account__cell--referral bento-card bento-card--glass">
+			<AstroReferralCard />
+		</div>
+
+		<SettingsCard title="Storage Management" id="account-settings">
+			<svg
+				slot="icon"
+				xmlns="http://www.w3.org/2000/svg"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+				<path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+				<path d="M3 12A9 3 0 0 0 21 12"></path>
+			</svg>
+			<ReactSettingsStorage client:only="react" />
+		</SettingsCard>
+
+		<SettingsCard title="System Health">
+			<svg
+				slot="icon"
+				xmlns="http://www.w3.org/2000/svg"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<rect width="16" height="16" x="4" y="4" rx="2"></rect>
+				<rect width="6" height="6" x="9" y="9" rx="1"></rect>
+				<path d="M15 2v2"></path>
+				<path d="M15 20v2"></path>
+				<path d="M2 15h2"></path>
+				<path d="M2 9h2"></path>
+				<path d="M20 15h2"></path>
+				<path d="M20 9h2"></path>
+				<path d="M9 2v2"></path>
+				<path d="M9 20v2"></path>
+			</svg>
+			<ReactSettingsHealth client:only="react" />
+		</SettingsCard>
+
+		<SettingsCard title="Device Info">
+			<svg
+				slot="icon"
+				xmlns="http://www.w3.org/2000/svg"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<path
+					d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
+				</path>
+			</svg>
+			<ReactSettingsDevice client:only="react" />
+		</SettingsCard>
+
+		<div
+			class="bento-account__cell bento-account__cell--signin bento-card bento-card--glass">
+			<AccountSignInFallback />
+		</div>
+	</div>
+</BentoShell>
+
+<style is:global>
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>
+
+<style>
+	.bento-account__sub {
+		max-width: 36rem;
+		margin-top: -1.25rem;
+		padding: 0 1rem 2rem;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+	}
+
+	@media (min-width: 640px) {
+		.bento-account__sub {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.bento-account {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+		padding: 1.75rem 1rem 3rem;
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	@media (min-width: 640px) {
+		.bento-account {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.bento-account {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.bento-account :global(.profile-card--kbve),
+		.bento-account__cell--market,
+		.bento-account__cell--referral,
+		.bento-account__cell--signin {
+			grid-column: span 2;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.bento-account {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.bento-account :global(.profile-card--kbve),
+		.bento-account__cell--market {
+			grid-column: span 2;
+		}
+
+		.bento-account__cell--referral,
+		.bento-account__cell--signin {
+			grid-column: span 3;
+		}
+	}
+
+	.bento-account :global(.profile-card--state) {
+		grid-column: 1 / -1;
+	}
+
+	/* Backdrop lives inside each card, register-page style: the image
+	   shows through the glass per-tile instead of flooding the page. */
+	.bento-account :global(.bento-card) {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.bento-account :global(.bento-card)::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		background-image: var(--account-backdrop);
+		background-size: cover;
+		background-position: center;
+		opacity: 0.2;
+		filter: saturate(0.75) brightness(0.6) contrast(1.05);
+		pointer-events: none;
+	}
+
+	.bento-account :global(.bento-card > *) {
+		position: relative;
+		z-index: 1;
+	}
+
+	.bento-account__cell {
+		padding: 1.5rem 1.25rem;
+	}
+
+	.bento-account__cell--market:has([data-kbve-market-state='signed-out']) {
+		display: none;
+	}
+
+	.bento-account__cell--signin:has(.account-signin[hidden]) {
+		display: none;
+	}
+
+	.bento-account__cell :global(.kbve-wallet-card),
+	.bento-account__cell :global(.kbve-market-summary),
+	.bento-account__cell :global(.kbve-referral-card),
+	.bento-account__cell :global(.account-signin) {
+		margin-top: 0;
+		padding: 0;
+		background: none;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		min-height: 0;
+	}
+
+	.bento-account__cell :global(.kbve-wallet-card__title),
+	.bento-account__cell :global(.kbve-market-summary__head h2) {
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-account__cell :global(.kbve-wallet-card__balance),
+	.bento-account__cell :global(.kbve-market-summary__grid > div) {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius);
+	}
+
+	.bento-account__cell :global(.kbve-market-summary__link) {
+		color: var(--sl-color-accent-high);
+	}
+</style>

@@ -22,6 +22,7 @@ interface StorageEstimate {
 export default function ReactSettingsStorage() {
 	const [clearing, setClearing] = useState(false);
 	const [cleared, setCleared] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
 	const [estimate, setEstimate] = useState<StorageEstimate | null>(null);
 	const [lsCount, setLsCount] = useState(0);
 
@@ -49,6 +50,13 @@ export default function ReactSettingsStorage() {
 	useEffect(() => {
 		refreshStats();
 	}, [refreshStats]);
+
+	const handleRefresh = useCallback(() => {
+		if (refreshing) return;
+		setRefreshing(true);
+		refreshStats();
+		setTimeout(() => setRefreshing(false), 600);
+	}, [refreshing, refreshStats]);
 
 	const handleClear = useCallback(async () => {
 		if (
@@ -153,9 +161,23 @@ export default function ReactSettingsStorage() {
 					)}
 					{clearing ? 'Clearing...' : 'Clear All Data'}
 				</button>
-				<button onClick={refreshStats} style={secondaryButtonStyle}>
-					<RefreshCw size={14} />
-					Refresh
+				<button
+					onClick={handleRefresh}
+					disabled={refreshing}
+					style={{
+						...secondaryButtonStyle,
+						opacity: refreshing ? 0.7 : 1,
+						cursor: refreshing ? 'wait' : 'pointer',
+					}}>
+					<RefreshCw
+						size={14}
+						style={
+							refreshing
+								? { animation: 'spin 1s linear infinite' }
+								: {}
+						}
+					/>
+					{refreshing ? 'Refreshing...' : 'Refresh'}
 				</button>
 			</div>
 

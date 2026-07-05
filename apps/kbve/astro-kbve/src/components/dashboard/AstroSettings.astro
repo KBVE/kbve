@@ -78,21 +78,17 @@ import ReactSettingsDevice from './ReactSettingsDevice';
 <style>
 	.settings-wrapper {
 		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
 	}
 
 	.settings-content {
-		max-width: 900px;
+		max-width: 56rem;
 		margin: 0 auto;
-		padding: 2rem 1rem;
+		padding: 0 1rem 3rem;
 	}
 
 	@media (min-width: 768px) {
 		.settings-content {
-			padding: 2rem 1.5rem;
+			padding-inline: 1.5rem;
 		}
 	}
 
@@ -100,7 +96,6 @@ import ReactSettingsDevice from './ReactSettingsDevice';
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
-		min-height: 60vh;
 	}
 
 	:global(@keyframes spin) {

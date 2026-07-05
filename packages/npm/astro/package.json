@@ -84,8 +84,6 @@
 			"types": "./components/social/twitch/ServiceTwitch.d.ts"
 		},
 		"./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
-		"./components/social/discord/DiscordCalendar.astro": "./components/social/discord/DiscordCalendar.astro",
-		"./components/social/discord/DiscordRule.astro": "./components/social/discord/DiscordRule.astro",
 		"./components/social/discord/ReactDiscordEmbed": {
 			"import": "./components/social/discord/ReactDiscordEmbed.js",
 			"types": "./components/social/discord/ReactDiscordEmbed.d.ts"

@@ -1,25 +1,10 @@
 ---
 import ReactNav from '@/components/navigation/ReactNav.tsx';
+import DashboardNav from '@/components/navigation/DashboardNav.tsx';
 ---
 
 <nav class="knav" aria-label="Site navigation">
-	<a class="knav__icon" href="/dashboard/" aria-label="Dashboard">
-		<svg
-			viewBox="0 0 24 24"
-			width="18"
-			height="18"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			aria-hidden="true">
-			<rect x="3" y="3" width="7" height="7" rx="1"></rect>
-			<rect x="14" y="3" width="7" height="7" rx="1"></rect>
-			<rect x="3" y="14" width="7" height="7" rx="1"></rect>
-			<rect x="14" y="14" width="7" height="7" rx="1"></rect>
-		</svg>
-	</a>
+	<DashboardNav client:visible />
 
 	<button
 		type="button"
