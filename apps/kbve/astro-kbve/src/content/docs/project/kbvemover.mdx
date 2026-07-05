@@ -24,6 +24,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KBVEMover?
@@ -32,47 +38,81 @@ jsonld:
           answer: AKBVEMoverPawn is an APawn with a capsule root, skeletal mesh, third-person camera, and a UCharacterMoverComponent (Walking, Falling, Flying modes). It implements IMoverInputProducerInterface and translates Enhanced Input into the Mover sim's FCharacterDefaultInputs.
         - question: How do I use KBVEMover in a game?
           answer: Enable the plugin (it pulls in Mover and EnhancedInput), derive a Blueprint from AKBVEMoverPawn, assign the mesh and input assets, and set it as the DefaultPawnClass. Networking is automatic and it runs parallel to the legacy CMC character, so games opt in per game.
+bento:
+    badge: unreal · gameplay
+    title: Networked Mover character
+    accent: KBVEMover
+    lede: >-
+        The shared control-character layer built on UE5's Mover plugin — a
+        networked, data-driven pawn that replaces the legacy
+        CharacterMovementComponent. Server-authoritative with client prediction,
+        so it works standalone, listen-server, and on the dedicated server.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEMover
+          primary: true
+          external: true
+        - label: AKBVEMoverPawn
+          href: "#features"
+        - label: Usage
+          href: "#usage"
+    aside:
+        icon: route
+        title: Client-predicted, server-authoritative
+        body: >-
+            Built on UE5's <strong>Mover</strong> plugin — client prediction with
+            server authority — so it runs standalone, on a listen-server, and on
+            the dedicated server. Runs parallel to the legacy CMC character; games
+            opt in per game.
+        points:
+            - <strong>Pawn</strong> — AKBVEMoverPawn replaces the legacy CharacterMovementComponent.
+            - <strong>Pulls in</strong> — Mover + EnhancedInput (depends on KBVEGameplay).
+    stats:
+        - { label: Version, value: '0.1.0', icon: info }
+        - { label: Engine, value: UE 5.7+, icon: settings }
+        - { label: Platforms, value: Win64 · Linux · Mac, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Pawn composition
+          icon: route
+          body: An APawn with a capsule root, skeletal mesh, third-person camera, and a UCharacterMoverComponent (default Walking / Falling / Flying modes).
+        - title: Input production
+          icon: gears
+          body: Implements IMoverInputProducerInterface and sets itself as the InputProducer; Enhanced Input accumulates intent, and ProduceInput translates it into the Mover sim's FCharacterDefaultInputs (camera-relative move, orientation intent, jump).
+        - title: Networked by default
+          icon: network
+          body: Server-authoritative with client prediction — standalone, listen-server, and dedicated server, running parallel to the legacy CMC character.
+    related:
+        - title: KBVEGameplay
+          href: /project/kbvegameplay/
+          copy: The gameplay plugin KBVEMover depends on.
+          icon: gears
+        - title: KBVEUI
+          href: /project/kbveui/
+          copy: The shared Slate UI component library for KBVE Unreal games.
+          icon: box
+    features_eyebrow: The pawn
+    features_heading: AKBVEMoverPawn
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-`KBVEMover` is the shared control-character layer built on UE5's **Mover** plugin — a networked, data-driven pawn that replaces the legacy `CharacterMovementComponent`. Server-authoritative with client prediction, so it works standalone, listen-server, and on the dedicated server.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## AKBVEMoverPawn
-
-`APawn` with a capsule root, skeletal mesh, third-person camera, and a `UCharacterMoverComponent` (default Walking / Falling / Flying modes). Implements `IMoverInputProducerInterface` and sets itself as the component's `InputProducer`. Enhanced Input accumulates intent; `ProduceInput` translates it into the Mover sim's `FCharacterDefaultInputs` (camera-relative move, orientation intent, jump).
-
-## Usage
+<BentoProse id="usage" eyebrow="Integration" heading="Usage">
 
 Enable the plugin (pulls in `Mover` + `EnhancedInput`), derive a BP from `AKBVEMoverPawn`, assign the mesh + input assets, and set it as the `DefaultPawnClass`. Networking is automatic. It runs parallel to the legacy CMC `AchuckCoreCharacter` — opt in per game.
 
-## Roadmap
+</BentoProse>
+
+<BentoProse id="roadmap" eyebrow="Planned" heading="Roadmap">
 
 - Locomotion animation layer.
 - Custom movement modes (sprint / dash / swim).
 - Port stats/inventory onto the Mover pawn.
 
-## FAQ
+</BentoProse>
 
-**What is KBVEMover?**
-KBVEMover is the shared control-character layer for KBVE games, built on UE5's
-Mover plugin. It is a networked, data-driven pawn that replaces the legacy
-`CharacterMovementComponent`, working standalone, on a listen-server, and on a
-dedicated server.
-
-**What is AKBVEMoverPawn?**
-`AKBVEMoverPawn` is an `APawn` with a capsule root, skeletal mesh, third-person
-camera, and a `UCharacterMoverComponent` (Walking, Falling, Flying modes). It
-implements `IMoverInputProducerInterface` and translates Enhanced Input into the
-Mover sim's `FCharacterDefaultInputs`.
-
-**How do I use KBVEMover in a game?**
-Enable the plugin (it pulls in `Mover` and `EnhancedInput`), derive a Blueprint
-from `AKBVEMoverPawn`, assign the mesh and input assets, and set it as the
-`DefaultPawnClass`. Networking is automatic and it runs parallel to the legacy
-CMC character, so games opt in per game.
-
-## Related
-
-- [KBVEGameplay](/docs/project/kbvegameplay) — the gameplay plugin KBVEMover depends on.
-- [KBVEUI](/docs/project/kbveui) — the shared Slate UI component library for KBVE Unreal games.
+</BentoDoc>

@@ -25,6 +25,18 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: beta
+kube:
+    stack: application
+    environment: beta
+    tier: api
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is ROWS?
@@ -33,11 +45,71 @@ jsonld:
           answer: ROWS is multi-tenant by deployment but single-tenant by process — one process per game plus environment, pinning its customer_guid from OWS_API_KEY at boot. A shared Postgres DB is isolated by the customerguid column, and middleware rejects requests whose X-CustomerGUID differs from the process tenant.
         - question: How does authentication work in ROWS?
           answer: ROWS has three identities — tenant (customer_guid from OWS_API_KEY), player (Supabase UUID via a validated HS256 JWT), and trusted server (a service key argon2-verified against SUPABASE_SERVICE_KEY_HASH). Server-write endpoints require the service key; world-IP requests require a confirmed player login.
+bento:
+    badge: docker · rust · ows
+    title: Single-binary Rust
+    accent: Open World Server
+    lede: >-
+        A single-binary Rust reimplementation of the OWS game backend, combining
+        REST (Axum) and gRPC (Tonic) on one multiplexed port — replacing the
+        five-service .NET OWS stack with one multi-tenant service.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/rows
+          primary: true
+          external: true
+        - label: Authentication
+          href: "#auth"
+        - label: Procedural world
+          href: "#procedural"
+    aside:
+        icon: server
+        title: One binary, five services
+        body: >-
+            ROWS consolidates the five .NET OWS microservices (PublicAPI,
+            InstanceManagement, CharacterPersistence, GlobalData, Management)
+            into a single multi-tenant process exposing REST (Axum) and gRPC
+            (Tonic) on one multiplexed port.
+        points:
+            - <strong>Tenant</strong> — customer_guid pinned from OWS_API_KEY.
+            - <strong>Isolation</strong> — X-CustomerGUID enforced per process.
+    stats:
+        - { label: App, value: rows, icon: server }
+        - { label: Stack, value: 'Axum + Tonic', icon: rust }
+        - { label: Port, value: '4322 (REST + gRPC)', icon: network }
+        - { label: Tenancy, value: multi-tenant, icon: expand }
+    features:
+        - title: REST + gRPC on one port
+          icon: network
+          body: Axum player-facing REST and Tonic internal gRPC multiplexed on port 4322 for service-to-service and UE5 dedicated-server coordination.
+        - title: Single binary, five services
+          icon: package
+          body: Consolidates PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, and Management into one Docker image (ghcr.io/kbve/rows).
+        - title: Multi-tenant by deployment
+          icon: expand
+          body: One process per game + environment pins its customer_guid from OWS_API_KEY at boot; a shared Postgres DB is isolated by the customerguid column.
+        - title: Three-identity auth
+          icon: key
+          body: Tenant (OWS_API_KEY), player (Supabase JWT), and trusted server (argon2 service key) are distinct axes with per-gate enforcement.
+    related:
+        - title: KBVEROWS
+          href: /project/kbverows/
+          copy: The Unreal Engine REST client plugin for ROWS.
+          icon: box
+        - title: KBVEAgones
+          href: /project/kbveagones/
+          copy: Registers UE dedicated-server instances with ROWS.
+          icon: server
+    related_heading: Related
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 import { Aside } from '@astrojs/starlight/components';
 
-## ROWS — Rust Open World Server
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Architecture" heading="Rust Open World Server">
 
 ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) game backend. It consolidates the five .NET microservices (PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, Management) into one unified service with both REST and gRPC interfaces.
 
@@ -68,7 +140,9 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
     `api-dev.chuckrpg.com`, `api-beta.chuckrpg.com`, and `api-prod.chuckrpg.com`.
 </Aside>
 
-### Deployment
+</BentoProse>
+
+<BentoProse id="deployment" eyebrow="Runtime" heading="Deployment">
 
 ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`). ArgoCD syncs the manifest from `apps/kube/rows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
 
@@ -95,9 +169,9 @@ Each game + environment is a **separate ROWS deployment** pinned to its own tena
     - Live operations: [ROWS dashboard](/dashboard/gameops/rows/)
 </Aside>
 
----
+</BentoProse>
 
-### Authentication & Identity
+<BentoProse id="auth" eyebrow="Identity model" heading="Authentication & Identity">
 
 ROWS has three distinct identities. They are different axes — do not conflate them.
 
@@ -119,15 +193,9 @@ ROWS has three distinct identities. They are different axes — do not conflate 
 
 `SUPABASE_SERVICE_KEY_HASH` (rows) and the plaintext `OWS_SERVICE_KEY` (fleet) both derive from the one kilobase secret `supabase-service-key` (`hash` + `key`). The GoTrue `customer_guid` JWT claim is intentionally unused — tenant identity comes from the process config (`OWS_API_KEY`), never from the token.
 
-kube:
-    stack: application
-    environment: beta
-    tier: api
-    owner: h0lybyte
-    criticality: low
----
+</BentoProse>
 
-### Procedural World — Seed-Based Multi-Zone Architecture
+<BentoProse id="procedural" eyebrow="Roadmap" heading="Procedural World — seed-based multi-zone">
 
 <Aside type="caution" title="Roadmap">
     This section describes the planned seed-based procedural world system.
@@ -251,18 +319,6 @@ GET /api/System/SeedRegistry
 | **Phase 6** | Dynamic instances — player-triggered dungeons with random seeds | Instance lifecycle |
 | **Phase 7** | Seed registry API — admin tools for zone management | Dashboard integration |
 
-## FAQ
+</BentoProse>
 
-**What is ROWS?**
-ROWS (Rust Open World Server) is a single-binary Rust reimplementation of the OWS game backend. It consolidates the five .NET microservices (PublicAPI, InstanceManagement, CharacterPersistence, GlobalData, Management) into one service exposing both REST (Axum) and gRPC (Tonic) on a single multiplexed port.
-
-**How is ROWS multi-tenant?**
-ROWS is multi-tenant by deployment but single-tenant by process — one process per game plus environment, pinning its `customer_guid` from `OWS_API_KEY` at boot. A shared Postgres DB is isolated by the `customerguid` column, and middleware rejects requests whose `X-CustomerGUID` differs from the process tenant.
-
-**How does authentication work in ROWS?**
-ROWS has three identities — tenant (`customer_guid` from `OWS_API_KEY`), player (Supabase UUID via a validated HS256 JWT), and trusted server (a service key argon2-verified against `SUPABASE_SERVICE_KEY_HASH`). Server-write endpoints require the service key; world-IP requests require a confirmed player login.
-
-## Related
-
-- [KBVEROWS](/docs/project/kbverows) — the Unreal Engine REST client plugin for ROWS.
-- [KBVEAgones](/docs/project/kbveagones) — registers UE dedicated-server instances with ROWS.
+</BentoDoc>

@@ -29,6 +29,12 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: medium
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the IRC Gateway do?
@@ -37,60 +43,87 @@ jsonld:
           answer: A dedicated listener task per channel holds its own IRC connection and appends every PRIVMSG to a per-channel ring buffer, so freshly connected clients can be shown recent backscroll.
         - question: What transport and auth does it use?
           answer: It exposes WebSocket and REST transports over Axum with JWT verification, and uses the shared bevy_chat schema to translate between ChatMessage and IRC PRIVMSG frames.
+bento:
+    badge: docker · networking
+    title: WebSocket-to-IRC
+    accent: bridge
+    lede: >-
+        A Rust Axum service that bridges WebSocket clients to an Ergo IRC server
+        — adding JWT auth, per-channel Valkey history, rate limiting, and a
+        shared chat schema so web and game clients speak the same vocabulary as
+        the IRC network. Fronts KBVE's /minechat and /gamechat channels.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/irc
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Deploy
+          href: "#deploy"
+    aside:
+        icon: message
+        title: Per-channel backscroll
+        body: >-
+            A dedicated listener task per channel holds its own IRC connection
+            and appends every PRIVMSG to a Valkey-backed ring buffer, so freshly
+            connected clients see recent history plus live messages.
+        points:
+            - <strong>Auth</strong> — JWT verified before channel access.
+            - <strong>Schema</strong> — bevy_chat ChatMessage ⇄ IRC PRIVMSG.
+    stats:
+        - { label: Image, value: kbve/irc-gateway, icon: box }
+        - { label: Language, value: Rust, icon: rust }
+        - { label: Backend, value: Ergo + Valkey, icon: server }
+        - { label: Auth, value: JWT, icon: key }
+    features:
+        - title: WebSocket ↔ IRC bridge
+          icon: network
+          body: Proxies WebSocket sessions onto Ergo IRC connections.
+        - title: JWT auth
+          icon: key
+          body: Validates tokens before granting channel access.
+        - title: Per-channel history
+          icon: clock
+          body: A listener task per channel rings recent PRIVMSGs for backscroll.
+        - title: Rate limiting
+          icon: shield
+          body: Ingress throttling to protect the IRC backend.
+        - title: Shared chat schema
+          icon: message
+          body: bevy_chat ChatMessage ⇄ IRC PRIVMSG translation.
+        - title: REST + WebSocket transports
+          icon: server
+          body: HTTP endpoints alongside the live socket.
+    related:
+        - title: Bevy Chat Crate
+          href: /project/bevy-chat-crate/
+          copy: Shared chat message schema.
+          icon: message
+        - title: DiscordSH
+          href: /project/discordsh/
+          copy: Discord bridge sharing the chat pipeline.
+          icon: discord
+        - title: Minecraft Server
+          href: /project/mc/
+          copy: Game server feeding the /minechat channel.
+          icon: box
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-The IRC Gateway is a Rust Axum service that bridges **WebSocket clients to an Ergo
-IRC server**. It adds **JWT authentication**, **per-channel chat history** backed by
-Valkey, **rate limiting**, and a **shared chat message schema** (`bevy_chat`) so
-web and game clients speak the same vocabulary as the underlying IRC network. It
-fronts KBVE's `/minechat` and `/gamechat` channels.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Key facts
-
-| | |
-|---|---|
-| **Image** | `kbve/irc-gateway` |
-| **Language** | Rust (Axum, Tokio) |
-| **Backend** | Ergo IRC server + Valkey |
-| **Auth** | JWT (jsonwebtoken) |
-| **License** | KBVE |
-| **Source** | [`apps/irc/irc-gateway`](https://github.com/KBVE/kbve/tree/main/apps/irc/irc-gateway) |
-
-## Features
-
-- **WebSocket ↔ IRC bridge** — proxies WebSocket sessions onto Ergo IRC connections.
-- **JWT auth** — validates tokens before granting channel access.
-- **Per-channel history** — a listener task per channel rings recent PRIVMSGs for backscroll.
-- **Rate limiting** — ingress throttling to protect the IRC backend.
-- **Shared chat schema** — `bevy_chat` `ChatMessage` ⇄ IRC PRIVMSG translation.
-- **REST + WebSocket transports** — HTTP endpoints alongside the live socket.
-
-## Usage
+<BentoProse id="deploy" eyebrow="Runtime" heading="Usage & deploy">
 
 Built and deployed as the `kbve/irc-gateway` container on Kubernetes; clients
 connect over WebSocket with a valid JWT to join a channel and receive recent
 history plus live messages.
 
-## FAQ
+</BentoProse>
 
-**What does the IRC Gateway do?**
-It is a Rust Axum service that bridges WebSocket clients to an Ergo IRC server,
-adding JWT authentication, per-channel chat history, rate limiting, and a shared
-chat message schema.
-
-**How is chat history handled?**
-A dedicated listener task per channel holds its own IRC connection and appends
-every PRIVMSG to a per-channel ring buffer, so freshly connected clients can be
-shown recent backscroll.
-
-**What transport and auth does it use?**
-It exposes WebSocket and REST transports over Axum with JWT verification, and uses
-the shared `bevy_chat` schema to translate between `ChatMessage` and IRC PRIVMSG frames.
-
-## Related
-
-- [Bevy Chat Crate](/docs/project/bevy-chat-crate) — shared chat message schema.
-- [DiscordSH](/docs/project/discordsh) — Discord bridge sharing the chat pipeline.
-- [Minecraft Server](/docs/project/mc) — game server feeding the `/minechat` channel.
+</BentoDoc>

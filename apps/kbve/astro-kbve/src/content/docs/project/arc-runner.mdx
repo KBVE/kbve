@@ -31,6 +31,12 @@ kube:
     tier: api
     owner: h0lybyte
     criticality: critical
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the arc-runner image?
@@ -39,9 +45,69 @@ jsonld:
           answer: Baking removes cold-start apt-get calls, stays air-gap-safe under apt mirror outages, and gives a single source of truth so bumping a tool happens once in the Dockerfile instead of in every workflow.
         - question: Which build args control the arc-runner image?
           answer: ACTIONS_RUNNER_VERSION pins the upstream runner tag, KUBECTL_VERSION pins the kubectl release (SHA-verified at build), and DBMATE_VERSION pins the dbmate migrator to match the in-cluster ci-dbmate-deploy Job.
+bento:
+    badge: docker · github-actions · infrastructure
+    title: Custom runner image for
+    accent: ARC
+    lede: >-
+        The custom Actions Runner Controller image consumed by the
+        arc-runner-set scale set in the arc-runners namespace. It layers a small
+        bundle of build tooling on top of ghcr.io/actions/actions-runner so CI
+        jobs do not have to apt-get install the same packages on every cold
+        start.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/arc-runner
+          primary: true
+          external: true
+        - label: Image layout
+          href: "#layout"
+        - label: Rollout
+          href: "#rollout"
+    aside:
+        icon: package
+        title: One base, every tool baked
+        body: >-
+            Layered onto <code>ghcr.io/actions/actions-runner</code> so every
+            tool the runner pool needs is on <code>PATH</code> the moment the
+            pod starts — no cold-start <code>apt-get</code>, air-gap-safe under
+            mirror outages, one source of truth for tool versions.
+        points:
+            - <strong>git-lfs / unzip / jq / gh</strong> — workflow shell glue.
+            - <strong>kubectl / dbmate</strong> — pinned via build args for parity.
+    stats:
+        - { label: Image, value: kbve/arc-runner, icon: package }
+        - { label: Runner, value: '2.335.1', icon: github }
+        - { label: License, value: KBVE, icon: license }
+        - { label: Status, value: active, icon: check }
+    features:
+        - title: No cold-start apt-get
+          icon: zap
+          body: Every tool the runner pool needs is on PATH the moment the runner pod starts, instead of being apt-get installed as the first step of every job.
+        - title: Air-gap-safe
+          icon: shield
+          body: Image dependencies are pinned via the upstream actions-runner tag plus apt snapshots, so a transient archive.ubuntu.com outage no longer fails Unity matrix legs.
+        - title: Single source of truth
+          icon: check
+          body: Bumping a tool happens once in this Dockerfile + version, not in every workflow that references it.
+    related:
+        - title: Kilobase
+          href: /project/kilobase/
+          copy: The Postgres image migrated by the dbmate tooling baked into this runner.
+          icon: database
+        - title: DiscordSH Bot
+          href: /project/discordsh-bot/
+          copy: One of the workflows that runs on the arc-runner-set scale set.
+          icon: discord
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="layout" eyebrow="What's baked in" heading="Image layout & build args">
 
 `arc-runner` is the custom Actions Runner Controller image consumed by the `arc-runner-set` scale set in the `arc-runners` namespace. It layers a small bundle of build tooling on top of `ghcr.io/actions/actions-runner` so CI jobs do not have to `apt-get install` the same packages on every cold start.
 
@@ -85,6 +151,10 @@ The image runs as the upstream `runner` user by default. The pod spec sets `runA
 | `KUBECTL_VERSION` | `1.31.0` | Pinned `kubectl` release. SHA verified against `dl.k8s.io/release/v<KUBECTL_VERSION>/bin/linux/amd64/kubectl.sha256` at build. |
 | `DBMATE_VERSION` | `2.28.0` | Pinned `dbmate` release. Tracks the in-cluster `ci-dbmate-deploy` Job image for parity. |
 
+</BentoProse>
+
+<BentoProse id="rollout" eyebrow="Migration" heading="Used by, rollout & cadence">
+
 ### Used by
 
 - `apps/kube/github/runners/manifests/values.yaml` — `template.spec.containers[].image` and `template.spec.initContainers[].image` will flip to `ghcr.io/kbve/arc-runner:<tag>` in a follow-up PR. The first publish of this image happens on the upstream runner image; subsequent rebuilds run on the custom image itself.
@@ -102,19 +172,6 @@ This page tracks the image artefact only. The full migration runs across three P
 - Track upstream `actions/runner` minor releases in `ACTIONS_RUNNER_VERSION`. Patch bumps can ride along on dependabot.
 - Every image publish bumps both `version.toml` (rebuild trigger via the dispatch manifest) and the `kbve.com/restart-trigger` annotation in values.yaml (forces a runner pod roll).
 
-## FAQ
+</BentoProse>
 
-**What is the arc-runner image?**
-It is a custom Actions Runner Controller image consumed by the `arc-runner-set` scale set in the `arc-runners` namespace. It layers build tooling on top of the upstream `ghcr.io/actions/actions-runner` base so CI jobs do not `apt-get install` the same packages on every cold start.
-
-**Why bake tools into the runner instead of installing them per job?**
-Baking removes cold-start `apt-get` calls, stays air-gap-safe under apt mirror outages, and gives a single source of truth so bumping a tool happens once in the Dockerfile instead of in every workflow.
-
-**Which build args control the arc-runner image?**
-`ACTIONS_RUNNER_VERSION` pins the upstream runner tag, `KUBECTL_VERSION` pins the `kubectl` release (SHA-verified at build), and `DBMATE_VERSION` pins the `dbmate` migrator to match the in-cluster `ci-dbmate-deploy` Job.
-
-## Related
-
-- [Kilobase](/project/kilobase) — the Postgres image migrated by the `dbmate` tooling baked into this runner.
-- [DiscordSH Bot](/project/discordsh-bot) — one of the workflows that runs on the `arc-runner-set` scale set.
-
+</BentoDoc>

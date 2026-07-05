@@ -21,6 +21,12 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the steamcmd-ubuntu image for?
@@ -29,9 +35,60 @@ jsonld:
           answer: No. Each consumer brings its own config.vdf — a volume mount locally, or the STEAM_CONFIG_VDF secret restored in CI.
         - question: Why is lib32gcc-s1 installed?
           answer: steamcmd is a 32-bit Linux binary, so lib32gcc-s1 is the one non-obvious runtime dependency the image needs.
+bento:
+    badge: docker · infrastructure · steam
+    title: Steam upload base
+    accent: SteamCMD Ubuntu
+    lede: >-
+        An Ubuntu 24.04 Docker base image with steamcmd preinstalled, used for
+        local config.vdf capture and the CI Steam build upload step — no
+        credentials baked in.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/docker/steamcmd-ubuntu
+          primary: true
+          external: true
+        - label: Local capture
+          href: "#local-capture"
+        - label: Pipeline
+          href: "#pipeline"
+    aside:
+        icon: lock
+        title: No credentials baked in
+        body: >-
+            Each consumer brings its own <code>config.vdf</code> — a volume mount
+            locally, or the <code>STEAM_CONFIG_VDF</code> secret restored in CI.
+            Steam Guard mobile auth runs once; the resulting machine token blob
+            authenticates Linux runners on subsequent runs.
+        points:
+            - <strong>Local</strong> — interactive docker run to capture the vdf.
+            - <strong>CI</strong> — ci-unity.yml deploy_steam runs run_app_build.
+    stats:
+        - { label: Image, value: steamcmd-ubuntu, icon: package }
+        - { label: Base, value: 'Ubuntu 24.04', icon: box }
+        - { label: Tag, value: '24.04', icon: branch }
+        - { label: Creds, value: none baked, icon: lock }
+    features:
+        - title: steamcmd preinstalled
+          icon: package
+          body: steamcmd lives at /opt/steamcmd/ with a /usr/local/bin/steamcmd shim for direct invocation.
+        - title: No credentials baked in
+          icon: lock
+          body: Each consumer supplies its own config.vdf — a volume mount locally or the STEAM_CONFIG_VDF secret in CI.
+        - title: Build-time self-update
+          icon: zap
+          body: Self-update runs at image build time so the first invocation isn't paying the steamcmd bootstrap cost.
+        - title: 32-bit runtime dep
+          icon: settings
+          body: lib32gcc-s1 is the one non-obvious runtime dependency — steamcmd is a 32-bit Linux binary.
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it is" heading="Overview & image hygiene">
 
 Ubuntu 24.04 base with `steamcmd` preinstalled at `/opt/steamcmd/`, plus a `/usr/local/bin/steamcmd` shim for direct invocation.
 
@@ -40,13 +97,15 @@ Two consumers:
 1. **Local** — interactive `docker run -it --rm -v ~/steam-export:/export ghcr.io/kbve/steamcmd-ubuntu:24.04 bash` to capture a Linux-flavored `config.vdf` for the `STEAM_CONFIG_VDF` GitHub secret. Steam Guard mobile auth runs once; the resulting machine token blob authenticates Linux runners on subsequent CI runs.
 2. **CI** — `ci-unity.yml`'s `deploy_steam` job uses this image to run `steamcmd +run_app_build` against the demo / main `app_build_<label>.vdf` configs.
 
-## Image hygiene
+### Image hygiene
 
 - No credentials baked in. Each consumer brings its own `config.vdf` (volume mount locally, secret restore in CI).
 - Self-update runs at image build time so first invocation isn't paying the steamcmd bootstrap cost.
 - `lib32gcc-s1` is the only non-obvious runtime dep — steamcmd is a 32-bit Linux binary.
 
-## Local capture flow
+</BentoProse>
+
+<BentoProse id="local-capture" eyebrow="Capture config.vdf" heading="Local capture flow">
 
 ```sh
 mkdir -p ~/steam-export
@@ -62,20 +121,12 @@ gh secret set STEAM_CONFIG_VDF --repo kbve/kbve < /tmp/steam_config.b64
 rm -rf /tmp/steam_config.b64 ~/steam-export
 ```
 
-## Pipeline
+</BentoProse>
+
+<BentoProse id="pipeline" eyebrow="Publish" heading="Pipeline">
 
 `pipeline: docker` → manifest fan-out builds + pushes to `ghcr.io/kbve/steamcmd-ubuntu:24.04` whenever `version` here outpaces `version.toml`.
 
-## FAQ
+</BentoProse>
 
-**What is the steamcmd-ubuntu image for?**
-It is an Ubuntu 24.04 base image with `steamcmd` preinstalled, used for local
-`config.vdf` capture and the CI Steam build upload step in `ci-unity.yml`.
-
-**Are Steam credentials baked into the image?**
-No. Each consumer brings its own `config.vdf` — a volume mount locally, or the
-`STEAM_CONFIG_VDF` secret restored in CI.
-
-**Why is lib32gcc-s1 installed?**
-`steamcmd` is a 32-bit Linux binary, so `lib32gcc-s1` is the one non-obvious
-runtime dependency the image needs.
+</BentoDoc>

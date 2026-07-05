@@ -29,6 +29,12 @@ kube:
     tier: web
     owner: h0lybyte
     criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the Memes application?
@@ -37,23 +43,84 @@ jsonld:
           answer: Public traffic enters via Cloudflare, CNAMEs to gateway.kbve.com, hits the Cilium gateway LB, then the kbve-gateway https-memes listener (cert memes-tls covering meme.sh and www.meme.sh), routes through memes-route, and lands on memes-service:4321.
         - question: Why should apex and www not be split across gateway listeners?
           answer: Cilium derives the Envoy filter chain SNI list from the cert SAN, not the listener hostname. Two listeners sharing one multi-SAN cert emit duplicate filter chain matches, which Envoy rejects, causing a fall-through 404. Use one listener with the apex hostname and let the HTTPRoute enumerate every hostname.
+bento:
+    badge: docker · web
+    title: The web service behind
+    accent: meme.sh
+    lede: >-
+        The KBVE web service behind meme.sh — an axum + Askama Rust backend and
+        an Astro static frontend, packaged as kbve/memes and served through a
+        Cilium gateway on Kubernetes.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/memes
+          primary: true
+          external: true
+        - label: Routing
+          href: "#routing"
+        - label: Gateway gotcha
+          href: "#gotcha"
+    aside:
+        icon: shield
+        title: One listener per multi-SAN cert
+        body: >-
+            Cilium derives the Envoy filter chain SNI list from the
+            <strong>cert SAN</strong>, not the listener hostname. Splitting apex
+            and www across two listeners on one cert emits duplicate filter chain
+            matches that Envoy rejects — a silent fall-through 404.
+        points:
+            - <strong>Do</strong> — one listener, HTTPRoute enumerates hostnames.
+            - <strong>Or</strong> — one cert per hostname so SNI lists don't collide.
+    stats:
+        - { label: App, value: memes, icon: server }
+        - { label: Domain, value: meme.sh, icon: network }
+        - { label: Stack, value: 'axum + Astro', icon: rust }
+        - { label: Service, value: 'memes-service:4321', icon: activity }
+    features:
+        - title: Askama-templated backend
+          icon: code
+          body: apps/memes/axum-memes is a Rust backend rendering Askama templates behind the meme.sh origin.
+        - title: Astro static frontend
+          icon: box
+          body: apps/memes/astro-memes builds the static frontend packaged alongside the backend into the kbve/memes image.
+        - title: Cilium gateway routing
+          icon: network
+          body: Cloudflare → gateway.kbve.com → Cilium LB → kbve-gateway https-memes listener → memes-route → memes-service:4321.
+        - title: Cross-namespace TLS
+          icon: lock
+          body: memes-cert (RSA 2048, letsencrypt-http HTTP-01) lives in memes/memes-tls and is consumed by kbve-gateway via a ReferenceGrant.
+    related:
+        - title: Firecracker Node Web
+          href: /project/firecracker-node-web/
+          copy: A sibling Docker-pipeline service in the KBVE stack.
+          icon: box
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it is" heading="Overview">
 
 Memes application service serving [meme.sh](https://meme.sh) and `www.meme.sh`. Built from `apps/memes/axum-memes` (Rust backend + Askama templates) plus the `apps/memes/astro-memes` static frontend, packaged into the `kbve/memes` image. Deployment lives at [apps/kube/memes/manifest/](apps/kube/memes/manifest/).
 
-## Routing
+</BentoProse>
+
+<BentoProse id="routing" eyebrow="Traffic path" heading="Routing & TLS">
 
 Public traffic enters via Cloudflare → CNAME to `gateway.kbve.com` → `142.132.206.71` (Cilium gateway LB) → [`kbve-gateway`](apps/kube/kbve/manifest/kbve-gateway.yaml) `https-memes` listener (hostname `meme.sh`, cert `memes-tls` covers both `meme.sh` and `www.meme.sh` via SAN) → [`memes-route`](apps/kube/memes/manifest/httproute.yaml) (spec.hostnames = `[meme.sh, www.meme.sh]`) → `memes-service:4321`.
 
 The cert lives in `memes/memes-tls` and is consumed cross-namespace by `kbve-gateway` via [`memes-tls-from-kbve-gateway` ReferenceGrant](apps/kube/memes/manifest/memes-refgrant.yaml).
 
-## TLS / certificate
+### TLS / certificate
 
 [`memes-cert`](apps/kube/memes/manifest/memes-cert.yaml) is **RSA 2048**, issued by the `letsencrypt-http` ClusterIssuer (HTTP-01). The algorithm matches the cert already in `memes-tls`; do not change to ECDSA without first verifying that the ACME HTTP-01 challenge path on Cilium gateway is healthy (see runbook below) — otherwise cert-manager flags `IncorrectCertificate` and queues a reissue that can never complete.
 
-## Cilium gateway gotcha — never split apex + www across listeners with one cert
+</BentoProse>
+
+<BentoProse id="gotcha" eyebrow="Cilium gateway" heading="Never split apex + www across listeners with one cert">
 
 The original setup had two listeners (`https-memes` for `meme.sh`, `https-memes-www` for `www.meme.sh`) both pointing at the same `memes-tls` Secret. Cilium derives the Envoy filter chain SNI list from the **cert SAN** (not the listener `hostname`), so each listener emitted a filter chain with the same SNI array `[meme.sh, www.meme.sh]`. Envoy rejects duplicate filter chain match → falls through to the default 404 handler → 73 days of `meme.sh` returning nginx-style 404s while `kubectl get gateway` reported `Programmed=True / Accepted=True / ResolvedRefs=True` and the `memes-service` cluster sat healthy with zero `cx_total`.
 
@@ -61,7 +128,9 @@ A second-order victim was ACME HTTP-01 — `cm-acme-http-solver-*` HTTPRoutes sh
 
 **Rule for this gateway:** if one cert covers multiple SANs, use **one listener** with the apex hostname and let the HTTPRoute `spec.hostnames` enumerate every hostname the route serves. If you need per-host listeners, issue one cert per hostname so the SNI lists don't collide.
 
-## Runbook — meme.sh returns 404
+</BentoProse>
+
+<BentoProse id="runbook" eyebrow="Diagnose" heading="Runbook — meme.sh returns 404">
 
 1. Confirm origin is the actual culprit (not Cloudflare): `curl -s https://meme.sh/ | head` — an `nginx`-flavored 404 body means the request reached origin and the gateway returned it.
 2. Compare against a sibling host on the same gateway, e.g. `curl -sk --resolve kbve.com:443:142.132.206.71 -H 'Host: kbve.com' https://kbve.com/` — if that's 200, the gateway is healthy and the breakage is memes-specific.
@@ -70,25 +139,6 @@ A second-order victim was ACME HTTP-01 — `cm-acme-http-solver-*` HTTPRoutes sh
 5. The stuck `cm-acme-http-solver-*` HTTPRoutes drain automatically once the cert can validate; if they don't, `kubectl delete httproute -l acme.cert-manager.io/http01-solver -n memes` to force cert-manager to recreate fresh ones.
 6. Re-curl `meme.sh` — should return 200.
 
-## FAQ
+</BentoProse>
 
-**What is the Memes application?**
-Memes is the KBVE web service serving meme.sh and www.meme.sh. It is built from
-`apps/memes/axum-memes` (a Rust backend with Askama templates) plus the
-`apps/memes/astro-memes` static frontend, packaged into the `kbve/memes` image.
-
-**How does traffic reach the Memes service?**
-Public traffic enters via Cloudflare, CNAMEs to `gateway.kbve.com`, hits the
-Cilium gateway LB, then the `kbve-gateway` `https-memes` listener (cert
-`memes-tls` covering meme.sh and www.meme.sh), routes through `memes-route`, and
-lands on `memes-service:4321`.
-
-**Why should apex and www not be split across gateway listeners?**
-Cilium derives the Envoy filter chain SNI list from the cert SAN, not the
-listener hostname. Two listeners sharing one multi-SAN cert emit duplicate filter
-chain matches, which Envoy rejects, causing a fall-through 404. Use one listener
-with the apex hostname and let the HTTPRoute enumerate every hostname.
-
-## Related
-
-- [Firecracker Node Web](/docs/project/firecracker-node-web) — sibling Docker-pipeline service in the KBVE stack.
+</BentoDoc>

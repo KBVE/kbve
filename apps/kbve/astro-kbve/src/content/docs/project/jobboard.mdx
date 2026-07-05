@@ -32,6 +32,12 @@ has_test: false
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 # Taxonomy source of truth → `nx run astro-kbve:sync:jobboard-taxonomy`
 # emits the JSON bundle (SPA) + idempotent seed SQL (jobboard.verticals/taxonomy).
 # slug/name = stable keys; label = display (i18n layers a labels map later).
@@ -92,17 +98,75 @@ jsonld:
           answer: It is a decoupled Rust/Axum REST API served to a separate frontend client. Auth is Supabase (verifying the JWT sub as auth.users.id), DB access is via jedi PgCluster over Postgres, migrations use dbmate, and the wire format is protobuf over the jedi envelope.
         - question: How does the Job Board add new verticals without schema changes?
           answer: Disciplines, tools, and skills all live in a taxonomy table scoped by vertical_id rather than a hardcoded enum, and gigs and profiles reference taxonomy ids. Launching a new vertical is a seed-data operation, not a schema or code change.
+bento:
+    badge: gamedev · gaming · rust · proto · docker · web
+    title: Curated vetted freelance
+    accent: Job Board
+    lede: >-
+        A curated, both-sides-vetted freelance platform — think Upwork/Fiverr,
+        but gated and quality-first. Sanctioned members post gigs, others take
+        them up. Game development is the launch vertical, not the ceiling: the
+        data model, taxonomy, and matching are vertical-agnostic by design.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/jobboard
+          primary: true
+          external: true
+        - label: Architecture
+          href: "#architecture"
+        - label: Protobuf
+          href: "#protobuf"
+        - label: Roadmap
+          href: "#roadmap"
+    aside:
+        icon: shield
+        title: Curation is the wedge
+        body: >-
+            Both posters and takers are vetted, so quality is the product. Every
+            gig is legit; every applicant is screened. The underlying platform
+            stays general so we can expand without re-platforming.
+        points:
+            - <strong>Vertical-first</strong> — game dev first, horizontal data model.
+            - <strong>Portfolio-first</strong> — talent is hired by seeing work.
+    stats:
+        - { label: App, value: jobboard, icon: server }
+        - { label: Stack, value: Rust + Axum, icon: rust }
+        - { label: Auth, value: Supabase, icon: key }
+        - { label: Port, value: "5400", icon: activity }
+    features:
+        - title: Curation is the wedge
+          icon: shield
+          body: Both posters and takers are vetted, so quality is the product — every gig is legit, every applicant screened.
+        - title: Vertical-first, horizontal model
+          icon: expand
+          body: Win one vertical at a time (game dev first) while the underlying platform stays general, so expansion needs no re-platforming.
+        - title: Portfolio-first
+          icon: eye
+          body: Creative/technical talent is hired by seeing work — the portfolio system is a first-class feature across every vertical.
+        - title: Decoupled Rust/Axum API
+          icon: network
+          body: A standalone REST API with Supabase auth and jedi PgCluster over Postgres, reusable across web, future mobile, and integrations.
+    related:
+        - title: rows
+          href: /project/rows/
+          copy: The KBVE multi-tenant Rust/Axum service whose auth and PgCluster patterns the Job Board reuses.
+          icon: server
+    related_heading: Related
 ---
 
 import AstroGithubReadme from '@kbve/astro/components/social/github/Readme/AstroGithubReadme.astro';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## README
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="readme" eyebrow="Upstream" heading="README">
 
 <AstroGithubReadme url="https://raw.githubusercontent.com/KBVE/kbve/refs/heads/main/apps/jobboard/README.md" />
 
-* * *
+</BentoProse>
 
-## Job Board
+<BentoProse id="overview" eyebrow="Status & positioning" heading="Job Board">
 
 > Status: **Phase 0 scaffolded** — `apps/jobboard` Axum service boots, `jobboard.proto` wired into the build. **Auth = Supabase** (JWT `sub` = `auth.users.id`); the Phase-0 first-party auth/sessions in the Rust code is a dead end to be removed. **Schema migration shipped** (`20260615120000_jobboard_tables.sql`): 23 tables, ULID-as-uuid PKs, junction tables (no array refs), state/money/lifecycle CHECK constraints, RLS lockdown, `updated_at` triggers; all user refs → `auth.users(id)`. No seed yet. Phases 1–10 below remain spec.
 
@@ -117,9 +181,9 @@ A **curated, both-sides-vetted job board for freelance work** — think Upwork/F
 - **Vertical-first go-to-market, horizontal data model.** We win one vertical at a time (game dev first) by speaking its language, while the underlying platform stays general so we can expand without re-platforming.
 - **Portfolio-first.** Talent in creative/technical verticals is hired by *seeing* work (characters, gameplay clips, playable builds, reels, repos), not reading résumés. The portfolio system is a first-class feature across every vertical.
 
-* * *
+</BentoProse>
 
-## Personas & roles
+<BentoProse id="personas" eyebrow="Who's on it" heading="Personas & roles">
 
 | Persona | What they do | Vetting |
 |---|---|---|
@@ -131,9 +195,9 @@ A **curated, both-sides-vetted job board for freelance work** — think Upwork/F
 - Capabilities are the authorization primitive — encoded as a bitmask on the existing `User.role` field (see protobuf section).
 - A member can operate in **one or more verticals**; their granted disciplines/skills are scoped per vertical.
 
-* * *
+</BentoProse>
 
-## Verticals & taxonomy
+<BentoProse id="taxonomy" eyebrow="Vocabulary" heading="Verticals & taxonomy">
 
 The platform is organized around **verticals** (top-level service areas) and a **controlled, admin-managed vocabulary** scoped to each vertical — so filtering and matching work without free text, and so a new vertical can be launched without touching code.
 
@@ -153,9 +217,9 @@ This is the *first vertical's* seed data, illustrating the pattern — not a fix
 
 > Admin-managed vocabulary so new verticals, disciplines, tools, and skills can be added without code changes.
 
-* * *
+</BentoProse>
 
-## Core flows
+<BentoProse id="flows" eyebrow="How it works" heading="Core flows">
 
 ### A. Membership / vetting (both sides)
 1. Sign up (first-party auth — email/password or OAuth).
@@ -186,9 +250,9 @@ This is the *first vertical's* seed data, illustrating the pattern — not a fix
 ### E. Admin / moderation (cross-cutting)
 - Vetting queue, gig takedowns, report handling, vertical + taxonomy management, audit log.
 
-* * *
+</BentoProse>
 
-## Data model (Postgres)
+<BentoProse id="data-model" eyebrow="Postgres" heading="Data model">
 
 Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sqlx migrate`). Each table is mirrored by a protobuf message (see below). Reused entities map to existing protos; new entities to the `jobboard` package.
 
@@ -211,9 +275,9 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 | `reports`, `audit_log` | new (admin) |
 | `invoices`, `settings`, `globals` (monetization hooks) | **reuse** `Invoice`, `Setting`, `Global` (kbveproto) |
 
-* * *
+</BentoProse>
 
-## Tech architecture (decoupled)
+<BentoProse id="architecture" eyebrow="Decoupled" heading="Tech architecture">
 
 ### Backend — Rust API service
 | Concern | Choice | Why |
@@ -234,9 +298,9 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 
 **Authorization model:** Axum middleware/extractors authenticate the session/token; route guards check the `Capability` bitmask on `User.role` (`POSTER`/`TAKER`/`ADMIN`); ownership checks (e.g. gig owner) enforced per-handler.
 
-* * *
+</BentoProse>
 
-## Deployment
+<BentoProse id="deployment" eyebrow="Ship it" heading="Deployment">
 
 The deployable surface lives in `apps/jobboard`: `Dockerfile` (chiseled Ubuntu axum base), `version.toml`, and nx `project.json` (`build` / `test` / `lint` / `run` / `container` / `containerx`). The container build context is the repo root.
 
@@ -291,9 +355,9 @@ The frontmatter above (`version`, `image`, `version_toml`, `version_target`, `de
 
 **Other deferred follow-ups**: seed migration; per-phase RLS SELECT policies; conversation inbox denormalization (`conversations.last_message_at/id`, maintained in the send RPC); attachment element-type validation (array-of-objects, RPC/helper); proto entity `id` fields `uint64 → bytes` (uuid) + `Message.sender` → participant id. The `down` (`drop schema … cascade`) is **bootstrap-only** — mark irreversible once prod data exists.
 
-* * *
+</BentoProse>
 
-## REST API surface (Axum)
+<BentoProse id="api" eyebrow="Axum" heading="REST API surface">
 
 All mutations go through the API; the frontend is a pure client. Auth via session cookie or `Authorization: Bearer`. Versioned under `/api/v1`.
 
@@ -350,9 +414,9 @@ POST   /reports
 GET    /admin/reports            [admin]
 ```
 
-* * *
+</BentoProse>
 
-## Protocol Buffers
+<BentoProse id="protobuf" eyebrow="Wire contract" heading="Protocol Buffers">
 
 The platform's wire/storage contract is protobuf. The proto root is `packages/data/proto/` (the shared protoc include root — cross-package imports already work there). We add one new file — `packages/data/proto/jobboard/jobboard.proto` (package `jobboard`).
 
@@ -388,18 +452,18 @@ Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jo
 - **No new `MessageKind` values** — existing routing bits suffice for v1.
 - **No hardcoded discipline enum** — disciplines/tools/skills are data-driven taxonomy scoped by vertical, so new verticals require no proto change.
 
-* * *
+</BentoProse>
 
-## Trust & safety
+<BentoProse id="trust" eyebrow="Safety" heading="Trust & safety">
 
 - Vetting on both sides is the primary trust mechanism.
 - Reporting + admin takedown for gigs, profiles, messages.
 - Off-platform payment disclaimer + safety guidance (no escrow yet — set expectations clearly).
 - Audit log for admin actions.
 
-* * *
+</BentoProse>
 
-## Key risks / open questions
+<BentoProse id="risks" eyebrow="Open questions" heading="Key risks / open questions">
 
 1. **Disintermediation / leakage** — with payments off-platform, members can match once and transact off-platform forever. *Mitigations:* keep reviews/reputation valuable enough to bring people back; consider gating contact details until a stage; plan the monetization switch before leakage becomes habit.
 2. **Vetting throughput** — manual approval is the quality bar *and* a growth bottleneck. Needs a written rubric (per vertical) + a fast admin UI.
@@ -408,9 +472,9 @@ Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jo
 5. **Vertical expansion sequencing** — the model supports many verticals, but each needs taxonomy seeding, a vetting rubric, and liquidity. Which vertical follows game dev, and on what trigger?
 6. **Proto include paths** — sharing `MediaAttachment`/identity across packages needs a common protoc include root; decide whether to relocate shared protos or vendor.
 
-* * *
+</BentoProse>
 
-## Phased build plan
+<BentoProse id="roadmap" eyebrow="Plan" heading="Phased build plan">
 
 | Phase | Scope | Outcome |
 |---|---|---|
@@ -426,9 +490,9 @@ Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jo
 | **9 — Monetization hooks** | Wire entitlements to a chosen model (sub/featured/credits) via reused `Invoice`/`Setting` | Revenue switch ready |
 | **10 — Second vertical** | Seed a new vertical (taxonomy + rubric); validate the model expands without schema change | Multi-vertical proven |
 
-* * *
+</BentoProse>
 
-## Decisions
+<BentoProse id="decisions" eyebrow="Locked & open" heading="Decisions">
 
 **Locked:** curated, both-sides vetted · gig→apply mechanic · lead-gen v1 (off-platform payments) · monetization-agnostic hooks · **game dev as the launch vertical, vertical-agnostic data model** (verticals + data-driven taxonomy, no hardcoded discipline enum) · decoupled architecture · Rust/Axum API · **Supabase auth** (verify JWT, `sub` = `auth.users.id`; all jobboard rows FK `auth.users`) — first-party auth was a wrong turn, removing it · **jedi `PgCluster` (tokio-postgres + bb8) + dbmate migrations** against the KBVE cluster · standalone `jobboard.proto` (one package, standalone for Phase 0).
 
@@ -442,29 +506,6 @@ Canonical source: **`packages/data/proto/jobboard/jobboard.proto`** (package `jo
 - cookie-only vs cookie+bearer; OAuth providers (Discord/GitHub/Steam) for v1.
 - Proto include-path strategy (shared root vs vendor).
 
-* * *
+</BentoProse>
 
-## FAQ
-
-**What is the KBVE Job Board?**
-It is a curated, both-sides-vetted freelance platform where sanctioned members post
-gigs and other sanctioned members take them up. It launches in the game-dev vertical
-but is architected so additional service verticals can be added as data, without
-schema or code changes.
-
-**What is the Job Board's technical architecture?**
-It is a decoupled Rust/Axum REST API served to a separate frontend client. Auth is
-Supabase (verifying the JWT `sub` as `auth.users.id`), DB access is via jedi
-`PgCluster` over Postgres, migrations use dbmate, and the wire format is protobuf
-over the jedi envelope.
-
-**How does the Job Board add new verticals without schema changes?**
-Disciplines, tools, and skills all live in a taxonomy table scoped by `vertical_id`
-rather than a hardcoded enum, and gigs and profiles reference taxonomy ids. Launching
-a new vertical is a seed-data operation, not a schema or code change.
-
-* * *
-
-## Related
-
-- [rows](/project/rows/) — the KBVE multi-tenant Rust/Axum service whose auth and PgCluster patterns the Job Board reuses.
+</BentoDoc>

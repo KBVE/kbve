@@ -23,6 +23,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KBVEYYJson?
@@ -31,55 +37,62 @@ jsonld:
           answer: yyjson is one of the fastest C JSON libraries available. Wrapping it as a runtime module gives KBVE Unreal projects low-overhead JSON parsing and serialization, which matters for high-volume data such as ROWS backend payloads and codegen databases.
         - question: Which platforms and engine versions does KBVEYYJson support?
           answer: KBVEYYJson targets Unreal Engine 5.4 and later on Win64, Linux, and Mac. It is a third-party runtime module and is not enabled by default.
+bento:
+    badge: unreal · json
+    title: High-performance JSON for
+    accent: KBVEYYJson
+    lede: >-
+        An Unreal Engine 5 plugin wrapping yyjson 0.12.0, a high-performance C
+        JSON library. It gives KBVE Unreal projects low-overhead JSON parsing
+        and serialization through a single runtime module, replacing the slower
+        built-in engine JSON utilities for high-volume payloads.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEYYJson
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: zap
+        title: Opt-in, one JSON provider
+        body: >-
+            A single <code>KBVEYYJson</code> runtime module in the default phase.
+            Third-party category, <strong>not</strong> enabled by default, so
+            projects pull it in only where fast JSON matters.
+        points:
+            - <strong>Upstream</strong> — yyjson, MIT licensed.
+            - <strong>Fit</strong> — ROWS backend payloads, codegen databases.
+    stats:
+        - { label: yyjson, value: "0.12.0", icon: code }
+        - { label: Min engine, value: UE 5.4, icon: box }
+        - { label: Platforms, value: Win · Linux · Mac, icon: gears }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: yyjson-backed
+          icon: code
+          body: Wraps the yyjson 0.12.0 C library for fast JSON parsing and serialization.
+        - title: Runtime module
+          icon: gears
+          body: A single <code>KBVEYYJson</code> runtime module loaded in the default phase.
+        - title: Cross-platform
+          icon: expand
+          body: Builds on Win64, Linux, and Mac under UE 5.4+.
+        - title: Opt-in
+          icon: check
+          body: Third-party category, not enabled by default, so projects pull it in only where fast JSON matters.
+    related:
+        - title: KBVEROWS
+          href: /project/kbverows/
+          copy: ROWS backend plugin that serializes REST payloads.
+          icon: server
+        - title: KBVEHexWorld
+          href: /project/kbvehexworld/
+          copy: Sibling KBVE Unreal world module.
+          icon: map
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`KBVEYYJson` is an Unreal Engine 5 plugin that wraps
-[yyjson](https://github.com/ibireme/yyjson) 0.12.0, a high-performance C JSON
-library. It gives KBVE Unreal projects low-overhead JSON parsing and
-serialization through a single runtime module, replacing the slower built-in
-engine JSON utilities for high-volume payloads.
-
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVEYYJson` |
-| **Version** | 0.12.0 (tracks yyjson) |
-| **Engine** | Unreal Engine 5.4+ |
-| **License** | KBVE (yyjson upstream MIT) |
-| **Source** | [`packages/unreal/KBVEYYJson`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEYYJson) |
-| **Platforms** | Win64, Linux, Mac |
-
-## Features
-
-- **yyjson-backed** — wraps the yyjson 0.12.0 C library for fast JSON parsing and
-  serialization.
-- **Runtime module** — a single `KBVEYYJson` runtime module loaded in the default
-  phase.
-- **Cross-platform** — builds on Win64, Linux, and Mac under UE 5.4+.
-- **Opt-in** — third-party category, not enabled by default, so projects pull it
-  in only where fast JSON matters.
-
-## FAQ
-
-**What is KBVEYYJson?**
-`KBVEYYJson` is an Unreal Engine 5 plugin that wraps yyjson 0.12.0, a
-high-performance C JSON library, so Unreal projects can parse and serialize JSON
-far faster than the engine's built-in JSON utilities.
-
-**Why use yyjson instead of Unreal's built-in JSON?**
-yyjson is one of the fastest C JSON libraries available. Wrapping it as a runtime
-module gives KBVE Unreal projects low-overhead JSON parsing and serialization,
-which matters for high-volume data such as ROWS backend payloads and codegen
-databases.
-
-**Which platforms and engine versions does KBVEYYJson support?**
-KBVEYYJson targets Unreal Engine 5.4 and later on Win64, Linux, and Mac. It is a
-third-party runtime module and is not enabled by default.
-
-## Related
-
-- [KBVEROWS](/docs/project/kbverows) — ROWS backend plugin that serializes REST payloads.
-- [KBVEHexWorld](/docs/project/kbvehexworld) — sibling KBVE Unreal world module.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

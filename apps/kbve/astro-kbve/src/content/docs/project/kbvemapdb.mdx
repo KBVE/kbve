@@ -23,6 +23,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the KBVEMapDB plugin?
@@ -31,43 +37,62 @@ jsonld:
           answer: It loads FKBVEWorldObjectDef records for resource nodes, containers, and stations, including harvest yield, amount, and time plus spawn weights, from Content/Data/mapdb-data.json.
         - question: How does KBVEMapDB integrate with Mass?
           answer: FKBVEWorldObjectFragment and FKBVEWorldObjectTag carry a placed object's identity and harvest state into Mass, so harvestable world entities are driven by the same shared definitions.
+bento:
+    badge: unreal · map
+    title: World & map database
+    accent: KBVEMapDB
+    lede: >-
+        A game-agnostic Unreal Engine plugin providing world/map data plus a Mass
+        bridge — resource nodes, containers, and stations loaded into runtime
+        world-object defs with ref lookup.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEMapDB
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: network
+        title: Driven by shared defs
+        body: >-
+            <code>UKBVEMapDatabase</code> reads the shared
+            <code>mapdb-data.json</code> artifact at runtime; placed world objects
+            resolve back to their canonical definition by reference.
+        points:
+            - <strong>Fragment</strong> — FKBVEWorldObjectFragment carries identity + harvest state into Mass.
+            - <strong>Tag</strong> — FKBVEWorldObjectTag marks harvestable world entities.
+    stats:
+        - { label: Plugin, value: KBVEMapDB, icon: map }
+        - { label: Engine, value: "UE 5.4+", icon: settings }
+        - { label: Platforms, value: "Win64 · Linux · Mac", icon: box }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: Game-agnostic loader
+          icon: database
+          body: UKBVEMapDatabase, a GameInstance subsystem, reads the shared mapdb-data.json artifact at runtime.
+        - title: World-object defs
+          icon: box
+          body: FKBVEWorldObjectDef records model resource nodes, containers, and stations with harvest yield, amount, time, and spawn weights.
+        - title: Ref lookup
+          icon: route
+          body: Resolve placed objects back to their canonical definition by reference.
+        - title: Mass bridge
+          icon: network
+          body: FKBVEWorldObjectFragment and FKBVEWorldObjectTag carry object identity and harvest state into Mass for harvestable entities.
+    features_heading: Features
+    related:
+        - title: KBVETinyBVH
+          href: /project/kbvetinybvh/
+          copy: Sibling Unreal plugin from the KBVE package group.
+          icon: package
+        - title: Unreal Chuck Dev
+          href: /project/unreal-chuck-dev/
+          copy: UE5 game client that consumes KBVE Unreal plugins.
+          icon: box
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. `UKBVEMapDatabase` (a GameInstance subsystem) loads `Content/Data/mapdb-data.json` into `FKBVEWorldObjectDef` records — resource nodes, containers, and stations with harvest yield/amount/time and spawn weights — and exposes ref lookup. `FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry a placed object's identity and harvest state into Mass for harvestable world entities.
-
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVEMapDB` |
-| **Version** | 0.1.0 |
-| **Engine** | Unreal Engine 5.4+ |
-| **License** | KBVE |
-| **Status** | beta |
-| **Platforms** | Win64, Linux, Mac |
-| **Source** | [`packages/unreal/KBVEMapDB`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVEMapDB) |
-
-## Features
-
-- **Game-agnostic loader** — `UKBVEMapDatabase` GameInstance subsystem reads the shared `mapdb-data.json` artifact at runtime.
-- **World-object defs** — `FKBVEWorldObjectDef` records model resource nodes, containers, and stations with harvest yield, amount, time, and spawn weights.
-- **Ref lookup** — resolve placed objects back to their canonical definition by reference.
-- **Mass bridge** — `FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry object identity and harvest state into Mass for harvestable entities.
-
-## FAQ
-
-**What is the KBVEMapDB plugin?**
-KBVEMapDB is a game-agnostic Unreal Engine plugin providing world/map data plus a Mass bridge. The `UKBVEMapDatabase` GameInstance subsystem loads the shared `mapdb-data.json` artifact into `FKBVEWorldObjectDef` records and exposes ref lookup.
-
-**What world-object data does KBVEMapDB load?**
-It loads `FKBVEWorldObjectDef` records for resource nodes, containers, and stations, including harvest yield, amount, and time plus spawn weights, from `Content/Data/mapdb-data.json`.
-
-**How does KBVEMapDB integrate with Mass?**
-`FKBVEWorldObjectFragment` and `FKBVEWorldObjectTag` carry a placed object's identity and harvest state into Mass, so harvestable world entities are driven by the same shared definitions.
-
-## Related
-
-- [KBVETinyBVH](/project/kbvetinybvh) — sibling Unreal plugin from the KBVE package group.
-- [Unreal Chuck Dev](/project/unreal-chuck-dev) — UE5 game client that consumes KBVE Unreal plugins.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

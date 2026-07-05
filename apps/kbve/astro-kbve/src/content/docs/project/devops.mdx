@@ -17,6 +17,12 @@ version_toml: packages/npm/devops/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the @kbve/devops library?
@@ -25,52 +31,60 @@ jsonld:
           answer: It generates Zod validation schemas from Protocol Buffer definitions using the @bufbuild/protobuf toolchain, and uses dompurify for HTML sanitization.
         - question: Where is @kbve/devops used?
           answer: It is used across the KBVE monorepo to power the CI dispatch manifest registry, automate GitHub Actions workflow tasks, and provide shared validation and sanitization utilities.
+bento:
+    badge: npm · devops
+    title: Proto-to-Zod codegen &
+    accent: "@kbve/devops"
+    lede: >-
+        A DevOps helper library that streamlines development and production tasks
+        across the monorepo — proto-to-zod code generation, GitHub Actions
+        helpers, input sanitization, and CI registry management so CI/CD
+        pipelines stay consistent and low-maintenance.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/npm/devops
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: gears
+        title: Powers the CI registry
+        body: >-
+            Drives the CI dispatch manifest registry used to build and publish
+            monorepo artifacts, and automates repetitive GitHub Actions workflow
+            tasks.
+        points:
+            - <strong>Codegen</strong> — Zod schemas from Protocol Buffers via <code>@bufbuild/protobuf</code>.
+            - <strong>Sanitize</strong> — HTML/input sanitization backed by <code>dompurify</code>.
+    stats:
+        - { label: Language, value: TypeScript, icon: code }
+        - { label: Codegen, value: proto→zod, icon: gears }
+        - { label: Sanitize, value: dompurify, icon: shield }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Proto-to-zod codegen
+          icon: gears
+          body: Generates Zod validation schemas from Protocol Buffer definitions via @bufbuild/protobuf.
+        - title: GitHub Actions helpers
+          icon: branch
+          body: Utilities that automate repetitive workflow tasks in KBVE's CI/CD pipelines.
+        - title: Sanitization
+          icon: shield
+          body: HTML/input sanitization backed by dompurify.
+        - title: CI registry management
+          icon: package
+          body: Powers the CI dispatch manifest registry used to build and publish monorepo artifacts.
+    related:
+        - title: KhashVault
+          href: /project/khashvault/
+          copy: A companion KBVE npm library for browser-side cryptography.
+          icon: lock
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`@kbve/devops` is a DevOps helper library written by the KBVE team to streamline
-development and production tasks across the monorepo. It provides **proto-to-zod
-code generation**, **GitHub Actions helpers**, **input sanitization**, and **CI
-registry management** so CI/CD pipelines stay consistent and low-maintenance.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `@kbve/devops` |
-| **Version** | 0.0.19 |
-| **Language** | TypeScript (ESM) |
-| **Key deps** | `@bufbuild/protobuf`, `dompurify` |
-| **License** | MIT |
-| **Source** | [`packages/npm/devops`](https://github.com/KBVE/kbve/tree/main/packages/npm/devops) |
-
-## Features
-
-- **Proto-to-zod codegen** — generates Zod validation schemas from Protocol Buffer
-  definitions via `@bufbuild/protobuf`.
-- **GitHub Actions helpers** — utilities that automate repetitive workflow tasks in
-  KBVE's CI/CD pipelines.
-- **Sanitization** — HTML/input sanitization backed by `dompurify`.
-- **CI registry management** — powers the CI dispatch manifest registry used to
-  build and publish monorepo artifacts.
-
-## FAQ
-
-**What is the @kbve/devops library?**
-It is a DevOps helper library published by the KBVE team that provides proto-to-zod
-code generation, GitHub Actions helpers, input sanitization, and CI registry
-management to streamline the monorepo's CI/CD pipelines.
-
-**What does @kbve/devops use for schema generation?**
-It generates Zod validation schemas from Protocol Buffer definitions using the
-`@bufbuild/protobuf` toolchain, and uses `dompurify` for HTML sanitization.
-
-**Where is @kbve/devops used?**
-It is used across the KBVE monorepo to power the CI dispatch manifest registry,
-automate GitHub Actions workflow tasks, and provide shared validation and
-sanitization utilities.
-
-## Related
-
-- [KhashVault](/project/khashvault/) — a companion KBVE npm library for browser-side cryptography.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

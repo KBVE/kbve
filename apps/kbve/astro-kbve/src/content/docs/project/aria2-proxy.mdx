@@ -32,9 +32,68 @@ test_framework: typescript
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: docker · kubevirt · infrastructure
+    title: Download proxy image for
+    accent: KubeVirt
+    lede: >-
+        A purpose-built Alpine image for the KubeVirt download-proxy Deployment
+        in the angelscript namespace. It pulls large build artefacts — UE5,
+        Visual Studio Build Tools, Xcode — with resume and multi-connection
+        support and serves them back to builder VMs over plain HTTP.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/vm/aria2-proxy
+          primary: true
+          external: true
+        - label: Image layout
+          href: "#layout"
+    aside:
+        icon: zap
+        title: Serving within seconds
+        body: >-
+            aria2 and python are baked in, so the pod is serving within seconds
+            of scheduling — no <code>apk add</code> cold start — and
+            <code>tini</code> runs as PID 1 so kubelet's <code>SIGTERM</code>
+            stops in-flight downloads cleanly.
+        points:
+            - <strong>Ports</strong> — <code>6800</code> aria2 RPC, <code>8080</code> file server.
+            - <strong>User</strong> — uid/gid <code>1000</code> (appuser), workdir <code>/downloads</code>.
+    stats:
+        - { label: Image, value: kbve/aria2-proxy, icon: package }
+        - { label: Base, value: Alpine, icon: box }
+        - { label: Ports, value: '6800 / 8080', icon: network }
+        - { label: User, value: appuser 1000, icon: lock }
+    features:
+        - title: No cold-start apk add
+          icon: zap
+          body: aria2 and python are baked in, so the pod is serving within seconds of scheduling instead of paying a 30+ second apk add on every pod restart.
+        - title: Air-gap-safe
+          icon: shield
+          body: The image's dependencies are pinned via the Alpine release tag, so a transient Alpine mirror outage does not block VM provisioning.
+        - title: Clean signal handling
+          icon: check
+          body: tini runs as PID 1 so kubelet's SIGTERM propagates cleanly, stopping in-flight downloads instead of leaving aria2 hanging through the grace period.
+    related:
+        - title: KBVE Kubectl
+          href: /project/kubectl/
+          copy: kubectl image used across the same KubeVirt jobs.
+          icon: server
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="layout" eyebrow="What's baked in" heading="Image layout & usage">
 
 Purpose-built Alpine image for the KubeVirt download-proxy Deployment in the `angelscript` namespace. Replaces the previous `FROM alpine:3.21 + apk add aria2` pattern that added a 30+ second cold start to every pod restart and made the proxy dependent on upstream mirror availability during CI build stages.
 
@@ -63,25 +122,6 @@ Runs as uid/gid `1000` (`appuser`). Workdir is `/downloads`. Ports `6800` (aria2
 
 - `apps/kube/kubevirt/download-proxy/deployment.yaml` — both containers (`aria2` + `file-server`) use this image; the Deployment provides the `command:` per container.
 
-## FAQ
+</BentoProse>
 
-**What is the aria2-proxy image for?**
-It is a purpose-built Alpine image for the KubeVirt download-proxy Deployment in
-the `angelscript` namespace, pulling large build artefacts (UE5, Visual Studio
-Build Tools, Xcode) with resume and multi-connection support and serving them
-back to builder VMs over plain HTTP.
-
-**Why use a custom image instead of `apk add aria2`?**
-Baking aria2 and python into the image removes a 30-plus second cold-start
-`apk add` on every pod restart, makes provisioning air-gap-safe against Alpine
-mirror outages, and runs tini as PID 1 so `SIGTERM` propagates cleanly to stop
-in-flight downloads.
-
-**What ports and user does aria2-proxy use?**
-It runs as uid/gid `1000` (`appuser`) with workdir `/downloads`, exposing port
-`6800` for the aria2 RPC and `8080` for the python file server; the Deployment
-shares one pod network namespace across both containers.
-
-## Related
-
-- [KBVE Kubectl](/docs/project/kubectl) — kubectl image used across the same KubeVirt jobs.
+</BentoDoc>

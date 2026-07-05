@@ -11,6 +11,12 @@ tags:
     - design
     - machine-learning
     - agents
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is an autonomous machine learning agent?
@@ -19,8 +25,61 @@ jsonld:
           answer: Training is the process where a model learns from a dataset of inputs and correct outputs. A learning algorithm iteratively adjusts the model's parameters to minimize a loss function, with validation on a separate dataset guarding against overfitting until the model converges.
         - question: How do you run the Atlas image?
           answer: You can launch the Atlas image with docker run -d -p 3000:3000 kbve/atlas.
+bento:
+    badge: design · machine-learning · agents
+    title: Machine learning agent
+    accent: Atlas
+    lede: >-
+        The KBVE machine learning agent project and a concept glossary for the
+        building blocks of autonomous ML systems — what it means for an agent to be
+        autonomous, how models are trained, how networks are layered, what defines
+        an agent, and how the pieces compose into a full system. Atlas ships as a
+        container image for a single-command local launch.
+    ctas:
+        - label: Concepts
+          href: '#glossary'
+    aside:
+        icon: deploy
+        title: Launch locally
+        body: >-
+            Atlas ships as a container image — launch it with
+            <code>docker run -d -p 3000:3000 kbve/atlas</code>.
+    stats:
+        - { label: Project, value: Atlas, icon: box }
+        - { label: Image, value: 'kbve/atlas', icon: package }
+        - { label: Topic, value: ML agents, icon: gears }
+    features:
+        - title: Autonomous
+          icon: gears
+          body: Agents make decisions and act without explicit human instruction, learning and adapting from their environment.
+        - title: Training
+          icon: activity
+          body: Models learn from labeled data as a learning algorithm minimizes a loss function, validated to avoid overfitting.
+        - title: Layered
+          icon: expand
+          body: Deep networks stack layers of nodes at increasing depth — the basis of CNNs and RNNs.
+        - title: Agent
+          icon: sensor
+          body: An entity that perceives its environment through sensors and acts to maximize cumulative reward.
+        - title: Systems
+          icon: settings
+          body: The full pipeline — data collection, preprocessing, model selection, training, validation, testing, deployment, and monitoring.
+    features_eyebrow: Concept glossary
+    features_heading: Building blocks
+    related:
+        - title: Graph
+          href: /project/graph/
+          copy: Related KBVE data and knowledge-graph tooling.
+          icon: chart
+        - title: Python KBVE
+          href: /project/python-kbve/
+          copy: The Python toolkit behind KBVE ML and automation work.
+          icon: code
+    related_heading: Related
 ---
 
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
 import {
 	Aside,
@@ -31,16 +90,9 @@ import {
 	FileTree,
 } from '@astrojs/starlight/components';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Overview
-
-Atlas is the KBVE machine learning agent project and a concept glossary for the
-building blocks of autonomous ML systems. It walks through what it means for an
-agent to be **autonomous**, how models are **trained**, how **layered** neural
-networks are structured, what defines an **agent**, and how the pieces compose
-into a full machine learning **system** — from data collection through
-deployment and monitoring. Atlas ships as a container image so the project can be
-launched locally with a single Docker command.
+<BentoProse id="glossary" eyebrow="Concept glossary" heading="Building blocks of ML systems">
 
 ## Information
 
@@ -107,24 +159,6 @@ To quickly launch the Atlas image, you can use **docker run -d -p 3000:3000 kbve
 -   -   `Deployment` : If the model performs satisfactorily on the test set, it can be deployed in a real-world setting, whether it's for predicting stock prices, diagnosing diseases, or any other application.
 -   -   `Maintenance and Monitoring` : Once deployed, the performance of the model needs to be continuously monitored. It may require periodic retraining or fine-tuning based on new data or changing conditions.
 
-## FAQ
+</BentoProse>
 
-**What is an autonomous machine learning agent?**
-In machine learning, autonomous means an agent can make decisions, take actions,
-and perform tasks without explicit human instruction. It relies on its training,
-data inputs, and algorithms, learning and adapting from its environment and
-self-correcting over time, though autonomy is a spectrum rather than absolute.
-
-**What does training mean in machine learning?**
-Training is the process where a model learns from a dataset of inputs and correct
-outputs. A learning algorithm iteratively adjusts the model's parameters to
-minimize a loss function, with validation on a separate dataset guarding against
-overfitting until the model converges.
-
-**How do you run the Atlas image?**
-You can launch the Atlas image with `docker run -d -p 3000:3000 kbve/atlas`.
-
-## Related
-
-- [Graph](/docs/project/graph) — related KBVE data and knowledge-graph tooling.
-- [Python KBVE](/docs/project/python-kbve) — the Python toolkit behind KBVE ML and automation work.
+</BentoDoc>

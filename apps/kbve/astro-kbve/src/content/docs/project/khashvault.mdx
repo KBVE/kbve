@@ -18,6 +18,12 @@ version_toml: packages/npm/khashvault/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is KhashVault?
@@ -26,54 +32,68 @@ jsonld:
           answer: It provides AES-GCM encryption and decryption (including password-based), SHA-256 and SHA-512 hashing, PBKDF2 key derivation, AES key generation and import/export, and PGP key generation, encryption, and decryption via OpenPGP.
         - question: Does KhashVault support Web Workers?
           answer: Yes. It ships a KhashVaultWorkerClient plus SharedArrayBuffer helpers for cross-origin-isolated contexts so heavy crypto can run off the main thread.
+bento:
+    badge: npm · crypto · webcrypto
+    title: Browser crypto & secure storage —
+    accent: KhashVault
+    lede: >-
+        A browser-side cryptography and secure-storage library built on the Web
+        Crypto API and OpenPGP. It bundles symmetric encryption, hashing, key
+        derivation, PGP key management, and encrypted persistence behind a small
+        TypeScript API, with optional Web Worker offloading for heavy operations.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/npm/khashvault
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: lock
+        title: Off-thread crypto
+        body: >-
+            KhashVaultWorkerClient plus SharedArrayBuffer helpers let heavy
+            crypto run off the main thread in cross-origin-isolated contexts.
+        points:
+            - <strong>Foundations</strong> — Web Crypto API + OpenPGP.
+            - <strong>Storage</strong> — SecureLocalStorage + SecureIndexedDB.
+    stats:
+        - { label: Language, value: TypeScript, icon: code }
+        - { label: Symmetric, value: AES-GCM, icon: lock }
+        - { label: Keys, value: PGP + PBKDF2, icon: key }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: AES-GCM encryption
+          icon: lock
+          body: aesEncrypt / aesDecrypt plus password-based variants.
+        - title: Hashing
+          icon: shield
+          body: sha256, sha512, and generic hash / hashBytes.
+        - title: Key derivation
+          icon: key
+          body: deriveKey and deriveRawBits (PBKDF2).
+        - title: Key management
+          icon: key
+          body: generateAesKey, exportKey, importKey, randomBytes.
+        - title: PGP
+          icon: shield
+          body: pgpGenerateKeyPair, pgpEncrypt, pgpDecrypt via OpenPGP.
+        - title: Secure storage
+          icon: database
+          body: SecureLocalStorage and SecureIndexedDB for encrypted browser persistence.
+        - title: Web Worker offload
+          icon: gears
+          body: KhashVaultWorkerClient with SharedArrayBuffer helpers for cross-origin-isolated contexts.
+    related:
+        - title: DevOps
+          href: /project/devops/
+          copy: A companion KBVE npm helper library for CI/CD and codegen.
+          icon: gears
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`@kbve/khashvault` is a browser-side cryptography and secure-storage library built
-on the **Web Crypto API** and **OpenPGP**. It bundles symmetric encryption, hashing,
-key derivation, PGP key management, and encrypted persistence behind a small
-TypeScript API, with optional Web Worker offloading for heavy operations.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `@kbve/khashvault` |
-| **Version** | 1.0.12 |
-| **Language** | TypeScript (ESM) |
-| **Foundations** | Web Crypto API, OpenPGP |
-| **License** | MIT |
-| **Source** | [`packages/npm/khashvault`](https://github.com/KBVE/kbve/tree/main/packages/npm/khashvault) |
-
-## Features
-
-- **AES-GCM encryption** — `aesEncrypt` / `aesDecrypt` plus password-based variants.
-- **Hashing** — `sha256`, `sha512`, and generic `hash` / `hashBytes`.
-- **Key derivation** — `deriveKey` and `deriveRawBits` (PBKDF2).
-- **Key management** — `generateAesKey`, `exportKey`, `importKey`, `randomBytes`.
-- **PGP** — `pgpGenerateKeyPair`, `pgpEncrypt`, `pgpDecrypt` via OpenPGP.
-- **Secure storage** — `SecureLocalStorage` and `SecureIndexedDB` for encrypted
-  browser persistence.
-- **Web Worker offload** — `KhashVaultWorkerClient` with SharedArrayBuffer helpers
-  for cross-origin-isolated contexts.
-
-## FAQ
-
-**What is KhashVault?**
-KhashVault is a browser-side cryptography and secure-storage npm library built on
-the Web Crypto API and OpenPGP, offering AES-GCM encryption, SHA-256/512 hashing,
-PBKDF2 key derivation, PGP key pairs, and encrypted local and IndexedDB storage.
-
-**What cryptographic primitives does KhashVault provide?**
-It provides AES-GCM encryption and decryption (including password-based), SHA-256
-and SHA-512 hashing, PBKDF2 key derivation, AES key generation and import/export,
-and PGP key generation, encryption, and decryption via OpenPGP.
-
-**Does KhashVault support Web Workers?**
-Yes. It ships a `KhashVaultWorkerClient` plus SharedArrayBuffer helpers for
-cross-origin-isolated contexts so heavy crypto can run off the main thread.
-
-## Related
-
-- [DevOps](/project/devops/) — a companion KBVE npm helper library for CI/CD and codegen.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

@@ -24,6 +24,12 @@ supported_platforms:
     - Win64
     - Linux
     - Mac
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does KBVELibGit do?
@@ -32,57 +38,60 @@ jsonld:
           answer: It targets Unreal Engine 5.4 and newer, and supports Win64, Linux, and Mac. It is an editor module that loads at the PostEngineInit phase and is currently a beta, experimental plugin.
         - question: How does KBVELibGit fetch repositories?
           answer: It uses libgit2 directly to clone a fresh repo or fetch the latest for an already-cloned one, and can resolve a registry HEAD over the wire with ls-remote when no local clone exists, all through an in-editor Git Plugin Installer panel.
+bento:
+    badge: unreal · editor · git
+    title: libgit2 plugin installer
+    accent: KBVELibGit
+    lede: >-
+        An editor-only Unreal Engine 5 plugin that uses libgit2 to clone, fetch,
+        and manage public GitHub repositories as local UE plugins — directly
+        from an in-editor installer panel. It loads at PostEngineInit, contains
+        no runtime content, and is currently a beta, experimental plugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVELibGit
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: branch
+        title: Editor-only installer
+        body: >-
+            Backed by <a href="https://libgit2.org">libgit2</a> (bundled
+            ThirdParty), it loads at <code>PostEngineInit</code> with no runtime
+            content — an in-editor panel to browse and install repos as plugins.
+        points:
+            - <strong>Backend</strong> — libgit2 (ThirdParty).
+            - <strong>Status</strong> — beta, experimental.
+    stats:
+        - { label: Version, value: '0.1.0', icon: info }
+        - { label: Type, value: Editor module, icon: settings }
+        - { label: Engine, value: UE 5.4+, icon: settings }
+        - { label: Platforms, value: Win64 · Linux · Mac, icon: server }
+    features:
+        - title: Clone / fetch over libgit2
+          icon: branch
+          body: A fresh clone for new repos, a fetch-latest for ones already on disk, all driven by the bundled libgit2 ThirdParty library.
+        - title: Remote HEAD resolution
+          icon: network
+          body: Resolves a registry HEAD over the wire via ls-remote without a full clone when no local copy exists.
+        - title: Git Plugin Installer panel
+          icon: expand
+          body: An editor UI (SGitInstallerPanel) that adds a "Git Plugin Installer" entry for browsing and installing repos as plugins.
+        - title: Plugin registry + validation
+          icon: check
+          body: A plugin registry, validator, and lock guard keep installed plugins consistent.
+    related:
+        - title: KBVESupabase
+          href: /project/kbvesupabase/
+          copy: A KBVE Unreal Engine 5 plugin for Supabase auth and data.
+          icon: shield
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`KBVELibGit` is an **editor-only** Unreal Engine 5 plugin that uses
-[libgit2](https://libgit2.org) to clone, fetch, and manage public GitHub
-repositories as local UE plugins — directly from an in-editor installer panel. It
-loads at `PostEngineInit`, contains no runtime content, and is currently a beta,
-experimental plugin.
-
-## Key facts
-
-| | |
-|---|---|
-| **Plugin** | `KBVELibGit` |
-| **Version** | 0.1.0 |
-| **Type** | Editor module (`PostEngineInit`) |
-| **Engine** | UE 5.4+ |
-| **Platforms** | Win64, Linux, Mac |
-| **Backend** | libgit2 (ThirdParty) |
-| **License** | KBVE |
-| **Source** | [`packages/unreal/KBVELibGit`](https://github.com/KBVE/kbve/tree/main/packages/unreal/KBVELibGit) |
-
-## Features
-
-- **Clone / fetch over libgit2** — a fresh clone for new repos, a fetch-latest for
-  ones already on disk, all driven by the bundled libgit2 ThirdParty library.
-- **Remote HEAD resolution** — resolves a registry HEAD over the wire via
-  `ls-remote` without a full clone when no local copy exists.
-- **Git Plugin Installer panel** — an editor UI (`SGitInstallerPanel`) that adds a
-  "Git Plugin Installer" entry for browsing and installing repos as plugins.
-- **Plugin registry + validation** — a plugin registry, validator, and lock guard
-  keep installed plugins consistent.
-
-## FAQ
-
-**What does KBVELibGit do?**
-KBVELibGit is an editor-only Unreal Engine 5 plugin that uses the libgit2 library to
-clone, fetch, and manage public GitHub repositories as local Unreal plugins from
-inside the editor.
-
-**Which engine versions and platforms does KBVELibGit support?**
-It targets Unreal Engine 5.4 and newer, and supports Win64, Linux, and Mac. It is an
-editor module that loads at the `PostEngineInit` phase and is currently a beta,
-experimental plugin.
-
-**How does KBVELibGit fetch repositories?**
-It uses libgit2 directly to clone a fresh repo or fetch the latest for an
-already-cloned one, and can resolve a registry HEAD over the wire with `ls-remote`
-when no local clone exists, all through an in-editor Git Plugin Installer panel.
-
-## Related
-
-- [KBVESupabase](/project/kbvesupabase/) — a KBVE Unreal Engine 5 plugin for Supabase auth and data.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />
