@@ -40,45 +40,44 @@ featured: z.boolean().optional(),
 `tags` is currently written as empty `tags:` in some MDX frontmatter but is
 **stripped** because the schema never declares it. Declaring it makes it live.
 
-### Tag vocabulary (the contract)
+### Tags already exist — no seeding
 
-**Category tags** — drive project-card filter tabs:
+**All 112 project MDX files already carry populated `tags:` blocks.** They were
+being silently stripped because the schema never declared `tags`. Declaring it
+(above) makes the existing rich vocabulary live — no migration needed.
 
-| tag       | tab       |
-| --------- | --------- |
-| `game`    | Games     |
-| `tool`    | Tools     |
-| `library` | Libraries |
-| `service` | Services  |
+Existing tag frequencies (top): `rust`×36, `unreal`×28, `crates`×24,
+`docker`×23, `bevy`×19, `gamedev`×8, `game`×8, `agones`×6, `gaming`×5,
+`gameplay`×5, `ue5`×4, `server`×4, `python`×4, `npm`×4, `api`×4, `infrastructure`×4,
+plus a long tail.
 
-**Language tags** — drive package-registry tabs:
+### Category derivation (project-card tabs)
 
-| tag                                | registry |
-| ---------------------------------- | -------- |
-| `rust`                             | Crates   |
-| `python`                           | pip      |
-| `js` / `javascript` / `typescript` | NPM      |
+The four user-facing tabs are **derived** from the existing tags via a keyword
+map. A cell's `data-category` holds every category it matches (a project can be
+both a game and a service).
 
-A project may carry several tags (e.g. a Rust library published to crates.io:
-`["library", "rust"]`).
+| tab       | matches any tag in                                                                                                                              |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Games     | game, gamedev, gaming, gameplay, unreal, ue5, bevy, unity, godot, phaser, arpg, multiplayer, game-server, gameserver, game-client               |
+| Libraries | crates, npm, python, rust, typescript, node, react, proto, wasm, ffi (AND has a package/crate/pypi identifier)                                  |
+| Services  | docker, agones, kubernetes, server, infrastructure, api, backend, database, observability, telemetry, devops, firecracker, kubevirt, networking |
+| Tools     | tool, utility, cli, editor, git, workers, bot, ows                                                                                              |
 
-### Tag seeding
+The map lives in one place (a shared `projectTags.ts` helper) so tabs and
+derivation stay in sync. Uncategorised projects still show under **All**.
 
-112 files is too many to hand-tag. A one-time migration script seeds initial
-tags from existing signals, then tags become the source of truth:
+### Registry derivation (package tabs)
 
-| `pipeline`                                     | seeded tags         |
-| ---------------------------------------------- | ------------------- |
-| `unreal`, `unity`, `unreal_game`, `ue5_server` | `game`              |
-| `crates`                                       | `library`, `rust`   |
-| `npm`                                          | `library`, `js`     |
-| `python`                                       | `library`, `python` |
-| `docker`                                       | `service`           |
+Packages section keeps the existing gate: only projects with a publish
+`pipeline` (`crates` / `npm` / `python`) **and** a package identifier
+(`package_name` / `pypi_name` / crate) appear — this is the accurate
+"actually published to a registry" signal (the `rust` tag alone is too broad;
+many rust projects are `docker` apps, not crates). Registry label maps
+`crates`→Crates, `npm`→NPM, `python`→pip, and each project already carries the
+matching language tag.
 
-The script edits each MDX's frontmatter `tags:` in place (idempotent — skips
-files that already have non-empty tags). After seeding, the page reads only
-tags; future projects add tags by hand. `featured` is set by hand on the
-handful of hero projects (none seeded).
+`featured: true` is set by hand on the handful of hero projects.
 
 ## Components
 
@@ -106,15 +105,19 @@ handful of hero projects (none seeded).
 
 ## Interactivity
 
-Filter tabs and registry tabs use a **small vanilla-JS island**, same
-`onMount` pattern as `BentoBoard.astro`'s existing `<script>`:
+Filter/registry tabs use a **React island + nanostores**, following the
+codebase-native pattern in `BentoController.tsx` / `bentoStore.ts`: Astro
+renders the cells as static HTML; a small React island discovers them from the
+DOM via `data-*` attributes and drives state through a nanostore atom. This
+keeps cells server-rendered (SEO, no 112-card JSON hydration) while giving React
 
-- Tab buttons carry `data-filter="<category>"`.
-- On click, toggle `hidden` on cells whose `data-category` doesn't match (All shows everything).
-- Registry tabs work identically on the packages section.
-- Progressive enhancement: with JS off, all cells/rows render visible; tabs are inert but nothing is hidden.
+- nanostores flexibility for future integrations (search, sort, shared state).
 
-No React island (avoids client weight; no state beyond active tab).
+* New `projectFilterStore.ts` — `$activeCategory` and `$activeRegistry` atoms.
+* Cells carry `data-category` (space-joined category tags); package rows carry `data-registry`.
+* `ProjectFilterTabs.tsx` (React, `client:visible`) — renders the tab bar, writes the active atom on click.
+* A subscriber (in the same island's effect, mirroring BentoController's DOM discovery) toggles `hidden` on cells whose `data-category` / `data-registry` doesn't match the active atom (`all` shows everything).
+* Progressive enhancement: with JS off, all cells/rows render visible; tabs are inert but nothing is hidden.
 
 ## `projects.mdx` changes
 

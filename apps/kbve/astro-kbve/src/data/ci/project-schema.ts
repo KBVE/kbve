@@ -50,6 +50,8 @@ const ExternalPublishInline = z
 
 export const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 	title: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	featured: z.boolean().optional(),
 	sidebar: z
 		.object({
 			label: z.string().optional(),

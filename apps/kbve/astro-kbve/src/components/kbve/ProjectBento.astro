@@ -1,0 +1,277 @@
+---
+import { getCollection } from 'astro:content';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ProjectFilterTabs from './ProjectFilterTabs.tsx';
+import {
+	CATEGORY_DEFS,
+	deriveCategories,
+	type ProjectCategory,
+} from './projectTags';
+
+interface Card {
+	slug: string;
+	title: string;
+	description: string;
+	img?: string;
+	status?: string;
+	featured: boolean;
+	categories: ProjectCategory[];
+}
+
+const entries = await getCollection('project');
+
+const cards: Card[] = [];
+for (const entry of entries) {
+	const data = entry.data as Record<string, any>;
+	const title = data.title as string | undefined;
+	if (!title) continue;
+	if (data.sidebar?.hidden) continue;
+
+	const id = String((entry as any).id ?? (entry as any).slug ?? '');
+	const slug = id.replace(/^project\//, '').replace(/\.mdx?$/, '');
+	if (!slug) continue;
+
+	const hasPackage = Boolean(data.package_name ?? data.pypi_name);
+	const categories = deriveCategories({
+		tags: data.tags as string[] | undefined,
+		pipeline: data.pipeline as string | undefined,
+		hasPackage,
+	});
+
+	cards.push({
+		slug,
+		title,
+		description: String(data.description ?? ''),
+		img: typeof data.img === 'string' ? data.img : undefined,
+		status: data.status as string | undefined,
+		featured: data.featured === true,
+		categories,
+	});
+}
+
+cards.sort((a, b) => {
+	if (a.featured !== b.featured) return a.featured ? -1 : 1;
+	return a.title.localeCompare(b.title);
+});
+
+const counts: Record<string, number> = { all: cards.length };
+for (const def of CATEGORY_DEFS) {
+	counts[def.key] = cards.filter((c) =>
+		c.categories.includes(def.key),
+	).length;
+}
+
+const tabs = [
+	{ key: 'all', label: 'All', count: cards.length },
+	...CATEGORY_DEFS.filter((d) => counts[d.key] > 0).map((d) => ({
+		key: d.key,
+		label: d.label,
+		count: counts[d.key],
+	})),
+];
+---
+
+<BentoShell
+	eyebrow="The KBVE collective"
+	heading="Games, tools, libraries, and studios under one roof.">
+	<div class="pbento">
+		<div class="pbento__tabs">
+			<ProjectFilterTabs group="category" tabs={tabs} client:visible />
+		</div>
+		<div class="pbento__grid">
+			{
+				cards.map((card) => (
+					<a
+						href={`/project/${card.slug}/`}
+						class:list={[
+							'pbento__cell',
+							card.featured && 'pbento__cell--featured',
+						]}
+						data-filter-group="category"
+						data-filter-keys={card.categories.join(' ')}
+						data-astro-prefetch>
+						{card.featured && card.img && (
+							<div
+								class="pbento__cell-bg"
+								style={`background-image:url('${card.img}')`}
+								aria-hidden="true"
+							/>
+						)}
+						<div class="pbento__cell-inner">
+							<div class="pbento__cell-head">
+								<h3 class="pbento__cell-title">{card.title}</h3>
+								{card.status && (
+									<span
+										class:list={[
+											'pbento__status',
+											`pbento__status--${card.status}`,
+										]}>
+										{card.status}
+									</span>
+								)}
+							</div>
+							{card.description && (
+								<p class="pbento__cell-body">
+									{card.description}
+								</p>
+							)}
+							<span class="pbento__cell-cta" aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="14"
+									height="14"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="M7 17L17 7M9 7h8v8" />
+								</svg>
+							</span>
+						</div>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.pbento {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.pbento__tabs {
+		padding: 0 1rem 1.25rem;
+	}
+
+	.pbento__grid {
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+		grid-auto-flow: dense;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.pbento__cell {
+		position: relative;
+		display: flex;
+		min-height: 10rem;
+		background-color: var(--bento-cell-bg);
+		text-decoration: none;
+		overflow: hidden;
+		isolation: isolate;
+	}
+
+	.pbento__cell-bg {
+		position: absolute;
+		inset: 0;
+		background-size: cover;
+		background-position: center;
+		opacity: 0.28;
+		z-index: -1;
+		transition: opacity 300ms ease;
+	}
+
+	.pbento__cell:hover .pbento__cell-bg {
+		opacity: 0.42;
+	}
+
+	.pbento__cell-inner {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.5rem;
+		width: 100%;
+	}
+
+	.pbento__cell-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.pbento__cell-title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.pbento__cell-body {
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.pbento__status {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid var(--bento-hairline-strong);
+		color: var(--sl-color-gray-3);
+	}
+
+	.pbento__status--active {
+		color: #4ade80;
+		border-color: color-mix(in srgb, #4ade80 40%, transparent);
+	}
+
+	.pbento__status--beta {
+		color: #fbbf24;
+		border-color: color-mix(in srgb, #fbbf24 40%, transparent);
+	}
+
+	.pbento__cell-cta {
+		margin-top: auto;
+		align-self: flex-end;
+		color: var(--sl-color-gray-4);
+		opacity: 0.55;
+		transition:
+			opacity 220ms ease,
+			color 220ms ease;
+	}
+
+	.pbento__cell:hover .pbento__cell-cta {
+		opacity: 1;
+		color: var(--sl-color-accent-high);
+	}
+
+	@media (min-width: 640px) {
+		.pbento__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.pbento__grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.pbento__cell--featured {
+			grid-column: span 2;
+			grid-row: span 2;
+		}
+
+		.pbento__cell--featured .pbento__cell-title {
+			font-size: 1.25rem;
+		}
+
+		.pbento__cell--featured .pbento__cell-body {
+			font-size: 0.9375rem;
+			-webkit-line-clamp: 5;
+		}
+	}
+</style>
