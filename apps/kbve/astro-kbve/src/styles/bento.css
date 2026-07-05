@@ -519,31 +519,30 @@
 		width: 18px;
 		height: 18px;
 	}
-	.bento-btn--primary {
-		background: var(--bento-accent, var(--sl-color-accent-high));
-		color: var(--bento-btn-fg, var(--sl-color-black));
+	.bento-btn--primary,
+	.sl-markdown-content .bento-btn--primary {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		border: 1px solid var(--sl-color-accent-high);
+		font-weight: 500;
 		box-shadow: 0 6px 20px
-			color-mix(
-				in srgb,
-				var(--bento-accent, var(--sl-color-accent-high)) 35%,
-				transparent
-			);
+			color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
 	}
-	.bento-btn--primary:hover {
+	.bento-btn--primary:hover,
+	.sl-markdown-content .bento-btn--primary:hover {
+		background: var(--sl-color-accent-high);
 		transform: translateY(-1px);
 		box-shadow: 0 10px 28px
-			color-mix(
-				in srgb,
-				var(--bento-accent, var(--sl-color-accent-high)) 45%,
-				transparent
-			);
+			color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
 	}
-	.bento-btn--ghost {
+	.bento-btn--ghost,
+	.sl-markdown-content .bento-btn--ghost {
 		color: var(--sl-color-white);
 		background: var(--bento-glass-bg);
 		border: 1px solid var(--bento-hairline-strong);
 	}
-	.bento-btn--ghost:hover {
+	.bento-btn--ghost:hover,
+	.sl-markdown-content .bento-btn--ghost:hover {
 		border-color: var(--sl-color-accent-high);
 	}
 

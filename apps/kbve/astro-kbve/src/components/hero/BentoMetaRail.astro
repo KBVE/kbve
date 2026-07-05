@@ -290,17 +290,18 @@ const chips = [
 		translate: -4.6rem 0;
 	}
 
-	@media (max-width: 104rem) {
+	@media (max-width: 112rem) {
 		:global(.meta-rail__packet) {
 			width: 8.5rem;
 			translate: -3.9rem 0;
 		}
 	}
 
-	@media (max-width: 96rem) {
+	@media (max-width: 106rem) {
 		:global(.meta-rail__packet) {
+			flex-direction: row-reverse;
 			width: 7.25rem;
-			translate: -3.35rem 0;
+			translate: 3.6rem 0;
 		}
 
 		:global(.meta-rail__packet-car) {
@@ -310,13 +311,6 @@ const chips = [
 
 		:global(.meta-rail__packet-parts) {
 			max-width: 2.25rem;
-		}
-	}
-
-	@media (max-width: 92rem) {
-		:global(.meta-rail__packet) {
-			flex-direction: row-reverse;
-			translate: 3.6rem 0;
 		}
 
 		:global(.meta-rail__packet-tip) {

@@ -107,9 +107,17 @@ const { pathname } = Astro.props;
 			align-self: flex-start;
 			flex: 0 0 15rem;
 			width: 15rem;
-			max-height: calc(100vh - var(--sl-nav-height, 3.5rem) - 2rem);
+			/* Fixed height (not max-height) so staff groups resolving in
+			   client-side fill reserved space instead of growing the rail —
+			   no layout shift. Empty space below is for future user options. */
+			height: calc(100vh - var(--sl-nav-height, 3.5rem) - 2rem);
 			overflow-y: auto;
 			scrollbar-width: thin;
+		}
+
+		.dash-rail .facet-panel {
+			min-height: 100%;
+			box-sizing: border-box;
 		}
 	}
 
