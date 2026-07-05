@@ -4,7 +4,9 @@ import {
 	$playerState,
 	$hostStatus,
 	$lastError,
+	$selectedApp,
 	VibeshineSession,
+	appNumericId,
 	fetchHostStatus,
 } from './vibeshineService';
 
@@ -23,8 +25,10 @@ export default function ReactVibeshinePlayer() {
 	const state = useStore($playerState);
 	const hostStatus = useStore($hostStatus);
 	const lastError = useStore($lastError);
+	const selectedApp = useStore($selectedApp);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [session] = useState(() => new VibeshineSession());
+	const appId = selectedApp ? appNumericId(selectedApp) : null;
 
 	useEffect(() => {
 		void fetchHostStatus();
@@ -70,13 +74,17 @@ export default function ReactVibeshinePlayer() {
 				{!streaming ? (
 					<button
 						type="button"
-						disabled={busy}
+						disabled={busy || appId === null}
 						onClick={() => {
-							if (videoRef.current) {
-								void session.start(videoRef.current);
+							if (videoRef.current && appId !== null) {
+								void session.start(videoRef.current, appId);
 							}
 						}}>
-						{busy ? 'Connecting…' : 'Connect'}
+						{busy
+							? 'Connecting…'
+							: appId === null
+								? 'Select an app'
+								: `Play ${String(selectedApp?.name ?? 'app')}`}
 					</button>
 				) : (
 					<button

@@ -25,11 +25,12 @@ export const $lastError = atom<string | null>(null);
 const STATUS_URL = '/api/v1/vibeshine/status';
 const WEBRTC_BASE = '/api/v1/vibeshine/webrtc';
 
-// Browser-side STUN only; the host advertises host candidates and learns the
-// browser's public address via peer-reflexive discovery. No TURN by design.
+// Browser-side STUN only; the host returns empty ice_servers (no STUN/TURN
+// support) and relies on host candidates + peer-reflexive discovery.
 const ICE_SERVERS: RTCIceServer[] = [{ urls: 'stun:stun.l.google.com:19302' }];
 
-const ICE_POLL_MS = 500;
+const ANSWER_POLL_MS = 1000;
+const ANSWER_POLL_LIMIT = 30;
 
 async function getAuthHeaders(): Promise<Record<string, string> | null> {
 	const supa = getSupa() ?? initSupa();
@@ -44,7 +45,7 @@ async function getAuthHeaders(): Promise<Record<string, string> | null> {
 
 async function api<T>(
 	path: string,
-	init?: { method?: string; body?: unknown },
+	init?: { method?: string; body?: unknown; keepalive?: boolean },
 ): Promise<T> {
 	const headers = await getAuthHeaders();
 	if (!headers) {
@@ -55,6 +56,7 @@ async function api<T>(
 		method: init?.method ?? 'GET',
 		headers,
 		body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+		keepalive: init?.keepalive,
 	});
 	if (!resp.ok) {
 		throw new Error(
@@ -81,10 +83,37 @@ export async function fetchHostStatus(): Promise<HostStatus | null> {
 	return status;
 }
 
-interface CreateSessionResponse {
+export interface StreamConfig {
+	width: number;
+	height: number;
+	fps: number;
+	bitrateKbps: number;
+	codec: 'h264' | 'hevc' | 'av1';
+}
+
+export const DEFAULT_STREAM_CONFIG: StreamConfig = {
+	width: 1920,
+	height: 1080,
+	fps: 60,
+	bitrateKbps: 20000,
+	codec: 'h264',
+};
+
+interface SessionInfo {
 	id?: string;
-	session_id?: string;
+	[key: string]: unknown;
+}
+
+interface CreateSessionResponse {
+	status?: boolean;
 	ice_servers?: RTCIceServer[];
+	cert_fingerprint?: string;
+	session?: SessionInfo;
+	[key: string]: unknown;
+}
+
+interface SessionListResponse {
+	sessions?: SessionInfo[];
 	[key: string]: unknown;
 }
 
@@ -94,20 +123,22 @@ interface SdpResponse {
 	[key: string]: unknown;
 }
 
-interface IceResponse {
-	candidates?: RTCIceCandidateInit[];
-	[key: string]: unknown;
+interface IceCandidatePayload {
+	candidate?: string;
+	sdpMid?: string | null;
+	sdpMLineIndex?: number | null;
 }
 
-// Lifecycle below assumes browser-sends-offer; the exact body shapes and
-// offer/answer direction get finalized from the host-side signaling recon.
 export class VibeshineSession {
 	private pc: RTCPeerConnection | null = null;
 	private sessionId: string | null = null;
-	private icePollTimer: ReturnType<typeof setInterval> | null = null;
-	private seenCandidates = 0;
+	private iceAbort: AbortController | null = null;
 
-	async start(video: HTMLVideoElement): Promise<void> {
+	async start(
+		video: HTMLVideoElement,
+		appId: number,
+		config: StreamConfig = DEFAULT_STREAM_CONFIG,
+	): Promise<void> {
 		$lastError.set(null);
 		$playerState.set('checking');
 
@@ -119,11 +150,40 @@ export class VibeshineSession {
 
 		$playerState.set('signaling');
 		try {
+			// The host allows one active session; clear any stale ones first.
+			const existing = await api<SessionListResponse>('/sessions').catch(
+				() => null,
+			);
+			for (const s of existing?.sessions ?? []) {
+				if (s.id) {
+					await api(`/sessions/${s.id}`, { method: 'DELETE' }).catch(
+						() => undefined,
+					);
+				}
+			}
+
+			// Strict serde body: omit optional fields entirely, never null.
 			const created = await api<CreateSessionResponse>('/sessions', {
 				method: 'POST',
-				body: {},
+				body: {
+					audio: true,
+					host_audio: true,
+					video: true,
+					encoded: true,
+					width: config.width,
+					height: config.height,
+					fps: config.fps,
+					bitrate_kbps: config.bitrateKbps,
+					codec: config.codec,
+					hdr: false,
+					app_id: appId,
+					resume: false,
+					video_pacing_mode: 'balanced',
+					video_pacing_slack_ms: 2,
+					video_max_frame_age_ms: 100,
+				},
 			});
-			this.sessionId = created.id ?? created.session_id ?? null;
+			this.sessionId = created.session?.id ?? null;
 			if (!this.sessionId) {
 				throw new Error('session create returned no id');
 			}
@@ -147,9 +207,18 @@ export class VibeshineSession {
 
 			pc.onicecandidate = (ev) => {
 				if (!ev.candidate || !this.sessionId) return;
+				const c = ev.candidate;
 				void api(`/sessions/${this.sessionId}/ice`, {
 					method: 'POST',
-					body: ev.candidate.toJSON(),
+					body: {
+						candidates: [
+							{
+								candidate: c.candidate,
+								sdpMid: c.sdpMid,
+								sdpMLineIndex: c.sdpMLineIndex,
+							},
+						],
+					},
 				}).catch((e) =>
 					console.warn('[vibeshine] ice send failed:', e),
 				);
@@ -177,10 +246,16 @@ export class VibeshineSession {
 			const offer = await pc.createOffer();
 			await pc.setLocalDescription(offer);
 
-			const answer = await api<SdpResponse>(
+			let answer = await api<SdpResponse>(
 				`/sessions/${this.sessionId}/offer`,
-				{ method: 'POST', body: { type: offer.type, sdp: offer.sdp } },
+				{ method: 'POST', body: { type: 'offer', sdp: offer.sdp } },
 			);
+			for (let i = 0; !answer.sdp && i < ANSWER_POLL_LIMIT; i++) {
+				await new Promise((r) => setTimeout(r, ANSWER_POLL_MS));
+				answer = await api<SdpResponse>(
+					`/sessions/${this.sessionId}/answer`,
+				);
+			}
 			if (!answer.sdp) {
 				throw new Error('no answer SDP from host');
 			}
@@ -190,44 +265,85 @@ export class VibeshineSession {
 			});
 
 			$playerState.set('connecting');
-			this.startIcePolling();
+			this.consumeIceStream();
 		} catch (e) {
 			this.fail(e instanceof Error ? e.message : String(e));
 		}
 	}
 
-	private startIcePolling(): void {
-		this.icePollTimer = setInterval(() => {
-			void (async () => {
-				if (!this.sessionId || !this.pc) return;
-				if (this.pc.connectionState === 'connected') {
-					this.stopIcePolling();
-					return;
-				}
+	// SSE over fetch (EventSource can't send the Authorization header).
+	// `lastEventId` is a resumable cursor fed back as ?since= on reconnect.
+	private consumeIceStream(): void {
+		const abort = new AbortController();
+		this.iceAbort = abort;
+		let cursor: string | null = null;
+
+		const run = async (): Promise<void> => {
+			while (!abort.signal.aborted && this.sessionId && this.pc) {
 				try {
-					const remote = await api<IceResponse>(
-						`/sessions/${this.sessionId}/ice`,
+					const headers = await getAuthHeaders();
+					if (!headers) return;
+					const qs = cursor
+						? `?since=${encodeURIComponent(cursor)}`
+						: '';
+					const resp = await fetch(
+						`${WEBRTC_BASE}/sessions/${this.sessionId}/ice/stream${qs}`,
+						{ headers, signal: abort.signal },
 					);
-					const candidates = remote.candidates ?? [];
-					for (const c of candidates.slice(this.seenCandidates)) {
-						await this.pc.addIceCandidate(c);
+					if (!resp.ok || !resp.body) {
+						throw new Error(`ice stream → HTTP ${resp.status}`);
 					}
-					this.seenCandidates = Math.max(
-						this.seenCandidates,
-						candidates.length,
-					);
+					const reader = resp.body.getReader();
+					const decoder = new TextDecoder();
+					let buffer = '';
+					for (;;) {
+						const { done, value } = await reader.read();
+						if (done) break;
+						buffer += decoder.decode(value, { stream: true });
+						let idx: number;
+						while ((idx = buffer.indexOf('\n\n')) !== -1) {
+							const raw = buffer.slice(0, idx);
+							buffer = buffer.slice(idx + 2);
+							const next = this.handleSseEvent(raw);
+							if (next) cursor = next;
+						}
+					}
 				} catch (e) {
-					console.warn('[vibeshine] ice poll failed:', e);
+					if (abort.signal.aborted) return;
+					console.warn('[vibeshine] ice stream retry:', e);
+					await new Promise((r) => setTimeout(r, 1000));
 				}
-			})();
-		}, ICE_POLL_MS);
+			}
+		};
+		void run();
 	}
 
-	private stopIcePolling(): void {
-		if (this.icePollTimer !== null) {
-			clearInterval(this.icePollTimer);
-			this.icePollTimer = null;
+	private handleSseEvent(raw: string): string | null {
+		let event = 'message';
+		let data = '';
+		let id: string | null = null;
+		for (const line of raw.split('\n')) {
+			if (line.startsWith('event:')) event = line.slice(6).trim();
+			else if (line.startsWith('data:')) data += line.slice(5).trim();
+			else if (line.startsWith('id:')) id = line.slice(3).trim();
 		}
+		if (event === 'candidate' && data && this.pc) {
+			try {
+				const c = JSON.parse(data) as IceCandidatePayload;
+				void this.pc
+					.addIceCandidate({
+						candidate: c.candidate ?? '',
+						sdpMid: c.sdpMid ?? undefined,
+						sdpMLineIndex: c.sdpMLineIndex ?? undefined,
+					})
+					.catch((e) =>
+						console.warn('[vibeshine] addIceCandidate failed:', e),
+					);
+			} catch (e) {
+				console.warn('[vibeshine] bad candidate event:', e);
+			}
+		}
+		return id;
 	}
 
 	private fail(message: string): void {
@@ -237,17 +353,18 @@ export class VibeshineSession {
 	}
 
 	async stop(resetState = true): Promise<void> {
-		this.stopIcePolling();
+		this.iceAbort?.abort();
+		this.iceAbort = null;
 		this.pc?.close();
 		this.pc = null;
 		if (this.sessionId) {
 			const id = this.sessionId;
 			this.sessionId = null;
-			await api(`/sessions/${id}`, { method: 'DELETE' }).catch(
-				() => undefined,
-			);
+			await api(`/sessions/${id}`, {
+				method: 'DELETE',
+				keepalive: true,
+			}).catch(() => undefined);
 		}
-		this.seenCandidates = 0;
 		if (resetState) {
 			$playerState.set('idle');
 		}
@@ -258,6 +375,7 @@ const PROXY_BASE = '/dashboard/vibeshine/proxy';
 
 export interface VibeshineApp {
 	name?: string;
+	id?: number | string;
 	uuid?: string;
 	index?: number;
 	[key: string]: unknown;
@@ -269,6 +387,7 @@ export interface SessionStatus {
 
 export const $apps = atom<VibeshineApp[] | null>(null);
 export const $appsStatus = atom<'idle' | 'loading' | 'ok' | 'error'>('idle');
+export const $selectedApp = atom<VibeshineApp | null>(null);
 export const $sessionStatus = atom<SessionStatus | null>(null);
 export const $controlError = atom<string | null>(null);
 
@@ -295,6 +414,11 @@ async function hostApi<T>(
 	return (text ? JSON.parse(text) : {}) as T;
 }
 
+export function appNumericId(app: VibeshineApp): number | null {
+	const id = Number(app.id);
+	return Number.isFinite(id) ? id : null;
+}
+
 export async function fetchApps(): Promise<void> {
 	$appsStatus.set('loading');
 	try {
@@ -304,6 +428,11 @@ export async function fetchApps(): Promise<void> {
 		const apps = Array.isArray(data) ? data : (data.apps ?? []);
 		$apps.set(apps);
 		$appsStatus.set('ok');
+		if (!$selectedApp.get() && apps.length) {
+			$selectedApp.set(
+				apps.find((a) => appNumericId(a) !== null) ?? null,
+			);
+		}
 	} catch (e) {
 		$controlError.set(e instanceof Error ? e.message : String(e));
 		$appsStatus.set('error');
@@ -323,19 +452,6 @@ export async function closeApp(): Promise<void> {
 	$controlError.set(null);
 	try {
 		await hostApi('/api/apps/close', { method: 'POST', body: {} });
-		await fetchSessionStatus();
-	} catch (e) {
-		$controlError.set(e instanceof Error ? e.message : String(e));
-	}
-}
-
-export async function launchApp(app: VibeshineApp): Promise<void> {
-	$controlError.set(null);
-	try {
-		await hostApi('/api/playnite/launch', {
-			method: 'POST',
-			body: { id: app.uuid ?? app.index ?? app.name },
-		});
 		await fetchSessionStatus();
 	} catch (e) {
 		$controlError.set(e instanceof Error ? e.message : String(e));

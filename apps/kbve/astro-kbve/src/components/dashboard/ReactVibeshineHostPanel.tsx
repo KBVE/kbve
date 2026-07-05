@@ -3,19 +3,21 @@ import { useStore } from '@nanostores/react';
 import {
 	$apps,
 	$appsStatus,
+	$selectedApp,
 	$sessionStatus,
 	$controlError,
 	$hostStatus,
+	appNumericId,
 	fetchApps,
 	fetchSessionStatus,
 	fetchHostStatus,
 	closeApp,
-	launchApp,
 } from './vibeshineService';
 
 export default function ReactVibeshineHostPanel() {
 	const apps = useStore($apps);
 	const appsStatus = useStore($appsStatus);
+	const selectedApp = useStore($selectedApp);
 	const sessionStatus = useStore($sessionStatus);
 	const controlError = useStore($controlError);
 	const hostStatus = useStore($hostStatus);
@@ -57,19 +59,29 @@ export default function ReactVibeshineHostPanel() {
 				{appsStatus === 'ok' && !apps?.length && (
 					<p>No apps registered on the host.</p>
 				)}
-				{apps?.map((app, i) => (
-					<div
-						className="vibeshine-host__app"
-						key={String(app.uuid ?? app.index ?? i)}>
-						<span>{String(app.name ?? `app ${i}`)}</span>
-						<button
-							type="button"
-							disabled={!hostStatus?.reachable}
-							onClick={() => void launchApp(app)}>
-							Launch
-						</button>
-					</div>
-				))}
+				{apps?.map((app, i) => {
+					const selected =
+						selectedApp != null &&
+						String(selectedApp.uuid ?? selectedApp.id) ===
+							String(app.uuid ?? app.id);
+					const launchable = appNumericId(app) !== null;
+					return (
+						<div
+							className="vibeshine-host__app"
+							key={String(app.uuid ?? app.index ?? i)}>
+							<span>
+								{String(app.name ?? `app ${i}`)}
+								{selected && ' ✓'}
+							</span>
+							<button
+								type="button"
+								disabled={!launchable}
+								onClick={() => $selectedApp.set(app)}>
+								{selected ? 'Selected' : 'Select'}
+							</button>
+						</div>
+					);
+				})}
 			</div>
 			<div className="vibeshine-host__actions">
 				<button
