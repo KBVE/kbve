@@ -69,41 +69,56 @@ export default function CookbookFilters({ groups }: Props) {
 					aria-label="Search projects"
 				/>
 			</div>
-			{groups.map((group) => (
-				<div key={group.key} className="facet-group">
-					<div className="facet-group__label">{group.label}</div>
-					<div className="facet-group__list">
-						<button
-							type="button"
-							className={cn(
-								'facet-row',
-								active[group.key] === 'all' &&
-									'facet-row--active',
-							)}
-							onClick={() => setFacet(group.key, 'all')}>
-							<span className="facet-row__label">All</span>
-						</button>
-						{group.values.map((v) => (
+			{groups.map((group) => {
+				const labelId = `facet-${group.key}-label`;
+				return (
+					<div key={group.key} className="facet-group">
+						<div id={labelId} className="facet-group__label">
+							{group.label}
+						</div>
+						<div
+							className="facet-group__list"
+							role="radiogroup"
+							aria-labelledby={labelId}>
 							<button
-								key={v.value}
 								type="button"
+								role="radio"
+								aria-checked={active[group.key] === 'all'}
 								className={cn(
 									'facet-row',
-									active[group.key] === v.value &&
+									active[group.key] === 'all' &&
 										'facet-row--active',
 								)}
-								onClick={() => setFacet(group.key, v.value)}>
-								<span className="facet-row__label">
-									{v.label}
-								</span>
-								<span className="facet-row__count">
-									{v.count}
-								</span>
+								onClick={() => setFacet(group.key, 'all')}>
+								<span className="facet-row__label">All</span>
 							</button>
-						))}
+							{group.values.map((v) => (
+								<button
+									key={v.value}
+									type="button"
+									role="radio"
+									aria-checked={active[group.key] === v.value}
+									aria-label={`${v.label}, ${v.count} project${v.count === 1 ? '' : 's'}`}
+									className={cn(
+										'facet-row',
+										active[group.key] === v.value &&
+											'facet-row--active',
+									)}
+									onClick={() =>
+										setFacet(group.key, v.value)
+									}>
+									<span className="facet-row__label">
+										{v.label}
+									</span>
+									<span className="facet-row__count">
+										{v.count}
+									</span>
+								</button>
+							))}
+						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 		</div>
 	);
 }

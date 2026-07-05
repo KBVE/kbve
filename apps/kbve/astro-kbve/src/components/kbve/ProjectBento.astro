@@ -60,6 +60,27 @@ cards.sort((a, b) => {
 	return a.title.localeCompare(b.title);
 });
 
+function unsplashSrc(url: string, w: number, h: number): string {
+	if (!url.includes('images.unsplash.com')) return url;
+	return `${url.split('?')[0]}?fit=crop&w=${w}&h=${h}&q=70&auto=format`;
+}
+
+function featuredImage(url: string) {
+	const widths: [number, number][] = [
+		[560, 280],
+		[900, 450],
+		[1120, 560],
+		[1800, 900],
+	];
+	return {
+		src: unsplashSrc(url, 900, 450),
+		srcset: widths
+			.map(([w, h]) => `${unsplashSrc(url, w, h)} ${w}w`)
+			.join(', '),
+		sizes: '(min-width: 1024px) 560px, (min-width: 640px) 50vw, 100vw',
+	};
+}
+
 function countBy<T>(list: Card[], pick: (c: Card) => T[], value: T): number {
 	return list.filter((c) => pick(c).includes(value)).length;
 }
@@ -96,10 +117,10 @@ const groups = [
 	eyebrow="The KBVE collective"
 	heading="Games, tools, libraries, and studios under one roof.">
 	<div class="cookbook">
-		<aside class="cookbook__sidebar">
+		<aside class="cookbook__sidebar" aria-label="Project filters">
 			<CookbookFilters groups={groups} client:visible />
 		</aside>
-		<div class="cookbook__grid">
+		<div class="cookbook__grid" role="group" aria-label="Projects">
 			{
 				cards.map((card) => (
 					<a
@@ -108,6 +129,7 @@ const groups = [
 							'pbento__cell',
 							card.featured && 'pbento__cell--featured',
 						]}
+						aria-label={`${card.title}${card.status ? ` (${card.status})` : ''}`}
 						data-filter-cell="project"
 						data-language={card.languages.join(' ')}
 						data-category={card.categories.join(' ')}
@@ -115,10 +137,16 @@ const groups = [
 						data-name={card.title.toLowerCase()}
 						data-astro-prefetch>
 						{card.featured && card.img && (
-							<div
-								class="pbento__cell-bg"
-								style={`background-image:url('${card.img}')`}
-								aria-hidden="true"
+							<img
+								class="pbento__cell-img"
+								src={featuredImage(card.img).src}
+								srcset={featuredImage(card.img).srcset}
+								sizes={featuredImage(card.img).sizes}
+								alt={`${card.title} artwork`}
+								width="900"
+								height="450"
+								loading="lazy"
+								decoding="async"
 							/>
 						)}
 						<div class="pbento__cell-inner">
@@ -196,17 +224,18 @@ const groups = [
 		display: none;
 	}
 
-	.pbento__cell-bg {
+	.pbento__cell-img {
 		position: absolute;
 		inset: 0;
-		background-size: cover;
-		background-position: center;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 		opacity: 0.28;
 		z-index: -1;
 		transition: opacity 300ms ease;
 	}
 
-	.pbento__cell:hover .pbento__cell-bg {
+	.pbento__cell:hover .pbento__cell-img {
 		opacity: 0.42;
 	}
 
