@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAccessToken, useSession } from '@kbve/astro';
+import { useSession } from '@kbve/astro';
+import { authedApiFetch } from '@/lib/apiFetch';
 import { formatCompact } from './format';
 
 type Balance = {
@@ -63,23 +64,7 @@ function balancesEqual(a: Balance | null, b: Balance | null): boolean {
 }
 
 async function authedFetch(path: string, init: RequestInit = {}) {
-	const token = await getAccessToken();
-	if (!token) throw new Error('not authenticated');
-	const headers = new Headers(init.headers);
-	headers.set('Authorization', `Bearer ${token}`);
-	if (init.body && !headers.has('Content-Type')) {
-		headers.set('Content-Type', 'application/json');
-	}
-	const res = await fetch(path, { ...init, headers });
-	if (!res.ok) {
-		let detail = await res.text().catch(() => '');
-		try {
-			const parsed = JSON.parse(detail);
-			detail = parsed.error || parsed.message || detail;
-		} catch {}
-		throw new Error(`${res.status}: ${detail || res.statusText}`);
-	}
-	return res.json();
+	return authedApiFetch(path, init);
 }
 
 function findShell(from: HTMLElement | null): HTMLElement | null {

@@ -18,7 +18,7 @@ function dashProxyDevIntegration() {
 	const attach = (server) => {
 		console.log('[dash-proxy] dev proxy registered →', DASH_PROXY_PREFIX);
 		server.middlewares.use((req, res, next) => {
-			if (!req.url || !req.url.startsWith(DASH_PROXY_PREFIX + '/')) {
+			if (!req.url?.startsWith(DASH_PROXY_PREFIX + '/')) {
 				return next();
 			}
 			const path = req.url.slice(DASH_PROXY_PREFIX.length);
@@ -140,6 +140,8 @@ export default defineConfig({
 				Head: './src/components/navigation/Head.astro',
 				Header: './src/components/navigation/Header.astro',
 				Sidebar: './src/components/navigation/Sidebar.astro',
+				MarkdownContent:
+					'./src/components/dashboard/MarkdownContent.astro',
 			},
 			head: [
 				{

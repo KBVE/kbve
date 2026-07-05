@@ -1,0 +1,177 @@
+---
+import { DASHBOARD_NAV, isActive, isGroup } from './dashboardNav';
+
+interface Props {
+	pathname: string;
+}
+
+const { pathname } = Astro.props;
+---
+
+<aside class="dash-rail print:hidden" aria-label="Dashboard navigation">
+	<div class="facet-panel">
+		<button
+			type="button"
+			class="facet-toggle"
+			aria-expanded="false"
+			data-dash-toggle>
+			<span>Dashboard menu</span>
+			<svg
+				class="facet-toggle__chevron"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</button>
+		<div class="facet-groups" data-dash-groups>
+			<nav class="facet-group__list" aria-label="Dashboard sections">
+				{
+					DASHBOARD_NAV.map((entry) =>
+						isGroup(entry) ? (
+							<div
+								class="facet-group"
+								data-auth-visibility={entry.visibility}>
+								<p class="facet-group__label">{entry.label}</p>
+								<div class="facet-group__list">
+									{entry.items.map((item) => (
+										<a
+											href={item.href}
+											class:list={[
+												'facet-row',
+												isActive(pathname, item.href) &&
+													'facet-row--active',
+											]}
+											aria-current={
+												isActive(pathname, item.href)
+													? 'page'
+													: undefined
+											}>
+											{item.icon && (
+												<svg
+													class="dash-rail__icon"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													aria-hidden="true">
+													<path d={item.icon} />
+												</svg>
+											)}
+											<span>{item.label}</span>
+										</a>
+									))}
+								</div>
+							</div>
+						) : (
+							<a
+								href={entry.href}
+								data-auth-visibility={entry.visibility}
+								class:list={[
+									'facet-row',
+									isActive(pathname, entry.href) &&
+										'facet-row--active',
+								]}
+								aria-current={
+									isActive(pathname, entry.href)
+										? 'page'
+										: undefined
+								}>
+								<span>{entry.label}</span>
+							</a>
+						),
+					)
+				}
+			</nav>
+		</div>
+	</div>
+</aside>
+
+<style>
+	.dash-rail {
+		width: 100%;
+	}
+
+	@media (min-width: 1024px) {
+		.dash-rail {
+			position: sticky;
+			top: calc(var(--sl-nav-height, 3.5rem) + 1rem);
+			align-self: flex-start;
+			flex: 0 0 15rem;
+			width: 15rem;
+			max-height: calc(100vh - var(--sl-nav-height, 3.5rem) - 2rem);
+			overflow-y: auto;
+			scrollbar-width: thin;
+		}
+	}
+
+	/* Staff-gate whole groups (global CSS only auto-gates a/details/li, so
+	   the group wrapper + its label need this). Individual top-level links
+	   are <a data-auth-visibility> and gate via global.css. */
+	.facet-group[data-auth-visibility] {
+		display: none;
+	}
+
+	:global(html[data-auth-tone='staff'])
+		.facet-group[data-auth-visibility='staff'],
+	:global(html[data-auth-tone='auth'])
+		.facet-group[data-auth-visibility='auth'] {
+		display: block;
+	}
+
+	/* Bento panel chrome so the rail matches the shell (black cell +
+	   hairline + radius) instead of the translucent facet default. */
+	.dash-rail .facet-panel {
+		padding: 0.75rem;
+		background-color: var(--bento-cell-bg, var(--sl-color-black));
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius, 0.625rem);
+		box-shadow: var(--bento-shadow);
+	}
+
+	/* Icon + label sit together on the left (facet-row defaults to
+	   space-between for a trailing count we don't use here). */
+	.dash-rail .facet-row {
+		justify-content: flex-start;
+		gap: 0.6rem;
+	}
+
+	.dash-rail__icon {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+		opacity: 0.8;
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const toggle =
+			document.querySelector<HTMLButtonElement>('[data-dash-toggle]');
+		const groups =
+			document.querySelector<HTMLElement>('[data-dash-groups]');
+		const chevron = toggle?.querySelector<SVGElement>(
+			'.facet-toggle__chevron',
+		);
+		if (!toggle || !groups) return;
+
+		const onClick = () => {
+			const open = groups.classList.toggle('facet-groups--open');
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			chevron?.classList.toggle('facet-toggle__chevron--open', open);
+		};
+
+		toggle.addEventListener('click', onClick);
+		return () => toggle.removeEventListener('click', onClick);
+	});
+</script>

@@ -1,0 +1,118 @@
+---
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+import DashboardGutterNav from './DashboardGutterNav.astro';
+import { buildBreadcrumb } from './dashboardNav';
+
+const pathname = Astro.url.pathname;
+const isDashboard = pathname.startsWith('/dashboard');
+const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
+---
+
+{
+	isDashboard ? (
+		<div class="dash-shell">
+			<DashboardGutterNav pathname={pathname} />
+			<div class="dash-main">
+				<nav class="dash-breadcrumb" aria-label="Breadcrumb">
+					<ol>
+						{crumbs.map((crumb, i) => (
+							<li>
+								{i < crumbs.length - 1 ? (
+									<a href={crumb.href}>{crumb.label}</a>
+								) : (
+									<span aria-current="page">
+										{crumb.label}
+									</span>
+								)}
+							</li>
+						))}
+					</ol>
+				</nav>
+				<Default>
+					<slot />
+				</Default>
+			</div>
+		</div>
+	) : (
+		<Default>
+			<slot />
+		</Default>
+	)
+}
+
+<style>
+	.dash-shell {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.dash-main {
+		min-width: 0;
+	}
+
+	@media (min-width: 1024px) {
+		/* Sidebar layout: rail flush to the left gutter, content fills the
+		   rest beside it. No centered cap (which left big empty margins),
+		   no page-wide shift. */
+		.dash-shell {
+			flex-direction: row;
+			align-items: flex-start;
+			gap: 1.5rem;
+			padding-inline: 1.5rem;
+		}
+
+		.dash-main {
+			flex: 1 1 0;
+			min-width: 0;
+		}
+
+		/* Left-align BentoShell's frame beside the rail; keep its 80rem cap
+		   so content stays readable, with any extra width falling to the
+		   right on ultra-wide screens. */
+		.dash-main :global(.bento-frame) {
+			margin-inline: 0;
+			max-width: 80rem;
+		}
+	}
+
+	.dash-breadcrumb {
+		padding: 0.25rem 0 0.75rem;
+	}
+
+	.dash-breadcrumb ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.8125rem;
+	}
+
+	.dash-breadcrumb li {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.dash-breadcrumb li:not(:first-child)::before {
+		content: '/';
+		color: var(--sl-color-gray-4);
+	}
+
+	.dash-breadcrumb a {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+
+	.dash-breadcrumb a:hover {
+		color: var(--sl-color-white);
+	}
+
+	.dash-breadcrumb span[aria-current='page'] {
+		color: var(--sl-color-white);
+		font-weight: 600;
+	}
+</style>
