@@ -4,9 +4,9 @@ import ReactAlerts from './ReactAlerts';
 ---
 
 <section
-	class="alerts-summary-wrapper kbve-dashboard-page"
+	class="alerts-summary bento-section not-content"
 	aria-label="Alerts summary — firing count by severity">
-	<div class="alerts-summary-content">
+	<div class="alerts-summary__inner bento-frame">
 		<ReactHomeAuth client:only="react">
 			<div class="not-content">
 				<ReactAlerts client:only="react" variant="compact" />
@@ -16,20 +16,17 @@ import ReactAlerts from './ReactAlerts';
 </section>
 
 <style>
-	.alerts-summary-wrapper {
-		background: transparent;
-		width: 100%;
+	.alerts-summary {
+		border-bottom: none;
 	}
 
-	.alerts-summary-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 1rem 1rem;
+	.alerts-summary__inner {
+		padding: 1.5rem 1rem 0;
 	}
 
-	@media (min-width: 768px) {
-		.alerts-summary-content {
-			padding: 0 1.5rem 1rem;
+	@media (min-width: 640px) {
+		.alerts-summary__inner {
+			padding-inline: 1.5rem;
 		}
 	}
 </style>

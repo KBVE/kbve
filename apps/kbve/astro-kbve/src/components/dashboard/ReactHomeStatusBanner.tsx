@@ -86,7 +86,7 @@ export default function ReactHomeStatusBanner() {
 					<Activity
 						size={22}
 						style={{
-							color: 'var(--sl-color-accent, #06b6d4)',
+							color: 'var(--sl-color-accent-high, #06b6d4)',
 							marginRight: 8,
 							verticalAlign: 'middle',
 						}}
@@ -112,9 +112,12 @@ export default function ReactHomeStatusBanner() {
 					alignItems: 'center',
 					justifyContent: 'space-between',
 					padding: '0.75rem 1rem',
-					borderRadius: 10,
-					border: '1px solid var(--sl-color-gray-5, #262626)',
-					background: 'var(--sl-color-bg-nav, #111)',
+					borderRadius: 'var(--bento-radius, 0.625rem)',
+					border: '1px solid var(--bento-hairline-strong)',
+					background: 'var(--bento-glass-bg, var(--sl-color-black))',
+					backdropFilter: 'blur(8px)',
+					WebkitBackdropFilter: 'blur(8px)',
+					boxShadow: 'var(--bento-shadow)',
 					gap: '1rem',
 					flexWrap: 'wrap',
 				}}>
@@ -203,8 +206,8 @@ export default function ReactHomeStatusBanner() {
 							justifyContent: 'center',
 							width: 28,
 							height: 28,
-							borderRadius: 6,
-							border: '1px solid var(--sl-color-gray-5, #262626)',
+							borderRadius: 8,
+							border: '1px solid var(--bento-hairline-strong)',
 							background: 'transparent',
 							color: 'var(--sl-color-gray-3, #8b949e)',
 							cursor: loading ? 'not-allowed' : 'pointer',
