@@ -383,6 +383,11 @@ const chips = [
 
 <script>
 	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import {
+		$bentoShipment,
+		advanceBentoShipment,
+		type BentoShipment,
+	} from '@kbve/droid';
 
 	onMount(() => {
 		const rail = document.querySelector<HTMLElement>('[data-meta-rail]');
@@ -481,16 +486,20 @@ const chips = [
 		const MAX_TRAINS = 5;
 		let lastShip = 0;
 
-		const onShipped = (e: Event) => {
-			if (reduced || !rail.offsetParent || !rail.dataset.wireD) return;
-			const now = performance.now();
-			if (now - lastShip < HEADWAY) return;
-			if (
-				rail.querySelectorAll('.meta-rail__packet').length >= MAX_TRAINS
-			)
+		const onShipped = (shipment: BentoShipment) => {
+			const { id, word } = shipment;
+			if (reduced || !rail.offsetParent || !rail.dataset.wireD) {
+				advanceBentoShipment(id, 'dropped');
 				return;
-			const { word } = (e as CustomEvent).detail ?? {};
-			if (!word) return;
+			}
+			const now = performance.now();
+			if (
+				now - lastShip < HEADWAY ||
+				rail.querySelectorAll('.meta-rail__packet').length >= MAX_TRAINS
+			) {
+				advanceBentoShipment(id, 'dropped');
+				return;
+			}
 			lastShip = now;
 
 			const wireY = Number(rail.dataset.wireY);
@@ -607,15 +616,13 @@ const chips = [
 			anim.onfinish = () => {
 				timeouts.forEach(clearTimeout);
 				packet.remove();
-				window.dispatchEvent(
-					new CustomEvent('bento:word-arrived', {
-						detail: { word },
-					}),
-				);
+				advanceBentoShipment(id, 'arrived');
 			};
 		};
 
-		window.addEventListener('bento:word-shipped', onShipped);
+		const unsubShipments = $bentoShipment.listen((shipment) => {
+			if (shipment?.stage === 'shipped') onShipped(shipment);
+		});
 
 		const clicks: Array<() => void> = [];
 		items.forEach((item) => {
@@ -632,7 +639,7 @@ const chips = [
 		return () => {
 			ro.disconnect();
 			clicks.forEach((fn) => fn());
-			window.removeEventListener('bento:word-shipped', onShipped);
+			unsubShipments();
 		};
 	});
 </script>

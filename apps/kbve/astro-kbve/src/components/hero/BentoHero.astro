@@ -1019,6 +1019,7 @@ const dock = [
 
 <script>
 	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import { shipBentoWord } from '@kbve/droid';
 
 	const STAGGER_MS = 24;
 	const SWAP_MS = 340;
@@ -1272,11 +1273,7 @@ const dock = [
 						const shipped = words[index];
 						index = (index + 1) % words.length;
 						const next = words[index];
-						window.dispatchEvent(
-							new CustomEvent('bento:word-shipped', {
-								detail: { word: shipped },
-							}),
-						);
+						shipBentoWord(shipped);
 						if (reduced) {
 							slot.textContent = next;
 							return;
