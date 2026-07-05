@@ -219,6 +219,14 @@ spec:
                                 name: referral-config
                                 key: hash-secret
                                 optional: true
+                      - name: VIBESHINE_UPSTREAM_URL
+                        value: https://10.10.0.3:47990
+                      - name: VIBESHINE_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: vibeshine-config
+                                key: api-token
+                                optional: true
                       - name: DISCORD_CLIENT_ID
                         valueFrom:
                             secretKeyRef:
