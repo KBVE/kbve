@@ -1248,13 +1248,12 @@ const dock = [
 
 				timers.push(
 					setInterval(() => {
-						if (!osVisible) return;
 						const shipped = words[index];
 						index = (index + 1) % words.length;
 						const next = words[index];
 						shipBentoWord(shipped);
-						if (reduced) {
-							slot.textContent = next;
+						if (reduced || !osVisible) {
+							renderChars(slot, next, false);
 							return;
 						}
 						slot.querySelectorAll('.bento-hero__char').forEach(

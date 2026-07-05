@@ -1,0 +1,217 @@
+---
+import BentoShell from './BentoShell.astro';
+
+interface Faq {
+	question: string;
+	answer: string;
+	href?: string;
+	linkLabel?: string;
+}
+
+const faqs: Faq[] = [
+	{
+		question: 'What is KBVE?',
+		answer: 'KBVE (KiloByte Virtual Enterprise) is an open-source collective building games, developer tools, and automation software from a single monorepo. Everything we ship — from browser games to Kubernetes infrastructure — lives in the open.',
+		href: '/about',
+		linkLabel: 'About KBVE',
+	},
+	{
+		question: 'Are KBVE projects free and open source?',
+		answer: 'Yes. The entire KBVE monorepo is public on GitHub, including our games, libraries, and the infrastructure configs that run our cluster. You can read, fork, and contribute to any part of it.',
+		href: '/github',
+		linkLabel: 'View on GitHub',
+	},
+	{
+		question: 'What games is KBVE building?',
+		answer: 'Our arcade hosts a growing lineup that spans browser-based multiplayer games and native titles built with Unreal Engine and Unity. Each game ships with a public game design document and shared item, map, and spell databases.',
+		href: '/arcade/',
+		linkLabel: 'Visit the arcade',
+	},
+	{
+		question: 'How can I contribute to KBVE?',
+		answer: 'Open an issue or pull request on GitHub, or join the Discord to pair with the team. The docs cover local setup for the monorepo, and good first issues are tagged for new contributors.',
+		href: '/docs',
+		linkLabel: 'Read the docs',
+	},
+	{
+		question: 'Where does KBVE run its services?',
+		answer: 'On our own self-hosted Kubernetes cluster, managed through GitOps. Game servers, CI runners, databases, and this website all run 24/7 from infrastructure whose configuration is versioned in the same monorepo.',
+		href: '/application/kubernetes',
+		linkLabel: 'Infrastructure docs',
+	},
+	{
+		question: 'How do I get support or report a bug?',
+		answer: 'The fastest path is the KBVE Discord, where issues sync directly to GitHub. You can also file a bug on the GitHub tracker or reach out through the support page.',
+		href: '/support/',
+		linkLabel: 'Get support',
+	},
+];
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqs.map((faq) => ({
+		'@type': 'Question',
+		name: faq.question,
+		acceptedAnswer: {
+			'@type': 'Answer',
+			text: faq.answer,
+		},
+	})),
+};
+---
+
+<BentoShell eyebrow="FAQ" heading="Frequently asked questions">
+	<div class="bento-faq">
+		{
+			faqs.map((faq, i) => (
+				<details class="bento-faq__cell" name="bento-faq">
+					<summary class="bento-faq__question">
+						<span class="bento-faq__index">
+							{String(i + 1).padStart(2, '0')}
+						</span>
+						<span class="bento-faq__label">{faq.question}</span>
+						<span class="bento-faq__chevron bento-icon-tile">
+							<svg
+								viewBox="0 0 24 24"
+								width="14"
+								height="14"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d="m6 9 6 6 6-6" />
+							</svg>
+						</span>
+					</summary>
+					<div class="bento-faq__answer">
+						<p>{faq.answer}</p>
+						{faq.href && (
+							<a class="bento-faq__link" href={faq.href}>
+								{faq.linkLabel} →
+							</a>
+						)}
+					</div>
+				</details>
+			))
+		}
+	</div>
+</BentoShell>
+
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(jsonLd)}
+/>
+
+<style>
+	.bento-faq {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.bento-faq__cell {
+		background-color: var(--bento-cell-bg);
+		padding: 0;
+	}
+
+	.bento-faq__question {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.125rem 1.5rem;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+		transition: background-color 180ms ease;
+	}
+
+	.bento-faq__question::-webkit-details-marker {
+		display: none;
+	}
+
+	.bento-faq__question:hover {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 3%,
+			transparent
+		);
+	}
+
+	.bento-faq__question:focus-visible {
+		outline: none;
+		box-shadow: inset 0 0 0 2px var(--sl-color-accent-low);
+	}
+
+	.bento-faq__index {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-4);
+	}
+
+	.bento-faq__label {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.bento-faq__chevron {
+		flex-shrink: 0;
+		transition:
+			transform 220ms ease,
+			color 220ms ease;
+	}
+
+	.bento-faq__cell[open] .bento-faq__chevron {
+		transform: rotate(180deg);
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-faq__cell[open] .bento-faq__index {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-faq__answer {
+		padding: 0 1.5rem 1.25rem 3.125rem;
+	}
+
+	.bento-faq__answer p {
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+		max-width: 34rem;
+	}
+
+	.bento-faq__link {
+		display: inline-block;
+		margin-top: 0.625rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	.bento-faq__link:hover {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 768px) {
+		.bento-faq {
+			grid-template-columns: 1fr;
+		}
+
+		.bento-faq__answer {
+			padding-left: 1.5rem;
+		}
+	}
+</style>

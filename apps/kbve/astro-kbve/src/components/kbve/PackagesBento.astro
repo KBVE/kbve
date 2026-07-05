@@ -1,0 +1,237 @@
+---
+import { getCollection } from 'astro:content';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ProjectFilterTabs from './ProjectFilterTabs.tsx';
+import {
+	REGISTRY_LABELS,
+	pipelineToRegistry,
+	type Registry,
+} from './projectTags';
+
+interface PkgRow {
+	slug: string;
+	title: string;
+	pkg: string;
+	version: string;
+	sourcePath: string;
+	registry: Registry;
+	registryUrl: string;
+	docsHref: string;
+}
+
+const githubBase = 'https://github.com/kbve/kbve/tree/dev/';
+
+const registryUrl: Record<Registry, (n: string) => string> = {
+	crates: (n) => `https://crates.io/crates/${n}`,
+	npm: (n) => `https://www.npmjs.com/package/${n}`,
+	python: (n) => `https://pypi.org/project/${n}/`,
+};
+
+const registryAccent: Record<Registry, string> = {
+	crates: '#e57448',
+	npm: '#cb3837',
+	python: '#3776ab',
+};
+
+const entries = await getCollection('project');
+const rows: PkgRow[] = [];
+
+for (const entry of entries) {
+	const data = entry.data as Record<string, any>;
+	const registry = pipelineToRegistry(data.pipeline as string | undefined);
+	if (!registry) continue;
+
+	const pkg = String(
+		data.package_name ?? data.pypi_name ?? data.app_name ?? '',
+	);
+	if (!pkg) continue;
+
+	const id = String((entry as any).id ?? (entry as any).slug ?? '');
+	const slug = id.replace(/^project\//, '').replace(/\.mdx?$/, '');
+	if (!slug) continue;
+
+	rows.push({
+		slug,
+		title: String(data.title ?? slug),
+		pkg,
+		version: String(data.version ?? '0.0.0'),
+		sourcePath: String(data.source_path ?? ''),
+		registry,
+		registryUrl: registryUrl[registry](pkg),
+		docsHref: `/project/${slug}/`,
+	});
+}
+
+rows.sort((a, b) => a.pkg.localeCompare(b.pkg));
+
+const order: Registry[] = ['npm', 'crates', 'python'];
+const counts: Record<string, number> = { all: rows.length };
+for (const r of order) counts[r] = rows.filter((x) => x.registry === r).length;
+
+const tabs = [
+	{ key: 'all', label: 'All', count: rows.length },
+	...order
+		.filter((r) => counts[r] > 0)
+		.map((r) => ({ key: r, label: REGISTRY_LABELS[r], count: counts[r] })),
+];
+---
+
+<BentoShell
+	eyebrow="Published packages"
+	heading="Everything we ship to a public registry, pulled live from the collection.">
+	<div class="pkgb">
+		<div class="pkgb__tabs">
+			<ProjectFilterTabs group="registry" tabs={tabs} client:visible />
+		</div>
+		<div class="pkgb__grid">
+			{
+				rows.map((row) => (
+					<div
+						class="pkgb__row"
+						style={`--pkg-accent:${registryAccent[row.registry]};`}
+						data-filter-group="registry"
+						data-filter-keys={row.registry}>
+						<div class="pkgb__main">
+							<a
+								href={row.docsHref}
+								class="pkgb__name"
+								data-astro-prefetch>
+								{row.pkg}
+							</a>
+							<span class="pkgb__version">v{row.version}</span>
+						</div>
+						<div class="pkgb__title">{row.title}</div>
+						<div class="pkgb__meta">
+							<span class="pkgb__badge">
+								{REGISTRY_LABELS[row.registry]}
+							</span>
+							<div class="pkgb__links">
+								<a
+									href={row.registryUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="pkgb__link">
+									Registry ↗
+								</a>
+								{row.sourcePath && (
+									<a
+										href={`${githubBase}${row.sourcePath}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="pkgb__link">
+										Source ↗
+									</a>
+								)}
+							</div>
+						</div>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.pkgb {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.pkgb__tabs {
+		padding: 0 1rem 1.25rem;
+	}
+
+	.pkgb__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.pkgb__row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 1rem 1.15rem;
+		background-color: var(--bento-cell-bg);
+		border-left: 2px solid transparent;
+		transition: border-color 180ms ease;
+	}
+
+	.pkgb__row[hidden] {
+		display: none;
+	}
+
+	.pkgb__row:hover {
+		border-left-color: var(--pkg-accent);
+	}
+
+	.pkgb__main {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.6rem;
+	}
+
+	.pkgb__name {
+		font-size: 0.9rem;
+		font-weight: 700;
+		color: var(--sl-color-white);
+		text-decoration: none;
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		letter-spacing: -0.01em;
+	}
+
+	.pkgb__name:hover {
+		color: var(--pkg-accent);
+	}
+
+	.pkgb__version {
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.pkgb__title {
+		font-size: 0.78rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.3;
+	}
+
+	.pkgb__meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-top: 0.15rem;
+	}
+
+	.pkgb__badge {
+		font-size: 0.6rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		padding: 0.1rem 0.45rem;
+		border-radius: 4px;
+		color: var(--pkg-accent);
+		border: 1px solid color-mix(in srgb, var(--pkg-accent) 40%, transparent);
+	}
+
+	.pkgb__links {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.pkgb__link {
+		font-size: 0.7rem;
+		color: var(--pkg-accent);
+		text-decoration: none;
+		opacity: 0.85;
+	}
+
+	.pkgb__link:hover {
+		opacity: 1;
+		text-decoration: underline;
+	}
+</style>

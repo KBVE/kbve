@@ -1,0 +1,349 @@
+---
+import { getCollection } from 'astro:content';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import CookbookFilters from './CookbookFilters.tsx';
+import {
+	CATEGORY_DEFS,
+	deriveCategories,
+	deriveLanguages,
+	LANGUAGE_TAGS,
+	LANGUAGE_LABELS,
+	type ProjectCategory,
+} from './projectTags';
+
+interface Card {
+	slug: string;
+	title: string;
+	description: string;
+	img?: string;
+	status?: string;
+	featured: boolean;
+	categories: ProjectCategory[];
+	languages: string[];
+}
+
+const entries = await getCollection('project');
+
+const cards: Card[] = [];
+for (const entry of entries) {
+	const data = entry.data as Record<string, any>;
+	const title = data.title as string | undefined;
+	if (!title) continue;
+	if (data.sidebar?.hidden) continue;
+
+	const id = String((entry as any).id ?? (entry as any).slug ?? '');
+	const slug = id.replace(/^project\//, '').replace(/\.mdx?$/, '');
+	if (!slug) continue;
+
+	const hasPackage = Boolean(data.package_name ?? data.pypi_name);
+	const tags = data.tags as string[] | undefined;
+	const categories = deriveCategories({
+		tags,
+		pipeline: data.pipeline as string | undefined,
+		hasPackage,
+	});
+
+	cards.push({
+		slug,
+		title,
+		description: String(data.description ?? ''),
+		img: typeof data.img === 'string' ? data.img : undefined,
+		status: data.status as string | undefined,
+		featured: data.featured === true,
+		categories,
+		languages: deriveLanguages(tags),
+	});
+}
+
+cards.sort((a, b) => {
+	if (a.featured !== b.featured) return a.featured ? -1 : 1;
+	return a.title.localeCompare(b.title);
+});
+
+function unsplashSrc(url: string, w: number, h: number): string {
+	if (!url.includes('images.unsplash.com')) return url;
+	return `${url.split('?')[0]}?fit=crop&w=${w}&h=${h}&q=70&auto=format`;
+}
+
+function featuredImage(url: string) {
+	const widths: [number, number][] = [
+		[560, 280],
+		[900, 450],
+		[1120, 560],
+		[1800, 900],
+	];
+	return {
+		src: unsplashSrc(url, 900, 450),
+		srcset: widths
+			.map(([w, h]) => `${unsplashSrc(url, w, h)} ${w}w`)
+			.join(', '),
+		sizes: '(min-width: 1024px) 560px, (min-width: 640px) 50vw, 100vw',
+	};
+}
+
+function countBy<T>(list: Card[], pick: (c: Card) => T[], value: T): number {
+	return list.filter((c) => pick(c).includes(value)).length;
+}
+
+const languageValues = LANGUAGE_TAGS.map((lang) => ({
+	value: lang,
+	label: LANGUAGE_LABELS[lang] ?? lang,
+	count: countBy(cards, (c) => c.languages, lang),
+})).filter((v) => v.count > 0);
+
+const categoryValues = CATEGORY_DEFS.map((def) => ({
+	value: def.key,
+	label: def.label,
+	count: countBy(cards, (c) => c.categories, def.key),
+})).filter((v) => v.count > 0);
+
+const statusOrder = ['active', 'beta'];
+const statusValues = statusOrder
+	.map((s) => ({
+		value: s,
+		label: s.charAt(0).toUpperCase() + s.slice(1),
+		count: cards.filter((c) => c.status === s).length,
+	}))
+	.filter((v) => v.count > 0);
+
+const groups = [
+	{ key: 'language', label: 'Language / Stack', values: languageValues },
+	{ key: 'category', label: 'Category', values: categoryValues },
+	{ key: 'status', label: 'Status', values: statusValues },
+];
+---
+
+<BentoShell
+	eyebrow="The KBVE collective"
+	heading="Games, tools, libraries, and studios under one roof.">
+	<div class="cookbook">
+		<aside class="cookbook__sidebar" aria-label="Project filters">
+			<CookbookFilters groups={groups} client:visible />
+		</aside>
+		<div class="cookbook__grid" role="group" aria-label="Projects">
+			{
+				cards.map((card) => (
+					<a
+						href={`/project/${card.slug}/`}
+						class:list={[
+							'pbento__cell',
+							card.featured && 'pbento__cell--featured',
+						]}
+						aria-label={`${card.title}${card.status ? ` (${card.status})` : ''}`}
+						data-filter-cell="project"
+						data-language={card.languages.join(' ')}
+						data-category={card.categories.join(' ')}
+						data-status={card.status ?? ''}
+						data-name={card.title.toLowerCase()}
+						data-astro-prefetch>
+						{card.featured && card.img && (
+							<img
+								class="pbento__cell-img"
+								src={featuredImage(card.img).src}
+								srcset={featuredImage(card.img).srcset}
+								sizes={featuredImage(card.img).sizes}
+								alt={`${card.title} artwork`}
+								width="900"
+								height="450"
+								loading="lazy"
+								decoding="async"
+							/>
+						)}
+						<div class="pbento__cell-inner">
+							<div class="pbento__cell-head">
+								<h3 class="pbento__cell-title">{card.title}</h3>
+								{card.status && (
+									<span
+										class:list={[
+											'pbento__status',
+											`pbento__status--${card.status}`,
+										]}>
+										{card.status}
+									</span>
+								)}
+							</div>
+							{card.description && (
+								<p class="pbento__cell-body">
+									{card.description}
+								</p>
+							)}
+							<span class="pbento__cell-cta" aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="14"
+									height="14"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="M7 17L17 7M9 7h8v8" />
+								</svg>
+							</span>
+						</div>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.cookbook {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.cookbook__sidebar {
+		background-color: var(--bento-cell-bg);
+		padding: 1.5rem 1.25rem;
+	}
+
+	.cookbook__grid {
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+		grid-auto-flow: dense;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.pbento__cell {
+		position: relative;
+		display: flex;
+		min-height: 10rem;
+		background-color: var(--bento-cell-bg);
+		text-decoration: none;
+		overflow: hidden;
+		isolation: isolate;
+	}
+
+	.pbento__cell[hidden] {
+		display: none;
+	}
+
+	.pbento__cell-img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0.28;
+		z-index: -1;
+		transition: opacity 300ms ease;
+	}
+
+	.pbento__cell:hover .pbento__cell-img {
+		opacity: 0.42;
+	}
+
+	.pbento__cell-inner {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.5rem;
+		width: 100%;
+	}
+
+	.pbento__cell-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.pbento__cell-title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.pbento__cell-body {
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-3);
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.pbento__status {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid var(--bento-hairline-strong);
+		color: var(--sl-color-gray-3);
+	}
+
+	.pbento__status--active {
+		color: #4ade80;
+		border-color: color-mix(in srgb, #4ade80 40%, transparent);
+	}
+
+	.pbento__status--beta {
+		color: #fbbf24;
+		border-color: color-mix(in srgb, #fbbf24 40%, transparent);
+	}
+
+	.pbento__cell-cta {
+		margin-top: auto;
+		align-self: flex-end;
+		color: var(--sl-color-gray-4);
+		opacity: 0.55;
+		transition:
+			opacity 220ms ease,
+			color 220ms ease;
+	}
+
+	.pbento__cell:hover .pbento__cell-cta {
+		opacity: 1;
+		color: var(--sl-color-accent-high);
+	}
+
+	@media (min-width: 640px) {
+		.cookbook__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.cookbook {
+			grid-template-columns: 240px 1fr;
+		}
+
+		.cookbook__sidebar {
+			position: sticky;
+			top: 1rem;
+			align-self: start;
+			max-height: calc(100vh - 2rem);
+			overflow-y: auto;
+		}
+
+		.cookbook__grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.pbento__cell--featured {
+			grid-column: span 2;
+			grid-row: span 2;
+		}
+
+		.pbento__cell--featured .pbento__cell-title {
+			font-size: 1.25rem;
+		}
+
+		.pbento__cell--featured .pbento__cell-body {
+			font-size: 0.9375rem;
+			-webkit-line-clamp: 5;
+		}
+	}
+</style>

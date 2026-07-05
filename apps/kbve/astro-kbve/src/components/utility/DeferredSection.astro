@@ -182,5 +182,7 @@ const mobileHeight = minHeightMobile || minHeight;
 		}
 	}
 
-	customElements.define('deferred-section', DeferredSection);
+	if (!customElements.get('deferred-section')) {
+		customElements.define('deferred-section', DeferredSection);
+	}
 </script>
