@@ -547,6 +547,30 @@ impl BattleState {
         BattleState::versus(root, team, vec![wild])
     }
 
+    /// True when `side`'s active has fainted but the team still has a living reserve —
+    /// the battle is paused awaiting a free-action [`resolve_replacement`].
+    pub fn needs_replacement(&self, side: Side) -> bool {
+        self.outcome == BattleOutcome::Ongoing
+            && !self.side(side).active().is_alive()
+            && self.side(side).any_alive()
+    }
+
+    /// Send out team member `to` to replace a fainted active. Free action: consumes no
+    /// turn and triggers nothing else. No-op unless a replacement is actually pending
+    /// and `to` is a living, non-active team index.
+    pub fn resolve_replacement(&mut self, side: Side, to: usize) -> Vec<BattleEvent> {
+        let mut events = Vec::new();
+        if !self.needs_replacement(side) {
+            return events;
+        }
+        let s = self.side_mut(side);
+        if to < s.team.len() && to != s.active && s.team[to].is_alive() {
+            s.active = to;
+            events.push(BattleEvent::SwapIn { side, to });
+        }
+        events
+    }
+
     fn side(&self, s: Side) -> &BattleSide {
         match s {
             Side::Player => &self.player,
@@ -585,6 +609,9 @@ impl BattleState {
     ) -> Vec<BattleEvent> {
         let mut events = Vec::new();
         if self.outcome != BattleOutcome::Ongoing {
+            return events;
+        }
+        if self.needs_replacement(Side::Player) || self.needs_replacement(Side::Enemy) {
             return events;
         }
         let mut rng = rng::stream(self.root, domain::PETBATTLE, &[self.turn]);
@@ -814,7 +841,7 @@ impl BattleState {
         }
     }
 
-    fn check_outcome(&mut self, events: &mut Vec<BattleEvent>) {
+    pub(crate) fn check_outcome(&mut self, events: &mut Vec<BattleEvent>) {
         if self.outcome != BattleOutcome::Ongoing {
             return;
         }
@@ -992,5 +1019,70 @@ mod tests {
             BattleAction::Swap { to: 0 },
         );
         assert!(b.player.team[0].hp < hp0, "burn chipped hp at end of turn");
+    }
+
+    #[test]
+    fn fainted_side_enters_replacement_phase() {
+        let mut b = BattleState::versus(1, vec![combatant(30)], vec![combatant(5), combatant(5)]);
+        b.enemy.team[0].hp = 0;
+        assert!(b.needs_replacement(Side::Enemy));
+        assert!(!b.needs_replacement(Side::Player));
+    }
+
+    #[test]
+    fn resolve_turn_noops_while_replacement_pending() {
+        let mut b = BattleState::versus(1, vec![combatant(30)], vec![combatant(5), combatant(5)]);
+        b.enemy.team[0].hp = 0;
+        let turn = b.turn;
+        let ev = b.resolve_turn(
+            BattleAction::Move { slot: 0 },
+            BattleAction::Move { slot: 0 },
+        );
+        assert!(ev.is_empty());
+        assert_eq!(b.turn, turn);
+    }
+
+    #[test]
+    fn replacement_is_a_free_action() {
+        let mut b = BattleState::versus(1, vec![combatant(30)], vec![combatant(5), combatant(5)]);
+        b.enemy.team[0].hp = 0;
+        let turn = b.turn;
+        let hp = b.player.active().hp;
+        let ev = b.resolve_replacement(Side::Enemy, 1);
+        assert_eq!(b.enemy.active, 1);
+        assert_eq!(b.turn, turn, "replacement must not consume a turn");
+        assert_eq!(b.player.active().hp, hp, "no free hit on swap-in");
+        assert!(ev.iter().any(|e| matches!(
+            e,
+            BattleEvent::SwapIn {
+                side: Side::Enemy,
+                to: 1
+            }
+        )));
+        assert!(!b.needs_replacement(Side::Enemy));
+    }
+
+    #[test]
+    fn replacement_rejects_dead_or_invalid_target() {
+        let mut b = BattleState::versus(1, vec![combatant(30)], vec![combatant(5), combatant(5)]);
+        b.enemy.team[0].hp = 0;
+        assert!(b.resolve_replacement(Side::Enemy, 0).is_empty());
+        assert!(b.resolve_replacement(Side::Enemy, 9).is_empty());
+        assert!(b.needs_replacement(Side::Enemy));
+        b.enemy.team[1].hp = 0;
+        assert!(
+            !b.needs_replacement(Side::Enemy),
+            "wiped team is an outcome, not a replacement"
+        );
+    }
+
+    #[test]
+    fn no_replacement_when_healthy_or_over() {
+        let mut b = BattleState::versus(1, vec![combatant(30)], vec![combatant(5)]);
+        assert!(!b.needs_replacement(Side::Enemy));
+        b.enemy.team[0].hp = 0;
+        b.check_outcome(&mut Vec::new());
+        assert_eq!(b.outcome, BattleOutcome::PlayerWon);
+        assert!(!b.needs_replacement(Side::Enemy));
     }
 }
