@@ -14,6 +14,7 @@ metadata:
         kbve.com/schema-version: v1
         kbve.com/category: application
         kbve.com/stack: core
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:
@@ -43,21 +44,17 @@ spec:
           jsonPointers:
               - /status
               - /metadata/generation
-        - group: ''
-          kind: Pod
+        - kind: Pod
           jsonPointers:
               - /spec/containers/*/resources
               - /metadata/labels/role
               - /metadata/annotations
-        - group: ''
-          kind: Secret
+        - kind: Secret
           jsonPointers:
               - /data
-        - group: ''
-          kind: Service
+        - kind: Service
           jsonPointers:
               - /spec/selector
-        - group: ''
-          kind: PersistentVolumeClaim
+        - kind: PersistentVolumeClaim
           jsonPointers:
               - /status
