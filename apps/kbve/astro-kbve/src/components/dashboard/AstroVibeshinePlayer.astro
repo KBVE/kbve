@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactVibeshinePlayer from '@/components/dashboard/ReactVibeshinePlayer';
+import ReactVibeshineHostPanel from '@/components/dashboard/ReactVibeshineHostPanel';
 ---
 
 <BentoShell
@@ -10,6 +11,9 @@ import ReactVibeshinePlayer from '@/components/dashboard/ReactVibeshinePlayer';
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
 			<ReactVibeshinePlayer client:only="react" />
+		</div>
+		<div class="svc-dash__panel not-content">
+			<ReactVibeshineHostPanel client:only="react" />
 		</div>
 	</div>
 </BentoShell>
@@ -27,6 +31,90 @@ import ReactVibeshinePlayer from '@/components/dashboard/ReactVibeshinePlayer';
 
 	.svc-dash__stream {
 		min-height: 60vh;
+	}
+
+	.svc-dash__panel {
+		margin-top: 1.5rem;
+	}
+
+	:global(.vibeshine-host) {
+		border: 1px solid #27272a;
+		border-radius: 0.75rem;
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(.vibeshine-host__header) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	:global(.vibeshine-host__header h3) {
+		margin: 0;
+		font-size: 1rem;
+	}
+
+	:global(.vibeshine-host__badge) {
+		font-size: 0.75rem;
+		padding: 0.2rem 0.6rem;
+		border-radius: 999px;
+		border: 1px solid #3f3f46;
+	}
+
+	:global(.vibeshine-host__badge--up) {
+		color: #4ade80;
+		border-color: #14532d;
+	}
+
+	:global(.vibeshine-host__badge--down) {
+		color: #f87171;
+		border-color: #7f1d1d;
+	}
+
+	:global(.vibeshine-host__error) {
+		color: #f87171;
+		font-size: 0.875rem;
+		margin: 0;
+	}
+
+	:global(.vibeshine-host__apps) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	:global(.vibeshine-host__app) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #27272a;
+		border-radius: 0.5rem;
+	}
+
+	:global(.vibeshine-host__actions) {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	:global(.vibeshine-host button) {
+		padding: 0.35rem 0.9rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		cursor: pointer;
+	}
+
+	:global(.vibeshine-host button:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	:global(.vibeshine-player__stage) {
