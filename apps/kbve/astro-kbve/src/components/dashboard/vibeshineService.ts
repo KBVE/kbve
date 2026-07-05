@@ -253,3 +253,91 @@ export class VibeshineSession {
 		}
 	}
 }
+
+const PROXY_BASE = '/dashboard/vibeshine/proxy';
+
+export interface VibeshineApp {
+	name?: string;
+	uuid?: string;
+	index?: number;
+	[key: string]: unknown;
+}
+
+export interface SessionStatus {
+	[key: string]: unknown;
+}
+
+export const $apps = atom<VibeshineApp[] | null>(null);
+export const $appsStatus = atom<'idle' | 'loading' | 'ok' | 'error'>('idle');
+export const $sessionStatus = atom<SessionStatus | null>(null);
+export const $controlError = atom<string | null>(null);
+
+async function hostApi<T>(
+	path: string,
+	init?: { method?: string; body?: unknown },
+): Promise<T> {
+	const headers = await getAuthHeaders();
+	if (!headers) {
+		$playerState.set('auth-required');
+		throw new Error('not authenticated');
+	}
+	const resp = await fetch(`${PROXY_BASE}${path}`, {
+		method: init?.method ?? 'GET',
+		headers,
+		body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+	});
+	if (!resp.ok) {
+		throw new Error(
+			`${init?.method ?? 'GET'} ${path} → HTTP ${resp.status}`,
+		);
+	}
+	const text = await resp.text();
+	return (text ? JSON.parse(text) : {}) as T;
+}
+
+export async function fetchApps(): Promise<void> {
+	$appsStatus.set('loading');
+	try {
+		const data = await hostApi<{ apps?: VibeshineApp[] } | VibeshineApp[]>(
+			'/api/apps',
+		);
+		const apps = Array.isArray(data) ? data : (data.apps ?? []);
+		$apps.set(apps);
+		$appsStatus.set('ok');
+	} catch (e) {
+		$controlError.set(e instanceof Error ? e.message : String(e));
+		$appsStatus.set('error');
+	}
+}
+
+export async function fetchSessionStatus(): Promise<void> {
+	try {
+		const data = await hostApi<SessionStatus>('/api/session/status');
+		$sessionStatus.set(data);
+	} catch {
+		$sessionStatus.set(null);
+	}
+}
+
+export async function closeApp(): Promise<void> {
+	$controlError.set(null);
+	try {
+		await hostApi('/api/apps/close', { method: 'POST', body: {} });
+		await fetchSessionStatus();
+	} catch (e) {
+		$controlError.set(e instanceof Error ? e.message : String(e));
+	}
+}
+
+export async function launchApp(app: VibeshineApp): Promise<void> {
+	$controlError.set(null);
+	try {
+		await hostApi('/api/playnite/launch', {
+			method: 'POST',
+			body: { id: app.uuid ?? app.index ?? app.name },
+		});
+		await fetchSessionStatus();
+	} catch (e) {
+		$controlError.set(e instanceof Error ? e.message : String(e));
+	}
+}
