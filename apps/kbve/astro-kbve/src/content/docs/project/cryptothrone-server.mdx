@@ -30,6 +30,12 @@ kube:
     tier: server
     owner: h0lybyte
     criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the CryptoThrone server?
@@ -38,9 +44,69 @@ jsonld:
           answer: CryptoThrone is grid-authoritative rather than physics-based. Collision is tile occupancy and movement is integer grid math, so unlike nd-server's rapier2d match sim, the runtime stays light. The sim ticks at 20 Hz and fans out 10 Hz snapshots.
         - question: How is the CryptoThrone server deployed?
           answer: An Agones Fleet runs the GameServer pods, and the web tier (axum-cryptothrone) allocates one via POST /api/join. The image must land on ghcr.io/kbve/cryptothrone-server before the Fleet can scale up. The server also runs the Agones SDK lifecycle (Ready, Health, Shutdown).
+bento:
+    badge: game-server · rust · cryptothrone
+    title: Authoritative grid host
+    accent: CryptoThrone Server
+    lede: >-
+        The authoritative shared-world host for CryptoThrone — an axum WebSocket
+        router paired with the simgrid headless Bevy grid simulation on tokio.
+        Grid-authoritative: collision is tile occupancy, physics is integer math.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/cryptothrone/server
+          primary: true
+          external: true
+        - label: Sim core
+          href: "#internals"
+        - label: Deployment
+          href: "#internals"
+    aside:
+        icon: server
+        title: Grid-authoritative
+        body: >-
+            Unlike a physics server, collision is tile occupancy and movement is
+            integer grid math, so the runtime stays light. The sim ticks at
+            <strong>20 Hz</strong> and fans out <strong>10 Hz</strong> snapshots.
+        points:
+            - <strong>Auth</strong> — verifies inbound Supabase JWT on /ws.
+            - <strong>Lifecycle</strong> — Agones Ready / Health / Shutdown.
+    stats:
+        - { label: App, value: cryptothrone-server, icon: server }
+        - { label: Stack, value: axum + Bevy, icon: rust }
+        - { label: Protocol, value: simgrid JSON, icon: network }
+        - { label: Listen, value: "0.0.0.0:7979", icon: activity }
+    features:
+        - title: Terminate /ws + auth
+          icon: key
+          body: Terminates the WebSocket upgrade and verifies the inbound Supabase JWT (dev-accept fallback when the secret is unset).
+        - title: Drive the sim tick
+          icon: activity
+          body: Runs the simgrid sim tick at 20 Hz on a tokio multi-thread runtime, fanning out authoritative 10 Hz snapshots.
+        - title: Admit & spawn
+          icon: box
+          body: Admits players into roster slots and spawns the CloudCity world — wandering NPCs and monsters — for everyone in the shared map.
+        - title: Agones lifecycle
+          icon: server
+          body: Runs the Agones SDK lifecycle (Ready / Health / Shutdown); degrades gracefully outside Agones for local dev.
+    related:
+        - title: Isometric
+          href: /project/isometric/
+          copy: Sibling Bevy multiplayer game in the KBVE stack.
+          icon: map
+        - title: Agones
+          href: /project/agones/
+          copy: The GameServer lifecycle SDK used to manage these Fleet pods.
+          icon: server
+    related_heading: Related
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & layout">
 
 `cryptothrone-server` is the authoritative shared-world host for **CryptoThrone**. It pairs an `axum` WebSocket router with the `simgrid` headless bevy grid simulation, so movement validation, occupancy, and snapshot framing stay server-owned. Unlike `nd-server`'s rapier2d match sim, CryptoThrone is grid-authoritative — collision is tile occupancy and "physics" is integer grid math, so the runtime stays light.
 
@@ -65,9 +131,11 @@ apps/agones/cryptothrone/server/
     └── game.rs        # CloudCity spawn config (player tile, monks, birds)
 ```
 
-## Build
+</BentoProse>
 
-Local build via nx:
+<BentoProse id="internals" eyebrow="Build, run & deploy" heading="Sim core, container & deployment">
+
+**Build** — local build via nx:
 
 ```bash
 nx run cryptothrone-server:build-release
@@ -81,7 +149,7 @@ cargo build --release -p cryptothrone-server
 
 The release binary lands at `dist/target/release/cryptothrone-server` per the workspace target dir convention.
 
-## Container
+**Container** —
 
 ```bash
 nx run cryptothrone-server:container
@@ -89,39 +157,12 @@ nx run cryptothrone-server:container
 
 Drops a `kbve/cryptothrone-server:latest` + version tag locally. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/cryptothrone-server:buildcache`). The runtime image uses the same `ghcr.io/kbve/chisel-ubuntu-axum` chisel base as the other Axum services. Default listen is `0.0.0.0:7979` (override via `CT_SERVER_ADDR`).
 
-## Sim core
+**Sim core** — the grid sim lives in the shared `simgrid` crate (`packages/rust/simgrid`): postcard wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers its CloudCity spawn systems into `simgrid`'s ordered `SimSet` stages, so game content stays in the app crate while transport and movement stay generic.
 
-The grid sim lives in the shared `simgrid` crate (`packages/rust/simgrid`): postcard wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers its CloudCity spawn systems into `simgrid`'s ordered `SimSet` stages, so game content stays in the app crate while transport and movement stay generic.
+**Deployment** — an Agones `Fleet` (`apps/kube/agones/cryptothrone/`) runs the GameServer pods; the web tier (`axum-cryptothrone`) allocates one via `POST /api/join`. Image must land on `ghcr.io/kbve/cryptothrone-server` before the Fleet can scale up.
 
-## Deployment
+**Status** — Beta. Shared-world sim with wandering NPCs/monsters; browser client + WSS edge for allocated dynamic ports still in progress.
 
-An Agones `Fleet` (`apps/kube/agones/cryptothrone/`) runs the GameServer pods; the web tier (`axum-cryptothrone`) allocates one via `POST /api/join`. Image must land on `ghcr.io/kbve/cryptothrone-server` before the Fleet can scale up.
+</BentoProse>
 
-## Status
-
-Beta. Shared-world sim with wandering NPCs/monsters; browser client + WSS edge for allocated dynamic ports still in progress.
-
-## FAQ
-
-**What is the CryptoThrone server?**
-`cryptothrone-server` is the authoritative shared-world host for CryptoThrone. It
-pairs an `axum` WebSocket router with the `simgrid` headless Bevy grid simulation
-on a tokio multi-thread runtime, keeping movement validation, occupancy, and
-snapshot framing server-owned.
-
-**How does CryptoThrone differ from a physics-based server?**
-CryptoThrone is grid-authoritative rather than physics-based. Collision is tile
-occupancy and movement is integer grid math, so unlike `nd-server`'s rapier2d
-match sim, the runtime stays light. The sim ticks at 20 Hz and fans out 10 Hz
-snapshots.
-
-**How is the CryptoThrone server deployed?**
-An Agones `Fleet` runs the GameServer pods, and the web tier (`axum-cryptothrone`)
-allocates one via `POST /api/join`. The image must land on
-`ghcr.io/kbve/cryptothrone-server` before the Fleet can scale up. The server also
-runs the Agones SDK lifecycle (`Ready`, `Health`, `Shutdown`).
-
-## Related
-
-- [Isometric](/docs/project/isometric) — sibling Bevy multiplayer game in the KBVE stack.
-- [Agones](/docs/project/agones) — the GameServer lifecycle SDK used to manage these Fleet pods.
+</BentoDoc>
