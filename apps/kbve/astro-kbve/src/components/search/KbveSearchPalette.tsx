@@ -161,11 +161,13 @@ type PagefindModule = {
 };
 
 function stripHtml(s: string): string {
-	return s
-		.replace(/<[^>]*>/g, '')
-		.replace(/[<>]/g, '')
-		.replace(/\s+/g, ' ')
-		.trim();
+	let sanitized = s;
+	let previous: string;
+	do {
+		previous = sanitized;
+		sanitized = sanitized.replace(/<[^>]*>/g, '');
+	} while (sanitized !== previous);
+	return sanitized.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function docsResult(d: PagefindData): SearchResult {
