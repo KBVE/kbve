@@ -2,7 +2,13 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
-import type { StatModel, StreamLens, StreamStore } from '../types';
+import {
+	clusterHealthStats,
+	fetchClusterHealth,
+	namespaceStats,
+} from '../clusterHealth';
+import type { ClusterHealth } from '../clusterHealth';
+import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,26 +47,6 @@ export interface GrafanaStreamOptions {
 	pollMs?: number;
 }
 
-// ---------------------------------------------------------------------------
-// Cluster health (Prometheus via the Grafana datasource proxy). Held at module
-// scope so the stream's fetch can refresh it each poll and the lens's `stats`
-// can read it — the StatGrid then shows node/CPU/mem/pod basics beside alerts.
-// ---------------------------------------------------------------------------
-
-export interface ClusterHealth {
-	nodes: number | null;
-	cpuPercent: number | null;
-	memPercent: number | null;
-	diskPercent: number | null;
-	podsRunning: number | null;
-	podsPending: number | null;
-	podsFailed: number | null;
-	deployments: number | null;
-	containers: number | null;
-}
-
-let clusterHealth: ClusterHealth | null = null;
-let cachedDatasourceId: number | null = null;
 // The live store, captured so stat tiles can toggle the matching filter
 // (one grafana stream is mounted at a time on a page).
 let activeStore: StreamStore<AlertItem> | null = null;
@@ -68,134 +54,6 @@ let activeStore: StreamStore<AlertItem> | null = null;
 function toggleFilter(id: string): void {
 	const cur = activeStore?.get().filterId ?? null;
 	activeStore?.setFilter(cur === id ? null : id);
-}
-
-async function findDatasourceId(
-	base: string,
-	token: string,
-	signal: AbortSignal,
-): Promise<number | null> {
-	if (cachedDatasourceId != null) return cachedDatasourceId;
-	try {
-		const res = await fetch(
-			`${base}/dashboard/grafana/proxy/api/datasources`,
-			{ headers: { Authorization: `Bearer ${token}` }, signal },
-		);
-		if (!res.ok) return null;
-		const sources = (await res.json()) as Array<{
-			id: number;
-			type: string;
-			name: string;
-		}>;
-		const prom = sources.find(
-			(s) => s.type === 'prometheus' || s.name === 'Prometheus',
-		);
-		cachedDatasourceId = prom?.id ?? null;
-		return cachedDatasourceId;
-	} catch {
-		return null;
-	}
-}
-
-async function queryInstant(
-	base: string,
-	token: string,
-	dsId: number,
-	expr: string,
-	signal: AbortSignal,
-): Promise<number | null> {
-	try {
-		const res = await fetch(
-			`${base}/dashboard/grafana/proxy/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: `query=${encodeURIComponent(expr)}`,
-				signal,
-			},
-		);
-		if (!res.ok) return null;
-		const data = (await res.json()) as {
-			data?: { result?: Array<{ value?: [number, string] }> };
-		};
-		const val = data?.data?.result?.[0]?.value?.[1];
-		return val != null ? parseFloat(val) : null;
-	} catch {
-		return null;
-	}
-}
-
-const HEALTH_QUERIES = {
-	nodes: 'count(kube_node_info)',
-	cpu: 'avg(100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100))',
-	mem: '(1 - (sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes))) * 100',
-	disk: 'avg((1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"})) * 100)',
-	podsRunning: 'sum(kube_pod_status_phase{phase="Running"})',
-	podsPending: 'sum(kube_pod_status_phase{phase="Pending"})',
-	podsFailed: 'sum(kube_pod_status_phase{phase="Failed"})',
-	deployments: 'count(kube_deployment_created)',
-	containers: 'sum(kube_pod_container_status_running)',
-} as const;
-
-async function fetchClusterHealth(
-	base: string,
-	token: string | null,
-	signal: AbortSignal,
-): Promise<ClusterHealth | null> {
-	if (!token) return null;
-	const dsId = await findDatasourceId(base, token, signal);
-	if (dsId == null) return null;
-	const q = (expr: string) => queryInstant(base, token, dsId, expr, signal);
-	const [
-		nodes,
-		cpu,
-		mem,
-		disk,
-		podsRunning,
-		podsPending,
-		podsFailed,
-		deployments,
-		containers,
-	] = await Promise.all([
-		q(HEALTH_QUERIES.nodes),
-		q(HEALTH_QUERIES.cpu),
-		q(HEALTH_QUERIES.mem),
-		q(HEALTH_QUERIES.disk),
-		q(HEALTH_QUERIES.podsRunning),
-		q(HEALTH_QUERIES.podsPending),
-		q(HEALTH_QUERIES.podsFailed),
-		q(HEALTH_QUERIES.deployments),
-		q(HEALTH_QUERIES.containers),
-	]);
-	const anySet = [
-		nodes,
-		cpu,
-		mem,
-		disk,
-		podsRunning,
-		podsPending,
-		podsFailed,
-		deployments,
-		containers,
-	].some((v) => v != null);
-	if (!anySet) return null;
-	const int = (v: number | null) => (v != null ? Math.round(v) : null);
-	const pct1 = (v: number | null) =>
-		v != null ? Math.round(v * 10) / 10 : null;
-	return {
-		nodes: int(nodes),
-		cpuPercent: pct1(cpu),
-		memPercent: pct1(mem),
-		diskPercent: pct1(disk),
-		podsRunning: int(podsRunning),
-		podsPending: int(podsPending),
-		podsFailed: int(podsFailed),
-		deployments: int(deployments),
-		containers: int(containers),
-	};
 }
 
 // ---------------------------------------------------------------------------
@@ -261,21 +119,21 @@ export function createGrafanaStream(
 		id: (it) => it.id,
 		signature: (it) => `${it.state}|${it.activeAt}|${it.value}`,
 		normalize,
+		fetchMeta: ({ signal }) =>
+			getToken().then((token) =>
+				fetchClusterHealth(baseUrl, token, signal),
+			),
 		fetch: async ({ signal }) => {
 			const token = await getToken();
-			const [res, health] = await Promise.all([
-				fetch(
-					`${baseUrl}/dashboard/grafana/proxy/api/prometheus/grafana/api/v1/alerts`,
-					{
-						headers: token
-							? { Authorization: `Bearer ${token}` }
-							: undefined,
-						signal,
-					},
-				),
-				fetchClusterHealth(baseUrl, token, signal),
-			]);
-			clusterHealth = health;
+			const res = await fetch(
+				`${baseUrl}/dashboard/grafana/proxy/api/prometheus/grafana/api/v1/alerts`,
+				{
+					headers: token
+						? { Authorization: `Bearer ${token}` }
+						: undefined,
+					signal,
+				},
+			);
 			if (res.status === 403) throw new Error('Access restricted');
 			if (!res.ok) throw new Error(`Grafana alerts API ${res.status}`);
 
@@ -351,79 +209,11 @@ export const grafanaLens: StreamLens<AlertItem> = {
 				it.severity === 'critical' || it.severity === 'high',
 		},
 	],
-	stats: (items) => {
-		const h = clusterHealth;
-		const pct = (v: number | null) => (v != null ? `${v}%` : '—');
-		const num = (v: number | null) => v ?? '—';
-		const loadTone = (v: number | null): BadgeTone =>
-			v == null
-				? 'neutral'
-				: v >= 85
-					? 'danger'
-					: v >= 65
-						? 'warning'
-						: 'success';
-		const countTone = (v: number | null, warn = true): BadgeTone =>
-			v == null || v === 0 ? 'neutral' : warn ? 'warning' : 'danger';
-		const healthStats: StatModel[] = h
-			? [
-					{
-						id: 'nodes',
-						label: 'Nodes',
-						tone: 'primary',
-						value: num(h.nodes),
-					},
-					{
-						id: 'cpu',
-						label: 'CPU',
-						tone: loadTone(h.cpuPercent),
-						value: pct(h.cpuPercent),
-					},
-					{
-						id: 'mem',
-						label: 'Memory',
-						tone: loadTone(h.memPercent),
-						value: pct(h.memPercent),
-					},
-					{
-						id: 'disk',
-						label: 'Disk',
-						tone: loadTone(h.diskPercent),
-						value: pct(h.diskPercent),
-					},
-					{
-						id: 'pods-running',
-						label: 'Pods',
-						tone: 'success',
-						value: num(h.podsRunning),
-					},
-					{
-						id: 'pods-pending',
-						label: 'Pending',
-						tone: countTone(h.podsPending, true),
-						value: num(h.podsPending),
-					},
-					{
-						id: 'pods-failed',
-						label: 'Failed',
-						tone: countTone(h.podsFailed, false),
-						value: num(h.podsFailed),
-					},
-					{
-						id: 'deployments',
-						label: 'Deploys',
-						tone: 'primary',
-						value: num(h.deployments),
-					},
-					{
-						id: 'containers',
-						label: 'Containers',
-						value: num(h.containers),
-					},
-				]
-			: [];
+	stats: (items, meta) => {
+		const h = meta as ClusterHealth | null;
 		return [
-			...healthStats,
+			...clusterHealthStats(h),
+			...namespaceStats(h),
 			{ id: 'total', label: 'Total Alerts', value: items.length },
 			{
 				id: 'firing',

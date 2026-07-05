@@ -3,6 +3,12 @@ import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import {
+	clusterHealthStats,
+	fetchClusterHealth,
+	namespaceStats,
+} from '../clusterHealth';
+import type { ClusterHealth } from '../clusterHealth';
 import type { StreamAction, StreamLens, StreamStore } from '../types';
 
 // Minimal shape of the ArgoCD application payload we depend on. Kept local so
@@ -164,6 +170,10 @@ export function createArgoStream(
 		signature: (it) =>
 			`${it.sync}|${it.health}|${it.lastSync}|${it.total}|${it.degraded}|${it.outOfSync}|${it.stalled}`,
 		normalize,
+		fetchMeta: ({ signal }) =>
+			getToken().then((token) =>
+				fetchClusterHealth(baseUrl, token, signal),
+			),
 		fetch: async ({ signal }) => {
 			const token = await getToken();
 			const res = await fetch(
@@ -1149,7 +1159,9 @@ export const argoLens: StreamLens<ArgoItem> = {
 			predicate: (it) => it.stalled,
 		},
 	],
-	stats: (items) => [
+	stats: (items, meta) => [
+		...clusterHealthStats(meta as ClusterHealth | null),
+		...namespaceStats(meta as ClusterHealth | null),
 		{ id: 'total', label: 'Applications', value: items.length },
 		{
 			id: 'healthy',

@@ -5,6 +5,7 @@ import type { StreamSourceConfig, StreamState, StreamStore } from './types';
 
 const EMPTY = <TItem>(): StreamState<TItem> => ({
 	items: [],
+	meta: null,
 	loading: true,
 	error: null,
 	lastUpdated: null,
@@ -30,6 +31,7 @@ export function createStreamSource<TRaw, TItem>(
 	const {
 		key,
 		fetch,
+		fetchMeta,
 		normalize,
 		id,
 		signature = (item: TItem) => JSON.stringify(item),
@@ -38,6 +40,7 @@ export function createStreamSource<TRaw, TItem>(
 	} = config;
 
 	const cacheKey = `dash:${key}`;
+	const metaCacheKey = `dash:${key}:meta`;
 	const signal = createSignal<StreamState<TItem>>(EMPTY<TItem>());
 
 	// Reference-reuse caches: previous item by id + its fingerprint, so an
@@ -78,11 +81,17 @@ export function createStreamSource<TRaw, TItem>(
 		const ctrl = new AbortController();
 		controller = ctrl;
 		try {
-			const raw = await fetch({ signal: ctrl.signal });
+			const [raw, meta] = await Promise.all([
+				fetch({ signal: ctrl.signal }),
+				fetchMeta
+					? fetchMeta({ signal: ctrl.signal }).catch(() => undefined)
+					: Promise.resolve(undefined),
+			]);
 			if (ctrl.signal.aborted) return;
 			const items = reconcile(raw.map(normalize));
 			patch({
 				items,
+				...(fetchMeta ? { meta: meta ?? null } : {}),
 				loading: false,
 				error: null,
 				fromCache: false,
@@ -93,6 +102,12 @@ export function createStreamSource<TRaw, TItem>(
 					value: items,
 					storedAt: Date.now(),
 				});
+				if (fetchMeta) {
+					void kvStore.set(metaCacheKey, {
+						value: meta ?? null,
+						storedAt: Date.now(),
+					});
+				}
 			}
 		} catch (e: unknown) {
 			if (ctrl.signal.aborted) return;
@@ -106,7 +121,15 @@ export function createStreamSource<TRaw, TItem>(
 	const hydrate = async (): Promise<void> => {
 		if (!cacheTtlMs) return;
 		try {
-			const cached = await kvStore.get<CacheEntry<TItem[]>>(cacheKey);
+			const [cached, cachedMeta] = await Promise.all([
+				kvStore.get<CacheEntry<TItem[]>>(cacheKey),
+				fetchMeta
+					? kvStore.get<CacheEntry<unknown>>(metaCacheKey)
+					: Promise.resolve(null),
+			]);
+			// Paint cached meta first so summary tiles render immediately —
+			// this is what removes the stat-grid layout shift on load.
+			if (cachedMeta) patch({ meta: cachedMeta.value });
 			if (cached && signal.get().items.length === 0) {
 				prevById = new Map(cached.value.map((i) => [id(i), i]));
 				patch({
