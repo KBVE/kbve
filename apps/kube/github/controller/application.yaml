@@ -12,6 +12,7 @@ metadata:
         kbve.com/schema-version: v1
         kbve.com/category: ci-cd
         kbve.com/stack: github-actions
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     sources:
