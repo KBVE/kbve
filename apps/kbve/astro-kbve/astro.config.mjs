@@ -454,6 +454,7 @@ export default defineConfig({
 				'react-native-worklets',
 				'react-native-svg',
 				'react-native-gesture-handler',
+					'@scalar/api-reference',
 			],
 			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
 			rolldownOptions: {

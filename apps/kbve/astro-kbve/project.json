@@ -20,7 +20,7 @@
 			"options": {
 				"cwd": "apps/kbve/astro-kbve",
 				"commands": [
-					"rm -rf .astro",
+					"rm -rf .astro node_modules/.vite node_modules/.astro",
 					"nx exec -- astro sync",
 					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
 				],

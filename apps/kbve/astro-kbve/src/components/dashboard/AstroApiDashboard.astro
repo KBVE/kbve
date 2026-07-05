@@ -1,5 +1,5 @@
 ---
-import { getConfiguration } from '@scalar/client-side-rendering';
+import ReactScalar from '@/components/api/ReactScalar';
 
 interface Source {
 	url: string;
@@ -12,35 +12,51 @@ interface Props {
 	specUrl?: string;
 	sources?: Source[];
 	title?: string;
+	hubHref?: string;
 }
 
 const {
 	specUrl = '/api/openapi.json',
 	sources,
 	title = 'KBVE API Reference',
+	hubHref = '/api/',
 } = Astro.props as Props;
-
-const sourceConfig =
-	sources && sources.length > 0 ? { sources } : { url: specUrl };
-
-const configuration = getConfiguration({
-	...sourceConfig,
-	theme: 'none',
-	hideClientButton: false,
-	defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
-	metaData: { title },
-});
-
-const configJson = JSON.stringify(configuration);
 ---
 
-<div id="scalar-app"></div>
-<script
-	is:inline
-	type="application/json"
-	id="scalar-config"
-	set:html={configJson}
-/>
+<div class="api-dash not-content">
+	<ReactScalar
+		client:only="react"
+		sources={sources}
+		specUrl={specUrl}
+		title={title}
+	/>
+	<p class="api-foot">
+		Looking for the static JSON data endpoints and feeds? Browse the full
+		<a href={hubHref}>API hub</a>.
+	</p>
+</div>
+
+<style>
+	.api-dash {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.api-dash {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.api-foot {
+		margin: 1rem 0 0;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.api-foot a {
+		color: var(--sl-color-accent-high);
+	}
+</style>
 
 <style is:global>
 	#scalar-app {
@@ -110,71 +126,3 @@ const configJson = JSON.stringify(configuration);
 		z-index: 100;
 	}
 </style>
-
-<script>
-	// Module script — Astro bundles `@scalar/api-reference` so we don't
-	// depend on a CDN tag racing the mount script (the CDN approach
-	// broke on client-router transitions: the inline `<script src=...>`
-	// re-injected async, but the inline mount script ran immediately
-	// and bailed on `window.Scalar` not being defined yet — blank page
-	// until a full reload).
-	import { createApiReference } from '@scalar/api-reference';
-	import '@scalar/api-reference/style.css';
-	import { attachScalarAuthBridge } from '@/components/api/scalar-auth-bridge';
-
-	type ScalarInstance = {
-		updateConfiguration?: (cfg: Record<string, unknown>) => void;
-		destroy?: () => void;
-	};
-
-	declare global {
-		interface Window {
-			__scalarRef?: ScalarInstance;
-			__scalarBaseConfig?: Record<string, unknown>;
-		}
-	}
-
-	function readConfig(): Record<string, unknown> | null {
-		const node = document.getElementById('scalar-config');
-		if (!node?.textContent) return null;
-		try {
-			return JSON.parse(node.textContent) as Record<string, unknown>;
-		} catch {
-			return null;
-		}
-	}
-
-	function mount() {
-		// astro:page-load fires on every route; bail when the route the
-		// user landed on doesn't have the Scalar mount node.
-		const host = document.getElementById('scalar-app');
-		if (!host) return;
-		const cfg = readConfig();
-		if (!cfg) return;
-		window.__scalarBaseConfig = cfg;
-		// Reuse the existing instance when the same DOM node is still
-		// alive (e.g. partial swap that left the host mounted); destroy
-		// otherwise so the new mount doesn't double-render.
-		const existing = window.__scalarRef;
-		if (existing && host.childElementCount > 0) {
-			existing.updateConfiguration?.(cfg);
-			void attachScalarAuthBridge();
-			return;
-		}
-		try {
-			existing?.destroy?.();
-		} catch {
-			/* old instance already gone */
-		}
-		window.__scalarRef = createApiReference(
-			'#scalar-app',
-			cfg,
-		) as ScalarInstance;
-		void attachScalarAuthBridge();
-	}
-
-	// astro:page-load fires after the initial parse AND after every
-	// client-router swap, so a single subscription covers both modes
-	// without any data-astro-rerun gymnastics.
-	document.addEventListener('astro:page-load', mount);
-</script>
