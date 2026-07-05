@@ -22,7 +22,24 @@ interface Props {
 const {
 	titleLines = ['KBVE is the best', 'way to build', 'games.'],
 	rotatingWord = 'games',
-	rotatingWords = ['games', 'apps', 'software', 'servers', 'worlds'],
+	rotatingWords = [
+		'games',
+		'apps',
+		'software',
+		'servers',
+		'worlds',
+		'tools',
+		'engines',
+		'bots',
+		'mods',
+		'sites',
+		'shaders',
+		'plugins',
+		'pipelines',
+		'agents',
+		'clusters',
+		'libraries',
+	],
 	description = 'KBVE gives you an open-source studio for games, automation, and community infrastructure. All in one place.',
 	primaryCta = {
 		label: 'Join the Discord',
@@ -1005,7 +1022,7 @@ const dock = [
 
 	const STAGGER_MS = 24;
 	const SWAP_MS = 340;
-	const HOLD_MS = 2600;
+	const HOLD_MS = 5200;
 
 	const renderChars = (slot: HTMLElement, word: string, pre: boolean) => {
 		slot.textContent = '';
@@ -1252,8 +1269,14 @@ const dock = [
 				timers.push(
 					setInterval(() => {
 						if (!osVisible) return;
+						const shipped = words[index];
 						index = (index + 1) % words.length;
 						const next = words[index];
+						window.dispatchEvent(
+							new CustomEvent('bento:word-shipped', {
+								detail: { word: shipped },
+							}),
+						);
 						if (reduced) {
 							slot.textContent = next;
 							return;

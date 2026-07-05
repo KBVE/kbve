@@ -28,6 +28,7 @@ type PipelineData = {
 	meta?: string;
 	icon: keyof typeof ICONS;
 	accent?: boolean;
+	cargo?: string;
 };
 
 type PipelineNode = Node<PipelineData, 'pipeline'>;
@@ -62,6 +63,9 @@ function PipelineNodeView({ data }: NodeProps<PipelineNode>) {
 					<span className="bento-flow-node__meta">{data.meta}</span>
 				)}
 			</span>
+			{data.cargo && (
+				<span className="bento-flow-node__cargo">{data.cargo}</span>
+			)}
 			<Handle
 				type="source"
 				position={Position.Right}
@@ -181,6 +185,7 @@ const PULSE_STEPS: string[][] = [
 export default function BentoFlowIsland() {
 	const [nodes, setNodes] = useState(initialNodes);
 	const [activeIds, setActiveIds] = useState<string[]>([]);
+	const [cargo, setCargo] = useState<string | null>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
 
 	const onNodesChange = useCallback(
@@ -196,32 +201,70 @@ export default function BentoFlowIsland() {
 		if (reduced) return;
 
 		let visible = true;
-		let step = 0;
+		let step = -1;
+		const pending: string[] = [];
+		let lastRun = performance.now();
 
 		const io = new IntersectionObserver(([entry]) => {
 			visible = entry.isIntersecting;
 		});
 		if (wrapRef.current) io.observe(wrapRef.current);
 
+		const onArrived = (e: Event) => {
+			const { word } = (e as CustomEvent).detail ?? {};
+			if (pending.length < 3) pending.push(word ?? 'build');
+		};
+		window.addEventListener('bento:word-arrived', onArrived);
+
 		const id = setInterval(() => {
 			if (!visible) return;
+			if (step === -1) {
+				const idleFor = performance.now() - lastRun;
+				if (pending.length > 0) {
+					setCargo(pending.shift() ?? null);
+					step = 0;
+				} else if (idleFor > 12_000) {
+					setCargo(null);
+					step = 0;
+				} else {
+					return;
+				}
+			}
 			setActiveIds(PULSE_STEPS[step]);
-			step = (step + 1) % PULSE_STEPS.length;
+			step++;
+			if (step >= PULSE_STEPS.length) {
+				step = -1;
+				lastRun = performance.now();
+				setCargo(null);
+			}
 		}, 900);
 
 		return () => {
 			clearInterval(id);
 			io.disconnect();
+			window.removeEventListener('bento:word-arrived', onArrived);
 		};
 	}, []);
 
-	const renderedNodes = nodes.map((n) => ({
-		...n,
-		className: activeIds.includes(n.id) ? 'bento-flow-node--active' : '',
-	}));
+	const renderedNodes = nodes.map((n) => {
+		const active = activeIds.includes(n.id);
+		return {
+			...n,
+			className: active ? 'bento-flow-node--active' : '',
+			data:
+				active && cargo
+					? { ...n.data, cargo }
+					: { ...n.data, cargo: undefined },
+		};
+	});
 
 	return (
 		<div ref={wrapRef} style={{ width: '100%', height: '100%' }}>
+			{cargo && (
+				<div className="bento-flow__ticker">
+					shipping <strong>{cargo}</strong>
+				</div>
+			)}
 			<ReactFlow
 				nodes={renderedNodes}
 				edges={initialEdges}
