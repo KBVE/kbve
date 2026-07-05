@@ -887,6 +887,23 @@
 		padding: 1.5rem clamp(1rem, 3vw, 2rem) 2.5rem;
 	}
 
+	/* Rich prose band: retains Starlight .sl-markdown-content styling (headings,
+	   tables, code, Steps, Aside) but sits inside the frame rails with the seam
+	   preserved, so long-form game/server docs keep their content next to the
+	   bento grid. Pair via <BentoProse> — the section must NOT carry not-content. */
+	.bento-prose {
+		padding-block: 2.5rem 3rem;
+	}
+	.bento-prose > .bento-prose__header {
+		margin-bottom: 1.5rem;
+	}
+	.bento-prose .bento-prose__body > :first-child {
+		margin-top: 0;
+	}
+	.bento-prose :where(h2, h3, h4) {
+		scroll-margin-top: 5rem;
+	}
+
 	/* Animated connector strokes for SVG paths (rails, relationship lines) */
 	.bento-wire {
 		stroke: color-mix(
