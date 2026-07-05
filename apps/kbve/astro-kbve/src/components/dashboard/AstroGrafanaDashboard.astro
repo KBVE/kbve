@@ -1,150 +1,32 @@
 ---
-import ReactGrafanaAuth from './ReactGrafanaAuth';
-import ReactGrafanaHeader from './ReactGrafanaHeader';
-import ReactGrafanaNodes from './ReactGrafanaNodes';
-import ReactGrafanaK8s from './ReactGrafanaK8s';
-import ReactGrafanaAlerts from './ReactGrafanaAlerts';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactGrafanaDashRN from '@/components/rnweb/ReactGrafanaDashRN';
 ---
 
-<section
+<BentoShell
 	id="grafana-dashboard-wrapper"
-	class="grafana-dashboard-wrapper kbve-dashboard-page"
-	aria-label="Grafana monitoring dashboard">
-	<div id="dashboard-content" class="dashboard-content">
-		<ReactGrafanaAuth client:only="react">
-			<div class="not-content grafana-dashboard">
-				<div id="grafana-header">
-					<ReactGrafanaHeader client:only="react" />
-				</div>
-
-				<nav class="kbve-dash-nav" aria-label="Dashboard sections">
-					<a href="#grafana-alerts">Alerts</a>
-					<a href="#grafana-nodes">Nodes</a>
-					<a href="#grafana-k8s">Kubernetes</a>
-				</nav>
-
-				<section
-					id="grafana-alerts"
-					class="kbve-dash-section"
-					aria-label="Alerts">
-					<ReactGrafanaAlerts client:only="react" />
-				</section>
-
-				<section
-					id="grafana-nodes"
-					class="kbve-dash-section"
-					aria-label="Nodes">
-					<h2 class="kbve-dash-section-title">Nodes</h2>
-					<ReactGrafanaNodes client:only="react" />
-				</section>
-
-				<section
-					id="grafana-k8s"
-					class="kbve-dash-section"
-					aria-label="Kubernetes">
-					<h2 class="kbve-dash-section-title">Kubernetes</h2>
-					<ReactGrafanaK8s client:only="react" />
-				</section>
-			</div>
-		</ReactGrafanaAuth>
+	eyebrow="Observability"
+	heading="Grafana alerts & cluster health.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactGrafanaDashRN client:only="react" />
+		</div>
 	</div>
-</section>
+</BentoShell>
 
 <style>
-	.grafana-dashboard-wrapper {
-		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100%;
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
 	}
 
-	.dashboard-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-content {
-			padding: 2rem 1.5rem;
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
 		}
 	}
 
-	.grafana-dashboard {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-	}
-
-	.kbve-dash-nav {
-		position: sticky;
-		top: 0;
-		z-index: 5;
-		display: flex;
-		gap: 0.25rem;
-		padding: 0.4rem;
-		border: 1px solid var(--sl-color-gray-5, #262626);
-		border-radius: 10px;
-		background: color-mix(
-			in srgb,
-			var(--sl-color-bg-nav, #111) 92%,
-			transparent
-		);
-		backdrop-filter: saturate(140%) blur(8px);
-		-webkit-backdrop-filter: saturate(140%) blur(8px);
-		overflow-x: auto;
-	}
-
-	.kbve-dash-nav a {
-		flex: 0 0 auto;
-		padding: 0.35rem 0.85rem;
-		border-radius: 6px;
-		color: var(--sl-color-gray-2, #c9d1d9);
-		font-size: 0.8rem;
-		font-weight: 500;
-		text-decoration: none;
-		transition:
-			background-color 0.15s,
-			color 0.15s,
-			border-color 0.15s;
-		border: 1px solid transparent;
-	}
-
-	.kbve-dash-nav a:hover {
-		background: var(--sl-color-gray-6, #1c1c1c);
-		color: var(--sl-color-text, #e6edf3);
-		border-color: var(--sl-color-gray-5, #262626);
-	}
-
-	.kbve-dash-nav a:target,
-	.kbve-dash-nav a.is-active {
-		background: color-mix(
-			in srgb,
-			var(--sl-color-accent, #06b6d4) 18%,
-			transparent
-		);
-		color: var(--sl-color-accent-high, #67e8f9);
-		border-color: color-mix(
-			in srgb,
-			var(--sl-color-accent, #06b6d4) 40%,
-			transparent
-		);
-	}
-
-	.kbve-dash-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		scroll-margin-top: 72px;
-	}
-
-	.kbve-dash-section-title {
-		color: var(--sl-color-text, #e6edf3);
-		margin: 0;
-		font-size: clamp(1.05rem, 2.6vw, 1.3rem);
-		font-weight: 600;
-		padding-bottom: 0.5rem;
-		border-bottom: 1px solid var(--sl-color-gray-5, #262626);
+	.svc-dash__stream {
+		min-height: 60vh;
 	}
 
 	:global(@keyframes spin) {
@@ -152,159 +34,4 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 			transform: rotate(360deg);
 		}
 	}
-
-	:global(.kbve-card-grid) {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-		gap: 0.6rem;
-	}
-
-	:global(.kbve-stat-card) {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		gap: 0.35rem;
-		padding: 0.65rem 0.8rem 1.1rem;
-		border: 1px solid var(--sl-color-gray-5, #262626);
-		border-top-width: 2px;
-		border-radius: 9px;
-		background: var(--sl-color-bg-nav, #111);
-		min-height: 96px;
-		overflow: hidden;
-		transition:
-			border-color 0.18s,
-			transform 0.15s,
-			box-shadow 0.18s;
-	}
-
-	:global(.kbve-stat-card__header) {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 0.65rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--sl-color-gray-3, #8b949e);
-	}
-
-	:global(.kbve-stat-card__header svg) {
-		flex: 0 0 auto;
-	}
-
-	:global(.kbve-stat-card__value) {
-		display: flex;
-		align-items: baseline;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		font-size: 1.45rem;
-		font-weight: 700;
-		font-variant-numeric: tabular-nums;
-		line-height: 1.05;
-		color: var(--sl-color-text, #e6edf3);
-	}
-
-	:global(.kbve-stat-card__trend) {
-		font-size: 0.7rem;
-		font-weight: 500;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-
-	:global(.kbve-stat-card__spark) {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		height: 18px;
-		opacity: 0.65;
-		pointer-events: none;
-	}
-
-	:global(.kbve-stat-card.is-clickable) {
-		cursor: pointer;
-		-webkit-tap-highlight-color: transparent;
-	}
-
-	:global(.kbve-stat-card.is-clickable:hover) {
-		border-color: color-mix(
-			in srgb,
-			var(--sl-color-accent, #06b6d4) 55%,
-			var(--sl-color-gray-4, #6b7280)
-		);
-		transform: translateY(-2px);
-		box-shadow:
-			0 6px 18px -8px rgba(0, 0, 0, 0.55),
-			0 0 0 1px
-				color-mix(
-					in srgb,
-					var(--sl-color-accent, #06b6d4) 20%,
-					transparent
-				);
-	}
-
-	@media (hover: none) {
-		:global(.kbve-stat-card.is-clickable:hover) {
-			transform: none;
-			box-shadow: none;
-		}
-		:global(.kbve-stat-card.is-clickable:active) {
-			border-color: var(--sl-color-gray-4, #6b7280);
-			transform: scale(0.98);
-		}
-	}
-
-	:global(.kbve-stat-card[data-tip]:hover::after) {
-		content: attr(data-tip);
-		position: absolute;
-		bottom: calc(100% + 6px);
-		left: 50%;
-		transform: translateX(-50%);
-		padding: 0.35rem 0.55rem;
-		border-radius: 6px;
-		background: var(--sl-color-bg-inline-code, #0f1115);
-		color: var(--sl-color-text, #e6edf3);
-		border: 1px solid var(--sl-color-gray-5, #262626);
-		font-size: 0.7rem;
-		font-weight: 400;
-		letter-spacing: 0;
-		text-transform: none;
-		white-space: nowrap;
-		max-width: 220px;
-		z-index: 10;
-		pointer-events: none;
-		box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.6);
-	}
-
-	@media (hover: none) {
-		:global(.kbve-stat-card[data-tip]:hover::after) {
-			display: none;
-		}
-	}
-
-	:global(.kbve-chart-panel) {
-		padding: clamp(0.75rem, 3vw, 1.25rem) !important;
-	}
-
-	:global(.kbve-chart-panel h3) {
-		font-size: clamp(0.95rem, 2.4vw, 1.05rem) !important;
-	}
 </style>
-
-<script>
-	const setActive = () => {
-		const hash = window.location.hash || '#grafana-alerts';
-		document
-			.querySelectorAll<HTMLAnchorElement>('.kbve-dash-nav a')
-			.forEach((a) => {
-				a.classList.toggle(
-					'is-active',
-					a.getAttribute('href') === hash,
-				);
-			});
-	};
-	setActive();
-	window.addEventListener('hashchange', setActive);
-</script>

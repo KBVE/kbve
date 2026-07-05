@@ -44,7 +44,11 @@ const configJson = JSON.stringify(configuration);
 
 <style is:global>
 	#scalar-app {
-		min-height: calc(100vh - 4rem);
+		min-height: calc(100vh - 8rem);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius, 0.625rem);
+		overflow: hidden;
+		box-shadow: var(--bento-shadow);
 	}
 	#scalar-app .scalar-app {
 		min-height: inherit;
@@ -59,25 +63,44 @@ const configJson = JSON.stringify(configuration);
 		--scalar-color-3: var(--sl-color-gray-3);
 		--scalar-color-accent: var(--sl-color-accent-high);
 
-		--scalar-background-1: var(--sl-color-bg);
-		--scalar-background-2: var(--sl-color-bg-sidebar);
-		--scalar-background-3: var(--sl-color-bg-nav);
+		--scalar-background-1: var(--bento-cell-bg, var(--sl-color-black));
+		--scalar-background-2: color-mix(
+			in srgb,
+			var(--sl-color-white) 3%,
+			transparent
+		);
+		--scalar-background-3: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
 		--scalar-background-accent: var(--sl-color-accent);
 
-		--scalar-border-color: var(--sl-color-gray-5);
+		--scalar-border-color: var(--bento-hairline-strong);
 
-		--scalar-sidebar-background-1: var(--sl-color-bg-sidebar);
+		--scalar-sidebar-background-1: var(
+			--bento-cell-bg,
+			var(--sl-color-black)
+		);
 		--scalar-sidebar-color-1: var(--sl-color-text);
 		--scalar-sidebar-color-2: var(--sl-color-gray-3);
-		--scalar-sidebar-color-active: var(--sl-color-text-accent);
-		--scalar-sidebar-background-active: var(--sl-color-gray-6);
-		--scalar-sidebar-item-hover-background: var(--sl-color-gray-6);
+		--scalar-sidebar-color-active: var(--sl-color-accent-high);
+		--scalar-sidebar-background-active: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 14%,
+			transparent
+		);
+		--scalar-sidebar-item-hover-background: color-mix(
+			in srgb,
+			var(--sl-color-white) 5%,
+			transparent
+		);
 		--scalar-sidebar-item-hover-color: var(--sl-color-white);
-		--scalar-sidebar-border-color: var(--sl-color-gray-5);
+		--scalar-sidebar-border-color: var(--bento-hairline);
 
-		--scalar-button-1: var(--sl-color-accent);
-		--scalar-button-1-hover: var(--sl-color-accent-high);
-		--scalar-button-1-color: var(--sl-color-text-invert);
+		--scalar-button-1: var(--sl-color-accent-high);
+		--scalar-button-1-hover: var(--sl-color-accent);
+		--scalar-button-1-color: var(--sl-color-black);
 	}
 
 	#scalar-app .scalar-api-client__container,

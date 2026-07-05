@@ -1,107 +1,32 @@
 ---
-import ReactCHAuth from './ReactCHAuth';
-import ReactCHHeader from './ReactCHHeader';
-import ReactCHErrorBanner from './ReactCHErrorBanner';
-import ReactCHSummary from './ReactCHSummary';
-import ReactCHNamespaceGrid from './ReactCHNamespaceGrid';
-import ReactCHFilterBar from './ReactCHFilterBar';
-import ReactCHLogStream from './ReactCHLogStream';
-import ReactCHQueryTabs from './ReactCHQueryTabs';
-import ReactCHErrorDigest from './ReactCHErrorDigest';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactClickHouseDashRN from '@/components/rnweb/ReactClickHouseDashRN';
 ---
 
-<section
+<BentoShell
 	id="clickhouse-dashboard-wrapper"
-	class="clickhouse-dashboard-wrapper kbve-dashboard-page"
-	aria-label="ClickHouse logs dashboard">
-	<div id="dashboard-content" class="dashboard-content">
-		<ReactCHAuth client:only="react">
-			<div class="not-content ch-dashboard">
-				<!-- Island: Header (time range selector, refresh) -->
-				<div id="ch-header">
-					<ReactCHHeader client:only="react" />
-				</div>
-
-				<div id="ch-error-banner">
-					<ReactCHErrorBanner client:only="react" />
-				</div>
-
-				<!-- Island: Summary bar (total logs, errors, warnings, namespace count) -->
-				<div id="ch-summary">
-					<ReactCHSummary client:only="react" />
-				</div>
-
-				<!-- Island: Sort controls + namespace card grid -->
-				<div id="ch-namespace-grid" class="ch-namespace-section">
-					<ReactCHNamespaceGrid client:only="react" />
-				</div>
-
-				<!-- Island: Top errors digest (grouped error signatures) -->
-				<div id="ch-error-digest">
-					<ReactCHErrorDigest client:only="react" />
-				</div>
-
-				<!-- Static shell: Log explorer container -->
-				<div id="ch-log-explorer" class="ch-log-explorer">
-					<!-- Island: Filter bar (dropdowns, search, chips) -->
-					<div id="ch-filter-bar">
-						<ReactCHFilterBar client:only="react" />
-					</div>
-
-					<!-- Island: Log stream (entries, footer) -->
-					<div id="ch-log-stream">
-						<ReactCHLogStream client:only="react" />
-					</div>
-				</div>
-
-				<!-- Island: Query tabs (pinned queries, polling, dnd, presets) -->
-				<div id="ch-query-tabs">
-					<ReactCHQueryTabs client:only="react" />
-				</div>
-			</div>
-		</ReactCHAuth>
+	eyebrow="Observability"
+	heading="ClickHouse cluster logs.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactClickHouseDashRN client:only="react" />
+		</div>
 	</div>
-</section>
+</BentoShell>
 
 <style>
-	.clickhouse-dashboard-wrapper {
-		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100%;
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
 	}
 
-	.dashboard-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-content {
-			padding: 2rem 1.5rem;
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
 		}
 	}
 
-	/* Static layout shell - zero JS cost */
-	.ch-dashboard {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
+	.svc-dash__stream {
 		min-height: 60vh;
-	}
-
-	.ch-log-explorer {
-		border-radius: 12px;
-		border: 1px solid var(--sl-color-gray-5, #262626);
-		background: var(--sl-color-bg-nav, #111);
-		overflow: hidden;
-	}
-
-	.ch-namespace-section {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
 	}
 
 	:global(@keyframes spin) {

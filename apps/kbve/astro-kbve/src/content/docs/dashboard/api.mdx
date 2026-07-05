@@ -14,15 +14,23 @@ tags:
     - openapi
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroApiDashboard from '@/components/dashboard/AstroApiDashboard.astro';
 
-<AstroApiDashboard
-    title="KBVE Dashboard APIs"
-    sources={[
-        { slug: 'kbve', title: 'KBVE Public API', url: '/api/openapi.json', default: true },
-        { slug: 'firecracker', title: 'Firecracker Control', url: '/api/firecracker/openapi.json' },
-        { slug: 'rows', title: 'ROWS (ChuckRPG)', url: '/api/rows/openapi.json' },
-    ]}
-/>
+<BentoShell
+    eyebrow="Dashboard"
+    heading="API Reference — live OpenAPI specs."
+>
+    <div class="api-dash not-content">
+        <AstroApiDashboard
+            title="KBVE Dashboard APIs"
+            sources={[
+                { slug: 'kbve', title: 'KBVE Public API', url: '/api/openapi.json', default: true },
+                { slug: 'firecracker', title: 'Firecracker Control', url: '/api/firecracker/openapi.json' },
+                { slug: 'rows', title: 'ROWS (ChuckRPG)', url: '/api/rows/openapi.json' },
+            ]}
+        />
+    </div>
+</BentoShell>
 
 Looking for the static JSON data endpoints and feeds? Browse the full [API hub](/api/).

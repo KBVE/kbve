@@ -1,113 +1,32 @@
 ---
-import ReactForgejoAuth from './ReactForgejoAuth';
-import ReactForgejoHeader from './ReactForgejoHeader';
-import ReactForgejoTabs from './ReactForgejoTabs';
-import ReactForgejoSummary from './ReactForgejoSummary';
-import ReactForgejoRepoTable from './ReactForgejoRepoTable';
-import ReactForgejoRepoPanel from './ReactForgejoRepoPanel';
-import ReactForgejoUserPanel from './ReactForgejoUserPanel';
-import ReactForgejoOrgPanel from './ReactForgejoOrgPanel';
-import ReactForgejoRepoAdmin from './ReactForgejoRepoAdmin';
-import ReactForgejoIssues from './ReactForgejoIssues';
-import ReactForgejoPackages from './ReactForgejoPackages';
-import ReactForgejoFiles from './ReactForgejoFiles';
-import ReactForgejoRunners from './ReactForgejoRunners';
-import ReactForgejoSystemPanel from './ReactForgejoSystemPanel';
-import ReactForgejoToast from './ReactForgejoToast';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactForgejoDashRN from '@/components/rnweb/ReactForgejoDashRN';
 ---
 
-<section
+<BentoShell
 	id="forgejo-dashboard-wrapper"
-	class="forgejo-dashboard-wrapper kbve-dashboard-page"
-	aria-label="Forgejo admin dashboard">
-	<div id="dashboard-content" class="dashboard-content">
-		<ReactForgejoAuth client:only="react">
-			<div class="not-content forgejo-dashboard">
-				<div id="forgejo-header" class="forgejo-header-row">
-					<h2 class="forgejo-title">Forgejo</h2>
-					<ReactForgejoHeader client:only="react" />
-				</div>
-				<div id="forgejo-tabs">
-					<ReactForgejoTabs client:only="react" />
-				</div>
-				<div id="forgejo-overview">
-					<ReactForgejoSummary client:only="react" />
-					<ReactForgejoRepoTable client:only="react" />
-				</div>
-				<div id="forgejo-repos">
-					<ReactForgejoRepoPanel client:only="react" />
-				</div>
-				<div id="forgejo-users">
-					<ReactForgejoUserPanel client:only="react" />
-				</div>
-				<div id="forgejo-orgs">
-					<ReactForgejoOrgPanel client:only="react" />
-				</div>
-				<div id="forgejo-webhooks">
-					<ReactForgejoRepoAdmin client:only="react" />
-				</div>
-				<div id="forgejo-issues">
-					<ReactForgejoIssues client:only="react" />
-				</div>
-				<div id="forgejo-packages">
-					<ReactForgejoPackages client:only="react" />
-				</div>
-				<div id="forgejo-files">
-					<ReactForgejoFiles client:only="react" />
-				</div>
-				<div id="forgejo-runners">
-					<ReactForgejoRunners client:only="react" />
-				</div>
-				<div id="forgejo-system">
-					<ReactForgejoSystemPanel client:only="react" />
-				</div>
-				<ReactForgejoToast client:only="react" />
-			</div>
-		</ReactForgejoAuth>
+	eyebrow="Infrastructure"
+	heading="Forgejo git repositories.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactForgejoDashRN client:only="react" />
+		</div>
 	</div>
-</section>
+</BentoShell>
 
 <style>
-	.forgejo-dashboard-wrapper {
-		background: transparent;
-		min-height: 100vh;
-		position: relative;
-		width: 100%;
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
 	}
 
-	.dashboard-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 2rem 1rem;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-content {
-			padding: 2rem 1.5rem;
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
 		}
 	}
 
-	.forgejo-dashboard {
-		display: flex;
-		flex-direction: column;
-		color: var(--sl-color-text, #e6edf3);
+	.svc-dash__stream {
 		min-height: 60vh;
-	}
-
-	.forgejo-header-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.forgejo-title {
-		margin: 0;
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--sl-color-text, #e6edf3);
 	}
 
 	:global(@keyframes spin) {
