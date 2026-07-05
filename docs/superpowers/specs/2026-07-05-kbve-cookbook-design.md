@@ -1,163 +1,124 @@
-# KBVE Cookbook — faceted recipe index
+# Projects cookbook — faceted `/projects` browser
 
 **Date:** 2026-07-05
 **App:** `apps/kbve/astro-kbve` (Starlight docs site)
-**Route:** `/cookbook/` (new)
+**Route:** `/projects/` (existing — upgraded)
+
+> Supersedes the earlier "new cookbook collection" idea. No new collection, no
+> new content. The cookbook IS the existing `/projects` page, upgraded into an
+> e2b-style faceted browser over the 112-entry `project` collection.
 
 ## Problem
 
-KBVE content is large and scattered — 6000+ MDX pages across osrs, mc, journal,
-project, theory, guides, lab, etc. There is no curated, browsable entry point
-for "how do I do X" recipes. e2b's cookbook (curated, tag-filtered use-case
-index with a faceted sidebar) is the model.
+`/projects` currently uses top filter tabs (single active category) over the
+bento project cards. With 112 projects it's hard to browse. e2b's cookbook —
+a left faceted sidebar (multiple filter groups) + search over a card list — is
+the model for making the whole catalog scannable.
 
 ## Goal
 
-An editorial, curated `/cookbook/` — a faceted index of hand-authored recipes,
-each a full MDX page, filterable by Language / Stack / Domain / Namespace with a
-search box. Reuses the bento design system and the `[hidden]` filter pattern
-from the projects-page work ([[project_projects_bento_page]]).
+Turn `/projects` into a faceted browser: a left sidebar with **three** radio
+facet groups + a search box, AND-combined, filtering the existing project bento
+cards on the right. All facet data comes from existing frontmatter — no new
+collection, no new fields.
 
 ## Non-goals
 
-- No external-repo link entries — recipes are internal MDX only.
-- No indexing of the 6000 existing osrs/mc/etc pages — curated content only.
-- No multi-select-OR within a facet group — single active value per group.
-- No "Suggest new" Google Form — a simple GitHub new-file CTA instead.
+- No new `cookbook` content collection (dropped).
+- No namespace facet (kube.stack is the source if ever re-added; sparse — 29/112).
+- No changes to the published-packages section (`PackagesBento`) — stays below.
+- No multi-select-OR within a group — single active value per group.
 
-## Content collection
+## Facets (all from existing frontmatter)
 
-New `cookbook` glob collection, base `src/content/docs/cookbook/`. Starlight
-auto-routes each recipe to `/cookbook/<slug>/` (same mechanism as the `project`
-collection). Registered in `src/content.config.ts`.
+| group        | source                                              | values                                                                                                           |
+| ------------ | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Language/Tag | `tags`, filtered to a curated whitelist             | rust, python, ts, unreal, bevy, unity, docker, astro, supabase, agones, kubernetes, wasm, … (only those present) |
+| Category     | derived from `tags` via existing `deriveCategories` | Games / Libraries / Services / Tools                                                                             |
+| Status       | `status`                                            | active / beta                                                                                                    |
 
-Schema `CookbookSchema` (new, in `src/data/schema` or inline in content.config).
-Flat typed fields — **not** a nested `facets` object: nested zod objects imported
-across the zod-package boundary get silently stripped here (prior burn, see
-Head.astro note in content.config.ts).
+- **Multi-facet AND**: a card shows iff it matches the active value in EVERY
+  group (a group whose active value is `all` imposes no constraint).
+- **Search**: substring match on project title.
+- Sidebar shows only values actually present, with per-value counts (like the
+  current category counts). Curated tag whitelist lives in `projectTags.ts`
+  (`LANGUAGE_TAGS`); only whitelisted tags that appear render as filters.
 
-```ts
-const CookbookSchema = z.object({
-	title: z.string(),
-	description: z.string().optional(),
-	language: z.array(z.string()).optional(), // facet 1
-	stack: z.array(z.string()).optional(), // facet 2
-	domain: z.array(z.string()).optional(), // facet 3
-	namespace: z.string().optional(), // facet 4 (single owning project)
-	new: z.boolean().optional(), // NEW badge
-});
-```
+## Components
 
-Frontmatter also carries standard Starlight fields (`sidebar`, `template`, etc).
+### `ProjectBento.astro` (rework)
 
-Example recipe frontmatter:
+- Keep card derivation (categories, featured, img, status).
+- Add per-card data attributes: `data-language` (whitelisted tags, space-joined),
+  `data-category` (existing), `data-status`, `data-name` (lowercased title).
+- New layout: e2b 2-column — `grid-template-columns: 240px 1fr` (sidebar + card
+  grid); stacks to single column below the `lg` breakpoint (sidebar collapses
+  to a horizontal scroll / disclosure on mobile).
+- Compute facet groups (value + count) for each of the three groups and pass to
+  the filter island.
+- Render `<CookbookFilters client:visible />` in the sidebar; the existing bento
+  card grid on the right.
 
-```yaml
----
-title: Deploy an Agones game server
-description: Stand up a dedicated game server on Agones + Kubernetes.
-language: [rust]
-stack: [agones, kubernetes]
-domain: [infra]
-namespace: arpg
-new: true
-sidebar: { order: 1 }
----
-```
+### `CookbookFilters.tsx` (new — replaces `ProjectFilterTabs` on this page)
 
-## Faceted filter — multi-facet AND
-
-Sidebar = four single-select radio groups + a search box, e2b-style left rail.
-
-- **AND across groups**: a card shows iff it matches EVERY active facet. e.g.
-  Language=rust AND Domain=infra narrows to recipes tagged both.
-- **Single active per group**: each group is radio with an "All" reset.
-- **Search**: substring match on title + tag values.
-
-### State — `cookbookStore.ts`
-
-nanostore atoms: `$language`, `$stack`, `$domain`, `$namespace` (each a string,
-`'all'` default) and `$search` (string). Setter fns per atom.
-
-### Island — `CookbookFilters.tsx`
-
-React (`client:visible`). Props: the facet group definitions with values+counts.
-Renders the 4 radio groups + search input; writes atoms on change. A `useEffect`
-subscribes to all atoms and toggles each card's `hidden`:
+- React (`client:visible`). Props: the three facet groups (`{key,label,values:[{value,label,count}]}`).
+- Renders three radio groups (each with an "All" reset) + a search input.
+- Writes per-facet nanostore atoms; a `useEffect` toggles each card's `hidden`:
 
 ```
-show = matchesFacet(card, 'language', $language)
-     && matchesFacet(card, 'stack', $stack)
-     && matchesFacet(card, 'domain', $domain)
-     && matchesFacet(card, 'namespace', $namespace)
-     && matchesSearch(card, $search)
+show = m('language',$language) && m('category',$category) && m('status',$status) && search($search)
+m(facet, active) = active==='all' || card.dataset[facet].split(' ').includes(active)
+search(q) = !q || card.dataset.name.includes(q.toLowerCase())
 card.hidden = !show
 ```
 
-`matchesFacet` = active === 'all' || card's space-joined `data-<facet>` keys
-include active. Cards carry `data-language`, `data-stack`, `data-domain`,
-`data-namespace`, `data-name`.
+- Reuses the `[hidden]{display:none}` specificity fix already added to the cells.
+- `ProjectFilterTabs.tsx` is removed (superseded); `projectFilterStore.ts`'s
+  single-category atom is replaced by the multi-facet store below.
 
-This is a NEW island — the projects `ProjectFilterTabs` (single-atom, top tabs)
-is untouched; the cookbook UX (sidebar radios, AND across 4 groups) differs
-enough to warrant its own component. Reuses the `[hidden]{display:none}`
-specificity fix.
+### `projectFilterStore.ts` (extend)
 
-## Layout / components
+nanostore atoms `$language`, `$category`, `$status` (string, `'all'` default) and
+`$search` (string) + setters. (Registry filter for PackagesBento stays as its
+own concern — either keep `$activeRegistry` here or leave PackagesBento's tabs
+unchanged; PackagesBento is out of scope, so its existing single-atom filter and
+`ProjectFilterTabs` usage there remain. Only the projects grid moves to the
+faceted island.)
 
-### `CookbookIndex.astro`
+> Note: `ProjectFilterTabs` is still used by `PackagesBento` for registry tabs.
+> Keep that component + its store atom; add the new faceted store/island
+> alongside for the projects grid. Do not delete `ProjectFilterTabs`.
 
-- `getCollection('cookbook')`.
-- Derives facet values + per-value counts from actual frontmatter (sidebar shows
-  only values present, like the project category counts). Empty facet groups are
-  omitted.
-- e2b-style 2-column layout: `grid-template-columns: 260px 1fr` (sidebar + card
-  list); stacks to single column on mobile.
-- Renders `<CookbookFilters client:visible />` in the sidebar and the card grid.
-- Card: title, description, facet tag chips, NEW badge (if `new`), link to
-  `/cookbook/<slug>/`. Carries the `data-*` facet attributes.
-- Wrapped in `BentoShell`; reuses `bento.css` tokens + the `.project-tab`-style
-  chip CSS (generalised or duplicated as `.cookbook-*`).
+### `projectTags.ts` (extend)
 
-### `cookbookFacets.ts`
+- Add `LANGUAGE_TAGS: string[]` — curated whitelist of meaningful language/stack
+  tags. `deriveLanguages(tags)` returns the intersection (space-joinable).
+- Keep `CATEGORY_DEFS` / `deriveCategories` as-is.
 
-Facet group definitions: ordered list of `{ key, label }` for
-language/stack/domain/namespace + optional value→display-label map (e.g.
-`rust`→"Rust", `ts`→"TypeScript"). Single source of truth for group order + labels.
+## Layout / styling
 
-### Hero masthead
-
-A `CookbookHero` header echoing e2b's glitchy "COOKBOOK" title, toned to KBVE
-(reuse bento eyebrow/heading typography rather than new fonts).
-
-## Route + seed content
-
-- `src/content/docs/cookbook/index.mdx` — `template: splash`, imports and renders
-  `CookbookIndex`. (The index page itself is excluded from the recipe list by
-  slug check, or lives as `index` and is filtered out.)
-- Seed **4–5 starter recipes** from real KBVE topics, each a short real MDX page,
-  chosen to exercise every facet:
-    - Deploy an Agones game server — rust / agones,kubernetes / infra / arpg
-    - Bevy turn-based combat crate — rust / bevy / gamedev / (bevy-battle)
-    - Run a dbmate migration on kilobase — sql / cnpg,dbmate / data / kilobase
-    - Migrate Supabase JWT to ES256/JWKS — rust / supabase / auth / kbve
-    - Add an Astro content collection — typescript / astro / web / astro-kbve
-- "Add a recipe →" CTA linking to the GitHub new-file URL for the cookbook dir.
+- e2b-style: sticky left sidebar (facet groups stacked, each a labelled list of
+  radio rows with count), card grid right.
+- Reuse `bento.css` tokens + the `.project-tab` chip styles (generalise for
+  sidebar radio rows or add `.facet-*` classes, global since rendered in the
+  React island).
+- Search input styled to match bento surfaces.
 
 ## Testing / verification
 
-- `nx build astro-kbve` succeeds (new collection + schema + components compile).
-- Content-collection validation passes for seed recipes.
-- `/cookbook/` renders sidebar with 4 facet groups + counts, card list, NEW badges.
-- Selecting a facet filters (AND across groups); "All" resets; search narrows.
-- Each `/cookbook/<slug>/` renders its MDX body via Starlight.
-- **Cache gotcha**: adding the collection/schema needs a clean parse — clear
-  `.astro` and rebuild `--skip-nx-cache` (see [[project_astro_content_schema_cache_stale]]).
+- `nx build astro-kbve` succeeds.
+- `/projects/` renders sidebar (3 groups + search + counts) and card grid.
+- Selecting facets filters AND-wise; "All" per group resets; search narrows.
+- `grid-auto-flow: dense` reflows remaining cards (no gaps).
+- PackagesBento section still renders with its registry tabs.
+- **Cache gotcha**: no schema change this time, but if facet reads look empty,
+  clear `.astro` + rebuild `--skip-nx-cache`
+  ([[project_astro_content_schema_cache_stale]]).
 
 ## Open questions
 
-- Value→label casing for facet chips — handled in `cookbookFacets.ts`, refine
-  during implementation.
-- Namespace values should align with real project slugs (arpg, cryptothrone,
-  rareicon, chuck, factorio, kilobase, astro-kbve). Free-string for now; could
-  later validate against the `project` collection.
+- Curated `LANGUAGE_TAGS` exact list — seed with the common meaningful tags
+  (rust, python, ts/typescript, unreal, bevy, unity, godot, docker, astro,
+  supabase, agones, kubernetes, wasm, react, proto), refine during build.
+- Mobile sidebar treatment (collapse to top disclosure vs horizontal scroll) —
+  decide during implementation; default to stacking sidebar above grid.
