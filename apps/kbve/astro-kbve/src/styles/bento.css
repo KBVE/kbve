@@ -11,6 +11,11 @@
 		transparent
 	);
 	--bento-cell-bg: var(--sl-color-black);
+	--bento-glass-bg: color-mix(
+		in srgb,
+		var(--sl-color-black) 72%,
+		transparent
+	);
 	--bento-radius: 0.625rem;
 	--bento-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 	--bento-glow: 0 0 16px
@@ -108,6 +113,66 @@
 		transition:
 			color 220ms ease,
 			border-color 220ms ease;
+	}
+
+	/* Frosted overlay: translucent card that lets background wiring
+	   show through while keeping text readable. Layer on top of
+	   .bento-card, .bento-chip, or any positioned element. */
+	.bento-card--glass {
+		background-color: var(--bento-glass-bg);
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
+	}
+
+	/* Animated connector strokes for SVG paths (rails, relationship lines) */
+	.bento-wire {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 50%,
+			transparent
+		);
+		stroke-width: 2;
+		stroke-dasharray: 8 8;
+		animation: bento-wire-dash 1.2s linear infinite;
+	}
+
+	.bento-wire--dots {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 65%,
+			transparent
+		);
+		stroke-dasharray: 1 7;
+		stroke-linecap: round;
+		animation: bento-wire-dots 900ms linear infinite;
+	}
+
+	/* Live-event connector: brand red, stands apart from the gold rails */
+	.bento-wire--live {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-text-accent) 85%,
+			transparent
+		);
+	}
+
+	@keyframes bento-wire-dash {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+
+	@keyframes bento-wire-dots {
+		to {
+			stroke-dashoffset: -8;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-wire,
+		.bento-wire--dots {
+			animation: none;
+		}
 	}
 
 	/* Scroll reveal states, driven by BentoShell's observer */
