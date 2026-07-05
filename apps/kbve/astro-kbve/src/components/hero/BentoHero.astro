@@ -40,7 +40,7 @@ const {
 		'clusters',
 		'libraries',
 	],
-	description = 'KBVE gives you an open-source studio for games, automation, and community infrastructure. All in one place.',
+	description = 'KBVE is where games, tools, and worlds get built in public. Play what we ship, or join the studio and help bring the next project to life.',
 	primaryCta = {
 		label: 'Join the Discord',
 		href: 'https://kbve.com/discord/',
@@ -1188,7 +1188,7 @@ const dock = [
 			};
 			const onToggle = (e: MouseEvent) => {
 				e.stopPropagation();
-				setOpen(credit.hidden);
+				setOpen(Boolean(credit.hidden));
 			};
 			const onOutside = (e: MouseEvent) => {
 				if (credit.hidden) return;
