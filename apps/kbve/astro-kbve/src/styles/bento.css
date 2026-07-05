@@ -70,6 +70,94 @@
 		opacity: 0.7;
 	}
 
+	/* Faceted sidebar (cookbook-style project browser). Rendered inside a React
+	   island, so styled globally. */
+	.facet-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.facet-search__input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 8px;
+		outline: none;
+	}
+
+	.facet-search__input::placeholder {
+		color: var(--sl-color-gray-4);
+	}
+
+	.facet-search__input:focus {
+		border-color: var(--sl-color-accent);
+	}
+
+	.facet-group__label {
+		font-size: 0.6875rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--sl-color-gray-4);
+		margin-bottom: 0.5rem;
+	}
+
+	.facet-group__list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.facet-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		width: 100%;
+		padding: 0.35rem 0.5rem;
+		font-size: 0.8125rem;
+		text-align: left;
+		color: var(--sl-color-gray-2);
+		background: transparent;
+		border: none;
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	.facet-row:hover {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	.facet-row--active {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
+	}
+
+	.facet-row__count {
+		font-size: 0.6875rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-gray-4);
+	}
+
 	/* Full-width section band: black surface + bottom hairline seam */
 	.bento-section {
 		width: 100%;

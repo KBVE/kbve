@@ -103,6 +103,59 @@ export function deriveCategories(input: DeriveInput): ProjectCategory[] {
 	return [...set];
 }
 
+export const LANGUAGE_TAGS: string[] = [
+	'rust',
+	'python',
+	'typescript',
+	'javascript',
+	'unreal',
+	'bevy',
+	'unity',
+	'godot',
+	'phaser',
+	'docker',
+	'astro',
+	'supabase',
+	'agones',
+	'kubernetes',
+	'wasm',
+	'react',
+	'proto',
+	'axum',
+];
+
+const LANGUAGE_SET = new Set(LANGUAGE_TAGS);
+
+export const LANGUAGE_LABELS: Record<string, string> = {
+	rust: 'Rust',
+	python: 'Python',
+	typescript: 'TypeScript',
+	javascript: 'JavaScript',
+	unreal: 'Unreal',
+	bevy: 'Bevy',
+	unity: 'Unity',
+	godot: 'Godot',
+	phaser: 'Phaser',
+	docker: 'Docker',
+	astro: 'Astro',
+	supabase: 'Supabase',
+	agones: 'Agones',
+	kubernetes: 'Kubernetes',
+	wasm: 'WASM',
+	react: 'React',
+	proto: 'Proto',
+	axum: 'axum',
+};
+
+export function deriveLanguages(tags?: string[]): string[] {
+	const seen = new Set<string>();
+	for (const t of tags ?? []) {
+		const lower = t.toLowerCase();
+		if (LANGUAGE_SET.has(lower)) seen.add(lower);
+	}
+	return [...seen];
+}
+
 export type Registry = 'npm' | 'crates' | 'python';
 
 export const REGISTRY_LABELS: Record<Registry, string> = {

@@ -1,10 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
 import BentoShell from '@/components/hero/BentoShell.astro';
-import ProjectFilterTabs from './ProjectFilterTabs.tsx';
+import CookbookFilters from './CookbookFilters.tsx';
 import {
 	CATEGORY_DEFS,
 	deriveCategories,
+	deriveLanguages,
+	LANGUAGE_TAGS,
+	LANGUAGE_LABELS,
 	type ProjectCategory,
 } from './projectTags';
 
@@ -16,6 +19,7 @@ interface Card {
 	status?: string;
 	featured: boolean;
 	categories: ProjectCategory[];
+	languages: string[];
 }
 
 const entries = await getCollection('project');
@@ -32,8 +36,9 @@ for (const entry of entries) {
 	if (!slug) continue;
 
 	const hasPackage = Boolean(data.package_name ?? data.pypi_name);
+	const tags = data.tags as string[] | undefined;
 	const categories = deriveCategories({
-		tags: data.tags as string[] | undefined,
+		tags,
 		pipeline: data.pipeline as string | undefined,
 		hasPackage,
 	});
@@ -46,6 +51,7 @@ for (const entry of entries) {
 		status: data.status as string | undefined,
 		featured: data.featured === true,
 		categories,
+		languages: deriveLanguages(tags),
 	});
 }
 
@@ -54,31 +60,46 @@ cards.sort((a, b) => {
 	return a.title.localeCompare(b.title);
 });
 
-const counts: Record<string, number> = { all: cards.length };
-for (const def of CATEGORY_DEFS) {
-	counts[def.key] = cards.filter((c) =>
-		c.categories.includes(def.key),
-	).length;
+function countBy<T>(list: Card[], pick: (c: Card) => T[], value: T): number {
+	return list.filter((c) => pick(c).includes(value)).length;
 }
 
-const tabs = [
-	{ key: 'all', label: 'All', count: cards.length },
-	...CATEGORY_DEFS.filter((d) => counts[d.key] > 0).map((d) => ({
-		key: d.key,
-		label: d.label,
-		count: counts[d.key],
-	})),
+const languageValues = LANGUAGE_TAGS.map((lang) => ({
+	value: lang,
+	label: LANGUAGE_LABELS[lang] ?? lang,
+	count: countBy(cards, (c) => c.languages, lang),
+})).filter((v) => v.count > 0);
+
+const categoryValues = CATEGORY_DEFS.map((def) => ({
+	value: def.key,
+	label: def.label,
+	count: countBy(cards, (c) => c.categories, def.key),
+})).filter((v) => v.count > 0);
+
+const statusOrder = ['active', 'beta'];
+const statusValues = statusOrder
+	.map((s) => ({
+		value: s,
+		label: s.charAt(0).toUpperCase() + s.slice(1),
+		count: cards.filter((c) => c.status === s).length,
+	}))
+	.filter((v) => v.count > 0);
+
+const groups = [
+	{ key: 'language', label: 'Language / Stack', values: languageValues },
+	{ key: 'category', label: 'Category', values: categoryValues },
+	{ key: 'status', label: 'Status', values: statusValues },
 ];
 ---
 
 <BentoShell
 	eyebrow="The KBVE collective"
 	heading="Games, tools, libraries, and studios under one roof.">
-	<div class="pbento">
-		<div class="pbento__tabs">
-			<ProjectFilterTabs group="category" tabs={tabs} client:visible />
-		</div>
-		<div class="pbento__grid">
+	<div class="cookbook">
+		<aside class="cookbook__sidebar">
+			<CookbookFilters groups={groups} client:visible />
+		</aside>
+		<div class="cookbook__grid">
 			{
 				cards.map((card) => (
 					<a
@@ -87,8 +108,11 @@ const tabs = [
 							'pbento__cell',
 							card.featured && 'pbento__cell--featured',
 						]}
-						data-filter-group="category"
-						data-filter-keys={card.categories.join(' ')}
+						data-filter-cell="project"
+						data-language={card.languages.join(' ')}
+						data-category={card.categories.join(' ')}
+						data-status={card.status ?? ''}
+						data-name={card.title.toLowerCase()}
 						data-astro-prefetch>
 						{card.featured && card.img && (
 							<div
@@ -137,22 +161,25 @@ const tabs = [
 </BentoShell>
 
 <style>
-	.pbento {
-		display: flex;
-		flex-direction: column;
+	.cookbook {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1px;
+		background-color: var(--bento-hairline);
+		border-top: 1px solid var(--bento-hairline);
 	}
 
-	.pbento__tabs {
-		padding: 0 1rem 1.25rem;
+	.cookbook__sidebar {
+		background-color: var(--bento-cell-bg);
+		padding: 1.5rem 1.25rem;
 	}
 
-	.pbento__grid {
+	.cookbook__grid {
 		display: grid;
 		grid-template-columns: repeat(1, minmax(0, 1fr));
 		grid-auto-flow: dense;
 		gap: 1px;
 		background-color: var(--bento-hairline);
-		border-top: 1px solid var(--bento-hairline);
 	}
 
 	.pbento__cell {
@@ -163,6 +190,10 @@ const tabs = [
 		text-decoration: none;
 		overflow: hidden;
 		isolation: isolate;
+	}
+
+	.pbento__cell[hidden] {
+		display: none;
 	}
 
 	.pbento__cell-bg {
@@ -250,13 +281,25 @@ const tabs = [
 	}
 
 	@media (min-width: 640px) {
-		.pbento__grid {
+		.cookbook__grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
 	@media (min-width: 1024px) {
-		.pbento__grid {
+		.cookbook {
+			grid-template-columns: 240px 1fr;
+		}
+
+		.cookbook__sidebar {
+			position: sticky;
+			top: 1rem;
+			align-self: start;
+			max-height: calc(100vh - 2rem);
+			overflow-y: auto;
+		}
+
+		.cookbook__grid {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 
