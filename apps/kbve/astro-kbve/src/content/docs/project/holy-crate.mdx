@@ -17,6 +17,12 @@ version_toml: packages/rust/holy/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the holy crate?
@@ -25,36 +31,44 @@ jsonld:
           answer: Getters, Setters, Observer (change events), Fuzz (random constructors for tests), and Sanitize (.sanitize() plus per-field methods driven by #[holy(sanitize = ...)] rules).
         - question: What sanitization rules does the Sanitize derive support?
           answer: String rules like trim, lowercase, uppercase, alphanumeric, escape_html, nul_strip, control_strip, slug, and truncate(N), plus clamp(min, max) for numeric fields; rules run in the order written and Option String fields run only when Some.
+bento:
+    badge: crates · rust
+    title: Derive macros for
+    accent: holy
+    lede: >-
+        A Rust proc-macro crate with derive macros for getters, setters,
+        observers, fuzz constructors, and input sanitization to end struct
+        boilerplate.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/holy
+          primary: true
+          external: true
+    aside:
+        icon: gears
+        title: Derive away the boilerplate
+        body: >-
+            Ships derive macros for everyday struct chores as a path or
+            crates.io dependency, keeping each consumer free of hand-rolled code
+            and centralizing policy — new sanitize rules, observer hooks — in one
+            crate.
+        points:
+            - <strong>Sanitize</strong> — trim, lowercase, escape_html, slug, truncate(N), clamp(min, max).
+            - <strong>Fuzz</strong> — random constructors for tests.
+    stats:
+        - { label: Package, value: holy, icon: package }
+        - { label: Type, value: proc-macro, icon: rust }
+        - { label: Derives, value: 5 macros, icon: gears }
+        - { label: License, value: MIT, icon: license }
+    related:
+        - title: README
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/holy
+          copy: Full crate reference rendered from the source README.
+          icon: book
+          external: true
+    related_heading: Reference
 ---
 
-import { Content as HolyReadme } from '../../../../../../../packages/rust/holy/README.md';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-## Overview
-
-`holy` is a Rust proc-macro library that ships derive macros for everyday struct chores: getters, setters, observers, fuzz constructors, and input sanitization. Pulling it as a path or crates.io dependency keeps each consumer free of hand-rolled boilerplate and centralizes policy changes — new sanitize rules, observer hooks, and the like — in one crate.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `holy` |
-| **Version** | 0.2.1 |
-| **Language** | Rust (proc-macro) |
-| **License** | MIT |
-| **Derives** | Getters, Setters, Observer, Fuzz, Sanitize |
-| **Source** | [`packages/rust/holy`](https://github.com/KBVE/kbve/tree/main/packages/rust/holy) |
-
-## FAQ
-
-**What is the holy crate?**
-`holy` is a Rust proc-macro library shipping derive macros for everyday struct chores — getters, setters, observers, fuzz constructors, and input sanitization — so consumers avoid hand-rolled boilerplate.
-
-**Which derive macros does holy provide?**
-`Getters`, `Setters`, `Observer` (change events), `Fuzz` (random constructors for tests), and `Sanitize` (`.sanitize()` plus per-field methods driven by `#[holy(sanitize = ...)]` rules).
-
-**What sanitization rules does the Sanitize derive support?**
-String rules like `trim`, `lowercase`, `uppercase`, `alphanumeric`, `escape_html`, `nul_strip`, `control_strip`, `slug`, and `truncate(N)`, plus `clamp(min, max)` for numeric fields; rules run in the order written and `Option<String>` fields run only when `Some`.
-
-## Reference
-
-<HolyReadme />
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />
