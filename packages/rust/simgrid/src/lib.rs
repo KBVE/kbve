@@ -1,5 +1,6 @@
 pub mod arpg_dungeon;
 pub mod battle;
+pub mod battle_ai;
 pub mod biome;
 pub mod blackjack;
 pub mod combat;
@@ -23,8 +24,9 @@ pub mod auth;
 
 pub use battle::{
     BattleAction, BattleEvent, BattleOutcome, BattleSide, BattleState, Combatant, Effectiveness,
-    Element, MoveCategory, MoveData, PetStatus, Side, StatId, type_multiplier,
+    Element, MoveCategory, MoveData, PetStatus, Side, StatId, expected_damage, type_multiplier,
 };
+pub use battle_ai::{AiDifficulty, choose_action, choose_replacement};
 pub use blackjack::{TableDef, Tables};
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
 pub use grid::{
@@ -45,10 +47,9 @@ pub use sim::{
     ItemStack, Loot, ManaAura, MoveProfile, NpcLevel, NpcSpec, Outbound, PendingPetBattles,
     PendingPetTurns, PendingPilotOps, PersistedEnvLog, PersistedEnvObject, PilotOp, Piloting,
     PlacedBy, PlayerPersistSink, PlayerSlotTag, PlayerStore, RespawnOnDeath, ReturnedFromInstance,
-    SIM_TICK_HZ, SavedPlayer,
-    ShopStock, SimClock, SimConfig, SimSeed, SimSet, StatusEffect, StatusEffects,
-    TREE_DENSITY_PER_MILLE, TREE_REF, TREE_VARIANTS, Terrain, TreeState, Wander, XpState,
-    build_app, bush_at, ground_item_bundle, ground_item_bundle_stack, has_clearance, level_attack,
-    level_max_hp, mint_item_id, run_sim_loop, spawn_bush, spawn_env_object, spawn_npc_from_spec,
-    spawn_tree, tree_at, xp_to_next,
+    SIM_TICK_HZ, SavedPlayer, ShopStock, SimClock, SimConfig, SimSeed, SimSet, StatusEffect,
+    StatusEffects, TREE_DENSITY_PER_MILLE, TREE_REF, TREE_VARIANTS, Terrain, TreeState, Wander,
+    XpState, build_app, bush_at, ground_item_bundle, ground_item_bundle_stack, has_clearance,
+    level_attack, level_max_hp, mint_item_id, run_sim_loop, spawn_bush, spawn_env_object,
+    spawn_npc_from_spec, spawn_tree, tree_at, xp_to_next,
 };
