@@ -17,7 +17,7 @@ describe('FooterService', () => {
 		const links = footerService.getQuickLinks().get();
 		const labels = links.map((l) => l.label);
 		expect(labels).toContain('Dashboard');
-		expect(labels).toContain('Profile');
+		expect(labels).toContain('Account');
 		expect(labels).toContain('Logout');
 	});
 

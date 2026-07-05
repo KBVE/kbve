@@ -10,32 +10,706 @@ sidebar:
 editUrl: false
 lastUpdated: false
 tableOfContents: false
+prev: false
+next: false
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import TwitchEmbed from '@kbve/astro/components/social/twitch/TwitchEmbed.astro';
 import TwitchChat from '@kbve/astro/components/social/twitch/TwitchChat.astro';
 import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-Catch our live streams, dev sessions, and gaming content. Join the chat and hang out with the community!
+export const backdrop = 'https://images.unsplash.com/photo-1598550476439-6847785fcea6?q=80&w=2400&auto=format&fit=crop';
 
-<div class="space-y-4">
-  <TwitchEmbed
-    channel="kbve"
-    type="stream"
-    theme="auto"
-    height={500}
-    showControls={true}
-    autosize={true}
-    autoplay={true}
-    muted={true}
-  />
+export const events = (() => {
+	const d = new Date();
+	const delta = (6 - d.getDay() + 7) % 7 || 7;
+	d.setDate(d.getDate() + delta);
+	const out = [];
+	for (let i = 0; i < 4; i++) {
+		out.push({
+			day: d.getDate().toString().padStart(2, '0'),
+			month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+			weekday: d.toLocaleDateString('en-US', { weekday: 'long' }),
+			title: 'Dev Night Stream',
+			desc: 'Live coding, Q&A, and hang time with the community. Pull up a chair.',
+			time: '6:00 PM EST',
+			channel: 'twitch.tv/kbve',
+		});
+		d.setDate(d.getDate() + 7);
+	}
+	return out;
+})();
 
-  <TwitchChat
-    channel="kbve"
-    theme="auto"
-    height={400}
-    darkpopout={true}
-  />
+export const rules = [
+	{ n: '01', title: 'Be Respectful', desc: 'No insults, harassment, or hate. Keep chat welcoming for everyone.', icon: 'M4.32 6.32a4.5 4.5 0 0 0 0 6.36L12 20.36l7.68-7.68a4.5 4.5 0 0 0-6.36-6.36L12 7.64l-1.32-1.32a4.5 4.5 0 0 0-6.36 0z' },
+	{ n: '02', title: 'No Spam', desc: 'No flooding, copypasta, or repeated messages. Let the chat breathe.', icon: 'M11 5.88V19.24a1.76 1.76 0 0 1-3.42.59l-2.15-6.15M18 13a3 3 0 1 0 0-6M5.44 13.68A4 4 0 0 1 7 6h1.83c4.1 0 7.63-1.23 9.17-3v14c-1.54-1.77-5.07-3-9.17-3H7a4 4 0 0 1-1.56-.32z' },
+	{ n: '03', title: 'No Self-Promo', desc: 'No promoting channels, sites, or servers without mod approval.', icon: 'M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.16V11a6 6 0 0 0-4-5.66V5a2 2 0 1 0-4 0v.34C7.67 6.17 6 8.39 6 11v3.16c0 .54-.21 1.06-.6 1.44L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9' },
+	{ n: '04', title: 'Stay On Topic', desc: 'Keep it relevant to the stream. Off-topic chatter belongs in Discord.', icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+	{ n: '05', title: 'No Backseating', desc: "Tips welcome, but don't spoil or dictate. Let the run play out.", icon: 'M23 7l-7 5 7 5V7zM14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z' },
+	{ n: '06', title: 'Content Guidelines', desc: 'No NSFW, illegal, or pornographic content — links, emotes, or text.', icon: 'M9 12l2 2 4-4m5.62-4.02A11.96 11.96 0 0 1 12 2.94a11.96 11.96 0 0 1-8.62 3.04A12 12 0 0 0 3 9c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62 0-1.04-.13-2.05-.38-3.02z' },
+	{ n: '07', title: 'Mod Authority', desc: "The mod team's word is final. Take disputes to DMs, not chat.", icon: 'M5 3l3.5 4L12 3l3.5 4L19 3v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V3z' },
+	{ n: '08', title: 'Terms of Service', desc: "Twitch's Terms of Service and Community Guidelines apply at all times.", icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.59a1 1 0 0 1 .7.29l5.42 5.42a1 1 0 0 1 .29.7V19a2 2 0 0 1-2 2z' },
+];
+
+export const stats = [
+	{ label: 'Streaming', value: 'Sat', icon: 'M23 7l-7 5 7 5V7zM14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z' },
+	{ label: 'Since', value: '2017', icon: 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7' },
+	{ label: 'Format', value: 'Live', icon: 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8' },
+	{ label: 'License', value: 'OSS', icon: 'M16 18 22 12 16 6M8 6 2 12 8 18' },
+];
+
+export const related = [
+	{
+		href: '/discord/',
+		title: 'Discord',
+		copy: 'Chat, dev calls, marketplace, and community hang time.',
+		icon: 'M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.6 12.6 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z',
+	},
+	{
+		href: 'https://github.com/kbve/kbve',
+		title: 'GitHub',
+		copy: 'The monorepo behind every KBVE project. PRs welcome.',
+		icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
+		external: true,
+	},
+	{
+		href: '/forum/',
+		title: 'KBVE Forum',
+		copy: 'Long-form threads, marketplace, polls, and announcements.',
+		icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+	},
+];
+
+<div class="tw" style={`--tw-backdrop: url('${backdrop}')`} data-twitch-page>
+
+<section class="tw-hero bento-section not-content" aria-label="Watch KBVE on Twitch">
+	<div class="tw-hero__bg" aria-hidden="true"></div>
+	<div class="tw-hero__frame bento-frame">
+		<div class="tw-grid tw-grid--hero">
+			<div class="tw-cell tw-cell--copy bento-card bento-card--glass">
+				<span class="tw-badge bento-chip">
+					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+						<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
+					</svg>
+					<span>KBVE Live · since 2017</span>
+				</span>
+				<h1 class="tw-title">
+					Tune in live on
+					<span class="tw-title__accent">KBVE Twitch</span>
+				</h1>
+				<p class="tw-lede">
+					Saturday-night dev streams, live coding, indie game playtests,
+					and Q&A. Watch the build happen and jump in the chat.
+				</p>
+				<div class="tw-cta">
+					<a
+						class="tw-btn tw-btn--primary"
+						href="https://twitch.tv/kbve"
+						target="_blank"
+						rel="noopener noreferrer">
+						Watch on Twitch
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" />
+						</svg>
+					</a>
+					<a class="tw-btn tw-btn--ghost" href="#chat">Open chat</a>
+					<a class="tw-btn tw-btn--ghost" href="#rules">Chat rules</a>
+				</div>
+			</div>
+
+			<div class="tw-cell tw-cell--live bento-card bento-card--glass">
+				<div class="tw-cell__eyebrow">
+					<span class="tw-live-dot" aria-hidden="true"></span>
+					Live · right now
+				</div>
+				<TwitchEmbed
+					channel="kbve"
+					type="stream"
+					theme="auto"
+					height={360}
+					showControls={true}
+					autosize={true}
+					autoplay={true}
+					muted={true}
+				/>
+			</div>
+
+			{stats.map((s) => (
+				<div class="tw-cell tw-cell--stat bento-card bento-card--glass bento-card--interactive">
+					<span class="tw-stat__icon bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d={s.icon} />
+						</svg>
+					</span>
+					<span class="tw-stat__value">{s.value}</span>
+					<span class="tw-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="tw-jump" aria-label="On this page">
+			<a class="bento-chip" href="#chat">Chat</a>
+			<a class="bento-chip" href="#events">Events</a>
+			<a class="bento-chip" href="#rules">Rules</a>
+			<a class="bento-chip" href="#related">Related</a>
+		</nav>
+	</div>
+</section>
+
+<div id="chat">
+	<BentoShell eyebrow="Say hi" heading="Join the chat">
+		<div class="tw-grid tw-grid--chat">
+			<div class="tw-cell tw-cell--chatcopy bento-card bento-card--glass">
+				<span class="tw-chat__icon bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+					</svg>
+				</span>
+				<h3 class="tw-chat__title">Live in chat</h3>
+				<p class="tw-chat__desc">
+					Ask questions, drop feedback, or just lurk. Log in with your
+					Twitch account to send a message — no download required.
+				</p>
+				<a class="tw-btn tw-btn--ghost" href="#rules">Read the chat rules →</a>
+			</div>
+			<div class="tw-cell tw-cell--chat bento-card bento-card--glass">
+				<TwitchChat
+					channel="kbve"
+					theme="auto"
+					height={480}
+					darkpopout={true}
+				/>
+			</div>
+		</div>
+	</BentoShell>
 </div>
 
-<Adsense />
+<div id="events">
+	<BentoShell eyebrow="Save the date" heading="Upcoming streams">
+		<div class="tw-grid tw-grid--events">
+			{events.map((e) => (
+				<div class="tw-cell tw-cell--event bento-card bento-card--glass bento-card--interactive">
+					<div class="tw-event__head">
+						<span class="tw-event__date">
+							<span class="tw-event__day">{e.day}</span>
+							<span class="tw-event__mon">{e.month}</span>
+						</span>
+						<span class="tw-event__type bento-chip">
+							<span class="tw-live-dot" aria-hidden="true"></span>
+							Stream
+						</span>
+					</div>
+					<h3 class="tw-event__title">{e.title}</h3>
+					<p class="tw-event__desc">{e.desc}</p>
+					<div class="tw-event__meta">
+						<span class="tw-event__time">
+							<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg>
+							{e.weekday} · {e.time}
+						</span>
+						<span class="tw-event__chan">{e.channel}</span>
+					</div>
+				</div>
+			))}
+		</div>
+	</BentoShell>
+</div>
+
+<div id="rules">
+	<BentoShell eyebrow="House rules" heading="Chat guidelines">
+		<div class="tw-grid tw-grid--rules">
+			{rules.map((r) => (
+				<div class="tw-cell tw-cell--rule bento-card bento-card--glass bento-card--interactive">
+					<div class="tw-rule__top">
+						<span class="tw-rule__icon bento-icon-tile">
+							<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+						</span>
+						<span class="tw-rule__num">{r.n}</span>
+					</div>
+					<h3 class="tw-rule__title">{r.title}</h3>
+					<p class="tw-rule__desc">{r.desc}</p>
+				</div>
+			))}
+		</div>
+	</BentoShell>
+</div>
+
+<div id="related">
+	<BentoShell eyebrow="Elsewhere" heading="While you're here">
+		<div class="tw-grid tw-grid--related">
+			{related.map((r) => (
+				<a
+					class="tw-cell tw-cell--link bento-card bento-card--glass bento-card--interactive"
+					href={r.href}
+					target={r.external ? '_blank' : undefined}
+					rel={r.external ? 'noopener noreferrer' : undefined}>
+					<span class="tw-link__icon bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d={r.icon} />
+						</svg>
+					</span>
+					<span class="tw-link__title">{r.title}</span>
+					<span class="tw-link__copy">{r.copy}</span>
+					<span class="tw-link__go" aria-hidden="true">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M5 12h14M13 6l6 6-6 6" />
+						</svg>
+					</span>
+				</a>
+			))}
+		</div>
+	</BentoShell>
+</div>
+
+<div class="tw-band tw-band--ad">
+	<Adsense />
+</div>
+
+</div>
+
+<style is:global>{`
+	.tw {
+		--tw-purple: #9146ff;
+		color: var(--sl-color-text);
+	}
+
+	/* ── Hero: glass cards float over a backdrop that breathes through ─ */
+	.tw .tw-hero {
+		position: relative;
+		overflow: hidden;
+	}
+	.tw .tw-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		background-image: var(--tw-backdrop);
+		background-size: cover;
+		background-position: center;
+		opacity: 0.22;
+		filter: saturate(0.8) brightness(0.7);
+		pointer-events: none;
+		-webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 100%);
+		mask-image: radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 100%);
+	}
+	.tw .tw-hero__frame {
+		position: relative;
+		z-index: 1;
+		padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+	}
+
+	.tw .tw-grid {
+		display: grid;
+		gap: 1rem;
+	}
+	.tw .tw-grid--hero {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.tw .tw-grid--chat {
+		grid-template-columns: 1fr 1.4fr;
+		align-items: stretch;
+	}
+	.tw .tw-grid--related {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.tw .tw-grid--events {
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+	}
+	.tw .tw-grid--rules {
+		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+	}
+
+	.tw .tw-cell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: clamp(1.25rem, 2.5vw, 1.75rem);
+	}
+
+	/* Hero placement */
+	.tw .tw-cell--copy {
+		grid-column: 1 / 3;
+		grid-row: 1;
+		gap: 1rem;
+		justify-content: center;
+		padding: clamp(1.75rem, 3.5vw, 2.75rem);
+	}
+	.tw .tw-cell--live {
+		grid-column: 3 / 5;
+		grid-row: 1;
+		gap: 0.75rem;
+	}
+	.tw .tw-cell--stat {
+		grid-row: 2;
+		gap: 0.35rem;
+		min-height: 8rem;
+		justify-content: flex-end;
+	}
+
+	/* Copy cell */
+	.tw .tw-badge {
+		width: fit-content;
+		padding: 0.4rem 0.8rem;
+		font-size: 0.6875rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-badge svg {
+		width: 14px;
+		height: 14px;
+		color: var(--tw-purple);
+	}
+	.tw .tw-title {
+		font-size: clamp(1.9rem, 4vw, 3rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-title__accent {
+		display: block;
+		background: linear-gradient(135deg, var(--tw-purple), #c084fc);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.tw .tw-lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+		max-width: 46ch;
+	}
+	.tw .tw-cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.25rem;
+	}
+	.tw .tw-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--bento-radius);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.tw .tw-btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.tw .tw-btn--primary {
+		background: var(--tw-purple);
+		color: #fff;
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--tw-purple) 35%, transparent);
+	}
+	.tw .tw-btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--tw-purple) 45%, transparent);
+	}
+	.tw .tw-btn--ghost {
+		color: var(--sl-color-white);
+		background: var(--bento-glass-bg);
+		border: 1px solid var(--bento-hairline-strong);
+	}
+	.tw .tw-btn--ghost:hover {
+		border-color: var(--sl-color-accent-high);
+	}
+
+	/* Live cell */
+	.tw .tw-cell__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.tw .tw-live-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 9999px;
+		background: #ef4444;
+		animation: tw-pulse 2s ease-out infinite;
+	}
+	@keyframes tw-pulse {
+		0% { box-shadow: 0 0 0 0 color-mix(in srgb, #ef4444 55%, transparent); }
+		100% { box-shadow: 0 0 0 0.6rem transparent; }
+	}
+
+	/* Stat cells */
+	.tw .tw-stat__icon {
+		width: 2rem;
+		height: 2rem;
+		margin-bottom: auto;
+	}
+	.tw .tw-cell--stat:hover .tw-stat__icon {
+		color: var(--sl-color-accent-high);
+	}
+	.tw .tw-stat__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-stat__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	/* Jump nav */
+	.tw .tw-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 1rem;
+	}
+	.tw .tw-jump a {
+		padding: 0.4rem 0.85rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.tw .tw-jump a:hover {
+		color: var(--sl-color-white);
+		border-color: var(--sl-color-accent-high);
+	}
+
+	/* Chat section */
+	.tw .tw-cell--chatcopy {
+		gap: 0.75rem;
+		justify-content: center;
+	}
+	.tw .tw-chat__icon {
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+	.tw .tw-chat__title {
+		font-size: 1.25rem;
+		font-weight: 700;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-chat__desc {
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+	.tw .tw-cell--chatcopy .tw-btn {
+		width: fit-content;
+		margin-top: 0.25rem;
+	}
+	.tw .tw-cell--chat {
+		padding: 0.75rem;
+		gap: 0;
+	}
+
+	/* Related link cells */
+	.tw .tw-cell--link {
+		min-height: 11rem;
+		gap: 0.6rem;
+		text-decoration: none;
+		color: var(--sl-color-text);
+	}
+	.tw .tw-link__icon {
+		width: 2.25rem;
+		height: 2.25rem;
+		transition: color 220ms ease;
+	}
+	.tw .tw-cell--link:hover .tw-link__icon {
+		color: var(--sl-color-accent-high);
+	}
+	.tw .tw-link__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-link__copy {
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+	}
+	.tw .tw-link__go {
+		margin-top: auto;
+		color: var(--sl-color-gray-4);
+		transition:
+			color 220ms ease,
+			transform 220ms ease;
+	}
+	.tw .tw-cell--link:hover .tw-link__go {
+		color: var(--sl-color-accent-high);
+		transform: translateX(3px);
+	}
+
+	/* Event cells */
+	.tw .tw-cell--event {
+		min-height: 11rem;
+		gap: 0.6rem;
+	}
+	.tw .tw-event__head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.tw .tw-event__date {
+		display: flex;
+		flex-direction: column;
+		line-height: 1;
+	}
+	.tw .tw-event__day {
+		font-size: 1.75rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-event__mon {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-accent-high);
+	}
+	.tw .tw-event__type {
+		gap: 0.35rem;
+		padding: 0.25rem 0.6rem;
+		font-size: 0.625rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-2);
+	}
+	.tw .tw-event__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-event__desc {
+		font-size: 0.875rem;
+		line-height: 1.5;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+	.tw .tw-event__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 0.85rem;
+		margin-top: auto;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+	.tw .tw-event__time {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.tw .tw-event__chan {
+		color: var(--sl-color-accent-high);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Rule cells */
+	.tw .tw-cell--rule {
+		min-height: 10rem;
+		gap: 0.6rem;
+	}
+	.tw .tw-rule__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+	.tw .tw-rule__icon {
+		width: 2.25rem;
+		height: 2.25rem;
+		transition: color 220ms ease;
+	}
+	.tw .tw-cell--rule:hover .tw-rule__icon {
+		color: var(--sl-color-accent-high);
+	}
+	.tw .tw-rule__num {
+		font-size: 0.75rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.04em;
+		color: var(--sl-color-gray-4);
+	}
+	.tw .tw-rule__title {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0;
+		color: var(--sl-color-white);
+	}
+	.tw .tw-rule__desc {
+		font-size: 0.8125rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+		margin: 0;
+	}
+
+	/* Ad band */
+	.tw .tw-band--ad {
+		max-width: 80rem;
+		margin-inline: auto;
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	/* ── Responsive ───────────────────────────────────────────── */
+	@media (max-width: 60rem) {
+		.tw .tw-grid--hero {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.tw .tw-cell--copy,
+		.tw .tw-cell--live {
+			grid-column: 1 / 3;
+			grid-row: auto;
+		}
+		.tw .tw-cell--stat {
+			grid-row: auto;
+			min-height: 7rem;
+		}
+		.tw .tw-grid--chat {
+			grid-template-columns: 1fr;
+		}
+		.tw .tw-grid--related {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 34rem) {
+		.tw .tw-grid--hero {
+			grid-template-columns: 1fr;
+		}
+		.tw .tw-cell--copy,
+		.tw .tw-cell--live {
+			grid-column: 1;
+		}
+		.tw .tw-cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.tw .tw-btn {
+			justify-content: center;
+		}
+		.tw .tw-cell--chatcopy .tw-btn {
+			width: auto;
+		}
+	}
+`}</style>

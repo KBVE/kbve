@@ -203,6 +203,8 @@ const statusLabel: Record<MilestoneStatus, string> = {
 
 <style>
 	.bento-roadmap {
+		--roadmap-red: color-mix(in srgb, var(--color-red, #ad0013) 65%, white);
+		--roadmap-forest: #2d6a4f;
 		position: relative;
 		overflow: hidden;
 	}
@@ -255,6 +257,10 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		padding: 3.5rem 1.5rem 1rem;
 	}
 
+	.bento-roadmap__intro .bento-eyebrow {
+		color: var(--roadmap-red);
+	}
+
 	.bento-roadmap__heading {
 		margin-top: 0.25rem;
 		font-size: clamp(1.75rem, 4.5vw, 3rem);
@@ -281,6 +287,8 @@ const statusLabel: Record<MilestoneStatus, string> = {
 	}
 
 	.bento-roadmap__cta {
+		position: relative;
+		overflow: hidden;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
@@ -316,6 +324,47 @@ const statusLabel: Record<MilestoneStatus, string> = {
 			transparent
 		);
 		transform: translateY(-1px);
+	}
+
+	.bento-roadmap__cta::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(
+			105deg,
+			transparent 40%,
+			color-mix(in srgb, var(--sl-color-white) 22%, transparent) 50%,
+			transparent 60%
+		);
+		background-size: 250% 100%;
+		background-position-x: 180%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+	}
+
+	.bento-roadmap__cta:hover::after {
+		animation: bento-roadmap-sheen 800ms ease;
+	}
+
+	.bento-roadmap__cta--primary::after {
+		animation: bento-roadmap-sheen 3.4s ease-in-out infinite;
+	}
+
+	@keyframes bento-roadmap-sheen {
+		from {
+			background-position-x: 180%;
+		}
+		to {
+			background-position-x: -80%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-roadmap__cta::after,
+		.bento-roadmap__cta--primary::after,
+		.bento-roadmap__cta:hover::after {
+			animation: none;
+		}
 	}
 
 	.bento-roadmap__cta--primary {
@@ -417,8 +466,7 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		min-width: 100%;
 		background-image: linear-gradient(
 			90deg,
-			color-mix(in srgb, var(--sl-color-blue, #4c88ef) 60%, transparent)
-				50%,
+			color-mix(in srgb, var(--roadmap-red) 60%, transparent) 50%,
 			transparent 50%
 		);
 		background-size: 16px 2px;
@@ -472,8 +520,12 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		height: 0.75rem;
 		margin: 1.0625rem 0 1.25rem 0.125rem;
 		border-radius: 9999px;
-		border: 2px solid var(--sl-color-gray-4);
-		background-color: var(--sl-color-black);
+		border: 2px solid var(--roadmap-forest);
+		background-color: color-mix(
+			in srgb,
+			var(--roadmap-forest) 25%,
+			var(--sl-color-black)
+		);
 	}
 
 	/* Off-ramp: connects the node down to its milestone card */
@@ -486,8 +538,7 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		width: 2px;
 		height: 1.375rem;
 		background-image: linear-gradient(
-			color-mix(in srgb, var(--sl-color-blue, #4c88ef) 60%, transparent)
-				50%,
+			color-mix(in srgb, var(--roadmap-red) 60%, transparent) 50%,
 			transparent 50%
 		);
 		background-size: 2px 8px;
@@ -609,15 +660,11 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity 400ms ease;
-		border-color: color-mix(
-			in srgb,
-			var(--sl-color-blue, #4c88ef) 40%,
-			transparent
-		);
+		border-color: color-mix(in srgb, var(--roadmap-red) 40%, transparent);
 	}
 
 	.bento-roadmap__kanban-icon {
-		color: color-mix(in srgb, var(--sl-color-blue, #4c88ef) 85%, white);
+		color: color-mix(in srgb, var(--roadmap-red) 85%, white);
 	}
 
 	.bento-roadmap__kanban-label {
@@ -639,7 +686,7 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		margin: 0.875rem 0 0 0.4375rem;
 		padding: 0.125rem 0 0.125rem 1rem;
 		border-left: 2px dashed
-			color-mix(in srgb, var(--sl-color-blue, #4c88ef) 45%, transparent);
+			color-mix(in srgb, var(--roadmap-red) 45%, transparent);
 	}
 
 	.bento-roadmap__run {
@@ -741,8 +788,8 @@ const statusLabel: Record<MilestoneStatus, string> = {
 		};
 		const pathRight = makePath();
 		const pathLeft = makePath();
-		const pathDown = makePath('bento-wire--highway');
-		const pathKanban = makePath('bento-wire--highway');
+		const pathDown = makePath('bento-wire--live');
+		const pathKanban = makePath('bento-wire--live');
 		document.body.appendChild(svg);
 
 		let raf = 0;

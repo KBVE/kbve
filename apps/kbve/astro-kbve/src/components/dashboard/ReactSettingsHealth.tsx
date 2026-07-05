@@ -65,6 +65,7 @@ export default function ReactSettingsHealth() {
 
 	const runChecks = useCallback(async () => {
 		setRunning(true);
+		const startedAt = performance.now();
 		const results: WorkerCheck[] = [];
 
 		results.push({
@@ -188,7 +189,8 @@ export default function ReactSettingsHealth() {
 		});
 
 		setChecks(results);
-		setRunning(false);
+		const elapsed = performance.now() - startedAt;
+		setTimeout(() => setRunning(false), Math.max(0, 600 - elapsed));
 	}, []);
 
 	useEffect(() => {

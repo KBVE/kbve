@@ -249,7 +249,7 @@ export default function NavDropdown({
 					</svg>
 				}
 				label="Profile"
-				href="/dashboard/profile/"
+				href="/dashboard/account/"
 				onClick={onItemClick}
 			/>
 			<MenuItem

@@ -26,6 +26,8 @@ export default defineConfig({
 	outDir: '../../../dist/apps/astro-kbve',
 	redirects: {
 		'/application/rn-web/': '/application/rn/',
+		'/dashboard/profile/': '/dashboard/account/',
+		'/settings/': '/dashboard/account/',
 	},
 	image: {
 		domains: ['images.unsplash.com'],

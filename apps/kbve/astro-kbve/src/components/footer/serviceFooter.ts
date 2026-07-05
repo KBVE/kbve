@@ -37,7 +37,11 @@ class FooterService {
 			{ href: '/dashboard/', label: 'Dashboard', prefetch: true },
 			{ href: '/project/', label: 'Projects', prefetch: true },
 			{ href: '/analysis/', label: 'Analytics', prefetch: true },
-			{ href: '/settings/', label: 'Settings', prefetch: true },
+			{
+				href: '/dashboard/account/',
+				label: 'Account',
+				prefetch: true,
+			},
 			{ href: '/support/', label: 'Support', prefetch: true },
 		]);
 	}
@@ -55,12 +59,11 @@ class FooterService {
 			this.quickLinksStore.set([
 				{ href: '/dashboard/', label: 'Dashboard', prefetch: true },
 				{
-					href: '/dashboard/profile/',
-					label: 'Profile',
+					href: '/dashboard/account/',
+					label: 'Account',
 					prefetch: true,
 				},
 				{ href: '/project/', label: 'My Projects', prefetch: true },
-				{ href: '/settings/', label: 'Settings', prefetch: true },
 				{ href: '/logout/', label: 'Logout', prefetch: false },
 			]);
 		} else {

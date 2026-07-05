@@ -1,30 +1,23 @@
 {
-  "generated_at": "2026-07-04T10:17:00Z",
+  "generated_at": "2026-07-05T10:21:28Z",
   "summary": {
     "critical": 5,
-    "high": 25,
-    "medium": 55,
+    "high": 24,
+    "medium": 53,
     "low": 8,
     "info": 34
   },
   "ecosystems": {
     "npm": {
-      "total": 64,
+      "total": 61,
       "severities": {
         "critical": 2,
-        "high": 25,
-        "medium": 29,
+        "high": 24,
+        "medium": 27,
         "low": 8,
         "info": 0
       },
       "advisories": [
-        {
-          "id": "1109842",
-          "title": "glob CLI: Command injection via -c/--cmd executes matches with shell:true",
-          "severity": "high",
-          "package": "glob",
-          "url": "https://github.com/advisories/GHSA-5j98-mcp5-4vw2"
-        },
         {
           "id": "1111772",
           "title": "vue-template-compiler vulnerable to client-side Cross-Site Scripting (XSS)",
@@ -152,13 +145,6 @@
           "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
         },
         {
-          "id": "1115543",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
           "id": "1115551",
           "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
           "severity": "medium",
@@ -248,13 +234,6 @@
           "severity": "critical",
           "package": "vitest",
           "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
-        },
-        {
-          "id": "1120311",
-          "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
         },
         {
           "id": "1120370",

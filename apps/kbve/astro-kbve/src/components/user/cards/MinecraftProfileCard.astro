@@ -12,7 +12,7 @@
 ---
 
 <section
-	class="profile-card profile-card--mc"
+	class="profile-card profile-card--mc bento-card bento-card--glass bento-card--interactive"
 	data-card="minecraft"
 	id="profile-mc-card">
 	<header class="profile-mc-header">
@@ -114,6 +114,7 @@
 <style>
 	.profile-card--mc {
 		min-height: 200px;
+		padding: 1.25rem;
 	}
 	.profile-mc-header {
 		display: flex;
@@ -184,9 +185,9 @@
 	.profile-mc-skeleton {
 		background: linear-gradient(
 			90deg,
-			var(--sl-color-hairline, #30363d) 25%,
-			var(--sl-color-bg-accent, #164e63) 50%,
-			var(--sl-color-hairline, #30363d) 75%
+			color-mix(in srgb, var(--sl-color-white) 6%, transparent) 25%,
+			color-mix(in srgb, var(--sl-color-white) 12%, transparent) 50%,
+			color-mix(in srgb, var(--sl-color-white) 6%, transparent) 75%
 		);
 		background-size: 200% 100%;
 		animation: profile-mc-shimmer 1.5s ease-in-out infinite;
@@ -239,12 +240,8 @@
 		font-size: 0.8125rem;
 		font-weight: 500;
 		text-decoration: none;
-		background: linear-gradient(
-			135deg,
-			var(--sl-color-accent, #06b6d4),
-			var(--sl-color-accent-high, #67e8f9)
-		);
-		color: #0d1117;
+		background: var(--sl-color-accent-high);
+		color: var(--sl-color-black);
 		border: 1px solid transparent;
 		transition: opacity 0.15s ease;
 		cursor: pointer;

@@ -208,6 +208,14 @@ import KbveSearchPalette from './KbveSearchPalette.tsx';
 			transparent
 		);
 	}
+	.kbve-search__kind--docs {
+		color: var(--sl-color-text-accent, var(--sl-color-accent));
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-text-accent, var(--sl-color-accent)) 45%,
+			transparent
+		);
+	}
 	.kbve-search__footer {
 		display: flex;
 		gap: 1rem;
@@ -234,6 +242,49 @@ import KbveSearchPalette from './KbveSearchPalette.tsx';
 		font-weight: 600;
 	}
 
+	.kbve-search__kbdhints {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	.kbve-search__touchhint {
+		display: none;
+		align-items: center;
+	}
+	.kbve-search__close {
+		display: none;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border: none;
+		border-radius: 8px;
+		background: transparent;
+		color: var(--sl-color-gray-3);
+		cursor: pointer;
+	}
+	.kbve-search__close:hover {
+		color: var(--sl-color-white);
+		background: var(--sl-color-bg);
+	}
+
+	@media (max-width: 540px) {
+		.kbve-search__esc {
+			display: none;
+		}
+		.kbve-search__close {
+			display: inline-flex;
+		}
+		.kbve-search__kbdhints {
+			display: none;
+		}
+		.kbve-search__touchhint {
+			display: inline-flex;
+		}
+	}
+
 	.kbve-search-trigger {
 		display: inline-flex;
 		align-items: center;
@@ -256,6 +307,10 @@ import KbveSearchPalette from './KbveSearchPalette.tsx';
 		color: var(--sl-color-text);
 	}
 	.kbve-search-trigger__keycap {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 3.5rem;
 		font-family: var(--sl-font-mono, monospace);
 		font-size: 0.7rem;
 		padding: 0.1rem 0.4rem;

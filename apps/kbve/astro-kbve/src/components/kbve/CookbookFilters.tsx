@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	$facetLanguage,
@@ -33,6 +33,13 @@ export default function CookbookFilters({ groups }: Props) {
 	const search = useStore($facetSearch);
 
 	const active = { language, category, status };
+	const [open, setOpen] = useState(false);
+
+	const activeCount =
+		(language !== 'all' ? 1 : 0) +
+		(category !== 'all' ? 1 : 0) +
+		(status !== 'all' ? 1 : 0) +
+		(search.trim() ? 1 : 0);
 
 	useEffect(() => {
 		const cells = document.querySelectorAll<HTMLElement>(
@@ -69,6 +76,31 @@ export default function CookbookFilters({ groups }: Props) {
 					aria-label="Search projects"
 				/>
 			</div>
+			<button
+				type="button"
+				className="facet-toggle"
+				aria-expanded={open}
+				onClick={() => setOpen((o) => !o)}>
+				<span>Filters{activeCount ? ` (${activeCount})` : ''}</span>
+				<svg
+					className={cn(
+						'facet-toggle__chevron',
+						open && 'facet-toggle__chevron--open',
+					)}
+					viewBox="0 0 24 24"
+					width="16"
+					height="16"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path d="M6 9l6 6 6-6" />
+				</svg>
+			</button>
+			<div
+				className={cn('facet-groups', open && 'facet-groups--open')}>
 			{groups.map((group) => {
 				const labelId = `facet-${group.key}-label`;
 				return (
@@ -119,6 +151,7 @@ export default function CookbookFilters({ groups }: Props) {
 					</div>
 				);
 			})}
+			</div>
 		</div>
 	);
 }
