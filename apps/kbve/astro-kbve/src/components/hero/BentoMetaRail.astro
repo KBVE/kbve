@@ -1,0 +1,638 @@
+---
+const nodes = [
+	{
+		key: 'idea',
+		label: 'Idea',
+		meta: 'it starts here',
+		anchor: '.bento-hero',
+		offset: 110,
+		icon: 'M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V18h6v-1.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z',
+	},
+	{
+		key: 'concept',
+		label: 'Concept',
+		meta: 'shape the stack',
+		anchor: '.bento-shell:nth-of-type(1)',
+		offset: 90,
+		icon: 'M12 19l7-7 3 3-7 7-3-3zM18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5zM2 2l7.586 7.586M11 11a2 2 0 1 0 4 0 2 2 0 0 0-4 0z',
+	},
+	{
+		key: 'features',
+		label: 'Features',
+		meta: 'ship the pieces',
+		anchor: '.bento-shell:nth-of-type(2)',
+		offset: 90,
+		icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+	},
+	{
+		key: 'workflow',
+		label: 'Workflow',
+		meta: 'automate it',
+		anchor: '.bento-flow',
+		offset: 0,
+		center: true,
+		icon: 'M3 3h8v8H3zM13 13h8v8h-8zM7 11v4a2 2 0 0 0 2 2h4',
+	},
+] as const;
+
+const chips = [
+	{
+		label: 'User Feedback',
+		from: 'concept',
+		to: 'features',
+		t: 0.35,
+		icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+	},
+	{
+		label: 'GDD',
+		from: 'concept',
+		to: 'features',
+		t: 0.65,
+		icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',
+	},
+	{
+		label: 'Proof of Concept',
+		from: 'features',
+		to: 'workflow',
+		t: 0.35,
+		icon: 'M10 2v7.31L4.34 19.03A2 2 0 0 0 6.07 22h11.86a2 2 0 0 0 1.73-2.97L14 9.31V2M8.5 2h7M7 16h10',
+	},
+	{
+		label: 'MVP',
+		from: 'features',
+		to: 'workflow',
+		t: 0.65,
+		icon: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2zM9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5',
+	},
+] as const;
+---
+
+<div class="meta-rail not-content" data-meta-rail aria-hidden="true">
+	<svg class="meta-rail__wire" data-meta-wire fill="none" aria-hidden="true">
+		<path data-meta-path stroke-linecap="round"></path>
+	</svg>
+	{
+		nodes.map((node) => (
+			<button
+				type="button"
+				class="meta-rail__node"
+				data-meta-node
+				data-meta-key={node.key}
+				data-meta-anchor={node.anchor}
+				data-meta-offset={node.offset}
+				data-meta-center={
+					'center' in node && node.center ? '' : undefined
+				}
+				tabindex="-1"
+				title={node.label}>
+				<span class="meta-rail__icon">
+					<svg
+						viewBox="0 0 24 24"
+						width="15"
+						height="15"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						stroke-linecap="round"
+						stroke-linejoin="round">
+						<path d={node.icon} />
+					</svg>
+				</span>
+				<span class="meta-rail__text">
+					<span class="meta-rail__label">{node.label}</span>
+					<span class="meta-rail__meta">{node.meta}</span>
+				</span>
+			</button>
+		))
+	}
+	{
+		chips.map((chip) => (
+			<span
+				class="meta-rail__chip"
+				data-meta-chip
+				data-meta-from={chip.from}
+				data-meta-to={chip.to}
+				data-meta-t={chip.t}>
+				<svg
+					class="meta-rail__chip-icon"
+					viewBox="0 0 24 24"
+					width="11"
+					height="11"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.75"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true">
+					<path d={chip.icon} />
+				</svg>
+				{chip.label}
+			</span>
+		))
+	}
+	<div class="meta-rail__arrow" data-meta-arrow>
+		<svg
+			viewBox="0 0 24 24"
+			width="14"
+			height="14"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round">
+			<path d="M5 12h14M12 5l7 7-7 7"></path>
+		</svg>
+	</div>
+</div>
+
+<style>
+	:global(.sl-markdown-content) {
+		position: relative;
+	}
+
+	.meta-rail {
+		display: none;
+	}
+
+	@media (min-width: 90rem) {
+		.meta-rail {
+			position: absolute;
+			inset: 0;
+			z-index: 5;
+			display: block;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 500ms ease 150ms;
+		}
+
+		.meta-rail.is-ready {
+			opacity: 1;
+		}
+	}
+
+	.meta-rail__wire {
+		position: absolute;
+		overflow: visible;
+	}
+
+	.meta-rail__wire path {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 50%,
+			transparent
+		);
+		stroke-width: 2;
+		stroke-dasharray: 8 8;
+		animation: meta-rail-dash 1.2s linear infinite;
+	}
+
+	@keyframes meta-rail-dash {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.meta-rail__wire path {
+			animation: none;
+		}
+	}
+
+	.meta-rail__node {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-white) 12%, transparent);
+		border-radius: 0.625rem;
+		background-color: var(--sl-color-black);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+		cursor: pointer;
+		pointer-events: auto;
+		transform: translate(-50%, -50%);
+		transition:
+			border-color 220ms ease,
+			box-shadow 220ms ease;
+	}
+
+	.meta-rail__node:hover {
+		border-color: var(--sl-color-accent-high);
+		box-shadow:
+			0 8px 20px rgba(0, 0, 0, 0.3),
+			0 0 16px
+				color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
+	}
+
+	.meta-rail__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+		transition: color 220ms ease;
+	}
+
+	.meta-rail__node:hover .meta-rail__icon {
+		color: var(--sl-color-accent-high);
+	}
+
+	.meta-rail__text {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.0625rem;
+	}
+
+	.meta-rail__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+		color: var(--sl-color-white);
+	}
+
+	.meta-rail__meta {
+		font-size: 0.5625rem;
+		line-height: 1.2;
+		color: var(--sl-color-gray-4);
+		white-space: nowrap;
+	}
+
+	.meta-rail__chip {
+		position: absolute;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3125rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.5625rem;
+		font-weight: 500;
+		letter-spacing: 0.03em;
+		line-height: 1.2;
+		white-space: nowrap;
+		color: var(--sl-color-gray-3);
+		background-color: var(--sl-color-black);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-white) 10%, transparent);
+		transform: translate(-50%, -50%);
+		pointer-events: auto;
+		transition:
+			color 220ms ease,
+			border-color 220ms ease;
+	}
+
+	.meta-rail__chip-icon {
+		flex-shrink: 0;
+		color: var(--sl-color-gray-4);
+		transition: color 220ms ease;
+	}
+
+	.meta-rail__chip:hover .meta-rail__chip-icon {
+		color: var(--sl-color-accent-high);
+	}
+
+	.meta-rail__chip:hover {
+		color: var(--sl-color-accent-high);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 45%,
+			transparent
+		);
+	}
+
+	.meta-rail__arrow {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border-radius: 9999px;
+		color: var(--sl-color-accent-high);
+		background-color: var(--sl-color-black);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent-high) 45%, transparent);
+		transform: translate(-50%, -50%);
+	}
+
+	:global(.meta-rail__packet) {
+		position: absolute;
+		z-index: 6;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		width: 12.5rem;
+		height: 1.875rem;
+		padding: 0 0.5rem;
+		border-radius: 0.5rem;
+		font-size: 0.625rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+		color: var(--sl-color-accent-high);
+		background-color: var(--sl-color-black);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent-high) 55%, transparent);
+		box-shadow: 0 0 12px
+			color-mix(in srgb, var(--sl-color-accent-high) 25%, transparent);
+		pointer-events: none;
+		offset-rotate: 0deg;
+	}
+
+	:global(.meta-rail__packet-word) {
+		flex-shrink: 0;
+		width: 4.25rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	:global(.meta-rail__packet-parts) {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.meta-rail__packet-part) {
+		flex-shrink: 0;
+		color: var(--sl-color-gray-2);
+		animation: meta-rail-part-in 320ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@keyframes meta-rail-part-in {
+		from {
+			transform: scale(0) translateY(-6px);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1) translateY(0);
+			opacity: 1;
+		}
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const rail = document.querySelector<HTMLElement>('[data-meta-rail]');
+		if (!rail) return;
+
+		const wire = rail.querySelector<SVGSVGElement>('[data-meta-wire]');
+		const path = rail.querySelector<SVGPathElement>('[data-meta-path]');
+		const arrow = rail.querySelector<HTMLElement>('[data-meta-arrow]');
+		const items = rail.querySelectorAll<HTMLElement>('[data-meta-node]');
+		const flow = document.querySelector<HTMLElement>('.bento-flow');
+		if (!wire || !path || !arrow || !items.length || !flow) return;
+
+		const layout = () => {
+			if (!rail.offsetParent) return;
+			const railRect = rail.getBoundingClientRect();
+			const shell = document.querySelector(
+				'.bento-shell__inner, .bento-hero__shell',
+			);
+			if (!shell) return;
+			const shellLeft =
+				shell.getBoundingClientRect().left - railRect.left;
+			const x = shellLeft / 2;
+
+			const flowRect = flow.getBoundingClientRect();
+			const flowY = flowRect.top - railRect.top + flowRect.height / 2;
+
+			let firstY = Infinity;
+			const nodeY: Record<string, number> = {};
+			items.forEach((item) => {
+				const target = document.querySelector(
+					item.dataset.metaAnchor ?? '',
+				);
+				if (!target) {
+					item.style.display = 'none';
+					return;
+				}
+				const centered = item.dataset.metaCenter !== undefined;
+				const y = centered
+					? flowY
+					: target.getBoundingClientRect().top -
+						railRect.top +
+						Number(item.dataset.metaOffset ?? 0);
+				item.style.left = `${x}px`;
+				item.style.top = `${y}px`;
+				if (item.dataset.metaKey) nodeY[item.dataset.metaKey] = y;
+				firstY = Math.min(firstY, y);
+			});
+
+			rail.querySelectorAll<HTMLElement>('[data-meta-chip]').forEach(
+				(chip) => {
+					const from = nodeY[chip.dataset.metaFrom ?? ''];
+					const to = nodeY[chip.dataset.metaTo ?? ''];
+					if (from === undefined || to === undefined) {
+						chip.style.display = 'none';
+						return;
+					}
+					const t = Number(chip.dataset.metaT ?? 0.5);
+					chip.style.left = `${x}px`;
+					chip.style.top = `${from + (to - from) * t}px`;
+				},
+			);
+
+			const endX = shellLeft - 20;
+			const r = Math.min(28, Math.max(endX - x, 0));
+
+			wire.style.left = `${x}px`;
+			wire.style.top = `${firstY}px`;
+			const w = Math.max(endX - x, 1);
+			const h = Math.max(flowY - firstY, 1);
+			wire.setAttribute('width', String(w));
+			wire.setAttribute('height', String(h));
+			wire.setAttribute('viewBox', `0 0 ${w} ${h}`);
+			const d = `M 1 0 L 1 ${h - r} Q 1 ${h}, ${1 + r} ${h} L ${w} ${h}`;
+			path.setAttribute('d', d);
+			rail.dataset.wireD = d;
+			rail.dataset.wireX = String(x);
+			rail.dataset.wireY = String(firstY);
+
+			arrow.style.left = `${shellLeft - 8}px`;
+			arrow.style.top = `${flowY}px`;
+
+			rail.classList.add('is-ready');
+		};
+
+		layout();
+		const ro = new ResizeObserver(layout);
+		ro.observe(document.body);
+
+		const reduced = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+
+		const SPEED = 0.12;
+		const DWELL = 600;
+		const HEADWAY = 5000;
+		const MAX_TRAINS = 5;
+		let lastShip = 0;
+
+		const onShipped = (e: Event) => {
+			if (reduced || !rail.offsetParent || !rail.dataset.wireD) return;
+			const now = performance.now();
+			if (now - lastShip < HEADWAY) return;
+			if (
+				rail.querySelectorAll('.meta-rail__packet').length >= MAX_TRAINS
+			)
+				return;
+			const { word } = (e as CustomEvent).detail ?? {};
+			if (!word) return;
+			lastShip = now;
+
+			const wireY = Number(rail.dataset.wireY);
+			const totalLen = path.getTotalLength();
+			if (!totalLen) return;
+
+			const stations = [
+				...rail.querySelectorAll<HTMLElement>(
+					'[data-meta-node]:not([data-meta-key="idea"]), [data-meta-chip]',
+				),
+			]
+				.filter((el) => el.style.display !== 'none' && el.style.top)
+				.map((el) => ({
+					el,
+					frac: Math.min(
+						Math.max(
+							(parseFloat(el.style.top) - wireY) / totalLen,
+							0,
+						),
+						0.98,
+					),
+				}))
+				.sort((a, b) => a.frac - b.frac);
+
+			const packet = document.createElement('span');
+			packet.className = 'meta-rail__packet';
+			const wordSpan = document.createElement('span');
+			wordSpan.className = 'meta-rail__packet-word';
+			wordSpan.textContent = word;
+			packet.appendChild(wordSpan);
+			const partsSpan = document.createElement('span');
+			partsSpan.className = 'meta-rail__packet-parts';
+			packet.appendChild(partsSpan);
+			packet.style.left = `${rail.dataset.wireX}px`;
+			packet.style.top = `${wireY}px`;
+			packet.style.offsetPath = `path('${rail.dataset.wireD}')`;
+			rail.appendChild(packet);
+
+			const keyframes: Keyframe[] = [];
+			const pickups: Array<{ time: number; el: HTMLElement }> = [];
+			let time = 0;
+			let prevFrac = 0;
+
+			keyframes.push({ offsetDistance: '0%', opacity: 0, offset: 0 });
+			time += 300;
+			keyframes.push({
+				offsetDistance: `${((300 * SPEED) / totalLen) * 100}%`,
+				opacity: 1,
+				offset: time,
+			});
+			prevFrac = (300 * SPEED) / totalLen;
+
+			stations.forEach((s) => {
+				time += ((s.frac - prevFrac) * totalLen) / SPEED;
+				keyframes.push({
+					offsetDistance: `${s.frac * 100}%`,
+					opacity: 1,
+					offset: time,
+				});
+				pickups.push({ time, el: s.el });
+				time += DWELL;
+				keyframes.push({
+					offsetDistance: `${s.frac * 100}%`,
+					opacity: 1,
+					offset: time,
+				});
+				prevFrac = s.frac;
+			});
+
+			time += ((1 - prevFrac) * totalLen) / SPEED;
+			keyframes.push({
+				offsetDistance: '100%',
+				opacity: 0,
+				offset: time,
+			});
+
+			const duration = time;
+			keyframes.forEach((k) => {
+				k.offset = Math.min((k.offset as number) / duration, 1);
+			});
+			if (keyframes.length > 1) {
+				keyframes[1] = { ...keyframes[1] };
+			}
+
+			const NS = 'http://www.w3.org/2000/svg';
+			const timeouts = pickups.map(({ time: t, el }) =>
+				setTimeout(() => {
+					const icon = el.querySelector('svg');
+					let clone: SVGElement;
+					if (icon) {
+						clone = icon.cloneNode(true) as SVGElement;
+					} else {
+						clone = document.createElementNS(NS, 'svg');
+						clone.setAttribute('viewBox', '0 0 24 24');
+						clone.setAttribute('fill', 'none');
+						clone.setAttribute('stroke', 'currentColor');
+						clone.setAttribute('stroke-width', '2');
+						clone.setAttribute('stroke-linecap', 'round');
+						const p = document.createElementNS(NS, 'path');
+						p.setAttribute('d', 'M12 5v14M5 12h14');
+						clone.appendChild(p);
+					}
+					clone.setAttribute('width', '10');
+					clone.setAttribute('height', '10');
+					clone.classList.add('meta-rail__packet-part');
+					partsSpan.appendChild(clone);
+				}, t),
+			);
+
+			const anim = packet.animate(keyframes, {
+				duration,
+				easing: 'linear',
+			});
+			anim.onfinish = () => {
+				timeouts.forEach(clearTimeout);
+				packet.remove();
+				window.dispatchEvent(
+					new CustomEvent('bento:word-arrived', {
+						detail: { word },
+					}),
+				);
+			};
+		};
+
+		window.addEventListener('bento:word-shipped', onShipped);
+
+		const clicks: Array<() => void> = [];
+		items.forEach((item) => {
+			const onClick = () => {
+				const target = document.querySelector(
+					item.dataset.metaAnchor ?? '',
+				);
+				target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			};
+			item.addEventListener('click', onClick);
+			clicks.push(() => item.removeEventListener('click', onClick));
+		});
+
+		return () => {
+			ro.disconnect();
+			clicks.forEach((fn) => fn());
+			window.removeEventListener('bento:word-shipped', onShipped);
+		};
+	});
+</script>

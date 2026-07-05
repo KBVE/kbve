@@ -11,7 +11,6 @@
  *
  * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
  */
-import { ClientRouter } from 'astro:transitions';
 import { seo } from '@/lib/seo';
 import { dedupeGraph } from '@kbve/astro/seo';
 
@@ -116,8 +115,21 @@ const fmTags = Array.isArray(data.tags)
 	? (data.tags.filter((t) => typeof t === 'string') as string[])
 	: [];
 const LANG_TAGS = new Set([
-	'rust', 'python', 'typescript', 'javascript', 'go', 'cpp', 'c++',
-	'csharp', 'c#', 'astro', 'svelte', 'react', 'lua', 'zig', 'java',
+	'rust',
+	'python',
+	'typescript',
+	'javascript',
+	'go',
+	'cpp',
+	'c++',
+	'csharp',
+	'c#',
+	'astro',
+	'svelte',
+	'react',
+	'lua',
+	'zig',
+	'java',
 ]);
 const langs = fmTags.filter((t) => LANG_TAGS.has(t.toLowerCase()));
 const software =
@@ -149,7 +161,8 @@ const jsonLdGraph =
 					image: jl.image ?? ogImage,
 					datePublished: jl.datePublished,
 					dateModified: jl.dateModified,
-					keywords: jl.keywords ?? (fmTags.length ? fmTags : undefined),
+					keywords:
+						jl.keywords ?? (fmTags.length ? fmTags : undefined),
 					breadcrumb: jl.breadcrumb?.map(
 						(c) => [c.name, c.path] as [string, string],
 					),
@@ -213,15 +226,11 @@ if (isArticle) {
 <slot />
 
 {
-	/* Astro SPA-style nav. Pairs with the native browser
-   `<meta name="view-transition">` below so supporting browsers also
-   get cross-doc transitions when the router falls back to a full nav
-   (initial entry, external links with prefetch off, manual reload).
-   onMount() from @kbve/astro/utils/clientRouter is wired across the
-   component scripts to re-init per swap. */
+	/* Native cross-document view transitions only — no ClientRouter SPA.
+   `@view-transition { navigation: auto }` in global.css opts pages in;
+   onMount() from @kbve/astro/utils/clientRouter handles per-arrival
+   re-init via `pagereveal` / DOMContentLoaded / bfcache. */
 }
-<ClientRouter />
-<meta name="view-transition" content="same-origin" />
 
 <link
 	rel="alternate"
