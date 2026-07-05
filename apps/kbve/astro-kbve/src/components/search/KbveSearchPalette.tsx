@@ -155,9 +155,7 @@ type PagefindData = {
 type PagefindModule = {
 	init?: () => Promise<void>;
 	options?: (opts: Record<string, unknown>) => Promise<void>;
-	debouncedSearch: (
-		q: string,
-	) => Promise<{
+	debouncedSearch: (q: string) => Promise<{
 		results: Array<{ data: () => Promise<PagefindData> }>;
 	} | null>;
 };
@@ -165,6 +163,7 @@ type PagefindModule = {
 function stripHtml(s: string): string {
 	return s
 		.replace(/<[^>]*>/g, '')
+		.replace(/[<>]/g, '')
 		.replace(/\s+/g, ' ')
 		.trim();
 }
