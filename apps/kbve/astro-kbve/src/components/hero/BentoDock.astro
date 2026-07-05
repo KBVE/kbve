@@ -174,14 +174,16 @@
 		let globeLoad: Promise<GlobeHandle | null> | null = null;
 
 		const initGlobe = async (): Promise<GlobeHandle | null> => {
-			const [d3geo, topo, worldMod] = (await Promise.all([
+			const [d3geo, topo, worldMod, lakesMod] = (await Promise.all([
 				import('d3-geo'),
 				import('topojson-client'),
 				import('world-atlas/countries-110m.json'),
+				import('./lakes-110m.json'),
 			])) as any[];
 			if (globe) return globe;
 			const world = worldMod.default ?? worldMod;
 			const countries = topo.feature(world, world.objects.countries);
+			const lakes = lakesMod.default ?? lakesMod;
 
 			const cssColor = (name: string, fallback: string) => {
 				const v = getComputedStyle(document.documentElement)
@@ -241,6 +243,19 @@
 				ctx.strokeStyle = accent;
 				ctx.lineWidth = 0.5;
 				ctx.stroke();
+				ctx.save();
+				ctx.beginPath();
+				path(lakes);
+				ctx.globalCompositeOperation = 'destination-out';
+				ctx.fill();
+				ctx.restore();
+				ctx.beginPath();
+				path(lakes);
+				ctx.strokeStyle = accent;
+				ctx.globalAlpha = 0.35;
+				ctx.lineWidth = 0.4;
+				ctx.stroke();
+				ctx.globalAlpha = 1;
 				ctx.beginPath();
 				path({ type: 'Sphere' });
 				ctx.globalAlpha = 0.7;
