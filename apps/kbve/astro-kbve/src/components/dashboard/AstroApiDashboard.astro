@@ -125,4 +125,57 @@ const {
 	#scalar-app .scalar-app-layout {
 		z-index: 100;
 	}
+
+	.scalar-host {
+		position: relative;
+	}
+
+	.scalar-state {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 1rem;
+		text-align: center;
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.scalar-state__hint {
+		max-width: 34ch;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-4);
+	}
+
+	.scalar-spinner {
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 50%;
+		border: 2px solid var(--bento-hairline-strong);
+		border-top-color: var(--sl-color-accent-high);
+		animation: scalar-spin 0.7s linear infinite;
+	}
+
+	@keyframes scalar-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.scalar-spinner {
+			animation: none;
+		}
+	}
+
+	/* Scalar's API-client modal is position:fixed. BentoShell's scroll-reveal
+	   sets a transform on the wrapper, which would make it the containing block
+	   and mis-position the modal. Drop the transform on this page — the reveal
+	   still fades via opacity. */
+	#api-reference[data-bento-reveal] {
+		transform: none;
+	}
 </style>
