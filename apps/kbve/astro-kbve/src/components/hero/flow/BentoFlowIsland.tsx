@@ -12,6 +12,7 @@ import {
 	type NodeChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { $bentoShipment, advanceBentoShipment } from '@kbve/droid';
 
 const ICONS: Record<string, string> = {
 	git: 'M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0 6v6m0 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm12-9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0 6a9 9 0 0 1-9 9',
@@ -36,14 +37,14 @@ type PipelineNode = Node<PipelineData, 'pipeline'>;
 function PipelineNodeView({ data }: NodeProps<PipelineNode>) {
 	return (
 		<div
-			className="bento-flow-node"
+			className="bento-flow-node bento-card"
 			data-accent={data.accent ? '' : undefined}>
 			<Handle
 				type="target"
 				position={Position.Left}
 				style={{ opacity: 0, pointerEvents: 'none' }}
 			/>
-			<span className="bento-flow-node__icon">
+			<span className="bento-flow-node__icon bento-icon-tile">
 				<svg
 					viewBox="0 0 24 24"
 					width="16"
@@ -76,8 +77,6 @@ function PipelineNodeView({ data }: NodeProps<PipelineNode>) {
 }
 
 const nodeTypes = { pipeline: PipelineNodeView };
-
-const PIPELINE_ORDER = ['commit', 'ci', 'tests', 'publish', 'argo', 'live'];
 
 const initialNodes: PipelineNode[] = [
 	{
@@ -202,7 +201,8 @@ export default function BentoFlowIsland() {
 
 		let visible = true;
 		let step = -1;
-		const pending: string[] = [];
+		let running: { id: number; word: string } | null = null;
+		const pending: Array<{ id: number; word: string }> = [];
 		let lastRun = performance.now();
 
 		const io = new IntersectionObserver(([entry]) => {
@@ -210,20 +210,26 @@ export default function BentoFlowIsland() {
 		});
 		if (wrapRef.current) io.observe(wrapRef.current);
 
-		const onArrived = (e: Event) => {
-			const { word } = (e as CustomEvent).detail ?? {};
-			if (pending.length < 3) pending.push(word ?? 'build');
-		};
-		window.addEventListener('bento:word-arrived', onArrived);
+		const unsubShipments = $bentoShipment.listen((shipment) => {
+			if (shipment?.stage !== 'arrived') return;
+			if (pending.length < 3) {
+				pending.push({ id: shipment.id, word: shipment.word });
+			} else {
+				advanceBentoShipment(shipment.id, 'dropped');
+			}
+		});
 
 		const id = setInterval(() => {
 			if (!visible) return;
 			if (step === -1) {
 				const idleFor = performance.now() - lastRun;
-				if (pending.length > 0) {
-					setCargo(pending.shift() ?? null);
+				const nextShipment = pending.shift();
+				if (nextShipment) {
+					running = nextShipment;
+					setCargo(nextShipment.word);
 					step = 0;
 				} else if (idleFor > 12_000) {
+					running = null;
 					setCargo(null);
 					step = 0;
 				} else {
@@ -235,6 +241,10 @@ export default function BentoFlowIsland() {
 			if (step >= PULSE_STEPS.length) {
 				step = -1;
 				lastRun = performance.now();
+				if (running) {
+					advanceBentoShipment(running.id, 'delivered');
+					running = null;
+				}
 				setCargo(null);
 			}
 		}, 900);
@@ -242,7 +252,7 @@ export default function BentoFlowIsland() {
 		return () => {
 			clearInterval(id);
 			io.disconnect();
-			window.removeEventListener('bento:word-arrived', onArrived);
+			unsubShipments();
 		};
 	}, []);
 
@@ -261,7 +271,7 @@ export default function BentoFlowIsland() {
 	return (
 		<div ref={wrapRef} style={{ width: '100%', height: '100%' }}>
 			{cargo && (
-				<div className="bento-flow__ticker">
+				<div className="bento-flow__ticker bento-chip">
 					shipping <strong>{cargo}</strong>
 				</div>
 			)}

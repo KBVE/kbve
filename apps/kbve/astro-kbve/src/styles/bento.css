@@ -1,0 +1,198 @@
+/* ── Bento design system ──
+   Shared vocabulary for bento sections across the site (home, dashboard, …).
+   Components add these classes and keep only layout-specific CSS scoped.
+   Tokens are theme-safe: everything derives from Starlight vars. */
+
+:root {
+	--bento-hairline: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+	--bento-hairline-strong: color-mix(
+		in srgb,
+		var(--sl-color-white) 10%,
+		transparent
+	);
+	--bento-cell-bg: var(--sl-color-black);
+	--bento-glass-bg: color-mix(
+		in srgb,
+		var(--sl-color-black) 72%,
+		transparent
+	);
+	--bento-radius: 0.625rem;
+	--bento-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+	--bento-glow: 0 0 16px
+		color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
+}
+
+@layer components {
+	/* Full-width section band: black surface + bottom hairline seam */
+	.bento-section {
+		width: 100%;
+		margin-block-start: 0 !important;
+		background-color: var(--sl-color-black);
+		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	/* Centered 80rem frame with vertical hairline rails */
+	.bento-frame {
+		margin-inline: auto;
+		width: 100%;
+		max-width: 80rem;
+		border-inline: 1px solid var(--bento-hairline);
+	}
+
+	.bento-eyebrow {
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.bento-heading {
+		font-size: clamp(1.375rem, 3vw, 2rem);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+		color: var(--sl-color-white);
+		max-width: 36rem;
+	}
+
+	/* Floating card chrome: nodes, panels, windows */
+	.bento-card {
+		background-color: var(--bento-cell-bg);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius);
+		box-shadow: var(--bento-shadow);
+		transition:
+			border-color 220ms ease,
+			box-shadow 220ms ease;
+	}
+
+	.bento-card--interactive:hover,
+	.bento-card[data-active] {
+		border-color: var(--sl-color-accent-high);
+		box-shadow: var(--bento-shadow), var(--bento-glow);
+	}
+
+	.bento-card--interactive:hover .bento-icon-tile,
+	.bento-card[data-active] .bento-icon-tile {
+		color: var(--sl-color-accent-high);
+	}
+
+	/* Rounded icon well: grey at idle, accent when parent activates */
+	.bento-icon-tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+		transition: color 220ms ease;
+	}
+
+	/* Small status pill */
+	.bento-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3125rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.5625rem;
+		font-weight: 500;
+		letter-spacing: 0.03em;
+		line-height: 1.2;
+		white-space: nowrap;
+		color: var(--sl-color-gray-3);
+		background-color: var(--bento-cell-bg);
+		border: 1px solid var(--bento-hairline-strong);
+		transition:
+			color 220ms ease,
+			border-color 220ms ease;
+	}
+
+	/* Frosted overlay: translucent card that lets background wiring
+	   show through while keeping text readable. Layer on top of
+	   .bento-card, .bento-chip, or any positioned element. */
+	.bento-card--glass {
+		background-color: var(--bento-glass-bg);
+		-webkit-backdrop-filter: blur(8px);
+		backdrop-filter: blur(8px);
+	}
+
+	/* Animated connector strokes for SVG paths (rails, relationship lines) */
+	.bento-wire {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 50%,
+			transparent
+		);
+		stroke-width: 2;
+		stroke-dasharray: 8 8;
+		animation: bento-wire-dash 1.2s linear infinite;
+	}
+
+	.bento-wire--dots {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 65%,
+			transparent
+		);
+		stroke-dasharray: 1 7;
+		stroke-linecap: round;
+		animation: bento-wire-dots 900ms linear infinite;
+	}
+
+	/* Live-event connector: brand red, stands apart from the gold rails */
+	.bento-wire--live {
+		stroke: color-mix(
+			in srgb,
+			var(--sl-color-text-accent) 85%,
+			transparent
+		);
+	}
+
+	@keyframes bento-wire-dash {
+		to {
+			stroke-dashoffset: -16;
+		}
+	}
+
+	@keyframes bento-wire-dots {
+		to {
+			stroke-dashoffset: -8;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bento-wire,
+		.bento-wire--dots {
+			animation: none;
+		}
+	}
+
+	/* Scroll reveal states, driven by BentoShell's observer */
+	[data-bento-reveal='pending'] {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+
+	[data-bento-reveal='in'] {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity 550ms ease,
+			transform 550ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-bento-reveal='pending'] {
+			opacity: 1;
+			transform: none;
+		}
+	}
+}

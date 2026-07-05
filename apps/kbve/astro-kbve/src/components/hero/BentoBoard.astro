@@ -13,6 +13,8 @@ interface Cell {
 	showcaseLabel?: string;
 	badgeSrc?: string;
 	badgeAlt?: string;
+	pattern?: string;
+	dock?: string;
 }
 
 interface Props {
@@ -35,6 +37,7 @@ const {
 			icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
 			showcase: 'community',
 			showcaseLabel: 'Members',
+			dock: 'globe',
 			badgeSrc:
 				'https://img.shields.io/discord/342732838598082562?logo=discord&style=flat-square&label=discord',
 			badgeAlt: 'Discord members online',
@@ -69,6 +72,7 @@ const {
 			icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
 			showcase: 'uptime',
 			showcaseLabel: 'Status',
+			pattern: '/patterns/rack-servers.svg',
 		},
 	],
 } = Astro.props;
@@ -82,21 +86,27 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 	<div class="bento-board__grid">
 		{
 			cells.map((cell) => {
-				const Tag = cell.href ? 'a' : 'div';
 				return (
-					<Tag
+					<div
 						class:list={[
 							'bento-board__cell',
 							cell.span === 'wide' && 'bento-board__cell--wide',
 							cell.span === 'tall' && 'bento-board__cell--tall',
 						]}
-						href={cell.href}
 						data-showcase-key={cell.showcase}
-						data-showcase-label={cell.showcaseLabel}>
+						data-showcase-label={cell.showcaseLabel}
+						data-dock={cell.dock}>
 						<div
 							class="bento-board__cell-glow"
 							aria-hidden="true"
 						/>
+						{cell.pattern && (
+							<div
+								class="bento-board__cell-pattern"
+								style={`background-image: url('${cell.pattern}')`}
+								aria-hidden="true"
+							/>
+						)}
 						{cell.icon && (
 							<span
 								class="bento-board__cell-icon"
@@ -144,7 +154,29 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 								decoding="async"
 							/>
 						)}
-					</Tag>
+						{cell.href && (
+							<div class="bento-board__cell-actions">
+								<a
+									class="bento-board__action bento-icon-tile"
+									href={cell.href}
+									aria-label={`Open ${cell.title}`}
+									title={`Open ${cell.title}`}>
+									<svg
+										viewBox="0 0 24 24"
+										width="13"
+										height="13"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true">
+										<path d="M7 17L17 7M9 7h8v8" />
+									</svg>
+								</a>
+							</div>
+						)}
+					</div>
 				);
 			})
 		}
@@ -262,8 +294,8 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		transform: translate(-50%, -50%);
 	}
 
-	a.bento-board__cell:hover .bento-board__cell-icon,
-	a.bento-board__cell:focus-visible .bento-board__cell-icon {
+	.bento-board__cell:hover .bento-board__cell-icon,
+	.bento-board__cell:focus-visible .bento-board__cell-icon {
 		color: var(--sl-color-accent-high);
 		opacity: 1;
 	}
@@ -281,14 +313,66 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		pointer-events: none;
 	}
 
-	a.bento-board__cell:hover .bento-board__cell-glow,
-	a.bento-board__cell:focus-visible .bento-board__cell-glow {
+	.bento-board__cell:hover .bento-board__cell-glow,
+	.bento-board__cell:focus-visible .bento-board__cell-glow {
 		opacity: 0.5;
 	}
 
-	a.bento-board__cell:focus-visible {
+	.bento-board__cell-pattern {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		background-size: 88px auto;
+		background-repeat: repeat;
+		-webkit-mask-image: radial-gradient(
+			circle 200px at var(--glow-x, 50%) var(--glow-y, 50%),
+			black 0%,
+			rgba(0, 0, 0, 0.35) 55%,
+			transparent 78%
+		);
+		mask-image: radial-gradient(
+			circle 200px at var(--glow-x, 50%) var(--glow-y, 50%),
+			black 0%,
+			rgba(0, 0, 0, 0.35) 55%,
+			transparent 78%
+		);
+		transition: opacity 300ms ease;
+		pointer-events: none;
+	}
+
+	.bento-board__cell:hover .bento-board__cell-pattern,
+	.bento-board__cell:focus-visible .bento-board__cell-pattern {
+		opacity: 0.5;
+	}
+
+	.bento-board__cell-actions {
+		position: absolute;
+		right: 0.875rem;
+		bottom: 0.875rem;
+		display: flex;
+		gap: 0.375rem;
+		z-index: 2;
+	}
+
+	.bento-board__action {
+		opacity: 0.55;
+		transition:
+			opacity 220ms ease,
+			color 220ms ease;
+	}
+
+	.bento-board__cell:hover .bento-board__action {
+		opacity: 1;
+	}
+
+	.bento-board__action:hover {
+		color: var(--sl-color-accent-high);
+	}
+
+	.bento-board__action:focus-visible {
 		outline: none;
-		box-shadow: inset 0 0 0 2px var(--sl-color-accent-low);
+		opacity: 1;
+		box-shadow: 0 0 0 2px var(--sl-color-accent-low);
 	}
 
 	.bento-board__stat {
@@ -340,8 +424,8 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 			opacity 220ms ease;
 	}
 
-	a.bento-board__cell:hover .bento-board__cell-badge,
-	a.bento-board__cell:focus-visible .bento-board__cell-badge {
+	.bento-board__cell:hover .bento-board__cell-badge,
+	.bento-board__cell:focus-visible .bento-board__cell-badge {
 		filter: none;
 		opacity: 1;
 	}
@@ -372,6 +456,22 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 					cell.removeEventListener('pointerenter', fire);
 					cell.removeEventListener('focus', fire);
 				});
+			});
+
+		document
+			.querySelectorAll<HTMLElement>('[data-dock]')
+			.forEach((cell) => {
+				const fire = () => {
+					window.dispatchEvent(
+						new CustomEvent('bento:dock', {
+							detail: { panel: cell.dataset.dock },
+						}),
+					);
+				};
+				cell.addEventListener('pointerenter', fire);
+				teardowns.push(() =>
+					cell.removeEventListener('pointerenter', fire),
+				);
 			});
 
 		document

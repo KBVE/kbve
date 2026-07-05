@@ -32,7 +32,7 @@ const currentYear = new Date().getFullYear();
 ---
 
 <footer id="kbve-footer" class="kf-footer not-content">
-	<div class="kf-container">
+	<div class="kf-container bento-frame">
 		<div class="kf-grid">
 			<div class="kf-brand">
 				<a href="/" class="kf-brand-link" aria-label="KBVE home">
@@ -146,27 +146,13 @@ const currentYear = new Date().getFullYear();
 
 <style>
 	.kf-footer {
-		--bento-hairline: color-mix(
-			in srgb,
-			var(--sl-color-white) 5%,
-			transparent
-		);
-		--bento-hairline-strong: color-mix(
-			in srgb,
-			var(--sl-color-white) 10%,
-			transparent
-		);
-		--bento-cell-bg: var(--sl-color-black);
 		margin-top: 0;
 		background-color: var(--sl-color-black);
 		border-top: 1px solid var(--bento-hairline);
 	}
 
 	.kf-container {
-		max-width: 80rem;
-		margin: 0 auto;
 		padding: 0;
-		border-inline: 1px solid var(--bento-hairline);
 	}
 
 	/* Main grid: bento seams — 1px hairline gaps between cells */

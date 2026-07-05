@@ -88,8 +88,8 @@ const dock = [
 ];
 ---
 
-<div class="bento-hero not-content">
-	<div class="bento-hero__shell">
+<div class="bento-hero bento-section not-content">
+	<div class="bento-hero__shell bento-frame">
 		<section class="bento-hero__section">
 			<div class="bento-hero__glow" aria-hidden="true"></div>
 
@@ -344,28 +344,7 @@ const dock = [
 
 <style>
 	.bento-hero {
-		margin-block-start: 0 !important;
-		--bento-hairline: color-mix(
-			in srgb,
-			var(--sl-color-white) 5%,
-			transparent
-		);
-		--bento-hairline-strong: color-mix(
-			in srgb,
-			var(--sl-color-white) 10%,
-			transparent
-		);
 		position: relative;
-		width: 100%;
-		background-color: var(--sl-color-black);
-		border-bottom: 1px solid var(--bento-hairline);
-	}
-
-	.bento-hero__shell {
-		margin-inline: auto;
-		width: 100%;
-		max-width: 80rem;
-		border-inline: 1px solid var(--bento-hairline);
 	}
 
 	.bento-hero__section {
@@ -1019,6 +998,7 @@ const dock = [
 
 <script>
 	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import { shipBentoWord } from '@kbve/droid';
 
 	const STAGGER_MS = 24;
 	const SWAP_MS = 340;
@@ -1272,11 +1252,7 @@ const dock = [
 						const shipped = words[index];
 						index = (index + 1) % words.length;
 						const next = words[index];
-						window.dispatchEvent(
-							new CustomEvent('bento:word-shipped', {
-								detail: { word: shipped },
-							}),
-						);
+						shipBentoWord(shipped);
 						if (reduced) {
 							slot.textContent = next;
 							return;

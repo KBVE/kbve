@@ -160,6 +160,9 @@ importers:
       d3-force:
         specifier: ^3.0.0
         version: 3.0.0
+      d3-geo:
+        specifier: ^3.1.1
+        version: 3.1.1
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -319,12 +322,18 @@ importers:
       three-stdlib:
         specifier: ^2.36.1
         version: 2.36.1(three@0.184.0)
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
       tslib:
         specifier: ^2.8.0
         version: 2.8.1
       typegpu:
         specifier: 0.11.8
         version: 0.11.8
+      world-atlas:
+        specifier: ^2.0.2
+        version: 2.0.2
       zod:
         specifier: ^4.0.0
         version: 4.3.6
@@ -467,6 +476,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.5.2
         version: 14.6.1(@testing-library/dom@10.4.0)
+      '@types/d3-geo':
+        specifier: ^3.1.0
+        version: 3.1.0
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.2.0
@@ -494,6 +506,9 @@ importers:
       '@types/three':
         specifier: ^0.176.0
         version: 0.176.0
+      '@types/topojson-client':
+        specifier: ^3.1.5
+        version: 3.1.5
       '@typescript-eslint/eslint-plugin':
         specifier: 7.18.0
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.9.3))(eslint@8.57.0)(typescript@5.9.3)
@@ -6535,6 +6550,12 @@ packages:
 
   '@types/three@0.176.0':
     resolution: {integrity: sha512-FwfPXxCqOtP7EdYMagCFePNKoG1AGBDUEVKtluv2BTVRpSt7b+X27xNsirPCTCqY1pGYsPUzaM3jgWP7dXSxlw==}
+
+  '@types/topojson-client@3.1.5':
+    resolution: {integrity: sha512-C79rySTyPxnQNNguTZNI1Ct4D7IXgvyAs3p9HPecnl6mNrJ5+UhvGNYcZfpROYV2lMHI48kJPxwR+F9C6c7nmw==}
+
+  '@types/topojson-specification@1.0.5':
+    resolution: {integrity: sha512-C7KvcQh+C2nr6Y2Ub4YfgvWvWCgP2nOQMtfhlnwsRL4pYmmwzBS7HclGiS87eQfDOU/DLQpX6GEscviaz4yLIQ==}
 
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
@@ -15102,6 +15123,10 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
+  topojson-client@3.1.0:
+    resolution: {integrity: sha512-605uxS6bcYxGXw9qi62XyrV6Q3xwbndjachmNxu8HWTtVPxZfEJN9fd/SZS1Q54Sn2y0TMyMxFj/cJINqGHrKw==}
+    hasBin: true
+
   toqr@0.1.1:
     resolution: {integrity: sha512-FWAPzCIHZHnrE/5/w9MPk0kK25hSQSH2IKhYh9PyjS3SG/+IEMvlwIHbhz+oF7xl54I+ueZlVnMjyzdSwLmAwA==}
 
@@ -16369,6 +16394,9 @@ packages:
 
   workbox-window@7.3.0:
     resolution: {integrity: sha512-qW8PDy16OV1UBaUNGlTVcepzrlzyzNW/ZJvFQQs2j2TzGsg6IKjcpZC1RSquqQnTOafl5pCj5bGfAHlCjOOjdA==}
+
+  world-atlas@2.0.2:
+    resolution: {integrity: sha512-IXfV0qwlKXpckz1FhwXVwKRjiIhOnWttOskm5CtxMsjgE/MXAYRHWJqgXOpM8IkcPBoXnyTU5lFHcYa5ChG0LQ==}
 
   wrap-ansi@6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
@@ -24209,6 +24237,15 @@ snapshots:
       '@webgpu/types': 0.1.60
       fflate: 0.8.2
       meshoptimizer: 0.18.1
+
+  '@types/topojson-client@3.1.5':
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/topojson-specification': 1.0.5
+
+  '@types/topojson-specification@1.0.5':
+    dependencies:
+      '@types/geojson': 7946.0.16
 
   '@types/tough-cookie@4.0.5': {}
 
@@ -35195,6 +35232,10 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
+  topojson-client@3.1.0:
+    dependencies:
+      commander: 2.20.3
+
   toqr@0.1.1: {}
 
   totalist@3.0.1: {}
@@ -36658,6 +36699,8 @@ snapshots:
     dependencies:
       '@types/trusted-types': 2.0.7
       workbox-core: 7.3.0
+
+  world-atlas@2.0.2: {}
 
   wrap-ansi@6.2.0:
     dependencies:
