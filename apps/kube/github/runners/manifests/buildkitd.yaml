@@ -40,19 +40,21 @@ data:
           # hit on Talos kernel 6.18). Drop to "native" if EINVAL ever surfaces.
           snapshotter = "overlayfs"
           gc = true
-          # Self-prune below the PVC size so the cache never wedges a build with
+          # Self-prune well below PVC size so the cache never wedges a build with
           # ENOSPC. Working set = astro .astro + cargo registry + sccache-local +
           # pnpm store + layer cache across every app.
-          gckeepstorage = "90GB"
+          gckeepstorage = "60GB"
           [[worker.oci.gcpolicy]]
-            keepBytes = "60GB"
+            keepBytes = "40GB"
             keepDuration = "168h"
           # Final tier has no keepDuration: a hard ceiling that evicts oldest
-          # regardless of age. Set well below the 146GiB usable PVC so a burst
-          # of concurrent mode=max exports (each multi-GB) cannot outrun the
-          # async LRU GC and hit ENOSPC on containerdmeta.db before it reclaims.
+          # regardless of age. Kept far below the 146GiB usable PVC so a burst
+          # of concurrent mode=max exports (each multi-GB) has ~90GB of headroom
+          # before the async LRU GC must reclaim, so it cannot outrun GC and hit
+          # ENOSPC on containerdmeta.db. A nightly buildkitd-prune CronJob is the
+          # proactive backstop the reactive async GC alone kept failing to hold.
           [[worker.oci.gcpolicy]]
-            keepBytes = "90GB"
+            keepBytes = "50GB"
 
         [worker.containerd]
           enabled = false
@@ -179,3 +181,49 @@ spec:
           ports:
               - port: grpc
                 protocol: TCP
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: buildkitd-prune
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: buildkitd
+        app.kubernetes.io/part-of: arc-runner-set
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+        kbve.com/managed-by: argocd
+spec:
+    schedule: '0 8 * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 1
+            activeDeadlineSeconds: 1800
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: buildkitd
+                        app.kubernetes.io/part-of: arc-runner-set
+                spec:
+                    restartPolicy: Never
+                    containers:
+                        - name: prune
+                          image: moby/buildkit:v0.24.0
+                          command:
+                              - buildctl
+                              - --addr
+                              - tcp://buildkitd.arc-runners.svc:1234
+                              - prune
+                              - --keep-storage
+                              - '60000000000'
+                              - --all
+                          resources:
+                              limits:
+                                  cpu: '1'
+                                  memory: 512Mi
+                              requests:
+                                  cpu: '100m'
+                                  memory: 128Mi
