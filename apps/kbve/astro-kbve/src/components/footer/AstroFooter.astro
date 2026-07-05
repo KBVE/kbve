@@ -26,6 +26,29 @@ const quickLinks = [
 	{ href: '/support/', label: 'Support' },
 ];
 
+const arcadeLinks = [
+	{ href: '/arcade/', label: 'Arcade' },
+	{ href: '/gdd/', label: 'Game Design Docs' },
+	{ href: '/gaming/', label: 'Gaming' },
+	{ href: '/music/', label: 'Music' },
+];
+
+const dataLinks = [
+	{ href: '/itemdb/', label: 'Item DB' },
+	{ href: '/mapdb/', label: 'Map DB' },
+	{ href: '/spelldb/', label: 'Spell DB' },
+	{ href: '/osrs/', label: 'OSRS' },
+];
+
+const communityLinks = [
+	{ href: '/discord', label: 'Discord' },
+	{ href: '/github', label: 'GitHub' },
+	{ href: '/chat', label: 'Chat' },
+	{ href: '/about', label: 'About' },
+	{ href: '/donate/', label: 'Donate' },
+	{ href: '/feature/', label: 'Features' },
+];
+
 const socials = SOCIALS;
 
 const currentYear = new Date().getFullYear();
@@ -98,6 +121,54 @@ const currentYear = new Date().getFullYear();
 						</a>
 					))
 				}
+			</nav>
+
+			<nav class="kf-nav" aria-labelledby="kf-arcade-heading">
+				<h6 id="kf-arcade-heading" class="kf-nav-title">Arcade</h6>
+				{
+					arcadeLinks.map((link) => (
+						<a
+							href={link.href}
+							class="kf-nav-link"
+							data-astro-prefetch>
+							{link.label}
+						</a>
+					))
+				}
+			</nav>
+
+			<nav class="kf-nav" aria-labelledby="kf-data-heading">
+				<h6 id="kf-data-heading" class="kf-nav-title">Databases</h6>
+				{
+					dataLinks.map((link) => (
+						<a
+							href={link.href}
+							class="kf-nav-link"
+							data-astro-prefetch>
+							{link.label}
+						</a>
+					))
+				}
+			</nav>
+
+			<nav
+				class="kf-nav kf-nav--wide"
+				aria-labelledby="kf-community-heading">
+				<h6 id="kf-community-heading" class="kf-nav-title">
+					Community
+				</h6>
+				<div class="kf-nav-columns">
+					{
+						communityLinks.map((link) => (
+							<a
+								href={link.href}
+								class="kf-nav-link"
+								data-astro-prefetch>
+								{link.label}
+							</a>
+						))
+					}
+				</div>
 			</nav>
 		</div>
 
@@ -236,6 +307,16 @@ const currentYear = new Date().getFullYear();
 		color: var(--sl-color-text-accent);
 	}
 
+	.kf-nav--wide {
+		grid-column: span 2;
+	}
+
+	.kf-nav-columns {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.625rem 1.5rem;
+	}
+
 	/* Bottom bar: copyright left, socials right */
 	.kf-bottom {
 		display: flex;
@@ -278,6 +359,10 @@ const currentYear = new Date().getFullYear();
 		}
 
 		.kf-brand {
+			grid-column: 1 / -1;
+		}
+
+		.kf-nav--wide {
 			grid-column: 1 / -1;
 		}
 
