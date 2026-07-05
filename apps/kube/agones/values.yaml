@@ -59,7 +59,6 @@ agones:
 gameservers:
     # Namespaces for game servers
     namespaces:
-        - ows
         - arc-runners
         - factorio
         - cryptothrone
