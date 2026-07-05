@@ -15,6 +15,7 @@ import {
 	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
+	BentoDocSchema,
 } from '@kbve/proto/ci_registry-schema';
 
 // Re-export generated types for downstream consumers
@@ -26,6 +27,7 @@ export {
 	KubeMetadataSchema,
 	TestFrameworkSchema,
 	TestFrameworks,
+	BentoDocSchema,
 };
 export type {
 	CiProject,
@@ -33,6 +35,15 @@ export type {
 	ExternalPublish,
 	KubeMetadata,
 	TestFrameworkValue,
+	BentoDoc,
+	BentoCta,
+	BentoAside,
+	BentoStat,
+	BentoFeature,
+	BentoRelated,
+	BentoUsage,
+	BentoFaq,
+	BentoTheme,
 } from '@kbve/proto/ci_registry-schema';
 
 // ---------------------------------------------------------------------------
@@ -85,6 +96,7 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
 	kube: KubeMetadataSchema.optional(),
+	bento: BentoDocSchema.optional(),
 });
 
 export type ICiProject = z.infer<typeof ICiProjectSchema>;

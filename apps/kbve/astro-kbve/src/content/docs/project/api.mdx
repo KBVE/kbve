@@ -24,6 +24,12 @@ has_test: true
 author: h0lybyte
 license: KBVE
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the KBVE API?
@@ -40,91 +46,186 @@ kube:
     criticality: high
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-## Information
+export const backdrop = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2400&auto=format&fit=crop';
 
-We will provide official documentation for the API, which will be based on the frameworks Supabase, Strapi, and Appwrite.
-This documentation will serve as the primary reference for our multi-tenant API, encompassing all general reference points.
-However, to facilitate the onboarding process for new developers, we aim to expand upon the existing reference material, enhancing clarity and accessibility.
-This approach will ensure that developers can efficiently understand and utilize the API, promoting a smoother integration experience.
+export const stats = [
+	{ label: 'axum-kbve', value: 'Rust', icon: 'M16 18 22 12 16 6M8 6 2 12 8 18' },
+	{ label: 'Shared surface', value: 'Multi-tenant', icon: 'M4 7V4h16v3M9 20h6M12 4v16' },
+	{ label: 'Auth + JWT', value: 'Supabase', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+	{ label: 'kbve namespace', value: 'Prod', icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3' },
+];
 
-<Aside type="note">
+export const pillars = [
+	{
+		title: 'Auth',
+		icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+		body: 'JWT is the key between the $User and the $API. The core auth mod ships register + login with generic defensive components baked in, then layers external security — rate limits and firewalls, some operating outside the API.',
+		points: [
+			'Cookie token — stores the client $User JWT.',
+			'Cookie user — stores the client $User data.',
+			'react-cookie maintains the cookie lifecycle.',
+			'Appwrite JWT held in a Nanostores session store.',
+		],
+	},
+	{
+		title: 'API Keys',
+		icon: 'M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4',
+		body: 'API keys are unique identifiers that authenticate requests without exposing user passwords — special passwords generated for the software, keeping credentials confidential while proving the caller is authorized.',
+		points: [
+			'v0 — current storage carries encryption risks slated for migration.',
+		],
+	},
+	{
+		title: 'Install',
+		icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z',
+		body: 'The current install pipeline is queued for migration. Front-end instances ship as applications or static pages, with occasional SSR / hybrid edge cases.',
+		points: [
+			'Proxmox → qEMU → Docker Swarm.',
+			'Portainer deploys the image.',
+			'v1 — see the Appwrite documentation for the next-gen path.',
+		],
+	},
+	{
+		title: 'Uptime',
+		icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+		body: 'Uptime is the heartbeat of the API. Consistent availability is monitored in real time; even minor downtime erodes trust. Handled today by ChecklyHQ, with a home-grown NodePy hourly checker planned down the line.',
+		points: [
+			'Checkly badge tracks response time + status.',
+			'Future — NodePy runs automated hourly test cases.',
+		],
+	},
+];
 
--   Official documentation will be provided for the API, which is written in [Rust](/application/rust/), [Python](/application/python/) and the database is in [SQL](/application/sql/).
--   This documentation will hold all the general reference points for the multi-tenet API, however we would need to expand upon the reference material and try to make it easier to onboard new developers.
+export const faqs = [
+	{
+		q: 'What is the KBVE API?',
+		a: 'The central multi-tenant API for KBVE projects, implemented as the axum-kbve Rust service. It exposes shared endpoints for auth and data, built on Supabase, with reference docs aimed at onboarding new developers.',
+	},
+	{
+		q: 'What technologies power it?',
+		a: 'Rust (axum-kbve) with Python tooling and a SQL database, building on Supabase, Strapi, and Appwrite as reference frameworks for the multi-tenant surface.',
+	},
+	{
+		q: 'How is it deployed?',
+		a: 'In production in the kbve namespace as the kbve/kbve image, deployed via apps/kube/kbve/manifest/kbve-deployment.yaml, with an axum-kbve-e2e suite gating releases.',
+	},
+];
 
-</Aside>
+export const related = [
+	{
+		href: '/docs/project/metrics',
+		title: 'Metrics',
+		copy: 'Observability service that captures telemetry across KBVE apps.',
+		icon: 'M3 3v18h18M7 14l4-4 4 4 5-5',
+	},
+	{
+		href: '/docs/project/cryptothrone',
+		title: 'CryptoThrone.com',
+		copy: 'Game backend built on the same axum stack.',
+		icon: 'M6 20h12M6 20l-2-9 5 3 3-7 3 7 5-3-2 9',
+	},
+];
 
-## Auth
+<div class="api" style={`--bento-hero-bg: url('${backdrop}')`} data-api-page>
 
--   Auth Journal
-    -   For the core of the API, we will use JWT as the `key` in between the $User and $API.
--   React JSX
+<section class="bento-hero bento-section not-content" aria-label="KBVE API">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18 22 12 16 6M8 6 2 12 8 18" /></svg>
+					<span>axum-kbve · multi-tenant</span>
+				</span>
+				<h1 class="bento-title">
+					The central
+					<span class="bento-title__accent">KBVE API</span>
+				</h1>
+				<p class="bento-lede">
+					A Rust / axum service with Supabase-backed auth and a SQL
+					database. One shared surface for every KBVE project —
+					built on Supabase, Strapi, and Appwrite as reference frameworks.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="https://github.com/kbve/kbve" target="_blank" rel="noopener noreferrer">
+						View on GitHub
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#pillars">Reference</a>
+					<a class="bento-btn bento-btn--ghost" href="#locker">Locker</a>
+				</div>
+			</div>
 
-    -   The first mod will be the core auth system between the client $User and server $API, which includes the register and login. While we build it out, we will include generic defensive components into the foundation, then re-visit and apply external security, such as limits and firewalls (some may operate outside of the API).
-        -   Cookie Storage (of the JWT)
-            -   Cookie - `token` - will store the client $User JWT.
-            -   Cookie - `user` - will store the client $User data.
-            -   Library: `react-cookie` will be used to help maintain the cookies.
+			<div class="bento-cell bento-hero-aside bento-card bento-card--glass">
+				<span class="bento-icon-tile api-note__icon">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16v-4M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z" /></svg>
+				</span>
+				<h2 class="bento-featurecard__title">Reference scope</h2>
+				<p class="bento-featurecard__body">
+					Written in <a href="/application/rust/">Rust</a> and <a href="/application/python/">Python</a>, database in <a href="/application/sql/">SQL</a>. Holds the general reference points for the multi-tenant API — expanding over time to make onboarding new developers easier.
+				</p>
+			</div>
 
--   For the Appwrite JWT, we will be holding it inside of a session store from Nanostores, at least as of right now.
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
 
-### API Keys
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#pillars">Reference</a>
+			<a class="bento-chip" href="#locker">Locker</a>
+			<a class="bento-chip" href="#faq">FAQ</a>
+			<a class="bento-chip" href="#related">Related</a>
+		</nav>
+	</div>
+</section>
 
-API keys serve as unique identifiers, allowing our application to communicate seamlessly with our servers.
-Rather than asking for a user's password— which can pose security risks— these keys authenticate requests by proving that the application making the request is authorized.
-Think of them as special passwords generated specifically for the software, ensuring secure data exchange while keeping user credentials confidential.
-By utilizing API keys, we prioritize both the user's privacy and the integrity of our platform.
+<BentoShell id="pillars" eyebrow="Reference" heading="Core building blocks">
+	<div class="bento-board bento-board--auto-wide">
+		{pillars.map((p) => (
+			<div class="bento-cell bento-featurecard bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={p.icon} /></svg>
+				</span>
+				<h3 class="bento-featurecard__title">{p.title}</h3>
+				<p class="bento-featurecard__body">{p.body}</p>
+				<ul class="bento-list">
+					{p.points.map((pt) => (
+						<li>{pt}</li>
+					))}
+				</ul>
+			</div>
+		))}
+	</div>
+</BentoShell>
 
-#### v0
-
-The current method of storage has a couple risks that we need to migrate, including the way the data is being encrypted within the storage of the database.
-
-### API Install Introduction
-
-In the dynamic world of software, where even a moment's downtime can make or break user trust, managing the API installation process is paramount. P
-resently, our journey starts at Proxmox, winds through qEMU, and culminates in Docker Swarm.
-From there, Portainer takes the baton to deploy the image.
-While most of our front-end instances proudly wear the labels of applications or static pages, there are those intriguing outliers - the edge cases where we might stumble upon SSR or hybrid applications.
-Let's dive deeper into this fascinating setup.
-
-The current API installation process needs to be migrated but it currently sits as this:
-
--   Proxmox -> qEMU -> Docker Swarm
--   Portainer -> Deploy Image
-
-With all front-end instances being either applications or static pages.
-There might be a couple edge cases where we have SSR or hybrids applications.
-
-### v1
-
-For v1, we would like you to look into the [Appwrite documentation](/application/appwrite/)
-
-### v0
-
-The following information below is for installing the older API, which was just a MariaDB cluster with Strapi.
-
-### Locker
-
-### Locker Information
-
-The locker will serve as a client-side storage for variables and data points that we do not need to `hit` the main server for!
-
-The current locker that we are using as of August 12th, 2023 is below, but if we need to extend it out further, we shall.
-
-### Locker
-
-The locker, aka a client-side storage, that allows web applications to store data directly in a user's browser, offering speed and offline accessibility.
-However, to ensure data integrity and security, locking mechanisms can be implemented, restricting unwanted or concurrent modifications.
-Think of it as a personal vault in your browser, where the combination is known only to trusted sources
+<BentoShell id="locker" eyebrow="Client-side storage" heading="The Locker">
+	<div class="bento-board api-locker">
+		<div class="bento-cell bento-featurecard bento-card bento-card--glass">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V7a4 4 0 0 1 8 0v4" /></svg>
+			</span>
+			<h3 class="bento-featurecard__title">A personal vault in the browser</h3>
+			<p class="bento-featurecard__body">
+				Client-side storage for variables and data points that never need to hit the main server — fast, offline-capable, with locking to guard against concurrent modification. Combination known only to trusted sources.
+			</p>
+			<ul class="bento-list">
+				<li>Managed with <a href="/application/javascript#nanostores">Nanostores</a>.</li>
+				<li>Optional AES encryption over stored values — planned for early next year.</li>
+				<li>In use since August 12th, 2023; extendable as needed.</li>
+			</ul>
+		</div>
+		<div class="bento-cell bento-card bento-card--glass api-code">
+			<span class="api-code__label">kbveLocker</span>
 
 ```typescript
 export type kbveLocker = {
@@ -140,54 +241,77 @@ export type kbveLocker = {
 };
 ```
 
-### Locker Storage
+		</div>
+	</div>
+</BentoShell>
 
-For the management of the locker storage on the client-side, we will be using [nanostores!](/application/javascript#nanostores).
-There is an option to extend AES encryption ontop of the stored values but that will be something that we can implement in the start of the next year.
+<BentoShell id="faq" eyebrow="Questions" heading="Frequently asked">
+	<div class="bento-board bento-board--auto-wide">
+		{faqs.map((f) => (
+			<div class="bento-cell bento-faqcard bento-card bento-card--glass bento-card--interactive">
+				<h3 class="bento-faqcard__q">{f.q}</h3>
+				<p class="bento-faqcard__a">{f.a}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
 
-### Uptime Notes
+<BentoShell id="related" eyebrow="Elsewhere" heading="While you're here">
+	<div class="bento-board bento-board--cols-2">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
 
-Uptime is the heartbeat of any API, indicating its reliability and performance in real-time.
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-Ensuring consistent availability is crucial, as even minor downtimes can impact user experience and trust.
+</div>
 
-Diving deep into the world of API uptime, this documentation equips you with the tools to vigilantly monitor and enhance your service's responsiveness.
-
--   ![API Uptime Badge](https://api.checklyhq.com/v1/badges/checks/206925a6-0f7b-4669-a4fd-b61b3f5b70fc?style=for-the-badge&theme=default&responseTime=true)
-
-The current uptime badge is handled by ChecklyHQ, however we could build out our own uptime management software down the line.
-This would be an interesting test case for the NodePy, having it automatically do test cases every hour.
-I will make an issue ticket when I feel like it would be time to set this up.
-
-**Goals**
-
-In the vast cosmos of software, APIs are the Jedi Masters, bridging the divide between different software galaxies.
-Like the Force in Star Wars, they bind and intertwine disparate systems, ensuring harmony in the digital universe.
-By sculpting robust and intuitive APIs, we're not just coding; we're forging lightsabers for the next generation of developers, ensuring the saga continues seamlessly.
-The API is an unique construct that extends outside of the normal universe, the net that holds the sky.
-
-## Discord.sh
-
-Starting this project next, leaving a basic note.
-
-## FAQ
-
-**What is the KBVE API?**
-The KBVE API is the central multi-tenant API for KBVE projects, implemented as the
-axum-kbve Rust service. It exposes shared endpoints for auth and data and is built
-on Supabase, with reference documentation aimed at onboarding new developers.
-
-**What technologies power the KBVE API?**
-The API is written in Rust (axum-kbve) with Python tooling and a SQL database, and
-it builds on Supabase, Strapi, and Appwrite as reference frameworks for the
-multi-tenant surface.
-
-**How is the KBVE API deployed?**
-It runs in production in the `kbve` namespace as the `kbve/kbve` image, deployed
-via `apps/kube/kbve/manifest/kbve-deployment.yaml`, with an `axum-kbve-e2e` test
-suite gating releases.
-
-## Related
-
-- [Metrics](/docs/project/metrics) — observability service that captures telemetry across KBVE apps.
-- [CryptoThrone.com](/docs/project/cryptothrone) — game backend built on the same axum stack.
+<style is:global>{`
+	.api {
+		--bento-accent: var(--sl-color-accent-high);
+		--bento-accent-2: #f0d47a;
+	}
+	.api .api-note__icon {
+		width: 2.25rem;
+		height: 2.25rem;
+		color: var(--bento-accent);
+	}
+	.api .api-locker {
+		grid-template-columns: 1fr 1.1fr;
+	}
+	.api .api-code {
+		justify-content: center;
+		gap: 0.5rem;
+	}
+	.api .api-code__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.api .api-code :global(pre) {
+		margin: 0;
+		border-radius: var(--bento-radius);
+	}
+	@media (max-width: 60rem) {
+		.api .api-locker {
+			grid-template-columns: 1fr;
+		}
+	}
+`}</style>

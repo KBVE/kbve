@@ -76,6 +76,17 @@ const protos = [
 		package: 'kbve.osrs',
 	},
 	{
+		name: 'bento',
+		protoFile: 'kbve/bento.proto',
+		package: 'kbve.bento',
+		vendorTo: [
+			{
+				path: '../../../apps/kbve/astro-kbve/src/data/schema/bento/generated.ts',
+				astroZod: true,
+			},
+		],
+	},
+	{
 		name: 'agents',
 		protoFile: 'kbve/agents.proto',
 		package: 'kbve.agents',
@@ -292,6 +303,12 @@ for (const proto of selected) {
 		let body = readFileSync(outputPath, 'utf8');
 		if (dest.denoZod) {
 			body = body.replace(/^import \{ z \} from 'zod';$/m, DENO_ZOD_IMPORT);
+		}
+		if (dest.astroZod) {
+			body = body.replace(
+				/^import \{ z \} from 'zod';$/m,
+				"import { z } from 'astro/zod';",
+			);
 		}
 		writeFileSync(destPath, body);
 		console.log(`    ↳ vendored → ${dest.path}`);

@@ -19,6 +19,12 @@ version_toml: packages/rust/bevy/bevy_statemachine/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What does the bevy_statemachine crate do?
@@ -27,68 +33,73 @@ jsonld:
           answer: Add StateSnapshotPlugin generic over your state type, then call get_snapshot to retrieve the latest snapshot, get_snapshot_json for a JSON string, or snapshot_version for the monotonic version counter.
         - question: What serialization formats does bevy_statemachine support?
           answer: The default serde feature provides JSON serialization via serde_json, and the optional bincode feature adds binary serialization for compact transport.
+bento:
+    badge: crates · rust · bevy
+    title: State snapshots for
+    accent: bevy_statemachine
+    lede: >-
+        A thread-safe state snapshot bridge for Bevy — expose ECS resources to
+        Tauri IPC, WASM JavaScript, and lightyear networking without racing the
+        schedule, as JSON or bincode.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_statemachine
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: shield-check
+        title: Read state without racing
+        body: >-
+            A running game's state can be read from outside the ECS world
+            without racing the schedule, exposed to <strong>Tauri IPC</strong>,
+            <strong>WASM JS</strong>, and <strong>lightyear</strong> networking.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Default format, value: JSON, icon: code }
+        - { label: Optional format, value: bincode, icon: package }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Thread-safe snapshot bridge
+          icon: shield-check
+          body: Exposes ECS state to external threads and consumers without blocking the Bevy schedule.
+        - title: Multiple consumers
+          icon: expand
+          body: Designed for Tauri IPC, WASM JavaScript, and lightyear networking off the same snapshot.
+        - title: Monotonic versioning
+          icon: clock
+          body: <code>snapshot_version::&lt;T&gt;()</code> returns a monotonic counter so consumers can detect fresh state cheaply.
+        - title: Dual serialization
+          icon: code
+          body: JSON via <code>serde_json</code> (default <code>serde</code> feature) and compact binary via the optional <code>bincode</code> feature.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy::prelude::*;
+            use bevy_statemachine::{StateSnapshotPlugin, get_snapshot, get_snapshot_json};
+
+            fn main() {
+                App::new()
+                    .add_plugins(StateSnapshotPlugin::<MyState>::new())
+                    .run();
+            }
+    related:
+        - title: bevy_db
+          href: /project/bevy-db-crate/
+          copy: Cross-platform async persistence for Bevy state.
+          icon: database
+        - title: bevy_supa
+          href: /project/bevy-supa-crate/
+          copy: Supabase-backed state sync for Bevy games.
+          icon: shield
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_statemachine` is a thread-safe state snapshot bridge for
-[Bevy](https://bevyengine.org/). It exposes ECS resources to external consumers —
-Tauri IPC, WASM JavaScript, and lightyear networking — so a running game's state
-can be read from outside the ECS world without racing the schedule. Snapshots are
-available as JSON or bincode.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_statemachine` |
-| **Version** | 0.1.0 |
-| **Language** | Rust (Bevy) |
-| **Serialization** | JSON (`serde`, default) + bincode (optional) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_statemachine`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_statemachine) |
-
-## Features
-
-- **Thread-safe snapshot bridge** — exposes ECS state to external threads and
-  consumers without blocking the Bevy schedule.
-- **Multiple consumers** — designed for Tauri IPC, WASM JavaScript, and lightyear
-  networking off the same snapshot.
-- **Monotonic versioning** — `snapshot_version::<T>()` returns a monotonic counter
-  so consumers can detect fresh state cheaply.
-- **Dual serialization** — JSON via `serde_json` (default `serde` feature) and
-  compact binary via the optional `bincode` feature.
-
-## Usage
-
-```rust
-use bevy::prelude::*;
-use bevy_statemachine::{StateSnapshotPlugin, get_snapshot, get_snapshot_json};
-
-fn main() {
-    App::new()
-        .add_plugins(StateSnapshotPlugin::<MyState>::new())
-        .run();
-}
-```
-
-## FAQ
-
-**What does the bevy_statemachine crate do?**
-It is a thread-safe state snapshot bridge for Bevy that exposes ECS resources to
-external consumers such as Tauri IPC, WASM JavaScript, and lightyear networking,
-with both JSON and bincode serialization.
-
-**How do you read a state snapshot from bevy_statemachine?**
-Add `StateSnapshotPlugin` generic over your state type, then call
-`get_snapshot::<T>()` for the latest snapshot, `get_snapshot_json::<T>()` for a
-JSON string, or `snapshot_version::<T>()` for the monotonic version counter.
-
-**What serialization formats does bevy_statemachine support?**
-The default `serde` feature provides JSON serialization via `serde_json`, and the
-optional `bincode` feature adds binary serialization for compact transport.
-
-## Related
-
-- [bevy_db](/project/bevy-db-crate/) — cross-platform async persistence for Bevy state.
-- [bevy_supa](/project/bevy-supa-crate/) — Supabase-backed state sync for Bevy games.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

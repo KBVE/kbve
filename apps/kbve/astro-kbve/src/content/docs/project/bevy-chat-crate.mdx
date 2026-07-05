@@ -21,6 +21,12 @@ version_toml: packages/rust/bevy/bevy_chat/version.toml
 author: h0lybyte
 license: MIT
 status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 jsonld:
     faq:
         - question: What is the bevy_chat crate?
@@ -29,69 +35,80 @@ jsonld:
           answer: The transport is selected at compile time via cfg(target_arch). Native builds use tokio TCP to an IRC server on port 6667, while WASM builds use web_sys::WebSocket against an IRC-over-WebSocket gateway such as wss://chat.kbve.com.
         - question: What optional features does bevy_chat offer?
           answer: The plugin feature adds a Bevy ChatPlugin that bridges IRC traffic into ECS events, and the ffi feature exposes a C-FFI surface for JNI and csbindgen consumers on native targets. The default build is the headless client with neither pulled in.
+bento:
+    badge: crates · rust · bevy
+    title: IRC chat bridge for
+    accent: bevy_chat
+    lede: >-
+        A headless async IRC client and event bridge for MUD and game clients —
+        one ChatClient API across native tokio TCP and WASM WebSocket transports,
+        with an optional Bevy plugin.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_chat
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Features
+          href: "#features"
+    aside:
+        icon: server
+        title: Dual transport, one API
+        body: >-
+            The same ChatClient surface runs on native and in the browser — the
+            transport is selected at compile time via <strong>cfg(target_arch)</strong>.
+        points:
+            - <strong>Native</strong> — tokio TCP to an IRC server on port 6667.
+            - <strong>WASM</strong> — web_sys::WebSocket against a gateway such as wss://chat.kbve.com.
+    stats:
+        - { label: Bevy crate, value: Rust, icon: rust }
+        - { label: Transport, value: Dual, icon: server }
+        - { label: Protocol, value: IRC, icon: message }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Dual transport, one API
+          icon: server
+          body: >-
+            Native builds use tokio TCP to IRC on port 6667; WASM builds use
+            web_sys::WebSocket against an IRC-over-WebSocket gateway
+            (wss://chat.kbve.com). Selected at compile time via cfg(target_arch).
+        - title: Identical public surface
+          icon: expand
+          body: >-
+            ChatClient, connect, send, and subscribe / drain_incoming behave the
+            same on both targets.
+        - title: Bevy plugin
+          icon: message
+          body: >-
+            Optional <strong>plugin</strong> feature — ChatPlugin bridges incoming
+            IRC traffic into ECS events for the isometric game.
+        - title: FFI surface
+          icon: code
+          body: >-
+            Optional <strong>ffi</strong> feature (native only) — a C-FFI layer for
+            JNI and csbindgen consumers.
+    usage:
+        label: main.rs
+        lang: rust
+        code: |
+            use bevy_chat::{ChatClient, IrcConfig};
+
+            let cfg = IrcConfig::default();
+            let client = ChatClient::connect(cfg).await?;
+    related:
+        - title: Bevy Cam Crate
+          href: /project/bevy-cam-crate
+          copy: Isometric camera crate for the same engine.
+          icon: video
+        - title: uevy skills
+          href: /project/bevy-skills-crate
+          copy: Skill progression crate that shares the Bevy plugin pattern.
+          icon: bolt
+    features_heading: Features
+    related_heading: Related crates
 ---
 
-## Overview
+import BentoDoc from '@/components/hero/BentoDoc.astro';
 
-`bevy_chat` is a headless async IRC client and event bridge for MUD and game
-clients. It provides a unified `ChatClient` API across native
-([tokio](https://tokio.rs/) TCP) and WASM (`web_sys::WebSocket`) targets, with an
-optional [Bevy](https://bevyengine.org/) plugin that bridges IRC traffic into ECS
-events. It is used by the KBVE Discord bot, the Lightyear server, and the
-in-browser isometric game.
-
-## Key facts
-
-| | |
-|---|---|
-| **Package** | `bevy_chat` |
-| **Language** | Rust (edition 2024) |
-| **License** | MIT |
-| **Source** | [`packages/rust/bevy/bevy_chat`](https://github.com/KBVE/kbve/tree/main/packages/rust/bevy/bevy_chat) |
-| **Categories** | game-development, network-programming |
-
-## Features
-
-- **Dual transport, one API** — native builds use tokio TCP to IRC on port 6667;
-  WASM builds use `web_sys::WebSocket` against an IRC-over-WebSocket gateway
-  (`wss://chat.kbve.com`). Selected at compile time via `cfg(target_arch)`.
-- **Identical public surface** — `ChatClient`, `connect`, `send`, and
-  `subscribe` / `drain_incoming` behave the same on both targets.
-- **Bevy plugin** *(optional `plugin` feature)* — `ChatPlugin` bridges incoming
-  IRC traffic into ECS events for the isometric game.
-- **FFI surface** *(optional `ffi` feature, native only)* — a C-FFI layer for
-  JNI and `csbindgen` consumers.
-
-## Usage
-
-```rust
-use bevy_chat::{ChatClient, IrcConfig};
-
-let cfg = IrcConfig::default();
-let client = ChatClient::connect(cfg).await?;
-```
-
-## FAQ
-
-**What is the bevy_chat crate?**
-bevy_chat is a headless async IRC client that bridges chat and events for MUD and
-game clients. It exposes an identical public API across native tokio TCP and WASM
-WebSocket targets, with an optional Bevy plugin that forwards IRC traffic into ECS
-events.
-
-**How does bevy_chat pick a transport?**
-The transport is selected at compile time via `cfg(target_arch)`. Native builds
-use tokio TCP to an IRC server on port 6667, while WASM builds use
-`web_sys::WebSocket` against an IRC-over-WebSocket gateway such as
-`wss://chat.kbve.com`.
-
-**What optional features does bevy_chat offer?**
-The `plugin` feature adds a Bevy `ChatPlugin` that bridges IRC traffic into ECS
-events, and the `ffi` feature exposes a C-FFI surface for JNI and `csbindgen`
-consumers on native targets. The default build is the headless client with
-neither pulled in.
-
-## Related
-
-- [Bevy Cam Crate](/docs/project/bevy-cam-crate) — isometric camera crate for the same engine.
-- [uevy skills](/docs/project/bevy-skills-crate) — skill progression crate that shares the Bevy plugin pattern.
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />
