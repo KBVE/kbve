@@ -44,30 +44,6 @@ const {
 		align-items: center;
 		gap: 0.625rem;
 		padding: 0.625rem 0.875rem;
-		border-radius: 0.625rem;
-		background-color: var(--sl-color-black);
-		border: 1px solid
-			color-mix(in srgb, var(--sl-color-white) 12%, transparent);
-		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-		transition:
-			border-color 300ms ease,
-			box-shadow 300ms ease;
-	}
-
-	.bento-flow :global(.bento-flow-node__icon) {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 0.5rem;
-		color: var(--sl-color-gray-3);
-		background-color: color-mix(
-			in srgb,
-			var(--sl-color-white) 6%,
-			transparent
-		);
-		transition: color 300ms ease;
 	}
 
 	.bento-flow :global(.bento-flow-node__text) {
@@ -104,10 +80,7 @@ const {
 
 	.bento-flow :global(.bento-flow-node--active .bento-flow-node) {
 		border-color: var(--sl-color-accent-high);
-		box-shadow:
-			0 8px 20px rgba(0, 0, 0, 0.3),
-			0 0 16px
-				color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
+		box-shadow: var(--bento-shadow), var(--bento-glow);
 	}
 
 	.bento-flow :global(.bento-flow-node--active .bento-flow-node__icon) {
@@ -124,17 +97,13 @@ const {
 		left: 1rem;
 		z-index: 10;
 		padding: 0.25rem 0.625rem;
-		border-radius: 9999px;
 		font-size: 0.625rem;
 		letter-spacing: 0.04em;
-		color: var(--sl-color-gray-3);
 		background-color: color-mix(
 			in srgb,
 			var(--sl-color-black) 72%,
 			transparent
 		);
-		border: 1px solid
-			color-mix(in srgb, var(--sl-color-white) 10%, transparent);
 		backdrop-filter: blur(8px);
 		pointer-events: none;
 	}

@@ -3,6 +3,7 @@
 @import '@astrojs/starlight-tailwind';
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
+@import './bento.css';
 
 /* ── Auth-gated sidebar: hide links until auth state resolves ── */
 /* Links and group labels with data-auth-visibility are hidden by default */

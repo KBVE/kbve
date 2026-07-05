@@ -37,14 +37,14 @@ type PipelineNode = Node<PipelineData, 'pipeline'>;
 function PipelineNodeView({ data }: NodeProps<PipelineNode>) {
 	return (
 		<div
-			className="bento-flow-node"
+			className="bento-flow-node bento-card"
 			data-accent={data.accent ? '' : undefined}>
 			<Handle
 				type="target"
 				position={Position.Left}
 				style={{ opacity: 0, pointerEvents: 'none' }}
 			/>
-			<span className="bento-flow-node__icon">
+			<span className="bento-flow-node__icon bento-icon-tile">
 				<svg
 					viewBox="0 0 24 24"
 					width="16"
@@ -271,7 +271,7 @@ export default function BentoFlowIsland() {
 	return (
 		<div ref={wrapRef} style={{ width: '100%', height: '100%' }}>
 			{cargo && (
-				<div className="bento-flow__ticker">
+				<div className="bento-flow__ticker bento-chip">
 					shipping <strong>{cargo}</strong>
 				</div>
 			)}

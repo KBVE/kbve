@@ -75,7 +75,7 @@ const chips = [
 		nodes.map((node) => (
 			<button
 				type="button"
-				class="meta-rail__node"
+				class="meta-rail__node bento-card bento-card--interactive"
 				data-meta-node
 				data-meta-key={node.key}
 				data-meta-anchor={node.anchor}
@@ -85,7 +85,7 @@ const chips = [
 				}
 				tabindex="-1"
 				title={node.label}>
-				<span class="meta-rail__icon">
+				<span class="meta-rail__icon bento-icon-tile">
 					<svg
 						viewBox="0 0 24 24"
 						width="15"
@@ -108,7 +108,7 @@ const chips = [
 	{
 		chips.map((chip) => (
 			<span
-				class="meta-rail__chip"
+				class="meta-rail__chip bento-chip"
 				data-meta-chip
 				data-meta-from={chip.from}
 				data-meta-to={chip.to}
@@ -204,45 +204,14 @@ const chips = [
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		border: 1px solid
-			color-mix(in srgb, var(--sl-color-white) 12%, transparent);
-		border-radius: 0.625rem;
-		background-color: var(--sl-color-black);
-		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 		cursor: pointer;
 		pointer-events: auto;
 		transform: translate(-50%, -50%);
-		transition:
-			border-color 220ms ease,
-			box-shadow 220ms ease;
-	}
-
-	.meta-rail__node:hover {
-		border-color: var(--sl-color-accent-high);
-		box-shadow:
-			0 8px 20px rgba(0, 0, 0, 0.3),
-			0 0 16px
-				color-mix(in srgb, var(--sl-color-accent-high) 30%, transparent);
 	}
 
 	.meta-rail__icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
 		width: 26px;
 		height: 26px;
-		border-radius: 0.5rem;
-		color: var(--sl-color-gray-3);
-		background-color: color-mix(
-			in srgb,
-			var(--sl-color-white) 6%,
-			transparent
-		);
-		transition: color 220ms ease;
-	}
-
-	.meta-rail__node:hover .meta-rail__icon {
-		color: var(--sl-color-accent-high);
 	}
 
 	.meta-rail__text {
@@ -269,25 +238,8 @@ const chips = [
 
 	.meta-rail__chip {
 		position: absolute;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3125rem;
-		padding: 0.25rem 0.5rem;
-		border-radius: 9999px;
-		font-size: 0.5625rem;
-		font-weight: 500;
-		letter-spacing: 0.03em;
-		line-height: 1.2;
-		white-space: nowrap;
-		color: var(--sl-color-gray-3);
-		background-color: var(--sl-color-black);
-		border: 1px solid
-			color-mix(in srgb, var(--sl-color-white) 10%, transparent);
 		transform: translate(-50%, -50%);
 		pointer-events: auto;
-		transition:
-			color 220ms ease,
-			border-color 220ms ease;
 	}
 
 	.meta-rail__chip-icon {
