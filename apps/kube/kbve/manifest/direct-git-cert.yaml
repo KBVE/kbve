@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: direct-git-tls
+    namespace: kbve
+spec:
+    secretName: direct-git-tls
+    issuerRef:
+        name: letsencrypt-dns
+        kind: ClusterIssuer
+        group: cert-manager.io
+    commonName: direct.git.kbve.com
+    dnsNames:
+        - direct.git.kbve.com
+    duration: 2160h
+    renewBefore: 720h
+    privateKey:
+        algorithm: ECDSA
+        size: 256

@@ -11,6 +11,7 @@ metadata:
         kbve.com/schema-version: 'v1'
         kbve.com/category: 'application'
         kbve.com/stack: 'core'
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:

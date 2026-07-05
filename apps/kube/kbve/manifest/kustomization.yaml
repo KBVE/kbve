@@ -14,6 +14,7 @@ resources:
     - vibeshine-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
     - kbve-wt-cert.yaml
+    - direct-git-cert.yaml
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
