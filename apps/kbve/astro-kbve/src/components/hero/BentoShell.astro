@@ -2,12 +2,13 @@
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	id?: string;
 }
 
-const { eyebrow, heading } = Astro.props;
+const { eyebrow, heading, id } = Astro.props;
 ---
 
-<section class="bento-shell bento-section not-content">
+<section {id} class="bento-shell bento-section not-content">
 	<div class="bento-shell__inner bento-frame">
 		{
 			(eyebrow || heading) && (

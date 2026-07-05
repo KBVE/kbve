@@ -166,6 +166,12 @@ const pipelines = [
 		display: none;
 	}
 
+	@media (max-width: 639.98px) {
+		.bento-showcase__panel {
+			overscroll-behavior: auto;
+		}
+	}
+
 	.bento-showcase__panel[data-active] {
 		display: block;
 		animation: showcase-in 260ms cubic-bezier(0.25, 1, 0.5, 1);
