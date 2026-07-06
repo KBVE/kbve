@@ -261,6 +261,56 @@ pub fn tick_duels(
     }
 }
 
+/// Indices of human sides whose slot is no longer connected.
+pub fn stale_human_sides(duel: &Duel, connected: impl Fn(u16) -> bool) -> Vec<usize> {
+    duel.sides
+        .iter()
+        .enumerate()
+        .filter_map(|(i, s)| match s {
+            DuelSide::Human { slot } if !connected(*slot) => Some(i),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Forfeit any duel with a disconnected human side, streaming the win to a
+/// surviving human opponent (PvP) and freeing the trainer (PvE has none).
+pub fn cleanup_stale_duels(
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+    spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
+    mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    mut commands: bevy::prelude::Commands,
+) {
+    let ids: Vec<u32> = duels.by_id.keys().copied().collect();
+    for id in ids {
+        let Some(duel) = duels.by_id.get_mut(&id) else {
+            continue;
+        };
+        let stale = stale_human_sides(duel, |slot| spawned.by_slot.contains_key(&slot));
+        if stale.is_empty() {
+            continue;
+        }
+        forfeit(duel, stale[0]);
+        let events = vec![game::info_event("Your opponent left — you win!".into())];
+        let survivors: Vec<usize> = duel
+            .sides
+            .iter()
+            .enumerate()
+            .filter_map(|(i, s)| match s {
+                DuelSide::Human { slot } if spawned.by_slot.contains_key(slot) => Some(i),
+                _ => None,
+            })
+            .collect();
+        for idx in survivors {
+            if let DuelSide::Human { slot } = duel.sides[idx] {
+                let view = viewer_view(duel, idx, &events);
+                game::send_battle_view(&bcast, simgrid::proto::PlayerSlot(slot), &view);
+            }
+        }
+        finish_duel(&mut duels, id, &mut commands);
+    }
+}
+
 /// The named side gives up: the other side wins immediately.
 #[allow(dead_code)]
 pub fn forfeit(duel: &mut Duel, loser_idx: usize) {
@@ -444,6 +494,16 @@ mod tests {
         let combatant = combatant_from_snapshot(&snap).expect("combatant");
         assert_eq!(combatant.hp, max_hp);
         assert!(combatant.max_hp > 1);
+    }
+
+    #[test]
+    fn stale_human_side_forfeits_duel() {
+        let mut d = pve_duel();
+        let connected: std::collections::HashSet<u16> = std::collections::HashSet::new();
+        let stale = stale_human_sides(&d, |slot| connected.contains(&slot));
+        assert_eq!(stale, vec![0]);
+        forfeit(&mut d, stale[0]);
+        assert_eq!(d.state.outcome, simgrid::BattleOutcome::PlayerLost);
     }
 
     #[test]
