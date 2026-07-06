@@ -12,7 +12,7 @@
 		"@astrojs/react": "^6.0.0",
 		"@astrojs/rss": "^4.0.18",
 		"@astrojs/sitemap": "^3.7.3",
-		"@astrojs/starlight": "^0.41.1",
+		"@astrojs/starlight": "^0.41.3",
 		"@astrojs/starlight-tailwind": "^5.0.0",
 		"@astrojs/ts-plugin": "^1.10.9",
 		"@axe-core/playwright": "^4.10.2",
