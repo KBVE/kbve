@@ -809,8 +809,17 @@ pub(crate) fn move_options(c: &simgrid::Combatant) -> Vec<simgrid::proto::PetMov
 pub(crate) fn battle_view(
     state: &simgrid::BattleState,
     events: Vec<simgrid::proto::PetBattleWireEvent>,
+    deadline_ms: u32,
+    opponent: &str,
 ) -> simgrid::proto::PetBattleState {
     let ongoing = state.outcome == simgrid::BattleOutcome::Ongoing;
+    let phase = if !ongoing {
+        "over"
+    } else if state.needs_replacement(simgrid::Side::Player) {
+        "replace"
+    } else {
+        "action"
+    };
     simgrid::proto::PetBattleState {
         player: battlers(&state.player.team),
         enemy: battlers(&state.enemy.team),
@@ -825,9 +834,9 @@ pub(crate) fn battle_view(
         outcome: outcome_name(state.outcome).to_string(),
         awaiting: ongoing,
         can_run: ongoing,
-        phase: String::new(),
-        deadline_ms: 0,
-        opponent: String::new(),
+        phase: phase.to_string(),
+        deadline_ms,
+        opponent: opponent.to_string(),
     }
 }
 
@@ -864,6 +873,7 @@ pub fn apply_pet_battles(
     clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetBattles>,
     mut duels: ResMut<crate::duel::ActiveDuels>,
+    spawned: Res<simgrid::SpawnedSlots>,
     bank: simgrid::PetBank,
     players: Query<(&simgrid::PlayerSlotTag, &simgrid::PetRoster)>,
 ) {
@@ -887,10 +897,15 @@ pub fn apply_pet_battles(
         }
         let root = simgrid::rng::mix32(&[0x5E7B_A77E, slot.0 as u32, clock.tick]);
         let state = simgrid::BattleState::versus(root, team, mechamutt_team(species));
+        let name = spawned
+            .by_slot
+            .get(&slot.0)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
         let duel = crate::duel::Duel {
             state,
             sides: [
-                crate::duel::DuelSide::Human { slot: slot.0 },
+                crate::duel::DuelSide::Human { slot: slot.0, name },
                 crate::duel::DuelSide::Npc {
                     trainer: None,
                     name: "Training Bot".into(),
@@ -904,7 +919,7 @@ pub fn apply_pet_battles(
             "A trainer battle begins — choose your move!".into(),
         )];
         let id = duels.create(duel);
-        crate::duel::stream_duel_views(&bcast, &duels.by_id[&id], &opening);
+        crate::duel::stream_duel_views(&bcast, &duels.by_id[&id], &opening, clock.tick);
     }
 }
 
@@ -963,7 +978,7 @@ pub fn apply_pet_turns(
             ));
         }
         let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
-        crate::duel::stream_duel_views(&bcast, duel, &events);
+        crate::duel::stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
             crate::duel::finish_duel(&mut duels, id, &mut commands);
         }
