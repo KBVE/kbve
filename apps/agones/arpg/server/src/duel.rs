@@ -192,7 +192,6 @@ pub fn try_resolve(duel: &mut Duel, now_tick: u32) -> Option<Vec<simgrid::Battle
 
 /// Deadline enforcement: auto-commit a Dumb action for every idle human (or force
 /// their pending replacement to the first living reserve), then resolve.
-#[allow(dead_code)]
 pub fn force_deadline(duel: &mut Duel, now_tick: u32) -> Option<Vec<simgrid::BattleEvent>> {
     if now_tick < duel.deadline_tick || duel.state.outcome != simgrid::BattleOutcome::Ongoing {
         return None;
@@ -228,6 +227,38 @@ pub fn force_deadline(duel: &mut Duel, now_tick: u32) -> Option<Vec<simgrid::Bat
     }
     npc_commit(duel);
     try_resolve(duel, now_tick)
+}
+
+/// Force-resolve any duel past its turn deadline and stream the result; removes
+/// duels that finish as a consequence.
+pub fn tick_duels(
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
+    mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    mut commands: bevy::prelude::Commands,
+) {
+    let ids: Vec<u32> = duels.by_id.keys().copied().collect();
+    for id in ids {
+        let Some(duel) = duels.by_id.get_mut(&id) else {
+            continue;
+        };
+        let Some(raw) = force_deadline(duel, clock.tick) else {
+            continue;
+        };
+        let mut events: Vec<_> = raw
+            .iter()
+            .filter(|e| !matches!(e, simgrid::BattleEvent::Outcome(_)))
+            .map(game::wire_event)
+            .collect();
+        events.push(game::info_event(
+            "Time's up — a move was chosen for you.".into(),
+        ));
+        let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
+        stream_duel_views(&bcast, duel, &events);
+        if resolved {
+            finish_duel(&mut duels, id, &mut commands);
+        }
+    }
 }
 
 /// The named side gives up: the other side wins immediately.
@@ -366,6 +397,14 @@ mod tests {
                 .any(|e| matches!(e, simgrid::BattleEvent::SwapIn { .. }))
         );
         assert!(!d.state.needs_replacement(simgrid::Side::Player));
+    }
+
+    #[test]
+    fn finished_duel_ignores_deadline() {
+        let mut d = pve_duel();
+        d.state.outcome = simgrid::BattleOutcome::PlayerWon;
+        d.deadline_tick = 0;
+        assert!(force_deadline(&mut d, 100).is_none());
     }
 
     #[test]

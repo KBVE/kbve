@@ -139,11 +139,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         // Interactive pet battles: `apply_pet_battles` starts a battle (debug button) and
         // `apply_pet_turns` advances the live one by the player's committed action. Both run
-        // after inputs are routed; chained so a start + first turn in one frame order right.
+        // after inputs are routed; `tick_duels` force-resolves any duel past its turn
+        // deadline; chained so a start + first turn + timeout land in frame order.
         app.insert_resource(duel::ActiveDuels::default());
         app.add_systems(
             bevy::prelude::Update,
-            (game::apply_pet_battles, game::apply_pet_turns)
+            (
+                game::apply_pet_battles,
+                game::apply_pet_turns,
+                duel::tick_duels,
+            )
                 .chain()
                 .after(simgrid::SimSet::Input),
         );
