@@ -193,6 +193,9 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 		w.variant(32);
 		w.u8(inp.PetTurn.action);
 		w.u8(inp.PetTurn.arg);
+	} else if ('ChallengeNpc' in inp) {
+		w.variant(33);
+		w.u32(inp.ChallengeNpc.npc);
 	}
 }
 

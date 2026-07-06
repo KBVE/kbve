@@ -276,6 +276,12 @@ pub enum Input {
         action: u8,
         arg: u8,
     },
+    /// Challenge a world trainer NPC to a pet duel. The server validates range and
+    /// that the trainer is not already dueling. Appended last so serde variant
+    /// indices of the existing inputs are unchanged.
+    ChallengeNpc {
+        npc: EntityId,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -1066,6 +1072,15 @@ mod tests {
         let back: PickupEvent = decode_inner(&bytes).expect("decode");
         assert_eq!(back.item_ref, "arrow");
         assert_eq!(back.count, 3);
+    }
+
+    #[test]
+    fn challenge_npc_input_roundtrips() {
+        let input = Input::ChallengeNpc { npc: EntityId(42) };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 33);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(decoded, Input::ChallengeNpc { npc: EntityId(42) }));
     }
 
     // Cross-language wire lock for the pet-battle replay: the TS decodePetBattleReplay
