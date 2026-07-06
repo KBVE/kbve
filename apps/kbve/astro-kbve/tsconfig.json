@@ -33,6 +33,9 @@
 			"@kbve/rn": ["../../../packages/npm/rn/src/index.web.ts"],
 			"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
 			"@kbve/rn/dash": ["../../../packages/npm/rn/src/dash/index.ts"],
+			"@kbve/rn/account": [
+				"../../../packages/npm/rn/src/account/index.ts"
+			],
 			"@kbve/rn-astro": ["../../../packages/npm/rn-astro/src/index.ts"],
 			"@kbve/rn-astro/integration": [
 				"../../../packages/npm/rn-astro/src/integration.ts"
