@@ -109,11 +109,151 @@ pub fn finish_duel(duels: &mut ActiveDuels, id: u32, commands: &mut bevy::prelud
 }
 
 #[derive(bevy::prelude::Component)]
-#[allow(dead_code)]
 pub struct Trainer(pub usize);
 
 #[derive(bevy::prelude::Component)]
 pub struct TrainerBusy;
+
+pub const TRAINER_REF: &str = "trainer";
+const CHALLENGE_RANGE: i32 = 2;
+
+pub struct TrainerDef {
+    pub name: &'static str,
+    pub team: &'static [(&'static str, u32)],
+    pub difficulty: simgrid::AiDifficulty,
+}
+
+pub const TRAINERS: &[TrainerDef] = &[TrainerDef {
+    name: "Tamer Bryn",
+    team: &[("mechamutt", 42), ("mechamutt", 48), ("mechamutt", 55)],
+    difficulty: simgrid::AiDifficulty::Tactician,
+}];
+
+/// Mint a trainer's authored team as fresh battle combatants.
+pub fn trainer_team(def: &TrainerDef) -> Vec<simgrid::Combatant> {
+    def.team
+        .iter()
+        .filter_map(|(species_ref, level)| {
+            let species = game::NPC_DB.get(species_ref)?;
+            simgrid::mint_pet_from_species(species, *level)
+                .map(|snap| simgrid::Combatant::from_pet(&snap, species))
+        })
+        .collect()
+}
+
+/// Chebyshev walk-up range a player must be within to challenge a trainer.
+pub fn within_challenge_range(a: simgrid::proto::Tile, b: simgrid::proto::Tile) -> bool {
+    (a.x - b.x).abs() <= CHALLENGE_RANGE && (a.y - b.y).abs() <= CHALLENGE_RANGE
+}
+
+/// Spawn every authored `TrainerDef` on the ground floor near the player spawn,
+/// tagged with its `Trainer` index so a challenge resolves back to its team.
+pub fn spawn_trainers(
+    registry: &simgrid::KindRegistry,
+    spawn: simgrid::proto::Tile,
+    commands: &mut bevy::prelude::Commands,
+) {
+    let Some(kind) = registry.kind_of(TRAINER_REF) else {
+        return;
+    };
+    for (i, _def) in TRAINERS.iter().enumerate() {
+        let tile = simgrid::proto::Tile::new(spawn.x + 6 + (i as i32) * 3, spawn.y + 2);
+        let spec = simgrid::NpcSpec {
+            kind,
+            origin: tile,
+            floor: game::SPAWN_FLOOR,
+            ticks_per_tile: 8,
+            max_hp: 50,
+            level: 1,
+            defense: 0,
+            wander: None,
+            roam: None,
+            aggro: None,
+            loot: None,
+            respawn_ticks: 0,
+            float_steer: false,
+            move_profile: None,
+        };
+        let e = simgrid::spawn_npc_from_spec(commands, &spec);
+        commands.entity(e).insert(Trainer(i));
+    }
+}
+
+/// Consume walk-up NPC challenges: validates the trainer exists, is free, and
+/// the challenger is in range, then starts a PvE duel and busies the trainer.
+#[allow(clippy::too_many_arguments)]
+pub fn apply_npc_challenges(
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
+    mut pending: bevy::prelude::ResMut<simgrid::PendingNpcChallenges>,
+    mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    index: bevy::prelude::Res<simgrid::EidIndex>,
+    bank: simgrid::PetBank,
+    trainers: bevy::prelude::Query<(&Trainer, &simgrid::GridPos, Option<&TrainerBusy>)>,
+    players: bevy::prelude::Query<(
+        &simgrid::PlayerSlotTag,
+        &simgrid::GridPos,
+        Option<&simgrid::PetRoster>,
+    )>,
+    mut commands: bevy::prelude::Commands,
+) {
+    if pending.0.is_empty() {
+        return;
+    }
+    for (slot, npc) in std::mem::take(&mut pending.0) {
+        if duels.by_slot.contains_key(&slot.0) {
+            continue;
+        }
+        let Some(&trainer_entity) = index.by_eid.get(&npc.0) else {
+            continue;
+        };
+        let Ok((trainer, trainer_pos, busy)) = trainers.get(trainer_entity) else {
+            continue;
+        };
+        if busy.is_some() {
+            continue;
+        }
+        let Some((_, player_pos, roster)) = players.iter().find(|(tag, _, _)| tag.0 == slot) else {
+            continue;
+        };
+        if !within_challenge_range(player_pos.tile, trainer_pos.tile) {
+            continue;
+        }
+        let def = &TRAINERS[trainer.0];
+        let enemy = trainer_team(def);
+        if enemy.is_empty() {
+            continue;
+        }
+        let mut team = roster.map(|r| roster_team(&bank, r)).unwrap_or_default();
+        if team.is_empty() {
+            let Some(species) = game::NPC_DB.get(game::MECHAMUTT_REF) else {
+                continue;
+            };
+            team = game::mechamutt_team(species);
+        }
+        let root = simgrid::rng::mix32(&[0xD0E1_5EED, slot.0 as u32, clock.tick]);
+        let duel = Duel {
+            state: simgrid::BattleState::versus(root, team, enemy),
+            sides: [
+                DuelSide::Human { slot: slot.0 },
+                DuelSide::Npc {
+                    trainer: Some(trainer_entity),
+                    name: def.name.into(),
+                    difficulty: def.difficulty,
+                },
+            ],
+            committed: [None, None],
+            deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
+        };
+        commands.entity(trainer_entity).insert(TrainerBusy);
+        let opening = vec![game::info_event(format!(
+            "{} challenges you to a pet duel!",
+            def.name
+        ))];
+        let id = duels.create(duel);
+        stream_duel_views(&bcast, &duels.by_id[&id], &opening);
+    }
+}
 
 /// Map a duel side index (0/1) onto the engine's `Side`.
 pub fn engine_side(idx: usize) -> simgrid::Side {
@@ -519,5 +659,21 @@ mod tests {
         };
         let v1 = viewer_view(&d, 1, &[ev]);
         assert_eq!(v1.events[0].side, 0);
+    }
+
+    #[test]
+    fn trainer_team_minted_at_def_levels() {
+        let def = &TRAINERS[0];
+        let team = trainer_team(def);
+        assert_eq!(team.len(), def.team.len());
+        assert_eq!(team[0].level, def.team[0].1);
+        assert!(team.iter().all(|c| c.hp == c.max_hp && c.hp > 0));
+    }
+
+    #[test]
+    fn challenge_range_check() {
+        use simgrid::proto::Tile;
+        assert!(within_challenge_range(Tile::new(5, 5), Tile::new(7, 5)));
+        assert!(!within_challenge_range(Tile::new(5, 5), Tile::new(8, 5)));
     }
 }

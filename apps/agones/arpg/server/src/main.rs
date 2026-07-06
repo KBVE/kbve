@@ -146,6 +146,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.add_systems(
             bevy::prelude::Update,
             (
+                duel::apply_npc_challenges,
                 game::apply_pet_battles,
                 game::apply_pet_turns,
                 duel::tick_duels,

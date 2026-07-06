@@ -1041,7 +1041,7 @@ pub fn ground_item_bundle_stack(
     ))
 }
 
-pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
+pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) -> Entity {
     let mut e = commands.spawn((
         EntityKind(spec.kind),
         GridPos::at(spec.origin),
@@ -1091,6 +1091,7 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
     if spec.floor != 0 {
         e.insert(Floor(spec.floor));
     }
+    e.id()
 }
 
 /// A placed environment object (campfire, wall, …). `def_ref` is its itemdb ref

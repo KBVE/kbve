@@ -292,6 +292,7 @@ pub fn registry() -> KindRegistry {
     reg.register_env(CORPSE_REF);
     reg.register_env(simgrid::TREE_REF);
     reg.register_env(simgrid::BUSH_REF);
+    reg.register_npc(crate::duel::TRAINER_REF);
     reg
 }
 
@@ -1115,6 +1116,7 @@ pub fn spawn_world(
 
     // Starter loot/key/potions sit on the grass surface near the player spawn.
     let spawn = player_spawn();
+    crate::duel::spawn_trainers(&registry, spawn, &mut commands);
     // One starter loot pile near spawn.
     let coin = floor_near(Tile::new(spawn.x + 2, spawn.y + 1));
     if let Some(bundle) = ground_item_bundle(&registry, GOBLIN_LOOT_REF, 5, coin) {
