@@ -440,6 +440,7 @@ const MECHAMUTT_REF: &str = "mechamutt";
 const PET_TEAM_SIZE: usize = 5;
 const PET_TEAM_LEVEL: u32 = 50;
 const BATTLE_TURN_CAP: u32 = 300;
+const AI_STREAM: u32 = 0xA1;
 
 /// Build a team of `PET_TEAM_SIZE` mechamutt battlers at `PET_TEAM_LEVEL`.
 fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
@@ -449,27 +450,6 @@ fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
                 .map(|snap| simgrid::Combatant::from_pet(&snap, species))
         })
         .collect()
-}
-
-/// Greedy battle AI: swap to the first living reserve if the active fainted, else use
-/// the strongest damaging move that still has PP (falling back to any PP move).
-fn ai_action(side: &simgrid::BattleSide) -> simgrid::BattleAction {
-    let active = side.active();
-    if !active.is_alive()
-        && let Some(i) = side.team.iter().position(simgrid::Combatant::is_alive)
-    {
-        return simgrid::BattleAction::Swap { to: i };
-    }
-    let slot = active
-        .moves
-        .iter()
-        .enumerate()
-        .filter(|(_, m)| m.pp > 0 && m.data.power > 0)
-        .max_by_key(|(_, m)| m.data.power)
-        .map(|(i, _)| i)
-        .or_else(|| active.moves.iter().position(|m| m.pp > 0))
-        .unwrap_or(0);
-    simgrid::BattleAction::Move { slot }
 }
 
 #[allow(dead_code)]
@@ -707,9 +687,29 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
         PET_TEAM_SIZE, PET_TEAM_SIZE, PET_TEAM_LEVEL
     ))];
     while state.outcome == simgrid::BattleOutcome::Ongoing && state.turn < BATTLE_TURN_CAP {
-        let pa = ai_action(&state.player);
-        let ea = ai_action(&state.enemy);
         let turn = state.turn + 1;
+        let mut player_rng = simgrid::rng::stream(
+            state.root,
+            simgrid::rng::domain::PETBATTLE,
+            &[turn, AI_STREAM, 0],
+        );
+        let mut enemy_rng = simgrid::rng::stream(
+            state.root,
+            simgrid::rng::domain::PETBATTLE,
+            &[turn, AI_STREAM, 1],
+        );
+        let pa = simgrid::choose_action(
+            &state,
+            simgrid::Side::Player,
+            simgrid::AiDifficulty::Greedy,
+            &mut player_rng,
+        );
+        let ea = simgrid::choose_action(
+            &state,
+            simgrid::Side::Enemy,
+            simgrid::AiDifficulty::Greedy,
+            &mut enemy_rng,
+        );
         events.push(simgrid::proto::PetBattleWireEvent {
             kind: simgrid::proto::PB_TURN,
             side: 0,
@@ -899,13 +899,50 @@ pub fn apply_pet_turns(
         let Some(pa) = player_action(action, arg) else {
             continue;
         };
-        let ea = ai_action(&state.enemy);
-        let events: Vec<_> = state
-            .resolve_turn(pa, ea)
+        let raw = if state.needs_replacement(simgrid::Side::Player) {
+            match pa {
+                simgrid::BattleAction::Swap { to } => {
+                    state.resolve_replacement(simgrid::Side::Player, to)
+                }
+                _ => Vec::new(),
+            }
+        } else {
+            let mut ai_rng = simgrid::rng::stream(
+                state.root,
+                simgrid::rng::domain::PETBATTLE,
+                &[state.turn, AI_STREAM],
+            );
+            let ea = simgrid::choose_action(
+                state,
+                simgrid::Side::Enemy,
+                simgrid::AiDifficulty::Greedy,
+                &mut ai_rng,
+            );
+            state.resolve_turn(pa, ea)
+        };
+        let mut events: Vec<_> = raw
             .iter()
             .filter(|e| !matches!(e, simgrid::BattleEvent::Outcome(_)))
             .map(wire_event)
             .collect();
+        if state.needs_replacement(simgrid::Side::Enemy) {
+            let to = simgrid::choose_replacement(
+                state,
+                simgrid::Side::Enemy,
+                simgrid::AiDifficulty::Greedy,
+            );
+            events.extend(
+                state
+                    .resolve_replacement(simgrid::Side::Enemy, to)
+                    .iter()
+                    .map(wire_event),
+            );
+        }
+        if state.needs_replacement(simgrid::Side::Player) {
+            events.push(info_event(
+                "Your pet fainted — choose a replacement!".into(),
+            ));
+        }
         let resolved = state.outcome != simgrid::BattleOutcome::Ongoing;
         let view = battle_view(state, events);
         if resolved {
