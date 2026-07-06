@@ -825,6 +825,9 @@ pub(crate) fn battle_view(
         outcome: outcome_name(state.outcome).to_string(),
         awaiting: ongoing,
         can_run: ongoing,
+        phase: String::new(),
+        deadline_ms: 0,
+        opponent: String::new(),
     }
 }
 

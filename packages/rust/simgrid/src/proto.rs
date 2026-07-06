@@ -50,6 +50,7 @@ pub const EPHEMERAL_PET_ROSTER: u16 = 17;
 pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
 pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
 pub const EPHEMERAL_UDP_OFFER: u16 = 20;
+pub const EPHEMERAL_DUEL_PROMPT: u16 = 21;
 
 pub const UDP_MAX_DATAGRAM: usize = 1200;
 
@@ -281,6 +282,18 @@ pub enum Input {
     /// indices of the existing inputs are unchanged.
     ChallengeNpc {
         npc: EntityId,
+    },
+    /// Challenge another player to a pet duel. Server validates range and that
+    /// neither side is busy. Appended last so serde variant indices of the
+    /// existing inputs are unchanged.
+    DuelChallenge {
+        target: PlayerSlot,
+    },
+    /// Accept or decline the pending duel challenge addressed to this player.
+    /// Appended last so serde variant indices of the existing inputs are
+    /// unchanged.
+    DuelRespond {
+        accept: bool,
     },
 }
 
@@ -700,6 +713,25 @@ pub struct PetBattleState {
     pub outcome: String,
     pub awaiting: bool,
     pub can_run: bool,
+    pub phase: String,
+    pub deadline_ms: u32,
+    pub opponent: String,
+}
+
+pub const DUEL_PROMPT_OFFER: u8 = 0;
+pub const DUEL_PROMPT_DECLINED: u8 = 1;
+pub const DUEL_PROMPT_EXPIRED: u8 = 2;
+pub const DUEL_PROMPT_ACCEPTED: u8 = 3;
+
+/// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
+/// the target as the offer (with the challenger's name + time to respond) and
+/// back to the challenger when the offer is declined, expires, or is accepted.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DuelPrompt {
+    pub status: u8,
+    pub other_slot: u16,
+    pub other_name: String,
+    pub deadline_ms: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1083,6 +1115,44 @@ mod tests {
         assert!(matches!(decoded, Input::ChallengeNpc { npc: EntityId(42) }));
     }
 
+    #[test]
+    fn duel_challenge_input_roundtrips() {
+        let input = Input::DuelChallenge {
+            target: PlayerSlot(7),
+        };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 34);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(
+            decoded,
+            Input::DuelChallenge {
+                target: PlayerSlot(7)
+            }
+        ));
+    }
+
+    #[test]
+    fn duel_respond_input_roundtrips() {
+        let input = Input::DuelRespond { accept: true };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 35);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        assert!(matches!(decoded, Input::DuelRespond { accept: true }));
+    }
+
+    #[test]
+    fn duel_prompt_roundtrips() {
+        let p = DuelPrompt {
+            status: DUEL_PROMPT_OFFER,
+            other_slot: 3,
+            other_name: "ann".into(),
+            deadline_ms: 20_000,
+        };
+        let bytes = encode_inner(&p).expect("encode");
+        let decoded: DuelPrompt = decode_inner(&bytes).expect("decode");
+        assert_eq!(decoded, p);
+    }
+
     // Cross-language wire lock for the pet-battle replay: the TS decodePetBattleReplay
     // pins this SAME hex (laser postcard-wire.spec.ts). If either side reorders a field
     // of PetBattler / PetBattleWireEvent / PetBattleReplay, one of the two tests breaks —
@@ -1194,6 +1264,9 @@ mod tests {
             outcome: "Ongoing".into(),
             awaiting: true,
             can_run: true,
+            phase: "Active".into(),
+            deadline_ms: 20_000,
+            opponent: "ann".into(),
         };
         let bytes = encode_inner(&state).expect("encode");
         assert_eq!(hex(&bytes), PET_STATE_HEX);
@@ -1201,7 +1274,7 @@ mod tests {
         assert_eq!(back, state);
     }
 
-    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e670101";
+    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e";
 
     #[test]
     fn combat_event_fixture_is_stable() {

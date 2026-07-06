@@ -512,6 +512,9 @@ pub fn viewer_view(
         outcome: flip_outcome(&base.outcome),
         awaiting: base.awaiting,
         can_run: base.can_run,
+        phase: String::new(),
+        deadline_ms: 0,
+        opponent: String::new(),
     }
 }
 
