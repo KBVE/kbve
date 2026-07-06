@@ -63,8 +63,11 @@ function balancesEqual(a: Balance | null, b: Balance | null): boolean {
 	);
 }
 
-async function authedFetch(path: string, init: RequestInit = {}) {
-	return authedApiFetch(path, init);
+async function authedFetch<T = unknown>(
+	path: string,
+	init: RequestInit = {},
+): Promise<T> {
+	return authedApiFetch(path, init) as Promise<T>;
 }
 
 function findShell(from: HTMLElement | null): HTMLElement | null {
@@ -196,7 +199,7 @@ export function ReactWalletCard() {
 					coupon_id: couponId,
 					idempotency_key: crypto.randomUUID(),
 				});
-				const result: RedeemResult = await authedFetch(
+				const result = await authedFetch<RedeemResult>(
 					'/api/v1/wallet/me/redeem-coupon',
 					{ method: 'POST', body },
 				);

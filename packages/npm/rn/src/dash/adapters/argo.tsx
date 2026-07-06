@@ -3,12 +3,9 @@ import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
-import {
-	clusterHealthStats,
-	fetchClusterHealth,
-	namespaceStats,
-} from '../clusterHealth';
+import { clusterHealthStats, fetchClusterHealth } from '../clusterHealth';
 import type { ClusterHealth } from '../clusterHealth';
+import { NamespacePanel } from '../NamespacePanel';
 import type { StreamAction, StreamLens, StreamStore } from '../types';
 
 // Minimal shape of the ArgoCD application payload we depend on. Kept local so
@@ -1137,6 +1134,9 @@ export function argoGroupFn(
 /** The Argo lens (t): projects an ArgoItem into row/card/detail/stat models. */
 export const argoLens: StreamLens<ArgoItem> = {
 	searchText: (it) => `${it.name} ${it.namespace} ${it.project}`,
+	metaPanel: (meta) => (
+		<NamespacePanel health={meta as ClusterHealth | null} />
+	),
 	group: (it) => it.project, // Default grouping by project
 	filters: [
 		{
@@ -1161,7 +1161,6 @@ export const argoLens: StreamLens<ArgoItem> = {
 	],
 	stats: (items, meta) => [
 		...clusterHealthStats(meta as ClusterHealth | null),
-		...namespaceStats(meta as ClusterHealth | null),
 		{ id: 'total', label: 'Applications', value: items.length },
 		{
 			id: 'healthy',

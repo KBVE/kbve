@@ -247,6 +247,7 @@ export function StreamView<TItem>({
 	return (
 		<Stack gap="md">
 			{stats.length ? <StatGrid stats={stats} /> : null}
+			{lens.metaPanel ? lens.metaPanel(state.meta) : null}
 
 			<Stack direction="row" gap="sm" align="center" wrap>
 				{lens.filters?.length ? (

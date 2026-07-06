@@ -17,6 +17,23 @@ export interface NamespaceStat {
 	restarts: number;
 }
 
+/** One time-series sample: unix seconds + value. */
+export interface SeriesPoint {
+	t: number;
+	v: number;
+}
+
+/** Grafana-style trend series (query_range) over the health window. */
+export interface ClusterSeries {
+	windowSec: number;
+	stepSec: number;
+	cpu: SeriesPoint[];
+	mem: SeriesPoint[];
+	netRx: SeriesPoint[];
+	netTx: SeriesPoint[];
+	podsRunning: SeriesPoint[];
+}
+
 export interface ClusterHealth {
 	nodes: number | null;
 	namespaces: number | null;
@@ -31,6 +48,7 @@ export interface ClusterHealth {
 	deployments: number | null;
 	containers: number | null;
 	byNamespace: NamespaceStat[];
+	series: ClusterSeries | null;
 }
 
 let cachedDatasourceId: number | null = null;
@@ -99,6 +117,106 @@ async function promQuery(
 	} catch {
 		return [];
 	}
+}
+
+async function promRange(
+	base: string,
+	token: string,
+	dsId: number,
+	expr: string,
+	start: number,
+	end: number,
+	step: number,
+	signal: AbortSignal,
+): Promise<SeriesPoint[]> {
+	try {
+		const res = await fetch(
+			`${base}/dashboard/grafana/proxy/api/datasources/proxy/${dsId}/api/v1/query_range`,
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
+				signal,
+			},
+		);
+		if (!res.ok) return [];
+		const data = (await res.json()) as {
+			data?: {
+				result?: Array<{ values?: Array<[number, string]> }>;
+			};
+		};
+		const values = data?.data?.result?.[0]?.values ?? [];
+		return values
+			.map(([t, v]) => ({ t, v: parseFloat(v) }))
+			.filter((p) => !Number.isNaN(p.v));
+	} catch {
+		return [];
+	}
+}
+
+const RANGE_QUERIES = {
+	cpu: 'avg(100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100))',
+	mem: '(1 - (sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes))) * 100',
+	netRx: 'sum(rate(node_network_receive_bytes_total{device!~"lo|veth.*|cali.*|cilium.*"}[5m]))',
+	netTx: 'sum(rate(node_network_transmit_bytes_total{device!~"lo|veth.*|cali.*|cilium.*"}[5m]))',
+	podsRunning: 'sum(kube_pod_status_phase{phase="Running"})',
+} as const;
+
+const WINDOW_SEC = 3600;
+const STEP_SEC = 30;
+
+// Range queries are the heavy part (5 × ~120-point series). Poll cadence is 30s
+// but a new sample only lands every STEP_SEC, so gate range refetches to this TTL
+// and reuse the memoized series between — the scalar/vector health still refreshes
+// every poll. The whole meta (incl. series) is also cached to IndexedDB by the
+// stream, so it survives reloads and paints instantly.
+const SERIES_TTL_MS = 60_000;
+let seriesCache: ClusterSeries | null = null;
+let seriesAt = 0;
+
+async function fetchSeries(
+	base: string,
+	token: string,
+	dsId: number,
+	signal: AbortSignal,
+): Promise<ClusterSeries | null> {
+	if (seriesCache && Date.now() - seriesAt < SERIES_TTL_MS) {
+		return seriesCache;
+	}
+	const end = Math.floor(Date.now() / 1000);
+	const start = end - WINDOW_SEC;
+	const r = (expr: string) =>
+		promRange(base, token, dsId, expr, start, end, STEP_SEC, signal);
+	const [cpu, mem, netRx, netTx, podsRunning] = await Promise.all([
+		r(RANGE_QUERIES.cpu),
+		r(RANGE_QUERIES.mem),
+		r(RANGE_QUERIES.netRx),
+		r(RANGE_QUERIES.netTx),
+		r(RANGE_QUERIES.podsRunning),
+	]);
+	if (
+		!cpu.length &&
+		!mem.length &&
+		!netRx.length &&
+		!netTx.length &&
+		!podsRunning.length
+	) {
+		return seriesCache;
+	}
+	seriesCache = {
+		windowSec: WINDOW_SEC,
+		stepSec: STEP_SEC,
+		cpu,
+		mem,
+		netRx,
+		netTx,
+		podsRunning,
+	};
+	seriesAt = Date.now();
+	return seriesCache;
 }
 
 const SCALAR_QUERIES = {
@@ -171,6 +289,7 @@ export async function fetchClusterHealth(
 		nsPending,
 		nsFailed,
 		nsRestarts,
+		series,
 	] = await Promise.all([
 		scalar(SCALAR_QUERIES.nodes),
 		scalar(SCALAR_QUERIES.namespaces),
@@ -189,6 +308,7 @@ export async function fetchClusterHealth(
 		vector(NS_QUERIES.pending),
 		vector(NS_QUERIES.failed),
 		vector(NS_QUERIES.restarts),
+		fetchSeries(base, token, dsId, signal),
 	]);
 
 	const podsMap = byNs(nsPods);
@@ -232,6 +352,7 @@ export async function fetchClusterHealth(
 		deployments: round(deployments),
 		containers: round(containers),
 		byNamespace,
+		series: series ?? null,
 	};
 }
 

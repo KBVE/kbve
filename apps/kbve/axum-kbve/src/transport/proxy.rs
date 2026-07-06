@@ -2065,16 +2065,8 @@ pub fn init_vibeshine_proxy() -> bool {
 }
 
 pub async fn vibeshine_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
-    let headers = req.headers().clone();
-    let query = req.uri().query().map(str::to_owned);
-    if let Err(resp) =
-        require_dashboard_manage_with_query(&headers, query.as_deref(), "Vibeshine").await
-    {
-        return resp;
-    }
-
     match VIBESHINE.get() {
-        Some(proxy) => proxy.handle_preauthorized(path, req).await,
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "Vibeshine proxy not configured"})),

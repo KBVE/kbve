@@ -2,12 +2,10 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
-import {
-	clusterHealthStats,
-	fetchClusterHealth,
-	namespaceStats,
-} from '../clusterHealth';
+import { clusterHealthStats, fetchClusterHealth } from '../clusterHealth';
 import type { ClusterHealth } from '../clusterHealth';
+import { ClusterChartsPanel } from '../ClusterChartsPanel';
+import { NamespacePanel } from '../NamespacePanel';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -187,6 +185,12 @@ function severityColor(sev: string): string {
 export const grafanaLens: StreamLens<AlertItem> = {
 	searchText: (it) =>
 		`${it.alertname} ${it.namespace} ${it.pod} ${it.summary} ${it.description}`,
+	metaPanel: (meta) => (
+		<Stack gap="md">
+			<ClusterChartsPanel health={meta as ClusterHealth | null} />
+			<NamespacePanel health={meta as ClusterHealth | null} />
+		</Stack>
+	),
 	group: (it) => it.namespace || '(cluster)',
 	filters: [
 		{
@@ -213,7 +217,6 @@ export const grafanaLens: StreamLens<AlertItem> = {
 		const h = meta as ClusterHealth | null;
 		return [
 			...clusterHealthStats(h),
-			...namespaceStats(h),
 			{ id: 'total', label: 'Total Alerts', value: items.length },
 			{
 				id: 'firing',

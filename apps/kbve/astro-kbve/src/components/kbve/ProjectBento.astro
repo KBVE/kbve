@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BentoShell from '@/components/hero/BentoShell.astro';
 import CookbookFilters from './CookbookFilters.tsx';
+import type { FacetGroup } from './CookbookFilters.tsx';
 import {
 	CATEGORY_DEFS,
 	deriveCategories,
@@ -106,7 +107,7 @@ const statusValues = statusOrder
 	}))
 	.filter((v) => v.count > 0);
 
-const groups = [
+const groups: FacetGroup[] = [
 	{ key: 'language', label: 'Language / Stack', values: languageValues },
 	{ key: 'category', label: 'Category', values: categoryValues },
 	{ key: 'status', label: 'Status', values: statusValues },
