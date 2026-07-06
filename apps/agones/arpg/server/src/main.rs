@@ -2,6 +2,7 @@ mod agones;
 mod auth;
 mod creatures;
 mod db;
+mod duel;
 mod game;
 mod pilot;
 mod ship_footprint_gen;
@@ -140,6 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // `apply_pet_turns` advances the live one by the player's committed action. Both run
         // after inputs are routed; chained so a start + first turn in one frame order right.
         app.insert_resource(game::ActivePetBattles::default());
+        app.insert_resource(duel::ActiveDuels::default());
         app.add_systems(
             bevy::prelude::Update,
             (game::apply_pet_battles, game::apply_pet_turns)

@@ -434,16 +434,16 @@ pub fn npc_db() -> simgrid::NpcDb {
 }
 
 /// Decoded npcdb species, loaded once. Source for pet minting + battle simulation.
-static NPC_DB: LazyLock<simgrid::NpcDb> = LazyLock::new(npc_db);
+pub(crate) static NPC_DB: LazyLock<simgrid::NpcDb> = LazyLock::new(npc_db);
 
-const MECHAMUTT_REF: &str = "mechamutt";
-const PET_TEAM_SIZE: usize = 5;
-const PET_TEAM_LEVEL: u32 = 50;
+pub(crate) const MECHAMUTT_REF: &str = "mechamutt";
+pub(crate) const PET_TEAM_SIZE: usize = 5;
+pub(crate) const PET_TEAM_LEVEL: u32 = 50;
 const BATTLE_TURN_CAP: u32 = 300;
-const AI_STREAM: u32 = 0xA1;
+pub(crate) const AI_STREAM: u32 = 0xA1;
 
 /// Build a team of `PET_TEAM_SIZE` mechamutt battlers at `PET_TEAM_LEVEL`.
-fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
+pub(crate) fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
     (0..PET_TEAM_SIZE)
         .filter_map(|_| {
             simgrid::mint_pet_from_species(species, PET_TEAM_LEVEL)
@@ -544,7 +544,7 @@ fn effect_bits(e: simgrid::Effectiveness) -> u8 {
     }
 }
 
-fn info_event(text: String) -> simgrid::proto::PetBattleWireEvent {
+pub(crate) fn info_event(text: String) -> simgrid::proto::PetBattleWireEvent {
     simgrid::proto::PetBattleWireEvent {
         kind: simgrid::proto::PB_INFO,
         side: 0,
@@ -556,7 +556,7 @@ fn info_event(text: String) -> simgrid::proto::PetBattleWireEvent {
 }
 
 /// Map an engine battle event onto the flat wire event the client animates.
-fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattleWireEvent {
+pub(crate) fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattleWireEvent {
     use simgrid::BattleEvent as E;
     use simgrid::proto as p;
     let text = describe(ev).unwrap_or_default();
@@ -645,7 +645,7 @@ fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattleWireEvent {
     w
 }
 
-fn battlers(team: &[simgrid::Combatant]) -> Vec<simgrid::proto::PetBattler> {
+pub(crate) fn battlers(team: &[simgrid::Combatant]) -> Vec<simgrid::proto::PetBattler> {
     team.iter()
         .map(|c| simgrid::proto::PetBattler {
             species_ref: c.species_ref.clone(),
@@ -769,7 +769,7 @@ pub struct ActivePetBattles(pub HashMap<u16, simgrid::BattleState>);
 /// from the player's real inventory.
 const POTION_HEAL: i32 = 40;
 
-fn outcome_name(o: simgrid::BattleOutcome) -> &'static str {
+pub(crate) fn outcome_name(o: simgrid::BattleOutcome) -> &'static str {
     match o {
         simgrid::BattleOutcome::PlayerWon => "PlayerWon",
         simgrid::BattleOutcome::PlayerLost => "PlayerLost",
@@ -788,7 +788,7 @@ fn category_byte(c: simgrid::MoveCategory) -> u8 {
 
 /// The selectable moves on a combatant, for the client's battle menu (name, element,
 /// category, power, accuracy %, and remaining PP — the per-move cost).
-fn move_options(c: &simgrid::Combatant) -> Vec<simgrid::proto::PetMoveOption> {
+pub(crate) fn move_options(c: &simgrid::Combatant) -> Vec<simgrid::proto::PetMoveOption> {
     c.moves
         .iter()
         .enumerate()
@@ -812,7 +812,7 @@ fn move_options(c: &simgrid::Combatant) -> Vec<simgrid::proto::PetMoveOption> {
 /// Build the wire snapshot of a battle after a turn: both teams' vitals, active indices,
 /// the player's current move menu (empty once the fight is over), and the events of the
 /// turn just resolved for the client to animate.
-fn battle_view(
+pub(crate) fn battle_view(
     state: &simgrid::BattleState,
     events: Vec<simgrid::proto::PetBattleWireEvent>,
 ) -> simgrid::proto::PetBattleState {
@@ -834,7 +834,7 @@ fn battle_view(
     }
 }
 
-fn send_battle_view(
+pub(crate) fn send_battle_view(
     bcast: &simgrid::Outbound,
     slot: simgrid::proto::PlayerSlot,
     view: &simgrid::proto::PetBattleState,
@@ -848,7 +848,7 @@ fn send_battle_view(
 }
 
 /// Map a client `PetTurn` (action code + arg) onto an engine [`simgrid::BattleAction`].
-fn player_action(action: u8, arg: u8) -> Option<simgrid::BattleAction> {
+pub(crate) fn player_action(action: u8, arg: u8) -> Option<simgrid::BattleAction> {
     use simgrid::proto as p;
     Some(match action {
         p::PET_ACT_MOVE => simgrid::BattleAction::Move { slot: arg as usize },

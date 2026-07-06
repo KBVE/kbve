@@ -582,7 +582,8 @@ impl BattleState {
         events
     }
 
-    fn side(&self, s: Side) -> &BattleSide {
+    /// Read-only accessor for either side's state.
+    pub fn side(&self, s: Side) -> &BattleSide {
         match s {
             Side::Player => &self.player,
             Side::Enemy => &self.enemy,
