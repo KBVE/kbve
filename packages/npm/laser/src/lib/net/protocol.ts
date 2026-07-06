@@ -185,7 +185,8 @@ export type Input =
 	| 'LaunchSpace'
 	| 'ReturnSpace'
 	| 'SimPetBattle'
-	| { PetTurn: { action: number; arg: number } };
+	| { PetTurn: { action: number; arg: number } }
+	| { ChallengeNpc: { npc: number } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
