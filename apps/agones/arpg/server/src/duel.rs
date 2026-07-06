@@ -282,7 +282,6 @@ pub fn side_index_of_slot(duel: &Duel, slot: u16) -> Option<usize> {
         .position(|s| matches!(s, DuelSide::Human { slot: s2 } if *s2 == slot))
 }
 
-#[allow(dead_code)]
 fn ai_rng(duel: &Duel, idx: usize) -> simgrid::rng::Mulberry32 {
     simgrid::rng::stream(
         duel.state.root,
@@ -463,7 +462,6 @@ pub fn cleanup_stale_duels(
 }
 
 /// The named side gives up: the other side wins immediately.
-#[allow(dead_code)]
 pub fn forfeit(duel: &mut Duel, loser_idx: usize) {
     duel.state.outcome = if loser_idx == 0 {
         simgrid::BattleOutcome::PlayerLost
