@@ -3,7 +3,7 @@ import {
 	AccountScreen,
 	KBVE_SUPABASE_URL,
 	KBVE_SUPABASE_ANON_KEY,
-} from '@kbve/rn';
+} from '@kbve/rn/account';
 
 export default function ReactAccountRN() {
 	return (
