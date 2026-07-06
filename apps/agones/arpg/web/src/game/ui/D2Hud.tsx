@@ -46,6 +46,8 @@ import {
 	emitPetBattleAction,
 	emitBattleEnter,
 	emitBattleExit,
+	onBattleEnter,
+	onBattleExit,
 	onDuelPrompt,
 	emitDuelRespond,
 	emitNotification,
@@ -194,6 +196,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 			<Tooltip />
 			<DeathScreen />
 			<DuelPromptOverlay />
+			<PetBattleOverlay />
 			{debug && <PetBattleDebug />}
 		</div>
 	);
@@ -205,20 +208,30 @@ function D2HudInner({ debug }: { debug: boolean }) {
  * the battle overlay via the normal petBattleState flow; Decline just closes.
  * The challenger only ever gets passive toasts (sent/declined/expired/accepted)
  * for the other status codes — they never see the interactive overlay themselves.
+ *
+ * DuelPrompt carries no role field, so EXPIRED (and in theory ACCEPTED) can reach
+ * either side: if an OFFER prompt is currently open, this client is the target and
+ * the terminal status just closes it silently; otherwise it's the challenger and
+ * gets the toast.
  */
 function DuelPromptOverlay() {
 	const [prompt, setPrompt] = useState<DuelPrompt | null>(null);
 	const [anchor, setAnchor] = useState(0);
 	const [, setTick] = useState(0);
+	const promptOpenRef = useRef(false);
 
 	useEffect(() => {
 		const off = onDuelPrompt((p) => {
 			if (p.status === DUEL_PROMPT_OFFER) {
+				promptOpenRef.current = true;
 				setPrompt(p);
 				setAnchor(Date.now());
 				return;
 			}
+			const wasOpen = promptOpenRef.current;
+			promptOpenRef.current = false;
 			setPrompt(null);
+			if (wasOpen) return;
 			if (p.status === DUEL_PROMPT_DECLINED) {
 				emitNotification({
 					title: '',
@@ -243,13 +256,19 @@ function DuelPromptOverlay() {
 		return () => clearInterval(t);
 	}, [prompt]);
 
-	if (!prompt) return null;
+	const remaining = prompt
+		? Math.max(0, prompt.deadline_ms - (Date.now() - anchor))
+		: 0;
 
-	const remaining = Math.max(0, prompt.deadline_ms - (Date.now() - anchor));
-	if (remaining <= 0) {
-		setPrompt(null);
-		return null;
-	}
+	useEffect(() => {
+		if (prompt && remaining <= 0) {
+			promptOpenRef.current = false;
+			setPrompt(null);
+		}
+	}, [prompt, remaining]);
+
+	if (!prompt || remaining <= 0) return null;
+
 	const pct = Math.max(
 		0,
 		Math.min(100, (remaining / prompt.deadline_ms) * 100),
@@ -258,6 +277,7 @@ function DuelPromptOverlay() {
 	const respond = (accept: boolean) => {
 		emitDuelRespond(accept);
 		if (accept) emitBattleEnter({ kind: 'pet' });
+		promptOpenRef.current = false;
 		setPrompt(null);
 	};
 
@@ -314,25 +334,29 @@ function DuelPromptOverlay() {
 }
 
 /**
- * Debug-only trigger: a button that starts an interactive 5v5 mechamutt battle. The server
- * streams a PetBattleState each turn; the <PetBattleScene> plays it out and collects the
- * player's choices. Temporary placement — the real encounter flow replaces it later.
+ * Always-mounted battle host: opens the moment `battle:enter` fires (loading curtain,
+ * before the first state lands), then swaps in <PetBattleScene> once a PetBattleState
+ * streams in. Mounted outside any debug gate so PvP/trainer duels get a scene
+ * regardless of the DEBUG_HUD flag.
  */
-function PetBattleDebug() {
+function PetBattleOverlay() {
 	const [state, setState] = useState<PetBattleState | null>(null);
 	const [entering, setEntering] = useState(false);
-	useEffect(() => {
-		const off = onPetBattleState((s) => setState(s));
-		return () => off();
-	}, []);
 
-	const open = () => {
-		if (entering) return;
-		setState(null);
-		setEntering(true);
-		emitBattleEnter({ kind: 'pet' });
-		emitPetBattleRequest();
-	};
+	useEffect(() => {
+		const offEnter = onBattleEnter(() => {
+			setState(null);
+			setEntering(true);
+		});
+		const offState = onPetBattleState((s) => {
+			setEntering(true);
+			setState(s);
+		});
+		return () => {
+			offEnter();
+			offState();
+		};
+	}, []);
 
 	const close = () => {
 		setEntering(false);
@@ -340,41 +364,63 @@ function PetBattleDebug() {
 		emitBattleExit();
 	};
 
+	if (!entering) return null;
+	return state ? (
+		<PetBattleScene
+			state={state}
+			onAction={(action, arg) => emitPetBattleAction({ action, arg })}
+			onClose={close}
+		/>
+	) : (
+		<BattleEntering onCancel={close} />
+	);
+}
+
+/**
+ * Debug-only trigger: a button that starts an interactive 5v5 mechamutt battle. Firing
+ * `battle:enter` + a request is enough — the always-mounted <PetBattleOverlay> owns the
+ * loading curtain and the scene itself. Temporary placement — the real encounter flow
+ * replaces it later.
+ */
+function PetBattleDebug() {
+	const [entering, setEntering] = useState(false);
+
+	useEffect(() => {
+		const offEnter = onBattleEnter(() => setEntering(true));
+		const offExit = onBattleExit(() => setEntering(false));
+		return () => {
+			offEnter();
+			offExit();
+		};
+	}, []);
+
+	const open = () => {
+		if (entering) return;
+		emitBattleEnter({ kind: 'pet' });
+		emitPetBattleRequest();
+	};
+
 	return (
-		<>
-			<button
-				type="button"
-				onClick={open}
-				style={{
-					position: 'absolute',
-					top: 64,
-					left: 14,
-					pointerEvents: 'auto',
-					padding: '6px 12px',
-					fontFamily: 'monospace',
-					fontSize: 12,
-					color: '#e6ebf5',
-					background: 'rgba(40,20,60,0.85)',
-					border: '1px solid #6ea8ff',
-					borderRadius: 6,
-					cursor: 'pointer',
-					textShadow: TEXT_SHADOW,
-				}}>
-				{entering ? '⚔ In Battle…' : '⚔ Sim Battle (5v5)'}
-			</button>
-			{entering &&
-				(state ? (
-					<PetBattleScene
-						state={state}
-						onAction={(action, arg) =>
-							emitPetBattleAction({ action, arg })
-						}
-						onClose={close}
-					/>
-				) : (
-					<BattleEntering onCancel={close} />
-				))}
-		</>
+		<button
+			type="button"
+			onClick={open}
+			style={{
+				position: 'absolute',
+				top: 64,
+				left: 14,
+				pointerEvents: 'auto',
+				padding: '6px 12px',
+				fontFamily: 'monospace',
+				fontSize: 12,
+				color: '#e6ebf5',
+				background: 'rgba(40,20,60,0.85)',
+				border: '1px solid #6ea8ff',
+				borderRadius: 6,
+				cursor: 'pointer',
+				textShadow: TEXT_SHADOW,
+			}}>
+			{entering ? '⚔ In Battle…' : '⚔ Sim Battle (5v5)'}
+		</button>
 	);
 }
 
