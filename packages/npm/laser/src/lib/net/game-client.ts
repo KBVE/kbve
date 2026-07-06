@@ -316,6 +316,10 @@ export class GameClient {
 		this.sendInputs([{ OpenCorpse: { corpse } }]);
 	}
 
+	challengeNpc(npc: number): void {
+		this.sendInputs([{ ChallengeNpc: { npc } }]);
+	}
+
 	/** Take one slot from an open corpse — server re-sends the updated `corpse`. */
 	takeFromCorpse(corpse: number, slot: number): void {
 		this.sendInputs([{ TakeFromCorpse: { corpse, slot } }]);

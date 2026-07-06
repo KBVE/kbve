@@ -9,9 +9,9 @@ use crate::combat;
 use crate::data::KindRegistry;
 use crate::grid::{GridPos, WalkableMap};
 use crate::sim::{
-    AttackMobQuery, AttackPlayerQuery, EidIndex, EquipmentEffects, GroundItem, Health, KillCounts,
-    Outbound, PlayerSlotTag, RespawnQueue, SIM_TICK_HZ, SimClock, SimConfig, SimSeed,
-    SpellCooldowns, broadcast_player_stats, resolve_attack_hit,
+    AttackMobQuery, AttackPlayerQuery, EidIndex, EquipmentEffects, GroundItem, Health,
+    Invulnerable, KillCounts, Outbound, PlayerSlotTag, RespawnQueue, SIM_TICK_HZ, SimClock,
+    SimConfig, SimSeed, SpellCooldowns, broadcast_player_stats, resolve_attack_hit,
 };
 use crate::spells::PendingSpells;
 use crate::spells::net::send_spell_result;
@@ -48,7 +48,12 @@ pub fn apply_spells(
     // radius, then strike each via resolve_attack_hit.
     mob_positions: Query<
         (Entity, &GridPos),
-        (With<Health>, Without<PlayerSlotTag>, Without<GroundItem>),
+        (
+            With<Health>,
+            Without<PlayerSlotTag>,
+            Without<GroundItem>,
+            Without<Invulnerable>,
+        ),
     >,
 ) {
     let db: &SpellDb = &ctx.db;
