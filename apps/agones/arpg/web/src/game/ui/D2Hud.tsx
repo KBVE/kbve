@@ -21,6 +21,10 @@ import {
 	PET_ACT_SWAP,
 	PET_ACT_ITEM,
 	PET_ACT_RUN,
+	DUEL_PROMPT_OFFER,
+	DUEL_PROMPT_DECLINED,
+	DUEL_PROMPT_EXPIRED,
+	DUEL_PROMPT_ACCEPTED,
 } from '@kbve/laser';
 import type {
 	InventoryItem,
@@ -28,6 +32,7 @@ import type {
 	PetBattleState,
 	PetBattleWireEvent,
 	PetMoveOption,
+	DuelPrompt,
 } from '@kbve/laser';
 import {
 	onHud,
@@ -41,6 +46,9 @@ import {
 	emitPetBattleAction,
 	emitBattleEnter,
 	emitBattleExit,
+	onDuelPrompt,
+	emitDuelRespond,
+	emitNotification,
 	type HudState,
 } from '../systems/hud';
 import { arpgAsset } from '../config';
@@ -185,7 +193,122 @@ function D2HudInner({ debug }: { debug: boolean }) {
 			)}
 			<Tooltip />
 			<DeathScreen />
+			<DuelPromptOverlay />
 			{debug && <PetBattleDebug />}
+		</div>
+	);
+}
+
+/**
+ * PvP duel challenge prompt: shown to the target on a DUEL_PROMPT_OFFER, with a
+ * countdown bar to `deadline_ms` (wall clock, anchored on receipt). Accept opens
+ * the battle overlay via the normal petBattleState flow; Decline just closes.
+ * The challenger only ever gets passive toasts (sent/declined/expired/accepted)
+ * for the other status codes — they never see the interactive overlay themselves.
+ */
+function DuelPromptOverlay() {
+	const [prompt, setPrompt] = useState<DuelPrompt | null>(null);
+	const [anchor, setAnchor] = useState(0);
+	const [, setTick] = useState(0);
+
+	useEffect(() => {
+		const off = onDuelPrompt((p) => {
+			if (p.status === DUEL_PROMPT_OFFER) {
+				setPrompt(p);
+				setAnchor(Date.now());
+				return;
+			}
+			setPrompt(null);
+			if (p.status === DUEL_PROMPT_DECLINED) {
+				emitNotification({
+					title: '',
+					message: `${p.other_name} declined`,
+				});
+			} else if (p.status === DUEL_PROMPT_EXPIRED) {
+				emitNotification({ title: '', message: 'Challenge expired' });
+			} else if (p.status === DUEL_PROMPT_ACCEPTED) {
+				emitNotification({
+					title: '',
+					message: `${p.other_name} accepted`,
+				});
+				emitBattleEnter({ kind: 'pet' });
+			}
+		});
+		return () => off();
+	}, []);
+
+	useEffect(() => {
+		if (!prompt) return;
+		const t = setInterval(() => setTick((n) => n + 1), 250);
+		return () => clearInterval(t);
+	}, [prompt]);
+
+	if (!prompt) return null;
+
+	const remaining = Math.max(0, prompt.deadline_ms - (Date.now() - anchor));
+	if (remaining <= 0) {
+		setPrompt(null);
+		return null;
+	}
+	const pct = Math.max(
+		0,
+		Math.min(100, (remaining / prompt.deadline_ms) * 100),
+	);
+
+	const respond = (accept: boolean) => {
+		emitDuelRespond(accept);
+		if (accept) emitBattleEnter({ kind: 'pet' });
+		setPrompt(null);
+	};
+
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				top: 100,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				pointerEvents: 'auto',
+				zIndex: 30,
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 10,
+				minWidth: 260,
+				border: '2px solid #6ea8ff',
+				borderRadius: 10,
+				background: 'rgba(8,10,16,0.92)',
+				padding: '12px 16px',
+				fontFamily: 'monospace',
+				color: '#e6ebf5',
+				textShadow: TEXT_SHADOW,
+			}}>
+			<span style={{ fontSize: 14 }}>
+				{prompt.other_name} challenges you to a pet duel!
+			</span>
+			<div
+				style={{
+					height: 4,
+					borderRadius: 2,
+					background: 'rgba(110,168,255,0.15)',
+					overflow: 'hidden',
+				}}>
+				<div
+					style={{
+						height: '100%',
+						width: `${pct}%`,
+						background: pct > 25 ? '#6ea8ff' : '#ef4444',
+						transition: 'width 200ms linear',
+					}}
+				/>
+			</div>
+			<div
+				style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+				<BattleButton
+					label="Decline ✕"
+					onClick={() => respond(false)}
+				/>
+				<BattleButton label="Accept ⚔" onClick={() => respond(true)} />
+			</div>
 		</div>
 	);
 }
@@ -474,6 +597,7 @@ export function PetBattleScene({
 	const [step, setStep] = useState(0);
 	const [waiting, setWaiting] = useState(false);
 	const [swapOpen, setSwapOpen] = useState(false);
+	const [turnStart, setTurnStart] = useState(() => Date.now());
 
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const fxRef = useRef<BattleFx | null>(null);
@@ -552,6 +676,28 @@ export function PetBattleScene({
 		pendingMelee.current = null;
 	}, [state]);
 
+	// Turn-timer bar: re-anchor the wall-clock start whenever a new deadline arrives,
+	// then tick a redraw every 250ms so the bar drains toward it.
+	const [, setTick] = useState(0);
+	useEffect(() => {
+		setTurnStart(Date.now());
+	}, [state.deadline_ms]);
+	useEffect(() => {
+		const t = setInterval(() => setTick((n) => n + 1), 250);
+		return () => clearInterval(t);
+	}, []);
+	const turnRemaining =
+		state.deadline_ms > 0
+			? Math.max(0, state.deadline_ms - (Date.now() - turnStart))
+			: 0;
+	const turnPct =
+		state.deadline_ms > 0
+			? Math.max(
+					0,
+					Math.min(100, (turnRemaining / state.deadline_ms) * 100),
+				)
+			: 0;
+
 	// Step through the current turn's events on a timer, folding each into the view and
 	// spawning its canvas effects.
 	useEffect(() => {
@@ -566,6 +712,7 @@ export function PetBattleScene({
 
 	const animating = step < state.events.length;
 	const over = state.outcome !== 'Ongoing';
+	const forceSwap = state.phase === 'replace';
 	const showMenu = !animating && state.awaiting && !waiting && !over;
 
 	const commit = (action: number, arg: number) => {
@@ -612,6 +759,18 @@ export function PetBattleScene({
 			/>
 			{/* Enemy: top-right */}
 			<div style={{ alignSelf: 'flex-end' }}>
+				{state.opponent && (
+					<div
+						style={{
+							textAlign: 'right',
+							fontSize: 13,
+							color: MUTED,
+							textShadow: TEXT_SHADOW,
+							marginBottom: 4,
+						}}>
+						{state.opponent}
+					</div>
+				)}
 				<Battler
 					battler={eTeam}
 					hp={view.eHp}
@@ -650,6 +809,25 @@ export function PetBattleScene({
 					flexDirection: 'column',
 					gap: 10,
 				}}>
+				{!over && state.deadline_ms > 0 && (
+					<div
+						style={{
+							height: 4,
+							borderRadius: 2,
+							background: 'rgba(110,168,255,0.15)',
+							overflow: 'hidden',
+						}}>
+						<div
+							style={{
+								height: '100%',
+								width: `${turnPct}%`,
+								background:
+									turnPct > 25 ? '#6ea8ff' : '#ef4444',
+								transition: 'width 200ms linear',
+							}}
+						/>
+					</div>
+				)}
 				<span style={{ fontSize: 14, minHeight: 20 }}>
 					{over
 						? `Battle over — ${outcomeLabel(state.outcome)}`
@@ -667,7 +845,7 @@ export function PetBattleScene({
 							flexWrap: 'wrap',
 							gap: 8,
 						}}>
-						{swapOpen ? (
+						{swapOpen || forceSwap ? (
 							<>
 								{reserves.length === 0 && (
 									<span
@@ -684,10 +862,12 @@ export function PetBattleScene({
 										}
 									/>
 								))}
-								<BattleButton
-									label="↩ Back"
-									onClick={() => setSwapOpen(false)}
-								/>
+								{!forceSwap && (
+									<BattleButton
+										label="↩ Back"
+										onClick={() => setSwapOpen(false)}
+									/>
+								)}
 							</>
 						) : (
 							<>
