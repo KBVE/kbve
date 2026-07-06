@@ -530,6 +530,7 @@ fn damage(
     (dmg, typ)
 }
 
+/// Accuracy-weighted damage estimate (variance 92, no crit) for AI scoring.
 pub fn expected_damage(att: &Combatant, def: &Combatant, mv: &MoveData) -> i32 {
     let (dmg, _) = damage(att, def, mv, false, 92);
     let acc = if mv.accuracy <= 0.0 {
