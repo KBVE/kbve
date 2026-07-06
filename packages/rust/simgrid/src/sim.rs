@@ -181,6 +181,11 @@ pub struct PendingPetBattles(pub Vec<proto::PlayerSlot>);
 #[derive(Resource, Default)]
 pub struct PendingPetTurns(pub Vec<(proto::PlayerSlot, u8, u8)>);
 
+/// Slots that challenged a world trainer NPC this frame: `(slot, npc)`. Drained
+/// by the game-server system that validates range and starts the pet duel.
+#[derive(Resource, Default)]
+pub struct PendingNpcChallenges(pub Vec<(proto::PlayerSlot, proto::EntityId)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -193,6 +198,7 @@ pub struct DeployQueues<'w> {
     pilot_ops: ResMut<'w, PendingPilotOps>,
     pet_battles: ResMut<'w, PendingPetBattles>,
     pet_turns: ResMut<'w, PendingPetTurns>,
+    npc_challenges: ResMut<'w, PendingNpcChallenges>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1463,6 +1469,7 @@ pub fn build_app(
         .insert_resource(crate::pets::PendingPets::default())
         .insert_resource(PendingPetBattles::default())
         .insert_resource(PendingPetTurns::default())
+        .insert_resource(PendingNpcChallenges::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1721,7 +1728,15 @@ fn sync_roster(
         let weapon = weapon.map(|st| spawn_item(&mut commands, &registry, st));
         let armor = armor.map(|st| spawn_item(&mut commands, &registry, st));
         send_stats(
-            &bcast, *slot, level, xp, max_hp, attack, kills, mp, PLAYER_MAX_MP,
+            &bcast,
+            *slot,
+            level,
+            xp,
+            max_hp,
+            attack,
+            kills,
+            mp,
+            PLAYER_MAX_MP,
         );
         let mut pet_roster = PetRoster::default();
         for snap in saved_pets {
@@ -1731,10 +1746,8 @@ fn sync_roster(
             pet_roster.active = pet_active
                 .filter(|a| *a < pet_roster.slots.len())
                 .or(pet_roster.active);
-            let sync = crate::pets::to_roster_sync(
-                &pet_bank.snapshot(&pet_roster),
-                pet_roster.active,
-            );
+            let sync =
+                crate::pets::to_roster_sync(&pet_bank.snapshot(&pet_roster), pet_roster.active);
             let payload = proto::encode_inner(&sync).unwrap_or_default();
             let _ = bcast.tx.send(ServerEvent::Ephemeral {
                 kind: proto::EPHEMERAL_PET_ROSTER,
@@ -2169,6 +2182,7 @@ fn drain_inputs(
                 }
                 Input::SimPetBattle => deploy.pet_battles.0.push(slot),
                 Input::PetTurn { action, arg } => deploy.pet_turns.0.push((slot, action, arg)),
+                Input::ChallengeNpc { npc } => deploy.npc_challenges.0.push((slot, npc)),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2385,7 +2399,8 @@ fn drain_inputs(
                 | Input::BjAction { .. }
                 | Input::Insure { .. }
                 | Input::SimPetBattle
-                | Input::PetTurn { .. } => {}
+                | Input::PetTurn { .. }
+                | Input::ChallengeNpc { .. } => {}
             }
         }
     }
@@ -5333,7 +5348,10 @@ mod tests {
         app.update();
         let (proj, combat) = drain_shot(&mut rx);
         assert!(proj, "no projectile emitted");
-        assert!(combat, "lag-comp did not rewind the mob to the shooter's view");
+        assert!(
+            combat,
+            "lag-comp did not rewind the mob to the shooter's view"
+        );
     }
 
     fn hostile_spec(kind: u16, origin: Tile) -> NpcSpec {
@@ -6008,8 +6026,7 @@ mod tests {
         {
             let mut gp = app.world_mut().get_mut::<GridPos>(player).unwrap();
             gp.tile = Tile::new(5, 6);
-            *app.world_mut().get_mut::<FloatMove>(player).unwrap() =
-                FloatMove::at(Tile::new(5, 6));
+            *app.world_mut().get_mut::<FloatMove>(player).unwrap() = FloatMove::at(Tile::new(5, 6));
         }
         {
             let store = app.world().resource::<PlayerStore>();
@@ -6026,7 +6043,12 @@ mod tests {
             .get("camper")
             .expect("autosave should harvest online players");
         assert_eq!(saved.pos, Some((Tile::new(5, 6), proto::Facing::Down)));
-        assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 2));
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 2)
+        );
     }
 
     #[test]
@@ -6043,7 +6065,12 @@ mod tests {
         app.update();
         let (name, saved) = persist_rx.try_recv().expect("autosave should hit the sink");
         assert_eq!(name, "saver");
-        assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 4));
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 4)
+        );
 
         roster.write().unwrap().release(slot);
         app.update();
@@ -6051,7 +6078,12 @@ mod tests {
             .try_recv()
             .expect("disconnect save should hit the sink");
         assert_eq!(name, "saver");
-        assert!(saved.slots.iter().any(|s| s.item_ref == "potion" && s.count == 4));
+        assert!(
+            saved
+                .slots
+                .iter()
+                .any(|s| s.item_ref == "potion" && s.count == 4)
+        );
     }
 
     #[test]
@@ -6069,7 +6101,11 @@ mod tests {
         app.update();
         let player = player_entity(&mut app);
         let xp = app.world().get::<XpState>(player).unwrap();
-        assert_eq!((xp.level, xp.xp), (5, 30), "seeded save not applied on join");
+        assert_eq!(
+            (xp.level, xp.xp),
+            (5, 30),
+            "seeded save not applied on join"
+        );
 
         let stale = SavedPlayer {
             level: 1,
