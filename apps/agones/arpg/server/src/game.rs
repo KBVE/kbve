@@ -758,13 +758,6 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
     }
 }
 
-/// Live interactive pet battles, keyed by player slot. A battle is created when the
-/// player starts one (debug button → `SimPetBattle`) and removed when it resolves or the
-/// player flees. The engine [`simgrid::BattleState`] is fully self-contained, so this is
-/// the only server-held battle state.
-#[derive(bevy::prelude::Resource, Default)]
-pub struct ActivePetBattles(pub HashMap<u16, simgrid::BattleState>);
-
 /// HP restored by the in-battle "Potion" action. A fixed heal until pet battles read
 /// from the player's real inventory.
 const POTION_HEAL: i32 = 40;
@@ -866,95 +859,110 @@ pub fn apply_pet_battles(
     bcast: Res<simgrid::Outbound>,
     clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetBattles>,
-    mut battles: ResMut<ActivePetBattles>,
+    mut duels: ResMut<crate::duel::ActiveDuels>,
+    bank: simgrid::PetBank,
+    players: Query<(&simgrid::PlayerSlotTag, &simgrid::PetRoster)>,
 ) {
     if pending.0.is_empty() {
         return;
     }
     for slot in std::mem::take(&mut pending.0) {
-        let root = simgrid::rng::mix32(&[0x5E7B_A77E, slot.0 as u32, clock.tick]);
+        if duels.by_slot.contains_key(&slot.0) {
+            continue;
+        }
         let Some(species) = NPC_DB.get(MECHAMUTT_REF) else {
             continue;
         };
-        let state =
-            simgrid::BattleState::versus(root, mechamutt_team(species), mechamutt_team(species));
-        let opening = vec![info_event(format!(
-            "A team of {PET_TEAM_SIZE} Mechamutt faces {PET_TEAM_SIZE} Mechamutt (Lv {PET_TEAM_LEVEL}) — choose your move!"
-        ))];
-        let view = battle_view(&state, opening);
-        battles.0.insert(slot.0, state);
-        send_battle_view(&bcast, slot, &view);
+        let mut team = players
+            .iter()
+            .find(|(tag, _)| tag.0 == slot)
+            .map(|(_, roster)| crate::duel::roster_team(&bank, roster))
+            .unwrap_or_default();
+        if team.is_empty() {
+            team = mechamutt_team(species);
+        }
+        let root = simgrid::rng::mix32(&[0x5E7B_A77E, slot.0 as u32, clock.tick]);
+        let state = simgrid::BattleState::versus(root, team, mechamutt_team(species));
+        let duel = crate::duel::Duel {
+            state,
+            sides: [
+                crate::duel::DuelSide::Human { slot: slot.0 },
+                crate::duel::DuelSide::Npc {
+                    trainer: None,
+                    name: "Training Bot".into(),
+                    difficulty: simgrid::AiDifficulty::Greedy,
+                },
+            ],
+            committed: [None, None],
+            deadline_tick: clock.tick.saturating_add(crate::duel::DUEL_TURN_TICKS),
+        };
+        let opening = vec![info_event(
+            "A trainer battle begins — choose your move!".into(),
+        )];
+        let id = duels.create(duel);
+        crate::duel::stream_duel_views(&bcast, &duels.by_id[&id], &opening);
     }
 }
 
-/// Advance each in-progress battle by the action its player committed: the player's chosen
-/// action resolves against the AI's enemy action for one turn, then the new snapshot (with
-/// the turn's events to animate) streams back. The battle is dropped once it resolves.
+/// Advance each in-progress duel by the action its player committed: the player's chosen
+/// action resolves against the opposing side for one turn, then the new snapshot (with
+/// the turn's events to animate) streams back. The duel is dropped once it resolves.
 pub fn apply_pet_turns(
     bcast: Res<simgrid::Outbound>,
+    clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetTurns>,
-    mut battles: ResMut<ActivePetBattles>,
+    mut duels: ResMut<crate::duel::ActiveDuels>,
+    mut commands: bevy::prelude::Commands,
 ) {
     if pending.0.is_empty() {
         return;
     }
     for (slot, action, arg) in std::mem::take(&mut pending.0) {
-        let Some(state) = battles.0.get_mut(&slot.0) else {
+        let Some(&id) = duels.by_slot.get(&slot.0) else {
+            continue;
+        };
+        let Some(duel) = duels.by_id.get_mut(&id) else {
+            continue;
+        };
+        let Some(idx) = crate::duel::side_index_of_slot(duel, slot.0) else {
             continue;
         };
         let Some(pa) = player_action(action, arg) else {
             continue;
         };
-        let raw = if state.needs_replacement(simgrid::Side::Player) {
+        let side = crate::duel::engine_side(idx);
+        let raw = if duel.state.needs_replacement(side) {
             match pa {
                 simgrid::BattleAction::Swap { to } => {
-                    state.resolve_replacement(simgrid::Side::Player, to)
+                    let ev = duel.state.resolve_replacement(side, to);
+                    if !ev.is_empty() {
+                        duel.deadline_tick =
+                            clock.tick.saturating_add(crate::duel::DUEL_TURN_TICKS);
+                    }
+                    ev
                 }
                 _ => Vec::new(),
             }
         } else {
-            let mut ai_rng = simgrid::rng::stream(
-                state.root,
-                simgrid::rng::domain::PETBATTLE,
-                &[state.turn, AI_STREAM],
-            );
-            let ea = simgrid::choose_action(
-                state,
-                simgrid::Side::Enemy,
-                simgrid::AiDifficulty::Greedy,
-                &mut ai_rng,
-            );
-            state.resolve_turn(pa, ea)
+            duel.committed[idx] = Some(pa);
+            crate::duel::npc_commit(duel);
+            crate::duel::try_resolve(duel, clock.tick).unwrap_or_default()
         };
         let mut events: Vec<_> = raw
             .iter()
             .filter(|e| !matches!(e, simgrid::BattleEvent::Outcome(_)))
             .map(wire_event)
             .collect();
-        if state.needs_replacement(simgrid::Side::Enemy) {
-            let to = simgrid::choose_replacement(
-                state,
-                simgrid::Side::Enemy,
-                simgrid::AiDifficulty::Greedy,
-            );
-            events.extend(
-                state
-                    .resolve_replacement(simgrid::Side::Enemy, to)
-                    .iter()
-                    .map(wire_event),
-            );
-        }
-        if state.needs_replacement(simgrid::Side::Player) {
+        if duel.state.needs_replacement(side) {
             events.push(info_event(
                 "Your pet fainted — choose a replacement!".into(),
             ));
         }
-        let resolved = state.outcome != simgrid::BattleOutcome::Ongoing;
-        let view = battle_view(state, events);
+        let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
+        crate::duel::stream_duel_views(&bcast, duel, &events);
         if resolved {
-            battles.0.remove(&slot.0);
+            crate::duel::finish_duel(&mut duels, id, &mut commands);
         }
-        send_battle_view(&bcast, slot, &view);
     }
 }
 

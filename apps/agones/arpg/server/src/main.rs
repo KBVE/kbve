@@ -140,7 +140,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Interactive pet battles: `apply_pet_battles` starts a battle (debug button) and
         // `apply_pet_turns` advances the live one by the player's committed action. Both run
         // after inputs are routed; chained so a start + first turn in one frame order right.
-        app.insert_resource(game::ActivePetBattles::default());
         app.insert_resource(duel::ActiveDuels::default());
         app.add_systems(
             bevy::prelude::Update,

@@ -8,13 +8,13 @@ use bevy::prelude::Entity;
 
 use crate::game;
 
-#[allow(dead_code)]
 pub enum DuelSide {
     Human {
         slot: u16,
     },
     Npc {
         trainer: Option<Entity>,
+        #[allow(dead_code)]
         name: String,
         difficulty: simgrid::AiDifficulty,
     },
@@ -28,7 +28,6 @@ pub struct Duel {
 }
 
 #[derive(bevy::prelude::Resource, Default)]
-#[allow(dead_code)]
 pub struct ActiveDuels {
     pub by_id: HashMap<u32, Duel>,
     pub by_slot: HashMap<u16, u32>,
@@ -37,7 +36,6 @@ pub struct ActiveDuels {
 
 pub const DUEL_TURN_TICKS: u32 = 30 * simgrid::SIM_TICK_HZ;
 
-#[allow(dead_code)]
 impl ActiveDuels {
     /// Register a new duel, indexing every human side by slot for turn routing.
     pub fn create(&mut self, duel: Duel) -> u32 {
@@ -64,6 +62,59 @@ impl ActiveDuels {
     }
 }
 
+fn combatant_from_snapshot(snap: &simgrid::PetSnapshot) -> Option<simgrid::Combatant> {
+    let species = game::NPC_DB.get(&snap.species_ref)?;
+    let mut fresh = snap.clone();
+    fresh.vitals.hp = fresh.vitals.max_hp;
+    Some(simgrid::Combatant::from_pet(&fresh, species))
+}
+
+/// Fresh full-HP battle copies of the player's persisted roster; empty when the
+/// roster is empty (caller falls back to a minted team).
+pub fn roster_team(
+    bank: &simgrid::PetBank,
+    roster: &simgrid::PetRoster,
+) -> Vec<simgrid::Combatant> {
+    bank.snapshot(roster)
+        .iter()
+        .filter_map(combatant_from_snapshot)
+        .collect()
+}
+
+pub fn stream_duel_views(
+    bcast: &simgrid::Outbound,
+    duel: &Duel,
+    events: &[simgrid::proto::PetBattleWireEvent],
+) {
+    for (idx, side) in duel.sides.iter().enumerate() {
+        if let DuelSide::Human { slot } = side {
+            let view = viewer_view(duel, idx, events);
+            game::send_battle_view(bcast, simgrid::proto::PlayerSlot(*slot), &view);
+        }
+    }
+}
+
+/// Remove a finished duel and free its trainer for the next challenger.
+pub fn finish_duel(duels: &mut ActiveDuels, id: u32, commands: &mut bevy::prelude::Commands) {
+    if let Some(duel) = duels.remove(id) {
+        for side in &duel.sides {
+            if let DuelSide::Npc {
+                trainer: Some(e), ..
+            } = side
+            {
+                commands.entity(*e).remove::<TrainerBusy>();
+            }
+        }
+    }
+}
+
+#[derive(bevy::prelude::Component)]
+#[allow(dead_code)]
+pub struct Trainer(pub usize);
+
+#[derive(bevy::prelude::Component)]
+pub struct TrainerBusy;
+
 /// Map a duel side index (0/1) onto the engine's `Side`.
 pub fn engine_side(idx: usize) -> simgrid::Side {
     if idx == 0 {
@@ -74,7 +125,6 @@ pub fn engine_side(idx: usize) -> simgrid::Side {
 }
 
 /// Find which duel side index (0/1) a human player slot occupies, if any.
-#[allow(dead_code)]
 pub fn side_index_of_slot(duel: &Duel, slot: u16) -> Option<usize> {
     duel.sides
         .iter()
@@ -92,7 +142,6 @@ fn ai_rng(duel: &Duel, idx: usize) -> simgrid::rng::Mulberry32 {
 
 /// Fill commitments for every NPC side that has none. NPC replacement picks are
 /// handled inside `resolve_events`, not here.
-#[allow(dead_code)]
 pub fn npc_commit(duel: &mut Duel) {
     for idx in 0..2 {
         if duel.committed[idx].is_some() {
@@ -111,7 +160,6 @@ pub fn npc_commit(duel: &mut Duel) {
     }
 }
 
-#[allow(dead_code)]
 fn resolve_events(duel: &mut Duel) -> Vec<simgrid::BattleEvent> {
     let pa = duel.committed[0]
         .take()
@@ -133,7 +181,6 @@ fn resolve_events(duel: &mut Duel) -> Vec<simgrid::BattleEvent> {
 }
 
 /// Resolve one turn if both sides have committed; resets the deadline.
-#[allow(dead_code)]
 pub fn try_resolve(duel: &mut Duel, now_tick: u32) -> Option<Vec<simgrid::BattleEvent>> {
     if duel.committed.iter().any(|c| c.is_none()) {
         return None;
@@ -193,7 +240,6 @@ pub fn forfeit(duel: &mut Duel, loser_idx: usize) {
     };
 }
 
-#[allow(dead_code)]
 fn flip_outcome(name: &str) -> String {
     match name {
         "PlayerWon" => "PlayerLost".into(),
@@ -205,7 +251,6 @@ fn flip_outcome(name: &str) -> String {
 /// The battle snapshot as one side sees it: viewer 0 is the engine's player side
 /// verbatim; viewer 1 sees teams, active indices, moves, events, and outcome
 /// mirrored so their own side always renders as `player`.
-#[allow(dead_code)]
 pub fn viewer_view(
     duel: &Duel,
     viewer_idx: usize,
@@ -347,6 +392,19 @@ mod tests {
                 .first()
                 .map(|m| m.name.clone())
         );
+    }
+
+    #[test]
+    fn roster_team_copies_are_full_hp() {
+        let species = crate::game::NPC_DB
+            .get(crate::game::MECHAMUTT_REF)
+            .expect("mechamutt");
+        let mut snap = simgrid::mint_pet_from_species(species, 50).expect("mint");
+        let max_hp = snap.vitals.max_hp;
+        snap.vitals.hp = 1;
+        let combatant = combatant_from_snapshot(&snap).expect("combatant");
+        assert_eq!(combatant.hp, max_hp);
+        assert!(combatant.max_hp > 1);
     }
 
     #[test]
