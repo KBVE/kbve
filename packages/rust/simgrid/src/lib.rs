@@ -44,7 +44,7 @@ pub use sim::{
     BuffSpec, BushState, CombatStats, ConsumableEffects, Defense, DeployableSpec, Deployables,
     EidIndex, EntityKind, EnvObject, EnvOpts, EnvPersistSink, EquipBonus, EquipmentEffects,
     Equipped, FurnitureRot, HazardZone, HealAura, Health, InSpaceFlag, IntentBuffer, Inventory,
-    ItemPrices, ItemStack, Loot, ManaAura, MoveProfile, NpcLevel, NpcSpec, Outbound,
+    Invulnerable, ItemPrices, ItemStack, Loot, ManaAura, MoveProfile, NpcLevel, NpcSpec, Outbound,
     PendingNpcChallenges, PendingPetBattles, PendingPetTurns, PendingPilotOps, PersistedEnvLog,
     PersistedEnvObject, PilotOp, Piloting, PlacedBy, PlayerPersistSink, PlayerSlotTag, PlayerStore,
     RespawnOnDeath, ReturnedFromInstance, SIM_TICK_HZ, SavedPlayer, ShopStock, SimClock, SimConfig,

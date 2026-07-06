@@ -175,12 +175,17 @@ pub fn spawn_trainers(
             move_profile: None,
         };
         let e = simgrid::spawn_npc_from_spec(commands, &spec);
-        commands.entity(e).insert(Trainer(i));
+        commands
+            .entity(e)
+            .insert((Trainer(i), simgrid::Invulnerable));
     }
 }
 
 /// Consume walk-up NPC challenges: validates the trainer exists, is free, and
 /// the challenger is in range, then starts a PvE duel and busies the trainer.
+/// A `claimed` set guards same-tick double-challenges: `TrainerBusy` inserts are
+/// deferred `Commands`, so the `trainers` query snapshot stays stale for the
+/// whole drained batch.
 #[allow(clippy::too_many_arguments)]
 pub fn apply_npc_challenges(
     bcast: bevy::prelude::Res<simgrid::Outbound>,
@@ -200,6 +205,8 @@ pub fn apply_npc_challenges(
     if pending.0.is_empty() {
         return;
     }
+    let mut claimed: std::collections::HashSet<bevy::prelude::Entity> =
+        std::collections::HashSet::new();
     for (slot, npc) in std::mem::take(&mut pending.0) {
         if duels.by_slot.contains_key(&slot.0) {
             continue;
@@ -207,6 +214,9 @@ pub fn apply_npc_challenges(
         let Some(&trainer_entity) = index.by_eid.get(&npc.0) else {
             continue;
         };
+        if claimed.contains(&trainer_entity) {
+            continue;
+        }
         let Ok((trainer, trainer_pos, busy)) = trainers.get(trainer_entity) else {
             continue;
         };
@@ -245,6 +255,7 @@ pub fn apply_npc_challenges(
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
         };
+        claimed.insert(trainer_entity);
         commands.entity(trainer_entity).insert(TrainerBusy);
         let opening = vec![game::info_event(format!(
             "{} challenges you to a pet duel!",
@@ -675,5 +686,47 @@ mod tests {
         use simgrid::proto::Tile;
         assert!(within_challenge_range(Tile::new(5, 5), Tile::new(7, 5)));
         assert!(!within_challenge_range(Tile::new(5, 5), Tile::new(8, 5)));
+    }
+
+    #[test]
+    fn same_tick_double_challenge_binds_one_duel() {
+        let mut app = bevy::app::App::new();
+        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+        app.insert_resource(simgrid::Outbound { tx });
+        app.insert_resource(simgrid::SimClock::default());
+        app.insert_resource(simgrid::PendingNpcChallenges::default());
+        app.insert_resource(simgrid::PendingPets::default());
+        app.insert_resource(ActiveDuels::default());
+        let trainer = app
+            .world_mut()
+            .spawn((
+                Trainer(0),
+                simgrid::GridPos::at(simgrid::proto::Tile::new(5, 5)),
+            ))
+            .id();
+        app.world_mut().spawn((
+            simgrid::PlayerSlotTag(simgrid::proto::PlayerSlot(1)),
+            simgrid::GridPos::at(simgrid::proto::Tile::new(6, 5)),
+        ));
+        app.world_mut().spawn((
+            simgrid::PlayerSlotTag(simgrid::proto::PlayerSlot(2)),
+            simgrid::GridPos::at(simgrid::proto::Tile::new(4, 5)),
+        ));
+        let mut index = simgrid::EidIndex::default();
+        index.by_eid.insert(7, trainer);
+        app.insert_resource(index);
+        app.world_mut()
+            .resource_mut::<simgrid::PendingNpcChallenges>()
+            .0
+            .extend([
+                (simgrid::proto::PlayerSlot(1), simgrid::proto::EntityId(7)),
+                (simgrid::proto::PlayerSlot(2), simgrid::proto::EntityId(7)),
+            ]);
+        app.add_systems(bevy::prelude::Update, apply_npc_challenges);
+        app.update();
+        let duels = app.world().resource::<ActiveDuels>();
+        assert_eq!(duels.by_id.len(), 1);
+        assert!(duels.by_slot.contains_key(&1));
+        assert!(!duels.by_slot.contains_key(&2));
     }
 }

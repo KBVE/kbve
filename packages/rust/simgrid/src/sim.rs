@@ -510,6 +510,12 @@ pub struct RespawnOnDeath {
 #[derive(Component, Clone, Copy)]
 pub struct NpcLevel(pub i32);
 
+/// Marker: this entity ignores all damage — player attacks and hazard/status
+/// ticks skip it outright. For non-combat NPCs (e.g. duel trainers) that must
+/// persist for server lifetime.
+#[derive(Component, Clone, Copy)]
+pub struct Invulnerable;
+
 #[derive(Component, Clone, Copy)]
 pub struct PlayerSlotTag(pub proto::PlayerSlot);
 
@@ -1415,12 +1421,15 @@ fn env_mana_aura(
 fn env_hazard_burn(
     clock: Res<SimClock>,
     hazards: Query<(&HazardZone, &GridPos, Option<&Floor>)>,
-    mut victims: Query<(
-        &mut Health,
-        &GridPos,
-        Option<&Floor>,
-        Option<&mut StatusEffects>,
-    )>,
+    mut victims: Query<
+        (
+            &mut Health,
+            &GridPos,
+            Option<&Floor>,
+            Option<&mut StatusEffects>,
+        ),
+        Without<Invulnerable>,
+    >,
 ) {
     let now = clock.tick;
     for (hz, hpos, hfloor) in hazards.iter() {
@@ -2480,7 +2489,11 @@ pub(crate) type AttackMobQuery<'w, 's> = Query<
         Option<&'static NpcLevel>,
         &'static EntityKind,
     ),
-    (Without<PlayerSlotTag>, Without<GroundItem>),
+    (
+        Without<PlayerSlotTag>,
+        Without<GroundItem>,
+        Without<Invulnerable>,
+    ),
 >;
 
 /// Apply a confirmed hit from `player_entity` to `target_entity`: roll damage
@@ -6168,6 +6181,50 @@ mod tests {
             .query_filtered::<&EntityKind, Without<PlayerSlotTag>>();
         let alive = q.iter(app.world()).filter(|k| k.0 == kind).count();
         assert_eq!(alive, 1, "npc did not respawn");
+    }
+
+    #[test]
+    fn invulnerable_npc_ignores_attacks() {
+        let (mut app, mut rx, input_tx, roster) = harness(37);
+        let slot = join(&roster, "aggressor");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = None;
+        spec.max_hp = 1;
+        spec.respawn_ticks = 0;
+        let mob = {
+            let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut commands_queue, app.world());
+            let e = spawn_npc_from_spec(&mut commands, &spec);
+            commands_queue.apply(app.world_mut());
+            e
+        };
+        app.world_mut().entity_mut(mob).insert(Invulnerable);
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..12 {
+            app.update();
+        }
+        while rx.try_recv().is_ok() {}
+
+        let hp = app
+            .world()
+            .get::<Health>(mob)
+            .expect("invulnerable npc still exists")
+            .hp;
+        assert_eq!(hp, 1, "invulnerable npc took damage");
     }
 
     #[test]
