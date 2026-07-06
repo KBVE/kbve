@@ -724,6 +724,12 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
             }
             events.push(wire_event(&ev));
         }
+        for side in [simgrid::Side::Player, simgrid::Side::Enemy] {
+            if state.needs_replacement(side) {
+                let to = simgrid::choose_replacement(&state, side, simgrid::AiDifficulty::Greedy);
+                events.extend(state.resolve_replacement(side, to).iter().map(wire_event));
+            }
+        }
     }
     // Resolve a winner even if the turn cap is hit (a stalemated mirror) — by pets
     // standing, then total HP. A true tie favours the player (first-mover edge).
