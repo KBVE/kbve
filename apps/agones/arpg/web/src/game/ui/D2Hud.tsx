@@ -727,7 +727,7 @@ export function PetBattleScene({
 	const [, setTick] = useState(0);
 	useEffect(() => {
 		setTurnStart(Date.now());
-	}, [state.deadline_ms]);
+	}, [state]);
 	useEffect(() => {
 		const t = setInterval(() => setTick((n) => n + 1), 250);
 		return () => clearInterval(t);
