@@ -1,0 +1,179 @@
+---
+title: Unreal Death Slayer
+description: |
+    Death Slayer — A UE5 action game built with Unreal Engine 5 featuring intense combat mechanics and dynamic environments. Cross-platform builds (Win64, Linux, Mac) shipped to itch.io as kbve/deathslayer via the manifest-driven ci-unreal game pipeline.
+sidebar:
+    label: Unreal Death Slayer
+    order: 96
+tags:
+    - ue5
+    - game
+    - deathslayer
+    - action
+key: unreal_deathslayer
+pipeline: unreal_game
+app_name: deathslayer
+source_path: apps/deathslayer/unreal-deathslayer
+version_toml: apps/deathslayer/unreal-deathslayer/version.toml
+version: "0.1.0"
+runner: arc-runner-ue
+author: kbve
+license: KBVE
+status: development
+homepage_url: https://kbve.itch.io/deathslayer
+engine:
+    version: "5.8.0"
+    project_path: deathslayer
+    external_repo_url: https://github.com/KBVE/deathslayer
+    build_targets:
+        - Win64
+        - Linux
+        - Mac
+    client_config: Shipping
+    server_target: deathslayerServer
+    server_config: Shipping
+    game_mode: /Script/DeathSlayer.DeathSlayerGameMode
+    maps:
+        - /Game/Menus/L_MainMenu
+        - /Game/Maps/L_DeathSlayerWorld
+external_publish:
+    itch_user: kbve
+    itch_game: deathslayer
+shell_path: apps/deathslayer/unreal-deathslayer
+---
+
+## Overview
+
+Death Slayer is a UE5 action game featuring intense combat mechanics and dynamic environments. This document tracks the **cooked, Shipping** release (`-clientconfig=Shipping`, `-cook -pak`) compiled from the external game repository [`KBVE/deathslayer`](https://github.com/KBVE/deathslayer) and distributed to itch.io under `kbve/deathslayer`.
+
+The game is built using Unreal Engine 5.8.0 with cross-platform support for Windows, Linux, and macOS, featuring:
+- Fast-paced combat system
+- Dynamic environment interactions
+- Cross-platform multiplayer support (planned)
+- Steam and itch.io distribution
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`) → `ci-unreal-build.yml` (`mode: game`) whenever the MDX `version:` here outpaces `version.toml`, or `source_path` files change.
+
+The `engine.external_repo_url` configuration makes the builder clone the external [`KBVE/deathslayer`](https://github.com/KBVE/deathslayer) repository (default branch: `main`) instead of using the monorepo shell. The version gate and `version_toml` tracker remain in this monorepo for CI/CD orchestration.
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- **Win64** — Native build on the `UE5-Win` KubeVirt VM using `RunUAT.bat`
+- **Linux** — `BuildCookRun` in the cached Epic UE Docker image on `arc-runner-ue`
+- **Mac** — Native build on the `[self-hosted, macOS, ARM64]` runner with code signing and notarization
+
+Plus the bundled Linux **dedicated server** (`shell_path` → `task: server`): the `deathslayerServer` target (`server_config: Shipping`) is cooked from the monorepo shell and archived to the appropriate storage location for Agones fleet deployment.
+
+## macOS Code Signing
+
+macOS builds are automatically signed and notarized using the following GitHub secrets:
+- `APPLE_CERTIFICATE` — Base64-encoded .p12 certificate
+- `APPLE_CERTIFICATE_PASSWORD` — Certificate password
+- `APPLE_SIGNING_IDENTITY` — Team ID or signing identity
+- `APPLE_ID` — Apple Developer account email
+- `APPLE_PASSWORD` — App-specific password
+- `APPLE_TEAM_ID` — Apple Team ID for notarization
+
+The build pipeline handles entitlements for network access and sandboxing automatically.
+
+## Distribution
+
+Ships to itch.io `kbve/deathslayer`, one channel per platform:
+- `windows` — Windows builds (Win64)
+- `linux` — Linux builds
+- `macos` — macOS builds (signed and notarized)
+
+Version tracking via butler's `--userversion` parameter. Requires the `butler_api` secret for automated uploads.
+
+## Desktop Launcher
+
+A cross-platform desktop launcher is available at `apps/deathslayer/deathslayer-launcher`, built with:
+- **Tauri 2** — Rust backend for native performance
+- **React 19** — Modern UI framework
+- **Vite** — Fast development and build tooling
+
+The launcher provides:
+- Automatic game updates
+- Version management
+- Launch configuration
+- News and announcements
+- Cloud save management (planned)
+
+### Launcher Development
+
+```bash
+# Run launcher in development mode
+nx run desktop-deathslayer:dev
+
+# Build launcher for production
+nx run desktop-deathslayer:build:tauri
+```
+
+## Release Process
+
+1. Bump `version:` in this MDX file above `version.toml` (`apps/deathslayer/unreal-deathslayer/version.toml`)
+2. Run `npx nx run astro-kbve:sync:ci-manifest` to update the CI manifest
+3. Commit and push to trigger the build pipeline
+4. The next `ci-main` run fans out the game build + itch upload for this entry
+5. Post-publish atom PR updates `version.toml` automatically
+
+## Source: External KBVE/deathslayer
+
+Builds source from the external game repository [`KBVE/deathslayer`](https://github.com/KBVE/deathslayer) (default branch: `main`). The builder clones it with the GitHub PAT, then materializes `engine.project_path` (`deathslayer/` — the directory holding `DeathSlayer.uproject`).
+
+Content blobs are managed via Git LFS. The repository's `.lfsconfig` points to the authenticated LFS endpoint, which the builder normalizes to the authenticated HTTPS ingress route at build time.
+
+When `engine.external_repo_url` is empty, the builder falls back to the monorepo shell at `apps/deathslayer/unreal-deathslayer`.
+
+## Development
+
+### Local Setup
+
+```bash
+# Clone the external game repository
+git clone https://github.com/KBVE/deathslayer.git
+
+# Pull LFS content
+git lfs pull
+
+# Open in Unreal Editor
+# File → Open Project → deathslayer/DeathSlayer.uproject
+```
+
+### Testing
+
+```bash
+# Run automated tests
+nx run unreal-deathslayer:test
+
+# Run the game in editor
+# Use Unreal Editor → Play (Alt+P)
+```
+
+## Architecture
+
+- **Game Mode**: `DeathSlayerGameMode` — Core game rules and mechanics
+- **Main Menu**: `/Game/Menus/L_MainMenu` — Entry point and UI
+- **Game World**: `/Game/Maps/L_DeathSlayerWorld` — Primary game level
+
+## Roadmap
+
+- [x] Initial project setup
+- [x] Core combat mechanics
+- [x] Basic environment design
+- [ ] Multiplayer networking
+- [ ] Steam integration
+- [ ] Achievement system
+- [ ] Cloud save support
+- [ ] Mobile platform support (iOS/Android)
+
+## Links
+
+- [itch.io Page](https://kbve.itch.io/deathslayer)
+- [GitHub Repository](https://github.com/KBVE/deathslayer)
+- [Issue Tracker](https://github.com/KBVE/deathslayer/issues)
+- [Development Board](https://github.com/orgs/KBVE/projects)

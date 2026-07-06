@@ -1,0 +1,68 @@
+{
+	"name": "deathslayer-launcher",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/deathslayer/deathslayer-launcher",
+	"targets": {
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": [
+					"apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
+				]
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1423 | xargs kill 2>/dev/null; export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri dev"
+				],
+				"cwd": "apps/deathslayer/deathslayer-launcher"
+			}
+		},
+		"dev:web": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"lsof -ti:1423 | xargs kill 2>/dev/null; pnpm dev"
+				],
+				"cwd": "apps/deathslayer/deathslayer-launcher"
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
+				],
+				"cwd": "apps/deathslayer/deathslayer-launcher"
+			}
+		},
+		"test:rust": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["cargo test -p deathslayer-launcher"],
+				"cwd": "apps/deathslayer/deathslayer-launcher/src-tauri"
+			}
+		},
+		"build:tauri": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build"
+				],
+				"cwd": "apps/deathslayer/deathslayer-launcher"
+			},
+			"configurations": {
+				"production": {
+					"commands": [
+						"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm tauri build --release"
+					],
+					"cwd": "apps/deathslayer/deathslayer-launcher"
+				}
+			}
+		}
+	},
+	"tags": []
+}
