@@ -3,8 +3,6 @@ kind: Gateway
 metadata:
     name: kbve-gateway
     namespace: kbve
-    annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-dns
 spec:
     gatewayClassName: cilium
     infrastructure:
