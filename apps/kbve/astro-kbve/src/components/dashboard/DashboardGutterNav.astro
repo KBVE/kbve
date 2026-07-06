@@ -104,20 +104,12 @@ const { pathname } = Astro.props;
 		.dash-rail {
 			position: sticky;
 			top: calc(var(--sl-nav-height, 3.5rem) + 1rem);
-			align-self: flex-start;
-			flex: 0 0 15rem;
-			width: 15rem;
 			/* Fixed height (not max-height) so staff groups resolving in
 			   client-side fill reserved space instead of growing the rail —
 			   no layout shift. Empty space below is for future user options. */
 			height: calc(100vh - var(--sl-nav-height, 3.5rem) - 2rem);
 			overflow-y: auto;
 			scrollbar-width: thin;
-		}
-
-		.dash-rail .facet-panel {
-			min-height: 100%;
-			box-sizing: border-box;
 		}
 	}
 
@@ -135,14 +127,14 @@ const { pathname } = Astro.props;
 		display: block;
 	}
 
-	/* Bento panel chrome so the rail matches the shell (black cell +
-	   hairline + radius) instead of the translucent facet default. */
+	/* Flush grid cell — no floating card chrome. The parent grid's
+	   hairline seam divides rail from content; padding only. */
 	.dash-rail .facet-panel {
-		padding: 0.75rem;
-		background-color: var(--bento-cell-bg, var(--sl-color-black));
-		border: 1px solid var(--bento-hairline-strong);
-		border-radius: var(--bento-radius, 0.625rem);
-		box-shadow: var(--bento-shadow);
+		padding: 1rem;
+		background-color: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
 	}
 
 	/* Icon + label sit together on the left (facet-row defaults to

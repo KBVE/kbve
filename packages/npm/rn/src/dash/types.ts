@@ -133,6 +133,12 @@ export interface StreamLens<TItem> {
 	 * `meta` side-channel (see {@link StreamSourceConfig.fetchMeta}).
 	 */
 	stats?: (items: TItem[], meta?: unknown) => StatModel[];
+	/**
+	 * Optional rich panel rendered under the stat grid, fed the cached `meta`
+	 * side-channel (e.g. an expandable per-namespace table). Distinct from
+	 * `stats` (flat tiles) — this owns its own layout/collapse.
+	 */
+	metaPanel?: (meta: unknown) => ReactNode;
 	/** Free-text search haystack for an item. */
 	searchText?: (item: TItem) => string;
 	/** Grouping bucket label for an item (used when groupKey is active). */

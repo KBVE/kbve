@@ -148,8 +148,11 @@ const styles = {
 	} as React.CSSProperties,
 };
 
-async function authedFetch(path: string, init: RequestInit = {}) {
-	return authedApiFetch(path, init);
+async function authedFetch<T = unknown>(
+	path: string,
+	init: RequestInit = {},
+): Promise<T> {
+	return authedApiFetch(path, init) as Promise<T>;
 }
 
 export function ReactProfileWallet() {
@@ -175,7 +178,9 @@ export function ReactProfileWallet() {
 		}
 		(async () => {
 			try {
-				const me = await authedFetch('/api/v1/me');
+				const me = await authedFetch<{ username?: string }>(
+					'/api/v1/me',
+				);
 				const myUsername: string | undefined = me?.username;
 				setOwn(
 					!!myUsername &&
@@ -195,8 +200,8 @@ export function ReactProfileWallet() {
 	const refresh = useCallback(async () => {
 		try {
 			const [bal, cps] = await Promise.all([
-				authedFetch('/api/v1/wallet/me/balance'),
-				authedFetch('/api/v1/wallet/me/coupons'),
+				authedFetch<Balance>('/api/v1/wallet/me/balance'),
+				authedFetch<Coupon[]>('/api/v1/wallet/me/coupons'),
 			]);
 			setBalance(bal);
 			setCoupons(cps);
@@ -220,7 +225,7 @@ export function ReactProfileWallet() {
 					coupon_id: couponId,
 					idempotency_key: crypto.randomUUID(),
 				});
-				const result: RedeemResult = await authedFetch(
+				const result = await authedFetch<RedeemResult>(
 					'/api/v1/wallet/me/redeem-coupon',
 					{ method: 'POST', body },
 				);

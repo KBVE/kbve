@@ -10267,7 +10267,7 @@
               "options": {
                 "cwd": "apps/kbve/astro-kbve",
                 "commands": [
-                  "rm -rf .astro",
+                  "rm -rf .astro node_modules/.vite node_modules/.astro",
                   "nx exec -- astro sync",
                   "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
                 ],
@@ -12746,8 +12746,6 @@
                   "types": "./components/social/twitch/ServiceTwitch.d.ts"
                 },
                 "./components/social/discord/DiscordEmbed.astro": "./components/social/discord/DiscordEmbed.astro",
-                "./components/social/discord/DiscordCalendar.astro": "./components/social/discord/DiscordCalendar.astro",
-                "./components/social/discord/DiscordRule.astro": "./components/social/discord/DiscordRule.astro",
                 "./components/social/discord/ReactDiscordEmbed": {
                   "import": "./components/social/discord/ReactDiscordEmbed.js",
                   "types": "./components/social/discord/ReactDiscordEmbed.d.ts"

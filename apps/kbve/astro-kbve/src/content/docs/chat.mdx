@@ -8,15 +8,113 @@ sidebar:
 editUrl: false
 lastUpdated: false
 tableOfContents: false
+prev: false
+next: false
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import KbveChatEmbed from '../../components/kbve/KbveChatEmbed.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-<KbveChatEmbed channel="#general" height="70vh" />
+export const backdrop = 'https://images.unsplash.com/photo-1611606063065-ee7946f0787a?q=80&w=2400&auto=format&fit=crop';
 
-## Tips
+export const stats = [
+	{ label: 'Protocol', value: 'IRC', icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+	{ label: 'Channel', value: '#general', icon: 'M4 9h16M4 15h16M10 3 8 21M16 3l-2 18' },
+	{ label: 'Latency', value: 'Live', icon: 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8' },
+	{ label: 'Access', value: 'Public', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
+];
 
-- Sign in (top right of the chat) to send messages — read-only mode without auth
-- Use `/help` to see available commands
-- Messages are public and visible to all users
-- Need the full experience? Open [chat.kbve.com](https://chat.kbve.com/chat/)
+export const tips = [
+	{ title: 'Sign in to talk', desc: 'Use the button at the top right of the chat to authenticate — read-only mode without auth.', icon: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3' },
+	{ title: 'Slash commands', desc: 'Type /help in the chat to see every available command.', icon: 'M9 12h6m-3-3v6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+	{ title: 'Public by default', desc: 'Messages are visible to everyone in the channel. Keep it friendly.', icon: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' },
+	{ title: 'Full experience', desc: 'Prefer a dedicated window? Open chat.kbve.com for the standalone client.', icon: 'M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' },
+];
+
+<div class="chat-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-chat-hub>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE community chat">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<span class="bento-live-dot" aria-hidden="true"></span>
+					<span>irc · #general</span>
+				</span>
+				<h1 class="bento-title">
+					Real-time chat,
+					<span class="bento-title__accent">right in the browser.</span>
+				</h1>
+				<p class="bento-lede">
+					The KBVE community IRC, embedded live. Lurk read-only or sign in
+					to jump into the conversation — no client install, no download.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#chat">
+						Open the chat
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="https://chat.kbve.com/chat/" target="_blank" rel="noopener noreferrer">Standalone client</a>
+					<a class="bento-btn bento-btn--ghost" href="#tips">Tips</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#chat">Chat</a>
+			<a class="bento-chip" href="#tips">Tips</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="chat" eyebrow="Say hi" heading="Live in #general">
+	<div class="bento-cell bento-card bento-card--glass chat-hub__embed">
+		<KbveChatEmbed channel="#general" height="70vh" />
+	</div>
+</BentoShell>
+
+<BentoShell id="tips" eyebrow="Good to know" heading="Getting started">
+	<div class="bento-board bento-board--auto-wide">
+		{tips.map((t) => (
+			<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+				<div class="bento-rulecard__top">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
+					</span>
+				</div>
+				<h3 class="bento-rulecard__title">{t.title}</h3>
+				<p class="bento-rulecard__desc">{t.desc}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</div>
+
+<style is:global>{`
+	.chat-hub {
+		--bento-accent: #22c55e;
+		--bento-accent-2: #4ade80;
+	}
+	.chat-hub .chat-hub__embed {
+		padding: 0.75rem;
+	}
+`}</style>

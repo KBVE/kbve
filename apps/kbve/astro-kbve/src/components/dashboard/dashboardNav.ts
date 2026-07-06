@@ -13,6 +13,8 @@ export interface DashboardNavGroup {
 	label: string;
 	items: DashboardNavItem[];
 	visibility?: NavVisibility;
+	/** Group landing page; breadcrumb links the group crumb here when set. */
+	href?: string;
 }
 
 export type DashboardNavEntry = DashboardNavItem | DashboardNavGroup;
@@ -56,6 +58,7 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 	{
 		label: 'Infrastructure',
 		visibility: 'staff',
+		href: '/dashboard/infrastructure/',
 		items: [
 			{
 				label: 'Argo',
@@ -92,6 +95,7 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 	{
 		label: 'GameOps',
 		visibility: 'staff',
+		href: '/dashboard/gameops/',
 		items: [
 			{
 				label: 'ROWS',
@@ -107,6 +111,11 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 				label: 'Minecraft',
 				href: '/dashboard/gameops/mc/',
 				icon: 'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5M21 8v8l-9 5M12 13v9',
+			},
+			{
+				label: 'Vibeshine',
+				href: '/dashboard/gameops/vibeshine/',
+				icon: 'M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 20h.01',
 			},
 		],
 	},
@@ -165,11 +174,21 @@ export const findActive = (pathname: string): ActiveMatch | undefined => {
 
 export const buildBreadcrumb = (pathname: string): BreadcrumbCrumb[] => {
 	const crumbs: BreadcrumbCrumb[] = [DASHBOARD_ROOT];
+	const path = normalize(pathname);
+	for (const entry of DASHBOARD_NAV) {
+		if (isGroup(entry) && entry.href && normalize(entry.href) === path) {
+			crumbs.push({ label: entry.label, href: entry.href });
+			return crumbs;
+		}
+	}
 	const match = findActive(pathname);
 	if (!match) return crumbs;
 	if (match.item.href === DASHBOARD_ROOT.href) return crumbs;
 	if (match.group) {
-		crumbs.push({ label: match.group.label, href: match.item.href });
+		crumbs.push({
+			label: match.group.label,
+			href: match.group.href ?? match.item.href,
+		});
 	}
 	crumbs.push({ label: match.item.label, href: match.item.href });
 	return crumbs;
