@@ -655,6 +655,19 @@ pub fn apply_duel_challenges(
             &challenger_name,
             DUEL_CHALLENGE_TICKS.saturating_mul(50),
         );
+        let target_name = spawned
+            .by_slot
+            .get(&target)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
+        send_duel_prompt(
+            &bcast,
+            challenger,
+            simgrid::DUEL_PROMPT_SENT,
+            target,
+            &target_name,
+            DUEL_CHALLENGE_TICKS.saturating_mul(50),
+        );
     }
 }
 
@@ -699,10 +712,27 @@ pub fn apply_duel_responses(
             );
             continue;
         }
-        if duels.by_slot.contains_key(&challenger) || duels.by_slot.contains_key(&slot) {
-            continue;
-        }
-        if !spawned.by_slot.contains_key(&challenger) || !spawned.by_slot.contains_key(&slot) {
+        if duels.by_slot.contains_key(&challenger)
+            || duels.by_slot.contains_key(&slot)
+            || !spawned.by_slot.contains_key(&challenger)
+            || !spawned.by_slot.contains_key(&slot)
+        {
+            send_duel_prompt(
+                &bcast,
+                challenger,
+                simgrid::DUEL_PROMPT_EXPIRED,
+                slot,
+                "",
+                0,
+            );
+            send_duel_prompt(
+                &bcast,
+                slot,
+                simgrid::DUEL_PROMPT_EXPIRED,
+                challenger,
+                "",
+                0,
+            );
             continue;
         }
         let challenger_roster = rosters

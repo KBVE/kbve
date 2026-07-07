@@ -13,11 +13,7 @@ import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
 import type { MovementState } from '../systems/movement';
 import { PLACE_RANGE } from '../systems/inventory';
-import {
-	emitInventoryOpen,
-	onInventoryOpen,
-	emitNotification,
-} from '../systems/hud';
+import { emitInventoryOpen, onInventoryOpen } from '../systems/hud';
 
 /**
  * Everything the scene's input bindings dispatch into. Input is the hub that
@@ -33,7 +29,6 @@ export interface SceneInputDeps {
 	client(): GameClient | null;
 	myEid(): number;
 	mySlot(): number;
-	slotUsername(slot: number): string | undefined;
 	isBlocked(x: number, y: number): boolean;
 	isHostile(serverEid: number): boolean;
 	isCorpse(serverEid: number): boolean;
@@ -200,12 +195,7 @@ export function setupInput(
 				Math.abs(deps.move.predicted.y - tile.y),
 			);
 			if (d <= 2) {
-				const slot = deps.store.owner(other.serverEid);
-				deps.client()?.duelChallenge(slot);
-				emitNotification({
-					title: '',
-					message: `Challenge sent to ${deps.slotUsername(slot) ?? 'player'}`,
-				});
+				deps.client()?.duelChallenge(deps.store.owner(other.serverEid));
 			} else deps.startMoveTo(tile);
 			return;
 		}

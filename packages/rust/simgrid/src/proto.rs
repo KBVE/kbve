@@ -722,6 +722,7 @@ pub const DUEL_PROMPT_OFFER: u8 = 0;
 pub const DUEL_PROMPT_DECLINED: u8 = 1;
 pub const DUEL_PROMPT_EXPIRED: u8 = 2;
 pub const DUEL_PROMPT_ACCEPTED: u8 = 3;
+pub const DUEL_PROMPT_SENT: u8 = 4;
 
 /// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
 /// the target as the offer (with the challenger's name + time to respond) and

@@ -25,6 +25,7 @@ import {
 	DUEL_PROMPT_DECLINED,
 	DUEL_PROMPT_EXPIRED,
 	DUEL_PROMPT_ACCEPTED,
+	DUEL_PROMPT_SENT,
 } from '@kbve/laser';
 import type {
 	InventoryItem,
@@ -226,6 +227,13 @@ function DuelPromptOverlay() {
 				promptOpenRef.current = true;
 				setPrompt(p);
 				setAnchor(Date.now());
+				return;
+			}
+			if (p.status === DUEL_PROMPT_SENT) {
+				emitNotification({
+					title: '',
+					message: `Challenge sent to ${p.other_name}`,
+				});
 				return;
 			}
 			const wasOpen = promptOpenRef.current;
@@ -714,10 +722,11 @@ export function PetBattleScene({
 	};
 
 	// A new turn arrived: replay its events from the top (the view's HP carries over from
-	// the previous turn, so bars tween continuously).
+	// the previous turn, so bars tween continuously). An event-less view is the
+	// server echoing a commit while the opponent decides — stay in waiting.
 	useEffect(() => {
 		setStep(0);
-		setWaiting(false);
+		setWaiting((w) => w && state.events.length === 0);
 		setSwapOpen(false);
 		pendingMelee.current = null;
 	}, [state]);
@@ -945,7 +954,7 @@ export function PetBattleScene({
 					</div>
 				) : (
 					<span style={{ color: MUTED, fontSize: 12 }}>
-						{waiting ? 'Resolving…' : '…'}
+						{waiting ? `Waiting for ${state.opponent}…` : '…'}
 					</span>
 				)}
 			</div>
