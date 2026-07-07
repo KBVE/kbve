@@ -864,6 +864,27 @@
 		color: var(--sl-color-gray-2);
 		margin: 0;
 	}
+	.bento-featurecard--link {
+		grid-template-rows: auto auto 1fr auto;
+		text-decoration: none;
+		color: var(--sl-color-text);
+	}
+	.bento-featurecard--link .bento-featurecard__body {
+		grid-row: 2;
+	}
+	.bento-featurecard__go {
+		grid-column: 1 / -1;
+		grid-row: 4;
+		justify-self: end;
+		color: var(--sl-color-gray-4);
+		transition:
+			color 220ms ease,
+			transform 220ms ease;
+	}
+	.bento-featurecard--link:hover .bento-featurecard__go {
+		color: var(--sl-color-accent-high);
+		transform: translateX(3px);
+	}
 
 	/* Accent-dotted bullet list inside cards */
 	.bento-list {
