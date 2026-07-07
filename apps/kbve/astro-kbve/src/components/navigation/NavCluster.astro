@@ -4,7 +4,7 @@ import DashboardNav from '@/components/navigation/DashboardNav.tsx';
 ---
 
 <nav class="knav" aria-label="Site navigation">
-	<DashboardNav client:visible />
+	<DashboardNav client:only="react" />
 
 	<button
 		type="button"
@@ -84,7 +84,36 @@ import DashboardNav from '@/components/navigation/DashboardNav.tsx';
 		<span class="kbve-search-trigger__keycap">⌘K</span>
 	</button>
 
-	<div class="knav__authboot" aria-hidden="true">
+	<div class="knav__profile">
+		{
+			/* Static trigger — server-rendered so it's present at first paint
+		    (no CLS, no client:only pop-in). ReactNav patches the avatar/name
+		    from $auth and owns the dropdown modal. */
+		}
+		<button
+			id="knav-profile-trigger"
+			class="knav-profile-trigger"
+			type="button"
+			aria-haspopup="dialog"
+			aria-expanded="false"
+			aria-label="Account menu"
+			data-auth-tone="loading">
+			<span id="knav-profile-avatar" class="knav-profile-avatar">
+				<svg
+					width="18"
+					height="18"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					aria-hidden="true"
+					style="opacity:0.8">
+					<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+					<circle cx="12" cy="7" r="4"></circle>
+				</svg>
+			</span>
+			<span id="knav-profile-name" class="knav-profile-name">Guest</span>
+		</button>
 		<ReactNav client:only="react" />
 	</div>
 </nav>
@@ -152,15 +181,85 @@ import DashboardNav from '@/components/navigation/DashboardNav.tsx';
 		}
 	}
 
-	/* Keep ReactNav mounted for auth boot + account modal, but out of the
-	   visible bar while we settle the layout. */
-	.knav__authboot {
-		position: absolute;
-		width: 1px;
-		height: 1px;
+	/* Site-wide profile control. Trigger is server-rendered (static) so it
+	   holds its space from first paint; ReactNav only patches data + modal. */
+	.knav__profile {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* Trigger — matches the bento nav slot (.knav__icon / .dnav__trigger).
+	   Mobile: 2.25rem square icon. Desktop: pill with label. */
+	.knav-profile-trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border-radius: 0.625rem;
+		color: var(--sl-color-gray-2);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong, rgba(255, 255, 255, 0.1));
+		cursor: pointer;
+		transition:
+			color 160ms ease,
+			border-color 160ms ease,
+			background-color 160ms ease;
+	}
+
+	.knav-profile-trigger:hover,
+	.knav-profile-trigger:focus-visible {
+		outline: none;
+		color: var(--sl-color-white);
+		border-color: var(--sl-color-accent);
+	}
+
+	.knav-profile-avatar {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 9999px;
 		overflow: hidden;
-		clip: rect(0 0 0 0);
-		clip-path: inset(50%);
-		white-space: nowrap;
+		flex-shrink: 0;
+		opacity: 1;
+		transition: opacity 160ms ease;
+	}
+
+	.knav-profile-avatar :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.knav-profile-name {
+		display: none;
+		opacity: 1;
+		transition: opacity 160ms ease;
+	}
+
+	@media (min-width: 34rem) {
+		.knav-profile-trigger {
+			width: auto;
+			padding: 0 0.7rem 0 0.45rem;
+			justify-content: flex-start;
+		}
+
+		.knav-profile-name {
+			display: inline;
+			font-size: 0.8125rem;
+			font-weight: 600;
+			max-width: 130px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
 	}
 </style>

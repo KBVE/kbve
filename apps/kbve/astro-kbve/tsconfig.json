@@ -32,6 +32,7 @@
 			"@kbve/observ": ["../../../packages/npm/observ/src/index.ts"],
 			"@kbve/rn": ["../../../packages/npm/rn/src/index.web.ts"],
 			"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
+			"@kbve/rn/ui/*": ["../../../packages/npm/rn/src/ui/*"],
 			"@kbve/rn/dash": ["../../../packages/npm/rn/src/dash/index.ts"],
 			"@kbve/rn/account": [
 				"../../../packages/npm/rn/src/account/index.ts"

@@ -1,15 +1,78 @@
-// src/components/ReactNav.tsx
-// This component hydrates the static nav shell from NavContainer.astro
-import { useEffect, useState, useCallback } from 'react';
+import {
+	lazy,
+	Suspense,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useCallback,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { initSupa } from '@/lib/supa';
 import { useAuthBridge } from '@/components/auth';
-import { $auth, DroidEvents } from '@kbve/droid';
+import { $auth, DroidEvents, AuthFlags, hasAuthFlag } from '@kbve/droid';
 import { useStore } from '@nanostores/react';
 import { cn } from '@/lib/utils';
-import NavDropdown from './NavDropdown';
+import { ThemeProvider } from '@kbve/rn/ui/ThemeProvider';
+import type { ThemeOverride } from '@kbve/rn/ui/theme';
+
+// Cross-platform account sheet from @kbve/rn (react-native-web on the web).
+// Lazy — the RN kit only loads once the user opens the menu.
+const AccountSheet = lazy(() =>
+	import('@kbve/rn/ui/overlays/AccountSheet').then((m) => ({
+		default: m.AccountSheet,
+	})),
+);
+
+// Map the live Starlight palette into the RN theme so the sheet blends with
+// the site while staying pure RN. Native builds skip this and keep their
+// default tokens.
+function readStarlightTheme(): ThemeOverride {
+	if (typeof window === 'undefined') return {};
+	const cs = getComputedStyle(document.documentElement);
+	const pick = (...names: string[]) => {
+		for (const n of names) {
+			const v = cs.getPropertyValue(n).trim();
+			if (v) return v;
+		}
+		return '';
+	};
+	const entries: [keyof NonNullable<ThemeOverride['color']>, string][] = [
+		['bg', pick('--sl-color-bg')],
+		[
+			'surface',
+			pick('--sl-color-bg-nav', '--sl-color-gray-6', '--sl-color-black'),
+		],
+		['surfaceAlt', pick('--sl-color-gray-5', '--sl-color-gray-6')],
+		['border', pick('--bento-hairline-strong', '--sl-color-gray-5')],
+		['text', pick('--sl-color-white', '--sl-color-text')],
+		['textMuted', pick('--sl-color-gray-3')],
+		['textFaint', pick('--sl-color-gray-4')],
+		['primary', pick('--sl-color-accent')],
+		['primaryDeep', pick('--sl-color-accent-high')],
+		['onPrimary', pick('--sl-color-black', '--sl-color-bg')],
+		['success', pick('--sl-color-green')],
+		['danger', pick('--sl-color-red')],
+		['warning', pick('--sl-color-orange')],
+	];
+	const color: Record<string, string> = {};
+	for (const [k, v] of entries) if (v) color[k] = v;
+	return { color };
+}
 
 type OAuthProvider = 'github' | 'twitch' | 'discord';
+
+const PROFILE_GLYPH = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="opacity:0.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+
+const FADE_MS = 160;
+
+function fadeSwap(el: HTMLElement, apply: () => void) {
+	el.style.opacity = '0';
+	window.setTimeout(() => {
+		apply();
+		el.style.opacity = '1';
+	}, FADE_MS);
+}
 
 // Failsafe: Track render count to detect infinite loops
 const MAX_RENDERS_PER_SECOND = 20;
@@ -34,24 +97,34 @@ export default function ReactNav() {
 		lastRenderTime = now;
 	}
 
-	// Reactive auth state from droid's $auth nanostore (populated by bootAuth)
 	const auth = useStore($auth);
+
+	// Owns the auth-gate attributes on <html> so the dashboard gutter's
+	// CSS gate (html[data-auth-tone='staff']) resolves off one store.
+	useEffect(() => {
+		const root = document.documentElement;
+		root.dataset.authFlags = String(auth.flags);
+		if (auth.tone === 'auth' || auth.tone === 'anon') {
+			root.dataset.authTone = hasAuthFlag(auth.flags, AuthFlags.STAFF)
+				? 'staff'
+				: auth.tone;
+		}
+	}, [auth.flags, auth.tone]);
 
 	const [error, setError] = useState<string | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const [everOpened, setEverOpened] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
-	// Use the auth bridge for OAuth flows
 	const { signInWithOAuth, loading: authLoading } = useAuthBridge();
 
-	// Check if DOM elements are available
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	// Initialize Supabase gateway (bootAuth populates $auth)
-	// Belt-and-suspenders: DroidEvents 'auth-ready'/'auth-error' clear the
-	// timeout immediately; the timeout is a fallback if events never fire.
+	// Boot the gateway (bootAuth populates $auth). DroidEvents clear the
+	// timeout; the timeout is a fallback if the events never fire.
 	useEffect(() => {
 		const AUTH_TIMEOUT_MS = 8000;
 		let settled = false;
@@ -74,7 +147,6 @@ export default function ReactNav() {
 			}
 		}, AUTH_TIMEOUT_MS);
 
-		// Listen for structured auth events from the DroidEventBus
 		const onReady = () => cancel();
 		const onError = (payload: { message: string }) => {
 			cancel();
@@ -110,7 +182,7 @@ export default function ReactNav() {
 				: auth.name
 			: tone === 'loading'
 				? 'Loading…'
-				: 'KBVE Guest';
+				: 'Guest';
 	const avatarUrl = auth.avatar;
 
 	async function handleOAuthSignIn(provider: OAuthProvider) {
@@ -123,39 +195,94 @@ export default function ReactNav() {
 		}
 	}
 
-	// Hide the static shell when React is ready
 	useEffect(() => {
 		if (!mounted) return;
-
-		// Hide the static shell - it's no longer needed once React renders
-		const staticShell = document.getElementById('nav-static-shell');
-		if (staticShell) {
-			staticShell.style.display = 'none';
-		}
+		const btn = document.getElementById('knav-profile-trigger');
+		if (!btn) return;
+		const open = () => {
+			setEverOpened(true);
+			setMenuOpen(true);
+		};
+		btn.addEventListener('click', open);
+		return () => btn.removeEventListener('click', open);
 	}, [mounted]);
 
-	// Handle login click - open OAuth modal
+	const lastName = useRef('Guest');
+	const lastAvatar = useRef<string | undefined>(undefined);
+
+	useEffect(() => {
+		if (!mounted) return;
+		const btn = document.getElementById('knav-profile-trigger');
+		if (btn) btn.setAttribute('data-auth-tone', tone);
+		// Keep the static default until auth resolves — single clean fade,
+		// no flicker through 'Loading…'.
+		if (tone === 'loading') return;
+
+		const nameEl = document.getElementById('knav-profile-name');
+		const avaEl = document.getElementById('knav-profile-avatar');
+
+		if (nameEl && lastName.current !== displayName) {
+			lastName.current = displayName;
+			fadeSwap(nameEl, () => {
+				nameEl.textContent = displayName;
+			});
+		}
+		if (avaEl && lastAvatar.current !== avatarUrl) {
+			lastAvatar.current = avatarUrl;
+			fadeSwap(avaEl, () => {
+				if (avatarUrl) {
+					const img = document.createElement('img');
+					img.src = avatarUrl;
+					img.alt = displayName;
+					avaEl.replaceChildren(img);
+				} else {
+					avaEl.innerHTML = PROFILE_GLYPH;
+				}
+			});
+		}
+	}, [mounted, tone, displayName, avatarUrl]);
+
+	useEffect(() => {
+		const btn = document.getElementById('knav-profile-trigger');
+		if (btn) btn.setAttribute('aria-expanded', String(menuOpen));
+	}, [menuOpen]);
+
 	const handleLogin = useCallback(() => {
+		setMenuOpen(false);
 		setModalOpen(true);
 	}, []);
 
-	// Handle logout click - redirect to logout page
 	const handleLogout = useCallback(() => {
 		window.location.href = '/auth/logout';
 	}, []);
+
+	const sheetTheme = useMemo(
+		() => (everOpened ? readStarlightTheme() : {}),
+		[everOpened, menuOpen],
+	);
 
 	if (!mounted) return null;
 
 	return (
 		<>
-			{/* NavDropdown renders directly - React component is inside the nav */}
-			<NavDropdown
-				tone={tone}
-				displayName={displayName}
-				avatarUrl={avatarUrl}
-				onLogin={handleLogin}
-				onLogout={handleLogout}
-			/>
+			{everOpened && (
+				<Suspense fallback={null}>
+					<ThemeProvider theme={sheetTheme}>
+						<AccountSheet
+							visible={menuOpen}
+							onClose={() => setMenuOpen(false)}
+							isAuth={tone === 'auth'}
+							displayName={displayName}
+							avatarUrl={avatarUrl}
+							onLogin={handleLogin}
+							onLogout={handleLogout}
+							onNavigate={(href: string) => {
+								window.location.href = href;
+							}}
+						/>
+					</ThemeProvider>
+				</Suspense>
+			)}
 
 			{/* Auth modal for OAuth sign-in */}
 			{modalOpen &&

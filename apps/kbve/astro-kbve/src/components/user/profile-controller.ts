@@ -94,8 +94,16 @@ function clearProfileCache() {
 	}
 }
 
+function resolveApiBase(): string {
+	const { origin, hostname } = window.location;
+	if (hostname === 'localhost' || hostname === '127.0.0.1') {
+		return 'https://kbve.com';
+	}
+	return origin;
+}
+
 async function fetchProfile(token: string): Promise<ApiProfile | null> {
-	return fetchAndCacheProfile({ token, apiBase: window.location.origin });
+	return fetchAndCacheProfile({ token, apiBase: resolveApiBase() });
 }
 
 // ── Staff permissions check ─────────────────────────────────────────────────
@@ -498,7 +506,7 @@ export async function bootProfile() {
 		// persistent atoms plus the BroadcastChannel bus so other tabs and
 		// surfaces stay in sync without ever blocking the UI.
 		installProfileSync({
-			apiBase: window.location.origin,
+			apiBase: resolveApiBase(),
 			supabaseUrl: SUPABASE_URL,
 			supabaseAnonKey: SUPABASE_ANON_KEY,
 			subscribeAuth: (handler) =>

@@ -36,6 +36,7 @@
 			"@kbve/rn": ["packages/npm/rn/src/index.ts"],
 			"@kbve/rn/auth": ["packages/npm/rn/src/auth/index.ts"],
 			"@kbve/rn/ui": ["packages/npm/rn/src/ui/index.ts"],
+			"@kbve/rn/ui/*": ["packages/npm/rn/src/ui/*"],
 			"@kbve/rn/store": ["packages/npm/rn/src/store/index.ts"],
 			"@kbve/rn/dash": ["packages/npm/rn/src/dash/index.ts"],
 			"@kbve/rn/account": ["packages/npm/rn/src/account/index.ts"],
