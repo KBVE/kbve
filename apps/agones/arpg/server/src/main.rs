@@ -143,14 +143,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // deadline; `cleanup_stale_duels` forfeits any duel whose human side disconnected;
         // chained so a start + first turn + timeout + disconnect land in frame order.
         app.insert_resource(duel::ActiveDuels::default());
+        app.insert_resource(duel::PendingDuels::default());
         app.add_systems(
             bevy::prelude::Update,
             (
                 duel::apply_npc_challenges,
+                duel::apply_duel_challenges,
+                duel::apply_duel_responses,
                 game::apply_pet_battles,
                 game::apply_pet_turns,
                 duel::tick_duels,
                 duel::cleanup_stale_duels,
+                duel::expire_duel_challenges,
             )
                 .chain()
                 .after(simgrid::SimSet::Input),

@@ -177,6 +177,8 @@ import {
 	onPetBattleRequest,
 	onPetBattleAction,
 	emitPetBattleState,
+	onDuelRespond,
+	emitDuelPrompt,
 	type InventoryIntent,
 	emitCorpseOpen,
 	onCorpseIntent,
@@ -394,6 +396,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	// Unsubscribe handle for HUD inventory intents (use/drop/reorder).
 	private offIntent?: () => void;
 	private offPetBattle?: () => void;
+	private offDuelRespond?: () => void;
 	private offCorpseIntent?: () => void;
 	private offSpaceExit?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
@@ -545,6 +548,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			offReq();
 			offAct();
 		};
+
+		// Duel prompt overlay: the player's Accept/Decline choice -> DuelRespond.
+		this.offDuelRespond = onDuelRespond((accept) =>
+			this.client?.duelRespond(accept),
+		);
 
 		// Loot panel intents from React -> the authoritative client.
 		this.offCorpseIntent = onCorpseIntent((intent) => {
@@ -976,6 +984,7 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			mySlot: () => this.mySlot,
+			slotUsername: (slot) => this.slotUsername.get(slot),
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			isHostile: (e) => this.isHostileServer(e),
 			isCorpse: (e) => this.kinds.ref(this.store.kind(e)) === CORPSE_REF,
@@ -1323,6 +1332,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
 		// Interactive pet-battle: each turn's state -> the React battle scene.
 		client.on('petBattleState', (state) => emitPetBattleState(state));
+		// PvP duel challenge prompt -> the React overlay (offer/declined/expired/accepted).
+		client.on('duelPrompt', (prompt) => emitDuelPrompt(prompt));
 		// Placement rejected server-side (out of range, occupied): the item was
 		// kept, so the inventory is unchanged — just clear the armed ghost.
 		client.on('itemPlaced', (e: ItemPlacedEvent) => {
@@ -2633,6 +2644,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offIntent = undefined;
 		this.offPetBattle?.();
 		this.offPetBattle = undefined;
+		this.offDuelRespond?.();
+		this.offDuelRespond = undefined;
 		this.offCorpseIntent?.();
 		this.offCorpseIntent = undefined;
 		this.offSpaceExit?.();

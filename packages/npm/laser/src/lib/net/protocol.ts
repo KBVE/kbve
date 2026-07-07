@@ -30,6 +30,12 @@ export const EPHEMERAL_ITEM_PLACED = 14;
 export const EPHEMERAL_CORPSE = 16;
 export const EPHEMERAL_PET_BATTLE_LOG = 18;
 export const EPHEMERAL_PET_BATTLE_STATE = 19;
+export const EPHEMERAL_DUEL_PROMPT = 21;
+
+export const DUEL_PROMPT_OFFER = 0;
+export const DUEL_PROMPT_DECLINED = 1;
+export const DUEL_PROMPT_EXPIRED = 2;
+export const DUEL_PROMPT_ACCEPTED = 3;
 
 // PetTurn action codes — must match proto.rs PET_ACT_* constants. `arg` is the move
 // slot (MOVE) or the reserve index to send out (SWAP).
@@ -129,6 +135,18 @@ export interface PetBattleState {
 	outcome: string;
 	awaiting: boolean;
 	can_run: boolean;
+	phase: string;
+	deadline_ms: number;
+	opponent: string;
+}
+
+/** A duel challenge/response prompt shown to the challenged player. `status` is one
+ * of the DUEL_PROMPT_* constants; `other_slot`/`other_name` identify the other side. */
+export interface DuelPrompt {
+	status: number;
+	other_slot: number;
+	other_name: string;
+	deadline_ms: number;
 }
 
 export const KIND_CAT_PLAYER = 0;
@@ -186,7 +204,9 @@ export type Input =
 	| 'ReturnSpace'
 	| 'SimPetBattle'
 	| { PetTurn: { action: number; arg: number } }
-	| { ChallengeNpc: { npc: number } };
+	| { ChallengeNpc: { npc: number } }
+	| { DuelChallenge: { target: number } }
+	| { DuelRespond: { accept: boolean } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

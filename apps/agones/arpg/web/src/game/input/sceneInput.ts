@@ -13,7 +13,11 @@ import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
 import type { MovementState } from '../systems/movement';
 import { PLACE_RANGE } from '../systems/inventory';
-import { emitInventoryOpen, onInventoryOpen } from '../systems/hud';
+import {
+	emitInventoryOpen,
+	onInventoryOpen,
+	emitNotification,
+} from '../systems/hud';
 
 /**
  * Everything the scene's input bindings dispatch into. Input is the hub that
@@ -29,6 +33,7 @@ export interface SceneInputDeps {
 	client(): GameClient | null;
 	myEid(): number;
 	mySlot(): number;
+	slotUsername(slot: number): string | undefined;
 	isBlocked(x: number, y: number): boolean;
 	isHostile(serverEid: number): boolean;
 	isCorpse(serverEid: number): boolean;
@@ -179,6 +184,29 @@ export function setupInput(
 			);
 			if (d <= 2) deps.client()?.challengeNpc(trainer.serverEid);
 			else deps.startMoveTo(tile);
+			return;
+		}
+
+		// Another player: challenge them to a pet duel from within range, else walk
+		// toward them so the next click lands in range.
+		const other = deps.store.at(tile.x, tile.y, deps.myEid());
+		if (
+			other &&
+			deps.kinds.cat(deps.store.kind(other.serverEid)) === Cat.Player &&
+			deps.store.owner(other.serverEid) !== deps.mySlot()
+		) {
+			const d = Math.max(
+				Math.abs(deps.move.predicted.x - tile.x),
+				Math.abs(deps.move.predicted.y - tile.y),
+			);
+			if (d <= 2) {
+				const slot = deps.store.owner(other.serverEid);
+				deps.client()?.duelChallenge(slot);
+				emitNotification({
+					title: '',
+					message: `Challenge sent to ${deps.slotUsername(slot) ?? 'player'}`,
+				});
+			} else deps.startMoveTo(tile);
 			return;
 		}
 

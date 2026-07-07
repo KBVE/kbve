@@ -11,6 +11,7 @@ import type {
 	BlackjackStateView,
 	CombatEvent,
 	CorpseContents,
+	DuelPrompt,
 	EntityDelta,
 	EquippedEvent,
 	Facing,
@@ -196,6 +197,12 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('ChallengeNpc' in inp) {
 		w.variant(33);
 		w.u32(inp.ChallengeNpc.npc);
+	} else if ('DuelChallenge' in inp) {
+		w.variant(34);
+		w.u32(inp.DuelChallenge.target);
+	} else if ('DuelRespond' in inp) {
+		w.variant(35);
+		w.bool(inp.DuelRespond.accept);
 	}
 }
 
@@ -423,6 +430,9 @@ export function decodePetBattleState(payload: number[]): PetBattleState {
 	const outcome = r.string();
 	const awaiting = r.bool();
 	const can_run = r.bool();
+	const phase = r.string();
+	const deadline_ms = r.u32();
+	const opponent = r.string();
 	return {
 		player,
 		enemy,
@@ -433,7 +443,20 @@ export function decodePetBattleState(payload: number[]): PetBattleState {
 		outcome,
 		awaiting,
 		can_run,
+		phase,
+		deadline_ms,
+		opponent,
 	};
+}
+
+/** Decode an EPHEMERAL_DUEL_PROMPT payload. Matches `proto::DuelPrompt`. */
+export function decodeDuelPrompt(payload: number[]): DuelPrompt {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const status = r.u8();
+	const other_slot = r.u32();
+	const other_name = r.string();
+	const deadline_ms = r.u32();
+	return { status, other_slot, other_name, deadline_ms };
 }
 
 /** Decode an EPHEMERAL_CORPSE payload (raw postcard). Field order matches

@@ -186,6 +186,14 @@ pub struct PendingPetTurns(pub Vec<(proto::PlayerSlot, u8, u8)>);
 #[derive(Resource, Default)]
 pub struct PendingNpcChallenges(pub Vec<(proto::PlayerSlot, proto::EntityId)>);
 
+/// Duel challenge/response inputs queued this frame. Combined into one resource
+/// (rather than two) so `DeployQueues` stays under Bevy's 16-param ceiling.
+#[derive(Resource, Default)]
+pub struct PendingDuelOps {
+    pub challenges: Vec<(proto::PlayerSlot, proto::PlayerSlot)>,
+    pub responses: Vec<(proto::PlayerSlot, bool)>,
+}
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -199,6 +207,7 @@ pub struct DeployQueues<'w> {
     pet_battles: ResMut<'w, PendingPetBattles>,
     pet_turns: ResMut<'w, PendingPetTurns>,
     npc_challenges: ResMut<'w, PendingNpcChallenges>,
+    duel_ops: ResMut<'w, PendingDuelOps>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1480,6 +1489,7 @@ pub fn build_app(
         .insert_resource(PendingPetBattles::default())
         .insert_resource(PendingPetTurns::default())
         .insert_resource(PendingNpcChallenges::default())
+        .insert_resource(PendingDuelOps::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -2193,6 +2203,8 @@ fn drain_inputs(
                 Input::SimPetBattle => deploy.pet_battles.0.push(slot),
                 Input::PetTurn { action, arg } => deploy.pet_turns.0.push((slot, action, arg)),
                 Input::ChallengeNpc { npc } => deploy.npc_challenges.0.push((slot, npc)),
+                Input::DuelChallenge { target } => deploy.duel_ops.challenges.push((slot, target)),
+                Input::DuelRespond { accept } => deploy.duel_ops.responses.push((slot, accept)),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2410,7 +2422,9 @@ fn drain_inputs(
                 | Input::Insure { .. }
                 | Input::SimPetBattle
                 | Input::PetTurn { .. }
-                | Input::ChallengeNpc { .. } => {}
+                | Input::ChallengeNpc { .. }
+                | Input::DuelChallenge { .. }
+                | Input::DuelRespond { .. } => {}
             }
         }
     }
