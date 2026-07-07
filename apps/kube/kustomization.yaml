@@ -53,6 +53,8 @@ resources:
     - jobboard/application.yaml
     - metrics/application.yaml
     - n8n/application.yaml
+    # Windmill — workflow engine (n8n replacement candidate), windmill.kbve.com
+    - windmill/application.yaml
     - rabbitmq/application.yaml
     # rows = shared ROWS infra (ns `rows`): ows-valkey, externalsecrets, servicemonitor,
     # and the `rows-agones-allocator-binding` Kyverno ClusterPolicy that grants every
