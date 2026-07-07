@@ -66,10 +66,15 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 }
 
 <style>
-	/* One grid: full-width section band + centered 80rem frame with side
-	   rails (matches every Bento* section on the homepage). Rail + main are
-	   internal cells; breadcrumbs are flush top/bottom bands. No nested
-	   shells, no floating cards. */
+	/* One grid: full-width section band + centered frame widened to 95rem so
+	   the 15rem rail sits in what is gutter on the homepage — main content
+	   keeps the same 80rem as every Bento* section. Rail + main are internal
+	   cells; breadcrumbs are flush top/bottom bands. No nested shells, no
+	   floating cards. */
+	.dash-shell .dash-frame {
+		max-width: 95rem;
+	}
+
 	.dash-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
@@ -96,7 +101,7 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 
 	@media (min-width: 1024px) {
 		.dash-grid {
-			grid-template-columns: 15rem minmax(0, 1fr);
+			grid-template-columns: 15rem minmax(0, 80rem);
 			grid-template-areas:
 				'crumbTop crumbTop'
 				'rail     main'
