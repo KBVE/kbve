@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.221",
+			"version": "1.0.226",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -1257,6 +1257,38 @@
 			}
 		},
 		{
+			"key": "unreal_deathslayer",
+			"app_name": "deathslayer",
+			"engine": {
+				"version": "5.8.0",
+				"project_path": "deathslayer",
+				"build_targets": [
+					"Win64",
+					"Linux",
+					"Mac"
+				],
+				"external_repo_url": "https://github.com/KBVE/deathslayer",
+				"server_target": "deathslayerServer",
+				"server_config": "Shipping",
+				"client_config": "Shipping",
+				"maps": [
+					"/Game/Menus/L_MainMenu",
+					"/Game/Maps/L_DeathSlayerWorld"
+				],
+				"game_mode": "/Script/DeathSlayer.DeathSlayerGameMode"
+			},
+			"source_path": "apps/deathslayer/unreal-deathslayer",
+			"shell_path": "apps/deathslayer/unreal-deathslayer",
+			"version": "0.1.0",
+			"version_toml": "apps/deathslayer/unreal-deathslayer/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-deathslayer.mdx",
+			"runner": "arc-runner-ue",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "deathslayer"
+			}
+		},
+		{
 			"key": "unreal_rentearth",
 			"app_name": "rentearth",
 			"engine": {
@@ -1288,8 +1320,8 @@
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 0,
-		"unreal_game": 3,
+		"unreal_game": 4,
 		"bevy_game": 0,
-		"total": 98
+		"total": 99
 	}
 }
