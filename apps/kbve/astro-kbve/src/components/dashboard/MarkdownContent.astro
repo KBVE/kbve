@@ -11,7 +11,7 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 {
 	isDashboard ? (
 		<div class="dash-shell bento-section not-content">
-			<div class="dash-frame bento-frame">
+			<div class="dash-frame bento-frame bento-frame--fluid">
 				<div class="dash-grid">
 					<nav
 						class="dash-breadcrumb dash-breadcrumb--top"
@@ -66,13 +66,12 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 }
 
 <style>
-	/* One grid: full-width section band + centered frame widened to 95rem so
-	   the 15rem rail sits in what is gutter on the homepage — main content
-	   keeps the same 80rem as every Bento* section. Rail + main are internal
-	   cells; breadcrumbs are flush top/bottom bands. No nested shells, no
-	   floating cards. */
+	/* One grid: full-width section band + fluid bento frame (sizing lives
+	   in bento.css). Floor is 95rem — 15rem rail + the homepage 80rem
+	   content width. Rail + main are internal cells; breadcrumbs are flush
+	   top/bottom bands. No nested shells, no floating cards. */
 	.dash-shell .dash-frame {
-		max-width: 95rem;
+		--bento-frame-base: 95rem;
 	}
 
 	.dash-grid {
@@ -101,7 +100,7 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 
 	@media (min-width: 1024px) {
 		.dash-grid {
-			grid-template-columns: 15rem minmax(0, 80rem);
+			grid-template-columns: 15rem minmax(0, 1fr);
 			grid-template-areas:
 				'crumbTop crumbTop'
 				'rail     main'

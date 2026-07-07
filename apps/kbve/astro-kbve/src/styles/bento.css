@@ -230,6 +230,20 @@
 		border-inline: 1px solid var(--bento-hairline);
 	}
 
+	/* Fluid frame variant: floors at --bento-frame-base, then grows with
+	   the viewport while keeping a --bento-frame-gutter symmetric gutter
+	   so the hairline rails stay visible, capped at --bento-frame-max.
+	   Compose with .bento-frame; override the vars per surface. */
+	.bento-frame--fluid {
+		max-width: min(
+			var(--bento-frame-max, 120rem),
+			max(
+				var(--bento-frame-base, 80rem),
+				calc(100vw - var(--bento-frame-gutter, 6rem))
+			)
+		);
+	}
+
 	.bento-eyebrow {
 		margin-bottom: 0.5rem;
 		font-size: 0.75rem;
