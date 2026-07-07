@@ -236,11 +236,6 @@ jobs:
                   UV_THREADPOOL_SIZE: '16'
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Setup Python + uv
-              uses: astral-sh/setup-uv@v7
-              with:
-                  enable-cache: false
-
             - name: Detect Playwright usage
               id: detect-playwright
               run: |

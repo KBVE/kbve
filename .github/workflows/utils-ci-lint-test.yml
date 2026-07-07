@@ -96,9 +96,13 @@ jobs:
                   token: ${{ github.token }}
 
             - name: Install uv
-              uses: astral-sh/setup-uv@v7
+              uses: Wandalen/wretry.action@v3.8.0
               with:
-                  github-token: ${{ github.token }}
+                  action: astral-sh/setup-uv@v7
+                  attempt_limit: 3
+                  attempt_delay: 15000
+                  with: |
+                      github-token: ${{ github.token }}
 
             - name: Setup Rust 1.96
               uses: dtolnay/rust-toolchain@stable
