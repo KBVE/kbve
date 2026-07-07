@@ -3,7 +3,6 @@ import { useTheme } from '../ThemeProvider';
 import { Avatar } from '../primitives/Avatar';
 import { Text } from '../primitives/Text';
 import { Button } from '../primitives/Button';
-import { PressableSurface } from '../primitives/PressableSurface';
 import { Sheet } from './Sheet';
 
 export interface AccountSheetProps {
@@ -54,22 +53,15 @@ export function AccountSheet({
 							{isAuth ? 'Authenticated' : 'Guest'}
 						</Text>
 					</View>
-					<PressableSurface
+					<Button
+						variant="secondary"
 						onPress={onClose}
-						padded={false}
-						accessibilityRole="button"
 						accessibilityLabel="Close menu"
-						style={[
-							styles.close,
-							{
-								borderColor: t.color.border,
-								backgroundColor: t.color.surfaceAlt,
-							},
-						]}>
+						style={styles.close}>
 						<Text variant="subtitle" weight="bold">
 							✕
 						</Text>
-					</PressableSurface>
+					</Button>
 				</View>
 
 				<View
@@ -80,13 +72,13 @@ export function AccountSheet({
 					{isAuth ? (
 						<>
 							<Button
-								variant="outline"
+								variant="secondary"
 								title="Profile"
 								onPress={go('/dashboard/account/')}
 								style={styles.btn}
 							/>
 							<Button
-								variant="outline"
+								variant="secondary"
 								title="Settings"
 								onPress={go('/settings')}
 								style={styles.btn}
@@ -113,7 +105,7 @@ export function AccountSheet({
 								style={styles.btn}
 							/>
 							<Button
-								variant="outline"
+								variant="secondary"
 								title="Create Account"
 								onPress={go('/auth/register')}
 								style={styles.btn}

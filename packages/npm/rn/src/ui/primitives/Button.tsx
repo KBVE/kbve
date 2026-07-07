@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
@@ -47,6 +47,7 @@ export const Button = memo(function Button({
 }: ButtonProps) {
 	const t = useTheme();
 	const inactive = disabled || loading;
+	const [hovered, setHovered] = useState(false);
 	const scale = useSharedValue(1);
 	const animatedStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: scale.value }],
@@ -58,7 +59,7 @@ export const Button = memo(function Button({
 			borderColor: 'rgba(255,255,255,0.22)',
 		},
 		secondary: {
-			backgroundColor: t.color.surface,
+			backgroundColor: t.color.surfaceAlt,
 			borderColor: t.color.border,
 		},
 		outline: {
@@ -76,6 +77,25 @@ export const Button = memo(function Button({
 		},
 	}[variant];
 
+	// Web hover feedback (no-op on native — hover events never fire there).
+	const hoverFill: ViewStyle | null =
+		hovered && !inactive
+			? {
+					primary: { borderColor: 'rgba(255,255,255,0.5)' },
+					secondary: { borderColor: t.color.primary },
+					outline: {
+						borderColor: t.color.primary,
+						backgroundColor: 'rgba(127,127,127,0.10)',
+					},
+					ghost: { backgroundColor: 'rgba(127,127,127,0.10)' },
+					danger: { borderColor: 'rgba(255,255,255,0.5)' },
+					'danger-ghost': {
+						borderColor: t.color.danger,
+						backgroundColor: 'rgba(239,68,68,0.10)',
+					},
+				}[variant]
+			: null;
+
 	const labelColor = {
 		primary: t.color.onPrimary,
 		secondary: t.color.text,
@@ -90,6 +110,7 @@ export const Button = memo(function Button({
 			style={[
 				styles.base,
 				fill,
+				hoverFill,
 				inactive ? styles.inactive : null,
 				animatedStyle,
 				style,
@@ -102,6 +123,8 @@ export const Button = memo(function Button({
 			}
 			accessibilityHint={accessibilityHint}
 			accessibilityState={{ disabled: inactive }}
+			onHoverIn={() => setHovered(true)}
+			onHoverOut={() => setHovered(false)}
 			onPressIn={() => {
 				scale.value = withSpring(0.95, { damping: 18, stiffness: 320 });
 			}}
