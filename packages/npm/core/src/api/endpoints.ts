@@ -7,6 +7,14 @@ export type Schemas = components['schemas'];
 
 type R<T> = Promise<RequestResult<T>>;
 
+export interface LedgerQuery {
+	limit?: number;
+	before_created_at?: string;
+	before_id?: number;
+	source_kinds?: string;
+	currency?: 'credits' | 'khash';
+}
+
 export interface KbveApi {
 	client: ApiClient;
 	system: {
@@ -27,6 +35,7 @@ export interface KbveApi {
 		redeemCoupon(
 			body: Schemas['RedeemCouponBody'],
 		): R<Schemas['RedeemCouponDto']>;
+		ledger(query?: LedgerQuery): R<Schemas['LedgerPageDto']>;
 	};
 	market: {
 		listings(): R<Schemas['MarketListingDto'][]>;
@@ -110,6 +119,10 @@ export function createKbveApi(config: ApiClientConfig): KbveApi {
 				client.post('/api/v1/wallet/me/redeem-coupon', { body }) as R<
 					Schemas['RedeemCouponDto']
 				>,
+			ledger: (query) =>
+				client.get('/api/v1/wallet/me/ledger', {
+					query: query as never,
+				}) as R<Schemas['LedgerPageDto']>,
 		},
 		market: {
 			listings: () =>

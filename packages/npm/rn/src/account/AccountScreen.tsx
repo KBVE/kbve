@@ -6,6 +6,7 @@ import { tokens } from '../ui/theme';
 import type { MenuSectionModel } from '../ui/models';
 import { useAuth, useAuthActions } from '../auth/useAuth';
 import { ProfileHeader } from './ProfileHeader';
+import { WalletSection } from './WalletSection';
 import { StorageSection } from './StorageSection';
 import { DeviceSection } from './DeviceSection';
 import { HealthSection } from './HealthSection';
@@ -55,9 +56,10 @@ export function AccountScreen({ onOpenUrl }: AccountScreenProps) {
 			<ScrollView contentContainerStyle={styles.content}>
 				<Stack gap="lg">
 					<ProfileHeader />
-					<StorageSection />
+					<WalletSection />
 					<DeviceSection />
 					<HealthSection />
+					<StorageSection />
 					<MenuList sections={menu} />
 				</Stack>
 			</ScrollView>

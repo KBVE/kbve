@@ -107,10 +107,11 @@ export function KbveProvider({
 		const api = createKbveApi({
 			baseUrl: apiBaseUrl ?? KBVE_API_URL,
 			getToken: async () => {
-				if (droid.active) {
-					const session =
-						readDroidSession() ?? (await readDroidSessionFromIdb());
-					return session?.accessToken ?? null;
+				const droidSession =
+					readDroidSession() ?? (await readDroidSessionFromIdb());
+				if (droidSession) {
+					droid.active = true;
+					return droidSession.accessToken;
 				}
 				const { data } = await client.auth.getSession();
 				return data.session?.access_token ?? null;

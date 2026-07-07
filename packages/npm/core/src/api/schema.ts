@@ -828,6 +828,23 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/v1/wallet/me/ledger': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** `GET /api/v1/wallet/me/ledger` — caller-scoped `wallet.ledger` page. */
+		get: operations['me_ledger'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/v1/wallet/me/redeem-coupon': {
 		parameters: {
 			query?: never;
@@ -1150,6 +1167,11 @@ export interface components {
 			pod_namespace?: string | null;
 			/** @description `ILIKE %search%` against the message body. */
 			search?: string | null;
+			/**
+			 * @description Filter by Factorio `server_id` for the `factorio_*` commands. Ignored
+			 *     by log/alert commands.
+			 */
+			server_id?: string | null;
 			/** @description Filter by `service` label as emitted by Vector (e.g. `"axum-kbve"`). */
 			service?: string | null;
 		};
@@ -1165,6 +1187,7 @@ export interface components {
 			 * @description One JSON object per row. Shape depends on `command`:
 			 *     - `"query"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`
 			 *     - `"stats"` → `{ pod_namespace, service, level, cnt }`
+			 *     - `"error_groups"` → `{ pod_namespace, service, signature, cnt, last_seen, sample }`
 			 */
 			rows: unknown[];
 		};
@@ -1311,6 +1334,25 @@ export interface components {
 			status: string;
 			version: string;
 		};
+		LedgerPageDto: {
+			next_cursor?: null | components['schemas']['NextCursorDto'];
+			rows: components['schemas']['LedgerRowDto'][];
+		};
+		LedgerRowDto: {
+			/** Format: int64 */
+			balance_after: number;
+			created_at: string;
+			currency: string;
+			/** Format: int64 */
+			delta: number;
+			/** Format: int64 */
+			ledger_id: number;
+			reason?: string | null;
+			/** Format: int64 */
+			ref_id?: number | null;
+			ref_type?: string | null;
+			source_kind: string;
+		};
 		ListLotsQuery: {
 			/** Format: int32 */
 			after_chunk_x?: number | null;
@@ -1407,6 +1449,11 @@ export interface components {
 			/** Format: int64 */
 			min_bid?: number | null;
 			settled_at?: string | null;
+		};
+		NextCursorDto: {
+			before_created_at: string;
+			/** Format: int64 */
+			before_id: number;
 		};
 		OkDto: {
 			ok: boolean;
@@ -4171,6 +4218,58 @@ export interface operations {
 				content?: never;
 			};
 			/** @description Wallet service unavailable */
+			503: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	me_ledger: {
+		parameters: {
+			query?: {
+				/** @description Page size; clamped to [1, 100]; default 50 */
+				limit?: number;
+				/** @description Cursor timestamp (paired with before_id) */
+				before_created_at?: string;
+				/** @description Cursor id (paired with before_created_at; must be positive) */
+				before_id?: number;
+				/** @description CSV of wallet.source_kind values; defaults to market_buy,market_sell,market_fee; pass `all` to widen to full ledger */
+				source_kinds?: string;
+				/** @description credits | khash; omit for both */
+				currency?: string;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Caller-scoped ledger page */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['LedgerPageDto'];
+				};
+			};
+			/** @description Invalid argument / cursor */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Missing / invalid bearer token */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description PgCluster unavailable */
 			503: {
 				headers: {
 					[name: string]: unknown;

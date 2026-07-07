@@ -112,6 +112,7 @@ impl Modify for SecurityAddon {
         crate::transport::wallet::me_balance,
         crate::transport::wallet::me_coupons,
         crate::transport::wallet::me_redeem_coupon,
+        crate::transport::ledger::me_ledger,
         // wallet — service surface (service_role JWT)
         crate::transport::wallet::service_balance,
         crate::transport::wallet::service_credit,
@@ -182,6 +183,9 @@ impl Modify for SecurityAddon {
             crate::transport::wallet::CouponDto,
             crate::transport::wallet::RedeemCouponBody,
             crate::transport::wallet::RedeemCouponDto,
+            crate::transport::ledger::LedgerRowDto,
+            crate::transport::ledger::LedgerPageDto,
+            crate::transport::ledger::NextCursorDto,
             // wallet — service surface
             crate::transport::wallet::ServiceCreditBody,
             crate::transport::wallet::ServiceCreditUserBody,
