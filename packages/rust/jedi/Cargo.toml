@@ -30,7 +30,7 @@ tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"
 tokio = { version = "1.43", features = ["rt-multi-thread", "macros", "sync", "time", "net", "fs", "io-util"] }
 tokio-postgres = { version = "0.7.2", optional = true, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
 tracing = "0.1"
-axum = { version = "0.8.5", features = ["ws", "macros"] }
+axum = { version = "0.8.9", features = ["ws", "macros"] }
 bb8 ={ version = "0.9.0", optional = true }
 bb8-postgres = { version = "0.9.0", optional = true }
 tokio-postgres-rustls = { version = "0.13", optional = true }
