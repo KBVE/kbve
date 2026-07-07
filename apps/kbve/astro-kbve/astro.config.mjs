@@ -11,6 +11,14 @@ import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
+import { fileURLToPath } from 'node:url';
+
+const DROID_SRC = fileURLToPath(
+	new URL('../../../packages/npm/droid/src/index.ts', import.meta.url),
+);
+const ASTRO_PKG_SRC = fileURLToPath(
+	new URL('../../../packages/npm/astro/src/index.ts', import.meta.url),
+);
 
 const DASH_PROXY_PREFIX = '/__dashproxy';
 
@@ -428,7 +436,17 @@ export default defineConfig({
 			global: 'globalThis',
 		},
 		resolve: {
-			alias: [{ find: /^react-native$/, replacement: 'react-native-web' }],
+			alias: [
+				{ find: /^react-native$/, replacement: 'react-native-web' },
+				{ find: /^@kbve\/droid$/, replacement: DROID_SRC },
+				{ find: /^@kbve\/astro$/, replacement: ASTRO_PKG_SRC },
+			],
+			dedupe: [
+				'@kbve/droid',
+				'@kbve/astro',
+				'nanostores',
+				'@nanostores/persistent',
+			],
 			extensions: [
 				'.web.tsx',
 				'.web.ts',
@@ -458,7 +476,14 @@ export default defineConfig({
 				'react-native-gesture-handler',
 					'@scalar/api-reference',
 			],
-			exclude: ['fsevents', '@novnc/novnc', 'guacamole-common-js'],
+			exclude: [
+				'fsevents',
+				'@novnc/novnc',
+				'guacamole-common-js',
+				'expo-modules-core',
+				'@kbve/droid',
+				'@kbve/astro',
+			],
 			rolldownOptions: {
 				transform: {
 					define: {

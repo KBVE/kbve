@@ -42,6 +42,9 @@ export * from './screens/HomeView';
 export * from './screens/DashboardScreen';
 export * from './screens/ChatScreen';
 
+export * from './account/AccountScreen';
+export * from './account/types';
+
 export * from './ui';
 
 export * from './rails';

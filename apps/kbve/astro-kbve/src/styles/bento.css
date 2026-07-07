@@ -395,6 +395,36 @@
 		grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
 	}
 
+	.bento-media {
+		padding: 0;
+		overflow: hidden;
+	}
+	.bento-media > img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	@media (max-width: 60rem) {
+		.bento-hide-narrow {
+			display: none !important;
+		}
+	}
+
+	.bento-cell--wide {
+		grid-column: span 2;
+	}
+	.bento-cell--tall {
+		grid-row: span 2;
+	}
+	@media (max-width: 34rem) {
+		.bento-cell--wide,
+		.bento-cell--tall {
+			grid-column: auto;
+			grid-row: auto;
+		}
+	}
+
 	/* Hero archetype: wide copy + aside on row 1, stat strip on row 2 */
 	.bento-board--hero {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -632,16 +662,23 @@
 
 	/* Stat tile: icon well pinned top, big value + caption at the bottom */
 	.bento-stat {
-		gap: 0.35rem;
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-content: center;
+		gap: 0.2rem 0.6rem;
 		min-height: 8rem;
-		justify-content: flex-end;
 	}
 	.bento-stat .bento-icon-tile {
 		width: 2rem;
 		height: 2rem;
-		margin-bottom: auto;
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
 	}
 	.bento-stat__value {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
 		font-size: 1.4rem;
 		font-weight: 700;
 		line-height: 1.1;
@@ -649,6 +686,8 @@
 		color: var(--sl-color-white);
 	}
 	.bento-stat__label {
+		grid-column: 1 / -1;
+		grid-row: 2;
 		font-size: 0.6875rem;
 		font-weight: 600;
 		letter-spacing: 0.05em;
@@ -658,6 +697,9 @@
 
 	/* Link card: icon, title, blurb, arrow that slides on hover */
 	.bento-linkcard {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		grid-template-rows: auto auto 1fr auto;
 		min-height: 11rem;
 		gap: 0.6rem;
 		text-decoration: none;
@@ -666,19 +708,27 @@
 	.bento-linkcard .bento-icon-tile {
 		width: 2.25rem;
 		height: 2.25rem;
+		grid-column: 2;
+		grid-row: 1;
 	}
 	.bento-linkcard__title {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
 		font-size: 1.0625rem;
 		font-weight: 600;
 		color: var(--sl-color-white);
 	}
 	.bento-linkcard__copy {
+		grid-column: 1 / -1;
+		grid-row: 2;
 		font-size: 0.875rem;
 		line-height: 1.5;
 		color: var(--sl-color-gray-2);
 	}
 	.bento-linkcard__go {
-		margin-top: auto;
+		grid-column: 1 / -1;
+		grid-row: 4;
 		color: var(--sl-color-gray-4);
 		transition:
 			color 220ms ease,
@@ -786,20 +836,29 @@
 	/* Feature card: icon tile, title, blurb, optional bullet list. For
 	   reference/pillar grids (api, project docs, …). */
 	.bento-featurecard {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-content: start;
 		gap: 0.6rem;
 		min-height: 13rem;
 	}
 	.bento-featurecard .bento-icon-tile {
 		width: 2.5rem;
 		height: 2.5rem;
+		grid-column: 2;
+		grid-row: 1;
 	}
 	.bento-featurecard__title {
+		grid-column: 1;
+		grid-row: 1;
+		align-self: center;
 		font-size: 1.125rem;
 		font-weight: 700;
 		margin: 0;
 		color: var(--sl-color-white);
 	}
 	.bento-featurecard__body {
+		grid-column: 1 / -1;
 		font-size: 0.9375rem;
 		line-height: 1.55;
 		color: var(--sl-color-gray-2);

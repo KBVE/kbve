@@ -23,11 +23,13 @@
 ### Task 1: `ChallengeNpc` input — proto + sim routing
 
 **Files:**
+
 - Modify: `packages/rust/simgrid/src/proto.rs` (append `Input` variant after `PetTurn`, ~line 279)
 - Modify: `packages/rust/simgrid/src/sim.rs` (new `PendingNpcChallenges` resource near `PendingPetTurns` ~line 182; `DeployInputs` SystemParam ~line 194; routing match arm ~line 2171; pass-through arm ~line 2387; `insert_resource` in `build_app` ~line 1465)
 - Modify: `packages/rust/simgrid/src/lib.rs` (re-export `PendingNpcChallenges` alongside `PendingPetBattles`/`PendingPetTurns` — find their existing re-export and extend it)
 
 **Interfaces:**
+
 - Produces: `Input::ChallengeNpc { npc: EntityId }` (postcard variant index 33); `pub struct PendingNpcChallenges(pub Vec<(proto::PlayerSlot, proto::EntityId)>)` resource, drained by Task 6's system.
 
 - [ ] **Step 1: Write the failing test** (proto.rs tests module, next to the existing wire-lock tests ~line 1071)
@@ -105,11 +107,13 @@ git commit -m "feat(simgrid): ChallengeNpc input routed to pending npc challenge
 ### Task 2: `duel.rs` — registry types + pure duel core
 
 **Files:**
+
 - Create: `apps/agones/arpg/server/src/duel.rs`
 - Modify: `apps/agones/arpg/server/src/main.rs` (add `mod duel;` after `mod db;`)
 - Modify: `apps/agones/arpg/server/src/game.rs` (make reused helpers `pub(crate)`: `info_event` ~547, `wire_event` ~559, `battlers` ~648, `move_options` ~791, `battle_view` ~815, `send_battle_view` ~837, `outcome_name` ~772, `player_action` ~851, `mechamutt_team` ~446, and the `NPC_DB` static ~437, `MECHAMUTT_REF`/`PET_TEAM_SIZE`/`PET_TEAM_LEVEL`/`AI_STREAM` consts ~439-443)
 
 **Interfaces:**
+
 - Consumes: `simgrid::{BattleState, BattleAction, BattleOutcome, Side, AiDifficulty, choose_action, choose_replacement}`, `simgrid::rng::{stream, domain::PETBATTLE}`, `crate::game` helpers listed above.
 - Produces (Tasks 3-6 rely on these exact signatures):
 
@@ -479,6 +483,7 @@ pub fn viewer_view(
 ```
 
 Notes for the implementer:
+
 - Check `simgrid::BattleState::side(&self, Side) -> &BattleSide` exists and is public (battle.rs). If it is private, add `pub` in battle.rs — `resolve_replacement` uses an internal `side_mut`, and a public read accessor is reasonable.
 - Check `simgrid::rng::Mulberry32` is the type `stream` returns and is importable via that path; adjust the `ai_rng` return type to whatever lib.rs exposes.
 - `if let` chains (`&& let`) require the file to follow existing edition-2024 usage in this repo — game.rs already uses them; keep or split into nested `if let` to match.
@@ -502,11 +507,13 @@ git commit -m "feat(arpg): duel registry core - commit/resolve/deadline/forfeit/
 ### Task 3: Rewire debug battle + turns onto the registry, real roster teams
 
 **Files:**
+
 - Modify: `apps/agones/arpg/server/src/game.rs` (delete `ActivePetBattles` ~765, rework `apply_pet_battles` ~865 and `apply_pet_turns` ~893)
 - Modify: `apps/agones/arpg/server/src/duel.rs` (add `roster_team` helper + `stream_duel_views` helper)
 - Modify: `apps/agones/arpg/server/src/main.rs` (drop `ActivePetBattles` insert; keep system chain)
 
 **Interfaces:**
+
 - Consumes: Task 2's registry API; `simgrid::{PetRoster, PetBank, PetSnapshot, Combatant, mint_pet_from_species}`; `simgrid::PlayerSlotTag` (check exact export name — sim.rs spawns players with `PlayerSlotTag(*slot)`).
 - Produces: `pub fn roster_team(bank: &simgrid::PetBank, roster: &simgrid::PetRoster) -> Vec<simgrid::Combatant>` in duel.rs (used again by Task 6); `pub fn stream_duel_views(bcast: &simgrid::Outbound, duel: &Duel, events: &[simgrid::proto::PetBattleWireEvent])` which sends each Human side its `viewer_view` via `game::send_battle_view`.
 
@@ -731,10 +738,12 @@ git commit -m "feat(arpg): debug battle and turns run through unified duel regis
 ### Task 4: Turn deadline system
 
 **Files:**
+
 - Modify: `apps/agones/arpg/server/src/duel.rs` (add `tick_duels` system)
 - Modify: `apps/agones/arpg/server/src/main.rs` (register system)
 
 **Interfaces:**
+
 - Consumes: `force_deadline`, `stream_duel_views`, `finish_duel` (Tasks 2-3).
 - Produces: `pub fn tick_duels(...)` bevy system.
 
@@ -818,10 +827,12 @@ git commit -m "feat(arpg): duel turn deadline auto-commits idle players"
 ### Task 5: Disconnect forfeit
 
 **Files:**
+
 - Modify: `apps/agones/arpg/server/src/duel.rs` (add `cleanup_stale_duels` system)
 - Modify: `apps/agones/arpg/server/src/main.rs` (register after `tick_duels` in the same chain)
 
 **Interfaces:**
+
 - Consumes: `simgrid::SpawnedSlots` (`pub by_slot: HashMap<u16, (Entity, String)>` — verify it is re-exported from simgrid lib.rs; if not, re-export it), `forfeit`, `stream_duel_views`, `finish_duel`.
 
 - [ ] **Step 1: Write the failing test** (duel.rs tests — pure part)
@@ -916,6 +927,7 @@ git commit -m "feat(arpg): disconnected duelist forfeits and frees the trainer"
 ### Task 6: Trainer NPCs in world + challenge handling
 
 **Files:**
+
 - Modify: `apps/agones/arpg/server/src/duel.rs` (trainer table, `apply_npc_challenges` system)
 - Modify: `apps/agones/arpg/server/src/game.rs` (`registry()` ~279 register trainer ref; `spawn_world` ~1082 spawn trainer)
 - Modify: `apps/agones/arpg/server/src/creatures.rs` (nothing — trainers are not creatures; only if the implementer finds shared spec helpers worth reusing)
@@ -923,6 +935,7 @@ git commit -m "feat(arpg): disconnected duelist forfeits and frees the trainer"
 - Modify: `apps/agones/arpg/server/src/main.rs` (register `apply_npc_challenges` in the duel chain, before `apply_pet_turns`)
 
 **Interfaces:**
+
 - Consumes: `PendingNpcChallenges` (Task 1), `EidIndex` (`pub by_eid: HashMap<u32, Entity>` — verify simgrid re-export), registry/duel API (Tasks 2-3), `simgrid::{NpcSpec, spawn_npc_from_spec, GridPos, Floor?}` (verify the floor component name used on NPCs — `spawn_npc_from_spec` shows what it inserts).
 - Produces: `pub const TRAINER_REF: &str = "trainer";` `pub struct TrainerDef { pub name: &'static str, pub team: &'static [(&'static str, u32)], pub difficulty: simgrid::AiDifficulty }` `pub const TRAINERS: &[TrainerDef]`, `pub fn trainer_team(def: &TrainerDef) -> Vec<simgrid::Combatant>`, `pub fn spawn_trainers(...)` helper called from `spawn_world`, `pub fn apply_npc_challenges(...)` system.
 
@@ -1148,6 +1161,7 @@ git commit -m "feat(arpg): world trainer npcs accept walk-up pet duel challenges
 ### Task 7: Client — wire mirror, challenge emitter, trainer interact + sprite
 
 **Files:**
+
 - Modify: `packages/npm/laser/src/lib/net/postcard-wire.ts` (`writeInput` ~lines 75-197: variant 33)
 - Modify: `packages/npm/laser/src/lib/net/protocol.ts` (`Input` union ~lines 147-188)
 - Modify: `packages/npm/laser/src/lib/net/game-client.ts` (emitter next to `openCorpse` ~315)
@@ -1156,6 +1170,7 @@ git commit -m "feat(arpg): world trainer npcs accept walk-up pet duel challenges
 - Modify: `apps/agones/arpg/web/src/game/entities/creatures/registry.ts` (add `trainer` entry)
 
 **Interfaces:**
+
 - Consumes: server `ChallengeNpc` (index 33), trainer kind ref `"trainer"` in the Welcome registry.
 - Produces: `client.challengeNpc(npc: number)`; clicking a trainer NPC within range sends it.
 

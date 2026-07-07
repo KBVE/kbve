@@ -24,6 +24,7 @@
 		"@supabase/supabase-js": "^2.95.3",
 		"bitecs": "^0.4.0",
 		"dexie": "^4.4.2",
+		"fastnoise-lite": "1.1.1",
 		"phaser": "^4.1.0",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",

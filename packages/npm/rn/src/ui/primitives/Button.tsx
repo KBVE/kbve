@@ -18,7 +18,8 @@ export type ButtonVariant =
 	| 'secondary'
 	| 'outline'
 	| 'ghost'
-	| 'danger';
+	| 'danger'
+	| 'danger-ghost';
 
 export interface ButtonProps {
 	title?: string;
@@ -69,6 +70,10 @@ export const Button = memo(function Button({
 			backgroundColor: t.color.danger,
 			borderColor: 'rgba(255,255,255,0.22)',
 		},
+		'danger-ghost': {
+			backgroundColor: 'transparent',
+			borderColor: t.color.border,
+		},
 	}[variant];
 
 	const labelColor = {
@@ -77,6 +82,7 @@ export const Button = memo(function Button({
 		outline: t.color.text,
 		ghost: t.color.textMuted,
 		danger: '#fff',
+		'danger-ghost': t.color.danger,
 	}[variant];
 
 	return (

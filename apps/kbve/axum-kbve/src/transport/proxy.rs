@@ -131,6 +131,8 @@ impl ServiceProxy {
         headers.remove(header::ACCEPT_ENCODING);
         headers.remove(header::CONNECTION);
         headers.remove(header::COOKIE);
+        headers.remove(header::ORIGIN);
+        headers.remove(header::REFERER);
         headers.remove("te");
         headers.remove("trailers");
         headers.remove("upgrade");

@@ -38,6 +38,8 @@ export * from './lists/VirtualList';
 export * from './overlays/OverlayHost';
 export * from './overlays/ConfirmationDialog';
 export * from './overlays/ToastViewport';
+export * from './overlays/Sheet';
+export * from './overlays/AccountSheet';
 
 export * from './feedback/EmptyState';
 export * from './feedback/LoadingState';
