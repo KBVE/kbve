@@ -8,6 +8,7 @@ export {
 } from '../config';
 export * from './supabase';
 export * from './executor';
+export * from './droidStorage';
 export * from './KbveProvider';
 export * from './useAuth';
 export * from './useApi';

@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export function useAutoRefresh(client: SupabaseClient): void {
+export function useAutoRefresh(client: SupabaseClient, enabled = true): void {
 	useEffect(() => {
+		if (!enabled) return;
 		const refresh = (state: string) => {
 			if (state === 'active') {
 				client.auth.startAutoRefresh();
@@ -17,5 +18,5 @@ export function useAutoRefresh(client: SupabaseClient): void {
 			subscription.remove();
 			client.auth.stopAutoRefresh();
 		};
-	}, [client]);
+	}, [client, enabled]);
 }

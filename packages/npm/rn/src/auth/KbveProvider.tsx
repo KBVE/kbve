@@ -7,10 +7,21 @@ import {
 	chatCore,
 	createKbveApi,
 } from '@kbve/core';
-import type { KbveApi } from '@kbve/core';
+import type {
+	AuthEffect,
+	AuthEvent,
+	EffectExecutor,
+	KbveApi,
+} from '@kbve/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createSupabaseClient, mapSession } from './supabase';
 import { createSupabaseAuthExecutor } from './executor';
+import {
+	droidSignOut,
+	readDroidSession,
+	readDroidSessionFromIdb,
+	subscribeDroidSession,
+} from './droidStorage';
 import { useAutoRefresh } from './useAutoRefresh';
 import { AuthSafeArea } from './AuthSafeArea';
 import { createChatExecutor } from '../chat/executor';
@@ -24,6 +35,13 @@ export interface KbveContextValue {
 	chatStore: ChatStore;
 	api: KbveApi;
 	pool: WorkerPool;
+	/**
+	 * `active` flips true when a droid-managed session is found in shared web
+	 * storage (localStorage sync at mount, IndexedDB async). The provider then
+	 * acts as a token consumer: droid's SharedWorker stays the single session
+	 * writer.
+	 */
+	droid: { active: boolean };
 }
 
 const KbveContext = createContext<KbveContextValue | null>(null);
@@ -57,11 +75,30 @@ export function KbveProvider({
 	children,
 }: KbveProviderProps) {
 	const value = useMemo<KbveContextValue>(() => {
-		const client = createSupabaseClient({ url: supabaseUrl, anonKey });
-		const authStore = new AuthStore(
-			authCore,
-			createSupabaseAuthExecutor(client, oauthUrl),
-		);
+		const droidSession = readDroidSession();
+		const droid = { active: droidSession !== null };
+		const client = createSupabaseClient({
+			url: supabaseUrl,
+			anonKey,
+			tokenConsumer: droid.active,
+		});
+		const baseExecutor = createSupabaseAuthExecutor(client, oauthUrl);
+		const executor: EffectExecutor<AuthEffect, AuthEvent> = {
+			execute(effect, dispatch) {
+				if (droid.active && effect.type === 'supabase.sign_out') {
+					void droidSignOut({ supabaseUrl, anonKey });
+					return;
+				}
+				baseExecutor.execute(effect, dispatch);
+			},
+		};
+		const authStore = new AuthStore(authCore, executor);
+		if (droidSession) {
+			authStore.dispatch({
+				type: 'session_changed',
+				session: droidSession,
+			});
+		}
 		const chatStore = new ChatStore(
 			chatCore,
 			createChatExecutor(client, KBVE_CHAT_URL),
@@ -70,6 +107,11 @@ export function KbveProvider({
 		const api = createKbveApi({
 			baseUrl: apiBaseUrl ?? KBVE_API_URL,
 			getToken: async () => {
+				if (droid.active) {
+					const session =
+						readDroidSession() ?? (await readDroidSessionFromIdb());
+					return session?.accessToken ?? null;
+				}
 				const { data } = await client.auth.getSession();
 				return data.session?.access_token ?? null;
 			},
@@ -98,22 +140,59 @@ export function KbveProvider({
 					}
 				: undefined,
 		});
-		return { client, authStore, chatStore, api, pool };
+		return { client, authStore, chatStore, api, pool, droid };
 	}, [supabaseUrl, anonKey, apiBaseUrl, oauthUrl, pooledApi]);
 
 	useEffect(() => {
-		const { client, authStore } = value;
-		authStore.dispatch({ type: 'restore' });
-		const { data } = client.auth.onAuthStateChange((_event, session) => {
-			authStore.dispatch({
-				type: 'session_changed',
-				session: mapSession(session),
-			});
+		const { client, authStore, droid } = value;
+		let disposed = false;
+		let unsubOwnAuth: (() => void) | null = null;
+		const startOwnAuth = () => {
+			authStore.dispatch({ type: 'restore' });
+			const { data } = client.auth.onAuthStateChange(
+				(_event, session) => {
+					authStore.dispatch({
+						type: 'session_changed',
+						session: mapSession(session),
+					});
+				},
+			);
+			unsubOwnAuth = () => data.subscription.unsubscribe();
+		};
+		void readDroidSessionFromIdb().then((idbSession) => {
+			if (disposed) return;
+			if (idbSession) {
+				droid.active = true;
+				const current = readDroidSession();
+				if (
+					!current ||
+					(idbSession.expiresAt ?? 0) > (current.expiresAt ?? 0)
+				) {
+					authStore.dispatch({
+						type: 'session_changed',
+						session: idbSession,
+					});
+				}
+			} else if (!droid.active) {
+				startOwnAuth();
+			}
 		});
-		return () => data.subscription.unsubscribe();
+		const unsubDroid = subscribeDroidSession((session) => {
+			if (session) {
+				droid.active = true;
+				authStore.dispatch({ type: 'session_changed', session });
+			} else if (droid.active) {
+				authStore.dispatch({ type: 'session_changed', session: null });
+			}
+		});
+		return () => {
+			disposed = true;
+			unsubDroid();
+			unsubOwnAuth?.();
+		};
 	}, [value]);
 
-	useAutoRefresh(value.client);
+	useAutoRefresh(value.client, !value.droid.active);
 
 	return (
 		<AuthSafeArea>

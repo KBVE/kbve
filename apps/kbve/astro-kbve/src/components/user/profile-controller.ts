@@ -1,3 +1,9 @@
+/**
+ * @deprecated Cleaned up 2026-07 — /dashboard/account now renders the unified
+ * RN AccountScreen from @kbve/rn (web + mobile, one component). This legacy
+ * account surface is no longer mounted anywhere. Do not extend it; port any
+ * remaining pieces (wallet / market / referral) into @kbve/rn, then delete.
+ */
 import {
 	setAuth,
 	AuthPresets,

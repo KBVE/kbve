@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export function useAutoRefresh(client: SupabaseClient): void {
+export function useAutoRefresh(client: SupabaseClient, enabled = true): void {
 	useEffect(() => {
+		if (!enabled) return;
 		const refresh = () => {
 			if (document.visibilityState === 'visible') {
 				client.auth.startAutoRefresh();
@@ -16,5 +17,5 @@ export function useAutoRefresh(client: SupabaseClient): void {
 			document.removeEventListener('visibilitychange', refresh);
 			client.auth.stopAutoRefresh();
 		};
-	}, [client]);
+	}, [client, enabled]);
 }
