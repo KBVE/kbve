@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
 use axum::Router;
+use axum::body::Bytes;
 use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
@@ -112,11 +113,10 @@ impl Roster {
 
 /// A broadcast event encoded once per live wire format, shared across every
 /// recipient via `Arc` so a snapshot is serialized once per tick instead of
-/// once per client. axum 0.7's `Message` owns its buffer, so each writer still
-/// pays one flat memcpy to hand the socket an owned copy — but the expensive
-/// serialization + the deep `ServerEvent` clone happen a single time.
+/// once per client. `Bytes`-backed so handing each writer a `Message` is a
+/// refcount bump, not a buffer copy.
 struct EncodedFrame {
-    postcard: Vec<u8>,
+    postcard: Bytes,
 }
 
 impl EncodedFrame {
@@ -304,7 +304,7 @@ fn route_snapshot_aoi(
 
 fn encode_frame<T: serde::Serialize>(evt: &T) -> EncodedFrame {
     EncodedFrame {
-        postcard: proto::encode(evt).unwrap_or_default(),
+        postcard: proto::encode(evt).unwrap_or_default().into(),
     }
 }
 
@@ -350,7 +350,7 @@ struct AdmittedPlayer {
 fn decode_client(msg: &Message) -> Option<ClientMessage> {
     match msg {
         Message::Binary(bytes) => {
-            let mut buf = bytes.clone();
+            let mut buf = bytes.to_vec();
             proto::decode::<ClientMessage>(&mut buf).ok()
         }
         _ => None,
@@ -358,7 +358,7 @@ fn decode_client(msg: &Message) -> Option<ClientMessage> {
 }
 
 fn encode_event(evt: &ServerEvent) -> Option<Message> {
-    proto::encode(evt).ok().map(Message::Binary)
+    proto::encode(evt).ok().map(|buf| Message::Binary(buf.into()))
 }
 
 pub fn router(state: ServerState) -> Router {
