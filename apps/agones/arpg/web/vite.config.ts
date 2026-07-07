@@ -178,6 +178,7 @@ export default defineConfig(({ mode }) => {
 				'bitecs',
 				'phaser',
 				'@phaserjs/rapier-connector',
+				'fastnoise-lite',
 			],
 			alias: [
 				laserAlias,
