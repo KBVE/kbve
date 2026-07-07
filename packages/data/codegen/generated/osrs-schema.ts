@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/osrs.binpb
  * Config: ../osrs-zod-config.json
- * Generated: 2026-06-22T21:31:58.925Z
+ * Generated: 2026-07-07T11:55:34.894Z
  */
 
 import { z } from 'zod';
@@ -479,9 +479,19 @@ export const OSRSPriceSchema = z.object({
 
 export type OSRSPrice = z.infer<typeof OSRSPriceSchema>;
 
+// OSRSContentSection
+export const OSRSContentSectionSchema = z.object({
+	heading: z.string(),
+	body: z.string(),
+	anchor: z.string().optional(),
+});
+
+export type OSRSContentSection = z.infer<typeof OSRSContentSectionSchema>;
+
 // OSRSAbout
 export const OSRSAboutSchema = z.object({
 	text: z.string(),
+	sections: z.array(OSRSContentSectionSchema).optional(),
 });
 
 export type OSRSAbout = z.infer<typeof OSRSAboutSchema>;
@@ -674,6 +684,49 @@ export const OSRSAmmunitionSchema = z.object({
 
 export type OSRSAmmunition = z.infer<typeof OSRSAmmunitionSchema>;
 
+// OSRSFaqEntry
+export const OSRSFaqEntrySchema = z.object({
+	question: z.string(),
+	answer: z.string(),
+});
+
+export type OSRSFaqEntry = z.infer<typeof OSRSFaqEntrySchema>;
+
+// OSRSFamilyRef
+export const OSRSFamilyRefSchema = z.object({
+	family_slug: z.string(),
+	role: z.string(),
+	dose: z.number().optional(),
+});
+
+export type OSRSFamilyRef = z.infer<typeof OSRSFamilyRefSchema>;
+
+// OSRSFamilyMember
+export const OSRSFamilyMemberSchema = z.object({
+	id: z.number(),
+	slug: z.string(),
+	name: z.string(),
+	icon: z.string().optional(),
+	role: z.string(),
+	dose: z.number().optional(),
+	value: z.number().optional(),
+	lowalch: z.number().optional(),
+	highalch: z.number().optional(),
+});
+
+export type OSRSFamilyMember = z.infer<typeof OSRSFamilyMemberSchema>;
+
+// OSRSFamily
+export const OSRSFamilySchema = z.object({
+	slug: z.string(),
+	name: z.string(),
+	type: z.string(),
+	canonical_id: z.number().optional(),
+	members: z.array(OSRSFamilyMemberSchema).optional(),
+});
+
+export type OSRSFamily = z.infer<typeof OSRSFamilySchema>;
+
 // OSRSItem
 export const OSRSExtendedSchema = z.object({
 	id: z.number(),
@@ -720,6 +773,12 @@ export const OSRSExtendedSchema = z.object({
 	ammunition: OSRSAmmunitionSchema.optional(),
 	mdx_version: z.number().optional(),
 	mdx_updated: z.string().optional(),
+	faq: z.array(OSRSFaqEntrySchema).optional(),
+	trivia: z.array(z.string()).optional(),
+	url: z.string().optional(),
+	canonical: z.string().optional(),
+	family_ref: OSRSFamilyRefSchema.optional(),
+	family: OSRSFamilySchema.optional(),
 });
 
 export type OSRSExtended = z.infer<typeof OSRSExtendedSchema>;
