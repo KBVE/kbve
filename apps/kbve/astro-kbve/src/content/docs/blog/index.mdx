@@ -26,41 +26,125 @@ jsonld:
           path: /blog/
 ---
 
-import Hero from '@/components/marketing/Hero.astro';
-import StatStrip from '@/components/marketing/StatStrip.astro';
-import Cta from '@/components/marketing/Cta.astro';
+import BentoShell from '@/components/hero/BentoShell.astro';
 import BlogArchive from '@/components/blog/BlogArchive.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-<h1 class="sr-only">KBVE Blog & Dev Journal</h1>
+export const backdrop = 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2400&auto=format&fit=crop';
 
-<Hero
-	eyebrow="kbve blog"
-	lead="Shipped daily, "
-	accent="written in the open. "
-	tail="The dev journal."
-	subtitle="Every day of building games, Rust services, and Kubernetes infrastructure gets an entry — raw notes, fixes, and design decisions straight from the monorepo."
-	actions={[
-		{ label: 'Journal Navigator', href: '/journal/' },
-		{ label: 'Subscribe via RSS', href: '/rss.xml', variant: 'outline' },
-	]}
-/>
+export const stats = [
+	{ label: 'Journal entries', value: '365+', icon: 'M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+	{ label: 'Open monorepo', value: '1', icon: 'M16 18 22 12 16 6M8 6 2 12 8 18' },
+	{ label: 'Cadence', value: 'Daily', icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' },
+	{ label: 'Paywalls', value: '0', icon: 'M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 8V6a3 3 0 0 1 6 0v2z' },
+];
 
-<StatStrip
-	stats={[
-		{ value: '365+', label: 'Journal entries' },
-		{ value: '1', label: 'Open monorepo' },
-		{ value: 'Daily', label: 'Publishing cadence' },
-		{ value: '0', label: 'Paywalls' },
-	]}
-/>
+export const related = [
+	{
+		href: '/docs/',
+		title: 'Browse the Docs',
+		copy: 'Application references and every project in the monorepo.',
+		icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+	},
+	{
+		href: '/journal/',
+		title: 'Journal Navigator',
+		copy: 'Jump to any day — the full chronological dev-log index.',
+		icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+	},
+	{
+		href: 'https://github.com/kbve/kbve',
+		title: 'View on GitHub',
+		copy: 'Every entry references a real commit in the public monorepo.',
+		icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
+		external: true,
+	},
+];
 
-<BlogArchive />
+<div class="blog-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-blog-hub>
 
-<Cta
-	title="Want the code behind the posts?"
-	subtitle="Every entry references real commits in the public monorepo — browse the docs or the source."
-	actions={[
-		{ label: 'Browse the Docs', href: '/docs/' },
-		{ label: 'View on GitHub', href: 'https://github.com/kbve/kbve', variant: 'outline' },
-	]}
-/>
+<section class="bento-hero bento-section not-content" aria-label="KBVE Blog & Dev Journal">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></svg>
+					<span>kbve blog · dev journal</span>
+				</span>
+				<h1 class="bento-title">
+					Shipped daily,
+					<span class="bento-title__accent">written in the open.</span>
+				</h1>
+				<p class="bento-lede">
+					Every day of building games, Rust services, and Kubernetes
+					infrastructure gets an entry — raw notes, fixes, and design
+					decisions straight from the monorepo. No paywalls, no filler.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="/journal/">
+						Journal Navigator
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/rss.xml">Subscribe via RSS</a>
+					<a class="bento-btn bento-btn--ghost" href="#archive">Jump to archive</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#archive">Archive</a>
+			<a class="bento-chip" href="#related">Related</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="archive" eyebrow="The dev journal" heading="Latest entries">
+	<BlogArchive />
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Want the code" heading="Where to next">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a
+				class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive"
+				href={r.href}
+				target={r.external ? '_blank' : undefined}
+				rel={r.external ? 'noopener noreferrer' : undefined}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</div>
+
+<style is:global>{`
+	.blog-hub {
+		--bento-accent: #f59e0b;
+		--bento-accent-2: #fbbf24;
+	}
+`}</style>

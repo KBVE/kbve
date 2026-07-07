@@ -19,6 +19,85 @@ next: false
 prev: false
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroJukebox from '@/components/jukebox/AstroJukebox.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-<AstroJukebox />
+export const backdrop = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2400&auto=format&fit=crop';
+
+export const stats = [
+	{ label: 'Source', value: 'YouTube', icon: 'M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33zM9.75 15.02V8.48l5.75 3.27z' },
+	{ label: 'Format', value: 'Radio', icon: 'M4.93 4.93 19.07 19.07M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0M6.34 6.34a8 8 0 0 0 0 11.32M17.66 6.34a8 8 0 0 1 0 11.32' },
+	{ label: 'Style', value: 'Lofi+', icon: 'M9 18V5l12-2v13M9 13l12-2M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z' },
+	{ label: 'Cost', value: 'Free', icon: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' },
+];
+
+<div class="music-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-music-hub>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE Jukebox">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13M9 13l12-2M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
+					<span>kbve jukebox · youtube radio</span>
+				</span>
+				<h1 class="bento-title">
+					Press play,
+					<span class="bento-title__accent">keep building.</span>
+				</h1>
+				<p class="bento-lede">
+					A curated YouTube radio to score your dev sessions — lofi, focus
+					mixes, and whatever the crew is looping this week. Queue it up and
+					get back to the build.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#player">
+						Open the player
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/youtube/">KBVE on YouTube</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#player">Player</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="player" eyebrow="Now playing" heading="The KBVE Jukebox">
+	<div class="bento-cell bento-card bento-card--glass music-hub__embed">
+		<AstroJukebox />
+	</div>
+</BentoShell>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+</div>
+
+<style is:global>{`
+	.music-hub {
+		--bento-accent: #a855f7;
+		--bento-accent-2: #d8b4fe;
+	}
+	.music-hub .music-hub__embed {
+		padding: 0.75rem;
+	}
+`}</style>

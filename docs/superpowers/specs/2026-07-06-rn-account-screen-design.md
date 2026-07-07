@@ -43,10 +43,10 @@ Each data hook returns a plain, serializable model:
 
 ```ts
 interface HookResult<T> {
-  loading: boolean;
-  data: T | null;
-  refresh: () => void;
-  clear?: () => Promise<void>;   // storage only
+	loading: boolean;
+	data: T | null;
+	refresh: () => void;
+	clear?: () => Promise<void>; // storage only
 }
 ```
 
@@ -59,11 +59,25 @@ in the UI.
 ## Data models (`types.ts`)
 
 ```ts
-interface StorageInfo { usage: number; quota: number; percent: number; itemCount: number }
-interface DeviceRow  { label: string; value: string }
-interface DeviceInfo { rows: DeviceRow[] }
-type HealthStatus    = 'ok' | 'unavailable' | 'checking' | 'error';
-interface HealthCheck { label: string; status: HealthStatus; detail?: string }
+interface StorageInfo {
+	usage: number;
+	quota: number;
+	percent: number;
+	itemCount: number;
+}
+interface DeviceRow {
+	label: string;
+	value: string;
+}
+interface DeviceInfo {
+	rows: DeviceRow[];
+}
+type HealthStatus = 'ok' | 'unavailable' | 'checking' | 'error';
+interface HealthCheck {
+	label: string;
+	status: HealthStatus;
+	detail?: string;
+}
 ```
 
 - `useStorageInfo(): HookResult<StorageInfo>` (+ `clear`)
@@ -81,7 +95,7 @@ native health = stub `unavailable` v1 (architecture intact, fill later).
 - **ProfileHeader** — `Avatar` + `Text`(username) + email + `Badge` (staff via `useStaff`);
   loading state = `Skeleton`. Mirrors `DashboardScreen` header.
 - **StorageSection** — `Surface` card, `StatGrid`/stat tiles (usage / quota / % / item count)
-  + danger `Button` "Clear" → `clear()`.
+    - danger `Button` "Clear" → `clear()`.
 - **DeviceSection** — `Surface` card, info rows from `data.rows`.
 - **HealthSection** — `Surface` card, check rows with status dot + refresh `Button`.
 - **Actions** — `MenuList` section: Profile link (`kbve.com/@username`), Legal links,

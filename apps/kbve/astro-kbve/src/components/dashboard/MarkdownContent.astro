@@ -10,46 +10,52 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 
 {
 	isDashboard ? (
-		<div class="dash-shell">
-			<DashboardGutterNav pathname={pathname} />
-			<div class="dash-main">
-				<nav
-					class="dash-breadcrumb dash-breadcrumb--top"
-					aria-label="Breadcrumb">
-					<ol>
-						{crumbs.map((crumb, i) => (
-							<li>
-								{i < crumbs.length - 1 ? (
-									<a href={crumb.href}>{crumb.label}</a>
-								) : (
-									<span aria-current="page">
-										{crumb.label}
-									</span>
-								)}
-							</li>
-						))}
-					</ol>
-				</nav>
-				<Default>
-					<slot />
-				</Default>
-				<nav
-					class="dash-breadcrumb dash-breadcrumb--bottom"
-					aria-label="Breadcrumb">
-					<ol>
-						{crumbs.map((crumb, i) => (
-							<li>
-								{i < crumbs.length - 1 ? (
-									<a href={crumb.href}>{crumb.label}</a>
-								) : (
-									<span aria-current="page">
-										{crumb.label}
-									</span>
-								)}
-							</li>
-						))}
-					</ol>
-				</nav>
+		<div class="dash-shell bento-section not-content">
+			<div class="dash-frame bento-frame">
+				<div class="dash-grid">
+					<nav
+						class="dash-breadcrumb dash-breadcrumb--top"
+						aria-label="Breadcrumb">
+						<ol>
+							{crumbs.map((crumb, i) => (
+								<li>
+									{i < crumbs.length - 1 ? (
+										<a href={crumb.href}>{crumb.label}</a>
+									) : (
+										<span aria-current="page">
+											{crumb.label}
+										</span>
+									)}
+								</li>
+							))}
+						</ol>
+					</nav>
+					<div class="dash-grid__rail">
+						<DashboardGutterNav pathname={pathname} />
+					</div>
+					<div class="dash-main">
+						<Default>
+							<slot />
+						</Default>
+					</div>
+					<nav
+						class="dash-breadcrumb dash-breadcrumb--bottom"
+						aria-label="Breadcrumb">
+						<ol>
+							{crumbs.map((crumb, i) => (
+								<li>
+									{i < crumbs.length - 1 ? (
+										<a href={crumb.href}>{crumb.label}</a>
+									) : (
+										<span aria-current="page">
+											{crumb.label}
+										</span>
+									)}
+								</li>
+							))}
+						</ol>
+					</nav>
+				</div>
 			</div>
 		</div>
 	) : (
@@ -60,77 +66,101 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 }
 
 <style>
-	.dash-shell {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
+	/* One grid: full-width section band + centered 80rem frame with side
+	   rails (matches every Bento* section on the homepage). Rail + main are
+	   internal cells; breadcrumbs are flush top/bottom bands. No nested
+	   shells, no floating cards. */
+	.dash-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.dash-grid__rail {
+		min-width: 0;
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	.dash-main {
 		min-width: 0;
+		padding: 1.25rem;
+	}
+
+	/* Neutralize any bento-frame a page renders inside the slot so it does
+	   not double the side rails / cap width — the outer frame is the grid. */
+	.dash-main :global(.bento-frame) {
+		max-width: none;
+		margin-inline: 0;
+		border-inline: 0;
+		width: 100%;
 	}
 
 	@media (min-width: 1024px) {
-		/* Sidebar layout: rail flush to the left gutter, content fills the
-		   rest beside it. No centered cap (which left big empty margins),
-		   no page-wide shift. */
-		.dash-shell {
-			flex-direction: row;
-			align-items: flex-start;
-			gap: 1.5rem;
-			padding-inline: 1.5rem;
+		.dash-grid {
+			grid-template-columns: 15rem minmax(0, 1fr);
+			grid-template-areas:
+				'crumbTop crumbTop'
+				'rail     main'
+				'crumbBot crumbBot';
+		}
+
+		.dash-breadcrumb--top {
+			grid-area: crumbTop;
+		}
+
+		.dash-grid__rail {
+			grid-area: rail;
+			border-bottom: 0;
+			border-right: 1px solid var(--bento-hairline);
 		}
 
 		.dash-main {
-			flex: 1 1 0;
-			min-width: 0;
+			grid-area: main;
+			padding: 1.5rem;
 		}
 
-		/* Left-align BentoShell's frame beside the rail; keep its 80rem cap
-		   so content stays readable, with any extra width falling to the
-		   right on ultra-wide screens. */
-		.dash-main :global(.bento-frame) {
-			margin-inline: 0;
-			max-width: 80rem;
+		.dash-breadcrumb--bottom {
+			grid-area: crumbBot;
 		}
 	}
 
+	/* Breadcrumb = flush band inside the frame; hairline seam separates it
+	   from the grid body, matching the section seams. */
 	.dash-breadcrumb {
 		display: flex;
-		border-radius: 0.625rem;
-		border: 1px solid var(--sl-color-hairline, rgba(255, 255, 255, 0.08));
-		background: color-mix(
-			in srgb,
-			var(--sl-color-gray-6, #17181d) 65%,
-			transparent
-		);
+		width: 100%;
 	}
 
 	.dash-breadcrumb--top {
-		margin-bottom: 1rem;
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	.dash-breadcrumb--bottom {
-		margin-top: 1.5rem;
+		border-top: 1px solid var(--bento-hairline);
 	}
 
 	.dash-breadcrumb ol {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.25rem 0.5rem;
+		gap: 0.375rem;
 		width: 100%;
 		margin: 0;
-		padding: 0.5rem 0.75rem;
+		padding: 0.625rem 1.25rem;
 		list-style: none;
 		font-size: 0.8125rem;
 		line-height: 1.4;
 	}
 
+	@media (min-width: 1024px) {
+		.dash-breadcrumb ol {
+			padding-inline: 1.5rem;
+		}
+	}
+
 	.dash-breadcrumb li {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.375rem;
 		min-width: 0;
 	}
 
@@ -142,32 +172,34 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 		border-top: 1.5px solid var(--sl-color-gray-4);
 		border-right: 1.5px solid var(--sl-color-gray-4);
 		transform: rotate(45deg);
-		opacity: 0.6;
+		opacity: 0.55;
 	}
 
 	.dash-breadcrumb a,
 	.dash-breadcrumb span[aria-current='page'] {
+		display: inline-flex;
+		align-items: center;
+		max-width: 14rem;
+		padding: 0.3rem 0.6rem;
+		border-radius: 6px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		max-width: 14rem;
 	}
 
 	.dash-breadcrumb a {
 		color: var(--sl-color-gray-2);
 		text-decoration: none;
-		padding: 0.125rem 0.375rem;
-		border-radius: 0.375rem;
 		transition:
-			color 150ms ease,
-			background-color 150ms ease;
+			color 160ms ease,
+			background-color 160ms ease;
 	}
 
 	.dash-breadcrumb a:hover {
 		color: var(--sl-color-white);
-		background: color-mix(
+		background-color: color-mix(
 			in srgb,
-			var(--sl-color-accent-low) 30%,
+			var(--sl-color-white) 4%,
 			transparent
 		);
 	}
@@ -175,6 +207,10 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 	.dash-breadcrumb span[aria-current='page'] {
 		color: var(--sl-color-white);
 		font-weight: 600;
-		padding: 0.125rem 0.375rem;
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
 	}
 </style>
