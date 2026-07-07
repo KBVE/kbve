@@ -52,7 +52,11 @@ jobs:
                   python-version: '3.12'
 
             - name: Install uv
-              uses: astral-sh/setup-uv@v7
+              uses: Wandalen/wretry.action@v3.8.0
+              with:
+                  action: astral-sh/setup-uv@v7
+                  attempt_limit: 3
+                  attempt_delay: 15000
 
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud

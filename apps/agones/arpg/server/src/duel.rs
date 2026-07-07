@@ -11,10 +11,10 @@ use crate::game;
 pub enum DuelSide {
     Human {
         slot: u16,
+        name: String,
     },
     Npc {
         trainer: Option<Entity>,
-        #[allow(dead_code)]
         name: String,
         difficulty: simgrid::AiDifficulty,
     },
@@ -42,7 +42,7 @@ impl ActiveDuels {
         self.next_id = self.next_id.wrapping_add(1);
         let id = self.next_id;
         for side in &duel.sides {
-            if let DuelSide::Human { slot } = side {
+            if let DuelSide::Human { slot, .. } = side {
                 self.by_slot.insert(*slot, id);
             }
         }
@@ -54,7 +54,7 @@ impl ActiveDuels {
     pub fn remove(&mut self, id: u32) -> Option<Duel> {
         let duel = self.by_id.remove(&id)?;
         for side in &duel.sides {
-            if let DuelSide::Human { slot } = side {
+            if let DuelSide::Human { slot, .. } = side {
                 self.by_slot.remove(slot);
             }
         }
@@ -85,10 +85,11 @@ pub fn stream_duel_views(
     bcast: &simgrid::Outbound,
     duel: &Duel,
     events: &[simgrid::proto::PetBattleWireEvent],
+    now_tick: u32,
 ) {
     for (idx, side) in duel.sides.iter().enumerate() {
-        if let DuelSide::Human { slot } = side {
-            let view = viewer_view(duel, idx, events);
+        if let DuelSide::Human { slot, .. } = side {
+            let view = viewer_view(duel, idx, events, now_tick);
             game::send_battle_view(bcast, simgrid::proto::PlayerSlot(*slot), &view);
         }
     }
@@ -193,6 +194,7 @@ pub fn apply_npc_challenges(
     mut pending: bevy::prelude::ResMut<simgrid::PendingNpcChallenges>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
     index: bevy::prelude::Res<simgrid::EidIndex>,
+    spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
     bank: simgrid::PetBank,
     trainers: bevy::prelude::Query<(&Trainer, &simgrid::GridPos, Option<&TrainerBusy>)>,
     players: bevy::prelude::Query<(
@@ -242,10 +244,15 @@ pub fn apply_npc_challenges(
             team = game::mechamutt_team(species);
         }
         let root = simgrid::rng::mix32(&[0xD0E1_5EED, slot.0 as u32, clock.tick]);
+        let name = spawned
+            .by_slot
+            .get(&slot.0)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
         let duel = Duel {
             state: simgrid::BattleState::versus(root, team, enemy),
             sides: [
-                DuelSide::Human { slot: slot.0 },
+                DuelSide::Human { slot: slot.0, name },
                 DuelSide::Npc {
                     trainer: Some(trainer_entity),
                     name: def.name.into(),
@@ -262,7 +269,7 @@ pub fn apply_npc_challenges(
             def.name
         ))];
         let id = duels.create(duel);
-        stream_duel_views(&bcast, &duels.by_id[&id], &opening);
+        stream_duel_views(&bcast, &duels.by_id[&id], &opening, clock.tick);
     }
 }
 
@@ -279,7 +286,7 @@ pub fn engine_side(idx: usize) -> simgrid::Side {
 pub fn side_index_of_slot(duel: &Duel, slot: u16) -> Option<usize> {
     duel.sides
         .iter()
-        .position(|s| matches!(s, DuelSide::Human { slot: s2 } if *s2 == slot))
+        .position(|s| matches!(s, DuelSide::Human { slot: s2, .. } if *s2 == slot))
 }
 
 fn ai_rng(duel: &Duel, idx: usize) -> simgrid::rng::Mulberry32 {
@@ -392,6 +399,7 @@ pub fn tick_duels(
         let Some(duel) = duels.by_id.get_mut(&id) else {
             continue;
         };
+        let turn_before = duel.state.turn;
         let Some(raw) = force_deadline(duel, clock.tick) else {
             continue;
         };
@@ -400,11 +408,13 @@ pub fn tick_duels(
             .filter(|e| !matches!(e, simgrid::BattleEvent::Outcome(_)))
             .map(game::wire_event)
             .collect();
-        events.push(game::info_event(
-            "Time's up — a move was chosen for you.".into(),
-        ));
+        events.push(game::info_event(if duel.state.turn == turn_before {
+            "Time's up — a replacement was sent out.".into()
+        } else {
+            "Time's up — a move was chosen for you.".into()
+        }));
         let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
-        stream_duel_views(&bcast, duel, &events);
+        stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
             finish_duel(&mut duels, id, &mut commands);
         }
@@ -417,7 +427,7 @@ pub fn stale_human_sides(duel: &Duel, connected: impl Fn(u16) -> bool) -> Vec<us
         .iter()
         .enumerate()
         .filter_map(|(i, s)| match s {
-            DuelSide::Human { slot } if !connected(*slot) => Some(i),
+            DuelSide::Human { slot, .. } if !connected(*slot) => Some(i),
             _ => None,
         })
         .collect()
@@ -428,6 +438,7 @@ pub fn stale_human_sides(duel: &Duel, connected: impl Fn(u16) -> bool) -> Vec<us
 pub fn cleanup_stale_duels(
     bcast: bevy::prelude::Res<simgrid::Outbound>,
     spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
     mut commands: bevy::prelude::Commands,
 ) {
@@ -447,13 +458,13 @@ pub fn cleanup_stale_duels(
             .iter()
             .enumerate()
             .filter_map(|(i, s)| match s {
-                DuelSide::Human { slot } if spawned.by_slot.contains_key(slot) => Some(i),
+                DuelSide::Human { slot, .. } if spawned.by_slot.contains_key(slot) => Some(i),
                 _ => None,
             })
             .collect();
         for idx in survivors {
-            if let DuelSide::Human { slot } = duel.sides[idx] {
-                let view = viewer_view(duel, idx, &events);
+            if let DuelSide::Human { slot, .. } = duel.sides[idx] {
+                let view = viewer_view(duel, idx, &events, clock.tick);
                 game::send_battle_view(&bcast, simgrid::proto::PlayerSlot(slot), &view);
             }
         }
@@ -478,40 +489,322 @@ fn flip_outcome(name: &str) -> String {
     }
 }
 
+/// Display name for a duel side: a human's stored username, or an NPC's name.
+fn side_display_name(side: &DuelSide) -> &str {
+    match side {
+        DuelSide::Human { name, .. } => name,
+        DuelSide::Npc { name, .. } => name,
+    }
+}
+
 /// The battle snapshot as one side sees it: viewer 0 is the engine's player side
 /// verbatim; viewer 1 sees teams, active indices, moves, events, and outcome
-/// mirrored so their own side always renders as `player`.
+/// mirrored so their own side always renders as `player`. `phase`/`deadline_ms`/
+/// `opponent` are always viewer-relative.
 pub fn viewer_view(
     duel: &Duel,
     viewer_idx: usize,
     events: &[simgrid::proto::PetBattleWireEvent],
+    now_tick: u32,
 ) -> simgrid::proto::PetBattleState {
-    let base = game::battle_view(&duel.state, events.to_vec());
-    if viewer_idx == 0 {
-        return base;
-    }
     let ongoing = duel.state.outcome == simgrid::BattleOutcome::Ongoing;
-    simgrid::proto::PetBattleState {
-        player: base.enemy,
-        enemy: base.player,
-        p_active: base.e_active,
-        e_active: base.p_active,
-        moves: if ongoing {
-            game::move_options(duel.state.enemy.active())
-        } else {
-            vec![]
-        },
-        events: events
+    let deadline_ms = if ongoing {
+        duel.deadline_tick
+            .saturating_sub(now_tick)
+            .saturating_mul(50)
+    } else {
+        0
+    };
+    let phase = if !ongoing {
+        "over"
+    } else if duel.state.needs_replacement(engine_side(viewer_idx)) {
+        "replace"
+    } else {
+        "action"
+    };
+    let opponent = side_display_name(&duel.sides[1 - viewer_idx]).to_string();
+    let base = game::battle_view(&duel.state, events.to_vec(), deadline_ms, &opponent);
+    let mut view = if viewer_idx == 0 {
+        base
+    } else {
+        simgrid::proto::PetBattleState {
+            player: base.enemy,
+            enemy: base.player,
+            p_active: base.e_active,
+            e_active: base.p_active,
+            moves: if ongoing {
+                game::move_options(duel.state.enemy.active())
+            } else {
+                vec![]
+            },
+            events: events
+                .iter()
+                .map(|e| {
+                    let mut e = e.clone();
+                    e.side ^= 1;
+                    e
+                })
+                .collect(),
+            outcome: flip_outcome(&base.outcome),
+            ..base
+        }
+    };
+    view.phase = phase.to_string();
+    view
+}
+
+pub const DUEL_CHALLENGE_TICKS: u32 = 20 * simgrid::SIM_TICK_HZ;
+
+pub struct DuelChallenge {
+    pub challenger: u16,
+    pub target: u16,
+    pub expires_tick: u32,
+}
+
+#[derive(bevy::prelude::Resource, Default)]
+pub struct PendingDuels(pub Vec<DuelChallenge>);
+
+/// Index of the pending challenge involving `slot` on either side, if any.
+pub fn challenge_involving(pending: &PendingDuels, slot: u16) -> Option<usize> {
+    pending
+        .0
+        .iter()
+        .position(|c| c.challenger == slot || c.target == slot)
+}
+
+/// Encode and send a `DuelPrompt` ephemeral notice, mirroring `send_battle_view`'s shape.
+pub fn send_duel_prompt(
+    bcast: &simgrid::Outbound,
+    to_slot: u16,
+    status: u8,
+    other_slot: u16,
+    other_name: &str,
+    deadline_ms: u32,
+) {
+    let prompt = simgrid::DuelPrompt {
+        status,
+        other_slot,
+        other_name: other_name.to_string(),
+        deadline_ms,
+    };
+    let payload = simgrid::proto::encode_inner(&prompt).unwrap_or_default();
+    let _ = bcast.tx.send(simgrid::proto::ServerEvent::Ephemeral {
+        kind: simgrid::EPHEMERAL_DUEL_PROMPT,
+        to: simgrid::proto::PlayerSlot(to_slot),
+        payload,
+    });
+}
+
+/// Consume `PlayerSlot` duel-challenge inputs: validates neither slot is already
+/// duelling or pending, both are spawned, and they're within challenge range,
+/// then queues a `PendingDuels` entry and prompts the target.
+pub fn apply_duel_challenges(
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
+    mut ops: bevy::prelude::ResMut<simgrid::PendingDuelOps>,
+    mut pending: bevy::prelude::ResMut<PendingDuels>,
+    duels: bevy::prelude::Res<ActiveDuels>,
+    spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
+    players: bevy::prelude::Query<(&simgrid::PlayerSlotTag, &simgrid::GridPos)>,
+) {
+    if ops.challenges.is_empty() {
+        return;
+    }
+    for (challenger, target) in std::mem::take(&mut ops.challenges) {
+        let challenger = challenger.0;
+        let target = target.0;
+        if challenger == target {
+            continue;
+        }
+        if duels.by_slot.contains_key(&challenger) || duels.by_slot.contains_key(&target) {
+            continue;
+        }
+        if challenge_involving(&pending, challenger).is_some()
+            || challenge_involving(&pending, target).is_some()
+        {
+            continue;
+        }
+        if !spawned.by_slot.contains_key(&challenger) || !spawned.by_slot.contains_key(&target) {
+            continue;
+        }
+        let Some((_, challenger_pos)) = players.iter().find(|(tag, _)| tag.0.0 == challenger)
+        else {
+            continue;
+        };
+        let Some((_, target_pos)) = players.iter().find(|(tag, _)| tag.0.0 == target) else {
+            continue;
+        };
+        if !within_challenge_range(challenger_pos.tile, target_pos.tile) {
+            continue;
+        }
+        pending.0.push(DuelChallenge {
+            challenger,
+            target,
+            expires_tick: clock.tick.saturating_add(DUEL_CHALLENGE_TICKS),
+        });
+        let challenger_name = spawned
+            .by_slot
+            .get(&challenger)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
+        send_duel_prompt(
+            &bcast,
+            target,
+            simgrid::DUEL_PROMPT_OFFER,
+            challenger,
+            &challenger_name,
+            DUEL_CHALLENGE_TICKS.saturating_mul(50),
+        );
+    }
+}
+
+/// Consume the target's accept/decline response: on decline, notify the
+/// challenger and drop the pending entry; on accept, re-validate both slots
+/// are still free and spawned (range is not re-checked — challenge-time only)
+/// and start a PvP duel.
+#[allow(clippy::too_many_arguments)]
+pub fn apply_duel_responses(
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
+    mut ops: bevy::prelude::ResMut<simgrid::PendingDuelOps>,
+    mut pending: bevy::prelude::ResMut<PendingDuels>,
+    mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
+    bank: simgrid::PetBank,
+    rosters: bevy::prelude::Query<(&simgrid::PlayerSlotTag, Option<&simgrid::PetRoster>)>,
+) {
+    if ops.responses.is_empty() {
+        return;
+    }
+    for (slot, accept) in std::mem::take(&mut ops.responses) {
+        let slot = slot.0;
+        let Some(idx) = pending.0.iter().position(|c| c.target == slot) else {
+            continue;
+        };
+        let challenge = pending.0.remove(idx);
+        let challenger = challenge.challenger;
+        let target_name = spawned
+            .by_slot
+            .get(&slot)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
+        if !accept {
+            send_duel_prompt(
+                &bcast,
+                challenger,
+                simgrid::DUEL_PROMPT_DECLINED,
+                slot,
+                &target_name,
+                0,
+            );
+            continue;
+        }
+        if duels.by_slot.contains_key(&challenger) || duels.by_slot.contains_key(&slot) {
+            continue;
+        }
+        if !spawned.by_slot.contains_key(&challenger) || !spawned.by_slot.contains_key(&slot) {
+            continue;
+        }
+        let challenger_roster = rosters
             .iter()
-            .map(|e| {
-                let mut e = e.clone();
-                e.side ^= 1;
-                e
-            })
-            .collect(),
-        outcome: flip_outcome(&base.outcome),
-        awaiting: base.awaiting,
-        can_run: base.can_run,
+            .find(|(tag, _)| tag.0.0 == challenger)
+            .and_then(|(_, roster)| roster);
+        let target_roster = rosters
+            .iter()
+            .find(|(tag, _)| tag.0.0 == slot)
+            .and_then(|(_, roster)| roster);
+        let Some(species) = game::NPC_DB.get(game::MECHAMUTT_REF) else {
+            continue;
+        };
+        let mut challenger_team = challenger_roster
+            .map(|r| roster_team(&bank, r))
+            .unwrap_or_default();
+        if challenger_team.is_empty() {
+            challenger_team = game::mechamutt_team(species);
+        }
+        let mut target_team = target_roster
+            .map(|r| roster_team(&bank, r))
+            .unwrap_or_default();
+        if target_team.is_empty() {
+            target_team = game::mechamutt_team(species);
+        }
+        let challenger_name = spawned
+            .by_slot
+            .get(&challenger)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_default();
+        let root = simgrid::rng::mix32(&[0xD0E7_D0E7, challenger as u32, slot as u32, clock.tick]);
+        send_duel_prompt(
+            &bcast,
+            challenger,
+            simgrid::DUEL_PROMPT_ACCEPTED,
+            slot,
+            &target_name,
+            0,
+        );
+        let duel = Duel {
+            state: simgrid::BattleState::versus(root, challenger_team, target_team),
+            sides: [
+                DuelSide::Human {
+                    slot: challenger,
+                    name: challenger_name,
+                },
+                DuelSide::Human {
+                    slot,
+                    name: target_name.clone(),
+                },
+            ],
+            committed: [None, None],
+            deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
+        };
+        let opening = vec![game::info_event(format!(
+            "{target_name} accepts — the duel begins!"
+        ))];
+        let id = duels.create(duel);
+        stream_duel_views(&bcast, &duels.by_id[&id], &opening, clock.tick);
+    }
+}
+
+/// Drop pending challenges whose deadline passed or whose participant left,
+/// notifying both sides so their overlays close.
+pub fn expire_duel_challenges(
+    mut pending: bevy::prelude::ResMut<PendingDuels>,
+    clock: bevy::prelude::Res<simgrid::SimClock>,
+    spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
+    bcast: bevy::prelude::Res<simgrid::Outbound>,
+) {
+    if pending.0.is_empty() {
+        return;
+    }
+    let now = clock.tick;
+    let mut dropped: Vec<(u16, u16)> = Vec::new();
+    pending.0.retain(|c| {
+        let present =
+            spawned.by_slot.contains_key(&c.challenger) && spawned.by_slot.contains_key(&c.target);
+        if present && now < c.expires_tick {
+            true
+        } else {
+            dropped.push((c.challenger, c.target));
+            false
+        }
+    });
+    for (challenger, target) in dropped {
+        send_duel_prompt(
+            &bcast,
+            challenger,
+            simgrid::DUEL_PROMPT_EXPIRED,
+            target,
+            "",
+            0,
+        );
+        send_duel_prompt(
+            &bcast,
+            target,
+            simgrid::DUEL_PROMPT_EXPIRED,
+            challenger,
+            "",
+            0,
+        );
     }
 }
 
@@ -530,11 +823,32 @@ mod tests {
         Duel {
             state: simgrid::BattleState::versus(7, team(), team()),
             sides: [
-                DuelSide::Human { slot: 3 },
+                DuelSide::Human {
+                    slot: 3,
+                    name: "Bot".into(),
+                },
                 DuelSide::Npc {
                     trainer: None,
                     name: "Bot".into(),
                     difficulty: simgrid::AiDifficulty::Greedy,
+                },
+            ],
+            committed: [None, None],
+            deadline_tick: DUEL_TURN_TICKS,
+        }
+    }
+
+    fn pvp_duel() -> Duel {
+        Duel {
+            state: simgrid::BattleState::versus(7, team(), team()),
+            sides: [
+                DuelSide::Human {
+                    slot: 3,
+                    name: "ann".into(),
+                },
+                DuelSide::Human {
+                    slot: 4,
+                    name: "bob".into(),
                 },
             ],
             committed: [None, None],
@@ -620,8 +934,8 @@ mod tests {
     fn viewer_one_sees_own_team_as_player() {
         let mut d = pve_duel();
         d.state.enemy.team[0].nickname = "EnemyAce".into();
-        let v0 = viewer_view(&d, 0, &[]);
-        let v1 = viewer_view(&d, 1, &[]);
+        let v0 = viewer_view(&d, 0, &[], 0);
+        let v1 = viewer_view(&d, 1, &[], 0);
         assert_eq!(v0.enemy[0].nickname, "EnemyAce");
         assert_eq!(v1.player[0].nickname, "EnemyAce");
         assert_eq!(
@@ -666,8 +980,37 @@ mod tests {
             flag: 0,
             text: "x".into(),
         };
-        let v1 = viewer_view(&d, 1, &[ev]);
+        let v1 = viewer_view(&d, 1, &[ev], 0);
         assert_eq!(v1.events[0].side, 0);
+    }
+
+    #[test]
+    fn viewer_view_carries_phase_deadline_opponent() {
+        let mut d = pve_duel();
+        d.deadline_tick = 700;
+        let v = viewer_view(&d, 0, &[], 100);
+        assert_eq!(v.phase, "action");
+        assert_eq!(v.deadline_ms, 600 * 50);
+        assert_eq!(v.opponent, "Bot");
+        d.state.player.team[d.state.player.active].hp = 0;
+        let v = viewer_view(&d, 0, &[], 100);
+        assert_eq!(v.phase, "replace");
+        d.state.outcome = simgrid::BattleOutcome::PlayerWon;
+        let v = viewer_view(&d, 0, &[], 100);
+        assert_eq!(v.phase, "over");
+        assert_eq!(v.deadline_ms, 0);
+    }
+
+    #[test]
+    fn viewer_one_phase_and_opponent_are_side_relative() {
+        let mut d = pvp_duel();
+        d.state.enemy.team[d.state.enemy.active].hp = 0;
+        let v0 = viewer_view(&d, 0, &[], 0);
+        let v1 = viewer_view(&d, 1, &[], 0);
+        assert_eq!(v0.phase, "action");
+        assert_eq!(v1.phase, "replace");
+        assert_eq!(v0.opponent, "bob");
+        assert_eq!(v1.opponent, "ann");
     }
 
     #[test]
@@ -695,6 +1038,7 @@ mod tests {
         app.insert_resource(simgrid::PendingNpcChallenges::default());
         app.insert_resource(simgrid::PendingPets::default());
         app.insert_resource(ActiveDuels::default());
+        app.insert_resource(simgrid::SpawnedSlots::default());
         let trainer = app
             .world_mut()
             .spawn((
@@ -726,5 +1070,18 @@ mod tests {
         assert_eq!(duels.by_id.len(), 1);
         assert!(duels.by_slot.contains_key(&1));
         assert!(!duels.by_slot.contains_key(&2));
+    }
+
+    #[test]
+    fn challenge_involving_finds_either_side() {
+        let mut p = PendingDuels::default();
+        p.0.push(DuelChallenge {
+            challenger: 1,
+            target: 2,
+            expires_tick: 100,
+        });
+        assert_eq!(challenge_involving(&p, 1), Some(0));
+        assert_eq!(challenge_involving(&p, 2), Some(0));
+        assert_eq!(challenge_involving(&p, 3), None);
     }
 }

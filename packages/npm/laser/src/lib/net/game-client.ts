@@ -4,6 +4,7 @@ import {
 	EPHEMERAL_BLACKJACK,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_CORPSE,
+	EPHEMERAL_DUEL_PROMPT,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_FLOOR,
 	EPHEMERAL_INVENTORY,
@@ -20,6 +21,7 @@ import {
 	type ClientMessage,
 	type CombatEvent,
 	type CorpseContents,
+	type DuelPrompt,
 	type Ephemeral,
 	type EquippedEvent,
 	type Facing,
@@ -45,6 +47,7 @@ import {
 	decodeBlackjack,
 	decodeCombat,
 	decodeCorpse,
+	decodeDuelPrompt,
 	decodeEquipped,
 	decodeFloorChange,
 	decodeInventory,
@@ -79,6 +82,7 @@ export type GameClientEventMap = {
 	blackjackState: BlackjackStateView;
 	petBattleReplay: PetBattleReplay;
 	petBattleState: PetBattleState;
+	duelPrompt: DuelPrompt;
 	reject: string;
 	state: ConnectionState;
 	close: void;
@@ -215,6 +219,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PET_BATTLE_STATE) {
 			const data = decodePetBattleState(evt.payload);
 			if (data) this.bus.emit('petBattleState', data);
+		} else if (evt.kind === EPHEMERAL_DUEL_PROMPT) {
+			const data = decodeDuelPrompt(evt.payload);
+			if (data) this.bus.emit('duelPrompt', data);
 		}
 	}
 
@@ -318,6 +325,14 @@ export class GameClient {
 
 	challengeNpc(npc: number): void {
 		this.sendInputs([{ ChallengeNpc: { npc } }]);
+	}
+
+	duelChallenge(target: number): void {
+		this.sendInputs([{ DuelChallenge: { target } }]);
+	}
+
+	duelRespond(accept: boolean): void {
+		this.sendInputs([{ DuelRespond: { accept } }]);
 	}
 
 	/** Take one slot from an open corpse — server re-sends the updated `corpse`. */
