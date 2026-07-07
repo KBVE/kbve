@@ -24,7 +24,7 @@ serde_json = "1.0"
 postcard = { version = "1.0", default-features = false, features = ["use-std"] }
 bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
 bevy_spells = { path = "../bevy/bevy_spells" }
-axum = { version = "0.7", default-features = false, features = ["ws"] }
+axum = { version = "0.8.9", default-features = false, features = ["ws"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "sync", "time", "net"] }
 futures-util = { version = "0.3", default-features = false, features = ["std"] }
 dashmap = "6.1.0"
@@ -40,7 +40,7 @@ getrandom = "0.2"
 [dev-dependencies]
 # Integration tests spin the real axum WS router + sim loop and drive a client.
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "time", "net"] }
-axum = { version = "0.7", features = ["ws", "tokio"] }
+axum = { version = "0.8.9", features = ["ws", "tokio"] }
 tokio-tungstenite = "0.24"
 futures-util = "0.3"
 serde_json = "1.0"
