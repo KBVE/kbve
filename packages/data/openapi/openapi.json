@@ -11,7 +11,7 @@
 		"license": {
 			"name": "MIT"
 		},
-		"version": "1.0.201"
+		"version": "1.0.227"
 	},
 	"servers": [
 		{
@@ -2242,6 +2242,88 @@
 				]
 			}
 		},
+		"/api/v1/wallet/me/ledger": {
+			"get": {
+				"tags": ["wallet"],
+				"summary": "`GET /api/v1/wallet/me/ledger` — caller-scoped `wallet.ledger` page.",
+				"operationId": "me_ledger",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"description": "Page size; clamped to [1, 100]; default 50",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "before_created_at",
+						"in": "query",
+						"description": "Cursor timestamp (paired with before_id)",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "before_id",
+						"in": "query",
+						"description": "Cursor id (paired with before_created_at; must be positive)",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"format": "int64"
+						}
+					},
+					{
+						"name": "source_kinds",
+						"in": "query",
+						"description": "CSV of wallet.source_kind values; defaults to market_buy,market_sell,market_fee; pass `all` to widen to full ledger",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "currency",
+						"in": "query",
+						"description": "credits | khash; omit for both",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Caller-scoped ledger page",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LedgerPageDto"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid argument / cursor"
+					},
+					"401": {
+						"description": "Missing / invalid bearer token"
+					},
+					"503": {
+						"description": "PgCluster unavailable"
+					}
+				},
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				]
+			}
+		},
 		"/api/v1/wallet/me/redeem-coupon": {
 			"post": {
 				"tags": ["wallet"],
@@ -2944,6 +3026,10 @@
 						"type": ["string", "null"],
 						"description": "`ILIKE %search%` against the message body."
 					},
+					"server_id": {
+						"type": ["string", "null"],
+						"description": "Filter by Factorio `server_id` for the `factorio_*` commands. Ignored\nby log/alert commands."
+					},
 					"service": {
 						"type": ["string", "null"],
 						"description": "Filter by `service` label as emitted by Vector (e.g. `\"axum-kbve\"`)."
@@ -2962,7 +3048,7 @@
 					"rows": {
 						"type": "array",
 						"items": {},
-						"description": "One JSON object per row. Shape depends on `command`:\n- `\"query\"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`\n- `\"stats\"` → `{ pod_namespace, service, level, cnt }`"
+						"description": "One JSON object per row. Shape depends on `command`:\n- `\"query\"` → `{ timestamp, pod_namespace, service, level, message, pod_name, metadata }`\n- `\"stats\"` → `{ pod_namespace, service, level, cnt }`\n- `\"error_groups\"` → `{ pod_namespace, service, signature, cnt, last_seen, sample }`"
 					}
 				}
 			},
@@ -3344,6 +3430,72 @@
 					}
 				}
 			},
+			"LedgerPageDto": {
+				"type": "object",
+				"required": ["rows"],
+				"properties": {
+					"next_cursor": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/NextCursorDto"
+							}
+						]
+					},
+					"rows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LedgerRowDto"
+						}
+					}
+				}
+			},
+			"LedgerRowDto": {
+				"type": "object",
+				"required": [
+					"ledger_id",
+					"currency",
+					"delta",
+					"balance_after",
+					"source_kind",
+					"created_at"
+				],
+				"properties": {
+					"balance_after": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"created_at": {
+						"type": "string"
+					},
+					"currency": {
+						"type": "string"
+					},
+					"delta": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"ledger_id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"reason": {
+						"type": ["string", "null"]
+					},
+					"ref_id": {
+						"type": ["integer", "null"],
+						"format": "int64"
+					},
+					"ref_type": {
+						"type": ["string", "null"]
+					},
+					"source_kind": {
+						"type": "string"
+					}
+				}
+			},
 			"ListLotsQuery": {
 				"type": "object",
 				"properties": {
@@ -3583,6 +3735,19 @@
 					},
 					"settled_at": {
 						"type": ["string", "null"]
+					}
+				}
+			},
+			"NextCursorDto": {
+				"type": "object",
+				"required": ["before_created_at", "before_id"],
+				"properties": {
+					"before_created_at": {
+						"type": "string"
+					},
+					"before_id": {
+						"type": "integer",
+						"format": "int64"
 					}
 				}
 			},

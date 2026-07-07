@@ -36,6 +36,7 @@ export const DUEL_PROMPT_OFFER = 0;
 export const DUEL_PROMPT_DECLINED = 1;
 export const DUEL_PROMPT_EXPIRED = 2;
 export const DUEL_PROMPT_ACCEPTED = 3;
+export const DUEL_PROMPT_SENT = 4;
 
 // PetTurn action codes — must match proto.rs PET_ACT_* constants. `arg` is the move
 // slot (MOVE) or the reserve index to send out (SWAP).

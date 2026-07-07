@@ -210,6 +210,7 @@ import {
 	registerCreatureAnims,
 	isCreatureLoaded,
 	unloadCreature,
+	resolveCreature,
 	DEBUG_CREATURE_DIRS,
 	type CreatureDef,
 } from './entities/creatures';
@@ -984,7 +985,6 @@ export class IsoArpgScene extends Phaser.Scene {
 			client: () => this.client,
 			myEid: () => this.myEid,
 			mySlot: () => this.mySlot,
-			slotUsername: (slot) => this.slotUsername.get(slot),
 			isBlocked: (x, y) => this.isBlocked(x, y),
 			isHostile: (e) => this.isHostileServer(e),
 			isCorpse: (e) => this.kinds.ref(this.store.kind(e)) === CORPSE_REF,
@@ -1012,9 +1012,13 @@ export class IsoArpgScene extends Phaser.Scene {
 				const cref = this.kinds.ref(e.kind);
 				// Wake a parked creature of this def if one is pooled; only build a
 				// fresh sprite on a cold pool. Player + non-creature kinds skip both.
+				// Keyed by def id (not kind ref) so refs sharing a def — trainer
+				// renders as the goblin — share one pool with release/drain.
 				const pooled = player
 					? null
-					: this.creaturePool.acquire(cref ?? '');
+					: this.creaturePool.acquire(
+							resolveCreature(cref)?.id ?? '',
+						);
 				const creatureSprite =
 					player || pooled ? null : makeCreatureSprite(this, cref);
 				if (player) {

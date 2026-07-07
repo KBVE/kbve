@@ -3,6 +3,17 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import type { AuthSession } from '@kbve/core';
 
 export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
+	if (config.tokenConsumer) {
+		// droid's SharedWorker is the single session writer; this client only
+		// consumes tokens, so it must never persist or refresh the session.
+		return createClient(config.url, config.anonKey, {
+			auth: {
+				autoRefreshToken: false,
+				persistSession: false,
+				detectSessionInUrl: false,
+			},
+		});
+	}
 	return createClient(config.url, config.anonKey, {
 		auth: {
 			autoRefreshToken: true,
@@ -18,9 +29,10 @@ export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
 export interface SupabaseConfig {
 	url: string;
 	anonKey: string;
+	tokenConsumer?: boolean;
 }
 
-function claimUsername(accessToken: string): string | null {
+export function claimUsername(accessToken: string): string | null {
 	try {
 		const payload = accessToken.split('.')[1];
 		if (!payload) return null;

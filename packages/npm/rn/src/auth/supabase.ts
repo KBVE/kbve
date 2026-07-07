@@ -12,6 +12,7 @@ import type { AuthSession } from '@kbve/core';
 export interface SupabaseConfig {
 	url: string;
 	anonKey: string;
+	tokenConsumer?: boolean;
 }
 
 export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
@@ -26,7 +27,7 @@ export function createSupabaseClient(config: SupabaseConfig): SupabaseClient {
 	});
 }
 
-function claimUsername(accessToken: string): string | null {
+export function claimUsername(accessToken: string): string | null {
 	try {
 		const payload = accessToken.split('.')[1];
 		if (!payload) return null;
