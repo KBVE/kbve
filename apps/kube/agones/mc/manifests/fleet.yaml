@@ -67,6 +67,9 @@ spec:
                                   mkdir -p /data/config
                                   cp /config/FabricProxy-Lite.toml /data/config/FabricProxy-Lite.toml
                                   echo "synced FabricProxy-Lite.toml from image template"
+                                  mkdir -p /data/world/datapacks
+                                  cp -r /datapacks/. /data/world/datapacks/
+                                  echo "synced world datapacks from image"
                           volumeMounts:
                               - name: mc-data
                                 mountPath: /data

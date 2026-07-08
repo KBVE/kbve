@@ -1,0 +1,7 @@
+{
+	"pack": {
+		"description": "KBVE server tweaks — Immersive Aircraft warship fuel burn reduced",
+		"min_format": [94, 1],
+		"max_format": [94, 1]
+	}
+}
