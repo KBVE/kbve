@@ -65,7 +65,7 @@ public final class NativeRuntime {
             System.out.println("[behavior_statetree] Native library loaded from " + tempFile.getAbsolutePath());
         } catch (Exception | UnsatisfiedLinkError e) {
             System.err.println("[behavior_statetree] Native library not available: " + e.getMessage());
-            System.err.println("[behavior_statetree] AI features disabled — ship system still works");
+            System.err.println("[behavior_statetree] AI features disabled");
             loaded = false;
         }
     }
@@ -103,23 +103,6 @@ public final class NativeRuntime {
      * @return true if accepted, false if back-pressured
      */
     public static native boolean submitMapData(String snapshotJson);
-
-    // -- Ship persistence (JSON file backed by Rust) -------------------------
-
-    /** Initialize the ship database at the given file path. */
-    public static native boolean initShipDb(String dbPath);
-
-    /** Save or update a ship record (JSON-serialized ShipRecord). */
-    public static native boolean saveShip(String shipJson);
-
-    /** Delete a ship record by its UUID string. */
-    public static native boolean deleteShip(String shipId);
-
-    /** Load all ship records as a JSON array. */
-    public static native String loadAllShips();
-
-    /** Delete all ship records (dev tool). */
-    public static native boolean deleteAllShips();
 
     // -- Intents -------------------------------------------------------------
 

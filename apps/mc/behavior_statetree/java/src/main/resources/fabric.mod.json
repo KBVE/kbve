@@ -3,7 +3,7 @@
 	"id": "behavior_statetree",
 	"version": "${version}",
 	"name": "Behavior State Tree",
-	"description": "Hybrid Rust/Tokio NPC AI planner with client-side ship rendering — async behavior trees, flow field pathfinding, and ship system.",
+	"description": "Hybrid Rust/Tokio NPC AI planner — async behavior trees, flow field pathfinding, wallet UI, and NPC plan overlay.",
 	"authors": ["KBVE", "h0lybyte"],
 	"contact": {
 		"homepage": "https://kbve.com/",
@@ -13,7 +13,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": ["com.kbve.statetree.BehaviorStateTreeMod"],
-		"client": ["com.kbve.statetree.client.ShipClientMod"]
+		"client": ["com.kbve.statetree.client.StateTreeClientMod"]
 	},
 	"mixins": ["behavior_statetree.mixins.json"],
 	"depends": {

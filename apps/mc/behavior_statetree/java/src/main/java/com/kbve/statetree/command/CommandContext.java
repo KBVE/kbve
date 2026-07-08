@@ -2,7 +2,6 @@ package com.kbve.statetree.command;
 
 import com.kbve.statetree.AiCreatureManager;
 import com.kbve.statetree.ScaffoldTracker;
-import com.kbve.statetree.ship.ShipManager;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.jetbrains.annotations.Nullable;
@@ -16,19 +15,17 @@ public record CommandContext(
         ServerWorld world,
         @Nullable MobEntity mob,
         AiCreatureManager creatureManager,
-        ScaffoldTracker scaffoldTracker,
-        @Nullable ShipManager shipManager
+        ScaffoldTracker scaffoldTracker
 ) {
     /** Convenience — world commands use this. */
     public static CommandContext forWorld(ServerWorld world,
                                          AiCreatureManager creatureManager,
-                                         ScaffoldTracker scaffoldTracker,
-                                         @Nullable ShipManager shipManager) {
-        return new CommandContext(world, null, creatureManager, scaffoldTracker, shipManager);
+                                         ScaffoldTracker scaffoldTracker) {
+        return new CommandContext(world, null, creatureManager, scaffoldTracker);
     }
 
     /** Convenience — mob commands use this. */
     public CommandContext withMob(MobEntity mob) {
-        return new CommandContext(world, mob, creatureManager, scaffoldTracker, shipManager);
+        return new CommandContext(world, mob, creatureManager, scaffoldTracker);
     }
 }
