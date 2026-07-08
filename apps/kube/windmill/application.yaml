@@ -48,6 +48,7 @@ spec:
                           - name: default
                             controller: Deployment
                             replicas: 1
+                            privileged: false
                             terminationGracePeriodSeconds: 600
                             extraEnv:
                                 - name: PG_SCHEMA
@@ -62,6 +63,7 @@ spec:
                           - name: native
                             controller: Deployment
                             replicas: 1
+                            privileged: false
                             terminationGracePeriodSeconds: 600
                             extraEnv:
                                 - name: PG_SCHEMA
