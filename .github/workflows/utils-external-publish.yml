@@ -26,6 +26,9 @@ on:
             MODRINTH_SESSION:
                 description: 'Modrinth session token (mra_…) — used for v3 server-listing PATCH on `minecraft_java_server` projects. Required when external_publish.modrinth_server_address is set.'
                 required: false
+            MODRINTH_PASSKEY:
+                description: 'Modrinth passkey credential JSON — used to obtain a session token for the v3 server-listing PATCH. Required when external_publish.modrinth_server_address is set.'
+                required: false
             ITCH_API_KEY:
                 description: 'butler API key for Itch.io uploads'
                 required: false
@@ -299,20 +302,48 @@ jobs:
                   echo "Published mrpack — version id $NEW_ID"
                   echo "version_id=$NEW_ID" >> "$GITHUB_OUTPUT"
 
+            - name: Set up Python for Modrinth session minting
+              if: |
+                  steps.ep.outputs.pack_id != '' &&
+                  steps.ep.outputs.server_address != '' &&
+                  steps.pub_mrpack.outputs.version_id != ''
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.12'
+
+            - name: Mint Modrinth session token
+              id: mint_session
+              if: |
+                  steps.ep.outputs.pack_id != '' &&
+                  steps.ep.outputs.server_address != '' &&
+                  steps.pub_mrpack.outputs.version_id != ''
+              env:
+                  MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${MODRINTH_PASSKEY:-}" ]; then
+                    echo "::error::MODRINTH_PASSKEY secret missing — required for v3 server listing PATCH"
+                    exit 1
+                  fi
+                  pip install --quiet --disable-pip-version-check cryptography requests
+                  TOKEN="$(python .github/scripts/mint_modrinth_session.py)"
+                  echo "::add-mask::$TOKEN"
+                  echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
             - name: Update Modrinth `minecraft_java_server` listing → new version_id
               if: |
                   steps.ep.outputs.pack_id != '' &&
                   steps.ep.outputs.server_address != '' &&
                   steps.pub_mrpack.outputs.version_id != ''
               env:
-                  MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
+                  MODRINTH_SESSION: ${{ steps.mint_session.outputs.token }}
                   PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
                   SERVER_ADDRESS: ${{ steps.ep.outputs.server_address }}
                   NEW_VERSION_ID: ${{ steps.pub_mrpack.outputs.version_id }}
               run: |
                   set -euo pipefail
                   if [ -z "${MODRINTH_SESSION:-}" ]; then
-                    echo "::error::MODRINTH_SESSION (mra_…) secret missing — required for v3 server listing PATCH"
+                    echo "::error::failed to obtain a Modrinth session token for v3 server listing PATCH"
                     exit 1
                   fi
 
