@@ -72,12 +72,15 @@ public class BehaviorStateTreeMod implements ModInitializer {
         com.kbve.statetree.wallet.WalletScreens.register();
 
         if (!NativeRuntime.isLoaded()) {
-            // Client jars only bundle the Linux server native — expected there.
-            if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType()
-                    == net.fabricmc.api.EnvType.SERVER) {
+            // A bundled native that fails to load is a real error anywhere —
+            // client-side determinism will ship platform dylibs eventually.
+            // Only "no native for this platform on a client" is expected today.
+            boolean server = net.fabricmc.loader.api.FabricLoader.getInstance()
+                    .getEnvironmentType() == net.fabricmc.api.EnvType.SERVER;
+            if (server || NativeRuntime.isBundled()) {
                 LOGGER.error("[{}] Native library not loaded — NPC AI disabled (ships still work)", MOD_ID);
             } else {
-                LOGGER.info("[{}] Native library not bundled for clients — NPC AI is server-side (ships still work)", MOD_ID);
+                LOGGER.info("[{}] No native bundled for this platform — NPC AI stays server-side (ships still work)", MOD_ID);
             }
             return;
         }

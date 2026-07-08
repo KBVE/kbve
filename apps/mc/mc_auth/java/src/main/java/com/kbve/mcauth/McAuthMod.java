@@ -29,12 +29,15 @@ public class McAuthMod implements ModInitializer {
     @Override
     public void onInitialize() {
         if (!NativeRuntime.isLoaded()) {
-            // Client jars only bundle the Linux server native — expected there.
-            if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType()
-                    == net.fabricmc.api.EnvType.SERVER) {
+            // A bundled native that fails to load is a real error anywhere —
+            // client-side determinism will ship platform dylibs eventually.
+            // Only "no native for this platform on a client" is expected today.
+            boolean server = net.fabricmc.loader.api.FabricLoader.getInstance()
+                    .getEnvironmentType() == net.fabricmc.api.EnvType.SERVER;
+            if (server || NativeRuntime.isBundled()) {
                 LOGGER.error("[{}] Native library not loaded — auth disabled", MOD_ID);
             } else {
-                LOGGER.info("[{}] Native library not bundled for clients — auth bridge is server-side", MOD_ID);
+                LOGGER.info("[{}] No native bundled for this platform — auth bridge stays server-side", MOD_ID);
             }
             return;
         }
