@@ -422,6 +422,18 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
       "env": { "client": "required", "server": "optional" }
     },
     {
+      "path": "mods/immersive_aircraft-1.4.7+1.21.11-fabric.jar",
+      "hashes": {
+        "sha1": "a3c652a1cbf6bcb8f2216de83f8fe9cc20f470f7",
+        "sha512": "7fe80a4b63996e84b218f998df06d2cd759736acc10d59b4018bc284e40d0176f5b349a79adc0f197dc7447d11fb8a2bfd3c13bc34318c376ec01c853113e117"
+      },
+      "downloads": [
+        "https://cdn.modrinth.com/data/x3HZvrj6/versions/NshGBorp/immersive_aircraft-1.4.7%2B1.21.11-fabric.jar"
+      ],
+      "fileSize": 2459574,
+      "env": { "client": "required", "server": "required" }
+    },
+    {
       "path": "mods/xaerominimap-fabric-1.21.11-26.1.4.jar",
       "hashes": {
         "sha1": "e6e88fa30efbf2c86b54becd7f96f84e01440a42",
