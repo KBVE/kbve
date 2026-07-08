@@ -46,8 +46,90 @@ on:
                 required: false
 
 jobs:
+    # Cross-platform Rust natives for the behavior_statetree client mod.
+    # The Docker image build only produces a Linux .so (server-side); the
+    # Modrinth-published JAR is what clients download, so it must bundle
+    # natives for every desktop platform. Gradle's processResources picks
+    # them up from <source_path>/target/release/ (../../target/release
+    # relative to java/). macOS ships a universal binary (arm64 + x86_64)
+    # because NativeRuntime resolves one dylib per OS, not per arch.
+    natives:
+        name: Native (${{ matrix.platform }})
+        if: |
+            fromJson(inputs.external_publish).modrinth_mod_id != '' ||
+            fromJson(inputs.external_publish).modrinth_pack_id != ''
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: linux
+                      os: ubuntu-latest
+                    - platform: macos
+                      os: macos-latest
+                    - platform: windows
+                      os: windows-latest
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 45
+        permissions:
+            contents: read
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.platform == 'macos' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+            # aws-lc-rs (rustls default crypto provider, via bevy_chat's
+            # tokio-tungstenite) assembles with NASM on Windows MSVC.
+            - name: Setup NASM (Windows)
+              if: matrix.platform == 'windows'
+              uses: ilammy/setup-nasm@v1
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: mc-natives-${{ matrix.platform }}
+                  cache-on-failure: true
+
+            - name: Build native (linux/windows)
+              if: matrix.platform != 'macos'
+              run: cargo build -p behavior_statetree --release
+
+            # Repo .cargo/config.toml pins target-dir to dist/target, so
+            # all cargo outputs below live under dist/target/, not target/.
+            - name: Build native (macOS universal)
+              if: matrix.platform == 'macos'
+              run: |
+                  set -euo pipefail
+                  cargo build -p behavior_statetree --release --target aarch64-apple-darwin
+                  cargo build -p behavior_statetree --release --target x86_64-apple-darwin
+                  mkdir -p dist/target/release
+                  lipo -create \
+                    dist/target/aarch64-apple-darwin/release/libbehavior_statetree.dylib \
+                    dist/target/x86_64-apple-darwin/release/libbehavior_statetree.dylib \
+                    -output dist/target/release/libbehavior_statetree.dylib
+                  lipo -info dist/target/release/libbehavior_statetree.dylib
+
+            - name: Upload native artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: native-${{ matrix.platform }}
+                  path: |
+                      dist/target/release/libbehavior_statetree.so
+                      dist/target/release/libbehavior_statetree.dylib
+                      dist/target/release/behavior_statetree.dll
+                  if-no-files-found: error
+                  retention-days: 3
+
     modrinth:
         name: Modrinth (${{ inputs.app_name }} v${{ inputs.version }})
+        needs: natives
         if: |
             fromJson(inputs.external_publish).modrinth_mod_id != '' ||
             fromJson(inputs.external_publish).modrinth_pack_id != ''
@@ -105,6 +187,26 @@ jobs:
                     echo "Pinning $VTOML: $CURRENT → $VERSION (post_publish bump not yet applied)"
                     sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
                   fi
+
+            # Land all three platform natives where gradle's processResources
+            # expects them (from("../../target/release") relative to java/),
+            # so the published JAR carries /natives/ for linux, macOS and
+            # Windows clients — not just the server-side Linux .so.
+            - name: Download platform natives
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: native-*
+                  merge-multiple: true
+                  path: ${{ inputs.source_path }}/target/release
+
+            - name: Verify natives present
+              run: |
+                  set -euo pipefail
+                  cd "${{ inputs.source_path }}/target/release"
+                  for f in libbehavior_statetree.so libbehavior_statetree.dylib behavior_statetree.dll; do
+                    [ -f "$f" ] || { echo "::error::missing native $f"; exit 1; }
+                  done
+                  ls -la
 
             - name: Build Fabric mod JAR
               run: |
