@@ -55,7 +55,7 @@ cat > "$WORK_DIR/modrinth.index.json" << MANIFEST
   "game": "minecraft",
   "versionId": "${PACK_VERSION}",
   "name": "${PACK_NAME}",
-  "summary": "Client-side modpack for KBVE MC server — ship rendering, AI integration, BYG biomes, and Fabric API.",
+  "summary": "Client-side modpack for KBVE MC server — Immersive Aircraft, AI integration, BYG biomes, and Fabric API.",
   "dependencies": {
     "minecraft": "${MC_VERSION}",
     "fabric-loader": "${LOADER_VERSION}"
