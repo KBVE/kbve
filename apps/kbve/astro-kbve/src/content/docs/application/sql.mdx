@@ -4,6 +4,12 @@ description: |
     SQL is the standard language for managing data in relational databases like MySQL, MariaDB, and PostgreSQL.
     This guide covers the MySQL/MariaDB cheatsheet, PostgreSQL with PSQL and extensions, CloudNativePG (CNPG)
     and Barman on Kubernetes, plus Supabase schemas and backups.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: SQL
     order: 409
@@ -33,20 +39,91 @@ jsonld:
           answer: CloudNativePG is a Kubernetes operator that runs PostgreSQL clusters as native resources. It handles provisioning, failover, rolling updates, and backups (often via Barman), managing high-availability Postgres declaratively inside a cluster.
         - question: How do I reset a MySQL root password?
           answer: Log into the MySQL shell and run ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'. On a fresh Ubuntu install that never prompted for a password, you may first need to authenticate through the auth_socket plugin.
+bento:
+    badge: application · database · sql
+    title: 'Speak to your data,'
+    accent: SQL.
+    lede: >-
+        The standard language for relational databases — MySQL, MariaDB, and
+        PostgreSQL alike. This reference collects working material across
+        engines: a MySQL/MariaDB command cheatsheet, PostgreSQL with PSQL and
+        extensions, CloudNativePG and Barman for Postgres on Kubernetes, and
+        Supabase schemas and backups.
+    ctas:
+        - label: Cheatsheet
+          href: '#cheatsheet'
+          primary: true
+        - label: PostgreSQL
+          href: '#postgresql'
+        - label: Supabase
+          href: '#supabase'
+        - label: Backups
+          href: '#backup'
+    aside:
+        icon: database
+        title: One language, many engines
+        body: >-
+            From a quick GRANT on a MariaDB box to a declarative Postgres
+            cluster on Kubernetes — the same SQL foundations carry across
+            every engine in the KBVE stack.
+        points:
+            - <strong>Cheatsheet</strong> — users, grants, and databases in MySQL/MariaDB.
+            - <strong>Kubernetes</strong> — CNPG runs HA Postgres declaratively.
+            - <strong>Recovery</strong> — Barman backups with point-in-time restore.
+    stats:
+        - { label: Query language, value: SQL, icon: database }
+        - { label: K8s operator, value: CNPG, icon: deploy }
+        - { label: Backup tool, value: Barman, icon: shield }
+        - { label: CLI, value: psql, icon: code }
+    features:
+        - title: MySQL/MariaDB cheatsheet
+          icon: code
+          href: '#cheatsheet'
+          body: The admin commands you reach for — create and drop users, databases, and grant privileges.
+        - title: PostgreSQL deep dive
+          icon: database
+          href: '#postgresql'
+          body: PSQL, extensions like pgvector and PGAudit, plus CNPG deployment, recovery, and backup examples on Kubernetes.
+        - title: Supabase
+          icon: bolt
+          href: '#supabase'
+          body: The open-source backend-as-a-service built on hosted Postgres — auth, storage, realtime, and schemas.
+        - title: Backups
+          icon: shield
+          href: '#backup'
+          body: Quick mysqldump one-liners for containerized databases, ready to wire into an AWX stack.
+    related:
+        - title: Supabase
+          href: /application/supabase/
+          copy: The full self-hosted Supabase stack on top of Postgres.
+          icon: bolt
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster platform where CNPG runs Postgres declaratively.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: Containers for running and backing up database instances.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1567604713218-36a0f5841046?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 SQL (Structured Query Language) is the standard programming language used for managing relational databases and performing various operations on the data they contain.
 The SQL ecosystem includes a wide array of database systems such as MySQL and PostgreSQL, which are known for their robustness, scalability, and support for complex queries.
@@ -54,11 +131,15 @@ These systems are integral to many applications, providing transactional support
 
 This page collects working references across engines: the [MySQL/MariaDB cheatsheet](#cheatsheet), [PostgreSQL](#postgresql) with PSQL and extensions, [CloudNativePG](#cnpg) and [Barman](#barman) for Postgres on Kubernetes, and [Supabase schemas](#supabase-schemas) and [backups](#backup).
 
----
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Cheatsheet
+<BentoProse id="cheatsheet" eyebrow="Quick reference" heading="Cheatsheet">
 
 ### MySQL/MariaDB Cheatsheet
 
@@ -107,17 +188,9 @@ This page collects working references across engines: the [MySQL/MariaDB cheatsh
             ```
             -   There are a couple situations that this statement creates, first it gives `ALL` permissions to the database, `${database_name}` with the `.*` being a wildcard for all the tables inside of the database. Finally the `{$user[@'host']}` represents the user connecting via the IP Address.
 
----
+</BentoProse>
 
-## MySQL
-
----
-
-## MariaDB
-
----
-
-## PostgreSQL
+<BentoProse id="postgresql" eyebrow="The elephant" heading="PostgreSQL">
 
 PostgreSQL is an advanced open-source relational database system known for its robustness, performance, and extensibility.
 It adheres to SQL standards and supports a wide range of data types, making it suitable for handling structured, semi-structured, and unstructured data.
@@ -360,13 +433,15 @@ RUN apt-get clean && \
 
 </Aside>
 
----
+</BentoProse>
 
-## PlanetScale
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
----
-
-## Supabase
+<BentoProse id="supabase" eyebrow="Postgres platform" heading="Supabase">
 
 
 Supabase is an open-source backend-as-a-service that provides a suite of tools to simplify building applications.
@@ -384,10 +459,9 @@ Additionally, Supabase is highly extensible, allowing developers to add Postgres
 
 https://supabase-schema.vercel.app
 
+</BentoProse>
 
----
-
-## Backup
+<BentoProse id="backup" eyebrow="Save your data" heading="Backup">
 
 If you need a quick way to backup the `mysql` database, then use this command below:
 
@@ -399,17 +473,9 @@ You could save the execution command as a shell file and/or reference it inside 
 
 More information on [AWX](/application/ansible/#awx) and [Docker](/application/docker/)
 
----
+</BentoProse>
 
-## Notes
-
----
-
-## Videos
-
----
-
-## References
+<BentoProse id="references" eyebrow="Further reading" heading="References">
 
 ### Q&A
 
@@ -422,20 +488,6 @@ More information on [AWX](/application/ansible/#awx) and [Docker](/application/d
 
     -   [Well here's a cool link](https://devhints.io/mysql) that will help in your journey to understand the aforementioned topics.
 
----
+</BentoProse>
 
-## FAQ
-
-**What is the difference between SQL and MySQL?**
-SQL is the standard query language for relational databases. MySQL is a specific database system that implements SQL. PostgreSQL, MariaDB, and SQLite are other systems that also speak SQL with their own extensions.
-
-**What is the difference between MySQL and PostgreSQL?**
-Both are open-source relational databases. MySQL is known for simplicity and read-heavy speed, while PostgreSQL offers richer SQL compliance, advanced types (JSONB, arrays), and extensions. PostgreSQL is often preferred for complex, write-heavy, or analytical workloads.
-
-**What is CloudNativePG (CNPG)?**
-CloudNativePG is a Kubernetes operator that runs PostgreSQL clusters as native resources. It handles provisioning, failover, rolling updates, and backups (often via Barman), managing high-availability Postgres declaratively inside a cluster.
-
-**How do I reset a MySQL root password?**
-Log into the MySQL shell and run `ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'`. On a fresh Ubuntu install that never prompted for a password, you may first need to authenticate through the `auth_socket` plugin.
-
-<Adsense />
+</BentoDoc>

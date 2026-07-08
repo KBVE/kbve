@@ -4,6 +4,12 @@ description: |
     Blender is a powerful open-source 3D creation suite supporting the entire 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
     The software provides professional-grade tools for artists, studios, and hobbyists across industries including game development, film production, architecture, and product visualization.
     With Python scripting, extensive addon support, and active community development, Blender has become an industry-standard tool for 3D content creation.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Blender
     order: 1303
@@ -13,21 +19,91 @@ tags:
     - 3d
     - software
     - modeling
+bento:
+    badge: 'application · 3d · modeling'
+    title: 'The entire 3D pipeline,'
+    accent: Blender.
+    lede: >-
+        A free and open-source 3D creation suite covering modeling, rigging,
+        animation, simulation, rendering, compositing, and video editing.
+        This guide walks the full toolset — plus the KBVE sprite baker and
+        headless CI workflows that turn 3D models into game-ready assets.
+    ctas:
+        - label: Getting started
+          href: '#getting-started'
+          primary: true
+        - label: Sprite sheet baker
+          href: '#sprite-sheet-baker'
+        - label: Rendering
+          href: '#rendering'
+        - label: KBVE integration
+          href: '#kbve-integration'
+    aside:
+        icon: render
+        title: One suite, every stage
+        body: >-
+            From the first polygon to the final composited frame, Blender
+            handles every stage of 3D production — with a Python API deep
+            enough to automate all of it.
+        points:
+            - <strong>Modeling</strong> — polygons, sculpting, and Geometry Nodes.
+            - <strong>Rendering</strong> — Cycles path tracing and real-time Eevee.
+            - <strong>Automation</strong> — headless bakes and renders via bpy.
+    stats:
+        - { label: License, value: GPL-3.0, icon: license }
+        - { label: Path tracer, value: Cycles, icon: render }
+        - { label: Scripting, value: Python bpy, icon: code }
+        - { label: Open-sourced, value: '2002', icon: calendar }
+    features:
+        - title: Getting started
+          icon: box
+          href: '#getting-started'
+          body: Install via package managers on any OS, then tour the workspaces and default scene.
+        - title: Sprite sheet baker
+          icon: camera
+          href: '#sprite-sheet-baker'
+          body: Bake 360° spins of 3D models into iso sprite sheets for the ARPG — in the browser or headless via Blender.
+        - title: Rendering
+          icon: render
+          href: '#rendering'
+          body: Eevee, Cycles, and Workbench — sampling, denoising, light paths, and render passes for compositing.
+        - title: KBVE integration
+          icon: gears
+          href: '#kbve-integration'
+          body: Headless render, export, and script tasks on the self-hosted mac-blender runner via router and flow workflows.
+    related:
+        - title: Unreal Engine
+          href: /application/unreal/
+          copy: Import baked FBX assets into UE for game production.
+          icon: sword
+        - title: Unity
+          href: /application/unity/
+          copy: FBX export settings and pipelines for Unity projects.
+          icon: package
+        - title: Godot
+          href: /application/godot/
+          copy: glTF 2.0 export for the open-source game engine.
+          icon: code
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1618519764301-4dccc2c70c76?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps, FileTree } from '@astrojs/starlight/components';
 import { Giscus, Adsense } from '@/components/astropad';
 import SpriteSheetBaker from '@/components/blender/SpriteSheetBaker.tsx';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Blender is a free and open-source 3D creation suite developed by the Blender Foundation and maintained by a global community of contributors.
 First released in 1995 and open-sourced in 2002, Blender has evolved into a comprehensive platform capable of handling every stage of the 3D production pipeline.
@@ -37,11 +113,15 @@ Blender's architecture is built around a unified interface with multiple workspa
 The Python API provides deep access to Blender's internals, enabling automation, custom tools, and pipeline integration.
 The addon ecosystem extends Blender's capabilities with community and commercial tools for specialized workflows.
 
-<Adsense />
+</BentoProse>
 
----
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Getting Started
+<BentoProse id="getting-started" eyebrow="Install & setup" heading="Getting Started">
 
 Download Blender from [blender.org](https://www.blender.org/download/) or install via package managers:
 
@@ -66,9 +146,9 @@ The default startup file opens with a cube, camera, and light in the 3D viewport
 Blender is 100% free with no license fees, subscriptions, or royalties. It's licensed under GPL-3.0, allowing commercial use and redistribution.
 </Aside>
 
----
+</BentoProse>
 
-## Isometric Sprite Sheet Baker (ARPG)
+<BentoProse id="sprite-sheet-baker" eyebrow="ARPG toolchain" heading="Isometric Sprite Sheet Baker (ARPG)">
 
 The ARPG iso renderer draws environment props and vehicles as upright screen
 billboards. To turn a 3D model into a prop, we bake a 360° spin into a sprite
@@ -236,9 +316,9 @@ system `python3` (which carries it) to assemble the sheet — frames are written
 regardless. EEVEE is used for fast, flat, sprite-friendly renders.
 </Aside>
 
----
+</BentoProse>
 
-## Interface
+<BentoProse id="interface" eyebrow="Workspaces & editors" heading="Interface">
 
 Blender's interface consists of workspaces, each containing a custom arrangement of editors (viewports, timelines, node editors, etc.).
 The top header provides workspace tabs, while each editor has its own header with type selector and context-specific menus.
@@ -273,9 +353,9 @@ Default workspaces provide task-specific layouts:
 - **Geometry Nodes** - Geometry Nodes editor with spreadsheet for procedural workflows.
 - **Scripting** - Python console, text editor, and info log for development.
 
----
+</BentoProse>
 
-## Modeling
+<BentoProse id="modeling" eyebrow="Meshes & nodes" heading="Modeling">
 
 Blender supports multiple modeling paradigms: polygon modeling, sculpting, procedural modeling, and curve-based modeling.
 
@@ -328,9 +408,9 @@ Common nodes:
 - **Mesh Operations** - Subdivide Mesh, Extrude Mesh, Dual Mesh, Triangulate
 - **Utilities** - Math, Vector Math, Random Value, Map Range, Switch
 
----
+</BentoProse>
 
-## Materials and Shading
+<BentoProse id="materials-shading" eyebrow="Node materials" heading="Materials and Shading">
 
 Blender uses node-based materials compatible with both rendering engines.
 
@@ -377,9 +457,9 @@ Common unwrap methods:
 - **Sphere/Cylinder Projection** - Wraps around primitive shapes
 - **Lightmap Pack** - Optimizes UVs for baked lighting with minimal overlap
 
----
+</BentoProse>
 
-## Animation
+<BentoProse id="animation" eyebrow="Keyframes & rigs" heading="Animation">
 
 Blender provides keyframe animation, rigging, constraints, and non-linear animation systems.
 
@@ -423,9 +503,9 @@ Rigging creates a skeleton (armature) of bones that deform a mesh via weight pai
 Drivers create property relationships using expressions or variables.
 Example: Drive a wheel's rotation based on a vehicle's forward movement, or link facial expression sliders to bone rotations.
 
----
+</BentoProse>
 
-## Rendering
+<BentoProse id="rendering" eyebrow="Engines & passes" heading="Rendering">
 
 Blender includes three render engines with different performance and quality tradeoffs.
 
@@ -503,9 +583,9 @@ Common passes:
 - **Mist** - Depth-based fog pass
 - **Cryptomatte** - Automatic per-object/material masks
 
----
+</BentoProse>
 
-## Compositing
+<BentoProse id="compositing" eyebrow="Post-processing" heading="Compositing">
 
 The Compositor combines render passes, applies effects, and performs color grading using a node-based workflow.
 
@@ -535,9 +615,9 @@ The Compositor combines render passes, applies effects, and performs color gradi
 **Sky Replacement:**
 1. Render Layers → ID Mask (Background) → Mix (Image + New Sky) → Composite
 
----
+</BentoProse>
 
-## Simulation
+<BentoProse id="simulation" eyebrow="Physics systems" heading="Simulation">
 
 Blender includes physics simulation systems for cloth, fluid, soft body, rigid body, and particle dynamics.
 
@@ -600,9 +680,9 @@ Point-based particles for hair, fur, grass, crowds, and effects.
 **Boids:**
 - Flocking simulation with rules for separation, alignment, cohesion, goal seeking
 
----
+</BentoProse>
 
-## Scripting and Automation
+<BentoProse id="scripting" eyebrow="Python API" heading="Scripting and Automation">
 
 Blender's Python API (`bpy`) provides programmatic access to all editor functions, data structures, and operators.
 
@@ -734,9 +814,9 @@ bsdf = nodes.new('ShaderNodeBsdfPrincipled')
 links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 ```
 
----
+</BentoProse>
 
-## Addons
+<BentoProse id="addons" eyebrow="Extend Blender" heading="Addons">
 
 Blender ships with official addons and supports third-party extensions.
 
@@ -765,9 +845,9 @@ Enable via Edit > Preferences > Add-ons:
 - **Scatter** - Advanced scattering and ecosystem tools
 - **Real Camera** - Photographer-friendly camera controls
 
----
+</BentoProse>
 
-## Pipeline Integration
+<BentoProse id="pipeline-integration" eyebrow="Export & CI" heading="Pipeline Integration">
 
 ### Game Engine Export
 
@@ -842,9 +922,9 @@ CMD ["blender", "-b", "scene.blend", "-a"]
 docker run -v $(pwd):/blender blender-render
 ```
 
----
+</BentoProse>
 
-## Asset Libraries
+<BentoProse id="asset-libraries" eyebrow="Reusable assets" heading="Asset Libraries">
 
 Blender 3.0+ introduced Asset Browser for managing reusable materials, objects, node groups, and poses.
 
@@ -870,9 +950,9 @@ Community and commercial asset libraries:
 - **Quixel Megascans** - Photogrammetry assets (free with Epic account)
 - **BlenderKit** - Free and paid addon with integrated asset browser
 
----
+</BentoProse>
 
-## KBVE Integration
+<BentoProse id="kbve-integration" eyebrow="Monorepo workflows" heading="KBVE Integration">
 
 Blender can be integrated into KBVE workflows for procedural asset generation, batch rendering, and pipeline automation.
 
@@ -1050,9 +1130,9 @@ Use Geometry Nodes to procedurally generate assets, then export to Unreal:
 3. Import FBX into Unreal as static mesh or skeletal mesh
 4. Optionally: Export vertex animation as Alembic cache
 
----
+</BentoProse>
 
-## Performance Tips
+<BentoProse id="performance-tips" eyebrow="Faster scenes" heading="Performance Tips">
 
 ### Viewport Optimization
 
@@ -1079,9 +1159,9 @@ Use Geometry Nodes to procedurally generate assets, then export to Unreal:
 - **Library Linking** - Link assets from external .blend files to reduce file size
 - **Purge Orphan Data** - File > Clean Up > Purge Orphan Data removes unused data blocks
 
----
+</BentoProse>
 
-## Troubleshooting
+<BentoProse id="troubleshooting" eyebrow="Common issues" heading="Troubleshooting">
 
 ### Common Issues
 
@@ -1109,4 +1189,12 @@ Use Geometry Nodes to procedurally generate assets, then export to Unreal:
 - Triangulate faces for game engines (or enable in FBX export)
 - Check scale settings (FBX scale, Apply Transform)
 
-<Giscus />
+</BentoProse>
+
+</BentoDoc>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

@@ -1,15 +1,45 @@
 ---
 import Default from '@astrojs/starlight/components/MarkdownContent.astro';
 import DashboardGutterNav from './DashboardGutterNav.astro';
-import { buildBreadcrumb } from './dashboardNav';
+import { DASHBOARD_NAV, DASHBOARD_ROOT, buildBreadcrumb } from './dashboardNav';
+import {
+	APPLICATION_NAV,
+	APPLICATION_ROOT,
+	buildApplicationBreadcrumb,
+} from './applicationNav';
 
 const pathname = Astro.url.pathname;
 const isDashboard = pathname.startsWith('/dashboard');
-const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
+const isApplication =
+	pathname.startsWith('/application/') && pathname !== '/application/';
+
+const shell = isDashboard
+	? {
+			entries: DASHBOARD_NAV,
+			root: DASHBOARD_ROOT,
+			menuLabel: 'Dashboard menu',
+			navLabel: 'Dashboard',
+			crumbs: buildBreadcrumb(pathname),
+			collapsible: false,
+			withToc: false,
+		}
+	: isApplication
+		? {
+				entries: APPLICATION_NAV,
+				root: APPLICATION_ROOT,
+				menuLabel: 'Application guides',
+				navLabel: 'Applications',
+				crumbs: buildApplicationBreadcrumb(pathname),
+				collapsible: true,
+				withToc: true,
+			}
+		: undefined;
+
+const crumbs = shell?.crumbs ?? [];
 ---
 
 {
-	isDashboard ? (
+	shell ? (
 		<div class="dash-shell bento-section not-content">
 			<div class="dash-frame bento-frame bento-frame--fluid">
 				<div class="dash-grid">
@@ -31,7 +61,15 @@ const crumbs = isDashboard ? buildBreadcrumb(pathname) : [];
 						</ol>
 					</nav>
 					<div class="dash-grid__rail">
-						<DashboardGutterNav pathname={pathname} />
+						<DashboardGutterNav
+							pathname={pathname}
+							entries={shell.entries}
+							rootHref={shell.root.href}
+							menuLabel={shell.menuLabel}
+							navLabel={shell.navLabel}
+							collapsible={shell.collapsible}
+							withToc={shell.withToc}
+						/>
 					</div>
 					<div class="dash-main">
 						<Default>

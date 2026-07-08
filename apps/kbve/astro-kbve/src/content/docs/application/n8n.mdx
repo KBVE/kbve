@@ -4,6 +4,12 @@ description: |
     n8n is a fair-code, node-based workflow automation tool that connects APIs, databases, and services without
     writing glue code. This guide covers core concepts, self-hosting with Docker, building your first workflow,
     and using AI agent nodes.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: N8N
     order: 1040
@@ -36,20 +42,91 @@ jsonld:
           answer: A node is a single step — a trigger, an API call, a transformation, or a condition. A workflow is the connected graph of nodes that runs start to finish. Data flows between nodes as JSON items, and each node operates on the items it receives from the previous one.
         - question: Can n8n run AI agents?
           answer: Yes. n8n ships AI/LangChain nodes including an AI Agent node that can call language models, use tools, and query vector stores. You can wire an agent to your workflow data and other nodes, letting it take actions across your connected services.
+bento:
+    badge: application · automation · workflow
+    title: 'Wire everything together,'
+    accent: n8n.
+    lede: >-
+        A fair-code, node-based workflow automation tool — connect your CRM,
+        email, databases, and IoT devices on a visual canvas instead of
+        writing glue code, and drop into JavaScript or Python when a step
+        needs custom logic. This guide covers the core concepts, self-hosting
+        with Docker, your first workflow, and AI agent nodes.
+    ctas:
+        - label: Core concepts
+          href: '#concepts'
+          primary: true
+        - label: Self-host
+          href: '#self-host'
+        - label: First workflow
+          href: '#first-workflow'
+        - label: AI agents
+          href: '#agents'
+    aside:
+        icon: route
+        title: Your data, your infrastructure
+        body: >-
+            Because n8n is self-hostable, your data and credentials stay on
+            your own infrastructure — unlike fully managed SaaS automation
+            platforms.
+        points:
+            - <strong>Nodes</strong> — triggers, API calls, transforms, conditions.
+            - <strong>Items</strong> — data flows node to node as JSON.
+            - <strong>Agents</strong> — AI/LangChain nodes with tools and vector stores.
+    stats:
+        - { label: License, value: Fair-code, icon: license }
+        - { label: Default port, value: '5678', icon: network }
+        - { label: Custom code, value: JS · Python, icon: code }
+        - { label: AI nodes, value: LangChain, icon: zap }
+    features:
+        - title: Concepts
+          icon: book
+          href: '#concepts'
+          body: Nodes, triggers, workflows, items, credentials, and executions — the vocabulary of the canvas.
+        - title: Self-Host
+          icon: server
+          href: '#self-host'
+          body: A Docker Compose deployment with persisted data, plus the Postgres and queue-mode path for production.
+        - title: First Workflow
+          icon: route
+          href: '#first-workflow'
+          body: Add a trigger, wire action nodes, map data with expressions, then test and activate.
+        - title: Agents
+          icon: zap
+          href: '#agents'
+          body: The AI Agent node — call language models, use tools, and query vector stores across your services.
+    related:
+        - title: Docker
+          href: /application/docker/
+          copy: The container runtime behind the simplest n8n deployment.
+          icon: package
+        - title: Redis
+          href: /application/redis/
+          copy: Backs n8n's queue mode for concurrent workflow executions.
+          icon: database
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Run n8n and its worker pool at cluster scale.
+          icon: deploy
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1615014672571-461f4f80db5a?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Overview
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 **n8n** is a fair-code, **node-based workflow automation** tool. Instead of writing glue code to connect your CRM, email, databases, and IoT devices, you wire **nodes** together on a visual canvas — and drop into JavaScript or Python whenever a step needs custom logic.
 
@@ -57,16 +134,24 @@ Because it is **self-hostable**, your data and credentials stay on your own infr
 
 This guide covers [core concepts](#concepts), [self-hosting](#self-host), your [first workflow](#first-workflow), and [AI agents](#agents).
 
-<Adsense />
+</BentoProse>
 
-## Information
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="information" eyebrow="The big picture" heading="Information">
 
 In a world where seamless digital integration is no longer a luxury but a necessity, businesses and developers alike grapple with myriad tools to streamline processes and enhance productivity.
 Enter n8n — an open-source, node-based tool that promises to revolutionize the way we think about workflow automation.
 Imagine a world where your CRM, email platform, social media, and even IoT devices can effortlessly talk to each other, where manual data transfer becomes a relic of the past, and where workflows become as customizable as a Lego set.
 This isn't a vision from a distant future; this is the present brought to life by n8n.
 
-## Concepts
+</BentoProse>
+
+<BentoProse id="concepts" eyebrow="Canvas vocabulary" heading="Concepts">
 
 | Term | Meaning |
 | ---- | ------- |
@@ -79,7 +164,9 @@ This isn't a vision from a distant future; this is the present brought to life b
 
 Data flows node to node as **JSON items** — each node operates on the items it receives from the previous one.
 
-## Self-Host
+</BentoProse>
+
+<BentoProse id="self-host" eyebrow="Docker deployment" heading="Self-Host">
 
 The simplest deployment is **Docker**:
 
@@ -105,7 +192,9 @@ services:
 The default SQLite store is fine for a home lab. For production, point n8n at **Postgres** and, at scale, enable **queue mode** with a Redis-backed worker pool so executions run concurrently.
 </Aside>
 
-## First Workflow
+</BentoProse>
+
+<BentoProse id="first-workflow" eyebrow="Trigger to active" heading="First Workflow">
 
 <Steps>
 
@@ -123,28 +212,15 @@ The default SQLite store is fine for a home lab. For production, point n8n at **
 
 </Steps>
 
-## Agents
+</BentoProse>
+
+<BentoProse id="agents" eyebrow="LLMs on the canvas" heading="Agents">
 
 n8n ships **AI / LangChain** nodes, including an **AI Agent** node that can call language models, use tools, and query vector stores — letting an agent take actions across your connected services.
 
 - [Video 1](https://www.youtube.com/watch?v=61rl_lQZZFo)
 - [Video 2](https://www.youtube.com/watch?v=9FuNtfsnRNo)
 
-## FAQ
+</BentoProse>
 
-**What is n8n?**
-n8n is a fair-code, node-based workflow automation tool that connects apps, APIs, databases, and services into automated workflows. You build flows visually by wiring nodes together, with the option to drop into JavaScript or Python for custom logic.
-
-**Is n8n free and open source?**
-n8n is fair-code under the Sustainable Use License. You can self-host it for free, including commercial internal use. It is source-available rather than strictly OSI open source, and also offers a paid cloud and enterprise tier.
-
-**How do I self-host n8n?**
-The simplest route is Docker — run the `n8nio/n8n` image with a persisted volume, set `N8N_HOST` and a webhook URL, and expose port 5678 behind a TLS reverse proxy. For production use Postgres and, at scale, queue mode with a Redis worker pool.
-
-**What is the difference between a node and a workflow?**
-A node is a single step; a workflow is the connected graph of nodes that runs start to finish. Data flows between nodes as JSON items.
-
-**Can n8n run AI agents?**
-Yes. n8n ships AI/LangChain nodes including an AI Agent node that can call language models, use tools, and query vector stores, wired to your workflow data and other nodes.
-
-<Adsense />
+</BentoDoc>

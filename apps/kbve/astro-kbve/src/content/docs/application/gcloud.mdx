@@ -4,6 +4,12 @@ description: |
     gcloud is the Google Cloud CLI for creating, configuring, and scaling Google Cloud resources — Compute
     Engine VMs, load balancers, networking, and more. This guide covers the CLI structure, Compute Engine,
     and building an HTTP load balancer with managed instance groups.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: GCloud
     order: 205
@@ -36,31 +42,101 @@ jsonld:
           answer: An external HTTP load balancer chains a global forwarding rule and IP to a target HTTP proxy, which uses a URL map to route requests to backend services. Each backend service points at one or more instance groups and a health check, so traffic only reaches healthy VMs.
         - question: What is a forwarding rule in Google Cloud?
           answer: A forwarding rule and its IP address form the frontend of a Google Cloud load balancer. It matches incoming traffic on a protocol and port and forwards it to a target proxy or backend, tying the public entry point to the load balancing configuration behind it.
+bento:
+    badge: application · cloud · gcp
+    title: 'One CLI for the cloud,'
+    accent: gcloud.
+    lede: >-
+        The Google Cloud CLI creates, configures, and scales GCP resources —
+        Compute Engine VMs, networking, and load balancers — straight from a
+        terminal or script. This guide walks the GROUP/COMMAND structure,
+        Compute Engine basics, and wiring an external HTTP load balancer on
+        top of a managed instance group.
+    ctas:
+        - label: Compute Engine
+          href: '#gcloud-compute'
+          primary: true
+        - label: Load balancer
+          href: '#load-balancer'
+        - label: Forwarding rules
+          href: '#google-rules'
+    aside:
+        icon: deploy
+        title: Script it, don't click it
+        body: >-
+            Every gcloud command follows the same GROUP COMMAND grammar, so
+            the console workflow you clicked through once becomes a script
+            you can rerun — from a single VM to a full load-balanced fleet.
+        points:
+            - <strong>Compute</strong> — create VMs with zones, images, and startup scripts.
+            - <strong>MIGs</strong> — identical VMs from one template, autoscaled and autohealed.
+            - <strong>Load balancing</strong> — forwarding rule → proxy → URL map → backends.
+    stats:
+        - { label: Platform, value: GCP, icon: deploy }
+        - { label: Compute, value: Compute Engine, icon: server }
+        - { label: Scaling, value: MIGs, icon: chart }
+        - { label: LB frontend, value: Forwarding rule, icon: route }
+    features:
+        - title: GCloud Compute
+          icon: server
+          href: '#gcloud-compute'
+          body: The gcloud compute GROUP | COMMAND structure and creating, configuring, and manipulating VMs.
+        - title: HTTP load balancer
+          icon: network
+          href: '#load-balancer'
+          body: Instance templates, managed instance groups, health checks, backend services, URL maps, and proxies.
+        - title: Forwarding rules
+          icon: route
+          href: '#google-rules'
+          body: The frontend of every Google Cloud load balancer — matching traffic and handing it to the target proxy.
+        - title: Startup scripts
+          icon: code
+          body: Bootstrap VMs on first boot with a startup-script metadata flag — apt-get install nginx and go.
+    related:
+        - title: Nginx
+          href: /application/nginx/
+          copy: The web server the load-balanced backend VMs run.
+          icon: server
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Container orchestration when VMs and MIGs are not enough.
+          icon: deploy
+        - title: Terraform
+          href: /application/terraform/
+          copy: Declare the same cloud resources as versioned infrastructure code.
+          icon: settings
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1498354136128-58f790194fa7?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Overview
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 **gcloud** is the command-line interface for **Google Cloud Platform (GCP)** — it creates, configures, and scales resources like Compute Engine VMs, networks, and load balancers from a terminal or script. Every command follows a `gcloud GROUP COMMAND` structure (e.g. `gcloud compute instances create`).
 
 This guide covers [Compute Engine](#gcloud-compute) and building an [HTTP load balancer](#load-balancer) with managed instance groups.
 
-## Information
+</BentoProse>
 
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-<Adsense />
-
-## GCloud Compute
+<BentoProse id="gcloud-compute" eyebrow="Virtual machines" heading="GCloud Compute">
 
 -   GCloud Compute Guide is still a work in progress; these are active notes from my current R&D.
 
@@ -71,8 +147,9 @@ This guide covers [Compute Engine](#gcloud-compute) and building an [HTTP load b
     -   According to Google, the compute command helps create, configure and manipulate the virtual machines within your pre-set project.
     -   The `SYNOPSIS` is `gcloud compute GROUP | COMMAND [GCLOUD_WIDE_FLAG ...]`
 
-    
-## Load Balancer
+</BentoProse>
+
+<BentoProse id="load-balancer" eyebrow="Scale out" heading="Load Balancer">
 
 Load balancing on the GCloud compuete platform.
 
@@ -196,8 +273,9 @@ Load balancing on the GCloud compuete platform.
                                         --ports=80
                                 ```
 
+</BentoProse>
 
-## Google Rules
+<BentoProse id="google-rules" eyebrow="Frontend config" heading="Google Rules">
 
 ### Google Forwarding Rules
 
@@ -206,21 +284,6 @@ Note: A forwarding rule and its corresponding IP address represent the frontend 
 [Using Forwarding Rules](https://cloud.google.com/load-balancing/docs/using-forwarding-rules)
 [Rule Concepts](https://cloud.google.com/load-balancing/docs/forwarding-rule-concepts)
 
-## FAQ
+</BentoProse>
 
-**What is the gcloud CLI?**
-gcloud is the command-line interface for Google Cloud Platform. It lets you create, configure, and scale resources — Compute Engine VMs, networks, load balancers, storage, and more — from a terminal or scripts. Commands follow a `gcloud GROUP COMMAND` structure.
-
-**How do I create a VM with gcloud?**
-Use `gcloud compute instances create NAME` with flags for zone, machine type, and image, e.g. `--zone=us-west1-b --machine-type=e2-medium --image-family=debian-11 --image-project=debian-cloud`. A `startup-script` metadata flag can install software like Nginx on first boot.
-
-**What is a managed instance group (MIG)?**
-A MIG runs multiple identical VMs from a single instance template. It provides autoscaling, autohealing, multi-zone deployment, and automatic rolling updates — the backend for scalable, highly available load-balanced applications.
-
-**How does an HTTP load balancer work on Google Cloud?**
-An external HTTP load balancer chains a global forwarding rule and IP to a target HTTP proxy, which uses a URL map to route requests to backend services. Each backend service points at instance groups and a health check, so traffic only reaches healthy VMs.
-
-**What is a forwarding rule in Google Cloud?**
-A forwarding rule and its IP address form the frontend of a load balancer. It matches incoming traffic on a protocol and port and forwards it to a target proxy or backend, tying the public entry point to the load balancing configuration behind it.
-
-<Adsense />
+</BentoDoc>

@@ -7,6 +7,8 @@ export interface DashboardNavItem {
 	visibility?: NavVisibility;
 	/** SVG path `d` for a 24×24 stroke icon. */
 	icon?: string;
+	/** One-line blurb for card renderings (unused by the rail). */
+	copy?: string;
 }
 
 export interface DashboardNavGroup {
@@ -15,6 +17,10 @@ export interface DashboardNavGroup {
 	visibility?: NavVisibility;
 	/** Group landing page; breadcrumb links the group crumb here when set. */
 	href?: string;
+	/** SVG path `d` shared by the group's cards (unused by the rail). */
+	icon?: string;
+	/** Section eyebrow for card renderings (unused by the rail). */
+	eyebrow?: string;
 }
 
 export type DashboardNavEntry = DashboardNavItem | DashboardNavGroup;
@@ -130,13 +136,20 @@ const normalize = (path: string): string => {
 	return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
 };
 
-export const isActive = (pathname: string, href: string): boolean => {
+export const isActiveIn = (
+	rootHref: string,
+	pathname: string,
+	href: string,
+): boolean => {
 	const a = normalize(pathname);
 	const b = normalize(href);
 	if (a === b) return true;
-	if (b === DASHBOARD_ROOT.href) return false;
+	if (b === normalize(rootHref)) return false;
 	return a.startsWith(b);
 };
+
+export const isActive = (pathname: string, href: string): boolean =>
+	isActiveIn(DASHBOARD_ROOT.href, pathname, href);
 
 const flatItems = (): DashboardNavItem[] => {
 	const items: DashboardNavItem[] = [];
@@ -152,19 +165,29 @@ export interface ActiveMatch {
 	group?: DashboardNavGroup;
 }
 
-export const findActive = (pathname: string): ActiveMatch | undefined => {
+export const findActiveIn = (
+	nav: DashboardNavEntry[],
+	rootHref: string,
+	pathname: string,
+): ActiveMatch | undefined => {
 	const path = normalize(pathname);
 	let best: ActiveMatch | undefined;
 	let bestLen = -1;
-	for (const entry of DASHBOARD_NAV) {
+	for (const entry of nav) {
 		if (isGroup(entry)) {
 			for (const item of entry.items) {
-				if (isActive(path, item.href) && item.href.length > bestLen) {
+				if (
+					isActiveIn(rootHref, path, item.href) &&
+					item.href.length > bestLen
+				) {
 					best = { item, group: entry };
 					bestLen = item.href.length;
 				}
 			}
-		} else if (isActive(path, entry.href) && entry.href.length > bestLen) {
+		} else if (
+			isActiveIn(rootHref, path, entry.href) &&
+			entry.href.length > bestLen
+		) {
 			best = { item: entry };
 			bestLen = entry.href.length;
 		}
@@ -172,18 +195,25 @@ export const findActive = (pathname: string): ActiveMatch | undefined => {
 	return best;
 };
 
-export const buildBreadcrumb = (pathname: string): BreadcrumbCrumb[] => {
-	const crumbs: BreadcrumbCrumb[] = [DASHBOARD_ROOT];
+export const findActive = (pathname: string): ActiveMatch | undefined =>
+	findActiveIn(DASHBOARD_NAV, DASHBOARD_ROOT.href, pathname);
+
+export const buildBreadcrumbIn = (
+	nav: DashboardNavEntry[],
+	root: DashboardNavItem,
+	pathname: string,
+): BreadcrumbCrumb[] => {
+	const crumbs: BreadcrumbCrumb[] = [root];
 	const path = normalize(pathname);
-	for (const entry of DASHBOARD_NAV) {
+	for (const entry of nav) {
 		if (isGroup(entry) && entry.href && normalize(entry.href) === path) {
 			crumbs.push({ label: entry.label, href: entry.href });
 			return crumbs;
 		}
 	}
-	const match = findActive(pathname);
+	const match = findActiveIn(nav, root.href, pathname);
 	if (!match) return crumbs;
-	if (match.item.href === DASHBOARD_ROOT.href) return crumbs;
+	if (match.item.href === root.href) return crumbs;
 	if (match.group) {
 		crumbs.push({
 			label: match.group.label,
@@ -193,5 +223,8 @@ export const buildBreadcrumb = (pathname: string): BreadcrumbCrumb[] => {
 	crumbs.push({ label: match.item.label, href: match.item.href });
 	return crumbs;
 };
+
+export const buildBreadcrumb = (pathname: string): BreadcrumbCrumb[] =>
+	buildBreadcrumbIn(DASHBOARD_NAV, DASHBOARD_ROOT, pathname);
 
 export { isGroup, flatItems };

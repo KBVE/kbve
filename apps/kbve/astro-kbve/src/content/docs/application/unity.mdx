@@ -4,6 +4,12 @@ description: |
     Unity is a powerful 3D and 2D game engine that enables the creation of cross-platform games, interactive experiences, and real-time 3D applications.
     The Unity Engine offers tools for animation, physics, rendering, and artificial intelligence, supporting both beginners and professional developers.
     With extensive support for VR, AR, and mobile platforms, Unity serves as a comprehensive development environment for building engaging content across a variety of industries.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Unity
     order: 1301
@@ -12,20 +18,90 @@ img: https://images.unsplash.com/photo-1519669556878-63bdad8a1a49?fit=crop&w=140
 tags:
     - game-engine
     - software
+bento:
+    badge: application · game engine
+    title: 'Build once, ship everywhere,'
+    accent: Unity.
+    lede: >-
+        A powerful 2D and 3D engine for cross-platform games, interactive
+        experiences, and real-time applications. This guide gathers KBVE's
+        notes on the engine's core concepts, its services and APIs, the
+        plugins we rely on, and the build errors we have already debugged.
+    ctas:
+        - label: Engine basics
+          href: '#information'
+          primary: true
+        - label: Scenes
+          href: '#scene'
+        - label: Plugins
+          href: '#plugins'
+        - label: Common errors
+          href: '#errors'
+    aside:
+        icon: box
+        title: One engine, every platform
+        body: >-
+            Unity spans desktop, mobile, console, and VR/AR from a single C#
+            codebase — with real-time rendering, physics, and animation built
+            in, plus an asset store and plugin ecosystem to extend it further.
+        points:
+            - <strong>Scenes</strong> — the self-contained units every project builds on.
+            - <strong>Integrations</strong> — Firebase, Steam, Strapi, AppWrite, and more.
+            - <strong>Plugins</strong> — UCC, Corgi, Vuplex, and KBVE's own packages.
+    stats:
+        - { label: Scripting, value: 'C#', icon: code }
+        - { label: Dimensions, value: 2D & 3D, icon: box }
+        - { label: Platforms, value: '20+', icon: deploy }
+        - { label: Recommended build, value: LTS, icon: clock }
+    features:
+        - title: Engine fundamentals
+          icon: box
+          href: '#scene'
+          body: Scenes, game objects, components, and async loading — the building blocks of every Unity project.
+        - title: Services & APIs
+          icon: server
+          href: '#api'
+          body: Wire up multiplayer JWTs, Strapi, AppWrite, Firebase, and the Steamworks release pipeline.
+        - title: Plugin notes
+          icon: package
+          href: '#plugins'
+          body: Field notes on UCC, Corgi, Vuplex webviews, OneJS, and KBVE's own Unity packages.
+        - title: Errors & fixes
+          icon: alert
+          href: '#errors'
+          body: A running log of WebGL, il2cpp, and dirty-branch build errors — and how we solved them.
+    related:
+        - title: Unreal Engine
+          href: /application/unreal/
+          copy: The other heavyweight engine — C++, Blueprints, and Nanite.
+          icon: render
+        - title: Godot
+          href: /application/godot/
+          copy: The open-source engine alternative for 2D and 3D projects.
+          icon: sword
+        - title: Git
+          href: /application/git/
+          copy: Where the Unity CI/CD and GameCI pipeline notes now live.
+          icon: branch
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1519669556878-63bdad8a1a49?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 -   Unity is a versatile cross-platform engine used for creating games, applications, and interactive animations across desktop, mobile, console, and virtual/augmented reality platforms.
     Unity's engine provides a highly adaptable environment that supports both 2D and 3D development, making it ideal for a wide range of projects, from simple indie games to complex, enterprise-level applications.
@@ -40,11 +116,15 @@ import { Giscus, Adsense } from '@/components/astropad';
     Furthermore, Unity supports scripting in the form of MonoBehaviour scripts, which provide easy-to-use methods for handling core events like Start(), Update(), and more.
     This flexibility enables the development of complex systems, such as AI behaviors, procedural content generation, and real-time multiplayer features.
 
-<Adsense />
+</BentoProse>
 
----
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
-## Services
+<BentoProse id="services" eyebrow="Beyond the engine" heading="Services">
 
 There are several products that Unity offers ontop of their game engine, including DevOps, Advertising and Hosting services.
 
@@ -52,9 +132,9 @@ There are several products that Unity offers ontop of their game engine, includi
 Many Unity services require a separate subscription. Review the official pricing page before committing to them.
 </Aside>
 
----
+</BentoProse>
 
-## Header
+<BentoProse id="header" eyebrow="Editor hygiene" heading="Header">
 
 -   Right click and create empty
 -   Name it below : (Replace HeaderName with the name you would want)
@@ -63,9 +143,9 @@ Many Unity services require a separate subscription. Review the official pricing
 ---> HeaderName
 ```
 
----
+</BentoProse>
 
-## Scene
+<BentoProse id="scene" eyebrow="Core building block" heading="Scene">
 
 Every project starts with a scene and are a fundamental concept in Unity game / application development.
 They are self-contained units that contain all of the game objects, components, and data for a particular game level.
@@ -92,9 +172,9 @@ This will allow you to load complex levels while not impacting performance too g
 Use async loading to keep your frame rate stable when streaming large scenes. Test on target hardware to avoid performance spikes.
 </Aside>
 
----
+</BentoProse>
 
-## WebGL
+<BentoProse id="webgl" eyebrow="Browser builds" heading="WebGL">
 
 A breakdown of WebGL for the Unity game engine!
 
@@ -106,9 +186,9 @@ After that check the resolution, an example would be 800 x 600 but you can set i
 Next you want to make sure to check the box, `Run in background`, and save it. This should change the `runInBackground` inside of `ProjectSettings\ProjectSettings.asset` from 0 (false) to 1 (true).
 Finally double check that you have the right compression methods enabled or in some cases, like Github Pages, disabled completely.
 
----
+</BentoProse>
 
-## Pipeline
+<BentoProse id="pipeline" eyebrow="Build & render" heading="Pipeline">
 
 Unity has three core concepts for their render / build pipeline, which takes all your source code within your project and builds a finished product for various operating systems.
 
@@ -118,9 +198,9 @@ For continous integration and continous development within the Unity Pipeline, w
 
 The notes for Github Actions / Circle CI within Unity and the general scope of the project have been migrated to the Git documentation.
 
----
+</BentoProse>
 
-## API
+<BentoProse id="api" eyebrow="Tokens & multiplayer" heading="API">
 
 Part of building out the game and the multiplayer is to have a reference point for each player, we decided the best way to do that would be through JWTs / web tokens.
 
@@ -137,9 +217,9 @@ These are our notes and information regarding multiplayer
     -   Chowdera [1](https://chowdera.com/2021/05/20210512110823582J.html)
     -   S1H [2](https://blog.s1h.org/colyseus-multiplayer-game/)
 
----
+</BentoProse>
 
-## Strapi
+<BentoProse id="strapi" eyebrow="Headless CMS login" heading="Strapi">
 
 Here is a custom function to help you integrate `Strapi` into your application.
 
@@ -191,9 +271,9 @@ private IEnumerator LoginEnumProcess() //  [VOID]  -> {LoginEnumProcess()}
 
 ```
 
----
+</BentoProse>
 
-## AppWrite
+<BentoProse id="appwrite" eyebrow="Unofficial integration" heading="AppWrite">
 
 Another `API` that you can use inside of Unity is AppWrite but there is only an unofficial plugin for the integration.
 Thus we suggest being careful if using it in a production environment.
@@ -202,9 +282,9 @@ The unofficial plugin repo is hosted on [Github](https://github.com/AlexMeesters
 
 The prerequisites for the plugin are [UniTask](/application/unity/#unitask) and JSON.NET, information on both can be found further down in this guide.
 
----
+</BentoProse>
 
-## Firebase
+<BentoProse id="firebase" eyebrow="Google backend" heading="Firebase">
 
 Firebase integration with Unity makes it easy for developers to add these features to their games without sacrificing security.
 For example, developers can use Firebase Authentication to allow users to sign in to their games with their Google, Facebook, or Apple accounts.
@@ -244,9 +324,9 @@ The setup has a couple `prerequisites` that you will need to ensure before going
 Ensure each platform-specific requirement is installed before running the Firebase setup; missing tools can cause build failures later.
 </Aside>
 
----
+</BentoProse>
 
-## Steam
+<BentoProse id="steam" eyebrow="Shipping to Steam" heading="Steam">
 
 These notes are still a work in progress, but I will try my best to continue to improve them as I am building out the Steam API for the Unity/React Project.
 Official [Repo](https://steamworks.github.io/installation/#unity-instructions)
@@ -286,16 +366,16 @@ Place your application name and then go through the form, it will then spit out 
 
 You should keep this information safe and as a reference step.
 
----
+</BentoProse>
 
-## Plugins
+<BentoProse id="plugins" eyebrow="Extend the engine" heading="Plugins">
 
 Collection of plugins for Unity game engine.
 We want to include as many reference points and notes for the plugins that we are currently using.
 
----
+</BentoProse>
 
-## KBVE
+<BentoProse id="kbve" eyebrow="In-house packages" heading="KBVE">
 
 For the quick commands to link the KBVE Packages
 
@@ -315,10 +395,9 @@ ln -s ~/Documents/GitHub/NSprites com.tonymax.nsprites
 
 ```
 
+</BentoProse>
 
----
-
-## Vuplex
+<BentoProse id="vuplex" eyebrow="Cross-platform webview" heading="Vuplex">
 
 This is a 3rd party plugin provider for Unity, that extends out the webview components for cross-platform compatibility through their own object-based library.
 
@@ -482,9 +561,9 @@ There could be multiple reasons why click/scroll might not be functional, depend
 When defusing the situation, we recommend build multiple test cases with all components mapped out and then using `Debug.Log` to check through all the variables at play.
 We been in situations where a foot of a humanoid object was not tagged as a `Player`, thus causing the whole collision engine to be off and not registering the functionality within a scene.
 
----
+</BentoProse>
 
-## UCC
+<BentoProse id="ucc" eyebrow="Character controller" heading="UCC">
 
 Ultimate Character Controller was the plugin of choice when doing RSDD aka rapid self-destructive development.
 Official Documentation [Link](https://opsive.com/support/documentation/ultimate-character-controller/). It is over 300 pages and covers the controller and its interaction within the unity environment.
@@ -546,28 +625,30 @@ Video Tutorials
 
 The two part video tutorial goes through a UCC / Inventory integration.
 
----
+</BentoProse>
 
-## Modular AI
+<BentoProse id="modular-ai" eyebrow="Behavior design" heading="Modular AI">
 
 Modular AI helps design the behavior of GameObjects within Unity.
 The official [Modular AI repo](https://github.com/Kitbashery/Modular-AI)
 
----
+</BentoProse>
 
-## Hey Area Object Spawner
+<BentoProse id="hey-area-object-spawner" eyebrow="Procedural spawning" heading="Hey Area Object Spawner">
 
 A simple tool that helps procedural generation of objects within an area.
 The plugin's official [repo for Hey Area Object Spawner](https://github.com/JahnStar/Hey-Area-Object-Spawner)
 
-## Hierarchy 2
+</BentoProse>
+
+<BentoProse id="hierarchy-2" eyebrow="Editor organization" heading="Hierarchy 2">
 
 -   Hierarchy 2 helps organize the Unity UI.
 -   Official Asset [Store](https://assetstore.unity.com/packages/tools/utilities/hierarchy-2-166483)
 
----
+</BentoProse>
 
-## Javascript
+<BentoProse id="javascript" eyebrow="JS interop" heading="Javascript">
 
 ### OneJS
 
@@ -669,15 +750,15 @@ We can update these docs a bit more after the release of Unity 6.
 
 -   For React and Unity integration, we recommend going to our [React](/application/javascript/#react) application page.
 
----
+</BentoProse>
 
-## Python
+<BentoProse id="python" eyebrow="Scripting bridge" heading="Python">
 
 The official notes and changelogs for the python integration inside of unity can be found on their [website](https://docs.unity3d.com/Packages/com.unity.scripting.python@7.0/changelog/CHANGELOG.html).
 
----
+</BentoProse>
 
-## JSON
+<BentoProse id="json" eyebrow="Parsing options" heading="JSON">
 
 There are a couple options for JSON plugins, the two main ones that we recommend are the JSON.NET library from Nuget and the SimpleJSON.### SimpleJSON
 
@@ -691,9 +772,9 @@ SimpleJSON is a plugin for JSON parsing in C#.
 
 -   Official [Repo](https://github.com/Bunny83/SimpleJSON)
 
----
+</BentoProse>
 
-## Webview
+<BentoProse id="webview" eyebrow="Embedded browsers" heading="Webview">
 
 Unity plugins that focus on webview by providing abstract layers that extend to controllers.
 
@@ -707,9 +788,9 @@ Unity plugins that focus on webview by providing abstract layers that extend to 
 A commercial plugin that extends WebView components across all platforms, with major focus on AR/VR development kits for Oculus, Hololens and more.
 Notes on the [Vuplex](/application/unity/#vuplex)
 
----
+</BentoProse>
 
-## Corgi
+<BentoProse id="corgi" eyebrow="2D platformer engine" heading="Corgi">
 
 These are KBVE notes and references for the `Corgi Engine` that was developed by More Mountains. Please note that the core of the Corgi Engine is a private / premium plugin for the Unity Engine, thus parts of our codebase / references will not work `out of the box`, as you will have to install the latest engine from the Unity Asset store.
 We are currently test casing the corgi engine as the base for our 2D engine and then going to integrate it with our 2DUnity. As of early December 2022, we are test casing the pipeline with the engine as an underlay and restructuring our `2DUnity` as a gateway layer, a similar setup to our `3DUnity` and `UCC`.
@@ -718,23 +799,27 @@ We are currently test casing the corgi engine as the base for our 2D engine and 
 
 The `Corki` namespace is a KBVE extension of the `Corgi` namespace, adding custom gateway layers that make it easier to infer and interpolate among different APIs.
 
----
+</BentoProse>
 
-## TopDown Engine
+<BentoProse id="topdown-engine" eyebrow="MoreMountains core" heading="TopDown Engine">
 
 The rareicon is games core logic and operations are from the TopDown Engine by MoreMountains.
 
----
+</BentoProse>
 
-## Unity Canvas
+<BentoProse id="unity-canvas" eyebrow="UI layer" heading="Unity Canvas">
 
 The Canvas is a GameObject within Unity that extends the UI elements and utilizes the EventSystem / Scene View.
 
-## Unity Assets
+</BentoProse>
+
+<BentoProse id="unity-assets" eyebrow="Media files" heading="Unity Assets">
 
 -   Unity Assets are a collection of media files.
 
-## 2D Assets
+</BentoProse>
+
+<BentoProse id="2d-assets" eyebrow="Sprite resources" heading="2D Assets">
 
 This is a collection of 2D assets that can be a great resource / reference for anyone looking to make a 2D game. We could migrate the 2D assets into their own reference later down the line.
 
@@ -747,11 +832,15 @@ Kings and Pings [Download](https://pixelfrog-assets.itch.io/kings-and-pigs)
 Pixel Adventure [Download](https://pixelfrog-assets.itch.io/pixel-adventure-1)
 Pirate Bomb [Download](https://pixelfrog-assets.itch.io/pirate-bomb)
 
-## 2D
+</BentoProse>
+
+<BentoProse id="2d" eyebrow="Two dimensions" heading="2D">
 
 These are the notes for Unity's 2D engine and/or projects related to the 2D development cycle.
 
-## 2D Examples
+</BentoProse>
+
+<BentoProse id="2d-examples" eyebrow="Open source references" heading="2D Examples">
 
 The list below are open source projects that use Unity as their base for 2D/Retro style games.
 
@@ -778,16 +867,16 @@ This was another open source 2D repo that sparked my interest because it was bui
 [SpaceWalk Official Repo](https://github.com/Angel1841/Space-Walk)
 [FinalProject UnityW2022](https://github.com/DuncanBH/FinalPlatformerProject)
 
----
+</BentoProse>
 
-## Notes
+<BentoProse id="notes" eyebrow="Release cadence" heading="Notes">
 
 -   Unity follows a duel release structure for their engine, a `latest` engine build and a `LTS` engine.
 -   We recommend using the `LTS` as it has `Long Term Support`, which the company states for about 2 years, whereas the `latest` does not have any extended support.
 
----
+</BentoProse>
 
-## Errors
+<BentoProse id="errors" eyebrow="Troubleshooting" heading="Errors">
 
 -   Common errors that users might face when working with Unity. This error log is meant to help keep track and may save some future developers a lot of time.
 
@@ -809,3 +898,7 @@ Git Notes can be found [here](/application/git)
 This will be a common error that you will see throughout `CI/CD` and comes from various issues, it can be from the wrong `guid` / `Seralization` or broken `ProjectSettings.asset`
 
 You can ignore the dirty branch errors by using `allowDirtyBuild: true` within the `game-ci`, however this may cause problems down the line when the build gets more complex and additional platforms i.e `WebGl`, `Xbox`, ect...
+
+</BentoProse>
+
+</BentoDoc>

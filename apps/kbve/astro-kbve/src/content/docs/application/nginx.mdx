@@ -4,6 +4,12 @@ description: |
     Nginx is a high-performance web server, reverse proxy, and load balancer used to serve static content,
     terminate TLS, and route traffic to upstream applications. This guide covers a minimal server block,
     a wildcard virtual host, and the KBVE reverse-proxy configuration.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Nginx
     order: 1041
@@ -39,20 +45,92 @@ jsonld:
           answer: A 502 means Nginx reached the proxy_pass target but received no valid response — usually the upstream application is down or listening on a different port or socket. Verify the backend with curl on the host and check the Nginx error log.
         - question: How do I enable Gzip compression in Nginx?
           answer: Set gzip on and list the MIME types to compress with gzip_types (text/html is always compressed). Combine it with expires and Cache-Control headers on static assets to reduce payload size and improve Core Web Vitals.
+bento:
+    badge: application · webserver · proxy
+    title: 'The traffic director,'
+    accent: Nginx.
+    lede: >-
+        A high-performance web server, reverse proxy, and load balancer that
+        serves static content, terminates TLS, and routes traffic to upstream
+        applications. This guide walks through a minimal server block, a
+        wildcard virtual host, the KBVE reverse-proxy pattern, and the tuning
+        that keeps it all fast and secure.
+    ctas:
+        - label: Configuration
+          href: '#nginx-configuration'
+          primary: true
+        - label: Load balancing
+          href: '#load-balancing'
+        - label: Security headers
+          href: '#security-headers'
+        - label: Troubleshooting
+          href: '#troubleshooting'
+    aside:
+        icon: network
+        title: One instance, many hosts
+        body: >-
+            A single Nginx instance can front dozens of virtual hosts, each
+            defined by a server block that matches on server_name and port —
+            serving static assets from disk while proxying dynamic requests
+            upstream.
+        points:
+            - <strong>Reverse proxy</strong> — terminate TLS and forward with proxy_pass.
+            - <strong>Load balancer</strong> — round-robin, least_conn, and ip_hash.
+            - <strong>Safe reloads</strong> — nginx -t then a graceful reload.
+    stats:
+        - { label: Reload, value: Graceful, icon: gears }
+        - { label: Config root, value: /etc/nginx, icon: settings }
+        - { label: TLS, value: Terminated, icon: lock }
+        - { label: Balancing, value: Round-robin, icon: route }
+    features:
+        - title: Nginx configuration
+          icon: code
+          href: '#nginx-configuration'
+          body: Three configs in rising complexity — a minimal static block, a wildcard virtual host, and the KBVE reverse proxy with TLS.
+        - title: Load balancing
+          icon: route
+          href: '#load-balancing'
+          body: Upstream pools with weight, backup, least_conn, and ip_hash for distribution, failover, and sticky sessions.
+        - title: Gzip and caching
+          icon: zap
+          href: '#performance-gzip-caching'
+          body: Compression and immutable cache headers — the highest-impact, lowest-effort wins for Core Web Vitals.
+        - title: Security headers
+          icon: shield
+          href: '#security-headers'
+          body: Baseline hardening against clickjacking, MIME sniffing, and mixed content, plus a careful approach to HSTS.
+    related:
+        - title: Traefik
+          href: /application/traefik/
+          copy: The cloud-native alternative — dynamic routing with automatic service discovery.
+          icon: route
+        - title: Docker
+          href: /application/docker/
+          copy: The upstream containers Nginx fronts, proxies, and load-balances.
+          icon: package
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: Where ingress controllers take the reverse-proxy pattern cluster-wide.
+          icon: deploy
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1551609189-eba71b3a8566?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Overview
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 Nginx is a high-performance web server and reverse proxy. It serves static assets directly from disk, terminates TLS, and forwards dynamic requests to upstream application servers over HTTP or a Unix socket. A single Nginx instance can front dozens of virtual hosts, each defined by a `server` block that matches on `server_name` and port.
 
@@ -62,9 +140,15 @@ This guide walks through three configurations in order of complexity: a minimal 
 Nginx loads `/etc/nginx/nginx.conf` at startup. Site blocks are conventionally split into `/etc/nginx/conf.d/*.conf` or `sites-available/` (symlinked into `sites-enabled/`). Always validate with `nginx -t` before reloading.
 </Aside>
 
-<Adsense />
+</BentoProse>
 
-## Configuration Flow
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="configuration-flow" eyebrow="Four steps" heading="Configuration Flow">
 
 <Steps>
 
@@ -78,7 +162,9 @@ Nginx loads `/etc/nginx/nginx.conf` at startup. Site blocks are conventionally s
 
 </Steps>
 
-## Nginx Configuration
+</BentoProse>
+
+<BentoProse id="nginx-configuration" eyebrow="Server blocks" heading="Nginx Configuration">
 
 This is a default example of an Nginx configuration file. Each `server` block is self-contained; drop it in `conf.d/` and reload.
 
@@ -161,7 +247,9 @@ The second `server` block issues a `301` redirect from HTTP to HTTPS so no plain
 After editing, always run `nginx -t` first. It validates every included file and prints the offending line number on error, so you never reload a broken config into production.
 </Aside>
 
-## Load Balancing
+</BentoProse>
+
+<BentoProse id="load-balancing" eyebrow="Spread the load" heading="Load Balancing">
 
 An `upstream` block can list multiple backends, turning Nginx into a load balancer. The default method is round-robin; Nginx also supports `least_conn` (send to the backend with the fewest active connections) and `ip_hash` (pin a client to one backend for session stickiness).
 
@@ -193,7 +281,15 @@ server {
 | `least_conn` | Route to the least-busy backend |
 | `ip_hash` | Sticky sessions by client IP |
 
-## Performance: Gzip and Caching
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="performance-gzip-caching" eyebrow="Fast by default" heading="Performance: Gzip and Caching">
 
 Compression and static-asset caching are two of the highest-impact, lowest-effort SEO wins — smaller, faster responses improve Core Web Vitals, which Google uses as a ranking signal.
 
@@ -211,7 +307,9 @@ location ~* \.(?:css|js|jpg|jpeg|png|gif|ico|woff2)$ {
 
 `gzip_types` must list every MIME type to compress (`text/html` is always compressed and cannot be listed). The `immutable` cache directive tells browsers never to revalidate fingerprinted assets, eliminating conditional requests.
 
-## Security Headers
+</BentoProse>
+
+<BentoProse id="security-headers" eyebrow="Harden the edge" heading="Security Headers">
 
 Add baseline security headers in the `server` block. These harden the site against clickjacking, MIME sniffing, and mixed content, and are checked by security scanners that can influence trust signals.
 
@@ -226,7 +324,9 @@ add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; prelo
 Only enable HSTS (`Strict-Transport-Security`) once you are certain every subdomain serves valid HTTPS. The `preload` directive is hard to reverse — browsers cache the policy for up to two years.
 </Aside>
 
-## Troubleshooting
+</BentoProse>
+
+<BentoProse id="troubleshooting" eyebrow="When it breaks" heading="Troubleshooting">
 
 <Steps>
 
@@ -244,18 +344,6 @@ Only enable HSTS (`Strict-Transport-Security`) once you are certain every subdom
 
 Logs live at `/var/log/nginx/access.log` and `/var/log/nginx/error.log` by default — the error log is where upstream and permission failures surface.
 
-## FAQ
+</BentoProse>
 
-**What is Nginx used for?**
-Nginx is a web server that also works as a reverse proxy, load balancer, and TLS terminator. It serves static files directly and forwards dynamic requests to upstream application servers.
-
-**Where is the main Nginx configuration file?**
-The primary file is `/etc/nginx/nginx.conf`. Site-specific server blocks usually live in `/etc/nginx/conf.d/` or `/etc/nginx/sites-available/` and are enabled by symlinking into `sites-enabled/`.
-
-**How do I reload Nginx without dropping connections?**
-Run `nginx -t` to validate the configuration, then `nginx -s reload` (or `systemctl reload nginx`). A reload applies new config with a graceful worker restart and no dropped connections, unlike a full restart.
-
-**What is a reverse proxy in Nginx?**
-A reverse proxy accepts client requests and forwards them to one or more backend servers using `proxy_pass`. Nginx handles TLS, caching, and load balancing in front of the application, which never faces the client directly.
-
-<Adsense />
+</BentoDoc>

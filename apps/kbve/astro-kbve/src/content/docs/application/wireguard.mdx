@@ -4,6 +4,12 @@ description: |
     WireGuard is a fast, modern, open-source VPN protocol that builds encrypted point-to-point tunnels with
     state-of-the-art cryptography and a tiny codebase. This guide covers the core concepts, a basic peer-to-peer
     setup, a full Kubernetes DaemonSet deployment, Docker, and Netmaker automation.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: WireGuard
     order: 100
@@ -35,21 +41,91 @@ jsonld:
           answer: PersistentKeepalive sends a small packet every N seconds to keep a NAT or firewall mapping open. It is needed when a peer sits behind NAT and must remain reachable; a value of 25 seconds is the common default.
         - question: What port does WireGuard use?
           answer: WireGuard uses a single UDP port, 51820 by default, set with ListenPort. Because it is UDP-only, you must allow that port through firewalls like ufw, iptables, or nftables on the server side.
+bento:
+    badge: application · network · vpn
+    title: 'Tunnels without the bloat,'
+    accent: WireGuard.
+    lede: >-
+        A fast, modern, open-source VPN protocol that builds encrypted
+        point-to-point tunnels with state-of-the-art cryptography and a tiny
+        codebase. This guide walks through the core peer-and-key model, the
+        smallest useful two-machine tunnel, a full Kubernetes DaemonSet
+        deployment, Docker, and mesh automation with Netmaker.
+    ctas:
+        - label: How it works
+          href: '#how-wireguard-works'
+          primary: true
+        - label: Peer-to-peer tunnel
+          href: '#basic-peer-to-peer-tunnel'
+        - label: Docker
+          href: '#docker'
+        - label: Netmaker
+          href: '#netmaker'
+    aside:
+        icon: lock
+        title: Peers, not clients
+        body: >-
+            WireGuard's model is symmetric — every device is a peer with a key
+            pair, and the public keys themselves form the access control list.
+            One UDP port, a handful of config lines, and the tunnel is up.
+        points:
+            - <strong>Keys</strong> — public keys are the ACL; generate with wg genkey.
+            - <strong>Routing</strong> — AllowedIPs decides what flows through each peer.
+            - <strong>NAT</strong> — PersistentKeepalive holds firewall mappings open.
+    stats:
+        - { label: Transport, value: UDP 51820, icon: network }
+        - { label: Codebase, value: ~4k LOC, icon: code }
+        - { label: Crypto, value: ChaCha20, icon: lock }
+        - { label: Keepalive, value: 25s, icon: clock }
+    features:
+        - title: How WireGuard works
+          icon: key
+          href: '#how-wireguard-works'
+          body: The peer model, key pairs, and the five config fields — PrivateKey, PublicKey, AllowedIPs, Endpoint, PersistentKeepalive — that do most of the work.
+        - title: Peer-to-peer + Kubernetes
+          icon: deploy
+          href: '#basic-peer-to-peer-tunnel'
+          body: The smallest useful two-machine tunnel, then a full step-by-step DaemonSet and ConfigMap deployment across cluster nodes.
+        - title: Docker
+          icon: package
+          href: '#docker'
+          body: Running WireGuard in a container — Compose notes, firewall prep, and opening UDP 51820 through ufw.
+        - title: Netmaker automation
+          icon: gears
+          href: '#netmaker'
+          body: Automate WireGuard meshes from homelab to enterprise with Netmaker's highly available Helm install.
+    related:
+        - title: Kubernetes
+          href: /application/kubernetes/
+          copy: The cluster platform the DaemonSet deployment runs on.
+          icon: deploy
+        - title: Docker
+          href: /application/docker/
+          copy: Container fundamentals behind the WireGuard Compose setup.
+          icon: package
+        - title: Linux
+          href: /application/linux/
+          copy: The kernel WireGuard lives in — sysadmin essentials.
+          icon: server
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1649429398909-db7ae841c386?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-	Aside,
-	Steps,
-	Card,
-	CardGrid,
-	Code,
-	FileTree,
-} from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 WireGuard is a modern, high-performance VPN application designed to be simple, fast, and secure.
 It utilizes state-of-the-art cryptography to establish encrypted connections between devices, ensuring privacy and security over the internet.
@@ -57,7 +133,9 @@ Unlike traditional VPN solutions, WireGuard is lightweight, with a minimal codeb
 It is cross-platform, supporting major operating systems like Linux, Windows, macOS, iOS, and Android, and is known for its ease of configuration and seamless integration into existing network infrastructures.
 WireGuard's efficiency and robust security make it an ideal choice for both personal and enterprise use.
 
-## How WireGuard Works
+</BentoProse>
+
+<BentoProse id="how-wireguard-works" eyebrow="Core concepts" heading="How WireGuard Works">
 
 WireGuard connects **peers**, not clients and servers — the model is symmetric. Each peer has a **key pair**: a private key it keeps secret and a public key it shares. A peer accepts an encrypted packet only if it is signed by a known public key listed in its config, so the public keys themselves form the access control list.
 
@@ -71,7 +149,9 @@ Three fields do most of the work in every config:
 | `Endpoint` | The remote peer's reachable `IP:port` |
 | `PersistentKeepalive` | Seconds between keepalives to hold a NAT mapping open |
 
-## Basic Peer-to-Peer Tunnel
+</BentoProse>
+
+<BentoProse id="basic-peer-to-peer-tunnel" eyebrow="Hands on" heading="Basic Peer-to-Peer Tunnel">
 
 Before the Kubernetes deployment, here is the smallest useful setup — two machines linked over a single UDP port. Generate a key pair on **each** peer:
 
@@ -336,9 +416,15 @@ Bring the tunnel up on both ends with `wg-quick up wg0` (and down with `wg-quick
 
 </Steps>
 
-<Adsense />
+</BentoProse>
 
-## Docker
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="docker" eyebrow="Containers" heading="Docker">
 
 Installing WireGuard on Docker!
 
@@ -358,11 +444,9 @@ Installing WireGuard on Docker!
         -   For: `ufw`
             -   To enable the port through `ufw` run `sudo allow 51821/udp`
 
+</BentoProse>
 
----
-
-
-## Netmaker
+<BentoProse id="netmaker" eyebrow="Mesh automation" heading="Netmaker">
 
 -   Netmaker is a Wireguard automation application that handles self-hosted homelabs to small business / enterprise networking.
 -   [Official Github Repo](https://github.com/gravitl/netmaker)
@@ -385,23 +469,6 @@ Installing WireGuard on Docker!
     -   `RWO` - `Read Write Once` - Storage instance where only a single node is allowed to access the storage volume at a time for read and write access.
     -   `RWX` - `Read Write Many` - Storage instance where many nodes can concurrently read and write to the storage volume.
 
----
+</BentoProse>
 
-## FAQ
-
-**What is WireGuard?**
-WireGuard is an open-source VPN protocol that creates fast, encrypted point-to-point tunnels. It uses modern cryptography, runs in the Linux kernel for high performance, and has a very small codebase — a few thousand lines — which reduces its attack surface.
-
-**How does WireGuard differ from OpenVPN?**
-WireGuard is far smaller and faster. It runs in the kernel with modern fixed cryptography and connects almost instantly, whereas OpenVPN runs in userspace with configurable ciphers and higher overhead. WireGuard configs are also much simpler.
-
-**What are `AllowedIPs` in a WireGuard config?**
-`AllowedIPs` serves two roles — it defines which source IPs are accepted from a peer (a cryptographic access control list) and which destination IPs are routed through that peer. Setting `0.0.0.0/0` routes all traffic through the tunnel.
-
-**What is `PersistentKeepalive` in WireGuard?**
-It sends a small packet every N seconds to keep a NAT or firewall mapping open. It is needed when a peer sits behind NAT and must stay reachable; a value of `25` seconds is the common default.
-
-**What port does WireGuard use?**
-WireGuard uses a single UDP port, `51820` by default, set with `ListenPort`. Because it is UDP-only, you must allow that port through firewalls like `ufw`, `iptables`, or `nftables` on the server side.
-
-<Adsense />
+</BentoDoc>

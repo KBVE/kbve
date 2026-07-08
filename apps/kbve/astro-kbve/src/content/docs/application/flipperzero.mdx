@@ -2,6 +2,12 @@
 title: FlipperZero
 description: |
     Flipper Zero is a pen test multi-tool! Think of it as a Swiss Army knife for wireless hacking.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: FlipperZero
     order: 9999
@@ -35,20 +41,89 @@ jsonld:
           answer: The NFC module operates at 13.56 MHz (ISO/IEC 18000-3) and can read, save, and emulate NFC cards, capturing data like UID, ATQA, and SAK. It supports many card types, though full ISO 15693 (NFC-V) support is limited. A microSD stores saved cards for later emulation.
         - question: How do I update Flipper Zero firmware?
           answer: The most reliable method is a direct USB cable update via the qFlipper desktop app, which avoids the corruption risk of wireless flashing. You can also update over the Flipper Mobile App or the web updater, but a wired qFlipper upgrade is recommended.
+bento:
+    badge: application · security · redteam
+    title: 'The cyber-buddy,'
+    accent: Flipper Zero.
+    lede: >-
+        A portable pentest multi-tool with a Tamagotchi-like personality —
+        Sub-GHz radio, NFC and RFID, infrared, iButton, and GPIO in one
+        pocketable device. This guide covers official and custom firmware,
+        safe updating over qFlipper, the CC1101 Sub-GHz radio, the 13.56 MHz
+        NFC module, and the pyFlipper CLI wrapper.
+    ctas:
+        - label: Firmware
+          href: '#firmware'
+          primary: true
+        - label: Sub-GHz radio
+          href: '#ghz'
+        - label: NFC module
+          href: '#nfc'
+    aside:
+        icon: sensor
+        title: A Swiss Army knife for wireless
+        body: >-
+            Flipper Zero reads, saves, and emulates the signals that surround
+            you — radio remotes, access cards, infrared blasters — with full
+            access to its source code and hardware design so you can tailor
+            it to your own needs.
+        points:
+            - <strong>Firmware</strong> — stock, dev, and custom forks like Unleashed.
+            - <strong>Sub-GHz</strong> — CC1101 radio across three bands.
+            - <strong>NFC</strong> — read, save, and emulate 13.56 MHz cards.
+    stats:
+        - { label: Sub-GHz chipset, value: CC1101, icon: sensor }
+        - { label: NFC frequency, value: '13.56 MHz', icon: network }
+        - { label: Firmware slots, value: New + Old, icon: package }
+        - { label: Updater, value: qFlipper, icon: deploy }
+    features:
+        - title: Firmware
+          icon: package
+          href: '#firmware'
+          body: Official, release candidate, dev, and custom builds — including the Unleashed fork and its RogueMaster variant.
+        - title: Sub-GHz radio
+          icon: sensor
+          href: '#ghz'
+          body: The CC1101 radio reads, records, and replays signals across the 300-348, 387-464, and 779-928 MHz bands.
+        - title: NFC module
+          icon: key
+          href: '#nfc'
+          body: Read, save, and emulate 13.56 MHz NFC cards — UID, ATQA, SAK — with saved cards stored on microSD.
+        - title: Authorized targets only
+          icon: shield
+          body: Only interact with signals and access-control systems you own or are explicitly authorized to test — cloning others' is illegal in most jurisdictions.
+    related:
+        - title: Nmap
+          href: /application/nmap/
+          copy: Network scanning and recon to pair with hardware pentesting.
+          icon: eye
+        - title: WireGuard
+          href: /application/wireguard/
+          copy: Modern VPN tunnels for securing your own infrastructure.
+          icon: lock
+        - title: Linux
+          href: /application/linux/
+          copy: The sysadmin foundation beneath every security toolkit.
+          icon: server
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1525826212383-92e29530133e?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Flipper Zero is a portable multi-tool device for geeks that can interact with various digital systems in real life, such as RFID, radio protocols, access control systems and more.
 It gives you full access to its source code and design, so you can tailor it to your own needs and preferences.
@@ -60,10 +135,15 @@ This guide covers [firmware](#firmware) (official and custom), [updating](#updat
 Only interact with radio signals, NFC/RFID cards, and access-control systems you own or are explicitly authorized to test. Cloning or replaying signals against systems you don't own is illegal in most jurisdictions.
 </Aside>
 
-<Adsense />
----
+</BentoProse>
 
-## Firmware
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="firmware" eyebrow="Stock and custom" heading="Firmware">
 
 > The bundles of joy when installing various firmware for your flipperzero!
 > The main chipset on the FlipperZero stores both a "New" and "Old" firmware, thus making it a bit easier to custom load your firmware without the higher risk of bricking your device. Granted there is always a risk of bricking your device, so be very careful! Make sure wires are tight and your machine is charged.
@@ -93,10 +173,9 @@ Forked Unleashed Firmware include:
 [RogueMaster](https://github.com/RogueMaster/flipperzero-firmware-wPlugins)
 [v1nc](https://github.com/v1nc/flipperzero-firmware)
 
+</BentoProse>
 
----
-
-## Update
+<BentoProse id="update" eyebrow="Keep it fresh" heading="Update">
 
 Once you get your hands on the flipperzero, we recommend that you update it to the latest firmware via qFlipper application, links below:
 
@@ -105,9 +184,9 @@ Github Repo Updates - [Release Page](https://github.com/flipperdevices/qFlipper/
 
 There are other methods of updating, including Mobile and Web but from experience, I recommend sticking with a direct cable upgrade, to avoid possible firmware corruption.
 
----
+</BentoProse>
 
-## GHz
+<BentoProse id="ghz" eyebrow="Sub-GHz radio" heading="GHz">
 
 -   The frequencies that FlipperZero operates in are `300-348 MHz`, `387-464 MHz` and `779-928 MHz` bands through the `CC1101` chipset.
 
@@ -126,17 +205,16 @@ There are other methods of updating, including Mobile and Web but from experienc
 
 -   315Ghz - Common frequency that car fobs operate in.
 
----
+</BentoProse>
 
-
-## GUI
+<BentoProse id="gui" eyebrow="Design tooling" heading="GUI">
 
 To help with designing the GUI, we recommend checking out `Flipper UI` , which is an amazing tool for quick edits.
 Source for it can be found here : [FUI-EDITOR](https://github.com/sbrin/ilin.pt/tree/main/_stuff/fui-editor)
 
----
+</BentoProse>
 
-## NFC
+<BentoProse id="nfc" eyebrow="13.56 MHz" heading="NFC">
 
 These are notes on the `NFC` aspect of the device.
 
@@ -155,29 +233,12 @@ These are notes on the `NFC` aspect of the device.
 -   NFC-V
     -   Currently does not fully support ISO 15693.
 
----
+</BentoProse>
 
-## pyFlipper
+<BentoProse id="pyflipper" eyebrow="CLI wrapper" heading="pyFlipper">
 
 This is an unofficial cli wrapper for the Flipper Zero device and we will integrate it with our current eco-system, including the possible future expansion into our core IoT project.
 
----
+</BentoProse>
 
-## FAQ
-
-**What is the Flipper Zero?**
-Flipper Zero is a portable, open-source multi-tool for pentesters and hardware hobbyists. It reads, saves, and emulates a range of wireless and access-control signals — Sub-GHz radio, NFC and RFID cards, infrared, iButton, and GPIO — behind a playful Tamagotchi-like interface.
-
-**What is custom firmware for the Flipper Zero?**
-Custom firmware replaces the official firmware to unlock extra features, protocols, and plugins the stock build restricts. Popular forks include [Unleashed](https://github.com/DarkFlippers/unleashed-firmware) and its RogueMaster fork. The chip stores a New and Old firmware slot, which lowers (but does not remove) the risk of bricking when flashing.
-
-**What frequencies does the Flipper Zero Sub-GHz radio use?**
-The Sub-GHz module uses the CC1101 chipset and operates in the `300-348 MHz`, `387-464 MHz`, and `779-928 MHz` bands. Common targets include 315 MHz and 433 MHz car key fobs and remotes, within the limits of local radio regulations.
-
-**How does NFC work on the Flipper Zero?**
-The NFC module operates at 13.56 MHz (ISO/IEC 18000-3) and can read, save, and emulate NFC cards, capturing data like UID, ATQA, and SAK. It supports many card types, though full ISO 15693 (NFC-V) support is limited.
-
-**How do I update Flipper Zero firmware?**
-The most reliable method is a direct USB cable update via the qFlipper desktop app, which avoids the corruption risk of wireless flashing. You can also update over the Flipper Mobile App or web updater, but a wired qFlipper upgrade is recommended.
-
-<Adsense />
+</BentoDoc>

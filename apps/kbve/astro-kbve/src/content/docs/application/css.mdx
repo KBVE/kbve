@@ -2,6 +2,12 @@
 title: CSS
 description: |
     CSS styles the web. From modern CSS features to TailwindCSS utilities and ready-to-use custom components.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: CSS
     order: 402
@@ -12,20 +18,92 @@ tags:
     - tailwindcss
     - frontend
     - web
+bento:
+    badge: application · css · frontend
+    title: 'Style the web with,'
+    accent: CSS.
+    lede: >-
+        The styling layer of the web — layout, color, typography, motion and
+        responsiveness. This all-in-one reference covers modern CSS features
+        that ship in evergreen browsers today, the TailwindCSS utility
+        framework, and a library of copy-paste custom components, from buttons
+        and forms to text effects and glassmorphism.
+    ctas:
+        - label: Modern CSS
+          href: '#modern-css'
+          primary: true
+        - label: TailwindCSS
+          href: '#tailwindcss'
+        - label: Custom components
+          href: '#custom-components'
+        - label: Accessibility
+          href: '#accessibility'
+    aside:
+        icon: code
+        title: Form follows function
+        body: >-
+            Where HTML gives a page structure and JavaScript gives it behavior,
+            CSS gives it form. Modern CSS removed the need for preprocessor
+            tricks and JavaScript hacks — nesting, container queries and
+            scroll-driven animation now ship natively.
+        points:
+            - <strong>Modern features</strong> — nesting, :has(), container queries, view transitions.
+            - <strong>Tailwind v4</strong> — CSS-first config with @theme, no config file.
+            - <strong>Components</strong> — live, copy-paste buttons, cards, forms and effects.
+    stats:
+        - { label: First shipped, value: '1996', icon: calendar }
+        - { label: Tailwind, value: v4 CSS-first, icon: zap }
+        - { label: Layout engines, value: Grid + Flexbox, icon: expand }
+        - { label: Live snippets, value: 80+ demos, icon: package }
+    features:
+        - title: Modern CSS
+          icon: code
+          href: '#modern-css'
+          body: Nesting, :has(), container queries, oklch colors, subgrid, scroll-driven animations and view transitions — baseline in evergreen browsers.
+        - title: TailwindCSS
+          icon: zap
+          href: '#tailwindcss'
+          body: Utility-first styling with the v4 CSS-first setup, plus a full gallery of animated and everyday button patterns.
+        - title: Custom components
+          icon: package
+          href: '#custom-components'
+          body: Copy-paste text effects, glass cards, spinners, toggles, tooltips, tabs, timelines and more — all live demos.
+        - title: Accessibility
+          icon: shield
+          href: '#accessibility'
+          body: Visible focus with :focus-visible, screen-reader-only text, contrast and reduced-motion patterns that carry the weight.
+    related:
+        - title: JavaScript
+          href: /application/javascript/
+          copy: The behavior layer that pairs with your styles.
+          icon: code
+        - title: React Native
+          href: /application/rn/
+          copy: KBVE's Expo mobile stack, styled component by component.
+          icon: box
+        - title: Git
+          href: /application/git/
+          copy: Version every stylesheet and design token change.
+          icon: branch
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-Aside,
-Steps,
-Card,
-CardGrid,
-Code,
-FileTree,
-} from '@astrojs/starlight/components';
-
+import { Aside, Steps } from '@astrojs/starlight/components';
 import { Giscus, Adsense, DevCode } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Information
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 CSS (Cascading Style Sheets) is the styling layer of the web.
 It controls layout, color, typography, motion and responsiveness.
@@ -37,9 +115,9 @@ This document is an all-in-one reference: modern CSS features that ship in everg
 Looking for TailwindCSS? It now lives here. The old snippets from the JavaScript page were migrated into this dedicated CSS reference.
 </Aside>
 
----
+</BentoProse>
 
-## Modern CSS
+<BentoProse id="modern-css" eyebrow="Baseline today" heading="Modern CSS">
 
 Modern CSS removed the need for many preprocessor tricks and JavaScript hacks.
 The features below are baseline across current Chrome, Firefox, Safari and Edge.
@@ -286,9 +364,9 @@ Logical properties adapt to writing direction (LTR / RTL) automatically.
 Other modern wins worth knowing: `accent-color` (themes checkboxes/radios), `aspect-ratio` (no padding hack), `scrollbar-gutter: stable` (no layout shift on scroll), `:is()` / `:where()` (selector grouping, `:where()` has zero specificity), and `gap` on flexbox.
 </Aside>
 
----
+</BentoProse>
 
-## Layout Patterns
+<BentoProse id="layout-patterns" eyebrow="Flex and Grid" heading="Layout Patterns">
 
 The two layout engines — Flexbox (one dimension) and Grid (two dimensions) — cover almost every layout. A handful of patterns recur constantly.
 
@@ -372,9 +450,9 @@ main {
 Unlayered styles beat layered ones, so anything outside a layer always wins — useful for one-off overrides, dangerous if used by accident.
 </Aside>
 
----
+</BentoProse>
 
-## Typography
+<BentoProse id="typography" eyebrow="Readable type" heading="Typography">
 
 Readable type is mostly a few well-chosen defaults: a sensible measure, comfortable line height, and a scale that adapts to the viewport.
 
@@ -445,9 +523,9 @@ export const truncateCode = `<div class="max-w-xs p-6 space-y-4 bg-white rounded
 `truncate` = `overflow:hidden; text-overflow:ellipsis; white-space:nowrap`. `line-clamp-N` uses `-webkit-line-clamp` (now standardized) for the multi-line version.
 </Aside>
 
----
+</BentoProse>
 
-## Transitions & Animation
+<BentoProse id="transitions-animation" eyebrow="Motion done right" heading="Transitions & Animation">
 
 Two mechanisms: `transition` interpolates between two states (a hover, a class toggle), while `@keyframes` + `animation` runs a defined timeline that can loop and have many steps.
 
@@ -621,9 +699,9 @@ export const fxFlipCode = `<style>
 Every demo here loops or runs on hover purely for illustration. In production wrap looping motion in `@media (prefers-reduced-motion: no-preference)` so it respects the user's setting.
 </Aside>
 
----
+</BentoProse>
 
-## Effects & Filters
+<BentoProse id="effects-filters" eyebrow="GPU visuals" heading="Effects & Filters">
 
 CSS can do a lot of what once needed image editors — blur, recolor, clip and blend — all GPU-accelerated and animatable.
 
@@ -696,9 +774,15 @@ export const fxMaskCode = `<div class="p-10 bg-gray-900">
 `backdrop-filter` and `mask-image` still want the `-webkit-` prefix for older Safari. Always provide a readable fallback — if the filter is unsupported, the panel should stay legible on its own.
 </Aside>
 
----
+</BentoProse>
 
-## TailwindCSS
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="tailwindcss" eyebrow="Utility-first" heading="TailwindCSS">
 
 TailwindCSS is a utility-first CSS framework. Instead of writing custom CSS, you compose designs from low-level utility classes directly in your markup.
 This promotes consistency, reusability and speed, and the production build strips every class you do not use.
@@ -1401,9 +1485,9 @@ module.exports = {
 };
 ```
 
----
+</BentoProse>
 
-## Responsive & Dark Mode
+<BentoProse id="responsive-dark-mode" eyebrow="Adaptive design" heading="Responsive & Dark Mode">
 
 Tailwind styles mobile-first: an unprefixed utility applies everywhere, and a breakpoint prefix applies at that width **and up**.
 
@@ -1453,9 +1537,9 @@ Pure CSS equivalent, no framework:
 `color-scheme: light dark` tells the browser to render native form controls, scrollbars and `system` colors for the active theme automatically.
 </Aside>
 
----
+</BentoProse>
 
-## Accessibility
+<BentoProse id="accessibility" eyebrow="Inclusive by default" heading="Accessibility">
 
 Good CSS is accessible CSS. A few patterns carry most of the weight.
 
@@ -1497,9 +1581,9 @@ Visually hide content while keeping it in the accessibility tree (Tailwind ships
 Other quick wins: keep text contrast at WCAG AA (4.5:1 for body copy), never convey meaning by color alone, honor `prefers-reduced-motion`, and ensure interactive targets are at least 24×24px.
 </Aside>
 
----
+</BentoProse>
 
-## Forms & Inputs
+<BentoProse id="forms-inputs" eyebrow="Native controls" heading="Forms & Inputs">
 
 Forms carry the most CSS edge cases — native controls, focus states and validation feedback. Modern CSS handles most of it without JavaScript.
 
@@ -1568,9 +1652,15 @@ export const floatingLabelCode = `<form class="p-8 max-w-sm bg-white rounded-lg"
 
 <DevCode htmlCode={floatingLabelCode} />
 
----
+</BentoProse>
 
-## Custom Components
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="custom-components" eyebrow="Copy-paste library" heading="Custom Components">
 
 Reusable visual effects. Text-effect snippets use arbitrary values (`[text-shadow:...]`) so they render on any Tailwind build, with the native v4 utility noted alongside.
 
@@ -2014,10 +2104,12 @@ export const kbdCode = `<div class="flex items-center gap-2 p-10 text-gray-700 b
 
 <DevCode htmlCode={kbdCode} />
 
----
+</BentoProse>
 
-<Adsense />
+</BentoDoc>
 
-## Comments
-
-<Giscus />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Giscus />
+	</div>
+</section>

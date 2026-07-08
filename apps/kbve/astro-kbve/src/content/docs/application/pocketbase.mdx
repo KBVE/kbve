@@ -4,6 +4,12 @@ description: |
     PocketBase is an open-source backend in a single file — an embedded SQLite database with a realtime REST API,
     authentication, file storage, and an admin dashboard. This guide covers installing it with Docker Compose,
     the CLI, and Coolify, plus collections, auth, and the realtime API.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Pocketbase
     order: 1010
@@ -33,21 +39,88 @@ jsonld:
           answer: The admin dashboard is served at /_/ on the PocketBase host, for example http://localhost:8090/_/. On first launch you create the initial admin account there, then manage collections, records, users, and settings.
         - question: Is PocketBase a good alternative to Firebase?
           answer: For small to medium self-hosted projects, yes. PocketBase offers realtime subscriptions, auth, and file storage with no vendor lock-in and a single-file deployment. It runs on SQLite, so it suits single-node workloads rather than horizontally sharded, massive-scale apps.
+bento:
+    badge: application · database · self-hosted
+    title: 'A whole backend in one file,'
+    accent: PocketBase.
+    lede: >-
+        An open-source backend packaged as a single executable — embedded
+        SQLite, a realtime REST API, authentication, file storage, and an
+        admin dashboard with nothing else to install. This guide installs it
+        with Docker Compose, the CLI, and Coolify, then walks the first run
+        and the realtime API.
+    ctas:
+        - label: Install
+          href: '#install'
+          primary: true
+        - label: First run
+          href: '#first-run'
+        - label: Realtime API
+          href: '#rest-and-realtime-api'
+    aside:
+        icon: database
+        title: Firebase, without the lock-in
+        body: >-
+            Define collections in the admin UI and PocketBase instantly
+            exposes CRUD endpoints and realtime subscriptions for them — a
+            lightweight self-hosted alternative to Firebase or Supabase.
+        points:
+            - <strong>SQLite</strong> — the whole database lives in /pb_data.
+            - <strong>Auth</strong> — email/password and OAuth2 built in.
+            - <strong>Realtime</strong> — live record updates over SSE.
+    stats:
+        - { label: Database, value: SQLite, icon: database }
+        - { label: Default port, value: '8090', icon: network }
+        - { label: Admin UI, value: /_/, icon: settings }
+        - { label: Extend with, value: Go · JS hooks, icon: code }
+    features:
+        - title: Install
+          icon: package
+          href: '#install'
+          body: Three ways up — Docker Compose, the Docker CLI, or a one-click Coolify service.
+        - title: First Run
+          icon: zap
+          href: '#first-run'
+          body: Create the admin account, build your first collection, and set API rules with filter expressions.
+        - title: REST and Realtime API
+          icon: bolt
+          href: '#rest-and-realtime-api'
+          body: CRUD every collection over plain HTTP, then subscribe to live record changes with the JS SDK.
+        - title: Persist pb_data
+          icon: shield
+          body: Everything — database, uploads, logs — lives under /pb_data. Mount it to a persistent volume so data survives restarts and upgrades.
+    related:
+        - title: Supabase
+          href: /application/supabase/
+          copy: The Postgres-powered big sibling in the self-hosted BaaS space.
+          icon: database
+        - title: Appwrite
+          href: /application/appwrite/
+          copy: Another open-source backend platform with auth and storage.
+          icon: server
+        - title: Docker
+          href: /application/docker/
+          copy: The container runtime behind the Compose and CLI installs.
+          icon: package
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?q=80&w=2400&auto=format&fit=crop
+        accent: '#34d399'
+        accent2: '#22d3ee'
+        btn_fg: '#06251b'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-
-## Overview
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
 
 PocketBase is an open-source backend that ships as a **single executable file**. Inside that one binary you get an embedded SQLite database, a realtime REST API, user authentication (email/password and OAuth2), file storage, and a full admin dashboard. There is nothing else to install — no separate database server, no message broker, no dependency stack.
 
@@ -57,9 +130,15 @@ That makes PocketBase a lightweight, self-hosted alternative to Firebase or Supa
 PocketBase stores everything under `/pb_data` (the SQLite database, uploaded files, and logs). Always mount that directory to a persistent volume so your data survives container restarts and upgrades.
 </Aside>
 
-<Adsense />
+</BentoProse>
 
-## Install
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="install" eyebrow="Three ways up" heading="Install">
 
 Do you want to get Pocketbase up and running?
 
@@ -119,7 +198,9 @@ Installing Pocketbase through Coolify is extremely easy!
 3. Select `Pocketbase`
 4. Done! Fill in the URL and then head over the admin panel, `domain.com/_/`.
 
-## First Run
+</BentoProse>
+
+<BentoProse id="first-run" eyebrow="Admin and collections" heading="First Run">
 
 Once the container is up, open the admin dashboard and create your first admin account:
 
@@ -135,7 +216,9 @@ Once the container is up, open the admin dashboard and create your first admin a
 
 </Steps>
 
-## REST and Realtime API
+</BentoProse>
+
+<BentoProse id="rest-and-realtime-api" eyebrow="Live data" heading="REST and Realtime API">
 
 Every collection is served under `/api/collections/{name}/records`. Fetching records is a plain HTTP call:
 
@@ -167,18 +250,6 @@ pb.collection('posts').subscribe('*', (e) => {
 PocketBase can also be extended in Go (as a framework) or with JavaScript hooks in the `pb_hooks` directory — useful for custom endpoints, validation, and scheduled jobs without a separate service.
 </Aside>
 
-## FAQ
+</BentoProse>
 
-**What is PocketBase?**
-PocketBase is an open-source backend packaged as a single executable. It bundles an embedded SQLite database, a realtime REST API, user authentication, file storage, and an admin dashboard, making it a lightweight self-hosted alternative to Firebase or Supabase.
-
-**How do I run PocketBase with Docker?**
-Use a `docker-compose.yml` with a PocketBase image such as `ghcr.io/muchobien/pocketbase`, expose port `8090`, and mount volumes for `/pb_data` (database) and optionally `/pb_public` (static files). Then run `docker compose up -d` and open the admin UI at `/_/`.
-
-**Where is the PocketBase admin dashboard?**
-The admin dashboard is served at `/_/` on the PocketBase host, for example `http://localhost:8090/_/`. On first launch you create the initial admin account there, then manage collections, records, users, and settings.
-
-**Is PocketBase a good alternative to Firebase?**
-For small to medium self-hosted projects, yes. PocketBase offers realtime subscriptions, auth, and file storage with no vendor lock-in and a single-file deployment. It runs on SQLite, so it suits single-node workloads rather than horizontally sharded, massive-scale apps.
-
-<Adsense />
+</BentoDoc>
