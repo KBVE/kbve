@@ -414,7 +414,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.61",
+			"version": "1.0.62",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -425,7 +425,7 @@
 			"has_test": true,
 			"external_publish": {
 				"modrinth_mod_id": "QoFCg0tO",
-				"modrinth_pack_id": "GktWTywL",
+				"modrinth_pack_id": "86Wqkiak",
 				"modrinth_version_type": "release",
 				"modrinth_game_versions": "[\"1.21.11\"]",
 				"modrinth_loaders": "[\"fabric\"]",
