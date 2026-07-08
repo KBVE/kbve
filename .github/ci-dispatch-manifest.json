@@ -414,7 +414,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.58",
+			"version": "1.0.60",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -428,7 +428,8 @@
 				"modrinth_pack_id": "GktWTywL",
 				"modrinth_version_type": "release",
 				"modrinth_game_versions": "[\"1.21.11\"]",
-				"modrinth_loaders": "[\"fabric\"]"
+				"modrinth_loaders": "[\"fabric\"]",
+				"modrinth_server_address": "mc.kbve.com"
 			}
 		},
 		{
