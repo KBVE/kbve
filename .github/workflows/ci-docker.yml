@@ -299,6 +299,7 @@ jobs:
         secrets:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
+            MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
             ITCH_API_KEY: ${{ secrets.ITCH_API }}
             STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
             STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}

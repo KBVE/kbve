@@ -1,0 +1,25 @@
+# Hash-pinned dependency closure for mint_modrinth_session.py.
+# Resolved for CPython 3.12 / manylinux2014 x86_64 (the ubuntu CI runner).
+# Regenerate with:
+#   pip download --only-binary=:all: --python-version 3.12 \
+#     --platform manylinux2014_x86_64 --abi cp312 --implementation cp \
+#     -d out "cryptography==<v>" "requests==<v>"
+#   then sha256 each wheel.
+# Install with: pip install --require-hashes -r requirements-modrinth.txt
+cryptography==44.0.3 \
+    --hash=sha256:192ed30fac1728f7587c6f4613c29c584abdc565d7417c13904708db10206645
+requests==2.32.5 \
+    --hash=sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6
+# transitive deps (pinned so --require-hashes is satisfiable)
+cffi==2.1.0 \
+    --hash=sha256:1e9f50d192a3e525b15a75ab5114e442d83d657b7ec29182a991bc9a88fd3a66
+pycparser==3.0 \
+    --hash=sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992
+certifi==2026.6.17 \
+    --hash=sha256:2227dcbaafe0d2f59279d1762ddddc37783ed4354594f194ffc31d20f41fc3db
+charset-normalizer==3.4.9 \
+    --hash=sha256:5e226f6218febc71f6c1fc2fafb91c226f75bdc1d8fb12d66823716e891608fd
+idna==3.18 \
+    --hash=sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2
+urllib3==2.7.0 \
+    --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
