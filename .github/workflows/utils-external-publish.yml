@@ -59,6 +59,10 @@ jobs:
         timeout-minutes: 25
         permissions:
             contents: read
+        outputs:
+            pack_id: ${{ steps.ep.outputs.pack_id }}
+            server_address: ${{ steps.ep.outputs.server_address }}
+            mrpack_version_id: ${{ steps.pub_mrpack.outputs.version_id }}
         defaults:
             run:
                 shell: bash
@@ -302,21 +306,29 @@ jobs:
                   echo "Published mrpack — version id $NEW_ID"
                   echo "version_id=$NEW_ID" >> "$GITHUB_OUTPUT"
 
-            - name: Set up Python for Modrinth session minting
-              if: |
-                  steps.ep.outputs.pack_id != '' &&
-                  steps.ep.outputs.server_address != '' &&
-                  steps.pub_mrpack.outputs.version_id != ''
+    modrinth_listing:
+        name: Modrinth server listing (${{ inputs.app_name }})
+        needs: [modrinth]
+        if: |
+            needs.modrinth.result == 'success' &&
+            needs.modrinth.outputs.pack_id != '' &&
+            needs.modrinth.outputs.server_address != '' &&
+            needs.modrinth.outputs.mrpack_version_id != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Set up Python
               uses: actions/setup-python@v6
               with:
                   python-version: '3.12'
 
             - name: Mint Modrinth session token
               id: mint_session
-              if: |
-                  steps.ep.outputs.pack_id != '' &&
-                  steps.ep.outputs.server_address != '' &&
-                  steps.pub_mrpack.outputs.version_id != ''
               env:
                   MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
               run: |
@@ -333,15 +345,11 @@ jobs:
                   echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
             - name: Update Modrinth `minecraft_java_server` listing → new version_id
-              if: |
-                  steps.ep.outputs.pack_id != '' &&
-                  steps.ep.outputs.server_address != '' &&
-                  steps.pub_mrpack.outputs.version_id != ''
               env:
                   MODRINTH_SESSION: ${{ steps.mint_session.outputs.token }}
-                  PACK_PROJECT_ID: ${{ steps.ep.outputs.pack_id }}
-                  SERVER_ADDRESS: ${{ steps.ep.outputs.server_address }}
-                  NEW_VERSION_ID: ${{ steps.pub_mrpack.outputs.version_id }}
+                  PACK_PROJECT_ID: ${{ needs.modrinth.outputs.pack_id }}
+                  SERVER_ADDRESS: ${{ needs.modrinth.outputs.server_address }}
+                  NEW_VERSION_ID: ${{ needs.modrinth.outputs.mrpack_version_id }}
               run: |
                   set -euo pipefail
                   if [ -z "${MODRINTH_SESSION:-}" ]; then
