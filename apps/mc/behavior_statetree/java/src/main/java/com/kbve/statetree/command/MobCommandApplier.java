@@ -61,6 +61,7 @@ public final class MobCommandApplier {
 
     private void applyMoveTo(CommandContext ctx, AiCommand.MoveTo cmd) {
         ctx.mob().getNavigation().startMovingTo(cmd.x(), cmd.y(), cmd.z(), cmd.speed());
+        NpcPlanBroadcaster.broadcast(ctx.mob(), "move_to", cmd.x(), cmd.y(), cmd.z(), -1);
     }
 
     private void applyAttack(CommandContext ctx, AiCommand.Attack cmd) {
@@ -68,6 +69,8 @@ public final class MobCommandApplier {
         if (target != null && target.isAlive()) {
             ctx.mob().tryAttack(ctx.world(), target);
             ctx.mob().lookAtEntity(target, 30.0f, 30.0f);
+            NpcPlanBroadcaster.broadcast(ctx.mob(), "attack",
+                    target.getX(), target.getY(), target.getZ(), target.getId());
         }
     }
 
@@ -137,6 +140,8 @@ public final class MobCommandApplier {
         world.spawnParticles(ParticleTypes.PORTAL,
                 cmd.x(), cmd.y() + 1.0, cmd.z(),
                 32, 0.5, 1.0, 0.5, 0.1);
+
+        NpcPlanBroadcaster.broadcast(mob, "teleport", cmd.x(), cmd.y(), cmd.z(), -1);
     }
 
     private void applyShootArrow(CommandContext ctx, AiCommand.ShootArrow cmd) {
